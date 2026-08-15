@@ -13,7 +13,13 @@ interface RecordItem {
   values: Record<string, string>;
 }
 
-export default function RecordsPage({ onReauth }: { onReauth?: () => void }) {
+export default function RecordsPage({
+  onReauth,
+  initialFormType,
+}: {
+  onReauth?: () => void;
+  initialFormType?: 'income' | 'expense';
+}) {
   const [forms, setForms] = useState<CustomForm[]>([]);
   const [activeFormId, setActiveFormId] = useState('');
   const [records, setRecords] = useState<RecordItem[]>([]);
@@ -53,8 +59,15 @@ export default function RecordsPage({ onReauth }: { onReauth?: () => void }) {
     const settings = getSettings();
     if (!settings) return;
     setForms(settings.forms);
+    if (initialFormType) {
+      const form = settings.forms.find((f) => f.type === initialFormType);
+      if (form) {
+        setActiveFormId(form.id);
+        return;
+      }
+    }
     if (settings.forms.length) setActiveFormId(settings.forms[0].id);
-  }, []);
+  }, [initialFormType]);
 
   useEffect(() => {
     if (activeFormId && isConfigured()) loadRecords();
@@ -82,7 +95,13 @@ export default function RecordsPage({ onReauth }: { onReauth?: () => void }) {
         {forms.map((form) => (
           <button
             key={form.id}
-            className={activeFormId === form.id ? 'active' : ''}
+            className={[
+              activeFormId === form.id ? 'active' : '',
+              form.type === 'income' ? 'tab-income' : '',
+              form.type === 'expense' ? 'tab-expense' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
             onClick={() => setActiveFormId(form.id)}
             type="button"
           >

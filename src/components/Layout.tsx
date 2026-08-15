@@ -39,16 +39,36 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     wallet: 'کیف پول',
   };
 
+  const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
+
   const handleTabChange = (newTab: Tab) => {
     setShowSettings(false);
+    if (newTab !== 'records') setRecordsFormType(undefined);
     setTab(newTab);
+  };
+
+  const openRecords = (formType?: 'income' | 'expense') => {
+    setShowSettings(false);
+    setRecordsFormType(formType);
+    setTab('records');
   };
 
   return (
     <div className="app-layout">
       <header className="app-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          {userPicture && (
+          {!showSettings && tab === 'records' && (
+            <button
+              type="button"
+              className="header-icon-btn"
+              onClick={() => handleTabChange('dashboard')}
+              aria-label="بازگشت به داشبورد"
+              title="بازگشت"
+            >
+              →
+            </button>
+          )}
+          {userPicture && tab !== 'records' && (
             <img
               src={userPicture}
               alt=""
@@ -76,9 +96,13 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           <SettingsPage onLogout={onLogout} />
         ) : (
           <>
-            {tab === 'dashboard' && <DashboardPage onReauth={onReauth} />}
+            {tab === 'dashboard' && (
+              <DashboardPage onReauth={onReauth} onViewRecords={openRecords} />
+            )}
             {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
-            {tab === 'records' && <RecordsPage onReauth={onReauth} />}
+            {tab === 'records' && (
+              <RecordsPage onReauth={onReauth} initialFormType={recordsFormType} />
+            )}
             {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
             {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
             {tab === 'treasury' && <TreasuryPage onReauth={onReauth} />}
@@ -89,7 +113,9 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
 
       <nav className="bottom-nav">
         <button
-          className={!showSettings && tab === 'dashboard' ? 'active' : ''}
+          className={
+            !showSettings && (tab === 'dashboard' || tab === 'records') ? 'active' : ''
+          }
           onClick={() => handleTabChange('dashboard')}
         >
           <span className="icon">📊</span>
@@ -101,13 +127,6 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         >
           <span className="icon">✏️</span>
           ثبت
-        </button>
-        <button
-          className={!showSettings && tab === 'records' ? 'active' : ''}
-          onClick={() => handleTabChange('records')}
-        >
-          <span className="icon">📋</span>
-          رکوردها
         </button>
         <button
           className={!showSettings && tab === 'installments' ? 'active' : ''}

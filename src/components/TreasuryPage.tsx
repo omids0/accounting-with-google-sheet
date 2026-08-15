@@ -367,7 +367,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={saving}>
+          <button type="submit" className="btn btn-outflow" disabled={saving}>
             {saving && <span className="spinner" />}
             ذخیره خرید
           </button>
@@ -510,7 +510,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button
                             type="button"
-                            className="btn btn-primary btn-sm"
+                            className="btn btn-outflow btn-sm"
                             disabled={sellingAsset === holding.assetType}
                             onClick={() =>
                               handleSell(holding.assetType, holding.netQuantity)

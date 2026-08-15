@@ -109,7 +109,13 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
         {forms.map((form) => (
           <button
             key={form.id}
-            className={activeFormId === form.id ? 'active' : ''}
+            className={[
+              activeFormId === form.id ? 'active' : '',
+              form.type === 'income' ? 'tab-income' : '',
+              form.type === 'expense' ? 'tab-expense' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
             onClick={() => selectForm(form)}
             type="button"
           >
@@ -181,7 +187,17 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
             </div>
           ))}
 
-          <button type="submit" className="btn btn-primary" disabled={loading}>
+          <button
+            type="submit"
+            className={`btn ${
+              activeForm.type === 'expense'
+                ? 'btn-outflow'
+                : activeForm.type === 'income'
+                  ? 'btn-inflow'
+                  : 'btn-primary'
+            }`}
+            disabled={loading}
+          >
             {loading && <span className="spinner" />}
             ذخیره در گوگل شیت
           </button>

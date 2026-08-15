@@ -48,7 +48,13 @@ function getCategoryOptions(
   return [...new Set([...configured, ...fromRecords])];
 }
 
-export default function DashboardPage({ onReauth }: { onReauth?: () => void }) {
+export default function DashboardPage({
+  onReauth,
+  onViewRecords,
+}: {
+  onReauth?: () => void;
+  onViewRecords?: (formType?: 'income' | 'expense') => void;
+}) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -231,9 +237,24 @@ export default function DashboardPage({ onReauth }: { onReauth?: () => void }) {
       <div className="card">
         <div className="card-header-row">
           <h3 className="chart-title">آخرین تراکنش‌ها</h3>
-          <button className="btn btn-secondary btn-sm" onClick={load} disabled={loading}>
-            ↻
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {!!data?.recentRecords.length && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() =>
+                  onViewRecords?.(
+                    typeFilter === 'all' ? undefined : typeFilter
+                  )
+                }
+              >
+                جزئیات بیشتر
+              </button>
+            )}
+            <button className="btn btn-secondary btn-sm" onClick={load} disabled={loading}>
+              ↻
+            </button>
+          </div>
         </div>
 
         <div className="transaction-filters">
@@ -247,14 +268,14 @@ export default function DashboardPage({ onReauth }: { onReauth?: () => void }) {
             </button>
             <button
               type="button"
-              className={typeFilter === 'income' ? 'active' : ''}
+              className={typeFilter === 'income' ? 'active tab-income' : ''}
               onClick={() => handleTypeFilterChange('income')}
             >
               درآمد
             </button>
             <button
               type="button"
-              className={typeFilter === 'expense' ? 'active' : ''}
+              className={typeFilter === 'expense' ? 'active tab-expense' : ''}
               onClick={() => handleTypeFilterChange('expense')}
             >
               هزینه
