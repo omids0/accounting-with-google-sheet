@@ -1,29 +1,24 @@
 import { useState } from 'react';
-import { logout, getUserName, getUserPicture } from '../services/auth';
+import DashboardPage from './DashboardPage';
 import DataEntryPage from './DataEntryPage';
 import RecordsPage from './RecordsPage';
 import SettingsPage from './SettingsPage';
+import { getUserName, getUserPicture } from '../services/auth';
 
-type Tab = 'entry' | 'records' | 'settings';
+type Tab = 'dashboard' | 'entry' | 'records' | 'settings';
 
 interface LayoutProps {
   onLogout: () => void;
-  onTokenExpired?: () => void;
+  onReauth: () => void;
 }
 
-export default function Layout({ onLogout, onTokenExpired }: LayoutProps) {
-  const [tab, setTab] = useState<Tab>('entry');
+export default function Layout({ onLogout, onReauth }: LayoutProps) {
+  const [tab, setTab] = useState<Tab>('dashboard');
   const userName = getUserName();
   const userPicture = getUserPicture();
 
-  const handleLogout = async () => {
-    if (confirm('از اپ خارج می‌شوید؟ دفعه بعد باید دوباره با گوگل وارد شوید.')) {
-      await logout();
-      onLogout();
-    }
-  };
-
   const titles: Record<Tab, string> = {
+    dashboard: 'داشبورد',
     entry: 'ثبت جدید',
     records: 'رکوردها',
     settings: 'تنظیمات',
@@ -45,21 +40,23 @@ export default function Layout({ onLogout, onTokenExpired }: LayoutProps) {
             <div className="subtitle">سلام، {userName}</div>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          style={{ color: 'white', fontSize: '0.8rem', opacity: 0.9 }}
-        >
-          خروج
-        </button>
       </header>
 
       <main className="app-main">
-        {tab === 'entry' && <DataEntryPage onTokenExpired={onTokenExpired} />}
-        {tab === 'records' && <RecordsPage onTokenExpired={onTokenExpired} />}
-        {tab === 'settings' && <SettingsPage />}
+        {tab === 'dashboard' && <DashboardPage onReauth={onReauth} />}
+        {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
+        {tab === 'records' && <RecordsPage onReauth={onReauth} />}
+        {tab === 'settings' && <SettingsPage onLogout={onLogout} />}
       </main>
 
       <nav className="bottom-nav">
+        <button
+          className={tab === 'dashboard' ? 'active' : ''}
+          onClick={() => setTab('dashboard')}
+        >
+          <span className="icon">📊</span>
+          داشبورد
+        </button>
         <button
           className={tab === 'entry' ? 'active' : ''}
           onClick={() => setTab('entry')}

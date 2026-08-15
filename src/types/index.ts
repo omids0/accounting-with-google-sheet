@@ -1,5 +1,7 @@
 export type FieldType = 'text' | 'number' | 'date' | 'select';
 
+export type FormType = 'income' | 'expense' | 'custom';
+
 export interface FieldConfig {
   id: string;
   label: string;
@@ -8,10 +10,17 @@ export interface FieldConfig {
   options?: string[];
 }
 
-export interface AppSettings {
-  sheetId: string;
+export interface CustomForm {
+  id: string;
+  name: string;
   sheetName: string;
+  type: FormType;
   fields: FieldConfig[];
+}
+
+export interface AppSettings {
+  spreadsheetId: string;
+  forms: CustomForm[];
 }
 
 export interface GoogleSession {
@@ -20,11 +29,24 @@ export interface GoogleSession {
   picture?: string;
   accessToken: string;
   tokenExpiry: number;
-  loggedInAt: number;
 }
 
 export interface RecordRow {
   id: string;
   createdAt: string;
-  values: Record<string, string | number>;
+  values: Record<string, string>;
+}
+
+export interface CategorySummary {
+  name: string;
+  total: number;
+}
+
+export interface DashboardData {
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
+  incomeByCategory: CategorySummary[];
+  expenseByCategory: CategorySummary[];
+  recentRecords: { formName: string; title: string; amount: number; type: FormType; createdAt: string }[];
 }

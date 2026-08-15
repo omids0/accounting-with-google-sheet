@@ -1,45 +1,76 @@
 import { useState } from 'react';
-import { signInWithGoogle } from '../services/auth';
+import { useGoogleLogin } from '@react-oauth/google';
+import {
+  saveSession,
+  createSession,
+  fetchUserProfile,
+} from '../services/auth';
+import {
+  getSettings,
+  saveSettings,
+  getDefaultSettings,
+} from '../services/settings';
+import { createSpreadsheet } from '../services/sheets';
 
 interface LoginPageProps {
   onSuccess: () => void;
-  reauth?: boolean;
 }
 
-export default function LoginPage({ onSuccess, reauth }: LoginPageProps) {
+export default function LoginPage({ onSuccess }: LoginPageProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const login = useGoogleLogin({
+    scope: 'openid email profile https://www.googleapis.com/auth/spreadsheets',
+    onSuccess: async (tokenResponse) => {
+      setLoading(true);
+      setError('');
+      try {
+        const profile = await fetchUserProfile(tokenResponse.access_token);
+        saveSession(
+          createSession(
+            tokenResponse.access_token,
+            profile,
+            tokenResponse.expires_in
+          )
+        );
+
+        let settings = getSettings() ?? getDefaultSettings();
+        if (!settings.spreadsheetId) {
+          const sheetId = await createSpreadsheet(
+            `حسابداری ${profile.name}`,
+            settings.forms
+          );
+          settings = { ...settings, spreadsheetId: sheetId };
+          saveSettings(settings);
+        }
+
+        onSuccess();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'خطا در ورود');
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      setError('ورود لغو شد یا با خطا مواجه شد');
+      setLoading(false);
+    },
+  });
+
+  const handleLogin = () => {
     setError('');
     setLoading(true);
-    try {
-      await signInWithGoogle();
-      onSuccess();
-    } catch (err) {
-      const code = (err as { code?: string })?.code ?? '';
-      const msg = err instanceof Error ? err.message : 'خطا در ورود';
-      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
-        setError('ورود لغو شد');
-      } else {
-        setError(msg);
-      }
-    } finally {
-      setLoading(false);
-    }
+    login();
   };
 
   return (
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
-          <span className="icon">📒</span>
+          <span className="icon">📊</span>
           <h1>حسابداری شخصی</h1>
-          {reauth && (
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-              لطفاً دوباره وارد شوید
-            </p>
-          )}
+          <p>با یک کلیک وصل شو — شیت خودکار ساخته می‌شود</p>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
@@ -61,6 +92,10 @@ export default function LoginPage({ onSuccess, reauth }: LoginPageProps) {
           )}
           ورود با Google
         </button>
+
+        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '1rem', textAlign: 'center' }}>
+          اولین ورود: شیت گوگل به‌صورت خودکار ساخته می‌شود
+        </p>
       </div>
     </div>
   );

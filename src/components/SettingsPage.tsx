@@ -4,14 +4,19 @@ import {
   getSettings,
   saveSettings,
   getDefaultSettings,
+  addCustomForm,
+  updateFormCategories,
 } from '../services/settings';
 import {
-  createSpreadsheet,
-  validateSpreadsheet,
-  ensureHeaders,
+  ensureFormSheet,
   getSpreadsheetUrl,
 } from '../services/sheets';
-import { getUserEmail, isTokenValid } from '../services/auth';
+import {
+  getUserEmail,
+  getUserPicture,
+  isTokenValid,
+  logout,
+} from '../services/auth';
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'text', label: 'متن' },
@@ -20,29 +25,216 @@ const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'select', label: 'انتخابی' },
 ];
 
-export default function SettingsPage() {
-  const [sheetId, setSheetId] = useState('');
-  const [sheetName, setSheetName] = useState('حسابداری');
-  const [fields, setFields] = useState<FieldConfig[]>([]);
-  const [spreadsheetTitle, setSpreadsheetTitle] = useState('حسابداری شخصی');
-  const [sheetTab, setSheetTab] = useState<'create' | 'link'>('create');
-  const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
+  const [spreadsheetId, setSpreadsheetId] = useState('');
+  const [forms, setForms] = useState(getDefaultSettings().forms);
+  const [newFormName, setNewFormName] = useState('');
+  const [editingFormId, setEditingFormId] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const settings = getSettings() ?? getDefaultSettings();
-    setSheetId(settings.sheetId);
-    setSheetName(settings.sheetName);
-    setFields(settings.fields);
+    setSpreadsheetId(settings.spreadsheetId);
+    setForms(settings.forms);
   }, []);
 
-  const addField = () => {
-    const id = `field_${Date.now()}`;
-    setFields([
-      ...fields,
-      { id, label: 'فیلد جدید', type: 'text', required: false },
-    ]);
+  const handleLogout = () => {
+    if (confirm('از حساب خارج می‌شوید؟')) {
+      logout();
+      onLogout?.();
+    }
   };
+
+  const handleAddForm = async () => {
+    if (!newFormName.trim()) {
+      setMessage({ type: 'error', text: 'نام فرم را وارد کنید' });
+      return;
+    }
+    if (!isTokenValid()) {
+      setMessage({ type: 'error', text: 'نشست منقضی شده' });
+      return;
+    }
+
+    const settings = getSettings() ?? getDefaultSettings();
+    if (!settings.spreadsheetId) {
+      setMessage({ type: 'error', text: 'ابتدا با گوگل وارد شوید' });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      const newForm = addCustomForm(newFormName.trim(), [
+        { id: 'date', label: 'تاریخ', type: 'date', required: true },
+        { id: 'title', label: 'عنوان', type: 'text', required: true },
+        { id: 'note', label: 'توضیحات', type: 'text', required: false },
+      ]);
+      await ensureFormSheet(settings.spreadsheetId, newForm);
+      const updated = { ...settings, forms: [...settings.forms, newForm] };
+      saveSettings(updated);
+      setForms(updated.forms);
+      setNewFormName('');
+      setMessage({ type: 'success', text: `فرم «${newForm.name}» و شیت آن ساخته شد` });
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'خطا در ساخت فرم',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveCategories = (formId: string, categoriesText: string) => {
+    const categories = categoriesText
+      .split(/[,،]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (!categories.length) return;
+
+    updateFormCategories(formId, categories);
+    const settings = getSettings() ?? getDefaultSettings();
+    const updatedForms = settings.forms.map((f) =>
+      f.id === formId
+        ? {
+            ...f,
+            fields: f.fields.map((field) =>
+              field.id === 'category' ? { ...field, options: categories } : field
+            ),
+          }
+        : f
+    );
+    setForms(updatedForms);
+    setMessage({ type: 'success', text: 'دسته‌بندی‌ها ذخیره شد' });
+  };
+
+  const handleSaveFormFields = (formId: string, fields: FieldConfig[]) => {
+    const settings = getSettings() ?? getDefaultSettings();
+    const updatedForms = settings.forms.map((f) =>
+      f.id === formId ? { ...f, fields } : f
+    );
+    saveSettings({ ...settings, forms: updatedForms });
+    setForms(updatedForms);
+    setEditingFormId(null);
+    setMessage({ type: 'success', text: 'فیلدها ذخیره شد' });
+  };
+
+  return (
+    <div>
+      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
+
+      <div className="card">
+        <h2 className="card-title">حساب گوگل</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {getUserPicture() && (
+            <img
+              src={getUserPicture()!}
+              alt=""
+              style={{ width: 36, height: 36, borderRadius: '50%' }}
+            />
+          )}
+          <div>
+            <p style={{ fontSize: '0.85rem' }}>{getUserEmail()}</p>
+            <span className={`status-badge ${isTokenValid() ? 'status-connected' : 'status-disconnected'}`}>
+              {isTokenValid() ? '✓ متصل' : '✗ نیاز به ورود مجدد'}
+            </span>
+          </div>
+        </div>
+        <button className="btn btn-danger btn-sm" onClick={handleLogout} style={{ marginTop: '0.75rem' }}>
+          خروج
+        </button>
+      </div>
+
+      {spreadsheetId && (
+        <div className="card">
+          <h2 className="card-title">گوگل شیت</h2>
+          <a
+            href={getSpreadsheetUrl(spreadsheetId)}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: '0.85rem' }}
+          >
+            باز کردن شیت در گوگل ↗
+          </a>
+          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+            هر فرم = یک برگه (Tab) جدا در شیت
+          </p>
+        </div>
+      )}
+
+      <div className="card">
+        <h2 className="card-title">فرم‌های سفارشی</h2>
+        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
+          فرم جدید = برگه جدید در گوگل شیت
+        </p>
+
+        {forms.map((form) => (
+          <div key={form.id} className="form-list-item">
+            <div className="form-list-header">
+              <strong>{form.name}</strong>
+              <span className="form-type-badge">{form.sheetName}</span>
+            </div>
+
+            {form.type !== 'custom' && form.fields.find((f) => f.id === 'category') && (
+              <div className="form-group" style={{ marginTop: '0.5rem' }}>
+                <label>دسته‌بندی‌های {form.name}</label>
+                <input
+                  defaultValue={
+                    form.fields.find((f) => f.id === 'category')?.options?.join('، ') ?? ''
+                  }
+                  onBlur={(e) => handleSaveCategories(form.id, e.target.value)}
+                  placeholder="دسته۱، دسته۲، ..."
+                />
+              </div>
+            )}
+
+            {form.type === 'custom' && (
+              <button
+                className="btn btn-secondary btn-sm"
+                style={{ marginTop: '0.5rem' }}
+                onClick={() =>
+                  setEditingFormId(editingFormId === form.id ? null : form.id)
+                }
+              >
+                {editingFormId === form.id ? 'بستن' : 'ویرایش فیلدها'}
+              </button>
+            )}
+
+            {editingFormId === form.id && (
+              <FormFieldEditor
+                fields={form.fields}
+                onSave={(fields) => handleSaveFormFields(form.id, fields)}
+              />
+            )}
+          </div>
+        ))}
+
+        <div className="form-group" style={{ marginTop: '1rem' }}>
+          <label>افزودن فرم جدید</label>
+          <input
+            value={newFormName}
+            onChange={(e) => setNewFormName(e.target.value)}
+            placeholder="مثلاً: دارایی‌ها"
+          />
+        </div>
+        <button className="btn btn-primary" onClick={handleAddForm} disabled={loading}>
+          {loading && <span className="spinner" />}
+          ساخت فرم و شیت
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FormFieldEditor({
+  fields: initialFields,
+  onSave,
+}: {
+  fields: FieldConfig[];
+  onSave: (fields: FieldConfig[]) => void;
+}) {
+  const [fields, setFields] = useState(initialFields);
 
   const updateField = (index: number, updates: Partial<FieldConfig>) => {
     const updated = [...fields];
@@ -50,261 +242,43 @@ export default function SettingsPage() {
     setFields(updated);
   };
 
-  const removeField = (index: number) => {
-    if (fields.length <= 1) {
-      setMessage({ type: 'error', text: 'حداقل یک فیلد لازم است' });
-      return;
-    }
-    setFields(fields.filter((_, i) => i !== index));
-  };
-
-  const handleSaveFields = () => {
-    const settings = getSettings() ?? getDefaultSettings();
-    saveSettings({ ...settings, sheetId, sheetName, fields });
-    setMessage({ type: 'success', text: 'تنظیمات فیلدها ذخیره شد' });
-  };
-
-  const handleCreateSheet = async () => {
-    if (!isTokenValid()) {
-      setMessage({ type: 'error', text: 'نشست گوگل منقضی شده. از منوی اصلی دوباره وارد شوید' });
-      return;
-    }
-    setLoading(true);
-    setMessage(null);
-    try {
-      const newSheetId = await createSpreadsheet(spreadsheetTitle, fields);
-      const settings = {
-        ...(getSettings() ?? getDefaultSettings()),
-        sheetId: newSheetId,
-        sheetName: 'حسابداری',
-        fields,
-      };
-      saveSettings(settings);
-      setSheetId(newSheetId);
-      setSheetName('حسابداری');
-      setMessage({
-        type: 'success',
-        text: 'شیت جدید ساخته شد! می‌توانید آن را در گوگل شیت ببینید',
-      });
-    } catch (err) {
-      setMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'خطا در ساخت شیت',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLinkSheet = async () => {
-    if (!isTokenValid()) {
-      setMessage({ type: 'error', text: 'نشست گوگل منقضی شده. از منوی اصلی دوباره وارد شوید' });
-      return;
-    }
-    if (!sheetId.trim()) {
-      setMessage({ type: 'error', text: 'شناسه شیت را وارد کنید' });
-      return;
-    }
-    setLoading(true);
-    setMessage(null);
-    try {
-      await validateSpreadsheet(sheetId.trim(), sheetName);
-      const settings = {
-        ...(getSettings() ?? getDefaultSettings()),
-        sheetId: sheetId.trim(),
-        sheetName,
-        fields,
-      };
-      await ensureHeaders(settings);
-      saveSettings(settings);
-      setMessage({ type: 'success', text: 'شیت با موفقیت متصل شد' });
-    } catch (err) {
-      setMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'خطا در اتصال شیت',
-      });
-    } finally {
-      setLoading(false);
-    }
+  const addField = () => {
+    setFields([
+      ...fields,
+      { id: `field_${Date.now()}`, label: 'فیلد جدید', type: 'text', required: false },
+    ]);
   };
 
   return (
-    <div>
-      {message && (
-        <div className={`alert alert-${message.type}`}>{message.text}</div>
-      )}
-
-      <div className="card">
-        <h2 className="card-title">حساب گوگل</h2>
-        <p style={{ fontSize: '0.85rem' }}>
-          {getUserEmail()}
-        </p>
-        <span className={`status-badge ${isTokenValid() ? 'status-connected' : 'status-disconnected'}`}>
-          {isTokenValid() ? '✓ متصل' : '✗ نیاز به ورود مجدد'}
-        </span>
-      </div>
-
-      <div className="card">
-        <h2 className="card-title">شیت گوگل</h2>
-        <div className="tabs">
-          <button
-            className={sheetTab === 'create' ? 'active' : ''}
-            onClick={() => setSheetTab('create')}
-          >
-            ساخت شیت جدید
-          </button>
-          <button
-            className={sheetTab === 'link' ? 'active' : ''}
-            onClick={() => setSheetTab('link')}
-          >
-            اتصال شیت موجود
-          </button>
+    <div style={{ marginTop: '0.75rem' }}>
+      {fields.map((field, index) => (
+        <div key={field.id} className="field-row">
+          <div className="form-group">
+            <label>برچسب</label>
+            <input
+              value={field.label}
+              onChange={(e) => updateField(index, { label: e.target.value })}
+            />
+          </div>
+          <div className="form-group">
+            <label>نوع</label>
+            <select
+              value={field.type}
+              onChange={(e) => updateField(index, { type: e.target.value as FieldType })}
+            >
+              {FIELD_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
-
-        {sheetTab === 'create' ? (
-          <>
-            <div className="form-group">
-              <label>عنوان شیت</label>
-              <input
-                value={spreadsheetTitle}
-                onChange={(e) => setSpreadsheetTitle(e.target.value)}
-                placeholder="حسابداری شخصی"
-              />
-            </div>
-            <button
-              className="btn btn-primary"
-              onClick={handleCreateSheet}
-              disabled={loading}
-            >
-              {loading && <span className="spinner" />}
-              ساخت و اتصال شیت
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="form-group">
-              <label>شناسه شیت (Sheet ID)</label>
-              <input
-                value={sheetId}
-                onChange={(e) => setSheetId(e.target.value)}
-                placeholder="از URL گوگل شیت کپی کنید"
-                dir="ltr"
-              />
-            </div>
-            <div className="form-group">
-              <label>نام برگه (Tab)</label>
-              <input
-                value={sheetName}
-                onChange={(e) => setSheetName(e.target.value)}
-                placeholder="حسابداری"
-              />
-            </div>
-            <button
-              className="btn btn-primary"
-              onClick={handleLinkSheet}
-              disabled={loading}
-            >
-              {loading && <span className="spinner" />}
-              اتصال شیت
-            </button>
-          </>
-        )}
-
-        {sheetId && (
-          <a
-            href={getSpreadsheetUrl(sheetId)}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ display: 'block', marginTop: '0.75rem', fontSize: '0.85rem' }}
-          >
-            باز کردن شیت در گوگل ↗
-          </a>
-        )}
-      </div>
-
-      <div className="card">
-        <h2 className="card-title">فیلدهای ورودی</h2>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
-          فیلدهایی که هنگام ثبت هر رکورد نمایش داده می‌شوند را تعریف کنید.
-        </p>
-
-        {fields.map((field, index) => (
-          <div key={field.id} className="field-row">
-            <div className="form-group">
-              <label>برچسب</label>
-              <input
-                value={field.label}
-                onChange={(e) => updateField(index, { label: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>نوع</label>
-              <select
-                value={field.type}
-                onChange={(e) =>
-                  updateField(index, { type: e.target.value as FieldType })
-                }
-              >
-                {FIELD_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group" style={{ flex: '0 0 auto' }}>
-              <label>الزامی</label>
-              <input
-                type="checkbox"
-                checked={field.required}
-                onChange={(e) => updateField(index, { required: e.target.checked })}
-                style={{ width: 'auto', marginTop: '0.5rem' }}
-              />
-            </div>
-            <button
-              className="remove-btn"
-              onClick={() => removeField(index)}
-              title="حذف"
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-
-        {fields.some((f) => f.type === 'select') && (
-          <div style={{ marginBottom: '1rem' }}>
-            {fields
-              .filter((f) => f.type === 'select')
-              .map((field) => {
-                const idx = fields.indexOf(field);
-                return (
-                  <div key={field.id} className="form-group">
-                    <label>گزینه‌های «{field.label}» (با کاما جدا کنید)</label>
-                    <input
-                      value={(field.options ?? []).join('، ')}
-                      onChange={(e) =>
-                        updateField(idx, {
-                          options: e.target.value
-                            .split(/[,،]/)
-                            .map((s) => s.trim())
-                            .filter(Boolean),
-                        })
-                      }
-                      placeholder="گزینه۱، گزینه۲، ..."
-                    />
-                  </div>
-                );
-              })}
-          </div>
-        )}
-
-        <button className="btn btn-secondary" onClick={addField} style={{ marginBottom: '0.75rem' }}>
-          + افزودن فیلد
-        </button>
-        <button className="btn btn-primary" onClick={handleSaveFields}>
-          ذخیره فیلدها
-        </button>
-      </div>
+      ))}
+      <button className="btn btn-secondary btn-sm" onClick={addField} style={{ marginBottom: '0.5rem' }}>
+        + فیلد
+      </button>
+      <button className="btn btn-primary btn-sm" onClick={() => onSave(fields)}>
+        ذخیره فیلدها
+      </button>
     </div>
   );
 }

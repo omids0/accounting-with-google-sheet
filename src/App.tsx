@@ -2,26 +2,23 @@ import { useState, useEffect } from 'react';
 import { registerSW } from 'virtual:pwa-register';
 import LoginPage from './components/LoginPage';
 import Layout from './components/Layout';
-import { subscribeToAuth } from './services/auth';
-import { isFirebaseConfigured } from './services/firebase';
+import { isTokenValid } from './services/auth';
+import { isConfigured } from './services/settings';
 
-function DevConfigNotice() {
+function ConfigNotice() {
   return (
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
           <span className="icon">⚠️</span>
-          <h1>تنظیمات Firebase</h1>
+          <h1>تنظیمات Google OAuth</h1>
           <p>
-            کانفیگ Firebase در <code dir="ltr">.env</code> تنظیم نشده.
-            از Firebase Console مقادیر Web App را کپی کنید.
+            <code dir="ltr">VITE_GOOGLE_CLIENT_ID</code> در فایل{' '}
+            <code dir="ltr">.env</code> تنظیم نشده.
           </p>
         </div>
         <div className="alert alert-info" dir="ltr" style={{ textAlign: 'left', fontSize: '0.75rem' }}>
-          VITE_FIREBASE_API_KEY=...<br />
-          VITE_FIREBASE_AUTH_DOMAIN=...<br />
-          VITE_FIREBASE_PROJECT_ID=...<br />
-          VITE_FIREBASE_APP_ID=...
+          VITE_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
         </div>
       </div>
     </div>
@@ -29,21 +26,17 @@ function DevConfigNotice() {
 }
 
 export default function App() {
-  const [inApp, setInApp] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [needsReauth, setNeedsReauth] = useState(false);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    if (!isFirebaseConfigured()) {
-      setReady(true);
-      return;
-    }
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
+  const isOAuthConfigured = !!clientId && !clientId.startsWith('xxx');
 
-    const unsubscribe = subscribeToAuth((user, reauth) => {
-      setInApp(!!user);
-      setNeedsReauth(reauth);
-      setReady(true);
-    });
+  useEffect(() => {
+    setLoggedIn(isConfigured() && isTokenValid());
+    setNeedsReauth(isConfigured() && !isTokenValid());
+    setReady(true);
 
     registerSW({
       onNeedRefresh() {
@@ -52,22 +45,16 @@ export default function App() {
         }
       },
     });
-
-    return unsubscribe;
   }, []);
 
-  if (!isFirebaseConfigured()) {
-    return <DevConfigNotice />;
-  }
-
+  if (!isOAuthConfigured) return <ConfigNotice />;
   if (!ready) return null;
 
-  if (!inApp || needsReauth) {
+  if (!loggedIn || needsReauth) {
     return (
       <LoginPage
-        reauth={needsReauth}
         onSuccess={() => {
-          setInApp(true);
+          setLoggedIn(true);
           setNeedsReauth(false);
         }}
       />
@@ -77,10 +64,10 @@ export default function App() {
   return (
     <Layout
       onLogout={() => {
-        setInApp(false);
+        setLoggedIn(false);
         setNeedsReauth(false);
       }}
-      onTokenExpired={() => setNeedsReauth(true)}
+      onReauth={() => setNeedsReauth(true)}
     />
   );
 }

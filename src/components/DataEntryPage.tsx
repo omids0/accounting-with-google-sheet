@@ -1,43 +1,48 @@
 import { useState, useEffect } from 'react';
-import type { FieldConfig } from '../types';
-import { getSettings, getDefaultSettings, isConfigured } from '../services/settings';
+import type { CustomForm, FieldConfig } from '../types';
+import { getSettings, isConfigured } from '../services/settings';
 import { appendRecord } from '../services/sheets';
+import { isTokenValid } from '../services/auth';
 
 function getInitialValue(field: FieldConfig): string | number {
-  if (field.type === 'date') {
-    return new Date().toISOString().split('T')[0];
-  }
+  if (field.type === 'date') return new Date().toISOString().split('T')[0];
   if (field.type === 'number') return '';
   if (field.type === 'select' && field.options?.length) return field.options[0];
   return '';
 }
 
-function isSessionExpiredError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : '';
-  return msg.includes('منقضی') || msg.includes('401');
-}
-
-export default function DataEntryPage({
-  onTokenExpired,
-}: {
-  onTokenExpired?: () => void;
-}) {
-  const [fields, setFields] = useState<FieldConfig[]>([]);
+export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
+  const [forms, setForms] = useState<CustomForm[]>([]);
+  const [activeFormId, setActiveFormId] = useState('');
   const [values, setValues] = useState<Record<string, string | number>>({});
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [configured, setConfigured] = useState(false);
+
+  const activeForm = forms.find((f) => f.id === activeFormId);
 
   useEffect(() => {
-    const settings = getSettings() ?? getDefaultSettings();
-    setFields(settings.fields);
+    const settings = getSettings();
+    if (!settings) return;
+    setForms(settings.forms);
+    if (settings.forms.length) {
+      setActiveFormId(settings.forms[0].id);
+      initValues(settings.forms[0]);
+    }
+  }, []);
+
+  const initValues = (form: CustomForm) => {
     const initial: Record<string, string | number> = {};
-    settings.fields.forEach((f) => {
+    form.fields.forEach((f) => {
       initial[f.id] = getInitialValue(f);
     });
     setValues(initial);
-    setConfigured(isConfigured());
-  }, []);
+  };
+
+  const selectForm = (form: CustomForm) => {
+    setActiveFormId(form.id);
+    initValues(form);
+    setMessage(null);
+  };
 
   const handleChange = (fieldId: string, value: string | number) => {
     setValues((prev) => ({ ...prev, [fieldId]: value }));
@@ -45,12 +50,13 @@ export default function DataEntryPage({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!configured) {
-      setMessage({ type: 'error', text: 'ابتدا در تنظیمات، شیت گوگل را متصل کنید' });
+    if (!isConfigured() || !isTokenValid()) {
+      onReauth?.();
       return;
     }
+    if (!activeForm) return;
 
-    for (const field of fields) {
+    for (const field of activeForm.fields) {
       if (field.required) {
         const val = values[field.id];
         if (val === '' || val === undefined || val === null) {
@@ -64,107 +70,115 @@ export default function DataEntryPage({
     setMessage(null);
     try {
       const settings = getSettings()!;
-      const recordId = crypto.randomUUID();
-      const createdAt = new Date().toLocaleString('fa-IR');
-      await appendRecord(settings, recordId, createdAt, values);
-      setMessage({ type: 'success', text: 'رکورد با موفقیت ذخیره شد ✓' });
-      const reset: Record<string, string | number> = {};
-      fields.forEach((f) => {
-        reset[f.id] = getInitialValue(f);
-      });
-      setValues(reset);
+      await appendRecord(
+        settings.spreadsheetId,
+        activeForm,
+        crypto.randomUUID(),
+        new Date().toLocaleString('fa-IR'),
+        values
+      );
+      setMessage({ type: 'success', text: `در شیت «${activeForm.sheetName}» ذخیره شد ✓` });
+      initValues(activeForm);
     } catch (err) {
-      if (isSessionExpiredError(err)) {
-        onTokenExpired?.();
+      const msg = err instanceof Error ? err.message : 'خطا در ذخیره';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
         return;
       }
-      setMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'خطا در ذخیره',
-      });
+      setMessage({ type: 'error', text: msg });
     } finally {
       setLoading(false);
     }
   };
 
-  if (!configured) {
+  if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">⚙️</div>
-        <p>هنوز شیت گوگل متصل نشده</p>
-        <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-          به بخش تنظیمات بروید و شیت را بسازید یا متصل کنید
-        </p>
+        <div className="icon">✏️</div>
+        <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
   }
 
   return (
     <div>
-      {message && (
-        <div className={`alert alert-${message.type}`}>{message.text}</div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        {fields.map((field) => (
-          <div key={field.id} className="form-group">
-            <label>
-              {field.label}
-              {field.required && <span className="required"> *</span>}
-            </label>
-
-            {field.type === 'text' && (
-              <input
-                type="text"
-                value={String(values[field.id] ?? '')}
-                onChange={(e) => handleChange(field.id, e.target.value)}
-              />
-            )}
-
-            {field.type === 'number' && (
-              <input
-                type="number"
-                inputMode="decimal"
-                value={values[field.id] === '' ? '' : values[field.id]}
-                onChange={(e) =>
-                  handleChange(
-                    field.id,
-                    e.target.value === '' ? '' : Number(e.target.value)
-                  )
-                }
-                dir="ltr"
-              />
-            )}
-
-            {field.type === 'date' && (
-              <input
-                type="date"
-                value={String(values[field.id] ?? '')}
-                onChange={(e) => handleChange(field.id, e.target.value)}
-                dir="ltr"
-              />
-            )}
-
-            {field.type === 'select' && (
-              <select
-                value={String(values[field.id] ?? '')}
-                onChange={(e) => handleChange(field.id, e.target.value)}
-              >
-                {(field.options ?? []).map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
+      <div className="form-tabs">
+        {forms.map((form) => (
+          <button
+            key={form.id}
+            className={activeFormId === form.id ? 'active' : ''}
+            onClick={() => selectForm(form)}
+            type="button"
+          >
+            {form.name}
+          </button>
         ))}
+      </div>
 
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading && <span className="spinner" />}
-          ذخیره در گوگل شیت
-        </button>
-      </form>
+      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
+
+      {activeForm && (
+        <form onSubmit={handleSubmit}>
+          {activeForm.fields.map((field) => (
+            <div key={field.id} className="form-group">
+              <label>
+                {field.label}
+                {field.required && <span className="required"> *</span>}
+              </label>
+
+              {field.type === 'text' && (
+                <input
+                  type="text"
+                  value={String(values[field.id] ?? '')}
+                  onChange={(e) => handleChange(field.id, e.target.value)}
+                />
+              )}
+
+              {field.type === 'number' && (
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={values[field.id] === '' ? '' : values[field.id]}
+                  onChange={(e) =>
+                    handleChange(
+                      field.id,
+                      e.target.value === '' ? '' : Number(e.target.value)
+                    )
+                  }
+                  dir="ltr"
+                />
+              )}
+
+              {field.type === 'date' && (
+                <input
+                  type="date"
+                  value={String(values[field.id] ?? '')}
+                  onChange={(e) => handleChange(field.id, e.target.value)}
+                  dir="ltr"
+                />
+              )}
+
+              {field.type === 'select' && (
+                <select
+                  value={String(values[field.id] ?? '')}
+                  onChange={(e) => handleChange(field.id, e.target.value)}
+                >
+                  {(field.options ?? []).map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          ))}
+
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading && <span className="spinner" />}
+            ذخیره در گوگل شیت
+          </button>
+        </form>
+      )}
     </div>
   );
 }

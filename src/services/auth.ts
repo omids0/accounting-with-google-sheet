@@ -1,15 +1,5 @@
-import {
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  browserLocalPersistence,
-  setPersistence,
-  type User,
-} from 'firebase/auth';
-import type { GoogleSession } from '../types';
 import { getItem, setItem, removeItem, STORAGE_KEYS } from './storage';
-import { getFirebaseAuth, getGoogleProvider } from './firebase';
+import type { GoogleSession } from '../types';
 
 export function saveSession(session: GoogleSession): void {
   setItem(STORAGE_KEYS.SESSION, session);
@@ -46,50 +36,41 @@ export function getUserPicture(): string | null {
   return getSession()?.picture ?? null;
 }
 
-function sessionFromFirebaseUser(user: User, accessToken: string): GoogleSession {
+export async function fetchUserProfile(accessToken: string): Promise<{
+  email: string;
+  name: string;
+  picture?: string;
+}> {
+  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) throw new Error('دریافت اطلاعات کاربر ناموفق بود');
+  const data = (await res.json()) as {
+    email?: string;
+    name?: string;
+    picture?: string;
+  };
   return {
-    email: user.email ?? '',
-    name: user.displayName || user.email || '',
-    picture: user.photoURL ?? undefined,
-    accessToken,
-    tokenExpiry: Date.now() + 3600 * 1000,
-    loggedInAt: Date.now(),
+    email: data.email ?? '',
+    name: data.name || data.email || '',
+    picture: data.picture,
   };
 }
 
-export async function signInWithGoogle(): Promise<void> {
-  const auth = getFirebaseAuth();
-  await setPersistence(auth, browserLocalPersistence);
-
-  const result = await signInWithPopup(auth, getGoogleProvider());
-  const credential = GoogleAuthProvider.credentialFromResult(result);
-  const accessToken = credential?.accessToken;
-
-  if (!accessToken) {
-    throw new Error('دسترسی به گوگل شیت دریافت نشد. دوباره تلاش کنید');
-  }
-
-  saveSession(sessionFromFirebaseUser(result.user, accessToken));
+export function createSession(
+  accessToken: string,
+  profile: { email: string; name: string; picture?: string },
+  expiresIn = 3600
+): GoogleSession {
+  return {
+    email: profile.email,
+    name: profile.name,
+    picture: profile.picture,
+    accessToken,
+    tokenExpiry: Date.now() + expiresIn * 1000,
+  };
 }
 
-export async function logout(): Promise<void> {
+export function logout(): void {
   removeItem(STORAGE_KEYS.SESSION);
-  const auth = getFirebaseAuth();
-  await signOut(auth);
-}
-
-export function subscribeToAuth(
-  callback: (user: User | null, needsReauth: boolean) => void
-): () => void {
-  const auth = getFirebaseAuth();
-  return onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      callback(null, false);
-      return;
-    }
-    const session = getSession();
-    const needsReauth =
-      !session || session.email !== user.email || !isTokenValid();
-    callback(user, needsReauth);
-  });
 }
