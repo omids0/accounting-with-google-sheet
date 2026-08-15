@@ -8,7 +8,7 @@ import { isConfigured } from './services/settings';
 function ConfigNotice() {
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="login-card animate-in">
         <div className="login-logo">
           <span className="icon">⚠️</span>
           <h1>تنظیمات Google OAuth</h1>
@@ -48,7 +48,16 @@ export default function App() {
   }, []);
 
   if (!isOAuthConfigured) return <ConfigNotice />;
-  if (!ready) return null;
+  if (!ready) {
+    return (
+      <div className="app-loading">
+        <div className="app-loading-inner">
+          <span className="app-loading-icon">📊</span>
+          <div className="spinner spinner-lg" />
+        </div>
+      </div>
+    );
+  }
 
   if (!loggedIn || needsReauth) {
     return (

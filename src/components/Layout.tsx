@@ -72,7 +72,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             <img
               src={userPicture}
               alt=""
-              style={{ width: 32, height: 32, borderRadius: '50%' }}
+              className="header-avatar"
             />
           )}
           <div>
@@ -92,23 +92,25 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
       </header>
 
       <main className="app-main">
-        {showSettings ? (
-          <SettingsPage onLogout={onLogout} />
-        ) : (
-          <>
-            {tab === 'dashboard' && (
-              <DashboardPage onReauth={onReauth} onViewRecords={openRecords} />
-            )}
-            {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
-            {tab === 'records' && (
-              <RecordsPage onReauth={onReauth} initialFormType={recordsFormType} />
-            )}
-            {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
-            {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
-            {tab === 'treasury' && <TreasuryPage onReauth={onReauth} />}
-            {tab === 'wallet' && <WalletPage onReauth={onReauth} />}
-          </>
-        )}
+        <div key={showSettings ? 'settings' : tab} className="page-content">
+          {showSettings ? (
+            <SettingsPage onLogout={onLogout} />
+          ) : (
+            <>
+              {tab === 'dashboard' && (
+                <DashboardPage onReauth={onReauth} onViewRecords={openRecords} />
+              )}
+              {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
+              {tab === 'records' && (
+                <RecordsPage onReauth={onReauth} initialFormType={recordsFormType} />
+              )}
+              {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
+              {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
+              {tab === 'treasury' && <TreasuryPage onReauth={onReauth} />}
+              {tab === 'wallet' && <WalletPage onReauth={onReauth} />}
+            </>
+          )}
+        </div>
       </main>
 
       <nav className="bottom-nav">

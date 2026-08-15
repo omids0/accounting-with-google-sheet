@@ -77,7 +77,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="login-card animate-in">
         <div className="login-logo">
           <span className="icon">📊</span>
           <h1>حسابداری شخصی</h1>
