@@ -421,6 +421,133 @@ button {
   color: var(--color-primary-dark);
 }
 
+.treasury-price-card {
+  padding: 0.85rem 1rem;
+}
+
+.treasury-price-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+.treasury-price-title {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.treasury-price-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
+}
+
+.treasury-price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.treasury-price-item:last-child {
+  border-bottom: none;
+}
+
+.treasury-action-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.treasury-action-toggle button {
+  flex: 1;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.treasury-action-toggle button.active.buy {
+  background: #ecfdf5;
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.treasury-action-toggle button.active.sell {
+  background: #fef2f2;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.treasury-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.35rem;
+}
+
+.treasury-holding-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  margin-top: 0.35rem;
+}
+
+.treasury-holding-card .installment-header {
+  align-items: flex-start;
+}
+
+.treasury-tx-item {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.treasury-tx-item:last-child {
+  border-bottom: none;
+}
+
+.treasury-tx-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.treasury-tx-badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.treasury-tx-badge.buy {
+  background: #ecfdf5;
+  color: var(--color-success);
+}
+
+.treasury-tx-badge.sell {
+  background: #fef2f2;
+  color: var(--color-danger);
+}
+
+.treasury-tx-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.treasury-total-card {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

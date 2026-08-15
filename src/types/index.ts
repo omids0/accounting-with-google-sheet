@@ -98,3 +98,33 @@ export interface Receivable {
   note: string;
   payments: ReceivablePayment[];
 }
+
+export type VaultAssetType =
+  | 'sekeb'
+  | 'sekee'
+  | 'nim'
+  | 'rob'
+  | 'gerami'
+  | 'geram18'
+  | 'usd';
+
+export type VaultAction = 'buy' | 'sell';
+
+export interface VaultTransaction {
+  id: string;
+  createdAt: string;
+  assetType: VaultAssetType;
+  action: VaultAction;
+  quantity: number;
+  unitPrice: number;
+  transactionDate: string;
+  note: string;
+}
+
+export interface VaultHolding {
+  assetType: VaultAssetType;
+  netQuantity: number;
+  currentUnitPrice: number;
+  totalValue: number;
+  transactions: VaultTransaction[];
+}
