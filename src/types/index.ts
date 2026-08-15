@@ -128,3 +128,11 @@ export interface VaultHolding {
   totalValue: number;
   transactions: VaultTransaction[];
 }
+
+export interface WalletAccount {
+  id: string;
+  createdAt: string;
+  title: string;
+  balance: number;
+  note: string;
+}

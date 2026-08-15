@@ -5,10 +5,18 @@ import RecordsPage from './RecordsPage';
 import InstallmentsPage from './InstallmentsPage';
 import ReceivablesPage from './ReceivablesPage';
 import TreasuryPage from './TreasuryPage';
+import WalletPage from './WalletPage';
 import SettingsPage from './SettingsPage';
 import { getUserName, getUserPicture } from '../services/auth';
 
-type Tab = 'dashboard' | 'entry' | 'records' | 'installments' | 'receivables' | 'treasury' | 'settings';
+type Tab =
+  | 'dashboard'
+  | 'entry'
+  | 'records'
+  | 'installments'
+  | 'receivables'
+  | 'treasury'
+  | 'wallet';
 
 interface LayoutProps {
   onLogout: () => void;
@@ -17,6 +25,7 @@ interface LayoutProps {
 
 export default function Layout({ onLogout, onReauth }: LayoutProps) {
   const [tab, setTab] = useState<Tab>('dashboard');
+  const [showSettings, setShowSettings] = useState(false);
   const userName = getUserName();
   const userPicture = getUserPicture();
 
@@ -27,7 +36,12 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     installments: 'اقساط',
     receivables: 'طلب‌ها',
     treasury: 'صندوقچه',
-    settings: 'تنظیمات',
+    wallet: 'کیف پول',
+  };
+
+  const handleTabChange = (newTab: Tab) => {
+    setShowSettings(false);
+    setTab(newTab);
   };
 
   return (
@@ -42,71 +56,86 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             />
           )}
           <div>
-            <h1>{titles[tab]}</h1>
+            <h1>{showSettings ? 'تنظیمات' : titles[tab]}</h1>
             <div className="subtitle">سلام، {userName}</div>
           </div>
         </div>
+        <button
+          type="button"
+          className={`header-icon-btn${showSettings ? ' active' : ''}`}
+          onClick={() => setShowSettings((v) => !v)}
+          aria-label="تنظیمات"
+          title="تنظیمات"
+        >
+          ⚙️
+        </button>
       </header>
 
       <main className="app-main">
-        {tab === 'dashboard' && <DashboardPage onReauth={onReauth} />}
-        {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
-        {tab === 'records' && <RecordsPage onReauth={onReauth} />}
-        {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
-        {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
-        {tab === 'treasury' && <TreasuryPage onReauth={onReauth} />}
-        {tab === 'settings' && <SettingsPage onLogout={onLogout} />}
+        {showSettings ? (
+          <SettingsPage onLogout={onLogout} />
+        ) : (
+          <>
+            {tab === 'dashboard' && <DashboardPage onReauth={onReauth} />}
+            {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
+            {tab === 'records' && <RecordsPage onReauth={onReauth} />}
+            {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
+            {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
+            {tab === 'treasury' && <TreasuryPage onReauth={onReauth} />}
+            {tab === 'wallet' && <WalletPage onReauth={onReauth} />}
+          </>
+        )}
       </main>
 
       <nav className="bottom-nav">
         <button
-          className={tab === 'dashboard' ? 'active' : ''}
-          onClick={() => setTab('dashboard')}
+          className={!showSettings && tab === 'dashboard' ? 'active' : ''}
+          onClick={() => handleTabChange('dashboard')}
         >
           <span className="icon">📊</span>
           داشبورد
         </button>
         <button
-          className={tab === 'entry' ? 'active' : ''}
-          onClick={() => setTab('entry')}
+          className={!showSettings && tab === 'entry' ? 'active' : ''}
+          onClick={() => handleTabChange('entry')}
         >
           <span className="icon">✏️</span>
           ثبت
         </button>
         <button
-          className={tab === 'records' ? 'active' : ''}
-          onClick={() => setTab('records')}
+          className={!showSettings && tab === 'records' ? 'active' : ''}
+          onClick={() => handleTabChange('records')}
         >
           <span className="icon">📋</span>
           رکوردها
         </button>
         <button
-          className={tab === 'installments' ? 'active' : ''}
-          onClick={() => setTab('installments')}
+          className={!showSettings && tab === 'installments' ? 'active' : ''}
+          onClick={() => handleTabChange('installments')}
         >
           <span className="icon">📅</span>
           اقساط
         </button>
         <button
-          className={tab === 'receivables' ? 'active' : ''}
-          onClick={() => setTab('receivables')}
+          className={!showSettings && tab === 'receivables' ? 'active' : ''}
+          onClick={() => handleTabChange('receivables')}
         >
           <span className="icon">💰</span>
           طلب‌ها
         </button>
         <button
-          className={tab === 'treasury' ? 'active' : ''}
-          onClick={() => setTab('treasury')}
+          className={!showSettings && tab === 'treasury' ? 'active' : ''}
+          onClick={() => handleTabChange('treasury')}
         >
           <span className="icon">🏦</span>
           صندوق
         </button>
         <button
-          className={tab === 'settings' ? 'active' : ''}
-          onClick={() => setTab('settings')}
+          className={!showSettings && tab === 'wallet' ? 'active' : ''}
+          onClick={() => handleTabChange('wallet')}
         >
-          <span className="icon">⚙️</span>
-          تنظیمات
+          <span className="icon">👛</span>
+          کیف پول
         </button>
       </nav>
     </div>

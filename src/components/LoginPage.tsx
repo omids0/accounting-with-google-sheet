@@ -14,6 +14,7 @@ import { createSpreadsheet } from '../services/sheets';
 import { ensureInstallmentsSheet } from '../services/installments';
 import { ensureReceivablesSheet } from '../services/receivables';
 import { ensureTreasurySheet } from '../services/treasury';
+import { ensureWalletSheet } from '../services/wallet';
 
 interface LoginPageProps {
   onSuccess: () => void;
@@ -51,6 +52,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
         await ensureInstallmentsSheet(settings.spreadsheetId);
         await ensureReceivablesSheet(settings.spreadsheetId);
         await ensureTreasurySheet(settings.spreadsheetId);
+        await ensureWalletSheet(settings.spreadsheetId);
 
         onSuccess();
       } catch (err) {
