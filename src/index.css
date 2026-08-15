@@ -498,6 +498,33 @@ button {
   color: var(--color-primary-dark);
 }
 
+.dashboard-filter-section {
+  margin-bottom: 1rem;
+}
+
+.dashboard-filter {
+  margin-bottom: 0.35rem;
+}
+
+.dashboard-filter-range {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+.transaction-filters {
+  margin-bottom: 0.75rem;
+}
+
+.transaction-type-filter {
+  margin-bottom: 0.6rem;
+}
+
+.transaction-category-filter {
+  margin-bottom: 0;
+}
+
 .card-header-row {
   display: flex;
   justify-content: space-between;

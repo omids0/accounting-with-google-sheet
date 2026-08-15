@@ -1,5 +1,21 @@
-import type { AppSettings, CategorySummary, DashboardData } from '../types';
+import type { AppSettings, CategorySummary, CustomForm, DashboardData } from '../types';
+import type { DateRange } from '../utils/dateRange';
+import { isDateInRange } from '../utils/dateRange';
 import { fetchRecords } from './sheets';
+
+function getDateFieldId(form: CustomForm | undefined): string {
+  return form?.fields.find((f) => f.type === 'date')?.id ?? 'date';
+}
+
+function filterByDateRange<T extends { values: Record<string, string> }>(
+  records: T[],
+  range: DateRange,
+  dateFieldId: string
+): T[] {
+  return records.filter((r) =>
+    isDateInRange(r.values[dateFieldId] ?? '', range)
+  );
+}
 
 function sumByCategory(
   records: { values: Record<string, string> }[],
@@ -18,7 +34,8 @@ function sumByCategory(
 }
 
 export async function loadDashboardData(
-  settings: AppSettings
+  settings: AppSettings,
+  range: DateRange
 ): Promise<DashboardData> {
   const incomeForm = settings.forms.find((f) => f.type === 'income');
   const expenseForm = settings.forms.find((f) => f.type === 'expense');
@@ -32,40 +49,54 @@ export async function loadDashboardData(
       : Promise.resolve([]),
   ]);
 
-  const totalIncome = incomeRecords.reduce(
+  const incomeDateField = getDateFieldId(incomeForm);
+  const expenseDateField = getDateFieldId(expenseForm);
+
+  const filteredIncome = filterByDateRange(
+    incomeRecords,
+    range,
+    incomeDateField
+  );
+  const filteredExpense = filterByDateRange(
+    expenseRecords,
+    range,
+    expenseDateField
+  );
+
+  const totalIncome = filteredIncome.reduce(
     (s, r) => s + (Number(r.values.amount) || 0),
     0
   );
-  const totalExpense = expenseRecords.reduce(
+  const totalExpense = filteredExpense.reduce(
     (s, r) => s + (Number(r.values.amount) || 0),
     0
   );
 
   const recent = [
-    ...incomeRecords.map((r) => ({
+    ...filteredIncome.map((r) => ({
       formName: incomeForm?.name ?? 'درآمد',
       title: r.values.title || '—',
       amount: Number(r.values.amount) || 0,
       type: 'income' as const,
+      category: r.values.category || 'سایر',
       createdAt: r.createdAt,
     })),
-    ...expenseRecords.map((r) => ({
+    ...filteredExpense.map((r) => ({
       formName: expenseForm?.name ?? 'هزینه',
       title: r.values.title || '—',
       amount: Number(r.values.amount) || 0,
       type: 'expense' as const,
+      category: r.values.category || 'سایر',
       createdAt: r.createdAt,
     })),
-  ]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 8);
+  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   return {
     totalIncome,
     totalExpense,
     balance: totalIncome - totalExpense,
-    incomeByCategory: sumByCategory(incomeRecords),
-    expenseByCategory: sumByCategory(expenseRecords),
+    incomeByCategory: sumByCategory(filteredIncome),
+    expenseByCategory: sumByCategory(filteredExpense),
     recentRecords: recent,
   };
 }

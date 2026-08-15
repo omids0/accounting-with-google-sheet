@@ -42,11 +42,20 @@ export interface CategorySummary {
   total: number;
 }
 
+export interface DashboardRecord {
+  formName: string;
+  title: string;
+  amount: number;
+  type: 'income' | 'expense';
+  category: string;
+  createdAt: string;
+}
+
 export interface DashboardData {
   totalIncome: number;
   totalExpense: number;
   balance: number;
   incomeByCategory: CategorySummary[];
   expenseByCategory: CategorySummary[];
-  recentRecords: { formName: string; title: string; amount: number; type: FormType; createdAt: string }[];
+  recentRecords: DashboardRecord[];
 }
