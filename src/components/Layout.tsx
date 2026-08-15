@@ -2,10 +2,11 @@ import { useState } from 'react';
 import DashboardPage from './DashboardPage';
 import DataEntryPage from './DataEntryPage';
 import RecordsPage from './RecordsPage';
+import InstallmentsPage from './InstallmentsPage';
 import SettingsPage from './SettingsPage';
 import { getUserName, getUserPicture } from '../services/auth';
 
-type Tab = 'dashboard' | 'entry' | 'records' | 'settings';
+type Tab = 'dashboard' | 'entry' | 'records' | 'installments' | 'settings';
 
 interface LayoutProps {
   onLogout: () => void;
@@ -21,6 +22,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     dashboard: 'داشبورد',
     entry: 'ثبت جدید',
     records: 'رکوردها',
+    installments: 'اقساط',
     settings: 'تنظیمات',
   };
 
@@ -46,6 +48,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         {tab === 'dashboard' && <DashboardPage onReauth={onReauth} />}
         {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
         {tab === 'records' && <RecordsPage onReauth={onReauth} />}
+        {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
         {tab === 'settings' && <SettingsPage onLogout={onLogout} />}
       </main>
 
@@ -70,6 +73,13 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         >
           <span className="icon">📋</span>
           رکوردها
+        </button>
+        <button
+          className={tab === 'installments' ? 'active' : ''}
+          onClick={() => setTab('installments')}
+        >
+          <span className="icon">📅</span>
+          اقساط
         </button>
         <button
           className={tab === 'settings' ? 'active' : ''}

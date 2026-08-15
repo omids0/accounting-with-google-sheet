@@ -3,6 +3,67 @@ import { getAccessToken } from './auth';
 
 const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
 
+const ensureSheetLocks = new Map<string, Promise<void>>();
+
+function normalizeSheetTitle(title: string): string {
+  return title.normalize('NFC').trim();
+}
+
+function sheetLockKey(spreadsheetId: string, sheetName: string): string {
+  return `${spreadsheetId}:${normalizeSheetTitle(sheetName)}`;
+}
+
+async function fetchSheetTitles(spreadsheetId: string): Promise<string[]> {
+  const meta = await apiRequest<{
+    sheets?: { properties?: { title?: string } }[];
+  }>(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties.title`);
+
+  return (meta.sheets ?? [])
+    .map((s) => s.properties?.title ?? '')
+    .filter(Boolean);
+}
+
+async function sheetExists(spreadsheetId: string, sheetName: string): Promise<boolean> {
+  const titles = await fetchSheetTitles(spreadsheetId);
+  const target = normalizeSheetTitle(sheetName);
+  return titles.some((title) => normalizeSheetTitle(title) === target);
+}
+
+async function safeAddSheetTab(spreadsheetId: string, sheetName: string): Promise<void> {
+  if (await sheetExists(spreadsheetId, sheetName)) return;
+
+  try {
+    await addSheetTab(spreadsheetId, sheetName);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/already exists/i.test(msg)) return;
+    throw err;
+  }
+}
+
+async function writeSheetHeaders(
+  spreadsheetId: string,
+  sheetName: string,
+  headers: string[]
+): Promise<void> {
+  const headerRange = encodeURIComponent(`${sheetName}!1:1`);
+  const existing = await apiRequest<{ values?: string[][] }>(
+    `${SHEETS_API}/${spreadsheetId}/values/${headerRange}`
+  );
+  const hasHeaders = existing.values?.[0]?.some((cell) => String(cell ?? '').trim());
+  if (hasHeaders) return;
+
+  const endCol = String.fromCharCode(64 + headers.length);
+  const range = encodeURIComponent(`${sheetName}!A1:${endCol}1`);
+  await apiRequest(
+    `${SHEETS_API}/${spreadsheetId}/values/${range}?valueInputOption=RAW`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ values: [headers] }),
+    }
+  );
+}
+
 function token(): string {
   return getAccessToken();
 }
@@ -86,16 +147,7 @@ export async function ensureFormSheet(
   spreadsheetId: string,
   form: CustomForm
 ): Promise<void> {
-  const meta = await apiRequest<{
-    sheets?: { properties?: { title?: string } }[];
-  }>(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties.title`);
-
-  const exists = meta.sheets?.some(
-    (s) => s.properties?.title === form.sheetName
-  );
-  if (!exists) {
-    await addSheetTab(spreadsheetId, form.sheetName);
-  }
+  await safeAddSheetTab(spreadsheetId, form.sheetName);
   await writeHeaders(spreadsheetId, form);
 }
 
@@ -151,4 +203,69 @@ export async function fetchRecords(
 
 export function getSpreadsheetUrl(sheetId: string): string {
   return `https://docs.google.com/spreadsheets/d/${sheetId}`;
+}
+
+export async function ensureSheetWithHeaders(
+  spreadsheetId: string,
+  sheetName: string,
+  headers: string[]
+): Promise<void> {
+  const lockKey = sheetLockKey(spreadsheetId, sheetName);
+  const pending = ensureSheetLocks.get(lockKey);
+  if (pending) return pending;
+
+  const task = (async () => {
+    await safeAddSheetTab(spreadsheetId, sheetName);
+    await writeSheetHeaders(spreadsheetId, sheetName, headers);
+  })();
+
+  ensureSheetLocks.set(lockKey, task);
+  try {
+    await task;
+  } finally {
+    ensureSheetLocks.delete(lockKey);
+  }
+}
+
+export async function fetchSheetRows(
+  spreadsheetId: string,
+  sheetName: string
+): Promise<string[][]> {
+  const range = encodeURIComponent(`${sheetName}!A2:Z2000`);
+  const data = await apiRequest<{ values?: string[][] }>(
+    `${SHEETS_API}/${spreadsheetId}/values/${range}`
+  );
+  return data.values ?? [];
+}
+
+export async function appendSheetRow(
+  spreadsheetId: string,
+  sheetName: string,
+  row: string[]
+): Promise<void> {
+  const range = encodeURIComponent(`${sheetName}!A:Z`);
+  await apiRequest(
+    `${SHEETS_API}/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ values: [row] }),
+    }
+  );
+}
+
+export async function updateSheetRow(
+  spreadsheetId: string,
+  sheetName: string,
+  rowNumber: number,
+  row: string[]
+): Promise<void> {
+  const endCol = String.fromCharCode(64 + Math.max(row.length, 1));
+  const range = encodeURIComponent(`${sheetName}!A${rowNumber}:${endCol}${rowNumber}`);
+  await apiRequest(
+    `${SHEETS_API}/${spreadsheetId}/values/${range}?valueInputOption=USER_ENTERED`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ values: [row] }),
+    }
+  );
 }

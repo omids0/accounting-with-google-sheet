@@ -62,3 +62,22 @@ export interface DashboardData {
   expenseByCategory: CategorySummary[];
   recentRecords: DashboardRecord[];
 }
+
+export interface InstallmentPayment {
+  n: number;
+  paid: boolean;
+  paidAt: string;
+  dueDate: string;
+}
+
+export interface InstallmentPlan {
+  id: string;
+  createdAt: string;
+  title: string;
+  amount: number;
+  count: number;
+  dueDay: number;
+  startDate: string;
+  note: string;
+  payments: InstallmentPayment[];
+}

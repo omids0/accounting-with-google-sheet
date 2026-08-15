@@ -11,6 +11,7 @@ import {
   getDefaultSettings,
 } from '../services/settings';
 import { createSpreadsheet } from '../services/sheets';
+import { ensureInstallmentsSheet } from '../services/installments';
 
 interface LoginPageProps {
   onSuccess: () => void;
@@ -44,6 +45,8 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
           settings = { ...settings, spreadsheetId: sheetId };
           saveSettings(settings);
         }
+
+        await ensureInstallmentsSheet(settings.spreadsheetId);
 
         onSuccess();
       } catch (err) {

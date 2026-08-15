@@ -1,0 +1,152 @@
+import type { InstallmentPayment, InstallmentPlan } from '../types';
+import {
+  appendSheetRow,
+  ensureSheetWithHeaders,
+  fetchSheetRows,
+  updateSheetRow,
+} from './sheets';
+import { addJalaliMonths, getTodayIso } from '../utils/jalaliDate';
+
+export const INSTALLMENTS_SHEET = 'اقساط';
+
+const HEADERS = [
+  'شناسه',
+  'زمان ثبت',
+  'عنوان',
+  'مبلغ قسط',
+  'تعداد بازپرداخت',
+  'موعد در ماه',
+  'تاریخ شروع',
+  'توضیحات',
+  'وضعیت پرداخت',
+];
+
+function buildPayments(
+  count: number,
+  dueDay: number,
+  startDate: string
+): InstallmentPayment[] {
+  return Array.from({ length: count }, (_, i) => ({
+    n: i + 1,
+    paid: false,
+    paidAt: '',
+    dueDate: addJalaliMonths(startDate, i, dueDay),
+  }));
+}
+
+function parsePayments(
+  raw: string,
+  count: number,
+  dueDay: number,
+  startDate: string
+): InstallmentPayment[] {
+  if (!raw) return buildPayments(count, dueDay, startDate);
+  try {
+    const parsed = JSON.parse(raw) as InstallmentPayment[];
+    if (Array.isArray(parsed) && parsed.length === count) return parsed;
+  } catch {
+    /* use default */
+  }
+  return buildPayments(count, dueDay, startDate);
+}
+
+function rowToPlan(row: string[], rowNumber: number): InstallmentPlan & { rowNumber: number } {
+  const count = Number(row[4]) || 0;
+  const dueDay = Number(row[5]) || 1;
+  const startDate = row[6] || getTodayIso();
+  return {
+    rowNumber,
+    id: row[0] ?? '',
+    createdAt: row[1] ?? '',
+    title: row[2] ?? '',
+    amount: Number(row[3]) || 0,
+    count,
+    dueDay,
+    startDate,
+    note: row[7] ?? '',
+    payments: parsePayments(row[8] ?? '', count, dueDay, startDate),
+  };
+}
+
+function planToRow(plan: InstallmentPlan): string[] {
+  return [
+    plan.id,
+    plan.createdAt,
+    plan.title,
+    String(plan.amount),
+    String(plan.count),
+    String(plan.dueDay),
+    plan.startDate,
+    plan.note,
+    JSON.stringify(plan.payments),
+  ];
+}
+
+export async function ensureInstallmentsSheet(spreadsheetId: string): Promise<void> {
+  await ensureSheetWithHeaders(spreadsheetId, INSTALLMENTS_SHEET, HEADERS);
+}
+
+export async function fetchInstallmentPlans(
+  spreadsheetId: string
+): Promise<(InstallmentPlan & { rowNumber: number })[]> {
+  const rows = await fetchSheetRows(spreadsheetId, INSTALLMENTS_SHEET);
+  return rows
+    .map((row, index) => ({ row, rowNumber: index + 2 }))
+    .filter(({ row }) => String(row[0] ?? '').trim())
+    .map(({ row, rowNumber }) => rowToPlan(row, rowNumber));
+}
+
+export async function createInstallmentPlan(
+  spreadsheetId: string,
+  data: {
+    title: string;
+    amount: number;
+    count: number;
+    dueDay: number;
+    note: string;
+  }
+): Promise<InstallmentPlan> {
+  const startDate = getTodayIso();
+  const plan: InstallmentPlan = {
+    id: crypto.randomUUID(),
+    createdAt: new Date().toLocaleString('fa-IR'),
+    title: data.title,
+    amount: data.amount,
+    count: data.count,
+    dueDay: data.dueDay,
+    startDate,
+    note: data.note,
+    payments: buildPayments(data.count, data.dueDay, startDate),
+  };
+
+  await appendSheetRow(spreadsheetId, INSTALLMENTS_SHEET, planToRow(plan));
+  return plan;
+}
+
+export async function updateInstallmentPlan(
+  spreadsheetId: string,
+  rowNumber: number,
+  plan: InstallmentPlan
+): Promise<void> {
+  await updateSheetRow(spreadsheetId, INSTALLMENTS_SHEET, rowNumber, planToRow(plan));
+}
+
+export async function toggleInstallmentPayment(
+  spreadsheetId: string,
+  plan: InstallmentPlan & { rowNumber: number },
+  paymentIndex: number,
+  paid: boolean
+): Promise<InstallmentPlan> {
+  const payments = plan.payments.map((payment, index) => {
+    if (index !== paymentIndex) return payment;
+    return {
+      ...payment,
+      paid,
+      paidAt: paid ? getTodayIso() : '',
+    };
+  });
+
+  const updated: InstallmentPlan = { ...plan, payments };
+  await updateInstallmentPlan(spreadsheetId, plan.rowNumber, updated);
+  return updated;
+}

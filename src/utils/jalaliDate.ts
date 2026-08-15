@@ -92,3 +92,19 @@ export function formatIsoDatePersian(iso: string): string {
     day: 'numeric',
   });
 }
+
+export function addJalaliMonths(
+  baseIso: string,
+  monthsToAdd: number,
+  day: number
+): string {
+  const { year, month } = isoToJalali(baseIso);
+  let jm = month + monthsToAdd;
+  let jy = year;
+  while (jm > 12) {
+    jm -= 12;
+    jy += 1;
+  }
+  const maxDay = daysInJalaliMonth(jy, jm);
+  return jalaliToIso(jy, jm, Math.min(day, maxDay));
+}
