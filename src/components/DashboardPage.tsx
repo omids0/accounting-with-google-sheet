@@ -17,13 +17,10 @@ import {
   formatDateRangeLabel,
   type DateRangePreset,
 } from '../utils/dateRange';
+import { formatMoney } from '../utils/formatMoney';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
-
-function formatMoney(n: number): string {
-  return n.toLocaleString('fa-IR');
-}
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
 

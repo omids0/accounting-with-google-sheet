@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import type { FieldConfig, FieldType } from '../types';
+import type { CurrencyUnit, FieldConfig, FieldType } from '../types';
 import {
   getSettings,
   saveSettings,
   getDefaultSettings,
   addCustomForm,
   updateFormCategories,
+  updateCurrency,
 } from '../services/settings';
+import { CURRENCY_OPTIONS } from '../utils/formatMoney';
 import {
   ensureFormSheet,
   getSpreadsheetUrl,
@@ -28,6 +30,7 @@ const FIELD_TYPES: { value: FieldType; label: string }[] = [
 export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
   const [spreadsheetId, setSpreadsheetId] = useState('');
   const [forms, setForms] = useState(getDefaultSettings().forms);
+  const [currency, setCurrency] = useState<CurrencyUnit>('toman');
   const [newFormName, setNewFormName] = useState('');
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -37,6 +40,7 @@ export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
     const settings = getSettings() ?? getDefaultSettings();
     setSpreadsheetId(settings.spreadsheetId);
     setForms(settings.forms);
+    setCurrency(settings.currency ?? 'toman');
   }, []);
 
   const handleLogout = () => {
@@ -109,6 +113,12 @@ export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
     setMessage({ type: 'success', text: 'دسته‌بندی‌ها ذخیره شد' });
   };
 
+  const handleCurrencyChange = (value: CurrencyUnit) => {
+    setCurrency(value);
+    updateCurrency(value);
+    setMessage({ type: 'success', text: 'واحد پول ذخیره شد' });
+  };
+
   const handleSaveFormFields = (formId: string, fields: FieldConfig[]) => {
     const settings = getSettings() ?? getDefaultSettings();
     const updatedForms = settings.forms.map((f) =>
@@ -162,6 +172,23 @@ export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
           </p>
         </div>
       )}
+
+      <div className="card">
+        <h2 className="card-title">تنظیمات عمومی</h2>
+        <div className="form-group">
+          <label>واحد پول</label>
+          <select value={currency} onChange={(e) => handleCurrencyChange(e.target.value as CurrencyUnit)}>
+            {CURRENCY_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+            واحد پول در تمام نمایش مبالغ (داشبورد، رکوردها و ...) اعمال می‌شود
+          </p>
+        </div>
+      </div>
 
       <div className="card">
         <h2 className="card-title">فرم‌های سفارشی</h2>

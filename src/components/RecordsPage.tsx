@@ -4,6 +4,8 @@ import { getSettings, isConfigured } from '../services/settings';
 import { fetchRecords } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
 
+import { formatMoney } from '../utils/formatMoney';
+
 interface RecordItem {
   id: string;
   createdAt: string;
@@ -130,7 +132,7 @@ export default function RecordsPage({ onReauth }: { onReauth?: () => void }) {
                     dir="ltr"
                   >
                     {isIncome ? '+' : activeForm?.type === 'expense' ? '-' : ''}
-                    {Number(amount).toLocaleString('fa-IR')}
+                    {formatMoney(Number(amount))}
                   </div>
                 )}
               </div>

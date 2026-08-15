@@ -1,4 +1,4 @@
-import type { AppSettings, CustomForm, FieldConfig } from '../types';
+import type { AppSettings, CurrencyUnit, CustomForm, FieldConfig } from '../types';
 import { getItem, setItem, STORAGE_KEYS } from './storage';
 import { isTokenValid } from './auth';
 
@@ -65,7 +65,13 @@ export function getDefaultSettings(): AppSettings {
   return {
     spreadsheetId: '',
     forms: getDefaultForms(),
+    currency: 'toman',
   };
+}
+
+export function updateCurrency(currency: CurrencyUnit): void {
+  const settings = getSettings() ?? getDefaultSettings();
+  saveSettings({ ...settings, currency });
 }
 
 export function isConfigured(): boolean {

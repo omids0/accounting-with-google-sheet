@@ -18,9 +18,12 @@ export interface CustomForm {
   fields: FieldConfig[];
 }
 
+export type CurrencyUnit = 'toman' | 'rial' | 'usd' | 'eur';
+
 export interface AppSettings {
   spreadsheetId: string;
   forms: CustomForm[];
+  currency?: CurrencyUnit;
 }
 
 export interface GoogleSession {
