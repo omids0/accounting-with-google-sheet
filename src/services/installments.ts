@@ -1,4 +1,6 @@
 import type { InstallmentPayment, InstallmentPlan } from '../types';
+import type { DateRange } from '../utils/dateRange';
+import { isDateInRange } from '../utils/dateRange';
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
@@ -149,4 +151,38 @@ export async function toggleInstallmentPayment(
   const updated: InstallmentPlan = { ...plan, payments };
   await updateInstallmentPlan(spreadsheetId, plan.rowNumber, updated);
   return updated;
+}
+
+export function unpaidInstallmentCount(plan: InstallmentPlan): number {
+  return plan.payments.filter((p) => !p.paid).length;
+}
+
+export function unpaidInstallmentCountInRange(
+  plan: InstallmentPlan,
+  range: DateRange
+): number {
+  return plan.payments.filter(
+    (p) => !p.paid && isDateInRange(p.dueDate, range)
+  ).length;
+}
+
+export function unpaidInstallmentAmount(plan: InstallmentPlan): number {
+  return unpaidInstallmentCount(plan) * plan.amount;
+}
+
+export function unpaidInstallmentAmountInRange(
+  plan: InstallmentPlan,
+  range: DateRange
+): number {
+  return unpaidInstallmentCountInRange(plan, range) * plan.amount;
+}
+
+export function totalUnpaidInstallments(
+  plans: InstallmentPlan[],
+  range: DateRange
+): number {
+  return plans.reduce(
+    (sum, plan) => sum + unpaidInstallmentAmountInRange(plan, range),
+    0
+  );
 }

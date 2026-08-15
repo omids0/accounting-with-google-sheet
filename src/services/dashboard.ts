@@ -1,7 +1,17 @@
 import type { AppSettings, CategorySummary, CustomForm, DashboardData } from '../types';
 import type { DateRange } from '../utils/dateRange';
-import { isDateInRange } from '../utils/dateRange';
+import {
+  formatJalaliMonthLabel,
+  getJalaliMonthKey,
+  isDateInRange,
+} from '../utils/dateRange';
+import { fetchInstallmentPlans, totalUnpaidInstallments } from './installments';
+import { fetchOpeningBalance } from './monthlyBalance';
+import { fetchReceivables, remainingAmount } from './receivables';
 import { fetchRecords } from './sheets';
+import { fetchTgjuPrices } from './tgju';
+import { computeHoldings, fetchVaultTransactions } from './treasury';
+import { fetchWalletAccounts } from './wallet';
 
 function getDateFieldId(form: CustomForm | undefined): string {
   return form?.fields.find((f) => f.type === 'date')?.id ?? 'date';
@@ -35,18 +45,40 @@ function sumByCategory(
 
 export async function loadDashboardData(
   settings: AppSettings,
-  range: DateRange
+  range: DateRange,
+  installmentRange: DateRange = range
 ): Promise<DashboardData> {
   const incomeForm = settings.forms.find((f) => f.type === 'income');
   const expenseForm = settings.forms.find((f) => f.type === 'expense');
+  const monthKey = getJalaliMonthKey(range.start);
 
-  const [incomeRecords, expenseRecords] = await Promise.all([
+  const [
+    incomeRecords,
+    expenseRecords,
+    walletAccounts,
+    vaultTransactions,
+    receivables,
+    installmentPlans,
+    openingBalanceRecord,
+    tgjuPrices,
+  ] = await Promise.all([
     incomeForm
       ? fetchRecords(settings.spreadsheetId, incomeForm)
       : Promise.resolve([]),
     expenseForm
       ? fetchRecords(settings.spreadsheetId, expenseForm)
       : Promise.resolve([]),
+    fetchWalletAccounts(settings.spreadsheetId).catch(() => []),
+    fetchVaultTransactions(settings.spreadsheetId).catch(() => []),
+    fetchReceivables(settings.spreadsheetId).catch(() => []),
+    fetchInstallmentPlans(settings.spreadsheetId).catch(() => []),
+    fetchOpeningBalance(settings.spreadsheetId, monthKey).catch(() => ({
+      monthKey,
+      amount: 0,
+      updatedAt: '',
+      note: '',
+    })),
+    fetchTgjuPrices().catch(() => null),
   ]);
 
   const incomeDateField = getDateFieldId(incomeForm);
@@ -71,6 +103,26 @@ export async function loadDashboardData(
     (s, r) => s + (Number(r.values.amount) || 0),
     0
   );
+
+  const walletTotal = walletAccounts.reduce((s, a) => s + a.balance, 0);
+  const holdings = tgjuPrices
+    ? computeHoldings(vaultTransactions, tgjuPrices)
+    : [];
+  const treasuryTotal = holdings.reduce((s, h) => s + h.totalValue, 0);
+  const receivablesTotal = receivables.reduce(
+    (s, r) => s + remainingAmount(r),
+    0
+  );
+  const totalAssets = walletTotal + treasuryTotal + receivablesTotal;
+  const installmentsTotal = totalUnpaidInstallments(
+    installmentPlans,
+    installmentRange
+  );
+  const netAvailable = totalAssets - installmentsTotal;
+
+  const openingBalance = openingBalanceRecord.amount;
+  const periodBalance = openingBalance + totalIncome - totalExpense;
+  const reconciliationDiff = walletTotal - periodBalance;
 
   const recent = [
     ...filteredIncome.map((r) => ({
@@ -103,6 +155,19 @@ export async function loadDashboardData(
     totalIncome,
     totalExpense,
     balance: totalIncome - totalExpense,
+    openingBalance,
+    periodBalance,
+    reconciliationDiff,
+    monthKey,
+    monthLabel: formatJalaliMonthLabel(monthKey),
+    financial: {
+      walletTotal,
+      treasuryTotal,
+      receivablesTotal,
+      totalAssets,
+      installmentsTotal,
+      netAvailable,
+    },
     incomeByCategory: sumByCategory(filteredIncome),
     expenseByCategory: sumByCategory(filteredExpense),
     recentRecords: recent,

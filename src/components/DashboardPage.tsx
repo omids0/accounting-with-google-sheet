@@ -9,16 +9,19 @@ import {
 } from 'recharts';
 import { getSettings, isConfigured } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
+import { setOpeningBalance } from '../services/monthlyBalance';
 import type { CustomForm, DashboardData } from '../types';
 import { isTokenValid } from '../services/auth';
 import {
   DATE_RANGE_PRESETS,
   getDateRange,
+  getInstallmentDueRange,
   formatDateRangeLabel,
   type DateRangePreset,
 } from '../utils/dateRange';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
+import AmountInput from './AmountInput';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
@@ -61,6 +64,8 @@ export default function DashboardPage({
   const [datePreset, setDatePreset] = useState<DateRangePreset>('month-to-date');
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [openingInput, setOpeningInput] = useState<number | ''>('');
+  const [savingOpening, setSavingOpening] = useState(false);
   const dateRange = getDateRange(datePreset);
 
   const load = useCallback(async () => {
@@ -75,8 +80,10 @@ export default function DashboardPage({
     setError('');
     try {
       const range = getDateRange(datePreset);
-      const dash = await loadDashboardData(settings, range);
+      const installmentRange = getInstallmentDueRange(datePreset);
+      const dash = await loadDashboardData(settings, range, installmentRange);
       setData(dash);
+      setOpeningInput(dash.openingBalance || '');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
       if (msg.includes('منقضی') || msg.includes('401')) {
@@ -95,6 +102,24 @@ export default function DashboardPage({
 
   const handlePresetChange = (preset: DateRangePreset) => {
     setDatePreset(preset);
+  };
+
+  const handleSaveOpeningBalance = async () => {
+    if (!data) return;
+    const settings = getSettings();
+    if (!settings) return;
+
+    setSavingOpening(true);
+    setError('');
+    try {
+      const amount = openingInput === '' ? 0 : Number(openingInput);
+      await setOpeningBalance(settings.spreadsheetId, data.monthKey, amount);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول');
+    } finally {
+      setSavingOpening(false);
+    }
   };
 
   const settings = getSettings();
@@ -121,6 +146,10 @@ export default function DashboardPage({
     setTypeFilter(filter);
     setCategoryFilter('all');
   };
+
+  const financial = data?.financial;
+  const hasReconciliationGap =
+    data != null && Math.abs(data.reconciliationDiff) > 0;
 
   if (!isConfigured()) {
     return (
@@ -159,21 +188,121 @@ export default function DashboardPage({
         <p className="dashboard-filter-range">{formatDateRangeLabel(dateRange)}</p>
       </div>
 
+      <div className="card dashboard-hero-card">
+        <div className="dashboard-hero-label">دارایی قابل اتکا</div>
+        <div className="dashboard-hero-value" dir="ltr">
+          {formatMoney(financial?.netAvailable ?? 0)}
+        </div>
+        <p className="dashboard-hero-hint">
+          مجموع دارایی‌ها منهای اقساط پیش‌رو این دوره
+        </p>
+      </div>
+
+      <div className="card dashboard-assets-card">
+        <h3 className="chart-title">دارایی‌ها</h3>
+        <div className="asset-breakdown">
+          <div className="asset-row">
+            <span className="asset-label">کیف پول</span>
+            <span className="asset-value" dir="ltr">
+              {formatMoney(financial?.walletTotal ?? 0)}
+            </span>
+          </div>
+          <div className="asset-row">
+            <span className="asset-label">صندوقچه</span>
+            <span className="asset-value" dir="ltr">
+              {formatMoney(financial?.treasuryTotal ?? 0)}
+            </span>
+          </div>
+          <div className="asset-row">
+            <span className="asset-label">طلب‌ها</span>
+            <span className="asset-value" dir="ltr">
+              {formatMoney(financial?.receivablesTotal ?? 0)}
+            </span>
+          </div>
+          <div className="asset-row asset-row-total">
+            <span className="asset-label">مجموع دارایی‌ها</span>
+            <span className="asset-value" dir="ltr">
+              {formatMoney(financial?.totalAssets ?? 0)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="stat-grid stat-grid-2">
+        <div className="stat-card stat-liability">
+          <span className="stat-label">اقساط پیش‌رو دوره</span>
+          <span className="stat-value" dir="ltr">
+            {formatMoney(financial?.installmentsTotal ?? 0)}
+          </span>
+        </div>
+        <div className="stat-card stat-balance">
+          <span className="stat-label">مانده محاسبه‌شده</span>
+          <span className="stat-value" dir="ltr">
+            {formatMoney(data?.periodBalance ?? 0)}
+          </span>
+        </div>
+      </div>
+
+      <div className="card dashboard-opening-card">
+        <h3 className="chart-title">موجودی اول دوره</h3>
+        <p className="dashboard-opening-hint">
+          موجودی کیف پول در ابتدای {data?.monthLabel ?? 'این دوره'} را وارد کنید.
+          با خالص جریان (درآمد − هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
+        </p>
+        <div className="dashboard-opening-form">
+          <div className="dashboard-opening-input-wrap">
+            <AmountInput value={openingInput} onChange={setOpeningInput} />
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={handleSaveOpeningBalance}
+            disabled={savingOpening || loading}
+          >
+            {savingOpening ? '...' : 'ذخیره'}
+          </button>
+        </div>
+      </div>
+
+      {hasReconciliationGap && (
+        <div
+          className={`alert ${
+            Math.abs(data!.reconciliationDiff) > 10000
+              ? 'alert-warning'
+              : 'alert-info'
+          } dashboard-reconcile-alert`}
+        >
+          <strong>تطبیق کیف پول</strong>
+          <p>
+            کیف پول فعلی ({formatMoney(financial?.walletTotal ?? 0)}) با مانده
+            محاسبه‌شده ({formatMoney(data!.periodBalance)}){' '}
+            {data!.reconciliationDiff > 0 ? 'بیشتر' : 'کمتر'} است.
+          </p>
+          <p dir="ltr" className="reconcile-diff">
+            اختلاف: {formatMoney(Math.abs(data!.reconciliationDiff))}
+            {data!.reconciliationDiff > 0 ? ' +' : ' −'}
+          </p>
+          <p className="dashboard-reconcile-formula">
+            موجودی اول + درآمد − هزینه = مانده محاسبه‌شده
+          </p>
+        </div>
+      )}
+
       <div className="stat-grid">
         <div className="stat-card stat-income">
-          <span className="stat-label">درآمد</span>
+          <span className="stat-label">درآمد دوره</span>
           <span className="stat-value" dir="ltr">
             {formatMoney(data?.totalIncome ?? 0)}
           </span>
         </div>
         <div className="stat-card stat-expense">
-          <span className="stat-label">هزینه</span>
+          <span className="stat-label">هزینه دوره</span>
           <span className="stat-value" dir="ltr">
             {formatMoney(data?.totalExpense ?? 0)}
           </span>
         </div>
-        <div className="stat-card stat-balance">
-          <span className="stat-label">مانده</span>
+        <div className="stat-card stat-flow">
+          <span className="stat-label">خالص جریان</span>
           <span className="stat-value" dir="ltr">
             {formatMoney(data?.balance ?? 0)}
           </span>
@@ -236,7 +365,7 @@ export default function DashboardPage({
 
       <div className="card">
         <div className="card-header-row">
-          <h3 className="chart-title">آخرین تراکنش‌ها</h3>
+          <h3 className="chart-title">تراکنش‌های دوره</h3>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             {!!data?.recentRecords.length && (
               <button
@@ -298,7 +427,7 @@ export default function DashboardPage({
         </div>
 
         {!data?.recentRecords.length ? (
-          <p className="empty-text">هنوز تراکنشی ثبت نشده</p>
+          <p className="empty-text">هنوز تراکنشی در این دوره ثبت نشده</p>
         ) : !filteredRecords.length ? (
           <p className="empty-text">تراکنشی با این فیلتر یافت نشد</p>
         ) : (

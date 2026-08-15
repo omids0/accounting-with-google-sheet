@@ -54,10 +54,25 @@ export interface DashboardRecord {
   date: string;
 }
 
+export interface FinancialSummary {
+  walletTotal: number;
+  treasuryTotal: number;
+  receivablesTotal: number;
+  totalAssets: number;
+  installmentsTotal: number;
+  netAvailable: number;
+}
+
 export interface DashboardData {
   totalIncome: number;
   totalExpense: number;
   balance: number;
+  openingBalance: number;
+  periodBalance: number;
+  reconciliationDiff: number;
+  monthKey: string;
+  monthLabel: string;
+  financial: FinancialSummary;
   incomeByCategory: CategorySummary[];
   expenseByCategory: CategorySummary[];
   recentRecords: DashboardRecord[];

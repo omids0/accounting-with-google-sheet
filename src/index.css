@@ -949,6 +949,152 @@ button {
   margin: 0;
 }
 
+.dashboard-hero-card {
+  text-align: center;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: white;
+  border: none;
+  margin-bottom: 1rem;
+}
+
+.dashboard-hero-label {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-hero-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.dashboard-hero-hint {
+  font-size: 0.72rem;
+  opacity: 0.85;
+  margin: 0;
+}
+
+.dashboard-assets-card {
+  margin-bottom: 1rem;
+}
+
+.asset-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.asset-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.asset-row:last-child {
+  border-bottom: none;
+}
+
+.asset-row-total {
+  font-weight: 700;
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+  border-top: 2px solid var(--color-border);
+  border-bottom: none;
+}
+
+.asset-label {
+  color: var(--color-text-muted);
+}
+
+.asset-value {
+  font-weight: 600;
+  color: var(--color-primary-dark);
+}
+
+.stat-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.stat-liability {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.stat-liability .stat-value {
+  color: #c2410c;
+}
+
+.stat-flow .stat-value {
+  color: var(--color-primary-dark);
+}
+
+.dashboard-opening-card {
+  margin-bottom: 1rem;
+}
+
+.dashboard-opening-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.dashboard-opening-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.dashboard-opening-input-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-opening-input-wrap input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: var(--color-bg);
+}
+
+.dashboard-opening-form .btn {
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+.dashboard-reconcile-alert {
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.dashboard-reconcile-alert p {
+  margin: 0.35rem 0 0;
+}
+
+.reconcile-diff {
+  font-weight: 700;
+}
+
+.dashboard-reconcile-formula {
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+.alert-warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
 .transaction-filters {
   margin-bottom: 0.75rem;
 }

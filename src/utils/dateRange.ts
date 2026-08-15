@@ -3,6 +3,7 @@ import {
   daysInJalaliMonth,
   findGregorianForJalali,
   getJalaliParts,
+  JALALI_MONTHS,
   toIsoDate,
 } from './jalaliDate';
 
@@ -40,10 +41,47 @@ export function getDateRange(preset: DateRangePreset): DateRange {
   }
 }
 
+/** Full calendar month(s) for matching installment due dates (not capped at today). */
+export function getInstallmentDueRange(preset: DateRangePreset): DateRange {
+  const today = new Date();
+  const { year: jy, month: jm } = getJalaliParts(today);
+
+  switch (preset) {
+    case 'month-to-date': {
+      const start = findGregorianForJalali(jy, jm, 1);
+      const lastDay = daysInJalaliMonth(jy, jm);
+      const end = findGregorianForJalali(jy, jm, lastDay);
+      return { start: toIsoDate(start), end: toIsoDate(end) };
+    }
+    case 'last-month': {
+      return getDateRange('last-month');
+    }
+    case 'year-to-date': {
+      const start = findGregorianForJalali(jy, 1, 1);
+      const lastDay = daysInJalaliMonth(jy, jm);
+      const end = findGregorianForJalali(jy, jm, lastDay);
+      return { start: toIsoDate(start), end: toIsoDate(end) };
+    }
+  }
+}
+
 export function isDateInRange(dateStr: string, range: DateRange): boolean {
   if (!dateStr) return false;
   const d = dateStr.slice(0, 10);
   return d >= range.start && d <= range.end;
+}
+
+export function getJalaliMonthKey(isoDate: string): string {
+  const { year, month } = getJalaliParts(new Date(isoDate + 'T12:00:00'));
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
+export function formatJalaliMonthLabel(monthKey: string): string {
+  const [yearStr, monthStr] = monthKey.split('-');
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  if (!month || month < 1 || month > 12) return monthKey;
+  return `${JALALI_MONTHS[month - 1]} ${year}`;
 }
 
 export function formatDateRangeLabel(range: DateRange): string {

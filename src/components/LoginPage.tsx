@@ -12,6 +12,7 @@ import {
 } from '../services/settings';
 import { createSpreadsheet } from '../services/sheets';
 import { ensureInstallmentsSheet } from '../services/installments';
+import { ensureMonthlyBalanceSheet } from '../services/monthlyBalance';
 import { ensureReceivablesSheet } from '../services/receivables';
 import { ensureTreasurySheet } from '../services/treasury';
 import { ensureWalletSheet } from '../services/wallet';
@@ -53,6 +54,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
         await ensureReceivablesSheet(settings.spreadsheetId);
         await ensureTreasurySheet(settings.spreadsheetId);
         await ensureWalletSheet(settings.spreadsheetId);
+        await ensureMonthlyBalanceSheet(settings.spreadsheetId);
 
         onSuccess();
       } catch (err) {
