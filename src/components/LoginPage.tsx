@@ -12,6 +12,7 @@ import {
 } from '../services/settings';
 import { createSpreadsheet } from '../services/sheets';
 import { ensureInstallmentsSheet } from '../services/installments';
+import { ensureReceivablesSheet } from '../services/receivables';
 
 interface LoginPageProps {
   onSuccess: () => void;
@@ -47,6 +48,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
         }
 
         await ensureInstallmentsSheet(settings.spreadsheetId);
+        await ensureReceivablesSheet(settings.spreadsheetId);
 
         onSuccess();
       } catch (err) {

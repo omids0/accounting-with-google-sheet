@@ -81,3 +81,20 @@ export interface InstallmentPlan {
   note: string;
   payments: InstallmentPayment[];
 }
+
+export interface ReceivablePayment {
+  id: string;
+  amount: number;
+  paidAt: string;
+  note: string;
+}
+
+export interface Receivable {
+  id: string;
+  createdAt: string;
+  debtor: string;
+  amount: number;
+  borrowDate: string;
+  note: string;
+  payments: ReceivablePayment[];
+}

@@ -1,0 +1,428 @@
+import { useState, useEffect, useCallback } from 'react';
+import type { Receivable } from '../types';
+import { getSettings, isConfigured } from '../services/settings';
+import { isTokenValid } from '../services/auth';
+import {
+  addReceivablePayment,
+  createReceivable,
+  ensureReceivablesSheet,
+  fetchReceivables,
+  isReceivableComplete,
+  paidAmount,
+  remainingAmount,
+  sortReceivables,
+} from '../services/receivables';
+import AmountInput from './AmountInput';
+import JalaliDatePicker from './JalaliDatePicker';
+import { formatMoney } from '../utils/formatMoney';
+import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
+
+type ReceivableWithRow = Receivable & { rowNumber: number };
+
+export default function ReceivablesPage({ onReauth }: { onReauth?: () => void }) {
+  const [items, setItems] = useState<ReceivableWithRow[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [payingId, setPayingId] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [form, setForm] = useState({
+    debtor: '',
+    amount: '' as number | '',
+    borrowDate: getTodayIso(),
+    note: '',
+  });
+  const [paymentForm, setPaymentForm] = useState<{
+    receivableId: string;
+    amount: number | '';
+    note: string;
+  } | null>(null);
+
+  const loadItems = useCallback(async () => {
+    const settings = getSettings();
+    if (!settings?.spreadsheetId) return;
+    if (!isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      await ensureReceivablesSheet(settings.spreadsheetId);
+      const data = await fetchReceivables(settings.spreadsheetId);
+      setItems(data);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری طلب‌ها';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [onReauth]);
+
+  useEffect(() => {
+    if (isConfigured()) loadItems();
+  }, [loadItems]);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isConfigured() || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    if (!form.debtor.trim()) {
+      setMessage({ type: 'error', text: 'نام شخص یا ارگان الزامی است' });
+      return;
+    }
+    if (!form.amount || Number(form.amount) <= 0) {
+      setMessage({ type: 'error', text: 'مبلغ را وارد کنید' });
+      return;
+    }
+    if (!form.borrowDate) {
+      setMessage({ type: 'error', text: 'تاریخ قرض الزامی است' });
+      return;
+    }
+
+    const settings = getSettings()!;
+    setSaving(true);
+    setMessage(null);
+    try {
+      await createReceivable(settings.spreadsheetId, {
+        debtor: form.debtor.trim(),
+        amount: Number(form.amount),
+        borrowDate: form.borrowDate,
+        note: form.note.trim(),
+      });
+      setForm({ debtor: '', amount: '', borrowDate: getTodayIso(), note: '' });
+      setShowForm(false);
+      setMessage({ type: 'success', text: 'طلب جدید ثبت شد' });
+      await loadItems();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در ثبت طلب';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      setMessage({ type: 'error', text: msg });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddPayment = async (receivable: ReceivableWithRow) => {
+    if (!paymentForm || paymentForm.receivableId !== receivable.id) return;
+
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    const payAmount = Number(paymentForm.amount);
+    if (!payAmount || payAmount <= 0) {
+      setMessage({ type: 'error', text: 'مبلغ پرداخت را وارد کنید' });
+      return;
+    }
+
+    const remaining = remainingAmount(receivable);
+    if (payAmount > remaining) {
+      setMessage({
+        type: 'error',
+        text: `مبلغ پرداخت نمی‌تواند بیشتر از مانده (${formatMoney(remaining)}) باشد`,
+      });
+      return;
+    }
+
+    setPayingId(receivable.id);
+    setMessage(null);
+    try {
+      const updated = await addReceivablePayment(settings.spreadsheetId, receivable, {
+        amount: payAmount,
+        note: paymentForm.note.trim(),
+      });
+      setItems((prev) =>
+        sortReceivables(
+          prev.map((item) =>
+            item.id === receivable.id
+              ? { ...updated, rowNumber: receivable.rowNumber }
+              : item
+          )
+        )
+      );
+      setPaymentForm(null);
+      setMessage({ type: 'success', text: 'پرداخت ثبت شد' });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در ثبت پرداخت';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      setMessage({ type: 'error', text: msg });
+    } finally {
+      setPayingId('');
+    }
+  };
+
+  if (!isConfigured()) {
+    return (
+      <div className="empty-state">
+        <div className="icon">💰</div>
+        <p>ابتدا با گوگل وارد شوید</p>
+      </div>
+    );
+  }
+
+  const totalRemaining = items.reduce((sum, item) => sum + remainingAmount(item), 0);
+
+  return (
+    <div>
+      <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
+        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>طلب‌ها</h2>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowForm((v) => !v)}
+            type="button"
+          >
+            {showForm ? 'بستن' : '+ جدید'}
+          </button>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={loadItems}
+            disabled={loading}
+            type="button"
+          >
+            {loading ? '...' : '↻'}
+          </button>
+        </div>
+      </div>
+
+      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
+
+      {showForm && (
+        <form className="card" onSubmit={handleCreate}>
+          <h3 className="card-title">ثبت طلب جدید</h3>
+
+          <div className="form-group">
+            <label>نام شخص یا ارگان <span className="required">*</span></label>
+            <input
+              type="text"
+              value={form.debtor}
+              onChange={(e) => setForm((f) => ({ ...f, debtor: e.target.value }))}
+              placeholder="مثلاً: علی محمدی"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>مبلغ <span className="required">*</span></label>
+            <AmountInput
+              value={form.amount}
+              onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>تاریخ قرض گرفتن <span className="required">*</span></label>
+            <JalaliDatePicker
+              value={form.borrowDate}
+              onChange={(iso) => setForm((f) => ({ ...f, borrowDate: iso }))}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>توضیحات</label>
+            <textarea
+              value={form.note}
+              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+              placeholder="توضیحات اختیاری"
+            />
+          </div>
+
+          <button type="submit" className="btn btn-primary" disabled={saving}>
+            {saving && <span className="spinner" />}
+            ذخیره طلب
+          </button>
+        </form>
+      )}
+
+      {loading && items.length === 0 ? (
+        <div className="empty-state"><p>در حال بارگذاری...</p></div>
+      ) : items.length === 0 ? (
+        <div className="empty-state">
+          <div className="icon">💰</div>
+          <p>هنوز طلبی ثبت نشده</p>
+        </div>
+      ) : (
+        items.map((item) => {
+          const expanded = expandedId === item.id;
+          const paid = paidAmount(item);
+          const remaining = remainingAmount(item);
+          const complete = isReceivableComplete(item);
+          const progress =
+            item.amount > 0 ? Math.round((paid / item.amount) * 100) : 0;
+
+          return (
+            <div
+              key={item.id}
+              className={`card installment-card${complete ? ' receivable-complete' : ''}`}
+            >
+              <button
+                type="button"
+                className="installment-header"
+                onClick={() => {
+                  setExpandedId(expanded ? null : item.id);
+                  setPaymentForm(null);
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{item.debtor}</div>
+                  <div
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--color-text-muted)',
+                      marginTop: '0.25rem',
+                    }}
+                  >
+                    {formatMoney(item.amount)}
+                    {complete
+                      ? ' · تسویه شده'
+                      : ` · مانده: ${formatMoney(remaining)}`}
+                  </div>
+                  <div className="installment-progress">
+                    <div
+                      className="installment-progress-bar"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+                <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
+              </button>
+
+              {expanded && (
+                <div className="installment-payments">
+                  {item.note && <p className="installment-note">{item.note}</p>}
+
+                  <div className="receivable-summary">
+                    <div>
+                      <span className="receivable-summary-label">تاریخ قرض</span>
+                      <span>{formatIsoDatePersian(item.borrowDate)}</span>
+                    </div>
+                    <div>
+                      <span className="receivable-summary-label">پرداخت شده</span>
+                      <span className="receivable-paid">{formatMoney(paid)}</span>
+                    </div>
+                    <div>
+                      <span className="receivable-summary-label">مانده</span>
+                      <span className={complete ? 'receivable-settled' : 'receivable-remaining'}>
+                        {formatMoney(remaining)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {item.payments.length > 0 && (
+                    <div className="receivable-payment-list">
+                      <div className="receivable-payment-list-title">سوابق پرداخت</div>
+                      {item.payments.map((payment) => (
+                        <div key={payment.id} className="receivable-payment-item">
+                          <div>
+                            <span dir="ltr">{formatMoney(payment.amount)}</span>
+                            <span className="installment-due">
+                              {formatIsoDatePersian(payment.paidAt)}
+                            </span>
+                            {payment.note && (
+                              <span className="installment-due">{payment.note}</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {!complete && (
+                    <div className="receivable-add-payment">
+                      {paymentForm?.receivableId === item.id ? (
+                        <div className="receivable-payment-form">
+                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label>مبلغ پرداخت</label>
+                            <AmountInput
+                              value={paymentForm.amount}
+                              onChange={(val) =>
+                                setPaymentForm((f) =>
+                                  f ? { ...f, amount: val } : f
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label>توضیحات</label>
+                            <input
+                              type="text"
+                              value={paymentForm.note}
+                              onChange={(e) =>
+                                setPaymentForm((f) =>
+                                  f ? { ...f, note: e.target.value } : f
+                                )
+                              }
+                              placeholder="اختیاری"
+                            />
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              disabled={payingId === item.id}
+                              onClick={() => handleAddPayment(item)}
+                            >
+                              {payingId === item.id && <span className="spinner" />}
+                              ثبت پرداخت
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => setPaymentForm(null)}
+                            >
+                              انصراف
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() =>
+                            setPaymentForm({
+                              receivableId: item.id,
+                              amount: '',
+                              note: '',
+                            })
+                          }
+                        >
+                          + ثبت پرداخت
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+
+      {items.length > 0 && (
+        <div className="card receivable-total-card">
+          <div className="receivable-total-label">مجموع مانده طلب‌ها</div>
+          <div className="receivable-total-amount">{formatMoney(totalRemaining)}</div>
+        </div>
+      )}
+    </div>
+  );
+}

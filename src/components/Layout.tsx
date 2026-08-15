@@ -3,10 +3,11 @@ import DashboardPage from './DashboardPage';
 import DataEntryPage from './DataEntryPage';
 import RecordsPage from './RecordsPage';
 import InstallmentsPage from './InstallmentsPage';
+import ReceivablesPage from './ReceivablesPage';
 import SettingsPage from './SettingsPage';
 import { getUserName, getUserPicture } from '../services/auth';
 
-type Tab = 'dashboard' | 'entry' | 'records' | 'installments' | 'settings';
+type Tab = 'dashboard' | 'entry' | 'records' | 'installments' | 'receivables' | 'settings';
 
 interface LayoutProps {
   onLogout: () => void;
@@ -23,6 +24,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     entry: 'ثبت جدید',
     records: 'رکوردها',
     installments: 'اقساط',
+    receivables: 'طلب‌ها',
     settings: 'تنظیمات',
   };
 
@@ -49,6 +51,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
         {tab === 'records' && <RecordsPage onReauth={onReauth} />}
         {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
+        {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
         {tab === 'settings' && <SettingsPage onLogout={onLogout} />}
       </main>
 
@@ -80,6 +83,13 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         >
           <span className="icon">📅</span>
           اقساط
+        </button>
+        <button
+          className={tab === 'receivables' ? 'active' : ''}
+          onClick={() => setTab('receivables')}
+        >
+          <span className="icon">💰</span>
+          طلب‌ها
         </button>
         <button
           className={tab === 'settings' ? 'active' : ''}
