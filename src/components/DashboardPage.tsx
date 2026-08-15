@@ -18,6 +18,7 @@ import {
   type DateRangePreset,
 } from '../utils/dateRange';
 import { formatMoney } from '../utils/formatMoney';
+import { formatIsoDatePersian } from '../utils/jalaliDate';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
@@ -285,7 +286,7 @@ export default function DashboardPage({ onReauth }: { onReauth?: () => void }) {
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.title}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                  {r.formName} · {r.category} · {r.createdAt}
+                  {r.formName} · {r.category} · {formatIsoDatePersian(r.date)}
                 </div>
               </div>
               <div

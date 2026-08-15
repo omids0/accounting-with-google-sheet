@@ -3,9 +3,12 @@ import type { CustomForm, FieldConfig } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { appendRecord } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
+import JalaliDatePicker from './JalaliDatePicker';
+import AmountInput from './AmountInput';
+import { getTodayIso } from '../utils/jalaliDate';
 
 function getInitialValue(field: FieldConfig): string | number {
-  if (field.type === 'date') return new Date().toISOString().split('T')[0];
+  if (field.type === 'date') return getTodayIso();
   if (field.type === 'number') return '';
   if (field.type === 'select' && field.options?.length) return field.options[0];
   return '';
@@ -134,7 +137,14 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
                 />
               )}
 
-              {field.type === 'number' && (
+              {field.type === 'number' && field.id === 'amount' && (
+                <AmountInput
+                  value={values[field.id] ?? ''}
+                  onChange={(val) => handleChange(field.id, val)}
+                />
+              )}
+
+              {field.type === 'number' && field.id !== 'amount' && (
                 <input
                   type="number"
                   inputMode="decimal"
@@ -150,11 +160,9 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
               )}
 
               {field.type === 'date' && (
-                <input
-                  type="date"
+                <JalaliDatePicker
                   value={String(values[field.id] ?? '')}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
-                  dir="ltr"
+                  onChange={(iso) => handleChange(field.id, iso)}
                 />
               )}
 

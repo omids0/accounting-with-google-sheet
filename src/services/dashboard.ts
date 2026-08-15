@@ -79,6 +79,7 @@ export async function loadDashboardData(
       amount: Number(r.values.amount) || 0,
       type: 'income' as const,
       category: r.values.category || 'سایر',
+      date: r.values[incomeDateField] ?? '',
       createdAt: r.createdAt,
     })),
     ...filteredExpense.map((r) => ({
@@ -87,9 +88,16 @@ export async function loadDashboardData(
       amount: Number(r.values.amount) || 0,
       type: 'expense' as const,
       category: r.values.category || 'سایر',
+      date: r.values[expenseDateField] ?? '',
       createdAt: r.createdAt,
     })),
-  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  ]
+    .sort((a, b) => {
+      const byDate = (b.date || '').localeCompare(a.date || '');
+      if (byDate !== 0) return byDate;
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    })
+    .map(({ createdAt: _, ...record }) => record);
 
   return {
     totalIncome,

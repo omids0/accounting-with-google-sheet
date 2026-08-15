@@ -51,7 +51,7 @@ export interface DashboardRecord {
   amount: number;
   type: 'income' | 'expense';
   category: string;
-  createdAt: string;
+  date: string;
 }
 
 export interface DashboardData {

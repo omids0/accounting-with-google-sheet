@@ -1,59 +1,20 @@
-export type DateRangePreset = 'month-to-date' | 'last-month' | 'year-to-date';
+import type { DateRange } from './jalaliDate';
+import {
+  daysInJalaliMonth,
+  findGregorianForJalali,
+  getJalaliParts,
+  toIsoDate,
+} from './jalaliDate';
 
-export interface DateRange {
-  start: string;
-  end: string;
-}
+export type { DateRange } from './jalaliDate';
+
+export type DateRangePreset = 'month-to-date' | 'last-month' | 'year-to-date';
 
 export const DATE_RANGE_PRESETS: { id: DateRangePreset; label: string }[] = [
   { id: 'month-to-date', label: 'این ماه' },
   { id: 'last-month', label: 'ماه گذشته' },
   { id: 'year-to-date', label: 'از اول سال' },
 ];
-
-function toIsoDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function getJalaliParts(d: Date): { year: number; month: number; day: number } {
-  const parts = new Intl.DateTimeFormat('en-u-ca-persian', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-  }).formatToParts(d);
-
-  const get = (type: string) =>
-    Number(parts.find((p) => p.type === type)?.value ?? 0);
-
-  return { year: get('year'), month: get('month'), day: get('day') };
-}
-
-function findGregorianForJalali(jy: number, jm: number, jd: number): Date {
-  const approx = jy + 621;
-  for (let y = approx - 1; y <= approx + 1; y++) {
-    for (let m = 0; m < 12; m++) {
-      for (let day = 1; day <= 31; day++) {
-        const d = new Date(y, m, day);
-        const p = getJalaliParts(d);
-        if (p.year === jy && p.month === jm && p.day === jd) return d;
-      }
-    }
-  }
-  return new Date();
-}
-
-function daysInJalaliMonth(jy: number, jm: number): number {
-  if (jm <= 6) return 31;
-  if (jm <= 11) return 30;
-  for (let jd = 30; jd >= 29; jd--) {
-    const d = findGregorianForJalali(jy, jm, jd);
-    if (getJalaliParts(d).month === jm) return jd;
-  }
-  return 29;
-}
 
 export function getDateRange(preset: DateRangePreset): DateRange {
   const today = new Date();

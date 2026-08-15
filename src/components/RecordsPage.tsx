@@ -5,6 +5,7 @@ import { fetchRecords } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
 
 import { formatMoney } from '../utils/formatMoney';
+import { formatIsoDatePersian } from '../utils/jalaliDate';
 
 interface RecordItem {
   id: string;
@@ -69,6 +70,7 @@ export default function RecordsPage({ onReauth }: { onReauth?: () => void }) {
   }
 
   const amountField = activeForm?.fields.find((f) => f.id === 'amount');
+  const dateField = activeForm?.fields.find((f) => f.type === 'date');
   const titleField = activeForm?.fields.find(
     (f) => f.id === 'title' || f.label.includes('عنوان')
   );
@@ -115,6 +117,7 @@ export default function RecordsPage({ onReauth }: { onReauth?: () => void }) {
               ? record.values[titleField.id]
               : Object.values(record.values)[0] ?? '';
             const category = categoryField ? record.values[categoryField.id] : '';
+            const date = dateField ? record.values[dateField.id] : '';
             const isIncome = activeForm?.type === 'income';
 
             return (
@@ -122,7 +125,7 @@ export default function RecordsPage({ onReauth }: { onReauth?: () => void }) {
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{title}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    {record.createdAt}
+                    {date ? formatIsoDatePersian(date) : record.createdAt}
                     {category && ` · ${category}`}
                   </div>
                 </div>
