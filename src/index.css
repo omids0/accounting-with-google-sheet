@@ -1486,6 +1486,17 @@ button {
 
 .chart-card {
   padding-bottom: 0.5rem;
+  padding-left: 0.65rem;
+}
+
+.chart-bar-wrap {
+  direction: ltr;
+  width: calc(100% + 0.65rem);
+  margin-left: -0.65rem;
+}
+
+.chart-bar-wrap .recharts-cartesian-axis-tick-value {
+  font-family: inherit;
 }
 
 .chart-title {

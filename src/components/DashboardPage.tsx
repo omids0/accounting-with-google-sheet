@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  PieChart,
-  Pie,
+  BarChart,
+  Bar,
   Cell,
+  XAxis,
+  YAxis,
   ResponsiveContainer,
-  Legend,
   Tooltip,
 } from 'recharts';
 import { getSettings, isConfigured } from '../services/settings';
@@ -25,6 +26,66 @@ import AmountInput from './AmountInput';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
+
+function CategoryBarChart({
+  title,
+  data,
+  colors,
+}: {
+  title: string;
+  data: { name: string; total: number }[];
+  colors: string[];
+}) {
+  const height = Math.max(220, data.length * 44);
+  const maxLabelLen = Math.max(...data.map((d) => d.name.length), 1);
+  const yAxisWidth = Math.min(96, Math.max(36, Math.ceil(maxLabelLen * 6.5)));
+
+  return (
+    <div className="card chart-card">
+      <h3 className="chart-title">{title}</h3>
+      <div className="chart-bar-wrap" dir="ltr">
+        <ResponsiveContainer width="100%" height={height}>
+          <BarChart
+            data={data}
+            layout="vertical"
+            margin={{ top: 4, right: 4, left: 0, bottom: 4 }}
+          >
+            <XAxis
+              type="number"
+              tickFormatter={(v) => formatMoney(v)}
+              tick={{ fontSize: 10, fill: '#6b7280' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={yAxisWidth}
+              orientation="left"
+              tick={{
+                fontSize: 12,
+                fill: '#6b7280',
+                textAnchor: 'end',
+              }}
+              tickMargin={4}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              formatter={(v) => formatMoney(Number(v) || 0)}
+              labelFormatter={(label) => label}
+            />
+            <Bar name="مجموع" dataKey="total" radius={[0, 4, 4, 0]} maxBarSize={32}>
+              {data.map((_, i) => (
+                <Cell key={i} fill={colors[i % colors.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
 
@@ -310,57 +371,19 @@ export default function DashboardPage({
       </div>
 
       {(data?.expenseByCategory.length ?? 0) > 0 && (
-        <div className="card chart-card">
-          <h3 className="chart-title">هزینه بر اساس دسته‌بندی</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={data!.expenseByCategory}
-                dataKey="total"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={75}
-                label={({ name, percent }) =>
-                  `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                }
-              >
-                {data!.expenseByCategory.map((_, i) => (
-                  <Cell key={i} fill={EXPENSE_COLORS[i % EXPENSE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => formatMoney(Number(v) || 0)} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <CategoryBarChart
+          title="هزینه بر اساس دسته‌بندی"
+          data={data!.expenseByCategory}
+          colors={EXPENSE_COLORS}
+        />
       )}
 
       {(data?.incomeByCategory.length ?? 0) > 0 && (
-        <div className="card chart-card">
-          <h3 className="chart-title">درآمد بر اساس دسته‌بندی</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={data!.incomeByCategory}
-                dataKey="total"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={75}
-                label={({ name, percent }) =>
-                  `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                }
-              >
-                {data!.incomeByCategory.map((_, i) => (
-                  <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => formatMoney(Number(v) || 0)} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <CategoryBarChart
+          title="درآمد بر اساس دسته‌بندی"
+          data={data!.incomeByCategory}
+          colors={INCOME_COLORS}
+        />
       )}
 
       <div className="card">
