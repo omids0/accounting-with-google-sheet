@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useGoogleOAuth } from '@react-oauth/google';
 import { registerSW } from 'virtual:pwa-register';
 import LoginPage from './components/LoginPage';
 import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel';
 import Layout from './components/Layout';
-import { isTokenValid } from './services/auth';
+import { useTokenRefresh } from './hooks/useTokenRefresh';
+import { hasStoredSession, isTokenValid } from './services/auth';
+import { refreshAccessTokenSilently } from './services/tokenRefresh';
 import { isConfigured } from './services/settings';
 import {
   getDefaultFirstSheetLabel,
@@ -47,12 +50,38 @@ export default function App() {
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
   const isOAuthConfigured = !!clientId && !clientId.startsWith('xxx');
+  const { scriptLoadedSuccessfully } = useGoogleOAuth();
+
+  const handleReauth = useCallback(async () => {
+    if (scriptLoadedSuccessfully && hasStoredSession()) {
+      const refreshed = await refreshAccessTokenSilently(clientId);
+      if (refreshed && isTokenValid()) {
+        setNeedsReauth(false);
+        return;
+      }
+    }
+    setNeedsReauth(true);
+  }, [clientId, scriptLoadedSuccessfully]);
+
+  useTokenRefresh({
+    clientId,
+    enabled: loggedIn && !needsReauth,
+    onRefreshFailed: () => setNeedsReauth(true),
+  });
 
   useEffect(() => {
     let cancelled = false;
 
+    const canTryRefresh = hasStoredSession() && !isTokenValid();
+    if (canTryRefresh && !scriptLoadedSuccessfully) return;
+
     async function init() {
-      const tokenValid = isTokenValid();
+      let tokenValid = isTokenValid();
+
+      if (!tokenValid && hasStoredSession()) {
+        const refreshed = await refreshAccessTokenSilently(clientId);
+        tokenValid = refreshed && isTokenValid();
+      }
 
       if (!tokenValid) {
         if (!cancelled) {
@@ -114,7 +143,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [clientId, scriptLoadedSuccessfully]);
 
   const handleSheetSetupComplete = () => {
     setLoggedIn(true);
@@ -166,7 +195,7 @@ export default function App() {
         setNeedsReauth(false);
         setNeedsSheetSetup(false);
       }}
-      onReauth={() => setNeedsReauth(true)}
+      onReauth={handleReauth}
     />
   );
 }
