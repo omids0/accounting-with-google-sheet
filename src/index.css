@@ -1001,26 +1001,51 @@ button {
 }
 
 .wallet-item-card {
-  padding: 1rem 1.25rem;
+  padding: 0;
 }
 
-.wallet-item-header {
+.wallet-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wallet-item-title-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: baseline;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
 }
 
 .wallet-item-title {
   font-weight: 600;
   font-size: 0.95rem;
+  min-width: 0;
+}
+
+.wallet-item-amount {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-primary-dark);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
 }
 
 .wallet-item-note {
   font-size: 0.75rem;
   color: var(--color-text-muted);
   margin-top: 0.25rem;
+  line-height: 1.5;
+}
+
+.wallet-item-edit {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.wallet-item-edit .form-group {
+  flex: 1;
 }
 
 .amount-input-compact {
@@ -1720,6 +1745,21 @@ button {
 
 .dashboard-opening-card {
   margin-bottom: 1rem;
+  padding: 0;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%);
+  border-color: #5eead4;
+}
+
+.dashboard-opening-card .installment-header:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.dashboard-opening-card .installment-payments {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.dashboard-opening-body {
+  padding-top: 0.75rem;
 }
 
 .dashboard-opening-hint {

@@ -54,7 +54,7 @@ export async function fetchWalletAccounts(
     .map((row, index) => ({ row, rowNumber: index + 2 }))
     .filter(({ row }) => String(row[0] ?? '').trim())
     .map(({ row, rowNumber }) => rowToAccount(row, rowNumber))
-    .sort((a, b) => a.title.localeCompare(b.title, 'fa'));
+    .sort((a, b) => b.balance - a.balance);
 }
 
 export async function createWalletAccount(
