@@ -182,7 +182,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         </div>
       </nav>
 
-      {!showSettings && tab !== 'entry' && (
+      {!showSettings && tab === 'dashboard' && (
         <div className="fab-container">
           <button
             type="button"
