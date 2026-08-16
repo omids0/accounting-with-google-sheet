@@ -122,50 +122,64 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
       </main>
 
       <nav className="bottom-nav">
-        <button
-          className={
-            !showSettings && (tab === 'dashboard' || tab === 'records') ? 'active' : ''
-          }
-          onClick={() => handleTabChange('dashboard')}
-        >
-          <span className="icon">📊</span>
-          داشبورد
-        </button>
-        <button
-          className={!showSettings && tab === 'installments' ? 'active' : ''}
-          onClick={() => handleTabChange('installments')}
-        >
-          <span className="icon">📅</span>
-          اقساط
-        </button>
-        <button
-          className={!showSettings && tab === 'dang' ? 'active' : ''}
-          onClick={() => handleTabChange('dang')}
-        >
-          <span className="icon">🍽️</span>
-          دنگ
-        </button>
-        <button
-          className={!showSettings && tab === 'receivables' ? 'active' : ''}
-          onClick={() => handleTabChange('receivables')}
-        >
-          <span className="icon">💰</span>
-          طلب‌ها
-        </button>
-        <button
-          className={!showSettings && tab === 'treasury' ? 'active' : ''}
-          onClick={() => handleTabChange('treasury')}
-        >
-          <span className="icon">🏦</span>
-          صندوق
-        </button>
-        <button
-          className={!showSettings && tab === 'wallet' ? 'active' : ''}
-          onClick={() => handleTabChange('wallet')}
-        >
-          <span className="icon">👛</span>
-          کیف پول
-        </button>
+        <div className="bottom-nav-side bottom-nav-side--right">
+          <button
+            className={!showSettings && tab === 'installments' ? 'active' : ''}
+            onClick={() => handleTabChange('installments')}
+          >
+            <span className="icon">📅</span>
+            اقساط
+          </button>
+          <button
+            className={!showSettings && tab === 'dang' ? 'active' : ''}
+            onClick={() => handleTabChange('dang')}
+          >
+            <span className="icon">🍽️</span>
+            دنگ
+          </button>
+          <button type="button" className="disabled" disabled aria-disabled="true" title="به‌زودی">
+            <span className="icon">📝</span>
+            چک‌ها
+          </button>
+        </div>
+
+        <div className="bottom-nav-center">
+          <button
+            type="button"
+            className={`bottom-nav-dashboard${
+              !showSettings && (tab === 'dashboard' || tab === 'records') ? ' active' : ''
+            }`}
+            onClick={() => handleTabChange('dashboard')}
+            aria-label="داشبورد"
+          >
+            <span className="bottom-nav-dashboard-icon">📊</span>
+            <span className="bottom-nav-dashboard-label">داشبورد</span>
+          </button>
+        </div>
+
+        <div className="bottom-nav-side bottom-nav-side--left">
+          <button
+            className={!showSettings && tab === 'receivables' ? 'active' : ''}
+            onClick={() => handleTabChange('receivables')}
+          >
+            <span className="icon">💰</span>
+            طلب‌ها
+          </button>
+          <button
+            className={!showSettings && tab === 'treasury' ? 'active' : ''}
+            onClick={() => handleTabChange('treasury')}
+          >
+            <span className="icon">🏦</span>
+            صندوق
+          </button>
+          <button
+            className={!showSettings && tab === 'wallet' ? 'active' : ''}
+            onClick={() => handleTabChange('wallet')}
+          >
+            <span className="icon">👛</span>
+            کیف پول
+          </button>
+        </div>
       </nav>
 
       {!showSettings && tab !== 'entry' && (
