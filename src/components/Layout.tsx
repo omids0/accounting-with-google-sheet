@@ -58,7 +58,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     <div className="app-layout">
       <header className="app-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          {!showSettings && tab === 'records' && (
+          {!showSettings && (tab === 'records' || tab === 'entry') && (
             <button
               type="button"
               className="header-icon-btn"
@@ -69,7 +69,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               →
             </button>
           )}
-          {userPicture && tab !== 'records' && (
+          {userPicture && tab !== 'records' && tab !== 'entry' && (
             <img
               src={userPicture}
               alt=""
@@ -128,13 +128,6 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           داشبورد
         </button>
         <button
-          className={!showSettings && tab === 'entry' ? 'active' : ''}
-          onClick={() => handleTabChange('entry')}
-        >
-          <span className="icon">✏️</span>
-          ثبت
-        </button>
-        <button
           className={!showSettings && tab === 'installments' ? 'active' : ''}
           onClick={() => handleTabChange('installments')}
         >
@@ -163,6 +156,20 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           کیف پول
         </button>
       </nav>
+
+      {!showSettings && tab !== 'entry' && (
+        <div className="fab-container">
+          <button
+            type="button"
+            className="fab"
+            onClick={() => handleTabChange('entry')}
+            aria-label="ثبت درآمد یا هزینه"
+            title="ثبت جدید"
+          >
+            +
+          </button>
+        </div>
+      )}
     </div>
   );
 }
