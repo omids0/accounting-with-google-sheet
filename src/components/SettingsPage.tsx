@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import type { CurrencyUnit, FieldConfig, FieldType } from '../types';
+import type { CurrencyUnit, FieldConfig, FieldType, SpreadsheetEntry } from '../types';
 import {
   getSettings,
   saveSettings,
   getDefaultSettings,
+  getSpreadsheets,
   addCustomForm,
   updateFormCategories,
   updateCurrency,
@@ -13,7 +14,16 @@ import {
   ensureFormSheet,
   getSpreadsheetUrl,
 } from '../services/sheets';
-import { recreateUserSpreadsheet } from '../services/spreadsheetSetup';
+import {
+  createNamedSpreadsheet,
+  switchActiveSpreadsheet,
+  syncSpreadsheetsFromDrive,
+} from '../services/spreadsheetSetup';
+import {
+  SPREADSHEET_TITLE_PREFIX,
+  formatSpreadsheetTitle,
+  getSpreadsheetLabel,
+} from '../services/spreadsheetCatalog';
 import {
   getUserEmail,
   getUserPicture,
@@ -28,8 +38,17 @@ const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'select', label: 'انتخابی' },
 ];
 
-export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
+export default function SettingsPage({
+  onLogout,
+  onSpreadsheetChange,
+}: {
+  onLogout?: () => void;
+  onSpreadsheetChange?: () => void;
+}) {
   const [spreadsheetId, setSpreadsheetId] = useState('');
+  const [spreadsheets, setSpreadsheets] = useState<SpreadsheetEntry[]>([]);
+  const [newSheetName, setNewSheetName] = useState('');
+  const [showNewSheetForm, setShowNewSheetForm] = useState(false);
   const [forms, setForms] = useState(getDefaultSettings().forms);
   const [currency, setCurrency] = useState<CurrencyUnit>('toman');
   const [newFormName, setNewFormName] = useState('');
@@ -40,8 +59,20 @@ export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
   useEffect(() => {
     const settings = getSettings() ?? getDefaultSettings();
     setSpreadsheetId(settings.spreadsheetId);
+    setSpreadsheets(getSpreadsheets());
     setForms(settings.forms);
     setCurrency(settings.currency ?? 'toman');
+
+    if (!isTokenValid()) return;
+
+    syncSpreadsheetsFromDrive()
+      .then((merged) => {
+        setSpreadsheets(merged);
+        setSpreadsheetId(getSettings()?.spreadsheetId ?? settings.spreadsheetId);
+      })
+      .catch(() => {
+        // Keep local list if Drive sync fails (e.g. old token scope).
+      });
   }, []);
 
   const handleLogout = () => {
@@ -51,12 +82,32 @@ export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
     }
   };
 
-  const handleRecreateSpreadsheet = async () => {
-    if (
-      !confirm(
-        'شیت جدید ساخته می‌شود. داده‌های شیت قبلی (اگر هنوز در Drive باشد) به این شیت وصل نمی‌شوند. ادامه می‌دهید؟'
-      )
-    ) {
+  const handleRefreshSpreadsheets = async () => {
+    if (!isTokenValid()) {
+      setMessage({ type: 'error', text: 'نشست منقضی شده — دوباره وارد شوید' });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      const merged = await syncSpreadsheetsFromDrive();
+      setSpreadsheets(merged);
+      setSpreadsheetId(getSettings()?.spreadsheetId ?? '');
+      setMessage({ type: 'success', text: 'لیست شیت‌ها از Google Drive بروز شد' });
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'خطا در دریافت لیست از Drive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateSpreadsheet = async () => {
+    if (!newSheetName.trim()) {
+      setMessage({ type: 'error', text: 'نام شیت را وارد کنید' });
       return;
     }
     if (!isTokenValid()) {
@@ -66,14 +117,51 @@ export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
 
     setLoading(true);
     setMessage(null);
+    const trimmedName = newSheetName.trim();
     try {
-      const newId = await recreateUserSpreadsheet();
+      const newId = await createNamedSpreadsheet(trimmedName);
       setSpreadsheetId(newId);
-      setMessage({ type: 'success', text: 'شیت جدید ساخته شد' });
+      setSpreadsheets(getSpreadsheets());
+      setNewSheetName('');
+      setShowNewSheetForm(false);
+      setMessage({
+        type: 'success',
+        text: `شیت «${formatSpreadsheetTitle(trimmedName)}» ساخته و فعال شد`,
+      });
+      onSpreadsheetChange?.();
     } catch (err) {
       setMessage({
         type: 'error',
         text: err instanceof Error ? err.message : 'خطا در ساخت شیت',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSwitchSpreadsheet = async (nextId: string) => {
+    if (!nextId || nextId === spreadsheetId) return;
+    if (!isTokenValid()) {
+      setMessage({ type: 'error', text: 'نشست منقضی شده' });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      await switchActiveSpreadsheet(nextId);
+      setSpreadsheetId(nextId);
+      setSpreadsheets(getSpreadsheets());
+      const selected = getSpreadsheets().find((sheet) => sheet.id === nextId);
+      setMessage({
+        type: 'success',
+        text: `شیت فعال: ${selected ? getSpreadsheetLabel(selected.name) : 'انتخاب‌شده'}`,
+      });
+      onSpreadsheetChange?.();
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'خطا در تغییر شیت',
       });
     } finally {
       setLoading(false);
@@ -186,29 +274,107 @@ export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
         </button>
       </div>
 
-      {spreadsheetId && (
+      {(spreadsheetId || spreadsheets.length > 0) && (
         <div className="card">
           <h2 className="card-title">گوگل شیت</h2>
-          <a
-            href={getSpreadsheetUrl(spreadsheetId)}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: '0.85rem' }}
-          >
-            باز کردن شیت در گوگل ↗
-          </a>
+
+          {spreadsheets.length > 0 && (
+            <div className="form-group">
+              <label>شیت فعال</label>
+              <select
+                value={spreadsheetId}
+                onChange={(e) => handleSwitchSpreadsheet(e.target.value)}
+                disabled={loading || !spreadsheetId}
+              >
+                {spreadsheets.map((sheet) => (
+                  <option key={sheet.id} value={sheet.id}>
+                    {getSpreadsheetLabel(sheet.name)}
+                  </option>
+                ))}
+              </select>
+              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                لیست از Google Drive همگام می‌شود — روی دستگاه جدید همان شیت‌ها را می‌بینید.
+              </p>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={handleRefreshSpreadsheets}
+                disabled={loading}
+                style={{ marginTop: '0.5rem' }}
+              >
+                {loading && <span className="spinner" />}
+                بروزرسانی از Drive
+              </button>
+            </div>
+          )}
+
+          {spreadsheetId && (
+            <a
+              href={getSpreadsheetUrl(spreadsheetId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: '0.85rem', display: 'inline-block', marginTop: '0.5rem' }}
+            >
+              باز کردن شیت فعال در گوگل ↗
+            </a>
+          )}
           <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-            هر فرم = یک برگه (Tab) جدا در شیت
+            فرمت استاندارد: {SPREADSHEET_TITLE_PREFIX}نام (مثلاً {SPREADSHEET_TITLE_PREFIX}1406)
           </p>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={handleRecreateSpreadsheet}
-            disabled={loading}
-            style={{ marginTop: '0.75rem' }}
-          >
-            {loading && <span className="spinner" />}
-            ساخت شیت جدید
-          </button>
+
+          {!showNewSheetForm ? (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setShowNewSheetForm(true)}
+              disabled={loading}
+              style={{ marginTop: '0.75rem' }}
+            >
+              + ساخت شیت جدید
+            </button>
+          ) : (
+            <div style={{ marginTop: '0.75rem' }}>
+              <div className="form-group">
+                <label>نام شیت جدید</label>
+                <input
+                  value={newSheetName}
+                  onChange={(e) => setNewSheetName(e.target.value)}
+                  placeholder="مثلاً: 1406"
+                  disabled={loading}
+                />
+                {newSheetName.trim() && (
+                  <p
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--color-text-muted)',
+                      marginTop: '0.5rem',
+                    }}
+                    dir="ltr"
+                  >
+                    {formatSpreadsheetTitle(newSheetName.trim())}
+                  </p>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={handleCreateSpreadsheet}
+                  disabled={loading}
+                >
+                  {loading && <span className="spinner" />}
+                  ساخت
+                </button>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    setShowNewSheetForm(false);
+                    setNewSheetName('');
+                  }}
+                  disabled={loading}
+                >
+                  انصراف
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

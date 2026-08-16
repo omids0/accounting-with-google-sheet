@@ -1,6 +1,9 @@
 import { getItem, setItem, removeItem, STORAGE_KEYS } from './storage';
 import type { GoogleSession } from '../types';
 
+export const GOOGLE_OAUTH_SCOPE =
+  'openid email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata.readonly';
+
 export function saveSession(session: GoogleSession): void {
   setItem(STORAGE_KEYS.SESSION, session);
 }

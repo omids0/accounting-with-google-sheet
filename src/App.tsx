@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react';
 import { registerSW } from 'virtual:pwa-register';
 import LoginPage from './components/LoginPage';
+import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel';
 import Layout from './components/Layout';
 import { isTokenValid } from './services/auth';
 import { isConfigured } from './services/settings';
-import { prepareUserSpreadsheet } from './services/spreadsheetSetup';
+import {
+  getDefaultFirstSheetLabel,
+  prepareUserSpreadsheet,
+  resolveSpreadsheetSession,
+} from './services/spreadsheetSetup';
+import type { SpreadsheetEntry } from './types';
 
 function ConfigNotice() {
   return (
@@ -18,7 +24,11 @@ function ConfigNotice() {
             <code dir="ltr">.env</code> تنظیم نشده.
           </p>
         </div>
-        <div className="alert alert-info" dir="ltr" style={{ textAlign: 'left', fontSize: '0.75rem' }}>
+        <div
+          className="alert alert-info"
+          dir="ltr"
+          style={{ textAlign: 'left', fontSize: '0.75rem' }}
+        >
           VITE_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
         </div>
       </div>
@@ -29,6 +39,9 @@ function ConfigNotice() {
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [needsReauth, setNeedsReauth] = useState(false);
+  const [needsSheetSetup, setNeedsSheetSetup] = useState(false);
+  const [sheetSetupMode, setSheetSetupMode] = useState<'pick' | 'create'>('pick');
+  const [sheetOptions, setSheetOptions] = useState<SpreadsheetEntry[]>([]);
   const [ready, setReady] = useState(false);
   const [sheetError, setSheetError] = useState('');
 
@@ -39,29 +52,50 @@ export default function App() {
     let cancelled = false;
 
     async function init() {
-      const configured = isConfigured();
       const tokenValid = isTokenValid();
 
-      if (configured && tokenValid) {
-        try {
+      if (!tokenValid) {
+        if (!cancelled) {
+          setLoggedIn(false);
+          setNeedsReauth(isConfigured());
+          setNeedsSheetSetup(false);
+          setReady(true);
+        }
+        return;
+      }
+
+      try {
+        const session = await resolveSpreadsheetSession();
+
+        if (session.status === 'ready') {
           await prepareUserSpreadsheet();
           if (!cancelled) {
             setLoggedIn(true);
             setNeedsReauth(false);
+            setNeedsSheetSetup(false);
             setSheetError('');
           }
-        } catch (err) {
-          if (!cancelled) {
-            setLoggedIn(false);
-            setNeedsReauth(true);
-            setSheetError(
-              err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت'
-            );
-          }
+        } else if (!cancelled) {
+          setLoggedIn(false);
+          setNeedsReauth(false);
+          setNeedsSheetSetup(true);
+          setSheetSetupMode(
+            session.status === 'need_selection' ? 'pick' : 'create'
+          );
+          setSheetOptions(
+            session.status === 'need_selection' ? session.options : []
+          );
+          setSheetError('');
         }
-      } else {
-        setLoggedIn(false);
-        setNeedsReauth(configured && !tokenValid);
+      } catch (err) {
+        if (!cancelled) {
+          setLoggedIn(false);
+          setNeedsReauth(true);
+          setNeedsSheetSetup(false);
+          setSheetError(
+            err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت'
+          );
+        }
       }
 
       if (!cancelled) setReady(true);
@@ -82,6 +116,12 @@ export default function App() {
     };
   }, []);
 
+  const handleSheetSetupComplete = () => {
+    setLoggedIn(true);
+    setNeedsSheetSetup(false);
+    setSheetError('');
+  };
+
   if (!isOAuthConfigured) return <ConfigNotice />;
   if (!ready) {
     return (
@@ -94,6 +134,17 @@ export default function App() {
     );
   }
 
+  if (needsSheetSetup && isTokenValid()) {
+    return (
+      <SpreadsheetSetupPanel
+        mode={sheetSetupMode}
+        options={sheetOptions}
+        defaultLabel={getDefaultFirstSheetLabel()}
+        onComplete={handleSheetSetupComplete}
+      />
+    );
+  }
+
   if (!loggedIn || needsReauth) {
     return (
       <LoginPage
@@ -101,6 +152,7 @@ export default function App() {
         onSuccess={() => {
           setLoggedIn(true);
           setNeedsReauth(false);
+          setNeedsSheetSetup(false);
           setSheetError('');
         }}
       />
@@ -112,6 +164,7 @@ export default function App() {
       onLogout={() => {
         setLoggedIn(false);
         setNeedsReauth(false);
+        setNeedsSheetSetup(false);
       }}
       onReauth={() => setNeedsReauth(true)}
     />

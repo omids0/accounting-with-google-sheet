@@ -1,4 +1,10 @@
-import type { AppSettings, CurrencyUnit, CustomForm, FieldConfig } from '../types';
+import type {
+  AppSettings,
+  CurrencyUnit,
+  CustomForm,
+  FieldConfig,
+  SpreadsheetEntry,
+} from '../types';
 import { getItem, setItem, STORAGE_KEYS } from './storage';
 import { isTokenValid } from './auth';
 
@@ -53,20 +59,101 @@ export function getDefaultForms(): CustomForm[] {
   return [incomeForm(), expenseForm()];
 }
 
+export function normalizeSettings(settings: AppSettings): AppSettings {
+  if (settings.spreadsheets?.length) {
+    const activeId =
+      settings.spreadsheetId &&
+      settings.spreadsheets.some((sheet) => sheet.id === settings.spreadsheetId)
+        ? settings.spreadsheetId
+        : settings.spreadsheets[0].id;
+
+    return {
+      ...settings,
+      spreadsheetId: activeId,
+      spreadsheets: settings.spreadsheets,
+    };
+  }
+
+  if (settings.spreadsheetId) {
+    return {
+      ...settings,
+      spreadsheets: [
+        {
+          id: settings.spreadsheetId,
+          name: 'حسابداری اصلی',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    };
+  }
+
+  return {
+    ...settings,
+    spreadsheets: [],
+  };
+}
+
 export function getSettings(): AppSettings | null {
-  return getItem<AppSettings>(STORAGE_KEYS.SETTINGS);
+  const raw = getItem<AppSettings>(STORAGE_KEYS.SETTINGS);
+  return raw ? normalizeSettings(raw) : null;
 }
 
 export function saveSettings(settings: AppSettings): void {
-  setItem(STORAGE_KEYS.SETTINGS, settings);
+  setItem(STORAGE_KEYS.SETTINGS, normalizeSettings(settings));
 }
 
 export function getDefaultSettings(): AppSettings {
   return {
     spreadsheetId: '',
+    spreadsheets: [],
     forms: getDefaultForms(),
     currency: 'toman',
   };
+}
+
+export function getSpreadsheets(): SpreadsheetEntry[] {
+  return getSettings()?.spreadsheets ?? [];
+}
+
+export function getActiveSpreadsheet(): SpreadsheetEntry | undefined {
+  const settings = getSettings();
+  if (!settings?.spreadsheetId) return undefined;
+  return settings.spreadsheets?.find((sheet) => sheet.id === settings.spreadsheetId);
+}
+
+export function registerSpreadsheet(id: string, name: string): AppSettings {
+  const settings = normalizeSettings(getSettings() ?? getDefaultSettings());
+  const spreadsheets = settings.spreadsheets ?? [];
+  const exists = spreadsheets.some((sheet) => sheet.id === id);
+  const nextSpreadsheets = exists
+    ? spreadsheets
+    : [
+        ...spreadsheets,
+        {
+          id,
+          name: name.trim() || 'حسابداری',
+          createdAt: new Date().toISOString(),
+        },
+      ];
+
+  const updated = {
+    ...settings,
+    spreadsheetId: id,
+    spreadsheets: nextSpreadsheets,
+  };
+  saveSettings(updated);
+  return updated;
+}
+
+export function setActiveSpreadsheet(id: string): AppSettings {
+  const settings = normalizeSettings(getSettings() ?? getDefaultSettings());
+  if (!settings.spreadsheets?.some((sheet) => sheet.id === id)) {
+    throw new Error('شیت انتخاب‌شده در لیست موجود نیست');
+  }
+
+  const updated = { ...settings, spreadsheetId: id };
+  saveSettings(updated);
+  return updated;
 }
 
 export function updateCurrency(currency: CurrencyUnit): void {

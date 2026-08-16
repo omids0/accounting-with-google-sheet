@@ -4,8 +4,17 @@ import {
   saveSession,
   createSession,
   fetchUserProfile,
+  GOOGLE_OAUTH_SCOPE,
 } from '../services/auth';
-import { prepareUserSpreadsheet } from '../services/spreadsheetSetup';
+import {
+  getDefaultFirstSheetLabel,
+  prepareUserSpreadsheet,
+  resolveSpreadsheetSession,
+} from '../services/spreadsheetSetup';
+import SpreadsheetSetupPanel from './SpreadsheetSetupPanel';
+import type { SpreadsheetEntry } from '../types';
+
+type Step = 'login' | 'setup';
 
 interface LoginPageProps {
   onSuccess: () => void;
@@ -15,9 +24,33 @@ interface LoginPageProps {
 export default function LoginPage({ onSuccess, initialError = '' }: LoginPageProps) {
   const [error, setError] = useState(initialError);
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<Step>('login');
+  const [setupMode, setSetupMode] = useState<'pick' | 'create'>('pick');
+  const [sheetOptions, setSheetOptions] = useState<SpreadsheetEntry[]>([]);
+  const [defaultLabel, setDefaultLabel] = useState('اصلی');
+
+  const continueAfterAuth = async (profileName: string) => {
+    const session = await resolveSpreadsheetSession();
+
+    if (session.status === 'ready') {
+      await prepareUserSpreadsheet(profileName);
+      onSuccess();
+      return;
+    }
+
+    setDefaultLabel(getDefaultFirstSheetLabel(profileName));
+    if (session.status === 'need_selection') {
+      setSheetOptions(session.options);
+      setSetupMode('pick');
+    } else {
+      setSheetOptions([]);
+      setSetupMode('create');
+    }
+    setStep('setup');
+  };
 
   const login = useGoogleLogin({
-    scope: 'openid email profile https://www.googleapis.com/auth/spreadsheets',
+    scope: GOOGLE_OAUTH_SCOPE,
     onSuccess: async (tokenResponse) => {
       setLoading(true);
       setError('');
@@ -31,9 +64,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           )
         );
 
-        await prepareUserSpreadsheet(profile.name);
-
-        onSuccess();
+        await continueAfterAuth(profile.name);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'خطا در ورود');
       } finally {
@@ -52,13 +83,24 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
     login();
   };
 
+  if (step === 'setup') {
+    return (
+      <SpreadsheetSetupPanel
+        mode={setupMode}
+        options={sheetOptions}
+        defaultLabel={defaultLabel}
+        onComplete={onSuccess}
+      />
+    );
+  }
+
   return (
     <div className="login-page">
       <div className="login-card animate-in">
         <div className="login-logo">
           <span className="icon">📊</span>
           <h1>حسابداری شخصی</h1>
-          <p>با یک کلیک وصل شو — شیت خودکار ساخته می‌شود</p>
+          <p>با Google وارد شو — شیت‌هایت روی Drive بین دستگاه‌ها پیدا می‌شوند</p>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
@@ -81,8 +123,15 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           ورود با Google
         </button>
 
-        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '1rem', textAlign: 'center' }}>
-          اولین ورود: شیت گوگل به‌صورت خودکار ساخته می‌شود
+        <p
+          style={{
+            fontSize: '0.75rem',
+            color: 'var(--color-text-muted)',
+            marginTop: '1rem',
+            textAlign: 'center',
+          }}
+        >
+          شیت‌ها با فرمت «حسابداری · نام» ساخته می‌شوند و روی Drive همگام هستند
         </p>
       </div>
     </div>

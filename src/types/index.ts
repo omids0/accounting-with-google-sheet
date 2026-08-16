@@ -20,8 +20,15 @@ export interface CustomForm {
 
 export type CurrencyUnit = 'toman' | 'rial' | 'usd' | 'eur';
 
+export interface SpreadsheetEntry {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface AppSettings {
   spreadsheetId: string;
+  spreadsheets?: SpreadsheetEntry[];
   forms: CustomForm[];
   currency?: CurrencyUnit;
 }

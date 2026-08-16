@@ -26,6 +26,7 @@ interface LayoutProps {
 export default function Layout({ onLogout, onReauth }: LayoutProps) {
   const [tab, setTab] = useState<Tab>('dashboard');
   const [showSettings, setShowSettings] = useState(false);
+  const [dataKey, setDataKey] = useState(0);
   const userName = getUserName();
   const userPicture = getUserPicture();
 
@@ -92,9 +93,12 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
       </header>
 
       <main className="app-main">
-        <div key={showSettings ? 'settings' : tab} className="page-content">
+        <div key={showSettings ? 'settings' : `${tab}-${dataKey}`} className="page-content">
           {showSettings ? (
-            <SettingsPage onLogout={onLogout} />
+            <SettingsPage
+              onLogout={onLogout}
+              onSpreadsheetChange={() => setDataKey((key) => key + 1)}
+            />
           ) : (
             <>
               {tab === 'dashboard' && (
