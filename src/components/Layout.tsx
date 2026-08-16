@@ -8,6 +8,7 @@ import ChecksPage from './ChecksPage';
 import ReceivablesPage from './ReceivablesPage';
 import TreasuryPage from './TreasuryPage';
 import WalletPage from './WalletPage';
+import OpeningBalancePage from './OpeningBalancePage';
 import SettingsPage from './SettingsPage';
 import { getUserName, getUserPicture } from '../services/auth';
 
@@ -20,7 +21,8 @@ type Tab =
   | 'checks'
   | 'receivables'
   | 'treasury'
-  | 'wallet';
+  | 'wallet'
+  | 'opening-balances';
 
 interface LayoutProps {
   onLogout: () => void;
@@ -44,6 +46,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     receivables: 'طلب‌ها',
     treasury: 'صندوقچه',
     wallet: 'کیف پول',
+    'opening-balances': 'موجودی اول دوره',
   };
 
   const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
@@ -64,18 +67,23 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     <div className="app-layout">
       <header className="app-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          {!showSettings && (tab === 'records' || tab === 'entry') && (
+          {!showSettings && (tab === 'records' || tab === 'entry' || tab === 'opening-balances') && (
             <button
               type="button"
               className="header-icon-btn"
-              onClick={() => handleTabChange('dashboard')}
-              aria-label="بازگشت به داشبورد"
+              onClick={() =>
+                handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
+              }
+              aria-label={tab === 'opening-balances' ? 'بازگشت به کیف پول' : 'بازگشت به داشبورد'}
               title="بازگشت"
             >
               →
             </button>
           )}
-          {userPicture && tab !== 'records' && tab !== 'entry' && (
+          {userPicture &&
+            tab !== 'records' &&
+            tab !== 'entry' &&
+            tab !== 'opening-balances' && (
             <img
               src={userPicture}
               alt=""
@@ -123,7 +131,13 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               {tab === 'checks' && <ChecksPage onReauth={onReauth} />}
               {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
               {tab === 'treasury' && <TreasuryPage onReauth={onReauth} />}
-              {tab === 'wallet' && <WalletPage onReauth={onReauth} />}
+              {tab === 'wallet' && (
+                <WalletPage
+                  onReauth={onReauth}
+                  onOpenOpeningBalances={() => handleTabChange('opening-balances')}
+                />
+              )}
+              {tab === 'opening-balances' && <OpeningBalancePage onReauth={onReauth} />}
             </>
           )}
         </div>

@@ -69,6 +69,18 @@ export async function fetchOpeningBalance(
   return { monthKey, amount: 0, updatedAt: '', note: '' };
 }
 
+export async function fetchAllOpeningBalances(
+  spreadsheetId: string
+): Promise<(MonthlyOpeningBalance & { rowNumber: number })[]> {
+  await ensureMonthlyBalanceSheet(spreadsheetId);
+  const rows = await fetchSheetRows(spreadsheetId, MONTHLY_BALANCE_SHEET);
+  return rows
+    .map((row, index) => ({ row, rowNumber: index + 2 }))
+    .filter(({ row }) => String(row[0] ?? '').trim())
+    .map(({ row, rowNumber }) => rowToBalance(row, rowNumber))
+    .sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+}
+
 export async function setOpeningBalance(
   spreadsheetId: string,
   monthKey: string,

@@ -16,7 +16,13 @@ import { formatMoney } from '../utils/formatMoney';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
 
-export default function WalletPage({ onReauth }: { onReauth?: () => void }) {
+export default function WalletPage({
+  onReauth,
+  onOpenOpeningBalances,
+}: {
+  onReauth?: () => void;
+  onOpenOpeningBalances?: () => void;
+}) {
   const [items, setItems] = useState<WalletAccountWithRow[]>([]);
   const [balances, setBalances] = useState<Record<string, number | ''>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -281,6 +287,15 @@ export default function WalletPage({ onReauth }: { onReauth?: () => void }) {
                   {savingOpening ? '...' : 'ذخیره'}
                 </button>
               </div>
+              {onOpenOpeningBalances && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm wallet-opening-more-btn"
+                  onClick={onOpenOpeningBalances}
+                >
+                  گزینه‌های بیشتر
+                </button>
+              )}
             </div>
           )}
         </div>

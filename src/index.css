@@ -1794,6 +1794,18 @@ button {
   flex-shrink: 0;
 }
 
+.wallet-opening-more-btn {
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+.opening-balance-page-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin: 0 0 0.85rem;
+  line-height: 1.5;
+}
+
 .dashboard-reconcile-alert {
   margin-bottom: 1rem;
   font-size: 0.82rem;
