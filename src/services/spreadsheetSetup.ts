@@ -10,6 +10,10 @@ import {
   DANG_SHEET,
 } from './dang';
 import {
+  CHECKS_HEADERS,
+  CHECKS_SHEET,
+} from './checks';
+import {
   MONTHLY_BALANCE_HEADERS,
   MONTHLY_BALANCE_SHEET,
 } from './monthlyBalance';
@@ -86,6 +90,7 @@ function getAllSheetSpecs(): SheetSpec[] {
     ...formSheets,
     { sheetName: INSTALLMENTS_SHEET, headers: INSTALLMENTS_HEADERS },
     { sheetName: DANG_SHEET, headers: DANG_HEADERS },
+    { sheetName: CHECKS_SHEET, headers: CHECKS_HEADERS },
     { sheetName: RECEIVABLES_SHEET, headers: RECEIVABLES_HEADERS },
     { sheetName: TREASURY_SHEET, headers: TREASURY_HEADERS },
     { sheetName: WALLET_SHEET, headers: WALLET_HEADERS },

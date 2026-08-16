@@ -4,6 +4,7 @@ import DataEntryPage from './DataEntryPage';
 import RecordsPage from './RecordsPage';
 import InstallmentsPage from './InstallmentsPage';
 import DangPage from './DangPage';
+import ChecksPage from './ChecksPage';
 import ReceivablesPage from './ReceivablesPage';
 import TreasuryPage from './TreasuryPage';
 import WalletPage from './WalletPage';
@@ -16,6 +17,7 @@ type Tab =
   | 'records'
   | 'installments'
   | 'dang'
+  | 'checks'
   | 'receivables'
   | 'treasury'
   | 'wallet';
@@ -38,6 +40,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     records: 'رکوردها',
     installments: 'اقساط',
     dang: 'دنگ',
+    checks: 'چک‌ها',
     receivables: 'طلب‌ها',
     treasury: 'صندوقچه',
     wallet: 'کیف پول',
@@ -113,6 +116,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               )}
               {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
               {tab === 'dang' && <DangPage onReauth={onReauth} />}
+              {tab === 'checks' && <ChecksPage onReauth={onReauth} />}
               {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
               {tab === 'treasury' && <TreasuryPage onReauth={onReauth} />}
               {tab === 'wallet' && <WalletPage onReauth={onReauth} />}
@@ -137,7 +141,10 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             <span className="icon">🍽️</span>
             دنگ
           </button>
-          <button type="button" className="disabled" disabled aria-disabled="true" title="به‌زودی">
+          <button
+            className={!showSettings && tab === 'checks' ? 'active' : ''}
+            onClick={() => handleTabChange('checks')}
+          >
             <span className="icon">📝</span>
             چک‌ها
           </button>

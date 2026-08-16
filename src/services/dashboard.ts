@@ -6,6 +6,7 @@ import {
   isDateInRange,
 } from '../utils/dateRange';
 import { fetchInstallmentPlans, totalUnpaidInstallments } from './installments';
+import { fetchChecks, totalUnpaidChecksInRange } from './checks';
 import { fetchOpeningBalance } from './monthlyBalance';
 import { fetchReceivables, remainingAmount } from './receivables';
 import { fetchRecords } from './sheets';
@@ -59,6 +60,7 @@ export async function loadDashboardData(
     vaultTransactions,
     receivables,
     installmentPlans,
+    checks,
     openingBalanceRecord,
     tgjuPrices,
   ] = await Promise.all([
@@ -72,6 +74,7 @@ export async function loadDashboardData(
     fetchVaultTransactions(settings.spreadsheetId).catch(() => []),
     fetchReceivables(settings.spreadsheetId).catch(() => []),
     fetchInstallmentPlans(settings.spreadsheetId).catch(() => []),
+    fetchChecks(settings.spreadsheetId).catch(() => []),
     fetchOpeningBalance(settings.spreadsheetId, monthKey).catch(() => ({
       monthKey,
       amount: 0,
@@ -114,10 +117,9 @@ export async function loadDashboardData(
     0
   );
   const totalAssets = walletTotal + treasuryTotal + receivablesTotal;
-  const installmentsTotal = totalUnpaidInstallments(
-    installmentPlans,
-    installmentRange
-  );
+  const installmentsTotal =
+    totalUnpaidInstallments(installmentPlans, installmentRange) +
+    totalUnpaidChecksInRange(checks, installmentRange);
   const netAvailable = totalAssets - installmentsTotal;
 
   const openingBalance = openingBalanceRecord.amount;
