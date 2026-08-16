@@ -1,7 +1,15 @@
-import type { WalletAccount } from '../types';
+import type { AppSettings, CustomForm, WalletAccount } from '../types';
+import {
+  formatJalaliMonthLabel,
+  getDateRange,
+  getJalaliMonthKey,
+  isDateInRange,
+} from '../utils/dateRange';
+import { fetchOpeningBalance } from './monthlyBalance';
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
+  fetchRecords,
   fetchSheetRows,
   updateSheetRow,
 } from './sheets';
@@ -76,4 +84,59 @@ export async function updateWalletAccount(
     accountToRow(account)
   );
   return account;
+}
+
+export interface WalletPeriodFlow {
+  openingBalance: number;
+  totalIncome: number;
+  totalExpense: number;
+  monthKey: string;
+  monthLabel: string;
+}
+
+function getDateFieldId(form: CustomForm | undefined): string {
+  return form?.fields.find((f) => f.type === 'date')?.id ?? 'date';
+}
+
+export async function loadWalletPeriodFlow(
+  settings: AppSettings
+): Promise<WalletPeriodFlow> {
+  const range = getDateRange('month-to-date');
+  const monthKey = getJalaliMonthKey(range.start);
+  const incomeForm = settings.forms.find((f) => f.type === 'income');
+  const expenseForm = settings.forms.find((f) => f.type === 'expense');
+
+  const [incomeRecords, expenseRecords, openingBalanceRecord] = await Promise.all([
+    incomeForm
+      ? fetchRecords(settings.spreadsheetId, incomeForm)
+      : Promise.resolve([]),
+    expenseForm
+      ? fetchRecords(settings.spreadsheetId, expenseForm)
+      : Promise.resolve([]),
+    fetchOpeningBalance(settings.spreadsheetId, monthKey).catch(() => ({
+      monthKey,
+      amount: 0,
+      updatedAt: '',
+      note: '',
+    })),
+  ]);
+
+  const incomeDateField = getDateFieldId(incomeForm);
+  const expenseDateField = getDateFieldId(expenseForm);
+
+  const totalIncome = incomeRecords
+    .filter((r) => isDateInRange(r.values[incomeDateField] ?? '', range))
+    .reduce((s, r) => s + (Number(r.values.amount) || 0), 0);
+
+  const totalExpense = expenseRecords
+    .filter((r) => isDateInRange(r.values[expenseDateField] ?? '', range))
+    .reduce((s, r) => s + (Number(r.values.amount) || 0), 0);
+
+  return {
+    openingBalance: openingBalanceRecord.amount,
+    totalIncome,
+    totalExpense,
+    monthKey,
+    monthLabel: formatJalaliMonthLabel(monthKey),
+  };
 }

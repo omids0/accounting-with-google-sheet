@@ -10,7 +10,6 @@ import {
 } from 'recharts';
 import { getSettings, isConfigured } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
-import { setOpeningBalance } from '../services/monthlyBalance';
 import type { CustomForm, DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
 import {
@@ -22,7 +21,6 @@ import {
 } from '../utils/dateRange';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
-import AmountInput from './AmountInput';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
@@ -154,8 +152,6 @@ export default function DashboardPage({
   const [datePreset, setDatePreset] = useState<DateRangePreset>('month-to-date');
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [openingInput, setOpeningInput] = useState<number | ''>('');
-  const [savingOpening, setSavingOpening] = useState(false);
   const dateRange = getDateRange(datePreset);
 
   const load = useCallback(async () => {
@@ -173,7 +169,6 @@ export default function DashboardPage({
       const installmentRange = getInstallmentDueRange(datePreset);
       const dash = await loadDashboardData(settings, range, installmentRange);
       setData(dash);
-      setOpeningInput(dash.openingBalance || '');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
       if (msg.includes('منقضی') || msg.includes('401')) {
@@ -192,24 +187,6 @@ export default function DashboardPage({
 
   const handlePresetChange = (preset: DateRangePreset) => {
     setDatePreset(preset);
-  };
-
-  const handleSaveOpeningBalance = async () => {
-    if (!data) return;
-    const settings = getSettings();
-    if (!settings) return;
-
-    setSavingOpening(true);
-    setError('');
-    try {
-      const amount = openingInput === '' ? 0 : Number(openingInput);
-      await setOpeningBalance(settings.spreadsheetId, data.monthKey, amount);
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول');
-    } finally {
-      setSavingOpening(false);
-    }
   };
 
   const settings = getSettings();
@@ -238,8 +215,6 @@ export default function DashboardPage({
   };
 
   const financial = data?.financial;
-  const hasReconciliationGap =
-    data != null && Math.abs(data.reconciliationDiff) > 0;
 
   if (!isConfigured()) {
     return (
@@ -302,7 +277,15 @@ export default function DashboardPage({
               {formatMoney(data?.totalExpense ?? 0)}
             </span>
           </div>
-          <div className="stat-card stat-flow">
+          <div
+            className={`stat-card stat-flow${
+              (data?.balance ?? 0) < 0
+                ? ' stat-flow-negative'
+                : (data?.balance ?? 0) > 0
+                  ? ' stat-flow-positive'
+                  : ''
+            }`}
+          >
             <span className="stat-label">خالص جریان</span>
             <span className="stat-value" dir="ltr">
               {formatMoney(data?.balance ?? 0)}
@@ -368,51 +351,6 @@ export default function DashboardPage({
           />
         </div>
       </div>
-
-      <div className="card dashboard-opening-card">
-        <h3 className="chart-title">موجودی اول دوره</h3>
-        <p className="dashboard-opening-hint">
-          موجودی کیف پول در ابتدای {data?.monthLabel ?? 'این دوره'} را وارد کنید.
-          با خالص جریان (درآمد − هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
-        </p>
-        <div className="dashboard-opening-form">
-          <div className="dashboard-opening-input-wrap">
-            <AmountInput value={openingInput} onChange={setOpeningInput} />
-          </div>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={handleSaveOpeningBalance}
-            disabled={savingOpening || loading}
-          >
-            {savingOpening ? '...' : 'ذخیره'}
-          </button>
-        </div>
-      </div>
-
-      {hasReconciliationGap && (
-        <div
-          className={`alert ${
-            Math.abs(data!.reconciliationDiff) > 10000
-              ? 'alert-warning'
-              : 'alert-info'
-          } dashboard-reconcile-alert`}
-        >
-          <strong>تطبیق کیف پول</strong>
-          <p>
-            کیف پول فعلی ({formatMoney(financial?.walletTotal ?? 0)}) با مانده
-            محاسبه‌شده ({formatMoney(data!.periodBalance)}){' '}
-            {data!.reconciliationDiff > 0 ? 'بیشتر' : 'کمتر'} است.
-          </p>
-          <p dir="ltr" className="reconcile-diff">
-            اختلاف: {formatMoney(Math.abs(data!.reconciliationDiff))}
-            {data!.reconciliationDiff > 0 ? ' +' : ' −'}
-          </p>
-          <p className="dashboard-reconcile-formula">
-            موجودی اول + درآمد − هزینه = مانده محاسبه‌شده
-          </p>
-        </div>
-      )}
 
       {(data?.expenseByCategory.length ?? 0) > 0 && (
         <CategoryBarChart

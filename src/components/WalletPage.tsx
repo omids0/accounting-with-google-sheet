@@ -6,8 +6,11 @@ import {
   createWalletAccount,
   ensureWalletSheet,
   fetchWalletAccounts,
+  loadWalletPeriodFlow,
   updateWalletAccount,
+  type WalletPeriodFlow,
 } from '../services/wallet';
+import { setOpeningBalance } from '../services/monthlyBalance';
 import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
 
@@ -29,6 +32,9 @@ export default function WalletPage({ onReauth }: { onReauth?: () => void }) {
     balance: '' as number | '',
     note: '',
   });
+  const [periodFlow, setPeriodFlow] = useState<WalletPeriodFlow | null>(null);
+  const [openingInput, setOpeningInput] = useState<number | ''>('');
+  const [savingOpening, setSavingOpening] = useState(false);
 
   const syncBalances = useCallback((accounts: WalletAccountWithRow[]) => {
     const next: Record<string, number | ''> = {};
@@ -50,9 +56,14 @@ export default function WalletPage({ onReauth }: { onReauth?: () => void }) {
     setError('');
     try {
       await ensureWalletSheet(settings.spreadsheetId);
-      const data = await fetchWalletAccounts(settings.spreadsheetId);
+      const [data, flow] = await Promise.all([
+        fetchWalletAccounts(settings.spreadsheetId),
+        loadWalletPeriodFlow(settings),
+      ]);
       setItems(data);
       syncBalances(data);
+      setPeriodFlow(flow);
+      setOpeningInput(flow.openingBalance || '');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در بارگذاری کیف پول';
       if (msg.includes('منقضی') || msg.includes('401')) {
@@ -153,6 +164,35 @@ export default function WalletPage({ onReauth }: { onReauth?: () => void }) {
     }
   };
 
+  const handleSaveOpeningBalance = async () => {
+    if (!periodFlow) return;
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    setSavingOpening(true);
+    setMessage(null);
+    try {
+      const amount = openingInput === '' ? 0 : Number(openingInput);
+      await setOpeningBalance(settings.spreadsheetId, periodFlow.monthKey, amount);
+      const flow = await loadWalletPeriodFlow(settings);
+      setPeriodFlow(flow);
+      setOpeningInput(flow.openingBalance || '');
+      setMessage({ type: 'success', text: 'موجودی اول دوره ذخیره شد' });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      setMessage({ type: 'error', text: msg });
+    } finally {
+      setSavingOpening(false);
+    }
+  };
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -166,6 +206,13 @@ export default function WalletPage({ onReauth }: { onReauth?: () => void }) {
     const value = balances[item.id];
     return sum + (value === '' ? item.balance : Number(value));
   }, 0);
+
+  const periodBalance =
+    periodFlow != null
+      ? periodFlow.openingBalance + periodFlow.totalIncome - periodFlow.totalExpense
+      : 0;
+  const reconciliationDiff = totalBalance - periodBalance;
+  const hasReconciliationGap = periodFlow != null && Math.abs(reconciliationDiff) > 0;
 
   return (
     <div>
@@ -192,6 +239,29 @@ export default function WalletPage({ onReauth }: { onReauth?: () => void }) {
 
       {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
       {error && <div className="alert alert-error">{error}</div>}
+
+      {periodFlow && (
+        <div className="card dashboard-opening-card">
+          <h3 className="chart-title">موجودی اول دوره</h3>
+          <p className="dashboard-opening-hint">
+            موجودی کیف پول در ابتدای {periodFlow.monthLabel} را وارد کنید.
+            با خالص جریان (درآمد − هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
+          </p>
+          <div className="dashboard-opening-form">
+            <div className="dashboard-opening-input-wrap">
+              <AmountInput value={openingInput} onChange={setOpeningInput} />
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={handleSaveOpeningBalance}
+              disabled={savingOpening || loading}
+            >
+              {savingOpening ? '...' : 'ذخیره'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <form className="card" onSubmit={handleCreate}>
@@ -268,6 +338,27 @@ export default function WalletPage({ onReauth }: { onReauth?: () => void }) {
         <div className="card receivable-total-card">
           <div className="receivable-total-label">مجموع کل حساب‌ها</div>
           <div className="receivable-total-amount">{formatMoney(totalBalance)}</div>
+        </div>
+      )}
+
+      {hasReconciliationGap && (
+        <div
+          className={`alert ${
+            Math.abs(reconciliationDiff) > 10000 ? 'alert-warning' : 'alert-info'
+          } dashboard-reconcile-alert`}
+        >
+          <strong>تطبیق کیف پول</strong>
+          <p>
+            کیف پول فعلی ({formatMoney(totalBalance)}) با مانده محاسبه‌شده (
+            {formatMoney(periodBalance)}) {reconciliationDiff > 0 ? 'بیشتر' : 'کمتر'} است.
+          </p>
+          <p dir="ltr" className="reconcile-diff">
+            اختلاف: {formatMoney(Math.abs(reconciliationDiff))}
+            {reconciliationDiff > 0 ? ' +' : ' −'}
+          </p>
+          <p className="dashboard-reconcile-formula">
+            موجودی اول + درآمد − هزینه = مانده محاسبه‌شده
+          </p>
         </div>
       )}
     </div>

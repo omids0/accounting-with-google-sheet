@@ -1710,6 +1710,14 @@ button {
   color: var(--color-primary-dark);
 }
 
+.stat-flow-positive .stat-value {
+  color: var(--color-success);
+}
+
+.stat-flow-negative .stat-value {
+  color: var(--color-danger);
+}
+
 .dashboard-opening-card {
   margin-bottom: 1rem;
 }
