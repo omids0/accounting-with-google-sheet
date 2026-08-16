@@ -1627,6 +1627,10 @@ button {
   margin-bottom: 1rem;
 }
 
+.dashboard-stat-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .dashboard-stat-grid .stat-card {
   min-height: 5rem;
   padding: 1rem 0.5rem;
@@ -1865,6 +1869,11 @@ button {
 
 .stat-liability .stat-value {
   color: #c2410c;
+}
+
+.stat-flow {
+  background: #f0fdfa;
+  border-color: #99f6e4;
 }
 
 .stat-flow .stat-value {

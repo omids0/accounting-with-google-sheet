@@ -278,20 +278,20 @@ export default function DashboardPage({
               {formatMoney(data?.totalExpense ?? 0)}
             </span>
           </div>
-          <div
-            className={`stat-card stat-flow${
-              (data?.balance ?? 0) < 0
-                ? ' stat-flow-negative'
-                : (data?.balance ?? 0) > 0
-                  ? ' stat-flow-positive'
-                  : ''
-            }`}
-          >
-            <span className="stat-label">خالص جریان</span>
-            <span className="stat-value" dir="ltr">
-              {formatMoney(data?.balance ?? 0)}
-            </span>
-          </div>
+        </div>
+        <div
+          className={`stat-card stat-flow stat-card-wide${
+            (data?.balance ?? 0) < 0
+              ? ' stat-flow-negative'
+              : (data?.balance ?? 0) > 0
+                ? ' stat-flow-positive'
+                : ''
+          }`}
+        >
+          <span className="stat-label">خالص دوره</span>
+          <span className="stat-value" dir="ltr">
+            {formatMoney(data?.balance ?? 0)}
+          </span>
         </div>
         <div className="stat-card stat-balance stat-card-wide">
           <span className="stat-label">مانده محاسبه‌شده</span>

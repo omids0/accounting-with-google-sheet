@@ -272,7 +272,7 @@ export default function WalletPage({
             <div className="installment-payments dashboard-opening-body">
               <p className="dashboard-opening-hint">
                 موجودی کیف پول در ابتدای {periodFlow.monthLabel} را وارد کنید.
-                با خالص جریان (درآمد − هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
+                با خالص دوره (درآمد − هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
               </p>
               <div className="dashboard-opening-form">
                 <div className="dashboard-opening-input-wrap">
