@@ -24,7 +24,7 @@ import {
   formatSpreadsheetTitle,
   getSpreadsheetLabel,
 } from '../services/spreadsheetCatalog';
-import Select from './Select';
+import { FormField, FormSelect } from './form';
 import {
   getUserEmail,
   getUserPicture,
@@ -309,9 +309,9 @@ export default function SettingsPage({
           <h2 className="card-title">گوگل شیت</h2>
 
           {spreadsheets.length > 0 && (
-            <div className="form-group">
-              <label>شیت فعال</label>
-              <Select
+            <>
+              <FormSelect
+                label="شیت فعال"
                 value={spreadsheetId}
                 onChange={handleSwitchSpreadsheet}
                 disabled={loading || !spreadsheetId}
@@ -319,10 +319,12 @@ export default function SettingsPage({
                   value: sheet.id,
                   label: getSpreadsheetLabel(sheet.name),
                 }))}
+                hint={
+                  <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                    لیست از Google Drive همگام می‌شود — روی دستگاه جدید همان شیت‌ها را می‌بینید.
+                  </p>
+                }
               />
-              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-                لیست از Google Drive همگام می‌شود — روی دستگاه جدید همان شیت‌ها را می‌بینید.
-              </p>
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={handleRefreshSpreadsheets}
@@ -332,7 +334,7 @@ export default function SettingsPage({
                 {loading && <span className="spinner" />}
                 بروزرسانی از Drive
               </button>
-            </div>
+            </>
           )}
 
           {spreadsheetId && (
@@ -444,20 +446,20 @@ export default function SettingsPage({
 
       <div className="card">
         <h2 className="card-title">تنظیمات عمومی</h2>
-        <div className="form-group">
-          <label>واحد پول</label>
-          <Select
-            value={currency}
-            onChange={(next) => handleCurrencyChange(next as CurrencyUnit)}
-            options={CURRENCY_OPTIONS.map((option) => ({
-              value: option.value,
-              label: option.label,
-            }))}
-          />
-          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-            واحد پول در تمام نمایش مبالغ (داشبورد، رکوردها و ...) اعمال می‌شود
-          </p>
-        </div>
+        <FormSelect
+          label="واحد پول"
+          value={currency}
+          onChange={(next) => handleCurrencyChange(next as CurrencyUnit)}
+          options={CURRENCY_OPTIONS.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+          hint={
+            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+              واحد پول در تمام نمایش مبالغ (داشبورد، رکوردها و ...) اعمال می‌شود
+            </p>
+          }
+        />
       </div>
 
       <div className="card">
@@ -555,21 +557,18 @@ function FormFieldEditor({
     <div style={{ marginTop: '0.75rem' }}>
       {fields.map((field, index) => (
         <div key={field.id} className="field-row">
-          <div className="form-group">
-            <label>برچسب</label>
+          <FormField label="برچسب">
             <input
               value={field.label}
               onChange={(e) => updateField(index, { label: e.target.value })}
             />
-          </div>
-          <div className="form-group">
-            <label>نوع</label>
-            <Select
-              value={field.type}
-              onChange={(next) => updateField(index, { type: next as FieldType })}
-              options={FIELD_TYPES.map((t) => ({ value: t.value, label: t.label }))}
-            />
-          </div>
+          </FormField>
+          <FormSelect
+            label="نوع"
+            value={field.type}
+            onChange={(next) => updateField(index, { type: next as FieldType })}
+            options={FIELD_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+          />
         </div>
       ))}
       <button className="btn btn-secondary btn-sm" onClick={addField} style={{ marginBottom: '0.5rem' }}>

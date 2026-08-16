@@ -10,7 +10,7 @@ import {
   formatSpreadsheetTitle,
   getSpreadsheetLabel,
 } from '../services/spreadsheetCatalog';
-import Select from './Select';
+import { FormSelect } from './form';
 
 interface SpreadsheetSetupPanelProps {
   mode: 'pick' | 'create';
@@ -88,28 +88,28 @@ export default function SpreadsheetSetupPanel({
 
         {mode === 'pick' ? (
           <>
-            <div className="form-group">
-              <label>شیت‌های موجود در Drive</label>
-              <Select
-                value={selectedId}
-                onChange={setSelectedId}
-                disabled={loading}
-                options={options.map((sheet) => ({
-                  value: sheet.id,
-                  label: getSpreadsheetLabel(sheet.name),
-                }))}
-              />
-              <p
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-muted)',
-                  marginTop: '0.5rem',
-                }}
-              >
-                فقط فایل‌های با فرمت «{SPREADSHEET_TITLE_PREFIX}…» یا «حسابداری …»
-                نمایش داده می‌شوند.
-              </p>
-            </div>
+            <FormSelect
+              label="شیت‌های موجود در Drive"
+              value={selectedId}
+              onChange={setSelectedId}
+              disabled={loading}
+              options={options.map((sheet) => ({
+                value: sheet.id,
+                label: getSpreadsheetLabel(sheet.name),
+              }))}
+              hint={
+                <p
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'var(--color-text-muted)',
+                    marginTop: '0.5rem',
+                  }}
+                >
+                  فقط فایل‌های با فرمت «{SPREADSHEET_TITLE_PREFIX}…» یا «حسابداری …»
+                  نمایش داده می‌شوند.
+                </p>
+              }
+            />
 
             <button
               className="btn btn-primary"

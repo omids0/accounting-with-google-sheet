@@ -12,7 +12,7 @@ import { getSettings, isConfigured } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
 import type { CustomForm, DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
-import Select from './Select';
+import { FormSelect } from './form';
 import {
   DATE_RANGE_PRESETS,
   getDateRange,
@@ -417,16 +417,16 @@ export default function DashboardPage({
             </button>
           </div>
 
-          <div className="form-group transaction-category-filter">
-            <Select
-              value={categoryFilter}
-              onChange={setCategoryFilter}
-              options={[
-                { value: 'all', label: 'همه دسته‌بندی‌ها' },
-                ...categoryOptions.map((cat) => ({ value: cat, label: cat })),
-              ]}
-            />
-          </div>
+          <FormSelect
+            className="transaction-category-filter"
+            aria-label="دسته‌بندی"
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            options={[
+              { value: 'all', label: 'همه دسته‌بندی‌ها' },
+              ...categoryOptions.map((cat) => ({ value: cat, label: cat })),
+            ]}
+          />
         </div>
 
         {!data?.recentRecords.length ? (

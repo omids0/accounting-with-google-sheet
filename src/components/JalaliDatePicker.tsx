@@ -6,7 +6,7 @@ import {
   jalaliToIso,
   JALALI_MONTHS,
 } from '../utils/jalaliDate';
-import Select from './Select';
+import { Select } from './form';
 
 interface JalaliDatePickerProps {
   value: string;

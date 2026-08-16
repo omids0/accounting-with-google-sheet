@@ -16,7 +16,7 @@ import {
 } from '../services/tgju';
 import AmountInput from './AmountInput';
 import JalaliDatePicker from './JalaliDatePicker';
-import Select from './Select';
+import { FormSelect } from './form';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 
@@ -301,26 +301,27 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         <form className="card" onSubmit={handleCreate}>
           <h3 className="card-title">ثبت خرید</h3>
 
-          <div className="form-group">
-            <label>نوع دارایی <span className="required">*</span></label>
-            <Select
-              value={form.assetType}
-              onChange={(next) =>
-                setForm((f) => ({
-                  ...f,
-                  assetType: next as VaultAssetType,
-                  quantity: '',
-                }))
-              }
-              options={VAULT_ASSET_OPTIONS.map((opt) => ({
-                value: opt.value,
-                label: opt.label,
-              }))}
-            />
-            {selectedAsset?.hint && (
-              <p className="treasury-hint">{selectedAsset.hint}</p>
-            )}
-          </div>
+          <FormSelect
+            label="نوع دارایی"
+            required
+            value={form.assetType}
+            onChange={(next) =>
+              setForm((f) => ({
+                ...f,
+                assetType: next as VaultAssetType,
+                quantity: '',
+              }))
+            }
+            options={VAULT_ASSET_OPTIONS.map((opt) => ({
+              value: opt.value,
+              label: opt.label,
+            }))}
+            hint={
+              selectedAsset?.hint ? (
+                <p className="treasury-hint">{selectedAsset.hint}</p>
+              ) : undefined
+            }
+          />
 
           <div className="form-group">
             <label>
