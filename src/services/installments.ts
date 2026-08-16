@@ -11,7 +11,7 @@ import { addJalaliMonths, getTodayIso } from '../utils/jalaliDate';
 
 export const INSTALLMENTS_SHEET = 'اقساط';
 
-const HEADERS = [
+export const INSTALLMENTS_HEADERS = [
   'شناسه',
   'زمان ثبت',
   'عنوان',
@@ -85,7 +85,11 @@ function planToRow(plan: InstallmentPlan): string[] {
 }
 
 export async function ensureInstallmentsSheet(spreadsheetId: string): Promise<void> {
-  await ensureSheetWithHeaders(spreadsheetId, INSTALLMENTS_SHEET, HEADERS);
+  await ensureSheetWithHeaders(
+    spreadsheetId,
+    INSTALLMENTS_SHEET,
+    INSTALLMENTS_HEADERS
+  );
 }
 
 export async function fetchInstallmentPlans(

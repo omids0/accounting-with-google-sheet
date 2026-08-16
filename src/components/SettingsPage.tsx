@@ -13,6 +13,7 @@ import {
   ensureFormSheet,
   getSpreadsheetUrl,
 } from '../services/sheets';
+import { recreateUserSpreadsheet } from '../services/spreadsheetSetup';
 import {
   getUserEmail,
   getUserPicture,
@@ -47,6 +48,35 @@ export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
     if (confirm('از حساب خارج می‌شوید؟')) {
       logout();
       onLogout?.();
+    }
+  };
+
+  const handleRecreateSpreadsheet = async () => {
+    if (
+      !confirm(
+        'شیت جدید ساخته می‌شود. داده‌های شیت قبلی (اگر هنوز در Drive باشد) به این شیت وصل نمی‌شوند. ادامه می‌دهید؟'
+      )
+    ) {
+      return;
+    }
+    if (!isTokenValid()) {
+      setMessage({ type: 'error', text: 'نشست منقضی شده' });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      const newId = await recreateUserSpreadsheet();
+      setSpreadsheetId(newId);
+      setMessage({ type: 'success', text: 'شیت جدید ساخته شد' });
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'خطا در ساخت شیت',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -170,6 +200,15 @@ export default function SettingsPage({ onLogout }: { onLogout?: () => void }) {
           <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
             هر فرم = یک برگه (Tab) جدا در شیت
           </p>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={handleRecreateSpreadsheet}
+            disabled={loading}
+            style={{ marginTop: '0.75rem' }}
+          >
+            {loading && <span className="spinner" />}
+            ساخت شیت جدید
+          </button>
         </div>
       )}
 

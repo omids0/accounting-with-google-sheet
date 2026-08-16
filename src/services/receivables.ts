@@ -9,7 +9,7 @@ import { getTodayIso } from '../utils/jalaliDate';
 
 export const RECEIVABLES_SHEET = 'طلب‌ها';
 
-const HEADERS = [
+export const RECEIVABLES_HEADERS = [
   'شناسه',
   'زمان ثبت',
   'نام',
@@ -82,7 +82,11 @@ export function sortReceivables<T extends Receivable>(
 }
 
 export async function ensureReceivablesSheet(spreadsheetId: string): Promise<void> {
-  await ensureSheetWithHeaders(spreadsheetId, RECEIVABLES_SHEET, HEADERS);
+  await ensureSheetWithHeaders(
+    spreadsheetId,
+    RECEIVABLES_SHEET,
+    RECEIVABLES_HEADERS
+  );
 }
 
 export async function fetchReceivables(

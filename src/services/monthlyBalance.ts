@@ -8,7 +8,12 @@ import { getJalaliMonthKey } from '../utils/dateRange';
 
 export const MONTHLY_BALANCE_SHEET = 'موجودی ماهانه';
 
-const HEADERS = ['کلید ماه', 'موجودی اول', 'زمان ثبت', 'توضیحات'];
+export const MONTHLY_BALANCE_HEADERS = [
+  'کلید ماه',
+  'موجودی اول',
+  'زمان ثبت',
+  'توضیحات',
+];
 
 export interface MonthlyOpeningBalance {
   monthKey: string;
@@ -43,14 +48,17 @@ function balanceToRow(balance: MonthlyOpeningBalance): string[] {
 export async function ensureMonthlyBalanceSheet(
   spreadsheetId: string
 ): Promise<void> {
-  await ensureSheetWithHeaders(spreadsheetId, MONTHLY_BALANCE_SHEET, HEADERS);
+  await ensureSheetWithHeaders(
+    spreadsheetId,
+    MONTHLY_BALANCE_SHEET,
+    MONTHLY_BALANCE_HEADERS
+  );
 }
 
 export async function fetchOpeningBalance(
   spreadsheetId: string,
   monthKey: string
 ): Promise<MonthlyOpeningBalance> {
-  await ensureMonthlyBalanceSheet(spreadsheetId);
   const rows = await fetchSheetRows(spreadsheetId, MONTHLY_BALANCE_SHEET);
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];

@@ -4,6 +4,7 @@ import LoginPage from './components/LoginPage';
 import Layout from './components/Layout';
 import { isTokenValid } from './services/auth';
 import { isConfigured } from './services/settings';
+import { prepareUserSpreadsheet } from './services/spreadsheetSetup';
 
 function ConfigNotice() {
   return (
@@ -29,14 +30,44 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [needsReauth, setNeedsReauth] = useState(false);
   const [ready, setReady] = useState(false);
+  const [sheetError, setSheetError] = useState('');
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
   const isOAuthConfigured = !!clientId && !clientId.startsWith('xxx');
 
   useEffect(() => {
-    setLoggedIn(isConfigured() && isTokenValid());
-    setNeedsReauth(isConfigured() && !isTokenValid());
-    setReady(true);
+    let cancelled = false;
+
+    async function init() {
+      const configured = isConfigured();
+      const tokenValid = isTokenValid();
+
+      if (configured && tokenValid) {
+        try {
+          await prepareUserSpreadsheet();
+          if (!cancelled) {
+            setLoggedIn(true);
+            setNeedsReauth(false);
+            setSheetError('');
+          }
+        } catch (err) {
+          if (!cancelled) {
+            setLoggedIn(false);
+            setNeedsReauth(true);
+            setSheetError(
+              err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت'
+            );
+          }
+        }
+      } else {
+        setLoggedIn(false);
+        setNeedsReauth(configured && !tokenValid);
+      }
+
+      if (!cancelled) setReady(true);
+    }
+
+    init();
 
     registerSW({
       onNeedRefresh() {
@@ -45,6 +76,10 @@ export default function App() {
         }
       },
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (!isOAuthConfigured) return <ConfigNotice />;
@@ -62,9 +97,11 @@ export default function App() {
   if (!loggedIn || needsReauth) {
     return (
       <LoginPage
+        initialError={sheetError}
         onSuccess={() => {
           setLoggedIn(true);
           setNeedsReauth(false);
+          setSheetError('');
         }}
       />
     );

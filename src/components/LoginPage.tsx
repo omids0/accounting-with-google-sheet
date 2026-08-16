@@ -5,24 +5,15 @@ import {
   createSession,
   fetchUserProfile,
 } from '../services/auth';
-import {
-  getSettings,
-  saveSettings,
-  getDefaultSettings,
-} from '../services/settings';
-import { createSpreadsheet } from '../services/sheets';
-import { ensureInstallmentsSheet } from '../services/installments';
-import { ensureMonthlyBalanceSheet } from '../services/monthlyBalance';
-import { ensureReceivablesSheet } from '../services/receivables';
-import { ensureTreasurySheet } from '../services/treasury';
-import { ensureWalletSheet } from '../services/wallet';
+import { prepareUserSpreadsheet } from '../services/spreadsheetSetup';
 
 interface LoginPageProps {
   onSuccess: () => void;
+  initialError?: string;
 }
 
-export default function LoginPage({ onSuccess }: LoginPageProps) {
-  const [error, setError] = useState('');
+export default function LoginPage({ onSuccess, initialError = '' }: LoginPageProps) {
+  const [error, setError] = useState(initialError);
   const [loading, setLoading] = useState(false);
 
   const login = useGoogleLogin({
@@ -40,21 +31,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
           )
         );
 
-        let settings = getSettings() ?? getDefaultSettings();
-        if (!settings.spreadsheetId) {
-          const sheetId = await createSpreadsheet(
-            `حسابداری ${profile.name}`,
-            settings.forms
-          );
-          settings = { ...settings, spreadsheetId: sheetId };
-          saveSettings(settings);
-        }
-
-        await ensureInstallmentsSheet(settings.spreadsheetId);
-        await ensureReceivablesSheet(settings.spreadsheetId);
-        await ensureTreasurySheet(settings.spreadsheetId);
-        await ensureWalletSheet(settings.spreadsheetId);
-        await ensureMonthlyBalanceSheet(settings.spreadsheetId);
+        await prepareUserSpreadsheet(profile.name);
 
         onSuccess();
       } catch (err) {

@@ -7,7 +7,7 @@ import {
 
 export const TREASURY_SHEET = 'صندوقچه';
 
-const HEADERS = [
+export const TREASURY_HEADERS = [
   'شناسه',
   'زمان ثبت',
   'نوع دارایی',
@@ -96,7 +96,7 @@ export function computeHoldings(
 }
 
 export async function ensureTreasurySheet(spreadsheetId: string): Promise<void> {
-  await ensureSheetWithHeaders(spreadsheetId, TREASURY_SHEET, HEADERS);
+  await ensureSheetWithHeaders(spreadsheetId, TREASURY_SHEET, TREASURY_HEADERS);
 }
 
 export async function fetchVaultTransactions(

@@ -8,7 +8,7 @@ import {
 
 export const WALLET_SHEET = 'کیف پول';
 
-const HEADERS = ['شناسه', 'زمان ثبت', 'عنوان', 'موجودی', 'توضیحات'];
+export const WALLET_HEADERS = ['شناسه', 'زمان ثبت', 'عنوان', 'موجودی', 'توضیحات'];
 
 function rowToAccount(
   row: string[],
@@ -35,7 +35,7 @@ function accountToRow(account: WalletAccount): string[] {
 }
 
 export async function ensureWalletSheet(spreadsheetId: string): Promise<void> {
-  await ensureSheetWithHeaders(spreadsheetId, WALLET_SHEET, HEADERS);
+  await ensureSheetWithHeaders(spreadsheetId, WALLET_SHEET, WALLET_HEADERS);
 }
 
 export async function fetchWalletAccounts(
