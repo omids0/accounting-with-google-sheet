@@ -6,9 +6,9 @@ import {
   getDefaultSettings,
   getSpreadsheets,
   addCustomForm,
-  updateFormCategories,
   updateCurrency,
 } from '../services/settings';
+import { saveFormCategoriesToSheet, syncCategoriesFromSheet } from '../services/categories';
 import { CURRENCY_OPTIONS } from '../utils/formatMoney';
 import {
   ensureFormSheet,
@@ -53,6 +53,7 @@ export default function SettingsPage({
   const [currency, setCurrency] = useState<CurrencyUnit>('toman');
   const [newFormName, setNewFormName] = useState('');
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
+  const [categoriesKey, setCategoriesKey] = useState(0);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -65,14 +66,24 @@ export default function SettingsPage({
 
     if (!isTokenValid()) return;
 
-    syncSpreadsheetsFromDrive()
-      .then((merged) => {
+    const loadSheetData = async () => {
+      try {
+        if (settings.spreadsheetId) {
+          await syncCategoriesFromSheet(settings.spreadsheetId);
+          const refreshed = getSettings() ?? getDefaultSettings();
+          setForms(refreshed.forms);
+          setCategoriesKey((key) => key + 1);
+        }
+
+        const merged = await syncSpreadsheetsFromDrive();
         setSpreadsheets(merged);
         setSpreadsheetId(getSettings()?.spreadsheetId ?? settings.spreadsheetId);
-      })
-      .catch(() => {
+      } catch {
         // Keep local list if Drive sync fails (e.g. old token scope).
-      });
+      }
+    };
+
+    loadSheetData();
   }, []);
 
   const handleLogout = () => {
@@ -152,6 +163,10 @@ export default function SettingsPage({
       await switchActiveSpreadsheet(nextId);
       setSpreadsheetId(nextId);
       setSpreadsheets(getSpreadsheets());
+      await syncCategoriesFromSheet(nextId);
+      const refreshed = getSettings() ?? getDefaultSettings();
+      setForms(refreshed.forms);
+      setCategoriesKey((key) => key + 1);
       const selected = getSpreadsheets().find((sheet) => sheet.id === nextId);
       setMessage({
         type: 'success',
@@ -208,27 +223,39 @@ export default function SettingsPage({
     }
   };
 
-  const handleSaveCategories = (formId: string, categoriesText: string) => {
+  const handleSaveCategories = async (formId: string, categoriesText: string) => {
     const categories = categoriesText
       .split(/[,،]/)
       .map((s) => s.trim())
       .filter(Boolean);
     if (!categories.length) return;
 
-    updateFormCategories(formId, categories);
     const settings = getSettings() ?? getDefaultSettings();
-    const updatedForms = settings.forms.map((f) =>
-      f.id === formId
-        ? {
-            ...f,
-            fields: f.fields.map((field) =>
-              field.id === 'category' ? { ...field, options: categories } : field
-            ),
-          }
-        : f
-    );
-    setForms(updatedForms);
-    setMessage({ type: 'success', text: 'دسته‌بندی‌ها ذخیره شد' });
+    if (!settings.spreadsheetId) {
+      setMessage({ type: 'error', text: 'ابتدا شیت فعال را انتخاب کنید' });
+      return;
+    }
+    if (!isTokenValid()) {
+      setMessage({ type: 'error', text: 'نشست منقضی شده' });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      await saveFormCategoriesToSheet(settings.spreadsheetId, formId, categories);
+      const refreshed = getSettings() ?? getDefaultSettings();
+      setForms(refreshed.forms);
+      setCategoriesKey((key) => key + 1);
+      setMessage({ type: 'success', text: 'دسته‌بندی‌ها در گوگل شیت ذخیره شد' });
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'خطا در ذخیره دسته‌بندی‌ها',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCurrencyChange = (value: CurrencyUnit) => {
@@ -412,12 +439,17 @@ export default function SettingsPage({
               <div className="form-group" style={{ marginTop: '0.5rem' }}>
                 <label>دسته‌بندی‌های {form.name}</label>
                 <input
+                  key={`${form.id}-${categoriesKey}`}
                   defaultValue={
                     form.fields.find((f) => f.id === 'category')?.options?.join('، ') ?? ''
                   }
                   onBlur={(e) => handleSaveCategories(form.id, e.target.value)}
                   placeholder="دسته۱، دسته۲، ..."
+                  disabled={loading}
                 />
+                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                  در برگه «دسته‌بندی‌ها» گوگل شیت ذخیره می‌شود و روی همه دستگاه‌ها یکسان است.
+                </p>
               </div>
             )}
 

@@ -18,6 +18,11 @@ import {
   RECEIVABLES_SHEET,
 } from './receivables';
 import {
+  CATEGORIES_HEADERS,
+  CATEGORIES_SHEET,
+  syncCategoriesFromSheet,
+} from './categories';
+import {
   formatSpreadsheetTitle,
   getSpreadsheetLabel,
 } from './spreadsheetCatalog';
@@ -88,6 +93,7 @@ function getAllSheetSpecs(): SheetSpec[] {
       sheetName: MONTHLY_BALANCE_SHEET,
       headers: MONTHLY_BALANCE_HEADERS,
     },
+    { sheetName: CATEGORIES_SHEET, headers: CATEGORIES_HEADERS },
   ];
 }
 
@@ -206,6 +212,7 @@ async function finalizeSpreadsheetActivation(
   }
 
   await ensureAllSheets(spreadsheetId);
+  await syncCategoriesFromSheet(spreadsheetId);
   markAllKnownSheetsPrepared(spreadsheetId);
   markSessionPrepared(spreadsheetId);
   return spreadsheetId;

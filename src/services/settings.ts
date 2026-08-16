@@ -8,8 +8,22 @@ import type {
 import { getItem, setItem, STORAGE_KEYS } from './storage';
 import { isTokenValid } from './auth';
 
-const INCOME_CATEGORIES = ['حقوق', 'فروش', 'سرمایه‌گذاری', 'هدیه', 'سایر'];
-const EXPENSE_CATEGORIES = ['خوراک', 'حمل‌ونقل', 'اجاره', 'قبوض', 'تفریح', 'پوشاک', 'سایر'];
+export const DEFAULT_INCOME_CATEGORIES = [
+  'حقوق',
+  'فروش',
+  'سرمایه‌گذاری',
+  'هدیه',
+  'سایر',
+];
+export const DEFAULT_EXPENSE_CATEGORIES = [
+  'خوراک',
+  'حمل‌ونقل',
+  'اجاره',
+  'قبوض',
+  'تفریح',
+  'پوشاک',
+  'سایر',
+];
 
 function incomeForm(): CustomForm {
   return {
@@ -26,7 +40,7 @@ function incomeForm(): CustomForm {
         label: 'دسته‌بندی',
         type: 'select',
         required: true,
-        options: INCOME_CATEGORIES,
+        options: DEFAULT_INCOME_CATEGORIES,
       },
       { id: 'note', label: 'توضیحات', type: 'text', required: false },
     ],
@@ -48,7 +62,7 @@ function expenseForm(): CustomForm {
         label: 'دسته‌بندی',
         type: 'select',
         required: true,
-        options: EXPENSE_CATEGORIES,
+        options: DEFAULT_EXPENSE_CATEGORIES,
       },
       { id: 'note', label: 'توضیحات', type: 'text', required: false },
     ],

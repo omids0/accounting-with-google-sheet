@@ -461,3 +461,30 @@ export async function updateSheetRow(
     }
   );
 }
+
+export async function replaceSheetDataRows(
+  spreadsheetId: string,
+  sheetName: string,
+  rows: string[][],
+  columnCount = 2
+): Promise<void> {
+  const endCol = String.fromCharCode(64 + Math.max(columnCount, 1));
+  const clearRange = encodeURIComponent(`${sheetName}!A2:${endCol}1000`);
+  await apiRequest(
+    `${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`,
+    { method: 'POST' }
+  );
+
+  if (!rows.length) return;
+
+  const writeRange = encodeURIComponent(
+    `${sheetName}!A2:${endCol}${rows.length + 1}`
+  );
+  await apiRequest(
+    `${SHEETS_API}/${spreadsheetId}/values/${writeRange}?valueInputOption=RAW`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ values: rows }),
+    }
+  );
+}
