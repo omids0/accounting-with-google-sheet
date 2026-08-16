@@ -157,6 +157,39 @@ export async function toggleInstallmentPayment(
   return updated;
 }
 
+export function isInstallmentPlanComplete(plan: InstallmentPlan): boolean {
+  return plan.count > 0 && plan.payments.every((p) => p.paid);
+}
+
+export function getNextInstallmentDueDate(plan: InstallmentPlan): string {
+  const next = plan.payments.find((p) => !p.paid);
+  return next?.dueDate ?? plan.payments[plan.payments.length - 1]?.dueDate ?? '';
+}
+
+export function sortInstallmentPlans<T extends InstallmentPlan>(plans: T[]): T[] {
+  return [...plans].sort((a, b) => {
+    const aComplete = isInstallmentPlanComplete(a);
+    const bComplete = isInstallmentPlanComplete(b);
+
+    if (aComplete !== bComplete) return aComplete ? 1 : -1;
+
+    const aDue = getNextInstallmentDueDate(a);
+    const bDue = getNextInstallmentDueDate(b);
+    return aDue.localeCompare(bDue);
+  });
+}
+
+export function sortInstallmentPayments(
+  payments: InstallmentPayment[]
+): { payment: InstallmentPayment; index: number }[] {
+  return payments
+    .map((payment, index) => ({ payment, index }))
+    .sort((a, b) => {
+      if (a.payment.paid !== b.payment.paid) return a.payment.paid ? 1 : -1;
+      return a.payment.dueDate.localeCompare(b.payment.dueDate);
+    });
+}
+
 export function unpaidInstallmentCount(plan: InstallmentPlan): number {
   return plan.payments.filter((p) => !p.paid).length;
 }

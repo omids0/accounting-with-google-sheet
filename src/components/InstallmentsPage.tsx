@@ -6,6 +6,9 @@ import {
   createInstallmentPlan,
   ensureInstallmentsSheet,
   fetchInstallmentPlans,
+  isInstallmentPlanComplete,
+  sortInstallmentPayments,
+  sortInstallmentPlans,
   toggleInstallmentPayment,
   totalInstallmentsInRange,
   totalUnpaidInstallments,
@@ -182,6 +185,8 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     [plans, monthRange]
   );
 
+  const sortedPlans = useMemo(() => sortInstallmentPlans(plans), [plans]);
+
   return (
     <div>
       <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
@@ -290,14 +295,18 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
           <p>هنوز قسطی ثبت نشده</p>
         </div>
       ) : (
-        plans.map((plan) => {
+        sortedPlans.map((plan) => {
           const expanded = expandedId === plan.id;
           const done = paidCount(plan);
           const total = plan.count;
+          const complete = isInstallmentPlanComplete(plan);
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
 
           return (
-            <div key={plan.id} className="card installment-card">
+            <div
+              key={plan.id}
+              className={`card installment-card${complete ? ' installment-complete' : ''}`}
+            >
               <button
                 type="button"
                 className="installment-header"
@@ -306,7 +315,8 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{plan.title}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-                    {formatMoney(plan.amount)} · {done}/{total} پرداخت شده
+                    {formatMoney(plan.amount)}
+                    {complete ? ' · تکمیل شده' : ` · ${done}/${total} پرداخت شده`}
                   </div>
                   <div className="installment-progress">
                     <div className="installment-progress-bar" style={{ width: `${progress}%` }} />
@@ -320,7 +330,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                   {plan.note && (
                     <p className="installment-note">{plan.note}</p>
                   )}
-                  {plan.payments.map((payment, index) => {
+                  {sortInstallmentPayments(plan.payments).map(({ payment, index }) => {
                     const toggleKey = `${plan.id}-${index}`;
                     return (
                       <label
