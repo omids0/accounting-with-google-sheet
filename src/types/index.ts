@@ -104,6 +104,18 @@ export interface InstallmentPlan {
   payments: InstallmentPayment[];
 }
 
+export interface Dang {
+  id: string;
+  createdAt: string;
+  title: string;
+  counterparty: string;
+  amount: number;
+  date: string;
+  note: string;
+  paid: boolean;
+  paidAt: string;
+}
+
 export interface ReceivablePayment {
   id: string;
   amount: number;

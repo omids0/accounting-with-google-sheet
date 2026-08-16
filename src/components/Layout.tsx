@@ -3,6 +3,7 @@ import DashboardPage from './DashboardPage';
 import DataEntryPage from './DataEntryPage';
 import RecordsPage from './RecordsPage';
 import InstallmentsPage from './InstallmentsPage';
+import DangPage from './DangPage';
 import ReceivablesPage from './ReceivablesPage';
 import TreasuryPage from './TreasuryPage';
 import WalletPage from './WalletPage';
@@ -14,6 +15,7 @@ type Tab =
   | 'entry'
   | 'records'
   | 'installments'
+  | 'dang'
   | 'receivables'
   | 'treasury'
   | 'wallet';
@@ -35,6 +37,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     entry: 'ثبت جدید',
     records: 'رکوردها',
     installments: 'اقساط',
+    dang: 'دنگ',
     receivables: 'طلب‌ها',
     treasury: 'صندوقچه',
     wallet: 'کیف پول',
@@ -109,6 +112,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                 <RecordsPage onReauth={onReauth} initialFormType={recordsFormType} />
               )}
               {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
+              {tab === 'dang' && <DangPage onReauth={onReauth} />}
               {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
               {tab === 'treasury' && <TreasuryPage onReauth={onReauth} />}
               {tab === 'wallet' && <WalletPage onReauth={onReauth} />}
@@ -133,6 +137,13 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         >
           <span className="icon">📅</span>
           اقساط
+        </button>
+        <button
+          className={!showSettings && tab === 'dang' ? 'active' : ''}
+          onClick={() => handleTabChange('dang')}
+        >
+          <span className="icon">🍽️</span>
+          دنگ
         </button>
         <button
           className={!showSettings && tab === 'receivables' ? 'active' : ''}
