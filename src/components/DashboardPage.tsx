@@ -12,6 +12,7 @@ import { getSettings, isConfigured } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
 import type { CustomForm, DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
+import Select from './Select';
 import {
   DATE_RANGE_PRESETS,
   getDateRange,
@@ -417,17 +418,14 @@ export default function DashboardPage({
           </div>
 
           <div className="form-group transaction-category-filter">
-            <select
+            <Select
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              <option value="all">همه دسته‌بندی‌ها</option>
-              {categoryOptions.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+              onChange={setCategoryFilter}
+              options={[
+                { value: 'all', label: 'همه دسته‌بندی‌ها' },
+                ...categoryOptions.map((cat) => ({ value: cat, label: cat })),
+              ]}
+            />
           </div>
         </div>
 

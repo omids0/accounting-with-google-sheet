@@ -24,6 +24,7 @@ import {
   formatSpreadsheetTitle,
   getSpreadsheetLabel,
 } from '../services/spreadsheetCatalog';
+import Select from './Select';
 import {
   getUserEmail,
   getUserPicture,
@@ -310,17 +311,15 @@ export default function SettingsPage({
           {spreadsheets.length > 0 && (
             <div className="form-group">
               <label>شیت فعال</label>
-              <select
+              <Select
                 value={spreadsheetId}
-                onChange={(e) => handleSwitchSpreadsheet(e.target.value)}
+                onChange={handleSwitchSpreadsheet}
                 disabled={loading || !spreadsheetId}
-              >
-                {spreadsheets.map((sheet) => (
-                  <option key={sheet.id} value={sheet.id}>
-                    {getSpreadsheetLabel(sheet.name)}
-                  </option>
-                ))}
-              </select>
+                options={spreadsheets.map((sheet) => ({
+                  value: sheet.id,
+                  label: getSpreadsheetLabel(sheet.name),
+                }))}
+              />
               <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
                 لیست از Google Drive همگام می‌شود — روی دستگاه جدید همان شیت‌ها را می‌بینید.
               </p>
@@ -447,13 +446,14 @@ export default function SettingsPage({
         <h2 className="card-title">تنظیمات عمومی</h2>
         <div className="form-group">
           <label>واحد پول</label>
-          <select value={currency} onChange={(e) => handleCurrencyChange(e.target.value as CurrencyUnit)}>
-            {CURRENCY_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={currency}
+            onChange={(next) => handleCurrencyChange(next as CurrencyUnit)}
+            options={CURRENCY_OPTIONS.map((option) => ({
+              value: option.value,
+              label: option.label,
+            }))}
+          />
           <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
             واحد پول در تمام نمایش مبالغ (داشبورد، رکوردها و ...) اعمال می‌شود
           </p>
@@ -564,14 +564,11 @@ function FormFieldEditor({
           </div>
           <div className="form-group">
             <label>نوع</label>
-            <select
+            <Select
               value={field.type}
-              onChange={(e) => updateField(index, { type: e.target.value as FieldType })}
-            >
-              {FIELD_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+              onChange={(next) => updateField(index, { type: next as FieldType })}
+              options={FIELD_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+            />
           </div>
         </div>
       ))}

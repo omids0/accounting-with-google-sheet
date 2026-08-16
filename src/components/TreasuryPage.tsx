@@ -16,6 +16,7 @@ import {
 } from '../services/tgju';
 import AmountInput from './AmountInput';
 import JalaliDatePicker from './JalaliDatePicker';
+import Select from './Select';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 
@@ -302,22 +303,20 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
 
           <div className="form-group">
             <label>نوع دارایی <span className="required">*</span></label>
-            <select
+            <Select
               value={form.assetType}
-              onChange={(e) =>
+              onChange={(next) =>
                 setForm((f) => ({
                   ...f,
-                  assetType: e.target.value as VaultAssetType,
+                  assetType: next as VaultAssetType,
                   quantity: '',
                 }))
               }
-            >
-              {VAULT_ASSET_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              options={VAULT_ASSET_OPTIONS.map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+              }))}
+            />
             {selectedAsset?.hint && (
               <p className="treasury-hint">{selectedAsset.hint}</p>
             )}

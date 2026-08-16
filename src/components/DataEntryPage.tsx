@@ -5,6 +5,7 @@ import { appendRecord } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
 import JalaliDatePicker from './JalaliDatePicker';
 import AmountInput from './AmountInput';
+import Select from './Select';
 import { getTodayIso } from '../utils/jalaliDate';
 
 function getInitialValue(field: FieldConfig): string | number {
@@ -173,16 +174,14 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
               )}
 
               {field.type === 'select' && (
-                <select
+                <Select
                   value={String(values[field.id] ?? '')}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
-                >
-                  {(field.options ?? []).map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(next) => handleChange(field.id, next)}
+                  options={(field.options ?? []).map((opt) => ({
+                    value: opt,
+                    label: opt,
+                  }))}
+                />
               )}
             </div>
           ))}

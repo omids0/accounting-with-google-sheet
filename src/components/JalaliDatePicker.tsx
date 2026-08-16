@@ -6,6 +6,7 @@ import {
   jalaliToIso,
   JALALI_MONTHS,
 } from '../utils/jalaliDate';
+import Select from './Select';
 
 interface JalaliDatePickerProps {
   value: string;
@@ -32,39 +33,30 @@ export default function JalaliDatePicker({ value, onChange }: JalaliDatePickerPr
 
   return (
     <div className="jalali-date-picker">
-      <select
-        value={year}
-        onChange={(e) => update(Number(e.target.value), month, safeDay)}
+      <Select
+        compact
+        value={String(year)}
+        onChange={(next) => update(Number(next), month, safeDay)}
         aria-label="سال"
-      >
-        {years.map((y) => (
-          <option key={y} value={y}>
-            {fa(y)}
-          </option>
-        ))}
-      </select>
-      <select
-        value={month}
-        onChange={(e) => update(year, Number(e.target.value), safeDay)}
+        options={years.map((y) => ({ value: String(y), label: fa(y) }))}
+      />
+      <Select
+        compact
+        value={String(month)}
+        onChange={(next) => update(year, Number(next), safeDay)}
         aria-label="ماه"
-      >
-        {JALALI_MONTHS.map((name, i) => (
-          <option key={i + 1} value={i + 1}>
-            {name}
-          </option>
-        ))}
-      </select>
-      <select
-        value={safeDay}
-        onChange={(e) => update(year, month, Number(e.target.value))}
+        options={JALALI_MONTHS.map((name, i) => ({
+          value: String(i + 1),
+          label: name,
+        }))}
+      />
+      <Select
+        compact
+        value={String(safeDay)}
+        onChange={(next) => update(year, month, Number(next))}
         aria-label="روز"
-      >
-        {days.map((d) => (
-          <option key={d} value={d}>
-            {fa(d)}
-          </option>
-        ))}
-      </select>
+        options={days.map((d) => ({ value: String(d), label: fa(d) }))}
+      />
     </div>
   );
 }

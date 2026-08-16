@@ -10,6 +10,7 @@ import {
   formatSpreadsheetTitle,
   getSpreadsheetLabel,
 } from '../services/spreadsheetCatalog';
+import Select from './Select';
 
 interface SpreadsheetSetupPanelProps {
   mode: 'pick' | 'create';
@@ -89,17 +90,15 @@ export default function SpreadsheetSetupPanel({
           <>
             <div className="form-group">
               <label>شیت‌های موجود در Drive</label>
-              <select
+              <Select
                 value={selectedId}
-                onChange={(e) => setSelectedId(e.target.value)}
+                onChange={setSelectedId}
                 disabled={loading}
-              >
-                {options.map((sheet) => (
-                  <option key={sheet.id} value={sheet.id}>
-                    {getSpreadsheetLabel(sheet.name)}
-                  </option>
-                ))}
-              </select>
+                options={options.map((sheet) => ({
+                  value: sheet.id,
+                  label: getSpreadsheetLabel(sheet.name),
+                }))}
+              />
               <p
                 style={{
                   fontSize: '0.75rem',
