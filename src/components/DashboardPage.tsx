@@ -11,7 +11,7 @@ import {
 import { getSettings, isConfigured } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
 import { setOpeningBalance } from '../services/monthlyBalance';
-import type { CustomForm, DashboardData } from '../types';
+import type { CustomForm, DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
 import {
   DATE_RANGE_PRESETS,
@@ -112,12 +112,41 @@ function getCategoryOptions(
   return [...new Set([...configured, ...fromRecords])];
 }
 
+function BreakdownRow({
+  label,
+  value,
+  total,
+  onNavigate,
+}: {
+  label: string;
+  value: number;
+  total?: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <div className={`asset-row${total ? ' asset-row-total' : ''}`}>
+      {onNavigate ? (
+        <button type="button" className="asset-label asset-label-link" onClick={onNavigate}>
+          {label}
+        </button>
+      ) : (
+        <span className="asset-label">{label}</span>
+      )}
+      <span className="asset-value" dir="ltr">
+        {formatMoney(value)}
+      </span>
+    </div>
+  );
+}
+
 export default function DashboardPage({
   onReauth,
   onViewRecords,
+  onNavigate,
 }: {
   onReauth?: () => void;
   onViewRecords?: (formType?: 'income' | 'expense') => void;
+  onNavigate?: (target: DashboardNavTarget) => void;
 }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -259,48 +288,84 @@ export default function DashboardPage({
         </p>
       </div>
 
-      <div className="card dashboard-assets-card">
-        <h3 className="chart-title">دارایی‌ها</h3>
-        <div className="asset-breakdown">
-          <div className="asset-row">
-            <span className="asset-label">کیف پول</span>
-            <span className="asset-value" dir="ltr">
-              {formatMoney(financial?.walletTotal ?? 0)}
+      <div className="dashboard-flow-section">
+        <div className="stat-grid dashboard-stat-grid">
+          <div className="stat-card stat-income">
+            <span className="stat-label">درآمد دوره</span>
+            <span className="stat-value" dir="ltr">
+              {formatMoney(data?.totalIncome ?? 0)}
             </span>
           </div>
-          <div className="asset-row">
-            <span className="asset-label">صندوقچه</span>
-            <span className="asset-value" dir="ltr">
-              {formatMoney(financial?.treasuryTotal ?? 0)}
+          <div className="stat-card stat-expense">
+            <span className="stat-label">هزینه دوره</span>
+            <span className="stat-value" dir="ltr">
+              {formatMoney(data?.totalExpense ?? 0)}
             </span>
           </div>
-          <div className="asset-row">
-            <span className="asset-label">طلب‌ها</span>
-            <span className="asset-value" dir="ltr">
-              {formatMoney(financial?.receivablesTotal ?? 0)}
-            </span>
-          </div>
-          <div className="asset-row asset-row-total">
-            <span className="asset-label">مجموع دارایی‌ها</span>
-            <span className="asset-value" dir="ltr">
-              {formatMoney(financial?.totalAssets ?? 0)}
+          <div className="stat-card stat-flow">
+            <span className="stat-label">خالص جریان</span>
+            <span className="stat-value" dir="ltr">
+              {formatMoney(data?.balance ?? 0)}
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="stat-grid stat-grid-2">
-        <div className="stat-card stat-liability">
-          <span className="stat-label">بدهی‌های پیش‌رو دوره</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(financial?.installmentsTotal ?? 0)}
-          </span>
-        </div>
-        <div className="stat-card stat-balance">
+        <div className="stat-card stat-balance stat-card-wide">
           <span className="stat-label">مانده محاسبه‌شده</span>
           <span className="stat-value" dir="ltr">
             {formatMoney(data?.periodBalance ?? 0)}
           </span>
+        </div>
+      </div>
+
+      <div className="card dashboard-assets-card">
+        <h3 className="chart-title">دارایی‌ها</h3>
+        <div className="asset-breakdown">
+          <BreakdownRow
+            label="کیف پول"
+            value={financial?.walletTotal ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('wallet') : undefined}
+          />
+          <BreakdownRow
+            label="صندوقچه"
+            value={financial?.treasuryTotal ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('treasury') : undefined}
+          />
+          <BreakdownRow
+            label="طلب‌ها"
+            value={financial?.receivablesTotal ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('receivables') : undefined}
+          />
+          <BreakdownRow
+            label="مجموع دارایی‌ها"
+            value={financial?.totalAssets ?? 0}
+            total
+          />
+        </div>
+      </div>
+
+      <div className="card dashboard-assets-card dashboard-liabilities-card">
+        <h3 className="chart-title">بدهی‌ها</h3>
+        <div className="asset-breakdown">
+          <BreakdownRow
+            label="اقساط این دوره"
+            value={financial?.installmentsDue ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('installments') : undefined}
+          />
+          <BreakdownRow
+            label="دنگ‌ها"
+            value={financial?.dangsTotal ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('dang') : undefined}
+          />
+          <BreakdownRow
+            label="چک‌های این دوره"
+            value={financial?.checksDue ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('checks') : undefined}
+          />
+          <BreakdownRow
+            label="مجموع بدهی‌ها"
+            value={financial?.totalLiabilities ?? 0}
+            total
+          />
         </div>
       </div>
 
@@ -348,27 +413,6 @@ export default function DashboardPage({
           </p>
         </div>
       )}
-
-      <div className="stat-grid">
-        <div className="stat-card stat-income">
-          <span className="stat-label">درآمد دوره</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(data?.totalIncome ?? 0)}
-          </span>
-        </div>
-        <div className="stat-card stat-expense">
-          <span className="stat-label">هزینه دوره</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(data?.totalExpense ?? 0)}
-          </span>
-        </div>
-        <div className="stat-card stat-flow">
-          <span className="stat-label">خالص جریان</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(data?.balance ?? 0)}
-          </span>
-        </div>
-      </div>
 
       {(data?.expenseByCategory.length ?? 0) > 0 && (
         <CategoryBarChart

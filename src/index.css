@@ -177,6 +177,7 @@ button {
 .page-content > .card,
 .page-content > .alert,
 .page-content > .stat-grid,
+.page-content > .dashboard-flow-section,
 .page-content > .dashboard-hero-card,
 .page-content > .dashboard-filter-section,
 .page-content > .tabs,
@@ -1458,7 +1459,48 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
+  margin-bottom: 0;
+}
+
+.dashboard-flow-section {
   margin-bottom: 1rem;
+}
+
+.dashboard-stat-grid .stat-card {
+  min-height: 5rem;
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.dashboard-stat-grid .stat-label {
+  margin-bottom: 0;
+  font-size: 0.72rem;
+}
+
+.dashboard-stat-grid .stat-value {
+  font-size: 0.95rem;
+}
+
+.stat-card-wide {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.9rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: right;
+}
+
+.stat-card-wide .stat-label {
+  margin-bottom: 0;
+  font-size: 0.78rem;
+}
+
+.stat-card-wide .stat-value {
+  font-size: 1rem;
 }
 
 .stat-card {
@@ -1618,6 +1660,32 @@ button {
 
 .asset-label {
   color: var(--color-text-muted);
+}
+
+.asset-label-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-align: right;
+}
+
+.asset-label-link:hover {
+  color: var(--color-text);
+}
+
+.asset-label-link:active {
+  opacity: 0.75;
+}
+
+.dashboard-liabilities-card .asset-value {
+  color: #b91c1c;
+}
+
+.dashboard-liabilities-card .asset-row-total .asset-value {
+  color: #991b1b;
 }
 
 .asset-value {

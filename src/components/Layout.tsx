@@ -108,7 +108,11 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           ) : (
             <>
               {tab === 'dashboard' && (
-                <DashboardPage onReauth={onReauth} onViewRecords={openRecords} />
+                <DashboardPage
+                  onReauth={onReauth}
+                  onViewRecords={openRecords}
+                  onNavigate={handleTabChange}
+                />
               )}
               {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
               {tab === 'records' && (

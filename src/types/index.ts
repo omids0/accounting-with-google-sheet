@@ -66,9 +66,20 @@ export interface FinancialSummary {
   treasuryTotal: number;
   receivablesTotal: number;
   totalAssets: number;
-  installmentsTotal: number;
+  installmentsDue: number;
+  dangsTotal: number;
+  checksDue: number;
+  totalLiabilities: number;
   netAvailable: number;
 }
+
+export type DashboardNavTarget =
+  | 'wallet'
+  | 'treasury'
+  | 'receivables'
+  | 'installments'
+  | 'dang'
+  | 'checks';
 
 export interface DashboardData {
   totalIncome: number;
