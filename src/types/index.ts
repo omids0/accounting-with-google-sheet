@@ -116,6 +116,18 @@ export interface Dang {
   paidAt: string;
 }
 
+export interface Check {
+  id: string;
+  createdAt: string;
+  checkNumber: string;
+  counterparty: string;
+  amount: number;
+  creationDate: string;
+  dueDate: string;
+  paid: boolean;
+  paidAt: string;
+}
+
 export interface ReceivablePayment {
   id: string;
   amount: number;

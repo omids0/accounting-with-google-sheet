@@ -255,7 +255,7 @@ export default function DashboardPage({
           {formatMoney(financial?.netAvailable ?? 0)}
         </div>
         <p className="dashboard-hero-hint">
-          مجموع دارایی‌ها منهای اقساط پیش‌رو این دوره
+          مجموع دارایی‌ها منهای بدهی‌های پیش‌رو این دوره
         </p>
       </div>
 
@@ -291,7 +291,7 @@ export default function DashboardPage({
 
       <div className="stat-grid stat-grid-2">
         <div className="stat-card stat-liability">
-          <span className="stat-label">اقساط پیش‌رو دوره</span>
+          <span className="stat-label">بدهی‌های پیش‌رو دوره</span>
           <span className="stat-value" dir="ltr">
             {formatMoney(financial?.installmentsTotal ?? 0)}
           </span>
