@@ -2,14 +2,17 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const basePath = process.env.VITE_BASE_PATH ?? '/';
+
 export default defineConfig({
-  base: process.env.VITE_BASE_PATH ?? '/',
+  base: basePath,
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
+        id: basePath,
         name: 'حسابداری شخصی',
         short_name: 'حسابداری',
         description: 'نرم‌افزار حسابداری شخصی با ذخیره‌سازی در گوگل شیت',
@@ -19,7 +22,8 @@ export default defineConfig({
         orientation: 'portrait',
         lang: 'fa',
         dir: 'rtl',
-        start_url: '/',
+        start_url: basePath,
+        scope: basePath,
         icons: [
           {
             src: 'pwa-192x192.png',
