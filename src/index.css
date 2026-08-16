@@ -20,6 +20,28 @@
   --duration-fast: 0.15s;
   --duration-normal: 0.25s;
   --duration-slow: 0.4s;
+  --duration-page: 0.75s;
+  --ease-page: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
@@ -128,6 +150,131 @@ button {
   font-size: 1rem;
 }
 
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+/* ── Custom select (replaces native dropdown for themed hover) ── */
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  text-align: right;
+  font: inherit;
+  line-height: 1.4;
+  transition: border-color var(--duration-normal),
+    box-shadow var(--duration-normal),
+    background-color var(--duration-normal);
+}
+
+.custom-select-trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  background-color: var(--color-surface);
+}
+
+.custom-select--open .custom-select-trigger {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  background-color: var(--color-surface);
+}
+
+.custom-select-value {
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-select-chevron {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f8a85' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.custom-select--open .custom-select-chevron {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  animation: slideDown var(--duration-normal) var(--ease-out);
+}
+
+.custom-select-option {
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  transition: background-color var(--duration-fast), color var(--duration-fast);
+}
+
+.custom-select-option:hover {
+  background: rgba(15, 118, 110, 0.1);
+}
+
+.custom-select-option.is-selected {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.custom-select-option.is-selected:hover {
+  background: var(--color-primary-dark);
+}
+
+.custom-select-option.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.custom-select-option.is-disabled:hover {
+  background: transparent;
+}
+
+.custom-select--compact .custom-select-trigger {
+  padding: 0.7rem 0.5rem;
+  font-size: 0.9rem;
+  border-radius: var(--radius);
+  background-color: var(--color-surface);
+}
+
+.custom-select--disabled .custom-select-trigger {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 a {
   color: var(--color-primary);
 }
@@ -171,31 +318,38 @@ button {
 
 /* ── Page transitions ── */
 .page-content {
-  animation: fadeInUp var(--duration-slow) var(--ease-out);
+  animation: pageFade var(--duration-page) var(--ease-page) both;
 }
 
-.page-content > .card,
-.page-content > .alert,
-.page-content > .stat-grid,
-.page-content > .dashboard-hero-card,
-.page-content > .dashboard-filter-section,
-.page-content > .tabs,
-.page-content > .form-tabs,
-.page-content > .empty-state {
-  animation: fadeInUp var(--duration-slow) var(--ease-out) both;
+.page-content > .empty-state,
+.page-content > .login-page,
+.page-content > * > .card,
+.page-content > * > .alert,
+.page-content > * > .stat-grid,
+.page-content > * > .dashboard-flow-section,
+.page-content > * > .dashboard-hero-card,
+.page-content > * > .dashboard-filter-section,
+.page-content > * > .tabs,
+.page-content > * > .form-tabs,
+.page-content > * > .empty-state,
+.page-content > * > .card-header-row,
+.page-content > * > form {
+  animation: pageEnter var(--duration-page) var(--ease-page) both;
 }
 
-.page-content > *:nth-child(1) { animation-delay: 0.03s; }
-.page-content > *:nth-child(2) { animation-delay: 0.07s; }
-.page-content > *:nth-child(3) { animation-delay: 0.11s; }
-.page-content > *:nth-child(4) { animation-delay: 0.15s; }
-.page-content > *:nth-child(5) { animation-delay: 0.19s; }
-.page-content > *:nth-child(6) { animation-delay: 0.23s; }
-.page-content > *:nth-child(7) { animation-delay: 0.27s; }
-.page-content > *:nth-child(8) { animation-delay: 0.31s; }
+.page-content > * > *:nth-child(1) { animation-delay: 0.08s; }
+.page-content > * > *:nth-child(2) { animation-delay: 0.16s; }
+.page-content > * > *:nth-child(3) { animation-delay: 0.24s; }
+.page-content > * > *:nth-child(4) { animation-delay: 0.32s; }
+.page-content > * > *:nth-child(5) { animation-delay: 0.4s; }
+.page-content > * > *:nth-child(6) { animation-delay: 0.48s; }
+.page-content > * > *:nth-child(7) { animation-delay: 0.56s; }
+.page-content > * > *:nth-child(8) { animation-delay: 0.64s; }
+.page-content > * > *:nth-child(9) { animation-delay: 0.72s; }
+.page-content > * > *:nth-child(10) { animation-delay: 0.8s; }
 
 .animate-in {
-  animation: scaleIn 0.5s var(--ease-out);
+  animation: scaleIn 0.65s var(--ease-page);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -527,13 +681,12 @@ button {
 }
 
 .form-group input,
-.form-group select,
 .form-group textarea {
   width: 100%;
   padding: 0.7rem 0.85rem;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-bg);
+  background-color: var(--color-bg);
   color: var(--color-text);
   transition: border-color var(--duration-normal),
     box-shadow var(--duration-normal),
@@ -541,12 +694,11 @@ button {
 }
 
 .form-group input:focus,
-.form-group select:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
-  background: var(--color-surface);
+  background-color: var(--color-surface);
 }
 
 .form-group textarea {
@@ -558,21 +710,6 @@ button {
   display: grid;
   grid-template-columns: 1fr 1.4fr 0.8fr;
   gap: 0.5rem;
-}
-
-.jalali-date-picker select {
-  width: 100%;
-  padding: 0.7rem 0.5rem;
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: 0.9rem;
-}
-
-.jalali-date-picker select:focus {
-  outline: none;
-  border-color: var(--color-primary);
 }
 
 .amount-words {
@@ -1000,26 +1137,51 @@ button {
 }
 
 .wallet-item-card {
-  padding: 1rem 1.25rem;
+  padding: 0;
 }
 
-.wallet-item-header {
+.wallet-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wallet-item-title-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: baseline;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
 }
 
 .wallet-item-title {
   font-weight: 600;
   font-size: 0.95rem;
+  min-width: 0;
+}
+
+.wallet-item-amount {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-primary-dark);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
 }
 
 .wallet-item-note {
   font-size: 0.75rem;
   color: var(--color-text-muted);
   margin-top: 0.25rem;
+  line-height: 1.5;
+}
+
+.wallet-item-edit {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.wallet-item-edit .form-group {
+  flex: 1;
 }
 
 .amount-input-compact {
@@ -1458,7 +1620,48 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
+  margin-bottom: 0;
+}
+
+.dashboard-flow-section {
   margin-bottom: 1rem;
+}
+
+.dashboard-stat-grid .stat-card {
+  min-height: 5rem;
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.dashboard-stat-grid .stat-label {
+  margin-bottom: 0;
+  font-size: 0.72rem;
+}
+
+.dashboard-stat-grid .stat-value {
+  font-size: 0.95rem;
+}
+
+.stat-card-wide {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.9rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: right;
+}
+
+.stat-card-wide .stat-label {
+  margin-bottom: 0;
+  font-size: 0.78rem;
+}
+
+.stat-card-wide .stat-value {
+  font-size: 1rem;
 }
 
 .stat-card {
@@ -1620,6 +1823,32 @@ button {
   color: var(--color-text-muted);
 }
 
+.asset-label-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-align: right;
+}
+
+.asset-label-link:hover {
+  color: var(--color-text);
+}
+
+.asset-label-link:active {
+  opacity: 0.75;
+}
+
+.dashboard-liabilities-card .asset-value {
+  color: #b91c1c;
+}
+
+.dashboard-liabilities-card .asset-row-total .asset-value {
+  color: #991b1b;
+}
+
 .asset-value {
   font-weight: 600;
   color: var(--color-primary-dark);
@@ -1642,8 +1871,31 @@ button {
   color: var(--color-primary-dark);
 }
 
+.stat-flow-positive .stat-value {
+  color: var(--color-success);
+}
+
+.stat-flow-negative .stat-value {
+  color: var(--color-danger);
+}
+
 .dashboard-opening-card {
   margin-bottom: 1rem;
+  padding: 0;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%);
+  border-color: #5eead4;
+}
+
+.dashboard-opening-card .installment-header:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.dashboard-opening-card .installment-payments {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.dashboard-opening-body {
+  padding-top: 0.75rem;
 }
 
 .dashboard-opening-hint {
@@ -1676,6 +1928,18 @@ button {
 .dashboard-opening-form .btn {
   margin-top: 0.1rem;
   flex-shrink: 0;
+}
+
+.wallet-opening-more-btn {
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+.opening-balance-page-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin: 0 0 0.85rem;
+  line-height: 1.5;
 }
 
 .dashboard-reconcile-alert {

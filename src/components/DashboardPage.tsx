@@ -10,9 +10,9 @@ import {
 } from 'recharts';
 import { getSettings, isConfigured } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
-import { setOpeningBalance } from '../services/monthlyBalance';
-import type { CustomForm, DashboardData } from '../types';
+import type { CustomForm, DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
+import { FormSelect } from './form';
 import {
   DATE_RANGE_PRESETS,
   getDateRange,
@@ -22,7 +22,6 @@ import {
 } from '../utils/dateRange';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
-import AmountInput from './AmountInput';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
@@ -112,12 +111,41 @@ function getCategoryOptions(
   return [...new Set([...configured, ...fromRecords])];
 }
 
+function BreakdownRow({
+  label,
+  value,
+  total,
+  onNavigate,
+}: {
+  label: string;
+  value: number;
+  total?: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <div className={`asset-row${total ? ' asset-row-total' : ''}`}>
+      {onNavigate ? (
+        <button type="button" className="asset-label asset-label-link" onClick={onNavigate}>
+          {label}
+        </button>
+      ) : (
+        <span className="asset-label">{label}</span>
+      )}
+      <span className="asset-value" dir="ltr">
+        {formatMoney(value)}
+      </span>
+    </div>
+  );
+}
+
 export default function DashboardPage({
   onReauth,
   onViewRecords,
+  onNavigate,
 }: {
   onReauth?: () => void;
   onViewRecords?: (formType?: 'income' | 'expense') => void;
+  onNavigate?: (target: DashboardNavTarget) => void;
 }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -125,8 +153,6 @@ export default function DashboardPage({
   const [datePreset, setDatePreset] = useState<DateRangePreset>('month-to-date');
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [openingInput, setOpeningInput] = useState<number | ''>('');
-  const [savingOpening, setSavingOpening] = useState(false);
   const dateRange = getDateRange(datePreset);
 
   const load = useCallback(async () => {
@@ -144,7 +170,6 @@ export default function DashboardPage({
       const installmentRange = getInstallmentDueRange(datePreset);
       const dash = await loadDashboardData(settings, range, installmentRange);
       setData(dash);
-      setOpeningInput(dash.openingBalance || '');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
       if (msg.includes('منقضی') || msg.includes('401')) {
@@ -163,24 +188,6 @@ export default function DashboardPage({
 
   const handlePresetChange = (preset: DateRangePreset) => {
     setDatePreset(preset);
-  };
-
-  const handleSaveOpeningBalance = async () => {
-    if (!data) return;
-    const settings = getSettings();
-    if (!settings) return;
-
-    setSavingOpening(true);
-    setError('');
-    try {
-      const amount = openingInput === '' ? 0 : Number(openingInput);
-      await setOpeningBalance(settings.spreadsheetId, data.monthKey, amount);
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول');
-    } finally {
-      setSavingOpening(false);
-    }
   };
 
   const settings = getSettings();
@@ -209,8 +216,6 @@ export default function DashboardPage({
   };
 
   const financial = data?.financial;
-  const hasReconciliationGap =
-    data != null && Math.abs(data.reconciliationDiff) > 0;
 
   if (!isConfigured()) {
     return (
@@ -259,44 +264,36 @@ export default function DashboardPage({
         </p>
       </div>
 
-      <div className="card dashboard-assets-card">
-        <h3 className="chart-title">دارایی‌ها</h3>
-        <div className="asset-breakdown">
-          <div className="asset-row">
-            <span className="asset-label">کیف پول</span>
-            <span className="asset-value" dir="ltr">
-              {formatMoney(financial?.walletTotal ?? 0)}
+      <div className="dashboard-flow-section">
+        <div className="stat-grid dashboard-stat-grid">
+          <div className="stat-card stat-income">
+            <span className="stat-label">درآمد دوره</span>
+            <span className="stat-value" dir="ltr">
+              {formatMoney(data?.totalIncome ?? 0)}
             </span>
           </div>
-          <div className="asset-row">
-            <span className="asset-label">صندوقچه</span>
-            <span className="asset-value" dir="ltr">
-              {formatMoney(financial?.treasuryTotal ?? 0)}
+          <div className="stat-card stat-expense">
+            <span className="stat-label">هزینه دوره</span>
+            <span className="stat-value" dir="ltr">
+              {formatMoney(data?.totalExpense ?? 0)}
             </span>
           </div>
-          <div className="asset-row">
-            <span className="asset-label">طلب‌ها</span>
-            <span className="asset-value" dir="ltr">
-              {formatMoney(financial?.receivablesTotal ?? 0)}
-            </span>
-          </div>
-          <div className="asset-row asset-row-total">
-            <span className="asset-label">مجموع دارایی‌ها</span>
-            <span className="asset-value" dir="ltr">
-              {formatMoney(financial?.totalAssets ?? 0)}
+          <div
+            className={`stat-card stat-flow${
+              (data?.balance ?? 0) < 0
+                ? ' stat-flow-negative'
+                : (data?.balance ?? 0) > 0
+                  ? ' stat-flow-positive'
+                  : ''
+            }`}
+          >
+            <span className="stat-label">خالص جریان</span>
+            <span className="stat-value" dir="ltr">
+              {formatMoney(data?.balance ?? 0)}
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="stat-grid stat-grid-2">
-        <div className="stat-card stat-liability">
-          <span className="stat-label">بدهی‌های پیش‌رو دوره</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(financial?.installmentsTotal ?? 0)}
-          </span>
-        </div>
-        <div className="stat-card stat-balance">
+        <div className="stat-card stat-balance stat-card-wide">
           <span className="stat-label">مانده محاسبه‌شده</span>
           <span className="stat-value" dir="ltr">
             {formatMoney(data?.periodBalance ?? 0)}
@@ -304,69 +301,55 @@ export default function DashboardPage({
         </div>
       </div>
 
-      <div className="card dashboard-opening-card">
-        <h3 className="chart-title">موجودی اول دوره</h3>
-        <p className="dashboard-opening-hint">
-          موجودی کیف پول در ابتدای {data?.monthLabel ?? 'این دوره'} را وارد کنید.
-          با خالص جریان (درآمد − هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
-        </p>
-        <div className="dashboard-opening-form">
-          <div className="dashboard-opening-input-wrap">
-            <AmountInput value={openingInput} onChange={setOpeningInput} />
-          </div>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={handleSaveOpeningBalance}
-            disabled={savingOpening || loading}
-          >
-            {savingOpening ? '...' : 'ذخیره'}
-          </button>
+      <div className="card dashboard-assets-card">
+        <h3 className="chart-title">دارایی‌ها</h3>
+        <div className="asset-breakdown">
+          <BreakdownRow
+            label="کیف پول"
+            value={financial?.walletTotal ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('wallet') : undefined}
+          />
+          <BreakdownRow
+            label="صندوقچه"
+            value={financial?.treasuryTotal ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('treasury') : undefined}
+          />
+          <BreakdownRow
+            label="طلب‌ها"
+            value={financial?.receivablesTotal ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('receivables') : undefined}
+          />
+          <BreakdownRow
+            label="مجموع دارایی‌ها"
+            value={financial?.totalAssets ?? 0}
+            total
+          />
         </div>
       </div>
 
-      {hasReconciliationGap && (
-        <div
-          className={`alert ${
-            Math.abs(data!.reconciliationDiff) > 10000
-              ? 'alert-warning'
-              : 'alert-info'
-          } dashboard-reconcile-alert`}
-        >
-          <strong>تطبیق کیف پول</strong>
-          <p>
-            کیف پول فعلی ({formatMoney(financial?.walletTotal ?? 0)}) با مانده
-            محاسبه‌شده ({formatMoney(data!.periodBalance)}){' '}
-            {data!.reconciliationDiff > 0 ? 'بیشتر' : 'کمتر'} است.
-          </p>
-          <p dir="ltr" className="reconcile-diff">
-            اختلاف: {formatMoney(Math.abs(data!.reconciliationDiff))}
-            {data!.reconciliationDiff > 0 ? ' +' : ' −'}
-          </p>
-          <p className="dashboard-reconcile-formula">
-            موجودی اول + درآمد − هزینه = مانده محاسبه‌شده
-          </p>
-        </div>
-      )}
-
-      <div className="stat-grid">
-        <div className="stat-card stat-income">
-          <span className="stat-label">درآمد دوره</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(data?.totalIncome ?? 0)}
-          </span>
-        </div>
-        <div className="stat-card stat-expense">
-          <span className="stat-label">هزینه دوره</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(data?.totalExpense ?? 0)}
-          </span>
-        </div>
-        <div className="stat-card stat-flow">
-          <span className="stat-label">خالص جریان</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(data?.balance ?? 0)}
-          </span>
+      <div className="card dashboard-assets-card dashboard-liabilities-card">
+        <h3 className="chart-title">بدهی‌ها</h3>
+        <div className="asset-breakdown">
+          <BreakdownRow
+            label="اقساط این دوره"
+            value={financial?.installmentsDue ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('installments') : undefined}
+          />
+          <BreakdownRow
+            label="دنگ‌ها"
+            value={financial?.dangsTotal ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('dang') : undefined}
+          />
+          <BreakdownRow
+            label="چک‌های این دوره"
+            value={financial?.checksDue ?? 0}
+            onNavigate={onNavigate ? () => onNavigate('checks') : undefined}
+          />
+          <BreakdownRow
+            label="مجموع بدهی‌ها"
+            value={financial?.totalLiabilities ?? 0}
+            total
+          />
         </div>
       </div>
 
@@ -434,19 +417,16 @@ export default function DashboardPage({
             </button>
           </div>
 
-          <div className="form-group transaction-category-filter">
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              <option value="all">همه دسته‌بندی‌ها</option>
-              {categoryOptions.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
+          <FormSelect
+            className="transaction-category-filter"
+            aria-label="دسته‌بندی"
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            options={[
+              { value: 'all', label: 'همه دسته‌بندی‌ها' },
+              ...categoryOptions.map((cat) => ({ value: cat, label: cat })),
+            ]}
+          />
         </div>
 
         {!data?.recentRecords.length ? (

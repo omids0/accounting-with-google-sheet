@@ -5,6 +5,7 @@ import {
   getJalaliMonthKey,
   isDateInRange,
 } from '../utils/dateRange';
+import { fetchDangs, unpaidDangTotal } from './dang';
 import { fetchInstallmentPlans, totalUnpaidInstallments } from './installments';
 import { fetchChecks, totalUnpaidChecksInRange } from './checks';
 import { fetchOpeningBalance } from './monthlyBalance';
@@ -61,6 +62,7 @@ export async function loadDashboardData(
     receivables,
     installmentPlans,
     checks,
+    dangs,
     openingBalanceRecord,
     tgjuPrices,
   ] = await Promise.all([
@@ -75,6 +77,7 @@ export async function loadDashboardData(
     fetchReceivables(settings.spreadsheetId).catch(() => []),
     fetchInstallmentPlans(settings.spreadsheetId).catch(() => []),
     fetchChecks(settings.spreadsheetId).catch(() => []),
+    fetchDangs(settings.spreadsheetId).catch(() => []),
     fetchOpeningBalance(settings.spreadsheetId, monthKey).catch(() => ({
       monthKey,
       amount: 0,
@@ -117,10 +120,11 @@ export async function loadDashboardData(
     0
   );
   const totalAssets = walletTotal + treasuryTotal + receivablesTotal;
-  const installmentsTotal =
-    totalUnpaidInstallments(installmentPlans, installmentRange) +
-    totalUnpaidChecksInRange(checks, installmentRange);
-  const netAvailable = totalAssets - installmentsTotal;
+  const installmentsDue = totalUnpaidInstallments(installmentPlans, installmentRange);
+  const checksDue = totalUnpaidChecksInRange(checks, installmentRange);
+  const dangsTotal = unpaidDangTotal(dangs);
+  const totalLiabilities = installmentsDue + dangsTotal + checksDue;
+  const netAvailable = totalAssets - totalLiabilities;
 
   const openingBalance = openingBalanceRecord.amount;
   const periodBalance = openingBalance + totalIncome - totalExpense;
@@ -167,7 +171,10 @@ export async function loadDashboardData(
       treasuryTotal,
       receivablesTotal,
       totalAssets,
-      installmentsTotal,
+      installmentsDue,
+      dangsTotal,
+      checksDue,
+      totalLiabilities,
       netAvailable,
     },
     incomeByCategory: sumByCategory(filteredIncome),

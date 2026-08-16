@@ -10,6 +10,7 @@ import {
   formatSpreadsheetTitle,
   getSpreadsheetLabel,
 } from '../services/spreadsheetCatalog';
+import { FormSelect } from './form';
 
 interface SpreadsheetSetupPanelProps {
   mode: 'pick' | 'create';
@@ -87,30 +88,28 @@ export default function SpreadsheetSetupPanel({
 
         {mode === 'pick' ? (
           <>
-            <div className="form-group">
-              <label>شیت‌های موجود در Drive</label>
-              <select
-                value={selectedId}
-                onChange={(e) => setSelectedId(e.target.value)}
-                disabled={loading}
-              >
-                {options.map((sheet) => (
-                  <option key={sheet.id} value={sheet.id}>
-                    {getSpreadsheetLabel(sheet.name)}
-                  </option>
-                ))}
-              </select>
-              <p
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-muted)',
-                  marginTop: '0.5rem',
-                }}
-              >
-                فقط فایل‌های با فرمت «{SPREADSHEET_TITLE_PREFIX}…» یا «حسابداری …»
-                نمایش داده می‌شوند.
-              </p>
-            </div>
+            <FormSelect
+              label="شیت‌های موجود در Drive"
+              value={selectedId}
+              onChange={setSelectedId}
+              disabled={loading}
+              options={options.map((sheet) => ({
+                value: sheet.id,
+                label: getSpreadsheetLabel(sheet.name),
+              }))}
+              hint={
+                <p
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'var(--color-text-muted)',
+                    marginTop: '0.5rem',
+                  }}
+                >
+                  فقط فایل‌های با فرمت «{SPREADSHEET_TITLE_PREFIX}…» یا «حسابداری …»
+                  نمایش داده می‌شوند.
+                </p>
+              }
+            />
 
             <button
               className="btn btn-primary"

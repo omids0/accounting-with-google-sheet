@@ -1,18 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { CustomForm, FieldConfig } from '../types';
+import type { CustomForm } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { appendRecord } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
-import JalaliDatePicker from './JalaliDatePicker';
-import AmountInput from './AmountInput';
-import { getTodayIso } from '../utils/jalaliDate';
-
-function getInitialValue(field: FieldConfig): string | number {
-  if (field.type === 'date') return getTodayIso();
-  if (field.type === 'number') return '';
-  if (field.type === 'select' && field.options?.length) return field.options[0];
-  return '';
-}
+import { FieldInput, getInitialFieldValue } from './form';
 
 export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
   const [forms, setForms] = useState<CustomForm[]>([]);
@@ -36,7 +27,7 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
   const initValues = (form: CustomForm) => {
     const initial: Record<string, string | number> = {};
     form.fields.forEach((f) => {
-      initial[f.id] = getInitialValue(f);
+      initial[f.id] = getInitialFieldValue(f);
     });
     setValues(initial);
   };
@@ -129,62 +120,12 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
       {activeForm && (
         <form onSubmit={handleSubmit}>
           {activeForm.fields.map((field) => (
-            <div key={field.id} className="form-group">
-              <label>
-                {field.label}
-                {field.required && <span className="required"> *</span>}
-              </label>
-
-              {field.type === 'text' && (
-                <input
-                  type="text"
-                  value={String(values[field.id] ?? '')}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
-                />
-              )}
-
-              {field.type === 'number' && field.id === 'amount' && (
-                <AmountInput
-                  value={values[field.id] ?? ''}
-                  onChange={(val) => handleChange(field.id, val)}
-                />
-              )}
-
-              {field.type === 'number' && field.id !== 'amount' && (
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  value={values[field.id] === '' ? '' : values[field.id]}
-                  onChange={(e) =>
-                    handleChange(
-                      field.id,
-                      e.target.value === '' ? '' : Number(e.target.value)
-                    )
-                  }
-                  dir="ltr"
-                />
-              )}
-
-              {field.type === 'date' && (
-                <JalaliDatePicker
-                  value={String(values[field.id] ?? '')}
-                  onChange={(iso) => handleChange(field.id, iso)}
-                />
-              )}
-
-              {field.type === 'select' && (
-                <select
-                  value={String(values[field.id] ?? '')}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
-                >
-                  {(field.options ?? []).map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
+            <FieldInput
+              key={field.id}
+              field={field}
+              value={values[field.id] ?? ''}
+              onChange={(next) => handleChange(field.id, next)}
+            />
           ))}
 
           <button
