@@ -697,6 +697,42 @@ button {
   color: var(--color-primary-dark);
 }
 
+.installment-month-summary {
+  margin-top: 0.75rem;
+}
+
+.installment-month-summary-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--color-bg);
+  border-radius: 8px;
+}
+
+.installment-month-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+.installment-month-summary-label {
+  color: var(--color-text-muted);
+}
+
+.installment-month-summary-value {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-primary-dark);
+  white-space: nowrap;
+}
+
+.installment-month-summary-value.unpaid {
+  color: var(--color-danger, #c0392b);
+}
+
 .dang-card {
   display: flex;
   align-items: flex-start;

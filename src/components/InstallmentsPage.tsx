@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { InstallmentPlan } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
@@ -7,10 +7,17 @@ import {
   ensureInstallmentsSheet,
   fetchInstallmentPlans,
   toggleInstallmentPayment,
+  totalInstallmentsInRange,
+  totalUnpaidInstallments,
 } from '../services/installments';
 import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
-import { formatIsoDatePersian } from '../utils/jalaliDate';
+import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
+import {
+  formatJalaliMonthLabel,
+  getInstallmentDueRange,
+  getJalaliMonthKey,
+} from '../utils/dateRange';
 
 type PlanWithRow = InstallmentPlan & { rowNumber: number };
 
@@ -161,6 +168,19 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
 
   const paidCount = (plan: InstallmentPlan) =>
     plan.payments.filter((p) => p.paid).length;
+
+  const monthRange = useMemo(() => getInstallmentDueRange('month-to-date'), []);
+  const monthLabel = useMemo(
+    () => formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso())),
+    []
+  );
+  const monthTotals = useMemo(
+    () => ({
+      total: totalInstallmentsInRange(plans, monthRange),
+      unpaid: totalUnpaidInstallments(plans, monthRange),
+    }),
+    [plans, monthRange]
+  );
 
   return (
     <div>
@@ -337,6 +357,28 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
             </div>
           );
         })
+      )}
+
+      {plans.length > 0 && (
+        <div className="card installment-month-summary">
+          <h3 className="card-title" style={{ fontSize: '0.9rem' }}>
+            خلاصه {monthLabel}
+          </h3>
+          <div className="installment-month-summary-rows">
+            <div className="installment-month-summary-row">
+              <span className="installment-month-summary-label">مجموع اقساط این ماه</span>
+              <span className="installment-month-summary-value" dir="ltr">
+                {formatMoney(monthTotals.total)}
+              </span>
+            </div>
+            <div className="installment-month-summary-row">
+              <span className="installment-month-summary-label">پرداخت‌نشده این ماه</span>
+              <span className="installment-month-summary-value unpaid" dir="ltr">
+                {formatMoney(monthTotals.unpaid)}
+              </span>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

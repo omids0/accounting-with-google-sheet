@@ -170,6 +170,13 @@ export function unpaidInstallmentCountInRange(
   ).length;
 }
 
+export function installmentCountInRange(
+  plan: InstallmentPlan,
+  range: DateRange
+): number {
+  return plan.payments.filter((p) => isDateInRange(p.dueDate, range)).length;
+}
+
 export function unpaidInstallmentAmount(plan: InstallmentPlan): number {
   return unpaidInstallmentCount(plan) * plan.amount;
 }
@@ -181,12 +188,29 @@ export function unpaidInstallmentAmountInRange(
   return unpaidInstallmentCountInRange(plan, range) * plan.amount;
 }
 
+export function installmentAmountInRange(
+  plan: InstallmentPlan,
+  range: DateRange
+): number {
+  return installmentCountInRange(plan, range) * plan.amount;
+}
+
 export function totalUnpaidInstallments(
   plans: InstallmentPlan[],
   range: DateRange
 ): number {
   return plans.reduce(
     (sum, plan) => sum + unpaidInstallmentAmountInRange(plan, range),
+    0
+  );
+}
+
+export function totalInstallmentsInRange(
+  plans: InstallmentPlan[],
+  range: DateRange
+): number {
+  return plans.reduce(
+    (sum, plan) => sum + installmentAmountInRange(plan, range),
     0
   );
 }
