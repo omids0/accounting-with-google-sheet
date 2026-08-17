@@ -2241,16 +2241,13 @@ button {
   padding: 0.75rem 1rem;
 }
 
-.transaction-filters {
-  margin-bottom: 0.75rem;
-}
-
-.transaction-type-filter {
-  margin-bottom: 0.6rem;
-}
-
-.transaction-category-filter {
+.card-header-row .chart-title {
   margin-bottom: 0;
+}
+
+.card-header-row + .dashboard-transaction-segment {
+  margin-top: 0.85rem;
+  margin-bottom: 0.75rem;
 }
 
 /* ── Records page ── */

@@ -184,6 +184,18 @@ export default function DashboardPage({
   }, [data?.recentRecords, typeFilter]);
 
   const financial = data?.financial;
+  const settings = getSettings();
+  const incomeForm = settings?.forms.find((f) => f.type === 'income');
+  const expenseForm = settings?.forms.find((f) => f.type === 'expense');
+  const transactionTypeOptions: {
+    id: TransactionTypeFilter;
+    label: string;
+    tone?: 'income' | 'expense';
+  }[] = [
+    { id: 'all', label: 'همه' },
+    { id: 'income', label: incomeForm?.name ?? 'درآمد', tone: 'income' },
+    { id: 'expense', label: expenseForm?.name ?? 'هزینه', tone: 'expense' },
+  ];
 
   if (!isConfigured()) {
     return (
@@ -363,30 +375,28 @@ export default function DashboardPage({
           </div>
         </div>
 
-        <div className="transaction-filters">
-          <div className="form-tabs transaction-type-filter">
+        <div
+          className="records-type-segment dashboard-transaction-segment"
+          role="tablist"
+          aria-label="نوع تراکنش"
+        >
+          {transactionTypeOptions.map((option) => (
             <button
+              key={option.id}
               type="button"
-              className={typeFilter === 'all' ? 'active' : ''}
-              onClick={() => setTypeFilter('all')}
+              role="tab"
+              aria-selected={typeFilter === option.id}
+              className={[
+                typeFilter === option.id ? 'active' : '',
+                typeFilter === option.id && option.tone ? option.tone : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              onClick={() => setTypeFilter(option.id)}
             >
-              همه
+              {option.label}
             </button>
-            <button
-              type="button"
-              className={typeFilter === 'income' ? 'active tab-income' : ''}
-              onClick={() => setTypeFilter('income')}
-            >
-              درآمد
-            </button>
-            <button
-              type="button"
-              className={typeFilter === 'expense' ? 'active tab-expense' : ''}
-              onClick={() => setTypeFilter('expense')}
-            >
-              هزینه
-            </button>
-          </div>
+          ))}
         </div>
 
         {!data?.recentRecords.length ? (

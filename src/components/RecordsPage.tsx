@@ -25,6 +25,53 @@ interface RecordItem {
   values: Record<string, string>;
 }
 
+interface StoredRecord extends RecordItem {
+  formId: string;
+  formType: CustomForm['type'];
+  formName: string;
+}
+
+function enrichRecord(record: RecordItem, form: CustomForm): StoredRecord {
+  return {
+    ...record,
+    formId: form.id,
+    formType: form.type,
+    formName: form.name,
+  };
+}
+
+function getFormField(
+  form: CustomForm,
+  kind: 'date' | 'amount' | 'title' | 'category'
+) {
+  switch (kind) {
+    case 'date':
+      return form.fields.find((f) => f.type === 'date');
+    case 'amount':
+      return form.fields.find((f) => f.id === 'amount');
+    case 'category':
+      return form.fields.find((f) => f.id === 'category');
+    case 'title':
+      return form.fields.find(
+        (f) => f.id === 'title' || f.label.includes('عنوان')
+      );
+  }
+}
+
+function sortRecords(records: StoredRecord[], forms: CustomForm[]): StoredRecord[] {
+  const dateFieldFor = (formId: string) =>
+    forms.find((f) => f.id === formId)?.fields.find((field) => field.type === 'date')?.id ??
+    'date';
+
+  return [...records].sort((a, b) => {
+    const aDate = a.values[dateFieldFor(a.formId)] ?? '';
+    const bDate = b.values[dateFieldFor(b.formId)] ?? '';
+    const byDate = bDate.localeCompare(aDate);
+    if (byDate !== 0) return byDate;
+    return (b.createdAt || '').localeCompare(a.createdAt || '');
+  });
+}
+
 function getCategoryOptions(
   form: CustomForm | undefined,
   records: RecordItem[]
@@ -46,7 +93,7 @@ export default function RecordsPage({
 }) {
   const [forms, setForms] = useState<CustomForm[]>([]);
   const [activeFormId, setActiveFormId] = useState('');
-  const [records, setRecords] = useState<RecordItem[]>([]);
+  const [records, setRecords] = useState<StoredRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date');
   const [customRange, setCustomRange] = useState(
@@ -54,23 +101,35 @@ export default function RecordsPage({
   );
   const [categoryFilter, setCategoryFilter] = useState('all');
 
-  const activeForm = forms.find((f) => f.id === activeFormId);
+  const activeForm = activeFormId === 'all' ? undefined : forms.find((f) => f.id === activeFormId);
   const dateRange = resolveDateRange(datePreset, customRange);
+  const isAllForms = activeFormId === 'all';
 
   const loadRecords = useCallback(async () => {
     const settings = getSettings();
-    const form = settings?.forms.find((f) => f.id === activeFormId);
-    if (!settings?.spreadsheetId || !form) return;
+    if (!settings?.spreadsheetId) return;
 
     if (!isTokenValid()) {
       onReauth?.();
       return;
     }
 
+    const formsToLoad =
+      activeFormId === 'all'
+        ? settings.forms
+        : settings.forms.filter((f) => f.id === activeFormId);
+
+    if (!formsToLoad.length) return;
+
     setLoading(true);
     try {
-      const data = await fetchRecords(settings.spreadsheetId, form);
-      setRecords(data.reverse());
+      const batches = await Promise.all(
+        formsToLoad.map(async (form) => {
+          const data = await fetchRecords(settings.spreadsheetId, form);
+          return data.map((record) => enrichRecord(record, form));
+        })
+      );
+      setRecords(sortRecords(batches.flat(), settings.forms));
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
       if (msg.includes('منقضی') || msg.includes('401')) {
@@ -94,6 +153,10 @@ export default function RecordsPage({
         return;
       }
     }
+    if (settings.forms.length > 1) {
+      setActiveFormId('all');
+      return;
+    }
     if (settings.forms.length) setActiveFormId(settings.forms[0].id);
   }, [initialFormType]);
 
@@ -101,23 +164,34 @@ export default function RecordsPage({
     if (activeFormId && isConfigured()) loadRecords();
   }, [activeFormId, loadRecords]);
 
-  const amountField = activeForm?.fields.find((f) => f.id === 'amount');
-  const dateField = activeForm?.fields.find((f) => f.type === 'date');
-  const titleField = activeForm?.fields.find(
-    (f) => f.id === 'title' || f.label.includes('عنوان')
-  );
-  const categoryField = activeForm?.fields.find((f) => f.id === 'category');
+  const showCategoryFilter =
+    isAllForms
+      ? forms.some((form) => getFormField(form, 'category'))
+      : !!activeForm && getFormField(activeForm, 'category');
 
-  const categoryOptions = useMemo(
-    () => getCategoryOptions(activeForm, records),
-    [activeForm, records]
-  );
+  const categoryOptions = useMemo(() => {
+    if (isAllForms) {
+      const categories = new Set<string>();
+      for (const form of forms) {
+        const formRecords = records.filter((record) => record.formId === form.id);
+        getCategoryOptions(form, formRecords).forEach((cat) => categories.add(cat));
+      }
+      return [...categories];
+    }
+    return getCategoryOptions(activeForm, records);
+  }, [isAllForms, forms, activeForm, records]);
 
   const filteredRecords = useMemo(() => {
-    const dateFieldId = dateField?.id ?? 'date';
-    const categoryFieldId = categoryField?.id ?? 'category';
     return records.filter((record) => {
+      const form = forms.find((f) => f.id === record.formId);
+      if (!form) return false;
+
+      const recordDateField = getFormField(form, 'date');
+      const recordCategoryField = getFormField(form, 'category');
+      const dateFieldId = recordDateField?.id ?? 'date';
+      const categoryFieldId = recordCategoryField?.id ?? 'category';
       const date = record.values[dateFieldId] ?? '';
+
       if (!isDateInRange(date, dateRange)) return false;
       if (categoryFilter !== 'all') {
         const category = record.values[categoryFieldId] ?? '';
@@ -125,7 +199,7 @@ export default function RecordsPage({
       }
       return true;
     });
-  }, [records, dateRange, categoryFilter, dateField, categoryField]);
+  }, [records, dateRange, categoryFilter, forms]);
 
   const handleFormChange = (formId: string) => {
     setActiveFormId(formId);
@@ -167,6 +241,15 @@ export default function RecordsPage({
 
         {forms.length > 1 && (
           <div className="records-type-segment" role="tablist" aria-label="نوع تراکنش">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isAllForms}
+              className={isAllForms ? 'active' : ''}
+              onClick={() => handleFormChange('all')}
+            >
+              همه
+            </button>
             {forms.map((form) => (
               <button
                 key={form.id}
@@ -175,8 +258,8 @@ export default function RecordsPage({
                 aria-selected={activeFormId === form.id}
                 className={[
                   activeFormId === form.id ? 'active' : '',
-                  form.type === 'income' ? 'income' : '',
-                  form.type === 'expense' ? 'expense' : '',
+                  activeFormId === form.id && form.type === 'income' ? 'income' : '',
+                  activeFormId === form.id && form.type === 'expense' ? 'expense' : '',
                 ]
                   .filter(Boolean)
                   .join(' ')}
@@ -195,7 +278,7 @@ export default function RecordsPage({
           loading={loading}
         />
 
-        {categoryField && (
+        {showCategoryFilter && (
           <div className="records-filter-section records-filter-section--inline">
             <span className="records-filter-label">دسته‌بندی</span>
             <Select
@@ -240,29 +323,48 @@ export default function RecordsPage({
             )}
           </div>
           {filteredRecords.map((record) => {
-            const amount = amountField ? record.values[amountField.id] : '';
-            const title = titleField
-              ? record.values[titleField.id]
+            const form = forms.find((f) => f.id === record.formId);
+            if (!form) return null;
+
+            const recordAmountField = getFormField(form, 'amount');
+            const recordTitleField = getFormField(form, 'title');
+            const recordCategoryField = getFormField(form, 'category');
+            const recordDateField = getFormField(form, 'date');
+
+            const amount = recordAmountField
+              ? record.values[recordAmountField.id]
+              : '';
+            const title = recordTitleField
+              ? record.values[recordTitleField.id]
               : Object.values(record.values)[0] ?? '';
-            const category = categoryField ? record.values[categoryField.id] : '';
-            const date = dateField ? record.values[dateField.id] : '';
-            const isIncome = activeForm?.type === 'income';
+            const category = recordCategoryField
+              ? record.values[recordCategoryField.id]
+              : '';
+            const date = recordDateField ? record.values[recordDateField.id] : '';
+            const isIncome = form.type === 'income';
 
             return (
-              <div key={record.id} className="record-item">
+              <div key={`${record.formId}-${record.id}`} className="record-item">
                 <div>
                   <div className="record-item-title">{title}</div>
                   <div className="record-item-meta">
+                    {isAllForms && `${record.formName} · `}
                     {date ? formatIsoDatePersian(date) : record.createdAt}
                     {category && ` · ${category}`}
                   </div>
                 </div>
                 {amount && (
                   <div
-                    className={isIncome ? 'amount-income' : activeForm?.type === 'expense' ? 'amount-expense' : ''}
+                    className={
+                      isIncome
+                        ? 'amount-income'
+                        : form.type === 'expense'
+                          ? 'amount-expense'
+                          : ''
+                    }
                     dir="ltr"
                   >
-                    {isIncome ? '+' : activeForm?.type === 'expense' ? '-' : ''}
+                    {isIncome ? '+' : form.type === 'expense' ? '-' : ''}
                     {formatMoney(Number(amount))}
                   </div>
                 )}
