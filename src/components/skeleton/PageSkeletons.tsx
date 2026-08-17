@@ -3,13 +3,26 @@ import { Skeleton } from './Skeleton';
 export function InstallmentCardSkeleton() {
   return (
     <div className="card installment-card skeleton-card" aria-hidden="true">
-      <div className="skeleton-card-header">
-        <div className="skeleton-card-body">
-          <Skeleton width="55%" height="0.95rem" />
-          <Skeleton width="40%" height="0.75rem" style={{ marginTop: '0.5rem' }} />
-          <Skeleton width="100%" height="4px" style={{ marginTop: '0.65rem', borderRadius: '2px' }} />
+      <div className="card-header-with-edit">
+        <div className="installment-header">
+          <div>
+            <Skeleton width="55%" height="0.95rem" />
+            <Skeleton width="40%" height="0.75rem" style={{ marginTop: '0.25rem' }} />
+            <div className="installment-progress skeleton-progress-track">
+              <Skeleton width="45%" height="100%" style={{ borderRadius: '4px' }} />
+            </div>
+          </div>
+          <Skeleton
+            variant="rect"
+            width="0.65rem"
+            height="0.65rem"
+            style={{ flexShrink: 0, marginTop: '0.15rem', borderRadius: '2px' }}
+          />
         </div>
-        <Skeleton variant="rect" width="1rem" height="1rem" style={{ borderRadius: '4px' }} />
+        <div className="card-action-buttons">
+          <Skeleton variant="rect" width="2rem" height="2rem" style={{ borderRadius: 'var(--radius-sm)' }} />
+          <Skeleton variant="rect" width="2rem" height="2rem" style={{ borderRadius: 'var(--radius-sm)' }} />
+        </div>
       </div>
     </div>
   );
@@ -28,14 +41,27 @@ export function InstallmentCardListSkeleton({ count = 3 }: { count?: number }) {
 export function DangCardSkeleton() {
   return (
     <div className="card dang-card skeleton-card" aria-hidden="true">
-      <Skeleton variant="circle" width="1.25rem" height="1.25rem" />
-      <div className="skeleton-dang-body">
-        <div className="skeleton-dang-row">
+      <Skeleton
+        variant="circle"
+        width="1.15rem"
+        height="1.15rem"
+        style={{ marginTop: '0.15rem', flexShrink: 0 }}
+      />
+      <div className="dang-card-body">
+        <div className="dang-card-header">
           <Skeleton width="45%" height="0.95rem" />
-          <Skeleton width="28%" height="0.95rem" />
+          <Skeleton
+            width="5.5rem"
+            height="1.75rem"
+            style={{ borderRadius: '8px', flexShrink: 0 }}
+          />
         </div>
-        <Skeleton width="60%" height="0.75rem" style={{ marginTop: '0.5rem' }} />
+        <Skeleton width="60%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
         <Skeleton width="50%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
+      </div>
+      <div className="card-action-buttons">
+        <Skeleton variant="rect" width="2rem" height="2rem" style={{ borderRadius: 'var(--radius-sm)' }} />
+        <Skeleton variant="rect" width="2rem" height="2rem" style={{ borderRadius: 'var(--radius-sm)' }} />
       </div>
     </div>
   );
@@ -54,18 +80,28 @@ export function DangCardListSkeleton({ count = 4 }: { count?: number }) {
 export function RecordItemSkeleton() {
   return (
     <div className="record-item skeleton-record-item" aria-hidden="true">
-      <div>
+      <div className="record-item-main">
         <Skeleton width="50%" height="0.9rem" />
         <Skeleton width="35%" height="0.75rem" style={{ marginTop: '0.4rem' }} />
       </div>
-      <Skeleton width="4.5rem" height="1rem" />
+      <div className="skeleton-record-actions">
+        <Skeleton width="4.5rem" height="1rem" />
+        <div className="card-action-buttons">
+          <Skeleton variant="rect" width="2rem" height="2rem" style={{ borderRadius: 'var(--radius-sm)' }} />
+          <Skeleton variant="rect" width="2rem" height="2rem" style={{ borderRadius: 'var(--radius-sm)' }} />
+        </div>
+      </div>
     </div>
   );
 }
 
 export function RecordListSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="card skeleton-records-card" style={{ padding: '0 1rem' }} aria-busy="true" aria-label="در حال بارگذاری">
+    <div className="card records-list-card skeleton-records-card" aria-busy="true" aria-label="در حال بارگذاری">
+      <div className="records-list-header">
+        <Skeleton width="4rem" height="0.75rem" />
+        <Skeleton width="3.5rem" height="1.25rem" style={{ borderRadius: '999px' }} />
+      </div>
       {Array.from({ length: count }, (_, i) => (
         <RecordItemSkeleton key={i} />
       ))}

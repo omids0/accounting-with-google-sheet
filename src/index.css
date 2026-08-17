@@ -511,37 +511,36 @@ button {
   pointer-events: none;
 }
 
-.skeleton-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
+.skeleton-card .installment-header {
+  cursor: default;
 }
 
-.skeleton-card-body {
-  flex: 1;
-  min-width: 0;
+.skeleton-card .installment-header:hover {
+  background: none;
 }
 
-.skeleton-dang-body {
-  flex: 1;
-  min-width: 0;
+.skeleton-card.dang-card:hover {
+  background: var(--color-surface);
 }
 
-.skeleton-dang-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+.skeleton-progress-track {
+  background: #99f6e4;
 }
 
 .skeleton-record-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.5rem;
   padding: 0.85rem 0;
-  border-bottom: 1px solid rgba(153, 246, 228, 0.5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.skeleton-record-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .skeleton-record-item:last-child {
