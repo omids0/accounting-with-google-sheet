@@ -1,11 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { CustomForm } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { fetchRecords } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
-
+import { Select } from './form';
+import JalaliDatePicker from './JalaliDatePicker';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
+import {
+  RECORDS_DATE_RANGE_PRESETS,
+  formatDateRangeLabel,
+  getDateRange,
+  isDateInRange,
+  resolveDateRange,
+  type RecordsDatePreset,
+} from '../utils/dateRange';
 import { RecordListSkeleton } from './skeleton';
 import { showError } from '../utils/toast';
 
@@ -13,6 +22,18 @@ interface RecordItem {
   id: string;
   createdAt: string;
   values: Record<string, string>;
+}
+
+function getCategoryOptions(
+  form: CustomForm | undefined,
+  records: RecordItem[]
+): string[] {
+  const fromForm = form?.fields.find((f) => f.id === 'category')?.options ?? [];
+  const categoryFieldId = form?.fields.find((f) => f.id === 'category')?.id ?? 'category';
+  const fromRecords = records
+    .map((r) => r.values[categoryFieldId] ?? '')
+    .filter(Boolean);
+  return [...new Set([...fromForm, ...fromRecords])];
 }
 
 export default function RecordsPage({
@@ -26,8 +47,12 @@ export default function RecordsPage({
   const [activeFormId, setActiveFormId] = useState('');
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date');
+  const [customRange, setCustomRange] = useState(() => getDateRange('month-to-date'));
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   const activeForm = forms.find((f) => f.id === activeFormId);
+  const dateRange = resolveDateRange(datePreset, customRange);
 
   const loadRecords = useCallback(async () => {
     const settings = getSettings();
@@ -73,6 +98,44 @@ export default function RecordsPage({
     if (activeFormId && isConfigured()) loadRecords();
   }, [activeFormId, loadRecords]);
 
+  const amountField = activeForm?.fields.find((f) => f.id === 'amount');
+  const dateField = activeForm?.fields.find((f) => f.type === 'date');
+  const titleField = activeForm?.fields.find(
+    (f) => f.id === 'title' || f.label.includes('عنوان')
+  );
+  const categoryField = activeForm?.fields.find((f) => f.id === 'category');
+
+  const categoryOptions = useMemo(
+    () => getCategoryOptions(activeForm, records),
+    [activeForm, records]
+  );
+
+  const filteredRecords = useMemo(() => {
+    const dateFieldId = dateField?.id ?? 'date';
+    const categoryFieldId = categoryField?.id ?? 'category';
+    return records.filter((record) => {
+      const date = record.values[dateFieldId] ?? '';
+      if (!isDateInRange(date, dateRange)) return false;
+      if (categoryFilter !== 'all') {
+        const category = record.values[categoryFieldId] ?? '';
+        if (category !== categoryFilter) return false;
+      }
+      return true;
+    });
+  }, [records, dateRange, categoryFilter, dateField, categoryField]);
+
+  const handleFormChange = (formId: string) => {
+    setActiveFormId(formId);
+    setCategoryFilter('all');
+  };
+
+  const handlePresetChange = (preset: RecordsDatePreset) => {
+    setDatePreset(preset);
+    if (preset === 'custom') {
+      setCustomRange(getDateRange('month-to-date'));
+    }
+  };
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -82,41 +145,111 @@ export default function RecordsPage({
     );
   }
 
-  const amountField = activeForm?.fields.find((f) => f.id === 'amount');
-  const dateField = activeForm?.fields.find((f) => f.type === 'date');
-  const titleField = activeForm?.fields.find(
-    (f) => f.id === 'title' || f.label.includes('عنوان')
-  );
-  const categoryField = activeForm?.fields.find((f) => f.id === 'category');
-
   return (
-    <div>
-      <div className="form-tabs">
-        {forms.map((form) => (
+    <div className="records-page">
+      <div className="card records-toolbar">
+        <div className="records-toolbar-header">
+          <div className="records-toolbar-heading">
+            <h2 className="records-toolbar-title">تراکنش‌ها</h2>
+            <p className="records-toolbar-range">{formatDateRangeLabel(dateRange)}</p>
+          </div>
           <button
-            key={form.id}
-            className={[
-              activeFormId === form.id ? 'active' : '',
-              form.type === 'income' ? 'tab-income' : '',
-              form.type === 'expense' ? 'tab-expense' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-            onClick={() => setActiveFormId(form.id)}
             type="button"
+            className="btn btn-secondary btn-sm records-refresh-btn"
+            onClick={loadRecords}
+            disabled={loading}
+            aria-label="بارگذاری مجدد"
           >
-            {form.name}
+            {loading ? '...' : '↻'}
           </button>
-        ))}
-      </div>
+        </div>
 
-      <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-          {activeForm?.name ?? 'رکوردها'}
-        </h2>
-        <button className="btn btn-secondary btn-sm" onClick={loadRecords} disabled={loading}>
-          {loading ? '...' : '↻'}
-        </button>
+        {forms.length > 1 && (
+          <div className="records-type-segment" role="tablist" aria-label="نوع تراکنش">
+            {forms.map((form) => (
+              <button
+                key={form.id}
+                type="button"
+                role="tab"
+                aria-selected={activeFormId === form.id}
+                className={[
+                  activeFormId === form.id ? 'active' : '',
+                  form.type === 'income' ? 'income' : '',
+                  form.type === 'expense' ? 'expense' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() => handleFormChange(form.id)}
+              >
+                {form.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="records-filter-section">
+          <span className="records-filter-label">بازه زمانی</span>
+          <div className="records-date-grid">
+            {RECORDS_DATE_RANGE_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className={datePreset === preset.id ? 'active' : ''}
+                onClick={() => handlePresetChange(preset.id)}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {datePreset === 'custom' && (
+          <div className="records-custom-range">
+            <div className="records-custom-date">
+              <span className="records-filter-label">از</span>
+              <JalaliDatePicker
+                value={customRange.start}
+                onChange={(start) =>
+                  setCustomRange((range) => ({
+                    ...range,
+                    start,
+                    end: start > range.end ? start : range.end,
+                  }))
+                }
+              />
+            </div>
+            <div className="records-custom-date">
+              <span className="records-filter-label">تا</span>
+              <JalaliDatePicker
+                value={customRange.end}
+                onChange={(end) =>
+                  setCustomRange((range) => ({
+                    ...range,
+                    end,
+                    start: end < range.start ? end : range.start,
+                  }))
+                }
+              />
+            </div>
+          </div>
+        )}
+
+        {categoryField && (
+          <div className="records-filter-section records-filter-section--inline">
+            <span className="records-filter-label">دسته‌بندی</span>
+            <Select
+              className="records-category-select"
+              compact
+              aria-label="دسته‌بندی"
+              value={categoryFilter}
+              onChange={setCategoryFilter}
+              options={[
+                { value: 'all', label: 'همه' },
+                ...categoryOptions.map((cat) => ({ value: cat, label: cat })),
+              ]}
+            />
+          </div>
+        )}
       </div>
 
       {loading && records.length === 0 ? (
@@ -126,9 +259,26 @@ export default function RecordsPage({
           <div className="icon">📭</div>
           <p>هنوز رکوردی ثبت نشده</p>
         </div>
+      ) : filteredRecords.length === 0 ? (
+        <div className="empty-state">
+          <div className="icon">🔍</div>
+          <p>تراکنشی با این فیلتر یافت نشد</p>
+        </div>
       ) : (
-        <div className="card" style={{ padding: '0 1rem' }}>
-          {records.map((record) => {
+        <div className="card records-list-card">
+          <div className="records-list-header">
+            <span className="records-list-count">
+              {filteredRecords.length.toLocaleString('fa-IR')} مورد
+            </span>
+            {forms.length === 1 && activeForm && (
+              <span
+                className={`records-list-type records-list-type--${activeForm.type}`}
+              >
+                {activeForm.name}
+              </span>
+            )}
+          </div>
+          {filteredRecords.map((record) => {
             const amount = amountField ? record.values[amountField.id] : '';
             const title = titleField
               ? record.values[titleField.id]
@@ -140,8 +290,8 @@ export default function RecordsPage({
             return (
               <div key={record.id} className="record-item">
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{title}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                  <div className="record-item-title">{title}</div>
+                  <div className="record-item-meta">
                     {date ? formatIsoDatePersian(date) : record.createdAt}
                     {category && ` · ${category}`}
                   </div>

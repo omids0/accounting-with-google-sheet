@@ -10,12 +10,27 @@ import {
 export type { DateRange } from './jalaliDate';
 
 export type DateRangePreset = 'month-to-date' | 'last-month' | 'year-to-date';
+export type RecordsDatePreset = DateRangePreset | 'custom';
 
 export const DATE_RANGE_PRESETS: { id: DateRangePreset; label: string }[] = [
   { id: 'month-to-date', label: 'این ماه' },
   { id: 'last-month', label: 'ماه گذشته' },
   { id: 'year-to-date', label: 'از اول سال' },
 ];
+
+export const RECORDS_DATE_RANGE_PRESETS: { id: RecordsDatePreset; label: string }[] = [
+  ...DATE_RANGE_PRESETS,
+  { id: 'custom', label: 'بازه زمانی' },
+];
+
+export function resolveDateRange(
+  preset: RecordsDatePreset,
+  customRange?: DateRange
+): DateRange {
+  if (preset === 'custom' && customRange) return customRange;
+  if (preset === 'custom') return getDateRange('month-to-date');
+  return getDateRange(preset);
+}
 
 export function getDateRange(preset: DateRangePreset): DateRange {
   const today = new Date();

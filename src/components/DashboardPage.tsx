@@ -10,9 +10,8 @@ import {
 } from 'recharts';
 import { getSettings, isConfigured } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
-import type { CustomForm, DashboardData, DashboardNavTarget } from '../types';
+import type { DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
-import { FormSelect } from './form';
 import { DashboardSkeleton } from './skeleton';
 import {
   DATE_RANGE_PRESETS,
@@ -90,29 +89,6 @@ function CategoryBarChart({
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
 
-function getCategoryOptions(
-  forms: CustomForm[],
-  typeFilter: TransactionTypeFilter,
-  records: { type: 'income' | 'expense'; category: string }[]
-): string[] {
-  const fromForm = (type: 'income' | 'expense') => {
-    const form = forms.find((f) => f.type === type);
-    const field = form?.fields.find((f) => f.id === 'category');
-    return field?.options ?? [];
-  };
-
-  let configured: string[];
-  if (typeFilter === 'income') configured = fromForm('income');
-  else if (typeFilter === 'expense') configured = fromForm('expense');
-  else configured = [...fromForm('income'), ...fromForm('expense')];
-
-  const fromRecords = records
-    .filter((r) => typeFilter === 'all' || r.type === typeFilter)
-    .map((r) => r.category);
-
-  return [...new Set([...configured, ...fromRecords])];
-}
-
 function BreakdownRow({
   label,
   value,
@@ -153,7 +129,6 @@ export default function DashboardPage({
   const [loading, setLoading] = useState(false);
   const [datePreset, setDatePreset] = useState<DateRangePreset>('month-to-date');
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
   const dateRange = getDateRange(datePreset);
 
   const load = useCallback(async () => {
@@ -190,30 +165,12 @@ export default function DashboardPage({
     setDatePreset(preset);
   };
 
-  const settings = getSettings();
-  const categoryOptions = useMemo(
-    () =>
-      getCategoryOptions(
-        settings?.forms ?? [],
-        typeFilter,
-        data?.recentRecords ?? []
-      ),
-    [settings?.forms, typeFilter, data?.recentRecords]
-  );
-
   const filteredRecords = useMemo(() => {
     if (!data?.recentRecords.length) return [];
-    return data.recentRecords.filter((r) => {
-      if (typeFilter !== 'all' && r.type !== typeFilter) return false;
-      if (categoryFilter !== 'all' && r.category !== categoryFilter) return false;
-      return true;
-    });
-  }, [data?.recentRecords, typeFilter, categoryFilter]);
-
-  const handleTypeFilterChange = (filter: TransactionTypeFilter) => {
-    setTypeFilter(filter);
-    setCategoryFilter('all');
-  };
+    return data.recentRecords
+      .filter((r) => typeFilter === 'all' || r.type === typeFilter)
+      .slice(0, 10);
+  }, [data?.recentRecords, typeFilter]);
 
   const financial = data?.financial;
 
@@ -391,36 +348,25 @@ export default function DashboardPage({
             <button
               type="button"
               className={typeFilter === 'all' ? 'active' : ''}
-              onClick={() => handleTypeFilterChange('all')}
+              onClick={() => setTypeFilter('all')}
             >
               همه
             </button>
             <button
               type="button"
               className={typeFilter === 'income' ? 'active tab-income' : ''}
-              onClick={() => handleTypeFilterChange('income')}
+              onClick={() => setTypeFilter('income')}
             >
               درآمد
             </button>
             <button
               type="button"
               className={typeFilter === 'expense' ? 'active tab-expense' : ''}
-              onClick={() => handleTypeFilterChange('expense')}
+              onClick={() => setTypeFilter('expense')}
             >
               هزینه
             </button>
           </div>
-
-          <FormSelect
-            className="transaction-category-filter"
-            aria-label="دسته‌بندی"
-            value={categoryFilter}
-            onChange={setCategoryFilter}
-            options={[
-              { value: 'all', label: 'همه دسته‌بندی‌ها' },
-              ...categoryOptions.map((cat) => ({ value: cat, label: cat })),
-            ]}
-          />
         </div>
 
         {!data?.recentRecords.length ? (
