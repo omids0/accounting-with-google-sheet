@@ -10,7 +10,13 @@ import TransactionTypeSegment, {
 import { FormSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 
-export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
+export default function DataEntryPage({
+  onReauth,
+  onCancel,
+}: {
+  onReauth?: () => void;
+  onCancel?: () => void;
+}) {
   const [forms, setForms] = useState<CustomForm[]>([]);
   const [activeFormId, setActiveFormId] = useState('');
   const [values, setValues] = useState<Record<string, string | number>>({});
@@ -144,20 +150,30 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
             />
           ))}
 
-          <button
-            type="submit"
-            className={`btn ${
-              activeForm.type === 'expense'
-                ? 'btn-outflow'
-                : activeForm.type === 'income'
-                  ? 'btn-inflow'
-                  : 'btn-primary'
-            }`}
-            disabled={loading}
-          >
-            {loading && <span className="spinner" />}
-            ذخیره
-          </button>
+          <div className="form-actions">
+            <button
+              type="submit"
+              className={`btn ${
+                activeForm.type === 'expense'
+                  ? 'btn-outflow'
+                  : activeForm.type === 'income'
+                    ? 'btn-inflow'
+                    : 'btn-primary'
+              }`}
+              disabled={loading}
+            >
+              {loading && <span className="spinner" />}
+              ذخیره
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={loading}
+              onClick={() => onCancel?.()}
+            >
+              انصراف
+            </button>
+          </div>
         </form>
       )}
     </div>

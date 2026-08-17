@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Dang } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
@@ -17,6 +17,9 @@ import { DangCardListSkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import { showError, showSuccess } from '../utils/toast';
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import FormModal from './FormModal';
 
 type DangWithRow = Dang & { rowNumber: number };
 
@@ -200,6 +203,36 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     }
   };
 
+  const resetCreateForm = () => {
+    setForm({
+      title: '',
+      counterparty: '',
+      amount: '',
+      date: getTodayIso(),
+      note: '',
+    });
+  };
+
+  const closeCreateForm = () => {
+    if (saving) return;
+    setShowForm(false);
+    resetCreateForm();
+  };
+
+  const pageSpeedDialConfig = useMemo(
+    () => ({
+      ariaLabel: 'عملیات دنگ',
+      actions: createPageSpeedDialActions({
+        onAdd: () => setShowForm(true),
+        onRefresh: loadItems,
+        refreshDisabled: loading,
+      }),
+    }),
+    [loadItems, loading]
+  );
+
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -215,80 +248,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     <div>
       <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>دنگ</h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => setShowForm((v) => !v)}
-            type="button"
-          >
-            {showForm ? 'بستن' : '+ جدید'}
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={loadItems}
-            disabled={loading}
-            type="button"
-          >
-            {loading ? '...' : '↻'}
-          </button>
-        </div>
       </div>
-
-      {showForm && (
-        <form className="card" onSubmit={handleCreate}>
-          <h3 className="card-title">ثبت دنگ جدید</h3>
-
-          <div className="form-group">
-            <label>عنوان <span className="required">*</span></label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              placeholder="مثلاً: شام رستوران"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>طرف حساب <span className="required">*</span></label>
-            <input
-              type="text"
-              value={form.counterparty}
-              onChange={(e) => setForm((f) => ({ ...f, counterparty: e.target.value }))}
-              placeholder="نام شخص یا گروه"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>مبلغ <span className="required">*</span></label>
-            <AmountInput
-              value={form.amount}
-              onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>تاریخ <span className="required">*</span></label>
-            <JalaliDatePicker
-              value={form.date}
-              onChange={(date) => setForm((f) => ({ ...f, date }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>توضیحات</label>
-            <textarea
-              value={form.note}
-              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-              placeholder="توضیحات اختیاری"
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving && <span className="spinner" />}
-            ذخیره دنگ
-          </button>
-        </form>
-      )}
 
       {loading && items.length === 0 ? (
         <DangCardListSkeleton />
@@ -359,6 +319,60 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
           )}
         </>
       )}
+
+      <FormModal
+        open={showForm}
+        title="ثبت دنگ جدید"
+        onClose={closeCreateForm}
+        onSubmit={handleCreate}
+        saving={saving}
+        saveLabel="ذخیره دنگ"
+      >
+        <div className="form-group">
+          <label>عنوان <span className="required">*</span></label>
+          <input
+            type="text"
+            value={form.title}
+            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            placeholder="مثلاً: شام رستوران"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>طرف حساب <span className="required">*</span></label>
+          <input
+            type="text"
+            value={form.counterparty}
+            onChange={(e) => setForm((f) => ({ ...f, counterparty: e.target.value }))}
+            placeholder="نام شخص یا گروه"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>مبلغ <span className="required">*</span></label>
+          <AmountInput
+            value={form.amount}
+            onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>تاریخ <span className="required">*</span></label>
+          <JalaliDatePicker
+            value={form.date}
+            onChange={(date) => setForm((f) => ({ ...f, date }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>توضیحات</label>
+          <textarea
+            value={form.note}
+            onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+            placeholder="توضیحات اختیاری"
+          />
+        </div>
+      </FormModal>
     </div>
   );
 }

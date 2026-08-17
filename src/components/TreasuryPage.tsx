@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { VaultAssetType } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
@@ -21,6 +21,9 @@ import { TreasurySkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import { showError, showSuccess } from '../utils/toast';
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import FormModal from './FormModal';
 
 type TransactionWithRow = Awaited<ReturnType<typeof fetchVaultTransactions>>[number];
 
@@ -225,6 +228,41 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   const holdings = prices ? computeHoldings(transactions, prices) : [];
   const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0);
 
+  const resetCreateForm = () => {
+    setForm({
+      assetType: 'sekeb',
+      quantity: '',
+      unitPrice: '',
+      transactionDate: getTodayIso(),
+      note: '',
+    });
+  };
+
+  const closeCreateForm = () => {
+    if (saving) return;
+    setShowForm(false);
+    resetCreateForm();
+  };
+
+  const refreshTreasury = useCallback(() => {
+    loadItems();
+    loadPrices();
+  }, [loadItems, loadPrices]);
+
+  const pageSpeedDialConfig = useMemo(
+    () => ({
+      ariaLabel: 'عملیات صندوقچه',
+      actions: createPageSpeedDialActions({
+        onAdd: () => setShowForm(true),
+        onRefresh: refreshTreasury,
+        refreshDisabled: loading || priceLoading,
+      }),
+    }),
+    [refreshTreasury, loading, priceLoading]
+  );
+
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -238,26 +276,6 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     <div>
       <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>صندوقچه</h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => setShowForm((v) => !v)}
-            type="button"
-          >
-            {showForm ? 'بستن' : '+ خرید'}
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => {
-              loadItems();
-              loadPrices();
-            }}
-            disabled={loading || priceLoading}
-            type="button"
-          >
-            {loading || priceLoading ? '...' : '↻'}
-          </button>
-        </div>
       </div>
 
       {prices && (
@@ -286,83 +304,6 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
             ))}
           </div>
         </div>
-      )}
-
-      {showForm && (
-        <form className="card" onSubmit={handleCreate}>
-          <h3 className="card-title">ثبت خرید</h3>
-
-          <FormSelect
-            label="نوع دارایی"
-            required
-            value={form.assetType}
-            onChange={(next) =>
-              setForm((f) => ({
-                ...f,
-                assetType: next as VaultAssetType,
-                quantity: '',
-              }))
-            }
-            options={VAULT_ASSET_OPTIONS.map((opt) => ({
-              value: opt.value,
-              label: opt.label,
-            }))}
-            hint={
-              selectedAsset?.hint ? (
-                <p className="treasury-hint">{selectedAsset.hint}</p>
-              ) : undefined
-            }
-          />
-
-          <div className="form-group">
-            <label>
-              مقدار ({getAssetUnit(form.assetType)}) <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              inputMode={allowDecimal ? 'decimal' : 'numeric'}
-              dir="ltr"
-              value={form.quantity === '' ? '' : String(form.quantity)}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  quantity: parseQuantityInput(e.target.value, allowDecimal),
-                }))
-              }
-              placeholder={allowDecimal ? 'مثلاً ۲.۵' : 'مثلاً ۳'}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>قیمت هر {getAssetUnit(form.assetType)} (تومان) <span className="required">*</span></label>
-            <AmountInput
-              value={form.unitPrice}
-              onChange={(val) => setForm((f) => ({ ...f, unitPrice: val }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>تاریخ خرید <span className="required">*</span></label>
-            <JalaliDatePicker
-              value={form.transactionDate}
-              onChange={(iso) => setForm((f) => ({ ...f, transactionDate: iso }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>توضیحات</label>
-            <textarea
-              value={form.note}
-              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-              placeholder="توضیحات اختیاری"
-            />
-          </div>
-
-          <button type="submit" className="btn btn-outflow" disabled={saving}>
-            {saving && <span className="spinner" />}
-            ذخیره خرید
-          </button>
-        </form>
       )}
 
       {loading && holdings.length === 0 ? (
@@ -552,6 +493,84 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
           <div className="receivable-total-amount">{formatMoney(totalValue)}</div>
         </div>
       )}
+
+      <FormModal
+        open={showForm}
+        title="ثبت خرید"
+        onClose={closeCreateForm}
+        onSubmit={handleCreate}
+        saving={saving}
+        saveLabel="ذخیره خرید"
+        saveButtonClassName="btn btn-outflow"
+      >
+        <FormSelect
+          label="نوع دارایی"
+          required
+          value={form.assetType}
+          onChange={(next) =>
+            setForm((f) => ({
+              ...f,
+              assetType: next as VaultAssetType,
+              quantity: '',
+            }))
+          }
+          options={VAULT_ASSET_OPTIONS.map((opt) => ({
+            value: opt.value,
+            label: opt.label,
+          }))}
+          hint={
+            selectedAsset?.hint ? (
+              <p className="treasury-hint">{selectedAsset.hint}</p>
+            ) : undefined
+          }
+        />
+
+        <div className="form-group">
+          <label>
+            مقدار ({getAssetUnit(form.assetType)}) <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            inputMode={allowDecimal ? 'decimal' : 'numeric'}
+            dir="ltr"
+            value={form.quantity === '' ? '' : String(form.quantity)}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                quantity: parseQuantityInput(e.target.value, allowDecimal),
+              }))
+            }
+            placeholder={allowDecimal ? 'مثلاً ۲.۵' : 'مثلاً ۳'}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>
+            قیمت هر {getAssetUnit(form.assetType)} (تومان) <span className="required">*</span>
+          </label>
+          <AmountInput
+            value={form.unitPrice}
+            onChange={(val) => setForm((f) => ({ ...f, unitPrice: val }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>تاریخ خرید <span className="required">*</span></label>
+          <JalaliDatePicker
+            value={form.transactionDate}
+            onChange={(iso) => setForm((f) => ({ ...f, transactionDate: iso }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>توضیحات</label>
+          <textarea
+            value={form.note}
+            onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+            placeholder="توضیحات اختیاری"
+          />
+        </div>
+      </FormModal>
     </div>
   );
 }

@@ -23,6 +23,9 @@ import {
   getJalaliMonthKey,
 } from '../utils/dateRange';
 import { showError, showSuccess } from '../utils/toast';
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import FormModal from './FormModal';
 
 type PlanWithRow = InstallmentPlan & { rowNumber: number };
 
@@ -160,17 +163,15 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     }
   };
 
-  if (!isConfigured()) {
-    return (
-      <div className="empty-state">
-        <div className="icon">📅</div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    );
-  }
+  const resetCreateForm = () => {
+    setForm({ title: '', amount: '', count: '', dueDay: '', note: '' });
+  };
 
-  const paidCount = (plan: InstallmentPlan) =>
-    plan.payments.filter((p) => p.paid).length;
+  const closeCreateForm = () => {
+    if (saving) return;
+    setShowForm(false);
+    resetCreateForm();
+  };
 
   const monthRange = useMemo(() => getInstallmentDueRange('month-to-date'), []);
   const monthLabel = useMemo(
@@ -184,105 +185,39 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     }),
     [plans, monthRange]
   );
-
   const sortedPlans = useMemo(() => sortInstallmentPlans(plans), [plans]);
+
+  const pageSpeedDialConfig = useMemo(
+    () => ({
+      ariaLabel: 'عملیات اقساط',
+      actions: createPageSpeedDialActions({
+        onAdd: () => setShowForm(true),
+        onRefresh: loadPlans,
+        refreshDisabled: loading,
+      }),
+    }),
+    [loadPlans, loading]
+  );
+
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+
+  if (!isConfigured()) {
+    return (
+      <div className="empty-state">
+        <div className="icon">📅</div>
+        <p>ابتدا با گوگل وارد شوید</p>
+      </div>
+    );
+  }
+
+  const paidCount = (plan: InstallmentPlan) =>
+    plan.payments.filter((p) => p.paid).length;
 
   return (
     <div>
       <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>اقساط</h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => setShowForm((v) => !v)}
-            type="button"
-          >
-            {showForm ? 'بستن' : '+ جدید'}
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={loadPlans}
-            disabled={loading}
-            type="button"
-          >
-            {loading ? '...' : '↻'}
-          </button>
-        </div>
       </div>
-
-      {showForm && (
-        <form className="card" onSubmit={handleCreate}>
-          <h3 className="card-title">ثبت قسط جدید</h3>
-
-          <div className="form-group">
-            <label>عنوان قسط <span className="required">*</span></label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              placeholder="مثلاً: وام بانکی"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>مبلغ قسط <span className="required">*</span></label>
-            <AmountInput
-              value={form.amount}
-              onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>تعداد بازپرداخت <span className="required">*</span></label>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={1}
-              value={form.count === '' ? '' : form.count}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  count: e.target.value === '' ? '' : Number(e.target.value),
-                }))
-              }
-              dir="ltr"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>موعد قسط در ماه <span className="required">*</span></label>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={31}
-              value={form.dueDay === '' ? '' : form.dueDay}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  dueDay: e.target.value === '' ? '' : Number(e.target.value),
-                }))
-              }
-              dir="ltr"
-              placeholder="۱ تا ۳۱"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>توضیحات</label>
-            <textarea
-              value={form.note}
-              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-              placeholder="توضیحات اختیاری"
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving && <span className="spinner" />}
-            ذخیره قسط
-          </button>
-        </form>
-      )}
 
       {loading && plans.length === 0 ? (
         <InstallmentCardListSkeleton />
@@ -387,6 +322,78 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
           </div>
         </div>
       )}
+
+      <FormModal
+        open={showForm}
+        title="ثبت قسط جدید"
+        onClose={closeCreateForm}
+        onSubmit={handleCreate}
+        saving={saving}
+        saveLabel="ذخیره قسط"
+      >
+        <div className="form-group">
+          <label>عنوان قسط <span className="required">*</span></label>
+          <input
+            type="text"
+            value={form.title}
+            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            placeholder="مثلاً: وام بانکی"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>مبلغ قسط <span className="required">*</span></label>
+          <AmountInput
+            value={form.amount}
+            onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>تعداد بازپرداخت <span className="required">*</span></label>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            value={form.count === '' ? '' : form.count}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                count: e.target.value === '' ? '' : Number(e.target.value),
+              }))
+            }
+            dir="ltr"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>موعد قسط در ماه <span className="required">*</span></label>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={31}
+            value={form.dueDay === '' ? '' : form.dueDay}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                dueDay: e.target.value === '' ? '' : Number(e.target.value),
+              }))
+            }
+            dir="ltr"
+            placeholder="۱ تا ۳۱"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>توضیحات</label>
+          <textarea
+            value={form.note}
+            onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+            placeholder="توضیحات اختیاری"
+          />
+        </div>
+      </FormModal>
     </div>
   );
 }

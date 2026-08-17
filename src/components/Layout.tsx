@@ -10,7 +10,9 @@ import TreasuryPage from './TreasuryPage';
 import WalletPage from './WalletPage';
 import OpeningBalancePage from './OpeningBalancePage';
 import SettingsPage from './SettingsPage';
+import PageSpeedDial from './PageSpeedDial';
 import { getUserName, getUserPicture } from '../services/auth';
+import { usePageSpeedDialConfig } from '../hooks/usePageSpeedDial';
 
 type Tab =
   | 'dashboard'
@@ -23,6 +25,15 @@ type Tab =
   | 'treasury'
   | 'wallet'
   | 'opening-balances';
+
+const SPEED_DIAL_TABS: Tab[] = [
+  'installments',
+  'dang',
+  'checks',
+  'receivables',
+  'treasury',
+  'wallet',
+];
 
 interface LayoutProps {
   onLogout: () => void;
@@ -50,6 +61,9 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
   };
 
   const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
+  const pageSpeedDialConfig = usePageSpeedDialConfig();
+  const showPageSpeedDial =
+    !showSettings && SPEED_DIAL_TABS.includes(tab) && pageSpeedDialConfig != null;
 
   const handleTabChange = (newTab: Tab) => {
     setShowSettings(false);
@@ -122,7 +136,12 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                   onNavigate={handleTabChange}
                 />
               )}
-              {tab === 'entry' && <DataEntryPage onReauth={onReauth} />}
+              {tab === 'entry' && (
+                <DataEntryPage
+                  onReauth={onReauth}
+                  onCancel={() => handleTabChange('dashboard')}
+                />
+              )}
               {tab === 'records' && (
                 <RecordsPage onReauth={onReauth} initialFormType={recordsFormType} />
               )}
@@ -219,6 +238,13 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             +
           </button>
         </div>
+      )}
+
+      {showPageSpeedDial && (
+        <PageSpeedDial
+          actions={pageSpeedDialConfig.actions}
+          ariaLabel={pageSpeedDialConfig.ariaLabel}
+        />
       )}
     </div>
   );

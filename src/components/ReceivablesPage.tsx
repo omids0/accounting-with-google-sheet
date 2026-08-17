@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Receivable } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
@@ -18,6 +18,9 @@ import JalaliDatePicker from './JalaliDatePicker';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import { showError, showSuccess } from '../utils/toast';
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import FormModal from './FormModal';
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
 
@@ -166,6 +169,35 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     }
   };
 
+  const resetCreateForm = () => {
+    setForm({
+      debtor: '',
+      amount: '',
+      borrowDate: getTodayIso(),
+      note: '',
+    });
+  };
+
+  const closeCreateForm = () => {
+    if (saving) return;
+    setShowForm(false);
+    resetCreateForm();
+  };
+
+  const pageSpeedDialConfig = useMemo(
+    () => ({
+      ariaLabel: 'عملیات طلب‌ها',
+      actions: createPageSpeedDialActions({
+        onAdd: () => setShowForm(true),
+        onRefresh: loadItems,
+        refreshDisabled: loading,
+      }),
+    }),
+    [loadItems, loading]
+  );
+
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -181,70 +213,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     <div>
       <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>طلب‌ها</h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => setShowForm((v) => !v)}
-            type="button"
-          >
-            {showForm ? 'بستن' : '+ جدید'}
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={loadItems}
-            disabled={loading}
-            type="button"
-          >
-            {loading ? '...' : '↻'}
-          </button>
-        </div>
       </div>
-
-      {showForm && (
-        <form className="card" onSubmit={handleCreate}>
-          <h3 className="card-title">ثبت طلب جدید</h3>
-
-          <div className="form-group">
-            <label>نام شخص یا ارگان <span className="required">*</span></label>
-            <input
-              type="text"
-              value={form.debtor}
-              onChange={(e) => setForm((f) => ({ ...f, debtor: e.target.value }))}
-              placeholder="مثلاً: علی محمدی"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>مبلغ <span className="required">*</span></label>
-            <AmountInput
-              value={form.amount}
-              onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>تاریخ قرض گرفتن <span className="required">*</span></label>
-            <JalaliDatePicker
-              value={form.borrowDate}
-              onChange={(iso) => setForm((f) => ({ ...f, borrowDate: iso }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>توضیحات</label>
-            <textarea
-              value={form.note}
-              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-              placeholder="توضیحات اختیاری"
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving && <span className="spinner" />}
-            ذخیره طلب
-          </button>
-        </form>
-      )}
 
       {loading && items.length === 0 ? (
         <InstallmentCardListSkeleton />
@@ -416,6 +385,50 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
           <div className="receivable-total-amount">{formatMoney(totalRemaining)}</div>
         </div>
       )}
+
+      <FormModal
+        open={showForm}
+        title="ثبت طلب جدید"
+        onClose={closeCreateForm}
+        onSubmit={handleCreate}
+        saving={saving}
+        saveLabel="ذخیره طلب"
+      >
+        <div className="form-group">
+          <label>نام شخص یا ارگان <span className="required">*</span></label>
+          <input
+            type="text"
+            value={form.debtor}
+            onChange={(e) => setForm((f) => ({ ...f, debtor: e.target.value }))}
+            placeholder="مثلاً: علی محمدی"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>مبلغ <span className="required">*</span></label>
+          <AmountInput
+            value={form.amount}
+            onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>تاریخ قرض گرفتن <span className="required">*</span></label>
+          <JalaliDatePicker
+            value={form.borrowDate}
+            onChange={(iso) => setForm((f) => ({ ...f, borrowDate: iso }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>توضیحات</label>
+          <textarea
+            value={form.note}
+            onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+            placeholder="توضیحات اختیاری"
+          />
+        </div>
+      </FormModal>
     </div>
   );
 }

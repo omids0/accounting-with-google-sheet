@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { WalletAccount } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
@@ -15,6 +15,9 @@ import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
 import { InstallmentCardListSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import FormModal from './FormModal';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
 
@@ -196,6 +199,30 @@ export default function WalletPage({
     }
   };
 
+  const resetCreateForm = () => {
+    setForm({ title: '', balance: '', note: '' });
+  };
+
+  const closeCreateForm = () => {
+    if (saving) return;
+    setShowForm(false);
+    resetCreateForm();
+  };
+
+  const pageSpeedDialConfig = useMemo(
+    () => ({
+      ariaLabel: 'عملیات کیف پول',
+      actions: createPageSpeedDialActions({
+        onAdd: () => setShowForm(true),
+        onRefresh: loadItems,
+        refreshDisabled: loading,
+      }),
+    }),
+    [loadItems, loading]
+  );
+
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -224,23 +251,6 @@ export default function WalletPage({
     <div>
       <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>کیف پول</h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => setShowForm((v) => !v)}
-            type="button"
-          >
-            {showForm ? 'بستن' : '+ حساب'}
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={loadItems}
-            disabled={loading}
-            type="button"
-          >
-            {loading ? '...' : '↻'}
-          </button>
-        </div>
       </div>
 
       {periodFlow && (
@@ -291,43 +301,6 @@ export default function WalletPage({
             </div>
           )}
         </div>
-      )}
-
-      {showForm && (
-        <form className="card" onSubmit={handleCreate}>
-          <h3 className="card-title">حساب جدید</h3>
-
-          <div className="form-group">
-            <label>عنوان <span className="required">*</span></label>
-            <input
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              placeholder="مثلاً: بانک ملت، نقدی، ..."
-            />
-          </div>
-
-          <div className="form-group">
-            <label>موجودی <span className="required">*</span></label>
-            <AmountInput
-              value={form.balance}
-              onChange={(val) => setForm((f) => ({ ...f, balance: val }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>توضیحات</label>
-            <textarea
-              value={form.note}
-              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-              placeholder="توضیحات اختیاری"
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving && <span className="spinner" />}
-            ذخیره حساب
-          </button>
-        </form>
       )}
 
       {loading && items.length === 0 ? (
@@ -408,6 +381,41 @@ export default function WalletPage({
           </p>
         </div>
       )}
+
+      <FormModal
+        open={showForm}
+        title="حساب جدید"
+        onClose={closeCreateForm}
+        onSubmit={handleCreate}
+        saving={saving}
+        saveLabel="ذخیره حساب"
+      >
+        <div className="form-group">
+          <label>عنوان <span className="required">*</span></label>
+          <input
+            value={form.title}
+            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            placeholder="مثلاً: بانک ملت، نقدی، ..."
+          />
+        </div>
+
+        <div className="form-group">
+          <label>موجودی <span className="required">*</span></label>
+          <AmountInput
+            value={form.balance}
+            onChange={(val) => setForm((f) => ({ ...f, balance: val }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>توضیحات</label>
+          <textarea
+            value={form.note}
+            onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+            placeholder="توضیحات اختیاری"
+          />
+        </div>
+      </FormModal>
     </div>
   );
 }

@@ -22,6 +22,9 @@ import {
   getJalaliMonthKey,
 } from '../utils/dateRange';
 import { showError, showSuccess } from '../utils/toast';
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import FormModal from './FormModal';
 
 type CheckWithRow = Check & { rowNumber: number };
 
@@ -172,6 +175,36 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     [items, monthRange]
   );
 
+  const resetCreateForm = () => {
+    setForm({
+      checkNumber: '',
+      counterparty: '',
+      amount: '',
+      creationDate: getTodayIso(),
+      dueDate: getTodayIso(),
+    });
+  };
+
+  const closeCreateForm = () => {
+    if (saving) return;
+    setShowForm(false);
+    resetCreateForm();
+  };
+
+  const pageSpeedDialConfig = useMemo(
+    () => ({
+      ariaLabel: 'عملیات چک‌ها',
+      actions: createPageSpeedDialActions({
+        onAdd: () => setShowForm(true),
+        onRefresh: loadItems,
+        refreshDisabled: loading,
+      }),
+    }),
+    [loadItems, loading]
+  );
+
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -185,80 +218,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     <div>
       <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>چک‌ها</h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => setShowForm((v) => !v)}
-            type="button"
-          >
-            {showForm ? 'بستن' : '+ جدید'}
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={loadItems}
-            disabled={loading}
-            type="button"
-          >
-            {loading ? '...' : '↻'}
-          </button>
-        </div>
       </div>
-
-      {showForm && (
-        <form className="card" onSubmit={handleCreate}>
-          <h3 className="card-title">ثبت چک جدید</h3>
-
-          <div className="form-group">
-            <label>شماره چک <span className="required">*</span></label>
-            <input
-              type="text"
-              value={form.checkNumber}
-              onChange={(e) => setForm((f) => ({ ...f, checkNumber: e.target.value }))}
-              placeholder="شماره چک"
-              dir="ltr"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>طرف حساب <span className="required">*</span></label>
-            <input
-              type="text"
-              value={form.counterparty}
-              onChange={(e) => setForm((f) => ({ ...f, counterparty: e.target.value }))}
-              placeholder="نام طرف حساب"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>مبلغ <span className="required">*</span></label>
-            <AmountInput
-              value={form.amount}
-              onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>تاریخ صدور <span className="required">*</span></label>
-            <JalaliDatePicker
-              value={form.creationDate}
-              onChange={(date) => setForm((f) => ({ ...f, creationDate: date }))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>تاریخ سررسید <span className="required">*</span></label>
-            <JalaliDatePicker
-              value={form.dueDate}
-              onChange={(date) => setForm((f) => ({ ...f, dueDate: date }))}
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving && <span className="spinner" />}
-            ذخیره چک
-          </button>
-        </form>
-      )}
 
       {loading && items.length === 0 ? (
         <DangCardListSkeleton />
@@ -337,6 +297,60 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
           </div>
         </>
       )}
+
+      <FormModal
+        open={showForm}
+        title="ثبت چک جدید"
+        onClose={closeCreateForm}
+        onSubmit={handleCreate}
+        saving={saving}
+        saveLabel="ذخیره چک"
+      >
+        <div className="form-group">
+          <label>شماره چک <span className="required">*</span></label>
+          <input
+            type="text"
+            value={form.checkNumber}
+            onChange={(e) => setForm((f) => ({ ...f, checkNumber: e.target.value }))}
+            placeholder="شماره چک"
+            dir="ltr"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>طرف حساب <span className="required">*</span></label>
+          <input
+            type="text"
+            value={form.counterparty}
+            onChange={(e) => setForm((f) => ({ ...f, counterparty: e.target.value }))}
+            placeholder="نام طرف حساب"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>مبلغ <span className="required">*</span></label>
+          <AmountInput
+            value={form.amount}
+            onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>تاریخ صدور <span className="required">*</span></label>
+          <JalaliDatePicker
+            value={form.creationDate}
+            onChange={(date) => setForm((f) => ({ ...f, creationDate: date }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>تاریخ سررسید <span className="required">*</span></label>
+          <JalaliDatePicker
+            value={form.dueDate}
+            onChange={(date) => setForm((f) => ({ ...f, dueDate: date }))}
+          />
+        </div>
+      </FormModal>
     </div>
   );
 }
