@@ -21,6 +21,7 @@ import {
   getInstallmentDueRange,
   getJalaliMonthKey,
 } from '../utils/dateRange';
+import { showError, showSuccess } from '../utils/toast';
 
 type CheckWithRow = Check & { rowNumber: number };
 
@@ -30,8 +31,8 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [togglingId, setTogglingId] = useState('');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+
   const [form, setForm] = useState({
     checkNumber: '',
     counterparty: '',
@@ -49,7 +50,6 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     }
 
     setLoading(true);
-    setError('');
     try {
       await ensureChecksSheet(settings.spreadsheetId);
       const data = await fetchChecks(settings.spreadsheetId);
@@ -60,7 +60,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setError(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -78,29 +78,28 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     }
 
     if (!form.checkNumber.trim()) {
-      setMessage({ type: 'error', text: 'شماره چک الزامی است' });
+      showError('شماره چک الزامی است');
       return;
     }
     if (!form.counterparty.trim()) {
-      setMessage({ type: 'error', text: 'طرف حساب الزامی است' });
+      showError('طرف حساب الزامی است');
       return;
     }
     if (!form.amount || Number(form.amount) <= 0) {
-      setMessage({ type: 'error', text: 'مبلغ را وارد کنید' });
+      showError('مبلغ را وارد کنید');
       return;
     }
     if (!form.creationDate) {
-      setMessage({ type: 'error', text: 'تاریخ صدور الزامی است' });
+      showError('تاریخ صدور الزامی است');
       return;
     }
     if (!form.dueDate) {
-      setMessage({ type: 'error', text: 'تاریخ سررسید الزامی است' });
+      showError('تاریخ سررسید الزامی است');
       return;
     }
 
     const settings = getSettings()!;
     setSaving(true);
-    setMessage(null);
     try {
       await createCheck(settings.spreadsheetId, {
         checkNumber: form.checkNumber.trim(),
@@ -117,7 +116,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
         dueDate: getTodayIso(),
       });
       setShowForm(false);
-      setMessage({ type: 'success', text: 'چک جدید ثبت شد' });
+      showSuccess('چک جدید ثبت شد');
       await loadItems();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ثبت چک';
@@ -125,7 +124,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setSaving(false);
     }
@@ -139,7 +138,6 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     }
 
     setTogglingId(item.id);
-    setMessage(null);
     try {
       const updated = await toggleCheckPaid(settings.spreadsheetId, item, paid);
       setItems((prev) =>
@@ -155,7 +153,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setTogglingId('');
     }
@@ -205,9 +203,6 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
           </button>
         </div>
       </div>
-
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
 
       {showForm && (
         <form className="card" onSubmit={handleCreate}>

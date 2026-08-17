@@ -17,6 +17,7 @@ import { InstallmentCardListSkeleton } from './skeleton';
 import JalaliDatePicker from './JalaliDatePicker';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
+import { showError, showSuccess } from '../utils/toast';
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
 
@@ -27,8 +28,8 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [payingId, setPayingId] = useState('');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+
   const [form, setForm] = useState({
     debtor: '',
     amount: '' as number | '',
@@ -50,7 +51,6 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     }
 
     setLoading(true);
-    setError('');
     try {
       await ensureReceivablesSheet(settings.spreadsheetId);
       const data = await fetchReceivables(settings.spreadsheetId);
@@ -61,7 +61,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
         onReauth?.();
         return;
       }
-      setError(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -79,21 +79,20 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     }
 
     if (!form.debtor.trim()) {
-      setMessage({ type: 'error', text: 'نام شخص یا ارگان الزامی است' });
+      showError('نام شخص یا ارگان الزامی است');
       return;
     }
     if (!form.amount || Number(form.amount) <= 0) {
-      setMessage({ type: 'error', text: 'مبلغ را وارد کنید' });
+      showError('مبلغ را وارد کنید');
       return;
     }
     if (!form.borrowDate) {
-      setMessage({ type: 'error', text: 'تاریخ قرض الزامی است' });
+      showError('تاریخ قرض الزامی است');
       return;
     }
 
     const settings = getSettings()!;
     setSaving(true);
-    setMessage(null);
     try {
       await createReceivable(settings.spreadsheetId, {
         debtor: form.debtor.trim(),
@@ -103,7 +102,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
       });
       setForm({ debtor: '', amount: '', borrowDate: getTodayIso(), note: '' });
       setShowForm(false);
-      setMessage({ type: 'success', text: 'طلب جدید ثبت شد' });
+      showSuccess('طلب جدید ثبت شد');
       await loadItems();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ثبت طلب';
@@ -111,7 +110,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setSaving(false);
     }
@@ -128,21 +127,17 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
 
     const payAmount = Number(paymentForm.amount);
     if (!payAmount || payAmount <= 0) {
-      setMessage({ type: 'error', text: 'مبلغ پرداخت را وارد کنید' });
+      showError('مبلغ پرداخت را وارد کنید');
       return;
     }
 
     const remaining = remainingAmount(receivable);
     if (payAmount > remaining) {
-      setMessage({
-        type: 'error',
-        text: `مبلغ پرداخت نمی‌تواند بیشتر از مانده (${formatMoney(remaining)}) باشد`,
-      });
+      showError(`مبلغ پرداخت نمی‌تواند بیشتر از مانده (${formatMoney(remaining)}) باشد`);
       return;
     }
 
     setPayingId(receivable.id);
-    setMessage(null);
     try {
       const updated = await addReceivablePayment(settings.spreadsheetId, receivable, {
         amount: payAmount,
@@ -158,14 +153,14 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
         )
       );
       setPaymentForm(null);
-      setMessage({ type: 'success', text: 'پرداخت ثبت شد' });
+      showSuccess('پرداخت ثبت شد');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ثبت پرداخت';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setPayingId('');
     }
@@ -204,9 +199,6 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
           </button>
         </div>
       </div>
-
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
 
       {showForm && (
         <form className="card" onSubmit={handleCreate}>

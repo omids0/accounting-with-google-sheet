@@ -5,12 +5,12 @@ import { appendRecord } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
 import { FieldInput, getInitialFieldValue } from './form';
 import { FormSkeleton } from './skeleton';
+import { showError, showSuccess } from '../utils/toast';
 
 export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
   const [forms, setForms] = useState<CustomForm[]>([]);
   const [activeFormId, setActiveFormId] = useState('');
   const [values, setValues] = useState<Record<string, string | number>>({});
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -41,7 +41,6 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
   const selectForm = (form: CustomForm) => {
     setActiveFormId(form.id);
     initValues(form);
-    setMessage(null);
   };
 
   const handleChange = (fieldId: string, value: string | number) => {
@@ -60,14 +59,13 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
       if (field.required) {
         const val = values[field.id];
         if (val === '' || val === undefined || val === null) {
-          setMessage({ type: 'error', text: `فیلد «${field.label}» الزامی است` });
+          showError(`فیلد «${field.label}» الزامی است`);
           return;
         }
       }
     }
 
     setLoading(true);
-    setMessage(null);
     try {
       const settings = getSettings()!;
       await appendRecord(
@@ -77,7 +75,7 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
         new Date().toLocaleString('fa-IR'),
         values
       );
-      setMessage({ type: 'success', text: `در شیت «${activeForm.sheetName}» ذخیره شد ✓` });
+      showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد ✓`);
       initValues(activeForm);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ذخیره';
@@ -85,7 +83,7 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -124,8 +122,6 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
           </button>
         ))}
       </div>
-
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
 
       {activeForm && (
         <form onSubmit={handleSubmit}>

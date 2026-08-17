@@ -7,6 +7,7 @@ import { isTokenValid } from '../services/auth';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import { RecordListSkeleton } from './skeleton';
+import { showError } from '../utils/toast';
 
 interface RecordItem {
   id: string;
@@ -25,7 +26,6 @@ export default function RecordsPage({
   const [activeFormId, setActiveFormId] = useState('');
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const activeForm = forms.find((f) => f.id === activeFormId);
 
@@ -40,7 +40,6 @@ export default function RecordsPage({
     }
 
     setLoading(true);
-    setError('');
     try {
       const data = await fetchRecords(settings.spreadsheetId, form);
       setRecords(data.reverse());
@@ -50,7 +49,7 @@ export default function RecordsPage({
         onReauth?.();
         return;
       }
-      setError(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -119,8 +118,6 @@ export default function RecordsPage({
           {loading ? '...' : '↻'}
         </button>
       </div>
-
-      {error && <div className="alert alert-error">{error}</div>}
 
       {loading && records.length === 0 ? (
         <RecordListSkeleton />

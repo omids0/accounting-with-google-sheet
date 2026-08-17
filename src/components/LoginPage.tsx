@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import {
   saveSession,
@@ -13,6 +13,7 @@ import {
 } from '../services/spreadsheetSetup';
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel';
 import type { SpreadsheetEntry } from '../types';
+import { showError } from '../utils/toast';
 
 type Step = 'login' | 'setup';
 
@@ -22,12 +23,15 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({ onSuccess, initialError = '' }: LoginPageProps) {
-  const [error, setError] = useState(initialError);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<Step>('login');
   const [setupMode, setSetupMode] = useState<'pick' | 'create'>('pick');
   const [sheetOptions, setSheetOptions] = useState<SpreadsheetEntry[]>([]);
   const [defaultLabel, setDefaultLabel] = useState('اصلی');
+
+  useEffect(() => {
+    if (initialError) showError(initialError);
+  }, [initialError]);
 
   const continueAfterAuth = async (profileName: string) => {
     const session = await resolveSpreadsheetSession();
@@ -53,7 +57,6 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
     scope: GOOGLE_OAUTH_SCOPE,
     onSuccess: async (tokenResponse) => {
       setLoading(true);
-      setError('');
       try {
         const profile = await fetchUserProfile(tokenResponse.access_token);
         saveSession(
@@ -66,19 +69,18 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
         await continueAfterAuth(profile.name);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'خطا در ورود');
+        showError(err instanceof Error ? err.message : 'خطا در ورود');
       } finally {
         setLoading(false);
       }
     },
     onError: () => {
-      setError('ورود لغو شد یا با خطا مواجه شد');
+      showError('ورود لغو شد یا با خطا مواجه شد');
       setLoading(false);
     },
   });
 
   const handleLogin = () => {
-    setError('');
     setLoading(true);
     login();
   };
@@ -102,8 +104,6 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           <h1>حسابداری شخصی</h1>
           <p>با Google وارد شو — شیت‌هایت روی Drive بین دستگاه‌ها پیدا می‌شوند</p>
         </div>
-
-        {error && <div className="alert alert-error">{error}</div>}
 
         <button
           className="btn btn-primary google-signin-btn"

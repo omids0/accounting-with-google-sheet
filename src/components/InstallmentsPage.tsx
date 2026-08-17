@@ -22,6 +22,7 @@ import {
   getInstallmentDueRange,
   getJalaliMonthKey,
 } from '../utils/dateRange';
+import { showError, showSuccess } from '../utils/toast';
 
 type PlanWithRow = InstallmentPlan & { rowNumber: number };
 
@@ -32,8 +33,8 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [togglingKey, setTogglingKey] = useState('');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+
   const [form, setForm] = useState({
     title: '',
     amount: '' as number | '',
@@ -51,7 +52,6 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     }
 
     setLoading(true);
-    setError('');
     try {
       await ensureInstallmentsSheet(settings.spreadsheetId);
       const data = await fetchInstallmentPlans(settings.spreadsheetId);
@@ -62,7 +62,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
         onReauth?.();
         return;
       }
-      setError(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -80,26 +80,25 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     }
 
     if (!form.title.trim()) {
-      setMessage({ type: 'error', text: 'عنوان قسط الزامی است' });
+      showError('عنوان قسط الزامی است');
       return;
     }
     if (!form.amount || Number(form.amount) <= 0) {
-      setMessage({ type: 'error', text: 'مبلغ قسط را وارد کنید' });
+      showError('مبلغ قسط را وارد کنید');
       return;
     }
     if (!form.count || Number(form.count) < 1) {
-      setMessage({ type: 'error', text: 'تعداد بازپرداخت باید حداقل ۱ باشد' });
+      showError('تعداد بازپرداخت باید حداقل ۱ باشد');
       return;
     }
     const dueDay = Number(form.dueDay);
     if (!dueDay || dueDay < 1 || dueDay > 31) {
-      setMessage({ type: 'error', text: 'موعد قسط باید بین ۱ تا ۳۱ باشد' });
+      showError('موعد قسط باید بین ۱ تا ۳۱ باشد');
       return;
     }
 
     const settings = getSettings()!;
     setSaving(true);
-    setMessage(null);
     try {
       await createInstallmentPlan(settings.spreadsheetId, {
         title: form.title.trim(),
@@ -110,7 +109,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       });
       setForm({ title: '', amount: '', count: '', dueDay: '', note: '' });
       setShowForm(false);
-      setMessage({ type: 'success', text: 'قسط جدید ثبت شد' });
+      showSuccess('قسط جدید ثبت شد');
       await loadPlans();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ثبت قسط';
@@ -118,7 +117,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setSaving(false);
     }
@@ -155,7 +154,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setTogglingKey('');
     }
@@ -210,9 +209,6 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
           </button>
         </div>
       </div>
-
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
 
       {showForm && (
         <form className="card" onSubmit={handleCreate}>

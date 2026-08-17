@@ -2212,3 +2212,7 @@ button {
 .bottom-nav-side button {
   font-size: 0.62rem;
 }
+
+.app-toaster {
+  z-index: 10000;
+}

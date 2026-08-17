@@ -20,6 +20,7 @@ import { FormSelect } from './form';
 import { TreasurySkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
+import { showError, showSuccess } from '../utils/toast';
 
 type TransactionWithRow = Awaited<ReturnType<typeof fetchVaultTransactions>>[number];
 
@@ -50,9 +51,9 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [priceLoading, setPriceLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [priceError, setPriceError] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+
+
   const [sellForm, setSellForm] = useState<{
     assetType: VaultAssetType;
     quantity: number | '';
@@ -71,12 +72,11 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
 
   const loadPrices = useCallback(async () => {
     setPriceLoading(true);
-    setPriceError('');
     try {
       const data = await fetchTgjuPrices();
       setPrices(data);
     } catch (err) {
-      setPriceError(err instanceof Error ? err.message : 'خطا در دریافت قیمت‌ها');
+      showError(err instanceof Error ? err.message : 'خطا در دریافت قیمت‌ها');
     } finally {
       setPriceLoading(false);
     }
@@ -91,7 +91,6 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     }
 
     setLoading(true);
-    setError('');
     try {
       await ensureTreasurySheet(settings.spreadsheetId);
       const data = await fetchVaultTransactions(settings.spreadsheetId);
@@ -102,7 +101,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setError(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -124,21 +123,20 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
 
     const qty = Number(form.quantity);
     if (!qty || qty <= 0) {
-      setMessage({ type: 'error', text: 'مقدار را وارد کنید' });
+      showError('مقدار را وارد کنید');
       return;
     }
     if (!form.unitPrice || Number(form.unitPrice) <= 0) {
-      setMessage({ type: 'error', text: 'قیمت واحد را وارد کنید' });
+      showError('قیمت واحد را وارد کنید');
       return;
     }
     if (!form.transactionDate) {
-      setMessage({ type: 'error', text: 'تاریخ الزامی است' });
+      showError('تاریخ الزامی است');
       return;
     }
 
     const settings = getSettings()!;
     setSaving(true);
-    setMessage(null);
     try {
       await createVaultTransaction(settings.spreadsheetId, {
         assetType: form.assetType,
@@ -156,7 +154,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         note: '',
       });
       setShowForm(false);
-      setMessage({ type: 'success', text: 'خرید ثبت شد' });
+      showSuccess('خرید ثبت شد');
       await loadItems();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ثبت';
@@ -164,7 +162,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setSaving(false);
     }
@@ -180,28 +178,24 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
 
     const qty = Number(sellForm.quantity);
     if (!qty || qty <= 0) {
-      setMessage({ type: 'error', text: 'مقدار فروش را وارد کنید' });
+      showError('مقدار فروش را وارد کنید');
       return;
     }
     if (!sellForm.unitPrice || Number(sellForm.unitPrice) <= 0) {
-      setMessage({ type: 'error', text: 'قیمت فروش را وارد کنید' });
+      showError('قیمت فروش را وارد کنید');
       return;
     }
     if (!sellForm.transactionDate) {
-      setMessage({ type: 'error', text: 'تاریخ فروش الزامی است' });
+      showError('تاریخ فروش الزامی است');
       return;
     }
     if (qty > available) {
-      setMessage({
-        type: 'error',
-        text: `موجودی کافی نیست. موجودی فعلی: ${formatQuantity(available, assetType)}`,
-      });
+      showError(`موجودی کافی نیست. موجودی فعلی: ${formatQuantity(available, assetType)}`);
       return;
     }
 
     const settings = getSettings()!;
     setSellingAsset(assetType);
-    setMessage(null);
     try {
       await createVaultTransaction(settings.spreadsheetId, {
         assetType,
@@ -212,7 +206,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         note: sellForm.note.trim(),
       });
       setSellForm(null);
-      setMessage({ type: 'success', text: 'فروش ثبت شد' });
+      showSuccess('فروش ثبت شد');
       await loadItems();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ثبت فروش';
@@ -220,7 +214,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setSellingAsset(null);
     }
@@ -265,10 +259,6 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
           </button>
         </div>
       </div>
-
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
-      {priceError && <div className="alert alert-error">{priceError}</div>}
 
       {prices && (
         <div className="card treasury-price-card">

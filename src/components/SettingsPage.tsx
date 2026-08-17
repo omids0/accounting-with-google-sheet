@@ -33,6 +33,7 @@ import {
 } from '../services/auth';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 import { SettingsSkeleton } from './skeleton';
+import { showError, showSuccess } from '../utils/toast';
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'text', label: 'متن' },
@@ -57,7 +58,7 @@ export default function SettingsPage({
   const [newFormName, setNewFormName] = useState('');
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [categoriesKey, setCategoriesKey] = useState(0);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(() => isTokenValid());
   const { canInstall, isInstalled, showIosHint, isIos, install, dismissIosHint } = usePwaInstall();
@@ -105,22 +106,18 @@ export default function SettingsPage({
 
   const handleRefreshSpreadsheets = async () => {
     if (!isTokenValid()) {
-      setMessage({ type: 'error', text: 'نشست منقضی شده — دوباره وارد شوید' });
+      showError('نشست منقضی شده — دوباره وارد شوید');
       return;
     }
 
     setLoading(true);
-    setMessage(null);
     try {
       const merged = await syncSpreadsheetsFromDrive();
       setSpreadsheets(merged);
       setSpreadsheetId(getSettings()?.spreadsheetId ?? '');
-      setMessage({ type: 'success', text: 'لیست شیت‌ها از Google Drive بروز شد' });
+      showSuccess('لیست شیت‌ها از Google Drive بروز شد');
     } catch (err) {
-      setMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'خطا در دریافت لیست از Drive',
-      });
+      showError(err instanceof Error ? err.message : 'خطا در دریافت لیست از Drive');
     } finally {
       setLoading(false);
     }
@@ -128,16 +125,15 @@ export default function SettingsPage({
 
   const handleCreateSpreadsheet = async () => {
     if (!newSheetName.trim()) {
-      setMessage({ type: 'error', text: 'نام شیت را وارد کنید' });
+      showError('نام شیت را وارد کنید');
       return;
     }
     if (!isTokenValid()) {
-      setMessage({ type: 'error', text: 'نشست منقضی شده' });
+      showError('نشست منقضی شده');
       return;
     }
 
     setLoading(true);
-    setMessage(null);
     const trimmedName = newSheetName.trim();
     try {
       const newId = await createNamedSpreadsheet(trimmedName);
@@ -145,16 +141,10 @@ export default function SettingsPage({
       setSpreadsheets(getSpreadsheets());
       setNewSheetName('');
       setShowNewSheetForm(false);
-      setMessage({
-        type: 'success',
-        text: `شیت «${formatSpreadsheetTitle(trimmedName)}» ساخته و فعال شد`,
-      });
+      showSuccess(`شیت «${formatSpreadsheetTitle(trimmedName)}» ساخته و فعال شد`);
       onSpreadsheetChange?.();
     } catch (err) {
-      setMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'خطا در ساخت شیت',
-      });
+      showError(err instanceof Error ? err.message : 'خطا در ساخت شیت');
     } finally {
       setLoading(false);
     }
@@ -163,12 +153,11 @@ export default function SettingsPage({
   const handleSwitchSpreadsheet = async (nextId: string) => {
     if (!nextId || nextId === spreadsheetId) return;
     if (!isTokenValid()) {
-      setMessage({ type: 'error', text: 'نشست منقضی شده' });
+      showError('نشست منقضی شده');
       return;
     }
 
     setLoading(true);
-    setMessage(null);
     try {
       await switchActiveSpreadsheet(nextId);
       setSpreadsheetId(nextId);
@@ -178,16 +167,10 @@ export default function SettingsPage({
       setForms(refreshed.forms);
       setCategoriesKey((key) => key + 1);
       const selected = getSpreadsheets().find((sheet) => sheet.id === nextId);
-      setMessage({
-        type: 'success',
-        text: `شیت فعال: ${selected ? getSpreadsheetLabel(selected.name) : 'انتخاب‌شده'}`,
-      });
+      showSuccess(`شیت فعال: ${selected ? getSpreadsheetLabel(selected.name) : 'انتخاب‌شده'}`);
       onSpreadsheetChange?.();
     } catch (err) {
-      setMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'خطا در تغییر شیت',
-      });
+      showError(err instanceof Error ? err.message : 'خطا در تغییر شیت');
     } finally {
       setLoading(false);
     }
@@ -195,22 +178,21 @@ export default function SettingsPage({
 
   const handleAddForm = async () => {
     if (!newFormName.trim()) {
-      setMessage({ type: 'error', text: 'نام فرم را وارد کنید' });
+      showError('نام فرم را وارد کنید');
       return;
     }
     if (!isTokenValid()) {
-      setMessage({ type: 'error', text: 'نشست منقضی شده' });
+      showError('نشست منقضی شده');
       return;
     }
 
     const settings = getSettings() ?? getDefaultSettings();
     if (!settings.spreadsheetId) {
-      setMessage({ type: 'error', text: 'ابتدا با گوگل وارد شوید' });
+      showError('ابتدا با گوگل وارد شوید');
       return;
     }
 
     setLoading(true);
-    setMessage(null);
     try {
       const newForm = addCustomForm(newFormName.trim(), [
         { id: 'date', label: 'تاریخ', type: 'date', required: true },
@@ -222,12 +204,9 @@ export default function SettingsPage({
       saveSettings(updated);
       setForms(updated.forms);
       setNewFormName('');
-      setMessage({ type: 'success', text: `فرم «${newForm.name}» و شیت آن ساخته شد` });
+      showSuccess(`فرم «${newForm.name}» و شیت آن ساخته شد`);
     } catch (err) {
-      setMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'خطا در ساخت فرم',
-      });
+      showError(err instanceof Error ? err.message : 'خطا در ساخت فرم');
     } finally {
       setLoading(false);
     }
@@ -242,27 +221,23 @@ export default function SettingsPage({
 
     const settings = getSettings() ?? getDefaultSettings();
     if (!settings.spreadsheetId) {
-      setMessage({ type: 'error', text: 'ابتدا شیت فعال را انتخاب کنید' });
+      showError('ابتدا شیت فعال را انتخاب کنید');
       return;
     }
     if (!isTokenValid()) {
-      setMessage({ type: 'error', text: 'نشست منقضی شده' });
+      showError('نشست منقضی شده');
       return;
     }
 
     setLoading(true);
-    setMessage(null);
     try {
       await saveFormCategoriesToSheet(settings.spreadsheetId, formId, categories);
       const refreshed = getSettings() ?? getDefaultSettings();
       setForms(refreshed.forms);
       setCategoriesKey((key) => key + 1);
-      setMessage({ type: 'success', text: 'دسته‌بندی‌ها در گوگل شیت ذخیره شد' });
+      showSuccess('دسته‌بندی‌ها در گوگل شیت ذخیره شد');
     } catch (err) {
-      setMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'خطا در ذخیره دسته‌بندی‌ها',
-      });
+      showError(err instanceof Error ? err.message : 'خطا در ذخیره دسته‌بندی‌ها');
     } finally {
       setLoading(false);
     }
@@ -271,7 +246,7 @@ export default function SettingsPage({
   const handleCurrencyChange = (value: CurrencyUnit) => {
     setCurrency(value);
     updateCurrency(value);
-    setMessage({ type: 'success', text: 'واحد پول ذخیره شد' });
+    showSuccess('واحد پول ذخیره شد');
   };
 
   const handleSaveFormFields = (formId: string, fields: FieldConfig[]) => {
@@ -282,7 +257,7 @@ export default function SettingsPage({
     saveSettings({ ...settings, forms: updatedForms });
     setForms(updatedForms);
     setEditingFormId(null);
-    setMessage({ type: 'success', text: 'فیلدها ذخیره شد' });
+    showSuccess('فیلدها ذخیره شد');
   };
 
   return (
@@ -291,8 +266,6 @@ export default function SettingsPage({
         <SettingsSkeleton />
       ) : (
         <>
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
-
       <div className="card">
         <h2 className="card-title">حساب گوگل</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

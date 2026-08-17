@@ -10,6 +10,7 @@ import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../util
 import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
 import { InstallmentCardListSkeleton } from './skeleton';
+import { showError, showSuccess } from '../utils/toast';
 
 type OpeningBalanceWithRow = MonthlyOpeningBalance & { rowNumber: number };
 
@@ -24,10 +25,6 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [savingId, setSavingId] = useState('');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(
-    null
-  );
 
   const currentMonthKey = getJalaliMonthKey(getDateRange('month-to-date').start);
 
@@ -48,7 +45,6 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
     }
 
     setLoading(true);
-    setError('');
     try {
       const data = await fetchAllOpeningBalances(settings.spreadsheetId);
       const previousMonths = data.filter((item) => item.monthKey < currentMonthKey);
@@ -60,7 +56,7 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
         onReauth?.();
         return;
       }
-      setError(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -79,14 +75,13 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
 
     const edit = edits[item.monthKey];
     if (!edit || edit.amount === '' || edit.amount < 0) {
-      setMessage({ type: 'error', text: 'مبلغ نامعتبر است' });
+      showError('مبلغ نامعتبر است');
       syncEdits([item]);
       return;
     }
     if (edit.amount === item.amount && edit.note === item.note) return;
 
     setSavingId(item.monthKey);
-    setMessage(null);
     try {
       const updated = await setOpeningBalance(
         settings.spreadsheetId,
@@ -107,17 +102,14 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
         ...prev,
         [item.monthKey]: { amount: updated.amount, note: updated.note },
       }));
-      setMessage({
-        type: 'success',
-        text: `موجودی ${formatJalaliMonthLabel(item.monthKey)} ذخیره شد`,
-      });
+      showSuccess(`موجودی ${formatJalaliMonthLabel(item.monthKey)} ذخیره شد`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
       syncEdits([item]);
     } finally {
       setSavingId('');
@@ -150,9 +142,6 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
       <p className="opening-balance-page-hint">
         موجودی کیف پول در ابتدای هر ماه. ماه جاری را از صفحه کیف پول ویرایش کنید.
       </p>
-
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
 
       {loading && items.length === 0 ? (
         <InstallmentCardListSkeleton />

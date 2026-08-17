@@ -11,6 +11,7 @@ import {
   getSpreadsheetLabel,
 } from '../services/spreadsheetCatalog';
 import { FormSelect } from './form';
+import { showError } from '../utils/toast';
 
 interface SpreadsheetSetupPanelProps {
   mode: 'pick' | 'create';
@@ -29,21 +30,20 @@ export default function SpreadsheetSetupPanel({
   const [selectedId, setSelectedId] = useState(options[0]?.id ?? '');
   const [newLabel, setNewLabel] = useState(defaultLabel);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
 
   const handleActivate = async () => {
     if (!selectedId) {
-      setError('یک شیت انتخاب کنید');
+      showError('یک شیت انتخاب کنید');
       return;
     }
 
     setLoading(true);
-    setError('');
     try {
       await activateSpreadsheet(selectedId);
       onComplete();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطا در اتصال به شیت');
+      showError(err instanceof Error ? err.message : 'خطا در اتصال به شیت');
     } finally {
       setLoading(false);
     }
@@ -51,17 +51,16 @@ export default function SpreadsheetSetupPanel({
 
   const handleCreate = async () => {
     if (!newLabel.trim()) {
-      setError('نام شیت را وارد کنید');
+      showError('نام شیت را وارد کنید');
       return;
     }
 
     setLoading(true);
-    setError('');
     try {
       await createNamedSpreadsheet(newLabel.trim());
       onComplete();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطا در ساخت شیت');
+      showError(err instanceof Error ? err.message : 'خطا در ساخت شیت');
     } finally {
       setLoading(false);
     }
@@ -83,8 +82,6 @@ export default function SpreadsheetSetupPanel({
               : 'اولین شیت با فرمت استاندارد ساخته می‌شود و روی همه دستگاه‌ها قابل پیدا کردن است.'}
           </p>
         </div>
-
-        {error && <div className="alert alert-error">{error}</div>}
 
         {mode === 'pick' ? (
           <>

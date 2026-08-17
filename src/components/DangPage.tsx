@@ -16,6 +16,7 @@ import JalaliDatePicker from './JalaliDatePicker';
 import { DangCardListSkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
+import { showError, showSuccess } from '../utils/toast';
 
 type DangWithRow = Dang & { rowNumber: number };
 
@@ -27,8 +28,6 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   const [togglingId, setTogglingId] = useState('');
   const [savingAmountId, setSavingAmountId] = useState('');
   const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({});
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [form, setForm] = useState({
     title: '',
     counterparty: '',
@@ -46,7 +45,6 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     }
 
     setLoading(true);
-    setError('');
     try {
       await ensureDangSheet(settings.spreadsheetId);
       const data = await fetchDangs(settings.spreadsheetId);
@@ -57,7 +55,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setError(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -75,25 +73,24 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     }
 
     if (!form.title.trim()) {
-      setMessage({ type: 'error', text: 'عنوان الزامی است' });
+      showError('عنوان الزامی است');
       return;
     }
     if (!form.counterparty.trim()) {
-      setMessage({ type: 'error', text: 'طرف حساب الزامی است' });
+      showError('طرف حساب الزامی است');
       return;
     }
     if (!form.amount || Number(form.amount) <= 0) {
-      setMessage({ type: 'error', text: 'مبلغ را وارد کنید' });
+      showError('مبلغ را وارد کنید');
       return;
     }
     if (!form.date) {
-      setMessage({ type: 'error', text: 'تاریخ الزامی است' });
+      showError('تاریخ الزامی است');
       return;
     }
 
     const settings = getSettings()!;
     setSaving(true);
-    setMessage(null);
     try {
       await createDang(settings.spreadsheetId, {
         title: form.title.trim(),
@@ -110,7 +107,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         note: '',
       });
       setShowForm(false);
-      setMessage({ type: 'success', text: 'دنگ جدید ثبت شد' });
+      showSuccess('دنگ جدید ثبت شد');
       await loadItems();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ثبت دنگ';
@@ -118,7 +115,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setSaving(false);
     }
@@ -132,7 +129,6 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     }
 
     setTogglingId(item.id);
-    setMessage(null);
     try {
       const updated = await toggleDangPaid(settings.spreadsheetId, item, paid);
       setItems((prev) =>
@@ -148,7 +144,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setTogglingId('');
     }
@@ -170,7 +166,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
 
     const amount = Number(pending);
     if (!amount || amount <= 0) {
-      setMessage({ type: 'error', text: 'مبلغ باید بیشتر از صفر باشد' });
+      showError('مبلغ باید بیشتر از صفر باشد');
       return;
     }
     if (amount === item.amount) return;
@@ -182,7 +178,6 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     }
 
     setSavingAmountId(item.id);
-    setMessage(null);
     try {
       const updated: Dang = { ...item, amount };
       await updateDang(settings.spreadsheetId, item.rowNumber, updated);
@@ -199,7 +194,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setSavingAmountId('');
     }
@@ -238,9 +233,6 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
           </button>
         </div>
       </div>
-
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
 
       {showForm && (
         <form className="card" onSubmit={handleCreate}>

@@ -14,6 +14,7 @@ import { setOpeningBalance } from '../services/monthlyBalance';
 import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
 import { InstallmentCardListSkeleton } from './skeleton';
+import { showError, showSuccess } from '../utils/toast';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
 
@@ -32,10 +33,7 @@ export default function WalletPage({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingId, setSavingId] = useState('');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(
-    null
-  );
+
   const [form, setForm] = useState({
     title: '',
     balance: '' as number | '',
@@ -62,7 +60,6 @@ export default function WalletPage({
     }
 
     setLoading(true);
-    setError('');
     try {
       await ensureWalletSheet(settings.spreadsheetId);
       const [data, flow] = await Promise.all([
@@ -79,7 +76,7 @@ export default function WalletPage({
         onReauth?.();
         return;
       }
-      setError(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -97,17 +94,16 @@ export default function WalletPage({
     }
 
     if (!form.title.trim()) {
-      setMessage({ type: 'error', text: 'عنوان الزامی است' });
+      showError('عنوان الزامی است');
       return;
     }
     if (form.balance === '' || Number(form.balance) < 0) {
-      setMessage({ type: 'error', text: 'موجودی را وارد کنید' });
+      showError('موجودی را وارد کنید');
       return;
     }
 
     const settings = getSettings()!;
     setSaving(true);
-    setMessage(null);
     try {
       await createWalletAccount(settings.spreadsheetId, {
         title: form.title.trim(),
@@ -116,7 +112,7 @@ export default function WalletPage({
       });
       setForm({ title: '', balance: '', note: '' });
       setShowForm(false);
-      setMessage({ type: 'success', text: 'حساب جدید اضافه شد' });
+      showSuccess('حساب جدید اضافه شد');
       await loadItems();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ثبت حساب';
@@ -124,7 +120,7 @@ export default function WalletPage({
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setSaving(false);
     }
@@ -139,14 +135,13 @@ export default function WalletPage({
 
     const nextBalance = balances[account.id];
     if (nextBalance === '' || nextBalance < 0) {
-      setMessage({ type: 'error', text: 'موجودی نامعتبر است' });
+      showError('موجودی نامعتبر است');
       syncBalances([account]);
       return;
     }
     if (nextBalance === account.balance) return;
 
     setSavingId(account.id);
-    setMessage(null);
     try {
       const updated = await updateWalletAccount(settings.spreadsheetId, {
         ...account,
@@ -159,14 +154,14 @@ export default function WalletPage({
           )
           .sort((a, b) => b.balance - a.balance)
       );
-      setMessage({ type: 'success', text: `موجودی «${account.title}» ذخیره شد` });
+      showSuccess(`موجودی «${account.title}» ذخیره شد`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
       syncBalances([account]);
     } finally {
       setSavingId('');
@@ -182,21 +177,20 @@ export default function WalletPage({
     }
 
     setSavingOpening(true);
-    setMessage(null);
     try {
       const amount = openingInput === '' ? 0 : Number(openingInput);
       await setOpeningBalance(settings.spreadsheetId, periodFlow.monthKey, amount);
       const flow = await loadWalletPeriodFlow(settings);
       setPeriodFlow(flow);
       setOpeningInput(flow.openingBalance || '');
-      setMessage({ type: 'success', text: 'موجودی اول دوره ذخیره شد' });
+      showSuccess('موجودی اول دوره ذخیره شد');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
       }
-      setMessage({ type: 'error', text: msg });
+      showError(msg);
     } finally {
       setSavingOpening(false);
     }
@@ -248,9 +242,6 @@ export default function WalletPage({
           </button>
         </div>
       </div>
-
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
 
       {periodFlow && (
         <div className="card installment-card dashboard-opening-card wallet-item-card">

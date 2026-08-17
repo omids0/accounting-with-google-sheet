@@ -23,6 +23,7 @@ import {
 } from '../utils/dateRange';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
+import { showError } from '../utils/toast';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
@@ -150,7 +151,6 @@ export default function DashboardPage({
 }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [datePreset, setDatePreset] = useState<DateRangePreset>('month-to-date');
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -165,7 +165,6 @@ export default function DashboardPage({
     if (!settings) return;
 
     setLoading(true);
-    setError('');
     try {
       const range = getDateRange(datePreset);
       const installmentRange = getInstallmentDueRange(datePreset);
@@ -177,7 +176,7 @@ export default function DashboardPage({
         onReauth?.();
         return;
       }
-      setError(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }
@@ -233,8 +232,6 @@ export default function DashboardPage({
 
   return (
     <div>
-      {error && <div className="alert alert-error">{error}</div>}
-
       <div className="dashboard-filter-section">
         <div className="form-tabs dashboard-filter">
           {DATE_RANGE_PRESETS.map((preset) => (
