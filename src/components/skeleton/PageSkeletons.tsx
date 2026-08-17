@@ -75,14 +75,23 @@ export function RecordListSkeleton({ count = 6 }: { count?: number }) {
 
 export function DashboardSkeleton() {
   return (
-    <div className="skeleton-dashboard" aria-busy="true" aria-label="در حال بارگذاری داشبورد">
-      <div className="dashboard-filter-section">
-        <div className="skeleton-filter-tabs">
-          {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} variant="rect" height="2rem" style={{ flex: 1, borderRadius: 'var(--radius-sm)' }} />
-          ))}
+    <div className="skeleton-dashboard dashboard-page" aria-busy="true" aria-label="در حال بارگذاری داشبورد">
+      <div className="card records-toolbar dashboard-toolbar skeleton-card">
+        <div className="records-toolbar-header">
+          <div className="records-toolbar-heading">
+            <Skeleton width="35%" height="1rem" />
+            <Skeleton width="55%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
+          </div>
+          <Skeleton variant="rect" width="2.25rem" height="2.25rem" style={{ borderRadius: 'var(--radius-sm)' }} />
         </div>
-        <Skeleton width="40%" height="0.75rem" style={{ margin: '0.5rem auto 0' }} />
+        <div className="records-filter-section" style={{ marginTop: '0.85rem' }}>
+          <Skeleton width="25%" height="0.75rem" />
+          <div className="records-date-grid">
+            {Array.from({ length: 4 }, (_, i) => (
+              <Skeleton key={i} variant="rect" height="2rem" style={{ borderRadius: 'var(--radius)' }} />
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="card dashboard-hero-card skeleton-card">

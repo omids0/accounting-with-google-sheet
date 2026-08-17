@@ -4,13 +4,14 @@ import { getSettings, isConfigured } from '../services/settings';
 import { fetchRecords } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
 import { Select } from './form';
-import JalaliDatePicker from './JalaliDatePicker';
+import DateRangeFilter, {
+  createDefaultDateRangeFilter,
+  type AppliedDateRangeFilter,
+} from './DateRangeFilter';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import {
-  RECORDS_DATE_RANGE_PRESETS,
   formatDateRangeLabel,
-  getDateRange,
   isDateInRange,
   resolveDateRange,
   type RecordsDatePreset,
@@ -48,7 +49,9 @@ export default function RecordsPage({
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date');
-  const [customRange, setCustomRange] = useState(() => getDateRange('month-to-date'));
+  const [customRange, setCustomRange] = useState(
+    () => createDefaultDateRangeFilter().customRange
+  );
   const [categoryFilter, setCategoryFilter] = useState('all');
 
   const activeForm = forms.find((f) => f.id === activeFormId);
@@ -129,11 +132,9 @@ export default function RecordsPage({
     setCategoryFilter('all');
   };
 
-  const handlePresetChange = (preset: RecordsDatePreset) => {
-    setDatePreset(preset);
-    if (preset === 'custom') {
-      setCustomRange(getDateRange('month-to-date'));
-    }
+  const handleDateFilterChange = (filter: AppliedDateRangeFilter) => {
+    setDatePreset(filter.preset);
+    setCustomRange(filter.customRange);
   };
 
   if (!isConfigured()) {
@@ -187,52 +188,12 @@ export default function RecordsPage({
           </div>
         )}
 
-        <div className="records-filter-section">
-          <span className="records-filter-label">بازه زمانی</span>
-          <div className="records-date-grid">
-            {RECORDS_DATE_RANGE_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                className={datePreset === preset.id ? 'active' : ''}
-                onClick={() => handlePresetChange(preset.id)}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {datePreset === 'custom' && (
-          <div className="records-custom-range">
-            <div className="records-custom-date">
-              <span className="records-filter-label">از</span>
-              <JalaliDatePicker
-                value={customRange.start}
-                onChange={(start) =>
-                  setCustomRange((range) => ({
-                    ...range,
-                    start,
-                    end: start > range.end ? start : range.end,
-                  }))
-                }
-              />
-            </div>
-            <div className="records-custom-date">
-              <span className="records-filter-label">تا</span>
-              <JalaliDatePicker
-                value={customRange.end}
-                onChange={(end) =>
-                  setCustomRange((range) => ({
-                    ...range,
-                    end,
-                    start: end < range.start ? end : range.start,
-                  }))
-                }
-              />
-            </div>
-          </div>
-        )}
+        <DateRangeFilter
+          preset={datePreset}
+          customRange={customRange}
+          onChange={handleDateFilterChange}
+          loading={loading}
+        />
 
         {categoryField && (
           <div className="records-filter-section records-filter-section--inline">

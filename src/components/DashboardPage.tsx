@@ -13,12 +13,16 @@ import { loadDashboardData } from '../services/dashboard';
 import type { DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
 import { DashboardSkeleton } from './skeleton';
+import DateRangeFilter, {
+  createDefaultDateRangeFilter,
+  type AppliedDateRangeFilter,
+} from './DateRangeFilter';
 import {
-  DATE_RANGE_PRESETS,
-  getDateRange,
   getInstallmentDueRange,
   formatDateRangeLabel,
+  resolveDateRange,
   type DateRangePreset,
+  type RecordsDatePreset,
 } from '../utils/dateRange';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
@@ -127,9 +131,12 @@ export default function DashboardPage({
 }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [datePreset, setDatePreset] = useState<DateRangePreset>('month-to-date');
+  const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date');
+  const [customRange, setCustomRange] = useState(
+    () => createDefaultDateRangeFilter().customRange
+  );
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
-  const dateRange = getDateRange(datePreset);
+  const dateRange = resolveDateRange(datePreset, customRange);
 
   const load = useCallback(async () => {
     if (!isConfigured() || !isTokenValid()) {
@@ -141,8 +148,11 @@ export default function DashboardPage({
 
     setLoading(true);
     try {
-      const range = getDateRange(datePreset);
-      const installmentRange = getInstallmentDueRange(datePreset);
+      const range = resolveDateRange(datePreset, customRange);
+      const installmentRange =
+        datePreset === 'custom'
+          ? range
+          : getInstallmentDueRange(datePreset as DateRangePreset);
       const dash = await loadDashboardData(settings, range, installmentRange);
       setData(dash);
     } catch (err) {
@@ -155,14 +165,15 @@ export default function DashboardPage({
     } finally {
       setLoading(false);
     }
-  }, [onReauth, datePreset]);
+  }, [onReauth, datePreset, customRange]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const handlePresetChange = (preset: DateRangePreset) => {
-    setDatePreset(preset);
+  const handleDateFilterChange = (filter: AppliedDateRangeFilter) => {
+    setDatePreset(filter.preset);
+    setCustomRange(filter.customRange);
   };
 
   const filteredRecords = useMemo(() => {
@@ -188,21 +199,30 @@ export default function DashboardPage({
   }
 
   return (
-    <div>
-      <div className="dashboard-filter-section">
-        <div className="form-tabs dashboard-filter">
-          {DATE_RANGE_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              className={datePreset === preset.id ? 'active' : ''}
-              onClick={() => handlePresetChange(preset.id)}
-            >
-              {preset.label}
-            </button>
-          ))}
+    <div className="dashboard-page">
+      <div className="card records-toolbar dashboard-toolbar">
+        <div className="records-toolbar-header">
+          <div className="records-toolbar-heading">
+            <h2 className="records-toolbar-title">داشبورد</h2>
+            <p className="records-toolbar-range">{formatDateRangeLabel(dateRange)}</p>
+          </div>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm records-refresh-btn"
+            onClick={load}
+            disabled={loading}
+            aria-label="بارگذاری مجدد"
+          >
+            {loading ? '...' : '↻'}
+          </button>
         </div>
-        <p className="dashboard-filter-range">{formatDateRangeLabel(dateRange)}</p>
+
+        <DateRangeFilter
+          preset={datePreset}
+          customRange={customRange}
+          onChange={handleDateFilterChange}
+          loading={loading}
+        />
       </div>
 
       <div className="card dashboard-hero-card">
