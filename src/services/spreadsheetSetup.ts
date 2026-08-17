@@ -1,5 +1,5 @@
 import type { SpreadsheetEntry } from '../types';
-import { getUserName } from './auth';
+import { getJalaliParts } from '../utils/jalaliDate';
 import { listAccountingSpreadsheetsFromDrive } from './drive';
 import {
   INSTALLMENTS_HEADERS,
@@ -297,14 +297,11 @@ export async function switchActiveSpreadsheet(
   return activateSpreadsheet(spreadsheetId, settings.spreadsheetId);
 }
 
-export function getDefaultFirstSheetLabel(userName?: string | null): string {
-  const name = userName ?? getUserName();
-  return name ? getSpreadsheetLabel(formatSpreadsheetTitle(name)) : 'اصلی';
+export function getDefaultFirstSheetLabel(): string {
+  return String(getJalaliParts(new Date()).year);
 }
 
 /** @deprecated Use createNamedSpreadsheet instead */
-export async function recreateUserSpreadsheet(
-  userName?: string | null
-): Promise<string> {
-  return createNamedSpreadsheet(getDefaultFirstSheetLabel(userName));
+export async function recreateUserSpreadsheet(): Promise<string> {
+  return createNamedSpreadsheet(getDefaultFirstSheetLabel());
 }

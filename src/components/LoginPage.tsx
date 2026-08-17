@@ -42,7 +42,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
       return;
     }
 
-    setDefaultLabel(getDefaultFirstSheetLabel(profileName));
+    setDefaultLabel(getDefaultFirstSheetLabel());
     if (session.status === 'need_selection') {
       setSheetOptions(session.options);
       setSetupMode('pick');
@@ -131,7 +131,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
             textAlign: 'center',
           }}
         >
-          شیت‌ها با فرمت «حسابداری · نام» ساخته می‌شوند و روی Drive همگام هستند
+          شیت‌ها با فرمت «حسابداری · سال» ساخته می‌شوند و روی Drive همگام هستند
         </p>
       </div>
     </div>
