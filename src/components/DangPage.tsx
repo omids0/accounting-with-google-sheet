@@ -6,7 +6,9 @@ import {
   createDang,
   deleteDang,
   ensureDangSheet,
+  exportDangsCsv,
   fetchDangs,
+  importDangsCsv,
   sortDangs,
   toggleDangPaid,
   updateDang,
@@ -20,6 +22,7 @@ import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import { useSheetImportExport } from '../hooks/useSheetImportExport';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
@@ -287,6 +290,13 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     }
   };
 
+  const { handleExport, handleImport } = useSheetImportExport({
+    exportFn: exportDangsCsv,
+    importFn: importDangsCsv,
+    onComplete: loadItems,
+    onReauth,
+  });
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات دنگ',
@@ -294,9 +304,11 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         onAdd: () => openCreateForm(),
         onRefresh: loadItems,
         refreshDisabled: loading,
+        onImport: handleImport,
+        onExport: handleExport,
       }),
     }),
-    [loadItems, loading]
+    [loadItems, loading, handleImport, handleExport]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

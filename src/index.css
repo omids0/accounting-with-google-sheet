@@ -1013,18 +1013,36 @@ button {
 }
 
 .speed-dial-action-icon {
-  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
   line-height: 1;
+}
+
+.speed-dial-action-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.speed-dial-trigger-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  transition: transform var(--duration-fast) var(--ease-spring);
+  line-height: 1;
+}
+
+.speed-dial-trigger-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .speed-dial-trigger {
   opacity: 0.8;
-}
-
-.speed-dial-trigger-icon {
-  display: block;
-  transition: transform var(--duration-fast) var(--ease-spring);
-  line-height: 1;
 }
 
 .speed-dial-trigger--open .speed-dial-trigger-icon {

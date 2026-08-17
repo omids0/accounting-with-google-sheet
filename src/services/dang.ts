@@ -6,6 +6,7 @@ import {
   updateSheetRow,
   deleteSheetRow,
 } from './sheets';
+import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
 
 export const DANG_SHEET = 'دنگ';
 
@@ -134,4 +135,32 @@ export async function toggleDangPaid(
 
 export function unpaidDangTotal(items: Dang[]): number {
   return items.filter((d) => !d.paid).reduce((sum, d) => sum + d.amount, 0);
+}
+
+export async function exportDangsCsv(spreadsheetId: string): Promise<void> {
+  await exportSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, 'دنگ.csv');
+}
+
+export async function importDangsCsv(spreadsheetId: string, csvContent: string) {
+  return importSheetCsv(
+    spreadsheetId,
+    DANG_SHEET,
+    DANG_HEADERS,
+    csvContent,
+    (cells) => {
+      const title = (cells[2] ?? '').trim();
+      if (!title) return null;
+      return dangToRow({
+        id: newImportId(cells[0] ?? ''),
+        createdAt: newImportTimestamp(cells[1] ?? ''),
+        title,
+        counterparty: cells[3] ?? '',
+        amount: Number(cells[4]) || 0,
+        date: cells[5] ?? '',
+        note: cells[6] ?? '',
+        paid: parsePaid(cells[7] ?? ''),
+        paidAt: cells[8] ?? '',
+      });
+    }
+  );
 }

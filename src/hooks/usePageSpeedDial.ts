@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 export interface PageSpeedDialAction {
   id: string;
   label: string;
-  icon: string;
+  icon: ReactNode;
   onClick: () => void;
   disabled?: boolean;
 }

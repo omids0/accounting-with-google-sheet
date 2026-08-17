@@ -7,6 +7,7 @@ import {
   deleteSheetRow,
 } from './sheets';
 import { getTodayIso } from '../utils/jalaliDate';
+import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
 
 export const RECEIVABLES_SHEET = 'طلب‌ها';
 
@@ -168,4 +169,38 @@ export async function deleteReceivable(
   rowNumber: number
 ): Promise<void> {
   await deleteSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber);
+}
+
+export async function exportReceivablesCsv(spreadsheetId: string): Promise<void> {
+  await exportSheetCsv(
+    spreadsheetId,
+    RECEIVABLES_SHEET,
+    RECEIVABLES_HEADERS,
+    'طلب‌ها.csv'
+  );
+}
+
+export async function importReceivablesCsv(
+  spreadsheetId: string,
+  csvContent: string
+) {
+  return importSheetCsv(
+    spreadsheetId,
+    RECEIVABLES_SHEET,
+    RECEIVABLES_HEADERS,
+    csvContent,
+    (cells) => {
+      const debtor = (cells[2] ?? '').trim();
+      if (!debtor) return null;
+      return receivableToRow({
+        id: newImportId(cells[0] ?? ''),
+        createdAt: newImportTimestamp(cells[1] ?? ''),
+        debtor,
+        amount: Number(cells[3]) || 0,
+        borrowDate: cells[4] ?? '',
+        note: cells[5] ?? '',
+        payments: parsePayments(cells[6] ?? ''),
+      });
+    }
+  );
 }

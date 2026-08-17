@@ -7,7 +7,9 @@ import {
   createReceivable,
   deleteReceivable,
   ensureReceivablesSheet,
+  exportReceivablesCsv,
   fetchReceivables,
+  importReceivablesCsv,
   isReceivableComplete,
   paidAmount,
   remainingAmount,
@@ -22,6 +24,7 @@ import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import { useSheetImportExport } from '../hooks/useSheetImportExport';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import { AccordionCollapse } from './AccordionCollapse';
@@ -265,6 +268,13 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     }
   };
 
+  const { handleExport, handleImport } = useSheetImportExport({
+    exportFn: exportReceivablesCsv,
+    importFn: importReceivablesCsv,
+    onComplete: loadItems,
+    onReauth,
+  });
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات طلب‌ها',
@@ -272,9 +282,11 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
         onAdd: () => openCreateForm(),
         onRefresh: loadItems,
         refreshDisabled: loading,
+        onImport: handleImport,
+        onExport: handleExport,
       }),
     }),
-    [loadItems, loading]
+    [loadItems, loading, handleImport, handleExport]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

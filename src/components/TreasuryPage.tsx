@@ -7,7 +7,9 @@ import {
   createVaultTransaction,
   deleteVaultTransaction,
   ensureTreasurySheet,
+  exportTreasuryCsv,
   fetchVaultTransactions,
+  importTreasuryCsv,
   updateVaultTransaction,
 } from '../services/treasury';
 import {
@@ -25,6 +27,7 @@ import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import { useSheetImportExport } from '../hooks/useSheetImportExport';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import { AccordionCollapse } from './AccordionCollapse';
@@ -318,6 +321,13 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     loadPrices();
   }, [loadItems, loadPrices]);
 
+  const { handleExport, handleImport } = useSheetImportExport({
+    exportFn: exportTreasuryCsv,
+    importFn: importTreasuryCsv,
+    onComplete: refreshTreasury,
+    onReauth,
+  });
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات صندوقچه',
@@ -325,9 +335,11 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         onAdd: () => openCreateForm(),
         onRefresh: refreshTreasury,
         refreshDisabled: loading || priceLoading,
+        onImport: handleImport,
+        onExport: handleExport,
       }),
     }),
-    [refreshTreasury, loading, priceLoading]
+    [refreshTreasury, loading, priceLoading, handleImport, handleExport]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

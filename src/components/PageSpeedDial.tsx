@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
+import SpeedDialIcon from './SpeedDialIcon';
 import type { PageSpeedDialAction } from '../hooks/usePageSpeedDial';
 
 export default function PageSpeedDial({
@@ -70,7 +71,9 @@ export default function PageSpeedDial({
             aria-expanded={open}
             aria-haspopup="menu"
           >
-            <span className="speed-dial-trigger-icon">{open ? '×' : '+'}</span>
+            <span className="speed-dial-trigger-icon">
+              {open ? <SpeedDialIcon name="close" /> : <SpeedDialIcon name="add" />}
+            </span>
           </button>
         </div>
       </div>

@@ -1,40 +1,46 @@
-import { showInfo } from '../utils/toast';
+import SpeedDialIcon from '../components/SpeedDialIcon';
 import type { PageSpeedDialAction } from './usePageSpeedDial';
 
 export function createPageSpeedDialActions({
   onAdd,
   onRefresh,
   refreshDisabled,
+  onImport,
+  onExport,
 }: {
   onAdd: () => void;
   onRefresh: () => void;
   refreshDisabled?: boolean;
+  onImport?: () => void;
+  onExport?: () => void;
 }): PageSpeedDialAction[] {
   return [
     {
       id: 'add',
       label: 'افزودن',
-      icon: '✚',
+      icon: <SpeedDialIcon name="add" />,
       onClick: onAdd,
     },
     {
       id: 'refresh',
       label: 'بروزرسانی',
-      icon: '↻',
+      icon: <SpeedDialIcon name="refresh" />,
       onClick: onRefresh,
       disabled: refreshDisabled,
     },
     {
-      id: 'import',
-      label: 'ایمپورت',
-      icon: '📥',
-      onClick: () => showInfo('ایمپورت به زودی اضافه می‌شود'),
-    },
-    {
       id: 'export',
       label: 'اکسپورت',
-      icon: '📤',
-      onClick: () => showInfo('اکسپورت به زودی اضافه می‌شود'),
+      icon: <SpeedDialIcon name="export" />,
+      onClick: onExport ?? (() => undefined),
+      disabled: !onExport,
+    },
+    {
+      id: 'import',
+      label: 'ایمپورت',
+      icon: <SpeedDialIcon name="import" />,
+      onClick: onImport ?? (() => undefined),
+      disabled: !onImport,
     },
   ];
 }

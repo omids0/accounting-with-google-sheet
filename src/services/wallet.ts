@@ -14,6 +14,7 @@ import {
   updateSheetRow,
   deleteSheetRow,
 } from './sheets';
+import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
 
 export const WALLET_SHEET = 'کیف پول';
 
@@ -147,4 +148,31 @@ export async function loadWalletPeriodFlow(
     monthKey,
     monthLabel: formatJalaliMonthLabel(monthKey),
   };
+}
+
+export async function exportWalletAccountsCsv(spreadsheetId: string): Promise<void> {
+  await exportSheetCsv(spreadsheetId, WALLET_SHEET, WALLET_HEADERS, 'کیف-پول.csv');
+}
+
+export async function importWalletAccountsCsv(
+  spreadsheetId: string,
+  csvContent: string
+) {
+  return importSheetCsv(
+    spreadsheetId,
+    WALLET_SHEET,
+    WALLET_HEADERS,
+    csvContent,
+    (cells) => {
+      const title = (cells[2] ?? '').trim();
+      if (!title) return null;
+      return accountToRow({
+        id: newImportId(cells[0] ?? ''),
+        createdAt: newImportTimestamp(cells[1] ?? ''),
+        title,
+        balance: Number(cells[3]) || 0,
+        note: cells[4] ?? '',
+      });
+    }
+  );
 }

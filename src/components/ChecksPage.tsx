@@ -6,7 +6,9 @@ import {
   createCheck,
   deleteCheck,
   ensureChecksSheet,
+  exportChecksCsv,
   fetchChecks,
+  importChecksCsv,
   sortChecks,
   toggleCheckPaid,
   totalChecksInRange,
@@ -26,6 +28,7 @@ import {
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import { useSheetImportExport } from '../hooks/useSheetImportExport';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
@@ -260,6 +263,13 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     }
   };
 
+  const { handleExport, handleImport } = useSheetImportExport({
+    exportFn: exportChecksCsv,
+    importFn: importChecksCsv,
+    onComplete: loadItems,
+    onReauth,
+  });
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات چک‌ها',
@@ -267,9 +277,11 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
         onAdd: () => openCreateForm(),
         onRefresh: loadItems,
         refreshDisabled: loading,
+        onImport: handleImport,
+        onExport: handleExport,
       }),
     }),
-    [loadItems, loading]
+    [loadItems, loading, handleImport, handleExport]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

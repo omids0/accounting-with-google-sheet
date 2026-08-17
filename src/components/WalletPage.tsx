@@ -6,7 +6,9 @@ import {
   createWalletAccount,
   deleteWalletAccount,
   ensureWalletSheet,
+  exportWalletAccountsCsv,
   fetchWalletAccounts,
+  importWalletAccountsCsv,
   loadWalletPeriodFlow,
   updateWalletAccount,
   type WalletPeriodFlow,
@@ -18,6 +20,7 @@ import { InstallmentCardListSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import { useSheetImportExport } from '../hooks/useSheetImportExport';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
@@ -281,6 +284,13 @@ export default function WalletPage({
     }
   };
 
+  const { handleExport, handleImport } = useSheetImportExport({
+    exportFn: exportWalletAccountsCsv,
+    importFn: importWalletAccountsCsv,
+    onComplete: loadItems,
+    onReauth,
+  });
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات کیف پول',
@@ -288,9 +298,11 @@ export default function WalletPage({
         onAdd: () => openCreateForm(),
         onRefresh: loadItems,
         refreshDisabled: loading,
+        onImport: handleImport,
+        onExport: handleExport,
       }),
     }),
-    [loadItems, loading]
+    [loadItems, loading, handleImport, handleExport]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

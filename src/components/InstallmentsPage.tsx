@@ -5,7 +5,9 @@ import { isTokenValid } from '../services/auth';
 import {
   createInstallmentPlan,
   ensureInstallmentsSheet,
+  exportInstallmentsCsv,
   fetchInstallmentPlans,
+  importInstallmentsCsv,
   isInstallmentPlanComplete,
   reconcilePaymentsOnEdit,
   sortInstallmentPayments,
@@ -28,6 +30,7 @@ import {
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
+import { useSheetImportExport } from '../hooks/useSheetImportExport';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import { AccordionCollapse } from './AccordionCollapse';
@@ -268,6 +271,13 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
   );
   const sortedPlans = useMemo(() => sortInstallmentPlans(plans), [plans]);
 
+  const { handleExport, handleImport } = useSheetImportExport({
+    exportFn: exportInstallmentsCsv,
+    importFn: importInstallmentsCsv,
+    onComplete: loadPlans,
+    onReauth,
+  });
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات اقساط',
@@ -275,9 +285,11 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
         onAdd: () => openCreateForm(),
         onRefresh: loadPlans,
         refreshDisabled: loading,
+        onImport: handleImport,
+        onExport: handleExport,
       }),
     }),
-    [loadPlans, loading]
+    [loadPlans, loading, handleImport, handleExport]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

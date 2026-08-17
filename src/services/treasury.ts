@@ -6,6 +6,7 @@ import {
   updateSheetRow,
   deleteSheetRow,
 } from './sheets';
+import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
 
 export const TREASURY_SHEET = 'صندوقچه';
 
@@ -151,4 +152,48 @@ export async function deleteVaultTransaction(
   rowNumber: number
 ): Promise<void> {
   await deleteSheetRow(spreadsheetId, TREASURY_SHEET, rowNumber);
+}
+
+const VALID_ASSET_TYPES = new Set<VaultAssetType>([
+  'sekeb',
+  'sekee',
+  'nim',
+  'rob',
+  'gerami',
+  'geram18',
+  'usd',
+]);
+
+const VALID_ACTIONS = new Set<VaultAction>(['buy', 'sell']);
+
+export async function exportTreasuryCsv(spreadsheetId: string): Promise<void> {
+  await exportSheetCsv(spreadsheetId, TREASURY_SHEET, TREASURY_HEADERS, 'صندوقچه.csv');
+}
+
+export async function importTreasuryCsv(spreadsheetId: string, csvContent: string) {
+  return importSheetCsv(
+    spreadsheetId,
+    TREASURY_SHEET,
+    TREASURY_HEADERS,
+    csvContent,
+    (cells) => {
+      const assetType = (cells[2] ?? '').trim() as VaultAssetType;
+      const action = (cells[3] ?? '').trim() as VaultAction;
+      if (!VALID_ASSET_TYPES.has(assetType) || !VALID_ACTIONS.has(action)) {
+        return null;
+      }
+      const quantity = Number(cells[4]);
+      if (!quantity) return null;
+      return transactionToRow({
+        id: newImportId(cells[0] ?? ''),
+        createdAt: newImportTimestamp(cells[1] ?? ''),
+        assetType,
+        action,
+        quantity,
+        unitPrice: Number(cells[5]) || 0,
+        transactionDate: cells[6] ?? '',
+        note: cells[7] ?? '',
+      });
+    }
+  );
 }

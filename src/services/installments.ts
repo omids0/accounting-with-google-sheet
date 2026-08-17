@@ -9,6 +9,7 @@ import {
   deleteSheetRow,
 } from './sheets';
 import { addJalaliMonths, getTodayIso } from '../utils/jalaliDate';
+import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
 
 export const INSTALLMENTS_SHEET = 'اقساط';
 
@@ -305,5 +306,46 @@ export function totalInstallmentsInRange(
   return plans.reduce(
     (sum, plan) => sum + installmentAmountInRange(plan, range),
     0
+  );
+}
+
+export async function exportInstallmentsCsv(spreadsheetId: string): Promise<void> {
+  await exportSheetCsv(
+    spreadsheetId,
+    INSTALLMENTS_SHEET,
+    INSTALLMENTS_HEADERS,
+    'اقساط.csv'
+  );
+}
+
+export async function importInstallmentsCsv(
+  spreadsheetId: string,
+  csvContent: string
+) {
+  return importSheetCsv(
+    spreadsheetId,
+    INSTALLMENTS_SHEET,
+    INSTALLMENTS_HEADERS,
+    csvContent,
+    (cells) => {
+      const title = (cells[2] ?? '').trim();
+      if (!title) return null;
+      const count = Number(cells[4]) || 0;
+      const dueDay = Number(cells[5]) || 1;
+      const startDate = (cells[6] ?? '').trim() || getTodayIso();
+      const plan: InstallmentPlan = {
+        id: newImportId(cells[0] ?? ''),
+        createdAt: newImportTimestamp(cells[1] ?? ''),
+        title,
+        amount: Number(cells[3]) || 0,
+        count,
+        dueDay,
+        startDate,
+        note: cells[7] ?? '',
+        payments: parsePayments(cells[8] ?? '', count, dueDay, startDate),
+      };
+      if (!plan.count || !plan.amount) return null;
+      return planToRow(plan);
+    }
   );
 }

@@ -8,6 +8,7 @@ import {
   updateSheetRow,
   deleteSheetRow,
 } from './sheets';
+import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
 
 export const CHECKS_SHEET = 'چک‌ها';
 
@@ -144,4 +145,33 @@ export function totalUnpaidChecksInRange(checks: Check[], range: DateRange): num
   return checks
     .filter((c) => !c.paid && isDateInRange(c.dueDate, range))
     .reduce((sum, c) => sum + c.amount, 0);
+}
+
+export async function exportChecksCsv(spreadsheetId: string): Promise<void> {
+  await exportSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, 'چک‌ها.csv');
+}
+
+export async function importChecksCsv(spreadsheetId: string, csvContent: string) {
+  return importSheetCsv(
+    spreadsheetId,
+    CHECKS_SHEET,
+    CHECKS_HEADERS,
+    csvContent,
+    (cells) => {
+      const checkNumber = (cells[2] ?? '').trim();
+      const counterparty = (cells[3] ?? '').trim();
+      if (!checkNumber && !counterparty) return null;
+      return checkToRow({
+        id: newImportId(cells[0] ?? ''),
+        createdAt: newImportTimestamp(cells[1] ?? ''),
+        checkNumber,
+        counterparty,
+        amount: Number(cells[4]) || 0,
+        creationDate: cells[5] ?? '',
+        dueDate: cells[6] ?? '',
+        paid: parsePaid(cells[7] ?? ''),
+        paidAt: cells[8] ?? '',
+      });
+    }
+  );
 }
