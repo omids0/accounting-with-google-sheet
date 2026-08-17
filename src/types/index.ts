@@ -20,6 +20,8 @@ export interface CustomForm {
 
 export type CurrencyUnit = 'toman' | 'rial' | 'usd' | 'eur';
 
+export type ThemeMode = 'light' | 'dark';
+
 export interface SpreadsheetEntry {
   id: string;
   name: string;
@@ -31,6 +33,7 @@ export interface AppSettings {
   spreadsheets?: SpreadsheetEntry[];
   forms: CustomForm[];
   currency?: CurrencyUnit;
+  theme?: ThemeMode;
 }
 
 export interface GoogleSession {

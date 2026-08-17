@@ -4,6 +4,7 @@ import type {
   CustomForm,
   FieldConfig,
   SpreadsheetEntry,
+  ThemeMode,
 } from '../types';
 import { getItem, setItem, STORAGE_KEYS } from './storage';
 import { isTokenValid } from './auth';
@@ -122,6 +123,7 @@ export function getDefaultSettings(): AppSettings {
     spreadsheets: [],
     forms: getDefaultForms(),
     currency: 'toman',
+    theme: 'light',
   };
 }
 
@@ -173,6 +175,11 @@ export function setActiveSpreadsheet(id: string): AppSettings {
 export function updateCurrency(currency: CurrencyUnit): void {
   const settings = getSettings() ?? getDefaultSettings();
   saveSettings({ ...settings, currency });
+}
+
+export function updateTheme(theme: ThemeMode): void {
+  const settings = getSettings() ?? getDefaultSettings();
+  saveSettings({ ...settings, theme });
 }
 
 export function isConfigured(): boolean {

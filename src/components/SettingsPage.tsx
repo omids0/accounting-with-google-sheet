@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import type { CurrencyUnit, FieldConfig, FieldType, SpreadsheetEntry } from '../types';
+import type { CurrencyUnit, FieldConfig, FieldType, SpreadsheetEntry, ThemeMode } from '../types';
 import {
   getSettings,
   saveSettings,
   getDefaultSettings,
   getSpreadsheets,
   updateCurrency,
+  updateTheme as persistTheme,
 } from '../services/settings';
 import { saveFormCategoriesToSheet, syncCategoriesFromSheet } from '../services/categories';
 import { CURRENCY_OPTIONS } from '../utils/formatMoney';
@@ -30,12 +31,18 @@ import {
 import { usePwaInstall } from '../hooks/usePwaInstall';
 import { SettingsSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
+import { applyTheme } from '../utils/theme';
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'text', label: 'متن' },
   { value: 'number', label: 'عدد' },
   { value: 'date', label: 'تاریخ' },
   { value: 'select', label: 'انتخابی' },
+];
+
+const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
+  { value: 'light', label: 'لایت مود (روشن)' },
+  { value: 'dark', label: 'نایت مود (تاریک)' },
 ];
 
 export default function SettingsPage({
@@ -51,6 +58,7 @@ export default function SettingsPage({
   const [showNewSheetForm, setShowNewSheetForm] = useState(false);
   const [forms, setForms] = useState(getDefaultSettings().forms);
   const [currency, setCurrency] = useState<CurrencyUnit>('toman');
+  const [theme, setTheme] = useState<ThemeMode>('light');
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [categoriesKey, setCategoriesKey] = useState(0);
 
@@ -64,6 +72,7 @@ export default function SettingsPage({
     setSpreadsheets(getSpreadsheets());
     setForms(settings.forms);
     setCurrency(settings.currency ?? 'toman');
+    setTheme(settings.theme ?? 'light');
 
     if (!isTokenValid()) {
       setInitialLoading(false);
@@ -206,6 +215,13 @@ export default function SettingsPage({
     setCurrency(value);
     updateCurrency(value);
     showSuccess('واحد پول ذخیره شد');
+  };
+
+  const handleThemeChange = (value: ThemeMode) => {
+    setTheme(value);
+    persistTheme(value);
+    applyTheme(value);
+    showSuccess('حالت نمایش ذخیره شد');
   };
 
   const handleSaveFormFields = (formId: string, fields: FieldConfig[]) => {
@@ -390,19 +406,35 @@ export default function SettingsPage({
       <div className="card">
         <h2 className="card-title">تنظیمات عمومی</h2>
         <FormSelect
-          label="واحد پول"
-          value={currency}
-          onChange={(next) => handleCurrencyChange(next as CurrencyUnit)}
-          options={CURRENCY_OPTIONS.map((option) => ({
+          label="حالت نمایش"
+          value={theme}
+          onChange={(next) => handleThemeChange(next as ThemeMode)}
+          options={THEME_OPTIONS.map((option) => ({
             value: option.value,
             label: option.label,
           }))}
           hint={
             <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-              واحد پول در تمام نمایش مبالغ (داشبورد، رکوردها و ...) اعمال می‌شود
+              انتخاب بین لایت مود و نایت مود برای تمام صفحات اپ
             </p>
           }
         />
+        <div style={{ marginTop: '1rem' }}>
+          <FormSelect
+            label="واحد پول"
+            value={currency}
+            onChange={(next) => handleCurrencyChange(next as CurrencyUnit)}
+            options={CURRENCY_OPTIONS.map((option) => ({
+              value: option.value,
+              label: option.label,
+            }))}
+            hint={
+              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                واحد پول در تمام نمایش مبالغ (داشبورد، رکوردها و ...) اعمال می‌شود
+              </p>
+            }
+          />
+        </div>
       </div>
 
       <div className="card">

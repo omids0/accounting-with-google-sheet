@@ -15,6 +15,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="حسابداری" />
     <title>حسابداری شخصی</title>
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('accounting_settings');
+          if (!raw) return;
+          var settings = JSON.parse(raw);
+          if (settings.theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.style.colorScheme = 'dark';
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
