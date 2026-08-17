@@ -27,6 +27,9 @@ import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import PageHeader from './PageHeader';
+import SearchEmptyState from './SearchEmptyState';
+import { matchSearch } from '../utils/search';
 
 type DangWithRow = Dang & { rowNumber: number };
 
@@ -41,6 +44,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   const [togglingId, setTogglingId] = useState('');
   const [savingAmountId, setSavingAmountId] = useState('');
   const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({});
+  const [searchQuery, setSearchQuery] = useState('');
   const [form, setForm] = useState({
     title: '',
     counterparty: '',
@@ -313,6 +317,21 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
 
+  const filteredItems = useMemo(
+    () =>
+      items.filter((item) =>
+        matchSearch(
+          searchQuery,
+          item.title,
+          item.counterparty,
+          item.note,
+          item.amount,
+          item.date
+        )
+      ),
+    [items, searchQuery]
+  );
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -326,9 +345,12 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
 
   return (
     <div>
-      <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>دنگ</h2>
-      </div>
+      <PageHeader
+        title="دنگ"
+        search={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="جستجو در دنگ‌ها..."
+      />
 
       {loading && items.length === 0 ? (
         <DangCardListSkeleton />
@@ -337,9 +359,11 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
           <div className="icon">🍽️</div>
           <p>هنوز دنگی ثبت نشده</p>
         </div>
+      ) : filteredItems.length === 0 ? (
+        <SearchEmptyState />
       ) : (
         <>
-          {items.map((item) => {
+          {filteredItems.map((item) => {
             const amountValue =
               amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount;
 

@@ -36,6 +36,9 @@ import CardEditButton from './CardEditButton';
 import { AccordionCollapse } from './AccordionCollapse';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import PageHeader from './PageHeader';
+import SearchEmptyState from './SearchEmptyState';
+import { matchSearch } from '../utils/search';
 
 type PlanWithRow = InstallmentPlan & { rowNumber: number };
 
@@ -49,6 +52,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [togglingKey, setTogglingKey] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
 
   const [form, setForm] = useState({
@@ -270,6 +274,13 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     [plans, monthRange]
   );
   const sortedPlans = useMemo(() => sortInstallmentPlans(plans), [plans]);
+  const filteredPlans = useMemo(
+    () =>
+      sortedPlans.filter((plan) =>
+        matchSearch(searchQuery, plan.title, plan.note, plan.amount, plan.count)
+      ),
+    [sortedPlans, searchQuery]
+  );
 
   const { handleExport, handleImport } = useSheetImportExport({
     exportFn: exportInstallmentsCsv,
@@ -308,9 +319,12 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
 
   return (
     <div>
-      <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>اقساط</h2>
-      </div>
+      <PageHeader
+        title="اقساط"
+        search={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="جستجو در اقساط..."
+      />
 
       {loading && plans.length === 0 ? (
         <InstallmentCardListSkeleton />
@@ -319,8 +333,10 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
           <div className="icon">📅</div>
           <p>هنوز قسطی ثبت نشده</p>
         </div>
+      ) : filteredPlans.length === 0 ? (
+        <SearchEmptyState />
       ) : (
-        sortedPlans.map((plan) => {
+        filteredPlans.map((plan) => {
           const expanded = expandedId === plan.id;
           const done = paidCount(plan);
           const total = plan.count;

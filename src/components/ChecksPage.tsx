@@ -33,6 +33,9 @@ import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import PageHeader from './PageHeader';
+import SearchEmptyState from './SearchEmptyState';
+import { matchSearch } from '../utils/search';
 
 type CheckWithRow = Check & { rowNumber: number };
 
@@ -45,6 +48,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
 
   const [form, setForm] = useState({
@@ -191,6 +195,20 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     }),
     [items, monthRange]
   );
+  const filteredItems = useMemo(
+    () =>
+      items.filter((item) =>
+        matchSearch(
+          searchQuery,
+          item.checkNumber,
+          item.counterparty,
+          item.amount,
+          item.creationDate,
+          item.dueDate
+        )
+      ),
+    [items, searchQuery]
+  );
 
   const resetCreateForm = () => {
     setForm({
@@ -297,9 +315,12 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
 
   return (
     <div>
-      <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>چک‌ها</h2>
-      </div>
+      <PageHeader
+        title="چک‌ها"
+        search={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="جستجو در چک‌ها..."
+      />
 
       {loading && items.length === 0 ? (
         <DangCardListSkeleton />
@@ -308,9 +329,11 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
           <div className="icon">📝</div>
           <p>هنوز چکی ثبت نشده</p>
         </div>
+      ) : filteredItems.length === 0 ? (
+        <SearchEmptyState />
       ) : (
         <>
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <div
               key={item.id}
               className={`card dang-card${item.paid ? ' paid' : ''}`}

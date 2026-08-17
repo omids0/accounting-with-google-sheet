@@ -26,6 +26,9 @@ import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { AccordionCollapse } from './AccordionCollapse';
+import PageHeader from './PageHeader';
+import SearchEmptyState from './SearchEmptyState';
+import { matchSearch } from '../utils/search';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
 
@@ -56,6 +59,7 @@ export default function WalletPage({
   const [periodFlow, setPeriodFlow] = useState<WalletPeriodFlow | null>(null);
   const [openingInput, setOpeningInput] = useState<number | ''>('');
   const [savingOpening, setSavingOpening] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const syncBalances = useCallback((accounts: WalletAccountWithRow[]) => {
     const next: Record<string, number | ''> = {};
@@ -307,6 +311,14 @@ export default function WalletPage({
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
 
+  const filteredItems = useMemo(() => {
+    const sorted = [...items].sort((a, b) => b.balance - a.balance);
+    if (!searchQuery.trim()) return sorted;
+    return sorted.filter((item) =>
+      matchSearch(searchQuery, item.title, item.note, item.balance)
+    );
+  }, [items, searchQuery]);
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -327,15 +339,17 @@ export default function WalletPage({
       : 0;
   const reconciliationDiff = totalBalance - periodBalance;
   const hasReconciliationGap = periodFlow != null && Math.abs(reconciliationDiff) > 0;
-  const sortedItems = [...items].sort((a, b) => b.balance - a.balance);
   const displayOpeningBalance =
     openingInput === '' ? periodFlow?.openingBalance ?? 0 : Number(openingInput);
 
   return (
     <div>
-      <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>کیف پول</h2>
-      </div>
+      <PageHeader
+        title="کیف پول"
+        search={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="جستجو در حساب‌ها..."
+      />
 
       {periodFlow && (
         <div className={`card installment-card dashboard-opening-card wallet-item-card${openingExpanded ? ' installment-card--expanded' : ''}`}>
@@ -394,8 +408,10 @@ export default function WalletPage({
           <div className="icon">👛</div>
           <p>هنوز حسابی ثبت نشده</p>
         </div>
+      ) : filteredItems.length === 0 ? (
+        <SearchEmptyState />
       ) : (
-        sortedItems.map((account) => {
+        filteredItems.map((account) => {
           const expanded = expandedId === account.id;
           const rawBalance = balances[account.id] ?? account.balance;
           const displayBalance = rawBalance === '' ? account.balance : Number(rawBalance);

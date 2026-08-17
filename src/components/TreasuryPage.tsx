@@ -33,6 +33,9 @@ import CardEditButton from './CardEditButton';
 import { AccordionCollapse } from './AccordionCollapse';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import PageHeader from './PageHeader';
+import SearchEmptyState from './SearchEmptyState';
+import { matchSearch } from '../utils/search';
 
 type TransactionWithRow = Awaited<ReturnType<typeof fetchVaultTransactions>>[number];
 
@@ -66,6 +69,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   const [priceLoading, setPriceLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
 
 
@@ -244,6 +248,20 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   const allowDecimal = form.assetType === 'geram18';
   const holdings = prices ? computeHoldings(transactions, prices) : [];
   const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0);
+  const filteredHoldings = useMemo(
+    () =>
+      holdings.filter((holding) =>
+        matchSearch(
+          searchQuery,
+          getAssetLabel(holding.assetType),
+          holding.netQuantity,
+          holding.currentUnitPrice,
+          holding.totalValue,
+          ...holding.transactions.flatMap((tx) => [tx.note, tx.quantity, tx.unitPrice])
+        )
+      ),
+    [holdings, searchQuery]
+  );
 
   const resetCreateForm = () => {
     setForm({
@@ -355,9 +373,12 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
 
   return (
     <div>
-      <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>صندوقچه</h2>
-      </div>
+      <PageHeader
+        title="صندوقچه"
+        search={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="جستجو در دارایی‌ها..."
+      />
 
       {prices && (
         <div className="card treasury-price-card">
@@ -394,8 +415,10 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
           <div className="icon">🏦</div>
           <p>هنوز دارایی‌ای ثبت نشده</p>
         </div>
+      ) : filteredHoldings.length === 0 ? (
+        <SearchEmptyState />
       ) : (
-        holdings.map((holding) => {
+        filteredHoldings.map((holding) => {
           const expanded = expandedAsset === holding.assetType;
           const allowDecimal = holding.assetType === 'geram18';
           return (

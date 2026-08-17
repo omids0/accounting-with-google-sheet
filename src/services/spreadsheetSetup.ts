@@ -28,7 +28,6 @@ import {
 } from './categories';
 import {
   formatSpreadsheetTitle,
-  getSpreadsheetLabel,
 } from './spreadsheetCatalog';
 import {
   createSpreadsheet,

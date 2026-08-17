@@ -30,6 +30,9 @@ import CardEditButton from './CardEditButton';
 import { AccordionCollapse } from './AccordionCollapse';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import PageHeader from './PageHeader';
+import SearchEmptyState from './SearchEmptyState';
+import { matchSearch } from '../utils/search';
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
 
@@ -43,6 +46,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [payingId, setPayingId] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
 
   const [form, setForm] = useState({
@@ -291,6 +295,14 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
 
+  const filteredItems = useMemo(
+    () =>
+      items.filter((item) =>
+        matchSearch(searchQuery, item.debtor, item.note, item.amount, item.borrowDate)
+      ),
+    [items, searchQuery]
+  );
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -304,9 +316,12 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
 
   return (
     <div>
-      <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>طلب‌ها</h2>
-      </div>
+      <PageHeader
+        title="طلب‌ها"
+        search={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="جستجو در طلب‌ها..."
+      />
 
       {loading && items.length === 0 ? (
         <InstallmentCardListSkeleton />
@@ -315,8 +330,10 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
           <div className="icon">💰</div>
           <p>هنوز طلبی ثبت نشده</p>
         </div>
+      ) : filteredItems.length === 0 ? (
+        <SearchEmptyState />
       ) : (
-        items.map((item) => {
+        filteredItems.map((item) => {
           const expanded = expandedId === item.id;
           const paid = paidAmount(item);
           const remaining = remainingAmount(item);
