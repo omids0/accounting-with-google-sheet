@@ -51,9 +51,20 @@ export default function FormModal({
       />
 
       <div className="form-modal-panel">
-        <h3 id="form-modal-title" className="form-modal-title">
-          {title}
-        </h3>
+        <div className="form-modal-header">
+          <h2 id="form-modal-title" className="form-modal-title">
+            {title}
+          </h2>
+          <button
+            type="button"
+            className="form-modal-close"
+            onClick={onClose}
+            disabled={saving}
+            aria-label="بستن"
+          >
+            ×
+          </button>
+        </div>
 
         <form onSubmit={onSubmit}>
           <div className="form-modal-body">{children}</div>
