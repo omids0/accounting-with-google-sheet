@@ -1399,14 +1399,13 @@ button {
   overflow: hidden;
 }
 
-.card-edit-btn {
+.card-action-btn {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
-  margin: 0.65rem 0.65rem 0.65rem 0;
   padding: 0;
   border: none;
   background: transparent;
@@ -1418,14 +1417,55 @@ button {
     color var(--duration-fast);
 }
 
-.card-edit-btn:hover:not(:disabled) {
+.card-action-btn:hover:not(:disabled) {
   background: var(--color-bg);
+}
+
+.card-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.card-edit-btn:hover:not(:disabled) {
   color: var(--color-primary);
 }
 
-.card-edit-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+.card-delete-btn:hover:not(:disabled) {
+  color: var(--color-danger);
+}
+
+.card-action-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  align-self: center;
+  flex-shrink: 0;
+  margin-inline-end: 0.5rem;
+}
+
+.card-action-buttons .card-action-btn {
+  width: 2rem;
+  height: 2rem;
+}
+
+.card-header-with-edit .card-action-buttons {
+  margin-inline-start: 0;
+  margin-inline-end: 0.5rem;
+  align-self: center;
+}
+
+.dang-card .card-action-buttons {
+  margin: 0.85rem 0.5rem 0.85rem 0;
+  align-self: flex-start;
+}
+
+.confirm-delete-message {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--color-text);
 }
 
 .card-header-with-edit {
@@ -1436,17 +1476,6 @@ button {
 .card-header-with-edit .installment-header {
   flex: 1;
   min-width: 0;
-}
-
-.card-header-with-edit .card-edit-btn {
-  align-self: center;
-  margin-inline-start: 0;
-  margin-inline-end: 0.65rem;
-}
-
-.dang-card .card-edit-btn {
-  margin: 0.85rem 0.65rem 0.85rem 0;
-  align-self: flex-start;
 }
 
 .installment-header {
@@ -2213,7 +2242,7 @@ button {
   min-width: 0;
 }
 
-.record-item .card-edit-btn {
+.record-item .card-action-buttons {
   margin: 0;
   align-self: center;
 }
@@ -2226,6 +2255,10 @@ button {
   position: absolute;
   top: 0.25rem;
   left: 0.25rem;
+}
+
+.treasury-tx-edit .card-action-buttons {
+  margin: 0;
 }
 
 .record-item:last-child {

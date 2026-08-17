@@ -1,18 +1,18 @@
-type CardEditButtonProps = {
+type CardDeleteButtonProps = {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   ariaLabel?: string;
 };
 
-export default function CardEditButton({
+export default function CardDeleteButton({
   onClick,
   disabled = false,
-  ariaLabel = 'ویرایش',
-}: CardEditButtonProps) {
+  ariaLabel = 'حذف',
+}: CardDeleteButtonProps) {
   return (
     <button
       type="button"
-      className="card-action-btn card-edit-btn"
+      className="card-action-btn card-delete-btn"
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
@@ -29,8 +29,11 @@ export default function CardEditButton({
         strokeLinejoin="round"
         aria-hidden
       >
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        <path d="M3 6h18" />
+        <path d="M8 6V4h8v2" />
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
       </svg>
     </button>
   );

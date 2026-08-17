@@ -4,6 +4,7 @@ import {
   ensureSheetWithHeaders,
   fetchSheetRows,
   updateSheetRow,
+  deleteSheetRow,
 } from './sheets';
 
 export const DANG_SHEET = 'دنگ';
@@ -108,6 +109,13 @@ export async function updateDang(
   dang: Dang
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, DANG_SHEET, rowNumber, dangToRow(dang));
+}
+
+export async function deleteDang(
+  spreadsheetId: string,
+  rowNumber: number
+): Promise<void> {
+  await deleteSheetRow(spreadsheetId, DANG_SHEET, rowNumber);
 }
 
 export async function toggleDangPaid(

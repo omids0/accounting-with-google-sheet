@@ -6,6 +6,7 @@ import {
   ensureSheetWithHeaders,
   fetchSheetRows,
   updateSheetRow,
+  deleteSheetRow,
 } from './sheets';
 import { addJalaliMonths, getTodayIso } from '../utils/jalaliDate';
 
@@ -135,6 +136,13 @@ export async function updateInstallmentPlan(
   plan: InstallmentPlan
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, INSTALLMENTS_SHEET, rowNumber, planToRow(plan));
+}
+
+export async function deleteInstallmentPlan(
+  spreadsheetId: string,
+  rowNumber: number
+): Promise<void> {
+  await deleteSheetRow(spreadsheetId, INSTALLMENTS_SHEET, rowNumber);
 }
 
 export function reconcilePaymentsOnEdit(

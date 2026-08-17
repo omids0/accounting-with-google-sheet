@@ -4,6 +4,7 @@ import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
 import {
   createDang,
+  deleteDang,
   ensureDangSheet,
   fetchDangs,
   sortDangs,
@@ -21,6 +22,8 @@ import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
+import CardDeleteButton from './CardDeleteButton';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 type DangWithRow = Dang & { rowNumber: number };
 
@@ -28,8 +31,10 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   const [items, setItems] = useState<DangWithRow[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<DangWithRow | null>(null);
+  const [deletingItem, setDeletingItem] = useState<DangWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState('');
   const [savingAmountId, setSavingAmountId] = useState('');
   const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({});
@@ -246,6 +251,42 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     resetCreateForm();
   };
 
+  const openDeleteConfirm = (item: DangWithRow) => {
+    setDeletingItem(item);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deleting) return;
+    setDeletingItem(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingItem) return;
+
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await deleteDang(settings.spreadsheetId, deletingItem.rowNumber);
+      setDeletingItem(null);
+      showSuccess('دنگ حذف شد');
+      await loadItems();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در حذف دنگ';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات دنگ',
@@ -332,7 +373,10 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
                     </p>
                   )}
                 </div>
-                <CardEditButton onClick={() => openEditForm(item)} />
+                <div className="card-action-buttons">
+                  <CardEditButton onClick={() => openEditForm(item)} />
+                  <CardDeleteButton onClick={() => openDeleteConfirm(item)} />
+                </div>
               </div>
             );
           })}
@@ -401,6 +445,14 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
           />
         </div>
       </FormModal>
+
+      <ConfirmDeleteModal
+        open={deletingItem !== null}
+        message="از حذف این مورد مطمئن هستید؟"
+        onClose={closeDeleteConfirm}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
     </div>
   );
 }

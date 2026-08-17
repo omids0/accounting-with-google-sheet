@@ -4,6 +4,7 @@ import {
   ensureSheetWithHeaders,
   fetchSheetRows,
   updateSheetRow,
+  deleteSheetRow,
 } from './sheets';
 
 export const TREASURY_SHEET = 'صندوقچه';
@@ -143,4 +144,11 @@ export async function updateVaultTransaction(
   tx: VaultTransaction
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, TREASURY_SHEET, rowNumber, transactionToRow(tx));
+}
+
+export async function deleteVaultTransaction(
+  spreadsheetId: string,
+  rowNumber: number
+): Promise<void> {
+  await deleteSheetRow(spreadsheetId, TREASURY_SHEET, rowNumber);
 }

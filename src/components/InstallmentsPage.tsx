@@ -13,6 +13,7 @@ import {
   toggleInstallmentPayment,
   totalInstallmentsInRange,
   totalUnpaidInstallments,
+  deleteInstallmentPlan,
   updateInstallmentPlan,
 } from '../services/installments';
 import AmountInput from './AmountInput';
@@ -29,6 +30,8 @@ import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
+import CardDeleteButton from './CardDeleteButton';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 type PlanWithRow = InstallmentPlan & { rowNumber: number };
 
@@ -37,8 +40,10 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PlanWithRow | null>(null);
+  const [deletingPlan, setDeletingPlan] = useState<PlanWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [togglingKey, setTogglingKey] = useState('');
 
 
@@ -211,6 +216,43 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     resetCreateForm();
   };
 
+  const openDeleteConfirm = (plan: PlanWithRow) => {
+    setDeletingPlan(plan);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deleting) return;
+    setDeletingPlan(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingPlan) return;
+
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await deleteInstallmentPlan(settings.spreadsheetId, deletingPlan.rowNumber);
+      if (expandedId === deletingPlan.id) setExpandedId(null);
+      setDeletingPlan(null);
+      showSuccess('قسط حذف شد');
+      await loadPlans();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در حذف قسط';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const monthRange = useMemo(() => getInstallmentDueRange('month-to-date'), []);
   const monthLabel = useMemo(
     () => formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso())),
@@ -295,12 +337,20 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                   </div>
                   <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
                 </button>
-                <CardEditButton
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    openEditForm(plan);
-                  }}
-                />
+                <div className="card-action-buttons">
+                  <CardEditButton
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openEditForm(plan);
+                    }}
+                  />
+                  <CardDeleteButton
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openDeleteConfirm(plan);
+                    }}
+                  />
+                </div>
               </div>
 
               {expanded && (
@@ -440,6 +490,14 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
           />
         </div>
       </FormModal>
+
+      <ConfirmDeleteModal
+        open={deletingPlan !== null}
+        message="از حذف این مورد مطمئن هستید؟"
+        onClose={closeDeleteConfirm}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
     </div>
   );
 }

@@ -490,6 +490,60 @@ export async function updateSheetRow(
   );
 }
 
+async function getSheetId(
+  spreadsheetId: string,
+  sheetName: string
+): Promise<number> {
+  const meta = await apiRequest<{
+    sheets?: { properties?: { title?: string; sheetId?: number } }[];
+  }>(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties(title,sheetId)`);
+
+  const target = normalizeSheetTitle(sheetName);
+  const sheet = (meta.sheets ?? []).find(
+    (item) => normalizeSheetTitle(item.properties?.title ?? '') === target
+  );
+  const sheetId = sheet?.properties?.sheetId;
+  if (sheetId == null) {
+    throw new Error(`شیت «${sheetName}» یافت نشد`);
+  }
+  return sheetId;
+}
+
+export async function deleteSheetRow(
+  spreadsheetId: string,
+  sheetName: string,
+  rowNumber: number
+): Promise<void> {
+  const sheetId = await getSheetId(spreadsheetId, sheetName);
+  const startIndex = rowNumber - 1;
+
+  await apiRequest(`${SHEETS_API}/${spreadsheetId}:batchUpdate`, {
+    method: 'POST',
+    body: JSON.stringify({
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId,
+              dimension: 'ROWS',
+              startIndex,
+              endIndex: startIndex + 1,
+            },
+          },
+        },
+      ],
+    }),
+  });
+}
+
+export async function deleteRecord(
+  spreadsheetId: string,
+  form: CustomForm,
+  rowNumber: number
+): Promise<void> {
+  await deleteSheetRow(spreadsheetId, form.sheetName, rowNumber);
+}
+
 export async function replaceSheetDataRows(
   spreadsheetId: string,
   sheetName: string,

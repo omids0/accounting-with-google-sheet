@@ -6,6 +6,7 @@ import {
   ensureSheetWithHeaders,
   fetchSheetRows,
   updateSheetRow,
+  deleteSheetRow,
 } from './sheets';
 
 export const CHECKS_SHEET = 'چک‌ها';
@@ -110,6 +111,13 @@ export async function updateCheck(
   check: Check
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber, checkToRow(check));
+}
+
+export async function deleteCheck(
+  spreadsheetId: string,
+  rowNumber: number
+): Promise<void> {
+  await deleteSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber);
 }
 
 export async function toggleCheckPaid(

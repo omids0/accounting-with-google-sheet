@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { CustomForm } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
-import { fetchRecords, updateRecord } from '../services/sheets';
+import { fetchRecords, updateRecord, deleteRecord } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
 import { Select, FieldInput, sortFormFields } from './form';
 import DateRangeFilter, {
@@ -23,6 +23,8 @@ import { RecordListSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
+import CardDeleteButton from './CardDeleteButton';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 interface RecordItem {
   id: string;
@@ -104,7 +106,9 @@ export default function RecordsPage({
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState<StoredRecord | null>(null);
+  const [deletingRecord, setDeletingRecord] = useState<StoredRecord | null>(null);
   const [formValues, setFormValues] = useState<Record<string, string | number>>({});
+  const [deleting, setDeleting] = useState(false);
   const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date');
   const [customRange, setCustomRange] = useState(
     () => createDefaultDateRangeFilter().customRange
@@ -249,6 +253,45 @@ export default function RecordsPage({
     setShowForm(false);
     setEditingRecord(null);
     setFormValues({});
+  };
+
+  const openDeleteConfirm = (record: StoredRecord) => {
+    setDeletingRecord(record);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deleting) return;
+    setDeletingRecord(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingRecord) return;
+
+    const form = forms.find((item) => item.id === deletingRecord.formId);
+    if (!form) return;
+
+    if (!isConfigured() || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    const settings = getSettings()!;
+    setDeleting(true);
+    try {
+      await deleteRecord(settings.spreadsheetId, form, deletingRecord.rowNumber);
+      setDeletingRecord(null);
+      showSuccess('تراکنش حذف شد');
+      await loadRecords();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در حذف تراکنش';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -428,7 +471,10 @@ export default function RecordsPage({
                       {formatMoney(Number(amount))}
                     </div>
                   )}
-                  <CardEditButton onClick={() => openEditForm(record)} />
+                  <div className="card-action-buttons">
+                    <CardEditButton onClick={() => openEditForm(record)} />
+                    <CardDeleteButton onClick={() => openDeleteConfirm(record)} />
+                  </div>
                 </div>
               </div>
             );
@@ -466,6 +512,14 @@ export default function RecordsPage({
           ))}
         </FormModal>
       )}
+
+      <ConfirmDeleteModal
+        open={deletingRecord !== null}
+        message="از حذف این مورد مطمئن هستید؟"
+        onClose={closeDeleteConfirm}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
 import {
   createWalletAccount,
+  deleteWalletAccount,
   ensureWalletSheet,
   fetchWalletAccounts,
   loadWalletPeriodFlow,
@@ -19,6 +20,8 @@ import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
+import CardDeleteButton from './CardDeleteButton';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
 
@@ -35,8 +38,10 @@ export default function WalletPage({
   const [openingExpanded, setOpeningExpanded] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingAccount, setEditingAccount] = useState<WalletAccountWithRow | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState<WalletAccountWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [savingId, setSavingId] = useState('');
 
   const [form, setForm] = useState({
@@ -238,6 +243,43 @@ export default function WalletPage({
     resetCreateForm();
   };
 
+  const openDeleteConfirm = (account: WalletAccountWithRow) => {
+    setDeletingAccount(account);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deleting) return;
+    setDeletingAccount(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingAccount) return;
+
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await deleteWalletAccount(settings.spreadsheetId, deletingAccount.rowNumber);
+      if (expandedId === deletingAccount.id) setExpandedId(null);
+      setDeletingAccount(null);
+      showSuccess('حساب حذف شد');
+      await loadItems();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در حذف حساب';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات کیف پول',
@@ -362,12 +404,20 @@ export default function WalletPage({
                   </div>
                   <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
                 </button>
-                <CardEditButton
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    openEditForm(account);
-                  }}
-                />
+                <div className="card-action-buttons">
+                  <CardEditButton
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openEditForm(account);
+                    }}
+                  />
+                  <CardDeleteButton
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openDeleteConfirm(account);
+                    }}
+                  />
+                </div>
               </div>
 
               {expanded && (
@@ -453,6 +503,14 @@ export default function WalletPage({
           />
         </div>
       </FormModal>
+
+      <ConfirmDeleteModal
+        open={deletingAccount !== null}
+        message="از حذف این مورد مطمئن هستید؟"
+        onClose={closeDeleteConfirm}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
     </div>
   );
 }

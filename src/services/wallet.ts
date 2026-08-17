@@ -12,6 +12,7 @@ import {
   fetchRecords,
   fetchSheetRows,
   updateSheetRow,
+  deleteSheetRow,
 } from './sheets';
 
 export const WALLET_SHEET = 'کیف پول';
@@ -84,6 +85,13 @@ export async function updateWalletAccount(
     accountToRow(account)
   );
   return account;
+}
+
+export async function deleteWalletAccount(
+  spreadsheetId: string,
+  rowNumber: number
+): Promise<void> {
+  await deleteSheetRow(spreadsheetId, WALLET_SHEET, rowNumber);
 }
 
 export interface WalletPeriodFlow {

@@ -4,6 +4,7 @@ import {
   ensureSheetWithHeaders,
   fetchSheetRows,
   updateSheetRow,
+  deleteSheetRow,
 } from './sheets';
 import { getTodayIso } from '../utils/jalaliDate';
 
@@ -160,4 +161,11 @@ export async function updateReceivable(
     rowNumber,
     receivableToRow(receivable)
   );
+}
+
+export async function deleteReceivable(
+  spreadsheetId: string,
+  rowNumber: number
+): Promise<void> {
+  await deleteSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber);
 }

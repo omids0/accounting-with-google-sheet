@@ -5,6 +5,7 @@ import { isTokenValid } from '../services/auth';
 import {
   computeHoldings,
   createVaultTransaction,
+  deleteVaultTransaction,
   ensureTreasurySheet,
   fetchVaultTransactions,
   updateVaultTransaction,
@@ -26,6 +27,8 @@ import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
+import CardDeleteButton from './CardDeleteButton';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 type TransactionWithRow = Awaited<ReturnType<typeof fetchVaultTransactions>>[number];
 
@@ -54,9 +57,11 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   const [expandedAsset, setExpandedAsset] = useState<VaultAssetType | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingTx, setEditingTx] = useState<TransactionWithRow | null>(null);
+  const [deletingTx, setDeletingTx] = useState<TransactionWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [priceLoading, setPriceLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
 
 
@@ -271,6 +276,42 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     resetCreateForm();
   };
 
+  const openDeleteConfirm = (tx: TransactionWithRow) => {
+    setDeletingTx(tx);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deleting) return;
+    setDeletingTx(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingTx) return;
+
+    if (!isConfigured() || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    const settings = getSettings()!;
+    setDeleting(true);
+    try {
+      await deleteVaultTransaction(settings.spreadsheetId, deletingTx.rowNumber);
+      setDeletingTx(null);
+      showSuccess('تراکنش حذف شد');
+      await loadItems();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در حذف تراکنش';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const refreshTreasury = useCallback(() => {
     loadItems();
     loadPrices();
@@ -385,7 +426,10 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
                     <div key={tx.id} className="treasury-tx-item">
                       {tx.action === 'buy' && 'rowNumber' in tx && (
                         <div className="treasury-tx-edit">
-                          <CardEditButton onClick={() => openEditForm(txWithRow)} />
+                          <div className="card-action-buttons">
+                            <CardEditButton onClick={() => openEditForm(txWithRow)} />
+                            <CardDeleteButton onClick={() => openDeleteConfirm(txWithRow)} />
+                          </div>
                         </div>
                       )}
                       <div className="treasury-tx-main">
@@ -606,6 +650,14 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
           />
         </div>
       </FormModal>
+
+      <ConfirmDeleteModal
+        open={deletingTx !== null}
+        message="از حذف این مورد مطمئن هستید؟"
+        onClose={closeDeleteConfirm}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
     </div>
   );
 }

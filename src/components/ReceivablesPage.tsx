@@ -5,6 +5,7 @@ import { isTokenValid } from '../services/auth';
 import {
   addReceivablePayment,
   createReceivable,
+  deleteReceivable,
   ensureReceivablesSheet,
   fetchReceivables,
   isReceivableComplete,
@@ -23,6 +24,8 @@ import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
+import CardDeleteButton from './CardDeleteButton';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
 
@@ -31,8 +34,10 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ReceivableWithRow | null>(null);
+  const [deletingItem, setDeletingItem] = useState<ReceivableWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [payingId, setPayingId] = useState('');
 
 
@@ -221,6 +226,44 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     resetCreateForm();
   };
 
+  const openDeleteConfirm = (item: ReceivableWithRow) => {
+    setDeletingItem(item);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deleting) return;
+    setDeletingItem(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingItem) return;
+
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await deleteReceivable(settings.spreadsheetId, deletingItem.rowNumber);
+      if (expandedId === deletingItem.id) setExpandedId(null);
+      setPaymentForm(null);
+      setDeletingItem(null);
+      showSuccess('طلب حذف شد');
+      await loadItems();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در حذف طلب';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات طلب‌ها',
@@ -305,12 +348,20 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                   </div>
                   <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
                 </button>
-                <CardEditButton
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    openEditForm(item);
-                  }}
-                />
+                <div className="card-action-buttons">
+                  <CardEditButton
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openEditForm(item);
+                    }}
+                  />
+                  <CardDeleteButton
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openDeleteConfirm(item);
+                    }}
+                  />
+                </div>
               </div>
 
               {expanded && (
@@ -474,6 +525,14 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
           />
         </div>
       </FormModal>
+
+      <ConfirmDeleteModal
+        open={deletingItem !== null}
+        message="از حذف این مورد مطمئن هستید؟"
+        onClose={closeDeleteConfirm}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
     </div>
   );
 }
