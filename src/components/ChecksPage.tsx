@@ -10,6 +10,7 @@ import {
   toggleCheckPaid,
   totalChecksInRange,
   totalUnpaidChecksInRange,
+  updateCheck,
 } from '../services/checks';
 import AmountInput from './AmountInput';
 import JalaliDatePicker from './JalaliDatePicker';
@@ -25,12 +26,14 @@ import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
+import CardEditButton from './CardEditButton';
 
 type CheckWithRow = Check & { rowNumber: number };
 
 export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
   const [items, setItems] = useState<CheckWithRow[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingItem, setEditingItem] = useState<CheckWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [togglingId, setTogglingId] = useState('');
@@ -73,7 +76,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     if (isConfigured()) loadItems();
   }, [loadItems]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConfigured() || !isTokenValid()) {
       onReauth?.();
@@ -104,25 +107,31 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     const settings = getSettings()!;
     setSaving(true);
     try {
-      await createCheck(settings.spreadsheetId, {
-        checkNumber: form.checkNumber.trim(),
-        counterparty: form.counterparty.trim(),
-        amount: Number(form.amount),
-        creationDate: form.creationDate,
-        dueDate: form.dueDate,
-      });
-      setForm({
-        checkNumber: '',
-        counterparty: '',
-        amount: '',
-        creationDate: getTodayIso(),
-        dueDate: getTodayIso(),
-      });
-      setShowForm(false);
-      showSuccess('چک جدید ثبت شد');
+      if (editingItem) {
+        const updated: Check = {
+          ...editingItem,
+          checkNumber: form.checkNumber.trim(),
+          counterparty: form.counterparty.trim(),
+          amount: Number(form.amount),
+          creationDate: form.creationDate,
+          dueDate: form.dueDate,
+        };
+        await updateCheck(settings.spreadsheetId, editingItem.rowNumber, updated);
+        showSuccess('چک ویرایش شد');
+      } else {
+        await createCheck(settings.spreadsheetId, {
+          checkNumber: form.checkNumber.trim(),
+          counterparty: form.counterparty.trim(),
+          amount: Number(form.amount),
+          creationDate: form.creationDate,
+          dueDate: form.dueDate,
+        });
+        showSuccess('چک جدید ثبت شد');
+      }
+      closeForm();
       await loadItems();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت چک';
+      const msg = err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش چک' : 'خطا در ثبت چک';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
@@ -185,9 +194,28 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     });
   };
 
-  const closeCreateForm = () => {
+  const openCreateForm = () => {
+    setEditingItem(null);
+    resetCreateForm();
+    setShowForm(true);
+  };
+
+  const openEditForm = (item: CheckWithRow) => {
+    setEditingItem(item);
+    setForm({
+      checkNumber: item.checkNumber,
+      counterparty: item.counterparty,
+      amount: item.amount,
+      creationDate: item.creationDate,
+      dueDate: item.dueDate,
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
     if (saving) return;
     setShowForm(false);
+    setEditingItem(null);
     resetCreateForm();
   };
 
@@ -195,7 +223,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     () => ({
       ariaLabel: 'عملیات چک‌ها',
       actions: createPageSpeedDialActions({
-        onAdd: () => setShowForm(true),
+        onAdd: () => openCreateForm(),
         onRefresh: loadItems,
         refreshDisabled: loading,
       }),
@@ -269,6 +297,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
                   </p>
                 )}
               </div>
+              <CardEditButton onClick={() => openEditForm(item)} />
             </div>
           ))}
 
@@ -300,11 +329,11 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
 
       <FormModal
         open={showForm}
-        title="ثبت چک جدید"
-        onClose={closeCreateForm}
-        onSubmit={handleCreate}
+        title={editingItem ? 'ویرایش چک' : 'ثبت چک جدید'}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
         saving={saving}
-        saveLabel="ذخیره چک"
+        saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره چک'}
       >
         <div className="form-group">
           <label>شماره چک <span className="required">*</span></label>

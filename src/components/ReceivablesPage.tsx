@@ -11,6 +11,7 @@ import {
   paidAmount,
   remainingAmount,
   sortReceivables,
+  updateReceivable,
 } from '../services/receivables';
 import AmountInput from './AmountInput';
 import { InstallmentCardListSkeleton } from './skeleton';
@@ -21,6 +22,7 @@ import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
+import CardEditButton from './CardEditButton';
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
 
@@ -28,6 +30,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const [items, setItems] = useState<ReceivableWithRow[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingItem, setEditingItem] = useState<ReceivableWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [payingId, setPayingId] = useState('');
@@ -74,7 +77,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     if (isConfigured()) loadItems();
   }, [loadItems]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConfigured() || !isTokenValid()) {
       onReauth?.();
@@ -97,18 +100,34 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     const settings = getSettings()!;
     setSaving(true);
     try {
-      await createReceivable(settings.spreadsheetId, {
-        debtor: form.debtor.trim(),
-        amount: Number(form.amount),
-        borrowDate: form.borrowDate,
-        note: form.note.trim(),
-      });
-      setForm({ debtor: '', amount: '', borrowDate: getTodayIso(), note: '' });
-      setShowForm(false);
-      showSuccess('طلب جدید ثبت شد');
+      if (editingItem) {
+        const nextAmount = Number(form.amount);
+        if (nextAmount < paidAmount(editingItem)) {
+          showError('مبلغ نمی‌تواند کمتر از مجموع پرداخت‌ها باشد');
+          return;
+        }
+        const updated = {
+          ...editingItem,
+          debtor: form.debtor.trim(),
+          amount: nextAmount,
+          borrowDate: form.borrowDate,
+          note: form.note.trim(),
+        };
+        await updateReceivable(settings.spreadsheetId, editingItem.rowNumber, updated);
+        showSuccess('طلب ویرایش شد');
+      } else {
+        await createReceivable(settings.spreadsheetId, {
+          debtor: form.debtor.trim(),
+          amount: Number(form.amount),
+          borrowDate: form.borrowDate,
+          note: form.note.trim(),
+        });
+        showSuccess('طلب جدید ثبت شد');
+      }
+      closeForm();
       await loadItems();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت طلب';
+      const msg = err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش طلب' : 'خطا در ثبت طلب';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
@@ -178,9 +197,27 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     });
   };
 
-  const closeCreateForm = () => {
+  const openCreateForm = () => {
+    setEditingItem(null);
+    resetCreateForm();
+    setShowForm(true);
+  };
+
+  const openEditForm = (item: ReceivableWithRow) => {
+    setEditingItem(item);
+    setForm({
+      debtor: item.debtor,
+      amount: item.amount,
+      borrowDate: item.borrowDate,
+      note: item.note,
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
     if (saving) return;
     setShowForm(false);
+    setEditingItem(null);
     resetCreateForm();
   };
 
@@ -188,7 +225,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     () => ({
       ariaLabel: 'عملیات طلب‌ها',
       actions: createPageSpeedDialActions({
-        onAdd: () => setShowForm(true),
+        onAdd: () => openCreateForm(),
         onRefresh: loadItems,
         refreshDisabled: loading,
       }),
@@ -236,37 +273,45 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
               key={item.id}
               className={`card installment-card${complete ? ' receivable-complete' : ''}`}
             >
-              <button
-                type="button"
-                className="installment-header"
-                onClick={() => {
-                  setExpandedId(expanded ? null : item.id);
-                  setPaymentForm(null);
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{item.debtor}</div>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      color: 'var(--color-text-muted)',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {formatMoney(item.amount)}
-                    {complete
-                      ? ' · تسویه شده'
-                      : ` · مانده: ${formatMoney(remaining)}`}
-                  </div>
-                  <div className="installment-progress">
+              <div className="card-header-with-edit">
+                <button
+                  type="button"
+                  className="installment-header"
+                  onClick={() => {
+                    setExpandedId(expanded ? null : item.id);
+                    setPaymentForm(null);
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{item.debtor}</div>
                     <div
-                      className="installment-progress-bar"
-                      style={{ width: `${progress}%` }}
-                    />
+                      style={{
+                        fontSize: '0.75rem',
+                        color: 'var(--color-text-muted)',
+                        marginTop: '0.25rem',
+                      }}
+                    >
+                      {formatMoney(item.amount)}
+                      {complete
+                        ? ' · تسویه شده'
+                        : ` · مانده: ${formatMoney(remaining)}`}
+                    </div>
+                    <div className="installment-progress">
+                      <div
+                        className="installment-progress-bar"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
                   </div>
-                </div>
-                <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
-              </button>
+                  <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
+                </button>
+                <CardEditButton
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openEditForm(item);
+                  }}
+                />
+              </div>
 
               {expanded && (
                 <div className="installment-payments">
@@ -388,11 +433,11 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
 
       <FormModal
         open={showForm}
-        title="ثبت طلب جدید"
-        onClose={closeCreateForm}
-        onSubmit={handleCreate}
+        title={editingItem ? 'ویرایش طلب' : 'ثبت طلب جدید'}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
         saving={saving}
-        saveLabel="ذخیره طلب"
+        saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره طلب'}
       >
         <div className="form-group">
           <label>نام شخص یا ارگان <span className="required">*</span></label>

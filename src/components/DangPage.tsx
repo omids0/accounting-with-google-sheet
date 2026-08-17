@@ -20,12 +20,14 @@ import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
+import CardEditButton from './CardEditButton';
 
 type DangWithRow = Dang & { rowNumber: number };
 
 export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   const [items, setItems] = useState<DangWithRow[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingItem, setEditingItem] = useState<DangWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [togglingId, setTogglingId] = useState('');
@@ -68,7 +70,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     if (isConfigured()) loadItems();
   }, [loadItems]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConfigured() || !isTokenValid()) {
       onReauth?.();
@@ -95,25 +97,31 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     const settings = getSettings()!;
     setSaving(true);
     try {
-      await createDang(settings.spreadsheetId, {
-        title: form.title.trim(),
-        counterparty: form.counterparty.trim(),
-        amount: Number(form.amount),
-        date: form.date,
-        note: form.note.trim(),
-      });
-      setForm({
-        title: '',
-        counterparty: '',
-        amount: '',
-        date: getTodayIso(),
-        note: '',
-      });
-      setShowForm(false);
-      showSuccess('دنگ جدید ثبت شد');
+      if (editingItem) {
+        const updated: Dang = {
+          ...editingItem,
+          title: form.title.trim(),
+          counterparty: form.counterparty.trim(),
+          amount: Number(form.amount),
+          date: form.date,
+          note: form.note.trim(),
+        };
+        await updateDang(settings.spreadsheetId, editingItem.rowNumber, updated);
+        showSuccess('دنگ ویرایش شد');
+      } else {
+        await createDang(settings.spreadsheetId, {
+          title: form.title.trim(),
+          counterparty: form.counterparty.trim(),
+          amount: Number(form.amount),
+          date: form.date,
+          note: form.note.trim(),
+        });
+        showSuccess('دنگ جدید ثبت شد');
+      }
+      closeForm();
       await loadItems();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت دنگ';
+      const msg = err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش دنگ' : 'خطا در ثبت دنگ';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
@@ -213,9 +221,28 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     });
   };
 
-  const closeCreateForm = () => {
+  const openCreateForm = () => {
+    setEditingItem(null);
+    resetCreateForm();
+    setShowForm(true);
+  };
+
+  const openEditForm = (item: DangWithRow) => {
+    setEditingItem(item);
+    setForm({
+      title: item.title,
+      counterparty: item.counterparty,
+      amount: item.amount,
+      date: item.date,
+      note: item.note,
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
     if (saving) return;
     setShowForm(false);
+    setEditingItem(null);
     resetCreateForm();
   };
 
@@ -223,7 +250,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     () => ({
       ariaLabel: 'عملیات دنگ',
       actions: createPageSpeedDialActions({
-        onAdd: () => setShowForm(true),
+        onAdd: () => openCreateForm(),
         onRefresh: loadItems,
         refreshDisabled: loading,
       }),
@@ -305,6 +332,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
                     </p>
                   )}
                 </div>
+                <CardEditButton onClick={() => openEditForm(item)} />
               </div>
             );
           })}
@@ -322,11 +350,11 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
 
       <FormModal
         open={showForm}
-        title="ثبت دنگ جدید"
-        onClose={closeCreateForm}
-        onSubmit={handleCreate}
+        title={editingItem ? 'ویرایش دنگ' : 'ثبت دنگ جدید'}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
         saving={saving}
-        saveLabel="ذخیره دنگ"
+        saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره دنگ'}
       >
         <div className="form-group">
           <label>عنوان <span className="required">*</span></label>

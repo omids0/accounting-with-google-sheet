@@ -148,3 +148,16 @@ export async function addReceivablePayment(
   );
   return updated;
 }
+
+export async function updateReceivable(
+  spreadsheetId: string,
+  rowNumber: number,
+  receivable: Receivable
+): Promise<void> {
+  await updateSheetRow(
+    spreadsheetId,
+    RECEIVABLES_SHEET,
+    rowNumber,
+    receivableToRow(receivable)
+  );
+}

@@ -1399,6 +1399,56 @@ button {
   overflow: hidden;
 }
 
+.card-edit-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0.65rem 0.65rem 0.65rem 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.card-edit-btn:hover:not(:disabled) {
+  background: var(--color-bg);
+  color: var(--color-primary);
+}
+
+.card-edit-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.card-header-with-edit {
+  display: flex;
+  align-items: stretch;
+}
+
+.card-header-with-edit .installment-header {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-header-with-edit .card-edit-btn {
+  align-self: center;
+  margin-inline-start: 0;
+  margin-inline-end: 0.65rem;
+}
+
+.dang-card .card-edit-btn {
+  margin: 0.85rem 0.65rem 0.85rem 0;
+  align-self: flex-start;
+}
+
 .installment-header {
   width: 100%;
   display: flex;
@@ -2153,8 +2203,29 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 0.5rem;
   padding: 0.85rem 0;
   border-bottom: 1px solid var(--color-border);
+}
+
+.record-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.record-item .card-edit-btn {
+  margin: 0;
+  align-self: center;
+}
+
+.treasury-tx-item {
+  position: relative;
+}
+
+.treasury-tx-edit {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
 }
 
 .record-item:last-child {

@@ -3,6 +3,7 @@ import {
   appendSheetRow,
   ensureSheetWithHeaders,
   fetchSheetRows,
+  updateSheetRow,
 } from './sheets';
 
 export const TREASURY_SHEET = 'صندوقچه';
@@ -134,4 +135,12 @@ export async function createVaultTransaction(
 
   await appendSheetRow(spreadsheetId, TREASURY_SHEET, transactionToRow(tx));
   return tx;
+}
+
+export async function updateVaultTransaction(
+  spreadsheetId: string,
+  rowNumber: number,
+  tx: VaultTransaction
+): Promise<void> {
+  await updateSheetRow(spreadsheetId, TREASURY_SHEET, rowNumber, transactionToRow(tx));
 }

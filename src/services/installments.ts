@@ -137,6 +137,58 @@ export async function updateInstallmentPlan(
   await updateSheetRow(spreadsheetId, INSTALLMENTS_SHEET, rowNumber, planToRow(plan));
 }
 
+export function reconcilePaymentsOnEdit(
+  plan: InstallmentPlan,
+  data: {
+    count: number;
+    dueDay: number;
+    amount: number;
+    title: string;
+    note: string;
+  }
+): InstallmentPlan | { error: string } {
+  if (data.count < plan.payments.filter((p) => p.paid).length) {
+    return { error: 'تعداد بازپرداخت نمی‌تواند کمتر از اقساط پرداخت‌شده باشد' };
+  }
+
+  const removedPaid = plan.payments.slice(data.count).some((p) => p.paid);
+  if (removedPaid) {
+    return { error: 'نمی‌توان اقساط پرداخت‌شده را حذف کرد' };
+  }
+
+  const payments: InstallmentPayment[] = [];
+  for (let i = 0; i < data.count; i++) {
+    const n = i + 1;
+    const existing = plan.payments[i];
+    if (existing) {
+      payments.push({
+        ...existing,
+        n,
+        dueDate: existing.paid
+          ? existing.dueDate
+          : addJalaliMonths(plan.startDate, i, data.dueDay),
+      });
+    } else {
+      payments.push({
+        n,
+        paid: false,
+        paidAt: '',
+        dueDate: addJalaliMonths(plan.startDate, i, data.dueDay),
+      });
+    }
+  }
+
+  return {
+    ...plan,
+    title: data.title,
+    amount: data.amount,
+    count: data.count,
+    dueDay: data.dueDay,
+    note: data.note,
+    payments,
+  };
+}
+
 export async function toggleInstallmentPayment(
   spreadsheetId: string,
   plan: InstallmentPlan & { rowNumber: number },

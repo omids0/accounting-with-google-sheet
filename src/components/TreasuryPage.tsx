@@ -7,6 +7,7 @@ import {
   createVaultTransaction,
   ensureTreasurySheet,
   fetchVaultTransactions,
+  updateVaultTransaction,
 } from '../services/treasury';
 import {
   fetchTgjuPrices,
@@ -24,6 +25,7 @@ import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
+import CardEditButton from './CardEditButton';
 
 type TransactionWithRow = Awaited<ReturnType<typeof fetchVaultTransactions>>[number];
 
@@ -51,6 +53,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   const [prices, setPrices] = useState<Record<VaultAssetType, number> | null>(null);
   const [expandedAsset, setExpandedAsset] = useState<VaultAssetType | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingTx, setEditingTx] = useState<TransactionWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [priceLoading, setPriceLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -117,7 +120,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     }
   }, [loadItems, loadPrices]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConfigured() || !isTokenValid()) {
       onReauth?.();
@@ -141,26 +144,31 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     const settings = getSettings()!;
     setSaving(true);
     try {
-      await createVaultTransaction(settings.spreadsheetId, {
-        assetType: form.assetType,
-        action: 'buy',
-        quantity: qty,
-        unitPrice: Number(form.unitPrice),
-        transactionDate: form.transactionDate,
-        note: form.note.trim(),
-      });
-      setForm({
-        assetType: form.assetType,
-        quantity: '',
-        unitPrice: '',
-        transactionDate: getTodayIso(),
-        note: '',
-      });
-      setShowForm(false);
-      showSuccess('خرید ثبت شد');
+      if (editingTx) {
+        await updateVaultTransaction(settings.spreadsheetId, editingTx.rowNumber, {
+          ...editingTx,
+          assetType: form.assetType,
+          quantity: qty,
+          unitPrice: Number(form.unitPrice),
+          transactionDate: form.transactionDate,
+          note: form.note.trim(),
+        });
+        showSuccess('خرید ویرایش شد');
+      } else {
+        await createVaultTransaction(settings.spreadsheetId, {
+          assetType: form.assetType,
+          action: 'buy',
+          quantity: qty,
+          unitPrice: Number(form.unitPrice),
+          transactionDate: form.transactionDate,
+          note: form.note.trim(),
+        });
+        showSuccess('خرید ثبت شد');
+      }
+      closeForm();
       await loadItems();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت';
+      const msg = err instanceof Error ? err.message : editingTx ? 'خطا در ویرایش' : 'خطا در ثبت';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
@@ -238,9 +246,28 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     });
   };
 
-  const closeCreateForm = () => {
+  const openCreateForm = () => {
+    setEditingTx(null);
+    resetCreateForm();
+    setShowForm(true);
+  };
+
+  const openEditForm = (tx: TransactionWithRow) => {
+    setEditingTx(tx);
+    setForm({
+      assetType: tx.assetType,
+      quantity: tx.quantity,
+      unitPrice: tx.unitPrice,
+      transactionDate: tx.transactionDate,
+      note: tx.note,
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
     if (saving) return;
     setShowForm(false);
+    setEditingTx(null);
     resetCreateForm();
   };
 
@@ -253,7 +280,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     () => ({
       ariaLabel: 'عملیات صندوقچه',
       actions: createPageSpeedDialActions({
-        onAdd: () => setShowForm(true),
+        onAdd: () => openCreateForm(),
         onRefresh: refreshTreasury,
         refreshDisabled: loading || priceLoading,
       }),
@@ -352,8 +379,15 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
               {expanded && (
                 <div className="installment-payments">
                   <div className="receivable-payment-list-title">سوابق خرید و فروش</div>
-                  {holding.transactions.map((tx) => (
+                  {holding.transactions.map((tx) => {
+                    const txWithRow = tx as TransactionWithRow;
+                    return (
                     <div key={tx.id} className="treasury-tx-item">
+                      {tx.action === 'buy' && 'rowNumber' in tx && (
+                        <div className="treasury-tx-edit">
+                          <CardEditButton onClick={() => openEditForm(txWithRow)} />
+                        </div>
+                      )}
                       <div className="treasury-tx-main">
                         <span
                           className={`treasury-tx-badge ${tx.action === 'buy' ? 'buy' : 'sell'}`}
@@ -374,7 +408,8 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
 
                   <div className="receivable-add-payment">
                     {sellForm?.assetType === holding.assetType ? (
@@ -496,11 +531,11 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
 
       <FormModal
         open={showForm}
-        title="ثبت خرید"
-        onClose={closeCreateForm}
-        onSubmit={handleCreate}
+        title={editingTx ? 'ویرایش خرید' : 'ثبت خرید'}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
         saving={saving}
-        saveLabel="ذخیره خرید"
+        saveLabel={editingTx ? 'ذخیره تغییرات' : 'ذخیره خرید'}
         saveButtonClassName="btn btn-outflow"
       >
         <FormSelect

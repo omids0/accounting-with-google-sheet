@@ -18,6 +18,7 @@ import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
+import CardEditButton from './CardEditButton';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
 
@@ -33,6 +34,7 @@ export default function WalletPage({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [openingExpanded, setOpeningExpanded] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<WalletAccountWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingId, setSavingId] = useState('');
@@ -89,7 +91,7 @@ export default function WalletPage({
     if (isConfigured()) loadItems();
   }, [loadItems]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConfigured() || !isTokenValid()) {
       onReauth?.();
@@ -108,17 +110,27 @@ export default function WalletPage({
     const settings = getSettings()!;
     setSaving(true);
     try {
-      await createWalletAccount(settings.spreadsheetId, {
-        title: form.title.trim(),
-        balance: Number(form.balance),
-        note: form.note.trim(),
-      });
-      setForm({ title: '', balance: '', note: '' });
-      setShowForm(false);
-      showSuccess('حساب جدید اضافه شد');
-      await loadItems();
+      if (editingAccount) {
+        await updateWalletAccount(settings.spreadsheetId, {
+          ...editingAccount,
+          title: form.title.trim(),
+          balance: Number(form.balance),
+          note: form.note.trim(),
+        });
+        showSuccess('حساب ویرایش شد');
+        await loadItems();
+      } else {
+        await createWalletAccount(settings.spreadsheetId, {
+          title: form.title.trim(),
+          balance: Number(form.balance),
+          note: form.note.trim(),
+        });
+        showSuccess('حساب جدید اضافه شد');
+        await loadItems();
+      }
+      closeForm();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت حساب';
+      const msg = err instanceof Error ? err.message : editingAccount ? 'خطا در ویرایش حساب' : 'خطا در ثبت حساب';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
@@ -203,9 +215,26 @@ export default function WalletPage({
     setForm({ title: '', balance: '', note: '' });
   };
 
-  const closeCreateForm = () => {
+  const openCreateForm = () => {
+    setEditingAccount(null);
+    resetCreateForm();
+    setShowForm(true);
+  };
+
+  const openEditForm = (account: WalletAccountWithRow) => {
+    setEditingAccount(account);
+    setForm({
+      title: account.title,
+      balance: account.balance,
+      note: account.note,
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
     if (saving) return;
     setShowForm(false);
+    setEditingAccount(null);
     resetCreateForm();
   };
 
@@ -213,7 +242,7 @@ export default function WalletPage({
     () => ({
       ariaLabel: 'عملیات کیف پول',
       actions: createPageSpeedDialActions({
-        onAdd: () => setShowForm(true),
+        onAdd: () => openCreateForm(),
         onRefresh: loadItems,
         refreshDisabled: loading,
       }),
@@ -318,20 +347,28 @@ export default function WalletPage({
 
           return (
             <div key={account.id} className="card installment-card wallet-item-card">
-              <button
-                type="button"
-                className="installment-header wallet-item-header"
-                onClick={() => setExpandedId(expanded ? null : account.id)}
-              >
-                <div className="wallet-item-info">
-                  <div className="wallet-item-title-row">
-                    <div className="wallet-item-title">{account.title}</div>
-                    <div className="wallet-item-amount">{formatMoney(displayBalance)}</div>
+              <div className="card-header-with-edit">
+                <button
+                  type="button"
+                  className="installment-header wallet-item-header"
+                  onClick={() => setExpandedId(expanded ? null : account.id)}
+                >
+                  <div className="wallet-item-info">
+                    <div className="wallet-item-title-row">
+                      <div className="wallet-item-title">{account.title}</div>
+                      <div className="wallet-item-amount">{formatMoney(displayBalance)}</div>
+                    </div>
+                    {account.note && <div className="wallet-item-note">{account.note}</div>}
                   </div>
-                  {account.note && <div className="wallet-item-note">{account.note}</div>}
-                </div>
-                <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
-              </button>
+                  <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
+                </button>
+                <CardEditButton
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openEditForm(account);
+                  }}
+                />
+              </div>
 
               {expanded && (
                 <div className="installment-payments wallet-item-edit">
@@ -384,11 +421,11 @@ export default function WalletPage({
 
       <FormModal
         open={showForm}
-        title="حساب جدید"
-        onClose={closeCreateForm}
-        onSubmit={handleCreate}
+        title={editingAccount ? 'ویرایش حساب' : 'حساب جدید'}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
         saving={saving}
-        saveLabel="ذخیره حساب"
+        saveLabel={editingAccount ? 'ذخیره تغییرات' : 'ذخیره حساب'}
       >
         <div className="form-group">
           <label>عنوان <span className="required">*</span></label>

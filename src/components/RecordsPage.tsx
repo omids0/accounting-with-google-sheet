@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { CustomForm } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
-import { fetchRecords } from '../services/sheets';
+import { fetchRecords, updateRecord } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
-import { Select } from './form';
+import { Select, FieldInput, sortFormFields } from './form';
 import DateRangeFilter, {
   createDefaultDateRangeFilter,
   type AppliedDateRangeFilter,
@@ -20,11 +20,14 @@ import {
   type RecordsDatePreset,
 } from '../utils/dateRange';
 import { RecordListSkeleton } from './skeleton';
-import { showError } from '../utils/toast';
+import { showError, showSuccess } from '../utils/toast';
+import FormModal from './FormModal';
+import CardEditButton from './CardEditButton';
 
 interface RecordItem {
   id: string;
   createdAt: string;
+  rowNumber: number;
   values: Record<string, string>;
 }
 
@@ -98,6 +101,10 @@ export default function RecordsPage({
   const [activeFormId, setActiveFormId] = useState('');
   const [records, setRecords] = useState<StoredRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<StoredRecord | null>(null);
+  const [formValues, setFormValues] = useState<Record<string, string | number>>({});
   const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date');
   const [customRange, setCustomRange] = useState(
     () => createDefaultDateRangeFilter().customRange
@@ -214,6 +221,81 @@ export default function RecordsPage({
     setCustomRange(filter.customRange);
   };
 
+  const editingForm = editingRecord
+    ? forms.find((form) => form.id === editingRecord.formId)
+    : undefined;
+
+  const openEditForm = (record: StoredRecord) => {
+    const form = forms.find((item) => item.id === record.formId);
+    if (!form) return;
+
+    const values: Record<string, string | number> = {};
+    form.fields.forEach((field) => {
+      const raw = record.values[field.id] ?? '';
+      if (field.type === 'number') {
+        values[field.id] = raw === '' ? '' : Number(raw);
+      } else {
+        values[field.id] = raw;
+      }
+    });
+
+    setEditingRecord(record);
+    setFormValues(values);
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    if (saving) return;
+    setShowForm(false);
+    setEditingRecord(null);
+    setFormValues({});
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRecord || !editingForm) return;
+
+    if (!isConfigured() || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    for (const field of editingForm.fields) {
+      if (field.required) {
+        const val = formValues[field.id];
+        if (val === '' || val === undefined || val === null) {
+          showError(`فیلد «${field.label}» الزامی است`);
+          return;
+        }
+      }
+    }
+
+    const settings = getSettings()!;
+    setSaving(true);
+    try {
+      await updateRecord(
+        settings.spreadsheetId,
+        editingForm,
+        editingRecord.rowNumber,
+        editingRecord.id,
+        editingRecord.createdAt,
+        formValues
+      );
+      showSuccess('تراکنش ویرایش شد');
+      closeForm();
+      await loadRecords();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در ویرایش تراکنش';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -322,7 +404,7 @@ export default function RecordsPage({
 
             return (
               <div key={`${record.formId}-${record.id}`} className="record-item">
-                <div>
+                <div className="record-item-main">
                   <div className="record-item-title">{title}</div>
                   <div className="record-item-meta">
                     {isAllForms && `${record.formName} · `}
@@ -330,25 +412,59 @@ export default function RecordsPage({
                     {category && ` · ${category}`}
                   </div>
                 </div>
-                {amount && (
-                  <div
-                    className={
-                      isIncome
-                        ? 'amount-income'
-                        : form.type === 'expense'
-                          ? 'amount-expense'
-                          : ''
-                    }
-                    dir="ltr"
-                  >
-                    {isIncome ? '+' : form.type === 'expense' ? '-' : ''}
-                    {formatMoney(Number(amount))}
-                  </div>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {amount && (
+                    <div
+                      className={
+                        isIncome
+                          ? 'amount-income'
+                          : form.type === 'expense'
+                            ? 'amount-expense'
+                            : ''
+                      }
+                      dir="ltr"
+                    >
+                      {isIncome ? '+' : form.type === 'expense' ? '-' : ''}
+                      {formatMoney(Number(amount))}
+                    </div>
+                  )}
+                  <CardEditButton onClick={() => openEditForm(record)} />
+                </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {editingForm && (
+        <FormModal
+          open={showForm}
+          title={`ویرایش ${editingForm.name}`}
+          onClose={closeForm}
+          onSubmit={handleSubmit}
+          saving={saving}
+          saveLabel="ذخیره تغییرات"
+          saveButtonClassName={`btn ${
+            editingForm.type === 'expense'
+              ? 'btn-outflow'
+              : editingForm.type === 'income'
+                ? 'btn-inflow'
+                : 'btn-primary'
+          }`}
+        >
+          {sortFormFields(editingForm.fields).map((field) => (
+            <FieldInput
+              key={field.id}
+              field={field}
+              value={formValues[field.id] ?? ''}
+              onChange={(next) =>
+                setFormValues((prev) => ({ ...prev, [field.id]: next }))
+              }
+              formId={editingForm.id}
+              onReauth={onReauth}
+            />
+          ))}
+        </FormModal>
       )}
     </div>
   );

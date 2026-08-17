@@ -7,11 +7,13 @@ import {
   ensureInstallmentsSheet,
   fetchInstallmentPlans,
   isInstallmentPlanComplete,
+  reconcilePaymentsOnEdit,
   sortInstallmentPayments,
   sortInstallmentPlans,
   toggleInstallmentPayment,
   totalInstallmentsInRange,
   totalUnpaidInstallments,
+  updateInstallmentPlan,
 } from '../services/installments';
 import AmountInput from './AmountInput';
 import { InstallmentCardListSkeleton } from './skeleton';
@@ -26,6 +28,7 @@ import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
+import CardEditButton from './CardEditButton';
 
 type PlanWithRow = InstallmentPlan & { rowNumber: number };
 
@@ -33,6 +36,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
   const [plans, setPlans] = useState<PlanWithRow[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<PlanWithRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [togglingKey, setTogglingKey] = useState('');
@@ -75,7 +79,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     if (isConfigured()) loadPlans();
   }, [loadPlans]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConfigured() || !isTokenValid()) {
       onReauth?.();
@@ -103,19 +107,34 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     const settings = getSettings()!;
     setSaving(true);
     try {
-      await createInstallmentPlan(settings.spreadsheetId, {
-        title: form.title.trim(),
-        amount: Number(form.amount),
-        count: Number(form.count),
-        dueDay,
-        note: form.note.trim(),
-      });
-      setForm({ title: '', amount: '', count: '', dueDay: '', note: '' });
-      setShowForm(false);
-      showSuccess('قسط جدید ثبت شد');
+      if (editingPlan) {
+        const reconciled = reconcilePaymentsOnEdit(editingPlan, {
+          title: form.title.trim(),
+          amount: Number(form.amount),
+          count: Number(form.count),
+          dueDay,
+          note: form.note.trim(),
+        });
+        if ('error' in reconciled) {
+          showError(reconciled.error);
+          return;
+        }
+        await updateInstallmentPlan(settings.spreadsheetId, editingPlan.rowNumber, reconciled);
+        showSuccess('قسط ویرایش شد');
+      } else {
+        await createInstallmentPlan(settings.spreadsheetId, {
+          title: form.title.trim(),
+          amount: Number(form.amount),
+          count: Number(form.count),
+          dueDay,
+          note: form.note.trim(),
+        });
+        showSuccess('قسط جدید ثبت شد');
+      }
+      closeForm();
       await loadPlans();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت قسط';
+      const msg = err instanceof Error ? err.message : editingPlan ? 'خطا در ویرایش قسط' : 'خطا در ثبت قسط';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
@@ -167,9 +186,28 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     setForm({ title: '', amount: '', count: '', dueDay: '', note: '' });
   };
 
-  const closeCreateForm = () => {
+  const openCreateForm = () => {
+    setEditingPlan(null);
+    resetCreateForm();
+    setShowForm(true);
+  };
+
+  const openEditForm = (plan: PlanWithRow) => {
+    setEditingPlan(plan);
+    setForm({
+      title: plan.title,
+      amount: plan.amount,
+      count: plan.count,
+      dueDay: plan.dueDay,
+      note: plan.note,
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
     if (saving) return;
     setShowForm(false);
+    setEditingPlan(null);
     resetCreateForm();
   };
 
@@ -191,7 +229,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     () => ({
       ariaLabel: 'عملیات اقساط',
       actions: createPageSpeedDialActions({
-        onAdd: () => setShowForm(true),
+        onAdd: () => openCreateForm(),
         onRefresh: loadPlans,
         refreshDisabled: loading,
       }),
@@ -239,23 +277,31 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
               key={plan.id}
               className={`card installment-card${complete ? ' installment-complete' : ''}`}
             >
-              <button
-                type="button"
-                className="installment-header"
-                onClick={() => setExpandedId(expanded ? null : plan.id)}
-              >
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{plan.title}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-                    {formatMoney(plan.amount)}
-                    {complete ? ' · تکمیل شده' : ` · ${done}/${total} پرداخت شده`}
+              <div className="card-header-with-edit">
+                <button
+                  type="button"
+                  className="installment-header"
+                  onClick={() => setExpandedId(expanded ? null : plan.id)}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{plan.title}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                      {formatMoney(plan.amount)}
+                      {complete ? ' · تکمیل شده' : ` · ${done}/${total} پرداخت شده`}
+                    </div>
+                    <div className="installment-progress">
+                      <div className="installment-progress-bar" style={{ width: `${progress}%` }} />
+                    </div>
                   </div>
-                  <div className="installment-progress">
-                    <div className="installment-progress-bar" style={{ width: `${progress}%` }} />
-                  </div>
-                </div>
-                <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
-              </button>
+                  <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
+                </button>
+                <CardEditButton
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openEditForm(plan);
+                  }}
+                />
+              </div>
 
               {expanded && (
                 <div className="installment-payments">
@@ -325,11 +371,11 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
 
       <FormModal
         open={showForm}
-        title="ثبت قسط جدید"
-        onClose={closeCreateForm}
-        onSubmit={handleCreate}
+        title={editingPlan ? 'ویرایش قسط' : 'ثبت قسط جدید'}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
         saving={saving}
-        saveLabel="ذخیره قسط"
+        saveLabel={editingPlan ? 'ذخیره تغییرات' : 'ذخیره قسط'}
       >
         <div className="form-group">
           <label>عنوان قسط <span className="required">*</span></label>

@@ -369,10 +369,17 @@ export async function appendRecord(
   );
 }
 
+export type SheetRecord = {
+  id: string;
+  createdAt: string;
+  rowNumber: number;
+  values: Record<string, string>;
+};
+
 export async function fetchRecords(
   spreadsheetId: string,
   form: CustomForm
-): Promise<{ id: string; createdAt: string; values: Record<string, string> }[]> {
+): Promise<SheetRecord[]> {
   const range = encodeURIComponent(`${form.sheetName}!A2:Z2000`);
   const data = await apiRequest<{ values?: string[][] }>(
     `${SHEETS_API}/${spreadsheetId}/values/${range}`
@@ -380,8 +387,9 @@ export async function fetchRecords(
   if (!data.values?.length) return [];
 
   return data.values
-    .filter((row) => String(row[0] ?? '').trim())
-    .map((row) => {
+    .map((row, index) => ({ row, rowNumber: index + 2 }))
+    .filter(({ row }) => String(row[0] ?? '').trim())
+    .map(({ row, rowNumber }) => {
       const values: Record<string, string> = {};
       form.fields.forEach((f, i) => {
         values[f.id] = row[i + 2] ?? '';
@@ -389,9 +397,29 @@ export async function fetchRecords(
       return {
         id: row[0] ?? '',
         createdAt: row[1] ?? '',
+        rowNumber,
         values,
       };
     });
+}
+
+export async function updateRecord(
+  spreadsheetId: string,
+  form: CustomForm,
+  rowNumber: number,
+  recordId: string,
+  createdAt: string,
+  values: Record<string, string | number>
+): Promise<void> {
+  const row = [
+    recordId,
+    createdAt,
+    ...form.fields.map((f) => {
+      const val = values[f.id];
+      return val !== undefined && val !== null ? String(val) : '';
+    }),
+  ];
+  await updateSheetRow(spreadsheetId, form.sheetName, rowNumber, row);
 }
 
 export function getSpreadsheetUrl(sheetId: string): string {
