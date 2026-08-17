@@ -1,4 +1,5 @@
-import type { SpreadsheetEntry } from '../types';
+import { sortFormFields } from '../components/form/fieldUtils';
+import type { FieldConfig, SpreadsheetEntry } from '../types';
 import { getJalaliParts } from '../utils/jalaliDate';
 import { listAccountingSpreadsheetsFromDrive } from './drive';
 import {
@@ -74,8 +75,8 @@ function runExclusiveSpreadsheetSetup(
   return activeSpreadsheetSetup;
 }
 
-function buildHeaders(form: { fields: { label: string }[] }): string[] {
-  return ['شناسه', 'زمان ثبت', ...form.fields.map((field) => field.label)];
+function buildHeaders(form: { fields: FieldConfig[] }): string[] {
+  return ['شناسه', 'زمان ثبت', ...sortFormFields(form.fields).map((field) => field.label)];
 }
 
 function getAllSheetSpecs(): SheetSpec[] {

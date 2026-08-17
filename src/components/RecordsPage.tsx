@@ -12,6 +12,7 @@ import TransactionTypeSegment, {
   transactionTypeOptionsFromForms,
 } from './TransactionTypeSegment';
 import { formatMoney } from '../utils/formatMoney';
+import { parseNumeric } from '../utils/parseNumeric';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import {
   formatDateRangeLabel,
@@ -468,7 +469,7 @@ export default function RecordsPage({
                       dir="ltr"
                     >
                       {isIncome ? '+' : form.type === 'expense' ? '-' : ''}
-                      {formatMoney(Number(amount))}
+                      {formatMoney(parseNumeric(amount))}
                     </div>
                   )}
                   <div className="card-action-buttons">

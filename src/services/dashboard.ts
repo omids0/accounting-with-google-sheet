@@ -1,5 +1,6 @@
 import type { AppSettings, CategorySummary, CustomForm, DashboardData } from '../types';
 import type { DateRange } from '../utils/dateRange';
+import { parseNumeric } from '../utils/parseNumeric';
 import {
   formatJalaliMonthLabel,
   getJalaliMonthKey,
@@ -36,7 +37,7 @@ function sumByCategory(
 ): CategorySummary[] {
   const map = new Map<string, number>();
   for (const r of records) {
-    const amount = Number(r.values[amountKey]) || 0;
+    const amount = parseNumeric(r.values[amountKey]);
     const cat = r.values[categoryKey] || 'سایر';
     map.set(cat, (map.get(cat) ?? 0) + amount);
   }
@@ -102,11 +103,11 @@ export async function loadDashboardData(
   );
 
   const totalIncome = filteredIncome.reduce(
-    (s, r) => s + (Number(r.values.amount) || 0),
+    (s, r) => s + parseNumeric(r.values.amount),
     0
   );
   const totalExpense = filteredExpense.reduce(
-    (s, r) => s + (Number(r.values.amount) || 0),
+    (s, r) => s + parseNumeric(r.values.amount),
     0
   );
 
@@ -134,7 +135,7 @@ export async function loadDashboardData(
     ...filteredIncome.map((r) => ({
       formName: incomeForm?.name ?? 'درآمد',
       title: r.values.title || '—',
-      amount: Number(r.values.amount) || 0,
+      amount: parseNumeric(r.values.amount),
       type: 'income' as const,
       category: r.values.category || 'سایر',
       date: r.values[incomeDateField] ?? '',
@@ -143,7 +144,7 @@ export async function loadDashboardData(
     ...filteredExpense.map((r) => ({
       formName: expenseForm?.name ?? 'هزینه',
       title: r.values.title || '—',
-      amount: Number(r.values.amount) || 0,
+      amount: parseNumeric(r.values.amount),
       type: 'expense' as const,
       category: r.values.category || 'سایر',
       date: r.values[expenseDateField] ?? '',

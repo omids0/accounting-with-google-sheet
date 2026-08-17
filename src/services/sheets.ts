@@ -1,4 +1,10 @@
+import { sortFormFields } from '../components/form/fieldUtils';
 import type { CustomForm, FieldConfig } from '../types';
+import {
+  cellToString,
+  isSheetHeaderRow,
+  normalizeSheetDate,
+} from '../utils/sheetValues';
 import { getAccessToken } from './auth';
 
 const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
@@ -269,8 +275,75 @@ async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T>
   return res.json() as Promise<T>;
 }
 
+function normalizeHeaderLabel(label: string): string {
+  return label.normalize('NFC').trim();
+}
+
 function buildHeaders(fields: FieldConfig[]): string[] {
-  return ['شناسه', 'زمان ثبت', ...fields.map((f) => f.label)];
+  return ['شناسه', 'زمان ثبت', ...sortFormFields(fields).map((f) => f.label)];
+}
+
+function buildFieldColumnMap(
+  headers: string[],
+  fields: FieldConfig[]
+): Map<string, number> {
+  const normalizedHeaders = headers.map(normalizeHeaderLabel);
+  const map = new Map<string, number>();
+
+  fields.forEach((field, index) => {
+    const label = normalizeHeaderLabel(field.label);
+    const byLabel = normalizedHeaders.findIndex((header) => header === label);
+    map.set(field.id, byLabel >= 0 ? byLabel : index + 2);
+  });
+
+  return map;
+}
+
+async function getSheetHeaderRow(
+  spreadsheetId: string,
+  sheetName: string
+): Promise<string[]> {
+  const headerRows = await batchGetHeaderRows(spreadsheetId, [sheetName]);
+  return headerRows.get(normalizeSheetTitle(sheetName)) ?? [];
+}
+
+function buildRecordRow(
+  headers: string[],
+  form: CustomForm,
+  recordId: string,
+  createdAt: string,
+  values: Record<string, string | number>
+): string[] {
+  const columnMap = buildFieldColumnMap(headers, form.fields);
+  const width = Math.max(headers.length, 2 + form.fields.length);
+  const row = Array.from({ length: width }, () => '');
+
+  row[0] = recordId;
+  row[1] = createdAt;
+
+  for (const field of form.fields) {
+    const column = columnMap.get(field.id);
+    if (column == null) continue;
+    const val = values[field.id];
+    row[column] = val !== undefined && val !== null ? String(val) : '';
+  }
+
+  return row;
+}
+
+function mapRowToValues(
+  row: unknown[],
+  fields: FieldConfig[],
+  columnMap: Map<string, number>
+): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const field of fields) {
+    const column = columnMap.get(field.id);
+    const raw = column == null ? '' : row[column];
+    values[field.id] =
+      field.type === 'date' ? normalizeSheetDate(raw) : cellToString(raw);
+  }
+  return values;
 }
 
 export async function createSpreadsheet(
@@ -351,14 +424,8 @@ export async function appendRecord(
   createdAt: string,
   values: Record<string, string | number>
 ): Promise<void> {
-  const row = [
-    recordId,
-    createdAt,
-    ...form.fields.map((f) => {
-      const val = values[f.id];
-      return val !== undefined && val !== null ? String(val) : '';
-    }),
-  ];
+  const headers = await getSheetHeaderRow(spreadsheetId, form.sheetName);
+  const row = buildRecordRow(headers, form, recordId, createdAt, values);
   const range = encodeURIComponent(`${form.sheetName}!A:Z`);
   await apiRequest(
     `${SHEETS_API}/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
@@ -380,27 +447,29 @@ export async function fetchRecords(
   spreadsheetId: string,
   form: CustomForm
 ): Promise<SheetRecord[]> {
-  const range = encodeURIComponent(`${form.sheetName}!A2:Z2000`);
-  const data = await apiRequest<{ values?: string[][] }>(
+  const range = encodeURIComponent(`${form.sheetName}!A1:Z2000`);
+  const data = await apiRequest<{ values?: unknown[][] }>(
     `${SHEETS_API}/${spreadsheetId}/values/${range}`
   );
-  if (!data.values?.length) return [];
+  const rows = data.values ?? [];
+  if (!rows.length) return [];
 
-  return data.values
-    .map((row, index) => ({ row, rowNumber: index + 2 }))
-    .filter(({ row }) => String(row[0] ?? '').trim())
-    .map(({ row, rowNumber }) => {
-      const values: Record<string, string> = {};
-      form.fields.forEach((f, i) => {
-        values[f.id] = row[i + 2] ?? '';
-      });
-      return {
-        id: row[0] ?? '',
-        createdAt: row[1] ?? '',
-        rowNumber,
-        values,
-      };
-    });
+  const hasHeader = isSheetHeaderRow(rows[0]);
+  const headers = hasHeader
+    ? rows[0].map((cell) => cellToString(cell))
+    : buildHeaders(form.fields);
+  const dataRows = hasHeader ? rows.slice(1) : rows;
+  const columnMap = buildFieldColumnMap(headers, form.fields);
+
+  return dataRows
+    .map((row, index) => ({ row, rowNumber: hasHeader ? index + 2 : index + 1 }))
+    .filter(({ row }) => cellToString(row[0]).trim())
+    .map(({ row, rowNumber }) => ({
+      id: cellToString(row[0]),
+      createdAt: cellToString(row[1]),
+      rowNumber,
+      values: mapRowToValues(row, form.fields, columnMap),
+    }));
 }
 
 export async function updateRecord(
@@ -411,14 +480,8 @@ export async function updateRecord(
   createdAt: string,
   values: Record<string, string | number>
 ): Promise<void> {
-  const row = [
-    recordId,
-    createdAt,
-    ...form.fields.map((f) => {
-      const val = values[f.id];
-      return val !== undefined && val !== null ? String(val) : '';
-    }),
-  ];
+  const headers = await getSheetHeaderRow(spreadsheetId, form.sheetName);
+  const row = buildRecordRow(headers, form, recordId, createdAt, values);
   await updateSheetRow(spreadsheetId, form.sheetName, rowNumber, row);
 }
 

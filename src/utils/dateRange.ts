@@ -6,6 +6,7 @@ import {
   JALALI_MONTHS,
   toIsoDate,
 } from './jalaliDate';
+import { normalizeSheetDate } from './sheetValues';
 
 export type { DateRange } from './jalaliDate';
 
@@ -81,8 +82,8 @@ export function getInstallmentDueRange(preset: DateRangePreset): DateRange {
 }
 
 export function isDateInRange(dateStr: string, range: DateRange): boolean {
-  if (!dateStr) return false;
-  const d = dateStr.slice(0, 10);
+  const d = normalizeSheetDate(dateStr);
+  if (!d) return false;
   return d >= range.start && d <= range.end;
 }
 
