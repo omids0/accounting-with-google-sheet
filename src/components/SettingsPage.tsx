@@ -5,15 +5,11 @@ import {
   saveSettings,
   getDefaultSettings,
   getSpreadsheets,
-  addCustomForm,
   updateCurrency,
 } from '../services/settings';
 import { saveFormCategoriesToSheet, syncCategoriesFromSheet } from '../services/categories';
 import { CURRENCY_OPTIONS } from '../utils/formatMoney';
-import {
-  ensureFormSheet,
-  getSpreadsheetUrl,
-} from '../services/sheets';
+import { getSpreadsheetUrl } from '../services/sheets';
 import {
   createNamedSpreadsheet,
   switchActiveSpreadsheet,
@@ -55,7 +51,6 @@ export default function SettingsPage({
   const [showNewSheetForm, setShowNewSheetForm] = useState(false);
   const [forms, setForms] = useState(getDefaultSettings().forms);
   const [currency, setCurrency] = useState<CurrencyUnit>('toman');
-  const [newFormName, setNewFormName] = useState('');
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [categoriesKey, setCategoriesKey] = useState(0);
 
@@ -171,42 +166,6 @@ export default function SettingsPage({
       onSpreadsheetChange?.();
     } catch (err) {
       showError(err instanceof Error ? err.message : 'خطا در تغییر شیت');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddForm = async () => {
-    if (!newFormName.trim()) {
-      showError('نام فرم را وارد کنید');
-      return;
-    }
-    if (!isTokenValid()) {
-      showError('نشست منقضی شده');
-      return;
-    }
-
-    const settings = getSettings() ?? getDefaultSettings();
-    if (!settings.spreadsheetId) {
-      showError('ابتدا با گوگل وارد شوید');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const newForm = addCustomForm(newFormName.trim(), [
-        { id: 'date', label: 'تاریخ', type: 'date', required: true },
-        { id: 'title', label: 'عنوان', type: 'text', required: true },
-        { id: 'note', label: 'توضیحات', type: 'text', required: false },
-      ]);
-      await ensureFormSheet(settings.spreadsheetId, newForm);
-      const updated = { ...settings, forms: [...settings.forms, newForm] };
-      saveSettings(updated);
-      setForms(updated.forms);
-      setNewFormName('');
-      showSuccess(`فرم «${newForm.name}» و شیت آن ساخته شد`);
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در ساخت فرم');
     } finally {
       setLoading(false);
     }
@@ -448,9 +407,6 @@ export default function SettingsPage({
 
       <div className="card">
         <h2 className="card-title">فرم‌های سفارشی</h2>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
-          فرم جدید = برگه جدید در گوگل شیت
-        </p>
 
         {forms.map((form) => (
           <div key={form.id} className="form-list-item">
@@ -497,19 +453,6 @@ export default function SettingsPage({
             )}
           </div>
         ))}
-
-        <div className="form-group" style={{ marginTop: '1rem' }}>
-          <label>افزودن فرم جدید</label>
-          <input
-            value={newFormName}
-            onChange={(e) => setNewFormName(e.target.value)}
-            placeholder="مثلاً: دارایی‌ها"
-          />
-        </div>
-        <button className="btn btn-primary" onClick={handleAddForm} disabled={loading}>
-          {loading && <span className="spinner" />}
-          ساخت فرم و شیت
-        </button>
       </div>
         </>
       )}
