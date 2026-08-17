@@ -30,6 +30,7 @@ import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
+import { AccordionCollapse } from './AccordionCollapse';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
@@ -317,12 +318,12 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
           return (
             <div
               key={plan.id}
-              className={`card installment-card${complete ? ' installment-complete' : ''}`}
+              className={`card installment-card${complete ? ' installment-complete' : ''}${expanded ? ' installment-card--expanded' : ''}`}
             >
               <div className="card-header-with-edit">
                 <button
                   type="button"
-                  className="installment-header"
+                  className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
                   onClick={() => setExpandedId(expanded ? null : plan.id)}
                 >
                   <div>
@@ -335,7 +336,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                       <div className="installment-progress-bar" style={{ width: `${progress}%` }} />
                     </div>
                   </div>
-                  <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
+                  <span className="installment-chevron">▼</span>
                 </button>
                 <div className="card-action-buttons">
                   <CardEditButton
@@ -353,7 +354,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                 </div>
               </div>
 
-              {expanded && (
+              <AccordionCollapse open={expanded}>
                 <div className="installment-payments">
                   {plan.note && (
                     <p className="installment-note">{plan.note}</p>
@@ -391,7 +392,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                     );
                   })}
                 </div>
-              )}
+              </AccordionCollapse>
             </div>
           );
         })

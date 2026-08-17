@@ -24,6 +24,7 @@ import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
+import { AccordionCollapse } from './AccordionCollapse';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
@@ -314,12 +315,12 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
           return (
             <div
               key={item.id}
-              className={`card installment-card${complete ? ' receivable-complete' : ''}`}
+              className={`card installment-card${complete ? ' receivable-complete' : ''}${expanded ? ' installment-card--expanded' : ''}`}
             >
               <div className="card-header-with-edit">
                 <button
                   type="button"
-                  className="installment-header"
+                  className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
                   onClick={() => {
                     setExpandedId(expanded ? null : item.id);
                     setPaymentForm(null);
@@ -346,7 +347,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                       />
                     </div>
                   </div>
-                  <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
+                  <span className="installment-chevron">▼</span>
                 </button>
                 <div className="card-action-buttons">
                   <CardEditButton
@@ -364,7 +365,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                 </div>
               </div>
 
-              {expanded && (
+              <AccordionCollapse open={expanded}>
                 <div className="installment-payments">
                   {item.note && <p className="installment-note">{item.note}</p>}
 
@@ -469,7 +470,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                     </div>
                   )}
                 </div>
-              )}
+              </AccordionCollapse>
             </div>
           );
         })

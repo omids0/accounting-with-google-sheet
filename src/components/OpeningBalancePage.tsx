@@ -11,6 +11,7 @@ import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
 import { InstallmentCardListSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
+import { AccordionCollapse } from './AccordionCollapse';
 
 type OpeningBalanceWithRow = MonthlyOpeningBalance & { rowNumber: number };
 
@@ -160,11 +161,11 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
           return (
             <div
               key={item.monthKey}
-              className="card installment-card dashboard-opening-card wallet-item-card"
+              className={`card installment-card dashboard-opening-card wallet-item-card${expanded ? ' installment-card--expanded' : ''}`}
             >
               <button
                 type="button"
-                className="installment-header wallet-item-header"
+                className={`installment-header wallet-item-header${expanded ? ' installment-header--expanded' : ''}`}
                 onClick={() => setExpandedId(expanded ? null : item.monthKey)}
               >
                 <div className="wallet-item-info">
@@ -178,10 +179,10 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
                     <div className="wallet-item-note">آخرین ویرایش: {item.updatedAt}</div>
                   )}
                 </div>
-                <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
+                <span className="installment-chevron">▼</span>
               </button>
 
-              {expanded && edit && (
+              <AccordionCollapse open={expanded && !!edit}>
                 <div className="installment-payments dashboard-opening-body">
                   <div className="form-group">
                     <label>موجودی اول دوره</label>
@@ -217,7 +218,7 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
                     {savingId === item.monthKey ? '...' : 'ذخیره'}
                   </button>
                 </div>
-              )}
+              </AccordionCollapse>
             </div>
           );
         })

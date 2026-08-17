@@ -1396,6 +1396,52 @@ button {
 .installment-card {
   padding: 0;
   overflow: hidden;
+  transition:
+    box-shadow var(--duration-slow) var(--ease-out),
+    border-color var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+
+.installment-card--expanded {
+  box-shadow:
+    var(--shadow-lg),
+    0 4px 16px rgba(15, 118, 110, 0.12);
+  border-color: rgba(15, 118, 110, 0.35);
+  transform: translateY(-2px);
+}
+
+.installment-card--expanded:hover {
+  box-shadow:
+    var(--shadow-lg),
+    0 6px 20px rgba(15, 118, 110, 0.16);
+}
+
+.accordion-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-slow) var(--ease-out);
+}
+
+.accordion-collapse--open {
+  grid-template-rows: 1fr;
+}
+
+.accordion-collapse__inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.accordion-collapse__inner > .installment-payments {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+
+.accordion-collapse--open .accordion-collapse__inner > .installment-payments {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .card-action-btn {
@@ -1507,6 +1553,15 @@ button {
   color: var(--color-text-muted);
   flex-shrink: 0;
   margin-top: 0.15rem;
+  display: inline-flex;
+  transition:
+    transform var(--duration-slow) var(--ease-out),
+    color var(--duration-normal);
+}
+
+.installment-header--expanded .installment-chevron {
+  transform: rotate(180deg);
+  color: var(--color-primary);
 }
 
 .installment-progress {

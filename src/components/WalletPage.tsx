@@ -22,6 +22,7 @@ import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import { AccordionCollapse } from './AccordionCollapse';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
 
@@ -325,10 +326,10 @@ export default function WalletPage({
       </div>
 
       {periodFlow && (
-        <div className="card installment-card dashboard-opening-card wallet-item-card">
+        <div className={`card installment-card dashboard-opening-card wallet-item-card${openingExpanded ? ' installment-card--expanded' : ''}`}>
           <button
             type="button"
-            className="installment-header wallet-item-header"
+            className={`installment-header wallet-item-header${openingExpanded ? ' installment-header--expanded' : ''}`}
             onClick={() => setOpeningExpanded((v) => !v)}
           >
             <div className="wallet-item-info">
@@ -338,10 +339,10 @@ export default function WalletPage({
               </div>
               <div className="wallet-item-note">ابتدای {periodFlow.monthLabel}</div>
             </div>
-            <span className="installment-chevron">{openingExpanded ? '▲' : '▼'}</span>
+            <span className="installment-chevron">▼</span>
           </button>
 
-          {openingExpanded && (
+          <AccordionCollapse open={openingExpanded}>
             <div className="installment-payments dashboard-opening-body">
               <p className="dashboard-opening-hint">
                 موجودی کیف پول در ابتدای {periodFlow.monthLabel} را وارد کنید.
@@ -370,7 +371,7 @@ export default function WalletPage({
                 </button>
               )}
             </div>
-          )}
+          </AccordionCollapse>
         </div>
       )}
 
@@ -388,11 +389,11 @@ export default function WalletPage({
           const displayBalance = rawBalance === '' ? account.balance : Number(rawBalance);
 
           return (
-            <div key={account.id} className="card installment-card wallet-item-card">
+            <div key={account.id} className={`card installment-card wallet-item-card${expanded ? ' installment-card--expanded' : ''}`}>
               <div className="card-header-with-edit">
                 <button
                   type="button"
-                  className="installment-header wallet-item-header"
+                  className={`installment-header wallet-item-header${expanded ? ' installment-header--expanded' : ''}`}
                   onClick={() => setExpandedId(expanded ? null : account.id)}
                 >
                   <div className="wallet-item-info">
@@ -402,7 +403,7 @@ export default function WalletPage({
                     </div>
                     {account.note && <div className="wallet-item-note">{account.note}</div>}
                   </div>
-                  <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
+                  <span className="installment-chevron">▼</span>
                 </button>
                 <div className="card-action-buttons">
                   <CardEditButton
@@ -420,7 +421,7 @@ export default function WalletPage({
                 </div>
               </div>
 
-              {expanded && (
+              <AccordionCollapse open={expanded}>
                 <div className="installment-payments wallet-item-edit">
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label>موجودی</label>
@@ -435,7 +436,7 @@ export default function WalletPage({
                   </div>
                   {savingId === account.id && <span className="spinner" />}
                 </div>
-              )}
+              </AccordionCollapse>
             </div>
           );
         })

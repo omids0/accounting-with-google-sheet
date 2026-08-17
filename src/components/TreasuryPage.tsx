@@ -27,6 +27,7 @@ import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
+import { AccordionCollapse } from './AccordionCollapse';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
@@ -386,10 +387,10 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
           const expanded = expandedAsset === holding.assetType;
           const allowDecimal = holding.assetType === 'geram18';
           return (
-            <div key={holding.assetType} className="card installment-card treasury-holding-card">
+            <div key={holding.assetType} className={`card installment-card treasury-holding-card${expanded ? ' installment-card--expanded' : ''}`}>
               <button
                 type="button"
-                className="installment-header"
+                className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
                 onClick={() => {
                   setExpandedAsset(expanded ? null : holding.assetType);
                   setSellForm(null);
@@ -414,10 +415,10 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
                     ارزش کل: {formatMoney(holding.totalValue)}
                   </div>
                 </div>
-                <span className="installment-chevron">{expanded ? '▲' : '▼'}</span>
+                <span className="installment-chevron">▼</span>
               </button>
 
-              {expanded && (
+              <AccordionCollapse open={expanded}>
                 <div className="installment-payments">
                   <div className="receivable-payment-list-title">سوابق خرید و فروش</div>
                   {holding.transactions.map((tx) => {
@@ -560,7 +561,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
                     )}
                   </div>
                 </div>
-              )}
+              </AccordionCollapse>
             </div>
           );
         })
