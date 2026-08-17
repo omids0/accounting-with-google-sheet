@@ -34,7 +34,6 @@ function incomeForm(): CustomForm {
     fields: [
       { id: 'date', label: 'تاریخ', type: 'date', required: true },
       { id: 'title', label: 'عنوان', type: 'text', required: true },
-      { id: 'amount', label: 'مبلغ', type: 'number', required: true },
       {
         id: 'category',
         label: 'دسته‌بندی',
@@ -42,6 +41,7 @@ function incomeForm(): CustomForm {
         required: true,
         options: DEFAULT_INCOME_CATEGORIES,
       },
+      { id: 'amount', label: 'مبلغ', type: 'number', required: true },
       { id: 'note', label: 'توضیحات', type: 'text', required: false },
     ],
   };
@@ -56,7 +56,6 @@ function expenseForm(): CustomForm {
     fields: [
       { id: 'date', label: 'تاریخ', type: 'date', required: true },
       { id: 'title', label: 'عنوان', type: 'text', required: true },
-      { id: 'amount', label: 'مبلغ', type: 'number', required: true },
       {
         id: 'category',
         label: 'دسته‌بندی',
@@ -64,6 +63,7 @@ function expenseForm(): CustomForm {
         required: true,
         options: DEFAULT_EXPENSE_CATEGORIES,
       },
+      { id: 'amount', label: 'مبلغ', type: 'number', required: true },
       { id: 'note', label: 'توضیحات', type: 'text', required: false },
     ],
   };

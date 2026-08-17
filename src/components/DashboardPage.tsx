@@ -17,6 +17,9 @@ import DateRangeFilter, {
   createDefaultDateRangeFilter,
   type AppliedDateRangeFilter,
 } from './DateRangeFilter';
+import TransactionTypeSegment, {
+  type TransactionTypeSegmentOption,
+} from './TransactionTypeSegment';
 import {
   getInstallmentDueRange,
   formatDateRangeLabel,
@@ -187,11 +190,7 @@ export default function DashboardPage({
   const settings = getSettings();
   const incomeForm = settings?.forms.find((f) => f.type === 'income');
   const expenseForm = settings?.forms.find((f) => f.type === 'expense');
-  const transactionTypeOptions: {
-    id: TransactionTypeFilter;
-    label: string;
-    tone?: 'income' | 'expense';
-  }[] = [
+  const transactionTypeOptions: TransactionTypeSegmentOption[] = [
     { id: 'all', label: 'همه' },
     { id: 'income', label: incomeForm?.name ?? 'درآمد', tone: 'income' },
     { id: 'expense', label: expenseForm?.name ?? 'هزینه', tone: 'expense' },
@@ -375,29 +374,12 @@ export default function DashboardPage({
           </div>
         </div>
 
-        <div
-          className="records-type-segment dashboard-transaction-segment"
-          role="tablist"
-          aria-label="نوع تراکنش"
-        >
-          {transactionTypeOptions.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              role="tab"
-              aria-selected={typeFilter === option.id}
-              className={[
-                typeFilter === option.id ? 'active' : '',
-                typeFilter === option.id && option.tone ? option.tone : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              onClick={() => setTypeFilter(option.id)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <TransactionTypeSegment
+          className="dashboard-transaction-segment"
+          options={transactionTypeOptions}
+          value={typeFilter}
+          onChange={(id) => setTypeFilter(id as TransactionTypeFilter)}
+        />
 
         {!data?.recentRecords.length ? (
           <p className="empty-text">هنوز تراکنشی در این دوره ثبت نشده</p>

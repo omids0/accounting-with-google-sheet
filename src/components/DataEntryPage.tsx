@@ -3,7 +3,10 @@ import type { CustomForm } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { appendRecord } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
-import { FieldInput, getInitialFieldValue } from './form';
+import { FieldInput, getInitialFieldValue, sortFormFields } from './form';
+import TransactionTypeSegment, {
+  transactionTypeOptionsFromForms,
+} from './TransactionTypeSegment';
 import { FormSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 
@@ -43,8 +46,20 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
     initValues(form);
   };
 
+  const refreshForms = () => {
+    const settings = getSettings();
+    if (settings) setForms(settings.forms);
+  };
+
   const handleChange = (fieldId: string, value: string | number) => {
     setValues((prev) => ({ ...prev, [fieldId]: value }));
+  };
+
+  const handleCategoriesChange = (categories: string[]) => {
+    refreshForms();
+    if (!categories.includes(String(values.category ?? ''))) {
+      setValues((prev) => ({ ...prev, category: categories[0] ?? '' }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,33 +119,28 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
 
   return (
     <div>
-      <div className="form-tabs">
-        {forms.map((form) => (
-          <button
-            key={form.id}
-            className={[
-              activeFormId === form.id ? 'active' : '',
-              form.type === 'income' ? 'tab-income' : '',
-              form.type === 'expense' ? 'tab-expense' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-            onClick={() => selectForm(form)}
-            type="button"
-          >
-            {form.name}
-          </button>
-        ))}
-      </div>
+      <TransactionTypeSegment
+        className="data-entry-type-segment"
+        options={transactionTypeOptionsFromForms(forms)}
+        value={activeFormId}
+        onChange={(formId) => {
+          const form = forms.find((f) => f.id === formId);
+          if (form) selectForm(form);
+        }}
+        ariaLabel="نوع ثبت"
+      />
 
       {activeForm && (
         <form onSubmit={handleSubmit}>
-          {activeForm.fields.map((field) => (
+          {sortFormFields(activeForm.fields).map((field) => (
             <FieldInput
               key={field.id}
               field={field}
               value={values[field.id] ?? ''}
               onChange={(next) => handleChange(field.id, next)}
+              formId={activeForm.id}
+              onCategoriesChange={handleCategoriesChange}
+              onReauth={onReauth}
             />
           ))}
 
@@ -146,7 +156,7 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
             disabled={loading}
           >
             {loading && <span className="spinner" />}
-            ذخیره در گوگل شیت
+            ذخیره
           </button>
         </form>
       )}

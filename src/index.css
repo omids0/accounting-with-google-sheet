@@ -274,6 +274,160 @@ select {
   background-color: var(--color-surface);
 }
 
+/* ── Category select (manage inside dropdown) ── */
+.category-select.custom-select--open {
+  z-index: 40;
+}
+
+.category-select-panel {
+  z-index: 60;
+}
+
+.category-select-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  animation: slideDown var(--duration-normal) var(--ease-out);
+}
+
+.category-select-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.category-select-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.2rem;
+}
+
+.category-select-item:last-child {
+  margin-bottom: 0;
+}
+
+.category-select-option {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.92rem;
+  text-align: right;
+  cursor: pointer;
+  transition: background-color var(--duration-fast), color var(--duration-fast);
+}
+
+.category-select-option:hover {
+  background: var(--color-bg);
+}
+
+.category-select-option.is-selected {
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+.category-select-actions {
+  display: flex;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.category-select-icon-btn {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.category-select-icon-btn:hover:not(:disabled) {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.category-select-icon-btn--save:hover:not(:disabled) {
+  color: var(--color-success);
+}
+
+.category-select-icon-btn--danger:hover:not(:disabled) {
+  color: var(--color-danger);
+}
+
+.category-select-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.category-select-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.category-select-edit input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.9rem;
+}
+
+.category-select-add {
+  padding: 0.65rem 0.65rem 0.55rem;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(15, 118, 110, 0.06);
+}
+
+.category-select-add-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 0.45rem;
+}
+
+.category-select-add-row {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.category-select-add-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.9rem;
+}
+
+.category-select-add-row .btn {
+  flex-shrink: 0;
+}
+
+.category-select--saving .custom-select-trigger {
+  opacity: 0.75;
+}
+
 .custom-select--disabled .custom-select-trigger {
   opacity: 0.6;
   cursor: not-allowed;
@@ -2243,6 +2397,20 @@ button {
 
 .card-header-row .chart-title {
   margin-bottom: 0;
+}
+
+.data-entry-type-segment {
+  margin-bottom: 1rem;
+}
+
+.form-field-note {
+  margin-bottom: 1.15rem;
+}
+
+.form-note-textarea {
+  min-height: 6.5rem;
+  line-height: 1.55;
+  resize: vertical;
 }
 
 .card-header-row + .dashboard-transaction-segment {

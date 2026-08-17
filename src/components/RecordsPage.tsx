@@ -8,6 +8,9 @@ import DateRangeFilter, {
   createDefaultDateRangeFilter,
   type AppliedDateRangeFilter,
 } from './DateRangeFilter';
+import TransactionTypeSegment, {
+  transactionTypeOptionsFromForms,
+} from './TransactionTypeSegment';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import {
@@ -239,37 +242,11 @@ export default function RecordsPage({
           </button>
         </div>
 
-        {forms.length > 1 && (
-          <div className="records-type-segment" role="tablist" aria-label="نوع تراکنش">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={isAllForms}
-              className={isAllForms ? 'active' : ''}
-              onClick={() => handleFormChange('all')}
-            >
-              همه
-            </button>
-            {forms.map((form) => (
-              <button
-                key={form.id}
-                type="button"
-                role="tab"
-                aria-selected={activeFormId === form.id}
-                className={[
-                  activeFormId === form.id ? 'active' : '',
-                  activeFormId === form.id && form.type === 'income' ? 'income' : '',
-                  activeFormId === form.id && form.type === 'expense' ? 'expense' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                onClick={() => handleFormChange(form.id)}
-              >
-                {form.name}
-              </button>
-            ))}
-          </div>
-        )}
+        <TransactionTypeSegment
+          options={transactionTypeOptionsFromForms(forms, { includeAll: true })}
+          value={activeFormId}
+          onChange={handleFormChange}
+        />
 
         <DateRangeFilter
           preset={datePreset}

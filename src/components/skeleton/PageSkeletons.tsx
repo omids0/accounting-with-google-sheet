@@ -173,9 +173,9 @@ export function TreasurySkeleton() {
 export function FormSkeleton({ fields = 4 }: { fields?: number }) {
   return (
     <div className="skeleton-form" aria-busy="true" aria-label="در حال بارگذاری">
-      <div className="skeleton-filter-tabs" style={{ marginBottom: '1rem' }}>
-        <Skeleton variant="rect" height="2.25rem" style={{ flex: 1, borderRadius: 'var(--radius-sm)' }} />
-        <Skeleton variant="rect" height="2.25rem" style={{ flex: 1, borderRadius: 'var(--radius-sm)' }} />
+      <div className="records-type-segment data-entry-type-segment" aria-hidden="true">
+        <Skeleton variant="rect" height="2.25rem" style={{ flex: 1, borderRadius: 'calc(var(--radius) - 2px)' }} />
+        <Skeleton variant="rect" height="2.25rem" style={{ flex: 1, borderRadius: 'calc(var(--radius) - 2px)' }} />
       </div>
       {Array.from({ length: fields }, (_, i) => (
         <div key={i} className="skeleton-form-row">
