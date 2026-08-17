@@ -14,6 +14,7 @@ import {
   totalUnpaidInstallments,
 } from '../services/installments';
 import AmountInput from './AmountInput';
+import { InstallmentCardListSkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import {
@@ -288,7 +289,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       )}
 
       {loading && plans.length === 0 ? (
-        <div className="empty-state"><p>در حال بارگذاری...</p></div>
+        <InstallmentCardListSkeleton />
       ) : plans.length === 0 ? (
         <div className="empty-state">
           <div className="icon">📅</div>

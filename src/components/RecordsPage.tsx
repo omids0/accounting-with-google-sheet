@@ -6,6 +6,7 @@ import { isTokenValid } from '../services/auth';
 
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
+import { RecordListSkeleton } from './skeleton';
 
 interface RecordItem {
   id: string;
@@ -122,7 +123,7 @@ export default function RecordsPage({
       {error && <div className="alert alert-error">{error}</div>}
 
       {loading && records.length === 0 ? (
-        <div className="empty-state"><p>در حال بارگذاری...</p></div>
+        <RecordListSkeleton />
       ) : records.length === 0 ? (
         <div className="empty-state">
           <div className="icon">📭</div>

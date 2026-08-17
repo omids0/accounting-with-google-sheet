@@ -13,6 +13,7 @@ import { loadDashboardData } from '../services/dashboard';
 import type { CustomForm, DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
 import { FormSelect } from './form';
+import { DashboardSkeleton } from './skeleton';
 import {
   DATE_RANGE_PRESETS,
   getDateRange,
@@ -227,11 +228,7 @@ export default function DashboardPage({
   }
 
   if (loading && !data) {
-    return (
-      <div className="empty-state">
-        <p>در حال بارگذاری داشبورد...</p>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

@@ -4,6 +4,7 @@ import { getSettings, isConfigured } from '../services/settings';
 import { appendRecord } from '../services/sheets';
 import { isTokenValid } from '../services/auth';
 import { FieldInput, getInitialFieldValue } from './form';
+import { FormSkeleton } from './skeleton';
 
 export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
   const [forms, setForms] = useState<CustomForm[]>([]);
@@ -11,17 +12,22 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
   const [values, setValues] = useState<Record<string, string | number>>({});
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [ready, setReady] = useState(false);
 
   const activeForm = forms.find((f) => f.id === activeFormId);
 
   useEffect(() => {
     const settings = getSettings();
-    if (!settings) return;
+    if (!settings) {
+      setReady(true);
+      return;
+    }
     setForms(settings.forms);
     if (settings.forms.length) {
       setActiveFormId(settings.forms[0].id);
       initValues(settings.forms[0]);
     }
+    setReady(true);
   }, []);
 
   const initValues = (form: CustomForm) => {
@@ -92,6 +98,10 @@ export default function DataEntryPage({ onReauth }: { onReauth?: () => void }) {
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
+  }
+
+  if (!ready) {
+    return <FormSkeleton />;
   }
 
   return (

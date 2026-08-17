@@ -13,6 +13,7 @@ import {
   sortReceivables,
 } from '../services/receivables';
 import AmountInput from './AmountInput';
+import { InstallmentCardListSkeleton } from './skeleton';
 import JalaliDatePicker from './JalaliDatePicker';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
@@ -254,7 +255,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
       )}
 
       {loading && items.length === 0 ? (
-        <div className="empty-state"><p>در حال بارگذاری...</p></div>
+        <InstallmentCardListSkeleton />
       ) : items.length === 0 ? (
         <div className="empty-state">
           <div className="icon">💰</div>

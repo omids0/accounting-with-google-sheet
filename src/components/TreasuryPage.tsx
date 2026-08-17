@@ -17,6 +17,7 @@ import {
 import AmountInput from './AmountInput';
 import JalaliDatePicker from './JalaliDatePicker';
 import { FormSelect } from './form';
+import { TreasurySkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 
@@ -375,7 +376,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
       )}
 
       {loading && holdings.length === 0 ? (
-        <div className="empty-state"><p>در حال بارگذاری...</p></div>
+        <TreasurySkeleton />
       ) : holdings.length === 0 ? (
         <div className="empty-state">
           <div className="icon">🏦</div>

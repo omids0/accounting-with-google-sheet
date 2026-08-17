@@ -14,6 +14,7 @@ import {
   resolveSpreadsheetSession,
 } from './services/spreadsheetSetup';
 import type { SpreadsheetEntry } from './types';
+import { AppLoadingSkeleton } from './components/skeleton';
 
 function ConfigNotice() {
   return (
@@ -153,14 +154,7 @@ export default function App() {
 
   if (!isOAuthConfigured) return <ConfigNotice />;
   if (!ready) {
-    return (
-      <div className="app-loading">
-        <div className="app-loading-inner">
-          <span className="app-loading-icon">📊</span>
-          <div className="spinner spinner-lg" />
-        </div>
-      </div>
-    );
+    return <AppLoadingSkeleton />;
   }
 
   if (needsSheetSetup && isTokenValid()) {

@@ -9,6 +9,7 @@ import {
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange';
 import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
+import { InstallmentCardListSkeleton } from './skeleton';
 
 type OpeningBalanceWithRow = MonthlyOpeningBalance & { rowNumber: number };
 
@@ -154,9 +155,7 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
       {error && <div className="alert alert-error">{error}</div>}
 
       {loading && items.length === 0 ? (
-        <div className="empty-state">
-          <p>در حال بارگذاری...</p>
-        </div>
+        <InstallmentCardListSkeleton />
       ) : items.length === 0 ? (
         <div className="empty-state">
           <div className="icon">📅</div>

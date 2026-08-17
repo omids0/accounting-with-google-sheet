@@ -32,6 +32,7 @@ import {
   logout,
 } from '../services/auth';
 import { usePwaInstall } from '../hooks/usePwaInstall';
+import { SettingsSkeleton } from './skeleton';
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'text', label: 'متن' },
@@ -58,6 +59,7 @@ export default function SettingsPage({
   const [categoriesKey, setCategoriesKey] = useState(0);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(() => isTokenValid());
   const { canInstall, isInstalled, showIosHint, isIos, install, dismissIosHint } = usePwaInstall();
 
   useEffect(() => {
@@ -67,7 +69,10 @@ export default function SettingsPage({
     setForms(settings.forms);
     setCurrency(settings.currency ?? 'toman');
 
-    if (!isTokenValid()) return;
+    if (!isTokenValid()) {
+      setInitialLoading(false);
+      return;
+    }
 
     const loadSheetData = async () => {
       try {
@@ -83,6 +88,8 @@ export default function SettingsPage({
         setSpreadsheetId(getSettings()?.spreadsheetId ?? settings.spreadsheetId);
       } catch {
         // Keep local list if Drive sync fails (e.g. old token scope).
+      } finally {
+        setInitialLoading(false);
       }
     };
 
@@ -280,6 +287,10 @@ export default function SettingsPage({
 
   return (
     <div>
+      {initialLoading ? (
+        <SettingsSkeleton />
+      ) : (
+        <>
       {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
 
       <div className="card">
@@ -527,6 +538,8 @@ export default function SettingsPage({
           ساخت فرم و شیت
         </button>
       </div>
+        </>
+      )}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
 import { setOpeningBalance } from '../services/monthlyBalance';
 import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
+import { InstallmentCardListSkeleton } from './skeleton';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
 
@@ -339,9 +340,7 @@ export default function WalletPage({
       )}
 
       {loading && items.length === 0 ? (
-        <div className="empty-state">
-          <p>در حال بارگذاری...</p>
-        </div>
+        <InstallmentCardListSkeleton />
       ) : items.length === 0 ? (
         <div className="empty-state">
           <div className="icon">👛</div>

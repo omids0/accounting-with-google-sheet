@@ -316,6 +316,138 @@ button {
   border-top-color: var(--color-primary);
 }
 
+/* ── Skeleton ── */
+.skeleton {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(15, 118, 110, 0.07) 0%,
+    rgba(15, 118, 110, 0.14) 50%,
+    rgba(15, 118, 110, 0.07) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.skeleton--text {
+  height: 0.875rem;
+}
+
+.skeleton--rect {
+  border-radius: var(--radius-sm);
+}
+
+.skeleton--circle {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-card {
+  pointer-events: none;
+}
+
+.skeleton-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.skeleton-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.skeleton-dang-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.skeleton-dang-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.skeleton-record-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(153, 246, 228, 0.5);
+}
+
+.skeleton-record-item:last-child {
+  border-bottom: none;
+}
+
+.skeleton-records-card {
+  pointer-events: none;
+}
+
+.skeleton-filter-tabs {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.skeleton-stat-card {
+  pointer-events: none;
+}
+
+.skeleton-breakdown {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.skeleton-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.skeleton-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-form-row + .skeleton-form-row {
+  margin-top: 0.65rem;
+}
+
+.skeleton-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-loading-skeleton {
+  width: min(18rem, 85vw);
+}
+
+.app-loading-cards {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.app-loading-stat-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
 /* ── Page transitions ── */
 .page-content {
   animation: pageFade var(--duration-page) var(--ease-page) both;
@@ -333,7 +465,12 @@ button {
 .page-content > * > .form-tabs,
 .page-content > * > .empty-state,
 .page-content > * > .card-header-row,
-.page-content > * > form {
+.page-content > * > form,
+.page-content > .skeleton-dashboard,
+.page-content > .skeleton-list,
+.page-content > .skeleton-settings,
+.page-content > .skeleton-records-card,
+.page-content > .skeleton-form {
   animation: pageEnter var(--duration-page) var(--ease-page) both;
 }
 

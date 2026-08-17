@@ -13,6 +13,7 @@ import {
 } from '../services/dang';
 import AmountInput from './AmountInput';
 import JalaliDatePicker from './JalaliDatePicker';
+import { DangCardListSkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 
@@ -298,7 +299,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
       )}
 
       {loading && items.length === 0 ? (
-        <div className="empty-state"><p>در حال بارگذاری...</p></div>
+        <DangCardListSkeleton />
       ) : items.length === 0 ? (
         <div className="empty-state">
           <div className="icon">🍽️</div>
