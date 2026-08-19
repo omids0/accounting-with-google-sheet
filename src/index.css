@@ -2345,8 +2345,8 @@ button {
 .record-item {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.75rem;
   padding: 0.85rem 0;
   border-bottom: 1px solid var(--color-border);
 }
@@ -2389,6 +2389,42 @@ button {
   color: var(--color-danger);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.record-item-amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.record-item-amount--income {
+  color: var(--color-success);
+}
+
+.record-item-amount--expense {
+  color: var(--color-danger);
+}
+
+.record-item-amount-sign {
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.record-item-amount-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.record-item-amount-unit {
+  font-size: 0.92rem;
+  font-weight: 500;
+  opacity: 0.72;
 }
 
 .field-row {
@@ -2629,6 +2665,10 @@ button {
 
 .chart-bar-wrap .recharts-cartesian-axis-tick-value {
   font-family: inherit;
+}
+
+.chart-monthly-wrap {
+  min-height: 0;
 }
 
 .chart-title {
@@ -3106,6 +3146,9 @@ button {
 .record-item-title {
   font-weight: 600;
   font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .record-item-meta {

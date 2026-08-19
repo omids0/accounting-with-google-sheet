@@ -19,6 +19,16 @@ export function getCurrencySymbol(currency?: CurrencyUnit): string {
 }
 
 export function formatMoney(n: number, currency?: CurrencyUnit): string {
-  const formatted = n.toLocaleString('fa-IR');
-  return `${formatted} ${getCurrencySymbol(currency)}`;
+  const { number, symbol } = formatMoneyParts(n, currency);
+  return `${number} ${symbol}`;
+}
+
+export function formatMoneyParts(
+  n: number,
+  currency?: CurrencyUnit
+): { number: string; symbol: string } {
+  return {
+    number: n.toLocaleString('fa-IR'),
+    symbol: getCurrencySymbol(currency),
+  };
 }

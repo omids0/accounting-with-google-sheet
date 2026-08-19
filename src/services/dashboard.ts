@@ -1,11 +1,20 @@
-import type { AppSettings, CategorySummary, CustomForm, DashboardData } from '../types';
+import type {
+  AppSettings,
+  CategorySummary,
+  CustomForm,
+  DashboardData,
+  MonthlyFlow,
+} from '../types';
 import type { DateRange } from '../utils/dateRange';
+import { getJalaliParts } from '../utils/jalaliDate';
 import { parseNumeric } from '../utils/parseNumeric';
 import {
   formatJalaliMonthLabel,
+  getDateRange,
   getJalaliMonthKey,
   isDateInRange,
 } from '../utils/dateRange';
+import { normalizeSheetDate } from '../utils/sheetValues';
 import { fetchDangs, unpaidDangTotal } from './dang';
 import { fetchInstallmentPlans, totalUnpaidInstallments } from './installments';
 import { fetchChecks, totalUnpaidChecksInRange } from './checks';
@@ -28,6 +37,51 @@ function filterByDateRange<T extends { values: Record<string, string> }>(
   return records.filter((r) =>
     isDateInRange(r.values[dateFieldId] ?? '', range)
   );
+}
+
+function aggregateYearToDateMonthlyFlow(
+  incomeRecords: { values: Record<string, string> }[],
+  expenseRecords: { values: Record<string, string> }[],
+  incomeDateField: string,
+  expenseDateField: string
+): MonthlyFlow[] {
+  const range = getDateRange('year-to-date');
+  const totals = new Map<string, { income: number; expense: number }>();
+
+  for (const record of incomeRecords) {
+    const date = normalizeSheetDate(record.values[incomeDateField] ?? '');
+    if (!date || !isDateInRange(date, range)) continue;
+    const monthKey = getJalaliMonthKey(date);
+    const entry = totals.get(monthKey) ?? { income: 0, expense: 0 };
+    entry.income += parseNumeric(record.values.amount);
+    totals.set(monthKey, entry);
+  }
+
+  for (const record of expenseRecords) {
+    const date = normalizeSheetDate(record.values[expenseDateField] ?? '');
+    if (!date || !isDateInRange(date, range)) continue;
+    const monthKey = getJalaliMonthKey(date);
+    const entry = totals.get(monthKey) ?? { income: 0, expense: 0 };
+    entry.expense += parseNumeric(record.values.amount);
+    totals.set(monthKey, entry);
+  }
+
+  const { year: jy, month: currentMonth } = getJalaliParts(new Date());
+  const flow: MonthlyFlow[] = [];
+
+  for (let month = 1; month <= currentMonth; month += 1) {
+    const monthKey = `${jy}-${String(month).padStart(2, '0')}`;
+    const { income = 0, expense = 0 } = totals.get(monthKey) ?? {};
+    flow.push({
+      monthKey,
+      label: formatJalaliMonthLabel(monthKey),
+      income,
+      expense,
+      net: income - expense,
+    });
+  }
+
+  return flow;
 }
 
 function sumByCategory(
@@ -180,6 +234,12 @@ export async function loadDashboardData(
     },
     incomeByCategory: sumByCategory(filteredIncome),
     expenseByCategory: sumByCategory(filteredExpense),
+    yearlyMonthlyFlow: aggregateYearToDateMonthlyFlow(
+      incomeRecords,
+      expenseRecords,
+      incomeDateField,
+      expenseDateField
+    ),
     recentRecords: recent,
   };
 }

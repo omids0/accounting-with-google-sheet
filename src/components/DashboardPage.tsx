@@ -7,10 +7,11 @@ import {
   YAxis,
   ResponsiveContainer,
   Tooltip,
+  Legend,
 } from 'recharts';
 import { getSettings, isConfigured } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
-import type { DashboardData, DashboardNavTarget } from '../types';
+import type { DashboardData, DashboardNavTarget, MonthlyFlow } from '../types';
 import { isTokenValid } from '../services/auth';
 import { DashboardSkeleton } from './skeleton';
 import DateRangeFilter, {
@@ -27,12 +28,87 @@ import {
   type DateRangePreset,
   type RecordsDatePreset,
 } from '../utils/dateRange';
-import { formatMoney } from '../utils/formatMoney';
+import { formatMoney, formatMoneyParts } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import { showError } from '../utils/toast';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
+const INCOME_BAR_COLOR = '#16a34a';
+const EXPENSE_BAR_COLOR = '#dc2626';
+
+function IncomeExpenseMonthlyChart({ data }: { data: MonthlyFlow[] }) {
+  const chartData = data.map((item) => ({
+    ...item,
+    shortLabel: item.label.split(' ')[0] ?? item.label,
+  }));
+  const height = Math.max(280, chartData.length * 52);
+  const maxLabelLen = Math.max(...chartData.map((d) => d.shortLabel.length), 1);
+  const yAxisWidth = Math.min(72, Math.max(44, Math.ceil(maxLabelLen * 7)));
+
+  return (
+    <div className="card chart-card">
+      <h3 className="chart-title">درآمد و هزینه ماهانه (از اول سال)</h3>
+      <div className="chart-bar-wrap chart-monthly-wrap" dir="ltr">
+        <ResponsiveContainer width="100%" height={height}>
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            margin={{ top: 4, right: 4, left: 0, bottom: 4 }}
+          >
+            <XAxis
+              type="number"
+              tickFormatter={(value) => formatMoney(value)}
+              tick={{ fontSize: 10, fill: '#6b7280' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="shortLabel"
+              width={yAxisWidth}
+              orientation="left"
+              tick={{
+                fontSize: 12,
+                fill: '#6b7280',
+                textAnchor: 'end',
+              }}
+              tickMargin={4}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              formatter={(value, name) => [
+                formatMoney(Number(value) || 0),
+                name === 'income' ? 'درآمد' : 'هزینه',
+              ]}
+              labelFormatter={(_, payload) =>
+                payload?.[0]?.payload?.label ?? ''
+              }
+            />
+            <Legend
+              formatter={(value) => (value === 'income' ? 'درآمد' : 'هزینه')}
+            />
+            <Bar
+              name="income"
+              dataKey="income"
+              fill={INCOME_BAR_COLOR}
+              radius={[0, 4, 4, 0]}
+              maxBarSize={14}
+            />
+            <Bar
+              name="expense"
+              dataKey="expense"
+              fill={EXPENSE_BAR_COLOR}
+              radius={[0, 4, 4, 0]}
+              maxBarSize={14}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
 
 function CategoryBarChart({
   title,
@@ -95,6 +171,28 @@ function CategoryBarChart({
 }
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
+
+function RecordAmount({
+  amount,
+  type,
+}: {
+  amount: number;
+  type: 'income' | 'expense';
+}) {
+  const { number, symbol } = formatMoneyParts(amount);
+
+  return (
+    <div
+      className={`record-item-amount record-item-amount--${type}`}
+      dir="ltr"
+      aria-label={`${type === 'income' ? 'درآمد' : 'هزینه'} ${formatMoney(amount)}`}
+    >
+      <span className="record-item-amount-sign">{type === 'income' ? '+' : '−'}</span>
+      <span className="record-item-amount-value">{number}</span>
+      <span className="record-item-amount-unit">{symbol}</span>
+    </div>
+  );
+}
 
 function BreakdownRow({
   label,
@@ -351,6 +449,10 @@ export default function DashboardPage({
         />
       )}
 
+      {(data?.yearlyMonthlyFlow.length ?? 0) > 0 && (
+        <IncomeExpenseMonthlyChart data={data!.yearlyMonthlyFlow} />
+      )}
+
       <div className="card">
         <div className="card-header-row">
           <h3 className="chart-title">تراکنش‌های دوره</h3>
@@ -388,19 +490,13 @@ export default function DashboardPage({
         ) : (
           filteredRecords.map((r, i) => (
             <div key={i} className="record-item">
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.title}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+              <div className="record-item-main">
+                <div className="record-item-title">{r.title}</div>
+                <div className="record-item-meta">
                   {r.formName} · {r.category} · {formatIsoDatePersian(r.date)}
                 </div>
               </div>
-              <div
-                className={r.type === 'income' ? 'amount-income' : 'amount-expense'}
-                dir="ltr"
-              >
-                {r.type === 'income' ? '+' : '-'}
-                {formatMoney(r.amount)}
-              </div>
+              <RecordAmount amount={r.amount} type={r.type} />
             </div>
           ))
         )}

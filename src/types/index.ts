@@ -55,6 +55,14 @@ export interface CategorySummary {
   total: number;
 }
 
+export interface MonthlyFlow {
+  monthKey: string;
+  label: string;
+  income: number;
+  expense: number;
+  net: number;
+}
+
 export interface DashboardRecord {
   formName: string;
   title: string;
@@ -96,6 +104,7 @@ export interface DashboardData {
   financial: FinancialSummary;
   incomeByCategory: CategorySummary[];
   expenseByCategory: CategorySummary[];
+  yearlyMonthlyFlow: MonthlyFlow[];
   recentRecords: DashboardRecord[];
 }
 
