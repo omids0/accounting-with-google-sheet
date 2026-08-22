@@ -2391,7 +2391,77 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
-.record-item-amount {
+.money-display {
+  font-variant-numeric: tabular-nums;
+}
+
+.money-display--hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  margin-bottom: 0.35rem;
+  color: inherit;
+}
+
+.money-display--hero .money-display__value {
+  font-size: clamp(1.1rem, 5.5vw, 1.55rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.money-display--hero .money-display__unit {
+  font-size: 0.72rem;
+  font-weight: 500;
+  opacity: 0.88;
+}
+
+.money-display--stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.money-display--stat .money-display__value {
+  font-size: clamp(0.75rem, 2.8vw, 0.92rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  max-width: 100%;
+}
+
+.money-display--stat .money-display__unit {
+  font-size: 0.6rem;
+  font-weight: 500;
+  opacity: 0.72;
+  line-height: 1;
+}
+
+.money-display--stat-wide {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.money-display--stat-wide .money-display__value {
+  font-size: clamp(0.82rem, 3vw, 0.98rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.money-display--stat-wide .money-display__unit {
+  font-size: 0.65rem;
+  font-weight: 500;
+  opacity: 0.72;
+}
+
+.money-display--record {
   display: inline-flex;
   align-items: baseline;
   gap: 0.2rem;
@@ -2400,31 +2470,42 @@ button {
   line-height: 1.2;
 }
 
-.record-item-amount--income {
-  color: var(--color-success);
-}
-
-.record-item-amount--expense {
-  color: var(--color-danger);
-}
-
-.record-item-amount-sign {
+.money-display--record .money-display__sign {
   font-size: 0.72rem;
   font-weight: 600;
   opacity: 0.85;
 }
 
-.record-item-amount-value {
-  font-size: 0.92rem;
+.money-display--record .money-display__value {
+  font-size: 0.82rem;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
 
-.record-item-amount-unit {
-  font-size: 0.92rem;
+.money-display--record .money-display__unit {
+  font-size: 0.62rem;
   font-weight: 500;
   opacity: 0.72;
+}
+
+.money-display--income {
+  color: var(--color-success);
+}
+
+.money-display--expense {
+  color: var(--color-danger);
+}
+
+.money-display--positive {
+  color: var(--color-success);
+}
+
+.money-display--negative {
+  color: var(--color-danger);
+}
+
+.money-display--primary {
+  color: var(--color-primary-dark);
 }
 
 .field-row {
@@ -2574,10 +2655,6 @@ button {
   font-size: 0.72rem;
 }
 
-.dashboard-stat-grid .stat-value {
-  font-size: 0.95rem;
-}
-
 .stat-card-wide {
   width: 100%;
   margin-top: 0.5rem;
@@ -2591,10 +2668,6 @@ button {
 .stat-card-wide .stat-label {
   margin-bottom: 0;
   font-size: 0.78rem;
-}
-
-.stat-card-wide .stat-value {
-  font-size: 1rem;
 }
 
 .stat-card {
@@ -2706,14 +2779,6 @@ button {
   opacity: 0.9;
   margin-bottom: 0.25rem;
   font-weight: 500;
-}
-
-.dashboard-hero-value {
-  font-size: 1.6rem;
-  font-weight: 900;
-  margin-bottom: 0.35rem;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
 }
 
 .dashboard-hero-hint {

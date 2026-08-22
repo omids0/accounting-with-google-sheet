@@ -28,9 +28,10 @@ import {
   type DateRangePreset,
   type RecordsDatePreset,
 } from '../utils/dateRange';
-import { formatMoney, formatMoneyParts } from '../utils/formatMoney';
+import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import { showError } from '../utils/toast';
+import MoneyDisplay from './MoneyDisplay';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
@@ -179,18 +180,13 @@ function RecordAmount({
   amount: number;
   type: 'income' | 'expense';
 }) {
-  const { number, symbol } = formatMoneyParts(amount);
-
   return (
-    <div
-      className={`record-item-amount record-item-amount--${type}`}
-      dir="ltr"
-      aria-label={`${type === 'income' ? 'درآمد' : 'هزینه'} ${formatMoney(amount)}`}
-    >
-      <span className="record-item-amount-sign">{type === 'income' ? '+' : '−'}</span>
-      <span className="record-item-amount-value">{number}</span>
-      <span className="record-item-amount-unit">{symbol}</span>
-    </div>
+    <MoneyDisplay
+      amount={amount}
+      size="record"
+      tone={type === 'income' ? 'income' : 'expense'}
+      signed
+    />
   );
 }
 
@@ -336,9 +332,11 @@ export default function DashboardPage({
 
       <div className="card dashboard-hero-card">
         <div className="dashboard-hero-label">دارایی قابل اتکا</div>
-        <div className="dashboard-hero-value" dir="ltr">
-          {formatMoney(financial?.netAvailable ?? 0)}
-        </div>
+        <MoneyDisplay
+          amount={financial?.netAvailable ?? 0}
+          size="hero"
+          tone="hero"
+        />
         <p className="dashboard-hero-hint">
           مجموع دارایی‌ها منهای بدهی‌های پیش‌رو این دوره
         </p>
@@ -348,15 +346,11 @@ export default function DashboardPage({
         <div className="stat-grid dashboard-stat-grid">
           <div className="stat-card stat-income">
             <span className="stat-label">درآمد دوره</span>
-            <span className="stat-value" dir="ltr">
-              {formatMoney(data?.totalIncome ?? 0)}
-            </span>
+            <MoneyDisplay amount={data?.totalIncome ?? 0} size="stat" tone="income" />
           </div>
           <div className="stat-card stat-expense">
             <span className="stat-label">هزینه دوره</span>
-            <span className="stat-value" dir="ltr">
-              {formatMoney(data?.totalExpense ?? 0)}
-            </span>
+            <MoneyDisplay amount={data?.totalExpense ?? 0} size="stat" tone="expense" />
           </div>
         </div>
         <div
@@ -369,15 +363,21 @@ export default function DashboardPage({
           }`}
         >
           <span className="stat-label">خالص دوره</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(data?.balance ?? 0)}
-          </span>
+          <MoneyDisplay
+            amount={data?.balance ?? 0}
+            size="stat-wide"
+            tone={
+              (data?.balance ?? 0) < 0
+                ? 'negative'
+                : (data?.balance ?? 0) > 0
+                  ? 'positive'
+                  : 'primary'
+            }
+          />
         </div>
         <div className="stat-card stat-balance stat-card-wide">
           <span className="stat-label">مانده محاسبه‌شده</span>
-          <span className="stat-value" dir="ltr">
-            {formatMoney(data?.periodBalance ?? 0)}
-          </span>
+          <MoneyDisplay amount={data?.periodBalance ?? 0} size="stat-wide" tone="primary" />
         </div>
       </div>
 
