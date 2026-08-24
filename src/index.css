@@ -1327,6 +1327,44 @@ button {
   min-height: 80px;
 }
 
+.jalali-date-picker-wrap {
+  width: 100%;
+}
+
+.jalali-date-picker-trigger {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  text-align: right;
+  font: inherit;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: border-color var(--duration-normal),
+    box-shadow var(--duration-normal),
+    background-color var(--duration-normal);
+}
+
+.jalali-date-picker-trigger.is-active,
+.jalali-date-picker-trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  background-color: var(--color-surface);
+}
+
+.jalali-date-picker-panel {
+  margin-top: 0.5rem;
+}
+
+.jalali-date-picker-actions {
+  margin-top: 0.5rem;
+  padding-top: 0;
+  border-top: none;
+}
+
 .jalali-date-picker {
   display: grid;
   grid-template-columns: 1fr 1.5fr 0.85fr;
