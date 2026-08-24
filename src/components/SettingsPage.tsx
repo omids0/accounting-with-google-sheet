@@ -29,6 +29,7 @@ import {
   logout,
 } from '../services/auth';
 import { usePwaInstall } from '../hooks/usePwaInstall';
+import RemindersPage from './RemindersPage';
 import { SettingsSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 import { applyTheme } from '../utils/theme';
@@ -62,6 +63,7 @@ export default function SettingsPage({
   const [theme, setTheme] = useState<ThemeMode>('light');
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [categoriesKey, setCategoriesKey] = useState(0);
+  const [settingsView, setSettingsView] = useState<'main' | 'reminders'>('main');
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(() => isTokenValid());
@@ -238,10 +240,26 @@ export default function SettingsPage({
 
   return (
     <div>
-      {initialLoading ? (
+      {settingsView === 'reminders' ? (
+        <RemindersPage onBack={() => setSettingsView('main')} />
+      ) : initialLoading ? (
         <SettingsSkeleton />
       ) : (
         <>
+      <div className="card">
+        <h2 className="card-title">یادآوری‌ها</h2>
+        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
+          یادآوری اقساط و سایر موارد را با نوتیf PWA مدیریت کنید.
+        </p>
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+          onClick={() => setSettingsView('reminders')}
+        >
+          مدیریت یادآوری‌ها
+        </button>
+      </div>
+
       <div className="card">
         <h2 className="card-title">حساب گوگل</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

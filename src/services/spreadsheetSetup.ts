@@ -28,6 +28,14 @@ import {
   syncCategoriesFromSheet,
 } from './categories';
 import {
+  PUSH_SUBS_HEADERS,
+  PUSH_SUBS_SHEET,
+  REMINDER_LOG_HEADERS,
+  REMINDER_LOG_SHEET,
+  REMINDERS_HEADERS,
+  REMINDERS_SHEET,
+} from './reminders';
+import {
   formatSpreadsheetTitle,
 } from './spreadsheetCatalog';
 import {
@@ -99,6 +107,9 @@ function getAllSheetSpecs(): SheetSpec[] {
       headers: MONTHLY_BALANCE_HEADERS,
     },
     { sheetName: CATEGORIES_SHEET, headers: CATEGORIES_HEADERS },
+    { sheetName: REMINDERS_SHEET, headers: REMINDERS_HEADERS },
+    { sheetName: PUSH_SUBS_SHEET, headers: PUSH_SUBS_HEADERS },
+    { sheetName: REMINDER_LOG_SHEET, headers: REMINDER_LOG_HEADERS },
   ];
 }
 
