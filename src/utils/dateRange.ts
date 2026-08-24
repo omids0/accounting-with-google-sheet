@@ -52,7 +52,7 @@ export function getJalaliYearRange(year: number): DateRange {
 }
 
 export function formatJalaliYear(year: number): string {
-  return year.toLocaleString('fa-IR');
+  return year.toLocaleString('fa-IR', { useGrouping: false });
 }
 
 export function getDateRange(preset: DateRangePreset): DateRange {

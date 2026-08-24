@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
 export interface WheelPickerItem {
   value: string;
@@ -12,8 +12,27 @@ interface WheelPickerProps {
   'aria-label'?: string;
 }
 
-const ITEM_HEIGHT = 38;
+const ITEM_HEIGHT = 30;
 const VISIBLE_PADDING = 2;
+const MAX_DISTANCE = 2;
+
+function applyWheelItemVisuals(itemEl: HTMLButtonElement, offsetRows: number) {
+  const distance = Math.min(Math.abs(offsetRows), MAX_DISTANCE);
+  const t = distance / MAX_DISTANCE;
+  const isCentered = distance < 0.45;
+
+  const scale = 1 - t * 0.13;
+  const fontSize = 0.88 - t * 0.16;
+  const opacity = 1 - t * 0.38;
+
+  itemEl.style.transform = `scale(${scale})`;
+  itemEl.style.opacity = String(isCentered ? 1 : Math.max(0.3, opacity));
+  itemEl.style.fontSize = `${Math.max(0.66, fontSize)}rem`;
+  itemEl.style.fontWeight = isCentered ? '700' : '400';
+  itemEl.style.color = isCentered
+    ? 'var(--wheel-item-active-color, var(--color-primary-dark))'
+    : 'var(--wheel-item-muted-color, var(--color-text-muted))';
+}
 
 export default function WheelPicker({
   items,
@@ -22,20 +41,50 @@ export default function WheelPicker({
   'aria-label': ariaLabel,
 }: WheelPickerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const rafRef = useRef<number>();
   const isUserScrollingRef = useRef(false);
 
   const selectedIndex = items.findIndex((item) => item.value === value);
   const safeIndex = selectedIndex >= 0 ? selectedIndex : 0;
 
-  const scrollToIndex = useCallback((index: number, smooth = false) => {
+  const padding = VISIBLE_PADDING * ITEM_HEIGHT;
+  const containerHeight = (VISIBLE_PADDING * 2 + 1) * ITEM_HEIGHT;
+
+  const updateVisuals = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    el.scrollTo({
-      top: index * ITEM_HEIGHT,
-      behavior: smooth ? 'smooth' : 'auto',
+
+    const centerY = el.scrollTop + containerHeight / 2;
+
+    itemRefs.current.forEach((itemEl, index) => {
+      if (!itemEl) return;
+      const itemCenterY = padding + index * ITEM_HEIGHT + ITEM_HEIGHT / 2;
+      const offset = (itemCenterY - centerY) / ITEM_HEIGHT;
+      applyWheelItemVisuals(itemEl, offset);
     });
-  }, []);
+  }, [containerHeight, padding]);
+
+  const scheduleVisualUpdate = useCallback(() => {
+    if (rafRef.current !== undefined) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(updateVisuals);
+  }, [updateVisuals]);
+
+  const scrollToIndex = useCallback(
+    (index: number, smooth = false) => {
+      const el = scrollRef.current;
+      if (!el) return;
+      el.scrollTo({
+        top: index * ITEM_HEIGHT,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+      scheduleVisualUpdate();
+    },
+    [scheduleVisualUpdate]
+  );
 
   const emitSelection = useCallback(() => {
     const el = scrollRef.current;
@@ -57,6 +106,18 @@ export default function WheelPicker({
     scrollToIndex(safeIndex);
   }, [safeIndex, scrollToIndex]);
 
+  useLayoutEffect(() => {
+    scheduleVisualUpdate();
+  }, [items, scheduleVisualUpdate]);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== undefined) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -64,14 +125,16 @@ export default function WheelPicker({
     const onNativeScrollEnd = () => {
       clearTimeout(scrollTimeoutRef.current);
       emitSelection();
+      scheduleVisualUpdate();
     };
 
     el.addEventListener('scrollend', onNativeScrollEnd);
     return () => el.removeEventListener('scrollend', onNativeScrollEnd);
-  }, [emitSelection]);
+  }, [emitSelection, scheduleVisualUpdate]);
 
   const handleScroll = () => {
     isUserScrollingRef.current = true;
+    scheduleVisualUpdate();
     clearTimeout(scrollTimeoutRef.current);
     scrollTimeoutRef.current = setTimeout(emitSelection, 80);
   };
@@ -81,17 +144,18 @@ export default function WheelPicker({
     emitSelection();
   };
 
-  const padding = VISIBLE_PADDING * ITEM_HEIGHT;
-  const containerHeight = (VISIBLE_PADDING * 2 + 1) * ITEM_HEIGHT;
+  itemRefs.current.length = items.length;
 
   return (
     <div
       className="wheel-picker"
-      style={{ height: containerHeight }}
+      style={{
+        height: containerHeight,
+        ['--wheel-item-height' as string]: `${ITEM_HEIGHT}px`,
+      }}
       aria-label={ariaLabel}
       role="listbox"
     >
-      <div className="wheel-picker-highlight" aria-hidden="true" />
       <div className="wheel-picker-fade wheel-picker-fade--top" aria-hidden="true" />
       <div className="wheel-picker-fade wheel-picker-fade--bottom" aria-hidden="true" />
       <div
@@ -105,6 +169,9 @@ export default function WheelPicker({
         {items.map((item, index) => (
           <button
             key={item.value}
+            ref={(el) => {
+              itemRefs.current[index] = el;
+            }}
             type="button"
             role="option"
             aria-selected={item.value === value}

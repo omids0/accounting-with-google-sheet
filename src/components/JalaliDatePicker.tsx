@@ -14,7 +14,7 @@ interface JalaliDatePickerProps {
 }
 
 function fa(n: number): string {
-  return n.toLocaleString('fa-IR');
+  return n.toLocaleString('fa-IR', { useGrouping: false });
 }
 
 export default function JalaliDatePicker({ value, onChange }: JalaliDatePickerProps) {

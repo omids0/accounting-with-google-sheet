@@ -3,8 +3,6 @@ import WheelPicker from './form/WheelPicker';
 import { formatJalaliYear } from '../utils/dateRange';
 import { getJalaliParts } from '../utils/jalaliDate';
 
-const fa = (value: number) => value.toLocaleString('fa-IR');
-
 export function getDefaultChartYear(): number {
   return getJalaliParts(new Date()).year;
 }
@@ -76,7 +74,7 @@ export default function YearFilter({
           onChange={setPendingYear}
           items={wheelYears.map((nextYear) => ({
             value: String(nextYear),
-            label: fa(nextYear),
+            label: formatJalaliYear(nextYear),
           }))}
         />
       </div>
