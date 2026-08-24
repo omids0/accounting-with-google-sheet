@@ -32,6 +32,7 @@ export interface AppSettings {
   spreadsheetId: string;
   spreadsheets?: SpreadsheetEntry[];
   forms: CustomForm[];
+  dangCategories?: string[];
   currency?: CurrencyUnit;
   theme?: ThemeMode;
 }
@@ -131,6 +132,7 @@ export interface Dang {
   id: string;
   createdAt: string;
   title: string;
+  category: string;
   counterparty: string;
   amount: number;
   date: string;

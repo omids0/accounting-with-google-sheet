@@ -416,7 +416,7 @@ export default function DashboardPage({
             onNavigate={onNavigate ? () => onNavigate('installments') : undefined}
           />
           <BreakdownRow
-            label="دنگ‌ها"
+            label="بدهی‌ها"
             value={financial?.dangsTotal ?? 0}
             onNavigate={onNavigate ? () => onNavigate('dang') : undefined}
           />

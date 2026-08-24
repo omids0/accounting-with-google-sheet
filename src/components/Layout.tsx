@@ -52,7 +52,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     entry: 'ثبت جدید',
     records: 'رکوردها',
     installments: 'اقساط',
-    dang: 'دنگ',
+    dang: 'بدهی',
     checks: 'چک‌ها',
     receivables: 'طلب‌ها',
     treasury: 'صندوقچه',
@@ -175,8 +175,8 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             className={!showSettings && tab === 'dang' ? 'active' : ''}
             onClick={() => handleTabChange('dang')}
           >
-            <span className="icon">🍽️</span>
-            دنگ
+            <span className="icon">💸</span>
+            بدهی
           </button>
           <button
             className={!showSettings && tab === 'checks' ? 'active' : ''}

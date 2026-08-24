@@ -14,6 +14,7 @@ export const DANG_HEADERS = [
   'شناسه',
   'زمان ثبت',
   'عنوان',
+  'دسته‌بندی',
   'طرف حساب',
   'مبلغ',
   'تاریخ',
@@ -27,18 +28,40 @@ function parsePaid(raw: string): boolean {
   return v === 'true' || v === '1' || v === 'بله' || v === 'yes';
 }
 
+function isLegacyDangRow(row: string[]): boolean {
+  const amountAt4 = Number(row[4]);
+  return row[4] !== '' && !Number.isNaN(amountAt4);
+}
+
 function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number } {
+  if (isLegacyDangRow(row)) {
+    return {
+      rowNumber,
+      id: row[0] ?? '',
+      createdAt: row[1] ?? '',
+      title: row[2] ?? '',
+      category: 'سایر',
+      counterparty: row[3] ?? '',
+      amount: Number(row[4]) || 0,
+      date: row[5] ?? '',
+      note: row[6] ?? '',
+      paid: parsePaid(row[7] ?? ''),
+      paidAt: row[8] ?? '',
+    };
+  }
+
   return {
     rowNumber,
     id: row[0] ?? '',
     createdAt: row[1] ?? '',
     title: row[2] ?? '',
-    counterparty: row[3] ?? '',
-    amount: Number(row[4]) || 0,
-    date: row[5] ?? '',
-    note: row[6] ?? '',
-    paid: parsePaid(row[7] ?? ''),
-    paidAt: row[8] ?? '',
+    category: row[3] ?? 'سایر',
+    counterparty: row[4] ?? '',
+    amount: Number(row[5]) || 0,
+    date: row[6] ?? '',
+    note: row[7] ?? '',
+    paid: parsePaid(row[8] ?? ''),
+    paidAt: row[9] ?? '',
   };
 }
 
@@ -47,6 +70,7 @@ function dangToRow(dang: Dang): string[] {
     dang.id,
     dang.createdAt,
     dang.title,
+    dang.category,
     dang.counterparty,
     String(dang.amount),
     dang.date,
@@ -82,6 +106,7 @@ export async function createDang(
   spreadsheetId: string,
   data: {
     title: string;
+    category: string;
     counterparty: string;
     amount: number;
     date: string;
@@ -92,6 +117,7 @@ export async function createDang(
     id: crypto.randomUUID(),
     createdAt: new Date().toLocaleString('fa-IR'),
     title: data.title,
+    category: data.category,
     counterparty: data.counterparty,
     amount: data.amount,
     date: data.date,
@@ -138,7 +164,7 @@ export function unpaidDangTotal(items: Dang[]): number {
 }
 
 export async function exportDangsCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, 'دنگ.csv');
+  await exportSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, 'بدهی.csv');
 }
 
 export async function importDangsCsv(spreadsheetId: string, csvContent: string) {
@@ -154,12 +180,13 @@ export async function importDangsCsv(spreadsheetId: string, csvContent: string) 
         id: newImportId(cells[0] ?? ''),
         createdAt: newImportTimestamp(cells[1] ?? ''),
         title,
-        counterparty: cells[3] ?? '',
-        amount: Number(cells[4]) || 0,
-        date: cells[5] ?? '',
-        note: cells[6] ?? '',
-        paid: parsePaid(cells[7] ?? ''),
-        paidAt: cells[8] ?? '',
+        category: cells[3] ?? 'سایر',
+        counterparty: cells[4] ?? '',
+        amount: Number(cells[5]) || 0,
+        date: cells[6] ?? '',
+        note: cells[7] ?? '',
+        paid: parsePaid(cells[8] ?? ''),
+        paidAt: cells[9] ?? '',
       });
     }
   );

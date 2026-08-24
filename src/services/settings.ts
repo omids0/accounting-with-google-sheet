@@ -25,6 +25,12 @@ export const DEFAULT_EXPENSE_CATEGORIES = [
   'پوشاک',
   'سایر',
 ];
+export const DEFAULT_DANG_CATEGORIES = [
+  'شخصی',
+  'قرض',
+  'خرید',
+  'سایر',
+];
 
 function incomeForm(): CustomForm {
   return {
@@ -217,4 +223,14 @@ export function updateFormCategories(
     };
   });
   saveSettings({ ...settings, forms });
+}
+
+export function getDangCategories(): string[] {
+  const stored = getSettings()?.dangCategories;
+  return stored?.length ? stored : [...DEFAULT_DANG_CATEGORIES];
+}
+
+export function updateDangCategories(categories: string[]): void {
+  const settings = getSettings() ?? getDefaultSettings();
+  saveSettings({ ...settings, dangCategories: categories });
 }

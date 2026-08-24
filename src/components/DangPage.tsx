@@ -16,6 +16,9 @@ import {
 } from '../services/dang';
 import AmountInput from './AmountInput';
 import JalaliDatePicker from './JalaliDatePicker';
+import { CategorySelect } from './form';
+import { syncCategoriesFromSheet } from '../services/categories';
+import { getDangCategories } from '../services/settings';
 import { DangCardListSkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
@@ -45,8 +48,10 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   const [savingAmountId, setSavingAmountId] = useState('');
   const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [categories, setCategories] = useState<string[]>(() => getDangCategories());
   const [form, setForm] = useState({
     title: '',
+    category: '',
     counterparty: '',
     amount: '' as number | '',
     date: getTodayIso(),
@@ -64,10 +69,12 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     setLoading(true);
     try {
       await ensureDangSheet(settings.spreadsheetId);
+      await syncCategoriesFromSheet(settings.spreadsheetId);
+      setCategories(getDangCategories());
       const data = await fetchDangs(settings.spreadsheetId);
       setItems(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری دنگ‌ها';
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری بدهی‌ها';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
@@ -93,6 +100,10 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
       showError('عنوان الزامی است');
       return;
     }
+    if (!form.category.trim()) {
+      showError('دسته‌بندی الزامی است');
+      return;
+    }
     if (!form.counterparty.trim()) {
       showError('طرف حساب الزامی است');
       return;
@@ -113,27 +124,29 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         const updated: Dang = {
           ...editingItem,
           title: form.title.trim(),
+          category: form.category.trim(),
           counterparty: form.counterparty.trim(),
           amount: Number(form.amount),
           date: form.date,
           note: form.note.trim(),
         };
         await updateDang(settings.spreadsheetId, editingItem.rowNumber, updated);
-        showSuccess('دنگ ویرایش شد');
+        showSuccess('بدهی ویرایش شد');
       } else {
         await createDang(settings.spreadsheetId, {
           title: form.title.trim(),
+          category: form.category.trim(),
           counterparty: form.counterparty.trim(),
           amount: Number(form.amount),
           date: form.date,
           note: form.note.trim(),
         });
-        showSuccess('دنگ جدید ثبت شد');
+        showSuccess('بدهی جدید ثبت شد');
       }
       closeForm();
       await loadItems();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش دنگ' : 'خطا در ثبت دنگ';
+      const msg = err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش بدهی' : 'خطا در ثبت بدهی';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
@@ -226,6 +239,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   const resetCreateForm = () => {
     setForm({
       title: '',
+      category: categories[0] ?? '',
       counterparty: '',
       amount: '',
       date: getTodayIso(),
@@ -243,6 +257,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     setEditingItem(item);
     setForm({
       title: item.title,
+      category: item.category,
       counterparty: item.counterparty,
       amount: item.amount,
       date: item.date,
@@ -280,10 +295,10 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     try {
       await deleteDang(settings.spreadsheetId, deletingItem.rowNumber);
       setDeletingItem(null);
-      showSuccess('دنگ حذف شد');
+      showSuccess('بدهی حذف شد');
       await loadItems();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف دنگ';
+      const msg = err instanceof Error ? err.message : 'خطا در حذف بدهی';
       if (msg.includes('منقضی') || msg.includes('401')) {
         onReauth?.();
         return;
@@ -303,7 +318,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
 
   const pageSpeedDialConfig = useMemo(
     () => ({
-      ariaLabel: 'عملیات دنگ',
+      ariaLabel: 'عملیات بدهی',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
         onRefresh: loadItems,
@@ -323,6 +338,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         matchSearch(
           searchQuery,
           item.title,
+          item.category,
           item.counterparty,
           item.note,
           item.amount,
@@ -335,7 +351,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">🍽️</div>
+        <div className="icon">💸</div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
@@ -346,18 +362,18 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   return (
     <div>
       <PageHeader
-        title="دنگ"
+        title="بدهی"
         search={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="جستجو در دنگ‌ها..."
+        searchPlaceholder="جستجو در بدهی‌ها..."
       />
 
       {loading && items.length === 0 ? (
         <DangCardListSkeleton />
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">🍽️</div>
-          <p>هنوز دنگی ثبت نشده</p>
+          <div className="icon">💸</div>
+          <p>هنوز بدهی ثبت نشده</p>
         </div>
       ) : filteredItems.length === 0 ? (
         <SearchEmptyState />
@@ -395,6 +411,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
                     </div>
                   </div>
                   <div className="dang-card-meta">
+                    {item.category && `${item.category} · `}
                     طرف حساب: {item.counterparty}
                     {item.date && (
                       <span className="dang-card-date">
@@ -430,11 +447,11 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
 
       <FormModal
         open={showForm}
-        title={editingItem ? 'ویرایش دنگ' : 'ثبت دنگ جدید'}
+        title={editingItem ? 'ویرایش بدهی' : 'ثبت بدهی جدید'}
         onClose={closeForm}
         onSubmit={handleSubmit}
         saving={saving}
-        saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره دنگ'}
+        saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره بدهی'}
       >
         <div className="form-group">
           <label>عنوان <span className="required">*</span></label>
@@ -442,7 +459,25 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
             type="text"
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            placeholder="مثلاً: شام رستوران"
+            placeholder="مثلاً: خرید از فروشگاه"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>دسته‌بندی <span className="required">*</span></label>
+          <CategorySelect
+            value={form.category}
+            onChange={(category) => setForm((f) => ({ ...f, category }))}
+            categories={categories}
+            categoryScope="dang"
+            onCategoriesChange={(next) => {
+              setCategories(next);
+              if (!next.includes(form.category)) {
+                setForm((f) => ({ ...f, category: next[0] ?? '' }));
+              }
+            }}
+            onReauth={onReauth}
+            aria-label="دسته‌بندی بدهی"
           />
         </div>
 

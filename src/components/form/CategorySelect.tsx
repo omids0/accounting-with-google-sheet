@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { isTokenValid } from '../../services/auth';
-import { saveFormCategoriesToSheet } from '../../services/categories';
+import { saveDangCategoriesToSheet, saveFormCategoriesToSheet } from '../../services/categories';
+import type { CategoryType } from '../../services/categories';
 import { getSettings } from '../../services/settings';
 import { showError, showSuccess } from '../../utils/toast';
 
@@ -8,7 +9,8 @@ interface CategorySelectProps {
   value: string;
   onChange: (value: string) => void;
   categories: string[];
-  formId: string;
+  formId?: string;
+  categoryScope?: CategoryType;
   onCategoriesChange?: (categories: string[]) => void;
   onReauth?: () => void;
   disabled?: boolean;
@@ -20,6 +22,7 @@ export default function CategorySelect({
   onChange,
   categories,
   formId,
+  categoryScope,
   onCategoriesChange,
   onReauth,
   disabled = false,
@@ -80,7 +83,15 @@ export default function CategorySelect({
 
     setSaving(true);
     try {
-      await saveFormCategoriesToSheet(settings.spreadsheetId, formId, next);
+      if (categoryScope === 'dang') {
+        await saveDangCategoriesToSheet(settings.spreadsheetId, next);
+      } else {
+        if (!formId) {
+          showError('فرم دسته‌بندی معتبر نیست');
+          return false;
+        }
+        await saveFormCategoriesToSheet(settings.spreadsheetId, formId, next);
+      }
       onCategoriesChange?.(next);
       showSuccess('دسته‌بندی‌ها ذخیره شد');
       return true;

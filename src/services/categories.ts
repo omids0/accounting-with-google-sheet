@@ -1,9 +1,11 @@
 import {
+  DEFAULT_DANG_CATEGORIES,
   DEFAULT_EXPENSE_CATEGORIES,
   DEFAULT_INCOME_CATEGORIES,
   getDefaultSettings,
   getSettings,
   saveSettings,
+  updateDangCategories,
   updateFormCategories,
 } from './settings';
 import {
@@ -15,25 +17,36 @@ import {
 export const CATEGORIES_SHEET = 'دسته‌بندی‌ها';
 export const CATEGORIES_HEADERS = ['نوع', 'دسته‌بندی'];
 
-const FORM_TYPE_LABELS: Record<'income' | 'expense', string> = {
+export type CategoryType = 'income' | 'expense' | 'dang';
+
+const FORM_TYPE_LABELS: Record<CategoryType, string> = {
   income: 'درآمد',
   expense: 'هزینه',
+  dang: 'بدهی',
 };
 
 export interface CategoryGroups {
   income: string[];
   expense: string[];
+  dang: string[];
 }
 
-function parseFormType(value: string): 'income' | 'expense' | null {
+function parseFormType(value: string): CategoryType | null {
   const normalized = value.trim().toLowerCase();
   if (normalized === 'income' || normalized === 'درآمد') return 'income';
   if (normalized === 'expense' || normalized === 'هزینه') return 'expense';
+  if (
+    normalized === 'dang' ||
+    normalized === 'بدهی' ||
+    normalized === 'دنگ'
+  ) {
+    return 'dang';
+  }
   return null;
 }
 
 function rowsToGroups(rows: string[][]): CategoryGroups {
-  const groups: CategoryGroups = { income: [], expense: [] };
+  const groups: CategoryGroups = { income: [], expense: [], dang: [] };
 
   for (const row of rows) {
     const formType = parseFormType(row[0] ?? '');
@@ -55,6 +68,9 @@ function groupsToRows(groups: CategoryGroups): string[][] {
   for (const category of groups.expense) {
     rows.push([FORM_TYPE_LABELS.expense, category]);
   }
+  for (const category of groups.dang) {
+    rows.push([FORM_TYPE_LABELS.dang, category]);
+  }
   return rows;
 }
 
@@ -70,7 +86,7 @@ function applyGroupsToSettings(groups: CategoryGroups): void {
       ),
     };
   });
-  saveSettings({ ...settings, forms });
+  saveSettings({ ...settings, forms, dangCategories: groups.dang });
 }
 
 export async function ensureCategoriesSheet(spreadsheetId: string): Promise<void> {
@@ -103,6 +119,7 @@ function withDefaults(groups: CategoryGroups): CategoryGroups {
     expense: groups.expense.length
       ? groups.expense
       : [...DEFAULT_EXPENSE_CATEGORIES],
+    dang: groups.dang.length ? groups.dang : [...DEFAULT_DANG_CATEGORIES],
   };
 }
 
@@ -113,7 +130,10 @@ export async function syncCategoriesFromSheet(
   const fromSheet = await fetchCategoriesFromSheet(spreadsheetId);
   const groups = withDefaults(fromSheet);
 
-  const needsSeed = !fromSheet.income.length || !fromSheet.expense.length;
+  const needsSeed =
+    !fromSheet.income.length ||
+    !fromSheet.expense.length ||
+    !fromSheet.dang.length;
 
   if (needsSeed) {
     await writeCategoriesToSheet(spreadsheetId, groups);
@@ -136,16 +156,24 @@ export async function saveFormCategoriesToSheet(
 
   const current = await fetchCategoriesFromSheet(spreadsheetId);
   const next: CategoryGroups = {
-    income:
-      form.type === 'income'
-        ? categories
-        : withDefaults(current).income,
-    expense:
-      form.type === 'expense'
-        ? categories
-        : withDefaults(current).expense,
+    ...withDefaults(current),
+    [form.type]: categories,
   };
 
   await writeCategoriesToSheet(spreadsheetId, next);
   updateFormCategories(formId, categories);
+}
+
+export async function saveDangCategoriesToSheet(
+  spreadsheetId: string,
+  categories: string[]
+): Promise<void> {
+  const current = await fetchCategoriesFromSheet(spreadsheetId);
+  const next: CategoryGroups = {
+    ...withDefaults(current),
+    dang: categories,
+  };
+
+  await writeCategoriesToSheet(spreadsheetId, next);
+  updateDangCategories(categories);
 }
