@@ -81,6 +81,12 @@ export function getTodayIso(): string {
   return toIsoDate(new Date());
 }
 
+export function addDaysToIso(iso: string, days: number): string {
+  const d = new Date(`${iso.slice(0, 10)}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  return toIsoDate(d);
+}
+
 export function formatIsoDatePersian(iso: string): string {
   if (!iso) return '—';
   const d = iso.slice(0, 10);
