@@ -33,6 +33,28 @@ export function resolveDateRange(
   return getDateRange(preset);
 }
 
+export function getJalaliYearRange(year: number): DateRange {
+  const today = new Date();
+  const { year: currentYear } = getJalaliParts(today);
+  const start = findGregorianForJalali(year, 1, 1);
+
+  if (year > currentYear) {
+    return { start: toIsoDate(start), end: toIsoDate(start) };
+  }
+
+  if (year < currentYear) {
+    const lastDay = daysInJalaliMonth(year, 12);
+    const end = findGregorianForJalali(year, 12, lastDay);
+    return { start: toIsoDate(start), end: toIsoDate(end) };
+  }
+
+  return { start: toIsoDate(start), end: toIsoDate(today) };
+}
+
+export function formatJalaliYear(year: number): string {
+  return year.toLocaleString('fa-IR');
+}
+
 export function getDateRange(preset: DateRangePreset): DateRange {
   const today = new Date();
   const { year: jy, month: jm } = getJalaliParts(today);

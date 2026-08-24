@@ -19,6 +19,7 @@ import DateRangeFilter, {
   createDefaultDateRangeFilter,
   type AppliedDateRangeFilter,
 } from './DateRangeFilter';
+import YearFilter, { getDefaultChartYear } from './YearFilter';
 import TransactionTypeSegment, {
   type TransactionTypeSegmentOption,
 } from './TransactionTypeSegment';
@@ -39,19 +40,44 @@ const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
 const INCOME_BAR_COLOR = '#16a34a';
 const EXPENSE_BAR_COLOR = '#dc2626';
 
-function IncomeExpenseMonthlyChart({ data }: { data: MonthlyFlow[] }) {
+function IncomeExpenseMonthlyChart({
+  data,
+  year,
+  onYearChange,
+  loading,
+}: {
+  data: MonthlyFlow[];
+  year: number;
+  onYearChange: (year: number) => void;
+  loading?: boolean;
+}) {
   const chartData = data.map((item) => ({
     ...item,
     shortLabel: item.label.split(' ')[0] ?? item.label,
   }));
   const height = Math.max(280, chartData.length * 52);
-  const maxLabelLen = Math.max(...chartData.map((d) => d.shortLabel.length), 1);
+  const maxLabelLen = chartData.length
+    ? Math.max(...chartData.map((d) => d.shortLabel.length))
+    : 1;
   const yAxisWidth = Math.min(72, Math.max(44, Math.ceil(maxLabelLen * 7)));
 
   return (
     <div className="card chart-card">
-      <h3 className="chart-title">درآمد و هزینه ماهانه (از اول سال)</h3>
-      <div className="chart-bar-wrap chart-monthly-wrap" dir="ltr">
+      <YearFilter year={year} onChange={onYearChange} loading={loading}>
+        {({ trigger, panel }) => (
+          <>
+            <div className="card-header-row">
+              <h3 className="chart-title">درآمد و هزینه ماهانه</h3>
+              {trigger}
+            </div>
+            {panel}
+          </>
+        )}
+      </YearFilter>
+      {!chartData.length ? (
+        <p className="empty-text">داده‌ای برای این سال ثبت نشده</p>
+      ) : (
+        <div className="chart-bar-wrap chart-monthly-wrap" dir="ltr">
         <ResponsiveContainer width="100%" height={height}>
           <BarChart
             data={chartData}
@@ -107,7 +133,8 @@ function IncomeExpenseMonthlyChart({ data }: { data: MonthlyFlow[] }) {
             />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -234,6 +261,7 @@ export default function DashboardPage({
     () => createDefaultDateRangeFilter().customRange
   );
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
+  const [monthlyFlowYear, setMonthlyFlowYear] = useState(getDefaultChartYear);
   const dateRange = resolveDateRange(datePreset, customRange);
 
   const load = useCallback(async () => {
@@ -251,7 +279,12 @@ export default function DashboardPage({
         datePreset === 'custom'
           ? range
           : getInstallmentDueRange(datePreset as DateRangePreset);
-      const dash = await loadDashboardData(settings, range, installmentRange);
+      const dash = await loadDashboardData(
+        settings,
+        range,
+        installmentRange,
+        monthlyFlowYear
+      );
       setData(dash);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
@@ -263,7 +296,7 @@ export default function DashboardPage({
     } finally {
       setLoading(false);
     }
-  }, [onReauth, datePreset, customRange]);
+  }, [onReauth, datePreset, customRange, monthlyFlowYear]);
 
   useEffect(() => {
     load();
@@ -452,8 +485,13 @@ export default function DashboardPage({
         />
       )}
 
-      {(data?.yearlyMonthlyFlow.length ?? 0) > 0 && (
-        <IncomeExpenseMonthlyChart data={data!.yearlyMonthlyFlow} />
+      {data && (
+        <IncomeExpenseMonthlyChart
+          data={data.yearlyMonthlyFlow}
+          year={monthlyFlowYear}
+          onYearChange={setMonthlyFlowYear}
+          loading={loading}
+        />
       )}
 
       <div className="card">

@@ -2776,6 +2776,32 @@ button {
   color: var(--color-primary-dark);
 }
 
+.chart-card .card-header-row {
+  margin-bottom: 0.75rem;
+}
+
+.chart-card .card-header-row:has(+ .year-filter-panel) {
+  margin-bottom: 0;
+}
+
+.chart-card .records-filter-section {
+  margin-bottom: 0.75rem;
+}
+
+.chart-card .year-filter-panel {
+  margin-bottom: 0.75rem;
+}
+
+.chart-card .empty-text {
+  margin-top: 0;
+}
+
+.year-filter-trigger-active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
 .dashboard-page {
   display: flex;
   flex-direction: column;

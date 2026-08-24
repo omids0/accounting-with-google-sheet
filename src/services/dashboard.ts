@@ -10,8 +10,8 @@ import { getJalaliParts } from '../utils/jalaliDate';
 import { parseNumeric } from '../utils/parseNumeric';
 import {
   formatJalaliMonthLabel,
-  getDateRange,
   getJalaliMonthKey,
+  getJalaliYearRange,
   isDateInRange,
 } from '../utils/dateRange';
 import { normalizeSheetDate } from '../utils/sheetValues';
@@ -40,12 +40,13 @@ function filterByDateRange<T extends { values: Record<string, string> }>(
 }
 
 function aggregateYearToDateMonthlyFlow(
+  year: number,
   incomeRecords: { values: Record<string, string> }[],
   expenseRecords: { values: Record<string, string> }[],
   incomeDateField: string,
   expenseDateField: string
 ): MonthlyFlow[] {
-  const range = getDateRange('year-to-date');
+  const range = getJalaliYearRange(year);
   const totals = new Map<string, { income: number; expense: number }>();
 
   for (const record of incomeRecords) {
@@ -66,11 +67,13 @@ function aggregateYearToDateMonthlyFlow(
     totals.set(monthKey, entry);
   }
 
-  const { year: jy, month: currentMonth } = getJalaliParts(new Date());
+  const { year: currentYear, month: currentMonth } = getJalaliParts(new Date());
+  const maxMonth =
+    year < currentYear ? 12 : year === currentYear ? currentMonth : 0;
   const flow: MonthlyFlow[] = [];
 
-  for (let month = 1; month <= currentMonth; month += 1) {
-    const monthKey = `${jy}-${String(month).padStart(2, '0')}`;
+  for (let month = 1; month <= maxMonth; month += 1) {
+    const monthKey = `${year}-${String(month).padStart(2, '0')}`;
     const { income = 0, expense = 0 } = totals.get(monthKey) ?? {};
     flow.push({
       monthKey,
@@ -103,7 +106,8 @@ function sumByCategory(
 export async function loadDashboardData(
   settings: AppSettings,
   range: DateRange,
-  installmentRange: DateRange = range
+  installmentRange: DateRange = range,
+  monthlyFlowYear: number = getJalaliParts(new Date()).year
 ): Promise<DashboardData> {
   const incomeForm = settings.forms.find((f) => f.type === 'income');
   const expenseForm = settings.forms.find((f) => f.type === 'expense');
@@ -235,6 +239,7 @@ export async function loadDashboardData(
     incomeByCategory: sumByCategory(filteredIncome),
     expenseByCategory: sumByCategory(filteredExpense),
     yearlyMonthlyFlow: aggregateYearToDateMonthlyFlow(
+      monthlyFlowYear,
       incomeRecords,
       expenseRecords,
       incomeDateField,
