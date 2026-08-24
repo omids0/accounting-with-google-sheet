@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import AppIcon from './AppIcon';
 
 type ConfirmDeleteModalProps = {
@@ -36,7 +37,7 @@ export default function ConfirmDeleteModal({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
       className="form-modal confirm-delete-modal"
       role="dialog"
@@ -87,6 +88,7 @@ export default function ConfirmDeleteModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

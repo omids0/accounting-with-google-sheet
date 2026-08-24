@@ -1,4 +1,5 @@
 import { useEffect, type FormEvent, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import AppIcon from './AppIcon';
 
 type FormModalProps = {
@@ -40,7 +41,7 @@ export default function FormModal({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="form-modal" role="dialog" aria-modal="true" aria-labelledby="form-modal-title">
       <button
         type="button"
@@ -81,6 +82,7 @@ export default function FormModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

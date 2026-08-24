@@ -27,6 +27,7 @@
   --shadow: 0 4px 24px rgba(15, 118, 110, 0.1);
   --shadow-lg: 0 12px 40px rgba(15, 118, 110, 0.15);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
   --font: 'Vazirmatn', system-ui, sans-serif;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1115,11 +1116,13 @@ button {
 .form-modal {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 100;
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  box-sizing: border-box;
   padding: 1rem;
+  padding-top: max(1rem, var(--safe-top));
   padding-bottom: calc(1rem + var(--safe-bottom));
 }
 
@@ -1138,7 +1141,8 @@ button {
   flex-direction: column;
   width: 100%;
   max-width: 400px;
-  max-height: min(88vh, 720px);
+  max-height: 100%;
+  min-height: 0;
   overflow: hidden;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1241,7 +1245,7 @@ button {
 @media (min-width: 520px) {
   .form-modal {
     align-items: center;
-    padding-bottom: 1rem;
+    padding-bottom: max(1rem, var(--safe-bottom));
   }
 
   @keyframes form-modal-in {
