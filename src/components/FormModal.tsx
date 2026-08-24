@@ -1,4 +1,5 @@
 import { useEffect, type FormEvent, type ReactNode } from 'react';
+import AppIcon from './AppIcon';
 
 type FormModalProps = {
   open: boolean;
@@ -62,7 +63,7 @@ export default function FormModal({
             disabled={saving}
             aria-label="بستن"
           >
-            ×
+            <AppIcon name="close" size={18} strokeWidth={2} />
           </button>
         </div>
 

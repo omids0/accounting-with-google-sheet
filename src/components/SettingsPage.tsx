@@ -32,6 +32,7 @@ import { usePwaInstall } from '../hooks/usePwaInstall';
 import { SettingsSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 import { applyTheme } from '../utils/theme';
+import AppIcon from './AppIcon';
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'text', label: 'متن' },
@@ -254,7 +255,17 @@ export default function SettingsPage({
           <div>
             <p style={{ fontSize: '0.85rem' }}>{getUserEmail()}</p>
             <span className={`status-badge ${isTokenValid() ? 'status-connected' : 'status-disconnected'}`}>
-              {isTokenValid() ? '✓ متصل' : '✗ نیاز به ورود مجدد'}
+              {isTokenValid() ? (
+                <>
+                  <AppIcon name="check" size={12} strokeWidth={2.5} />
+                  متصل
+                </>
+              ) : (
+                <>
+                  <AppIcon name="x-mark" size={12} strokeWidth={2.5} />
+                  نیاز به ورود مجدد
+                </>
+              )}
             </span>
           </div>
         </div>

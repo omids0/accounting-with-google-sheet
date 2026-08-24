@@ -396,9 +396,11 @@ select {
   border-radius: 8px;
   background: transparent;
   color: var(--color-text-muted);
-  font-size: 0.9rem;
   line-height: 1;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: background var(--duration-fast), color var(--duration-fast);
 }
 
@@ -504,8 +506,16 @@ button {
 }
 
 .app-loading-icon {
-  font-size: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   animation: float 2.5s ease-in-out infinite;
+  color: var(--color-primary);
+}
+
+.app-loading-icon svg {
+  width: 3rem;
+  height: 3rem;
 }
 
 .spinner-lg {
@@ -761,7 +771,7 @@ button {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 1.25rem;
+  line-height: 1;
   background: rgba(255, 255, 255, 0.15);
   transition: background var(--duration-normal) var(--ease-out),
     transform var(--duration-fast) var(--ease-spring);
@@ -864,7 +874,9 @@ button {
 }
 
 .bottom-nav button .icon {
-  font-size: 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   transition: transform var(--duration-normal) var(--ease-spring);
 }
@@ -926,7 +938,9 @@ button {
 }
 
 .bottom-nav-dashboard-icon {
-  font-size: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
 }
 
@@ -959,8 +973,6 @@ button {
   border-radius: 50%;
   background: var(--color-primary);
   color: white;
-  font-size: 1.75rem;
-  font-weight: 300;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -1163,7 +1175,6 @@ button {
   border-radius: 8px;
   background: transparent;
   color: var(--color-text-muted);
-  font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
@@ -2324,10 +2335,16 @@ button {
 }
 
 .login-logo .icon {
-  font-size: 3.5rem;
-  display: block;
+  display: flex;
+  justify-content: center;
   margin-bottom: 0.5rem;
   animation: float 3s ease-in-out infinite;
+  color: var(--color-primary);
+}
+
+.login-logo .icon svg {
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
 .login-logo h1 {
@@ -2537,10 +2554,18 @@ button {
 }
 
 .empty-state .icon {
-  font-size: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 0.5rem;
   animation: float 3s ease-in-out infinite;
-  display: inline-block;
+  color: var(--color-text-muted);
+  opacity: 0.72;
+}
+
+.empty-state .icon svg {
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .tabs {
@@ -3305,7 +3330,6 @@ button {
   border-radius: 50%;
   background: rgba(15, 118, 110, 0.1);
   color: var(--color-text-muted);
-  font-size: 1rem;
   line-height: 1;
   display: flex;
   align-items: center;

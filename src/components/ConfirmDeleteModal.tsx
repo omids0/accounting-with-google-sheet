@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import AppIcon from './AppIcon';
 
 type ConfirmDeleteModalProps = {
   open: boolean;
@@ -63,7 +64,7 @@ export default function ConfirmDeleteModal({
             disabled={deleting}
             aria-label="بستن"
           >
-            ×
+            <AppIcon name="close" size={18} strokeWidth={2} />
           </button>
         </div>
 

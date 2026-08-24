@@ -35,6 +35,7 @@ import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
+import AppIcon from './AppIcon';
 import { matchSearch } from '../utils/search';
 
 type TransactionWithRow = Awaited<ReturnType<typeof fetchVaultTransactions>>[number];
@@ -365,7 +366,9 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">🏦</div>
+        <div className="icon">
+          <AppIcon name="treasury" />
+        </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
@@ -412,7 +415,9 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         <TreasurySkeleton />
       ) : holdings.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">🏦</div>
+          <div className="icon">
+          <AppIcon name="treasury" />
+        </div>
           <p>هنوز دارایی‌ای ثبت نشده</p>
         </div>
       ) : filteredHoldings.length === 0 ? (

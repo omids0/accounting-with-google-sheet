@@ -15,13 +15,16 @@ import {
 } from './services/spreadsheetSetup';
 import type { SpreadsheetEntry } from './types';
 import { AppLoadingSkeleton } from './components/skeleton';
+import AppIcon from './components/AppIcon';
 
 function ConfigNotice() {
   return (
     <div className="login-page">
       <div className="login-card animate-in">
         <div className="login-logo">
-          <span className="icon">⚠️</span>
+          <span className="icon">
+            <AppIcon name="warning" />
+          </span>
           <h1>تنظیمات Google OAuth</h1>
           <p>
             <code dir="ltr">VITE_GOOGLE_CLIENT_ID</code> در فایل{' '}

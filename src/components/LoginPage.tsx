@@ -14,6 +14,7 @@ import {
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel';
 import type { SpreadsheetEntry } from '../types';
 import { showError } from '../utils/toast';
+import AppIcon from './AppIcon';
 
 type Step = 'login' | 'setup';
 
@@ -100,7 +101,9 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
     <div className="login-page">
       <div className="login-card animate-in">
         <div className="login-logo">
-          <span className="icon">📊</span>
+          <span className="icon">
+            <AppIcon name="dashboard" />
+          </span>
           <h1>حسابداری شخصی</h1>
           <p>با Google وارد شو — شیت‌هایت روی Drive بین دستگاه‌ها پیدا می‌شوند</p>
         </div>

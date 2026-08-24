@@ -1,4 +1,5 @@
 import { Skeleton } from './Skeleton';
+import AppIcon from '../AppIcon';
 
 export function InstallmentCardSkeleton() {
   return (
@@ -252,7 +253,9 @@ export function AppLoadingSkeleton() {
   return (
     <div className="app-loading" aria-busy="true" aria-label="در حال بارگذاری">
       <div className="app-loading-inner app-loading-skeleton">
-        <span className="app-loading-icon">📊</span>
+        <span className="app-loading-icon">
+          <AppIcon name="dashboard" />
+        </span>
         <Skeleton width="8rem" height="1rem" />
         <div className="app-loading-cards">
           <Skeleton variant="rect" width="100%" height="5rem" style={{ borderRadius: 'var(--radius)' }} />

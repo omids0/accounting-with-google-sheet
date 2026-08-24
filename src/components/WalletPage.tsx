@@ -28,6 +28,7 @@ import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { AccordionCollapse } from './AccordionCollapse';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
+import AppIcon from './AppIcon';
 import { matchSearch } from '../utils/search';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
@@ -322,7 +323,9 @@ export default function WalletPage({
   if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">👛</div>
+        <div className="icon">
+          <AppIcon name="wallet" />
+        </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
@@ -405,7 +408,9 @@ export default function WalletPage({
         <InstallmentCardListSkeleton />
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">👛</div>
+          <div className="icon">
+          <AppIcon name="wallet" />
+        </div>
           <p>هنوز حسابی ثبت نشده</p>
         </div>
       ) : filteredItems.length === 0 ? (

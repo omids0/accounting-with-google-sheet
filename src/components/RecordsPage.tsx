@@ -26,6 +26,7 @@ import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import AppIcon from './AppIcon';
 
 interface RecordItem {
   id: string;
@@ -343,7 +344,9 @@ export default function RecordsPage({
   if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">📋</div>
+        <div className="icon">
+          <AppIcon name="records" />
+        </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
@@ -403,12 +406,16 @@ export default function RecordsPage({
         <RecordListSkeleton />
       ) : records.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">📭</div>
+          <div className="icon">
+            <AppIcon name="empty-inbox" />
+          </div>
           <p>هنوز رکوردی ثبت نشده</p>
         </div>
       ) : filteredRecords.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">🔍</div>
+          <div className="icon">
+            <AppIcon name="search" />
+          </div>
           <p>تراکنشی با این فیلتر یافت نشد</p>
         </div>
       ) : (

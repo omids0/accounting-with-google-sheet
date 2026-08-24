@@ -4,6 +4,7 @@ import { saveDangCategoriesToSheet, saveFormCategoriesToSheet } from '../../serv
 import type { CategoryType } from '../../services/categories';
 import { getSettings } from '../../services/settings';
 import { showError, showSuccess } from '../../utils/toast';
+import AppIcon from '../AppIcon';
 
 interface CategorySelectProps {
   value: string;
@@ -255,7 +256,7 @@ export default function CategorySelect({
                       disabled={saving}
                       aria-label="تایید"
                     >
-                      ✓
+                      <AppIcon name="check" size={14} strokeWidth={2} />
                     </button>
                     <button
                       type="button"
@@ -264,7 +265,7 @@ export default function CategorySelect({
                       disabled={saving}
                       aria-label="انصراف"
                     >
-                      ×
+                      <AppIcon name="close" size={14} strokeWidth={2} />
                     </button>
                   </div>
                 ) : (
@@ -295,7 +296,7 @@ export default function CategorySelect({
                         disabled={saving}
                         aria-label={`ویرایش ${category}`}
                       >
-                        ✎
+                        <AppIcon name="edit" size={14} strokeWidth={2} />
                       </button>
                       <button
                         type="button"
@@ -307,7 +308,7 @@ export default function CategorySelect({
                         disabled={saving || categories.length <= 1}
                         aria-label={`حذف ${category}`}
                       >
-                        ×
+                        <AppIcon name="close" size={14} strokeWidth={2} />
                       </button>
                     </div>
                   </>

@@ -38,6 +38,7 @@ import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
+import AppIcon from './AppIcon';
 import { matchSearch } from '../utils/search';
 
 type PlanWithRow = InstallmentPlan & { rowNumber: number };
@@ -308,7 +309,9 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
   if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">📅</div>
+        <div className="icon">
+          <AppIcon name="installments" />
+        </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
@@ -330,7 +333,9 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
         <InstallmentCardListSkeleton />
       ) : plans.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">📅</div>
+          <div className="icon">
+          <AppIcon name="installments" />
+        </div>
           <p>هنوز قسطی ثبت نشده</p>
         </div>
       ) : filteredPlans.length === 0 ? (

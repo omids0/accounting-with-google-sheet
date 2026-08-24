@@ -12,6 +12,7 @@ import { formatMoney } from '../utils/formatMoney';
 import { InstallmentCardListSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 import { AccordionCollapse } from './AccordionCollapse';
+import AppIcon from './AppIcon';
 
 type OpeningBalanceWithRow = MonthlyOpeningBalance & { rowNumber: number };
 
@@ -120,7 +121,9 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
   if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">📅</div>
+        <div className="icon">
+          <AppIcon name="installments" />
+        </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
@@ -148,7 +151,9 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
         <InstallmentCardListSkeleton />
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">📅</div>
+          <div className="icon">
+          <AppIcon name="installments" />
+        </div>
           <p>هنوز موجودی اول دوره‌ای برای ماه‌های قبل ثبت نشده</p>
         </div>
       ) : (

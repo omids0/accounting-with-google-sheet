@@ -14,6 +14,7 @@ import { loadDashboardData } from '../services/dashboard';
 import type { DashboardData, DashboardNavTarget, MonthlyFlow } from '../types';
 import { isTokenValid } from '../services/auth';
 import { DashboardSkeleton } from './skeleton';
+import AppIcon from './AppIcon';
 import DateRangeFilter, {
   createDefaultDateRangeFilter,
   type AppliedDateRangeFilter,
@@ -293,7 +294,9 @@ export default function DashboardPage({
   if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">📊</div>
+        <div className="icon">
+          <AppIcon name="dashboard" />
+        </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );

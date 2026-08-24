@@ -11,6 +11,7 @@ import WalletPage from './WalletPage';
 import OpeningBalancePage from './OpeningBalancePage';
 import SettingsPage from './SettingsPage';
 import PageSpeedDial from './PageSpeedDial';
+import AppIcon from './AppIcon';
 import { getUserName, getUserPicture } from '../services/auth';
 import { usePageSpeedDialConfig } from '../hooks/usePageSpeedDial';
 
@@ -91,7 +92,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               aria-label={tab === 'opening-balances' ? 'بازگشت به کیف پول' : 'بازگشت به داشبورد'}
               title="بازگشت"
             >
-              →
+              <AppIcon name="back" size={20} strokeWidth={2} />
             </button>
           )}
           {userPicture &&
@@ -116,7 +117,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           aria-label="تنظیمات"
           title="تنظیمات"
         >
-          ⚙️
+          <AppIcon name="settings" size={20} strokeWidth={2} />
         </button>
       </header>
 
@@ -168,21 +169,27 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             className={!showSettings && tab === 'installments' ? 'active' : ''}
             onClick={() => handleTabChange('installments')}
           >
-            <span className="icon">📅</span>
+            <span className="icon">
+              <AppIcon name="installments" />
+            </span>
             اقساط
           </button>
           <button
             className={!showSettings && tab === 'dang' ? 'active' : ''}
             onClick={() => handleTabChange('dang')}
           >
-            <span className="icon">💸</span>
+            <span className="icon">
+              <AppIcon name="debt" />
+            </span>
             بدهی
           </button>
           <button
             className={!showSettings && tab === 'checks' ? 'active' : ''}
             onClick={() => handleTabChange('checks')}
           >
-            <span className="icon">📝</span>
+            <span className="icon">
+              <AppIcon name="checks" />
+            </span>
             چک‌ها
           </button>
         </div>
@@ -196,7 +203,9 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             onClick={() => handleTabChange('dashboard')}
             aria-label="داشبورد"
           >
-            <span className="bottom-nav-dashboard-icon">📊</span>
+            <span className="bottom-nav-dashboard-icon">
+              <AppIcon name="dashboard" size={26} />
+            </span>
             <span className="bottom-nav-dashboard-label">داشبورد</span>
           </button>
         </div>
@@ -206,21 +215,27 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             className={!showSettings && tab === 'receivables' ? 'active' : ''}
             onClick={() => handleTabChange('receivables')}
           >
-            <span className="icon">💰</span>
+            <span className="icon">
+              <AppIcon name="receivables" />
+            </span>
             طلب‌ها
           </button>
           <button
             className={!showSettings && tab === 'treasury' ? 'active' : ''}
             onClick={() => handleTabChange('treasury')}
           >
-            <span className="icon">🏦</span>
+            <span className="icon">
+              <AppIcon name="treasury" />
+            </span>
             صندوق
           </button>
           <button
             className={!showSettings && tab === 'wallet' ? 'active' : ''}
             onClick={() => handleTabChange('wallet')}
           >
-            <span className="icon">👛</span>
+            <span className="icon">
+              <AppIcon name="wallet" />
+            </span>
             کیف پول
           </button>
         </div>
@@ -235,7 +250,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             aria-label="ثبت درآمد یا هزینه"
             title="ثبت جدید"
           >
-            +
+            <AppIcon name="add" size={24} strokeWidth={2} />
           </button>
         </div>
       )}

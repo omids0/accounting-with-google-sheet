@@ -12,6 +12,7 @@ import {
 } from '../services/spreadsheetCatalog';
 import { FormSelect } from './form';
 import { showError } from '../utils/toast';
+import AppIcon from './AppIcon';
 
 interface SpreadsheetSetupPanelProps {
   mode: 'pick' | 'create';
@@ -74,7 +75,9 @@ export default function SpreadsheetSetupPanel({
     <div className="login-page">
       <div className="login-card animate-in">
         <div className="login-logo">
-          <span className="icon">📂</span>
+          <span className="icon">
+            <AppIcon name="folder" />
+          </span>
           <h1>{mode === 'pick' ? 'انتخاب شیت' : 'ساخت اولین شیت'}</h1>
           <p>
             {mode === 'pick'

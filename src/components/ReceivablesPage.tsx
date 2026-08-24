@@ -32,6 +32,7 @@ import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
+import AppIcon from './AppIcon';
 import { matchSearch } from '../utils/search';
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
@@ -306,7 +307,9 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">💰</div>
+        <div className="icon">
+          <AppIcon name="receivables" />
+        </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
@@ -327,7 +330,9 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
         <InstallmentCardListSkeleton />
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">💰</div>
+          <div className="icon">
+          <AppIcon name="receivables" />
+        </div>
           <p>هنوز طلبی ثبت نشده</p>
         </div>
       ) : filteredItems.length === 0 ? (

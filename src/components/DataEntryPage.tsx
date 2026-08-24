@@ -9,6 +9,7 @@ import TransactionTypeSegment, {
 } from './TransactionTypeSegment';
 import { FormSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
+import AppIcon from './AppIcon';
 
 export default function DataEntryPage({
   onReauth,
@@ -96,7 +97,7 @@ export default function DataEntryPage({
         new Date().toLocaleString('fa-IR'),
         values
       );
-      showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد ✓`);
+      showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`);
       initValues(activeForm);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در ذخیره';
@@ -113,7 +114,9 @@ export default function DataEntryPage({
   if (!isConfigured()) {
     return (
       <div className="empty-state">
-        <div className="icon">✏️</div>
+        <div className="icon">
+          <AppIcon name="edit" />
+        </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     );
