@@ -7,6 +7,7 @@ import {
   deleteWalletAccount,
   ensureWalletSheet,
   exportWalletAccountsCsv,
+  exportWalletAccountsPdf,
   fetchWalletAccounts,
   importWalletAccountsCsv,
   loadWalletPeriodFlow,
@@ -289,8 +290,9 @@ export default function WalletPage({
     }
   };
 
-  const { handleExport, handleImport } = useSheetImportExport({
+  const { handleExport, handleExportPdf, handleImport } = useSheetImportExport({
     exportFn: exportWalletAccountsCsv,
+    exportPdfFn: exportWalletAccountsPdf,
     importFn: importWalletAccountsCsv,
     onComplete: loadItems,
     onReauth,
@@ -305,9 +307,10 @@ export default function WalletPage({
         refreshDisabled: loading,
         onImport: handleImport,
         onExport: handleExport,
+        onExportPdf: handleExportPdf,
       }),
     }),
-    [loadItems, loading, handleImport, handleExport]
+    [loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

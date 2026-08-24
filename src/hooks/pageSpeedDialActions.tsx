@@ -7,12 +7,14 @@ export function createPageSpeedDialActions({
   refreshDisabled,
   onImport,
   onExport,
+  onExportPdf,
 }: {
   onAdd: () => void;
   onRefresh: () => void;
   refreshDisabled?: boolean;
   onImport?: () => void;
   onExport?: () => void;
+  onExportPdf?: () => void;
 }): PageSpeedDialAction[] {
   return [
     {
@@ -34,6 +36,13 @@ export function createPageSpeedDialActions({
       icon: <SpeedDialIcon name="export" />,
       onClick: onExport ?? (() => undefined),
       disabled: !onExport,
+    },
+    {
+      id: 'export-pdf',
+      label: 'خروجی PDF',
+      icon: <SpeedDialIcon name="pdf" />,
+      onClick: onExportPdf ?? (() => undefined),
+      disabled: !onExportPdf,
     },
     {
       id: 'import',

@@ -8,6 +8,13 @@ import {
 } from './sheets';
 import { getTodayIso } from '../utils/jalaliDate';
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
+import { downloadTablePdf } from '../utils/pdf';
+import { formatMoney } from '../utils/formatMoney';
+import {
+  formatReceivablePayments,
+  formatReceivableSummary,
+  formatPersianDate,
+} from '../utils/pdfFormat';
 
 export const RECEIVABLES_SHEET = 'طلب‌ها';
 
@@ -178,6 +185,48 @@ export async function exportReceivablesCsv(spreadsheetId: string): Promise<void>
     RECEIVABLES_HEADERS,
     'طلب‌ها.csv'
   );
+}
+
+export async function exportReceivablesPdf(spreadsheetId: string): Promise<void> {
+  const items = sortReceivables(await fetchReceivables(spreadsheetId));
+  const headers = [
+    'نام',
+    'مبلغ',
+    'تاریخ قرض',
+    'پرداخت شده',
+    'مانده',
+    'توضیحات',
+    'جزئیات پرداخت',
+  ];
+  const rows = items.map((item) => {
+    const summary = formatReceivableSummary(item);
+    return [
+      item.debtor,
+      formatMoney(item.amount),
+      formatPersianDate(item.borrowDate),
+      summary.paid,
+      summary.remaining,
+      item.note,
+      formatReceivablePayments(item.payments),
+    ];
+  });
+  const cellClasses = items.map(() => [
+    '',
+    'pdf-cell-amount',
+    '',
+    'pdf-cell-amount',
+    'pdf-cell-amount',
+    '',
+    'pdf-cell-multiline',
+  ]);
+
+  await downloadTablePdf({
+    title: 'گزارش طلب‌ها',
+    headers,
+    rows,
+    filename: 'طلب‌ها.pdf',
+    cellClasses,
+  });
 }
 
 export async function importReceivablesCsv(

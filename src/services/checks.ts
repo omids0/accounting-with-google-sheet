@@ -9,6 +9,9 @@ import {
   deleteSheetRow,
 } from './sheets';
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
+import { downloadTablePdf } from '../utils/pdf';
+import { formatMoney } from '../utils/formatMoney';
+import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat';
 
 export const CHECKS_SHEET = 'چک‌ها';
 
@@ -149,6 +152,45 @@ export function totalUnpaidChecksInRange(checks: Check[], range: DateRange): num
 
 export async function exportChecksCsv(spreadsheetId: string): Promise<void> {
   await exportSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, 'چک‌ها.csv');
+}
+
+export async function exportChecksPdf(spreadsheetId: string): Promise<void> {
+  const checks = sortChecks(await fetchChecks(spreadsheetId));
+  const headers = [
+    'شماره چک',
+    'طرف حساب',
+    'مبلغ',
+    'تاریخ صدور',
+    'تاریخ سررسید',
+    'وضعیت',
+    'تاریخ پرداخت',
+  ];
+  const rows = checks.map((check) => [
+    check.checkNumber,
+    check.counterparty,
+    formatMoney(check.amount),
+    formatPersianDate(check.creationDate),
+    formatPersianDate(check.dueDate),
+    formatPaidStatus(check.paid),
+    check.paid ? formatPersianDate(check.paidAt) : '—',
+  ]);
+  const cellClasses = checks.map(() => [
+    '',
+    '',
+    'pdf-cell-amount',
+    '',
+    '',
+    '',
+    '',
+  ]);
+
+  await downloadTablePdf({
+    title: 'گزارش چک‌ها',
+    headers,
+    rows,
+    filename: 'چک‌ها.pdf',
+    cellClasses,
+  });
 }
 
 export async function importChecksCsv(spreadsheetId: string, csvContent: string) {

@@ -6,6 +6,7 @@ import {
   createInstallmentPlan,
   ensureInstallmentsSheet,
   exportInstallmentsCsv,
+  exportInstallmentsPdf,
   fetchInstallmentPlans,
   importInstallmentsCsv,
   hasInstallmentDueInRange,
@@ -290,8 +291,9 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     [monthPlans, searchQuery]
   );
 
-  const { handleExport, handleImport } = useSheetImportExport({
+  const { handleExport, handleExportPdf, handleImport } = useSheetImportExport({
     exportFn: exportInstallmentsCsv,
+    exportPdfFn: exportInstallmentsPdf,
     importFn: importInstallmentsCsv,
     onComplete: loadPlans,
     onReauth,
@@ -306,9 +308,10 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
         refreshDisabled: loading,
         onImport: handleImport,
         onExport: handleExport,
+        onExportPdf: handleExportPdf,
       }),
     }),
-    [loadPlans, loading, handleImport, handleExport]
+    [loadPlans, loading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

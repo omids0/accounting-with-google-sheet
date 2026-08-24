@@ -10,6 +10,13 @@ import {
 } from './sheets';
 import { addJalaliMonths, getTodayIso } from '../utils/jalaliDate';
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
+import { downloadTablePdf } from '../utils/pdf';
+import { formatMoney } from '../utils/formatMoney';
+import {
+  formatInstallmentPayments,
+  formatInstallmentPlanStatus,
+  formatPersianDate,
+} from '../utils/pdfFormat';
 
 export const INSTALLMENTS_SHEET = 'اقساط';
 
@@ -324,6 +331,48 @@ export async function exportInstallmentsCsv(spreadsheetId: string): Promise<void
     INSTALLMENTS_HEADERS,
     'اقساط.csv'
   );
+}
+
+export async function exportInstallmentsPdf(spreadsheetId: string): Promise<void> {
+  const plans = sortInstallmentPlans(await fetchInstallmentPlans(spreadsheetId));
+  const headers = [
+    'عنوان',
+    'مبلغ قسط',
+    'تعداد',
+    'موعد ماهانه',
+    'تاریخ شروع',
+    'وضعیت',
+    'توضیحات',
+    'جزئیات پرداخت',
+  ];
+  const rows = plans.map((plan) => [
+    plan.title,
+    formatMoney(plan.amount),
+    plan.count.toLocaleString('fa-IR'),
+    plan.dueDay.toLocaleString('fa-IR'),
+    formatPersianDate(plan.startDate),
+    formatInstallmentPlanStatus(plan),
+    plan.note,
+    formatInstallmentPayments(plan.payments),
+  ]);
+  const cellClasses = plans.map(() => [
+    '',
+    'pdf-cell-amount',
+    '',
+    '',
+    '',
+    '',
+    '',
+    'pdf-cell-multiline',
+  ]);
+
+  await downloadTablePdf({
+    title: 'گزارش اقساط',
+    headers,
+    rows,
+    filename: 'اقساط.pdf',
+    cellClasses,
+  });
 }
 
 export async function importInstallmentsCsv(

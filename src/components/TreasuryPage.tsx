@@ -8,6 +8,7 @@ import {
   deleteVaultTransaction,
   ensureTreasurySheet,
   exportTreasuryCsv,
+  exportTreasuryPdf,
   fetchVaultTransactions,
   importTreasuryCsv,
   updateVaultTransaction,
@@ -340,8 +341,9 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     loadPrices();
   }, [loadItems, loadPrices]);
 
-  const { handleExport, handleImport } = useSheetImportExport({
+  const { handleExport, handleExportPdf, handleImport } = useSheetImportExport({
     exportFn: exportTreasuryCsv,
+    exportPdfFn: exportTreasuryPdf,
     importFn: importTreasuryCsv,
     onComplete: refreshTreasury,
     onReauth,
@@ -356,9 +358,10 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         refreshDisabled: loading || priceLoading,
         onImport: handleImport,
         onExport: handleExport,
+        onExportPdf: handleExportPdf,
       }),
     }),
-    [refreshTreasury, loading, priceLoading, handleImport, handleExport]
+    [refreshTreasury, loading, priceLoading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

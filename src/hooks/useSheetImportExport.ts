@@ -7,11 +7,13 @@ import { showError, showSuccess } from '../utils/toast';
 
 export function useSheetImportExport({
   exportFn,
+  exportPdfFn,
   importFn,
   onComplete,
   onReauth,
 }: {
   exportFn: (spreadsheetId: string) => Promise<void>;
+  exportPdfFn?: (spreadsheetId: string) => Promise<void>;
   importFn: (spreadsheetId: string, csvContent: string) => Promise<ImportResult>;
   onComplete: () => void | Promise<void>;
   onReauth?: () => void;
@@ -30,6 +32,23 @@ export function useSheetImportExport({
       showError(err instanceof Error ? err.message : 'خطا در اکسپورت');
     }
   }, [exportFn, onReauth]);
+
+  const handleExportPdf = useCallback(async () => {
+    if (!exportPdfFn) return;
+
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    try {
+      await exportPdfFn(settings.spreadsheetId);
+      showSuccess('فایل PDF ذخیره شد');
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'خطا در خروجی PDF');
+    }
+  }, [exportPdfFn, onReauth]);
 
   const handleImport = useCallback(async () => {
     const settings = getSettings();
@@ -52,5 +71,5 @@ export function useSheetImportExport({
     }
   }, [importFn, onComplete, onReauth]);
 
-  return { handleExport, handleImport };
+  return { handleExport, handleExportPdf, handleImport };
 }

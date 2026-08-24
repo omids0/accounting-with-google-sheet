@@ -7,6 +7,7 @@ import {
   deleteDang,
   ensureDangSheet,
   exportDangsCsv,
+  exportDangsPdf,
   fetchDangs,
   importDangsCsv,
   sortDangs,
@@ -310,8 +311,9 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     }
   };
 
-  const { handleExport, handleImport } = useSheetImportExport({
+  const { handleExport, handleExportPdf, handleImport } = useSheetImportExport({
     exportFn: exportDangsCsv,
+    exportPdfFn: exportDangsPdf,
     importFn: importDangsCsv,
     onComplete: loadItems,
     onReauth,
@@ -326,9 +328,10 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         refreshDisabled: loading,
         onImport: handleImport,
         onExport: handleExport,
+        onExportPdf: handleExportPdf,
       }),
     }),
-    [loadItems, loading, handleImport, handleExport]
+    [loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

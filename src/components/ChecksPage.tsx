@@ -7,6 +7,7 @@ import {
   deleteCheck,
   ensureChecksSheet,
   exportChecksCsv,
+  exportChecksPdf,
   fetchChecks,
   importChecksCsv,
   sortChecks,
@@ -282,8 +283,9 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     }
   };
 
-  const { handleExport, handleImport } = useSheetImportExport({
+  const { handleExport, handleExportPdf, handleImport } = useSheetImportExport({
     exportFn: exportChecksCsv,
+    exportPdfFn: exportChecksPdf,
     importFn: importChecksCsv,
     onComplete: loadItems,
     onReauth,
@@ -298,9 +300,10 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
         refreshDisabled: loading,
         onImport: handleImport,
         onExport: handleExport,
+        onExportPdf: handleExportPdf,
       }),
     }),
-    [loadItems, loading, handleImport, handleExport]
+    [loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);

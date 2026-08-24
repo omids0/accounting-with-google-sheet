@@ -7,6 +7,10 @@ import {
   deleteSheetRow,
 } from './sheets';
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
+import { downloadTablePdf } from '../utils/pdf';
+import { formatMoney } from '../utils/formatMoney';
+import { formatPersianDate, formatVaultAction } from '../utils/pdfFormat';
+import { getAssetLabel, getAssetUnit } from './tgju';
 
 export const TREASURY_SHEET = 'صندوقچه';
 
@@ -168,6 +172,45 @@ const VALID_ACTIONS = new Set<VaultAction>(['buy', 'sell']);
 
 export async function exportTreasuryCsv(spreadsheetId: string): Promise<void> {
   await exportSheetCsv(spreadsheetId, TREASURY_SHEET, TREASURY_HEADERS, 'صندوقچه.csv');
+}
+
+export async function exportTreasuryPdf(spreadsheetId: string): Promise<void> {
+  const transactions = await fetchVaultTransactions(spreadsheetId);
+  const headers = [
+    'نوع دارایی',
+    'عملیات',
+    'مقدار',
+    'قیمت واحد',
+    'جمع',
+    'تاریخ',
+    'توضیحات',
+  ];
+  const rows = transactions.map((tx) => [
+    getAssetLabel(tx.assetType),
+    formatVaultAction(tx.action),
+    `${tx.quantity.toLocaleString('fa-IR')} ${getAssetUnit(tx.assetType)}`,
+    formatMoney(tx.unitPrice),
+    formatMoney(tx.quantity * tx.unitPrice),
+    formatPersianDate(tx.transactionDate),
+    tx.note,
+  ]);
+  const cellClasses = transactions.map(() => [
+    '',
+    '',
+    '',
+    'pdf-cell-amount',
+    'pdf-cell-amount',
+    '',
+    '',
+  ]);
+
+  await downloadTablePdf({
+    title: 'گزارش صندوقچه',
+    headers,
+    rows,
+    filename: 'صندوقچه.pdf',
+    cellClasses,
+  });
 }
 
 export async function importTreasuryCsv(spreadsheetId: string, csvContent: string) {

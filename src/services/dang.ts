@@ -7,6 +7,9 @@ import {
   deleteSheetRow,
 } from './sheets';
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
+import { downloadTablePdf } from '../utils/pdf';
+import { formatMoney } from '../utils/formatMoney';
+import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat';
 
 export const DANG_SHEET = 'دنگ';
 
@@ -165,6 +168,45 @@ export function unpaidDangTotal(items: Dang[]): number {
 
 export async function exportDangsCsv(spreadsheetId: string): Promise<void> {
   await exportSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, 'بدهی.csv');
+}
+
+export async function exportDangsPdf(spreadsheetId: string): Promise<void> {
+  const items = sortDangs(await fetchDangs(spreadsheetId));
+  const headers = [
+    'عنوان',
+    'دسته‌بندی',
+    'طرف حساب',
+    'مبلغ',
+    'تاریخ',
+    'وضعیت',
+    'توضیحات',
+  ];
+  const rows = items.map((item) => [
+    item.title,
+    item.category,
+    item.counterparty,
+    formatMoney(item.amount),
+    formatPersianDate(item.date),
+    formatPaidStatus(item.paid),
+    item.note,
+  ]);
+  const cellClasses = items.map(() => [
+    '',
+    '',
+    '',
+    'pdf-cell-amount',
+    '',
+    '',
+    '',
+  ]);
+
+  await downloadTablePdf({
+    title: 'گزارش بدهی‌ها',
+    headers,
+    rows,
+    filename: 'بدهی.pdf',
+    cellClasses,
+  });
 }
 
 export async function importDangsCsv(spreadsheetId: string, csvContent: string) {

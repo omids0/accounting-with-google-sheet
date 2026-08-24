@@ -21,6 +21,7 @@ export type AppIconName =
   | 'refresh'
   | 'import'
   | 'export'
+  | 'pdf'
   | 'trash';
 
 interface AppIconProps {
@@ -252,6 +253,16 @@ export default function AppIcon({
           <path d="M12 15V3" />
           <path d="m7 10 5 5 5-5" />
           <path d="M5 21h14" />
+        </svg>
+      );
+
+    case 'pdf':
+      return (
+        <svg {...props}>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6" />
+          <path d="M10 13h4" />
+          <path d="M10 17h4" />
         </svg>
       );
 

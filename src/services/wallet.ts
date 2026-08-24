@@ -15,6 +15,8 @@ import {
   deleteSheetRow,
 } from './sheets';
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
+import { downloadTablePdf } from '../utils/pdf';
+import { formatMoney } from '../utils/formatMoney';
 
 export const WALLET_SHEET = 'کیف پول';
 
@@ -152,6 +154,25 @@ export async function loadWalletPeriodFlow(
 
 export async function exportWalletAccountsCsv(spreadsheetId: string): Promise<void> {
   await exportSheetCsv(spreadsheetId, WALLET_SHEET, WALLET_HEADERS, 'کیف-پول.csv');
+}
+
+export async function exportWalletAccountsPdf(spreadsheetId: string): Promise<void> {
+  const accounts = await fetchWalletAccounts(spreadsheetId);
+  const headers = ['عنوان', 'موجودی', 'توضیحات'];
+  const rows = accounts.map((account) => [
+    account.title,
+    formatMoney(account.balance),
+    account.note,
+  ]);
+  const cellClasses = accounts.map(() => ['', 'pdf-cell-amount', '']);
+
+  await downloadTablePdf({
+    title: 'گزارش کیف پول',
+    headers,
+    rows,
+    filename: 'کیف-پول.pdf',
+    cellClasses,
+  });
 }
 
 export async function importWalletAccountsCsv(
