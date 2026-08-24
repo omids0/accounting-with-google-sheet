@@ -8,6 +8,7 @@ import {
   exportInstallmentsCsv,
   fetchInstallmentPlans,
   importInstallmentsCsv,
+  hasInstallmentDueInRange,
   isInstallmentPlanComplete,
   reconcilePaymentsOnEdit,
   sortInstallmentPayments,
@@ -274,13 +275,19 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     }),
     [plans, monthRange]
   );
-  const sortedPlans = useMemo(() => sortInstallmentPlans(plans), [plans]);
+  const monthPlans = useMemo(
+    () =>
+      sortInstallmentPlans(
+        plans.filter((plan) => hasInstallmentDueInRange(plan, monthRange))
+      ),
+    [plans, monthRange]
+  );
   const filteredPlans = useMemo(
     () =>
-      sortedPlans.filter((plan) =>
+      monthPlans.filter((plan) =>
         matchSearch(searchQuery, plan.title, plan.note, plan.amount, plan.count)
       ),
-    [sortedPlans, searchQuery]
+    [monthPlans, searchQuery]
   );
 
   const { handleExport, handleImport } = useSheetImportExport({
@@ -337,6 +344,13 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
           <AppIcon name="installments" />
         </div>
           <p>هنوز قسطی ثبت نشده</p>
+        </div>
+      ) : monthPlans.length === 0 ? (
+        <div className="empty-state">
+          <div className="icon">
+            <AppIcon name="installments" />
+          </div>
+          <p>هیچ قسطی برای {monthLabel} نیست</p>
         </div>
       ) : filteredPlans.length === 0 ? (
         <SearchEmptyState />

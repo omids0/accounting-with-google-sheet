@@ -271,6 +271,14 @@ export function installmentCountInRange(
   return plan.payments.filter((p) => isDateInRange(p.dueDate, range)).length;
 }
 
+/** Plan is relevant when at least one installment is due in the range (e.g. current month). */
+export function hasInstallmentDueInRange(
+  plan: InstallmentPlan,
+  range: DateRange
+): boolean {
+  return installmentCountInRange(plan, range) > 0;
+}
+
 export function unpaidInstallmentAmount(plan: InstallmentPlan): number {
   return unpaidInstallmentCount(plan) * plan.amount;
 }
