@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { isTokenValid } from '../../services/auth';
-import { saveDangCategoriesToSheet, saveFormCategoriesToSheet } from '../../services/categories';
+import {
+  saveDangCategoriesToSheet,
+  saveFormCategoriesToSheet,
+  saveReceivableCategoriesToSheet,
+} from '../../services/categories';
 import type { CategoryType } from '../../services/categories';
 import { getSettings } from '../../services/settings';
 import { showError, showSuccess } from '../../utils/toast';
@@ -86,6 +90,8 @@ export default function CategorySelect({
     try {
       if (categoryScope === 'dang') {
         await saveDangCategoriesToSheet(settings.spreadsheetId, next);
+      } else if (categoryScope === 'receivable') {
+        await saveReceivableCategoriesToSheet(settings.spreadsheetId, next);
       } else {
         if (!formId) {
           showError('فرم دسته‌بندی معتبر نیست');

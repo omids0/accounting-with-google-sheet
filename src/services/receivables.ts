@@ -22,6 +22,7 @@ export const RECEIVABLES_HEADERS = [
   'شناسه',
   'زمان ثبت',
   'نام',
+  'دسته‌بندی',
   'مبلغ',
   'تاریخ قرض',
   'توضیحات',
@@ -39,19 +40,39 @@ function parsePayments(raw: string): ReceivablePayment[] {
   return [];
 }
 
+function isLegacyReceivableRow(row: string[]): boolean {
+  const amountAt3 = Number(row[3]);
+  return row[3] !== '' && !Number.isNaN(amountAt3);
+}
+
 function rowToReceivable(
   row: string[],
   rowNumber: number
 ): Receivable & { rowNumber: number } {
+  if (isLegacyReceivableRow(row)) {
+    return {
+      rowNumber,
+      id: row[0] ?? '',
+      createdAt: row[1] ?? '',
+      debtor: row[2] ?? '',
+      category: 'سایر',
+      amount: Number(row[3]) || 0,
+      borrowDate: row[4] ?? '',
+      note: row[5] ?? '',
+      payments: parsePayments(row[6] ?? ''),
+    };
+  }
+
   return {
     rowNumber,
     id: row[0] ?? '',
     createdAt: row[1] ?? '',
     debtor: row[2] ?? '',
-    amount: Number(row[3]) || 0,
-    borrowDate: row[4] ?? '',
-    note: row[5] ?? '',
-    payments: parsePayments(row[6] ?? ''),
+    category: row[3] ?? 'سایر',
+    amount: Number(row[4]) || 0,
+    borrowDate: row[5] ?? '',
+    note: row[6] ?? '',
+    payments: parsePayments(row[7] ?? ''),
   };
 }
 
@@ -60,6 +81,7 @@ function receivableToRow(receivable: Receivable): string[] {
     receivable.id,
     receivable.createdAt,
     receivable.debtor,
+    receivable.category,
     String(receivable.amount),
     receivable.borrowDate,
     receivable.note,
@@ -113,6 +135,7 @@ export async function createReceivable(
   spreadsheetId: string,
   data: {
     debtor: string;
+    category: string;
     amount: number;
     borrowDate: string;
     note: string;
@@ -122,6 +145,7 @@ export async function createReceivable(
     id: crypto.randomUUID(),
     createdAt: new Date().toLocaleString('fa-IR'),
     debtor: data.debtor,
+    category: data.category,
     amount: data.amount,
     borrowDate: data.borrowDate,
     note: data.note,
@@ -191,6 +215,7 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
   const items = sortReceivables(await fetchReceivables(spreadsheetId));
   const headers = [
     'نام',
+    'دسته‌بندی',
     'مبلغ',
     'تاریخ قرض',
     'پرداخت شده',
@@ -202,6 +227,7 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
     const summary = formatReceivableSummary(item);
     return [
       item.debtor,
+      item.category,
       formatMoney(item.amount),
       formatPersianDate(item.borrowDate),
       summary.paid,
@@ -211,6 +237,7 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
     ];
   });
   const cellClasses = items.map(() => [
+    '',
     '',
     'pdf-cell-amount',
     '',
@@ -245,10 +272,11 @@ export async function importReceivablesCsv(
         id: newImportId(cells[0] ?? ''),
         createdAt: newImportTimestamp(cells[1] ?? ''),
         debtor,
-        amount: Number(cells[3]) || 0,
-        borrowDate: cells[4] ?? '',
-        note: cells[5] ?? '',
-        payments: parsePayments(cells[6] ?? ''),
+        category: cells[3] ?? 'سایر',
+        amount: Number(cells[4]) || 0,
+        borrowDate: cells[5] ?? '',
+        note: cells[6] ?? '',
+        payments: parsePayments(cells[7] ?? ''),
       });
     }
   );

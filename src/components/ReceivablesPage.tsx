@@ -18,6 +18,9 @@ import {
   updateReceivable,
 } from '../services/receivables';
 import AmountInput from './AmountInput';
+import { CategorySelect } from './form';
+import { syncCategoriesFromSheet } from '../services/categories';
+import { getReceivableCategories } from '../services/settings';
 import { InstallmentCardListSkeleton } from './skeleton';
 import JalaliDatePicker from './JalaliDatePicker';
 import { formatMoney } from '../utils/formatMoney';
@@ -50,10 +53,11 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const [deleting, setDeleting] = useState(false);
   const [payingId, setPayingId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-
+  const [categories, setCategories] = useState<string[]>(() => getReceivableCategories());
 
   const [form, setForm] = useState({
     debtor: '',
+    category: '',
     amount: '' as number | '',
     borrowDate: getTodayIso(),
     note: '',
@@ -75,6 +79,8 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     setLoading(true);
     try {
       await ensureReceivablesSheet(settings.spreadsheetId);
+      await syncCategoriesFromSheet(settings.spreadsheetId);
+      setCategories(getReceivableCategories());
       const data = await fetchReceivables(settings.spreadsheetId);
       setItems(data);
     } catch (err) {
@@ -104,6 +110,10 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
       showError('نام شخص یا ارگان الزامی است');
       return;
     }
+    if (!form.category.trim()) {
+      showError('دسته‌بندی الزامی است');
+      return;
+    }
     if (!form.amount || Number(form.amount) <= 0) {
       showError('مبلغ را وارد کنید');
       return;
@@ -125,6 +135,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
         const updated = {
           ...editingItem,
           debtor: form.debtor.trim(),
+          category: form.category.trim(),
           amount: nextAmount,
           borrowDate: form.borrowDate,
           note: form.note.trim(),
@@ -134,6 +145,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
       } else {
         await createReceivable(settings.spreadsheetId, {
           debtor: form.debtor.trim(),
+          category: form.category.trim(),
           amount: Number(form.amount),
           borrowDate: form.borrowDate,
           note: form.note.trim(),
@@ -207,6 +219,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const resetCreateForm = () => {
     setForm({
       debtor: '',
+      category: categories[0] ?? '',
       amount: '',
       borrowDate: getTodayIso(),
       note: '',
@@ -223,6 +236,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     setEditingItem(item);
     setForm({
       debtor: item.debtor,
+      category: item.category,
       amount: item.amount,
       borrowDate: item.borrowDate,
       note: item.note,
@@ -308,7 +322,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const filteredItems = useMemo(
     () =>
       items.filter((item) =>
-        matchSearch(searchQuery, item.debtor, item.note, item.amount, item.borrowDate)
+        matchSearch(searchQuery, item.debtor, item.category, item.note, item.amount, item.borrowDate)
       ),
     [items, searchQuery]
   );
@@ -378,6 +392,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                         marginTop: '0.25rem',
                       }}
                     >
+                      {item.category && `${item.category} · `}
                       {formatMoney(item.amount)}
                       {complete
                         ? ' · تسویه شده'
@@ -541,6 +556,24 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
             value={form.debtor}
             onChange={(e) => setForm((f) => ({ ...f, debtor: e.target.value }))}
             placeholder="مثلاً: علی محمدی"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>دسته‌بندی <span className="required">*</span></label>
+          <CategorySelect
+            value={form.category}
+            onChange={(category) => setForm((f) => ({ ...f, category }))}
+            categories={categories}
+            categoryScope="receivable"
+            onCategoriesChange={(next) => {
+              setCategories(next);
+              if (!next.includes(form.category)) {
+                setForm((f) => ({ ...f, category: next[0] ?? '' }));
+              }
+            }}
+            onReauth={onReauth}
+            aria-label="دسته‌بندی طلب"
           />
         </div>
 

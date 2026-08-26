@@ -2,11 +2,13 @@ import {
   DEFAULT_DANG_CATEGORIES,
   DEFAULT_EXPENSE_CATEGORIES,
   DEFAULT_INCOME_CATEGORIES,
+  DEFAULT_RECEIVABLE_CATEGORIES,
   getDefaultSettings,
   getSettings,
   saveSettings,
   updateDangCategories,
   updateFormCategories,
+  updateReceivableCategories,
 } from './settings';
 import {
   ensureSheetWithHeaders,
@@ -17,18 +19,20 @@ import {
 export const CATEGORIES_SHEET = 'دسته‌بندی‌ها';
 export const CATEGORIES_HEADERS = ['نوع', 'دسته‌بندی'];
 
-export type CategoryType = 'income' | 'expense' | 'dang';
+export type CategoryType = 'income' | 'expense' | 'dang' | 'receivable';
 
 const FORM_TYPE_LABELS: Record<CategoryType, string> = {
   income: 'درآمد',
   expense: 'هزینه',
   dang: 'بدهی',
+  receivable: 'طلب',
 };
 
 export interface CategoryGroups {
   income: string[];
   expense: string[];
   dang: string[];
+  receivable: string[];
 }
 
 function parseFormType(value: string): CategoryType | null {
@@ -42,11 +46,19 @@ function parseFormType(value: string): CategoryType | null {
   ) {
     return 'dang';
   }
+  if (normalized === 'receivable' || normalized === 'طلب') {
+    return 'receivable';
+  }
   return null;
 }
 
 function rowsToGroups(rows: string[][]): CategoryGroups {
-  const groups: CategoryGroups = { income: [], expense: [], dang: [] };
+  const groups: CategoryGroups = {
+    income: [],
+    expense: [],
+    dang: [],
+    receivable: [],
+  };
 
   for (const row of rows) {
     const formType = parseFormType(row[0] ?? '');
@@ -71,6 +83,9 @@ function groupsToRows(groups: CategoryGroups): string[][] {
   for (const category of groups.dang) {
     rows.push([FORM_TYPE_LABELS.dang, category]);
   }
+  for (const category of groups.receivable) {
+    rows.push([FORM_TYPE_LABELS.receivable, category]);
+  }
   return rows;
 }
 
@@ -86,7 +101,12 @@ function applyGroupsToSettings(groups: CategoryGroups): void {
       ),
     };
   });
-  saveSettings({ ...settings, forms, dangCategories: groups.dang });
+  saveSettings({
+    ...settings,
+    forms,
+    dangCategories: groups.dang,
+    receivableCategories: groups.receivable,
+  });
 }
 
 export async function ensureCategoriesSheet(spreadsheetId: string): Promise<void> {
@@ -120,6 +140,9 @@ function withDefaults(groups: CategoryGroups): CategoryGroups {
       ? groups.expense
       : [...DEFAULT_EXPENSE_CATEGORIES],
     dang: groups.dang.length ? groups.dang : [...DEFAULT_DANG_CATEGORIES],
+    receivable: groups.receivable.length
+      ? groups.receivable
+      : [...DEFAULT_RECEIVABLE_CATEGORIES],
   };
 }
 
@@ -133,7 +156,8 @@ export async function syncCategoriesFromSheet(
   const needsSeed =
     !fromSheet.income.length ||
     !fromSheet.expense.length ||
-    !fromSheet.dang.length;
+    !fromSheet.dang.length ||
+    !fromSheet.receivable.length;
 
   if (needsSeed) {
     await writeCategoriesToSheet(spreadsheetId, groups);
@@ -176,4 +200,18 @@ export async function saveDangCategoriesToSheet(
 
   await writeCategoriesToSheet(spreadsheetId, next);
   updateDangCategories(categories);
+}
+
+export async function saveReceivableCategoriesToSheet(
+  spreadsheetId: string,
+  categories: string[]
+): Promise<void> {
+  const current = await fetchCategoriesFromSheet(spreadsheetId);
+  const next: CategoryGroups = {
+    ...withDefaults(current),
+    receivable: categories,
+  };
+
+  await writeCategoriesToSheet(spreadsheetId, next);
+  updateReceivableCategories(categories);
 }
