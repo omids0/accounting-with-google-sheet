@@ -29,6 +29,7 @@ import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import ConfirmActionModal from './ConfirmActionModal';
 import { AccordionCollapse } from './AccordionCollapse';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
@@ -296,7 +297,12 @@ export default function WalletPage({
     }
   };
 
-  const { handleExport, handleExportPdf, handleImport } = useSheetImportExport({
+  const {
+    handleExport,
+    handleExportPdf,
+    handleImport,
+    importExportConfirmModal,
+  } = useSheetImportExport({
     exportFn: exportWalletAccountsCsv,
     exportPdfFn: exportWalletAccountsPdf,
     importFn: importWalletAccountsCsv,
@@ -546,6 +552,8 @@ export default function WalletPage({
           />
         </div>
       </FormModal>
+
+      <ConfirmActionModal {...importExportConfirmModal} />
 
       <ConfirmDeleteModal
         open={deletingAccount !== null}

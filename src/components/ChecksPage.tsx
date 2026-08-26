@@ -34,6 +34,7 @@ import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import ConfirmActionModal from './ConfirmActionModal';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
@@ -283,7 +284,12 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     }
   };
 
-  const { handleExport, handleExportPdf, handleImport } = useSheetImportExport({
+  const {
+    handleExport,
+    handleExportPdf,
+    handleImport,
+    importExportConfirmModal,
+  } = useSheetImportExport({
     exportFn: exportChecksCsv,
     exportPdfFn: exportChecksPdf,
     importFn: importChecksCsv,
@@ -467,6 +473,8 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
           />
         </div>
       </FormModal>
+
+      <ConfirmActionModal {...importExportConfirmModal} />
 
       <ConfirmDeleteModal
         open={deletingItem !== null}
