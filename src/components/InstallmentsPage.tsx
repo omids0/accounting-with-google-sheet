@@ -40,6 +40,7 @@ import CardEditButton from './CardEditButton';
 import { AccordionCollapse } from './AccordionCollapse';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import ConfirmActionModal from './ConfirmActionModal';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
@@ -370,7 +371,12 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     [monthPlans, searchQuery]
   );
 
-  const { handleExport, handleExportPdf, handleImport } = useSheetImportExport({
+  const {
+    handleExport,
+    handleExportPdf,
+    handleImport,
+    importExportConfirmModal,
+  } = useSheetImportExport({
     exportFn: exportInstallmentsCsv,
     exportPdfFn: exportInstallmentsPdf,
     importFn: importInstallmentsCsv,
@@ -661,6 +667,8 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
           />
         </div>
       </FormModal>
+
+      <ConfirmActionModal {...importExportConfirmModal} />
 
       <ConfirmDeleteModal
         open={deletingPlan !== null}
