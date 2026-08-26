@@ -32,16 +32,25 @@ export const INSTALLMENTS_HEADERS = [
   'وضعیت پرداخت',
 ];
 
+export function getInstallmentPaymentAmount(
+  payment: InstallmentPayment,
+  plan: InstallmentPlan
+): number {
+  return payment.amount ?? plan.amount;
+}
+
 function buildPayments(
   count: number,
   dueDay: number,
-  startDate: string
+  startDate: string,
+  amount: number
 ): InstallmentPayment[] {
   return Array.from({ length: count }, (_, i) => ({
     n: i + 1,
     paid: false,
     paidAt: '',
     dueDate: addJalaliMonths(startDate, i, dueDay),
+    amount,
   }));
 }
 
@@ -49,16 +58,22 @@ function parsePayments(
   raw: string,
   count: number,
   dueDay: number,
-  startDate: string
+  startDate: string,
+  planAmount: number
 ): InstallmentPayment[] {
-  if (!raw) return buildPayments(count, dueDay, startDate);
+  if (!raw) return buildPayments(count, dueDay, startDate, planAmount);
   try {
     const parsed = JSON.parse(raw) as InstallmentPayment[];
-    if (Array.isArray(parsed) && parsed.length === count) return parsed;
+    if (Array.isArray(parsed) && parsed.length === count) {
+      return parsed.map((payment) => ({
+        ...payment,
+        amount: payment.amount ?? planAmount,
+      }));
+    }
   } catch {
     /* use default */
   }
-  return buildPayments(count, dueDay, startDate);
+  return buildPayments(count, dueDay, startDate, planAmount);
 }
 
 function rowToPlan(row: string[], rowNumber: number): InstallmentPlan & { rowNumber: number } {
@@ -75,7 +90,7 @@ function rowToPlan(row: string[], rowNumber: number): InstallmentPlan & { rowNum
     dueDay,
     startDate,
     note: row[7] ?? '',
-    payments: parsePayments(row[8] ?? '', count, dueDay, startDate),
+    payments: parsePayments(row[8] ?? '', count, dueDay, startDate, Number(row[3]) || 0),
   };
 }
 
@@ -131,7 +146,7 @@ export async function createInstallmentPlan(
     dueDay: data.dueDay,
     startDate,
     note: data.note,
-    payments: buildPayments(data.count, data.dueDay, startDate),
+    payments: buildPayments(data.count, data.dueDay, startDate, data.amount),
   };
 
   await appendSheetRow(spreadsheetId, INSTALLMENTS_SHEET, planToRow(plan));
@@ -190,6 +205,7 @@ export function reconcilePaymentsOnEdit(
         paid: false,
         paidAt: '',
         dueDate: addJalaliMonths(plan.startDate, i, data.dueDay),
+        amount: data.amount,
       });
     }
   }
@@ -218,6 +234,22 @@ export async function toggleInstallmentPayment(
       paid,
       paidAt: paid ? getTodayIso() : '',
     };
+  });
+
+  const updated: InstallmentPlan = { ...plan, payments };
+  await updateInstallmentPlan(spreadsheetId, plan.rowNumber, updated);
+  return updated;
+}
+
+export async function updateInstallmentPaymentAmount(
+  spreadsheetId: string,
+  plan: InstallmentPlan & { rowNumber: number },
+  paymentIndex: number,
+  amount: number
+): Promise<InstallmentPlan> {
+  const payments = plan.payments.map((payment, index) => {
+    if (index !== paymentIndex) return payment;
+    return { ...payment, amount };
   });
 
   const updated: InstallmentPlan = { ...plan, payments };
@@ -287,21 +319,27 @@ export function hasInstallmentDueInRange(
 }
 
 export function unpaidInstallmentAmount(plan: InstallmentPlan): number {
-  return unpaidInstallmentCount(plan) * plan.amount;
+  return plan.payments
+    .filter((p) => !p.paid)
+    .reduce((sum, p) => sum + getInstallmentPaymentAmount(p, plan), 0);
 }
 
 export function unpaidInstallmentAmountInRange(
   plan: InstallmentPlan,
   range: DateRange
 ): number {
-  return unpaidInstallmentCountInRange(plan, range) * plan.amount;
+  return plan.payments
+    .filter((p) => !p.paid && isDateInRange(p.dueDate, range))
+    .reduce((sum, p) => sum + getInstallmentPaymentAmount(p, plan), 0);
 }
 
 export function installmentAmountInRange(
   plan: InstallmentPlan,
   range: DateRange
 ): number {
-  return installmentCountInRange(plan, range) * plan.amount;
+  return plan.payments
+    .filter((p) => isDateInRange(p.dueDate, range))
+    .reduce((sum, p) => sum + getInstallmentPaymentAmount(p, plan), 0);
 }
 
 export function totalUnpaidInstallments(
@@ -353,7 +391,7 @@ export async function exportInstallmentsPdf(spreadsheetId: string): Promise<void
     formatPersianDate(plan.startDate),
     formatInstallmentPlanStatus(plan),
     plan.note,
-    formatInstallmentPayments(plan.payments),
+    formatInstallmentPayments(plan.payments, plan.amount),
   ]);
   const cellClasses = plans.map(() => [
     '',
@@ -399,7 +437,7 @@ export async function importInstallmentsCsv(
         dueDay,
         startDate,
         note: cells[7] ?? '',
-        payments: parsePayments(cells[8] ?? '', count, dueDay, startDate),
+        payments: parsePayments(cells[8] ?? '', count, dueDay, startDate, Number(cells[3]) || 0),
       };
       if (!plan.count || !plan.amount) return null;
       return planToRow(plan);

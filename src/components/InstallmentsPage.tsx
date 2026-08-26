@@ -15,6 +15,8 @@ import {
   sortInstallmentPayments,
   sortInstallmentPlans,
   toggleInstallmentPayment,
+  updateInstallmentPaymentAmount,
+  getInstallmentPaymentAmount,
   totalInstallmentsInRange,
   totalUnpaidInstallments,
   deleteInstallmentPlan,
@@ -55,6 +57,9 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [togglingKey, setTogglingKey] = useState('');
+  const [paymentAmounts, setPaymentAmounts] = useState<Record<string, number | ''>>({});
+  const [expandedPaymentKey, setExpandedPaymentKey] = useState<string | null>(null);
+  const [savingAmountKey, setSavingAmountKey] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
 
@@ -65,6 +70,26 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     dueDay: '' as number | '',
     note: '',
   });
+
+  const syncPaymentAmounts = useCallback((planList: PlanWithRow[]) => {
+    const next: Record<string, number | ''> = {};
+    for (const plan of planList) {
+      plan.payments.forEach((payment, index) => {
+        next[`${plan.id}-${index}`] = getInstallmentPaymentAmount(payment, plan);
+      });
+    }
+    setPaymentAmounts(next);
+  }, []);
+
+  const syncPaymentAmountsForPlan = useCallback((plan: PlanWithRow) => {
+    setPaymentAmounts((prev) => {
+      const next = { ...prev };
+      plan.payments.forEach((payment, index) => {
+        next[`${plan.id}-${index}`] = getInstallmentPaymentAmount(payment, plan);
+      });
+      return next;
+    });
+  }, []);
 
   const loadPlans = useCallback(async () => {
     const settings = getSettings();
@@ -79,6 +104,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       await ensureInstallmentsSheet(settings.spreadsheetId);
       const data = await fetchInstallmentPlans(settings.spreadsheetId);
       setPlans(data);
+      syncPaymentAmounts(data);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در بارگذاری اقساط';
       if (msg.includes('منقضی') || msg.includes('401')) {
@@ -89,7 +115,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     } finally {
       setLoading(false);
     }
-  }, [onReauth]);
+  }, [onReauth, syncPaymentAmounts]);
 
   useEffect(() => {
     if (isConfigured()) loadPlans();
@@ -195,6 +221,59 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       showError(msg);
     } finally {
       setTogglingKey('');
+    }
+  };
+
+  const handlePaymentAmountSave = async (plan: PlanWithRow, paymentIndex: number) => {
+    const key = `${plan.id}-${paymentIndex}`;
+    const nextAmount = paymentAmounts[key];
+    if (nextAmount === '' || nextAmount === undefined) {
+      showError('مبلغ نامعتبر است');
+      syncPaymentAmountsForPlan(plan);
+      return;
+    }
+    if (nextAmount <= 0) {
+      showError('مبلغ باید بیشتر از صفر باشد');
+      syncPaymentAmountsForPlan(plan);
+      return;
+    }
+
+    const payment = plan.payments[paymentIndex];
+    if (!payment) return;
+
+    const currentAmount = getInstallmentPaymentAmount(payment, plan);
+    if (nextAmount === currentAmount) return;
+
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    setSavingAmountKey(key);
+    try {
+      const updated = await updateInstallmentPaymentAmount(
+        settings.spreadsheetId,
+        plan,
+        paymentIndex,
+        nextAmount
+      );
+      const updatedPlan = { ...updated, rowNumber: plan.rowNumber };
+      setPlans((prev) =>
+        prev.map((p) => (p.id === plan.id ? updatedPlan : p))
+      );
+      syncPaymentAmountsForPlan(updatedPlan);
+      showSuccess('مبلغ قسط ذخیره شد');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در به‌روزرسانی مبلغ';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+      syncPaymentAmountsForPlan(plan);
+    } finally {
+      setSavingAmountKey('');
     }
   };
 
@@ -374,7 +453,10 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                 <button
                   type="button"
                   className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
-                  onClick={() => setExpandedId(expanded ? null : plan.id)}
+                  onClick={() => {
+                    if (expanded) setExpandedPaymentKey(null);
+                    setExpandedId(expanded ? null : plan.id);
+                  }}
                 >
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{plan.title}</div>
@@ -411,34 +493,72 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                   )}
                   {sortInstallmentPayments(plan.payments).map(({ payment, index }) => {
                     const toggleKey = `${plan.id}-${index}`;
+                    const amountKey = toggleKey;
+                    const paymentExpanded = expandedPaymentKey === amountKey;
+                    const rawAmount =
+                      paymentAmounts[amountKey] ?? getInstallmentPaymentAmount(payment, plan);
+                    const displayAmount =
+                      rawAmount === '' ? getInstallmentPaymentAmount(payment, plan) : Number(rawAmount);
+
                     return (
-                      <label
+                      <div
                         key={payment.n}
-                        className={`installment-payment-row${payment.paid ? ' paid' : ''}`}
+                        className={`installment-payment-item${paymentExpanded ? ' installment-payment-item--expanded' : ''}${payment.paid ? ' paid' : ''}`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={payment.paid}
-                          disabled={togglingKey === toggleKey}
-                          onChange={(e) =>
-                            handleTogglePayment(plan, index, e.target.checked)
-                          }
-                        />
-                        <div className="installment-payment-info">
-                          <span>قسط {payment.n.toLocaleString('fa-IR')}</span>
-                          <span className="installment-due">
-                            موعد: {formatIsoDatePersian(payment.dueDate)}
-                          </span>
-                          {payment.paid && payment.paidAt && (
-                            <span className="installment-paid-at">
-                              پرداخت: {formatIsoDatePersian(payment.paidAt)}
-                            </span>
-                          )}
+                        <div className="installment-payment-row">
+                          <input
+                            type="checkbox"
+                            checked={payment.paid}
+                            disabled={togglingKey === toggleKey}
+                            onChange={(e) =>
+                              handleTogglePayment(plan, index, e.target.checked)
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <button
+                            type="button"
+                            className={`installment-payment-header${paymentExpanded ? ' installment-payment-header--expanded' : ''}`}
+                            onClick={() =>
+                              setExpandedPaymentKey((prev) =>
+                                prev === amountKey ? null : amountKey
+                              )
+                            }
+                          >
+                            <div className="installment-payment-info">
+                              <span>قسط {payment.n.toLocaleString('fa-IR')}</span>
+                              <span className="installment-due">
+                                موعد: {formatIsoDatePersian(payment.dueDate)}
+                              </span>
+                              {payment.paid && payment.paidAt && (
+                                <span className="installment-paid-at">
+                                  پرداخت: {formatIsoDatePersian(payment.paidAt)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="wallet-item-amount installment-payment-amount-display" dir="ltr">
+                              {formatMoney(displayAmount)}
+                            </div>
+                            <span className="installment-chevron installment-payment-chevron">▼</span>
+                          </button>
                         </div>
-                        <span className="installment-payment-amount" dir="ltr">
-                          {formatMoney(plan.amount)}
-                        </span>
-                      </label>
+
+                        <AccordionCollapse open={paymentExpanded}>
+                          <div className="installment-payment-edit wallet-item-edit">
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                              <label>مبلغ قسط</label>
+                              <AmountInput
+                                compact
+                                value={paymentAmounts[amountKey] ?? getInstallmentPaymentAmount(payment, plan)}
+                                onChange={(val) =>
+                                  setPaymentAmounts((prev) => ({ ...prev, [amountKey]: val }))
+                                }
+                                onBlur={() => handlePaymentAmountSave(plan, index)}
+                              />
+                            </div>
+                            {savingAmountKey === amountKey && <span className="spinner" />}
+                          </div>
+                        </AccordionCollapse>
+                      </div>
                     );
                   })}
                 </div>

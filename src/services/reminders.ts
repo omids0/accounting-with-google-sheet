@@ -10,6 +10,7 @@ import {
 } from './sheets';
 import {
   fetchInstallmentPlans,
+  getInstallmentPaymentAmount,
   INSTALLMENTS_SHEET,
 } from './installments';
 import type { InstallmentPlan } from '../types';
@@ -197,7 +198,7 @@ export function getUpcomingInstallmentReminders(
         planId: plan.id,
         planTitle: plan.title,
         paymentNumber: payment.n,
-        amount: plan.amount,
+        amount: getInstallmentPaymentAmount(payment, plan),
         dueDate: payment.dueDate,
         remindOn: todayIso,
       });

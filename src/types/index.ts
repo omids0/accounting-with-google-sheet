@@ -114,6 +114,7 @@ export interface InstallmentPayment {
   paid: boolean;
   paidAt: string;
   dueDate: string;
+  amount?: number;
 }
 
 export interface InstallmentPlan {
