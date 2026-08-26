@@ -4,7 +4,7 @@ import {
   fetchSheetRows,
   updateSheetRow,
 } from './sheets';
-import { getJalaliMonthKey } from '../utils/dateRange';
+import { getDateRange, getJalaliMonthKey } from '../utils/dateRange';
 
 export const MONTHLY_BALANCE_SHEET = 'موجودی ماهانه';
 
@@ -116,4 +116,30 @@ export async function setOpeningBalance(
 
 export function monthKeyFromRangeStart(rangeStart: string): string {
   return getJalaliMonthKey(rangeStart);
+}
+
+export const AUTO_OPENING_BALANCE_NOTE = 'ثبت خودکار از مجموع کیف پول';
+
+export function hasUserOpeningBalance(balance: MonthlyOpeningBalance): boolean {
+  return balance.rowNumber != null;
+}
+
+export async function ensureAutoOpeningBalanceForCurrentMonth(
+  spreadsheetId: string,
+  walletTotal: number
+): Promise<MonthlyOpeningBalance | null> {
+  await ensureMonthlyBalanceSheet(spreadsheetId);
+  const monthKey = getJalaliMonthKey(getDateRange('month-to-date').start);
+  const existing = await fetchOpeningBalance(spreadsheetId, monthKey);
+
+  if (hasUserOpeningBalance(existing)) {
+    return null;
+  }
+
+  return setOpeningBalance(
+    spreadsheetId,
+    monthKey,
+    walletTotal,
+    AUTO_OPENING_BALANCE_NOTE
+  );
 }

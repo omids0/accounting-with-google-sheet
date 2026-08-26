@@ -14,7 +14,10 @@ import {
   updateWalletAccount,
   type WalletPeriodFlow,
 } from '../services/wallet';
-import { setOpeningBalance } from '../services/monthlyBalance';
+import {
+  ensureAutoOpeningBalanceForCurrentMonth,
+  setOpeningBalance,
+} from '../services/monthlyBalance';
 import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
 import { InstallmentCardListSkeleton } from './skeleton';
@@ -82,10 +85,13 @@ export default function WalletPage({
     setLoading(true);
     try {
       await ensureWalletSheet(settings.spreadsheetId);
-      const [data, flow] = await Promise.all([
-        fetchWalletAccounts(settings.spreadsheetId),
-        loadWalletPeriodFlow(settings),
-      ]);
+      const data = await fetchWalletAccounts(settings.spreadsheetId);
+      const walletTotal = data.reduce((sum, item) => sum + item.balance, 0);
+      await ensureAutoOpeningBalanceForCurrentMonth(
+        settings.spreadsheetId,
+        walletTotal
+      );
+      const flow = await loadWalletPeriodFlow(settings);
       setItems(data);
       syncBalances(data);
       setPeriodFlow(flow);
