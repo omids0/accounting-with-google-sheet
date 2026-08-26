@@ -244,8 +244,9 @@ export default function RemindersPage({ onBack }: RemindersPageProps) {
           <div className="card">
             <h2 className="card-title">وضعیت نوتیف</h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
-              برای دریافت یادآوری وقتی اپ بسته است، PWA را نصب کنید، اجازهٔ نوتیف بدهید و cron رایگان
-              را یک‌بار راه‌اندازی کنید.
+              یادآوری روزانه (وقتی دیروز اپ را باز نکردید) به‌صورت پیش‌فرض فعال است و با cron
+              ارسال می‌شود. برای اقساط و cron، PWA را نصب کنید، اجازهٔ نوتیف بدهید و یک‌بار
+              راه‌اندازی را انجام دهید.
             </p>
 
             <div style={{ display: 'grid', gap: '0.5rem', fontSize: '0.85rem' }}>

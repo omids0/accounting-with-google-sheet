@@ -1,5 +1,5 @@
 /**
- * یادآوری اقساط — Google Apps Script (cron رایگان)
+ * یادآوری اقساط و یادآوری روزانه — Google Apps Script (cron رایگان)
  *
  * نصب:
  * 1. Google Sheet → Extensions → Apps Script
@@ -14,6 +14,7 @@ var SHEET_REMINDERS = 'یادآوری';
 var SHEET_PUSH = 'ناتیف';
 var SHEET_LOG = 'یادآوری_ثبت';
 var SHEET_INSTALLMENTS = 'اقساط';
+var SHEET_ACTIVITY = 'فعالیت';
 var TZ = 'Asia/Tehran';
 
 function runReminderCron() {
@@ -26,17 +27,33 @@ function runReminderCron() {
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var rules = readReminderRules_(ss);
-  var installmentRule = rules.filter(function (r) { return r.kind === 'installments' && r.enabled; })[0];
-  if (!installmentRule) return;
-
-  if (!isReminderWindow_(installmentRule.hour, installmentRule.minute)) return;
-
-  var reminders = findInstallmentReminders_(ss, installmentRule);
-  if (!reminders.length) return;
-
   var subscriptions = readPushSubscriptions_(ss);
   if (!subscriptions.length) return;
 
+  var sentCount = 0;
+
+  var installmentRule = rules.filter(function (r) {
+    return r.kind === 'installments' && r.enabled;
+  })[0];
+  if (installmentRule && isReminderWindow_(installmentRule.hour, installmentRule.minute)) {
+    var installmentReminders = findInstallmentReminders_(ss, installmentRule);
+    sentCount += sendReminders_(ss, workerUrl, workerSecret, subscriptions, installmentReminders, 'installments');
+  }
+
+  var dailyRule = rules.filter(function (r) {
+    return r.kind === 'daily' && r.enabled;
+  })[0];
+  if (dailyRule && isReminderWindow_(dailyRule.hour, dailyRule.minute)) {
+    var dailyReminders = findDailyEngagementReminders_(ss);
+    sentCount += sendReminders_(ss, workerUrl, workerSecret, subscriptions, dailyReminders, 'daily');
+  }
+
+  if (sentCount > 0) {
+    Logger.log('Sent ' + sentCount + ' reminder batch(es)');
+  }
+}
+
+function sendReminders_(ss, workerUrl, workerSecret, subscriptions, reminders, logKind) {
   var sentCount = 0;
   reminders.forEach(function (item) {
     if (wasAlreadySent_(ss, item.reference)) return;
@@ -50,14 +67,11 @@ function runReminderCron() {
 
     var ok = postToWorker_(workerUrl, workerSecret, payload);
     if (ok) {
-      logSent_(ss, item.reference);
+      logSent_(ss, logKind, item.reference);
       sentCount += 1;
     }
   });
-
-  if (sentCount > 0) {
-    Logger.log('Sent ' + sentCount + ' reminder batch(es)');
-  }
+  return sentCount;
 }
 
 function readReminderRules_(ss) {
@@ -98,6 +112,38 @@ function readPushSubscriptions_(ss) {
     subs.push({ endpoint: endpoint, keys: { p256dh: p256dh, auth: auth } });
   }
   return subs;
+}
+
+function readActivity_(ss) {
+  var sheet = ss.getSheetByName(SHEET_ACTIVITY);
+  if (!sheet) return { lastOpen: '', lastOperation: '' };
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 2) return { lastOpen: '', lastOperation: '' };
+  var row = values[1];
+  return {
+    lastOpen: String(row[0] || '').slice(0, 10),
+    lastOperation: String(row[1] || '').slice(0, 10),
+  };
+}
+
+function findDailyEngagementReminders_(ss) {
+  var activity = readActivity_(ss);
+  if (!activity.lastOpen) return [];
+
+  var today = formatIsoDate_(new Date());
+  var yesterday = addDaysIso_(today, -1);
+
+  if (activity.lastOpen >= yesterday) return [];
+  if (activity.lastOperation && activity.lastOperation >= yesterday) return [];
+
+  var reference = 'daily_' + yesterday;
+  return [{
+    reference: reference,
+    title: 'حسابداری شخصی',
+    body:
+      'دیروز به اپ سر نزدید و ثبت مالی هم نداشتید. اگر چیزی از قلم افتاده، همین الان بیایید ' +
+      'حساب\u200cوکتابتان را به\u200cروز کنید — دیر نشده!',
+  }];
 }
 
 function findInstallmentReminders_(ss, rule) {
@@ -158,12 +204,12 @@ function wasAlreadySent_(ss, reference) {
   return false;
 }
 
-function logSent_(ss, reference) {
+function logSent_(ss, kind, reference) {
   var sheet = ss.getSheetByName(SHEET_LOG);
   if (!sheet) return;
   sheet.appendRow([
     formatIsoDate_(new Date()),
-    'installments',
+    kind,
     reference,
     new Date().toISOString(),
   ]);

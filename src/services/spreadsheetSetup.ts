@@ -28,6 +28,10 @@ import {
   syncCategoriesFromSheet,
 } from './categories';
 import {
+  ACTIVITY_HEADERS,
+  ACTIVITY_SHEET,
+} from './activityTracking';
+import {
   PUSH_SUBS_HEADERS,
   PUSH_SUBS_SHEET,
   REMINDER_LOG_HEADERS,
@@ -107,6 +111,7 @@ function getAllSheetSpecs(): SheetSpec[] {
       headers: MONTHLY_BALANCE_HEADERS,
     },
     { sheetName: CATEGORIES_SHEET, headers: CATEGORIES_HEADERS },
+    { sheetName: ACTIVITY_SHEET, headers: ACTIVITY_HEADERS },
     { sheetName: REMINDERS_SHEET, headers: REMINDERS_HEADERS },
     { sheetName: PUSH_SUBS_SHEET, headers: PUSH_SUBS_HEADERS },
     { sheetName: REMINDER_LOG_SHEET, headers: REMINDER_LOG_HEADERS },

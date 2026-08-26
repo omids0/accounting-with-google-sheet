@@ -25,10 +25,12 @@ export const REMINDER_LOG_HEADERS = ['تاریخ', 'نوع', 'مرجع', 'زما
 
 const REMINDER_KIND_LABELS: Record<ReminderKind, string> = {
   installments: 'اقساط',
+  daily: 'یادآوری روزانه',
 };
 
 const DEFAULT_RULES: ReminderRule[] = [
   { kind: 'installments', enabled: false, daysBefore: 1, hour: 9, minute: 0 },
+  { kind: 'daily', enabled: true, daysBefore: 0, hour: 9, minute: 0 },
 ];
 
 function parseBool(value: string | undefined): boolean {
@@ -38,7 +40,7 @@ function parseBool(value: string | undefined): boolean {
 
 function rowToRule(row: string[]): ReminderRule | null {
   const kind = String(row[0] ?? '').trim() as ReminderKind;
-  if (kind !== 'installments') return null;
+  if (kind !== 'installments' && kind !== 'daily') return null;
   return {
     kind,
     enabled: parseBool(row[1]),
@@ -103,6 +105,32 @@ export async function fetchReminderRules(spreadsheetId: string): Promise<Reminde
   });
 
   return merged;
+}
+
+export async function ensureDefaultReminderRules(spreadsheetId: string): Promise<void> {
+  await ensureReminderSheets(spreadsheetId);
+  const rows = await fetchSheetRows(spreadsheetId, REMINDERS_SHEET);
+  const dailyRow = rows.find((row) => String(row[0] ?? '').trim() === 'daily');
+  if (dailyRow && parseBool(dailyRow[1])) return;
+
+  await saveReminderRules(spreadsheetId, [
+    {
+      kind: 'daily',
+      enabled: true,
+      daysBefore: 0,
+      hour: Math.min(23, Math.max(0, Number(dailyRow?.[3]) || 9)),
+      minute: Math.min(59, Math.max(0, Number(dailyRow?.[4]) || 0)),
+    },
+  ]);
+}
+
+export function formatDailyEngagementMessage(): { title: string; body: string } {
+  return {
+    title: 'حسابداری شخصی',
+    body:
+      'دیروز به اپ سر نزدید و ثبت مالی هم نداشتید. اگر چیزی از قلم افتاده، همین الان بیایید ' +
+      'حساب‌وکتابتان را به‌روز کنید — دیر نشده!',
+  };
 }
 
 export async function saveReminderRules(

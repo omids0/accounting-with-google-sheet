@@ -6,6 +6,7 @@ import {
   normalizeSheetDate,
 } from '../utils/sheetValues';
 import { getAccessToken } from './auth';
+import { recordOperation } from './activityTracking';
 
 const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
 const TITLES_CACHE_TTL_MS = 120_000;
@@ -434,6 +435,7 @@ export async function appendRecord(
       body: JSON.stringify({ values: [row] }),
     }
   );
+  recordOperation();
 }
 
 export type SheetRecord = {
@@ -534,6 +536,7 @@ export async function appendSheetRow(
       body: JSON.stringify({ values: [row] }),
     }
   );
+  recordOperation();
 }
 
 export async function updateSheetRow(
@@ -551,6 +554,7 @@ export async function updateSheetRow(
       body: JSON.stringify({ values: [row] }),
     }
   );
+  recordOperation();
 }
 
 async function getSheetId(
