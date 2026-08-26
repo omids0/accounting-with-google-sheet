@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardPage from './DashboardPage';
 import DataEntryPage from './DataEntryPage';
 import RecordsPage from './RecordsPage';
@@ -45,6 +45,7 @@ interface LayoutProps {
 export default function Layout({ onLogout, onReauth }: LayoutProps) {
   const [tab, setTab] = useState<Tab>('dashboard');
   const [showSettings, setShowSettings] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [dataKey, setDataKey] = useState(0);
   const userName = getUserName();
   const userPicture = getUserPicture();
@@ -70,24 +71,50 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
 
   const handleTabChange = (newTab: Tab) => {
     setShowSettings(false);
+    setMenuOpen(false);
     if (newTab !== 'records') setRecordsFormType(undefined);
     setTab(newTab);
   };
 
   const openRecords = (formType?: 'income' | 'expense') => {
     setShowSettings(false);
+    setMenuOpen(false);
     setRecordsFormType(formType);
     setTab('records');
   };
 
+  const openSettings = () => {
+    setShowSettings(true);
+    setMenuOpen(false);
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen]);
+
   return (
     <div className="app-layout">
       <header className="app-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <button
+          type="button"
+          className={`header-icon-btn header-icon-btn--menu${menuOpen ? ' active' : ''}`}
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label={menuOpen ? 'بستن منو' : 'باز کردن منو'}
+          aria-expanded={menuOpen}
+          title="منو"
+        >
+          <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
+        </button>
+        <div className="app-header-start">
           {!showSettings && (tab === 'records' || tab === 'entry' || tab === 'opening-balances') && (
             <button
               type="button"
-              className="header-icon-btn"
+              className="header-icon-btn header-icon-btn--menu"
               onClick={() =>
                 handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
               }
@@ -97,31 +124,47 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               <AppIcon name="back" size={20} strokeWidth={2} />
             </button>
           )}
-          {userPicture &&
-            tab !== 'records' &&
-            tab !== 'entry' &&
-            tab !== 'opening-balances' && (
-            <img
-              src={userPicture}
-              alt=""
-              className="header-avatar"
-            />
-          )}
-          <div>
-            <h1>{showSettings ? 'تنظیمات' : titles[tab]}</h1>
-            <div className="subtitle">سلام، {userName}</div>
-          </div>
+          <h1>{showSettings ? 'تنظیمات' : titles[tab]}</h1>
         </div>
-        <button
-          type="button"
-          className={`header-icon-btn${showSettings ? ' active' : ''}`}
-          onClick={() => setShowSettings((v) => !v)}
-          aria-label="تنظیمات"
-          title="تنظیمات"
-        >
-          <AppIcon name="settings" size={20} strokeWidth={2} />
-        </button>
       </header>
+
+      {menuOpen && (
+        <>
+          <button
+            type="button"
+            className="app-menu-backdrop"
+            onClick={() => setMenuOpen(false)}
+            aria-label="بستن منو"
+          />
+          <nav className="app-menu-drawer" aria-label="منوی اصلی">
+            <div className="app-menu-profile">
+              {userPicture ? (
+                <img src={userPicture} alt="" className="app-menu-avatar" />
+              ) : (
+                <div className="app-menu-avatar app-menu-avatar--placeholder" aria-hidden>
+                  <AppIcon name="dashboard" size={28} strokeWidth={1.5} />
+                </div>
+              )}
+              <div className="app-menu-profile-text">
+                {userName && <div className="app-menu-name">{userName}</div>}
+                <div className="app-menu-greeting">سلام، خوش آمدید</div>
+              </div>
+            </div>
+            <div className="app-menu-items">
+              <button
+                type="button"
+                className={`app-menu-item${showSettings ? ' active' : ''}`}
+                onClick={openSettings}
+              >
+                <span className="app-menu-item-icon">
+                  <AppIcon name="settings" size={20} strokeWidth={1.75} />
+                </span>
+                تنظیمات
+              </button>
+            </div>
+          </nav>
+        </>
+      )}
 
       <main className="app-main">
         <div key={showSettings ? 'settings' : `${tab}-${dataKey}`} className="page-content">

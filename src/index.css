@@ -730,44 +730,168 @@ button {
   background-size: 200% 200%;
   animation: headerGlow 8s ease infinite;
   color: white;
-  padding: 1rem 1.25rem;
-  padding-top: max(1rem, env(safe-area-inset-top));
+  padding: 0.65rem 1rem;
+  padding-top: max(0.65rem, env(safe-area-inset-top));
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 30;
+}
+
+.app-header-start {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .app-header h1 {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.app-header .subtitle {
-  font-size: 0.75rem;
-  opacity: 0.85;
-  font-weight: 400;
+.app-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  border: none;
+  background: var(--color-overlay-light);
+  cursor: default;
+  animation: speed-dial-fade-in var(--duration-fast) var(--ease-out);
 }
 
-.header-avatar {
-  width: 34px;
-  height: 34px;
+.app-menu-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  width: min(18.5rem, 85vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  box-shadow: -8px 0 32px rgba(15, 23, 42, 0.18);
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  animation: app-menu-slide-in var(--duration-normal) var(--ease-out);
+  overflow: hidden;
+}
+
+@keyframes app-menu-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.app-menu-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: max(1rem, env(safe-area-inset-top)) 1.15rem 1.15rem;
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-light) 100%
+  );
+  color: white;
+}
+
+.app-menu-avatar {
+  width: 3.25rem;
+  height: 3.25rem;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: transform var(--duration-normal) var(--ease-spring);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  flex-shrink: 0;
+  object-fit: cover;
 }
 
-.header-avatar:hover {
-  transform: scale(1.08);
+.app-menu-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.app-menu-profile-text {
+  min-width: 0;
+}
+
+.app-menu-name {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.app-menu-greeting {
+  font-size: 0.78rem;
+  opacity: 0.85;
+  margin-top: 0.15rem;
+}
+
+.app-menu-items {
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.app-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: right;
+  transition: background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.app-menu-item:hover {
+  background: var(--color-accent-soft);
+}
+
+.app-menu-item.active {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary-dark);
+}
+
+.app-menu-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.app-menu-item.active .app-menu-item-icon {
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
 .header-icon-btn {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -777,6 +901,10 @@ button {
   transition: background var(--duration-normal) var(--ease-out),
     transform var(--duration-fast) var(--ease-spring);
   flex-shrink: 0;
+}
+
+.header-icon-btn--menu {
+  color: white;
 }
 
 .header-icon-btn:hover,

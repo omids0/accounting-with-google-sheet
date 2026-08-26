@@ -13,6 +13,7 @@ export type AppIconName =
   | 'folder'
   | 'warning'
   | 'back'
+  | 'menu'
   | 'settings'
   | 'close'
   | 'check'
@@ -188,6 +189,15 @@ export default function AppIcon({
       return (
         <svg {...props}>
           <path d="M10 6.5 15.5 12 10 17.5" />
+        </svg>
+      );
+
+    case 'menu':
+      return (
+        <svg {...props}>
+          <path d="M4.5 7h15" />
+          <path d="M4.5 12h15" />
+          <path d="M4.5 17h15" />
         </svg>
       );
 
