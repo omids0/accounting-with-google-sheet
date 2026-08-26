@@ -33,6 +33,7 @@ export interface AppSettings {
   spreadsheets?: SpreadsheetEntry[];
   forms: CustomForm[];
   dangCategories?: string[];
+  receivableCategories?: string[];
   currency?: CurrencyUnit;
   theme?: ThemeMode;
 }
@@ -165,6 +166,7 @@ export interface Receivable {
   id: string;
   createdAt: string;
   debtor: string;
+  category: string;
   amount: number;
   borrowDate: string;
   note: string;

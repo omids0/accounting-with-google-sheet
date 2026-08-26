@@ -18,6 +18,9 @@ import {
   updateReceivable,
 } from '../services/receivables';
 import AmountInput from './AmountInput';
+import { CategorySelect, Select } from './form';
+import { syncCategoriesFromSheet } from '../services/categories';
+import { getReceivableCategories } from '../services/settings';
 import { InstallmentCardListSkeleton } from './skeleton';
 import JalaliDatePicker from './JalaliDatePicker';
 import { formatMoney } from '../utils/formatMoney';
@@ -36,8 +39,25 @@ import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
 import { matchSearch } from '../utils/search';
+import {
+  formatDateRangeLabel,
+  getDateRange,
+  isDateInRange,
+  RECORDS_DATE_RANGE_PRESETS,
+  resolveDateRange,
+  type DateRange,
+  type RecordsDatePreset,
+} from '../utils/dateRange';
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
+type PaymentStatusFilter = 'all' | 'paid' | 'unpaid';
+type ReceivableDatePreset = 'all' | RecordsDatePreset;
+
+const PAYMENT_STATUS_OPTIONS: { id: PaymentStatusFilter; label: string }[] = [
+  { id: 'all', label: 'همه' },
+  { id: 'paid', label: 'تسویه شده' },
+  { id: 'unpaid', label: 'پرداخت نشده' },
+];
 
 export default function ReceivablesPage({ onReauth }: { onReauth?: () => void }) {
   const [items, setItems] = useState<ReceivableWithRow[]>([]);
@@ -50,10 +70,18 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const [deleting, setDeleting] = useState(false);
   const [payingId, setPayingId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-
+  const [categories, setCategories] = useState<string[]>(() => getReceivableCategories());
+  const [paymentStatusFilter, setPaymentStatusFilter] =
+    useState<PaymentStatusFilter>('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [datePreset, setDatePreset] = useState<ReceivableDatePreset>('all');
+  const [customRange, setCustomRange] = useState<DateRange>(() =>
+    getDateRange('month-to-date')
+  );
 
   const [form, setForm] = useState({
     debtor: '',
+    category: '',
     amount: '' as number | '',
     borrowDate: getTodayIso(),
     note: '',
@@ -63,6 +91,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     amount: number | '';
     note: string;
   } | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const loadItems = useCallback(async () => {
     const settings = getSettings();
@@ -75,6 +104,8 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     setLoading(true);
     try {
       await ensureReceivablesSheet(settings.spreadsheetId);
+      await syncCategoriesFromSheet(settings.spreadsheetId);
+      setCategories(getReceivableCategories());
       const data = await fetchReceivables(settings.spreadsheetId);
       setItems(data);
     } catch (err) {
@@ -104,6 +135,10 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
       showError('نام شخص یا ارگان الزامی است');
       return;
     }
+    if (!form.category.trim()) {
+      showError('دسته‌بندی الزامی است');
+      return;
+    }
     if (!form.amount || Number(form.amount) <= 0) {
       showError('مبلغ را وارد کنید');
       return;
@@ -125,6 +160,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
         const updated = {
           ...editingItem,
           debtor: form.debtor.trim(),
+          category: form.category.trim(),
           amount: nextAmount,
           borrowDate: form.borrowDate,
           note: form.note.trim(),
@@ -134,6 +170,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
       } else {
         await createReceivable(settings.spreadsheetId, {
           debtor: form.debtor.trim(),
+          category: form.category.trim(),
           amount: Number(form.amount),
           borrowDate: form.borrowDate,
           note: form.note.trim(),
@@ -207,6 +244,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const resetCreateForm = () => {
     setForm({
       debtor: '',
+      category: categories[0] ?? '',
       amount: '',
       borrowDate: getTodayIso(),
       note: '',
@@ -223,6 +261,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     setEditingItem(item);
     setForm({
       debtor: item.debtor,
+      category: item.category,
       amount: item.amount,
       borrowDate: item.borrowDate,
       note: item.note,
@@ -305,13 +344,81 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
 
+  const dateRange = useMemo(
+    () =>
+      datePreset === 'all' ? null : resolveDateRange(datePreset, customRange),
+    [datePreset, customRange]
+  );
+
+  const categoryOptions = useMemo(() => {
+    const options = new Set<string>(categories);
+    for (const item of items) {
+      if (item.category) options.add(item.category);
+    }
+    return [...options];
+  }, [categories, items]);
+
   const filteredItems = useMemo(
     () =>
-      items.filter((item) =>
-        matchSearch(searchQuery, item.debtor, item.note, item.amount, item.borrowDate)
-      ),
-    [items, searchQuery]
+      items.filter((item) => {
+        if (
+          !matchSearch(
+            searchQuery,
+            item.debtor,
+            item.category,
+            item.note,
+            item.amount,
+            item.borrowDate
+          )
+        ) {
+          return false;
+        }
+
+        if (categoryFilter !== 'all' && item.category !== categoryFilter) {
+          return false;
+        }
+
+        if (dateRange && !isDateInRange(item.borrowDate, dateRange)) {
+          return false;
+        }
+
+        const complete = isReceivableComplete(item);
+        if (paymentStatusFilter === 'paid' && !complete) return false;
+        if (paymentStatusFilter === 'unpaid' && complete) return false;
+
+        return true;
+      }),
+    [
+      items,
+      searchQuery,
+      categoryFilter,
+      dateRange,
+      paymentStatusFilter,
+    ]
   );
+
+  const filteredTotalRemaining = useMemo(
+    () => filteredItems.reduce((sum, item) => sum + remainingAmount(item), 0),
+    [filteredItems]
+  );
+
+  const handleDatePresetClick = (id: ReceivableDatePreset) => {
+    if (id === 'all') {
+      setDatePreset('all');
+      return;
+    }
+    if (id === 'custom') {
+      setDatePreset('custom');
+      if (datePreset !== 'custom') {
+        setCustomRange(getDateRange('month-to-date'));
+      }
+      return;
+    }
+    setDatePreset(id);
+    setCustomRange(getDateRange(id));
+  };
+
+  const isDatePresetActive = (id: ReceivableDatePreset) => datePreset === id;
 
   if (!isConfigured()) {
     return (
@@ -325,6 +432,16 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   }
 
   const totalRemaining = items.reduce((sum, item) => sum + remainingAmount(item), 0);
+  const hasFilterActive =
+    paymentStatusFilter !== 'all' ||
+    categoryFilter !== 'all' ||
+    datePreset !== 'all';
+  const showFilteredTotal =
+    filteredItems.length !== items.length ||
+    datePreset !== 'all' ||
+    paymentStatusFilter !== 'all' ||
+    categoryFilter !== 'all' ||
+    searchQuery.trim() !== '';
 
   return (
     <div>
@@ -334,6 +451,123 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
         onSearchChange={setSearchQuery}
         searchPlaceholder="جستجو در طلب‌ها..."
       />
+
+      {items.length > 0 && (
+        <div className="card receivables-filters-card">
+          <button
+            type="button"
+            className={`installment-header receivables-filters-toggle${filtersOpen ? ' installment-header--expanded' : ''}`}
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+            aria-controls="receivables-filters-panel"
+          >
+            <div>
+              <div className="receivables-filters-title">فیلترها</div>
+              {!filtersOpen && hasFilterActive && (
+                <p className="records-toolbar-range">فیلتر فعال</p>
+              )}
+            </div>
+            <span className="installment-chevron" aria-hidden="true">▼</span>
+          </button>
+
+          <AccordionCollapse open={filtersOpen}>
+            <div id="receivables-filters-panel" className="receivables-filters-body">
+              <div className="records-filter-section">
+                <span className="records-filter-label">وضعیت پرداخت</span>
+                <div className="records-date-grid">
+                  {PAYMENT_STATUS_OPTIONS.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={paymentStatusFilter === option.id ? 'active' : ''}
+                      onClick={() => setPaymentStatusFilter(option.id)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="records-filter-section records-filter-section--inline">
+                <span className="records-filter-label">دسته‌بندی</span>
+                <Select
+                  className="records-category-select"
+                  compact
+                  aria-label="دسته‌بندی"
+                  value={categoryFilter}
+                  onChange={setCategoryFilter}
+                  options={[
+                    { value: 'all', label: 'همه' },
+                    ...categoryOptions.map((category) => ({
+                      value: category,
+                      label: category,
+                    })),
+                  ]}
+                />
+              </div>
+
+              <div className="records-filter-section">
+                <span className="records-filter-label">بازه زمانی (تاریخ قرض)</span>
+                <div className="records-date-grid">
+                  <button
+                    type="button"
+                    className={isDatePresetActive('all') ? 'active' : ''}
+                    onClick={() => handleDatePresetClick('all')}
+                  >
+                    همه
+                  </button>
+                  {RECORDS_DATE_RANGE_PRESETS.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={isDatePresetActive(item.id) ? 'active' : ''}
+                      onClick={() => handleDatePresetClick(item.id)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+                {datePreset !== 'all' && (
+                  <p className="records-toolbar-range receivables-filters-range">
+                    {formatDateRangeLabel(dateRange!)}
+                  </p>
+                )}
+              </div>
+
+              {datePreset === 'custom' && (
+                <div className="records-custom-range">
+                  <div className="records-custom-date">
+                    <span className="records-filter-label">از</span>
+                    <JalaliDatePicker
+                      value={customRange.start}
+                      onChange={(start) =>
+                        setCustomRange((range) => ({
+                          ...range,
+                          start,
+                          end: start > range.end ? start : range.end,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="records-custom-date">
+                    <span className="records-filter-label">تا</span>
+                    <JalaliDatePicker
+                      value={customRange.end}
+                      onChange={(end) =>
+                        setCustomRange((range) => ({
+                          ...range,
+                          end,
+                          start: end < range.start ? end : range.start,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </AccordionCollapse>
+        </div>
+      )}
 
       {loading && items.length === 0 ? (
         <InstallmentCardListSkeleton />
@@ -378,6 +612,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                         marginTop: '0.25rem',
                       }}
                     >
+                      {item.category && `${item.category} · `}
                       {formatMoney(item.amount)}
                       {complete
                         ? ' · تسویه شده'
@@ -521,8 +756,12 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
 
       {items.length > 0 && (
         <div className="card receivable-total-card">
-          <div className="receivable-total-label">مجموع مانده طلب‌ها</div>
-          <div className="receivable-total-amount">{formatMoney(totalRemaining)}</div>
+          <div className="receivable-total-label">
+            {showFilteredTotal ? 'مجموع مانده (فیلتر شده)' : 'مجموع مانده طلب‌ها'}
+          </div>
+          <div className="receivable-total-amount">
+            {formatMoney(showFilteredTotal ? filteredTotalRemaining : totalRemaining)}
+          </div>
         </div>
       )}
 
@@ -541,6 +780,24 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
             value={form.debtor}
             onChange={(e) => setForm((f) => ({ ...f, debtor: e.target.value }))}
             placeholder="مثلاً: علی محمدی"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>دسته‌بندی <span className="required">*</span></label>
+          <CategorySelect
+            value={form.category}
+            onChange={(category) => setForm((f) => ({ ...f, category }))}
+            categories={categories}
+            categoryScope="receivable"
+            onCategoriesChange={(next) => {
+              setCategories(next);
+              if (!next.includes(form.category)) {
+                setForm((f) => ({ ...f, category: next[0] ?? '' }));
+              }
+            }}
+            onReauth={onReauth}
+            aria-label="دسته‌بندی طلب"
           />
         </div>
 

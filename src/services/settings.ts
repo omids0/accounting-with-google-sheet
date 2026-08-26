@@ -31,6 +31,12 @@ export const DEFAULT_DANG_CATEGORIES = [
   'خرید',
   'سایر',
 ];
+export const DEFAULT_RECEIVABLE_CATEGORIES = [
+  'شخصی',
+  'قرض',
+  'سازمان',
+  'سایر',
+];
 
 function incomeForm(): CustomForm {
   return {
@@ -233,4 +239,14 @@ export function getDangCategories(): string[] {
 export function updateDangCategories(categories: string[]): void {
   const settings = getSettings() ?? getDefaultSettings();
   saveSettings({ ...settings, dangCategories: categories });
+}
+
+export function getReceivableCategories(): string[] {
+  const stored = getSettings()?.receivableCategories;
+  return stored?.length ? stored : [...DEFAULT_RECEIVABLE_CATEGORIES];
+}
+
+export function updateReceivableCategories(categories: string[]): void {
+  const settings = getSettings() ?? getDefaultSettings();
+  saveSettings({ ...settings, receivableCategories: categories });
 }
