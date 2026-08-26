@@ -209,7 +209,7 @@ export interface WalletAccount {
   note: string;
 }
 
-export type ReminderKind = 'installments';
+export type ReminderKind = 'installments' | 'daily';
 
 export interface ReminderRule {
   kind: ReminderKind;

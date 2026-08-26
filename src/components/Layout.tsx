@@ -14,6 +14,7 @@ import PageSpeedDial from './PageSpeedDial';
 import AppIcon from './AppIcon';
 import { getUserName, getUserPicture } from '../services/auth';
 import { usePageSpeedDialConfig } from '../hooks/usePageSpeedDial';
+import { useEngagementReminders } from '../hooks/useEngagementReminders';
 
 type Tab =
   | 'dashboard'
@@ -63,6 +64,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
 
   const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
   const pageSpeedDialConfig = usePageSpeedDialConfig();
+  useEngagementReminders();
   const showPageSpeedDial =
     !showSettings && SPEED_DIAL_TABS.includes(tab) && pageSpeedDialConfig != null;
 
