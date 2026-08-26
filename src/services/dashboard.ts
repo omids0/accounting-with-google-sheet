@@ -10,6 +10,7 @@ import { getJalaliParts } from '../utils/jalaliDate';
 import { parseNumeric } from '../utils/parseNumeric';
 import {
   formatJalaliMonthLabel,
+  getDateRange,
   getJalaliMonthKey,
   getJalaliYearRange,
   isDateInRange,
@@ -18,7 +19,11 @@ import { normalizeSheetDate } from '../utils/sheetValues';
 import { fetchDangs, unpaidDangTotal } from './dang';
 import { fetchInstallmentPlans, totalUnpaidInstallments } from './installments';
 import { fetchChecks, totalUnpaidChecksInRange } from './checks';
-import { fetchOpeningBalance } from './monthlyBalance';
+import {
+  ensureAutoOpeningBalanceForCurrentMonth,
+  fetchOpeningBalance,
+  hasUserOpeningBalance,
+} from './monthlyBalance';
 import { fetchReceivables, remainingAmount } from './receivables';
 import { fetchRecords } from './sheets';
 import { fetchTgjuPrices } from './tgju';
@@ -149,6 +154,19 @@ export async function loadDashboardData(
   const incomeDateField = getDateFieldId(incomeForm);
   const expenseDateField = getDateFieldId(expenseForm);
 
+  const currentMonthKey = getJalaliMonthKey(getDateRange('month-to-date').start);
+  let resolvedOpeningBalance = openingBalanceRecord;
+  if (monthKey === currentMonthKey && !hasUserOpeningBalance(openingBalanceRecord)) {
+    const walletTotal = walletAccounts.reduce((s, a) => s + a.balance, 0);
+    const autoFilled = await ensureAutoOpeningBalanceForCurrentMonth(
+      settings.spreadsheetId,
+      walletTotal
+    );
+    if (autoFilled) {
+      resolvedOpeningBalance = autoFilled;
+    }
+  }
+
   const filteredIncome = filterByDateRange(
     incomeRecords,
     range,
@@ -185,7 +203,7 @@ export async function loadDashboardData(
   const totalLiabilities = installmentsDue + dangsTotal + checksDue;
   const netAvailable = totalAssets - totalLiabilities;
 
-  const openingBalance = openingBalanceRecord.amount;
+  const openingBalance = resolvedOpeningBalance.amount;
   const periodBalance = openingBalance + totalIncome - totalExpense;
   const reconciliationDiff = walletTotal - periodBalance;
 
