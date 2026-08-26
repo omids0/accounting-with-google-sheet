@@ -3131,6 +3131,55 @@ button {
   margin-bottom: 0;
 }
 
+.receivables-filters-card {
+  overflow: hidden;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-mid);
+  box-shadow: none;
+}
+
+.receivables-filters-card:hover {
+  box-shadow: none;
+}
+
+.receivables-filters-card .receivables-filters-toggle {
+  padding: 0.55rem 0.75rem;
+  border-radius: 0;
+}
+
+.receivables-filters-title {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--color-primary-dark);
+}
+
+.receivables-filters-body {
+  padding: 0 0.75rem 0.65rem;
+  border-top: 1px solid var(--color-accent-mid);
+}
+
+.receivables-filters-body .records-filter-section {
+  gap: 0.35rem;
+}
+
+.receivables-filters-body .records-filter-section:first-child {
+  margin-top: 0.5rem;
+}
+
+.receivables-filters-body .records-filter-section + .records-filter-section,
+.receivables-filters-body .records-filter-section + .records-custom-range,
+.receivables-filters-body .records-custom-range + .records-filter-section {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top-color: var(--color-accent-mid);
+}
+
+.receivables-filters-range {
+  margin-top: 0.35rem;
+}
+
 .records-toolbar-header {
   display: flex;
   align-items: flex-start;
