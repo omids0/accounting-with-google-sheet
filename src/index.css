@@ -1693,15 +1693,26 @@ button {
   border-radius: 8px;
 }
 
+.installment-payment-item {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.installment-payment-item:last-child {
+  border-bottom: none;
+}
+
 .installment-payment-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-border);
-  cursor: pointer;
   transition: background var(--duration-fast), padding-inline var(--duration-fast);
   border-radius: var(--radius-sm);
+}
+
+.installment-payment-item--expanded .installment-payment-row {
+  background: var(--color-bg);
+  padding-inline: 0.5rem;
 }
 
 .installment-payment-row:hover {
@@ -1709,8 +1720,45 @@ button {
   padding-inline: 0.5rem;
 }
 
-.installment-payment-row:last-child {
-  border-bottom: none;
+.installment-payment-header {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: inherit;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.installment-payment-chevron {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  transition: transform var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.installment-payment-header--expanded .installment-payment-chevron {
+  transform: rotate(180deg);
+}
+
+.installment-payment-amount-display {
+  font-size: 0.85rem;
+}
+
+.installment-payment-edit {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  padding: 0 0 0.75rem 1.85rem;
+}
+
+.installment-payment-edit .form-group {
+  flex: 1;
 }
 
 .installment-payment-row input[type='checkbox'] {
@@ -1738,15 +1786,21 @@ button {
   color: var(--color-success);
 }
 
-.installment-payment-row.paid .installment-payment-info > span:first-child {
+.installment-payment-item.paid .installment-payment-info > span:first-child {
   text-decoration: line-through;
   color: var(--color-text-muted);
 }
 
-.installment-payment-amount {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-primary-dark);
+.installment-payment-item.paid {
+  opacity: 0.6;
+}
+
+.installment-payment-item.paid .installment-payment-amount-display {
+  color: var(--color-text-muted);
+}
+
+.installment-payment-item.paid .installment-paid-at {
+  color: var(--color-text-muted);
 }
 
 .installment-month-summary {
@@ -1923,18 +1977,6 @@ button {
 
 .installment-complete .installment-progress-bar {
   background: var(--color-text-muted);
-}
-
-.installment-payment-row.paid {
-  opacity: 0.6;
-}
-
-.installment-payment-row.paid .installment-payment-amount {
-  color: var(--color-text-muted);
-}
-
-.installment-payment-row.paid .installment-paid-at {
-  color: var(--color-text-muted);
 }
 
 .receivable-complete {

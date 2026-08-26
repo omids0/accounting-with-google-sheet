@@ -15,13 +15,17 @@ export function formatPersianDate(iso: string): string {
   return formatIsoDatePersian(iso);
 }
 
-export function formatInstallmentPayments(payments: InstallmentPayment[]): string {
+export function formatInstallmentPayments(
+  payments: InstallmentPayment[],
+  planAmount: number
+): string {
   return payments
     .map((payment) => {
+      const amount = formatMoney(payment.amount ?? planAmount);
       const status = payment.paid
         ? `پرداخت شده${payment.paidAt ? ` (${formatPersianDate(payment.paidAt)})` : ''}`
         : 'معوق';
-      return `قسط ${payment.n.toLocaleString('fa-IR')}: ${status} · موعد ${formatPersianDate(payment.dueDate)}`;
+      return `قسط ${payment.n.toLocaleString('fa-IR')}: ${amount} · ${status} · موعد ${formatPersianDate(payment.dueDate)}`;
     })
     .join('\n');
 }
