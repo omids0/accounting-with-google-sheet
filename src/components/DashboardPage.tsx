@@ -23,10 +23,13 @@ import {
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import { showError } from '../utils/toast';
-import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
+import { monthlySparkline } from '../utils/sparklineData';
+import AnimatedMoneyDisplay from './AnimatedMoneyDisplay';
+import StatCard from './StatCard';
+import TransactionListItem from './TransactionListItem';
 import MoneyDisplay from './MoneyDisplay';
 import CardEditButton from './CardEditButton';
-import { CategoryBarChart, IncomeExpenseMonthlyChart } from './charts';
+import { CategoryBarChart, CategoryDonutChart, IncomeExpenseMonthlyChart } from './charts';
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
 
@@ -147,7 +150,9 @@ export default function DashboardPage({
   }, [data?.recentRecords, typeFilter]);
 
   const financial = data?.financial;
-  const animatedNetAvailable = useAnimatedNumber(financial?.netAvailable ?? 0);
+  const incomeSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income');
+  const expenseSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense');
+  const netSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'net');
   const settings = getSettings();
   const incomeForm = settings?.forms.find((f) => f.type === 'income');
   const expenseForm = settings?.forms.find((f) => f.type === 'expense');
@@ -209,8 +214,8 @@ export default function DashboardPage({
             />
           )}
         </div>
-        <MoneyDisplay
-          amount={animatedNetAvailable}
+        <AnimatedMoneyDisplay
+          amount={financial?.netAvailable ?? 0}
           size="hero"
           tone="hero"
         />
@@ -221,41 +226,46 @@ export default function DashboardPage({
 
       <div className="dashboard-flow-section dashboard-flow-section--animated">
         <div className="stat-grid dashboard-stat-grid">
-          <div className="stat-card stat-income stat-card--lift">
-            <span className="stat-label">درآمد دوره</span>
-            <MoneyDisplay amount={data?.totalIncome ?? 0} size="stat" tone="income" />
-          </div>
-          <div className="stat-card stat-expense stat-card--lift">
-            <span className="stat-label">هزینه دوره</span>
-            <MoneyDisplay amount={data?.totalExpense ?? 0} size="stat" tone="expense" />
-          </div>
-        </div>
-        <div
-          className={`stat-card stat-flow stat-card-wide${
-            (data?.balance ?? 0) < 0
-              ? ' stat-flow-negative'
-              : (data?.balance ?? 0) > 0
-                ? ' stat-flow-positive'
-                : ''
-          }`}
-        >
-          <span className="stat-label">خالص دوره</span>
-          <MoneyDisplay
-            amount={data?.balance ?? 0}
-            size="stat-wide"
-            tone={
-              (data?.balance ?? 0) < 0
-                ? 'negative'
-                : (data?.balance ?? 0) > 0
-                  ? 'positive'
-                  : 'primary'
-            }
+          <StatCard
+            label="درآمد دوره"
+            amount={data?.totalIncome ?? 0}
+            variant="income"
+            sparklineData={incomeSparkline}
+            animateIndex={0}
+            lift
+          />
+          <StatCard
+            label="هزینه دوره"
+            amount={data?.totalExpense ?? 0}
+            variant="expense"
+            sparklineData={expenseSparkline}
+            animateIndex={1}
+            lift
           />
         </div>
-        <div className="stat-card stat-balance stat-card-wide">
-          <span className="stat-label">مانده محاسبه‌شده</span>
-          <MoneyDisplay amount={data?.periodBalance ?? 0} size="stat-wide" tone="primary" />
-        </div>
+        <StatCard
+          label="خالص دوره"
+          amount={data?.balance ?? 0}
+          variant="flow"
+          wide
+          flowDirection={
+            (data?.balance ?? 0) < 0
+              ? 'negative'
+              : (data?.balance ?? 0) > 0
+                ? 'positive'
+                : 'neutral'
+          }
+          sparklineData={netSparkline}
+          animateIndex={2}
+        />
+        <StatCard
+          label="مانده محاسبه‌شده"
+          amount={data?.periodBalance ?? 0}
+          variant="balance"
+          wide
+          sparklineData={netSparkline}
+          animateIndex={3}
+        />
       </div>
 
       <div className="card dashboard-assets-card">
@@ -311,19 +321,33 @@ export default function DashboardPage({
       </div>
 
       {(data?.expenseByCategory.length ?? 0) > 0 && (
-        <CategoryBarChart
-          title="هزینه بر اساس دسته‌بندی"
-          data={data!.expenseByCategory}
-          tone="expense"
-        />
+        <>
+          <CategoryDonutChart
+            title="سهم هزینه‌ها"
+            data={data!.expenseByCategory}
+            tone="expense"
+          />
+          <CategoryBarChart
+            title="هزینه بر اساس دسته‌بندی"
+            data={data!.expenseByCategory}
+            tone="expense"
+          />
+        </>
       )}
 
       {(data?.incomeByCategory.length ?? 0) > 0 && (
-        <CategoryBarChart
-          title="درآمد بر اساس دسته‌بندی"
-          data={data!.incomeByCategory}
-          tone="income"
-        />
+        <>
+          <CategoryDonutChart
+            title="سهم درآمدها"
+            data={data!.incomeByCategory}
+            tone="income"
+          />
+          <CategoryBarChart
+            title="درآمد بر اساس دسته‌بندی"
+            data={data!.incomeByCategory}
+            tone="income"
+          />
+        </>
       )}
 
       {data && (
@@ -381,15 +405,15 @@ export default function DashboardPage({
           <p className="empty-text">تراکنشی با این فیلتر یافت نشد</p>
         ) : (
           filteredRecords.map((r, i) => (
-            <div key={i} className="record-item">
-              <div className="record-item-main">
-                <div className="record-item-title">{r.title}</div>
-                <div className="record-item-meta">
-                  {r.formName} · {r.category} · {formatIsoDatePersian(r.date)}
-                </div>
-              </div>
+            <TransactionListItem
+              key={i}
+              title={r.title}
+              meta={`${r.formName} · ${r.category} · ${formatIsoDatePersian(r.date)}`}
+              tone={r.type === 'income' ? 'income' : 'expense'}
+              index={i}
+            >
               <RecordAmount amount={r.amount} type={r.type} />
-            </div>
+            </TransactionListItem>
           ))
         )}
       </div>

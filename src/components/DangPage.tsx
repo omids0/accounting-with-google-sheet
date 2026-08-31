@@ -21,7 +21,7 @@ import { CategorySelect } from './form';
 import { syncCategoriesFromSheet } from '../services/categories';
 import { getDangCategories } from '../services/settings';
 import { DangCardListSkeleton } from './skeleton';
-import { formatMoney } from '../utils/formatMoney';
+import { distributionSparkline } from '../utils/sparklineData';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
@@ -35,6 +35,7 @@ import ConfirmActionModal from './ConfirmActionModal';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
+import StatCard from './StatCard';
 import { matchSearch } from '../utils/search';
 
 type DangWithRow = Dang & { rowNumber: number };
@@ -400,7 +401,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
             return (
               <div
                 key={item.id}
-                className={`card dang-card${item.paid ? ' paid' : ''}`}
+                className={`card dang-card interactive-card${item.paid ? ' paid' : ''}`}
               >
                 <input
                   type="checkbox"
@@ -449,12 +450,16 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
           })}
 
           {totalUnpaid > 0 && (
-            <div className="card dang-total-footer">
-              <span className="dang-total-label">مانده پرداخت نشده</span>
-              <span className="dang-total-value" dir="ltr">
-                {formatMoney(totalUnpaid)}
-              </span>
-            </div>
+            <StatCard
+              label="مانده پرداخت نشده"
+              amount={totalUnpaid}
+              variant="expense"
+              wide
+              sparklineData={distributionSparkline(
+                items.filter((item) => !item.paid).map((item) => item.amount)
+              )}
+              className="dang-total-footer"
+            />
           )}
         </>
       )}

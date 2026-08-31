@@ -5,13 +5,16 @@ import { isTokenValid } from '../../services/auth';
 import type { DashboardData } from '../../types';
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange';
 import { formatIsoDatePersian } from '../../utils/jalaliDate';
+import { monthlySparkline } from '../../utils/sparklineData';
 import { showError } from '../../utils/toast';
 import { DashboardSkeleton } from '../skeleton';
+import StatCard from '../StatCard';
+import TransactionListItem from '../TransactionListItem';
 import MoneyDisplay from '../MoneyDisplay';
 import TransactionTypeSegment, {
   type TransactionTypeSegmentOption,
 } from '../TransactionTypeSegment';
-import { CategoryBarChart } from '../charts';
+import { CategoryBarChart, CategoryDonutChart } from '../charts';
 import ReportToolbar, { useReportDateFilter } from './ReportToolbar';
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
@@ -68,6 +71,9 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
     return data.recentRecords.filter((r) => typeFilter === 'all' || r.type === typeFilter);
   }, [data?.recentRecords, typeFilter]);
 
+  const incomeSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income');
+  const expenseSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense');
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -92,27 +98,53 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
       />
 
       <div className="stat-grid dashboard-stat-grid">
-        <div className="stat-card stat-income">
-          <span className="stat-label">درآمد</span>
-          <MoneyDisplay amount={data?.totalIncome ?? 0} size="stat" tone="income" />
-        </div>
-        <div className="stat-card stat-expense">
-          <span className="stat-label">هزینه</span>
-          <MoneyDisplay amount={data?.totalExpense ?? 0} size="stat" tone="expense" />
-        </div>
+        <StatCard
+          label="درآمد"
+          amount={data?.totalIncome ?? 0}
+          variant="income"
+          sparklineData={incomeSparkline}
+          animateIndex={0}
+          lift
+        />
+        <StatCard
+          label="هزینه"
+          amount={data?.totalExpense ?? 0}
+          variant="expense"
+          sparklineData={expenseSparkline}
+          animateIndex={1}
+          lift
+        />
       </div>
 
-      <CategoryBarChart
-        title="هزینه بر اساس دسته‌بندی"
-        data={data?.expenseByCategory ?? []}
-        tone="expense"
-      />
+      {(data?.expenseByCategory.length ?? 0) > 0 && (
+        <>
+          <CategoryDonutChart
+            title="سهم هزینه‌ها"
+            data={data!.expenseByCategory}
+            tone="expense"
+          />
+          <CategoryBarChart
+            title="هزینه بر اساس دسته‌بندی"
+            data={data?.expenseByCategory ?? []}
+            tone="expense"
+          />
+        </>
+      )}
 
-      <CategoryBarChart
-        title="درآمد بر اساس دسته‌بندی"
-        data={data?.incomeByCategory ?? []}
-        tone="income"
-      />
+      {(data?.incomeByCategory.length ?? 0) > 0 && (
+        <>
+          <CategoryDonutChart
+            title="سهم درآمدها"
+            data={data!.incomeByCategory}
+            tone="income"
+          />
+          <CategoryBarChart
+            title="درآمد بر اساس دسته‌بندی"
+            data={data?.incomeByCategory ?? []}
+            tone="income"
+          />
+        </>
+      )}
 
       <div className="card">
         <h3 className="chart-title">تراکنش‌های دوره</h3>
@@ -127,20 +159,20 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
           <p className="empty-text">تراکنشی در این دوره ثبت نشده</p>
         ) : (
           filteredRecords.map((record, index) => (
-            <div key={`${record.date}-${index}`} className="record-item">
-              <div className="record-item-main">
-                <div className="record-item-title">{record.title}</div>
-                <div className="record-item-meta">
-                  {record.formName} · {record.category} · {formatIsoDatePersian(record.date)}
-                </div>
-              </div>
+            <TransactionListItem
+              key={`${record.date}-${index}`}
+              title={record.title}
+              meta={`${record.formName} · ${record.category} · ${formatIsoDatePersian(record.date)}`}
+              tone={record.type === 'income' ? 'income' : 'expense'}
+              index={index}
+            >
               <MoneyDisplay
                 amount={record.amount}
                 size="record"
                 tone={record.type === 'income' ? 'income' : 'expense'}
                 signed
               />
-            </div>
+            </TransactionListItem>
           ))
         )}
       </div>

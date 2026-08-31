@@ -26,6 +26,7 @@ import { InstallmentCardListSkeleton } from './skeleton';
 import JalaliDatePicker from './JalaliDatePicker';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
+import { distributionSparkline } from '../utils/sparklineData';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
@@ -39,6 +40,8 @@ import ConfirmActionModal from './ConfirmActionModal';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
+import StatCard from './StatCard';
+import ProgressBar from './ProgressBar';
 import { matchSearch } from '../utils/search';
 import {
   formatDateRangeLabel,
@@ -622,7 +625,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
       ) : filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        filteredItems.map((item) => {
+        filteredItems.map((item, index) => {
           const expanded = expandedId === item.id;
           const paid = paidAmount(item);
           const remaining = remainingAmount(item);
@@ -633,7 +636,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
           return (
             <div
               key={item.id}
-              className={`card installment-card${complete ? ' receivable-complete' : ''}${expanded ? ' installment-card--expanded' : ''}`}
+              className={`card installment-card interactive-card${complete ? ' receivable-complete' : ''}${expanded ? ' installment-card--expanded' : ''}`}
             >
               <div className="card-header-with-edit">
                 <button
@@ -659,12 +662,12 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                         ? ' · تسویه شده'
                         : ` · مانده: ${formatMoney(remaining)}`}
                     </div>
-                    <div className="installment-progress">
-                      <div
-                        className="installment-progress-bar"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
+                    <ProgressBar
+                      value={progress}
+                      variant={complete ? 'complete' : progress >= 100 ? 'success' : 'default'}
+                      animateIndex={index}
+                      aria-label={`پیشرفت تسویه ${item.debtor}`}
+                    />
                   </div>
                   <span className="installment-chevron">▼</span>
                 </button>
@@ -803,14 +806,16 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
       )}
 
       {items.length > 0 && (
-        <div className="card receivable-total-card">
-          <div className="receivable-total-label">
-            {showFilteredTotal ? 'مجموع مانده (فیلتر شده)' : 'مجموع مانده طلب‌ها'}
-          </div>
-          <div className="receivable-total-amount">
-            {formatMoney(showFilteredTotal ? filteredTotalRemaining : totalRemaining)}
-          </div>
-        </div>
+        <StatCard
+          label={showFilteredTotal ? 'مجموع مانده (فیلتر شده)' : 'مجموع مانده طلب‌ها'}
+          amount={showFilteredTotal ? filteredTotalRemaining : totalRemaining}
+          variant="balance"
+          wide
+          sparklineData={distributionSparkline(
+            items.map((item) => remainingAmount(item))
+          )}
+          className="receivable-total-card"
+        />
       )}
 
       <FormModal

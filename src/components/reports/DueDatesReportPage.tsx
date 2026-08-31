@@ -7,9 +7,12 @@ import {
   type DueDateItem,
   type DueDateStatus,
 } from '../../services/reports';
+import { distributionSparkline } from '../../utils/sparklineData';
 import { formatIsoDatePersian } from '../../utils/jalaliDate';
 import { showError } from '../../utils/toast';
 import { InstallmentCardListSkeleton } from '../skeleton';
+import StatCard from '../StatCard';
+import TransactionListItem from '../TransactionListItem';
 import MoneyDisplay from '../MoneyDisplay';
 import ReportToolbar from './ReportToolbar';
 
@@ -87,6 +90,13 @@ export default function DueDatesReportPage({ onReauth }: { onReauth?: () => void
     [items]
   );
 
+  const overdueSparkline = distributionSparkline(
+    items.filter((item) => item.status === 'overdue').map((item) => item.amount)
+  );
+  const upcomingSparkline = distributionSparkline(
+    items.filter((item) => item.status !== 'overdue').map((item) => item.amount)
+  );
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -113,14 +123,23 @@ export default function DueDatesReportPage({ onReauth }: { onReauth?: () => void
       />
 
       <div className="stat-grid dashboard-stat-grid">
-        <div className="stat-card stat-expense">
-          <span className="stat-label">معوق</span>
-          <MoneyDisplay amount={totals.overdue} size="stat" tone="expense" />
-        </div>
-        <div className="stat-card stat-income">
-          <span className="stat-label">امروز و پیش‌رو</span>
-          <MoneyDisplay amount={totals.upcoming} size="stat" tone="primary" />
-        </div>
+        <StatCard
+          label="معوق"
+          amount={totals.overdue}
+          variant="expense"
+          sparklineData={overdueSparkline}
+          animateIndex={0}
+          lift
+        />
+        <StatCard
+          label="امروز و پیش‌رو"
+          amount={totals.upcoming}
+          variant="default"
+          tone="primary"
+          sparklineData={upcomingSparkline}
+          animateIndex={1}
+          lift
+        />
       </div>
 
       {!grouped.length ? (
@@ -131,20 +150,19 @@ export default function DueDatesReportPage({ onReauth }: { onReauth?: () => void
         grouped.map((group) => (
           <div key={group.status} className="card">
             <h3 className="chart-title">{STATUS_LABELS[group.status]}</h3>
-            {group.items.map((item) => (
-              <div key={item.id} className="record-item">
-                <div className="record-item-main">
-                  <div className="record-item-title">{item.title}</div>
-                  <div className="record-item-meta">
-                    {getDueDateTypeLabel(item.type)} · {item.subtitle} ·{' '}
-                    {formatIsoDatePersian(item.dueDate)}
-                  </div>
-                </div>
+            {group.items.map((item, index) => (
+              <TransactionListItem
+                key={item.id}
+                title={item.title}
+                meta={`${getDueDateTypeLabel(item.type)} · ${item.subtitle} · ${formatIsoDatePersian(item.dueDate)}`}
+                tone="expense"
+                index={index}
+              >
                 <div className="report-due-item-end">
                   <DueDateBadge status={item.status} />
                   <MoneyDisplay amount={item.amount} size="record" tone="expense" />
                 </div>
-              </div>
+              </TransactionListItem>
             ))}
           </div>
         ))

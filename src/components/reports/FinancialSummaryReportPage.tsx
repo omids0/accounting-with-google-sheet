@@ -4,9 +4,11 @@ import { loadDashboardData } from '../../services/dashboard';
 import { isTokenValid } from '../../services/auth';
 import type { DashboardData } from '../../types';
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange';
+import { monthlySparkline } from '../../utils/sparklineData';
 import { showError } from '../../utils/toast';
 import { DashboardSkeleton } from '../skeleton';
-import MoneyDisplay from '../MoneyDisplay';
+import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay';
+import StatCard from '../StatCard';
 import { formatMoney } from '../../utils/formatMoney';
 import ReportToolbar, { useReportDateFilter } from './ReportToolbar';
 
@@ -20,7 +22,7 @@ function BreakdownRow({
   total?: boolean;
 }) {
   return (
-    <div className={`asset-row${total ? ' asset-row-total' : ''}`}>
+    <div className={`asset-row report-table-row${total ? ' asset-row-total' : ''}`}>
       <span className="asset-label">{label}</span>
       <span className="asset-value" dir="ltr">
         {formatMoney(value)}
@@ -87,6 +89,9 @@ export default function FinancialSummaryReportPage({ onReauth }: { onReauth?: ()
   const financial = data?.financial;
   const reconciliationDiff = data?.reconciliationDiff ?? 0;
   const hasReconciliationGap = Math.abs(reconciliationDiff) > 0;
+  const incomeSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income');
+  const expenseSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense');
+  const netSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'net');
 
   return (
     <div className="dashboard-page report-page">
@@ -99,44 +104,45 @@ export default function FinancialSummaryReportPage({ onReauth }: { onReauth?: ()
         loading={loading}
       />
 
-      <div className="card dashboard-hero-card">
+      <div className="card dashboard-hero-card dashboard-hero-card--animated">
         <div className="dashboard-hero-label">دارایی قابل اتکا</div>
-        <MoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
+        <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
       </div>
 
       <div className="stat-grid dashboard-stat-grid">
-        <div className="stat-card stat-income">
-          <span className="stat-label">درآمد دوره</span>
-          <MoneyDisplay amount={data?.totalIncome ?? 0} size="stat" tone="income" />
-        </div>
-        <div className="stat-card stat-expense">
-          <span className="stat-label">هزینه دوره</span>
-          <MoneyDisplay amount={data?.totalExpense ?? 0} size="stat" tone="expense" />
-        </div>
-      </div>
-
-      <div
-        className={`stat-card stat-flow stat-card-wide${
-          (data?.balance ?? 0) < 0
-            ? ' stat-flow-negative'
-            : (data?.balance ?? 0) > 0
-              ? ' stat-flow-positive'
-              : ''
-        }`}
-      >
-        <span className="stat-label">خالص دوره</span>
-        <MoneyDisplay
-          amount={data?.balance ?? 0}
-          size="stat-wide"
-          tone={
-            (data?.balance ?? 0) < 0
-              ? 'negative'
-              : (data?.balance ?? 0) > 0
-                ? 'positive'
-                : 'primary'
-          }
+        <StatCard
+          label="درآمد دوره"
+          amount={data?.totalIncome ?? 0}
+          variant="income"
+          sparklineData={incomeSparkline}
+          animateIndex={0}
+          lift
+        />
+        <StatCard
+          label="هزینه دوره"
+          amount={data?.totalExpense ?? 0}
+          variant="expense"
+          sparklineData={expenseSparkline}
+          animateIndex={1}
+          lift
         />
       </div>
+
+      <StatCard
+        label="خالص دوره"
+        amount={data?.balance ?? 0}
+        variant="flow"
+        wide
+        flowDirection={
+          (data?.balance ?? 0) < 0
+            ? 'negative'
+            : (data?.balance ?? 0) > 0
+              ? 'positive'
+              : 'neutral'
+        }
+        sparklineData={netSparkline}
+        animateIndex={2}
+      />
 
       <div className="card dashboard-assets-card">
         <h3 className="chart-title">مطابقت حساب</h3>
@@ -146,11 +152,7 @@ export default function FinancialSummaryReportPage({ onReauth }: { onReauth?: ()
           <BreakdownRow label="هزینه دوره" value={-(data?.totalExpense ?? 0)} />
           <BreakdownRow label="مانده محاسبه‌شده" value={data?.periodBalance ?? 0} />
           <BreakdownRow label="موجودی کیف پول" value={financial?.walletTotal ?? 0} />
-          <BreakdownRow
-            label="تفاوت مطابقت"
-            value={reconciliationDiff}
-            total
-          />
+          <BreakdownRow label="تفاوت مطابقت" value={reconciliationDiff} total />
         </div>
         {hasReconciliationGap ? (
           <p className="report-hint report-hint-warning">

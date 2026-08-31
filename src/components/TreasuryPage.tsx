@@ -24,6 +24,7 @@ import JalaliDatePicker from './JalaliDatePicker';
 import { FormSelect } from './form';
 import { TreasurySkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
+import { distributionSparkline } from '../utils/sparklineData';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
@@ -38,6 +39,7 @@ import ConfirmActionModal from './ConfirmActionModal';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
+import StatCard from './StatCard';
 import { matchSearch } from '../utils/search';
 
 type TransactionWithRow = Awaited<ReturnType<typeof fetchVaultTransactions>>[number];
@@ -436,7 +438,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
           const expanded = expandedAsset === holding.assetType;
           const allowDecimal = holding.assetType === 'geram18';
           return (
-            <div key={holding.assetType} className={`card installment-card treasury-holding-card${expanded ? ' installment-card--expanded' : ''}`}>
+            <div key={holding.assetType} className={`card installment-card interactive-card treasury-holding-card${expanded ? ' installment-card--expanded' : ''}`}>
               <button
                 type="button"
                 className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
@@ -473,7 +475,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
                   {holding.transactions.map((tx) => {
                     const txWithRow = tx as TransactionWithRow;
                     return (
-                    <div key={tx.id} className="treasury-tx-item">
+                    <div key={tx.id} className="treasury-tx-item interactive-card">
                       {tx.action === 'buy' && 'rowNumber' in tx && (
                         <div className="treasury-tx-edit">
                           <div className="card-action-buttons">
@@ -617,10 +619,14 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
       )}
 
       {holdings.length > 0 && (
-        <div className="card receivable-total-card treasury-total-card">
-          <div className="receivable-total-label">ارزش کل صندوقچه (بر اساس قیمت روز)</div>
-          <div className="receivable-total-amount">{formatMoney(totalValue)}</div>
-        </div>
+        <StatCard
+          label="ارزش کل صندوقچه (بر اساس قیمت روز)"
+          amount={totalValue}
+          variant="balance"
+          wide
+          sparklineData={distributionSparkline(holdings.map((holding) => holding.totalValue))}
+          className="receivable-total-card treasury-total-card"
+        />
       )}
 
       <FormModal

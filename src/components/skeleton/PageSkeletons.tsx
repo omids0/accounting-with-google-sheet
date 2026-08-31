@@ -9,8 +9,13 @@ export function InstallmentCardSkeleton() {
           <div>
             <Skeleton width="55%" height="0.95rem" />
             <Skeleton width="40%" height="0.75rem" style={{ marginTop: '0.25rem' }} />
-            <div className="installment-progress skeleton-progress-track">
-              <Skeleton width="45%" height="100%" style={{ borderRadius: '4px' }} />
+            <div className="progress-bar">
+              <div className="progress-bar__meta">
+                <div className="progress-bar__track skeleton-progress-track">
+                  <Skeleton width="45%" height="100%" style={{ borderRadius: '999px' }} />
+                </div>
+                <Skeleton width="1.75rem" height="0.68rem" />
+              </div>
             </div>
           </div>
           <Skeleton

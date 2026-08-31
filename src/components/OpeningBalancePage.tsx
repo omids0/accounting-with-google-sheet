@@ -166,7 +166,7 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
           return (
             <div
               key={item.monthKey}
-              className={`card installment-card dashboard-opening-card wallet-item-card${expanded ? ' installment-card--expanded' : ''}`}
+              className={`card installment-card interactive-card dashboard-opening-card wallet-item-card${expanded ? ' installment-card--expanded' : ''}`}
             >
               <button
                 type="button"
