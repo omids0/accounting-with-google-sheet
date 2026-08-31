@@ -14,6 +14,13 @@ interface FieldInputProps {
   onReauth?: () => void;
 }
 
+function fieldPlaceholder(field: FieldConfig): string | undefined {
+  if (field.id === 'note') return 'توضیحات اضافه...';
+  if (field.id === 'amount') return '۰';
+  if (field.type === 'text') return `مثلاً: ${field.label}`;
+  return undefined;
+}
+
 export default function FieldInput({
   field,
   value,
@@ -22,6 +29,8 @@ export default function FieldInput({
   onCategoriesChange,
   onReauth,
 }: FieldInputProps) {
+  const placeholder = fieldPlaceholder(field);
+
   return (
     <FormField
       label={field.label}
@@ -30,17 +39,19 @@ export default function FieldInput({
     >
       {field.type === 'text' && field.id === 'note' ? (
         <textarea
-          className="form-note-textarea"
+          className="form-control form-note-textarea"
           rows={4}
           value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="توضیحات اضافه..."
+          placeholder={placeholder}
         />
       ) : field.type === 'text' ? (
         <input
           type="text"
+          className="form-control"
           value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
         />
       ) : null}
 
@@ -51,12 +62,14 @@ export default function FieldInput({
       {field.type === 'number' && field.id !== 'amount' && (
         <input
           type="number"
+          className="form-control"
           inputMode="decimal"
           value={value === '' ? '' : value}
           onChange={(e) =>
             onChange(e.target.value === '' ? '' : Number(e.target.value))
           }
           dir="ltr"
+          placeholder={placeholder}
         />
       )}
 

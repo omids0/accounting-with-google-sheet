@@ -16,15 +16,15 @@ export default function FormField({
   children,
 }: FormFieldProps) {
   return (
-    <div className={['form-group', className].filter(Boolean).join(' ')}>
+    <div className={['form-field', 'form-group', className].filter(Boolean).join(' ')}>
       {label && (
-        <label>
-          {label}
-          {required && <span className="required"> *</span>}
+        <label className="form-field-label">
+          <span className="form-field-label-text">{label}</span>
+          {required && <span className="required" aria-hidden="true">*</span>}
         </label>
       )}
-      {children}
-      {hint}
+      <div className="form-field-control">{children}</div>
+      {hint && <div className="form-field-hint">{hint}</div>}
     </div>
   );
 }

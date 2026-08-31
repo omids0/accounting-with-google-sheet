@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { isTokenValid } from '../../services/auth';
 import {
   saveDangCategoriesToSheet,
@@ -35,30 +35,66 @@ export default function CategorySelect({
 }: CategorySelectProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [manageMode, setManageMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [newCategory, setNewCategory] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const displayLabel = value || 'انتخاب کنید';
+  const hasValue = Boolean(value);
+  const showSearch = categories.length > 4;
+
+  const filteredCategories = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return categories;
+    return categories.filter((category) => category.toLowerCase().includes(query));
+  }, [categories, searchQuery]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setManageMode(false);
+      setSearchQuery('');
+      setEditingCategory(null);
+      setConfirmDelete(null);
+      return;
+    }
 
-    const focusTimer = window.setTimeout(() => addInputRef.current?.focus(), 0);
+    const focusTimer = window.setTimeout(() => {
+      if (showSearch) {
+        searchInputRef.current?.focus();
+      } else {
+        addInputRef.current?.focus();
+      }
+    }, 0);
 
     const onPointerDown = (event: MouseEvent) => {
       if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
         setOpen(false);
         setEditingCategory(null);
+        setConfirmDelete(null);
       }
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (editingCategory) {
+          setEditingCategory(null);
+          setEditText('');
+          return;
+        }
+        if (confirmDelete) {
+          setConfirmDelete(null);
+          return;
+        }
+        if (manageMode) {
+          setManageMode(false);
+          return;
+        }
         setOpen(false);
-        setEditingCategory(null);
       }
     };
 
@@ -69,7 +105,7 @@ export default function CategorySelect({
       document.removeEventListener('mousedown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [open]);
+  }, [open, editingCategory, confirmDelete, manageMode, showSearch]);
 
   const persistCategories = async (next: string[]): Promise<boolean> => {
     const settings = getSettings();
@@ -118,6 +154,7 @@ export default function CategorySelect({
   const startEdit = (category: string) => {
     setEditingCategory(category);
     setEditText(category);
+    setConfirmDelete(null);
   };
 
   const cancelEdit = () => {
@@ -156,6 +193,7 @@ export default function CategorySelect({
     const next = categories.filter((item) => item !== category);
     if (await persistCategories(next)) {
       if (value === category) onChange(next[0] ?? '');
+      setConfirmDelete(null);
     }
   };
 
@@ -171,11 +209,13 @@ export default function CategorySelect({
     if (await persistCategories(next)) {
       setNewCategory('');
       onChange(name);
+      setSearchQuery('');
     }
   };
 
   const handleSelect = (category: string) => {
-    if (saving || editingCategory) return;
+    if (saving || editingCategory || confirmDelete) return;
+    if (manageMode) return;
     onChange(category);
     setOpen(false);
   };
@@ -194,134 +234,267 @@ export default function CategorySelect({
     <div ref={rootRef} className={rootClass}>
       <button
         type="button"
-        className="custom-select-trigger"
+        className="custom-select-trigger category-select-trigger"
         onClick={() => !disabled && !saving && setOpen((isOpen) => !isOpen)}
         disabled={disabled || saving}
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="listbox"
       >
-        <span className="custom-select-value">{displayLabel}</span>
-        <span className="custom-select-chevron" aria-hidden="true" />
+        <span className="category-select-trigger-leading" aria-hidden="true">
+          <AppIcon name="folder" size={16} strokeWidth={2} />
+        </span>
+        <span
+          className={[
+            'custom-select-value',
+            !hasValue && 'category-select-placeholder',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {hasValue ? value : 'انتخاب دسته‌بندی'}
+        </span>
+        {saving ? (
+          <span className="spinner category-select-spinner" aria-hidden="true" />
+        ) : (
+          <span className="custom-select-chevron" aria-hidden="true" />
+        )}
       </button>
 
       {open && (
         <div className="category-select-panel">
-          <div className="category-select-add">
-            <span className="category-select-add-label">افزودن دسته جدید</span>
-            <div className="category-select-add-row">
-              <input
-                ref={addInputRef}
-                type="text"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAdd();
-                  }
-                }}
-                placeholder="نام دسته را بنویسید..."
-                disabled={saving}
-                aria-label="دسته‌بندی جدید"
-              />
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={handleAdd}
-                disabled={saving || !newCategory.trim()}
-              >
-                افزودن
-              </button>
+          <div className="category-select-header">
+            <div className="category-select-header-title">
+              <span>{ariaLabel}</span>
+              <span className="category-select-count">{categories.length}</span>
             </div>
+            <button
+              type="button"
+              className={[
+                'category-select-manage-btn',
+                manageMode && 'is-active',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              onClick={() => {
+                setManageMode((active) => !active);
+                setEditingCategory(null);
+                setConfirmDelete(null);
+              }}
+              disabled={saving}
+              aria-pressed={manageMode}
+            >
+              <AppIcon name="settings" size={14} strokeWidth={2} />
+              {manageMode ? 'اتمام' : 'مدیریت'}
+            </button>
           </div>
 
+          {showSearch && (
+            <div className="category-select-search">
+              <AppIcon name="search" size={15} strokeWidth={2} />
+              <input
+                ref={searchInputRef}
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="جستجو در دسته‌ها..."
+                disabled={saving}
+                aria-label="جستجوی دسته‌بندی"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="category-select-search-clear"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="پاک کردن جستجو"
+                >
+                  <AppIcon name="close" size={14} strokeWidth={2} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {manageMode && (
+            <div className="category-select-add">
+              <div className="category-select-add-row">
+                <input
+                  ref={addInputRef}
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAdd();
+                    }
+                  }}
+                  placeholder="نام دسته جدید..."
+                  disabled={saving}
+                  aria-label="دسته‌بندی جدید"
+                />
+                <button
+                  type="button"
+                  className="category-select-add-btn"
+                  onClick={handleAdd}
+                  disabled={saving || !newCategory.trim()}
+                  aria-label="افزودن دسته"
+                >
+                  <AppIcon name="add" size={18} strokeWidth={2.5} />
+                </button>
+              </div>
+            </div>
+          )}
+
           <ul className="category-select-list" role="listbox" aria-label={ariaLabel}>
-            {categories.map((category) => (
-              <li key={category} className="category-select-item">
-                {editingCategory === category ? (
-                  <div className="category-select-edit">
-                    <input
-                      type="text"
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleSaveEdit(category);
-                        }
-                        if (e.key === 'Escape') cancelEdit();
-                      }}
-                      disabled={saving}
-                      aria-label="ویرایش دسته‌بندی"
-                    />
-                    <button
-                      type="button"
-                      className="category-select-icon-btn category-select-icon-btn--save"
-                      onClick={() => handleSaveEdit(category)}
-                      disabled={saving}
-                      aria-label="تایید"
-                    >
-                      <AppIcon name="check" size={14} strokeWidth={2} />
-                    </button>
-                    <button
-                      type="button"
-                      className="category-select-icon-btn"
-                      onClick={cancelEdit}
-                      disabled={saving}
-                      aria-label="انصراف"
-                    >
-                      <AppIcon name="close" size={14} strokeWidth={2} />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={value === category}
-                      className={[
-                        'category-select-option',
-                        value === category && 'is-selected',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                      onClick={() => handleSelect(category)}
-                      disabled={saving}
-                    >
-                      {category}
-                    </button>
-                    <div className="category-select-actions">
-                      <button
-                        type="button"
-                        className="category-select-icon-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEdit(category);
-                        }}
-                        disabled={saving}
-                        aria-label={`ویرایش ${category}`}
-                      >
-                        <AppIcon name="edit" size={14} strokeWidth={2} />
-                      </button>
-                      <button
-                        type="button"
-                        className="category-select-icon-btn category-select-icon-btn--danger"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(category);
-                        }}
-                        disabled={saving || categories.length <= 1}
-                        aria-label={`حذف ${category}`}
-                      >
-                        <AppIcon name="close" size={14} strokeWidth={2} />
-                      </button>
-                    </div>
-                  </>
-                )}
+            {filteredCategories.length === 0 ? (
+              <li className="category-select-empty">
+                {searchQuery.trim()
+                  ? 'دسته‌ای با این نام پیدا نشد'
+                  : 'هنوز دسته‌بندی ثبت نشده'}
               </li>
-            ))}
+            ) : (
+              filteredCategories.map((category) => {
+                const isSelected = value === category;
+                const isEditing = editingCategory === category;
+                const isConfirmingDelete = confirmDelete === category;
+
+                return (
+                  <li
+                    key={category}
+                    className={[
+                      'category-select-item',
+                      isSelected && 'is-selected',
+                      isEditing && 'is-editing',
+                      isConfirmingDelete && 'is-confirming',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    {isConfirmingDelete ? (
+                      <div className="category-select-confirm">
+                        <span>حذف «{category}»؟</span>
+                        <div className="category-select-confirm-actions">
+                          <button
+                            type="button"
+                            className="category-select-confirm-btn category-select-confirm-btn--danger"
+                            onClick={() => handleDelete(category)}
+                            disabled={saving}
+                          >
+                            حذف
+                          </button>
+                          <button
+                            type="button"
+                            className="category-select-confirm-btn"
+                            onClick={() => setConfirmDelete(null)}
+                            disabled={saving}
+                          >
+                            انصراف
+                          </button>
+                        </div>
+                      </div>
+                    ) : isEditing ? (
+                      <div className="category-select-edit">
+                        <input
+                          type="text"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleSaveEdit(category);
+                            }
+                            if (e.key === 'Escape') cancelEdit();
+                          }}
+                          disabled={saving}
+                          aria-label="ویرایش دسته‌بندی"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          className="category-select-icon-btn category-select-icon-btn--save"
+                          onClick={() => handleSaveEdit(category)}
+                          disabled={saving}
+                          aria-label="تایید"
+                        >
+                          <AppIcon name="check" size={14} strokeWidth={2.5} />
+                        </button>
+                        <button
+                          type="button"
+                          className="category-select-icon-btn"
+                          onClick={cancelEdit}
+                          disabled={saving}
+                          aria-label="انصراف"
+                        >
+                          <AppIcon name="close" size={14} strokeWidth={2} />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={isSelected}
+                          className="category-select-option"
+                          onClick={() => handleSelect(category)}
+                          disabled={saving || manageMode}
+                        >
+                          <span className="category-select-option-check" aria-hidden="true">
+                            {isSelected && (
+                              <AppIcon name="check" size={14} strokeWidth={2.5} />
+                            )}
+                          </span>
+                          <span className="category-select-option-label">{category}</span>
+                        </button>
+                        {manageMode && (
+                          <div className="category-select-actions">
+                            <button
+                              type="button"
+                              className="category-select-icon-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startEdit(category);
+                              }}
+                              disabled={saving}
+                              aria-label={`ویرایش ${category}`}
+                            >
+                              <AppIcon name="edit" size={14} strokeWidth={2} />
+                            </button>
+                            <button
+                              type="button"
+                              className="category-select-icon-btn category-select-icon-btn--danger"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setConfirmDelete(category);
+                                setEditingCategory(null);
+                              }}
+                              disabled={saving || categories.length <= 1}
+                              aria-label={`حذف ${category}`}
+                            >
+                              <AppIcon name="trash" size={14} strokeWidth={2} />
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </li>
+                );
+              })
+            )}
           </ul>
+
+          {!manageMode && (
+            <div className="category-select-footer">
+              <button
+                type="button"
+                className="category-select-footer-btn"
+                onClick={() => setManageMode(true)}
+                disabled={saving}
+              >
+                <AppIcon name="add" size={14} strokeWidth={2.5} />
+                افزودن یا ویرایش دسته‌ها
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -31,23 +31,48 @@ export default function AmountInput({
     onChange(digits === '' ? '' : Number(digits));
   };
 
+  if (compact) {
+    return (
+      <div className="amount-field amount-field--compact">
+        <div className="amount-field-input-wrap amount-field-input-wrap--compact">
+          <input
+            type="text"
+            inputMode="numeric"
+            value={display}
+            onChange={handleChange}
+            onBlur={onBlur}
+            dir="ltr"
+            placeholder="۰"
+            className="amount-field-input amount-input-compact numeric"
+            aria-label="مبلغ"
+          />
+          <span className="amount-field-currency">{currency}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <input
-        type="text"
-        inputMode="numeric"
-        value={display}
-        onChange={handleChange}
-        onBlur={onBlur}
-        dir="ltr"
-        placeholder="۰"
-        className={compact ? 'amount-input-compact numeric' : 'numeric'}
-      />
-      {!compact && words && (
+    <div className="amount-field">
+      <div className="amount-field-input-wrap">
+        <input
+          type="text"
+          inputMode="numeric"
+          value={display}
+          onChange={handleChange}
+          onBlur={onBlur}
+          dir="ltr"
+          placeholder="۰"
+          className="amount-field-input numeric"
+          aria-label="مبلغ"
+        />
+        <span className="amount-field-currency">{currency}</span>
+      </div>
+      {words && (
         <p className="amount-words">
           {words} {currency}
         </p>
       )}
-    </>
+    </div>
   );
 }

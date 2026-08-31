@@ -19,6 +19,7 @@ import {
   setOpeningBalance,
 } from '../services/monthlyBalance';
 import AmountInput from './AmountInput';
+import CardInlineAmountEdit from './CardInlineAmountEdit';
 import { formatMoney } from '../utils/formatMoney';
 import { distributionSparkline, flowTrendSparkline } from '../utils/sparklineData';
 import { InstallmentCardListSkeleton } from './skeleton';
@@ -381,7 +382,9 @@ export default function WalletPage({
             <div className="wallet-item-info">
               <div className="wallet-item-title-row">
                 <div className="wallet-item-title">موجودی اول دوره</div>
-                <div className="wallet-item-amount">{formatMoney(displayOpeningBalance)}</div>
+                <div className="wallet-item-amount list-card-amount-pill" dir="ltr">
+                  {formatMoney(displayOpeningBalance)}
+                </div>
               </div>
               <div className="wallet-item-note">ابتدای {periodFlow.monthLabel}</div>
             </div>
@@ -449,7 +452,9 @@ export default function WalletPage({
                   <div className="wallet-item-info">
                     <div className="wallet-item-title-row">
                       <div className="wallet-item-title">{account.title}</div>
-                      <div className="wallet-item-amount">{formatMoney(displayBalance)}</div>
+                      <div className="wallet-item-amount list-card-amount-pill" dir="ltr">
+                        {formatMoney(displayBalance)}
+                      </div>
                     </div>
                     {account.note && <div className="wallet-item-note">{account.note}</div>}
                   </div>
@@ -473,18 +478,15 @@ export default function WalletPage({
 
               <AccordionCollapse open={expanded}>
                 <div className="installment-payments wallet-item-edit">
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label>موجودی</label>
-                    <AmountInput
-                      compact
-                      value={balances[account.id] ?? account.balance}
-                      onChange={(val) =>
-                        setBalances((prev) => ({ ...prev, [account.id]: val }))
-                      }
-                      onBlur={() => handleBalanceSave(account)}
-                    />
-                  </div>
-                  {savingId === account.id && <span className="spinner" />}
+                  <CardInlineAmountEdit
+                    label="موجودی"
+                    value={balances[account.id] ?? account.balance}
+                    onChange={(val) =>
+                      setBalances((prev) => ({ ...prev, [account.id]: val }))
+                    }
+                    onBlur={() => handleBalanceSave(account)}
+                    saving={savingId === account.id}
+                  />
                 </div>
               </AccordionCollapse>
             </div>
