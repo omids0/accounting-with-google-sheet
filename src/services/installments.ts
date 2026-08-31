@@ -17,6 +17,10 @@ import {
   formatInstallmentPlanStatus,
   formatPersianDate,
 } from '../utils/pdfFormat';
+import {
+  createLinkedExpenseRecord,
+  deleteLinkedExpenseRecord,
+} from './paymentTransactions';
 
 export const INSTALLMENTS_SHEET = 'اقساط';
 
@@ -163,8 +167,16 @@ export async function updateInstallmentPlan(
 
 export async function deleteInstallmentPlan(
   spreadsheetId: string,
-  rowNumber: number
+  rowNumber: number,
+  plan?: InstallmentPlan
 ): Promise<void> {
+  if (plan) {
+    for (const payment of plan.payments) {
+      if (payment.transactionRecordId) {
+        await deleteLinkedExpenseRecord(spreadsheetId, payment.transactionRecordId);
+      }
+    }
+  }
   await deleteSheetRow(spreadsheetId, INSTALLMENTS_SHEET, rowNumber);
 }
 
@@ -227,18 +239,49 @@ export async function toggleInstallmentPayment(
   paymentIndex: number,
   paid: boolean
 ): Promise<InstallmentPlan> {
-  const payments = plan.payments.map((payment, index) => {
-    if (index !== paymentIndex) return payment;
-    return {
-      ...payment,
-      paid,
-      paidAt: paid ? getTodayIso() : '',
-    };
-  });
+  const payment = plan.payments[paymentIndex];
 
-  const updated: InstallmentPlan = { ...plan, payments };
-  await updateInstallmentPlan(spreadsheetId, plan.rowNumber, updated);
-  return updated;
+  if (paid && !payment.paid) {
+    const amount = getInstallmentPaymentAmount(payment, plan);
+    const transactionRecordId = await createLinkedExpenseRecord(spreadsheetId, {
+      title: `قسط: ${plan.title} (#${payment.n})`,
+      amount,
+      category: 'قسط',
+      note: plan.note,
+    });
+    const payments = plan.payments.map((p, index) => {
+      if (index !== paymentIndex) return p;
+      return {
+        ...p,
+        paid: true,
+        paidAt: getTodayIso(),
+        transactionRecordId,
+      };
+    });
+    const updated: InstallmentPlan = { ...plan, payments };
+    await updateInstallmentPlan(spreadsheetId, plan.rowNumber, updated);
+    return updated;
+  }
+
+  if (!paid && payment.paid) {
+    if (payment.transactionRecordId) {
+      await deleteLinkedExpenseRecord(spreadsheetId, payment.transactionRecordId);
+    }
+    const payments = plan.payments.map((p, index) => {
+      if (index !== paymentIndex) return p;
+      return {
+        ...p,
+        paid: false,
+        paidAt: '',
+        transactionRecordId: undefined,
+      };
+    });
+    const updated: InstallmentPlan = { ...plan, payments };
+    await updateInstallmentPlan(spreadsheetId, plan.rowNumber, updated);
+    return updated;
+  }
+
+  return plan;
 }
 
 export async function updateInstallmentPaymentAmount(

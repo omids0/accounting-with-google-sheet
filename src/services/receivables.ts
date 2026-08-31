@@ -15,6 +15,10 @@ import {
   formatReceivableSummary,
   formatPersianDate,
 } from '../utils/pdfFormat';
+import {
+  createLinkedIncomeRecord,
+  deleteLinkedIncomeRecord,
+} from './paymentTransactions';
 
 export const RECEIVABLES_SHEET = 'طلب‌ها';
 
@@ -161,16 +165,52 @@ export async function addReceivablePayment(
   receivable: Receivable & { rowNumber: number },
   payment: { amount: number; note?: string }
 ): Promise<Receivable> {
+  const paidAt = getTodayIso();
+  const transactionRecordId = await createLinkedIncomeRecord(spreadsheetId, {
+    title: `طلب: ${receivable.debtor}`,
+    amount: payment.amount,
+    category: receivable.category,
+    date: paidAt,
+    note: payment.note ?? receivable.note,
+  });
+
   const newPayment: ReceivablePayment = {
     id: crypto.randomUUID(),
     amount: payment.amount,
-    paidAt: getTodayIso(),
+    paidAt,
     note: payment.note ?? '',
+    transactionRecordId,
   };
 
   const updated: Receivable = {
     ...receivable,
     payments: [...receivable.payments, newPayment],
+  };
+
+  await updateSheetRow(
+    spreadsheetId,
+    RECEIVABLES_SHEET,
+    receivable.rowNumber,
+    receivableToRow(updated)
+  );
+  return updated;
+}
+
+export async function removeReceivablePayment(
+  spreadsheetId: string,
+  receivable: Receivable & { rowNumber: number },
+  paymentId: string
+): Promise<Receivable> {
+  const payment = receivable.payments.find((p) => p.id === paymentId);
+  if (!payment) return receivable;
+
+  if (payment.transactionRecordId) {
+    await deleteLinkedIncomeRecord(spreadsheetId, payment.transactionRecordId);
+  }
+
+  const updated: Receivable = {
+    ...receivable,
+    payments: receivable.payments.filter((p) => p.id !== paymentId),
   };
 
   await updateSheetRow(
@@ -197,8 +237,16 @@ export async function updateReceivable(
 
 export async function deleteReceivable(
   spreadsheetId: string,
-  rowNumber: number
+  rowNumber: number,
+  receivable?: Receivable
 ): Promise<void> {
+  if (receivable) {
+    for (const payment of receivable.payments) {
+      if (payment.transactionRecordId) {
+        await deleteLinkedIncomeRecord(spreadsheetId, payment.transactionRecordId);
+      }
+    }
+  }
   await deleteSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber);
 }
 

@@ -12,6 +12,10 @@ import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from 
 import { downloadTablePdf } from '../utils/pdf';
 import { formatMoney } from '../utils/formatMoney';
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat';
+import {
+  createLinkedExpenseRecord,
+  deleteLinkedExpenseRecord,
+} from './paymentTransactions';
 
 export const CHECKS_SHEET = 'چک‌ها';
 
@@ -25,6 +29,7 @@ export const CHECKS_HEADERS = [
   'تاریخ سررسید',
   'پرداخت شده',
   'زمان پرداخت',
+  'شناسه تراکنش',
 ];
 
 function parsePaid(raw: string): boolean {
@@ -44,6 +49,7 @@ function rowToCheck(row: string[], rowNumber: number): Check & { rowNumber: numb
     dueDate: row[6] ?? '',
     paid: parsePaid(row[7] ?? ''),
     paidAt: row[8] ?? '',
+    transactionRecordId: row[9] ?? '',
   };
 }
 
@@ -58,6 +64,7 @@ function checkToRow(check: Check): string[] {
     check.dueDate,
     check.paid ? 'بله' : 'خیر',
     check.paidAt,
+    check.transactionRecordId ?? '',
   ];
 }
 
@@ -119,8 +126,12 @@ export async function updateCheck(
 
 export async function deleteCheck(
   spreadsheetId: string,
-  rowNumber: number
+  rowNumber: number,
+  check?: Check
 ): Promise<void> {
+  if (check?.transactionRecordId) {
+    await deleteLinkedExpenseRecord(spreadsheetId, check.transactionRecordId);
+  }
   await deleteSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber);
 }
 
@@ -129,13 +140,38 @@ export async function toggleCheckPaid(
   check: Check & { rowNumber: number },
   paid: boolean
 ): Promise<Check> {
-  const updated: Check = {
-    ...check,
-    paid,
-    paidAt: paid ? new Date().toLocaleString('fa-IR') : '',
-  };
-  await updateCheck(spreadsheetId, check.rowNumber, updated);
-  return updated;
+  if (paid && !check.paid) {
+    const transactionRecordId = await createLinkedExpenseRecord(spreadsheetId, {
+      title: `چک: ${check.checkNumber} — ${check.counterparty}`,
+      amount: check.amount,
+      category: 'چک',
+      note: `سررسید: ${check.dueDate}`,
+    });
+    const updated: Check = {
+      ...check,
+      paid: true,
+      paidAt: new Date().toLocaleString('fa-IR'),
+      transactionRecordId,
+    };
+    await updateCheck(spreadsheetId, check.rowNumber, updated);
+    return updated;
+  }
+
+  if (!paid && check.paid) {
+    if (check.transactionRecordId) {
+      await deleteLinkedExpenseRecord(spreadsheetId, check.transactionRecordId);
+    }
+    const updated: Check = {
+      ...check,
+      paid: false,
+      paidAt: '',
+      transactionRecordId: '',
+    };
+    await updateCheck(spreadsheetId, check.rowNumber, updated);
+    return updated;
+  }
+
+  return check;
 }
 
 export function totalChecksInRange(checks: Check[], range: DateRange): number {
@@ -213,6 +249,7 @@ export async function importChecksCsv(spreadsheetId: string, csvContent: string)
         dueDate: cells[6] ?? '',
         paid: parsePaid(cells[7] ?? ''),
         paidAt: cells[8] ?? '',
+        transactionRecordId: cells[9] ?? '',
       });
     }
   );
