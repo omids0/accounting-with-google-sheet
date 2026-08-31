@@ -1,17 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  BarChart,
-  Bar,
-  Cell,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-} from 'recharts';
 import { getSettings, isConfigured, getNetAvailableConfig } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
-import type { DashboardData, DashboardNavTarget, MonthlyFlow } from '../types';
+import type { DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
 import { DashboardSkeleton } from './skeleton';
 import AppIcon from './AppIcon';
@@ -33,172 +23,10 @@ import {
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import { showError } from '../utils/toast';
+import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import MoneyDisplay from './MoneyDisplay';
 import CardEditButton from './CardEditButton';
-
-const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
-const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
-const INCOME_BAR_COLOR = '#16a34a';
-const EXPENSE_BAR_COLOR = '#dc2626';
-
-function IncomeExpenseMonthlyChart({
-  data,
-  year,
-  onYearChange,
-  loading,
-}: {
-  data: MonthlyFlow[];
-  year: number;
-  onYearChange: (year: number) => void;
-  loading?: boolean;
-}) {
-  const chartData = data.map((item) => ({
-    ...item,
-    shortLabel: item.label.split(' ')[0] ?? item.label,
-  }));
-  const height = Math.max(280, chartData.length * 52);
-  const maxLabelLen = chartData.length
-    ? Math.max(...chartData.map((d) => d.shortLabel.length))
-    : 1;
-  const yAxisWidth = Math.min(72, Math.max(44, Math.ceil(maxLabelLen * 7)));
-
-  return (
-    <div className="card chart-card">
-      <YearFilter year={year} onChange={onYearChange} loading={loading}>
-        {({ trigger, panel }) => (
-          <>
-            <div className="card-header-row">
-              <h3 className="chart-title">درآمد و هزینه ماهانه</h3>
-              {trigger}
-            </div>
-            {panel}
-          </>
-        )}
-      </YearFilter>
-      {!chartData.length ? (
-        <p className="empty-text">داده‌ای برای این سال ثبت نشده</p>
-      ) : (
-        <div className="chart-bar-wrap chart-monthly-wrap" dir="ltr">
-        <ResponsiveContainer width="100%" height={height}>
-          <BarChart
-            data={chartData}
-            layout="vertical"
-            margin={{ top: 4, right: 4, left: 0, bottom: 4 }}
-          >
-            <XAxis
-              type="number"
-              tickFormatter={(value) => formatMoney(value)}
-              tick={{ fontSize: 10, fill: '#6b7280' }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              type="category"
-              dataKey="shortLabel"
-              width={yAxisWidth}
-              orientation="left"
-              tick={{
-                fontSize: 12,
-                fill: '#6b7280',
-                textAnchor: 'end',
-              }}
-              tickMargin={4}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              formatter={(value, name) => [
-                formatMoney(Number(value) || 0),
-                name === 'income' ? 'درآمد' : 'هزینه',
-              ]}
-              labelFormatter={(_, payload) =>
-                payload?.[0]?.payload?.label ?? ''
-              }
-            />
-            <Legend
-              formatter={(value) => (value === 'income' ? 'درآمد' : 'هزینه')}
-            />
-            <Bar
-              name="income"
-              dataKey="income"
-              fill={INCOME_BAR_COLOR}
-              radius={[0, 4, 4, 0]}
-              maxBarSize={14}
-            />
-            <Bar
-              name="expense"
-              dataKey="expense"
-              fill={EXPENSE_BAR_COLOR}
-              radius={[0, 4, 4, 0]}
-              maxBarSize={14}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CategoryBarChart({
-  title,
-  data,
-  colors,
-}: {
-  title: string;
-  data: { name: string; total: number }[];
-  colors: string[];
-}) {
-  const height = Math.max(220, data.length * 44);
-  const maxLabelLen = Math.max(...data.map((d) => d.name.length), 1);
-  const yAxisWidth = Math.min(96, Math.max(36, Math.ceil(maxLabelLen * 6.5)));
-
-  return (
-    <div className="card chart-card">
-      <h3 className="chart-title">{title}</h3>
-      <div className="chart-bar-wrap" dir="ltr">
-        <ResponsiveContainer width="100%" height={height}>
-          <BarChart
-            data={data}
-            layout="vertical"
-            margin={{ top: 4, right: 4, left: 0, bottom: 4 }}
-          >
-            <XAxis
-              type="number"
-              tickFormatter={(v) => formatMoney(v)}
-              tick={{ fontSize: 10, fill: '#6b7280' }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={yAxisWidth}
-              orientation="left"
-              tick={{
-                fontSize: 12,
-                fill: '#6b7280',
-                textAnchor: 'end',
-              }}
-              tickMargin={4}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              formatter={(v) => formatMoney(Number(v) || 0)}
-              labelFormatter={(label) => label}
-            />
-            <Bar name="مجموع" dataKey="total" radius={[0, 4, 4, 0]} maxBarSize={32}>
-              {data.map((_, i) => (
-                <Cell key={i} fill={colors[i % colors.length]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-}
+import { CategoryBarChart, IncomeExpenseMonthlyChart } from './charts';
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
 
@@ -319,6 +147,7 @@ export default function DashboardPage({
   }, [data?.recentRecords, typeFilter]);
 
   const financial = data?.financial;
+  const animatedNetAvailable = useAnimatedNumber(financial?.netAvailable ?? 0);
   const settings = getSettings();
   const incomeForm = settings?.forms.find((f) => f.type === 'income');
   const expenseForm = settings?.forms.find((f) => f.type === 'expense');
@@ -370,7 +199,7 @@ export default function DashboardPage({
         />
       </div>
 
-      <div className="card dashboard-hero-card">
+      <div className="card dashboard-hero-card dashboard-hero-card--animated">
         <div className="dashboard-hero-header">
           <div className="dashboard-hero-label">دارایی قابل اتکا</div>
           {onConfigureNetAvailable && (
@@ -381,7 +210,7 @@ export default function DashboardPage({
           )}
         </div>
         <MoneyDisplay
-          amount={financial?.netAvailable ?? 0}
+          amount={animatedNetAvailable}
           size="hero"
           tone="hero"
         />
@@ -390,13 +219,13 @@ export default function DashboardPage({
         </p>
       </div>
 
-      <div className="dashboard-flow-section">
+      <div className="dashboard-flow-section dashboard-flow-section--animated">
         <div className="stat-grid dashboard-stat-grid">
-          <div className="stat-card stat-income">
+          <div className="stat-card stat-income stat-card--lift">
             <span className="stat-label">درآمد دوره</span>
             <MoneyDisplay amount={data?.totalIncome ?? 0} size="stat" tone="income" />
           </div>
-          <div className="stat-card stat-expense">
+          <div className="stat-card stat-expense stat-card--lift">
             <span className="stat-label">هزینه دوره</span>
             <MoneyDisplay amount={data?.totalExpense ?? 0} size="stat" tone="expense" />
           </div>
@@ -485,7 +314,7 @@ export default function DashboardPage({
         <CategoryBarChart
           title="هزینه بر اساس دسته‌بندی"
           data={data!.expenseByCategory}
-          colors={EXPENSE_COLORS}
+          tone="expense"
         />
       )}
 
@@ -493,16 +322,26 @@ export default function DashboardPage({
         <CategoryBarChart
           title="درآمد بر اساس دسته‌بندی"
           data={data!.incomeByCategory}
-          colors={INCOME_COLORS}
+          tone="income"
         />
       )}
 
       {data && (
         <IncomeExpenseMonthlyChart
           data={data.yearlyMonthlyFlow}
-          year={monthlyFlowYear}
-          onYearChange={setMonthlyFlowYear}
-          loading={loading}
+          header={
+            <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>
+              {({ trigger, panel }) => (
+                <>
+                  <div className="card-header-row">
+                    <h3 className="chart-title">درآمد و هزینه ماهانه</h3>
+                    {trigger}
+                  </div>
+                  {panel}
+                </>
+              )}
+            </YearFilter>
+          }
         />
       )}
 

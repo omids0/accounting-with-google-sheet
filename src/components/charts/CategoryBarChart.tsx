@@ -1,0 +1,124 @@
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme';
+import ChartTooltip from './ChartTooltip';
+
+type ChartTooltipEntry = {
+  name?: string | number;
+  dataKey?: string | number;
+  value?: number | string;
+};
+
+interface CategoryBarChartProps {
+  title: string;
+  data: { name: string; total: number }[];
+  tone: 'income' | 'expense';
+  className?: string;
+}
+
+export default function CategoryBarChart({
+  title,
+  data,
+  tone,
+  className = '',
+}: CategoryBarChartProps) {
+  const theme = useChartTheme();
+  const animate = !prefersReducedMotion();
+
+  if (!data.length) return null;
+
+  const height = Math.max(240, data.length * 48);
+  const maxLabelLen = Math.max(...data.map((d) => d.name.length), 1);
+  const yAxisWidth = Math.min(96, Math.max(36, Math.ceil(maxLabelLen * 6.5)));
+  const maxTotal = Math.max(...data.map((d) => d.total), 1);
+  const chartData = data.map((item) => ({ ...item, maxTotal }));
+
+  return (
+    <div className={`card chart-card chart-card--animated ${className}`.trim()}>
+      <h3 className="chart-title">{title}</h3>
+      <div className="chart-bar-wrap" dir="ltr">
+        <ResponsiveContainer width="100%" height={height}>
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
+            barCategoryGap="22%"
+          >
+            <defs>
+              <linearGradient id={`cat-bar-${tone}`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor={tone === 'income' ? theme.income : theme.expense} stopOpacity={0.72} />
+                <stop offset="100%" stopColor={tone === 'income' ? theme.income : theme.expense} stopOpacity={1} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              horizontal={false}
+              stroke={theme.grid}
+              strokeDasharray="4 6"
+              strokeOpacity={0.45}
+            />
+            <XAxis
+              type="number"
+              domain={[0, maxTotal]}
+              tickFormatter={(v) => formatAxisMoney(v)}
+              tick={{ fontSize: 10, fill: theme.muted }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={yAxisWidth}
+              orientation="left"
+              tick={{ fontSize: 12, fill: theme.muted, textAnchor: 'end' }}
+              tickMargin={6}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              content={(props) => (
+                <ChartTooltip
+                  active={props.active}
+                  payload={props.payload as unknown as ChartTooltipEntry[] | undefined}
+                  label={String(props.label ?? '')}
+                />
+              )}
+              cursor={{ fill: 'rgba(15, 118, 110, 0.06)', radius: 8 }}
+            />
+            <Bar
+              name="مجموع"
+              dataKey="total"
+              radius={[0, 8, 8, 0]}
+              maxBarSize={28}
+              isAnimationActive={animate}
+              animationDuration={700}
+              animationEasing="ease-out"
+              background={{
+                fill: 'var(--color-accent-soft)',
+                radius: 8,
+              }}
+            >
+              {chartData.map((_, i) => (
+                <Cell key={i} fill={`url(#cat-bar-${tone})`} fillOpacity={1 - (i % 3) * 0.08} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+function formatAxisMoney(value: number): string {
+  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)}B`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
+  return String(value);
+}
