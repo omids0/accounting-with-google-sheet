@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
-import { formatMoney } from '../../utils/formatMoney';
+import { formatMoney, formatPersianNumber } from '../../utils/formatMoney';
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme';
 import ChartTooltip from './ChartTooltip';
 
@@ -55,7 +55,7 @@ export default function CategoryDonutChart({
       <h3 className="chart-title">{title}</h3>
       <div className="category-donut-layout" dir="ltr">
         <div className="category-donut-chart-wrap">
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={168}>
             <PieChart>
               <Pie
                 data={slices}
@@ -63,8 +63,8 @@ export default function CategoryDonutChart({
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                innerRadius={58}
-                outerRadius={82}
+                innerRadius={50}
+                outerRadius={72}
                 paddingAngle={2}
                 stroke="none"
                 isAnimationActive={animate}
@@ -106,7 +106,9 @@ export default function CategoryDonutChart({
                   style={{ background: palette[index % palette.length] }}
                 />
                 <span className="category-donut-legend-name">{slice.name}</span>
-                <span className="category-donut-legend-pct">{pct}%</span>
+                <span className="category-donut-legend-pct">
+                  {formatPersianNumber(pct, { useGrouping: false })}٪
+                </span>
                 <span className="category-donut-legend-value" dir="ltr">
                   {formatMoney(slice.total)}
                 </span>

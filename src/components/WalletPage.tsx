@@ -381,12 +381,12 @@ export default function WalletPage({
           >
             <div className="wallet-item-info">
               <div className="wallet-item-title-row">
-                <div className="wallet-item-title">موجودی اول دوره</div>
+                <div className="list-card-title">موجودی اول دوره</div>
                 <div className="wallet-item-amount list-card-amount-pill" dir="ltr">
                   {formatMoney(displayOpeningBalance)}
                 </div>
               </div>
-              <div className="wallet-item-note">ابتدای {periodFlow.monthLabel}</div>
+              <div className="wallet-item-note list-card-subtitle">ابتدای {periodFlow.monthLabel}</div>
             </div>
             <span className="installment-chevron">▼</span>
           </button>
@@ -451,12 +451,14 @@ export default function WalletPage({
                 >
                   <div className="wallet-item-info">
                     <div className="wallet-item-title-row">
-                      <div className="wallet-item-title">{account.title}</div>
+                      <div className="list-card-title">{account.title}</div>
                       <div className="wallet-item-amount list-card-amount-pill" dir="ltr">
                         {formatMoney(displayBalance)}
                       </div>
                     </div>
-                    {account.note && <div className="wallet-item-note">{account.note}</div>}
+                    {account.note && (
+                      <div className="wallet-item-note list-card-subtitle">{account.note}</div>
+                    )}
                   </div>
                   <span className="installment-chevron">▼</span>
                 </button>

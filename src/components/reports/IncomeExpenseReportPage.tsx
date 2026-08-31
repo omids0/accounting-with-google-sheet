@@ -15,6 +15,7 @@ import TransactionTypeSegment, {
   type TransactionTypeSegmentOption,
 } from '../TransactionTypeSegment';
 import { CategoryBarChart, CategoryDonutChart } from '../charts';
+import { getCategoryBarYAxisWidth } from '../charts/chartUtils';
 import ReportToolbar, { useReportDateFilter } from './ReportToolbar';
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
@@ -70,6 +71,15 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
     if (!data?.recentRecords.length) return [];
     return data.recentRecords.filter((r) => typeFilter === 'all' || r.type === typeFilter);
   }, [data?.recentRecords, typeFilter]);
+
+  const categoryYAxisWidth = useMemo(
+    () =>
+      getCategoryBarYAxisWidth([
+        data?.expenseByCategory ?? [],
+        data?.incomeByCategory ?? [],
+      ]),
+    [data?.expenseByCategory, data?.incomeByCategory]
+  );
 
   const incomeSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income');
   const expenseSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense');
@@ -127,6 +137,7 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
             title="هزینه بر اساس دسته‌بندی"
             data={data?.expenseByCategory ?? []}
             tone="expense"
+            yAxisWidth={categoryYAxisWidth}
           />
         </>
       )}
@@ -142,6 +153,7 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
             title="درآمد بر اساس دسته‌بندی"
             data={data?.incomeByCategory ?? []}
             tone="income"
+            yAxisWidth={categoryYAxisWidth}
           />
         </>
       )}

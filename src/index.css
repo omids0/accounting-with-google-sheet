@@ -53,8 +53,11 @@
   --form-input-focus-shadow: 0 0 0 3px var(--color-focus-ring), 0 2px 8px rgba(15, 118, 110, 0.1);
   --form-label-color: #3d7a73;
   --form-radius: 12px;
-  --form-gap: 1.1rem;
+  --form-gap: 0.85rem;
   --form-card-bg: linear-gradient(165deg, #ffffff 0%, #f8fffe 100%);
+  --space-page: 0.75rem;
+  --space-card: 0.7rem;
+  --space-stack: 0.45rem;
 }
 
 [data-theme='dark'] {
@@ -901,7 +904,7 @@ button {
 .skeleton-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-stack);
 }
 
 .skeleton-card {
@@ -1799,8 +1802,8 @@ button {
 
 .app-main {
   flex: 1;
-  padding: 1.25rem;
-  padding-bottom: calc(6.25rem + var(--safe-bottom));
+  padding: var(--space-page);
+  padding-bottom: calc(5.75rem + var(--safe-bottom));
   overflow-y: auto;
 }
 
@@ -2318,8 +2321,8 @@ button {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 1.25rem;
-  margin-bottom: 1rem;
+  padding: var(--space-card);
+  margin-bottom: var(--space-stack);
   transition: box-shadow var(--duration-normal) var(--ease-out),
     transform var(--duration-normal) var(--ease-out),
     border-color var(--duration-normal);
@@ -2330,9 +2333,9 @@ button {
 }
 
 .card-title {
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.65rem;
   color: var(--color-primary-dark);
   letter-spacing: -0.01em;
 }
@@ -2348,8 +2351,8 @@ button {
   background: var(--form-card-bg);
   border: 1px solid var(--color-border);
   border-radius: calc(var(--radius) + 2px);
-  padding: 1.15rem 1.1rem 1.25rem;
-  margin-bottom: 1rem;
+  padding: 0.85rem 0.75rem 0.9rem;
+  margin-bottom: var(--space-stack);
   box-shadow: var(--shadow);
 }
 
@@ -2761,17 +2764,17 @@ button {
 
 .list-card-title {
   font-weight: 700;
-  font-size: 0.96rem;
+  font-size: 0.88rem;
   letter-spacing: -0.015em;
   color: var(--color-text);
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .list-card-subtitle {
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   color: var(--color-text-muted);
-  margin-top: 0.32rem;
-  line-height: 1.5;
+  margin-top: 0.2rem;
+  line-height: 1.4;
 }
 
 .list-card-amount-pill,
@@ -2884,7 +2887,18 @@ button {
 .card-header-with-edit .card-action-buttons {
   margin-inline-start: 0;
   margin-inline-end: 0.5rem;
+  margin-top: 0.5rem;
+  align-self: flex-start;
+}
+
+.card-header-with-edit:has(.progress-bar) .card-action-buttons {
+  margin-top: 0;
   align-self: center;
+}
+
+.wallet-item-card .card-header-with-edit .card-action-buttons {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .dang-card .card-action-buttons {
@@ -2901,7 +2915,7 @@ button {
 
 .card-header-with-edit {
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
 }
 
 .card-header-with-edit .installment-header {
@@ -2914,8 +2928,8 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem 1.1rem 1rem 1.15rem;
+  gap: 0.5rem;
+  padding: 0.65rem 0.7rem;
   background: none;
   border: none;
   text-align: right;
@@ -2952,7 +2966,7 @@ button {
 
 .installment-progress,
 .progress-bar {
-  margin-top: 0.55rem;
+  margin-top: 0.4rem;
 }
 
 .progress-bar__meta {
@@ -3094,7 +3108,7 @@ button {
 
 .installment-payments {
   border-top: 1px dashed color-mix(in srgb, var(--color-border) 80%, transparent);
-  padding: 0.7rem 1rem 0.9rem;
+  padding: 0.45rem 0.55rem 0.55rem;
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--color-accent-soft) 70%, transparent) 0%,
@@ -3141,8 +3155,8 @@ button {
 .installment-payment-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.7rem 0.35rem;
+  gap: 0.5rem;
+  padding: 0.45rem 0.2rem;
   transition: background var(--duration-fast), padding-inline var(--duration-fast);
   border-radius: var(--radius-sm);
 }
@@ -3161,7 +3175,7 @@ button {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.45rem;
   min-width: 0;
   padding: 0;
   border: none;
@@ -3561,14 +3575,15 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .wallet-item-title {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   min-width: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
 }
 
 .wallet-item-note {
@@ -3585,8 +3600,8 @@ button {
 .card-inline-edit {
   display: flex;
   align-items: flex-end;
-  gap: 0.65rem;
-  padding: 0.7rem 0.75rem;
+  gap: 0.5rem;
+  padding: 0.5rem 0.55rem;
   background: var(--form-input-bg);
   border: 1px solid var(--form-input-border);
   border-radius: var(--form-radius);
@@ -4231,7 +4246,7 @@ button {
 
 .empty-state {
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 1.25rem 0.65rem;
   color: var(--color-text-muted);
 }
 
@@ -4357,12 +4372,12 @@ button {
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  gap: 0.4rem;
   margin-bottom: 0;
 }
 
 .dashboard-flow-section {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-stack);
 }
 
 .dashboard-stat-grid {
@@ -4370,12 +4385,12 @@ button {
 }
 
 .dashboard-stat-grid .stat-card {
-  min-height: 5rem;
-  padding: 1rem 0.5rem;
+  min-height: 4.25rem;
+  padding: 0.6rem 0.4rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .dashboard-stat-grid .stat-label {
@@ -4454,8 +4469,8 @@ button {
 }
 
 .chart-card {
-  padding-bottom: 0.5rem;
-  padding-left: 0.65rem;
+  padding: var(--space-card);
+  padding-bottom: 0.35rem;
   position: relative;
   overflow: hidden;
   background: linear-gradient(
@@ -4588,8 +4603,8 @@ button {
 
 .chart-bar-wrap {
   direction: ltr;
-  width: calc(100% + 0.65rem);
-  margin-left: -0.65rem;
+  width: 100%;
+  margin: 0;
 }
 
 .chart-bar-wrap .recharts-cartesian-axis-tick-value {
@@ -4601,14 +4616,14 @@ button {
 }
 
 .chart-title {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.45rem;
   color: var(--color-primary-dark);
 }
 
 .chart-card .card-header-row {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.45rem;
 }
 
 .chart-card .card-header-row:has(+ .year-filter-panel) {
@@ -4636,7 +4651,7 @@ button {
 .dashboard-page {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-stack);
 }
 
 .dashboard-page > .card,
@@ -4652,7 +4667,7 @@ button {
   animation: headerGlow 6s ease infinite;
   color: white;
   border: none;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-stack);
   box-shadow: 0 8px 28px rgba(15, 118, 110, 0.3);
   position: relative;
   overflow: hidden;
@@ -4950,7 +4965,7 @@ button {
 }
 
 .dashboard-opening-card {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-stack);
   padding: 0;
   background: linear-gradient(
     135deg,
@@ -5455,12 +5470,12 @@ button {
 .category-donut-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .category-donut-chart-wrap {
   position: relative;
-  min-height: 200px;
+  min-height: 168px;
 }
 
 .category-donut-center {
@@ -5494,16 +5509,16 @@ button {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.3rem;
 }
 
 .category-donut-legend-item {
   display: grid;
   grid-template-columns: auto 1fr auto auto;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.76rem;
-  padding: 0.35rem 0.45rem;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.35rem;
   border-radius: var(--radius-sm);
   transition: background var(--duration-fast);
 }
@@ -5649,8 +5664,8 @@ button {
 }
 
 .page-header-row {
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .page-header-title {
