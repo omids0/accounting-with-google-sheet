@@ -10,6 +10,10 @@ import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from 
 import { downloadTablePdf } from '../utils/pdf';
 import { formatMoney } from '../utils/formatMoney';
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat';
+import {
+  createLinkedExpenseRecord,
+  deleteLinkedExpenseRecord,
+} from './paymentTransactions';
 
 export const DANG_SHEET = 'دنگ';
 
@@ -24,6 +28,7 @@ export const DANG_HEADERS = [
   'توضیحات',
   'پرداخت شده',
   'زمان پرداخت',
+  'شناسه تراکنش',
 ];
 
 function parsePaid(raw: string): boolean {
@@ -50,6 +55,7 @@ function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number
       note: row[6] ?? '',
       paid: parsePaid(row[7] ?? ''),
       paidAt: row[8] ?? '',
+      transactionRecordId: '',
     };
   }
 
@@ -65,6 +71,7 @@ function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number
     note: row[7] ?? '',
     paid: parsePaid(row[8] ?? ''),
     paidAt: row[9] ?? '',
+    transactionRecordId: row[10] ?? '',
   };
 }
 
@@ -80,6 +87,7 @@ function dangToRow(dang: Dang): string[] {
     dang.note,
     dang.paid ? 'بله' : 'خیر',
     dang.paidAt,
+    dang.transactionRecordId ?? '',
   ];
 }
 
@@ -143,8 +151,12 @@ export async function updateDang(
 
 export async function deleteDang(
   spreadsheetId: string,
-  rowNumber: number
+  rowNumber: number,
+  dang?: Dang
 ): Promise<void> {
+  if (dang?.transactionRecordId) {
+    await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId);
+  }
   await deleteSheetRow(spreadsheetId, DANG_SHEET, rowNumber);
 }
 
@@ -153,13 +165,38 @@ export async function toggleDangPaid(
   dang: Dang & { rowNumber: number },
   paid: boolean
 ): Promise<Dang> {
-  const updated: Dang = {
-    ...dang,
-    paid,
-    paidAt: paid ? new Date().toLocaleString('fa-IR') : '',
-  };
-  await updateDang(spreadsheetId, dang.rowNumber, updated);
-  return updated;
+  if (paid && !dang.paid) {
+    const transactionRecordId = await createLinkedExpenseRecord(spreadsheetId, {
+      title: `بدهی: ${dang.title}`,
+      amount: dang.amount,
+      category: dang.category,
+      note: dang.note,
+    });
+    const updated: Dang = {
+      ...dang,
+      paid: true,
+      paidAt: new Date().toLocaleString('fa-IR'),
+      transactionRecordId,
+    };
+    await updateDang(spreadsheetId, dang.rowNumber, updated);
+    return updated;
+  }
+
+  if (!paid && dang.paid) {
+    if (dang.transactionRecordId) {
+      await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId);
+    }
+    const updated: Dang = {
+      ...dang,
+      paid: false,
+      paidAt: '',
+      transactionRecordId: '',
+    };
+    await updateDang(spreadsheetId, dang.rowNumber, updated);
+    return updated;
+  }
+
+  return dang;
 }
 
 export function unpaidDangTotal(items: Dang[]): number {
@@ -229,6 +266,7 @@ export async function importDangsCsv(spreadsheetId: string, csvContent: string) 
         note: cells[7] ?? '',
         paid: parsePaid(cells[8] ?? ''),
         paidAt: cells[9] ?? '',
+        transactionRecordId: cells[10] ?? '',
       });
     }
   );

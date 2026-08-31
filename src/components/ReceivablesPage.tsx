@@ -14,6 +14,7 @@ import {
   isReceivableComplete,
   paidAmount,
   remainingAmount,
+  removeReceivablePayment,
   sortReceivables,
   updateReceivable,
 } from '../services/receivables';
@@ -69,6 +70,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [payingId, setPayingId] = useState('');
+  const [togglingPaymentId, setTogglingPaymentId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState<string[]>(() => getReceivableCategories());
   const [paymentStatusFilter, setPaymentStatusFilter] =
@@ -241,6 +243,45 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     }
   };
 
+  const handleRemovePayment = async (
+    receivable: ReceivableWithRow,
+    paymentId: string
+  ) => {
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    setTogglingPaymentId(paymentId);
+    try {
+      const updated = await removeReceivablePayment(
+        settings.spreadsheetId,
+        receivable,
+        paymentId
+      );
+      setItems((prev) =>
+        sortReceivables(
+          prev.map((item) =>
+            item.id === receivable.id
+              ? { ...updated, rowNumber: receivable.rowNumber }
+              : item
+          )
+        )
+      );
+      showSuccess('پرداخت و تراکنش درآمد حذف شد');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در حذف پرداخت';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setTogglingPaymentId('');
+    }
+  };
+
   const resetCreateForm = () => {
     setForm({
       debtor: '',
@@ -296,7 +337,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
 
     setDeleting(true);
     try {
-      await deleteReceivable(settings.spreadsheetId, deletingItem.rowNumber);
+      await deleteReceivable(settings.spreadsheetId, deletingItem.rowNumber, deletingItem);
       if (expandedId === deletingItem.id) setExpandedId(null);
       setPaymentForm(null);
       setDeletingItem(null);
@@ -669,6 +710,13 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                       <div className="receivable-payment-list-title">سوابق پرداخت</div>
                       {item.payments.map((payment) => (
                         <div key={payment.id} className="receivable-payment-item">
+                          <input
+                            type="checkbox"
+                            checked
+                            disabled={togglingPaymentId === payment.id}
+                            onChange={() => handleRemovePayment(item, payment.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
                           <div>
                             <span dir="ltr">{formatMoney(payment.amount)}</span>
                             <span className="installment-due">

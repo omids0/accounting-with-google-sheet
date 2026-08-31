@@ -327,7 +327,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
 
     setDeleting(true);
     try {
-      await deleteInstallmentPlan(settings.spreadsheetId, deletingPlan.rowNumber);
+      await deleteInstallmentPlan(settings.spreadsheetId, deletingPlan.rowNumber, deletingPlan);
       if (expandedId === deletingPlan.id) setExpandedId(null);
       setDeletingPlan(null);
       showSuccess('قسط حذف شد');

@@ -296,7 +296,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
 
     setDeleting(true);
     try {
-      await deleteDang(settings.spreadsheetId, deletingItem.rowNumber);
+      await deleteDang(settings.spreadsheetId, deletingItem.rowNumber, deletingItem);
       setDeletingItem(null);
       showSuccess('بدهی حذف شد');
       await loadItems();

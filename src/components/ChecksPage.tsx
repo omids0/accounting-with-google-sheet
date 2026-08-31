@@ -268,7 +268,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
 
     setDeleting(true);
     try {
-      await deleteCheck(settings.spreadsheetId, deletingItem.rowNumber);
+      await deleteCheck(settings.spreadsheetId, deletingItem.rowNumber, deletingItem);
       setDeletingItem(null);
       showSuccess('چک حذف شد');
       await loadItems();

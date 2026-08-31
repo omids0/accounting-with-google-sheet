@@ -15,6 +15,7 @@ export const DEFAULT_INCOME_CATEGORIES = [
   'فروش',
   'سرمایه‌گذاری',
   'هدیه',
+  'طلب',
   'سایر',
 ];
 export const DEFAULT_EXPENSE_CATEGORIES = [
@@ -24,6 +25,8 @@ export const DEFAULT_EXPENSE_CATEGORIES = [
   'قبوض',
   'تفریح',
   'پوشاک',
+  'قسط',
+  'چک',
   'سایر',
 ];
 export const DEFAULT_DANG_CATEGORIES = [

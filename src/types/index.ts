@@ -134,6 +134,7 @@ export interface InstallmentPayment {
   paidAt: string;
   dueDate: string;
   amount?: number;
+  transactionRecordId?: string;
 }
 
 export interface InstallmentPlan {
@@ -159,6 +160,7 @@ export interface Dang {
   note: string;
   paid: boolean;
   paidAt: string;
+  transactionRecordId?: string;
 }
 
 export interface Check {
@@ -171,6 +173,7 @@ export interface Check {
   dueDate: string;
   paid: boolean;
   paidAt: string;
+  transactionRecordId?: string;
 }
 
 export interface ReceivablePayment {
@@ -178,6 +181,7 @@ export interface ReceivablePayment {
   amount: number;
   paidAt: string;
   note: string;
+  transactionRecordId?: string;
 }
 
 export interface Receivable {
