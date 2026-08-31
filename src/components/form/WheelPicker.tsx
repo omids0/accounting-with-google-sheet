@@ -48,6 +48,7 @@ export default function WheelPicker({
 
   const selectedIndex = items.findIndex((item) => item.value === value);
   const safeIndex = selectedIndex >= 0 ? selectedIndex : 0;
+  const itemsSignature = items.map((item) => item.value).join('\0');
 
   const padding = VISIBLE_PADDING * ITEM_HEIGHT;
   const containerHeight = (VISIBLE_PADDING * 2 + 1) * ITEM_HEIGHT;
@@ -101,14 +102,17 @@ export default function WheelPicker({
     isUserScrollingRef.current = false;
   }, [items, onChange, safeIndex, scrollToIndex]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isUserScrollingRef.current) return;
-    scrollToIndex(safeIndex);
-  }, [safeIndex, scrollToIndex]);
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = safeIndex * ITEM_HEIGHT;
+    scheduleVisualUpdate();
+  }, [safeIndex, itemsSignature, scheduleVisualUpdate]);
 
   useLayoutEffect(() => {
     scheduleVisualUpdate();
-  }, [items, scheduleVisualUpdate]);
+  }, [itemsSignature, scheduleVisualUpdate]);
 
   useEffect(() => {
     return () => {

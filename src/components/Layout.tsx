@@ -12,6 +12,7 @@ import OpeningBalancePage from './OpeningBalancePage';
 import NetAvailableSettingsPage from './NetAvailableSettingsPage';
 import LoanRequestCalculatorPage from './LoanRequestCalculatorPage';
 import CurrencyConverterPage from './CurrencyConverterPage';
+import DateCalculatorPage from './DateCalculatorPage';
 import SettingsPage from './SettingsPage';
 import PageSpeedDial from './PageSpeedDial';
 import AppIcon from './AppIcon';
@@ -32,9 +33,10 @@ type Tab =
   | 'opening-balances'
   | 'net-available-settings'
   | 'loan-calculator'
-  | 'currency-converter';
+  | 'currency-converter'
+  | 'date-calculator';
 
-const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter'];
+const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter', 'date-calculator'];
 
 const SPEED_DIAL_TABS: Tab[] = [
   'installments',
@@ -73,6 +75,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     'net-available-settings': 'دارایی قابل اتکا',
     'loan-calculator': 'محاسبات درخواست وام',
     'currency-converter': 'تبدیل ارز',
+    'date-calculator': 'محاسبه تاریخ',
   };
 
   const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
@@ -218,6 +221,15 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                     >
                       تبدیل ارز
                     </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'date-calculator' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('date-calculator')}
+                    >
+                      محاسبه تاریخ
+                    </button>
                   </div>
                 )}
               </div>
@@ -279,6 +291,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               )}
               {tab === 'loan-calculator' && <LoanRequestCalculatorPage />}
               {tab === 'currency-converter' && <CurrencyConverterPage />}
+              {tab === 'date-calculator' && <DateCalculatorPage />}
             </>
           )}
         </div>
