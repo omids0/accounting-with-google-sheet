@@ -1,13 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  Bar,
-  BarChart,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
 import { getSettings, isConfigured } from '../../services/settings';
 import { loadDashboardData } from '../../services/dashboard';
 import { isTokenValid } from '../../services/auth';
@@ -18,10 +9,8 @@ import { showError } from '../../utils/toast';
 import { DashboardSkeleton } from '../skeleton';
 import MoneyDisplay from '../MoneyDisplay';
 import YearFilter, { getDefaultChartYear } from '../YearFilter';
+import { IncomeExpenseMonthlyChart } from '../charts';
 import ReportToolbar, { useReportDateFilter } from './ReportToolbar';
-
-const INCOME_BAR_COLOR = '#16a34a';
-const EXPENSE_BAR_COLOR = '#dc2626';
 
 export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void }) {
   const [monthlyFlow, setMonthlyFlow] = useState<MonthlyFlow[]>([]);
@@ -66,10 +55,6 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
     load();
   }, [load]);
 
-  const chartData = monthlyFlow.map((item) => ({
-    ...item,
-    shortLabel: item.label.split(' ')[0] ?? item.label,
-  }));
   const totals = monthlyFlow.reduce(
     (acc, item) => ({
       income: acc.income + item.income,
@@ -78,11 +63,6 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
     }),
     { income: 0, expense: 0, net: 0 }
   );
-  const height = Math.max(280, chartData.length * 52);
-  const maxLabelLen = chartData.length
-    ? Math.max(...chartData.map((d) => d.shortLabel.length))
-    : 1;
-  const yAxisWidth = Math.min(72, Math.max(44, Math.ceil(maxLabelLen * 7)));
 
   if (!isConfigured()) {
     return (
@@ -133,73 +113,22 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
         />
       </div>
 
-      <div className="card chart-card">
-        <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>
-          {({ trigger, panel }) => (
-            <>
-              <div className="card-header-row">
-                <h3 className="chart-title">درآمد و هزینه ماهانه</h3>
-                {trigger}
-              </div>
-              {panel}
-            </>
-          )}
-        </YearFilter>
-
-        {!chartData.length ? (
-          <p className="empty-text">داده‌ای برای این سال ثبت نشده</p>
-        ) : (
-          <div className="chart-bar-wrap chart-monthly-wrap" dir="ltr">
-            <ResponsiveContainer width="100%" height={height}>
-              <BarChart
-                data={chartData}
-                layout="vertical"
-                margin={{ top: 4, right: 4, left: 0, bottom: 4 }}
-              >
-                <XAxis
-                  type="number"
-                  tickFormatter={(value) => formatMoney(value)}
-                  tick={{ fontSize: 10, fill: '#6b7280' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="shortLabel"
-                  width={yAxisWidth}
-                  orientation="left"
-                  tick={{ fontSize: 12, fill: '#6b7280', textAnchor: 'end' }}
-                  tickMargin={4}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  formatter={(value, name) => [
-                    formatMoney(Number(value) || 0),
-                    name === 'income' ? 'درآمد' : 'هزینه',
-                  ]}
-                  labelFormatter={(_, payload) => payload?.[0]?.payload?.label ?? ''}
-                />
-                <Legend formatter={(value) => (value === 'income' ? 'درآمد' : 'هزینه')} />
-                <Bar
-                  name="income"
-                  dataKey="income"
-                  fill={INCOME_BAR_COLOR}
-                  radius={[0, 4, 4, 0]}
-                  maxBarSize={14}
-                />
-                <Bar
-                  name="expense"
-                  dataKey="expense"
-                  fill={EXPENSE_BAR_COLOR}
-                  radius={[0, 4, 4, 0]}
-                  maxBarSize={14}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </div>
+      <IncomeExpenseMonthlyChart
+        data={monthlyFlow}
+        header={
+          <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>
+            {({ trigger, panel }) => (
+              <>
+                <div className="card-header-row">
+                  <h3 className="chart-title">درآمد و هزینه ماهانه</h3>
+                  {trigger}
+                </div>
+                {panel}
+              </>
+            )}
+          </YearFilter>
+        }
+      />
 
       {!!monthlyFlow.length && (
         <div className="card">

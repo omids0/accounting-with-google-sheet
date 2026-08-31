@@ -105,13 +105,35 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
             <AppIcon name="dashboard" />
           </span>
           <h1>حسابداری شخصی</h1>
-          <p>با Google وارد شو — شیت‌هایت روی Drive بین دستگاه‌ها پیدا می‌شوند</p>
+          <p>مدیریت مالی روزانه با ذخیره‌سازی امن در Google Sheets</p>
         </div>
+
+        <ul className="login-features" aria-label="ویژگی‌های اصلی">
+          <li className="login-feature">
+            <span className="login-feature-icon" aria-hidden="true">
+              <AppIcon name="chart" size={16} strokeWidth={2} />
+            </span>
+            داشبورد مالی با نمودار درآمد و هزینه
+          </li>
+          <li className="login-feature">
+            <span className="login-feature-icon" aria-hidden="true">
+              <AppIcon name="folder" size={16} strokeWidth={2} />
+            </span>
+            همگام‌سازی خودکار بین دستگاه‌ها
+          </li>
+          <li className="login-feature">
+            <span className="login-feature-icon" aria-hidden="true">
+              <AppIcon name="wallet" size={16} strokeWidth={2} />
+            </span>
+            اقساط، چک، طلب و صندوقچه در یک جا
+          </li>
+        </ul>
 
         <button
           className="btn btn-primary google-signin-btn"
           onClick={handleLogin}
           disabled={loading}
+          aria-busy={loading}
         >
           {loading ? (
             <span className="spinner" />
@@ -126,16 +148,14 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           ورود با Google
         </button>
 
-        <p
-          style={{
-            fontSize: '0.75rem',
-            color: 'var(--color-text-muted)',
-            marginTop: '1rem',
-            textAlign: 'center',
-          }}
-        >
+        <p className="login-footer-note">
           شیت‌ها با فرمت «حسابداری · سال» ساخته می‌شوند و روی Drive همگام هستند
         </p>
+
+        <div className="login-trust-badge">
+          <AppIcon name="check" size={14} strokeWidth={2} />
+          <span>داده‌ها فقط در Google Drive شما ذخیره می‌شوند</span>
+        </div>
       </div>
     </div>
   );
