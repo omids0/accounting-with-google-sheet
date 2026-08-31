@@ -178,7 +178,9 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
                     <div className="wallet-item-title">
                       {formatJalaliMonthLabel(item.monthKey)}
                     </div>
-                    <div className="wallet-item-amount">{formatMoney(displayAmount)}</div>
+                    <div className="wallet-item-amount list-card-amount-pill" dir="ltr">
+                      {formatMoney(displayAmount)}
+                    </div>
                   </div>
                   {item.updatedAt && (
                     <div className="wallet-item-note">آخرین ویرایش: {item.updatedAt}</div>

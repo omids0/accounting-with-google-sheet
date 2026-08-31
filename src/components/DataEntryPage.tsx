@@ -140,7 +140,8 @@ export default function DataEntryPage({
       />
 
       {activeForm && (
-        <form onSubmit={handleSubmit}>
+        <div className="app-form">
+          <form onSubmit={handleSubmit}>
           {sortFormFields(activeForm.fields).map((field) => (
             <FieldInput
               key={field.id}
@@ -177,7 +178,8 @@ export default function DataEntryPage({
               انصراف
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       )}
     </div>
   );

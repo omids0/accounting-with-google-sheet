@@ -23,6 +23,7 @@ import {
   updateInstallmentPlan,
 } from '../services/installments';
 import AmountInput from './AmountInput';
+import CardInlineAmountEdit from './CardInlineAmountEdit';
 import { InstallmentCardListSkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
 import { distributionSparkline } from '../utils/sparklineData';
@@ -468,9 +469,9 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{plan.title}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-                      {formatMoney(plan.amount)}
+                    <div className="list-card-title">{plan.title}</div>
+                    <div className="list-card-subtitle">
+                      <span className="list-card-amount-pill">{formatMoney(plan.amount)}</span>
                       {complete ? ' · تکمیل شده' : ` · ${done}/${total} پرداخت شده`}
                     </div>
                     <ProgressBar
@@ -555,19 +556,16 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                         </div>
 
                         <AccordionCollapse open={paymentExpanded}>
-                          <div className="installment-payment-edit wallet-item-edit">
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                              <label>مبلغ قسط</label>
-                              <AmountInput
-                                compact
-                                value={paymentAmounts[amountKey] ?? getInstallmentPaymentAmount(payment, plan)}
-                                onChange={(val) =>
-                                  setPaymentAmounts((prev) => ({ ...prev, [amountKey]: val }))
-                                }
-                                onBlur={() => handlePaymentAmountSave(plan, index)}
-                              />
-                            </div>
-                            {savingAmountKey === amountKey && <span className="spinner" />}
+                          <div className="installment-payment-edit">
+                            <CardInlineAmountEdit
+                              label="مبلغ قسط"
+                              value={paymentAmounts[amountKey] ?? getInstallmentPaymentAmount(payment, plan)}
+                              onChange={(val) =>
+                                setPaymentAmounts((prev) => ({ ...prev, [amountKey]: val }))
+                              }
+                              onBlur={() => handlePaymentAmountSave(plan, index)}
+                              saving={savingAmountKey === amountKey}
+                            />
                           </div>
                         </AccordionCollapse>
                       </div>

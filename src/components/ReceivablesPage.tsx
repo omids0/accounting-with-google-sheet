@@ -648,16 +648,10 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{item.debtor}</div>
-                    <div
-                      style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--color-text-muted)',
-                        marginTop: '0.25rem',
-                      }}
-                    >
-                      {item.category && `${item.category} · `}
-                      {formatMoney(item.amount)}
+                    <div className="list-card-title">{item.debtor}</div>
+                    <div className="list-card-subtitle">
+                      {item.category && <span>{item.category} · </span>}
+                      <span className="list-card-amount-pill">{formatMoney(item.amount)}</span>
                       {complete
                         ? ' · تسویه شده'
                         : ` · مانده: ${formatMoney(remaining)}`}
