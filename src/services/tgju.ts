@@ -41,6 +41,101 @@ function parseTgjuPrice(raw: string | undefined): number {
   return num / 10;
 }
 
+function parseTgjuRialRate(raw: string | undefined): number {
+  if (!raw) return 0;
+  return Number(String(raw).replace(/,/g, ''));
+}
+
+export type ExchangeCurrencyCode =
+  | 'irr'
+  | 'toman'
+  | 'usd'
+  | 'eur'
+  | 'gbp'
+  | 'aed'
+  | 'try'
+  | 'cny'
+  | 'chf'
+  | 'cad'
+  | 'aud'
+  | 'sar'
+  | 'kwd'
+  | 'rub'
+  | 'jpy';
+
+export interface ExchangeCurrencyOption {
+  code: ExchangeCurrencyCode;
+  label: string;
+  symbol: string;
+  tgjuKey?: string;
+  fixedRateInRial?: number;
+}
+
+export const EXCHANGE_CURRENCY_OPTIONS: ExchangeCurrencyOption[] = [
+  { code: 'usd', label: 'دلار آمریکا', symbol: '$', tgjuKey: 'price_dollar_rl' },
+  { code: 'irr', label: 'ریال ایران', symbol: 'ریال', fixedRateInRial: 1 },
+  { code: 'toman', label: 'تومان ایران', symbol: 'تومان', fixedRateInRial: 10 },
+  { code: 'eur', label: 'یورو', symbol: '€', tgjuKey: 'price_eur' },
+  { code: 'gbp', label: 'پوند انگلیس', symbol: '£', tgjuKey: 'price_gbp' },
+  { code: 'aed', label: 'درهم امارات', symbol: 'AED', tgjuKey: 'price_aed' },
+  { code: 'try', label: 'لیر ترکیه', symbol: '₺', tgjuKey: 'price_try' },
+  { code: 'cny', label: 'یوان چین', symbol: '¥', tgjuKey: 'price_cny' },
+  { code: 'chf', label: 'فرانک سوئیس', symbol: 'CHF', tgjuKey: 'price_chf' },
+  { code: 'cad', label: 'دلار کانادا', symbol: 'C$', tgjuKey: 'price_cad' },
+  { code: 'aud', label: 'دلار استرالیا', symbol: 'A$', tgjuKey: 'price_aud' },
+  { code: 'sar', label: 'ریال عربستان', symbol: 'SAR', tgjuKey: 'price_sar' },
+  { code: 'kwd', label: 'دینار کویت', symbol: 'KWD', tgjuKey: 'price_kwd' },
+  { code: 'rub', label: 'روبل روسیه', symbol: '₽', tgjuKey: 'price_rub' },
+  { code: 'jpy', label: 'ین ژاپن', symbol: '¥', tgjuKey: 'price_jpy' },
+];
+
+export interface ExchangeRateQuote {
+  rateInRial: number;
+  updatedAt?: string;
+}
+
+export function getExchangeCurrencyOption(
+  code: ExchangeCurrencyCode
+): ExchangeCurrencyOption | undefined {
+  return EXCHANGE_CURRENCY_OPTIONS.find((option) => option.code === code);
+}
+
+export function getExchangeCurrencyLabel(code: ExchangeCurrencyCode): string {
+  return getExchangeCurrencyOption(code)?.label ?? code;
+}
+
+export function getExchangeCurrencySymbol(code: ExchangeCurrencyCode): string {
+  return getExchangeCurrencyOption(code)?.symbol ?? code;
+}
+
+export async function fetchTgjuExchangeRates(): Promise<
+  Record<ExchangeCurrencyCode, ExchangeRateQuote>
+> {
+  const res = await fetch(TGJU_API);
+  if (!res.ok) throw new Error('خطا در دریافت نرخ ارز از tgju.org');
+
+  const data = (await res.json()) as {
+    current?: Record<string, { p?: string; ts?: string; t?: string }>;
+  };
+  const current = data.current ?? {};
+
+  const rates = {} as Record<ExchangeCurrencyCode, ExchangeRateQuote>;
+  for (const option of EXCHANGE_CURRENCY_OPTIONS) {
+    if (option.fixedRateInRial != null) {
+      rates[option.code] = { rateInRial: option.fixedRateInRial };
+      continue;
+    }
+
+    const entry = option.tgjuKey ? current[option.tgjuKey] : undefined;
+    rates[option.code] = {
+      rateInRial: parseTgjuRialRate(entry?.p),
+      updatedAt: entry?.t ?? entry?.ts,
+    };
+  }
+
+  return rates;
+}
+
 export async function fetchTgjuPrices(): Promise<Record<VaultAssetType, number>> {
   const res = await fetch(TGJU_API);
   if (!res.ok) throw new Error('خطا در دریافت قیمت از tgju.org');

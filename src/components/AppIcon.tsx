@@ -23,7 +23,10 @@ export type AppIconName =
   | 'import'
   | 'export'
   | 'pdf'
-  | 'trash';
+  | 'trash'
+  | 'calculator'
+  | 'chevron-down'
+  | 'swap';
 
 interface AppIconProps {
   name: AppIconName;
@@ -284,6 +287,38 @@ export default function AppIcon({
           <path d="M19 6.5v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6.5" />
           <path d="M10 11v6" />
           <path d="M14 11v6" />
+        </svg>
+      );
+
+    case 'calculator':
+      return (
+        <svg {...props}>
+          <rect x="5.5" y="3.5" width="13" height="17" rx="2" />
+          <path d="M8.5 7.5h7" />
+          <circle cx="8.5" cy="12" r="1" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+          <circle cx="15.5" cy="12" r="1" fill="currentColor" stroke="none" />
+          <circle cx="8.5" cy="15.5" r="1" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="15.5" r="1" fill="currentColor" stroke="none" />
+          <circle cx="15.5" cy="15.5" r="1" fill="currentColor" stroke="none" />
+          <path d="M8.5 18.5h7" />
+        </svg>
+      );
+
+    case 'chevron-down':
+      return (
+        <svg {...props}>
+          <path d="M6.5 9.5 12 15 17.5 9.5" />
+        </svg>
+      );
+
+    case 'swap':
+      return (
+        <svg {...props}>
+          <path d="M7 8.5h11" />
+          <path d="M15.5 6.5 18.5 8.5 15.5 10.5" />
+          <path d="M17 15.5H6" />
+          <path d="M8.5 13.5 5.5 15.5 8.5 17.5" />
         </svg>
       );
   }
