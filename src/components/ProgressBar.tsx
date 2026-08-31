@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { useAnimatedProgress } from '../hooks/useAnimatedProgress';
+import { formatPersianNumber } from '../utils/formatMoney';
 
 type ProgressBarVariant = 'default' | 'complete' | 'success';
 
@@ -49,7 +50,7 @@ export default function ProgressBar({
         </div>
         {showLabel ? (
           <span className="progress-bar__label numeric" aria-hidden="true">
-            {displayPct}%
+            {formatPersianNumber(displayPct, { useGrouping: false })}٪
           </span>
         ) : null}
       </div>

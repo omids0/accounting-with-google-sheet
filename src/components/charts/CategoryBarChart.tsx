@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme';
 import ChartTooltip from './ChartTooltip';
+import { truncateCategoryLabel } from './chartUtils';
 
 type ChartTooltipEntry = {
   name?: string | number;
@@ -22,6 +23,8 @@ interface CategoryBarChartProps {
   data: { name: string; total: number }[];
   tone: 'income' | 'expense';
   className?: string;
+  /** Pass the same width for charts on one page so bars start at the same column. */
+  yAxisWidth?: number;
 }
 
 export default function CategoryBarChart({
@@ -29,15 +32,19 @@ export default function CategoryBarChart({
   data,
   tone,
   className = '',
+  yAxisWidth: yAxisWidthProp,
 }: CategoryBarChartProps) {
   const theme = useChartTheme();
   const animate = !prefersReducedMotion();
 
   if (!data.length) return null;
 
-  const height = Math.max(240, data.length * 48);
+  const rowHeight = 36;
+  const height = Math.max(180, data.length * rowHeight);
   const maxLabelLen = Math.max(...data.map((d) => d.name.length), 1);
-  const yAxisWidth = Math.min(96, Math.max(36, Math.ceil(maxLabelLen * 6.5)));
+  const yAxisWidth =
+    yAxisWidthProp ??
+    Math.min(68, Math.max(30, Math.ceil(Math.min(maxLabelLen, 9) * 5.2)));
   const maxTotal = Math.max(...data.map((d) => d.total), 1);
   const chartData = data.map((item) => ({ ...item, maxTotal }));
 
@@ -49,8 +56,8 @@ export default function CategoryBarChart({
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
-            barCategoryGap="22%"
+            margin={{ top: 4, right: 4, left: 0, bottom: 2 }}
+            barCategoryGap="18%"
           >
             <defs>
               <linearGradient id={`cat-bar-${tone}`} x1="0" y1="0" x2="1" y2="0">
@@ -77,8 +84,9 @@ export default function CategoryBarChart({
               dataKey="name"
               width={yAxisWidth}
               orientation="left"
-              tick={{ fontSize: 12, fill: theme.muted, textAnchor: 'end' }}
-              tickMargin={6}
+              tick={{ fontSize: 10, fill: theme.muted, textAnchor: 'end' }}
+              tickMargin={4}
+              tickFormatter={(value) => truncateCategoryLabel(String(value))}
               axisLine={false}
               tickLine={false}
             />
@@ -96,7 +104,7 @@ export default function CategoryBarChart({
               name="مجموع"
               dataKey="total"
               radius={[0, 8, 8, 0]}
-              maxBarSize={28}
+              maxBarSize={22}
               isAnimationActive={animate}
               animationDuration={700}
               animationEasing="ease-out"

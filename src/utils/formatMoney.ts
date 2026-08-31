@@ -28,7 +28,14 @@ export function formatMoneyParts(
   currency?: CurrencyUnit
 ): { number: string; symbol: string } {
   return {
-    number: n.toLocaleString('fa-IR'),
+    number: formatPersianNumber(n),
     symbol: getCurrencySymbol(currency),
   };
+}
+
+export function formatPersianNumber(
+  n: number,
+  options?: Intl.NumberFormatOptions
+): string {
+  return n.toLocaleString('fa-IR', options);
 }

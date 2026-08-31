@@ -30,6 +30,7 @@ import TransactionListItem from './TransactionListItem';
 import MoneyDisplay from './MoneyDisplay';
 import CardEditButton from './CardEditButton';
 import { CategoryBarChart, CategoryDonutChart, IncomeExpenseMonthlyChart } from './charts';
+import { getCategoryBarYAxisWidth } from './charts/chartUtils';
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
 
@@ -148,6 +149,15 @@ export default function DashboardPage({
       .filter((r) => typeFilter === 'all' || r.type === typeFilter)
       .slice(0, 10);
   }, [data?.recentRecords, typeFilter]);
+
+  const categoryYAxisWidth = useMemo(
+    () =>
+      getCategoryBarYAxisWidth([
+        data?.expenseByCategory ?? [],
+        data?.incomeByCategory ?? [],
+      ]),
+    [data?.expenseByCategory, data?.incomeByCategory]
+  );
 
   const financial = data?.financial;
   const incomeSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income');
@@ -331,6 +341,7 @@ export default function DashboardPage({
             title="هزینه بر اساس دسته‌بندی"
             data={data!.expenseByCategory}
             tone="expense"
+            yAxisWidth={categoryYAxisWidth}
           />
         </>
       )}
@@ -346,6 +357,7 @@ export default function DashboardPage({
             title="درآمد بر اساس دسته‌بندی"
             data={data!.incomeByCategory}
             tone="income"
+            yAxisWidth={categoryYAxisWidth}
           />
         </>
       )}

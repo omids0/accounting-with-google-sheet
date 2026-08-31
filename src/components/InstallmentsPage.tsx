@@ -472,7 +472,9 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                     <div className="list-card-title">{plan.title}</div>
                     <div className="list-card-subtitle">
                       <span className="list-card-amount-pill">{formatMoney(plan.amount)}</span>
-                      {complete ? ' · تکمیل شده' : ` · ${done}/${total} پرداخت شده`}
+                      {complete
+                        ? ' · تکمیل شده'
+                        : ` · ${done.toLocaleString('fa-IR')}/${total.toLocaleString('fa-IR')} پرداخت شده`}
                     </div>
                     <ProgressBar
                       value={progress}
