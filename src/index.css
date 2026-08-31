@@ -857,6 +857,9 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .app-menu-item {
@@ -937,6 +940,137 @@ button {
   padding: 0.6rem 0.85rem;
   font-size: 0.88rem;
   font-weight: 600;
+}
+
+.app-menu-submenu-label {
+  padding: 0.55rem 0.85rem 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: none;
+}
+
+.report-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.report-hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.report-hint-warning {
+  color: var(--color-expense);
+}
+
+.report-table-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.report-table-row:last-child {
+  border-bottom: none;
+}
+
+.report-table-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.report-table-values {
+  display: flex;
+  gap: 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.report-value-income {
+  color: var(--color-income);
+}
+
+.report-value-expense {
+  color: var(--color-expense);
+}
+
+.report-value-positive {
+  color: var(--color-income);
+}
+
+.report-value-negative {
+  color: var(--color-expense);
+}
+
+.report-due-item-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.report-due-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+}
+
+.report-due-badge--overdue {
+  background: color-mix(in srgb, var(--color-expense) 14%, transparent);
+  color: var(--color-expense);
+}
+
+.report-due-badge--today {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary-dark);
+}
+
+.report-due-badge--upcoming {
+  background: color-mix(in srgb, var(--color-income) 14%, transparent);
+  color: var(--color-income);
+}
+
+.report-export-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.report-export-card-body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.report-export-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-primary);
+}
+
+.report-export-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.report-export-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-top: 0.1rem;
 }
 
 .loan-calculator-page {

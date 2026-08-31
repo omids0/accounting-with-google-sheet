@@ -1,0 +1,165 @@
+import { useCallback, useEffect, useState } from 'react';
+import { getSettings, getNetAvailableConfig, isConfigured } from '../../services/settings';
+import { loadDashboardData } from '../../services/dashboard';
+import { isTokenValid } from '../../services/auth';
+import type { DashboardData } from '../../types';
+import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange';
+import { showError } from '../../utils/toast';
+import { DashboardSkeleton } from '../skeleton';
+import MoneyDisplay from '../MoneyDisplay';
+import { formatMoney } from '../../utils/formatMoney';
+import ReportToolbar, { useReportDateFilter } from './ReportToolbar';
+
+function BreakdownRow({
+  label,
+  value,
+  total,
+}: {
+  label: string;
+  value: number;
+  total?: boolean;
+}) {
+  return (
+    <div className={`asset-row${total ? ' asset-row-total' : ''}`}>
+      <span className="asset-label">{label}</span>
+      <span className="asset-value" dir="ltr">
+        {formatMoney(value)}
+      </span>
+    </div>
+  );
+}
+
+export default function FinancialSummaryReportPage({ onReauth }: { onReauth?: () => void }) {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { datePreset, customRange, handleDateFilterChange, dateRange } = useReportDateFilter();
+
+  const load = useCallback(async () => {
+    if (!isConfigured() || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+    const settings = getSettings();
+    if (!settings) return;
+
+    setLoading(true);
+    try {
+      const installmentRange =
+        datePreset === 'custom'
+          ? dateRange
+          : getInstallmentDueRange(datePreset as DateRangePreset);
+      const dash = await loadDashboardData(
+        settings,
+        dateRange,
+        installmentRange,
+        undefined,
+        getNetAvailableConfig()
+      );
+      setData(dash);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [onReauth, datePreset, customRange.start, customRange.end]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (!isConfigured()) {
+    return (
+      <div className="empty-state">
+        <p>ابتدا با گوگل وارد شوید</p>
+      </div>
+    );
+  }
+
+  if (loading && !data) {
+    return <DashboardSkeleton />;
+  }
+
+  const financial = data?.financial;
+  const reconciliationDiff = data?.reconciliationDiff ?? 0;
+  const hasReconciliationGap = Math.abs(reconciliationDiff) > 0;
+
+  return (
+    <div className="dashboard-page report-page">
+      <ReportToolbar
+        title="خلاصه مالی"
+        preset={datePreset}
+        customRange={customRange}
+        onFilterChange={handleDateFilterChange}
+        onRefresh={load}
+        loading={loading}
+      />
+
+      <div className="card dashboard-hero-card">
+        <div className="dashboard-hero-label">دارایی قابل اتکا</div>
+        <MoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
+      </div>
+
+      <div className="stat-grid dashboard-stat-grid">
+        <div className="stat-card stat-income">
+          <span className="stat-label">درآمد دوره</span>
+          <MoneyDisplay amount={data?.totalIncome ?? 0} size="stat" tone="income" />
+        </div>
+        <div className="stat-card stat-expense">
+          <span className="stat-label">هزینه دوره</span>
+          <MoneyDisplay amount={data?.totalExpense ?? 0} size="stat" tone="expense" />
+        </div>
+      </div>
+
+      <div
+        className={`stat-card stat-flow stat-card-wide${
+          (data?.balance ?? 0) < 0
+            ? ' stat-flow-negative'
+            : (data?.balance ?? 0) > 0
+              ? ' stat-flow-positive'
+              : ''
+        }`}
+      >
+        <span className="stat-label">خالص دوره</span>
+        <MoneyDisplay
+          amount={data?.balance ?? 0}
+          size="stat-wide"
+          tone={
+            (data?.balance ?? 0) < 0
+              ? 'negative'
+              : (data?.balance ?? 0) > 0
+                ? 'positive'
+                : 'primary'
+          }
+        />
+      </div>
+
+      <div className="card dashboard-assets-card">
+        <h3 className="chart-title">مطابقت حساب</h3>
+        <div className="asset-breakdown">
+          <BreakdownRow label="موجودی اول دوره" value={data?.openingBalance ?? 0} />
+          <BreakdownRow label="درآمد دوره" value={data?.totalIncome ?? 0} />
+          <BreakdownRow label="هزینه دوره" value={-(data?.totalExpense ?? 0)} />
+          <BreakdownRow label="مانده محاسبه‌شده" value={data?.periodBalance ?? 0} />
+          <BreakdownRow label="موجودی کیف پول" value={financial?.walletTotal ?? 0} />
+          <BreakdownRow
+            label="تفاوت مطابقت"
+            value={reconciliationDiff}
+            total
+          />
+        </div>
+        {hasReconciliationGap ? (
+          <p className="report-hint report-hint-warning">
+            تفاوت بین مانده محاسبه‌شده و موجودی کیف پول: {formatMoney(reconciliationDiff)}
+          </p>
+        ) : (
+          <p className="report-hint">مانده محاسبه‌شده با موجودی کیف پول مطابقت دارد.</p>
+        )}
+      </div>
+    </div>
+  );
+}
