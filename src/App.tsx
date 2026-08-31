@@ -5,7 +5,7 @@ import LoginPage from './components/LoginPage';
 import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel';
 import Layout from './components/Layout';
 import { useTokenRefresh } from './hooks/useTokenRefresh';
-import { hasStoredSession, isTokenValid } from './services/auth';
+import { hasStoredSession, isAuthError, isTokenValid } from './services/auth';
 import { refreshAccessTokenSilently } from './services/tokenRefresh';
 import { isConfigured } from './services/settings';
 import {
@@ -69,8 +69,13 @@ export default function App() {
 
   useTokenRefresh({
     clientId,
-    enabled: loggedIn && !needsReauth,
-    onRefreshFailed: () => setNeedsReauth(true),
+    enabled: hasStoredSession(),
+    onRefreshFailed: () => {
+      if (loggedIn) setNeedsReauth(true);
+    },
+    onRefreshSuccess: () => {
+      if (isTokenValid()) setNeedsReauth(false);
+    },
   });
 
   useEffect(() => {
@@ -122,12 +127,22 @@ export default function App() {
         }
       } catch (err) {
         if (!cancelled) {
-          setLoggedIn(false);
-          setNeedsReauth(true);
-          setNeedsSheetSetup(false);
-          setSheetError(
-            err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت'
-          );
+          const message =
+            err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت';
+          if (isAuthError(err)) {
+            setLoggedIn(false);
+            setNeedsReauth(true);
+            setNeedsSheetSetup(false);
+          } else if (isTokenValid()) {
+            setLoggedIn(true);
+            setNeedsReauth(false);
+            setNeedsSheetSetup(false);
+          } else {
+            setLoggedIn(false);
+            setNeedsReauth(true);
+            setNeedsSheetSetup(false);
+          }
+          setSheetError(message);
         }
       }
 
