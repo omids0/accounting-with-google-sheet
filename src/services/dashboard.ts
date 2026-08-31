@@ -3,7 +3,9 @@ import type {
   CategorySummary,
   CustomForm,
   DashboardData,
+  FinancialSummary,
   MonthlyFlow,
+  NetAvailableConfig,
 } from '../types';
 import type { DateRange } from '../utils/dateRange';
 import { getJalaliParts } from '../utils/jalaliDate';
@@ -29,6 +31,28 @@ import { fetchRecords } from './sheets';
 import { fetchTgjuPrices } from './tgju';
 import { computeHoldings, fetchVaultTransactions } from './treasury';
 import { fetchWalletAccounts } from './wallet';
+import { getDefaultNetAvailableConfig } from './settings';
+
+export function applyNetAvailableConfig(
+  financial: Omit<FinancialSummary, 'totalAssets' | 'totalLiabilities' | 'netAvailable'>,
+  config: NetAvailableConfig = getDefaultNetAvailableConfig()
+): Pick<FinancialSummary, 'totalAssets' | 'totalLiabilities' | 'netAvailable'> {
+  const totalAssets =
+    (config.assets.wallet ? financial.walletTotal : 0) +
+    (config.assets.treasury ? financial.treasuryTotal : 0) +
+    (config.assets.receivables ? financial.receivablesTotal : 0);
+
+  const totalLiabilities =
+    (config.liabilities.installments ? financial.installmentsDue : 0) +
+    (config.liabilities.dangs ? financial.dangsTotal : 0) +
+    (config.liabilities.checks ? financial.checksDue : 0);
+
+  return {
+    totalAssets,
+    totalLiabilities,
+    netAvailable: totalAssets - totalLiabilities,
+  };
+}
 
 function getDateFieldId(form: CustomForm | undefined): string {
   return form?.fields.find((f) => f.type === 'date')?.id ?? 'date';
@@ -112,7 +136,8 @@ export async function loadDashboardData(
   settings: AppSettings,
   range: DateRange,
   installmentRange: DateRange = range,
-  monthlyFlowYear: number = getJalaliParts(new Date()).year
+  monthlyFlowYear: number = getJalaliParts(new Date()).year,
+  netAvailableConfig: NetAvailableConfig = getDefaultNetAvailableConfig()
 ): Promise<DashboardData> {
   const incomeForm = settings.forms.find((f) => f.type === 'income');
   const expenseForm = settings.forms.find((f) => f.type === 'expense');
@@ -196,12 +221,21 @@ export async function loadDashboardData(
     (s, r) => s + remainingAmount(r),
     0
   );
-  const totalAssets = walletTotal + treasuryTotal + receivablesTotal;
   const installmentsDue = totalUnpaidInstallments(installmentPlans, installmentRange);
   const checksDue = totalUnpaidChecksInRange(checks, installmentRange);
   const dangsTotal = unpaidDangTotal(dangs);
-  const totalLiabilities = installmentsDue + dangsTotal + checksDue;
-  const netAvailable = totalAssets - totalLiabilities;
+  const rawFinancial = {
+    walletTotal,
+    treasuryTotal,
+    receivablesTotal,
+    installmentsDue,
+    dangsTotal,
+    checksDue,
+  };
+  const { totalAssets, totalLiabilities, netAvailable } = applyNetAvailableConfig(
+    rawFinancial,
+    netAvailableConfig
+  );
 
   const openingBalance = resolvedOpeningBalance.amount;
   const periodBalance = openingBalance + totalIncome - totalExpense;
@@ -244,13 +278,8 @@ export async function loadDashboardData(
     monthKey,
     monthLabel: formatJalaliMonthLabel(monthKey),
     financial: {
-      walletTotal,
-      treasuryTotal,
-      receivablesTotal,
+      ...rawFinancial,
       totalAssets,
-      installmentsDue,
-      dangsTotal,
-      checksDue,
       totalLiabilities,
       netAvailable,
     },

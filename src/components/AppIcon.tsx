@@ -188,7 +188,7 @@ export default function AppIcon({
     case 'back':
       return (
         <svg {...props}>
-          <path d="M10 6.5 15.5 12 10 17.5" />
+          <path d="M14 6.5 8.5 12 14 17.5" />
         </svg>
       );
 

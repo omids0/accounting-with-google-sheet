@@ -9,6 +9,7 @@ import ReceivablesPage from './ReceivablesPage';
 import TreasuryPage from './TreasuryPage';
 import WalletPage from './WalletPage';
 import OpeningBalancePage from './OpeningBalancePage';
+import NetAvailableSettingsPage from './NetAvailableSettingsPage';
 import SettingsPage from './SettingsPage';
 import PageSpeedDial from './PageSpeedDial';
 import AppIcon from './AppIcon';
@@ -26,7 +27,8 @@ type Tab =
   | 'receivables'
   | 'treasury'
   | 'wallet'
-  | 'opening-balances';
+  | 'opening-balances'
+  | 'net-available-settings';
 
 const SPEED_DIAL_TABS: Tab[] = [
   'installments',
@@ -61,6 +63,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     treasury: 'صندوقچه',
     wallet: 'کیف پول',
     'opening-balances': 'موجودی اول دوره',
+    'net-available-settings': 'دارایی قابل اتکا',
   };
 
   const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
@@ -97,9 +100,16 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [menuOpen]);
 
+  const showHeaderBack =
+    !showSettings &&
+    (tab === 'records' ||
+      tab === 'entry' ||
+      tab === 'opening-balances' ||
+      tab === 'net-available-settings');
+
   return (
     <div className="app-layout">
-      <header className="app-header">
+      <header className={`app-header${showHeaderBack ? ' app-header--with-back' : ''}`}>
         <button
           type="button"
           className={`header-icon-btn header-icon-btn--menu${menuOpen ? ' active' : ''}`}
@@ -110,22 +120,24 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         >
           <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
         </button>
-        <div className="app-header-start">
-          {!showSettings && (tab === 'records' || tab === 'entry' || tab === 'opening-balances') && (
-            <button
-              type="button"
-              className="header-icon-btn header-icon-btn--menu"
-              onClick={() =>
-                handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
-              }
-              aria-label={tab === 'opening-balances' ? 'بازگشت به کیف پول' : 'بازگشت به داشبورد'}
-              title="بازگشت"
-            >
-              <AppIcon name="back" size={20} strokeWidth={2} />
-            </button>
-          )}
-          <h1>{showSettings ? 'تنظیمات' : titles[tab]}</h1>
-        </div>
+        <h1 className="app-header-title">{showSettings ? 'تنظیمات' : titles[tab]}</h1>
+        {showHeaderBack ? (
+          <button
+            type="button"
+            className="header-icon-btn header-back-btn"
+            onClick={() =>
+              handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
+            }
+            aria-label={
+              tab === 'opening-balances' ? 'بازگشت به کیف پول' : 'بازگشت به داشبورد'
+            }
+            title="بازگشت"
+          >
+            <AppIcon name="back" size={20} strokeWidth={2} />
+          </button>
+        ) : (
+          <span className="header-icon-spacer" aria-hidden="true" />
+        )}
       </header>
 
       {menuOpen && (
@@ -180,6 +192,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                   onReauth={onReauth}
                   onViewRecords={openRecords}
                   onNavigate={handleTabChange}
+                  onConfigureNetAvailable={() => handleTabChange('net-available-settings')}
                 />
               )}
               {tab === 'entry' && (
@@ -203,6 +216,9 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                 />
               )}
               {tab === 'opening-balances' && <OpeningBalancePage onReauth={onReauth} />}
+              {tab === 'net-available-settings' && (
+                <NetAvailableSettingsPage onReauth={onReauth} />
+              )}
             </>
           )}
         </div>

@@ -28,6 +28,23 @@ export interface SpreadsheetEntry {
   createdAt: string;
 }
 
+export interface NetAvailableAssetConfig {
+  wallet: boolean;
+  treasury: boolean;
+  receivables: boolean;
+}
+
+export interface NetAvailableLiabilityConfig {
+  installments: boolean;
+  dangs: boolean;
+  checks: boolean;
+}
+
+export interface NetAvailableConfig {
+  assets: NetAvailableAssetConfig;
+  liabilities: NetAvailableLiabilityConfig;
+}
+
 export interface AppSettings {
   spreadsheetId: string;
   spreadsheets?: SpreadsheetEntry[];
@@ -36,6 +53,7 @@ export interface AppSettings {
   receivableCategories?: string[];
   currency?: CurrencyUnit;
   theme?: ThemeMode;
+  netAvailableConfig?: NetAvailableConfig;
 }
 
 export interface GoogleSession {

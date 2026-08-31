@@ -9,7 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { getSettings, isConfigured } from '../services/settings';
+import { getSettings, isConfigured, getNetAvailableConfig } from '../services/settings';
 import { loadDashboardData } from '../services/dashboard';
 import type { DashboardData, DashboardNavTarget, MonthlyFlow } from '../types';
 import { isTokenValid } from '../services/auth';
@@ -34,6 +34,7 @@ import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import { showError } from '../utils/toast';
 import MoneyDisplay from './MoneyDisplay';
+import CardEditButton from './CardEditButton';
 
 const INCOME_COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
 const EXPENSE_COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
@@ -249,10 +250,12 @@ export default function DashboardPage({
   onReauth,
   onViewRecords,
   onNavigate,
+  onConfigureNetAvailable,
 }: {
   onReauth?: () => void;
   onViewRecords?: (formType?: 'income' | 'expense') => void;
   onNavigate?: (target: DashboardNavTarget) => void;
+  onConfigureNetAvailable?: () => void;
 }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -283,7 +286,8 @@ export default function DashboardPage({
         settings,
         range,
         installmentRange,
-        monthlyFlowYear
+        monthlyFlowYear,
+        getNetAvailableConfig()
       );
       setData(dash);
     } catch (err) {
@@ -367,14 +371,22 @@ export default function DashboardPage({
       </div>
 
       <div className="card dashboard-hero-card">
-        <div className="dashboard-hero-label">دارایی قابل اتکا</div>
+        <div className="dashboard-hero-header">
+          <div className="dashboard-hero-label">دارایی قابل اتکا</div>
+          {onConfigureNetAvailable && (
+            <CardEditButton
+              onClick={onConfigureNetAvailable}
+              ariaLabel="تنظیم دارایی قابل اتکا"
+            />
+          )}
+        </div>
         <MoneyDisplay
           amount={financial?.netAvailable ?? 0}
           size="hero"
           tone="hero"
         />
         <p className="dashboard-hero-hint">
-          مجموع دارایی‌ها منهای بدهی‌های پیش‌رو این دوره
+          مجموع دارایی‌های انتخاب‌شده منهای بدهی‌های انتخاب‌شده
         </p>
       </div>
 

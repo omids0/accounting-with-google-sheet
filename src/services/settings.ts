@@ -3,6 +3,7 @@ import type {
   CurrencyUnit,
   CustomForm,
   FieldConfig,
+  NetAvailableConfig,
   SpreadsheetEntry,
   ThemeMode,
 } from '../types';
@@ -249,4 +250,36 @@ export function getReceivableCategories(): string[] {
 export function updateReceivableCategories(categories: string[]): void {
   const settings = getSettings() ?? getDefaultSettings();
   saveSettings({ ...settings, receivableCategories: categories });
+}
+
+export function getDefaultNetAvailableConfig(): NetAvailableConfig {
+  return {
+    assets: {
+      wallet: true,
+      treasury: true,
+      receivables: true,
+    },
+    liabilities: {
+      installments: true,
+      dangs: true,
+      checks: true,
+    },
+  };
+}
+
+export function getNetAvailableConfig(): NetAvailableConfig {
+  const stored = getSettings()?.netAvailableConfig;
+  if (!stored) return getDefaultNetAvailableConfig();
+  return {
+    assets: { ...getDefaultNetAvailableConfig().assets, ...stored.assets },
+    liabilities: {
+      ...getDefaultNetAvailableConfig().liabilities,
+      ...stored.liabilities,
+    },
+  };
+}
+
+export function updateNetAvailableConfig(config: NetAvailableConfig): void {
+  const settings = getSettings() ?? getDefaultSettings();
+  saveSettings({ ...settings, netAvailableConfig: config });
 }
