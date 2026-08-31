@@ -7,16 +7,20 @@ interface UseTokenRefreshOptions {
   clientId: string;
   enabled: boolean;
   onRefreshFailed?: () => void;
+  onRefreshSuccess?: () => void;
 }
 
 export function useTokenRefresh({
   clientId,
   enabled,
   onRefreshFailed,
+  onRefreshSuccess,
 }: UseTokenRefreshOptions): void {
   const { scriptLoadedSuccessfully } = useGoogleOAuth();
   const onRefreshFailedRef = useRef(onRefreshFailed);
   onRefreshFailedRef.current = onRefreshFailed;
+  const onRefreshSuccessRef = useRef(onRefreshSuccess);
+  onRefreshSuccessRef.current = onRefreshSuccess;
 
   useEffect(() => {
     if (!enabled || !scriptLoadedSuccessfully || !clientId || !hasStoredSession()) {
@@ -38,6 +42,7 @@ export function useTokenRefresh({
       if (cancelled) return;
 
       if (ok) {
+        onRefreshSuccessRef.current?.();
         scheduleNextRefresh();
         return;
       }

@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const basePath = process.env.VITE_BASE_PATH ?? '/';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: basePath,
   plugins: [
     react(),
@@ -56,7 +56,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns:
+          command === 'serve'
+            ? []
+            : ['**/*.{js,css,html,ico,png,svg,woff2}'],
         importScripts: ['push-handler.js'],
         runtimeCaching: [
           {
@@ -67,4 +70,4 @@ export default defineConfig({
       },
     }),
   ],
-});
+}));

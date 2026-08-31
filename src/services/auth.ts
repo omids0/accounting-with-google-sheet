@@ -18,10 +18,18 @@ export function getSession(): GoogleSession | null {
   return getItem<GoogleSession>(STORAGE_KEYS.SESSION);
 }
 
+/** Small grace for clock skew; proactive refresh runs at TOKEN_REFRESH_BUFFER_MS. */
+const TOKEN_VALIDITY_GRACE_MS = 5_000;
+
 export function isTokenValid(): boolean {
   const session = getSession();
   if (!session?.accessToken || !session?.tokenExpiry) return false;
-  return Date.now() < session.tokenExpiry - 60_000;
+  return Date.now() < session.tokenExpiry - TOKEN_VALIDITY_GRACE_MS;
+}
+
+export function isAuthError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /منقضی|401|invalid credentials|unauthenticated|invalid_grant/i.test(msg);
 }
 
 export function hasStoredSession(): boolean {

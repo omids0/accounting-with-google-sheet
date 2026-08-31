@@ -78,12 +78,23 @@ export async function syncOperation(
   );
 }
 
+const SYNC_DEBOUNCE_MS = 3_000;
+let syncDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+let pendingSyncDate: string | undefined;
+
 export function recordOperation(date: string = getTodayIso()): void {
   const state = getState();
   saveState({ ...state, lastOperationDate: date });
 
   const spreadsheetId = getSettings()?.spreadsheetId;
-  if (spreadsheetId) {
-    void syncOperation(spreadsheetId, date);
-  }
+  if (!spreadsheetId) return;
+
+  pendingSyncDate = date;
+  if (syncDebounceTimer !== undefined) clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(() => {
+    const syncDate = pendingSyncDate ?? date;
+    pendingSyncDate = undefined;
+    syncDebounceTimer = undefined;
+    void syncOperation(spreadsheetId, syncDate);
+  }, SYNC_DEBOUNCE_MS);
 }
