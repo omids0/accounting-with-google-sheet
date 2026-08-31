@@ -732,28 +732,38 @@ button {
   color: white;
   padding: 0.65rem 1rem;
   padding-top: max(0.65rem, env(safe-area-inset-top));
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
   position: sticky;
   top: 0;
   z-index: 30;
 }
 
-.app-header-start {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.app-header h1 {
+.app-header-title {
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  text-align: start;
+}
+
+.app-header--with-back .app-header-title {
+  text-align: center;
+}
+
+.header-icon-spacer {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+}
+
+.header-back-btn {
+  color: white;
 }
 
 .app-menu-backdrop {
@@ -3021,6 +3031,35 @@ button {
   border: none;
   margin-bottom: 1rem;
   box-shadow: 0 8px 28px rgba(15, 118, 110, 0.3);
+  position: relative;
+}
+
+.dashboard-hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-hero-header .dashboard-hero-label {
+  margin-bottom: 0;
+}
+
+.dashboard-hero-header .card-action-btn {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.dashboard-hero-header .card-action-btn:hover:not(:disabled) {
+  color: white;
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .dashboard-hero-label {
@@ -3034,6 +3073,51 @@ button {
   font-size: 0.72rem;
   opacity: 0.85;
   margin: 0;
+}
+
+.net-available-settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.net-available-settings-page > .card {
+  margin-bottom: 0;
+}
+
+.net-available-preview-card {
+  margin-bottom: 0;
+}
+
+.net-available-section-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.toggle-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.toggle-chip-grid button {
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  transition: background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.toggle-chip-grid button.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 
 .dashboard-assets-card {
