@@ -19,9 +19,11 @@ import { fetchTgjuPrices } from '../../services/tgju';
 import { getDateRange } from '../../utils/dateRange';
 import { formatMoney } from '../../utils/formatMoney';
 import { formatIsoDatePersian } from '../../utils/jalaliDate';
+import { distributionSparkline } from '../../utils/sparklineData';
 import { showError, showSuccess } from '../../utils/toast';
 import { InstallmentCardListSkeleton } from '../skeleton';
-import MoneyDisplay from '../MoneyDisplay';
+import StatCard from '../StatCard';
+import TransactionListItem from '../TransactionListItem';
 import ReportToolbar from './ReportToolbar';
 import ConfirmActionModal from '../ConfirmActionModal';
 
@@ -268,32 +270,43 @@ export default function ModuleReportPage({
         </button>
       </div>
 
-      <div className="stat-card stat-card-wide">
-        <span className="stat-label">مجموع</span>
-        <MoneyDisplay amount={data?.total ?? 0} size="stat-wide" tone="primary" />
-      </div>
+      <StatCard
+        label="مجموع"
+        amount={data?.total ?? 0}
+        variant="balance"
+        wide
+        sparklineData={distributionSparkline(data?.rows.map((row) => row.amount) ?? [])}
+        animateIndex={0}
+      />
 
       {data?.secondaryLabel && data.secondaryTotal != null && (
-        <div className="stat-card stat-card-wide">
-          <span className="stat-label">{data.secondaryLabel}</span>
-          <MoneyDisplay amount={data.secondaryTotal} size="stat-wide" tone="income" />
-        </div>
+        <StatCard
+          label={data.secondaryLabel}
+          amount={data.secondaryTotal}
+          variant="income"
+          wide
+          sparklineData={distributionSparkline(
+            data.rows.filter((row) => row.amount > 0).map((row) => row.amount)
+          )}
+          animateIndex={1}
+        />
       )}
 
       <div className="card">
         {!data?.rows.length ? (
           <p className="empty-text">موردی برای نمایش وجود ندارد</p>
         ) : (
-          data.rows.map((row) => (
-            <div key={row.id} className="record-item">
-              <div className="record-item-main">
-                <div className="record-item-title">{row.title}</div>
-                <div className="record-item-meta">{row.subtitle}</div>
-              </div>
+          data.rows.map((row, index) => (
+            <TransactionListItem
+              key={row.id}
+              title={row.title}
+              meta={row.subtitle}
+              index={index}
+            >
               <span className="asset-value" dir="ltr">
                 {formatMoney(row.amount)}
               </span>
-            </div>
+            </TransactionListItem>
           ))
         )}
       </div>

@@ -20,6 +20,7 @@ import {
 } from '../services/monthlyBalance';
 import AmountInput from './AmountInput';
 import { formatMoney } from '../utils/formatMoney';
+import { distributionSparkline, flowTrendSparkline } from '../utils/sparklineData';
 import { InstallmentCardListSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
@@ -34,6 +35,7 @@ import { AccordionCollapse } from './AccordionCollapse';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
+import StatCard from './StatCard';
 import { matchSearch } from '../utils/search';
 
 type WalletAccountWithRow = WalletAccount & { rowNumber: number };
@@ -370,7 +372,7 @@ export default function WalletPage({
       />
 
       {periodFlow && (
-        <div className={`card installment-card dashboard-opening-card wallet-item-card${openingExpanded ? ' installment-card--expanded' : ''}`}>
+        <div className={`card installment-card interactive-card dashboard-opening-card wallet-item-card${openingExpanded ? ' installment-card--expanded' : ''}`}>
           <button
             type="button"
             className={`installment-header wallet-item-header${openingExpanded ? ' installment-header--expanded' : ''}`}
@@ -437,7 +439,7 @@ export default function WalletPage({
           const displayBalance = rawBalance === '' ? account.balance : Number(rawBalance);
 
           return (
-            <div key={account.id} className={`card installment-card wallet-item-card${expanded ? ' installment-card--expanded' : ''}`}>
+            <div key={account.id} className={`card installment-card interactive-card wallet-item-card${expanded ? ' installment-card--expanded' : ''}`}>
               <div className="card-header-with-edit">
                 <button
                   type="button"
@@ -491,10 +493,22 @@ export default function WalletPage({
       )}
 
       {items.length > 0 && (
-        <div className="card receivable-total-card">
-          <div className="receivable-total-label">مجموع کل حساب‌ها</div>
-          <div className="receivable-total-amount">{formatMoney(totalBalance)}</div>
-        </div>
+        <StatCard
+          label="مجموع کل حساب‌ها"
+          amount={totalBalance}
+          variant="balance"
+          wide
+          sparklineData={
+            periodFlow
+              ? flowTrendSparkline(
+                  periodFlow.openingBalance,
+                  periodFlow.totalIncome,
+                  periodFlow.totalExpense
+                )
+              : distributionSparkline(items.map((item) => item.balance))
+          }
+          className="receivable-total-card"
+        />
       )}
 
       {hasReconciliationGap && (

@@ -20,6 +20,7 @@ import AmountInput from './AmountInput';
 import JalaliDatePicker from './JalaliDatePicker';
 import { DangCardListSkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
+import { distributionSparkline } from '../utils/sparklineData';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import {
   formatJalaliMonthLabel,
@@ -38,6 +39,7 @@ import ConfirmActionModal from './ConfirmActionModal';
 import PageHeader from './PageHeader';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
+import StatCard from './StatCard';
 import { matchSearch } from '../utils/search';
 
 type CheckWithRow = Check & { rowNumber: number };
@@ -350,7 +352,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className={`card dang-card${item.paid ? ' paid' : ''}`}
+              className={`card dang-card interactive-card${item.paid ? ' paid' : ''}`}
             >
               <input
                 type="checkbox"
@@ -394,28 +396,26 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
             </div>
           ))}
 
-          <div className="card installment-month-summary">
-            <h3 className="card-title" style={{ fontSize: '0.9rem' }}>
-              خلاصه {monthLabel}
-            </h3>
-            <div className="installment-month-summary-rows">
-              <div className="installment-month-summary-row">
-                <span className="installment-month-summary-label">
-                  مجموع چک‌های این ماه
-                </span>
-                <span className="installment-month-summary-value" dir="ltr">
-                  {formatMoney(monthTotals.total)}
-                </span>
-              </div>
-              <div className="installment-month-summary-row">
-                <span className="installment-month-summary-label">
-                  پرداخت‌نشده تا پایان ماه
-                </span>
-                <span className="installment-month-summary-value unpaid" dir="ltr">
-                  {formatMoney(monthTotals.unpaid)}
-                </span>
-              </div>
-            </div>
+          <div className="stat-grid dashboard-stat-grid">
+            <StatCard
+              label={`مجموع چک‌های ${monthLabel}`}
+              amount={monthTotals.total}
+              variant="default"
+              tone="primary"
+              sparklineData={distributionSparkline(items.map((item) => item.amount))}
+              animateIndex={0}
+              lift
+            />
+            <StatCard
+              label="پرداخت‌نشده تا پایان ماه"
+              amount={monthTotals.unpaid}
+              variant="expense"
+              sparklineData={distributionSparkline(
+                items.filter((item) => !item.paid).map((item) => item.amount)
+              )}
+              animateIndex={1}
+              lift
+            />
           </div>
         </>
       )}

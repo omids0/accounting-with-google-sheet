@@ -5,9 +5,10 @@ import { isTokenValid } from '../../services/auth';
 import type { MonthlyFlow } from '../../types';
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange';
 import { formatMoney } from '../../utils/formatMoney';
+import { monthlySparkline } from '../../utils/sparklineData';
 import { showError } from '../../utils/toast';
 import { DashboardSkeleton } from '../skeleton';
-import MoneyDisplay from '../MoneyDisplay';
+import StatCard from '../StatCard';
 import YearFilter, { getDefaultChartYear } from '../YearFilter';
 import { IncomeExpenseMonthlyChart } from '../charts';
 import ReportToolbar, { useReportDateFilter } from './ReportToolbar';
@@ -64,6 +65,10 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
     { income: 0, expense: 0, net: 0 }
   );
 
+  const incomeSparkline = monthlySparkline(monthlyFlow, 'income');
+  const expenseSparkline = monthlySparkline(monthlyFlow, 'expense');
+  const netSparkline = monthlySparkline(monthlyFlow, 'net');
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -90,28 +95,33 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
       />
 
       <div className="stat-grid dashboard-stat-grid">
-        <div className="stat-card stat-income">
-          <span className="stat-label">کل درآمد سال</span>
-          <MoneyDisplay amount={totals.income} size="stat" tone="income" />
-        </div>
-        <div className="stat-card stat-expense">
-          <span className="stat-label">کل هزینه سال</span>
-          <MoneyDisplay amount={totals.expense} size="stat" tone="expense" />
-        </div>
-      </div>
-
-      <div
-        className={`stat-card stat-flow stat-card-wide${
-          totals.net < 0 ? ' stat-flow-negative' : totals.net > 0 ? ' stat-flow-positive' : ''
-        }`}
-      >
-        <span className="stat-label">خالص سال</span>
-        <MoneyDisplay
-          amount={totals.net}
-          size="stat-wide"
-          tone={totals.net < 0 ? 'negative' : totals.net > 0 ? 'positive' : 'primary'}
+        <StatCard
+          label="کل درآمد سال"
+          amount={totals.income}
+          variant="income"
+          sparklineData={incomeSparkline}
+          animateIndex={0}
+          lift
+        />
+        <StatCard
+          label="کل هزینه سال"
+          amount={totals.expense}
+          variant="expense"
+          sparklineData={expenseSparkline}
+          animateIndex={1}
+          lift
         />
       </div>
+
+      <StatCard
+        label="خالص سال"
+        amount={totals.net}
+        variant="flow"
+        wide
+        flowDirection={totals.net < 0 ? 'negative' : totals.net > 0 ? 'positive' : 'neutral'}
+        sparklineData={netSparkline}
+        animateIndex={2}
+      />
 
       <IncomeExpenseMonthlyChart
         data={monthlyFlow}
@@ -133,8 +143,8 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
       {!!monthlyFlow.length && (
         <div className="card">
           <h3 className="chart-title">جدول ماهانه</h3>
-          {monthlyFlow.map((item) => (
-            <div key={item.monthKey} className="report-table-row">
+          {monthlyFlow.map((item, index) => (
+            <div key={item.monthKey} className="report-table-row" style={{ animationDelay: `${index * 0.03}s` }}>
               <span className="report-table-label">{item.label}</span>
               <span className="report-table-values" dir="ltr">
                 <span className="report-value-income">{formatMoney(item.income)}</span>

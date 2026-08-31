@@ -27,6 +27,7 @@ import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import AppIcon from './AppIcon';
+import TransactionListItem from './TransactionListItem';
 
 interface RecordItem {
   id: string;
@@ -432,7 +433,7 @@ export default function RecordsPage({
               </span>
             )}
           </div>
-          {filteredRecords.map((record) => {
+          {filteredRecords.map((record, index) => {
             const form = forms.find((f) => f.id === record.formId);
             if (!form) return null;
 
@@ -454,15 +455,19 @@ export default function RecordsPage({
             const isIncome = form.type === 'income';
 
             return (
-              <div key={`${record.formId}-${record.id}`} className="record-item">
-                <div className="record-item-main">
-                  <div className="record-item-title">{title}</div>
-                  <div className="record-item-meta">
+              <TransactionListItem
+                key={`${record.formId}-${record.id}`}
+                title={String(title)}
+                meta={
+                  <>
                     {isAllForms && `${record.formName} · `}
                     {date ? formatIsoDatePersian(date) : record.createdAt}
                     {category && ` · ${category}`}
-                  </div>
-                </div>
+                  </>
+                }
+                tone={isIncome ? 'income' : form.type === 'expense' ? 'expense' : 'neutral'}
+                index={index}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {amount && (
                     <div
@@ -484,7 +489,7 @@ export default function RecordsPage({
                     <CardDeleteButton onClick={() => openDeleteConfirm(record)} />
                   </div>
                 </div>
-              </div>
+              </TransactionListItem>
             );
           })}
         </div>

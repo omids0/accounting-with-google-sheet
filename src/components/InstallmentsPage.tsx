@@ -25,6 +25,7 @@ import {
 import AmountInput from './AmountInput';
 import { InstallmentCardListSkeleton } from './skeleton';
 import { formatMoney } from '../utils/formatMoney';
+import { distributionSparkline } from '../utils/sparklineData';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import {
   formatJalaliMonthLabel,
@@ -42,8 +43,10 @@ import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import PageHeader from './PageHeader';
+import StatCard from './StatCard';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
+import ProgressBar from './ProgressBar';
 import { matchSearch } from '../utils/search';
 
 type PlanWithRow = InstallmentPlan & { rowNumber: number };
@@ -443,7 +446,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       ) : filteredPlans.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        filteredPlans.map((plan) => {
+        filteredPlans.map((plan, index) => {
           const expanded = expandedId === plan.id;
           const done = paidCount(plan);
           const total = plan.count;
@@ -453,7 +456,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
           return (
             <div
               key={plan.id}
-              className={`card installment-card${complete ? ' installment-complete' : ''}${expanded ? ' installment-card--expanded' : ''}`}
+              className={`card installment-card interactive-card${complete ? ' installment-complete' : ''}${expanded ? ' installment-card--expanded' : ''}`}
             >
               <div className="card-header-with-edit">
                 <button
@@ -470,9 +473,12 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
                       {formatMoney(plan.amount)}
                       {complete ? ' · تکمیل شده' : ` · ${done}/${total} پرداخت شده`}
                     </div>
-                    <div className="installment-progress">
-                      <div className="installment-progress-bar" style={{ width: `${progress}%` }} />
-                    </div>
+                    <ProgressBar
+                      value={progress}
+                      variant={complete ? 'complete' : progress >= 100 ? 'success' : 'default'}
+                      animateIndex={index}
+                      aria-label={`پیشرفت پرداخت ${plan.title}`}
+                    />
                   </div>
                   <span className="installment-chevron">▼</span>
                 </button>
@@ -575,24 +581,30 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       )}
 
       {plans.length > 0 && (
-        <div className="card installment-month-summary">
-          <h3 className="card-title" style={{ fontSize: '0.9rem' }}>
-            خلاصه {monthLabel}
-          </h3>
-          <div className="installment-month-summary-rows">
-            <div className="installment-month-summary-row">
-              <span className="installment-month-summary-label">مجموع اقساط این ماه</span>
-              <span className="installment-month-summary-value" dir="ltr">
-                {formatMoney(monthTotals.total)}
-              </span>
-            </div>
-            <div className="installment-month-summary-row">
-              <span className="installment-month-summary-label">پرداخت‌نشده این ماه</span>
-              <span className="installment-month-summary-value unpaid" dir="ltr">
-                {formatMoney(monthTotals.unpaid)}
-              </span>
-            </div>
-          </div>
+        <div className="stat-grid dashboard-stat-grid">
+          <StatCard
+            label={`مجموع اقساط ${monthLabel}`}
+            amount={monthTotals.total}
+            variant="default"
+            tone="primary"
+            sparklineData={distributionSparkline(monthPlans.map((plan) => plan.amount))}
+            animateIndex={0}
+            lift
+          />
+          <StatCard
+            label="پرداخت‌نشده این ماه"
+            amount={monthTotals.unpaid}
+            variant="expense"
+            sparklineData={distributionSparkline(
+              monthPlans.flatMap((plan) =>
+                plan.payments
+                  .filter((payment) => !payment.paid)
+                  .map((payment) => payment.amount ?? plan.amount)
+              )
+            )}
+            animateIndex={1}
+            lift
+          />
         </div>
       )}
 

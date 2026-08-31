@@ -7,7 +7,7 @@ import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRa
 import { formatMoney } from '../../utils/formatMoney';
 import { showError } from '../../utils/toast';
 import { DashboardSkeleton } from '../skeleton';
-import MoneyDisplay from '../MoneyDisplay';
+import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay';
 import ReportToolbar, { useReportDateFilter } from './ReportToolbar';
 
 function BreakdownRow({
@@ -99,7 +99,7 @@ export default function AssetsLiabilitiesReportPage({ onReauth }: { onReauth?: (
 
       <div className="card dashboard-hero-card">
         <div className="dashboard-hero-label">تراز خالص</div>
-        <MoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
+        <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
         <p className="dashboard-hero-hint">دارایی‌ها منهای بدهی‌ها (بر اساس تنظیمات دارایی قابل اتکا)</p>
       </div>
 

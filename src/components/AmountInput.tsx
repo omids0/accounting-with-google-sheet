@@ -41,7 +41,7 @@ export default function AmountInput({
         onBlur={onBlur}
         dir="ltr"
         placeholder="۰"
-        className={compact ? 'amount-input-compact' : undefined}
+        className={compact ? 'amount-input-compact numeric' : 'numeric'}
       />
       {!compact && words && (
         <p className="amount-words">

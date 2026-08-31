@@ -5,8 +5,11 @@ import { loadOpeningBalancesReport } from '../../services/reports';
 import type { MonthlyOpeningBalance } from '../../services/monthlyBalance';
 import { formatJalaliMonthLabel } from '../../utils/dateRange';
 import { formatMoney } from '../../utils/formatMoney';
+import { cumulativeSparkline } from '../../utils/sparklineData';
 import { showError } from '../../utils/toast';
 import { InstallmentCardListSkeleton } from '../skeleton';
+import StatCard from '../StatCard';
+import TransactionListItem from '../TransactionListItem';
 import ReportToolbar from './ReportToolbar';
 
 export default function OpeningBalanceReportPage({ onReauth }: { onReauth?: () => void }) {
@@ -41,6 +44,9 @@ export default function OpeningBalanceReportPage({ onReauth }: { onReauth?: () =
     load();
   }, [load]);
 
+  const latestAmount = items.length ? items[items.length - 1].amount : 0;
+  const balanceSparkline = cumulativeSparkline(items.map((item) => item.amount));
+
   if (!isConfigured()) {
     return (
       <div className="empty-state">
@@ -66,20 +72,32 @@ export default function OpeningBalanceReportPage({ onReauth }: { onReauth?: () =
         subtitle="تاریخچه موجودی ماهانه"
       />
 
+      {!!items.length && (
+        <StatCard
+          label="آخرین موجودی اول دوره"
+          amount={latestAmount}
+          variant="balance"
+          wide
+          sparklineData={balanceSparkline}
+          animateIndex={0}
+        />
+      )}
+
       <div className="card">
         {!items.length ? (
           <p className="empty-text">موجودی اول دوره‌ای ثبت نشده</p>
         ) : (
-          items.map((item) => (
-            <div key={item.monthKey} className="record-item">
-              <div className="record-item-main">
-                <div className="record-item-title">{formatJalaliMonthLabel(item.monthKey)}</div>
-                {item.note && <div className="record-item-meta">{item.note}</div>}
-              </div>
+          items.map((item, index) => (
+            <TransactionListItem
+              key={item.monthKey}
+              title={formatJalaliMonthLabel(item.monthKey)}
+              meta={item.note || undefined}
+              index={index}
+            >
               <span className="asset-value" dir="ltr">
                 {formatMoney(item.amount)}
               </span>
-            </div>
+            </TransactionListItem>
           ))
         )}
       </div>
