@@ -25,7 +25,8 @@ export type AppIconName =
   | 'pdf'
   | 'trash'
   | 'calculator'
-  | 'chevron-down';
+  | 'chevron-down'
+  | 'swap';
 
 interface AppIconProps {
   name: AppIconName;
@@ -308,6 +309,16 @@ export default function AppIcon({
       return (
         <svg {...props}>
           <path d="M6.5 9.5 12 15 17.5 9.5" />
+        </svg>
+      );
+
+    case 'swap':
+      return (
+        <svg {...props}>
+          <path d="M7 8.5h11" />
+          <path d="M15.5 6.5 18.5 8.5 15.5 10.5" />
+          <path d="M17 15.5H6" />
+          <path d="M8.5 13.5 5.5 15.5 8.5 17.5" />
         </svg>
       );
   }

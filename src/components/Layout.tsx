@@ -11,6 +11,7 @@ import WalletPage from './WalletPage';
 import OpeningBalancePage from './OpeningBalancePage';
 import NetAvailableSettingsPage from './NetAvailableSettingsPage';
 import LoanRequestCalculatorPage from './LoanRequestCalculatorPage';
+import CurrencyConverterPage from './CurrencyConverterPage';
 import SettingsPage from './SettingsPage';
 import PageSpeedDial from './PageSpeedDial';
 import AppIcon from './AppIcon';
@@ -30,9 +31,10 @@ type Tab =
   | 'wallet'
   | 'opening-balances'
   | 'net-available-settings'
-  | 'loan-calculator';
+  | 'loan-calculator'
+  | 'currency-converter';
 
-const CALCULATION_TABS: Tab[] = ['loan-calculator'];
+const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter'];
 
 const SPEED_DIAL_TABS: Tab[] = [
   'installments',
@@ -70,6 +72,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     'opening-balances': 'موجودی اول دوره',
     'net-available-settings': 'دارایی قابل اتکا',
     'loan-calculator': 'محاسبات درخواست وام',
+    'currency-converter': 'تبدیل ارز',
   };
 
   const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
@@ -82,6 +85,9 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     setShowSettings(false);
     setMenuOpen(false);
     if (newTab !== 'records') setRecordsFormType(undefined);
+    if (CALCULATION_TABS.includes(newTab)) {
+      setCalcMenuExpanded(true);
+    }
     setTab(newTab);
   };
 
@@ -179,22 +185,20 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                     isCalculationTab ? ' active' : ''
                   }`}
                   onClick={() => setCalcMenuExpanded((v) => !v)}
-                  aria-expanded={calcMenuExpanded || isCalculationTab}
+                  aria-expanded={calcMenuExpanded}
                 >
                   <span className="app-menu-item-icon">
                     <AppIcon name="calculator" size={20} strokeWidth={1.75} />
                   </span>
                   <span className="app-menu-item-label">محاسبات</span>
                   <span
-                    className={`app-menu-chevron${
-                      calcMenuExpanded || isCalculationTab ? ' expanded' : ''
-                    }`}
+                    className={`app-menu-chevron${calcMenuExpanded ? ' expanded' : ''}`}
                     aria-hidden="true"
                   >
                     <AppIcon name="chevron-down" size={16} strokeWidth={2} />
                   </span>
                 </button>
-                {(calcMenuExpanded || isCalculationTab) && (
+                {calcMenuExpanded && (
                   <div className="app-menu-submenu">
                     <button
                       type="button"
@@ -204,6 +208,15 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                       onClick={() => handleTabChange('loan-calculator')}
                     >
                       محاسبات درخواست وام
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'currency-converter' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('currency-converter')}
+                    >
+                      تبدیل ارز
                     </button>
                   </div>
                 )}
@@ -265,6 +278,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                 <NetAvailableSettingsPage onReauth={onReauth} />
               )}
               {tab === 'loan-calculator' && <LoanRequestCalculatorPage />}
+              {tab === 'currency-converter' && <CurrencyConverterPage />}
             </>
           )}
         </div>

@@ -1045,6 +1045,118 @@ button {
   text-align: center;
 }
 
+.currency-converter-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.currency-converter-form-card {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+}
+
+.currency-converter-select-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: end;
+  margin-bottom: 0.25rem;
+  position: relative;
+  z-index: 3;
+}
+
+.currency-converter-select-row .custom-select--open {
+  z-index: 30;
+}
+
+.currency-converter-result-card,
+.currency-converter-empty-card {
+  position: relative;
+  z-index: 1;
+}
+
+.currency-converter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.currency-converter-header .card-title {
+  margin: 0;
+}
+
+.currency-converter-header .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: auto;
+  white-space: nowrap;
+}
+
+.currency-converter-hint,
+.currency-converter-rate-line,
+.currency-converter-updated-at {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0 0 0.75rem;
+}
+
+.currency-converter-swap-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+  transition: background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.currency-converter-swap-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  transform: scale(1.04);
+}
+
+.currency-converter-result-card {
+  text-align: center;
+}
+
+.currency-converter-result-value {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  line-height: 1.35;
+}
+
+.currency-converter-empty-card {
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .currency-converter-select-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .currency-converter-swap-btn {
+    margin: 0 auto 0.5rem;
+    transform: rotate(90deg);
+  }
+
+  .currency-converter-swap-btn:hover {
+    transform: rotate(90deg) scale(1.04);
+  }
+}
+
 .header-icon-btn {
   width: 2.25rem;
   height: 2.25rem;
