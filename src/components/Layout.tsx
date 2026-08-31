@@ -13,6 +13,13 @@ import NetAvailableSettingsPage from './NetAvailableSettingsPage';
 import LoanRequestCalculatorPage from './LoanRequestCalculatorPage';
 import CurrencyConverterPage from './CurrencyConverterPage';
 import DateCalculatorPage from './DateCalculatorPage';
+import FinancialSummaryReportPage from './reports/FinancialSummaryReportPage';
+import IncomeExpenseReportPage from './reports/IncomeExpenseReportPage';
+import CashFlowReportPage from './reports/CashFlowReportPage';
+import DueDatesReportPage from './reports/DueDatesReportPage';
+import AssetsLiabilitiesReportPage from './reports/AssetsLiabilitiesReportPage';
+import OpeningBalanceReportPage from './reports/OpeningBalanceReportPage';
+import ModuleReportPage from './reports/ModuleReportPage';
 import SettingsPage from './SettingsPage';
 import PageSpeedDial from './PageSpeedDial';
 import AppIcon from './AppIcon';
@@ -34,9 +41,36 @@ type Tab =
   | 'net-available-settings'
   | 'loan-calculator'
   | 'currency-converter'
-  | 'date-calculator';
+  | 'date-calculator'
+  | 'report-financial-summary'
+  | 'report-income-expense'
+  | 'report-cash-flow'
+  | 'report-due-dates'
+  | 'report-assets-liabilities'
+  | 'report-opening-balances'
+  | 'report-wallet'
+  | 'report-treasury'
+  | 'report-receivables'
+  | 'report-dang'
+  | 'report-installments'
+  | 'report-checks';
 
 const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter', 'date-calculator'];
+
+const REPORT_TABS: Tab[] = [
+  'report-financial-summary',
+  'report-income-expense',
+  'report-cash-flow',
+  'report-due-dates',
+  'report-assets-liabilities',
+  'report-opening-balances',
+  'report-wallet',
+  'report-treasury',
+  'report-receivables',
+  'report-dang',
+  'report-installments',
+  'report-checks',
+];
 
 const SPEED_DIAL_TABS: Tab[] = [
   'installments',
@@ -57,6 +91,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false);
+  const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false);
   const [dataKey, setDataKey] = useState(0);
   const userName = getUserName();
   const userPicture = getUserPicture();
@@ -76,6 +111,18 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     'loan-calculator': 'محاسبات درخواست وام',
     'currency-converter': 'تبدیل ارز',
     'date-calculator': 'محاسبه تاریخ',
+    'report-financial-summary': 'خلاصه مالی',
+    'report-income-expense': 'درآمد و هزینه',
+    'report-cash-flow': 'جریان نقدی',
+    'report-due-dates': 'سررسیدها',
+    'report-assets-liabilities': 'دارایی و بدهی',
+    'report-opening-balances': 'موجودی اول دوره',
+    'report-wallet': 'گزارش کیف پول',
+    'report-treasury': 'گزارش صندوقچه',
+    'report-receivables': 'گزارش طلب‌ها',
+    'report-dang': 'گزارش بدهی‌ها',
+    'report-installments': 'گزارش اقساط',
+    'report-checks': 'گزارش چک‌ها',
   };
 
   const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
@@ -90,6 +137,9 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     if (newTab !== 'records') setRecordsFormType(undefined);
     if (CALCULATION_TABS.includes(newTab)) {
       setCalcMenuExpanded(true);
+    }
+    if (REPORT_TABS.includes(newTab)) {
+      setReportsMenuExpanded(true);
     }
     setTab(newTab);
   };
@@ -121,9 +171,11 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
       tab === 'entry' ||
       tab === 'opening-balances' ||
       tab === 'net-available-settings' ||
-      CALCULATION_TABS.includes(tab));
+      CALCULATION_TABS.includes(tab) ||
+      REPORT_TABS.includes(tab));
 
   const isCalculationTab = CALCULATION_TABS.includes(tab);
+  const isReportTab = REPORT_TABS.includes(tab);
 
   return (
     <div className="app-layout">
@@ -181,6 +233,142 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               </div>
             </div>
             <div className="app-menu-items">
+              <div className="app-menu-group">
+                <button
+                  type="button"
+                  className={`app-menu-item app-menu-item--parent${
+                    isReportTab ? ' active' : ''
+                  }`}
+                  onClick={() => setReportsMenuExpanded((v) => !v)}
+                  aria-expanded={reportsMenuExpanded}
+                >
+                  <span className="app-menu-item-icon">
+                    <AppIcon name="chart" size={20} strokeWidth={1.75} />
+                  </span>
+                  <span className="app-menu-item-label">گزارشات</span>
+                  <span
+                    className={`app-menu-chevron${reportsMenuExpanded ? ' expanded' : ''}`}
+                    aria-hidden="true"
+                  >
+                    <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+                  </span>
+                </button>
+                {reportsMenuExpanded && (
+                  <div className="app-menu-submenu">
+                    <div className="app-menu-submenu-label">خلاصه</div>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-financial-summary' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-financial-summary')}
+                    >
+                      خلاصه مالی
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-income-expense' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-income-expense')}
+                    >
+                      درآمد و هزینه
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-cash-flow' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-cash-flow')}
+                    >
+                      جریان نقدی
+                    </button>
+                    <div className="app-menu-submenu-label">ترکیبی</div>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-due-dates' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-due-dates')}
+                    >
+                      سررسیدها
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-assets-liabilities' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-assets-liabilities')}
+                    >
+                      دارایی و بدهی
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-opening-balances' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-opening-balances')}
+                    >
+                      موجودی اول دوره
+                    </button>
+                    <div className="app-menu-submenu-label">تفصیلی</div>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-wallet' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-wallet')}
+                    >
+                      کیف پول
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-treasury' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-treasury')}
+                    >
+                      صندوقچه
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-receivables' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-receivables')}
+                    >
+                      طلب‌ها
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-dang' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-dang')}
+                    >
+                      بدهی‌ها
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-installments' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-installments')}
+                    >
+                      اقساط
+                    </button>
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        tab === 'report-checks' ? ' active' : ''
+                      }`}
+                      onClick={() => handleTabChange('report-checks')}
+                    >
+                      چک‌ها
+                    </button>
+                  </div>
+                )}
+              </div>
               <div className="app-menu-group">
                 <button
                   type="button"
@@ -292,6 +480,36 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               {tab === 'loan-calculator' && <LoanRequestCalculatorPage />}
               {tab === 'currency-converter' && <CurrencyConverterPage />}
               {tab === 'date-calculator' && <DateCalculatorPage />}
+              {tab === 'report-financial-summary' && (
+                <FinancialSummaryReportPage onReauth={onReauth} />
+              )}
+              {tab === 'report-income-expense' && (
+                <IncomeExpenseReportPage onReauth={onReauth} />
+              )}
+              {tab === 'report-cash-flow' && <CashFlowReportPage onReauth={onReauth} />}
+              {tab === 'report-due-dates' && <DueDatesReportPage onReauth={onReauth} />}
+              {tab === 'report-assets-liabilities' && (
+                <AssetsLiabilitiesReportPage onReauth={onReauth} />
+              )}
+              {tab === 'report-opening-balances' && (
+                <OpeningBalanceReportPage onReauth={onReauth} />
+              )}
+              {tab === 'report-wallet' && (
+                <ModuleReportPage kind="wallet" onReauth={onReauth} />
+              )}
+              {tab === 'report-treasury' && (
+                <ModuleReportPage kind="treasury" onReauth={onReauth} />
+              )}
+              {tab === 'report-receivables' && (
+                <ModuleReportPage kind="receivables" onReauth={onReauth} />
+              )}
+              {tab === 'report-dang' && <ModuleReportPage kind="dang" onReauth={onReauth} />}
+              {tab === 'report-installments' && (
+                <ModuleReportPage kind="installments" onReauth={onReauth} />
+              )}
+              {tab === 'report-checks' && (
+                <ModuleReportPage kind="checks" onReauth={onReauth} />
+              )}
             </>
           )}
         </div>

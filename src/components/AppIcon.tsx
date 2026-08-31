@@ -25,6 +25,7 @@ export type AppIconName =
   | 'pdf'
   | 'trash'
   | 'calculator'
+  | 'chart'
   | 'chevron-down'
   | 'swap';
 
@@ -302,6 +303,17 @@ export default function AppIcon({
           <circle cx="12" cy="15.5" r="1" fill="currentColor" stroke="none" />
           <circle cx="15.5" cy="15.5" r="1" fill="currentColor" stroke="none" />
           <path d="M8.5 18.5h7" />
+        </svg>
+      );
+
+    case 'chart':
+      return (
+        <svg {...props}>
+          <path d="M4.5 19.5V5.5" />
+          <path d="M4.5 19.5h15" />
+          <path d="M8 19.5V12" strokeWidth={2.5} />
+          <path d="M12 19.5V8.5" strokeWidth={2.5} />
+          <path d="M16 19.5V14" strokeWidth={2.5} />
         </svg>
       );
 

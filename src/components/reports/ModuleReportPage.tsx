@@ -1,0 +1,312 @@
+import { useCallback, useEffect, useState } from 'react';
+import type { AppIconName } from '../AppIcon';
+import AppIcon from '../AppIcon';
+import { getSettings, isConfigured } from '../../services/settings';
+import { isTokenValid } from '../../services/auth';
+import { exportChecksPdf } from '../../services/checks';
+import { exportDangsPdf } from '../../services/dang';
+import { exportInstallmentsPdf } from '../../services/installments';
+import { exportReceivablesPdf } from '../../services/receivables';
+import { exportTreasuryPdf } from '../../services/treasury';
+import { exportWalletAccountsPdf } from '../../services/wallet';
+import { fetchChecks, totalUnpaidChecksInRange } from '../../services/checks';
+import { fetchDangs, unpaidDangTotal } from '../../services/dang';
+import { fetchInstallmentPlans, totalUnpaidInstallments } from '../../services/installments';
+import { fetchReceivables, remainingAmount, paidAmount } from '../../services/receivables';
+import { computeHoldings, fetchVaultTransactions } from '../../services/treasury';
+import { fetchWalletAccounts } from '../../services/wallet';
+import { fetchTgjuPrices } from '../../services/tgju';
+import { getDateRange } from '../../utils/dateRange';
+import { formatMoney } from '../../utils/formatMoney';
+import { formatIsoDatePersian } from '../../utils/jalaliDate';
+import { showError, showSuccess } from '../../utils/toast';
+import { InstallmentCardListSkeleton } from '../skeleton';
+import MoneyDisplay from '../MoneyDisplay';
+import ReportToolbar from './ReportToolbar';
+import ConfirmActionModal from '../ConfirmActionModal';
+
+export type ModuleReportKind =
+  | 'wallet'
+  | 'treasury'
+  | 'receivables'
+  | 'dang'
+  | 'installments'
+  | 'checks';
+
+interface ModuleConfig {
+  title: string;
+  icon: AppIconName;
+  exportPdf: (spreadsheetId: string) => Promise<void>;
+}
+
+const MODULE_CONFIG: Record<ModuleReportKind, ModuleConfig> = {
+  wallet: { title: 'گزارش کیف پول', icon: 'wallet', exportPdf: exportWalletAccountsPdf },
+  treasury: { title: 'گزارش صندوقچه', icon: 'treasury', exportPdf: exportTreasuryPdf },
+  receivables: { title: 'گزارش طلب‌ها', icon: 'receivables', exportPdf: exportReceivablesPdf },
+  dang: { title: 'گزارش بدهی‌ها', icon: 'debt', exportPdf: exportDangsPdf },
+  installments: { title: 'گزارش اقساط', icon: 'installments', exportPdf: exportInstallmentsPdf },
+  checks: { title: 'گزارش چک‌ها', icon: 'checks', exportPdf: exportChecksPdf },
+};
+
+interface ReportRow {
+  id: string;
+  title: string;
+  subtitle: string;
+  amount: number;
+}
+
+interface ModuleReportData {
+  total: number;
+  secondaryTotal?: number;
+  secondaryLabel?: string;
+  rows: ReportRow[];
+}
+
+async function loadModuleReport(
+  spreadsheetId: string,
+  kind: ModuleReportKind
+): Promise<ModuleReportData> {
+  switch (kind) {
+    case 'wallet': {
+      const accounts = await fetchWalletAccounts(spreadsheetId);
+      const total = accounts.reduce((sum, account) => sum + account.balance, 0);
+      return {
+        total,
+        rows: accounts.map((account) => ({
+          id: account.id,
+          title: account.title,
+          subtitle: account.note || '—',
+          amount: account.balance,
+        })),
+      };
+    }
+    case 'treasury': {
+      const transactions = await fetchVaultTransactions(spreadsheetId);
+      const prices = await fetchTgjuPrices().catch(() => null);
+      const holdings = prices ? computeHoldings(transactions, prices) : [];
+      const total = holdings.reduce((sum, holding) => sum + holding.totalValue, 0);
+      return {
+        total,
+        rows: holdings.map((holding) => ({
+          id: holding.assetType,
+          title: holding.assetType,
+          subtitle: `موجودی: ${holding.netQuantity}`,
+          amount: holding.totalValue,
+        })),
+      };
+    }
+    case 'receivables': {
+      const items = await fetchReceivables(spreadsheetId);
+      const total = items.reduce((sum, item) => sum + remainingAmount(item), 0);
+      const paid = items.reduce((sum, item) => sum + paidAmount(item), 0);
+      return {
+        total,
+        secondaryTotal: paid,
+        secondaryLabel: 'تسویه‌شده',
+        rows: items.map((item) => ({
+          id: item.id,
+          title: item.debtor,
+          subtitle: `${item.category} · ${formatIsoDatePersian(item.borrowDate)}`,
+          amount: remainingAmount(item),
+        })),
+      };
+    }
+    case 'dang': {
+      const items = await fetchDangs(spreadsheetId);
+      const total = unpaidDangTotal(items);
+      return {
+        total,
+        rows: items
+          .filter((item) => !item.paid)
+          .map((item) => ({
+            id: item.id,
+            title: item.title,
+            subtitle: `${item.counterparty} · ${formatIsoDatePersian(item.date)}`,
+            amount: item.amount,
+          })),
+      };
+    }
+    case 'installments': {
+      const plans = await fetchInstallmentPlans(spreadsheetId);
+      const range = getDateRange('year-to-date');
+      const total = totalUnpaidInstallments(plans, range);
+      return {
+        total,
+        rows: plans.flatMap((plan) =>
+          plan.payments
+            .filter((payment) => !payment.paid)
+            .map((payment) => ({
+              id: `${plan.id}-${payment.n}`,
+              title: plan.title,
+              subtitle: `قسط ${payment.n} · ${formatIsoDatePersian(payment.dueDate)}`,
+              amount: payment.amount ?? plan.amount,
+            }))
+        ),
+      };
+    }
+    case 'checks': {
+      const items = await fetchChecks(spreadsheetId);
+      const range = getDateRange('year-to-date');
+      const total = totalUnpaidChecksInRange(items, range);
+      return {
+        total,
+        rows: items
+          .filter((item) => !item.paid)
+          .map((item) => ({
+            id: item.id,
+            title: item.counterparty || item.checkNumber,
+            subtitle: `سررسید ${formatIsoDatePersian(item.dueDate)}`,
+            amount: item.amount,
+          })),
+      };
+    }
+  }
+}
+
+export default function ModuleReportPage({
+  kind,
+  onReauth,
+}: {
+  kind: ModuleReportKind;
+  onReauth?: () => void;
+}) {
+  const config = MODULE_CONFIG[kind];
+  const [data, setData] = useState<ModuleReportData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!isConfigured() || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+    const settings = getSettings();
+    if (!settings?.spreadsheetId) return;
+
+    setLoading(true);
+    try {
+      const report = await loadModuleReport(settings.spreadsheetId, kind);
+      setData(report);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [kind, onReauth]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const handleExportPdf = async () => {
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    setExporting(true);
+    try {
+      await config.exportPdf(settings.spreadsheetId);
+      showSuccess('فایل PDF ایجاد شد');
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'خطا در خروجی PDF');
+    } finally {
+      setExporting(false);
+      setShowExportConfirm(false);
+    }
+  };
+
+  if (!isConfigured()) {
+    return (
+      <div className="empty-state">
+        <p>ابتدا با گوگل وارد شوید</p>
+      </div>
+    );
+  }
+
+  if (loading && !data) {
+    return <InstallmentCardListSkeleton count={3} />;
+  }
+
+  return (
+    <div className="dashboard-page report-page">
+      <ReportToolbar
+        title={config.title}
+        preset="month-to-date"
+        customRange={{ start: '', end: '' }}
+        onFilterChange={() => {}}
+        onRefresh={load}
+        loading={loading}
+        showDateFilter={false}
+      />
+
+      <div className="card report-export-card">
+        <div className="report-export-card-body">
+          <span className="report-export-icon">
+            <AppIcon name={config.icon} size={22} />
+          </span>
+          <div>
+            <div className="report-export-title">خروجی PDF</div>
+            <div className="report-export-hint">دانلود گزارش کامل این بخش</div>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={() => setShowExportConfirm(true)}
+          disabled={exporting}
+        >
+          <AppIcon name="pdf" size={16} />
+          PDF
+        </button>
+      </div>
+
+      <div className="stat-card stat-card-wide">
+        <span className="stat-label">مجموع</span>
+        <MoneyDisplay amount={data?.total ?? 0} size="stat-wide" tone="primary" />
+      </div>
+
+      {data?.secondaryLabel && data.secondaryTotal != null && (
+        <div className="stat-card stat-card-wide">
+          <span className="stat-label">{data.secondaryLabel}</span>
+          <MoneyDisplay amount={data.secondaryTotal} size="stat-wide" tone="income" />
+        </div>
+      )}
+
+      <div className="card">
+        {!data?.rows.length ? (
+          <p className="empty-text">موردی برای نمایش وجود ندارد</p>
+        ) : (
+          data.rows.map((row) => (
+            <div key={row.id} className="record-item">
+              <div className="record-item-main">
+                <div className="record-item-title">{row.title}</div>
+                <div className="record-item-meta">{row.subtitle}</div>
+              </div>
+              <span className="asset-value" dir="ltr">
+                {formatMoney(row.amount)}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+
+      <ConfirmActionModal
+        open={showExportConfirm}
+        title="تأیید خروجی PDF"
+        message="آیا از گرفتن خروجی PDF اطمینان دارید؟"
+        confirmLabel="خروجی PDF"
+        confirming={exporting}
+        onConfirm={handleExportPdf}
+        onClose={() => setShowExportConfirm(false)}
+      />
+    </div>
+  );
+}

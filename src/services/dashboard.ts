@@ -132,7 +132,42 @@ function sumByCategory(
     .sort((a, b) => b.total - a.total);
 }
 
-export async function loadDashboardData(
+const DASHBOARD_CACHE_TTL_MS = 30_000;
+const dashboardCache = new Map<string, { expiresAt: number; data: DashboardData }>();
+const dashboardInFlight = new Map<string, Promise<DashboardData>>();
+
+function buildDashboardCacheKey(
+  settings: AppSettings,
+  range: DateRange,
+  installmentRange: DateRange,
+  monthlyFlowYear: number,
+  netAvailableConfig: NetAvailableConfig
+): string {
+  return JSON.stringify({
+    spreadsheetId: settings.spreadsheetId,
+    range,
+    installmentRange,
+    monthlyFlowYear,
+    netAvailableConfig,
+  });
+}
+
+export function invalidateDashboardCache(spreadsheetId?: string): void {
+  if (!spreadsheetId) {
+    dashboardCache.clear();
+    dashboardInFlight.clear();
+    return;
+  }
+
+  for (const key of dashboardCache.keys()) {
+    if (key.includes(spreadsheetId)) dashboardCache.delete(key);
+  }
+  for (const key of dashboardInFlight.keys()) {
+    if (key.includes(spreadsheetId)) dashboardInFlight.delete(key);
+  }
+}
+
+async function fetchDashboardDataUncached(
   settings: AppSettings,
   range: DateRange,
   installmentRange: DateRange = range,
@@ -294,4 +329,49 @@ export async function loadDashboardData(
     ),
     recentRecords: recent,
   };
+}
+
+export async function loadDashboardData(
+  settings: AppSettings,
+  range: DateRange,
+  installmentRange: DateRange = range,
+  monthlyFlowYear: number = getJalaliParts(new Date()).year,
+  netAvailableConfig: NetAvailableConfig = getDefaultNetAvailableConfig()
+): Promise<DashboardData> {
+  const cacheKey = buildDashboardCacheKey(
+    settings,
+    range,
+    installmentRange,
+    monthlyFlowYear,
+    netAvailableConfig
+  );
+
+  const cached = dashboardCache.get(cacheKey);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data;
+  }
+
+  const inFlight = dashboardInFlight.get(cacheKey);
+  if (inFlight) return inFlight;
+
+  const task = fetchDashboardDataUncached(
+    settings,
+    range,
+    installmentRange,
+    monthlyFlowYear,
+    netAvailableConfig
+  )
+    .then((data) => {
+      dashboardCache.set(cacheKey, {
+        data,
+        expiresAt: Date.now() + DASHBOARD_CACHE_TTL_MS,
+      });
+      return data;
+    })
+    .finally(() => {
+      dashboardInFlight.delete(cacheKey);
+    });
+
+  dashboardInFlight.set(cacheKey, task);
+  return task;
 }
