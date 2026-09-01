@@ -9,6 +9,7 @@ interface ProgressBarProps {
   variant?: ProgressBarVariant;
   showLabel?: boolean;
   animateIndex?: number;
+  animated?: boolean;
   className?: string;
   'aria-label'?: string;
 }
@@ -18,12 +19,13 @@ export default function ProgressBar({
   variant = 'default',
   showLabel = true,
   animateIndex = 0,
+  animated = true,
   className = '',
   'aria-label': ariaLabel,
 }: ProgressBarProps) {
   const clamped = Math.max(0, Math.min(100, value));
-  const animated = useAnimatedProgress(clamped);
-  const displayPct = Math.round(animated);
+  const animatedValue = useAnimatedProgress(clamped, 750, animated);
+  const displayPct = Math.round(animatedValue);
 
   const style = {
     '--progress-delay': `${Math.min(animateIndex, 10) * 0.07}s`,
@@ -43,7 +45,7 @@ export default function ProgressBar({
           aria-valuemax={100}
           aria-label={ariaLabel}
         >
-          <div className="progress-bar__fill" style={{ width: `${animated}%` }}>
+          <div className="progress-bar__fill" style={{ width: `${animatedValue}%` }}>
             <span className="progress-bar__shine" aria-hidden="true" />
             <span className="progress-bar__glow" aria-hidden="true" />
           </div>

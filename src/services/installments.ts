@@ -309,6 +309,20 @@ export function getNextInstallmentDueDate(plan: InstallmentPlan): string {
   return next?.dueDate ?? plan.payments[plan.payments.length - 1]?.dueDate ?? '';
 }
 
+export function getInstallmentDueDateInRange(
+  plan: InstallmentPlan,
+  range: DateRange
+): string {
+  const inRange = plan.payments
+    .filter((payment) => isDateInRange(payment.dueDate, range))
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+
+  if (inRange.length === 0) return getNextInstallmentDueDate(plan);
+
+  const unpaid = inRange.find((payment) => !payment.paid);
+  return (unpaid ?? inRange[0]).dueDate;
+}
+
 export function sortInstallmentPlans<T extends InstallmentPlan>(plans: T[]): T[] {
   return [...plans].sort((a, b) => {
     const aComplete = isInstallmentPlanComplete(a);

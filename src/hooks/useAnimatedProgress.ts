@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { prefersReducedMotion } from './useChartTheme';
 
-export function useAnimatedProgress(value: number, duration = 750): number {
+export function useAnimatedProgress(value: number, duration = 750, enabled = true): number {
   const clamped = Math.max(0, Math.min(100, value));
-  const reducedMotion = prefersReducedMotion();
+  const reducedMotion = prefersReducedMotion() || !enabled;
   const [display, setDisplay] = useState(() => (reducedMotion ? clamped : 0));
   const fromRef = useRef(reducedMotion ? clamped : 0);
 
