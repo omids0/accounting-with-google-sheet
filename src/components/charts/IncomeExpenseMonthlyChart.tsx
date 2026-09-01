@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
+import { memo, useId, useMemo } from 'react';
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -26,18 +26,23 @@ interface IncomeExpenseMonthlyChartProps {
   className?: string;
 }
 
-export default function IncomeExpenseMonthlyChart({
+function IncomeExpenseMonthlyChart({
   data,
   header,
   className = '',
 }: IncomeExpenseMonthlyChartProps) {
   const theme = useChartTheme();
   const animate = !prefersReducedMotion();
+  const gradientId = useId().replace(/:/g, '');
 
-  const chartData = data.map((item) => ({
-    ...item,
-    shortLabel: item.label.split(' ')[0] ?? item.label,
-  }));
+  const chartData = useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        shortLabel: item.label.split(' ')[0] ?? item.label,
+      })),
+    [data]
+  );
   const height = Math.max(300, chartData.length * 56);
   const maxLabelLen = chartData.length
     ? Math.max(...chartData.map((d) => d.shortLabel.length))
@@ -50,7 +55,18 @@ export default function IncomeExpenseMonthlyChart({
       {!chartData.length ? (
         <p className="empty-text">داده‌ای برای این سال ثبت نشده</p>
       ) : (
-        <div className="chart-bar-wrap chart-monthly-wrap" dir="ltr">
+        <>
+          <div className="chart-monthly-legend" dir="rtl">
+            <span className="chart-monthly-legend-item">
+              <span className="chart-monthly-legend-dot chart-monthly-legend-dot--income" />
+              درآمد
+            </span>
+            <span className="chart-monthly-legend-item">
+              <span className="chart-monthly-legend-dot chart-monthly-legend-dot--expense" />
+              هزینه
+            </span>
+          </div>
+          <div className="chart-bar-wrap chart-monthly-wrap" dir="ltr">
           <ResponsiveContainer width="100%" height={height}>
             <BarChart
               data={chartData}
@@ -60,11 +76,11 @@ export default function IncomeExpenseMonthlyChart({
               barCategoryGap="18%"
             >
               <defs>
-                <linearGradient id="chart-income-gradient" x1="0" y1="0" x2="1" y2="0">
+                <linearGradient id={`${gradientId}-chart-income`} x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor={theme.income} stopOpacity={0.75} />
                   <stop offset="100%" stopColor={theme.income} stopOpacity={1} />
                 </linearGradient>
-                <linearGradient id="chart-expense-gradient" x1="0" y1="0" x2="1" y2="0">
+                <linearGradient id={`${gradientId}-chart-expense`} x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor={theme.expense} stopOpacity={0.75} />
                   <stop offset="100%" stopColor={theme.expense} stopOpacity={1} />
                 </linearGradient>
@@ -108,18 +124,10 @@ export default function IncomeExpenseMonthlyChart({
                 )}
                 cursor={{ fill: 'rgba(15, 118, 110, 0.06)', radius: 8 }}
               />
-              <Legend
-                verticalAlign="top"
-                align="right"
-                iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ paddingBottom: '0.5rem', fontSize: '0.78rem' }}
-                formatter={(value) => (value === 'income' ? 'درآمد' : 'هزینه')}
-              />
               <Bar
                 name="income"
                 dataKey="income"
-                fill="url(#chart-income-gradient)"
+                fill={`url(#${gradientId}-chart-income)`}
                 radius={[0, 6, 6, 0]}
                 maxBarSize={16}
                 isAnimationActive={animate}
@@ -129,7 +137,7 @@ export default function IncomeExpenseMonthlyChart({
               <Bar
                 name="expense"
                 dataKey="expense"
-                fill="url(#chart-expense-gradient)"
+                fill={`url(#${gradientId}-chart-expense)`}
                 radius={[0, 6, 6, 0]}
                 maxBarSize={16}
                 isAnimationActive={animate}
@@ -139,7 +147,10 @@ export default function IncomeExpenseMonthlyChart({
             </BarChart>
           </ResponsiveContainer>
         </div>
+        </>
       )}
     </div>
   );
 }
+
+export default memo(IncomeExpenseMonthlyChart);

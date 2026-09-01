@@ -8,6 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { memo, useId } from 'react';
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme';
 import ChartTooltip from './ChartTooltip';
 import { truncateCategoryLabel } from './chartUtils';
@@ -27,7 +28,7 @@ interface CategoryBarChartProps {
   yAxisWidth?: number;
 }
 
-export default function CategoryBarChart({
+function CategoryBarChart({
   title,
   data,
   tone,
@@ -36,6 +37,7 @@ export default function CategoryBarChart({
 }: CategoryBarChartProps) {
   const theme = useChartTheme();
   const animate = !prefersReducedMotion();
+  const gradientId = useId().replace(/:/g, '');
 
   if (!data.length) return null;
 
@@ -60,7 +62,7 @@ export default function CategoryBarChart({
             barCategoryGap="18%"
           >
             <defs>
-              <linearGradient id={`cat-bar-${tone}`} x1="0" y1="0" x2="1" y2="0">
+              <linearGradient id={`${gradientId}-cat-bar-${tone}`} x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor={tone === 'income' ? theme.income : theme.expense} stopOpacity={0.72} />
                 <stop offset="100%" stopColor={tone === 'income' ? theme.income : theme.expense} stopOpacity={1} />
               </linearGradient>
@@ -109,12 +111,12 @@ export default function CategoryBarChart({
               animationDuration={700}
               animationEasing="ease-out"
               background={{
-                fill: 'var(--color-accent-soft)',
+                fill: theme.accentSoft,
                 radius: 8,
               }}
             >
               {chartData.map((_, i) => (
-                <Cell key={i} fill={`url(#cat-bar-${tone})`} fillOpacity={1 - (i % 3) * 0.08} />
+                <Cell key={i} fill={`url(#${gradientId}-cat-bar-${tone})`} fillOpacity={1 - (i % 3) * 0.08} />
               ))}
             </Bar>
           </BarChart>
@@ -130,3 +132,5 @@ function formatAxisMoney(value: number): string {
   if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
   return String(value);
 }
+
+export default memo(CategoryBarChart);

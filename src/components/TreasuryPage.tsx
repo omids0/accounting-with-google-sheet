@@ -15,6 +15,7 @@ import {
 } from '../services/treasury';
 import {
   fetchTgjuPrices,
+  getCachedTgjuPrices,
   getAssetLabel,
   getAssetUnit,
   VAULT_ASSET_OPTIONS,
@@ -65,7 +66,9 @@ function parseQuantityInput(value: string, allowDecimal: boolean): number | '' {
 
 export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   const [transactions, setTransactions] = useState<TransactionWithRow[]>([]);
-  const [prices, setPrices] = useState<Record<VaultAssetType, number> | null>(null);
+  const [prices, setPrices] = useState<Record<VaultAssetType, number> | null>(() =>
+    getCachedTgjuPrices()
+  );
   const [expandedAsset, setExpandedAsset] = useState<VaultAssetType | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingTx, setEditingTx] = useState<TransactionWithRow | null>(null);

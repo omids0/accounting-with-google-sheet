@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme';
 
@@ -33,6 +33,7 @@ export default function Sparkline({
   const theme = useChartTheme();
   const animate = !prefersReducedMotion();
   const color = toneColor(theme, tone);
+  const gradientId = useId().replace(/:/g, '');
 
   const chartData = useMemo(
     () => data.map((value, index) => ({ index, value })),
@@ -41,7 +42,7 @@ export default function Sparkline({
 
   if (chartData.length < 2) return null;
 
-  const gradientId = `sparkline-${tone}`;
+  const gradientRef = `${gradientId}-sparkline-${tone}`;
 
   return (
     <div
@@ -52,7 +53,7 @@ export default function Sparkline({
       <ResponsiveContainer width="100%" height={height}>
         <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
           <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={gradientRef} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={color} stopOpacity={0.35} />
               <stop offset="100%" stopColor={color} stopOpacity={0.02} />
             </linearGradient>
@@ -62,7 +63,7 @@ export default function Sparkline({
             dataKey="value"
             stroke={color}
             strokeWidth={1.75}
-            fill={`url(#${gradientId})`}
+            fill={`url(#${gradientRef})`}
             dot={false}
             isAnimationActive={animate}
             animationDuration={500}

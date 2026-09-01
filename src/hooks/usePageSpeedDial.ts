@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 
 export interface PageSpeedDialAction {
   id: string;
@@ -6,6 +6,7 @@ export interface PageSpeedDialAction {
   icon: ReactNode;
   onClick: () => void;
   disabled?: boolean;
+  className?: string;
 }
 
 export interface PageSpeedDialConfig {
@@ -14,35 +15,62 @@ export interface PageSpeedDialConfig {
 }
 
 let activeConfig: PageSpeedDialConfig | null = null;
+let activeSignature = '';
 const listeners = new Set<() => void>();
 
-function notify() {
+function buildSignature(config: PageSpeedDialConfig | null): string {
+  if (!config) return '';
+  return JSON.stringify({
+    ariaLabel: config.ariaLabel,
+    actions: config.actions.map(({ id, label, disabled, className }) => ({
+      id,
+      label,
+      disabled: !!disabled,
+      className: className ?? '',
+    })),
+  });
+}
+
+function notifyListeners() {
   listeners.forEach((listener) => listener());
 }
 
-export function setPageSpeedDialConfig(config: PageSpeedDialConfig | null) {
+function publishPageSpeedDialConfig(config: PageSpeedDialConfig | null) {
   activeConfig = config;
-  notify();
+  const nextSignature = buildSignature(config);
+  if (nextSignature === activeSignature) return;
+  activeSignature = nextSignature;
+  notifyListeners();
+}
+
+export function getPageSpeedDialConfig() {
+  return activeConfig;
 }
 
 export function usePageSpeedDialConfig() {
-  const [config, setConfig] = useState(activeConfig);
+  const [, setVersion] = useState(0);
 
   useEffect(() => {
-    const listener = () => setConfig(activeConfig);
+    const listener = () => setVersion((version) => version + 1);
     listeners.add(listener);
-    setConfig(activeConfig);
     return () => {
       listeners.delete(listener);
     };
   }, []);
 
-  return config;
+  return activeConfig;
 }
 
 export function useRegisterPageSpeedDial(config: PageSpeedDialConfig | null) {
-  useEffect(() => {
-    setPageSpeedDialConfig(config);
-    return () => setPageSpeedDialConfig(null);
-  }, [config]);
+  useLayoutEffect(() => {
+    publishPageSpeedDialConfig(config);
+  });
+
+  useLayoutEffect(() => {
+    return () => {
+      activeConfig = null;
+      activeSignature = '';
+      notifyListeners();
+    };
+  }, []);
 }
