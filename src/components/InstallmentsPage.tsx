@@ -14,12 +14,14 @@ import {
   isInstallmentPlanVisible,
   isInstallmentPlanComplete,
   getInstallmentDueDateInRange,
+  paidInstallmentAmount,
   reconcilePaymentsOnEdit,
   sortInstallmentPlans,
   toggleInstallmentPayment,
   updateInstallmentPaymentAmount,
   getInstallmentPaymentAmount,
   totalInstallmentsInRange,
+  totalInstallmentAmount,
   totalUnpaidInstallments,
   deleteInstallmentPlan,
   updateInstallmentPlan,
@@ -391,7 +393,10 @@ export default function InstallmentsPage({
           0
         );
         const complete = isInstallmentPlanComplete(plan);
-        const progress = plan.count > 0 ? Math.round((done / plan.count) * 100) : 0;
+        const totalAmount = totalInstallmentAmount(plan);
+        const paidAmount = paidInstallmentAmount(plan);
+        const progress =
+          totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
         const dueDate = getInstallmentDueDateInRange(plan, monthRange);
         return { plan, done, complete, progress, dueDate };
       }),

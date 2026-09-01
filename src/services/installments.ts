@@ -601,6 +601,40 @@ export function isInstallmentPlanVisible(
   return hasInstallmentDueInRange(plan, range);
 }
 
+export function totalInstallmentAmount(plan: InstallmentPlan): number {
+  return plan.payments.reduce(
+    (sum, payment) => sum + getInstallmentPaymentAmount(payment, plan),
+    0
+  );
+}
+
+export function paidInstallmentAmount(plan: InstallmentPlan): number {
+  return plan.payments
+    .filter((payment) => payment.paid)
+    .reduce((sum, payment) => sum + getInstallmentPaymentAmount(payment, plan), 0);
+}
+
+export function remainingInstallmentAmount(plan: InstallmentPlan): number {
+  return Math.max(0, totalInstallmentAmount(plan) - paidInstallmentAmount(plan));
+}
+
+export function getInstallmentPaymentForDueDate(
+  plan: InstallmentPlan,
+  dueDate: string
+): InstallmentPayment | undefined {
+  if (!dueDate) return undefined;
+  return plan.payments.find((payment) => payment.dueDate === dueDate);
+}
+
+export function getInstallmentDuePaymentAmount(
+  plan: InstallmentPlan,
+  dueDate: string
+): number | null {
+  const payment = getInstallmentPaymentForDueDate(plan, dueDate);
+  if (!payment) return null;
+  return getInstallmentPaymentAmount(payment, plan);
+}
+
 export function unpaidInstallmentAmount(plan: InstallmentPlan): number {
   return plan.payments
     .filter((p) => !p.paid)

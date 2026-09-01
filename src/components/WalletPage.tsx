@@ -30,6 +30,7 @@ import { useSheetImportExport } from '../hooks/useSheetImportExport';
 import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
+import CardExpandButton from './CardExpandButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import { AccordionCollapse } from './AccordionCollapse';
@@ -460,7 +461,6 @@ export default function WalletPage({
                       <div className="wallet-item-note list-card-subtitle">{account.note}</div>
                     )}
                   </div>
-                  <span className="installment-chevron">▼</span>
                 </button>
                 <div className="card-action-buttons">
                   <CardEditButton
@@ -474,6 +474,14 @@ export default function WalletPage({
                       event.stopPropagation();
                       openDeleteConfirm(account);
                     }}
+                  />
+                  <CardExpandButton
+                    expanded={expanded}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setExpandedId(expanded ? null : account.id);
+                    }}
+                    ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات حساب'}
                   />
                 </div>
               </div>

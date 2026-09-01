@@ -18,16 +18,11 @@ export function InstallmentCardSkeleton() {
               </div>
             </div>
           </div>
-          <Skeleton
-            variant="rect"
-            width="0.65rem"
-            height="0.65rem"
-            style={{ flexShrink: 0, marginTop: '0.15rem', borderRadius: '2px' }}
-          />
         </div>
         <div className="card-action-buttons">
-          <Skeleton variant="rect" width="2rem" height="2rem" style={{ borderRadius: 'var(--radius-sm)' }} />
-          <Skeleton variant="rect" width="2rem" height="2rem" style={{ borderRadius: 'var(--radius-sm)' }} />
+          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
+          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
+          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
         </div>
       </div>
     </div>
