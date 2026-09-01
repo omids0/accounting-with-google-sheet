@@ -14,9 +14,11 @@ import AppIcon from './AppIcon';
 export default function DataEntryPage({
   onReauth,
   onCancel,
+  initialFormType,
 }: {
   onReauth?: () => void;
   onCancel?: () => void;
+  initialFormType?: 'income' | 'expense';
 }) {
   const [forms, setForms] = useState<CustomForm[]>([]);
   const [activeFormId, setActiveFormId] = useState('');
@@ -33,12 +35,17 @@ export default function DataEntryPage({
       return;
     }
     setForms(settings.forms);
-    if (settings.forms.length) {
-      setActiveFormId(settings.forms[0].id);
-      initValues(settings.forms[0]);
+    let selectedForm = settings.forms[0];
+    if (initialFormType) {
+      const matched = settings.forms.find((f) => f.type === initialFormType);
+      if (matched) selectedForm = matched;
+    }
+    if (selectedForm) {
+      setActiveFormId(selectedForm.id);
+      initValues(selectedForm);
     }
     setReady(true);
-  }, []);
+  }, [initialFormType]);
 
   const initValues = (form: CustomForm) => {
     const initial: Record<string, string | number> = {};

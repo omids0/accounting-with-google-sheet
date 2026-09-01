@@ -1,6 +1,8 @@
 import type { VaultAssetType } from '../types';
 
 const TGJU_API = 'https://call5.tgju.org/ajax.json';
+const TGJU_FETCH_TIMEOUT_MS = 4_000;
+const TGJU_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const ASSET_TGJU_KEYS: Record<VaultAssetType, string> = {
   sekeb: 'sekeb',
@@ -94,6 +96,53 @@ export interface ExchangeRateQuote {
   updatedAt?: string;
 }
 
+let pricesCache: Record<VaultAssetType, number> | null = null;
+let pricesCacheAt = 0;
+let exchangeRatesCache: Record<ExchangeCurrencyCode, ExchangeRateQuote> | null = null;
+let exchangeRatesCacheAt = 0;
+let pricesFetchInFlight: Promise<Record<VaultAssetType, number>> | null = null;
+let exchangeRatesFetchInFlight: Promise<Record<ExchangeCurrencyCode, ExchangeRateQuote>> | null =
+  null;
+
+function isCacheFresh(cacheAt: number): boolean {
+  return cacheAt > 0 && Date.now() - cacheAt < TGJU_CACHE_TTL_MS;
+}
+
+async function fetchTgjuCurrent(): Promise<Record<string, { p?: string; ts?: string; t?: string }>> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TGJU_FETCH_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(TGJU_API, { signal: controller.signal });
+    if (!res.ok) throw new Error('خطا در دریافت قیمت از tgju.org');
+
+    const data = (await res.json()) as {
+      current?: Record<string, { p?: string; ts?: string; t?: string }>;
+    };
+    return data.current ?? {};
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('دریافت قیمت از tgju.org بیش از حد طول کشید');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export function getCachedTgjuPrices(): Record<VaultAssetType, number> | null {
+  return pricesCache;
+}
+
+export function getCachedTgjuExchangeRates(): Record<ExchangeCurrencyCode, ExchangeRateQuote> | null {
+  return exchangeRatesCache;
+}
+
+/** Refresh tgju prices in the background without blocking callers. */
+export function prefetchTgjuPrices(): void {
+  void fetchTgjuPrices().catch(() => undefined);
+}
+
 export function getExchangeCurrencyOption(
   code: ExchangeCurrencyCode
 ): ExchangeCurrencyOption | undefined {
@@ -111,41 +160,68 @@ export function getExchangeCurrencySymbol(code: ExchangeCurrencyCode): string {
 export async function fetchTgjuExchangeRates(): Promise<
   Record<ExchangeCurrencyCode, ExchangeRateQuote>
 > {
-  const res = await fetch(TGJU_API);
-  if (!res.ok) throw new Error('خطا در دریافت نرخ ارز از tgju.org');
-
-  const data = (await res.json()) as {
-    current?: Record<string, { p?: string; ts?: string; t?: string }>;
-  };
-  const current = data.current ?? {};
-
-  const rates = {} as Record<ExchangeCurrencyCode, ExchangeRateQuote>;
-  for (const option of EXCHANGE_CURRENCY_OPTIONS) {
-    if (option.fixedRateInRial != null) {
-      rates[option.code] = { rateInRial: option.fixedRateInRial };
-      continue;
-    }
-
-    const entry = option.tgjuKey ? current[option.tgjuKey] : undefined;
-    rates[option.code] = {
-      rateInRial: parseTgjuRialRate(entry?.p),
-      updatedAt: entry?.t ?? entry?.ts,
-    };
+  if (isCacheFresh(exchangeRatesCacheAt) && exchangeRatesCache) {
+    return exchangeRatesCache;
   }
 
-  return rates;
+  if (exchangeRatesFetchInFlight) {
+    return exchangeRatesFetchInFlight;
+  }
+
+  exchangeRatesFetchInFlight = (async () => {
+    const current = await fetchTgjuCurrent();
+
+    const rates = {} as Record<ExchangeCurrencyCode, ExchangeRateQuote>;
+    for (const option of EXCHANGE_CURRENCY_OPTIONS) {
+      if (option.fixedRateInRial != null) {
+        rates[option.code] = { rateInRial: option.fixedRateInRial };
+        continue;
+      }
+
+      const entry = option.tgjuKey ? current[option.tgjuKey] : undefined;
+      rates[option.code] = {
+        rateInRial: parseTgjuRialRate(entry?.p),
+        updatedAt: entry?.t ?? entry?.ts,
+      };
+    }
+
+    exchangeRatesCache = rates;
+    exchangeRatesCacheAt = Date.now();
+    return rates;
+  })();
+
+  try {
+    return await exchangeRatesFetchInFlight;
+  } finally {
+    exchangeRatesFetchInFlight = null;
+  }
 }
 
 export async function fetchTgjuPrices(): Promise<Record<VaultAssetType, number>> {
-  const res = await fetch(TGJU_API);
-  if (!res.ok) throw new Error('خطا در دریافت قیمت از tgju.org');
-
-  const data = (await res.json()) as { current?: Record<string, { p?: string }> };
-  const current = data.current ?? {};
-
-  const prices = {} as Record<VaultAssetType, number>;
-  for (const [asset, key] of Object.entries(ASSET_TGJU_KEYS) as [VaultAssetType, string][]) {
-    prices[asset] = parseTgjuPrice(current[key]?.p);
+  if (isCacheFresh(pricesCacheAt) && pricesCache) {
+    return pricesCache;
   }
-  return prices;
+
+  if (pricesFetchInFlight) {
+    return pricesFetchInFlight;
+  }
+
+  pricesFetchInFlight = (async () => {
+    const current = await fetchTgjuCurrent();
+
+    const prices = {} as Record<VaultAssetType, number>;
+    for (const [asset, key] of Object.entries(ASSET_TGJU_KEYS) as [VaultAssetType, string][]) {
+      prices[asset] = parseTgjuPrice(current[key]?.p);
+    }
+
+    pricesCache = prices;
+    pricesCacheAt = Date.now();
+    return prices;
+  })();
+
+  try {
+    return await pricesFetchInFlight;
+  } finally {
+    pricesFetchInFlight = null;
+  }
 }

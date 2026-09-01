@@ -10,6 +10,7 @@ export type AppIconName =
   | 'wallet'
   | 'records'
   | 'search'
+  | 'filter'
   | 'empty-inbox'
   | 'edit'
   | 'folder'
@@ -211,6 +212,21 @@ export default function AppIcon({
           <circle cx="11" cy="11" r="6.25" className="app-icon__bg" stroke="none" />
           <circle cx="11" cy="11" r="6.25" />
           <path d="M20 20l-4.75-4.75" />
+        </IconSvg>
+      );
+
+    case 'filter':
+      return (
+        <IconSvg {...props}>
+          <path
+            className="app-icon__bg"
+            d="M4.5 5.5h15l-4.25 5.5v6.5l-3.25 2v-8.5L4.5 5.5Z"
+            stroke="none"
+          />
+          <path d="M4.5 5.5h15l-4.25 5.5v6.5l-3.25 2v-8.5L4.5 5.5Z" />
+          <circle cx="8.25" cy="5.5" r="1.35" className="app-icon__accent" stroke="none" />
+          <circle cx="14.75" cy="11" r="1.35" className="app-icon__accent" stroke="none" />
+          <circle cx="11.75" cy="18.5" r="1.35" className="app-icon__accent" stroke="none" />
         </IconSvg>
       );
 

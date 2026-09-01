@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import DashboardPage from './DashboardPage';
 import DataEntryPage from './DataEntryPage';
 import RecordsPage from './RecordsPage';
@@ -75,6 +75,7 @@ const REPORT_TABS: Tab[] = [
 ];
 
 const SPEED_DIAL_TABS: Tab[] = [
+  'dashboard',
   'installments',
   'dang',
   'checks',
@@ -128,15 +129,17 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
   };
 
   const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
+  const [entryFormType, setEntryFormType] = useState<'income' | 'expense' | undefined>();
   const pageSpeedDialConfig = usePageSpeedDialConfig();
   useEngagementReminders();
   const showPageSpeedDial =
     !showSettings && SPEED_DIAL_TABS.includes(tab) && pageSpeedDialConfig != null;
 
-  const handleTabChange = (newTab: Tab) => {
+  const handleTabChange = useCallback((newTab: Tab) => {
     setShowSettings(false);
     setMenuOpen(false);
     if (newTab !== 'records') setRecordsFormType(undefined);
+    if (newTab !== 'entry') setEntryFormType(undefined);
     if (CALCULATION_TABS.includes(newTab)) {
       setCalcMenuExpanded(true);
     }
@@ -144,14 +147,21 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
       setReportsMenuExpanded(true);
     }
     setTab(newTab);
-  };
+  }, []);
 
-  const openRecords = (formType?: 'income' | 'expense') => {
+  const openRecords = useCallback((formType?: 'income' | 'expense') => {
     setShowSettings(false);
     setMenuOpen(false);
     setRecordsFormType(formType);
     setTab('records');
-  };
+  }, []);
+
+  const openEntry = useCallback((formType?: 'income' | 'expense') => {
+    setShowSettings(false);
+    setMenuOpen(false);
+    setEntryFormType(formType);
+    setTab('entry');
+  }, []);
 
   const openSettings = () => {
     setShowSettings(true);
@@ -456,6 +466,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                 <DashboardPage
                   onReauth={onReauth}
                   onViewRecords={openRecords}
+                  onNewEntry={openEntry}
                   onNavigate={handleTabChange}
                   onConfigureNetAvailable={() => handleTabChange('net-available-settings')}
                 />
@@ -463,6 +474,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               {tab === 'entry' && (
                 <DataEntryPage
                   onReauth={onReauth}
+                  initialFormType={entryFormType}
                   onCancel={() => handleTabChange('dashboard')}
                 />
               )}
@@ -598,20 +610,6 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           </button>
         </div>
       </nav>
-
-      {!showSettings && tab === 'dashboard' && (
-        <div className="fab-container">
-          <button
-            type="button"
-            className="fab"
-            onClick={() => handleTabChange('entry')}
-            aria-label="ثبت درآمد یا هزینه"
-            title="ثبت جدید"
-          >
-            <AppIcon name="add" size={24} strokeWidth={2} />
-          </button>
-        </div>
-      )}
 
       {showPageSpeedDial && (
         <PageSpeedDial

@@ -28,7 +28,7 @@ import {
 } from './monthlyBalance';
 import { fetchReceivables, remainingAmount } from './receivables';
 import { fetchRecords } from './sheets';
-import { fetchTgjuPrices } from './tgju';
+import { getCachedTgjuPrices, prefetchTgjuPrices } from './tgju';
 import { computeHoldings, fetchVaultTransactions } from './treasury';
 import { fetchWalletAccounts } from './wallet';
 import { getDefaultNetAvailableConfig } from './settings';
@@ -243,7 +243,6 @@ async function fetchDashboardBundleUncached(
     checks,
     dangs,
     openingBalanceRecord,
-    tgjuPrices,
   ] = await Promise.all([
     incomeForm
       ? fetchRecords(settings.spreadsheetId, incomeForm)
@@ -263,8 +262,10 @@ async function fetchDashboardBundleUncached(
       updatedAt: '',
       note: '',
     })),
-    fetchTgjuPrices().catch(() => null),
   ]);
+
+  prefetchTgjuPrices();
+  const tgjuPrices = getCachedTgjuPrices();
 
   const incomeDateField = getDateFieldId(incomeForm);
   const expenseDateField = getDateFieldId(expenseForm);

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatMoney, formatPersianNumber } from '../../utils/formatMoney';
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme';
@@ -31,7 +31,7 @@ function buildSlices(
   return restTotal > 0 ? [...top, { name: 'سایر', total: restTotal }] : top;
 }
 
-export default function CategoryDonutChart({
+function CategoryDonutChart({
   title,
   data,
   tone,
@@ -120,3 +120,5 @@ export default function CategoryDonutChart({
     </div>
   );
 }
+
+export default memo(CategoryDonutChart);

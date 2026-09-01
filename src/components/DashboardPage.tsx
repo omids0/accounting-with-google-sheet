@@ -31,6 +31,8 @@ import MoneyDisplay from './MoneyDisplay';
 import CardEditButton from './CardEditButton';
 import { CategoryBarChart, CategoryDonutChart, IncomeExpenseMonthlyChart } from './charts';
 import { getCategoryBarYAxisWidth } from './charts/chartUtils';
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
+import SpeedDialIcon from './SpeedDialIcon';
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
 
@@ -81,11 +83,13 @@ function BreakdownRow({
 export default function DashboardPage({
   onReauth,
   onViewRecords,
+  onNewEntry,
   onNavigate,
   onConfigureNetAvailable,
 }: {
   onReauth?: () => void;
   onViewRecords?: (formType?: 'income' | 'expense') => void;
+  onNewEntry?: (formType: 'income' | 'expense') => void;
   onNavigate?: (target: DashboardNavTarget) => void;
   onConfigureNetAvailable?: () => void;
 }) {
@@ -97,7 +101,9 @@ export default function DashboardPage({
   );
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
   const [monthlyFlowYear, setMonthlyFlowYear] = useState(getDefaultChartYear);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const dateRange = resolveDateRange(datePreset, customRange);
+  const hasDateFilterActive = datePreset !== 'month-to-date';
 
   const load = useCallback(async () => {
     if (!isConfigured() || !isTokenValid()) {
@@ -162,10 +168,10 @@ export default function DashboardPage({
     });
   }, [monthlyFlowYear, datePreset, customRange]);
 
-  const handleDateFilterChange = (filter: AppliedDateRangeFilter) => {
+  const handleDateFilterChange = useCallback((filter: AppliedDateRangeFilter) => {
     setDatePreset(filter.preset);
     setCustomRange(filter.customRange);
-  };
+  }, []);
 
   const filteredRecords = useMemo(() => {
     if (!data?.recentRecords.length) return [];
@@ -196,14 +202,50 @@ export default function DashboardPage({
     () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'net'),
     [data?.yearlyMonthlyFlow]
   );
-  const settings = getSettings();
+  const settings = useMemo(() => getSettings(), []);
   const incomeForm = settings?.forms.find((f) => f.type === 'income');
   const expenseForm = settings?.forms.find((f) => f.type === 'expense');
-  const transactionTypeOptions: TransactionTypeSegmentOption[] = [
-    { id: 'all', label: 'همه' },
-    { id: 'income', label: incomeForm?.name ?? 'درآمد', tone: 'income' },
-    { id: 'expense', label: expenseForm?.name ?? 'هزینه', tone: 'expense' },
-  ];
+  const incomeFormName = incomeForm?.name ?? 'درآمد';
+  const expenseFormName = expenseForm?.name ?? 'هزینه';
+  const transactionTypeOptions = useMemo<TransactionTypeSegmentOption[]>(
+    () => [
+      { id: 'all', label: 'همه' },
+      { id: 'income', label: incomeFormName, tone: 'income' },
+      { id: 'expense', label: expenseFormName, tone: 'expense' },
+    ],
+    [incomeFormName, expenseFormName]
+  );
+
+  useRegisterPageSpeedDial(
+    isConfigured()
+      ? {
+          ariaLabel: 'عملیات داشبورد',
+          actions: [
+            {
+              id: 'income',
+              label: incomeFormName,
+              icon: <span className="speed-dial-type-icon speed-dial-type-icon--income">+</span>,
+              className: 'speed-dial-action--income',
+              onClick: () => onNewEntry?.('income'),
+            },
+            {
+              id: 'expense',
+              label: expenseFormName,
+              icon: <span className="speed-dial-type-icon speed-dial-type-icon--expense">−</span>,
+              className: 'speed-dial-action--expense',
+              onClick: () => onNewEntry?.('expense'),
+            },
+            {
+              id: 'refresh',
+              label: 'بروزرسانی',
+              icon: <SpeedDialIcon name="refresh" />,
+              onClick: load,
+              disabled: loading,
+            },
+          ],
+        }
+      : null
+  );
 
   if (!isConfigured()) {
     return (
@@ -223,28 +265,37 @@ export default function DashboardPage({
   return (
     <div className="dashboard-page">
       <div className="card records-toolbar dashboard-toolbar">
-        <div className="records-toolbar-header">
+        <div
+          className={`records-toolbar-header${filtersOpen ? ' records-toolbar-header--expanded' : ''}`}
+        >
           <div className="records-toolbar-heading">
             <h2 className="records-toolbar-title">داشبورد</h2>
             <p className="records-toolbar-range">{formatDateRangeLabel(dateRange)}</p>
           </div>
           <button
             type="button"
-            className="btn btn-secondary btn-sm records-refresh-btn"
-            onClick={load}
-            disabled={loading}
-            aria-label="بارگذاری مجدد"
+            className={`dashboard-filter-btn${filtersOpen ? ' dashboard-filter-btn--active' : ''}${
+              hasDateFilterActive ? ' dashboard-filter-btn--applied' : ''
+            }`}
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-label="فیلتر بازه زمانی"
+            aria-expanded={filtersOpen}
+            aria-controls="dashboard-date-filter-panel"
           >
-            {loading ? '...' : '↻'}
+            <AppIcon name="filter" size={18} strokeWidth={2.1} />
           </button>
         </div>
 
-        <DateRangeFilter
-          preset={datePreset}
-          customRange={customRange}
-          onChange={handleDateFilterChange}
-          loading={loading}
-        />
+        {filtersOpen && (
+          <div id="dashboard-date-filter-panel">
+            <DateRangeFilter
+              preset={datePreset}
+              customRange={customRange}
+              onChange={handleDateFilterChange}
+              loading={loading}
+            />
+          </div>
+        )}
       </div>
 
       <div className="card dashboard-hero-card dashboard-hero-card--animated">

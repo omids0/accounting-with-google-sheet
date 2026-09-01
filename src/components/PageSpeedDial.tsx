@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import SpeedDialIcon from './SpeedDialIcon';
-import type { PageSpeedDialAction } from '../hooks/usePageSpeedDial';
+import { getPageSpeedDialConfig, type PageSpeedDialAction } from '../hooks/usePageSpeedDial';
 
 export default function PageSpeedDial({
   actions,
@@ -47,11 +47,14 @@ export default function PageSpeedDial({
               >
                 <button
                   type="button"
-                  className="speed-dial-action"
+                  className={['speed-dial-action', action.className].filter(Boolean).join(' ')}
                   role="menuitem"
                   onClick={() => {
-                    if (action.disabled) return;
-                    action.onClick();
+                    const latest = getPageSpeedDialConfig()?.actions.find(
+                      (item) => item.id === action.id
+                    );
+                    if (latest?.disabled) return;
+                    latest?.onClick();
                     handleClose();
                   }}
                   disabled={action.disabled}
