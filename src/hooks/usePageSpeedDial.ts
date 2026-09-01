@@ -61,16 +61,21 @@ export function usePageSpeedDialConfig() {
   return activeConfig;
 }
 
-export function useRegisterPageSpeedDial(config: PageSpeedDialConfig | null) {
+export function useRegisterPageSpeedDial(
+  config: PageSpeedDialConfig | null,
+  active = true
+) {
   useLayoutEffect(() => {
+    if (!active) return;
     publishPageSpeedDialConfig(config);
   });
 
   useLayoutEffect(() => {
+    if (!active) return;
     return () => {
       activeConfig = null;
       activeSignature = '';
       notifyListeners();
     };
-  }, []);
+  }, [active]);
 }

@@ -5,7 +5,6 @@ import {
   ensureFormSheet,
   fetchRecords,
 } from './sheets';
-import { invalidateDashboardCache } from './dashboard';
 import { getSettings } from './settings';
 import { getTodayIso } from '../utils/jalaliDate';
 
@@ -45,7 +44,6 @@ export async function createLinkedExpenseRecord(
     note: params.note ?? '',
   });
 
-  invalidateDashboardCache(spreadsheetId);
   return recordId;
 }
 
@@ -75,7 +73,6 @@ export async function createLinkedIncomeRecord(
     note: params.note ?? '',
   });
 
-  invalidateDashboardCache(spreadsheetId);
   return recordId;
 }
 
@@ -93,7 +90,6 @@ export async function deleteLinkedRecord(
   const match = records.find((r) => r.id === recordId);
   if (match) {
     await deleteRecord(spreadsheetId, form, match.rowNumber);
-    invalidateDashboardCache(spreadsheetId);
   }
 }
 

@@ -1,7 +1,8 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import DashboardPage from './DashboardPage';
 import DataEntryPage from './DataEntryPage';
 import RecordsPage from './RecordsPage';
+import InstallmentsPage from './InstallmentsPage';
 import DangPage from './DangPage';
 import ChecksPage from './ChecksPage';
 import ReceivablesPage from './ReceivablesPage';
@@ -22,12 +23,24 @@ import ModuleReportPage from './reports/ModuleReportPage';
 import SettingsPage from './SettingsPage';
 import PageSpeedDial from './PageSpeedDial';
 import AppIcon from './AppIcon';
-import { InstallmentCardListSkeleton } from './skeleton';
+import SyncStatusBadge from './SyncStatusBadge';
 import { getUserName, getUserPicture } from '../services/auth';
 import { usePageSpeedDialConfig } from '../hooks/usePageSpeedDial';
 import { useEngagementReminders } from '../hooks/useEngagementReminders';
 
-const InstallmentsPage = lazy(() => import('./InstallmentsPage'));
+function TabPanel({
+  active,
+  children,
+}: {
+  active: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className="tab-panel" hidden={!active} aria-hidden={!active}>
+      {children}
+    </div>
+  );
+}
 
 type Tab =
   | 'dashboard'
@@ -202,7 +215,10 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         >
           <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
         </button>
-        <h1 className="app-header-title">{showSettings ? 'تنظیمات' : titles[tab]}</h1>
+        <div className="app-header-center">
+          <h1 className="app-header-title">{showSettings ? 'تنظیمات' : titles[tab]}</h1>
+          {!showSettings && <SyncStatusBadge />}
+        </div>
         {showHeaderBack ? (
           <button
             type="button"
@@ -457,20 +473,38 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             />
           ) : (
             <>
-              {tab === 'installments' && (
-                <Suspense fallback={<InstallmentCardListSkeleton filterChips={1} footerStats={2} />}>
-                  <InstallmentsPage onReauth={onReauth} active />
-                </Suspense>
-              )}
-              {tab === 'dashboard' && (
+              <TabPanel active={tab === 'dashboard'}>
                 <DashboardPage
+                  active={tab === 'dashboard'}
                   onReauth={onReauth}
                   onViewRecords={openRecords}
                   onNewEntry={openEntry}
                   onNavigate={handleTabChange}
                   onConfigureNetAvailable={() => handleTabChange('net-available-settings')}
                 />
-              )}
+              </TabPanel>
+              <TabPanel active={tab === 'installments'}>
+                <InstallmentsPage onReauth={onReauth} active={tab === 'installments'} />
+              </TabPanel>
+              <TabPanel active={tab === 'dang'}>
+                <DangPage onReauth={onReauth} active={tab === 'dang'} />
+              </TabPanel>
+              <TabPanel active={tab === 'checks'}>
+                <ChecksPage onReauth={onReauth} active={tab === 'checks'} />
+              </TabPanel>
+              <TabPanel active={tab === 'receivables'}>
+                <ReceivablesPage onReauth={onReauth} active={tab === 'receivables'} />
+              </TabPanel>
+              <TabPanel active={tab === 'treasury'}>
+                <TreasuryPage onReauth={onReauth} active={tab === 'treasury'} />
+              </TabPanel>
+              <TabPanel active={tab === 'wallet'}>
+                <WalletPage
+                  onReauth={onReauth}
+                  active={tab === 'wallet'}
+                  onOpenOpeningBalances={() => handleTabChange('opening-balances')}
+                />
+              </TabPanel>
               {tab === 'entry' && (
                 <DataEntryPage
                   onReauth={onReauth}
@@ -480,16 +514,6 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               )}
               {tab === 'records' && (
                 <RecordsPage onReauth={onReauth} initialFormType={recordsFormType} />
-              )}
-              {tab === 'dang' && <DangPage onReauth={onReauth} />}
-              {tab === 'checks' && <ChecksPage onReauth={onReauth} />}
-              {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}
-              {tab === 'treasury' && <TreasuryPage onReauth={onReauth} />}
-              {tab === 'wallet' && (
-                <WalletPage
-                  onReauth={onReauth}
-                  onOpenOpeningBalances={() => handleTabChange('opening-balances')}
-                />
               )}
               {tab === 'opening-balances' && <OpeningBalancePage onReauth={onReauth} />}
               {tab === 'net-available-settings' && (

@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { VaultAssetType } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
+import { useDataRefresh } from '../hooks/useDataRefresh';
+import { hasStoreData } from '../services/spreadsheetStore';
 import {
   computeHoldings,
   createVaultTransaction,
@@ -67,7 +69,13 @@ function parseQuantityInput(value: string, allowDecimal: boolean): number | '' {
   return Number.isFinite(num) && num > 0 ? num : '';
 }
 
-export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
+export default function TreasuryPage({
+  onReauth,
+  active = true,
+}: {
+  onReauth?: () => void;
+  active?: boolean;
+}) {
   const [transactions, setTransactions] = useState<TransactionWithRow[]>([]);
   const [prices, setPrices] = useState<Record<VaultAssetType, number> | null>(() =>
     getCachedTgjuPrices()
@@ -76,10 +84,14 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   const [showForm, setShowForm] = useState(false);
   const [editingTx, setEditingTx] = useState<TransactionWithRow | null>(null);
   const [deletingTx, setDeletingTx] = useState<TransactionWithRow | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => {
+    const settings = getSettings();
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
+  });
   const [priceLoading, setPriceLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const dataRevision = useDataRefresh();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [draftSearch, setDraftSearch] = useState('');
@@ -141,7 +153,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
       loadItems();
       loadPrices();
     }
-  }, [loadItems, loadPrices]);
+  }, [loadItems, loadPrices, dataRevision]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -383,7 +395,7 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     [openFilterModal, refreshTreasury, loading, priceLoading, handleImport, handleExport, handleExportPdf]
   );
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
 
   const filterChips = useMemo(
     () => compactFilterChips([buildSearchChip(searchQuery, () => setSearchQuery(''))]),

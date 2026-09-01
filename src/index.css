@@ -1107,6 +1107,14 @@ button {
   z-index: 30;
 }
 
+.app-header-center {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+}
+
 .app-header-title {
   font-size: 1.05rem;
   font-weight: 800;
@@ -1116,10 +1124,68 @@ button {
   text-overflow: ellipsis;
   min-width: 0;
   text-align: start;
+  width: 100%;
+}
+
+.tab-panel[hidden] {
+  display: none !important;
+}
+
+.app-header--with-back .app-header-center {
+  align-items: center;
 }
 
 .app-header--with-back .app-header-title {
   text-align: center;
+}
+
+.sync-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  opacity: 0.92;
+  max-width: 100%;
+}
+
+.sync-status-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.sync-status-badge--online .sync-status-dot {
+  background: #86efac;
+  box-shadow: 0 0 0 2px rgba(134, 239, 172, 0.35);
+}
+
+.sync-status-badge--syncing .sync-status-dot {
+  background: #fde68a;
+  animation: syncPulse 1.2s ease-in-out infinite;
+}
+
+.sync-status-badge--offline .sync-status-dot,
+.sync-status-badge--error .sync-status-dot {
+  background: #fca5a5;
+}
+
+.sync-status-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes syncPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
 .header-icon-spacer {

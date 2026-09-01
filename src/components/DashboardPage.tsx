@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getSettings, isConfigured, getNetAvailableConfig } from '../services/settings';
-import { loadDashboardData, buildDashboardYearlyMonthlyFlow } from '../services/dashboard';
+import { loadDashboardData, buildDashboardYearlyMonthlyFlow, peekCachedDashboardData } from '../services/dashboard';
 import type { DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
 import { DashboardSkeleton } from './skeleton';
@@ -35,6 +35,8 @@ import { CategoryBarChart, CategoryDonutChart, IncomeExpenseMonthlyChart } from 
 import { getCategoryBarYAxisWidth } from './charts/chartUtils';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import SpeedDialIcon from './SpeedDialIcon';
+import { useDataRefresh } from '../hooks/useDataRefresh';
+import { hasStoreData } from '../services/spreadsheetStore';
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense';
 
@@ -88,15 +90,29 @@ export default function DashboardPage({
   onNewEntry,
   onNavigate,
   onConfigureNetAvailable,
+  active = true,
 }: {
   onReauth?: () => void;
   onViewRecords?: (formType?: 'income' | 'expense') => void;
   onNewEntry?: (formType: 'income' | 'expense') => void;
   onNavigate?: (target: DashboardNavTarget) => void;
   onConfigureNetAvailable?: () => void;
+  active?: boolean;
 }) {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<DashboardData | null>(() => {
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !hasStoreData(settings.spreadsheetId)) return null;
+    const range = resolveDateRange('month-to-date', createDefaultDateRangeFilter().customRange);
+    const installmentRange = getInstallmentDueRange('month-to-date');
+    return peekCachedDashboardData(
+      settings,
+      range,
+      installmentRange,
+      getDefaultChartYear(),
+      getNetAvailableConfig()
+    );
+  });
+  const [loading, setLoading] = useState(() => data == null);
   const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date');
   const [customRange, setCustomRange] = useState(
     () => createDefaultDateRangeFilter().customRange
@@ -109,6 +125,9 @@ export default function DashboardPage({
     () => createDefaultDateRangeFilter().customRange
   );
   const dateRange = resolveDateRange(datePreset, customRange);
+  const dataRevision = useDataRefresh();
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
   const load = useCallback(async () => {
     if (!isConfigured() || !isTokenValid()) {
@@ -118,7 +137,9 @@ export default function DashboardPage({
     const settings = getSettings();
     if (!settings) return;
 
-    setLoading(true);
+    if (!dataRef.current) {
+      setLoading(true);
+    }
     try {
       const range = resolveDateRange(datePreset, customRange);
       const installmentRange =
@@ -143,11 +164,11 @@ export default function DashboardPage({
     } finally {
       setLoading(false);
     }
-  }, [onReauth, datePreset, customRange]);
+  }, [onReauth, datePreset, customRange, monthlyFlowYear]);
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, dataRevision]);
 
   useEffect(() => {
     const settings = getSettings();
@@ -273,7 +294,8 @@ export default function DashboardPage({
             },
           ],
         }
-      : null
+      : null,
+    active
   );
 
   if (!isConfigured()) {

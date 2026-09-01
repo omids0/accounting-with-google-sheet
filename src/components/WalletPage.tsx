@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { WalletAccount } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
+import { useDataRefresh } from '../hooks/useDataRefresh';
+import { hasStoreData } from '../services/spreadsheetStore';
 import {
   createWalletAccount,
   deleteWalletAccount,
@@ -48,9 +50,11 @@ type WalletAccountWithRow = WalletAccount & { rowNumber: number };
 export default function WalletPage({
   onReauth,
   onOpenOpeningBalances,
+  active = true,
 }: {
   onReauth?: () => void;
   onOpenOpeningBalances?: () => void;
+  active?: boolean;
 }) {
   const [items, setItems] = useState<WalletAccountWithRow[]>([]);
   const [balances, setBalances] = useState<Record<string, number | ''>>({});
@@ -59,10 +63,14 @@ export default function WalletPage({
   const [showForm, setShowForm] = useState(false);
   const [editingAccount, setEditingAccount] = useState<WalletAccountWithRow | null>(null);
   const [deletingAccount, setDeletingAccount] = useState<WalletAccountWithRow | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => {
+    const settings = getSettings();
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
+  });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [savingId, setSavingId] = useState('');
+  const dataRevision = useDataRefresh();
 
   const [form, setForm] = useState({
     title: '',
@@ -120,7 +128,7 @@ export default function WalletPage({
 
   useEffect(() => {
     if (isConfigured()) loadItems();
-  }, [loadItems]);
+  }, [loadItems, dataRevision]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -340,7 +348,7 @@ export default function WalletPage({
     [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
 
   const filteredItems = useMemo(() => {
     const sorted = [...items].sort((a, b) => b.balance - a.balance);
