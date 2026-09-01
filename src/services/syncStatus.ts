@@ -63,7 +63,14 @@ export function setPendingWrites(pendingWrites: number): void {
 }
 
 export function initSyncStatusListeners(): () => void {
-  const onOnline = () => setConnectionState('online');
+  const onOnline = () => {
+    setConnectionState('online');
+    void import('./sheetSync').then(({ getActiveSpreadsheetId, retryPendingWrites }) => {
+      const spreadsheetId = getActiveSpreadsheetId();
+      if (!spreadsheetId) return;
+      void retryPendingWrites(spreadsheetId);
+    });
+  };
   const onOffline = () => setConnectionState('offline');
   window.addEventListener('online', onOnline);
   window.addEventListener('offline', onOffline);

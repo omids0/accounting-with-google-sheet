@@ -9,6 +9,7 @@ import { getAccessToken } from './auth';
 import { recordOperation } from './activityTracking';
 import { ACTIVITY_SHEET } from './activityTracking';
 import { bumpDataRevision } from './dataRevision';
+import type { OutboxOperation, OutboxWriteOptions } from './syncOutbox';
 import {
   appendSheetDataRow,
   deleteSheetDataRow,
@@ -258,10 +259,7 @@ async function ensureManySheetsWithHeadersInner(
   }
 }
 
-export type SheetWriteOptions = {
-  skipActivity?: boolean;
-  skipRevision?: boolean;
-};
+export type SheetWriteOptions = OutboxWriteOptions;
 
 function shouldRecordActivity(sheetName: string, options?: SheetWriteOptions): boolean {
   return !options?.skipActivity && sheetName !== ACTIVITY_SHEET;
@@ -445,18 +443,11 @@ export async function appendRecord(
   bumpDataRevision();
 
   const { enqueueSheetWrite } = await import('./sheetSync');
-  enqueueSheetWrite(
-    async () => {
-      await appendSheetRowApi(spreadsheetId, form.sheetName, row);
-    },
-    () => {
-      const sheet = getSheetAllRows(spreadsheetId, form.sheetName);
-      if (sheet?.length) {
-        setSheetAllRows(spreadsheetId, form.sheetName, sheet.slice(0, -1));
-        bumpDataRevision();
-      }
-    }
-  );
+  enqueueSheetWrite(spreadsheetId, {
+    type: 'append',
+    sheetName: form.sheetName,
+    row,
+  });
 }
 
 export type SheetRecord = {
@@ -639,20 +630,12 @@ export async function appendSheetRow(
   }
 
   const { enqueueSheetWrite } = await import('./sheetSync');
-  enqueueSheetWrite(
-    async () => {
-      await appendSheetRowApi(spreadsheetId, sheetName, row, options);
-    },
-    () => {
-      const sheet = getSheetAllRows(spreadsheetId, sheetName);
-      if (sheet?.length) {
-        setSheetAllRows(spreadsheetId, sheetName, sheet.slice(0, -1));
-        if (!options?.skipRevision) {
-          bumpDataRevision();
-        }
-      }
-    }
-  );
+  enqueueSheetWrite(spreadsheetId, {
+    type: 'append',
+    sheetName,
+    row,
+    writeOptions: options,
+  });
 }
 
 async function updateSheetRowApi(
@@ -683,7 +666,6 @@ export async function updateSheetRow(
   rowOrBuilder: string[] | (() => string[]),
   options?: SheetWriteOptions
 ): Promise<void> {
-  const previous = getSheetAllRows(spreadsheetId, sheetName)?.[rowNumber - 1];
   const row = typeof rowOrBuilder === 'function' ? rowOrBuilder() : rowOrBuilder;
 
   updateSheetDataRow(spreadsheetId, sheetName, rowNumber, row);
@@ -692,19 +674,13 @@ export async function updateSheetRow(
   }
 
   const { enqueueSheetWrite } = await import('./sheetSync');
-  enqueueSheetWrite(
-    async () => {
-      await updateSheetRowApi(spreadsheetId, sheetName, rowNumber, row, options);
-    },
-    () => {
-      if (previous) {
-        updateSheetDataRow(spreadsheetId, sheetName, rowNumber, previous);
-        if (!options?.skipRevision) {
-          bumpDataRevision();
-        }
-      }
-    }
-  );
+  enqueueSheetWrite(spreadsheetId, {
+    type: 'update',
+    sheetName,
+    rowNumber,
+    row,
+    writeOptions: options,
+  });
 }
 
 async function deleteSheetRowApi(
@@ -758,23 +734,15 @@ export async function deleteSheetRow(
   sheetName: string,
   rowNumber: number
 ): Promise<void> {
-  const previous = getSheetAllRows(spreadsheetId, sheetName)?.[rowNumber - 1];
   deleteSheetDataRow(spreadsheetId, sheetName, rowNumber);
   bumpDataRevision();
 
   const { enqueueSheetWrite } = await import('./sheetSync');
-  enqueueSheetWrite(
-    async () => {
-      await deleteSheetRowApi(spreadsheetId, sheetName, rowNumber);
-    },
-    () => {
-      if (!previous) return;
-      const sheet = [...(getSheetAllRows(spreadsheetId, sheetName) ?? [])];
-      sheet.splice(rowNumber - 1, 0, previous);
-      setSheetAllRows(spreadsheetId, sheetName, sheet);
-      bumpDataRevision();
-    }
-  );
+  enqueueSheetWrite(spreadsheetId, {
+    type: 'delete',
+    sheetName,
+    rowNumber,
+  });
 }
 
 export async function deleteRecord(
@@ -785,44 +753,89 @@ export async function deleteRecord(
   await deleteSheetRow(spreadsheetId, form.sheetName, rowNumber);
 }
 
+async function replaceSheetDataRowsApi(
+  spreadsheetId: string,
+  sheetName: string,
+  rows: string[][],
+  columnCount: number
+): Promise<void> {
+  const endCol = String.fromCharCode(64 + Math.max(columnCount, 1));
+  const clearRange = encodeURIComponent(`${sheetName}!A2:${endCol}1000`);
+  await apiRequest(
+    `${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`,
+    { method: 'POST' }
+  );
+
+  if (!rows.length) return;
+
+  const writeRange = encodeURIComponent(
+    `${sheetName}!A2:${endCol}${rows.length + 1}`
+  );
+  await apiRequest(
+    `${SHEETS_API}/${spreadsheetId}/values/${writeRange}?valueInputOption=RAW`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ values: rows }),
+    }
+  );
+}
+
+export async function executeOutboxOperation(
+  spreadsheetId: string,
+  operation: OutboxOperation
+): Promise<void> {
+  switch (operation.type) {
+    case 'append':
+      await appendSheetRowApi(
+        spreadsheetId,
+        operation.sheetName,
+        operation.row,
+        operation.writeOptions
+      );
+      return;
+    case 'update':
+      await updateSheetRowApi(
+        spreadsheetId,
+        operation.sheetName,
+        operation.rowNumber,
+        operation.row,
+        operation.writeOptions
+      );
+      return;
+    case 'delete':
+      await deleteSheetRowApi(
+        spreadsheetId,
+        operation.sheetName,
+        operation.rowNumber
+      );
+      return;
+    case 'replace':
+      await replaceSheetDataRowsApi(
+        spreadsheetId,
+        operation.sheetName,
+        operation.rows,
+        operation.columnCount
+      );
+      return;
+    default:
+      throw new Error('عملیات ناشناخته در صف همگام‌سازی');
+  }
+}
+
 export async function replaceSheetDataRows(
   spreadsheetId: string,
   sheetName: string,
   rows: string[][],
   columnCount = 2
 ): Promise<void> {
-  const previous = getSheetDataRows(spreadsheetId, sheetName);
   replaceSheetDataRowsInStore(spreadsheetId, sheetName, rows);
   bumpDataRevision();
 
   const { enqueueSheetWrite } = await import('./sheetSync');
-  enqueueSheetWrite(
-    async () => {
-      const endCol = String.fromCharCode(64 + Math.max(columnCount, 1));
-      const clearRange = encodeURIComponent(`${sheetName}!A2:${endCol}1000`);
-      await apiRequest(
-        `${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`,
-        { method: 'POST' }
-      );
-
-      if (!rows.length) return;
-
-      const writeRange = encodeURIComponent(
-        `${sheetName}!A2:${endCol}${rows.length + 1}`
-      );
-      await apiRequest(
-        `${SHEETS_API}/${spreadsheetId}/values/${writeRange}?valueInputOption=RAW`,
-        {
-          method: 'PUT',
-          body: JSON.stringify({ values: rows }),
-        }
-      );
-    },
-    () => {
-      if (previous) {
-        replaceSheetDataRowsInStore(spreadsheetId, sheetName, previous);
-        bumpDataRevision();
-      }
-    }
-  );
+  enqueueSheetWrite(spreadsheetId, {
+    type: 'replace',
+    sheetName,
+    rows,
+    columnCount,
+  });
 }

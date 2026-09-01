@@ -1,4 +1,5 @@
 import type { AppSettings } from '../types';
+import type { OutboxOperation } from './syncOutbox';
 import { bumpDataRevision } from './dataRevision';
 import { invalidateDashboardCache } from './dashboard';
 import { invalidateInstallmentsCache } from './installments';
@@ -11,6 +12,16 @@ import {
   setManySheetAllRows,
   setStoreLastSyncedAt,
 } from './spreadsheetStore';
+import {
+  addOutboxEntry,
+  clearOutbox,
+  getOutboxCount,
+  getOutboxEntries,
+  getOutboxSheetNames,
+  hasPendingOutbox,
+  markOutboxEntryFailed,
+  removeOutboxEntry,
+} from './syncOutbox';
 import {
   getSyncStatus,
   setLastSyncedAt,
@@ -45,17 +56,11 @@ const STATIC_SHEETS = [
   PUSH_SUBS_SHEET,
 ];
 
-type WriteTask = {
-  execute: () => Promise<void>;
-  rollback?: () => void;
-};
-
 let activeSpreadsheetId: string | null = null;
 let syncTimer: ReturnType<typeof setInterval> | null = null;
 let fullSyncInFlight: Promise<void> | null = null;
+let flushInFlight: Promise<boolean> | null = null;
 let quotaBlockedUntil = 0;
-const writeQueue: WriteTask[] = [];
-let processingWrites = false;
 
 export function getKnownSheetNames(settings: AppSettings = getSettings()!): string[] {
   if (!settings) return [...STATIC_SHEETS];
@@ -75,6 +80,10 @@ function isSyncCoolingDown(spreadsheetId: string): boolean {
   return Date.now() - lastSyncedAt < MIN_SYNC_COOLDOWN_MS;
 }
 
+function refreshPendingCount(spreadsheetId: string): void {
+  setPendingWrites(getOutboxCount(spreadsheetId));
+}
+
 export function markQuotaExceeded(): void {
   quotaBlockedUntil = Date.now() + QUOTA_BACKOFF_MS;
   setSyncState(
@@ -83,49 +92,70 @@ export function markQuotaExceeded(): void {
   );
 }
 
-export function enqueueSheetWrite(
-  execute: () => Promise<void>,
-  rollback?: () => void
+export function queueOutboxWrite(
+  spreadsheetId: string,
+  operation: OutboxOperation
 ): void {
-  if (Date.now() < quotaBlockedUntil) {
-    rollback?.();
-    return;
-  }
-
-  writeQueue.push({ execute, rollback });
-  setPendingWrites(writeQueue.length);
-  void processWriteQueue();
+  addOutboxEntry(spreadsheetId, operation);
+  refreshPendingCount(spreadsheetId);
+  void flushOutbox(spreadsheetId);
 }
 
-async function processWriteQueue(): Promise<void> {
-  if (processingWrites || Date.now() < quotaBlockedUntil) return;
-  processingWrites = true;
+export async function flushOutbox(spreadsheetId: string): Promise<boolean> {
+  if (!spreadsheetId) return true;
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
+  if (Date.now() < quotaBlockedUntil) return false;
 
-  while (writeQueue.length > 0) {
-    if (Date.now() < quotaBlockedUntil) break;
-
-    const task = writeQueue[0];
-    setPendingWrites(writeQueue.length);
-
-    try {
-      await task.execute();
-      writeQueue.shift();
-    } catch (err) {
-      task.rollback?.();
-      const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی';
-      if (isQuotaExceededError(err)) {
-        markQuotaExceeded();
-        writeQueue.length = 0;
-        break;
-      }
-      setSyncState('error', message);
-      writeQueue.shift();
-    }
-
-    setPendingWrites(writeQueue.length);
+  if (flushInFlight) {
+    return flushInFlight;
   }
 
-  processingWrites = false;
+  const task = (async () => {
+    const { executeOutboxOperation } = await import('./sheets');
+    const entries = getOutboxEntries(spreadsheetId);
+
+    if (!entries.length) {
+      refreshPendingCount(spreadsheetId);
+      return true;
+    }
+
+    setSyncState('syncing');
+
+    for (const entry of entries) {
+      if (Date.now() < quotaBlockedUntil) return false;
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
+
+      try {
+        await executeOutboxOperation(spreadsheetId, entry.operation);
+        removeOutboxEntry(spreadsheetId, entry.id);
+        refreshPendingCount(spreadsheetId);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی';
+        markOutboxEntryFailed(spreadsheetId, entry.id, message);
+
+        if (isQuotaExceededError(err)) {
+          markQuotaExceeded();
+          return false;
+        }
+
+        setSyncState('error', message);
+        refreshPendingCount(spreadsheetId);
+        return false;
+      }
+    }
+
+    refreshPendingCount(spreadsheetId);
+    if (!hasPendingOutbox(spreadsheetId)) {
+      setSyncState('idle');
+    }
+    return true;
+  })();
+
+  flushInFlight = task.finally(() => {
+    flushInFlight = null;
+  });
+
+  return flushInFlight;
 }
 
 async function fetchSheetsBatchFromApi(
@@ -144,7 +174,9 @@ export async function fullSyncFromRemote(
   if (Date.now() < quotaBlockedUntil) return;
 
   const force = options.force ?? false;
-  if (!force && isSyncCoolingDown(spreadsheetId)) return;
+  if (!force && isSyncCoolingDown(spreadsheetId) && !hasPendingOutbox(spreadsheetId)) {
+    return;
+  }
 
   if (fullSyncInFlight) {
     await fullSyncInFlight;
@@ -163,11 +195,47 @@ export async function fullSyncFromRemote(
 
   const task = (async () => {
     try {
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        await flushOutbox(spreadsheetId);
+      }
+
+      const blockedSheets = getOutboxSheetNames(spreadsheetId);
+      if (blockedSheets.size > 0 && typeof navigator !== 'undefined' && !navigator.onLine) {
+        setSyncState('idle');
+        return;
+      }
+
+      if (blockedSheets.size > 0) {
+        const flushed = await flushOutbox(spreadsheetId);
+        if (!flushed) {
+          return;
+        }
+      }
+
+      const stillBlocked = getOutboxSheetNames(spreadsheetId);
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setSyncState('idle');
+        return;
+      }
+
       initStore(spreadsheetId);
       const sheetNames = getKnownSheetNames(settings);
       const fetched = await fetchSheetsBatchFromApi(spreadsheetId, sheetNames);
-      const changed = setManySheetAllRows(spreadsheetId, fetched);
+      const filtered = new Map<string, string[][]>();
 
+      for (const [sheetName, rows] of fetched) {
+        if (stillBlocked.has(sheetName)) continue;
+        filtered.set(sheetName, rows);
+      }
+
+      if (!filtered.size) {
+        if (!hasPendingOutbox(spreadsheetId)) {
+          setSyncState('idle');
+        }
+        return;
+      }
+
+      const changed = setManySheetAllRows(spreadsheetId, filtered);
       const now = Date.now();
       setStoreLastSyncedAt(spreadsheetId, now);
       setLastSyncedAt(now);
@@ -175,7 +243,7 @@ export async function fullSyncFromRemote(
       if (changed) {
         invalidateDerivedCaches(spreadsheetId);
         bumpDataRevision();
-      } else {
+      } else if (!hasPendingOutbox(spreadsheetId)) {
         setSyncState('idle');
       }
     } catch (err) {
@@ -202,7 +270,7 @@ export function refreshInBackground(
 ): void {
   const id = spreadsheetId ?? activeSpreadsheetId;
   if (!id || getSyncStatus().syncState === 'syncing') return;
-  if (!options.force && isSyncCoolingDown(id)) return;
+  if (!options.force && isSyncCoolingDown(id) && !hasPendingOutbox(id)) return;
 
   void fullSyncFromRemote(id, { background: true, force: options.force }).catch(() => {
     /* error state handled in fullSyncFromRemote */
@@ -214,6 +282,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
 
   activeSpreadsheetId = spreadsheetId;
   initStore(spreadsheetId);
+  refreshPendingCount(spreadsheetId);
 
   const lastSyncedAt = getStoreLastSyncedAt(spreadsheetId);
   if (lastSyncedAt) {
@@ -221,7 +290,13 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   }
 
   if (hasStoreData(spreadsheetId)) {
-    void fullSyncFromRemote(spreadsheetId, { background: true, force: true });
+    if (hasPendingOutbox(spreadsheetId)) {
+      void flushOutbox(spreadsheetId).then(() => {
+        void fullSyncFromRemote(spreadsheetId, { background: true, force: true });
+      });
+    } else {
+      void fullSyncFromRemote(spreadsheetId, { background: true, force: true });
+    }
   } else {
     await fullSyncFromRemote(spreadsheetId, { background: false, force: true });
   }
@@ -243,11 +318,38 @@ export function stopSheetSync(): void {
 export function resetSheetSync(spreadsheetId: string): void {
   stopSheetSync();
   clearStore(spreadsheetId);
+  clearOutbox(spreadsheetId);
+  setPendingWrites(0);
   invalidateDerivedCaches(spreadsheetId);
   bumpDataRevision();
 }
 
 export function onPageEnter(): void {
   if (!activeSpreadsheetId) return;
-  refreshInBackground(activeSpreadsheetId);
+  void flushOutbox(activeSpreadsheetId).then((flushed) => {
+    if (flushed) {
+      refreshInBackground(activeSpreadsheetId ?? undefined);
+    }
+  });
+}
+
+export function getActiveSpreadsheetId(): string | null {
+  return activeSpreadsheetId;
+}
+
+export async function retryPendingWrites(spreadsheetId?: string): Promise<void> {
+  const id = spreadsheetId ?? activeSpreadsheetId;
+  if (!id) return;
+  const flushed = await flushOutbox(id);
+  if (flushed) {
+    await fullSyncFromRemote(id, { background: true, force: true });
+  }
+}
+
+// Backwards-compatible alias used by sheets.ts
+export function enqueueSheetWrite(
+  spreadsheetId: string,
+  operation: OutboxOperation
+): void {
+  queueOutboxWrite(spreadsheetId, operation);
 }

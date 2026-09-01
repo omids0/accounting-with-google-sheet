@@ -29,7 +29,11 @@ export default function SyncStatusBadge() {
     useSyncStatus();
 
   const label = useMemo(() => {
-    if (connection === 'offline') return 'آفلاین';
+    if (connection === 'offline') {
+      return pendingWrites > 0
+        ? `آفلاین (${pendingWrites} در انتظار)`
+        : 'آفلاین';
+    }
     if (syncState === 'syncing') return 'در حال بروزرسانی…';
     if (pendingWrites > 0) return `در حال ذخیره (${pendingWrites})`;
     if (lastError) return 'خطا در همگام‌سازی';
