@@ -33,7 +33,7 @@ export default function ProgressBar({
 
   return (
     <div
-      className={`progress-bar progress-bar--${variant}${className ? ` ${className}` : ''}`}
+      className={`progress-bar progress-bar--${variant}${animated ? '' : ' progress-bar--static'}${className ? ` ${className}` : ''}`}
       style={style}
     >
       <div className="progress-bar__meta">

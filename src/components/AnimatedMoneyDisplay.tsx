@@ -19,7 +19,7 @@ export default function AnimatedMoneyDisplay({
   className?: string;
   animated?: boolean;
 }) {
-  const displayAmount = useAnimatedNumber(amount);
+  const displayAmount = useAnimatedNumber(amount, 650, animated);
   const value = animated ? displayAmount : amount;
 
   return (

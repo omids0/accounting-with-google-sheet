@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getSettings, isConfigured, getNetAvailableConfig } from '../services/settings';
-import { loadDashboardData } from '../services/dashboard';
+import { loadDashboardData, buildDashboardYearlyMonthlyFlow } from '../services/dashboard';
 import type { DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
 import { DashboardSkeleton } from './skeleton';
@@ -132,11 +132,35 @@ export default function DashboardPage({
     } finally {
       setLoading(false);
     }
-  }, [onReauth, datePreset, customRange, monthlyFlowYear]);
+  }, [onReauth, datePreset, customRange]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const settings = getSettings();
+    if (!settings || !data) return;
+
+    const range = resolveDateRange(datePreset, customRange);
+    const installmentRange =
+      datePreset === 'custom'
+        ? range
+        : getInstallmentDueRange(datePreset as DateRangePreset);
+    const nextFlow = buildDashboardYearlyMonthlyFlow(
+      settings,
+      range,
+      installmentRange,
+      getNetAvailableConfig(),
+      monthlyFlowYear
+    );
+    if (!nextFlow) return;
+
+    setData((prev) => {
+      if (!prev || prev.yearlyMonthlyFlow === nextFlow) return prev;
+      return { ...prev, yearlyMonthlyFlow: nextFlow };
+    });
+  }, [monthlyFlowYear, datePreset, customRange]);
 
   const handleDateFilterChange = (filter: AppliedDateRangeFilter) => {
     setDatePreset(filter.preset);
@@ -160,9 +184,18 @@ export default function DashboardPage({
   );
 
   const financial = data?.financial;
-  const incomeSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income');
-  const expenseSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense');
-  const netSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'net');
+  const incomeSparkline = useMemo(
+    () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income'),
+    [data?.yearlyMonthlyFlow]
+  );
+  const expenseSparkline = useMemo(
+    () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense'),
+    [data?.yearlyMonthlyFlow]
+  );
+  const netSparkline = useMemo(
+    () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'net'),
+    [data?.yearlyMonthlyFlow]
+  );
   const settings = getSettings();
   const incomeForm = settings?.forms.find((f) => f.type === 'income');
   const expenseForm = settings?.forms.find((f) => f.type === 'expense');

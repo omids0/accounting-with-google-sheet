@@ -16,6 +16,8 @@ interface JalaliDatePickerProps {
   onChange: (iso: string) => void;
   calendar?: CalendarSystem;
   inline?: boolean;
+  allowEmpty?: boolean;
+  emptyLabel?: string;
 }
 
 function fa(n: number): string {
@@ -105,7 +107,10 @@ export default function JalaliDatePicker({
   onChange,
   calendar = 'shamsi',
   inline = false,
+  allowEmpty = false,
+  emptyLabel = 'انتخاب تاریخ',
 }: JalaliDatePickerProps) {
+  const hasValue = Boolean(value);
   const iso = value || getTodayIso();
   const [editing, setEditing] = useState(false);
   const [pendingIso, setPendingIso] = useState(iso);
@@ -133,22 +138,28 @@ export default function JalaliDatePicker({
   if (inline) {
     return (
       <div className="jalali-date-picker-wrap jalali-date-picker-wrap--inline">
-        <CalendarWheelFields calendar={calendar} iso={iso} onIsoChange={onChange} />
+        <CalendarWheelFields
+          calendar={calendar}
+          iso={hasValue ? iso : getTodayIso()}
+          onIsoChange={onChange}
+        />
       </div>
     );
   }
 
-  const hasPendingChanges = pendingIso !== iso;
+  const hasPendingChanges = allowEmpty && !hasValue ? true : pendingIso !== iso;
+  const triggerLabel =
+    allowEmpty && !hasValue ? emptyLabel : formatPickerLabel(iso, calendar);
 
   return (
     <div className="jalali-date-picker-wrap">
       <button
         type="button"
-        className={`jalali-date-picker-trigger${editing ? ' is-active' : ''}`}
+        className={`jalali-date-picker-trigger${editing ? ' is-active' : ''}${allowEmpty && !hasValue ? ' is-empty' : ''}`}
         onClick={handleToggle}
         aria-expanded={editing}
       >
-        {formatPickerLabel(iso, calendar)}
+        {triggerLabel}
       </button>
 
       {editing && (
