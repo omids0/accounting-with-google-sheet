@@ -2,18 +2,25 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import type { InstallmentPlan } from '../types';
 import {
   getFirstInstallmentDueDate,
+  getInstallmentDuePaymentAmount,
   getInstallmentEndDate,
   getInstallmentPaymentAmount,
+  paidInstallmentAmount,
+  remainingInstallmentAmount,
   sortInstallmentPayments,
+  totalInstallmentAmount,
 } from '../services/installments';
 import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian } from '../utils/jalaliDate';
 import { showError } from '../utils/toast';
 import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
+import CardExpandButton from './CardExpandButton';
 import { AccordionCollapse } from './AccordionCollapse';
 import CardInlineAmountEdit from './CardInlineAmountEdit';
+import MoneyDisplay from './MoneyDisplay';
 import ProgressBar from './ProgressBar';
+import AppIcon from './AppIcon';
 
 export type PlanWithRow = InstallmentPlan & { rowNumber: number };
 
@@ -114,6 +121,13 @@ function InstallmentPlanCard({
   );
 
   const total = plan.count;
+  const totalAmount = useMemo(() => totalInstallmentAmount(plan), [plan]);
+  const paidAmount = useMemo(() => paidInstallmentAmount(plan), [plan]);
+  const remainingAmount = useMemo(() => remainingInstallmentAmount(plan), [plan]);
+  const dueAmount = useMemo(
+    () => (dueDate ? getInstallmentDuePaymentAmount(plan, dueDate) : null),
+    [plan, dueDate]
+  );
   const firstDueDate = getFirstInstallmentDueDate(plan.startDate, plan.dueDay);
   const endDate = getInstallmentEndDate(plan.startDate, plan.count, plan.dueDay);
 
@@ -130,20 +144,22 @@ function InstallmentPlanCard({
           <div>
             <div className="list-card-title">{plan.title}</div>
             <div className="list-card-subtitle">
-              <span className="list-card-amount-pill">{formatMoney(plan.amount)}</span>
               {complete
-                ? ' · تکمیل شده'
-                : ` · ${done.toLocaleString('fa-IR')}/${total.toLocaleString('fa-IR')} پرداخت شده`}
+                ? 'تکمیل شده'
+                : `${done.toLocaleString('fa-IR')}/${total.toLocaleString('fa-IR')} قسط پرداخت شده`}
             </div>
             {dueDate ? (
-              <div className="list-card-subtitle">
+              <div className="installment-due-line list-card-subtitle">
                 <span className="installment-due">
                   موعد پرداخت: {formatIsoDatePersian(dueDate)}
                 </span>
+                {dueAmount !== null ? (
+                  <MoneyDisplay amount={dueAmount} size="record" tone="primary" />
+                ) : null}
               </div>
             ) : null}
             {firstDueDate && endDate ? (
-              <div className="list-card-subtitle">
+              <div className="list-card-subtitle installment-range-line">
                 <span className="installment-due">
                   بازه قسط: {formatIsoDatePersian(firstDueDate)} تا{' '}
                   {formatIsoDatePersian(endDate)}
@@ -157,7 +173,6 @@ function InstallmentPlanCard({
               aria-label={`پیشرفت پرداخت ${plan.title}`}
             />
           </div>
-          <span className="installment-chevron">▼</span>
         </button>
         <div className="card-action-buttons">
           <CardEditButton
@@ -172,11 +187,40 @@ function InstallmentPlanCard({
               onDelete(plan);
             }}
           />
+          <CardExpandButton
+            expanded={expanded}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleToggleExpand();
+            }}
+            ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات اقساط'}
+          />
         </div>
       </div>
 
       <AccordionCollapse open={expanded}>
         <div className="installment-payments">
+          <div
+            className="installment-amount-summary"
+            aria-label={`خلاصه مبلغ ${plan.title}`}
+          >
+            <div className="installment-amount-row">
+              <span className="installment-amount-summary-label">کل قابل واریز</span>
+              <MoneyDisplay amount={totalAmount} size="record" />
+            </div>
+            <div className="installment-amount-row">
+              <span className="installment-amount-summary-label">واریز شده</span>
+              <MoneyDisplay amount={paidAmount} size="record" tone="positive" />
+            </div>
+            <div className="installment-amount-row">
+              <span className="installment-amount-summary-label">مانده</span>
+              <MoneyDisplay
+                amount={remainingAmount}
+                size="record"
+                tone={complete ? 'default' : 'primary'}
+              />
+            </div>
+          </div>
           {plan.note && <p className="installment-note">{plan.note}</p>}
           {sortedPayments.map(({ payment, index: paymentIndex }) => {
             const paymentExpanded = expandedPaymentIndex === paymentIndex;
@@ -224,7 +268,12 @@ function InstallmentPlanCard({
                     >
                       {formatMoney(displayAmount)}
                     </div>
-                    <span className="installment-chevron installment-payment-chevron">▼</span>
+                    <AppIcon
+                      name="chevron-down"
+                      size={14}
+                      strokeWidth={2}
+                      className={`installment-payment-chevron${paymentExpanded ? ' installment-payment-chevron--expanded' : ''}`}
+                    />
                   </button>
                 </div>
 

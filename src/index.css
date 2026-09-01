@@ -2893,6 +2893,27 @@ button {
   color: var(--color-danger);
 }
 
+.card-expand-btn {
+  color: var(--color-text-muted);
+}
+
+.card-expand-btn:hover:not(:disabled) {
+  color: var(--color-primary);
+}
+
+.card-expand-btn--expanded {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.card-expand-btn svg {
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.card-expand-btn--expanded svg {
+  transform: rotate(180deg);
+}
+
 .card-action-buttons {
   display: flex;
   flex-direction: column;
@@ -2918,12 +2939,8 @@ button {
   margin-inline-start: 0;
   margin-inline-end: 0.5rem;
   margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
   align-self: flex-start;
-}
-
-.card-header-with-edit:has(.progress-bar) .card-action-buttons {
-  margin-top: 0;
-  align-self: center;
 }
 
 .wallet-item-card .card-header-with-edit .card-action-buttons {
@@ -3167,11 +3184,11 @@ button {
 
 .installment-note {
   font-size: 0.78rem;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   margin: 0.15rem 0 0.7rem;
   padding: 0.55rem 0.7rem;
-  background: var(--form-input-bg);
-  border: 1px solid var(--form-input-border);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
   border-radius: var(--radius-sm);
   line-height: 1.55;
 }
@@ -3236,14 +3253,16 @@ button {
 }
 
 .installment-payment-chevron {
-  font-size: 0.65rem;
   color: var(--color-text-muted);
-  transition: transform var(--duration-fast);
   flex-shrink: 0;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    color var(--duration-fast);
 }
 
-.installment-payment-header--expanded .installment-payment-chevron {
+.installment-payment-chevron--expanded {
   transform: rotate(180deg);
+  color: var(--color-primary);
 }
 
 .installment-payment-amount-display {
@@ -3514,6 +3533,69 @@ button {
   background: var(--color-bg);
   border-radius: 8px;
   font-size: 0.8rem;
+}
+
+.installment-amount-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+  padding: 0.6rem 0.7rem;
+  background: color-mix(in srgb, var(--color-bg) 88%, var(--color-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: calc(var(--radius-sm) + 2px);
+}
+
+.installment-payments > .installment-amount-summary {
+  margin-top: 0;
+  margin-bottom: 0.65rem;
+}
+
+.installment-amount-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.installment-amount-row + .installment-amount-row {
+  padding-top: 0.4rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+}
+
+.installment-amount-summary-label {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+.installment-amount-row .money-display {
+  flex-shrink: 0;
+  text-align: left;
+}
+
+.installment-due-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.installment-due-line .installment-due {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.45;
+}
+
+.installment-due-line .money-display {
+  flex-shrink: 0;
+}
+
+.installment-range-line {
+  margin-top: 0.4rem;
+  margin-bottom: 0.45rem;
 }
 
 .receivable-summary > div {

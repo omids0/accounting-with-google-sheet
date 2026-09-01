@@ -35,6 +35,7 @@ import FormModal from './FormModal';
 import CardEditButton from './CardEditButton';
 import { AccordionCollapse } from './AccordionCollapse';
 import CardDeleteButton from './CardDeleteButton';
+import CardExpandButton from './CardExpandButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import PageHeader from './PageHeader';
@@ -663,7 +664,6 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                       aria-label={`پیشرفت تسویه ${item.debtor}`}
                     />
                   </div>
-                  <span className="installment-chevron">▼</span>
                 </button>
                 <div className="card-action-buttons">
                   <CardEditButton
@@ -677,6 +677,15 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
                       event.stopPropagation();
                       openDeleteConfirm(item);
                     }}
+                  />
+                  <CardExpandButton
+                    expanded={expanded}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setExpandedId(expanded ? null : item.id);
+                      setPaymentForm(null);
+                    }}
+                    ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات طلب'}
                   />
                 </div>
               </div>
