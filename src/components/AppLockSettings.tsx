@@ -9,6 +9,7 @@ import {
   isBiometricAvailable,
   isBiometricEnabled,
   setupAppLock,
+  syncAppLockFromSheet,
   validatePinFormat,
 } from '../services/appLock';
 import { showError, showSuccess } from '../utils/toast';
@@ -29,8 +30,10 @@ export default function AppLockSettings() {
 
   useEffect(() => {
     void isBiometricAvailable().then(setBiometricAvailable);
-    setEnabled(isAppLockEnabled());
-    setBiometricOn(isBiometricEnabled());
+    void syncAppLockFromSheet().then(() => {
+      setEnabled(isAppLockEnabled());
+      setBiometricOn(isBiometricEnabled());
+    });
   }, []);
 
   const resetForm = () => {
@@ -242,8 +245,9 @@ export default function AppLockSettings() {
     <div className="card">
       <h2 className="card-title">قفل اپ</h2>
       <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
-        با فعال‌سازی قفل، هنگام برگشت از پس‌زمینه (تعویض اپ یا بستن موقت) باید رمز یا اثر
-        انگشت وارد شود. رفرش صفحه در همان نشست، قفل را دوباره نمی‌زند.
+        رمز قفل در Google Sheet ذخیره می‌شود و روی همه دستگاه‌ها اعمال می‌شود. اثر انگشت
+        فقط روی همین دستگاه فعال می‌شود. با خروج از اپ یا تعویض برنامه، قفل دوباره فعال
+        می‌شود.
       </p>
 
       <div className="app-lock-status">
@@ -387,7 +391,7 @@ export default function AppLockSettings() {
 
       {enabled && step === 'idle' && getAppLockConfig() && (
         <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.75rem' }}>
-          قفل هنگام برگشت از پس‌زمینه فعال می‌شود، نه با رفرش صفحه.
+          رمز روی همه دستگاه‌ها یکسان است. اثر انگشت را در هر دستگاه جداگانه فعال کنید.
         </p>
       )}
     </div>

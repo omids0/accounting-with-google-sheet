@@ -138,7 +138,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
         )}
 
         <p className="login-footer-note">
-          با خروج از اپ یا تعویض برنامه، قفل دوباره فعال می‌شود
+          رمز روی همه دستگاه‌ها یکسان است
         </p>
       </div>
     </div>

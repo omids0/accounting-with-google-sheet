@@ -40,6 +40,10 @@ import {
   REMINDERS_SHEET,
 } from './reminders';
 import {
+  APP_LOCK_HEADERS,
+  APP_LOCK_SHEET,
+} from './appLockSync';
+import {
   formatSpreadsheetTitle,
 } from './spreadsheetCatalog';
 import {
@@ -115,6 +119,7 @@ function getAllSheetSpecs(): SheetSpec[] {
     { sheetName: REMINDERS_SHEET, headers: REMINDERS_HEADERS },
     { sheetName: PUSH_SUBS_SHEET, headers: PUSH_SUBS_HEADERS },
     { sheetName: REMINDER_LOG_SHEET, headers: REMINDER_LOG_HEADERS },
+    { sheetName: APP_LOCK_SHEET, headers: APP_LOCK_HEADERS },
   ];
 }
 
