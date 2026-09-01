@@ -8,7 +8,7 @@ import {
 import { getAccessToken } from './auth';
 import { recordOperation } from './activityTracking';
 import { ACTIVITY_SHEET } from './activityTracking';
-import { bumpDataRevision } from './dataRevision';
+import { notifySpreadsheetDataChanged } from './spreadsheetDataChange';
 import type { OutboxOperation, OutboxWriteOptions } from './syncOutbox';
 import {
   appendSheetDataRow,
@@ -440,7 +440,7 @@ export async function appendRecord(
   const headers = getSheetHeaderRowFromStore(spreadsheetId, form.sheetName, form);
   const row = buildRecordRow(headers, form, recordId, createdAt, values);
   appendSheetDataRow(spreadsheetId, form.sheetName, row);
-  bumpDataRevision();
+  notifySpreadsheetDataChanged(spreadsheetId);
 
   const { enqueueSheetWrite } = await import('./sheetSync');
   enqueueSheetWrite(spreadsheetId, {
@@ -626,7 +626,7 @@ export async function appendSheetRow(
 ): Promise<void> {
   appendSheetDataRow(spreadsheetId, sheetName, row);
   if (!options?.skipRevision) {
-    bumpDataRevision();
+    notifySpreadsheetDataChanged(spreadsheetId);
   }
 
   const { enqueueSheetWrite } = await import('./sheetSync');
@@ -670,7 +670,7 @@ export async function updateSheetRow(
 
   updateSheetDataRow(spreadsheetId, sheetName, rowNumber, row);
   if (!options?.skipRevision) {
-    bumpDataRevision();
+    notifySpreadsheetDataChanged(spreadsheetId);
   }
 
   const { enqueueSheetWrite } = await import('./sheetSync');
@@ -735,7 +735,7 @@ export async function deleteSheetRow(
   rowNumber: number
 ): Promise<void> {
   deleteSheetDataRow(spreadsheetId, sheetName, rowNumber);
-  bumpDataRevision();
+  notifySpreadsheetDataChanged(spreadsheetId);
 
   const { enqueueSheetWrite } = await import('./sheetSync');
   enqueueSheetWrite(spreadsheetId, {
@@ -829,7 +829,7 @@ export async function replaceSheetDataRows(
   columnCount = 2
 ): Promise<void> {
   replaceSheetDataRowsInStore(spreadsheetId, sheetName, rows);
-  bumpDataRevision();
+  notifySpreadsheetDataChanged(spreadsheetId);
 
   const { enqueueSheetWrite } = await import('./sheetSync');
   enqueueSheetWrite(spreadsheetId, {

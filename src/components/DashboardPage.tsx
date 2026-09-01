@@ -164,7 +164,7 @@ export default function DashboardPage({
     } finally {
       setLoading(false);
     }
-  }, [onReauth, datePreset, customRange]);
+  }, [onReauth, datePreset, customRange, monthlyFlowYear]);
 
   useEffect(() => {
     load();

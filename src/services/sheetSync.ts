@@ -1,7 +1,6 @@
 import type { AppSettings } from '../types';
 import type { OutboxOperation } from './syncOutbox';
-import { bumpDataRevision } from './dataRevision';
-import { invalidateDashboardCache } from './dashboard';
+import { notifySpreadsheetDataChanged } from './spreadsheetDataChange';
 import { invalidateInstallmentsCache } from './installments';
 import { getSettings } from './settings';
 import {
@@ -69,7 +68,6 @@ export function getKnownSheetNames(settings: AppSettings = getSettings()!): stri
 }
 
 function invalidateDerivedCaches(spreadsheetId: string): void {
-  invalidateDashboardCache(spreadsheetId);
   invalidateInstallmentsCache(spreadsheetId);
 }
 
@@ -242,7 +240,7 @@ export async function fullSyncFromRemote(
 
       if (changed) {
         invalidateDerivedCaches(spreadsheetId);
-        bumpDataRevision();
+        notifySpreadsheetDataChanged(spreadsheetId);
       } else if (!hasPendingOutbox(spreadsheetId)) {
         setSyncState('idle');
       }
@@ -321,7 +319,7 @@ export function resetSheetSync(spreadsheetId: string): void {
   clearOutbox(spreadsheetId);
   setPendingWrites(0);
   invalidateDerivedCaches(spreadsheetId);
-  bumpDataRevision();
+  notifySpreadsheetDataChanged(spreadsheetId);
 }
 
 export function onPageEnter(): void {

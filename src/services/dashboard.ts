@@ -32,7 +32,7 @@ import { getCachedTgjuPrices, prefetchTgjuPrices } from './tgju';
 import { computeHoldings, fetchVaultTransactions } from './treasury';
 import { fetchWalletAccounts } from './wallet';
 import { getDefaultNetAvailableConfig } from './settings';
-import { bumpDataRevision } from './dataRevision';
+import { notifySpreadsheetDataChanged } from './spreadsheetDataChange';
 
 export function applyNetAvailableConfig(
   financial: Omit<FinancialSummary, 'totalAssets' | 'totalLiabilities' | 'netAvailable'>,
@@ -280,8 +280,7 @@ async function fetchDashboardBundleUncached(
       walletTotal
     ).then((autoFilled) => {
       if (!autoFilled) return;
-      invalidateDashboardCache(settings.spreadsheetId);
-      bumpDataRevision();
+      notifySpreadsheetDataChanged(settings.spreadsheetId);
     });
   }
 
