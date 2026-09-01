@@ -32,6 +32,7 @@ import { getCachedTgjuPrices, prefetchTgjuPrices } from './tgju';
 import { computeHoldings, fetchVaultTransactions } from './treasury';
 import { fetchWalletAccounts } from './wallet';
 import { getDefaultNetAvailableConfig } from './settings';
+import { bumpDataRevision } from './dataRevision';
 
 export function applyNetAvailableConfig(
   financial: Omit<FinancialSummary, 'totalAssets' | 'totalLiabilities' | 'netAvailable'>,
@@ -274,13 +275,14 @@ async function fetchDashboardBundleUncached(
   let resolvedOpeningBalance = openingBalanceRecord;
   if (monthKey === currentMonthKey && !hasUserOpeningBalance(openingBalanceRecord)) {
     const walletTotal = walletAccounts.reduce((s, a) => s + a.balance, 0);
-    const autoFilled = await ensureAutoOpeningBalanceForCurrentMonth(
+    void ensureAutoOpeningBalanceForCurrentMonth(
       settings.spreadsheetId,
       walletTotal
-    );
-    if (autoFilled) {
-      resolvedOpeningBalance = autoFilled;
-    }
+    ).then((autoFilled) => {
+      if (!autoFilled) return;
+      invalidateDashboardCache(settings.spreadsheetId);
+      bumpDataRevision();
+    });
   }
 
   const filteredIncome = filterByDateRange(
@@ -480,4 +482,25 @@ export async function loadDashboardData(
 
   dashboardInFlight.set(cacheKey, task);
   return task;
+}
+
+export function peekCachedDashboardData(
+  settings: AppSettings,
+  range: DateRange,
+  installmentRange: DateRange = range,
+  monthlyFlowYear: number = getJalaliParts(new Date()).year,
+  netAvailableConfig: NetAvailableConfig = getDefaultNetAvailableConfig()
+): DashboardData | null {
+  const cacheKey = buildDashboardCacheKey(
+    settings,
+    range,
+    installmentRange,
+    monthlyFlowYear,
+    netAvailableConfig
+  );
+  const cached = dashboardCache.get(cacheKey);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data;
+  }
+  return null;
 }

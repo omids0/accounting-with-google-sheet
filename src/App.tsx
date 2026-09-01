@@ -16,6 +16,8 @@ import {
   prepareUserSpreadsheet,
   resolveSpreadsheetSession,
 } from './services/spreadsheetSetup';
+import { initializeSheetSync } from './services/sheetSync';
+import { getSettings } from './services/settings';
 import type { SpreadsheetEntry } from './types';
 import { AppLoadingSkeleton } from './components/skeleton';
 import AppIcon from './components/AppIcon';
@@ -112,6 +114,10 @@ export default function App() {
         if (session.status === 'ready') {
           await prepareUserSpreadsheet();
           await syncAppLockFromSheet();
+          const settings = getSettings();
+          if (settings?.spreadsheetId) {
+            await initializeSheetSync(settings.spreadsheetId);
+          }
           if (!cancelled) {
             setLoggedIn(true);
             setNeedsReauth(false);
@@ -171,6 +177,10 @@ export default function App() {
 
   const handleSheetSetupComplete = async () => {
     await syncAppLockFromSheet();
+    const settings = getSettings();
+    if (settings?.spreadsheetId) {
+      await initializeSheetSync(settings.spreadsheetId);
+    }
     setLoggedIn(true);
     setNeedsSheetSetup(false);
     setSheetError('');

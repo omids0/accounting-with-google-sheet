@@ -7,6 +7,17 @@ import {
 } from '../utils/sheetValues';
 import { getAccessToken } from './auth';
 import { recordOperation } from './activityTracking';
+import { ACTIVITY_SHEET } from './activityTracking';
+import { bumpDataRevision } from './dataRevision';
+import {
+  appendSheetDataRow,
+  deleteSheetDataRow,
+  getSheetAllRows,
+  getSheetDataRows,
+  replaceSheetDataRows as replaceSheetDataRowsInStore,
+  setSheetAllRows,
+  updateSheetDataRow,
+} from './spreadsheetStore';
 
 const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
 const TITLES_CACHE_TTL_MS = 120_000;
@@ -247,6 +258,15 @@ async function ensureManySheetsWithHeadersInner(
   }
 }
 
+export type SheetWriteOptions = {
+  skipActivity?: boolean;
+  skipRevision?: boolean;
+};
+
+function shouldRecordActivity(sheetName: string, options?: SheetWriteOptions): boolean {
+  return !options?.skipActivity && sheetName !== ACTIVITY_SHEET;
+}
+
 function token(): string {
   return getAccessToken();
 }
@@ -266,6 +286,8 @@ async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T>
       (err as { error?: { message?: string } }).error?.message ||
       `خطای API: ${res.status}`;
     if (isQuotaExceededError(message)) {
+      const { markQuotaExceeded } = await import('./sheetSync');
+      markQuotaExceeded();
       throw new Error(
         'محدودیت درخواست Google Sheets پر شده. حدود یک دقیقه صبر کنید و دوباره تلاش کنید.'
       );
@@ -298,14 +320,6 @@ function buildFieldColumnMap(
   });
 
   return map;
-}
-
-async function getSheetHeaderRow(
-  spreadsheetId: string,
-  sheetName: string
-): Promise<string[]> {
-  const headerRows = await batchGetHeaderRows(spreadsheetId, [sheetName]);
-  return headerRows.get(normalizeSheetTitle(sheetName)) ?? [];
 }
 
 function buildRecordRow(
@@ -425,17 +439,24 @@ export async function appendRecord(
   createdAt: string,
   values: Record<string, string | number>
 ): Promise<void> {
-  const headers = await getSheetHeaderRow(spreadsheetId, form.sheetName);
+  const headers = getSheetHeaderRowFromStore(spreadsheetId, form.sheetName, form);
   const row = buildRecordRow(headers, form, recordId, createdAt, values);
-  const range = encodeURIComponent(`${form.sheetName}!A:Z`);
-  await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ values: [row] }),
+  appendSheetDataRow(spreadsheetId, form.sheetName, row);
+  bumpDataRevision();
+
+  const { enqueueSheetWrite } = await import('./sheetSync');
+  enqueueSheetWrite(
+    async () => {
+      await appendSheetRowApi(spreadsheetId, form.sheetName, row);
+    },
+    () => {
+      const sheet = getSheetAllRows(spreadsheetId, form.sheetName);
+      if (sheet?.length) {
+        setSheetAllRows(spreadsheetId, form.sheetName, sheet.slice(0, -1));
+        bumpDataRevision();
+      }
     }
   );
-  recordOperation();
 }
 
 export type SheetRecord = {
@@ -445,15 +466,7 @@ export type SheetRecord = {
   values: Record<string, string>;
 };
 
-export async function fetchRecords(
-  spreadsheetId: string,
-  form: CustomForm
-): Promise<SheetRecord[]> {
-  const range = encodeURIComponent(`${form.sheetName}!A1:Z2000`);
-  const data = await apiRequest<{ values?: unknown[][] }>(
-    `${SHEETS_API}/${spreadsheetId}/values/${range}`
-  );
-  const rows = data.values ?? [];
+function parseSheetRecords(rows: unknown[][], form: CustomForm): SheetRecord[] {
   if (!rows.length) return [];
 
   const hasHeader = isSheetHeaderRow(rows[0]);
@@ -474,6 +487,62 @@ export async function fetchRecords(
     }));
 }
 
+export async function fetchSheetRangeFromApi(
+  spreadsheetId: string,
+  sheetName: string,
+  rangeSuffix = 'A1:Z2000'
+): Promise<string[][]> {
+  const range = encodeURIComponent(`${sheetName}!${rangeSuffix}`);
+  const data = await apiRequest<{ values?: unknown[][] }>(
+    `${SHEETS_API}/${spreadsheetId}/values/${range}`
+  );
+  return (data.values ?? []).map((row) => row.map((cell) => cellToString(cell)));
+}
+
+export async function batchFetchSheetRangesFromApi(
+  spreadsheetId: string,
+  sheetNames: string[]
+): Promise<Map<string, string[][]>> {
+  const result = new Map<string, string[][]>();
+  if (!sheetNames.length) return result;
+
+  const chunkSize = 20;
+  for (let i = 0; i < sheetNames.length; i += chunkSize) {
+    const chunk = sheetNames.slice(i, i + chunkSize);
+    const params = chunk
+      .map((name) => `ranges=${encodeURIComponent(`${name}!A1:Z2000`)}`)
+      .join('&');
+    const data = await apiRequest<{
+      valueRanges?: { range?: string; values?: unknown[][] }[];
+    }>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`);
+
+    for (const valueRange of data.valueRanges ?? []) {
+      if (!valueRange.range) continue;
+      const sheetName = parseSheetNameFromRange(valueRange.range);
+      const rows = (valueRange.values ?? []).map((row) =>
+        row.map((cell) => cellToString(cell))
+      );
+      result.set(sheetName, rows);
+    }
+  }
+
+  return result;
+}
+
+export async function fetchRecords(
+  spreadsheetId: string,
+  form: CustomForm
+): Promise<SheetRecord[]> {
+  const cached = getSheetAllRows(spreadsheetId, form.sheetName);
+  if (cached) {
+    return parseSheetRecords(cached, form);
+  }
+
+  const rows = await fetchSheetRangeFromApi(spreadsheetId, form.sheetName);
+  setSheetAllRows(spreadsheetId, form.sheetName, rows);
+  return parseSheetRecords(rows, form);
+}
+
 export async function updateRecord(
   spreadsheetId: string,
   form: CustomForm,
@@ -482,9 +551,10 @@ export async function updateRecord(
   createdAt: string,
   values: Record<string, string | number>
 ): Promise<void> {
-  const headers = await getSheetHeaderRow(spreadsheetId, form.sheetName);
-  const row = buildRecordRow(headers, form, recordId, createdAt, values);
-  await updateSheetRow(spreadsheetId, form.sheetName, rowNumber, row);
+  await updateSheetRow(spreadsheetId, form.sheetName, rowNumber, () => {
+    const headers = getSheetHeaderRowFromStore(spreadsheetId, form.sheetName, form);
+    return buildRecordRow(headers, form, recordId, createdAt, values);
+  });
 }
 
 export function getSpreadsheetUrl(sheetId: string): string {
@@ -512,21 +582,37 @@ export async function ensureSheetWithHeaders(
   }
 }
 
+function getSheetHeaderRowFromStore(
+  spreadsheetId: string,
+  sheetName: string,
+  form?: CustomForm
+): string[] {
+  const cached = getSheetAllRows(spreadsheetId, sheetName);
+  if (cached?.[0]?.some((cell) => String(cell ?? '').trim())) {
+    return cached[0];
+  }
+  return form ? buildHeaders(form.fields) : [];
+}
+
 export async function fetchSheetRows(
   spreadsheetId: string,
   sheetName: string
 ): Promise<string[][]> {
-  const range = encodeURIComponent(`${sheetName}!A2:Z2000`);
-  const data = await apiRequest<{ values?: string[][] }>(
-    `${SHEETS_API}/${spreadsheetId}/values/${range}`
-  );
-  return data.values ?? [];
+  const cached = getSheetDataRows(spreadsheetId, sheetName);
+  if (cached !== null) {
+    return cached;
+  }
+
+  const allRows = await fetchSheetRangeFromApi(spreadsheetId, sheetName);
+  setSheetAllRows(spreadsheetId, sheetName, allRows);
+  return allRows.length <= 1 ? [] : allRows.slice(1);
 }
 
-export async function appendSheetRow(
+async function appendSheetRowApi(
   spreadsheetId: string,
   sheetName: string,
-  row: string[]
+  row: string[],
+  options?: SheetWriteOptions
 ): Promise<void> {
   const range = encodeURIComponent(`${sheetName}!A:Z`);
   await apiRequest(
@@ -536,14 +622,45 @@ export async function appendSheetRow(
       body: JSON.stringify({ values: [row] }),
     }
   );
-  recordOperation();
+  if (shouldRecordActivity(sheetName, options)) {
+    recordOperation();
+  }
 }
 
-export async function updateSheetRow(
+export async function appendSheetRow(
+  spreadsheetId: string,
+  sheetName: string,
+  row: string[],
+  options?: SheetWriteOptions
+): Promise<void> {
+  appendSheetDataRow(spreadsheetId, sheetName, row);
+  if (!options?.skipRevision) {
+    bumpDataRevision();
+  }
+
+  const { enqueueSheetWrite } = await import('./sheetSync');
+  enqueueSheetWrite(
+    async () => {
+      await appendSheetRowApi(spreadsheetId, sheetName, row, options);
+    },
+    () => {
+      const sheet = getSheetAllRows(spreadsheetId, sheetName);
+      if (sheet?.length) {
+        setSheetAllRows(spreadsheetId, sheetName, sheet.slice(0, -1));
+        if (!options?.skipRevision) {
+          bumpDataRevision();
+        }
+      }
+    }
+  );
+}
+
+async function updateSheetRowApi(
   spreadsheetId: string,
   sheetName: string,
   rowNumber: number,
-  row: string[]
+  row: string[],
+  options?: SheetWriteOptions
 ): Promise<void> {
   const endCol = String.fromCharCode(64 + Math.max(row.length, 1));
   const range = encodeURIComponent(`${sheetName}!A${rowNumber}:${endCol}${rowNumber}`);
@@ -554,29 +671,43 @@ export async function updateSheetRow(
       body: JSON.stringify({ values: [row] }),
     }
   );
-  recordOperation();
-}
-
-async function getSheetId(
-  spreadsheetId: string,
-  sheetName: string
-): Promise<number> {
-  const meta = await apiRequest<{
-    sheets?: { properties?: { title?: string; sheetId?: number } }[];
-  }>(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties(title,sheetId)`);
-
-  const target = normalizeSheetTitle(sheetName);
-  const sheet = (meta.sheets ?? []).find(
-    (item) => normalizeSheetTitle(item.properties?.title ?? '') === target
-  );
-  const sheetId = sheet?.properties?.sheetId;
-  if (sheetId == null) {
-    throw new Error(`شیت «${sheetName}» یافت نشد`);
+  if (shouldRecordActivity(sheetName, options)) {
+    recordOperation();
   }
-  return sheetId;
 }
 
-export async function deleteSheetRow(
+export async function updateSheetRow(
+  spreadsheetId: string,
+  sheetName: string,
+  rowNumber: number,
+  rowOrBuilder: string[] | (() => string[]),
+  options?: SheetWriteOptions
+): Promise<void> {
+  const previous = getSheetAllRows(spreadsheetId, sheetName)?.[rowNumber - 1];
+  const row = typeof rowOrBuilder === 'function' ? rowOrBuilder() : rowOrBuilder;
+
+  updateSheetDataRow(spreadsheetId, sheetName, rowNumber, row);
+  if (!options?.skipRevision) {
+    bumpDataRevision();
+  }
+
+  const { enqueueSheetWrite } = await import('./sheetSync');
+  enqueueSheetWrite(
+    async () => {
+      await updateSheetRowApi(spreadsheetId, sheetName, rowNumber, row, options);
+    },
+    () => {
+      if (previous) {
+        updateSheetDataRow(spreadsheetId, sheetName, rowNumber, previous);
+        if (!options?.skipRevision) {
+          bumpDataRevision();
+        }
+      }
+    }
+  );
+}
+
+async function deleteSheetRowApi(
   spreadsheetId: string,
   sheetName: string,
   rowNumber: number
@@ -603,6 +734,49 @@ export async function deleteSheetRow(
   });
 }
 
+async function getSheetId(
+  spreadsheetId: string,
+  sheetName: string
+): Promise<number> {
+  const meta = await apiRequest<{
+    sheets?: { properties?: { title?: string; sheetId?: number } }[];
+  }>(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties(title,sheetId)`);
+
+  const target = normalizeSheetTitle(sheetName);
+  const sheet = (meta.sheets ?? []).find(
+    (item) => normalizeSheetTitle(item.properties?.title ?? '') === target
+  );
+  const sheetId = sheet?.properties?.sheetId;
+  if (sheetId == null) {
+    throw new Error(`شیت «${sheetName}» یافت نشد`);
+  }
+  return sheetId;
+}
+
+export async function deleteSheetRow(
+  spreadsheetId: string,
+  sheetName: string,
+  rowNumber: number
+): Promise<void> {
+  const previous = getSheetAllRows(spreadsheetId, sheetName)?.[rowNumber - 1];
+  deleteSheetDataRow(spreadsheetId, sheetName, rowNumber);
+  bumpDataRevision();
+
+  const { enqueueSheetWrite } = await import('./sheetSync');
+  enqueueSheetWrite(
+    async () => {
+      await deleteSheetRowApi(spreadsheetId, sheetName, rowNumber);
+    },
+    () => {
+      if (!previous) return;
+      const sheet = [...(getSheetAllRows(spreadsheetId, sheetName) ?? [])];
+      sheet.splice(rowNumber - 1, 0, previous);
+      setSheetAllRows(spreadsheetId, sheetName, sheet);
+      bumpDataRevision();
+    }
+  );
+}
+
 export async function deleteRecord(
   spreadsheetId: string,
   form: CustomForm,
@@ -617,23 +791,38 @@ export async function replaceSheetDataRows(
   rows: string[][],
   columnCount = 2
 ): Promise<void> {
-  const endCol = String.fromCharCode(64 + Math.max(columnCount, 1));
-  const clearRange = encodeURIComponent(`${sheetName}!A2:${endCol}1000`);
-  await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`,
-    { method: 'POST' }
-  );
+  const previous = getSheetDataRows(spreadsheetId, sheetName);
+  replaceSheetDataRowsInStore(spreadsheetId, sheetName, rows);
+  bumpDataRevision();
 
-  if (!rows.length) return;
+  const { enqueueSheetWrite } = await import('./sheetSync');
+  enqueueSheetWrite(
+    async () => {
+      const endCol = String.fromCharCode(64 + Math.max(columnCount, 1));
+      const clearRange = encodeURIComponent(`${sheetName}!A2:${endCol}1000`);
+      await apiRequest(
+        `${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`,
+        { method: 'POST' }
+      );
 
-  const writeRange = encodeURIComponent(
-    `${sheetName}!A2:${endCol}${rows.length + 1}`
-  );
-  await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${writeRange}?valueInputOption=RAW`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({ values: rows }),
+      if (!rows.length) return;
+
+      const writeRange = encodeURIComponent(
+        `${sheetName}!A2:${endCol}${rows.length + 1}`
+      );
+      await apiRequest(
+        `${SHEETS_API}/${spreadsheetId}/values/${writeRange}?valueInputOption=RAW`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({ values: rows }),
+        }
+      );
+    },
+    () => {
+      if (previous) {
+        replaceSheetDataRowsInStore(spreadsheetId, sheetName, previous);
+        bumpDataRevision();
+      }
     }
   );
 }

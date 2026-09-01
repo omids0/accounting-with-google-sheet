@@ -7,6 +7,7 @@ import {
   exportInstallmentsCsv,
   exportInstallmentsPdf,
   fetchInstallmentPlans,
+  INSTALLMENTS_SHEET,
   getInstallmentEndDate,
   getPaidUntilFromPlan,
   getRemovedPaymentTransactionIds,
@@ -61,6 +62,8 @@ import InstallmentPlanCard, { type PlanWithRow } from './InstallmentPlanCard';
 import JalaliDatePicker from './JalaliDatePicker';
 import { matchSearch } from '../utils/search';
 import { deleteLinkedExpenseRecord } from '../services/paymentTransactions';
+import { useDataRefresh } from '../hooks/useDataRefresh';
+import { hasStoreData, getSheetAllRows } from '../services/spreadsheetStore';
 
 export default function InstallmentsPage({
   onReauth,
@@ -74,7 +77,10 @@ export default function InstallmentsPage({
   const [showForm, setShowForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PlanWithRow | null>(null);
   const [deletingPlan, setDeletingPlan] = useState<PlanWithRow | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => {
+    const settings = getSettings();
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
+  });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [togglingKey, setTogglingKey] = useState('');
@@ -93,6 +99,7 @@ export default function InstallmentsPage({
   const [customRange, setCustomRange] = useState(
     () => createDefaultDateRangeFilter().customRange
   );
+  const dataRevision = useDataRefresh();
 
   const [form, setForm] = useState({
     title: '',
@@ -119,9 +126,14 @@ export default function InstallmentsPage({
       return;
     }
 
-    setLoading(true);
+    const hasCachedSheet = !!getSheetAllRows(settings.spreadsheetId, INSTALLMENTS_SHEET);
+    if (!hasCachedSheet) {
+      setLoading(true);
+    }
     try {
-      await ensureInstallmentsSheet(settings.spreadsheetId);
+      if (!hasCachedSheet) {
+        await ensureInstallmentsSheet(settings.spreadsheetId);
+      }
       const data = await fetchInstallmentPlans(settings.spreadsheetId);
       setPlans(data);
     } catch (err) {
@@ -138,7 +150,7 @@ export default function InstallmentsPage({
 
   useEffect(() => {
     if (isConfigured()) loadPlans();
-  }, [loadPlans]);
+  }, [loadPlans, dataRevision]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -503,7 +515,7 @@ export default function InstallmentsPage({
     [openFilterModal, openCreateForm, loadPlans, loading, handleImport, handleExport, handleExportPdf]
   );
 
-  useRegisterPageSpeedDial(isConfigured() && active ? pageSpeedDialConfig : null);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
 
   if (!isConfigured()) {
     return (

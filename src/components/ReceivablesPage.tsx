@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Receivable } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
+import { useDataRefresh } from '../hooks/useDataRefresh';
+import { hasStoreData } from '../services/spreadsheetStore';
 import {
   addReceivablePayment,
   createReceivable,
@@ -65,16 +67,26 @@ import {
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
 
-export default function ReceivablesPage({ onReauth }: { onReauth?: () => void }) {
+export default function ReceivablesPage({
+  onReauth,
+  active = true,
+}: {
+  onReauth?: () => void;
+  active?: boolean;
+}) {
   const [items, setItems] = useState<ReceivableWithRow[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ReceivableWithRow | null>(null);
   const [deletingItem, setDeletingItem] = useState<ReceivableWithRow | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => {
+    const settings = getSettings();
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
+  });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [payingId, setPayingId] = useState('');
+  const dataRevision = useDataRefresh();
   const [togglingPaymentId, setTogglingPaymentId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalOpen, setFilterModalOpen] = useState(false);
@@ -141,7 +153,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
 
   useEffect(() => {
     if (isConfigured()) loadItems();
-  }, [loadItems]);
+  }, [loadItems, dataRevision]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -514,7 +526,7 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
 
   if (!isConfigured()) {
     return (

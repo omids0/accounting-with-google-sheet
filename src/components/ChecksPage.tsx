@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Check } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
+import { useDataRefresh } from '../hooks/useDataRefresh';
+import { hasStoreData } from '../services/spreadsheetStore';
 import {
   createCheck,
   deleteCheck,
@@ -59,15 +61,25 @@ import { matchSearch } from '../utils/search';
 
 type CheckWithRow = Check & { rowNumber: number };
 
-export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
+export default function ChecksPage({
+  onReauth,
+  active = true,
+}: {
+  onReauth?: () => void;
+  active?: boolean;
+}) {
   const [items, setItems] = useState<CheckWithRow[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<CheckWithRow | null>(null);
   const [deletingItem, setDeletingItem] = useState<CheckWithRow | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => {
+    const settings = getSettings();
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
+  });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState('');
+  const dataRevision = useDataRefresh();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [draftSearch, setDraftSearch] = useState('');
@@ -123,7 +135,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
 
   useEffect(() => {
     if (isConfigured()) loadItems();
-  }, [loadItems]);
+  }, [loadItems, dataRevision]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -400,7 +412,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
 
   if (!isConfigured()) {
     return (

@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Dang } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
+import { useDataRefresh } from '../hooks/useDataRefresh';
+import { hasStoreData } from '../services/spreadsheetStore';
 import {
   createDang,
   deleteDang,
@@ -63,16 +65,26 @@ import {
 
 type DangWithRow = Dang & { rowNumber: number };
 
-export default function DangPage({ onReauth }: { onReauth?: () => void }) {
+export default function DangPage({
+  onReauth,
+  active = true,
+}: {
+  onReauth?: () => void;
+  active?: boolean;
+}) {
   const [items, setItems] = useState<DangWithRow[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<DangWithRow | null>(null);
   const [deletingItem, setDeletingItem] = useState<DangWithRow | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => {
+    const settings = getSettings();
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
+  });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState('');
+  const dataRevision = useDataRefresh();
   const [savingAmountId, setSavingAmountId] = useState('');
   const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,7 +147,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
 
   useEffect(() => {
     if (isConfigured()) loadItems();
-  }, [loadItems]);
+  }, [loadItems, dataRevision]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -449,7 +461,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
 
   const resetDateFilter = useCallback(() => {
     const defaults = createAllDateRangeFilter();

@@ -12,10 +12,13 @@ export const ACTIVITY_SHEET = 'فعالیت';
 export const ACTIVITY_HEADERS = ['آخرین_بازدید', 'آخرین_عملیات'];
 
 const ACTIVITY_KEY = 'accounting_activity';
+const ACTIVITY_WRITE_OPTIONS = { skipActivity: true, skipRevision: true } as const;
 
 interface ActivityState {
   lastOpenDate?: string;
+  lastOpenSyncedDate?: string;
   lastOperationDate?: string;
+  lastOperationSyncedDate?: string;
 }
 
 function getState(): ActivityState {
@@ -40,17 +43,28 @@ async function upsertActivityRow(
   const row = [lastOpenDate, lastOperationDate];
 
   if (rows.length > 0) {
-    await updateSheetRow(spreadsheetId, ACTIVITY_SHEET, 2, row);
+    await updateSheetRow(
+      spreadsheetId,
+      ACTIVITY_SHEET,
+      2,
+      row,
+      ACTIVITY_WRITE_OPTIONS
+    );
     return;
   }
 
-  await appendSheetRow(spreadsheetId, ACTIVITY_SHEET, row);
+  await appendSheetRow(spreadsheetId, ACTIVITY_SHEET, row, ACTIVITY_WRITE_OPTIONS);
 }
 
 export async function syncAppOpen(spreadsheetId: string): Promise<void> {
   const today = getTodayIso();
   const state = getState();
-  const next: ActivityState = { ...state, lastOpenDate: today };
+  if (state.lastOpenSyncedDate === today) return;
+
+  const next: ActivityState = {
+    ...state,
+    lastOpenDate: today,
+  };
   saveState(next);
 
   await upsertActivityRow(
@@ -58,6 +72,7 @@ export async function syncAppOpen(spreadsheetId: string): Promise<void> {
     today,
     next.lastOperationDate ?? ''
   );
+  saveState({ ...next, lastOpenSyncedDate: today });
 }
 
 export async function syncOperation(
@@ -65,6 +80,8 @@ export async function syncOperation(
   date: string = getTodayIso()
 ): Promise<void> {
   const state = getState();
+  if (state.lastOperationSyncedDate === date) return;
+
   const next: ActivityState = {
     lastOpenDate: state.lastOpenDate ?? date,
     lastOperationDate: date,
@@ -76,14 +93,19 @@ export async function syncOperation(
     next.lastOpenDate ?? date,
     date
   );
+  saveState({ ...next, lastOperationSyncedDate: date });
 }
 
-const SYNC_DEBOUNCE_MS = 3_000;
+const SYNC_DEBOUNCE_MS = 30_000;
 let syncDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let pendingSyncDate: string | undefined;
 
 export function recordOperation(date: string = getTodayIso()): void {
   const state = getState();
+  if (state.lastOperationDate === date && state.lastOperationSyncedDate === date) {
+    return;
+  }
+
   saveState({ ...state, lastOperationDate: date });
 
   const spreadsheetId = getSettings()?.spreadsheetId;
