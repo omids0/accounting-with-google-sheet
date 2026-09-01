@@ -4,7 +4,9 @@ import { registerSW } from 'virtual:pwa-register';
 import LoginPage from './components/LoginPage';
 import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel';
 import Layout from './components/Layout';
+import UnlockScreen from './components/UnlockScreen';
 import { useTokenRefresh } from './hooks/useTokenRefresh';
+import { useAppLock } from './hooks/useAppLock';
 import { hasStoredSession, isAuthError, isTokenValid } from './services/auth';
 import { refreshAccessTokenSilently } from './services/tokenRefresh';
 import { isConfigured } from './services/settings';
@@ -55,6 +57,7 @@ export default function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
   const isOAuthConfigured = !!clientId && !clientId.startsWith('xxx');
   const { scriptLoadedSuccessfully } = useGoogleOAuth();
+  const { locked, unlock } = useAppLock();
 
   const handleReauth = useCallback(async () => {
     if (scriptLoadedSuccessfully && hasStoredSession()) {
@@ -198,6 +201,10 @@ export default function App() {
         }}
       />
     );
+  }
+
+  if (locked) {
+    return <UnlockScreen onUnlock={unlock} />;
   }
 
   return (
