@@ -5,9 +5,11 @@ import type { DashboardData, DashboardNavTarget } from '../types';
 import { isTokenValid } from '../services/auth';
 import { DashboardSkeleton } from './skeleton';
 import AppIcon from './AppIcon';
+import FilterModal from './FilterModal';
+import ActiveFilterChips from './ActiveFilterChips';
+import { buildDateRangeChip, compactFilterChips } from '../utils/filterChips';
 import DateRangeFilter, {
   createDefaultDateRangeFilter,
-  type AppliedDateRangeFilter,
 } from './DateRangeFilter';
 import YearFilter, { getDefaultChartYear } from './YearFilter';
 import TransactionTypeSegment, {
@@ -101,9 +103,12 @@ export default function DashboardPage({
   );
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
   const [monthlyFlowYear, setMonthlyFlowYear] = useState(getDefaultChartYear);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [draftDatePreset, setDraftDatePreset] = useState<RecordsDatePreset>('month-to-date');
+  const [draftCustomRange, setDraftCustomRange] = useState(
+    () => createDefaultDateRangeFilter().customRange
+  );
   const dateRange = resolveDateRange(datePreset, customRange);
-  const hasDateFilterActive = datePreset !== 'month-to-date';
 
   const load = useCallback(async () => {
     if (!isConfigured() || !isTokenValid()) {
@@ -168,11 +173,6 @@ export default function DashboardPage({
     });
   }, [monthlyFlowYear, datePreset, customRange]);
 
-  const handleDateFilterChange = useCallback((filter: AppliedDateRangeFilter) => {
-    setDatePreset(filter.preset);
-    setCustomRange(filter.customRange);
-  }, []);
-
   const filteredRecords = useMemo(() => {
     if (!data?.recentRecords.length) return [];
     return data.recentRecords
@@ -216,6 +216,29 @@ export default function DashboardPage({
     [incomeFormName, expenseFormName]
   );
 
+  const openFilterModal = useCallback(() => {
+    setDraftDatePreset(datePreset);
+    setDraftCustomRange(customRange);
+    setFilterModalOpen(true);
+  }, [datePreset, customRange]);
+
+  const resetDateFilter = useCallback(() => {
+    const defaults = createDefaultDateRangeFilter();
+    setDatePreset(defaults.preset as RecordsDatePreset);
+    setCustomRange(defaults.customRange);
+  }, []);
+
+  const filterChips = useMemo(
+    () =>
+      compactFilterChips([
+        buildDateRangeChip(
+          formatDateRangeLabel(dateRange),
+          datePreset !== 'month-to-date' ? resetDateFilter : undefined
+        ),
+      ]),
+    [dateRange, datePreset, resetDateFilter]
+  );
+
   useRegisterPageSpeedDial(
     isConfigured()
       ? {
@@ -234,6 +257,12 @@ export default function DashboardPage({
               icon: <span className="speed-dial-type-icon speed-dial-type-icon--expense">−</span>,
               className: 'speed-dial-action--expense',
               onClick: () => onNewEntry?.('expense'),
+            },
+            {
+              id: 'filter',
+              label: 'فیلتر',
+              icon: <SpeedDialIcon name="filter" />,
+              onClick: openFilterModal,
             },
             {
               id: 'refresh',
@@ -264,39 +293,33 @@ export default function DashboardPage({
 
   return (
     <div className="dashboard-page">
-      <div className="card records-toolbar dashboard-toolbar">
-        <div
-          className={`records-toolbar-header${filtersOpen ? ' records-toolbar-header--expanded' : ''}`}
-        >
-          <div className="records-toolbar-heading">
-            <h2 className="records-toolbar-title">داشبورد</h2>
-            <p className="records-toolbar-range">{formatDateRangeLabel(dateRange)}</p>
-          </div>
-          <button
-            type="button"
-            className={`dashboard-filter-btn${filtersOpen ? ' dashboard-filter-btn--active' : ''}${
-              hasDateFilterActive ? ' dashboard-filter-btn--applied' : ''
-            }`}
-            onClick={() => setFiltersOpen((open) => !open)}
-            aria-label="فیلتر بازه زمانی"
-            aria-expanded={filtersOpen}
-            aria-controls="dashboard-date-filter-panel"
-          >
-            <AppIcon name="filter" size={18} strokeWidth={2.1} />
-          </button>
-        </div>
+      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
 
-        {filtersOpen && (
-          <div id="dashboard-date-filter-panel">
-            <DateRangeFilter
-              preset={datePreset}
-              customRange={customRange}
-              onChange={handleDateFilterChange}
-              loading={loading}
-            />
-          </div>
-        )}
-      </div>
+      <FilterModal
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={() => {
+          setDatePreset(draftDatePreset);
+          setCustomRange(draftCustomRange);
+          setFilterModalOpen(false);
+        }}
+        onClear={() => {
+          const defaults = createDefaultDateRangeFilter();
+          setDraftDatePreset(defaults.preset as RecordsDatePreset);
+          setDraftCustomRange(defaults.customRange);
+        }}
+      >
+        <DateRangeFilter
+          preset={draftDatePreset}
+          customRange={draftCustomRange}
+          onChange={(filter) => {
+            if (filter.preset === 'all') return;
+            setDraftDatePreset(filter.preset);
+            setDraftCustomRange(filter.customRange);
+          }}
+          loading={loading}
+        />
+      </FilterModal>
 
       <div className="card dashboard-hero-card dashboard-hero-card--animated">
         <div className="dashboard-hero-header">

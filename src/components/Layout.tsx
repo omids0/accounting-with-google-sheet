@@ -458,7 +458,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           ) : (
             <>
               {tab === 'installments' && (
-                <Suspense fallback={<InstallmentCardListSkeleton />}>
+                <Suspense fallback={<InstallmentCardListSkeleton filterChips={1} footerStats={2} />}>
                   <InstallmentsPage onReauth={onReauth} active />
                 </Suspense>
               )}

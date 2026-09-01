@@ -37,7 +37,10 @@ import { AccordionCollapse } from './AccordionCollapse';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import PageHeader from './PageHeader';
+import PageFilterPanel from './PageFilterPanel';
+import FilterModal from './FilterModal';
+import ActiveFilterChips from './ActiveFilterChips';
+import { buildSearchChip, compactFilterChips } from '../utils/filterChips';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
 import StatCard from './StatCard';
@@ -78,9 +81,8 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-
-
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [draftSearch, setDraftSearch] = useState('');
   const [sellForm, setSellForm] = useState<{
     assetType: VaultAssetType;
     quantity: number | '';
@@ -360,11 +362,17 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
     onReauth,
   });
 
+  const openFilterModal = useCallback(() => {
+    setDraftSearch(searchQuery);
+    setFilterModalOpen(true);
+  }, [searchQuery]);
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات صندوقچه',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
+        onFilter: openFilterModal,
         onRefresh: refreshTreasury,
         refreshDisabled: loading || priceLoading,
         onImport: handleImport,
@@ -372,10 +380,15 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
         onExportPdf: handleExportPdf,
       }),
     }),
-    [refreshTreasury, loading, priceLoading, handleImport, handleExport, handleExportPdf]
+    [openFilterModal, refreshTreasury, loading, priceLoading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+
+  const filterChips = useMemo(
+    () => compactFilterChips([buildSearchChip(searchQuery, () => setSearchQuery(''))]),
+    [searchQuery]
+  );
 
   if (!isConfigured()) {
     return (
@@ -390,12 +403,23 @@ export default function TreasuryPage({ onReauth }: { onReauth?: () => void }) {
 
   return (
     <div>
-      <PageHeader
-        title="صندوقچه"
-        search={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="جستجو در دارایی‌ها..."
-      />
+      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
+
+      <FilterModal
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={() => {
+          setSearchQuery(draftSearch);
+          setFilterModalOpen(false);
+        }}
+        onClear={() => setDraftSearch('')}
+      >
+        <PageFilterPanel
+          search={draftSearch}
+          onSearchChange={setDraftSearch}
+          searchPlaceholder="جستجو در دارایی‌ها..."
+        />
+      </FilterModal>
 
       {prices && (
         <div className="card treasury-price-card">

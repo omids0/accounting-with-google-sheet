@@ -19,7 +19,7 @@ import {
   updateReceivable,
 } from '../services/receivables';
 import AmountInput from './AmountInput';
-import { CategorySelect, Select } from './form';
+import { CategorySelect } from './form';
 import { syncCategoriesFromSheet } from '../services/categories';
 import { getReceivableCategories } from '../services/settings';
 import { InstallmentCardListSkeleton } from './skeleton';
@@ -38,7 +38,20 @@ import CardDeleteButton from './CardDeleteButton';
 import CardExpandButton from './CardExpandButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import PageHeader from './PageHeader';
+import PageFilterPanel, { type PaymentStatusFilter } from './PageFilterPanel';
+import FilterModal from './FilterModal';
+import ActiveFilterChips from './ActiveFilterChips';
+import {
+  buildCategoryChip,
+  buildDateRangeChip,
+  buildPaymentStatusChip,
+  buildSearchChip,
+  compactFilterChips,
+} from '../utils/filterChips';
+import {
+  createAllDateRangeFilter,
+  type DateRangeFilterPreset,
+} from './DateRangeFilter';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
 import StatCard from './StatCard';
@@ -46,23 +59,11 @@ import ProgressBar from './ProgressBar';
 import { matchSearch } from '../utils/search';
 import {
   formatDateRangeLabel,
-  getDateRange,
   isDateInRange,
-  RECORDS_DATE_RANGE_PRESETS,
   resolveDateRange,
-  type DateRange,
-  type RecordsDatePreset,
 } from '../utils/dateRange';
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
-type PaymentStatusFilter = 'all' | 'paid' | 'unpaid';
-type ReceivableDatePreset = 'all' | RecordsDatePreset;
-
-const PAYMENT_STATUS_OPTIONS: { id: PaymentStatusFilter; label: string }[] = [
-  { id: 'all', label: 'همه' },
-  { id: 'paid', label: 'تسویه شده' },
-  { id: 'unpaid', label: 'پرداخت نشده' },
-];
 
 export default function ReceivablesPage({ onReauth }: { onReauth?: () => void }) {
   const [items, setItems] = useState<ReceivableWithRow[]>([]);
@@ -76,13 +77,26 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   const [payingId, setPayingId] = useState('');
   const [togglingPaymentId, setTogglingPaymentId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [draftSearch, setDraftSearch] = useState('');
+  const [draftPaymentStatus, setDraftPaymentStatus] =
+    useState<PaymentStatusFilter>('all');
+  const [draftCategory, setDraftCategory] = useState('all');
+  const [draftDatePreset, setDraftDatePreset] = useState<DateRangeFilterPreset>(
+    () => createAllDateRangeFilter().preset
+  );
+  const [draftCustomRange, setDraftCustomRange] = useState(
+    () => createAllDateRangeFilter().customRange
+  );
   const [categories, setCategories] = useState<string[]>(() => getReceivableCategories());
   const [paymentStatusFilter, setPaymentStatusFilter] =
     useState<PaymentStatusFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [datePreset, setDatePreset] = useState<ReceivableDatePreset>('all');
-  const [customRange, setCustomRange] = useState<DateRange>(() =>
-    getDateRange('month-to-date')
+  const [datePreset, setDatePreset] = useState<DateRangeFilterPreset>(
+    () => createAllDateRangeFilter().preset
+  );
+  const [customRange, setCustomRange] = useState(
+    () => createAllDateRangeFilter().customRange
   );
 
   const [form, setForm] = useState({
@@ -97,7 +111,6 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     amount: number | '';
     note: string;
   } | null>(null);
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const loadItems = useCallback(async () => {
     const settings = getSettings();
@@ -372,29 +385,11 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     onReauth,
   });
 
-  const pageSpeedDialConfig = useMemo(
-    () => ({
-      ariaLabel: 'عملیات طلب‌ها',
-      actions: createPageSpeedDialActions({
-        onAdd: () => openCreateForm(),
-        onRefresh: loadItems,
-        refreshDisabled: loading,
-        onImport: handleImport,
-        onExport: handleExport,
-        onExportPdf: handleExportPdf,
-      }),
-    }),
-    [loadItems, loading, handleImport, handleExport, handleExportPdf]
-  );
-
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
-
   const dateRange = useMemo(
     () =>
       datePreset === 'all' ? null : resolveDateRange(datePreset, customRange),
     [datePreset, customRange]
   );
-
   const categoryOptions = useMemo(() => {
     const options = new Set<string>(categories);
     for (const item of items) {
@@ -447,23 +442,79 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
     [filteredItems]
   );
 
-  const handleDatePresetClick = (id: ReceivableDatePreset) => {
-    if (id === 'all') {
-      setDatePreset('all');
-      return;
-    }
-    if (id === 'custom') {
-      setDatePreset('custom');
-      if (datePreset !== 'custom') {
-        setCustomRange(getDateRange('month-to-date'));
-      }
-      return;
-    }
-    setDatePreset(id);
-    setCustomRange(getDateRange(id));
+  const openFilterModal = useCallback(() => {
+    setDraftSearch(searchQuery);
+    setDraftPaymentStatus(paymentStatusFilter);
+    setDraftCategory(categoryFilter);
+    setDraftDatePreset(datePreset);
+    setDraftCustomRange(customRange);
+    setFilterModalOpen(true);
+  }, [
+    searchQuery,
+    paymentStatusFilter,
+    categoryFilter,
+    datePreset,
+    customRange,
+  ]);
+
+  const resetDateFilter = useCallback(() => {
+    const defaults = createAllDateRangeFilter();
+    setDatePreset(defaults.preset);
+    setCustomRange(defaults.customRange);
+  }, []);
+
+  const filterChips = useMemo(
+    () =>
+      compactFilterChips([
+        buildSearchChip(searchQuery, () => setSearchQuery('')),
+        paymentStatusFilter !== 'all' &&
+          buildPaymentStatusChip(
+            paymentStatusFilter,
+            () => setPaymentStatusFilter('all'),
+            { paid: 'تسویه شده', unpaid: 'پرداخت نشده' }
+          ),
+        categoryFilter !== 'all' &&
+          buildCategoryChip(categoryFilter, () => setCategoryFilter('all')),
+        datePreset !== 'all' &&
+          dateRange &&
+          buildDateRangeChip(formatDateRangeLabel(dateRange), resetDateFilter),
+      ]),
+    [
+      searchQuery,
+      paymentStatusFilter,
+      categoryFilter,
+      datePreset,
+      dateRange,
+      resetDateFilter,
+    ]
+  );
+
+  const clearDraftFilters = () => {
+    const defaults = createAllDateRangeFilter();
+    setDraftSearch('');
+    setDraftPaymentStatus('all');
+    setDraftCategory('all');
+    setDraftDatePreset(defaults.preset);
+    setDraftCustomRange(defaults.customRange);
   };
 
-  const isDatePresetActive = (id: ReceivableDatePreset) => datePreset === id;
+  const pageSpeedDialConfig = useMemo(
+    () => ({
+      ariaLabel: 'عملیات طلب‌ها',
+      actions: createPageSpeedDialActions({
+        onAdd: () => openCreateForm(),
+        onFilter: openFilterModal,
+        onRefresh: loadItems,
+        refreshDisabled: loading,
+        onImport: handleImport,
+        onExport: handleExport,
+        onExportPdf: handleExportPdf,
+      }),
+    }),
+    [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
+  );
+
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
 
   if (!isConfigured()) {
     return (
@@ -477,10 +528,6 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
   }
 
   const totalRemaining = items.reduce((sum, item) => sum + remainingAmount(item), 0);
-  const hasFilterActive =
-    paymentStatusFilter !== 'all' ||
-    categoryFilter !== 'all' ||
-    datePreset !== 'all';
   const showFilteredTotal =
     filteredItems.length !== items.length ||
     datePreset !== 'all' ||
@@ -490,132 +537,45 @@ export default function ReceivablesPage({ onReauth }: { onReauth?: () => void })
 
   return (
     <div>
-      <PageHeader
-        title="طلب‌ها"
-        search={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="جستجو در طلب‌ها..."
-      />
+      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
 
-      {items.length > 0 && (
-        <div className="card receivables-filters-card">
-          <button
-            type="button"
-            className={`installment-header receivables-filters-toggle${filtersOpen ? ' installment-header--expanded' : ''}`}
-            onClick={() => setFiltersOpen((open) => !open)}
-            aria-expanded={filtersOpen}
-            aria-controls="receivables-filters-panel"
-          >
-            <div>
-              <div className="receivables-filters-title">فیلترها</div>
-              {!filtersOpen && hasFilterActive && (
-                <p className="records-toolbar-range">فیلتر فعال</p>
-              )}
-            </div>
-            <span className="installment-chevron" aria-hidden="true">▼</span>
-          </button>
-
-          <AccordionCollapse open={filtersOpen}>
-            <div id="receivables-filters-panel" className="receivables-filters-body">
-              <div className="records-filter-section">
-                <span className="records-filter-label">وضعیت پرداخت</span>
-                <div className="records-date-grid">
-                  {PAYMENT_STATUS_OPTIONS.map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      className={paymentStatusFilter === option.id ? 'active' : ''}
-                      onClick={() => setPaymentStatusFilter(option.id)}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="records-filter-section records-filter-section--inline">
-                <span className="records-filter-label">دسته‌بندی</span>
-                <Select
-                  className="records-category-select"
-                  compact
-                  aria-label="دسته‌بندی"
-                  value={categoryFilter}
-                  onChange={setCategoryFilter}
-                  options={[
-                    { value: 'all', label: 'همه' },
-                    ...categoryOptions.map((category) => ({
-                      value: category,
-                      label: category,
-                    })),
-                  ]}
-                />
-              </div>
-
-              <div className="records-filter-section">
-                <span className="records-filter-label">بازه زمانی (تاریخ قرض)</span>
-                <div className="records-date-grid">
-                  <button
-                    type="button"
-                    className={isDatePresetActive('all') ? 'active' : ''}
-                    onClick={() => handleDatePresetClick('all')}
-                  >
-                    همه
-                  </button>
-                  {RECORDS_DATE_RANGE_PRESETS.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={isDatePresetActive(item.id) ? 'active' : ''}
-                      onClick={() => handleDatePresetClick(item.id)}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-                {datePreset !== 'all' && (
-                  <p className="records-toolbar-range receivables-filters-range">
-                    {formatDateRangeLabel(dateRange!)}
-                  </p>
-                )}
-              </div>
-
-              {datePreset === 'custom' && (
-                <div className="records-custom-range">
-                  <div className="records-custom-date">
-                    <span className="records-filter-label">از</span>
-                    <JalaliDatePicker
-                      value={customRange.start}
-                      onChange={(start) =>
-                        setCustomRange((range) => ({
-                          ...range,
-                          start,
-                          end: start > range.end ? start : range.end,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="records-custom-date">
-                    <span className="records-filter-label">تا</span>
-                    <JalaliDatePicker
-                      value={customRange.end}
-                      onChange={(end) =>
-                        setCustomRange((range) => ({
-                          ...range,
-                          end,
-                          start: end < range.start ? end : range.start,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </AccordionCollapse>
-        </div>
-      )}
+      <FilterModal
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={() => {
+          setSearchQuery(draftSearch);
+          setPaymentStatusFilter(draftPaymentStatus);
+          setCategoryFilter(draftCategory);
+          setDatePreset(draftDatePreset);
+          setCustomRange(draftCustomRange);
+          setFilterModalOpen(false);
+        }}
+        onClear={clearDraftFilters}
+      >
+        <PageFilterPanel
+          search={draftSearch}
+          onSearchChange={setDraftSearch}
+          searchPlaceholder="جستجو در طلب‌ها..."
+          paymentStatus={draftPaymentStatus}
+          onPaymentStatusChange={setDraftPaymentStatus}
+          paymentStatusPaidLabel="تسویه شده"
+          category={draftCategory}
+          onCategoryChange={setDraftCategory}
+          categoryOptions={categoryOptions}
+          datePreset={draftDatePreset}
+          customRange={draftCustomRange}
+          onDateFilterChange={(filter) => {
+            setDraftDatePreset(filter.preset);
+            setDraftCustomRange(filter.customRange);
+          }}
+          dateIncludeAll
+          dateLabel="بازه زمانی (تاریخ قرض)"
+          dateLoading={loading}
+        />
+      </FilterModal>
 
       {loading && items.length === 0 ? (
-        <InstallmentCardListSkeleton />
+        <InstallmentCardListSkeleton footerStats={1} />
       ) : items.length === 0 ? (
         <div className="empty-state">
           <div className="icon">

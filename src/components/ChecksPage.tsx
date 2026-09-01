@@ -23,9 +23,12 @@ import { formatMoney } from '../utils/formatMoney';
 import { distributionSparkline } from '../utils/sparklineData';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import {
+  formatDateRangeLabel,
   formatJalaliMonthLabel,
   getInstallmentDueRange,
   getJalaliMonthKey,
+  isDateInRange,
+  resolveDateRange,
 } from '../utils/dateRange';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
@@ -36,7 +39,19 @@ import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import PageHeader from './PageHeader';
+import PageFilterPanel, { type PaymentStatusFilter } from './PageFilterPanel';
+import FilterModal from './FilterModal';
+import ActiveFilterChips from './ActiveFilterChips';
+import {
+  buildDateRangeChip,
+  buildPaymentStatusChip,
+  buildSearchChip,
+  compactFilterChips,
+} from '../utils/filterChips';
+import {
+  createAllDateRangeFilter,
+  type DateRangeFilterPreset,
+} from './DateRangeFilter';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
 import StatCard from './StatCard';
@@ -54,7 +69,24 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
   const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [draftSearch, setDraftSearch] = useState('');
+  const [draftPaymentStatus, setDraftPaymentStatus] =
+    useState<PaymentStatusFilter>('all');
+  const [draftDatePreset, setDraftDatePreset] = useState<DateRangeFilterPreset>(
+    () => createAllDateRangeFilter().preset
+  );
+  const [draftCustomRange, setDraftCustomRange] = useState(
+    () => createAllDateRangeFilter().customRange
+  );
+  const [paymentStatusFilter, setPaymentStatusFilter] =
+    useState<PaymentStatusFilter>('all');
+  const [datePreset, setDatePreset] = useState<DateRangeFilterPreset>(
+    () => createAllDateRangeFilter().preset
+  );
+  const [customRange, setCustomRange] = useState(
+    () => createAllDateRangeFilter().customRange
+  );
 
   const [form, setForm] = useState({
     checkNumber: '',
@@ -193,6 +225,11 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
     () => formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso())),
     []
   );
+  const dateRange = useMemo(
+    () =>
+      datePreset === 'all' ? null : resolveDateRange(datePreset, customRange),
+    [datePreset, customRange]
+  );
   const monthTotals = useMemo(
     () => ({
       total: totalChecksInRange(items, monthRange),
@@ -202,18 +239,66 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
   );
   const filteredItems = useMemo(
     () =>
-      items.filter((item) =>
-        matchSearch(
-          searchQuery,
-          item.checkNumber,
-          item.counterparty,
-          item.amount,
-          item.creationDate,
-          item.dueDate
-        )
-      ),
-    [items, searchQuery]
+      items.filter((item) => {
+        if (
+          !matchSearch(
+            searchQuery,
+            item.checkNumber,
+            item.counterparty,
+            item.amount,
+            item.creationDate,
+            item.dueDate
+          )
+        ) {
+          return false;
+        }
+
+        if (dateRange && !isDateInRange(item.dueDate, dateRange)) {
+          return false;
+        }
+
+        if (paymentStatusFilter === 'paid' && !item.paid) return false;
+        if (paymentStatusFilter === 'unpaid' && item.paid) return false;
+
+        return true;
+      }),
+    [items, searchQuery, dateRange, paymentStatusFilter]
   );
+
+  const openFilterModal = useCallback(() => {
+    setDraftSearch(searchQuery);
+    setDraftPaymentStatus(paymentStatusFilter);
+    setDraftDatePreset(datePreset);
+    setDraftCustomRange(customRange);
+    setFilterModalOpen(true);
+  }, [searchQuery, paymentStatusFilter, datePreset, customRange]);
+
+  const resetDateFilter = useCallback(() => {
+    const defaults = createAllDateRangeFilter();
+    setDatePreset(defaults.preset);
+    setCustomRange(defaults.customRange);
+  }, []);
+
+  const filterChips = useMemo(
+    () =>
+      compactFilterChips([
+        buildSearchChip(searchQuery, () => setSearchQuery('')),
+        paymentStatusFilter !== 'all' &&
+          buildPaymentStatusChip(paymentStatusFilter, () => setPaymentStatusFilter('all')),
+        datePreset !== 'all' &&
+          dateRange &&
+          buildDateRangeChip(formatDateRangeLabel(dateRange), resetDateFilter),
+      ]),
+    [searchQuery, paymentStatusFilter, datePreset, dateRange, resetDateFilter]
+  );
+
+  const clearDraftFilters = () => {
+    const defaults = createAllDateRangeFilter();
+    setDraftSearch('');
+    setDraftPaymentStatus('all');
+    setDraftDatePreset(defaults.preset);
+    setDraftCustomRange(defaults.customRange);
+  };
 
   const resetCreateForm = () => {
     setForm({
@@ -304,6 +389,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
       ariaLabel: 'عملیات چک‌ها',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
+        onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
         onImport: handleImport,
@@ -311,7 +397,7 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
         onExportPdf: handleExportPdf,
       }),
     }),
-    [loadItems, loading, handleImport, handleExport, handleExportPdf]
+    [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
@@ -329,12 +415,37 @@ export default function ChecksPage({ onReauth }: { onReauth?: () => void }) {
 
   return (
     <div>
-      <PageHeader
-        title="چک‌ها"
-        search={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="جستجو در چک‌ها..."
-      />
+      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
+
+      <FilterModal
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={() => {
+          setSearchQuery(draftSearch);
+          setPaymentStatusFilter(draftPaymentStatus);
+          setDatePreset(draftDatePreset);
+          setCustomRange(draftCustomRange);
+          setFilterModalOpen(false);
+        }}
+        onClear={clearDraftFilters}
+      >
+        <PageFilterPanel
+          search={draftSearch}
+          onSearchChange={setDraftSearch}
+          searchPlaceholder="جستجو در چک‌ها..."
+          paymentStatus={draftPaymentStatus}
+          onPaymentStatusChange={setDraftPaymentStatus}
+          datePreset={draftDatePreset}
+          customRange={draftCustomRange}
+          onDateFilterChange={(filter) => {
+            setDraftDatePreset(filter.preset);
+            setDraftCustomRange(filter.customRange);
+          }}
+          dateIncludeAll
+          dateLabel="بازه زمانی (سررسید)"
+          dateLoading={loading}
+        />
+      </FilterModal>
 
       {loading && items.length === 0 ? (
         <DangCardListSkeleton />

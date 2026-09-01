@@ -68,6 +68,7 @@ export function useReportDateFilter() {
   );
 
   const handleDateFilterChange = useCallback((filter: AppliedDateRangeFilter) => {
+    if (filter.preset === 'all') return;
     setDatePreset(filter.preset);
     setCustomRange(filter.customRange);
   }, []);

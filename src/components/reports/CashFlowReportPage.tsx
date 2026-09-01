@@ -78,7 +78,7 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
   }
 
   if (loading && !monthlyFlow.length) {
-    return <DashboardSkeleton />;
+    return <DashboardSkeleton variant="report" />;
   }
 
   return (

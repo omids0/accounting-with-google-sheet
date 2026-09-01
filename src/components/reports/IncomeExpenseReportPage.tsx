@@ -93,7 +93,7 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
   }
 
   if (loading && !data) {
-    return <DashboardSkeleton />;
+    return <DashboardSkeleton variant="report" />;
   }
 
   return (

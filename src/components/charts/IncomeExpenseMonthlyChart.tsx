@@ -10,9 +10,9 @@ import {
   YAxis,
 } from 'recharts';
 import type { MonthlyFlow } from '../../types';
-import { formatMoney } from '../../utils/formatMoney';
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme';
 import ChartTooltip from './ChartTooltip';
+import { formatAxisMoney } from './chartUtils';
 
 type ChartTooltipEntry = {
   name?: string | number;
@@ -56,18 +56,8 @@ function IncomeExpenseMonthlyChart({
         <p className="empty-text">داده‌ای برای این سال ثبت نشده</p>
       ) : (
         <>
-          <div className="chart-monthly-legend" dir="rtl">
-            <span className="chart-monthly-legend-item">
-              <span className="chart-monthly-legend-dot chart-monthly-legend-dot--income" />
-              درآمد
-            </span>
-            <span className="chart-monthly-legend-item">
-              <span className="chart-monthly-legend-dot chart-monthly-legend-dot--expense" />
-              هزینه
-            </span>
-          </div>
           <div className="chart-bar-wrap chart-monthly-wrap" dir="ltr">
-          <ResponsiveContainer width="100%" height={height}>
+            <ResponsiveContainer width="100%" height={height}>
             <BarChart
               data={chartData}
               layout="vertical"
@@ -93,7 +83,7 @@ function IncomeExpenseMonthlyChart({
               />
               <XAxis
                 type="number"
-                tickFormatter={(value) => formatMoney(value)}
+                tickFormatter={(value) => formatAxisMoney(value)}
                 tick={{ fontSize: 10, fill: theme.muted }}
                 axisLine={false}
                 tickLine={false}
@@ -145,8 +135,18 @@ function IncomeExpenseMonthlyChart({
                 animationEasing="ease-out"
               />
             </BarChart>
-          </ResponsiveContainer>
-        </div>
+            </ResponsiveContainer>
+          </div>
+          <div className="chart-monthly-legend" dir="rtl">
+            <span className="chart-monthly-legend-item">
+              <span className="chart-monthly-legend-dot chart-monthly-legend-dot--income" />
+              درآمد
+            </span>
+            <span className="chart-monthly-legend-item">
+              <span className="chart-monthly-legend-dot chart-monthly-legend-dot--expense" />
+              هزینه
+            </span>
+          </div>
         </>
       )}
     </div>

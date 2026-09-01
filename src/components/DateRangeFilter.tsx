@@ -8,8 +8,10 @@ import {
   type RecordsDatePreset,
 } from '../utils/dateRange';
 
+export type DateRangeFilterPreset = RecordsDatePreset | 'all';
+
 export type AppliedDateRangeFilter = {
-  preset: RecordsDatePreset;
+  preset: DateRangeFilterPreset;
   customRange: DateRange;
 };
 
@@ -20,16 +22,27 @@ export function createDefaultDateRangeFilter(): AppliedDateRangeFilter {
   };
 }
 
+export function createAllDateRangeFilter(): AppliedDateRangeFilter {
+  return {
+    preset: 'all',
+    customRange: getDateRange('month-to-date'),
+  };
+}
+
 export default function DateRangeFilter({
   preset,
   customRange,
   onChange,
   loading,
+  includeAll = false,
+  label = 'بازه زمانی',
 }: {
-  preset: RecordsDatePreset;
+  preset: DateRangeFilterPreset;
   customRange: DateRange;
   onChange: (filter: AppliedDateRangeFilter) => void;
   loading?: boolean;
+  includeAll?: boolean;
+  label?: string;
 }) {
   const [editingCustom, setEditingCustom] = useState(false);
   const [pendingCustomRange, setPendingCustomRange] = useState(customRange);
@@ -47,7 +60,12 @@ export default function DateRangeFilter({
     pendingCustomRange.start !== customRange.start ||
     pendingCustomRange.end !== customRange.end;
 
-  const handlePresetClick = (id: RecordsDatePreset) => {
+  const handlePresetClick = (id: DateRangeFilterPreset) => {
+    if (id === 'all') {
+      setEditingCustom(false);
+      onChange({ preset: 'all', customRange });
+      return;
+    }
     if (id === 'custom') {
       setEditingCustom(true);
       setPendingCustomRange(
@@ -64,7 +82,8 @@ export default function DateRangeFilter({
     onChange({ preset: 'custom', customRange: pendingCustomRange });
   };
 
-  const isPresetActive = (id: RecordsDatePreset) => {
+  const isPresetActive = (id: DateRangeFilterPreset) => {
+    if (id === 'all') return preset === 'all';
     if (id === 'custom') return preset === 'custom' || editingCustom;
     return preset === id && !editingCustom;
   };
@@ -72,8 +91,17 @@ export default function DateRangeFilter({
   return (
     <>
       <div className="records-filter-section">
-        <span className="records-filter-label">بازه زمانی</span>
+        <span className="records-filter-label">{label}</span>
         <div className="records-date-grid">
+          {includeAll && (
+            <button
+              type="button"
+              className={isPresetActive('all') ? 'active' : ''}
+              onClick={() => handlePresetClick('all')}
+            >
+              همه
+            </button>
+          )}
           {RECORDS_DATE_RANGE_PRESETS.map((item) => (
             <button
               key={item.id}
