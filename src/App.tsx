@@ -8,6 +8,7 @@ import UnlockScreen from './components/UnlockScreen';
 import { useTokenRefresh } from './hooks/useTokenRefresh';
 import { useAppLock } from './hooks/useAppLock';
 import { hasStoredSession, isAuthError, isTokenValid } from './services/auth';
+import { syncAppLockFromSheet } from './services/appLock';
 import { refreshAccessTokenSilently } from './services/tokenRefresh';
 import { isConfigured } from './services/settings';
 import {
@@ -110,6 +111,7 @@ export default function App() {
 
         if (session.status === 'ready') {
           await prepareUserSpreadsheet();
+          await syncAppLockFromSheet();
           if (!cancelled) {
             setLoggedIn(true);
             setNeedsReauth(false);
@@ -167,7 +169,8 @@ export default function App() {
     };
   }, [clientId, scriptLoadedSuccessfully]);
 
-  const handleSheetSetupComplete = () => {
+  const handleSheetSetupComplete = async () => {
+    await syncAppLockFromSheet();
     setLoggedIn(true);
     setNeedsSheetSetup(false);
     setSheetError('');

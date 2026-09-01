@@ -11,6 +11,7 @@ import {
   prepareUserSpreadsheet,
   resolveSpreadsheetSession,
 } from '../services/spreadsheetSetup';
+import { syncAppLockFromSheet } from '../services/appLock';
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel';
 import type { SpreadsheetEntry } from '../types';
 import { showError } from '../utils/toast';
@@ -39,6 +40,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
     if (session.status === 'ready') {
       await prepareUserSpreadsheet(profileName);
+      await syncAppLockFromSheet();
       onSuccess();
       return;
     }
@@ -92,7 +94,10 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
         mode={setupMode}
         options={sheetOptions}
         defaultLabel={defaultLabel}
-        onComplete={onSuccess}
+        onComplete={async () => {
+          await syncAppLockFromSheet();
+          onSuccess();
+        }}
       />
     );
   }

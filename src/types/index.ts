@@ -64,10 +64,22 @@ export interface GoogleSession {
   tokenExpiry: number;
 }
 
-export interface AppLockConfig {
+/** Account-wide lock config synced via Google Sheets */
+export interface AppLockAccountConfig {
   enabled: boolean;
   pinHash: string;
   pinSalt: string;
+  updatedAt?: string;
+}
+
+/** Per-device biometric config (local only) */
+export interface AppLockDeviceConfig {
+  biometricEnabled?: boolean;
+  credentialId?: string;
+}
+
+/** @deprecated Use AppLockAccountConfig + AppLockDeviceConfig */
+export interface AppLockConfig extends AppLockAccountConfig {
   biometricEnabled?: boolean;
   credentialId?: string;
 }
