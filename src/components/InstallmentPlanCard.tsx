@@ -1,6 +1,8 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import type { InstallmentPlan } from '../types';
 import {
+  getFirstInstallmentDueDate,
+  getInstallmentEndDate,
   getInstallmentPaymentAmount,
   sortInstallmentPayments,
 } from '../services/installments';
@@ -112,6 +114,8 @@ function InstallmentPlanCard({
   );
 
   const total = plan.count;
+  const firstDueDate = getFirstInstallmentDueDate(plan.startDate, plan.dueDay);
+  const endDate = getInstallmentEndDate(plan.startDate, plan.count, plan.dueDay);
 
   return (
     <div
@@ -135,6 +139,14 @@ function InstallmentPlanCard({
               <div className="list-card-subtitle">
                 <span className="installment-due">
                   موعد پرداخت: {formatIsoDatePersian(dueDate)}
+                </span>
+              </div>
+            ) : null}
+            {firstDueDate && endDate ? (
+              <div className="list-card-subtitle">
+                <span className="installment-due">
+                  بازه قسط: {formatIsoDatePersian(firstDueDate)} تا{' '}
+                  {formatIsoDatePersian(endDate)}
                 </span>
               </div>
             ) : null}

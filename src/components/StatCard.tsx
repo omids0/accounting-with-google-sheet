@@ -17,6 +17,7 @@ interface StatCardProps {
   sparklineData?: number[];
   sparklineTone?: SparklineTone;
   animateIndex?: number;
+  animated?: boolean;
   lift?: boolean;
   className?: string;
   footer?: ReactNode;
@@ -50,6 +51,7 @@ export default function StatCard({
   sparklineData,
   sparklineTone,
   animateIndex,
+  animated = true,
   lift = false,
   className = '',
   footer,
@@ -98,6 +100,7 @@ export default function StatCard({
           amount={amount}
           size={wide ? 'stat-wide' : 'stat'}
           tone={resolvedTone}
+          animated={animated}
         />
         {showSparkline ? (
           <Sparkline

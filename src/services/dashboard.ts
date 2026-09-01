@@ -19,7 +19,7 @@ import {
 } from '../utils/dateRange';
 import { normalizeSheetDate } from '../utils/sheetValues';
 import { fetchDangs, unpaidDangTotal } from './dang';
-import { fetchInstallmentPlans, totalUnpaidInstallments } from './installments';
+import { fetchInstallmentPlans, invalidateInstallmentsCache, totalUnpaidInstallments } from './installments';
 import { fetchChecks, totalUnpaidChecksInRange } from './checks';
 import {
   ensureAutoOpeningBalanceForCurrentMonth,
@@ -136,6 +136,32 @@ const DASHBOARD_CACHE_TTL_MS = 30_000;
 const dashboardCache = new Map<string, { expiresAt: number; data: DashboardData }>();
 const dashboardInFlight = new Map<string, Promise<DashboardData>>();
 
+interface DashboardBundle {
+  expiresAt: number;
+  incomeRecords: { values: Record<string, string> }[];
+  expenseRecords: { values: Record<string, string> }[];
+  incomeDateField: string;
+  expenseDateField: string;
+  data: Omit<DashboardData, 'yearlyMonthlyFlow'>;
+}
+
+const dashboardBundleCache = new Map<string, DashboardBundle>();
+const dashboardBundleInFlight = new Map<string, Promise<DashboardBundle>>();
+
+function buildDashboardBundleCacheKey(
+  settings: AppSettings,
+  range: DateRange,
+  installmentRange: DateRange,
+  netAvailableConfig: NetAvailableConfig
+): string {
+  return JSON.stringify({
+    spreadsheetId: settings.spreadsheetId,
+    range,
+    installmentRange,
+    netAvailableConfig,
+  });
+}
+
 function buildDashboardCacheKey(
   settings: AppSettings,
   range: DateRange,
@@ -152,10 +178,33 @@ function buildDashboardCacheKey(
   });
 }
 
+export function buildDashboardYearlyMonthlyFlow(
+  settings: AppSettings,
+  range: DateRange,
+  installmentRange: DateRange,
+  netAvailableConfig: NetAvailableConfig,
+  monthlyFlowYear: number
+): MonthlyFlow[] | null {
+  const bundle = dashboardBundleCache.get(
+    buildDashboardBundleCacheKey(settings, range, installmentRange, netAvailableConfig)
+  );
+  if (!bundle || Date.now() > bundle.expiresAt) return null;
+  return aggregateYearToDateMonthlyFlow(
+    monthlyFlowYear,
+    bundle.incomeRecords,
+    bundle.expenseRecords,
+    bundle.incomeDateField,
+    bundle.expenseDateField
+  );
+}
+
 export function invalidateDashboardCache(spreadsheetId?: string): void {
   if (!spreadsheetId) {
     dashboardCache.clear();
     dashboardInFlight.clear();
+    dashboardBundleCache.clear();
+    dashboardBundleInFlight.clear();
+    invalidateInstallmentsCache();
     return;
   }
 
@@ -165,15 +214,21 @@ export function invalidateDashboardCache(spreadsheetId?: string): void {
   for (const key of dashboardInFlight.keys()) {
     if (key.includes(spreadsheetId)) dashboardInFlight.delete(key);
   }
+  for (const key of dashboardBundleCache.keys()) {
+    if (key.includes(spreadsheetId)) dashboardBundleCache.delete(key);
+  }
+  for (const key of dashboardBundleInFlight.keys()) {
+    if (key.includes(spreadsheetId)) dashboardBundleInFlight.delete(key);
+  }
+  invalidateInstallmentsCache(spreadsheetId);
 }
 
-async function fetchDashboardDataUncached(
+async function fetchDashboardBundleUncached(
   settings: AppSettings,
   range: DateRange,
   installmentRange: DateRange = range,
-  monthlyFlowYear: number = getJalaliParts(new Date()).year,
   netAvailableConfig: NetAvailableConfig = getDefaultNetAvailableConfig()
-): Promise<DashboardData> {
+): Promise<DashboardBundle> {
   const incomeForm = settings.forms.find((f) => f.type === 'income');
   const expenseForm = settings.forms.find((f) => f.type === 'expense');
   const monthKey = getJalaliMonthKey(range.start);
@@ -304,31 +359,86 @@ async function fetchDashboardDataUncached(
     .map(({ createdAt: _, ...record }) => record);
 
   return {
-    totalIncome,
-    totalExpense,
-    balance: totalIncome - totalExpense,
-    openingBalance,
-    periodBalance,
-    reconciliationDiff,
-    monthKey,
-    monthLabel: formatJalaliMonthLabel(monthKey),
-    financial: {
-      ...rawFinancial,
-      totalAssets,
-      totalLiabilities,
-      netAvailable,
+    expiresAt: Date.now() + DASHBOARD_CACHE_TTL_MS,
+    incomeRecords,
+    expenseRecords,
+    incomeDateField,
+    expenseDateField,
+    data: {
+      totalIncome,
+      totalExpense,
+      balance: totalIncome - totalExpense,
+      openingBalance,
+      periodBalance,
+      reconciliationDiff,
+      monthKey,
+      monthLabel: formatJalaliMonthLabel(monthKey),
+      financial: {
+        ...rawFinancial,
+        totalAssets,
+        totalLiabilities,
+        netAvailable,
+      },
+      incomeByCategory: sumByCategory(filteredIncome),
+      expenseByCategory: sumByCategory(filteredExpense),
+      recentRecords: recent,
     },
-    incomeByCategory: sumByCategory(filteredIncome),
-    expenseByCategory: sumByCategory(filteredExpense),
+  };
+}
+
+function assembleDashboardData(
+  bundle: DashboardBundle,
+  monthlyFlowYear: number
+): DashboardData {
+  return {
+    ...bundle.data,
     yearlyMonthlyFlow: aggregateYearToDateMonthlyFlow(
       monthlyFlowYear,
-      incomeRecords,
-      expenseRecords,
-      incomeDateField,
-      expenseDateField
+      bundle.incomeRecords,
+      bundle.expenseRecords,
+      bundle.incomeDateField,
+      bundle.expenseDateField
     ),
-    recentRecords: recent,
   };
+}
+
+async function getDashboardBundle(
+  settings: AppSettings,
+  range: DateRange,
+  installmentRange: DateRange,
+  netAvailableConfig: NetAvailableConfig
+): Promise<DashboardBundle> {
+  const bundleKey = buildDashboardBundleCacheKey(
+    settings,
+    range,
+    installmentRange,
+    netAvailableConfig
+  );
+
+  const cached = dashboardBundleCache.get(bundleKey);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached;
+  }
+
+  const inFlight = dashboardBundleInFlight.get(bundleKey);
+  if (inFlight) return inFlight;
+
+  const task = fetchDashboardBundleUncached(
+    settings,
+    range,
+    installmentRange,
+    netAvailableConfig
+  )
+    .then((bundle) => {
+      dashboardBundleCache.set(bundleKey, bundle);
+      return bundle;
+    })
+    .finally(() => {
+      dashboardBundleInFlight.delete(bundleKey);
+    });
+
+  dashboardBundleInFlight.set(bundleKey, task);
+  return task;
 }
 
 export async function loadDashboardData(
@@ -354,14 +464,9 @@ export async function loadDashboardData(
   const inFlight = dashboardInFlight.get(cacheKey);
   if (inFlight) return inFlight;
 
-  const task = fetchDashboardDataUncached(
-    settings,
-    range,
-    installmentRange,
-    monthlyFlowYear,
-    netAvailableConfig
-  )
-    .then((data) => {
+  const task = getDashboardBundle(settings, range, installmentRange, netAvailableConfig)
+    .then((bundle) => {
+      const data = assembleDashboardData(bundle, monthlyFlowYear);
       dashboardCache.set(cacheKey, {
         data,
         expiresAt: Date.now() + DASHBOARD_CACHE_TTL_MS,

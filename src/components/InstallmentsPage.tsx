@@ -7,8 +7,11 @@ import {
   exportInstallmentsCsv,
   exportInstallmentsPdf,
   fetchInstallmentPlans,
+  getInstallmentEndDate,
+  getPaidUntilFromPlan,
+  getRemovedPaymentTransactionIds,
   importInstallmentsCsv,
-  hasInstallmentDueInRange,
+  isInstallmentPlanVisible,
   isInstallmentPlanComplete,
   getInstallmentDueDateInRange,
   reconcilePaymentsOnEdit,
@@ -24,7 +27,7 @@ import {
 import AmountInput from './AmountInput';
 import { InstallmentCardListSkeleton } from './skeleton';
 import { distributionSparkline } from '../utils/sparklineData';
-import { getTodayIso } from '../utils/jalaliDate';
+import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import {
   formatJalaliMonthLabel,
   getInstallmentDueRange,
@@ -43,7 +46,9 @@ import StatCard from './StatCard';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
 import InstallmentPlanCard, { type PlanWithRow } from './InstallmentPlanCard';
+import JalaliDatePicker from './JalaliDatePicker';
 import { matchSearch } from '../utils/search';
+import { deleteLinkedExpenseRecord } from '../services/paymentTransactions';
 
 export default function InstallmentsPage({
   onReauth,
@@ -69,8 +74,17 @@ export default function InstallmentsPage({
     amount: '' as number | '',
     count: '' as number | '',
     dueDay: '' as number | '',
+    startDate: getTodayIso(),
+    paidUntil: '',
     note: '',
   });
+
+  const computedEndDate = useMemo(() => {
+    const count = Number(form.count);
+    const dueDay = Number(form.dueDay);
+    if (!form.startDate || !count || count < 1 || !dueDay) return '';
+    return getInstallmentEndDate(form.startDate, count, dueDay);
+  }, [form.startDate, form.count, form.dueDay]);
 
   const loadPlans = useCallback(async () => {
     const settings = getSettings();
@@ -125,6 +139,18 @@ export default function InstallmentsPage({
       showError('موعد قسط باید بین ۱ تا ۳۱ باشد');
       return;
     }
+    if (!form.startDate) {
+      showError('تاریخ شروع قسط الزامی است');
+      return;
+    }
+    if (form.paidUntil && form.paidUntil < form.startDate) {
+      showError('تاریخ پرداخت‌شده نمی‌تواند قبل از تاریخ شروع باشد');
+      return;
+    }
+    if (form.paidUntil && computedEndDate && form.paidUntil > computedEndDate) {
+      showError('تاریخ پرداخت‌شده نمی‌تواند بعد از تاریخ پایان قسط باشد');
+      return;
+    }
 
     const settings = getSettings()!;
     setSaving(true);
@@ -135,11 +161,20 @@ export default function InstallmentsPage({
           amount: Number(form.amount),
           count: Number(form.count),
           dueDay,
+          startDate: form.startDate,
+          paidUntil: form.paidUntil,
           note: form.note.trim(),
         });
         if ('error' in reconciled) {
           showError(reconciled.error);
           return;
+        }
+        const removedTransactionIds = getRemovedPaymentTransactionIds(
+          editingPlan.payments,
+          reconciled.payments
+        );
+        for (const transactionRecordId of removedTransactionIds) {
+          await deleteLinkedExpenseRecord(settings.spreadsheetId, transactionRecordId);
         }
         await updateInstallmentPlan(settings.spreadsheetId, editingPlan.rowNumber, reconciled);
         showSuccess('قسط ویرایش شد');
@@ -149,6 +184,8 @@ export default function InstallmentsPage({
           amount: Number(form.amount),
           count: Number(form.count),
           dueDay,
+          startDate: form.startDate,
+          paidUntil: form.paidUntil,
           note: form.note.trim(),
         });
         showSuccess('قسط جدید ثبت شد');
@@ -241,7 +278,15 @@ export default function InstallmentsPage({
   );
 
   const resetCreateForm = useCallback(() => {
-    setForm({ title: '', amount: '', count: '', dueDay: '', note: '' });
+    setForm({
+      title: '',
+      amount: '',
+      count: '',
+      dueDay: '',
+      startDate: getTodayIso(),
+      paidUntil: '',
+      note: '',
+    });
   }, []);
 
   const openCreateForm = useCallback(() => {
@@ -257,6 +302,8 @@ export default function InstallmentsPage({
       amount: plan.amount,
       count: plan.count,
       dueDay: plan.dueDay,
+      startDate: plan.startDate || getTodayIso(),
+      paidUntil: getPaidUntilFromPlan(plan),
       note: plan.note,
     });
     setShowForm(true);
@@ -325,7 +372,7 @@ export default function InstallmentsPage({
   const monthPlans = useMemo(
     () =>
       sortInstallmentPlans(
-        plans.filter((plan) => hasInstallmentDueInRange(plan, monthRange))
+        plans.filter((plan) => isInstallmentPlanVisible(plan, monthRange))
       ),
     [plans, monthRange]
   );
@@ -469,6 +516,7 @@ export default function InstallmentsPage({
             tone="primary"
             sparklineData={monthAmountSparkline}
             animateIndex={0}
+            animated={false}
             lift
           />
           <StatCard
@@ -477,6 +525,7 @@ export default function InstallmentsPage({
             variant="expense"
             sparklineData={monthUnpaidSparkline}
             animateIndex={1}
+            animated={false}
             lift
           />
         </div>
@@ -526,6 +575,14 @@ export default function InstallmentsPage({
         </div>
 
         <div className="form-group">
+          <label>تاریخ شروع قسط <span className="required">*</span></label>
+          <JalaliDatePicker
+            value={form.startDate}
+            onChange={(date) => setForm((f) => ({ ...f, startDate: date }))}
+          />
+        </div>
+
+        <div className="form-group">
           <label>موعد قسط در ماه <span className="required">*</span></label>
           <input
             type="number"
@@ -542,6 +599,39 @@ export default function InstallmentsPage({
             dir="ltr"
             placeholder="۱ تا ۳۱"
           />
+          <p className="form-hint">روز پرداخت هر قسط در ماه (مثلاً ۵ برای پنجم هر ماه)</p>
+        </div>
+
+        {computedEndDate ? (
+          <div className="form-group">
+            <label>تاریخ پایان قسط</label>
+            <div className="form-readonly-value">{formatIsoDatePersian(computedEndDate)}</div>
+            <p className="form-hint">بر اساس تاریخ شروع، تعداد بازپرداخت و موعد ماهانه محاسبه می‌شود</p>
+          </div>
+        ) : null}
+
+        <div className="form-group">
+          <label>پرداخت‌شده تا تاریخ</label>
+          <div className="form-inline-actions">
+            <JalaliDatePicker
+              value={form.paidUntil}
+              onChange={(date) => setForm((f) => ({ ...f, paidUntil: date }))}
+              allowEmpty
+              emptyLabel="هنوز پرداختی ثبت نشده"
+            />
+            {form.paidUntil ? (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setForm((f) => ({ ...f, paidUntil: '' }))}
+              >
+                پاک کردن
+              </button>
+            ) : null}
+          </div>
+          <p className="form-hint">
+            اقساطی که موعد آن‌ها تا این تاریخ است به‌عنوان پرداخت‌شده ثبت می‌شوند
+          </p>
         </div>
 
         <div className="form-group">

@@ -90,12 +90,11 @@ interface LayoutProps {
 
 export default function Layout({ onLogout, onReauth }: LayoutProps) {
   const [tab, setTab] = useState<Tab>('dashboard');
+  const [dataKey, setDataKey] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false);
   const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false);
-  const [dataKey, setDataKey] = useState(0);
-  const [installmentsMounted, setInstallmentsMounted] = useState(false);
   const userName = getUserName();
   const userPicture = getUserPicture();
 
@@ -167,10 +166,6 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [menuOpen]);
-
-  useEffect(() => {
-    if (tab === 'installments') setInstallmentsMounted(true);
-  }, [tab]);
 
   const showHeaderBack =
     !showSettings &&
@@ -452,20 +447,11 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             />
           ) : (
             <>
-              {installmentsMounted ? (
-                <div hidden={tab !== 'installments'} aria-hidden={tab !== 'installments'}>
-                  <Suspense
-                    fallback={
-                      tab === 'installments' ? <InstallmentCardListSkeleton /> : null
-                    }
-                  >
-                    <InstallmentsPage
-                      onReauth={onReauth}
-                      active={tab === 'installments'}
-                    />
-                  </Suspense>
-                </div>
-              ) : null}
+              {tab === 'installments' && (
+                <Suspense fallback={<InstallmentCardListSkeleton />}>
+                  <InstallmentsPage onReauth={onReauth} active />
+                </Suspense>
+              )}
               {tab === 'dashboard' && (
                 <DashboardPage
                   onReauth={onReauth}

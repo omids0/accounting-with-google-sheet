@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { prefersReducedMotion } from './useChartTheme';
 
-export function useAnimatedNumber(value: number, duration = 650): number {
+export function useAnimatedNumber(
+  value: number,
+  duration = 650,
+  enabled = true
+): number {
   const [display, setDisplay] = useState(value);
   const fromRef = useRef(value);
 
   useEffect(() => {
-    if (prefersReducedMotion()) {
+    if (!enabled || prefersReducedMotion()) {
       fromRef.current = value;
       setDisplay(value);
       return;
@@ -33,7 +37,7 @@ export function useAnimatedNumber(value: number, duration = 650): number {
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [value, duration]);
+  }, [value, duration, enabled]);
 
   return display;
 }
