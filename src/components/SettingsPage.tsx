@@ -30,6 +30,7 @@ import {
 } from '../services/auth';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 import RemindersPage from './RemindersPage';
+import AppLockSettings from './AppLockSettings';
 import { SettingsSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 import { applyTheme } from '../utils/theme';
@@ -259,6 +260,8 @@ export default function SettingsPage({
           مدیریت یادآوری‌ها
         </button>
       </div>
+
+      <AppLockSettings />
 
       <div className="card">
         <h2 className="card-title">حساب گوگل</h2>

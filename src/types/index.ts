@@ -64,6 +64,14 @@ export interface GoogleSession {
   tokenExpiry: number;
 }
 
+export interface AppLockConfig {
+  enabled: boolean;
+  pinHash: string;
+  pinSalt: string;
+  biometricEnabled?: boolean;
+  credentialId?: string;
+}
+
 export interface RecordRow {
   id: string;
   createdAt: string;

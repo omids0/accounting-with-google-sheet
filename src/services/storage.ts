@@ -1,6 +1,7 @@
 const STORAGE_KEYS = {
   SESSION: 'accounting_session',
   SETTINGS: 'accounting_settings',
+  APP_LOCK: 'accounting_app_lock',
 } as const;
 
 export function getItem<T>(key: string): T | null {
