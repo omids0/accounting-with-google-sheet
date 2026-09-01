@@ -31,19 +31,29 @@ import { InstallmentCardListSkeleton } from './skeleton';
 import { distributionSparkline } from '../utils/sparklineData';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import {
+  formatDateRangeLabel,
   formatJalaliMonthLabel,
   getInstallmentDueRange,
   getJalaliMonthKey,
+  resolveDateRange,
+  type RecordsDatePreset,
 } from '../utils/dateRange';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import { useSheetImportExport } from '../hooks/useSheetImportExport';
-import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import FormModal from './FormModal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import PageHeader from './PageHeader';
+import PageFilterPanel from './PageFilterPanel';
+import FilterModal from './FilterModal';
+import ActiveFilterChips from './ActiveFilterChips';
+import {
+  buildDateRangeChip,
+  buildSearchChip,
+  compactFilterChips,
+} from '../utils/filterChips';
+import { createDefaultDateRangeFilter } from './DateRangeFilter';
 import StatCard from './StatCard';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
@@ -69,7 +79,20 @@ export default function InstallmentsPage({
   const [deleting, setDeleting] = useState(false);
   const [togglingKey, setTogglingKey] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebouncedValue(searchQuery, 250);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [draftSearch, setDraftSearch] = useState('');
+  const [draftDatePreset, setDraftDatePreset] = useState<RecordsDatePreset>(
+    () => createDefaultDateRangeFilter().preset as RecordsDatePreset
+  );
+  const [draftCustomRange, setDraftCustomRange] = useState(
+    () => createDefaultDateRangeFilter().customRange
+  );
+  const [datePreset, setDatePreset] = useState<RecordsDatePreset>(
+    () => createDefaultDateRangeFilter().preset as RecordsDatePreset
+  );
+  const [customRange, setCustomRange] = useState(
+    () => createDefaultDateRangeFilter().customRange
+  );
 
   const [form, setForm] = useState({
     title: '',
@@ -359,31 +382,39 @@ export default function InstallmentsPage({
     setExpandedId((prev) => (prev === planId ? null : planId));
   }, []);
 
-  const monthRange = useMemo(() => getInstallmentDueRange('month-to-date'), []);
+  const effectiveRange = useMemo(() => {
+    if (datePreset === 'custom') {
+      return resolveDateRange('custom', customRange);
+    }
+    return getInstallmentDueRange(datePreset);
+  }, [datePreset, customRange]);
   const monthLabel = useMemo(
-    () => formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso())),
-    []
+    () =>
+      datePreset === 'month-to-date'
+        ? formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso()))
+        : formatDateRangeLabel(effectiveRange),
+    [datePreset, effectiveRange]
   );
   const monthTotals = useMemo(
     () => ({
-      total: totalInstallmentsInRange(plans, monthRange),
-      unpaid: totalUnpaidInstallments(plans, monthRange),
+      total: totalInstallmentsInRange(plans, effectiveRange),
+      unpaid: totalUnpaidInstallments(plans, effectiveRange),
     }),
-    [plans, monthRange]
+    [plans, effectiveRange]
   );
   const monthPlans = useMemo(
     () =>
       sortInstallmentPlans(
-        plans.filter((plan) => isInstallmentPlanVisible(plan, monthRange))
+        plans.filter((plan) => isInstallmentPlanVisible(plan, effectiveRange))
       ),
-    [plans, monthRange]
+    [plans, effectiveRange]
   );
   const filteredPlans = useMemo(
     () =>
       monthPlans.filter((plan) =>
-        matchSearch(debouncedSearchQuery, plan.title, plan.note, plan.amount, plan.count)
+        matchSearch(searchQuery, plan.title, plan.note, plan.amount, plan.count)
       ),
-    [monthPlans, debouncedSearchQuery]
+    [monthPlans, searchQuery]
   );
   const displayPlans = useMemo(
     () =>
@@ -397,10 +428,10 @@ export default function InstallmentsPage({
         const paidAmount = paidInstallmentAmount(plan);
         const progress =
           totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
-        const dueDate = getInstallmentDueDateInRange(plan, monthRange);
+        const dueDate = getInstallmentDueDateInRange(plan, effectiveRange);
         return { plan, done, complete, progress, dueDate };
       }),
-    [filteredPlans, monthRange]
+    [filteredPlans, effectiveRange]
   );
   const monthAmountSparkline = useMemo(
     () => distributionSparkline(monthPlans.map((plan) => plan.amount)),
@@ -431,11 +462,37 @@ export default function InstallmentsPage({
     onReauth,
   });
 
+  const openFilterModal = useCallback(() => {
+    setDraftSearch(searchQuery);
+    setDraftDatePreset(datePreset);
+    setDraftCustomRange(customRange);
+    setFilterModalOpen(true);
+  }, [searchQuery, datePreset, customRange]);
+
+  const resetDateFilter = useCallback(() => {
+    const defaults = createDefaultDateRangeFilter();
+    setDatePreset(defaults.preset as RecordsDatePreset);
+    setCustomRange(defaults.customRange);
+  }, []);
+
+  const filterChips = useMemo(
+    () =>
+      compactFilterChips([
+        buildDateRangeChip(
+          formatDateRangeLabel(effectiveRange),
+          datePreset !== 'month-to-date' ? resetDateFilter : undefined
+        ),
+        buildSearchChip(searchQuery, () => setSearchQuery('')),
+      ]),
+    [effectiveRange, datePreset, resetDateFilter, searchQuery]
+  );
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات اقساط',
       actions: createPageSpeedDialActions({
         onAdd: openCreateForm,
+        onFilter: openFilterModal,
         onRefresh: loadPlans,
         refreshDisabled: loading,
         onImport: handleImport,
@@ -443,7 +500,7 @@ export default function InstallmentsPage({
         onExportPdf: handleExportPdf,
       }),
     }),
-    [openCreateForm, loadPlans, loading, handleImport, handleExport, handleExportPdf]
+    [openFilterModal, openCreateForm, loadPlans, loading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() && active ? pageSpeedDialConfig : null);
@@ -461,15 +518,42 @@ export default function InstallmentsPage({
 
   return (
     <div>
-      <PageHeader
-        title="اقساط"
-        search={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="جستجو در اقساط..."
-      />
+      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
+
+      <FilterModal
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={() => {
+          setSearchQuery(draftSearch);
+          setDatePreset(draftDatePreset);
+          setCustomRange(draftCustomRange);
+          setFilterModalOpen(false);
+        }}
+        onClear={() => {
+          const defaults = createDefaultDateRangeFilter();
+          setDraftSearch('');
+          setDraftDatePreset(defaults.preset as RecordsDatePreset);
+          setDraftCustomRange(defaults.customRange);
+        }}
+      >
+        <PageFilterPanel
+          search={draftSearch}
+          onSearchChange={setDraftSearch}
+          searchPlaceholder="جستجو در اقساط..."
+          datePreset={draftDatePreset}
+          customRange={draftCustomRange}
+          onDateFilterChange={(filter) => {
+            if (filter.preset === 'all') return;
+            setDraftDatePreset(filter.preset);
+            setDraftCustomRange(filter.customRange);
+          }}
+          dateLabel="بازه زمانی (سررسید)"
+          dateLoading={loading}
+        />
+      </FilterModal>
 
       {loading && plans.length === 0 ? (
-        <InstallmentCardListSkeleton />
+        <InstallmentCardListSkeleton filterChips={1} footerStats={2} />
       ) : plans.length === 0 ? (
         <div className="empty-state">
           <div className="icon">

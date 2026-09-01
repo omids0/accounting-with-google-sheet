@@ -224,6 +224,7 @@ export default function RecordsPage({
   };
 
   const handleDateFilterChange = (filter: AppliedDateRangeFilter) => {
+    if (filter.preset === 'all') return;
     setDatePreset(filter.preset);
     setCustomRange(filter.customRange);
   };

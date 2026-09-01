@@ -3,6 +3,7 @@ import type { PageSpeedDialAction } from './usePageSpeedDial';
 
 export function createPageSpeedDialActions({
   onAdd,
+  onFilter,
   onRefresh,
   refreshDisabled,
   onImport,
@@ -10,6 +11,7 @@ export function createPageSpeedDialActions({
   onExportPdf,
 }: {
   onAdd: () => void;
+  onFilter?: () => void;
   onRefresh: () => void;
   refreshDisabled?: boolean;
   onImport?: () => void;
@@ -22,6 +24,13 @@ export function createPageSpeedDialActions({
       label: 'افزودن',
       icon: <SpeedDialIcon name="add" />,
       onClick: onAdd,
+    },
+    {
+      id: 'filter',
+      label: 'فیلتر',
+      icon: <SpeedDialIcon name="filter" />,
+      onClick: onFilter ?? (() => undefined),
+      disabled: !onFilter,
     },
     {
       id: 'refresh',

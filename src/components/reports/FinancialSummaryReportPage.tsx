@@ -83,7 +83,7 @@ export default function FinancialSummaryReportPage({ onReauth }: { onReauth?: ()
   }
 
   if (loading && !data) {
-    return <DashboardSkeleton />;
+    return <DashboardSkeleton variant="report" />;
   }
 
   const financial = data?.financial;

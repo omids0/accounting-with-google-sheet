@@ -22,7 +22,7 @@ import AmountInput from './AmountInput';
 import CardInlineAmountEdit from './CardInlineAmountEdit';
 import { formatMoney } from '../utils/formatMoney';
 import { distributionSparkline, flowTrendSparkline } from '../utils/sparklineData';
-import { InstallmentCardListSkeleton } from './skeleton';
+import { WalletPageSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
@@ -34,7 +34,10 @@ import CardExpandButton from './CardExpandButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import { AccordionCollapse } from './AccordionCollapse';
-import PageHeader from './PageHeader';
+import PageFilterPanel from './PageFilterPanel';
+import FilterModal from './FilterModal';
+import ActiveFilterChips from './ActiveFilterChips';
+import { buildSearchChip, compactFilterChips } from '../utils/filterChips';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
 import StatCard from './StatCard';
@@ -70,6 +73,8 @@ export default function WalletPage({
   const [openingInput, setOpeningInput] = useState<number | ''>('');
   const [savingOpening, setSavingOpening] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [draftSearch, setDraftSearch] = useState('');
 
   const syncBalances = useCallback((accounts: WalletAccountWithRow[]) => {
     const next: Record<string, number | ''> = {};
@@ -314,11 +319,17 @@ export default function WalletPage({
     onReauth,
   });
 
+  const openFilterModal = useCallback(() => {
+    setDraftSearch(searchQuery);
+    setFilterModalOpen(true);
+  }, [searchQuery]);
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات کیف پول',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
+        onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
         onImport: handleImport,
@@ -326,7 +337,7 @@ export default function WalletPage({
         onExportPdf: handleExportPdf,
       }),
     }),
-    [loadItems, loading, handleImport, handleExport, handleExportPdf]
+    [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
@@ -338,6 +349,11 @@ export default function WalletPage({
       matchSearch(searchQuery, item.title, item.note, item.balance)
     );
   }, [items, searchQuery]);
+
+  const filterChips = useMemo(
+    () => compactFilterChips([buildSearchChip(searchQuery, () => setSearchQuery(''))]),
+    [searchQuery]
+  );
 
   if (!isConfigured()) {
     return (
@@ -364,14 +380,26 @@ export default function WalletPage({
   const displayOpeningBalance =
     openingInput === '' ? periodFlow?.openingBalance ?? 0 : Number(openingInput);
 
+
   return (
     <div>
-      <PageHeader
-        title="کیف پول"
-        search={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="جستجو در حساب‌ها..."
-      />
+      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
+
+      <FilterModal
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={() => {
+          setSearchQuery(draftSearch);
+          setFilterModalOpen(false);
+        }}
+        onClear={() => setDraftSearch('')}
+      >
+        <PageFilterPanel
+          search={draftSearch}
+          onSearchChange={setDraftSearch}
+          searchPlaceholder="جستجو در حساب‌ها..."
+        />
+      </FilterModal>
 
       {periodFlow && (
         <div className={`card installment-card interactive-card dashboard-opening-card wallet-item-card${openingExpanded ? ' installment-card--expanded' : ''}`}>
@@ -426,7 +454,7 @@ export default function WalletPage({
       )}
 
       {loading && items.length === 0 ? (
-        <InstallmentCardListSkeleton />
+        <WalletPageSkeleton />
       ) : items.length === 0 ? (
         <div className="empty-state">
           <div className="icon">

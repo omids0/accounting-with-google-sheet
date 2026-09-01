@@ -32,11 +32,30 @@ import CardEditButton from './CardEditButton';
 import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import PageHeader from './PageHeader';
+import PageFilterPanel, { type PaymentStatusFilter } from './PageFilterPanel';
+import FilterModal from './FilterModal';
+import ActiveFilterChips from './ActiveFilterChips';
+import {
+  buildCategoryChip,
+  buildDateRangeChip,
+  buildPaymentStatusChip,
+  buildSearchChip,
+  compactFilterChips,
+} from '../utils/filterChips';
+import {
+  createAllDateRangeFilter,
+  type AppliedDateRangeFilter,
+  type DateRangeFilterPreset,
+} from './DateRangeFilter';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
 import StatCard from './StatCard';
 import { matchSearch } from '../utils/search';
+import {
+  formatDateRangeLabel,
+  isDateInRange,
+  resolveDateRange,
+} from '../utils/dateRange';
 
 type DangWithRow = Dang & { rowNumber: number };
 
@@ -52,6 +71,26 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   const [savingAmountId, setSavingAmountId] = useState('');
   const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [draftSearch, setDraftSearch] = useState('');
+  const [draftPaymentStatus, setDraftPaymentStatus] =
+    useState<PaymentStatusFilter>('all');
+  const [draftCategory, setDraftCategory] = useState('all');
+  const [draftDatePreset, setDraftDatePreset] = useState<DateRangeFilterPreset>(
+    () => createAllDateRangeFilter().preset
+  );
+  const [draftCustomRange, setDraftCustomRange] = useState(
+    () => createAllDateRangeFilter().customRange
+  );
+  const [paymentStatusFilter, setPaymentStatusFilter] =
+    useState<PaymentStatusFilter>('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [datePreset, setDatePreset] = useState<DateRangeFilterPreset>(
+    () => createAllDateRangeFilter().preset
+  );
+  const [customRange, setCustomRange] = useState(
+    () => createAllDateRangeFilter().customRange
+  );
   const [categories, setCategories] = useState<string[]>(() => getDangCategories());
   const [form, setForm] = useState({
     title: '',
@@ -326,11 +365,74 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     onReauth,
   });
 
+  const dateRange = useMemo(
+    () =>
+      datePreset === 'all' ? null : resolveDateRange(datePreset, customRange),
+    [datePreset, customRange]
+  );
+
+  const categoryOptions = useMemo(() => {
+    const options = new Set<string>(categories);
+    for (const item of items) {
+      if (item.category) options.add(item.category);
+    }
+    return [...options];
+  }, [categories, items]);
+
+  const filteredItems = useMemo(
+    () =>
+      items.filter((item) => {
+        if (
+          !matchSearch(
+            searchQuery,
+            item.title,
+            item.category,
+            item.counterparty,
+            item.note,
+            item.amount,
+            item.date
+          )
+        ) {
+          return false;
+        }
+
+        if (categoryFilter !== 'all' && item.category !== categoryFilter) {
+          return false;
+        }
+
+        if (dateRange && !isDateInRange(item.date, dateRange)) {
+          return false;
+        }
+
+        if (paymentStatusFilter === 'paid' && !item.paid) return false;
+        if (paymentStatusFilter === 'unpaid' && item.paid) return false;
+
+        return true;
+      }),
+    [items, searchQuery, categoryFilter, dateRange, paymentStatusFilter]
+  );
+
+  const openFilterModal = useCallback(() => {
+    setDraftSearch(searchQuery);
+    setDraftPaymentStatus(paymentStatusFilter);
+    setDraftCategory(categoryFilter);
+    setDraftDatePreset(datePreset);
+    setDraftCustomRange(customRange);
+    setFilterModalOpen(true);
+  }, [
+    searchQuery,
+    paymentStatusFilter,
+    categoryFilter,
+    datePreset,
+    customRange,
+  ]);
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات بدهی',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
+        onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
         onImport: handleImport,
@@ -338,26 +440,52 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
         onExportPdf: handleExportPdf,
       }),
     }),
-    [loadItems, loading, handleImport, handleExport, handleExportPdf]
+    [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
   );
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
 
-  const filteredItems = useMemo(
+  const resetDateFilter = useCallback(() => {
+    const defaults = createAllDateRangeFilter();
+    setDatePreset(defaults.preset);
+    setCustomRange(defaults.customRange);
+  }, []);
+
+  const filterChips = useMemo(
     () =>
-      items.filter((item) =>
-        matchSearch(
-          searchQuery,
-          item.title,
-          item.category,
-          item.counterparty,
-          item.note,
-          item.amount,
-          item.date
-        )
-      ),
-    [items, searchQuery]
+      compactFilterChips([
+        buildSearchChip(searchQuery, () => setSearchQuery('')),
+        paymentStatusFilter !== 'all' &&
+          buildPaymentStatusChip(paymentStatusFilter, () => setPaymentStatusFilter('all')),
+        categoryFilter !== 'all' &&
+          buildCategoryChip(categoryFilter, () => setCategoryFilter('all')),
+        datePreset !== 'all' &&
+          dateRange &&
+          buildDateRangeChip(formatDateRangeLabel(dateRange), resetDateFilter),
+      ]),
+    [
+      searchQuery,
+      paymentStatusFilter,
+      categoryFilter,
+      datePreset,
+      dateRange,
+      resetDateFilter,
+    ]
   );
+
+  const handleDraftDateFilterChange = (filter: AppliedDateRangeFilter) => {
+    setDraftDatePreset(filter.preset);
+    setDraftCustomRange(filter.customRange);
+  };
+
+  const clearDraftFilters = () => {
+    const defaults = createAllDateRangeFilter();
+    setDraftSearch('');
+    setDraftPaymentStatus('all');
+    setDraftCategory('all');
+    setDraftDatePreset(defaults.preset);
+    setDraftCustomRange(defaults.customRange);
+  };
 
   if (!isConfigured()) {
     return (
@@ -374,12 +502,37 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
 
   return (
     <div>
-      <PageHeader
-        title="بدهی"
-        search={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="جستجو در بدهی‌ها..."
-      />
+      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
+
+      <FilterModal
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={() => {
+          setSearchQuery(draftSearch);
+          setPaymentStatusFilter(draftPaymentStatus);
+          setCategoryFilter(draftCategory);
+          setDatePreset(draftDatePreset);
+          setCustomRange(draftCustomRange);
+          setFilterModalOpen(false);
+        }}
+        onClear={clearDraftFilters}
+      >
+        <PageFilterPanel
+          search={draftSearch}
+          onSearchChange={setDraftSearch}
+          searchPlaceholder="جستجو در بدهی‌ها..."
+          paymentStatus={draftPaymentStatus}
+          onPaymentStatusChange={setDraftPaymentStatus}
+          category={draftCategory}
+          onCategoryChange={setDraftCategory}
+          categoryOptions={categoryOptions}
+          datePreset={draftDatePreset}
+          customRange={draftCustomRange}
+          onDateFilterChange={handleDraftDateFilterChange}
+          dateIncludeAll
+          dateLoading={loading}
+        />
+      </FilterModal>
 
       {loading && items.length === 0 ? (
         <DangCardListSkeleton />
