@@ -3472,6 +3472,37 @@ button {
   min-width: 0;
 }
 
+.dang-card-tap-area {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  text-align: right;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast);
+}
+
+.dang-card-tap-area:hover,
+.dang-card-tap-area--expanded {
+  background: color-mix(in srgb, var(--color-accent-soft) 45%, transparent);
+}
+
+.dang-card-amount-edit {
+  padding: 0.35rem 0 0.15rem;
+}
+
+.dang-card.installment-card--expanded {
+  box-shadow:
+    var(--shadow-lg),
+    0 6px 22px color-mix(in srgb, var(--color-primary) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+  transform: translateY(-2px);
+}
+
 .dang-card-header {
   display: flex;
   justify-content: space-between;

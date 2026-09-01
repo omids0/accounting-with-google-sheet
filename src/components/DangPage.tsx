@@ -16,12 +16,16 @@ import {
   unpaidDangTotal,
 } from '../services/dang';
 import AmountInput from './AmountInput';
+import { AccordionCollapse } from './AccordionCollapse';
+import CardExpandButton from './CardExpandButton';
+import CardInlineAmountEdit from './CardInlineAmountEdit';
 import JalaliDatePicker from './JalaliDatePicker';
 import { CategorySelect } from './form';
 import { syncCategoriesFromSheet } from '../services/categories';
 import { getDangCategories } from '../services/settings';
 import { DangCardListSkeleton } from './skeleton';
 import { distributionSparkline } from '../utils/sparklineData';
+import { formatMoney } from '../utils/formatMoney';
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
 import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
@@ -61,6 +65,7 @@ type DangWithRow = Dang & { rowNumber: number };
 
 export default function DangPage({ onReauth }: { onReauth?: () => void }) {
   const [items, setItems] = useState<DangWithRow[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<DangWithRow | null>(null);
   const [deletingItem, setDeletingItem] = useState<DangWithRow | null>(null);
@@ -337,6 +342,7 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
     setDeleting(true);
     try {
       await deleteDang(settings.spreadsheetId, deletingItem.rowNumber, deletingItem);
+      if (expandedId === deletingItem.id) setExpandedId(null);
       setDeletingItem(null);
       showSuccess('بدهی حذف شد');
       await loadItems();
@@ -548,13 +554,16 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
       ) : (
         <>
           {filteredItems.map((item) => {
-            const amountValue =
+            const expanded = expandedId === item.id;
+            const rawAmount =
               amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount;
+            const displayAmount =
+              rawAmount === '' ? item.amount : Number(rawAmount);
 
             return (
               <div
                 key={item.id}
-                className={`card dang-card interactive-card${item.paid ? ' paid' : ''}`}
+                className={`card dang-card interactive-card${item.paid ? ' paid' : ''}${expanded ? ' installment-card--expanded' : ''}`}
               >
                 <input
                   type="checkbox"
@@ -564,39 +573,71 @@ export default function DangPage({ onReauth }: { onReauth?: () => void }) {
                   onChange={(e) => handleTogglePaid(item, e.target.checked)}
                 />
                 <div className="dang-card-body">
-                  <div className="dang-card-header">
-                    <span className="dang-card-title">{item.title}</span>
-                    <div className="dang-card-amount-wrap">
-                      <AmountInput
-                        compact
-                        value={amountValue}
-                        onChange={(val) => handleAmountChange(item, val)}
-                        onBlur={() => handleAmountBlur(item)}
-                      />
-                      {savingAmountId === item.id && (
-                        <span className="dang-amount-saving">...</span>
+                  <button
+                    type="button"
+                    className={`dang-card-tap-area${expanded ? ' dang-card-tap-area--expanded' : ''}`}
+                    onClick={() => setExpandedId(expanded ? null : item.id)}
+                  >
+                    <div className="dang-card-header">
+                      <span className="dang-card-title">{item.title}</span>
+                      <span className="dang-card-amount" dir="ltr">
+                        {formatMoney(displayAmount)}
+                      </span>
+                    </div>
+                    <div className="dang-card-meta">
+                      {item.category && `${item.category} · `}
+                      طرف حساب: {item.counterparty}
+                      {item.date && (
+                        <span className="dang-card-date">
+                          · {formatIsoDatePersian(item.date)}
+                        </span>
                       )}
                     </div>
-                  </div>
-                  <div className="dang-card-meta">
-                    {item.category && `${item.category} · `}
-                    طرف حساب: {item.counterparty}
-                    {item.date && (
-                      <span className="dang-card-date">
-                        · {formatIsoDatePersian(item.date)}
-                      </span>
+                    {item.note && <p className="dang-card-note">{item.note}</p>}
+                    {item.paid && item.paidAt && (
+                      <p className="dang-paid-at">
+                        در {item.paidAt} پرداخت شده
+                      </p>
                     )}
-                  </div>
-                  {item.note && <p className="dang-card-note">{item.note}</p>}
-                  {item.paid && item.paidAt && (
-                    <p className="dang-paid-at">
-                      در {item.paidAt} پرداخت شده
-                    </p>
-                  )}
+                  </button>
+
+                  <AccordionCollapse open={expanded}>
+                    <div className="dang-card-amount-edit">
+                      <CardInlineAmountEdit
+                        label="مبلغ"
+                        value={
+                          amountEdits[item.id] !== undefined
+                            ? amountEdits[item.id]
+                            : item.amount
+                        }
+                        onChange={(val) => handleAmountChange(item, val)}
+                        onBlur={() => handleAmountBlur(item)}
+                        saving={savingAmountId === item.id}
+                      />
+                    </div>
+                  </AccordionCollapse>
                 </div>
                 <div className="card-action-buttons">
-                  <CardEditButton onClick={() => openEditForm(item)} />
-                  <CardDeleteButton onClick={() => openDeleteConfirm(item)} />
+                  <CardEditButton
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openEditForm(item);
+                    }}
+                  />
+                  <CardDeleteButton
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openDeleteConfirm(item);
+                    }}
+                  />
+                  <CardExpandButton
+                    expanded={expanded}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setExpandedId(expanded ? null : item.id);
+                    }}
+                    ariaLabel={expanded ? 'بستن جزئیات' : 'ویرایش مبلغ بدهی'}
+                  />
                 </div>
               </div>
             );
