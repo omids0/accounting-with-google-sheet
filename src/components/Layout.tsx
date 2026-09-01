@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import DashboardPage from './DashboardPage';
 import DataEntryPage from './DataEntryPage';
 import RecordsPage from './RecordsPage';
-import InstallmentsPage from './InstallmentsPage';
 import DangPage from './DangPage';
 import ChecksPage from './ChecksPage';
 import ReceivablesPage from './ReceivablesPage';
@@ -23,9 +22,12 @@ import ModuleReportPage from './reports/ModuleReportPage';
 import SettingsPage from './SettingsPage';
 import PageSpeedDial from './PageSpeedDial';
 import AppIcon from './AppIcon';
+import { InstallmentCardListSkeleton } from './skeleton';
 import { getUserName, getUserPicture } from '../services/auth';
 import { usePageSpeedDialConfig } from '../hooks/usePageSpeedDial';
 import { useEngagementReminders } from '../hooks/useEngagementReminders';
+
+const InstallmentsPage = lazy(() => import('./InstallmentsPage'));
 
 type Tab =
   | 'dashboard'
@@ -93,6 +95,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false);
   const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false);
   const [dataKey, setDataKey] = useState(0);
+  const [installmentsMounted, setInstallmentsMounted] = useState(false);
   const userName = getUserName();
   const userPicture = getUserPicture();
 
@@ -164,6 +167,10 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (tab === 'installments') setInstallmentsMounted(true);
+  }, [tab]);
 
   const showHeaderBack =
     !showSettings &&
@@ -437,7 +444,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
       )}
 
       <main className="app-main">
-        <div key={showSettings ? 'settings' : `${tab}-${dataKey}`} className="page-content">
+        <div key={showSettings ? 'settings' : String(dataKey)} className="page-content">
           {showSettings ? (
             <SettingsPage
               onLogout={onLogout}
@@ -445,6 +452,20 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             />
           ) : (
             <>
+              {installmentsMounted ? (
+                <div hidden={tab !== 'installments'} aria-hidden={tab !== 'installments'}>
+                  <Suspense
+                    fallback={
+                      tab === 'installments' ? <InstallmentCardListSkeleton /> : null
+                    }
+                  >
+                    <InstallmentsPage
+                      onReauth={onReauth}
+                      active={tab === 'installments'}
+                    />
+                  </Suspense>
+                </div>
+              ) : null}
               {tab === 'dashboard' && (
                 <DashboardPage
                   onReauth={onReauth}
@@ -462,7 +483,6 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               {tab === 'records' && (
                 <RecordsPage onReauth={onReauth} initialFormType={recordsFormType} />
               )}
-              {tab === 'installments' && <InstallmentsPage onReauth={onReauth} />}
               {tab === 'dang' && <DangPage onReauth={onReauth} />}
               {tab === 'checks' && <ChecksPage onReauth={onReauth} />}
               {tab === 'receivables' && <ReceivablesPage onReauth={onReauth} />}

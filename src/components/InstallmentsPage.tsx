@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { InstallmentPlan } from '../types';
 import { getSettings, isConfigured } from '../services/settings';
 import { isTokenValid } from '../services/auth';
 import {
@@ -11,8 +10,8 @@ import {
   importInstallmentsCsv,
   hasInstallmentDueInRange,
   isInstallmentPlanComplete,
+  getInstallmentDueDateInRange,
   reconcilePaymentsOnEdit,
-  sortInstallmentPayments,
   sortInstallmentPlans,
   toggleInstallmentPayment,
   updateInstallmentPaymentAmount,
@@ -23,11 +22,9 @@ import {
   updateInstallmentPlan,
 } from '../services/installments';
 import AmountInput from './AmountInput';
-import CardInlineAmountEdit from './CardInlineAmountEdit';
 import { InstallmentCardListSkeleton } from './skeleton';
-import { formatMoney } from '../utils/formatMoney';
 import { distributionSparkline } from '../utils/sparklineData';
-import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
+import { getTodayIso } from '../utils/jalaliDate';
 import {
   formatJalaliMonthLabel,
   getInstallmentDueRange,
@@ -37,22 +34,24 @@ import { showError, showSuccess } from '../utils/toast';
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
 import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
 import { useSheetImportExport } from '../hooks/useSheetImportExport';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import FormModal from './FormModal';
-import CardEditButton from './CardEditButton';
-import { AccordionCollapse } from './AccordionCollapse';
-import CardDeleteButton from './CardDeleteButton';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmActionModal from './ConfirmActionModal';
 import PageHeader from './PageHeader';
 import StatCard from './StatCard';
 import SearchEmptyState from './SearchEmptyState';
 import AppIcon from './AppIcon';
-import ProgressBar from './ProgressBar';
+import InstallmentPlanCard, { type PlanWithRow } from './InstallmentPlanCard';
 import { matchSearch } from '../utils/search';
 
-type PlanWithRow = InstallmentPlan & { rowNumber: number };
-
-export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }) {
+export default function InstallmentsPage({
+  onReauth,
+  active = true,
+}: {
+  onReauth?: () => void;
+  active?: boolean;
+}) {
   const [plans, setPlans] = useState<PlanWithRow[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -62,11 +61,8 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [togglingKey, setTogglingKey] = useState('');
-  const [paymentAmounts, setPaymentAmounts] = useState<Record<string, number | ''>>({});
-  const [expandedPaymentKey, setExpandedPaymentKey] = useState<string | null>(null);
-  const [savingAmountKey, setSavingAmountKey] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 250);
 
   const [form, setForm] = useState({
     title: '',
@@ -75,26 +71,6 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     dueDay: '' as number | '',
     note: '',
   });
-
-  const syncPaymentAmounts = useCallback((planList: PlanWithRow[]) => {
-    const next: Record<string, number | ''> = {};
-    for (const plan of planList) {
-      plan.payments.forEach((payment, index) => {
-        next[`${plan.id}-${index}`] = getInstallmentPaymentAmount(payment, plan);
-      });
-    }
-    setPaymentAmounts(next);
-  }, []);
-
-  const syncPaymentAmountsForPlan = useCallback((plan: PlanWithRow) => {
-    setPaymentAmounts((prev) => {
-      const next = { ...prev };
-      plan.payments.forEach((payment, index) => {
-        next[`${plan.id}-${index}`] = getInstallmentPaymentAmount(payment, plan);
-      });
-      return next;
-    });
-  }, []);
 
   const loadPlans = useCallback(async () => {
     const settings = getSettings();
@@ -109,7 +85,6 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       await ensureInstallmentsSheet(settings.spreadsheetId);
       const data = await fetchInstallmentPlans(settings.spreadsheetId);
       setPlans(data);
-      syncPaymentAmounts(data);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'خطا در بارگذاری اقساط';
       if (msg.includes('منقضی') || msg.includes('401')) {
@@ -120,7 +95,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     } finally {
       setLoading(false);
     }
-  }, [onReauth, syncPaymentAmounts]);
+  }, [onReauth]);
 
   useEffect(() => {
     if (isConfigured()) loadPlans();
@@ -192,107 +167,90 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     }
   };
 
-  const handleTogglePayment = async (
-    plan: PlanWithRow,
-    paymentIndex: number,
-    paid: boolean
-  ) => {
-    const settings = getSettings();
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return;
-    }
-
-    const key = `${plan.id}-${paymentIndex}`;
-    setTogglingKey(key);
-    try {
-      const updated = await toggleInstallmentPayment(
-        settings.spreadsheetId,
-        plan,
-        paymentIndex,
-        paid
-      );
-      setPlans((prev) =>
-        prev.map((p) =>
-          p.id === plan.id ? { ...updated, rowNumber: plan.rowNumber } : p
-        )
-      );
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بروزرسانی پرداخت';
-      if (msg.includes('منقضی') || msg.includes('401')) {
+  const handleTogglePayment = useCallback(
+    async (plan: PlanWithRow, paymentIndex: number, paid: boolean) => {
+      const settings = getSettings();
+      if (!settings?.spreadsheetId || !isTokenValid()) {
         onReauth?.();
         return;
       }
-      showError(msg);
-    } finally {
-      setTogglingKey('');
-    }
-  };
 
-  const handlePaymentAmountSave = async (plan: PlanWithRow, paymentIndex: number) => {
-    const key = `${plan.id}-${paymentIndex}`;
-    const nextAmount = paymentAmounts[key];
-    if (nextAmount === '' || nextAmount === undefined) {
-      showError('مبلغ نامعتبر است');
-      syncPaymentAmountsForPlan(plan);
-      return;
-    }
-    if (nextAmount <= 0) {
-      showError('مبلغ باید بیشتر از صفر باشد');
-      syncPaymentAmountsForPlan(plan);
-      return;
-    }
+      const key = `${plan.id}-${paymentIndex}`;
+      setTogglingKey(key);
+      try {
+        const updated = await toggleInstallmentPayment(
+          settings.spreadsheetId,
+          plan,
+          paymentIndex,
+          paid
+        );
+        setPlans((prev) =>
+          prev.map((p) =>
+            p.id === plan.id ? { ...updated, rowNumber: plan.rowNumber } : p
+          )
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'خطا در بروزرسانی پرداخت';
+        if (msg.includes('منقضی') || msg.includes('401')) {
+          onReauth?.();
+          return;
+        }
+        showError(msg);
+      } finally {
+        setTogglingKey('');
+      }
+    },
+    [onReauth]
+  );
 
-    const payment = plan.payments[paymentIndex];
-    if (!payment) return;
+  const handlePaymentAmountSave = useCallback(
+    async (plan: PlanWithRow, paymentIndex: number, nextAmount: number) => {
+      const payment = plan.payments[paymentIndex];
+      if (!payment) return;
 
-    const currentAmount = getInstallmentPaymentAmount(payment, plan);
-    if (nextAmount === currentAmount) return;
+      const currentAmount = getInstallmentPaymentAmount(payment, plan);
+      if (nextAmount === currentAmount) return;
 
-    const settings = getSettings();
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return;
-    }
-
-    setSavingAmountKey(key);
-    try {
-      const updated = await updateInstallmentPaymentAmount(
-        settings.spreadsheetId,
-        plan,
-        paymentIndex,
-        nextAmount
-      );
-      const updatedPlan = { ...updated, rowNumber: plan.rowNumber };
-      setPlans((prev) =>
-        prev.map((p) => (p.id === plan.id ? updatedPlan : p))
-      );
-      syncPaymentAmountsForPlan(updatedPlan);
-      showSuccess('مبلغ قسط ذخیره شد');
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در به‌روزرسانی مبلغ';
-      if (msg.includes('منقضی') || msg.includes('401')) {
+      const settings = getSettings();
+      if (!settings?.spreadsheetId || !isTokenValid()) {
         onReauth?.();
         return;
       }
-      showError(msg);
-      syncPaymentAmountsForPlan(plan);
-    } finally {
-      setSavingAmountKey('');
-    }
-  };
 
-  const resetCreateForm = () => {
+      try {
+        const updated = await updateInstallmentPaymentAmount(
+          settings.spreadsheetId,
+          plan,
+          paymentIndex,
+          nextAmount
+        );
+        const updatedPlan = { ...updated, rowNumber: plan.rowNumber };
+        setPlans((prev) => prev.map((p) => (p.id === plan.id ? updatedPlan : p)));
+        showSuccess('مبلغ قسط ذخیره شد');
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'خطا در به‌روزرسانی مبلغ';
+        if (msg.includes('منقضی') || msg.includes('401')) {
+          onReauth?.();
+          return;
+        }
+        showError(msg);
+        throw err;
+      }
+    },
+    [onReauth]
+  );
+
+  const resetCreateForm = useCallback(() => {
     setForm({ title: '', amount: '', count: '', dueDay: '', note: '' });
-  };
+  }, []);
 
-  const openCreateForm = () => {
+  const openCreateForm = useCallback(() => {
     setEditingPlan(null);
     resetCreateForm();
     setShowForm(true);
-  };
+  }, [resetCreateForm]);
 
-  const openEditForm = (plan: PlanWithRow) => {
+  const openEditForm = useCallback((plan: PlanWithRow) => {
     setEditingPlan(plan);
     setForm({
       title: plan.title,
@@ -302,7 +260,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       note: plan.note,
     });
     setShowForm(true);
-  };
+  }, []);
 
   const closeForm = () => {
     if (saving) return;
@@ -311,9 +269,9 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     resetCreateForm();
   };
 
-  const openDeleteConfirm = (plan: PlanWithRow) => {
+  const openDeleteConfirm = useCallback((plan: PlanWithRow) => {
     setDeletingPlan(plan);
-  };
+  }, []);
 
   const closeDeleteConfirm = () => {
     if (deleting) return;
@@ -348,6 +306,10 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     }
   };
 
+  const handleToggleExpand = useCallback((planId: string) => {
+    setExpandedId((prev) => (prev === planId ? null : planId));
+  }, []);
+
   const monthRange = useMemo(() => getInstallmentDueRange('month-to-date'), []);
   const monthLabel = useMemo(
     () => formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso())),
@@ -370,9 +332,38 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
   const filteredPlans = useMemo(
     () =>
       monthPlans.filter((plan) =>
-        matchSearch(searchQuery, plan.title, plan.note, plan.amount, plan.count)
+        matchSearch(debouncedSearchQuery, plan.title, plan.note, plan.amount, plan.count)
       ),
-    [monthPlans, searchQuery]
+    [monthPlans, debouncedSearchQuery]
+  );
+  const displayPlans = useMemo(
+    () =>
+      filteredPlans.map((plan) => {
+        const done = plan.payments.reduce(
+          (count, payment) => count + (payment.paid ? 1 : 0),
+          0
+        );
+        const complete = isInstallmentPlanComplete(plan);
+        const progress = plan.count > 0 ? Math.round((done / plan.count) * 100) : 0;
+        const dueDate = getInstallmentDueDateInRange(plan, monthRange);
+        return { plan, done, complete, progress, dueDate };
+      }),
+    [filteredPlans, monthRange]
+  );
+  const monthAmountSparkline = useMemo(
+    () => distributionSparkline(monthPlans.map((plan) => plan.amount)),
+    [monthPlans]
+  );
+  const monthUnpaidSparkline = useMemo(
+    () =>
+      distributionSparkline(
+        monthPlans.flatMap((plan) =>
+          plan.payments
+            .filter((payment) => !payment.paid)
+            .map((payment) => payment.amount ?? plan.amount)
+        )
+      ),
+    [monthPlans]
   );
 
   const {
@@ -392,7 +383,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
     () => ({
       ariaLabel: 'عملیات اقساط',
       actions: createPageSpeedDialActions({
-        onAdd: () => openCreateForm(),
+        onAdd: openCreateForm,
         onRefresh: loadPlans,
         refreshDisabled: loading,
         onImport: handleImport,
@@ -400,10 +391,10 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
         onExportPdf: handleExportPdf,
       }),
     }),
-    [loadPlans, loading, handleImport, handleExport, handleExportPdf]
+    [openCreateForm, loadPlans, loading, handleImport, handleExport, handleExportPdf]
   );
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null);
+  useRegisterPageSpeedDial(isConfigured() && active ? pageSpeedDialConfig : null);
 
   if (!isConfigured()) {
     return (
@@ -415,9 +406,6 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       </div>
     );
   }
-
-  const paidCount = (plan: InstallmentPlan) =>
-    plan.payments.filter((p) => p.paid).length;
 
   return (
     <div>
@@ -433,8 +421,8 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       ) : plans.length === 0 ? (
         <div className="empty-state">
           <div className="icon">
-          <AppIcon name="installments" />
-        </div>
+            <AppIcon name="installments" />
+          </div>
           <p>هنوز قسطی ثبت نشده</p>
         </div>
       ) : monthPlans.length === 0 ? (
@@ -447,135 +435,27 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
       ) : filteredPlans.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        filteredPlans.map((plan, index) => {
-          const expanded = expandedId === plan.id;
-          const done = paidCount(plan);
-          const total = plan.count;
-          const complete = isInstallmentPlanComplete(plan);
-          const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+        displayPlans.map(({ plan, done, complete, progress, dueDate }) => {
+          const togglingPaymentIndex = togglingKey.startsWith(`${plan.id}-`)
+            ? Number(togglingKey.slice(plan.id.length + 1))
+            : null;
 
           return (
-            <div
+            <InstallmentPlanCard
               key={plan.id}
-              className={`card installment-card interactive-card${complete ? ' installment-complete' : ''}${expanded ? ' installment-card--expanded' : ''}`}
-            >
-              <div className="card-header-with-edit">
-                <button
-                  type="button"
-                  className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
-                  onClick={() => {
-                    if (expanded) setExpandedPaymentKey(null);
-                    setExpandedId(expanded ? null : plan.id);
-                  }}
-                >
-                  <div>
-                    <div className="list-card-title">{plan.title}</div>
-                    <div className="list-card-subtitle">
-                      <span className="list-card-amount-pill">{formatMoney(plan.amount)}</span>
-                      {complete
-                        ? ' · تکمیل شده'
-                        : ` · ${done.toLocaleString('fa-IR')}/${total.toLocaleString('fa-IR')} پرداخت شده`}
-                    </div>
-                    <ProgressBar
-                      value={progress}
-                      variant={complete ? 'complete' : progress >= 100 ? 'success' : 'default'}
-                      animateIndex={index}
-                      aria-label={`پیشرفت پرداخت ${plan.title}`}
-                    />
-                  </div>
-                  <span className="installment-chevron">▼</span>
-                </button>
-                <div className="card-action-buttons">
-                  <CardEditButton
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openEditForm(plan);
-                    }}
-                  />
-                  <CardDeleteButton
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openDeleteConfirm(plan);
-                    }}
-                  />
-                </div>
-              </div>
-
-              <AccordionCollapse open={expanded}>
-                <div className="installment-payments">
-                  {plan.note && (
-                    <p className="installment-note">{plan.note}</p>
-                  )}
-                  {sortInstallmentPayments(plan.payments).map(({ payment, index }) => {
-                    const toggleKey = `${plan.id}-${index}`;
-                    const amountKey = toggleKey;
-                    const paymentExpanded = expandedPaymentKey === amountKey;
-                    const rawAmount =
-                      paymentAmounts[amountKey] ?? getInstallmentPaymentAmount(payment, plan);
-                    const displayAmount =
-                      rawAmount === '' ? getInstallmentPaymentAmount(payment, plan) : Number(rawAmount);
-
-                    return (
-                      <div
-                        key={payment.n}
-                        className={`installment-payment-item${paymentExpanded ? ' installment-payment-item--expanded' : ''}${payment.paid ? ' paid' : ''}`}
-                      >
-                        <div className="installment-payment-row">
-                          <input
-                            type="checkbox"
-                            checked={payment.paid}
-                            disabled={togglingKey === toggleKey}
-                            onChange={(e) =>
-                              handleTogglePayment(plan, index, e.target.checked)
-                            }
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <button
-                            type="button"
-                            className={`installment-payment-header${paymentExpanded ? ' installment-payment-header--expanded' : ''}`}
-                            onClick={() =>
-                              setExpandedPaymentKey((prev) =>
-                                prev === amountKey ? null : amountKey
-                              )
-                            }
-                          >
-                            <div className="installment-payment-info">
-                              <span>قسط {payment.n.toLocaleString('fa-IR')}</span>
-                              <span className="installment-due">
-                                موعد: {formatIsoDatePersian(payment.dueDate)}
-                              </span>
-                              {payment.paid && payment.paidAt && (
-                                <span className="installment-paid-at">
-                                  پرداخت: {formatIsoDatePersian(payment.paidAt)}
-                                </span>
-                              )}
-                            </div>
-                            <div className="wallet-item-amount installment-payment-amount-display" dir="ltr">
-                              {formatMoney(displayAmount)}
-                            </div>
-                            <span className="installment-chevron installment-payment-chevron">▼</span>
-                          </button>
-                        </div>
-
-                        <AccordionCollapse open={paymentExpanded}>
-                          <div className="installment-payment-edit">
-                            <CardInlineAmountEdit
-                              label="مبلغ قسط"
-                              value={paymentAmounts[amountKey] ?? getInstallmentPaymentAmount(payment, plan)}
-                              onChange={(val) =>
-                                setPaymentAmounts((prev) => ({ ...prev, [amountKey]: val }))
-                              }
-                              onBlur={() => handlePaymentAmountSave(plan, index)}
-                              saving={savingAmountKey === amountKey}
-                            />
-                          </div>
-                        </AccordionCollapse>
-                      </div>
-                    );
-                  })}
-                </div>
-              </AccordionCollapse>
-            </div>
+              plan={plan}
+              expanded={expandedId === plan.id}
+              done={done}
+              complete={complete}
+              progress={progress}
+              dueDate={dueDate}
+              togglingPaymentIndex={togglingPaymentIndex}
+              onToggleExpand={handleToggleExpand}
+              onEdit={openEditForm}
+              onDelete={openDeleteConfirm}
+              onTogglePayment={handleTogglePayment}
+              onPaymentAmountSave={handlePaymentAmountSave}
+            />
           );
         })
       )}
@@ -587,7 +467,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
             amount={monthTotals.total}
             variant="default"
             tone="primary"
-            sparklineData={distributionSparkline(monthPlans.map((plan) => plan.amount))}
+            sparklineData={monthAmountSparkline}
             animateIndex={0}
             lift
           />
@@ -595,13 +475,7 @@ export default function InstallmentsPage({ onReauth }: { onReauth?: () => void }
             label="پرداخت‌نشده این ماه"
             amount={monthTotals.unpaid}
             variant="expense"
-            sparklineData={distributionSparkline(
-              monthPlans.flatMap((plan) =>
-                plan.payments
-                  .filter((payment) => !payment.paid)
-                  .map((payment) => payment.amount ?? plan.amount)
-              )
-            )}
+            sparklineData={monthUnpaidSparkline}
             animateIndex={1}
             lift
           />
