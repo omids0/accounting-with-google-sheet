@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-echo "🔍 Checking new file line counts..."
+echo "🔍 Checking file line counts..."
 
-staged_files=$(git diff --cached --name-only --diff-filter=A | grep -E '\.(js|jsx|ts|tsx|css|scss|html)$' || true)
+staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|jsx|ts|tsx|css|scss|html)$' || true)
 
 if [ -z "$staged_files" ]; then
   echo "✅ No files to check for line count."
