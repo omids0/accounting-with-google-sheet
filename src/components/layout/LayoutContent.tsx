@@ -1,4 +1,5 @@
 import type { Timesheet } from '../../types'
+import AboutPage from '../about/AboutPage'
 import ChecksPage from '../ChecksPage'
 import CurrencyConverterPage from '../CurrencyConverterPage'
 import DangPage from '../DangPage'
@@ -111,6 +112,7 @@ export default function LayoutContent({
             {tab === 'loan-calculator' && <LoanRequestCalculatorPage />}
             {tab === 'currency-converter' && <CurrencyConverterPage />}
             {tab === 'date-calculator' && <DateCalculatorPage />}
+            {tab === 'about' && <AboutPage />}
             {tab === 'report-financial-summary' && (
               <FinancialSummaryReportPage onReauth={onReauth} />
             )}

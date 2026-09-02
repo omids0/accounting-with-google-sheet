@@ -170,6 +170,16 @@ export default function LayoutMenu({
           </div>
           <button
             type="button"
+            className={`app-menu-item${tab === 'about' ? ' active' : ''}`}
+            onClick={() => onTabChange('about')}
+          >
+            <span className="app-menu-item-icon">
+              <AppIcon name="info" size={20} strokeWidth={1.75} />
+            </span>
+            درباره
+          </button>
+          <button
+            type="button"
             className={`app-menu-item${showSettings ? ' active' : ''}`}
             onClick={onOpenSettings}
           >

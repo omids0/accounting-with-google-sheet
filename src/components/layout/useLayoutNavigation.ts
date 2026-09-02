@@ -106,6 +106,7 @@ export function useLayoutNavigation() {
       tab === 'entry' ||
       tab === 'opening-balances' ||
       tab === 'net-available-settings' ||
+      tab === 'about' ||
       TIMESHEET_TABS.includes(tab) ||
       CALCULATION_TABS.includes(tab) ||
       REPORT_TABS.includes(tab))
