@@ -1,6 +1,6 @@
-import { formatMoney, formatMoneyParts } from '../utils/formatMoney';
+import { formatMoney, formatMoneyParts } from '../utils/formatMoney'
 
-export type MoneyDisplaySize = 'hero' | 'stat' | 'stat-wide' | 'record';
+export type MoneyDisplaySize = 'hero' | 'stat' | 'stat-wide' | 'record'
 export type MoneyDisplayTone =
   | 'default'
   | 'hero'
@@ -8,28 +8,30 @@ export type MoneyDisplayTone =
   | 'expense'
   | 'positive'
   | 'negative'
-  | 'primary';
+  | 'primary'
 
 export default function MoneyDisplay({
   amount,
   size = 'stat',
   tone = 'default',
   signed = false,
-  className = '',
+  className = ''
 }: {
-  amount: number;
-  size?: MoneyDisplaySize;
-  tone?: MoneyDisplayTone;
-  signed?: boolean;
-  className?: string;
+  amount: number
+  size?: MoneyDisplaySize
+  tone?: MoneyDisplayTone
+  signed?: boolean
+  className?: string
 }) {
-  const { number, symbol } = formatMoneyParts(amount);
-  const sign =
-    signed && amount > 0 ? '+' : signed && amount < 0 ? '−' : signed ? '' : null;
+  const { number, symbol } = formatMoneyParts(amount)
+
+  const sign = signed && amount > 0 ? '+' : signed && amount < 0 ? '−' : signed ? '' : null
 
   return (
     <span
-      className={`money-display money-display--${size} money-display--${tone}${className ? ` ${className}` : ''}`}
+      className={`money-display money-display--${size} money-display--${tone}${
+        className ? ` ${className}` : ''
+      }`}
       dir="ltr"
       aria-label={formatMoney(amount)}
     >
@@ -37,5 +39,5 @@ export default function MoneyDisplay({
       <span className="money-display__value">{number}</span>
       <span className="money-display__unit">{symbol}</span>
     </span>
-  );
+  )
 }

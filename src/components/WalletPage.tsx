@@ -1,9 +1,33 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { WalletAccount } from '../types';
-import { getSettings, isConfigured } from '../services/settings';
-import { isTokenValid } from '../services/auth';
-import { useDataRefresh } from '../hooks/useDataRefresh';
-import { hasStoreData } from '../services/spreadsheetStore';
+import { useState, useEffect, useCallback, useMemo } from 'react'
+
+import { AccordionCollapse } from './AccordionCollapse'
+import ActiveFilterChips from './ActiveFilterChips'
+import AmountInput from './AmountInput'
+import AppIcon from './AppIcon'
+import CardDeleteButton from './CardDeleteButton'
+import CardEditButton from './CardEditButton'
+import CardExpandButton from './CardExpandButton'
+import CardInlineAmountEdit from './CardInlineAmountEdit'
+import ConfirmActionModal from './ConfirmActionModal'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
+import FilterModal from './FilterModal'
+import { FormField } from './form'
+import FormModal from './FormModal'
+import PageFilterPanel from './PageFilterPanel'
+import SearchEmptyState from './SearchEmptyState'
+import { WalletPageSkeleton } from './skeleton'
+import StatCard from './StatCard'
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions'
+import { useDataRefresh } from '../hooks/useDataRefresh'
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
+import { useSheetImportExport } from '../hooks/useSheetImportExport'
+import { isTokenValid } from '../services/auth'
+import {
+  ensureAutoOpeningBalanceForCurrentMonth,
+  setOpeningBalance
+} from '../services/monthlyBalance'
+import { getSettings, isConfigured } from '../services/settings'
+import { hasStoreData } from '../services/spreadsheetStore'
 import {
   createWalletAccount,
   deleteWalletAccount,
@@ -14,323 +38,352 @@ import {
   importWalletAccountsCsv,
   loadWalletPeriodFlow,
   updateWalletAccount,
-  type WalletPeriodFlow,
-} from '../services/wallet';
-import {
-  ensureAutoOpeningBalanceForCurrentMonth,
-  setOpeningBalance,
-} from '../services/monthlyBalance';
-import AmountInput from './AmountInput';
-import CardInlineAmountEdit from './CardInlineAmountEdit';
-import { formatMoney } from '../utils/formatMoney';
-import { distributionSparkline, flowTrendSparkline } from '../utils/sparklineData';
-import { WalletPageSkeleton } from './skeleton';
-import { showError, showSuccess } from '../utils/toast';
-import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
-import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
-import { useSheetImportExport } from '../hooks/useSheetImportExport';
-import FormModal from './FormModal';
-import CardEditButton from './CardEditButton';
-import CardDeleteButton from './CardDeleteButton';
-import CardExpandButton from './CardExpandButton';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
-import ConfirmActionModal from './ConfirmActionModal';
-import { AccordionCollapse } from './AccordionCollapse';
-import PageFilterPanel from './PageFilterPanel';
-import FilterModal from './FilterModal';
-import ActiveFilterChips from './ActiveFilterChips';
-import { buildSearchChip, compactFilterChips } from '../utils/filterChips';
-import SearchEmptyState from './SearchEmptyState';
-import AppIcon from './AppIcon';
-import StatCard from './StatCard';
-import { matchSearch } from '../utils/search';
+  type WalletPeriodFlow
+} from '../services/wallet'
+import type { WalletAccount } from '../types'
+import { buildSearchChip, compactFilterChips } from '../utils/filterChips'
+import { formatMoney } from '../utils/formatMoney'
+import { matchSearch } from '../utils/search'
+import { distributionSparkline, flowTrendSparkline } from '../utils/sparklineData'
+import { showError, showSuccess } from '../utils/toast'
 
-type WalletAccountWithRow = WalletAccount & { rowNumber: number };
+type WalletAccountWithRow = WalletAccount & { rowNumber: number }
 
 export default function WalletPage({
   onReauth,
   onOpenOpeningBalances,
-  active = true,
+  active = true
 }: {
-  onReauth?: () => void;
-  onOpenOpeningBalances?: () => void;
-  active?: boolean;
+  onReauth?: () => void
+  onOpenOpeningBalances?: () => void
+  active?: boolean
 }) {
-  const [items, setItems] = useState<WalletAccountWithRow[]>([]);
-  const [balances, setBalances] = useState<Record<string, number | ''>>({});
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [openingExpanded, setOpeningExpanded] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<WalletAccountWithRow | null>(null);
-  const [deletingAccount, setDeletingAccount] = useState<WalletAccountWithRow | null>(null);
+  const [items, setItems] = useState<WalletAccountWithRow[]>([])
+
+  const [balances, setBalances] = useState<Record<string, number | ''>>({})
+
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const [openingExpanded, setOpeningExpanded] = useState(false)
+
+  const [showForm, setShowForm] = useState(false)
+
+  const [editingAccount, setEditingAccount] = useState<WalletAccountWithRow | null>(null)
+
+  const [deletingAccount, setDeletingAccount] = useState<WalletAccountWithRow | null>(null)
+
   const [loading, setLoading] = useState(() => {
-    const settings = getSettings();
-    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
-  });
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [savingId, setSavingId] = useState('');
-  const dataRevision = useDataRefresh();
+    const settings = getSettings()
+
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
+  })
+
+  const [saving, setSaving] = useState(false)
+
+  const [deleting, setDeleting] = useState(false)
+
+  const [savingId, setSavingId] = useState('')
+
+  const dataRevision = useDataRefresh()
 
   const [form, setForm] = useState({
     title: '',
     balance: '' as number | '',
-    note: '',
-  });
-  const [periodFlow, setPeriodFlow] = useState<WalletPeriodFlow | null>(null);
-  const [openingInput, setOpeningInput] = useState<number | ''>('');
-  const [savingOpening, setSavingOpening] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [draftSearch, setDraftSearch] = useState('');
+    note: ''
+  })
+
+  const [periodFlow, setPeriodFlow] = useState<WalletPeriodFlow | null>(null)
+
+  const [openingInput, setOpeningInput] = useState<number | ''>('')
+
+  const [savingOpening, setSavingOpening] = useState(false)
+
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+
+  const [draftSearch, setDraftSearch] = useState('')
 
   const syncBalances = useCallback((accounts: WalletAccountWithRow[]) => {
-    const next: Record<string, number | ''> = {};
+    const next: Record<string, number | ''> = {}
+
     for (const account of accounts) {
-      next[account.id] = account.balance;
+      next[account.id] = account.balance
     }
-    setBalances(next);
-  }, []);
+    setBalances(next)
+  }, [])
 
   const loadItems = useCallback(async () => {
-    const settings = getSettings();
-    if (!settings?.spreadsheetId) return;
+    const settings = getSettings()
+
+    if (!settings?.spreadsheetId) return
     if (!isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      await ensureWalletSheet(settings.spreadsheetId);
-      const data = await fetchWalletAccounts(settings.spreadsheetId);
-      const walletTotal = data.reduce((sum, item) => sum + item.balance, 0);
-      await ensureAutoOpeningBalanceForCurrentMonth(
-        settings.spreadsheetId,
-        walletTotal
-      );
-      const flow = await loadWalletPeriodFlow(settings);
-      setItems(data);
-      syncBalances(data);
-      setPeriodFlow(flow);
-      setOpeningInput(flow.openingBalance || '');
+      await ensureWalletSheet(settings.spreadsheetId)
+
+      const data = await fetchWalletAccounts(settings.spreadsheetId)
+
+      const walletTotal = data.reduce((sum, item) => sum + item.balance, 0)
+
+      await ensureAutoOpeningBalanceForCurrentMonth(settings.spreadsheetId, walletTotal)
+
+      const flow = await loadWalletPeriodFlow(settings)
+
+      setItems(data)
+      syncBalances(data)
+      setPeriodFlow(flow)
+      setOpeningInput(flow.openingBalance || '')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری کیف پول';
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری کیف پول'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [onReauth, syncBalances]);
+  }, [onReauth, syncBalances])
 
   useEffect(() => {
-    if (isConfigured()) loadItems();
-  }, [loadItems, dataRevision]);
+    if (isConfigured()) loadItems()
+  }, [loadItems, dataRevision])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
     if (!form.title.trim()) {
-      showError('عنوان الزامی است');
-      return;
+      showError('عنوان الزامی است')
+
+      return
     }
     if (form.balance === '' || Number(form.balance) < 0) {
-      showError('موجودی را وارد کنید');
-      return;
+      showError('موجودی را وارد کنید')
+
+      return
     }
 
-    const settings = getSettings()!;
-    setSaving(true);
+    const settings = getSettings()!
+
+    setSaving(true)
     try {
       if (editingAccount) {
         await updateWalletAccount(settings.spreadsheetId, {
           ...editingAccount,
           title: form.title.trim(),
           balance: Number(form.balance),
-          note: form.note.trim(),
-        });
-        showSuccess('حساب ویرایش شد');
-        await loadItems();
+          note: form.note.trim()
+        })
+        showSuccess('حساب ویرایش شد')
+        await loadItems()
       } else {
         await createWalletAccount(settings.spreadsheetId, {
           title: form.title.trim(),
           balance: Number(form.balance),
-          note: form.note.trim(),
-        });
-        showSuccess('حساب جدید اضافه شد');
-        await loadItems();
+          note: form.note.trim()
+        })
+        showSuccess('حساب جدید اضافه شد')
+        await loadItems()
       }
-      closeForm();
+      closeForm()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : editingAccount ? 'خطا در ویرایش حساب' : 'خطا در ثبت حساب';
+      const msg =
+        err instanceof Error
+          ? err.message
+          : editingAccount
+          ? 'خطا در ویرایش حساب'
+          : 'خطا در ثبت حساب'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleBalanceSave = async (account: WalletAccountWithRow) => {
-    const settings = getSettings();
+    const settings = getSettings()
+
     if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    const nextBalance = balances[account.id];
+    const nextBalance = balances[account.id]
+
     if (nextBalance === '' || nextBalance < 0) {
-      showError('موجودی نامعتبر است');
-      syncBalances([account]);
-      return;
-    }
-    if (nextBalance === account.balance) return;
+      showError('موجودی نامعتبر است')
+      syncBalances([account])
 
-    setSavingId(account.id);
+      return
+    }
+    if (nextBalance === account.balance) return
+
+    setSavingId(account.id)
     try {
       const updated = await updateWalletAccount(settings.spreadsheetId, {
         ...account,
-        balance: nextBalance,
-      });
-      setItems((prev) =>
+        balance: nextBalance
+      })
+
+      setItems(prev =>
         prev
-          .map((item) =>
+          .map(item =>
             item.id === account.id ? { ...updated, rowNumber: account.rowNumber } : item
           )
           .sort((a, b) => b.balance - a.balance)
-      );
-      showSuccess(`موجودی «${account.title}» ذخیره شد`);
+      )
+      showSuccess(`موجودی «${account.title}» ذخیره شد`)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی';
+      const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
-      syncBalances([account]);
+      showError(msg)
+      syncBalances([account])
     } finally {
-      setSavingId('');
+      setSavingId('')
     }
-  };
+  }
 
   const handleSaveOpeningBalance = async () => {
-    if (!periodFlow) return;
-    const settings = getSettings();
+    if (!periodFlow) return
+
+    const settings = getSettings()
+
     if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    setSavingOpening(true);
+    setSavingOpening(true)
     try {
-      const amount = openingInput === '' ? 0 : Number(openingInput);
-      await setOpeningBalance(settings.spreadsheetId, periodFlow.monthKey, amount);
-      const flow = await loadWalletPeriodFlow(settings);
-      setPeriodFlow(flow);
-      setOpeningInput(flow.openingBalance || '');
-      showSuccess('موجودی اول دوره ذخیره شد');
+      const amount = openingInput === '' ? 0 : Number(openingInput)
+
+      await setOpeningBalance(settings.spreadsheetId, periodFlow.monthKey, amount)
+
+      const flow = await loadWalletPeriodFlow(settings)
+
+      setPeriodFlow(flow)
+      setOpeningInput(flow.openingBalance || '')
+      showSuccess('موجودی اول دوره ذخیره شد')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول';
+      const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setSavingOpening(false);
+      setSavingOpening(false)
     }
-  };
+  }
 
   const resetCreateForm = () => {
-    setForm({ title: '', balance: '', note: '' });
-  };
+    setForm({ title: '', balance: '', note: '' })
+  }
 
   const openCreateForm = () => {
-    setEditingAccount(null);
-    resetCreateForm();
-    setShowForm(true);
-  };
+    setEditingAccount(null)
+    resetCreateForm()
+    setShowForm(true)
+  }
 
   const openEditForm = (account: WalletAccountWithRow) => {
-    setEditingAccount(account);
+    setEditingAccount(account)
     setForm({
       title: account.title,
       balance: account.balance,
-      note: account.note,
-    });
-    setShowForm(true);
-  };
+      note: account.note
+    })
+    setShowForm(true)
+  }
 
   const closeForm = () => {
-    if (saving) return;
-    setShowForm(false);
-    setEditingAccount(null);
-    resetCreateForm();
-  };
+    if (saving) return
+    setShowForm(false)
+    setEditingAccount(null)
+    resetCreateForm()
+  }
 
   const openDeleteConfirm = (account: WalletAccountWithRow) => {
-    setDeletingAccount(account);
-  };
+    setDeletingAccount(account)
+  }
 
   const closeDeleteConfirm = () => {
-    if (deleting) return;
-    setDeletingAccount(null);
-  };
+    if (deleting) return
+    setDeletingAccount(null)
+  }
 
   const handleDelete = async () => {
-    if (!deletingAccount) return;
+    if (!deletingAccount) return
 
-    const settings = getSettings();
+    const settings = getSettings()
+
     if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    setDeleting(true);
+    setDeleting(true)
     try {
-      await deleteWalletAccount(settings.spreadsheetId, deletingAccount.rowNumber);
-      if (expandedId === deletingAccount.id) setExpandedId(null);
-      setDeletingAccount(null);
-      showSuccess('حساب حذف شد');
-      await loadItems();
+      await deleteWalletAccount(settings.spreadsheetId, deletingAccount.rowNumber)
+      if (expandedId === deletingAccount.id) setExpandedId(null)
+      setDeletingAccount(null)
+      showSuccess('حساب حذف شد')
+      await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف حساب';
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
-      }
-      showError(msg);
-    } finally {
-      setDeleting(false);
-    }
-  };
+      const msg = err instanceof Error ? err.message : 'خطا در حذف حساب'
 
-  const {
-    handleExport,
-    handleExportPdf,
-    handleImport,
-    importExportConfirmModal,
-  } = useSheetImportExport({
-    exportFn: exportWalletAccountsCsv,
-    exportPdfFn: exportWalletAccountsPdf,
-    importFn: importWalletAccountsCsv,
-    onComplete: loadItems,
-    onReauth,
-  });
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.()
+
+        return
+      }
+      showError(msg)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
+    useSheetImportExport({
+      exportFn: exportWalletAccountsCsv,
+      exportPdfFn: exportWalletAccountsPdf,
+      importFn: importWalletAccountsCsv,
+      onComplete: loadItems,
+      onReauth
+    })
 
   const openFilterModal = useCallback(() => {
-    setDraftSearch(searchQuery);
-    setFilterModalOpen(true);
-  }, [searchQuery]);
+    setDraftSearch(searchQuery)
+    setFilterModalOpen(true)
+  }, [searchQuery])
 
   const pageSpeedDialConfig = useMemo(
     () => ({
@@ -342,26 +395,26 @@ export default function WalletPage({
         refreshDisabled: loading,
         onImport: handleImport,
         onExport: handleExport,
-        onExportPdf: handleExportPdf,
-      }),
+        onExportPdf: handleExportPdf
+      })
     }),
     [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
-  );
+  )
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   const filteredItems = useMemo(() => {
-    const sorted = [...items].sort((a, b) => b.balance - a.balance);
-    if (!searchQuery.trim()) return sorted;
-    return sorted.filter((item) =>
-      matchSearch(searchQuery, item.title, item.note, item.balance)
-    );
-  }, [items, searchQuery]);
+    const sorted = [...items].sort((a, b) => b.balance - a.balance)
+
+    if (!searchQuery.trim()) return sorted
+
+    return sorted.filter(item => matchSearch(searchQuery, item.title, item.note, item.balance))
+  }, [items, searchQuery])
 
   const filterChips = useMemo(
     () => compactFilterChips([buildSearchChip(searchQuery, () => setSearchQuery(''))]),
     [searchQuery]
-  );
+  )
 
   if (!isConfigured()) {
     return (
@@ -371,23 +424,26 @@ export default function WalletPage({
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
-    );
+    )
   }
 
   const totalBalance = items.reduce((sum, item) => {
-    const value = balances[item.id];
-    return sum + (value === '' ? item.balance : Number(value));
-  }, 0);
+    const value = balances[item.id]
+
+    return sum + (value === '' ? item.balance : Number(value))
+  }, 0)
 
   const periodBalance =
     periodFlow != null
       ? periodFlow.openingBalance + periodFlow.totalIncome - periodFlow.totalExpense
-      : 0;
-  const reconciliationDiff = totalBalance - periodBalance;
-  const hasReconciliationGap = periodFlow != null && Math.abs(reconciliationDiff) > 0;
-  const displayOpeningBalance =
-    openingInput === '' ? periodFlow?.openingBalance ?? 0 : Number(openingInput);
+      : 0
 
+  const reconciliationDiff = totalBalance - periodBalance
+
+  const hasReconciliationGap = periodFlow != null && Math.abs(reconciliationDiff) > 0
+
+  const displayOpeningBalance =
+    openingInput === '' ? periodFlow?.openingBalance ?? 0 : Number(openingInput)
 
   return (
     <div>
@@ -397,8 +453,8 @@ export default function WalletPage({
         open={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
         onApply={() => {
-          setSearchQuery(draftSearch);
-          setFilterModalOpen(false);
+          setSearchQuery(draftSearch)
+          setFilterModalOpen(false)
         }}
         onClear={() => setDraftSearch('')}
       >
@@ -410,11 +466,17 @@ export default function WalletPage({
       </FilterModal>
 
       {periodFlow && (
-        <div className={`card installment-card interactive-card dashboard-opening-card wallet-item-card${openingExpanded ? ' installment-card--expanded' : ''}`}>
+        <div
+          className={`card installment-card interactive-card dashboard-opening-card wallet-item-card${
+            openingExpanded ? ' installment-card--expanded' : ''
+          }`}
+        >
           <button
             type="button"
-            className={`installment-header wallet-item-header${openingExpanded ? ' installment-header--expanded' : ''}`}
-            onClick={() => setOpeningExpanded((v) => !v)}
+            className={`installment-header wallet-item-header${
+              openingExpanded ? ' installment-header--expanded' : ''
+            }`}
+            onClick={() => setOpeningExpanded(v => !v)}
           >
             <div className="wallet-item-info">
               <div className="wallet-item-title-row">
@@ -423,7 +485,9 @@ export default function WalletPage({
                   {formatMoney(displayOpeningBalance)}
                 </div>
               </div>
-              <div className="wallet-item-note list-card-subtitle">ابتدای {periodFlow.monthLabel}</div>
+              <div className="wallet-item-note list-card-subtitle">
+                ابتدای {periodFlow.monthLabel}
+              </div>
             </div>
             <span className="installment-chevron">▼</span>
           </button>
@@ -431,8 +495,8 @@ export default function WalletPage({
           <AccordionCollapse open={openingExpanded}>
             <div className="installment-payments dashboard-opening-body">
               <p className="dashboard-opening-hint">
-                موجودی کیف پول در ابتدای {periodFlow.monthLabel} را وارد کنید.
-                با خالص دوره (درآمد − هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
+                موجودی کیف پول در ابتدای {periodFlow.monthLabel} را وارد کنید. با خالص دوره (درآمد −
+                هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
               </p>
               <div className="dashboard-opening-form">
                 <div className="dashboard-opening-input-wrap">
@@ -466,24 +530,33 @@ export default function WalletPage({
       ) : items.length === 0 ? (
         <div className="empty-state">
           <div className="icon">
-          <AppIcon name="wallet" />
-        </div>
+            <AppIcon name="wallet" />
+          </div>
           <p>هنوز حسابی ثبت نشده</p>
         </div>
       ) : filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        filteredItems.map((account) => {
-          const expanded = expandedId === account.id;
-          const rawBalance = balances[account.id] ?? account.balance;
-          const displayBalance = rawBalance === '' ? account.balance : Number(rawBalance);
+        filteredItems.map(account => {
+          const expanded = expandedId === account.id
+
+          const rawBalance = balances[account.id] ?? account.balance
+
+          const displayBalance = rawBalance === '' ? account.balance : Number(rawBalance)
 
           return (
-            <div key={account.id} className={`card installment-card interactive-card wallet-item-card${expanded ? ' installment-card--expanded' : ''}`}>
+            <div
+              key={account.id}
+              className={`card installment-card interactive-card wallet-item-card${
+                expanded ? ' installment-card--expanded' : ''
+              }`}
+            >
               <div className="card-header-with-edit">
                 <button
                   type="button"
-                  className={`installment-header wallet-item-header${expanded ? ' installment-header--expanded' : ''}`}
+                  className={`installment-header wallet-item-header${
+                    expanded ? ' installment-header--expanded' : ''
+                  }`}
                   onClick={() => setExpandedId(expanded ? null : account.id)}
                 >
                   <div className="wallet-item-info">
@@ -500,22 +573,22 @@ export default function WalletPage({
                 </button>
                 <div className="card-action-buttons">
                   <CardEditButton
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openEditForm(account);
+                    onClick={event => {
+                      event.stopPropagation()
+                      openEditForm(account)
                     }}
                   />
                   <CardDeleteButton
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openDeleteConfirm(account);
+                    onClick={event => {
+                      event.stopPropagation()
+                      openDeleteConfirm(account)
                     }}
                   />
                   <CardExpandButton
                     expanded={expanded}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setExpandedId(expanded ? null : account.id);
+                    onClick={event => {
+                      event.stopPropagation()
+                      setExpandedId(expanded ? null : account.id)
                     }}
                     ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات حساب'}
                   />
@@ -527,9 +600,7 @@ export default function WalletPage({
                   <CardInlineAmountEdit
                     label="موجودی"
                     value={balances[account.id] ?? account.balance}
-                    onChange={(val) =>
-                      setBalances((prev) => ({ ...prev, [account.id]: val }))
-                    }
+                    onChange={val => setBalances(prev => ({ ...prev, [account.id]: val }))}
                     onBlur={() => handleBalanceSave(account)}
                     onClose={() => setExpandedId(null)}
                     saving={savingId === account.id}
@@ -537,7 +608,7 @@ export default function WalletPage({
                 </div>
               </AccordionCollapse>
             </div>
-          );
+          )
         })
       )}
 
@@ -554,7 +625,7 @@ export default function WalletPage({
                   periodFlow.totalIncome,
                   periodFlow.totalExpense
                 )
-              : distributionSparkline(items.map((item) => item.balance))
+              : distributionSparkline(items.map(item => item.balance))
           }
           className="receivable-total-card"
         />
@@ -589,31 +660,28 @@ export default function WalletPage({
         saving={saving}
         saveLabel={editingAccount ? 'ذخیره تغییرات' : 'ذخیره حساب'}
       >
-        <div className="form-group">
-          <label>عنوان <span className="required">*</span></label>
+        <FormField label="عنوان" required>
           <input
             value={form.title}
-            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             placeholder="مثلاً: بانک ملت، نقدی، ..."
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label>موجودی <span className="required">*</span></label>
+        <FormField label="موجودی" required>
           <AmountInput
             value={form.balance}
-            onChange={(val) => setForm((f) => ({ ...f, balance: val }))}
+            onChange={val => setForm(f => ({ ...f, balance: val }))}
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label>توضیحات</label>
+        <FormField label="توضیحات">
           <textarea
             value={form.note}
-            onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+            onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
             placeholder="توضیحات اختیاری"
           />
-        </div>
+        </FormField>
       </FormModal>
 
       <ConfirmActionModal {...importExportConfirmModal} />
@@ -626,5 +694,5 @@ export default function WalletPage({
         deleting={deleting}
       />
     </div>
-  );
+  )
 }

@@ -1,16 +1,17 @@
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import AppIcon from './AppIcon';
+import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
+
+import AppIcon from './AppIcon'
 
 type ConfirmActionModalProps = {
-  open: boolean;
-  title: string;
-  message: string;
-  onClose: () => void;
-  onConfirm: () => void;
-  confirming?: boolean;
-  confirmLabel?: string;
-};
+  open: boolean
+  title: string
+  message: string
+  onClose: () => void
+  onConfirm: () => void
+  confirming?: boolean
+  confirmLabel?: string
+}
 
 export default function ConfirmActionModal({
   open,
@@ -19,25 +20,25 @@ export default function ConfirmActionModal({
   onClose,
   onConfirm,
   confirming = false,
-  confirmLabel = 'بله',
+  confirmLabel = 'بله'
 }: ConfirmActionModalProps) {
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !confirming) onClose();
-    };
+      if (event.key === 'Escape' && !confirming) onClose()
+    }
 
-    document.addEventListener('keydown', onKeyDown);
-    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKeyDown)
+    document.body.style.overflow = 'hidden'
 
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [open, confirming, onClose]);
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [open, confirming, onClose])
 
-  if (!open) return null;
+  if (!open) return null
 
   return createPortal(
     <div
@@ -50,7 +51,7 @@ export default function ConfirmActionModal({
         type="button"
         className="form-modal-backdrop"
         onClick={() => {
-          if (!confirming) onClose();
+          if (!confirming) onClose()
         }}
         aria-label="بستن"
       />
@@ -97,5 +98,5 @@ export default function ConfirmActionModal({
       </div>
     </div>,
     document.body
-  );
+  )
 }

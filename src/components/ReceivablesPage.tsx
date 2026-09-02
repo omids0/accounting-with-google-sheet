@@ -1,9 +1,30 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Receivable } from '../types';
-import { getSettings, isConfigured } from '../services/settings';
-import { isTokenValid } from '../services/auth';
-import { useDataRefresh } from '../hooks/useDataRefresh';
-import { hasStoreData } from '../services/spreadsheetStore';
+import { useState, useEffect, useCallback, useMemo } from 'react'
+
+import { AccordionCollapse } from './AccordionCollapse'
+import ActiveFilterChips from './ActiveFilterChips'
+import AmountInput from './AmountInput'
+import AppIcon from './AppIcon'
+import CardDeleteButton from './CardDeleteButton'
+import CardEditButton from './CardEditButton'
+import CardExpandButton from './CardExpandButton'
+import ConfirmActionModal from './ConfirmActionModal'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
+import { createAllDateRangeFilter, type DateRangeFilterPreset } from './DateRangeFilter'
+import FilterModal from './FilterModal'
+import { CategorySelect, FormField } from './form'
+import FormModal from './FormModal'
+import JalaliDatePicker from './JalaliDatePicker'
+import PageFilterPanel, { type PaymentStatusFilter } from './PageFilterPanel'
+import ProgressBar from './ProgressBar'
+import SearchEmptyState from './SearchEmptyState'
+import { InstallmentCardListSkeleton } from './skeleton'
+import StatCard from './StatCard'
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions'
+import { useDataRefresh } from '../hooks/useDataRefresh'
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
+import { useSheetImportExport } from '../hooks/useSheetImportExport'
+import { isTokenValid } from '../services/auth'
+import { syncCategoriesFromSheet } from '../services/categories'
 import {
   addReceivablePayment,
   createReceivable,
@@ -18,367 +39,391 @@ import {
   remainingAmount,
   removeReceivablePayment,
   sortReceivables,
-  updateReceivable,
-} from '../services/receivables';
-import AmountInput from './AmountInput';
-import { CategorySelect } from './form';
-import { syncCategoriesFromSheet } from '../services/categories';
-import { getReceivableCategories } from '../services/settings';
-import { InstallmentCardListSkeleton } from './skeleton';
-import JalaliDatePicker from './JalaliDatePicker';
-import { formatMoney } from '../utils/formatMoney';
-import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
-import { distributionSparkline } from '../utils/sparklineData';
-import { showError, showSuccess } from '../utils/toast';
-import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
-import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
-import { useSheetImportExport } from '../hooks/useSheetImportExport';
-import FormModal from './FormModal';
-import CardEditButton from './CardEditButton';
-import { AccordionCollapse } from './AccordionCollapse';
-import CardDeleteButton from './CardDeleteButton';
-import CardExpandButton from './CardExpandButton';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
-import ConfirmActionModal from './ConfirmActionModal';
-import PageFilterPanel, { type PaymentStatusFilter } from './PageFilterPanel';
-import FilterModal from './FilterModal';
-import ActiveFilterChips from './ActiveFilterChips';
+  updateReceivable
+} from '../services/receivables'
+import { getSettings, isConfigured, getReceivableCategories } from '../services/settings'
+import { hasStoreData } from '../services/spreadsheetStore'
+import type { Receivable } from '../types'
+import { formatDateRangeLabel, isDateInRange, resolveDateRange } from '../utils/dateRange'
 import {
   buildCategoryChip,
   buildDateRangeChip,
   buildPaymentStatusChip,
   buildSearchChip,
-  compactFilterChips,
-} from '../utils/filterChips';
-import {
-  createAllDateRangeFilter,
-  type DateRangeFilterPreset,
-} from './DateRangeFilter';
-import SearchEmptyState from './SearchEmptyState';
-import AppIcon from './AppIcon';
-import StatCard from './StatCard';
-import ProgressBar from './ProgressBar';
-import { matchSearch } from '../utils/search';
-import {
-  formatDateRangeLabel,
-  isDateInRange,
-  resolveDateRange,
-} from '../utils/dateRange';
+  compactFilterChips
+} from '../utils/filterChips'
+import { formatMoney } from '../utils/formatMoney'
+import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate'
+import { matchSearch } from '../utils/search'
+import { distributionSparkline } from '../utils/sparklineData'
+import { showError, showSuccess } from '../utils/toast'
 
-type ReceivableWithRow = Receivable & { rowNumber: number };
+type ReceivableWithRow = Receivable & { rowNumber: number }
 
 function getDefaultSettlementIncomeCategory(): string {
-  const incomeForm = getSettings()?.forms.find((f) => f.type === 'income');
-  const options =
-    incomeForm?.fields.find((f) => f.id === 'category')?.options ?? [];
-  return options.includes('طلب') ? 'طلب' : (options[0] ?? 'طلب');
+  const incomeForm = getSettings()?.forms.find(f => f.type === 'income')
+
+  const options = incomeForm?.fields.find(f => f.id === 'category')?.options ?? []
+
+  return options.includes('طلب') ? 'طلب' : options[0] ?? 'طلب'
 }
 
 function buildSettlementTitle(debtor: string): string {
-  return `طلب: ${debtor}`;
+  return `طلب: ${debtor}`
 }
 
 export default function ReceivablesPage({
   onReauth,
-  active = true,
+  active = true
 }: {
-  onReauth?: () => void;
-  active?: boolean;
+  onReauth?: () => void
+  active?: boolean
 }) {
-  const [items, setItems] = useState<ReceivableWithRow[]>([]);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<ReceivableWithRow | null>(null);
-  const [deletingItem, setDeletingItem] = useState<ReceivableWithRow | null>(null);
+  const [items, setItems] = useState<ReceivableWithRow[]>([])
+
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const [showForm, setShowForm] = useState(false)
+
+  const [editingItem, setEditingItem] = useState<ReceivableWithRow | null>(null)
+
+  const [deletingItem, setDeletingItem] = useState<ReceivableWithRow | null>(null)
+
   const [loading, setLoading] = useState(() => {
-    const settings = getSettings();
-    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
-  });
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [payingId, setPayingId] = useState('');
-  const [settlingId, setSettlingId] = useState('');
-  const dataRevision = useDataRefresh();
-  const [togglingPaymentId, setTogglingPaymentId] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [draftSearch, setDraftSearch] = useState('');
-  const [draftPaymentStatus, setDraftPaymentStatus] =
-    useState<PaymentStatusFilter>('all');
-  const [draftCategory, setDraftCategory] = useState('all');
+    const settings = getSettings()
+
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
+  })
+
+  const [saving, setSaving] = useState(false)
+
+  const [deleting, setDeleting] = useState(false)
+
+  const [payingId, setPayingId] = useState('')
+
+  const [settlingId, setSettlingId] = useState('')
+
+  const dataRevision = useDataRefresh()
+
+  const [togglingPaymentId, setTogglingPaymentId] = useState('')
+
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+
+  const [draftSearch, setDraftSearch] = useState('')
+
+  const [draftPaymentStatus, setDraftPaymentStatus] = useState<PaymentStatusFilter>('all')
+
+  const [draftCategory, setDraftCategory] = useState('all')
+
   const [draftDatePreset, setDraftDatePreset] = useState<DateRangeFilterPreset>(
     () => createAllDateRangeFilter().preset
-  );
+  )
+
   const [draftCustomRange, setDraftCustomRange] = useState(
     () => createAllDateRangeFilter().customRange
-  );
-  const [categories, setCategories] = useState<string[]>(() => getReceivableCategories());
-  const [paymentStatusFilter, setPaymentStatusFilter] =
-    useState<PaymentStatusFilter>('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  )
+
+  const [categories, setCategories] = useState<string[]>(() => getReceivableCategories())
+
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<PaymentStatusFilter>('all')
+
+  const [categoryFilter, setCategoryFilter] = useState('all')
+
   const [datePreset, setDatePreset] = useState<DateRangeFilterPreset>(
     () => createAllDateRangeFilter().preset
-  );
-  const [customRange, setCustomRange] = useState(
-    () => createAllDateRangeFilter().customRange
-  );
+  )
+
+  const [customRange, setCustomRange] = useState(() => createAllDateRangeFilter().customRange)
 
   const [form, setForm] = useState({
     debtor: '',
     category: '',
     amount: '' as number | '',
     borrowDate: getTodayIso(),
-    note: '',
-  });
+    note: ''
+  })
+
   const [paymentForm, setPaymentForm] = useState<{
-    receivableId: string;
-    amount: number | '';
-    note: string;
-  } | null>(null);
+    receivableId: string
+    amount: number | ''
+    note: string
+  } | null>(null)
+
   const [settlementForm, setSettlementForm] = useState<{
-    receivableId: string;
-    title: string;
-    note: string;
-  } | null>(null);
+    receivableId: string
+    title: string
+    note: string
+  } | null>(null)
 
   const loadItems = useCallback(async () => {
-    const settings = getSettings();
-    if (!settings?.spreadsheetId) return;
+    const settings = getSettings()
+
+    if (!settings?.spreadsheetId) return
     if (!isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      await ensureReceivablesSheet(settings.spreadsheetId);
-      await syncCategoriesFromSheet(settings.spreadsheetId);
-      setCategories(getReceivableCategories());
-      const data = await fetchReceivables(settings.spreadsheetId);
-      setItems(data);
+      await ensureReceivablesSheet(settings.spreadsheetId)
+      await syncCategoriesFromSheet(settings.spreadsheetId)
+      setCategories(getReceivableCategories())
+
+      const data = await fetchReceivables(settings.spreadsheetId)
+
+      setItems(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری طلب‌ها';
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری طلب‌ها'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [onReauth]);
+  }, [onReauth])
 
   useEffect(() => {
-    if (isConfigured()) loadItems();
-  }, [loadItems, dataRevision]);
+    if (isConfigured()) loadItems()
+  }, [loadItems, dataRevision])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
     if (!form.debtor.trim()) {
-      showError('نام شخص یا ارگان الزامی است');
-      return;
+      showError('نام شخص یا ارگان الزامی است')
+
+      return
     }
     if (!form.category.trim()) {
-      showError('دسته‌بندی الزامی است');
-      return;
+      showError('دسته‌بندی الزامی است')
+
+      return
     }
     if (!form.amount || Number(form.amount) <= 0) {
-      showError('مبلغ را وارد کنید');
-      return;
+      showError('مبلغ را وارد کنید')
+
+      return
     }
     if (!form.borrowDate) {
-      showError('تاریخ قرض الزامی است');
-      return;
+      showError('تاریخ قرض الزامی است')
+
+      return
     }
 
-    const settings = getSettings()!;
-    setSaving(true);
+    const settings = getSettings()!
+
+    setSaving(true)
     try {
       if (editingItem) {
-        const nextAmount = Number(form.amount);
+        const nextAmount = Number(form.amount)
+
         if (nextAmount < paidAmount(editingItem)) {
-          showError('مبلغ نمی‌تواند کمتر از مجموع پرداخت‌ها باشد');
-          return;
+          showError('مبلغ نمی‌تواند کمتر از مجموع پرداخت‌ها باشد')
+
+          return
         }
+
         const updated = {
           ...editingItem,
           debtor: form.debtor.trim(),
           category: form.category.trim(),
           amount: nextAmount,
           borrowDate: form.borrowDate,
-          note: form.note.trim(),
-        };
-        await updateReceivable(settings.spreadsheetId, editingItem.rowNumber, updated);
-        showSuccess('طلب ویرایش شد');
+          note: form.note.trim()
+        }
+
+        await updateReceivable(settings.spreadsheetId, editingItem.rowNumber, updated)
+        showSuccess('طلب ویرایش شد')
       } else {
         await createReceivable(settings.spreadsheetId, {
           debtor: form.debtor.trim(),
           category: form.category.trim(),
           amount: Number(form.amount),
           borrowDate: form.borrowDate,
-          note: form.note.trim(),
-        });
-        showSuccess('طلب جدید ثبت شد');
+          note: form.note.trim()
+        })
+        showSuccess('طلب جدید ثبت شد')
       }
-      closeForm();
-      await loadItems();
+      closeForm()
+      await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش طلب' : 'خطا در ثبت طلب';
+      const msg =
+        err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش طلب' : 'خطا در ثبت طلب'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleAddPayment = async (receivable: ReceivableWithRow) => {
-    if (!paymentForm || paymentForm.receivableId !== receivable.id) return;
+    if (!paymentForm || paymentForm.receivableId !== receivable.id) return
 
-    const settings = getSettings();
+    const settings = getSettings()
+
     if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    const payAmount = Number(paymentForm.amount);
+    const payAmount = Number(paymentForm.amount)
+
     if (!payAmount || payAmount <= 0) {
-      showError('مبلغ پرداخت را وارد کنید');
-      return;
+      showError('مبلغ پرداخت را وارد کنید')
+
+      return
     }
 
-    const remaining = remainingAmount(receivable);
+    const remaining = remainingAmount(receivable)
+
     if (payAmount > remaining) {
-      showError(`مبلغ پرداخت نمی‌تواند بیشتر از مانده (${formatMoney(remaining)}) باشد`);
-      return;
+      showError(`مبلغ پرداخت نمی‌تواند بیشتر از مانده (${formatMoney(remaining)}) باشد`)
+
+      return
     }
 
-    setPayingId(receivable.id);
+    setPayingId(receivable.id)
     try {
       const updated = await addReceivablePayment(settings.spreadsheetId, receivable, {
         amount: payAmount,
-        note: paymentForm.note.trim(),
-      });
-      setItems((prev) =>
+        note: paymentForm.note.trim()
+      })
+
+      setItems(prev =>
         sortReceivables(
-          prev.map((item) =>
-            item.id === receivable.id
-              ? { ...updated, rowNumber: receivable.rowNumber }
-              : item
+          prev.map(item =>
+            item.id === receivable.id ? { ...updated, rowNumber: receivable.rowNumber } : item
           )
         )
-      );
-      setPaymentForm(null);
-      showSuccess('پرداخت ثبت شد');
+      )
+      setPaymentForm(null)
+      showSuccess('پرداخت ثبت شد')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت پرداخت';
+      const msg = err instanceof Error ? err.message : 'خطا در ثبت پرداخت'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setPayingId('');
+      setPayingId('')
     }
-  };
+  }
 
   const handleSettle = async (receivable: ReceivableWithRow) => {
-    if (!settlementForm || settlementForm.receivableId !== receivable.id) return;
+    if (!settlementForm || settlementForm.receivableId !== receivable.id) return
 
-    const settings = getSettings();
+    const settings = getSettings()
+
     if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    const title = settlementForm.title.trim();
+    const title = settlementForm.title.trim()
+
     if (!title) {
-      showError('عنوان درآمد الزامی است');
-      return;
+      showError('عنوان درآمد الزامی است')
+
+      return
     }
 
-    const remaining = remainingAmount(receivable);
+    const remaining = remainingAmount(receivable)
+
     if (remaining <= 0) {
-      showError('این طلب قبلاً تسویه شده است');
-      return;
+      showError('این طلب قبلاً تسویه شده است')
+
+      return
     }
 
-    setSettlingId(receivable.id);
+    setSettlingId(receivable.id)
     try {
       const updated = await addReceivablePayment(settings.spreadsheetId, receivable, {
         amount: remaining,
         title,
         category: getDefaultSettlementIncomeCategory(),
-        note: settlementForm.note.trim(),
-      });
-      setItems((prev) =>
+        note: settlementForm.note.trim()
+      })
+
+      setItems(prev =>
         sortReceivables(
-          prev.map((item) =>
-            item.id === receivable.id
-              ? { ...updated, rowNumber: receivable.rowNumber }
-              : item
+          prev.map(item =>
+            item.id === receivable.id ? { ...updated, rowNumber: receivable.rowNumber } : item
           )
         )
-      );
-      setSettlementForm(null);
-      showSuccess('طلب تسویه شد و درآمد ثبت شد');
+      )
+      setSettlementForm(null)
+      showSuccess('طلب تسویه شد و درآمد ثبت شد')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در تسویه طلب';
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
-      }
-      showError(msg);
-    } finally {
-      setSettlingId('');
-    }
-  };
+      const msg = err instanceof Error ? err.message : 'خطا در تسویه طلب'
 
-  const handleRemovePayment = async (
-    receivable: ReceivableWithRow,
-    paymentId: string
-  ) => {
-    const settings = getSettings();
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.()
+
+        return
+      }
+      showError(msg)
+    } finally {
+      setSettlingId('')
+    }
+  }
+
+  const handleRemovePayment = async (receivable: ReceivableWithRow, paymentId: string) => {
+    const settings = getSettings()
+
     if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    setTogglingPaymentId(paymentId);
+    setTogglingPaymentId(paymentId)
     try {
-      const updated = await removeReceivablePayment(
-        settings.spreadsheetId,
-        receivable,
-        paymentId
-      );
-      setItems((prev) =>
+      const updated = await removeReceivablePayment(settings.spreadsheetId, receivable, paymentId)
+
+      setItems(prev =>
         sortReceivables(
-          prev.map((item) =>
-            item.id === receivable.id
-              ? { ...updated, rowNumber: receivable.rowNumber }
-              : item
+          prev.map(item =>
+            item.id === receivable.id ? { ...updated, rowNumber: receivable.rowNumber } : item
           )
         )
-      );
-      showSuccess('پرداخت و تراکنش درآمد حذف شد');
+      )
+      showSuccess('پرداخت و تراکنش درآمد حذف شد')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف پرداخت';
+      const msg = err instanceof Error ? err.message : 'خطا در حذف پرداخت'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setTogglingPaymentId('');
+      setTogglingPaymentId('')
     }
-  };
+  }
 
   const resetCreateForm = () => {
     setForm({
@@ -386,103 +431,105 @@ export default function ReceivablesPage({
       category: categories[0] ?? '',
       amount: '',
       borrowDate: getTodayIso(),
-      note: '',
-    });
-  };
+      note: ''
+    })
+  }
 
   const openCreateForm = () => {
-    setEditingItem(null);
-    resetCreateForm();
-    setShowForm(true);
-  };
+    setEditingItem(null)
+    resetCreateForm()
+    setShowForm(true)
+  }
 
   const openEditForm = (item: ReceivableWithRow) => {
-    setEditingItem(item);
+    setEditingItem(item)
     setForm({
       debtor: item.debtor,
       category: item.category,
       amount: item.amount,
       borrowDate: item.borrowDate,
-      note: item.note,
-    });
-    setShowForm(true);
-  };
+      note: item.note
+    })
+    setShowForm(true)
+  }
 
   const closeForm = () => {
-    if (saving) return;
-    setShowForm(false);
-    setEditingItem(null);
-    resetCreateForm();
-  };
+    if (saving) return
+    setShowForm(false)
+    setEditingItem(null)
+    resetCreateForm()
+  }
 
   const openDeleteConfirm = (item: ReceivableWithRow) => {
-    setDeletingItem(item);
-  };
+    setDeletingItem(item)
+  }
 
   const closeDeleteConfirm = () => {
-    if (deleting) return;
-    setDeletingItem(null);
-  };
+    if (deleting) return
+    setDeletingItem(null)
+  }
 
   const handleDelete = async () => {
-    if (!deletingItem) return;
+    if (!deletingItem) return
 
-    const settings = getSettings();
+    const settings = getSettings()
+
     if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    setDeleting(true);
+    setDeleting(true)
     try {
-      await deleteReceivable(settings.spreadsheetId, deletingItem.rowNumber, deletingItem);
-      if (expandedId === deletingItem.id) setExpandedId(null);
-      setPaymentForm(null);
-      setSettlementForm(null);
-      setDeletingItem(null);
-      showSuccess('طلب حذف شد');
-      await loadItems();
+      await deleteReceivable(settings.spreadsheetId, deletingItem.rowNumber, deletingItem)
+      if (expandedId === deletingItem.id) setExpandedId(null)
+      setPaymentForm(null)
+      setSettlementForm(null)
+      setDeletingItem(null)
+      showSuccess('طلب حذف شد')
+      await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف طلب';
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
-      }
-      showError(msg);
-    } finally {
-      setDeleting(false);
-    }
-  };
+      const msg = err instanceof Error ? err.message : 'خطا در حذف طلب'
 
-  const {
-    handleExport,
-    handleExportPdf,
-    handleImport,
-    importExportConfirmModal,
-  } = useSheetImportExport({
-    exportFn: exportReceivablesCsv,
-    exportPdfFn: exportReceivablesPdf,
-    importFn: importReceivablesCsv,
-    onComplete: loadItems,
-    onReauth,
-  });
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.()
+
+        return
+      }
+      showError(msg)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
+    useSheetImportExport({
+      exportFn: exportReceivablesCsv,
+      exportPdfFn: exportReceivablesPdf,
+      importFn: importReceivablesCsv,
+      onComplete: loadItems,
+      onReauth
+    })
 
   const dateRange = useMemo(
-    () =>
-      datePreset === 'all' ? null : resolveDateRange(datePreset, customRange),
+    () => (datePreset === 'all' ? null : resolveDateRange(datePreset, customRange)),
     [datePreset, customRange]
-  );
+  )
+
   const categoryOptions = useMemo(() => {
-    const options = new Set<string>(categories);
+    const options = new Set<string>(categories)
+
     for (const item of items) {
-      if (item.category) options.add(item.category);
+      if (item.category) options.add(item.category)
     }
-    return [...options];
-  }, [categories, items]);
+
+    return [...options]
+  }, [categories, items])
 
   const filteredItems = useMemo(
     () =>
-      items.filter((item) => {
+      items.filter(item => {
         if (
           !matchSearch(
             searchQuery,
@@ -493,92 +540,75 @@ export default function ReceivablesPage({
             item.borrowDate
           )
         ) {
-          return false;
+          return false
         }
 
         if (categoryFilter !== 'all' && item.category !== categoryFilter) {
-          return false;
+          return false
         }
 
         if (dateRange && !isDateInRange(item.borrowDate, dateRange)) {
-          return false;
+          return false
         }
 
-        const complete = isReceivableComplete(item);
-        if (paymentStatusFilter === 'paid' && !complete) return false;
-        if (paymentStatusFilter === 'unpaid' && complete) return false;
+        const complete = isReceivableComplete(item)
 
-        return true;
+        if (paymentStatusFilter === 'paid' && !complete) return false
+        if (paymentStatusFilter === 'unpaid' && complete) return false
+
+        return true
       }),
-    [
-      items,
-      searchQuery,
-      categoryFilter,
-      dateRange,
-      paymentStatusFilter,
-    ]
-  );
+    [items, searchQuery, categoryFilter, dateRange, paymentStatusFilter]
+  )
 
   const filteredTotalRemaining = useMemo(
     () => filteredItems.reduce((sum, item) => sum + remainingAmount(item), 0),
     [filteredItems]
-  );
+  )
 
   const openFilterModal = useCallback(() => {
-    setDraftSearch(searchQuery);
-    setDraftPaymentStatus(paymentStatusFilter);
-    setDraftCategory(categoryFilter);
-    setDraftDatePreset(datePreset);
-    setDraftCustomRange(customRange);
-    setFilterModalOpen(true);
-  }, [
-    searchQuery,
-    paymentStatusFilter,
-    categoryFilter,
-    datePreset,
-    customRange,
-  ]);
+    setDraftSearch(searchQuery)
+    setDraftPaymentStatus(paymentStatusFilter)
+    setDraftCategory(categoryFilter)
+    setDraftDatePreset(datePreset)
+    setDraftCustomRange(customRange)
+    setFilterModalOpen(true)
+  }, [searchQuery, paymentStatusFilter, categoryFilter, datePreset, customRange])
 
   const resetDateFilter = useCallback(() => {
-    const defaults = createAllDateRangeFilter();
-    setDatePreset(defaults.preset);
-    setCustomRange(defaults.customRange);
-  }, []);
+    const defaults = createAllDateRangeFilter()
+
+    setDatePreset(defaults.preset)
+    setCustomRange(defaults.customRange)
+  }, [])
 
   const filterChips = useMemo(
     () =>
       compactFilterChips([
         buildSearchChip(searchQuery, () => setSearchQuery('')),
         paymentStatusFilter !== 'all' &&
-          buildPaymentStatusChip(
-            paymentStatusFilter,
-            () => setPaymentStatusFilter('all'),
-            { paid: 'تسویه شده', unpaid: 'پرداخت نشده' }
-          ),
+          buildPaymentStatusChip(paymentStatusFilter, () => setPaymentStatusFilter('all'), {
+            paid: 'تسویه شده',
+            unpaid: 'پرداخت نشده'
+          }),
         categoryFilter !== 'all' &&
           buildCategoryChip(categoryFilter, () => setCategoryFilter('all')),
         datePreset !== 'all' &&
           dateRange &&
-          buildDateRangeChip(formatDateRangeLabel(dateRange), resetDateFilter),
+          buildDateRangeChip(formatDateRangeLabel(dateRange), resetDateFilter)
       ]),
-    [
-      searchQuery,
-      paymentStatusFilter,
-      categoryFilter,
-      datePreset,
-      dateRange,
-      resetDateFilter,
-    ]
-  );
+    [searchQuery, paymentStatusFilter, categoryFilter, datePreset, dateRange, resetDateFilter]
+  )
 
   const clearDraftFilters = () => {
-    const defaults = createAllDateRangeFilter();
-    setDraftSearch('');
-    setDraftPaymentStatus('all');
-    setDraftCategory('all');
-    setDraftDatePreset(defaults.preset);
-    setDraftCustomRange(defaults.customRange);
-  };
+    const defaults = createAllDateRangeFilter()
+
+    setDraftSearch('')
+    setDraftPaymentStatus('all')
+    setDraftCategory('all')
+    setDraftDatePreset(defaults.preset)
+    setDraftCustomRange(defaults.customRange)
+  }
 
   const pageSpeedDialConfig = useMemo(
     () => ({
@@ -590,13 +620,13 @@ export default function ReceivablesPage({
         refreshDisabled: loading,
         onImport: handleImport,
         onExport: handleExport,
-        onExportPdf: handleExportPdf,
-      }),
+        onExportPdf: handleExportPdf
+      })
     }),
     [openFilterModal, loadItems, loading, handleImport, handleExport, handleExportPdf]
-  );
+  )
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
     return (
@@ -606,16 +636,17 @@ export default function ReceivablesPage({
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
-    );
+    )
   }
 
-  const totalRemaining = items.reduce((sum, item) => sum + remainingAmount(item), 0);
+  const totalRemaining = items.reduce((sum, item) => sum + remainingAmount(item), 0)
+
   const showFilteredTotal =
     filteredItems.length !== items.length ||
     datePreset !== 'all' ||
     paymentStatusFilter !== 'all' ||
     categoryFilter !== 'all' ||
-    searchQuery.trim() !== '';
+    searchQuery.trim() !== ''
 
   return (
     <div>
@@ -625,12 +656,12 @@ export default function ReceivablesPage({
         open={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
         onApply={() => {
-          setSearchQuery(draftSearch);
-          setPaymentStatusFilter(draftPaymentStatus);
-          setCategoryFilter(draftCategory);
-          setDatePreset(draftDatePreset);
-          setCustomRange(draftCustomRange);
-          setFilterModalOpen(false);
+          setSearchQuery(draftSearch)
+          setPaymentStatusFilter(draftPaymentStatus)
+          setCategoryFilter(draftCategory)
+          setDatePreset(draftDatePreset)
+          setCustomRange(draftCustomRange)
+          setFilterModalOpen(false)
         }}
         onClear={clearDraftFilters}
       >
@@ -646,9 +677,9 @@ export default function ReceivablesPage({
           categoryOptions={categoryOptions}
           datePreset={draftDatePreset}
           customRange={draftCustomRange}
-          onDateFilterChange={(filter) => {
-            setDraftDatePreset(filter.preset);
-            setDraftCustomRange(filter.customRange);
+          onDateFilterChange={filter => {
+            setDraftDatePreset(filter.preset)
+            setDraftCustomRange(filter.customRange)
           }}
           dateIncludeAll
           dateLabel="بازه زمانی (تاریخ قرض)"
@@ -661,34 +692,39 @@ export default function ReceivablesPage({
       ) : items.length === 0 ? (
         <div className="empty-state">
           <div className="icon">
-          <AppIcon name="receivables" />
-        </div>
+            <AppIcon name="receivables" />
+          </div>
           <p>هنوز طلبی ثبت نشده</p>
         </div>
       ) : filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (
         filteredItems.map((item, index) => {
-          const expanded = expandedId === item.id;
-          const paid = paidAmount(item);
-          const remaining = remainingAmount(item);
-          const complete = isReceivableComplete(item);
-          const progress =
-            item.amount > 0 ? Math.round((paid / item.amount) * 100) : 0;
+          const expanded = expandedId === item.id
+
+          const paid = paidAmount(item)
+
+          const remaining = remainingAmount(item)
+
+          const complete = isReceivableComplete(item)
+
+          const progress = item.amount > 0 ? Math.round((paid / item.amount) * 100) : 0
 
           return (
             <div
               key={item.id}
-              className={`card installment-card interactive-card${complete ? ' receivable-complete' : ''}${expanded ? ' installment-card--expanded' : ''}`}
+              className={`card installment-card interactive-card${
+                complete ? ' receivable-complete' : ''
+              }${expanded ? ' installment-card--expanded' : ''}`}
             >
               <div className="card-header-with-edit">
                 <button
                   type="button"
                   className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
                   onClick={() => {
-                    setExpandedId(expanded ? null : item.id);
-                    setPaymentForm(null);
-                    setSettlementForm(null);
+                    setExpandedId(expanded ? null : item.id)
+                    setPaymentForm(null)
+                    setSettlementForm(null)
                   }}
                 >
                   <div>
@@ -696,9 +732,7 @@ export default function ReceivablesPage({
                     <div className="list-card-subtitle">
                       {item.category && <span>{item.category} · </span>}
                       <span className="list-card-amount-pill">{formatMoney(item.amount)}</span>
-                      {complete
-                        ? ' · تسویه شده'
-                        : ` · مانده: ${formatMoney(remaining)}`}
+                      {complete ? ' · تسویه شده' : ` · مانده: ${formatMoney(remaining)}`}
                     </div>
                     <ProgressBar
                       value={progress}
@@ -710,24 +744,24 @@ export default function ReceivablesPage({
                 </button>
                 <div className="card-action-buttons">
                   <CardEditButton
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openEditForm(item);
+                    onClick={event => {
+                      event.stopPropagation()
+                      openEditForm(item)
                     }}
                   />
                   <CardDeleteButton
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openDeleteConfirm(item);
+                    onClick={event => {
+                      event.stopPropagation()
+                      openDeleteConfirm(item)
                     }}
                   />
                   <CardExpandButton
                     expanded={expanded}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setExpandedId(expanded ? null : item.id);
-                      setPaymentForm(null);
-                      setSettlementForm(null);
+                    onClick={event => {
+                      event.stopPropagation()
+                      setExpandedId(expanded ? null : item.id)
+                      setPaymentForm(null)
+                      setSettlementForm(null)
                     }}
                     ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات طلب'}
                   />
@@ -758,14 +792,14 @@ export default function ReceivablesPage({
                   {item.payments.length > 0 && (
                     <div className="receivable-payment-list">
                       <div className="receivable-payment-list-title">سوابق پرداخت</div>
-                      {item.payments.map((payment) => (
+                      {item.payments.map(payment => (
                         <div key={payment.id} className="receivable-payment-item">
                           <input
                             type="checkbox"
                             checked
                             disabled={togglingPaymentId === payment.id}
                             onChange={() => handleRemovePayment(item, payment.id)}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={e => e.stopPropagation()}
                           />
                           <div>
                             <span dir="ltr">{formatMoney(payment.amount)}</span>
@@ -785,30 +819,22 @@ export default function ReceivablesPage({
                     <div className="receivable-add-payment">
                       {paymentForm?.receivableId === item.id ? (
                         <div className="receivable-payment-form">
-                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label>مبلغ پرداخت</label>
+                          <FormField label="مبلغ پرداخت" style={{ marginBottom: '0.75rem' }}>
                             <AmountInput
                               value={paymentForm.amount}
-                              onChange={(val) =>
-                                setPaymentForm((f) =>
-                                  f ? { ...f, amount: val } : f
-                                )
-                              }
+                              onChange={val => setPaymentForm(f => (f ? { ...f, amount: val } : f))}
                             />
-                          </div>
-                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label>توضیحات</label>
+                          </FormField>
+                          <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
                             <input
                               type="text"
                               value={paymentForm.note}
-                              onChange={(e) =>
-                                setPaymentForm((f) =>
-                                  f ? { ...f, note: e.target.value } : f
-                                )
+                              onChange={e =>
+                                setPaymentForm(f => (f ? { ...f, note: e.target.value } : f))
                               }
                               placeholder="اختیاری"
                             />
-                          </div>
+                          </FormField>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button
                               type="button"
@@ -830,41 +856,33 @@ export default function ReceivablesPage({
                         </div>
                       ) : settlementForm?.receivableId === item.id ? (
                         <div className="receivable-payment-form">
-                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label>عنوان درآمد <span className="required">*</span></label>
+                          <FormField
+                            label="عنوان درآمد"
+                            required
+                            style={{ marginBottom: '0.75rem' }}
+                          >
                             <input
                               type="text"
                               value={settlementForm.title}
-                              onChange={(e) =>
-                                setSettlementForm((f) =>
-                                  f ? { ...f, title: e.target.value } : f
-                                )
+                              onChange={e =>
+                                setSettlementForm(f => (f ? { ...f, title: e.target.value } : f))
                               }
                               placeholder="مثلاً: طلب: علی محمدی"
                             />
-                          </div>
-                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label>مبلغ تسویه</label>
-                            <input
-                              type="text"
-                              value={formatMoney(remaining)}
-                              readOnly
-                              dir="ltr"
-                            />
-                          </div>
-                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                            <label>توضیحات</label>
+                          </FormField>
+                          <FormField label="مبلغ تسویه" style={{ marginBottom: '0.75rem' }}>
+                            <input type="text" value={formatMoney(remaining)} readOnly dir="ltr" />
+                          </FormField>
+                          <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
                             <input
                               type="text"
                               value={settlementForm.note}
-                              onChange={(e) =>
-                                setSettlementForm((f) =>
-                                  f ? { ...f, note: e.target.value } : f
-                                )
+                              onChange={e =>
+                                setSettlementForm(f => (f ? { ...f, note: e.target.value } : f))
                               }
                               placeholder="اختیاری"
                             />
-                          </div>
+                          </FormField>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button
                               type="button"
@@ -890,12 +908,12 @@ export default function ReceivablesPage({
                             type="button"
                             className="btn btn-secondary btn-sm"
                             onClick={() => {
-                              setSettlementForm(null);
+                              setSettlementForm(null)
                               setPaymentForm({
                                 receivableId: item.id,
                                 amount: '',
-                                note: '',
-                              });
+                                note: ''
+                              })
                             }}
                           >
                             + ثبت بخشی از پرداخت
@@ -904,12 +922,12 @@ export default function ReceivablesPage({
                             type="button"
                             className="btn btn-inflow btn-sm"
                             onClick={() => {
-                              setPaymentForm(null);
+                              setPaymentForm(null)
                               setSettlementForm({
                                 receivableId: item.id,
                                 title: buildSettlementTitle(item.debtor),
-                                note: item.note ?? '',
-                              });
+                                note: item.note ?? ''
+                              })
                             }}
                           >
                             تسویه
@@ -921,7 +939,7 @@ export default function ReceivablesPage({
                 </div>
               </AccordionCollapse>
             </div>
-          );
+          )
         })
       )}
 
@@ -931,9 +949,7 @@ export default function ReceivablesPage({
           amount={showFilteredTotal ? filteredTotalRemaining : totalRemaining}
           variant="balance"
           wide
-          sparklineData={distributionSparkline(
-            items.map((item) => remainingAmount(item))
-          )}
+          sparklineData={distributionSparkline(items.map(item => remainingAmount(item)))}
           className="receivable-total-card"
         />
       )}
@@ -946,58 +962,53 @@ export default function ReceivablesPage({
         saving={saving}
         saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره طلب'}
       >
-        <div className="form-group">
-          <label>نام شخص یا ارگان <span className="required">*</span></label>
+        <FormField label="نام شخص یا ارگان" required>
           <input
             type="text"
             value={form.debtor}
-            onChange={(e) => setForm((f) => ({ ...f, debtor: e.target.value }))}
+            onChange={e => setForm(f => ({ ...f, debtor: e.target.value }))}
             placeholder="مثلاً: علی محمدی"
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label>دسته‌بندی <span className="required">*</span></label>
+        <FormField label="دسته‌بندی" required>
           <CategorySelect
             value={form.category}
-            onChange={(category) => setForm((f) => ({ ...f, category }))}
+            onChange={category => setForm(f => ({ ...f, category }))}
             categories={categories}
             categoryScope="receivable"
-            onCategoriesChange={(next) => {
-              setCategories(next);
+            onCategoriesChange={next => {
+              setCategories(next)
               if (!next.includes(form.category)) {
-                setForm((f) => ({ ...f, category: next[0] ?? '' }));
+                setForm(f => ({ ...f, category: next[0] ?? '' }))
               }
             }}
             onReauth={onReauth}
             aria-label="دسته‌بندی طلب"
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label>مبلغ <span className="required">*</span></label>
+        <FormField label="مبلغ" required>
           <AmountInput
             value={form.amount}
-            onChange={(val) => setForm((f) => ({ ...f, amount: val }))}
+            onChange={val => setForm(f => ({ ...f, amount: val }))}
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label>تاریخ قرض گرفتن <span className="required">*</span></label>
+        <FormField label="تاریخ قرض گرفتن" required>
           <JalaliDatePicker
             value={form.borrowDate}
-            onChange={(iso) => setForm((f) => ({ ...f, borrowDate: iso }))}
+            onChange={iso => setForm(f => ({ ...f, borrowDate: iso }))}
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label>توضیحات</label>
+        <FormField label="توضیحات">
           <textarea
             value={form.note}
-            onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+            onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
             placeholder="توضیحات اختیاری"
           />
-        </div>
+        </FormField>
       </FormModal>
 
       <ConfirmActionModal {...importExportConfirmModal} />
@@ -1010,5 +1021,5 @@ export default function ReceivablesPage({
         deleting={deleting}
       />
     </div>
-  );
+  )
 }

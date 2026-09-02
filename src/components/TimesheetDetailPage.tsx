@@ -1,9 +1,25 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Timesheet, TimesheetEntry } from '../types';
-import { getSettings, isConfigured } from '../services/settings';
-import { isTokenValid } from '../services/auth';
-import { useDataRefresh } from '../hooks/useDataRefresh';
-import { hasStoreData } from '../services/spreadsheetStore';
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
+import ActiveFilterChips from './ActiveFilterChips'
+import AppIcon from './AppIcon'
+import CardDeleteButton from './CardDeleteButton'
+import CardEditButton from './CardEditButton'
+import ConfirmActionModal from './ConfirmActionModal'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
+import { createDefaultDateRangeFilter, type DateRangeFilterPreset } from './DateRangeFilter'
+import FilterModal from './FilterModal'
+import FormModal from './FormModal'
+import JalaliDateTimePicker from './JalaliDateTimePicker'
+import PageFilterPanel from './PageFilterPanel'
+import SearchEmptyState from './SearchEmptyState'
+import { InstallmentCardListSkeleton } from './skeleton'
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions'
+import { useDataRefresh } from '../hooks/useDataRefresh'
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
+import { useSheetImportExport } from '../hooks/useSheetImportExport'
+import { isTokenValid } from '../services/auth'
+import { getSettings, isConfigured } from '../services/settings'
+import { hasStoreData } from '../services/spreadsheetStore'
 import {
   createTimesheetEntry,
   deleteTimesheetEntry,
@@ -13,8 +29,10 @@ import {
   fetchTimesheetEntries,
   importTimesheetEntriesCsv,
   totalDurationMinutes,
-  updateTimesheetEntry,
-} from '../services/timesheet';
+  updateTimesheetEntry
+} from '../services/timesheet'
+import type { Timesheet, TimesheetEntry } from '../types'
+import { formatDateRangeLabel, isDateInRange, resolveDateRange } from '../utils/dateRange'
 import {
   calcDurationMinutes,
   formatDateTimePersian,
@@ -23,187 +41,186 @@ import {
   getNowDateTimeIso,
   addMinutesToDateTime,
   syncEndDateTimeFromStart,
-  clampDateTimeToMin,
-} from '../utils/datetime';
-import { InstallmentCardListSkeleton } from './skeleton';
-import { showError, showSuccess } from '../utils/toast';
-import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
-import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
-import { useSheetImportExport } from '../hooks/useSheetImportExport';
-import FormModal from './FormModal';
-import CardEditButton from './CardEditButton';
-import CardDeleteButton from './CardDeleteButton';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
-import ConfirmActionModal from './ConfirmActionModal';
-import FilterModal from './FilterModal';
-import ActiveFilterChips from './ActiveFilterChips';
-import { buildDateRangeChip, buildSearchChip, compactFilterChips } from '../utils/filterChips';
-import SearchEmptyState from './SearchEmptyState';
-import AppIcon from './AppIcon';
-import FormField from './form/FormField';
-import JalaliDateTimePicker from './JalaliDateTimePicker';
-import {
-  createDefaultDateRangeFilter,
-  type DateRangeFilterPreset,
-} from './DateRangeFilter';
-import PageFilterPanel from './PageFilterPanel';
-import { matchSearch } from '../utils/search';
-import {
-  formatDateRangeLabel,
-  isDateInRange,
-  resolveDateRange,
-} from '../utils/dateRange';
+  clampDateTimeToMin
+} from '../utils/datetime'
+import { buildDateRangeChip, buildSearchChip, compactFilterChips } from '../utils/filterChips'
+import { showError, showSuccess } from '../utils/toast'
+import FormField from './form/FormField'
+import { matchSearch } from '../utils/search'
 
-type TimesheetEntryWithRow = TimesheetEntry & { rowNumber: number };
+type TimesheetEntryWithRow = TimesheetEntry & { rowNumber: number }
 
 export default function TimesheetDetailPage({
   timesheet,
   onReauth,
-  active = true,
+  active = true
 }: {
-  timesheet: Timesheet;
-  onReauth?: () => void;
-  active?: boolean;
+  timesheet: Timesheet
+  onReauth?: () => void
+  active?: boolean
 }) {
-  const [items, setItems] = useState<TimesheetEntryWithRow[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<TimesheetEntryWithRow | null>(null);
-  const [deletingItem, setDeletingItem] = useState<TimesheetEntryWithRow | null>(null);
+  const [items, setItems] = useState<TimesheetEntryWithRow[]>([])
+
+  const [showForm, setShowForm] = useState(false)
+
+  const [editingItem, setEditingItem] = useState<TimesheetEntryWithRow | null>(null)
+
+  const [deletingItem, setDeletingItem] = useState<TimesheetEntryWithRow | null>(null)
+
   const [loading, setLoading] = useState(() => {
-    const settings = getSettings();
-    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
-  });
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [togglingCheckId, setTogglingCheckId] = useState('');
-  const [endPickerOpenToken, setEndPickerOpenToken] = useState(0);
-  const dataRevision = useDataRefresh();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [draftSearch, setDraftSearch] = useState('');
+    const settings = getSettings()
+
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
+  })
+
+  const [saving, setSaving] = useState(false)
+
+  const [deleting, setDeleting] = useState(false)
+
+  const [togglingCheckId, setTogglingCheckId] = useState('')
+
+  const [endPickerOpenToken, setEndPickerOpenToken] = useState(0)
+
+  const dataRevision = useDataRefresh()
+
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+
+  const [draftSearch, setDraftSearch] = useState('')
+
   const [draftDatePreset, setDraftDatePreset] = useState<DateRangeFilterPreset>(
     () => createDefaultDateRangeFilter().preset
-  );
+  )
+
   const [draftCustomRange, setDraftCustomRange] = useState(
     () => createDefaultDateRangeFilter().customRange
-  );
+  )
+
   const [datePreset, setDatePreset] = useState<DateRangeFilterPreset>(
     () => createDefaultDateRangeFilter().preset
-  );
-  const [customRange, setCustomRange] = useState(
-    () => createDefaultDateRangeFilter().customRange
-  );
+  )
+
+  const [customRange, setCustomRange] = useState(() => createDefaultDateRangeFilter().customRange)
 
   const [form, setForm] = useState({
     title: '',
     startAt: getNowDateTimeIso(),
     endAt: getNowDateTimeIso(),
-    description: '',
-  });
+    description: ''
+  })
 
   const durationMinutes = useMemo(
     () => calcDurationMinutes(form.startAt, form.endAt),
     [form.startAt, form.endAt]
-  );
+  )
 
   const loadItems = useCallback(async () => {
-    const settings = getSettings();
-    if (!settings?.spreadsheetId) return;
+    const settings = getSettings()
+
+    if (!settings?.spreadsheetId) return
     if (!isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      await ensureTimesheetEntriesSheet(settings.spreadsheetId);
-      const data = await fetchTimesheetEntries(settings.spreadsheetId, timesheet.id);
-      setItems(data);
+      await ensureTimesheetEntriesSheet(settings.spreadsheetId)
+
+      const data = await fetchTimesheetEntries(settings.spreadsheetId, timesheet.id)
+
+      setItems(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری رکوردها';
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری رکوردها'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [onReauth, timesheet.id]);
+  }, [onReauth, timesheet.id])
 
   useEffect(() => {
-    if (isConfigured()) loadItems();
-  }, [loadItems, dataRevision]);
+    if (isConfigured()) loadItems()
+  }, [loadItems, dataRevision])
 
   const openCreateForm = useCallback(() => {
-    const now = getNowDateTimeIso();
-    setEditingItem(null);
+    const now = getNowDateTimeIso()
+
+    setEditingItem(null)
     setForm({
       title: '',
       startAt: now,
       endAt: addMinutesToDateTime(now, 60),
-      description: '',
-    });
-    setShowForm(true);
-  }, []);
+      description: ''
+    })
+    setShowForm(true)
+  }, [])
 
   const openEditForm = useCallback((item: TimesheetEntryWithRow) => {
-    setEditingItem(item);
+    setEditingItem(item)
     setForm({
       title: item.title,
       startAt: item.startAt,
       endAt: item.endAt,
-      description: item.description,
-    });
-    setShowForm(true);
-  }, []);
+      description: item.description
+    })
+    setShowForm(true)
+  }, [])
 
   const openFilterModal = useCallback(() => {
-    setDraftSearch(searchQuery);
-    setDraftDatePreset(datePreset);
-    setDraftCustomRange(customRange);
-    setFilterModalOpen(true);
-  }, [searchQuery, datePreset, customRange]);
+    setDraftSearch(searchQuery)
+    setDraftDatePreset(datePreset)
+    setDraftCustomRange(customRange)
+    setFilterModalOpen(true)
+  }, [searchQuery, datePreset, customRange])
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
-      exportFn: (spreadsheetId) =>
+      exportFn: spreadsheetId =>
         exportTimesheetEntriesCsv(spreadsheetId, timesheet.id, `${timesheet.title}.csv`),
-      exportPdfFn: (spreadsheetId) =>
+      exportPdfFn: spreadsheetId =>
         exportTimesheetEntriesPdf(spreadsheetId, timesheet.id, timesheet.title),
       importFn: (spreadsheetId, csvContent) =>
         importTimesheetEntriesCsv(spreadsheetId, timesheet.id, csvContent),
       onComplete: loadItems,
-      onReauth,
-    });
+      onReauth
+    })
 
   const dateRange = useMemo(
     () => (datePreset === 'all' ? null : resolveDateRange(datePreset, customRange)),
     [datePreset, customRange]
-  );
+  )
 
   const filteredItems = useMemo(() => {
-    const query = searchQuery.trim();
-    return items.filter((item) => {
-      if (query && !matchSearch(query, item.title, item.description)) return false;
-      if (dateRange) {
-        const date = item.startAt.slice(0, 10);
-        if (!isDateInRange(date, dateRange)) return false;
-      }
-      return true;
-    });
-  }, [items, searchQuery, dateRange]);
+    const query = searchQuery.trim()
 
-  const totalMinutes = useMemo(
-    () => totalDurationMinutes(filteredItems),
-    [filteredItems]
-  );
+    return items.filter(item => {
+      if (query && !matchSearch(query, item.title, item.description)) return false
+      if (dateRange) {
+        const date = item.startAt.slice(0, 10)
+
+        if (!isDateInRange(date, dateRange)) return false
+      }
+
+      return true
+    })
+  }, [items, searchQuery, dateRange])
+
+  const totalMinutes = useMemo(() => totalDurationMinutes(filteredItems), [filteredItems])
 
   const resetDateFilter = useCallback(() => {
-    const defaults = createDefaultDateRangeFilter();
-    setDatePreset(defaults.preset);
-    setCustomRange(defaults.customRange);
-  }, []);
+    const defaults = createDefaultDateRangeFilter()
+
+    setDatePreset(defaults.preset)
+    setCustomRange(defaults.customRange)
+  }, [])
 
   const filterChips = useMemo(
     () =>
@@ -214,71 +231,78 @@ export default function TimesheetDetailPage({
               formatDateRangeLabel(dateRange),
               datePreset !== 'month-to-date' ? resetDateFilter : undefined
             )
-          : null,
+          : null
       ]),
     [searchQuery, datePreset, dateRange, resetDateFilter]
-  );
+  )
 
   const handleStartChange = (startAt: string) => {
-    setForm((prev) => ({
+    setForm(prev => ({
       ...prev,
       startAt,
-      endAt: syncEndDateTimeFromStart(startAt, prev.endAt, prev.startAt),
-    }));
-    setEndPickerOpenToken((token) => token + 1);
-  };
+      endAt: syncEndDateTimeFromStart(startAt, prev.endAt, prev.startAt)
+    }))
+    setEndPickerOpenToken(token => token + 1)
+  }
 
   const handleEndChange = (endAt: string) => {
-    setForm((prev) => ({
+    setForm(prev => ({
       ...prev,
-      endAt: clampDateTimeToMin(endAt, prev.startAt),
-    }));
-  };
+      endAt: clampDateTimeToMin(endAt, prev.startAt)
+    }))
+  }
 
   const handleToggleChecked = async (item: TimesheetEntryWithRow, checked: boolean) => {
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    const settings = getSettings()!;
-    setTogglingCheckId(item.id);
+    const settings = getSettings()!
+
+    setTogglingCheckId(item.id)
     try {
       await updateTimesheetEntry(settings.spreadsheetId, item.rowNumber, {
         ...item,
-        checked,
-      });
-      setItems((current) =>
-        current.map((entry) => (entry.id === item.id ? { ...entry, checked } : entry))
-      );
+        checked
+      })
+      setItems(current =>
+        current.map(entry => (entry.id === item.id ? { ...entry, checked } : entry))
+      )
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در به‌روزرسانی');
+      showError(err instanceof Error ? err.message : 'خطا در به‌روزرسانی')
     } finally {
-      setTogglingCheckId('');
+      setTogglingCheckId('')
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
     if (!form.title.trim()) {
-      showError('عنوان الزامی است');
-      return;
+      showError('عنوان الزامی است')
+
+      return
     }
     if (!form.startAt || !form.endAt) {
-      showError('زمان شروع و پایان الزامی است');
-      return;
+      showError('زمان شروع و پایان الزامی است')
+
+      return
     }
     if (durationMinutes <= 0) {
-      showError('زمان پایان باید بعد از زمان شروع باشد');
-      return;
+      showError('زمان پایان باید بعد از زمان شروع باشد')
+
+      return
     }
 
-    const settings = getSettings()!;
-    setSaving(true);
+    const settings = getSettings()!
+
+    setSaving(true)
     try {
       if (editingItem) {
         await updateTimesheetEntry(settings.spreadsheetId, editingItem.rowNumber, {
@@ -287,43 +311,45 @@ export default function TimesheetDetailPage({
           startAt: form.startAt,
           endAt: form.endAt,
           durationMinutes,
-          description: form.description.trim(),
-        });
-        showSuccess('رکورد ویرایش شد');
+          description: form.description.trim()
+        })
+        showSuccess('رکورد ویرایش شد')
       } else {
         await createTimesheetEntry(settings.spreadsheetId, {
           timesheetId: timesheet.id,
           title: form.title.trim(),
           startAt: form.startAt,
           endAt: form.endAt,
-          description: form.description.trim(),
-        });
-        showSuccess('رکورد ثبت شد');
+          description: form.description.trim()
+        })
+        showSuccess('رکورد ثبت شد')
       }
-      setShowForm(false);
-      await loadItems();
+      setShowForm(false)
+      await loadItems()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در ذخیره');
+      showError(err instanceof Error ? err.message : 'خطا در ذخیره')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (!deletingItem || !isConfigured() || !isTokenValid()) return;
-    const settings = getSettings()!;
-    setDeleting(true);
+    if (!deletingItem || !isConfigured() || !isTokenValid()) return
+
+    const settings = getSettings()!
+
+    setDeleting(true)
     try {
-      await deleteTimesheetEntry(settings.spreadsheetId, deletingItem.rowNumber);
-      showSuccess('رکورد حذف شد');
-      setDeletingItem(null);
-      await loadItems();
+      await deleteTimesheetEntry(settings.spreadsheetId, deletingItem.rowNumber)
+      showSuccess('رکورد حذف شد')
+      setDeletingItem(null)
+      await loadItems()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در حذف');
+      showError(err instanceof Error ? err.message : 'خطا در حذف')
     } finally {
-      setDeleting(false);
+      setDeleting(false)
     }
-  };
+  }
 
   const pageSpeedDialConfig = useMemo(
     () => ({
@@ -335,8 +361,8 @@ export default function TimesheetDetailPage({
         refreshDisabled: loading,
         onImport: handleImport,
         onExport: handleExport,
-        onExportPdf: handleExportPdf,
-      }),
+        onExportPdf: handleExportPdf
+      })
     }),
     [
       timesheet.title,
@@ -346,11 +372,11 @@ export default function TimesheetDetailPage({
       loading,
       handleImport,
       handleExport,
-      handleExportPdf,
+      handleExportPdf
     ]
-  );
+  )
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
     return (
@@ -360,7 +386,7 @@ export default function TimesheetDetailPage({
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -371,16 +397,17 @@ export default function TimesheetDetailPage({
         open={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
         onApply={() => {
-          setSearchQuery(draftSearch);
-          setDatePreset(draftDatePreset);
-          setCustomRange(draftCustomRange);
-          setFilterModalOpen(false);
+          setSearchQuery(draftSearch)
+          setDatePreset(draftDatePreset)
+          setCustomRange(draftCustomRange)
+          setFilterModalOpen(false)
         }}
         onClear={() => {
-          const defaults = createDefaultDateRangeFilter();
-          setDraftSearch('');
-          setDraftDatePreset(defaults.preset);
-          setDraftCustomRange(defaults.customRange);
+          const defaults = createDefaultDateRangeFilter()
+
+          setDraftSearch('')
+          setDraftDatePreset(defaults.preset)
+          setDraftCustomRange(defaults.customRange)
         }}
       >
         <PageFilterPanel
@@ -389,9 +416,9 @@ export default function TimesheetDetailPage({
           searchPlaceholder="جستجو در رکوردها..."
           datePreset={draftDatePreset}
           customRange={draftCustomRange}
-          onDateFilterChange={(filter) => {
-            setDraftDatePreset(filter.preset);
-            setDraftCustomRange(filter.customRange);
+          onDateFilterChange={filter => {
+            setDraftDatePreset(filter.preset)
+            setDraftCustomRange(filter.customRange)
           }}
           dateIncludeAll
           dateLabel="بازه زمانی (تاریخ شروع)"
@@ -413,9 +440,7 @@ export default function TimesheetDetailPage({
         </div>
         <div className="stat-card">
           <span className="stat-label">تعداد رکورد</span>
-          <div className="timesheet-stat-value">
-            {filteredItems.length.toLocaleString('fa-IR')}
-          </div>
+          <div className="timesheet-stat-value">{filteredItems.length.toLocaleString('fa-IR')}</div>
         </div>
       </div>
 
@@ -434,17 +459,19 @@ export default function TimesheetDetailPage({
       ) : filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        filteredItems.map((item) => (
+        filteredItems.map(item => (
           <div
             key={item.id}
-            className={`card installment-card timesheet-entry-card${item.checked ? ' timesheet-entry-card--checked' : ''}`}
+            className={`card installment-card timesheet-entry-card${
+              item.checked ? ' timesheet-entry-card--checked' : ''
+            }`}
           >
             <input
               type="checkbox"
               className="timesheet-entry-checkbox"
               checked={item.checked}
               disabled={togglingCheckId === item.id}
-              onChange={(event) => handleToggleChecked(item, event.target.checked)}
+              onChange={event => handleToggleChecked(item, event.target.checked)}
               aria-label={`تایید ${item.title}`}
             />
             <div className="timesheet-entry-body">
@@ -462,9 +489,7 @@ export default function TimesheetDetailPage({
                         {formatDurationFa(item.durationMinutes)}
                       </span>
                     </div>
-                    {item.description && (
-                      <p className="installment-note">{item.description}</p>
-                    )}
+                    {item.description && <p className="installment-note">{item.description}</p>}
                   </div>
                 </div>
                 <div className="card-action-buttons">
@@ -490,7 +515,7 @@ export default function TimesheetDetailPage({
             type="text"
             className="form-control"
             value={form.title}
-            onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+            onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
             placeholder="مثلاً: جلسه با مشتری"
             autoFocus
           />
@@ -524,7 +549,7 @@ export default function TimesheetDetailPage({
             className="form-control form-note-textarea"
             rows={4}
             value={form.description}
-            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+            onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
             placeholder="توضیحات اضافه..."
           />
         </FormField>
@@ -541,5 +566,5 @@ export default function TimesheetDetailPage({
 
       <ConfirmActionModal {...importExportConfirmModal} />
     </div>
-  );
+  )
 }

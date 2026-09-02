@@ -1,21 +1,18 @@
-import type { Dang } from '../types';
+import type { Dang } from '../types'
+import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
+import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
   fetchSheetRows,
   updateSheetRow,
-  deleteSheetRow,
-} from './sheets';
-import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
-import { downloadTablePdf } from '../utils/pdf';
-import { formatMoney } from '../utils/formatMoney';
-import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat';
-import {
-  createLinkedExpenseRecord,
-  deleteLinkedExpenseRecord,
-} from './paymentTransactions';
+  deleteSheetRow
+} from './sheets'
+import { formatMoney } from '../utils/formatMoney'
+import { downloadTablePdf } from '../utils/pdf'
+import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
 
-export const DANG_SHEET = 'دنگ';
+export const DANG_SHEET = 'دنگ'
 
 export const DANG_HEADERS = [
   'شناسه',
@@ -28,17 +25,21 @@ export const DANG_HEADERS = [
   'توضیحات',
   'پرداخت شده',
   'زمان پرداخت',
-  'شناسه تراکنش',
-];
+  'شناسه تراکنش'
+]
 
 function parsePaid(raw: string): boolean {
-  const v = String(raw ?? '').trim().toLowerCase();
-  return v === 'true' || v === '1' || v === 'بله' || v === 'yes';
+  const v = String(raw ?? '')
+    .trim()
+    .toLowerCase()
+
+  return v === 'true' || v === '1' || v === 'بله' || v === 'yes'
 }
 
 function isLegacyDangRow(row: string[]): boolean {
-  const amountAt4 = Number(row[4]);
-  return row[4] !== '' && !Number.isNaN(amountAt4);
+  const amountAt4 = Number(row[4])
+
+  return row[4] !== '' && !Number.isNaN(amountAt4)
 }
 
 function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number } {
@@ -55,8 +56,8 @@ function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number
       note: row[6] ?? '',
       paid: parsePaid(row[7] ?? ''),
       paidAt: row[8] ?? '',
-      transactionRecordId: '',
-    };
+      transactionRecordId: ''
+    }
   }
 
   return {
@@ -71,8 +72,8 @@ function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number
     note: row[7] ?? '',
     paid: parsePaid(row[8] ?? ''),
     paidAt: row[9] ?? '',
-    transactionRecordId: row[10] ?? '',
-  };
+    transactionRecordId: row[10] ?? ''
+  }
 }
 
 function dangToRow(dang: Dang): string[] {
@@ -87,41 +88,42 @@ function dangToRow(dang: Dang): string[] {
     dang.note,
     dang.paid ? 'بله' : 'خیر',
     dang.paidAt,
-    dang.transactionRecordId ?? '',
-  ];
+    dang.transactionRecordId ?? ''
+  ]
 }
 
 export function sortDangs<T extends Dang>(items: T[]): T[] {
   return [...items].sort((a, b) => {
-    if (a.paid !== b.paid) return a.paid ? 1 : -1;
-    return (b.date || '').localeCompare(a.date || '');
-  });
+    if (a.paid !== b.paid) return a.paid ? 1 : -1
+
+    return (b.date || '').localeCompare(a.date || '')
+  })
 }
 
 export async function ensureDangSheet(spreadsheetId: string): Promise<void> {
-  await ensureSheetWithHeaders(spreadsheetId, DANG_SHEET, DANG_HEADERS);
+  await ensureSheetWithHeaders(spreadsheetId, DANG_SHEET, DANG_HEADERS)
 }
 
-export async function fetchDangs(
-  spreadsheetId: string
-): Promise<(Dang & { rowNumber: number })[]> {
-  const rows = await fetchSheetRows(spreadsheetId, DANG_SHEET);
+export async function fetchDangs(spreadsheetId: string): Promise<(Dang & { rowNumber: number })[]> {
+  const rows = await fetchSheetRows(spreadsheetId, DANG_SHEET)
+
   const items = rows
     .map((row, index) => ({ row, rowNumber: index + 2 }))
     .filter(({ row }) => String(row[0] ?? '').trim())
-    .map(({ row, rowNumber }) => rowToDang(row, rowNumber));
-  return sortDangs(items);
+    .map(({ row, rowNumber }) => rowToDang(row, rowNumber))
+
+  return sortDangs(items)
 }
 
 export async function createDang(
   spreadsheetId: string,
   data: {
-    title: string;
-    category: string;
-    counterparty: string;
-    amount: number;
-    date: string;
-    note: string;
+    title: string
+    category: string
+    counterparty: string
+    amount: number
+    date: string
+    note: string
   }
 ): Promise<Dang> {
   const dang: Dang = {
@@ -134,11 +136,12 @@ export async function createDang(
     date: data.date,
     note: data.note,
     paid: false,
-    paidAt: '',
-  };
+    paidAt: ''
+  }
 
-  await appendSheetRow(spreadsheetId, DANG_SHEET, dangToRow(dang));
-  return dang;
+  await appendSheetRow(spreadsheetId, DANG_SHEET, dangToRow(dang))
+
+  return dang
 }
 
 export async function updateDang(
@@ -146,7 +149,7 @@ export async function updateDang(
   rowNumber: number,
   dang: Dang
 ): Promise<void> {
-  await updateSheetRow(spreadsheetId, DANG_SHEET, rowNumber, dangToRow(dang));
+  await updateSheetRow(spreadsheetId, DANG_SHEET, rowNumber, dangToRow(dang))
 }
 
 export async function deleteDang(
@@ -155,9 +158,9 @@ export async function deleteDang(
   dang?: Dang
 ): Promise<void> {
   if (dang?.transactionRecordId) {
-    await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId);
+    await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId)
   }
-  await deleteSheetRow(spreadsheetId, DANG_SHEET, rowNumber);
+  await deleteSheetRow(spreadsheetId, DANG_SHEET, rowNumber)
 }
 
 export async function toggleDangPaid(
@@ -170,104 +173,93 @@ export async function toggleDangPaid(
       title: `بدهی: ${dang.title}`,
       amount: dang.amount,
       category: dang.category,
-      note: dang.note,
-    });
+      note: dang.note
+    })
+
     const updated: Dang = {
       ...dang,
       paid: true,
       paidAt: new Date().toLocaleString('fa-IR'),
-      transactionRecordId,
-    };
-    await updateDang(spreadsheetId, dang.rowNumber, updated);
-    return updated;
+      transactionRecordId
+    }
+
+    await updateDang(spreadsheetId, dang.rowNumber, updated)
+
+    return updated
   }
 
   if (!paid && dang.paid) {
     if (dang.transactionRecordId) {
-      await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId);
+      await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId)
     }
+
     const updated: Dang = {
       ...dang,
       paid: false,
       paidAt: '',
-      transactionRecordId: '',
-    };
-    await updateDang(spreadsheetId, dang.rowNumber, updated);
-    return updated;
+      transactionRecordId: ''
+    }
+
+    await updateDang(spreadsheetId, dang.rowNumber, updated)
+
+    return updated
   }
 
-  return dang;
+  return dang
 }
 
 export function unpaidDangTotal(items: Dang[]): number {
-  return items.filter((d) => !d.paid).reduce((sum, d) => sum + d.amount, 0);
+  return items.filter(d => !d.paid).reduce((sum, d) => sum + d.amount, 0)
 }
 
 export async function exportDangsCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, 'بدهی.csv');
+  await exportSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, 'بدهی.csv')
 }
 
 export async function exportDangsPdf(spreadsheetId: string): Promise<void> {
-  const items = sortDangs(await fetchDangs(spreadsheetId));
-  const headers = [
-    'عنوان',
-    'دسته‌بندی',
-    'طرف حساب',
-    'مبلغ',
-    'تاریخ',
-    'وضعیت',
-    'توضیحات',
-  ];
-  const rows = items.map((item) => [
+  const items = sortDangs(await fetchDangs(spreadsheetId))
+
+  const headers = ['عنوان', 'دسته‌بندی', 'طرف حساب', 'مبلغ', 'تاریخ', 'وضعیت', 'توضیحات']
+
+  const rows = items.map(item => [
     item.title,
     item.category,
     item.counterparty,
     formatMoney(item.amount),
     formatPersianDate(item.date),
     formatPaidStatus(item.paid),
-    item.note,
-  ]);
-  const cellClasses = items.map(() => [
-    '',
-    '',
-    '',
-    'pdf-cell-amount',
-    '',
-    '',
-    '',
-  ]);
+    item.note
+  ])
+
+  const cellClasses = items.map(() => ['', '', '', 'pdf-cell-amount', '', '', ''])
 
   await downloadTablePdf({
     title: 'گزارش بدهی‌ها',
     headers,
     rows,
     filename: 'بدهی.pdf',
-    cellClasses,
-  });
+    cellClasses
+  })
 }
 
 export async function importDangsCsv(spreadsheetId: string, csvContent: string) {
-  return importSheetCsv(
-    spreadsheetId,
-    DANG_SHEET,
-    DANG_HEADERS,
-    csvContent,
-    (cells) => {
-      const title = (cells[2] ?? '').trim();
-      if (!title) return null;
-      return dangToRow({
-        id: newImportId(cells[0] ?? ''),
-        createdAt: newImportTimestamp(cells[1] ?? ''),
-        title,
-        category: cells[3] ?? 'سایر',
-        counterparty: cells[4] ?? '',
-        amount: Number(cells[5]) || 0,
-        date: cells[6] ?? '',
-        note: cells[7] ?? '',
-        paid: parsePaid(cells[8] ?? ''),
-        paidAt: cells[9] ?? '',
-        transactionRecordId: cells[10] ?? '',
-      });
-    }
-  );
+  return importSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, csvContent, cells => {
+    const title = (cells[2] ?? '').trim()
+
+    if (!title) return null
+
+    return dangToRow({
+      id: newImportId(cells[0] ?? ''),
+      createdAt: newImportTimestamp(cells[1] ?? ''),
+      title,
+      category: cells[3] ?? 'سایر',
+      counterparty: cells[4] ?? '',
+      amount: Number(cells[5]) || 0,
+      date: cells[6] ?? '',
+      note: cells[7] ?? '',
+      paid: parsePaid(cells[8] ?? ''),
+      paidAt: cells[9] ?? '',
+      transactionRecordId: cells[10] ?? ''
+    })
+  })
 }

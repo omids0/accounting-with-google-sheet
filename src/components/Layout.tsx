@@ -1,48 +1,43 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import DashboardPage from './DashboardPage';
-import DataEntryPage from './DataEntryPage';
-import RecordsPage from './RecordsPage';
-import InstallmentsPage from './InstallmentsPage';
-import DangPage from './DangPage';
-import ChecksPage from './ChecksPage';
-import ReceivablesPage from './ReceivablesPage';
-import TreasuryPage from './TreasuryPage';
-import WalletPage from './WalletPage';
-import OpeningBalancePage from './OpeningBalancePage';
-import NetAvailableSettingsPage from './NetAvailableSettingsPage';
-import LoanRequestCalculatorPage from './LoanRequestCalculatorPage';
-import CurrencyConverterPage from './CurrencyConverterPage';
-import DateCalculatorPage from './DateCalculatorPage';
-import FinancialSummaryReportPage from './reports/FinancialSummaryReportPage';
-import IncomeExpenseReportPage from './reports/IncomeExpenseReportPage';
-import CashFlowReportPage from './reports/CashFlowReportPage';
-import DueDatesReportPage from './reports/DueDatesReportPage';
-import AssetsLiabilitiesReportPage from './reports/AssetsLiabilitiesReportPage';
-import OpeningBalanceReportPage from './reports/OpeningBalanceReportPage';
-import ModuleReportPage from './reports/ModuleReportPage';
-import SettingsPage from './SettingsPage';
-import TimesheetsPage from './TimesheetsPage';
-import TimesheetDetailPage from './TimesheetDetailPage';
-import PageSpeedDial from './PageSpeedDial';
-import AppIcon from './AppIcon';
-import SyncStatusBadge from './SyncStatusBadge';
-import { getUserName, getUserPicture } from '../services/auth';
-import type { Timesheet } from '../types';
-import { usePageSpeedDialConfig } from '../hooks/usePageSpeedDial';
-import { useEngagementReminders } from '../hooks/useEngagementReminders';
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 
-function TabPanel({
-  active,
-  children,
-}: {
-  active: boolean;
-  children: ReactNode;
-}) {
+import AppIcon from './AppIcon'
+import ChecksPage from './ChecksPage'
+import CurrencyConverterPage from './CurrencyConverterPage'
+import DangPage from './DangPage'
+import DashboardPage from './DashboardPage'
+import DataEntryPage from './DataEntryPage'
+import DateCalculatorPage from './DateCalculatorPage'
+import InstallmentsPage from './InstallmentsPage'
+import LoanRequestCalculatorPage from './LoanRequestCalculatorPage'
+import NetAvailableSettingsPage from './NetAvailableSettingsPage'
+import OpeningBalancePage from './OpeningBalancePage'
+import PageSpeedDial from './PageSpeedDial'
+import ReceivablesPage from './ReceivablesPage'
+import RecordsPage from './RecordsPage'
+import SyncStatusBadge from './SyncStatusBadge'
+import { useEngagementReminders } from '../hooks/useEngagementReminders'
+import { getUserName, getUserPicture } from '../services/auth'
+import type { Timesheet } from '../types'
+import AssetsLiabilitiesReportPage from './reports/AssetsLiabilitiesReportPage'
+import CashFlowReportPage from './reports/CashFlowReportPage'
+import DueDatesReportPage from './reports/DueDatesReportPage'
+import FinancialSummaryReportPage from './reports/FinancialSummaryReportPage'
+import IncomeExpenseReportPage from './reports/IncomeExpenseReportPage'
+import ModuleReportPage from './reports/ModuleReportPage'
+import OpeningBalanceReportPage from './reports/OpeningBalanceReportPage'
+import SettingsPage from './SettingsPage'
+import TimesheetDetailPage from './TimesheetDetailPage'
+import TimesheetsPage from './TimesheetsPage'
+import TreasuryPage from './TreasuryPage'
+import WalletPage from './WalletPage'
+import { usePageSpeedDialConfig } from '../hooks/usePageSpeedDial'
+
+function TabPanel({ active, children }: { active: boolean; children: ReactNode }) {
   return (
     <div className="tab-panel" hidden={!active} aria-hidden={!active}>
       {children}
     </div>
-  );
+  )
 }
 
 type Tab =
@@ -73,11 +68,11 @@ type Tab =
   | 'report-installments'
   | 'report-checks'
   | 'timesheets'
-  | 'timesheet-detail';
+  | 'timesheet-detail'
 
-const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter', 'date-calculator'];
+const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter', 'date-calculator']
 
-const TIMESHEET_TABS: Tab[] = ['timesheets', 'timesheet-detail'];
+const TIMESHEET_TABS: Tab[] = ['timesheets', 'timesheet-detail']
 
 const REPORT_TABS: Tab[] = [
   'report-financial-summary',
@@ -91,8 +86,8 @@ const REPORT_TABS: Tab[] = [
   'report-receivables',
   'report-dang',
   'report-installments',
-  'report-checks',
-];
+  'report-checks'
+]
 
 const SPEED_DIAL_TABS: Tab[] = [
   'dashboard',
@@ -103,25 +98,34 @@ const SPEED_DIAL_TABS: Tab[] = [
   'treasury',
   'wallet',
   'timesheets',
-  'timesheet-detail',
-];
+  'timesheet-detail'
+]
 
 interface LayoutProps {
-  onLogout: () => void;
-  onReauth: () => void;
+  onLogout: () => void
+  onReauth: () => void
 }
 
 export default function Layout({ onLogout, onReauth }: LayoutProps) {
-  const [tab, setTab] = useState<Tab>('dashboard');
-  const [dataKey, setDataKey] = useState(0);
-  const [showSettings, setShowSettings] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [calcMenuExpanded, setCalcMenuExpanded] = useState(false);
-  const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false);
-  const [timesheetMenuExpanded, setTimesheetMenuExpanded] = useState(false);
-  const [selectedTimesheet, setSelectedTimesheet] = useState<Timesheet | null>(null);
-  const userName = getUserName();
-  const userPicture = getUserPicture();
+  const [tab, setTab] = useState<Tab>('dashboard')
+
+  const [dataKey, setDataKey] = useState(0)
+
+  const [showSettings, setShowSettings] = useState(false)
+
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const [calcMenuExpanded, setCalcMenuExpanded] = useState(false)
+
+  const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false)
+
+  const [timesheetMenuExpanded, setTimesheetMenuExpanded] = useState(false)
+
+  const [selectedTimesheet, setSelectedTimesheet] = useState<Timesheet | null>(null)
+
+  const userName = getUserName()
+
+  const userPicture = getUserPicture()
 
   const titles: Record<Tab, string> = {
     dashboard: 'داشبورد',
@@ -151,78 +155,85 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     'report-installments': 'گزارش اقساط',
     'report-checks': 'گزارش چک‌ها',
     timesheets: 'تایم‌شیت',
-    'timesheet-detail': 'جزئیات تایم‌شیت',
-  };
+    'timesheet-detail': 'جزئیات تایم‌شیت'
+  }
 
-  const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
-  const [entryFormType, setEntryFormType] = useState<'income' | 'expense' | undefined>();
-  const pageSpeedDialConfig = usePageSpeedDialConfig();
-  useEngagementReminders();
+  const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>()
+
+  const [entryFormType, setEntryFormType] = useState<'income' | 'expense' | undefined>()
+
+  const pageSpeedDialConfig = usePageSpeedDialConfig()
+
+  useEngagementReminders()
+
   const showPageSpeedDial =
-    !showSettings && SPEED_DIAL_TABS.includes(tab) && pageSpeedDialConfig != null;
+    !showSettings && SPEED_DIAL_TABS.includes(tab) && pageSpeedDialConfig != null
 
   const openTimesheetDetail = useCallback((timesheet: Timesheet) => {
-    setSelectedTimesheet(timesheet);
-    setTimesheetMenuExpanded(true);
-    setShowSettings(false);
-    setMenuOpen(false);
-    setTab('timesheet-detail');
-  }, []);
+    setSelectedTimesheet(timesheet)
+    setTimesheetMenuExpanded(true)
+    setShowSettings(false)
+    setMenuOpen(false)
+    setTab('timesheet-detail')
+  }, [])
 
   const openTimesheetsList = useCallback(() => {
-    setShowSettings(false);
-    setMenuOpen(false);
-    setTimesheetMenuExpanded(true);
-    setTab('timesheets');
-  }, []);
+    setShowSettings(false)
+    setMenuOpen(false)
+    setTimesheetMenuExpanded(true)
+    setTab('timesheets')
+  }, [])
 
   const handleTabChange = useCallback((newTab: Tab) => {
-    setShowSettings(false);
-    setMenuOpen(false);
-    if (newTab !== 'records') setRecordsFormType(undefined);
-    if (newTab !== 'entry') setEntryFormType(undefined);
+    setShowSettings(false)
+    setMenuOpen(false)
+    if (newTab !== 'records') setRecordsFormType(undefined)
+    if (newTab !== 'entry') setEntryFormType(undefined)
     if (CALCULATION_TABS.includes(newTab)) {
-      setCalcMenuExpanded(true);
+      setCalcMenuExpanded(true)
     }
     if (REPORT_TABS.includes(newTab)) {
-      setReportsMenuExpanded(true);
+      setReportsMenuExpanded(true)
     }
     if (TIMESHEET_TABS.includes(newTab)) {
-      setTimesheetMenuExpanded(true);
+      setTimesheetMenuExpanded(true)
     }
     if (newTab === 'timesheets') {
-      setSelectedTimesheet(null);
+      setSelectedTimesheet(null)
     }
-    setTab(newTab);
-  }, []);
+    setTab(newTab)
+  }, [])
 
   const openRecords = useCallback((formType?: 'income' | 'expense') => {
-    setShowSettings(false);
-    setMenuOpen(false);
-    setRecordsFormType(formType);
-    setTab('records');
-  }, []);
+    setShowSettings(false)
+    setMenuOpen(false)
+    setRecordsFormType(formType)
+    setTab('records')
+  }, [])
 
   const openEntry = useCallback((formType?: 'income' | 'expense') => {
-    setShowSettings(false);
-    setMenuOpen(false);
-    setEntryFormType(formType);
-    setTab('entry');
-  }, []);
+    setShowSettings(false)
+    setMenuOpen(false)
+    setEntryFormType(formType)
+    setTab('entry')
+  }, [])
 
   const openSettings = () => {
-    setShowSettings(true);
-    setMenuOpen(false);
-  };
+    setShowSettings(true)
+    setMenuOpen(false)
+  }
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen) return
+
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [menuOpen]);
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [menuOpen])
 
   const showHeaderBack =
     !showSettings &&
@@ -232,17 +243,19 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
       tab === 'net-available-settings' ||
       TIMESHEET_TABS.includes(tab) ||
       CALCULATION_TABS.includes(tab) ||
-      REPORT_TABS.includes(tab));
+      REPORT_TABS.includes(tab))
 
-  const isCalculationTab = CALCULATION_TABS.includes(tab);
-  const isReportTab = REPORT_TABS.includes(tab);
-  const isTimesheetTab = TIMESHEET_TABS.includes(tab);
+  const isCalculationTab = CALCULATION_TABS.includes(tab)
+
+  const isReportTab = REPORT_TABS.includes(tab)
+
+  const isTimesheetTab = TIMESHEET_TABS.includes(tab)
 
   const headerTitle = showSettings
     ? 'تنظیمات'
     : tab === 'timesheet-detail' && selectedTimesheet
-      ? selectedTimesheet.title
-      : titles[tab];
+    ? selectedTimesheet.title
+    : titles[tab]
 
   return (
     <div className="app-layout">
@@ -250,7 +263,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         <button
           type="button"
           className={`header-icon-btn header-icon-btn--menu${menuOpen ? ' active' : ''}`}
-          onClick={() => setMenuOpen((v) => !v)}
+          onClick={() => setMenuOpen(v => !v)}
           aria-label={menuOpen ? 'بستن منو' : 'باز کردن منو'}
           aria-expanded={menuOpen}
           title="منو"
@@ -267,17 +280,18 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
             className="header-icon-btn header-back-btn"
             onClick={() => {
               if (tab === 'timesheet-detail') {
-                handleTabChange('timesheets');
-                return;
+                handleTabChange('timesheets')
+
+                return
               }
-              handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard');
+              handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
             }}
             aria-label={
               tab === 'timesheet-detail'
                 ? 'بازگشت به لیست تایم‌شیت‌ها'
                 : tab === 'opening-balances'
-                  ? 'بازگشت به کیف پول'
-                  : 'بازگشت به داشبورد'
+                ? 'بازگشت به کیف پول'
+                : 'بازگشت به داشبورد'
             }
             title="بازگشت"
           >
@@ -314,10 +328,8 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               <div className="app-menu-group">
                 <button
                   type="button"
-                  className={`app-menu-item app-menu-item--parent${
-                    isReportTab ? ' active' : ''
-                  }`}
-                  onClick={() => setReportsMenuExpanded((v) => !v)}
+                  className={`app-menu-item app-menu-item--parent${isReportTab ? ' active' : ''}`}
+                  onClick={() => setReportsMenuExpanded(v => !v)}
                   aria-expanded={reportsMenuExpanded}
                 >
                   <span className="app-menu-item-icon">
@@ -453,7 +465,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                   className={`app-menu-item app-menu-item--parent${
                     isCalculationTab ? ' active' : ''
                   }`}
-                  onClick={() => setCalcMenuExpanded((v) => !v)}
+                  onClick={() => setCalcMenuExpanded(v => !v)}
                   aria-expanded={calcMenuExpanded}
                 >
                   <span className="app-menu-item-icon">
@@ -505,7 +517,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                   className={`app-menu-item app-menu-item--parent${
                     isTimesheetTab ? ' active' : ''
                   }`}
-                  onClick={() => setTimesheetMenuExpanded((v) => !v)}
+                  onClick={() => setTimesheetMenuExpanded(v => !v)}
                   aria-expanded={timesheetMenuExpanded}
                 >
                   <span className="app-menu-item-icon">
@@ -553,7 +565,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           {showSettings ? (
             <SettingsPage
               onLogout={onLogout}
-              onSpreadsheetChange={() => setDataKey((key) => key + 1)}
+              onSpreadsheetChange={() => setDataKey(key => key + 1)}
             />
           ) : (
             <>
@@ -600,18 +612,14 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                 <RecordsPage onReauth={onReauth} initialFormType={recordsFormType} />
               )}
               {tab === 'opening-balances' && <OpeningBalancePage onReauth={onReauth} />}
-              {tab === 'net-available-settings' && (
-                <NetAvailableSettingsPage onReauth={onReauth} />
-              )}
+              {tab === 'net-available-settings' && <NetAvailableSettingsPage onReauth={onReauth} />}
               {tab === 'loan-calculator' && <LoanRequestCalculatorPage />}
               {tab === 'currency-converter' && <CurrencyConverterPage />}
               {tab === 'date-calculator' && <DateCalculatorPage />}
               {tab === 'report-financial-summary' && (
                 <FinancialSummaryReportPage onReauth={onReauth} />
               )}
-              {tab === 'report-income-expense' && (
-                <IncomeExpenseReportPage onReauth={onReauth} />
-              )}
+              {tab === 'report-income-expense' && <IncomeExpenseReportPage onReauth={onReauth} />}
               {tab === 'report-cash-flow' && <CashFlowReportPage onReauth={onReauth} />}
               {tab === 'report-due-dates' && <DueDatesReportPage onReauth={onReauth} />}
               {tab === 'report-assets-liabilities' && (
@@ -620,9 +628,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               {tab === 'report-opening-balances' && (
                 <OpeningBalanceReportPage onReauth={onReauth} />
               )}
-              {tab === 'report-wallet' && (
-                <ModuleReportPage kind="wallet" onReauth={onReauth} />
-              )}
+              {tab === 'report-wallet' && <ModuleReportPage kind="wallet" onReauth={onReauth} />}
               {tab === 'report-treasury' && (
                 <ModuleReportPage kind="treasury" onReauth={onReauth} />
               )}
@@ -633,9 +639,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               {tab === 'report-installments' && (
                 <ModuleReportPage kind="installments" onReauth={onReauth} />
               )}
-              {tab === 'report-checks' && (
-                <ModuleReportPage kind="checks" onReauth={onReauth} />
-              )}
+              {tab === 'report-checks' && <ModuleReportPage kind="checks" onReauth={onReauth} />}
               <TabPanel active={tab === 'timesheets'}>
                 <TimesheetsPage
                   onReauth={onReauth}
@@ -751,7 +755,6 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           ariaLabel={pageSpeedDialConfig.ariaLabel}
         />
       )}
-
     </div>
-  );
+  )
 }

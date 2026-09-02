@@ -8,7 +8,21 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint --fix --ext .jsx,.js,.ts,.tsx ./src ./e2e",
+    "types": "tsc --pretty --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\" \"e2e/**/*.{ts,tsx}\"",
+    "prepare": "husky install || true",
+    "lines": "node scripts/global-line-check.js",
+    "lighthouse": "node scripts/run-lighthouse.mjs",
+    "lighthouse:clean": "node scripts/clean-lighthouse.mjs",
+    "e2e": "playwright test",
+    "e2e:a11y": "playwright test e2e",
+    "e2e:ui": "playwright test --ui",
+    "e2e:browser-check": "node scripts/check-browser.mjs",
+    "size-limit": "size-limit",
+    "quality": "npm run lint && npm run types && npm run build && npm run size-limit && npm run e2e:a11y && npm run lighthouse",
+    "quality:ci": "npm run lint && npm run types && npm run build && npm run size-limit && npm run e2e:a11y && npm run lighthouse"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
@@ -20,15 +34,52 @@
     "react-router-dom": "^6.26.2",
     "recharts": "^3.10.1"
   },
+  "size-limit": [
+    {
+      "name": "personal-accounting-pwa (JS)",
+      "path": "dist/assets/*.js",
+      "limit": "800 KB"
+    },
+    {
+      "name": "personal-accounting-pwa (CSS)",
+      "path": "dist/assets/*.css",
+      "limit": "150 KB"
+    }
+  ],
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.1",
+    "@playwright/test": "^1.49.1",
+    "@size-limit/file": "^11.1.6",
+    "@types/node": "^20",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.69.0",
+    "@typescript-eslint/parser": "^8.69.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "chrome-launcher": "^1.1.2",
+    "eslint": "^8",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^8.0.3",
     "jsdom": "^29.1.1",
+    "lighthouse": "^12.1.0",
+    "lint-staged": "^14.0.0",
+    "prettier": "^2.8.3",
+    "size-limit": "^11.1.6",
     "typescript": "^5.5.4",
     "vite": "^5.4.2",
     "vite-plugin-pwa": "^0.20.1",
     "vitest": "^3.2.7",
     "workbox-window": "^7.1.0"
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }

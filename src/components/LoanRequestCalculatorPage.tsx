@@ -1,59 +1,64 @@
-import { useMemo, useState } from 'react';
-import AmountInput from './AmountInput';
-import MoneyDisplay from './MoneyDisplay';
-import { FormField } from './form';
-import { calculateFlatRateLoan } from '../utils/loanCalculator';
-import { getCurrencySymbol } from '../utils/formatMoney';
-import { numberToPersianWords } from '../utils/numberToWords';
+import { useMemo, useState } from 'react'
+
+import AmountInput from './AmountInput'
+import { FormField } from './form'
+import MoneyDisplay from './MoneyDisplay'
+import { getCurrencySymbol } from '../utils/formatMoney'
+import { calculateFlatRateLoan } from '../utils/loanCalculator'
+import { numberToPersianWords } from '../utils/numberToWords'
 
 function parseDecimalInput(value: string): string {
   return value
-    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
     .replace(/[^\d.]/g, '')
-    .replace(/(\..*)\./g, '$1');
+    .replace(/(\..*)\./g, '$1')
 }
 
 function parseIntegerInput(value: string): string {
   return value
-    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
-    .replace(/[^\d]/g, '');
+    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[^\d]/g, '')
 }
 
 export default function LoanRequestCalculatorPage() {
-  const [principal, setPrincipal] = useState<number | ''>('');
-  const [annualRate, setAnnualRate] = useState('');
-  const [months, setMonths] = useState('');
+  const [principal, setPrincipal] = useState<number | ''>('')
+
+  const [annualRate, setAnnualRate] = useState('')
+
+  const [months, setMonths] = useState('')
 
   const result = useMemo(() => {
-    const principalValue = principal === '' ? 0 : principal;
-    const rateValue = annualRate === '' ? 0 : Number(annualRate);
-    const monthsValue = months === '' ? 0 : Number(months);
+    const principalValue = principal === '' ? 0 : principal
+
+    const rateValue = annualRate === '' ? 0 : Number(annualRate)
+
+    const monthsValue = months === '' ? 0 : Number(months)
 
     return calculateFlatRateLoan({
       principal: principalValue,
       annualRatePercent: rateValue,
-      months: monthsValue,
-    });
-  }, [principal, annualRate, months]);
+      months: monthsValue
+    })
+  }, [principal, annualRate, months])
 
-  const currency = getCurrencySymbol();
+  const currency = getCurrencySymbol()
+
   const hasValidInput =
     principal !== '' &&
     principal > 0 &&
     annualRate !== '' &&
     Number(annualRate) >= 0 &&
     months !== '' &&
-    Number(months) > 0;
+    Number(months) > 0
 
   return (
     <div className="loan-calculator-page">
       <div className="card">
         <h3 className="card-title">شرایط وام</h3>
         <p className="loan-calculator-hint">
-          مبلغ وام، نرخ سود سالانه و مدت بازپرداخت را مطابق اعلام بانک یا موسسه وارد
-          کنید.
+          مبلغ وام، نرخ سود سالانه و مدت بازپرداخت را مطابق اعلام بانک یا موسسه وارد کنید.
         </p>
 
         <FormField label="مبلغ وام" required>
@@ -74,7 +79,7 @@ export default function LoanRequestCalculatorPage() {
               type="text"
               inputMode="decimal"
               value={annualRate}
-              onChange={(e) => setAnnualRate(parseDecimalInput(e.target.value))}
+              onChange={e => setAnnualRate(parseDecimalInput(e.target.value))}
               dir="ltr"
             />
             <span className="loan-rate-suffix" aria-hidden="true">
@@ -96,7 +101,7 @@ export default function LoanRequestCalculatorPage() {
             type="text"
             inputMode="numeric"
             value={months}
-            onChange={(e) => setMonths(parseIntegerInput(e.target.value))}
+            onChange={e => setMonths(parseIntegerInput(e.target.value))}
             dir="ltr"
           />
         </FormField>
@@ -137,19 +142,17 @@ export default function LoanRequestCalculatorPage() {
               </div>
             </div>
             <p className="loan-calculator-formula-hint">
-              محاسبه بر اساس نرخ سود سالانه ساده: سود کل = مبلغ وام × نرخ سود × (تعداد
-              ماه ÷ ۱۲)
+              محاسبه بر اساس نرخ سود سالانه ساده: سود کل = مبلغ وام × نرخ سود × (تعداد ماه ÷ ۱۲)
             </p>
           </div>
         </>
       ) : (
         <div className="card loan-calculator-empty-card">
           <p className="empty-text">
-            پس از وارد کردن مبلغ، نرخ سود و تعداد ماه، نتیجه محاسبه اینجا نمایش داده
-            می‌شود.
+            پس از وارد کردن مبلغ، نرخ سود و تعداد ماه، نتیجه محاسبه اینجا نمایش داده می‌شود.
           </p>
         </div>
       )}
     </div>
-  );
+  )
 }

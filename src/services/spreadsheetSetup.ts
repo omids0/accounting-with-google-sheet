@@ -1,106 +1,68 @@
-import { sortFormFields } from '../components/form/fieldUtils';
-import type { FieldConfig, SpreadsheetEntry } from '../types';
-import { getJalaliParts } from '../utils/jalaliDate';
-import { listAccountingSpreadsheetsFromDrive } from './drive';
-import {
-  INSTALLMENTS_HEADERS,
-  INSTALLMENTS_SHEET,
-} from './installments';
-import {
-  DANG_HEADERS,
-  DANG_SHEET,
-} from './dang';
-import {
-  CHECKS_HEADERS,
-  CHECKS_SHEET,
-} from './checks';
-import {
-  MONTHLY_BALANCE_HEADERS,
-  MONTHLY_BALANCE_SHEET,
-} from './monthlyBalance';
-import {
-  RECEIVABLES_HEADERS,
-  RECEIVABLES_SHEET,
-} from './receivables';
-import {
-  CATEGORIES_HEADERS,
-  CATEGORIES_SHEET,
-  syncCategoriesFromSheet,
-} from './categories';
-import {
-  ACTIVITY_HEADERS,
-  ACTIVITY_SHEET,
-} from './activityTracking';
+import { sortFormFields } from '../components/form/fieldUtils'
+import type { FieldConfig, SpreadsheetEntry } from '../types'
+import { ACTIVITY_HEADERS, ACTIVITY_SHEET } from './activityTracking'
+import { APP_LOCK_HEADERS, APP_LOCK_SHEET } from './appLockSync'
+import { CATEGORIES_HEADERS, CATEGORIES_SHEET, syncCategoriesFromSheet } from './categories'
+import { CHECKS_HEADERS, CHECKS_SHEET } from './checks'
+import { DANG_HEADERS, DANG_SHEET } from './dang'
+import { listAccountingSpreadsheetsFromDrive } from './drive'
+import { INSTALLMENTS_HEADERS, INSTALLMENTS_SHEET } from './installments'
+import { MONTHLY_BALANCE_HEADERS, MONTHLY_BALANCE_SHEET } from './monthlyBalance'
+import { RECEIVABLES_HEADERS, RECEIVABLES_SHEET } from './receivables'
 import {
   PUSH_SUBS_HEADERS,
   PUSH_SUBS_SHEET,
   REMINDER_LOG_HEADERS,
   REMINDER_LOG_SHEET,
   REMINDERS_HEADERS,
-  REMINDERS_SHEET,
-} from './reminders';
-import {
-  APP_LOCK_HEADERS,
-  APP_LOCK_SHEET,
-} from './appLockSync';
-import {
-  formatSpreadsheetTitle,
-} from './spreadsheetCatalog';
+  REMINDERS_SHEET
+} from './reminders'
+import { getDefaultSettings, getSettings, registerSpreadsheet, saveSettings } from './settings'
 import {
   createSpreadsheet,
   ensureManySheetsWithHeaders,
   invalidateSpreadsheetCache,
   markSheetsPrepared,
   verifySpreadsheetExists,
-  type SheetSpec,
-} from './sheets';
-import {
-  TREASURY_HEADERS,
-  TREASURY_SHEET,
-} from './treasury';
-import {
-  WALLET_HEADERS,
-  WALLET_SHEET,
-} from './wallet';
-import {
-  getDefaultSettings,
-  getSettings,
-  registerSpreadsheet,
-  saveSettings,
-} from './settings';
+  type SheetSpec
+} from './sheets'
+import { formatSpreadsheetTitle } from './spreadsheetCatalog'
+import { TREASURY_HEADERS, TREASURY_SHEET } from './treasury'
+import { WALLET_HEADERS, WALLET_SHEET } from './wallet'
+import { getJalaliParts } from '../utils/jalaliDate'
 
-const SESSION_PREPARED_KEY = 'accounting_sheets_ready';
+const SESSION_PREPARED_KEY = 'accounting_sheets_ready'
 
-let activeSpreadsheetSetup: Promise<string> | null = null;
+let activeSpreadsheetSetup: Promise<string> | null = null
 
 export type SpreadsheetSessionStatus =
   | { status: 'ready'; spreadsheetId: string }
   | { status: 'need_selection'; options: SpreadsheetEntry[] }
-  | { status: 'need_first_sheet' };
+  | { status: 'need_first_sheet' }
 
-function runExclusiveSpreadsheetSetup(
-  task: () => Promise<string>
-): Promise<string> {
+function runExclusiveSpreadsheetSetup(task: () => Promise<string>): Promise<string> {
   if (activeSpreadsheetSetup) {
-    return activeSpreadsheetSetup;
+    return activeSpreadsheetSetup
   }
 
   activeSpreadsheetSetup = task().finally(() => {
-    activeSpreadsheetSetup = null;
-  });
-  return activeSpreadsheetSetup;
+    activeSpreadsheetSetup = null
+  })
+
+  return activeSpreadsheetSetup
 }
 
 function buildHeaders(form: { fields: FieldConfig[] }): string[] {
-  return ['شناسه', 'زمان ثبت', ...sortFormFields(form.fields).map((field) => field.label)];
+  return ['شناسه', 'زمان ثبت', ...sortFormFields(form.fields).map(field => field.label)]
 }
 
 function getAllSheetSpecs(): SheetSpec[] {
-  const settings = getSettings() ?? getDefaultSettings();
-  const formSheets = settings.forms.map((form) => ({
+  const settings = getSettings() ?? getDefaultSettings()
+
+  const formSheets = settings.forms.map(form => ({
     sheetName: form.sheetName,
-    headers: buildHeaders(form),
-  }));
+    headers: buildHeaders(form)
+  }))
 
   return [
     ...formSheets,
@@ -112,35 +74,35 @@ function getAllSheetSpecs(): SheetSpec[] {
     { sheetName: WALLET_SHEET, headers: WALLET_HEADERS },
     {
       sheetName: MONTHLY_BALANCE_SHEET,
-      headers: MONTHLY_BALANCE_HEADERS,
+      headers: MONTHLY_BALANCE_HEADERS
     },
     { sheetName: CATEGORIES_SHEET, headers: CATEGORIES_HEADERS },
     { sheetName: ACTIVITY_SHEET, headers: ACTIVITY_HEADERS },
     { sheetName: REMINDERS_SHEET, headers: REMINDERS_HEADERS },
     { sheetName: PUSH_SUBS_SHEET, headers: PUSH_SUBS_HEADERS },
     { sheetName: REMINDER_LOG_SHEET, headers: REMINDER_LOG_HEADERS },
-    { sheetName: APP_LOCK_SHEET, headers: APP_LOCK_HEADERS },
-  ];
+    { sheetName: APP_LOCK_SHEET, headers: APP_LOCK_HEADERS }
+  ]
 }
 
 function markAllKnownSheetsPrepared(spreadsheetId: string): void {
   markSheetsPrepared(
     spreadsheetId,
-    getAllSheetSpecs().map((sheet) => sheet.sheetName)
-  );
+    getAllSheetSpecs().map(sheet => sheet.sheetName)
+  )
 }
 
 function isSessionPrepared(spreadsheetId: string): boolean {
   try {
-    return sessionStorage.getItem(SESSION_PREPARED_KEY) === spreadsheetId;
+    return sessionStorage.getItem(SESSION_PREPARED_KEY) === spreadsheetId
   } catch {
-    return false;
+    return false
   }
 }
 
 function markSessionPrepared(spreadsheetId: string): void {
   try {
-    sessionStorage.setItem(SESSION_PREPARED_KEY, spreadsheetId);
+    sessionStorage.setItem(SESSION_PREPARED_KEY, spreadsheetId)
   } catch {
     // Ignore storage failures in private mode.
   }
@@ -148,79 +110,77 @@ function markSessionPrepared(spreadsheetId: string): void {
 
 export function clearSpreadsheetPrepareSession(spreadsheetId?: string): void {
   try {
-    sessionStorage.removeItem(SESSION_PREPARED_KEY);
+    sessionStorage.removeItem(SESSION_PREPARED_KEY)
   } catch {
     // Ignore storage failures in private mode.
   }
   if (spreadsheetId) {
-    invalidateSpreadsheetCache(spreadsheetId);
+    invalidateSpreadsheetCache(spreadsheetId)
   }
 }
 
 async function ensureAllSheets(spreadsheetId: string): Promise<void> {
-  await ensureManySheetsWithHeaders(spreadsheetId, getAllSheetSpecs());
+  await ensureManySheetsWithHeaders(spreadsheetId, getAllSheetSpecs())
 }
 
 function driveFileToEntry(file: {
-  id: string;
-  name: string;
-  modifiedTime: string;
+  id: string
+  name: string
+  modifiedTime: string
 }): SpreadsheetEntry {
   return {
     id: file.id,
     name: file.name,
-    createdAt: file.modifiedTime,
-  };
+    createdAt: file.modifiedTime
+  }
 }
 
 export async function syncSpreadsheetsFromDrive(): Promise<SpreadsheetEntry[]> {
-  const settings = getSettings() ?? getDefaultSettings();
-  const fromDrive = await listAccountingSpreadsheetsFromDrive();
-  const merged = new Map<string, SpreadsheetEntry>();
+  const settings = getSettings() ?? getDefaultSettings()
+
+  const fromDrive = await listAccountingSpreadsheetsFromDrive()
+
+  const merged = new Map<string, SpreadsheetEntry>()
 
   for (const sheet of settings.spreadsheets ?? []) {
-    merged.set(sheet.id, sheet);
+    merged.set(sheet.id, sheet)
   }
   for (const file of fromDrive) {
-    merged.set(file.id, driveFileToEntry(file));
+    merged.set(file.id, driveFileToEntry(file))
   }
 
   const spreadsheets = Array.from(merged.values()).sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
 
   const activeId =
-    settings.spreadsheetId &&
-    spreadsheets.some((sheet) => sheet.id === settings.spreadsheetId)
+    settings.spreadsheetId && spreadsheets.some(sheet => sheet.id === settings.spreadsheetId)
       ? settings.spreadsheetId
-      : settings.spreadsheetId;
+      : settings.spreadsheetId
 
   saveSettings({
     ...settings,
     spreadsheets,
-    spreadsheetId: activeId,
-  });
+    spreadsheetId: activeId
+  })
 
-  return spreadsheets;
+  return spreadsheets
 }
 
 export async function resolveSpreadsheetSession(): Promise<SpreadsheetSessionStatus> {
-  const settings = getSettings() ?? getDefaultSettings();
+  const settings = getSettings() ?? getDefaultSettings()
 
-  if (
-    settings.spreadsheetId &&
-    (await verifySpreadsheetExists(settings.spreadsheetId))
-  ) {
-    return { status: 'ready', spreadsheetId: settings.spreadsheetId };
+  if (settings.spreadsheetId && (await verifySpreadsheetExists(settings.spreadsheetId))) {
+    return { status: 'ready', spreadsheetId: settings.spreadsheetId }
   }
 
-  const options = await syncSpreadsheetsFromDrive();
+  const options = await syncSpreadsheetsFromDrive()
+
   if (options.length > 0) {
-    return { status: 'need_selection', options };
+    return { status: 'need_selection', options }
   }
 
-  return { status: 'need_first_sheet' };
+  return { status: 'need_first_sheet' }
 }
 
 async function finalizeSpreadsheetActivation(
@@ -228,20 +188,22 @@ async function finalizeSpreadsheetActivation(
   name: string,
   previousId?: string
 ): Promise<string> {
-  registerSpreadsheet(spreadsheetId, name);
-  clearSpreadsheetPrepareSession(previousId);
-  clearSpreadsheetPrepareSession(spreadsheetId);
+  registerSpreadsheet(spreadsheetId, name)
+  clearSpreadsheetPrepareSession(previousId)
+  clearSpreadsheetPrepareSession(spreadsheetId)
 
   if (isSessionPrepared(spreadsheetId)) {
-    markAllKnownSheetsPrepared(spreadsheetId);
-    return spreadsheetId;
+    markAllKnownSheetsPrepared(spreadsheetId)
+
+    return spreadsheetId
   }
 
-  await ensureAllSheets(spreadsheetId);
-  await syncCategoriesFromSheet(spreadsheetId);
-  markAllKnownSheetsPrepared(spreadsheetId);
-  markSessionPrepared(spreadsheetId);
-  return spreadsheetId;
+  await ensureAllSheets(spreadsheetId)
+  await syncCategoriesFromSheet(spreadsheetId)
+  markAllKnownSheetsPrepared(spreadsheetId)
+  markSessionPrepared(spreadsheetId)
+
+  return spreadsheetId
 }
 
 export async function activateSpreadsheet(
@@ -249,80 +211,83 @@ export async function activateSpreadsheet(
   previousId?: string
 ): Promise<string> {
   return runExclusiveSpreadsheetSetup(async () => {
-    const settings = getSettings() ?? getDefaultSettings();
-    const options = await syncSpreadsheetsFromDrive();
+    const settings = getSettings() ?? getDefaultSettings()
+
+    const options = await syncSpreadsheetsFromDrive()
+
     const entry =
-      options.find((sheet) => sheet.id === spreadsheetId) ??
-      settings.spreadsheets?.find((sheet) => sheet.id === spreadsheetId);
+      options.find(sheet => sheet.id === spreadsheetId) ??
+      settings.spreadsheets?.find(sheet => sheet.id === spreadsheetId)
 
     if (!entry) {
-      throw new Error('شیت انتخاب‌شده پیدا نشد');
+      throw new Error('شیت انتخاب‌شده پیدا نشد')
     }
     if (!(await verifySpreadsheetExists(spreadsheetId))) {
-      throw new Error('این شیت در Google Drive پیدا نشد');
+      throw new Error('این شیت در Google Drive پیدا نشد')
     }
 
-    const prev = previousId ?? settings.spreadsheetId;
+    const prev = previousId ?? settings.spreadsheetId
+
     return finalizeSpreadsheetActivation(
       spreadsheetId,
       entry.name,
       prev !== spreadsheetId ? prev : undefined
-    );
-  });
+    )
+  })
 }
 
-export async function prepareUserSpreadsheet(
-  _userName?: string | null
-): Promise<string> {
+export async function prepareUserSpreadsheet(_userName?: string | null): Promise<string> {
   return runExclusiveSpreadsheetSetup(async () => {
-    const session = await resolveSpreadsheetSession();
+    const session = await resolveSpreadsheetSession()
 
     if (session.status === 'need_selection') {
-      throw new Error('لطفاً یک شیت از Google Drive انتخاب کنید');
+      throw new Error('لطفاً یک شیت از Google Drive انتخاب کنید')
     }
     if (session.status === 'need_first_sheet') {
-      throw new Error('ابتدا یک شیت جدید بسازید');
+      throw new Error('ابتدا یک شیت جدید بسازید')
     }
 
-    const settings = getSettings() ?? getDefaultSettings();
-    const entry = settings.spreadsheets?.find(
-      (sheet) => sheet.id === session.spreadsheetId
-    );
+    const settings = getSettings() ?? getDefaultSettings()
+
+    const entry = settings.spreadsheets?.find(sheet => sheet.id === session.spreadsheetId)
 
     return finalizeSpreadsheetActivation(
       session.spreadsheetId,
       entry?.name ?? session.spreadsheetId,
       settings.spreadsheetId
-    );
-  });
+    )
+  })
 }
 
 export async function createNamedSpreadsheet(label: string): Promise<string> {
   return runExclusiveSpreadsheetSetup(async () => {
-    const settings = getSettings() ?? getDefaultSettings();
-    const title = formatSpreadsheetTitle(label);
-    const previousId = settings.spreadsheetId;
+    const settings = getSettings() ?? getDefaultSettings()
 
-    const spreadsheetId = await createSpreadsheet(title, settings.forms);
-    return finalizeSpreadsheetActivation(spreadsheetId, title, previousId);
-  });
+    const title = formatSpreadsheetTitle(label)
+
+    const previousId = settings.spreadsheetId
+
+    const spreadsheetId = await createSpreadsheet(title, settings.forms)
+
+    return finalizeSpreadsheetActivation(spreadsheetId, title, previousId)
+  })
 }
 
-export async function switchActiveSpreadsheet(
-  spreadsheetId: string
-): Promise<string> {
-  const settings = getSettings() ?? getDefaultSettings();
+export async function switchActiveSpreadsheet(spreadsheetId: string): Promise<string> {
+  const settings = getSettings() ?? getDefaultSettings()
+
   if (settings.spreadsheetId === spreadsheetId) {
-    return spreadsheetId;
+    return spreadsheetId
   }
-  return activateSpreadsheet(spreadsheetId, settings.spreadsheetId);
+
+  return activateSpreadsheet(spreadsheetId, settings.spreadsheetId)
 }
 
 export function getDefaultFirstSheetLabel(): string {
-  return String(getJalaliParts(new Date()).year);
+  return String(getJalaliParts(new Date()).year)
 }
 
 /** @deprecated Use createNamedSpreadsheet instead */
 export async function recreateUserSpreadsheet(): Promise<string> {
-  return createNamedSpreadsheet(getDefaultFirstSheetLabel());
+  return createNamedSpreadsheet(getDefaultFirstSheetLabel())
 }

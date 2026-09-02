@@ -1,36 +1,32 @@
-import { getSettings } from './settings';
-import { getItem, setItem } from './storage';
-import {
-  ensureSheetWithHeaders,
-  fetchSheetRows,
-  updateSheetRow,
-  appendSheetRow,
-} from './sheets';
-import { getTodayIso } from '../utils/jalaliDate';
+import { getSettings } from './settings'
+import { ensureSheetWithHeaders, fetchSheetRows, updateSheetRow, appendSheetRow } from './sheets'
+import { getItem, setItem } from './storage'
+import { getTodayIso } from '../utils/jalaliDate'
 
-export const ACTIVITY_SHEET = 'فعالیت';
-export const ACTIVITY_HEADERS = ['آخرین_بازدید', 'آخرین_عملیات'];
+export const ACTIVITY_SHEET = 'فعالیت'
+export const ACTIVITY_HEADERS = ['آخرین_بازدید', 'آخرین_عملیات']
 
-const ACTIVITY_KEY = 'accounting_activity';
-const ACTIVITY_WRITE_OPTIONS = { skipActivity: true, skipRevision: true } as const;
+const ACTIVITY_KEY = 'accounting_activity'
+
+const ACTIVITY_WRITE_OPTIONS = { skipActivity: true, skipRevision: true } as const
 
 interface ActivityState {
-  lastOpenDate?: string;
-  lastOpenSyncedDate?: string;
-  lastOperationDate?: string;
-  lastOperationSyncedDate?: string;
+  lastOpenDate?: string
+  lastOpenSyncedDate?: string
+  lastOperationDate?: string
+  lastOperationSyncedDate?: string
 }
 
 function getState(): ActivityState {
-  return getItem<ActivityState>(ACTIVITY_KEY) ?? {};
+  return getItem<ActivityState>(ACTIVITY_KEY) ?? {}
 }
 
 function saveState(state: ActivityState): void {
-  setItem(ACTIVITY_KEY, state);
+  setItem(ACTIVITY_KEY, state)
 }
 
 async function ensureActivitySheet(spreadsheetId: string): Promise<void> {
-  await ensureSheetWithHeaders(spreadsheetId, ACTIVITY_SHEET, ACTIVITY_HEADERS);
+  await ensureSheetWithHeaders(spreadsheetId, ACTIVITY_SHEET, ACTIVITY_HEADERS)
 }
 
 async function upsertActivityRow(
@@ -38,85 +34,84 @@ async function upsertActivityRow(
   lastOpenDate: string,
   lastOperationDate: string
 ): Promise<void> {
-  await ensureActivitySheet(spreadsheetId);
-  const rows = await fetchSheetRows(spreadsheetId, ACTIVITY_SHEET);
-  const row = [lastOpenDate, lastOperationDate];
+  await ensureActivitySheet(spreadsheetId)
+
+  const rows = await fetchSheetRows(spreadsheetId, ACTIVITY_SHEET)
+
+  const row = [lastOpenDate, lastOperationDate]
 
   if (rows.length > 0) {
-    await updateSheetRow(
-      spreadsheetId,
-      ACTIVITY_SHEET,
-      2,
-      row,
-      ACTIVITY_WRITE_OPTIONS
-    );
-    return;
+    await updateSheetRow(spreadsheetId, ACTIVITY_SHEET, 2, row, ACTIVITY_WRITE_OPTIONS)
+
+    return
   }
 
-  await appendSheetRow(spreadsheetId, ACTIVITY_SHEET, row, ACTIVITY_WRITE_OPTIONS);
+  await appendSheetRow(spreadsheetId, ACTIVITY_SHEET, row, ACTIVITY_WRITE_OPTIONS)
 }
 
 export async function syncAppOpen(spreadsheetId: string): Promise<void> {
-  const today = getTodayIso();
-  const state = getState();
-  if (state.lastOpenSyncedDate === today) return;
+  const today = getTodayIso()
+
+  const state = getState()
+
+  if (state.lastOpenSyncedDate === today) return
 
   const next: ActivityState = {
     ...state,
-    lastOpenDate: today,
-  };
-  saveState(next);
+    lastOpenDate: today
+  }
 
-  await upsertActivityRow(
-    spreadsheetId,
-    today,
-    next.lastOperationDate ?? ''
-  );
-  saveState({ ...next, lastOpenSyncedDate: today });
+  saveState(next)
+
+  await upsertActivityRow(spreadsheetId, today, next.lastOperationDate ?? '')
+  saveState({ ...next, lastOpenSyncedDate: today })
 }
 
 export async function syncOperation(
   spreadsheetId: string,
   date: string = getTodayIso()
 ): Promise<void> {
-  const state = getState();
-  if (state.lastOperationSyncedDate === date) return;
+  const state = getState()
+
+  if (state.lastOperationSyncedDate === date) return
 
   const next: ActivityState = {
     lastOpenDate: state.lastOpenDate ?? date,
-    lastOperationDate: date,
-  };
-  saveState(next);
-
-  await upsertActivityRow(
-    spreadsheetId,
-    next.lastOpenDate ?? date,
-    date
-  );
-  saveState({ ...next, lastOperationSyncedDate: date });
-}
-
-const SYNC_DEBOUNCE_MS = 30_000;
-let syncDebounceTimer: ReturnType<typeof setTimeout> | undefined;
-let pendingSyncDate: string | undefined;
-
-export function recordOperation(date: string = getTodayIso()): void {
-  const state = getState();
-  if (state.lastOperationDate === date && state.lastOperationSyncedDate === date) {
-    return;
+    lastOperationDate: date
   }
 
-  saveState({ ...state, lastOperationDate: date });
+  saveState(next)
 
-  const spreadsheetId = getSettings()?.spreadsheetId;
-  if (!spreadsheetId) return;
+  await upsertActivityRow(spreadsheetId, next.lastOpenDate ?? date, date)
+  saveState({ ...next, lastOperationSyncedDate: date })
+}
 
-  pendingSyncDate = date;
-  if (syncDebounceTimer !== undefined) clearTimeout(syncDebounceTimer);
+const SYNC_DEBOUNCE_MS = 30_000
+
+let syncDebounceTimer: ReturnType<typeof setTimeout> | undefined
+
+let pendingSyncDate: string | undefined
+
+export function recordOperation(date: string = getTodayIso()): void {
+  const state = getState()
+
+  if (state.lastOperationDate === date && state.lastOperationSyncedDate === date) {
+    return
+  }
+
+  saveState({ ...state, lastOperationDate: date })
+
+  const spreadsheetId = getSettings()?.spreadsheetId
+
+  if (!spreadsheetId) return
+
+  pendingSyncDate = date
+  if (syncDebounceTimer !== undefined) clearTimeout(syncDebounceTimer)
   syncDebounceTimer = setTimeout(() => {
-    const syncDate = pendingSyncDate ?? date;
-    pendingSyncDate = undefined;
-    syncDebounceTimer = undefined;
-    void syncOperation(spreadsheetId, syncDate);
-  }, SYNC_DEBOUNCE_MS);
+    const syncDate = pendingSyncDate ?? date
+
+    pendingSyncDate = undefined
+    syncDebounceTimer = undefined
+    void syncOperation(spreadsheetId, syncDate)
+  }, SYNC_DEBOUNCE_MS)
 }

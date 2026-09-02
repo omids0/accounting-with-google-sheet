@@ -1,34 +1,37 @@
-import { memo, useMemo } from 'react';
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
-import { formatMoney, formatPersianNumber } from '../../utils/formatMoney';
-import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme';
-import ChartTooltip from './ChartTooltip';
+import { memo, useMemo } from 'react'
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+
+import ChartTooltip from './ChartTooltip'
+import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
+import { formatMoney, formatPersianNumber } from '../../utils/formatMoney'
 
 type ChartTooltipEntry = {
-  name?: string | number;
-  dataKey?: string | number;
-  value?: number | string;
-};
+  name?: string | number
+  dataKey?: string | number
+  value?: number | string
+}
 
 interface CategoryDonutChartProps {
-  title: string;
-  data: { name: string; total: number }[];
-  tone: 'income' | 'expense';
-  className?: string;
-  maxSlices?: number;
+  title: string
+  data: { name: string; total: number }[]
+  tone: 'income' | 'expense'
+  className?: string
+  maxSlices?: number
 }
 
 function buildSlices(
   data: { name: string; total: number }[],
   maxSlices: number
 ): { name: string; total: number }[] {
-  if (data.length <= maxSlices) return data;
+  if (data.length <= maxSlices) return data
 
-  const sorted = [...data].sort((a, b) => b.total - a.total);
-  const top = sorted.slice(0, maxSlices - 1);
-  const restTotal = sorted.slice(maxSlices - 1).reduce((sum, item) => sum + item.total, 0);
+  const sorted = [...data].sort((a, b) => b.total - a.total)
 
-  return restTotal > 0 ? [...top, { name: 'سایر', total: restTotal }] : top;
+  const top = sorted.slice(0, maxSlices - 1)
+
+  const restTotal = sorted.slice(maxSlices - 1).reduce((sum, item) => sum + item.total, 0)
+
+  return restTotal > 0 ? [...top, { name: 'سایر', total: restTotal }] : top
 }
 
 function CategoryDonutChart({
@@ -36,19 +39,19 @@ function CategoryDonutChart({
   data,
   tone,
   className = '',
-  maxSlices = 6,
+  maxSlices = 6
 }: CategoryDonutChartProps) {
-  const theme = useChartTheme();
-  const animate = !prefersReducedMotion();
+  const theme = useChartTheme()
 
-  const slices = useMemo(() => buildSlices(data, maxSlices), [data, maxSlices]);
-  const total = useMemo(
-    () => slices.reduce((sum, item) => sum + item.total, 0),
-    [slices]
-  );
-  const palette = tone === 'income' ? theme.incomePalette : theme.expensePalette;
+  const animate = !prefersReducedMotion()
 
-  if (!slices.length) return null;
+  const slices = useMemo(() => buildSlices(data, maxSlices), [data, maxSlices])
+
+  const total = useMemo(() => slices.reduce((sum, item) => sum + item.total, 0), [slices])
+
+  const palette = tone === 'income' ? theme.incomePalette : theme.expensePalette
+
+  if (!slices.length) return null
 
   return (
     <div className={`card chart-card chart-card--animated category-donut-card ${className}`.trim()}>
@@ -80,7 +83,7 @@ function CategoryDonutChart({
                 ))}
               </Pie>
               <Tooltip
-                content={(props) => (
+                content={props => (
                   <ChartTooltip
                     active={props.active}
                     payload={props.payload as unknown as ChartTooltipEntry[] | undefined}
@@ -98,7 +101,8 @@ function CategoryDonutChart({
 
         <ul className="category-donut-legend" dir="rtl">
           {slices.map((slice, index) => {
-            const pct = total > 0 ? Math.round((slice.total / total) * 100) : 0;
+            const pct = total > 0 ? Math.round((slice.total / total) * 100) : 0
+
             return (
               <li key={slice.name} className="category-donut-legend-item">
                 <span
@@ -113,12 +117,12 @@ function CategoryDonutChart({
                   {formatMoney(slice.total)}
                 </span>
               </li>
-            );
+            )
           })}
         </ul>
       </div>
     </div>
-  );
+  )
 }
 
-export default memo(CategoryDonutChart);
+export default memo(CategoryDonutChart)

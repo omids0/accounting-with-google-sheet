@@ -1,8 +1,10 @@
-import type { VaultAssetType } from '../types';
+import type { VaultAssetType } from '../types'
 
-const TGJU_API = 'https://call5.tgju.org/ajax.json';
-const TGJU_FETCH_TIMEOUT_MS = 4_000;
-const TGJU_CACHE_TTL_MS = 5 * 60 * 1000;
+const TGJU_API = 'https://call5.tgju.org/ajax.json'
+
+const TGJU_FETCH_TIMEOUT_MS = 4_000
+
+const TGJU_CACHE_TTL_MS = 5 * 60 * 1000
 
 const ASSET_TGJU_KEYS: Record<VaultAssetType, string> = {
   sekeb: 'sekeb',
@@ -11,14 +13,14 @@ const ASSET_TGJU_KEYS: Record<VaultAssetType, string> = {
   rob: 'rob',
   gerami: 'gerami',
   geram18: 'geram18',
-  usd: 'price_dollar_rl',
-};
+  usd: 'price_dollar_rl'
+}
 
 export const VAULT_ASSET_OPTIONS: {
-  value: VaultAssetType;
-  label: string;
-  unit: string;
-  hint?: string;
+  value: VaultAssetType
+  label: string
+  unit: string
+  hint?: string
 }[] = [
   { value: 'sekeb', label: 'سکه بهار آزادی', unit: 'عدد' },
   { value: 'sekee', label: 'سکه امامی', unit: 'عدد' },
@@ -26,26 +28,29 @@ export const VAULT_ASSET_OPTIONS: {
   { value: 'rob', label: 'ربع سکه', unit: 'عدد' },
   { value: 'gerami', label: 'سکه گرمی', unit: 'عدد', hint: 'هر سکه حدود ۱ گرم طلا' },
   { value: 'geram18', label: 'طلای ۱۸ عیار', unit: 'گرم', hint: 'مقدار را به گرم وارد کنید' },
-  { value: 'usd', label: 'دلار', unit: 'دلار' },
-];
+  { value: 'usd', label: 'دلار', unit: 'دلار' }
+]
 
 export function getAssetLabel(assetType: VaultAssetType): string {
-  return VAULT_ASSET_OPTIONS.find((a) => a.value === assetType)?.label ?? assetType;
+  return VAULT_ASSET_OPTIONS.find(a => a.value === assetType)?.label ?? assetType
 }
 
 export function getAssetUnit(assetType: VaultAssetType): string {
-  return VAULT_ASSET_OPTIONS.find((a) => a.value === assetType)?.unit ?? '';
+  return VAULT_ASSET_OPTIONS.find(a => a.value === assetType)?.unit ?? ''
 }
 
 function parseTgjuPrice(raw: string | undefined): number {
-  if (!raw) return 0;
-  const num = Number(String(raw).replace(/,/g, ''));
-  return num / 10;
+  if (!raw) return 0
+
+  const num = Number(String(raw).replace(/,/g, ''))
+
+  return num / 10
 }
 
 function parseTgjuRialRate(raw: string | undefined): number {
-  if (!raw) return 0;
-  return Number(String(raw).replace(/,/g, ''));
+  if (!raw) return 0
+
+  return Number(String(raw).replace(/,/g, ''))
 }
 
 export type ExchangeCurrencyCode =
@@ -63,14 +68,14 @@ export type ExchangeCurrencyCode =
   | 'sar'
   | 'kwd'
   | 'rub'
-  | 'jpy';
+  | 'jpy'
 
 export interface ExchangeCurrencyOption {
-  code: ExchangeCurrencyCode;
-  label: string;
-  symbol: string;
-  tgjuKey?: string;
-  fixedRateInRial?: number;
+  code: ExchangeCurrencyCode
+  label: string
+  symbol: string
+  tgjuKey?: string
+  fixedRateInRial?: number
 }
 
 export const EXCHANGE_CURRENCY_OPTIONS: ExchangeCurrencyOption[] = [
@@ -88,140 +93,158 @@ export const EXCHANGE_CURRENCY_OPTIONS: ExchangeCurrencyOption[] = [
   { code: 'sar', label: 'ریال عربستان', symbol: 'SAR', tgjuKey: 'price_sar' },
   { code: 'kwd', label: 'دینار کویت', symbol: 'KWD', tgjuKey: 'price_kwd' },
   { code: 'rub', label: 'روبل روسیه', symbol: '₽', tgjuKey: 'price_rub' },
-  { code: 'jpy', label: 'ین ژاپن', symbol: '¥', tgjuKey: 'price_jpy' },
-];
+  { code: 'jpy', label: 'ین ژاپن', symbol: '¥', tgjuKey: 'price_jpy' }
+]
 
 export interface ExchangeRateQuote {
-  rateInRial: number;
-  updatedAt?: string;
+  rateInRial: number
+  updatedAt?: string
 }
 
-let pricesCache: Record<VaultAssetType, number> | null = null;
-let pricesCacheAt = 0;
-let exchangeRatesCache: Record<ExchangeCurrencyCode, ExchangeRateQuote> | null = null;
-let exchangeRatesCacheAt = 0;
-let pricesFetchInFlight: Promise<Record<VaultAssetType, number>> | null = null;
+let pricesCache: Record<VaultAssetType, number> | null = null
+
+let pricesCacheAt = 0
+
+let exchangeRatesCache: Record<ExchangeCurrencyCode, ExchangeRateQuote> | null = null
+
+let exchangeRatesCacheAt = 0
+
+let pricesFetchInFlight: Promise<Record<VaultAssetType, number>> | null = null
+
 let exchangeRatesFetchInFlight: Promise<Record<ExchangeCurrencyCode, ExchangeRateQuote>> | null =
-  null;
+  null
 
 function isCacheFresh(cacheAt: number): boolean {
-  return cacheAt > 0 && Date.now() - cacheAt < TGJU_CACHE_TTL_MS;
+  return cacheAt > 0 && Date.now() - cacheAt < TGJU_CACHE_TTL_MS
 }
 
-async function fetchTgjuCurrent(): Promise<Record<string, { p?: string; ts?: string; t?: string }>> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TGJU_FETCH_TIMEOUT_MS);
+async function fetchTgjuCurrent(): Promise<
+  Record<string, { p?: string; ts?: string; t?: string }>
+> {
+  const controller = new AbortController()
+
+  const timeoutId = setTimeout(() => controller.abort(), TGJU_FETCH_TIMEOUT_MS)
 
   try {
-    const res = await fetch(TGJU_API, { signal: controller.signal });
-    if (!res.ok) throw new Error('خطا در دریافت قیمت از tgju.org');
+    const res = await fetch(TGJU_API, { signal: controller.signal })
+
+    if (!res.ok) throw new Error('خطا در دریافت قیمت از tgju.org')
 
     const data = (await res.json()) as {
-      current?: Record<string, { p?: string; ts?: string; t?: string }>;
-    };
-    return data.current ?? {};
+      current?: Record<string, { p?: string; ts?: string; t?: string }>
+    }
+
+    return data.current ?? {}
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error('دریافت قیمت از tgju.org بیش از حد طول کشید');
+      throw new Error('دریافت قیمت از tgju.org بیش از حد طول کشید')
     }
-    throw error;
+    throw error
   } finally {
-    clearTimeout(timeoutId);
+    clearTimeout(timeoutId)
   }
 }
 
 export function getCachedTgjuPrices(): Record<VaultAssetType, number> | null {
-  return pricesCache;
+  return pricesCache
 }
 
-export function getCachedTgjuExchangeRates(): Record<ExchangeCurrencyCode, ExchangeRateQuote> | null {
-  return exchangeRatesCache;
+export function getCachedTgjuExchangeRates(): Record<
+  ExchangeCurrencyCode,
+  ExchangeRateQuote
+> | null {
+  return exchangeRatesCache
 }
 
 /** Refresh tgju prices in the background without blocking callers. */
 export function prefetchTgjuPrices(): void {
-  void fetchTgjuPrices().catch(() => undefined);
+  void fetchTgjuPrices().catch(() => undefined)
 }
 
 export function getExchangeCurrencyOption(
   code: ExchangeCurrencyCode
 ): ExchangeCurrencyOption | undefined {
-  return EXCHANGE_CURRENCY_OPTIONS.find((option) => option.code === code);
+  return EXCHANGE_CURRENCY_OPTIONS.find(option => option.code === code)
 }
 
 export function getExchangeCurrencyLabel(code: ExchangeCurrencyCode): string {
-  return getExchangeCurrencyOption(code)?.label ?? code;
+  return getExchangeCurrencyOption(code)?.label ?? code
 }
 
 export function getExchangeCurrencySymbol(code: ExchangeCurrencyCode): string {
-  return getExchangeCurrencyOption(code)?.symbol ?? code;
+  return getExchangeCurrencyOption(code)?.symbol ?? code
 }
 
 export async function fetchTgjuExchangeRates(): Promise<
   Record<ExchangeCurrencyCode, ExchangeRateQuote>
 > {
   if (isCacheFresh(exchangeRatesCacheAt) && exchangeRatesCache) {
-    return exchangeRatesCache;
+    return exchangeRatesCache
   }
 
   if (exchangeRatesFetchInFlight) {
-    return exchangeRatesFetchInFlight;
+    return exchangeRatesFetchInFlight
   }
 
   exchangeRatesFetchInFlight = (async () => {
-    const current = await fetchTgjuCurrent();
+    const current = await fetchTgjuCurrent()
 
-    const rates = {} as Record<ExchangeCurrencyCode, ExchangeRateQuote>;
+    const rates = {} as Record<ExchangeCurrencyCode, ExchangeRateQuote>
+
     for (const option of EXCHANGE_CURRENCY_OPTIONS) {
       if (option.fixedRateInRial != null) {
-        rates[option.code] = { rateInRial: option.fixedRateInRial };
-        continue;
+        rates[option.code] = { rateInRial: option.fixedRateInRial }
+        continue
       }
 
-      const entry = option.tgjuKey ? current[option.tgjuKey] : undefined;
+      const entry = option.tgjuKey ? current[option.tgjuKey] : undefined
+
       rates[option.code] = {
         rateInRial: parseTgjuRialRate(entry?.p),
-        updatedAt: entry?.t ?? entry?.ts,
-      };
+        updatedAt: entry?.t ?? entry?.ts
+      }
     }
 
-    exchangeRatesCache = rates;
-    exchangeRatesCacheAt = Date.now();
-    return rates;
-  })();
+    exchangeRatesCache = rates
+    exchangeRatesCacheAt = Date.now()
+
+    return rates
+  })()
 
   try {
-    return await exchangeRatesFetchInFlight;
+    return await exchangeRatesFetchInFlight
   } finally {
-    exchangeRatesFetchInFlight = null;
+    exchangeRatesFetchInFlight = null
   }
 }
 
 export async function fetchTgjuPrices(): Promise<Record<VaultAssetType, number>> {
   if (isCacheFresh(pricesCacheAt) && pricesCache) {
-    return pricesCache;
+    return pricesCache
   }
 
   if (pricesFetchInFlight) {
-    return pricesFetchInFlight;
+    return pricesFetchInFlight
   }
 
   pricesFetchInFlight = (async () => {
-    const current = await fetchTgjuCurrent();
+    const current = await fetchTgjuCurrent()
 
-    const prices = {} as Record<VaultAssetType, number>;
+    const prices = {} as Record<VaultAssetType, number>
+
     for (const [asset, key] of Object.entries(ASSET_TGJU_KEYS) as [VaultAssetType, string][]) {
-      prices[asset] = parseTgjuPrice(current[key]?.p);
+      prices[asset] = parseTgjuPrice(current[key]?.p)
     }
 
-    pricesCache = prices;
-    pricesCacheAt = Date.now();
-    return prices;
-  })();
+    pricesCache = prices
+    pricesCacheAt = Date.now()
+
+    return prices
+  })()
 
   try {
-    return await pricesFetchInFlight;
+    return await pricesFetchInFlight
   } finally {
-    pricesFetchInFlight = null;
+    pricesFetchInFlight = null
   }
 }

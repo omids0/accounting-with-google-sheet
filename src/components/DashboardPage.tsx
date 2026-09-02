@@ -1,52 +1,47 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { getSettings, isConfigured, getNetAvailableConfig } from '../services/settings';
-import { loadDashboardData, buildDashboardYearlyMonthlyFlow, peekCachedDashboardData } from '../services/dashboard';
-import type { DashboardData, DashboardNavTarget } from '../types';
-import { isTokenValid } from '../services/auth';
-import { DashboardSkeleton } from './skeleton';
-import AppIcon from './AppIcon';
-import FilterModal from './FilterModal';
-import ActiveFilterChips from './ActiveFilterChips';
-import { buildDateRangeChip, compactFilterChips } from '../utils/filterChips';
-import DateRangeFilter, {
-  createDefaultDateRangeFilter,
-} from './DateRangeFilter';
-import YearFilter, { getDefaultChartYear } from './YearFilter';
-import TransactionTypeSegment, {
-  type TransactionTypeSegmentOption,
-} from './TransactionTypeSegment';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+
+import ActiveFilterChips from './ActiveFilterChips'
+import AnimatedMoneyDisplay from './AnimatedMoneyDisplay'
+import AppIcon from './AppIcon'
+import CardEditButton from './CardEditButton'
+import { CategoryBarChart, CategoryDonutChart, IncomeExpenseMonthlyChart } from './charts'
+import DateRangeFilter, { createDefaultDateRangeFilter } from './DateRangeFilter'
+import FilterModal from './FilterModal'
+import MoneyDisplay from './MoneyDisplay'
+import SpeedDialIcon from './SpeedDialIcon'
+import StatCard from './StatCard'
+import TransactionListItem from './TransactionListItem'
+import TransactionTypeSegment, { type TransactionTypeSegmentOption } from './TransactionTypeSegment'
+import { useDataRefresh } from '../hooks/useDataRefresh'
+import { isTokenValid } from '../services/auth'
+import {
+  loadDashboardData,
+  buildDashboardYearlyMonthlyFlow,
+  peekCachedDashboardData
+} from '../services/dashboard'
+import type { DashboardData, DashboardNavTarget } from '../types'
+import { DashboardSkeleton } from './skeleton'
+import YearFilter, { getDefaultChartYear } from './YearFilter'
+import { getSettings, isConfigured, getNetAvailableConfig } from '../services/settings'
+import { hasStoreData } from '../services/spreadsheetStore'
 import {
   getInstallmentDueRange,
   formatDateRangeLabel,
   resolveDateRange,
   type DateRangePreset,
-  type RecordsDatePreset,
-} from '../utils/dateRange';
-import { formatMoney } from '../utils/formatMoney';
-import { formatIsoDatePersian } from '../utils/jalaliDate';
-import { showError } from '../utils/toast';
-import { monthlySparkline } from '../utils/sparklineData';
-import AnimatedMoneyDisplay from './AnimatedMoneyDisplay';
-import StatCard from './StatCard';
-import TransactionListItem from './TransactionListItem';
-import MoneyDisplay from './MoneyDisplay';
-import CardEditButton from './CardEditButton';
-import { CategoryBarChart, CategoryDonutChart, IncomeExpenseMonthlyChart } from './charts';
-import { getCategoryBarYAxisWidth } from './charts/chartUtils';
-import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
-import SpeedDialIcon from './SpeedDialIcon';
-import { useDataRefresh } from '../hooks/useDataRefresh';
-import { hasStoreData } from '../services/spreadsheetStore';
+  type RecordsDatePreset
+} from '../utils/dateRange'
+import { buildDateRangeChip, compactFilterChips } from '../utils/filterChips'
+import { formatMoney } from '../utils/formatMoney'
+import { formatIsoDatePersian } from '../utils/jalaliDate'
+import { monthlySparkline } from '../utils/sparklineData'
+import { showError } from '../utils/toast'
+import { getCategoryBarYAxisWidth } from './charts/chartUtils'
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 
-type TransactionTypeFilter = 'all' | 'income' | 'expense';
+type TransactionTypeFilter = 'all' | 'income' | 'expense'
 
-function RecordAmount({
-  amount,
-  type,
-}: {
-  amount: number;
-  type: 'income' | 'expense';
-}) {
+function RecordAmount({ amount, type }: { amount: number; type: 'income' | 'expense' }) {
   return (
     <MoneyDisplay
       amount={amount}
@@ -54,19 +49,19 @@ function RecordAmount({
       tone={type === 'income' ? 'income' : 'expense'}
       signed
     />
-  );
+  )
 }
 
 function BreakdownRow({
   label,
   value,
   total,
-  onNavigate,
+  onNavigate
 }: {
-  label: string;
-  value: number;
-  total?: boolean;
-  onNavigate?: () => void;
+  label: string
+  value: number
+  total?: boolean
+  onNavigate?: () => void
 }) {
   return (
     <div className={`asset-row${total ? ' asset-row-total' : ''}`}>
@@ -81,7 +76,7 @@ function BreakdownRow({
         {formatMoney(value)}
       </span>
     </div>
-  );
+  )
 }
 
 export default function DashboardPage({
@@ -90,164 +85,194 @@ export default function DashboardPage({
   onNewEntry,
   onNavigate,
   onConfigureNetAvailable,
-  active = true,
+  active = true
 }: {
-  onReauth?: () => void;
-  onViewRecords?: (formType?: 'income' | 'expense') => void;
-  onNewEntry?: (formType: 'income' | 'expense') => void;
-  onNavigate?: (target: DashboardNavTarget) => void;
-  onConfigureNetAvailable?: () => void;
-  active?: boolean;
+  onReauth?: () => void
+  onViewRecords?: (formType?: 'income' | 'expense') => void
+  onNewEntry?: (formType: 'income' | 'expense') => void
+  onNavigate?: (target: DashboardNavTarget) => void
+  onConfigureNetAvailable?: () => void
+  active?: boolean
 }) {
   const [data, setData] = useState<DashboardData | null>(() => {
-    const settings = getSettings();
-    if (!settings?.spreadsheetId || !hasStoreData(settings.spreadsheetId)) return null;
-    const range = resolveDateRange('month-to-date', createDefaultDateRangeFilter().customRange);
-    const installmentRange = getInstallmentDueRange('month-to-date');
+    const settings = getSettings()
+
+    if (!settings?.spreadsheetId || !hasStoreData(settings.spreadsheetId)) return null
+
+    const range = resolveDateRange('month-to-date', createDefaultDateRangeFilter().customRange)
+
+    const installmentRange = getInstallmentDueRange('month-to-date')
+
     return peekCachedDashboardData(
       settings,
       range,
       installmentRange,
       getDefaultChartYear(),
       getNetAvailableConfig()
-    );
-  });
-  const [loading, setLoading] = useState(() => data == null);
-  const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date');
-  const [customRange, setCustomRange] = useState(
-    () => createDefaultDateRangeFilter().customRange
-  );
-  const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
-  const [monthlyFlowYear, setMonthlyFlowYear] = useState(getDefaultChartYear);
-  const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [draftDatePreset, setDraftDatePreset] = useState<RecordsDatePreset>('month-to-date');
+    )
+  })
+
+  const [loading, setLoading] = useState(() => data == null)
+
+  const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date')
+
+  const [customRange, setCustomRange] = useState(() => createDefaultDateRangeFilter().customRange)
+
+  const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all')
+
+  const [monthlyFlowYear, setMonthlyFlowYear] = useState(getDefaultChartYear)
+
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+
+  const [draftDatePreset, setDraftDatePreset] = useState<RecordsDatePreset>('month-to-date')
+
   const [draftCustomRange, setDraftCustomRange] = useState(
     () => createDefaultDateRangeFilter().customRange
-  );
-  const dateRange = resolveDateRange(datePreset, customRange);
-  const dataRevision = useDataRefresh();
-  const dataRef = useRef(data);
-  dataRef.current = data;
+  )
+
+  const dateRange = resolveDateRange(datePreset, customRange)
+
+  const dataRevision = useDataRefresh()
+
+  const dataRef = useRef(data)
+
+  dataRef.current = data
 
   const load = useCallback(async () => {
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
-    const settings = getSettings();
-    if (!settings) return;
+
+    const settings = getSettings()
+
+    if (!settings) return
 
     if (!dataRef.current) {
-      setLoading(true);
+      setLoading(true)
     }
     try {
-      const range = resolveDateRange(datePreset, customRange);
+      const range = resolveDateRange(datePreset, customRange)
+
       const installmentRange =
-        datePreset === 'custom'
-          ? range
-          : getInstallmentDueRange(datePreset as DateRangePreset);
+        datePreset === 'custom' ? range : getInstallmentDueRange(datePreset as DateRangePreset)
+
       const dash = await loadDashboardData(
         settings,
         range,
         installmentRange,
         monthlyFlowYear,
         getNetAvailableConfig()
-      );
-      setData(dash);
+      )
+
+      setData(dash)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [onReauth, datePreset, customRange, monthlyFlowYear]);
+  }, [onReauth, datePreset, customRange, monthlyFlowYear])
 
   useEffect(() => {
-    load();
-  }, [load, dataRevision]);
+    load()
+  }, [load, dataRevision])
 
   useEffect(() => {
-    const settings = getSettings();
-    if (!settings || !data) return;
+    const settings = getSettings()
 
-    const range = resolveDateRange(datePreset, customRange);
+    if (!settings || !data) return
+
+    const range = resolveDateRange(datePreset, customRange)
+
     const installmentRange =
-      datePreset === 'custom'
-        ? range
-        : getInstallmentDueRange(datePreset as DateRangePreset);
+      datePreset === 'custom' ? range : getInstallmentDueRange(datePreset as DateRangePreset)
+
     const nextFlow = buildDashboardYearlyMonthlyFlow(
       settings,
       range,
       installmentRange,
       getNetAvailableConfig(),
       monthlyFlowYear
-    );
-    if (!nextFlow) return;
+    )
 
-    setData((prev) => {
-      if (!prev || prev.yearlyMonthlyFlow === nextFlow) return prev;
-      return { ...prev, yearlyMonthlyFlow: nextFlow };
-    });
-  }, [monthlyFlowYear, datePreset, customRange]);
+    if (!nextFlow) return
+
+    setData(prev => {
+      if (!prev || prev.yearlyMonthlyFlow === nextFlow) return prev
+
+      return { ...prev, yearlyMonthlyFlow: nextFlow }
+    })
+  }, [monthlyFlowYear, datePreset, customRange])
 
   const filteredRecords = useMemo(() => {
-    if (!data?.recentRecords.length) return [];
+    if (!data?.recentRecords.length) return []
+
     return data.recentRecords
-      .filter((r) => typeFilter === 'all' || r.type === typeFilter)
-      .slice(0, 10);
-  }, [data?.recentRecords, typeFilter]);
+      .filter(r => typeFilter === 'all' || r.type === typeFilter)
+      .slice(0, 10)
+  }, [data?.recentRecords, typeFilter])
 
   const categoryYAxisWidth = useMemo(
-    () =>
-      getCategoryBarYAxisWidth([
-        data?.expenseByCategory ?? [],
-        data?.incomeByCategory ?? [],
-      ]),
+    () => getCategoryBarYAxisWidth([data?.expenseByCategory ?? [], data?.incomeByCategory ?? []]),
     [data?.expenseByCategory, data?.incomeByCategory]
-  );
+  )
 
-  const financial = data?.financial;
+  const financial = data?.financial
+
   const incomeSparkline = useMemo(
     () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income'),
     [data?.yearlyMonthlyFlow]
-  );
+  )
+
   const expenseSparkline = useMemo(
     () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense'),
     [data?.yearlyMonthlyFlow]
-  );
+  )
+
   const netSparkline = useMemo(
     () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'net'),
     [data?.yearlyMonthlyFlow]
-  );
-  const settings = useMemo(() => getSettings(), []);
-  const incomeForm = settings?.forms.find((f) => f.type === 'income');
-  const expenseForm = settings?.forms.find((f) => f.type === 'expense');
-  const incomeFormName = incomeForm?.name ?? 'درآمد';
-  const expenseFormName = expenseForm?.name ?? 'هزینه';
+  )
+
+  const settings = useMemo(() => getSettings(), [])
+
+  const incomeForm = settings?.forms.find(f => f.type === 'income')
+
+  const expenseForm = settings?.forms.find(f => f.type === 'expense')
+
+  const incomeFormName = incomeForm?.name ?? 'درآمد'
+
+  const expenseFormName = expenseForm?.name ?? 'هزینه'
+
   const transactionTypeOptions = useMemo<TransactionTypeSegmentOption[]>(
     () => [
       { id: 'all', label: 'همه' },
       { id: 'income', label: incomeFormName, tone: 'income' },
-      { id: 'expense', label: expenseFormName, tone: 'expense' },
+      { id: 'expense', label: expenseFormName, tone: 'expense' }
     ],
     [incomeFormName, expenseFormName]
-  );
+  )
 
   const openFilterModal = useCallback(() => {
-    setDraftDatePreset(datePreset);
-    setDraftCustomRange(customRange);
-    setFilterModalOpen(true);
-  }, [datePreset, customRange]);
+    setDraftDatePreset(datePreset)
+    setDraftCustomRange(customRange)
+    setFilterModalOpen(true)
+  }, [datePreset, customRange])
 
   const resetDateFilter = useCallback(() => {
-    const defaults = createDefaultDateRangeFilter();
-    setDatePreset(defaults.preset as RecordsDatePreset);
-    setCustomRange(defaults.customRange);
-  }, []);
+    const defaults = createDefaultDateRangeFilter()
+
+    setDatePreset(defaults.preset as RecordsDatePreset)
+    setCustomRange(defaults.customRange)
+  }, [])
 
   const filterChips = useMemo(
     () =>
@@ -255,10 +280,10 @@ export default function DashboardPage({
         buildDateRangeChip(
           formatDateRangeLabel(dateRange),
           datePreset !== 'month-to-date' ? resetDateFilter : undefined
-        ),
+        )
       ]),
     [dateRange, datePreset, resetDateFilter]
-  );
+  )
 
   useRegisterPageSpeedDial(
     isConfigured()
@@ -270,33 +295,33 @@ export default function DashboardPage({
               label: incomeFormName,
               icon: <span className="speed-dial-type-icon speed-dial-type-icon--income">+</span>,
               className: 'speed-dial-action--income',
-              onClick: () => onNewEntry?.('income'),
+              onClick: () => onNewEntry?.('income')
             },
             {
               id: 'expense',
               label: expenseFormName,
               icon: <span className="speed-dial-type-icon speed-dial-type-icon--expense">−</span>,
               className: 'speed-dial-action--expense',
-              onClick: () => onNewEntry?.('expense'),
+              onClick: () => onNewEntry?.('expense')
             },
             {
               id: 'filter',
               label: 'فیلتر',
               icon: <SpeedDialIcon name="filter" />,
-              onClick: openFilterModal,
+              onClick: openFilterModal
             },
             {
               id: 'refresh',
               label: 'بروزرسانی',
               icon: <SpeedDialIcon name="refresh" />,
               onClick: load,
-              disabled: loading,
-            },
-          ],
+              disabled: loading
+            }
+          ]
         }
       : null,
     active
-  );
+  )
 
   if (!isConfigured()) {
     return (
@@ -306,11 +331,11 @@ export default function DashboardPage({
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
-    );
+    )
   }
 
   if (loading && !data) {
-    return <DashboardSkeleton />;
+    return <DashboardSkeleton />
   }
 
   return (
@@ -321,23 +346,24 @@ export default function DashboardPage({
         open={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
         onApply={() => {
-          setDatePreset(draftDatePreset);
-          setCustomRange(draftCustomRange);
-          setFilterModalOpen(false);
+          setDatePreset(draftDatePreset)
+          setCustomRange(draftCustomRange)
+          setFilterModalOpen(false)
         }}
         onClear={() => {
-          const defaults = createDefaultDateRangeFilter();
-          setDraftDatePreset(defaults.preset as RecordsDatePreset);
-          setDraftCustomRange(defaults.customRange);
+          const defaults = createDefaultDateRangeFilter()
+
+          setDraftDatePreset(defaults.preset as RecordsDatePreset)
+          setDraftCustomRange(defaults.customRange)
         }}
       >
         <DateRangeFilter
           preset={draftDatePreset}
           customRange={draftCustomRange}
-          onChange={(filter) => {
-            if (filter.preset === 'all') return;
-            setDraftDatePreset(filter.preset);
-            setDraftCustomRange(filter.customRange);
+          onChange={filter => {
+            if (filter.preset === 'all') return
+            setDraftDatePreset(filter.preset)
+            setDraftCustomRange(filter.customRange)
           }}
           loading={loading}
         />
@@ -347,20 +373,11 @@ export default function DashboardPage({
         <div className="dashboard-hero-header">
           <div className="dashboard-hero-label">دارایی قابل اتکا</div>
           {onConfigureNetAvailable && (
-            <CardEditButton
-              onClick={onConfigureNetAvailable}
-              ariaLabel="تنظیم دارایی قابل اتکا"
-            />
+            <CardEditButton onClick={onConfigureNetAvailable} ariaLabel="تنظیم دارایی قابل اتکا" />
           )}
         </div>
-        <AnimatedMoneyDisplay
-          amount={financial?.netAvailable ?? 0}
-          size="hero"
-          tone="hero"
-        />
-        <p className="dashboard-hero-hint">
-          مجموع دارایی‌های انتخاب‌شده منهای بدهی‌های انتخاب‌شده
-        </p>
+        <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
+        <p className="dashboard-hero-hint">مجموع دارایی‌های انتخاب‌شده منهای بدهی‌های انتخاب‌شده</p>
       </div>
 
       <div className="dashboard-flow-section dashboard-flow-section--animated">
@@ -391,8 +408,8 @@ export default function DashboardPage({
             (data?.balance ?? 0) < 0
               ? 'negative'
               : (data?.balance ?? 0) > 0
-                ? 'positive'
-                : 'neutral'
+              ? 'positive'
+              : 'neutral'
           }
           sparklineData={netSparkline}
           animateIndex={2}
@@ -425,11 +442,7 @@ export default function DashboardPage({
             value={financial?.receivablesTotal ?? 0}
             onNavigate={onNavigate ? () => onNavigate('receivables') : undefined}
           />
-          <BreakdownRow
-            label="مجموع دارایی‌ها"
-            value={financial?.totalAssets ?? 0}
-            total
-          />
+          <BreakdownRow label="مجموع دارایی‌ها" value={financial?.totalAssets ?? 0} total />
         </div>
       </div>
 
@@ -451,21 +464,13 @@ export default function DashboardPage({
             value={financial?.checksDue ?? 0}
             onNavigate={onNavigate ? () => onNavigate('checks') : undefined}
           />
-          <BreakdownRow
-            label="مجموع بدهی‌ها"
-            value={financial?.totalLiabilities ?? 0}
-            total
-          />
+          <BreakdownRow label="مجموع بدهی‌ها" value={financial?.totalLiabilities ?? 0} total />
         </div>
       </div>
 
       {(data?.expenseByCategory.length ?? 0) > 0 && (
         <>
-          <CategoryDonutChart
-            title="سهم هزینه‌ها"
-            data={data!.expenseByCategory}
-            tone="expense"
-          />
+          <CategoryDonutChart title="سهم هزینه‌ها" data={data!.expenseByCategory} tone="expense" />
           <CategoryBarChart
             title="هزینه بر اساس دسته‌بندی"
             data={data!.expenseByCategory}
@@ -477,11 +482,7 @@ export default function DashboardPage({
 
       {(data?.incomeByCategory.length ?? 0) > 0 && (
         <>
-          <CategoryDonutChart
-            title="سهم درآمدها"
-            data={data!.incomeByCategory}
-            tone="income"
-          />
+          <CategoryDonutChart title="سهم درآمدها" data={data!.incomeByCategory} tone="income" />
           <CategoryBarChart
             title="درآمد بر اساس دسته‌بندی"
             data={data!.incomeByCategory}
@@ -518,11 +519,7 @@ export default function DashboardPage({
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                onClick={() =>
-                  onViewRecords?.(
-                    typeFilter === 'all' ? undefined : typeFilter
-                  )
-                }
+                onClick={() => onViewRecords?.(typeFilter === 'all' ? undefined : typeFilter)}
               >
                 جزئیات بیشتر
               </button>
@@ -537,7 +534,7 @@ export default function DashboardPage({
           className="dashboard-transaction-segment"
           options={transactionTypeOptions}
           value={typeFilter}
-          onChange={(id) => setTypeFilter(id as TransactionTypeFilter)}
+          onChange={id => setTypeFilter(id as TransactionTypeFilter)}
         />
 
         {!data?.recentRecords.length ? (
@@ -559,5 +556,5 @@ export default function DashboardPage({
         )}
       </div>
     </div>
-  );
+  )
 }

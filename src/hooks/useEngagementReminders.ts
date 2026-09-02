@@ -1,78 +1,83 @@
-import { useEffect, useRef } from 'react';
-import { isTokenValid } from '../services/auth';
-import { syncAppOpen } from '../services/activityTracking';
-import { ensureDefaultReminderRules } from '../services/reminders';
-import { getSettings } from '../services/settings';
-import { getItem, setItem } from '../services/storage';
+import { useEffect, useRef } from 'react'
+
+import { syncAppOpen } from '../services/activityTracking'
+import { isTokenValid } from '../services/auth'
 import {
   getCurrentPushSubscription,
   getDeviceLabel,
   getNotificationPermission,
   getPushSupportStatus,
-  subscribeToPush,
-} from '../services/pushNotifications';
-import { upsertPushSubscription } from '../services/reminders';
+  subscribeToPush
+} from '../services/pushNotifications'
+import { ensureDefaultReminderRules, upsertPushSubscription } from '../services/reminders'
+import { getSettings } from '../services/settings'
+import { getItem, setItem } from '../services/storage'
 
-const PUSH_PROMPT_KEY = 'accounting_push_prompted';
+const PUSH_PROMPT_KEY = 'accounting_push_prompted'
 
 async function tryAutoSubscribePush(spreadsheetId: string): Promise<void> {
-  if (getPushSupportStatus() !== 'supported') return;
+  if (getPushSupportStatus() !== 'supported') return
 
-  const permission = getNotificationPermission();
-  if (permission === 'denied') return;
+  const permission = getNotificationPermission()
 
-  const existing = await getCurrentPushSubscription();
+  if (permission === 'denied') return
+
+  const existing = await getCurrentPushSubscription()
+
   if (existing?.endpoint) {
     await upsertPushSubscription(spreadsheetId, {
       endpoint: existing.endpoint,
       p256dh: existing.keys!.p256dh!,
       auth: existing.keys!.auth!,
       deviceLabel: getDeviceLabel(),
-      updatedAt: new Date().toISOString(),
-    });
-    return;
+      updatedAt: new Date().toISOString()
+    })
+
+    return
   }
 
   if (permission === 'default' && getItem<boolean>(PUSH_PROMPT_KEY)) {
-    return;
+    return
   }
 
   if (permission === 'default') {
-    setItem(PUSH_PROMPT_KEY, true);
+    setItem(PUSH_PROMPT_KEY, true)
   }
 
   try {
-    const subscription = await subscribeToPush();
+    const subscription = await subscribeToPush()
+
     await upsertPushSubscription(spreadsheetId, {
       endpoint: subscription.endpoint!,
       p256dh: subscription.keys!.p256dh!,
       auth: subscription.keys!.auth!,
       deviceLabel: getDeviceLabel(),
-      updatedAt: new Date().toISOString(),
-    });
+      updatedAt: new Date().toISOString()
+    })
   } catch {
     /* user denied or environment not ready */
   }
 }
 
 export function useEngagementReminders(): void {
-  const started = useRef(false);
+  const started = useRef(false)
 
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
+    if (started.current) return
+    started.current = true
 
-    const spreadsheetId = getSettings()?.spreadsheetId;
-    if (!spreadsheetId || !isTokenValid()) return;
+    const spreadsheetId = getSettings()?.spreadsheetId
+
+    if (!spreadsheetId || !isTokenValid()) return
 
     void (async () => {
       try {
-        await ensureDefaultReminderRules(spreadsheetId);
-        await syncAppOpen(spreadsheetId);
-        await tryAutoSubscribePush(spreadsheetId);
+        await ensureDefaultReminderRules(spreadsheetId)
+        await syncAppOpen(spreadsheetId)
+        await tryAutoSubscribePush(spreadsheetId)
       } catch {
         /* non-blocking background setup */
       }
-    })();
-  }, []);
+    })()
+  }, [])
 }

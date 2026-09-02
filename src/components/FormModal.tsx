@@ -1,17 +1,18 @@
-import { useEffect, type FormEvent, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import AppIcon from './AppIcon';
+import { useEffect, type FormEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+
+import AppIcon from './AppIcon'
 
 type FormModalProps = {
-  open: boolean;
-  title: string;
-  onClose: () => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  saving?: boolean;
-  saveLabel: string;
-  saveButtonClassName?: string;
-  children: ReactNode;
-};
+  open: boolean
+  title: string
+  onClose: () => void
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  saving?: boolean
+  saveLabel: string
+  saveButtonClassName?: string
+  children: ReactNode
+}
 
 export default function FormModal({
   open,
@@ -21,25 +22,25 @@ export default function FormModal({
   saving = false,
   saveLabel,
   saveButtonClassName = 'btn btn-primary',
-  children,
+  children
 }: FormModalProps) {
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !saving) onClose();
-    };
+      if (event.key === 'Escape' && !saving) onClose()
+    }
 
-    document.addEventListener('keydown', onKeyDown);
-    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKeyDown)
+    document.body.style.overflow = 'hidden'
 
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [open, saving, onClose]);
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [open, saving, onClose])
 
-  if (!open) return null;
+  if (!open) return null
 
   return createPortal(
     <div className="form-modal" role="dialog" aria-modal="true" aria-labelledby="form-modal-title">
@@ -47,7 +48,7 @@ export default function FormModal({
         type="button"
         className="form-modal-backdrop"
         onClick={() => {
-          if (!saving) onClose();
+          if (!saving) onClose()
         }}
         aria-label="بستن"
       />
@@ -84,5 +85,5 @@ export default function FormModal({
       </div>
     </div>,
     document.body
-  );
+  )
 }

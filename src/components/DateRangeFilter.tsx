@@ -1,32 +1,33 @@
-import { useEffect, useState } from 'react';
-import JalaliDatePicker from './JalaliDatePicker';
+import { useEffect, useState } from 'react'
+
+import JalaliDatePicker from './JalaliDatePicker'
 import {
   getDateRange,
   RECORDS_DATE_RANGE_PRESETS,
   type DateRange,
   type DateRangePreset,
-  type RecordsDatePreset,
-} from '../utils/dateRange';
+  type RecordsDatePreset
+} from '../utils/dateRange'
 
-export type DateRangeFilterPreset = RecordsDatePreset | 'all';
+export type DateRangeFilterPreset = RecordsDatePreset | 'all'
 
 export type AppliedDateRangeFilter = {
-  preset: DateRangeFilterPreset;
-  customRange: DateRange;
-};
+  preset: DateRangeFilterPreset
+  customRange: DateRange
+}
 
 export function createDefaultDateRangeFilter(): AppliedDateRangeFilter {
   return {
     preset: 'month-to-date',
-    customRange: getDateRange('month-to-date'),
-  };
+    customRange: getDateRange('month-to-date')
+  }
 }
 
 export function createAllDateRangeFilter(): AppliedDateRangeFilter {
   return {
     preset: 'all',
-    customRange: getDateRange('month-to-date'),
-  };
+    customRange: getDateRange('month-to-date')
+  }
 }
 
 export default function DateRangeFilter({
@@ -35,58 +36,60 @@ export default function DateRangeFilter({
   onChange,
   loading,
   includeAll = false,
-  label = 'بازه زمانی',
+  label = 'بازه زمانی'
 }: {
-  preset: DateRangeFilterPreset;
-  customRange: DateRange;
-  onChange: (filter: AppliedDateRangeFilter) => void;
-  loading?: boolean;
-  includeAll?: boolean;
-  label?: string;
+  preset: DateRangeFilterPreset
+  customRange: DateRange
+  onChange: (filter: AppliedDateRangeFilter) => void
+  loading?: boolean
+  includeAll?: boolean
+  label?: string
 }) {
-  const [editingCustom, setEditingCustom] = useState(false);
-  const [pendingCustomRange, setPendingCustomRange] = useState(customRange);
+  const [editingCustom, setEditingCustom] = useState(false)
+
+  const [pendingCustomRange, setPendingCustomRange] = useState(customRange)
 
   useEffect(() => {
     if (preset === 'custom') {
-      setPendingCustomRange(customRange);
+      setPendingCustomRange(customRange)
     }
-  }, [preset, customRange]);
+  }, [preset, customRange])
 
-  const showCustomPickers = preset === 'custom' || editingCustom;
+  const showCustomPickers = preset === 'custom' || editingCustom
 
   const hasPendingCustomChanges =
     (editingCustom && preset !== 'custom') ||
     pendingCustomRange.start !== customRange.start ||
-    pendingCustomRange.end !== customRange.end;
+    pendingCustomRange.end !== customRange.end
 
   const handlePresetClick = (id: DateRangeFilterPreset) => {
     if (id === 'all') {
-      setEditingCustom(false);
-      onChange({ preset: 'all', customRange });
-      return;
+      setEditingCustom(false)
+      onChange({ preset: 'all', customRange })
+
+      return
     }
     if (id === 'custom') {
-      setEditingCustom(true);
-      setPendingCustomRange(
-        preset === 'custom' ? customRange : getDateRange('month-to-date')
-      );
-      return;
+      setEditingCustom(true)
+      setPendingCustomRange(preset === 'custom' ? customRange : getDateRange('month-to-date'))
+
+      return
     }
-    setEditingCustom(false);
-    onChange({ preset: id, customRange: getDateRange(id as DateRangePreset) });
-  };
+    setEditingCustom(false)
+    onChange({ preset: id, customRange: getDateRange(id as DateRangePreset) })
+  }
 
   const handleConfirmCustom = () => {
-    setEditingCustom(false);
-    onChange({ preset: 'custom', customRange: pendingCustomRange });
-  };
+    setEditingCustom(false)
+    onChange({ preset: 'custom', customRange: pendingCustomRange })
+  }
 
   const isPresetActive = (id: DateRangeFilterPreset) => {
-    if (id === 'all') return preset === 'all';
-    if (id === 'custom') return preset === 'custom' || editingCustom;
-    return preset === id && !editingCustom;
-  };
+    if (id === 'all') return preset === 'all'
+    if (id === 'custom') return preset === 'custom' || editingCustom
+
+    return preset === id && !editingCustom
+  }
 
   return (
     <>
@@ -102,7 +105,7 @@ export default function DateRangeFilter({
               همه
             </button>
           )}
-          {RECORDS_DATE_RANGE_PRESETS.map((item) => (
+          {RECORDS_DATE_RANGE_PRESETS.map(item => (
             <button
               key={item.id}
               type="button"
@@ -121,11 +124,11 @@ export default function DateRangeFilter({
             <span className="records-filter-label">از</span>
             <JalaliDatePicker
               value={pendingCustomRange.start}
-              onChange={(start) =>
-                setPendingCustomRange((range) => ({
+              onChange={start =>
+                setPendingCustomRange(range => ({
                   ...range,
                   start,
-                  end: start > range.end ? start : range.end,
+                  end: start > range.end ? start : range.end
                 }))
               }
             />
@@ -134,11 +137,11 @@ export default function DateRangeFilter({
             <span className="records-filter-label">تا</span>
             <JalaliDatePicker
               value={pendingCustomRange.end}
-              onChange={(end) =>
-                setPendingCustomRange((range) => ({
+              onChange={end =>
+                setPendingCustomRange(range => ({
                   ...range,
                   end,
-                  start: end < range.start ? end : range.start,
+                  start: end < range.start ? end : range.start
                 }))
               }
             />
@@ -156,5 +159,5 @@ export default function DateRangeFilter({
         </div>
       )}
     </>
-  );
+  )
 }

@@ -1,41 +1,53 @@
-import { useEffect, useRef, useState } from 'react';
-import { prefersReducedMotion } from './useChartTheme';
+import { useEffect, useRef, useState } from 'react'
+
+import { prefersReducedMotion } from './useChartTheme'
 
 export function useAnimatedProgress(value: number, duration = 750, enabled = true): number {
-  const clamped = Math.max(0, Math.min(100, value));
-  const reducedMotion = prefersReducedMotion() || !enabled;
-  const [display, setDisplay] = useState(() => (reducedMotion ? clamped : 0));
-  const fromRef = useRef(reducedMotion ? clamped : 0);
+  const clamped = Math.max(0, Math.min(100, value))
+
+  const reducedMotion = prefersReducedMotion() || !enabled
+
+  const [display, setDisplay] = useState(() => (reducedMotion ? clamped : 0))
+
+  const fromRef = useRef(reducedMotion ? clamped : 0)
 
   useEffect(() => {
     if (reducedMotion) {
-      fromRef.current = clamped;
-      setDisplay(clamped);
-      return;
+      fromRef.current = clamped
+      setDisplay(clamped)
+
+      return
     }
 
-    const from = fromRef.current;
-    const delta = clamped - from;
-    if (delta === 0) return;
+    const from = fromRef.current
 
-    const start = performance.now();
-    let frame = 0;
+    const delta = clamped - from
+
+    if (delta === 0) return
+
+    const start = performance.now()
+
+    let frame = 0
 
     const tick = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const next = from + delta * eased;
-      setDisplay(next);
+      const progress = Math.min((now - start) / duration, 1)
+
+      const eased = 1 - Math.pow(1 - progress, 3)
+
+      const next = from + delta * eased
+
+      setDisplay(next)
       if (progress < 1) {
-        frame = requestAnimationFrame(tick);
+        frame = requestAnimationFrame(tick)
       } else {
-        fromRef.current = clamped;
+        fromRef.current = clamped
       }
-    };
+    }
 
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [clamped, duration, reducedMotion]);
+    frame = requestAnimationFrame(tick)
 
-  return display;
+    return () => cancelAnimationFrame(frame)
+  }, [clamped, duration, reducedMotion])
+
+  return display
 }

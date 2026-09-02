@@ -1,15 +1,16 @@
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import AppIcon from './AppIcon';
+import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
+
+import AppIcon from './AppIcon'
 
 type ConfirmDeleteModalProps = {
-  open: boolean;
-  title?: string;
-  message: string;
-  onClose: () => void;
-  onConfirm: () => void;
-  deleting?: boolean;
-};
+  open: boolean
+  title?: string
+  message: string
+  onClose: () => void
+  onConfirm: () => void
+  deleting?: boolean
+}
 
 export default function ConfirmDeleteModal({
   open,
@@ -17,25 +18,25 @@ export default function ConfirmDeleteModal({
   message,
   onClose,
   onConfirm,
-  deleting = false,
+  deleting = false
 }: ConfirmDeleteModalProps) {
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !deleting) onClose();
-    };
+      if (event.key === 'Escape' && !deleting) onClose()
+    }
 
-    document.addEventListener('keydown', onKeyDown);
-    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKeyDown)
+    document.body.style.overflow = 'hidden'
 
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [open, deleting, onClose]);
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [open, deleting, onClose])
 
-  if (!open) return null;
+  if (!open) return null
 
   return createPortal(
     <div
@@ -48,7 +49,7 @@ export default function ConfirmDeleteModal({
         type="button"
         className="form-modal-backdrop"
         onClick={() => {
-          if (!deleting) onClose();
+          if (!deleting) onClose()
         }}
         aria-label="بستن"
       />
@@ -75,12 +76,7 @@ export default function ConfirmDeleteModal({
 
         <div className="form-actions form-modal-actions">
           {deleting && <span className="spinner form-modal-spinner" aria-hidden />}
-          <button
-            type="button"
-            className="btn btn-danger"
-            disabled={deleting}
-            onClick={onConfirm}
-          >
+          <button type="button" className="btn btn-danger" disabled={deleting} onClick={onConfirm}>
             بله
           </button>
           <button type="button" className="btn btn-secondary" disabled={deleting} onClick={onClose}>
@@ -90,5 +86,5 @@ export default function ConfirmDeleteModal({
       </div>
     </div>,
     document.body
-  );
+  )
 }

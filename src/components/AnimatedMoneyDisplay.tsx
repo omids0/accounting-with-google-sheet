@@ -1,8 +1,5 @@
-import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
-import MoneyDisplay, {
-  type MoneyDisplaySize,
-  type MoneyDisplayTone,
-} from './MoneyDisplay';
+import MoneyDisplay, { type MoneyDisplaySize, type MoneyDisplayTone } from './MoneyDisplay'
+import { useAnimatedNumber } from '../hooks/useAnimatedNumber'
 
 export default function AnimatedMoneyDisplay({
   amount,
@@ -10,25 +7,20 @@ export default function AnimatedMoneyDisplay({
   tone = 'default',
   signed = false,
   className = '',
-  animated = true,
+  animated = true
 }: {
-  amount: number;
-  size?: MoneyDisplaySize;
-  tone?: MoneyDisplayTone;
-  signed?: boolean;
-  className?: string;
-  animated?: boolean;
+  amount: number
+  size?: MoneyDisplaySize
+  tone?: MoneyDisplayTone
+  signed?: boolean
+  className?: string
+  animated?: boolean
 }) {
-  const displayAmount = useAnimatedNumber(amount, 650, animated);
-  const value = animated ? displayAmount : amount;
+  const displayAmount = useAnimatedNumber(amount, 650, animated)
+
+  const value = animated ? displayAmount : amount
 
   return (
-    <MoneyDisplay
-      amount={value}
-      size={size}
-      tone={tone}
-      signed={signed}
-      className={className}
-    />
-  );
+    <MoneyDisplay amount={value} size={size} tone={tone} signed={signed} className={className} />
+  )
 }

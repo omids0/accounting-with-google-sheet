@@ -1,161 +1,185 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 
 export interface WheelPickerItem {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 interface WheelPickerProps {
-  items: WheelPickerItem[];
-  value: string;
-  onChange: (value: string) => void;
-  'aria-label'?: string;
+  items: WheelPickerItem[]
+  value: string
+  onChange: (value: string) => void
+  'aria-label'?: string
 }
 
-const ITEM_HEIGHT = 30;
-const VISIBLE_PADDING = 2;
-const MAX_DISTANCE = 2;
+const ITEM_HEIGHT = 30
+
+const VISIBLE_PADDING = 2
+
+const MAX_DISTANCE = 2
 
 function applyWheelItemVisuals(itemEl: HTMLButtonElement, offsetRows: number) {
-  const distance = Math.min(Math.abs(offsetRows), MAX_DISTANCE);
-  const t = distance / MAX_DISTANCE;
-  const isCentered = distance < 0.45;
+  const distance = Math.min(Math.abs(offsetRows), MAX_DISTANCE)
 
-  const scale = 1 - t * 0.13;
-  const fontSize = 0.88 - t * 0.16;
-  const opacity = 1 - t * 0.38;
+  const t = distance / MAX_DISTANCE
 
-  itemEl.style.transform = `scale(${scale})`;
-  itemEl.style.opacity = String(isCentered ? 1 : Math.max(0.3, opacity));
-  itemEl.style.fontSize = `${Math.max(0.66, fontSize)}rem`;
-  itemEl.style.fontWeight = isCentered ? '700' : '400';
+  const isCentered = distance < 0.45
+
+  const scale = 1 - t * 0.13
+
+  const fontSize = 0.88 - t * 0.16
+
+  const opacity = 1 - t * 0.38
+
+  itemEl.style.transform = `scale(${scale})`
+  itemEl.style.opacity = String(isCentered ? 1 : Math.max(0.3, opacity))
+  itemEl.style.fontSize = `${Math.max(0.66, fontSize)}rem`
+  itemEl.style.fontWeight = isCentered ? '700' : '400'
   itemEl.style.color = isCentered
     ? 'var(--wheel-item-active-color, var(--color-primary-dark))'
-    : 'var(--wheel-item-muted-color, var(--color-text-muted))';
+    : 'var(--wheel-item-muted-color, var(--color-text-muted))'
 }
 
 export default function WheelPicker({
   items,
   value,
   onChange,
-  'aria-label': ariaLabel,
+  'aria-label': ariaLabel
 }: WheelPickerProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const rafRef = useRef<number>();
-  const isUserScrollingRef = useRef(false);
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  const selectedIndex = items.findIndex((item) => item.value === value);
-  const safeIndex = selectedIndex >= 0 ? selectedIndex : 0;
-  const itemsSignature = items.map((item) => item.value).join('\0');
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
 
-  const padding = VISIBLE_PADDING * ITEM_HEIGHT;
-  const containerHeight = (VISIBLE_PADDING * 2 + 1) * ITEM_HEIGHT;
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+
+  const rafRef = useRef<number>()
+
+  const isUserScrollingRef = useRef(false)
+
+  const selectedIndex = items.findIndex(item => item.value === value)
+
+  const safeIndex = selectedIndex >= 0 ? selectedIndex : 0
+
+  const itemsSignature = items.map(item => item.value).join('\0')
+
+  const padding = VISIBLE_PADDING * ITEM_HEIGHT
+
+  const containerHeight = (VISIBLE_PADDING * 2 + 1) * ITEM_HEIGHT
 
   const updateVisuals = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
+    const el = scrollRef.current
 
-    const centerY = el.scrollTop + containerHeight / 2;
+    if (!el) return
+
+    const centerY = el.scrollTop + containerHeight / 2
 
     itemRefs.current.forEach((itemEl, index) => {
-      if (!itemEl) return;
-      const itemCenterY = padding + index * ITEM_HEIGHT + ITEM_HEIGHT / 2;
-      const offset = (itemCenterY - centerY) / ITEM_HEIGHT;
-      applyWheelItemVisuals(itemEl, offset);
-    });
-  }, [containerHeight, padding]);
+      if (!itemEl) return
+
+      const itemCenterY = padding + index * ITEM_HEIGHT + ITEM_HEIGHT / 2
+
+      const offset = (itemCenterY - centerY) / ITEM_HEIGHT
+
+      applyWheelItemVisuals(itemEl, offset)
+    })
+  }, [containerHeight, padding])
 
   const scheduleVisualUpdate = useCallback(() => {
     if (rafRef.current !== undefined) {
-      cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(rafRef.current)
     }
-    rafRef.current = requestAnimationFrame(updateVisuals);
-  }, [updateVisuals]);
+    rafRef.current = requestAnimationFrame(updateVisuals)
+  }, [updateVisuals])
 
   const scrollToIndex = useCallback(
     (index: number, smooth = false) => {
-      const el = scrollRef.current;
-      if (!el) return;
+      const el = scrollRef.current
+
+      if (!el) return
       el.scrollTo({
         top: index * ITEM_HEIGHT,
-        behavior: smooth ? 'smooth' : 'auto',
-      });
-      scheduleVisualUpdate();
+        behavior: smooth ? 'smooth' : 'auto'
+      })
+      scheduleVisualUpdate()
     },
     [scheduleVisualUpdate]
-  );
+  )
 
   const emitSelection = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el || items.length === 0) return;
+    const el = scrollRef.current
 
-    const index = Math.round(el.scrollTop / ITEM_HEIGHT);
-    const clamped = Math.max(0, Math.min(items.length - 1, index));
+    if (!el || items.length === 0) return
+
+    const index = Math.round(el.scrollTop / ITEM_HEIGHT)
+
+    const clamped = Math.max(0, Math.min(items.length - 1, index))
 
     if (clamped !== safeIndex) {
-      onChange(items[clamped].value);
+      onChange(items[clamped].value)
     }
 
-    scrollToIndex(clamped);
-    isUserScrollingRef.current = false;
-  }, [items, onChange, safeIndex, scrollToIndex]);
+    scrollToIndex(clamped)
+    isUserScrollingRef.current = false
+  }, [items, onChange, safeIndex, scrollToIndex])
 
   useLayoutEffect(() => {
-    if (isUserScrollingRef.current) return;
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTop = safeIndex * ITEM_HEIGHT;
-    scheduleVisualUpdate();
-  }, [safeIndex, itemsSignature, scheduleVisualUpdate]);
+    if (isUserScrollingRef.current) return
+
+    const el = scrollRef.current
+
+    if (!el) return
+    el.scrollTop = safeIndex * ITEM_HEIGHT
+    scheduleVisualUpdate()
+  }, [safeIndex, itemsSignature, scheduleVisualUpdate])
 
   useLayoutEffect(() => {
-    scheduleVisualUpdate();
-  }, [itemsSignature, scheduleVisualUpdate]);
+    scheduleVisualUpdate()
+  }, [itemsSignature, scheduleVisualUpdate])
 
   useEffect(() => {
     return () => {
       if (rafRef.current !== undefined) {
-        cancelAnimationFrame(rafRef.current);
+        cancelAnimationFrame(rafRef.current)
       }
-    };
-  }, []);
+    }
+  }, [])
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
+    const el = scrollRef.current
+
+    if (!el) return
 
     const onNativeScrollEnd = () => {
-      clearTimeout(scrollTimeoutRef.current);
-      emitSelection();
-      scheduleVisualUpdate();
-    };
+      clearTimeout(scrollTimeoutRef.current)
+      emitSelection()
+      scheduleVisualUpdate()
+    }
 
-    el.addEventListener('scrollend', onNativeScrollEnd);
-    return () => el.removeEventListener('scrollend', onNativeScrollEnd);
-  }, [emitSelection, scheduleVisualUpdate]);
+    el.addEventListener('scrollend', onNativeScrollEnd)
+
+    return () => el.removeEventListener('scrollend', onNativeScrollEnd)
+  }, [emitSelection, scheduleVisualUpdate])
 
   const handleScroll = () => {
-    isUserScrollingRef.current = true;
-    scheduleVisualUpdate();
-    clearTimeout(scrollTimeoutRef.current);
-    scrollTimeoutRef.current = setTimeout(emitSelection, 80);
-  };
+    isUserScrollingRef.current = true
+    scheduleVisualUpdate()
+    clearTimeout(scrollTimeoutRef.current)
+    scrollTimeoutRef.current = setTimeout(emitSelection, 80)
+  }
 
   const handleScrollEnd = () => {
-    clearTimeout(scrollTimeoutRef.current);
-    emitSelection();
-  };
+    clearTimeout(scrollTimeoutRef.current)
+    emitSelection()
+  }
 
-  itemRefs.current.length = items.length;
+  itemRefs.current.length = items.length
 
   return (
     <div
       className="wheel-picker"
       style={{
         height: containerHeight,
-        ['--wheel-item-height' as string]: `${ITEM_HEIGHT}px`,
+        ['--wheel-item-height' as string]: `${ITEM_HEIGHT}px`
       }}
       aria-label={ariaLabel}
       role="listbox"
@@ -165,16 +189,16 @@ export default function WheelPicker({
       <div
         ref={scrollRef}
         className="wheel-picker-scroll"
+        role="presentation"
         onScroll={handleScroll}
         onTouchEnd={handleScrollEnd}
-        onMouseUp={handleScrollEnd}
       >
         <div className="wheel-picker-padding" style={{ height: padding }} />
         {items.map((item, index) => (
           <button
             key={item.value}
-            ref={(el) => {
-              itemRefs.current[index] = el;
+            ref={el => {
+              itemRefs.current[index] = el
             }}
             type="button"
             role="option"
@@ -182,8 +206,8 @@ export default function WheelPicker({
             className={`wheel-picker-item${item.value === value ? ' is-selected' : ''}`}
             style={{ height: ITEM_HEIGHT }}
             onClick={() => {
-              onChange(item.value);
-              scrollToIndex(index, true);
+              onChange(item.value)
+              scrollToIndex(index, true)
             }}
           >
             {item.label}
@@ -192,5 +216,5 @@ export default function WheelPicker({
         <div className="wheel-picker-padding" style={{ height: padding }} />
       </div>
     </div>
-  );
+  )
 }

@@ -1,0 +1,47 @@
+#!/bin/sh
+set -e
+
+. "$(dirname -- "$0")/_/husky.sh"
+. "$(dirname -- "$0")/../scripts/husky-changed-files.sh"
+
+echo '🚀 Checking pushed commits for quality gates...'
+
+changed_files=$(get_push_changed_files)
+
+if [ -z "$changed_files" ]; then
+  echo '✅ No changed files in push. Skipping build, e2e, and Lighthouse.'
+  exit 0
+fi
+
+if ! requires_quality_checks "$changed_files"; then
+  echo '✅ No source changes in push. Skipping build, e2e, and Lighthouse.'
+  exit 0
+fi
+
+echo '📦 Relevant changes detected:'
+echo "$changed_files" | sed 's/^/   - /'
+
+echo '🛠 Running build process...'
+npm run build || {
+  echo '❌ Build failed! Please fix the errors before pushing.'
+  exit 1
+}
+
+a11y_spec=$(get_a11y_spec "$changed_files")
+if [ -n "$a11y_spec" ]; then
+  echo '♿ Running accessibility e2e checks...'
+  npx playwright test "$a11y_spec" || {
+    echo '❌ Accessibility e2e checks failed! Please fix the issues before pushing.'
+    exit 1
+  }
+else
+  echo '✅ No changes requiring e2e accessibility checks.'
+fi
+
+echo '🔦 Running Lighthouse...'
+npm run lighthouse || {
+  echo '❌ Lighthouse failed! Please fix the issues before pushing.'
+  exit 1
+}
+
+echo '✅✅✅✅ Push quality checks passed! ✅✅✅✅'

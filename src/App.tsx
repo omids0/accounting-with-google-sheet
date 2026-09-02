@@ -1,30 +1,26 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useGoogleOAuth } from '@react-oauth/google';
-import { registerSW } from 'virtual:pwa-register';
-import LoginPage from './components/LoginPage';
-import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel';
-import Layout from './components/Layout';
-import UnlockScreen from './components/UnlockScreen';
-import { useTokenRefresh } from './hooks/useTokenRefresh';
-import { useAppLock } from './hooks/useAppLock';
-import {
-  hasStoredSession,
-  isAuthError,
-  isTokenValid,
-} from './services/auth';
-import { syncAppLockFromSheet } from './services/appLock';
-import { refreshAccessTokenSilently } from './services/tokenRefresh';
-import { isConfigured } from './services/settings';
+import { useGoogleOAuth } from '@react-oauth/google'
+import { useState, useEffect, useCallback } from 'react'
+import { registerSW } from 'virtual:pwa-register'
+
+import AppIcon from './components/AppIcon'
+import Layout from './components/Layout'
+import LoginPage from './components/LoginPage'
+import { AppLoadingSkeleton } from './components/skeleton'
+import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel'
+import UnlockScreen from './components/UnlockScreen'
+import { useAppLock } from './hooks/useAppLock'
+import { useTokenRefresh } from './hooks/useTokenRefresh'
+import { syncAppLockFromSheet } from './services/appLock'
+import { hasStoredSession, isAuthError, isTokenValid } from './services/auth'
+import { isConfigured, getSettings } from './services/settings'
+import { initializeSheetSync } from './services/sheetSync'
 import {
   getDefaultFirstSheetLabel,
   prepareUserSpreadsheet,
-  resolveSpreadsheetSession,
-} from './services/spreadsheetSetup';
-import { initializeSheetSync } from './services/sheetSync';
-import { getSettings } from './services/settings';
-import type { SpreadsheetEntry } from './types';
-import { AppLoadingSkeleton } from './components/skeleton';
-import AppIcon from './components/AppIcon';
+  resolveSpreadsheetSession
+} from './services/spreadsheetSetup'
+import { refreshAccessTokenSilently } from './services/tokenRefresh'
+import type { SpreadsheetEntry } from './types'
 
 function ConfigNotice() {
   return (
@@ -36,8 +32,8 @@ function ConfigNotice() {
           </span>
           <h1>تنظیمات Google OAuth</h1>
           <p>
-            <code dir="ltr">VITE_GOOGLE_CLIENT_ID</code> در فایل{' '}
-            <code dir="ltr">.env</code> تنظیم نشده.
+            <code dir="ltr">VITE_GOOGLE_CLIENT_ID</code> در فایل <code dir="ltr">.env</code> تنظیم
+            نشده.
           </p>
         </div>
         <div
@@ -49,150 +45,164 @@ function ConfigNotice() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [needsReauth, setNeedsReauth] = useState(false);
-  const [needsSheetSetup, setNeedsSheetSetup] = useState(false);
-  const [sheetSetupMode, setSheetSetupMode] = useState<'pick' | 'create'>('pick');
-  const [sheetOptions, setSheetOptions] = useState<SpreadsheetEntry[]>([]);
-  const [ready, setReady] = useState(false);
-  const [sheetError, setSheetError] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false)
 
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
-  const isOAuthConfigured = !!clientId && !clientId.startsWith('xxx');
-  const { scriptLoadedSuccessfully } = useGoogleOAuth();
-  const { locked, unlock } = useAppLock();
+  const [needsReauth, setNeedsReauth] = useState(false)
+
+  const [needsSheetSetup, setNeedsSheetSetup] = useState(false)
+
+  const [sheetSetupMode, setSheetSetupMode] = useState<'pick' | 'create'>('pick')
+
+  const [sheetOptions, setSheetOptions] = useState<SpreadsheetEntry[]>([])
+
+  const [ready, setReady] = useState(false)
+
+  const [sheetError, setSheetError] = useState('')
+
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
+
+  const isOAuthConfigured = !!clientId && !clientId.startsWith('xxx')
+
+  const { scriptLoadedSuccessfully } = useGoogleOAuth()
+
+  const { locked, unlock } = useAppLock()
 
   const handleReauth = useCallback(async () => {
     if (scriptLoadedSuccessfully && hasStoredSession()) {
-      const refreshed = await refreshAccessTokenSilently(clientId);
+      const refreshed = await refreshAccessTokenSilently(clientId)
+
       if (refreshed && isTokenValid()) {
-        setNeedsReauth(false);
-        return;
+        setNeedsReauth(false)
+
+        return
       }
     }
-    setNeedsReauth(true);
-  }, [clientId, scriptLoadedSuccessfully]);
+    setNeedsReauth(true)
+  }, [clientId, scriptLoadedSuccessfully])
 
   useTokenRefresh({
     clientId,
     enabled: hasStoredSession(),
     onRefreshFailed: () => {
-      if (loggedIn) setNeedsReauth(true);
+      if (loggedIn) setNeedsReauth(true)
     },
     onRefreshSuccess: () => {
-      if (isTokenValid()) setNeedsReauth(false);
-    },
-  });
+      if (isTokenValid()) setNeedsReauth(false)
+    }
+  })
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
-    const canTryRefresh = hasStoredSession() && !isTokenValid();
-    if (canTryRefresh && !scriptLoadedSuccessfully) return;
+    const canTryRefresh = hasStoredSession() && !isTokenValid()
+
+    if (canTryRefresh && !scriptLoadedSuccessfully) return
 
     async function init() {
-      let tokenValid = isTokenValid();
+      let tokenValid = isTokenValid()
 
       if (!tokenValid && hasStoredSession()) {
-        const refreshed = await refreshAccessTokenSilently(clientId);
-        tokenValid = refreshed && isTokenValid();
+        const refreshed = await refreshAccessTokenSilently(clientId)
+
+        tokenValid = refreshed && isTokenValid()
       }
 
       if (!tokenValid) {
         if (!cancelled) {
-          setLoggedIn(false);
-          setNeedsReauth(isConfigured());
-          setNeedsSheetSetup(false);
-          setReady(true);
+          setLoggedIn(false)
+          setNeedsReauth(isConfigured())
+          setNeedsSheetSetup(false)
+          setReady(true)
         }
-        return;
+
+        return
       }
 
       try {
-        const session = await resolveSpreadsheetSession();
+        const session = await resolveSpreadsheetSession()
 
         if (session.status === 'ready') {
-          await prepareUserSpreadsheet();
-          await syncAppLockFromSheet();
-          const settings = getSettings();
+          await prepareUserSpreadsheet()
+          await syncAppLockFromSheet()
+
+          const settings = getSettings()
+
           if (settings?.spreadsheetId) {
-            await initializeSheetSync(settings.spreadsheetId);
+            await initializeSheetSync(settings.spreadsheetId)
           }
           if (!cancelled) {
-            setLoggedIn(true);
-            setNeedsReauth(false);
-            setNeedsSheetSetup(false);
-            setSheetError('');
+            setLoggedIn(true)
+            setNeedsReauth(false)
+            setNeedsSheetSetup(false)
+            setSheetError('')
           }
         } else if (!cancelled) {
-          setLoggedIn(false);
-          setNeedsReauth(false);
-          setNeedsSheetSetup(true);
-          setSheetSetupMode(
-            session.status === 'need_selection' ? 'pick' : 'create'
-          );
-          setSheetOptions(
-            session.status === 'need_selection' ? session.options : []
-          );
-          setSheetError('');
+          setLoggedIn(false)
+          setNeedsReauth(false)
+          setNeedsSheetSetup(true)
+          setSheetSetupMode(session.status === 'need_selection' ? 'pick' : 'create')
+          setSheetOptions(session.status === 'need_selection' ? session.options : [])
+          setSheetError('')
         }
       } catch (err) {
         if (!cancelled) {
-          const message =
-            err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت';
+          const message = err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت'
+
           if (isAuthError(err)) {
-            setLoggedIn(false);
-            setNeedsReauth(true);
-            setNeedsSheetSetup(false);
+            setLoggedIn(false)
+            setNeedsReauth(true)
+            setNeedsSheetSetup(false)
           } else if (isTokenValid()) {
-            setLoggedIn(true);
-            setNeedsReauth(false);
-            setNeedsSheetSetup(false);
+            setLoggedIn(true)
+            setNeedsReauth(false)
+            setNeedsSheetSetup(false)
           } else {
-            setLoggedIn(false);
-            setNeedsReauth(true);
-            setNeedsSheetSetup(false);
+            setLoggedIn(false)
+            setNeedsReauth(true)
+            setNeedsSheetSetup(false)
           }
-          setSheetError(message);
+          setSheetError(message)
         }
       }
 
-      if (!cancelled) setReady(true);
+      if (!cancelled) setReady(true)
     }
 
-    init();
+    init()
 
     registerSW({
       onNeedRefresh() {
         if (confirm('نسخه جدید موجود است. بروزرسانی شود؟')) {
-          window.location.reload();
+          window.location.reload()
         }
-      },
-    });
+      }
+    })
 
     return () => {
-      cancelled = true;
-    };
-  }, [clientId, scriptLoadedSuccessfully]);
+      cancelled = true
+    }
+  }, [clientId, scriptLoadedSuccessfully])
 
   const handleSheetSetupComplete = async () => {
-    await syncAppLockFromSheet();
-    const settings = getSettings();
-    if (settings?.spreadsheetId) {
-      await initializeSheetSync(settings.spreadsheetId);
-    }
-    setLoggedIn(true);
-    setNeedsSheetSetup(false);
-    setSheetError('');
-  };
+    await syncAppLockFromSheet()
 
-  if (!isOAuthConfigured) return <ConfigNotice />;
+    const settings = getSettings()
+
+    if (settings?.spreadsheetId) {
+      await initializeSheetSync(settings.spreadsheetId)
+    }
+    setLoggedIn(true)
+    setNeedsSheetSetup(false)
+    setSheetError('')
+  }
+
+  if (!isOAuthConfigured) return <ConfigNotice />
   if (!ready) {
-    return <AppLoadingSkeleton />;
+    return <AppLoadingSkeleton />
   }
 
   if (needsSheetSetup && isTokenValid()) {
@@ -203,7 +213,7 @@ export default function App() {
         defaultLabel={getDefaultFirstSheetLabel()}
         onComplete={handleSheetSetupComplete}
       />
-    );
+    )
   }
 
   if (!loggedIn || needsReauth) {
@@ -211,27 +221,27 @@ export default function App() {
       <LoginPage
         initialError={sheetError}
         onSuccess={() => {
-          setLoggedIn(true);
-          setNeedsReauth(false);
-          setNeedsSheetSetup(false);
-          setSheetError('');
+          setLoggedIn(true)
+          setNeedsReauth(false)
+          setNeedsSheetSetup(false)
+          setSheetError('')
         }}
       />
-    );
+    )
   }
 
   if (locked) {
-    return <UnlockScreen onUnlock={unlock} />;
+    return <UnlockScreen onUnlock={unlock} />
   }
 
   return (
     <Layout
       onLogout={() => {
-        setLoggedIn(false);
-        setNeedsReauth(false);
-        setNeedsSheetSetup(false);
+        setLoggedIn(false)
+        setNeedsReauth(false)
+        setNeedsSheetSetup(false)
       }}
       onReauth={handleReauth}
     />
-  );
+  )
 }

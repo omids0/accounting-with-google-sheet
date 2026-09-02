@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+
+. "$(dirname -- "$0")/_/husky.sh"
+. "$(dirname -- "$0")/../scripts/load-env-share.sh"
+
+echo '🔍 Checking commit message format...'
+
+commit_msg_file=$1
+commit_msg=$(cat "$commit_msg_file")
+
+echo "📝 Commit Message: '$commit_msg'"
+
+commit_regex="^(feature|hotfix|bugfix|chore|refactor|docs|test|ci|perf|style)/(${JIRA_PROJECTS_REGEX})-[0-9]+/(${JIRA_PROJECTS_REGEX})-[0-9]+/.+"
+
+if ! echo "$commit_msg" | grep -E -q "$commit_regex"; then
+  echo "❌ Invalid commit message format!"
+  echo "🔹 Your commit message should follow this format:"
+  echo "   feature/${JIRA_PROJECT_EXAMPLE}-777/${JIRA_PROJECT_EXAMPLE}-888/commit message here"
+  echo "🔹 Allowed types: feature, hotfix, bugfix, chore, refactor, docs, test, ci, perf, style"
+  echo "🔹 Example: feature/${JIRA_PROJECT_EXAMPLE}-1234/${JIRA_PROJECT_EXAMPLE}-567/Fix button alignment issue"
+  exit 1
+fi
+
+echo '✅ Commit message format is valid.'

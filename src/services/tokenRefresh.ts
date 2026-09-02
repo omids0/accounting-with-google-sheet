@@ -3,56 +3,61 @@ import {
   getSession,
   isTokenValid,
   renewSessionToken,
-  shouldRefreshToken,
-} from './auth';
+  shouldRefreshToken
+} from './auth'
 
-let refreshInFlight: Promise<boolean> | null = null;
+let refreshInFlight: Promise<boolean> | null = null
 
 export function refreshAccessTokenSilently(clientId: string): Promise<boolean> {
-  if (refreshInFlight) return refreshInFlight;
+  if (refreshInFlight) return refreshInFlight
 
-  const session = getSession();
+  const session = getSession()
+
   if (!clientId || !session?.email) {
-    return Promise.resolve(false);
+    return Promise.resolve(false)
   }
 
   if (isTokenValid() && !shouldRefreshToken()) {
-    return Promise.resolve(true);
+    return Promise.resolve(true)
   }
 
-  refreshInFlight = new Promise((resolve) => {
-    const google = window.google?.accounts?.oauth2;
+  refreshInFlight = new Promise(resolve => {
+    const google = window.google?.accounts?.oauth2
+
     if (!google) {
-      refreshInFlight = null;
-      resolve(false);
-      return;
+      refreshInFlight = null
+      resolve(false)
+
+      return
     }
 
-    let settled = false;
+    let settled = false
+
     const finish = (ok: boolean) => {
-      if (settled) return;
-      settled = true;
-      refreshInFlight = null;
-      resolve(ok);
-    };
+      if (settled) return
+      settled = true
+      refreshInFlight = null
+      resolve(ok)
+    }
 
     const client = google.initTokenClient({
       client_id: clientId,
       scope: FULL_GOOGLE_OAUTH_SCOPE,
       hint: session.email,
-      callback: (response) => {
+      callback: response => {
         if (response.error || !response.access_token) {
-          finish(false);
-          return;
+          finish(false)
+
+          return
         }
-        renewSessionToken(response.access_token, response.expires_in ?? 3600);
-        finish(true);
+        renewSessionToken(response.access_token, response.expires_in ?? 3600)
+        finish(true)
       },
-      error_callback: () => finish(false),
-    });
+      error_callback: () => finish(false)
+    })
 
-    client.requestAccessToken({ prompt: 'none' });
-  });
+    client.requestAccessToken({ prompt: 'none' })
+  })
 
-  return refreshInFlight;
+  return refreshInFlight
 }

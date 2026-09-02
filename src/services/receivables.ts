@@ -1,26 +1,23 @@
-import type { Receivable, ReceivablePayment } from '../types';
+import type { Receivable, ReceivablePayment } from '../types'
+import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
+import { createLinkedIncomeRecord, deleteLinkedIncomeRecord } from './paymentTransactions'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
   fetchSheetRows,
   updateSheetRow,
-  deleteSheetRow,
-} from './sheets';
-import { getTodayIso } from '../utils/jalaliDate';
-import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
-import { downloadTablePdf } from '../utils/pdf';
-import { formatMoney } from '../utils/formatMoney';
+  deleteSheetRow
+} from './sheets'
+import { formatMoney } from '../utils/formatMoney'
+import { getTodayIso } from '../utils/jalaliDate'
+import { downloadTablePdf } from '../utils/pdf'
 import {
   formatReceivablePayments,
   formatReceivableSummary,
-  formatPersianDate,
-} from '../utils/pdfFormat';
-import {
-  createLinkedIncomeRecord,
-  deleteLinkedIncomeRecord,
-} from './paymentTransactions';
+  formatPersianDate
+} from '../utils/pdfFormat'
 
-export const RECEIVABLES_SHEET = 'طلب‌ها';
+export const RECEIVABLES_SHEET = 'طلب‌ها'
 
 export const RECEIVABLES_HEADERS = [
   'شناسه',
@@ -30,29 +27,29 @@ export const RECEIVABLES_HEADERS = [
   'مبلغ',
   'تاریخ قرض',
   'توضیحات',
-  'پرداخت‌ها',
-];
+  'پرداخت‌ها'
+]
 
 function parsePayments(raw: string): ReceivablePayment[] {
-  if (!raw) return [];
+  if (!raw) return []
   try {
-    const parsed = JSON.parse(raw) as ReceivablePayment[];
-    if (Array.isArray(parsed)) return parsed;
+    const parsed = JSON.parse(raw) as ReceivablePayment[]
+
+    if (Array.isArray(parsed)) return parsed
   } catch {
     /* use default */
   }
-  return [];
+
+  return []
 }
 
 function isLegacyReceivableRow(row: string[]): boolean {
-  const amountAt3 = Number(row[3]);
-  return row[3] !== '' && !Number.isNaN(amountAt3);
+  const amountAt3 = Number(row[3])
+
+  return row[3] !== '' && !Number.isNaN(amountAt3)
 }
 
-function rowToReceivable(
-  row: string[],
-  rowNumber: number
-): Receivable & { rowNumber: number } {
+function rowToReceivable(row: string[], rowNumber: number): Receivable & { rowNumber: number } {
   if (isLegacyReceivableRow(row)) {
     return {
       rowNumber,
@@ -63,8 +60,8 @@ function rowToReceivable(
       amount: Number(row[3]) || 0,
       borrowDate: row[4] ?? '',
       note: row[5] ?? '',
-      payments: parsePayments(row[6] ?? ''),
-    };
+      payments: parsePayments(row[6] ?? '')
+    }
   }
 
   return {
@@ -76,8 +73,8 @@ function rowToReceivable(
     amount: Number(row[4]) || 0,
     borrowDate: row[5] ?? '',
     note: row[6] ?? '',
-    payments: parsePayments(row[7] ?? ''),
-  };
+    payments: parsePayments(row[7] ?? '')
+  }
 }
 
 function receivableToRow(receivable: Receivable): string[] {
@@ -89,60 +86,59 @@ function receivableToRow(receivable: Receivable): string[] {
     String(receivable.amount),
     receivable.borrowDate,
     receivable.note,
-    JSON.stringify(receivable.payments),
-  ];
+    JSON.stringify(receivable.payments)
+  ]
 }
 
 export function paidAmount(receivable: Receivable): number {
-  return receivable.payments.reduce((sum, p) => sum + p.amount, 0);
+  return receivable.payments.reduce((sum, p) => sum + p.amount, 0)
 }
 
 export function remainingAmount(receivable: Receivable): number {
-  return Math.max(0, receivable.amount - paidAmount(receivable));
+  return Math.max(0, receivable.amount - paidAmount(receivable))
 }
 
 export function isReceivableComplete(receivable: Receivable): boolean {
-  return remainingAmount(receivable) <= 0;
+  return remainingAmount(receivable) <= 0
 }
 
-export function sortReceivables<T extends Receivable>(
-  items: T[]
-): T[] {
+export function sortReceivables<T extends Receivable>(items: T[]): T[] {
   return [...items].sort((a, b) => {
-    const aComplete = isReceivableComplete(a);
-    const bComplete = isReceivableComplete(b);
-    if (aComplete !== bComplete) return aComplete ? 1 : -1;
-    return (b.borrowDate || '').localeCompare(a.borrowDate || '');
-  });
+    const aComplete = isReceivableComplete(a)
+
+    const bComplete = isReceivableComplete(b)
+
+    if (aComplete !== bComplete) return aComplete ? 1 : -1
+
+    return (b.borrowDate || '').localeCompare(a.borrowDate || '')
+  })
 }
 
 export async function ensureReceivablesSheet(spreadsheetId: string): Promise<void> {
-  await ensureSheetWithHeaders(
-    spreadsheetId,
-    RECEIVABLES_SHEET,
-    RECEIVABLES_HEADERS
-  );
+  await ensureSheetWithHeaders(spreadsheetId, RECEIVABLES_SHEET, RECEIVABLES_HEADERS)
 }
 
 export async function fetchReceivables(
   spreadsheetId: string
 ): Promise<(Receivable & { rowNumber: number })[]> {
-  const rows = await fetchSheetRows(spreadsheetId, RECEIVABLES_SHEET);
+  const rows = await fetchSheetRows(spreadsheetId, RECEIVABLES_SHEET)
+
   const items = rows
     .map((row, index) => ({ row, rowNumber: index + 2 }))
     .filter(({ row }) => String(row[0] ?? '').trim())
-    .map(({ row, rowNumber }) => rowToReceivable(row, rowNumber));
-  return sortReceivables(items);
+    .map(({ row, rowNumber }) => rowToReceivable(row, rowNumber))
+
+  return sortReceivables(items)
 }
 
 export async function createReceivable(
   spreadsheetId: string,
   data: {
-    debtor: string;
-    category: string;
-    amount: number;
-    borrowDate: string;
-    note: string;
+    debtor: string
+    category: string
+    amount: number
+    borrowDate: string
+    note: string
   }
 ): Promise<Receivable> {
   const receivable: Receivable = {
@@ -153,11 +149,12 @@ export async function createReceivable(
     amount: data.amount,
     borrowDate: data.borrowDate,
     note: data.note,
-    payments: [],
-  };
+    payments: []
+  }
 
-  await appendSheetRow(spreadsheetId, RECEIVABLES_SHEET, receivableToRow(receivable));
-  return receivable;
+  await appendSheetRow(spreadsheetId, RECEIVABLES_SHEET, receivableToRow(receivable))
+
+  return receivable
 }
 
 export async function addReceivablePayment(
@@ -165,35 +162,37 @@ export async function addReceivablePayment(
   receivable: Receivable & { rowNumber: number },
   payment: { amount: number; note?: string; title?: string; category?: string }
 ): Promise<Receivable> {
-  const paidAt = getTodayIso();
+  const paidAt = getTodayIso()
+
   const transactionRecordId = await createLinkedIncomeRecord(spreadsheetId, {
     title: payment.title ?? `طلب: ${receivable.debtor}`,
     amount: payment.amount,
     category: payment.category ?? receivable.category,
     date: paidAt,
-    note: payment.note ?? receivable.note,
-  });
+    note: payment.note ?? receivable.note
+  })
 
   const newPayment: ReceivablePayment = {
     id: crypto.randomUUID(),
     amount: payment.amount,
     paidAt,
     note: payment.note ?? '',
-    transactionRecordId,
-  };
+    transactionRecordId
+  }
 
   const updated: Receivable = {
     ...receivable,
-    payments: [...receivable.payments, newPayment],
-  };
+    payments: [...receivable.payments, newPayment]
+  }
 
   await updateSheetRow(
     spreadsheetId,
     RECEIVABLES_SHEET,
     receivable.rowNumber,
     receivableToRow(updated)
-  );
-  return updated;
+  )
+
+  return updated
 }
 
 export async function removeReceivablePayment(
@@ -201,25 +200,27 @@ export async function removeReceivablePayment(
   receivable: Receivable & { rowNumber: number },
   paymentId: string
 ): Promise<Receivable> {
-  const payment = receivable.payments.find((p) => p.id === paymentId);
-  if (!payment) return receivable;
+  const payment = receivable.payments.find(p => p.id === paymentId)
+
+  if (!payment) return receivable
 
   if (payment.transactionRecordId) {
-    await deleteLinkedIncomeRecord(spreadsheetId, payment.transactionRecordId);
+    await deleteLinkedIncomeRecord(spreadsheetId, payment.transactionRecordId)
   }
 
   const updated: Receivable = {
     ...receivable,
-    payments: receivable.payments.filter((p) => p.id !== paymentId),
-  };
+    payments: receivable.payments.filter(p => p.id !== paymentId)
+  }
 
   await updateSheetRow(
     spreadsheetId,
     RECEIVABLES_SHEET,
     receivable.rowNumber,
     receivableToRow(updated)
-  );
-  return updated;
+  )
+
+  return updated
 }
 
 export async function updateReceivable(
@@ -227,12 +228,7 @@ export async function updateReceivable(
   rowNumber: number,
   receivable: Receivable
 ): Promise<void> {
-  await updateSheetRow(
-    spreadsheetId,
-    RECEIVABLES_SHEET,
-    rowNumber,
-    receivableToRow(receivable)
-  );
+  await updateSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber, receivableToRow(receivable))
 }
 
 export async function deleteReceivable(
@@ -243,24 +239,20 @@ export async function deleteReceivable(
   if (receivable) {
     for (const payment of receivable.payments) {
       if (payment.transactionRecordId) {
-        await deleteLinkedIncomeRecord(spreadsheetId, payment.transactionRecordId);
+        await deleteLinkedIncomeRecord(spreadsheetId, payment.transactionRecordId)
       }
     }
   }
-  await deleteSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber);
+  await deleteSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber)
 }
 
 export async function exportReceivablesCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(
-    spreadsheetId,
-    RECEIVABLES_SHEET,
-    RECEIVABLES_HEADERS,
-    'طلب‌ها.csv'
-  );
+  await exportSheetCsv(spreadsheetId, RECEIVABLES_SHEET, RECEIVABLES_HEADERS, 'طلب‌ها.csv')
 }
 
 export async function exportReceivablesPdf(spreadsheetId: string): Promise<void> {
-  const items = sortReceivables(await fetchReceivables(spreadsheetId));
+  const items = sortReceivables(await fetchReceivables(spreadsheetId))
+
   const headers = [
     'نام',
     'دسته‌بندی',
@@ -269,10 +261,12 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
     'پرداخت شده',
     'مانده',
     'توضیحات',
-    'جزئیات پرداخت',
-  ];
-  const rows = items.map((item) => {
-    const summary = formatReceivableSummary(item);
+    'جزئیات پرداخت'
+  ]
+
+  const rows = items.map(item => {
+    const summary = formatReceivableSummary(item)
+
     return [
       item.debtor,
       item.category,
@@ -281,9 +275,10 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
       summary.paid,
       summary.remaining,
       item.note,
-      formatReceivablePayments(item.payments),
-    ];
-  });
+      formatReceivablePayments(item.payments)
+    ]
+  })
+
   const cellClasses = items.map(() => [
     '',
     '',
@@ -292,30 +287,29 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
     'pdf-cell-amount',
     'pdf-cell-amount',
     '',
-    'pdf-cell-multiline',
-  ]);
+    'pdf-cell-multiline'
+  ])
 
   await downloadTablePdf({
     title: 'گزارش طلب‌ها',
     headers,
     rows,
     filename: 'طلب‌ها.pdf',
-    cellClasses,
-  });
+    cellClasses
+  })
 }
 
-export async function importReceivablesCsv(
-  spreadsheetId: string,
-  csvContent: string
-) {
+export async function importReceivablesCsv(spreadsheetId: string, csvContent: string) {
   return importSheetCsv(
     spreadsheetId,
     RECEIVABLES_SHEET,
     RECEIVABLES_HEADERS,
     csvContent,
-    (cells) => {
-      const debtor = (cells[2] ?? '').trim();
-      if (!debtor) return null;
+    cells => {
+      const debtor = (cells[2] ?? '').trim()
+
+      if (!debtor) return null
+
       return receivableToRow({
         id: newImportId(cells[0] ?? ''),
         createdAt: newImportTimestamp(cells[1] ?? ''),
@@ -324,8 +318,8 @@ export async function importReceivablesCsv(
         amount: Number(cells[4]) || 0,
         borrowDate: cells[5] ?? '',
         note: cells[6] ?? '',
-        payments: parsePayments(cells[7] ?? ''),
-      });
+        payments: parsePayments(cells[7] ?? '')
+      })
     }
-  );
+  )
 }

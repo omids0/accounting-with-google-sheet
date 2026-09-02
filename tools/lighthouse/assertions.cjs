@@ -1,0 +1,27 @@
+/** @type {Record<string, import('@lhci/cli/src/index').LHCI.AssertionLevel | [import('@lhci/cli/src/index').LHCI.AssertionLevel, Record<string, number>]>} */
+module.exports = {
+  'categories:performance': ['warn', { minScore: 0.9 }],
+  'categories:accessibility': ['error', { minScore: 1 }],
+  'categories:best-practices': ['error', { minScore: 0.95 }],
+  'categories:seo': ['error', { minScore: 0.6 }],
+  'document-title': 'error',
+  'html-has-lang': 'error',
+  'meta-description': 'error',
+  viewport: 'error',
+  'color-contrast': 'error',
+  'image-alt': 'error',
+  'link-name': 'error',
+  'button-name': 'error',
+  label: 'error',
+  'is-crawlable': 'off',
+  'is-on-https': 'off',
+  'uses-http2': 'off',
+  'errors-in-console': 'warn',
+  'unused-javascript': 'warn',
+  'render-blocking-resources': 'warn',
+  'uses-text-compression': 'error',
+  'total-byte-weight': ['warn', { maxNumericValue: 1500000 }],
+  'dom-size': ['warn', { maxNumericValue: 1500 }],
+  'service-worker': 'warn',
+  'installable-manifest': 'warn'
+}

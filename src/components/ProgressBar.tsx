@@ -1,17 +1,18 @@
-import type { CSSProperties } from 'react';
-import { useAnimatedProgress } from '../hooks/useAnimatedProgress';
-import { formatPersianNumber } from '../utils/formatMoney';
+import type { CSSProperties } from 'react'
 
-type ProgressBarVariant = 'default' | 'complete' | 'success';
+import { useAnimatedProgress } from '../hooks/useAnimatedProgress'
+import { formatPersianNumber } from '../utils/formatMoney'
+
+type ProgressBarVariant = 'default' | 'complete' | 'success'
 
 interface ProgressBarProps {
-  value: number;
-  variant?: ProgressBarVariant;
-  showLabel?: boolean;
-  animateIndex?: number;
-  animated?: boolean;
-  className?: string;
-  'aria-label'?: string;
+  value: number
+  variant?: ProgressBarVariant
+  showLabel?: boolean
+  animateIndex?: number
+  animated?: boolean
+  className?: string
+  'aria-label'?: string
 }
 
 export default function ProgressBar({
@@ -21,19 +22,23 @@ export default function ProgressBar({
   animateIndex = 0,
   animated = true,
   className = '',
-  'aria-label': ariaLabel,
+  'aria-label': ariaLabel
 }: ProgressBarProps) {
-  const clamped = Math.max(0, Math.min(100, value));
-  const animatedValue = useAnimatedProgress(clamped, 750, animated);
-  const displayPct = Math.round(animatedValue);
+  const clamped = Math.max(0, Math.min(100, value))
+
+  const animatedValue = useAnimatedProgress(clamped, 750, animated)
+
+  const displayPct = Math.round(animatedValue)
 
   const style = {
-    '--progress-delay': `${Math.min(animateIndex, 10) * 0.07}s`,
-  } as CSSProperties;
+    '--progress-delay': `${Math.min(animateIndex, 10) * 0.07}s`
+  } as CSSProperties
 
   return (
     <div
-      className={`progress-bar progress-bar--${variant}${animated ? '' : ' progress-bar--static'}${className ? ` ${className}` : ''}`}
+      className={`progress-bar progress-bar--${variant}${animated ? '' : ' progress-bar--static'}${
+        className ? ` ${className}` : ''
+      }`}
       style={style}
     >
       <div className="progress-bar__meta">
@@ -57,5 +62,5 @@ export default function ProgressBar({
         ) : null}
       </div>
     </div>
-  );
+  )
 }

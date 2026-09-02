@@ -1,24 +1,25 @@
-import type { FieldConfig } from '../../types';
-import AmountInput from '../AmountInput';
-import JalaliDatePicker from '../JalaliDatePicker';
-import FormField from './FormField';
-import CategorySelect from './CategorySelect';
-import Select from './Select';
+import type { FieldConfig } from '../../types'
+import AmountInput from '../AmountInput'
+import JalaliDatePicker from '../JalaliDatePicker'
+import CategorySelect from './CategorySelect'
+import FormField from './FormField'
+import Select from './Select'
 
 interface FieldInputProps {
-  field: FieldConfig;
-  value: string | number;
-  onChange: (value: string | number) => void;
-  formId?: string;
-  onCategoriesChange?: (categories: string[]) => void;
-  onReauth?: () => void;
+  field: FieldConfig
+  value: string | number
+  onChange: (value: string | number) => void
+  formId?: string
+  onCategoriesChange?: (categories: string[]) => void
+  onReauth?: () => void
 }
 
 function fieldPlaceholder(field: FieldConfig): string | undefined {
-  if (field.id === 'note') return 'توضیحات اضافه...';
-  if (field.id === 'amount') return '۰';
-  if (field.type === 'text') return `مثلاً: ${field.label}`;
-  return undefined;
+  if (field.id === 'note') return 'توضیحات اضافه...'
+  if (field.id === 'amount') return '۰'
+  if (field.type === 'text') return `مثلاً: ${field.label}`
+
+  return undefined
 }
 
 export default function FieldInput({
@@ -27,9 +28,9 @@ export default function FieldInput({
   onChange,
   formId,
   onCategoriesChange,
-  onReauth,
+  onReauth
 }: FieldInputProps) {
-  const placeholder = fieldPlaceholder(field);
+  const placeholder = fieldPlaceholder(field)
 
   return (
     <FormField
@@ -42,7 +43,7 @@ export default function FieldInput({
           className="form-control form-note-textarea"
           rows={4}
           value={String(value ?? '')}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
         />
       ) : field.type === 'text' ? (
@@ -50,7 +51,7 @@ export default function FieldInput({
           type="text"
           className="form-control"
           value={String(value ?? '')}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
         />
       ) : null}
@@ -65,25 +66,20 @@ export default function FieldInput({
           className="form-control"
           inputMode="decimal"
           value={value === '' ? '' : value}
-          onChange={(e) =>
-            onChange(e.target.value === '' ? '' : Number(e.target.value))
-          }
+          onChange={e => onChange(e.target.value === '' ? '' : Number(e.target.value))}
           dir="ltr"
           placeholder={placeholder}
         />
       )}
 
       {field.type === 'date' && (
-        <JalaliDatePicker
-          value={String(value ?? '')}
-          onChange={(iso) => onChange(iso)}
-        />
+        <JalaliDatePicker value={String(value ?? '')} onChange={iso => onChange(iso)} />
       )}
 
       {field.type === 'select' && field.id === 'category' && formId ? (
         <CategorySelect
           value={String(value ?? '')}
-          onChange={(next) => onChange(next)}
+          onChange={next => onChange(next)}
           categories={field.options ?? []}
           formId={formId}
           onCategoriesChange={onCategoriesChange}
@@ -94,12 +90,12 @@ export default function FieldInput({
         <Select
           value={String(value ?? '')}
           onChange={onChange}
-          options={(field.options ?? []).map((opt) => ({
+          options={(field.options ?? []).map(opt => ({
             value: opt,
-            label: opt,
+            label: opt
           }))}
         />
       ) : null}
     </FormField>
-  );
+  )
 }
