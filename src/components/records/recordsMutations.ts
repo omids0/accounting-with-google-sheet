@@ -3,6 +3,7 @@ import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
 import { deleteRecord, updateRecord } from '../../services/sheets'
 import type { CustomForm } from '../../types'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 export async function submitRecordEdit({
@@ -52,14 +53,7 @@ export async function submitRecordEdit({
 
     return true
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'خطا در ویرایش تراکنش'
-
-    if (msg.includes('منقضی') || msg.includes('401')) {
-      onReauth?.()
-
-      return false
-    }
-    showError(msg)
+    handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ویرایش تراکنش' })
 
     return false
   }
@@ -95,14 +89,7 @@ export async function deleteStoredRecord({
 
     return true
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'خطا در حذف تراکنش'
-
-    if (msg.includes('منقضی') || msg.includes('401')) {
-      onReauth?.()
-
-      return false
-    }
-    showError(msg)
+    handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف تراکنش' })
 
     return false
   }

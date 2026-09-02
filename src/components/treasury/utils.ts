@@ -1,5 +1,6 @@
 import { getAssetUnit } from '../../services/tgju'
 import type { VaultAssetType } from '../../types'
+import { normalizeDigits } from '../../utils/normalizeDigits'
 
 export function formatQuantity(qty: number, assetType: VaultAssetType): string {
   const formatted =
@@ -11,10 +12,7 @@ export function formatQuantity(qty: number, assetType: VaultAssetType): string {
 }
 
 export function parseQuantityInput(value: string, allowDecimal: boolean): number | '' {
-  const normalized = value
-    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
-    .replace(/[^\d.]/g, '')
+  const normalized = normalizeDigits(value).replace(/[^\d.]/g, '')
 
   if (!normalized) return ''
 

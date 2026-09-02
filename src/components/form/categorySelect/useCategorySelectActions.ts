@@ -6,6 +6,7 @@ import {
   saveReceivableCategoriesToSheet
 } from '../../../services/categories'
 import { getSettings } from '../../../services/settings'
+import { handleSheetError } from '../../../utils/sheetError'
 import { showError, showSuccess } from '../../../utils/toast'
 
 export interface CategorySelectProps {
@@ -78,14 +79,7 @@ export function useCategorySelectActions({
 
       return true
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ذخیره دسته‌بندی‌ها'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return false
-      }
-      showError(msg)
+      handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره دسته‌بندی‌ها' })
 
       return false
     } finally {

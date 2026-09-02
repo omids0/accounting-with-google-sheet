@@ -6,6 +6,7 @@ import { createDang, updateDang } from '../../services/dang'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { Dang } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseDangFormOptions = {
@@ -129,15 +130,13 @@ export function useDangForm({ categories, onReauth, onSaved }: UseDangFormOption
       closeForm()
       await onSaved()
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش بدهی' : 'خطا در ثبت بدهی'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
+      if (
+        handleSheetError(err, {
+          onReauth,
+          fallbackMessage: editingItem ? 'خطا در ویرایش بدهی' : 'خطا در ثبت بدهی'
+        })
+      )
         return
-      }
-      showError(msg)
     } finally {
       setSaving(false)
     }

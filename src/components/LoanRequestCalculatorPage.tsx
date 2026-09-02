@@ -5,21 +5,17 @@ import { FormField } from './form'
 import MoneyDisplay from './MoneyDisplay'
 import { getCurrencySymbol } from '../utils/formatMoney'
 import { calculateFlatRateLoan } from '../utils/loanCalculator'
+import { normalizeDigits } from '../utils/normalizeDigits'
 import { numberToPersianWords } from '../utils/numberToWords'
 
 function parseDecimalInput(value: string): string {
-  return value
-    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+  return normalizeDigits(value)
     .replace(/[^\d.]/g, '')
     .replace(/(\..*)\./g, '$1')
 }
 
 function parseIntegerInput(value: string): string {
-  return value
-    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
-    .replace(/[^\d]/g, '')
+  return normalizeDigits(value).replace(/[^\d]/g, '')
 }
 
 export default function LoanRequestCalculatorPage() {

@@ -11,7 +11,7 @@ import {
   loadWalletPeriodFlow,
   type WalletPeriodFlow
 } from '../../services/wallet'
-import { showError } from '../../utils/toast'
+import { handleSheetError } from '../../utils/sheetError'
 
 export function useWalletData(onReauth: (() => void) | undefined, dataRevision: number) {
   const [items, setItems] = useState<WalletAccountWithRow[]>([])
@@ -64,14 +64,7 @@ export function useWalletData(onReauth: (() => void) | undefined, dataRevision: 
       setPeriodFlow(flow)
       setOpeningInput(flow.openingBalance || '')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری کیف پول'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری کیف پول' })) return
     } finally {
       setLoading(false)
     }

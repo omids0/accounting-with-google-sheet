@@ -17,6 +17,7 @@ import {
   roundCurrencyAmount
 } from '../utils/currencyConverter'
 import { getCurrency } from '../utils/formatMoney'
+import { normalizeDigits } from '../utils/normalizeDigits'
 import { numberToPersianWords } from '../utils/numberToWords'
 import { showError } from '../utils/toast'
 
@@ -30,9 +31,7 @@ function getDefaultToCurrency(): ExchangeCurrencyCode {
 }
 
 function parseDecimalInput(value: string): string {
-  return value
-    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+  return normalizeDigits(value)
     .replace(/[,\u060C\u066B\u066C\s]/g, '')
     .replace(/[^\d.]/g, '')
     .replace(/(\..*)\./g, '$1')

@@ -6,6 +6,7 @@ import { createCheck, updateCheck } from '../../services/checks'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { Check } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseChecksFormOptions = {
@@ -123,15 +124,13 @@ export function useChecksForm({ onReauth, onSaved }: UseChecksFormOptions) {
       closeForm()
       await onSaved()
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش چک' : 'خطا در ثبت چک'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
+      if (
+        handleSheetError(err, {
+          onReauth,
+          fallbackMessage: editingItem ? 'خطا در ویرایش چک' : 'خطا در ثبت چک'
+        })
+      )
         return
-      }
-      showError(msg)
     } finally {
       setSaving(false)
     }

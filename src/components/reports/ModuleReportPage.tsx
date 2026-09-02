@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import {
+  loadModuleReport,
+  MODULE_CONFIG,
+  type ModuleReportData,
+  type ModuleReportKind
+} from './moduleReportData'
 import ReportToolbar from './ReportToolbar'
 import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
 import { formatMoney } from '../../utils/formatMoney'
+import { handleSheetError } from '../../utils/sheetError'
 import { distributionSparkline } from '../../utils/sparklineData'
 import { showError, showSuccess } from '../../utils/toast'
 import AppIcon from '../AppIcon'
@@ -11,12 +18,6 @@ import ConfirmActionModal from '../ConfirmActionModal'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
-import {
-  loadModuleReport,
-  MODULE_CONFIG,
-  type ModuleReportData,
-  type ModuleReportKind
-} from './moduleReportData'
 
 export type { ModuleReportKind } from './moduleReportData'
 
@@ -54,14 +55,7 @@ export default function ModuleReportPage({
 
       setData(report)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }

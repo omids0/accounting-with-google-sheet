@@ -10,6 +10,7 @@ import {
 } from '../../services/receivables'
 import { getSettings, isConfigured } from '../../services/settings'
 import { getTodayIso } from '../../utils/jalaliDate'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseReceivableFormActionsParams = {
@@ -157,15 +158,13 @@ export function useReceivableFormActions({
       closeForm()
       await loadItems()
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : editingItem ? 'خطا در ویرایش طلب' : 'خطا در ثبت طلب'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
+      if (
+        handleSheetError(err, {
+          onReauth,
+          fallbackMessage: editingItem ? 'خطا در ویرایش طلب' : 'خطا در ثبت طلب'
+        })
+      )
         return
-      }
-      showError(msg)
     } finally {
       setSaving(false)
     }
@@ -191,14 +190,7 @@ export function useReceivableFormActions({
       showSuccess('طلب حذف شد')
       await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف طلب'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف طلب' })) return
     } finally {
       setDeleting(false)
     }

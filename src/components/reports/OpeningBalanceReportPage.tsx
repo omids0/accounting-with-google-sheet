@@ -7,8 +7,8 @@ import { loadOpeningBalancesReport } from '../../services/reports'
 import { getSettings, isConfigured } from '../../services/settings'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
+import { handleSheetError } from '../../utils/sheetError'
 import { cumulativeSparkline } from '../../utils/sparklineData'
-import { showError } from '../../utils/toast'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
@@ -35,14 +35,7 @@ export default function OpeningBalanceReportPage({ onReauth }: { onReauth?: () =
 
       setItems(balances)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }

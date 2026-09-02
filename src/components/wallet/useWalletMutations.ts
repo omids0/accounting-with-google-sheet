@@ -11,6 +11,7 @@ import {
   updateWalletAccount,
   type WalletPeriodFlow
 } from '../../services/wallet'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseWalletMutationsParams = {
@@ -141,19 +142,13 @@ export function useWalletMutations({
       }
       closeForm()
     } catch (err) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : editingAccount
-          ? 'خطا در ویرایش حساب'
-          : 'خطا در ثبت حساب'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
+      if (
+        handleSheetError(err, {
+          onReauth,
+          fallbackMessage: editingAccount ? 'خطا در ویرایش حساب' : 'خطا در ثبت حساب'
+        })
+      )
         return
-      }
-      showError(msg)
     } finally {
       setSaving(false)
     }
@@ -194,14 +189,7 @@ export function useWalletMutations({
       )
       showSuccess(`موجودی «${account.title}» ذخیره شد`)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره موجودی' })) return
       syncBalances([account])
     } finally {
       setSavingId('')
@@ -231,14 +219,7 @@ export function useWalletMutations({
       setOpeningInput(flow.openingBalance || '')
       showSuccess('موجودی اول دوره ذخیره شد')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره موجودی اول' })) return
     } finally {
       setSavingOpening(false)
     }
@@ -263,14 +244,7 @@ export function useWalletMutations({
       showSuccess('حساب حذف شد')
       await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف حساب'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف حساب' })) return
     } finally {
       setDeleting(false)
     }

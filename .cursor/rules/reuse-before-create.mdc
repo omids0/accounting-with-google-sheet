@@ -1,0 +1,58 @@
+---
+description: Search first, reuse components/hooks/utils, build for reuse — component-oriented development
+alwaysApply: true
+---
+
+# Reuse Before Create
+
+Work component-oriented: prefer composition and shared abstractions over copy-paste or one-off code.
+
+## Before adding anything new — search first
+
+Before creating a component, hook, helper, type, or util, **search the repo** for an existing solution:
+
+1. **Shared UI** — `src/components/` (root + subfolders like `form/`, `charts/`, `skeleton/`)
+2. **Feature modules** — `src/components/<feature>/` (e.g. `wallet/`, `checks/`, `receivables/`)
+3. **Hooks** — `src/hooks/`
+4. **Utils** — `src/utils/`
+5. **Types** — `src/types/`
+6. **Services** — `src/services/` (domain logic stays here, not in components)
+
+Use existing names/patterns: `useListFilters`, `usePaidItemActions`, `useSheetImportExport`, `handleSheetError`, `normalizeDigits`, `matchSearch`, `filterChips`, `FormModal`, `ConfirmDeleteModal`, etc.
+
+**Only create new code when nothing suitable exists** — or when extending an existing shared module is clearly worse than a small, focused addition.
+
+## Reuse hierarchy
+
+1. **Reuse as-is** — import the existing component/hook/util
+2. **Extend** — add optional props, config, or a thin wrapper in the feature folder
+3. **Generalize** — move duplicated logic into `src/hooks/` or `src/utils/` when 2+ features need it
+4. **Create new** — last resort; design it for reuse from day one
+
+## Component-oriented structure
+
+- **Pages** orchestrate; they should stay thin (compose hooks + sub-components)
+- **Feature folders** own cards, lists, modals, `types.ts`, `utils.ts`, and feature-specific hooks
+- **Root `*Page.tsx` files** may be re-export facades — do not duplicate page logic there
+- **Split large files** to stay under the 300-line limit by extracting sub-components and hooks, not by copying blocks elsewhere
+
+## When you must create something new
+
+- Place **reusable** hooks in `src/hooks/`, utils in `src/utils/`, types in `src/types/`
+- Place **feature-specific** UI/hooks next to the feature (`src/components/<feature>/`)
+- Prefer **generic APIs** (config/callbacks) over hard-coding one screen's fields or labels
+- If two features share the same pattern (filters, CRUD form, paid toggle, sheet load), extract a shared hook instead of copying
+
+## Avoid
+
+- Copy-pasting filter/CRUD/auth-error blocks between `checks/`, `dang/`, `receivables/`, etc.
+- Inline helpers that already exist (`parseNumeric`, `normalizeDigits`, `handleSheetError`, `isAuthError`)
+- New one-off components when an existing one accepts the needed props or a small extension suffices
+- Feature-local duplicates of cross-cutting logic that belongs in `src/hooks/` or `src/utils/`
+
+## Quick checklist
+
+- [ ] Searched `src/components/`, `src/hooks/`, `src/utils/`, `src/types/`, `src/services/`
+- [ ] Reused or extended existing code where possible
+- [ ] New shared code is generic enough for other features
+- [ ] No unnecessary duplication introduced

@@ -13,6 +13,7 @@ import {
 } from '../../services/treasury'
 import type { VaultAssetType } from '../../types'
 import { matchSearch } from '../../utils/search'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError } from '../../utils/toast'
 
 export function useTreasuryData(
@@ -69,14 +70,7 @@ export function useTreasuryData(
 
       setTransactions(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری صندوقچه'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری صندوقچه' })) return
     } finally {
       setLoading(false)
     }

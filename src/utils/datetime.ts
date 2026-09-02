@@ -1,14 +1,5 @@
 import { formatIsoDatePersian, jalaliToIso, toIsoDate } from './jalaliDate'
-
-const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹'
-
-const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
-
-function toAsciiDigits(text: string): string {
-  return text
-    .replace(/[۰-۹]/g, d => String(PERSIAN_DIGITS.indexOf(d)))
-    .replace(/[٠-٩]/g, d => String(ARABIC_DIGITS.indexOf(d)))
-}
+import { normalizeDigits } from './normalizeDigits'
 
 function formatDateToDateTimeIso(date: Date): string {
   const y = date.getFullYear()
@@ -44,7 +35,7 @@ export function normalizeDateTimeIso(value: unknown): string {
     return sheetsSerialToDateTimeIso(value) ?? ''
   }
 
-  const text = toAsciiDigits(String(value).trim())
+  const text = normalizeDigits(String(value).trim())
 
   if (!text) return ''
 

@@ -28,7 +28,7 @@ import {
   syncEndDateTimeFromStart,
   clampDateTimeToMin
 } from '../../utils/datetime'
-import { showError } from '../../utils/toast'
+import { handleSheetError } from '../../utils/sheetError'
 
 export type TimesheetEntryWithRow = TimesheetEntry & { rowNumber: number }
 
@@ -94,14 +94,7 @@ export function useTimesheetDetailPage(timesheet: Timesheet, onReauth?: () => vo
 
       setItems(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری رکوردها'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری رکوردها' })) return
     } finally {
       setLoading(false)
     }

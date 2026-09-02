@@ -6,7 +6,7 @@ import { syncCategoriesFromSheet } from '../../services/categories'
 import { ensureReceivablesSheet, fetchReceivables } from '../../services/receivables'
 import { getSettings, isConfigured, getReceivableCategories } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
-import { showError } from '../../utils/toast'
+import { handleSheetError } from '../../utils/sheetError'
 
 export function useReceivablesData(onReauth: (() => void) | undefined, dataRevision: number) {
   const [items, setItems] = useState<ReceivableWithRow[]>([])
@@ -39,14 +39,7 @@ export function useReceivablesData(onReauth: (() => void) | undefined, dataRevis
 
       setItems(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری طلب‌ها'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری طلب‌ها' })) return
     } finally {
       setLoading(false)
     }

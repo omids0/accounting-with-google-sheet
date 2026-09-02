@@ -11,6 +11,7 @@ import {
 } from '../../services/treasury'
 import type { VaultAssetType } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 function createEmptyBuyForm(): VaultFormState {
@@ -128,14 +129,13 @@ export function useTreasuryForms(
       closeForm()
       await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : editingTx ? 'خطا در ویرایش' : 'خطا در ثبت'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
+      if (
+        handleSheetError(err, {
+          onReauth,
+          fallbackMessage: editingTx ? 'خطا در ویرایش' : 'خطا در ثبت'
+        })
+      )
         return
-      }
-      showError(msg)
     } finally {
       setSaving(false)
     }
@@ -189,14 +189,7 @@ export function useTreasuryForms(
       showSuccess('فروش ثبت شد')
       await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت فروش'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ثبت فروش' })) return
     } finally {
       setSellingAsset(null)
     }
@@ -220,14 +213,7 @@ export function useTreasuryForms(
       showSuccess('تراکنش حذف شد')
       await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف تراکنش'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف تراکنش' })) return
     } finally {
       setDeleting(false)
     }

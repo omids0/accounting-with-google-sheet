@@ -14,6 +14,7 @@ import {
 import { getSettings, isConfigured } from '../services/settings'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import { formatMoney } from '../utils/formatMoney'
+import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
 
 type OpeningBalanceWithRow = MonthlyOpeningBalance & { rowNumber: number }
@@ -64,14 +65,8 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
       setItems(previousMonths)
       syncEdits(previousMonths)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری موجودی اول دوره'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری موجودی اول دوره' }))
         return
-      }
-      showError(msg)
     } finally {
       setLoading(false)
     }
@@ -122,14 +117,7 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
       }))
       showSuccess(`موجودی ${formatJalaliMonthLabel(item.monthKey)} ذخیره شد`)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ذخیره موجودی اول'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره موجودی اول' })) return
       syncEdits([item])
     } finally {
       setSavingId('')

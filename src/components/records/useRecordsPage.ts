@@ -13,7 +13,7 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { fetchRecords } from '../../services/sheets'
 import type { CustomForm } from '../../types'
 import { isDateInRange, resolveDateRange, type RecordsDatePreset } from '../../utils/dateRange'
-import { showError } from '../../utils/toast'
+import { handleSheetError } from '../../utils/sheetError'
 import { createDefaultDateRangeFilter, type AppliedDateRangeFilter } from '../DateRangeFilter'
 
 export function useRecordsPage(onReauth?: () => void, initialFormType?: 'income' | 'expense') {
@@ -57,14 +57,7 @@ export function useRecordsPage(onReauth?: () => void, initialFormType?: 'income'
 
       setRecords(sortRecords(batches.flat(), settings.forms))
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }

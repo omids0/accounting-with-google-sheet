@@ -11,6 +11,7 @@ import {
 } from '../../services/receivables'
 import { getSettings } from '../../services/settings'
 import { formatMoney } from '../../utils/formatMoney'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseReceivablePaymentActionsParams = {
@@ -81,14 +82,7 @@ export function useReceivablePaymentActions({
       setPaymentForm(null)
       showSuccess('پرداخت ثبت شد')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت پرداخت'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ثبت پرداخت' })) return
     } finally {
       setPayingId('')
     }
@@ -140,14 +134,7 @@ export function useReceivablePaymentActions({
       setSettlementForm(null)
       showSuccess('طلب تسویه شد و درآمد ثبت شد')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در تسویه طلب'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در تسویه طلب' })) return
     } finally {
       setSettlingId('')
     }
@@ -175,14 +162,7 @@ export function useReceivablePaymentActions({
       )
       showSuccess('پرداخت و تراکنش درآمد حذف شد')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف پرداخت'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف پرداخت' })) return
     } finally {
       setTogglingPaymentId('')
     }

@@ -19,6 +19,7 @@ import {
 import type { Timesheet } from '../../types'
 import { buildSearchChip, compactFilterChips } from '../../utils/filterChips'
 import { matchSearch } from '../../utils/search'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 export type TimesheetWithRow = Timesheet & { rowNumber: number }
@@ -70,14 +71,8 @@ export function useTimesheetsPage(onReauth?: () => void) {
 
       setItems(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری تایم‌شیت‌ها'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری تایم‌شیت‌ها' }))
         return
-      }
-      showError(msg)
     } finally {
       setLoading(false)
     }

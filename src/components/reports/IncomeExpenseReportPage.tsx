@@ -7,8 +7,8 @@ import { getSettings, isConfigured } from '../../services/settings'
 import type { DashboardData } from '../../types'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
-import { showError } from '../../utils/toast'
 import { CategoryBarChart, CategoryDonutChart } from '../charts'
 import { getCategoryBarYAxisWidth } from '../charts/chartUtils'
 import MoneyDisplay from '../MoneyDisplay'
@@ -50,14 +50,7 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
 
       setData(dash)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }

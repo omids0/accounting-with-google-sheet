@@ -9,7 +9,7 @@ import {
 } from '../../services/installments'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData, getSheetAllRows } from '../../services/spreadsheetStore'
-import { showError } from '../../utils/toast'
+import { handleSheetError } from '../../utils/sheetError'
 
 export function useInstallmentsData(onReauth: (() => void) | undefined, dataRevision: number) {
   const [plans, setPlans] = useState<PlanWithRow[]>([])
@@ -44,14 +44,7 @@ export function useInstallmentsData(onReauth: (() => void) | undefined, dataRevi
 
       setPlans(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری اقساط'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری اقساط' })) return
     } finally {
       setLoading(false)
     }

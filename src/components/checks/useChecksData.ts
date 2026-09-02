@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 
 import type { CheckWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
-import { useSheetImportExport } from '../../hooks/useSheetImportExport'
+import { usePaidItemActions } from '../../hooks/usePaidItemActions'
 import { isTokenValid } from '../../services/auth'
 import {
   deleteCheck,
@@ -16,7 +16,7 @@ import {
 } from '../../services/checks'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
-import { showError, showSuccess } from '../../utils/toast'
+import { handleSheetError } from '../../utils/sheetError'
 
 export function useChecksData(onReauth?: () => void) {
   const [items, setItems] = useState<CheckWithRow[]>([])
@@ -25,9 +25,6 @@ export function useChecksData(onReauth?: () => void) {
 
     return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
   })
-  const [deletingItem, setDeletingItem] = useState<CheckWithRow | null>(null)
-  const [deleting, setDeleting] = useState(false)
-  const [togglingId, setTogglingId] = useState('')
 
   const dataRevision = useDataRefresh()
 
@@ -49,14 +46,7 @@ export function useChecksData(onReauth?: () => void) {
 
       setItems(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری چک‌ها'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری چک‌ها' })
     } finally {
       setLoading(false)
     }
@@ -66,101 +56,26 @@ export function useChecksData(onReauth?: () => void) {
     if (isConfigured()) loadItems()
   }, [loadItems, dataRevision])
 
-  const handleTogglePaid = async (item: CheckWithRow, paid: boolean) => {
-    const settings = getSettings()
-
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
-
-    setTogglingId(item.id)
-    try {
-      const updated = await toggleCheckPaid(settings.spreadsheetId, item, paid)
-
-      setItems(prev =>
-        sortChecks(
-          prev.map(c => (c.id === item.id ? { ...updated, rowNumber: item.rowNumber } : c))
-        )
-      )
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در به‌روزرسانی'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
-    } finally {
-      setTogglingId('')
-    }
-  }
-
-  const openDeleteConfirm = (item: CheckWithRow) => {
-    setDeletingItem(item)
-  }
-
-  const closeDeleteConfirm = () => {
-    if (deleting) return
-    setDeletingItem(null)
-  }
-
-  const handleDelete = async () => {
-    if (!deletingItem) return
-
-    const settings = getSettings()
-
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
-
-    setDeleting(true)
-    try {
-      await deleteCheck(settings.spreadsheetId, deletingItem.rowNumber, deletingItem)
-      setDeletingItem(null)
-      showSuccess('چک حذف شد')
-      await loadItems()
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف چک'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
-    } finally {
-      setDeleting(false)
-    }
-  }
-
-  const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
-    useSheetImportExport({
+  const paidActions = usePaidItemActions({
+    setItems,
+    onReauth,
+    loadItems,
+    togglePaid: toggleCheckPaid,
+    deleteItem: deleteCheck,
+    sortItems: sortChecks,
+    deleteSuccessMessage: 'چک حذف شد',
+    deleteErrorMessage: 'خطا در حذف چک',
+    importExport: {
       exportFn: exportChecksCsv,
       exportPdfFn: exportChecksPdf,
-      importFn: importChecksCsv,
-      onComplete: loadItems,
-      onReauth
-    })
+      importFn: importChecksCsv
+    }
+  })
 
   return {
     items,
     loading,
-    togglingId,
-    deletingItem,
-    deleting,
     loadItems,
-    handleTogglePaid,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
-    handleExport,
-    handleExportPdf,
-    handleImport,
-    importExportConfirmModal
+    ...paidActions
   }
 }

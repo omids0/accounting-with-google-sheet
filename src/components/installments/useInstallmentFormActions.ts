@@ -14,6 +14,7 @@ import {
 import { deleteLinkedExpenseRecord } from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import { getTodayIso } from '../../utils/jalaliDate'
+import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseInstallmentFormActionsParams = {
@@ -200,15 +201,13 @@ export function useInstallmentFormActions({
       closeForm()
       await loadPlans()
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : editingPlan ? 'خطا در ویرایش قسط' : 'خطا در ثبت قسط'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
+      if (
+        handleSheetError(err, {
+          onReauth,
+          fallbackMessage: editingPlan ? 'خطا در ویرایش قسط' : 'خطا در ثبت قسط'
+        })
+      )
         return
-      }
-      showError(msg)
     } finally {
       setSaving(false)
     }
@@ -233,14 +232,7 @@ export function useInstallmentFormActions({
       showSuccess('قسط حذف شد')
       await loadPlans()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف قسط'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف قسط' })) return
     } finally {
       setDeleting(false)
     }

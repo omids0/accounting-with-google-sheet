@@ -1,14 +1,7 @@
-const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹'
-
-const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
+import { normalizeDigits } from './normalizeDigits'
 
 export function normalizeSearchText(value: string): string {
-  return value
-    .normalize('NFC')
-    .trim()
-    .toLowerCase()
-    .replace(/[۰-۹]/g, d => String(PERSIAN_DIGITS.indexOf(d)))
-    .replace(/[٠-٩]/g, d => String(ARABIC_DIGITS.indexOf(d)))
+  return normalizeDigits(value).normalize('NFC').trim().toLowerCase()
 }
 
 export function matchSearch(

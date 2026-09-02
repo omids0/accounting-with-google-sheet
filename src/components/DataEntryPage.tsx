@@ -8,6 +8,7 @@ import { isTokenValid } from '../services/auth'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
 import type { CustomForm } from '../types'
+import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
 
 export default function DataEntryPage({
@@ -121,14 +122,7 @@ export default function DataEntryPage({
       showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
       initValues(activeForm)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ذخیره'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره' })) return
     } finally {
       setLoading(false)
     }

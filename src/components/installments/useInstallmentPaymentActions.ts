@@ -8,7 +8,8 @@ import {
   updateInstallmentPaymentAmount
 } from '../../services/installments'
 import { getSettings } from '../../services/settings'
-import { showError, showSuccess } from '../../utils/toast'
+import { handleSheetError } from '../../utils/sheetError'
+import { showSuccess } from '../../utils/toast'
 
 type UseInstallmentPaymentActionsParams = {
   setPlans: React.Dispatch<React.SetStateAction<PlanWithRow[]>>
@@ -48,14 +49,7 @@ export function useInstallmentPaymentActions({
           prev.map(p => (p.id === plan.id ? { ...updated, rowNumber: plan.rowNumber } : p))
         )
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'خطا در بروزرسانی پرداخت'
-
-        if (msg.includes('منقضی') || msg.includes('401')) {
-          onReauth?.()
-
-          return
-        }
-        showError(msg)
+        if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بروزرسانی پرداخت' })) return
       } finally {
         setTogglingKey('')
       }
@@ -94,14 +88,7 @@ export function useInstallmentPaymentActions({
         setPlans(prev => prev.map(p => (p.id === plan.id ? updatedPlan : p)))
         showSuccess('مبلغ قسط ذخیره شد')
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'خطا در به‌روزرسانی مبلغ'
-
-        if (msg.includes('منقضی') || msg.includes('401')) {
-          onReauth?.()
-
-          return
-        }
-        showError(msg)
+        if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در به‌روزرسانی مبلغ' })) return
         throw err
       }
     },

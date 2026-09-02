@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 
 import type { DangWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
-import { useSheetImportExport } from '../../hooks/useSheetImportExport'
+import { usePaidItemActions } from '../../hooks/usePaidItemActions'
 import { isTokenValid } from '../../services/auth'
 import { syncCategoriesFromSheet } from '../../services/categories'
 import {
@@ -19,7 +19,8 @@ import {
 import { getDangCategories, getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import type { Dang } from '../../types'
-import { showError, showSuccess } from '../../utils/toast'
+import { handleSheetError } from '../../utils/sheetError'
+import { showError } from '../../utils/toast'
 
 export function useDangItems(onReauth?: () => void) {
   const [items, setItems] = useState<DangWithRow[]>([])
@@ -29,9 +30,6 @@ export function useDangItems(onReauth?: () => void) {
 
     return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
   })
-  const [deletingItem, setDeletingItem] = useState<DangWithRow | null>(null)
-  const [deleting, setDeleting] = useState(false)
-  const [togglingId, setTogglingId] = useState('')
   const [savingAmountId, setSavingAmountId] = useState('')
   const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({})
   const [categories, setCategories] = useState<string[]>(() => getDangCategories())
@@ -58,14 +56,7 @@ export function useDangItems(onReauth?: () => void) {
 
       setItems(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری بدهی‌ها'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری بدهی‌ها' })
     } finally {
       setLoading(false)
     }
@@ -75,35 +66,24 @@ export function useDangItems(onReauth?: () => void) {
     if (isConfigured()) loadItems()
   }, [loadItems, dataRevision])
 
-  const handleTogglePaid = async (item: DangWithRow, paid: boolean) => {
-    const settings = getSettings()
-
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
+  const paidActions = usePaidItemActions({
+    setItems,
+    onReauth,
+    loadItems,
+    togglePaid: toggleDangPaid,
+    deleteItem: deleteDang,
+    sortItems: sortDangs,
+    deleteSuccessMessage: 'بدهی حذف شد',
+    deleteErrorMessage: 'خطا در حذف بدهی',
+    onBeforeDelete: item => {
+      if (expandedId === item.id) setExpandedId(null)
+    },
+    importExport: {
+      exportFn: exportDangsCsv,
+      exportPdfFn: exportDangsPdf,
+      importFn: importDangsCsv
     }
-
-    setTogglingId(item.id)
-    try {
-      const updated = await toggleDangPaid(settings.spreadsheetId, item, paid)
-
-      setItems(prev =>
-        sortDangs(prev.map(d => (d.id === item.id ? { ...updated, rowNumber: item.rowNumber } : d)))
-      )
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در به‌روزرسانی'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
-    } finally {
-      setTogglingId('')
-    }
-  }
+  })
 
   const handleAmountChange = (item: DangWithRow, value: number | '') => {
     setAmountEdits(prev => ({ ...prev, [item.id]: value }))
@@ -148,68 +128,11 @@ export function useDangItems(onReauth?: () => void) {
         sortDangs(prev.map(d => (d.id === item.id ? { ...updated, rowNumber: item.rowNumber } : d)))
       )
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در به‌روزرسانی مبلغ'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      handleSheetError(err, { onReauth, fallbackMessage: 'خطا در به‌روزرسانی مبلغ' })
     } finally {
       setSavingAmountId('')
     }
   }
-
-  const openDeleteConfirm = (item: DangWithRow) => {
-    setDeletingItem(item)
-  }
-
-  const closeDeleteConfirm = () => {
-    if (deleting) return
-    setDeletingItem(null)
-  }
-
-  const handleDelete = async () => {
-    if (!deletingItem) return
-
-    const settings = getSettings()
-
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
-
-    setDeleting(true)
-    try {
-      await deleteDang(settings.spreadsheetId, deletingItem.rowNumber, deletingItem)
-      if (expandedId === deletingItem.id) setExpandedId(null)
-      setDeletingItem(null)
-      showSuccess('بدهی حذف شد')
-      await loadItems()
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف بدهی'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
-    } finally {
-      setDeleting(false)
-    }
-  }
-
-  const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
-    useSheetImportExport({
-      exportFn: exportDangsCsv,
-      exportPdfFn: exportDangsPdf,
-      importFn: importDangsCsv,
-      onComplete: loadItems,
-      onReauth
-    })
 
   return {
     items,
@@ -218,21 +141,11 @@ export function useDangItems(onReauth?: () => void) {
     setCategories,
     expandedId,
     setExpandedId,
-    deletingItem,
-    deleting,
-    togglingId,
     savingAmountId,
     amountEdits,
     loadItems,
-    handleTogglePaid,
     handleAmountChange,
     handleAmountBlur,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
-    handleExport,
-    handleExportPdf,
-    handleImport,
-    importExportConfirmModal
+    ...paidActions
   }
 }

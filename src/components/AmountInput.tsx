@@ -2,6 +2,7 @@ import { useRef } from 'react'
 
 import AppIcon from './AppIcon'
 import { getCurrencySymbol } from '../utils/formatMoney'
+import { normalizeDigits } from '../utils/normalizeDigits'
 import { numberToPersianWords } from '../utils/numberToWords'
 
 interface AmountInputProps {
@@ -15,10 +16,7 @@ interface AmountInputProps {
 }
 
 function parseDigitInput(value: string): string {
-  return value
-    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
-    .replace(/[^\d]/g, '')
+  return normalizeDigits(value).replace(/[^\d]/g, '')
 }
 
 export default function AmountInput({

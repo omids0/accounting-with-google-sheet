@@ -18,8 +18,8 @@ import {
 } from '../../utils/dateRange'
 import { formatDateRangeLabel } from '../../utils/dateRange'
 import { buildDateRangeChip, compactFilterChips } from '../../utils/filterChips'
+import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
-import { showError } from '../../utils/toast'
 import { getCategoryBarYAxisWidth } from '../charts/chartUtils'
 import { createDefaultDateRangeFilter } from '../DateRangeFilter'
 import type { TransactionTypeSegmentOption } from '../TransactionTypeSegment'
@@ -102,14 +102,7 @@ export function useDashboardPage(onReauth?: () => void) {
 
       setData(dash)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
