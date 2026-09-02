@@ -1,22 +1,24 @@
-import { useRef } from 'react';
-import { numberToPersianWords } from '../utils/numberToWords';
-import { getCurrencySymbol } from '../utils/formatMoney';
-import AppIcon from './AppIcon';
+import { useRef } from 'react'
+
+import AppIcon from './AppIcon'
+import { getCurrencySymbol } from '../utils/formatMoney'
+import { numberToPersianWords } from '../utils/numberToWords'
 
 interface AmountInputProps {
-  value: string | number;
-  onChange: (value: number | '') => void;
-  compact?: boolean;
-  onBlur?: () => void;
-  onSubmit?: () => void;
-  submitDisabled?: boolean;
+  value: string | number
+  onChange: (value: number | '') => void
+  compact?: boolean
+  onBlur?: () => void
+  onSubmit?: () => void
+  submitDisabled?: boolean
+  id?: string
 }
 
 function parseDigitInput(value: string): string {
   return value
-    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
-    .replace(/[^\d]/g, '');
+    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[^\d]/g, '')
 }
 
 export default function AmountInput({
@@ -26,39 +28,46 @@ export default function AmountInput({
   onBlur,
   onSubmit,
   submitDisabled = false,
+  id
 }: AmountInputProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const skipBlurRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const raw = value === '' || value === undefined ? '' : String(Math.trunc(Number(value)));
-  const display = raw ? Number(raw).toLocaleString('fa-IR') : '';
-  const words = raw ? numberToPersianWords(Number(raw)) : '';
-  const currency = getCurrencySymbol();
+  const skipBlurRef = useRef(false)
+
+  const raw = value === '' || value === undefined ? '' : String(Math.trunc(Number(value)))
+
+  const display = raw ? Number(raw).toLocaleString('fa-IR') : ''
+
+  const words = raw ? numberToPersianWords(Number(raw)) : ''
+
+  const currency = getCurrencySymbol()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = parseDigitInput(e.target.value);
-    onChange(digits === '' ? '' : Number(digits));
-  };
+    const digits = parseDigitInput(e.target.value)
+
+    onChange(digits === '' ? '' : Number(digits))
+  }
 
   const handleBlur = () => {
     if (skipBlurRef.current) {
-      skipBlurRef.current = false;
-      return;
+      skipBlurRef.current = false
+
+      return
     }
-    onBlur?.();
-  };
+    onBlur?.()
+  }
 
   const handleSubmit = () => {
-    if (!onSubmit || submitDisabled) return;
-    skipBlurRef.current = true;
-    inputRef.current?.blur();
-    onSubmit();
-  };
+    if (!onSubmit || submitDisabled) return
+    skipBlurRef.current = true
+    inputRef.current?.blur()
+    onSubmit()
+  }
 
   const handleSubmitMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
+    event.preventDefault()
+    event.stopPropagation()
+  }
 
   if (compact) {
     return (
@@ -69,9 +78,9 @@ export default function AmountInput({
               type="button"
               className="amount-field-submit-btn"
               onMouseDown={handleSubmitMouseDown}
-              onClick={(event) => {
-                event.stopPropagation();
-                handleSubmit();
+              onClick={event => {
+                event.stopPropagation()
+                handleSubmit()
               }}
               disabled={submitDisabled}
               aria-label="ثبت"
@@ -81,6 +90,7 @@ export default function AmountInput({
           )}
           <input
             ref={inputRef}
+            id={id}
             type="text"
             inputMode="numeric"
             value={display}
@@ -94,13 +104,14 @@ export default function AmountInput({
           <span className="amount-field-currency">{currency}</span>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="amount-field">
       <div className="amount-field-input-wrap">
         <input
+          id={id}
           type="text"
           inputMode="numeric"
           value={display}
@@ -119,5 +130,5 @@ export default function AmountInput({
         </p>
       )}
     </div>
-  );
+  )
 }

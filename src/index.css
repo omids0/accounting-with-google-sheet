@@ -5,7 +5,7 @@
   --color-bg: #f0fdfa;
   --color-surface: #ffffff;
   --color-text: #134e4a;
-  --color-text-muted: #5f8a85;
+  --color-text-muted: #3d7a73;
   --color-border: #99f6e4;
   --color-danger: #dc2626;
   --color-success: #16a34a;
@@ -135,8 +135,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
@@ -162,23 +166,42 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 @keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @keyframes headerGlow {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes navIndicator {
@@ -257,8 +280,7 @@ select {
   font: inherit;
   line-height: 1.4;
   box-shadow: var(--form-input-shadow);
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
+  transition: border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out);
 }
@@ -289,7 +311,7 @@ select {
   width: 12px;
   height: 12px;
   flex-shrink: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f8a85' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233d7a73' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
@@ -410,11 +432,7 @@ select {
   gap: 0.5rem;
   padding: 0.65rem 0.75rem;
   border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(
-    180deg,
-    var(--color-accent-soft) 0%,
-    var(--color-surface) 100%
-  );
+  background: linear-gradient(180deg, var(--color-accent-soft) 0%, var(--color-surface) 100%);
 }
 
 .category-select-header-title {
@@ -1051,16 +1069,36 @@ button {
   animation: pageEnter var(--duration-page) var(--ease-page) both;
 }
 
-.page-content > * > *:nth-child(1) { animation-delay: 0.08s; }
-.page-content > * > *:nth-child(2) { animation-delay: 0.16s; }
-.page-content > * > *:nth-child(3) { animation-delay: 0.24s; }
-.page-content > * > *:nth-child(4) { animation-delay: 0.32s; }
-.page-content > * > *:nth-child(5) { animation-delay: 0.4s; }
-.page-content > * > *:nth-child(6) { animation-delay: 0.48s; }
-.page-content > * > *:nth-child(7) { animation-delay: 0.56s; }
-.page-content > * > *:nth-child(8) { animation-delay: 0.64s; }
-.page-content > * > *:nth-child(9) { animation-delay: 0.72s; }
-.page-content > * > *:nth-child(10) { animation-delay: 0.8s; }
+.page-content > * > *:nth-child(1) {
+  animation-delay: 0.08s;
+}
+.page-content > * > *:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.page-content > * > *:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.page-content > * > *:nth-child(4) {
+  animation-delay: 0.32s;
+}
+.page-content > * > *:nth-child(5) {
+  animation-delay: 0.4s;
+}
+.page-content > * > *:nth-child(6) {
+  animation-delay: 0.48s;
+}
+.page-content > * > *:nth-child(7) {
+  animation-delay: 0.56s;
+}
+.page-content > * > *:nth-child(8) {
+  animation-delay: 0.64s;
+}
+.page-content > * > *:nth-child(9) {
+  animation-delay: 0.72s;
+}
+.page-content > * > *:nth-child(10) {
+  animation-delay: 0.8s;
+}
 
 .animate-in {
   animation: scaleIn 0.65s var(--ease-page);
@@ -1242,11 +1280,7 @@ button {
   gap: 0.85rem;
   padding: max(1rem, env(safe-area-inset-top)) 1.15rem 1.15rem;
   border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-primary-light) 100%
-  );
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   color: white;
 }
 
@@ -1332,8 +1366,7 @@ button {
   );
   color: var(--color-primary);
   flex-shrink: 0;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
     0 2px 8px color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
@@ -1629,8 +1662,7 @@ button {
   background-color: var(--form-input-bg);
   box-shadow: var(--form-input-shadow);
   overflow: hidden;
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
+  transition: border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
@@ -2066,10 +2098,8 @@ button {
   background: color-mix(in srgb, var(--color-accent-soft) 72%, transparent);
   color: var(--color-text-muted);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  transition:
-    transform var(--duration-normal) var(--ease-spring),
-    background var(--duration-normal) var(--ease-out),
-    color var(--duration-normal) var(--ease-out),
+  transition: transform var(--duration-normal) var(--ease-spring),
+    background var(--duration-normal) var(--ease-out), color var(--duration-normal) var(--ease-out),
     box-shadow var(--duration-normal) var(--ease-out);
 }
 
@@ -2077,8 +2107,7 @@ button {
   transform: scale(1.06);
   background: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface));
   color: var(--color-primary);
-  box-shadow:
-    0 4px 14px color-mix(in srgb, var(--color-primary) 18%, transparent),
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 18%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
@@ -2104,11 +2133,14 @@ button {
   margin-top: -2.35rem;
   margin-bottom: 0.1rem;
   border-radius: 50%;
-  background: linear-gradient(145deg, var(--color-primary-dark) 0%, var(--color-primary) 45%, var(--color-primary-light) 100%);
+  background: linear-gradient(
+    145deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary) 45%,
+    var(--color-primary-light) 100%
+  );
   color: white;
-  box-shadow:
-    0 10px 28px rgba(15, 118, 110, 0.48),
-    0 4px 12px rgba(15, 118, 110, 0.28),
+  box-shadow: 0 10px 28px rgba(15, 118, 110, 0.48), 0 4px 12px rgba(15, 118, 110, 0.28),
     0 0 0 5px rgba(255, 255, 255, 0.98);
   transition: transform var(--duration-fast) var(--ease-spring),
     box-shadow var(--duration-normal) var(--ease-out);
@@ -2116,9 +2148,7 @@ button {
 
 .bottom-nav-dashboard:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 14px 34px rgba(15, 118, 110, 0.52),
-    0 6px 16px rgba(15, 118, 110, 0.32),
+  box-shadow: 0 14px 34px rgba(15, 118, 110, 0.52), 0 6px 16px rgba(15, 118, 110, 0.32),
     0 0 0 5px rgba(255, 255, 255, 0.98);
 }
 
@@ -2127,10 +2157,13 @@ button {
 }
 
 .bottom-nav-dashboard.active {
-  background: linear-gradient(145deg, #0a5c56 0%, var(--color-primary-dark) 50%, var(--color-primary) 100%);
-  box-shadow:
-    0 14px 36px rgba(15, 118, 110, 0.58),
-    0 6px 18px rgba(15, 118, 110, 0.35),
+  background: linear-gradient(
+    145deg,
+    #0a5c56 0%,
+    var(--color-primary-dark) 50%,
+    var(--color-primary) 100%
+  );
+  box-shadow: 0 14px 36px rgba(15, 118, 110, 0.58), 0 6px 18px rgba(15, 118, 110, 0.35),
     0 0 0 5px rgba(153, 246, 228, 0.65);
 }
 
@@ -2222,8 +2255,7 @@ button {
   opacity: 0;
   transform: translateY(10px) scale(0.85);
   pointer-events: none;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
+  transition: opacity var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-spring);
   transition-delay: calc(var(--action-index) * 35ms);
 }
@@ -2245,8 +2277,7 @@ button {
   align-items: center;
   justify-content: center;
   box-shadow: 0 3px 12px rgba(15, 23, 42, 0.12);
-  transition:
-    transform var(--duration-fast) var(--ease-spring),
+  transition: transform var(--duration-fast) var(--ease-spring),
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
@@ -2532,8 +2563,7 @@ button {
   padding: var(--space-card);
   margin-bottom: var(--space-stack);
   transition: box-shadow var(--duration-normal) var(--ease-out),
-    transform var(--duration-normal) var(--ease-out),
-    border-color var(--duration-normal);
+    transform var(--duration-normal) var(--ease-out), border-color var(--duration-normal);
 }
 
 .card:hover {
@@ -2658,8 +2688,7 @@ button {
   color: var(--color-text);
   box-shadow: var(--form-input-shadow);
   line-height: 1.45;
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
+  transition: border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
@@ -2733,8 +2762,7 @@ button {
   background: var(--form-input-bg);
   box-shadow: var(--form-input-shadow);
   overflow: hidden;
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
+  transition: border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
@@ -2798,8 +2826,7 @@ button {
   line-height: 1.4;
   cursor: pointer;
   box-shadow: var(--form-input-shadow);
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
+  transition: border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out);
 }
@@ -2940,20 +2967,12 @@ button {
 
 .wheel-picker-fade--top {
   top: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(248, 255, 254, 0.95) 0%,
-    rgba(248, 255, 254, 0) 100%
-  );
+  background: linear-gradient(to bottom, rgba(248, 255, 254, 0.95) 0%, rgba(248, 255, 254, 0) 100%);
 }
 
 .wheel-picker-fade--bottom {
   bottom: 0;
-  background: linear-gradient(
-    to top,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 .wheel-picker-item {
@@ -2995,8 +3014,7 @@ button {
   overflow: hidden;
   position: relative;
   border-radius: calc(var(--radius) + 2px);
-  transition:
-    box-shadow var(--duration-slow) var(--ease-out),
+  transition: box-shadow var(--duration-slow) var(--ease-out),
     border-color var(--duration-slow) var(--ease-out),
     transform var(--duration-slow) var(--ease-out);
 }
@@ -3009,11 +3027,7 @@ button {
   right: 0;
   width: 3px;
   border-radius: 0 3px 3px 0;
-  background: linear-gradient(
-    180deg,
-    var(--color-primary-light) 0%,
-    var(--color-primary) 100%
-  );
+  background: linear-gradient(180deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
@@ -3024,17 +3038,13 @@ button {
 }
 
 .installment-card--expanded {
-  box-shadow:
-    var(--shadow-lg),
-    0 6px 22px color-mix(in srgb, var(--color-primary) 14%, transparent);
+  box-shadow: var(--shadow-lg), 0 6px 22px color-mix(in srgb, var(--color-primary) 14%, transparent);
   border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
   transform: translateY(-2px);
 }
 
 .installment-card--expanded:hover {
-  box-shadow:
-    var(--shadow-lg),
-    0 8px 26px color-mix(in srgb, var(--color-primary) 18%, transparent);
+  box-shadow: var(--shadow-lg), 0 8px 26px color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
 .list-card-title {
@@ -3093,8 +3103,7 @@ button {
 .accordion-collapse__inner > .installment-payments {
   opacity: 0;
   transform: translateY(-6px);
-  transition:
-    opacity var(--duration-slow) var(--ease-out),
+  transition: opacity var(--duration-slow) var(--ease-out),
     transform var(--duration-slow) var(--ease-out);
 }
 
@@ -3116,9 +3125,7 @@ button {
   color: var(--color-text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    color var(--duration-fast);
+  transition: background var(--duration-fast), color var(--duration-fast);
 }
 
 .card-action-btn:hover:not(:disabled) {
@@ -3246,9 +3253,7 @@ button {
   flex-shrink: 0;
   margin-top: 0.15rem;
   display: inline-flex;
-  transition:
-    transform var(--duration-slow) var(--ease-out),
-    color var(--duration-normal);
+  transition: transform var(--duration-slow) var(--ease-out), color var(--duration-normal);
 }
 
 .installment-header--expanded .installment-chevron {
@@ -3441,9 +3446,7 @@ button {
 .installment-payment-item {
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
   border-radius: var(--radius-sm);
-  transition:
-    background var(--duration-fast),
-    border-color var(--duration-fast),
+  transition: background var(--duration-fast), border-color var(--duration-fast),
     box-shadow var(--duration-fast);
 }
 
@@ -3500,9 +3503,7 @@ button {
 .installment-payment-chevron {
   color: var(--color-text-muted);
   flex-shrink: 0;
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    color var(--duration-fast);
+  transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast);
 }
 
 .installment-payment-chevron--expanded {
@@ -3612,11 +3613,8 @@ button {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition:
-    background var(--duration-fast),
-    border-color var(--duration-fast),
-    box-shadow var(--duration-fast),
-    transform var(--duration-fast);
+  transition: background var(--duration-fast), border-color var(--duration-fast),
+    box-shadow var(--duration-fast), transform var(--duration-fast);
 }
 
 .dang-card::before {
@@ -3687,9 +3685,7 @@ button {
 }
 
 .dang-card.installment-card--expanded {
-  box-shadow:
-    var(--shadow-lg),
-    0 6px 22px color-mix(in srgb, var(--color-primary) 14%, transparent);
+  box-shadow: var(--shadow-lg), 0 6px 22px color-mix(in srgb, var(--color-primary) 14%, transparent);
   border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
   transform: translateY(-2px);
 }
@@ -4079,8 +4075,7 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition:
-    background var(--duration-fast) var(--ease-out),
+  transition: background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
 }
 
@@ -4346,7 +4341,12 @@ button {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: linear-gradient(160deg, var(--color-bg) 0%, var(--color-accent-soft) 50%, var(--color-accent-mid) 100%);
+  background: linear-gradient(
+    160deg,
+    var(--color-bg) 0%,
+    var(--color-accent-soft) 50%,
+    var(--color-accent-mid) 100%
+  );
   background-size: 200% 200%;
   animation: headerGlow 12s ease infinite;
 }
@@ -4381,8 +4381,7 @@ button {
   );
   color: var(--color-primary);
   animation: float 3s ease-in-out infinite;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7),
     0 6px 18px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
@@ -4529,24 +4528,24 @@ button {
 }
 
 :is(
-  .asset-value,
-  .wallet-item-amount,
-  .receivable-total-amount,
-  .stat-value,
-  .amount-income,
-  .amount-expense,
-  .chart-tooltip__value,
-  .category-donut-center-value,
-  .category-donut-legend-value,
-  .category-donut-legend-pct,
-  .report-value-income,
-  .report-value-expense,
-  .report-value-positive,
-  .report-value-negative,
-  .numeric,
-  input[inputmode='numeric'],
-  .amount-input-compact
-) {
+    .asset-value,
+    .wallet-item-amount,
+    .receivable-total-amount,
+    .stat-value,
+    .amount-income,
+    .amount-expense,
+    .chart-tooltip__value,
+    .category-donut-center-value,
+    .category-donut-legend-value,
+    .category-donut-legend-pct,
+    .report-value-income,
+    .report-value-expense,
+    .report-value-positive,
+    .report-value-negative,
+    .numeric,
+    input[inputmode='numeric'],
+    .amount-input-compact
+  ) {
   font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
@@ -4712,8 +4711,7 @@ button {
   );
   color: var(--color-primary);
   margin-bottom: 1rem;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
     0 8px 24px color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
@@ -4861,8 +4859,7 @@ button {
   padding: 0.75rem 0.5rem;
   text-align: center;
   border: 1px solid var(--color-border);
-  transition: transform var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal);
+  transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal);
 }
 
 .stat-card:hover {
@@ -4946,9 +4943,7 @@ button {
   border-radius: 12px;
   background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
-  box-shadow:
-    0 12px 28px rgba(15, 23, 42, 0.14),
-    0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   animation: chartTooltipIn 0.18s var(--ease-out);
@@ -5165,9 +5160,7 @@ button {
 }
 
 .stat-card--lift {
-  transition:
-    transform var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal);
+  transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal);
 }
 
 .stat-card--lift:hover {
@@ -5209,7 +5202,8 @@ button {
 }
 
 @keyframes heroShimmer {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0, 0) scale(1);
     opacity: 0.55;
   }
@@ -5306,8 +5300,7 @@ button {
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
   transition: background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
 }
 
 .toggle-chip-grid button.active {
@@ -5654,8 +5647,7 @@ button {
   );
   color: var(--color-primary);
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07);
-  transition:
-    background var(--duration-fast) var(--ease-out),
+  transition: background var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-spring);
@@ -5740,8 +5732,7 @@ button {
   color: var(--color-text-muted);
   background: transparent;
   transition: background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .records-type-segment button.active {
@@ -5820,8 +5811,7 @@ button {
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
   transition: background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
 }
 
 .records-date-grid button.active {
@@ -5910,10 +5900,8 @@ button {
   margin: 0 -0.65rem;
   border-radius: var(--radius-sm);
   border-bottom-color: transparent;
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
+  transition: background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
   animation: recordItemIn 0.4s var(--ease-page) both;
 }
 
@@ -5939,9 +5927,7 @@ button {
   height: 0;
   border-radius: 999px;
   transform: translateY(-50%);
-  transition:
-    height var(--duration-normal) var(--ease-out),
-    opacity var(--duration-normal);
+  transition: height var(--duration-normal) var(--ease-out), opacity var(--duration-normal);
   opacity: 0;
 }
 
@@ -6110,17 +6096,14 @@ button {
 
 /* Interactive module cards */
 .interactive-card {
-  transition:
-    box-shadow var(--duration-normal) var(--ease-out),
+  transition: box-shadow var(--duration-normal) var(--ease-out),
     border-color var(--duration-normal) var(--ease-out),
     transform var(--duration-normal) var(--ease-out);
 }
 
 .interactive-card:hover {
   transform: translateY(-2px);
-  box-shadow:
-    var(--shadow),
-    0 4px 14px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  box-shadow: var(--shadow), 0 4px 14px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .interactive-card:active {
@@ -6138,9 +6121,7 @@ button {
 }
 
 .report-table-row {
-  transition:
-    background var(--duration-fast),
-    transform var(--duration-fast);
+  transition: background var(--duration-fast), transform var(--duration-fast);
 }
 
 .report-table-row:hover {
@@ -6149,9 +6130,7 @@ button {
 }
 
 .receivable-total-card {
-  transition:
-    transform var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal);
+  transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal);
 }
 
 .receivable-total-card:hover {
@@ -6161,9 +6140,7 @@ button {
 
 .dang-card.interactive-card:hover {
   transform: translateY(-2px);
-  box-shadow:
-    var(--shadow),
-    0 4px 14px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  box-shadow: var(--shadow), 0 4px 14px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .stat-card.receivable-total-card,
@@ -6225,25 +6202,21 @@ button {
   margin-bottom: 0.65rem;
   border-radius: 1rem;
   border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--color-primary) 4%, var(--color-surface)) 0%,
-      var(--color-surface) 55%
-    );
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--color-primary) 4%, var(--color-surface)) 0%,
+    var(--color-surface) 55%
+  );
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
     0 6px 18px color-mix(in srgb, var(--color-primary) 7%, transparent);
   overflow: hidden;
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
+  transition: border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .page-filter-bar--open {
   border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
-  box-shadow:
-    0 2px 6px rgba(15, 23, 42, 0.05),
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05),
     0 10px 24px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
@@ -6299,8 +6272,7 @@ button {
   font-weight: 700;
   font-family: inherit;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
-  transition:
-    background var(--duration-fast) var(--ease-out),
+  transition: background var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-spring);
@@ -6545,11 +6517,8 @@ button {
   font-size: 0.82rem;
   font-family: inherit;
   box-shadow: 0 2px 10px rgba(15, 118, 110, 0.06);
-  transition:
-    border-color var(--duration-normal),
-    box-shadow var(--duration-normal),
-    background var(--duration-normal),
-    transform var(--duration-fast);
+  transition: border-color var(--duration-normal), box-shadow var(--duration-normal),
+    background var(--duration-normal), transform var(--duration-fast);
 }
 
 .page-search-input::placeholder {
@@ -6561,9 +6530,7 @@ button {
   outline: none;
   border-color: var(--color-primary-light);
   background: var(--color-surface);
-  box-shadow:
-    0 0 0 3px rgba(20, 184, 166, 0.14),
-    0 4px 16px rgba(15, 118, 110, 0.1);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.14), 0 4px 16px rgba(15, 118, 110, 0.1);
   transform: translateY(-1px);
 }
 
@@ -6587,9 +6554,7 @@ button {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    color var(--duration-fast);
+  transition: background var(--duration-fast), color var(--duration-fast);
 }
 
 .page-search-clear:hover {
@@ -6682,19 +6647,11 @@ button {
 }
 
 [data-theme='dark'] .wheel-picker-fade--top {
-  background: linear-gradient(
-    to bottom,
-    rgba(21, 42, 40, 0.95) 0%,
-    rgba(21, 42, 40, 0) 100%
-  );
+  background: linear-gradient(to bottom, rgba(21, 42, 40, 0.95) 0%, rgba(21, 42, 40, 0) 100%);
 }
 
 [data-theme='dark'] .wheel-picker-fade--bottom {
-  background: linear-gradient(
-    to top,
-    rgba(21, 42, 40, 0.95) 0%,
-    rgba(21, 42, 40, 0) 100%
-  );
+  background: linear-gradient(to top, rgba(21, 42, 40, 0.95) 0%, rgba(21, 42, 40, 0) 100%);
 }
 
 [data-theme='dark'] .dashboard-opening-card .installment-header:hover {

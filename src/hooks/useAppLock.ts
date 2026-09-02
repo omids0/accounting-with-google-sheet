@@ -1,112 +1,115 @@
-import { useCallback, useEffect, useState } from 'react';
-import { APP_LOCK_CHANGED_EVENT, isAppLockEnabled } from '../services/appLock';
+import { useCallback, useEffect, useState } from 'react'
 
-const PENDING_KEY = 'accounting_app_lock_pending';
+import { APP_LOCK_CHANGED_EVENT, isAppLockEnabled } from '../services/appLock'
+
+const PENDING_KEY = 'accounting_app_lock_pending'
 
 function markBackgroundPending(): void {
-  if (!isAppLockEnabled()) return;
+  if (!isAppLockEnabled()) return
   try {
-    sessionStorage.setItem(PENDING_KEY, '1');
+    sessionStorage.setItem(PENDING_KEY, '1')
   } catch {
     // Ignore storage failures in private mode.
   }
 }
 
 function shouldLockOnForeground(): boolean {
-  if (!isAppLockEnabled()) return false;
+  if (!isAppLockEnabled()) return false
   try {
-    return sessionStorage.getItem(PENDING_KEY) === '1';
+    return sessionStorage.getItem(PENDING_KEY) === '1'
   } catch {
-    return false;
+    return false
   }
 }
 
 function clearPending(): void {
   try {
-    sessionStorage.removeItem(PENDING_KEY);
+    sessionStorage.removeItem(PENDING_KEY)
   } catch {
     // Ignore storage failures in private mode.
   }
 }
 
 export function useAppLock() {
-  const [lockEnabled, setLockEnabled] = useState(isAppLockEnabled);
-  const [locked, setLocked] = useState(() => isAppLockEnabled());
+  const [lockEnabled, setLockEnabled] = useState(isAppLockEnabled)
+
+  const [locked, setLocked] = useState(() => isAppLockEnabled())
 
   useEffect(() => {
     const onLockChanged = (event: Event) => {
-      const detail = (event as CustomEvent<{ enabled: boolean }>).detail;
-      setLockEnabled(detail.enabled);
+      const detail = (event as CustomEvent<{ enabled: boolean }>).detail
+
+      setLockEnabled(detail.enabled)
       if (!detail.enabled) {
-        clearPending();
-        setLocked(false);
+        clearPending()
+        setLocked(false)
       } else {
-        setLocked(true);
+        setLocked(true)
       }
-    };
+    }
 
     const lockIfPending = () => {
       if (shouldLockOnForeground()) {
-        clearPending();
-        setLocked(true);
+        clearPending()
+        setLocked(true)
       }
-    };
+    }
 
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
-        markBackgroundPending();
+        markBackgroundPending()
       } else if (document.visibilityState === 'visible') {
-        lockIfPending();
+        lockIfPending()
       }
-    };
+    }
 
     const onPageHide = () => {
-      markBackgroundPending();
-    };
+      markBackgroundPending()
+    }
 
     const onPageShow = () => {
-      lockIfPending();
-    };
+      lockIfPending()
+    }
 
     const onFreeze = () => {
-      markBackgroundPending();
-    };
+      markBackgroundPending()
+    }
 
     const onResume = () => {
-      lockIfPending();
-    };
+      lockIfPending()
+    }
 
-    window.addEventListener(APP_LOCK_CHANGED_EVENT, onLockChanged);
-    document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('pagehide', onPageHide);
-    window.addEventListener('pageshow', onPageShow);
-    document.addEventListener('freeze', onFreeze);
-    document.addEventListener('resume', onResume);
+    window.addEventListener(APP_LOCK_CHANGED_EVENT, onLockChanged)
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pagehide', onPageHide)
+    window.addEventListener('pageshow', onPageShow)
+    document.addEventListener('freeze', onFreeze)
+    document.addEventListener('resume', onResume)
 
     return () => {
-      window.removeEventListener(APP_LOCK_CHANGED_EVENT, onLockChanged);
-      document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('pagehide', onPageHide);
-      window.removeEventListener('pageshow', onPageShow);
-      document.removeEventListener('freeze', onFreeze);
-      document.removeEventListener('resume', onResume);
-    };
-  }, []);
+      window.removeEventListener(APP_LOCK_CHANGED_EVENT, onLockChanged)
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', onPageHide)
+      window.removeEventListener('pageshow', onPageShow)
+      document.removeEventListener('freeze', onFreeze)
+      document.removeEventListener('resume', onResume)
+    }
+  }, [])
 
   const unlock = useCallback(() => {
-    clearPending();
-    setLocked(false);
-  }, []);
+    clearPending()
+    setLocked(false)
+  }, [])
 
   const lock = useCallback(() => {
-    if (!isAppLockEnabled()) return;
-    setLocked(true);
-  }, []);
+    if (!isAppLockEnabled()) return
+    setLocked(true)
+  }, [])
 
   return {
     lockEnabled,
     locked: lockEnabled && locked,
     unlock,
-    lock,
-  };
+    lock
+  }
 }

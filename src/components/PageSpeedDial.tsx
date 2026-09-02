@@ -1,29 +1,32 @@
-import { useEffect, useState, type CSSProperties } from 'react';
-import SpeedDialIcon from './SpeedDialIcon';
-import { getPageSpeedDialConfig, type PageSpeedDialAction } from '../hooks/usePageSpeedDial';
+import { useEffect, useState, type CSSProperties } from 'react'
+
+import SpeedDialIcon from './SpeedDialIcon'
+import { getPageSpeedDialConfig, type PageSpeedDialAction } from '../hooks/usePageSpeedDial'
 
 export default function PageSpeedDial({
   actions,
-  ariaLabel,
+  ariaLabel
 }: {
-  actions: PageSpeedDialAction[];
-  ariaLabel: string;
+  actions: PageSpeedDialAction[]
+  ariaLabel: string
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
-  const handleClose = () => setOpen(false);
-  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false)
+
+  const handleOpen = () => setOpen(true)
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') handleClose();
-    };
+      if (event.key === 'Escape') handleClose()
+    }
 
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [open]);
+    document.addEventListener('keydown', onKeyDown)
+
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open])
 
   return (
     <>
@@ -51,11 +54,12 @@ export default function PageSpeedDial({
                   role="menuitem"
                   onClick={() => {
                     const latest = getPageSpeedDialConfig()?.actions.find(
-                      (item) => item.id === action.id
-                    );
-                    if (latest?.disabled) return;
-                    latest?.onClick();
-                    handleClose();
+                      item => item.id === action.id
+                    )
+
+                    if (latest?.disabled) return
+                    latest?.onClick()
+                    handleClose()
                   }}
                   disabled={action.disabled}
                   aria-label={action.label}
@@ -81,5 +85,5 @@ export default function PageSpeedDial({
         </div>
       </div>
     </>
-  );
+  )
 }

@@ -1,0 +1,53 @@
+#!/bin/sh
+set -e
+
+. "$(dirname -- "$0")/_/husky.sh"
+. "$(dirname -- "$0")/../scripts/load-env-share.sh"
+. "$(dirname -- "$0")/../scripts/husky-changed-files.sh"
+
+staged_files=$(get_staged_files)
+
+if [ -z "$staged_files" ]; then
+  echo '✅ No staged files. Skipping pre-commit checks.'
+  exit 0
+fi
+
+echo '🔍 Running pre-commit checks...'
+echo "📋 JIRA projects (from .env.share): $VITE_JIRA_PROJECT_VALUE"
+
+line_check_files=$(filter_files "$staged_files" '\.(js|jsx|ts|tsx|css|scss|html)$')
+if [ -n "$line_check_files" ]; then
+  bash ./scripts/line-check.sh
+else
+  echo '✅ No staged files for line-count check.'
+fi
+
+format_files=$(filter_files "$staged_files" '\.(js|jsx|ts|tsx|json|css|scss|md|html)$')
+if [ -n "$format_files" ]; then
+  echo '🎨 Running Prettier on staged files...'
+  echo "$format_files" | xargs --no-run-if-empty npx prettier --write
+  echo "$format_files" | xargs --no-run-if-empty git add
+else
+  echo '✅ No staged files to format.'
+fi
+
+lint_files=$(filter_files "$staged_files" '\.(js|jsx|ts|tsx)$')
+if [ -n "$lint_files" ]; then
+  echo '🔎 Running ESLint on staged files...'
+  echo "$lint_files" | xargs --no-run-if-empty npx eslint --fix
+  echo "$lint_files" | xargs --no-run-if-empty git add
+else
+  echo '✅ No staged files to lint.'
+fi
+
+if files_match "$staged_files" "$SOURCE_CODE_PATTERN"; then
+  echo '🔍 Running TypeScript checks...'
+  npm run types || {
+    echo '❌ Failed Type check. Make the changes required above.'
+    exit 1
+  }
+else
+  echo '✅ No staged source changes. Skipping TypeScript checks.'
+fi
+
+echo '✅✅✅✅ Pre-commit checks passed! ✅✅✅✅'

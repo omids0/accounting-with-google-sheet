@@ -1,26 +1,30 @@
-import { useId, useMemo } from 'react';
-import { Area, AreaChart, ResponsiveContainer } from 'recharts';
-import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme';
+import { useId, useMemo } from 'react'
+import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 
-type SparklineTone = 'income' | 'expense' | 'primary' | 'neutral';
+import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
+
+type SparklineTone = 'income' | 'expense' | 'primary' | 'neutral'
 
 interface SparklineProps {
-  data: number[];
-  tone?: SparklineTone;
-  className?: string;
-  height?: number;
+  data: number[]
+  tone?: SparklineTone
+  className?: string
+  height?: number
 }
 
 function toneColor(theme: ReturnType<typeof useChartTheme>, tone: SparklineTone): string {
   switch (tone) {
     case 'income':
-      return theme.income;
+      return theme.income
+
     case 'expense':
-      return theme.expense;
+      return theme.expense
+
     case 'primary':
-      return theme.primary;
+      return theme.primary
+
     default:
-      return theme.muted;
+      return theme.muted
   }
 }
 
@@ -28,28 +32,24 @@ export default function Sparkline({
   data,
   tone = 'neutral',
   className = '',
-  height = 28,
+  height = 28
 }: SparklineProps) {
-  const theme = useChartTheme();
-  const animate = !prefersReducedMotion();
-  const color = toneColor(theme, tone);
-  const gradientId = useId().replace(/:/g, '');
+  const theme = useChartTheme()
 
-  const chartData = useMemo(
-    () => data.map((value, index) => ({ index, value })),
-    [data]
-  );
+  const animate = !prefersReducedMotion()
 
-  if (chartData.length < 2) return null;
+  const color = toneColor(theme, tone)
 
-  const gradientRef = `${gradientId}-sparkline-${tone}`;
+  const gradientId = useId().replace(/:/g, '')
+
+  const chartData = useMemo(() => data.map((value, index) => ({ index, value })), [data])
+
+  if (chartData.length < 2) return null
+
+  const gradientRef = `${gradientId}-sparkline-${tone}`
 
   return (
-    <div
-      className={`sparkline${className ? ` ${className}` : ''}`}
-      aria-hidden="true"
-      dir="ltr"
-    >
+    <div className={`sparkline${className ? ` ${className}` : ''}`} aria-hidden="true" dir="ltr">
       <ResponsiveContainer width="100%" height={height}>
         <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
           <defs>
@@ -71,5 +71,5 @@ export default function Sparkline({
         </AreaChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }

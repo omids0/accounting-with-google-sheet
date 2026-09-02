@@ -1,77 +1,82 @@
-import { FormEvent, useEffect, useRef, useState } from 'react';
-import {
-  isBiometricEnabled,
-  verifyBiometric,
-  verifyPin,
-} from '../services/appLock';
-import { getUserName } from '../services/auth';
-import AppIcon from './AppIcon';
+import { type FormEvent, useEffect, useRef, useState } from 'react'
+
+import AppIcon from './AppIcon'
+import { isBiometricEnabled, verifyBiometric, verifyPin } from '../services/appLock'
+import { getUserName } from '../services/auth'
 
 interface UnlockScreenProps {
-  onUnlock: () => void;
+  onUnlock: () => void
 }
 
 export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
-  const [pin, setPin] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [biometricReady, setBiometricReady] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const biometricTried = useRef(false);
+  const [pin, setPin] = useState('')
+
+  const [error, setError] = useState('')
+
+  const [loading, setLoading] = useState(false)
+
+  const [biometricReady, setBiometricReady] = useState(false)
+
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const biometricTried = useRef(false)
 
   useEffect(() => {
-    setBiometricReady(isBiometricEnabled());
-    inputRef.current?.focus();
-  }, []);
+    setBiometricReady(isBiometricEnabled())
+    inputRef.current?.focus()
+  }, [])
 
   const handleBiometric = async () => {
-    setError('');
-    setLoading(true);
+    setError('')
+    setLoading(true)
     try {
-      const ok = await verifyBiometric();
+      const ok = await verifyBiometric()
+
       if (ok) {
-        onUnlock();
+        onUnlock()
       } else {
-        setError('اثر انگشت تأیید نشد');
+        setError('اثر انگشت تأیید نشد')
       }
     } catch {
-      setError('اثر انگشت در دسترس نیست');
+      setError('اثر انگشت در دسترس نیست')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    if (!isBiometricEnabled() || biometricTried.current) return;
-    biometricTried.current = true;
-    void handleBiometric();
+    if (!isBiometricEnabled() || biometricTried.current) return
+    biometricTried.current = true
+    void handleBiometric()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+    event.preventDefault()
     if (!pin.trim()) {
-      setError('رمز را وارد کنید');
-      return;
+      setError('رمز را وارد کنید')
+
+      return
     }
 
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
     try {
-      const ok = await verifyPin(pin);
+      const ok = await verifyPin(pin)
+
       if (ok) {
-        onUnlock();
+        onUnlock()
       } else {
-        setError('رمز اشتباه است');
-        setPin('');
-        inputRef.current?.focus();
+        setError('رمز اشتباه است')
+        setPin('')
+        inputRef.current?.focus()
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const displayName = getUserName();
+  const displayName = getUserName()
 
   return (
     <div className="login-page">
@@ -99,9 +104,9 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               autoComplete="off"
               className="unlock-pin-input"
               value={pin}
-              onChange={(e) => {
-                setPin(e.target.value.replace(/\D/g, ''));
-                setError('');
+              onChange={e => {
+                setPin(e.target.value.replace(/\D/g, ''))
+                setError('')
               }}
               placeholder="رمز ۴ رقمی"
               disabled={loading}
@@ -137,10 +142,8 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
           </button>
         )}
 
-        <p className="login-footer-note">
-          رمز روی همه دستگاه‌ها یکسان است
-        </p>
+        <p className="login-footer-note">رمز روی همه دستگاه‌ها یکسان است</p>
       </div>
     </div>
-  );
+  )
 }

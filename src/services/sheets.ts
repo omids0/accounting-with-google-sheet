@@ -1,15 +1,8 @@
-import { sortFormFields } from '../components/form/fieldUtils';
-import type { CustomForm, FieldConfig } from '../types';
-import {
-  cellToString,
-  isSheetHeaderRow,
-  normalizeSheetDate,
-} from '../utils/sheetValues';
-import { getAccessToken } from './auth';
-import { recordOperation } from './activityTracking';
-import { ACTIVITY_SHEET } from './activityTracking';
-import { notifySpreadsheetDataChanged } from './spreadsheetDataChange';
-import type { OutboxOperation, OutboxWriteOptions } from './syncOutbox';
+import { sortFormFields } from '../components/form/fieldUtils'
+import type { CustomForm, FieldConfig } from '../types'
+import { recordOperation, ACTIVITY_SHEET } from './activityTracking'
+import { getAccessToken } from './auth'
+import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import {
   appendSheetDataRow,
   deleteSheetDataRow,
@@ -17,114 +10,116 @@ import {
   getSheetDataRows,
   replaceSheetDataRows as replaceSheetDataRowsInStore,
   setSheetAllRows,
-  updateSheetDataRow,
-} from './spreadsheetStore';
+  updateSheetDataRow
+} from './spreadsheetStore'
+import type { OutboxOperation, OutboxWriteOptions } from './syncOutbox'
+import { cellToString, isSheetHeaderRow, normalizeSheetDate } from '../utils/sheetValues'
 
-const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
-const TITLES_CACHE_TTL_MS = 120_000;
+const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets'
 
-const ensureSheetLocks = new Map<string, Promise<void>>();
-const ensureManyLocks = new Map<string, Promise<void>>();
-let createSpreadsheetLock: Promise<string> | null = null;
-const sheetTitlesCache = new Map<string, { titles: string[]; expiresAt: number }>();
-const preparedSheets = new Map<string, Set<string>>();
+const TITLES_CACHE_TTL_MS = 120_000
+
+const ensureSheetLocks = new Map<string, Promise<void>>()
+
+const ensureManyLocks = new Map<string, Promise<void>>()
+
+let createSpreadsheetLock: Promise<string> | null = null
+
+const sheetTitlesCache = new Map<string, { titles: string[]; expiresAt: number }>()
+
+const preparedSheets = new Map<string, Set<string>>()
 
 export interface SheetSpec {
-  sheetName: string;
-  headers: string[];
+  sheetName: string
+  headers: string[]
 }
 
 function normalizeSheetTitle(title: string): string {
-  return title.normalize('NFC').trim();
+  return title.normalize('NFC').trim()
 }
 
 function sheetLockKey(spreadsheetId: string, sheetName: string): string {
-  return `${spreadsheetId}:${normalizeSheetTitle(sheetName)}`;
+  return `${spreadsheetId}:${normalizeSheetTitle(sheetName)}`
 }
 
 export function isSpreadsheetNotFoundError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err);
-  return /not found|requested entity was not found/i.test(msg);
+  const msg = err instanceof Error ? err.message : String(err)
+
+  return /not found|requested entity was not found/i.test(msg)
 }
 
 export function isQuotaExceededError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err);
-  return /quota exceeded|rate limit|too many requests/i.test(msg);
+  const msg = err instanceof Error ? err.message : String(err)
+
+  return /quota exceeded|rate limit|too many requests/i.test(msg)
 }
 
 export function invalidateSpreadsheetCache(spreadsheetId: string): void {
-  sheetTitlesCache.delete(spreadsheetId);
-  preparedSheets.delete(spreadsheetId);
+  sheetTitlesCache.delete(spreadsheetId)
+  preparedSheets.delete(spreadsheetId)
 }
 
-export function markSheetsPrepared(
-  spreadsheetId: string,
-  sheetNames: string[]
-): void {
-  let set = preparedSheets.get(spreadsheetId);
+export function markSheetsPrepared(spreadsheetId: string, sheetNames: string[]): void {
+  let set = preparedSheets.get(spreadsheetId)
+
   if (!set) {
-    set = new Set();
-    preparedSheets.set(spreadsheetId, set);
+    set = new Set()
+    preparedSheets.set(spreadsheetId, set)
   }
   for (const name of sheetNames) {
-    set.add(normalizeSheetTitle(name));
+    set.add(normalizeSheetTitle(name))
   }
 }
 
 function isSheetPrepared(spreadsheetId: string, sheetName: string): boolean {
-  return (
-    preparedSheets.get(spreadsheetId)?.has(normalizeSheetTitle(sheetName)) ??
-    false
-  );
+  return preparedSheets.get(spreadsheetId)?.has(normalizeSheetTitle(sheetName)) ?? false
 }
 
 function invalidateSheetTitlesCache(spreadsheetId: string): void {
-  sheetTitlesCache.delete(spreadsheetId);
+  sheetTitlesCache.delete(spreadsheetId)
 }
 
 async function fetchSheetTitlesFromApi(spreadsheetId: string): Promise<string[]> {
   const meta = await apiRequest<{
-    sheets?: { properties?: { title?: string } }[];
-  }>(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties.title`);
+    sheets?: { properties?: { title?: string } }[]
+  }>(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties.title`)
 
-  return (meta.sheets ?? [])
-    .map((s) => s.properties?.title ?? '')
-    .filter(Boolean);
+  return (meta.sheets ?? []).map(s => s.properties?.title ?? '').filter(Boolean)
 }
 
-async function getSheetTitles(
-  spreadsheetId: string,
-  forceRefresh = false
-): Promise<string[]> {
-  const cached = sheetTitlesCache.get(spreadsheetId);
+async function getSheetTitles(spreadsheetId: string, forceRefresh = false): Promise<string[]> {
+  const cached = sheetTitlesCache.get(spreadsheetId)
+
   if (!forceRefresh && cached && Date.now() < cached.expiresAt) {
-    return cached.titles;
+    return cached.titles
   }
 
-  const titles = await fetchSheetTitlesFromApi(spreadsheetId);
+  const titles = await fetchSheetTitlesFromApi(spreadsheetId)
+
   sheetTitlesCache.set(spreadsheetId, {
     titles,
-    expiresAt: Date.now() + TITLES_CACHE_TTL_MS,
-  });
-  return titles;
+    expiresAt: Date.now() + TITLES_CACHE_TTL_MS
+  })
+
+  return titles
 }
 
 function sheetExistsInTitles(titles: string[], sheetName: string): boolean {
-  const target = normalizeSheetTitle(sheetName);
-  return titles.some((title) => normalizeSheetTitle(title) === target);
+  const target = normalizeSheetTitle(sheetName)
+
+  return titles.some(title => normalizeSheetTitle(title) === target)
 }
 
-export async function verifySpreadsheetExists(
-  spreadsheetId: string
-): Promise<boolean> {
-  if (!spreadsheetId) return false;
+export async function verifySpreadsheetExists(spreadsheetId: string): Promise<boolean> {
+  if (!spreadsheetId) return false
 
   try {
-    await getSheetTitles(spreadsheetId);
-    return true;
+    await getSheetTitles(spreadsheetId)
+
+    return true
   } catch (err) {
-    if (isSpreadsheetNotFoundError(err)) return false;
-    throw err;
+    if (isSpreadsheetNotFoundError(err)) return false
+    throw err
   }
 }
 
@@ -134,56 +129,59 @@ export async function ensureSpreadsheet(
   forms: CustomForm[]
 ): Promise<string> {
   if (spreadsheetId && (await verifySpreadsheetExists(spreadsheetId))) {
-    return spreadsheetId;
+    return spreadsheetId
   }
 
-  invalidateSpreadsheetCache(spreadsheetId);
-  return createSpreadsheet(title, forms);
+  invalidateSpreadsheetCache(spreadsheetId)
+
+  return createSpreadsheet(title, forms)
 }
 
-async function batchAddSheetTabs(
-  spreadsheetId: string,
-  sheetNames: string[]
-): Promise<void> {
-  if (!sheetNames.length) return;
+async function batchAddSheetTabs(spreadsheetId: string, sheetNames: string[]): Promise<void> {
+  if (!sheetNames.length) return
 
   await apiRequest(`${SHEETS_API}/${spreadsheetId}:batchUpdate`, {
     method: 'POST',
     body: JSON.stringify({
-      requests: sheetNames.map((name) => ({
-        addSheet: { properties: { title: name } },
-      })),
-    }),
-  });
-  invalidateSheetTitlesCache(spreadsheetId);
+      requests: sheetNames.map(name => ({
+        addSheet: { properties: { title: name } }
+      }))
+    })
+  })
+  invalidateSheetTitlesCache(spreadsheetId)
 }
 
 function parseSheetNameFromRange(range: string): string {
-  const bang = range.indexOf('!');
-  const raw = bang >= 0 ? range.slice(0, bang) : range;
-  return raw.replace(/^'/, '').replace(/'$/, '');
+  const bang = range.indexOf('!')
+
+  const raw = bang >= 0 ? range.slice(0, bang) : range
+
+  return raw.replace(/^'/, '').replace(/'$/, '')
 }
 
 async function batchGetHeaderRows(
   spreadsheetId: string,
   sheetNames: string[]
 ): Promise<Map<string, string[]>> {
-  if (!sheetNames.length) return new Map();
+  if (!sheetNames.length) return new Map()
 
-  const params = sheetNames
-    .map((name) => `ranges=${encodeURIComponent(`${name}!1:1`)}`)
-    .join('&');
+  const params = sheetNames.map(name => `ranges=${encodeURIComponent(`${name}!1:1`)}`).join('&')
+
   const data = await apiRequest<{
-    valueRanges?: { range?: string; values?: string[][] }[];
-  }>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`);
+    valueRanges?: { range?: string; values?: string[][] }[]
+  }>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`)
 
-  const result = new Map<string, string[]>();
+  const result = new Map<string, string[]>()
+
   for (const valueRange of data.valueRanges ?? []) {
-    if (!valueRange.range) continue;
-    const sheetName = parseSheetNameFromRange(valueRange.range);
-    result.set(normalizeSheetTitle(sheetName), valueRange.values?.[0] ?? []);
+    if (!valueRange.range) continue
+
+    const sheetName = parseSheetNameFromRange(valueRange.range)
+
+    result.set(normalizeSheetTitle(sheetName), valueRange.values?.[0] ?? [])
   }
-  return result;
+
+  return result
 }
 
 async function writeSheetHeaders(
@@ -191,33 +189,35 @@ async function writeSheetHeaders(
   sheetName: string,
   headers: string[]
 ): Promise<void> {
-  const endCol = String.fromCharCode(64 + headers.length);
-  const range = encodeURIComponent(`${sheetName}!A1:${endCol}1`);
-  await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${range}?valueInputOption=RAW`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({ values: [headers] }),
-    }
-  );
+  const endCol = String.fromCharCode(64 + headers.length)
+
+  const range = encodeURIComponent(`${sheetName}!A1:${endCol}1`)
+
+  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?valueInputOption=RAW`, {
+    method: 'PUT',
+    body: JSON.stringify({ values: [headers] })
+  })
 }
 
 export async function ensureManySheetsWithHeaders(
   spreadsheetId: string,
   sheets: SheetSpec[]
 ): Promise<void> {
-  const pendingLock = ensureManyLocks.get(spreadsheetId);
+  const pendingLock = ensureManyLocks.get(spreadsheetId)
+
   if (pendingLock) {
-    await pendingLock;
-    return;
+    await pendingLock
+
+    return
   }
 
-  const task = ensureManySheetsWithHeadersInner(spreadsheetId, sheets);
-  ensureManyLocks.set(spreadsheetId, task);
+  const task = ensureManySheetsWithHeadersInner(spreadsheetId, sheets)
+
+  ensureManyLocks.set(spreadsheetId, task)
   try {
-    await task;
+    await task
   } finally {
-    ensureManyLocks.delete(spreadsheetId);
+    ensureManyLocks.delete(spreadsheetId)
   }
 }
 
@@ -225,48 +225,47 @@ async function ensureManySheetsWithHeadersInner(
   spreadsheetId: string,
   sheets: SheetSpec[]
 ): Promise<void> {
-  const pending = sheets.filter(
-    (sheet) => !isSheetPrepared(spreadsheetId, sheet.sheetName)
-  );
-  if (!pending.length) return;
+  const pending = sheets.filter(sheet => !isSheetPrepared(spreadsheetId, sheet.sheetName))
 
-  let titles = await getSheetTitles(spreadsheetId);
-  const missingTabs = pending.filter(
-    (sheet) => !sheetExistsInTitles(titles, sheet.sheetName)
-  );
+  if (!pending.length) return
+
+  let titles = await getSheetTitles(spreadsheetId)
+
+  const missingTabs = pending.filter(sheet => !sheetExistsInTitles(titles, sheet.sheetName))
 
   if (missingTabs.length) {
     await batchAddSheetTabs(
       spreadsheetId,
-      missingTabs.map((sheet) => sheet.sheetName)
-    );
-    titles = await getSheetTitles(spreadsheetId, true);
+      missingTabs.map(sheet => sheet.sheetName)
+    )
+    titles = await getSheetTitles(spreadsheetId, true)
   }
 
   const headerRows = await batchGetHeaderRows(
     spreadsheetId,
-    pending.map((sheet) => sheet.sheetName)
-  );
+    pending.map(sheet => sheet.sheetName)
+  )
 
   for (const sheet of pending) {
-    const existing =
-      headerRows.get(normalizeSheetTitle(sheet.sheetName)) ?? [];
-    const hasHeaders = existing.some((cell) => String(cell ?? '').trim());
+    const existing = headerRows.get(normalizeSheetTitle(sheet.sheetName)) ?? []
+
+    const hasHeaders = existing.some(cell => String(cell ?? '').trim())
+
     if (!hasHeaders) {
-      await writeSheetHeaders(spreadsheetId, sheet.sheetName, sheet.headers);
+      await writeSheetHeaders(spreadsheetId, sheet.sheetName, sheet.headers)
     }
-    markSheetsPrepared(spreadsheetId, [sheet.sheetName]);
+    markSheetsPrepared(spreadsheetId, [sheet.sheetName])
   }
 }
 
-export type SheetWriteOptions = OutboxWriteOptions;
+export type SheetWriteOptions = OutboxWriteOptions
 
 function shouldRecordActivity(sheetName: string, options?: SheetWriteOptions): boolean {
-  return !options?.skipActivity && sheetName !== ACTIVITY_SHEET;
+  return !options?.skipActivity && sheetName !== ACTIVITY_SHEET
 }
 
 function token(): string {
-  return getAccessToken();
+  return getAccessToken()
 }
 
 async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
@@ -275,49 +274,53 @@ async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T>
     headers: {
       Authorization: `Bearer ${token()}`,
       'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
+      ...options.headers
+    }
+  })
+
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = await res.json().catch(() => ({}))
+
     const message =
-      (err as { error?: { message?: string } }).error?.message ||
-      `خطای API: ${res.status}`;
+      (err as { error?: { message?: string } }).error?.message || `خطای API: ${res.status}`
+
     if (isQuotaExceededError(message)) {
-      const { markQuotaExceeded } = await import('./sheetSync');
-      markQuotaExceeded();
+      const { markQuotaExceeded } = await import('./sheetSync')
+
+      markQuotaExceeded()
       throw new Error(
         'محدودیت درخواست Google Sheets پر شده. حدود یک دقیقه صبر کنید و دوباره تلاش کنید.'
-      );
+      )
     }
-    throw new Error(message);
+    throw new Error(message)
   }
-  if (res.status === 204) return {} as T;
-  return res.json() as Promise<T>;
+  if (res.status === 204) return {} as T
+
+  return res.json() as Promise<T>
 }
 
 function normalizeHeaderLabel(label: string): string {
-  return label.normalize('NFC').trim();
+  return label.normalize('NFC').trim()
 }
 
 function buildHeaders(fields: FieldConfig[]): string[] {
-  return ['شناسه', 'زمان ثبت', ...sortFormFields(fields).map((f) => f.label)];
+  return ['شناسه', 'زمان ثبت', ...sortFormFields(fields).map(f => f.label)]
 }
 
-function buildFieldColumnMap(
-  headers: string[],
-  fields: FieldConfig[]
-): Map<string, number> {
-  const normalizedHeaders = headers.map(normalizeHeaderLabel);
-  const map = new Map<string, number>();
+function buildFieldColumnMap(headers: string[], fields: FieldConfig[]): Map<string, number> {
+  const normalizedHeaders = headers.map(normalizeHeaderLabel)
+
+  const map = new Map<string, number>()
 
   fields.forEach((field, index) => {
-    const label = normalizeHeaderLabel(field.label);
-    const byLabel = normalizedHeaders.findIndex((header) => header === label);
-    map.set(field.id, byLabel >= 0 ? byLabel : index + 2);
-  });
+    const label = normalizeHeaderLabel(field.label)
 
-  return map;
+    const byLabel = normalizedHeaders.findIndex(header => header === label)
+
+    map.set(field.id, byLabel >= 0 ? byLabel : index + 2)
+  })
+
+  return map
 }
 
 function buildRecordRow(
@@ -327,21 +330,26 @@ function buildRecordRow(
   createdAt: string,
   values: Record<string, string | number>
 ): string[] {
-  const columnMap = buildFieldColumnMap(headers, form.fields);
-  const width = Math.max(headers.length, 2 + form.fields.length);
-  const row = Array.from({ length: width }, () => '');
+  const columnMap = buildFieldColumnMap(headers, form.fields)
 
-  row[0] = recordId;
-  row[1] = createdAt;
+  const width = Math.max(headers.length, 2 + form.fields.length)
+
+  const row = Array.from({ length: width }, () => '')
+
+  row[0] = recordId
+  row[1] = createdAt
 
   for (const field of form.fields) {
-    const column = columnMap.get(field.id);
-    if (column == null) continue;
-    const val = values[field.id];
-    row[column] = val !== undefined && val !== null ? String(val) : '';
+    const column = columnMap.get(field.id)
+
+    if (column == null) continue
+
+    const val = values[field.id]
+
+    row[column] = val !== undefined && val !== null ? String(val) : ''
   }
 
-  return row;
+  return row
 }
 
 function mapRowToValues(
@@ -349,85 +357,75 @@ function mapRowToValues(
   fields: FieldConfig[],
   columnMap: Map<string, number>
 ): Record<string, string> {
-  const values: Record<string, string> = {};
+  const values: Record<string, string> = {}
+
   for (const field of fields) {
-    const column = columnMap.get(field.id);
-    const raw = column == null ? '' : row[column];
-    values[field.id] =
-      field.type === 'date' ? normalizeSheetDate(raw) : cellToString(raw);
+    const column = columnMap.get(field.id)
+
+    const raw = column == null ? '' : row[column]
+
+    values[field.id] = field.type === 'date' ? normalizeSheetDate(raw) : cellToString(raw)
   }
-  return values;
+
+  return values
 }
 
-export async function createSpreadsheet(
-  title: string,
-  forms: CustomForm[]
-): Promise<string> {
+export async function createSpreadsheet(title: string, forms: CustomForm[]): Promise<string> {
   if (createSpreadsheetLock) {
-    return createSpreadsheetLock;
+    return createSpreadsheetLock
   }
 
   createSpreadsheetLock = createSpreadsheetInner(title, forms).finally(() => {
-    createSpreadsheetLock = null;
-  });
-  return createSpreadsheetLock;
+    createSpreadsheetLock = null
+  })
+
+  return createSpreadsheetLock
 }
 
-async function createSpreadsheetInner(
-  title: string,
-  forms: CustomForm[]
-): Promise<string> {
+async function createSpreadsheetInner(title: string, forms: CustomForm[]): Promise<string> {
   const data = await apiRequest<{ spreadsheetId: string }>(SHEETS_API, {
     method: 'POST',
     body: JSON.stringify({
       properties: { title },
-      sheets: forms.map((form) => ({
+      sheets: forms.map(form => ({
         properties: {
           title: form.sheetName,
-          gridProperties: { frozenRowCount: 1 },
-        },
-      })),
-    }),
-  });
+          gridProperties: { frozenRowCount: 1 }
+        }
+      }))
+    })
+  })
 
   for (const form of forms) {
-    await writeHeaders(data.spreadsheetId, form);
+    await writeHeaders(data.spreadsheetId, form)
   }
 
   markSheetsPrepared(
     data.spreadsheetId,
-    forms.map((form) => form.sheetName)
-  );
+    forms.map(form => form.sheetName)
+  )
   sheetTitlesCache.set(data.spreadsheetId, {
-    titles: forms.map((form) => form.sheetName),
-    expiresAt: Date.now() + TITLES_CACHE_TTL_MS,
-  });
+    titles: forms.map(form => form.sheetName),
+    expiresAt: Date.now() + TITLES_CACHE_TTL_MS
+  })
 
-  return data.spreadsheetId;
+  return data.spreadsheetId
 }
 
-export async function addSheetTab(
-  spreadsheetId: string,
-  sheetName: string
-): Promise<void> {
-  await batchAddSheetTabs(spreadsheetId, [sheetName]);
+export async function addSheetTab(spreadsheetId: string, sheetName: string): Promise<void> {
+  await batchAddSheetTabs(spreadsheetId, [sheetName])
 }
 
-async function writeHeaders(
-  spreadsheetId: string,
-  form: CustomForm
-): Promise<void> {
-  const headers = buildHeaders(form.fields);
-  await writeSheetHeaders(spreadsheetId, form.sheetName, headers);
+async function writeHeaders(spreadsheetId: string, form: CustomForm): Promise<void> {
+  const headers = buildHeaders(form.fields)
+
+  await writeSheetHeaders(spreadsheetId, form.sheetName, headers)
 }
 
-export async function ensureFormSheet(
-  spreadsheetId: string,
-  form: CustomForm
-): Promise<void> {
+export async function ensureFormSheet(spreadsheetId: string, form: CustomForm): Promise<void> {
   await ensureManySheetsWithHeaders(spreadsheetId, [
-    { sheetName: form.sheetName, headers: buildHeaders(form.fields) },
-  ]);
+    { sheetName: form.sheetName, headers: buildHeaders(form.fields) }
+  ])
 }
 
 export async function appendRecord(
@@ -437,35 +435,39 @@ export async function appendRecord(
   createdAt: string,
   values: Record<string, string | number>
 ): Promise<void> {
-  const headers = getSheetHeaderRowFromStore(spreadsheetId, form.sheetName, form);
-  const row = buildRecordRow(headers, form, recordId, createdAt, values);
-  appendSheetDataRow(spreadsheetId, form.sheetName, row);
-  notifySpreadsheetDataChanged(spreadsheetId);
+  const headers = getSheetHeaderRowFromStore(spreadsheetId, form.sheetName, form)
 
-  const { enqueueSheetWrite } = await import('./sheetSync');
+  const row = buildRecordRow(headers, form, recordId, createdAt, values)
+
+  appendSheetDataRow(spreadsheetId, form.sheetName, row)
+  notifySpreadsheetDataChanged(spreadsheetId)
+
+  const { enqueueSheetWrite } = await import('./sheetSync')
+
   enqueueSheetWrite(spreadsheetId, {
     type: 'append',
     sheetName: form.sheetName,
-    row,
-  });
+    row
+  })
 }
 
 export type SheetRecord = {
-  id: string;
-  createdAt: string;
-  rowNumber: number;
-  values: Record<string, string>;
-};
+  id: string
+  createdAt: string
+  rowNumber: number
+  values: Record<string, string>
+}
 
 function parseSheetRecords(rows: unknown[][], form: CustomForm): SheetRecord[] {
-  if (!rows.length) return [];
+  if (!rows.length) return []
 
-  const hasHeader = isSheetHeaderRow(rows[0]);
-  const headers = hasHeader
-    ? rows[0].map((cell) => cellToString(cell))
-    : buildHeaders(form.fields);
-  const dataRows = hasHeader ? rows.slice(1) : rows;
-  const columnMap = buildFieldColumnMap(headers, form.fields);
+  const hasHeader = isSheetHeaderRow(rows[0])
+
+  const headers = hasHeader ? rows[0].map(cell => cellToString(cell)) : buildHeaders(form.fields)
+
+  const dataRows = hasHeader ? rows.slice(1) : rows
+
+  const columnMap = buildFieldColumnMap(headers, form.fields)
 
   return dataRows
     .map((row, index) => ({ row, rowNumber: hasHeader ? index + 2 : index + 1 }))
@@ -474,8 +476,8 @@ function parseSheetRecords(rows: unknown[][], form: CustomForm): SheetRecord[] {
       id: cellToString(row[0]),
       createdAt: cellToString(row[1]),
       rowNumber,
-      values: mapRowToValues(row, form.fields, columnMap),
-    }));
+      values: mapRowToValues(row, form.fields, columnMap)
+    }))
 }
 
 export async function fetchSheetRangeFromApi(
@@ -483,55 +485,63 @@ export async function fetchSheetRangeFromApi(
   sheetName: string,
   rangeSuffix = 'A1:Z2000'
 ): Promise<string[][]> {
-  const range = encodeURIComponent(`${sheetName}!${rangeSuffix}`);
+  const range = encodeURIComponent(`${sheetName}!${rangeSuffix}`)
+
   const data = await apiRequest<{ values?: unknown[][] }>(
     `${SHEETS_API}/${spreadsheetId}/values/${range}`
-  );
-  return (data.values ?? []).map((row) => row.map((cell) => cellToString(cell)));
+  )
+
+  return (data.values ?? []).map(row => row.map(cell => cellToString(cell)))
 }
 
 export async function batchFetchSheetRangesFromApi(
   spreadsheetId: string,
   sheetNames: string[]
 ): Promise<Map<string, string[][]>> {
-  const result = new Map<string, string[][]>();
-  if (!sheetNames.length) return result;
+  const result = new Map<string, string[][]>()
 
-  const chunkSize = 20;
+  if (!sheetNames.length) return result
+
+  const chunkSize = 20
+
   for (let i = 0; i < sheetNames.length; i += chunkSize) {
-    const chunk = sheetNames.slice(i, i + chunkSize);
-    const params = chunk
-      .map((name) => `ranges=${encodeURIComponent(`${name}!A1:Z2000`)}`)
-      .join('&');
+    const chunk = sheetNames.slice(i, i + chunkSize)
+
+    const params = chunk.map(name => `ranges=${encodeURIComponent(`${name}!A1:Z2000`)}`).join('&')
+
     const data = await apiRequest<{
-      valueRanges?: { range?: string; values?: unknown[][] }[];
-    }>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`);
+      valueRanges?: { range?: string; values?: unknown[][] }[]
+    }>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`)
 
     for (const valueRange of data.valueRanges ?? []) {
-      if (!valueRange.range) continue;
-      const sheetName = parseSheetNameFromRange(valueRange.range);
-      const rows = (valueRange.values ?? []).map((row) =>
-        row.map((cell) => cellToString(cell))
-      );
-      result.set(sheetName, rows);
+      if (!valueRange.range) continue
+
+      const sheetName = parseSheetNameFromRange(valueRange.range)
+
+      const rows = (valueRange.values ?? []).map(row => row.map(cell => cellToString(cell)))
+
+      result.set(sheetName, rows)
     }
   }
 
-  return result;
+  return result
 }
 
 export async function fetchRecords(
   spreadsheetId: string,
   form: CustomForm
 ): Promise<SheetRecord[]> {
-  const cached = getSheetAllRows(spreadsheetId, form.sheetName);
+  const cached = getSheetAllRows(spreadsheetId, form.sheetName)
+
   if (cached) {
-    return parseSheetRecords(cached, form);
+    return parseSheetRecords(cached, form)
   }
 
-  const rows = await fetchSheetRangeFromApi(spreadsheetId, form.sheetName);
-  setSheetAllRows(spreadsheetId, form.sheetName, rows);
-  return parseSheetRecords(rows, form);
+  const rows = await fetchSheetRangeFromApi(spreadsheetId, form.sheetName)
+
+  setSheetAllRows(spreadsheetId, form.sheetName, rows)
+
+  return parseSheetRecords(rows, form)
 }
 
 export async function updateRecord(
@@ -543,13 +553,14 @@ export async function updateRecord(
   values: Record<string, string | number>
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, form.sheetName, rowNumber, () => {
-    const headers = getSheetHeaderRowFromStore(spreadsheetId, form.sheetName, form);
-    return buildRecordRow(headers, form, recordId, createdAt, values);
-  });
+    const headers = getSheetHeaderRowFromStore(spreadsheetId, form.sheetName, form)
+
+    return buildRecordRow(headers, form, recordId, createdAt, values)
+  })
 }
 
 export function getSpreadsheetUrl(sheetId: string): string {
-  return `https://docs.google.com/spreadsheets/d/${sheetId}`;
+  return `https://docs.google.com/spreadsheets/d/${sheetId}`
 }
 
 export async function ensureSheetWithHeaders(
@@ -557,19 +568,19 @@ export async function ensureSheetWithHeaders(
   sheetName: string,
   headers: string[]
 ): Promise<void> {
-  const lockKey = sheetLockKey(spreadsheetId, sheetName);
-  const pending = ensureSheetLocks.get(lockKey);
-  if (pending) return pending;
+  const lockKey = sheetLockKey(spreadsheetId, sheetName)
 
-  const task = ensureManySheetsWithHeaders(spreadsheetId, [
-    { sheetName, headers },
-  ]);
+  const pending = ensureSheetLocks.get(lockKey)
 
-  ensureSheetLocks.set(lockKey, task);
+  if (pending) return pending
+
+  const task = ensureManySheetsWithHeaders(spreadsheetId, [{ sheetName, headers }])
+
+  ensureSheetLocks.set(lockKey, task)
   try {
-    await task;
+    await task
   } finally {
-    ensureSheetLocks.delete(lockKey);
+    ensureSheetLocks.delete(lockKey)
   }
 }
 
@@ -578,25 +589,30 @@ function getSheetHeaderRowFromStore(
   sheetName: string,
   form?: CustomForm
 ): string[] {
-  const cached = getSheetAllRows(spreadsheetId, sheetName);
-  if (cached?.[0]?.some((cell) => String(cell ?? '').trim())) {
-    return cached[0];
+  const cached = getSheetAllRows(spreadsheetId, sheetName)
+
+  if (cached?.[0]?.some(cell => String(cell ?? '').trim())) {
+    return cached[0]
   }
-  return form ? buildHeaders(form.fields) : [];
+
+  return form ? buildHeaders(form.fields) : []
 }
 
 export async function fetchSheetRows(
   spreadsheetId: string,
   sheetName: string
 ): Promise<string[][]> {
-  const cached = getSheetDataRows(spreadsheetId, sheetName);
+  const cached = getSheetDataRows(spreadsheetId, sheetName)
+
   if (cached !== null) {
-    return cached;
+    return cached
   }
 
-  const allRows = await fetchSheetRangeFromApi(spreadsheetId, sheetName);
-  setSheetAllRows(spreadsheetId, sheetName, allRows);
-  return allRows.length <= 1 ? [] : allRows.slice(1);
+  const allRows = await fetchSheetRangeFromApi(spreadsheetId, sheetName)
+
+  setSheetAllRows(spreadsheetId, sheetName, allRows)
+
+  return allRows.length <= 1 ? [] : allRows.slice(1)
 }
 
 async function appendSheetRowApi(
@@ -605,16 +621,17 @@ async function appendSheetRowApi(
   row: string[],
   options?: SheetWriteOptions
 ): Promise<void> {
-  const range = encodeURIComponent(`${sheetName}!A:Z`);
+  const range = encodeURIComponent(`${sheetName}!A:Z`)
+
   await apiRequest(
     `${SHEETS_API}/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
     {
       method: 'POST',
-      body: JSON.stringify({ values: [row] }),
+      body: JSON.stringify({ values: [row] })
     }
-  );
+  )
   if (shouldRecordActivity(sheetName, options)) {
-    recordOperation();
+    recordOperation()
   }
 }
 
@@ -624,18 +641,19 @@ export async function appendSheetRow(
   row: string[],
   options?: SheetWriteOptions
 ): Promise<void> {
-  appendSheetDataRow(spreadsheetId, sheetName, row);
+  appendSheetDataRow(spreadsheetId, sheetName, row)
   if (!options?.skipRevision) {
-    notifySpreadsheetDataChanged(spreadsheetId);
+    notifySpreadsheetDataChanged(spreadsheetId)
   }
 
-  const { enqueueSheetWrite } = await import('./sheetSync');
+  const { enqueueSheetWrite } = await import('./sheetSync')
+
   enqueueSheetWrite(spreadsheetId, {
     type: 'append',
     sheetName,
     row,
-    writeOptions: options,
-  });
+    writeOptions: options
+  })
 }
 
 async function updateSheetRowApi(
@@ -645,17 +663,16 @@ async function updateSheetRowApi(
   row: string[],
   options?: SheetWriteOptions
 ): Promise<void> {
-  const endCol = String.fromCharCode(64 + Math.max(row.length, 1));
-  const range = encodeURIComponent(`${sheetName}!A${rowNumber}:${endCol}${rowNumber}`);
-  await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${range}?valueInputOption=USER_ENTERED`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({ values: [row] }),
-    }
-  );
+  const endCol = String.fromCharCode(64 + Math.max(row.length, 1))
+
+  const range = encodeURIComponent(`${sheetName}!A${rowNumber}:${endCol}${rowNumber}`)
+
+  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?valueInputOption=USER_ENTERED`, {
+    method: 'PUT',
+    body: JSON.stringify({ values: [row] })
+  })
   if (shouldRecordActivity(sheetName, options)) {
-    recordOperation();
+    recordOperation()
   }
 }
 
@@ -666,21 +683,22 @@ export async function updateSheetRow(
   rowOrBuilder: string[] | (() => string[]),
   options?: SheetWriteOptions
 ): Promise<void> {
-  const row = typeof rowOrBuilder === 'function' ? rowOrBuilder() : rowOrBuilder;
+  const row = typeof rowOrBuilder === 'function' ? rowOrBuilder() : rowOrBuilder
 
-  updateSheetDataRow(spreadsheetId, sheetName, rowNumber, row);
+  updateSheetDataRow(spreadsheetId, sheetName, rowNumber, row)
   if (!options?.skipRevision) {
-    notifySpreadsheetDataChanged(spreadsheetId);
+    notifySpreadsheetDataChanged(spreadsheetId)
   }
 
-  const { enqueueSheetWrite } = await import('./sheetSync');
+  const { enqueueSheetWrite } = await import('./sheetSync')
+
   enqueueSheetWrite(spreadsheetId, {
     type: 'update',
     sheetName,
     rowNumber,
     row,
-    writeOptions: options,
-  });
+    writeOptions: options
+  })
 }
 
 async function deleteSheetRowApi(
@@ -688,8 +706,9 @@ async function deleteSheetRowApi(
   sheetName: string,
   rowNumber: number
 ): Promise<void> {
-  const sheetId = await getSheetId(spreadsheetId, sheetName);
-  const startIndex = rowNumber - 1;
+  const sheetId = await getSheetId(spreadsheetId, sheetName)
+
+  const startIndex = rowNumber - 1
 
   await apiRequest(`${SHEETS_API}/${spreadsheetId}:batchUpdate`, {
     method: 'POST',
@@ -701,32 +720,33 @@ async function deleteSheetRowApi(
               sheetId,
               dimension: 'ROWS',
               startIndex,
-              endIndex: startIndex + 1,
-            },
-          },
-        },
-      ],
-    }),
-  });
+              endIndex: startIndex + 1
+            }
+          }
+        }
+      ]
+    })
+  })
 }
 
-async function getSheetId(
-  spreadsheetId: string,
-  sheetName: string
-): Promise<number> {
+async function getSheetId(spreadsheetId: string, sheetName: string): Promise<number> {
   const meta = await apiRequest<{
-    sheets?: { properties?: { title?: string; sheetId?: number } }[];
-  }>(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties(title,sheetId)`);
+    sheets?: { properties?: { title?: string; sheetId?: number } }[]
+  }>(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties(title,sheetId)`)
 
-  const target = normalizeSheetTitle(sheetName);
+  const target = normalizeSheetTitle(sheetName)
+
   const sheet = (meta.sheets ?? []).find(
-    (item) => normalizeSheetTitle(item.properties?.title ?? '') === target
-  );
-  const sheetId = sheet?.properties?.sheetId;
+    item => normalizeSheetTitle(item.properties?.title ?? '') === target
+  )
+
+  const sheetId = sheet?.properties?.sheetId
+
   if (sheetId == null) {
-    throw new Error(`شیت «${sheetName}» یافت نشد`);
+    throw new Error(`شیت «${sheetName}» یافت نشد`)
   }
-  return sheetId;
+
+  return sheetId
 }
 
 export async function deleteSheetRow(
@@ -734,15 +754,16 @@ export async function deleteSheetRow(
   sheetName: string,
   rowNumber: number
 ): Promise<void> {
-  deleteSheetDataRow(spreadsheetId, sheetName, rowNumber);
-  notifySpreadsheetDataChanged(spreadsheetId);
+  deleteSheetDataRow(spreadsheetId, sheetName, rowNumber)
+  notifySpreadsheetDataChanged(spreadsheetId)
 
-  const { enqueueSheetWrite } = await import('./sheetSync');
+  const { enqueueSheetWrite } = await import('./sheetSync')
+
   enqueueSheetWrite(spreadsheetId, {
     type: 'delete',
     sheetName,
-    rowNumber,
-  });
+    rowNumber
+  })
 }
 
 export async function deleteRecord(
@@ -750,7 +771,7 @@ export async function deleteRecord(
   form: CustomForm,
   rowNumber: number
 ): Promise<void> {
-  await deleteSheetRow(spreadsheetId, form.sheetName, rowNumber);
+  await deleteSheetRow(spreadsheetId, form.sheetName, rowNumber)
 }
 
 async function replaceSheetDataRowsApi(
@@ -759,25 +780,20 @@ async function replaceSheetDataRowsApi(
   rows: string[][],
   columnCount: number
 ): Promise<void> {
-  const endCol = String.fromCharCode(64 + Math.max(columnCount, 1));
-  const clearRange = encodeURIComponent(`${sheetName}!A2:${endCol}1000`);
-  await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`,
-    { method: 'POST' }
-  );
+  const endCol = String.fromCharCode(64 + Math.max(columnCount, 1))
 
-  if (!rows.length) return;
+  const clearRange = encodeURIComponent(`${sheetName}!A2:${endCol}1000`)
 
-  const writeRange = encodeURIComponent(
-    `${sheetName}!A2:${endCol}${rows.length + 1}`
-  );
-  await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${writeRange}?valueInputOption=RAW`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({ values: rows }),
-    }
-  );
+  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`, { method: 'POST' })
+
+  if (!rows.length) return
+
+  const writeRange = encodeURIComponent(`${sheetName}!A2:${endCol}${rows.length + 1}`)
+
+  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${writeRange}?valueInputOption=RAW`, {
+    method: 'PUT',
+    body: JSON.stringify({ values: rows })
+  })
 }
 
 export async function executeOutboxOperation(
@@ -791,8 +807,10 @@ export async function executeOutboxOperation(
         operation.sheetName,
         operation.row,
         operation.writeOptions
-      );
-      return;
+      )
+
+      return
+
     case 'update':
       await updateSheetRowApi(
         spreadsheetId,
@@ -800,25 +818,27 @@ export async function executeOutboxOperation(
         operation.rowNumber,
         operation.row,
         operation.writeOptions
-      );
-      return;
+      )
+
+      return
+
     case 'delete':
-      await deleteSheetRowApi(
-        spreadsheetId,
-        operation.sheetName,
-        operation.rowNumber
-      );
-      return;
+      await deleteSheetRowApi(spreadsheetId, operation.sheetName, operation.rowNumber)
+
+      return
+
     case 'replace':
       await replaceSheetDataRowsApi(
         spreadsheetId,
         operation.sheetName,
         operation.rows,
         operation.columnCount
-      );
-      return;
+      )
+
+      return
+
     default:
-      throw new Error('عملیات ناشناخته در صف همگام‌سازی');
+      throw new Error('عملیات ناشناخته در صف همگام‌سازی')
   }
 }
 
@@ -828,14 +848,15 @@ export async function replaceSheetDataRows(
   rows: string[][],
   columnCount = 2
 ): Promise<void> {
-  replaceSheetDataRowsInStore(spreadsheetId, sheetName, rows);
-  notifySpreadsheetDataChanged(spreadsheetId);
+  replaceSheetDataRowsInStore(spreadsheetId, sheetName, rows)
+  notifySpreadsheetDataChanged(spreadsheetId)
 
-  const { enqueueSheetWrite } = await import('./sheetSync');
+  const { enqueueSheetWrite } = await import('./sheetSync')
+
   enqueueSheetWrite(spreadsheetId, {
     type: 'replace',
     sheetName,
     rows,
-    columnCount,
-  });
+    columnCount
+  })
 }

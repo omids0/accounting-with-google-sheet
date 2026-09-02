@@ -1,29 +1,31 @@
-import { useMemo, useState } from 'react';
-import JalaliDatePicker from './JalaliDatePicker';
-import { FormField, FormSelect } from './form';
+import { useMemo, useState } from 'react'
+
+import { FormField, FormSelect } from './form'
+import JalaliDatePicker from './JalaliDatePicker'
 import {
   CALENDAR_SHORT_LABELS,
   CALENDAR_SYSTEM_OPTIONS,
   getCalendarConversionDisplay,
-  type CalendarSystem,
-} from '../utils/dateConverter';
-import { getTodayIso } from '../utils/jalaliDate';
+  type CalendarSystem
+} from '../utils/dateConverter'
+import { getTodayIso } from '../utils/jalaliDate'
 
-const INPUT_CALENDAR_OPTIONS = CALENDAR_SYSTEM_OPTIONS.map((option) => ({
+const INPUT_CALENDAR_OPTIONS = CALENDAR_SYSTEM_OPTIONS.map(option => ({
   value: option.value,
-  label: option.label,
-}));
+  label: option.label
+}))
 
-const ALL_CALENDARS: CalendarSystem[] = ['shamsi', 'miladi', 'hijri'];
+const ALL_CALENDARS: CalendarSystem[] = ['shamsi', 'miladi', 'hijri']
 
 export default function DateCalculatorPage() {
-  const [inputCalendar, setInputCalendar] = useState<CalendarSystem>('shamsi');
-  const [isoDate, setIsoDate] = useState(getTodayIso);
+  const [inputCalendar, setInputCalendar] = useState<CalendarSystem>('shamsi')
+
+  const [isoDate, setIsoDate] = useState(getTodayIso)
 
   const resultCalendars = useMemo(
-    () => ALL_CALENDARS.filter((calendar) => calendar !== inputCalendar),
+    () => ALL_CALENDARS.filter(calendar => calendar !== inputCalendar),
     [inputCalendar]
-  );
+  )
 
   return (
     <div className="date-calculator-page">
@@ -33,7 +35,7 @@ export default function DateCalculatorPage() {
         <FormSelect
           label="نوع تاریخ ورودی"
           value={inputCalendar}
-          onChange={(value) => setInputCalendar(value as CalendarSystem)}
+          onChange={value => setInputCalendar(value as CalendarSystem)}
           options={INPUT_CALENDAR_OPTIONS}
           aria-label="نوع تاریخ ورودی"
         />
@@ -51,8 +53,9 @@ export default function DateCalculatorPage() {
       <div className="card date-calculator-conversions-card">
         <div className="date-calculator-conversions-head">معادل در سایر تقویم‌ها</div>
         <ul className="date-calculator-conversion-list">
-          {resultCalendars.map((calendar) => {
-            const display = getCalendarConversionDisplay(isoDate, calendar);
+          {resultCalendars.map(calendar => {
+            const display = getCalendarConversionDisplay(isoDate, calendar)
+
             return (
               <li key={calendar} className="date-calculator-conversion-item">
                 <span className="date-calculator-conversion-label">
@@ -65,10 +68,10 @@ export default function DateCalculatorPage() {
                   <span className="date-calculator-conversion-words">{display.words}</span>
                 </div>
               </li>
-            );
+            )
           })}
         </ul>
       </div>
     </div>
-  );
+  )
 }

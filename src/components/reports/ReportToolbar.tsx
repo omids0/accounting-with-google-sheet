@@ -1,20 +1,25 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react'
+
+import {
+  formatDateRangeLabel,
+  resolveDateRange,
+  type RecordsDatePreset
+} from '../../utils/dateRange'
+import type { DateRange } from '../../utils/jalaliDate'
 import DateRangeFilter, {
   createDefaultDateRangeFilter,
-  type AppliedDateRangeFilter,
-} from '../DateRangeFilter';
-import { formatDateRangeLabel, resolveDateRange, type RecordsDatePreset } from '../../utils/dateRange';
-import type { DateRange } from '../../utils/jalaliDate';
+  type AppliedDateRangeFilter
+} from '../DateRangeFilter'
 
 interface ReportToolbarProps {
-  title: string;
-  preset: RecordsDatePreset;
-  customRange: DateRange;
-  onFilterChange: (filter: AppliedDateRangeFilter) => void;
-  onRefresh: () => void;
-  loading?: boolean;
-  showDateFilter?: boolean;
-  subtitle?: string;
+  title: string
+  preset: RecordsDatePreset
+  customRange: DateRange
+  onFilterChange: (filter: AppliedDateRangeFilter) => void
+  onRefresh: () => void
+  loading?: boolean
+  showDateFilter?: boolean
+  subtitle?: string
 }
 
 export default function ReportToolbar({
@@ -25,9 +30,9 @@ export default function ReportToolbar({
   onRefresh,
   loading = false,
   showDateFilter = true,
-  subtitle,
+  subtitle
 }: ReportToolbarProps) {
-  const dateRange = resolveDateRange(preset, customRange);
+  const dateRange = resolveDateRange(preset, customRange)
 
   return (
     <div className="card records-toolbar dashboard-toolbar">
@@ -58,30 +63,29 @@ export default function ReportToolbar({
         />
       )}
     </div>
-  );
+  )
 }
 
 export function useReportDateFilter() {
-  const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date');
-  const [customRange, setCustomRange] = useState(
-    () => createDefaultDateRangeFilter().customRange
-  );
+  const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date')
+
+  const [customRange, setCustomRange] = useState(() => createDefaultDateRangeFilter().customRange)
 
   const handleDateFilterChange = useCallback((filter: AppliedDateRangeFilter) => {
-    if (filter.preset === 'all') return;
-    setDatePreset(filter.preset);
-    setCustomRange(filter.customRange);
-  }, []);
+    if (filter.preset === 'all') return
+    setDatePreset(filter.preset)
+    setCustomRange(filter.customRange)
+  }, [])
 
   const dateRange = useMemo(
     () => resolveDateRange(datePreset, customRange),
     [datePreset, customRange.start, customRange.end]
-  );
+  )
 
   return {
     datePreset,
     customRange,
     handleDateFilterChange,
-    dateRange,
-  };
+    dateRange
+  }
 }

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react'
+
 import {
   daysInCalendarMonth,
   formatCalendarDateCompact,
@@ -6,68 +7,76 @@ import {
   getCalendarParts,
   getCalendarYearRange,
   partsToIso,
-  type CalendarSystem,
-} from '../utils/dateConverter';
-import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
-import WheelPicker from './form/WheelPicker';
+  type CalendarSystem
+} from '../utils/dateConverter'
+import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate'
+import WheelPicker from './form/WheelPicker'
 
 interface JalaliDatePickerProps {
-  value: string;
-  onChange: (iso: string) => void;
-  calendar?: CalendarSystem;
-  inline?: boolean;
-  allowEmpty?: boolean;
-  emptyLabel?: string;
+  value: string
+  onChange: (iso: string) => void
+  calendar?: CalendarSystem
+  inline?: boolean
+  allowEmpty?: boolean
+  emptyLabel?: string
+  id?: string
 }
 
 function fa(n: number): string {
-  return n.toLocaleString('fa-IR', { useGrouping: false });
+  return n.toLocaleString('fa-IR', { useGrouping: false })
 }
 
 function formatPickerLabel(iso: string, calendar: CalendarSystem): string {
   if (calendar === 'shamsi') {
-    return formatIsoDatePersian(iso);
+    return formatIsoDatePersian(iso)
   }
-  return formatCalendarDateCompact(iso, calendar);
+
+  return formatCalendarDateCompact(iso, calendar)
 }
 
 interface CalendarWheelFieldsProps {
-  calendar: CalendarSystem;
-  iso: string;
-  onIsoChange: (iso: string) => void;
+  calendar: CalendarSystem
+  iso: string
+  onIsoChange: (iso: string) => void
 }
 
 function CalendarWheelFields({ calendar, iso, onIsoChange }: CalendarWheelFieldsProps) {
-  const { year, month, day } = getCalendarParts(iso, calendar);
-  const years = useMemo(() => getCalendarYearRange(calendar, iso), [calendar, iso]);
-  const monthItems = useMemo(() => getCalendarMonthWheelItems(calendar), [calendar]);
-  const maxDay = daysInCalendarMonth(year, month, calendar);
-  const safeDay = Math.min(day, maxDay);
+  const { year, month, day } = getCalendarParts(iso, calendar)
+
+  const years = useMemo(() => getCalendarYearRange(calendar, iso), [calendar, iso])
+
+  const monthItems = useMemo(() => getCalendarMonthWheelItems(calendar), [calendar])
+
+  const maxDay = daysInCalendarMonth(year, month, calendar)
+
+  const safeDay = Math.min(day, maxDay)
+
   const yearItems = useMemo(
     () =>
-      years.map((itemYear) => ({
+      years.map(itemYear => ({
         value: String(itemYear),
-        label: fa(itemYear),
+        label: fa(itemYear)
       })),
     [years]
-  );
+  )
+
   const dayItems = useMemo(() => {
-    const dayCount = daysInCalendarMonth(year, month, calendar);
+    const dayCount = daysInCalendarMonth(year, month, calendar)
+
     return Array.from({ length: dayCount }, (_, index) => {
-      const itemDay = index + 1;
-      return { value: String(itemDay), label: fa(itemDay) };
-    });
-  }, [year, month, calendar]);
+      const itemDay = index + 1
+
+      return { value: String(itemDay), label: fa(itemDay) }
+    })
+  }, [year, month, calendar])
 
   const update = (nextYear: number, nextMonth: number, nextDay: number) => {
-    const max = daysInCalendarMonth(nextYear, nextMonth, calendar);
+    const max = daysInCalendarMonth(nextYear, nextMonth, calendar)
+
     onIsoChange(
-      partsToIso(
-        { year: nextYear, month: nextMonth, day: Math.min(nextDay, max) },
-        calendar
-      )
-    );
-  };
+      partsToIso({ year: nextYear, month: nextMonth, day: Math.min(nextDay, max) }, calendar)
+    )
+  }
 
   return (
     <div className="jalali-date-picker">
@@ -75,7 +84,7 @@ function CalendarWheelFields({ calendar, iso, onIsoChange }: CalendarWheelFields
         <span className="jalali-date-picker-label">سال</span>
         <WheelPicker
           value={String(year)}
-          onChange={(next) => update(Number(next), month, safeDay)}
+          onChange={next => update(Number(next), month, safeDay)}
           aria-label="سال"
           items={yearItems}
         />
@@ -84,7 +93,7 @@ function CalendarWheelFields({ calendar, iso, onIsoChange }: CalendarWheelFields
         <span className="jalali-date-picker-label">ماه</span>
         <WheelPicker
           value={String(month)}
-          onChange={(next) => update(year, Number(next), safeDay)}
+          onChange={next => update(year, Number(next), safeDay)}
           aria-label="ماه"
           items={monthItems}
         />
@@ -93,13 +102,13 @@ function CalendarWheelFields({ calendar, iso, onIsoChange }: CalendarWheelFields
         <span className="jalali-date-picker-label">روز</span>
         <WheelPicker
           value={String(safeDay)}
-          onChange={(next) => update(year, month, Number(next))}
+          onChange={next => update(year, month, Number(next))}
           aria-label="روز"
           items={dayItems}
         />
       </div>
     </div>
-  );
+  )
 }
 
 export default function JalaliDatePicker({
@@ -109,31 +118,36 @@ export default function JalaliDatePicker({
   inline = false,
   allowEmpty = false,
   emptyLabel = 'انتخاب تاریخ',
+  id
 }: JalaliDatePickerProps) {
-  const hasValue = Boolean(value);
-  const iso = value || getTodayIso();
-  const [editing, setEditing] = useState(false);
-  const [pendingIso, setPendingIso] = useState(iso);
+  const hasValue = Boolean(value)
+
+  const iso = value || getTodayIso()
+
+  const [editing, setEditing] = useState(false)
+
+  const [pendingIso, setPendingIso] = useState(iso)
 
   useEffect(() => {
     if (editing) {
-      setPendingIso(iso);
+      setPendingIso(iso)
     }
-  }, [editing, iso, calendar]);
+  }, [editing, iso, calendar])
 
   const handleToggle = () => {
-    setEditing((open) => {
+    setEditing(open => {
       if (!open) {
-        setPendingIso(iso);
+        setPendingIso(iso)
       }
-      return !open;
-    });
-  };
+
+      return !open
+    })
+  }
 
   const handleConfirm = () => {
-    onChange(pendingIso);
-    setEditing(false);
-  };
+    onChange(pendingIso)
+    setEditing(false)
+  }
 
   if (inline) {
     return (
@@ -144,18 +158,21 @@ export default function JalaliDatePicker({
           onIsoChange={onChange}
         />
       </div>
-    );
+    )
   }
 
-  const hasPendingChanges = allowEmpty && !hasValue ? true : pendingIso !== iso;
-  const triggerLabel =
-    allowEmpty && !hasValue ? emptyLabel : formatPickerLabel(iso, calendar);
+  const hasPendingChanges = allowEmpty && !hasValue ? true : pendingIso !== iso
+
+  const triggerLabel = allowEmpty && !hasValue ? emptyLabel : formatPickerLabel(iso, calendar)
 
   return (
     <div className="jalali-date-picker-wrap">
       <button
+        id={id}
         type="button"
-        className={`jalali-date-picker-trigger${editing ? ' is-active' : ''}${allowEmpty && !hasValue ? ' is-empty' : ''}`}
+        className={`jalali-date-picker-trigger${editing ? ' is-active' : ''}${
+          allowEmpty && !hasValue ? ' is-empty' : ''
+        }`}
         onClick={handleToggle}
         aria-expanded={editing}
       >
@@ -164,11 +181,7 @@ export default function JalaliDatePicker({
 
       {editing && (
         <div className="jalali-date-picker-panel">
-          <CalendarWheelFields
-            calendar={calendar}
-            iso={pendingIso}
-            onIsoChange={setPendingIso}
-          />
+          <CalendarWheelFields calendar={calendar} iso={pendingIso} onIsoChange={setPendingIso} />
           <div className="records-filter-actions jalali-date-picker-actions">
             <button
               type="button"
@@ -182,5 +195,5 @@ export default function JalaliDatePicker({
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -1,7 +1,7 @@
-import { bumpDataRevision } from './dataRevision';
-import { invalidateDashboardCache } from './dashboard';
+import { invalidateDashboardCache } from './dashboard'
+import { bumpDataRevision } from './dataRevision'
 
 export function notifySpreadsheetDataChanged(spreadsheetId: string): void {
-  invalidateDashboardCache(spreadsheetId);
-  bumpDataRevision();
+  invalidateDashboardCache(spreadsheetId)
+  bumpDataRevision()
 }

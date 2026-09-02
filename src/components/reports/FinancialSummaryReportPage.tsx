@@ -1,26 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
-import { getSettings, getNetAvailableConfig, isConfigured } from '../../services/settings';
-import { loadDashboardData } from '../../services/dashboard';
-import { isTokenValid } from '../../services/auth';
-import type { DashboardData } from '../../types';
-import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange';
-import { monthlySparkline } from '../../utils/sparklineData';
-import { showError } from '../../utils/toast';
-import { DashboardSkeleton } from '../skeleton';
-import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay';
-import StatCard from '../StatCard';
-import { formatMoney } from '../../utils/formatMoney';
-import ReportToolbar, { useReportDateFilter } from './ReportToolbar';
+import { useCallback, useEffect, useState } from 'react'
 
-function BreakdownRow({
-  label,
-  value,
-  total,
-}: {
-  label: string;
-  value: number;
-  total?: boolean;
-}) {
+import { isTokenValid } from '../../services/auth'
+import { loadDashboardData } from '../../services/dashboard'
+import { getSettings, getNetAvailableConfig, isConfigured } from '../../services/settings'
+import type { DashboardData } from '../../types'
+import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
+import { formatMoney } from '../../utils/formatMoney'
+import { monthlySparkline } from '../../utils/sparklineData'
+import { showError } from '../../utils/toast'
+import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
+import { DashboardSkeleton } from '../skeleton'
+import StatCard from '../StatCard'
+import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
+
+function BreakdownRow({ label, value, total }: { label: string; value: number; total?: boolean }) {
   return (
     <div className={`asset-row report-table-row${total ? ' asset-row-total' : ''}`}>
       <span className="asset-label">{label}</span>
@@ -28,70 +21,82 @@ function BreakdownRow({
         {formatMoney(value)}
       </span>
     </div>
-  );
+  )
 }
 
 export default function FinancialSummaryReportPage({ onReauth }: { onReauth?: () => void }) {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { datePreset, customRange, handleDateFilterChange, dateRange } = useReportDateFilter();
+  const [data, setData] = useState<DashboardData | null>(null)
+
+  const [loading, setLoading] = useState(false)
+
+  const { datePreset, customRange, handleDateFilterChange, dateRange } = useReportDateFilter()
 
   const load = useCallback(async () => {
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
-    }
-    const settings = getSettings();
-    if (!settings) return;
+      onReauth?.()
 
-    setLoading(true);
+      return
+    }
+
+    const settings = getSettings()
+
+    if (!settings) return
+
+    setLoading(true)
     try {
       const installmentRange =
-        datePreset === 'custom'
-          ? dateRange
-          : getInstallmentDueRange(datePreset as DateRangePreset);
+        datePreset === 'custom' ? dateRange : getInstallmentDueRange(datePreset as DateRangePreset)
+
       const dash = await loadDashboardData(
         settings,
         dateRange,
         installmentRange,
         undefined,
         getNetAvailableConfig()
-      );
-      setData(dash);
+      )
+
+      setData(dash)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [onReauth, datePreset, customRange.start, customRange.end]);
+  }, [onReauth, datePreset, customRange.start, customRange.end])
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load()
+  }, [load])
 
   if (!isConfigured()) {
     return (
       <div className="empty-state">
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
-    );
+    )
   }
 
   if (loading && !data) {
-    return <DashboardSkeleton variant="report" />;
+    return <DashboardSkeleton variant="report" />
   }
 
-  const financial = data?.financial;
-  const reconciliationDiff = data?.reconciliationDiff ?? 0;
-  const hasReconciliationGap = Math.abs(reconciliationDiff) > 0;
-  const incomeSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income');
-  const expenseSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense');
-  const netSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'net');
+  const financial = data?.financial
+
+  const reconciliationDiff = data?.reconciliationDiff ?? 0
+
+  const hasReconciliationGap = Math.abs(reconciliationDiff) > 0
+
+  const incomeSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income')
+
+  const expenseSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense')
+
+  const netSparkline = monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'net')
 
   return (
     <div className="dashboard-page report-page">
@@ -134,11 +139,7 @@ export default function FinancialSummaryReportPage({ onReauth }: { onReauth?: ()
         variant="flow"
         wide
         flowDirection={
-          (data?.balance ?? 0) < 0
-            ? 'negative'
-            : (data?.balance ?? 0) > 0
-              ? 'positive'
-              : 'neutral'
+          (data?.balance ?? 0) < 0 ? 'negative' : (data?.balance ?? 0) > 0 ? 'positive' : 'neutral'
         }
         sparklineData={netSparkline}
         animateIndex={2}
@@ -163,5 +164,5 @@ export default function FinancialSummaryReportPage({ onReauth }: { onReauth?: ()
         )}
       </div>
     </div>
-  );
+  )
 }

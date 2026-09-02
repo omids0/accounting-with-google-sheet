@@ -1,0 +1,8 @@
+.husky
+.vscode
+dist
+dev-dist
+node_modules
+public
+scripts
+workers

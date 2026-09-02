@@ -1,14 +1,15 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import App from './App';
-import AppToaster from './components/AppToaster';
-import { initTheme } from './utils/theme';
-import './index.css';
+import { GoogleOAuthProvider } from '@react-oauth/google'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 
-initTheme();
+import App from './App'
+import AppToaster from './components/AppToaster'
+import { initTheme } from './utils/theme'
+import './index.css'
 
-const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
+initTheme()
+
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -17,4 +18,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <AppToaster />
     </GoogleOAuthProvider>
   </React.StrictMode>
-);
+)

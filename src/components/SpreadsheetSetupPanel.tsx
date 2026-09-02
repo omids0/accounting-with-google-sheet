@@ -1,75 +1,80 @@
-import { useState } from 'react';
-import type { SpreadsheetEntry } from '../types';
-import {
-  activateSpreadsheet,
-  createNamedSpreadsheet,
-  getDefaultFirstSheetLabel,
-} from '../services/spreadsheetSetup';
+import { useState } from 'react'
+
 import {
   SPREADSHEET_TITLE_PREFIX,
   formatSpreadsheetTitle,
-  getSpreadsheetLabel,
-} from '../services/spreadsheetCatalog';
-import { FormSelect } from './form';
-import { showError } from '../utils/toast';
-import AppIcon from './AppIcon';
+  getSpreadsheetLabel
+} from '../services/spreadsheetCatalog'
+import {
+  activateSpreadsheet,
+  createNamedSpreadsheet,
+  getDefaultFirstSheetLabel
+} from '../services/spreadsheetSetup'
+import type { SpreadsheetEntry } from '../types'
+import AppIcon from './AppIcon'
+import { FormField, FormSelect } from './form'
+import { showError } from '../utils/toast'
 
 interface SpreadsheetSetupPanelProps {
-  mode: 'pick' | 'create';
-  options?: SpreadsheetEntry[];
-  defaultLabel?: string;
-  onComplete: () => void;
+  mode: 'pick' | 'create'
+  options?: SpreadsheetEntry[]
+  defaultLabel?: string
+  onComplete: () => void
 }
 
 export default function SpreadsheetSetupPanel({
   mode: initialMode,
   options = [],
   defaultLabel = 'اصلی',
-  onComplete,
+  onComplete
 }: SpreadsheetSetupPanelProps) {
-  const [mode, setMode] = useState<'pick' | 'create'>(initialMode);
-  const [selectedId, setSelectedId] = useState(options[0]?.id ?? '');
-  const [newLabel, setNewLabel] = useState(defaultLabel);
-  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'pick' | 'create'>(initialMode)
 
+  const [selectedId, setSelectedId] = useState(options[0]?.id ?? '')
+
+  const [newLabel, setNewLabel] = useState(defaultLabel)
+
+  const [loading, setLoading] = useState(false)
 
   const handleActivate = async () => {
     if (!selectedId) {
-      showError('یک شیت انتخاب کنید');
-      return;
+      showError('یک شیت انتخاب کنید')
+
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      await activateSpreadsheet(selectedId);
-      onComplete();
+      await activateSpreadsheet(selectedId)
+      onComplete()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در اتصال به شیت');
+      showError(err instanceof Error ? err.message : 'خطا در اتصال به شیت')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleCreate = async () => {
     if (!newLabel.trim()) {
-      showError('نام شیت را وارد کنید');
-      return;
+      showError('نام شیت را وارد کنید')
+
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      await createNamedSpreadsheet(newLabel.trim());
-      onComplete();
+      await createNamedSpreadsheet(newLabel.trim())
+      onComplete()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در ساخت شیت');
+      showError(err instanceof Error ? err.message : 'خطا در ساخت شیت')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const previewTitle = newLabel.trim()
     ? formatSpreadsheetTitle(newLabel.trim())
-    : `${SPREADSHEET_TITLE_PREFIX}…`;
+    : `${SPREADSHEET_TITLE_PREFIX}…`
 
   return (
     <div className="login-page">
@@ -93,20 +98,20 @@ export default function SpreadsheetSetupPanel({
               value={selectedId}
               onChange={setSelectedId}
               disabled={loading}
-              options={options.map((sheet) => ({
+              options={options.map(sheet => ({
                 value: sheet.id,
-                label: getSpreadsheetLabel(sheet.name),
+                label: getSpreadsheetLabel(sheet.name)
               }))}
               hint={
                 <p
                   style={{
                     fontSize: '0.75rem',
                     color: 'var(--color-text-muted)',
-                    marginTop: '0.5rem',
+                    marginTop: '0.5rem'
                   }}
                 >
-                  فقط فایل‌های با فرمت «{SPREADSHEET_TITLE_PREFIX}…» یا «حسابداری …»
-                  نمایش داده می‌شوند.
+                  فقط فایل‌های با فرمت «{SPREADSHEET_TITLE_PREFIX}…» یا «حسابداری …» نمایش داده
+                  می‌شوند.
                 </p>
               }
             />
@@ -132,25 +137,28 @@ export default function SpreadsheetSetupPanel({
           </>
         ) : (
           <>
-            <div className="form-group">
-              <label>نام شیت</label>
+            <FormField
+              label="نام شیت"
+              hint={
+                <p
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'var(--color-text-muted)',
+                    marginTop: '0.5rem'
+                  }}
+                  dir="ltr"
+                >
+                  {previewTitle}
+                </p>
+              }
+            >
               <input
                 value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
+                onChange={e => setNewLabel(e.target.value)}
                 placeholder="مثلاً: 1406"
                 disabled={loading}
               />
-              <p
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-muted)',
-                  marginTop: '0.5rem',
-                }}
-                dir="ltr"
-              >
-                {previewTitle}
-              </p>
-            </div>
+            </FormField>
 
             <button
               className="btn btn-primary"
@@ -176,7 +184,7 @@ export default function SpreadsheetSetupPanel({
         )}
       </div>
     </div>
-  );
+  )
 }
 
-export { getDefaultFirstSheetLabel };
+export { getDefaultFirstSheetLabel }

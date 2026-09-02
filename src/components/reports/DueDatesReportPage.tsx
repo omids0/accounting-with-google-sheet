@@ -1,112 +1,121 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getSettings, isConfigured } from '../../services/settings';
-import { isTokenValid } from '../../services/auth';
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
+import ReportToolbar from './ReportToolbar'
+import { isTokenValid } from '../../services/auth'
 import {
   getDueDateTypeLabel,
   loadDueDatesReport,
   type DueDateItem,
-  type DueDateStatus,
-} from '../../services/reports';
-import { distributionSparkline } from '../../utils/sparklineData';
-import { formatIsoDatePersian } from '../../utils/jalaliDate';
-import { showError } from '../../utils/toast';
-import { InstallmentCardListSkeleton } from '../skeleton';
-import StatCard from '../StatCard';
-import TransactionListItem from '../TransactionListItem';
-import MoneyDisplay from '../MoneyDisplay';
-import ReportToolbar from './ReportToolbar';
+  type DueDateStatus
+} from '../../services/reports'
+import { getSettings, isConfigured } from '../../services/settings'
+import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { distributionSparkline } from '../../utils/sparklineData'
+import { showError } from '../../utils/toast'
+import MoneyDisplay from '../MoneyDisplay'
+import { InstallmentCardListSkeleton } from '../skeleton'
+import StatCard from '../StatCard'
+import TransactionListItem from '../TransactionListItem'
 
 const STATUS_LABELS: Record<DueDateStatus, string> = {
   overdue: 'سررسید گذشته',
   today: 'امروز',
-  upcoming: 'پیش‌رو',
-};
+  upcoming: 'پیش‌رو'
+}
 
-const STATUS_ORDER: DueDateStatus[] = ['overdue', 'today', 'upcoming'];
+const STATUS_ORDER: DueDateStatus[] = ['overdue', 'today', 'upcoming']
 
 function DueDateBadge({ status }: { status: DueDateStatus }) {
   return (
-    <span className={`report-due-badge report-due-badge--${status}`}>
-      {STATUS_LABELS[status]}
-    </span>
-  );
+    <span className={`report-due-badge report-due-badge--${status}`}>{STATUS_LABELS[status]}</span>
+  )
 }
 
 export default function DueDatesReportPage({ onReauth }: { onReauth?: () => void }) {
-  const [items, setItems] = useState<DueDateItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState<DueDateItem[]>([])
+
+  const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
-    }
-    const settings = getSettings();
-    if (!settings?.spreadsheetId) return;
+      onReauth?.()
 
-    setLoading(true);
-    try {
-      const dueItems = await loadDueDatesReport(settings.spreadsheetId);
-      setItems(dueItems);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری';
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
-      }
-      showError(msg);
-    } finally {
-      setLoading(false);
+      return
     }
-  }, [onReauth]);
+
+    const settings = getSettings()
+
+    if (!settings?.spreadsheetId) return
+
+    setLoading(true)
+    try {
+      const dueItems = await loadDueDatesReport(settings.spreadsheetId)
+
+      setItems(dueItems)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
+
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.()
+
+        return
+      }
+      showError(msg)
+    } finally {
+      setLoading(false)
+    }
+  }, [onReauth])
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load()
+  }, [load])
 
   const grouped = useMemo(() => {
-    const map = new Map<DueDateStatus, DueDateItem[]>();
+    const map = new Map<DueDateStatus, DueDateItem[]>()
+
     for (const status of STATUS_ORDER) {
-      map.set(status, []);
+      map.set(status, [])
     }
     for (const item of items) {
-      map.get(item.status)?.push(item);
+      map.get(item.status)?.push(item)
     }
-    return STATUS_ORDER.map((status) => ({
+
+    return STATUS_ORDER.map(status => ({
       status,
-      items: map.get(status) ?? [],
-    })).filter((group) => group.items.length > 0);
-  }, [items]);
+      items: map.get(status) ?? []
+    })).filter(group => group.items.length > 0)
+  }, [items])
 
   const totals = useMemo(
     () => ({
       overdue: items
-        .filter((item) => item.status === 'overdue')
+        .filter(item => item.status === 'overdue')
         .reduce((sum, item) => sum + item.amount, 0),
       upcoming: items
-        .filter((item) => item.status !== 'overdue')
-        .reduce((sum, item) => sum + item.amount, 0),
+        .filter(item => item.status !== 'overdue')
+        .reduce((sum, item) => sum + item.amount, 0)
     }),
     [items]
-  );
+  )
 
   const overdueSparkline = distributionSparkline(
-    items.filter((item) => item.status === 'overdue').map((item) => item.amount)
-  );
+    items.filter(item => item.status === 'overdue').map(item => item.amount)
+  )
+
   const upcomingSparkline = distributionSparkline(
-    items.filter((item) => item.status !== 'overdue').map((item) => item.amount)
-  );
+    items.filter(item => item.status !== 'overdue').map(item => item.amount)
+  )
 
   if (!isConfigured()) {
     return (
       <div className="empty-state">
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
-    );
+    )
   }
 
   if (loading && !items.length) {
-    return <InstallmentCardListSkeleton count={4} />;
+    return <InstallmentCardListSkeleton count={4} />
   }
 
   return (
@@ -147,14 +156,16 @@ export default function DueDatesReportPage({ onReauth }: { onReauth?: () => void
           <p className="empty-text">سررسیدی در این بازه ثبت نشده</p>
         </div>
       ) : (
-        grouped.map((group) => (
+        grouped.map(group => (
           <div key={group.status} className="card">
             <h3 className="chart-title">{STATUS_LABELS[group.status]}</h3>
             {group.items.map((item, index) => (
               <TransactionListItem
                 key={item.id}
                 title={item.title}
-                meta={`${getDueDateTypeLabel(item.type)} · ${item.subtitle} · ${formatIsoDatePersian(item.dueDate)}`}
+                meta={`${getDueDateTypeLabel(item.type)} · ${
+                  item.subtitle
+                } · ${formatIsoDatePersian(item.dueDate)}`}
                 tone="expense"
                 index={index}
               >
@@ -168,5 +179,5 @@ export default function DueDatesReportPage({ onReauth }: { onReauth?: () => void
         ))
       )}
     </div>
-  );
+  )
 }

@@ -1,9 +1,35 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { VaultAssetType } from '../types';
-import { getSettings, isConfigured } from '../services/settings';
-import { isTokenValid } from '../services/auth';
-import { useDataRefresh } from '../hooks/useDataRefresh';
-import { hasStoreData } from '../services/spreadsheetStore';
+import { useState, useEffect, useCallback, useMemo } from 'react'
+
+import { AccordionCollapse } from './AccordionCollapse'
+import ActiveFilterChips from './ActiveFilterChips'
+import AmountInput from './AmountInput'
+import AppIcon from './AppIcon'
+import CardDeleteButton from './CardDeleteButton'
+import CardEditButton from './CardEditButton'
+import ConfirmActionModal from './ConfirmActionModal'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
+import FilterModal from './FilterModal'
+import { FormField, FormSelect } from './form'
+import FormModal from './FormModal'
+import JalaliDatePicker from './JalaliDatePicker'
+import PageFilterPanel from './PageFilterPanel'
+import SearchEmptyState from './SearchEmptyState'
+import { TreasurySkeleton } from './skeleton'
+import StatCard from './StatCard'
+import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions'
+import { useDataRefresh } from '../hooks/useDataRefresh'
+import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
+import { useSheetImportExport } from '../hooks/useSheetImportExport'
+import { isTokenValid } from '../services/auth'
+import { getSettings, isConfigured } from '../services/settings'
+import { hasStoreData } from '../services/spreadsheetStore'
+import {
+  fetchTgjuPrices,
+  getCachedTgjuPrices,
+  getAssetLabel,
+  getAssetUnit,
+  VAULT_ASSET_OPTIONS
+} from '../services/tgju'
 import {
   computeHoldings,
   createVaultTransaction,
@@ -13,170 +39,178 @@ import {
   exportTreasuryPdf,
   fetchVaultTransactions,
   importTreasuryCsv,
-  updateVaultTransaction,
-} from '../services/treasury';
-import {
-  fetchTgjuPrices,
-  getCachedTgjuPrices,
-  getAssetLabel,
-  getAssetUnit,
-  VAULT_ASSET_OPTIONS,
-} from '../services/tgju';
-import AmountInput from './AmountInput';
-import JalaliDatePicker from './JalaliDatePicker';
-import { FormSelect } from './form';
-import { TreasurySkeleton } from './skeleton';
-import { formatMoney } from '../utils/formatMoney';
-import { distributionSparkline } from '../utils/sparklineData';
-import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate';
-import { showError, showSuccess } from '../utils/toast';
-import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial';
-import { createPageSpeedDialActions } from '../hooks/pageSpeedDialActions';
-import { useSheetImportExport } from '../hooks/useSheetImportExport';
-import FormModal from './FormModal';
-import CardEditButton from './CardEditButton';
-import { AccordionCollapse } from './AccordionCollapse';
-import CardDeleteButton from './CardDeleteButton';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
-import ConfirmActionModal from './ConfirmActionModal';
-import PageFilterPanel from './PageFilterPanel';
-import FilterModal from './FilterModal';
-import ActiveFilterChips from './ActiveFilterChips';
-import { buildSearchChip, compactFilterChips } from '../utils/filterChips';
-import SearchEmptyState from './SearchEmptyState';
-import AppIcon from './AppIcon';
-import StatCard from './StatCard';
-import { matchSearch } from '../utils/search';
+  updateVaultTransaction
+} from '../services/treasury'
+import type { VaultAssetType } from '../types'
+import { buildSearchChip, compactFilterChips } from '../utils/filterChips'
+import { formatMoney } from '../utils/formatMoney'
+import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate'
+import { matchSearch } from '../utils/search'
+import { distributionSparkline } from '../utils/sparklineData'
+import { showError, showSuccess } from '../utils/toast'
 
-type TransactionWithRow = Awaited<ReturnType<typeof fetchVaultTransactions>>[number];
+type TransactionWithRow = Awaited<ReturnType<typeof fetchVaultTransactions>>[number]
 
 function formatQuantity(qty: number, assetType: VaultAssetType): string {
   const formatted =
     assetType === 'geram18'
       ? qty.toLocaleString('fa-IR', { maximumFractionDigits: 2 })
-      : qty.toLocaleString('fa-IR', { maximumFractionDigits: 0 });
-  return `${formatted} ${getAssetUnit(assetType)}`;
+      : qty.toLocaleString('fa-IR', { maximumFractionDigits: 0 })
+
+  return `${formatted} ${getAssetUnit(assetType)}`
 }
 
 function parseQuantityInput(value: string, allowDecimal: boolean): number | '' {
   const normalized = value
-    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
-    .replace(/[^\d.]/g, '');
+    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[^\d.]/g, '')
 
-  if (!normalized) return '';
-  const num = allowDecimal ? Number(normalized) : Math.trunc(Number(normalized));
-  return Number.isFinite(num) && num > 0 ? num : '';
+  if (!normalized) return ''
+
+  const num = allowDecimal ? Number(normalized) : Math.trunc(Number(normalized))
+
+  return Number.isFinite(num) && num > 0 ? num : ''
 }
 
 export default function TreasuryPage({
   onReauth,
-  active = true,
+  active = true
 }: {
-  onReauth?: () => void;
-  active?: boolean;
+  onReauth?: () => void
+  active?: boolean
 }) {
-  const [transactions, setTransactions] = useState<TransactionWithRow[]>([]);
+  const [transactions, setTransactions] = useState<TransactionWithRow[]>([])
+
   const [prices, setPrices] = useState<Record<VaultAssetType, number> | null>(() =>
     getCachedTgjuPrices()
-  );
-  const [expandedAsset, setExpandedAsset] = useState<VaultAssetType | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingTx, setEditingTx] = useState<TransactionWithRow | null>(null);
-  const [deletingTx, setDeletingTx] = useState<TransactionWithRow | null>(null);
+  )
+
+  const [expandedAsset, setExpandedAsset] = useState<VaultAssetType | null>(null)
+
+  const [showForm, setShowForm] = useState(false)
+
+  const [editingTx, setEditingTx] = useState<TransactionWithRow | null>(null)
+
+  const [deletingTx, setDeletingTx] = useState<TransactionWithRow | null>(null)
+
   const [loading, setLoading] = useState(() => {
-    const settings = getSettings();
-    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId));
-  });
-  const [priceLoading, setPriceLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const dataRevision = useDataRefresh();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [draftSearch, setDraftSearch] = useState('');
+    const settings = getSettings()
+
+    return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
+  })
+
+  const [priceLoading, setPriceLoading] = useState(false)
+
+  const [saving, setSaving] = useState(false)
+
+  const [deleting, setDeleting] = useState(false)
+
+  const dataRevision = useDataRefresh()
+
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+
+  const [draftSearch, setDraftSearch] = useState('')
+
   const [sellForm, setSellForm] = useState<{
-    assetType: VaultAssetType;
-    quantity: number | '';
-    unitPrice: number | '';
-    transactionDate: string;
-    note: string;
-  } | null>(null);
-  const [sellingAsset, setSellingAsset] = useState<VaultAssetType | null>(null);
+    assetType: VaultAssetType
+    quantity: number | ''
+    unitPrice: number | ''
+    transactionDate: string
+    note: string
+  } | null>(null)
+
+  const [sellingAsset, setSellingAsset] = useState<VaultAssetType | null>(null)
+
   const [form, setForm] = useState({
     assetType: 'sekeb' as VaultAssetType,
     quantity: '' as number | '',
     unitPrice: '' as number | '',
     transactionDate: getTodayIso(),
-    note: '',
-  });
+    note: ''
+  })
 
   const loadPrices = useCallback(async () => {
-    setPriceLoading(true);
+    setPriceLoading(true)
     try {
-      const data = await fetchTgjuPrices();
-      setPrices(data);
+      const data = await fetchTgjuPrices()
+
+      setPrices(data)
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در دریافت قیمت‌ها');
+      showError(err instanceof Error ? err.message : 'خطا در دریافت قیمت‌ها')
     } finally {
-      setPriceLoading(false);
+      setPriceLoading(false)
     }
-  }, []);
+  }, [])
 
   const loadItems = useCallback(async () => {
-    const settings = getSettings();
-    if (!settings?.spreadsheetId) return;
+    const settings = getSettings()
+
+    if (!settings?.spreadsheetId) return
     if (!isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      await ensureTreasurySheet(settings.spreadsheetId);
-      const data = await fetchVaultTransactions(settings.spreadsheetId);
-      setTransactions(data);
+      await ensureTreasurySheet(settings.spreadsheetId)
+
+      const data = await fetchVaultTransactions(settings.spreadsheetId)
+
+      setTransactions(data)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری صندوقچه';
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری صندوقچه'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [onReauth]);
+  }, [onReauth])
 
   useEffect(() => {
-    if (!isConfigured() || !active) return;
-    loadItems();
-    loadPrices();
-  }, [active, loadItems, loadPrices, dataRevision]);
+    if (!isConfigured() || !active) return
+    loadItems()
+    loadPrices()
+  }, [active, loadItems, loadPrices, dataRevision])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    const qty = Number(form.quantity);
+    const qty = Number(form.quantity)
+
     if (!qty || qty <= 0) {
-      showError('مقدار را وارد کنید');
-      return;
+      showError('مقدار را وارد کنید')
+
+      return
     }
     if (!form.unitPrice || Number(form.unitPrice) <= 0) {
-      showError('قیمت واحد را وارد کنید');
-      return;
+      showError('قیمت واحد را وارد کنید')
+
+      return
     }
     if (!form.transactionDate) {
-      showError('تاریخ الزامی است');
-      return;
+      showError('تاریخ الزامی است')
+
+      return
     }
 
-    const settings = getSettings()!;
-    setSaving(true);
+    const settings = getSettings()!
+
+    setSaving(true)
     try {
       if (editingTx) {
         await updateVaultTransaction(settings.spreadsheetId, editingTx.rowNumber, {
@@ -185,9 +219,9 @@ export default function TreasuryPage({
           quantity: qty,
           unitPrice: Number(form.unitPrice),
           transactionDate: form.transactionDate,
-          note: form.note.trim(),
-        });
-        showSuccess('خرید ویرایش شد');
+          note: form.note.trim()
+        })
+        showSuccess('خرید ویرایش شد')
       } else {
         await createVaultTransaction(settings.spreadsheetId, {
           assetType: form.assetType,
@@ -195,52 +229,61 @@ export default function TreasuryPage({
           quantity: qty,
           unitPrice: Number(form.unitPrice),
           transactionDate: form.transactionDate,
-          note: form.note.trim(),
-        });
-        showSuccess('خرید ثبت شد');
+          note: form.note.trim()
+        })
+        showSuccess('خرید ثبت شد')
       }
-      closeForm();
-      await loadItems();
+      closeForm()
+      await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : editingTx ? 'خطا در ویرایش' : 'خطا در ثبت';
+      const msg = err instanceof Error ? err.message : editingTx ? 'خطا در ویرایش' : 'خطا در ثبت'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleSell = async (assetType: VaultAssetType, available: number) => {
-    if (!sellForm || sellForm.assetType !== assetType) return;
+    if (!sellForm || sellForm.assetType !== assetType) return
 
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    const qty = Number(sellForm.quantity);
+    const qty = Number(sellForm.quantity)
+
     if (!qty || qty <= 0) {
-      showError('مقدار فروش را وارد کنید');
-      return;
+      showError('مقدار فروش را وارد کنید')
+
+      return
     }
     if (!sellForm.unitPrice || Number(sellForm.unitPrice) <= 0) {
-      showError('قیمت فروش را وارد کنید');
-      return;
+      showError('قیمت فروش را وارد کنید')
+
+      return
     }
     if (!sellForm.transactionDate) {
-      showError('تاریخ فروش الزامی است');
-      return;
+      showError('تاریخ فروش الزامی است')
+
+      return
     }
     if (qty > available) {
-      showError(`موجودی کافی نیست. موجودی فعلی: ${formatQuantity(available, assetType)}`);
-      return;
+      showError(`موجودی کافی نیست. موجودی فعلی: ${formatQuantity(available, assetType)}`)
+
+      return
     }
 
-    const settings = getSettings()!;
-    setSellingAsset(assetType);
+    const settings = getSettings()!
+
+    setSellingAsset(assetType)
     try {
       await createVaultTransaction(settings.spreadsheetId, {
         assetType,
@@ -248,41 +291,47 @@ export default function TreasuryPage({
         quantity: qty,
         unitPrice: Number(sellForm.unitPrice),
         transactionDate: sellForm.transactionDate,
-        note: sellForm.note.trim(),
-      });
-      setSellForm(null);
-      showSuccess('فروش ثبت شد');
-      await loadItems();
+        note: sellForm.note.trim()
+      })
+      setSellForm(null)
+      showSuccess('فروش ثبت شد')
+      await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در ثبت فروش';
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
-      }
-      showError(msg);
-    } finally {
-      setSellingAsset(null);
-    }
-  };
+      const msg = err instanceof Error ? err.message : 'خطا در ثبت فروش'
 
-  const selectedAsset = VAULT_ASSET_OPTIONS.find((a) => a.value === form.assetType);
-  const allowDecimal = form.assetType === 'geram18';
-  const holdings = prices ? computeHoldings(transactions, prices) : [];
-  const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0);
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.()
+
+        return
+      }
+      showError(msg)
+    } finally {
+      setSellingAsset(null)
+    }
+  }
+
+  const selectedAsset = VAULT_ASSET_OPTIONS.find(a => a.value === form.assetType)
+
+  const allowDecimal = form.assetType === 'geram18'
+
+  const holdings = prices ? computeHoldings(transactions, prices) : []
+
+  const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0)
+
   const filteredHoldings = useMemo(
     () =>
-      holdings.filter((holding) =>
+      holdings.filter(holding =>
         matchSearch(
           searchQuery,
           getAssetLabel(holding.assetType),
           holding.netQuantity,
           holding.currentUnitPrice,
           holding.totalValue,
-          ...holding.transactions.flatMap((tx) => [tx.note, tx.quantity, tx.unitPrice])
+          ...holding.transactions.flatMap(tx => [tx.note, tx.quantity, tx.unitPrice])
         )
       ),
     [holdings, searchQuery]
-  );
+  )
 
   const resetCreateForm = () => {
     setForm({
@@ -290,93 +339,93 @@ export default function TreasuryPage({
       quantity: '',
       unitPrice: '',
       transactionDate: getTodayIso(),
-      note: '',
-    });
-  };
+      note: ''
+    })
+  }
 
   const openCreateForm = () => {
-    setEditingTx(null);
-    resetCreateForm();
-    setShowForm(true);
-  };
+    setEditingTx(null)
+    resetCreateForm()
+    setShowForm(true)
+  }
 
   const openEditForm = (tx: TransactionWithRow) => {
-    setEditingTx(tx);
+    setEditingTx(tx)
     setForm({
       assetType: tx.assetType,
       quantity: tx.quantity,
       unitPrice: tx.unitPrice,
       transactionDate: tx.transactionDate,
-      note: tx.note,
-    });
-    setShowForm(true);
-  };
+      note: tx.note
+    })
+    setShowForm(true)
+  }
 
   const closeForm = () => {
-    if (saving) return;
-    setShowForm(false);
-    setEditingTx(null);
-    resetCreateForm();
-  };
+    if (saving) return
+    setShowForm(false)
+    setEditingTx(null)
+    resetCreateForm()
+  }
 
   const openDeleteConfirm = (tx: TransactionWithRow) => {
-    setDeletingTx(tx);
-  };
+    setDeletingTx(tx)
+  }
 
   const closeDeleteConfirm = () => {
-    if (deleting) return;
-    setDeletingTx(null);
-  };
+    if (deleting) return
+    setDeletingTx(null)
+  }
 
   const handleDelete = async () => {
-    if (!deletingTx) return;
+    if (!deletingTx) return
 
     if (!isConfigured() || !isTokenValid()) {
-      onReauth?.();
-      return;
+      onReauth?.()
+
+      return
     }
 
-    const settings = getSettings()!;
-    setDeleting(true);
+    const settings = getSettings()!
+
+    setDeleting(true)
     try {
-      await deleteVaultTransaction(settings.spreadsheetId, deletingTx.rowNumber);
-      setDeletingTx(null);
-      showSuccess('تراکنش حذف شد');
-      await loadItems();
+      await deleteVaultTransaction(settings.spreadsheetId, deletingTx.rowNumber)
+      setDeletingTx(null)
+      showSuccess('تراکنش حذف شد')
+      await loadItems()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در حذف تراکنش';
+      const msg = err instanceof Error ? err.message : 'خطا در حذف تراکنش'
+
       if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.();
-        return;
+        onReauth?.()
+
+        return
       }
-      showError(msg);
+      showError(msg)
     } finally {
-      setDeleting(false);
+      setDeleting(false)
     }
-  };
+  }
 
   const refreshTreasury = useCallback(() => {
-    loadItems();
-    loadPrices();
-  }, [loadItems, loadPrices]);
+    loadItems()
+    loadPrices()
+  }, [loadItems, loadPrices])
 
-  const {
-    handleExport,
-    handleExportPdf,
-    handleImport,
-    importExportConfirmModal,
-  } = useSheetImportExport({
-    exportFn: exportTreasuryCsv,
-    exportPdfFn: exportTreasuryPdf,
-    importFn: importTreasuryCsv,
-    onComplete: refreshTreasury,
-    onReauth,
-  });
+  const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
+    useSheetImportExport({
+      exportFn: exportTreasuryCsv,
+      exportPdfFn: exportTreasuryPdf,
+      importFn: importTreasuryCsv,
+      onComplete: refreshTreasury,
+      onReauth
+    })
 
   const openFilterModal = useCallback(() => {
-    setDraftSearch(searchQuery);
-    setFilterModalOpen(true);
-  }, [searchQuery]);
+    setDraftSearch(searchQuery)
+    setFilterModalOpen(true)
+  }, [searchQuery])
 
   const pageSpeedDialConfig = useMemo(
     () => ({
@@ -388,18 +437,26 @@ export default function TreasuryPage({
         refreshDisabled: loading || priceLoading,
         onImport: handleImport,
         onExport: handleExport,
-        onExportPdf: handleExportPdf,
-      }),
+        onExportPdf: handleExportPdf
+      })
     }),
-    [openFilterModal, refreshTreasury, loading, priceLoading, handleImport, handleExport, handleExportPdf]
-  );
+    [
+      openFilterModal,
+      refreshTreasury,
+      loading,
+      priceLoading,
+      handleImport,
+      handleExport,
+      handleExportPdf
+    ]
+  )
 
-  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active);
+  useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   const filterChips = useMemo(
     () => compactFilterChips([buildSearchChip(searchQuery, () => setSearchQuery(''))]),
     [searchQuery]
-  );
+  )
 
   if (!isConfigured()) {
     return (
@@ -409,7 +466,7 @@ export default function TreasuryPage({
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -420,8 +477,8 @@ export default function TreasuryPage({
         open={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
         onApply={() => {
-          setSearchQuery(draftSearch);
-          setFilterModalOpen(false);
+          setSearchQuery(draftSearch)
+          setFilterModalOpen(false)
         }}
         onClear={() => setDraftSearch('')}
       >
@@ -447,7 +504,7 @@ export default function TreasuryPage({
             </button>
           </div>
           <div className="treasury-price-grid">
-            {VAULT_ASSET_OPTIONS.map((opt) => (
+            {VAULT_ASSET_OPTIONS.map(opt => (
               <div key={opt.value} className="treasury-price-item">
                 <span>
                   {opt.label}
@@ -465,24 +522,31 @@ export default function TreasuryPage({
       ) : holdings.length === 0 ? (
         <div className="empty-state">
           <div className="icon">
-          <AppIcon name="treasury" />
-        </div>
+            <AppIcon name="treasury" />
+          </div>
           <p>هنوز دارایی‌ای ثبت نشده</p>
         </div>
       ) : filteredHoldings.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        filteredHoldings.map((holding) => {
-          const expanded = expandedAsset === holding.assetType;
-          const allowDecimal = holding.assetType === 'geram18';
+        filteredHoldings.map(holding => {
+          const expanded = expandedAsset === holding.assetType
+
+          const allowDecimal = holding.assetType === 'geram18'
+
           return (
-            <div key={holding.assetType} className={`card installment-card interactive-card treasury-holding-card${expanded ? ' installment-card--expanded' : ''}`}>
+            <div
+              key={holding.assetType}
+              className={`card installment-card interactive-card treasury-holding-card${
+                expanded ? ' installment-card--expanded' : ''
+              }`}
+            >
               <button
                 type="button"
                 className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
                 onClick={() => {
-                  setExpandedAsset(expanded ? null : holding.assetType);
-                  setSellForm(null);
+                  setExpandedAsset(expanded ? null : holding.assetType)
+                  setSellForm(null)
                 }}
               >
                 <div>
@@ -493,7 +557,7 @@ export default function TreasuryPage({
                     style={{
                       fontSize: '0.75rem',
                       color: 'var(--color-text-muted)',
-                      marginTop: '0.25rem',
+                      marginTop: '0.25rem'
                     }}
                   >
                     {formatQuantity(holding.netQuantity, holding.assetType)}
@@ -510,116 +574,100 @@ export default function TreasuryPage({
               <AccordionCollapse open={expanded}>
                 <div className="installment-payments">
                   <div className="receivable-payment-list-title">سوابق خرید و فروش</div>
-                  {holding.transactions.map((tx) => {
-                    const txWithRow = tx as TransactionWithRow;
+                  {holding.transactions.map(tx => {
+                    const txWithRow = tx as TransactionWithRow
+
                     return (
-                    <div key={tx.id} className="treasury-tx-item interactive-card">
-                      {tx.action === 'buy' && 'rowNumber' in tx && (
-                        <div className="treasury-tx-edit">
-                          <div className="card-action-buttons">
-                            <CardEditButton onClick={() => openEditForm(txWithRow)} />
-                            <CardDeleteButton onClick={() => openDeleteConfirm(txWithRow)} />
+                      <div key={tx.id} className="treasury-tx-item interactive-card">
+                        {tx.action === 'buy' && 'rowNumber' in tx && (
+                          <div className="treasury-tx-edit">
+                            <div className="card-action-buttons">
+                              <CardEditButton onClick={() => openEditForm(txWithRow)} />
+                              <CardDeleteButton onClick={() => openDeleteConfirm(txWithRow)} />
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      <div className="treasury-tx-main">
-                        <span
-                          className={`treasury-tx-badge ${tx.action === 'buy' ? 'buy' : 'sell'}`}
-                        >
-                          {tx.action === 'buy' ? 'خرید' : 'فروش'}
-                        </span>
-                        <span>{formatQuantity(tx.quantity, tx.assetType)}</span>
-                      </div>
-                      <div className="treasury-tx-details">
-                        <span dir="ltr">
-                          {formatMoney(tx.unitPrice)} / {getAssetUnit(tx.assetType)}
-                        </span>
-                        <span className="installment-due">
-                          {formatIsoDatePersian(tx.transactionDate)}
-                        </span>
-                        {tx.note && (
-                          <span className="installment-due">{tx.note}</span>
                         )}
+                        <div className="treasury-tx-main">
+                          <span
+                            className={`treasury-tx-badge ${tx.action === 'buy' ? 'buy' : 'sell'}`}
+                          >
+                            {tx.action === 'buy' ? 'خرید' : 'فروش'}
+                          </span>
+                          <span>{formatQuantity(tx.quantity, tx.assetType)}</span>
+                        </div>
+                        <div className="treasury-tx-details">
+                          <span dir="ltr">
+                            {formatMoney(tx.unitPrice)} / {getAssetUnit(tx.assetType)}
+                          </span>
+                          <span className="installment-due">
+                            {formatIsoDatePersian(tx.transactionDate)}
+                          </span>
+                          {tx.note && <span className="installment-due">{tx.note}</span>}
+                        </div>
                       </div>
-                    </div>
-                    );
+                    )
                   })}
 
                   <div className="receivable-add-payment">
                     {sellForm?.assetType === holding.assetType ? (
                       <div className="receivable-payment-form">
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                          <label>
-                            مقدار فروش ({getAssetUnit(holding.assetType)})
-                          </label>
+                        <FormField
+                          label={`مقدار فروش (${getAssetUnit(holding.assetType)})`}
+                          style={{ marginBottom: '0.75rem' }}
+                        >
                           <input
                             type="text"
                             inputMode={allowDecimal ? 'decimal' : 'numeric'}
                             dir="ltr"
                             value={sellForm.quantity === '' ? '' : String(sellForm.quantity)}
-                            onChange={(e) =>
-                              setSellForm((f) =>
+                            onChange={e =>
+                              setSellForm(f =>
                                 f
                                   ? {
                                       ...f,
-                                      quantity: parseQuantityInput(
-                                        e.target.value,
-                                        allowDecimal
-                                      ),
+                                      quantity: parseQuantityInput(e.target.value, allowDecimal)
                                     }
                                   : f
                               )
                             }
                             placeholder={allowDecimal ? 'مثلاً ۱' : 'مثلاً ۱'}
                           />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                          <label>
-                            قیمت هر {getAssetUnit(holding.assetType)} (تومان)
-                          </label>
+                        </FormField>
+                        <FormField
+                          label={`قیمت هر ${getAssetUnit(holding.assetType)} (تومان)`}
+                          style={{ marginBottom: '0.75rem' }}
+                        >
                           <AmountInput
                             value={sellForm.unitPrice}
-                            onChange={(val) =>
-                              setSellForm((f) => (f ? { ...f, unitPrice: val } : f))
-                            }
+                            onChange={val => setSellForm(f => (f ? { ...f, unitPrice: val } : f))}
                           />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                          <label>تاریخ فروش</label>
+                        </FormField>
+                        <FormField label="تاریخ فروش" style={{ marginBottom: '0.75rem' }}>
                           <JalaliDatePicker
                             value={sellForm.transactionDate}
-                            onChange={(iso) =>
-                              setSellForm((f) =>
-                                f ? { ...f, transactionDate: iso } : f
-                              )
+                            onChange={iso =>
+                              setSellForm(f => (f ? { ...f, transactionDate: iso } : f))
                             }
                           />
-                        </div>
-                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                          <label>توضیحات</label>
+                        </FormField>
+                        <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
                           <input
                             type="text"
                             value={sellForm.note}
-                            onChange={(e) =>
-                              setSellForm((f) =>
-                                f ? { ...f, note: e.target.value } : f
-                              )
+                            onChange={e =>
+                              setSellForm(f => (f ? { ...f, note: e.target.value } : f))
                             }
                             placeholder="اختیاری"
                           />
-                        </div>
+                        </FormField>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button
                             type="button"
                             className="btn btn-outflow btn-sm"
                             disabled={sellingAsset === holding.assetType}
-                            onClick={() =>
-                              handleSell(holding.assetType, holding.netQuantity)
-                            }
+                            onClick={() => handleSell(holding.assetType, holding.netQuantity)}
                           >
-                            {sellingAsset === holding.assetType && (
-                              <span className="spinner" />
-                            )}
+                            {sellingAsset === holding.assetType && <span className="spinner" />}
                             ثبت فروش
                           </button>
                           <button
@@ -641,7 +689,7 @@ export default function TreasuryPage({
                             quantity: '',
                             unitPrice: '',
                             transactionDate: getTodayIso(),
-                            note: '',
+                            note: ''
                           })
                         }
                       >
@@ -652,7 +700,7 @@ export default function TreasuryPage({
                 </div>
               </AccordionCollapse>
             </div>
-          );
+          )
         })
       )}
 
@@ -662,7 +710,7 @@ export default function TreasuryPage({
           amount={totalValue}
           variant="balance"
           wide
-          sparklineData={distributionSparkline(holdings.map((holding) => holding.totalValue))}
+          sparklineData={distributionSparkline(holdings.map(holding => holding.totalValue))}
           className="receivable-total-card treasury-total-card"
         />
       )}
@@ -680,69 +728,59 @@ export default function TreasuryPage({
           label="نوع دارایی"
           required
           value={form.assetType}
-          onChange={(next) =>
-            setForm((f) => ({
+          onChange={next =>
+            setForm(f => ({
               ...f,
               assetType: next as VaultAssetType,
-              quantity: '',
+              quantity: ''
             }))
           }
-          options={VAULT_ASSET_OPTIONS.map((opt) => ({
+          options={VAULT_ASSET_OPTIONS.map(opt => ({
             value: opt.value,
-            label: opt.label,
+            label: opt.label
           }))}
           hint={
-            selectedAsset?.hint ? (
-              <p className="treasury-hint">{selectedAsset.hint}</p>
-            ) : undefined
+            selectedAsset?.hint ? <p className="treasury-hint">{selectedAsset.hint}</p> : undefined
           }
         />
 
-        <div className="form-group">
-          <label>
-            مقدار ({getAssetUnit(form.assetType)}) <span className="required">*</span>
-          </label>
+        <FormField label={`مقدار (${getAssetUnit(form.assetType)})`} required>
           <input
             type="text"
             inputMode={allowDecimal ? 'decimal' : 'numeric'}
             dir="ltr"
             value={form.quantity === '' ? '' : String(form.quantity)}
-            onChange={(e) =>
-              setForm((f) => ({
+            onChange={e =>
+              setForm(f => ({
                 ...f,
-                quantity: parseQuantityInput(e.target.value, allowDecimal),
+                quantity: parseQuantityInput(e.target.value, allowDecimal)
               }))
             }
             placeholder={allowDecimal ? 'مثلاً ۲.۵' : 'مثلاً ۳'}
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label>
-            قیمت هر {getAssetUnit(form.assetType)} (تومان) <span className="required">*</span>
-          </label>
+        <FormField label={`قیمت هر ${getAssetUnit(form.assetType)} (تومان)`} required>
           <AmountInput
             value={form.unitPrice}
-            onChange={(val) => setForm((f) => ({ ...f, unitPrice: val }))}
+            onChange={val => setForm(f => ({ ...f, unitPrice: val }))}
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label>تاریخ خرید <span className="required">*</span></label>
+        <FormField label="تاریخ خرید" required>
           <JalaliDatePicker
             value={form.transactionDate}
-            onChange={(iso) => setForm((f) => ({ ...f, transactionDate: iso }))}
+            onChange={iso => setForm(f => ({ ...f, transactionDate: iso }))}
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label>توضیحات</label>
+        <FormField label="توضیحات">
           <textarea
             value={form.note}
-            onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+            onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
             placeholder="توضیحات اختیاری"
           />
-        </div>
+        </FormField>
       </FormModal>
 
       <ConfirmActionModal {...importExportConfirmModal} />
@@ -755,5 +793,5 @@ export default function TreasuryPage({
         deleting={deleting}
       />
     </div>
-  );
+  )
 }

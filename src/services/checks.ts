@@ -1,23 +1,20 @@
-import type { Check } from '../types';
-import type { DateRange } from '../utils/dateRange';
-import { isDateInRange } from '../utils/dateRange';
+import type { Check } from '../types'
+import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
+import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
   fetchSheetRows,
   updateSheetRow,
-  deleteSheetRow,
-} from './sheets';
-import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
-import { downloadTablePdf } from '../utils/pdf';
-import { formatMoney } from '../utils/formatMoney';
-import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat';
-import {
-  createLinkedExpenseRecord,
-  deleteLinkedExpenseRecord,
-} from './paymentTransactions';
+  deleteSheetRow
+} from './sheets'
+import type { DateRange } from '../utils/dateRange'
+import { isDateInRange } from '../utils/dateRange'
+import { formatMoney } from '../utils/formatMoney'
+import { downloadTablePdf } from '../utils/pdf'
+import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
 
-export const CHECKS_SHEET = 'چک‌ها';
+export const CHECKS_SHEET = 'چک‌ها'
 
 export const CHECKS_HEADERS = [
   'شناسه',
@@ -29,12 +26,15 @@ export const CHECKS_HEADERS = [
   'تاریخ سررسید',
   'پرداخت شده',
   'زمان پرداخت',
-  'شناسه تراکنش',
-];
+  'شناسه تراکنش'
+]
 
 function parsePaid(raw: string): boolean {
-  const v = String(raw ?? '').trim().toLowerCase();
-  return v === 'true' || v === '1' || v === 'بله' || v === 'yes';
+  const v = String(raw ?? '')
+    .trim()
+    .toLowerCase()
+
+  return v === 'true' || v === '1' || v === 'بله' || v === 'yes'
 }
 
 function rowToCheck(row: string[], rowNumber: number): Check & { rowNumber: number } {
@@ -49,8 +49,8 @@ function rowToCheck(row: string[], rowNumber: number): Check & { rowNumber: numb
     dueDate: row[6] ?? '',
     paid: parsePaid(row[7] ?? ''),
     paidAt: row[8] ?? '',
-    transactionRecordId: row[9] ?? '',
-  };
+    transactionRecordId: row[9] ?? ''
+  }
 }
 
 function checkToRow(check: Check): string[] {
@@ -64,40 +64,43 @@ function checkToRow(check: Check): string[] {
     check.dueDate,
     check.paid ? 'بله' : 'خیر',
     check.paidAt,
-    check.transactionRecordId ?? '',
-  ];
+    check.transactionRecordId ?? ''
+  ]
 }
 
 export function sortChecks<T extends Check>(items: T[]): T[] {
   return [...items].sort((a, b) => {
-    if (a.paid !== b.paid) return a.paid ? 1 : -1;
-    return (a.dueDate || '').localeCompare(b.dueDate || '');
-  });
+    if (a.paid !== b.paid) return a.paid ? 1 : -1
+
+    return (a.dueDate || '').localeCompare(b.dueDate || '')
+  })
 }
 
 export async function ensureChecksSheet(spreadsheetId: string): Promise<void> {
-  await ensureSheetWithHeaders(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS);
+  await ensureSheetWithHeaders(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS)
 }
 
 export async function fetchChecks(
   spreadsheetId: string
 ): Promise<(Check & { rowNumber: number })[]> {
-  const rows = await fetchSheetRows(spreadsheetId, CHECKS_SHEET);
+  const rows = await fetchSheetRows(spreadsheetId, CHECKS_SHEET)
+
   const items = rows
     .map((row, index) => ({ row, rowNumber: index + 2 }))
     .filter(({ row }) => String(row[0] ?? '').trim())
-    .map(({ row, rowNumber }) => rowToCheck(row, rowNumber));
-  return sortChecks(items);
+    .map(({ row, rowNumber }) => rowToCheck(row, rowNumber))
+
+  return sortChecks(items)
 }
 
 export async function createCheck(
   spreadsheetId: string,
   data: {
-    checkNumber: string;
-    counterparty: string;
-    amount: number;
-    creationDate: string;
-    dueDate: string;
+    checkNumber: string
+    counterparty: string
+    amount: number
+    creationDate: string
+    dueDate: string
   }
 ): Promise<Check> {
   const check: Check = {
@@ -109,11 +112,12 @@ export async function createCheck(
     creationDate: data.creationDate,
     dueDate: data.dueDate,
     paid: false,
-    paidAt: '',
-  };
+    paidAt: ''
+  }
 
-  await appendSheetRow(spreadsheetId, CHECKS_SHEET, checkToRow(check));
-  return check;
+  await appendSheetRow(spreadsheetId, CHECKS_SHEET, checkToRow(check))
+
+  return check
 }
 
 export async function updateCheck(
@@ -121,7 +125,7 @@ export async function updateCheck(
   rowNumber: number,
   check: Check
 ): Promise<void> {
-  await updateSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber, checkToRow(check));
+  await updateSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber, checkToRow(check))
 }
 
 export async function deleteCheck(
@@ -130,9 +134,9 @@ export async function deleteCheck(
   check?: Check
 ): Promise<void> {
   if (check?.transactionRecordId) {
-    await deleteLinkedExpenseRecord(spreadsheetId, check.transactionRecordId);
+    await deleteLinkedExpenseRecord(spreadsheetId, check.transactionRecordId)
   }
-  await deleteSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber);
+  await deleteSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber)
 }
 
 export async function toggleCheckPaid(
@@ -145,53 +149,58 @@ export async function toggleCheckPaid(
       title: `چک: ${check.checkNumber} — ${check.counterparty}`,
       amount: check.amount,
       category: 'چک',
-      note: `سررسید: ${check.dueDate}`,
-    });
+      note: `سررسید: ${check.dueDate}`
+    })
+
     const updated: Check = {
       ...check,
       paid: true,
       paidAt: new Date().toLocaleString('fa-IR'),
-      transactionRecordId,
-    };
-    await updateCheck(spreadsheetId, check.rowNumber, updated);
-    return updated;
+      transactionRecordId
+    }
+
+    await updateCheck(spreadsheetId, check.rowNumber, updated)
+
+    return updated
   }
 
   if (!paid && check.paid) {
     if (check.transactionRecordId) {
-      await deleteLinkedExpenseRecord(spreadsheetId, check.transactionRecordId);
+      await deleteLinkedExpenseRecord(spreadsheetId, check.transactionRecordId)
     }
+
     const updated: Check = {
       ...check,
       paid: false,
       paidAt: '',
-      transactionRecordId: '',
-    };
-    await updateCheck(spreadsheetId, check.rowNumber, updated);
-    return updated;
+      transactionRecordId: ''
+    }
+
+    await updateCheck(spreadsheetId, check.rowNumber, updated)
+
+    return updated
   }
 
-  return check;
+  return check
 }
 
 export function totalChecksInRange(checks: Check[], range: DateRange): number {
-  return checks
-    .filter((c) => isDateInRange(c.dueDate, range))
-    .reduce((sum, c) => sum + c.amount, 0);
+  return checks.filter(c => isDateInRange(c.dueDate, range)).reduce((sum, c) => sum + c.amount, 0)
 }
 
 export function totalUnpaidChecksInRange(checks: Check[], range: DateRange): number {
   return checks
-    .filter((c) => !c.paid && isDateInRange(c.dueDate, range))
-    .reduce((sum, c) => sum + c.amount, 0);
+    .filter(c => !c.paid && isDateInRange(c.dueDate, range))
+    .reduce((sum, c) => sum + c.amount, 0)
 }
 
 export async function exportChecksCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, 'چک‌ها.csv');
+  await exportSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, 'چک‌ها.csv')
 }
 
 export async function exportChecksPdf(spreadsheetId: string): Promise<void> {
-  const checks = sortChecks(await fetchChecks(spreadsheetId));
+  const checks = sortChecks(await fetchChecks(spreadsheetId))
+
   const headers = [
     'شماره چک',
     'طرف حساب',
@@ -199,58 +208,49 @@ export async function exportChecksPdf(spreadsheetId: string): Promise<void> {
     'تاریخ صدور',
     'تاریخ سررسید',
     'وضعیت',
-    'تاریخ پرداخت',
-  ];
-  const rows = checks.map((check) => [
+    'تاریخ پرداخت'
+  ]
+
+  const rows = checks.map(check => [
     check.checkNumber,
     check.counterparty,
     formatMoney(check.amount),
     formatPersianDate(check.creationDate),
     formatPersianDate(check.dueDate),
     formatPaidStatus(check.paid),
-    check.paid ? formatPersianDate(check.paidAt) : '—',
-  ]);
-  const cellClasses = checks.map(() => [
-    '',
-    '',
-    'pdf-cell-amount',
-    '',
-    '',
-    '',
-    '',
-  ]);
+    check.paid ? formatPersianDate(check.paidAt) : '—'
+  ])
+
+  const cellClasses = checks.map(() => ['', '', 'pdf-cell-amount', '', '', '', ''])
 
   await downloadTablePdf({
     title: 'گزارش چک‌ها',
     headers,
     rows,
     filename: 'چک‌ها.pdf',
-    cellClasses,
-  });
+    cellClasses
+  })
 }
 
 export async function importChecksCsv(spreadsheetId: string, csvContent: string) {
-  return importSheetCsv(
-    spreadsheetId,
-    CHECKS_SHEET,
-    CHECKS_HEADERS,
-    csvContent,
-    (cells) => {
-      const checkNumber = (cells[2] ?? '').trim();
-      const counterparty = (cells[3] ?? '').trim();
-      if (!checkNumber && !counterparty) return null;
-      return checkToRow({
-        id: newImportId(cells[0] ?? ''),
-        createdAt: newImportTimestamp(cells[1] ?? ''),
-        checkNumber,
-        counterparty,
-        amount: Number(cells[4]) || 0,
-        creationDate: cells[5] ?? '',
-        dueDate: cells[6] ?? '',
-        paid: parsePaid(cells[7] ?? ''),
-        paidAt: cells[8] ?? '',
-        transactionRecordId: cells[9] ?? '',
-      });
-    }
-  );
+  return importSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, csvContent, cells => {
+    const checkNumber = (cells[2] ?? '').trim()
+
+    const counterparty = (cells[3] ?? '').trim()
+
+    if (!checkNumber && !counterparty) return null
+
+    return checkToRow({
+      id: newImportId(cells[0] ?? ''),
+      createdAt: newImportTimestamp(cells[1] ?? ''),
+      checkNumber,
+      counterparty,
+      amount: Number(cells[4]) || 0,
+      creationDate: cells[5] ?? '',
+      dueDate: cells[6] ?? '',
+      paid: parsePaid(cells[7] ?? ''),
+      paidAt: cells[8] ?? '',
+      transactionRecordId: cells[9] ?? ''
+    })
+  })
 }

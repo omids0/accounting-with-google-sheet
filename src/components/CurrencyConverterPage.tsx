@@ -1,100 +1,109 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import AppIcon from './AppIcon';
-import { FormField, FormSelect } from './form';
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
+import AppIcon from './AppIcon'
+import { FormField, FormSelect } from './form'
 import {
   EXCHANGE_CURRENCY_OPTIONS,
   fetchTgjuExchangeRates,
   getExchangeCurrencyLabel,
   type ExchangeCurrencyCode,
-  type ExchangeRateQuote,
-} from '../services/tgju';
+  type ExchangeRateQuote
+} from '../services/tgju'
 import {
   convertCurrencyAmount,
   formatCurrencyAmount,
   formatDecimalAmountInput,
   resolveCurrencyDisplay,
-  roundCurrencyAmount,
-} from '../utils/currencyConverter';
-import { getCurrency } from '../utils/formatMoney';
-import { numberToPersianWords } from '../utils/numberToWords';
-import { showError } from '../utils/toast';
+  roundCurrencyAmount
+} from '../utils/currencyConverter'
+import { getCurrency } from '../utils/formatMoney'
+import { numberToPersianWords } from '../utils/numberToWords'
+import { showError } from '../utils/toast'
 
-const CURRENCY_SELECT_OPTIONS = EXCHANGE_CURRENCY_OPTIONS.map((option) => ({
+const CURRENCY_SELECT_OPTIONS = EXCHANGE_CURRENCY_OPTIONS.map(option => ({
   value: option.code,
-  label: option.label,
-}));
+  label: option.label
+}))
 
 function getDefaultToCurrency(): ExchangeCurrencyCode {
-  return getCurrency() === 'toman' ? 'toman' : 'irr';
+  return getCurrency() === 'toman' ? 'toman' : 'irr'
 }
 
 function parseDecimalInput(value: string): string {
   return value
-    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
-    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
     .replace(/[,\u060C\u066B\u066C\s]/g, '')
     .replace(/[^\d.]/g, '')
-    .replace(/(\..*)\./g, '$1');
+    .replace(/(\..*)\./g, '$1')
 }
 
 export default function CurrencyConverterPage() {
-  const displayInToman = getCurrency() === 'toman';
-  const displayOptions = useMemo(() => ({ displayInToman }), [displayInToman]);
+  const displayInToman = getCurrency() === 'toman'
 
-  const [fromCurrency, setFromCurrency] = useState<ExchangeCurrencyCode>('usd');
-  const [toCurrency, setToCurrency] = useState<ExchangeCurrencyCode>(getDefaultToCurrency);
-  const [amount, setAmount] = useState('');
-  const [rates, setRates] = useState<Record<ExchangeCurrencyCode, ExchangeRateQuote> | null>(
-    null
-  );
-  const [loading, setLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const displayOptions = useMemo(() => ({ displayInToman }), [displayInToman])
+
+  const [fromCurrency, setFromCurrency] = useState<ExchangeCurrencyCode>('usd')
+
+  const [toCurrency, setToCurrency] = useState<ExchangeCurrencyCode>(getDefaultToCurrency)
+
+  const [amount, setAmount] = useState('')
+
+  const [rates, setRates] = useState<Record<ExchangeCurrencyCode, ExchangeRateQuote> | null>(null)
+
+  const [loading, setLoading] = useState(false)
+
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
 
   const loadRates = useCallback(async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const nextRates = await fetchTgjuExchangeRates();
-      setRates(nextRates);
+      const nextRates = await fetchTgjuExchangeRates()
+
+      setRates(nextRates)
 
       const timestamps = Object.values(nextRates)
-        .map((quote) => quote.updatedAt)
-        .filter((value): value is string => Boolean(value));
-      setLastUpdated(timestamps[0] ?? null);
+        .map(quote => quote.updatedAt)
+        .filter((value): value is string => Boolean(value))
+
+      setLastUpdated(timestamps[0] ?? null)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در دریافت نرخ ارز';
-      showError(msg);
+      const msg = err instanceof Error ? err.message : 'خطا در دریافت نرخ ارز'
+
+      showError(msg)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    loadRates();
-  }, [loadRates]);
+    loadRates()
+  }, [loadRates])
 
-  const amountValue = amount === '' ? 0 : Number(amount);
-  const fromRate = rates?.[fromCurrency]?.rateInRial ?? 0;
-  const toRate = rates?.[toCurrency]?.rateInRial ?? 0;
+  const amountValue = amount === '' ? 0 : Number(amount)
+
+  const fromRate = rates?.[fromCurrency]?.rateInRial ?? 0
+
+  const toRate = rates?.[toCurrency]?.rateInRial ?? 0
 
   const convertedAmount = useMemo(() => {
-    if (!rates || amountValue <= 0) return 0;
-    return convertCurrencyAmount(amountValue, fromRate, toRate);
-  }, [amountValue, fromRate, toRate, rates]);
+    if (!rates || amountValue <= 0) return 0
 
-  const roundedConverted = roundCurrencyAmount(convertedAmount, toCurrency);
-  const hasValidInput = amount !== '' && amountValue > 0 && fromRate > 0 && toRate > 0;
+    return convertCurrencyAmount(amountValue, fromRate, toRate)
+  }, [amountValue, fromRate, toRate, rates])
 
-  const crossRate = fromRate > 0 && toRate > 0 ? fromRate / toRate : 0;
-  const displayConverted = resolveCurrencyDisplay(
-    roundedConverted,
-    toCurrency,
-    displayOptions
-  );
+  const roundedConverted = roundCurrencyAmount(convertedAmount, toCurrency)
+
+  const hasValidInput = amount !== '' && amountValue > 0 && fromRate > 0 && toRate > 0
+
+  const crossRate = fromRate > 0 && toRate > 0 ? fromRate / toRate : 0
+
+  const displayConverted = resolveCurrencyDisplay(roundedConverted, toCurrency, displayOptions)
 
   const handleSwap = () => {
-    setFromCurrency(toCurrency);
-    setToCurrency(fromCurrency);
-  };
+    setFromCurrency(toCurrency)
+    setToCurrency(fromCurrency)
+  }
 
   return (
     <div className="currency-converter-page">
@@ -113,15 +122,15 @@ export default function CurrencyConverterPage() {
         </div>
 
         <p className="currency-converter-hint">
-          نرخ‌ها از tgju.org دریافت می‌شوند. مبلغ را در ارز مبدا وارد کنید تا معادل ارز
-          مقصد نمایش داده شود.
+          نرخ‌ها از tgju.org دریافت می‌شوند. مبلغ را در ارز مبدا وارد کنید تا معادل ارز مقصد نمایش
+          داده شود.
         </p>
 
         <div className="currency-converter-select-row">
           <FormSelect
             label="ارز مبدا"
             value={fromCurrency}
-            onChange={(value) => setFromCurrency(value as ExchangeCurrencyCode)}
+            onChange={value => setFromCurrency(value as ExchangeCurrencyCode)}
             options={CURRENCY_SELECT_OPTIONS}
             aria-label="ارز مبدا"
           />
@@ -139,7 +148,7 @@ export default function CurrencyConverterPage() {
           <FormSelect
             label="ارز مقصد"
             value={toCurrency}
-            onChange={(value) => setToCurrency(value as ExchangeCurrencyCode)}
+            onChange={value => setToCurrency(value as ExchangeCurrencyCode)}
             options={CURRENCY_SELECT_OPTIONS}
             aria-label="ارز مقصد"
           />
@@ -150,7 +159,7 @@ export default function CurrencyConverterPage() {
             type="text"
             inputMode="decimal"
             value={formatDecimalAmountInput(amount)}
-            onChange={(e) => setAmount(parseDecimalInput(e.target.value))}
+            onChange={e => setAmount(parseDecimalInput(e.target.value))}
             placeholder="مثلاً ۱۰۰"
             dir="ltr"
           />
@@ -164,9 +173,7 @@ export default function CurrencyConverterPage() {
         )}
 
         {lastUpdated && (
-          <p className="currency-converter-updated-at">
-            آخرین بروزرسانی نرخ: {lastUpdated}
-          </p>
+          <p className="currency-converter-updated-at">آخرین بروزرسانی نرخ: {lastUpdated}</p>
         )}
       </div>
 
@@ -178,8 +185,7 @@ export default function CurrencyConverterPage() {
           </div>
           {(toCurrency === 'irr' || toCurrency === 'toman') && displayConverted.amount > 0 && (
             <p className="dashboard-hero-hint">
-              {numberToPersianWords(Math.round(displayConverted.amount))}{' '}
-              {displayConverted.symbol}
+              {numberToPersianWords(Math.round(displayConverted.amount))} {displayConverted.symbol}
             </p>
           )}
         </div>
@@ -193,5 +199,5 @@ export default function CurrencyConverterPage() {
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -1,134 +1,141 @@
-import { useCallback, useState } from 'react';
-import { isTokenValid } from '../services/auth';
-import type { ImportResult } from '../services/importExport';
-import { getSettings } from '../services/settings';
-import { pickTextFile } from '../utils/csv';
-import { showError, showSuccess } from '../utils/toast';
+import { useCallback, useState } from 'react'
 
-type PendingAction = 'export' | 'exportPdf' | 'import';
+import { isTokenValid } from '../services/auth'
+import type { ImportResult } from '../services/importExport'
+import { getSettings } from '../services/settings'
+import { pickTextFile } from '../utils/csv'
+import { showError, showSuccess } from '../utils/toast'
 
-const ACTION_MODAL_CONTENT: Record<
-  PendingAction,
-  { title: string; message: string }
-> = {
+type PendingAction = 'export' | 'exportPdf' | 'import'
+
+const ACTION_MODAL_CONTENT: Record<PendingAction, { title: string; message: string }> = {
   export: {
     title: 'تأیید اکسپورت',
-    message: 'آیا از گرفتن خروجی اکسل اطمینان دارید؟',
+    message: 'آیا از گرفتن خروجی اکسل اطمینان دارید؟'
   },
   exportPdf: {
     title: 'تأیید خروجی PDF',
-    message: 'آیا از گرفتن خروجی PDF اطمینان دارید؟',
+    message: 'آیا از گرفتن خروجی PDF اطمینان دارید؟'
   },
   import: {
     title: 'تأیید ایمپورت',
-    message: 'آیا از وارد کردن داده از فایل اطمینان دارید؟',
-  },
-};
+    message: 'آیا از وارد کردن داده از فایل اطمینان دارید؟'
+  }
+}
 
 export function useSheetImportExport({
   exportFn,
   exportPdfFn,
   importFn,
   onComplete,
-  onReauth,
+  onReauth
 }: {
-  exportFn: (spreadsheetId: string) => Promise<void>;
-  exportPdfFn?: (spreadsheetId: string) => Promise<void>;
-  importFn: (spreadsheetId: string, csvContent: string) => Promise<ImportResult>;
-  onComplete: () => void | Promise<void>;
-  onReauth?: () => void;
+  exportFn: (spreadsheetId: string) => Promise<void>
+  exportPdfFn?: (spreadsheetId: string) => Promise<void>
+  importFn: (spreadsheetId: string, csvContent: string) => Promise<ImportResult>
+  onComplete: () => void | Promise<void>
+  onReauth?: () => void
 }) {
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
-  const [confirming, setConfirming] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+
+  const [confirming, setConfirming] = useState(false)
 
   const ensureAuth = useCallback(() => {
-    const settings = getSettings();
+    const settings = getSettings()
+
     if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.();
-      return null;
+      onReauth?.()
+
+      return null
     }
-    return settings.spreadsheetId;
-  }, [onReauth]);
+
+    return settings.spreadsheetId
+  }, [onReauth])
 
   const executeExport = useCallback(async () => {
-    const spreadsheetId = ensureAuth();
-    if (!spreadsheetId) return;
+    const spreadsheetId = ensureAuth()
+
+    if (!spreadsheetId) return
 
     try {
-      await exportFn(spreadsheetId);
-      showSuccess('فایل اکسپورت شد');
+      await exportFn(spreadsheetId)
+      showSuccess('فایل اکسپورت شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در اکسپورت');
+      showError(err instanceof Error ? err.message : 'خطا در اکسپورت')
     }
-  }, [exportFn, ensureAuth]);
+  }, [exportFn, ensureAuth])
 
   const executeExportPdf = useCallback(async () => {
-    if (!exportPdfFn) return;
+    if (!exportPdfFn) return
 
-    const spreadsheetId = ensureAuth();
-    if (!spreadsheetId) return;
+    const spreadsheetId = ensureAuth()
+
+    if (!spreadsheetId) return
 
     try {
-      await exportPdfFn(spreadsheetId);
-      showSuccess('فایل PDF ذخیره شد');
+      await exportPdfFn(spreadsheetId)
+      showSuccess('فایل PDF ذخیره شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در خروجی PDF');
+      showError(err instanceof Error ? err.message : 'خطا در خروجی PDF')
     }
-  }, [exportPdfFn, ensureAuth]);
+  }, [exportPdfFn, ensureAuth])
 
   const executeImport = useCallback(async () => {
-    const spreadsheetId = ensureAuth();
-    if (!spreadsheetId) return;
+    const spreadsheetId = ensureAuth()
+
+    if (!spreadsheetId) return
 
     try {
-      const content = await pickTextFile();
-      if (!content) return;
+      const content = await pickTextFile()
 
-      const result = await importFn(spreadsheetId, content);
-      const skipped =
-        result.skipped > 0 ? ` (${result.skipped.toLocaleString('fa-IR')} رد شد)` : '';
-      showSuccess(`${result.imported.toLocaleString('fa-IR')} مورد وارد شد${skipped}`);
-      await onComplete();
+      if (!content) return
+
+      const result = await importFn(spreadsheetId, content)
+
+      const skipped = result.skipped > 0 ? ` (${result.skipped.toLocaleString('fa-IR')} رد شد)` : ''
+
+      showSuccess(`${result.imported.toLocaleString('fa-IR')} مورد وارد شد${skipped}`)
+      await onComplete()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در ایمپورت');
+      showError(err instanceof Error ? err.message : 'خطا در ایمپورت')
     }
-  }, [importFn, onComplete, ensureAuth]);
+  }, [importFn, onComplete, ensureAuth])
 
   const handleExport = useCallback(() => {
-    if (!ensureAuth()) return;
-    setPendingAction('export');
-  }, [ensureAuth]);
+    if (!ensureAuth()) return
+    setPendingAction('export')
+  }, [ensureAuth])
 
   const handleExportPdf = useCallback(() => {
-    if (!exportPdfFn) return;
-    if (!ensureAuth()) return;
-    setPendingAction('exportPdf');
-  }, [exportPdfFn, ensureAuth]);
+    if (!exportPdfFn) return
+    if (!ensureAuth()) return
+    setPendingAction('exportPdf')
+  }, [exportPdfFn, ensureAuth])
 
   const handleImport = useCallback(() => {
-    if (!ensureAuth()) return;
-    setPendingAction('import');
-  }, [ensureAuth]);
+    if (!ensureAuth()) return
+    setPendingAction('import')
+  }, [ensureAuth])
 
   const closeConfirm = useCallback(() => {
-    if (!confirming) setPendingAction(null);
-  }, [confirming]);
+    if (!confirming) setPendingAction(null)
+  }, [confirming])
 
   const handleConfirm = useCallback(async () => {
-    if (!pendingAction) return;
+    if (!pendingAction) return
 
-    setConfirming(true);
+    setConfirming(true)
     try {
-      if (pendingAction === 'export') await executeExport();
-      else if (pendingAction === 'exportPdf') await executeExportPdf();
-      else if (pendingAction === 'import') await executeImport();
-      setPendingAction(null);
+      if (pendingAction === 'export') await executeExport()
+      else if (pendingAction === 'exportPdf') await executeExportPdf()
+      else if (pendingAction === 'import') await executeImport()
+      setPendingAction(null)
     } finally {
-      setConfirming(false);
+      setConfirming(false)
     }
-  }, [pendingAction, executeExport, executeExportPdf, executeImport]);
+  }, [pendingAction, executeExport, executeExportPdf, executeImport])
 
-  const modalContent = pendingAction ? ACTION_MODAL_CONTENT[pendingAction] : null;
+  const modalContent = pendingAction ? ACTION_MODAL_CONTENT[pendingAction] : null
 
   return {
     handleExport,
@@ -140,7 +147,7 @@ export function useSheetImportExport({
       message: modalContent?.message ?? '',
       confirming,
       onClose: closeConfirm,
-      onConfirm: handleConfirm,
-    },
-  };
+      onConfirm: handleConfirm
+    }
+  }
 }

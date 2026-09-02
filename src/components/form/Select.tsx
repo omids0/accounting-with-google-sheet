@@ -1,19 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react'
 
 export interface SelectOption {
-  value: string;
-  label: string;
-  disabled?: boolean;
+  value: string
+  label: string
+  disabled?: boolean
 }
 
 interface SelectProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: SelectOption[];
-  disabled?: boolean;
-  'aria-label'?: string;
-  compact?: boolean;
-  className?: string;
+  value: string
+  onChange: (value: string) => void
+  options: SelectOption[]
+  disabled?: boolean
+  'aria-label'?: string
+  compact?: boolean
+  className?: string
 }
 
 export default function Select({
@@ -23,57 +23,60 @@ export default function Select({
   disabled = false,
   'aria-label': ariaLabel,
   compact = false,
-  className,
+  className
 }: SelectProps) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false)
 
-  const selected = options.find((option) => option.value === value);
-  const displayLabel = selected?.label ?? value;
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  const selected = options.find(option => option.value === value)
+
+  const displayLabel = selected?.label ?? value
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
 
     const onPointerDown = (event: MouseEvent) => {
       if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false);
+        setOpen(false)
       }
-    };
+    }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
+      if (event.key === 'Escape') setOpen(false)
+    }
 
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+
     return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open]);
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
 
   const handleSelect = (option: SelectOption) => {
-    if (option.disabled) return;
-    onChange(option.value);
-    setOpen(false);
-  };
+    if (option.disabled) return
+    onChange(option.value)
+    setOpen(false)
+  }
 
   const rootClass = [
     'custom-select',
     compact && 'custom-select--compact',
     open && 'custom-select--open',
     disabled && 'custom-select--disabled',
-    className,
+    className
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(' ')
 
   return (
     <div ref={rootRef} className={rootClass}>
       <button
         type="button"
         className="custom-select-trigger"
-        onClick={() => !disabled && setOpen((isOpen) => !isOpen)}
+        onClick={() => !disabled && setOpen(isOpen => !isOpen)}
         disabled={disabled}
         aria-label={ariaLabel}
         aria-expanded={open}
@@ -84,31 +87,34 @@ export default function Select({
       </button>
 
       {open && (
-        <ul className="custom-select-menu" role="listbox" aria-label={ariaLabel}>
-          {options.map((option) => {
-            const isSelected = option.value === value;
+        <div className="custom-select-menu" role="listbox" aria-label={ariaLabel}>
+          {options.map(option => {
+            const isSelected = option.value === value
+
             const optionClass = [
               'custom-select-option',
               isSelected && 'is-selected',
-              option.disabled && 'is-disabled',
+              option.disabled && 'is-disabled'
             ]
               .filter(Boolean)
-              .join(' ');
+              .join(' ')
 
             return (
-              <li
+              <button
                 key={option.value}
+                type="button"
                 role="option"
                 aria-selected={isSelected}
                 className={optionClass}
                 onClick={() => handleSelect(option)}
+                disabled={option.disabled}
               >
                 {option.label}
-              </li>
-            );
+              </button>
+            )
           })}
-        </ul>
+        </div>
       )}
     </div>
-  );
+  )
 }
