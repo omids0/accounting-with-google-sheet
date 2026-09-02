@@ -15,7 +15,7 @@ import { fetchInstallmentPlans, totalUnpaidInstallments } from '../../services/i
 import { fetchReceivables, remainingAmount, paidAmount } from '../../services/receivables';
 import { computeHoldings, fetchVaultTransactions } from '../../services/treasury';
 import { fetchWalletAccounts } from '../../services/wallet';
-import { getCachedTgjuPrices, prefetchTgjuPrices } from '../../services/tgju';
+import { getCachedTgjuPrices } from '../../services/tgju';
 import { getDateRange } from '../../utils/dateRange';
 import { formatMoney } from '../../utils/formatMoney';
 import { formatIsoDatePersian } from '../../utils/jalaliDate';
@@ -83,9 +83,10 @@ async function loadModuleReport(
       };
     }
     case 'treasury': {
-      const transactions = await fetchVaultTransactions(spreadsheetId);
-      prefetchTgjuPrices();
       const prices = getCachedTgjuPrices();
+      const transactions = prices
+        ? await fetchVaultTransactions(spreadsheetId)
+        : [];
       const holdings = prices ? computeHoldings(transactions, prices) : [];
       const total = holdings.reduce((sum, holding) => sum + holding.totalValue, 0);
       return {

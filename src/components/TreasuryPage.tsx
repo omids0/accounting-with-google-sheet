@@ -149,11 +149,10 @@ export default function TreasuryPage({
   }, [onReauth]);
 
   useEffect(() => {
-    if (isConfigured()) {
-      loadItems();
-      loadPrices();
-    }
-  }, [loadItems, loadPrices, dataRevision]);
+    if (!isConfigured() || !active) return;
+    loadItems();
+    loadPrices();
+  }, [active, loadItems, loadPrices, dataRevision]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

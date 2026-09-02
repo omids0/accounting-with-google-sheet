@@ -28,7 +28,7 @@ import {
 } from './monthlyBalance';
 import { fetchReceivables, remainingAmount } from './receivables';
 import { fetchRecords } from './sheets';
-import { getCachedTgjuPrices, prefetchTgjuPrices } from './tgju';
+import { getCachedTgjuPrices } from './tgju';
 import { computeHoldings, fetchVaultTransactions } from './treasury';
 import { fetchWalletAccounts } from './wallet';
 import { getDefaultNetAvailableConfig } from './settings';
@@ -233,6 +233,9 @@ async function fetchDashboardBundleUncached(
   const incomeForm = settings.forms.find((f) => f.type === 'income');
   const expenseForm = settings.forms.find((f) => f.type === 'expense');
   const monthKey = getJalaliMonthKey(range.start);
+  const tgjuPrices = getCachedTgjuPrices();
+  const shouldFetchVault =
+    netAvailableConfig.assets.treasury && tgjuPrices != null;
 
   const [
     incomeRecords,
@@ -252,7 +255,9 @@ async function fetchDashboardBundleUncached(
       ? fetchRecords(settings.spreadsheetId, expenseForm)
       : Promise.resolve([]),
     fetchWalletAccounts(settings.spreadsheetId).catch(() => []),
-    fetchVaultTransactions(settings.spreadsheetId).catch(() => []),
+    shouldFetchVault
+      ? fetchVaultTransactions(settings.spreadsheetId).catch(() => [])
+      : Promise.resolve([]),
     fetchReceivables(settings.spreadsheetId).catch(() => []),
     fetchInstallmentPlans(settings.spreadsheetId).catch(() => []),
     fetchChecks(settings.spreadsheetId).catch(() => []),
@@ -264,9 +269,6 @@ async function fetchDashboardBundleUncached(
       note: '',
     })),
   ]);
-
-  prefetchTgjuPrices();
-  const tgjuPrices = getCachedTgjuPrices();
 
   const incomeDateField = getDateFieldId(incomeForm);
   const expenseDateField = getDateFieldId(expenseForm);
