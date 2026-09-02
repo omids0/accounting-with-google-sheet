@@ -289,6 +289,7 @@ function InstallmentPlanCard({
                         setPaymentAmounts((prev) => ({ ...prev, [paymentIndex]: val }))
                       }
                       onBlur={() => handlePaymentAmountSave(paymentIndex)}
+                      onClose={() => setExpandedPaymentIndex(null)}
                       saving={savingPaymentIndex === paymentIndex}
                     />
                   </div>

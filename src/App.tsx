@@ -11,7 +11,6 @@ import {
   hasStoredSession,
   isAuthError,
   isTokenValid,
-  shouldBypassAuthChecks,
 } from './services/auth';
 import { syncAppLockFromSheet } from './services/appLock';
 import { refreshAccessTokenSilently } from './services/tokenRefresh';
@@ -68,10 +67,6 @@ export default function App() {
   const { locked, unlock } = useAppLock();
 
   const handleReauth = useCallback(async () => {
-    if (shouldBypassAuthChecks()) {
-      setNeedsReauth(false);
-      return;
-    }
     if (scriptLoadedSuccessfully && hasStoredSession()) {
       const refreshed = await refreshAccessTokenSilently(clientId);
       if (refreshed && isTokenValid()) {
@@ -86,7 +81,7 @@ export default function App() {
     clientId,
     enabled: hasStoredSession(),
     onRefreshFailed: () => {
-      if (loggedIn && !shouldBypassAuthChecks()) setNeedsReauth(true);
+      if (loggedIn) setNeedsReauth(true);
     },
     onRefreshSuccess: () => {
       if (isTokenValid()) setNeedsReauth(false);
@@ -149,11 +144,11 @@ export default function App() {
         if (!cancelled) {
           const message =
             err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت';
-          if (isAuthError(err) && !shouldBypassAuthChecks()) {
+          if (isAuthError(err)) {
             setLoggedIn(false);
             setNeedsReauth(true);
             setNeedsSheetSetup(false);
-          } else if (isTokenValid() || shouldBypassAuthChecks()) {
+          } else if (isTokenValid()) {
             setLoggedIn(true);
             setNeedsReauth(false);
             setNeedsSheetSetup(false);

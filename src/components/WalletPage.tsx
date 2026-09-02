@@ -531,6 +531,7 @@ export default function WalletPage({
                       setBalances((prev) => ({ ...prev, [account.id]: val }))
                     }
                     onBlur={() => handleBalanceSave(account)}
+                    onClose={() => setExpandedId(null)}
                     saving={savingId === account.id}
                   />
                 </div>

@@ -6,7 +6,12 @@ import {
   fetchSheetRows,
   updateSheetRow,
 } from './sheets';
-import { calcDurationMinutes, formatDateTimePersian, formatDurationFa } from '../utils/datetime';
+import {
+  calcDurationMinutes,
+  formatDateTimePersian,
+  formatDurationFa,
+  normalizeDateTimeIso,
+} from '../utils/datetime';
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport';
 import { downloadTablePdf } from '../utils/pdf';
 import { formatPersianDate } from '../utils/pdfFormat';
@@ -57,8 +62,8 @@ function rowToTimesheetEntry(
     timesheetId: row[1] ?? '',
     createdAt: row[2] ?? '',
     title: row[3] ?? '',
-    startAt: row[4] ?? '',
-    endAt: row[5] ?? '',
+    startAt: normalizeDateTimeIso(row[4] ?? '') || String(row[4] ?? '').trim(),
+    endAt: normalizeDateTimeIso(row[5] ?? '') || String(row[5] ?? '').trim(),
     durationMinutes: Number(row[6]) || 0,
     description: row[7] ?? '',
     checked: parseChecked(row[8] ?? ''),

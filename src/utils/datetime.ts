@@ -1,4 +1,82 @@
-import { formatIsoDatePersian } from './jalaliDate';
+import { formatIsoDatePersian, jalaliToIso, toIsoDate } from './jalaliDate';
+
+const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+
+function toAsciiDigits(text: string): string {
+  return text
+    .replace(/[۰-۹]/g, (d) => String(PERSIAN_DIGITS.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String(ARABIC_DIGITS.indexOf(d)));
+}
+
+function formatDateToDateTimeIso(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  const sec = String(date.getSeconds()).padStart(2, '0');
+  return `${y}-${m}-${d}T${h}:${min}:${sec}`;
+}
+
+function sheetsSerialToDateTimeIso(serial: number): string | null {
+  if (!Number.isFinite(serial) || serial <= 0) return null;
+  const date = new Date((serial - 25569) * 86400000);
+  if (Number.isNaN(date.getTime())) return null;
+  return formatDateToDateTimeIso(date);
+}
+
+/** Normalize sheet / user datetime values to `YYYY-MM-DDTHH:mm:ss`. */
+export function normalizeDateTimeIso(value: unknown): string {
+  if (value == null || value === '') return '';
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return sheetsSerialToDateTimeIso(value) ?? '';
+  }
+
+  const text = toAsciiDigits(String(value).trim());
+  if (!text) return '';
+
+  const canonical = text.match(
+    /^(\d{4}-\d{2}-\d{2})T(\d{1,2}):(\d{2})(?::(\d{2}))?$/
+  );
+  if (canonical) {
+    const [, date, hour, minute, second = '00'] = canonical;
+    return `${date}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}`;
+  }
+
+  const spaced = text.match(
+    /^(\d{4}-\d{2}-\d{2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?$/
+  );
+  if (spaced) {
+    const [, date, hour, minute, second = '00'] = spaced;
+    return `${date}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    return `${text}T00:00:00`;
+  }
+
+  const jalali = text.match(
+    /^(\d{4})[/-](\d{1,2})[/-](\d{1,2})(?:[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+  );
+  if (jalali) {
+    const [, jy, jm, jd, hour = '0', minute = '0', second = '0'] = jalali;
+    const dateIso = jalaliToIso(Number(jy), Number(jm), Number(jd));
+    return `${dateIso}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}`;
+  }
+
+  if (/^\d+(\.\d+)?$/.test(text)) {
+    return sheetsSerialToDateTimeIso(Number(text)) ?? '';
+  }
+
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) {
+    return formatDateToDateTimeIso(parsed);
+  }
+
+  return '';
+}
 
 export function toDateTimeIso(dateIso: string, hour: number, minute: number): string {
   const date = dateIso.slice(0, 10);
@@ -12,16 +90,17 @@ export function fromDateTimeIso(iso: string): {
   hour: number;
   minute: number;
 } {
-  if (!iso) {
+  const normalized = normalizeDateTimeIso(iso);
+  if (!normalized) {
     const now = new Date();
     return {
-      dateIso: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+      dateIso: toIsoDate(now),
       hour: now.getHours(),
       minute: now.getMinutes(),
     };
   }
 
-  const [datePart, timePart = '00:00:00'] = iso.split('T');
+  const [datePart, timePart = '00:00:00'] = normalized.split('T');
   const [hourRaw, minuteRaw] = timePart.split(':');
   return {
     dateIso: datePart,
@@ -31,9 +110,9 @@ export function fromDateTimeIso(iso: string): {
 }
 
 export function parseDateTime(iso: string): Date {
-  if (!iso) return new Date(NaN);
-  if (iso.includes('T')) return new Date(iso);
-  return new Date(`${iso.slice(0, 10)}T00:00:00`);
+  const normalized = normalizeDateTimeIso(iso);
+  if (!normalized) return new Date(NaN);
+  return new Date(normalized);
 }
 
 export function calcDurationMinutes(startAt: string, endAt: string): number {
@@ -86,27 +165,31 @@ export function syncEndDateTimeFromStart(
   endAt: string,
   previousStartAt?: string
 ): string {
-  if (!startAt) return endAt;
-  if (!endAt) return addMinutesToDateTime(startAt, 60);
+  const normalizedStart = normalizeDateTimeIso(startAt);
+  const normalizedEnd = normalizeDateTimeIso(endAt);
+  if (!normalizedStart) return endAt;
+  if (!normalizedEnd) return addMinutesToDateTime(normalizedStart, 60);
 
-  const startDate = startAt.slice(0, 10);
-  const oldStartDate = previousStartAt?.slice(0, 10);
-  const endTime = endAt.split('T')[1] ?? '00:00:00';
+  const startParts = fromDateTimeIso(normalizedStart);
+  const endParts = fromDateTimeIso(normalizedEnd);
+  const previousStartParts = previousStartAt ? fromDateTimeIso(previousStartAt) : null;
 
-  let nextEnd = endAt;
-  const startDateChanged = Boolean(previousStartAt && startDate !== oldStartDate);
+  let nextEnd = normalizedEnd;
+  const startDateChanged = Boolean(
+    previousStartParts && startParts.dateIso !== previousStartParts.dateIso
+  );
   const endWasAlignedToStart =
-    !previousStartAt || !oldStartDate || endAt.slice(0, 10) === oldStartDate;
+    !previousStartParts || endParts.dateIso === previousStartParts.dateIso;
 
   if (startDateChanged || endWasAlignedToStart) {
-    nextEnd = `${startDate}T${endTime}`;
+    nextEnd = toDateTimeIso(startParts.dateIso, endParts.hour, endParts.minute);
   }
 
-  if (parseDateTime(nextEnd) <= parseDateTime(startAt)) {
-    nextEnd = addMinutesToDateTime(startAt, 60);
+  if (parseDateTime(nextEnd) <= parseDateTime(normalizedStart)) {
+    nextEnd = addMinutesToDateTime(normalizedStart, 60);
   }
 
-  return clampDateTimeToMin(nextEnd, startAt);
+  return clampDateTimeToMin(nextEnd, normalizedStart);
 }
 
 export function clampDateTimeToMin(value: string, minDateTime: string): string {
