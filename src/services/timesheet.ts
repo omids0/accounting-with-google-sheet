@@ -25,7 +25,13 @@ export const TIMESHEET_ENTRIES_HEADERS = [
   'پایان',
   'مدت (دقیقه)',
   'توضیحات',
+  'تایید شده',
 ];
+
+function parseChecked(raw: string): boolean {
+  const value = String(raw ?? '').trim().toLowerCase();
+  return value === 'true' || value === '1' || value === 'yes' || value === 'بله';
+}
 
 function rowToTimesheet(row: string[], rowNumber: number): Timesheet & { rowNumber: number } {
   return {
@@ -55,6 +61,7 @@ function rowToTimesheetEntry(
     endAt: row[5] ?? '',
     durationMinutes: Number(row[6]) || 0,
     description: row[7] ?? '',
+    checked: parseChecked(row[8] ?? ''),
   };
 }
 
@@ -68,6 +75,7 @@ function timesheetEntryToRow(entry: TimesheetEntry): string[] {
     entry.endAt,
     String(entry.durationMinutes),
     entry.description,
+    entry.checked ? 'true' : 'false',
   ];
 }
 
@@ -173,6 +181,7 @@ export async function createTimesheetEntry(
     endAt: data.endAt,
     durationMinutes,
     description: data.description.trim(),
+    checked: false,
   };
   await appendSheetRow(spreadsheetId, TIMESHEET_ENTRIES_SHEET, timesheetEntryToRow(entry));
   return entry;
@@ -258,15 +267,16 @@ export async function exportTimesheetEntriesPdf(
 ): Promise<void> {
   const entries = await fetchTimesheetEntries(spreadsheetId, timesheetId);
   const totalMinutes = totalDurationMinutes(entries);
-  const headers = ['عنوان', 'شروع', 'پایان', 'مدت', 'توضیحات'];
+  const headers = ['عنوان', 'شروع', 'پایان', 'مدت', 'تایید', 'توضیحات'];
   const rows = entries.map((entry) => [
     entry.title,
     formatDateTimePersian(entry.startAt),
     formatDateTimePersian(entry.endAt),
     formatDurationFa(entry.durationMinutes),
+    entry.checked ? 'بله' : 'خیر',
     entry.description,
   ]);
-  rows.push(['', '', 'جمع کل', formatDurationFa(totalMinutes), '']);
+  rows.push(['', '', 'جمع کل', formatDurationFa(totalMinutes), '', '']);
 
   await downloadTablePdf({
     title: `گزارش تایم‌شیت: ${timesheetTitle}`,
@@ -322,6 +332,7 @@ export async function importTimesheetEntriesCsv(
         endAt,
         durationMinutes: calcDurationMinutes(startAt, endAt),
         description: cells[7] ?? '',
+        checked: parseChecked(cells[8] ?? ''),
       };
       if (!entry.timesheetId) return null;
       return timesheetEntryToRow(entry);

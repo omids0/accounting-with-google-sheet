@@ -84,19 +84,23 @@ export function syncEndDateTimeFromStart(
   if (!endAt) return addMinutesToDateTime(startAt, 60);
 
   const startDate = startAt.slice(0, 10);
-  const endDate = endAt.slice(0, 10);
   const oldStartDate = previousStartAt?.slice(0, 10);
+  const endTime = endAt.split('T')[1] ?? '00:00:00';
 
   let nextEnd = endAt;
-  if (oldStartDate && endDate === oldStartDate) {
-    nextEnd = `${startDate}T${endAt.split('T')[1] ?? '00:00:00'}`;
+  const startDateChanged = Boolean(previousStartAt && startDate !== oldStartDate);
+  const endWasAlignedToStart =
+    !previousStartAt || !oldStartDate || endAt.slice(0, 10) === oldStartDate;
+
+  if (startDateChanged || endWasAlignedToStart) {
+    nextEnd = `${startDate}T${endTime}`;
   }
 
   if (parseDateTime(nextEnd) <= parseDateTime(startAt)) {
     nextEnd = addMinutesToDateTime(startAt, 60);
   }
 
-  return nextEnd;
+  return clampDateTimeToMin(nextEnd, startAt);
 }
 
 export function clampDateTimeToMin(value: string, minDateTime: string): string {

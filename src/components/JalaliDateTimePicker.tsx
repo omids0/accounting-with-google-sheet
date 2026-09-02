@@ -22,6 +22,7 @@ interface JalaliDateTimePickerProps {
   calendar?: CalendarSystem;
   minDateTime?: string;
   label?: string;
+  openRequestToken?: number;
 }
 
 function fa(n: number): string {
@@ -43,10 +44,23 @@ function DateTimeWheelFields({
 }: DateTimeWheelFieldsProps) {
   const { dateIso, hour, minute } = fromDateTimeIso(value);
   const { year, month, day } = getCalendarParts(dateIso, calendar);
+  const minParts = minDateTime ? fromDateTimeIso(minDateTime) : null;
+  const minCal = minParts ? getCalendarParts(minParts.dateIso, calendar) : null;
   const years = useMemo(() => getCalendarYearRange(calendar, dateIso), [calendar, dateIso]);
   const monthItems = useMemo(() => getCalendarMonthWheelItems(calendar), [calendar]);
   const maxDay = daysInCalendarMonth(year, month, calendar);
-  const safeDay = Math.min(day, maxDay);
+  const minMonth = minCal && year === minCal.year ? minCal.month : 1;
+  const minDay =
+    minCal && year === minCal.year && month === minCal.month ? minCal.day : 1;
+  const minHour =
+    minParts && dateIso === minParts.dateIso ? minParts.hour : 0;
+  const minMinute =
+    minParts && dateIso === minParts.dateIso && hour === minParts.hour
+      ? minParts.minute
+      : 0;
+  const safeDay = Math.min(Math.max(day, minDay), maxDay);
+  const safeHour = Math.max(hour, minHour);
+  const safeMinute = Math.max(minute, minMinute);
 
   const yearItems = useMemo(
     () =>
@@ -57,30 +71,38 @@ function DateTimeWheelFields({
     [years]
   );
 
+  const filteredMonthItems = useMemo(
+    () => monthItems.filter((item) => Number(item.value) >= minMonth),
+    [monthItems, minMonth]
+  );
+
   const dayItems = useMemo(() => {
     const dayCount = daysInCalendarMonth(year, month, calendar);
-    return Array.from({ length: dayCount }, (_, index) => {
-      const itemDay = index + 1;
+    return Array.from({ length: dayCount - minDay + 1 }, (_, index) => {
+      const itemDay = minDay + index;
       return { value: String(itemDay), label: fa(itemDay) };
     });
-  }, [year, month, calendar]);
+  }, [year, month, calendar, minDay]);
 
   const hourItems = useMemo(
     () =>
-      Array.from({ length: 24 }, (_, index) => ({
-        value: String(index),
-        label: fa(index),
-      })),
-    []
+      Array.from({ length: 24 - minHour }, (_, index) => {
+        const itemHour = minHour + index;
+        return { value: String(itemHour), label: fa(itemHour) };
+      }),
+    [minHour]
   );
 
   const minuteItems = useMemo(
     () =>
-      Array.from({ length: 60 }, (_, index) => ({
-        value: String(index),
-        label: String(index).padStart(2, '0'),
-      })),
-    []
+      Array.from({ length: 60 - minMinute }, (_, index) => {
+        const itemMinute = minMinute + index;
+        return {
+          value: String(itemMinute),
+          label: String(itemMinute).padStart(2, '0'),
+        };
+      }),
+    [minMinute]
   );
 
   const applyChange = (
@@ -92,7 +114,7 @@ function DateTimeWheelFields({
   ) => {
     const max = daysInCalendarMonth(nextYear, nextMonth, calendar);
     const nextDateIso = partsToIso(
-      { year: nextYear, month: nextMonth, day: Math.min(nextDay, max) },
+      { year: nextYear, month: nextMonth, day: Math.min(Math.max(nextDay, 1), max) },
       calendar
     );
     const nextValue = toDateTimeIso(nextDateIso, nextHour, nextMinute);
@@ -105,7 +127,7 @@ function DateTimeWheelFields({
         <span className="jalali-date-picker-label">سال</span>
         <WheelPicker
           value={String(year)}
-          onChange={(next) => applyChange(Number(next), month, safeDay, hour, minute)}
+          onChange={(next) => applyChange(Number(next), month, safeDay, safeHour, safeMinute)}
           aria-label="سال"
           items={yearItems}
         />
@@ -114,16 +136,16 @@ function DateTimeWheelFields({
         <span className="jalali-date-picker-label">ماه</span>
         <WheelPicker
           value={String(month)}
-          onChange={(next) => applyChange(year, Number(next), safeDay, hour, minute)}
+          onChange={(next) => applyChange(year, Number(next), safeDay, safeHour, safeMinute)}
           aria-label="ماه"
-          items={monthItems}
+          items={filteredMonthItems}
         />
       </div>
       <div className="jalali-date-picker-column">
         <span className="jalali-date-picker-label">روز</span>
         <WheelPicker
           value={String(safeDay)}
-          onChange={(next) => applyChange(year, month, Number(next), hour, minute)}
+          onChange={(next) => applyChange(year, month, Number(next), safeHour, safeMinute)}
           aria-label="روز"
           items={dayItems}
         />
@@ -131,8 +153,8 @@ function DateTimeWheelFields({
       <div className="jalali-date-picker-column jalali-datetime-picker-column--time">
         <span className="jalali-date-picker-label">ساعت</span>
         <WheelPicker
-          value={String(hour)}
-          onChange={(next) => applyChange(year, month, safeDay, Number(next), minute)}
+          value={String(safeHour)}
+          onChange={(next) => applyChange(year, month, safeDay, Number(next), safeMinute)}
           aria-label="ساعت"
           items={hourItems}
         />
@@ -140,8 +162,8 @@ function DateTimeWheelFields({
       <div className="jalali-date-picker-column jalali-datetime-picker-column--time">
         <span className="jalali-date-picker-label">دقیقه</span>
         <WheelPicker
-          value={String(minute)}
-          onChange={(next) => applyChange(year, month, safeDay, hour, Number(next))}
+          value={String(safeMinute)}
+          onChange={(next) => applyChange(year, month, safeDay, safeHour, Number(next))}
           aria-label="دقیقه"
           items={minuteItems}
         />
@@ -156,6 +178,7 @@ export default function JalaliDateTimePicker({
   calendar = 'shamsi',
   minDateTime,
   label,
+  openRequestToken = 0,
 }: JalaliDateTimePickerProps) {
   const iso = value || getNowDateTimeIso();
   const [editing, setEditing] = useState(false);
@@ -167,10 +190,22 @@ export default function JalaliDateTimePicker({
     }
   }, [editing, iso, calendar]);
 
+  useEffect(() => {
+    if (!minDateTime || !editing) return;
+    setPendingValue((current) => clampDateTimeToMin(current, minDateTime));
+  }, [minDateTime, editing]);
+
+  useEffect(() => {
+    if (!openRequestToken) return;
+    const nextValue = minDateTime ? clampDateTimeToMin(iso, minDateTime) : iso;
+    setPendingValue(nextValue);
+    setEditing(true);
+  }, [openRequestToken, iso, minDateTime]);
+
   const handleToggle = () => {
     setEditing((open) => {
       if (!open) {
-        setPendingValue(iso);
+        setPendingValue(minDateTime ? clampDateTimeToMin(iso, minDateTime) : iso);
       }
       return !open;
     });

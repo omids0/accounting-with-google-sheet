@@ -304,4 +304,5 @@ export interface TimesheetEntry {
   endAt: string;
   durationMinutes: number;
   description: string;
+  checked: boolean;
 }

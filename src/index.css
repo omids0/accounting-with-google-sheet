@@ -1413,6 +1413,34 @@ button {
   background: transparent;
 }
 
+.timesheet-entry-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0;
+  cursor: default;
+}
+
+.timesheet-entry-card--checked {
+  opacity: 0.78;
+}
+
+.timesheet-entry-checkbox {
+  flex-shrink: 0;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.85rem;
+  margin-inline-start: 0.7rem;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.timesheet-entry-body {
+  flex: 1;
+  min-width: 0;
+}
+
 .timesheet-entry-separator {
   opacity: 0.55;
 }

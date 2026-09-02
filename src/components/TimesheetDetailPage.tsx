@@ -22,6 +22,7 @@ import {
   getNowDateTimeIso,
   addMinutesToDateTime,
   syncEndDateTimeFromStart,
+  clampDateTimeToMin,
 } from '../utils/datetime';
 import { InstallmentCardListSkeleton } from './skeleton';
 import { showError, showSuccess } from '../utils/toast';
@@ -73,6 +74,8 @@ export default function TimesheetDetailPage({
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [togglingCheckId, setTogglingCheckId] = useState('');
+  const [endPickerOpenToken, setEndPickerOpenToken] = useState(0);
   const dataRevision = useDataRefresh();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalOpen, setFilterModalOpen] = useState(false);
@@ -218,6 +221,37 @@ export default function TimesheetDetailPage({
       startAt,
       endAt: syncEndDateTimeFromStart(startAt, prev.endAt, prev.startAt),
     }));
+    setEndPickerOpenToken((token) => token + 1);
+  };
+
+  const handleEndChange = (endAt: string) => {
+    setForm((prev) => ({
+      ...prev,
+      endAt: clampDateTimeToMin(endAt, prev.startAt),
+    }));
+  };
+
+  const handleToggleChecked = async (item: TimesheetEntryWithRow, checked: boolean) => {
+    if (!isConfigured() || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    const settings = getSettings()!;
+    setTogglingCheckId(item.id);
+    try {
+      await updateTimesheetEntry(settings.spreadsheetId, item.rowNumber, {
+        ...item,
+        checked,
+      });
+      setItems((current) =>
+        current.map((entry) => (entry.id === item.id ? { ...entry, checked } : entry))
+      );
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'خطا در به‌روزرسانی');
+    } finally {
+      setTogglingCheckId('');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -390,29 +424,42 @@ export default function TimesheetDetailPage({
         <SearchEmptyState />
       ) : (
         filteredItems.map((item) => (
-          <div key={item.id} className="card installment-card interactive-card timesheet-entry-card">
-            <div className="card-header-with-edit">
-              <div className="installment-header timesheet-entry-header">
-                <div>
-                  <div className="list-card-title">{item.title}</div>
-                  <div className="list-card-subtitle">
-                    {formatDateTimePersian(item.startAt)}
-                    <span className="timesheet-entry-separator"> · </span>
-                    {formatDateTimePersian(item.endAt)}
+          <div
+            key={item.id}
+            className={`card installment-card timesheet-entry-card${item.checked ? ' timesheet-entry-card--checked' : ''}`}
+          >
+            <input
+              type="checkbox"
+              className="timesheet-entry-checkbox"
+              checked={item.checked}
+              disabled={togglingCheckId === item.id}
+              onChange={(event) => handleToggleChecked(item, event.target.checked)}
+              aria-label={`تایید ${item.title}`}
+            />
+            <div className="timesheet-entry-body">
+              <div className="card-header-with-edit">
+                <div className="installment-header timesheet-entry-header">
+                  <div>
+                    <div className="list-card-title">{item.title}</div>
+                    <div className="list-card-subtitle">
+                      {formatDateTimePersian(item.startAt)}
+                      <span className="timesheet-entry-separator"> · </span>
+                      {formatDateTimePersian(item.endAt)}
+                    </div>
+                    <div className="list-card-subtitle">
+                      <span className="list-card-amount-pill">
+                        {formatDurationFa(item.durationMinutes)}
+                      </span>
+                    </div>
+                    {item.description && (
+                      <p className="installment-note">{item.description}</p>
+                    )}
                   </div>
-                  <div className="list-card-subtitle">
-                    <span className="list-card-amount-pill">
-                      {formatDurationFa(item.durationMinutes)}
-                    </span>
-                  </div>
-                  {item.description && (
-                    <p className="installment-note">{item.description}</p>
-                  )}
                 </div>
-              </div>
-              <div className="card-action-buttons">
-                <CardEditButton onClick={() => openEditForm(item)} />
-                <CardDeleteButton onClick={() => setDeletingItem(item)} />
+                <div className="card-action-buttons">
+                  <CardEditButton onClick={() => openEditForm(item)} />
+                  <CardDeleteButton onClick={() => setDeletingItem(item)} />
+                </div>
               </div>
             </div>
           </div>
@@ -445,8 +492,9 @@ export default function TimesheetDetailPage({
         <FormField label="تا ساعت" required>
           <JalaliDateTimePicker
             value={form.endAt}
-            onChange={(endAt) => setForm((prev) => ({ ...prev, endAt }))}
+            onChange={handleEndChange}
             minDateTime={form.startAt}
+            openRequestToken={endPickerOpenToken}
           />
         </FormField>
 
