@@ -21,10 +21,13 @@ import AssetsLiabilitiesReportPage from './reports/AssetsLiabilitiesReportPage';
 import OpeningBalanceReportPage from './reports/OpeningBalanceReportPage';
 import ModuleReportPage from './reports/ModuleReportPage';
 import SettingsPage from './SettingsPage';
+import TimesheetsPage from './TimesheetsPage';
+import TimesheetDetailPage from './TimesheetDetailPage';
 import PageSpeedDial from './PageSpeedDial';
 import AppIcon from './AppIcon';
 import SyncStatusBadge from './SyncStatusBadge';
 import { getUserName, getUserPicture } from '../services/auth';
+import type { Timesheet } from '../types';
 import { usePageSpeedDialConfig } from '../hooks/usePageSpeedDial';
 import { useEngagementReminders } from '../hooks/useEngagementReminders';
 
@@ -68,9 +71,13 @@ type Tab =
   | 'report-receivables'
   | 'report-dang'
   | 'report-installments'
-  | 'report-checks';
+  | 'report-checks'
+  | 'timesheets'
+  | 'timesheet-detail';
 
 const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter', 'date-calculator'];
+
+const TIMESHEET_TABS: Tab[] = ['timesheets', 'timesheet-detail'];
 
 const REPORT_TABS: Tab[] = [
   'report-financial-summary',
@@ -95,6 +102,8 @@ const SPEED_DIAL_TABS: Tab[] = [
   'receivables',
   'treasury',
   'wallet',
+  'timesheets',
+  'timesheet-detail',
 ];
 
 interface LayoutProps {
@@ -109,6 +118,8 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false);
   const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false);
+  const [timesheetMenuExpanded, setTimesheetMenuExpanded] = useState(false);
+  const [selectedTimesheet, setSelectedTimesheet] = useState<Timesheet | null>(null);
   const userName = getUserName();
   const userPicture = getUserPicture();
 
@@ -139,6 +150,8 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     'report-dang': 'گزارش بدهی‌ها',
     'report-installments': 'گزارش اقساط',
     'report-checks': 'گزارش چک‌ها',
+    timesheets: 'تایم‌شیت',
+    'timesheet-detail': 'جزئیات تایم‌شیت',
   };
 
   const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>();
@@ -147,6 +160,21 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
   useEngagementReminders();
   const showPageSpeedDial =
     !showSettings && SPEED_DIAL_TABS.includes(tab) && pageSpeedDialConfig != null;
+
+  const openTimesheetDetail = useCallback((timesheet: Timesheet) => {
+    setSelectedTimesheet(timesheet);
+    setTimesheetMenuExpanded(true);
+    setShowSettings(false);
+    setMenuOpen(false);
+    setTab('timesheet-detail');
+  }, []);
+
+  const openTimesheetsList = useCallback(() => {
+    setShowSettings(false);
+    setMenuOpen(false);
+    setTimesheetMenuExpanded(true);
+    setTab('timesheets');
+  }, []);
 
   const handleTabChange = useCallback((newTab: Tab) => {
     setShowSettings(false);
@@ -158,6 +186,12 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     }
     if (REPORT_TABS.includes(newTab)) {
       setReportsMenuExpanded(true);
+    }
+    if (TIMESHEET_TABS.includes(newTab)) {
+      setTimesheetMenuExpanded(true);
+    }
+    if (newTab === 'timesheets') {
+      setSelectedTimesheet(null);
     }
     setTab(newTab);
   }, []);
@@ -196,11 +230,19 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
       tab === 'entry' ||
       tab === 'opening-balances' ||
       tab === 'net-available-settings' ||
+      TIMESHEET_TABS.includes(tab) ||
       CALCULATION_TABS.includes(tab) ||
       REPORT_TABS.includes(tab));
 
   const isCalculationTab = CALCULATION_TABS.includes(tab);
   const isReportTab = REPORT_TABS.includes(tab);
+  const isTimesheetTab = TIMESHEET_TABS.includes(tab);
+
+  const headerTitle = showSettings
+    ? 'تنظیمات'
+    : tab === 'timesheet-detail' && selectedTimesheet
+      ? selectedTimesheet.title
+      : titles[tab];
 
   return (
     <div className="app-layout">
@@ -216,18 +258,26 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
         </button>
         <div className="app-header-center">
-          <h1 className="app-header-title">{showSettings ? 'تنظیمات' : titles[tab]}</h1>
+          <h1 className="app-header-title">{headerTitle}</h1>
           {!showSettings && <SyncStatusBadge />}
         </div>
         {showHeaderBack ? (
           <button
             type="button"
             className="header-icon-btn header-back-btn"
-            onClick={() =>
-              handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
-            }
+            onClick={() => {
+              if (tab === 'timesheet-detail') {
+                handleTabChange('timesheets');
+                return;
+              }
+              handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard');
+            }}
             aria-label={
-              tab === 'opening-balances' ? 'بازگشت به کیف پول' : 'بازگشت به داشبورد'
+              tab === 'timesheet-detail'
+                ? 'بازگشت به لیست تایم‌شیت‌ها'
+                : tab === 'opening-balances'
+                  ? 'بازگشت به کیف پول'
+                  : 'بازگشت به داشبورد'
             }
             title="بازگشت"
           >
@@ -449,6 +499,40 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
                   </div>
                 )}
               </div>
+              <div className="app-menu-group">
+                <button
+                  type="button"
+                  className={`app-menu-item app-menu-item--parent${
+                    isTimesheetTab ? ' active' : ''
+                  }`}
+                  onClick={() => setTimesheetMenuExpanded((v) => !v)}
+                  aria-expanded={timesheetMenuExpanded}
+                >
+                  <span className="app-menu-item-icon">
+                    <AppIcon name="clock" size={20} strokeWidth={1.75} />
+                  </span>
+                  <span className="app-menu-item-label">تایم‌شیت</span>
+                  <span
+                    className={`app-menu-chevron${timesheetMenuExpanded ? ' expanded' : ''}`}
+                    aria-hidden="true"
+                  >
+                    <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+                  </span>
+                </button>
+                {timesheetMenuExpanded && (
+                  <div className="app-menu-submenu">
+                    <button
+                      type="button"
+                      className={`app-menu-item app-menu-item--sub${
+                        isTimesheetTab ? ' active' : ''
+                      }`}
+                      onClick={openTimesheetsList}
+                    >
+                      لیست تایم‌شیت‌ها
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 className={`app-menu-item${showSettings ? ' active' : ''}`}
@@ -552,6 +636,32 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
               {tab === 'report-checks' && (
                 <ModuleReportPage kind="checks" onReauth={onReauth} />
               )}
+              <TabPanel active={tab === 'timesheets'}>
+                <TimesheetsPage
+                  onReauth={onReauth}
+                  active={tab === 'timesheets'}
+                  onOpenTimesheet={openTimesheetDetail}
+                />
+              </TabPanel>
+              {tab === 'timesheet-detail' && selectedTimesheet && (
+                <TimesheetDetailPage
+                  timesheet={selectedTimesheet}
+                  onReauth={onReauth}
+                  active={tab === 'timesheet-detail'}
+                />
+              )}
+              {tab === 'timesheet-detail' && !selectedTimesheet && (
+                <div className="empty-state">
+                  <p>تایم‌شیت یافت نشد</p>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => handleTabChange('timesheets')}
+                  >
+                    بازگشت به لیست
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -641,6 +751,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
           ariaLabel={pageSpeedDialConfig.ariaLabel}
         />
       )}
+
     </div>
   );
 }

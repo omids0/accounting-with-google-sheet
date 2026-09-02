@@ -32,7 +32,8 @@ export type AppIconName =
   | 'chevron-down'
   | 'swap'
   | 'lock'
-  | 'fingerprint';
+  | 'fingerprint'
+  | 'clock';
 
 interface AppIconProps {
   name: AppIconName;
@@ -456,6 +457,14 @@ export default function AppIcon({
           <path d="M8 10.5v2a4 4 0 0 0 8 0v-2" />
           <path d="M9.5 13v1.5a2.5 2.5 0 0 0 5 0V13" />
           <path d="M12 15.5v2" />
+        </IconSvg>
+      );
+
+    case 'clock':
+      return (
+        <IconSvg {...props}>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M12 7.5v5l3 2" />
         </IconSvg>
       );
   }

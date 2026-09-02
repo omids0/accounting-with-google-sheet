@@ -1394,6 +1394,67 @@ button {
   text-transform: none;
 }
 
+.timesheet-detail-page .timesheet-detail-stats {
+  margin-bottom: 1rem;
+}
+
+.timesheet-detail-page .timesheet-stat-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-top: 0.15rem;
+}
+
+.timesheet-entry-header {
+  cursor: default;
+}
+
+.timesheet-entry-header:hover {
+  background: transparent;
+}
+
+.timesheet-entry-separator {
+  opacity: 0.55;
+}
+
+.timesheet-list-card {
+  cursor: pointer;
+}
+
+.timesheet-list-card .timesheet-list-card-main {
+  cursor: pointer;
+}
+
+.timesheet-list-card .timesheet-list-card-main:hover {
+  background: transparent;
+}
+
+.report-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.jalali-datetime-picker {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.jalali-datetime-picker-column--time {
+  min-width: 3.2rem;
+}
+
+.jalali-datetime-picker-panel {
+  overflow-x: auto;
+}
+
+.jalali-datetime-picker-field-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.35rem;
+}
+
 .report-page {
   display: flex;
   flex-direction: column;

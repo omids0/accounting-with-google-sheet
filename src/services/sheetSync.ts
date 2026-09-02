@@ -37,6 +37,7 @@ import { WALLET_SHEET } from './wallet';
 import { CATEGORIES_SHEET } from './categories';
 import { MONTHLY_BALANCE_SHEET } from './monthlyBalance';
 import { REMINDERS_SHEET, PUSH_SUBS_SHEET } from './reminders';
+import { TIMESHEETS_SHEET, TIMESHEET_ENTRIES_SHEET } from './timesheet';
 
 const SYNC_INTERVAL_MS = 120_000;
 const MIN_SYNC_COOLDOWN_MS = 30_000;
@@ -53,6 +54,8 @@ const STATIC_SHEETS = [
   MONTHLY_BALANCE_SHEET,
   REMINDERS_SHEET,
   PUSH_SUBS_SHEET,
+  TIMESHEETS_SHEET,
+  TIMESHEET_ENTRIES_SHEET,
 ];
 
 let activeSpreadsheetId: string | null = null;
