@@ -1,0 +1,287 @@
+.card-action-btn:hover:not(:disabled) {
+  background: var(--color-bg);
+}
+
+.card-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.card-edit-btn:hover:not(:disabled) {
+  color: var(--color-primary);
+}
+
+.card-delete-btn:hover:not(:disabled) {
+  color: var(--color-danger);
+}
+
+.card-expand-btn {
+  color: var(--color-text-muted);
+}
+
+.card-expand-btn:hover:not(:disabled) {
+  color: var(--color-primary);
+}
+
+.card-expand-btn--expanded {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.card-expand-btn svg {
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.card-expand-btn--expanded svg {
+  transform: rotate(180deg);
+}
+
+.card-action-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  align-self: center;
+  flex-shrink: 0;
+  margin-inline-end: 0.55rem;
+  padding: 0.2rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-accent-soft) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.card-action-buttons .card-action-btn {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 8px;
+}
+
+.card-header-with-edit .card-action-buttons {
+  margin-inline-start: 0;
+  margin-inline-end: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-self: flex-start;
+}
+
+.wallet-item-card .card-header-with-edit .card-action-buttons {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.dang-card .card-action-buttons {
+  margin: 0.85rem 0.5rem 0.85rem 0;
+  align-self: flex-start;
+}
+
+.confirm-delete-message {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+.card-header-with-edit {
+  display: flex;
+  align-items: flex-start;
+}
+
+.card-header-with-edit .installment-header {
+  flex: 1;
+  min-width: 0;
+}
+
+.installment-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.7rem;
+  background: none;
+  border: none;
+  text-align: right;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+  border-radius: var(--radius-sm);
+}
+
+.installment-header:hover {
+  background: color-mix(in srgb, var(--color-accent-soft) 55%, transparent);
+}
+
+.installment-header > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.installment-chevron {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  display: inline-flex;
+  transition: transform var(--duration-slow) var(--ease-out), color var(--duration-normal);
+}
+
+.installment-header--expanded .installment-chevron {
+  transform: rotate(180deg);
+  color: var(--color-primary);
+}
+
+.installment-progress,
+.progress-bar {
+  margin-top: 0.4rem;
+}
+
+.progress-bar__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.progress-bar__track {
+  flex: 1;
+  min-width: 0;
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-border) 62%, transparent);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.07);
+  overflow: hidden;
+  position: relative;
+  animation: progressTrackIn 0.45s var(--ease-page) both;
+  animation-delay: var(--progress-delay, 0s);
+}
+
+.progress-bar__fill {
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary) 55%,
+    var(--color-primary-light) 100%
+  );
+  position: relative;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-primary) 32%, transparent);
+  will-change: width;
+}
+
+.progress-bar__shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 35%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.15) 65%,
+    transparent 100%
+  );
+  transform: translateX(-130%);
+  animation: progressShine 2.8s ease-in-out infinite;
+  animation-delay: calc(var(--progress-delay, 0s) + 0.65s);
+}
+
+.progress-bar__glow {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  transform: translate(-40%, -50%);
+  filter: blur(2px);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.progress-bar__label {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  min-width: 2.1rem;
+  text-align: left;
+  line-height: 1;
+}
+
+.progress-bar--success .progress-bar__fill {
+  background: linear-gradient(90deg, #15803d 0%, var(--color-success) 55%, #4ade80 100%);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-success) 30%, transparent);
+}
+
+.progress-bar--success .progress-bar__label {
+  color: var(--color-success);
+}
+
+.progress-bar--complete .progress-bar__fill {
+  background: linear-gradient(90deg, #64748b 0%, #94a3b8 100%);
+  box-shadow: none;
+}
+
+.progress-bar--complete .progress-bar__shine,
+.progress-bar--complete .progress-bar__glow {
+  display: none;
+}
+
+.progress-bar--complete .progress-bar__label {
+  color: var(--color-text-muted);
+}
+
+.progress-bar--static .progress-bar__shine,
+.progress-bar--static .progress-bar__glow {
+  display: none;
+}
+
+.progress-bar--static .progress-bar__track {
+  animation: none;
+}
+
+.progress-bar--static .progress-bar__fill {
+  will-change: auto;
+  box-shadow: none;
+}
+
+.installment-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 7.5rem;
+}
+
+.installment-complete .progress-bar,
+.receivable-complete .progress-bar {
+  opacity: 1;
+}
+
+@keyframes progressTrackIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes progressShine {
+  0%,
+  100% {
+    transform: translateX(-130%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateX(130%);
+    opacity: 0.55;
+  }
+  82% {
+    opacity: 0;
+  }
+}

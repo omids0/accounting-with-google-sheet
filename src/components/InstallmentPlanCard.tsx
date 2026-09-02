@@ -12,16 +12,14 @@ import {
 } from '../services/installments'
 import type { InstallmentPlan } from '../types'
 import { AccordionCollapse } from './AccordionCollapse'
-import AppIcon from './AppIcon'
 import CardDeleteButton from './CardDeleteButton'
 import CardEditButton from './CardEditButton'
 import CardExpandButton from './CardExpandButton'
-import CardInlineAmountEdit from './CardInlineAmountEdit'
 import MoneyDisplay from './MoneyDisplay'
 import ProgressBar from './ProgressBar'
-import { formatMoney } from '../utils/formatMoney'
 import { formatIsoDatePersian } from '../utils/jalaliDate'
 import { showError } from '../utils/toast'
+import InstallmentPaymentItem from './installmentPlan/InstallmentPaymentItem'
 
 export type PlanWithRow = InstallmentPlan & { rowNumber: number }
 
@@ -232,86 +230,25 @@ function InstallmentPlanCard({
             </div>
           </div>
           {plan.note && <p className="installment-note">{plan.note}</p>}
-          {sortedPayments.map(({ payment, index: paymentIndex }) => {
-            const paymentExpanded = expandedPaymentIndex === paymentIndex
-
-            const rawAmount =
-              paymentAmounts[paymentIndex] ?? getInstallmentPaymentAmount(payment, plan)
-
-            const displayAmount =
-              rawAmount === '' ? getInstallmentPaymentAmount(payment, plan) : Number(rawAmount)
-
-            return (
-              <div
-                key={payment.n}
-                className={`installment-payment-item${
-                  paymentExpanded ? ' installment-payment-item--expanded' : ''
-                }${payment.paid ? ' paid' : ''}`}
-              >
-                <div className="installment-payment-row">
-                  <input
-                    type="checkbox"
-                    checked={payment.paid}
-                    disabled={togglingPaymentIndex === paymentIndex}
-                    onChange={e => onTogglePayment(plan, paymentIndex, e.target.checked)}
-                    onClick={e => e.stopPropagation()}
-                  />
-                  <button
-                    type="button"
-                    className={`installment-payment-header${
-                      paymentExpanded ? ' installment-payment-header--expanded' : ''
-                    }`}
-                    onClick={() =>
-                      setExpandedPaymentIndex(prev => (prev === paymentIndex ? null : paymentIndex))
-                    }
-                  >
-                    <div className="installment-payment-info">
-                      <span>قسط {payment.n.toLocaleString('fa-IR')}</span>
-                      <span className="installment-due">
-                        موعد: {formatIsoDatePersian(payment.dueDate)}
-                      </span>
-                      {payment.paid && payment.paidAt && (
-                        <span className="installment-paid-at">
-                          پرداخت: {formatIsoDatePersian(payment.paidAt)}
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      className="wallet-item-amount installment-payment-amount-display"
-                      dir="ltr"
-                    >
-                      {formatMoney(displayAmount)}
-                    </div>
-                    <AppIcon
-                      name="chevron-down"
-                      size={14}
-                      strokeWidth={2}
-                      className={`installment-payment-chevron${
-                        paymentExpanded ? ' installment-payment-chevron--expanded' : ''
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                <AccordionCollapse open={paymentExpanded}>
-                  <div className="installment-payment-edit">
-                    <CardInlineAmountEdit
-                      label="مبلغ قسط"
-                      value={
-                        paymentAmounts[paymentIndex] ?? getInstallmentPaymentAmount(payment, plan)
-                      }
-                      onChange={val =>
-                        setPaymentAmounts(prev => ({ ...prev, [paymentIndex]: val }))
-                      }
-                      onBlur={() => handlePaymentAmountSave(paymentIndex)}
-                      onClose={() => setExpandedPaymentIndex(null)}
-                      saving={savingPaymentIndex === paymentIndex}
-                    />
-                  </div>
-                </AccordionCollapse>
-              </div>
-            )
-          })}
+          {sortedPayments.map(({ payment, index: paymentIndex }) => (
+            <InstallmentPaymentItem
+              key={payment.n}
+              plan={plan}
+              payment={payment}
+              paymentIndex={paymentIndex}
+              paymentAmounts={paymentAmounts}
+              expandedPaymentIndex={expandedPaymentIndex}
+              togglingPaymentIndex={togglingPaymentIndex}
+              savingPaymentIndex={savingPaymentIndex}
+              onTogglePayment={onTogglePayment}
+              onPaymentAmountChange={(idx, val) =>
+                setPaymentAmounts(prev => ({ ...prev, [idx]: val }))
+              }
+              onToggleExpand={idx => setExpandedPaymentIndex(prev => (prev === idx ? null : idx))}
+              onPaymentAmountSave={handlePaymentAmountSave}
+              onCloseExpand={() => setExpandedPaymentIndex(null)}
+            />
+          ))}
         </div>
       </AccordionCollapse>
     </div>
