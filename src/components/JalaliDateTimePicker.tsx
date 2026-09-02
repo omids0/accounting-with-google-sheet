@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   daysInCalendarMonth,
   getCalendarMonthWheelItems,
@@ -12,6 +12,7 @@ import {
   formatDateTimePersian,
   fromDateTimeIso,
   getNowDateTimeIso,
+  normalizeDateTimeIso,
   toDateTimeIso,
 } from '../utils/datetime';
 import WheelPicker from './form/WheelPicker';
@@ -123,6 +124,29 @@ function DateTimeWheelFields({
 
   return (
     <div className="jalali-date-picker jalali-datetime-picker">
+      <div className="jalali-datetime-picker-time-group" dir="ltr">
+        <div className="jalali-date-picker-column jalali-datetime-picker-column--time">
+          <span className="jalali-date-picker-label">ساعت</span>
+          <WheelPicker
+            value={String(safeHour)}
+            onChange={(next) => applyChange(year, month, safeDay, Number(next), safeMinute)}
+            aria-label="ساعت"
+            items={hourItems}
+          />
+        </div>
+        <span className="jalali-datetime-picker-time-colon" aria-hidden="true">
+          :
+        </span>
+        <div className="jalali-date-picker-column jalali-datetime-picker-column--time">
+          <span className="jalali-date-picker-label">دقیقه</span>
+          <WheelPicker
+            value={String(safeMinute)}
+            onChange={(next) => applyChange(year, month, safeDay, safeHour, Number(next))}
+            aria-label="دقیقه"
+            items={minuteItems}
+          />
+        </div>
+      </div>
       <div className="jalali-date-picker-column">
         <span className="jalali-date-picker-label">سال</span>
         <WheelPicker
@@ -150,24 +174,6 @@ function DateTimeWheelFields({
           items={dayItems}
         />
       </div>
-      <div className="jalali-date-picker-column jalali-datetime-picker-column--time">
-        <span className="jalali-date-picker-label">ساعت</span>
-        <WheelPicker
-          value={String(safeHour)}
-          onChange={(next) => applyChange(year, month, safeDay, Number(next), safeMinute)}
-          aria-label="ساعت"
-          items={hourItems}
-        />
-      </div>
-      <div className="jalali-date-picker-column jalali-datetime-picker-column--time">
-        <span className="jalali-date-picker-label">دقیقه</span>
-        <WheelPicker
-          value={String(safeMinute)}
-          onChange={(next) => applyChange(year, month, safeDay, safeHour, Number(next))}
-          aria-label="دقیقه"
-          items={minuteItems}
-        />
-      </div>
     </div>
   );
 }
@@ -183,6 +189,7 @@ export default function JalaliDateTimePicker({
   const iso = value || getNowDateTimeIso();
   const [editing, setEditing] = useState(false);
   const [pendingValue, setPendingValue] = useState(iso);
+  const lastOpenRequestTokenRef = useRef(0);
 
   useEffect(() => {
     if (editing) {
@@ -196,7 +203,8 @@ export default function JalaliDateTimePicker({
   }, [minDateTime, editing]);
 
   useEffect(() => {
-    if (!openRequestToken) return;
+    if (!openRequestToken || openRequestToken === lastOpenRequestTokenRef.current) return;
+    lastOpenRequestTokenRef.current = openRequestToken;
     const nextValue = minDateTime ? clampDateTimeToMin(iso, minDateTime) : iso;
     setPendingValue(nextValue);
     setEditing(true);
@@ -213,11 +221,14 @@ export default function JalaliDateTimePicker({
 
   const handleConfirm = () => {
     const next = minDateTime ? clampDateTimeToMin(pendingValue, minDateTime) : pendingValue;
-    onChange(next);
+    const currentValue = value ? normalizeDateTimeIso(value) : '';
+    const nextValue = normalizeDateTimeIso(next);
+    if (nextValue !== currentValue) {
+      onChange(next);
+    }
     setEditing(false);
   };
 
-  const hasPendingChanges = pendingValue !== iso;
   const triggerLabel = value ? formatDateTimePersian(value) : 'انتخاب تاریخ و ساعت';
 
   return (
@@ -245,7 +256,6 @@ export default function JalaliDateTimePicker({
               type="button"
               className="btn btn-primary btn-sm"
               onClick={handleConfirm}
-              disabled={!hasPendingChanges}
             >
               تایید
             </button>

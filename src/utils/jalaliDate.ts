@@ -32,6 +32,10 @@ export function toIsoDate(d: Date): string {
 }
 
 export function getJalaliParts(d: Date): JalaliParts {
+  if (Number.isNaN(d.getTime())) {
+    return getJalaliParts(new Date());
+  }
+
   const parts = new Intl.DateTimeFormat('en-u-ca-persian', {
     year: 'numeric',
     month: 'numeric',
@@ -70,7 +74,13 @@ export function daysInJalaliMonth(jy: number, jm: number): number {
 
 export function isoToJalali(iso: string): JalaliParts {
   if (!iso) return getJalaliParts(new Date());
-  return getJalaliParts(new Date(iso + 'T12:00:00'));
+  const dateOnly = iso.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+    const parsed = new Date(iso);
+    if (!Number.isNaN(parsed.getTime())) return getJalaliParts(parsed);
+    return getJalaliParts(new Date());
+  }
+  return getJalaliParts(new Date(`${dateOnly}T12:00:00`));
 }
 
 export function jalaliToIso(jy: number, jm: number, jd: number): string {

@@ -1470,14 +1470,6 @@ button {
   gap: 1rem;
 }
 
-.jalali-datetime-picker {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.jalali-datetime-picker-column--time {
-  min-width: 3.2rem;
-}
-
 .jalali-datetime-picker-panel {
   overflow-x: auto;
 }
@@ -2874,6 +2866,43 @@ button {
   letter-spacing: 0.02em;
   margin-bottom: 0.15rem;
   text-transform: uppercase;
+}
+
+.jalali-date-picker.jalali-datetime-picker {
+  grid-template-columns: auto 1fr 1.5fr 0.85fr;
+  align-items: end;
+  min-width: min(100%, 22rem);
+}
+
+.jalali-datetime-picker-time-group {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 0.1rem;
+  flex-shrink: 0;
+  padding: 0.2rem 0.35rem 0;
+  margin-inline-start: 0.2rem;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.jalali-datetime-picker-column--time {
+  min-width: 2.75rem;
+  width: 2.75rem;
+}
+
+.jalali-datetime-picker-time-colon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--wheel-item-height, 30px) * 5);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  line-height: 1;
+  user-select: none;
 }
 
 .wheel-picker {
