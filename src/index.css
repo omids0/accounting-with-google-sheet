@@ -1406,6 +1406,7 @@ button {
 }
 
 .timesheet-jira-hours {
+  margin-inline-start: 0.35rem;
   font-size: 0.92rem;
   font-weight: 700;
   color: var(--color-text-muted);

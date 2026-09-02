@@ -210,7 +210,10 @@ export default function TimesheetDetailPage({
       compactFilterChips([
         buildSearchChip(searchQuery, () => setSearchQuery('')),
         datePreset !== 'all' && dateRange
-          ? buildDateRangeChip(formatDateRangeLabel(dateRange), resetDateFilter)
+          ? buildDateRangeChip(
+              formatDateRangeLabel(dateRange),
+              datePreset !== 'month-to-date' ? resetDateFilter : undefined
+            )
           : null,
       ]),
     [searchQuery, datePreset, dateRange, resetDateFilter]
@@ -362,27 +365,6 @@ export default function TimesheetDetailPage({
 
   return (
     <div className="timesheet-detail-page">
-      <div className="stat-grid dashboard-stat-grid timesheet-detail-stats">
-        <div className="stat-card">
-          <span className="stat-label">مجموع کارکرد</span>
-          <div className="timesheet-stat-value">
-            {formatDurationFa(totalMinutes)}
-            {totalMinutes > 0 && (
-              <span className="timesheet-jira-hours" dir="ltr">
-                {' '}
-                ({formatJiraTimesheetHours(totalMinutes)})
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">تعداد رکورد</span>
-          <div className="timesheet-stat-value">
-            {filteredItems.length.toLocaleString('fa-IR')}
-          </div>
-        </div>
-      </div>
-
       <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
 
       <FilterModal
@@ -416,6 +398,26 @@ export default function TimesheetDetailPage({
           dateLoading={loading}
         />
       </FilterModal>
+
+      <div className="stat-grid dashboard-stat-grid timesheet-detail-stats">
+        <div className="stat-card">
+          <span className="stat-label">مجموع کارکرد</span>
+          <div className="timesheet-stat-value">
+            {formatDurationFa(totalMinutes)}
+            {totalMinutes > 0 && (
+              <span className="timesheet-jira-hours" dir="ltr">
+                ({formatJiraTimesheetHours(totalMinutes)})
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">تعداد رکورد</span>
+          <div className="timesheet-stat-value">
+            {filteredItems.length.toLocaleString('fa-IR')}
+          </div>
+        </div>
+      </div>
 
       {loading && items.length === 0 ? (
         <InstallmentCardListSkeleton footerStats={0} />
