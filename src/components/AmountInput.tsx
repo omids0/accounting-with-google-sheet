@@ -1,11 +1,15 @@
+import { useRef } from 'react';
 import { numberToPersianWords } from '../utils/numberToWords';
 import { getCurrencySymbol } from '../utils/formatMoney';
+import AppIcon from './AppIcon';
 
 interface AmountInputProps {
   value: string | number;
   onChange: (value: number | '') => void;
   compact?: boolean;
   onBlur?: () => void;
+  onSubmit?: () => void;
+  submitDisabled?: boolean;
 }
 
 function parseDigitInput(value: string): string {
@@ -20,7 +24,12 @@ export default function AmountInput({
   onChange,
   compact = false,
   onBlur,
+  onSubmit,
+  submitDisabled = false,
 }: AmountInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const skipBlurRef = useRef(false);
+
   const raw = value === '' || value === undefined ? '' : String(Math.trunc(Number(value)));
   const display = raw ? Number(raw).toLocaleString('fa-IR') : '';
   const words = raw ? numberToPersianWords(Number(raw)) : '';
@@ -31,16 +40,52 @@ export default function AmountInput({
     onChange(digits === '' ? '' : Number(digits));
   };
 
+  const handleBlur = () => {
+    if (skipBlurRef.current) {
+      skipBlurRef.current = false;
+      return;
+    }
+    onBlur?.();
+  };
+
+  const handleSubmit = () => {
+    if (!onSubmit || submitDisabled) return;
+    skipBlurRef.current = true;
+    inputRef.current?.blur();
+    onSubmit();
+  };
+
+  const handleSubmitMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
   if (compact) {
     return (
       <div className="amount-field amount-field--compact">
         <div className="amount-field-input-wrap amount-field-input-wrap--compact">
+          {onSubmit && (
+            <button
+              type="button"
+              className="amount-field-submit-btn"
+              onMouseDown={handleSubmitMouseDown}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleSubmit();
+              }}
+              disabled={submitDisabled}
+              aria-label="ثبت"
+            >
+              <AppIcon name="check" size={14} strokeWidth={2.5} />
+            </button>
+          )}
           <input
+            ref={inputRef}
             type="text"
             inputMode="numeric"
             value={display}
             onChange={handleChange}
-            onBlur={onBlur}
+            onBlur={handleBlur}
             dir="ltr"
             placeholder="۰"
             className="amount-field-input amount-input-compact numeric"
@@ -60,7 +105,7 @@ export default function AmountInput({
           inputMode="numeric"
           value={display}
           onChange={handleChange}
-          onBlur={onBlur}
+          onBlur={handleBlur}
           dir="ltr"
           placeholder="۰"
           className="amount-field-input numeric"

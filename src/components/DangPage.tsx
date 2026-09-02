@@ -624,6 +624,7 @@ export default function DangPage({
                         }
                         onChange={(val) => handleAmountChange(item, val)}
                         onBlur={() => handleAmountBlur(item)}
+                        onClose={() => setExpandedId(null)}
                         saving={savingAmountId === item.id}
                       />
                     </div>
