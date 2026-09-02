@@ -2,12 +2,12 @@ import ActiveFilterChips from './ActiveFilterChips'
 import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
-import { createDefaultDateRangeFilter } from './DateRangeFilter'
 import FilterModal from './FilterModal'
 import FormModal from './FormModal'
+import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
-import { InstallmentCardListSkeleton } from './skeleton'
+import { TimesheetDetailListSkeleton } from './skeleton'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import type { Timesheet } from '../types'
@@ -47,81 +47,88 @@ export default function TimesheetDetailPage({
       <FilterModal
         open={page.filterModalOpen}
         onClose={() => page.setFilterModalOpen(false)}
-        onApply={() => {
-          page.setSearchQuery(page.draftSearch)
-          page.setDatePreset(page.draftDatePreset)
-          page.setCustomRange(page.draftCustomRange)
-          page.setFilterModalOpen(false)
-        }}
-        onClear={() => {
-          const defaults = createDefaultDateRangeFilter()
-
-          page.setDraftSearch('')
-          page.setDraftDatePreset(defaults.preset)
-          page.setDraftCustomRange(defaults.customRange)
-        }}
+        onApply={page.applyFilters}
+        onClear={page.clearDraftFilters}
       >
         <PageFilterPanel
           search={page.draftSearch}
           onSearchChange={page.setDraftSearch}
           searchPlaceholder="جستجو در رکوردها..."
+          paymentStatus={page.draftPaymentStatus}
+          onPaymentStatusChange={page.setDraftPaymentStatus}
+          paymentStatusLabel="وضعیت تایید"
+          paymentStatusPaidLabel="تایید شده"
+          paymentStatusUnpaidLabel="تایید نشده"
           datePreset={page.draftDatePreset}
           customRange={page.draftCustomRange}
-          onDateFilterChange={filter => {
-            page.setDraftDatePreset(filter.preset)
-            page.setDraftCustomRange(filter.customRange)
-          }}
+          onDateFilterChange={page.handleDraftDateFilterChange}
           dateIncludeAll
           dateLabel="بازه زمانی (تاریخ شروع)"
           dateLoading={page.loading}
-        />
+        >
+          <ListSortSection
+            options={page.sortOptions}
+            sortId={page.draftSortId}
+            onSortIdChange={page.setDraftSortId}
+            sortDirection={page.draftSortDirection}
+            onSortDirectionChange={page.setDraftSortDirection}
+          />
+        </PageFilterPanel>
       </FilterModal>
 
-      <div className="stat-grid dashboard-stat-grid timesheet-detail-stats">
-        <div className="stat-card">
-          <span className="stat-label">مجموع کارکرد</span>
-          <div className="timesheet-stat-value">
-            {formatDurationFa(page.totalMinutes)}
-            {page.totalMinutes > 0 && (
-              <span className="timesheet-jira-hours" dir="ltr">
-                ({formatJiraTimesheetHours(page.totalMinutes)})
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">تعداد رکورد</span>
-          <div className="timesheet-stat-value">
-            {page.filteredItems.length.toLocaleString('fa-IR')}
-          </div>
-        </div>
-      </div>
-
       {page.loading && page.items.length === 0 ? (
-        <InstallmentCardListSkeleton footerStats={0} />
-      ) : page.items.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">
-            <AppIcon name="clock" />
-          </div>
-          <p>هنوز رکوردی ثبت نشده</p>
-          <button type="button" className="btn btn-primary btn-sm" onClick={page.openCreateForm}>
-            افزودن رکورد
-          </button>
-        </div>
-      ) : page.filteredItems.length === 0 ? (
-        <SearchEmptyState />
+        <TimesheetDetailListSkeleton />
       ) : (
-        page.filteredItems.map(item => (
-          <TimesheetEntryCard
-            key={item.id}
-            item={item}
-            togglingCheckId={page.togglingCheckId}
-            onToggleChecked={page.handleToggleChecked}
-            onEdit={page.openEditForm}
-            onDelete={page.setDeletingItem}
-          />
-        ))
+        <>
+          <div className="stat-grid dashboard-stat-grid timesheet-detail-stats">
+            <div className="stat-card">
+              <span className="stat-label">مجموع کارکرد</span>
+              <div className="timesheet-stat-value">
+                {formatDurationFa(page.totalMinutes)}
+                {page.totalMinutes > 0 && (
+                  <span className="timesheet-jira-hours" dir="ltr">
+                    ({formatJiraTimesheetHours(page.totalMinutes)})
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">تعداد رکورد</span>
+              <div className="timesheet-stat-value">
+                {page.filteredItems.length.toLocaleString('fa-IR')}
+              </div>
+            </div>
+          </div>
+
+          {page.items.length === 0 ? (
+            <div className="empty-state">
+              <div className="icon">
+                <AppIcon name="clock" />
+              </div>
+              <p>هنوز رکوردی ثبت نشده</p>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={page.openCreateForm}
+              >
+                افزودن رکورد
+              </button>
+            </div>
+          ) : page.filteredItems.length === 0 ? (
+            <SearchEmptyState />
+          ) : (
+            page.filteredItems.map(item => (
+              <TimesheetEntryCard
+                key={item.id}
+                item={item}
+                togglingCheckId={page.togglingCheckId}
+                onToggleChecked={page.handleToggleChecked}
+                onEdit={page.openEditForm}
+                onDelete={page.setDeletingItem}
+              />
+            ))
+          )}
+        </>
       )}
 
       <FormModal

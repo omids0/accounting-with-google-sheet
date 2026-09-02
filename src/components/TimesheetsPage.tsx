@@ -4,6 +4,8 @@ import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import FilterModal from './FilterModal'
 import FormModal from './FormModal'
+import ListSortSection from './ListSortSection'
+import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
@@ -44,21 +46,22 @@ export default function TimesheetsPage({
       <FilterModal
         open={page.filterModalOpen}
         onClose={() => page.setFilterModalOpen(false)}
-        onApply={() => {
-          page.setSearchQuery(page.draftSearch)
-          page.setFilterModalOpen(false)
-        }}
-        onClear={() => page.setDraftSearch('')}
+        onApply={page.applyFilters}
+        onClear={page.clearDraftFilters}
       >
-        <FormField label="جستجو">
-          <input
-            type="search"
-            className="form-control"
-            value={page.draftSearch}
-            onChange={e => page.setDraftSearch(e.target.value)}
-            placeholder="جستجو در تایم‌شیت‌ها..."
+        <PageFilterPanel
+          search={page.draftSearch}
+          onSearchChange={page.setDraftSearch}
+          searchPlaceholder="جستجو در تایم‌شیت‌ها..."
+        >
+          <ListSortSection
+            options={page.sortOptions}
+            sortId={page.draftSortId}
+            onSortIdChange={page.setDraftSortId}
+            sortDirection={page.draftSortDirection}
+            onSortDirectionChange={page.setDraftSortDirection}
           />
-        </FormField>
+        </PageFilterPanel>
       </FilterModal>
 
       {page.loading && page.items.length === 0 ? (

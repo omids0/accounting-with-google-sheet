@@ -1,4 +1,4 @@
-export { Skeleton } from './Skeleton';
+export { Skeleton } from './Skeleton'
 export {
   FilterChipsSkeleton,
   ReportToolbarSkeleton,
@@ -11,9 +11,10 @@ export {
   DangCardListSkeleton,
   WalletPageSkeleton,
   RecordListSkeleton,
+  TimesheetDetailListSkeleton,
   DashboardSkeleton,
   TreasurySkeleton,
   SettingsSkeleton,
   FormSkeleton,
-  AppLoadingSkeleton,
-} from './PageSkeletons';
+  AppLoadingSkeleton
+} from './PageSkeletons'

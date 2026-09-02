@@ -45,6 +45,14 @@ export function buildCategoryChip(category: string, onRemove: () => void): Filte
   }
 }
 
+export function buildSortChip(label: string, onRemove: () => void): FilterChip {
+  return {
+    id: 'sort',
+    label: `مرتب‌سازی: ${label}`,
+    onRemove
+  }
+}
+
 export function compactFilterChips(
   chips: Array<FilterChip | null | undefined | false>
 ): FilterChip[] {

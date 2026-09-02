@@ -18,7 +18,8 @@ export {
   InstallmentCardListSkeleton,
   DangCardListSkeleton,
   WalletPageSkeleton,
-  RecordListSkeleton
+  RecordListSkeleton,
+  TimesheetDetailListSkeleton
 } from './ListSkeletons'
 
 export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashboard' | 'report' }) {

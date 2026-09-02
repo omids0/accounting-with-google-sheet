@@ -5,7 +5,7 @@ import {
   submitTimesheetEntry,
   toggleTimesheetEntryChecked
 } from './timesheetEntryMutations'
-import { useTimesheetDetailFilters } from './useTimesheetDetailFilters'
+import { useTimesheetEntryFilters } from './useTimesheetEntryFilters'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
@@ -57,7 +57,7 @@ export function useTimesheetDetailPage(timesheet: Timesheet, onReauth?: () => vo
 
   const dataRevision = useDataRefresh()
 
-  const filters = useTimesheetDetailFilters(items)
+  const filters = useTimesheetEntryFilters(items)
 
   const [form, setForm] = useState({
     title: '',
