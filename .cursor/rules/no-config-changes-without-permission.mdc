@@ -1,0 +1,25 @@
+---
+description: Never change tooling or config files without explicit user permission
+alwaysApply: true
+---
+
+# No Config Changes Without Permission
+
+Never modify project tooling or configuration without the user's explicit approval. This includes, but is not limited to:
+
+- Husky hooks (`.husky/**`)
+- ESLint (`.eslintrc*`, `.eslintignore`, `tools/eslint/**`)
+- Prettier (`.prettierrc*`, `.prettierignore`)
+- TypeScript (`tsconfig*.json`)
+- Playwright / Lighthouse / CI quality scripts (`playwright.config.ts`, `lighthouserc.cjs`, `scripts/**`, `tools/**`)
+- `package.json` scripts and lint-staged settings
+
+## Required behavior
+
+- Do not weaken, bypass, or "fix around" hooks, linters, or quality gates to make a commit or push succeed.
+- If a hook fails, report the failure and ask the user how they want to proceed.
+- Husky checks must apply only to **staged** files. For line-count checks, every staged file (new or modified) must be validated — not just newly added files.
+
+## When blocked
+
+Explain what failed, which file/rule caused it, and wait for user direction before changing any config or hook behavior.
