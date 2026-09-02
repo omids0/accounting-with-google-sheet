@@ -134,6 +134,10 @@
   border-color: var(--color-primary);
 }
 
+.records-sort-direction-grid {
+  margin-top: 0.45rem;
+}
+
 .records-category-select {
   flex: 1;
   min-width: 0;

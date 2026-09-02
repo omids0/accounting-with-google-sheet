@@ -26,6 +26,8 @@ export type UseListFiltersOptions<T> = {
   categorySeed?: string[]
   isSettled?: (item: T) => boolean
   paymentStatusLabels?: PaymentStatusLabels
+  defaultDateFilter?: AppliedDateRangeFilter
+  dateChipLockedPresets?: DateRangeFilterPreset[]
 }
 
 export function useListFilters<T>({
@@ -35,9 +37,13 @@ export function useListFilters<T>({
   getCategory,
   categorySeed = [],
   isSettled,
-  paymentStatusLabels
+  paymentStatusLabels,
+  defaultDateFilter,
+  dateChipLockedPresets = []
 }: UseListFiltersOptions<T>) {
   const hasCategory = Boolean(getCategory)
+
+  const initialDateFilter = defaultDateFilter ?? createAllDateRangeFilter()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [filterModalOpen, setFilterModalOpen] = useState(false)
@@ -45,17 +51,15 @@ export function useListFilters<T>({
   const [draftPaymentStatus, setDraftPaymentStatus] = useState<PaymentStatusFilter>('all')
   const [draftCategory, setDraftCategory] = useState('all')
   const [draftDatePreset, setDraftDatePreset] = useState<DateRangeFilterPreset>(
-    () => createAllDateRangeFilter().preset
+    () => initialDateFilter.preset
   )
-  const [draftCustomRange, setDraftCustomRange] = useState(
-    () => createAllDateRangeFilter().customRange
-  )
+  const [draftCustomRange, setDraftCustomRange] = useState(() => initialDateFilter.customRange)
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<PaymentStatusFilter>('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [datePreset, setDatePreset] = useState<DateRangeFilterPreset>(
-    () => createAllDateRangeFilter().preset
+    () => initialDateFilter.preset
   )
-  const [customRange, setCustomRange] = useState(() => createAllDateRangeFilter().customRange)
+  const [customRange, setCustomRange] = useState(() => initialDateFilter.customRange)
 
   const dateRange = useMemo(
     () => (datePreset === 'all' ? null : resolveDateRange(datePreset, customRange)),
@@ -118,11 +122,9 @@ export function useListFilters<T>({
   }, [searchQuery, paymentStatusFilter, categoryFilter, datePreset, customRange])
 
   const resetDateFilter = useCallback(() => {
-    const defaults = createAllDateRangeFilter()
-
-    setDatePreset(defaults.preset)
-    setCustomRange(defaults.customRange)
-  }, [])
+    setDatePreset(initialDateFilter.preset)
+    setCustomRange(initialDateFilter.customRange)
+  }, [initialDateFilter.customRange, initialDateFilter.preset])
 
   const filterChips = useMemo(
     () =>
@@ -139,7 +141,10 @@ export function useListFilters<T>({
           buildCategoryChip(categoryFilter, () => setCategoryFilter('all')),
         datePreset !== 'all' &&
           dateRange &&
-          buildDateRangeChip(formatDateRangeLabel(dateRange), resetDateFilter)
+          buildDateRangeChip(
+            formatDateRangeLabel(dateRange),
+            dateChipLockedPresets.includes(datePreset) ? undefined : resetDateFilter
+          )
       ]),
     [
       searchQuery,
@@ -149,6 +154,7 @@ export function useListFilters<T>({
       categoryFilter,
       datePreset,
       dateRange,
+      dateChipLockedPresets,
       resetDateFilter
     ]
   )
@@ -159,13 +165,11 @@ export function useListFilters<T>({
   }
 
   const clearDraftFilters = () => {
-    const defaults = createAllDateRangeFilter()
-
     setDraftSearch('')
     setDraftPaymentStatus('all')
     setDraftCategory('all')
-    setDraftDatePreset(defaults.preset)
-    setDraftCustomRange(defaults.customRange)
+    setDraftDatePreset(initialDateFilter.preset)
+    setDraftCustomRange(initialDateFilter.customRange)
   }
 
   const applyFilters = () => {

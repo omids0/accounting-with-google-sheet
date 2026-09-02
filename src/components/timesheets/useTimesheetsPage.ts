@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { useTimesheetsFilters } from './useTimesheetsFilters'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
@@ -17,8 +18,6 @@ import {
   updateTimesheet
 } from '../../services/timesheet'
 import type { Timesheet } from '../../types'
-import { buildSearchChip, compactFilterChips } from '../../utils/filterChips'
-import { matchSearch } from '../../utils/search'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
@@ -45,13 +44,24 @@ export function useTimesheetsPage(onReauth?: () => void) {
 
   const dataRevision = useDataRefresh()
 
-  const [searchQuery, setSearchQuery] = useState('')
-
-  const [filterModalOpen, setFilterModalOpen] = useState(false)
-
-  const [draftSearch, setDraftSearch] = useState('')
-
   const [form, setForm] = useState({ title: '', description: '' })
+
+  const {
+    filterModalOpen,
+    setFilterModalOpen,
+    draftSearch,
+    setDraftSearch,
+    draftSortId,
+    setDraftSortId,
+    draftSortDirection,
+    setDraftSortDirection,
+    sortOptions,
+    filteredItems,
+    filterChips,
+    openFilterModal,
+    applyFilters,
+    clearDraftFilters
+  } = useTimesheetsFilters(items)
 
   const loadItems = useCallback(async () => {
     const settings = getSettings()
@@ -94,11 +104,6 @@ export function useTimesheetsPage(onReauth?: () => void) {
     setShowForm(true)
   }, [])
 
-  const openFilterModal = useCallback(() => {
-    setDraftSearch(searchQuery)
-    setFilterModalOpen(true)
-  }, [searchQuery])
-
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
       exportFn: exportTimesheetsCsv,
@@ -107,19 +112,6 @@ export function useTimesheetsPage(onReauth?: () => void) {
       onComplete: loadItems,
       onReauth
     })
-
-  const filteredItems = useMemo(() => {
-    const query = searchQuery.trim()
-
-    if (!query) return items
-
-    return items.filter(item => matchSearch(query, item.title, item.description))
-  }, [items, searchQuery])
-
-  const filterChips = useMemo(
-    () => compactFilterChips([buildSearchChip(searchQuery, () => setSearchQuery(''))]),
-    [searchQuery]
-  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -213,12 +205,15 @@ export function useTimesheetsPage(onReauth?: () => void) {
     loading,
     saving,
     deleting,
-    searchQuery,
-    setSearchQuery,
     filterModalOpen,
     setFilterModalOpen,
     draftSearch,
     setDraftSearch,
+    draftSortId,
+    setDraftSortId,
+    draftSortDirection,
+    setDraftSortDirection,
+    sortOptions,
     form,
     setForm,
     loadItems,
@@ -227,6 +222,8 @@ export function useTimesheetsPage(onReauth?: () => void) {
     openFilterModal,
     filteredItems,
     filterChips,
+    applyFilters,
+    clearDraftFilters,
     handleSubmit,
     handleDelete,
     pageSpeedDialConfig,

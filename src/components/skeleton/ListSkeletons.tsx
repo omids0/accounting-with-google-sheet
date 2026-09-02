@@ -102,6 +102,22 @@ export function WalletPageSkeleton({ count = 3 }: { count?: number }) {
   )
 }
 
+export function TimesheetDetailListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div aria-busy="true" aria-label="در حال بارگذاری">
+      <div className="stat-grid dashboard-stat-grid timesheet-detail-stats">
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+      </div>
+      <div className="skeleton-list">
+        {Array.from({ length: count }, (_, index) => (
+          <InstallmentCardSkeleton key={index} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function RecordListSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div
