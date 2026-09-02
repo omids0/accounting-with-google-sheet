@@ -67,6 +67,17 @@ import {
 
 type ReceivableWithRow = Receivable & { rowNumber: number };
 
+function getDefaultSettlementIncomeCategory(): string {
+  const incomeForm = getSettings()?.forms.find((f) => f.type === 'income');
+  const options =
+    incomeForm?.fields.find((f) => f.id === 'category')?.options ?? [];
+  return options.includes('طلب') ? 'طلب' : (options[0] ?? 'طلب');
+}
+
+function buildSettlementTitle(debtor: string): string {
+  return `طلب: ${debtor}`;
+}
+
 export default function ReceivablesPage({
   onReauth,
   active = true,
@@ -86,6 +97,7 @@ export default function ReceivablesPage({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [payingId, setPayingId] = useState('');
+  const [settlingId, setSettlingId] = useState('');
   const dataRevision = useDataRefresh();
   const [togglingPaymentId, setTogglingPaymentId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,6 +133,11 @@ export default function ReceivablesPage({
   const [paymentForm, setPaymentForm] = useState<{
     receivableId: string;
     amount: number | '';
+    note: string;
+  } | null>(null);
+  const [settlementForm, setSettlementForm] = useState<{
+    receivableId: string;
+    title: string;
     note: string;
   } | null>(null);
 
@@ -272,6 +289,58 @@ export default function ReceivablesPage({
     }
   };
 
+  const handleSettle = async (receivable: ReceivableWithRow) => {
+    if (!settlementForm || settlementForm.receivableId !== receivable.id) return;
+
+    const settings = getSettings();
+    if (!settings?.spreadsheetId || !isTokenValid()) {
+      onReauth?.();
+      return;
+    }
+
+    const title = settlementForm.title.trim();
+    if (!title) {
+      showError('عنوان درآمد الزامی است');
+      return;
+    }
+
+    const remaining = remainingAmount(receivable);
+    if (remaining <= 0) {
+      showError('این طلب قبلاً تسویه شده است');
+      return;
+    }
+
+    setSettlingId(receivable.id);
+    try {
+      const updated = await addReceivablePayment(settings.spreadsheetId, receivable, {
+        amount: remaining,
+        title,
+        category: getDefaultSettlementIncomeCategory(),
+        note: settlementForm.note.trim(),
+      });
+      setItems((prev) =>
+        sortReceivables(
+          prev.map((item) =>
+            item.id === receivable.id
+              ? { ...updated, rowNumber: receivable.rowNumber }
+              : item
+          )
+        )
+      );
+      setSettlementForm(null);
+      showSuccess('طلب تسویه شد و درآمد ثبت شد');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'خطا در تسویه طلب';
+      if (msg.includes('منقضی') || msg.includes('401')) {
+        onReauth?.();
+        return;
+      }
+      showError(msg);
+    } finally {
+      setSettlingId('');
+    }
+  };
+
   const handleRemovePayment = async (
     receivable: ReceivableWithRow,
     paymentId: string
@@ -369,6 +438,7 @@ export default function ReceivablesPage({
       await deleteReceivable(settings.spreadsheetId, deletingItem.rowNumber, deletingItem);
       if (expandedId === deletingItem.id) setExpandedId(null);
       setPaymentForm(null);
+      setSettlementForm(null);
       setDeletingItem(null);
       showSuccess('طلب حذف شد');
       await loadItems();
@@ -618,6 +688,7 @@ export default function ReceivablesPage({
                   onClick={() => {
                     setExpandedId(expanded ? null : item.id);
                     setPaymentForm(null);
+                    setSettlementForm(null);
                   }}
                 >
                   <div>
@@ -656,6 +727,7 @@ export default function ReceivablesPage({
                       event.stopPropagation();
                       setExpandedId(expanded ? null : item.id);
                       setPaymentForm(null);
+                      setSettlementForm(null);
                     }}
                     ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات طلب'}
                   />
@@ -745,7 +817,7 @@ export default function ReceivablesPage({
                               onClick={() => handleAddPayment(item)}
                             >
                               {payingId === item.id && <span className="spinner" />}
-                              ثبت پرداخت
+                              ثبت بخشی از پرداخت
                             </button>
                             <button
                               type="button"
@@ -756,20 +828,93 @@ export default function ReceivablesPage({
                             </button>
                           </div>
                         </div>
+                      ) : settlementForm?.receivableId === item.id ? (
+                        <div className="receivable-payment-form">
+                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label>عنوان درآمد <span className="required">*</span></label>
+                            <input
+                              type="text"
+                              value={settlementForm.title}
+                              onChange={(e) =>
+                                setSettlementForm((f) =>
+                                  f ? { ...f, title: e.target.value } : f
+                                )
+                              }
+                              placeholder="مثلاً: طلب: علی محمدی"
+                            />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label>مبلغ تسویه</label>
+                            <input
+                              type="text"
+                              value={formatMoney(remaining)}
+                              readOnly
+                              dir="ltr"
+                            />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                            <label>توضیحات</label>
+                            <input
+                              type="text"
+                              value={settlementForm.note}
+                              onChange={(e) =>
+                                setSettlementForm((f) =>
+                                  f ? { ...f, note: e.target.value } : f
+                                )
+                              }
+                              placeholder="اختیاری"
+                            />
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              type="button"
+                              className="btn btn-inflow btn-sm"
+                              disabled={settlingId === item.id}
+                              onClick={() => handleSettle(item)}
+                            >
+                              {settlingId === item.id && <span className="spinner" />}
+                              تسویه
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => setSettlementForm(null)}
+                            >
+                              انصراف
+                            </button>
+                          </div>
+                        </div>
                       ) : (
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-sm"
-                          onClick={() =>
-                            setPaymentForm({
-                              receivableId: item.id,
-                              amount: '',
-                              note: '',
-                            })
-                          }
-                        >
-                          + ثبت پرداخت
-                        </button>
+                        <div className="receivable-add-payment-actions">
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              setSettlementForm(null);
+                              setPaymentForm({
+                                receivableId: item.id,
+                                amount: '',
+                                note: '',
+                              });
+                            }}
+                          >
+                            + ثبت بخشی از پرداخت
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-inflow btn-sm"
+                            onClick={() => {
+                              setPaymentForm(null);
+                              setSettlementForm({
+                                receivableId: item.id,
+                                title: buildSettlementTitle(item.debtor),
+                                note: item.note ?? '',
+                              });
+                            }}
+                          >
+                            تسویه
+                          </button>
+                        </div>
                       )}
                     </div>
                   )}
