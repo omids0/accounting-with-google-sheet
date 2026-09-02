@@ -1,4 +1,5 @@
 import { getItem, setItem, removeItem, STORAGE_KEYS } from './storage';
+import { isLocalhost } from '../utils/localDev';
 import type { GoogleSession } from '../types';
 
 export const GOOGLE_OAUTH_SCOPE =
@@ -24,7 +25,13 @@ const TOKEN_VALIDITY_GRACE_MS = 5_000;
 export function isTokenValid(): boolean {
   const session = getSession();
   if (!session?.accessToken || !session?.tokenExpiry) return false;
+  if (isLocalhost()) return true;
   return Date.now() < session.tokenExpiry - TOKEN_VALIDITY_GRACE_MS;
+}
+
+/** Skip re-login / lock flows on localhost when a session already exists. */
+export function shouldBypassAuthChecks(): boolean {
+  return isLocalhost() && hasStoredSession();
 }
 
 export function isAuthError(err: unknown): boolean {
@@ -38,6 +45,7 @@ export function hasStoredSession(): boolean {
 }
 
 export function shouldRefreshToken(): boolean {
+  if (isLocalhost()) return false;
   const session = getSession();
   if (!session?.accessToken || !session?.tokenExpiry) return false;
   return Date.now() >= session.tokenExpiry - TOKEN_REFRESH_BUFFER_MS;

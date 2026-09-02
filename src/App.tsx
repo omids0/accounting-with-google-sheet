@@ -7,7 +7,12 @@ import Layout from './components/Layout';
 import UnlockScreen from './components/UnlockScreen';
 import { useTokenRefresh } from './hooks/useTokenRefresh';
 import { useAppLock } from './hooks/useAppLock';
-import { hasStoredSession, isAuthError, isTokenValid } from './services/auth';
+import {
+  hasStoredSession,
+  isAuthError,
+  isTokenValid,
+  shouldBypassAuthChecks,
+} from './services/auth';
 import { syncAppLockFromSheet } from './services/appLock';
 import { refreshAccessTokenSilently } from './services/tokenRefresh';
 import { isConfigured } from './services/settings';
@@ -63,6 +68,10 @@ export default function App() {
   const { locked, unlock } = useAppLock();
 
   const handleReauth = useCallback(async () => {
+    if (shouldBypassAuthChecks()) {
+      setNeedsReauth(false);
+      return;
+    }
     if (scriptLoadedSuccessfully && hasStoredSession()) {
       const refreshed = await refreshAccessTokenSilently(clientId);
       if (refreshed && isTokenValid()) {
@@ -77,7 +86,7 @@ export default function App() {
     clientId,
     enabled: hasStoredSession(),
     onRefreshFailed: () => {
-      if (loggedIn) setNeedsReauth(true);
+      if (loggedIn && !shouldBypassAuthChecks()) setNeedsReauth(true);
     },
     onRefreshSuccess: () => {
       if (isTokenValid()) setNeedsReauth(false);
@@ -140,11 +149,11 @@ export default function App() {
         if (!cancelled) {
           const message =
             err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت';
-          if (isAuthError(err)) {
+          if (isAuthError(err) && !shouldBypassAuthChecks()) {
             setLoggedIn(false);
             setNeedsReauth(true);
             setNeedsSheetSetup(false);
-          } else if (isTokenValid()) {
+          } else if (isTokenValid() || shouldBypassAuthChecks()) {
             setLoggedIn(true);
             setNeedsReauth(false);
             setNeedsSheetSetup(false);

@@ -55,6 +55,12 @@ export function formatDurationFa(minutes: number): string {
   return parts.join(' و ') || '۰';
 }
 
+/** Decimal hours as shown in Jira timesheets (e.g. 121.2 = 121h 12m). */
+export function formatJiraTimesheetHours(minutes: number): string {
+  if (minutes <= 0) return '0';
+  return (minutes / 60).toFixed(1);
+}
+
 export function formatDateTimePersian(iso: string): string {
   if (!iso) return '—';
   const { dateIso, hour, minute } = fromDateTimeIso(iso);

@@ -19,6 +19,7 @@ import {
   calcDurationMinutes,
   formatDateTimePersian,
   formatDurationFa,
+  formatJiraTimesheetHours,
   getNowDateTimeIso,
   addMinutesToDateTime,
   syncEndDateTimeFromStart,
@@ -364,7 +365,15 @@ export default function TimesheetDetailPage({
       <div className="stat-grid dashboard-stat-grid timesheet-detail-stats">
         <div className="stat-card">
           <span className="stat-label">مجموع کارکرد</span>
-          <div className="timesheet-stat-value">{formatDurationFa(totalMinutes)}</div>
+          <div className="timesheet-stat-value">
+            {formatDurationFa(totalMinutes)}
+            {totalMinutes > 0 && (
+              <span className="timesheet-jira-hours" dir="ltr">
+                {' '}
+                ({formatJiraTimesheetHours(totalMinutes)})
+              </span>
+            )}
+          </div>
         </div>
         <div className="stat-card">
           <span className="stat-label">تعداد رکورد</span>

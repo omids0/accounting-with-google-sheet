@@ -1,3 +1,4 @@
+import { isLocalhost } from '../utils/localDev';
 import { getUserEmail, getUserName } from './auth';
 import {
   clearAppLockFromSheet,
@@ -114,6 +115,7 @@ async function hashPin(pin: string, salt: Uint8Array): Promise<string> {
 }
 
 export function isAppLockEnabled(): boolean {
+  if (isLocalhost()) return false;
   const config = getAccountConfig();
   return !!(config?.enabled && config.pinHash && config.pinSalt);
 }
