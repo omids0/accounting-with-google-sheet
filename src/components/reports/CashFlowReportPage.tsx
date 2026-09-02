@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
 import { isTokenValid } from '../../services/auth'
 import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { MonthlyFlow } from '../../types'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
+import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
-import { showError } from '../../utils/toast'
 import { IncomeExpenseMonthlyChart } from '../charts'
 import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import YearFilter, { getDefaultChartYear } from '../YearFilter'
-import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
 
 export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void }) {
   const [monthlyFlow, setMonthlyFlow] = useState<MonthlyFlow[]>([])
@@ -43,14 +43,7 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
 
       setMonthlyFlow(dash.yearlyMonthlyFlow)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }

@@ -1,17 +1,8 @@
 import { jalaliToIso, toIsoDate } from './jalaliDate'
-
-const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹'
-
-const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
-
-function toAsciiDigits(text: string): string {
-  return text
-    .replace(/[۰-۹]/g, d => String(PERSIAN_DIGITS.indexOf(d)))
-    .replace(/[٠-٩]/g, d => String(ARABIC_DIGITS.indexOf(d)))
-}
+import { normalizeDigits } from './normalizeDigits'
 
 function parseJalaliDateString(text: string): string | null {
-  const normalized = toAsciiDigits(text.trim())
+  const normalized = normalizeDigits(text.trim())
 
   const match = normalized.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/)
 
@@ -65,7 +56,7 @@ export function normalizeSheetDate(value: unknown): string {
 
   if (jalali) return jalali
 
-  const asciiDigits = toAsciiDigits(text)
+  const asciiDigits = normalizeDigits(text)
 
   if (/^\d+(\.\d+)?$/.test(asciiDigits)) {
     const serial = Number(asciiDigits)

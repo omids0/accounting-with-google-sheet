@@ -10,8 +10,8 @@ import {
 } from '../../services/reports'
 import { getSettings, isConfigured } from '../../services/settings'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { handleSheetError } from '../../utils/sheetError'
 import { distributionSparkline } from '../../utils/sparklineData'
-import { showError } from '../../utils/toast'
 import MoneyDisplay from '../MoneyDisplay'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
@@ -53,14 +53,7 @@ export default function DueDatesReportPage({ onReauth }: { onReauth?: () => void
 
       setItems(dueItems)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }

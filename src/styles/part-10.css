@@ -1,0 +1,281 @@
+.card:hover {
+  box-shadow: var(--shadow);
+}
+
+.card-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+  color: var(--color-primary-dark);
+  letter-spacing: -0.01em;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.app-form {
+  background: var(--form-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) + 2px);
+  padding: 0.85rem 0.75rem 0.9rem;
+  margin-bottom: var(--space-stack);
+  box-shadow: var(--shadow);
+}
+
+.app-form .form-group:last-child,
+.app-form .form-field:last-child {
+  margin-bottom: 0;
+}
+
+.app-form .form-actions {
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.app-form .form-actions .btn {
+  flex: 1;
+  min-width: 7rem;
+}
+
+.form-group,
+.form-field {
+  margin-bottom: var(--form-gap);
+}
+
+.form-field-label,
+.form-group > label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.42rem;
+  color: var(--form-label-color);
+}
+
+.form-field-label-text {
+  line-height: 1.3;
+}
+
+.form-group label .required,
+.form-field .required {
+  color: var(--color-danger);
+  font-weight: 800;
+}
+
+.form-field-control {
+  position: relative;
+}
+
+.form-field-hint,
+.form-hint {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.form-readonly-value {
+  min-height: var(--touch-min);
+  padding: 0.72rem 0.9rem;
+  border: 1px solid var(--form-input-border);
+  border-radius: var(--form-radius);
+  background-color: var(--surface-muted, var(--form-input-bg));
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.form-inline-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.form-inline-actions .jalali-date-picker-wrap {
+  flex: 1;
+}
+
+.form-inline-actions .btn {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.form-control,
+.form-group input:not([type='checkbox']):not([type='radio']),
+.form-group textarea,
+.form-field input:not([type='checkbox']):not([type='radio']),
+.form-field textarea {
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: 0.72rem 0.9rem;
+  border: 1px solid var(--form-input-border);
+  border-radius: var(--form-radius);
+  background-color: var(--form-input-bg);
+  color: var(--color-text);
+  box-shadow: var(--form-input-shadow);
+  line-height: 1.45;
+  transition: border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.form-control:hover:not(:disabled):not(:focus),
+.form-group input:not([type='checkbox']):not([type='radio']):hover:not(:disabled):not(:focus),
+.form-group textarea:hover:not(:disabled):not(:focus),
+.form-field input:not([type='checkbox']):not([type='radio']):hover:not(:disabled):not(:focus),
+.form-field textarea:hover:not(:disabled):not(:focus) {
+  border-color: var(--form-input-border-hover);
+}
+
+.form-control:focus,
+.form-group input:not([type='checkbox']):not([type='radio']):focus,
+.form-group textarea:focus,
+.form-field input:not([type='checkbox']):not([type='radio']):focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--form-input-focus-shadow);
+  background-color: var(--form-input-bg);
+}
+
+.form-control::placeholder,
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.75;
+}
+
+.form-group textarea,
+.form-field textarea,
+.form-note-textarea {
+  resize: vertical;
+  min-height: 5.5rem;
+  line-height: 1.55;
+}
+
+.form-group .loan-rate-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  min-height: auto;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0.55rem 0.65rem;
+}
+
+.form-group .loan-rate-input-wrap input:focus {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.amount-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.amount-field-input-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--form-input-border);
+  border-radius: var(--form-radius);
+  background: var(--form-input-bg);
+  box-shadow: var(--form-input-shadow);
+  overflow: hidden;
+  transition: border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.amount-field-input-wrap:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: var(--form-input-focus-shadow);
+}
+
+.amount-field-input-wrap input,
+.amount-field-input-wrap .amount-input-compact {
+  flex: 1;
+  min-width: 0;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  min-height: var(--touch-min);
+  padding: 0.72rem 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.amount-field-currency {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  background: var(--color-accent-soft);
+  border-right: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.amount-words {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  line-height: 1.55;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border);
+}
+
+.jalali-date-picker-wrap {
+  width: 100%;
+}
+
+.jalali-date-picker-trigger {
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: 0.72rem 0.9rem;
+  border: 1px solid var(--form-input-border);
+  border-radius: var(--form-radius);
+  background-color: var(--form-input-bg);
+  color: var(--color-text);
+  text-align: right;
+  font: inherit;
+  line-height: 1.4;
+  cursor: pointer;
+  box-shadow: var(--form-input-shadow);
+  transition: border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.jalali-date-picker-trigger:hover:not(:disabled) {
+  border-color: var(--form-input-border-hover);
+}
+
+.jalali-date-picker-trigger.is-active,
+.jalali-date-picker-trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--form-input-focus-shadow);
+  background-color: var(--form-input-bg);
+}
+
+.jalali-date-picker-trigger.is-empty {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}

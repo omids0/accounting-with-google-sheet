@@ -12,7 +12,7 @@ import type { FinancialSummary, NetAvailableConfig } from '../types'
 import MoneyDisplay from './MoneyDisplay'
 import ToggleChipGroup from './ToggleChipGroup'
 import { getDateRange, getInstallmentDueRange } from '../utils/dateRange'
-import { showError } from '../utils/toast'
+import { handleSheetError } from '../utils/sheetError'
 
 const ASSET_OPTIONS = [
   { id: 'wallet', label: 'کیف پول' },
@@ -71,14 +71,7 @@ export default function NetAvailableSettingsPage({ onReauth }: { onReauth?: () =
 
       setFinancial(raw)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }

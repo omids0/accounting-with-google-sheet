@@ -1,255 +1,10 @@
-import { type FormEvent, useEffect, useState } from 'react'
-
 import AppIcon from './AppIcon'
-import { FormField } from './form'
-import {
-  changePin,
-  disableAppLock,
-  disableBiometric,
-  enableBiometric,
-  getAppLockConfig,
-  isAppLockEnabled,
-  isBiometricAvailable,
-  isBiometricEnabled,
-  setupAppLock,
-  syncAppLockFromSheet,
-  validatePinFormat
-} from '../services/appLock'
-import { showError, showSuccess } from '../utils/toast'
-
-type SetupStep = 'idle' | 'setup' | 'disable' | 'change-pin' | 'disable-biometric'
+import { ChangePinForm, CurrentPinForm, PinFieldsForm } from './appLock/AppLockForms'
+import { useAppLockSettings } from './appLock/useAppLockSettings'
+import { getAppLockConfig } from '../services/appLock'
 
 export default function AppLockSettings() {
-  const [enabled, setEnabled] = useState(isAppLockEnabled)
-
-  const [biometricAvailable, setBiometricAvailable] = useState(false)
-
-  const [biometricOn, setBiometricOn] = useState(isBiometricEnabled)
-
-  const [step, setStep] = useState<SetupStep>('idle')
-
-  const [pin, setPin] = useState('')
-
-  const [confirmPin, setConfirmPin] = useState('')
-
-  const [currentPin, setCurrentPin] = useState('')
-
-  const [useBiometric, setUseBiometric] = useState(false)
-
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    void isBiometricAvailable().then(setBiometricAvailable)
-    void syncAppLockFromSheet().then(() => {
-      setEnabled(isAppLockEnabled())
-      setBiometricOn(isBiometricEnabled())
-    })
-  }, [])
-
-  const resetForm = () => {
-    setStep('idle')
-    setPin('')
-    setConfirmPin('')
-    setCurrentPin('')
-    setUseBiometric(false)
-  }
-
-  const handleEnable = async (event: FormEvent) => {
-    event.preventDefault()
-
-    const formatError = validatePinFormat(pin)
-
-    if (formatError) {
-      showError(formatError)
-
-      return
-    }
-    if (pin !== confirmPin) {
-      showError('تکرار رمز با رمز اصلی یکسان نیست')
-
-      return
-    }
-
-    setLoading(true)
-    try {
-      await setupAppLock(pin, useBiometric && biometricAvailable)
-      setEnabled(true)
-      setBiometricOn(useBiometric && biometricAvailable)
-      showSuccess('قفل اپ فعال شد')
-      resetForm()
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در فعال‌سازی قفل')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDisable = async (event: FormEvent) => {
-    event.preventDefault()
-    setLoading(true)
-    try {
-      await disableAppLock(currentPin)
-      setEnabled(false)
-      setBiometricOn(false)
-      showSuccess('قفل اپ غیرفعال شد')
-      resetForm()
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در غیرفعال‌سازی')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleChangePin = async (event: FormEvent) => {
-    event.preventDefault()
-
-    const formatError = validatePinFormat(pin)
-
-    if (formatError) {
-      showError(formatError)
-
-      return
-    }
-    if (pin !== confirmPin) {
-      showError('تکرار رمز با رمز جدید یکسان نیست')
-
-      return
-    }
-
-    setLoading(true)
-    try {
-      await changePin(currentPin, pin)
-      showSuccess('رمز جدید ذخیره شد')
-      resetForm()
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در تغییر رمز')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleEnableBiometric = async () => {
-    setLoading(true)
-    try {
-      await enableBiometric()
-      setBiometricOn(true)
-      showSuccess('اثر انگشت فعال شد')
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در فعال‌سازی اثر انگشت')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDisableBiometric = async (event: FormEvent) => {
-    event.preventDefault()
-    setLoading(true)
-    try {
-      await disableBiometric(currentPin)
-      setBiometricOn(false)
-      showSuccess('اثر انگشت غیرفعال شد')
-      resetForm()
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در غیرفعال‌سازی اثر انگشت')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const renderPinFields = (
-    pinValue: string,
-    onPinChange: (value: string) => void,
-    confirmValue: string,
-    onConfirmChange: (value: string) => void,
-    submitLabel: string,
-    onSubmit: (event: FormEvent) => void
-  ) => (
-    <form onSubmit={onSubmit} className="app-lock-form">
-      <FormField label={step === 'change-pin' ? 'رمز جدید' : 'رمز'}>
-        <input
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
-          value={pinValue}
-          onChange={e => onPinChange(e.target.value.replace(/\D/g, ''))}
-          placeholder="حداقل ۴ رقم"
-          disabled={loading}
-          dir="ltr"
-        />
-      </FormField>
-      <FormField label="تکرار رمز">
-        <input
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
-          value={confirmValue}
-          onChange={e => onConfirmChange(e.target.value.replace(/\D/g, ''))}
-          placeholder="تکرار رمز"
-          disabled={loading}
-          dir="ltr"
-        />
-      </FormField>
-      {step === 'setup' && biometricAvailable && (
-        <label className="app-lock-checkbox">
-          <input
-            type="checkbox"
-            checked={useBiometric}
-            onChange={e => setUseBiometric(e.target.checked)}
-            disabled={loading}
-          />
-          <span>ورود با اثر انگشت (در صورت پشتیبانی دستگاه)</span>
-        </label>
-      )}
-      <div className="app-lock-form-actions">
-        <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
-          {loading && <span className="spinner" />}
-          {submitLabel}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={resetForm}
-          disabled={loading}
-        >
-          انصراف
-        </button>
-      </div>
-    </form>
-  )
-
-  const renderCurrentPinField = (submitLabel: string, onSubmit: (event: FormEvent) => void) => (
-    <form onSubmit={onSubmit} className="app-lock-form">
-      <FormField label="رمز فعلی">
-        <input
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
-          value={currentPin}
-          onChange={e => setCurrentPin(e.target.value.replace(/\D/g, ''))}
-          placeholder="رمز فعلی"
-          disabled={loading}
-          dir="ltr"
-        />
-      </FormField>
-      <div className="app-lock-form-actions">
-        <button type="submit" className="btn btn-danger btn-sm" disabled={loading}>
-          {loading && <span className="spinner" />}
-          {submitLabel}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={resetForm}
-          disabled={loading}
-        >
-          انصراف
-        </button>
-      </div>
-    </form>
-  )
+  const lock = useAppLockSettings()
 
   return (
     <div className="card">
@@ -260,8 +15,10 @@ export default function AppLockSettings() {
       </p>
 
       <div className="app-lock-status">
-        <span className={`status-badge ${enabled ? 'status-connected' : 'status-disconnected'}`}>
-          {enabled ? (
+        <span
+          className={`status-badge ${lock.enabled ? 'status-connected' : 'status-disconnected'}`}
+        >
+          {lock.enabled ? (
             <>
               <AppIcon name="lock" size={12} strokeWidth={2.5} />
               فعال
@@ -273,7 +30,7 @@ export default function AppLockSettings() {
             </>
           )}
         </span>
-        {enabled && biometricOn && (
+        {lock.enabled && lock.biometricOn && (
           <span className="status-badge status-connected">
             <AppIcon name="fingerprint" size={12} strokeWidth={2.5} />
             اثر انگشت
@@ -281,39 +38,57 @@ export default function AppLockSettings() {
         )}
       </div>
 
-      {step === 'idle' && !enabled && (
-        <button type="button" className="btn btn-primary btn-sm" onClick={() => setStep('setup')}>
+      {lock.step === 'idle' && !lock.enabled && (
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+          onClick={() => lock.setStep('setup')}
+        >
           فعال‌سازی قفل اپ
         </button>
       )}
 
-      {step === 'setup' &&
-        renderPinFields(pin, setPin, confirmPin, setConfirmPin, 'فعال‌سازی', handleEnable)}
+      {lock.step === 'setup' && (
+        <PinFieldsForm
+          step={lock.step}
+          loading={lock.loading}
+          pinValue={lock.pin}
+          confirmValue={lock.confirmPin}
+          useBiometric={lock.useBiometric}
+          biometricAvailable={lock.biometricAvailable}
+          submitLabel="فعال‌سازی"
+          onPinChange={lock.setPin}
+          onConfirmChange={lock.setConfirmPin}
+          onUseBiometricChange={lock.setUseBiometric}
+          onSubmit={lock.handleEnable}
+          onCancel={lock.resetForm}
+        />
+      )}
 
-      {step === 'idle' && enabled && (
+      {lock.step === 'idle' && lock.enabled && (
         <div className="app-lock-actions">
           <button
             type="button"
             className="btn btn-secondary btn-sm"
-            onClick={() => setStep('change-pin')}
+            onClick={() => lock.setStep('change-pin')}
           >
             تغییر رمز
           </button>
-          {biometricAvailable && !biometricOn && (
+          {lock.biometricAvailable && !lock.biometricOn && (
             <button
               type="button"
               className="btn btn-secondary btn-sm"
-              onClick={() => void handleEnableBiometric()}
-              disabled={loading}
+              onClick={() => void lock.handleEnableBiometric()}
+              disabled={lock.loading}
             >
               فعال‌سازی اثر انگشت
             </button>
           )}
-          {biometricOn && (
+          {lock.biometricOn && (
             <button
               type="button"
               className="btn btn-secondary btn-sm"
-              onClick={() => setStep('disable-biometric')}
+              onClick={() => lock.setStep('disable-biometric')}
             >
               غیرفعال‌سازی اثر انگشت
             </button>
@@ -321,77 +96,50 @@ export default function AppLockSettings() {
           <button
             type="button"
             className="btn btn-danger btn-sm"
-            onClick={() => setStep('disable')}
+            onClick={() => lock.setStep('disable')}
           >
             غیرفعال کردن قفل
           </button>
         </div>
       )}
 
-      {step === 'disable' && renderCurrentPinField('غیرفعال کردن قفل', handleDisable)}
-
-      {step === 'disable-biometric' &&
-        renderCurrentPinField('غیرفعال کردن اثر انگشت', handleDisableBiometric)}
-
-      {step === 'change-pin' && (
-        <form onSubmit={handleChangePin} className="app-lock-form">
-          <FormField label="رمز فعلی">
-            <input
-              type="password"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              autoComplete="off"
-              value={currentPin}
-              onChange={e => setCurrentPin(e.target.value.replace(/\D/g, ''))}
-              placeholder="رمز فعلی"
-              disabled={loading}
-              dir="ltr"
-            />
-          </FormField>
-          <FormField label="رمز جدید">
-            <input
-              type="password"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              autoComplete="off"
-              value={pin}
-              onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
-              placeholder="حداقل ۴ رقم"
-              disabled={loading}
-              dir="ltr"
-            />
-          </FormField>
-          <FormField label="تکرار رمز جدید">
-            <input
-              type="password"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              autoComplete="off"
-              value={confirmPin}
-              onChange={e => setConfirmPin(e.target.value.replace(/\D/g, ''))}
-              placeholder="تکرار رمز"
-              disabled={loading}
-              dir="ltr"
-            />
-          </FormField>
-          <div className="app-lock-form-actions">
-            <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
-              {loading && <span className="spinner" />}
-              ذخیره رمز جدید
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={resetForm}
-              disabled={loading}
-            >
-              انصراف
-            </button>
-          </div>
-        </form>
+      {lock.step === 'disable' && (
+        <CurrentPinForm
+          loading={lock.loading}
+          currentPin={lock.currentPin}
+          submitLabel="غیرفعال کردن قفل"
+          onCurrentPinChange={lock.setCurrentPin}
+          onSubmit={lock.handleDisable}
+          onCancel={lock.resetForm}
+        />
       )}
 
-      {enabled && step === 'idle' && getAppLockConfig() && (
+      {lock.step === 'disable-biometric' && (
+        <CurrentPinForm
+          loading={lock.loading}
+          currentPin={lock.currentPin}
+          submitLabel="غیرفعال کردن اثر انگشت"
+          onCurrentPinChange={lock.setCurrentPin}
+          onSubmit={lock.handleDisableBiometric}
+          onCancel={lock.resetForm}
+        />
+      )}
+
+      {lock.step === 'change-pin' && (
+        <ChangePinForm
+          loading={lock.loading}
+          currentPin={lock.currentPin}
+          pin={lock.pin}
+          confirmPin={lock.confirmPin}
+          onCurrentPinChange={lock.setCurrentPin}
+          onPinChange={lock.setPin}
+          onConfirmPinChange={lock.setConfirmPin}
+          onSubmit={lock.handleChangePin}
+          onCancel={lock.resetForm}
+        />
+      )}
+
+      {lock.enabled && lock.step === 'idle' && getAppLockConfig() && (
         <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.75rem' }}>
           رمز روی همه دستگاه‌ها یکسان است. اثر انگشت را در هر دستگاه جداگانه فعال کنید.
         </p>

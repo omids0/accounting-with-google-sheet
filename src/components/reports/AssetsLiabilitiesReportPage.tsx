@@ -6,7 +6,7 @@ import { getSettings, getNetAvailableConfig, isConfigured } from '../../services
 import type { DashboardData } from '../../types'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
-import { showError } from '../../utils/toast'
+import { handleSheetError } from '../../utils/sheetError'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import { DashboardSkeleton } from '../skeleton'
 import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
@@ -55,14 +55,7 @@ export default function AssetsLiabilitiesReportPage({ onReauth }: { onReauth?: (
 
       setData(dash)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری'
-
-      if (msg.includes('منقضی') || msg.includes('401')) {
-        onReauth?.()
-
-        return
-      }
-      showError(msg)
+      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }

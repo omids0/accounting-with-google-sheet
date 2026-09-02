@@ -1,0 +1,150 @@
+import { useState } from 'react'
+
+import type { CheckFormState, CheckWithRow } from './types'
+import { isTokenValid } from '../../services/auth'
+import { createCheck, updateCheck } from '../../services/checks'
+import { getSettings, isConfigured } from '../../services/settings'
+import type { Check } from '../../types'
+import { getTodayIso } from '../../utils/jalaliDate'
+import { handleSheetError } from '../../utils/sheetError'
+import { showError, showSuccess } from '../../utils/toast'
+
+type UseChecksFormOptions = {
+  onReauth?: () => void
+  onSaved: () => Promise<void>
+}
+
+export function useChecksForm({ onReauth, onSaved }: UseChecksFormOptions) {
+  const [showForm, setShowForm] = useState(false)
+  const [editingItem, setEditingItem] = useState<CheckWithRow | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState<CheckFormState>({
+    checkNumber: '',
+    counterparty: '',
+    amount: '',
+    creationDate: getTodayIso(),
+    dueDate: getTodayIso()
+  })
+
+  const resetCreateForm = () => {
+    setForm({
+      checkNumber: '',
+      counterparty: '',
+      amount: '',
+      creationDate: getTodayIso(),
+      dueDate: getTodayIso()
+    })
+  }
+
+  const openCreateForm = () => {
+    setEditingItem(null)
+    resetCreateForm()
+    setShowForm(true)
+  }
+
+  const openEditForm = (item: CheckWithRow) => {
+    setEditingItem(item)
+    setForm({
+      checkNumber: item.checkNumber,
+      counterparty: item.counterparty,
+      amount: item.amount,
+      creationDate: item.creationDate,
+      dueDate: item.dueDate
+    })
+    setShowForm(true)
+  }
+
+  const closeForm = () => {
+    if (saving) return
+    setShowForm(false)
+    setEditingItem(null)
+    resetCreateForm()
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!isConfigured() || !isTokenValid()) {
+      onReauth?.()
+
+      return
+    }
+
+    if (!form.checkNumber.trim()) {
+      showError('شماره چک الزامی است')
+
+      return
+    }
+    if (!form.counterparty.trim()) {
+      showError('طرف حساب الزامی است')
+
+      return
+    }
+    if (!form.amount || Number(form.amount) <= 0) {
+      showError('مبلغ را وارد کنید')
+
+      return
+    }
+    if (!form.creationDate) {
+      showError('تاریخ صدور الزامی است')
+
+      return
+    }
+    if (!form.dueDate) {
+      showError('تاریخ سررسید الزامی است')
+
+      return
+    }
+
+    const settings = getSettings()!
+
+    setSaving(true)
+    try {
+      if (editingItem) {
+        const updated: Check = {
+          ...editingItem,
+          checkNumber: form.checkNumber.trim(),
+          counterparty: form.counterparty.trim(),
+          amount: Number(form.amount),
+          creationDate: form.creationDate,
+          dueDate: form.dueDate
+        }
+
+        await updateCheck(settings.spreadsheetId, editingItem.rowNumber, updated)
+        showSuccess('چک ویرایش شد')
+      } else {
+        await createCheck(settings.spreadsheetId, {
+          checkNumber: form.checkNumber.trim(),
+          counterparty: form.counterparty.trim(),
+          amount: Number(form.amount),
+          creationDate: form.creationDate,
+          dueDate: form.dueDate
+        })
+        showSuccess('چک جدید ثبت شد')
+      }
+      closeForm()
+      await onSaved()
+    } catch (err) {
+      if (
+        handleSheetError(err, {
+          onReauth,
+          fallbackMessage: editingItem ? 'خطا در ویرایش چک' : 'خطا در ثبت چک'
+        })
+      )
+        return
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return {
+    showForm,
+    editingItem,
+    saving,
+    form,
+    setForm,
+    openCreateForm,
+    openEditForm,
+    closeForm,
+    handleSubmit
+  }
+}
