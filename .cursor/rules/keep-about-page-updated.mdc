@@ -1,0 +1,37 @@
+---
+description: Keep the About page in sync when features change
+alwaysApply: true
+---
+
+# Keep About Page Updated
+
+The in-app **About** section (`src/components/about/`) documents every feature for end users. It must stay accurate.
+
+## When to update
+
+Update the About content whenever you:
+
+- Add, remove, or rename a feature, page, tab, or menu item
+- Change what a feature does in a user-visible way
+- Add or remove settings, reports, calculators, or import/export support
+- Change platform behavior users should know about (PWA, sync, auth, lock, etc.)
+
+## What to update
+
+1. **Feature copy** — edit the matching group in:
+   - `src/components/about/aboutFeatureGroupsCore.ts`
+   - `src/components/about/aboutFeatureGroupsExtended.ts`
+2. **New section** — add a new `AboutFeatureGroup` with `id`, `title`, `icon`, `summary`, and `features[]`.
+3. **Navigation** — if the feature has a new sidebar/menu entry, ensure About mentions where users find it.
+4. **Version** — bump `APP_VERSION` in `AboutPage.tsx` when shipping a release that changes documented behavior.
+
+## Checklist before finishing feature work
+
+- [ ] About text reflects the new or changed behavior
+- [ ] No stale references to removed features
+- [ ] Persian copy is clear and matches UI labels (e.g. tab titles in `layout/types.ts`)
+
+## Do not
+
+- Skip About updates because the change "seems small" — users rely on this page to discover capabilities.
+- Duplicate README/dev docs here — About is user-facing, in Persian, feature-by-feature.

@@ -27,6 +27,7 @@ export type Tab =
   | 'report-checks'
   | 'timesheets'
   | 'timesheet-detail'
+  | 'about'
 
 export const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter', 'date-calculator']
 
@@ -87,7 +88,8 @@ export const TAB_TITLES: Record<Tab, string> = {
   'report-installments': 'گزارش اقساط',
   'report-checks': 'گزارش چک‌ها',
   timesheets: 'تایم‌شیت',
-  'timesheet-detail': 'جزئیات تایم‌شیت'
+  'timesheet-detail': 'جزئیات تایم‌شیت',
+  about: 'درباره'
 }
 
 export interface LayoutProps {
