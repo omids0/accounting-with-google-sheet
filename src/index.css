@@ -3943,6 +3943,12 @@ button {
   border-top: 1px solid var(--color-border);
 }
 
+.receivable-add-payment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .receivable-payment-form {
   padding: 0.75rem;
   background: var(--form-input-bg);

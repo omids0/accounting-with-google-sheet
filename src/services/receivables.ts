@@ -163,13 +163,13 @@ export async function createReceivable(
 export async function addReceivablePayment(
   spreadsheetId: string,
   receivable: Receivable & { rowNumber: number },
-  payment: { amount: number; note?: string }
+  payment: { amount: number; note?: string; title?: string; category?: string }
 ): Promise<Receivable> {
   const paidAt = getTodayIso();
   const transactionRecordId = await createLinkedIncomeRecord(spreadsheetId, {
-    title: `طلب: ${receivable.debtor}`,
+    title: payment.title ?? `طلب: ${receivable.debtor}`,
     amount: payment.amount,
-    category: receivable.category,
+    category: payment.category ?? receivable.category,
     date: paidAt,
     note: payment.note ?? receivable.note,
   });
