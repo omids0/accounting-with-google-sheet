@@ -7,8 +7,11 @@ import {
   jalaliDatePickerMonthColumnClass,
   jalaliDateTimePickerClass,
   jalaliDateTimePickerColonClass,
+  jalaliDateTimePickerColonSpacerClass,
   jalaliDateTimePickerTimeColumnClass,
-  jalaliDateTimePickerTimeGroupClass
+  jalaliDateTimePickerTimeGroupClass,
+  jalaliDateTimePickerTimeLabelsClass,
+  jalaliDateTimePickerTimeWheelsClass
 } from './ui/datePickerStyles'
 import { cn } from '../utils/cn'
 import {
@@ -117,26 +120,31 @@ export default function DateTimeWheelFields({
   return (
     <div className={jalaliDateTimePickerClass}>
       <div className={jalaliDateTimePickerTimeGroupClass} dir="ltr">
-        <div className={cn(jalaliDatePickerColumnClass, jalaliDateTimePickerTimeColumnClass)}>
-          <span className={jalaliDatePickerLabelClass}>ساعت</span>
-          <WheelPicker
-            value={String(safeHour)}
-            onChange={next => applyChange(year, month, safeDay, Number(next), safeMinute)}
-            aria-label="ساعت"
-            items={hourItems}
-          />
+        <div className={jalaliDateTimePickerTimeLabelsClass}>
+          <span className={cn(jalaliDatePickerLabelClass, 'jalali-date-picker-label')}>ساعت</span>
+          <span className={jalaliDateTimePickerColonSpacerClass} aria-hidden="true" />
+          <span className={cn(jalaliDatePickerLabelClass, 'jalali-date-picker-label')}>دقیقه</span>
         </div>
-        <span className={jalaliDateTimePickerColonClass} aria-hidden="true">
-          :
-        </span>
-        <div className={cn(jalaliDatePickerColumnClass, jalaliDateTimePickerTimeColumnClass)}>
-          <span className={jalaliDatePickerLabelClass}>دقیقه</span>
-          <WheelPicker
-            value={String(safeMinute)}
-            onChange={next => applyChange(year, month, safeDay, safeHour, Number(next))}
-            aria-label="دقیقه"
-            items={minuteItems}
-          />
+        <div className={jalaliDateTimePickerTimeWheelsClass}>
+          <div className={cn(jalaliDatePickerColumnClass, jalaliDateTimePickerTimeColumnClass)}>
+            <WheelPicker
+              value={String(safeHour)}
+              onChange={next => applyChange(year, month, safeDay, Number(next), safeMinute)}
+              aria-label="ساعت"
+              items={hourItems}
+            />
+          </div>
+          <span className={jalaliDateTimePickerColonClass} aria-hidden="true">
+            :
+          </span>
+          <div className={cn(jalaliDatePickerColumnClass, jalaliDateTimePickerTimeColumnClass)}>
+            <WheelPicker
+              value={String(safeMinute)}
+              onChange={next => applyChange(year, month, safeDay, safeHour, Number(next))}
+              aria-label="دقیقه"
+              items={minuteItems}
+            />
+          </div>
         </div>
       </div>
       <div className={jalaliDatePickerColumnClass}>

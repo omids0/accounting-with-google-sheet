@@ -1,6 +1,7 @@
 import { APP_LOCK_POLICY_OPTIONS, IDLE_MINUTE_OPTIONS } from '../../services/appLockPolicy'
 import type { AppLockPolicy } from '../../types'
 import { cn } from '../../utils/cn'
+import type { AppIconName } from '../AppIcon'
 import AppIcon from '../AppIcon'
 import { FormSelect } from '../form'
 import {
@@ -9,9 +10,12 @@ import {
   appLockPolicyListClass,
   appLockPolicyOptionClass,
   appLockPolicyOptionDescriptionClass,
+  appLockPolicyOptionIconClass,
   appLockPolicyOptionLabelClass,
   appLockPolicyOptionMainClass,
-  appLockPolicyOptionRadioClass
+  appLockPolicyOptionRadioClass,
+  appLockSectionClass,
+  appLockSectionTitleClass
 } from '../ui/appLockStyles'
 import Button from '../ui/Button'
 import {
@@ -20,6 +24,14 @@ import {
   formFieldLabelTextClass,
   formGroupClass
 } from '../ui/formControlStyles'
+
+const POLICY_ICONS: Record<AppLockPolicy, AppIconName> = {
+  background: 'swap',
+  session: 'clock',
+  always: 'lock',
+  idle: 'clock',
+  manual: 'settings'
+}
 
 interface AppLockPolicySettingsProps {
   policy: AppLockPolicy
@@ -37,10 +49,12 @@ export default function AppLockPolicySettings({
   onLockNow
 }: AppLockPolicySettingsProps) {
   return (
-    <div className={appLockPolicyClass}>
+    <section className={cn(appLockSectionClass, appLockPolicyClass)}>
+      <h3 className={appLockSectionTitleClass}>زمان درخواست رمز</h3>
+
       <div className={cn(formFieldClass, formGroupClass)}>
         <span className={formFieldLabelClass}>
-          <span className={formFieldLabelTextClass}>زمان درخواست رمز</span>
+          <span className={formFieldLabelTextClass}>سیاست قفل</span>
         </span>
 
         <div className={appLockPolicyListClass} role="radiogroup" aria-label="زمان درخواست رمز">
@@ -57,10 +71,13 @@ export default function AppLockPolicySettings({
                 onClick={() => onPolicyChange(option.value)}
               >
                 <span className={appLockPolicyOptionMainClass}>
-                  <span className={appLockPolicyOptionRadioClass(selected)} aria-hidden="true">
-                    {selected && <AppIcon name="check" size={12} strokeWidth={2.5} />}
+                  <span className={appLockPolicyOptionIconClass(selected)} aria-hidden="true">
+                    <AppIcon name={POLICY_ICONS[option.value]} size={16} strokeWidth={2.1} />
                   </span>
                   <span className={appLockPolicyOptionLabelClass}>{option.label}</span>
+                  <span className={appLockPolicyOptionRadioClass(selected)} aria-hidden="true">
+                    {selected && <AppIcon name="check" size={10} strokeWidth={2.5} />}
+                  </span>
                 </span>
                 <span className={appLockPolicyOptionDescriptionClass}>{option.description}</span>
               </button>
@@ -88,6 +105,6 @@ export default function AppLockPolicySettings({
           قفل الان
         </Button>
       )}
-    </div>
+    </section>
   )
 }

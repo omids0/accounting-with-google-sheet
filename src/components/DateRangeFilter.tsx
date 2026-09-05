@@ -160,7 +160,6 @@ export default function DateRangeFilter({
             <Button
               type="button"
               variant="primary"
-              size="sm"
               onClick={handleConfirmCustom}
               disabled={loading || !hasPendingCustomChanges}
             >

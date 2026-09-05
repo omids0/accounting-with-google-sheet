@@ -10,7 +10,7 @@ export function progressBarClass({
   animated?: boolean
   className?: string
 }) {
-  return cn('mt-[0.4rem]', !animated && progressBarStaticClass, className)
+  return cn('mt-1.5', !animated && progressBarStaticClass, className)
 }
 
 export const progressBarStaticClass =

@@ -42,7 +42,10 @@ export const recordsFilterLabelClass = 'shrink-0 text-[0.75rem] font-semibold te
 
 export const recordsFilterLabelInlineClass = 'min-w-[4.25rem]'
 
-export const recordsFilterActionsClass = 'flex [&_.btn]:flex-1'
+export const recordsFilterActionsClass = cn(
+  'flex w-full flex-col gap-2',
+  '[&_button]:!w-full [&_button]:min-h-[2.65rem] [&_button]:px-4 [&_button]:text-[0.88rem]'
+)
 
 export const recordsDateGridClass = cn(
   'grid grid-cols-2 gap-[0.4rem]',

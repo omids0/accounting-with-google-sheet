@@ -196,11 +196,10 @@ export default function JalaliDatePicker({
       {editing && (
         <div className={jalaliDatePickerPanelClass}>
           <CalendarWheelFields calendar={calendar} iso={pendingIso} onIsoChange={setPendingIso} />
-          <div className={cn('records-filter-actions', jalaliDatePickerActionsClass)}>
+          <div className={jalaliDatePickerActionsClass}>
             <Button
               type="button"
               variant="primary"
-              size="sm"
               onClick={handleConfirm}
               disabled={!hasPendingChanges}
             >
