@@ -1,6 +1,9 @@
+import { Suspense } from 'react'
+import { Outlet } from 'react-router-dom'
+
 import PageSpeedDial from '../PageSpeedDial'
+import { AppLoadingSkeleton } from '../skeleton'
 import LayoutBottomNav from './LayoutBottomNav'
-import LayoutContent from './LayoutContent'
 import LayoutHeader from './LayoutHeader'
 import LayoutMenu from './LayoutMenu'
 import type { LayoutProps } from './types'
@@ -10,7 +13,6 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
   const {
     tab,
     dataKey,
-    setDataKey,
     showSettings,
     menuOpen,
     setMenuOpen,
@@ -20,31 +22,26 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     setReportsMenuExpanded,
     timesheetMenuExpanded,
     setTimesheetMenuExpanded,
-    selectedTimesheet,
-    recordsFormType,
-    entryFormType,
     userName,
     userPicture,
     pageSpeedDialConfig,
     showPageSpeedDial,
-    openTimesheetDetail,
     openTimesheetsList,
     handleTabChange,
-    openRecords,
-    openEntry,
     openSettings,
     showHeaderBack,
     isCalculationTab,
     isReportTab,
     isTimesheetTab,
-    headerTitle
-  } = useLayoutNavigation()
+    headerTitle,
+    outletContext
+  } = useLayoutNavigation({ onLogout, onReauth })
 
   return (
     <div className="app-layout">
       <LayoutHeader
         menuOpen={menuOpen}
-        onToggleMenu={() => setMenuOpen(v => !v)}
+        onToggleMenu={() => setMenuOpen(value => !value)}
         showHeaderBack={showHeaderBack}
         headerTitle={headerTitle}
         showSettings={showSettings}
@@ -62,32 +59,24 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         isCalculationTab={isCalculationTab}
         isTimesheetTab={isTimesheetTab}
         reportsMenuExpanded={reportsMenuExpanded}
-        onToggleReportsMenu={() => setReportsMenuExpanded(v => !v)}
+        onToggleReportsMenu={() => setReportsMenuExpanded(value => !value)}
         calcMenuExpanded={calcMenuExpanded}
-        onToggleCalcMenu={() => setCalcMenuExpanded(v => !v)}
+        onToggleCalcMenu={() => setCalcMenuExpanded(value => !value)}
         timesheetMenuExpanded={timesheetMenuExpanded}
-        onToggleTimesheetMenu={() => setTimesheetMenuExpanded(v => !v)}
+        onToggleTimesheetMenu={() => setTimesheetMenuExpanded(value => !value)}
         showSettings={showSettings}
         onTabChange={handleTabChange}
         onOpenSettings={openSettings}
         onOpenTimesheetsList={openTimesheetsList}
       />
 
-      <LayoutContent
-        showSettings={showSettings}
-        onLogout={onLogout}
-        onReauth={onReauth}
-        dataKey={dataKey}
-        onDataKeyChange={() => setDataKey(key => key + 1)}
-        tab={tab}
-        recordsFormType={recordsFormType}
-        entryFormType={entryFormType}
-        selectedTimesheet={selectedTimesheet}
-        onTabChange={handleTabChange}
-        onOpenRecords={openRecords}
-        onOpenEntry={openEntry}
-        onOpenTimesheetDetail={openTimesheetDetail}
-      />
+      <main className="app-main">
+        <div key={showSettings ? 'settings' : String(dataKey)} className="page-content">
+          <Suspense fallback={<AppLoadingSkeleton />}>
+            <Outlet context={outletContext} />
+          </Suspense>
+        </div>
+      </main>
 
       <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />
 

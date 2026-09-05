@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
   CALCULATION_TABS,
@@ -10,20 +11,33 @@ import {
 } from './types'
 import { useEngagementReminders } from '../../hooks/useEngagementReminders'
 import { usePageSpeedDialConfig } from '../../hooks/usePageSpeedDial'
+import type { LayoutOutletContext } from '../../routes/layoutOutletContext'
+import type { TabNavigationOptions } from '../../routes/paths'
+import { getPathForTab, getTabFromPath, isSettingsPath, SETTINGS_PATH } from '../../routes/paths'
 import { getUserName, getUserPicture } from '../../services/auth'
-import type { Timesheet } from '../../types'
+import type { DashboardNavTarget } from '../../types'
 
-export function useLayoutNavigation() {
-  const [tab, setTab] = useState<Tab>('dashboard')
+interface TimesheetRouteState {
+  title?: string
+}
+
+interface UseLayoutNavigationOptions {
+  onLogout: () => void
+  onReauth: () => void
+}
+
+export function useLayoutNavigation({ onLogout, onReauth }: UseLayoutNavigationOptions) {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [dataKey, setDataKey] = useState(0)
-  const [showSettings, setShowSettings] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false)
   const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false)
   const [timesheetMenuExpanded, setTimesheetMenuExpanded] = useState(false)
-  const [selectedTimesheet, setSelectedTimesheet] = useState<Timesheet | null>(null)
-  const [recordsFormType, setRecordsFormType] = useState<'income' | 'expense' | undefined>()
-  const [entryFormType, setEntryFormType] = useState<'income' | 'expense' | undefined>()
+
+  const tab = getTabFromPath(location.pathname)
+  const showSettings = isSettingsPath(location.pathname)
+  const timesheetTitle = (location.state as TimesheetRouteState | null)?.title
 
   const userName = getUserName()
   const userPicture = getUserPicture()
@@ -34,59 +48,66 @@ export function useLayoutNavigation() {
   const showPageSpeedDial =
     !showSettings && SPEED_DIAL_TABS.includes(tab) && pageSpeedDialConfig != null
 
-  const openTimesheetDetail = useCallback((timesheet: Timesheet) => {
-    setSelectedTimesheet(timesheet)
-    setTimesheetMenuExpanded(true)
-    setShowSettings(false)
-    setMenuOpen(false)
-    setTab('timesheet-detail')
-  }, [])
+  const handleTabChange = useCallback(
+    (newTab: Tab, options?: TabNavigationOptions) => {
+      setMenuOpen(false)
+
+      if (CALCULATION_TABS.includes(newTab)) {
+        setCalcMenuExpanded(true)
+      }
+      if (REPORT_TABS.includes(newTab)) {
+        setReportsMenuExpanded(true)
+      }
+      if (TIMESHEET_TABS.includes(newTab)) {
+        setTimesheetMenuExpanded(true)
+      }
+
+      const nextPath = getPathForTab(newTab, options)
+
+      if (newTab === 'timesheet-detail' && options?.timesheetTitle) {
+        navigate(nextPath, { state: { title: options.timesheetTitle } })
+
+        return
+      }
+
+      navigate(nextPath)
+    },
+    [navigate]
+  )
+
+  const onNavigateDashboard = useCallback(
+    (target: DashboardNavTarget) => {
+      handleTabChange(target)
+    },
+    [handleTabChange]
+  )
 
   const openTimesheetsList = useCallback(() => {
-    setShowSettings(false)
     setMenuOpen(false)
     setTimesheetMenuExpanded(true)
-    setTab('timesheets')
-  }, [])
+    navigate('/timesheets')
+  }, [navigate])
 
-  const handleTabChange = useCallback((newTab: Tab) => {
-    setShowSettings(false)
-    setMenuOpen(false)
-    if (newTab !== 'records') setRecordsFormType(undefined)
-    if (newTab !== 'entry') setEntryFormType(undefined)
-    if (CALCULATION_TABS.includes(newTab)) {
-      setCalcMenuExpanded(true)
-    }
-    if (REPORT_TABS.includes(newTab)) {
-      setReportsMenuExpanded(true)
-    }
-    if (TIMESHEET_TABS.includes(newTab)) {
-      setTimesheetMenuExpanded(true)
-    }
-    if (newTab === 'timesheets') {
-      setSelectedTimesheet(null)
-    }
-    setTab(newTab)
-  }, [])
+  const openRecords = useCallback(
+    (formType?: 'income' | 'expense') => {
+      setMenuOpen(false)
+      navigate(getPathForTab('records', { formType }))
+    },
+    [navigate]
+  )
 
-  const openRecords = useCallback((formType?: 'income' | 'expense') => {
-    setShowSettings(false)
-    setMenuOpen(false)
-    setRecordsFormType(formType)
-    setTab('records')
-  }, [])
+  const openEntry = useCallback(
+    (formType?: 'income' | 'expense') => {
+      setMenuOpen(false)
+      navigate(getPathForTab('entry', { formType }))
+    },
+    [navigate]
+  )
 
-  const openEntry = useCallback((formType?: 'income' | 'expense') => {
-    setShowSettings(false)
+  const openSettings = useCallback(() => {
     setMenuOpen(false)
-    setEntryFormType(formType)
-    setTab('entry')
-  }, [])
-
-  const openSettings = () => {
-    setShowSettings(true)
-    setMenuOpen(false)
-  }
+    navigate(SETTINGS_PATH)
+  }, [navigate])
 
   useEffect(() => {
     if (!menuOpen) return
@@ -117,14 +138,26 @@ export function useLayoutNavigation() {
 
   const headerTitle = showSettings
     ? 'تنظیمات'
-    : tab === 'timesheet-detail' && selectedTimesheet
-    ? selectedTimesheet.title
+    : tab === 'timesheet-detail' && timesheetTitle
+    ? timesheetTitle
     : TAB_TITLES[tab]
+
+  const outletContext = useMemo<LayoutOutletContext>(
+    () => ({
+      onReauth,
+      onLogout,
+      onDataKeyChange: () => setDataKey(key => key + 1),
+      onTabChange: handleTabChange,
+      onOpenRecords: openRecords,
+      onOpenEntry: openEntry,
+      onNavigateDashboard
+    }),
+    [handleTabChange, onLogout, onNavigateDashboard, onReauth, openEntry, openRecords]
+  )
 
   return {
     tab,
     dataKey,
-    setDataKey,
     showSettings,
     menuOpen,
     setMenuOpen,
@@ -134,14 +167,10 @@ export function useLayoutNavigation() {
     setReportsMenuExpanded,
     timesheetMenuExpanded,
     setTimesheetMenuExpanded,
-    selectedTimesheet,
-    recordsFormType,
-    entryFormType,
     userName,
     userPicture,
     pageSpeedDialConfig,
     showPageSpeedDial,
-    openTimesheetDetail,
     openTimesheetsList,
     handleTabChange,
     openRecords,
@@ -151,6 +180,7 @@ export function useLayoutNavigation() {
     isCalculationTab,
     isReportTab,
     isTimesheetTab,
-    headerTitle
+    headerTitle,
+    outletContext
   }
 }
