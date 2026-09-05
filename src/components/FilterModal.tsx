@@ -2,7 +2,19 @@ import { useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import { cn } from '../utils/cn'
 import Button from './ui/Button'
+import { formActionsClassName } from './ui/formStyles'
+import {
+  formModalActionsClass,
+  formModalBackdropClass,
+  formModalBodyClass,
+  formModalCloseClass,
+  formModalHeaderClass,
+  formModalPanelClass,
+  formModalRootClass,
+  formModalTitleClass
+} from './ui/modalStyles'
 
 interface FilterModalProps {
   open: boolean
@@ -41,26 +53,31 @@ export default function FilterModal({
 
   return createPortal(
     <div
-      className="form-modal filter-modal"
+      className={cn(formModalRootClass, 'filter-modal')}
       role="dialog"
       aria-modal="true"
       aria-labelledby="filter-modal-title"
     >
-      <button type="button" className="form-modal-backdrop" onClick={onClose} aria-label="بستن" />
+      <button
+        type="button"
+        className={formModalBackdropClass}
+        onClick={onClose}
+        aria-label="بستن"
+      />
 
-      <div className="form-modal-panel filter-modal-panel">
-        <div className="form-modal-header">
-          <h2 id="filter-modal-title" className="form-modal-title">
+      <div className={cn(formModalPanelClass, 'filter-modal-panel')}>
+        <div className={formModalHeaderClass}>
+          <h2 id="filter-modal-title" className={formModalTitleClass}>
             {title}
           </h2>
-          <button type="button" className="form-modal-close" onClick={onClose} aria-label="بستن">
+          <button type="button" className={formModalCloseClass} onClick={onClose} aria-label="بستن">
             <AppIcon name="close" size={18} strokeWidth={2} />
           </button>
         </div>
 
-        <div className="form-modal-body filter-modal-body">{children}</div>
+        <div className={cn(formModalBodyClass, 'filter-modal-body')}>{children}</div>
 
-        <div className="form-actions form-modal-actions filter-modal-actions">
+        <div className={cn(formModalActionsClass, formActionsClassName(), 'filter-modal-actions')}>
           {onClear && (
             <Button
               type="button"

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import AppIcon from './AppIcon'
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel'
 import Button from './ui/Button'
+import { animateInClass } from './ui/layoutStyles'
 import { syncAppLockFromSheet } from '../services/appLock'
 import { saveSession, createSession, fetchUserProfile, GOOGLE_OAUTH_SCOPE } from '../services/auth'
 import {
@@ -12,6 +13,7 @@ import {
   resolveSpreadsheetSession
 } from '../services/spreadsheetSetup'
 import type { SpreadsheetEntry } from '../types'
+import { cn } from '../utils/cn'
 import { showError } from '../utils/toast'
 
 type Step = 'login' | 'setup'
@@ -101,7 +103,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
   return (
     <div className="login-page">
-      <div className="login-card animate-in">
+      <div className={cn('login-card', animateInClass)}>
         <div className="login-logo">
           <span className="icon">
             <AppIcon name="dashboard" />

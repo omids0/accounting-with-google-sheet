@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { useSyncStatus } from '../hooks/useSyncStatus'
+import { syncStatusBadgeClass, syncStatusDotClass, syncStatusLabelClass } from './ui/layoutStyles'
 
 function formatRelativeTime(timestamp: number | null): string {
   if (!timestamp) return 'هنوز همگام نشده'
@@ -28,6 +29,8 @@ function formatRelativeTime(timestamp: number | null): string {
   })
 }
 
+type SyncStatus = 'online' | 'syncing' | 'offline' | 'error'
+
 export default function SyncStatusBadge() {
   const { connection, syncState, lastSyncedAt, pendingWrites, lastError } = useSyncStatus()
 
@@ -42,7 +45,7 @@ export default function SyncStatusBadge() {
     return formatRelativeTime(lastSyncedAt)
   }, [connection, syncState, lastSyncedAt, pendingWrites, lastError])
 
-  const statusClass =
+  const status: SyncStatus =
     connection === 'offline'
       ? 'offline'
       : syncState === 'syncing' || pendingWrites > 0
@@ -53,11 +56,11 @@ export default function SyncStatusBadge() {
 
   return (
     <div
-      className={`sync-status-badge sync-status-badge--${statusClass}`}
+      className={syncStatusBadgeClass}
       title={lastError ?? `آخرین بروزرسانی: ${formatRelativeTime(lastSyncedAt)}`}
     >
-      <span className="sync-status-dot" aria-hidden="true" />
-      <span className="sync-status-label">{label}</span>
+      <span className={syncStatusDotClass(status)} aria-hidden="true" />
+      <span className={syncStatusLabelClass}>{label}</span>
     </div>
   )
 }

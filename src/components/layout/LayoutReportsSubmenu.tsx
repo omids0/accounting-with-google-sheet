@@ -1,4 +1,5 @@
 import type { Tab } from './types'
+import { appMenuItemClass, appMenuSubmenuClass, appMenuSubmenuLabelClass } from '../ui/layoutStyles'
 
 interface LayoutReportsSubmenuProps {
   tab: Tab
@@ -7,102 +8,90 @@ interface LayoutReportsSubmenuProps {
 
 export default function LayoutReportsSubmenu({ tab, onTabChange }: LayoutReportsSubmenuProps) {
   return (
-    <div className="app-menu-submenu">
-      <div className="app-menu-submenu-label">خلاصه</div>
+    <div className={appMenuSubmenuClass}>
+      <div className={appMenuSubmenuLabelClass}>خلاصه</div>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${
-          tab === 'report-financial-summary' ? ' active' : ''
-        }`}
+        className={appMenuItemClass(tab === 'report-financial-summary', 'sub')}
         onClick={() => onTabChange('report-financial-summary')}
       >
         خلاصه مالی
       </button>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${
-          tab === 'report-income-expense' ? ' active' : ''
-        }`}
+        className={appMenuItemClass(tab === 'report-income-expense', 'sub')}
         onClick={() => onTabChange('report-income-expense')}
       >
         درآمد و هزینه
       </button>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${tab === 'report-cash-flow' ? ' active' : ''}`}
+        className={appMenuItemClass(tab === 'report-cash-flow', 'sub')}
         onClick={() => onTabChange('report-cash-flow')}
       >
         جریان نقدی
       </button>
-      <div className="app-menu-submenu-label">ترکیبی</div>
+      <div className={appMenuSubmenuLabelClass}>ترکیبی</div>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${tab === 'report-due-dates' ? ' active' : ''}`}
+        className={appMenuItemClass(tab === 'report-due-dates', 'sub')}
         onClick={() => onTabChange('report-due-dates')}
       >
         سررسیدها
       </button>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${
-          tab === 'report-assets-liabilities' ? ' active' : ''
-        }`}
+        className={appMenuItemClass(tab === 'report-assets-liabilities', 'sub')}
         onClick={() => onTabChange('report-assets-liabilities')}
       >
         دارایی و بدهی
       </button>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${
-          tab === 'report-opening-balances' ? ' active' : ''
-        }`}
+        className={appMenuItemClass(tab === 'report-opening-balances', 'sub')}
         onClick={() => onTabChange('report-opening-balances')}
       >
         موجودی اول دوره
       </button>
-      <div className="app-menu-submenu-label">تفصیلی</div>
+      <div className={appMenuSubmenuLabelClass}>تفصیلی</div>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${tab === 'report-wallet' ? ' active' : ''}`}
+        className={appMenuItemClass(tab === 'report-wallet', 'sub')}
         onClick={() => onTabChange('report-wallet')}
       >
         کیف پول
       </button>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${tab === 'report-treasury' ? ' active' : ''}`}
+        className={appMenuItemClass(tab === 'report-treasury', 'sub')}
         onClick={() => onTabChange('report-treasury')}
       >
         صندوقچه
       </button>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${
-          tab === 'report-receivables' ? ' active' : ''
-        }`}
+        className={appMenuItemClass(tab === 'report-receivables', 'sub')}
         onClick={() => onTabChange('report-receivables')}
       >
         طلب‌ها
       </button>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${tab === 'report-dang' ? ' active' : ''}`}
+        className={appMenuItemClass(tab === 'report-dang', 'sub')}
         onClick={() => onTabChange('report-dang')}
       >
         بدهی‌ها
       </button>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${
-          tab === 'report-installments' ? ' active' : ''
-        }`}
+        className={appMenuItemClass(tab === 'report-installments', 'sub')}
         onClick={() => onTabChange('report-installments')}
       >
         اقساط
       </button>
       <button
         type="button"
-        className={`app-menu-item app-menu-item--sub${tab === 'report-checks' ? ' active' : ''}`}
+        className={appMenuItemClass(tab === 'report-checks', 'sub')}
         onClick={() => onTabChange('report-checks')}
       >
         چک‌ها

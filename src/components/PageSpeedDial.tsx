@@ -1,6 +1,19 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 
 import SpeedDialIcon from './SpeedDialIcon'
+import { cn } from '../utils/cn'
+import {
+  fabContainerClass,
+  speedDialActionClass,
+  speedDialActionIconClass,
+  speedDialActionWrapClass,
+  speedDialActionsClass,
+  speedDialBackdropClass,
+  speedDialClass,
+  speedDialContainerClass,
+  speedDialTriggerClass,
+  speedDialTriggerIconClass
+} from './ui/layoutStyles'
 import { getPageSpeedDialConfig, type PageSpeedDialAction } from '../hooks/usePageSpeedDial'
 
 export default function PageSpeedDial({
@@ -33,24 +46,24 @@ export default function PageSpeedDial({
       {open && (
         <button
           type="button"
-          className="speed-dial-backdrop"
+          className={speedDialBackdropClass}
           onClick={handleClose}
           aria-label="بستن"
         />
       )}
 
-      <div className="fab-container speed-dial-container">
-        <div className={`speed-dial${open ? ' speed-dial--open' : ''}`}>
-          <div className="speed-dial-actions" role="menu">
+      <div className={cn(fabContainerClass, speedDialContainerClass)}>
+        <div className={speedDialClass}>
+          <div className={speedDialActionsClass} role="menu">
             {actions.map((action, index) => (
               <div
                 key={action.id}
-                className="speed-dial-action-wrap"
+                className={speedDialActionWrapClass(open)}
                 style={{ '--action-index': index } as CSSProperties}
               >
                 <button
                   type="button"
-                  className={['speed-dial-action', action.className].filter(Boolean).join(' ')}
+                  className={action.className ?? speedDialActionClass}
                   role="menuitem"
                   onClick={() => {
                     const latest = getPageSpeedDialConfig()?.actions.find(
@@ -64,7 +77,7 @@ export default function PageSpeedDial({
                   disabled={action.disabled}
                   aria-label={action.label}
                 >
-                  <span className="speed-dial-action-icon">{action.icon}</span>
+                  <span className={speedDialActionIconClass}>{action.icon}</span>
                 </button>
               </div>
             ))}
@@ -72,13 +85,13 @@ export default function PageSpeedDial({
 
           <button
             type="button"
-            className={`fab speed-dial-trigger${open ? ' speed-dial-trigger--open' : ''}`}
+            className={speedDialTriggerClass(open)}
             onClick={() => (open ? handleClose() : handleOpen())}
             aria-label={ariaLabel}
             aria-expanded={open}
             aria-haspopup="menu"
           >
-            <span className="speed-dial-trigger-icon">
+            <span className={speedDialTriggerIconClass(open)}>
               {open ? <SpeedDialIcon name="close" /> : <SpeedDialIcon name="add" />}
             </span>
           </button>

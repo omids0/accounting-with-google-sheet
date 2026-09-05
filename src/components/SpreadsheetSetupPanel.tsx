@@ -13,6 +13,8 @@ import {
 import type { SpreadsheetEntry } from '../types'
 import AppIcon from './AppIcon'
 import { FormField, FormSelect } from './form'
+import { animateInClass } from './ui/layoutStyles'
+import { cn } from '../utils/cn'
 import Button from './ui/Button'
 import { showError } from '../utils/toast'
 
@@ -79,7 +81,7 @@ export default function SpreadsheetSetupPanel({
 
   return (
     <div className="login-page">
-      <div className="login-card animate-in">
+      <div className={cn('login-card', animateInClass)}>
         <div className="login-logo">
           <span className="icon">
             <AppIcon name="folder" />

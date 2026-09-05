@@ -1,6 +1,12 @@
 import AppIcon from './AppIcon'
 import { DashboardSkeleton } from './skeleton'
 import SpeedDialIcon from './SpeedDialIcon'
+import {
+  speedDialActionExpenseClass,
+  speedDialActionIncomeClass,
+  speedDialTypeIconExpenseClass,
+  speedDialTypeIconIncomeClass
+} from './ui/layoutStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
@@ -21,9 +27,9 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
               label: dashboard.incomeFormName,
 
-              icon: <span className="speed-dial-type-icon speed-dial-type-icon--income">+</span>,
+              icon: <span className={speedDialTypeIconIncomeClass}>+</span>,
 
-              className: 'speed-dial-action--income',
+              className: speedDialActionIncomeClass,
 
               onClick: () => useNavigationStore.getState().onOpenEntry('income')
             },
@@ -33,9 +39,9 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
               label: dashboard.expenseFormName,
 
-              icon: <span className="speed-dial-type-icon speed-dial-type-icon--expense">−</span>,
+              icon: <span className={speedDialTypeIconExpenseClass}>−</span>,
 
-              className: 'speed-dial-action--expense',
+              className: speedDialActionExpenseClass,
 
               onClick: () => useNavigationStore.getState().onOpenEntry('expense')
             },

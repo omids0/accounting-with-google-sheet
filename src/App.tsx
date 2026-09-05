@@ -7,6 +7,7 @@ import LoginPage from './components/LoginPage'
 import { AppLoadingSkeleton } from './components/skeleton'
 import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel'
 import Alert from './components/ui/Alert'
+import { animateInClass } from './components/ui/layoutStyles'
 import UnlockScreen from './components/UnlockScreen'
 import { useAppLock } from './hooks/useAppLock'
 import { useTokenRefresh } from './hooks/useTokenRefresh'
@@ -23,11 +24,12 @@ import {
 import { refreshAccessTokenSilently } from './services/tokenRefresh'
 import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
+import { cn } from './utils/cn'
 
 function ConfigNotice() {
   return (
     <div className="login-page">
-      <div className="login-card animate-in">
+      <div className={cn('login-card', animateInClass)}>
         <div className="login-logo">
           <span className="icon">
             <AppIcon name="warning" />

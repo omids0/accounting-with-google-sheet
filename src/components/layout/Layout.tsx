@@ -4,6 +4,7 @@ import LayoutMenu from './LayoutMenu'
 import LayoutPageOutlet from './LayoutPageOutlet'
 import PageSpeedDial from '../PageSpeedDial'
 import { useLayoutNavigation } from './useLayoutNavigation'
+import { appLayoutClass, appMainClass } from '../ui/layoutStyles'
 
 export default function Layout() {
   const {
@@ -34,7 +35,7 @@ export default function Layout() {
   } = useLayoutNavigation()
 
   return (
-    <div className="app-layout">
+    <div className={appLayoutClass}>
       <LayoutHeader
         menuOpen={menuOpen}
         onToggleMenu={() => setMenuOpen(value => !value)}
@@ -65,7 +66,7 @@ export default function Layout() {
         onOpenTimesheetsList={openTimesheetsList}
       />
 
-      <main className="app-main">
+      <main className={appMainClass}>
         <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
       </main>
 

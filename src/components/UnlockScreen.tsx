@@ -3,8 +3,10 @@ import { type FormEvent, useEffect, useRef, useState } from 'react'
 import AppIcon from './AppIcon'
 import Alert from './ui/Alert'
 import Button from './ui/Button'
+import { animateInClass } from './ui/layoutStyles'
 import { isBiometricEnabled, verifyBiometric, verifyPin } from '../services/appLock'
 import { getUserName } from '../services/auth'
+import { cn } from '../utils/cn'
 
 interface UnlockScreenProps {
   onUnlock: () => void
@@ -82,7 +84,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
 
   return (
     <div className="login-page">
-      <div className="login-card animate-in unlock-card">
+      <div className={cn('login-card', animateInClass, 'unlock-card')}>
         <div className="login-logo">
           <span className="icon">
             <AppIcon name="lock" />
