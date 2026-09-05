@@ -18,7 +18,6 @@ import {
 } from './appLockStorage'
 import { clearAppLockFromSheet, fetchAppLockFromSheet, saveAppLockToSheet } from './appLockSync'
 import type { AppLockAccountConfig, AppLockConfig } from '../types'
-import { isLocalhost } from '../utils/localDev'
 
 const PIN_MIN_LENGTH = 4
 
@@ -37,8 +36,6 @@ async function syncAccountToSheet(config: AppLockAccountConfig): Promise<void> {
 }
 
 export function isAppLockEnabled(): boolean {
-  if (isLocalhost()) return false
-
   const config = getAccountConfig()
 
   return !!(config?.enabled && config.pinHash && config.pinSalt)
