@@ -1,5 +1,7 @@
 import { getUserEmail, getUserPicture, isTokenValid } from '../../services/auth'
 import AppIcon from '../AppIcon'
+import Button from '../ui/Button'
+import Card, { CardTitle } from '../ui/Card'
 
 type SettingsGoogleAccountCardProps = {
   onLogout: () => void
@@ -7,8 +9,8 @@ type SettingsGoogleAccountCardProps = {
 
 export default function SettingsGoogleAccountCard({ onLogout }: SettingsGoogleAccountCardProps) {
   return (
-    <div className="card">
-      <h2 className="card-title">حساب گوگل</h2>
+    <Card>
+      <CardTitle>حساب گوگل</CardTitle>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         {getUserPicture() && (
           <img
@@ -38,9 +40,9 @@ export default function SettingsGoogleAccountCard({ onLogout }: SettingsGoogleAc
           </span>
         </div>
       </div>
-      <button className="btn btn-danger btn-sm" onClick={onLogout} style={{ marginTop: '0.75rem' }}>
+      <Button variant="danger" size="sm" onClick={onLogout} style={{ marginTop: '0.75rem' }}>
         خروج
-      </button>
-    </div>
+      </Button>
+    </Card>
   )
 }

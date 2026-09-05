@@ -2,14 +2,16 @@ import AppIcon from './AppIcon'
 import { ChangePinForm, CurrentPinForm, PinFieldsForm } from './appLock/AppLockForms'
 import AppLockPolicySettings from './appLock/AppLockPolicySettings'
 import { useAppLockSettings } from './appLock/useAppLockSettings'
+import Button from './ui/Button'
+import Card, { CardTitle } from './ui/Card'
 import { getAppLockConfig } from '../services/appLock'
 
 export default function AppLockSettings() {
   const lock = useAppLockSettings()
 
   return (
-    <div className="card">
-      <h2 className="card-title">قفل اپ</h2>
+    <Card>
+      <CardTitle>قفل اپ</CardTitle>
       <p className="app-lock-intro">
         رمز قفل در Google Sheet ذخیره می‌شود و روی همه دستگاه‌ها یکسان است. اثر انگشت و زمان درخواست
         رمز فقط روی همین دستگاه تنظیم می‌شود.
@@ -50,13 +52,9 @@ export default function AppLockSettings() {
       )}
 
       {lock.step === 'idle' && !lock.enabled && (
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          onClick={() => lock.setStep('setup')}
-        >
+        <Button type="button" variant="primary" size="sm" onClick={() => lock.setStep('setup')}>
           فعال‌سازی قفل اپ
-        </button>
+        </Button>
       )}
 
       {lock.step === 'setup' && (
@@ -78,39 +76,38 @@ export default function AppLockSettings() {
 
       {lock.step === 'idle' && lock.enabled && (
         <div className="app-lock-actions">
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary btn-sm"
+            variant="secondary"
+            size="sm"
             onClick={() => lock.setStep('change-pin')}
           >
             تغییر رمز
-          </button>
+          </Button>
           {lock.biometricAvailable && !lock.biometricOn && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-sm"
+              variant="secondary"
+              size="sm"
               onClick={() => void lock.handleEnableBiometric()}
               disabled={lock.loading}
             >
               فعال‌سازی اثر انگشت
-            </button>
+            </Button>
           )}
           {lock.biometricOn && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-sm"
+              variant="secondary"
+              size="sm"
               onClick={() => lock.setStep('disable-biometric')}
             >
               غیرفعال‌سازی اثر انگشت
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
-            className="btn btn-danger btn-sm"
-            onClick={() => lock.setStep('disable')}
-          >
+          <Button type="button" variant="danger" size="sm" onClick={() => lock.setStep('disable')}>
             غیرفعال کردن قفل
-          </button>
+          </Button>
         </div>
       )}
 
@@ -155,6 +152,6 @@ export default function AppLockSettings() {
           رمز روی همه دستگاه‌ها یکسان است. اثر انگشت را در هر دستگاه جداگانه فعال کنید.
         </p>
       )}
-    </div>
+    </Card>
   )
 }

@@ -61,7 +61,7 @@ export default function TreasuryBuyFormModal({
       onSubmit={handleSubmit}
       saving={saving}
       saveLabel={editingTx ? 'ذخیره تغییرات' : 'ذخیره خرید'}
-      saveButtonClassName="btn btn-outflow"
+      saveButtonVariant="outflow"
     >
       <FormSelect
         label="نوع دارایی"

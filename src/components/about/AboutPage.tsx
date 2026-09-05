@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import AppIcon from '../AppIcon'
 import { ABOUT_FEATURE_GROUPS } from './aboutFeatures'
 import AboutFeatureSection from './AboutFeatureSection'
+import { cardClassName } from '../ui/Card'
 
 const APP_VERSION = '1.0.0'
 
@@ -24,7 +25,7 @@ export default function AboutPage() {
 
   return (
     <div className="about-page">
-      <header className="about-hero card">
+      <header className={cardClassName('about-hero')}>
         <div className="about-hero-icon" aria-hidden="true">
           <AppIcon name="dashboard" size={36} strokeWidth={1.5} />
         </div>
@@ -49,7 +50,7 @@ export default function AboutPage() {
         />
       ))}
 
-      <footer className="about-footer card">
+      <footer className={cardClassName('about-footer')}>
         <p>
           داده‌ها در Google Drive شخصی شما ذخیره می‌شوند. برای ورود به Google ممکن است در برخی مناطق
           به VPN نیاز باشد.

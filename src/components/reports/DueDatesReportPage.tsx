@@ -16,6 +16,7 @@ import MoneyDisplay from '../MoneyDisplay'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
+import Card from '../ui/Card'
 
 const STATUS_LABELS: Record<DueDateStatus, string> = {
   overdue: 'سررسید گذشته',
@@ -141,12 +142,12 @@ export default function DueDatesReportPage() {
       </div>
 
       {!grouped.length ? (
-        <div className="card">
+        <Card>
           <p className="empty-text">سررسیدی در این بازه ثبت نشده</p>
-        </div>
+        </Card>
       ) : (
         grouped.map(group => (
-          <div key={group.status} className="card">
+          <Card key={group.status}>
             <h3 className="chart-title">{STATUS_LABELS[group.status]}</h3>
             {group.items.map((item, index) => (
               <TransactionListItem
@@ -164,7 +165,7 @@ export default function DueDatesReportPage() {
                 </div>
               </TransactionListItem>
             ))}
-          </div>
+          </Card>
         ))
       )}
     </div>

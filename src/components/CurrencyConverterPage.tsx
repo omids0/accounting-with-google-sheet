@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import AppIcon from './AppIcon'
 import { FormField, FormSelect } from './form'
+import Button from './ui/Button'
+import Card, { CardTitle } from './ui/Card'
 import {
   EXCHANGE_CURRENCY_OPTIONS,
   fetchTgjuExchangeRates,
@@ -106,18 +108,19 @@ export default function CurrencyConverterPage() {
 
   return (
     <div className="currency-converter-page">
-      <div className="card currency-converter-form-card">
+      <Card className="currency-converter-form-card">
         <div className="currency-converter-header">
-          <h3 className="card-title">تبدیل ارز</h3>
-          <button
+          <CardTitle>تبدیل ارز</CardTitle>
+          <Button
             type="button"
-            className="btn btn-secondary btn-sm"
+            variant="secondary"
+            size="sm"
             onClick={loadRates}
             disabled={loading}
           >
             <AppIcon name="refresh" size={16} strokeWidth={2} />
             {loading ? 'در حال بروزرسانی...' : 'بروزرسانی نرخ'}
-          </button>
+          </Button>
         </div>
 
         <p className="currency-converter-hint">
@@ -174,10 +177,10 @@ export default function CurrencyConverterPage() {
         {lastUpdated && (
           <p className="currency-converter-updated-at">آخرین بروزرسانی نرخ: {lastUpdated}</p>
         )}
-      </div>
+      </Card>
 
       {hasValidInput ? (
-        <div className="card dashboard-hero-card currency-converter-result-card">
+        <Card className="dashboard-hero-card currency-converter-result-card">
           <div className="dashboard-hero-label">معادل {getExchangeCurrencyLabel(toCurrency)}</div>
           <div className="currency-converter-result-value" dir="ltr">
             {formatCurrencyAmount(roundedConverted, toCurrency, displayOptions)}
@@ -187,15 +190,15 @@ export default function CurrencyConverterPage() {
               {numberToPersianWords(Math.round(displayConverted.amount))} {displayConverted.symbol}
             </p>
           )}
-        </div>
+        </Card>
       ) : (
-        <div className="card currency-converter-empty-card">
+        <Card className="currency-converter-empty-card">
           <p className="empty-text">
             {loading && !rates
               ? 'در حال دریافت نرخ ارز...'
               : 'پس از وارد کردن مبلغ، نتیجه تبدیل اینجا نمایش داده می‌شود.'}
           </p>
-        </div>
+        </Card>
       )}
     </div>
   )

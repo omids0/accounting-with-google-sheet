@@ -14,6 +14,7 @@ import { formatDurationFa, formatJiraTimesheetHours } from '../utils/datetime'
 import TimesheetEntryCard from './timesheets/TimesheetEntryCard'
 import TimesheetEntryFormModal from './timesheets/TimesheetEntryFormModal'
 import { useTimesheetDetailPage } from './timesheets/useTimesheetDetailPage'
+import Button from './ui/Button'
 
 export default function TimesheetDetailPage({
   timesheet,
@@ -103,13 +104,9 @@ export default function TimesheetDetailPage({
                 <AppIcon name="clock" />
               </div>
               <p>هنوز رکوردی ثبت نشده</p>
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={page.openCreateForm}
-              >
+              <Button type="button" variant="primary" size="sm" onClick={page.openCreateForm}>
                 افزودن رکورد
-              </button>
+              </Button>
             </div>
           ) : page.filteredItems.length === 0 ? (
             <SearchEmptyState />

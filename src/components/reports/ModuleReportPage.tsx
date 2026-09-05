@@ -18,6 +18,8 @@ import ConfirmActionModal from '../ConfirmActionModal'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
 
 export type { ModuleReportKind } from './moduleReportData'
 
@@ -96,7 +98,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
         showDateFilter={false}
       />
 
-      <div className="card report-export-card">
+      <Card className="report-export-card">
         <div className="report-export-card-body">
           <span className="report-export-icon">
             <AppIcon name={config.icon} size={22} />
@@ -106,16 +108,17 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
             <div className="report-export-hint">دانلود گزارش کامل این بخش</div>
           </div>
         </div>
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary btn-sm"
+          variant="secondary"
+          size="sm"
           onClick={() => setShowExportConfirm(true)}
           disabled={exporting}
         >
           <AppIcon name="pdf" size={16} />
           PDF
-        </button>
-      </div>
+        </Button>
+      </Card>
 
       <StatCard
         label="مجموع"
@@ -139,7 +142,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
         />
       )}
 
-      <div className="card">
+      <Card>
         {!data?.rows.length ? (
           <p className="empty-text">موردی برای نمایش وجود ندارد</p>
         ) : (
@@ -151,7 +154,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
             </TransactionListItem>
           ))
         )}
-      </div>
+      </Card>
 
       <ConfirmActionModal
         open={showExportConfirm}

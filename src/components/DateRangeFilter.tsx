@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import JalaliDatePicker from './JalaliDatePicker'
+import Button from './ui/Button'
 import {
   getDateRange,
   RECORDS_DATE_RANGE_PRESETS,
@@ -147,14 +148,15 @@ export default function DateRangeFilter({
             />
           </div>
           <div className="records-filter-actions">
-            <button
+            <Button
               type="button"
-              className="btn btn-primary btn-sm"
+              variant="primary"
+              size="sm"
               onClick={handleConfirmCustom}
               disabled={loading || !hasPendingCustomChanges}
             >
               تایید بازه
-            </button>
+            </Button>
           </div>
         </div>
       )}

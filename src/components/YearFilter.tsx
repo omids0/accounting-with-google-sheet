@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 
 import WheelPicker from './form/WheelPicker'
+import Button from './ui/Button'
 import { formatJalaliYear } from '../utils/dateRange'
 import { getJalaliParts } from '../utils/jalaliDate'
 
@@ -59,15 +60,15 @@ export default function YearFilter({
   const hasPendingChanges = Number(pendingYear) !== year
 
   const trigger = (
-    <button
+    <Button
       type="button"
-      className={`btn btn-secondary btn-sm year-filter-trigger${
-        editing ? ' year-filter-trigger-active' : ''
-      }`}
+      variant="secondary"
+      size="sm"
+      className={`year-filter-trigger${editing ? ' year-filter-trigger-active' : ''}`}
       onClick={handleToggle}
     >
       {formatJalaliYear(year)}
-    </button>
+    </Button>
   )
 
   const panel = editing ? (
@@ -85,14 +86,15 @@ export default function YearFilter({
         />
       </div>
       <div className="records-filter-actions">
-        <button
+        <Button
           type="button"
-          className="btn btn-primary btn-sm"
+          variant="primary"
+          size="sm"
           onClick={handleConfirm}
           disabled={loading || !hasPendingChanges}
         >
           تایید سال
-        </button>
+        </Button>
       </div>
     </div>
   ) : null

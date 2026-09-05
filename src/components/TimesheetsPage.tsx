@@ -7,6 +7,7 @@ import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
+import Button from './ui/Button'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
@@ -67,9 +68,9 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
 
           <p>هنوز تایم‌شیتی ثبت نشده</p>
 
-          <button type="button" className="btn btn-primary btn-sm" onClick={page.openCreateForm}>
+          <Button type="button" variant="primary" size="sm" onClick={page.openCreateForm}>
             افزودن تایم‌شیت
-          </button>
+          </Button>
         </div>
       ) : page.filteredItems.length === 0 ? (
         <SearchEmptyState />

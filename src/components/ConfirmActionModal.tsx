@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import Button from './ui/Button'
 
 type ConfirmActionModalProps = {
   open: boolean
@@ -78,22 +79,12 @@ export default function ConfirmActionModal({
 
         <div className="form-actions form-modal-actions">
           {confirming && <span className="spinner form-modal-spinner" aria-hidden />}
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={confirming}
-            onClick={onConfirm}
-          >
+          <Button type="button" variant="primary" disabled={confirming} onClick={onConfirm}>
             {confirmLabel}
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            disabled={confirming}
-            onClick={onClose}
-          >
+          </Button>
+          <Button type="button" variant="secondary" disabled={confirming} onClick={onClose}>
             خیر
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

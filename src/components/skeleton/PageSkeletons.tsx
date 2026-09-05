@@ -2,6 +2,7 @@ import { Skeleton } from './Skeleton'
 import AppIcon from '../AppIcon'
 import { FilterChipsSkeleton, ReportToolbarSkeleton, StatCardSkeleton } from './CardSkeletons'
 import { InstallmentCardListSkeleton } from './ListSkeletons'
+import { cardClassName } from '../ui/Card'
 
 export {
   FilterChipsSkeleton,
@@ -31,7 +32,7 @@ export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashbo
     >
       {variant === 'dashboard' ? <FilterChipsSkeleton count={1} /> : <ReportToolbarSkeleton />}
 
-      <div className="card dashboard-hero-card skeleton-card">
+      <div className={cardClassName('dashboard-hero-card skeleton-card')}>
         <Skeleton width="35%" height="0.8rem" />
         <Skeleton width="55%" height="2rem" style={{ marginTop: '0.75rem' }} />
         <Skeleton width="70%" height="0.75rem" style={{ marginTop: '0.65rem' }} />
@@ -46,7 +47,7 @@ export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashbo
         <StatCardSkeleton wide />
       </div>
 
-      <div className="card dashboard-assets-card skeleton-card">
+      <div className={cardClassName('dashboard-assets-card skeleton-card')}>
         <Skeleton width="25%" height="0.9rem" />
         <div className="skeleton-breakdown">
           {Array.from({ length: 4 }, (_, index) => (
@@ -58,7 +59,7 @@ export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashbo
         </div>
       </div>
 
-      <div className="card dashboard-assets-card skeleton-card">
+      <div className={cardClassName('dashboard-assets-card skeleton-card')}>
         <Skeleton width="25%" height="0.9rem" />
         <div className="skeleton-breakdown">
           {Array.from({ length: 4 }, (_, index) => (
@@ -77,7 +78,7 @@ export function TreasurySkeleton() {
   return (
     <div aria-busy="true" aria-label="در حال بارگذاری">
       <FilterChipsSkeleton count={0} />
-      <div className="card treasury-price-card skeleton-card">
+      <div className={cardClassName('treasury-price-card skeleton-card')}>
         <div className="treasury-price-header">
           <Skeleton width="45%" height="0.85rem" />
           <Skeleton
@@ -135,12 +136,12 @@ export function FormSkeleton({ fields = 4 }: { fields?: number }) {
 export function SettingsSkeleton() {
   return (
     <div className="skeleton-settings" aria-busy="true" aria-label="در حال بارگذاری تنظیمات">
-      <div className="card skeleton-card">
+      <div className={cardClassName('skeleton-card')}>
         <Skeleton width="30%" height="1rem" style={{ marginBottom: '1rem' }} />
         <Skeleton width="100%" height="2.5rem" style={{ marginBottom: '0.75rem' }} />
         <Skeleton width="100%" height="2.5rem" />
       </div>
-      <div className="card skeleton-card">
+      <div className={cardClassName('skeleton-card')}>
         <Skeleton width="25%" height="1rem" style={{ marginBottom: '1rem' }} />
         {Array.from({ length: 3 }, (_, index) => (
           <div key={index} className="skeleton-form-row">
@@ -148,7 +149,7 @@ export function SettingsSkeleton() {
           </div>
         ))}
       </div>
-      <div className="card skeleton-card">
+      <div className={cardClassName('skeleton-card')}>
         <Skeleton width="35%" height="1rem" style={{ marginBottom: '1rem' }} />
         <Skeleton width="100%" height="5rem" />
       </div>

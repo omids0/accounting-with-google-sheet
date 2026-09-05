@@ -1,6 +1,8 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 
 import AppIcon from './AppIcon'
+import Alert from './ui/Alert'
+import Button from './ui/Button'
 import { isBiometricEnabled, verifyBiometric, verifyPin } from '../services/appLock'
 import { getUserName } from '../services/auth'
 
@@ -115,31 +117,32 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
           </div>
 
           {error && (
-            <div className="alert alert-error unlock-error" role="alert">
+            <Alert variant="error" className="unlock-error">
               {error}
-            </div>
+            </Alert>
           )}
 
-          <button
+          <Button
             type="submit"
-            className="btn btn-primary"
+            variant="primary"
             disabled={loading || pin.length < 4}
             aria-busy={loading}
           >
             {loading ? <span className="spinner" /> : 'باز کردن قفل'}
-          </button>
+          </Button>
         </form>
 
         {biometricReady && (
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary unlock-biometric-btn"
+            variant="secondary"
+            className="unlock-biometric-btn"
             onClick={() => void handleBiometric()}
             disabled={loading}
           >
             <AppIcon name="fingerprint" size={18} strokeWidth={2} />
             ورود با اثر انگشت
-          </button>
+          </Button>
         )}
 
         <p className="login-footer-note">رمز روی همه دستگاه‌ها یکسان است</p>

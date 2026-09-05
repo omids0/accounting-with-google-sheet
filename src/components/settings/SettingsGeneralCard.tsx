@@ -2,6 +2,7 @@ import { THEME_OPTIONS } from './types'
 import type { CurrencyUnit, ThemeMode } from '../../types'
 import { CURRENCY_OPTIONS } from '../../utils/formatMoney'
 import { FormSelect } from '../form'
+import Card, { CardTitle } from '../ui/Card'
 
 type SettingsGeneralCardProps = {
   theme: ThemeMode
@@ -17,8 +18,8 @@ export default function SettingsGeneralCard({
   onCurrencyChange
 }: SettingsGeneralCardProps) {
   return (
-    <div className="card">
-      <h2 className="card-title">تنظیمات عمومی</h2>
+    <Card>
+      <CardTitle>تنظیمات عمومی</CardTitle>
       <FormSelect
         label="حالت نمایش"
         value={theme}
@@ -61,6 +62,6 @@ export default function SettingsGeneralCard({
           }
         />
       </div>
-    </div>
+    </Card>
   )
 }

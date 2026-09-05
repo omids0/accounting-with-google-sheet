@@ -13,6 +13,7 @@ import {
 import type { SpreadsheetEntry } from '../types'
 import AppIcon from './AppIcon'
 import { FormField, FormSelect } from './form'
+import Button from './ui/Button'
 import { showError } from '../utils/toast'
 
 interface SpreadsheetSetupPanelProps {
@@ -116,24 +117,25 @@ export default function SpreadsheetSetupPanel({
               }
             />
 
-            <button
-              className="btn btn-primary"
+            <Button
+              variant="primary"
               onClick={handleActivate}
               disabled={loading || !selectedId}
               style={{ width: '100%' }}
             >
               {loading && <span className="spinner" />}
               ادامه با این شیت
-            </button>
+            </Button>
 
-            <button
-              className="btn btn-secondary btn-sm"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setMode('create')}
               disabled={loading}
               style={{ width: '100%', marginTop: '0.75rem' }}
             >
               + ساخت شیت جدید
-            </button>
+            </Button>
           </>
         ) : (
           <>
@@ -160,25 +162,26 @@ export default function SpreadsheetSetupPanel({
               />
             </FormField>
 
-            <button
-              className="btn btn-primary"
+            <Button
+              variant="primary"
               onClick={handleCreate}
               disabled={loading}
               style={{ width: '100%' }}
             >
               {loading && <span className="spinner" />}
               ساخت و ادامه
-            </button>
+            </Button>
 
             {options.length > 0 && (
-              <button
-                className="btn btn-secondary btn-sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setMode('pick')}
                 disabled={loading}
                 style={{ width: '100%', marginTop: '0.75rem' }}
               >
                 بازگشت به لیست شیت‌ها
-              </button>
+              </Button>
             )}
           </>
         )}

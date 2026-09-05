@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { LazyTimesheetDetailPage } from './lazyPages'
 import { TimesheetDetailListSkeleton } from '../components/skeleton'
+import Button from '../components/ui/Button'
 import { getSettings } from '../services/settings'
 import { fetchTimesheets } from '../services/timesheet'
 import type { Timesheet } from '../types'
@@ -55,13 +56,9 @@ export default function TimesheetDetailRoute() {
     return (
       <div className="empty-state">
         <p>تایم‌شیت یافت نشد</p>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          onClick={() => navigate('/timesheets')}
-        >
+        <Button type="button" variant="primary" size="sm" onClick={() => navigate('/timesheets')}>
           بازگشت به لیست
-        </button>
+        </Button>
       </div>
     )
   }

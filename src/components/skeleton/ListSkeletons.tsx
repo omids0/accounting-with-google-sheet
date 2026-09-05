@@ -8,6 +8,7 @@ import {
   WalletAccountCardSkeleton
 } from './CardSkeletons'
 import { Skeleton } from './Skeleton'
+import { cardClassName } from '../ui/Card'
 
 export function InstallmentCardListSkeleton({
   count = 3,
@@ -121,7 +122,7 @@ export function TimesheetDetailListSkeleton({ count = 3 }: { count?: number }) {
 export function RecordListSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div
-      className="card records-list-card skeleton-records-card"
+      className={cardClassName('records-list-card skeleton-records-card')}
       aria-busy="true"
       aria-label="در حال بارگذاری"
     >

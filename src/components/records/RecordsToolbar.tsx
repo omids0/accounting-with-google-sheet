@@ -4,6 +4,8 @@ import DateRangeFilter from '../DateRangeFilter'
 import type { AppliedDateRangeFilter } from '../DateRangeFilter'
 import { Select } from '../form'
 import TransactionTypeSegment, { transactionTypeOptionsFromForms } from '../TransactionTypeSegment'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
 
 interface RecordsToolbarProps {
   dateRange: { start: string; end: string }
@@ -37,21 +39,23 @@ export default function RecordsToolbar({
   onCategoryChange
 }: RecordsToolbarProps) {
   return (
-    <div className="card records-toolbar">
+    <Card className="records-toolbar">
       <div className="records-toolbar-header">
         <div className="records-toolbar-heading">
           <h2 className="records-toolbar-title">تراکنش‌ها</h2>
           <p className="records-toolbar-range">{formatDateRangeLabel(dateRange)}</p>
         </div>
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary btn-sm records-refresh-btn"
+          variant="secondary"
+          size="sm"
+          className="records-refresh-btn"
           onClick={onRefresh}
           disabled={loading}
           aria-label="بارگذاری مجدد"
         >
           {loading ? '...' : '↻'}
-        </button>
+        </Button>
       </div>
 
       <TransactionTypeSegment
@@ -83,6 +87,6 @@ export default function RecordsToolbar({
           />
         </div>
       )}
-    </div>
+    </Card>
   )
 }

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 
 import AppIcon from './AppIcon'
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel'
+import Button from './ui/Button'
 import { syncAppLockFromSheet } from '../services/appLock'
 import { saveSession, createSession, fetchUserProfile, GOOGLE_OAUTH_SCOPE } from '../services/auth'
 import {
@@ -130,8 +131,9 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           </li>
         </ul>
 
-        <button
-          className="btn btn-primary google-signin-btn"
+        <Button
+          variant="primary"
+          className="google-signin-btn"
           onClick={handleLogin}
           disabled={loading}
           aria-busy={loading}
@@ -159,7 +161,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
             </svg>
           )}
           ورود با Google
-        </button>
+        </Button>
 
         <p className="login-footer-note">
           شیت‌ها با فرمت «حسابداری · سال» ساخته می‌شوند و روی Drive همگام هستند

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import AmountInput from './AmountInput'
 import { FormField } from './form'
 import MoneyDisplay from './MoneyDisplay'
+import Card, { CardTitle } from './ui/Card'
 import { getCurrencySymbol } from '../utils/formatMoney'
 import { calculateFlatRateLoan } from '../utils/loanCalculator'
 import { normalizeDigits } from '../utils/normalizeDigits'
@@ -51,8 +52,8 @@ export default function LoanRequestCalculatorPage() {
 
   return (
     <div className="loan-calculator-page">
-      <div className="card">
-        <h3 className="card-title">شرایط وام</h3>
+      <Card>
+        <CardTitle>شرایط وام</CardTitle>
         <p className="loan-calculator-hint">
           مبلغ وام، نرخ سود سالانه و مدت بازپرداخت را مطابق اعلام بانک یا موسسه وارد کنید.
         </p>
@@ -101,20 +102,20 @@ export default function LoanRequestCalculatorPage() {
             dir="ltr"
           />
         </FormField>
-      </div>
+      </Card>
 
       {hasValidInput && result ? (
         <>
-          <div className="card dashboard-hero-card loan-calculator-result-card">
+          <Card className="dashboard-hero-card loan-calculator-result-card">
             <div className="dashboard-hero-label">قسط ماهانه تقریبی</div>
             <MoneyDisplay amount={Math.round(result.monthlyPayment)} size="hero" tone="hero" />
             <p className="dashboard-hero-hint">
               {numberToPersianWords(Math.round(result.monthlyPayment))} {currency} در هر ماه
             </p>
-          </div>
+          </Card>
 
-          <div className="card loan-calculator-summary-card">
-            <h3 className="card-title">خلاصه بازپرداخت</h3>
+          <Card className="loan-calculator-summary-card">
+            <CardTitle>خلاصه بازپرداخت</CardTitle>
             <div className="loan-calculator-summary-grid">
               <div className="loan-calculator-summary-item">
                 <span className="loan-calculator-summary-label">اصل وام</span>
@@ -140,14 +141,14 @@ export default function LoanRequestCalculatorPage() {
             <p className="loan-calculator-formula-hint">
               محاسبه بر اساس نرخ سود سالانه ساده: سود کل = مبلغ وام × نرخ سود × (تعداد ماه ÷ ۱۲)
             </p>
-          </div>
+          </Card>
         </>
       ) : (
-        <div className="card loan-calculator-empty-card">
+        <Card className="loan-calculator-empty-card">
           <p className="empty-text">
             پس از وارد کردن مبلغ، نرخ سود و تعداد ماه، نتیجه محاسبه اینجا نمایش داده می‌شود.
           </p>
-        </div>
+        </Card>
       )}
     </div>
   )

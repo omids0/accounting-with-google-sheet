@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import Button from './ui/Button'
 import {
   daysInCalendarMonth,
   getCalendarMonthWheelItems,
@@ -275,9 +276,9 @@ export default function JalaliDateTimePicker({
             minDateTime={minDateTime}
           />
           <div className="records-filter-actions jalali-date-picker-actions">
-            <button type="button" className="btn btn-primary btn-sm" onClick={handleConfirm}>
+            <Button type="button" variant="primary" size="sm" onClick={handleConfirm}>
               تایید
-            </button>
+            </Button>
           </div>
         </div>
       )}

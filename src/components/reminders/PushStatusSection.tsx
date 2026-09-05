@@ -1,4 +1,7 @@
 import type { getPushSupportStatus } from '../../services/pushNotifications'
+import Alert from '../ui/Alert'
+import Button from '../ui/Button'
+import Card, { CardTitle } from '../ui/Card'
 
 interface PushStatusSectionProps {
   pushStatus: ReturnType<typeof getPushSupportStatus>
@@ -34,8 +37,8 @@ export default function PushStatusSection({
   onTestNotification
 }: PushStatusSectionProps) {
   return (
-    <div className="card">
-      <h2 className="card-title">وضعیت نوتیف</h2>
+    <Card>
+      <CardTitle>وضعیت نوتیف</CardTitle>
       <p
         style={{
           fontSize: '0.85rem',
@@ -108,63 +111,67 @@ export default function PushStatusSection({
       </div>
 
       {!isInstalled && (canInstall || isIos || pushStatus === 'ios-needs-install') && (
-        <div className="alert alert-info" style={{ marginTop: '0.75rem' }}>
+        <Alert variant="info" style={{ marginTop: '0.75rem' }}>
           <p style={{ marginBottom: '0.5rem' }}>
             {isIos
               ? 'در iOS برای نوتیf حتماً اپ را به Home Screen اضافه کنید.'
               : 'برای تجربهٔ بهتر (مخصوصاً روی گوشی) اپ را نصب کنید.'}
           </p>
           {(canInstall || isIos) && (
-            <button className="btn btn-primary btn-sm" type="button" onClick={install}>
+            <Button variant="primary" size="sm" type="button" onClick={install}>
               نصب اپ روی دستگاه
-            </button>
+            </Button>
           )}
           {showIosHint && (
             <p style={{ marginTop: '0.5rem', marginBottom: 0 }}>
               Safari → Share (□↑) → Add to Home Screen
-              <button
-                className="btn btn-secondary btn-sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 type="button"
                 onClick={dismissIosHint}
                 style={{ marginInlineStart: '0.5rem' }}
               >
                 متوجه شدم
-              </button>
+              </Button>
             </p>
           )}
-        </div>
+        </Alert>
       )}
 
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
         {!hasSubscription ? (
-          <button
+          <Button
             type="button"
-            className="btn btn-primary btn-sm"
+            variant="primary"
+            size="sm"
             onClick={onEnablePush}
             disabled={saving || pushStatus !== 'supported'}
           >
             {saving && <span className="spinner" />}
             فعال‌سازی نوتیف
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary btn-sm"
+            variant="secondary"
+            size="sm"
             onClick={onDisablePush}
             disabled={saving}
           >
             غیرفعال در این دستگاه
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary btn-sm"
+          variant="secondary"
+          size="sm"
           onClick={onTestNotification}
           disabled={saving || permission !== 'granted'}
         >
           تست نوتیف
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   )
 }

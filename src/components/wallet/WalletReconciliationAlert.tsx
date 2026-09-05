@@ -1,4 +1,5 @@
 import { formatMoney } from '../../utils/formatMoney'
+import Alert from '../ui/Alert'
 
 type WalletReconciliationAlertProps = {
   totalBalance: number
@@ -11,12 +12,10 @@ export default function WalletReconciliationAlert({
   periodBalance,
   reconciliationDiff
 }: WalletReconciliationAlertProps) {
+  const variant = Math.abs(reconciliationDiff) > 10000 ? 'warning' : 'info'
+
   return (
-    <div
-      className={`alert ${
-        Math.abs(reconciliationDiff) > 10000 ? 'alert-warning' : 'alert-info'
-      } dashboard-reconcile-alert`}
-    >
+    <Alert variant={variant} className="dashboard-reconcile-alert">
       <strong>تطبیق کیف پول</strong>
       <p>
         کیف پول فعلی ({formatMoney(totalBalance)}) با مانده محاسبه‌شده ({formatMoney(periodBalance)}
@@ -27,6 +26,6 @@ export default function WalletReconciliationAlert({
         {reconciliationDiff > 0 ? ' +' : ' −'}
       </p>
       <p className="dashboard-reconcile-formula">موجودی اول + درآمد − هزینه = مانده محاسبه‌شده</p>
-    </div>
+    </Alert>
   )
 }

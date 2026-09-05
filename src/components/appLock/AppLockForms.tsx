@@ -1,6 +1,7 @@
 import { type FormEvent } from 'react'
 
 import { FormField } from '../form'
+import Button from '../ui/Button'
 
 type SetupStep = 'idle' | 'setup' | 'disable' | 'change-pin' | 'disable-biometric'
 
@@ -73,18 +74,13 @@ export function PinFieldsForm({
         </label>
       )}
       <div className="app-lock-form-actions">
-        <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
+        <Button type="submit" variant="primary" size="sm" disabled={loading}>
           {loading && <span className="spinner" />}
           {submitLabel}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={onCancel}
-          disabled={loading}
-        >
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
           انصراف
-        </button>
+        </Button>
       </div>
     </form>
   )
@@ -125,22 +121,13 @@ export function CurrentPinForm({
         />
       </FormField>
       <div className="app-lock-form-actions">
-        <button
-          type="submit"
-          className={`btn btn-sm ${danger ? 'btn-danger' : 'btn-primary'}`}
-          disabled={loading}
-        >
+        <Button type="submit" variant={danger ? 'danger' : 'primary'} size="sm" disabled={loading}>
           {loading && <span className="spinner" />}
           {submitLabel}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={onCancel}
-          disabled={loading}
-        >
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
           انصراف
-        </button>
+        </Button>
       </div>
     </form>
   )
@@ -211,18 +198,13 @@ export function ChangePinForm({
         />
       </FormField>
       <div className="app-lock-form-actions">
-        <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
+        <Button type="submit" variant="primary" size="sm" disabled={loading}>
           {loading && <span className="spinner" />}
           ذخیره رمز جدید
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={onCancel}
-          disabled={loading}
-        >
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
           انصراف
-        </button>
+        </Button>
       </div>
     </form>
   )

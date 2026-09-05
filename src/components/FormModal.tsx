@@ -2,6 +2,7 @@ import { useEffect, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import Button, { type ButtonVariant } from './ui/Button'
 
 type FormModalProps = {
   open: boolean
@@ -10,7 +11,7 @@ type FormModalProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   saving?: boolean
   saveLabel: string
-  saveButtonClassName?: string
+  saveButtonVariant?: ButtonVariant
   children: ReactNode
 }
 
@@ -21,7 +22,7 @@ export default function FormModal({
   onSubmit,
   saving = false,
   saveLabel,
-  saveButtonClassName = 'btn btn-primary',
+  saveButtonVariant = 'primary',
   children
 }: FormModalProps) {
   useEffect(() => {
@@ -74,12 +75,12 @@ export default function FormModal({
 
           <div className="form-actions form-modal-actions">
             {saving && <span className="spinner form-modal-spinner" aria-hidden />}
-            <button type="submit" className={saveButtonClassName} disabled={saving}>
+            <Button type="submit" variant={saveButtonVariant} disabled={saving}>
               {saveLabel}
-            </button>
-            <button type="button" className="btn btn-secondary" disabled={saving} onClick={onClose}>
+            </Button>
+            <Button type="button" variant="secondary" disabled={saving} onClick={onClose}>
               انصراف
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -10,6 +10,7 @@ import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import { DashboardSkeleton } from '../skeleton'
+import Card from '../ui/Card'
 
 function BreakdownRow({ label, value, total }: { label: string; value: number; total?: boolean }) {
   return (
@@ -86,15 +87,15 @@ export default function AssetsLiabilitiesReportPage() {
         loading={loading}
       />
 
-      <div className="card dashboard-hero-card">
+      <Card className="dashboard-hero-card">
         <div className="dashboard-hero-label">تراز خالص</div>
         <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
         <p className="dashboard-hero-hint">
           دارایی‌ها منهای بدهی‌ها (بر اساس تنظیمات دارایی قابل اتکا)
         </p>
-      </div>
+      </Card>
 
-      <div className="card dashboard-assets-card">
+      <Card className="dashboard-assets-card">
         <h3 className="chart-title">دارایی‌ها</h3>
         <div className="asset-breakdown">
           <BreakdownRow label="کیف پول" value={financial?.walletTotal ?? 0} />
@@ -102,9 +103,9 @@ export default function AssetsLiabilitiesReportPage() {
           <BreakdownRow label="طلب‌ها" value={financial?.receivablesTotal ?? 0} />
           <BreakdownRow label="مجموع دارایی‌ها" value={financial?.totalAssets ?? 0} total />
         </div>
-      </div>
+      </Card>
 
-      <div className="card dashboard-assets-card dashboard-liabilities-card">
+      <Card className="dashboard-assets-card dashboard-liabilities-card">
         <h3 className="chart-title">بدهی‌ها</h3>
         <div className="asset-breakdown">
           <BreakdownRow label="اقساط این دوره" value={financial?.installmentsDue ?? 0} />
@@ -112,7 +113,7 @@ export default function AssetsLiabilitiesReportPage() {
           <BreakdownRow label="چک‌های این دوره" value={financial?.checksDue ?? 0} />
           <BreakdownRow label="مجموع بدهی‌ها" value={financial?.totalLiabilities ?? 0} total />
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

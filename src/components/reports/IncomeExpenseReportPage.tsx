@@ -18,6 +18,7 @@ import TransactionListItem from '../TransactionListItem'
 import TransactionTypeSegment, {
   type TransactionTypeSegmentOption
 } from '../TransactionTypeSegment'
+import Card from '../ui/Card'
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense'
 
@@ -149,7 +150,7 @@ export default function IncomeExpenseReportPage() {
         </>
       )}
 
-      <div className="card">
+      <Card>
         <h3 className="chart-title">تراکنش‌های دوره</h3>
         <TransactionTypeSegment
           className="dashboard-transaction-segment"
@@ -180,7 +181,7 @@ export default function IncomeExpenseReportPage() {
             </TransactionListItem>
           ))
         )}
-      </div>
+      </Card>
     </div>
   )
 }

@@ -1,4 +1,6 @@
 import { AccordionCollapse } from '../AccordionCollapse'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
 
 interface CronSetupSectionProps {
   showSetup: boolean
@@ -7,15 +9,16 @@ interface CronSetupSectionProps {
 
 export default function CronSetupSection({ showSetup, onToggle }: CronSetupSectionProps) {
   return (
-    <div className="card">
-      <button
+    <Card>
+      <Button
         type="button"
-        className="btn btn-secondary btn-sm"
+        variant="secondary"
+        size="sm"
         onClick={onToggle}
         style={{ width: '100%' }}
       >
         {showSetup ? 'بستن راهنمای cron رایگان' : 'راه‌اندازی cron رایگان (Google Apps Script)'}
-      </button>
+      </Button>
       <AccordionCollapse open={showSetup}>
         <div
           style={{
@@ -64,6 +67,6 @@ export default function CronSetupSection({ showSetup, onToggle }: CronSetupSecti
           </p>
         </div>
       </AccordionCollapse>
-    </div>
+    </Card>
   )
 }

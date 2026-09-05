@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 
 import { FormField, FormSelect } from './form'
 import JalaliDatePicker from './JalaliDatePicker'
+import Card, { CardTitle } from './ui/Card'
 import {
   CALENDAR_SHORT_LABELS,
   CALENDAR_SYSTEM_OPTIONS,
@@ -29,8 +30,8 @@ export default function DateCalculatorPage() {
 
   return (
     <div className="date-calculator-page">
-      <div className="card date-calculator-form-card">
-        <h3 className="card-title">محاسبه تاریخ</h3>
+      <Card className="date-calculator-form-card">
+        <CardTitle>محاسبه تاریخ</CardTitle>
 
         <FormSelect
           label="نوع تاریخ ورودی"
@@ -48,9 +49,9 @@ export default function DateCalculatorPage() {
             onChange={setIsoDate}
           />
         </FormField>
-      </div>
+      </Card>
 
-      <div className="card date-calculator-conversions-card">
+      <Card className="date-calculator-conversions-card">
         <div className="date-calculator-conversions-head">معادل در سایر تقویم‌ها</div>
         <ul className="date-calculator-conversion-list">
           {resultCalendars.map(calendar => {
@@ -71,7 +72,7 @@ export default function DateCalculatorPage() {
             )
           })}
         </ul>
-      </div>
+      </Card>
     </div>
   )
 }

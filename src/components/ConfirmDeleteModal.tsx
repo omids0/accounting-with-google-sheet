@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import Button from './ui/Button'
 
 type ConfirmDeleteModalProps = {
   open: boolean
@@ -76,12 +77,12 @@ export default function ConfirmDeleteModal({
 
         <div className="form-actions form-modal-actions">
           {deleting && <span className="spinner form-modal-spinner" aria-hidden />}
-          <button type="button" className="btn btn-danger" disabled={deleting} onClick={onConfirm}>
+          <Button type="button" variant="danger" disabled={deleting} onClick={onConfirm}>
             بله
-          </button>
-          <button type="button" className="btn btn-secondary" disabled={deleting} onClick={onClose}>
+          </Button>
+          <Button type="button" variant="secondary" disabled={deleting} onClick={onClose}>
             خیر
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

@@ -1,4 +1,5 @@
 import { Skeleton } from './Skeleton'
+import { cardClassName } from '../ui/Card'
 
 export function FilterChipsSkeleton({ count = 1 }: { count?: number }) {
   if (count <= 0) return null
@@ -20,7 +21,10 @@ export function FilterChipsSkeleton({ count = 1 }: { count?: number }) {
 
 export function ReportToolbarSkeleton() {
   return (
-    <div className="card records-toolbar dashboard-toolbar skeleton-card" aria-hidden="true">
+    <div
+      className={cardClassName('records-toolbar dashboard-toolbar skeleton-card')}
+      aria-hidden="true"
+    >
       <div className="records-toolbar-header">
         <div className="records-toolbar-heading">
           <Skeleton width="38%" height="1rem" />

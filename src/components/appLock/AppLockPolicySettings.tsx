@@ -2,6 +2,7 @@ import { APP_LOCK_POLICY_OPTIONS, IDLE_MINUTE_OPTIONS } from '../../services/app
 import type { AppLockPolicy } from '../../types'
 import AppIcon from '../AppIcon'
 import { FormSelect } from '../form'
+import Button from '../ui/Button'
 
 interface AppLockPolicySettingsProps {
   policy: AppLockPolicy
@@ -66,9 +67,9 @@ export default function AppLockPolicySettings({
       )}
 
       {(policy === 'manual' || policy === 'background' || policy === 'session') && (
-        <button type="button" className="btn btn-secondary btn-sm" onClick={onLockNow}>
+        <Button type="button" variant="secondary" size="sm" onClick={onLockNow}>
           قفل الان
-        </button>
+        </Button>
       )}
     </div>
   )

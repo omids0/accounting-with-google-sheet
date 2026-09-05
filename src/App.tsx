@@ -6,6 +6,7 @@ import AppIcon from './components/AppIcon'
 import LoginPage from './components/LoginPage'
 import { AppLoadingSkeleton } from './components/skeleton'
 import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel'
+import Alert from './components/ui/Alert'
 import UnlockScreen from './components/UnlockScreen'
 import { useAppLock } from './hooks/useAppLock'
 import { useTokenRefresh } from './hooks/useTokenRefresh'
@@ -37,13 +38,9 @@ function ConfigNotice() {
             نشده.
           </p>
         </div>
-        <div
-          className="alert alert-info"
-          dir="ltr"
-          style={{ textAlign: 'left', fontSize: '0.75rem' }}
-        >
+        <Alert variant="info" dir="ltr" style={{ textAlign: 'left', fontSize: '0.75rem' }}>
           VITE_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
-        </div>
+        </Alert>
       </div>
     </div>
   )

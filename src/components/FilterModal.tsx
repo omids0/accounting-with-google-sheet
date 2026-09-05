@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import Button from './ui/Button'
 
 interface FilterModalProps {
   open: boolean
@@ -61,17 +62,18 @@ export default function FilterModal({
 
         <div className="form-actions form-modal-actions filter-modal-actions">
           {onClear && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary filter-modal-clear"
+              variant="secondary"
+              className="filter-modal-clear"
               onClick={onClear}
             >
               پاک کردن
-            </button>
+            </Button>
           )}
-          <button type="button" className="btn btn-primary" onClick={onApply}>
+          <Button type="button" variant="primary" onClick={onApply}>
             اعمال فیلتر
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

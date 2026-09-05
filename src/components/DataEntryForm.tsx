@@ -8,6 +8,8 @@ import type { CustomForm } from '../types'
 import { requireAuth } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
+import Button from './ui/Button'
+import { appFormClassName, formActionsClassName } from './ui/formStyles'
 
 type DataEntryFormProps = {
   activeForm: CustomForm
@@ -82,7 +84,7 @@ export default function DataEntryForm({
   }
 
   return (
-    <div className="app-form">
+    <div className={appFormClassName()}>
       <form onSubmit={handleSubmit}>
         {sortFormFields(activeForm.fields).map(field => (
           <FieldInput
@@ -95,29 +97,24 @@ export default function DataEntryForm({
           />
         ))}
 
-        <div className="form-actions">
-          <button
+        <div className={formActionsClassName()}>
+          <Button
             type="submit"
-            className={`btn ${
+            variant={
               activeForm.type === 'expense'
-                ? 'btn-outflow'
+                ? 'outflow'
                 : activeForm.type === 'income'
-                ? 'btn-inflow'
-                : 'btn-primary'
-            }`}
+                ? 'inflow'
+                : 'primary'
+            }
             disabled={loading}
           >
             {loading && <span className="spinner" />}
             ذخیره
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            disabled={loading}
-            onClick={() => onCancel?.()}
-          >
+          </Button>
+          <Button type="button" variant="secondary" disabled={loading} onClick={() => onCancel?.()}>
             انصراف
-          </button>
+          </Button>
         </div>
       </form>
     </div>

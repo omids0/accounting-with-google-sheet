@@ -10,6 +10,8 @@ import FilterModal from '../FilterModal'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
 import TransactionTypeSegment from '../TransactionTypeSegment'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
 import YearFilter from '../YearFilter'
 import { BreakdownRow, RecordAmount } from './DashboardParts'
 import type { TransactionTypeFilter } from './useDashboardPage'
@@ -105,7 +107,7 @@ export default function DashboardContent({
         />
       </FilterModal>
 
-      <div className="card dashboard-hero-card dashboard-hero-card--animated">
+      <Card className="dashboard-hero-card dashboard-hero-card--animated">
         <div className="dashboard-hero-header">
           <div className="dashboard-hero-label">دارایی قابل اتکا</div>
           {onConfigureNetAvailable && (
@@ -114,7 +116,7 @@ export default function DashboardContent({
         </div>
         <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
         <p className="dashboard-hero-hint">مجموع دارایی‌های انتخاب‌شده منهای بدهی‌های انتخاب‌شده</p>
-      </div>
+      </Card>
 
       <div className="dashboard-flow-section dashboard-flow-section--animated">
         <div className="stat-grid dashboard-stat-grid">
@@ -160,7 +162,7 @@ export default function DashboardContent({
         />
       </div>
 
-      <div className="card dashboard-assets-card">
+      <Card className="dashboard-assets-card">
         <h3 className="chart-title">دارایی‌ها</h3>
         <div className="asset-breakdown">
           <BreakdownRow
@@ -180,9 +182,9 @@ export default function DashboardContent({
           />
           <BreakdownRow label="مجموع دارایی‌ها" value={financial?.totalAssets ?? 0} total />
         </div>
-      </div>
+      </Card>
 
-      <div className="card dashboard-assets-card dashboard-liabilities-card">
+      <Card className="dashboard-assets-card dashboard-liabilities-card">
         <h3 className="chart-title">بدهی‌ها</h3>
         <div className="asset-breakdown">
           <BreakdownRow
@@ -202,7 +204,7 @@ export default function DashboardContent({
           />
           <BreakdownRow label="مجموع بدهی‌ها" value={financial?.totalLiabilities ?? 0} total />
         </div>
-      </div>
+      </Card>
 
       {(data?.expenseByCategory.length ?? 0) > 0 && (
         <>
@@ -247,22 +249,23 @@ export default function DashboardContent({
         />
       )}
 
-      <div className="card">
+      <Card>
         <div className="card-header-row">
           <h3 className="chart-title">تراکنش‌های دوره</h3>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             {!!data?.recentRecords.length && (
-              <button
+              <Button
                 type="button"
-                className="btn btn-secondary btn-sm"
+                variant="secondary"
+                size="sm"
                 onClick={() => onViewRecords?.(typeFilter === 'all' ? undefined : typeFilter)}
               >
                 جزئیات بیشتر
-              </button>
+              </Button>
             )}
-            <button className="btn btn-secondary btn-sm" onClick={load} disabled={loading}>
+            <Button variant="secondary" size="sm" onClick={load} disabled={loading}>
               ↻
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -290,7 +293,7 @@ export default function DashboardContent({
             </TransactionListItem>
           ))
         )}
-      </div>
+      </Card>
     </div>
   )
 }

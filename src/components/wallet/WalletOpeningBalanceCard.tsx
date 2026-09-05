@@ -2,6 +2,7 @@ import type { WalletPeriodFlow } from '../../services/wallet'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AmountInput from '../AmountInput'
+import Button from '../ui/Button'
 
 type WalletOpeningBalanceCardProps = {
   periodFlow: WalletPeriodFlow
@@ -64,23 +65,26 @@ export default function WalletOpeningBalanceCard({
             <div className="dashboard-opening-input-wrap">
               <AmountInput value={openingInput} onChange={onOpeningInputChange} />
             </div>
-            <button
+            <Button
               type="button"
-              className="btn btn-primary btn-sm"
+              variant="primary"
+              size="sm"
               onClick={onSave}
               disabled={savingOpening || loading}
             >
               {savingOpening ? '...' : 'ذخیره'}
-            </button>
+            </Button>
           </div>
           {onOpenOpeningBalances && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-sm wallet-opening-more-btn"
+              variant="secondary"
+              size="sm"
+              className="wallet-opening-more-btn"
               onClick={onOpenOpeningBalances}
             >
               گزینه‌های بیشتر
-            </button>
+            </Button>
           )}
         </div>
       </AccordionCollapse>

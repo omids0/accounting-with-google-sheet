@@ -6,6 +6,7 @@ import { parseNumeric } from '../../utils/parseNumeric'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import TransactionListItem from '../TransactionListItem'
+import Card from '../ui/Card'
 
 interface RecordsListProps {
   forms: CustomForm[]
@@ -25,7 +26,7 @@ export default function RecordsList({
   onDelete
 }: RecordsListProps) {
   return (
-    <div className="card records-list-card">
+    <Card className="records-list-card">
       <div className="records-list-header">
         <span className="records-list-count">
           {filteredRecords.length.toLocaleString('fa-IR')} مورد
@@ -95,6 +96,6 @@ export default function RecordsList({
           </TransactionListItem>
         )
       })}
-    </div>
+    </Card>
   )
 }

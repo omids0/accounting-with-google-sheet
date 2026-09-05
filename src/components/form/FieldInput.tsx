@@ -4,6 +4,7 @@ import JalaliDatePicker from '../JalaliDatePicker'
 import CategorySelect from './CategorySelect'
 import FormField from './FormField'
 import Select from './Select'
+import { formControlClassName } from '../ui/formStyles'
 
 interface FieldInputProps {
   field: FieldConfig
@@ -38,7 +39,7 @@ export default function FieldInput({
     >
       {field.type === 'text' && field.id === 'note' ? (
         <textarea
-          className="form-control form-note-textarea"
+          className={formControlClassName('form-note-textarea')}
           rows={4}
           value={String(value ?? '')}
           onChange={e => onChange(e.target.value)}
@@ -47,7 +48,7 @@ export default function FieldInput({
       ) : field.type === 'text' ? (
         <input
           type="text"
-          className="form-control"
+          className={formControlClassName()}
           value={String(value ?? '')}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
@@ -61,7 +62,7 @@ export default function FieldInput({
       {field.type === 'number' && field.id !== 'amount' && (
         <input
           type="number"
-          className="form-control"
+          className={formControlClassName()}
           inputMode="decimal"
           value={value === '' ? '' : value}
           onChange={e => onChange(e.target.value === '' ? '' : Number(e.target.value))}

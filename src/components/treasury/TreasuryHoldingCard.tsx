@@ -6,6 +6,7 @@ import { getAssetLabel } from '../../services/tgju'
 import type { VaultAssetType, VaultHolding } from '../../types'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
+import Button from '../ui/Button'
 
 type TreasuryHoldingCardProps = {
   holding: VaultHolding
@@ -81,13 +82,14 @@ export default function TreasuryHoldingCard({
                 onCancel={onCloseSellForm}
               />
             ) : (
-              <button
+              <Button
                 type="button"
-                className="btn btn-secondary btn-sm"
+                variant="secondary"
+                size="sm"
                 onClick={() => onOpenSellForm(holding.assetType)}
               >
                 + ثبت فروش
-              </button>
+              </Button>
             )}
           </div>
         </div>

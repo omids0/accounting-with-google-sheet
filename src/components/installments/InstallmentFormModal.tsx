@@ -8,6 +8,7 @@ import { FormField } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { InstallmentFormState, PlanWithRow } from './types'
+import Button from '../ui/Button'
 
 type InstallmentFormModalProps = {
   open: boolean
@@ -150,13 +151,14 @@ export default function InstallmentFormModal({
         />
       </FormField>
       {form.values.paidUntil ? (
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary btn-sm"
+          variant="secondary"
+          size="sm"
           onClick={() => form.setField('paidUntil', '')}
         >
           پاک کردن
-        </button>
+        </Button>
       ) : null}
 
       <FormField label="توضیحات">

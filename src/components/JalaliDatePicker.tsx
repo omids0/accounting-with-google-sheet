@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import Button from './ui/Button'
 import {
   daysInCalendarMonth,
   formatCalendarDateCompact,
@@ -183,14 +184,15 @@ export default function JalaliDatePicker({
         <div className="jalali-date-picker-panel">
           <CalendarWheelFields calendar={calendar} iso={pendingIso} onIsoChange={setPendingIso} />
           <div className="records-filter-actions jalali-date-picker-actions">
-            <button
+            <Button
               type="button"
-              className="btn btn-primary btn-sm"
+              variant="primary"
+              size="sm"
               onClick={handleConfirm}
               disabled={!hasPendingChanges}
             >
               تایید تاریخ
-            </button>
+            </Button>
           </div>
         </div>
       )}

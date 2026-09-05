@@ -1,6 +1,8 @@
 import { VAULT_ASSET_OPTIONS } from '../../services/tgju'
 import type { VaultAssetType } from '../../types'
 import { formatMoney } from '../../utils/formatMoney'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
 
 type TreasuryPriceCardProps = {
   prices: Record<VaultAssetType, number>
@@ -14,18 +16,19 @@ export default function TreasuryPriceCard({
   onRefresh
 }: TreasuryPriceCardProps) {
   return (
-    <div className="card treasury-price-card">
+    <Card className="treasury-price-card">
       <div className="treasury-price-header">
         <span className="treasury-price-title">قیمت لحظه‌ای (tgju.org)</span>
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary btn-sm"
+          variant="secondary"
+          size="sm"
           onClick={onRefresh}
           disabled={priceLoading}
           style={{ width: 'auto', padding: '0.35rem 0.6rem' }}
         >
           {priceLoading ? '...' : 'بروزرسانی'}
-        </button>
+        </Button>
       </div>
       <div className="treasury-price-grid">
         {VAULT_ASSET_OPTIONS.map(opt => (
@@ -38,6 +41,6 @@ export default function TreasuryPriceCard({
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }

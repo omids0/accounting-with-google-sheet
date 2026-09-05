@@ -12,6 +12,7 @@ import { cumulativeSparkline } from '../../utils/sparklineData'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
+import Card from '../ui/Card'
 
 export default function OpeningBalanceReportPage() {
   const [items, setItems] = useState<MonthlyOpeningBalance[]>([])
@@ -81,7 +82,7 @@ export default function OpeningBalanceReportPage() {
         />
       )}
 
-      <div className="card">
+      <Card>
         {!items.length ? (
           <p className="empty-text">موجودی اول دوره‌ای ثبت نشده</p>
         ) : (
@@ -98,7 +99,7 @@ export default function OpeningBalanceReportPage() {
             </TransactionListItem>
           ))
         )}
-      </div>
+      </Card>
     </div>
   )
 }

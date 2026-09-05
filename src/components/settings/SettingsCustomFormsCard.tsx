@@ -1,5 +1,7 @@
 import FormFieldEditor from './FormFieldEditor'
 import type { CustomForm, FieldConfig } from '../../types'
+import Button from '../ui/Button'
+import Card, { CardTitle } from '../ui/Card'
 
 type SettingsCustomFormsCardProps = {
   forms: CustomForm[]
@@ -21,8 +23,8 @@ export default function SettingsCustomFormsCard({
   onSaveFormFields
 }: SettingsCustomFormsCardProps) {
   return (
-    <div className="card">
-      <h2 className="card-title">فرم‌های سفارشی</h2>
+    <Card>
+      <CardTitle>فرم‌های سفارشی</CardTitle>
 
       {forms.map(form => (
         <div key={form.id} className="form-list-item">
@@ -54,13 +56,14 @@ export default function SettingsCustomFormsCard({
           )}
 
           {form.type === 'custom' && (
-            <button
-              className="btn btn-secondary btn-sm"
+            <Button
+              variant="secondary"
+              size="sm"
               style={{ marginTop: '0.5rem' }}
               onClick={() => onToggleEditForm(form.id)}
             >
               {editingFormId === form.id ? 'بستن' : 'ویرایش فیلدها'}
-            </button>
+            </Button>
           )}
 
           {editingFormId === form.id && (
@@ -71,6 +74,6 @@ export default function SettingsCustomFormsCard({
           )}
         </div>
       ))}
-    </div>
+    </Card>
   )
 }

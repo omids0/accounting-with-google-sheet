@@ -10,6 +10,7 @@ import ReceivablePaymentForm from './ReceivablePaymentForm'
 import ReceivableSettlementForm from './ReceivableSettlementForm'
 import type { ReceivableWithRow } from './types'
 import { buildSettlementTitle } from './utils'
+import Button from '../ui/Button'
 
 type ReceivableCardProps = {
   item: ReceivableWithRow
@@ -178,26 +179,28 @@ export default function ReceivableCard({
                 />
               ) : (
                 <div className="receivable-add-payment-actions">
-                  <button
+                  <Button
                     type="button"
-                    className="btn btn-secondary btn-sm"
+                    variant="secondary"
+                    size="sm"
                     onClick={() => {
                       onCloseSettlementForm()
                       onOpenPaymentForm(item.id)
                     }}
                   >
                     + ثبت بخشی از پرداخت
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
-                    className="btn btn-inflow btn-sm"
+                    variant="inflow"
+                    size="sm"
                     onClick={() => {
                       onClosePaymentForm()
                       onOpenSettlementForm(item.id)
                     }}
                   >
                     تسویه
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

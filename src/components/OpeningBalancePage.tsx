@@ -5,6 +5,7 @@ import AmountInput from './AmountInput'
 import AppIcon from './AppIcon'
 import { FormField } from './form'
 import { InstallmentCardListSkeleton } from './skeleton'
+import Button from './ui/Button'
 import {
   fetchAllOpeningBalances,
   setOpeningBalance,
@@ -130,14 +131,9 @@ export default function OpeningBalancePage() {
     <div>
       <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>موجودی اول دوره</h2>
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={loadItems}
-          disabled={loading}
-          type="button"
-        >
+        <Button variant="secondary" size="sm" onClick={loadItems} disabled={loading} type="button">
           {loading ? '...' : '↻'}
-        </button>
+        </Button>
       </div>
 
       <p className="opening-balance-page-hint">
@@ -215,14 +211,15 @@ export default function OpeningBalancePage() {
                       placeholder="توضیحات اختیاری"
                     />
                   </FormField>
-                  <button
+                  <Button
                     type="button"
-                    className="btn btn-primary btn-sm"
+                    variant="primary"
+                    size="sm"
                     onClick={() => handleSave(item)}
                     disabled={savingId === item.monthKey || loading}
                   >
                     {savingId === item.monthKey ? '...' : 'ذخیره'}
-                  </button>
+                  </Button>
                 </div>
               </AccordionCollapse>
             </div>

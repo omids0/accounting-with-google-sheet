@@ -9,6 +9,7 @@ import { FormField } from '../form'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { VaultFormState } from './types'
 import { parseQuantityInput } from './utils'
+import Button from '../ui/Button'
 
 type TreasurySellFormProps = {
   assetType: VaultAssetType
@@ -80,18 +81,19 @@ export default function TreasurySellForm({
         />
       </FormField>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <button
+        <Button
           type="button"
-          className="btn btn-outflow btn-sm"
+          variant="outflow"
+          size="sm"
           disabled={selling}
           onClick={() => onSell(form.values)}
         >
           {selling && <span className="spinner" />}
           ثبت فروش
-        </button>
-        <button type="button" className="btn btn-secondary btn-sm" onClick={onCancel}>
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
           انصراف
-        </button>
+        </Button>
       </div>
     </div>
   )

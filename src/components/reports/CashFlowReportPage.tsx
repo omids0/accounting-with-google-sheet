@@ -12,6 +12,7 @@ import { monthlySparkline } from '../../utils/sparklineData'
 import { IncomeExpenseMonthlyChart } from '../charts'
 import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
+import Card from '../ui/Card'
 import YearFilter, { getDefaultChartYear } from '../YearFilter'
 
 export default function CashFlowReportPage() {
@@ -136,7 +137,7 @@ export default function CashFlowReportPage() {
       />
 
       {!!monthlyFlow.length && (
-        <div className="card">
+        <Card>
           <h3 className="chart-title">جدول ماهانه</h3>
           {monthlyFlow.map((item, index) => (
             <div
@@ -162,7 +163,7 @@ export default function CashFlowReportPage() {
               </span>
             </div>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   )

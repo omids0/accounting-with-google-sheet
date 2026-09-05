@@ -12,6 +12,7 @@ import { monthlySparkline } from '../../utils/sparklineData'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
+import Card from '../ui/Card'
 
 function BreakdownRow({ label, value, total }: { label: string; value: number; total?: boolean }) {
   return (
@@ -98,10 +99,10 @@ export default function FinancialSummaryReportPage() {
         loading={loading}
       />
 
-      <div className="card dashboard-hero-card dashboard-hero-card--animated">
+      <Card className="dashboard-hero-card dashboard-hero-card--animated">
         <div className="dashboard-hero-label">دارایی قابل اتکا</div>
         <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
-      </div>
+      </Card>
 
       <div className="stat-grid dashboard-stat-grid">
         <StatCard
@@ -134,7 +135,7 @@ export default function FinancialSummaryReportPage() {
         animateIndex={2}
       />
 
-      <div className="card dashboard-assets-card">
+      <Card className="dashboard-assets-card">
         <h3 className="chart-title">مطابقت حساب</h3>
         <div className="asset-breakdown">
           <BreakdownRow label="موجودی اول دوره" value={data?.openingBalance ?? 0} />
@@ -151,7 +152,7 @@ export default function FinancialSummaryReportPage() {
         ) : (
           <p className="report-hint">مانده محاسبه‌شده با موجودی کیف پول مطابقت دارد.</p>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

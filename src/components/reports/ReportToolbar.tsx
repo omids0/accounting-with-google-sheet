@@ -10,6 +10,8 @@ import DateRangeFilter, {
   createDefaultDateRangeFilter,
   type AppliedDateRangeFilter
 } from '../DateRangeFilter'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
 
 interface ReportToolbarProps {
   title: string
@@ -35,7 +37,7 @@ export default function ReportToolbar({
   const dateRange = resolveDateRange(preset, customRange)
 
   return (
-    <div className="card records-toolbar dashboard-toolbar">
+    <Card className="records-toolbar dashboard-toolbar">
       <div className="records-toolbar-header">
         <div className="records-toolbar-heading">
           <h2 className="records-toolbar-title">{title}</h2>
@@ -43,15 +45,17 @@ export default function ReportToolbar({
             {subtitle ?? (showDateFilter ? formatDateRangeLabel(dateRange) : '')}
           </p>
         </div>
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary btn-sm records-refresh-btn"
+          variant="secondary"
+          size="sm"
+          className="records-refresh-btn"
           onClick={onRefresh}
           disabled={loading}
           aria-label="بارگذاری مجدد"
         >
           {loading ? '...' : '↻'}
-        </button>
+        </Button>
       </div>
 
       {showDateFilter && (
@@ -62,7 +66,7 @@ export default function ReportToolbar({
           loading={loading}
         />
       )}
-    </div>
+    </Card>
   )
 }
 
