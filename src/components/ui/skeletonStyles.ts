@@ -2,14 +2,14 @@ import { cn } from '../../utils/cn'
 
 export const skeletonShineClass = cn(
   'pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]',
-  '[background:linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.1)_30%,rgba(255,255,255,0.55)_50%,rgba(255,255,255,0.1)_70%,transparent_100%)]',
-  'animate-[progressShine_2.4s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-0'
+  '[background:linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.04)_35%,rgba(255,255,255,0.18)_50%,rgba(255,255,255,0.04)_65%,transparent_100%)]',
+  'animate-[progressShine_4.8s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-0'
 )
 
 export const skeletonGlowClass = cn(
-  'pointer-events-none absolute top-1/2 h-[10px] w-[10px] rounded-full',
-  'bg-white/75 opacity-80 blur-[2px] shadow-[0_0_8px_rgba(255,255,255,0.7)]',
-  'animate-[progressGlowTravel_2.4s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-0'
+  'pointer-events-none absolute top-1/2 h-[7px] w-[7px] rounded-full',
+  'bg-white/28 opacity-45 blur-[1.5px] shadow-[0_0_4px_rgba(255,255,255,0.2)]',
+  'animate-[progressGlowTravel_4.8s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-0'
 )
 
 const skeletonSurfaceClass = cn(

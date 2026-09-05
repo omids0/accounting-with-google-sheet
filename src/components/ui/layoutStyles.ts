@@ -94,65 +94,6 @@ export const headerBackBtnClass = cn(headerIconBtnClass, 'text-white')
 
 export const headerIconSpacerClass = 'h-touch-min w-touch-min flex-shrink-0'
 
-export const bottomNavClass = cn(
-  'fixed bottom-0 left-1/2 z-20 grid w-full max-w-[480px] -translate-x-1/2 grid-cols-[1fr_auto_1fr] items-stretch',
-  'border-t border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-[var(--color-nav-bg)] px-1 pb-[calc(0.45rem+var(--safe-bottom))]',
-  'shadow-[0_-6px_28px_color-mix(in_srgb,var(--color-primary)_10%,transparent)] backdrop-blur-[16px] backdrop-saturate-150'
-)
-
-export const bottomNavSideClass = 'flex min-w-0 items-stretch justify-around'
-
-export const bottomNavCenterClass =
-  'relative z-[2] flex items-end justify-center self-end px-[0.15rem]'
-
-export function bottomNavTabBtnClass(active?: boolean) {
-  return cn(
-    'relative flex min-w-0 max-w-[4.5rem] flex-1 flex-col items-center gap-[0.15rem] px-[0.2rem] py-[0.65rem] pb-[0.4rem] pt-[0.65rem]',
-    'text-[0.72rem] font-semibold text-muted transition-[color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
-    'justify-start self-stretch active:enabled:scale-[0.92]',
-    active &&
-      cn(
-        'text-primary before:absolute before:left-[18%] before:right-[18%] before:top-0 before:h-[3px]',
-        'before:rounded-b before:bg-primary before:content-[""]',
-        'before:animate-[navIndicator_0.3s_var(--ease-out)]'
-      )
-  )
-}
-
-export function bottomNavTabIconClass(active?: boolean) {
-  return cn(
-    'inline-flex h-[2.4rem] w-[2.4rem] items-center justify-center rounded-[13px] leading-none',
-    '[background:color-mix(in_srgb,var(--color-accent-soft)_72%,transparent)] text-muted',
-    'shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-[transform,background,color,box-shadow] duration-[var(--duration-normal)]',
-    active &&
-      cn(
-        'scale-[1.08] text-primary',
-        '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_18%,var(--color-surface)),color-mix(in_srgb,var(--color-primary)_8%,var(--color-accent-soft)))]',
-        'shadow-[0_4px_14px_color-mix(in_srgb,var(--color-primary)_20%,transparent),inset_0_1px_0_rgba(255,255,255,0.5)] ring-1 ring-[color-mix(in_srgb,var(--color-primary)_14%,transparent)]'
-      )
-  )
-}
-
-export function bottomNavDashboardClass(active?: boolean) {
-  return cn(
-    'mb-[0.1rem] mt-[-2.35rem] relative flex h-[4.55rem] w-[4.55rem] flex-col items-center justify-center gap-[0.15rem] rounded-full text-white',
-    '[background:linear-gradient(145deg,var(--color-primary-dark)_0%,var(--color-primary)_45%,var(--color-primary-light)_100%)]',
-    'shadow-[0_10px_28px_rgba(15,118,110,0.48),0_4px_12px_rgba(15,118,110,0.28),0_0_0_5px_rgba(255,255,255,0.98)]',
-    'before:pointer-events-none before:absolute before:inset-[3px] before:rounded-full before:content-[""] before:[background:linear-gradient(145deg,rgba(255,255,255,0.18)_0%,transparent_55%)]',
-    'transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
-    'hover:-translate-y-0.5 active:scale-[0.94] active:translate-y-0',
-    active &&
-      cn(
-        '[background:linear-gradient(145deg,#0a5c56_0%,var(--color-primary-dark)_50%,var(--color-primary)_100%)]',
-        'shadow-[0_14px_36px_rgba(15,118,110,0.58),0_6px_18px_rgba(15,118,110,0.35),0_0_0_5px_rgba(153,246,228,0.65)]'
-      )
-  )
-}
-
-export const bottomNavDashboardIconClass = 'inline-flex items-center justify-center leading-none'
-
-export const bottomNavDashboardLabelClass = 'text-[0.72rem] font-bold tracking-[-0.02em] text-white'
-
 export const appMenuBackdropClass = cn(
   'fixed inset-0 z-40 cursor-default border-none bg-[var(--color-overlay-light)]',
   'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[5px]'

@@ -264,8 +264,6 @@ export const appIconAccentClass = 'fill-current opacity-[0.28]'
 
 export const headerIconAppIconClass = '[&_.app-icon]:drop-shadow-[0_1px_1px_rgba(0,0,0,0.08)]'
 
-export const bottomNavDashboardIconClass = '[&_.app-icon]:drop-shadow-[0_2px_4px_rgba(0,0,0,0.18)]'
-
 export const fabAppIconClass = '[&_.app-icon]:drop-shadow-[0_1px_2px_rgba(0,0,0,0.12)]'
 
 export const reportTableRowInteractiveClass =
