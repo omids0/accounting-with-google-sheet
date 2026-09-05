@@ -1,6 +1,9 @@
 import { cardClassName } from './Card'
 import { cn } from '../../utils/cn'
 
+/** Inner padding for list cards (installments, wallet, receivables, dang, checks). Tailwind p-2 = 0.5rem. */
+export const listCardInsetClass = 'p-2'
+
 export const interactiveCardClass = cn(
   'transition-[box-shadow,border-color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
   'hover:-translate-y-0.5 hover:shadow-[var(--shadow),0_4px_14px_color-mix(in_srgb,var(--color-primary)_10%,transparent)] active:translate-y-0'
@@ -18,7 +21,7 @@ export function installmentCardClass({
   return cardClassName(
     cn(
       interactiveCardClass,
-      'relative overflow-hidden p-0 [content-visibility:auto] [contain-intrinsic-size:auto_7.5rem]',
+      'list-card relative overflow-hidden p-0 [content-visibility:auto] [contain-intrinsic-size:auto_6.5rem]',
       'rounded-[calc(var(--radius)+2px)] transition-[box-shadow,border-color,transform] duration-[var(--duration-slow)] ease-[var(--ease-out)]',
       'before:absolute before:top-0 before:bottom-0 before:right-0 before:w-[3px] before:rounded-r-[3px]',
       'before:[background:linear-gradient(180deg,var(--color-primary-light)_0%,var(--color-primary)_100%)] before:opacity-0 before:transition-opacity before:duration-[var(--duration-fast)] before:ease-[var(--ease-out)] before:content-[""]',
@@ -39,7 +42,8 @@ export function receivableCompleteCardClass(complete?: boolean) {
 
 export function installmentHeaderClass(expanded?: boolean) {
   return cn(
-    'flex w-full cursor-pointer items-start justify-between gap-2 rounded-sm border-none bg-transparent p-[0.65rem_0.7rem] text-right text-inherit transition-[background] duration-[var(--duration-fast)]',
+    'installment-header flex w-full cursor-pointer items-start justify-between gap-1.5 rounded-sm border-none bg-transparent text-right text-inherit transition-[background] duration-[var(--duration-fast)]',
+    listCardInsetClass,
     'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_55%,transparent)]',
     '[&>div:first-child]:min-w-0 [&>div:first-child]:flex-1',
     expanded && '[&_.installment-chevron]:rotate-180 [&_.installment-chevron]:text-primary'
@@ -53,25 +57,25 @@ export const listCardTitleClass =
   'list-card-title text-[0.88rem] font-bold leading-[1.3] tracking-[-0.015em] text-text'
 
 export const listCardSubtitleClass =
-  'list-card-subtitle mt-[0.2rem] text-[0.72rem] leading-[1.4] text-muted'
+  'list-card-subtitle mt-[0.12rem] text-[0.72rem] leading-[1.35] text-muted'
 
 export const listCardAmountPillClass = cn(
-  'list-card-amount-pill inline-flex items-center rounded-full border border-accent-mid bg-accent-soft px-[0.58rem] py-[0.22rem] text-[0.8rem] font-extrabold tracking-[0.01em] text-primary-dark tabular-nums font-numeric'
+  'list-card-amount-pill inline-flex items-center rounded-full border border-accent-mid bg-accent-soft px-[0.48rem] py-[0.14rem] text-[0.78rem] font-extrabold tracking-[0.01em] text-primary-dark tabular-nums font-numeric'
 )
 
 export const cardHeaderWithEditClass =
   'flex items-start [&_.installment-header]:min-w-0 [&_.installment-header]:flex-1'
 
 export const cardActionButtonsClass = cn(
-  'flex shrink-0 flex-col items-center justify-center gap-[0.2rem] self-center rounded-sm border border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)] p-[0.2rem]',
-  '[&_.card-action-btn]:h-[1.9rem] [&_.card-action-btn]:w-[1.9rem] [&_.card-action-btn]:rounded-lg',
-  'me-[0.55rem] [.card-header-with-edit_&]:me-2 [.card-header-with-edit_&]:ms-0 [.card-header-with-edit_&]:mt-2 [.card-header-with-edit_&]:self-start',
-  '[.dang-card_&]:m-[0.85rem_0.5rem_0.85rem_0] [.dang-card_&]:self-start',
-  '[.wallet-item-card_&]:mb-2 [.wallet-item-card_&]:mt-2'
+  'flex shrink-0 flex-col items-center justify-center gap-[0.15rem] self-center rounded-[calc(var(--radius-sm)-2px)] border border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)] p-[0.15rem]',
+  '[&_.card-action-btn]:h-[1.7rem] [&_.card-action-btn]:w-[1.7rem] [&_.card-action-btn]:rounded-md',
+  'me-2 [.card-header-with-edit_&]:me-2 [.card-header-with-edit_&]:ms-0 [.card-header-with-edit_&]:mt-2 [.card-header-with-edit_&]:self-start',
+  '[.dang-card_&]:m-2 [.dang-card_&]:self-start',
+  '[.wallet-item-card_&]:my-2'
 )
 
 export const cardActionBtnClass = cn(
-  'inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 text-muted transition-[background,color] duration-[var(--duration-fast)]',
+  'inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 text-muted transition-[background,color] duration-[var(--duration-fast)]',
   'hover:enabled:bg-bg disabled:cursor-not-allowed disabled:opacity-45'
 )
 
@@ -100,7 +104,7 @@ export const cardInlineEditLabelClass =
 export const cardInlineEditSpinnerClass = 'mb-[0.55rem] shrink-0'
 
 export const installmentPaymentsClass = cn(
-  'border-t border-dashed border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] px-[0.55rem] pb-[0.55rem] pt-[0.45rem]',
+  'border-t border-dashed border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] px-2 pb-2 pt-1.5',
   '[background:linear-gradient(180deg,color-mix(in_srgb,var(--color-accent-soft)_70%,transparent)_0%,transparent_100%)]',
   '[&>.installment-amount-summary]:mb-[0.65rem] [&>.installment-amount-summary]:mt-0'
 )
@@ -152,10 +156,10 @@ export function installmentPaymentChevronClass(expanded?: boolean) {
   )
 }
 
-export const installmentPaymentEditClass = 'px-[0.55rem] pb-[0.7rem] pt-[0.35rem]'
+export const installmentPaymentEditClass = 'px-[0.45rem] pb-[0.55rem] pt-[0.3rem]'
 
 export const installmentAmountSummaryClass = cn(
-  'mt-[0.55rem] flex flex-col gap-[0.4rem] rounded-[calc(var(--radius-sm)+2px)] border border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] bg-[color-mix(in_srgb,var(--color-bg)_88%,var(--color-accent-soft))] px-[0.7rem] py-[0.6rem]'
+  'mt-[0.4rem] flex flex-col gap-[0.32rem] rounded-[calc(var(--radius-sm)+2px)] border border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] bg-[color-mix(in_srgb,var(--color-bg)_88%,var(--color-accent-soft))] px-[0.55rem] py-[0.48rem]'
 )
 
 export const installmentAmountRowClass =
@@ -166,10 +170,10 @@ export const installmentAmountSummaryLabelClass =
 
 export const installmentDueLineClass = cn(
   listCardSubtitleClass,
-  'mt-[0.35rem] flex items-center justify-between gap-[0.65rem] [&_.installment-due]:min-w-0 [&_.installment-due]:flex-1 [&_.installment-due]:leading-[1.45] [&_.money-display]:shrink-0'
+  'mt-[0.22rem] flex items-center justify-between gap-[0.5rem] [&_.installment-due]:min-w-0 [&_.installment-due]:flex-1 [&_.installment-due]:leading-[1.4] [&_.money-display]:shrink-0'
 )
 
-export const installmentRangeLineClass = 'mb-[0.45rem] mt-[0.4rem]'
+export const installmentRangeLineClass = 'mb-[0.3rem] mt-[0.25rem]'
 
 export function dangCardClass({
   paid,
@@ -183,7 +187,8 @@ export function dangCardClass({
   return cardClassName(
     cn(
       interactiveCardClass,
-      'relative flex cursor-pointer items-start gap-3 overflow-hidden px-[1.1rem] py-[0.95rem]',
+      'dang-card relative flex cursor-pointer items-start gap-2 overflow-hidden',
+      listCardInsetClass,
       'before:absolute before:top-0 before:bottom-0 before:right-0 before:w-[3px] before:opacity-55 before:content-[""]',
       'before:[background:linear-gradient(180deg,var(--color-expense)_0%,color-mix(in_srgb,var(--color-expense)_55%,var(--color-primary)_100%))]',
       'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)]',
@@ -197,7 +202,7 @@ export function dangCardClass({
 }
 
 export const dangCheckboxClass =
-  'mt-[0.2rem] h-[1.2rem] w-[1.2rem] shrink-0 cursor-pointer rounded accent-primary'
+  'mt-[0.1rem] h-[1.1rem] w-[1.1rem] shrink-0 cursor-pointer rounded accent-primary'
 
 export const dangCardBodyClass = 'min-w-0 flex-1'
 
@@ -215,11 +220,11 @@ export const dangCardTitleClass = 'text-[0.95rem] font-semibold [.dang-card.paid
 
 export const dangCardAmountClass = 'text-[0.9rem] font-bold tabular-nums text-primary-dark'
 
-export const dangCardMetaClass = 'mt-[0.35rem] text-[0.8rem] text-muted'
+export const dangCardMetaClass = 'mt-[0.2rem] text-[0.76rem] leading-[1.4] text-muted'
 
 export const dangCardDateClass = 'ms-1'
 
-export const dangCardNoteClass = 'm-[0.5rem_0_0] text-[0.8rem] leading-[1.5] text-muted'
+export const dangCardNoteClass = 'm-[0.28rem_0_0] text-[0.76rem] leading-[1.45] text-muted'
 
 export const dangPaidAtClass = 'm-[0.5rem_0_0] text-[0.75rem] font-medium text-primary'
 
@@ -234,7 +239,7 @@ export const dangTotalLabelClass = 'text-[0.85rem] text-muted'
 
 export const dangTotalValueClass = 'text-base font-bold text-primary-dark'
 
-export const walletItemCardClass = 'p-0'
+export const walletItemCardClass = 'wallet-item-card list-card p-0'
 
 export const walletItemInfoClass = 'min-w-0 flex-1'
 

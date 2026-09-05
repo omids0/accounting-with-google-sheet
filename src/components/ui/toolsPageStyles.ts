@@ -59,12 +59,12 @@ export const timesheetStatValueClass = 'mt-[0.15rem] text-[1.05rem] font-extrabo
 
 export const timesheetJiraHoursClass = 'ms-[0.35rem] text-[0.92rem] font-bold text-muted'
 
-export const timesheetEntryCardClass = 'flex cursor-default items-start gap-3 p-0'
+export const timesheetEntryCardClass = 'list-card flex cursor-default items-start gap-2.5 p-0'
 
 export const timesheetEntryCardCheckedClass = 'opacity-[0.78]'
 
 export const timesheetEntryCheckboxClass = cn(
-  'mt-[0.85rem] ms-[0.7rem] h-[1.2rem] w-[1.2rem] flex-shrink-0 cursor-pointer rounded accent-primary'
+  'mt-2 ms-2 h-[1.15rem] w-[1.15rem] flex-shrink-0 cursor-pointer rounded accent-primary'
 )
 
 export const timesheetEntryBodyClass = 'min-w-0 flex-1'
@@ -73,7 +73,7 @@ export const timesheetEntryHeaderClass = 'cursor-default hover:bg-transparent'
 
 export const timesheetEntrySeparatorClass = 'opacity-[0.55]'
 
-export const timesheetListCardClass = 'cursor-pointer'
+export const timesheetListCardClass = 'list-card cursor-pointer p-0'
 
 export const timesheetListCardMainClass = 'cursor-pointer hover:bg-transparent'
 
