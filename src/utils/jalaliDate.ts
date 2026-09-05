@@ -1,8 +1,7 @@
-export interface JalaliParts {
-  year: number
-  month: number
-  day: number
-}
+import { dateToJalali, jalaliMonthLength, jalaliToDate, type JalaliParts } from './jalaliConvert'
+import { memoizeByKey } from './memoize'
+
+export type { JalaliParts }
 
 export interface DateRange {
   start: string
@@ -24,6 +23,8 @@ export const JALALI_MONTHS = [
   'اسفند'
 ]
 
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+
 export function toIsoDate(d: Date): string {
   const y = d.getFullYear()
 
@@ -36,68 +37,43 @@ export function toIsoDate(d: Date): string {
 
 export function getJalaliParts(d: Date): JalaliParts {
   if (Number.isNaN(d.getTime())) {
-    return getJalaliParts(new Date())
+    return dateToJalali(new Date())
   }
 
-  const parts = new Intl.DateTimeFormat('en-u-ca-persian', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric'
-  }).formatToParts(d)
-
-  const get = (type: string) => Number(parts.find(p => p.type === type)?.value ?? 0)
-
-  return { year: get('year'), month: get('month'), day: get('day') }
+  return dateToJalali(d)
 }
 
 export function findGregorianForJalali(jy: number, jm: number, jd: number): Date {
-  const approx = jy + 621
-
-  for (let y = approx - 1; y <= approx + 1; y++) {
-    for (let m = 0; m < 12; m++) {
-      for (let day = 1; day <= 31; day++) {
-        const d = new Date(y, m, day)
-
-        const p = getJalaliParts(d)
-
-        if (p.year === jy && p.month === jm && p.day === jd) return d
-      }
-    }
-  }
-
-  return new Date()
+  return jalaliToDate(jy, jm, jd)
 }
 
 export function daysInJalaliMonth(jy: number, jm: number): number {
-  if (jm <= 6) return 31
-  if (jm <= 11) return 30
-  for (let jd = 30; jd >= 29; jd--) {
-    const d = findGregorianForJalali(jy, jm, jd)
-
-    if (getJalaliParts(d).month === jm) return jd
-  }
-
-  return 29
+  return jalaliMonthLength(jy, jm)
 }
 
-export function isoToJalali(iso: string): JalaliParts {
-  if (!iso) return getJalaliParts(new Date())
+const isoDateToJalali = memoizeByKey(
+  (dateOnly: string): JalaliParts => dateToJalali(new Date(`${dateOnly}T12:00:00`)),
+  dateOnly => dateOnly
+)
 
+export function isoToJalali(iso: string): JalaliParts {
   const dateOnly = iso.slice(0, 10)
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+  // Only calendar dates are cached; the "today" fallbacks below must stay live
+  // so a session that spans midnight does not keep reporting yesterday.
+  if (ISO_DATE_PATTERN.test(dateOnly)) return isoDateToJalali(dateOnly)
+
+  if (iso) {
     const parsed = new Date(iso)
 
-    if (!Number.isNaN(parsed.getTime())) return getJalaliParts(parsed)
-
-    return getJalaliParts(new Date())
+    if (!Number.isNaN(parsed.getTime())) return dateToJalali(parsed)
   }
 
-  return getJalaliParts(new Date(`${dateOnly}T12:00:00`))
+  return dateToJalali(new Date())
 }
 
 export function jalaliToIso(jy: number, jm: number, jd: number): string {
-  return toIsoDate(findGregorianForJalali(jy, jm, jd))
+  return toIsoDate(jalaliToDate(jy, jm, jd))
 }
 
 export function getTodayIso(): string {
@@ -112,34 +88,54 @@ export function addDaysToIso(iso: string, days: number): string {
   return toIsoDate(d)
 }
 
-export function formatIsoDatePersian(iso: string): string {
-  if (!iso) return '—'
+/**
+ * Reused across every list row; constructing `Intl.DateTimeFormat` per call was
+ * measurably the most expensive thing in list rendering.
+ */
+const persianDateFormatter = new Intl.DateTimeFormat('fa-IR', {
+  calendar: 'persian',
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric'
+})
 
-  const d = iso.slice(0, 10)
+export const formatIsoDatePersian = memoizeByKey(
+  (iso: string): string => {
+    if (!iso) return '—'
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return iso
+    const d = iso.slice(0, 10)
 
-  return new Date(`${d}T12:00:00`).toLocaleDateString('fa-IR', {
-    calendar: 'persian',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
+    if (!ISO_DATE_PATTERN.test(d)) return iso
 
-export function addJalaliMonths(baseIso: string, monthsToAdd: number, day: number): string {
+    return persianDateFormatter.format(new Date(`${d}T12:00:00`))
+  },
+  iso => iso
+)
+
+function computeJalaliMonthsAhead(baseIso: string, monthsToAdd: number, day: number): string {
   const { year, month } = isoToJalali(baseIso)
 
-  let jm = month + monthsToAdd
+  const absoluteMonth = month - 1 + monthsToAdd
 
-  let jy = year
+  const jy = year + Math.floor(absoluteMonth / 12)
 
-  while (jm > 12) {
-    jm -= 12
-    jy += 1
-  }
+  const jm = (((absoluteMonth % 12) + 12) % 12) + 1
 
   const maxDay = daysInJalaliMonth(jy, jm)
 
   return jalaliToIso(jy, jm, Math.min(day, maxDay))
+}
+
+const memoizedJalaliMonthsAhead = memoizeByKey(
+  computeJalaliMonthsAhead,
+  (baseIso, monthsToAdd, day) => `${baseIso}|${monthsToAdd}|${day}`
+)
+
+export function addJalaliMonths(baseIso: string, monthsToAdd: number, day: number): string {
+  // Same reasoning as `isoToJalali`: results relative to "today" stay uncached.
+  if (!ISO_DATE_PATTERN.test(baseIso.slice(0, 10))) {
+    return computeJalaliMonthsAhead(baseIso, monthsToAdd, day)
+  }
+
+  return memoizedJalaliMonthsAhead(baseIso, monthsToAdd, day)
 }

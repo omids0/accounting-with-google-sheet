@@ -1,4 +1,6 @@
+import { jalaliToDate, jdnToGregorian } from './jalaliConvert'
 import { daysInJalaliMonth, getTodayIso, isoToJalali, JALALI_MONTHS, toIsoDate } from './jalaliDate'
+import { memoizeByKey } from './memoize'
 import { numberToPersianWords } from './numberToWords'
 
 export type CalendarSystem = 'shamsi' | 'miladi' | 'hijri'
@@ -31,12 +33,27 @@ function parseIso(iso: string): Date {
   return new Date(`${(iso || getTodayIso()).slice(0, 10)}T12:00:00`)
 }
 
-function getIntlParts(date: Date, calendar: CalendarSystem): CalendarDateParts {
-  const parts = new Intl.DateTimeFormat(`en-u-ca-${CALENDAR_IDS[calendar]}`, {
+const partsFormatters = new Map<CalendarSystem, Intl.DateTimeFormat>()
+
+/** Reuse one formatter per calendar; constructing them is the expensive part. */
+function getPartsFormatter(calendar: CalendarSystem): Intl.DateTimeFormat {
+  const cached = partsFormatters.get(calendar)
+
+  if (cached) return cached
+
+  const formatter = new Intl.DateTimeFormat(`en-u-ca-${CALENDAR_IDS[calendar]}`, {
     year: 'numeric',
     month: 'numeric',
     day: 'numeric'
-  }).formatToParts(date)
+  })
+
+  partsFormatters.set(calendar, formatter)
+
+  return formatter
+}
+
+function getIntlParts(date: Date, calendar: CalendarSystem): CalendarDateParts {
+  const parts = getPartsFormatter(calendar).formatToParts(date)
 
   const get = (type: string) => Number(parts.find(part => part.type === type)?.value ?? 0)
 
@@ -55,29 +72,54 @@ export function getCalendarParts(iso: string, calendar: CalendarSystem): Calenda
   return getIntlParts(parseIso(iso), calendar)
 }
 
+/** 1 Muharram 1 AH and the mean lengths used to seed the Hijri search. */
+const HIJRI_EPOCH_JDN = 1948440
+const HIJRI_YEAR_DAYS = 354.36707
+const HIJRI_MONTH_DAYS = 29.530589
+const HIJRI_SEARCH_WINDOW_DAYS = 45
+
+/**
+ * The Hijri calendar has no closed-form conversion here, so estimate the day
+ * number from mean year/month lengths and scan a small window around it. This
+ * replaces a scan of five full Gregorian years (~1,800 probes) with ~90.
+ */
+function findGregorianForHijri(year: number, month: number, day: number): Date {
+  const estimatedJdn = Math.round(
+    HIJRI_EPOCH_JDN + (year - 1) * HIJRI_YEAR_DAYS + (month - 1) * HIJRI_MONTH_DAYS + (day - 1)
+  )
+
+  for (let offset = 0; offset <= HIJRI_SEARCH_WINDOW_DAYS; offset++) {
+    for (const signedOffset of offset === 0 ? [0] : [offset, -offset]) {
+      const { gy, gm, gd } = jdnToGregorian(estimatedJdn + signedOffset)
+
+      const date = new Date(gy, gm - 1, gd, 12, 0, 0, 0)
+
+      const parts = getIntlParts(date, 'hijri')
+
+      if (parts.year === year && parts.month === month && parts.day === day) {
+        return date
+      }
+    }
+  }
+
+  return new Date()
+}
+
 function findGregorianForCalendar(
   year: number,
   month: number,
   day: number,
   calendar: CalendarSystem
 ): Date {
-  const approxYear = calendar === 'hijri' ? year + 579 : calendar === 'shamsi' ? year + 621 : year
-
-  for (let y = approxYear - 2; y <= approxYear + 2; y++) {
-    for (let m = 0; m < 12; m++) {
-      for (let d = 1; d <= 31; d++) {
-        const date = new Date(y, m, d)
-
-        const parts = getCalendarParts(toIsoDate(date), calendar)
-
-        if (parts.year === year && parts.month === month && parts.day === day) {
-          return date
-        }
-      }
-    }
+  if (calendar === 'shamsi') {
+    return jalaliToDate(year, month, day)
   }
 
-  return new Date()
+  if (calendar === 'hijri') {
+    return findGregorianForHijri(year, month, day)
+  }
+
+  return new Date(year, month - 1, day, 12, 0, 0, 0)
 }
 
 export function partsToIso(parts: CalendarDateParts, calendar: CalendarSystem): string {
@@ -106,26 +148,45 @@ export function daysInCalendarMonth(year: number, month: number, calendar: Calen
   return 30
 }
 
+const displayFormatters = new Map<string, Intl.DateTimeFormat>()
+
+/** `toLocaleDateString` rebuilds a formatter per call; keep one per option set. */
+function formatFa(
+  date: Date,
+  calendar: CalendarSystem,
+  options: Intl.DateTimeFormatOptions
+): string {
+  const key = `${calendar}|${Object.keys(options).join(',')}`
+
+  let formatter = displayFormatters.get(key)
+
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat('fa-IR', { calendar: CALENDAR_IDS[calendar], ...options })
+    displayFormatters.set(key, formatter)
+  }
+
+  return formatter.format(date)
+}
+
+const computeMonthNames = memoizeByKey(
+  (calendar: CalendarSystem): string[] => {
+    const refYear = getCalendarParts(getTodayIso(), calendar).year
+
+    return Array.from({ length: 12 }, (_, index) => {
+      const iso = partsToIso({ year: refYear, month: index + 1, day: 1 }, calendar)
+
+      return formatFa(parseIso(iso), calendar, { month: 'long' })
+    })
+  },
+  calendar => calendar
+)
+
 export function getCalendarMonthNames(calendar: CalendarSystem): string[] {
   if (calendar === 'shamsi') {
     return [...JALALI_MONTHS]
   }
 
-  const refYear =
-    calendar === 'hijri'
-      ? getCalendarParts(getTodayIso(), 'hijri').year
-      : getCalendarParts(getTodayIso(), 'miladi').year
-
-  return Array.from({ length: 12 }, (_, index) => {
-    const month = index + 1
-
-    const iso = partsToIso({ year: refYear, month, day: 1 }, calendar)
-
-    return parseIso(iso).toLocaleDateString('fa-IR', {
-      calendar: CALENDAR_IDS[calendar],
-      month: 'long'
-    })
-  })
+  return [...computeMonthNames(calendar)]
 }
 
 export function getCalendarMonthWheelItems(
@@ -150,8 +211,7 @@ export function getCalendarYearRange(calendar: CalendarSystem, centerIso?: strin
 }
 
 export function formatCalendarDate(iso: string, calendar: CalendarSystem): string {
-  return parseIso(iso).toLocaleDateString('fa-IR', {
-    calendar: CALENDAR_IDS[calendar],
+  return formatFa(parseIso(iso), calendar, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -160,8 +220,7 @@ export function formatCalendarDate(iso: string, calendar: CalendarSystem): strin
 }
 
 export function formatCalendarDateCompact(iso: string, calendar: CalendarSystem): string {
-  return parseIso(iso).toLocaleDateString('fa-IR', {
-    calendar: CALENDAR_IDS[calendar],
+  return formatFa(parseIso(iso), calendar, {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -191,10 +250,7 @@ export function formatCalendarDateNumeric(iso: string, calendar: CalendarSystem)
 export function formatCalendarDateWords(iso: string, calendar: CalendarSystem): string {
   const { year, month, day } = getCalendarParts(iso, calendar)
 
-  const weekday = parseIso(iso).toLocaleDateString('fa-IR', {
-    calendar: CALENDAR_IDS[calendar],
-    weekday: 'long'
-  })
+  const weekday = formatFa(parseIso(iso), calendar, { weekday: 'long' })
 
   const monthName = getCalendarMonthName(calendar, month)
 
