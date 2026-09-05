@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 
+import PickerSheet from './form/PickerSheet'
 import DateTimeWheelFields from './JalaliDateTimeWheelFields'
 import Button from './ui/Button'
 import {
-  jalaliDatePickerActionsClass,
-  jalaliDatePickerPanelClass,
+  jalaliDatePickerPreviewClass,
+  jalaliDatePickerTodayBtnClass,
   jalaliDatePickerTriggerClass,
   jalaliDatePickerWrapClass,
-  jalaliDateTimePickerFieldLabelClass
+  jalaliDateTimePickerFieldLabelClass,
+  pickerQuickActionsClass,
+  pickerSheetFooterClass
 } from './ui/datePickerStyles'
 import { cn } from '../utils/cn'
 import type { CalendarSystem } from '../utils/dateConverter'
@@ -17,6 +20,8 @@ import {
   getNowDateTimeIso,
   normalizeDateTimeIso
 } from '../utils/datetime'
+import { formActionsClassName } from './ui/formStyles'
+import { formModalActionsClass } from './ui/modalStyles'
 
 interface JalaliDateTimePickerProps {
   value: string
@@ -61,14 +66,13 @@ export default function JalaliDateTimePicker({
     setEditing(true)
   }, [openRequestToken, iso, minDateTime])
 
-  const handleToggle = () => {
-    setEditing(open => {
-      if (!open) {
-        setPendingValue(minDateTime ? clampDateTimeToMin(iso, minDateTime) : iso)
-      }
+  const handleOpen = () => {
+    setPendingValue(minDateTime ? clampDateTimeToMin(iso, minDateTime) : iso)
+    setEditing(true)
+  }
 
-      return !open
-    })
+  const handleClose = () => {
+    setEditing(false)
   }
 
   const handleConfirm = () => {
@@ -84,6 +88,13 @@ export default function JalaliDateTimePicker({
 
   const triggerLabel = value ? formatDateTimePersian(value) : 'انتخاب تاریخ و ساعت'
 
+  const previewLabel = formatDateTimePersian(pendingValue)
+
+  const handleToday = () => {
+    const now = getNowDateTimeIso()
+    setPendingValue(minDateTime ? clampDateTimeToMin(now, minDateTime) : now)
+  }
+
   return (
     <div className={jalaliDatePickerWrapClass}>
       {label && <span className={jalaliDateTimePickerFieldLabelClass}>{label}</span>}
@@ -93,27 +104,48 @@ export default function JalaliDateTimePicker({
           active: editing,
           empty: !value
         })}
-        onClick={handleToggle}
+        onClick={handleOpen}
         aria-expanded={editing}
+        aria-haspopup="dialog"
       >
         {triggerLabel}
       </button>
 
-      {editing && (
-        <div className={cn(jalaliDatePickerPanelClass, 'jalali-datetime-picker-panel')}>
-          <DateTimeWheelFields
-            calendar={calendar}
-            value={pendingValue}
-            onChange={setPendingValue}
-            minDateTime={minDateTime}
-          />
-          <div className={jalaliDatePickerActionsClass}>
+      <PickerSheet
+        open={editing}
+        title="انتخاب تاریخ و ساعت"
+        onClose={handleClose}
+        subtitle={
+          <p className={jalaliDatePickerPreviewClass} aria-live="polite">
+            {previewLabel}
+          </p>
+        }
+        footer={
+          <div
+            className={cn(formModalActionsClass, formActionsClassName(), pickerSheetFooterClass)}
+          >
+            <Button type="button" variant="secondary" onClick={handleClose}>
+              انصراف
+            </Button>
             <Button type="button" variant="primary" onClick={handleConfirm}>
               تایید
             </Button>
           </div>
+        }
+      >
+        <div className={pickerQuickActionsClass}>
+          <button type="button" className={jalaliDatePickerTodayBtnClass} onClick={handleToday}>
+            همین الان
+          </button>
         </div>
-      )}
+        <DateTimeWheelFields
+          calendar={calendar}
+          value={pendingValue}
+          onChange={setPendingValue}
+          minDateTime={minDateTime}
+          layout="sheet"
+        />
+      </PickerSheet>
     </div>
   )
 }

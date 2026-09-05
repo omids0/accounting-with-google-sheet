@@ -23,25 +23,61 @@ export const filterModalActionsClass = 'justify-end gap-2'
 
 export const filterModalClearClass = 'me-auto'
 
-export const activeFilterChipsClass = 'active-filter-chips mb-[0.65rem] flex flex-wrap gap-[0.4rem]'
-
-export const activeFilterChipClass = cn(
-  'active-filter-chip inline-flex max-w-full min-h-[1.65rem] items-center gap-[0.12rem] rounded-full border border-[color-mix(in_srgb,var(--color-primary)_20%,var(--color-border))] py-[0.12rem] pe-[0.35rem] ps-[0.12rem] text-[0.72rem] font-semibold leading-[1.2] text-primary-dark shadow-[0_1px_4px_rgba(15,23,42,0.05)]',
-  '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))_0%,var(--color-surface)_100%)]'
+export const activeFilterBarClass = cn(
+  'active-filter-chips mb-[0.7rem] flex flex-wrap items-center gap-2',
+  '[&_[role=listitem]]:list-none'
 )
+
+export const activeFilterTriggerClass = (active?: boolean) =>
+  cn(
+    'inline-flex min-h-touch-min shrink-0 items-center gap-[0.35rem] rounded-full border border-[color-mix(in_srgb,var(--color-primary)_22%,var(--color-border))] bg-surface px-3 py-2 font-[inherit] text-[0.8rem] font-bold text-primary-dark shadow-[0_1px_4px_rgba(15,23,42,0.05)] transition-[background,border-color,box-shadow,transform] duration-[var(--duration-fast)]',
+    'hover:enabled:border-primary-light hover:enabled:bg-accent-soft active:enabled:scale-[0.97]',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2',
+    active &&
+      'border-[color-mix(in_srgb,var(--color-primary)_36%,var(--color-border))] bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--color-surface))]'
+  )
+
+export const activeFilterTriggerLabelClass = 'leading-none'
+
+export const activeFilterTriggerDotClass = cn(
+  'inline-flex h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-primary px-[0.3rem] text-[0.62rem] font-extrabold leading-none text-white'
+)
+
+export const activeFilterClearAllClass = cn(
+  'inline-flex min-h-touch-min shrink-0 items-center rounded-full border border-dashed border-[color-mix(in_srgb,var(--color-danger)_35%,var(--color-border))] bg-[color-mix(in_srgb,var(--color-danger)_5%,var(--color-surface))] px-3 py-2 font-[inherit] text-[0.76rem] font-bold text-danger transition-[background,border-color] duration-[var(--duration-fast)]',
+  'hover:enabled:border-danger hover:enabled:bg-[var(--color-danger-bg)]',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-danger)_30%,transparent)] focus-visible:ring-offset-2'
+)
+
+export const activeFilterChipsClass = activeFilterBarClass
+
+export function activeFilterChipClass(kind: FilterChipKind = 'other') {
+  return cn(
+    'active-filter-chip inline-flex max-w-full min-h-touch-min items-center gap-[0.1rem] rounded-full border py-[0.15rem] pe-[0.35rem] ps-[0.15rem] text-[0.78rem] font-semibold leading-[1.2] text-primary-dark shadow-[0_1px_4px_rgba(15,23,42,0.05)]',
+    '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))_0%,var(--color-surface)_100%)]',
+    kind === 'sort' &&
+      'border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))] [background:linear-gradient(145deg,color-mix(in_srgb,var(--color-accent-soft)_80%,var(--color-surface))_0%,var(--color-surface)_100%)]',
+    kind !== 'sort' && 'border-[color-mix(in_srgb,var(--color-primary)_20%,var(--color-border))]'
+  )
+}
+
+export type FilterChipKind = 'search' | 'date' | 'category' | 'payment' | 'sort' | 'other'
+
+export const activeFilterChipIconClass =
+  'inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary'
 
 export function activeFilterChipMainClass(clickable?: boolean) {
   return cn(
-    'active-filter-chip__main min-w-0 overflow-hidden text-ellipsis whitespace-nowrap border-0 bg-transparent px-[0.35rem] py-[0.12rem] text-[0.72rem] font-semibold leading-[1.2] text-inherit',
+    'active-filter-chip__main flex min-w-0 max-w-[min(100%,14rem)] items-center gap-[0.3rem] overflow-hidden border-0 bg-transparent px-[0.25rem] py-[0.2rem] text-[0.78rem] font-semibold leading-[1.2] text-inherit',
     clickable
-      ? 'active-filter-chip__main--clickable cursor-pointer rounded-full transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-px focus-visible:outline-[color-mix(in_srgb,var(--color-primary)_45%,transparent)]'
-      : 'cursor-default px-[0.45rem]'
+      ? 'active-filter-chip__main--clickable cursor-pointer rounded-full transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
+      : 'cursor-default px-[0.35rem]'
   )
 }
 
 export const activeFilterChipRemoveClass = cn(
-  'active-filter-chip__remove flex h-[1.15rem] w-[1.15rem] shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  'hover:bg-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-px focus-visible:outline-[color-mix(in_srgb,var(--color-primary)_45%,transparent)]'
+  'active-filter-chip__remove flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+  'hover:bg-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
 )
 
 export const pageSearchClass = 'page-search relative min-w-0 max-w-[220px] flex-1'
@@ -50,9 +86,9 @@ export const pageSearchIconClass =
   'pointer-events-none absolute end-[0.7rem] top-1/2 flex -translate-y-1/2 items-center justify-center text-muted opacity-70'
 
 export const pageSearchInputClass = cn(
-  'page-search-input w-full rounded-full border-[1.5px] border-border px-[2.1rem] py-2 font-[inherit] text-[0.82rem] text-text shadow-[0_2px_10px_rgba(15,118,110,0.06)] transition-[border-color,box-shadow,background,transform] duration-[var(--duration-normal)]',
-  '[background:linear-gradient(135deg,rgba(255,255,255,0.98),rgba(240,253,250,0.92))] placeholder:text-muted placeholder:opacity-75',
-  'focus:border-primary-light focus:bg-surface focus:shadow-[0_0_0_3px_rgba(20,184,166,0.14),0_4px_16px_rgba(15,118,110,0.1)] focus:outline-none focus:-translate-y-px'
+  'page-search-input w-full rounded-full border-[1.5px] border-border bg-[var(--form-input-bg)] px-[2.1rem] py-2 font-[inherit] text-[0.82rem] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background,transform] duration-[var(--duration-normal)]',
+  'placeholder:text-muted placeholder:opacity-75',
+  'focus:border-primary-light focus:bg-surface focus:shadow-[var(--form-input-focus-shadow)] focus:outline-none focus:-translate-y-px'
 )
 
 export const pageFilterBarClass = cn(
@@ -67,14 +103,14 @@ export const pageFilterBarRowClass =
   'flex min-h-[2.65rem] items-center justify-end gap-[0.55rem] px-[0.55rem] py-[0.45rem]'
 
 export const pageFilterBarSummaryClass =
-  'm-0 min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap px-[0.15rem] text-start text-[0.72rem] leading-[1.35] text-muted'
+  'm-0 min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap px-[0.15rem] text-start text-[0.75rem] leading-[1.35] text-muted'
 
 export const pageFilterBarCollapseInnerClass =
   'border-t border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-[color-mix(in_srgb,var(--color-primary)_3%,var(--color-surface))]'
 
 export function pageFilterBtnClass({ active, applied }: { active?: boolean; applied?: boolean }) {
   return cn(
-    'relative flex h-[2.35rem] w-[2.35rem] shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--color-primary)_20%,transparent)] text-primary shadow-[0_2px_8px_rgba(15,23,42,0.07)] transition-[background,border-color,box-shadow,transform] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
+    'relative flex h-touch-min w-touch-min shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--color-primary)_20%,transparent)] text-primary shadow-[0_2px_8px_rgba(15,23,42,0.07)] transition-[background,border-color,box-shadow,transform] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
     '[background:linear-gradient(145deg,var(--color-surface)_0%,color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))_100%)]',
     'hover:border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] active:scale-[0.94]',
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color-mix(in_srgb,var(--color-primary)_45%,transparent)]',

@@ -181,6 +181,13 @@ export function useListFilters<T>({
     setFilterModalOpen(false)
   }
 
+  const clearAllFilters = useCallback(() => {
+    setSearchQuery('')
+    setPaymentStatusFilter('all')
+    setCategoryFilter('all')
+    resetDateFilter()
+  }, [resetDateFilter])
+
   const hasActiveFilters =
     datePreset !== 'all' ||
     paymentStatusFilter !== 'all' ||
@@ -209,6 +216,7 @@ export function useListFilters<T>({
     hasActiveFilters,
     openFilterModal,
     filterChips,
+    clearAllFilters,
     handleDraftDateFilterChange,
     clearDraftFilters,
     applyFilters

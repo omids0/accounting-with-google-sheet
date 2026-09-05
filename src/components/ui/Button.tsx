@@ -6,7 +6,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'outflow' | 'in
 export type ButtonSize = 'md' | 'sm'
 
 const baseClass =
-  'relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-sm font-bold transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)] active:enabled:scale-[0.97] disabled:cursor-not-allowed'
+  'relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-sm font-bold transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)] active:enabled:scale-[0.97] disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
 
 const sizeClass: Record<ButtonSize, string> = {
   md: 'w-full px-5 py-3 text-[0.95rem]',

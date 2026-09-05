@@ -29,12 +29,13 @@ export const loginFeaturesClass = 'mb-5 flex list-none flex-col gap-[0.55rem] p-
 
 export const loginFeatureClass = cn(
   'flex items-center gap-[0.65rem] rounded-sm border border-border bg-bg p-[0.55rem] px-3',
-  'text-[0.82rem] font-bold leading-[1.45] text-text'
+  'text-[0.82rem] font-bold leading-[1.45] text-[#052f2c]'
 )
 
 export const loginFeatureIconClass = cn(
-  'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-primary',
-  '[background:color-mix(in_srgb,var(--color-primary)_12%,transparent)]'
+  'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[#052f2c]',
+  '[background:color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
+  '[&_svg_*]:fill-none'
 )
 
 export const loginFooterNoteClass = 'mt-4 text-center text-xs leading-[1.55] text-muted'
@@ -52,7 +53,12 @@ export const googleSignInBtnClass = cn(
   'focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)]'
 )
 
-export const appLoadingClass = 'flex min-h-dvh items-center justify-center bg-white'
+export const appLoadingClass = 'flex min-h-dvh items-center justify-center bg-bg'
+
+export const appLoadingInlineClass = cn(
+  'flex items-center justify-center py-16',
+  'min-h-[min(14rem,calc(100dvh-11rem))]'
+)
 
 export const appLoadingDotsClass = 'flex items-center gap-1.5'
 

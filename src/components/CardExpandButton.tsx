@@ -25,7 +25,7 @@ export default function CardExpandButton({
       aria-label={ariaLabel}
       title={ariaLabel}
     >
-      <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+      <AppIcon name="chevron-down" size={18} strokeWidth={2} />
     </button>
   )
 }

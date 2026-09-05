@@ -141,6 +141,28 @@
   }
 }
 
+@keyframes menuItemIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes submenuReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes syncPulse {
   0%,
   100% {
@@ -168,14 +190,14 @@
     transform: translateX(-130%);
     opacity: 0;
   }
-  18% {
-    opacity: 0.95;
+  20% {
+    opacity: 0.12;
   }
   50% {
     transform: translateX(130%);
-    opacity: 0.65;
+    opacity: 0.22;
   }
-  82% {
+  80% {
     opacity: 0;
   }
 }
@@ -185,20 +207,20 @@
   100% {
     left: 0%;
     opacity: 0;
-    transform: translate(-40%, -50%) scale(0.6);
+    transform: translate(-40%, -50%) scale(0.85);
   }
-  8% {
-    opacity: 1;
-    transform: translate(-40%, -50%) scale(1);
+  12% {
+    opacity: 0.28;
+    transform: translate(-40%, -50%) scale(0.95);
   }
   50% {
     left: 100%;
-    opacity: 0.95;
-    transform: translate(-60%, -50%) scale(1.15);
+    opacity: 0.32;
+    transform: translate(-60%, -50%) scale(1);
   }
-  92% {
+  88% {
     opacity: 0;
-    transform: translate(-60%, -50%) scale(0.7);
+    transform: translate(-60%, -50%) scale(0.9);
   }
 }
 

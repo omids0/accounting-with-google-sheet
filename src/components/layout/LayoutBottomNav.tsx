@@ -11,8 +11,9 @@ import {
   bottomNavDashboardLabelClass,
   bottomNavSideClass,
   bottomNavTabBtnClass,
-  bottomNavTabIconClass
-} from '../ui/layoutStyles'
+  bottomNavTabIconClass,
+  bottomNavTabLabelClass
+} from '../ui/bottomNavStyles'
 
 interface LayoutBottomNavProps {
   showSettings: boolean
@@ -35,9 +36,11 @@ function BottomNavTabButton({ tab, active, label, icon, onTabChange }: BottomNav
       className={bottomNavTabBtnClass(active)}
       onPointerDown={() => prefetchTabPage(tab)}
       onClick={() => onTabChange(tab)}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
     >
       <span className={bottomNavTabIconClass(active)}>{icon}</span>
-      {label}
+      <span className={bottomNavTabLabelClass}>{label}</span>
     </button>
   )
 }
@@ -46,7 +49,7 @@ export default function LayoutBottomNav({ showSettings, tab, onTabChange }: Layo
   const dashboardActive = !showSettings && (tab === 'dashboard' || tab === 'records')
 
   return (
-    <nav className={bottomNavClass}>
+    <nav className={bottomNavClass} aria-label="ناوبری اصلی">
       <div className={bottomNavSideClass}>
         <BottomNavTabButton
           tab="installments"
@@ -78,9 +81,10 @@ export default function LayoutBottomNav({ showSettings, tab, onTabChange }: Layo
           onPointerDown={() => prefetchTabPage('dashboard')}
           onClick={() => onTabChange('dashboard')}
           aria-label="داشبورد"
+          aria-current={dashboardActive ? 'page' : undefined}
         >
           <span className={bottomNavDashboardIconClass}>
-            <AppIcon name="dashboard" size={26} />
+            <AppIcon name="dashboard" />
           </span>
           <span className={bottomNavDashboardLabelClass}>داشبورد</span>
         </button>

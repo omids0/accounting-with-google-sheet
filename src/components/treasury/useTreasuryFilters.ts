@@ -64,6 +64,10 @@ export function useTreasuryFilters(
     [searchQuery, setSearchQuery]
   )
 
+  const clearAllFilters = useCallback(() => {
+    setSearchQuery('')
+  }, [setSearchQuery])
+
   return {
     filterModalOpen,
     setFilterModalOpen,
@@ -71,6 +75,7 @@ export function useTreasuryFilters(
     setDraftSearch,
     openFilterModal,
     filterChips,
+    clearAllFilters,
     importExportConfirmModal
   }
 }

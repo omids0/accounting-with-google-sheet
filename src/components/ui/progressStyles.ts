@@ -37,29 +37,29 @@ export function progressBarFillClass(variant: ProgressBarVariant = 'default') {
   return cn(
     'progress-bar__fill relative h-full min-w-0 overflow-hidden rounded-[inherit] will-change-[width]',
     variant === 'success' &&
-      '[background:linear-gradient(90deg,#15803d_0%,var(--color-success)_55%,#4ade80_100%)] shadow-[0_0_14px_color-mix(in_srgb,var(--color-success)_30%,transparent)]',
+      '[background:linear-gradient(90deg,#15803d_0%,var(--color-success)_55%,#4ade80_100%)] shadow-[0_0_10px_color-mix(in_srgb,var(--color-success)_14%,transparent)]',
     variant === 'complete' &&
       '[background:linear-gradient(90deg,#64748b_0%,#94a3b8_100%)] shadow-none',
     variant === 'default' &&
-      '[background:linear-gradient(90deg,var(--color-primary-dark)_0%,var(--color-primary)_55%,var(--color-primary-light)_100%)] shadow-[0_0_14px_color-mix(in_srgb,var(--color-primary)_32%,transparent)]'
+      '[background:linear-gradient(90deg,var(--color-primary-dark)_0%,var(--color-primary)_55%,var(--color-primary-light)_100%)] shadow-[0_0_10px_color-mix(in_srgb,var(--color-primary)_14%,transparent)]'
   )
 }
 
 export const progressBarShineClass = cn(
   'progress-bar__shine pointer-events-none absolute inset-0',
-  '[background:linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.12)_30%,rgba(255,255,255,0.65)_50%,rgba(255,255,255,0.12)_70%,transparent_100%)]',
-  'animate-[progressShine_2.4s_ease-in-out_infinite] [animation-delay:calc(var(--progress-delay,0s)+0.5s)]'
+  '[background:linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.05)_35%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.05)_65%,transparent_100%)]',
+  'animate-[progressShine_4.8s_ease-in-out_infinite] [animation-delay:calc(var(--progress-delay,0s)+0.8s)]'
 )
 
 export const progressBarGlowClass = cn(
-  'progress-bar__glow pointer-events-none absolute top-1/2 h-[10px] w-[10px] rounded-full',
-  'bg-white/90 opacity-90 blur-[2px] shadow-[0_0_8px_rgba(255,255,255,0.85),0_0_14px_color-mix(in_srgb,var(--color-primary-light)_55%,transparent)]',
-  'animate-[progressGlowTravel_2.4s_ease-in-out_infinite] [animation-delay:calc(var(--progress-delay,0s)+0.5s)]'
+  'progress-bar__glow pointer-events-none absolute top-1/2 h-[7px] w-[7px] rounded-full',
+  'bg-white/30 opacity-50 blur-[1.5px] shadow-[0_0_4px_rgba(255,255,255,0.25)]',
+  'animate-[progressGlowTravel_4.8s_ease-in-out_infinite] [animation-delay:calc(var(--progress-delay,0s)+0.8s)]'
 )
 
 export function progressBarLabelClass(variant: ProgressBarVariant = 'default') {
   return cn(
-    'progress-bar__label numeric min-w-[2.1rem] shrink-0 text-left text-[0.68rem] font-extrabold leading-none',
+    'progress-bar__label numeric min-w-[2.1rem] shrink-0 text-left text-[0.72rem] font-extrabold leading-none',
     variant === 'success' && 'text-success',
     variant === 'complete' && 'text-muted',
     variant === 'default' && 'text-primary-dark'

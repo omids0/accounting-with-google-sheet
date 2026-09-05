@@ -37,7 +37,11 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
 
   return (
     <div className={timesheetsPageClass}>
-      <ActiveFilterChips chips={page.filterChips} onChipClick={page.openFilterModal} />
+      <ActiveFilterChips
+        chips={page.filterChips}
+        onOpenFilters={page.openFilterModal}
+        onClearAll={page.clearAllFilters}
+      />
 
       <FilterModal
         open={page.filterModalOpen}

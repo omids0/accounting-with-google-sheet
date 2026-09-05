@@ -1,72 +1,96 @@
 import { cn } from '../../utils/cn'
 
 export const fabContainerClass = cn(
-  'pointer-events-none fixed bottom-[calc(5.75rem+var(--safe-bottom)+5px)] left-1/2 z-[25] flex w-full max-w-[480px] -translate-x-1/2 justify-start px-5'
+  'pointer-events-none fixed bottom-[calc(5.75rem+var(--safe-bottom)+6px)] left-1/2 z-[25] flex w-full max-w-[480px] -translate-x-1/2 justify-start px-4',
+  'min-[380px]:px-5'
 )
 
 export const speedDialContainerClass = 'z-[25]'
 
 export const speedDialBackdropClass = cn(
-  'fixed inset-0 z-[24] cursor-default border-none bg-[rgba(15,23,42,0.28)]',
-  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)]'
+  'fixed inset-0 z-[24] cursor-default border-none bg-[var(--color-overlay-light)]',
+  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[4px]'
 )
 
-export const speedDialClass = 'relative flex flex-col items-start'
+export const speedDialClass = 'relative flex flex-col items-start gap-4'
 
-export const speedDialActionsClass = 'mb-[0.65rem] flex flex-col-reverse items-start gap-[0.65rem]'
+export const speedDialActionsClass = 'flex flex-col-reverse items-start gap-2.5'
 
 export function speedDialActionWrapClass(open?: boolean) {
   return cn(
-    'pointer-events-none flex items-center opacity-0 [transform:translateY(10px)_scale(0.85)]',
-    'transition-[opacity,transform] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-    '[transition-delay:calc(var(--action-index)*35ms)]',
+    'pointer-events-none flex items-center gap-2 opacity-0 [transform:translateY(8px)_scale(0.94)]',
+    'transition-[opacity,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
+    '[transition-delay:calc(var(--action-index)*40ms)]',
     open && 'pointer-events-auto translate-y-0 scale-100 opacity-100'
   )
 }
 
-export const speedDialActionClass = cn(
-  'flex h-[2.65rem] w-[2.65rem] items-center justify-center rounded-full border border-[rgba(15,118,110,0.18)] opacity-90',
-  'bg-surface text-primary shadow-[0_3px_12px_rgba(15,23,42,0.12)]',
-  'transition-[transform,box-shadow,opacity] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
-  'hover:enabled:opacity-90 hover:enabled:shadow-[0_5px_16px_rgba(15,23,42,0.16)] active:enabled:scale-[0.92] disabled:cursor-not-allowed disabled:opacity-90'
+const speedDialActionBaseClass = cn(
+  'flex h-touch-min w-touch-min shrink-0 items-center justify-center rounded-full',
+  'bg-surface text-primary-dark',
+  'ring-1 ring-[color-mix(in_srgb,var(--color-border)_72%,var(--color-primary)_10%)]',
+  'shadow-[0_2px_10px_color-mix(in_srgb,var(--color-primary)_7%,rgba(15,23,42,0.1))]',
+  'transition-[transform,box-shadow,background,color] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
+  'touch-manipulation hover:enabled:bg-[color-mix(in_srgb,var(--color-primary)_5%,var(--color-surface))]',
+  'hover:enabled:shadow-[0_4px_14px_color-mix(in_srgb,var(--color-primary)_10%,rgba(15,23,42,0.12))]',
+  'active:enabled:scale-[0.94] disabled:cursor-not-allowed disabled:opacity-55',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]'
 )
 
+export const speedDialActionClass = speedDialActionBaseClass
+
 export const speedDialActionIncomeClass = cn(
-  speedDialActionClass,
-  'border-[var(--color-income-border)] bg-[var(--color-income-bg)] text-[var(--color-income)]'
+  speedDialActionBaseClass,
+  'text-income ring-[color-mix(in_srgb,var(--color-income)_20%,var(--color-border))]',
+  'hover:enabled:bg-[color-mix(in_srgb,var(--color-income)_6%,var(--color-surface))]'
 )
 
 export const speedDialActionExpenseClass = cn(
-  speedDialActionClass,
-  'border-[var(--color-expense-border)] bg-[var(--color-expense-bg)] text-[var(--color-expense)]'
+  speedDialActionBaseClass,
+  'text-expense ring-[color-mix(in_srgb,var(--color-expense)_20%,var(--color-border))]',
+  'hover:enabled:bg-[color-mix(in_srgb,var(--color-expense)_6%,var(--color-surface))]'
 )
 
 export const speedDialActionIconClass =
   'flex h-[1.125rem] w-[1.125rem] items-center justify-center leading-none [&_svg]:h-full [&_svg]:w-full'
 
+export const speedDialActionLabelClass = cn(
+  'max-w-[9.5rem] truncate rounded-full px-2.5 py-1 text-[0.72rem] font-semibold leading-tight text-text',
+  'bg-[color-mix(in_srgb,var(--color-surface)_92%,transparent)] shadow-[0_1px_6px_rgba(15,23,42,0.08)]',
+  'ring-1 ring-[color-mix(in_srgb,var(--color-border)_80%,transparent)] backdrop-blur-[6px]'
+)
+
 export const fabClass = cn(
-  'pointer-events-auto relative flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-full leading-none text-white opacity-90',
-  '[background:linear-gradient(145deg,var(--color-primary-dark),var(--color-primary-light))]',
-  'shadow-[0_4px_16px_rgba(15,118,110,0.35)] transition-[transform,box-shadow,opacity] duration-[var(--duration-fast)]',
-  'before:pointer-events-none before:absolute before:inset-[2px] before:rounded-full before:content-[""] before:[background:linear-gradient(145deg,rgba(255,255,255,0.2)_0%,transparent_60%)]',
-  'hover:opacity-90 hover:shadow-[0_6px_22px_rgba(15,118,110,0.45)] active:scale-[0.92]'
+  'pointer-events-auto relative flex h-touch-min w-touch-min items-center justify-center rounded-full leading-none opacity-[0.85]',
+  'bg-surface text-primary-dark',
+  'ring-1 ring-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))]',
+  'shadow-[0_4px_16px_color-mix(in_srgb,var(--color-primary)_12%,rgba(15,23,42,0.14))]',
+  'transition-[transform,box-shadow,background,color] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
+  'touch-manipulation hover:opacity-100 hover:bg-[color-mix(in_srgb,var(--color-primary)_6%,var(--color-surface))]',
+  'hover:shadow-[0_6px_20px_color-mix(in_srgb,var(--color-primary)_16%,rgba(15,23,42,0.14))]',
+  'active:scale-[0.94]',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]'
 )
 
 export function speedDialTriggerClass(open?: boolean) {
   return cn(
     fabClass,
-    open && 'ring-2 ring-[color-mix(in_srgb,var(--color-primary-light)_45%,transparent)]'
+    open &&
+      cn(
+        'opacity-100 bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--color-surface))] text-primary',
+        'ring-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))]'
+      )
   )
 }
 
 export function speedDialTriggerIconClass(open?: boolean) {
   return cn(
-    'flex h-[1.35rem] w-[1.35rem] items-center justify-center leading-none transition-transform duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
+    'flex h-[1.35rem] w-[1.35rem] items-center justify-center leading-none transition-transform duration-[var(--duration-normal)] ease-[var(--ease-spring)] motion-reduce:transition-none',
     '[&_svg]:h-full [&_svg]:w-full',
     open && 'rotate-90'
   )
 }
 
-export const speedDialTypeIconIncomeClass = 'text-[1.25rem] font-bold leading-none text-income'
+export const speedDialTypeIconIncomeClass = 'text-[1.2rem] font-bold leading-none text-income'
 
-export const speedDialTypeIconExpenseClass = 'text-[1.25rem] font-bold leading-none text-expense'
+export const speedDialTypeIconExpenseClass = 'text-[1.35rem] font-bold leading-none text-expense'

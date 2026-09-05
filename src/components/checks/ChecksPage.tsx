@@ -50,6 +50,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     filteredItems,
     openFilterModal,
     filterChips,
+    clearAllFilters,
     handleDraftDateFilterChange,
     clearDraftFilters,
     applyFilters
@@ -94,7 +95,11 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
 
   return (
     <div>
-      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
+      <ActiveFilterChips
+        chips={filterChips}
+        onOpenFilters={openFilterModal}
+        onClearAll={clearAllFilters}
+      />
 
       <FilterModal
         open={filterModalOpen}

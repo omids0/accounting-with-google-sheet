@@ -34,6 +34,8 @@ interface UnlockScreenProps {
   onUnlock: () => void
 }
 
+const PIN_LENGTH = 4
+
 export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
@@ -76,28 +78,37 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
     void handleBiometric({ silent: true })
   }, [handleBiometric])
 
+  const attemptPinUnlock = useCallback(
+    async (pinToVerify: string) => {
+      if (pinToVerify.length < PIN_LENGTH) {
+        setError('رمز را وارد کنید')
+
+        return
+      }
+
+      setLoading(true)
+      setError('')
+      try {
+        const ok = await verifyPin(pinToVerify)
+
+        if (ok) {
+          onUnlock()
+        } else {
+          setError('رمز اشتباه است')
+          setPin('')
+        }
+      } finally {
+        setLoading(false)
+      }
+    },
+    [onUnlock]
+  )
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!pin.trim()) {
-      setError('رمز را وارد کنید')
+    if (loading) return
 
-      return
-    }
-
-    setLoading(true)
-    setError('')
-    try {
-      const ok = await verifyPin(pin)
-
-      if (ok) {
-        onUnlock()
-      } else {
-        setError('رمز اشتباه است')
-        setPin('')
-      }
-    } finally {
-      setLoading(false)
-    }
+    await attemptPinUnlock(pin)
   }
 
   const displayName = getUserName()
@@ -118,7 +129,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
         </header>
 
         <div className={unlockBodyClass}>
-          <form onSubmit={handleSubmit} className={unlockActionsClass}>
+          <form onSubmit={handleSubmit} className={unlockActionsClass} autoComplete="off">
             <UnlockPinInput
               id="unlock-pin"
               value={pin}
@@ -126,9 +137,11 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                 setPin(nextPin)
                 setError('')
               }}
+              onComplete={nextPin => {
+                void attemptPinUnlock(nextPin)
+              }}
               disabled={loading}
               hasError={!!error}
-              autoFocus
             />
 
             {error && (
@@ -141,7 +154,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               type="submit"
               variant="primary"
               className={unlockPrimaryBtnClass}
-              disabled={loading || pin.length < 4}
+              disabled={loading || pin.length < PIN_LENGTH}
               aria-busy={loading}
             >
               {loading ? <span className={spinnerClass} /> : 'باز کردن قفل'}

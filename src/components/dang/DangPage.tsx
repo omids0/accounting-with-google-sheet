@@ -62,6 +62,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     filteredItems,
     openFilterModal,
     filterChips,
+    clearAllFilters,
     handleDraftDateFilterChange,
     clearDraftFilters,
     applyFilters
@@ -106,7 +107,11 @@ export default function DangPage({ active = true }: { active?: boolean }) {
 
   return (
     <div>
-      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
+      <ActiveFilterChips
+        chips={filterChips}
+        onOpenFilters={openFilterModal}
+        onClearAll={clearAllFilters}
+      />
 
       <FilterModal
         open={filterModalOpen}

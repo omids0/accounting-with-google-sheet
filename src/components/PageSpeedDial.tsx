@@ -6,6 +6,7 @@ import {
   fabContainerClass,
   speedDialActionClass,
   speedDialActionIconClass,
+  speedDialActionLabelClass,
   speedDialActionWrapClass,
   speedDialActionsClass,
   speedDialBackdropClass,
@@ -79,6 +80,9 @@ export default function PageSpeedDial({
                 >
                   <span className={speedDialActionIconClass}>{action.icon}</span>
                 </button>
+                <span className={speedDialActionLabelClass} aria-hidden="true">
+                  {action.label}
+                </span>
               </div>
             ))}
           </div>

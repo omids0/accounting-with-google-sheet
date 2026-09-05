@@ -7,14 +7,10 @@ import {
   categorySelectAddClass,
   categorySelectAddInputClass,
   categorySelectAddRowClass,
-  categorySelectCountClass,
   categorySelectEmptyClass,
   categorySelectFooterBtnClass,
   categorySelectFooterClass,
-  categorySelectHeaderClass,
-  categorySelectHeaderTitleClass,
   categorySelectListClass,
-  categorySelectManageBtnClass,
   categorySelectPanelClass,
   categorySelectSearchClass,
   categorySelectSearchClearClass,
@@ -36,7 +32,6 @@ interface CategorySelectPanelProps {
   newCategory: string
   addInputRef: RefObject<HTMLInputElement>
   searchInputRef: RefObject<HTMLInputElement>
-  onToggleManageMode: () => void
   onSearchChange: (query: string) => void
   onClearSearch: () => void
   onNewCategoryChange: (value: string) => void
@@ -67,7 +62,6 @@ export default function CategorySelectPanel({
   newCategory,
   addInputRef,
   searchInputRef,
-  onToggleManageMode,
   onSearchChange,
   onClearSearch,
   onNewCategoryChange,
@@ -84,23 +78,6 @@ export default function CategorySelectPanel({
 }: CategorySelectPanelProps) {
   return (
     <div className={categorySelectPanelClass}>
-      <div className={categorySelectHeaderClass}>
-        <div className={categorySelectHeaderTitleClass}>
-          <span>{ariaLabel}</span>
-          <span className={categorySelectCountClass}>{categories.length}</span>
-        </div>
-        <button
-          type="button"
-          className={categorySelectManageBtnClass(manageMode)}
-          onClick={onToggleManageMode}
-          disabled={saving}
-          aria-pressed={manageMode}
-        >
-          <AppIcon name="settings" size={14} strokeWidth={2} />
-          {manageMode ? 'اتمام' : 'مدیریت'}
-        </button>
-      </div>
-
       {showSearch && (
         <div className={categorySelectSearchClass}>
           <AppIcon name="search" size={15} strokeWidth={2} />
@@ -197,8 +174,8 @@ export default function CategorySelectPanel({
             onClick={onOpenManageMode}
             disabled={saving}
           >
-            <AppIcon name="add" size={14} strokeWidth={2.5} />
-            افزودن یا ویرایش دسته‌ها
+            <AppIcon name="settings" size={15} strokeWidth={2} />
+            مدیریت دسته‌ها
           </button>
         </div>
       )}

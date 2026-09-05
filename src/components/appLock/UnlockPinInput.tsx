@@ -1,6 +1,7 @@
-import { type KeyboardEvent } from 'react'
+import { type KeyboardEvent, useEffect, useRef, useState } from 'react'
 
 import { cn } from '../../utils/cn'
+import { appLockPinFieldProps } from '../ui/appLockStyles'
 import {
   unlockHiddenInputClass,
   unlockPinCellClass,
@@ -16,6 +17,7 @@ interface UnlockPinInputProps {
   id: string
   value: string
   onChange: (value: string) => void
+  onComplete?: (value: string) => void
   disabled?: boolean
   hasError?: boolean
   autoFocus?: boolean
@@ -25,11 +27,34 @@ export default function UnlockPinInput({
   id,
   value,
   onChange,
+  onComplete,
   disabled,
   hasError,
   autoFocus
 }: UnlockPinInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [inputReady, setInputReady] = useState(false)
   const digits = value.padEnd(PIN_LENGTH, ' ').slice(0, PIN_LENGTH).split('')
+
+  const activateInput = () => {
+    if (disabled || inputReady) return
+
+    setInputReady(true)
+  }
+
+  useEffect(() => {
+    if (!inputReady || disabled) return
+
+    inputRef.current?.focus()
+  }, [disabled, inputReady])
+
+  const handleChange = (nextValue: string) => {
+    onChange(nextValue)
+
+    if (nextValue.length === PIN_LENGTH) {
+      onComplete?.(nextValue)
+    }
+  }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Backspace' && !value) {
@@ -43,7 +68,16 @@ export default function UnlockPinInput({
         رمز ورود
       </span>
 
-      <label className={unlockPinCellsClass} htmlFor={id} aria-labelledby={`${id}-label`} dir="ltr">
+      <label
+        className={unlockPinCellsClass}
+        htmlFor={id}
+        aria-labelledby={`${id}-label`}
+        dir="ltr"
+        onPointerDown={event => {
+          event.preventDefault()
+          activateInput()
+        }}
+      >
         {digits.map((digit, index) => {
           const filled = digit.trim().length > 0
           const active = !disabled && value.length === index
@@ -65,19 +99,19 @@ export default function UnlockPinInput({
       </label>
 
       <input
+        ref={inputRef}
         id={id}
-        type="password"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        autoComplete="off"
+        {...appLockPinFieldProps}
+        name="acct-app-lock-code"
         autoFocus={autoFocus}
         maxLength={PIN_LENGTH}
         value={value}
         disabled={disabled}
+        readOnly={!inputReady}
         dir="ltr"
         className={cn(unlockHiddenInputClass)}
         onChange={event => {
-          onChange(event.target.value.replace(/\D/g, '').slice(0, PIN_LENGTH))
+          handleChange(event.target.value.replace(/\D/g, '').slice(0, PIN_LENGTH))
         }}
         onKeyDown={handleKeyDown}
         aria-invalid={hasError || undefined}

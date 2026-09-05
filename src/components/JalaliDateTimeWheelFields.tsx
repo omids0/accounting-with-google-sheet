@@ -11,7 +11,8 @@ import {
   jalaliDateTimePickerTimeColumnClass,
   jalaliDateTimePickerTimeGroupClass,
   jalaliDateTimePickerTimeLabelsClass,
-  jalaliDateTimePickerTimeWheelsClass
+  jalaliDateTimePickerTimeWheelsClass,
+  jalaliDateTimePickerSheetClass
 } from './ui/datePickerStyles'
 import { cn } from '../utils/cn'
 import {
@@ -33,13 +34,15 @@ interface DateTimeWheelFieldsProps {
   value: string
   onChange: (iso: string) => void
   minDateTime?: string
+  layout?: 'inline' | 'sheet'
 }
 
 export default function DateTimeWheelFields({
   calendar,
   value,
   onChange,
-  minDateTime
+  minDateTime,
+  layout = 'inline'
 }: DateTimeWheelFieldsProps) {
   const { dateIso, hour, minute } = fromDateTimeIso(value)
   const { year, month, day } = getCalendarParts(dateIso, calendar)
@@ -118,7 +121,12 @@ export default function DateTimeWheelFields({
   }
 
   return (
-    <div className={jalaliDateTimePickerClass}>
+    <div
+      className={cn(
+        jalaliDateTimePickerClass,
+        layout === 'sheet' && jalaliDateTimePickerSheetClass
+      )}
+    >
       <div className={jalaliDateTimePickerTimeGroupClass} dir="ltr">
         <div className={jalaliDateTimePickerTimeLabelsClass}>
           <span className={cn(jalaliDatePickerLabelClass, 'jalali-date-picker-label')}>ساعت</span>
@@ -148,12 +156,12 @@ export default function DateTimeWheelFields({
         </div>
       </div>
       <div className={jalaliDatePickerColumnClass}>
-        <span className={jalaliDatePickerLabelClass}>سال</span>
+        <span className={jalaliDatePickerLabelClass}>روز</span>
         <WheelPicker
-          value={String(year)}
-          onChange={next => applyChange(Number(next), month, safeDay, safeHour, safeMinute)}
-          aria-label="سال"
-          items={yearItems}
+          value={String(safeDay)}
+          onChange={next => applyChange(year, month, Number(next), safeHour, safeMinute)}
+          aria-label="روز"
+          items={dayItems}
         />
       </div>
       <div className={cn(jalaliDatePickerColumnClass, jalaliDatePickerMonthColumnClass)}>
@@ -166,12 +174,12 @@ export default function DateTimeWheelFields({
         />
       </div>
       <div className={jalaliDatePickerColumnClass}>
-        <span className={jalaliDatePickerLabelClass}>روز</span>
+        <span className={jalaliDatePickerLabelClass}>سال</span>
         <WheelPicker
-          value={String(safeDay)}
-          onChange={next => applyChange(year, month, Number(next), safeHour, safeMinute)}
-          aria-label="روز"
-          items={dayItems}
+          value={String(year)}
+          onChange={next => applyChange(Number(next), month, safeDay, safeHour, safeMinute)}
+          aria-label="سال"
+          items={yearItems}
         />
       </div>
     </div>

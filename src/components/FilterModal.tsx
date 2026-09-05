@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
@@ -8,6 +8,7 @@ import {
   filterModalClearClass,
   filterModalPanelClass
 } from './ui/filterControlStyles'
+import { useModalLock } from '../hooks/useModalLock'
 import { cn } from '../utils/cn'
 import Button from './ui/Button'
 import { formActionsClassName } from './ui/formStyles'
@@ -39,21 +40,7 @@ export default function FilterModal({
   onClear,
   children
 }: FilterModalProps) {
-  useEffect(() => {
-    if (!open) return
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [open, onClose])
+  const { panelRef } = useModalLock({ open, onClose })
 
   if (!open) return null
 
@@ -71,12 +58,18 @@ export default function FilterModal({
         aria-label="بستن"
       />
 
-      <div className={cn(formModalPanelClass, filterModalPanelClass)}>
+      <div ref={panelRef} className={cn(formModalPanelClass, filterModalPanelClass)}>
         <div className={formModalHeaderClass}>
           <h2 id="filter-modal-title" className={formModalTitleClass}>
             {title}
           </h2>
-          <button type="button" className={formModalCloseClass} onClick={onClose} aria-label="بستن">
+          <button
+            type="button"
+            className={formModalCloseClass}
+            onClick={onClose}
+            aria-label="بستن"
+            data-modal-close
+          >
             <AppIcon name="close" size={18} strokeWidth={2} />
           </button>
         </div>

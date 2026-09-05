@@ -1,10 +1,11 @@
-import { Skeleton } from './Skeleton'
+import { Skeleton, SkeletonProgressFill } from './Skeleton'
 import { cn } from '../../utils/cn'
 import { cardClassName } from '../ui/Card'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
   dangCardBodyClass,
+  dangCardContentRowClass,
   dangCardHeaderClass,
   installmentCardClass,
   installmentHeaderClass,
@@ -12,7 +13,8 @@ import {
   walletItemInfoClass,
   walletItemTitleRowClass
 } from '../ui/featureCardStyles'
-import { progressBarMetaClass, progressBarTrackClass } from '../ui/progressStyles'
+import { activeFilterBarClass, activeFilterTriggerClass } from '../ui/filterControlStyles'
+import { progressBarMetaClass } from '../ui/progressStyles'
 import {
   recordsDateGridClass,
   recordsFilterSectionClassName,
@@ -20,10 +22,9 @@ import {
   recordsToolbarHeadingClass
 } from '../ui/recordsStyles'
 import {
+  skeletonActionBtnSizeClass,
   skeletonCardClass,
   skeletonFilterChipClass,
-  skeletonFilterChipsClass,
-  skeletonProgressTrackClass,
   skeletonRecordActionsClass,
   skeletonRecordItemClass,
   skeletonStatCardClass
@@ -31,19 +32,21 @@ import {
 import { treasuryHoldingCardClass } from '../ui/treasuryReceivableStyles'
 
 export function FilterChipsSkeleton({ count = 1 }: { count?: number }) {
-  if (count <= 0) return null
-
   return (
-    <div className={skeletonFilterChipsClass} aria-hidden="true">
-      {Array.from({ length: count }, (_, index) => (
-        <span key={index} className={skeletonFilterChipClass}>
-          <Skeleton
-            width={index === 0 ? '5.25rem' : '3.5rem'}
-            height="0.72rem"
-            style={{ borderRadius: '999px' }}
-          />
-        </span>
-      ))}
+    <div className={activeFilterBarClass} aria-hidden="true">
+      <span className={activeFilterTriggerClass(false)}>
+        <Skeleton width="4.5rem" height="0.85rem" style={{ borderRadius: '999px' }} />
+      </span>
+      {count > 0 &&
+        Array.from({ length: count }, (_, index) => (
+          <span key={index} className={skeletonFilterChipClass}>
+            <Skeleton
+              width={index === 0 ? '6.5rem' : '4.5rem'}
+              height="0.85rem"
+              style={{ borderRadius: '999px' }}
+            />
+          </span>
+        ))}
     </div>
   )
 }
@@ -61,8 +64,8 @@ export function ReportToolbarSkeleton() {
         </div>
         <Skeleton
           variant="rect"
-          width="2.1rem"
-          height="2.1rem"
+          width="2.75rem"
+          height="2.75rem"
           style={{ borderRadius: 'var(--radius-sm)' }}
         />
       </div>
@@ -105,18 +108,16 @@ export function InstallmentCardSkeleton() {
             <Skeleton width="42%" height="0.75rem" style={{ marginTop: '0.25rem' }} />
             <div className="progress-bar">
               <div className={progressBarMetaClass}>
-                <div className={cn(progressBarTrackClass, skeletonProgressTrackClass)}>
-                  <Skeleton width="45%" height="100%" style={{ borderRadius: '999px' }} />
-                </div>
-                <Skeleton width="1.75rem" height="0.68rem" />
+                <SkeletonProgressFill width="45%" />
+                <Skeleton width="1.85rem" height="0.72rem" />
               </div>
             </div>
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
         </div>
       </div>
     </div>
@@ -135,12 +136,7 @@ export function TreasuryHoldingCardSkeleton() {
           <Skeleton width="72%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
           <Skeleton width="48%" height="0.8rem" style={{ marginTop: '0.35rem' }} />
         </div>
-        <Skeleton
-          variant="rect"
-          width="0.85rem"
-          height="0.85rem"
-          style={{ borderRadius: '4px', flexShrink: 0 }}
-        />
+        <Skeleton variant="rect" className={skeletonActionBtnSizeClass} style={{ flexShrink: 0 }} />
       </div>
     </div>
   )
@@ -167,9 +163,9 @@ export function WalletAccountCardSkeleton() {
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
         </div>
       </div>
     </div>
@@ -179,26 +175,30 @@ export function WalletAccountCardSkeleton() {
 export function DangCardSkeleton() {
   return (
     <div className={cardClassName(cn('dang-card', skeletonCardClass))} aria-hidden="true">
-      <Skeleton
-        variant="circle"
-        width="1.2rem"
-        height="1.2rem"
-        style={{ marginTop: '0.2rem', flexShrink: 0 }}
-      />
-      <div className={dangCardBodyClass}>
-        <div className={dangCardHeaderClass}>
-          <Skeleton width="45%" height="0.95rem" />
+      <div className={cardHeaderWithEditClass}>
+        <div className={dangCardContentRowClass}>
           <Skeleton
-            width="5.5rem"
-            height="1.75rem"
-            style={{ borderRadius: '8px', flexShrink: 0 }}
+            variant="circle"
+            width="1.35rem"
+            height="1.35rem"
+            style={{ marginTop: '0.1rem', flexShrink: 0 }}
           />
+          <div className={dangCardBodyClass}>
+            <div className={dangCardHeaderClass}>
+              <Skeleton width="45%" height="0.95rem" />
+              <Skeleton
+                width="5.5rem"
+                height="1.75rem"
+                style={{ borderRadius: '8px', flexShrink: 0 }}
+              />
+            </div>
+            <Skeleton width="68%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
+          </div>
         </div>
-        <Skeleton width="68%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
-      </div>
-      <div className={cardActionButtonsClass}>
-        <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-        <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
+        <div className={cardActionButtonsClass}>
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+        </div>
       </div>
     </div>
   )
@@ -214,18 +214,8 @@ export function RecordItemSkeleton() {
       <div className={skeletonRecordActionsClass}>
         <Skeleton width="4.5rem" height="1rem" />
         <div className={cardActionButtonsClass}>
-          <Skeleton
-            variant="rect"
-            width="2rem"
-            height="2rem"
-            style={{ borderRadius: 'var(--radius-sm)' }}
-          />
-          <Skeleton
-            variant="rect"
-            width="2rem"
-            height="2rem"
-            style={{ borderRadius: 'var(--radius-sm)' }}
-          />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
         </div>
       </div>
     </div>

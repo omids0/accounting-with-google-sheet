@@ -22,29 +22,31 @@ interface WheelPickerProps {
   'aria-label'?: string
 }
 
-const ITEM_HEIGHT = 30
+const ITEM_HEIGHT = 44
 
 const VISIBLE_PADDING = 2
 
-const MAX_DISTANCE = 2
+const MAX_DISTANCE = 2.5
+
+const SCROLL_SETTLE_MS = 110
 
 function applyWheelItemVisuals(itemEl: HTMLButtonElement, offsetRows: number) {
   const distance = Math.min(Math.abs(offsetRows), MAX_DISTANCE)
 
   const t = distance / MAX_DISTANCE
 
-  const isCentered = distance < 0.45
+  const isCentered = distance < 0.35
 
-  const scale = 1 - t * 0.13
+  const scale = 1 - t * 0.1
 
-  const fontSize = 0.88 - t * 0.16
+  const fontSize = 1 - t * 0.14
 
-  const opacity = 1 - t * 0.38
+  const opacity = 1 - t * 0.32
 
   itemEl.style.transform = `scale(${scale})`
-  itemEl.style.opacity = String(isCentered ? 1 : Math.max(0.3, opacity))
-  itemEl.style.fontSize = `${Math.max(0.66, fontSize)}rem`
-  itemEl.style.fontWeight = isCentered ? '700' : '400'
+  itemEl.style.opacity = String(isCentered ? 1 : Math.max(0.42, opacity))
+  itemEl.style.fontSize = `${Math.max(0.78, fontSize)}rem`
+  itemEl.style.fontWeight = isCentered ? '800' : distance < 1.2 ? '500' : '400'
   itemEl.style.color = isCentered
     ? 'var(--wheel-item-active-color, var(--color-primary-dark))'
     : 'var(--wheel-item-muted-color, var(--color-text-muted))'
@@ -128,7 +130,7 @@ export default function WheelPicker({
       onChange(items[clamped].value)
     }
 
-    scrollToIndex(clamped)
+    scrollToIndex(clamped, true)
     isUserScrollingRef.current = false
   }, [items, onChange, safeIndex, scrollToIndex])
 
@@ -151,6 +153,7 @@ export default function WheelPicker({
       if (rafRef.current !== undefined) {
         cancelAnimationFrame(rafRef.current)
       }
+      clearTimeout(scrollTimeoutRef.current)
     }
   }, [])
 
@@ -174,7 +177,7 @@ export default function WheelPicker({
     isUserScrollingRef.current = true
     scheduleVisualUpdate()
     clearTimeout(scrollTimeoutRef.current)
-    scrollTimeoutRef.current = setTimeout(emitSelection, 80)
+    scrollTimeoutRef.current = setTimeout(emitSelection, SCROLL_SETTLE_MS)
   }
 
   const handleScrollEnd = () => {
@@ -199,11 +202,13 @@ export default function WheelPicker({
       <div
         ref={scrollRef}
         className={wheelPickerScrollClass}
+        style={{ scrollPaddingBlock: padding }}
         role="presentation"
         onScroll={handleScroll}
         onTouchEnd={handleScrollEnd}
+        onPointerUp={handleScrollEnd}
       >
-        <div style={{ height: padding }} />
+        <div style={{ height: padding }} aria-hidden="true" />
         {items.map((item, index) => (
           <button
             key={item.value}
@@ -223,7 +228,7 @@ export default function WheelPicker({
             {item.label}
           </button>
         ))}
-        <div style={{ height: padding }} />
+        <div style={{ height: padding }} aria-hidden="true" />
       </div>
     </div>
   )

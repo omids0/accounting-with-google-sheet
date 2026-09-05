@@ -38,6 +38,10 @@ export function useWalletFilters(items: WalletAccountWithRow[]) {
     setDraftSearch('')
   }
 
+  const clearAllFilters = useCallback(() => {
+    setSearchQuery('')
+  }, [])
+
   return {
     searchQuery,
     filterModalOpen,
@@ -48,6 +52,7 @@ export function useWalletFilters(items: WalletAccountWithRow[]) {
     filterChips,
     openFilterModal,
     applyDraftFilters,
-    clearDraftFilters
+    clearDraftFilters,
+    clearAllFilters
   }
 }

@@ -28,9 +28,10 @@ const PAYMENT_STATUS_OPTIONS: { id: PaymentStatusFilter; label: string }[] = [
 ]
 
 interface PageFilterPanelProps {
-  search: string
-  onSearchChange: (value: string) => void
+  search?: string
+  onSearchChange?: (value: string) => void
   searchPlaceholder?: string
+  showSearch?: boolean
   datePreset?: DateRangeFilterPreset
   customRange?: AppliedDateRangeFilter['customRange']
   onDateFilterChange?: (filter: AppliedDateRangeFilter) => void
@@ -50,9 +51,10 @@ interface PageFilterPanelProps {
 }
 
 export default function PageFilterPanel({
-  search,
+  search = '',
   onSearchChange,
   searchPlaceholder = 'جستجو...',
+  showSearch = true,
   datePreset,
   customRange,
   onDateFilterChange,
@@ -83,9 +85,15 @@ export default function PageFilterPanel({
 
   return (
     <div className={pageFilterPanelClass}>
-      <div className={cn(pageFilterPanelSearchClass, pageFilterPanelSearchInputClass)}>
-        <PageSearchInput value={search} onChange={onSearchChange} placeholder={searchPlaceholder} />
-      </div>
+      {showSearch && onSearchChange && (
+        <div className={cn(pageFilterPanelSearchClass, pageFilterPanelSearchInputClass)}>
+          <PageSearchInput
+            value={search}
+            onChange={onSearchChange}
+            placeholder={searchPlaceholder}
+          />
+        </div>
+      )}
 
       <div className={pageFilterPanelSectionsClass}>
         {paymentStatus !== undefined && onPaymentStatusChange && (

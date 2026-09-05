@@ -27,7 +27,8 @@ export function customSelectTriggerStateClass({
   return cn(
     compact && 'rounded-form px-[0.55rem] py-[0.65rem] text-[0.9rem]',
     open && 'border-primary shadow-[var(--form-input-focus-shadow)]',
-    disabled && 'cursor-not-allowed opacity-60'
+    disabled && 'cursor-not-allowed opacity-60',
+    'focus-visible:outline-none focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)]'
   )
 }
 
@@ -79,10 +80,9 @@ export const categorySelectPlaceholderClass = 'font-normal text-muted'
 
 export const categorySelectSpinnerClass = 'h-4 w-4 shrink-0'
 
-export const categorySelectPanelClass = cn(
-  'absolute inset-x-0 top-[calc(100%+6px)] z-[60] overflow-hidden rounded-[var(--radius)] border-[1.5px] border-border bg-surface shadow-[var(--shadow-lg)]',
-  'animate-[slideDown_var(--duration-normal)_var(--ease-out)]'
-)
+export const categorySelectSheetPanelClass = 'max-h-[min(88vh,640px)]'
+
+export const categorySelectPanelClass = 'flex min-h-0 flex-1 flex-col overflow-hidden'
 
 export const categorySelectHeaderClass = cn(
   'flex items-center justify-between gap-2 border-b border-border px-3 py-[0.65rem]',
@@ -110,7 +110,7 @@ export const categorySelectSearchInputClass =
   'min-w-0 flex-1 border-none bg-transparent p-0 font-[inherit] text-[0.88rem] text-text outline-none placeholder:text-muted'
 
 export const categorySelectSearchClearClass =
-  'inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-bg p-0 text-muted'
+  'inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-bg p-0 text-muted'
 
 export const categorySelectAddClass = 'border-b border-border bg-bg px-3 py-[0.6rem]'
 
@@ -122,11 +122,13 @@ export const categorySelectAddInputClass = cn(
 )
 
 export const categorySelectAddBtnClass = cn(
-  'inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-primary p-0 text-white transition-[background,transform] duration-[var(--duration-fast)]',
-  'hover:enabled:bg-primary-dark active:enabled:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45'
+  'inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-primary p-0 text-white transition-[background,transform] duration-[var(--duration-fast)]',
+  'hover:enabled:bg-primary-dark active:enabled:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
 )
 
-export const categorySelectListClass = 'm-0 max-h-60 list-none overflow-y-auto p-[0.4rem]'
+export const categorySelectListClass =
+  'm-0 min-h-0 flex-1 list-none overflow-y-auto overscroll-contain p-1 [-webkit-overflow-scrolling:touch]'
 
 export function categorySelectItemClass({
   selected,
@@ -145,7 +147,8 @@ export function categorySelectItemClass({
 }
 
 export const categorySelectOptionBtnClass = cn(
-  'flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-[0.55rem] py-[0.6rem] text-right font-[inherit] text-[0.9rem] text-text transition-[color] duration-[var(--duration-fast)] disabled:cursor-default'
+  'flex min-h-touch-min min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-3 py-2 text-right font-[inherit] text-[0.92rem] text-text transition-[color,background-color] duration-[var(--duration-fast)]',
+  'hover:enabled:bg-[rgba(15,118,110,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] disabled:cursor-default'
 )
 
 export const categorySelectOptionCheckClass =
@@ -162,7 +165,7 @@ export const categorySelectActionsClass = 'flex shrink-0 gap-[0.15rem] pl-1'
 
 export function categorySelectIconBtnClass(variant?: 'save' | 'danger') {
   return cn(
-    'inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 leading-none text-muted transition-[background,color] duration-[var(--duration-fast)]',
+    'inline-flex h-touch-min w-touch-min cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 leading-none text-muted transition-[background,color] duration-[var(--duration-fast)]',
     'hover:enabled:bg-accent-soft hover:enabled:text-text disabled:cursor-not-allowed disabled:opacity-40',
     variant === 'save' && 'hover:enabled:bg-[var(--color-success-bg)] hover:enabled:text-success',
     variant === 'danger' && 'hover:enabled:bg-[var(--color-danger-bg)] hover:enabled:text-danger'
@@ -195,7 +198,9 @@ export const categorySelectFooterClass =
   'border-t border-border bg-bg px-2 pb-[0.55rem] pt-[0.45rem]'
 
 export const categorySelectFooterBtnClass = cn(
-  'inline-flex w-full cursor-pointer items-center justify-center gap-[0.35rem] rounded-sm border-none bg-transparent px-[0.65rem] py-[0.55rem] font-[inherit] text-[0.8rem] font-semibold text-primary-dark transition-[background] duration-[var(--duration-fast)] hover:enabled:bg-accent-soft'
+  'inline-flex min-h-touch-min w-full cursor-pointer items-center justify-center gap-[0.35rem] rounded-sm border border-border bg-surface px-[0.65rem] py-2 font-[inherit] text-[0.84rem] font-semibold text-primary-dark transition-[background,border-color] duration-[var(--duration-fast)]',
+  'hover:enabled:border-primary-light hover:enabled:bg-accent-soft',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] focus-visible:ring-offset-2'
 )
 
 export const amountFieldClass = 'flex flex-col gap-[0.45rem]'
@@ -207,7 +212,7 @@ export const amountFieldInputWrapClass = cn(
   'focus-within:border-primary focus-within:shadow-[var(--form-input-focus-shadow)]'
 )
 
-export const amountFieldInputWrapCompactClass = 'min-h-[2.4rem]'
+export const amountFieldInputWrapCompactClass = 'min-h-touch-min'
 
 export const amountFieldInputClass = cn(
   'min-h-touch-min min-w-0 flex-1 border-none! bg-transparent! px-[0.9rem] py-[0.72rem] text-[1.05rem] font-bold tracking-[0.02em] shadow-none! outline-none'
@@ -215,18 +220,27 @@ export const amountFieldInputClass = cn(
 
 export const amountFieldInputCompactClass = cn(
   amountFieldInputClass,
-  'min-h-0 px-[0.65rem] py-[0.52rem] text-[0.92rem] text-left tabular-nums'
+  'min-h-0 px-[0.65rem] py-[0.55rem] text-[0.92rem] text-left tabular-nums'
 )
 
 export const amountFieldCurrencyClass =
-  'inline-flex items-center whitespace-nowrap border-r border-border bg-accent-soft px-[0.85rem] text-[0.78rem] font-bold text-primary-dark'
+  'inline-flex items-center whitespace-nowrap border-s border-border bg-accent-soft px-[0.85rem] text-[0.78rem] font-bold text-primary-dark'
 
 export const amountFieldCurrencyCompactClass = 'px-[0.55rem] text-[0.68rem] font-bold'
 
 export const amountFieldSubmitBtnClass = cn(
-  'inline-flex h-full min-h-[2.4rem] w-8 shrink-0 cursor-pointer items-center justify-center border-none border-l border-border bg-transparent p-0 text-primary transition-[background,color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  'hover:enabled:bg-[var(--color-success-bg)] hover:enabled:text-success disabled:cursor-not-allowed disabled:opacity-45'
+  'amount-field-submit inline-flex min-h-touch-min shrink-0 cursor-pointer items-center justify-center border-none px-[0.7rem] py-0',
+  'border-s border-[color-mix(in_srgb,var(--color-primary-dark)_35%,rgba(255,255,255,0.35))]',
+  'text-[0.72rem] font-extrabold tracking-[0.01em] text-white',
+  '[background:linear-gradient(145deg,var(--color-primary-dark)_0%,var(--color-primary)_52%,var(--color-primary-light)_100%)]',
+  'shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]',
+  'transition-[filter,transform,opacity] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
+  'hover:enabled:brightness-105 active:enabled:scale-[0.96]',
+  'focus-visible:outline-none focus-visible:shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_0_0_3px_var(--color-focus-ring)]',
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:[background:color-mix(in_srgb,var(--color-border)_70%,var(--color-surface))] disabled:text-muted disabled:shadow-none'
 )
+
+export const amountFieldSubmitBtnLabelClass = 'whitespace-nowrap leading-none'
 
 export const amountWordsClass =
   'm-0 rounded-sm border border-dashed border-border bg-accent-soft px-[0.65rem] py-[0.45rem] text-[0.78rem] leading-[1.55] text-muted'
