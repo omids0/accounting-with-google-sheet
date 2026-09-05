@@ -1,3 +1,4 @@
+@layer components {
 .bottom-nav-dashboard-icon .app-icon {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
 }
@@ -284,4 +285,5 @@
   border-radius: 50%;
   background: var(--color-primary);
   box-shadow: 0 0 0 2px var(--color-surface);
+}
 }

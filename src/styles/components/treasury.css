@@ -1,3 +1,4 @@
+@layer components {
 .wallet-item-title-row {
   display: flex;
   justify-content: space-between;
@@ -281,4 +282,5 @@
   background: var(--color-bg);
   color: var(--color-primary);
   border: 1.5px solid var(--color-border);
+}
 }

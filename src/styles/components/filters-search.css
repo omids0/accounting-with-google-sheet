@@ -1,3 +1,4 @@
+@layer components {
 .stat-card__value-row {
   display: flex;
   flex-direction: column;
@@ -280,4 +281,5 @@
 .page-filter-bar__collapse .accordion-collapse__inner {
   border-top: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
   background: color-mix(in srgb, var(--color-primary) 3%, var(--color-surface));
+}
 }

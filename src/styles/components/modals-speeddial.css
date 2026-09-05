@@ -1,3 +1,4 @@
+@layer components {
 .header-icon-btn--menu {
   color: white;
 }
@@ -289,4 +290,5 @@
   box-shadow: 0 3px 12px rgba(15, 23, 42, 0.12);
   transition: transform var(--duration-fast) var(--ease-spring),
     box-shadow var(--duration-fast) var(--ease-out);
+}
 }

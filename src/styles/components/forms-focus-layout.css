@@ -1,3 +1,4 @@
+@layer components {
 .category-select-add-btn:hover:not(:disabled) {
   background: var(--color-primary-dark);
 }
@@ -276,4 +277,5 @@ button {
 .bottom-nav-side button,
 .bottom-nav-dashboard {
   min-height: var(--touch-min);
+}
 }

@@ -1,3 +1,4 @@
+@layer components {
 .loan-calculator-summary-grid {
   display: flex;
   flex-direction: column;
@@ -276,4 +277,5 @@
   transition: background var(--duration-normal) var(--ease-out),
     transform var(--duration-fast) var(--ease-spring);
   flex-shrink: 0;
+}
 }

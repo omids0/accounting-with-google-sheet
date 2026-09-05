@@ -1,3 +1,4 @@
+@layer components {
 .card:hover {
   box-shadow: var(--shadow);
 }
@@ -278,4 +279,5 @@
 .jalali-date-picker-trigger.is-empty {
   color: var(--color-text-muted);
   font-weight: 500;
+}
 }

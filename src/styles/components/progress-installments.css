@@ -1,3 +1,4 @@
+@layer components {
 .jalali-date-picker-panel {
   margin-top: 0.5rem;
 }
@@ -276,4 +277,5 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background var(--duration-fast), color var(--duration-fast);
+}
 }

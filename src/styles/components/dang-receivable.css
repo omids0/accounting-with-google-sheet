@@ -1,3 +1,4 @@
+@layer components {
 .dang-card-title {
   font-weight: 600;
   font-size: 0.95rem;
@@ -279,4 +280,5 @@
 .wallet-item-info {
   flex: 1;
   min-width: 0;
+}
 }

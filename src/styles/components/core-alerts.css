@@ -1,0 +1,18 @@
+@layer components {
+  .alert {
+    @apply mb-4 rounded-sm px-4 py-3 text-[0.85rem];
+    animation: slideDown var(--duration-normal) var(--ease-out);
+  }
+  .alert-error {
+    @apply border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] text-danger;
+  }
+  .alert-success {
+    @apply border border-[var(--color-success-border)] bg-[var(--color-success-bg)] text-success;
+  }
+  .alert-info {
+    @apply border border-border bg-bg text-[var(--color-primary-dark)];
+  }
+  .alert-warning {
+    @apply border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] text-warning;
+  }
+}

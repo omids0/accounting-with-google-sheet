@@ -1,3 +1,4 @@
+@layer components {
 .custom-select-trigger:hover:not(:disabled) {
   border-color: var(--form-input-border-hover);
 }
@@ -276,4 +277,5 @@
   cursor: pointer;
   flex-shrink: 0;
   transition: background var(--duration-fast), transform var(--duration-fast);
+}
 }

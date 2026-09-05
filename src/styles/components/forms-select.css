@@ -1,0 +1,28 @@
+@layer components {
+  /* ── Custom select (replaces native dropdown for themed hover) ── */
+  .custom-select {
+    position: relative;
+    width: 100%;
+  }
+
+  .custom-select-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: var(--touch-min);
+    padding: 0.72rem 0.9rem;
+    border: 1px solid var(--form-input-border);
+    border-radius: var(--form-radius);
+    background-color: var(--form-input-bg);
+    color: var(--color-text);
+    text-align: right;
+    font: inherit;
+    line-height: 1.4;
+    box-shadow: var(--form-input-shadow);
+    transition: border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+}

@@ -1,3 +1,4 @@
+@layer components {
 .app-header-center {
   min-width: 0;
   display: flex;
@@ -278,4 +279,5 @@
   font-weight: 700;
   color: var(--color-text-muted);
   text-transform: none;
+}
 }

@@ -103,184 +103,36 @@
   --form-card-bg: linear-gradient(165deg, #1a3532 0%, #152a28 100%);
 }
 
-@keyframes pageFade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pageEnter {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-@keyframes pulse-soft {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes headerGlow {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes navIndicator {
-  from {
-    transform: scaleX(0);
-    opacity: 0;
-  }
-  to {
-    transform: scaleX(1);
-    opacity: 1;
-  }
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  font-size: 16px;
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  font-family: var(--font);
-  background: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.65;
-  min-height: 100dvh;
-  direction: rtl;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'ss01' on;
-}
-
-#root {
-  min-height: 100dvh;
-}
-
-input,
-select,
-textarea,
-button {
-  font-family: inherit;
-  font-size: 1rem;
-}
-
-select {
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-}
-
-/* ── Custom select (replaces native dropdown for themed hover) ── */
-.custom-select {
-  position: relative;
-  width: 100%;
-}
-
-.custom-select-trigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  min-height: var(--touch-min);
-  padding: 0.72rem 0.9rem;
-  border: 1px solid var(--form-input-border);
-  border-radius: var(--form-radius);
-  background-color: var(--form-input-bg);
-  color: var(--color-text);
-  text-align: right;
-  font: inherit;
-  line-height: 1.4;
-  box-shadow: var(--form-input-shadow);
-  transition: border-color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out);
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-light: var(--color-primary-light);
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-text: var(--color-text);
+  --color-muted: var(--color-text-muted);
+  --color-border: var(--color-border);
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
+  --color-income: var(--color-income);
+  --color-expense: var(--color-expense);
+  --color-warning: var(--color-warning);
+  --radius-DEFAULT: var(--radius);
+  --radius-sm: var(--radius-sm);
+  --radius-form: var(--form-radius);
+  --shadow-DEFAULT: var(--shadow);
+  --shadow-lg: var(--shadow-lg);
+  --font-sans: var(--font-text);
+  --font-numeric: var(--font-numeric);
+  --spacing-touch-min: var(--touch-min);
+  --spacing-page: var(--space-page);
+  --spacing-card: var(--space-card);
+  --spacing-stack: var(--space-stack);
+  --duration-fast: var(--duration-fast);
+  --duration-normal: var(--duration-normal);
+  --duration-slow: var(--duration-slow);
+  --duration-page: var(--duration-page);
+  --ease-out: var(--ease-out);
+  --ease-spring: var(--ease-spring);
+  --ease-page: var(--ease-page);
 }

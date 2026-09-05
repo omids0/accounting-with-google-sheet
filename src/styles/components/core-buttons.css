@@ -1,0 +1,49 @@
+@layer components {
+  .btn {
+    @apply relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-sm px-5 py-3 text-[0.95rem] font-bold transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)];
+  }
+  .btn:active:not(:disabled) {
+    @apply scale-[0.97];
+  }
+  .btn-primary {
+    @apply text-white shadow-[0_4px_14px_rgba(15,118,110,0.3)];
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  }
+  .btn-primary:hover:not(:disabled) {
+    @apply -translate-y-px shadow-[0_6px_20px_rgba(15,118,110,0.35)];
+    background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+  }
+  .btn-primary:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+  .btn-secondary {
+    @apply border-[1.5px] border-border bg-bg text-primary;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    @apply border-primary;
+  }
+  .btn-danger {
+    @apply border-[1.5px] border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] text-danger;
+  }
+  .btn-outflow {
+    @apply bg-danger text-white;
+  }
+  .btn-outflow:hover:not(:disabled) {
+    @apply bg-[#b91c1c];
+  }
+  .btn-outflow:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+  .btn-inflow {
+    @apply bg-success text-white;
+  }
+  .btn-inflow:hover:not(:disabled) {
+    @apply bg-[#15803d];
+  }
+  .btn-inflow:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+  .btn-sm {
+    @apply w-auto px-3 py-1.5 text-xs;
+  }
+}
