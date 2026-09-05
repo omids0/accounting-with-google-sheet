@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
@@ -14,6 +14,7 @@ import {
   customSelectValueClass
 } from '../ui/formControlStyles'
 import CategorySelectPanel from './categorySelect/CategorySelectPanel'
+import CategorySelectSheet from './categorySelect/CategorySelectSheet'
 import {
   useCategorySelectActions,
   type CategorySelectProps
@@ -48,15 +49,13 @@ export default function CategorySelect({
 
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
-  const rootRef = useRef<HTMLDivElement>(null)
-
   const addInputRef = useRef<HTMLInputElement>(null)
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   const hasValue = Boolean(value)
 
-  const showSearch = categories.length > 4
+  const showSearch = categories.length > 3
 
   const filteredCategories = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -76,63 +75,59 @@ export default function CategorySelect({
     setSaving
   })
 
-  useEffect(() => {
-    if (!open) {
-      setManageMode(false)
-      setSearchQuery('')
+  const resetTransientState = useCallback(() => {
+    setManageMode(false)
+    setSearchQuery('')
+    setEditingCategory(null)
+    setEditText('')
+    setConfirmDelete(null)
+  }, [])
+
+  const handleClose = useCallback(() => {
+    if (saving) return
+
+    if (editingCategory) {
       setEditingCategory(null)
+      setEditText('')
+
+      return
+    }
+
+    if (confirmDelete) {
       setConfirmDelete(null)
 
       return
     }
 
+    if (manageMode) {
+      setManageMode(false)
+
+      return
+    }
+
+    setOpen(false)
+    resetTransientState()
+  }, [confirmDelete, editingCategory, manageMode, resetTransientState, saving])
+
+  useEffect(() => {
+    if (!open) return
+
     const focusTimer = window.setTimeout(() => {
+      if (manageMode) {
+        addInputRef.current?.focus()
+
+        return
+      }
+
       if (showSearch) {
         searchInputRef.current?.focus()
-      } else {
-        addInputRef.current?.focus()
       }
-    }, 0)
-
-    const onPointerDown = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false)
-        setEditingCategory(null)
-        setConfirmDelete(null)
-      }
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        if (editingCategory) {
-          setEditingCategory(null)
-          setEditText('')
-
-          return
-        }
-        if (confirmDelete) {
-          setConfirmDelete(null)
-
-          return
-        }
-        if (manageMode) {
-          setManageMode(false)
-
-          return
-        }
-        setOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
+    }, 50)
 
     return () => {
       window.clearTimeout(focusTimer)
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
     }
-  }, [open, editingCategory, confirmDelete, manageMode, showSearch])
+  }, [manageMode, open, showSearch])
 
   const startEdit = (category: string) => {
     setEditingCategory(category)
@@ -150,11 +145,13 @@ export default function CategorySelect({
     if (manageMode) return
     onChange(category)
     setOpen(false)
+    resetTransientState()
   }
+
+  const sheetTitle = manageMode ? 'مدیریت دسته‌ها' : ariaLabel
 
   return (
     <div
-      ref={rootRef}
       className={categorySelectRootClass({ open, disabled, saving })}
       data-open={open || undefined}
     >
@@ -166,11 +163,11 @@ export default function CategorySelect({
           categorySelectTriggerClass,
           customSelectTriggerStateClass({ open, disabled: disabled || saving })
         )}
-        onClick={() => !disabled && !saving && setOpen(isOpen => !isOpen)}
+        onClick={() => !disabled && !saving && setOpen(true)}
         disabled={disabled || saving}
         aria-label={ariaLabel}
         aria-expanded={open}
-        aria-haspopup="listbox"
+        aria-haspopup="dialog"
       >
         <span className={categorySelectLeadingClass} aria-hidden="true">
           <AppIcon name="folder" size={16} strokeWidth={2} />
@@ -191,7 +188,18 @@ export default function CategorySelect({
         )}
       </button>
 
-      {open && (
+      <CategorySelectSheet
+        open={open}
+        title={sheetTitle}
+        manageMode={manageMode}
+        blocked={saving}
+        onClose={handleClose}
+        onBackFromManage={() => {
+          setManageMode(false)
+          setEditingCategory(null)
+          setConfirmDelete(null)
+        }}
+      >
         <CategorySelectPanel
           ariaLabel={ariaLabel}
           categories={categories}
@@ -207,11 +215,6 @@ export default function CategorySelect({
           newCategory={newCategory}
           addInputRef={addInputRef}
           searchInputRef={searchInputRef}
-          onToggleManageMode={() => {
-            setManageMode(active => !active)
-            setEditingCategory(null)
-            setConfirmDelete(null)
-          }}
           onSearchChange={setSearchQuery}
           onClearSearch={() => setSearchQuery('')}
           onNewCategoryChange={setNewCategory}
@@ -229,7 +232,7 @@ export default function CategorySelect({
           onDelete={category => handleDelete(category, setConfirmDelete)}
           onOpenManageMode={() => setManageMode(true)}
         />
-      )}
+      </CategorySelectSheet>
     </div>
   )
 }

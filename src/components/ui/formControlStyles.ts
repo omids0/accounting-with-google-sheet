@@ -27,7 +27,8 @@ export function customSelectTriggerStateClass({
   return cn(
     compact && 'rounded-form px-[0.55rem] py-[0.65rem] text-[0.9rem]',
     open && 'border-primary shadow-[var(--form-input-focus-shadow)]',
-    disabled && 'cursor-not-allowed opacity-60'
+    disabled && 'cursor-not-allowed opacity-60',
+    'focus-visible:outline-none focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)]'
   )
 }
 
@@ -79,10 +80,9 @@ export const categorySelectPlaceholderClass = 'font-normal text-muted'
 
 export const categorySelectSpinnerClass = 'h-4 w-4 shrink-0'
 
-export const categorySelectPanelClass = cn(
-  'absolute inset-x-0 top-[calc(100%+6px)] z-[60] overflow-hidden rounded-[var(--radius)] border-[1.5px] border-border bg-surface shadow-[var(--shadow-lg)]',
-  'animate-[slideDown_var(--duration-normal)_var(--ease-out)]'
-)
+export const categorySelectSheetPanelClass = 'max-h-[min(88vh,640px)]'
+
+export const categorySelectPanelClass = 'flex min-h-0 flex-1 flex-col overflow-hidden'
 
 export const categorySelectHeaderClass = cn(
   'flex items-center justify-between gap-2 border-b border-border px-3 py-[0.65rem]',
@@ -122,11 +122,13 @@ export const categorySelectAddInputClass = cn(
 )
 
 export const categorySelectAddBtnClass = cn(
-  'inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-primary p-0 text-white transition-[background,transform] duration-[var(--duration-fast)]',
-  'hover:enabled:bg-primary-dark active:enabled:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45'
+  'inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-primary p-0 text-white transition-[background,transform] duration-[var(--duration-fast)]',
+  'hover:enabled:bg-primary-dark active:enabled:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
 )
 
-export const categorySelectListClass = 'm-0 max-h-60 list-none overflow-y-auto p-[0.4rem]'
+export const categorySelectListClass =
+  'm-0 min-h-0 flex-1 list-none overflow-y-auto overscroll-contain p-1 [-webkit-overflow-scrolling:touch]'
 
 export function categorySelectItemClass({
   selected,
@@ -145,7 +147,8 @@ export function categorySelectItemClass({
 }
 
 export const categorySelectOptionBtnClass = cn(
-  'flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-[0.55rem] py-[0.6rem] text-right font-[inherit] text-[0.9rem] text-text transition-[color] duration-[var(--duration-fast)] disabled:cursor-default'
+  'flex min-h-touch-min min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-3 py-2 text-right font-[inherit] text-[0.92rem] text-text transition-[color,background-color] duration-[var(--duration-fast)]',
+  'hover:enabled:bg-[rgba(15,118,110,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] disabled:cursor-default'
 )
 
 export const categorySelectOptionCheckClass =
@@ -195,7 +198,9 @@ export const categorySelectFooterClass =
   'border-t border-border bg-bg px-2 pb-[0.55rem] pt-[0.45rem]'
 
 export const categorySelectFooterBtnClass = cn(
-  'inline-flex w-full cursor-pointer items-center justify-center gap-[0.35rem] rounded-sm border-none bg-transparent px-[0.65rem] py-[0.55rem] font-[inherit] text-[0.8rem] font-semibold text-primary-dark transition-[background] duration-[var(--duration-fast)] hover:enabled:bg-accent-soft'
+  'inline-flex min-h-touch-min w-full cursor-pointer items-center justify-center gap-[0.35rem] rounded-sm border border-border bg-surface px-[0.65rem] py-2 font-[inherit] text-[0.84rem] font-semibold text-primary-dark transition-[background,border-color] duration-[var(--duration-fast)]',
+  'hover:enabled:border-primary-light hover:enabled:bg-accent-soft',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] focus-visible:ring-offset-2'
 )
 
 export const amountFieldClass = 'flex flex-col gap-[0.45rem]'
