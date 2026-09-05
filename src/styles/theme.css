@@ -104,6 +104,7 @@
 }
 
 @theme inline {
+  --default-font-family: var(--font-text);
   --color-primary: var(--color-primary);
   --color-primary-dark: var(--color-primary-dark);
   --color-primary-light: var(--color-primary-light);
@@ -123,7 +124,7 @@
   --shadow-DEFAULT: var(--shadow);
   --shadow-lg: var(--shadow-lg);
   --font-sans: var(--font-text);
-  --font-numeric: var(--font-numeric);
+  --font-numeric: 'Vazirmatn FD', 'Vazirmatn', system-ui, sans-serif;
   --spacing-touch-min: var(--touch-min);
   --spacing-page: var(--space-page);
   --spacing-card: var(--space-card);
