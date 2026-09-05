@@ -53,10 +53,10 @@ export const skeletonRecordActionsClass = 'flex flex-shrink-0 items-center gap-2
 
 export const skeletonRecordsCardClass = 'skeleton-records-card pointer-events-none'
 
-export const skeletonFilterChipsClass = 'pointer-events-none mb-[0.65rem]'
+export const skeletonFilterChipsClass = 'pointer-events-none'
 
 export const skeletonFilterChipClass = cn(
-  'inline-flex min-h-[1.85rem] items-center rounded-full border px-[0.65rem] py-[0.35rem]',
+  'inline-flex min-h-touch-min items-center rounded-full border px-[0.75rem] py-[0.4rem]',
   'border-[color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))]',
   '[background:color-mix(in_srgb,var(--color-primary)_5%,var(--color-surface))]'
 )

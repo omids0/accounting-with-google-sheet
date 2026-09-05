@@ -1,11 +1,14 @@
+import ActiveFilterChips from './ActiveFilterChips'
 import AppIcon from './AppIcon'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
-import { RecordListSkeleton } from './skeleton'
+import FilterModal from './FilterModal'
+import PageFilterPanel from './PageFilterPanel'
 import { isConfigured } from '../services/settings'
 import RecordsEditFormModal from './records/RecordsEditFormModal'
 import RecordsList from './records/RecordsList'
 import RecordsToolbar from './records/RecordsToolbar'
 import { useRecordsPage } from './records/useRecordsPage'
+import { RecordListSkeleton } from './skeleton'
 import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 import { recordsPageClass } from './ui/recordsStyles'
 
@@ -29,20 +32,36 @@ export default function RecordsPage({
 
   return (
     <div className={recordsPageClass}>
+      <ActiveFilterChips
+        chips={page.filterChips}
+        onOpenFilters={page.openFilterModal}
+        onClearAll={page.clearAllFilters}
+      />
+
+      <FilterModal
+        open={page.filterModalOpen}
+        onClose={() => page.setFilterModalOpen(false)}
+        onApply={page.applyFilters}
+        onClear={page.clearDraftFilters}
+      >
+        <PageFilterPanel
+          showSearch={false}
+          datePreset={page.draftDatePreset}
+          customRange={page.draftCustomRange}
+          onDateFilterChange={page.handleDraftDateFilterChange}
+          dateLoading={page.loading}
+          category={page.showCategoryFilter ? page.draftCategory : undefined}
+          onCategoryChange={page.showCategoryFilter ? page.setDraftCategory : undefined}
+          categoryOptions={page.showCategoryFilter ? page.categoryOptions : undefined}
+        />
+      </FilterModal>
+
       <RecordsToolbar
-        dateRange={page.dateRange}
         loading={page.loading}
         forms={page.forms}
         activeFormId={page.activeFormId}
-        datePreset={page.datePreset}
-        customRange={page.customRange}
-        showCategoryFilter={!!page.showCategoryFilter}
-        categoryFilter={page.categoryFilter}
-        categoryOptions={page.categoryOptions}
         onRefresh={page.loadRecords}
         onFormChange={page.handleFormChange}
-        onDateFilterChange={page.handleDateFilterChange}
-        onCategoryChange={page.setCategoryFilter}
       />
 
       {page.loading && page.records.length === 0 ? (

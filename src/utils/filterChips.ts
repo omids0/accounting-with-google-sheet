@@ -1,5 +1,9 @@
-import type { FilterChip } from '../components/ActiveFilterChips'
+import type { FilterChip, FilterChipKind } from '../components/ActiveFilterChips'
 import type { PaymentStatusFilter } from '../components/PageFilterPanel'
+
+function withKind(kind: FilterChipKind, chip: Omit<FilterChip, 'kind'>): FilterChip {
+  return { ...chip, kind }
+}
 
 export function buildSearchChip(
   query: string,
@@ -10,19 +14,19 @@ export function buildSearchChip(
 
   if (!trimmed) return null
 
-  return {
+  return withKind('search', {
     id: 'search',
     label: `${prefix}: ${trimmed}`,
     onRemove
-  }
+  })
 }
 
 export function buildDateRangeChip(label: string, onRemove?: () => void): FilterChip {
-  return {
+  return withKind('date', {
     id: 'date-range',
     label,
     onRemove
-  }
+  })
 }
 
 export function buildPaymentStatusChip(
@@ -30,27 +34,27 @@ export function buildPaymentStatusChip(
   onRemove: () => void,
   labels?: { paid: string; unpaid: string }
 ): FilterChip {
-  return {
+  return withKind('payment', {
     id: 'payment-status',
     label: status === 'paid' ? labels?.paid ?? 'پرداخت شده' : labels?.unpaid ?? 'پرداخت نشده',
     onRemove
-  }
+  })
 }
 
 export function buildCategoryChip(category: string, onRemove: () => void): FilterChip {
-  return {
+  return withKind('category', {
     id: 'category',
-    label: category,
+    label: `دسته: ${category}`,
     onRemove
-  }
+  })
 }
 
 export function buildSortChip(label: string, onRemove: () => void): FilterChip {
-  return {
+  return withKind('sort', {
     id: 'sort',
     label: `مرتب‌سازی: ${label}`,
     onRemove
-  }
+  })
 }
 
 export function compactFilterChips(

@@ -59,7 +59,8 @@ export function useTimesheetsPage() {
     filterChips,
     openFilterModal,
     applyFilters,
-    clearDraftFilters
+    clearDraftFilters,
+    clearAllFilters
   } = useTimesheetsFilters(items)
 
   const loadItems = useCallback(async () => {
@@ -214,6 +215,7 @@ export function useTimesheetsPage() {
     filterChips,
     applyFilters,
     clearDraftFilters,
+    clearAllFilters,
     handleSubmit,
     handleDelete,
     pageSpeedDialConfig,

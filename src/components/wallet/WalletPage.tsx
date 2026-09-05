@@ -110,7 +110,11 @@ export default function WalletPage({ active = true }: WalletPageProps) {
 
   return (
     <div>
-      <ActiveFilterChips chips={filters.filterChips} onChipClick={filters.openFilterModal} />
+      <ActiveFilterChips
+        chips={filters.filterChips}
+        onOpenFilters={filters.openFilterModal}
+        onClearAll={filters.clearAllFilters}
+      />
 
       <FilterModal
         open={filters.filterModalOpen}

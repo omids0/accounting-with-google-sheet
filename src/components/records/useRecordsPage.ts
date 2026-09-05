@@ -12,7 +12,13 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { fetchRecords } from '../../services/sheets'
 import type { CustomForm } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
-import { isDateInRange, resolveDateRange, type RecordsDatePreset } from '../../utils/dateRange'
+import {
+  formatDateRangeLabel,
+  isDateInRange,
+  resolveDateRange,
+  type RecordsDatePreset
+} from '../../utils/dateRange'
+import { buildCategoryChip, buildDateRangeChip, compactFilterChips } from '../../utils/filterChips'
 import { handleSheetError } from '../../utils/sheetError'
 import { createDefaultDateRangeFilter, type AppliedDateRangeFilter } from '../DateRangeFilter'
 
@@ -24,6 +30,12 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
   const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date')
   const [customRange, setCustomRange] = useState(() => createDefaultDateRangeFilter().customRange)
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+  const [draftDatePreset, setDraftDatePreset] = useState<RecordsDatePreset>('month-to-date')
+  const [draftCustomRange, setDraftCustomRange] = useState(
+    () => createDefaultDateRangeFilter().customRange
+  )
+  const [draftCategory, setDraftCategory] = useState('all')
 
   const activeForm = activeFormId === 'all' ? undefined : forms.find(f => f.id === activeFormId)
   const dateRange = resolveDateRange(datePreset, customRange)
@@ -130,15 +142,63 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
     })
   }, [records, dateRange, categoryFilter, forms])
 
+  const resetDateFilter = useCallback(() => {
+    const defaults = createDefaultDateRangeFilter()
+
+    setDatePreset('month-to-date')
+    setCustomRange(defaults.customRange)
+  }, [])
+
+  const filterChips = useMemo(
+    () =>
+      compactFilterChips([
+        buildDateRangeChip(
+          formatDateRangeLabel(dateRange),
+          datePreset !== 'month-to-date' ? resetDateFilter : undefined
+        ),
+        showCategoryFilter &&
+          categoryFilter !== 'all' &&
+          buildCategoryChip(categoryFilter, () => setCategoryFilter('all'))
+      ]),
+    [categoryFilter, datePreset, dateRange, resetDateFilter, showCategoryFilter]
+  )
+
+  const openFilterModal = useCallback(() => {
+    setDraftDatePreset(datePreset)
+    setDraftCustomRange(customRange)
+    setDraftCategory(categoryFilter)
+    setFilterModalOpen(true)
+  }, [categoryFilter, customRange, datePreset])
+
+  const handleDraftDateFilterChange = (filter: AppliedDateRangeFilter) => {
+    if (filter.preset === 'all') return
+    setDraftDatePreset(filter.preset)
+    setDraftCustomRange(filter.customRange)
+  }
+
+  const clearDraftFilters = useCallback(() => {
+    const defaults = createDefaultDateRangeFilter()
+
+    setDraftDatePreset('month-to-date')
+    setDraftCustomRange(defaults.customRange)
+    setDraftCategory('all')
+  }, [])
+
+  const applyFilters = useCallback(() => {
+    setDatePreset(draftDatePreset)
+    setCustomRange(draftCustomRange)
+    setCategoryFilter(draftCategory)
+    setFilterModalOpen(false)
+  }, [draftCategory, draftCustomRange, draftDatePreset])
+
+  const clearAllFilters = useCallback(() => {
+    resetDateFilter()
+    setCategoryFilter('all')
+  }, [resetDateFilter])
+
   const handleFormChange = (formId: string) => {
     setActiveFormId(formId)
     setCategoryFilter('all')
-  }
-
-  const handleDateFilterChange = (filter: AppliedDateRangeFilter) => {
-    if (filter.preset === 'all') return
-    setDatePreset(filter.preset)
-    setCustomRange(filter.customRange)
   }
 
   return {
@@ -158,7 +218,18 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
     categoryOptions,
     filteredRecords,
     handleFormChange,
-    handleDateFilterChange,
+    filterModalOpen,
+    setFilterModalOpen,
+    draftDatePreset,
+    draftCustomRange,
+    draftCategory,
+    setDraftCategory,
+    filterChips,
+    openFilterModal,
+    handleDraftDateFilterChange,
+    clearDraftFilters,
+    applyFilters,
+    clearAllFilters,
     ...formActions
   }
 }

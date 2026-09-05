@@ -47,6 +47,11 @@ export function useTimesheetsFilters(items: TimesheetWithRow[]) {
     sort.clearDraftSort()
   }, [filters, sort])
 
+  const clearAllFilters = useCallback(() => {
+    filters.clearAllFilters()
+    sort.resetSort()
+  }, [filters, sort])
+
   return {
     ...filters,
     ...sort,
@@ -55,6 +60,7 @@ export function useTimesheetsFilters(items: TimesheetWithRow[]) {
     openFilterModal,
     applyFilters,
     clearDraftFilters,
+    clearAllFilters,
     applyDraftFilters: applyFilters
   }
 }

@@ -99,6 +99,7 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
       loading={dashboard.loading}
       filterChips={dashboard.filterChips}
       openFilterModal={dashboard.openFilterModal}
+      clearAllFilters={dashboard.clearAllFilters}
       filterModalOpen={dashboard.filterModalOpen}
       setFilterModalOpen={dashboard.setFilterModalOpen}
       draftDatePreset={dashboard.draftDatePreset}

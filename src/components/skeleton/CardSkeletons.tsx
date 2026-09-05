@@ -13,6 +13,7 @@ import {
   walletItemInfoClass,
   walletItemTitleRowClass
 } from '../ui/featureCardStyles'
+import { activeFilterBarClass, activeFilterTriggerClass } from '../ui/filterControlStyles'
 import { progressBarMetaClass } from '../ui/progressStyles'
 import {
   recordsDateGridClass,
@@ -24,7 +25,6 @@ import {
   skeletonActionBtnSizeClass,
   skeletonCardClass,
   skeletonFilterChipClass,
-  skeletonFilterChipsClass,
   skeletonRecordActionsClass,
   skeletonRecordItemClass,
   skeletonStatCardClass
@@ -32,19 +32,21 @@ import {
 import { treasuryHoldingCardClass } from '../ui/treasuryReceivableStyles'
 
 export function FilterChipsSkeleton({ count = 1 }: { count?: number }) {
-  if (count <= 0) return null
-
   return (
-    <div className={skeletonFilterChipsClass} aria-hidden="true">
-      {Array.from({ length: count }, (_, index) => (
-        <span key={index} className={skeletonFilterChipClass}>
-          <Skeleton
-            width={index === 0 ? '5.25rem' : '3.5rem'}
-            height="0.72rem"
-            style={{ borderRadius: '999px' }}
-          />
-        </span>
-      ))}
+    <div className={activeFilterBarClass} aria-hidden="true">
+      <span className={activeFilterTriggerClass(false)}>
+        <Skeleton width="4.5rem" height="0.85rem" style={{ borderRadius: '999px' }} />
+      </span>
+      {count > 0 &&
+        Array.from({ length: count }, (_, index) => (
+          <span key={index} className={skeletonFilterChipClass}>
+            <Skeleton
+              width={index === 0 ? '6.5rem' : '4.5rem'}
+              height="0.85rem"
+              style={{ borderRadius: '999px' }}
+            />
+          </span>
+        ))}
     </div>
   )
 }

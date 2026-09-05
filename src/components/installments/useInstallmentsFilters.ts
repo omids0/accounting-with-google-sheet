@@ -162,6 +162,14 @@ export function useInstallmentsFilters(plans: PlanWithRow[]) {
     setDraftCustomRange(defaults.customRange)
   }
 
+  const clearAllFilters = useCallback(() => {
+    const defaults = createDefaultDateRangeFilter()
+
+    setSearchQuery('')
+    setDatePreset(defaults.preset as RecordsDatePreset)
+    setCustomRange(defaults.customRange)
+  }, [])
+
   return {
     filterModalOpen,
     setFilterModalOpen,
@@ -181,6 +189,7 @@ export function useInstallmentsFilters(plans: PlanWithRow[]) {
     filterChips,
     openFilterModal,
     applyDraftFilters,
-    clearDraftFilters
+    clearDraftFilters,
+    clearAllFilters
   }
 }

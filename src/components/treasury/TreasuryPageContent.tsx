@@ -58,7 +58,11 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
 
   return (
     <div>
-      <ActiveFilterChips chips={filters.filterChips} onChipClick={filters.openFilterModal} />
+      <ActiveFilterChips
+        chips={filters.filterChips}
+        onOpenFilters={filters.openFilterModal}
+        onClearAll={filters.clearAllFilters}
+      />
 
       <FilterModal
         open={filters.filterModalOpen}

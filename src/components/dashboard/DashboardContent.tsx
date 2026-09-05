@@ -37,6 +37,7 @@ interface DashboardContentProps {
   loading: boolean
   filterChips: FilterChip[]
   openFilterModal: () => void
+  clearAllFilters: () => void
   filterModalOpen: boolean
   setFilterModalOpen: (open: boolean) => void
   draftDatePreset: RecordsDatePreset
@@ -67,6 +68,7 @@ export default function DashboardContent({
   loading,
   filterChips,
   openFilterModal,
+  clearAllFilters,
   filterModalOpen,
   setFilterModalOpen,
   draftDatePreset,
@@ -93,7 +95,11 @@ export default function DashboardContent({
 }: DashboardContentProps) {
   return (
     <div className={dashboardPageClass}>
-      <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
+      <ActiveFilterChips
+        chips={filterChips}
+        onOpenFilters={openFilterModal}
+        onClearAll={clearAllFilters}
+      />
 
       <FilterModal
         open={filterModalOpen}

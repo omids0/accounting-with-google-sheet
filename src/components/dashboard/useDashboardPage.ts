@@ -210,6 +210,12 @@ export function useDashboardPage() {
     [dateRange, datePreset, resetDateFilter]
   )
 
+  const clearAllFilters = useCallback(() => {
+    if (datePreset !== 'month-to-date') {
+      resetDateFilter()
+    }
+  }, [datePreset, resetDateFilter])
+
   return {
     data,
     loading,
@@ -238,6 +244,7 @@ export function useDashboardPage() {
     expenseFormName,
     transactionTypeOptions,
     openFilterModal,
-    filterChips
+    filterChips,
+    clearAllFilters
   }
 }
