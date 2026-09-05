@@ -1,3 +1,6 @@
+import { useMemo } from 'react'
+
+import { useForm } from '../../hooks/useForm'
 import { getAssetUnit } from '../../services/tgju'
 import type { VaultAssetType } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
@@ -9,21 +12,31 @@ import { parseQuantityInput } from './utils'
 
 type TreasurySellFormProps = {
   assetType: VaultAssetType
-  sellForm: VaultFormState
   selling: boolean
-  onSellFormChange: (updater: (prev: VaultFormState) => VaultFormState) => void
-  onSell: () => void
+  onSell: (values: VaultFormState) => void
   onCancel: () => void
+}
+
+export function createEmptySellForm(assetType: VaultAssetType): VaultFormState {
+  return {
+    assetType,
+    quantity: '',
+    unitPrice: '',
+    transactionDate: getTodayIso(),
+    note: ''
+  }
 }
 
 export default function TreasurySellForm({
   assetType,
-  sellForm,
   selling,
-  onSellFormChange,
   onSell,
   onCancel
 }: TreasurySellFormProps) {
+  const initialValues = useMemo(() => createEmptySellForm(assetType), [assetType])
+
+  const form = useForm(initialValues, { resetKey: assetType })
+
   const allowDecimal = assetType === 'geram18'
 
   return (
@@ -36,12 +49,9 @@ export default function TreasurySellForm({
           type="text"
           inputMode={allowDecimal ? 'decimal' : 'numeric'}
           dir="ltr"
-          value={sellForm.quantity === '' ? '' : String(sellForm.quantity)}
+          value={form.values.quantity === '' ? '' : String(form.values.quantity)}
           onChange={e =>
-            onSellFormChange(f => ({
-              ...f,
-              quantity: parseQuantityInput(e.target.value, allowDecimal)
-            }))
+            form.setField('quantity', parseQuantityInput(e.target.value, allowDecimal))
           }
           placeholder={allowDecimal ? 'مثلاً ۱' : 'مثلاً ۱'}
         />
@@ -51,21 +61,21 @@ export default function TreasurySellForm({
         style={{ marginBottom: '0.75rem' }}
       >
         <AmountInput
-          value={sellForm.unitPrice}
-          onChange={val => onSellFormChange(f => ({ ...f, unitPrice: val }))}
+          value={form.values.unitPrice}
+          onChange={val => form.setField('unitPrice', val)}
         />
       </FormField>
       <FormField label="تاریخ فروش" style={{ marginBottom: '0.75rem' }}>
         <JalaliDatePicker
-          value={sellForm.transactionDate}
-          onChange={iso => onSellFormChange(f => ({ ...f, transactionDate: iso }))}
+          value={form.values.transactionDate}
+          onChange={iso => form.setField('transactionDate', iso)}
         />
       </FormField>
       <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
         <input
           type="text"
-          value={sellForm.note}
-          onChange={e => onSellFormChange(f => ({ ...f, note: e.target.value }))}
+          value={form.values.note}
+          onChange={e => form.setField('note', e.target.value)}
           placeholder="اختیاری"
         />
       </FormField>
@@ -74,7 +84,7 @@ export default function TreasurySellForm({
           type="button"
           className="btn btn-outflow btn-sm"
           disabled={selling}
-          onClick={onSell}
+          onClick={() => onSell(form.values)}
         >
           {selling && <span className="spinner" />}
           ثبت فروش
@@ -85,14 +95,4 @@ export default function TreasurySellForm({
       </div>
     </div>
   )
-}
-
-export function createEmptySellForm(assetType: VaultAssetType): VaultFormState {
-  return {
-    assetType,
-    quantity: '',
-    unitPrice: '',
-    transactionDate: getTodayIso(),
-    note: ''
-  }
 }

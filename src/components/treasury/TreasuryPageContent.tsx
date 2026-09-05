@@ -14,7 +14,6 @@ import StatCard from '../StatCard'
 import TreasuryBuyFormModal from './TreasuryBuyFormModal'
 import TreasuryHoldingCard from './TreasuryHoldingCard'
 import TreasuryPriceCard from './TreasuryPriceCard'
-import type { VaultFormState } from './types'
 import { useTreasuryData } from './useTreasuryData'
 import { useTreasuryFilters } from './useTreasuryFilters'
 import { useTreasuryForms } from './useTreasuryForms'
@@ -40,11 +39,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
     const expanded = data.expandedAsset === assetType
 
     data.setExpandedAsset(expanded ? null : assetType)
-    forms.setSellForm(null)
-  }
-
-  const handleSellFormChange = (updater: (prev: VaultFormState) => VaultFormState) => {
-    forms.setSellForm(prev => (prev ? updater(prev) : prev))
+    forms.closeSellForm()
   }
 
   if (!isConfigured()) {
@@ -103,14 +98,13 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
             key={holding.assetType}
             holding={holding}
             expanded={data.expandedAsset === holding.assetType}
-            sellForm={forms.sellForm}
+            activeSellAsset={forms.activeSellAsset}
             sellingAsset={forms.sellingAsset}
             onToggle={() => handleToggleHolding(holding.assetType)}
             onEdit={forms.openEditForm}
             onDelete={forms.openDeleteConfirm}
-            onSellFormChange={handleSellFormChange}
-            onOpenSellForm={forms.setSellForm}
-            onCloseSellForm={() => forms.setSellForm(null)}
+            onOpenSellForm={forms.openSellForm}
+            onCloseSellForm={forms.closeSellForm}
             onSell={forms.handleSell}
           />
         ))
@@ -130,11 +124,9 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       <TreasuryBuyFormModal
         open={forms.showForm}
         editingTx={forms.editingTx}
-        form={forms.form}
         saving={forms.saving}
         onClose={forms.closeForm}
         onSubmit={forms.handleSubmit}
-        onFormChange={updater => forms.setForm(updater)}
       />
 
       <ConfirmActionModal {...filters.importExportConfirmModal} />

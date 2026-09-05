@@ -1,15 +1,11 @@
 import { useState, useEffect } from 'react'
 
 import AppIcon from './AppIcon'
-import { FieldInput, getInitialFieldValue, sortFormFields } from './form'
+import DataEntryForm from './DataEntryForm'
 import { FormSkeleton } from './skeleton'
 import TransactionTypeSegment, { transactionTypeOptionsFromForms } from './TransactionTypeSegment'
 import { getSettings, isConfigured } from '../services/settings'
-import { appendRecord } from '../services/sheets'
 import type { CustomForm } from '../types'
-import { requireAuth } from '../utils/authGuard'
-import { handleSheetError } from '../utils/sheetError'
-import { showError, showSuccess } from '../utils/toast'
 
 export default function DataEntryPage({
   onCancel,
@@ -21,8 +17,6 @@ export default function DataEntryPage({
   const [forms, setForms] = useState<CustomForm[]>([])
 
   const [activeFormId, setActiveFormId] = useState('')
-
-  const [values, setValues] = useState<Record<string, string | number>>({})
 
   const [loading, setLoading] = useState(false)
 
@@ -49,77 +43,14 @@ export default function DataEntryPage({
     }
     if (selectedForm) {
       setActiveFormId(selectedForm.id)
-      initValues(selectedForm)
     }
     setReady(true)
   }, [initialFormType])
-
-  const initValues = (form: CustomForm) => {
-    const initial: Record<string, string | number> = {}
-
-    form.fields.forEach(f => {
-      initial[f.id] = getInitialFieldValue(f)
-    })
-    setValues(initial)
-  }
-
-  const selectForm = (form: CustomForm) => {
-    setActiveFormId(form.id)
-    initValues(form)
-  }
 
   const refreshForms = () => {
     const settings = getSettings()
 
     if (settings) setForms(settings.forms)
-  }
-
-  const handleChange = (fieldId: string, value: string | number) => {
-    setValues(prev => ({ ...prev, [fieldId]: value }))
-  }
-
-  const handleCategoriesChange = (categories: string[]) => {
-    refreshForms()
-    if (!categories.includes(String(values.category ?? ''))) {
-      setValues(prev => ({ ...prev, category: categories[0] ?? '' }))
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!isConfigured() || !requireAuth()) return
-    if (!activeForm) return
-
-    for (const field of activeForm.fields) {
-      if (field.required) {
-        const val = values[field.id]
-
-        if (val === '' || val === undefined || val === null) {
-          showError(`فیلد «${field.label}» الزامی است`)
-
-          return
-        }
-      }
-    }
-
-    setLoading(true)
-    try {
-      const settings = getSettings()!
-
-      await appendRecord(
-        settings.spreadsheetId,
-        activeForm,
-        crypto.randomUUID(),
-        new Date().toLocaleString('fa-IR'),
-        values
-      )
-      showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
-      initValues(activeForm)
-    } catch (err) {
-      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
-    } finally {
-      setLoading(false)
-    }
   }
 
   if (!isConfigured()) {
@@ -143,54 +74,19 @@ export default function DataEntryPage({
         className="data-entry-type-segment"
         options={transactionTypeOptionsFromForms(forms)}
         value={activeFormId}
-        onChange={formId => {
-          const form = forms.find(f => f.id === formId)
-
-          if (form) selectForm(form)
-        }}
+        onChange={formId => setActiveFormId(formId)}
         ariaLabel="نوع ثبت"
       />
 
       {activeForm && (
-        <div className="app-form">
-          <form onSubmit={handleSubmit}>
-            {sortFormFields(activeForm.fields).map(field => (
-              <FieldInput
-                key={field.id}
-                field={field}
-                value={values[field.id] ?? ''}
-                onChange={next => handleChange(field.id, next)}
-                formId={activeForm.id}
-                onCategoriesChange={handleCategoriesChange}
-              />
-            ))}
-
-            <div className="form-actions">
-              <button
-                type="submit"
-                className={`btn ${
-                  activeForm.type === 'expense'
-                    ? 'btn-outflow'
-                    : activeForm.type === 'income'
-                    ? 'btn-inflow'
-                    : 'btn-primary'
-                }`}
-                disabled={loading}
-              >
-                {loading && <span className="spinner" />}
-                ذخیره
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                disabled={loading}
-                onClick={() => onCancel?.()}
-              >
-                انصراف
-              </button>
-            </div>
-          </form>
-        </div>
+        <DataEntryForm
+          key={activeForm.id}
+          activeForm={activeForm}
+          loading={loading}
+          onLoadingChange={setLoading}
+          onCancel={onCancel}
+          onCategoriesRefresh={refreshForms}
+        />
       )}
     </div>
   )

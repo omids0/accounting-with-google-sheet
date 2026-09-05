@@ -2,13 +2,13 @@ import { isReceivableComplete, paidAmount, remainingAmount } from '../../service
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { AccordionCollapse } from '../AccordionCollapse'
-import AmountInput from '../AmountInput'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
-import { FormField } from '../form'
 import ProgressBar from '../ProgressBar'
-import type { PaymentFormState, ReceivableWithRow, SettlementFormState } from './types'
+import ReceivablePaymentForm from './ReceivablePaymentForm'
+import ReceivableSettlementForm from './ReceivableSettlementForm'
+import type { ReceivableWithRow } from './types'
 import { buildSettlementTitle } from './utils'
 
 type ReceivableCardProps = {
@@ -18,15 +18,17 @@ type ReceivableCardProps = {
   payingId: string
   settlingId: string
   togglingPaymentId: string
-  paymentForm: PaymentFormState | null
-  settlementForm: SettlementFormState | null
+  paymentReceivableId: string | null
+  settlementReceivableId: string | null
   onToggleExpand: (expanded: boolean) => void
   onEdit: () => void
   onDelete: () => void
-  onPaymentFormChange: (form: PaymentFormState | null) => void
-  onSettlementFormChange: (form: SettlementFormState | null) => void
-  onAddPayment: () => void
-  onSettle: () => void
+  onOpenPaymentForm: (receivableId: string) => void
+  onClosePaymentForm: () => void
+  onOpenSettlementForm: (receivableId: string) => void
+  onCloseSettlementForm: () => void
+  onAddPayment: (values: { amount: number | ''; note: string }) => void
+  onSettle: (values: { title: string; note: string }) => void
   onRemovePayment: (paymentId: string) => void
 }
 
@@ -37,13 +39,15 @@ export default function ReceivableCard({
   payingId,
   settlingId,
   togglingPaymentId,
-  paymentForm,
-  settlementForm,
+  paymentReceivableId,
+  settlementReceivableId,
   onToggleExpand,
   onEdit,
   onDelete,
-  onPaymentFormChange,
-  onSettlementFormChange,
+  onOpenPaymentForm,
+  onClosePaymentForm,
+  onOpenSettlementForm,
+  onCloseSettlementForm,
   onAddPayment,
   onSettle,
   onRemovePayment
@@ -55,6 +59,9 @@ export default function ReceivableCard({
   const complete = isReceivableComplete(item)
 
   const progress = item.amount > 0 ? Math.round((paid / item.amount) * 100) : 0
+
+  const showPaymentForm = paymentReceivableId === item.id
+  const showSettlementForm = settlementReceivableId === item.id
 
   return (
     <div
@@ -152,113 +159,31 @@ export default function ReceivableCard({
 
           {!complete && (
             <div className="receivable-add-payment">
-              {paymentForm?.receivableId === item.id ? (
-                <div className="receivable-payment-form">
-                  <FormField label="مبلغ پرداخت" style={{ marginBottom: '0.75rem' }}>
-                    <AmountInput
-                      value={paymentForm.amount}
-                      onChange={val =>
-                        onPaymentFormChange(
-                          paymentForm ? { ...paymentForm, amount: val } : paymentForm
-                        )
-                      }
-                    />
-                  </FormField>
-                  <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
-                    <input
-                      type="text"
-                      value={paymentForm.note}
-                      onChange={e =>
-                        onPaymentFormChange(
-                          paymentForm ? { ...paymentForm, note: e.target.value } : paymentForm
-                        )
-                      }
-                      placeholder="اختیاری"
-                    />
-                  </FormField>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                      type="button"
-                      className="btn btn-primary btn-sm"
-                      disabled={payingId === item.id}
-                      onClick={onAddPayment}
-                    >
-                      {payingId === item.id && <span className="spinner" />}
-                      ثبت بخشی از پرداخت
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => onPaymentFormChange(null)}
-                    >
-                      انصراف
-                    </button>
-                  </div>
-                </div>
-              ) : settlementForm?.receivableId === item.id ? (
-                <div className="receivable-payment-form">
-                  <FormField label="عنوان درآمد" required style={{ marginBottom: '0.75rem' }}>
-                    <input
-                      type="text"
-                      value={settlementForm.title}
-                      onChange={e =>
-                        onSettlementFormChange(
-                          settlementForm
-                            ? { ...settlementForm, title: e.target.value }
-                            : settlementForm
-                        )
-                      }
-                      placeholder="مثلاً: طلب: علی محمدی"
-                    />
-                  </FormField>
-                  <FormField label="مبلغ تسویه" style={{ marginBottom: '0.75rem' }}>
-                    <input type="text" value={formatMoney(remaining)} readOnly dir="ltr" />
-                  </FormField>
-                  <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
-                    <input
-                      type="text"
-                      value={settlementForm.note}
-                      onChange={e =>
-                        onSettlementFormChange(
-                          settlementForm
-                            ? { ...settlementForm, note: e.target.value }
-                            : settlementForm
-                        )
-                      }
-                      placeholder="اختیاری"
-                    />
-                  </FormField>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                      type="button"
-                      className="btn btn-inflow btn-sm"
-                      disabled={settlingId === item.id}
-                      onClick={onSettle}
-                    >
-                      {settlingId === item.id && <span className="spinner" />}
-                      تسویه
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => onSettlementFormChange(null)}
-                    >
-                      انصراف
-                    </button>
-                  </div>
-                </div>
+              {showPaymentForm ? (
+                <ReceivablePaymentForm
+                  receivableId={item.id}
+                  paying={payingId === item.id}
+                  onSubmit={onAddPayment}
+                  onCancel={onClosePaymentForm}
+                />
+              ) : showSettlementForm ? (
+                <ReceivableSettlementForm
+                  receivableId={item.id}
+                  remaining={remaining}
+                  defaultTitle={buildSettlementTitle(item.debtor)}
+                  defaultNote={item.note ?? ''}
+                  settling={settlingId === item.id}
+                  onSubmit={onSettle}
+                  onCancel={onCloseSettlementForm}
+                />
               ) : (
                 <div className="receivable-add-payment-actions">
                   <button
                     type="button"
                     className="btn btn-secondary btn-sm"
                     onClick={() => {
-                      onSettlementFormChange(null)
-                      onPaymentFormChange({
-                        receivableId: item.id,
-                        amount: '',
-                        note: ''
-                      })
+                      onCloseSettlementForm()
+                      onOpenPaymentForm(item.id)
                     }}
                   >
                     + ثبت بخشی از پرداخت
@@ -267,12 +192,8 @@ export default function ReceivableCard({
                     type="button"
                     className="btn btn-inflow btn-sm"
                     onClick={() => {
-                      onPaymentFormChange(null)
-                      onSettlementFormChange({
-                        receivableId: item.id,
-                        title: buildSettlementTitle(item.debtor),
-                        note: item.note ?? ''
-                      })
+                      onClosePaymentForm()
+                      onOpenSettlementForm(item.id)
                     }}
                   >
                     تسویه

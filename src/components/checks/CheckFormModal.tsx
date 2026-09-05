@@ -1,3 +1,7 @@
+import { useMemo, type FormEvent } from 'react'
+
+import { useForm } from '../../hooks/useForm'
+import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
 import FormModal from '../FormModal'
@@ -7,36 +11,62 @@ import type { CheckFormState, CheckWithRow } from './types'
 export type CheckFormModalProps = {
   open: boolean
   editingItem: CheckWithRow | null
-  form: CheckFormState
   saving: boolean
   onClose: () => void
-  onSubmit: (e: React.FormEvent) => void
-  onFormChange: (updater: (prev: CheckFormState) => CheckFormState) => void
+  onSubmit: (values: CheckFormState) => void | Promise<void>
 }
 
 export default function CheckFormModal({
   open,
   editingItem,
-  form,
   saving,
   onClose,
-  onSubmit,
-  onFormChange
+  onSubmit
 }: CheckFormModalProps) {
+  const initialValues = useMemo<CheckFormState>(
+    () =>
+      editingItem
+        ? {
+            checkNumber: editingItem.checkNumber,
+            counterparty: editingItem.counterparty,
+            amount: editingItem.amount,
+            creationDate: editingItem.creationDate,
+            dueDate: editingItem.dueDate
+          }
+        : {
+            checkNumber: '',
+            counterparty: '',
+            amount: '',
+            creationDate: getTodayIso(),
+            dueDate: getTodayIso()
+          },
+    [editingItem]
+  )
+
+  const form = useForm(initialValues, {
+    active: open,
+    resetKey: editingItem?.id ?? 'create'
+  })
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    void onSubmit(form.values)
+  }
+
   return (
     <FormModal
       open={open}
       title={editingItem ? 'ویرایش چک' : 'ثبت چک جدید'}
       onClose={onClose}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره چک'}
     >
       <FormField label="شماره چک" required>
         <input
           type="text"
-          value={form.checkNumber}
-          onChange={e => onFormChange(f => ({ ...f, checkNumber: e.target.value }))}
+          value={form.values.checkNumber}
+          onChange={e => form.setField('checkNumber', e.target.value)}
           placeholder="شماره چک"
           dir="ltr"
         />
@@ -45,30 +75,27 @@ export default function CheckFormModal({
       <FormField label="طرف حساب" required>
         <input
           type="text"
-          value={form.counterparty}
-          onChange={e => onFormChange(f => ({ ...f, counterparty: e.target.value }))}
+          value={form.values.counterparty}
+          onChange={e => form.setField('counterparty', e.target.value)}
           placeholder="نام طرف حساب"
         />
       </FormField>
 
       <FormField label="مبلغ" required>
-        <AmountInput
-          value={form.amount}
-          onChange={val => onFormChange(f => ({ ...f, amount: val }))}
-        />
+        <AmountInput value={form.values.amount} onChange={val => form.setField('amount', val)} />
       </FormField>
 
       <FormField label="تاریخ صدور" required>
         <JalaliDatePicker
-          value={form.creationDate}
-          onChange={date => onFormChange(f => ({ ...f, creationDate: date }))}
+          value={form.values.creationDate}
+          onChange={date => form.setField('creationDate', date)}
         />
       </FormField>
 
       <FormField label="تاریخ سررسید" required>
         <JalaliDatePicker
-          value={form.dueDate}
-          onChange={date => onFormChange(f => ({ ...f, dueDate: date }))}
+          value={form.values.dueDate}
+          onChange={date => form.setField('dueDate', date)}
         />
       </FormField>
     </FormModal>

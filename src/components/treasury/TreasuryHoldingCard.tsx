@@ -1,4 +1,4 @@
-import TreasurySellForm, { createEmptySellForm } from './TreasurySellForm'
+import TreasurySellForm from './TreasurySellForm'
 import TreasuryTransactionItem from './TreasuryTransactionItem'
 import type { TransactionWithRow, VaultFormState } from './types'
 import { formatQuantity } from './utils'
@@ -10,31 +10,29 @@ import { AccordionCollapse } from '../AccordionCollapse'
 type TreasuryHoldingCardProps = {
   holding: VaultHolding
   expanded: boolean
-  sellForm: VaultFormState | null
+  activeSellAsset: VaultAssetType | null
   sellingAsset: VaultAssetType | null
   onToggle: () => void
   onEdit: (tx: TransactionWithRow) => void
   onDelete: (tx: TransactionWithRow) => void
-  onSellFormChange: (updater: (prev: VaultFormState) => VaultFormState) => void
-  onOpenSellForm: (form: VaultFormState) => void
+  onOpenSellForm: (assetType: VaultAssetType) => void
   onCloseSellForm: () => void
-  onSell: (assetType: VaultAssetType, available: number) => void
+  onSell: (assetType: VaultAssetType, available: number, values: VaultFormState) => void
 }
 
 export default function TreasuryHoldingCard({
   holding,
   expanded,
-  sellForm,
+  activeSellAsset,
   sellingAsset,
   onToggle,
   onEdit,
   onDelete,
-  onSellFormChange,
   onOpenSellForm,
   onCloseSellForm,
   onSell
 }: TreasuryHoldingCardProps) {
-  const showSellForm = sellForm?.assetType === holding.assetType
+  const showSellForm = activeSellAsset === holding.assetType
 
   return (
     <div
@@ -75,20 +73,18 @@ export default function TreasuryHoldingCard({
           ))}
 
           <div className="receivable-add-payment">
-            {showSellForm && sellForm ? (
+            {showSellForm ? (
               <TreasurySellForm
                 assetType={holding.assetType}
-                sellForm={sellForm}
                 selling={sellingAsset === holding.assetType}
-                onSellFormChange={onSellFormChange}
-                onSell={() => onSell(holding.assetType, holding.netQuantity)}
+                onSell={values => onSell(holding.assetType, holding.netQuantity, values)}
                 onCancel={onCloseSellForm}
               />
             ) : (
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                onClick={() => onOpenSellForm(createEmptySellForm(holding.assetType))}
+                onClick={() => onOpenSellForm(holding.assetType)}
               >
                 + ثبت فروش
               </button>

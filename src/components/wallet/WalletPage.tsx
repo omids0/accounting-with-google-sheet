@@ -198,8 +198,6 @@ export default function WalletPage({ active = true }: WalletPageProps) {
       <WalletFormModal
         open={mutations.showForm}
         editingAccount={mutations.editingAccount}
-        form={mutations.form}
-        setForm={mutations.setForm}
         saving={mutations.saving}
         onClose={mutations.closeForm}
         onSubmit={mutations.handleSubmit}

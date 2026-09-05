@@ -148,9 +148,6 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
       <InstallmentFormModal
         open={mutations.showForm}
         editingPlan={mutations.editingPlan}
-        form={mutations.form}
-        setForm={mutations.setForm}
-        computedEndDate={mutations.computedEndDate}
         saving={mutations.saving}
         onClose={mutations.closeForm}
         onSubmit={mutations.handleSubmit}

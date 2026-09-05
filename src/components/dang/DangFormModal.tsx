@@ -1,3 +1,7 @@
+import { useMemo, type FormEvent } from 'react'
+
+import { useForm } from '../../hooks/useForm'
+import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import { CategorySelect, FormField } from '../form'
 import FormModal from '../FormModal'
@@ -7,54 +11,82 @@ import type { DangFormState, DangWithRow } from './types'
 export type DangFormModalProps = {
   open: boolean
   editingItem: DangWithRow | null
-  form: DangFormState
   saving: boolean
   categories: string[]
   onClose: () => void
-  onSubmit: (e: React.FormEvent) => void
-  onFormChange: (updater: (prev: DangFormState) => DangFormState) => void
+  onSubmit: (values: DangFormState) => void | Promise<void>
   onCategoriesChange: (categories: string[]) => void
 }
 
 export default function DangFormModal({
   open,
   editingItem,
-  form,
   saving,
   categories,
   onClose,
   onSubmit,
-  onFormChange,
   onCategoriesChange
 }: DangFormModalProps) {
+  const initialValues = useMemo<DangFormState>(
+    () =>
+      editingItem
+        ? {
+            title: editingItem.title,
+            category: editingItem.category,
+            counterparty: editingItem.counterparty,
+            amount: editingItem.amount,
+            date: editingItem.date,
+            note: editingItem.note
+          }
+        : {
+            title: '',
+            category: categories[0] ?? '',
+            counterparty: '',
+            amount: '',
+            date: getTodayIso(),
+            note: ''
+          },
+    [editingItem, categories]
+  )
+
+  const form = useForm(initialValues, {
+    active: open,
+    resetKey: editingItem?.id ?? 'create'
+  })
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    void onSubmit(form.values)
+  }
+
   return (
     <FormModal
       open={open}
       title={editingItem ? 'ویرایش بدهی' : 'ثبت بدهی جدید'}
       onClose={onClose}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره بدهی'}
     >
       <FormField label="عنوان" required>
         <input
           type="text"
-          value={form.title}
-          onChange={e => onFormChange(f => ({ ...f, title: e.target.value }))}
+          value={form.values.title}
+          onChange={e => form.setField('title', e.target.value)}
           placeholder="مثلاً: خرید از فروشگاه"
         />
       </FormField>
 
       <FormField label="دسته‌بندی" required>
         <CategorySelect
-          value={form.category}
-          onChange={category => onFormChange(f => ({ ...f, category }))}
+          value={form.values.category}
+          onChange={category => form.setField('category', category)}
           categories={categories}
           categoryScope="dang"
           onCategoriesChange={next => {
             onCategoriesChange(next)
-            if (!next.includes(form.category)) {
-              onFormChange(f => ({ ...f, category: next[0] ?? '' }))
+            if (!next.includes(form.values.category)) {
+              form.setField('category', next[0] ?? '')
             }
           }}
           aria-label="دسته‌بندی بدهی"
@@ -64,30 +96,24 @@ export default function DangFormModal({
       <FormField label="طرف حساب" required>
         <input
           type="text"
-          value={form.counterparty}
-          onChange={e => onFormChange(f => ({ ...f, counterparty: e.target.value }))}
+          value={form.values.counterparty}
+          onChange={e => form.setField('counterparty', e.target.value)}
           placeholder="نام شخص یا گروه"
         />
       </FormField>
 
       <FormField label="مبلغ" required>
-        <AmountInput
-          value={form.amount}
-          onChange={val => onFormChange(f => ({ ...f, amount: val }))}
-        />
+        <AmountInput value={form.values.amount} onChange={val => form.setField('amount', val)} />
       </FormField>
 
       <FormField label="تاریخ" required>
-        <JalaliDatePicker
-          value={form.date}
-          onChange={date => onFormChange(f => ({ ...f, date }))}
-        />
+        <JalaliDatePicker value={form.values.date} onChange={date => form.setField('date', date)} />
       </FormField>
 
       <FormField label="توضیحات">
         <textarea
-          value={form.note}
-          onChange={e => onFormChange(f => ({ ...f, note: e.target.value }))}
+          value={form.values.note}
+          onChange={e => form.setField('note', e.target.value)}
           placeholder="توضیحات اختیاری"
         />
       </FormField>

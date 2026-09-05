@@ -5,55 +5,25 @@ import { createDang, updateDang } from '../../services/dang'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { Dang } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
-import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseDangFormOptions = {
-  categories: string[]
   onSaved: () => Promise<void>
 }
 
-export function useDangForm({ categories, onSaved }: UseDangFormOptions) {
+export function useDangForm({ onSaved }: UseDangFormOptions) {
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState<DangWithRow | null>(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState<DangFormState>({
-    title: '',
-    category: '',
-    counterparty: '',
-    amount: '',
-    date: getTodayIso(),
-    note: ''
-  })
-
-  const resetCreateForm = () => {
-    setForm({
-      title: '',
-      category: categories[0] ?? '',
-      counterparty: '',
-      amount: '',
-      date: getTodayIso(),
-      note: ''
-    })
-  }
 
   const openCreateForm = () => {
     setEditingItem(null)
-    resetCreateForm()
     setShowForm(true)
   }
 
   const openEditForm = (item: DangWithRow) => {
     setEditingItem(item)
-    setForm({
-      title: item.title,
-      category: item.category,
-      counterparty: item.counterparty,
-      amount: item.amount,
-      date: item.date,
-      note: item.note
-    })
     setShowForm(true)
   }
 
@@ -61,11 +31,9 @@ export function useDangForm({ categories, onSaved }: UseDangFormOptions) {
     if (saving) return
     setShowForm(false)
     setEditingItem(null)
-    resetCreateForm()
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (form: DangFormState) => {
     if (!isConfigured() || !requireAuth()) return
 
     if (!form.title.trim()) {
@@ -140,8 +108,6 @@ export function useDangForm({ categories, onSaved }: UseDangFormOptions) {
     showForm,
     editingItem,
     saving,
-    form,
-    setForm,
     openCreateForm,
     openEditForm,
     closeForm,

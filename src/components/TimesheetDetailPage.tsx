@@ -3,7 +3,6 @@ import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import FilterModal from './FilterModal'
-import FormModal from './FormModal'
 import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
@@ -13,7 +12,7 @@ import { isConfigured } from '../services/settings'
 import type { Timesheet } from '../types'
 import { formatDurationFa, formatJiraTimesheetHours } from '../utils/datetime'
 import TimesheetEntryCard from './timesheets/TimesheetEntryCard'
-import TimesheetEntryForm from './timesheets/TimesheetEntryForm'
+import TimesheetEntryFormModal from './timesheets/TimesheetEntryFormModal'
 import { useTimesheetDetailPage } from './timesheets/useTimesheetDetailPage'
 
 export default function TimesheetDetailPage({
@@ -129,23 +128,13 @@ export default function TimesheetDetailPage({
         </>
       )}
 
-      <FormModal
+      <TimesheetEntryFormModal
         open={page.showForm}
-        title={page.editingItem ? 'ویرایش رکورد' : 'رکورد جدید'}
-        onClose={() => page.setShowForm(false)}
-        onSubmit={page.handleSubmit}
+        editingItem={page.editingItem}
         saving={page.saving}
-        saveLabel={page.editingItem ? 'ذخیره' : 'ثبت'}
-      >
-        <TimesheetEntryForm
-          form={page.form}
-          durationMinutes={page.durationMinutes}
-          endPickerOpenToken={page.endPickerOpenToken}
-          onFormChange={patch => page.setForm(prev => ({ ...prev, ...patch }))}
-          onStartChange={page.handleStartChange}
-          onEndChange={page.handleEndChange}
-        />
-      </FormModal>
+        onClose={page.closeForm}
+        onSubmit={page.handleSubmit}
+      />
 
       <ConfirmDeleteModal
         open={page.deletingItem !== null}
