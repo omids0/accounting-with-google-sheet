@@ -159,6 +159,113 @@
   margin-bottom: 0.75rem;
 }
 
+.app-lock-intro,
+.app-lock-footnote,
+.app-lock-policy-hint,
+.app-lock-policy-footnote {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.app-lock-intro {
+  margin-bottom: 0.75rem;
+}
+
+.app-lock-footnote,
+.app-lock-policy-footnote {
+  font-size: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.app-lock-policy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-lock-policy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.app-lock-policy-option {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-align: start;
+  cursor: pointer;
+  transition: border-color var(--duration-fast), background-color var(--duration-fast),
+    box-shadow var(--duration-fast);
+}
+
+.app-lock-policy-option:hover {
+  border-color: var(--form-input-border-hover);
+  background: var(--color-surface);
+}
+
+.app-lock-policy-option.is-selected {
+  border-color: var(--color-primary);
+  background: rgba(15, 118, 110, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.12);
+}
+
+.app-lock-policy-option-main {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-lock-policy-option-radio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  border: 1.5px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: #fff;
+}
+
+.app-lock-policy-option.is-selected .app-lock-policy-option-radio {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.app-lock-policy-option-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.app-lock-policy-option-description {
+  padding-inline-start: 1.7rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.app-lock-policy-hint {
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.app-lock-policy-idle {
+  margin-top: -0.25rem;
+}
+
 .app-lock-actions {
   display: flex;
   flex-wrap: wrap;

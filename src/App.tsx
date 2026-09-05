@@ -3,13 +3,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { registerSW } from 'virtual:pwa-register'
 
 import AppIcon from './components/AppIcon'
-import Layout from './components/Layout'
 import LoginPage from './components/LoginPage'
 import { AppLoadingSkeleton } from './components/skeleton'
 import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel'
 import UnlockScreen from './components/UnlockScreen'
 import { useAppLock } from './hooks/useAppLock'
 import { useTokenRefresh } from './hooks/useTokenRefresh'
+import { AppAuthenticatedRoutes } from './routes/AppRoutes'
 import { syncAppLockFromSheet } from './services/appLock'
 import { hasStoredSession, isAuthError, isTokenValid } from './services/auth'
 import { isConfigured, getSettings } from './services/settings'
@@ -235,7 +235,7 @@ export default function App() {
   }
 
   return (
-    <Layout
+    <AppAuthenticatedRoutes
       onLogout={() => {
         setLoggedIn(false)
         setNeedsReauth(false)

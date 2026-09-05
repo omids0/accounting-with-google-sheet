@@ -72,10 +72,15 @@ export interface AppLockAccountConfig {
   updatedAt?: string
 }
 
+/** When the app should ask for the PIN again (per-device preference). */
+export type AppLockPolicy = 'background' | 'session' | 'always' | 'idle' | 'manual'
+
 /** Per-device biometric config (local only) */
 export interface AppLockDeviceConfig {
   biometricEnabled?: boolean
   credentialId?: string
+  lockPolicy?: AppLockPolicy
+  idleMinutes?: number
 }
 
 /** @deprecated Use AppLockAccountConfig + AppLockDeviceConfig */

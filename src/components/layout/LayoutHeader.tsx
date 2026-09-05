@@ -1,6 +1,5 @@
 import AppIcon from '../AppIcon'
 import SyncStatusBadge from '../SyncStatusBadge'
-import type { Tab } from './types'
 
 interface LayoutHeaderProps {
   menuOpen: boolean
@@ -8,8 +7,7 @@ interface LayoutHeaderProps {
   showHeaderBack: boolean
   headerTitle: string
   showSettings: boolean
-  tab: Tab
-  onTabChange: (tab: Tab) => void
+  onHeaderBack: () => void
 }
 
 export default function LayoutHeader({
@@ -18,8 +16,7 @@ export default function LayoutHeader({
   showHeaderBack,
   headerTitle,
   showSettings,
-  tab,
-  onTabChange
+  onHeaderBack
 }: LayoutHeaderProps) {
   return (
     <header className={`app-header${showHeaderBack ? ' app-header--with-back' : ''}`}>
@@ -41,21 +38,8 @@ export default function LayoutHeader({
         <button
           type="button"
           className="header-icon-btn header-back-btn"
-          onClick={() => {
-            if (tab === 'timesheet-detail') {
-              onTabChange('timesheets')
-
-              return
-            }
-            onTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
-          }}
-          aria-label={
-            tab === 'timesheet-detail'
-              ? 'بازگشت به لیست تایم‌شیت‌ها'
-              : tab === 'opening-balances'
-              ? 'بازگشت به کیف پول'
-              : 'بازگشت به داشبورد'
-          }
+          onClick={onHeaderBack}
+          aria-label="بازگشت"
           title="بازگشت"
         >
           <AppIcon name="back" size={20} strokeWidth={2} />

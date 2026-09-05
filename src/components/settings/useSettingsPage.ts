@@ -41,8 +41,6 @@ export function useSettingsPage({ onLogout, onSpreadsheetChange }: SettingsPageP
 
   const [categoriesKey, setCategoriesKey] = useState(0)
 
-  const [settingsView, setSettingsView] = useState<'main' | 'reminders'>('main')
-
   const [loading, setLoading] = useState(false)
 
   const [initialLoading, setInitialLoading] = useState(() => isTokenValid())
@@ -259,8 +257,6 @@ export function useSettingsPage({ onLogout, onSpreadsheetChange }: SettingsPageP
     editingFormId,
     setEditingFormId,
     categoriesKey,
-    settingsView,
-    setSettingsView,
     loading,
     initialLoading,
     canInstall,
