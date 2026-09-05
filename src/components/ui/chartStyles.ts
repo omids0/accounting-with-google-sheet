@@ -76,11 +76,13 @@ export function statCardClass({
     wide && 'mt-2 flex w-full items-center justify-between px-4 py-[0.9rem] text-right',
     animated && 'animate-[statCardIn_0.5s_var(--ease-page)_both]',
     variant === 'income' &&
-      'border-[var(--color-success-border)] bg-[var(--color-success-bg)] [&_.stat-value]:text-success',
+      'border-[var(--color-success-border)] bg-[var(--color-success-bg)] [&_.stat-value]:text-success [&_.money-display--income]:text-success',
     variant === 'expense' &&
-      'border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] [&_.stat-value]:text-danger',
-    variant === 'balance' && 'bg-bg [&_.stat-value]:text-primary-dark',
-    variant === 'flow' && 'border-border bg-bg [&_.stat-value]:text-primary-dark',
+      'border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] [&_.stat-value]:text-danger [&_.money-display--expense]:text-danger',
+    variant === 'balance' &&
+      'bg-bg [&_.stat-value]:text-primary-dark [&_.money-display--primary]:text-primary-dark',
+    variant === 'flow' &&
+      'border-border bg-bg [&_.stat-value]:text-primary-dark [&_.money-display--primary]:text-primary-dark',
     lift &&
       'transition-[transform,box-shadow] duration-[var(--duration-normal)] hover:-translate-y-[3px]',
     className
@@ -88,15 +90,20 @@ export function statCardClass({
 }
 
 export function statFlowModifierClass(direction?: 'positive' | 'negative' | 'neutral') {
-  if (direction === 'positive') return '[&_.stat-value]:text-success'
-  if (direction === 'negative') return '[&_.stat-value]:text-danger'
+  if (direction === 'positive') {
+    return '[&_.stat-value]:text-success [&_.money-display--positive]:text-success stat-flow-positive'
+  }
+  if (direction === 'negative') {
+    return '[&_.stat-value]:text-danger [&_.money-display--negative]:text-danger stat-flow-negative'
+  }
   return ''
 }
 
 export const statLabelClass =
   'mb-1 block text-[0.7rem] text-muted [.stat-card-wide_&]:mb-0 [.stat-card-wide_&]:text-[0.78rem]'
 
-export const statValueClass = 'block text-[0.85rem] font-extrabold tracking-[-0.02em] tabular-nums'
+export const statValueClass =
+  'stat-value block text-[0.85rem] font-extrabold tracking-[-0.02em] tabular-nums font-numeric'
 
 export const statCardValueRowClass = 'flex w-full flex-col items-center gap-[0.35rem]'
 
@@ -122,7 +129,7 @@ export const chartTitleClass =
 
 export const chartBarWrapClass = cn(
   'relative z-[1] m-0 w-full',
-  '[&_.recharts-cartesian-axis-tick-value]:font-[family-name:var(--font-numeric)] [&_.recharts-cartesian-axis-tick-value]:[font-feature-settings:"tnum"_1]',
+  '[&_.recharts-cartesian-axis-tick-value]:font-numeric [&_.recharts-cartesian-axis-tick-value]:[font-feature-settings:"tnum"_1]',
   '[&_.recharts-bar-rectangle]:transition-[filter] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   '[&_.recharts-active-bar_.recharts-bar-rectangle]:brightness-[1.08] [&_.recharts-active-bar_.recharts-bar-rectangle]:saturate-[1.1]',
   '[&_.recharts-legend-item-text]:font-semibold [&_.recharts-legend-item-text]:text-muted!'

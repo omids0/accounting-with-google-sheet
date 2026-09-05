@@ -48,6 +48,18 @@ function defaultTone(variant: StatCardVariant, flowDirection?: FlowDirection): M
   return 'default'
 }
 
+function statVariantClass(variant: StatCardVariant, flowDirection?: FlowDirection) {
+  if (variant === 'income') return 'stat-income'
+  if (variant === 'expense') return 'stat-expense'
+  if (variant === 'balance') return 'stat-balance'
+  if (variant === 'flow') {
+    if (flowDirection === 'negative') return 'stat-flow stat-flow-negative'
+    if (flowDirection === 'positive') return 'stat-flow stat-flow-positive'
+    return 'stat-flow'
+  }
+  return ''
+}
+
 export default function StatCard({
   label,
   amount,
@@ -87,15 +99,25 @@ export default function StatCard({
   return (
     <div
       className={cn(
-        'stat-card',
+        'stat-card stat-card--animated',
+        statVariantClass(variant, flowDirection),
+        wide && 'card stat-card-wide',
+        lift && 'stat-card--lift',
         statCardClass({ variant, wide, lift, animated }),
         variant === 'flow' && statFlowModifierClass(flowDirection),
         className
       )}
       style={style}
     >
-      <span className={statLabelClass}>{label}</span>
-      <div className={cn(statCardValueRowClass, wide && statCardValueRowWideClass)}>
+      <span className={cn('stat-label', statLabelClass)}>{label}</span>
+      <div
+        className={cn(
+          'stat-card__value-row',
+          statCardValueRowClass,
+          wide && 'stat-card__value-row--wide',
+          wide && statCardValueRowWideClass
+        )}
+      >
         <AnimatedMoneyDisplay
           amount={amount}
           size={wide ? 'stat-wide' : 'stat'}
