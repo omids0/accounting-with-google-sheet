@@ -106,7 +106,7 @@ export const treasuryTxItemClass = 'relative'
 export const treasuryTxEditClass = 'absolute left-1 top-1 [&_.card-action-buttons]:m-0'
 
 export const pageSearchClearClass = cn(
-  'absolute start-[0.45rem] top-1/2 flex h-[1.35rem] w-[1.35rem] -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none leading-none',
+  'absolute start-[0.35rem] top-1/2 flex h-touch-min w-touch-min -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none leading-none',
   'bg-[rgba(15,118,110,0.1)] text-muted transition-[background,color] duration-[var(--duration-fast)]',
   'hover:bg-[rgba(15,118,110,0.18)] hover:text-text',
   'focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)]'

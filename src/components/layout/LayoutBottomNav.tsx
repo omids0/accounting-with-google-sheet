@@ -35,6 +35,8 @@ function BottomNavTabButton({ tab, active, label, icon, onTabChange }: BottomNav
       className={bottomNavTabBtnClass(active)}
       onPointerDown={() => prefetchTabPage(tab)}
       onClick={() => onTabChange(tab)}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
     >
       <span className={bottomNavTabIconClass(active)}>{icon}</span>
       {label}
@@ -78,6 +80,7 @@ export default function LayoutBottomNav({ showSettings, tab, onTabChange }: Layo
           onPointerDown={() => prefetchTabPage('dashboard')}
           onClick={() => onTabChange('dashboard')}
           aria-label="داشبورد"
+          aria-current={dashboardActive ? 'page' : undefined}
         >
           <span className={bottomNavDashboardIconClass}>
             <AppIcon name="dashboard" size={26} />

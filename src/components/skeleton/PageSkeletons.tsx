@@ -14,7 +14,8 @@ import {
   appLoadingClass,
   appLoadingDotClass,
   appLoadingDotDelayClasses,
-  appLoadingDotsClass
+  appLoadingDotsClass,
+  appLoadingInlineClass
 } from '../ui/loginStyles'
 import { recordsTypeSegmentClass, dataEntryTypeSegmentClass } from '../ui/recordsStyles'
 import {
@@ -185,13 +186,20 @@ export function SettingsSkeleton() {
   )
 }
 
-export function AppLoadingSkeleton() {
+export function AppLoadingSkeleton({
+  variant = 'fullscreen'
+}: {
+  variant?: 'fullscreen' | 'inline'
+}) {
+  const containerClass = variant === 'inline' ? appLoadingInlineClass : appLoadingClass
+
   return (
-    <div className={appLoadingClass} aria-busy="true" aria-label="در حال بارگذاری">
-      <div className={appLoadingDotsClass} role="status">
+    <div className={containerClass} aria-busy="true" aria-label="در حال بارگذاری">
+      <div className={appLoadingDotsClass} role="status" aria-live="polite">
         {appLoadingDotDelayClasses.map(delayClass => (
           <span key={delayClass} className={cn(appLoadingDotClass, delayClass)} />
         ))}
+        <span className="sr-only">در حال بارگذاری</span>
       </div>
     </div>
   )

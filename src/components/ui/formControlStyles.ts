@@ -110,7 +110,7 @@ export const categorySelectSearchInputClass =
   'min-w-0 flex-1 border-none bg-transparent p-0 font-[inherit] text-[0.88rem] text-text outline-none placeholder:text-muted'
 
 export const categorySelectSearchClearClass =
-  'inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-bg p-0 text-muted'
+  'inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-bg p-0 text-muted'
 
 export const categorySelectAddClass = 'border-b border-border bg-bg px-3 py-[0.6rem]'
 
@@ -162,7 +162,7 @@ export const categorySelectActionsClass = 'flex shrink-0 gap-[0.15rem] pl-1'
 
 export function categorySelectIconBtnClass(variant?: 'save' | 'danger') {
   return cn(
-    'inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 leading-none text-muted transition-[background,color] duration-[var(--duration-fast)]',
+    'inline-flex h-touch-min w-touch-min cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 leading-none text-muted transition-[background,color] duration-[var(--duration-fast)]',
     'hover:enabled:bg-accent-soft hover:enabled:text-text disabled:cursor-not-allowed disabled:opacity-40',
     variant === 'save' && 'hover:enabled:bg-[var(--color-success-bg)] hover:enabled:text-success',
     variant === 'danger' && 'hover:enabled:bg-[var(--color-danger-bg)] hover:enabled:text-danger'

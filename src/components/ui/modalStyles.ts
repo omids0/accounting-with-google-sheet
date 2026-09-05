@@ -38,7 +38,7 @@ export const formModalTitleClass = cn(
 )
 
 export const formModalCloseClass = cn(
-  'col-start-2 row-start-2 flex h-[2.15rem] w-[2.15rem] flex-shrink-0 cursor-pointer items-center justify-center',
+  'col-start-2 row-start-2 flex h-touch-min w-touch-min flex-shrink-0 cursor-pointer items-center justify-center',
   'self-center rounded-full border border-border bg-[var(--form-input-bg)] p-0 leading-none text-muted',
   'transition-[background,color,border-color] duration-[var(--duration-fast)]',
   'hover:enabled:border-[var(--form-input-border-hover)] hover:enabled:bg-accent-soft hover:enabled:text-text',

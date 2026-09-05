@@ -22,7 +22,7 @@ export default function CardDeleteButton({
       aria-label={ariaLabel}
       title={ariaLabel}
     >
-      <AppIcon name="trash" size={16} strokeWidth={2} />
+      <AppIcon name="trash" size={18} strokeWidth={2} />
     </button>
   )
 }

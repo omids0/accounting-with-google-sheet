@@ -59,7 +59,7 @@ export const progressBarGlowClass = cn(
 
 export function progressBarLabelClass(variant: ProgressBarVariant = 'default') {
   return cn(
-    'progress-bar__label numeric min-w-[2.1rem] shrink-0 text-left text-[0.68rem] font-extrabold leading-none',
+    'progress-bar__label numeric min-w-[2.1rem] shrink-0 text-left text-[0.72rem] font-extrabold leading-none',
     variant === 'success' && 'text-success',
     variant === 'complete' && 'text-muted',
     variant === 'default' && 'text-primary-dark'

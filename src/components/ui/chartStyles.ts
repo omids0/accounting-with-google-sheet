@@ -52,10 +52,10 @@ export const assetRowTotalClass = cn(
   '[&_.asset-label]:text-[0.72rem] [&_.asset-label]:font-semibold [&_.asset-value]:text-[0.8rem] [&_.asset-value]:font-bold'
 )
 
-export const assetLabelClass = 'asset-label text-[0.68rem] font-medium leading-[1.35] text-muted'
+export const assetLabelClass = 'asset-label text-[0.72rem] font-medium leading-[1.35] text-muted'
 
 export const assetLabelLinkClass = cn(
-  'asset-label-link cursor-pointer border-none bg-transparent p-0 text-right text-[0.68rem] font-medium leading-[1.35] text-muted hover:text-text active:opacity-75'
+  'asset-label-link cursor-pointer border-none bg-transparent p-0 text-right text-[0.72rem] font-medium leading-[1.35] text-muted hover:text-text active:opacity-75'
 )
 
 export const assetValueClass = cn(

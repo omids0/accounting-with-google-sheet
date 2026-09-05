@@ -12,7 +12,7 @@ interface LayoutPageOutletProps {
 function LayoutPageOutlet({ spreadsheetKey, showSettings }: LayoutPageOutletProps) {
   return (
     <div key={showSettings ? 'settings' : String(spreadsheetKey)} className={pageContentClass}>
-      <Suspense fallback={<AppLoadingSkeleton />}>
+      <Suspense fallback={<AppLoadingSkeleton variant="inline" />}>
         <Outlet />
       </Suspense>
     </div>

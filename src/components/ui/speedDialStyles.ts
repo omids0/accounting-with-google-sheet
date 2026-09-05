@@ -25,7 +25,7 @@ export function speedDialActionWrapClass(open?: boolean) {
 }
 
 export const speedDialActionClass = cn(
-  'flex h-[2.65rem] w-[2.65rem] items-center justify-center rounded-full border border-[rgba(15,118,110,0.18)] opacity-90',
+  'flex h-touch-min w-touch-min items-center justify-center rounded-full border border-[rgba(15,118,110,0.18)] opacity-90',
   'bg-surface text-primary shadow-[0_3px_12px_rgba(15,23,42,0.12)]',
   'transition-[transform,box-shadow,opacity] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
   'hover:enabled:opacity-90 hover:enabled:shadow-[0_5px_16px_rgba(15,23,42,0.16)] active:enabled:scale-[0.92] disabled:cursor-not-allowed disabled:opacity-90'

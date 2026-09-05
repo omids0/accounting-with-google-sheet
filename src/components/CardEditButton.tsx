@@ -22,7 +22,7 @@ export default function CardEditButton({
       aria-label={ariaLabel}
       title={ariaLabel}
     >
-      <AppIcon name="edit" size={16} strokeWidth={2} />
+      <AppIcon name="edit" size={18} strokeWidth={2} />
     </button>
   )
 }

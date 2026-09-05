@@ -1,4 +1,4 @@
-import { Skeleton } from './Skeleton'
+import { Skeleton, SkeletonProgressFill } from './Skeleton'
 import { cn } from '../../utils/cn'
 import { cardClassName } from '../ui/Card'
 import {
@@ -12,7 +12,7 @@ import {
   walletItemInfoClass,
   walletItemTitleRowClass
 } from '../ui/featureCardStyles'
-import { progressBarMetaClass, progressBarTrackClass } from '../ui/progressStyles'
+import { progressBarMetaClass } from '../ui/progressStyles'
 import {
   recordsDateGridClass,
   recordsFilterSectionClassName,
@@ -20,10 +20,10 @@ import {
   recordsToolbarHeadingClass
 } from '../ui/recordsStyles'
 import {
+  skeletonActionBtnSizeClass,
   skeletonCardClass,
   skeletonFilterChipClass,
   skeletonFilterChipsClass,
-  skeletonProgressTrackClass,
   skeletonRecordActionsClass,
   skeletonRecordItemClass,
   skeletonStatCardClass
@@ -61,8 +61,8 @@ export function ReportToolbarSkeleton() {
         </div>
         <Skeleton
           variant="rect"
-          width="2.1rem"
-          height="2.1rem"
+          width="2.75rem"
+          height="2.75rem"
           style={{ borderRadius: 'var(--radius-sm)' }}
         />
       </div>
@@ -105,18 +105,16 @@ export function InstallmentCardSkeleton() {
             <Skeleton width="42%" height="0.75rem" style={{ marginTop: '0.25rem' }} />
             <div className="progress-bar">
               <div className={progressBarMetaClass}>
-                <div className={cn(progressBarTrackClass, skeletonProgressTrackClass)}>
-                  <Skeleton width="45%" height="100%" style={{ borderRadius: '999px' }} />
-                </div>
-                <Skeleton width="1.75rem" height="0.68rem" />
+                <SkeletonProgressFill width="45%" />
+                <Skeleton width="1.85rem" height="0.72rem" />
               </div>
             </div>
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
         </div>
       </div>
     </div>
@@ -135,12 +133,7 @@ export function TreasuryHoldingCardSkeleton() {
           <Skeleton width="72%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
           <Skeleton width="48%" height="0.8rem" style={{ marginTop: '0.35rem' }} />
         </div>
-        <Skeleton
-          variant="rect"
-          width="0.85rem"
-          height="0.85rem"
-          style={{ borderRadius: '4px', flexShrink: 0 }}
-        />
+        <Skeleton variant="rect" className={skeletonActionBtnSizeClass} style={{ flexShrink: 0 }} />
       </div>
     </div>
   )
@@ -167,9 +160,9 @@ export function WalletAccountCardSkeleton() {
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-          <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
         </div>
       </div>
     </div>
@@ -197,8 +190,8 @@ export function DangCardSkeleton() {
         <Skeleton width="68%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
       </div>
       <div className={cardActionButtonsClass}>
-        <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
-        <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
+        <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+        <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
       </div>
     </div>
   )
@@ -214,18 +207,8 @@ export function RecordItemSkeleton() {
       <div className={skeletonRecordActionsClass}>
         <Skeleton width="4.5rem" height="1rem" />
         <div className={cardActionButtonsClass}>
-          <Skeleton
-            variant="rect"
-            width="2rem"
-            height="2rem"
-            style={{ borderRadius: 'var(--radius-sm)' }}
-          />
-          <Skeleton
-            variant="rect"
-            width="2rem"
-            height="2rem"
-            style={{ borderRadius: 'var(--radius-sm)' }}
-          />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
         </div>
       </div>
     </div>

@@ -52,7 +52,12 @@ export const googleSignInBtnClass = cn(
   'focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)]'
 )
 
-export const appLoadingClass = 'flex min-h-dvh items-center justify-center bg-white'
+export const appLoadingClass = 'flex min-h-dvh items-center justify-center bg-bg'
+
+export const appLoadingInlineClass = cn(
+  'flex items-center justify-center py-16',
+  'min-h-[min(14rem,calc(100dvh-11rem))]'
+)
 
 export const appLoadingDotsClass = 'flex items-center gap-1.5'
 

@@ -51,7 +51,7 @@ export const pageContentTransitioningClass = cn(
 export const animateInClass = 'animate-[scaleIn_0.65s_var(--ease-page)]'
 
 export const appLayoutClass = cn(
-  'mx-auto flex min-h-dvh max-w-[480px] flex-col bg-bg shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-border)_40%,transparent),0_8px_40px_color-mix(in_srgb,var(--color-primary)_8%,transparent)]'
+  'mx-auto flex min-h-dvh max-w-[480px] flex-col overflow-x-clip bg-bg shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-border)_40%,transparent),0_8px_40px_color-mix(in_srgb,var(--color-primary)_8%,transparent)]'
 )
 
 export const appMainClass = cn(
@@ -75,7 +75,7 @@ export const appHeaderTitleClass =
   'w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-start text-[1.05rem] font-extrabold tracking-[-0.02em]'
 
 export const headerIconBtnClass = cn(
-  'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full leading-none',
+  'flex h-touch-min w-touch-min flex-shrink-0 items-center justify-center rounded-full leading-none',
   'bg-white/15 ring-1 ring-white/10 transition-[background,transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
   'hover:bg-white/30 hover:ring-white/20 active:scale-90'
 )
@@ -86,7 +86,7 @@ export function headerIconBtnMenuClass(active?: boolean) {
 
 export const headerBackBtnClass = cn(headerIconBtnClass, 'text-white')
 
-export const headerIconSpacerClass = 'h-9 w-9 flex-shrink-0'
+export const headerIconSpacerClass = 'h-touch-min w-touch-min flex-shrink-0'
 
 export const bottomNavClass = cn(
   'fixed bottom-0 left-1/2 z-20 grid w-full max-w-[480px] -translate-x-1/2 grid-cols-[1fr_auto_1fr] items-stretch',
@@ -102,7 +102,7 @@ export const bottomNavCenterClass =
 export function bottomNavTabBtnClass(active?: boolean) {
   return cn(
     'relative flex min-w-0 max-w-[4.5rem] flex-1 flex-col items-center gap-[0.15rem] px-[0.2rem] py-[0.65rem] pb-[0.4rem] pt-[0.65rem]',
-    'text-[0.62rem] font-semibold text-muted transition-[color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
+    'text-[0.72rem] font-semibold text-muted transition-[color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
     'justify-start self-stretch active:enabled:scale-[0.92]',
     active &&
       cn(
@@ -145,7 +145,7 @@ export function bottomNavDashboardClass(active?: boolean) {
 
 export const bottomNavDashboardIconClass = 'inline-flex items-center justify-center leading-none'
 
-export const bottomNavDashboardLabelClass = 'text-[0.58rem] font-bold tracking-[-0.02em] text-white'
+export const bottomNavDashboardLabelClass = 'text-[0.72rem] font-bold tracking-[-0.02em] text-white'
 
 export const appMenuBackdropClass = cn(
   'fixed inset-0 z-40 cursor-default border-none bg-[var(--color-overlay-light)]',
@@ -225,7 +225,7 @@ export const appMenuSubmenuLabelClass =
 type SyncStatus = 'online' | 'syncing' | 'offline' | 'error'
 
 export const syncStatusBadgeClass =
-  'inline-flex max-w-full items-center gap-[0.35rem] text-[0.68rem] font-semibold opacity-92'
+  'inline-flex max-w-full items-center gap-[0.35rem] text-[0.72rem] font-semibold opacity-92'
 
 export function syncStatusDotClass(status: SyncStatus) {
   return cn(
