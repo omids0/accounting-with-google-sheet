@@ -60,19 +60,15 @@ export const unlockBiometricBtnClass = 'mt-3 inline-flex w-full items-center jus
 
 export const unlockErrorClass = 'm-0'
 
-export const appLoadingClass = cn(
-  'flex min-h-dvh items-center justify-center',
-  '[background:linear-gradient(160deg,var(--color-bg)_0%,var(--color-accent-soft)_100%)]'
-)
+export const appLoadingClass = 'flex min-h-dvh items-center justify-center bg-white'
 
-export const appLoadingInnerClass =
-  'flex flex-col items-center gap-5 animate-[fadeIn_0.4s_var(--ease-out)]'
+export const appLoadingDotsClass = 'flex items-center gap-1.5'
 
-export const appLoadingIconClass =
-  'inline-flex animate-[float_2.5s_ease-in-out_infinite] items-center justify-center text-primary [&_svg]:h-12 [&_svg]:w-12'
+export const appLoadingDotClass =
+  'h-2 w-2 rounded-full bg-primary animate-[loadingDotBlink_1.2s_ease-in-out_infinite]'
 
-export const appLoadingSkeletonClass = 'w-[min(18rem,85vw)]'
-
-export const appLoadingCardsClass = 'flex w-full flex-col gap-[0.65rem]'
-
-export const appLoadingStatRowClass = 'flex gap-2'
+export const appLoadingDotDelayClasses = [
+  '[animation-delay:0s]',
+  '[animation-delay:0.2s]',
+  '[animation-delay:0.4s]'
+] as const
