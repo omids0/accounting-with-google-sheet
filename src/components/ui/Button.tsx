@@ -10,7 +10,7 @@ const baseClass =
 
 const sizeClass: Record<ButtonSize, string> = {
   md: 'w-full px-5 py-3 text-[0.95rem]',
-  sm: 'w-auto px-3 py-1.5 text-xs'
+  sm: 'w-auto px-3 py-1.5 text-[0.8rem]'
 }
 
 const variantClass: Record<ButtonVariant, string> = {
