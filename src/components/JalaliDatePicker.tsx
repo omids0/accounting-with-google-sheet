@@ -1,29 +1,22 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
+import CalendarWheelFields from './CalendarWheelFields'
+import PickerSheet from './form/PickerSheet'
 import Button from './ui/Button'
 import {
-  jalaliDatePickerActionsClass,
-  jalaliDatePickerClass,
-  jalaliDatePickerColumnClass,
-  jalaliDatePickerLabelClass,
-  jalaliDatePickerMonthColumnClass,
-  jalaliDatePickerPanelClass,
+  jalaliDatePickerPreviewClass,
+  jalaliDatePickerTodayBtnClass,
   jalaliDatePickerTriggerClass,
   jalaliDatePickerWrapClass,
-  jalaliDatePickerWrapInlineClass
+  jalaliDatePickerWrapInlineClass,
+  pickerQuickActionsClass,
+  pickerSheetFooterClass
 } from './ui/datePickerStyles'
 import { cn } from '../utils/cn'
-import {
-  daysInCalendarMonth,
-  formatCalendarDateCompact,
-  getCalendarMonthWheelItems,
-  getCalendarParts,
-  getCalendarYearRange,
-  partsToIso,
-  type CalendarSystem
-} from '../utils/dateConverter'
+import { formatCalendarDateCompact, type CalendarSystem } from '../utils/dateConverter'
 import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate'
-import WheelPicker from './form/WheelPicker'
+import { formActionsClassName } from './ui/formStyles'
+import { formModalActionsClass } from './ui/modalStyles'
 
 interface JalaliDatePickerProps {
   value: string
@@ -35,93 +28,12 @@ interface JalaliDatePickerProps {
   id?: string
 }
 
-function fa(n: number): string {
-  return n.toLocaleString('fa-IR', { useGrouping: false })
-}
-
 function formatPickerLabel(iso: string, calendar: CalendarSystem): string {
   if (calendar === 'shamsi') {
     return formatIsoDatePersian(iso)
   }
 
   return formatCalendarDateCompact(iso, calendar)
-}
-
-interface CalendarWheelFieldsProps {
-  calendar: CalendarSystem
-  iso: string
-  onIsoChange: (iso: string) => void
-}
-
-function CalendarWheelFields({ calendar, iso, onIsoChange }: CalendarWheelFieldsProps) {
-  const { year, month, day } = getCalendarParts(iso, calendar)
-
-  const years = useMemo(() => getCalendarYearRange(calendar, iso), [calendar, iso])
-
-  const monthItems = useMemo(() => getCalendarMonthWheelItems(calendar), [calendar])
-
-  const maxDay = daysInCalendarMonth(year, month, calendar)
-
-  const safeDay = Math.min(day, maxDay)
-
-  const yearItems = useMemo(
-    () =>
-      years.map(itemYear => ({
-        value: String(itemYear),
-        label: fa(itemYear)
-      })),
-    [years]
-  )
-
-  const dayItems = useMemo(() => {
-    const dayCount = daysInCalendarMonth(year, month, calendar)
-
-    return Array.from({ length: dayCount }, (_, index) => {
-      const itemDay = index + 1
-
-      return { value: String(itemDay), label: fa(itemDay) }
-    })
-  }, [year, month, calendar])
-
-  const update = (nextYear: number, nextMonth: number, nextDay: number) => {
-    const max = daysInCalendarMonth(nextYear, nextMonth, calendar)
-
-    onIsoChange(
-      partsToIso({ year: nextYear, month: nextMonth, day: Math.min(nextDay, max) }, calendar)
-    )
-  }
-
-  return (
-    <div className={jalaliDatePickerClass}>
-      <div className={jalaliDatePickerColumnClass}>
-        <span className={jalaliDatePickerLabelClass}>سال</span>
-        <WheelPicker
-          value={String(year)}
-          onChange={next => update(Number(next), month, safeDay)}
-          aria-label="سال"
-          items={yearItems}
-        />
-      </div>
-      <div className={cn(jalaliDatePickerColumnClass, jalaliDatePickerMonthColumnClass)}>
-        <span className={jalaliDatePickerLabelClass}>ماه</span>
-        <WheelPicker
-          value={String(month)}
-          onChange={next => update(year, Number(next), safeDay)}
-          aria-label="ماه"
-          items={monthItems}
-        />
-      </div>
-      <div className={jalaliDatePickerColumnClass}>
-        <span className={jalaliDatePickerLabelClass}>روز</span>
-        <WheelPicker
-          value={String(safeDay)}
-          onChange={next => update(year, month, Number(next))}
-          aria-label="روز"
-          items={dayItems}
-        />
-      </div>
-    </div>
-  )
 }
 
 export default function JalaliDatePicker({
@@ -147,14 +59,13 @@ export default function JalaliDatePicker({
     }
   }, [editing, iso, calendar])
 
-  const handleToggle = () => {
-    setEditing(open => {
-      if (!open) {
-        setPendingIso(iso)
-      }
+  const handleOpen = () => {
+    setPendingIso(iso)
+    setEditing(true)
+  }
 
-      return !open
-    })
+  const handleClose = () => {
+    setEditing(false)
   }
 
   const handleConfirm = () => {
@@ -178,6 +89,10 @@ export default function JalaliDatePicker({
 
   const triggerLabel = allowEmpty && !hasValue ? emptyLabel : formatPickerLabel(iso, calendar)
 
+  const previewLabel = formatPickerLabel(pendingIso, calendar)
+
+  const todayIso = getTodayIso()
+
   return (
     <div className={jalaliDatePickerWrapClass}>
       <button
@@ -187,16 +102,29 @@ export default function JalaliDatePicker({
           active: editing,
           empty: allowEmpty && !hasValue
         })}
-        onClick={handleToggle}
+        onClick={handleOpen}
         aria-expanded={editing}
+        aria-haspopup="dialog"
       >
         {triggerLabel}
       </button>
 
-      {editing && (
-        <div className={jalaliDatePickerPanelClass}>
-          <CalendarWheelFields calendar={calendar} iso={pendingIso} onIsoChange={setPendingIso} />
-          <div className={jalaliDatePickerActionsClass}>
+      <PickerSheet
+        open={editing}
+        title="انتخاب تاریخ"
+        onClose={handleClose}
+        subtitle={
+          <p className={jalaliDatePickerPreviewClass} aria-live="polite">
+            {previewLabel}
+          </p>
+        }
+        footer={
+          <div
+            className={cn(formModalActionsClass, formActionsClassName(), pickerSheetFooterClass)}
+          >
+            <Button type="button" variant="secondary" onClick={handleClose}>
+              انصراف
+            </Button>
             <Button
               type="button"
               variant="primary"
@@ -206,8 +134,19 @@ export default function JalaliDatePicker({
               تایید تاریخ
             </Button>
           </div>
+        }
+      >
+        <div className={pickerQuickActionsClass}>
+          <button
+            type="button"
+            className={jalaliDatePickerTodayBtnClass}
+            onClick={() => setPendingIso(todayIso)}
+          >
+            امروز
+          </button>
         </div>
-      )}
+        <CalendarWheelFields calendar={calendar} iso={pendingIso} onIsoChange={setPendingIso} />
+      </PickerSheet>
     </div>
   )
 }
