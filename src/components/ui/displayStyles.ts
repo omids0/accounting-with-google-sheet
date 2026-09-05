@@ -22,46 +22,42 @@ export const spinnerLgClass = cn(
 
 export function statusBadgeClass(connected?: boolean) {
   return cn(
-    'inline-flex items-center gap-[0.3rem] rounded-[20px] px-[0.6rem] py-1 text-xs font-medium',
+    'inline-flex items-center gap-[0.3rem] rounded-[20px] px-[0.6rem] py-1 text-[0.75rem] font-medium',
     connected
       ? 'bg-[var(--color-success-bg)] text-success'
       : 'bg-[var(--color-danger-bg)] text-danger'
   )
 }
 
-const moneyDisplayBaseClass = 'tabular-nums [font-feature-settings:"tnum"_1]'
+const moneyDisplayRootBaseClass = 'money-display tabular-nums [font-feature-settings:"tnum"_1]'
 
-const moneyDisplayValueClass = cn(moneyDisplayBaseClass, 'font-[family-name:var(--font-numeric)]')
-
-const moneyDisplayUnitClass = 'font-[family-name:var(--font-text)] font-semibold'
-
-const sizeClass: Record<MoneyDisplaySize, string> = {
+const moneyDisplaySizeClass: Record<MoneyDisplaySize, string> = {
   hero: cn(
     'mb-[0.35rem] flex flex-col items-center gap-[0.2rem] text-inherit',
-    '[&>span:nth-child(2)]:text-[clamp(1.35rem,6vw,1.85rem)] [&>span:nth-child(2)]:font-extrabold [&>span:nth-child(2)]:leading-[1.05] [&>span:nth-child(2)]:tracking-[0.02em]',
-    '[&>span:last-child]:text-[0.74rem] [&>span:last-child]:font-semibold [&>span:last-child]:opacity-90'
+    '[&_.money-display__value]:text-[clamp(1.35rem,6vw,1.85rem)] [&_.money-display__value]:font-extrabold [&_.money-display__value]:leading-[1.05] [&_.money-display__value]:tracking-[0.02em]',
+    '[&_.money-display__unit]:text-[0.74rem] [&_.money-display__unit]:font-semibold [&_.money-display__unit]:opacity-90'
   ),
   stat: cn(
     'flex max-w-full min-w-0 flex-col items-center gap-[0.12rem]',
-    '[&>span:nth-child(2)]:max-w-full [&>span:nth-child(2)]:text-[clamp(0.88rem,3.2vw,1.05rem)] [&>span:nth-child(2)]:font-extrabold [&>span:nth-child(2)]:leading-[1.15] [&>span:nth-child(2)]:tracking-[0.015em]',
-    '[&>span:last-child]:text-[0.62rem] [&>span:last-child]:font-semibold [&>span:last-child]:leading-none [&>span:last-child]:opacity-75'
+    '[&_.money-display__value]:max-w-full [&_.money-display__value]:text-[clamp(0.88rem,3.2vw,1.05rem)] [&_.money-display__value]:font-extrabold [&_.money-display__value]:leading-[1.15] [&_.money-display__value]:tracking-[0.015em]',
+    '[&_.money-display__unit]:text-[0.62rem] [&_.money-display__unit]:font-semibold [&_.money-display__unit]:leading-none [&_.money-display__unit]:opacity-75'
   ),
   'stat-wide': cn(
     'inline-flex flex-shrink-0 items-baseline gap-1 whitespace-nowrap',
-    '[&>span:nth-child(2)]:text-[clamp(0.92rem,3.2vw,1.08rem)] [&>span:nth-child(2)]:font-extrabold [&>span:nth-child(2)]:tracking-[0.015em]',
-    '[&>span:last-child]:text-[0.66rem] [&>span:last-child]:font-semibold [&>span:last-child]:opacity-75'
+    '[&_.money-display__value]:text-[clamp(0.92rem,3.2vw,1.08rem)] [&_.money-display__value]:font-extrabold [&_.money-display__value]:tracking-[0.015em]',
+    '[&_.money-display__unit]:text-[0.66rem] [&_.money-display__unit]:font-semibold [&_.money-display__unit]:opacity-75'
   ),
   record: cn(
     'inline-flex flex-shrink-0 items-baseline gap-[0.2rem] whitespace-nowrap leading-[1.2]',
-    '[&>span:first-child]:text-[0.72rem] [&>span:first-child]:font-semibold [&>span:first-child]:opacity-85',
-    '[&>span:nth-child(2)]:text-[0.86rem] [&>span:nth-child(2)]:font-bold [&>span:nth-child(2)]:tracking-[0.01em]',
-    '[&>span:last-child]:text-[0.64rem] [&>span:last-child]:font-semibold [&>span:last-child]:opacity-75'
+    '[&_.money-display__sign]:text-[0.72rem] [&_.money-display__sign]:font-semibold [&_.money-display__sign]:opacity-85',
+    '[&_.money-display__value]:text-[0.86rem] [&_.money-display__value]:font-bold [&_.money-display__value]:tracking-[0.01em]',
+    '[&_.money-display__unit]:text-[0.64rem] [&_.money-display__unit]:font-semibold [&_.money-display__unit]:opacity-75'
   )
 }
 
-const toneClass: Record<MoneyDisplayTone, string> = {
+const moneyDisplayToneClass: Record<MoneyDisplayTone, string> = {
   default: '',
-  hero: '',
+  hero: 'text-inherit',
   income: 'text-success',
   expense: 'text-danger',
   positive: 'text-success',
@@ -78,14 +74,23 @@ export function moneyDisplayClass({
   tone?: MoneyDisplayTone
   className?: string
 }) {
-  return cn(moneyDisplayBaseClass, sizeClass[size], toneClass[tone], className)
+  return cn(
+    moneyDisplayRootBaseClass,
+    `money-display--${size}`,
+    `money-display--${tone}`,
+    moneyDisplaySizeClass[size],
+    moneyDisplayToneClass[tone],
+    className
+  )
 }
 
-export const moneyDisplaySignClass = moneyDisplayValueClass
+export const moneyDisplaySignClass = cn('money-display__sign font-numeric')
 
-export const moneyDisplayValueClassName = moneyDisplayValueClass
+export const moneyDisplayValueClassName = cn(
+  'money-display__value stat-value font-numeric font-extrabold tracking-[-0.02em]'
+)
 
-export const moneyDisplayUnitClassName = moneyDisplayUnitClass
+export const moneyDisplayUnitClassName = cn('money-display__unit font-sans font-semibold')
 
 export const recordItemClass =
   'flex items-center justify-between gap-3 border-b border-border py-[0.85rem] last:border-b-0'
@@ -109,3 +114,5 @@ export const pageSearchInputClass =
   '[&::-webkit-search-cancel-button]:hidden focus-visible:border-primary focus-visible:bg-surface focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)] focus-visible:outline-none'
 
 export const appToasterClass = 'z-[10000]'
+
+export const dashboardHeroMoneyDisplayClass = 'relative z-[1]'
