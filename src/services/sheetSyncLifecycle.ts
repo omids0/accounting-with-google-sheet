@@ -167,7 +167,7 @@ export async function fullSyncFromRemote(
 
       if (changed) {
         invalidateDerivedCaches(spreadsheetId)
-        notifySpreadsheetDataChanged(spreadsheetId)
+        queueMicrotask(() => notifySpreadsheetDataChanged(spreadsheetId))
       } else if (!hasPendingOutbox(spreadsheetId)) {
         setSyncState('idle')
       }
