@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import type { TimesheetEntryFormValues } from './TimesheetEntryFormModal'
 import {
   deleteTimesheetEntryItem,
   submitTimesheetEntry,
@@ -21,13 +22,6 @@ import {
 } from '../../services/timesheet'
 import type { Timesheet, TimesheetEntry } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
-import {
-  calcDurationMinutes,
-  getNowDateTimeIso,
-  addMinutesToDateTime,
-  syncEndDateTimeFromStart,
-  clampDateTimeToMin
-} from '../../utils/datetime'
 import { handleSheetError } from '../../utils/sheetError'
 
 export type TimesheetEntryWithRow = TimesheetEntry & { rowNumber: number }
@@ -53,23 +47,9 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
 
   const [togglingCheckId, setTogglingCheckId] = useState('')
 
-  const [endPickerOpenToken, setEndPickerOpenToken] = useState(0)
-
   const dataRevision = useDataRefresh()
 
   const filters = useTimesheetEntryFilters(items)
-
-  const [form, setForm] = useState({
-    title: '',
-    startAt: getNowDateTimeIso(),
-    endAt: getNowDateTimeIso(),
-    description: ''
-  })
-
-  const durationMinutes = useMemo(
-    () => calcDurationMinutes(form.startAt, form.endAt),
-    [form.startAt, form.endAt]
-  )
 
   const totalMinutes = useMemo(
     () => totalDurationMinutes(filters.filteredItems),
@@ -101,28 +81,20 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
   }, [loadItems, dataRevision])
 
   const openCreateForm = useCallback(() => {
-    const now = getNowDateTimeIso()
-
     setEditingItem(null)
-    setForm({
-      title: '',
-      startAt: now,
-      endAt: addMinutesToDateTime(now, 60),
-      description: ''
-    })
     setShowForm(true)
   }, [])
 
   const openEditForm = useCallback((item: TimesheetEntryWithRow) => {
     setEditingItem(item)
-    setForm({
-      title: item.title,
-      startAt: item.startAt,
-      endAt: item.endAt,
-      description: item.description
-    })
     setShowForm(true)
   }, [])
+
+  const closeForm = useCallback(() => {
+    if (saving) return
+    setShowForm(false)
+    setEditingItem(null)
+  }, [saving])
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
@@ -134,22 +106,6 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
         importTimesheetEntriesCsv(spreadsheetId, timesheet.id, csvContent),
       onComplete: loadItems
     })
-
-  const handleStartChange = (startAt: string) => {
-    setForm(prev => ({
-      ...prev,
-      startAt,
-      endAt: syncEndDateTimeFromStart(startAt, prev.endAt, prev.startAt)
-    }))
-    setEndPickerOpenToken(token => token + 1)
-  }
-
-  const handleEndChange = (endAt: string) => {
-    setForm(prev => ({
-      ...prev,
-      endAt: clampDateTimeToMin(endAt, prev.startAt)
-    }))
-  }
 
   const handleToggleChecked = async (item: TimesheetEntryWithRow, checked: boolean) => {
     setTogglingCheckId(item.id)
@@ -168,9 +124,7 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+  const handleSubmit = async (form: TimesheetEntryFormValues, durationMinutes: number) => {
     setSaving(true)
     try {
       await submitTimesheetEntry({
@@ -179,7 +133,7 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
         form,
         durationMinutes,
         onSuccess: async () => {
-          setShowForm(false)
+          closeForm()
           await loadItems()
         }
       })
@@ -233,7 +187,6 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
   return {
     items,
     showForm,
-    setShowForm,
     editingItem,
     deletingItem,
     setDeletingItem,
@@ -241,16 +194,11 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
     saving,
     deleting,
     togglingCheckId,
-    endPickerOpenToken,
-    form,
-    setForm,
-    durationMinutes,
     loadItems,
     openCreateForm,
     openEditForm,
+    closeForm,
     totalMinutes,
-    handleStartChange,
-    handleEndChange,
     handleToggleChecked,
     handleSubmit,
     handleDelete,

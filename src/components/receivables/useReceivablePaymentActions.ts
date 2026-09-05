@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import type { PaymentFormState, ReceivableWithRow, SettlementFormState } from './types'
+import type { ReceivableWithRow } from './types'
 import { getDefaultSettlementIncomeCategory } from './utils'
 import {
   addReceivablePayment,
@@ -24,23 +24,24 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
 
   const [togglingPaymentId, setTogglingPaymentId] = useState('')
 
-  const [paymentForm, setPaymentForm] = useState<PaymentFormState | null>(null)
+  const [paymentReceivableId, setPaymentReceivableId] = useState<string | null>(null)
 
-  const [settlementForm, setSettlementForm] = useState<SettlementFormState | null>(null)
+  const [settlementReceivableId, setSettlementReceivableId] = useState<string | null>(null)
 
   const clearPaymentForms = () => {
-    setPaymentForm(null)
-    setSettlementForm(null)
+    setPaymentReceivableId(null)
+    setSettlementReceivableId(null)
   }
 
-  const handleAddPayment = async (receivable: ReceivableWithRow) => {
-    if (!paymentForm || paymentForm.receivableId !== receivable.id) return
-
+  const handleAddPayment = async (
+    receivable: ReceivableWithRow,
+    values: { amount: number | ''; note: string }
+  ) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
-    const payAmount = Number(paymentForm.amount)
+    const payAmount = Number(values.amount)
 
     if (!payAmount || payAmount <= 0) {
       showError('مبلغ پرداخت را وارد کنید')
@@ -60,7 +61,7 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
     try {
       const updated = await addReceivablePayment(spreadsheetId, receivable, {
         amount: payAmount,
-        note: paymentForm.note.trim()
+        note: values.note.trim()
       })
 
       setItems(prev =>
@@ -70,7 +71,7 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
           )
         )
       )
-      setPaymentForm(null)
+      setPaymentReceivableId(null)
       showSuccess('پرداخت ثبت شد')
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در ثبت پرداخت' })) return
@@ -79,14 +80,15 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
     }
   }
 
-  const handleSettle = async (receivable: ReceivableWithRow) => {
-    if (!settlementForm || settlementForm.receivableId !== receivable.id) return
-
+  const handleSettle = async (
+    receivable: ReceivableWithRow,
+    values: { title: string; note: string }
+  ) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
-    const title = settlementForm.title.trim()
+    const title = values.title.trim()
 
     if (!title) {
       showError('عنوان درآمد الزامی است')
@@ -108,7 +110,7 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
         amount: remaining,
         title,
         category: getDefaultSettlementIncomeCategory(),
-        note: settlementForm.note.trim()
+        note: values.note.trim()
       })
 
       setItems(prev =>
@@ -118,7 +120,7 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
           )
         )
       )
-      setSettlementForm(null)
+      setSettlementReceivableId(null)
       showSuccess('طلب تسویه شد و درآمد ثبت شد')
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در تسویه طلب' })) return
@@ -155,10 +157,10 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
     payingId,
     settlingId,
     togglingPaymentId,
-    paymentForm,
-    setPaymentForm,
-    settlementForm,
-    setSettlementForm,
+    paymentReceivableId,
+    setPaymentReceivableId,
+    settlementReceivableId,
+    setSettlementReceivableId,
     clearPaymentForms,
     handleAddPayment,
     handleSettle,

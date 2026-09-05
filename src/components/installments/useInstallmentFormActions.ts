@@ -1,11 +1,9 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 
 import type { InstallmentFormState, PlanWithRow } from './types'
 import {
   createInstallmentPlan,
   deleteInstallmentPlan,
-  getInstallmentEndDate,
-  getPaidUntilFromPlan,
   getRemovedPaymentTransactionIds,
   reconcilePaymentsOnEdit,
   updateInstallmentPlan
@@ -13,7 +11,6 @@ import {
 import { deleteLinkedExpenseRecord } from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
-import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
@@ -38,62 +35,19 @@ export function useInstallmentFormActions({
 
   const [deleting, setDeleting] = useState(false)
 
-  const [form, setForm] = useState<InstallmentFormState>({
-    title: '',
-    amount: '',
-    count: '',
-    dueDay: '',
-    startDate: getTodayIso(),
-    paidUntil: '',
-    note: ''
-  })
-
-  const computedEndDate = useMemo(() => {
-    const count = Number(form.count)
-
-    const dueDay = Number(form.dueDay)
-
-    if (!form.startDate || !count || count < 1 || !dueDay) return ''
-
-    return getInstallmentEndDate(form.startDate, count, dueDay)
-  }, [form.startDate, form.count, form.dueDay])
-
-  const resetCreateForm = useCallback(() => {
-    setForm({
-      title: '',
-      amount: '',
-      count: '',
-      dueDay: '',
-      startDate: getTodayIso(),
-      paidUntil: '',
-      note: ''
-    })
-  }, [])
-
   const closeForm = useCallback(() => {
     if (saving) return
     setShowForm(false)
     setEditingPlan(null)
-    resetCreateForm()
-  }, [saving, resetCreateForm])
+  }, [saving])
 
   const openCreateForm = useCallback(() => {
     setEditingPlan(null)
-    resetCreateForm()
     setShowForm(true)
-  }, [resetCreateForm])
+  }, [])
 
   const openEditForm = useCallback((plan: PlanWithRow) => {
     setEditingPlan(plan)
-    setForm({
-      title: plan.title,
-      amount: plan.amount,
-      count: plan.count,
-      dueDay: plan.dueDay,
-      startDate: plan.startDate || getTodayIso(),
-      paidUntil: getPaidUntilFromPlan(plan),
-      note: plan.note
-    })
     setShowForm(true)
   }, [])
 
@@ -106,8 +60,7 @@ export function useInstallmentFormActions({
     setDeletingPlan(null)
   }, [deleting])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (form: InstallmentFormState, computedEndDate: string) => {
     if (!isConfigured() || !requireAuth()) return
 
     if (!form.title.trim()) {
@@ -233,9 +186,6 @@ export function useInstallmentFormActions({
     deletingPlan,
     saving,
     deleting,
-    form,
-    setForm,
-    computedEndDate,
     openCreateForm,
     openEditForm,
     closeForm,

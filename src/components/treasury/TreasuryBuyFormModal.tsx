@@ -1,3 +1,6 @@
+import { useMemo } from 'react'
+
+import { useForm } from '../../hooks/useForm'
 import { getAssetUnit, VAULT_ASSET_OPTIONS } from '../../services/tgju'
 import type { VaultAssetType } from '../../types'
 import AmountInput from '../AmountInput'
@@ -5,36 +8,57 @@ import { FormField, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { TransactionWithRow, VaultFormState } from './types'
+import { createEmptyBuyForm } from './useTreasuryForms'
 import { parseQuantityInput } from './utils'
 
 type TreasuryBuyFormModalProps = {
   open: boolean
   editingTx: TransactionWithRow | null
-  form: VaultFormState
   saving: boolean
   onClose: () => void
-  onSubmit: (e: React.FormEvent) => void
-  onFormChange: (updater: (prev: VaultFormState) => VaultFormState) => void
+  onSubmit: (values: VaultFormState) => void | Promise<void>
 }
 
 export default function TreasuryBuyFormModal({
   open,
   editingTx,
-  form,
   saving,
   onClose,
-  onSubmit,
-  onFormChange
+  onSubmit
 }: TreasuryBuyFormModalProps) {
-  const selectedAsset = VAULT_ASSET_OPTIONS.find(a => a.value === form.assetType)
-  const allowDecimal = form.assetType === 'geram18'
+  const initialValues = useMemo<VaultFormState>(
+    () =>
+      editingTx
+        ? {
+            assetType: editingTx.assetType,
+            quantity: editingTx.quantity,
+            unitPrice: editingTx.unitPrice,
+            transactionDate: editingTx.transactionDate,
+            note: editingTx.note
+          }
+        : createEmptyBuyForm(),
+    [editingTx]
+  )
+
+  const form = useForm(initialValues, {
+    active: open,
+    resetKey: editingTx?.id ?? 'create'
+  })
+
+  const selectedAsset = VAULT_ASSET_OPTIONS.find(a => a.value === form.values.assetType)
+  const allowDecimal = form.values.assetType === 'geram18'
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    void onSubmit(form.values)
+  }
 
   return (
     <FormModal
       open={open}
       title={editingTx ? 'ویرایش خرید' : 'ثبت خرید'}
       onClose={onClose}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       saving={saving}
       saveLabel={editingTx ? 'ذخیره تغییرات' : 'ذخیره خرید'}
       saveButtonClassName="btn btn-outflow"
@@ -42,13 +66,12 @@ export default function TreasuryBuyFormModal({
       <FormSelect
         label="نوع دارایی"
         required
-        value={form.assetType}
+        value={form.values.assetType}
         onChange={next =>
-          onFormChange(f => ({
-            ...f,
+          form.setFields({
             assetType: next as VaultAssetType,
             quantity: ''
-          }))
+          })
         }
         options={VAULT_ASSET_OPTIONS.map(opt => ({
           value: opt.value,
@@ -59,40 +82,37 @@ export default function TreasuryBuyFormModal({
         }
       />
 
-      <FormField label={`مقدار (${getAssetUnit(form.assetType)})`} required>
+      <FormField label={`مقدار (${getAssetUnit(form.values.assetType)})`} required>
         <input
           type="text"
           inputMode={allowDecimal ? 'decimal' : 'numeric'}
           dir="ltr"
-          value={form.quantity === '' ? '' : String(form.quantity)}
+          value={form.values.quantity === '' ? '' : String(form.values.quantity)}
           onChange={e =>
-            onFormChange(f => ({
-              ...f,
-              quantity: parseQuantityInput(e.target.value, allowDecimal)
-            }))
+            form.setField('quantity', parseQuantityInput(e.target.value, allowDecimal))
           }
           placeholder={allowDecimal ? 'مثلاً ۲.۵' : 'مثلاً ۳'}
         />
       </FormField>
 
-      <FormField label={`قیمت هر ${getAssetUnit(form.assetType)} (تومان)`} required>
+      <FormField label={`قیمت هر ${getAssetUnit(form.values.assetType)} (تومان)`} required>
         <AmountInput
-          value={form.unitPrice}
-          onChange={val => onFormChange(f => ({ ...f, unitPrice: val }))}
+          value={form.values.unitPrice}
+          onChange={val => form.setField('unitPrice', val)}
         />
       </FormField>
 
       <FormField label="تاریخ خرید" required>
         <JalaliDatePicker
-          value={form.transactionDate}
-          onChange={iso => onFormChange(f => ({ ...f, transactionDate: iso }))}
+          value={form.values.transactionDate}
+          onChange={iso => form.setField('transactionDate', iso)}
         />
       </FormField>
 
       <FormField label="توضیحات">
         <textarea
-          value={form.note}
-          onChange={e => onFormChange(f => ({ ...f, note: e.target.value }))}
+          value={form.values.note}
+          onChange={e => form.setField('note', e.target.value)}
           placeholder="توضیحات اختیاری"
         />
       </FormField>

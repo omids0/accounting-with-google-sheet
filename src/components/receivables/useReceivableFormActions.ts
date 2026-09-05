@@ -9,12 +9,10 @@ import {
 } from '../../services/receivables'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
-import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseReceivableFormActionsParams = {
-  categories: string[]
   loadItems: () => Promise<void>
   expandedId: string | null
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
@@ -22,7 +20,6 @@ type UseReceivableFormActionsParams = {
 }
 
 export function useReceivableFormActions({
-  categories,
   loadItems,
   expandedId,
   setExpandedId,
@@ -38,39 +35,13 @@ export function useReceivableFormActions({
 
   const [deleting, setDeleting] = useState(false)
 
-  const [form, setForm] = useState<ReceivableFormState>({
-    debtor: '',
-    category: '',
-    amount: '',
-    borrowDate: getTodayIso(),
-    note: ''
-  })
-
-  const resetCreateForm = () => {
-    setForm({
-      debtor: '',
-      category: categories[0] ?? '',
-      amount: '',
-      borrowDate: getTodayIso(),
-      note: ''
-    })
-  }
-
   const openCreateForm = () => {
     setEditingItem(null)
-    resetCreateForm()
     setShowForm(true)
   }
 
   const openEditForm = (item: ReceivableWithRow) => {
     setEditingItem(item)
-    setForm({
-      debtor: item.debtor,
-      category: item.category,
-      amount: item.amount,
-      borrowDate: item.borrowDate,
-      note: item.note
-    })
     setShowForm(true)
   }
 
@@ -78,7 +49,6 @@ export function useReceivableFormActions({
     if (saving) return
     setShowForm(false)
     setEditingItem(null)
-    resetCreateForm()
   }
 
   const openDeleteConfirm = (item: ReceivableWithRow) => {
@@ -90,8 +60,7 @@ export function useReceivableFormActions({
     setDeletingItem(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (form: ReceivableFormState) => {
     if (!isConfigured() || !requireAuth()) return
 
     if (!form.debtor.trim()) {
@@ -191,8 +160,6 @@ export function useReceivableFormActions({
     deletingItem,
     saving,
     deleting,
-    form,
-    setForm,
     openCreateForm,
     openEditForm,
     closeForm,

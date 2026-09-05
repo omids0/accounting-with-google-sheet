@@ -34,7 +34,6 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
 
   const mutations = useReceivableMutations({
     setItems,
-    categories,
     loadItems,
     expandedId,
     setExpandedId
@@ -140,15 +139,17 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
             payingId={mutations.payingId}
             settlingId={mutations.settlingId}
             togglingPaymentId={mutations.togglingPaymentId}
-            paymentForm={mutations.paymentForm}
-            settlementForm={mutations.settlementForm}
+            paymentReceivableId={mutations.paymentReceivableId}
+            settlementReceivableId={mutations.settlementReceivableId}
             onToggleExpand={expanded => mutations.toggleExpanded(item.id, expanded)}
             onEdit={() => mutations.openEditForm(item)}
             onDelete={() => mutations.openDeleteConfirm(item)}
-            onPaymentFormChange={mutations.setPaymentForm}
-            onSettlementFormChange={mutations.setSettlementForm}
-            onAddPayment={() => mutations.handleAddPayment(item)}
-            onSettle={() => mutations.handleSettle(item)}
+            onOpenPaymentForm={mutations.setPaymentReceivableId}
+            onClosePaymentForm={() => mutations.setPaymentReceivableId(null)}
+            onOpenSettlementForm={mutations.setSettlementReceivableId}
+            onCloseSettlementForm={() => mutations.setSettlementReceivableId(null)}
+            onAddPayment={values => mutations.handleAddPayment(item, values)}
+            onSettle={values => mutations.handleSettle(item, values)}
             onRemovePayment={paymentId => mutations.handleRemovePayment(item, paymentId)}
           />
         ))
@@ -170,8 +171,6 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       <ReceivableFormModal
         open={mutations.showForm}
         editingItem={mutations.editingItem}
-        form={mutations.form}
-        setForm={mutations.setForm}
         categories={categories}
         setCategories={setCategories}
         saving={mutations.saving}

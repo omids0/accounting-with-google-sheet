@@ -34,17 +34,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     importExportConfirmModal
   } = useChecksData()
 
-  const {
-    showForm,
-    editingItem,
-    saving,
-    form,
-    setForm,
-    openCreateForm,
-    openEditForm,
-    closeForm,
-    handleSubmit
-  } = useChecksForm({ onSaved: loadItems })
+  const { showForm, editingItem, saving, openCreateForm, openEditForm, closeForm, handleSubmit } =
+    useChecksForm({ onSaved: loadItems })
 
   const {
     filterModalOpen,
@@ -138,11 +129,9 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
       <CheckFormModal
         open={showForm}
         editingItem={editingItem}
-        form={form}
         saving={saving}
         onClose={closeForm}
         onSubmit={handleSubmit}
-        onFormChange={setForm}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />

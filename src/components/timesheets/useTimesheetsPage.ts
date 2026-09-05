@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import type { TimesheetFormValues } from './TimesheetFormModal'
 import { useTimesheetsFilters } from './useTimesheetsFilters'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
@@ -44,8 +45,6 @@ export function useTimesheetsPage() {
 
   const dataRevision = useDataRefresh()
 
-  const [form, setForm] = useState({ title: '', description: '' })
-
   const {
     filterModalOpen,
     setFilterModalOpen,
@@ -89,15 +88,19 @@ export function useTimesheetsPage() {
 
   const openCreateForm = useCallback(() => {
     setEditingItem(null)
-    setForm({ title: '', description: '' })
     setShowForm(true)
   }, [])
 
   const openEditForm = useCallback((item: TimesheetWithRow) => {
     setEditingItem(item)
-    setForm({ title: item.title, description: item.description })
     setShowForm(true)
   }, [])
+
+  const closeForm = useCallback(() => {
+    if (saving) return
+    setShowForm(false)
+    setEditingItem(null)
+  }, [saving])
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
@@ -107,8 +110,7 @@ export function useTimesheetsPage() {
       onComplete: loadItems
     })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (form: TimesheetFormValues) => {
     if (!isConfigured() || !requireAuth()) return
     if (!form.title.trim()) {
       showError('عنوان الزامی است')
@@ -134,7 +136,7 @@ export function useTimesheetsPage() {
         })
         showSuccess('تایم‌شیت ایجاد شد')
       }
-      setShowForm(false)
+      closeForm()
       await loadItems()
     } catch (err) {
       showError(err instanceof Error ? err.message : 'خطا در ذخیره')
@@ -188,7 +190,6 @@ export function useTimesheetsPage() {
   return {
     items,
     showForm,
-    setShowForm,
     editingItem,
     deletingItem,
     setDeletingItem,
@@ -204,11 +205,10 @@ export function useTimesheetsPage() {
     draftSortDirection,
     setDraftSortDirection,
     sortOptions,
-    form,
-    setForm,
     loadItems,
     openCreateForm,
     openEditForm,
+    closeForm,
     openFilterModal,
     filteredItems,
     filterChips,

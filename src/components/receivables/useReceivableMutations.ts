@@ -4,7 +4,6 @@ import { useReceivablePaymentActions } from './useReceivablePaymentActions'
 
 type UseReceivableMutationsParams = {
   setItems: React.Dispatch<React.SetStateAction<ReceivableWithRow[]>>
-  categories: string[]
   loadItems: () => Promise<void>
   expandedId: string | null
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
@@ -12,7 +11,6 @@ type UseReceivableMutationsParams = {
 
 export function useReceivableMutations({
   setItems,
-  categories,
   loadItems,
   expandedId,
   setExpandedId
@@ -20,7 +18,6 @@ export function useReceivableMutations({
   const payments = useReceivablePaymentActions({ setItems })
 
   const formActions = useReceivableFormActions({
-    categories,
     loadItems,
     expandedId,
     setExpandedId,
@@ -32,10 +29,10 @@ export function useReceivableMutations({
     payingId: payments.payingId,
     settlingId: payments.settlingId,
     togglingPaymentId: payments.togglingPaymentId,
-    paymentForm: payments.paymentForm,
-    setPaymentForm: payments.setPaymentForm,
-    settlementForm: payments.settlementForm,
-    setSettlementForm: payments.setSettlementForm,
+    paymentReceivableId: payments.paymentReceivableId,
+    setPaymentReceivableId: payments.setPaymentReceivableId,
+    settlementReceivableId: payments.settlementReceivableId,
+    setSettlementReceivableId: payments.setSettlementReceivableId,
     handleAddPayment: payments.handleAddPayment,
     handleSettle: payments.handleSettle,
     handleRemovePayment: payments.handleRemovePayment,

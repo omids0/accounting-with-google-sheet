@@ -1,9 +1,8 @@
 import AppIcon from './AppIcon'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
-import { FieldInput, sortFormFields } from './form'
-import FormModal from './FormModal'
 import { RecordListSkeleton } from './skeleton'
 import { isConfigured } from '../services/settings'
+import RecordsEditFormModal from './records/RecordsEditFormModal'
 import RecordsList from './records/RecordsList'
 import RecordsToolbar from './records/RecordsToolbar'
 import { useRecordsPage } from './records/useRecordsPage'
@@ -71,32 +70,15 @@ export default function RecordsPage({
         />
       )}
 
-      {page.editingForm && (
-        <FormModal
+      {page.editingForm && page.editingRecord && (
+        <RecordsEditFormModal
           open={page.showForm}
-          title={`ویرایش ${page.editingForm.name}`}
+          editingForm={page.editingForm}
+          editingRecord={page.editingRecord}
+          saving={page.saving}
           onClose={page.closeForm}
           onSubmit={page.handleSubmit}
-          saving={page.saving}
-          saveLabel="ذخیره تغییرات"
-          saveButtonClassName={`btn ${
-            page.editingForm.type === 'expense'
-              ? 'btn-outflow'
-              : page.editingForm.type === 'income'
-              ? 'btn-inflow'
-              : 'btn-primary'
-          }`}
-        >
-          {sortFormFields(page.editingForm.fields).map(field => (
-            <FieldInput
-              key={field.id}
-              field={field}
-              value={page.formValues[field.id] ?? ''}
-              onChange={next => page.setFormValues(prev => ({ ...prev, [field.id]: next }))}
-              formId={page.editingForm!.id}
-            />
-          ))}
-        </FormModal>
+        />
       )}
 
       <ConfirmDeleteModal

@@ -41,20 +41,10 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     importExportConfirmModal
   } = useDangItems()
 
-  const {
-    showForm,
-    editingItem,
-    saving,
-    form,
-    setForm,
-    openCreateForm,
-    openEditForm,
-    closeForm,
-    handleSubmit
-  } = useDangForm({
-    categories,
-    onSaved: loadItems
-  })
+  const { showForm, editingItem, saving, openCreateForm, openEditForm, closeForm, handleSubmit } =
+    useDangForm({
+      onSaved: loadItems
+    })
 
   const {
     filterModalOpen,
@@ -159,12 +149,10 @@ export default function DangPage({ active = true }: { active?: boolean }) {
       <DangFormModal
         open={showForm}
         editingItem={editingItem}
-        form={form}
         saving={saving}
         categories={categories}
         onClose={closeForm}
         onSubmit={handleSubmit}
-        onFormChange={setForm}
         onCategoriesChange={setCategories}
       />
 

@@ -1,4 +1,8 @@
-import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { useMemo, type FormEvent } from 'react'
+
+import { useForm } from '../../hooks/useForm'
+import { getInstallmentEndDate, getPaidUntilFromPlan } from '../../services/installments'
+import { formatIsoDatePersian, getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
 import FormModal from '../FormModal'
@@ -8,44 +12,81 @@ import type { InstallmentFormState, PlanWithRow } from './types'
 type InstallmentFormModalProps = {
   open: boolean
   editingPlan: PlanWithRow | null
-  form: InstallmentFormState
-  setForm: React.Dispatch<React.SetStateAction<InstallmentFormState>>
-  computedEndDate: string
   saving: boolean
   onClose: () => void
-  onSubmit: (e: React.FormEvent) => void
+  onSubmit: (values: InstallmentFormState, computedEndDate: string) => void | Promise<void>
 }
 
 export default function InstallmentFormModal({
   open,
   editingPlan,
-  form,
-  setForm,
-  computedEndDate,
   saving,
   onClose,
   onSubmit
 }: InstallmentFormModalProps) {
+  const initialValues = useMemo<InstallmentFormState>(() => {
+    if (editingPlan) {
+      return {
+        title: editingPlan.title,
+        amount: editingPlan.amount,
+        count: editingPlan.count,
+        dueDay: editingPlan.dueDay,
+        startDate: editingPlan.startDate || getTodayIso(),
+        paidUntil: getPaidUntilFromPlan(editingPlan),
+        note: editingPlan.note
+      }
+    }
+
+    return {
+      title: '',
+      amount: '',
+      count: '',
+      dueDay: '',
+      startDate: getTodayIso(),
+      paidUntil: '',
+      note: ''
+    }
+  }, [editingPlan])
+
+  const form = useForm(initialValues, {
+    active: open,
+    resetKey: editingPlan?.id ?? 'create'
+  })
+
+  const computedEndDate = useMemo(() => {
+    const count = Number(form.values.count)
+    const dueDay = Number(form.values.dueDay)
+
+    if (!form.values.startDate || !count || count < 1 || !dueDay) return ''
+
+    return getInstallmentEndDate(form.values.startDate, count, dueDay)
+  }, [form.values.startDate, form.values.count, form.values.dueDay])
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    void onSubmit(form.values, computedEndDate)
+  }
+
   return (
     <FormModal
       open={open}
       title={editingPlan ? 'ویرایش قسط' : 'ثبت قسط جدید'}
       onClose={onClose}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       saving={saving}
       saveLabel={editingPlan ? 'ذخیره تغییرات' : 'ذخیره قسط'}
     >
       <FormField label="عنوان قسط" required>
         <input
           type="text"
-          value={form.title}
-          onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+          value={form.values.title}
+          onChange={e => form.setField('title', e.target.value)}
           placeholder="مثلاً: وام بانکی"
         />
       </FormField>
 
       <FormField label="مبلغ قسط" required>
-        <AmountInput value={form.amount} onChange={val => setForm(f => ({ ...f, amount: val }))} />
+        <AmountInput value={form.values.amount} onChange={val => form.setField('amount', val)} />
       </FormField>
 
       <FormField label="تعداد بازپرداخت" required>
@@ -53,12 +94,9 @@ export default function InstallmentFormModal({
           type="number"
           inputMode="numeric"
           min={1}
-          value={form.count === '' ? '' : form.count}
+          value={form.values.count === '' ? '' : form.values.count}
           onChange={e =>
-            setForm(f => ({
-              ...f,
-              count: e.target.value === '' ? '' : Number(e.target.value)
-            }))
+            form.setField('count', e.target.value === '' ? '' : Number(e.target.value))
           }
           dir="ltr"
         />
@@ -66,8 +104,8 @@ export default function InstallmentFormModal({
 
       <FormField label="تاریخ شروع قسط" required>
         <JalaliDatePicker
-          value={form.startDate}
-          onChange={date => setForm(f => ({ ...f, startDate: date }))}
+          value={form.values.startDate}
+          onChange={date => form.setField('startDate', date)}
         />
       </FormField>
 
@@ -81,12 +119,9 @@ export default function InstallmentFormModal({
           inputMode="numeric"
           min={1}
           max={31}
-          value={form.dueDay === '' ? '' : form.dueDay}
+          value={form.values.dueDay === '' ? '' : form.values.dueDay}
           onChange={e =>
-            setForm(f => ({
-              ...f,
-              dueDay: e.target.value === '' ? '' : Number(e.target.value)
-            }))
+            form.setField('dueDay', e.target.value === '' ? '' : Number(e.target.value))
           }
           dir="ltr"
           placeholder="۱ تا ۳۱"
@@ -108,17 +143,17 @@ export default function InstallmentFormModal({
         hint="اقساطی که موعد آن‌ها تا این تاریخ است به‌عنوان پرداخت‌شده ثبت می‌شوند"
       >
         <JalaliDatePicker
-          value={form.paidUntil}
-          onChange={date => setForm(f => ({ ...f, paidUntil: date }))}
+          value={form.values.paidUntil}
+          onChange={date => form.setField('paidUntil', date)}
           allowEmpty
           emptyLabel="هنوز پرداختی ثبت نشده"
         />
       </FormField>
-      {form.paidUntil ? (
+      {form.values.paidUntil ? (
         <button
           type="button"
           className="btn btn-secondary btn-sm"
-          onClick={() => setForm(f => ({ ...f, paidUntil: '' }))}
+          onClick={() => form.setField('paidUntil', '')}
         >
           پاک کردن
         </button>
@@ -126,8 +161,8 @@ export default function InstallmentFormModal({
 
       <FormField label="توضیحات">
         <textarea
-          value={form.note}
-          onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
+          value={form.values.note}
+          onChange={e => form.setField('note', e.target.value)}
           placeholder="توضیحات اختیاری"
         />
       </FormField>

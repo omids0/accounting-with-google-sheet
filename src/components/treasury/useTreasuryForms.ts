@@ -30,29 +30,16 @@ export function useTreasuryForms(loadItems: () => Promise<void>) {
   const [deletingTx, setDeletingTx] = useState<TransactionWithRow | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [sellForm, setSellForm] = useState<VaultFormState | null>(null)
+  const [activeSellAsset, setActiveSellAsset] = useState<VaultAssetType | null>(null)
   const [sellingAsset, setSellingAsset] = useState<VaultAssetType | null>(null)
-  const [form, setForm] = useState<VaultFormState>(createEmptyBuyForm)
-
-  const resetCreateForm = () => {
-    setForm(createEmptyBuyForm())
-  }
 
   const openCreateForm = () => {
     setEditingTx(null)
-    resetCreateForm()
     setShowForm(true)
   }
 
   const openEditForm = (tx: TransactionWithRow) => {
     setEditingTx(tx)
-    setForm({
-      assetType: tx.assetType,
-      quantity: tx.quantity,
-      unitPrice: tx.unitPrice,
-      transactionDate: tx.transactionDate,
-      note: tx.note
-    })
     setShowForm(true)
   }
 
@@ -60,7 +47,6 @@ export function useTreasuryForms(loadItems: () => Promise<void>) {
     if (saving) return
     setShowForm(false)
     setEditingTx(null)
-    resetCreateForm()
   }
 
   const openDeleteConfirm = (tx: TransactionWithRow) => {
@@ -72,8 +58,15 @@ export function useTreasuryForms(loadItems: () => Promise<void>) {
     setDeletingTx(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const openSellForm = (assetType: VaultAssetType) => {
+    setActiveSellAsset(assetType)
+  }
+
+  const closeSellForm = () => {
+    setActiveSellAsset(null)
+  }
+
+  const handleSubmit = async (form: VaultFormState) => {
     if (!isConfigured() || !requireAuth()) return
 
     const qty = Number(form.quantity)
@@ -133,9 +126,11 @@ export function useTreasuryForms(loadItems: () => Promise<void>) {
     }
   }
 
-  const handleSell = async (assetType: VaultAssetType, available: number) => {
-    if (!sellForm || sellForm.assetType !== assetType) return
-
+  const handleSell = async (
+    assetType: VaultAssetType,
+    available: number,
+    sellForm: VaultFormState
+  ) => {
     if (!isConfigured() || !requireAuth()) return
 
     const qty = Number(sellForm.quantity)
@@ -173,7 +168,7 @@ export function useTreasuryForms(loadItems: () => Promise<void>) {
         transactionDate: sellForm.transactionDate,
         note: sellForm.note.trim()
       })
-      setSellForm(null)
+      closeSellForm()
       showSuccess('فروش ثبت شد')
       await loadItems()
     } catch (err) {
@@ -209,18 +204,19 @@ export function useTreasuryForms(loadItems: () => Promise<void>) {
     deletingTx,
     saving,
     deleting,
-    sellForm,
-    setSellForm,
+    activeSellAsset,
     sellingAsset,
-    form,
-    setForm,
     openCreateForm,
     openEditForm,
     closeForm,
     openDeleteConfirm,
     closeDeleteConfirm,
+    openSellForm,
+    closeSellForm,
     handleSubmit,
     handleSell,
     handleDelete
   }
 }
+
+export { createEmptyBuyForm }

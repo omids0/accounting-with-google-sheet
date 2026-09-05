@@ -55,29 +55,13 @@ export function useWalletMutations({
 
   const [savingOpening, setSavingOpening] = useState(false)
 
-  const [form, setForm] = useState<WalletFormState>({
-    title: '',
-    balance: '',
-    note: ''
-  })
-
-  const resetCreateForm = () => {
-    setForm({ title: '', balance: '', note: '' })
-  }
-
   const openCreateForm = () => {
     setEditingAccount(null)
-    resetCreateForm()
     setShowForm(true)
   }
 
   const openEditForm = (account: WalletAccountWithRow) => {
     setEditingAccount(account)
-    setForm({
-      title: account.title,
-      balance: account.balance,
-      note: account.note
-    })
     setShowForm(true)
   }
 
@@ -85,7 +69,6 @@ export function useWalletMutations({
     if (saving) return
     setShowForm(false)
     setEditingAccount(null)
-    resetCreateForm()
   }
 
   const openDeleteConfirm = (account: WalletAccountWithRow) => {
@@ -97,8 +80,7 @@ export function useWalletMutations({
     setDeletingAccount(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (form: WalletFormState) => {
     if (!isConfigured() || !requireAuth()) return
 
     if (!form.title.trim()) {
@@ -240,8 +222,6 @@ export function useWalletMutations({
     deleting,
     savingId,
     savingOpening,
-    form,
-    setForm,
     openCreateForm,
     openEditForm,
     closeForm,

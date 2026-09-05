@@ -14,7 +14,6 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
   const [showForm, setShowForm] = useState(false)
   const [editingRecord, setEditingRecord] = useState<StoredRecord | null>(null)
   const [deletingRecord, setDeletingRecord] = useState<StoredRecord | null>(null)
-  const [formValues, setFormValues] = useState<Record<string, string | number>>({})
   const [deleting, setDeleting] = useState(false)
 
   const editingForm = editingRecord
@@ -26,20 +25,7 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
 
     if (!form) return
 
-    const values: Record<string, string | number> = {}
-
-    form.fields.forEach(field => {
-      const raw = record.values[field.id] ?? ''
-
-      if (field.type === 'number') {
-        values[field.id] = raw === '' ? '' : Number(raw)
-      } else {
-        values[field.id] = raw
-      }
-    })
-
     setEditingRecord(record)
-    setFormValues(values)
     setShowForm(true)
   }
 
@@ -47,7 +33,6 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     if (saving) return
     setShowForm(false)
     setEditingRecord(null)
-    setFormValues({})
   }
 
   const openDeleteConfirm = (record: StoredRecord) => {
@@ -79,8 +64,7 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (formValues: Record<string, string | number>) => {
     if (!editingRecord || !editingForm) return
 
     setSaving(true)
@@ -106,8 +90,6 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     showForm,
     editingRecord,
     deletingRecord,
-    formValues,
-    setFormValues,
     deleting,
     editingForm,
     openEditForm,

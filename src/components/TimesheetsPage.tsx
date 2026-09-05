@@ -3,7 +3,6 @@ import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import FilterModal from './FilterModal'
-import FormModal from './FormModal'
 import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
@@ -12,7 +11,7 @@ import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
 import type { Timesheet } from '../types'
-import FormField from './form/FormField'
+import TimesheetFormModal from './timesheets/TimesheetFormModal'
 import TimesheetListCard from './timesheets/TimesheetListCard'
 import { useTimesheetsPage } from './timesheets/useTimesheetsPage'
 
@@ -92,35 +91,13 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
         ))
       )}
 
-      <FormModal
+      <TimesheetFormModal
         open={page.showForm}
-        title={page.editingItem ? 'ویرایش تایم‌شیت' : 'تایم‌شیت جدید'}
-        onClose={() => page.setShowForm(false)}
-        onSubmit={page.handleSubmit}
+        editingItem={page.editingItem}
         saving={page.saving}
-        saveLabel={page.editingItem ? 'ذخیره' : 'ایجاد'}
-      >
-        <FormField label="عنوان" required>
-          <input
-            type="text"
-            className="form-control"
-            value={page.form.title}
-            onChange={e => page.setForm(prev => ({ ...prev, title: e.target.value }))}
-            placeholder="مثلاً: پروژه الف"
-            autoFocus
-          />
-        </FormField>
-
-        <FormField label="توضیحات" className="form-field-note">
-          <textarea
-            className="form-control form-note-textarea"
-            rows={3}
-            value={page.form.description}
-            onChange={e => page.setForm(prev => ({ ...prev, description: e.target.value }))}
-            placeholder="توضیحات اضافه..."
-          />
-        </FormField>
-      </FormModal>
+        onClose={page.closeForm}
+        onSubmit={page.handleSubmit}
+      />
 
       <ConfirmDeleteModal
         open={page.deletingItem !== null}

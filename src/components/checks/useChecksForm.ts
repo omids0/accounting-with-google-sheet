@@ -5,7 +5,6 @@ import { createCheck, updateCheck } from '../../services/checks'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { Check } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
-import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
@@ -17,39 +16,14 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState<CheckWithRow | null>(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState<CheckFormState>({
-    checkNumber: '',
-    counterparty: '',
-    amount: '',
-    creationDate: getTodayIso(),
-    dueDate: getTodayIso()
-  })
-
-  const resetCreateForm = () => {
-    setForm({
-      checkNumber: '',
-      counterparty: '',
-      amount: '',
-      creationDate: getTodayIso(),
-      dueDate: getTodayIso()
-    })
-  }
 
   const openCreateForm = () => {
     setEditingItem(null)
-    resetCreateForm()
     setShowForm(true)
   }
 
   const openEditForm = (item: CheckWithRow) => {
     setEditingItem(item)
-    setForm({
-      checkNumber: item.checkNumber,
-      counterparty: item.counterparty,
-      amount: item.amount,
-      creationDate: item.creationDate,
-      dueDate: item.dueDate
-    })
     setShowForm(true)
   }
 
@@ -57,11 +31,9 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
     if (saving) return
     setShowForm(false)
     setEditingItem(null)
-    resetCreateForm()
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (form: CheckFormState) => {
     if (!isConfigured() || !requireAuth()) return
 
     if (!form.checkNumber.trim()) {
@@ -134,8 +106,6 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
     showForm,
     editingItem,
     saving,
-    form,
-    setForm,
     openCreateForm,
     openEditForm,
     closeForm,
