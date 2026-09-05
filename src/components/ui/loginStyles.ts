@@ -29,12 +29,13 @@ export const loginFeaturesClass = 'mb-5 flex list-none flex-col gap-[0.55rem] p-
 
 export const loginFeatureClass = cn(
   'flex items-center gap-[0.65rem] rounded-sm border border-border bg-bg p-[0.55rem] px-3',
-  'text-[0.82rem] font-bold leading-[1.45] text-[#0d4f4b]'
+  'text-[0.82rem] font-bold leading-[1.45] text-text'
 )
 
 export const loginFeatureIconClass = cn(
-  'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[#0d4f4b]',
-  '[background:color-mix(in_srgb,var(--color-primary)_12%,transparent)]'
+  'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-text',
+  '[background:color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
+  '[&_svg_path[stroke=none]]:hidden'
 )
 
 export const loginFooterNoteClass = 'mt-4 text-center text-xs leading-[1.55] text-muted'
