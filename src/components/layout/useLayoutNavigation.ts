@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useTransition } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -38,8 +38,15 @@ export function useLayoutNavigation() {
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false)
   const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false)
   const [timesheetMenuExpanded, setTimesheetMenuExpanded] = useState(false)
+  const [, startNavigationTransition] = useTransition()
+  const [pendingTab, setPendingTab] = useState<Tab | null>(null)
 
-  const tab = getTabFromPath(location.pathname)
+  const routeTab = getTabFromPath(location.pathname)
+
+  // The route change runs in a transition so the current page stays painted
+  // instead of flashing the loading skeleton. Highlight the tapped tab right
+  // away so the tap still feels instant.
+  const tab = pendingTab ?? routeTab
   const showSettings = isSettingsPath(location.pathname)
   const timesheetTitle = (location.state as TimesheetRouteState | null)?.title
 
@@ -71,16 +78,24 @@ export function useLayoutNavigation() {
 
       const nextPath = getPathForTab(newTab, options)
 
-      if (newTab === 'timesheet-detail' && options?.timesheetTitle) {
-        navigate(nextPath, { state: { title: options.timesheetTitle } })
+      setPendingTab(newTab)
 
-        return
-      }
+      startNavigationTransition(() => {
+        if (newTab === 'timesheet-detail' && options?.timesheetTitle) {
+          navigate(nextPath, { state: { title: options.timesheetTitle } })
 
-      navigate(nextPath)
+          return
+        }
+
+        navigate(nextPath)
+      })
     },
     [navigate]
   )
+
+  useEffect(() => {
+    setPendingTab(null)
+  }, [location.pathname])
 
   const onNavigateDashboard = useCallback(
     (target: DashboardNavTarget) => {

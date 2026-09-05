@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 
 import {
   getFirstInstallmentDueDate,
@@ -77,15 +77,15 @@ function InstallmentPlanCard({
 
   const sortedPayments = useMemo(() => sortInstallmentPayments(plan.payments), [plan.payments])
 
-  useEffect(() => {
-    const next: Record<number, number | ''> = {}
+  const [renderedPlan, setRenderedPlan] = useState(plan)
 
-    plan.payments.forEach((payment, paymentIndex) => {
-      next[paymentIndex] = getInstallmentPaymentAmount(payment, plan)
-    })
-    setPaymentAmounts(next)
+  // Reset edit state during render rather than in an effect: an effect here made
+  // every card in the list commit twice on mount.
+  if (renderedPlan !== plan) {
+    setRenderedPlan(plan)
+    setPaymentAmounts({})
     setExpandedPaymentIndex(null)
-  }, [plan])
+  }
 
   const handleToggleExpand = useCallback(() => {
     if (expanded) setExpandedPaymentIndex(null)
@@ -94,41 +94,23 @@ function InstallmentPlanCard({
 
   const handlePaymentAmountSave = useCallback(
     async (paymentIndex: number) => {
-      const nextAmount = paymentAmounts[paymentIndex]
-
-      if (nextAmount === '' || nextAmount === undefined) {
-        showError('مبلغ نامعتبر است')
-
-        const payment = plan.payments[paymentIndex]
-
-        if (!payment) return
-        setPaymentAmounts(prev => ({
-          ...prev,
-          [paymentIndex]: getInstallmentPaymentAmount(payment, plan)
-        }))
-
-        return
-      }
-      if (nextAmount <= 0) {
-        showError('مبلغ باید بیشتر از صفر باشد')
-
-        const payment = plan.payments[paymentIndex]
-
-        if (!payment) return
-        setPaymentAmounts(prev => ({
-          ...prev,
-          [paymentIndex]: getInstallmentPaymentAmount(payment, plan)
-        }))
-
-        return
-      }
-
       const payment = plan.payments[paymentIndex]
 
       if (!payment) return
 
+      const nextAmount = paymentAmounts[paymentIndex]
+
+      // Field was never edited, so there is nothing to persist.
+      if (nextAmount === undefined) return
+
       const currentAmount = getInstallmentPaymentAmount(payment, plan)
 
+      if (nextAmount === '' || nextAmount <= 0) {
+        showError(nextAmount === '' ? 'مبلغ نامعتبر است' : 'مبلغ باید بیشتر از صفر باشد')
+        setPaymentAmounts(prev => ({ ...prev, [paymentIndex]: currentAmount }))
+
+        return
+      }
       if (nextAmount === currentAmount) return
 
       setSavingPaymentIndex(paymentIndex)
@@ -154,9 +136,15 @@ function InstallmentPlanCard({
     [plan, dueDate]
   )
 
-  const firstDueDate = getFirstInstallmentDueDate(plan.startDate, plan.dueDay)
+  const firstDueDate = useMemo(
+    () => getFirstInstallmentDueDate(plan.startDate, plan.dueDay),
+    [plan.startDate, plan.dueDay]
+  )
 
-  const endDate = getInstallmentEndDate(plan.startDate, plan.count, plan.dueDay)
+  const endDate = useMemo(
+    () => getInstallmentEndDate(plan.startDate, plan.count, plan.dueDay),
+    [plan.startDate, plan.count, plan.dueDay]
+  )
 
   return (
     <div className={installmentCardClass({ expanded, complete })}>
