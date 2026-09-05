@@ -1,11 +1,17 @@
+import { useNavigate } from 'react-router-dom'
+
 import CronSetupSection from './reminders/CronSetupSection'
-import InstallmentsReminderSection from './reminders/InstallmentsReminderSection'
+import DueDateReminderSection from './reminders/DueDateReminderSection'
+import PersonalRemindersPushSection from './reminders/PersonalRemindersPushSection'
 import PushStatusSection from './reminders/PushStatusSection'
 import { useRemindersPage } from './reminders/useRemindersPage'
 import Card from './ui/Card'
 
+const DUE_DATE_KINDS = ['installments', 'checks', 'dang'] as const
+
 export default function RemindersPage() {
   const page = useRemindersPage()
+  const navigate = useNavigate()
 
   return (
     <div>
@@ -34,12 +40,24 @@ export default function RemindersPage() {
             onTestNotification={page.handleTestNotification}
           />
 
-          <InstallmentsReminderSection
-            installmentsRule={page.installmentsRule}
-            previewLines={page.previewLines}
-            saving={page.saving}
-            onUpdateRule={page.updateInstallmentsRule}
-            onSave={page.handleSaveRule}
+          {DUE_DATE_KINDS.map(kind => (
+            <DueDateReminderSection
+              key={kind}
+              kind={kind}
+              rule={page.rules[kind]}
+              previewLines={page.previewLinesByKind[kind]}
+              saving={page.savingKind === kind}
+              onUpdateRule={patch => page.updateRule(kind, patch)}
+              onSave={() => page.handleSaveRule(kind)}
+            />
+          ))}
+
+          <PersonalRemindersPushSection
+            personalRule={page.personalRule}
+            saving={page.savingKind === 'personal'}
+            onUpdateRule={page.updatePersonalRule}
+            onSave={() => page.handleSaveRule('personal')}
+            onManage={() => navigate('/reminders')}
           />
 
           <CronSetupSection

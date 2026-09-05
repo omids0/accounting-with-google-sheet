@@ -1,5 +1,5 @@
 /**
- * یادآوری اقساط و یادآوری روزانه — Google Apps Script (cron رایگان)
+ * یادآوری سررسیدها و یادآوری روزانه — Google Apps Script (cron رایگان)
  *
  * نصب:
  * 1. Google Sheet → Extensions → Apps Script
@@ -14,6 +14,8 @@ var SHEET_REMINDERS = 'یادآوری';
 var SHEET_PUSH = 'ناتیف';
 var SHEET_LOG = 'یادآوری_ثبت';
 var SHEET_INSTALLMENTS = 'اقساط';
+var SHEET_CHECKS = 'چک‌ها';
+var SHEET_DANG = 'دنگ';
 var SHEET_ACTIVITY = 'فعالیت';
 var TZ = 'Asia/Tehran';
 
@@ -32,13 +34,9 @@ function runReminderCron() {
 
   var sentCount = 0;
 
-  var installmentRule = rules.filter(function (r) {
-    return r.kind === 'installments' && r.enabled;
-  })[0];
-  if (installmentRule && isReminderWindow_(installmentRule.hour, installmentRule.minute)) {
-    var installmentReminders = findInstallmentReminders_(ss, installmentRule);
-    sentCount += sendReminders_(ss, workerUrl, workerSecret, subscriptions, installmentReminders, 'installments');
-  }
+  sentCount += processDueDateRule_(ss, workerUrl, workerSecret, subscriptions, rules, 'installments', findInstallmentReminders_);
+  sentCount += processDueDateRule_(ss, workerUrl, workerSecret, subscriptions, rules, 'checks', findCheckReminders_);
+  sentCount += processDueDateRule_(ss, workerUrl, workerSecret, subscriptions, rules, 'dang', findDangReminders_);
 
   var dailyRule = rules.filter(function (r) {
     return r.kind === 'daily' && r.enabled;
@@ -51,6 +49,16 @@ function runReminderCron() {
   if (sentCount > 0) {
     Logger.log('Sent ' + sentCount + ' reminder batch(es)');
   }
+}
+
+function processDueDateRule_(ss, workerUrl, workerSecret, subscriptions, rules, kind, finder) {
+  var rule = rules.filter(function (r) {
+    return r.kind === kind && r.enabled;
+  })[0];
+  if (!rule || !isReminderWindow_(rule.hour, rule.minute)) return 0;
+
+  var reminders = finder(ss, rule);
+  return sendReminders_(ss, workerUrl, workerSecret, subscriptions, reminders, kind);
 }
 
 function sendReminders_(ss, workerUrl, workerSecret, subscriptions, reminders, logKind) {
@@ -186,6 +194,80 @@ function findInstallmentReminders_(ss, rule) {
         body: title + ' — قسط ' + payment.n + ' (' + formatMoney_(amount) + ') — موعد: ' + formatPersianDate_(dueDate),
       });
     }
+  }
+
+  return reminders;
+}
+
+function findCheckReminders_(ss, rule) {
+  var sheet = ss.getSheetByName(SHEET_CHECKS);
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 2) return [];
+
+  var today = formatIsoDate_(new Date());
+  var targetDue = addDaysIso_(today, rule.daysBefore);
+  var reminders = [];
+
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var id = String(row[0] || '').trim();
+    if (!id) continue;
+
+    if (parseBool_(row[7])) continue;
+
+    var dueDate = String(row[6] || '').slice(0, 10);
+    if (dueDate !== targetDue) continue;
+
+    var checkNumber = String(row[2] || '').trim();
+    var counterparty = String(row[3] || '').trim();
+    var amount = Number(row[4]) || 0;
+    var label = counterparty || checkNumber || 'چک';
+    var numberPart = checkNumber ? ' — شماره ' + checkNumber : '';
+
+    reminders.push({
+      reference: 'check_' + id + '_' + dueDate,
+      title: 'یادآوری چک',
+      body: label + numberPart + ' (' + formatMoney_(amount) + ') — سررسید: ' + formatPersianDate_(dueDate),
+    });
+  }
+
+  return reminders;
+}
+
+function findDangReminders_(ss, rule) {
+  var sheet = ss.getSheetByName(SHEET_DANG);
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 2) return [];
+
+  var today = formatIsoDate_(new Date());
+  var targetDue = addDaysIso_(today, rule.daysBefore);
+  var reminders = [];
+
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var id = String(row[0] || '').trim();
+    if (!id) continue;
+
+    var legacy = row[4] !== '' && !isNaN(Number(row[4]));
+    var title = String(row[2] || '').trim() || 'بدهی';
+    var counterparty = legacy ? String(row[3] || '').trim() : String(row[4] || '').trim();
+    var category = legacy ? 'سایر' : String(row[3] || '').trim();
+    var amount = legacy ? Number(row[4]) || 0 : Number(row[5]) || 0;
+    var dueDate = legacy ? String(row[5] || '').slice(0, 10) : String(row[6] || '').slice(0, 10);
+    var paidRaw = legacy ? row[7] : row[8];
+
+    if (parseBool_(paidRaw)) continue;
+    if (dueDate !== targetDue) continue;
+
+    var subtitle = counterparty || category || 'بدهی';
+
+    reminders.push({
+      reference: 'dang_' + id + '_' + dueDate,
+      title: 'یادآوری بدهی',
+      body: title + ' (' + subtitle + ') — ' + formatMoney_(amount) + ' — موعد: ' + formatPersianDate_(dueDate),
+    });
   }
 
   return reminders;

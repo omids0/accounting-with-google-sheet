@@ -1,65 +1,79 @@
 import { DAYS_BEFORE_OPTIONS, HOUR_OPTIONS, MINUTE_OPTIONS } from './reminderConstants'
 import { getReminderKindLabel } from '../../services/reminders'
-import type { ReminderRule } from '../../types'
+import type { ReminderKind, ReminderRule } from '../../types'
 import { FormSelect } from '../form'
 import Alert from '../ui/Alert'
 import Button from '../ui/Button'
 import Card, { CardTitle } from '../ui/Card'
 
-interface InstallmentsReminderSectionProps {
-  installmentsRule: ReminderRule
+const DUE_DATE_DESCRIPTIONS: Record<'installments' | 'checks' | 'dang', string> = {
+  installments: 'یادآوری اقساط پرداخت‌نشده',
+  checks: 'یادآوری چک‌های پرداخت‌نشده',
+  dang: 'یادآوری بدهی‌های پرداخت‌نشده'
+}
+
+interface DueDateReminderSectionProps {
+  kind: 'installments' | 'checks' | 'dang'
+  rule: ReminderRule
   previewLines: string[]
   saving: boolean
   onUpdateRule: (patch: Partial<ReminderRule>) => void
   onSave: () => void
 }
 
-export default function InstallmentsReminderSection({
-  installmentsRule,
+export default function DueDateReminderSection({
+  kind,
+  rule,
   previewLines,
   saving,
   onUpdateRule,
   onSave
-}: InstallmentsReminderSectionProps) {
+}: DueDateReminderSectionProps) {
+  const emptyPreviewMessages: Record<'installments' | 'checks' | 'dang', string> = {
+    installments: 'فعلاً قسط پرداخت‌نشده‌ای برای این بازه پیدا نشد.',
+    checks: 'فعلاً چک پرداخت‌نشده‌ای برای این بازه پیدا نشد.',
+    dang: 'فعلاً بدهی پرداخت‌نشده‌ای برای این بازه پیدا نشد.'
+  }
+
   return (
     <Card>
-      <CardTitle>{getReminderKindLabel('installments')}</CardTitle>
+      <CardTitle>{getReminderKindLabel(kind as ReminderKind)}</CardTitle>
       <label
         className="checkbox-row"
         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
       >
         <input
           type="checkbox"
-          checked={installmentsRule.enabled}
+          checked={rule.enabled}
           onChange={e => onUpdateRule({ enabled: e.target.checked })}
         />
-        <span>یادآوری اقساط پرداخت‌نشده</span>
+        <span>{DUE_DATE_DESCRIPTIONS[kind]}</span>
       </label>
 
       <div style={{ marginTop: '1rem', display: 'grid', gap: '0.75rem' }}>
         <FormSelect
           label="چند روز قبل از موعد؟"
-          value={String(installmentsRule.daysBefore)}
+          value={String(rule.daysBefore)}
           onChange={value => onUpdateRule({ daysBefore: Number(value) })}
           options={DAYS_BEFORE_OPTIONS}
         />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
           <FormSelect
             label="ساعت ارسال"
-            value={String(installmentsRule.hour)}
+            value={String(rule.hour)}
             onChange={value => onUpdateRule({ hour: Number(value) })}
             options={HOUR_OPTIONS}
           />
           <FormSelect
             label="دقیقه"
-            value={String(installmentsRule.minute)}
+            value={String(rule.minute)}
             onChange={value => onUpdateRule({ minute: Number(value) })}
             options={MINUTE_OPTIONS}
           />
         </div>
       </div>
 
-      {installmentsRule.enabled && (
+      {rule.enabled && (
         <Alert variant="info" style={{ marginTop: '0.75rem' }}>
           {previewLines.length ? (
             <>
@@ -73,7 +87,7 @@ export default function InstallmentsReminderSection({
               </ul>
             </>
           ) : (
-            <p style={{ margin: 0 }}>فعلاً قسط پرداخت‌نشده‌ای برای این بازه پیدا نشد.</p>
+            <p style={{ margin: 0 }}>{emptyPreviewMessages[kind]}</p>
           )}
         </Alert>
       )}

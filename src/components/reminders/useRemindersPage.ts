@@ -13,47 +13,72 @@ import {
   unsubscribeFromPush
 } from '../../services/pushNotifications'
 import {
+  previewDueDateReminders,
+  type UpcomingDueDateReminder
+} from '../../services/reminderDueDates'
+import {
+  DEFAULT_RULES,
   fetchReminderRules,
-  formatInstallmentReminderMessage,
-  previewInstallmentReminders,
   removePushSubscription,
   saveReminderRules,
-  upsertPushSubscription,
-  type UpcomingInstallmentReminder
+  upsertPushSubscription
 } from '../../services/reminders'
 import { getSettings } from '../../services/settings'
-import type { ReminderRule } from '../../types'
+import type { ReminderKind, ReminderRule } from '../../types'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { showError, showSuccess } from '../../utils/toast'
 
+const DUE_DATE_KINDS = ['installments', 'checks', 'dang'] as const
+
+type DueDateKind = (typeof DUE_DATE_KINDS)[number]
+
+function buildDefaultRulesMap(): Record<DueDateKind, ReminderRule> {
+  const defaults = Object.fromEntries(
+    DEFAULT_RULES.filter(rule => DUE_DATE_KINDS.includes(rule.kind as DueDateKind)).map(rule => [
+      rule.kind,
+      { ...rule }
+    ])
+  ) as Record<DueDateKind, ReminderRule>
+
+  return defaults
+}
+
 export function useRemindersPage() {
   const [loading, setLoading] = useState(true)
-
-  const [saving, setSaving] = useState(false)
-
+  const [savingKind, setSavingKind] = useState<ReminderKind | null>(null)
   const [showSetup, setShowSetup] = useState(false)
-
-  const [installmentsRule, setInstallmentsRule] = useState<ReminderRule>({
-    kind: 'installments',
+  const [rules, setRules] = useState<Record<DueDateKind, ReminderRule>>(buildDefaultRulesMap)
+  const [personalRule, setPersonalRule] = useState<ReminderRule>({
+    kind: 'personal',
     enabled: false,
-    daysBefore: 1,
+    daysBefore: 0,
     hour: 9,
     minute: 0
   })
-
-  const [preview, setPreview] = useState<UpcomingInstallmentReminder[]>([])
-
+  const [previews, setPreviews] = useState<Record<DueDateKind, UpcomingDueDateReminder[]>>({
+    installments: [],
+    checks: [],
+    dang: []
+  })
   const [permission, setPermission] = useState(getNotificationPermission())
-
   const [hasSubscription, setHasSubscription] = useState(false)
-
   const [swStatus, setSwStatus] = useState<'ready' | 'pending' | 'missing'>('pending')
 
   const pushStatus = getPushSupportStatus()
-
   const { canInstall, isInstalled, showIosHint, isIos, install, dismissIosHint } = usePwaInstall()
-
   const spreadsheetId = getSettings()?.spreadsheetId ?? ''
+
+  const refreshPreview = async (kind: DueDateKind, nextRule: ReminderRule) => {
+    if (!spreadsheetId) return
+
+    try {
+      const upcoming = await previewDueDateReminders(spreadsheetId, kind, nextRule)
+
+      setPreviews(current => ({ ...current, [kind]: upcoming }))
+    } catch {
+      /* ignore preview errors while editing */
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -66,16 +91,35 @@ export function useRemindersPage() {
       }
 
       try {
-        const rules = await fetchReminderRules(spreadsheetId)
+        const fetchedRules = await fetchReminderRules(spreadsheetId)
 
-        const installments = rules.find(rule => rule.kind === 'installments')
+        if (cancelled) return
 
-        if (installments && !cancelled) {
-          setInstallmentsRule(installments)
+        const nextRules = buildDefaultRulesMap()
 
-          const upcoming = await previewInstallmentReminders(spreadsheetId, installments)
+        for (const kind of DUE_DATE_KINDS) {
+          const rule = fetchedRules.find(item => item.kind === kind)
 
-          if (!cancelled) setPreview(upcoming)
+          if (rule) nextRules[kind] = rule
+        }
+
+        setRules(nextRules)
+
+        const personal = fetchedRules.find(item => item.kind === 'personal')
+
+        if (personal) setPersonalRule(personal)
+
+        const previewEntries = await Promise.all(
+          DUE_DATE_KINDS.map(
+            async kind =>
+              [kind, await previewDueDateReminders(spreadsheetId, kind, nextRules[kind])] as const
+          )
+        )
+
+        if (!cancelled) {
+          setPreviews(
+            Object.fromEntries(previewEntries) as Record<DueDateKind, UpcomingDueDateReminder[]>
+          )
         }
       } catch (err) {
         if (!cancelled) {
@@ -108,14 +152,15 @@ export function useRemindersPage() {
     }
   }, [spreadsheetId])
 
-  const previewLines = useMemo(
+  const previewLinesByKind = useMemo(
     () =>
-      preview.map(item => {
-        const message = formatInstallmentReminderMessage(item)
-
-        return `${message.body} (${formatIsoDatePersian(item.remindOn)})`
-      }),
-    [preview]
+      Object.fromEntries(
+        DUE_DATE_KINDS.map(kind => [
+          kind,
+          previews[kind].map(item => `${item.body} (${formatIsoDatePersian(item.remindOn)})`)
+        ])
+      ) as Record<DueDateKind, string[]>,
+    [previews]
   )
 
   const handleEnablePush = async () => {
@@ -125,7 +170,7 @@ export function useRemindersPage() {
       return
     }
 
-    setSaving(true)
+    setSavingKind('daily')
     try {
       const subscription = await subscribeToPush()
 
@@ -142,12 +187,12 @@ export function useRemindersPage() {
     } catch (err) {
       showError(err instanceof Error ? err.message : 'فعال‌سازی نوتیف ناموفق بود')
     } finally {
-      setSaving(false)
+      setSavingKind(null)
     }
   }
 
   const handleDisablePush = async () => {
-    setSaving(true)
+    setSavingKind('daily')
     try {
       const current = await getCurrentPushSubscription()
 
@@ -161,77 +206,78 @@ export function useRemindersPage() {
     } catch (err) {
       showError(err instanceof Error ? err.message : 'غیرفعال‌سازی ناموفق بود')
     } finally {
-      setSaving(false)
+      setSavingKind(null)
     }
   }
 
-  const handleSaveRule = async () => {
+  const handleSaveRule = async (kind: DueDateKind | 'personal') => {
     if (!spreadsheetId) {
       showError('ابتدا یک شیت فعال انتخاب کنید')
 
       return
     }
-    if (installmentsRule.enabled && !hasSubscription) {
+
+    const rule = kind === 'personal' ? personalRule : rules[kind]
+
+    if (rule.enabled && !hasSubscription) {
       showError('برای فعال‌کردن یادآوری، ابتدا نوتیف را روشن کنید')
 
       return
     }
 
-    setSaving(true)
+    setSavingKind(kind)
     try {
-      await saveReminderRules(spreadsheetId, [installmentsRule])
+      await saveReminderRules(spreadsheetId, [rule])
 
-      const upcoming = await previewInstallmentReminders(spreadsheetId, installmentsRule)
+      if (kind !== 'personal') {
+        const upcoming = await previewDueDateReminders(spreadsheetId, kind, rule)
 
-      setPreview(upcoming)
+        setPreviews(current => ({ ...current, [kind]: upcoming }))
+      }
+
       showSuccess('تنظیمات یادآوری ذخیره شد')
     } catch (err) {
       showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
     } finally {
-      setSaving(false)
+      setSavingKind(null)
     }
   }
 
   const handleTestNotification = async () => {
-    setSaving(true)
+    setSavingKind('daily')
     try {
       await showLocalTestNotification()
       showSuccess('نوتیف تست ارسال شد')
     } catch (err) {
       showError(err instanceof Error ? err.message : 'ارسال تست ناموفق بود')
     } finally {
-      setSaving(false)
+      setSavingKind(null)
     }
   }
 
-  const refreshPreview = async (nextRule: ReminderRule) => {
-    if (!spreadsheetId) return
-    try {
-      const upcoming = await previewInstallmentReminders(spreadsheetId, nextRule)
+  const updateRule = (kind: DueDateKind, patch: Partial<ReminderRule>) => {
+    setRules(current => {
+      const next = { ...current[kind], ...patch }
 
-      setPreview(upcoming)
-    } catch {
-      /* ignore preview errors while editing */
-    }
-  }
+      void refreshPreview(kind, next)
 
-  const updateInstallmentsRule = (patch: Partial<ReminderRule>) => {
-    setInstallmentsRule(current => {
-      const next = { ...current, ...patch }
-
-      void refreshPreview(next)
-
-      return next
+      return { ...current, [kind]: next }
     })
+  }
+
+  const updatePersonalRule = (patch: Partial<ReminderRule>) => {
+    setPersonalRule(current => ({ ...current, ...patch }))
   }
 
   return {
     loading,
-    saving,
+    saving: savingKind !== null,
+    savingKind,
     showSetup,
     setShowSetup,
-    installmentsRule,
-    previewLines,
+    rules,
+    personalRule,
+    previewLinesByKind,
     permission,
     hasSubscription,
     swStatus,
@@ -246,6 +292,7 @@ export function useRemindersPage() {
     handleDisablePush,
     handleSaveRule,
     handleTestNotification,
-    updateInstallmentsRule
+    updateRule,
+    updatePersonalRule
   }
 }
