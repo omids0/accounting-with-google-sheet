@@ -25,16 +25,16 @@ const pageContentChildAnims = cn(
 )
 
 const pageContentStagger = cn(
-  '[&>*>*:nth-child(1)]:[animation-delay:0.08s]',
-  '[&>*>*:nth-child(2)]:[animation-delay:0.16s]',
-  '[&>*>*:nth-child(3)]:[animation-delay:0.24s]',
-  '[&>*>*:nth-child(4)]:[animation-delay:0.32s]',
-  '[&>*>*:nth-child(5)]:[animation-delay:0.4s]',
-  '[&>*>*:nth-child(6)]:[animation-delay:0.48s]',
-  '[&>*>*:nth-child(7)]:[animation-delay:0.56s]',
-  '[&>*>*:nth-child(8)]:[animation-delay:0.64s]',
-  '[&>*>*:nth-child(9)]:[animation-delay:0.72s]',
-  '[&>*>*:nth-child(10)]:[animation-delay:0.8s]'
+  '[&>*>*:nth-child(1)]:[animation-delay:0.04s]',
+  '[&>*>*:nth-child(2)]:[animation-delay:0.08s]',
+  '[&>*>*:nth-child(3)]:[animation-delay:0.12s]',
+  '[&>*>*:nth-child(4)]:[animation-delay:0.16s]',
+  '[&>*>*:nth-child(5)]:[animation-delay:0.2s]',
+  '[&>*>*:nth-child(6)]:[animation-delay:0.24s]',
+  '[&>*>*:nth-child(7)]:[animation-delay:0.28s]',
+  '[&>*>*:nth-child(8)]:[animation-delay:0.32s]',
+  '[&>*>*:nth-child(9)]:[animation-delay:0.36s]',
+  '[&>*>*:nth-child(10)]:[animation-delay:0.4s]'
 )
 
 export const pageContentClass = cn(

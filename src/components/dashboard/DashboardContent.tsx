@@ -1,3 +1,5 @@
+import DashboardBreakdownSection from './DashboardBreakdownSection'
+import { RecordAmount } from './DashboardParts'
 import type { DashboardData, DashboardNavTarget } from '../../types'
 import { cn } from '../../utils/cn'
 import type { RecordsDatePreset } from '../../utils/dateRange'
@@ -5,19 +7,16 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import ActiveFilterChips, { type FilterChip } from '../ActiveFilterChips'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import CardEditButton from '../CardEditButton'
-import { CategoryBarChart, CategoryDonutChart, IncomeExpenseMonthlyChart } from '../charts'
+import DashboardChartsSection from '../charts/DashboardChartsSection'
 import DateRangeFilter, { createDefaultDateRangeFilter } from '../DateRangeFilter'
 import FilterModal from '../FilterModal'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
 import TransactionTypeSegment from '../TransactionTypeSegment'
-import Button from '../ui/Button'
-import Card from '../ui/Card'
-import YearFilter from '../YearFilter'
-import DashboardBreakdownSection from './DashboardBreakdownSection'
-import { RecordAmount } from './DashboardParts'
 import type { TransactionTypeFilter } from './useDashboardPage'
 import type { TransactionTypeSegmentOption } from '../TransactionTypeSegment'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
 import {
   chartTitleClass,
   dashboardFlowSectionAnimatedClass,
@@ -182,46 +181,15 @@ export default function DashboardContent({
 
       <DashboardBreakdownSection financial={financial} onNavigate={onNavigate} />
 
-      {(data?.expenseByCategory.length ?? 0) > 0 && (
-        <>
-          <CategoryDonutChart title="سهم هزینه‌ها" data={data!.expenseByCategory} tone="expense" />
-          <CategoryBarChart
-            title="هزینه بر اساس دسته‌بندی"
-            data={data!.expenseByCategory}
-            tone="expense"
-            yAxisWidth={categoryYAxisWidth}
-          />
-        </>
-      )}
-
-      {(data?.incomeByCategory.length ?? 0) > 0 && (
-        <>
-          <CategoryDonutChart title="سهم درآمدها" data={data!.incomeByCategory} tone="income" />
-          <CategoryBarChart
-            title="درآمد بر اساس دسته‌بندی"
-            data={data!.incomeByCategory}
-            tone="income"
-            yAxisWidth={categoryYAxisWidth}
-          />
-        </>
-      )}
-
       {data && (
-        <IncomeExpenseMonthlyChart
-          data={data.yearlyMonthlyFlow}
-          header={
-            <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>
-              {({ trigger, panel }) => (
-                <>
-                  <div className={cardHeaderRowClass}>
-                    <h3 className={chartTitleClass}>درآمد و هزینه ماهانه</h3>
-                    {trigger}
-                  </div>
-                  {panel}
-                </>
-              )}
-            </YearFilter>
-          }
+        <DashboardChartsSection
+          expenseByCategory={data.expenseByCategory}
+          incomeByCategory={data.incomeByCategory}
+          categoryYAxisWidth={categoryYAxisWidth}
+          yearlyMonthlyFlow={data.yearlyMonthlyFlow}
+          monthlyFlowYear={monthlyFlowYear}
+          setMonthlyFlowYear={setMonthlyFlowYear}
+          loading={loading}
         />
       )}
 

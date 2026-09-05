@@ -31,6 +31,13 @@ export default defineConfig({
       use: {
         baseURL: `http://127.0.0.1:${previewPort}`
       }
+    },
+    {
+      name: 'accounting-nav-perf',
+      testMatch: '**/navigation-perf.spec.ts',
+      use: {
+        baseURL: `http://127.0.0.1:${previewPort}`
+      }
     }
   ],
   webServer: {

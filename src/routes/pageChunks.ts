@@ -53,6 +53,8 @@ export const loadModuleReportPage: PageLoader = () =>
 export const loadOpeningBalanceReportPage: PageLoader = () =>
   import('../components/reports/OpeningBalanceReportPage')
 
+export const loadRemindersPage: PageLoader = () => import('../components/RemindersPage')
+
 export const loadSettingsPage: PageLoader = () => import('../components/SettingsPage')
 
 export const loadTimesheetDetailPage: PageLoader = () => import('../components/TimesheetDetailPage')

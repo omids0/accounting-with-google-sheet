@@ -8,7 +8,13 @@ import {
 } from 'react'
 
 import { cn } from '../../utils/cn'
-import { formFieldClass, formHintClass, formLabelClass } from '../ui/formStyles'
+import { formNoteTextareaClass } from '../ui/formControlStyles'
+import {
+  formControlClassName,
+  formFieldClass,
+  formHintClass,
+  formLabelClass
+} from '../ui/formStyles'
 
 interface FormFieldProps {
   label?: string
@@ -20,18 +26,39 @@ interface FormFieldProps {
   id?: string
 }
 
-function assignControlId(child: ReactNode, controlId: string): ReactNode {
+type ControlProps = { id?: string; className?: string; type?: string }
+
+function isNativeTextControl(element: ReactElement<ControlProps>): boolean {
+  if (element.type === 'textarea') return true
+  if (element.type !== 'input') return false
+
+  const type = element.props.type
+  return type !== 'checkbox' && type !== 'radio'
+}
+
+function enhanceControl(child: ReactNode, controlId: string): ReactNode {
   if (!isValidElement(child)) {
     return child
   }
 
-  const props = child.props as { id?: string }
+  const element = child as ReactElement<ControlProps>
+  const { id, className } = element.props
+  const patch: ControlProps = {}
 
-  if (props.id) {
+  if (!id) {
+    patch.id = controlId
+  }
+
+  if (isNativeTextControl(element)) {
+    const textareaClass = element.type === 'textarea' ? formNoteTextareaClass : undefined
+    patch.className = cn(formControlClassName(textareaClass), className)
+  }
+
+  if (Object.keys(patch).length === 0) {
     return child
   }
 
-  return cloneElement(child as ReactElement<{ id?: string }>, { id: controlId })
+  return cloneElement(element, patch)
 }
 
 export default function FormField({
@@ -45,7 +72,7 @@ export default function FormField({
 }: FormFieldProps) {
   const autoId = useId()
   const controlId = id ?? autoId
-  const control = assignControlId(children, controlId)
+  const control = enhanceControl(children, controlId)
 
   return (
     <div className={cn(formFieldClass, className)} style={style}>
