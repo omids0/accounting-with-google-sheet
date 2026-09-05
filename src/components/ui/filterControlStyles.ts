@@ -23,24 +23,24 @@ export const filterModalActionsClass = 'justify-end gap-2'
 
 export const filterModalClearClass = 'me-auto'
 
-export const activeFilterChipsClass = 'mb-[0.65rem] flex flex-wrap gap-[0.4rem]'
+export const activeFilterChipsClass = 'active-filter-chips mb-[0.65rem] flex flex-wrap gap-[0.4rem]'
 
 export const activeFilterChipClass = cn(
-  'inline-flex max-w-full min-h-[1.65rem] items-center gap-[0.12rem] rounded-full border border-[color-mix(in_srgb,var(--color-primary)_20%,var(--color-border))] py-[0.12rem] pe-[0.35rem] ps-[0.12rem] text-[0.72rem] font-semibold leading-[1.2] text-primary-dark shadow-[0_1px_4px_rgba(15,23,42,0.05)]',
+  'active-filter-chip inline-flex max-w-full min-h-[1.65rem] items-center gap-[0.12rem] rounded-full border border-[color-mix(in_srgb,var(--color-primary)_20%,var(--color-border))] py-[0.12rem] pe-[0.35rem] ps-[0.12rem] text-[0.72rem] font-semibold leading-[1.2] text-primary-dark shadow-[0_1px_4px_rgba(15,23,42,0.05)]',
   '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))_0%,var(--color-surface)_100%)]'
 )
 
 export function activeFilterChipMainClass(clickable?: boolean) {
   return cn(
-    'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap border-0 bg-transparent px-[0.35rem] py-[0.12rem] text-start font-[inherit] leading-[inherit] text-inherit',
+    'active-filter-chip__main min-w-0 overflow-hidden text-ellipsis whitespace-nowrap border-0 bg-transparent px-[0.35rem] py-[0.12rem] text-[0.72rem] font-semibold leading-[1.2] text-inherit',
     clickable
-      ? 'cursor-pointer rounded-full transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-px focus-visible:outline-[color-mix(in_srgb,var(--color-primary)_45%,transparent)]'
+      ? 'active-filter-chip__main--clickable cursor-pointer rounded-full transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-px focus-visible:outline-[color-mix(in_srgb,var(--color-primary)_45%,transparent)]'
       : 'cursor-default px-[0.45rem]'
   )
 }
 
 export const activeFilterChipRemoveClass = cn(
-  'flex h-[1.15rem] w-[1.15rem] shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+  'active-filter-chip__remove flex h-[1.15rem] w-[1.15rem] shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   'hover:bg-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-px focus-visible:outline-[color-mix(in_srgb,var(--color-primary)_45%,transparent)]'
 )
 

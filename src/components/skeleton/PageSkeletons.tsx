@@ -1,7 +1,6 @@
-import { Skeleton } from './Skeleton'
-import AppIcon from '../AppIcon'
 import { FilterChipsSkeleton, ReportToolbarSkeleton, StatCardSkeleton } from './CardSkeletons'
 import { InstallmentCardListSkeleton } from './ListSkeletons'
+import { Skeleton } from './Skeleton'
 import { cn } from '../../utils/cn'
 import { cardClassName } from '../ui/Card'
 import {
@@ -12,12 +11,10 @@ import {
   dashboardStatGridClass
 } from '../ui/chartStyles'
 import {
-  appLoadingCardsClass,
   appLoadingClass,
-  appLoadingIconClass,
-  appLoadingInnerClass,
-  appLoadingSkeletonClass,
-  appLoadingStatRowClass
+  appLoadingDotClass,
+  appLoadingDotDelayClasses,
+  appLoadingDotsClass
 } from '../ui/loginStyles'
 import { recordsTypeSegmentClass, dataEntryTypeSegmentClass } from '../ui/recordsStyles'
 import {
@@ -191,32 +188,10 @@ export function SettingsSkeleton() {
 export function AppLoadingSkeleton() {
   return (
     <div className={appLoadingClass} aria-busy="true" aria-label="در حال بارگذاری">
-      <div className={cn(appLoadingInnerClass, appLoadingSkeletonClass)}>
-        <span className={appLoadingIconClass}>
-          <AppIcon name="dashboard" />
-        </span>
-        <Skeleton width="8rem" height="1rem" />
-        <div className={appLoadingCardsClass}>
-          <FilterChipsSkeleton count={1} />
-          <Skeleton
-            variant="rect"
-            width="100%"
-            height="5rem"
-            style={{ borderRadius: 'var(--radius)' }}
-          />
-          <div className={appLoadingStatRowClass}>
-            <Skeleton
-              variant="rect"
-              height="3.5rem"
-              style={{ flex: 1, borderRadius: 'var(--radius-sm)' }}
-            />
-            <Skeleton
-              variant="rect"
-              height="3.5rem"
-              style={{ flex: 1, borderRadius: 'var(--radius-sm)' }}
-            />
-          </div>
-        </div>
+      <div className={appLoadingDotsClass} role="status">
+        {appLoadingDotDelayClasses.map(delayClass => (
+          <span key={delayClass} className={cn(appLoadingDotClass, delayClass)} />
+        ))}
       </div>
     </div>
   )

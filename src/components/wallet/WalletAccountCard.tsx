@@ -12,10 +12,9 @@ import {
   installmentHeaderClass,
   installmentPaymentsClass,
   installmentCardClass,
-  listCardAmountPillClass,
   listCardSubtitleClass,
   listCardTitleClass,
-  walletItemAmountClass,
+  walletItemAmountPillClass,
   walletItemCardClass,
   walletItemEditClass,
   walletItemInfoClass,
@@ -61,7 +60,7 @@ export default function WalletAccountCard({
           <div className={walletItemInfoClass}>
             <div className={walletItemTitleRowClass}>
               <div className={listCardTitleClass}>{account.title}</div>
-              <div className={cn(walletItemAmountClass, listCardAmountPillClass)} dir="ltr">
+              <div className={walletItemAmountPillClass} dir="ltr">
                 {formatMoney(displayBalance)}
               </div>
             </div>

@@ -1,9 +1,11 @@
 import {
+  dashboardHeroMoneyDisplayClass,
   moneyDisplayClass,
   moneyDisplaySignClass,
   moneyDisplayUnitClassName,
   moneyDisplayValueClassName
 } from './ui/displayStyles'
+import { cn } from '../utils/cn'
 import { formatMoney, formatMoneyParts } from '../utils/formatMoney'
 
 export type MoneyDisplaySize = 'hero' | 'stat' | 'stat-wide' | 'record'
@@ -35,7 +37,11 @@ export default function MoneyDisplay({
 
   return (
     <span
-      className={moneyDisplayClass({ size, tone, className })}
+      className={cn(
+        moneyDisplayClass({ size, tone }),
+        size === 'hero' && tone === 'hero' && dashboardHeroMoneyDisplayClass,
+        className
+      )}
       dir="ltr"
       aria-label={formatMoney(amount)}
     >

@@ -12,7 +12,7 @@ export function cardClassName(className?: string) {
 }
 
 export function cardTitleClassName(className?: string) {
-  return cn('mb-2 text-base font-bold text-[var(--color-primary-dark)]', className)
+  return cn('mb-2 text-[0.88rem] font-bold text-[var(--color-primary-dark)]', className)
 }
 
 export default function Card({ className, ...props }: CardProps) {

@@ -8,13 +8,15 @@ export const formModalRootClass = cn(
 
 export const formModalBackdropClass = cn(
   'absolute inset-0 cursor-default border-none bg-[var(--color-overlay)]',
-  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[2px]'
+  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[3px]'
 )
 
 export const formModalPanelClass = cn(
-  'relative flex max-h-full min-h-0 w-full max-w-[420px] flex-col overflow-hidden',
+  'form-modal-panel relative flex max-h-full min-h-0 w-full max-w-[420px] flex-col overflow-hidden',
   'rounded-[calc(var(--radius)+4px)_calc(var(--radius)+4px)_var(--radius)_var(--radius)]',
-  'border border-border bg-[var(--form-card-bg)] shadow-lg',
+  'border border-[color-mix(in_srgb,var(--color-border)_72%,transparent)] backdrop-blur-xl backdrop-saturate-150',
+  '[background:linear-gradient(165deg,color-mix(in_srgb,var(--color-surface)_92%,transparent)_0%,color-mix(in_srgb,var(--color-surface)_80%,transparent)_100%)]',
+  'shadow-[0_12px_40px_rgba(15,23,42,0.14),inset_0_1px_0_rgba(255,255,255,0.55)]',
   'animate-[form-modal-in_var(--duration-normal)_var(--ease-out)]',
   'min-[520px]:rounded-[calc(var(--radius)+4px)]',
   '[&_form]:flex [&_form]:min-h-0 [&_form]:flex-1 [&_form]:flex-col'
@@ -22,8 +24,8 @@ export const formModalPanelClass = cn(
 
 export const formModalHeaderClass = cn(
   'grid flex-shrink-0 grid-cols-[1fr_auto] grid-rows-[auto_auto] items-center gap-x-3',
-  'border-b border-border px-[1.15rem] pb-[0.85rem] pt-[0.45rem]',
-  '[background:linear-gradient(180deg,var(--color-accent-soft)_0%,transparent_100%)]',
+  'border-b border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] px-[1.15rem] pb-[0.85rem] pt-[0.45rem]',
+  '[background:linear-gradient(180deg,color-mix(in_srgb,var(--color-accent-soft)_55%,transparent)_0%,transparent_100%)]',
   'before:col-span-full before:mb-[0.6rem] before:h-[0.28rem] before:w-10 before:justify-self-center',
   'before:rounded-full before:content-[""]',
   'before:[background:color-mix(in_srgb,var(--color-primary)_22%,var(--color-border))]',
@@ -49,8 +51,8 @@ export const formModalBodyClass = cn(
 )
 
 export const formModalActionsClass = cn(
-  'mt-0 flex-shrink-0 items-center border-t border-border px-[1.15rem] pb-[calc(1.1rem+var(--safe-bottom))] pt-[0.9rem]',
-  '[background:linear-gradient(0deg,var(--color-accent-soft)_0%,transparent_100%)]',
+  'mt-0 flex-shrink-0 items-center border-t border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] px-[1.15rem] pb-[calc(1.1rem+var(--safe-bottom))] pt-[0.9rem]',
+  '[background:linear-gradient(0deg,color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)_0%,transparent_100%)]',
   '[&>button]:min-w-[6.5rem] [&>button]:flex-1'
 )
 

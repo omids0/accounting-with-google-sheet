@@ -15,16 +15,16 @@ export const reportTableValuesClass =
   'flex flex-wrap justify-end gap-[0.65rem] text-[0.78rem] font-semibold'
 
 export const reportValueIncomeClass =
-  'font-[family-name:var(--font-numeric)] tabular-nums text-income [font-feature-settings:"tnum"_1]'
+  'font-numeric tabular-nums text-income [font-feature-settings:"tnum"_1]'
 
 export const reportValueExpenseClass =
-  'font-[family-name:var(--font-numeric)] tabular-nums text-expense [font-feature-settings:"tnum"_1]'
+  'font-numeric tabular-nums text-expense [font-feature-settings:"tnum"_1]'
 
 export const reportValuePositiveClass =
-  'font-[family-name:var(--font-numeric)] tabular-nums text-income [font-feature-settings:"tnum"_1]'
+  'font-numeric tabular-nums text-income [font-feature-settings:"tnum"_1]'
 
 export const reportValueNegativeClass =
-  'font-[family-name:var(--font-numeric)] tabular-nums text-expense [font-feature-settings:"tnum"_1]'
+  'font-numeric tabular-nums text-expense [font-feature-settings:"tnum"_1]'
 
 export const reportDueItemEndClass = 'flex flex-col items-end gap-[0.35rem]'
 

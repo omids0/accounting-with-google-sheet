@@ -97,10 +97,10 @@ export const recordItemAccentClass = cn(
 )
 
 export const amountIncomeClass =
-  'font-[family-name:var(--font-numeric)] tabular-nums text-success [font-feature-settings:"tnum"_1]'
+  'amount-income font-numeric tabular-nums text-success [font-feature-settings:"tnum"_1]'
 
 export const amountExpenseClass =
-  'font-[family-name:var(--font-numeric)] tabular-nums text-danger [font-feature-settings:"tnum"_1]'
+  'amount-expense font-numeric tabular-nums text-danger [font-feature-settings:"tnum"_1]'
 
 export const receivablesFiltersCardClass = cn(
   cardClassName(),
