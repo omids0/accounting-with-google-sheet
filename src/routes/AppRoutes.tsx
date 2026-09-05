@@ -21,6 +21,7 @@ import {
   LazyIncomeExpenseReportPage,
   LazyModuleReportPage,
   LazyOpeningBalanceReportPage,
+  LazyRemindersPage,
   LazySettingsPage,
   LazyTimesheetsPage,
   LazyTreasuryPage,
@@ -28,7 +29,6 @@ import {
 } from './lazyPages'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import Layout from '../components/Layout'
-import RemindersPage from '../components/RemindersPage'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 
 function parseFormType(value: string | null): 'income' | 'expense' | undefined {
@@ -78,7 +78,7 @@ export function AppAuthenticatedRoutes() {
         <Route path="calculators/currency" element={<LazyCurrencyConverterPage />} />
         <Route path="calculators/date" element={<LazyDateCalculatorPage />} />
         <Route path="about" element={<LazyAboutPage />} />
-        <Route path="settings/reminders" element={<RemindersPage />} />
+        <Route path="settings/reminders" element={<LazyRemindersPage />} />
         <Route path="settings" element={<LazySettingsPage />} />
         <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
         <Route path="reports/income-expense" element={<LazyIncomeExpenseReportPage />} />

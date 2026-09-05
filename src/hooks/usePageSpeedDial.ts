@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react'
 
 export interface PageSpeedDialAction {
   id: string
@@ -69,10 +69,12 @@ export function usePageSpeedDialConfig() {
 }
 
 export function useRegisterPageSpeedDial(config: PageSpeedDialConfig | null, active = true) {
+  const signature = useMemo(() => buildSignature(config), [config])
+
   useLayoutEffect(() => {
     if (!active) return
     publishPageSpeedDialConfig(config)
-  })
+  }, [active, signature, config])
 
   useLayoutEffect(() => {
     if (!active) return

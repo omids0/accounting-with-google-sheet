@@ -1,13 +1,9 @@
 import { formControlClassName } from './formStyles'
 import { cn } from '../../utils/cn'
 
-export const formInputTransition =
-  'transition-[border-color,box-shadow,background-color] duration-[var(--duration-fast)] ease-[var(--ease-out)]'
-
 export const formTriggerBase = cn(
-  'min-h-touch-min w-full border border-[var(--form-input-border)] bg-[var(--form-input-bg)] text-text shadow-[var(--form-input-shadow)]',
-  formInputTransition,
-  'hover:enabled:border-[var(--form-input-border-hover)] focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)] focus-visible:outline-none'
+  formControlClassName(),
+  'appearance-none cursor-pointer px-[0.9rem] py-[0.72rem] text-right font-[inherit] leading-[1.4]'
 )
 
 export function customSelectRootClass({ open, className }: { open?: boolean; className?: string }) {

@@ -1,6 +1,3 @@
-import html2canvas from 'html2canvas'
-import { jsPDF } from 'jspdf'
-
 const A4_WIDTH_MM = 210
 
 const A4_HEIGHT_MM = 297
@@ -207,6 +204,8 @@ async function renderContainerToPdf(
   orientation: 'portrait' | 'landscape',
   filename: string
 ): Promise<void> {
+  const [{ jsPDF }, html2canvasModule] = await Promise.all([import('jspdf'), import('html2canvas')])
+  const html2canvas = html2canvasModule.default
   const root = container.querySelector('.pdf-export-root') as HTMLElement
 
   if (!root) {

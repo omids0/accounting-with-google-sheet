@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { flushSync } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -21,7 +20,7 @@ import {
   isSettingsRemindersPath,
   SETTINGS_PATH
 } from '../../routes/paths'
-import { prefetchTabPage } from '../../routes/prefetchPages'
+import { prefetchTabPage, prefetchSecondaryAppPages } from '../../routes/prefetchPages'
 import { getUserName, getUserPicture } from '../../services/auth'
 import { useAppStore } from '../../stores/appStore'
 import { useNavigationStore } from '../../stores/navigationStore'
@@ -39,11 +38,8 @@ export function useLayoutNavigation() {
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false)
   const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false)
   const [timesheetMenuExpanded, setTimesheetMenuExpanded] = useState(false)
-  const [pendingTab, setPendingTab] = useState<Tab | null>(null)
 
-  const resolvedTab = getTabFromPath(location.pathname)
-  const tab = pendingTab ?? resolvedTab
-  const isPageTransitioning = pendingTab != null && pendingTab !== resolvedTab
+  const tab = getTabFromPath(location.pathname)
   const showSettings = isSettingsPath(location.pathname)
   const timesheetTitle = (location.state as TimesheetRouteState | null)?.title
 
@@ -54,10 +50,6 @@ export function useLayoutNavigation() {
   useEngagementReminders()
   usePrefetchAppPages()
 
-  useEffect(() => {
-    setPendingTab(null)
-  }, [location.pathname])
-
   const showPageSpeedDial =
     !showSettings && SPEED_DIAL_TABS.includes(tab) && pageSpeedDialConfig != null
 
@@ -65,10 +57,7 @@ export function useLayoutNavigation() {
     (newTab: Tab, options?: TabNavigationOptions) => {
       prefetchTabPage(newTab)
 
-      flushSync(() => {
-        setPendingTab(newTab)
-        setMenuOpen(false)
-      })
+      setMenuOpen(false)
 
       if (CALCULATION_TABS.includes(newTab)) {
         setCalcMenuExpanded(true)
@@ -139,6 +128,12 @@ export function useLayoutNavigation() {
   useEffect(() => {
     if (!menuOpen) return
 
+    prefetchSecondaryAppPages()
+  }, [menuOpen])
+
+  useEffect(() => {
+    if (!menuOpen) return
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenuOpen(false)
     }
@@ -195,7 +190,6 @@ export function useLayoutNavigation() {
 
   return {
     tab,
-    isPageTransitioning,
     spreadsheetKey,
     showSettings,
     menuOpen,

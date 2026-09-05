@@ -1,7 +1,7 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { lazy, Suspense, type CSSProperties, type ReactNode } from 'react'
 
 import AnimatedMoneyDisplay from './AnimatedMoneyDisplay'
-import Sparkline from './charts/Sparkline'
+import DeferredMount from './DeferredMount'
 import type { MoneyDisplayTone } from './MoneyDisplay'
 import {
   sparklineClass,
@@ -13,6 +13,8 @@ import {
   statLabelClass
 } from './ui/chartStyles'
 import { cn } from '../utils/cn'
+
+const LazySparkline = lazy(() => import('./charts/Sparkline'))
 
 type StatCardVariant = 'income' | 'expense' | 'balance' | 'flow' | 'default'
 type SparklineTone = 'income' | 'expense' | 'primary' | 'neutral'
@@ -125,11 +127,15 @@ export default function StatCard({
           animated={animated}
         />
         {showSparkline ? (
-          <Sparkline
-            data={sparklineData}
-            tone={resolvedSparklineTone}
-            className={wide ? sparklineWideClass : sparklineClass}
-          />
+          <DeferredMount idleTimeoutMs={800}>
+            <Suspense fallback={null}>
+              <LazySparkline
+                data={sparklineData}
+                tone={resolvedSparklineTone}
+                className={wide ? sparklineWideClass : sparklineClass}
+              />
+            </Suspense>
+          </DeferredMount>
         ) : null}
       </div>
       {footer}

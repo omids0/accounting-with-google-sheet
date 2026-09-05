@@ -10,8 +10,8 @@ import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRa
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
-import { CategoryBarChart, CategoryDonutChart } from '../charts'
 import { getCategoryBarYAxisWidth } from '../charts/chartUtils'
+import ReportCategoryChartsSection from '../charts/ReportCategoryChartsSection'
 import MoneyDisplay from '../MoneyDisplay'
 import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
@@ -131,29 +131,11 @@ export default function IncomeExpenseReportPage() {
         />
       </div>
 
-      {(data?.expenseByCategory.length ?? 0) > 0 && (
-        <>
-          <CategoryDonutChart title="سهم هزینه‌ها" data={data!.expenseByCategory} tone="expense" />
-          <CategoryBarChart
-            title="هزینه بر اساس دسته‌بندی"
-            data={data?.expenseByCategory ?? []}
-            tone="expense"
-            yAxisWidth={categoryYAxisWidth}
-          />
-        </>
-      )}
-
-      {(data?.incomeByCategory.length ?? 0) > 0 && (
-        <>
-          <CategoryDonutChart title="سهم درآمدها" data={data!.incomeByCategory} tone="income" />
-          <CategoryBarChart
-            title="درآمد بر اساس دسته‌بندی"
-            data={data?.incomeByCategory ?? []}
-            tone="income"
-            yAxisWidth={categoryYAxisWidth}
-          />
-        </>
-      )}
+      <ReportCategoryChartsSection
+        expenseByCategory={data?.expenseByCategory ?? []}
+        incomeByCategory={data?.incomeByCategory ?? []}
+        categoryYAxisWidth={categoryYAxisWidth}
+      />
 
       <Card>
         <h3 className={chartTitleClass}>تراکنش‌های دوره</h3>

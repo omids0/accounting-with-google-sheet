@@ -10,7 +10,7 @@ import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRa
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
-import { IncomeExpenseMonthlyChart } from '../charts'
+import MonthlyFlowChartSection from '../charts/MonthlyFlowChartSection'
 import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import Card from '../ui/Card'
@@ -133,7 +133,7 @@ export default function CashFlowReportPage() {
         animateIndex={2}
       />
 
-      <IncomeExpenseMonthlyChart
+      <MonthlyFlowChartSection
         data={monthlyFlow}
         header={
           <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>

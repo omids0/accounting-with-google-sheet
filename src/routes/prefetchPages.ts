@@ -4,6 +4,8 @@ import { BOTTOM_NAV_TABS } from '../components/layout/types'
 
 const prefetchedTabs = new Set<Tab>()
 
+let secondaryPrefetchStarted = false
+
 export function prefetchTabPage(tab: Tab): void {
   if (prefetchedTabs.has(tab)) return
 
@@ -22,11 +24,27 @@ export function prefetchBottomNavPages(): void {
 }
 
 export function prefetchSecondaryAppPages(): void {
-  for (const tab of Object.keys(TAB_PAGE_LOADERS) as Tab[]) {
-    if (!BOTTOM_NAV_TABS.includes(tab)) {
-      prefetchTabPage(tab)
+  if (secondaryPrefetchStarted) return
+  secondaryPrefetchStarted = true
+
+  const secondaryTabs = (Object.keys(TAB_PAGE_LOADERS) as Tab[]).filter(
+    tab => !BOTTOM_NAV_TABS.includes(tab)
+  )
+
+  const scheduleNext = (index: number) => {
+    if (index >= secondaryTabs.length) {
+      void import('./pageChunks').then(chunks => chunks.loadSettingsPage())
+      return
+    }
+
+    prefetchTabPage(secondaryTabs[index])
+
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(() => scheduleNext(index + 1), { timeout: 2_000 })
+    } else {
+      window.setTimeout(() => scheduleNext(index + 1), 120)
     }
   }
 
-  void import('./pageChunks').then(chunks => chunks.loadSettingsPage())
+  scheduleNext(0)
 }
