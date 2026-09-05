@@ -28,24 +28,37 @@ export const dashboardFlowSectionAnimatedClass = cn(
   '[&>.stat-card-wide:nth-of-type(2)]:[animation-delay:0.18s] [&>.stat-card-wide:nth-of-type(3)]:[animation-delay:0.24s]'
 )
 
-export const dashboardAssetsCardClass = 'mb-4'
+export const dashboardAssetsCardClass = cn(
+  'dashboard-assets-card mb-4',
+  '[&_.asset-value]:text-success [&_.asset-row-total_.asset-value]:text-success'
+)
 
-export const dashboardLiabilitiesCardClass =
+export const dashboardLiabilitiesCardClass = cn(
+  'dashboard-liabilities-card mb-4',
   '[&_.asset-value]:text-[#b91c1c] [&_.asset-row-total_.asset-value]:text-[#991b1b]'
+)
 
-export const assetBreakdownClass = 'flex flex-col gap-2'
+export const assetBreakdownClass = 'asset-breakdown flex flex-col gap-2'
 
-export const assetRowClass =
-  'flex items-center justify-between border-b border-dashed border-border py-[0.35rem] text-[0.85rem] last:border-b-0'
+export const assetRowClass = cn(
+  'asset-row flex items-center justify-between gap-3 border-b border-dashed border-border py-[0.28rem] last:border-b-0',
+  '[&_.asset-label]:min-w-0 [&_.asset-label]:truncate [&_.asset-value]:shrink-0'
+)
 
-export const assetRowTotalClass = 'mt-1 border-t-2 border-b-0 border-border pt-2 font-bold'
+export const assetRowTotalClass = cn(
+  'asset-row-total mt-1 border-t-2 border-b-0 border-border pt-1.5',
+  '[&_.asset-label]:text-[0.72rem] [&_.asset-label]:font-semibold [&_.asset-value]:text-[0.8rem] [&_.asset-value]:font-bold'
+)
 
-export const assetLabelClass = 'text-muted'
+export const assetLabelClass = 'asset-label text-[0.68rem] font-medium leading-[1.35] text-muted'
 
-export const assetLabelLinkClass =
-  'cursor-pointer border-none bg-transparent p-0 text-right font-[inherit] text-muted hover:text-text active:opacity-75'
+export const assetLabelLinkClass = cn(
+  'asset-label-link cursor-pointer border-none bg-transparent p-0 text-right text-[0.68rem] font-medium leading-[1.35] text-muted hover:text-text active:opacity-75'
+)
 
-export const assetValueClass = 'font-bold tracking-[0.01em] text-primary-dark'
+export const assetValueClass = cn(
+  'asset-value text-[0.76rem] font-semibold tracking-[0.01em] text-primary-dark font-numeric tabular-nums'
+)
 
 export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem]'
 

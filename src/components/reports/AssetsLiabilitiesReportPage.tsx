@@ -122,7 +122,7 @@ export default function AssetsLiabilitiesReportPage() {
         </div>
       </Card>
 
-      <Card className={cn(dashboardAssetsCardClass, dashboardLiabilitiesCardClass)}>
+      <Card className={dashboardLiabilitiesCardClass}>
         <h3 className={chartTitleClass}>بدهی‌ها</h3>
         <div className={assetBreakdownClass}>
           <BreakdownRow label="اقساط این دوره" value={financial?.installmentsDue ?? 0} />

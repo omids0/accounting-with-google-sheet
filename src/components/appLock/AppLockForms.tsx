@@ -4,7 +4,8 @@ import { FormField } from '../form'
 import {
   appLockCheckboxClass,
   appLockFormActionsClass,
-  appLockFormClass
+  appLockFormClass,
+  appLockPinInputClass
 } from '../ui/appLockStyles'
 import Button from '../ui/Button'
 import { spinnerClass } from '../ui/displayStyles'
@@ -53,6 +54,7 @@ export function PinFieldsForm({
           placeholder="حداقل ۴ رقم"
           disabled={loading}
           dir="ltr"
+          className={appLockPinInputClass}
         />
       </FormField>
       <FormField label="تکرار رمز">
@@ -66,6 +68,7 @@ export function PinFieldsForm({
           placeholder="تکرار رمز"
           disabled={loading}
           dir="ltr"
+          className={appLockPinInputClass}
         />
       </FormField>
       {step === 'setup' && biometricAvailable && (
@@ -124,6 +127,7 @@ export function CurrentPinForm({
           placeholder="رمز فعلی"
           disabled={loading}
           dir="ltr"
+          className={appLockPinInputClass}
         />
       </FormField>
       <div className={appLockFormActionsClass}>
@@ -175,6 +179,7 @@ export function ChangePinForm({
           placeholder="رمز فعلی"
           disabled={loading}
           dir="ltr"
+          className={appLockPinInputClass}
         />
       </FormField>
       <FormField label="رمز جدید">
@@ -188,6 +193,7 @@ export function ChangePinForm({
           placeholder="حداقل ۴ رقم"
           disabled={loading}
           dir="ltr"
+          className={appLockPinInputClass}
         />
       </FormField>
       <FormField label="تکرار رمز جدید">
@@ -201,6 +207,7 @@ export function ChangePinForm({
           placeholder="تکرار رمز"
           disabled={loading}
           dir="ltr"
+          className={appLockPinInputClass}
         />
       </FormField>
       <div className={appLockFormActionsClass}>

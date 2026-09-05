@@ -49,12 +49,12 @@ export const unlockGreetingClass =
 
 export const unlockBodyClass = 'flex flex-col gap-4 px-6 pb-6 pt-1'
 
-export const unlockPinSectionClass = 'flex flex-col items-center gap-3'
+export const unlockPinSectionClass = 'flex flex-col items-center gap-3 [direction:ltr]'
 
 export const unlockPinLabelClass =
-  'm-0 w-full text-center text-[0.76rem] font-bold tracking-[0.02em] text-[var(--form-label-color)]'
+  'm-0 w-full text-center text-[0.76rem] font-bold tracking-[0.02em] text-[var(--form-label-color)] [direction:rtl]'
 
-export const unlockPinCellsClass = 'flex items-center justify-center gap-3'
+export const unlockPinCellsClass = 'flex items-center justify-center gap-3 [direction:ltr]'
 
 export function unlockPinCellClass({
   filled,

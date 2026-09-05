@@ -48,10 +48,10 @@ const moneyDisplaySizeClass: Record<MoneyDisplaySize, string> = {
     '[&_.money-display__unit]:text-[0.66rem] [&_.money-display__unit]:font-semibold [&_.money-display__unit]:opacity-75'
   ),
   record: cn(
-    'inline-flex flex-shrink-0 items-baseline gap-[0.2rem] whitespace-nowrap leading-[1.2]',
-    '[&_.money-display__sign]:text-[0.72rem] [&_.money-display__sign]:font-semibold [&_.money-display__sign]:opacity-85',
-    '[&_.money-display__value]:text-[0.86rem] [&_.money-display__value]:font-bold [&_.money-display__value]:tracking-[0.01em]',
-    '[&_.money-display__unit]:text-[0.64rem] [&_.money-display__unit]:font-semibold [&_.money-display__unit]:opacity-75'
+    'inline-flex flex-shrink-0 items-baseline gap-[0.12rem] whitespace-nowrap leading-[1.2]',
+    '[&_.money-display__sign]:text-[0.68rem] [&_.money-display__sign]:font-semibold [&_.money-display__sign]:opacity-85',
+    '[&_.money-display__value]:text-[0.76rem] [&_.money-display__value]:font-semibold [&_.money-display__value]:tracking-[0.01em]',
+    '[&_.money-display__unit]:text-[0.52rem] [&_.money-display__unit]:font-normal [&_.money-display__unit]:opacity-65'
   )
 }
 
@@ -87,10 +87,10 @@ export function moneyDisplayClass({
 export const moneyDisplaySignClass = cn('money-display__sign font-numeric')
 
 export const moneyDisplayValueClassName = cn(
-  'money-display__value stat-value font-numeric font-extrabold tracking-[-0.02em]'
+  'money-display__value stat-value font-numeric tabular-nums tracking-[-0.02em]'
 )
 
-export const moneyDisplayUnitClassName = cn('money-display__unit font-sans font-semibold')
+export const moneyDisplayUnitClassName = cn('money-display__unit font-sans')
 
 export const recordItemClass =
   'flex items-center justify-between gap-3 border-b border-border py-[0.85rem] last:border-b-0'

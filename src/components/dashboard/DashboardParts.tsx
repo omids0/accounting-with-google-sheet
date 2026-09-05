@@ -10,9 +10,11 @@ import {
 } from '../ui/chartStyles'
 
 export function RecordAmount({ amount, type }: { amount: number; type: 'income' | 'expense' }) {
+  const signedAmount = type === 'expense' ? -Math.abs(amount) : Math.abs(amount)
+
   return (
     <MoneyDisplay
-      amount={amount}
+      amount={signedAmount}
       size="record"
       tone={type === 'income' ? 'income' : 'expense'}
       signed

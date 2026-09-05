@@ -12,7 +12,7 @@ import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
 import { getCategoryBarYAxisWidth } from '../charts/chartUtils'
 import ReportCategoryChartsSection from '../charts/ReportCategoryChartsSection'
-import MoneyDisplay from '../MoneyDisplay'
+import { RecordAmount } from '../dashboard/DashboardParts'
 import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
@@ -159,12 +159,7 @@ export default function IncomeExpenseReportPage() {
               tone={record.type === 'income' ? 'income' : 'expense'}
               index={index}
             >
-              <MoneyDisplay
-                amount={record.amount}
-                size="record"
-                tone={record.type === 'income' ? 'income' : 'expense'}
-                signed
-              />
+              <RecordAmount amount={record.amount} type={record.type} />
             </TransactionListItem>
           ))
         )}
