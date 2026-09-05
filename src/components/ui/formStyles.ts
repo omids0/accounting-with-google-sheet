@@ -5,7 +5,7 @@ export const formFieldClass = 'mb-[var(--form-gap)]'
 export const formLabelClass =
   'mb-1.5 block text-[0.82rem] font-semibold text-[var(--form-label-color)]'
 
-export const formHintClass = 'mt-1 text-[0.78rem] text-muted'
+export const formHintClass = 'my-1.5 text-[0.78rem] leading-[1.5] text-muted'
 
 export function formControlClassName(className?: string) {
   return cn(
