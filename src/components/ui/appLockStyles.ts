@@ -97,6 +97,8 @@ export const appLockPrimaryActionClass = 'w-full'
 export const appLockFormClass =
   'flex flex-col gap-2.5 rounded-[calc(var(--radius-sm)+2px)] border border-[color-mix(in_srgb,var(--color-border)_85%,transparent)] bg-bg p-[0.7rem]'
 
+export const appLockPinInputClass = 'text-left tabular-nums tracking-[0.2em]'
+
 export const appLockFormActionsClass = 'flex flex-wrap gap-2'
 
 export const appLockCheckboxClass =

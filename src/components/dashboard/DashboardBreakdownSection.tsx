@@ -1,6 +1,5 @@
 import { BreakdownRow } from './DashboardParts'
 import type { DashboardData, DashboardNavTarget } from '../../types'
-import { cn } from '../../utils/cn'
 import Card from '../ui/Card'
 import {
   assetBreakdownClass,
@@ -42,7 +41,7 @@ export default function DashboardBreakdownSection({
         </div>
       </Card>
 
-      <Card className={cn(dashboardAssetsCardClass, dashboardLiabilitiesCardClass)}>
+      <Card className={dashboardLiabilitiesCardClass}>
         <h3 className={chartTitleClass}>بدهی‌ها</h3>
         <div className={assetBreakdownClass}>
           <BreakdownRow

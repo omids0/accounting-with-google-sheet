@@ -31,7 +31,8 @@ export default function MoneyDisplay({
   signed?: boolean
   className?: string
 }) {
-  const { number, symbol } = formatMoneyParts(amount)
+  const displayAmount = signed ? Math.abs(amount) : amount
+  const { number, symbol } = formatMoneyParts(displayAmount)
 
   const sign = signed && amount > 0 ? '+' : signed && amount < 0 ? '−' : signed ? '' : null
 

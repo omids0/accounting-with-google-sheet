@@ -43,7 +43,7 @@ export default function UnlockPinInput({
         رمز ورود
       </span>
 
-      <label className={unlockPinCellsClass} htmlFor={id} aria-labelledby={`${id}-label`}>
+      <label className={unlockPinCellsClass} htmlFor={id} aria-labelledby={`${id}-label`} dir="ltr">
         {digits.map((digit, index) => {
           const filled = digit.trim().length > 0
           const active = !disabled && value.length === index
