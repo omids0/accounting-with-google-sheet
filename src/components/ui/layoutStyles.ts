@@ -43,6 +43,11 @@ export const pageContentClass = cn(
   pageContentStagger
 )
 
+export const pageContentTransitioningClass = cn(
+  pageContentClass,
+  'pointer-events-none opacity-70 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out)]'
+)
+
 export const animateInClass = 'animate-[scaleIn_0.65s_var(--ease-page)]'
 
 export const appLayoutClass = cn(

@@ -48,6 +48,16 @@ export const REPORT_TABS: Tab[] = [
   'report-checks'
 ]
 
+export const BOTTOM_NAV_TABS: Tab[] = [
+  'installments',
+  'dang',
+  'checks',
+  'dashboard',
+  'receivables',
+  'treasury',
+  'wallet'
+]
+
 export const SPEED_DIAL_TABS: Tab[] = [
   'dashboard',
   'installments',
