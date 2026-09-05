@@ -2,6 +2,22 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import { cn } from '../utils/cn'
+import Button from './ui/Button'
+import { spinnerClass } from './ui/displayStyles'
+import { confirmDeleteMessageClass } from './ui/featureCardStyles'
+import { formActionsClassName } from './ui/formStyles'
+import {
+  formModalActionsClass,
+  formModalBackdropClass,
+  formModalBodyClass,
+  formModalCloseClass,
+  formModalHeaderClass,
+  formModalPanelClass,
+  formModalRootClass,
+  formModalSpinnerClass,
+  formModalTitleClass
+} from './ui/modalStyles'
 
 type ConfirmActionModalProps = {
   open: boolean
@@ -42,28 +58,28 @@ export default function ConfirmActionModal({
 
   return createPortal(
     <div
-      className="form-modal confirm-action-modal"
+      className={cn(formModalRootClass, 'confirm-action-modal')}
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-action-title"
     >
       <button
         type="button"
-        className="form-modal-backdrop"
+        className={formModalBackdropClass}
         onClick={() => {
           if (!confirming) onClose()
         }}
         aria-label="بستن"
       />
 
-      <div className="form-modal-panel">
-        <div className="form-modal-header">
-          <h2 id="confirm-action-title" className="form-modal-title">
+      <div className={formModalPanelClass}>
+        <div className={formModalHeaderClass}>
+          <h2 id="confirm-action-title" className={formModalTitleClass}>
             {title}
           </h2>
           <button
             type="button"
-            className="form-modal-close"
+            className={formModalCloseClass}
             onClick={onClose}
             disabled={confirming}
             aria-label="بستن"
@@ -72,28 +88,18 @@ export default function ConfirmActionModal({
           </button>
         </div>
 
-        <div className="form-modal-body">
-          <p className="confirm-delete-message">{message}</p>
+        <div className={formModalBodyClass}>
+          <p className={confirmDeleteMessageClass}>{message}</p>
         </div>
 
-        <div className="form-actions form-modal-actions">
-          {confirming && <span className="spinner form-modal-spinner" aria-hidden />}
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={confirming}
-            onClick={onConfirm}
-          >
+        <div className={cn(formModalActionsClass, formActionsClassName())}>
+          {confirming && <span className={cn(spinnerClass, formModalSpinnerClass)} aria-hidden />}
+          <Button type="button" variant="primary" disabled={confirming} onClick={onConfirm}>
             {confirmLabel}
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            disabled={confirming}
-            onClick={onClose}
-          >
+          </Button>
+          <Button type="button" variant="secondary" disabled={confirming} onClick={onClose}>
             خیر
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

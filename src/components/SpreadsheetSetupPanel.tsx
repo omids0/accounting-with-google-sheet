@@ -13,6 +13,18 @@ import {
 import type { SpreadsheetEntry } from '../types'
 import AppIcon from './AppIcon'
 import { FormField, FormSelect } from './form'
+import { spinnerClass } from './ui/displayStyles'
+import { animateInClass } from './ui/layoutStyles'
+import {
+  loginCardClass,
+  loginLogoClass,
+  loginLogoIconClass,
+  loginLogoSubtitleClass,
+  loginLogoTitleClass,
+  loginPageClass
+} from './ui/loginStyles'
+import { cn } from '../utils/cn'
+import Button from './ui/Button'
 import { showError } from '../utils/toast'
 
 interface SpreadsheetSetupPanelProps {
@@ -77,14 +89,16 @@ export default function SpreadsheetSetupPanel({
     : `${SPREADSHEET_TITLE_PREFIX}…`
 
   return (
-    <div className="login-page">
-      <div className="login-card animate-in">
-        <div className="login-logo">
-          <span className="icon">
+    <div className={loginPageClass}>
+      <div className={cn(loginCardClass, animateInClass)}>
+        <div className={loginLogoClass}>
+          <span className={loginLogoIconClass}>
             <AppIcon name="folder" />
           </span>
-          <h1>{mode === 'pick' ? 'انتخاب شیت' : 'ساخت اولین شیت'}</h1>
-          <p>
+          <h1 className={loginLogoTitleClass}>
+            {mode === 'pick' ? 'انتخاب شیت' : 'ساخت اولین شیت'}
+          </h1>
+          <p className={loginLogoSubtitleClass}>
             {mode === 'pick'
               ? 'شیت‌های حسابداری روی Google Drive پیدا شد. یکی را انتخاب کنید — شیت جدید خودکار ساخته نمی‌شود.'
               : 'اولین شیت با فرمت استاندارد ساخته می‌شود و روی همه دستگاه‌ها قابل پیدا کردن است.'}
@@ -116,24 +130,25 @@ export default function SpreadsheetSetupPanel({
               }
             />
 
-            <button
-              className="btn btn-primary"
+            <Button
+              variant="primary"
               onClick={handleActivate}
               disabled={loading || !selectedId}
               style={{ width: '100%' }}
             >
-              {loading && <span className="spinner" />}
+              {loading && <span className={spinnerClass} />}
               ادامه با این شیت
-            </button>
+            </Button>
 
-            <button
-              className="btn btn-secondary btn-sm"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setMode('create')}
               disabled={loading}
               style={{ width: '100%', marginTop: '0.75rem' }}
             >
               + ساخت شیت جدید
-            </button>
+            </Button>
           </>
         ) : (
           <>
@@ -160,25 +175,26 @@ export default function SpreadsheetSetupPanel({
               />
             </FormField>
 
-            <button
-              className="btn btn-primary"
+            <Button
+              variant="primary"
               onClick={handleCreate}
               disabled={loading}
               style={{ width: '100%' }}
             >
-              {loading && <span className="spinner" />}
+              {loading && <span className={spinnerClass} />}
               ساخت و ادامه
-            </button>
+            </Button>
 
             {options.length > 0 && (
-              <button
-                className="btn btn-secondary btn-sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setMode('pick')}
                 disabled={loading}
                 style={{ width: '100%', marginTop: '0.75rem' }}
               >
                 بازگشت به لیست شیت‌ها
-              </button>
+              </Button>
             )}
           </>
         )}

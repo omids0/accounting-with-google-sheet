@@ -1,5 +1,15 @@
 import AppIcon from '../AppIcon'
 import type { Tab } from './types'
+import {
+  bottomNavCenterClass,
+  bottomNavClass,
+  bottomNavDashboardClass,
+  bottomNavDashboardIconClass,
+  bottomNavDashboardLabelClass,
+  bottomNavSideClass,
+  bottomNavTabBtnClass,
+  bottomNavTabIconClass
+} from '../ui/layoutStyles'
 
 interface LayoutBottomNavProps {
   showSettings: boolean
@@ -8,78 +18,78 @@ interface LayoutBottomNavProps {
 }
 
 export default function LayoutBottomNav({ showSettings, tab, onTabChange }: LayoutBottomNavProps) {
+  const dashboardActive = !showSettings && (tab === 'dashboard' || tab === 'records')
+
   return (
-    <nav className="bottom-nav">
-      <div className="bottom-nav-side bottom-nav-side--right">
+    <nav className={bottomNavClass}>
+      <div className={bottomNavSideClass}>
         <button
-          className={!showSettings && tab === 'installments' ? 'active' : ''}
+          className={bottomNavTabBtnClass(!showSettings && tab === 'installments')}
           onClick={() => onTabChange('installments')}
         >
-          <span className="icon">
+          <span className={bottomNavTabIconClass(!showSettings && tab === 'installments')}>
             <AppIcon name="installments" />
           </span>
           اقساط
         </button>
         <button
-          className={!showSettings && tab === 'dang' ? 'active' : ''}
+          className={bottomNavTabBtnClass(!showSettings && tab === 'dang')}
           onClick={() => onTabChange('dang')}
         >
-          <span className="icon">
+          <span className={bottomNavTabIconClass(!showSettings && tab === 'dang')}>
             <AppIcon name="debt" />
           </span>
           بدهی
         </button>
         <button
-          className={!showSettings && tab === 'checks' ? 'active' : ''}
+          className={bottomNavTabBtnClass(!showSettings && tab === 'checks')}
           onClick={() => onTabChange('checks')}
         >
-          <span className="icon">
+          <span className={bottomNavTabIconClass(!showSettings && tab === 'checks')}>
             <AppIcon name="checks" />
           </span>
           چک‌ها
         </button>
       </div>
 
-      <div className="bottom-nav-center">
+      <div className={bottomNavCenterClass}>
         <button
           type="button"
-          className={`bottom-nav-dashboard${
-            !showSettings && (tab === 'dashboard' || tab === 'records') ? ' active' : ''
-          }`}
+          className={bottomNavDashboardClass(dashboardActive)}
           onClick={() => onTabChange('dashboard')}
           aria-label="داشبورد"
         >
-          <span className="bottom-nav-dashboard-icon">
+          <span className={bottomNavDashboardIconClass}>
             <AppIcon name="dashboard" size={26} />
           </span>
-          <span className="bottom-nav-dashboard-label">داشبورد</span>
+          <span className={bottomNavDashboardLabelClass}>داشبورد</span>
         </button>
       </div>
 
-      <div className="bottom-nav-side bottom-nav-side--left">
+      <div className={bottomNavSideClass}>
         <button
-          className={!showSettings && tab === 'receivables' ? 'active' : ''}
+          className={bottomNavTabBtnClass(!showSettings && tab === 'receivables')}
           onClick={() => onTabChange('receivables')}
         >
-          <span className="icon">
+          <span className={bottomNavTabIconClass(!showSettings && tab === 'receivables')}>
             <AppIcon name="receivables" />
           </span>
           طلب‌ها
         </button>
         <button
-          className={!showSettings && tab === 'treasury' ? 'active' : ''}
+          className={bottomNavTabBtnClass(!showSettings && tab === 'treasury')}
           onClick={() => onTabChange('treasury')}
         >
-          <span className="icon">
+          <span className={bottomNavTabIconClass(!showSettings && tab === 'treasury')}>
             <AppIcon name="treasury" />
           </span>
           صندوق
         </button>
         <button
-          className={!showSettings && tab === 'wallet' ? 'active' : ''}
+          className={bottomNavTabBtnClass(!showSettings && tab === 'wallet')}
           onClick={() => onTabChange('wallet')}
         >
-          <span className="icon">
+          <span className={bottomNavTabIconClass(!showSettings && tab === 'wallet')}>
             <AppIcon name="wallet" />
           </span>
           کیف پول

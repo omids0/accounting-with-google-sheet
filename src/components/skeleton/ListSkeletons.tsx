@@ -8,6 +8,23 @@ import {
   WalletAccountCardSkeleton
 } from './CardSkeletons'
 import { Skeleton } from './Skeleton'
+import { cn } from '../../utils/cn'
+import { cardClassName } from '../ui/Card'
+import { dashboardOpeningCardClass, dashboardStatGridClass } from '../ui/chartStyles'
+import {
+  installmentCardClass,
+  installmentHeaderClass,
+  walletItemCardClass,
+  walletItemInfoClass,
+  walletItemTitleRowClass
+} from '../ui/featureCardStyles'
+import { recordsListHeaderClass } from '../ui/recordsStyles'
+import {
+  skeletonCardClass,
+  skeletonListClass,
+  skeletonRecordsCardClass
+} from '../ui/skeletonStyles'
+import { timesheetDetailStatsClass } from '../ui/toolsPageStyles'
 
 export function InstallmentCardListSkeleton({
   count = 3,
@@ -26,14 +43,14 @@ export function InstallmentCardListSkeleton({
   return (
     <div aria-busy="true" aria-label="در حال بارگذاری">
       <FilterChipsSkeleton count={filterChips} />
-      <div className="skeleton-list">
+      <div className={skeletonListClass}>
         {Array.from({ length: count }, (_, index) => (
           <CardSkeleton key={index} />
         ))}
       </div>
       {footerStats === 1 && <StatCardSkeleton wide />}
       {footerStats === 2 && (
-        <div className="stat-grid dashboard-stat-grid">
+        <div className={dashboardStatGridClass}>
           <StatCardSkeleton />
           <StatCardSkeleton />
         </div>
@@ -54,7 +71,7 @@ export function DangCardListSkeleton({
   return (
     <div aria-busy="true" aria-label="در حال بارگذاری">
       <FilterChipsSkeleton count={filterChips} />
-      <div className="skeleton-list">
+      <div className={skeletonListClass}>
         {Array.from({ length: count }, (_, index) => (
           <DangCardSkeleton key={index} />
         ))}
@@ -69,12 +86,19 @@ export function WalletPageSkeleton({ count = 3 }: { count?: number }) {
     <div aria-busy="true" aria-label="در حال بارگذاری">
       <FilterChipsSkeleton count={0} />
       <div
-        className="card installment-card interactive-card dashboard-opening-card wallet-item-card skeleton-card"
+        className={cardClassName(
+          cn(
+            installmentCardClass({}),
+            dashboardOpeningCardClass,
+            walletItemCardClass,
+            skeletonCardClass
+          )
+        )}
         aria-hidden="true"
       >
-        <div className="installment-header wallet-item-header">
-          <div className="wallet-item-info" style={{ width: '100%' }}>
-            <div className="wallet-item-title-row">
+        <div className={cn(installmentHeaderClass(), 'wallet-item-header')}>
+          <div className={walletItemInfoClass} style={{ width: '100%' }}>
+            <div className={walletItemTitleRowClass}>
               <Skeleton width="42%" height="0.95rem" />
               <Skeleton
                 width="5rem"
@@ -92,7 +116,7 @@ export function WalletPageSkeleton({ count = 3 }: { count?: number }) {
           />
         </div>
       </div>
-      <div className="skeleton-list">
+      <div className={skeletonListClass}>
         {Array.from({ length: count }, (_, index) => (
           <WalletAccountCardSkeleton key={index} />
         ))}
@@ -105,11 +129,11 @@ export function WalletPageSkeleton({ count = 3 }: { count?: number }) {
 export function TimesheetDetailListSkeleton({ count = 3 }: { count?: number }) {
   return (
     <div aria-busy="true" aria-label="در حال بارگذاری">
-      <div className="stat-grid dashboard-stat-grid timesheet-detail-stats">
+      <div className={cn(dashboardStatGridClass, timesheetDetailStatsClass)}>
         <StatCardSkeleton />
         <StatCardSkeleton />
       </div>
-      <div className="skeleton-list">
+      <div className={skeletonListClass}>
         {Array.from({ length: count }, (_, index) => (
           <InstallmentCardSkeleton key={index} />
         ))}
@@ -121,11 +145,11 @@ export function TimesheetDetailListSkeleton({ count = 3 }: { count?: number }) {
 export function RecordListSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div
-      className="card records-list-card skeleton-records-card"
+      className={cardClassName(cn('records-list-card', skeletonRecordsCardClass))}
       aria-busy="true"
       aria-label="در حال بارگذاری"
     >
-      <div className="records-list-header">
+      <div className={recordsListHeaderClass}>
         <Skeleton width="4rem" height="0.75rem" />
         <Skeleton width="3.5rem" height="1.25rem" style={{ borderRadius: '999px' }} />
       </div>

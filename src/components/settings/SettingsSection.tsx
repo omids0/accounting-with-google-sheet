@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react'
 
+import {
+  settingsSectionClass,
+  settingsSectionItemsClass,
+  settingsSectionTitleClass
+} from '../ui/settingsStyles'
+
 interface SettingsSectionProps {
   title: string
   children: ReactNode
@@ -7,9 +13,9 @@ interface SettingsSectionProps {
 
 export default function SettingsSection({ title, children }: SettingsSectionProps) {
   return (
-    <section className="settings-section">
-      <h2 className="settings-section-title">{title}</h2>
-      <div className="settings-section-items">{children}</div>
+    <section className={settingsSectionClass}>
+      <h2 className={settingsSectionTitleClass}>{title}</h2>
+      <div className={settingsSectionItemsClass}>{children}</div>
     </section>
   )
 }

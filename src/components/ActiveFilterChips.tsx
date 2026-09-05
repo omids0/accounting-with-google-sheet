@@ -1,27 +1,33 @@
-import AppIcon from './AppIcon';
+import AppIcon from './AppIcon'
+import {
+  activeFilterChipClass,
+  activeFilterChipMainClass,
+  activeFilterChipRemoveClass,
+  activeFilterChipsClass
+} from './ui/filterControlStyles'
 
 export interface FilterChip {
-  id: string;
-  label: string;
-  onRemove?: () => void;
+  id: string
+  label: string
+  onRemove?: () => void
 }
 
 export default function ActiveFilterChips({
   chips,
-  onChipClick,
+  onChipClick
 }: {
-  chips: FilterChip[];
-  onChipClick?: () => void;
+  chips: FilterChip[]
+  onChipClick?: () => void
 }) {
-  if (chips.length === 0) return null;
+  if (chips.length === 0) return null
 
   return (
-    <div className="active-filter-chips" role="list" aria-label="فیلترهای فعال">
-      {chips.map((chip) => (
-        <span key={chip.id} className="active-filter-chip" role="listitem">
+    <div className={activeFilterChipsClass} role="list" aria-label="فیلترهای فعال">
+      {chips.map(chip => (
+        <span key={chip.id} className={activeFilterChipClass} role="listitem">
           <button
             type="button"
-            className={`active-filter-chip__main${onChipClick ? ' active-filter-chip__main--clickable' : ''}`}
+            className={activeFilterChipMainClass(Boolean(onChipClick))}
             onClick={onChipClick}
             disabled={!onChipClick}
             aria-label={`ویرایش فیلتر ${chip.label}`}
@@ -31,7 +37,7 @@ export default function ActiveFilterChips({
           {chip.onRemove && (
             <button
               type="button"
-              className="active-filter-chip__remove"
+              className={activeFilterChipRemoveClass}
               onClick={chip.onRemove}
               aria-label={`حذف فیلتر ${chip.label}`}
             >
@@ -41,5 +47,5 @@ export default function ActiveFilterChips({
         </span>
       ))}
     </div>
-  );
+  )
 }

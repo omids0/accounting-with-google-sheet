@@ -2,6 +2,7 @@ import CronSetupSection from './reminders/CronSetupSection'
 import InstallmentsReminderSection from './reminders/InstallmentsReminderSection'
 import PushStatusSection from './reminders/PushStatusSection'
 import { useRemindersPage } from './reminders/useRemindersPage'
+import Card from './ui/Card'
 
 export default function RemindersPage() {
   const page = useRemindersPage()
@@ -9,11 +10,11 @@ export default function RemindersPage() {
   return (
     <div>
       {page.loading ? (
-        <div className="card">
+        <Card>
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
             در حال بارگذاری...
           </p>
-        </div>
+        </Card>
       ) : (
         <>
           <PushStatusSection

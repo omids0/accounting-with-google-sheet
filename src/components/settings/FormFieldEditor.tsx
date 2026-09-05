@@ -3,6 +3,8 @@ import { useState } from 'react'
 import type { FieldConfig, FieldType } from '../../types'
 import { FormField, FormSelect } from '../form'
 import { FIELD_TYPES } from './types'
+import Button from '../ui/Button'
+import { fieldRowClass } from '../ui/recordsStyles'
 
 type FormFieldEditorProps = {
   fields: FieldConfig[]
@@ -29,7 +31,7 @@ export default function FormFieldEditor({ fields: initialFields, onSave }: FormF
   return (
     <div style={{ marginTop: '0.75rem' }}>
       {fields.map((field, index) => (
-        <div key={field.id} className="field-row">
+        <div key={field.id} className={fieldRowClass}>
           <FormField label="برچسب">
             <input
               value={field.label}
@@ -44,16 +46,12 @@ export default function FormFieldEditor({ fields: initialFields, onSave }: FormF
           />
         </div>
       ))}
-      <button
-        className="btn btn-secondary btn-sm"
-        onClick={addField}
-        style={{ marginBottom: '0.5rem' }}
-      >
+      <Button variant="secondary" size="sm" onClick={addField} style={{ marginBottom: '0.5rem' }}>
         + فیلد
-      </button>
-      <button className="btn btn-primary btn-sm" onClick={() => onSave(fields)}>
+      </Button>
+      <Button variant="primary" size="sm" onClick={() => onSave(fields)}>
         ذخیره فیلدها
-      </button>
+      </Button>
     </div>
   )
 }

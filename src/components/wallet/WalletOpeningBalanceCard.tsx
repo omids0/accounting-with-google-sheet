@@ -1,7 +1,29 @@
 import type { WalletPeriodFlow } from '../../services/wallet'
+import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AmountInput from '../AmountInput'
+import Button from '../ui/Button'
+import {
+  dashboardOpeningBodyClass,
+  dashboardOpeningCardClass,
+  dashboardOpeningFormClass,
+  dashboardOpeningHintClass,
+  dashboardOpeningInputWrapClass,
+  walletOpeningMoreBtnClass
+} from '../ui/chartStyles'
+import {
+  installmentChevronClass,
+  installmentHeaderClass,
+  installmentPaymentsClass,
+  installmentCardClass,
+  listCardAmountPillClass,
+  listCardSubtitleClass,
+  listCardTitleClass,
+  walletItemCardClass,
+  walletItemInfoClass,
+  walletItemTitleRowClass
+} from '../ui/featureCardStyles'
 
 type WalletOpeningBalanceCardProps = {
   periodFlow: WalletPeriodFlow
@@ -31,56 +53,59 @@ export default function WalletOpeningBalanceCard({
 
   return (
     <div
-      className={`card installment-card interactive-card dashboard-opening-card wallet-item-card${
-        openingExpanded ? ' installment-card--expanded' : ''
-      }`}
+      className={cn(
+        installmentCardClass({ expanded: openingExpanded }),
+        dashboardOpeningCardClass,
+        walletItemCardClass
+      )}
     >
       <button
         type="button"
-        className={`installment-header wallet-item-header${
-          openingExpanded ? ' installment-header--expanded' : ''
-        }`}
+        className={cn(installmentHeaderClass(openingExpanded), 'wallet-item-header')}
         onClick={onToggleExpanded}
       >
-        <div className="wallet-item-info">
-          <div className="wallet-item-title-row">
-            <div className="list-card-title">موجودی اول دوره</div>
-            <div className="wallet-item-amount list-card-amount-pill" dir="ltr">
+        <div className={walletItemInfoClass}>
+          <div className={walletItemTitleRowClass}>
+            <div className={listCardTitleClass}>موجودی اول دوره</div>
+            <div className={listCardAmountPillClass} dir="ltr">
               {formatMoney(displayOpeningBalance)}
             </div>
           </div>
-          <div className="wallet-item-note list-card-subtitle">ابتدای {periodFlow.monthLabel}</div>
+          <div className={listCardSubtitleClass}>ابتدای {periodFlow.monthLabel}</div>
         </div>
-        <span className="installment-chevron">▼</span>
+        <span className={installmentChevronClass}>▼</span>
       </button>
 
       <AccordionCollapse open={openingExpanded}>
-        <div className="installment-payments dashboard-opening-body">
-          <p className="dashboard-opening-hint">
+        <div className={cn(installmentPaymentsClass, dashboardOpeningBodyClass)}>
+          <p className={dashboardOpeningHintClass}>
             موجودی کیف پول در ابتدای {periodFlow.monthLabel} را وارد کنید. با خالص دوره (درآمد −
             هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
           </p>
-          <div className="dashboard-opening-form">
-            <div className="dashboard-opening-input-wrap">
+          <div className={dashboardOpeningFormClass}>
+            <div className={dashboardOpeningInputWrapClass}>
               <AmountInput value={openingInput} onChange={onOpeningInputChange} />
             </div>
-            <button
+            <Button
               type="button"
-              className="btn btn-primary btn-sm"
+              variant="primary"
+              size="sm"
               onClick={onSave}
               disabled={savingOpening || loading}
             >
               {savingOpening ? '...' : 'ذخیره'}
-            </button>
+            </Button>
           </div>
           {onOpenOpeningBalances && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-sm wallet-opening-more-btn"
+              variant="secondary"
+              size="sm"
+              className={walletOpeningMoreBtnClass}
               onClick={onOpenOpeningBalances}
             >
               گزینه‌های بیشتر
-            </button>
+            </Button>
           )}
         </div>
       </AccordionCollapse>

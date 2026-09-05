@@ -1,31 +1,33 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { VitePWA } from 'vite-plugin-pwa';
+import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
-const basePath = process.env.VITE_BASE_PATH ?? '/';
+const basePath = process.env.VITE_BASE_PATH ?? '/'
 
 export default defineConfig(({ command }) => ({
   base: basePath,
   test: {
     environment: 'jsdom',
     globals: true,
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts']
   },
   plugins: [
+    tailwindcss(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
         enabled: true,
-        type: 'module',
+        type: 'module'
       },
       includeAssets: [
         'favicon.svg',
         'apple-touch-icon.png',
         'pwa-192x192.png',
         'pwa-512x512.png',
-        'pwa-maskable-512x512.png',
+        'pwa-maskable-512x512.png'
       ],
       manifest: {
         id: basePath,
@@ -45,35 +47,32 @@ export default defineConfig(({ command }) => ({
             src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any',
+            purpose: 'any'
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any',
+            purpose: 'any'
           },
           {
             src: 'pwa-maskable-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable',
-          },
-        ],
+            purpose: 'maskable'
+          }
+        ]
       },
       workbox: {
-        globPatterns:
-          command === 'serve'
-            ? []
-            : ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: command === 'serve' ? [] : ['**/*.{js,css,html,ico,png,svg,woff2}'],
         importScripts: ['push-handler.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/sheets\.googleapis\.com\/.*/i,
-            handler: 'NetworkOnly',
-          },
-        ],
-      },
-    }),
-  ],
-}));
+            handler: 'NetworkOnly'
+          }
+        ]
+      }
+    })
+  ]
+}))

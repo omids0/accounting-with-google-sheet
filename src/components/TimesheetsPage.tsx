@@ -7,6 +7,8 @@ import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
+import Button from './ui/Button'
+import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
@@ -22,8 +24,8 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="clock" />
         </div>
 
@@ -60,16 +62,16 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
       {page.loading && page.items.length === 0 ? (
         <InstallmentCardListSkeleton footerStats={0} />
       ) : page.items.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">
+        <div className={emptyStateClass}>
+          <div className={emptyStateIconClass}>
             <AppIcon name="clock" />
           </div>
 
           <p>هنوز تایم‌شیتی ثبت نشده</p>
 
-          <button type="button" className="btn btn-primary btn-sm" onClick={page.openCreateForm}>
+          <Button type="button" variant="primary" size="sm" onClick={page.openCreateForm}>
             افزودن تایم‌شیت
-          </button>
+          </Button>
         </div>
       ) : page.filteredItems.length === 0 ? (
         <SearchEmptyState />

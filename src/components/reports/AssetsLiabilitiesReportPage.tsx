@@ -5,17 +5,35 @@ import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, getNetAvailableConfig, isConfigured } from '../../services/settings'
 import type { DashboardData } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
+import { cn } from '../../utils/cn'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import { DashboardSkeleton } from '../skeleton'
+import Card from '../ui/Card'
+import {
+  assetBreakdownClass,
+  assetLabelClass,
+  assetRowClass,
+  assetRowTotalClass,
+  assetValueClass,
+  chartTitleClass,
+  dashboardAssetsCardClass,
+  dashboardHeroCardClass,
+  dashboardHeroHintClass,
+  dashboardHeroLabelClass,
+  dashboardLiabilitiesCardClass,
+  dashboardPageClass
+} from '../ui/chartStyles'
+import { emptyStateClass } from '../ui/displayStyles'
+import { reportPageClass } from '../ui/toolsPageStyles'
 
 function BreakdownRow({ label, value, total }: { label: string; value: number; total?: boolean }) {
   return (
-    <div className={`asset-row${total ? ' asset-row-total' : ''}`}>
-      <span className="asset-label">{label}</span>
-      <span className="asset-value" dir="ltr">
+    <div className={cn(assetRowClass, total && assetRowTotalClass)}>
+      <span className={assetLabelClass}>{label}</span>
+      <span className={assetValueClass} dir="ltr">
         {formatMoney(value)}
       </span>
     </div>
@@ -63,7 +81,7 @@ export default function AssetsLiabilitiesReportPage() {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
+      <div className={emptyStateClass}>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     )
@@ -76,7 +94,7 @@ export default function AssetsLiabilitiesReportPage() {
   const financial = data?.financial
 
   return (
-    <div className="dashboard-page report-page">
+    <div className={cn(dashboardPageClass, reportPageClass)}>
       <ReportToolbar
         title="دارایی و بدهی"
         preset={datePreset}
@@ -86,33 +104,33 @@ export default function AssetsLiabilitiesReportPage() {
         loading={loading}
       />
 
-      <div className="card dashboard-hero-card">
-        <div className="dashboard-hero-label">تراز خالص</div>
+      <Card className={dashboardHeroCardClass}>
+        <div className={dashboardHeroLabelClass}>تراز خالص</div>
         <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
-        <p className="dashboard-hero-hint">
+        <p className={dashboardHeroHintClass}>
           دارایی‌ها منهای بدهی‌ها (بر اساس تنظیمات دارایی قابل اتکا)
         </p>
-      </div>
+      </Card>
 
-      <div className="card dashboard-assets-card">
-        <h3 className="chart-title">دارایی‌ها</h3>
-        <div className="asset-breakdown">
+      <Card className={dashboardAssetsCardClass}>
+        <h3 className={chartTitleClass}>دارایی‌ها</h3>
+        <div className={assetBreakdownClass}>
           <BreakdownRow label="کیف پول" value={financial?.walletTotal ?? 0} />
           <BreakdownRow label="صندوقچه" value={financial?.treasuryTotal ?? 0} />
           <BreakdownRow label="طلب‌ها" value={financial?.receivablesTotal ?? 0} />
           <BreakdownRow label="مجموع دارایی‌ها" value={financial?.totalAssets ?? 0} total />
         </div>
-      </div>
+      </Card>
 
-      <div className="card dashboard-assets-card dashboard-liabilities-card">
-        <h3 className="chart-title">بدهی‌ها</h3>
-        <div className="asset-breakdown">
+      <Card className={cn(dashboardAssetsCardClass, dashboardLiabilitiesCardClass)}>
+        <h3 className={chartTitleClass}>بدهی‌ها</h3>
+        <div className={assetBreakdownClass}>
           <BreakdownRow label="اقساط این دوره" value={financial?.installmentsDue ?? 0} />
           <BreakdownRow label="بدهی‌ها" value={financial?.dangsTotal ?? 0} />
           <BreakdownRow label="چک‌های این دوره" value={financial?.checksDue ?? 0} />
           <BreakdownRow label="مجموع بدهی‌ها" value={financial?.totalLiabilities ?? 0} total />
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

@@ -1,6 +1,13 @@
 import { type FormEvent } from 'react'
 
 import { FormField } from '../form'
+import {
+  appLockCheckboxClass,
+  appLockFormActionsClass,
+  appLockFormClass
+} from '../ui/appLockStyles'
+import Button from '../ui/Button'
+import { spinnerClass } from '../ui/displayStyles'
 
 type SetupStep = 'idle' | 'setup' | 'disable' | 'change-pin' | 'disable-biometric'
 
@@ -34,7 +41,7 @@ export function PinFieldsForm({
   onCancel
 }: PinFieldsFormProps) {
   return (
-    <form onSubmit={onSubmit} className="app-lock-form">
+    <form onSubmit={onSubmit} className={appLockFormClass}>
       <FormField label={step === 'change-pin' ? 'رمز جدید' : 'رمز'}>
         <input
           type="password"
@@ -62,7 +69,7 @@ export function PinFieldsForm({
         />
       </FormField>
       {step === 'setup' && biometricAvailable && (
-        <label className="app-lock-checkbox">
+        <label className={appLockCheckboxClass}>
           <input
             type="checkbox"
             checked={useBiometric}
@@ -72,19 +79,14 @@ export function PinFieldsForm({
           <span>ورود با اثر انگشت (در صورت پشتیبانی دستگاه)</span>
         </label>
       )}
-      <div className="app-lock-form-actions">
-        <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
-          {loading && <span className="spinner" />}
+      <div className={appLockFormActionsClass}>
+        <Button type="submit" variant="primary" size="sm" disabled={loading}>
+          {loading && <span className={spinnerClass} />}
           {submitLabel}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={onCancel}
-          disabled={loading}
-        >
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
           انصراف
-        </button>
+        </Button>
       </div>
     </form>
   )
@@ -110,7 +112,7 @@ export function CurrentPinForm({
   onCancel
 }: CurrentPinFormProps) {
   return (
-    <form onSubmit={onSubmit} className="app-lock-form">
+    <form onSubmit={onSubmit} className={appLockFormClass}>
       <FormField label="رمز فعلی">
         <input
           type="password"
@@ -124,23 +126,14 @@ export function CurrentPinForm({
           dir="ltr"
         />
       </FormField>
-      <div className="app-lock-form-actions">
-        <button
-          type="submit"
-          className={`btn btn-sm ${danger ? 'btn-danger' : 'btn-primary'}`}
-          disabled={loading}
-        >
-          {loading && <span className="spinner" />}
+      <div className={appLockFormActionsClass}>
+        <Button type="submit" variant={danger ? 'danger' : 'primary'} size="sm" disabled={loading}>
+          {loading && <span className={spinnerClass} />}
           {submitLabel}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={onCancel}
-          disabled={loading}
-        >
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
           انصراف
-        </button>
+        </Button>
       </div>
     </form>
   )
@@ -170,7 +163,7 @@ export function ChangePinForm({
   onCancel
 }: ChangePinFormProps) {
   return (
-    <form onSubmit={onSubmit} className="app-lock-form">
+    <form onSubmit={onSubmit} className={appLockFormClass}>
       <FormField label="رمز فعلی">
         <input
           type="password"
@@ -210,19 +203,14 @@ export function ChangePinForm({
           dir="ltr"
         />
       </FormField>
-      <div className="app-lock-form-actions">
-        <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
-          {loading && <span className="spinner" />}
+      <div className={appLockFormActionsClass}>
+        <Button type="submit" variant="primary" size="sm" disabled={loading}>
+          {loading && <span className={spinnerClass} />}
           ذخیره رمز جدید
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={onCancel}
-          disabled={loading}
-        >
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
           انصراف
-        </button>
+        </Button>
       </div>
     </form>
   )

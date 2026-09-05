@@ -3,6 +3,18 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { CheckWithRow } from './types'
+import {
+  cardActionButtonsClass,
+  dangCardAmountClass,
+  dangCardBodyClass,
+  dangCardClass,
+  dangCardDateClass,
+  dangCardHeaderClass,
+  dangCardMetaClass,
+  dangCardTitleClass,
+  dangCheckboxClass,
+  dangPaidAtClass
+} from '../ui/featureCardStyles'
 
 export type CheckCardProps = {
   item: CheckWithRow
@@ -20,31 +32,35 @@ export default function CheckCard({
   onDelete
 }: CheckCardProps) {
   return (
-    <div className={`card dang-card interactive-card${item.paid ? ' paid' : ''}`}>
+    <div className={dangCardClass({ paid: item.paid })}>
       <input
         type="checkbox"
-        className="dang-checkbox"
+        className={dangCheckboxClass}
         checked={item.paid}
         disabled={togglingId === item.id}
         onChange={e => onTogglePaid(item, e.target.checked)}
       />
-      <div className="dang-card-body">
-        <div className="dang-card-header">
-          <span className="dang-card-title">چک {item.checkNumber}</span>
-          <span className="dang-card-amount" dir="ltr">
+      <div className={dangCardBodyClass}>
+        <div className={dangCardHeaderClass}>
+          <span className={dangCardTitleClass}>چک {item.checkNumber}</span>
+          <span className={dangCardAmountClass} dir="ltr">
             {formatMoney(item.amount)}
           </span>
         </div>
-        <div className="dang-card-meta">طرف حساب: {item.counterparty}</div>
-        <div className="dang-card-meta">
-          {item.creationDate && <span>صدور: {formatIsoDatePersian(item.creationDate)}</span>}
-          {item.dueDate && (
-            <span className="dang-card-date">· سررسید: {formatIsoDatePersian(item.dueDate)}</span>
-          )}
+        <div className={dangCardMetaClass}>طرف حساب: {item.counterparty}</div>
+        <div className={dangCardMetaClass}>
+          {item.creationDate ? <span>صدور: {formatIsoDatePersian(item.creationDate)}</span> : null}
+          {item.dueDate ? (
+            <span className={dangCardDateClass}>
+              · سررسید: {formatIsoDatePersian(item.dueDate)}
+            </span>
+          ) : null}
         </div>
-        {item.paid && item.paidAt && <p className="dang-paid-at">در {item.paidAt} پرداخت شده</p>}
+        {item.paid && item.paidAt ? (
+          <p className={dangPaidAtClass}>در {item.paidAt} پرداخت شده</p>
+        ) : null}
       </div>
-      <div className="card-action-buttons">
+      <div className={cardActionButtonsClass}>
         <CardEditButton onClick={() => onEdit(item)} />
         <CardDeleteButton onClick={() => onDelete(item)} />
       </div>

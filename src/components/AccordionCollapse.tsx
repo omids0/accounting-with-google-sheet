@@ -1,5 +1,14 @@
 import { useEffect, useState, type ReactNode, type TransitionEvent } from 'react'
 
+import {
+  accordionCollapseClass,
+  accordionCollapseInnerClass,
+  accordionCollapseOpenClass,
+  accordionCollapsePaymentsClass,
+  accordionCollapsePaymentsOpenClass
+} from './ui/datePickerStyles'
+import { cn } from '../utils/cn'
+
 type AccordionCollapseProps = {
   open: boolean
   children: ReactNode
@@ -37,12 +46,18 @@ export function AccordionCollapse({ open, children, className = '' }: AccordionC
 
   return (
     <div
-      className={`accordion-collapse${visible ? ' accordion-collapse--open' : ''}${
-        className ? ` ${className}` : ''
-      }`}
+      className={cn(accordionCollapseClass, visible && accordionCollapseOpenClass, className)}
       onTransitionEnd={handleTransitionEnd}
     >
-      <div className="accordion-collapse__inner">{children}</div>
+      <div
+        className={cn(
+          accordionCollapseInnerClass,
+          accordionCollapsePaymentsClass,
+          visible && accordionCollapsePaymentsOpenClass
+        )}
+      >
+        {children}
+      </div>
     </div>
   )
 }

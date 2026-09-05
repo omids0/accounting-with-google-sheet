@@ -3,6 +3,19 @@ import { useMemo, useState } from 'react'
 import { FormField, FormSelect } from './form'
 import JalaliDatePicker from './JalaliDatePicker'
 import {
+  dateCalculatorConversionItemClass,
+  dateCalculatorConversionLabelClass,
+  dateCalculatorConversionListClass,
+  dateCalculatorConversionNumericClass,
+  dateCalculatorConversionValueClass,
+  dateCalculatorConversionWordsClass,
+  dateCalculatorConversionsCardClass,
+  dateCalculatorConversionsHeadClass,
+  dateCalculatorFormCardClass,
+  dateCalculatorPageClass
+} from './ui/calculatorStyles'
+import Card, { CardTitle } from './ui/Card'
+import {
   CALENDAR_SHORT_LABELS,
   CALENDAR_SYSTEM_OPTIONS,
   getCalendarConversionDisplay,
@@ -28,9 +41,9 @@ export default function DateCalculatorPage() {
   )
 
   return (
-    <div className="date-calculator-page">
-      <div className="card date-calculator-form-card">
-        <h3 className="card-title">محاسبه تاریخ</h3>
+    <div className={dateCalculatorPageClass}>
+      <Card className={dateCalculatorFormCardClass}>
+        <CardTitle className="mb-[0.6rem] text-[0.95rem]">محاسبه تاریخ</CardTitle>
 
         <FormSelect
           label="نوع تاریخ ورودی"
@@ -40,7 +53,7 @@ export default function DateCalculatorPage() {
           aria-label="نوع تاریخ ورودی"
         />
 
-        <FormField label="تاریخ">
+        <FormField label="تاریخ" className="mb-0">
           <JalaliDatePicker
             key={inputCalendar}
             calendar={inputCalendar}
@@ -48,30 +61,30 @@ export default function DateCalculatorPage() {
             onChange={setIsoDate}
           />
         </FormField>
-      </div>
+      </Card>
 
-      <div className="card date-calculator-conversions-card">
-        <div className="date-calculator-conversions-head">معادل در سایر تقویم‌ها</div>
-        <ul className="date-calculator-conversion-list">
+      <Card className={dateCalculatorConversionsCardClass}>
+        <div className={dateCalculatorConversionsHeadClass}>معادل در سایر تقویم‌ها</div>
+        <ul className={dateCalculatorConversionListClass}>
           {resultCalendars.map(calendar => {
             const display = getCalendarConversionDisplay(isoDate, calendar)
 
             return (
-              <li key={calendar} className="date-calculator-conversion-item">
-                <span className="date-calculator-conversion-label">
+              <li key={calendar} className={dateCalculatorConversionItemClass}>
+                <span className={dateCalculatorConversionLabelClass}>
                   {CALENDAR_SHORT_LABELS[calendar]}
                 </span>
-                <div className="date-calculator-conversion-value">
-                  <span className="date-calculator-conversion-numeric" dir="ltr">
+                <div className={dateCalculatorConversionValueClass}>
+                  <span className={dateCalculatorConversionNumericClass} dir="ltr">
                     {display.numeric}
                   </span>
-                  <span className="date-calculator-conversion-words">{display.words}</span>
+                  <span className={dateCalculatorConversionWordsClass}>{display.words}</span>
                 </div>
               </li>
             )
           })}
         </ul>
-      </div>
+      </Card>
     </div>
   )
 }

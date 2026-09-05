@@ -3,7 +3,24 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import ChartTooltip from './ChartTooltip'
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
+import { cn } from '../../utils/cn'
 import { formatMoney, formatPersianNumber } from '../../utils/formatMoney'
+import {
+  categoryDonutCenterClass,
+  categoryDonutCenterLabelClass,
+  categoryDonutCenterValueClass,
+  categoryDonutChartWrapClass,
+  categoryDonutLayoutClass,
+  categoryDonutLegendClass,
+  categoryDonutLegendDotClass,
+  categoryDonutLegendItemClass,
+  categoryDonutLegendNameClass,
+  categoryDonutLegendPctClass,
+  categoryDonutSliceClass,
+  categoryDonutLegendValueClass,
+  chartCardClass,
+  chartTitleClass
+} from '../ui/chartStyles'
 
 type ChartTooltipEntry = {
   name?: string | number
@@ -54,10 +71,10 @@ function CategoryDonutChart({
   if (!slices.length) return null
 
   return (
-    <div className={`card chart-card chart-card--animated category-donut-card ${className}`.trim()}>
-      <h3 className="chart-title">{title}</h3>
-      <div className="category-donut-layout" dir="ltr">
-        <div className="category-donut-chart-wrap">
+    <div className={cn(chartCardClass, 'chart-card--animated', className)}>
+      <h3 className={chartTitleClass}>{title}</h3>
+      <div className={categoryDonutLayoutClass} dir="ltr">
+        <div className={categoryDonutChartWrapClass}>
           <ResponsiveContainer width="100%" height={168}>
             <PieChart>
               <Pie
@@ -78,7 +95,7 @@ function CategoryDonutChart({
                   <Cell
                     key={slice.name}
                     fill={palette[index % palette.length]}
-                    className="category-donut-slice"
+                    className={categoryDonutSliceClass}
                   />
                 ))}
               </Pie>
@@ -93,27 +110,27 @@ function CategoryDonutChart({
               />
             </PieChart>
           </ResponsiveContainer>
-          <div className="category-donut-center" dir="rtl">
-            <span className="category-donut-center-label">مجموع</span>
-            <span className="category-donut-center-value">{formatMoney(total)}</span>
+          <div className={categoryDonutCenterClass} dir="rtl">
+            <span className={categoryDonutCenterLabelClass}>مجموع</span>
+            <span className={categoryDonutCenterValueClass}>{formatMoney(total)}</span>
           </div>
         </div>
 
-        <ul className="category-donut-legend" dir="rtl">
+        <ul className={categoryDonutLegendClass} dir="rtl">
           {slices.map((slice, index) => {
             const pct = total > 0 ? Math.round((slice.total / total) * 100) : 0
 
             return (
-              <li key={slice.name} className="category-donut-legend-item">
+              <li key={slice.name} className={categoryDonutLegendItemClass}>
                 <span
-                  className="category-donut-legend-dot"
+                  className={categoryDonutLegendDotClass}
                   style={{ background: palette[index % palette.length] }}
                 />
-                <span className="category-donut-legend-name">{slice.name}</span>
-                <span className="category-donut-legend-pct">
+                <span className={categoryDonutLegendNameClass}>{slice.name}</span>
+                <span className={categoryDonutLegendPctClass}>
                   {formatPersianNumber(pct, { useGrouping: false })}٪
                 </span>
-                <span className="category-donut-legend-value" dir="ltr">
+                <span className={categoryDonutLegendValueClass} dir="ltr">
                   {formatMoney(slice.total)}
                 </span>
               </li>

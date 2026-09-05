@@ -14,6 +14,7 @@ import DangList from './DangList'
 import { useDangFilters } from './useDangFilters'
 import { useDangForm } from './useDangForm'
 import { useDangItems } from './useDangItems'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 export default function DangPage({ active = true }: { active?: boolean }) {
   const {
@@ -94,8 +95,8 @@ export default function DangPage({ active = true }: { active?: boolean }) {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="debt" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>

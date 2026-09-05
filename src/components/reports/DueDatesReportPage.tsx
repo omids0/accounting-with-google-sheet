@@ -9,6 +9,7 @@ import {
 } from '../../services/reports'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth } from '../../utils/authGuard'
+import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { distributionSparkline } from '../../utils/sparklineData'
@@ -16,6 +17,10 @@ import MoneyDisplay from '../MoneyDisplay'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
+import Card from '../ui/Card'
+import { chartTitleClass, dashboardPageClass, dashboardStatGridClass } from '../ui/chartStyles'
+import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
+import { reportDueBadgeClass, reportDueItemEndClass, reportPageClass } from '../ui/toolsPageStyles'
 
 const STATUS_LABELS: Record<DueDateStatus, string> = {
   overdue: 'سررسید گذشته',
@@ -26,9 +31,7 @@ const STATUS_LABELS: Record<DueDateStatus, string> = {
 const STATUS_ORDER: DueDateStatus[] = ['overdue', 'today', 'upcoming']
 
 function DueDateBadge({ status }: { status: DueDateStatus }) {
-  return (
-    <span className={`report-due-badge report-due-badge--${status}`}>{STATUS_LABELS[status]}</span>
-  )
+  return <span className={reportDueBadgeClass(status)}>{STATUS_LABELS[status]}</span>
 }
 
 export default function DueDatesReportPage() {
@@ -97,7 +100,7 @@ export default function DueDatesReportPage() {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
+      <div className={emptyStateClass}>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     )
@@ -108,7 +111,7 @@ export default function DueDatesReportPage() {
   }
 
   return (
-    <div className="dashboard-page report-page">
+    <div className={cn(dashboardPageClass, reportPageClass)}>
       <ReportToolbar
         title="سررسیدها"
         preset="month-to-date"
@@ -120,7 +123,7 @@ export default function DueDatesReportPage() {
         subtitle="۳۰ روز آینده و موارد معوق"
       />
 
-      <div className="stat-grid dashboard-stat-grid">
+      <div className={dashboardStatGridClass}>
         <StatCard
           label="معوق"
           amount={totals.overdue}
@@ -141,13 +144,13 @@ export default function DueDatesReportPage() {
       </div>
 
       {!grouped.length ? (
-        <div className="card">
-          <p className="empty-text">سررسیدی در این بازه ثبت نشده</p>
-        </div>
+        <Card>
+          <p className={emptyTextClass}>سررسیدی در این بازه ثبت نشده</p>
+        </Card>
       ) : (
         grouped.map(group => (
-          <div key={group.status} className="card">
-            <h3 className="chart-title">{STATUS_LABELS[group.status]}</h3>
+          <Card key={group.status}>
+            <h3 className={chartTitleClass}>{STATUS_LABELS[group.status]}</h3>
             {group.items.map((item, index) => (
               <TransactionListItem
                 key={item.id}
@@ -158,13 +161,13 @@ export default function DueDatesReportPage() {
                 tone="expense"
                 index={index}
               >
-                <div className="report-due-item-end">
+                <div className={reportDueItemEndClass}>
                   <DueDateBadge status={item.status} />
                   <MoneyDisplay amount={item.amount} size="record" tone="expense" />
                 </div>
               </TransactionListItem>
             ))}
-          </div>
+          </Card>
         ))
       )}
     </div>

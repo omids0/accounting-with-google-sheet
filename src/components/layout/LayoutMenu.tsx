@@ -1,6 +1,23 @@
 import AppIcon from '../AppIcon'
 import LayoutReportsSubmenu from './LayoutReportsSubmenu'
 import type { Tab } from './types'
+import {
+  appMenuAvatarClass,
+  appMenuAvatarPlaceholderClass,
+  appMenuBackdropClass,
+  appMenuChevronClass,
+  appMenuDrawerClass,
+  appMenuGreetingClass,
+  appMenuGroupClass,
+  appMenuItemClass,
+  appMenuItemIconClass,
+  appMenuItemLabelClass,
+  appMenuItemsClass,
+  appMenuNameClass,
+  appMenuProfileClass,
+  appMenuProfileTextClass,
+  appMenuSubmenuClass
+} from '../ui/layoutStyles'
 
 interface LayoutMenuProps {
   menuOpen: boolean
@@ -49,88 +66,76 @@ export default function LayoutMenu({
     <>
       <button
         type="button"
-        className="app-menu-backdrop"
+        className={appMenuBackdropClass}
         onClick={onCloseMenu}
         aria-label="بستن منو"
       />
-      <nav className="app-menu-drawer" aria-label="منوی اصلی">
-        <div className="app-menu-profile">
+      <nav className={appMenuDrawerClass} aria-label="منوی اصلی">
+        <div className={appMenuProfileClass}>
           {userPicture ? (
-            <img src={userPicture} alt="" className="app-menu-avatar" />
+            <img src={userPicture} alt="" className={appMenuAvatarClass} />
           ) : (
-            <div className="app-menu-avatar app-menu-avatar--placeholder" aria-hidden>
+            <div className={appMenuAvatarPlaceholderClass} aria-hidden>
               <AppIcon name="dashboard" size={28} strokeWidth={1.5} />
             </div>
           )}
-          <div className="app-menu-profile-text">
-            {userName && <div className="app-menu-name">{userName}</div>}
-            <div className="app-menu-greeting">سلام، خوش آمدید</div>
+          <div className={appMenuProfileTextClass}>
+            {userName && <div className={appMenuNameClass}>{userName}</div>}
+            <div className={appMenuGreetingClass}>سلام، خوش آمدید</div>
           </div>
         </div>
-        <div className="app-menu-items">
-          <div className="app-menu-group">
+        <div className={appMenuItemsClass}>
+          <div className={appMenuGroupClass}>
             <button
               type="button"
-              className={`app-menu-item app-menu-item--parent${isReportTab ? ' active' : ''}`}
+              className={appMenuItemClass(isReportTab, 'parent')}
               onClick={onToggleReportsMenu}
               aria-expanded={reportsMenuExpanded}
             >
-              <span className="app-menu-item-icon">
+              <span className={appMenuItemIconClass(isReportTab)}>
                 <AppIcon name="chart" size={20} strokeWidth={1.75} />
               </span>
-              <span className="app-menu-item-label">گزارشات</span>
-              <span
-                className={`app-menu-chevron${reportsMenuExpanded ? ' expanded' : ''}`}
-                aria-hidden="true"
-              >
+              <span className={appMenuItemLabelClass}>گزارشات</span>
+              <span className={appMenuChevronClass(reportsMenuExpanded)} aria-hidden="true">
                 <AppIcon name="chevron-down" size={16} strokeWidth={2} />
               </span>
             </button>
             {reportsMenuExpanded && <LayoutReportsSubmenu tab={tab} onTabChange={onTabChange} />}
           </div>
-          <div className="app-menu-group">
+          <div className={appMenuGroupClass}>
             <button
               type="button"
-              className={`app-menu-item app-menu-item--parent${isCalculationTab ? ' active' : ''}`}
+              className={appMenuItemClass(isCalculationTab, 'parent')}
               onClick={onToggleCalcMenu}
               aria-expanded={calcMenuExpanded}
             >
-              <span className="app-menu-item-icon">
+              <span className={appMenuItemIconClass(isCalculationTab)}>
                 <AppIcon name="calculator" size={20} strokeWidth={1.75} />
               </span>
-              <span className="app-menu-item-label">محاسبات</span>
-              <span
-                className={`app-menu-chevron${calcMenuExpanded ? ' expanded' : ''}`}
-                aria-hidden="true"
-              >
+              <span className={appMenuItemLabelClass}>محاسبات</span>
+              <span className={appMenuChevronClass(calcMenuExpanded)} aria-hidden="true">
                 <AppIcon name="chevron-down" size={16} strokeWidth={2} />
               </span>
             </button>
             {calcMenuExpanded && (
-              <div className="app-menu-submenu">
+              <div className={appMenuSubmenuClass}>
                 <button
                   type="button"
-                  className={`app-menu-item app-menu-item--sub${
-                    tab === 'loan-calculator' ? ' active' : ''
-                  }`}
+                  className={appMenuItemClass(tab === 'loan-calculator', 'sub')}
                   onClick={() => onTabChange('loan-calculator')}
                 >
                   محاسبات درخواست وام
                 </button>
                 <button
                   type="button"
-                  className={`app-menu-item app-menu-item--sub${
-                    tab === 'currency-converter' ? ' active' : ''
-                  }`}
+                  className={appMenuItemClass(tab === 'currency-converter', 'sub')}
                   onClick={() => onTabChange('currency-converter')}
                 >
                   تبدیل ارز
                 </button>
                 <button
                   type="button"
-                  className={`app-menu-item app-menu-item--sub${
-                    tab === 'date-calculator' ? ' active' : ''
-                  }`}
+                  className={appMenuItemClass(tab === 'date-calculator', 'sub')}
                   onClick={() => onTabChange('date-calculator')}
                 >
                   محاسبه تاریخ
@@ -138,29 +143,26 @@ export default function LayoutMenu({
               </div>
             )}
           </div>
-          <div className="app-menu-group">
+          <div className={appMenuGroupClass}>
             <button
               type="button"
-              className={`app-menu-item app-menu-item--parent${isTimesheetTab ? ' active' : ''}`}
+              className={appMenuItemClass(isTimesheetTab, 'parent')}
               onClick={onToggleTimesheetMenu}
               aria-expanded={timesheetMenuExpanded}
             >
-              <span className="app-menu-item-icon">
+              <span className={appMenuItemIconClass(isTimesheetTab)}>
                 <AppIcon name="clock" size={20} strokeWidth={1.75} />
               </span>
-              <span className="app-menu-item-label">تایم‌شیت</span>
-              <span
-                className={`app-menu-chevron${timesheetMenuExpanded ? ' expanded' : ''}`}
-                aria-hidden="true"
-              >
+              <span className={appMenuItemLabelClass}>تایم‌شیت</span>
+              <span className={appMenuChevronClass(timesheetMenuExpanded)} aria-hidden="true">
                 <AppIcon name="chevron-down" size={16} strokeWidth={2} />
               </span>
             </button>
             {timesheetMenuExpanded && (
-              <div className="app-menu-submenu">
+              <div className={appMenuSubmenuClass}>
                 <button
                   type="button"
-                  className={`app-menu-item app-menu-item--sub${isTimesheetTab ? ' active' : ''}`}
+                  className={appMenuItemClass(isTimesheetTab, 'sub')}
                   onClick={onOpenTimesheetsList}
                 >
                   لیست تایم‌شیت‌ها
@@ -170,20 +172,16 @@ export default function LayoutMenu({
           </div>
           <button
             type="button"
-            className={`app-menu-item${tab === 'about' ? ' active' : ''}`}
+            className={appMenuItemClass(tab === 'about')}
             onClick={() => onTabChange('about')}
           >
-            <span className="app-menu-item-icon">
+            <span className={appMenuItemIconClass(tab === 'about')}>
               <AppIcon name="info" size={20} strokeWidth={1.75} />
             </span>
             درباره
           </button>
-          <button
-            type="button"
-            className={`app-menu-item${showSettings ? ' active' : ''}`}
-            onClick={onOpenSettings}
-          >
-            <span className="app-menu-item-icon">
+          <button type="button" className={appMenuItemClass(showSettings)} onClick={onOpenSettings}>
+            <span className={appMenuItemIconClass(showSettings)}>
               <AppIcon name="settings" size={20} strokeWidth={1.75} />
             </span>
             تنظیمات

@@ -3,6 +3,16 @@ import type { CSSProperties, ReactNode } from 'react'
 import AnimatedMoneyDisplay from './AnimatedMoneyDisplay'
 import Sparkline from './charts/Sparkline'
 import type { MoneyDisplayTone } from './MoneyDisplay'
+import {
+  sparklineClass,
+  sparklineWideClass,
+  statCardClass,
+  statCardValueRowClass,
+  statCardValueRowWideClass,
+  statFlowModifierClass,
+  statLabelClass
+} from './ui/chartStyles'
+import { cn } from '../utils/cn'
 
 type StatCardVariant = 'income' | 'expense' | 'balance' | 'flow' | 'default'
 type SparklineTone = 'income' | 'expense' | 'primary' | 'neutral'
@@ -38,13 +48,6 @@ function defaultTone(variant: StatCardVariant, flowDirection?: FlowDirection): M
   return 'default'
 }
 
-function flowModifier(flowDirection?: FlowDirection): string {
-  if (flowDirection === 'negative') return ' stat-flow-negative'
-  if (flowDirection === 'positive') return ' stat-flow-positive'
-
-  return ''
-}
-
 export default function StatCard({
   label,
   amount,
@@ -57,20 +60,9 @@ export default function StatCard({
   animateIndex,
   animated = true,
   lift = false,
-  className = '',
+  className,
   footer
 }: StatCardProps) {
-  const variantClass =
-    variant === 'income'
-      ? ' stat-income'
-      : variant === 'expense'
-      ? ' stat-expense'
-      : variant === 'balance'
-      ? ' stat-balance'
-      : variant === 'flow'
-      ? ` stat-flow${flowModifier(flowDirection)}`
-      : ''
-
   const style: CSSProperties | undefined =
     animateIndex != null ? { animationDelay: `${animateIndex * 0.07}s` } : undefined
 
@@ -94,13 +86,16 @@ export default function StatCard({
 
   return (
     <div
-      className={`${wide ? 'card ' : ''}stat-card stat-card--animated${variantClass}${
-        wide ? ' stat-card-wide' : ''
-      }${lift ? ' stat-card--lift' : ''}${className ? ` ${className}` : ''}`}
+      className={cn(
+        'stat-card',
+        statCardClass({ variant, wide, lift, animated }),
+        variant === 'flow' && statFlowModifierClass(flowDirection),
+        className
+      )}
       style={style}
     >
-      <span className="stat-label">{label}</span>
-      <div className={`stat-card__value-row${wide ? ' stat-card__value-row--wide' : ''}`}>
+      <span className={statLabelClass}>{label}</span>
+      <div className={cn(statCardValueRowClass, wide && statCardValueRowWideClass)}>
         <AnimatedMoneyDisplay
           amount={amount}
           size={wide ? 'stat-wide' : 'stat'}
@@ -111,7 +106,7 @@ export default function StatCard({
           <Sparkline
             data={sparklineData}
             tone={resolvedSparklineTone}
-            className={wide ? 'sparkline--wide' : undefined}
+            className={wide ? sparklineWideClass : sparklineClass}
           />
         ) : null}
       </div>

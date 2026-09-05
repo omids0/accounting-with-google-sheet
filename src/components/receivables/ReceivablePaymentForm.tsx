@@ -1,6 +1,9 @@
 import { useForm } from '../../hooks/useForm'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
+import Button from '../ui/Button'
+import { spinnerClass } from '../ui/displayStyles'
+import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
 type ReceivablePaymentFormProps = {
   receivableId: string
@@ -21,7 +24,7 @@ export default function ReceivablePaymentForm({
   )
 
   return (
-    <div className="receivable-payment-form">
+    <div className={receivablePaymentFormClass}>
       <FormField label="مبلغ پرداخت" style={{ marginBottom: '0.75rem' }}>
         <AmountInput value={form.values.amount} onChange={val => form.setField('amount', val)} />
       </FormField>
@@ -34,18 +37,19 @@ export default function ReceivablePaymentForm({
         />
       </FormField>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <button
+        <Button
           type="button"
-          className="btn btn-primary btn-sm"
+          variant="primary"
+          size="sm"
           disabled={paying}
           onClick={() => onSubmit(form.values)}
         >
-          {paying && <span className="spinner" />}
+          {paying && <span className={spinnerClass} />}
           ثبت بخشی از پرداخت
-        </button>
-        <button type="button" className="btn btn-secondary btn-sm" onClick={onCancel}>
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
           انصراف
-        </button>
+        </Button>
       </div>
     </div>
   )

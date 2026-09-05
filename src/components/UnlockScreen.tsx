@@ -1,8 +1,28 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 
 import AppIcon from './AppIcon'
+import Alert from './ui/Alert'
+import Button from './ui/Button'
+import { spinnerClass } from './ui/displayStyles'
+import { unlockFormGroupClass, unlockFormLabelClass } from './ui/formControlStyles'
+import { formControlClassName } from './ui/formStyles'
+import { animateInClass } from './ui/layoutStyles'
+import {
+  loginCardClass,
+  loginFooterNoteClass,
+  loginLogoClass,
+  loginLogoIconClass,
+  loginLogoSubtitleClass,
+  loginLogoTitleClass,
+  loginPageClass,
+  unlockBiometricBtnClass,
+  unlockCardClass,
+  unlockErrorClass,
+  unlockPinInputClass
+} from './ui/loginStyles'
 import { isBiometricEnabled, verifyBiometric, verifyPin } from '../services/appLock'
 import { getUserName } from '../services/auth'
+import { cn } from '../utils/cn'
 
 interface UnlockScreenProps {
   onUnlock: () => void
@@ -79,22 +99,24 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   const displayName = getUserName()
 
   return (
-    <div className="login-page">
-      <div className="login-card animate-in unlock-card">
-        <div className="login-logo">
-          <span className="icon">
+    <div className={loginPageClass}>
+      <div className={cn(loginCardClass, animateInClass, unlockCardClass)}>
+        <div className={loginLogoClass}>
+          <span className={loginLogoIconClass}>
             <AppIcon name="lock" />
           </span>
-          <h1>قفل اپ</h1>
-          <p>
+          <h1 className={loginLogoTitleClass}>قفل اپ</h1>
+          <p className={loginLogoSubtitleClass}>
             {displayName ? `سلام ${displayName}، ` : ''}
             برای مشاهده اطلاعات مالی، قفل را باز کنید
           </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="unlock-pin">رمز ورود</label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div className={unlockFormGroupClass}>
+            <label className={unlockFormLabelClass} htmlFor="unlock-pin">
+              رمز ورود
+            </label>
             <input
               ref={inputRef}
               id="unlock-pin"
@@ -102,7 +124,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               inputMode="numeric"
               pattern="[0-9]*"
               autoComplete="off"
-              className="unlock-pin-input"
+              className={cn(formControlClassName(), unlockPinInputClass)}
               value={pin}
               onChange={e => {
                 setPin(e.target.value.replace(/\D/g, ''))
@@ -115,34 +137,35 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
           </div>
 
           {error && (
-            <div className="alert alert-error unlock-error" role="alert">
+            <Alert variant="error" className={unlockErrorClass}>
               {error}
-            </div>
+            </Alert>
           )}
 
-          <button
+          <Button
             type="submit"
-            className="btn btn-primary"
+            variant="primary"
             disabled={loading || pin.length < 4}
             aria-busy={loading}
           >
-            {loading ? <span className="spinner" /> : 'باز کردن قفل'}
-          </button>
+            {loading ? <span className={spinnerClass} /> : 'باز کردن قفل'}
+          </Button>
         </form>
 
         {biometricReady && (
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary unlock-biometric-btn"
+            variant="secondary"
+            className={unlockBiometricBtnClass}
             onClick={() => void handleBiometric()}
             disabled={loading}
           >
             <AppIcon name="fingerprint" size={18} strokeWidth={2} />
             ورود با اثر انگشت
-          </button>
+          </Button>
         )}
 
-        <p className="login-footer-note">رمز روی همه دستگاه‌ها یکسان است</p>
+        <p className={loginFooterNoteClass}>رمز روی همه دستگاه‌ها یکسان است</p>
       </div>
     </div>
   )

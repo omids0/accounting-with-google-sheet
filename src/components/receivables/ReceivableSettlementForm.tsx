@@ -4,6 +4,9 @@ import { useForm } from '../../hooks/useForm'
 import { formatMoney } from '../../utils/formatMoney'
 import { FormField } from '../form'
 import type { SettlementFormState } from './types'
+import Button from '../ui/Button'
+import { spinnerClass } from '../ui/displayStyles'
+import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
 type ReceivableSettlementFormProps = {
   receivableId: string
@@ -32,7 +35,7 @@ export default function ReceivableSettlementForm({
   const form = useForm(initialValues, { resetKey: receivableId })
 
   return (
-    <div className="receivable-payment-form">
+    <div className={receivablePaymentFormClass}>
       <FormField label="عنوان درآمد" required style={{ marginBottom: '0.75rem' }}>
         <input
           type="text"
@@ -53,18 +56,19 @@ export default function ReceivableSettlementForm({
         />
       </FormField>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <button
+        <Button
           type="button"
-          className="btn btn-inflow btn-sm"
+          variant="inflow"
+          size="sm"
           disabled={settling}
           onClick={() => onSubmit(form.values)}
         >
-          {settling && <span className="spinner" />}
+          {settling && <span className={spinnerClass} />}
           تسویه
-        </button>
-        <button type="button" className="btn btn-secondary btn-sm" onClick={onCancel}>
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
           انصراف
-        </button>
+        </Button>
       </div>
     </div>
   )

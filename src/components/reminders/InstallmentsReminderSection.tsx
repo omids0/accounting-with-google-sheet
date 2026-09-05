@@ -2,6 +2,9 @@ import { DAYS_BEFORE_OPTIONS, HOUR_OPTIONS, MINUTE_OPTIONS } from './reminderCon
 import { getReminderKindLabel } from '../../services/reminders'
 import type { ReminderRule } from '../../types'
 import { FormSelect } from '../form'
+import Alert from '../ui/Alert'
+import Button from '../ui/Button'
+import Card, { CardTitle } from '../ui/Card'
 
 interface InstallmentsReminderSectionProps {
   installmentsRule: ReminderRule
@@ -19,8 +22,8 @@ export default function InstallmentsReminderSection({
   onSave
 }: InstallmentsReminderSectionProps) {
   return (
-    <div className="card">
-      <h2 className="card-title">{getReminderKindLabel('installments')}</h2>
+    <Card>
+      <CardTitle>{getReminderKindLabel('installments')}</CardTitle>
       <label
         className="checkbox-row"
         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
@@ -57,7 +60,7 @@ export default function InstallmentsReminderSection({
       </div>
 
       {installmentsRule.enabled && (
-        <div className="alert alert-info" style={{ marginTop: '0.75rem' }}>
+        <Alert variant="info" style={{ marginTop: '0.75rem' }}>
           {previewLines.length ? (
             <>
               <p style={{ marginBottom: '0.5rem' }}>با تنظیم فعلی، این موارد یادآوری می‌شوند:</p>
@@ -72,19 +75,20 @@ export default function InstallmentsReminderSection({
           ) : (
             <p style={{ margin: 0 }}>فعلاً قسط پرداخت‌نشده‌ای برای این بازه پیدا نشد.</p>
           )}
-        </div>
+        </Alert>
       )}
 
-      <button
+      <Button
         type="button"
-        className="btn btn-primary btn-sm"
+        variant="primary"
+        size="sm"
         style={{ marginTop: '0.75rem' }}
         onClick={onSave}
         disabled={saving}
       >
         {saving && <span className="spinner" />}
         ذخیره تنظیمات
-      </button>
-    </div>
+      </Button>
+    </Card>
   )
 }

@@ -9,6 +9,7 @@ import {
 import ReportToolbar from './ReportToolbar'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
+import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { distributionSparkline } from '../../utils/sparklineData'
@@ -18,6 +19,17 @@ import ConfirmActionModal from '../ConfirmActionModal'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
+import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
+import {
+  reportExportCardBodyClass,
+  reportExportCardClass,
+  reportExportHintClass,
+  reportExportIconClass,
+  reportExportTitleClass,
+  reportPageClass
+} from '../ui/toolsPageStyles'
 
 export type { ModuleReportKind } from './moduleReportData'
 
@@ -74,7 +86,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
+      <div className={emptyStateClass}>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     )
@@ -85,7 +97,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
   }
 
   return (
-    <div className="dashboard-page report-page">
+    <div className={cn('dashboard-page', reportPageClass)}>
       <ReportToolbar
         title={config.title}
         preset="month-to-date"
@@ -96,26 +108,27 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
         showDateFilter={false}
       />
 
-      <div className="card report-export-card">
-        <div className="report-export-card-body">
-          <span className="report-export-icon">
+      <Card className={reportExportCardClass}>
+        <div className={reportExportCardBodyClass}>
+          <span className={reportExportIconClass}>
             <AppIcon name={config.icon} size={22} />
           </span>
           <div>
-            <div className="report-export-title">خروجی PDF</div>
-            <div className="report-export-hint">دانلود گزارش کامل این بخش</div>
+            <div className={reportExportTitleClass}>خروجی PDF</div>
+            <div className={reportExportHintClass}>دانلود گزارش کامل این بخش</div>
           </div>
         </div>
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary btn-sm"
+          variant="secondary"
+          size="sm"
           onClick={() => setShowExportConfirm(true)}
           disabled={exporting}
         >
           <AppIcon name="pdf" size={16} />
           PDF
-        </button>
-      </div>
+        </Button>
+      </Card>
 
       <StatCard
         label="مجموع"
@@ -139,9 +152,9 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
         />
       )}
 
-      <div className="card">
+      <Card>
         {!data?.rows.length ? (
-          <p className="empty-text">موردی برای نمایش وجود ندارد</p>
+          <p className={emptyTextClass}>موردی برای نمایش وجود ندارد</p>
         ) : (
           data.rows.map((row, index) => (
             <TransactionListItem key={row.id} title={row.title} meta={row.subtitle} index={index}>
@@ -151,7 +164,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
             </TransactionListItem>
           ))
         )}
-      </div>
+      </Card>
 
       <ConfirmActionModal
         open={showExportConfirm}

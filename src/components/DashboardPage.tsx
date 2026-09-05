@@ -1,11 +1,18 @@
 import AppIcon from './AppIcon'
 import { DashboardSkeleton } from './skeleton'
 import SpeedDialIcon from './SpeedDialIcon'
+import {
+  speedDialActionExpenseClass,
+  speedDialActionIncomeClass,
+  speedDialTypeIconExpenseClass,
+  speedDialTypeIconIncomeClass
+} from './ui/speedDialStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
 import DashboardContent from './dashboard/DashboardContent'
 import { useDashboardPage } from './dashboard/useDashboardPage'
+import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 
 export default function DashboardPage({ active = true }: { active?: boolean }) {
   const dashboard = useDashboardPage()
@@ -21,9 +28,9 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
               label: dashboard.incomeFormName,
 
-              icon: <span className="speed-dial-type-icon speed-dial-type-icon--income">+</span>,
+              icon: <span className={speedDialTypeIconIncomeClass}>+</span>,
 
-              className: 'speed-dial-action--income',
+              className: speedDialActionIncomeClass,
 
               onClick: () => useNavigationStore.getState().onOpenEntry('income')
             },
@@ -33,9 +40,9 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
               label: dashboard.expenseFormName,
 
-              icon: <span className="speed-dial-type-icon speed-dial-type-icon--expense">−</span>,
+              icon: <span className={speedDialTypeIconExpenseClass}>−</span>,
 
-              className: 'speed-dial-action--expense',
+              className: speedDialActionExpenseClass,
 
               onClick: () => useNavigationStore.getState().onOpenEntry('expense')
             },
@@ -70,8 +77,8 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="dashboard" />
         </div>
 

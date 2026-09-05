@@ -1,3 +1,7 @@
+import Alert from '../ui/Alert'
+import Button from '../ui/Button'
+import Card, { CardTitle } from '../ui/Card'
+
 type SettingsPwaInstallCardProps = {
   isInstalled: boolean
   canInstall: boolean
@@ -16,8 +20,8 @@ export default function SettingsPwaInstallCard({
   onDismissIosHint
 }: SettingsPwaInstallCardProps) {
   return (
-    <div className="card">
-      <h2 className="card-title">نصب اپ</h2>
+    <Card>
+      <CardTitle>نصب اپ</CardTitle>
       {isInstalled ? (
         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
           اپ روی این دستگاه نصب شده است.
@@ -34,9 +38,9 @@ export default function SettingsPwaInstallCard({
             با نصب اپ، دسترسی سریع‌تر از صفحهٔ اصلی گوشی یا دسکتاپ دارید.
           </p>
           {(canInstall || isIos) && (
-            <button className="btn btn-primary btn-sm" type="button" onClick={onInstall}>
+            <Button variant="primary" size="sm" type="button" onClick={onInstall}>
               نصب اپ روی دستگاه
-            </button>
+            </Button>
           )}
           {!canInstall && !isIos && (
             <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
@@ -45,17 +49,17 @@ export default function SettingsPwaInstallCard({
             </p>
           )}
           {showIosHint && (
-            <div className="alert alert-info" style={{ marginTop: '0.75rem' }}>
+            <Alert variant="info" style={{ marginTop: '0.75rem' }}>
               <p style={{ marginBottom: '0.5rem' }}>
                 در Safari: دکمهٔ Share (□↑) → «Add to Home Screen»
               </p>
-              <button className="btn btn-secondary btn-sm" type="button" onClick={onDismissIosHint}>
+              <Button variant="secondary" size="sm" type="button" onClick={onDismissIosHint}>
                 متوجه شدم
-              </button>
-            </div>
+              </Button>
+            </Alert>
           )}
         </>
       )}
-    </div>
+    </Card>
   )
 }

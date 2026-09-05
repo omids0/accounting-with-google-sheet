@@ -1,14 +1,23 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react'
 
-type TransactionTone = 'income' | 'expense' | 'neutral';
+import { recordItemMainClass } from './ui/displayStyles'
+import {
+  recordItemAccentClass,
+  recordItemInteractiveClass,
+  recordItemMetaClass,
+  recordItemTitleClass
+} from './ui/recordsStyles'
+import { cn } from '../utils/cn'
+
+type TransactionTone = 'income' | 'expense' | 'neutral'
 
 interface TransactionListItemProps {
-  title: string;
-  meta?: ReactNode;
-  children?: ReactNode;
-  tone?: TransactionTone;
-  index?: number;
-  className?: string;
+  title: string
+  meta?: ReactNode
+  children?: ReactNode
+  tone?: TransactionTone
+  index?: number
+  className?: string
 }
 
 export default function TransactionListItem({
@@ -17,25 +26,29 @@ export default function TransactionListItem({
   children,
   tone = 'neutral',
   index = 0,
-  className = '',
+  className
 }: TransactionListItemProps) {
   const style: CSSProperties = {
-    animationDelay: `${Math.min(index, 12) * 0.04}s`,
-  };
+    animationDelay: `${Math.min(index, 12) * 0.04}s`
+  }
 
   return (
     <div
-      className={`record-item record-item--interactive record-item--${tone}${
-        className ? ` ${className}` : ''
-      }`}
+      className={cn(
+        'record-item--interactive',
+        `record-item--${tone}`,
+        'flex items-center justify-between gap-3 border-b border-border last:border-b-0',
+        recordItemInteractiveClass,
+        className
+      )}
       style={style}
     >
-      <span className="record-item-accent" aria-hidden="true" />
-      <div className="record-item-main">
-        <div className="record-item-title">{title}</div>
-        {meta ? <div className="record-item-meta">{meta}</div> : null}
+      <span className={recordItemAccentClass} aria-hidden="true" />
+      <div className={recordItemMainClass}>
+        <div className={recordItemTitleClass}>{title}</div>
+        {meta ? <div className={recordItemMetaClass}>{meta}</div> : null}
       </div>
       {children}
     </div>
-  );
+  )
 }

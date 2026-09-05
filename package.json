@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
+    "clsx": "^2.1.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "react": "^18.3.1",
@@ -33,6 +34,7 @@
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^6.26.2",
     "recharts": "^3.10.1",
+    "tailwind-merge": "^3.6.0",
     "zustand": "^5.0.15"
   },
   "size-limit": [
@@ -51,6 +53,7 @@
     "@axe-core/playwright": "^4.10.1",
     "@playwright/test": "^1.49.1",
     "@size-limit/file": "^11.1.6",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^20",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
@@ -71,6 +74,7 @@
     "lint-staged": "^14.0.0",
     "prettier": "^2.8.3",
     "size-limit": "^11.1.6",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.5.4",
     "vite": "^5.4.2",
     "vite-plugin-pwa": "^0.20.1",

@@ -3,6 +3,7 @@ import InstallmentPlanCard from '../InstallmentPlanCard'
 import SearchEmptyState from '../SearchEmptyState'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import type { DisplayPlanItem, PlanWithRow } from './types'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 export type InstallmentsListProps = {
   plans: PlanWithRow[]
@@ -45,8 +46,8 @@ export default function InstallmentsList({
 
   if (plans.length === 0) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="installments" />
         </div>
         <p>هنوز قسطی ثبت نشده</p>
@@ -56,8 +57,8 @@ export default function InstallmentsList({
 
   if (monthPlans.length === 0) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="installments" />
         </div>
         <p>هیچ قسطی برای {monthLabel} نیست</p>

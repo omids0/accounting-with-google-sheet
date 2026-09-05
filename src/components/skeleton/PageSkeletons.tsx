@@ -2,6 +2,38 @@ import { Skeleton } from './Skeleton'
 import AppIcon from '../AppIcon'
 import { FilterChipsSkeleton, ReportToolbarSkeleton, StatCardSkeleton } from './CardSkeletons'
 import { InstallmentCardListSkeleton } from './ListSkeletons'
+import { cn } from '../../utils/cn'
+import { cardClassName } from '../ui/Card'
+import {
+  dashboardAssetsCardClass,
+  dashboardFlowSectionClass,
+  dashboardHeroCardClass,
+  dashboardPageClass,
+  dashboardStatGridClass
+} from '../ui/chartStyles'
+import {
+  appLoadingCardsClass,
+  appLoadingClass,
+  appLoadingIconClass,
+  appLoadingInnerClass,
+  appLoadingSkeletonClass,
+  appLoadingStatRowClass
+} from '../ui/loginStyles'
+import { recordsTypeSegmentClass, dataEntryTypeSegmentClass } from '../ui/recordsStyles'
+import {
+  skeletonBreakdownClass,
+  skeletonBreakdownRowClass,
+  skeletonCardClass,
+  skeletonFormClass,
+  skeletonFormRowClass,
+  skeletonSettingsClass
+} from '../ui/skeletonStyles'
+import {
+  treasuryPriceCardClass,
+  treasuryPriceGridClass,
+  treasuryPriceHeaderClass,
+  treasuryPriceItemClass
+} from '../ui/treasuryReceivableStyles'
 
 export {
   FilterChipsSkeleton,
@@ -25,20 +57,20 @@ export {
 export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashboard' | 'report' }) {
   return (
     <div
-      className="skeleton-dashboard dashboard-page"
+      className={cn('skeleton-dashboard', dashboardPageClass)}
       aria-busy="true"
       aria-label="در حال بارگذاری داشبورد"
     >
       {variant === 'dashboard' ? <FilterChipsSkeleton count={1} /> : <ReportToolbarSkeleton />}
 
-      <div className="card dashboard-hero-card skeleton-card">
+      <div className={cardClassName(cn(dashboardHeroCardClass, skeletonCardClass))}>
         <Skeleton width="35%" height="0.8rem" />
         <Skeleton width="55%" height="2rem" style={{ marginTop: '0.75rem' }} />
         <Skeleton width="70%" height="0.75rem" style={{ marginTop: '0.65rem' }} />
       </div>
 
-      <div className="dashboard-flow-section">
-        <div className="stat-grid dashboard-stat-grid">
+      <div className={dashboardFlowSectionClass}>
+        <div className={dashboardStatGridClass}>
           <StatCardSkeleton />
           <StatCardSkeleton />
         </div>
@@ -46,11 +78,11 @@ export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashbo
         <StatCardSkeleton wide />
       </div>
 
-      <div className="card dashboard-assets-card skeleton-card">
+      <div className={cardClassName(cn(dashboardAssetsCardClass, skeletonCardClass))}>
         <Skeleton width="25%" height="0.9rem" />
-        <div className="skeleton-breakdown">
+        <div className={skeletonBreakdownClass}>
           {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="skeleton-breakdown-row">
+            <div key={index} className={skeletonBreakdownRowClass}>
               <Skeleton width="30%" height="0.8rem" />
               <Skeleton width="25%" height="0.8rem" />
             </div>
@@ -58,11 +90,11 @@ export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashbo
         </div>
       </div>
 
-      <div className="card dashboard-assets-card skeleton-card">
+      <div className={cardClassName(cn(dashboardAssetsCardClass, skeletonCardClass))}>
         <Skeleton width="25%" height="0.9rem" />
-        <div className="skeleton-breakdown">
+        <div className={skeletonBreakdownClass}>
           {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="skeleton-breakdown-row">
+            <div key={index} className={skeletonBreakdownRowClass}>
               <Skeleton width="35%" height="0.8rem" />
               <Skeleton width="25%" height="0.8rem" />
             </div>
@@ -77,8 +109,8 @@ export function TreasurySkeleton() {
   return (
     <div aria-busy="true" aria-label="در حال بارگذاری">
       <FilterChipsSkeleton count={0} />
-      <div className="card treasury-price-card skeleton-card">
-        <div className="treasury-price-header">
+      <div className={cardClassName(cn(treasuryPriceCardClass, skeletonCardClass))}>
+        <div className={treasuryPriceHeaderClass}>
           <Skeleton width="45%" height="0.85rem" />
           <Skeleton
             variant="rect"
@@ -87,9 +119,9 @@ export function TreasurySkeleton() {
             style={{ borderRadius: 'var(--radius-sm)' }}
           />
         </div>
-        <div className="treasury-price-grid">
+        <div className={treasuryPriceGridClass}>
           {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="treasury-price-item">
+            <div key={index} className={treasuryPriceItemClass}>
               <Skeleton width="60%" height="0.8rem" />
               <Skeleton width="40%" height="0.8rem" />
             </div>
@@ -103,8 +135,8 @@ export function TreasurySkeleton() {
 
 export function FormSkeleton({ fields = 4 }: { fields?: number }) {
   return (
-    <div className="skeleton-form" aria-busy="true" aria-label="در حال بارگذاری">
-      <div className="records-type-segment data-entry-type-segment" aria-hidden="true">
+    <div className={skeletonFormClass} aria-busy="true" aria-label="در حال بارگذاری">
+      <div className={cn(recordsTypeSegmentClass, dataEntryTypeSegmentClass)} aria-hidden="true">
         <Skeleton
           variant="rect"
           height="2.25rem"
@@ -117,7 +149,7 @@ export function FormSkeleton({ fields = 4 }: { fields?: number }) {
         />
       </div>
       {Array.from({ length: fields }, (_, index) => (
-        <div key={index} className="skeleton-form-row">
+        <div key={index} className={skeletonFormRowClass}>
           <Skeleton width="25%" height="0.8rem" style={{ marginBottom: '0.4rem' }} />
           <Skeleton width="100%" height="2.5rem" />
         </div>
@@ -134,21 +166,21 @@ export function FormSkeleton({ fields = 4 }: { fields?: number }) {
 
 export function SettingsSkeleton() {
   return (
-    <div className="skeleton-settings" aria-busy="true" aria-label="در حال بارگذاری تنظیمات">
-      <div className="card skeleton-card">
+    <div className={skeletonSettingsClass} aria-busy="true" aria-label="در حال بارگذاری تنظیمات">
+      <div className={cardClassName(skeletonCardClass)}>
         <Skeleton width="30%" height="1rem" style={{ marginBottom: '1rem' }} />
         <Skeleton width="100%" height="2.5rem" style={{ marginBottom: '0.75rem' }} />
         <Skeleton width="100%" height="2.5rem" />
       </div>
-      <div className="card skeleton-card">
+      <div className={cardClassName(skeletonCardClass)}>
         <Skeleton width="25%" height="1rem" style={{ marginBottom: '1rem' }} />
         {Array.from({ length: 3 }, (_, index) => (
-          <div key={index} className="skeleton-form-row">
+          <div key={index} className={skeletonFormRowClass}>
             <Skeleton width="100%" height="2.25rem" />
           </div>
         ))}
       </div>
-      <div className="card skeleton-card">
+      <div className={cardClassName(skeletonCardClass)}>
         <Skeleton width="35%" height="1rem" style={{ marginBottom: '1rem' }} />
         <Skeleton width="100%" height="5rem" />
       </div>
@@ -158,13 +190,13 @@ export function SettingsSkeleton() {
 
 export function AppLoadingSkeleton() {
   return (
-    <div className="app-loading" aria-busy="true" aria-label="در حال بارگذاری">
-      <div className="app-loading-inner app-loading-skeleton">
-        <span className="app-loading-icon">
+    <div className={appLoadingClass} aria-busy="true" aria-label="در حال بارگذاری">
+      <div className={cn(appLoadingInnerClass, appLoadingSkeletonClass)}>
+        <span className={appLoadingIconClass}>
           <AppIcon name="dashboard" />
         </span>
         <Skeleton width="8rem" height="1rem" />
-        <div className="app-loading-cards">
+        <div className={appLoadingCardsClass}>
           <FilterChipsSkeleton count={1} />
           <Skeleton
             variant="rect"
@@ -172,7 +204,7 @@ export function AppLoadingSkeleton() {
             height="5rem"
             style={{ borderRadius: 'var(--radius)' }}
           />
-          <div className="app-loading-stat-row">
+          <div className={appLoadingStatRowClass}>
             <Skeleton
               variant="rect"
               height="3.5rem"

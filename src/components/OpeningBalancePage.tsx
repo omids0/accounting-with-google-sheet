@@ -5,6 +5,23 @@ import AmountInput from './AmountInput'
 import AppIcon from './AppIcon'
 import { FormField } from './form'
 import { InstallmentCardListSkeleton } from './skeleton'
+import Button from './ui/Button'
+import { dashboardOpeningBodyClass, dashboardOpeningCardClass } from './ui/chartStyles'
+import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
+import {
+  installmentChevronClass,
+  installmentHeaderClass,
+  installmentPaymentsClass,
+  installmentCardClass,
+  listCardAmountPillClass,
+  walletItemAmountClass,
+  walletItemCardClass,
+  walletItemInfoClass,
+  walletItemNoteClass,
+  walletItemTitleClass,
+  walletItemTitleRowClass
+} from './ui/featureCardStyles'
+import { cardHeaderRowClass, openingBalancePageHintClass } from './ui/recordsStyles'
 import {
   fetchAllOpeningBalances,
   setOpeningBalance,
@@ -12,6 +29,7 @@ import {
 } from '../services/monthlyBalance'
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../utils/authGuard'
+import { cn } from '../utils/cn'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import { formatMoney } from '../utils/formatMoney'
 import { handleSheetError } from '../utils/sheetError'
@@ -117,8 +135,8 @@ export default function OpeningBalancePage() {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="installments" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
@@ -128,27 +146,22 @@ export default function OpeningBalancePage() {
 
   return (
     <div>
-      <div className="card-header-row" style={{ marginBottom: '0.75rem' }}>
+      <div className={cardHeaderRowClass} style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>موجودی اول دوره</h2>
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={loadItems}
-          disabled={loading}
-          type="button"
-        >
+        <Button variant="secondary" size="sm" onClick={loadItems} disabled={loading} type="button">
           {loading ? '...' : '↻'}
-        </button>
+        </Button>
       </div>
 
-      <p className="opening-balance-page-hint">
+      <p className={openingBalancePageHintClass}>
         موجودی کیف پول در ابتدای هر ماه. ماه جاری را از صفحه کیف پول ویرایش کنید.
       </p>
 
       {loading && items.length === 0 ? (
         <InstallmentCardListSkeleton />
       ) : items.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">
+        <div className={emptyStateClass}>
+          <div className={emptyStateIconClass}>
             <AppIcon name="installments" />
           </div>
           <p>هنوز موجودی اول دوره‌ای برای ماه‌های قبل ثبت نشده</p>
@@ -165,33 +178,35 @@ export default function OpeningBalancePage() {
           return (
             <div
               key={item.monthKey}
-              className={`card installment-card interactive-card dashboard-opening-card wallet-item-card${
-                expanded ? ' installment-card--expanded' : ''
-              }`}
+              className={cn(
+                installmentCardClass({ expanded }),
+                dashboardOpeningCardClass,
+                walletItemCardClass
+              )}
             >
               <button
                 type="button"
-                className={`installment-header wallet-item-header${
-                  expanded ? ' installment-header--expanded' : ''
-                }`}
+                className={cn(installmentHeaderClass(expanded), 'wallet-item-header')}
                 onClick={() => setExpandedId(expanded ? null : item.monthKey)}
               >
-                <div className="wallet-item-info">
-                  <div className="wallet-item-title-row">
-                    <div className="wallet-item-title">{formatJalaliMonthLabel(item.monthKey)}</div>
-                    <div className="wallet-item-amount list-card-amount-pill" dir="ltr">
+                <div className={walletItemInfoClass}>
+                  <div className={walletItemTitleRowClass}>
+                    <div className={walletItemTitleClass}>
+                      {formatJalaliMonthLabel(item.monthKey)}
+                    </div>
+                    <div className={cn(walletItemAmountClass, listCardAmountPillClass)} dir="ltr">
                       {formatMoney(displayAmount)}
                     </div>
                   </div>
                   {item.updatedAt && (
-                    <div className="wallet-item-note">آخرین ویرایش: {item.updatedAt}</div>
+                    <div className={walletItemNoteClass}>آخرین ویرایش: {item.updatedAt}</div>
                   )}
                 </div>
-                <span className="installment-chevron">▼</span>
+                <span className={installmentChevronClass}>▼</span>
               </button>
 
               <AccordionCollapse open={expanded && !!edit}>
-                <div className="installment-payments dashboard-opening-body">
+                <div className={cn(installmentPaymentsClass, dashboardOpeningBodyClass)}>
                   <FormField label="موجودی اول دوره">
                     <AmountInput
                       value={edit.amount}
@@ -215,14 +230,15 @@ export default function OpeningBalancePage() {
                       placeholder="توضیحات اختیاری"
                     />
                   </FormField>
-                  <button
+                  <Button
                     type="button"
-                    className="btn btn-primary btn-sm"
+                    variant="primary"
+                    size="sm"
                     onClick={() => handleSave(item)}
                     disabled={savingId === item.monthKey || loading}
                   >
                     {savingId === item.monthKey ? '...' : 'ذخیره'}
-                  </button>
+                  </Button>
                 </div>
               </AccordionCollapse>
             </div>

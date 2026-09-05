@@ -2,6 +2,22 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import { cn } from '../utils/cn'
+import Button from './ui/Button'
+import { spinnerClass } from './ui/displayStyles'
+import { confirmDeleteMessageClass } from './ui/featureCardStyles'
+import { formActionsClassName } from './ui/formStyles'
+import {
+  formModalActionsClass,
+  formModalBackdropClass,
+  formModalBodyClass,
+  formModalCloseClass,
+  formModalHeaderClass,
+  formModalPanelClass,
+  formModalRootClass,
+  formModalSpinnerClass,
+  formModalTitleClass
+} from './ui/modalStyles'
 
 type ConfirmDeleteModalProps = {
   open: boolean
@@ -40,28 +56,28 @@ export default function ConfirmDeleteModal({
 
   return createPortal(
     <div
-      className="form-modal confirm-delete-modal"
+      className={cn(formModalRootClass, 'confirm-delete-modal')}
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-delete-title"
     >
       <button
         type="button"
-        className="form-modal-backdrop"
+        className={formModalBackdropClass}
         onClick={() => {
           if (!deleting) onClose()
         }}
         aria-label="بستن"
       />
 
-      <div className="form-modal-panel">
-        <div className="form-modal-header">
-          <h2 id="confirm-delete-title" className="form-modal-title">
+      <div className={formModalPanelClass}>
+        <div className={formModalHeaderClass}>
+          <h2 id="confirm-delete-title" className={formModalTitleClass}>
             {title}
           </h2>
           <button
             type="button"
-            className="form-modal-close"
+            className={formModalCloseClass}
             onClick={onClose}
             disabled={deleting}
             aria-label="بستن"
@@ -70,18 +86,18 @@ export default function ConfirmDeleteModal({
           </button>
         </div>
 
-        <div className="form-modal-body">
-          <p className="confirm-delete-message">{message}</p>
+        <div className={formModalBodyClass}>
+          <p className={confirmDeleteMessageClass}>{message}</p>
         </div>
 
-        <div className="form-actions form-modal-actions">
-          {deleting && <span className="spinner form-modal-spinner" aria-hidden />}
-          <button type="button" className="btn btn-danger" disabled={deleting} onClick={onConfirm}>
+        <div className={cn(formModalActionsClass, formActionsClassName())}>
+          {deleting && <span className={cn(spinnerClass, formModalSpinnerClass)} aria-hidden />}
+          <Button type="button" variant="danger" disabled={deleting} onClick={onConfirm}>
             بله
-          </button>
-          <button type="button" className="btn btn-secondary" disabled={deleting} onClick={onClose}>
+          </Button>
+          <Button type="button" variant="secondary" disabled={deleting} onClick={onClose}>
             خیر
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

@@ -1,6 +1,19 @@
 import { useRef } from 'react'
 
 import AppIcon from './AppIcon'
+import {
+  amountFieldClass,
+  amountFieldCompactClass,
+  amountFieldCurrencyClass,
+  amountFieldCurrencyCompactClass,
+  amountFieldInputClass,
+  amountFieldInputCompactClass,
+  amountFieldInputWrapClass,
+  amountFieldInputWrapCompactClass,
+  amountFieldSubmitBtnClass,
+  amountWordsClass
+} from './ui/formControlStyles'
+import { cn } from '../utils/cn'
 import { getCurrencySymbol } from '../utils/formatMoney'
 import { normalizeDigits } from '../utils/normalizeDigits'
 import { numberToPersianWords } from '../utils/numberToWords'
@@ -69,12 +82,12 @@ export default function AmountInput({
 
   if (compact) {
     return (
-      <div className="amount-field amount-field--compact">
-        <div className="amount-field-input-wrap amount-field-input-wrap--compact">
+      <div className={cn(amountFieldClass, amountFieldCompactClass)}>
+        <div className={cn(amountFieldInputWrapClass, amountFieldInputWrapCompactClass)}>
           {onSubmit && (
             <button
               type="button"
-              className="amount-field-submit-btn"
+              className={amountFieldSubmitBtnClass}
               onMouseDown={handleSubmitMouseDown}
               onClick={event => {
                 event.stopPropagation()
@@ -96,18 +109,20 @@ export default function AmountInput({
             onBlur={handleBlur}
             dir="ltr"
             placeholder="۰"
-            className="amount-field-input amount-input-compact numeric"
+            className={cn(amountFieldInputClass, amountFieldInputCompactClass, 'numeric')}
             aria-label="مبلغ"
           />
-          <span className="amount-field-currency">{currency}</span>
+          <span className={cn(amountFieldCurrencyClass, amountFieldCurrencyCompactClass)}>
+            {currency}
+          </span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="amount-field">
-      <div className="amount-field-input-wrap">
+    <div className={amountFieldClass}>
+      <div className={amountFieldInputWrapClass}>
         <input
           id={id}
           type="text"
@@ -117,13 +132,13 @@ export default function AmountInput({
           onBlur={handleBlur}
           dir="ltr"
           placeholder="۰"
-          className="amount-field-input numeric"
+          className={cn(amountFieldInputClass, 'numeric')}
           aria-label="مبلغ"
         />
-        <span className="amount-field-currency">{currency}</span>
+        <span className={amountFieldCurrencyClass}>{currency}</span>
       </div>
       {words && (
-        <p className="amount-words">
+        <p className={amountWordsClass}>
           {words} {currency}
         </p>
       )}

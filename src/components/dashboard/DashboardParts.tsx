@@ -1,5 +1,13 @@
+import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import MoneyDisplay from '../MoneyDisplay'
+import {
+  assetLabelClass,
+  assetLabelLinkClass,
+  assetRowClass,
+  assetRowTotalClass,
+  assetValueClass
+} from '../ui/chartStyles'
 
 export function RecordAmount({ amount, type }: { amount: number; type: 'income' | 'expense' }) {
   return (
@@ -24,15 +32,19 @@ export function BreakdownRow({
   onNavigate?: () => void
 }) {
   return (
-    <div className={`asset-row${total ? ' asset-row-total' : ''}`}>
+    <div className={cn(assetRowClass, total && assetRowTotalClass)}>
       {onNavigate ? (
-        <button type="button" className="asset-label asset-label-link" onClick={onNavigate}>
+        <button
+          type="button"
+          className={cn(assetLabelClass, assetLabelLinkClass)}
+          onClick={onNavigate}
+        >
           {label}
         </button>
       ) : (
-        <span className="asset-label">{label}</span>
+        <span className={assetLabelClass}>{label}</span>
       )}
-      <span className="asset-value" dir="ltr">
+      <span className={assetValueClass} dir="ltr">
         {formatMoney(value)}
       </span>
     </div>

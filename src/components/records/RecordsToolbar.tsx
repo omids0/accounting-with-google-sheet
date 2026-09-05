@@ -4,6 +4,19 @@ import DateRangeFilter from '../DateRangeFilter'
 import type { AppliedDateRangeFilter } from '../DateRangeFilter'
 import { Select } from '../form'
 import TransactionTypeSegment, { transactionTypeOptionsFromForms } from '../TransactionTypeSegment'
+import Button from '../ui/Button'
+import Card from '../ui/Card'
+import {
+  recordsCategorySelectClass,
+  recordsFilterLabelClass,
+  recordsFilterSectionClassName,
+  recordsRefreshBtnClass,
+  recordsToolbarClass,
+  recordsToolbarHeaderClass,
+  recordsToolbarHeadingClass,
+  recordsToolbarRangeClass,
+  recordsToolbarTitleClass
+} from '../ui/recordsStyles'
 
 interface RecordsToolbarProps {
   dateRange: { start: string; end: string }
@@ -37,21 +50,23 @@ export default function RecordsToolbar({
   onCategoryChange
 }: RecordsToolbarProps) {
   return (
-    <div className="card records-toolbar">
-      <div className="records-toolbar-header">
-        <div className="records-toolbar-heading">
-          <h2 className="records-toolbar-title">تراکنش‌ها</h2>
-          <p className="records-toolbar-range">{formatDateRangeLabel(dateRange)}</p>
+    <Card className={recordsToolbarClass}>
+      <div className={recordsToolbarHeaderClass}>
+        <div className={recordsToolbarHeadingClass}>
+          <h2 className={recordsToolbarTitleClass}>تراکنش‌ها</h2>
+          <p className={recordsToolbarRangeClass}>{formatDateRangeLabel(dateRange)}</p>
         </div>
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary btn-sm records-refresh-btn"
+          variant="secondary"
+          size="sm"
+          className={recordsRefreshBtnClass}
           onClick={onRefresh}
           disabled={loading}
           aria-label="بارگذاری مجدد"
         >
           {loading ? '...' : '↻'}
-        </button>
+        </Button>
       </div>
 
       <TransactionTypeSegment
@@ -68,10 +83,10 @@ export default function RecordsToolbar({
       />
 
       {showCategoryFilter && (
-        <div className="records-filter-section records-filter-section--inline">
-          <span className="records-filter-label">دسته‌بندی</span>
+        <div className={recordsFilterSectionClassName(true)}>
+          <span className={recordsFilterLabelClass}>دسته‌بندی</span>
           <Select
-            className="records-category-select"
+            className={recordsCategorySelectClass}
             compact
             aria-label="دسته‌بندی"
             value={categoryFilter}
@@ -83,6 +98,6 @@ export default function RecordsToolbar({
           />
         </div>
       )}
-    </div>
+    </Card>
   )
 }

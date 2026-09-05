@@ -6,6 +6,8 @@ import { DangCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import DangCard from './DangCard'
 import type { DangWithRow } from './types'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { dangTotalFooterClass } from '../ui/featureCardStyles'
 
 export type DangListProps = {
   items: DangWithRow[]
@@ -44,8 +46,8 @@ export default function DangList({
 
   if (items.length === 0) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="debt" />
         </div>
         <p>هنوز بدهی ثبت نشده</p>
@@ -87,7 +89,7 @@ export default function DangList({
           sparklineData={distributionSparkline(
             items.filter(item => !item.paid).map(item => item.amount)
           )}
-          className="dang-total-footer"
+          className={dangTotalFooterClass}
         />
       )}
     </>

@@ -10,7 +10,19 @@ import {
 import type { FinancialSummary, NetAvailableConfig } from '../types'
 import MoneyDisplay from './MoneyDisplay'
 import ToggleChipGroup from './ToggleChipGroup'
+import Card from './ui/Card'
+import {
+  chartTitleClass,
+  dashboardHeroCardClass,
+  dashboardHeroHintClass,
+  dashboardHeroLabelClass,
+  netAvailablePreviewCardClass,
+  netAvailableSectionHintClass,
+  netAvailableSettingsPageClass
+} from './ui/chartStyles'
+import { emptyStateClass, emptyTextClass } from './ui/displayStyles'
 import { requireAuth } from '../utils/authGuard'
+import { cn } from '../utils/cn'
 import { getDateRange, getInstallmentDueRange } from '../utils/dateRange'
 import { handleSheetError } from '../utils/sheetError'
 
@@ -108,43 +120,43 @@ export default function NetAvailableSettingsPage() {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
+      <div className={emptyStateClass}>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     )
   }
 
   return (
-    <div className="net-available-settings-page">
-      <div className="card dashboard-hero-card net-available-preview-card">
-        <div className="dashboard-hero-label">پیش‌نمایش دارایی قابل اتکا</div>
+    <div className={netAvailableSettingsPageClass}>
+      <Card className={cn(dashboardHeroCardClass, netAvailablePreviewCardClass)}>
+        <div className={dashboardHeroLabelClass}>پیش‌نمایش دارایی قابل اتکا</div>
         <MoneyDisplay amount={preview?.netAvailable ?? 0} size="hero" tone="hero" />
-        <p className="dashboard-hero-hint">بر اساس انتخاب‌های فعلی و وضعیت کنونی حساب</p>
-      </div>
+        <p className={dashboardHeroHintClass}>بر اساس انتخاب‌های فعلی و وضعیت کنونی حساب</p>
+      </Card>
 
-      <div className="card">
-        <h3 className="chart-title">دارایی‌ها</h3>
-        <p className="net-available-section-hint">مواردی که در مجموع دارایی‌ها لحاظ شوند</p>
+      <Card>
+        <h3 className={chartTitleClass}>دارایی‌ها</h3>
+        <p className={netAvailableSectionHintClass}>مواردی که در مجموع دارایی‌ها لحاظ شوند</p>
         <ToggleChipGroup
           options={[...ASSET_OPTIONS]}
           selected={toAssetSelected(config)}
           onToggle={toggleAsset}
           ariaLabel="انتخاب دارایی‌ها"
         />
-      </div>
+      </Card>
 
-      <div className="card">
-        <h3 className="chart-title">بدهی‌ها</h3>
-        <p className="net-available-section-hint">مواردی که از دارایی قابل اتکا کسر شوند</p>
+      <Card>
+        <h3 className={chartTitleClass}>بدهی‌ها</h3>
+        <p className={netAvailableSectionHintClass}>مواردی که از دارایی قابل اتکا کسر شوند</p>
         <ToggleChipGroup
           options={[...LIABILITY_OPTIONS]}
           selected={toLiabilitySelected(config)}
           onToggle={toggleLiability}
           ariaLabel="انتخاب بدهی‌ها"
         />
-      </div>
+      </Card>
 
-      {loading && !financial && <p className="empty-text">در حال بارگذاری...</p>}
+      {loading && !financial && <p className={emptyTextClass}>در حال بارگذاری...</p>}
     </div>
   )
 }

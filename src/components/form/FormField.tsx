@@ -7,6 +7,9 @@ import {
   type ReactNode
 } from 'react'
 
+import { cn } from '../../utils/cn'
+import { formFieldClass, formHintClass, formLabelClass } from '../ui/formStyles'
+
 interface FormFieldProps {
   label?: string
   required?: boolean
@@ -45,22 +48,20 @@ export default function FormField({
   const control = assignControlId(children, controlId)
 
   return (
-    <div
-      className={['form-field', 'form-group', className].filter(Boolean).join(' ')}
-      style={style}
-    >
+    <div className={cn(formFieldClass, className)} style={style}>
       {label && (
-        <label className="form-field-label" htmlFor={controlId}>
-          <span className="form-field-label-text">{label}</span>
+        <label className={formLabelClass} htmlFor={controlId}>
+          <span>{label}</span>
           {required && (
-            <span className="required" aria-hidden="true">
+            <span className="text-danger" aria-hidden="true">
+              {' '}
               *
             </span>
           )}
         </label>
       )}
-      <div className="form-field-control">{control}</div>
-      {hint && <div className="form-field-hint">{hint}</div>}
+      <div>{control}</div>
+      {hint && <div className={formHintClass}>{hint}</div>}
     </div>
   )
 }

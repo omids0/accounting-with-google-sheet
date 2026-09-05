@@ -1,7 +1,26 @@
+import { cn } from '../../utils/cn'
 import { formatDateTimePersian, formatDurationFa } from '../../utils/datetime'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { TimesheetEntryWithRow } from './useTimesheetDetailPage'
+import { cardClassName } from '../ui/Card'
+import {
+  cardActionButtonsClass,
+  cardHeaderWithEditClass,
+  installmentHeaderClass,
+  installmentNoteClass,
+  listCardAmountPillClass,
+  listCardSubtitleClass,
+  listCardTitleClass
+} from '../ui/featureCardStyles'
+import {
+  timesheetEntryBodyClass,
+  timesheetEntryCardCheckedClass,
+  timesheetEntryCardClass,
+  timesheetEntryCheckboxClass,
+  timesheetEntryHeaderClass,
+  timesheetEntrySeparatorClass
+} from '../ui/toolsPageStyles'
 
 interface TimesheetEntryCardProps {
   item: TimesheetEntryWithRow
@@ -20,37 +39,41 @@ export default function TimesheetEntryCard({
 }: TimesheetEntryCardProps) {
   return (
     <div
-      className={`card installment-card timesheet-entry-card${
-        item.checked ? ' timesheet-entry-card--checked' : ''
-      }`}
+      className={cardClassName(
+        cn(
+          'installment-card',
+          timesheetEntryCardClass,
+          item.checked && timesheetEntryCardCheckedClass
+        )
+      )}
     >
       <input
         type="checkbox"
-        className="timesheet-entry-checkbox"
+        className={timesheetEntryCheckboxClass}
         checked={item.checked}
         disabled={togglingCheckId === item.id}
         onChange={event => onToggleChecked(item, event.target.checked)}
         aria-label={`تایید ${item.title}`}
       />
-      <div className="timesheet-entry-body">
-        <div className="card-header-with-edit">
-          <div className="installment-header timesheet-entry-header">
+      <div className={timesheetEntryBodyClass}>
+        <div className={cardHeaderWithEditClass}>
+          <div className={cn(installmentHeaderClass(), timesheetEntryHeaderClass)}>
             <div>
-              <div className="list-card-title">{item.title}</div>
-              <div className="list-card-subtitle">
+              <div className={listCardTitleClass}>{item.title}</div>
+              <div className={listCardSubtitleClass}>
                 {formatDateTimePersian(item.startAt)}
-                <span className="timesheet-entry-separator"> · </span>
+                <span className={timesheetEntrySeparatorClass}> · </span>
                 {formatDateTimePersian(item.endAt)}
               </div>
-              <div className="list-card-subtitle">
-                <span className="list-card-amount-pill">
+              <div className={listCardSubtitleClass}>
+                <span className={listCardAmountPillClass}>
                   {formatDurationFa(item.durationMinutes)}
                 </span>
               </div>
-              {item.description && <p className="installment-note">{item.description}</p>}
+              {item.description && <p className={installmentNoteClass}>{item.description}</p>}
             </div>
           </div>
-          <div className="card-action-buttons">
+          <div className={cardActionButtonsClass}>
             <CardEditButton onClick={() => onEdit(item)} />
             <CardDeleteButton onClick={() => onDelete(item)} />
           </div>

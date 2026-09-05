@@ -23,6 +23,8 @@ import type { InstallmentsPageProps } from './types'
 import { useInstallmentMutations } from './useInstallmentMutations'
 import { useInstallmentsData } from './useInstallmentsData'
 import { useInstallmentsFilters } from './useInstallmentsFilters'
+import { dashboardStatGridClass } from '../ui/chartStyles'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 export default function InstallmentsPage({ active = true }: InstallmentsPageProps) {
   const { plans, setPlans, loading, loadPlans } = useInstallmentsData()
@@ -70,8 +72,8 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="installments" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
@@ -122,7 +124,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
       />
 
       {plans.length > 0 && (
-        <div className="stat-grid dashboard-stat-grid">
+        <div className={dashboardStatGridClass}>
           <StatCard
             label={`مجموع اقساط ${filters.monthLabel}`}
             amount={filters.monthTotals.total}

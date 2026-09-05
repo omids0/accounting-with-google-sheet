@@ -4,6 +4,20 @@ import DateRangeFilter, {
 } from './DateRangeFilter'
 import { Select } from './form'
 import PageSearchInput from './PageSearchInput'
+import {
+  pageFilterPanelClass,
+  pageFilterPanelSearchClass,
+  pageFilterPanelSearchInputClass,
+  pageFilterPanelSectionsClass
+} from './ui/filterControlStyles'
+import {
+  recordsCategorySelectClass,
+  recordsDateGridBtnClass,
+  recordsDateGridClass,
+  recordsFilterLabelClass,
+  recordsFilterSectionClassName
+} from './ui/recordsStyles'
+import { cn } from '../utils/cn'
 
 export type PaymentStatusFilter = 'all' | 'paid' | 'unpaid'
 
@@ -68,21 +82,21 @@ export default function PageFilterPanel({
   })
 
   return (
-    <div className="page-filter-panel">
-      <div className="page-filter-panel-search">
+    <div className={pageFilterPanelClass}>
+      <div className={cn(pageFilterPanelSearchClass, pageFilterPanelSearchInputClass)}>
         <PageSearchInput value={search} onChange={onSearchChange} placeholder={searchPlaceholder} />
       </div>
 
-      <div className="page-filter-panel-sections">
+      <div className={pageFilterPanelSectionsClass}>
         {paymentStatus !== undefined && onPaymentStatusChange && (
-          <div className="records-filter-section">
-            <span className="records-filter-label">{paymentStatusLabel}</span>
-            <div className="records-date-grid">
+          <div className={recordsFilterSectionClassName()}>
+            <span className={recordsFilterLabelClass}>{paymentStatusLabel}</span>
+            <div className={recordsDateGridClass}>
               {paymentOptions.map(option => (
                 <button
                   key={option.id}
                   type="button"
-                  className={paymentStatus === option.id ? 'active' : ''}
+                  className={recordsDateGridBtnClass(paymentStatus === option.id)}
                   onClick={() => onPaymentStatusChange(option.id)}
                 >
                   {option.label}
@@ -96,10 +110,10 @@ export default function PageFilterPanel({
           onCategoryChange &&
           categoryOptions &&
           categoryOptions.length > 0 && (
-            <div className="records-filter-section records-filter-section--inline">
-              <span className="records-filter-label">{categoryLabel}</span>
+            <div className={recordsFilterSectionClassName(true)}>
+              <span className={recordsFilterLabelClass}>{categoryLabel}</span>
               <Select
-                className="records-category-select"
+                className={recordsCategorySelectClass}
                 compact
                 aria-label={categoryLabel}
                 value={category}

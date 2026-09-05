@@ -65,13 +65,13 @@ export default function RecordsEditFormModal({
       onSubmit={handleSubmit}
       saving={saving}
       saveLabel="ذخیره تغییرات"
-      saveButtonClassName={`btn ${
+      saveButtonVariant={
         editingForm.type === 'expense'
-          ? 'btn-outflow'
+          ? 'outflow'
           : editingForm.type === 'income'
-          ? 'btn-inflow'
-          : 'btn-primary'
-      }`}
+          ? 'inflow'
+          : 'primary'
+      }
     >
       {sortFormFields(editingForm.fields).map(field => (
         <FieldInput

@@ -1,13 +1,21 @@
-import AmountInput from './AmountInput';
+import AmountInput from './AmountInput'
+import { spinnerClass } from './ui/displayStyles'
+import {
+  cardInlineEditClass,
+  cardInlineEditFieldClass,
+  cardInlineEditLabelClass,
+  cardInlineEditSpinnerClass
+} from './ui/featureCardStyles'
+import { cn } from '../utils/cn'
 
 interface CardInlineAmountEditProps {
-  label: string;
-  value: string | number;
-  onChange: (value: number | '') => void;
-  onBlur?: () => void;
-  onClose?: () => void;
-  saving?: boolean;
-  className?: string;
+  label: string
+  value: string | number
+  onChange: (value: number | '') => void
+  onBlur?: () => void
+  onClose?: () => void
+  saving?: boolean
+  className?: string
 }
 
 export default function CardInlineAmountEdit({
@@ -17,17 +25,17 @@ export default function CardInlineAmountEdit({
   onBlur,
   onClose,
   saving = false,
-  className,
+  className
 }: CardInlineAmountEditProps) {
   const handleSubmit = () => {
-    onBlur?.();
-    onClose?.();
-  };
+    onBlur?.()
+    onClose?.()
+  }
 
   return (
-    <div className={['card-inline-edit', className].filter(Boolean).join(' ')}>
-      <div className="card-inline-edit-field">
-        <label className="card-inline-edit-label">{label}</label>
+    <div className={cn(cardInlineEditClass, className)}>
+      <div className={cardInlineEditFieldClass}>
+        <label className={cardInlineEditLabelClass}>{label}</label>
         <AmountInput
           compact
           value={value}
@@ -37,7 +45,9 @@ export default function CardInlineAmountEdit({
           submitDisabled={saving}
         />
       </div>
-      {saving && <span className="spinner card-inline-edit-spinner" aria-label="در حال ذخیره" />}
+      {saving ? (
+        <span className={cn(spinnerClass, cardInlineEditSpinnerClass)} aria-label="در حال ذخیره" />
+      ) : null}
     </div>
-  );
+  )
 }

@@ -6,6 +6,8 @@ import RecordsEditFormModal from './records/RecordsEditFormModal'
 import RecordsList from './records/RecordsList'
 import RecordsToolbar from './records/RecordsToolbar'
 import { useRecordsPage } from './records/useRecordsPage'
+import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
+import { recordsPageClass } from './ui/recordsStyles'
 
 export default function RecordsPage({
   initialFormType
@@ -16,8 +18,8 @@ export default function RecordsPage({
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="records" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
@@ -26,7 +28,7 @@ export default function RecordsPage({
   }
 
   return (
-    <div className="records-page">
+    <div className={recordsPageClass}>
       <RecordsToolbar
         dateRange={page.dateRange}
         loading={page.loading}
@@ -46,15 +48,15 @@ export default function RecordsPage({
       {page.loading && page.records.length === 0 ? (
         <RecordListSkeleton />
       ) : page.records.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">
+        <div className={emptyStateClass}>
+          <div className={emptyStateIconClass}>
             <AppIcon name="empty-inbox" />
           </div>
           <p>هنوز رکوردی ثبت نشده</p>
         </div>
       ) : page.filteredRecords.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">
+        <div className={emptyStateClass}>
+          <div className={emptyStateIconClass}>
             <AppIcon name="search" />
           </div>
           <p>تراکنشی با این فیلتر یافت نشد</p>

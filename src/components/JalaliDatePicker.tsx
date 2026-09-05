@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import Button from './ui/Button'
+import {
+  jalaliDatePickerActionsClass,
+  jalaliDatePickerClass,
+  jalaliDatePickerColumnClass,
+  jalaliDatePickerLabelClass,
+  jalaliDatePickerMonthColumnClass,
+  jalaliDatePickerPanelClass,
+  jalaliDatePickerTriggerClass,
+  jalaliDatePickerWrapClass,
+  jalaliDatePickerWrapInlineClass
+} from './ui/datePickerStyles'
+import { cn } from '../utils/cn'
 import {
   daysInCalendarMonth,
   formatCalendarDateCompact,
@@ -79,9 +92,9 @@ function CalendarWheelFields({ calendar, iso, onIsoChange }: CalendarWheelFields
   }
 
   return (
-    <div className="jalali-date-picker">
-      <div className="jalali-date-picker-column">
-        <span className="jalali-date-picker-label">سال</span>
+    <div className={jalaliDatePickerClass}>
+      <div className={jalaliDatePickerColumnClass}>
+        <span className={jalaliDatePickerLabelClass}>سال</span>
         <WheelPicker
           value={String(year)}
           onChange={next => update(Number(next), month, safeDay)}
@@ -89,8 +102,8 @@ function CalendarWheelFields({ calendar, iso, onIsoChange }: CalendarWheelFields
           items={yearItems}
         />
       </div>
-      <div className="jalali-date-picker-column jalali-date-picker-column--month">
-        <span className="jalali-date-picker-label">ماه</span>
+      <div className={cn(jalaliDatePickerColumnClass, jalaliDatePickerMonthColumnClass)}>
+        <span className={jalaliDatePickerLabelClass}>ماه</span>
         <WheelPicker
           value={String(month)}
           onChange={next => update(year, Number(next), safeDay)}
@@ -98,8 +111,8 @@ function CalendarWheelFields({ calendar, iso, onIsoChange }: CalendarWheelFields
           items={monthItems}
         />
       </div>
-      <div className="jalali-date-picker-column">
-        <span className="jalali-date-picker-label">روز</span>
+      <div className={jalaliDatePickerColumnClass}>
+        <span className={jalaliDatePickerLabelClass}>روز</span>
         <WheelPicker
           value={String(safeDay)}
           onChange={next => update(year, month, Number(next))}
@@ -151,7 +164,7 @@ export default function JalaliDatePicker({
 
   if (inline) {
     return (
-      <div className="jalali-date-picker-wrap jalali-date-picker-wrap--inline">
+      <div className={cn(jalaliDatePickerWrapClass, jalaliDatePickerWrapInlineClass)}>
         <CalendarWheelFields
           calendar={calendar}
           iso={hasValue ? iso : getTodayIso()}
@@ -166,13 +179,14 @@ export default function JalaliDatePicker({
   const triggerLabel = allowEmpty && !hasValue ? emptyLabel : formatPickerLabel(iso, calendar)
 
   return (
-    <div className="jalali-date-picker-wrap">
+    <div className={jalaliDatePickerWrapClass}>
       <button
         id={id}
         type="button"
-        className={`jalali-date-picker-trigger${editing ? ' is-active' : ''}${
-          allowEmpty && !hasValue ? ' is-empty' : ''
-        }`}
+        className={jalaliDatePickerTriggerClass({
+          active: editing,
+          empty: allowEmpty && !hasValue
+        })}
         onClick={handleToggle}
         aria-expanded={editing}
       >
@@ -180,17 +194,18 @@ export default function JalaliDatePicker({
       </button>
 
       {editing && (
-        <div className="jalali-date-picker-panel">
+        <div className={jalaliDatePickerPanelClass}>
           <CalendarWheelFields calendar={calendar} iso={pendingIso} onIsoChange={setPendingIso} />
-          <div className="records-filter-actions jalali-date-picker-actions">
-            <button
+          <div className={cn('records-filter-actions', jalaliDatePickerActionsClass)}>
+            <Button
               type="button"
-              className="btn btn-primary btn-sm"
+              variant="primary"
+              size="sm"
               onClick={handleConfirm}
               disabled={!hasPendingChanges}
             >
               تایید تاریخ
-            </button>
+            </Button>
           </div>
         </div>
       )}

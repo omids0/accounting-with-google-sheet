@@ -6,6 +6,18 @@ import ChartTooltip from './ChartTooltip'
 import { formatAxisMoney } from './chartUtils'
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
 import type { MonthlyFlow } from '../../types'
+import { cn } from '../../utils/cn'
+import {
+  chartBarWrapClass,
+  chartCardClass,
+  chartMonthlyLegendClass,
+  chartMonthlyLegendDotClass,
+  chartMonthlyLegendDotExpenseClass,
+  chartMonthlyLegendDotIncomeClass,
+  chartMonthlyLegendItemClass,
+  chartMonthlyWrapClass
+} from '../ui/chartStyles'
+import { emptyTextClass } from '../ui/displayStyles'
 
 type ChartTooltipEntry = {
   name?: string | number
@@ -46,13 +58,13 @@ function IncomeExpenseMonthlyChart({
   const yAxisWidth = Math.min(72, Math.max(44, Math.ceil(maxLabelLen * 7)))
 
   return (
-    <div className={`card chart-card chart-card--animated ${className}`.trim()}>
+    <div className={cn(chartCardClass, 'chart-card--animated', className)}>
       {header}
       {!chartData.length ? (
-        <p className="empty-text">داده‌ای برای این سال ثبت نشده</p>
+        <p className={emptyTextClass}>داده‌ای برای این سال ثبت نشده</p>
       ) : (
         <>
-          <div className="chart-bar-wrap chart-monthly-wrap" dir="ltr">
+          <div className={cn(chartBarWrapClass, chartMonthlyWrapClass)} dir="ltr">
             <ResponsiveContainer width="100%" height={height}>
               <BarChart
                 data={chartData}
@@ -133,13 +145,13 @@ function IncomeExpenseMonthlyChart({
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="chart-monthly-legend" dir="rtl">
-            <span className="chart-monthly-legend-item">
-              <span className="chart-monthly-legend-dot chart-monthly-legend-dot--income" />
+          <div className={chartMonthlyLegendClass} dir="rtl">
+            <span className={chartMonthlyLegendItemClass}>
+              <span className={cn(chartMonthlyLegendDotClass, chartMonthlyLegendDotIncomeClass)} />
               درآمد
             </span>
-            <span className="chart-monthly-legend-item">
-              <span className="chart-monthly-legend-dot chart-monthly-legend-dot--expense" />
+            <span className={chartMonthlyLegendItemClass}>
+              <span className={cn(chartMonthlyLegendDotClass, chartMonthlyLegendDotExpenseClass)} />
               هزینه
             </span>
           </div>

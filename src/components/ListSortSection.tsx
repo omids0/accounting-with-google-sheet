@@ -1,4 +1,12 @@
 import type { ListSortOption, SortDirection } from '../hooks/useListSort'
+import {
+  recordsDateGridBtnClass,
+  recordsDateGridClass,
+  recordsFilterLabelClass,
+  recordsFilterSectionClassName,
+  recordsSortDirectionGridClass
+} from './ui/recordsStyles'
+import { cn } from '../utils/cn'
 
 interface ListSortSectionProps<T extends string> {
   options: ListSortOption<T>[]
@@ -23,14 +31,14 @@ export default function ListSortSection<T extends string>({
   label = 'مرتب‌سازی'
 }: ListSortSectionProps<T>) {
   return (
-    <div className="records-filter-section">
-      <span className="records-filter-label">{label}</span>
-      <div className="records-date-grid">
+    <div className={recordsFilterSectionClassName()}>
+      <span className={recordsFilterLabelClass}>{label}</span>
+      <div className={recordsDateGridClass}>
         {options.map(option => (
           <button
             key={option.id}
             type="button"
-            className={sortId === option.id ? 'active' : ''}
+            className={recordsDateGridBtnClass(sortId === option.id)}
             onClick={() => {
               onSortIdChange(option.id)
               onSortDirectionChange(option.defaultDirection)
@@ -40,12 +48,12 @@ export default function ListSortSection<T extends string>({
           </button>
         ))}
       </div>
-      <div className="records-date-grid records-sort-direction-grid">
+      <div className={cn(recordsDateGridClass, recordsSortDirectionGridClass)}>
         {DIRECTION_OPTIONS.map(option => (
           <button
             key={option.id}
             type="button"
-            className={sortDirection === option.id ? 'active' : ''}
+            className={recordsDateGridBtnClass(sortDirection === option.id)}
             onClick={() => onSortDirectionChange(option.id)}
           >
             {option.label}

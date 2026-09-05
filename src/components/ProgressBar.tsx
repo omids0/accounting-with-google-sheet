@@ -1,9 +1,18 @@
 import type { CSSProperties } from 'react'
 
 import { useAnimatedProgress } from '../hooks/useAnimatedProgress'
+import { cn } from '../utils/cn'
 import { formatPersianNumber } from '../utils/formatMoney'
-
-type ProgressBarVariant = 'default' | 'complete' | 'success'
+import {
+  progressBarClass,
+  progressBarFillClass,
+  progressBarGlowClass,
+  progressBarLabelClass,
+  progressBarMetaClass,
+  progressBarShineClass,
+  progressBarTrackClass,
+  type ProgressBarVariant
+} from './ui/progressStyles'
 
 interface ProgressBarProps {
   value: number
@@ -21,7 +30,7 @@ export default function ProgressBar({
   showLabel = true,
   animateIndex = 0,
   animated = true,
-  className = '',
+  className,
   'aria-label': ariaLabel
 }: ProgressBarProps) {
   const clamped = Math.max(0, Math.min(100, value))
@@ -34,29 +43,26 @@ export default function ProgressBar({
     '--progress-delay': `${Math.min(animateIndex, 10) * 0.07}s`
   } as CSSProperties
 
+  const showMotion = animated && variant !== 'complete'
+
   return (
-    <div
-      className={`progress-bar progress-bar--${variant}${animated ? '' : ' progress-bar--static'}${
-        className ? ` ${className}` : ''
-      }`}
-      style={style}
-    >
-      <div className="progress-bar__meta">
+    <div className={progressBarClass({ variant, animated, className })} style={style}>
+      <div className={progressBarMetaClass}>
         <div
-          className="progress-bar__track"
+          className={progressBarTrackClass}
           role="progressbar"
           aria-valuenow={clamped}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label={ariaLabel}
         >
-          <div className="progress-bar__fill" style={{ width: `${animatedValue}%` }}>
-            <span className="progress-bar__shine" aria-hidden="true" />
-            <span className="progress-bar__glow" aria-hidden="true" />
+          <div className={progressBarFillClass(variant)} style={{ width: `${animatedValue}%` }}>
+            {showMotion ? <span className={progressBarShineClass} aria-hidden="true" /> : null}
+            {showMotion ? <span className={progressBarGlowClass} aria-hidden="true" /> : null}
           </div>
         </div>
         {showLabel ? (
-          <span className="progress-bar__label numeric" aria-hidden="true">
+          <span className={cn(progressBarLabelClass(variant), 'numeric')} aria-hidden="true">
             {formatPersianNumber(displayPct, { useGrouping: false })}٪
           </span>
         ) : null}

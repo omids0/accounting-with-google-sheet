@@ -1,6 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
+import {
+  categorySelectLeadingClass,
+  categorySelectPlaceholderClass,
+  categorySelectRootClass,
+  categorySelectSpinnerClass,
+  categorySelectTriggerClass,
+  customSelectChevronClass,
+  customSelectTriggerClass,
+  customSelectTriggerStateClass,
+  customSelectValueClass
+} from '../ui/formControlStyles'
 import CategorySelectPanel from './categorySelect/CategorySelectPanel'
 import {
   useCategorySelectActions,
@@ -140,42 +152,42 @@ export default function CategorySelect({
     setOpen(false)
   }
 
-  const rootClass = [
-    'custom-select',
-    'category-select',
-    open && 'custom-select--open',
-    disabled && 'custom-select--disabled',
-    saving && 'category-select--saving'
-  ]
-    .filter(Boolean)
-    .join(' ')
-
   return (
-    <div ref={rootRef} className={rootClass}>
+    <div
+      ref={rootRef}
+      className={categorySelectRootClass({ open, disabled, saving })}
+      data-open={open || undefined}
+    >
       <button
         id={id}
         type="button"
-        className="custom-select-trigger category-select-trigger"
+        className={cn(
+          customSelectTriggerClass,
+          categorySelectTriggerClass,
+          customSelectTriggerStateClass({ open, disabled: disabled || saving })
+        )}
         onClick={() => !disabled && !saving && setOpen(isOpen => !isOpen)}
         disabled={disabled || saving}
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="listbox"
       >
-        <span className="category-select-trigger-leading" aria-hidden="true">
+        <span className={categorySelectLeadingClass} aria-hidden="true">
           <AppIcon name="folder" size={16} strokeWidth={2} />
         </span>
-        <span
-          className={['custom-select-value', !hasValue && 'category-select-placeholder']
-            .filter(Boolean)
-            .join(' ')}
-        >
+        <span className={cn(customSelectValueClass, !hasValue && categorySelectPlaceholderClass)}>
           {hasValue ? value : 'انتخاب دسته‌بندی'}
         </span>
         {saving ? (
-          <span className="spinner category-select-spinner" aria-hidden="true" />
+          <span className={cn('spinner', categorySelectSpinnerClass)} aria-hidden="true" />
         ) : (
-          <span className="custom-select-chevron" aria-hidden="true" />
+          <AppIcon
+            name="chevron-down"
+            size={12}
+            strokeWidth={2.5}
+            className={customSelectChevronClass(open)}
+            aria-hidden
+          />
         )}
       </button>
 

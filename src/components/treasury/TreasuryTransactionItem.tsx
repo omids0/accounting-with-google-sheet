@@ -2,10 +2,23 @@ import type { TransactionWithRow } from './types'
 import { formatQuantity } from './utils'
 import { getAssetUnit } from '../../services/tgju'
 import type { VaultTransaction } from '../../types'
+import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
+import {
+  treasuryTxEditClass,
+  treasuryTxItemClass as treasuryTxPositionClass
+} from '../ui/displayStyles'
+import { cardActionButtonsClass, installmentDueClass } from '../ui/featureCardStyles'
+import {
+  treasuryTxBadgeClass,
+  treasuryTxDetailsClass,
+  treasuryTxInteractiveClass,
+  treasuryTxItemClass,
+  treasuryTxMainClass
+} from '../ui/treasuryReceivableStyles'
 
 type TreasuryTransactionItemProps = {
   tx: VaultTransaction
@@ -21,27 +34,27 @@ export default function TreasuryTransactionItem({
   const txWithRow = tx as TransactionWithRow
 
   return (
-    <div className="treasury-tx-item interactive-card">
+    <div className={cn(treasuryTxItemClass, treasuryTxInteractiveClass, treasuryTxPositionClass)}>
       {tx.action === 'buy' && 'rowNumber' in tx && (
-        <div className="treasury-tx-edit">
-          <div className="card-action-buttons">
+        <div className={treasuryTxEditClass}>
+          <div className={cardActionButtonsClass}>
             <CardEditButton onClick={() => onEdit(txWithRow)} />
             <CardDeleteButton onClick={() => onDelete(txWithRow)} />
           </div>
         </div>
       )}
-      <div className="treasury-tx-main">
-        <span className={`treasury-tx-badge ${tx.action === 'buy' ? 'buy' : 'sell'}`}>
+      <div className={treasuryTxMainClass}>
+        <span className={treasuryTxBadgeClass(tx.action)}>
           {tx.action === 'buy' ? 'خرید' : 'فروش'}
         </span>
         <span>{formatQuantity(tx.quantity, tx.assetType)}</span>
       </div>
-      <div className="treasury-tx-details">
+      <div className={treasuryTxDetailsClass}>
         <span dir="ltr">
           {formatMoney(tx.unitPrice)} / {getAssetUnit(tx.assetType)}
         </span>
-        <span className="installment-due">{formatIsoDatePersian(tx.transactionDate)}</span>
-        {tx.note && <span className="installment-due">{tx.note}</span>}
+        <span className={installmentDueClass}>{formatIsoDatePersian(tx.transactionDate)}</span>
+        {tx.note && <span className={installmentDueClass}>{tx.note}</span>}
       </div>
     </div>
   )

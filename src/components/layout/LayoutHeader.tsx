@@ -1,5 +1,15 @@
+import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
 import SyncStatusBadge from '../SyncStatusBadge'
+import {
+  appHeaderCenterClass,
+  appHeaderClass,
+  appHeaderTitleClass,
+  appHeaderWithBackClass,
+  headerBackBtnClass,
+  headerIconBtnMenuClass,
+  headerIconSpacerClass
+} from '../ui/layoutStyles'
 
 interface LayoutHeaderProps {
   menuOpen: boolean
@@ -19,10 +29,10 @@ export default function LayoutHeader({
   onHeaderBack
 }: LayoutHeaderProps) {
   return (
-    <header className={`app-header${showHeaderBack ? ' app-header--with-back' : ''}`}>
+    <header className={cn(appHeaderClass, showHeaderBack && appHeaderWithBackClass)}>
       <button
         type="button"
-        className={`header-icon-btn header-icon-btn--menu${menuOpen ? ' active' : ''}`}
+        className={headerIconBtnMenuClass(menuOpen)}
         onClick={onToggleMenu}
         aria-label={menuOpen ? 'بستن منو' : 'باز کردن منو'}
         aria-expanded={menuOpen}
@@ -30,14 +40,16 @@ export default function LayoutHeader({
       >
         <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
       </button>
-      <div className="app-header-center">
-        <h1 className="app-header-title">{headerTitle}</h1>
+      <div className={appHeaderCenterClass} data-header-center>
+        <h1 className={appHeaderTitleClass} data-header-title>
+          {headerTitle}
+        </h1>
         {!showSettings && <SyncStatusBadge />}
       </div>
       {showHeaderBack ? (
         <button
           type="button"
-          className="header-icon-btn header-back-btn"
+          className={headerBackBtnClass}
           onClick={onHeaderBack}
           aria-label="بازگشت"
           title="بازگشت"
@@ -45,7 +57,7 @@ export default function LayoutHeader({
           <AppIcon name="back" size={20} strokeWidth={2} />
         </button>
       ) : (
-        <span className="header-icon-spacer" aria-hidden="true" />
+        <span className={headerIconSpacerClass} aria-hidden="true" />
       )}
     </header>
   )

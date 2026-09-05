@@ -6,6 +6,8 @@ import {
 } from '../../services/spreadsheetCatalog'
 import type { SpreadsheetEntry } from '../../types'
 import { FormField, FormSelect } from '../form'
+import Button from '../ui/Button'
+import Card, { CardTitle } from '../ui/Card'
 
 type SettingsSpreadsheetCardProps = {
   spreadsheetId: string
@@ -35,8 +37,8 @@ export default function SettingsSpreadsheetCard({
   onSwitchSpreadsheet
 }: SettingsSpreadsheetCardProps) {
   return (
-    <div className="card">
-      <h2 className="card-title">گوگل شیت</h2>
+    <Card>
+      <CardTitle>گوگل شیت</CardTitle>
 
       {spreadsheets.length > 0 && (
         <>
@@ -61,15 +63,16 @@ export default function SettingsSpreadsheetCard({
               </p>
             }
           />
-          <button
-            className="btn btn-secondary btn-sm"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={onRefreshSpreadsheets}
             disabled={loading}
             style={{ marginTop: '0.5rem' }}
           >
             {loading && <span className="spinner" />}
             بروزرسانی از Drive
-          </button>
+          </Button>
         </>
       )}
 
@@ -94,14 +97,15 @@ export default function SettingsSpreadsheetCard({
       </p>
 
       {!showNewSheetForm ? (
-        <button
-          className="btn btn-secondary btn-sm"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onShowNewSheetForm}
           disabled={loading}
           style={{ marginTop: '0.75rem' }}
         >
           + ساخت شیت جدید
-        </button>
+        </Button>
       ) : (
         <div style={{ marginTop: '0.75rem' }}>
           <FormField label="نام شیت جدید">
@@ -125,24 +129,16 @@ export default function SettingsSpreadsheetCard({
             )}
           </FormField>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={onCreateSpreadsheet}
-              disabled={loading}
-            >
+            <Button variant="primary" size="sm" onClick={onCreateSpreadsheet} disabled={loading}>
               {loading && <span className="spinner" />}
               ساخت
-            </button>
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={onCancelNewSheetForm}
-              disabled={loading}
-            >
+            </Button>
+            <Button variant="secondary" size="sm" onClick={onCancelNewSheetForm} disabled={loading}>
               انصراف
-            </button>
+            </Button>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   )
 }

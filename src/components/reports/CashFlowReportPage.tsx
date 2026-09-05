@@ -5,6 +5,7 @@ import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { MonthlyFlow } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
+import { cn } from '../../utils/cn'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
@@ -12,6 +13,20 @@ import { monthlySparkline } from '../../utils/sparklineData'
 import { IncomeExpenseMonthlyChart } from '../charts'
 import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
+import Card from '../ui/Card'
+import { chartTitleClass, dashboardPageClass, dashboardStatGridClass } from '../ui/chartStyles'
+import { emptyStateClass } from '../ui/displayStyles'
+import { cardHeaderRowClass } from '../ui/recordsStyles'
+import {
+  reportPageClass,
+  reportTableLabelClass,
+  reportTableRowClass,
+  reportTableValuesClass,
+  reportValueExpenseClass,
+  reportValueIncomeClass,
+  reportValueNegativeClass,
+  reportValuePositiveClass
+} from '../ui/toolsPageStyles'
 import YearFilter, { getDefaultChartYear } from '../YearFilter'
 
 export default function CashFlowReportPage() {
@@ -66,7 +81,7 @@ export default function CashFlowReportPage() {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
+      <div className={emptyStateClass}>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     )
@@ -77,7 +92,7 @@ export default function CashFlowReportPage() {
   }
 
   return (
-    <div className="dashboard-page report-page">
+    <div className={cn(dashboardPageClass, reportPageClass)}>
       <ReportToolbar
         title="جریان نقدی"
         preset={datePreset}
@@ -89,7 +104,7 @@ export default function CashFlowReportPage() {
         subtitle={`سال ${monthlyFlowYear.toLocaleString('fa-IR')}`}
       />
 
-      <div className="stat-grid dashboard-stat-grid">
+      <div className={dashboardStatGridClass}>
         <StatCard
           label="کل درآمد سال"
           amount={totals.income}
@@ -124,8 +139,8 @@ export default function CashFlowReportPage() {
           <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>
             {({ trigger, panel }) => (
               <>
-                <div className="card-header-row">
-                  <h3 className="chart-title">درآمد و هزینه ماهانه</h3>
+                <div className={cardHeaderRowClass}>
+                  <h3 className={chartTitleClass}>درآمد و هزینه ماهانه</h3>
                   {trigger}
                 </div>
                 {panel}
@@ -136,24 +151,24 @@ export default function CashFlowReportPage() {
       />
 
       {!!monthlyFlow.length && (
-        <div className="card">
-          <h3 className="chart-title">جدول ماهانه</h3>
+        <Card>
+          <h3 className={chartTitleClass}>جدول ماهانه</h3>
           {monthlyFlow.map((item, index) => (
             <div
               key={item.monthKey}
-              className="report-table-row"
+              className={reportTableRowClass}
               style={{ animationDelay: `${index * 0.03}s` }}
             >
-              <span className="report-table-label">{item.label}</span>
-              <span className="report-table-values" dir="ltr">
-                <span className="report-value-income">{formatMoney(item.income)}</span>
-                <span className="report-value-expense">{formatMoney(item.expense)}</span>
+              <span className={reportTableLabelClass}>{item.label}</span>
+              <span className={reportTableValuesClass} dir="ltr">
+                <span className={reportValueIncomeClass}>{formatMoney(item.income)}</span>
+                <span className={reportValueExpenseClass}>{formatMoney(item.expense)}</span>
                 <span
                   className={
                     item.net < 0
-                      ? 'report-value-negative'
+                      ? reportValueNegativeClass
                       : item.net > 0
-                      ? 'report-value-positive'
+                      ? reportValuePositiveClass
                       : ''
                   }
                 >
@@ -162,7 +177,7 @@ export default function CashFlowReportPage() {
               </span>
             </div>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   )

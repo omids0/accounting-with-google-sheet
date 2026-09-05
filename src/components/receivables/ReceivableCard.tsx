@@ -10,6 +10,31 @@ import ReceivablePaymentForm from './ReceivablePaymentForm'
 import ReceivableSettlementForm from './ReceivableSettlementForm'
 import type { ReceivableWithRow } from './types'
 import { buildSettlementTitle } from './utils'
+import Button from '../ui/Button'
+import {
+  cardActionButtonsClass,
+  cardHeaderWithEditClass,
+  installmentDueClass,
+  installmentHeaderClass,
+  installmentNoteClass,
+  installmentPaymentsClass,
+  listCardAmountPillClass,
+  listCardSubtitleClass,
+  listCardTitleClass,
+  installmentCardClass
+} from '../ui/featureCardStyles'
+import {
+  receivableAddPaymentActionsClass,
+  receivableAddPaymentClass,
+  receivablePaidClass,
+  receivablePaymentItemClass,
+  receivablePaymentListClass,
+  receivablePaymentListTitleClass,
+  receivableRemainingClass,
+  receivableSettledClass,
+  receivableSummaryClass,
+  receivableSummaryLabelClass
+} from '../ui/treasuryReceivableStyles'
 
 type ReceivableCardProps = {
   item: ReceivableWithRow
@@ -64,22 +89,18 @@ export default function ReceivableCard({
   const showSettlementForm = settlementReceivableId === item.id
 
   return (
-    <div
-      className={`card installment-card interactive-card${complete ? ' receivable-complete' : ''}${
-        expanded ? ' installment-card--expanded' : ''
-      }`}
-    >
-      <div className="card-header-with-edit">
+    <div className={installmentCardClass({ expanded, complete })}>
+      <div className={cardHeaderWithEditClass}>
         <button
           type="button"
-          className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
+          className={installmentHeaderClass(expanded)}
           onClick={() => onToggleExpand(expanded)}
         >
           <div>
-            <div className="list-card-title">{item.debtor}</div>
-            <div className="list-card-subtitle">
+            <div className={listCardTitleClass}>{item.debtor}</div>
+            <div className={listCardSubtitleClass}>
               {item.category && <span>{item.category} · </span>}
-              <span className="list-card-amount-pill">{formatMoney(item.amount)}</span>
+              <span className={listCardAmountPillClass}>{formatMoney(item.amount)}</span>
               {complete ? ' · تسویه شده' : ` · مانده: ${formatMoney(remaining)}`}
             </div>
             <ProgressBar
@@ -90,7 +111,7 @@ export default function ReceivableCard({
             />
           </div>
         </button>
-        <div className="card-action-buttons">
+        <div className={cardActionButtonsClass}>
           <CardEditButton
             onClick={event => {
               event.stopPropagation()
@@ -115,31 +136,31 @@ export default function ReceivableCard({
       </div>
 
       <AccordionCollapse open={expanded}>
-        <div className="installment-payments">
-          {item.note && <p className="installment-note">{item.note}</p>}
+        <div className={installmentPaymentsClass}>
+          {item.note && <p className={installmentNoteClass}>{item.note}</p>}
 
-          <div className="receivable-summary">
+          <div className={receivableSummaryClass}>
             <div>
-              <span className="receivable-summary-label">تاریخ قرض</span>
+              <span className={receivableSummaryLabelClass}>تاریخ قرض</span>
               <span>{formatIsoDatePersian(item.borrowDate)}</span>
             </div>
             <div>
-              <span className="receivable-summary-label">پرداخت شده</span>
-              <span className="receivable-paid">{formatMoney(paid)}</span>
+              <span className={receivableSummaryLabelClass}>پرداخت شده</span>
+              <span className={receivablePaidClass}>{formatMoney(paid)}</span>
             </div>
             <div>
-              <span className="receivable-summary-label">مانده</span>
-              <span className={complete ? 'receivable-settled' : 'receivable-remaining'}>
+              <span className={receivableSummaryLabelClass}>مانده</span>
+              <span className={complete ? receivableSettledClass : receivableRemainingClass}>
                 {formatMoney(remaining)}
               </span>
             </div>
           </div>
 
           {item.payments.length > 0 && (
-            <div className="receivable-payment-list">
-              <div className="receivable-payment-list-title">سوابق پرداخت</div>
+            <div className={receivablePaymentListClass}>
+              <div className={receivablePaymentListTitleClass}>سوابق پرداخت</div>
               {item.payments.map(payment => (
-                <div key={payment.id} className="receivable-payment-item">
+                <div key={payment.id} className={receivablePaymentItemClass}>
                   <input
                     type="checkbox"
                     checked
@@ -149,8 +170,10 @@ export default function ReceivableCard({
                   />
                   <div>
                     <span dir="ltr">{formatMoney(payment.amount)}</span>
-                    <span className="installment-due">{formatIsoDatePersian(payment.paidAt)}</span>
-                    {payment.note && <span className="installment-due">{payment.note}</span>}
+                    <span className={installmentDueClass}>
+                      {formatIsoDatePersian(payment.paidAt)}
+                    </span>
+                    {payment.note && <span className={installmentDueClass}>{payment.note}</span>}
                   </div>
                 </div>
               ))}
@@ -158,7 +181,7 @@ export default function ReceivableCard({
           )}
 
           {!complete && (
-            <div className="receivable-add-payment">
+            <div className={receivableAddPaymentClass}>
               {showPaymentForm ? (
                 <ReceivablePaymentForm
                   receivableId={item.id}
@@ -177,27 +200,29 @@ export default function ReceivableCard({
                   onCancel={onCloseSettlementForm}
                 />
               ) : (
-                <div className="receivable-add-payment-actions">
-                  <button
+                <div className={receivableAddPaymentActionsClass}>
+                  <Button
                     type="button"
-                    className="btn btn-secondary btn-sm"
+                    variant="secondary"
+                    size="sm"
                     onClick={() => {
                       onCloseSettlementForm()
                       onOpenPaymentForm(item.id)
                     }}
                   >
                     + ثبت بخشی از پرداخت
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
-                    className="btn btn-inflow btn-sm"
+                    variant="inflow"
+                    size="sm"
                     onClick={() => {
                       onClosePaymentForm()
                       onOpenSettlementForm(item.id)
                     }}
                   >
                     تسویه
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

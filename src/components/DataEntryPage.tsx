@@ -6,6 +6,8 @@ import { FormSkeleton } from './skeleton'
 import TransactionTypeSegment, { transactionTypeOptionsFromForms } from './TransactionTypeSegment'
 import { getSettings, isConfigured } from '../services/settings'
 import type { CustomForm } from '../types'
+import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
+import { dataEntryTypeSegmentClass } from './ui/recordsStyles'
 
 export default function DataEntryPage({
   onCancel,
@@ -55,8 +57,8 @@ export default function DataEntryPage({
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="edit" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
@@ -71,7 +73,7 @@ export default function DataEntryPage({
   return (
     <div>
       <TransactionTypeSegment
-        className="data-entry-type-segment"
+        className={dataEntryTypeSegmentClass}
         options={transactionTypeOptionsFromForms(forms)}
         value={activeFormId}
         onChange={formId => setActiveFormId(formId)}

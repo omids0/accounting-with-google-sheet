@@ -13,6 +13,8 @@ import {
 import ChartTooltip from './ChartTooltip'
 import { formatAxisMoney, truncateCategoryLabel } from './chartUtils'
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
+import { cn } from '../../utils/cn'
+import { chartBarWrapClass, chartCardClass, chartTitleClass } from '../ui/chartStyles'
 
 type ChartTooltipEntry = {
   name?: string | number
@@ -58,9 +60,9 @@ function CategoryBarChart({
   const chartData = data.map(item => ({ ...item, maxTotal }))
 
   return (
-    <div className={`card chart-card chart-card--animated ${className}`.trim()}>
-      <h3 className="chart-title">{title}</h3>
-      <div className="chart-bar-wrap" dir="ltr">
+    <div className={cn(chartCardClass, 'chart-card--animated', className)}>
+      <h3 className={chartTitleClass}>{title}</h3>
+      <div className={chartBarWrapClass} dir="ltr">
         <ResponsiveContainer width="100%" height={height}>
           <BarChart
             data={chartData}

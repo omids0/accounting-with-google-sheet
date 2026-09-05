@@ -29,6 +29,8 @@ import WalletAccountCard from './WalletAccountCard'
 import WalletFormModal from './WalletFormModal'
 import WalletOpeningBalanceCard from './WalletOpeningBalanceCard'
 import WalletReconciliationAlert from './WalletReconciliationAlert'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function WalletPage({ active = true }: WalletPageProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -90,8 +92,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="wallet" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
@@ -142,8 +144,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
       {data.loading && data.items.length === 0 ? (
         <WalletPageSkeleton />
       ) : data.items.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">
+        <div className={emptyStateClass}>
+          <div className={emptyStateIconClass}>
             <AppIcon name="wallet" />
           </div>
           <p>هنوز حسابی ثبت نشده</p>
@@ -183,7 +185,7 @@ export default function WalletPage({ active = true }: WalletPageProps) {
                 )
               : distributionSparkline(data.items.map(item => item.balance))
           }
-          className="receivable-total-card"
+          className={receivableTotalCardClass}
         />
       )}
 
