@@ -1,0 +1,71 @@
+---
+description: Husky, lint, TypeScript, and commit-message gates — run BEFORE git commit/push
+alwaysApply: true
+---
+
+# Pre-Commit & Push Quality Gates
+
+**Never `git commit` or `git push` until local checks pass.** Hooks will reject bad commits; do not use `--no-verify`.
+
+## Before every commit
+
+Run on changed source files (or full project if unsure):
+
+```bash
+npm run types
+npm run lint
+```
+
+Optional but safe before large commits: `npm test`
+
+### Staged-file limits (`.husky/pre-commit`)
+
+| Check | Rule |
+|-------|------|
+| **Line count** | Every staged `*.{js,jsx,ts,tsx,css,scss,html}` file ≤ **300 lines**. Split large files before staging. |
+| **Prettier** | Hook auto-formats staged files — run `npm run format` on touched files to avoid surprise re-stages. |
+| **ESLint** | Hook runs `eslint --fix` on staged `*.{js,jsx,ts,tsx}` — **errors block commit** (warnings usually pass). |
+| **TypeScript** | `npm run types` runs when any staged source under `src/` or `e2e/` changes. |
+
+## Commit message format (`.husky/commit-msg`) — REQUIRED
+
+First line **must** match (project from `.env.share`, default `ACCT`):
+
+```
+<type>/<PROJECT>-<number>/<PROJECT>-<number>/<description>
+```
+
+- **Types:** `feature`, `hotfix`, `bugfix`, `chore`, `refactor`, `docs`, `test`, `ci`, `perf`, `style`
+- **Numbers:** digits only (`[0-9]+`) — use `0` when no Jira ticket: `ACCT-0/ACCT-0`
+- **Description:** non-empty text after the third `/`
+
+```
+✅ feature/ACCT-0/ACCT-0/Add Zustand app shell state and simplify routing.
+❌ Add Zustand app shell state and simplify routing.
+❌ feat: add zustand
+```
+
+Use HEREDOC for multi-line messages; **first line** must still match the regex.
+
+## Before every push (`.husky/pre-push`)
+
+When pushed commits touch source, hook runs:
+
+1. `npm run build`
+2. Playwright a11y e2e (only if relevant paths changed)
+3. `npm run lighthouse`
+
+Before pushing, run at minimum:
+
+```bash
+npm run types && npm run lint && npm run build
+```
+
+## Agent commit workflow
+
+1. Finish code changes.
+2. Run `npm run types` and `npm run lint` — fix **errors** first.
+3. Confirm no staged/new file exceeds 300 lines.
+4. Draft commit message in **Jira format** before `git commit`.
+5. `git add` → `git commit` → if hook auto-formats, verify `git status` is clean (amend only per git-safety rules).
+6. Before `git push`, run `npm run build` (or `npm run quality` if time allows).
