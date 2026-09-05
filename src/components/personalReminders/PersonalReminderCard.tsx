@@ -7,9 +7,19 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { PersonalReminderWithRow } from './types'
-import Button from '../ui/Button'
-import Card from '../ui/Card'
-import { emptyTextClass } from '../ui/displayStyles'
+import {
+  cardActionButtonsClass,
+  cardHeaderWithEditClass,
+  dangCardAmountClass,
+  dangCardBodyClass,
+  dangCardClass,
+  dangCardContentRowClass,
+  dangCardDateClass,
+  dangCardHeaderClass,
+  dangCardMetaClass,
+  dangCardTitleClass,
+  dangCheckboxClass
+} from '../ui/featureCardStyles'
 
 type PersonalReminderCardProps = {
   item: PersonalReminderWithRow
@@ -28,38 +38,51 @@ export default function PersonalReminderCard({
 }: PersonalReminderCardProps) {
   const categoryLabel = getPersonalReminderCategoryLabel(item.category)
   const recurrenceLabel = getPersonalReminderRecurrenceLabel(item.recurrence)
+  const isDone = !item.enabled
 
   return (
-    <Card className={item.enabled ? undefined : 'opacity-70'}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem' }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 600 }}>{categoryLabel}</div>
-          <div style={{ fontSize: '0.9rem', marginTop: '0.25rem' }}>{item.note || '—'}</div>
-          <div className={emptyTextClass} style={{ marginTop: '0.5rem', fontSize: '0.82rem' }}>
-            موعد: {formatIsoDatePersian(item.dueDate)} · {recurrenceLabel}
-            {item.amount > 0 ? ` · ${formatMoney(item.amount)}` : ''}
-            {item.daysBefore > 0 ? ` · ${item.daysBefore.toLocaleString('fa-IR')} روز قبل` : ''}
+    <div className={dangCardClass({ paid: isDone })}>
+      <div className={cardHeaderWithEditClass}>
+        <div className={dangCardContentRowClass}>
+          <input
+            type="checkbox"
+            className={dangCheckboxClass}
+            checked={isDone}
+            disabled={isDone || completing}
+            aria-label={isDone ? 'انجام شده' : 'ثبت انجام یادآوری'}
+            onChange={e => {
+              if (item.enabled && e.target.checked) {
+                onComplete(item)
+              }
+            }}
+          />
+          <div className={dangCardBodyClass}>
+            <div className={dangCardHeaderClass}>
+              <span className={dangCardTitleClass}>{item.title || '—'}</span>
+              {item.amount > 0 ? (
+                <span className={dangCardAmountClass} dir="ltr">
+                  {formatMoney(item.amount)}
+                </span>
+              ) : null}
+            </div>
+            <div className={dangCardMetaClass}>
+              {categoryLabel} · {recurrenceLabel}
+              {item.daysBefore > 0 ? ` · ${item.daysBefore.toLocaleString('fa-IR')} روز قبل` : ''}
+            </div>
+            {item.dueDate ? (
+              <div className={dangCardMetaClass}>
+                <span className={dangCardDateClass}>
+                  موعد: {formatIsoDatePersian(item.dueDate)}
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
+        <div className={cardActionButtonsClass}>
           <CardEditButton onClick={() => onEdit(item)} />
           <CardDeleteButton onClick={() => onDelete(item)} />
         </div>
       </div>
-
-      {item.enabled && (
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          style={{ marginTop: '0.75rem' }}
-          disabled={completing}
-          onClick={() => onComplete(item)}
-        >
-          {completing && <span className="spinner" />}
-          انجام شد
-        </Button>
-      )}
-    </Card>
+    </div>
   )
 }

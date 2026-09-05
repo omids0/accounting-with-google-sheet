@@ -35,8 +35,13 @@ export function usePersonalRemindersForm({ onSaved }: UsePersonalRemindersFormOp
 
     if (!spreadsheetId) return
 
-    if (!values.note.trim()) {
-      showError('یادداشت را وارد کنید')
+    if (!values.title.trim()) {
+      showError('عنوان را وارد کنید')
+
+      return
+    }
+    if (!values.category) {
+      showError('دسته‌بندی را انتخاب کنید')
 
       return
     }
@@ -60,7 +65,7 @@ export function usePersonalRemindersForm({ onSaved }: UsePersonalRemindersFormOp
         await updatePersonalReminder(spreadsheetId, editingItem.rowNumber, {
           ...editingItem,
           category: values.category,
-          note: values.note.trim(),
+          title: values.title.trim(),
           dueDate: values.dueDate,
           recurrence: values.recurrence,
           amount,
@@ -71,7 +76,7 @@ export function usePersonalRemindersForm({ onSaved }: UsePersonalRemindersFormOp
       } else {
         await createPersonalReminder(spreadsheetId, {
           category: values.category,
-          note: values.note.trim(),
+          title: values.title.trim(),
           dueDate: values.dueDate,
           recurrence: values.recurrence,
           amount,

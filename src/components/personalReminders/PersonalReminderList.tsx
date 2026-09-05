@@ -1,7 +1,8 @@
 import PersonalReminderCard from './PersonalReminderCard'
 import type { PersonalReminderWithRow } from './types'
-import { InstallmentCardListSkeleton } from '../skeleton'
-import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
+import AppIcon from '../AppIcon'
+import { DangCardListSkeleton } from '../skeleton'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 type PersonalReminderListProps = {
   items: PersonalReminderWithRow[]
@@ -20,20 +21,23 @@ export default function PersonalReminderList({
   onEdit,
   onDelete
 }: PersonalReminderListProps) {
-  if (loading) {
-    return <InstallmentCardListSkeleton count={3} />
+  if (loading && items.length === 0) {
+    return <DangCardListSkeleton />
   }
 
-  if (!items.length) {
+  if (items.length === 0) {
     return (
       <div className={emptyStateClass}>
-        <p className={emptyTextClass}>هنوز یادآوری شخصی ثبت نشده است.</p>
+        <div className={emptyStateIconClass}>
+          <AppIcon name="bell" />
+        </div>
+        <p>هنوز یادآوری ثبت نشده</p>
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'grid', gap: '0.75rem' }}>
+    <>
       {items.map(item => (
         <PersonalReminderCard
           key={item.id}
@@ -44,6 +48,6 @@ export default function PersonalReminderList({
           onDelete={onDelete}
         />
       ))}
-    </div>
+    </>
   )
 }

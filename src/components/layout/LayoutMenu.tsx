@@ -21,6 +21,11 @@ import {
   appMenuProfileClass,
   appMenuProfileInnerClass,
   appMenuProfileTextClass,
+  appMenuPromoHintClass,
+  appMenuPromoIconClass,
+  appMenuPromoItemClass,
+  appMenuPromoLabelClass,
+  appMenuPromoTextClass,
   appMenuSubmenuClass
 } from '../ui/layoutStyles'
 
@@ -92,6 +97,20 @@ export default function LayoutMenu({
           </div>
         </div>
         <div className={appMenuItemsClass}>
+          <button
+            type="button"
+            className={appMenuPromoItemClass(tab === 'personal-reminders')}
+            onClick={() => onTabChange('personal-reminders')}
+          >
+            <span className={appMenuPromoIconClass(tab === 'personal-reminders')}>
+              <AppIcon name="bell" size={20} strokeWidth={1.75} />
+            </span>
+            <span className={appMenuPromoTextClass}>
+              <span className={appMenuPromoLabelClass}>یادآوری</span>
+              <span className={appMenuPromoHintClass}>قبض، بیمه و مواعد شخصی</span>
+            </span>
+          </button>
+
           <div className={appMenuGroupClass}>
             <button
               type="button"
@@ -177,16 +196,6 @@ export default function LayoutMenu({
               </div>
             )}
           </div>
-          <button
-            type="button"
-            className={appMenuItemClass(tab === 'personal-reminders')}
-            onClick={() => onTabChange('personal-reminders')}
-          >
-            <span className={appMenuItemIconClass(tab === 'personal-reminders')}>
-              <AppIcon name="bell" size={20} strokeWidth={1.75} />
-            </span>
-            یادآوری
-          </button>
           <div className={appMenuDividerClass} aria-hidden="true" />
           <button
             type="button"

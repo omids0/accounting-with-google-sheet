@@ -64,6 +64,7 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'installments',
   'dang',
   'checks',
+  'personal-reminders',
   'receivables',
   'treasury',
   'wallet',

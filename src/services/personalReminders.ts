@@ -27,7 +27,7 @@ export const PERSONAL_REMINDERS_HEADERS = [
   'شناسه',
   'زمان ثبت',
   'دسته‌بندی',
-  'یادداشت',
+  'عنوان',
   'تاریخ',
   'تکرار',
   'مبلغ',
@@ -71,7 +71,7 @@ function rowToPersonalReminder(
     id,
     createdAt: row[1] ?? '',
     category: parseCategory(row[2] ?? ''),
-    note: row[3] ?? '',
+    title: row[3] ?? '',
     dueDate: row[4] ?? '',
     recurrence: parseRecurrence(row[5] ?? ''),
     amount: Number(row[6]) || 0,
@@ -85,7 +85,7 @@ function personalReminderToRow(item: PersonalReminder): string[] {
     item.id,
     item.createdAt,
     item.category,
-    item.note,
+    item.title,
     item.dueDate,
     item.recurrence,
     String(item.amount || 0),
@@ -229,14 +229,14 @@ export function getUpcomingPersonalReminderPushes(
     })
     .map(item => {
       const categoryLabel = getPersonalReminderCategoryLabel(item.category)
-      const notePart = item.note.trim() ? ` — ${item.note.trim()}` : ''
+      const title = item.title.trim() || categoryLabel
       const amountPart = item.amount > 0 ? ` (${formatMoney(item.amount)})` : ''
       const dueLabel = formatIsoDatePersian(item.dueDate)
 
       return {
         reference: `personal_${item.id}_${item.dueDate.slice(0, 10)}`,
-        title: `یادآوری ${categoryLabel}`,
-        body: `${categoryLabel}${notePart}${amountPart} — موعد: ${dueLabel}`
+        title: `یادآوری ${title}`,
+        body: `${title} (${categoryLabel})${amountPart} — موعد: ${dueLabel}`
       }
     })
 }

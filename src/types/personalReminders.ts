@@ -6,7 +6,7 @@ export interface PersonalReminder {
   id: string
   createdAt: string
   category: PersonalReminderCategory
-  note: string
+  title: string
   dueDate: string
   recurrence: PersonalReminderRecurrence
   amount: number

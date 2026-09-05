@@ -306,7 +306,7 @@ function findPersonalReminders_(ss) {
     if (!parseBool_(row[8])) continue;
 
     var category = String(row[2] || '').trim();
-    var note = String(row[3] || '').trim();
+    var title = String(row[3] || '').trim();
     var dueDate = String(row[4] || '').slice(0, 10);
     var amount = Number(row[6]) || 0;
     var daysBefore = Number(row[7]) || 0;
@@ -315,13 +315,13 @@ function findPersonalReminders_(ss) {
     if (dueDate !== targetDue) continue;
 
     var categoryLabel = PERSONAL_CATEGORY_LABELS_[category] || 'سایر';
-    var notePart = note ? ' — ' + note : '';
+    var displayTitle = title || categoryLabel;
     var amountPart = amount > 0 ? ' (' + formatMoney_(amount) + ')' : '';
 
     reminders.push({
       reference: 'personal_' + id + '_' + dueDate,
-      title: 'یادآوری ' + categoryLabel,
-      body: categoryLabel + notePart + amountPart + ' — موعد: ' + formatPersianDate_(dueDate),
+      title: 'یادآوری ' + displayTitle,
+      body: displayTitle + ' (' + categoryLabel + ')' + amountPart + ' — موعد: ' + formatPersianDate_(dueDate),
     });
   }
 

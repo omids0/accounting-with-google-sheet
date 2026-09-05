@@ -7,8 +7,8 @@ import type {
 export type PersonalReminderWithRow = PersonalReminder & { rowNumber: number }
 
 export type PersonalReminderFormState = {
-  category: PersonalReminderCategory
-  note: string
+  title: string
+  category: PersonalReminderCategory | ''
   dueDate: string
   recurrence: PersonalReminderRecurrence
   amount: number | ''

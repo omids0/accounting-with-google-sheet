@@ -32,8 +32,8 @@ export default function PersonalReminderFormModal({
     () =>
       editingItem
         ? {
+            title: editingItem.title,
             category: editingItem.category,
-            note: editingItem.note,
             dueDate: editingItem.dueDate,
             recurrence: editingItem.recurrence,
             amount: editingItem.amount,
@@ -41,8 +41,8 @@ export default function PersonalReminderFormModal({
             enabled: editingItem.enabled
           }
         : {
-            category: 'bill',
-            note: '',
+            title: '',
+            category: '',
             dueDate: getTodayIso(),
             recurrence: 'yearly',
             amount: '',
@@ -71,26 +71,31 @@ export default function PersonalReminderFormModal({
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره یادآوری'}
     >
+      <FormField label="عنوان" required hint="مثلاً بیمه شخص ثالث پژو ۲۰۶">
+        <input
+          type="text"
+          value={form.values.title}
+          onChange={e => form.setField('title', e.target.value)}
+          placeholder="عنوان یادآوری"
+          required
+        />
+      </FormField>
+
       <FormSelect
         label="دسته‌بندی"
+        required
         value={form.values.category}
         onChange={value =>
           form.setField('category', value as PersonalReminderFormState['category'])
         }
-        options={PERSONAL_REMINDER_CATEGORIES.map(item => ({
-          value: item.value,
-          label: item.label
-        }))}
+        options={[
+          { value: '', label: 'انتخاب دسته‌بندی', disabled: true },
+          ...PERSONAL_REMINDER_CATEGORIES.map(item => ({
+            value: item.value,
+            label: item.label
+          }))
+        ]}
       />
-
-      <FormField label="یادداشت" required hint="مثلاً بیمه شخص ثالث پژو ۲۰۶">
-        <input
-          type="text"
-          value={form.values.note}
-          onChange={e => form.setField('note', e.target.value)}
-          placeholder="توضیح مختصر"
-        />
-      </FormField>
 
       <FormField label="تاریخ موعد" required>
         <JalaliDatePicker
