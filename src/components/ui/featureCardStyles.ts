@@ -115,7 +115,7 @@ export const installmentPaymentsClass = cn(
 )
 
 export const installmentNoteClass =
-  'my-[0.15rem_0_0.7rem] rounded-sm border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-[0.7rem] py-[0.55rem] text-[0.78rem] leading-[1.55] text-text'
+  'installment-note my-2 rounded-sm border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-[0.7rem] py-[0.55rem] text-[0.78rem] leading-[1.55] text-text'
 
 export function installmentPaymentItemClass({
   expanded,

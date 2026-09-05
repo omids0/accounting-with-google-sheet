@@ -1,12 +1,14 @@
 import { cardClassName } from './Card'
 import { cn } from '../../utils/cn'
 
-export const dashboardPageClass =
-  'flex flex-col gap-[var(--space-stack)] [&>.card]:mb-0 [&>.dashboard-flow-section]:mb-0 [&>.chart-card]:mb-0'
+export const dashboardPageClass = cn(
+  'flex flex-col gap-2',
+  '[&_.mb-stack]:mb-0 [&_.dashboard-flow-section]:mb-0 [&_.chart-card--animated]:mb-0'
+)
 
 export const dashboardHeroCardClass = cn(
   cardClassName(),
-  'relative mb-[var(--space-stack)] overflow-hidden border-none text-center text-white shadow-[0_8px_28px_rgba(15,118,110,0.3)]',
+  'relative overflow-hidden border-none text-center text-white shadow-[0_8px_28px_rgba(15,118,110,0.3)]',
   '[background:linear-gradient(135deg,#0f766e_0%,#14b8a6_50%,#2dd4bf_100%)] [background-size:200%_200%] animate-[headerGlow_6s_ease_infinite]'
 )
 
@@ -20,7 +22,7 @@ export const dashboardHeroLabelClass = 'mb-1 text-[0.8rem] font-medium opacity-9
 
 export const dashboardHeroHintClass = 'm-0 text-[0.72rem] opacity-85'
 
-export const dashboardFlowSectionClass = 'mb-[var(--space-stack)]'
+export const dashboardFlowSectionClass = 'dashboard-flow-section'
 
 export const dashboardFlowSectionAnimatedClass = cn(
   '[&>.stat-grid_.stat-card]:animate-[statCardIn_0.5s_var(--ease-page)_both] [&>.stat-card-wide]:animate-[statCardIn_0.5s_var(--ease-page)_both]',
@@ -29,12 +31,12 @@ export const dashboardFlowSectionAnimatedClass = cn(
 )
 
 export const dashboardAssetsCardClass = cn(
-  'dashboard-assets-card mb-4',
+  'dashboard-assets-card',
   '[&_.asset-value]:text-success [&_.asset-row-total_.asset-value]:text-success'
 )
 
 export const dashboardLiabilitiesCardClass = cn(
-  'dashboard-liabilities-card mb-4',
+  'dashboard-liabilities-card',
   '[&_.asset-value]:text-[#b91c1c] [&_.asset-row-total_.asset-value]:text-[#991b1b]'
 )
 
