@@ -16,6 +16,7 @@ var SHEET_LOG = 'یادآوری_ثبت';
 var SHEET_INSTALLMENTS = 'اقساط';
 var SHEET_CHECKS = 'چک‌ها';
 var SHEET_DANG = 'دنگ';
+var SHEET_PERSONAL = 'مواعد_شخصی';
 var SHEET_ACTIVITY = 'فعالیت';
 var TZ = 'Asia/Tehran';
 
@@ -37,6 +38,14 @@ function runReminderCron() {
   sentCount += processDueDateRule_(ss, workerUrl, workerSecret, subscriptions, rules, 'installments', findInstallmentReminders_);
   sentCount += processDueDateRule_(ss, workerUrl, workerSecret, subscriptions, rules, 'checks', findCheckReminders_);
   sentCount += processDueDateRule_(ss, workerUrl, workerSecret, subscriptions, rules, 'dang', findDangReminders_);
+
+  var personalRule = rules.filter(function (r) {
+    return r.kind === 'personal' && r.enabled;
+  })[0];
+  if (personalRule && isReminderWindow_(personalRule.hour, personalRule.minute)) {
+    var personalReminders = findPersonalReminders_(ss);
+    sentCount += sendReminders_(ss, workerUrl, workerSecret, subscriptions, personalReminders, 'personal');
+  }
 
   var dailyRule = rules.filter(function (r) {
     return r.kind === 'daily' && r.enabled;
@@ -267,6 +276,52 @@ function findDangReminders_(ss, rule) {
       reference: 'dang_' + id + '_' + dueDate,
       title: 'یادآوری بدهی',
       body: title + ' (' + subtitle + ') — ' + formatMoney_(amount) + ' — موعد: ' + formatPersianDate_(dueDate),
+    });
+  }
+
+  return reminders;
+}
+
+var PERSONAL_CATEGORY_LABELS_ = {
+  bill: 'قبض',
+  insurance: 'بیمه',
+  tax: 'مالیات',
+  subscription: 'اشتراک',
+  other: 'سایر',
+};
+
+function findPersonalReminders_(ss) {
+  var sheet = ss.getSheetByName(SHEET_PERSONAL);
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 2) return [];
+
+  var today = formatIsoDate_(new Date());
+  var reminders = [];
+
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var id = String(row[0] || '').trim();
+    if (!id) continue;
+    if (!parseBool_(row[8])) continue;
+
+    var category = String(row[2] || '').trim();
+    var note = String(row[3] || '').trim();
+    var dueDate = String(row[4] || '').slice(0, 10);
+    var amount = Number(row[6]) || 0;
+    var daysBefore = Number(row[7]) || 0;
+    var targetDue = addDaysIso_(today, daysBefore);
+
+    if (dueDate !== targetDue) continue;
+
+    var categoryLabel = PERSONAL_CATEGORY_LABELS_[category] || 'سایر';
+    var notePart = note ? ' — ' + note : '';
+    var amountPart = amount > 0 ? ' (' + formatMoney_(amount) + ')' : '';
+
+    reminders.push({
+      reference: 'personal_' + id + '_' + dueDate,
+      title: 'یادآوری ' + categoryLabel,
+      body: categoryLabel + notePart + amountPart + ' — موعد: ' + formatPersianDate_(dueDate),
     });
   }
 

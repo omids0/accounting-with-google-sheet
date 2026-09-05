@@ -177,6 +177,16 @@ export default function LayoutMenu({
               </div>
             )}
           </div>
+          <button
+            type="button"
+            className={appMenuItemClass(tab === 'personal-reminders')}
+            onClick={() => onTabChange('personal-reminders')}
+          >
+            <span className={appMenuItemIconClass(tab === 'personal-reminders')}>
+              <AppIcon name="bell" size={20} strokeWidth={1.75} />
+            </span>
+            یادآوری
+          </button>
           <div className={appMenuDividerClass} aria-hidden="true" />
           <button
             type="button"

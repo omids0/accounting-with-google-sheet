@@ -139,3 +139,9 @@ export function addJalaliMonths(baseIso: string, monthsToAdd: number, day: numbe
 
   return memoizedJalaliMonthsAhead(baseIso, monthsToAdd, day)
 }
+
+export function addJalaliYears(baseIso: string, yearsToAdd: number): string {
+  const { year, month, day } = isoToJalali(baseIso)
+
+  return jalaliToIso(year + yearsToAdd, month, day)
+}

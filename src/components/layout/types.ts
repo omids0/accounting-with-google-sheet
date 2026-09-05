@@ -5,6 +5,7 @@ export type Tab =
   | 'installments'
   | 'dang'
   | 'checks'
+  | 'personal-reminders'
   | 'receivables'
   | 'treasury'
   | 'wallet'
@@ -77,6 +78,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   installments: 'اقساط',
   dang: 'بدهی',
   checks: 'چک‌ها',
+  'personal-reminders': 'یادآوری',
   receivables: 'طلب‌ها',
   treasury: 'صندوقچه',
   wallet: 'کیف پول',

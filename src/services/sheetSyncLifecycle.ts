@@ -4,6 +4,7 @@ import { CHECKS_SHEET } from './checks'
 import { DANG_SHEET } from './dang'
 import { INSTALLMENTS_SHEET } from './installments'
 import { MONTHLY_BALANCE_SHEET } from './monthlyBalance'
+import { PERSONAL_REMINDERS_SHEET } from './personalReminders'
 import { RECEIVABLES_SHEET } from './receivables'
 import { REMINDERS_SHEET, PUSH_SUBS_SHEET } from './reminders'
 import { getSettings } from './settings'
@@ -38,6 +39,7 @@ const STATIC_SHEETS = [
   CATEGORIES_SHEET,
   MONTHLY_BALANCE_SHEET,
   REMINDERS_SHEET,
+  PERSONAL_REMINDERS_SHEET,
   PUSH_SUBS_SHEET,
   TIMESHEETS_SHEET,
   TIMESHEET_ENTRIES_SHEET

@@ -49,4 +49,10 @@ export type {
   PushSubscriptionJSON
 } from './notifications'
 
+export type {
+  PersonalReminderCategory,
+  PersonalReminderRecurrence,
+  PersonalReminder
+} from './personalReminders'
+
 export type { Timesheet, TimesheetEntry } from './timesheet'

@@ -164,6 +164,7 @@ export function useLayoutNavigation() {
     tab === 'entry' ||
     tab === 'opening-balances' ||
     tab === 'net-available-settings' ||
+    tab === 'personal-reminders' ||
     tab === 'about' ||
     TIMESHEET_TABS.includes(tab) ||
     CALCULATION_TABS.includes(tab) ||
