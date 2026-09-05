@@ -101,7 +101,14 @@ export function getReportTabFromKind(kind: ModuleReportKind): Tab {
 }
 
 export const SETTINGS_PATH = '/settings'
+export const SETTINGS_REMINDERS_PATH = '/settings/reminders'
 
 export function isSettingsPath(pathname: string): boolean {
-  return normalizePath(pathname) === SETTINGS_PATH
+  const path = normalizePath(pathname)
+
+  return path === SETTINGS_PATH || path.startsWith(`${SETTINGS_PATH}/`)
+}
+
+export function isSettingsRemindersPath(pathname: string): boolean {
+  return normalizePath(pathname) === SETTINGS_REMINDERS_PATH
 }

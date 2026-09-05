@@ -13,7 +13,13 @@ import { useEngagementReminders } from '../../hooks/useEngagementReminders'
 import { usePageSpeedDialConfig } from '../../hooks/usePageSpeedDial'
 import type { LayoutOutletContext } from '../../routes/layoutOutletContext'
 import type { TabNavigationOptions } from '../../routes/paths'
-import { getPathForTab, getTabFromPath, isSettingsPath, SETTINGS_PATH } from '../../routes/paths'
+import {
+  getPathForTab,
+  getTabFromPath,
+  isSettingsPath,
+  isSettingsRemindersPath,
+  SETTINGS_PATH
+} from '../../routes/paths'
 import { getUserName, getUserPicture } from '../../services/auth'
 import type { DashboardNavTarget } from '../../types'
 
@@ -122,21 +128,45 @@ export function useLayoutNavigation({ onLogout, onReauth }: UseLayoutNavigationO
   }, [menuOpen])
 
   const showHeaderBack =
-    !showSettings &&
-    (tab === 'records' ||
-      tab === 'entry' ||
-      tab === 'opening-balances' ||
-      tab === 'net-available-settings' ||
-      tab === 'about' ||
-      TIMESHEET_TABS.includes(tab) ||
-      CALCULATION_TABS.includes(tab) ||
-      REPORT_TABS.includes(tab))
+    showSettings ||
+    tab === 'records' ||
+    tab === 'entry' ||
+    tab === 'opening-balances' ||
+    tab === 'net-available-settings' ||
+    tab === 'about' ||
+    TIMESHEET_TABS.includes(tab) ||
+    CALCULATION_TABS.includes(tab) ||
+    REPORT_TABS.includes(tab)
+
+  const onHeaderBack = useCallback(() => {
+    if (isSettingsRemindersPath(location.pathname)) {
+      navigate(SETTINGS_PATH)
+
+      return
+    }
+
+    if (showSettings) {
+      navigate('/')
+
+      return
+    }
+
+    if (tab === 'timesheet-detail') {
+      handleTabChange('timesheets')
+
+      return
+    }
+
+    handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
+  }, [handleTabChange, location.pathname, navigate, showSettings, tab])
 
   const isCalculationTab = CALCULATION_TABS.includes(tab)
   const isReportTab = REPORT_TABS.includes(tab)
   const isTimesheetTab = TIMESHEET_TABS.includes(tab)
 
-  const headerTitle = showSettings
+  const headerTitle = isSettingsRemindersPath(location.pathname)
+    ? 'یادآوری‌ها'
+    : showSettings
     ? 'تنظیمات'
     : tab === 'timesheet-detail' && timesheetTitle
     ? timesheetTitle
@@ -177,6 +207,7 @@ export function useLayoutNavigation({ onLogout, onReauth }: UseLayoutNavigationO
     openEntry,
     openSettings,
     showHeaderBack,
+    onHeaderBack,
     isCalculationTab,
     isReportTab,
     isTimesheetTab,

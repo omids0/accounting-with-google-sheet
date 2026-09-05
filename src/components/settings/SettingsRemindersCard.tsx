@@ -13,7 +13,7 @@ export default function SettingsRemindersCard({ onOpenReminders }: SettingsRemin
           marginBottom: '0.75rem'
         }}
       >
-        یادآوری اقساط و سایر موارد را با نوتیf PWA مدیریت کنید.
+        یادآوری اقساط و سایر موارد را با نوتیف PWA مدیریت کنید.
       </p>
       <button type="button" className="btn btn-primary btn-sm" onClick={onOpenReminders}>
         مدیریت یادآوری‌ها

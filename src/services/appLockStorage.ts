@@ -38,12 +38,19 @@ export function getDeviceConfig(): AppLockDeviceConfig | null {
 }
 
 export function saveAccountConfig(config: AppLockAccountConfig): void {
+  const previous = getAccountConfig()
+  const nextEnabled = !!(config.enabled && config.pinHash && config.pinSalt)
+  const previousEnabled = !!(previous?.enabled && previous?.pinHash && previous?.pinSalt)
+
   setItem(STORAGE_KEYS.APP_LOCK, config)
-  window.dispatchEvent(
-    new CustomEvent(APP_LOCK_CHANGED_EVENT, {
-      detail: { enabled: !!(config.enabled && config.pinHash && config.pinSalt) }
-    })
-  )
+
+  if (nextEnabled !== previousEnabled) {
+    window.dispatchEvent(
+      new CustomEvent(APP_LOCK_CHANGED_EVENT, {
+        detail: { enabled: nextEnabled }
+      })
+    )
+  }
 }
 
 export function saveDeviceConfig(config: AppLockDeviceConfig): void {

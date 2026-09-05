@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router-dom'
 
 import Layout from '../components/Layout'
+import RemindersPage from '../components/RemindersPage'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 import type { Timesheet } from '../types'
 import { useLayoutOutletContext } from './layoutOutletContext'
@@ -112,6 +113,10 @@ function SettingsRoute() {
   return <LazySettingsPage onLogout={onLogout} onSpreadsheetChange={onDataKeyChange} />
 }
 
+function SettingsRemindersRoute() {
+  return <RemindersPage />
+}
+
 function ModuleReportRoute({ kind }: { kind: ModuleReportKind }) {
   const { onReauth } = useLayoutOutletContext()
 
@@ -155,6 +160,7 @@ export function AppAuthenticatedRoutes({
         <Route path="calculators/currency" element={<LazyCurrencyConverterPage />} />
         <Route path="calculators/date" element={<LazyDateCalculatorPage />} />
         <Route path="about" element={<LazyAboutPage />} />
+        <Route path="settings/reminders" element={<SettingsRemindersRoute />} />
         <Route path="settings" element={<SettingsRoute />} />
         <Route
           path="reports/financial-summary"

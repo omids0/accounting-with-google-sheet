@@ -43,8 +43,6 @@ export function useAppLock() {
       if (!detail.enabled) {
         clearPending()
         setLocked(false)
-      } else {
-        setLocked(true)
       }
     }
 

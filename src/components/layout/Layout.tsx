@@ -30,6 +30,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     handleTabChange,
     openSettings,
     showHeaderBack,
+    onHeaderBack,
     isCalculationTab,
     isReportTab,
     isTimesheetTab,
@@ -45,8 +46,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
         showHeaderBack={showHeaderBack}
         headerTitle={headerTitle}
         showSettings={showSettings}
-        tab={tab}
-        onTabChange={handleTabChange}
+        onHeaderBack={onHeaderBack}
       />
 
       <LayoutMenu
