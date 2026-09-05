@@ -107,8 +107,8 @@ export default function JalaliDateTimePicker({
             onChange={setPendingValue}
             minDateTime={minDateTime}
           />
-          <div className={cn('records-filter-actions', jalaliDatePickerActionsClass)}>
-            <Button type="button" variant="primary" size="sm" onClick={handleConfirm}>
+          <div className={jalaliDatePickerActionsClass}>
+            <Button type="button" variant="primary" onClick={handleConfirm}>
               تایید
             </Button>
           </div>

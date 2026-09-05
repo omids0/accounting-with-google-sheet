@@ -9,6 +9,7 @@ import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
 import Button from './ui/Button'
 import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
+import { timesheetsPageClass } from './ui/toolsPageStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
@@ -35,7 +36,7 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
   }
 
   return (
-    <div>
+    <div className={timesheetsPageClass}>
       <ActiveFilterChips chips={page.filterChips} onChipClick={page.openFilterModal} />
 
       <FilterModal

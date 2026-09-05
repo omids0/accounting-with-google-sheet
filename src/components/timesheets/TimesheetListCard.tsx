@@ -3,15 +3,16 @@ import { cn } from '../../utils/cn'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { TimesheetWithRow } from './useTimesheetsPage'
-import { cardClassName } from '../ui/Card'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
+  installmentCardClass,
   installmentHeaderClass,
   listCardSubtitleClass,
-  listCardTitleClass
+  listCardTitleClass,
+  walletItemCardClass,
+  walletItemInfoClass
 } from '../ui/featureCardStyles'
-import { timesheetListCardClass, timesheetListCardMainClass } from '../ui/toolsPageStyles'
 
 interface TimesheetListCardProps {
   item: TimesheetWithRow
@@ -27,26 +28,18 @@ export default function TimesheetListCard({
   onDelete
 }: TimesheetListCardProps) {
   return (
-    <div
-      className={cardClassName(cn('installment-card interactive-card', timesheetListCardClass))}
-      role="button"
-      tabIndex={0}
-      aria-label={`مشاهده رکوردهای ${item.title}`}
-      onClick={() => onOpen(item)}
-      onKeyDown={event => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          onOpen(item)
-        }
-      }}
-    >
+    <div className={cn(installmentCardClass({}), walletItemCardClass)}>
       <div className={cardHeaderWithEditClass}>
-        <div className={cn(installmentHeaderClass(), timesheetListCardMainClass)}>
-          <div>
+        <button
+          type="button"
+          className={cn(installmentHeaderClass(), 'wallet-item-header')}
+          onClick={() => onOpen(item)}
+        >
+          <div className={walletItemInfoClass}>
             <div className={listCardTitleClass}>{item.title}</div>
             {item.description && <div className={listCardSubtitleClass}>{item.description}</div>}
           </div>
-        </div>
+        </button>
         <div
           className={cardActionButtonsClass}
           role="group"

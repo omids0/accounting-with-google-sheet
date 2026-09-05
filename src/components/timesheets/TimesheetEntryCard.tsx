@@ -3,24 +3,17 @@ import { formatDateTimePersian, formatDurationFa } from '../../utils/datetime'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { TimesheetEntryWithRow } from './useTimesheetDetailPage'
-import { cardClassName } from '../ui/Card'
 import {
   cardActionButtonsClass,
-  cardHeaderWithEditClass,
-  installmentHeaderClass,
+  dangCardBodyClass,
+  dangCheckboxClass,
   installmentNoteClass,
   listCardAmountPillClass,
+  listCardCheckboxShellClass,
   listCardSubtitleClass,
   listCardTitleClass
 } from '../ui/featureCardStyles'
-import {
-  timesheetEntryBodyClass,
-  timesheetEntryCardCheckedClass,
-  timesheetEntryCardClass,
-  timesheetEntryCheckboxClass,
-  timesheetEntryHeaderClass,
-  timesheetEntrySeparatorClass
-} from '../ui/toolsPageStyles'
+import { timesheetEntrySeparatorClass } from '../ui/toolsPageStyles'
 
 interface TimesheetEntryCardProps {
   item: TimesheetEntryWithRow
@@ -38,46 +31,31 @@ export default function TimesheetEntryCard({
   onDelete
 }: TimesheetEntryCardProps) {
   return (
-    <div
-      className={cardClassName(
-        cn(
-          'installment-card',
-          timesheetEntryCardClass,
-          item.checked && timesheetEntryCardCheckedClass
-        )
-      )}
-    >
+    <div className={cn(listCardCheckboxShellClass(), item.checked && 'opacity-[0.78]')}>
       <input
         type="checkbox"
-        className={timesheetEntryCheckboxClass}
+        className={dangCheckboxClass}
         checked={item.checked}
         disabled={togglingCheckId === item.id}
         onChange={event => onToggleChecked(item, event.target.checked)}
+        onClick={event => event.stopPropagation()}
         aria-label={`تایید ${item.title}`}
       />
-      <div className={timesheetEntryBodyClass}>
-        <div className={cardHeaderWithEditClass}>
-          <div className={cn(installmentHeaderClass(), timesheetEntryHeaderClass)}>
-            <div>
-              <div className={listCardTitleClass}>{item.title}</div>
-              <div className={listCardSubtitleClass}>
-                {formatDateTimePersian(item.startAt)}
-                <span className={timesheetEntrySeparatorClass}> · </span>
-                {formatDateTimePersian(item.endAt)}
-              </div>
-              <div className={listCardSubtitleClass}>
-                <span className={listCardAmountPillClass}>
-                  {formatDurationFa(item.durationMinutes)}
-                </span>
-              </div>
-              {item.description && <p className={installmentNoteClass}>{item.description}</p>}
-            </div>
-          </div>
-          <div className={cardActionButtonsClass}>
-            <CardEditButton onClick={() => onEdit(item)} />
-            <CardDeleteButton onClick={() => onDelete(item)} />
-          </div>
+      <div className={dangCardBodyClass}>
+        <div className={listCardTitleClass}>{item.title}</div>
+        <div className={listCardSubtitleClass}>
+          {formatDateTimePersian(item.startAt)}
+          <span className={timesheetEntrySeparatorClass}> · </span>
+          {formatDateTimePersian(item.endAt)}
         </div>
+        <div className={listCardSubtitleClass}>
+          <span className={listCardAmountPillClass}>{formatDurationFa(item.durationMinutes)}</span>
+        </div>
+        {item.description && <p className={installmentNoteClass}>{item.description}</p>}
+      </div>
+      <div className={cardActionButtonsClass}>
+        <CardEditButton onClick={() => onEdit(item)} />
+        <CardDeleteButton onClick={() => onDelete(item)} />
       </div>
     </div>
   )

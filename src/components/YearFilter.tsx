@@ -96,7 +96,6 @@ export default function YearFilter({
         <Button
           type="button"
           variant="primary"
-          size="sm"
           onClick={handleConfirm}
           disabled={loading || !hasPendingChanges}
         >

@@ -1,3 +1,4 @@
+import { listPageStackClass } from './featureCardStyles'
 import { cn } from '../../utils/cn'
 
 export const reportPageClass = 'flex flex-col gap-4'
@@ -51,31 +52,17 @@ export const reportExportTitleClass = 'text-[0.9rem] font-bold'
 
 export const reportExportHintClass = 'mt-[0.1rem] text-[0.78rem] text-muted'
 
-export const timesheetDetailPageClass = '[&_.timesheet-detail-stats]:mb-4'
+export const timesheetsPageClass = listPageStackClass
 
-export const timesheetDetailStatsClass = 'mb-4'
+export const timesheetDetailPageClass = listPageStackClass
+
+export const timesheetDetailStatsClass = 'timesheet-detail-stats'
 
 export const timesheetStatValueClass = 'mt-[0.15rem] text-[1.05rem] font-extrabold text-text'
 
 export const timesheetJiraHoursClass = 'ms-[0.35rem] text-[0.92rem] font-bold text-muted'
 
-export const timesheetEntryCardClass = 'list-card flex cursor-default items-start gap-2.5 p-0'
-
-export const timesheetEntryCardCheckedClass = 'opacity-[0.78]'
-
-export const timesheetEntryCheckboxClass = cn(
-  'mt-2 ms-2 h-[1.15rem] w-[1.15rem] flex-shrink-0 cursor-pointer rounded accent-primary'
-)
-
-export const timesheetEntryBodyClass = 'min-w-0 flex-1'
-
-export const timesheetEntryHeaderClass = 'cursor-default hover:bg-transparent'
-
 export const timesheetEntrySeparatorClass = 'opacity-[0.55]'
-
-export const timesheetListCardClass = 'list-card cursor-pointer p-0'
-
-export const timesheetListCardMainClass = 'cursor-pointer hover:bg-transparent'
 
 export const jalaliDatetimePickerPanelClass = 'overflow-x-auto'
 

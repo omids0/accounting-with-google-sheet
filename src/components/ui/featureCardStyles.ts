@@ -4,6 +4,8 @@ import { cn } from '../../utils/cn'
 /** Inner padding for list cards (installments, wallet, receivables, dang, checks). Tailwind p-2 = 0.5rem. */
 export const listCardInsetClass = 'p-2'
 
+export const listPageStackClass = 'flex flex-col gap-3 [&_.list-card]:mb-0'
+
 export const interactiveCardClass = cn(
   'transition-[box-shadow,border-color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
   'hover:-translate-y-0.5 hover:shadow-[var(--shadow),0_4px_14px_color-mix(in_srgb,var(--color-primary)_10%,transparent)] active:translate-y-0'
@@ -175,6 +177,17 @@ export const installmentDueLineClass = cn(
 
 export const installmentRangeLineClass = 'mb-[0.3rem] mt-[0.25rem]'
 
+const listCardCheckboxShellBase = cn(
+  interactiveCardClass,
+  'list-card relative flex items-start gap-2 overflow-hidden p-0',
+  listCardInsetClass
+)
+
+/** Checkbox row list cards (timesheet entries, dang, checks). Inner padding via listCardInsetClass. */
+export function listCardCheckboxShellClass(className?: string) {
+  return cardClassName(cn(listCardCheckboxShellBase, className))
+}
+
 export function dangCardClass({
   paid,
   expanded,
@@ -186,9 +199,8 @@ export function dangCardClass({
 }) {
   return cardClassName(
     cn(
-      interactiveCardClass,
-      'dang-card relative flex cursor-pointer items-start gap-2 overflow-hidden',
-      listCardInsetClass,
+      listCardCheckboxShellBase,
+      'dang-card cursor-pointer',
       'before:absolute before:top-0 before:bottom-0 before:right-0 before:w-[3px] before:opacity-55 before:content-[""]',
       'before:[background:linear-gradient(180deg,var(--color-expense)_0%,color-mix(in_srgb,var(--color-expense)_55%,var(--color-primary)_100%))]',
       'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)]',
@@ -240,6 +252,9 @@ export const dangTotalLabelClass = 'text-[0.85rem] text-muted'
 export const dangTotalValueClass = 'text-base font-bold text-primary-dark'
 
 export const walletItemCardClass = 'wallet-item-card list-card p-0'
+
+/** Shared list-card shell: zero outer padding; use installmentHeaderClass for inner inset. */
+export const listCardShellClass = walletItemCardClass
 
 export const walletItemInfoClass = 'min-w-0 flex-1'
 
