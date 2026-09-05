@@ -1,5 +1,8 @@
+import type { ReactNode } from 'react'
+
 import AppIcon from '../AppIcon'
 import type { Tab } from './types'
+import { prefetchTabPage } from '../../routes/prefetchPages'
 import {
   bottomNavCenterClass,
   bottomNavClass,
@@ -17,45 +20,62 @@ interface LayoutBottomNavProps {
   onTabChange: (tab: Tab) => void
 }
 
+interface BottomNavTabButtonProps {
+  tab: Tab
+  active: boolean
+  label: string
+  icon: ReactNode
+  onTabChange: (tab: Tab) => void
+}
+
+function BottomNavTabButton({ tab, active, label, icon, onTabChange }: BottomNavTabButtonProps) {
+  return (
+    <button
+      type="button"
+      className={bottomNavTabBtnClass(active)}
+      onPointerDown={() => prefetchTabPage(tab)}
+      onClick={() => onTabChange(tab)}
+    >
+      <span className={bottomNavTabIconClass(active)}>{icon}</span>
+      {label}
+    </button>
+  )
+}
+
 export default function LayoutBottomNav({ showSettings, tab, onTabChange }: LayoutBottomNavProps) {
   const dashboardActive = !showSettings && (tab === 'dashboard' || tab === 'records')
 
   return (
     <nav className={bottomNavClass}>
       <div className={bottomNavSideClass}>
-        <button
-          className={bottomNavTabBtnClass(!showSettings && tab === 'installments')}
-          onClick={() => onTabChange('installments')}
-        >
-          <span className={bottomNavTabIconClass(!showSettings && tab === 'installments')}>
-            <AppIcon name="installments" />
-          </span>
-          اقساط
-        </button>
-        <button
-          className={bottomNavTabBtnClass(!showSettings && tab === 'dang')}
-          onClick={() => onTabChange('dang')}
-        >
-          <span className={bottomNavTabIconClass(!showSettings && tab === 'dang')}>
-            <AppIcon name="debt" />
-          </span>
-          بدهی
-        </button>
-        <button
-          className={bottomNavTabBtnClass(!showSettings && tab === 'checks')}
-          onClick={() => onTabChange('checks')}
-        >
-          <span className={bottomNavTabIconClass(!showSettings && tab === 'checks')}>
-            <AppIcon name="checks" />
-          </span>
-          چک‌ها
-        </button>
+        <BottomNavTabButton
+          tab="installments"
+          active={!showSettings && tab === 'installments'}
+          label="اقساط"
+          icon={<AppIcon name="installments" />}
+          onTabChange={onTabChange}
+        />
+        <BottomNavTabButton
+          tab="dang"
+          active={!showSettings && tab === 'dang'}
+          label="بدهی"
+          icon={<AppIcon name="debt" />}
+          onTabChange={onTabChange}
+        />
+        <BottomNavTabButton
+          tab="checks"
+          active={!showSettings && tab === 'checks'}
+          label="چک‌ها"
+          icon={<AppIcon name="checks" />}
+          onTabChange={onTabChange}
+        />
       </div>
 
       <div className={bottomNavCenterClass}>
         <button
           type="button"
           className={bottomNavDashboardClass(dashboardActive)}
+          onPointerDown={() => prefetchTabPage('dashboard')}
           onClick={() => onTabChange('dashboard')}
           aria-label="داشبورد"
         >
@@ -67,33 +87,27 @@ export default function LayoutBottomNav({ showSettings, tab, onTabChange }: Layo
       </div>
 
       <div className={bottomNavSideClass}>
-        <button
-          className={bottomNavTabBtnClass(!showSettings && tab === 'receivables')}
-          onClick={() => onTabChange('receivables')}
-        >
-          <span className={bottomNavTabIconClass(!showSettings && tab === 'receivables')}>
-            <AppIcon name="receivables" />
-          </span>
-          طلب‌ها
-        </button>
-        <button
-          className={bottomNavTabBtnClass(!showSettings && tab === 'treasury')}
-          onClick={() => onTabChange('treasury')}
-        >
-          <span className={bottomNavTabIconClass(!showSettings && tab === 'treasury')}>
-            <AppIcon name="treasury" />
-          </span>
-          صندوق
-        </button>
-        <button
-          className={bottomNavTabBtnClass(!showSettings && tab === 'wallet')}
-          onClick={() => onTabChange('wallet')}
-        >
-          <span className={bottomNavTabIconClass(!showSettings && tab === 'wallet')}>
-            <AppIcon name="wallet" />
-          </span>
-          کیف پول
-        </button>
+        <BottomNavTabButton
+          tab="receivables"
+          active={!showSettings && tab === 'receivables'}
+          label="طلب‌ها"
+          icon={<AppIcon name="receivables" />}
+          onTabChange={onTabChange}
+        />
+        <BottomNavTabButton
+          tab="treasury"
+          active={!showSettings && tab === 'treasury'}
+          label="صندوق"
+          icon={<AppIcon name="treasury" />}
+          onTabChange={onTabChange}
+        />
+        <BottomNavTabButton
+          tab="wallet"
+          active={!showSettings && tab === 'wallet'}
+          label="کیف پول"
+          icon={<AppIcon name="wallet" />}
+          onTabChange={onTabChange}
+        />
       </div>
     </nav>
   )

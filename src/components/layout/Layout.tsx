@@ -9,6 +9,7 @@ import { appLayoutClass, appMainClass } from '../ui/layoutStyles'
 export default function Layout() {
   const {
     tab,
+    isPageTransitioning,
     spreadsheetKey,
     showSettings,
     menuOpen,
@@ -67,7 +68,11 @@ export default function Layout() {
       />
 
       <main className={appMainClass}>
-        <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
+        <LayoutPageOutlet
+          spreadsheetKey={spreadsheetKey}
+          showSettings={showSettings}
+          isPageTransitioning={isPageTransitioning}
+        />
       </main>
 
       <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />

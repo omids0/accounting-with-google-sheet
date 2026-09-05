@@ -10,7 +10,40 @@ export interface SheetStoreSnapshot {
 
 let memoryStore: SheetStoreSnapshot | null = null
 
+let persistTimer: ReturnType<typeof setTimeout> | null = null
+
 const listeners = new Set<() => void>()
+
+function sheetRowsEqual(prev: string[][], next: string[][]): boolean {
+  if (prev.length !== next.length) return false
+
+  for (let rowIndex = 0; rowIndex < prev.length; rowIndex += 1) {
+    const prevRow = prev[rowIndex]
+    const nextRow = next[rowIndex]
+
+    if (prevRow.length !== nextRow.length) return false
+
+    for (let cellIndex = 0; cellIndex < prevRow.length; cellIndex += 1) {
+      if (prevRow[cellIndex] !== nextRow[cellIndex]) return false
+    }
+  }
+
+  return true
+}
+
+function schedulePersistToStorage(store: SheetStoreSnapshot): void {
+  if (persistTimer) {
+    clearTimeout(persistTimer)
+  }
+
+  persistTimer = setTimeout(() => {
+    persistTimer = null
+
+    if (memoryStore?.spreadsheetId === store.spreadsheetId) {
+      setItem(storageKey(store.spreadsheetId), memoryStore)
+    }
+  }, 0)
+}
 
 function storageKey(spreadsheetId: string): string {
   return `${STORE_KEY_PREFIX}${spreadsheetId}`
@@ -24,7 +57,7 @@ function notifyListeners(): void {
 
 function persistStore(store: SheetStoreSnapshot): void {
   memoryStore = store
-  setItem(storageKey(store.spreadsheetId), store)
+  schedulePersistToStorage(store)
   notifyListeners()
 }
 
@@ -103,7 +136,7 @@ export function setSheetAllRows(
   store.sheets[sheetName] = allRows.map(row => [...row])
   if (options.silent) {
     memoryStore = store
-    setItem(storageKey(store.spreadsheetId), store)
+    schedulePersistToStorage(store)
 
     return
   }
@@ -123,14 +156,17 @@ export function setManySheetAllRows(
 
     const prev = store.sheets[sheetName]
 
-    if (!prev || JSON.stringify(prev) !== JSON.stringify(next)) {
+    if (!prev || !sheetRowsEqual(prev, next)) {
       store.sheets[sheetName] = next
       changed = true
     }
   }
 
   memoryStore = store
-  setItem(storageKey(store.spreadsheetId), store)
+
+  if (changed) {
+    schedulePersistToStorage(store)
+  }
 
   return changed
 }

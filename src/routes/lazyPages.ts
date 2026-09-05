@@ -1,39 +1,55 @@
 import { lazy } from 'react'
 
-export const LazyAboutPage = lazy(() => import('../components/about/AboutPage'))
-export const LazyChecksPage = lazy(() => import('../components/ChecksPage'))
-export const LazyCurrencyConverterPage = lazy(() => import('../components/CurrencyConverterPage'))
-export const LazyDangPage = lazy(() => import('../components/DangPage'))
-export const LazyDashboardPage = lazy(() => import('../components/DashboardPage'))
-export const LazyDataEntryPage = lazy(() => import('../components/DataEntryPage'))
-export const LazyDateCalculatorPage = lazy(() => import('../components/DateCalculatorPage'))
-export const LazyInstallmentsPage = lazy(() => import('../components/InstallmentsPage'))
-export const LazyLoanRequestCalculatorPage = lazy(
-  () => import('../components/LoanRequestCalculatorPage')
-)
-export const LazyNetAvailableSettingsPage = lazy(
-  () => import('../components/NetAvailableSettingsPage')
-)
-export const LazyOpeningBalancePage = lazy(() => import('../components/OpeningBalancePage'))
-export const LazyReceivablesPage = lazy(() => import('../components/ReceivablesPage'))
-export const LazyRecordsPage = lazy(() => import('../components/RecordsPage'))
-export const LazyAssetsLiabilitiesReportPage = lazy(
-  () => import('../components/reports/AssetsLiabilitiesReportPage')
-)
-export const LazyCashFlowReportPage = lazy(() => import('../components/reports/CashFlowReportPage'))
-export const LazyDueDatesReportPage = lazy(() => import('../components/reports/DueDatesReportPage'))
-export const LazyFinancialSummaryReportPage = lazy(
-  () => import('../components/reports/FinancialSummaryReportPage')
-)
-export const LazyIncomeExpenseReportPage = lazy(
-  () => import('../components/reports/IncomeExpenseReportPage')
-)
-export const LazyModuleReportPage = lazy(() => import('../components/reports/ModuleReportPage'))
-export const LazyOpeningBalanceReportPage = lazy(
-  () => import('../components/reports/OpeningBalanceReportPage')
-)
-export const LazySettingsPage = lazy(() => import('../components/SettingsPage'))
-export const LazyTimesheetDetailPage = lazy(() => import('../components/TimesheetDetailPage'))
-export const LazyTimesheetsPage = lazy(() => import('../components/TimesheetsPage'))
-export const LazyTreasuryPage = lazy(() => import('../components/TreasuryPage'))
-export const LazyWalletPage = lazy(() => import('../components/WalletPage'))
+import {
+  loadAboutPage,
+  loadAssetsLiabilitiesReportPage,
+  loadCashFlowReportPage,
+  loadChecksPage,
+  loadCurrencyConverterPage,
+  loadDangPage,
+  loadDashboardPage,
+  loadDataEntryPage,
+  loadDateCalculatorPage,
+  loadDueDatesReportPage,
+  loadFinancialSummaryReportPage,
+  loadIncomeExpenseReportPage,
+  loadInstallmentsPage,
+  loadLoanRequestCalculatorPage,
+  loadModuleReportPage,
+  loadNetAvailableSettingsPage,
+  loadOpeningBalancePage,
+  loadOpeningBalanceReportPage,
+  loadReceivablesPage,
+  loadRecordsPage,
+  loadSettingsPage,
+  loadTimesheetDetailPage,
+  loadTimesheetsPage,
+  loadTreasuryPage,
+  loadWalletPage
+} from './pageChunks'
+
+export const LazyAboutPage = lazy(loadAboutPage)
+export const LazyChecksPage = lazy(loadChecksPage)
+export const LazyCurrencyConverterPage = lazy(loadCurrencyConverterPage)
+export const LazyDangPage = lazy(loadDangPage)
+export const LazyDashboardPage = lazy(loadDashboardPage)
+export const LazyDataEntryPage = lazy(loadDataEntryPage)
+export const LazyDateCalculatorPage = lazy(loadDateCalculatorPage)
+export const LazyInstallmentsPage = lazy(loadInstallmentsPage)
+export const LazyLoanRequestCalculatorPage = lazy(loadLoanRequestCalculatorPage)
+export const LazyNetAvailableSettingsPage = lazy(loadNetAvailableSettingsPage)
+export const LazyOpeningBalancePage = lazy(loadOpeningBalancePage)
+export const LazyReceivablesPage = lazy(loadReceivablesPage)
+export const LazyRecordsPage = lazy(loadRecordsPage)
+export const LazyAssetsLiabilitiesReportPage = lazy(loadAssetsLiabilitiesReportPage)
+export const LazyCashFlowReportPage = lazy(loadCashFlowReportPage)
+export const LazyDueDatesReportPage = lazy(loadDueDatesReportPage)
+export const LazyFinancialSummaryReportPage = lazy(loadFinancialSummaryReportPage)
+export const LazyIncomeExpenseReportPage = lazy(loadIncomeExpenseReportPage)
+export const LazyModuleReportPage = lazy(loadModuleReportPage)
+export const LazyOpeningBalanceReportPage = lazy(loadOpeningBalanceReportPage)
+export const LazySettingsPage = lazy(loadSettingsPage)
+export const LazyTimesheetDetailPage = lazy(loadTimesheetDetailPage)
+export const LazyTimesheetsPage = lazy(loadTimesheetsPage)
+export const LazyTreasuryPage = lazy(loadTreasuryPage)
+export const LazyWalletPage = lazy(loadWalletPage)
