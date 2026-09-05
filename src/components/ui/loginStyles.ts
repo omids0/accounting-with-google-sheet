@@ -52,14 +52,6 @@ export const googleSignInBtnClass = cn(
   'focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)]'
 )
 
-export const unlockCardClass = '[&_form]:flex [&_form]:flex-col [&_form]:gap-3'
-
-export const unlockPinInputClass = 'text-center text-xl tracking-[0.35em] tabular-nums'
-
-export const unlockBiometricBtnClass = 'mt-3 inline-flex w-full items-center justify-center gap-2'
-
-export const unlockErrorClass = 'm-0'
-
 export const appLoadingClass = 'flex min-h-dvh items-center justify-center bg-white'
 
 export const appLoadingDotsClass = 'flex items-center gap-1.5'
