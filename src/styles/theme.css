@@ -33,6 +33,7 @@
   --radius-sm: 10px;
   --shadow: 0 4px 24px rgba(15, 118, 110, 0.1);
   --shadow-lg: 0 12px 40px rgba(15, 118, 110, 0.15);
+  --shadow-card-hover: 0 8px 28px rgba(15, 118, 110, 0.12);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
   --font-text: 'Vazirmatn', system-ui, sans-serif;
@@ -94,6 +95,7 @@
   --color-focus-ring: rgba(45, 212, 191, 0.35);
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --shadow-card-hover: 0 8px 28px rgba(0, 0, 0, 0.35);
   --form-input-bg: #1a3532;
   --form-input-border: #2f524c;
   --form-input-border-hover: #3d6b63;

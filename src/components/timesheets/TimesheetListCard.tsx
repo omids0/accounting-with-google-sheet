@@ -32,7 +32,7 @@ export default function TimesheetListCard({
       <div className={cardHeaderWithEditClass}>
         <button
           type="button"
-          className={cn(installmentHeaderClass(), 'wallet-item-header')}
+          className={cn('installment-header', installmentHeaderClass(), 'wallet-item-header')}
           onClick={() => onOpen(item)}
         >
           <div className={walletItemInfoClass}>

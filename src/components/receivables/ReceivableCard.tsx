@@ -1,4 +1,5 @@
 import { isReceivableComplete, paidAmount, remainingAmount } from '../../services/receivables'
+import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { AccordionCollapse } from '../AccordionCollapse'
@@ -93,7 +94,7 @@ export default function ReceivableCard({
       <div className={cardHeaderWithEditClass}>
         <button
           type="button"
-          className={installmentHeaderClass(expanded)}
+          className={cn('installment-header', installmentHeaderClass(expanded))}
           onClick={() => onToggleExpand(expanded)}
         >
           <div>

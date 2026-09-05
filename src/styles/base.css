@@ -23,6 +23,27 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'ss01' on;
+    background-image: radial-gradient(
+        ellipse 80% 50% at 50% -10%,
+        color-mix(in srgb, var(--color-primary) 6%, transparent),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 100% 100%,
+        color-mix(in srgb, var(--color-accent-mid) 8%, transparent),
+        transparent
+      );
+    background-attachment: fixed;
+  }
+
+  .lazy-image {
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
+  }
+
+  .lazy-image[data-loaded='true'],
+  .lazy-image:not([src]) {
+    opacity: 1;
   }
 
   #root {

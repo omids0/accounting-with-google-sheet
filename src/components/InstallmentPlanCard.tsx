@@ -182,6 +182,7 @@ function InstallmentPlanCard({
               value={progress}
               variant={complete ? 'complete' : progress >= 100 ? 'success' : 'default'}
               animated={false}
+              shimmer={!complete}
               aria-label={`پیشرفت پرداخت ${plan.title}`}
             />
           </div>

@@ -8,7 +8,7 @@ export const listPageStackClass = 'flex flex-col gap-3 [&_.list-card]:mb-0'
 
 export const interactiveCardClass = cn(
   'transition-[box-shadow,border-color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
-  'hover:-translate-y-0.5 hover:shadow-[var(--shadow),0_4px_14px_color-mix(in_srgb,var(--color-primary)_10%,transparent)] active:translate-y-0'
+  'hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] hover:shadow-[var(--shadow),0_6px_20px_color-mix(in_srgb,var(--color-primary)_12%,transparent)] active:translate-y-0'
 )
 
 export function installmentCardClass({
@@ -62,18 +62,21 @@ export const listCardSubtitleClass =
   'list-card-subtitle mt-[0.12rem] text-[0.72rem] leading-[1.35] text-muted'
 
 export const listCardAmountPillClass = cn(
-  'list-card-amount-pill inline-flex items-center rounded-full border border-accent-mid bg-accent-soft px-[0.48rem] py-[0.14rem] text-[0.78rem] font-extrabold tracking-[0.01em] text-primary-dark tabular-nums font-numeric'
+  'list-card-amount-pill inline-flex items-center rounded-full border border-[color-mix(in_srgb,var(--color-primary)_14%,var(--color-accent-mid))] bg-[linear-gradient(145deg,color-mix(in_srgb,var(--color-accent-soft)_90%,var(--color-surface)),var(--color-accent-soft))] px-[0.48rem] py-[0.14rem] text-[0.78rem] font-extrabold tracking-[0.01em] text-primary-dark tabular-nums font-numeric shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]'
 )
 
-export const cardHeaderWithEditClass =
-  'flex items-start [&_.installment-header]:min-w-0 [&_.installment-header]:flex-1'
+export const cardHeaderWithEditClass = cn(
+  'card-header-with-edit flex items-start',
+  '[&_.installment-header]:min-w-0 [&_.installment-header]:flex-1'
+)
 
 export const cardActionButtonsClass = cn(
-  'flex shrink-0 flex-col items-center justify-center gap-[0.15rem] self-center rounded-[calc(var(--radius-sm)-2px)] border border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)] p-[0.15rem]',
+  'card-action-buttons flex shrink-0 flex-col items-center justify-center gap-[0.15rem]',
+  'rounded-[calc(var(--radius-sm)-2px)] border border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)] p-[0.15rem]',
   '[&_.card-action-btn]:h-[1.7rem] [&_.card-action-btn]:w-[1.7rem] [&_.card-action-btn]:rounded-md',
-  'me-2 [.card-header-with-edit_&]:me-2 [.card-header-with-edit_&]:ms-0 [.card-header-with-edit_&]:mt-2 [.card-header-with-edit_&]:self-start',
+  '[.card-header-with-edit_&]:m-2 [.card-header-with-edit_&]:ms-0 [.card-header-with-edit_&]:mt-2 [.card-header-with-edit_&]:self-start',
   '[.dang-card_&]:m-2 [.dang-card_&]:self-start',
-  '[.wallet-item-card_&]:my-2'
+  '[.wallet-item-card_&]:m-2 [.wallet-item-card_&]:ms-0 [.wallet-item-card_&]:mt-2 [.wallet-item-card_&]:self-start'
 )
 
 export const cardActionBtnClass = cn(

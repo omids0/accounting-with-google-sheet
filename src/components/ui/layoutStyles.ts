@@ -51,7 +51,7 @@ export const pageContentTransitioningClass = cn(
 export const animateInClass = 'animate-[scaleIn_0.65s_var(--ease-page)]'
 
 export const appLayoutClass = cn(
-  'mx-auto flex min-h-dvh max-w-[480px] flex-col bg-surface shadow-lg'
+  'mx-auto flex min-h-dvh max-w-[480px] flex-col bg-bg shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-border)_40%,transparent),0_8px_40px_color-mix(in_srgb,var(--color-primary)_8%,transparent)]'
 )
 
 export const appMainClass = cn(
@@ -76,8 +76,8 @@ export const appHeaderTitleClass =
 
 export const headerIconBtnClass = cn(
   'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full leading-none',
-  'bg-white/15 transition-[background,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
-  'hover:bg-white/30 active:scale-90'
+  'bg-white/15 ring-1 ring-white/10 transition-[background,transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
+  'hover:bg-white/30 hover:ring-white/20 active:scale-90'
 )
 
 export function headerIconBtnMenuClass(active?: boolean) {
@@ -90,8 +90,8 @@ export const headerIconSpacerClass = 'h-9 w-9 flex-shrink-0'
 
 export const bottomNavClass = cn(
   'fixed bottom-0 left-1/2 z-20 grid w-full max-w-[480px] -translate-x-1/2 grid-cols-[1fr_auto_1fr] items-stretch',
-  'border-t border-border bg-[var(--color-nav-bg)] px-1 pb-[calc(0.45rem+var(--safe-bottom))]',
-  'shadow-[0_-4px_24px_rgba(15,118,110,0.08)] backdrop-blur-[14px]'
+  'border-t border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-[var(--color-nav-bg)] px-1 pb-[calc(0.45rem+var(--safe-bottom))]',
+  'shadow-[0_-6px_28px_color-mix(in_srgb,var(--color-primary)_10%,transparent)] backdrop-blur-[16px] backdrop-saturate-150'
 )
 
 export const bottomNavSideClass = 'flex min-w-0 items-stretch justify-around'
@@ -120,18 +120,19 @@ export function bottomNavTabIconClass(active?: boolean) {
     'shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-[transform,background,color,box-shadow] duration-[var(--duration-normal)]',
     active &&
       cn(
-        'scale-[1.06] text-primary',
-        '[background:color-mix(in_srgb,var(--color-primary)_16%,var(--color-surface))]',
-        'shadow-[0_4px_14px_color-mix(in_srgb,var(--color-primary)_18%,transparent),inset_0_1px_0_rgba(255,255,255,0.45)]'
+        'scale-[1.08] text-primary',
+        '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_18%,var(--color-surface)),color-mix(in_srgb,var(--color-primary)_8%,var(--color-accent-soft)))]',
+        'shadow-[0_4px_14px_color-mix(in_srgb,var(--color-primary)_20%,transparent),inset_0_1px_0_rgba(255,255,255,0.5)] ring-1 ring-[color-mix(in_srgb,var(--color-primary)_14%,transparent)]'
       )
   )
 }
 
 export function bottomNavDashboardClass(active?: boolean) {
   return cn(
-    'mb-[0.1rem] mt-[-2.35rem] flex h-[4.55rem] w-[4.55rem] flex-col items-center justify-center gap-[0.15rem] rounded-full text-white',
+    'mb-[0.1rem] mt-[-2.35rem] relative flex h-[4.55rem] w-[4.55rem] flex-col items-center justify-center gap-[0.15rem] rounded-full text-white',
     '[background:linear-gradient(145deg,var(--color-primary-dark)_0%,var(--color-primary)_45%,var(--color-primary-light)_100%)]',
     'shadow-[0_10px_28px_rgba(15,118,110,0.48),0_4px_12px_rgba(15,118,110,0.28),0_0_0_5px_rgba(255,255,255,0.98)]',
+    'before:pointer-events-none before:absolute before:inset-[3px] before:rounded-full before:content-[""] before:[background:linear-gradient(145deg,rgba(255,255,255,0.18)_0%,transparent_55%)]',
     'transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
     'hover:-translate-y-0.5 active:scale-[0.94] active:translate-y-0',
     active &&
@@ -183,14 +184,14 @@ export const appMenuGroupClass = 'flex flex-col gap-[0.15rem]'
 
 export function appMenuItemClass(active?: boolean, variant?: 'default' | 'parent' | 'sub') {
   return cn(
-    'flex w-full items-center gap-3 rounded-sm text-right font-semibold text-text transition-[background,color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    'flex w-full items-center gap-3 rounded-xl text-right font-semibold text-text transition-[background,color,transform] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
     variant === 'parent' && 'justify-start',
     variant === 'sub'
       ? 'px-[0.85rem] py-[0.6rem] text-[0.88rem]'
       : 'px-[0.85rem] py-3 text-[0.95rem]',
     active &&
-      'text-primary-dark [background:color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
-    !active && 'hover:bg-accent-soft'
+      'text-primary-dark [background:linear-gradient(90deg,color-mix(in_srgb,var(--color-primary)_14%,transparent),color-mix(in_srgb,var(--color-primary)_6%,transparent))] shadow-[inset_3px_0_0_var(--color-primary)]',
+    !active && 'hover:bg-accent-soft active:scale-[0.99]'
   )
 }
 

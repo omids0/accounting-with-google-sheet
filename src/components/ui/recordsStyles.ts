@@ -3,7 +3,10 @@ import { cn } from '../../utils/cn'
 
 export const recordsPageClass = 'flex flex-col gap-3'
 
-export const recordsToolbarClass = 'relative z-[2] mb-0 p-4 [.records-page_&]:mb-0'
+export const recordsToolbarClass = cn(
+  'relative z-[2] mb-0 overflow-hidden rounded-[var(--radius)] border border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] p-4',
+  '[background:linear-gradient(165deg,var(--color-surface)_0%,color-mix(in_srgb,var(--color-accent-soft)_35%,var(--color-surface))_100%)] shadow-[var(--shadow)] [.records-page_&]:mb-0'
+)
 
 export const recordsToolbarHeaderClass = 'mb-[0.85rem] flex items-start justify-between gap-3'
 
