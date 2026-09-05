@@ -33,7 +33,7 @@ export const loginFeatureClass = cn(
 )
 
 export const loginFeatureIconClass = cn(
-  'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-primary',
+  'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[#0d4f4b]',
   '[background:color-mix(in_srgb,var(--color-primary)_12%,transparent)]'
 )
 
