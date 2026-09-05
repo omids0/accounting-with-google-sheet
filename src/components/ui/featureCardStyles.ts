@@ -50,12 +50,13 @@ export const installmentChevronClass =
   'mt-[0.15rem] inline-flex shrink-0 text-[0.75rem] text-muted transition-[transform,color] duration-[var(--duration-slow)] ease-[var(--ease-out)]'
 
 export const listCardTitleClass =
-  'text-[0.88rem] font-bold leading-[1.3] tracking-[-0.015em] text-text'
+  'list-card-title text-[0.88rem] font-bold leading-[1.3] tracking-[-0.015em] text-text'
 
-export const listCardSubtitleClass = 'mt-[0.2rem] text-[0.72rem] leading-[1.4] text-muted'
+export const listCardSubtitleClass =
+  'list-card-subtitle mt-[0.2rem] text-[0.72rem] leading-[1.4] text-muted'
 
 export const listCardAmountPillClass = cn(
-  'inline-flex items-center rounded-full border border-accent-mid bg-accent-soft px-[0.58rem] py-[0.22rem] text-[0.8rem] font-extrabold tracking-[0.01em] text-primary-dark tabular-nums'
+  'list-card-amount-pill inline-flex items-center rounded-full border border-accent-mid bg-accent-soft px-[0.58rem] py-[0.22rem] text-[0.8rem] font-extrabold tracking-[0.01em] text-primary-dark tabular-nums font-numeric'
 )
 
 export const cardHeaderWithEditClass =
@@ -244,7 +245,12 @@ export const walletItemTitleClass =
 
 export const walletItemNoteClass = 'mt-[0.28rem] text-[0.75rem] leading-[1.5] text-muted'
 
+export const walletItemAmountPillClass = cn(
+  'wallet-item-amount list-card-amount-pill',
+  listCardAmountPillClass
+)
+
 export const walletItemAmountClass =
-  'shrink-0 text-[0.92rem] font-extrabold tracking-[0.015em] text-primary-dark'
+  'wallet-item-amount shrink-0 text-[0.92rem] font-extrabold tracking-[0.015em] text-primary-dark font-numeric tabular-nums'
 
 export const walletItemEditClass = 'pt-[0.15rem]'
