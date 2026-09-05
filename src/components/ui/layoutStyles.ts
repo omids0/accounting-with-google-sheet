@@ -59,25 +59,31 @@ export const appMainClass = cn(
 )
 
 export const appHeaderClass = cn(
-  'sticky top-0 z-30 grid grid-cols-[auto_1fr_auto] items-center gap-2 px-4 py-[0.65rem] text-white',
+  'app-header sticky top-0 z-30 grid grid-cols-[auto_1fr_auto] items-center gap-2 px-4 py-[0.65rem] text-white',
   'pt-[max(0.65rem,env(safe-area-inset-top))]',
-  '[background:linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_50%,#2dd4bf_100%)]',
-  '[background-size:200%_200%] animate-[headerGlow_8s_ease_infinite]'
+  'border-b border-[var(--header-border)] shadow-[var(--header-shadow)]',
+  '[background:var(--header-bg)] [background-size:200%_200%] animate-[headerGlow_8s_ease_infinite]',
+  'supports-[backdrop-filter]:backdrop-blur-[2px]'
 )
 
 export const appHeaderWithBackClass = cn(
-  '[&_[data-header-center]]:items-center [&_[data-header-title]]:text-center'
+  '[&_[data-header-center]]:items-center',
+  '[&_[data-header-title]]:text-center',
+  '[&_[data-sync-badge]]:justify-center'
 )
 
 export const appHeaderCenterClass = 'flex min-w-0 flex-col items-start gap-[0.1rem]'
 
-export const appHeaderTitleClass =
-  'w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-start text-[1.05rem] font-extrabold tracking-[-0.02em]'
+export const appHeaderTitleClass = cn(
+  'w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-start text-[1.05rem] font-extrabold tracking-[-0.02em]',
+  '[text-shadow:0_1px_3px_rgba(15,23,42,0.22)]'
+)
 
 export const headerIconBtnClass = cn(
   'flex h-touch-min w-touch-min flex-shrink-0 items-center justify-center rounded-full leading-none',
   'bg-white/15 ring-1 ring-white/10 transition-[background,transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
-  'hover:bg-white/30 hover:ring-white/20 active:scale-90'
+  'hover:bg-white/30 hover:ring-white/20 active:scale-90',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent'
 )
 
 export function headerIconBtnMenuClass(active?: boolean) {
@@ -265,8 +271,11 @@ export const appMenuSubmenuLabelClass = cn(
 
 type SyncStatus = 'online' | 'syncing' | 'offline' | 'error'
 
-export const syncStatusBadgeClass =
-  'inline-flex max-w-full items-center gap-[0.35rem] text-[0.72rem] font-semibold opacity-92'
+export const syncStatusBadgeClass = cn(
+  'inline-flex max-w-full items-center gap-[0.4rem] rounded-full px-[0.5rem] py-[0.15rem]',
+  'bg-black/12 text-[0.75rem] font-semibold text-white ring-1 ring-white/18',
+  '[text-shadow:0_1px_2px_rgba(15,23,42,0.2)]'
+)
 
 export function syncStatusDotClass(status: SyncStatus) {
   return cn(

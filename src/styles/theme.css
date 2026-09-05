@@ -59,6 +59,14 @@
   --space-page: 0.75rem;
   --space-card: 0.7rem;
   --space-stack: 0.45rem;
+  --header-bg: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-light) 50%,
+    #2dd4bf 100%
+  );
+  --header-shadow: 0 4px 24px color-mix(in srgb, var(--color-primary-dark) 28%, transparent);
+  --header-border: rgba(255, 255, 255, 0.12);
 }
 
 [data-theme='dark'] {
@@ -103,6 +111,9 @@
   --form-input-focus-shadow: 0 0 0 3px var(--color-focus-ring), 0 2px 8px rgba(0, 0, 0, 0.25);
   --form-label-color: #9ec9be;
   --form-card-bg: linear-gradient(165deg, #1a3532 0%, #152a28 100%);
+  --header-bg: linear-gradient(135deg, #08332f 0%, #0f5c54 52%, #134e4a 100%);
+  --header-shadow: 0 4px 28px rgba(0, 0, 0, 0.42);
+  --header-border: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {

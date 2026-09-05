@@ -8,19 +8,28 @@ export const dashboardPageClass = cn(
 
 export const dashboardHeroCardClass = cn(
   cardClassName(),
-  'relative overflow-hidden border-none text-center text-white shadow-[0_8px_28px_rgba(15,118,110,0.3)]',
+  'dashboard-hero-card relative overflow-hidden border-none !p-4 text-center text-white',
+  'shadow-[0_8px_28px_rgba(15,118,110,0.3)]',
   '[background:linear-gradient(135deg,#0f766e_0%,#14b8a6_50%,#2dd4bf_100%)] [background-size:200%_200%] animate-[headerGlow_6s_ease_infinite]'
 )
 
 export const dashboardHeroCardAnimatedClass =
   'after:pointer-events-none after:absolute after:inset-[-40%_-20%] after:animate-[heroShimmer_5s_ease-in-out_infinite] after:content-[""] after:[background:radial-gradient(circle,rgba(255,255,255,0.18),transparent_60%)]'
 
-export const dashboardHeroHeaderClass =
-  'relative mb-1 flex min-h-6 items-center justify-center [&_.dashboard-hero-label]:mb-0 [&_.card-action-btn]:absolute [&_.card-action-btn]:top-1/2 [&_.card-action-btn]:-translate-y-1/2 [&_.card-action-btn]:border [&_.card-action-btn]:border-white/20 [&_.card-action-btn]:bg-white/15 [&_.card-action-btn]:text-white/90 [&_.card-action-btn]:end-0 hover:[&_.card-action-btn]:bg-white/25 hover:[&_.card-action-btn]:text-white'
+export const dashboardHeroHeaderClass = cn(
+  'dashboard-hero-header relative z-[1] mb-2 grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-1',
+  '[&_.dashboard-hero-label]:col-start-2 [&_.dashboard-hero-label]:row-start-1 [&_.dashboard-hero-label]:mb-0 [&_.dashboard-hero-label]:text-center',
+  '[&_.card-action-btn]:col-start-3 [&_.card-action-btn]:row-start-1 [&_.card-action-btn]:justify-self-center',
+  '[&_.card-action-btn]:!h-9 [&_.card-action-btn]:!w-9 [&_.card-action-btn]:rounded-lg',
+  '[&_.card-action-btn]:border [&_.card-action-btn]:border-white/25 [&_.card-action-btn]:bg-white/15 [&_.card-action-btn]:text-white/95',
+  'hover:[&_.card-action-btn]:bg-white/25 hover:[&_.card-action-btn]:text-white',
+  'focus-visible:[&_.card-action-btn]:ring-2 focus-visible:[&_.card-action-btn]:ring-white/60 focus-visible:[&_.card-action-btn]:ring-offset-1 focus-visible:[&_.card-action-btn]:ring-offset-transparent'
+)
 
-export const dashboardHeroLabelClass = 'mb-1 text-[0.8rem] font-medium opacity-90'
+export const dashboardHeroLabelClass =
+  'dashboard-hero-label mb-1 text-[0.8rem] font-medium opacity-90'
 
-export const dashboardHeroHintClass = 'm-0 text-[0.72rem] opacity-85'
+export const dashboardHeroHintClass = 'mt-2 px-1 text-[0.72rem] leading-[1.55] opacity-90'
 
 export const dashboardFlowSectionClass = 'dashboard-flow-section'
 

@@ -117,4 +117,4 @@ export const pageSearchInputClass =
 
 export const appToasterClass = 'z-[10000]'
 
-export const dashboardHeroMoneyDisplayClass = 'relative z-[1]'
+export const dashboardHeroMoneyDisplayClass = 'relative z-[1] my-1'

@@ -56,6 +56,9 @@ export default function SyncStatusBadge() {
 
   return (
     <div
+      role="status"
+      aria-live="polite"
+      data-sync-badge
       className={syncStatusBadgeClass}
       title={lastError ?? `آخرین بروزرسانی: ${formatRelativeTime(lastSyncedAt)}`}
     >
