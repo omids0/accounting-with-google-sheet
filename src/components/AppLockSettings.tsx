@@ -1,5 +1,6 @@
 import AppIcon from './AppIcon'
 import { ChangePinForm, CurrentPinForm, PinFieldsForm } from './appLock/AppLockForms'
+import AppLockPolicySettings from './appLock/AppLockPolicySettings'
 import { useAppLockSettings } from './appLock/useAppLockSettings'
 import { getAppLockConfig } from '../services/appLock'
 
@@ -9,9 +10,9 @@ export default function AppLockSettings() {
   return (
     <div className="card">
       <h2 className="card-title">قفل اپ</h2>
-      <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
-        رمز قفل در Google Sheet ذخیره می‌شود و روی همه دستگاه‌ها اعمال می‌شود. اثر انگشت فقط روی
-        همین دستگاه فعال می‌شود. با خروج از اپ یا تعویض برنامه، قفل دوباره فعال می‌شود.
+      <p className="app-lock-intro">
+        رمز قفل در Google Sheet ذخیره می‌شود و روی همه دستگاه‌ها یکسان است. اثر انگشت و زمان درخواست
+        رمز فقط روی همین دستگاه تنظیم می‌شود.
       </p>
 
       <div className="app-lock-status">
@@ -37,6 +38,16 @@ export default function AppLockSettings() {
           </span>
         )}
       </div>
+
+      {lock.enabled && lock.step === 'idle' && (
+        <AppLockPolicySettings
+          policy={lock.lockPolicy}
+          idleMinutes={lock.idleMinutes}
+          onPolicyChange={lock.handlePolicyChange}
+          onIdleMinutesChange={lock.handleIdleMinutesChange}
+          onLockNow={lock.handleLockNow}
+        />
+      )}
 
       {lock.step === 'idle' && !lock.enabled && (
         <button
@@ -140,7 +151,7 @@ export default function AppLockSettings() {
       )}
 
       {lock.enabled && lock.step === 'idle' && getAppLockConfig() && (
-        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.75rem' }}>
+        <p className="app-lock-footnote">
           رمز روی همه دستگاه‌ها یکسان است. اثر انگشت را در هر دستگاه جداگانه فعال کنید.
         </p>
       )}

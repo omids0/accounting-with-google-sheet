@@ -12,6 +12,13 @@ import {
   syncAppLockFromSheet,
   validatePinFormat
 } from '../../services/appLock'
+import {
+  getIdleMinutes,
+  getLockPolicy,
+  requestAppLock,
+  setLockPolicy
+} from '../../services/appLockPolicy'
+import type { AppLockPolicy } from '../../types'
 import { showError, showSuccess } from '../../utils/toast'
 
 export type SetupStep = 'idle' | 'setup' | 'disable' | 'change-pin' | 'disable-biometric'
@@ -35,11 +42,17 @@ export function useAppLockSettings() {
 
   const [loading, setLoading] = useState(false)
 
+  const [lockPolicy, setLockPolicyState] = useState<AppLockPolicy>(getLockPolicy)
+
+  const [idleMinutes, setIdleMinutesState] = useState(getIdleMinutes)
+
   useEffect(() => {
     void isBiometricAvailable().then(setBiometricAvailable)
     void syncAppLockFromSheet().then(() => {
       setEnabled(isAppLockEnabled())
       setBiometricOn(isBiometricEnabled())
+      setLockPolicyState(getLockPolicy())
+      setIdleMinutesState(getIdleMinutes())
     })
   }, [])
 
@@ -153,6 +166,23 @@ export function useAppLockSettings() {
     }
   }
 
+  const handlePolicyChange = (policy: AppLockPolicy) => {
+    setLockPolicy(policy, idleMinutes)
+    setLockPolicyState(policy)
+    showSuccess('سیاست قفل ذخیره شد')
+  }
+
+  const handleIdleMinutesChange = (minutes: number) => {
+    setLockPolicy(lockPolicy, minutes)
+    setIdleMinutesState(minutes)
+    showSuccess('مدت بی‌فعالیت ذخیره شد')
+  }
+
+  const handleLockNow = () => {
+    requestAppLock()
+    showSuccess('اپ قفل شد')
+  }
+
   return {
     enabled,
     biometricAvailable,
@@ -168,11 +198,16 @@ export function useAppLockSettings() {
     useBiometric,
     setUseBiometric,
     loading,
+    lockPolicy,
+    idleMinutes,
     resetForm,
     handleEnable,
     handleDisable,
     handleChangePin,
     handleEnableBiometric,
-    handleDisableBiometric
+    handleDisableBiometric,
+    handlePolicyChange,
+    handleIdleMinutesChange,
+    handleLockNow
   }
 }

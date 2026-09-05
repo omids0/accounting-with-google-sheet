@@ -14,6 +14,7 @@ export type {
   AppLockAccountConfig,
   AppLockDeviceConfig,
   AppLockConfig,
+  AppLockPolicy,
   RecordRow
 } from './forms'
 

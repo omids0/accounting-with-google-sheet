@@ -159,6 +159,42 @@
   margin-bottom: 0.75rem;
 }
 
+.app-lock-intro,
+.app-lock-footnote,
+.app-lock-policy-hint,
+.app-lock-policy-footnote {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.app-lock-intro {
+  margin-bottom: 0.75rem;
+}
+
+.app-lock-footnote,
+.app-lock-policy-footnote {
+  font-size: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.app-lock-policy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-lock-policy-hint {
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.app-lock-policy-idle {
+  margin-top: -0.25rem;
+}
+
 .app-lock-actions {
   display: flex;
   flex-wrap: wrap;
