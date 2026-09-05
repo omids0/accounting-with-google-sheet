@@ -54,7 +54,11 @@ export default function WalletAccountCard({
       <div className={cardHeaderWithEditClass}>
         <button
           type="button"
-          className={cn(installmentHeaderClass(expanded), 'wallet-item-header')}
+          className={cn(
+            'installment-header',
+            installmentHeaderClass(expanded),
+            'wallet-item-header'
+          )}
           onClick={onToggleExpand}
         >
           <div className={walletItemInfoClass}>

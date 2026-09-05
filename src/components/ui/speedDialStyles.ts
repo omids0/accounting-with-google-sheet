@@ -25,10 +25,10 @@ export function speedDialActionWrapClass(open?: boolean) {
 }
 
 export const speedDialActionClass = cn(
-  'flex h-[2.65rem] w-[2.65rem] items-center justify-center rounded-full border border-[rgba(15,118,110,0.18)]',
+  'flex h-[2.65rem] w-[2.65rem] items-center justify-center rounded-full border border-[rgba(15,118,110,0.18)] opacity-90',
   'bg-surface text-primary shadow-[0_3px_12px_rgba(15,23,42,0.12)]',
-  'transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
-  'hover:enabled:shadow-[0_5px_16px_rgba(15,23,42,0.16)] active:enabled:scale-[0.92] disabled:cursor-not-allowed disabled:opacity-45'
+  'transition-[transform,box-shadow,opacity] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
+  'hover:enabled:opacity-90 hover:enabled:shadow-[0_5px_16px_rgba(15,23,42,0.16)] active:enabled:scale-[0.92] disabled:cursor-not-allowed disabled:opacity-90'
 )
 
 export const speedDialActionIncomeClass = cn(
@@ -45,13 +45,18 @@ export const speedDialActionIconClass =
   'flex h-[1.125rem] w-[1.125rem] items-center justify-center leading-none [&_svg]:h-full [&_svg]:w-full'
 
 export const fabClass = cn(
-  'pointer-events-auto flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-full bg-primary leading-none text-white opacity-80',
-  'shadow-[0_4px_16px_rgba(15,118,110,0.35)] transition-[transform,box-shadow] duration-[var(--duration-fast)]',
-  'hover:shadow-[0_6px_20px_rgba(15,118,110,0.45)] active:scale-[0.92]'
+  'pointer-events-auto relative flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-full leading-none text-white opacity-90',
+  '[background:linear-gradient(145deg,var(--color-primary-dark),var(--color-primary-light))]',
+  'shadow-[0_4px_16px_rgba(15,118,110,0.35)] transition-[transform,box-shadow,opacity] duration-[var(--duration-fast)]',
+  'before:pointer-events-none before:absolute before:inset-[2px] before:rounded-full before:content-[""] before:[background:linear-gradient(145deg,rgba(255,255,255,0.2)_0%,transparent_60%)]',
+  'hover:opacity-90 hover:shadow-[0_6px_22px_rgba(15,118,110,0.45)] active:scale-[0.92]'
 )
 
 export function speedDialTriggerClass(open?: boolean) {
-  return cn(fabClass, open && 'opacity-80')
+  return cn(
+    fabClass,
+    open && 'ring-2 ring-[color-mix(in_srgb,var(--color-primary-light)_45%,transparent)]'
+  )
 }
 
 export function speedDialTriggerIconClass(open?: boolean) {

@@ -6,7 +6,8 @@ export const aboutHeroClass = 'px-4 py-5 text-center'
 
 export const aboutHeroIconClass = cn(
   'mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl text-primary',
-  '[background:var(--color-primary-soft,rgba(15,118,110,0.12))]'
+  '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_14%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_85%,var(--color-surface)))]',
+  'shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_8px_24px_color-mix(in_srgb,var(--color-primary)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--color-primary)_10%,transparent)]'
 )
 
 export const aboutHeroTitleClass = 'm-0 mb-2 text-xl font-bold'

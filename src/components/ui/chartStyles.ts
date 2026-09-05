@@ -84,7 +84,7 @@ export function statCardClass({
 }) {
   return cn(
     wide ? cardClassName() : '',
-    'rounded-[var(--radius)] border border-border text-center transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:shadow-[var(--shadow)]',
+    'rounded-[var(--radius)] border border-border text-center transition-[transform,box-shadow,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--color-primary)_16%,var(--color-border))] hover:shadow-[var(--shadow-card-hover,var(--shadow))]',
     !wide && 'px-2 py-3',
     wide && 'mt-2 flex w-full items-center justify-between px-4 py-[0.9rem] text-right',
     animated && 'animate-[statCardIn_0.5s_var(--ease-page)_both]',

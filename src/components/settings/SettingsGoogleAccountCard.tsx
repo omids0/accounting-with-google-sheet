@@ -1,27 +1,32 @@
 import { getUserEmail, getUserPicture, isTokenValid } from '../../services/auth'
 import AppIcon from '../AppIcon'
+import LazyImage from '../LazyImage'
 import Button from '../ui/Button'
 import Card, { CardTitle } from '../ui/Card'
 import { statusBadgeClass } from '../ui/displayStyles'
+import {
+  settingsGoogleAccountAvatarClass,
+  settingsGoogleAccountBodyClass,
+  settingsGoogleAccountEmailClass,
+  settingsGoogleAccountRowClass
+} from '../ui/settingsStyles'
 
 type SettingsGoogleAccountCardProps = {
   onLogout: () => void
 }
 
 export default function SettingsGoogleAccountCard({ onLogout }: SettingsGoogleAccountCardProps) {
+  const userPicture = getUserPicture()
+
   return (
     <Card>
       <CardTitle>حساب گوگل</CardTitle>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        {getUserPicture() && (
-          <img
-            src={getUserPicture()!}
-            alt=""
-            style={{ width: 36, height: 36, borderRadius: '50%' }}
-          />
-        )}
-        <div>
-          <p style={{ fontSize: '0.85rem' }}>{getUserEmail()}</p>
+      <div className={settingsGoogleAccountRowClass}>
+        {userPicture ? (
+          <LazyImage src={userPicture} alt="" className={settingsGoogleAccountAvatarClass} />
+        ) : null}
+        <div className={settingsGoogleAccountBodyClass}>
+          <p className={settingsGoogleAccountEmailClass}>{getUserEmail()}</p>
           <span className={statusBadgeClass(isTokenValid())}>
             {isTokenValid() ? (
               <>
@@ -37,7 +42,7 @@ export default function SettingsGoogleAccountCard({ onLogout }: SettingsGoogleAc
           </span>
         </div>
       </div>
-      <Button variant="danger" size="sm" onClick={onLogout} style={{ marginTop: '0.75rem' }}>
+      <Button variant="danger" size="sm" onClick={onLogout} className="mt-3">
         خروج
       </Button>
     </Card>

@@ -6,7 +6,10 @@ type CardProps = HTMLAttributes<HTMLDivElement>
 
 export function cardClassName(className?: string) {
   return cn(
-    'mb-stack rounded-[var(--radius)] border border-border bg-surface p-card transition-[box-shadow,transform,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:shadow-lg',
+    'mb-stack rounded-[var(--radius)] border border-[color-mix(in_srgb,var(--color-border)_88%,transparent)] bg-surface p-card',
+    '[background:linear-gradient(165deg,var(--color-surface)_0%,color-mix(in_srgb,var(--color-accent-soft)_28%,var(--color-surface))_100%)]',
+    'shadow-[var(--shadow),inset_0_1px_0_rgba(255,255,255,0.55)] transition-[box-shadow,transform,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
+    'hover:shadow-[var(--shadow-lg),0_4px_18px_color-mix(in_srgb,var(--color-primary)_8%,transparent)]',
     className
   )
 }

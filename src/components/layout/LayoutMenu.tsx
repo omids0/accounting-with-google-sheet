@@ -1,4 +1,5 @@
 import AppIcon from '../AppIcon'
+import LazyImage from '../LazyImage'
 import LayoutReportsSubmenu from './LayoutReportsSubmenu'
 import type { Tab } from './types'
 import {
@@ -73,7 +74,7 @@ export default function LayoutMenu({
       <nav className={appMenuDrawerClass} aria-label="منوی اصلی">
         <div className={appMenuProfileClass}>
           {userPicture ? (
-            <img src={userPicture} alt="" className={appMenuAvatarClass} />
+            <LazyImage src={userPicture} alt="" className={appMenuAvatarClass} />
           ) : (
             <div className={appMenuAvatarPlaceholderClass} aria-hidden>
               <AppIcon name="dashboard" size={28} strokeWidth={1.5} />

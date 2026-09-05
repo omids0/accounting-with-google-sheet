@@ -169,14 +169,36 @@
     opacity: 0;
   }
   18% {
-    opacity: 0.9;
+    opacity: 0.95;
   }
   50% {
     transform: translateX(130%);
-    opacity: 0.55;
+    opacity: 0.65;
   }
   82% {
     opacity: 0;
+  }
+}
+
+@keyframes progressGlowTravel {
+  0%,
+  100% {
+    left: 0%;
+    opacity: 0;
+    transform: translate(-40%, -50%) scale(0.6);
+  }
+  8% {
+    opacity: 1;
+    transform: translate(-40%, -50%) scale(1);
+  }
+  50% {
+    left: 100%;
+    opacity: 0.95;
+    transform: translate(-60%, -50%) scale(1.15);
+  }
+  92% {
+    opacity: 0;
+    transform: translate(-60%, -50%) scale(0.7);
   }
 }
 

@@ -3,12 +3,14 @@ import type { MoneyDisplaySize, MoneyDisplayTone } from '../MoneyDisplay'
 
 export const emptyTextClass = 'py-4 text-center text-[0.85rem] text-muted'
 
-export const emptyStateClass = 'px-[0.65rem] py-5 text-center text-muted'
+export const emptyStateClass =
+  'px-[0.65rem] py-6 text-center text-muted animate-[fadeInUp_0.45s_var(--ease-page)_both]'
 
 export const emptyStateIconClass = cn(
-  'mb-4 inline-flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[18px] text-primary',
-  '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_12%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_85%,var(--color-surface)))]',
-  'shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_8px_24px_color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
+  'mb-4 inline-flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-[20px] text-primary',
+  '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_14%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_90%,var(--color-surface)))]',
+  'shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_10px_28px_color-mix(in_srgb,var(--color-primary)_14%,transparent)]',
+  'ring-1 ring-[color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
   '[&_svg]:h-8 [&_svg]:w-8'
 )
 
