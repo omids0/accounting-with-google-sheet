@@ -2,6 +2,8 @@ import { useId, useMemo } from 'react'
 import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
+import { cn } from '../../utils/cn'
+import { sparklineClass } from '../ui/chartStyles'
 
 type SparklineTone = 'income' | 'expense' | 'primary' | 'neutral'
 
@@ -31,7 +33,7 @@ function toneColor(theme: ReturnType<typeof useChartTheme>, tone: SparklineTone)
 export default function Sparkline({
   data,
   tone = 'neutral',
-  className = '',
+  className,
   height = 28
 }: SparklineProps) {
   const theme = useChartTheme()
@@ -49,7 +51,7 @@ export default function Sparkline({
   const gradientRef = `${gradientId}-sparkline-${tone}`
 
   return (
-    <div className={`sparkline${className ? ` ${className}` : ''}`} aria-hidden="true" dir="ltr">
+    <div className={cn(sparklineClass, className)} aria-hidden="true" dir="ltr">
       <ResponsiveContainer width="100%" height={height}>
         <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
           <defs>

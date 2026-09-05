@@ -1,5 +1,0 @@
-@layer components {
-  .tab-panel[hidden] {
-    display: none !important;
-  }
-}

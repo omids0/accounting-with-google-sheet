@@ -4,6 +4,9 @@ import { useForm } from '../../hooks/useForm'
 import { FormField } from '../form'
 import FormModal from '../FormModal'
 import type { TimesheetWithRow } from './useTimesheetsPage'
+import { formNoteTextareaClass } from '../ui/formControlStyles'
+import { formControlClassName } from '../ui/formStyles'
+import { formFieldNoteClass } from '../ui/recordsStyles'
 
 type TimesheetFormValues = {
   title: string
@@ -55,7 +58,7 @@ export default function TimesheetFormModal({
       <FormField label="عنوان" required>
         <input
           type="text"
-          className="form-control"
+          className={formControlClassName()}
           value={form.values.title}
           onChange={e => form.setField('title', e.target.value)}
           placeholder="مثلاً: پروژه الف"
@@ -63,9 +66,9 @@ export default function TimesheetFormModal({
         />
       </FormField>
 
-      <FormField label="توضیحات" className="form-field-note">
+      <FormField label="توضیحات" className={formFieldNoteClass}>
         <textarea
-          className="form-control form-note-textarea"
+          className={formControlClassName(formNoteTextareaClass)}
           rows={3}
           value={form.values.description}
           onChange={e => form.setField('description', e.target.value)}

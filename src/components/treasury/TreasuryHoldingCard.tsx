@@ -4,9 +4,22 @@ import type { TransactionWithRow, VaultFormState } from './types'
 import { formatQuantity } from './utils'
 import { getAssetLabel } from '../../services/tgju'
 import type { VaultAssetType, VaultHolding } from '../../types'
+import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import Button from '../ui/Button'
+import {
+  installmentChevronClass,
+  installmentHeaderClass,
+  installmentPaymentsClass,
+  installmentCardClass
+} from '../ui/featureCardStyles'
+import {
+  receivableAddPaymentClass,
+  receivablePaymentListTitleClass,
+  treasuryHoldingCardClass,
+  treasuryHoldingValueClass
+} from '../ui/treasuryReceivableStyles'
 
 type TreasuryHoldingCardProps = {
   holding: VaultHolding
@@ -36,16 +49,8 @@ export default function TreasuryHoldingCard({
   const showSellForm = activeSellAsset === holding.assetType
 
   return (
-    <div
-      className={`card installment-card interactive-card treasury-holding-card${
-        expanded ? ' installment-card--expanded' : ''
-      }`}
-    >
-      <button
-        type="button"
-        className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
-        onClick={onToggle}
-      >
+    <div className={cn(installmentCardClass({ expanded }), treasuryHoldingCardClass)}>
+      <button type="button" className={installmentHeaderClass(expanded)} onClick={onToggle}>
         <div>
           <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>
             {getAssetLabel(holding.assetType)}
@@ -61,19 +66,21 @@ export default function TreasuryHoldingCard({
             {' · '}
             قیمت روز: {formatMoney(holding.currentUnitPrice)}
           </div>
-          <div className="treasury-holding-value">ارزش کل: {formatMoney(holding.totalValue)}</div>
+          <div className={treasuryHoldingValueClass}>
+            ارزش کل: {formatMoney(holding.totalValue)}
+          </div>
         </div>
-        <span className="installment-chevron">▼</span>
+        <span className={installmentChevronClass}>▼</span>
       </button>
 
       <AccordionCollapse open={expanded}>
-        <div className="installment-payments">
-          <div className="receivable-payment-list-title">سوابق خرید و فروش</div>
+        <div className={installmentPaymentsClass}>
+          <div className={receivablePaymentListTitleClass}>سوابق خرید و فروش</div>
           {holding.transactions.map(tx => (
             <TreasuryTransactionItem key={tx.id} tx={tx} onEdit={onEdit} onDelete={onDelete} />
           ))}
 
-          <div className="receivable-add-payment">
+          <div className={receivableAddPaymentClass}>
             {showSellForm ? (
               <TreasurySellForm
                 assetType={holding.assetType}

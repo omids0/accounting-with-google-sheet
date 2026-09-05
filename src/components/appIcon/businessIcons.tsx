@@ -2,13 +2,14 @@ import type { ReactNode } from 'react'
 
 import { IconSvg } from './IconSvg'
 import type { AppIconName, IconSvgProps } from './types'
+import { appIconAccentClass, appIconBgClass } from '../ui/chartStyles'
 
 type IconRenderer = (props: IconSvgProps) => ReactNode
 
 export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
   installments: props => (
     <IconSvg {...props}>
-      <rect className="app-icon__bg" x="3" y="4" width="18" height="17" rx="3" stroke="none" />
+      <rect className={appIconBgClass} x="3" y="4" width="18" height="17" rx="3" stroke="none" />
       <path d="M3 9.5h18" />
       <path d="M8 2.5v3" />
       <path d="M16 2.5v3" />
@@ -18,7 +19,7 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
         width="3.5"
         height="3.5"
         rx="0.8"
-        className="app-icon__accent"
+        className={appIconAccentClass}
         stroke="none"
       />
       <rect
@@ -27,7 +28,7 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
         width="3.5"
         height="3.5"
         rx="0.8"
-        className="app-icon__accent"
+        className={appIconAccentClass}
         stroke="none"
       />
       <rect
@@ -36,7 +37,7 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
         width="3.5"
         height="3.5"
         rx="0.8"
-        className="app-icon__accent"
+        className={appIconAccentClass}
         stroke="none"
       />
       <path d="M12.25 17h3.5" />
@@ -46,7 +47,7 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
   debt: props => (
     <IconSvg {...props}>
       <path
-        className="app-icon__bg"
+        className={appIconBgClass}
         d="M5 8.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"
         stroke="none"
       />
@@ -61,7 +62,7 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
   checks: props => (
     <IconSvg {...props}>
       <path
-        className="app-icon__bg"
+        className={appIconBgClass}
         d="M7 3.5h8l4.5 4.5V19a1.8 1.8 0 0 1-1.8 1.8H7A1.8 1.8 0 0 1 5.2 19V5.3A1.8 1.8 0 0 1 7 3.5Z"
         stroke="none"
       />
@@ -69,17 +70,17 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
       <path d="M15 3.5v4.5h4.5" />
       <path d="M8.5 12.5h7" />
       <path d="M8.5 15.5h4.5" />
-      <circle cx="17" cy="17" r="3.25" className="app-icon__accent" stroke="none" />
+      <circle cx="17" cy="17" r="3.25" className={appIconAccentClass} stroke="none" />
       <path d="M15.6 17l1.2 1.2 2.6-2.6" strokeWidth={2.2} />
     </IconSvg>
   ),
 
   dashboard: props => (
     <IconSvg {...props}>
-      <rect className="app-icon__bg" x="4" y="4" width="7" height="7" rx="2" stroke="none" />
-      <rect className="app-icon__bg" x="13" y="4" width="7" height="7" rx="2" stroke="none" />
-      <rect className="app-icon__bg" x="4" y="13" width="7" height="7" rx="2" stroke="none" />
-      <rect className="app-icon__bg" x="13" y="13" width="7" height="7" rx="2" stroke="none" />
+      <rect className={appIconBgClass} x="4" y="4" width="7" height="7" rx="2" stroke="none" />
+      <rect className={appIconBgClass} x="13" y="4" width="7" height="7" rx="2" stroke="none" />
+      <rect className={appIconBgClass} x="4" y="13" width="7" height="7" rx="2" stroke="none" />
+      <rect className={appIconBgClass} x="13" y="13" width="7" height="7" rx="2" stroke="none" />
       <rect x="4" y="4" width="7" height="7" rx="2" />
       <rect x="13" y="4" width="7" height="7" rx="2" />
       <rect x="4" y="13" width="7" height="7" rx="2" />
@@ -90,14 +91,14 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
   receivables: props => (
     <IconSvg {...props}>
       <path
-        className="app-icon__bg"
+        className={appIconBgClass}
         d="M4.5 10.5h15a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2v-6.5a2 2 0 0 1 2-2Z"
         stroke="none"
       />
       <path d="M4.5 10.5h15a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2v-6.5a2 2 0 0 1 2-2Z" />
       <path d="M8 7.5h8" />
       <path d="M10 7.5V6a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v1.5" />
-      <circle cx="12" cy="15.5" r="1.35" className="app-icon__accent" stroke="none" />
+      <circle cx="12" cy="15.5" r="1.35" className={appIconAccentClass} stroke="none" />
       <path d="M12 13.5v-1" />
       <path d="M12 17.5v1.5" />
       <path d="M9.5 19.5 12 22 14.5 19.5" />
@@ -107,13 +108,13 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
   treasury: props => (
     <IconSvg {...props}>
       <path
-        className="app-icon__bg"
+        className={appIconBgClass}
         d="M5.5 9.5h13a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"
         stroke="none"
       />
       <path d="M9 6.5a3 3 0 0 1 6 0" />
       <path d="M5.5 9.5h13a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" />
-      <circle cx="12" cy="14.5" r="2.25" className="app-icon__accent" stroke="none" />
+      <circle cx="12" cy="14.5" r="2.25" className={appIconAccentClass} stroke="none" />
       <path d="M12 12.25v-0.75" />
       <path d="M12 16.75v1" />
     </IconSvg>
@@ -122,7 +123,7 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
   wallet: props => (
     <IconSvg {...props}>
       <path
-        className="app-icon__bg"
+        className={appIconBgClass}
         d="M4 8.5h15.5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"
         stroke="none"
       />
@@ -134,7 +135,7 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
         width="4"
         height="3.5"
         rx="1"
-        className="app-icon__accent"
+        className={appIconAccentClass}
         stroke="none"
       />
       <circle cx="17.2" cy="14.25" r="0.75" fill="currentColor" stroke="none" />
@@ -144,7 +145,7 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
   records: props => (
     <IconSvg {...props}>
       <path
-        className="app-icon__bg"
+        className={appIconBgClass}
         d="M8 3.5h7.2L18.5 6.8V19a1.8 1.8 0 0 1-1.8 1.8H7A1.8 1.8 0 0 1 5.2 19V5.3A1.8 1.8 0 0 1 7 3.5Z"
         stroke="none"
       />

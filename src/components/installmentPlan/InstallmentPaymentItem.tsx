@@ -1,11 +1,23 @@
 import { getInstallmentPaymentAmount } from '../../services/installments'
 import type { InstallmentPlan } from '../../types'
+import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AppIcon from '../AppIcon'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
 import type { PlanWithRow } from '../InstallmentPlanCard'
+import {
+  installmentDueClass,
+  installmentPaidAtClass,
+  installmentPaymentAmountDisplayClass,
+  installmentPaymentChevronClass,
+  installmentPaymentEditClass,
+  installmentPaymentHeaderClass,
+  installmentPaymentInfoClass,
+  installmentPaymentItemClass,
+  installmentPaymentRowClass
+} from '../ui/featureCardStyles'
 
 interface InstallmentPaymentItemProps {
   plan: PlanWithRow
@@ -45,11 +57,12 @@ export default function InstallmentPaymentItem({
 
   return (
     <div
-      className={`installment-payment-item${
-        paymentExpanded ? ' installment-payment-item--expanded' : ''
-      }${payment.paid ? ' paid' : ''}`}
+      className={cn(
+        'installment-payment-item',
+        installmentPaymentItemClass({ expanded: paymentExpanded, paid: payment.paid })
+      )}
     >
-      <div className="installment-payment-row">
+      <div className={installmentPaymentRowClass}>
         <input
           type="checkbox"
           checked={payment.paid}
@@ -59,36 +72,34 @@ export default function InstallmentPaymentItem({
         />
         <button
           type="button"
-          className={`installment-payment-header${
-            paymentExpanded ? ' installment-payment-header--expanded' : ''
-          }`}
+          className={installmentPaymentHeaderClass}
           onClick={() => onToggleExpand(paymentIndex)}
         >
-          <div className="installment-payment-info">
+          <div className={installmentPaymentInfoClass}>
             <span>قسط {payment.n.toLocaleString('fa-IR')}</span>
-            <span className="installment-due">موعد: {formatIsoDatePersian(payment.dueDate)}</span>
-            {payment.paid && payment.paidAt && (
-              <span className="installment-paid-at">
+            <span className={installmentDueClass}>
+              موعد: {formatIsoDatePersian(payment.dueDate)}
+            </span>
+            {payment.paid && payment.paidAt ? (
+              <span className={installmentPaidAtClass}>
                 پرداخت: {formatIsoDatePersian(payment.paidAt)}
               </span>
-            )}
+            ) : null}
           </div>
-          <div className="wallet-item-amount installment-payment-amount-display" dir="ltr">
+          <div className={installmentPaymentAmountDisplayClass} dir="ltr">
             {formatMoney(displayAmount)}
           </div>
           <AppIcon
             name="chevron-down"
             size={14}
             strokeWidth={2}
-            className={`installment-payment-chevron${
-              paymentExpanded ? ' installment-payment-chevron--expanded' : ''
-            }`}
+            className={installmentPaymentChevronClass(paymentExpanded)}
           />
         </button>
       </div>
 
       <AccordionCollapse open={paymentExpanded}>
-        <div className="installment-payment-edit">
+        <div className={installmentPaymentEditClass}>
           <CardInlineAmountEdit
             label="مبلغ قسط"
             value={paymentAmounts[paymentIndex] ?? getInstallmentPaymentAmount(payment, plan)}

@@ -1,20 +1,22 @@
-import AppIcon from './AppIcon';
+import AppIcon from './AppIcon'
+import { cardActionBtnClass, cardDeleteBtnClass } from './ui/featureCardStyles'
+import { cn } from '../utils/cn'
 
 type CardDeleteButtonProps = {
-  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  disabled?: boolean;
-  ariaLabel?: string;
-};
+  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void
+  disabled?: boolean
+  ariaLabel?: string
+}
 
 export default function CardDeleteButton({
   onClick,
   disabled = false,
-  ariaLabel = 'حذف',
+  ariaLabel = 'حذف'
 }: CardDeleteButtonProps) {
   return (
     <button
       type="button"
-      className="card-action-btn card-delete-btn"
+      className={cn(cardActionBtnClass, 'card-action-btn', cardDeleteBtnClass)}
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
@@ -22,5 +24,5 @@ export default function CardDeleteButton({
     >
       <AppIcon name="trash" size={16} strokeWidth={2} />
     </button>
-  );
+  )
 }

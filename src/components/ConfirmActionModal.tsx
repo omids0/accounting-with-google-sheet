@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom'
 import AppIcon from './AppIcon'
 import { cn } from '../utils/cn'
 import Button from './ui/Button'
+import { spinnerClass } from './ui/displayStyles'
+import { confirmDeleteMessageClass } from './ui/featureCardStyles'
 import { formActionsClassName } from './ui/formStyles'
 import {
   formModalActionsClass,
@@ -87,11 +89,11 @@ export default function ConfirmActionModal({
         </div>
 
         <div className={formModalBodyClass}>
-          <p className="confirm-delete-message">{message}</p>
+          <p className={confirmDeleteMessageClass}>{message}</p>
         </div>
 
         <div className={cn(formModalActionsClass, formActionsClassName())}>
-          {confirming && <span className={cn('spinner', formModalSpinnerClass)} aria-hidden />}
+          {confirming && <span className={cn(spinnerClass, formModalSpinnerClass)} aria-hidden />}
           <Button type="button" variant="primary" disabled={confirming} onClick={onConfirm}>
             {confirmLabel}
           </Button>

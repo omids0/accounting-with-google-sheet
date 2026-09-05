@@ -1,7 +1,13 @@
 import { type FormEvent } from 'react'
 
 import { FormField } from '../form'
+import {
+  appLockCheckboxClass,
+  appLockFormActionsClass,
+  appLockFormClass
+} from '../ui/appLockStyles'
 import Button from '../ui/Button'
+import { spinnerClass } from '../ui/displayStyles'
 
 type SetupStep = 'idle' | 'setup' | 'disable' | 'change-pin' | 'disable-biometric'
 
@@ -35,7 +41,7 @@ export function PinFieldsForm({
   onCancel
 }: PinFieldsFormProps) {
   return (
-    <form onSubmit={onSubmit} className="app-lock-form">
+    <form onSubmit={onSubmit} className={appLockFormClass}>
       <FormField label={step === 'change-pin' ? 'رمز جدید' : 'رمز'}>
         <input
           type="password"
@@ -63,7 +69,7 @@ export function PinFieldsForm({
         />
       </FormField>
       {step === 'setup' && biometricAvailable && (
-        <label className="app-lock-checkbox">
+        <label className={appLockCheckboxClass}>
           <input
             type="checkbox"
             checked={useBiometric}
@@ -73,9 +79,9 @@ export function PinFieldsForm({
           <span>ورود با اثر انگشت (در صورت پشتیبانی دستگاه)</span>
         </label>
       )}
-      <div className="app-lock-form-actions">
+      <div className={appLockFormActionsClass}>
         <Button type="submit" variant="primary" size="sm" disabled={loading}>
-          {loading && <span className="spinner" />}
+          {loading && <span className={spinnerClass} />}
           {submitLabel}
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
@@ -106,7 +112,7 @@ export function CurrentPinForm({
   onCancel
 }: CurrentPinFormProps) {
   return (
-    <form onSubmit={onSubmit} className="app-lock-form">
+    <form onSubmit={onSubmit} className={appLockFormClass}>
       <FormField label="رمز فعلی">
         <input
           type="password"
@@ -120,9 +126,9 @@ export function CurrentPinForm({
           dir="ltr"
         />
       </FormField>
-      <div className="app-lock-form-actions">
+      <div className={appLockFormActionsClass}>
         <Button type="submit" variant={danger ? 'danger' : 'primary'} size="sm" disabled={loading}>
-          {loading && <span className="spinner" />}
+          {loading && <span className={spinnerClass} />}
           {submitLabel}
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
@@ -157,7 +163,7 @@ export function ChangePinForm({
   onCancel
 }: ChangePinFormProps) {
   return (
-    <form onSubmit={onSubmit} className="app-lock-form">
+    <form onSubmit={onSubmit} className={appLockFormClass}>
       <FormField label="رمز فعلی">
         <input
           type="password"
@@ -197,9 +203,9 @@ export function ChangePinForm({
           dir="ltr"
         />
       </FormField>
-      <div className="app-lock-form-actions">
+      <div className={appLockFormActionsClass}>
         <Button type="submit" variant="primary" size="sm" disabled={loading}>
-          {loading && <span className="spinner" />}
+          {loading && <span className={spinnerClass} />}
           ذخیره رمز جدید
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>

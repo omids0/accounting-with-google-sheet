@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 
+import { cn } from '../../utils/cn'
 import {
   formatDateRangeLabel,
   resolveDateRange,
@@ -12,6 +13,14 @@ import DateRangeFilter, {
 } from '../DateRangeFilter'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
+import {
+  recordsRefreshBtnClass,
+  recordsToolbarClass,
+  recordsToolbarHeaderClass,
+  recordsToolbarHeadingClass,
+  recordsToolbarRangeClass,
+  recordsToolbarTitleClass
+} from '../ui/recordsStyles'
 
 interface ReportToolbarProps {
   title: string
@@ -37,11 +46,11 @@ export default function ReportToolbar({
   const dateRange = resolveDateRange(preset, customRange)
 
   return (
-    <Card className="records-toolbar dashboard-toolbar">
-      <div className="records-toolbar-header">
-        <div className="records-toolbar-heading">
-          <h2 className="records-toolbar-title">{title}</h2>
-          <p className="records-toolbar-range">
+    <Card className={cn(recordsToolbarClass, 'dashboard-toolbar')}>
+      <div className={recordsToolbarHeaderClass}>
+        <div className={recordsToolbarHeadingClass}>
+          <h2 className={recordsToolbarTitleClass}>{title}</h2>
+          <p className={recordsToolbarRangeClass}>
             {subtitle ?? (showDateFilter ? formatDateRangeLabel(dateRange) : '')}
           </p>
         </div>
@@ -49,7 +58,7 @@ export default function ReportToolbar({
           type="button"
           variant="secondary"
           size="sm"
-          className="records-refresh-btn"
+          className={recordsRefreshBtnClass}
           onClick={onRefresh}
           disabled={loading}
           aria-label="بارگذاری مجدد"

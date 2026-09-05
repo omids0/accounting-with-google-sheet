@@ -10,6 +10,7 @@ import JalaliDatePicker from '../JalaliDatePicker'
 import type { TransactionWithRow, VaultFormState } from './types'
 import { createEmptyBuyForm } from './useTreasuryForms'
 import { parseQuantityInput } from './utils'
+import { treasuryHintClass } from '../ui/treasuryReceivableStyles'
 
 type TreasuryBuyFormModalProps = {
   open: boolean
@@ -78,7 +79,9 @@ export default function TreasuryBuyFormModal({
           label: opt.label
         }))}
         hint={
-          selectedAsset?.hint ? <p className="treasury-hint">{selectedAsset.hint}</p> : undefined
+          selectedAsset?.hint ? (
+            <p className={treasuryHintClass}>{selectedAsset.hint}</p>
+          ) : undefined
         }
       />
 

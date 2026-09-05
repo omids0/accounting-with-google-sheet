@@ -2,6 +2,7 @@ import { getUserEmail, getUserPicture, isTokenValid } from '../../services/auth'
 import AppIcon from '../AppIcon'
 import Button from '../ui/Button'
 import Card, { CardTitle } from '../ui/Card'
+import { statusBadgeClass } from '../ui/displayStyles'
 
 type SettingsGoogleAccountCardProps = {
   onLogout: () => void
@@ -21,11 +22,7 @@ export default function SettingsGoogleAccountCard({ onLogout }: SettingsGoogleAc
         )}
         <div>
           <p style={{ fontSize: '0.85rem' }}>{getUserEmail()}</p>
-          <span
-            className={`status-badge ${
-              isTokenValid() ? 'status-connected' : 'status-disconnected'
-            }`}
-          >
+          <span className={statusBadgeClass(isTokenValid())}>
             {isTokenValid() ? (
               <>
                 <AppIcon name="check" size={12} strokeWidth={2.5} />

@@ -7,6 +7,7 @@ import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { TimesheetDetailListSkeleton } from './skeleton'
+import { dashboardStatGridClass } from './ui/chartStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import type { Timesheet } from '../types'
@@ -15,6 +16,14 @@ import TimesheetEntryCard from './timesheets/TimesheetEntryCard'
 import TimesheetEntryFormModal from './timesheets/TimesheetEntryFormModal'
 import { useTimesheetDetailPage } from './timesheets/useTimesheetDetailPage'
 import Button from './ui/Button'
+import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
+import {
+  timesheetDetailPageClass,
+  timesheetDetailStatsClass,
+  timesheetJiraHoursClass,
+  timesheetStatValueClass
+} from './ui/toolsPageStyles'
+import { cn } from '../utils/cn'
 
 export default function TimesheetDetailPage({
   timesheet,
@@ -29,8 +38,8 @@ export default function TimesheetDetailPage({
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="clock" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
@@ -39,7 +48,7 @@ export default function TimesheetDetailPage({
   }
 
   return (
-    <div className="timesheet-detail-page">
+    <div className={timesheetDetailPageClass}>
       <ActiveFilterChips chips={page.filterChips} onChipClick={page.openFilterModal} />
 
       <FilterModal
@@ -78,13 +87,13 @@ export default function TimesheetDetailPage({
         <TimesheetDetailListSkeleton />
       ) : (
         <>
-          <div className="stat-grid dashboard-stat-grid timesheet-detail-stats">
+          <div className={cn(dashboardStatGridClass, timesheetDetailStatsClass)}>
             <div className="stat-card">
               <span className="stat-label">مجموع کارکرد</span>
-              <div className="timesheet-stat-value">
+              <div className={timesheetStatValueClass}>
                 {formatDurationFa(page.totalMinutes)}
                 {page.totalMinutes > 0 && (
-                  <span className="timesheet-jira-hours" dir="ltr">
+                  <span className={timesheetJiraHoursClass} dir="ltr">
                     ({formatJiraTimesheetHours(page.totalMinutes)})
                   </span>
                 )}
@@ -92,15 +101,15 @@ export default function TimesheetDetailPage({
             </div>
             <div className="stat-card">
               <span className="stat-label">تعداد رکورد</span>
-              <div className="timesheet-stat-value">
+              <div className={timesheetStatValueClass}>
                 {page.filteredItems.length.toLocaleString('fa-IR')}
               </div>
             </div>
           </div>
 
           {page.items.length === 0 ? (
-            <div className="empty-state">
-              <div className="icon">
+            <div className={emptyStateClass}>
+              <div className={emptyStateIconClass}>
                 <AppIcon name="clock" />
               </div>
               <p>هنوز رکوردی ثبت نشده</p>

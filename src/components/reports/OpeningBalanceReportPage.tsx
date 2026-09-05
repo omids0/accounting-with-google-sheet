@@ -5,6 +5,7 @@ import type { MonthlyOpeningBalance } from '../../services/monthlyBalance'
 import { loadOpeningBalancesReport } from '../../services/reports'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth } from '../../utils/authGuard'
+import { cn } from '../../utils/cn'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
@@ -13,6 +14,8 @@ import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
 import Card from '../ui/Card'
+import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
+import { reportPageClass } from '../ui/toolsPageStyles'
 
 export default function OpeningBalanceReportPage() {
   const [items, setItems] = useState<MonthlyOpeningBalance[]>([])
@@ -48,7 +51,7 @@ export default function OpeningBalanceReportPage() {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
+      <div className={emptyStateClass}>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     )
@@ -59,7 +62,7 @@ export default function OpeningBalanceReportPage() {
   }
 
   return (
-    <div className="dashboard-page report-page">
+    <div className={cn('dashboard-page', reportPageClass)}>
       <ReportToolbar
         title="موجودی اول دوره"
         preset="month-to-date"
@@ -84,7 +87,7 @@ export default function OpeningBalanceReportPage() {
 
       <Card>
         {!items.length ? (
-          <p className="empty-text">موجودی اول دوره‌ای ثبت نشده</p>
+          <p className={emptyTextClass}>موجودی اول دوره‌ای ثبت نشده</p>
         ) : (
           items.map((item, index) => (
             <TransactionListItem

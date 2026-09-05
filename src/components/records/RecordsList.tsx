@@ -1,5 +1,6 @@
 import { getFormField, type StoredRecord } from './recordsUtils'
 import type { CustomForm } from '../../types'
+import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { parseNumeric } from '../../utils/parseNumeric'
@@ -7,6 +8,15 @@ import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import TransactionListItem from '../TransactionListItem'
 import Card from '../ui/Card'
+import { cardActionButtonsClass } from '../ui/featureCardStyles'
+import {
+  amountExpenseClass,
+  amountIncomeClass,
+  recordsListCardClass,
+  recordsListCountClass,
+  recordsListHeaderClass,
+  recordsListTypeClass
+} from '../ui/recordsStyles'
 
 interface RecordsListProps {
   forms: CustomForm[]
@@ -26,13 +36,13 @@ export default function RecordsList({
   onDelete
 }: RecordsListProps) {
   return (
-    <Card className="records-list-card">
-      <div className="records-list-header">
-        <span className="records-list-count">
+    <Card className={recordsListCardClass}>
+      <div className={recordsListHeaderClass}>
+        <span className={recordsListCountClass}>
           {filteredRecords.length.toLocaleString('fa-IR')} مورد
         </span>
         {forms.length === 1 && activeForm && (
-          <span className={`records-list-type records-list-type--${activeForm.type}`}>
+          <span className={recordsListTypeClass(activeForm.type as 'income' | 'expense')}>
             {activeForm.name}
           </span>
         )}
@@ -79,16 +89,16 @@ export default function RecordsList({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               {amount && (
                 <div
-                  className={
-                    isIncome ? 'amount-income' : form.type === 'expense' ? 'amount-expense' : ''
-                  }
+                  className={cn(
+                    isIncome ? amountIncomeClass : form.type === 'expense' ? amountExpenseClass : ''
+                  )}
                   dir="ltr"
                 >
                   {isIncome ? '+' : form.type === 'expense' ? '-' : ''}
                   {formatMoney(parseNumeric(amount))}
                 </div>
               )}
-              <div className="card-action-buttons">
+              <div className={cardActionButtonsClass}>
                 <CardEditButton onClick={() => onEdit(record)} />
                 <CardDeleteButton onClick={() => onDelete(record)} />
               </div>

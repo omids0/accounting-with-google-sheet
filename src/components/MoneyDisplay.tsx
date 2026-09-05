@@ -1,3 +1,9 @@
+import {
+  moneyDisplayClass,
+  moneyDisplaySignClass,
+  moneyDisplayUnitClassName,
+  moneyDisplayValueClassName
+} from './ui/displayStyles'
 import { formatMoney, formatMoneyParts } from '../utils/formatMoney'
 
 export type MoneyDisplaySize = 'hero' | 'stat' | 'stat-wide' | 'record'
@@ -29,15 +35,13 @@ export default function MoneyDisplay({
 
   return (
     <span
-      className={`money-display money-display--${size} money-display--${tone}${
-        className ? ` ${className}` : ''
-      }`}
+      className={moneyDisplayClass({ size, tone, className })}
       dir="ltr"
       aria-label={formatMoney(amount)}
     >
-      {sign ? <span className="money-display__sign">{sign}</span> : null}
-      <span className="money-display__value">{number}</span>
-      <span className="money-display__unit">{symbol}</span>
+      {sign ? <span className={moneyDisplaySignClass}>{sign}</span> : null}
+      <span className={moneyDisplayValueClassName}>{number}</span>
+      <span className={moneyDisplayUnitClassName}>{symbol}</span>
     </span>
   )
 }

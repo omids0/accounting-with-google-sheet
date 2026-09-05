@@ -3,6 +3,22 @@ import { useCallback, useState } from 'react'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AppIcon from '../AppIcon'
 import type { AboutFeature, AboutFeatureGroup } from './types'
+import {
+  aboutFeatureChevronClass,
+  aboutFeatureDescriptionClass,
+  aboutFeatureItemClass,
+  aboutFeatureListClass,
+  aboutFeatureTitleClass,
+  aboutFeatureTriggerClass,
+  aboutSectionChevronClass,
+  aboutSectionClass,
+  aboutSectionIconClass,
+  aboutSectionSummaryClass,
+  aboutSectionTextClass,
+  aboutSectionTitleClass,
+  aboutSectionTriggerClass
+} from '../ui/aboutStyles'
+import { cardClassName } from '../ui/Card'
 
 interface AboutFeatureSectionProps {
   group: AboutFeatureGroup
@@ -18,20 +34,20 @@ function AboutFeatureItem({ feature }: { feature: AboutFeature }) {
   }, [])
 
   return (
-    <li className="about-feature-item">
+    <li className={aboutFeatureItemClass}>
       <button
         type="button"
-        className={`about-feature-trigger${expanded ? ' about-feature-trigger--expanded' : ''}`}
+        className={aboutFeatureTriggerClass(expanded)}
         onClick={toggle}
         aria-expanded={expanded}
       >
-        <span className="about-feature-title">{feature.title}</span>
-        <span className="about-feature-chevron" aria-hidden="true">
+        <span className={aboutFeatureTitleClass}>{feature.title}</span>
+        <span className={aboutFeatureChevronClass(expanded)} aria-hidden="true">
           <AppIcon name="chevron-down" size={14} strokeWidth={2} />
         </span>
       </button>
       <AccordionCollapse open={expanded}>
-        <p className="about-feature-description">{feature.description}</p>
+        <p className={aboutFeatureDescriptionClass}>{feature.description}</p>
       </AccordionCollapse>
     </li>
   )
@@ -43,24 +59,24 @@ export default function AboutFeatureSection({
   onToggle
 }: AboutFeatureSectionProps) {
   return (
-    <section className={`about-section card${expanded ? ' about-section--expanded' : ''}`}>
+    <section className={cardClassName(aboutSectionClass(expanded))}>
       <button
         type="button"
-        className="about-section-trigger"
+        className={aboutSectionTriggerClass}
         onClick={onToggle}
         aria-expanded={expanded}
         aria-controls={`about-panel-${group.id}`}
       >
-        <span className="about-section-icon" aria-hidden="true">
+        <span className={aboutSectionIconClass} aria-hidden="true">
           <AppIcon name={group.icon} size={22} strokeWidth={1.75} />
         </span>
-        <span className="about-section-text">
-          <span id={`about-${group.id}`} className="about-section-title">
+        <span className={aboutSectionTextClass}>
+          <span id={`about-${group.id}`} className={aboutSectionTitleClass}>
             {group.title}
           </span>
-          <span className="about-section-summary">{group.summary}</span>
+          <span className={aboutSectionSummaryClass}>{group.summary}</span>
         </span>
-        <span className="about-section-chevron" aria-hidden="true">
+        <span className={aboutSectionChevronClass(expanded)} aria-hidden="true">
           <AppIcon name="chevron-down" size={16} strokeWidth={2} />
         </span>
       </button>
@@ -68,7 +84,7 @@ export default function AboutFeatureSection({
       <AccordionCollapse open={expanded}>
         <ul
           id={`about-panel-${group.id}`}
-          className="about-feature-list"
+          className={aboutFeatureListClass}
           aria-labelledby={`about-${group.id}`}
         >
           {group.features.map(feature => (

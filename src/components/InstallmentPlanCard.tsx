@@ -20,6 +20,23 @@ import ProgressBar from './ProgressBar'
 import { formatIsoDatePersian } from '../utils/jalaliDate'
 import { showError } from '../utils/toast'
 import InstallmentPaymentItem from './installmentPlan/InstallmentPaymentItem'
+import {
+  cardActionButtonsClass,
+  cardHeaderWithEditClass,
+  installmentAmountRowClass,
+  installmentAmountSummaryClass,
+  installmentAmountSummaryLabelClass,
+  installmentCardClass,
+  installmentDueClass,
+  installmentDueLineClass,
+  installmentHeaderClass,
+  installmentNoteClass,
+  installmentPaymentsClass,
+  installmentRangeLineClass,
+  listCardSubtitleClass,
+  listCardTitleClass
+} from './ui/featureCardStyles'
+import { cn } from '../utils/cn'
 
 export type PlanWithRow = InstallmentPlan & { rowNumber: number }
 
@@ -142,27 +159,23 @@ function InstallmentPlanCard({
   const endDate = getInstallmentEndDate(plan.startDate, plan.count, plan.dueDay)
 
   return (
-    <div
-      className={`card installment-card interactive-card${complete ? ' installment-complete' : ''}${
-        expanded ? ' installment-card--expanded' : ''
-      }`}
-    >
-      <div className="card-header-with-edit">
+    <div className={installmentCardClass({ expanded, complete })}>
+      <div className={cardHeaderWithEditClass}>
         <button
           type="button"
-          className={`installment-header${expanded ? ' installment-header--expanded' : ''}`}
+          className={cn('installment-header', installmentHeaderClass(expanded))}
           onClick={handleToggleExpand}
         >
           <div>
-            <div className="list-card-title">{plan.title}</div>
-            <div className="list-card-subtitle">
+            <div className={listCardTitleClass}>{plan.title}</div>
+            <div className={listCardSubtitleClass}>
               {complete
                 ? 'تکمیل شده'
                 : `${done.toLocaleString('fa-IR')}/${total.toLocaleString('fa-IR')} قسط پرداخت شده`}
             </div>
             {dueDate ? (
-              <div className="installment-due-line list-card-subtitle">
-                <span className="installment-due">
+              <div className={installmentDueLineClass}>
+                <span className={installmentDueClass}>
                   موعد پرداخت: {formatIsoDatePersian(dueDate)}
                 </span>
                 {dueAmount !== null ? (
@@ -171,8 +184,8 @@ function InstallmentPlanCard({
               </div>
             ) : null}
             {firstDueDate && endDate ? (
-              <div className="list-card-subtitle installment-range-line">
-                <span className="installment-due">
+              <div className={cn(listCardSubtitleClass, installmentRangeLineClass)}>
+                <span className={installmentDueClass}>
                   بازه قسط: {formatIsoDatePersian(firstDueDate)} تا {formatIsoDatePersian(endDate)}
                 </span>
               </div>
@@ -185,7 +198,7 @@ function InstallmentPlanCard({
             />
           </div>
         </button>
-        <div className="card-action-buttons">
+        <div className={cardActionButtonsClass}>
           <CardEditButton
             onClick={event => {
               event.stopPropagation()
@@ -210,18 +223,18 @@ function InstallmentPlanCard({
       </div>
 
       <AccordionCollapse open={expanded}>
-        <div className="installment-payments">
-          <div className="installment-amount-summary" aria-label={`خلاصه مبلغ ${plan.title}`}>
-            <div className="installment-amount-row">
-              <span className="installment-amount-summary-label">کل قابل واریز</span>
+        <div className={installmentPaymentsClass}>
+          <div className={installmentAmountSummaryClass} aria-label={`خلاصه مبلغ ${plan.title}`}>
+            <div className={installmentAmountRowClass}>
+              <span className={installmentAmountSummaryLabelClass}>کل قابل واریز</span>
               <MoneyDisplay amount={totalAmount} size="record" />
             </div>
-            <div className="installment-amount-row">
-              <span className="installment-amount-summary-label">واریز شده</span>
+            <div className={installmentAmountRowClass}>
+              <span className={installmentAmountSummaryLabelClass}>واریز شده</span>
               <MoneyDisplay amount={paidAmount} size="record" tone="positive" />
             </div>
-            <div className="installment-amount-row">
-              <span className="installment-amount-summary-label">مانده</span>
+            <div className={installmentAmountRowClass}>
+              <span className={installmentAmountSummaryLabelClass}>مانده</span>
               <MoneyDisplay
                 amount={remainingAmount}
                 size="record"
@@ -229,7 +242,7 @@ function InstallmentPlanCard({
               />
             </div>
           </div>
-          {plan.note && <p className="installment-note">{plan.note}</p>}
+          {plan.note ? <p className={installmentNoteClass}>{plan.note}</p> : null}
           {sortedPayments.map(({ payment, index: paymentIndex }) => (
             <InstallmentPaymentItem
               key={payment.n}

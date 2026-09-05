@@ -1,6 +1,9 @@
 import { formatDurationFa } from '../../utils/datetime'
 import FormField from '../form/FormField'
 import JalaliDateTimePicker from '../JalaliDateTimePicker'
+import { formNoteTextareaClass } from '../ui/formControlStyles'
+import { formControlClassName } from '../ui/formStyles'
+import { formFieldNoteClass } from '../ui/recordsStyles'
 
 interface TimesheetEntryFormProps {
   form: {
@@ -29,7 +32,7 @@ export default function TimesheetEntryForm({
       <FormField label="عنوان" required>
         <input
           type="text"
-          className="form-control"
+          className={formControlClassName()}
           value={form.title}
           onChange={e => onFormChange({ title: e.target.value })}
           placeholder="مثلاً: جلسه با مشتری"
@@ -53,16 +56,16 @@ export default function TimesheetEntryForm({
       <FormField label="بازه زمان">
         <input
           type="text"
-          className="form-control"
+          className={formControlClassName()}
           value={formatDurationFa(durationMinutes)}
           disabled
           readOnly
         />
       </FormField>
 
-      <FormField label="توضیحات" className="form-field-note">
+      <FormField label="توضیحات" className={formFieldNoteClass}>
         <textarea
-          className="form-control form-note-textarea"
+          className={formControlClassName(formNoteTextareaClass)}
           rows={4}
           value={form.description}
           onChange={e => onFormChange({ description: e.target.value })}

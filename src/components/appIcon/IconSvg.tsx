@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 
 import type { IconSvgProps } from './types'
+import { cn } from '../../utils/cn'
+import { appIconClass } from '../ui/chartStyles'
 
 export function IconSvg({
   width,
@@ -11,7 +13,7 @@ export function IconSvg({
 }: IconSvgProps & { children: ReactNode }) {
   return (
     <svg
-      className={`app-icon${className ? ` ${className}` : ''}`}
+      className={cn(appIconClass, className)}
       width={width}
       height={height}
       viewBox="0 0 24 24"

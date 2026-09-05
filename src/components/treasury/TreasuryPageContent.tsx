@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { isConfigured } from '../../services/settings'
+import { cn } from '../../utils/cn'
 import { distributionSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
@@ -17,6 +18,8 @@ import TreasuryPriceCard from './TreasuryPriceCard'
 import { useTreasuryData } from './useTreasuryData'
 import { useTreasuryFilters } from './useTreasuryFilters'
 import { useTreasuryForms } from './useTreasuryForms'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { receivableTotalCardClass, treasuryTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function TreasuryPageContent({ active = true }: { active?: boolean }) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -44,8 +47,8 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="treasury" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
@@ -84,8 +87,8 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       {data.loading && data.holdings.length === 0 ? (
         <TreasurySkeleton />
       ) : data.holdings.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">
+        <div className={emptyStateClass}>
+          <div className={emptyStateIconClass}>
             <AppIcon name="treasury" />
           </div>
           <p>هنوز دارایی‌ای ثبت نشده</p>
@@ -117,7 +120,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
           variant="balance"
           wide
           sparklineData={distributionSparkline(data.holdings.map(holding => holding.totalValue))}
-          className="receivable-total-card treasury-total-card"
+          className={cn(receivableTotalCardClass, treasuryTotalCardClass)}
         />
       )}
 

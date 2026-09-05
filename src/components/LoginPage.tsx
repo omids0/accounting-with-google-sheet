@@ -4,7 +4,22 @@ import { useState, useEffect } from 'react'
 import AppIcon from './AppIcon'
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel'
 import Button from './ui/Button'
+import { spinnerClass } from './ui/displayStyles'
 import { animateInClass } from './ui/layoutStyles'
+import {
+  googleSignInBtnClass,
+  loginCardClass,
+  loginFeatureClass,
+  loginFeatureIconClass,
+  loginFeaturesClass,
+  loginFooterNoteClass,
+  loginLogoClass,
+  loginLogoIconClass,
+  loginLogoSubtitleClass,
+  loginLogoTitleClass,
+  loginPageClass,
+  loginTrustBadgeClass
+} from './ui/loginStyles'
 import { syncAppLockFromSheet } from '../services/appLock'
 import { saveSession, createSession, fetchUserProfile, GOOGLE_OAUTH_SCOPE } from '../services/auth'
 import {
@@ -102,31 +117,33 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
   }
 
   return (
-    <div className="login-page">
-      <div className={cn('login-card', animateInClass)}>
-        <div className="login-logo">
-          <span className="icon">
+    <div className={loginPageClass}>
+      <div className={cn(loginCardClass, animateInClass)}>
+        <div className={loginLogoClass}>
+          <span className={loginLogoIconClass}>
             <AppIcon name="dashboard" />
           </span>
-          <h1>حسابداری شخصی</h1>
-          <p>مدیریت مالی روزانه با ذخیره‌سازی امن در Google Sheets</p>
+          <h1 className={loginLogoTitleClass}>حسابداری شخصی</h1>
+          <p className={loginLogoSubtitleClass}>
+            مدیریت مالی روزانه با ذخیره‌سازی امن در Google Sheets
+          </p>
         </div>
 
-        <ul className="login-features" aria-label="ویژگی‌های اصلی">
-          <li className="login-feature">
-            <span className="login-feature-icon" aria-hidden="true">
+        <ul className={loginFeaturesClass} aria-label="ویژگی‌های اصلی">
+          <li className={loginFeatureClass}>
+            <span className={loginFeatureIconClass} aria-hidden="true">
               <AppIcon name="chart" size={16} strokeWidth={2} />
             </span>
             داشبورد مالی با نمودار درآمد و هزینه
           </li>
-          <li className="login-feature">
-            <span className="login-feature-icon" aria-hidden="true">
+          <li className={loginFeatureClass}>
+            <span className={loginFeatureIconClass} aria-hidden="true">
               <AppIcon name="folder" size={16} strokeWidth={2} />
             </span>
             همگام‌سازی خودکار بین دستگاه‌ها
           </li>
-          <li className="login-feature">
-            <span className="login-feature-icon" aria-hidden="true">
+          <li className={loginFeatureClass}>
+            <span className={loginFeatureIconClass} aria-hidden="true">
               <AppIcon name="wallet" size={16} strokeWidth={2} />
             </span>
             اقساط، چک، طلب و صندوقچه در یک جا
@@ -135,13 +152,13 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
         <Button
           variant="primary"
-          className="google-signin-btn"
+          className={googleSignInBtnClass}
           onClick={handleLogin}
           disabled={loading}
           aria-busy={loading}
         >
           {loading ? (
-            <span className="spinner" />
+            <span className={spinnerClass} />
           ) : (
             <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
               <path
@@ -165,11 +182,11 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           ورود با Google
         </Button>
 
-        <p className="login-footer-note">
+        <p className={loginFooterNoteClass}>
           شیت‌ها با فرمت «حسابداری · سال» ساخته می‌شوند و روی Drive همگام هستند
         </p>
 
-        <div className="login-trust-badge">
+        <div className={loginTrustBadgeClass}>
           <AppIcon name="check" size={14} strokeWidth={2} />
           <span>داده‌ها فقط در Google Drive شما ذخیره می‌شوند</span>
         </div>

@@ -2,6 +2,13 @@ import { useEffect, useState, type ReactNode } from 'react'
 
 import WheelPicker from './form/WheelPicker'
 import Button from './ui/Button'
+import {
+  recordsFilterActionsClass,
+  recordsFilterLabelClass,
+  recordsFilterSectionClassName,
+  yearFilterPanelClass,
+  yearFilterTriggerClass
+} from './ui/recordsStyles'
 import { formatJalaliYear } from '../utils/dateRange'
 import { getJalaliParts } from '../utils/jalaliDate'
 
@@ -64,7 +71,7 @@ export default function YearFilter({
       type="button"
       variant="secondary"
       size="sm"
-      className={`year-filter-trigger${editing ? ' year-filter-trigger-active' : ''}`}
+      className={yearFilterTriggerClass(editing)}
       onClick={handleToggle}
     >
       {formatJalaliYear(year)}
@@ -72,9 +79,9 @@ export default function YearFilter({
   )
 
   const panel = editing ? (
-    <div className="records-custom-range year-filter-panel">
-      <div className="records-filter-section records-filter-section--inline">
-        <span className="records-filter-label">انتخاب سال</span>
+    <div className={yearFilterPanelClass}>
+      <div className={recordsFilterSectionClassName(true)}>
+        <span className={recordsFilterLabelClass}>انتخاب سال</span>
         <WheelPicker
           aria-label="انتخاب سال"
           value={pendingYear}
@@ -85,7 +92,7 @@ export default function YearFilter({
           }))}
         />
       </div>
-      <div className="records-filter-actions">
+      <div className={recordsFilterActionsClass}>
         <Button
           type="button"
           variant="primary"

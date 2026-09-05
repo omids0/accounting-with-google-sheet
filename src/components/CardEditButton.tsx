@@ -1,20 +1,22 @@
-import AppIcon from './AppIcon';
+import AppIcon from './AppIcon'
+import { cardActionBtnClass, cardEditBtnClass } from './ui/featureCardStyles'
+import { cn } from '../utils/cn'
 
 type CardEditButtonProps = {
-  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  disabled?: boolean;
-  ariaLabel?: string;
-};
+  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void
+  disabled?: boolean
+  ariaLabel?: string
+}
 
 export default function CardEditButton({
   onClick,
   disabled = false,
-  ariaLabel = 'ویرایش',
+  ariaLabel = 'ویرایش'
 }: CardEditButtonProps) {
   return (
     <button
       type="button"
-      className="card-action-btn card-edit-btn"
+      className={cn(cardActionBtnClass, 'card-action-btn', cardEditBtnClass)}
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
@@ -22,5 +24,5 @@ export default function CardEditButton({
     >
       <AppIcon name="edit" size={16} strokeWidth={2} />
     </button>
-  );
+  )
 }

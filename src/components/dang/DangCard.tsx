@@ -6,6 +6,21 @@ import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
 import type { DangWithRow } from './types'
+import {
+  cardActionButtonsClass,
+  dangCardAmountClass,
+  dangCardAmountEditClass,
+  dangCardBodyClass,
+  dangCardClass,
+  dangCardDateClass,
+  dangCardHeaderClass,
+  dangCardMetaClass,
+  dangCardNoteClass,
+  dangCardTapAreaClass,
+  dangCardTitleClass,
+  dangCheckboxClass,
+  dangPaidAtClass
+} from '../ui/featureCardStyles'
 
 export type DangCardProps = {
   item: DangWithRow
@@ -38,43 +53,41 @@ export default function DangCard({
   const displayAmount = rawAmount === '' ? item.amount : Number(rawAmount)
 
   return (
-    <div
-      className={`card dang-card interactive-card${item.paid ? ' paid' : ''}${
-        expanded ? ' installment-card--expanded' : ''
-      }`}
-    >
+    <div className={dangCardClass({ paid: item.paid, expanded })}>
       <input
         type="checkbox"
-        className="dang-checkbox"
+        className={dangCheckboxClass}
         checked={item.paid}
         disabled={togglingId === item.id}
         onChange={e => onTogglePaid(item, e.target.checked)}
       />
-      <div className="dang-card-body">
+      <div className={dangCardBodyClass}>
         <button
           type="button"
-          className={`dang-card-tap-area${expanded ? ' dang-card-tap-area--expanded' : ''}`}
+          className={dangCardTapAreaClass(expanded)}
           onClick={() => onExpand(expanded ? null : item.id)}
         >
-          <div className="dang-card-header">
-            <span className="dang-card-title">{item.title}</span>
-            <span className="dang-card-amount" dir="ltr">
+          <div className={dangCardHeaderClass}>
+            <span className={dangCardTitleClass}>{item.title}</span>
+            <span className={dangCardAmountClass} dir="ltr">
               {formatMoney(displayAmount)}
             </span>
           </div>
-          <div className="dang-card-meta">
+          <div className={dangCardMetaClass}>
             {item.category && `${item.category} · `}
             طرف حساب: {item.counterparty}
-            {item.date && (
-              <span className="dang-card-date">· {formatIsoDatePersian(item.date)}</span>
-            )}
+            {item.date ? (
+              <span className={dangCardDateClass}>· {formatIsoDatePersian(item.date)}</span>
+            ) : null}
           </div>
-          {item.note && <p className="dang-card-note">{item.note}</p>}
-          {item.paid && item.paidAt && <p className="dang-paid-at">در {item.paidAt} پرداخت شده</p>}
+          {item.note ? <p className={dangCardNoteClass}>{item.note}</p> : null}
+          {item.paid && item.paidAt ? (
+            <p className={dangPaidAtClass}>در {item.paidAt} پرداخت شده</p>
+          ) : null}
         </button>
 
         <AccordionCollapse open={expanded}>
-          <div className="dang-card-amount-edit">
+          <div className={dangCardAmountEditClass}>
             <CardInlineAmountEdit
               label="مبلغ"
               value={amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount}
@@ -86,7 +99,7 @@ export default function DangCard({
           </div>
         </AccordionCollapse>
       </div>
-      <div className="card-action-buttons">
+      <div className={cardActionButtonsClass}>
         <CardEditButton
           onClick={event => {
             event.stopPropagation()

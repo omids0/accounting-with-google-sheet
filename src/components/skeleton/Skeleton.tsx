@@ -1,11 +1,13 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties } from 'react'
+
+import { skeletonClass } from '../ui/skeletonStyles'
 
 interface SkeletonProps {
-  width?: string | number;
-  height?: string | number;
-  className?: string;
-  variant?: 'text' | 'rect' | 'circle';
-  style?: CSSProperties;
+  width?: string | number
+  height?: string | number
+  className?: string
+  variant?: 'text' | 'rect' | 'circle'
+  style?: CSSProperties
 }
 
 export function Skeleton({
@@ -13,13 +15,13 @@ export function Skeleton({
   height,
   className = '',
   variant = 'text',
-  style,
+  style
 }: SkeletonProps) {
   return (
     <span
-      className={`skeleton skeleton--${variant} ${className}`.trim()}
+      className={skeletonClass(variant, className)}
       style={{ width, height, ...style }}
       aria-hidden="true"
     />
-  );
+  )
 }

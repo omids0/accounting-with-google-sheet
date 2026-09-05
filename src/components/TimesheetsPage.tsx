@@ -8,6 +8,7 @@ import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
 import Button from './ui/Button'
+import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
@@ -23,8 +24,8 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="clock" />
         </div>
 
@@ -61,8 +62,8 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
       {page.loading && page.items.length === 0 ? (
         <InstallmentCardListSkeleton footerStats={0} />
       ) : page.items.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">
+        <div className={emptyStateClass}>
+          <div className={emptyStateIconClass}>
             <AppIcon name="clock" />
           </div>
 

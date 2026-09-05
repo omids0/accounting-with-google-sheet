@@ -3,7 +3,28 @@ import { useMemo, useState } from 'react'
 import AmountInput from './AmountInput'
 import { FormField } from './form'
 import MoneyDisplay from './MoneyDisplay'
+import {
+  loanCalculatorEmptyCardClass,
+  loanCalculatorFormulaHintClass,
+  loanCalculatorHintClass,
+  loanCalculatorPageClass,
+  loanCalculatorResultCardClass,
+  loanCalculatorSummaryGridClass,
+  loanCalculatorSummaryItemClass,
+  loanCalculatorSummaryItemTotalClass,
+  loanCalculatorSummaryLabelClass,
+  loanRateInputWrapClass,
+  loanRateSuffixClass
+} from './ui/calculatorStyles'
 import Card, { CardTitle } from './ui/Card'
+import {
+  dashboardHeroCardClass,
+  dashboardHeroHintClass,
+  dashboardHeroLabelClass
+} from './ui/chartStyles'
+import { emptyTextClass } from './ui/displayStyles'
+import { formHintClass } from './ui/formStyles'
+import { cn } from '../utils/cn'
 import { getCurrencySymbol } from '../utils/formatMoney'
 import { calculateFlatRateLoan } from '../utils/loanCalculator'
 import { normalizeDigits } from '../utils/normalizeDigits'
@@ -51,10 +72,10 @@ export default function LoanRequestCalculatorPage() {
     Number(months) > 0
 
   return (
-    <div className="loan-calculator-page">
+    <div className={loanCalculatorPageClass}>
       <Card>
         <CardTitle>شرایط وام</CardTitle>
-        <p className="loan-calculator-hint">
+        <p className={loanCalculatorHintClass}>
           مبلغ وام، نرخ سود سالانه و مدت بازپرداخت را مطابق اعلام بانک یا موسسه وارد کنید.
         </p>
 
@@ -67,11 +88,11 @@ export default function LoanRequestCalculatorPage() {
           required
           hint={
             annualRate === '' ? (
-              <p className="form-hint">مثلاً برای ۲۳٪، عدد ۲۳ را وارد کنید.</p>
+              <p className={formHintClass}>مثلاً برای ۲۳٪، عدد ۲۳ را وارد کنید.</p>
             ) : undefined
           }
         >
-          <div className="loan-rate-input-wrap" dir="ltr">
+          <div className={loanRateInputWrapClass} dir="ltr">
             <input
               type="text"
               inputMode="decimal"
@@ -79,7 +100,7 @@ export default function LoanRequestCalculatorPage() {
               onChange={e => setAnnualRate(parseDecimalInput(e.target.value))}
               dir="ltr"
             />
-            <span className="loan-rate-suffix" aria-hidden="true">
+            <span className={loanRateSuffixClass} aria-hidden="true">
               ٪
             </span>
           </div>
@@ -90,7 +111,7 @@ export default function LoanRequestCalculatorPage() {
           required
           hint={
             months === '' ? (
-              <p className="form-hint">مثلاً برای وام ۱۸ ماهه، عدد ۱۸ را وارد کنید.</p>
+              <p className={formHintClass}>مثلاً برای وام ۱۸ ماهه، عدد ۱۸ را وارد کنید.</p>
             ) : undefined
           }
         >
@@ -106,31 +127,31 @@ export default function LoanRequestCalculatorPage() {
 
       {hasValidInput && result ? (
         <>
-          <Card className="dashboard-hero-card loan-calculator-result-card">
-            <div className="dashboard-hero-label">قسط ماهانه تقریبی</div>
+          <Card className={cn(dashboardHeroCardClass, loanCalculatorResultCardClass)}>
+            <div className={dashboardHeroLabelClass}>قسط ماهانه تقریبی</div>
             <MoneyDisplay amount={Math.round(result.monthlyPayment)} size="hero" tone="hero" />
-            <p className="dashboard-hero-hint">
+            <p className={dashboardHeroHintClass}>
               {numberToPersianWords(Math.round(result.monthlyPayment))} {currency} در هر ماه
             </p>
           </Card>
 
-          <Card className="loan-calculator-summary-card">
-            <CardTitle>خلاصه بازپرداخت</CardTitle>
-            <div className="loan-calculator-summary-grid">
-              <div className="loan-calculator-summary-item">
-                <span className="loan-calculator-summary-label">اصل وام</span>
+          <Card>
+            <CardTitle className="mb-3">خلاصه بازپرداخت</CardTitle>
+            <div className={loanCalculatorSummaryGridClass}>
+              <div className={loanCalculatorSummaryItemClass}>
+                <span className={loanCalculatorSummaryLabelClass}>اصل وام</span>
                 <MoneyDisplay amount={principal as number} size="stat" />
               </div>
-              <div className="loan-calculator-summary-item">
-                <span className="loan-calculator-summary-label">مجموع سود</span>
+              <div className={loanCalculatorSummaryItemClass}>
+                <span className={loanCalculatorSummaryLabelClass}>مجموع سود</span>
                 <MoneyDisplay
                   amount={Math.round(result.totalInterest)}
                   size="stat"
                   tone="expense"
                 />
               </div>
-              <div className="loan-calculator-summary-item loan-calculator-summary-item--total">
-                <span className="loan-calculator-summary-label">کل پرداختی در پایان</span>
+              <div className={loanCalculatorSummaryItemTotalClass}>
+                <span className={loanCalculatorSummaryLabelClass}>کل پرداختی در پایان</span>
                 <MoneyDisplay
                   amount={Math.round(result.totalPayment)}
                   size="stat-wide"
@@ -138,14 +159,14 @@ export default function LoanRequestCalculatorPage() {
                 />
               </div>
             </div>
-            <p className="loan-calculator-formula-hint">
+            <p className={loanCalculatorFormulaHintClass}>
               محاسبه بر اساس نرخ سود سالانه ساده: سود کل = مبلغ وام × نرخ سود × (تعداد ماه ÷ ۱۲)
             </p>
           </Card>
         </>
       ) : (
-        <Card className="loan-calculator-empty-card">
-          <p className="empty-text">
+        <Card className={loanCalculatorEmptyCardClass}>
+          <p className={emptyTextClass}>
             پس از وارد کردن مبلغ، نرخ سود و تعداد ماه، نتیجه محاسبه اینجا نمایش داده می‌شود.
           </p>
         </Card>

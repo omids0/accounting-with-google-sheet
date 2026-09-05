@@ -8,6 +8,14 @@ import { AppLoadingSkeleton } from './components/skeleton'
 import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel'
 import Alert from './components/ui/Alert'
 import { animateInClass } from './components/ui/layoutStyles'
+import {
+  loginCardClass,
+  loginLogoClass,
+  loginLogoIconClass,
+  loginLogoSubtitleClass,
+  loginLogoTitleClass,
+  loginPageClass
+} from './components/ui/loginStyles'
 import UnlockScreen from './components/UnlockScreen'
 import { useAppLock } from './hooks/useAppLock'
 import { useTokenRefresh } from './hooks/useTokenRefresh'
@@ -28,14 +36,14 @@ import { cn } from './utils/cn'
 
 function ConfigNotice() {
   return (
-    <div className="login-page">
-      <div className={cn('login-card', animateInClass)}>
-        <div className="login-logo">
-          <span className="icon">
+    <div className={loginPageClass}>
+      <div className={cn(loginCardClass, animateInClass)}>
+        <div className={loginLogoClass}>
+          <span className={loginLogoIconClass}>
             <AppIcon name="warning" />
           </span>
-          <h1>تنظیمات Google OAuth</h1>
-          <p>
+          <h1 className={loginLogoTitleClass}>تنظیمات Google OAuth</h1>
+          <p className={loginLogoSubtitleClass}>
             <code dir="ltr">VITE_GOOGLE_CLIENT_ID</code> در فایل <code dir="ltr">.env</code> تنظیم
             نشده.
           </p>

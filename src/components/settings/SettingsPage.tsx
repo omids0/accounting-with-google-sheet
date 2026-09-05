@@ -11,6 +11,7 @@ import SettingsRemindersCard from './SettingsRemindersCard'
 import SettingsSection from './SettingsSection'
 import SettingsSpreadsheetCard from './SettingsSpreadsheetCard'
 import { useSettingsPage } from './useSettingsPage'
+import { settingsPageClass } from '../ui/settingsStyles'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="settings-page">
+    <div className={settingsPageClass}>
       <SettingsSection title="عمومی">
         <SettingsGeneralCard
           theme={settings.theme}

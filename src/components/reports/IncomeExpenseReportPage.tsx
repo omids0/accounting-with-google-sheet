@@ -5,6 +5,7 @@ import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { DashboardData } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
+import { cn } from '../../utils/cn'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
@@ -19,6 +20,10 @@ import TransactionTypeSegment, {
   type TransactionTypeSegmentOption
 } from '../TransactionTypeSegment'
 import Card from '../ui/Card'
+import { chartTitleClass, dashboardPageClass, dashboardStatGridClass } from '../ui/chartStyles'
+import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
+import { dashboardTransactionSegmentClass } from '../ui/recordsStyles'
+import { reportPageClass } from '../ui/toolsPageStyles'
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense'
 
@@ -86,7 +91,7 @@ export default function IncomeExpenseReportPage() {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
+      <div className={emptyStateClass}>
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     )
@@ -97,7 +102,7 @@ export default function IncomeExpenseReportPage() {
   }
 
   return (
-    <div className="dashboard-page report-page">
+    <div className={cn(dashboardPageClass, reportPageClass)}>
       <ReportToolbar
         title="درآمد و هزینه"
         preset={datePreset}
@@ -107,7 +112,7 @@ export default function IncomeExpenseReportPage() {
         loading={loading}
       />
 
-      <div className="stat-grid dashboard-stat-grid">
+      <div className={dashboardStatGridClass}>
         <StatCard
           label="درآمد"
           amount={data?.totalIncome ?? 0}
@@ -151,16 +156,16 @@ export default function IncomeExpenseReportPage() {
       )}
 
       <Card>
-        <h3 className="chart-title">تراکنش‌های دوره</h3>
+        <h3 className={chartTitleClass}>تراکنش‌های دوره</h3>
         <TransactionTypeSegment
-          className="dashboard-transaction-segment"
+          className={dashboardTransactionSegmentClass}
           options={transactionTypeOptions}
           value={typeFilter}
           onChange={id => setTypeFilter(id as TransactionTypeFilter)}
         />
 
         {!filteredRecords.length ? (
-          <p className="empty-text">تراکنشی در این دوره ثبت نشده</p>
+          <p className={emptyTextClass}>تراکنشی در این دوره ثبت نشده</p>
         ) : (
           filteredRecords.map((record, index) => (
             <TransactionListItem

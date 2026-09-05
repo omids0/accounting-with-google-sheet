@@ -13,7 +13,16 @@ import {
 import type { SpreadsheetEntry } from '../types'
 import AppIcon from './AppIcon'
 import { FormField, FormSelect } from './form'
+import { spinnerClass } from './ui/displayStyles'
 import { animateInClass } from './ui/layoutStyles'
+import {
+  loginCardClass,
+  loginLogoClass,
+  loginLogoIconClass,
+  loginLogoSubtitleClass,
+  loginLogoTitleClass,
+  loginPageClass
+} from './ui/loginStyles'
 import { cn } from '../utils/cn'
 import Button from './ui/Button'
 import { showError } from '../utils/toast'
@@ -80,14 +89,16 @@ export default function SpreadsheetSetupPanel({
     : `${SPREADSHEET_TITLE_PREFIX}…`
 
   return (
-    <div className="login-page">
-      <div className={cn('login-card', animateInClass)}>
-        <div className="login-logo">
-          <span className="icon">
+    <div className={loginPageClass}>
+      <div className={cn(loginCardClass, animateInClass)}>
+        <div className={loginLogoClass}>
+          <span className={loginLogoIconClass}>
             <AppIcon name="folder" />
           </span>
-          <h1>{mode === 'pick' ? 'انتخاب شیت' : 'ساخت اولین شیت'}</h1>
-          <p>
+          <h1 className={loginLogoTitleClass}>
+            {mode === 'pick' ? 'انتخاب شیت' : 'ساخت اولین شیت'}
+          </h1>
+          <p className={loginLogoSubtitleClass}>
             {mode === 'pick'
               ? 'شیت‌های حسابداری روی Google Drive پیدا شد. یکی را انتخاب کنید — شیت جدید خودکار ساخته نمی‌شود.'
               : 'اولین شیت با فرمت استاندارد ساخته می‌شود و روی همه دستگاه‌ها قابل پیدا کردن است.'}
@@ -125,7 +136,7 @@ export default function SpreadsheetSetupPanel({
               disabled={loading || !selectedId}
               style={{ width: '100%' }}
             >
-              {loading && <span className="spinner" />}
+              {loading && <span className={spinnerClass} />}
               ادامه با این شیت
             </Button>
 
@@ -170,7 +181,7 @@ export default function SpreadsheetSetupPanel({
               disabled={loading}
               style={{ width: '100%' }}
             >
-              {loading && <span className="spinner" />}
+              {loading && <span className={spinnerClass} />}
               ساخت و ادامه
             </Button>
 

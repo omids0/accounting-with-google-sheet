@@ -9,6 +9,12 @@ import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { InstallmentFormState, PlanWithRow } from './types'
 import Button from '../ui/Button'
+import {
+  formFieldLabelTextClass,
+  formGroupClass,
+  formReadonlyValueClass
+} from '../ui/formControlStyles'
+import { formHintClass } from '../ui/formStyles'
 
 type InstallmentFormModalProps = {
   open: boolean
@@ -130,10 +136,10 @@ export default function InstallmentFormModal({
       </FormField>
 
       {computedEndDate ? (
-        <div className="form-group">
-          <span className="form-field-label-text">تاریخ پایان قسط</span>
-          <div className="form-readonly-value">{formatIsoDatePersian(computedEndDate)}</div>
-          <p className="form-hint">
+        <div className={formGroupClass}>
+          <span className={formFieldLabelTextClass}>تاریخ پایان قسط</span>
+          <div className={formReadonlyValueClass}>{formatIsoDatePersian(computedEndDate)}</div>
+          <p className={formHintClass}>
             بر اساس تاریخ شروع، تعداد بازپرداخت و موعد ماهانه محاسبه می‌شود
           </p>
         </div>

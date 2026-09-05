@@ -10,6 +10,8 @@ import JalaliDatePicker from '../JalaliDatePicker'
 import type { VaultFormState } from './types'
 import { parseQuantityInput } from './utils'
 import Button from '../ui/Button'
+import { spinnerClass } from '../ui/displayStyles'
+import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
 type TreasurySellFormProps = {
   assetType: VaultAssetType
@@ -41,7 +43,7 @@ export default function TreasurySellForm({
   const allowDecimal = assetType === 'geram18'
 
   return (
-    <div className="receivable-payment-form">
+    <div className={receivablePaymentFormClass}>
       <FormField
         label={`مقدار فروش (${getAssetUnit(assetType)})`}
         style={{ marginBottom: '0.75rem' }}
@@ -88,7 +90,7 @@ export default function TreasurySellForm({
           disabled={selling}
           onClick={() => onSell(form.values)}
         >
-          {selling && <span className="spinner" />}
+          {selling && <span className={spinnerClass} />}
           ثبت فروش
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel}>

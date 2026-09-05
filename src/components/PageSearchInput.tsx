@@ -1,26 +1,31 @@
-import AppIcon from './AppIcon';
+import AppIcon from './AppIcon'
+import {
+  pageSearchClass,
+  pageSearchIconClass,
+  pageSearchInputClass
+} from './ui/filterControlStyles'
 
 interface PageSearchInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
 }
 
 export default function PageSearchInput({
   value,
   onChange,
-  placeholder = 'جستجو...',
+  placeholder = 'جستجو...'
 }: PageSearchInputProps) {
   return (
-    <div className="page-search">
-      <span className="page-search-icon" aria-hidden="true">
+    <div className={pageSearchClass}>
+      <span className={pageSearchIconClass} aria-hidden="true">
         <AppIcon name="search" size={15} strokeWidth={2} />
       </span>
       <input
         type="search"
-        className="page-search-input"
+        className={pageSearchInputClass}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
       />
@@ -35,5 +40,5 @@ export default function PageSearchInput({
         </button>
       )}
     </div>
-  );
+  )
 }

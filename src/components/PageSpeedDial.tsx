@@ -13,7 +13,7 @@ import {
   speedDialContainerClass,
   speedDialTriggerClass,
   speedDialTriggerIconClass
-} from './ui/layoutStyles'
+} from './ui/speedDialStyles'
 import { getPageSpeedDialConfig, type PageSpeedDialAction } from '../hooks/usePageSpeedDial'
 
 export default function PageSpeedDial({

@@ -1,13 +1,42 @@
 import { Skeleton } from './Skeleton'
+import { cn } from '../../utils/cn'
 import { cardClassName } from '../ui/Card'
+import {
+  cardActionButtonsClass,
+  cardHeaderWithEditClass,
+  dangCardBodyClass,
+  dangCardHeaderClass,
+  installmentCardClass,
+  installmentHeaderClass,
+  walletItemCardClass,
+  walletItemInfoClass,
+  walletItemTitleRowClass
+} from '../ui/featureCardStyles'
+import { progressBarMetaClass, progressBarTrackClass } from '../ui/progressStyles'
+import {
+  recordsDateGridClass,
+  recordsFilterSectionClassName,
+  recordsToolbarHeaderClass,
+  recordsToolbarHeadingClass
+} from '../ui/recordsStyles'
+import {
+  skeletonCardClass,
+  skeletonFilterChipClass,
+  skeletonFilterChipsClass,
+  skeletonProgressTrackClass,
+  skeletonRecordActionsClass,
+  skeletonRecordItemClass,
+  skeletonStatCardClass
+} from '../ui/skeletonStyles'
+import { treasuryHoldingCardClass } from '../ui/treasuryReceivableStyles'
 
 export function FilterChipsSkeleton({ count = 1 }: { count?: number }) {
   if (count <= 0) return null
 
   return (
-    <div className="active-filter-chips skeleton-filter-chips" aria-hidden="true">
+    <div className={skeletonFilterChipsClass} aria-hidden="true">
       {Array.from({ length: count }, (_, index) => (
-        <span key={index} className="skeleton-filter-chip">
+        <span key={index} className={skeletonFilterChipClass}>
           <Skeleton
             width={index === 0 ? '5.25rem' : '3.5rem'}
             height="0.72rem"
@@ -22,11 +51,11 @@ export function FilterChipsSkeleton({ count = 1 }: { count?: number }) {
 export function ReportToolbarSkeleton() {
   return (
     <div
-      className={cardClassName('records-toolbar dashboard-toolbar skeleton-card')}
+      className={cardClassName(cn('records-toolbar dashboard-toolbar', skeletonCardClass))}
       aria-hidden="true"
     >
-      <div className="records-toolbar-header">
-        <div className="records-toolbar-heading">
+      <div className={recordsToolbarHeaderClass}>
+        <div className={recordsToolbarHeadingClass}>
           <Skeleton width="38%" height="1rem" />
           <Skeleton width="52%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
         </div>
@@ -37,9 +66,9 @@ export function ReportToolbarSkeleton() {
           style={{ borderRadius: 'var(--radius-sm)' }}
         />
       </div>
-      <div className="records-filter-section" style={{ marginTop: '0.85rem' }}>
+      <div className={recordsFilterSectionClassName()} style={{ marginTop: '0.85rem' }}>
         <Skeleton width="25%" height="0.75rem" />
-        <div className="records-date-grid">
+        <div className={recordsDateGridClass}>
           {Array.from({ length: 4 }, (_, index) => (
             <Skeleton
               key={index}
@@ -57,7 +86,7 @@ export function ReportToolbarSkeleton() {
 export function StatCardSkeleton({ wide = false }: { wide?: boolean }) {
   return (
     <div
-      className={`stat-card skeleton-stat-card${wide ? ' stat-card-wide' : ''}`}
+      className={cn('stat-card', skeletonStatCardClass, wide && 'stat-card-wide')}
       aria-hidden="true"
     >
       <Skeleton width="45%" height="0.75rem" />
@@ -68,15 +97,15 @@ export function StatCardSkeleton({ wide = false }: { wide?: boolean }) {
 
 export function InstallmentCardSkeleton() {
   return (
-    <div className="card installment-card skeleton-card" aria-hidden="true">
-      <div className="card-header-with-edit">
-        <div className="installment-header">
+    <div className={installmentCardClass({ className: skeletonCardClass })} aria-hidden="true">
+      <div className={cardHeaderWithEditClass}>
+        <div className={installmentHeaderClass()}>
           <div>
             <Skeleton width="55%" height="0.95rem" />
             <Skeleton width="42%" height="0.75rem" style={{ marginTop: '0.25rem' }} />
             <div className="progress-bar">
-              <div className="progress-bar__meta">
-                <div className="progress-bar__track skeleton-progress-track">
+              <div className={progressBarMetaClass}>
+                <div className={cn(progressBarTrackClass, skeletonProgressTrackClass)}>
                   <Skeleton width="45%" height="100%" style={{ borderRadius: '999px' }} />
                 </div>
                 <Skeleton width="1.75rem" height="0.68rem" />
@@ -84,7 +113,7 @@ export function InstallmentCardSkeleton() {
             </div>
           </div>
         </div>
-        <div className="card-action-buttons">
+        <div className={cardActionButtonsClass}>
           <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
           <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
           <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
@@ -96,8 +125,11 @@ export function InstallmentCardSkeleton() {
 
 export function TreasuryHoldingCardSkeleton() {
   return (
-    <div className="card installment-card treasury-holding-card skeleton-card" aria-hidden="true">
-      <div className="installment-header">
+    <div
+      className={cn(installmentCardClass({}), treasuryHoldingCardClass, skeletonCardClass)}
+      aria-hidden="true"
+    >
+      <div className={installmentHeaderClass()}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <Skeleton width="42%" height="0.95rem" />
           <Skeleton width="72%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
@@ -117,13 +149,13 @@ export function TreasuryHoldingCardSkeleton() {
 export function WalletAccountCardSkeleton() {
   return (
     <div
-      className="card installment-card interactive-card wallet-item-card skeleton-card"
+      className={cn(installmentCardClass({}), walletItemCardClass, skeletonCardClass)}
       aria-hidden="true"
     >
-      <div className="card-header-with-edit">
-        <div className="installment-header wallet-item-header">
-          <div className="wallet-item-info" style={{ width: '100%' }}>
-            <div className="wallet-item-title-row">
+      <div className={cardHeaderWithEditClass}>
+        <div className={cn(installmentHeaderClass(), 'wallet-item-header')}>
+          <div className={walletItemInfoClass} style={{ width: '100%' }}>
+            <div className={walletItemTitleRowClass}>
               <Skeleton width="46%" height="0.95rem" />
               <Skeleton
                 width="4.75rem"
@@ -134,7 +166,7 @@ export function WalletAccountCardSkeleton() {
             <Skeleton width="54%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
           </div>
         </div>
-        <div className="card-action-buttons">
+        <div className={cardActionButtonsClass}>
           <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
           <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
           <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
@@ -146,15 +178,15 @@ export function WalletAccountCardSkeleton() {
 
 export function DangCardSkeleton() {
   return (
-    <div className="card dang-card skeleton-card" aria-hidden="true">
+    <div className={cardClassName(cn('dang-card', skeletonCardClass))} aria-hidden="true">
       <Skeleton
         variant="circle"
         width="1.2rem"
         height="1.2rem"
         style={{ marginTop: '0.2rem', flexShrink: 0 }}
       />
-      <div className="dang-card-body">
-        <div className="dang-card-header">
+      <div className={dangCardBodyClass}>
+        <div className={dangCardHeaderClass}>
           <Skeleton width="45%" height="0.95rem" />
           <Skeleton
             width="5.5rem"
@@ -164,7 +196,7 @@ export function DangCardSkeleton() {
         </div>
         <Skeleton width="68%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
       </div>
-      <div className="card-action-buttons">
+      <div className={cardActionButtonsClass}>
         <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
         <Skeleton variant="rect" width="1.9rem" height="1.9rem" style={{ borderRadius: '8px' }} />
       </div>
@@ -174,14 +206,14 @@ export function DangCardSkeleton() {
 
 export function RecordItemSkeleton() {
   return (
-    <div className="record-item skeleton-record-item" aria-hidden="true">
+    <div className={cn('record-item', skeletonRecordItemClass)} aria-hidden="true">
       <div className="record-item-main">
         <Skeleton width="50%" height="0.9rem" />
         <Skeleton width="35%" height="0.75rem" style={{ marginTop: '0.4rem' }} />
       </div>
-      <div className="skeleton-record-actions">
+      <div className={skeletonRecordActionsClass}>
         <Skeleton width="4.5rem" height="1rem" />
-        <div className="card-action-buttons">
+        <div className={cardActionButtonsClass}>
           <Skeleton
             variant="rect"
             width="2rem"

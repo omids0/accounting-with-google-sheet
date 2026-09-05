@@ -1,3 +1,4 @@
+import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
@@ -5,6 +6,22 @@ import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
 import type { WalletAccountWithRow } from './types'
+import {
+  cardActionButtonsClass,
+  cardHeaderWithEditClass,
+  installmentHeaderClass,
+  installmentPaymentsClass,
+  installmentCardClass,
+  listCardAmountPillClass,
+  listCardSubtitleClass,
+  listCardTitleClass,
+  walletItemAmountClass,
+  walletItemCardClass,
+  walletItemEditClass,
+  walletItemInfoClass,
+  walletItemNoteClass,
+  walletItemTitleRowClass
+} from '../ui/featureCardStyles'
 
 type WalletAccountCardProps = {
   account: WalletAccountWithRow
@@ -34,32 +51,26 @@ export default function WalletAccountCard({
   const displayBalance = balance === '' ? account.balance : Number(balance)
 
   return (
-    <div
-      className={`card installment-card interactive-card wallet-item-card${
-        expanded ? ' installment-card--expanded' : ''
-      }`}
-    >
-      <div className="card-header-with-edit">
+    <div className={cn(installmentCardClass({ expanded }), walletItemCardClass)}>
+      <div className={cardHeaderWithEditClass}>
         <button
           type="button"
-          className={`installment-header wallet-item-header${
-            expanded ? ' installment-header--expanded' : ''
-          }`}
+          className={cn(installmentHeaderClass(expanded), 'wallet-item-header')}
           onClick={onToggleExpand}
         >
-          <div className="wallet-item-info">
-            <div className="wallet-item-title-row">
-              <div className="list-card-title">{account.title}</div>
-              <div className="wallet-item-amount list-card-amount-pill" dir="ltr">
+          <div className={walletItemInfoClass}>
+            <div className={walletItemTitleRowClass}>
+              <div className={listCardTitleClass}>{account.title}</div>
+              <div className={cn(walletItemAmountClass, listCardAmountPillClass)} dir="ltr">
                 {formatMoney(displayBalance)}
               </div>
             </div>
             {account.note && (
-              <div className="wallet-item-note list-card-subtitle">{account.note}</div>
+              <div className={cn(walletItemNoteClass, listCardSubtitleClass)}>{account.note}</div>
             )}
           </div>
         </button>
-        <div className="card-action-buttons">
+        <div className={cardActionButtonsClass}>
           <CardEditButton
             onClick={event => {
               event.stopPropagation()
@@ -84,7 +95,7 @@ export default function WalletAccountCard({
       </div>
 
       <AccordionCollapse open={expanded}>
-        <div className="installment-payments wallet-item-edit">
+        <div className={cn(installmentPaymentsClass, walletItemEditClass)}>
           <CardInlineAmountEdit
             label="موجودی"
             value={balance}

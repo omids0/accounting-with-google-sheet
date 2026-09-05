@@ -2,8 +2,15 @@ import AppIcon from './AppIcon'
 import { ChangePinForm, CurrentPinForm, PinFieldsForm } from './appLock/AppLockForms'
 import AppLockPolicySettings from './appLock/AppLockPolicySettings'
 import { useAppLockSettings } from './appLock/useAppLockSettings'
+import {
+  appLockActionsClass,
+  appLockFootnoteClass,
+  appLockIntroClass,
+  appLockStatusClass
+} from './ui/appLockStyles'
 import Button from './ui/Button'
 import Card, { CardTitle } from './ui/Card'
+import { statusBadgeClass } from './ui/displayStyles'
 import { getAppLockConfig } from '../services/appLock'
 
 export default function AppLockSettings() {
@@ -12,15 +19,13 @@ export default function AppLockSettings() {
   return (
     <Card>
       <CardTitle>قفل اپ</CardTitle>
-      <p className="app-lock-intro">
+      <p className={appLockIntroClass}>
         رمز قفل در Google Sheet ذخیره می‌شود و روی همه دستگاه‌ها یکسان است. اثر انگشت و زمان درخواست
         رمز فقط روی همین دستگاه تنظیم می‌شود.
       </p>
 
-      <div className="app-lock-status">
-        <span
-          className={`status-badge ${lock.enabled ? 'status-connected' : 'status-disconnected'}`}
-        >
+      <div className={appLockStatusClass}>
+        <span className={statusBadgeClass(lock.enabled)}>
           {lock.enabled ? (
             <>
               <AppIcon name="lock" size={12} strokeWidth={2.5} />
@@ -34,7 +39,7 @@ export default function AppLockSettings() {
           )}
         </span>
         {lock.enabled && lock.biometricOn && (
-          <span className="status-badge status-connected">
+          <span className={statusBadgeClass(true)}>
             <AppIcon name="fingerprint" size={12} strokeWidth={2.5} />
             اثر انگشت
           </span>
@@ -75,7 +80,7 @@ export default function AppLockSettings() {
       )}
 
       {lock.step === 'idle' && lock.enabled && (
-        <div className="app-lock-actions">
+        <div className={appLockActionsClass}>
           <Button
             type="button"
             variant="secondary"
@@ -148,7 +153,7 @@ export default function AppLockSettings() {
       )}
 
       {lock.enabled && lock.step === 'idle' && getAppLockConfig() && (
-        <p className="app-lock-footnote">
+        <p className={appLockFootnoteClass}>
           رمز روی همه دستگاه‌ها یکسان است. اثر انگشت را در هر دستگاه جداگانه فعال کنید.
         </p>
       )}

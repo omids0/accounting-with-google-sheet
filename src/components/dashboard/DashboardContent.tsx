@@ -1,4 +1,5 @@
 import type { DashboardData, DashboardNavTarget } from '../../types'
+import { cn } from '../../utils/cn'
 import type { RecordsDatePreset } from '../../utils/dateRange'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import ActiveFilterChips, { type FilterChip } from '../ActiveFilterChips'
@@ -13,9 +14,24 @@ import TransactionTypeSegment from '../TransactionTypeSegment'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import YearFilter from '../YearFilter'
-import { BreakdownRow, RecordAmount } from './DashboardParts'
+import DashboardBreakdownSection from './DashboardBreakdownSection'
+import { RecordAmount } from './DashboardParts'
 import type { TransactionTypeFilter } from './useDashboardPage'
 import type { TransactionTypeSegmentOption } from '../TransactionTypeSegment'
+import {
+  chartTitleClass,
+  dashboardFlowSectionAnimatedClass,
+  dashboardFlowSectionClass,
+  dashboardHeroCardAnimatedClass,
+  dashboardHeroCardClass,
+  dashboardHeroHeaderClass,
+  dashboardHeroHintClass,
+  dashboardHeroLabelClass,
+  dashboardPageClass,
+  dashboardStatGridClass
+} from '../ui/chartStyles'
+import { emptyTextClass } from '../ui/displayStyles'
+import { cardHeaderRowClass, dashboardTransactionSegmentClass } from '../ui/recordsStyles'
 
 interface DashboardContentProps {
   data: DashboardData
@@ -77,7 +93,7 @@ export default function DashboardContent({
   load
 }: DashboardContentProps) {
   return (
-    <div className="dashboard-page">
+    <div className={dashboardPageClass}>
       <ActiveFilterChips chips={filterChips} onChipClick={openFilterModal} />
 
       <FilterModal
@@ -107,19 +123,21 @@ export default function DashboardContent({
         />
       </FilterModal>
 
-      <Card className="dashboard-hero-card dashboard-hero-card--animated">
-        <div className="dashboard-hero-header">
-          <div className="dashboard-hero-label">دارایی قابل اتکا</div>
+      <Card className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass)}>
+        <div className={dashboardHeroHeaderClass}>
+          <div className={dashboardHeroLabelClass}>دارایی قابل اتکا</div>
           {onConfigureNetAvailable && (
             <CardEditButton onClick={onConfigureNetAvailable} ariaLabel="تنظیم دارایی قابل اتکا" />
           )}
         </div>
         <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
-        <p className="dashboard-hero-hint">مجموع دارایی‌های انتخاب‌شده منهای بدهی‌های انتخاب‌شده</p>
+        <p className={dashboardHeroHintClass}>
+          مجموع دارایی‌های انتخاب‌شده منهای بدهی‌های انتخاب‌شده
+        </p>
       </Card>
 
-      <div className="dashboard-flow-section dashboard-flow-section--animated">
-        <div className="stat-grid dashboard-stat-grid">
+      <div className={cn(dashboardFlowSectionClass, dashboardFlowSectionAnimatedClass)}>
+        <div className={dashboardStatGridClass}>
           <StatCard
             label="درآمد دوره"
             amount={data?.totalIncome ?? 0}
@@ -162,49 +180,7 @@ export default function DashboardContent({
         />
       </div>
 
-      <Card className="dashboard-assets-card">
-        <h3 className="chart-title">دارایی‌ها</h3>
-        <div className="asset-breakdown">
-          <BreakdownRow
-            label="کیف پول"
-            value={financial?.walletTotal ?? 0}
-            onNavigate={onNavigate ? () => onNavigate('wallet') : undefined}
-          />
-          <BreakdownRow
-            label="صندوقچه"
-            value={financial?.treasuryTotal ?? 0}
-            onNavigate={onNavigate ? () => onNavigate('treasury') : undefined}
-          />
-          <BreakdownRow
-            label="طلب‌ها"
-            value={financial?.receivablesTotal ?? 0}
-            onNavigate={onNavigate ? () => onNavigate('receivables') : undefined}
-          />
-          <BreakdownRow label="مجموع دارایی‌ها" value={financial?.totalAssets ?? 0} total />
-        </div>
-      </Card>
-
-      <Card className="dashboard-assets-card dashboard-liabilities-card">
-        <h3 className="chart-title">بدهی‌ها</h3>
-        <div className="asset-breakdown">
-          <BreakdownRow
-            label="اقساط این دوره"
-            value={financial?.installmentsDue ?? 0}
-            onNavigate={onNavigate ? () => onNavigate('installments') : undefined}
-          />
-          <BreakdownRow
-            label="بدهی‌ها"
-            value={financial?.dangsTotal ?? 0}
-            onNavigate={onNavigate ? () => onNavigate('dang') : undefined}
-          />
-          <BreakdownRow
-            label="چک‌های این دوره"
-            value={financial?.checksDue ?? 0}
-            onNavigate={onNavigate ? () => onNavigate('checks') : undefined}
-          />
-          <BreakdownRow label="مجموع بدهی‌ها" value={financial?.totalLiabilities ?? 0} total />
-        </div>
-      </Card>
+      <DashboardBreakdownSection financial={financial} onNavigate={onNavigate} />
 
       {(data?.expenseByCategory.length ?? 0) > 0 && (
         <>
@@ -237,8 +213,8 @@ export default function DashboardContent({
             <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>
               {({ trigger, panel }) => (
                 <>
-                  <div className="card-header-row">
-                    <h3 className="chart-title">درآمد و هزینه ماهانه</h3>
+                  <div className={cardHeaderRowClass}>
+                    <h3 className={chartTitleClass}>درآمد و هزینه ماهانه</h3>
                     {trigger}
                   </div>
                   {panel}
@@ -250,8 +226,8 @@ export default function DashboardContent({
       )}
 
       <Card>
-        <div className="card-header-row">
-          <h3 className="chart-title">تراکنش‌های دوره</h3>
+        <div className={cardHeaderRowClass}>
+          <h3 className={chartTitleClass}>تراکنش‌های دوره</h3>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             {!!data?.recentRecords.length && (
               <Button
@@ -270,16 +246,16 @@ export default function DashboardContent({
         </div>
 
         <TransactionTypeSegment
-          className="dashboard-transaction-segment"
+          className={dashboardTransactionSegmentClass}
           options={transactionTypeOptions}
           value={typeFilter}
           onChange={id => setTypeFilter(id as TransactionTypeFilter)}
         />
 
         {!data?.recentRecords.length ? (
-          <p className="empty-text">هنوز تراکنشی در این دوره ثبت نشده</p>
+          <p className={emptyTextClass}>هنوز تراکنشی در این دوره ثبت نشده</p>
         ) : !filteredRecords.length ? (
-          <p className="empty-text">تراکنشی با این فیلتر یافت نشد</p>
+          <p className={emptyTextClass}>تراکنشی با این فیلتر یافت نشد</p>
         ) : (
           filteredRecords.map((r, i) => (
             <TransactionListItem

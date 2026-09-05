@@ -26,6 +26,8 @@ import type { ReceivablesPageProps } from './types'
 import { useReceivableMutations } from './useReceivableMutations'
 import { useReceivablesData } from './useReceivablesData'
 import { useReceivablesFilters } from './useReceivablesFilters'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function ReceivablesPage({ active = true }: ReceivablesPageProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -77,8 +79,8 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="receivables" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>
@@ -121,8 +123,8 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       {loading && items.length === 0 ? (
         <InstallmentCardListSkeleton footerStats={1} />
       ) : items.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">
+        <div className={emptyStateClass}>
+          <div className={emptyStateIconClass}>
             <AppIcon name="receivables" />
           </div>
           <p>هنوز طلبی ثبت نشده</p>
@@ -164,7 +166,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
           variant="balance"
           wide
           sparklineData={distributionSparkline(items.map(item => remainingAmount(item)))}
-          className="receivable-total-card"
+          className={receivableTotalCardClass}
         />
       )}
 

@@ -6,12 +6,13 @@ import {
   speedDialActionIncomeClass,
   speedDialTypeIconExpenseClass,
   speedDialTypeIconIncomeClass
-} from './ui/layoutStyles'
+} from './ui/speedDialStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
 import DashboardContent from './dashboard/DashboardContent'
 import { useDashboardPage } from './dashboard/useDashboardPage'
+import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 
 export default function DashboardPage({ active = true }: { active?: boolean }) {
   const dashboard = useDashboardPage()
@@ -76,8 +77,8 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="dashboard" />
         </div>
 

@@ -2,6 +2,12 @@ import { useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import {
+  filterModalActionsClass,
+  filterModalBodyClass,
+  filterModalClearClass,
+  filterModalPanelClass
+} from './ui/filterControlStyles'
 import { cn } from '../utils/cn'
 import Button from './ui/Button'
 import { formActionsClassName } from './ui/formStyles'
@@ -65,7 +71,7 @@ export default function FilterModal({
         aria-label="بستن"
       />
 
-      <div className={cn(formModalPanelClass, 'filter-modal-panel')}>
+      <div className={cn(formModalPanelClass, filterModalPanelClass)}>
         <div className={formModalHeaderClass}>
           <h2 id="filter-modal-title" className={formModalTitleClass}>
             {title}
@@ -75,14 +81,14 @@ export default function FilterModal({
           </button>
         </div>
 
-        <div className={cn(formModalBodyClass, 'filter-modal-body')}>{children}</div>
+        <div className={cn(formModalBodyClass, filterModalBodyClass)}>{children}</div>
 
-        <div className={cn(formModalActionsClass, formActionsClassName(), 'filter-modal-actions')}>
+        <div className={cn(formModalActionsClass, formActionsClassName(), filterModalActionsClass)}>
           {onClear && (
             <Button
               type="button"
               variant="secondary"
-              className="filter-modal-clear"
+              className={filterModalClearClass}
               onClick={onClear}
             >
               پاک کردن

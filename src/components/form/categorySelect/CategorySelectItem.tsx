@@ -1,4 +1,18 @@
 import AppIcon from '../../AppIcon'
+import {
+  categorySelectActionsClass,
+  categorySelectConfirmActionsClass,
+  categorySelectConfirmClass,
+  categorySelectConfirmDangerBtnClass,
+  categorySelectConfirmBtnClass,
+  categorySelectEditClass,
+  categorySelectEditInputClass,
+  categorySelectIconBtnClass,
+  categorySelectItemClass,
+  categorySelectOptionBtnClass,
+  categorySelectOptionCheckClass,
+  categorySelectOptionLabelClass
+} from '../../ui/formControlStyles'
 
 interface CategorySelectItemProps {
   category: string
@@ -45,22 +59,19 @@ export default function CategorySelectItem({
 
   return (
     <div
-      className={[
-        'category-select-item',
-        isSelected && 'is-selected',
-        isEditing && 'is-editing',
-        isConfirmingDelete && 'is-confirming'
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      className={categorySelectItemClass({
+        selected: isSelected,
+        editing: isEditing,
+        confirming: isConfirmingDelete
+      })}
     >
       {isConfirmingDelete ? (
-        <div className="category-select-confirm">
+        <div className={categorySelectConfirmClass}>
           <span>حذف «{category}»؟</span>
-          <div className="category-select-confirm-actions">
+          <div className={categorySelectConfirmActionsClass}>
             <button
               type="button"
-              className="category-select-confirm-btn category-select-confirm-btn--danger"
+              className={categorySelectConfirmDangerBtnClass}
               onClick={() => onDelete(category)}
               disabled={saving}
             >
@@ -68,7 +79,7 @@ export default function CategorySelectItem({
             </button>
             <button
               type="button"
-              className="category-select-confirm-btn"
+              className={categorySelectConfirmBtnClass}
               onClick={onCancelDelete}
               disabled={saving}
             >
@@ -77,9 +88,10 @@ export default function CategorySelectItem({
           </div>
         </div>
       ) : isEditing ? (
-        <div className="category-select-edit">
+        <div className={categorySelectEditClass}>
           <input
             type="text"
+            className={categorySelectEditInputClass}
             value={editText}
             onChange={e => onEditTextChange(e.target.value)}
             onKeyDown={e => {
@@ -95,7 +107,7 @@ export default function CategorySelectItem({
           />
           <button
             type="button"
-            className="category-select-icon-btn category-select-icon-btn--save"
+            className={categorySelectIconBtnClass('save')}
             onClick={() => onSaveEdit(category)}
             disabled={saving}
             aria-label="تایید"
@@ -104,7 +116,7 @@ export default function CategorySelectItem({
           </button>
           <button
             type="button"
-            className="category-select-icon-btn"
+            className={categorySelectIconBtnClass()}
             onClick={onCancelEdit}
             disabled={saving}
             aria-label="انصراف"
@@ -118,20 +130,20 @@ export default function CategorySelectItem({
             type="button"
             role="option"
             aria-selected={isSelected}
-            className="category-select-option"
+            className={categorySelectOptionBtnClass}
             onClick={() => onSelect(category)}
             disabled={saving || manageMode}
           >
-            <span className="category-select-option-check" aria-hidden="true">
+            <span className={categorySelectOptionCheckClass} aria-hidden="true">
               {isSelected && <AppIcon name="check" size={14} strokeWidth={2.5} />}
             </span>
-            <span className="category-select-option-label">{category}</span>
+            <span className={categorySelectOptionLabelClass(isSelected)}>{category}</span>
           </button>
           {manageMode && (
-            <div className="category-select-actions">
+            <div className={categorySelectActionsClass}>
               <button
                 type="button"
-                className="category-select-icon-btn"
+                className={categorySelectIconBtnClass()}
                 onClick={e => {
                   e.stopPropagation()
                   onStartEdit(category)
@@ -143,7 +155,7 @@ export default function CategorySelectItem({
               </button>
               <button
                 type="button"
-                className="category-select-icon-btn category-select-icon-btn--danger"
+                className={categorySelectIconBtnClass('danger')}
                 onClick={e => {
                   e.stopPropagation()
                   onConfirmDelete(category)

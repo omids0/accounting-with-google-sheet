@@ -2,6 +2,24 @@ import type { RefObject } from 'react'
 
 import CategorySelectItem from './CategorySelectItem'
 import AppIcon from '../../AppIcon'
+import {
+  categorySelectAddBtnClass,
+  categorySelectAddClass,
+  categorySelectAddInputClass,
+  categorySelectAddRowClass,
+  categorySelectCountClass,
+  categorySelectEmptyClass,
+  categorySelectFooterBtnClass,
+  categorySelectFooterClass,
+  categorySelectHeaderClass,
+  categorySelectHeaderTitleClass,
+  categorySelectListClass,
+  categorySelectManageBtnClass,
+  categorySelectPanelClass,
+  categorySelectSearchClass,
+  categorySelectSearchClearClass,
+  categorySelectSearchInputClass
+} from '../../ui/formControlStyles'
 
 interface CategorySelectPanelProps {
   ariaLabel: string
@@ -65,17 +83,15 @@ export default function CategorySelectPanel({
   onOpenManageMode
 }: CategorySelectPanelProps) {
   return (
-    <div className="category-select-panel">
-      <div className="category-select-header">
-        <div className="category-select-header-title">
+    <div className={categorySelectPanelClass}>
+      <div className={categorySelectHeaderClass}>
+        <div className={categorySelectHeaderTitleClass}>
           <span>{ariaLabel}</span>
-          <span className="category-select-count">{categories.length}</span>
+          <span className={categorySelectCountClass}>{categories.length}</span>
         </div>
         <button
           type="button"
-          className={['category-select-manage-btn', manageMode && 'is-active']
-            .filter(Boolean)
-            .join(' ')}
+          className={categorySelectManageBtnClass(manageMode)}
           onClick={onToggleManageMode}
           disabled={saving}
           aria-pressed={manageMode}
@@ -86,11 +102,12 @@ export default function CategorySelectPanel({
       </div>
 
       {showSearch && (
-        <div className="category-select-search">
+        <div className={categorySelectSearchClass}>
           <AppIcon name="search" size={15} strokeWidth={2} />
           <input
             ref={searchInputRef}
             type="search"
+            className={categorySelectSearchInputClass}
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
             placeholder="جستجو در دسته‌ها..."
@@ -100,7 +117,7 @@ export default function CategorySelectPanel({
           {searchQuery && (
             <button
               type="button"
-              className="category-select-search-clear"
+              className={categorySelectSearchClearClass}
               onClick={onClearSearch}
               aria-label="پاک کردن جستجو"
             >
@@ -111,11 +128,12 @@ export default function CategorySelectPanel({
       )}
 
       {manageMode && (
-        <div className="category-select-add">
-          <div className="category-select-add-row">
+        <div className={categorySelectAddClass}>
+          <div className={categorySelectAddRowClass}>
             <input
               ref={addInputRef}
               type="text"
+              className={categorySelectAddInputClass}
               value={newCategory}
               onChange={e => onNewCategoryChange(e.target.value)}
               onKeyDown={e => {
@@ -130,7 +148,7 @@ export default function CategorySelectPanel({
             />
             <button
               type="button"
-              className="category-select-add-btn"
+              className={categorySelectAddBtnClass}
               onClick={onAdd}
               disabled={saving || !newCategory.trim()}
               aria-label="افزودن دسته"
@@ -141,9 +159,9 @@ export default function CategorySelectPanel({
         </div>
       )}
 
-      <div className="category-select-list" role="listbox" aria-label={ariaLabel}>
+      <div className={categorySelectListClass} role="listbox" aria-label={ariaLabel}>
         {filteredCategories.length === 0 ? (
-          <div className="category-select-empty">
+          <div className={categorySelectEmptyClass}>
             {searchQuery.trim() ? 'دسته‌ای با این نام پیدا نشد' : 'هنوز دسته‌بندی ثبت نشده'}
           </div>
         ) : (
@@ -172,10 +190,10 @@ export default function CategorySelectPanel({
       </div>
 
       {!manageMode && (
-        <div className="category-select-footer">
+        <div className={categorySelectFooterClass}>
           <button
             type="button"
-            className="category-select-footer-btn"
+            className={categorySelectFooterBtnClass}
             onClick={onOpenManageMode}
             disabled={saving}
           >

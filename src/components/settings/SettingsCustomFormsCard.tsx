@@ -2,6 +2,9 @@ import FormFieldEditor from './FormFieldEditor'
 import type { CustomForm, FieldConfig } from '../../types'
 import Button from '../ui/Button'
 import Card, { CardTitle } from '../ui/Card'
+import { formGroupClass } from '../ui/formControlStyles'
+import { formControlClassName, formLabelClass } from '../ui/formStyles'
+import { formListHeaderClass, formListItemClass, formTypeBadgeClass } from '../ui/settingsStyles'
 
 type SettingsCustomFormsCardProps = {
   forms: CustomForm[]
@@ -27,17 +30,18 @@ export default function SettingsCustomFormsCard({
       <CardTitle>فرم‌های سفارشی</CardTitle>
 
       {forms.map(form => (
-        <div key={form.id} className="form-list-item">
-          <div className="form-list-header">
+        <div key={form.id} className={formListItemClass}>
+          <div className={formListHeaderClass}>
             <strong>{form.name}</strong>
-            <span className="form-type-badge">{form.sheetName}</span>
+            <span className={formTypeBadgeClass}>{form.sheetName}</span>
           </div>
 
           {form.type !== 'custom' && form.fields.find(f => f.id === 'category') && (
-            <div className="form-group" style={{ marginTop: '0.5rem' }}>
-              <label>دسته‌بندی‌های {form.name}</label>
+            <div className={formGroupClass} style={{ marginTop: '0.5rem' }}>
+              <label className={formLabelClass}>دسته‌بندی‌های {form.name}</label>
               <input
                 key={`${form.id}-${categoriesKey}`}
+                className={formControlClassName()}
                 defaultValue={form.fields.find(f => f.id === 'category')?.options?.join('، ') ?? ''}
                 onBlur={e => onSaveCategories(form.id, e.target.value)}
                 placeholder="دسته۱، دسته۲، ..."

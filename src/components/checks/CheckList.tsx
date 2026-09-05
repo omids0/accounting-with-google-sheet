@@ -14,6 +14,8 @@ import { DangCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import CheckCard from './CheckCard'
 import type { CheckWithRow } from './types'
+import { dashboardStatGridClass } from '../ui/chartStyles'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 export type CheckListProps = {
   items: CheckWithRow[]
@@ -51,8 +53,8 @@ export default function CheckList({
 
   if (items.length === 0) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="checks" />
         </div>
         <p>هنوز چکی ثبت نشده</p>
@@ -77,7 +79,7 @@ export default function CheckList({
         />
       ))}
 
-      <div className="stat-grid dashboard-stat-grid">
+      <div className={dashboardStatGridClass}>
         <StatCard
           label={`مجموع چک‌های ${monthLabel}`}
           amount={monthTotals.total}

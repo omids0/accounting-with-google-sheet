@@ -3,6 +3,15 @@ import { useEffect, useState } from 'react'
 import JalaliDatePicker from './JalaliDatePicker'
 import Button from './ui/Button'
 import {
+  recordsCustomDateClass,
+  recordsCustomRangeClass,
+  recordsDateGridBtnClass,
+  recordsDateGridClass,
+  recordsFilterActionsClass,
+  recordsFilterLabelClass,
+  recordsFilterSectionClassName
+} from './ui/recordsStyles'
+import {
   getDateRange,
   RECORDS_DATE_RANGE_PRESETS,
   type DateRange,
@@ -94,13 +103,13 @@ export default function DateRangeFilter({
 
   return (
     <>
-      <div className="records-filter-section">
-        <span className="records-filter-label">{label}</span>
-        <div className="records-date-grid">
+      <div className={recordsFilterSectionClassName()}>
+        <span className={recordsFilterLabelClass}>{label}</span>
+        <div className={recordsDateGridClass}>
           {includeAll && (
             <button
               type="button"
-              className={isPresetActive('all') ? 'active' : ''}
+              className={recordsDateGridBtnClass(isPresetActive('all'))}
               onClick={() => handlePresetClick('all')}
             >
               همه
@@ -110,7 +119,7 @@ export default function DateRangeFilter({
             <button
               key={item.id}
               type="button"
-              className={isPresetActive(item.id) ? 'active' : ''}
+              className={recordsDateGridBtnClass(isPresetActive(item.id))}
               onClick={() => handlePresetClick(item.id)}
             >
               {item.label}
@@ -120,9 +129,9 @@ export default function DateRangeFilter({
       </div>
 
       {showCustomPickers && (
-        <div className="records-custom-range">
-          <div className="records-custom-date">
-            <span className="records-filter-label">از</span>
+        <div className={recordsCustomRangeClass}>
+          <div className={recordsCustomDateClass}>
+            <span className={recordsFilterLabelClass}>از</span>
             <JalaliDatePicker
               value={pendingCustomRange.start}
               onChange={start =>
@@ -134,8 +143,8 @@ export default function DateRangeFilter({
               }
             />
           </div>
-          <div className="records-custom-date">
-            <span className="records-filter-label">تا</span>
+          <div className={recordsCustomDateClass}>
+            <span className={recordsFilterLabelClass}>تا</span>
             <JalaliDatePicker
               value={pendingCustomRange.end}
               onChange={end =>
@@ -147,7 +156,7 @@ export default function DateRangeFilter({
               }
             />
           </div>
-          <div className="records-filter-actions">
+          <div className={recordsFilterActionsClass}>
             <Button
               type="button"
               variant="primary"

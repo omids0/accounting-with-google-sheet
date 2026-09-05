@@ -42,6 +42,34 @@
     cursor: pointer;
   }
 
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a {
+    color: var(--color-primary);
+  }
+
+  :is(
+      .asset-value,
+      .wallet-item-amount,
+      .receivable-total-amount,
+      .stat-value,
+      .amount-income,
+      .amount-expense,
+      .chart-tooltip__value,
+      .category-donut-center-value,
+      .category-donut-legend-value,
+      .category-donut-legend-pct,
+      .numeric,
+      input[inputmode='numeric'],
+      .amount-input-compact
+    ) {
+    font-family: var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

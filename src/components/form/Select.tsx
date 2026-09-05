@@ -1,5 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { cn } from '../../utils/cn'
+import AppIcon from '../AppIcon'
+import {
+  customSelectChevronClass,
+  customSelectMenuClass,
+  customSelectOptionClass,
+  customSelectRootClass,
+  customSelectTriggerClass,
+  customSelectTriggerStateClass,
+  customSelectValueClass
+} from '../ui/formControlStyles'
+
 export interface SelectOption {
   value: string
   label: string
@@ -61,43 +73,38 @@ export default function Select({
     setOpen(false)
   }
 
-  const rootClass = [
-    'custom-select',
-    compact && 'custom-select--compact',
-    open && 'custom-select--open',
-    disabled && 'custom-select--disabled',
-    className
-  ]
-    .filter(Boolean)
-    .join(' ')
-
   return (
-    <div ref={rootRef} className={rootClass}>
+    <div
+      ref={rootRef}
+      className={customSelectRootClass({ open, className })}
+      data-open={open || undefined}
+    >
       <button
         type="button"
-        className="custom-select-trigger"
+        className={cn(
+          customSelectTriggerClass,
+          customSelectTriggerStateClass({ open, compact, disabled })
+        )}
         onClick={() => !disabled && setOpen(isOpen => !isOpen)}
         disabled={disabled}
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="listbox"
       >
-        <span className="custom-select-value">{displayLabel}</span>
-        <span className="custom-select-chevron" aria-hidden="true" />
+        <span className={customSelectValueClass}>{displayLabel}</span>
+        <AppIcon
+          name="chevron-down"
+          size={12}
+          strokeWidth={2.5}
+          className={customSelectChevronClass(open)}
+          aria-hidden
+        />
       </button>
 
       {open && (
-        <div className="custom-select-menu" role="listbox" aria-label={ariaLabel}>
+        <div className={customSelectMenuClass} role="listbox" aria-label={ariaLabel}>
           {options.map(option => {
             const isSelected = option.value === value
-
-            const optionClass = [
-              'custom-select-option',
-              isSelected && 'is-selected',
-              option.disabled && 'is-disabled'
-            ]
-              .filter(Boolean)
-              .join(' ')
 
             return (
               <button
@@ -105,7 +112,10 @@ export default function Select({
                 type="button"
                 role="option"
                 aria-selected={isSelected}
-                className={optionClass}
+                className={customSelectOptionClass({
+                  selected: isSelected,
+                  disabled: option.disabled
+                })}
                 onClick={() => handleSelect(option)}
                 disabled={option.disabled}
               >

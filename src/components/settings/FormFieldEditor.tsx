@@ -4,6 +4,7 @@ import type { FieldConfig, FieldType } from '../../types'
 import { FormField, FormSelect } from '../form'
 import { FIELD_TYPES } from './types'
 import Button from '../ui/Button'
+import { fieldRowClass } from '../ui/recordsStyles'
 
 type FormFieldEditorProps = {
   fields: FieldConfig[]
@@ -30,7 +31,7 @@ export default function FormFieldEditor({ fields: initialFields, onSave }: FormF
   return (
     <div style={{ marginTop: '0.75rem' }}>
       {fields.map((field, index) => (
-        <div key={field.id} className="field-row">
+        <div key={field.id} className={fieldRowClass}>
           <FormField label="برچسب">
             <input
               value={field.label}

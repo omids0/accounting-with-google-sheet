@@ -15,6 +15,7 @@ import type { ChecksPageProps } from './types'
 import { useChecksData } from './useChecksData'
 import { useChecksFilters } from './useChecksFilters'
 import { useChecksForm } from './useChecksForm'
+import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 export default function ChecksPage({ active = true }: ChecksPageProps) {
   const {
@@ -82,8 +83,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
 
   if (!isConfigured()) {
     return (
-      <div className="empty-state">
-        <div className="icon">
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
           <AppIcon name="checks" />
         </div>
         <p>ابتدا با گوگل وارد شوید</p>

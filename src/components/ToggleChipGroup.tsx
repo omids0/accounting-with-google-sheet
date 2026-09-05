@@ -1,36 +1,38 @@
+import { toggleChipBtnClass, toggleChipGridClass } from './ui/recordsStyles'
+
 export type ToggleChipOption = {
-  id: string;
-  label: string;
-};
+  id: string
+  label: string
+}
 
 export default function ToggleChipGroup({
   options,
   selected,
   onToggle,
-  ariaLabel,
+  ariaLabel
 }: {
-  options: ToggleChipOption[];
-  selected: Record<string, boolean>;
-  onToggle: (id: string) => void;
-  ariaLabel: string;
+  options: ToggleChipOption[]
+  selected: Record<string, boolean>
+  onToggle: (id: string) => void
+  ariaLabel: string
 }) {
   return (
-    <div className="toggle-chip-grid" role="group" aria-label={ariaLabel}>
-      {options.map((option) => {
-        const active = selected[option.id] ?? false;
+    <div className={toggleChipGridClass} role="group" aria-label={ariaLabel}>
+      {options.map(option => {
+        const active = selected[option.id] ?? false
 
         return (
           <button
             key={option.id}
             type="button"
-            className={active ? 'active' : ''}
+            className={toggleChipBtnClass(active)}
             aria-pressed={active}
             onClick={() => onToggle(option.id)}
           >
             {option.label}
           </button>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

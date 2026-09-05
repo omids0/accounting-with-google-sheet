@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 
+import { cn } from '../../utils/cn'
+import {
+  wheelPickerClass,
+  wheelPickerFadeBottomClass,
+  wheelPickerFadeTopClass,
+  wheelPickerItemClass,
+  wheelPickerItemSelectedClass,
+  wheelPickerScrollClass
+} from '../ui/datePickerStyles'
+
 export interface WheelPickerItem {
   value: string
   label: string
@@ -176,7 +186,7 @@ export default function WheelPicker({
 
   return (
     <div
-      className="wheel-picker"
+      className={wheelPickerClass}
       style={{
         height: containerHeight,
         ['--wheel-item-height' as string]: `${ITEM_HEIGHT}px`
@@ -184,16 +194,16 @@ export default function WheelPicker({
       aria-label={ariaLabel}
       role="listbox"
     >
-      <div className="wheel-picker-fade wheel-picker-fade--top" aria-hidden="true" />
-      <div className="wheel-picker-fade wheel-picker-fade--bottom" aria-hidden="true" />
+      <div className={wheelPickerFadeTopClass} aria-hidden="true" />
+      <div className={wheelPickerFadeBottomClass} aria-hidden="true" />
       <div
         ref={scrollRef}
-        className="wheel-picker-scroll"
+        className={wheelPickerScrollClass}
         role="presentation"
         onScroll={handleScroll}
         onTouchEnd={handleScrollEnd}
       >
-        <div className="wheel-picker-padding" style={{ height: padding }} />
+        <div style={{ height: padding }} />
         {items.map((item, index) => (
           <button
             key={item.value}
@@ -203,7 +213,7 @@ export default function WheelPicker({
             type="button"
             role="option"
             aria-selected={item.value === value}
-            className={`wheel-picker-item${item.value === value ? ' is-selected' : ''}`}
+            className={cn(wheelPickerItemClass, wheelPickerItemSelectedClass(item.value === value))}
             style={{ height: ITEM_HEIGHT }}
             onClick={() => {
               onChange(item.value)
@@ -213,7 +223,7 @@ export default function WheelPicker({
             {item.label}
           </button>
         ))}
-        <div className="wheel-picker-padding" style={{ height: padding }} />
+        <div style={{ height: padding }} />
       </div>
     </div>
   )
