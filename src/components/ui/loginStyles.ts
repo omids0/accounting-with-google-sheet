@@ -1,7 +1,7 @@
 import { cn } from '../../utils/cn'
 
 export const loginPageClass = cn(
-  'flex min-h-dvh items-center justify-center p-6',
+  'login-page flex min-h-dvh items-center justify-center p-6',
   '[background:linear-gradient(160deg,var(--color-bg)_0%,var(--color-accent-soft)_50%,var(--color-accent-mid)_100%)]',
   '[background-size:200%_200%] animate-[headerGlow_12s_ease_infinite]'
 )
