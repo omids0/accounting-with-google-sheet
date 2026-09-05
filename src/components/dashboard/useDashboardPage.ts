@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 
 import { useDataRefresh } from '../../hooks/useDataRefresh'
-import { isTokenValid } from '../../services/auth'
 import {
   loadDashboardData,
   buildDashboardYearlyMonthlyFlow,
@@ -10,6 +9,7 @@ import {
 import { getSettings, isConfigured, getNetAvailableConfig } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import type { DashboardData } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import {
   getInstallmentDueRange,
   resolveDateRange,
@@ -27,7 +27,7 @@ import { getDefaultChartYear } from '../YearFilter'
 
 export type TransactionTypeFilter = 'all' | 'income' | 'expense'
 
-export function useDashboardPage(onReauth?: () => void) {
+export function useDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(() => {
     const settings = getSettings()
 
@@ -73,9 +73,7 @@ export function useDashboardPage(onReauth?: () => void) {
   dataRef.current = data
 
   const load = useCallback(async () => {
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
+    if (!isConfigured() || !requireAuth()) {
       return
     }
 
@@ -102,11 +100,11 @@ export function useDashboardPage(onReauth?: () => void) {
 
       setData(dash)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth, datePreset, customRange, monthlyFlowYear])
+  }, [datePreset, customRange, monthlyFlowYear])
 
   useEffect(() => {
     load()

@@ -1,9 +1,8 @@
 import { useCallback, useState, type Dispatch, type SetStateAction } from 'react'
 
 import { useSheetImportExport } from './useSheetImportExport'
-import { isTokenValid } from '../services/auth'
 import type { ImportResult } from '../services/importExport'
-import { getSettings } from '../services/settings'
+import { requireSpreadsheetId } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 import { showSuccess } from '../utils/toast'
 
@@ -15,7 +14,6 @@ type ImportExportFns = {
 
 type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {
   setItems: Dispatch<SetStateAction<T[]>>
-  onReauth?: () => void
   loadItems: () => Promise<void>
   togglePaid: (spreadsheetId: string, item: T, paid: boolean) => Promise<Omit<T, 'rowNumber'>>
   deleteItem: (spreadsheetId: string, rowNumber: number, item: T) => Promise<void>
@@ -28,7 +26,6 @@ type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {
 
 export function usePaidItemActions<T extends { id: string; rowNumber: number }>({
   setItems,
-  onReauth,
   loadItems,
   togglePaid,
   deleteItem,
@@ -42,20 +39,10 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   const [deleting, setDeleting] = useState(false)
   const [togglingId, setTogglingId] = useState('')
 
-  const requireSpreadsheetId = useCallback(() => {
-    const settings = getSettings()
-
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return null
-    }
-
-    return settings.spreadsheetId
-  }, [onReauth])
+  const getSpreadsheetId = useCallback(() => requireSpreadsheetId(), [])
 
   const handleTogglePaid = async (item: T, paid: boolean) => {
-    const spreadsheetId = requireSpreadsheetId()
+    const spreadsheetId = getSpreadsheetId()
 
     if (!spreadsheetId) return
 
@@ -71,7 +58,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
         )
       )
     } catch (err) {
-      handleSheetError(err, { onReauth, fallbackMessage: 'خطا در به‌روزرسانی' })
+      handleSheetError(err, { fallbackMessage: 'خطا در به‌روزرسانی' })
     } finally {
       setTogglingId('')
     }
@@ -89,7 +76,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   const handleDelete = async () => {
     if (!deletingItem) return
 
-    const spreadsheetId = requireSpreadsheetId()
+    const spreadsheetId = getSpreadsheetId()
 
     if (!spreadsheetId) return
 
@@ -101,7 +88,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
       showSuccess(deleteSuccessMessage)
       await loadItems()
     } catch (err) {
-      handleSheetError(err, { onReauth, fallbackMessage: deleteErrorMessage })
+      handleSheetError(err, { fallbackMessage: deleteErrorMessage })
     } finally {
       setDeleting(false)
     }
@@ -110,8 +97,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
       ...importExport,
-      onComplete: loadItems,
-      onReauth
+      onComplete: loadItems
     })
 
   return {

@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react'
 
-import { isTokenValid } from '../services/auth'
 import type { ImportResult } from '../services/importExport'
-import { getSettings } from '../services/settings'
+import { requireSpreadsheetId } from '../utils/authGuard'
 import { pickTextFile } from '../utils/csv'
 import { showError, showSuccess } from '../utils/toast'
 
@@ -27,30 +26,18 @@ export function useSheetImportExport({
   exportFn,
   exportPdfFn,
   importFn,
-  onComplete,
-  onReauth
+  onComplete
 }: {
   exportFn: (spreadsheetId: string) => Promise<void>
   exportPdfFn?: (spreadsheetId: string) => Promise<void>
   importFn: (spreadsheetId: string, csvContent: string) => Promise<ImportResult>
   onComplete: () => void | Promise<void>
-  onReauth?: () => void
 }) {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
   const [confirming, setConfirming] = useState(false)
 
-  const ensureAuth = useCallback(() => {
-    const settings = getSettings()
-
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return null
-    }
-
-    return settings.spreadsheetId
-  }, [onReauth])
+  const ensureAuth = useCallback(() => requireSpreadsheetId(), [])
 
   const executeExport = useCallback(async () => {
     const spreadsheetId = ensureAuth()

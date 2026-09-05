@@ -10,12 +10,11 @@ import SettingsPwaInstallCard from './SettingsPwaInstallCard'
 import SettingsRemindersCard from './SettingsRemindersCard'
 import SettingsSection from './SettingsSection'
 import SettingsSpreadsheetCard from './SettingsSpreadsheetCard'
-import type { SettingsPageProps } from './types'
 import { useSettingsPage } from './useSettingsPage'
 
-export default function SettingsPage({ onLogout, onSpreadsheetChange }: SettingsPageProps) {
+export default function SettingsPage() {
   const navigate = useNavigate()
-  const settings = useSettingsPage({ onLogout, onSpreadsheetChange })
+  const settings = useSettingsPage()
 
   const handleToggleEditForm = (formId: string) => {
     settings.setEditingFormId(settings.editingFormId === formId ? null : formId)

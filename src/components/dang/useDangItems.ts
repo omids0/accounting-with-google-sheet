@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from 'react'
 import type { DangWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { usePaidItemActions } from '../../hooks/usePaidItemActions'
-import { isTokenValid } from '../../services/auth'
 import { syncCategoriesFromSheet } from '../../services/categories'
 import {
   deleteDang,
@@ -19,10 +18,11 @@ import {
 import { getDangCategories, getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import type { Dang } from '../../types'
+import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError } from '../../utils/toast'
 
-export function useDangItems(onReauth?: () => void) {
+export function useDangItems() {
   const [items, setItems] = useState<DangWithRow[]>([])
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(() => {
@@ -37,30 +37,25 @@ export function useDangItems(onReauth?: () => void) {
   const dataRevision = useDataRefresh()
 
   const loadItems = useCallback(async () => {
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId) return
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     setLoading(true)
     try {
-      await ensureDangSheet(settings.spreadsheetId)
-      await syncCategoriesFromSheet(settings.spreadsheetId)
+      await ensureDangSheet(spreadsheetId)
+      await syncCategoriesFromSheet(spreadsheetId)
       setCategories(getDangCategories())
 
-      const data = await fetchDangs(settings.spreadsheetId)
+      const data = await fetchDangs(spreadsheetId)
 
       setItems(data)
     } catch (err) {
-      handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری بدهی‌ها' })
+      handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری بدهی‌ها' })
     } finally {
       setLoading(false)
     }
-  }, [onReauth])
+  }, [])
 
   useEffect(() => {
     if (isConfigured()) loadItems()
@@ -68,7 +63,6 @@ export function useDangItems(onReauth?: () => void) {
 
   const paidActions = usePaidItemActions({
     setItems,
-    onReauth,
     loadItems,
     togglePaid: toggleDangPaid,
     deleteItem: deleteDang,
@@ -111,24 +105,20 @@ export function useDangItems(onReauth?: () => void) {
     }
     if (amount === item.amount) return
 
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     setSavingAmountId(item.id)
     try {
       const updated: Dang = { ...item, amount }
 
-      await updateDang(settings.spreadsheetId, item.rowNumber, updated)
+      await updateDang(spreadsheetId, item.rowNumber, updated)
       setItems(prev =>
         sortDangs(prev.map(d => (d.id === item.id ? { ...updated, rowNumber: item.rowNumber } : d)))
       )
     } catch (err) {
-      handleSheetError(err, { onReauth, fallbackMessage: 'خطا در به‌روزرسانی مبلغ' })
+      handleSheetError(err, { fallbackMessage: 'خطا در به‌روزرسانی مبلغ' })
     } finally {
       setSavingAmountId('')
     }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 
 import type { WalletAccountWithRow } from './types'
-import { isTokenValid } from '../../services/auth'
+import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { ensureAutoOpeningBalanceForCurrentMonth } from '../../services/monthlyBalance'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
@@ -11,9 +11,11 @@ import {
   loadWalletPeriodFlow,
   type WalletPeriodFlow
 } from '../../services/wallet'
+import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 
-export function useWalletData(onReauth: (() => void) | undefined, dataRevision: number) {
+export function useWalletData() {
+  const dataRevision = useDataRefresh()
   const [items, setItems] = useState<WalletAccountWithRow[]>([])
 
   const [balances, setBalances] = useState<Record<string, number | ''>>({})
@@ -41,11 +43,7 @@ export function useWalletData(onReauth: (() => void) | undefined, dataRevision: 
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) return
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!requireAuth()) return
 
     setLoading(true)
     try {
@@ -64,11 +62,11 @@ export function useWalletData(onReauth: (() => void) | undefined, dataRevision: 
       setPeriodFlow(flow)
       setOpeningInput(flow.openingBalance || '')
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری کیف پول' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری کیف پول' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth, syncBalances])
+  }, [syncBalances])
 
   useEffect(() => {
     if (isConfigured()) loadItems()

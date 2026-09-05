@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 
-import type { SettingsPageProps } from './types'
 import { usePwaInstall } from '../../hooks/usePwaInstall'
 import { isTokenValid, logout } from '../../services/auth'
 import { saveFormCategoriesToSheet, syncCategoriesFromSheet } from '../../services/categories'
@@ -18,11 +17,12 @@ import {
   switchActiveSpreadsheet,
   syncSpreadsheetsFromDrive
 } from '../../services/spreadsheetSetup'
+import { bumpSpreadsheetKey, requestLogout } from '../../stores/appStore'
 import type { CurrencyUnit, FieldConfig, SpreadsheetEntry, ThemeMode } from '../../types'
 import { applyTheme } from '../../utils/theme'
 import { showError, showSuccess } from '../../utils/toast'
 
-export function useSettingsPage({ onLogout, onSpreadsheetChange }: SettingsPageProps) {
+export function useSettingsPage() {
   const [spreadsheetId, setSpreadsheetId] = useState('')
 
   const [spreadsheets, setSpreadsheets] = useState<SpreadsheetEntry[]>([])
@@ -90,7 +90,7 @@ export function useSettingsPage({ onLogout, onSpreadsheetChange }: SettingsPageP
   const handleLogout = () => {
     if (confirm('از حساب خارج می‌شوید؟')) {
       logout()
-      onLogout?.()
+      requestLogout()
     }
   }
 
@@ -139,7 +139,7 @@ export function useSettingsPage({ onLogout, onSpreadsheetChange }: SettingsPageP
       setNewSheetName('')
       setShowNewSheetForm(false)
       showSuccess(`شیت «${formatSpreadsheetTitle(trimmedName)}» ساخته و فعال شد`)
-      onSpreadsheetChange?.()
+      bumpSpreadsheetKey()
     } catch (err) {
       showError(err instanceof Error ? err.message : 'خطا در ساخت شیت')
     } finally {
@@ -170,7 +170,7 @@ export function useSettingsPage({ onLogout, onSpreadsheetChange }: SettingsPageP
       const selected = getSpreadsheets().find(sheet => sheet.id === nextId)
 
       showSuccess(`شیت فعال: ${selected ? getSpreadsheetLabel(selected.name) : 'انتخاب‌شده'}`)
-      onSpreadsheetChange?.()
+      bumpSpreadsheetKey()
     } catch (err) {
       showError(err instanceof Error ? err.message : 'خطا در تغییر شیت')
     } finally {

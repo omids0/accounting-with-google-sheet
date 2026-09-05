@@ -16,7 +16,6 @@ export default function CategorySelect({
   formId,
   categoryScope,
   onCategoriesChange,
-  onReauth,
   disabled = false,
   'aria-label': ariaLabel = 'دسته‌بندی',
   id
@@ -60,7 +59,6 @@ export default function CategorySelect({
     formId,
     categoryScope,
     onCategoriesChange,
-    onReauth,
     onChange,
     value,
     setSaving

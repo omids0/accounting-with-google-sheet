@@ -1,5 +1,4 @@
 import type { TimesheetEntryWithRow } from './useTimesheetDetailPage'
-import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
 import {
   createTimesheetEntry,
@@ -7,24 +6,19 @@ import {
   updateTimesheetEntry
 } from '../../services/timesheet'
 import type { Timesheet } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
 
 export async function toggleTimesheetEntryChecked({
   item,
   checked,
-  onReauth,
   onUpdated
 }: {
   item: TimesheetEntryWithRow
   checked: boolean
-  onReauth?: () => void
   onUpdated: (item: TimesheetEntryWithRow, checked: boolean) => void
 }): Promise<boolean> {
-  if (!isConfigured() || !isTokenValid()) {
-    onReauth?.()
-
-    return false
-  }
+  if (!isConfigured() || !requireAuth()) return false
 
   const settings = getSettings()!
 
@@ -48,21 +42,15 @@ export async function submitTimesheetEntry({
   editingItem,
   form,
   durationMinutes,
-  onReauth,
   onSuccess
 }: {
   timesheet: Timesheet
   editingItem: TimesheetEntryWithRow | null
   form: { title: string; startAt: string; endAt: string; description: string }
   durationMinutes: number
-  onReauth?: () => void
   onSuccess: () => Promise<void>
 }): Promise<boolean> {
-  if (!isConfigured() || !isTokenValid()) {
-    onReauth?.()
-
-    return false
-  }
+  if (!isConfigured() || !requireAuth()) return false
   if (!form.title.trim()) {
     showError('عنوان الزامی است')
 
@@ -119,7 +107,7 @@ export async function deleteTimesheetEntryItem({
   deletingItem: TimesheetEntryWithRow
   onSuccess: () => Promise<void>
 }): Promise<boolean> {
-  if (!isConfigured() || !isTokenValid()) return false
+  if (!isConfigured() || !requireAuth()) return false
 
   const settings = getSettings()!
 

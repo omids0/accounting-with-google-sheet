@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 
 import type { PlanWithRow } from './types'
-import { isTokenValid } from '../../services/auth'
+import { useDataRefresh } from '../../hooks/useDataRefresh'
 import {
   ensureInstallmentsSheet,
   fetchInstallmentPlans,
@@ -9,9 +9,11 @@ import {
 } from '../../services/installments'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData, getSheetAllRows } from '../../services/spreadsheetStore'
+import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 
-export function useInstallmentsData(onReauth: (() => void) | undefined, dataRevision: number) {
+export function useInstallmentsData() {
+  const dataRevision = useDataRefresh()
   const [plans, setPlans] = useState<PlanWithRow[]>([])
 
   const [loading, setLoading] = useState(() => {
@@ -24,11 +26,7 @@ export function useInstallmentsData(onReauth: (() => void) | undefined, dataRevi
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) return
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!requireAuth()) return
 
     const hasCachedSheet = !!getSheetAllRows(settings.spreadsheetId, INSTALLMENTS_SHEET)
 
@@ -44,11 +42,11 @@ export function useInstallmentsData(onReauth: (() => void) | undefined, dataRevi
 
       setPlans(data)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری اقساط' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری اقساط' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth])
+  }, [])
 
   useEffect(() => {
     if (isConfigured()) loadPlans()

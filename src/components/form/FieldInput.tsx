@@ -11,7 +11,6 @@ interface FieldInputProps {
   onChange: (value: string | number) => void
   formId?: string
   onCategoriesChange?: (categories: string[]) => void
-  onReauth?: () => void
 }
 
 function fieldPlaceholder(field: FieldConfig): string | undefined {
@@ -27,8 +26,7 @@ export default function FieldInput({
   value,
   onChange,
   formId,
-  onCategoriesChange,
-  onReauth
+  onCategoriesChange
 }: FieldInputProps) {
   const placeholder = fieldPlaceholder(field)
 
@@ -83,7 +81,6 @@ export default function FieldInput({
           categories={field.options ?? []}
           formId={formId}
           onCategoriesChange={onCategoriesChange}
-          onReauth={onReauth}
           aria-label={field.label}
         />
       ) : field.type === 'select' ? (

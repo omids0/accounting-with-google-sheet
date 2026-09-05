@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import ReportToolbar from './ReportToolbar'
-import { isTokenValid } from '../../services/auth'
 import type { MonthlyOpeningBalance } from '../../services/monthlyBalance'
 import { loadOpeningBalancesReport } from '../../services/reports'
 import { getSettings, isConfigured } from '../../services/settings'
+import { requireAuth } from '../../utils/authGuard'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
@@ -13,17 +13,13 @@ import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
 
-export default function OpeningBalanceReportPage({ onReauth }: { onReauth?: () => void }) {
+export default function OpeningBalanceReportPage() {
   const [items, setItems] = useState<MonthlyOpeningBalance[]>([])
 
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()
 
@@ -35,11 +31,11 @@ export default function OpeningBalanceReportPage({ onReauth }: { onReauth?: () =
 
       setItems(balances)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth])
+  }, [])
 
   useEffect(() => {
     load()

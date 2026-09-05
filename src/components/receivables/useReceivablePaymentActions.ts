@@ -2,27 +2,22 @@ import { useState } from 'react'
 
 import type { PaymentFormState, ReceivableWithRow, SettlementFormState } from './types'
 import { getDefaultSettlementIncomeCategory } from './utils'
-import { isTokenValid } from '../../services/auth'
 import {
   addReceivablePayment,
   remainingAmount,
   removeReceivablePayment,
   sortReceivables
 } from '../../services/receivables'
-import { getSettings } from '../../services/settings'
+import { requireSpreadsheetId } from '../../utils/authGuard'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseReceivablePaymentActionsParams = {
   setItems: React.Dispatch<React.SetStateAction<ReceivableWithRow[]>>
-  onReauth?: () => void
 }
 
-export function useReceivablePaymentActions({
-  setItems,
-  onReauth
-}: UseReceivablePaymentActionsParams) {
+export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentActionsParams) {
   const [payingId, setPayingId] = useState('')
 
   const [settlingId, setSettlingId] = useState('')
@@ -41,13 +36,9 @@ export function useReceivablePaymentActions({
   const handleAddPayment = async (receivable: ReceivableWithRow) => {
     if (!paymentForm || paymentForm.receivableId !== receivable.id) return
 
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     const payAmount = Number(paymentForm.amount)
 
@@ -67,7 +58,7 @@ export function useReceivablePaymentActions({
 
     setPayingId(receivable.id)
     try {
-      const updated = await addReceivablePayment(settings.spreadsheetId, receivable, {
+      const updated = await addReceivablePayment(spreadsheetId, receivable, {
         amount: payAmount,
         note: paymentForm.note.trim()
       })
@@ -82,7 +73,7 @@ export function useReceivablePaymentActions({
       setPaymentForm(null)
       showSuccess('پرداخت ثبت شد')
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ثبت پرداخت' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در ثبت پرداخت' })) return
     } finally {
       setPayingId('')
     }
@@ -91,13 +82,9 @@ export function useReceivablePaymentActions({
   const handleSettle = async (receivable: ReceivableWithRow) => {
     if (!settlementForm || settlementForm.receivableId !== receivable.id) return
 
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     const title = settlementForm.title.trim()
 
@@ -117,7 +104,7 @@ export function useReceivablePaymentActions({
 
     setSettlingId(receivable.id)
     try {
-      const updated = await addReceivablePayment(settings.spreadsheetId, receivable, {
+      const updated = await addReceivablePayment(spreadsheetId, receivable, {
         amount: remaining,
         title,
         category: getDefaultSettlementIncomeCategory(),
@@ -134,24 +121,20 @@ export function useReceivablePaymentActions({
       setSettlementForm(null)
       showSuccess('طلب تسویه شد و درآمد ثبت شد')
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در تسویه طلب' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در تسویه طلب' })) return
     } finally {
       setSettlingId('')
     }
   }
 
   const handleRemovePayment = async (receivable: ReceivableWithRow, paymentId: string) => {
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     setTogglingPaymentId(paymentId)
     try {
-      const updated = await removeReceivablePayment(settings.spreadsheetId, receivable, paymentId)
+      const updated = await removeReceivablePayment(spreadsheetId, receivable, paymentId)
 
       setItems(prev =>
         sortReceivables(
@@ -162,7 +145,7 @@ export function useReceivablePaymentActions({
       )
       showSuccess('پرداخت و تراکنش درآمد حذف شد')
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف پرداخت' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در حذف پرداخت' })) return
     } finally {
       setTogglingPaymentId('')
     }

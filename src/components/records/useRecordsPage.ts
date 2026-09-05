@@ -8,15 +8,15 @@ import {
   type StoredRecord
 } from './recordsUtils'
 import { useRecordsFormActions } from './useRecordsFormActions'
-import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
 import { fetchRecords } from '../../services/sheets'
 import type { CustomForm } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { isDateInRange, resolveDateRange, type RecordsDatePreset } from '../../utils/dateRange'
 import { handleSheetError } from '../../utils/sheetError'
 import { createDefaultDateRangeFilter, type AppliedDateRangeFilter } from '../DateRangeFilter'
 
-export function useRecordsPage(onReauth?: () => void, initialFormType?: 'income' | 'expense') {
+export function useRecordsPage(initialFormType?: 'income' | 'expense') {
   const [forms, setForms] = useState<CustomForm[]>([])
   const [activeFormId, setActiveFormId] = useState('')
   const [records, setRecords] = useState<StoredRecord[]>([])
@@ -34,11 +34,7 @@ export function useRecordsPage(onReauth?: () => void, initialFormType?: 'income'
 
     if (!settings?.spreadsheetId) return
 
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!requireAuth()) return
 
     const formsToLoad =
       activeFormId === 'all' ? settings.forms : settings.forms.filter(f => f.id === activeFormId)
@@ -57,13 +53,13 @@ export function useRecordsPage(onReauth?: () => void, initialFormType?: 'income'
 
       setRecords(sortRecords(batches.flat(), settings.forms))
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
-  }, [activeFormId, onReauth])
+  }, [activeFormId])
 
-  const formActions = useRecordsFormActions({ forms, onReauth, loadRecords })
+  const formActions = useRecordsFormActions({ forms, loadRecords })
 
   useEffect(() => {
     const settings = getSettings()

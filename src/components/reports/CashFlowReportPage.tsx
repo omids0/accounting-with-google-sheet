@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
-import { isTokenValid } from '../../services/auth'
 import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { MonthlyFlow } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
@@ -14,7 +14,7 @@ import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import YearFilter, { getDefaultChartYear } from '../YearFilter'
 
-export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void }) {
+export default function CashFlowReportPage() {
   const [monthlyFlow, setMonthlyFlow] = useState<MonthlyFlow[]>([])
 
   const [loading, setLoading] = useState(false)
@@ -24,11 +24,7 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
   const { datePreset, customRange, handleDateFilterChange, dateRange } = useReportDateFilter()
 
   const load = useCallback(async () => {
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()
 
@@ -43,11 +39,11 @@ export default function CashFlowReportPage({ onReauth }: { onReauth?: () => void
 
       setMonthlyFlow(dash.yearlyMonthlyFlow)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth, datePreset, customRange.start, customRange.end, monthlyFlowYear])
+  }, [datePreset, customRange.start, customRange.end, monthlyFlowYear])
 
   useEffect(() => {
     load()

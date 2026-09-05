@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { useLayoutOutletContext } from './layoutOutletContext'
 import { LazyTimesheetDetailPage } from './lazyPages'
 import { TimesheetDetailListSkeleton } from '../components/skeleton'
 import { getSettings } from '../services/settings'
@@ -12,7 +11,6 @@ import { handleSheetError } from '../utils/sheetError'
 export default function TimesheetDetailRoute() {
   const { timesheetId } = useParams<{ timesheetId: string }>()
   const navigate = useNavigate()
-  const { onReauth } = useLayoutOutletContext()
   const [timesheet, setTimesheet] = useState<Timesheet | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -36,7 +34,7 @@ export default function TimesheetDetailRoute() {
           setLoading(false)
         }
       } catch (error) {
-        handleSheetError(error, { onReauth })
+        handleSheetError(error)
 
         if (!cancelled) setLoading(false)
       }
@@ -47,7 +45,7 @@ export default function TimesheetDetailRoute() {
     return () => {
       cancelled = true
     }
-  }, [onReauth, timesheetId])
+  }, [timesheetId])
 
   if (loading) {
     return <TimesheetDetailListSkeleton />
@@ -68,5 +66,5 @@ export default function TimesheetDetailRoute() {
     )
   }
 
-  return <LazyTimesheetDetailPage timesheet={timesheet} onReauth={onReauth} />
+  return <LazyTimesheetDetailPage timesheet={timesheet} />
 }

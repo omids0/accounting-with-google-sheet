@@ -6,7 +6,6 @@ type UseReceivableMutationsParams = {
   setItems: React.Dispatch<React.SetStateAction<ReceivableWithRow[]>>
   categories: string[]
   loadItems: () => Promise<void>
-  onReauth?: () => void
   expandedId: string | null
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
 }
@@ -15,16 +14,14 @@ export function useReceivableMutations({
   setItems,
   categories,
   loadItems,
-  onReauth,
   expandedId,
   setExpandedId
 }: UseReceivableMutationsParams) {
-  const payments = useReceivablePaymentActions({ setItems, onReauth })
+  const payments = useReceivablePaymentActions({ setItems })
 
   const formActions = useReceivableFormActions({
     categories,
     loadItems,
-    onReauth,
     expandedId,
     setExpandedId,
     clearPaymentForms: payments.clearPaymentForms

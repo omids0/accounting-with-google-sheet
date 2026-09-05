@@ -7,8 +7,8 @@ import {
   type ModuleReportKind
 } from './moduleReportData'
 import ReportToolbar from './ReportToolbar'
-import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
+import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { distributionSparkline } from '../../utils/sparklineData'
@@ -21,13 +21,7 @@ import TransactionListItem from '../TransactionListItem'
 
 export type { ModuleReportKind } from './moduleReportData'
 
-export default function ModuleReportPage({
-  kind,
-  onReauth
-}: {
-  kind: ModuleReportKind
-  onReauth?: () => void
-}) {
+export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
   const config = MODULE_CONFIG[kind]
 
   const [data, setData] = useState<ModuleReportData | null>(null)
@@ -39,11 +33,7 @@ export default function ModuleReportPage({
   const [showExportConfirm, setShowExportConfirm] = useState(false)
 
   const load = useCallback(async () => {
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()
 
@@ -55,28 +45,24 @@ export default function ModuleReportPage({
 
       setData(report)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
-  }, [kind, onReauth])
+  }, [kind])
 
   useEffect(() => {
     load()
   }, [load])
 
   const handleExportPdf = async () => {
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     setExporting(true)
     try {
-      await config.exportPdf(settings.spreadsheetId)
+      await config.exportPdf(spreadsheetId)
       showSuccess('فایل PDF ایجاد شد')
     } catch (err) {
       showError(err instanceof Error ? err.message : 'خطا در خروجی PDF')

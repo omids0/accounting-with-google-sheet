@@ -1,7 +1,6 @@
 import { useState } from 'react'
 
 import type { ReceivableFormState, ReceivableWithRow } from './types'
-import { isTokenValid } from '../../services/auth'
 import {
   createReceivable,
   deleteReceivable,
@@ -9,6 +8,7 @@ import {
   updateReceivable
 } from '../../services/receivables'
 import { getSettings, isConfigured } from '../../services/settings'
+import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
@@ -16,7 +16,6 @@ import { showError, showSuccess } from '../../utils/toast'
 type UseReceivableFormActionsParams = {
   categories: string[]
   loadItems: () => Promise<void>
-  onReauth?: () => void
   expandedId: string | null
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
   clearPaymentForms: () => void
@@ -25,7 +24,6 @@ type UseReceivableFormActionsParams = {
 export function useReceivableFormActions({
   categories,
   loadItems,
-  onReauth,
   expandedId,
   setExpandedId,
   clearPaymentForms
@@ -94,11 +92,7 @@ export function useReceivableFormActions({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     if (!form.debtor.trim()) {
       showError('نام شخص یا ارگان الزامی است')
@@ -160,7 +154,6 @@ export function useReceivableFormActions({
     } catch (err) {
       if (
         handleSheetError(err, {
-          onReauth,
           fallbackMessage: editingItem ? 'خطا در ویرایش طلب' : 'خطا در ثبت طلب'
         })
       )
@@ -173,24 +166,20 @@ export function useReceivableFormActions({
   const handleDelete = async () => {
     if (!deletingItem) return
 
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     setDeleting(true)
     try {
-      await deleteReceivable(settings.spreadsheetId, deletingItem.rowNumber, deletingItem)
+      await deleteReceivable(spreadsheetId, deletingItem.rowNumber, deletingItem)
       if (expandedId === deletingItem.id) setExpandedId(null)
       clearPaymentForms()
       setDeletingItem(null)
       showSuccess('طلب حذف شد')
       await loadItems()
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف طلب' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در حذف طلب' })) return
     } finally {
       setDeleting(false)
     }

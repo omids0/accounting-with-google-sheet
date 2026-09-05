@@ -1,60 +1,46 @@
 import { useState, useCallback } from 'react'
 
 import type { PlanWithRow } from './types'
-import { isTokenValid } from '../../services/auth'
 import {
   getInstallmentPaymentAmount,
   toggleInstallmentPayment,
   updateInstallmentPaymentAmount
 } from '../../services/installments'
-import { getSettings } from '../../services/settings'
+import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
 
 type UseInstallmentPaymentActionsParams = {
   setPlans: React.Dispatch<React.SetStateAction<PlanWithRow[]>>
-  onReauth?: () => void
 }
 
-export function useInstallmentPaymentActions({
-  setPlans,
-  onReauth
-}: UseInstallmentPaymentActionsParams) {
+export function useInstallmentPaymentActions({ setPlans }: UseInstallmentPaymentActionsParams) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const [togglingKey, setTogglingKey] = useState('')
 
   const handleTogglePayment = useCallback(
     async (plan: PlanWithRow, paymentIndex: number, paid: boolean) => {
-      const settings = getSettings()
+      const spreadsheetId = requireSpreadsheetId()
 
-      if (!settings?.spreadsheetId || !isTokenValid()) {
-        onReauth?.()
-
-        return
-      }
+      if (!spreadsheetId) return
 
       const key = `${plan.id}-${paymentIndex}`
 
       setTogglingKey(key)
       try {
-        const updated = await toggleInstallmentPayment(
-          settings.spreadsheetId,
-          plan,
-          paymentIndex,
-          paid
-        )
+        const updated = await toggleInstallmentPayment(spreadsheetId, plan, paymentIndex, paid)
 
         setPlans(prev =>
           prev.map(p => (p.id === plan.id ? { ...updated, rowNumber: plan.rowNumber } : p))
         )
       } catch (err) {
-        if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بروزرسانی پرداخت' })) return
+        if (handleSheetError(err, { fallbackMessage: 'خطا در بروزرسانی پرداخت' })) return
       } finally {
         setTogglingKey('')
       }
     },
-    [onReauth, setPlans]
+    [setPlans]
   )
 
   const handlePaymentAmountSave = useCallback(
@@ -67,17 +53,13 @@ export function useInstallmentPaymentActions({
 
       if (nextAmount === currentAmount) return
 
-      const settings = getSettings()
+      const spreadsheetId = requireSpreadsheetId()
 
-      if (!settings?.spreadsheetId || !isTokenValid()) {
-        onReauth?.()
-
-        return
-      }
+      if (!spreadsheetId) return
 
       try {
         const updated = await updateInstallmentPaymentAmount(
-          settings.spreadsheetId,
+          spreadsheetId,
           plan,
           paymentIndex,
           nextAmount
@@ -88,11 +70,11 @@ export function useInstallmentPaymentActions({
         setPlans(prev => prev.map(p => (p.id === plan.id ? updatedPlan : p)))
         showSuccess('مبلغ قسط ذخیره شد')
       } catch (err) {
-        if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در به‌روزرسانی مبلغ' })) return
+        if (handleSheetError(err, { fallbackMessage: 'خطا در به‌روزرسانی مبلغ' })) return
         throw err
       }
     },
-    [onReauth, setPlans]
+    [setPlans]
   )
 
   const handleToggleExpand = useCallback((planId: string) => {

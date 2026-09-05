@@ -16,7 +16,7 @@ import { useChecksData } from './useChecksData'
 import { useChecksFilters } from './useChecksFilters'
 import { useChecksForm } from './useChecksForm'
 
-export default function ChecksPage({ onReauth, active = true }: ChecksPageProps) {
+export default function ChecksPage({ active = true }: ChecksPageProps) {
   const {
     items,
     loading,
@@ -32,7 +32,7 @@ export default function ChecksPage({ onReauth, active = true }: ChecksPageProps)
     handleExportPdf,
     handleImport,
     importExportConfirmModal
-  } = useChecksData(onReauth)
+  } = useChecksData()
 
   const {
     showForm,
@@ -44,7 +44,7 @@ export default function ChecksPage({ onReauth, active = true }: ChecksPageProps)
     openEditForm,
     closeForm,
     handleSubmit
-  } = useChecksForm({ onReauth, onSaved: loadItems })
+  } = useChecksForm({ onSaved: loadItems })
 
   const {
     filterModalOpen,

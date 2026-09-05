@@ -20,6 +20,7 @@ import {
   resolveSpreadsheetSession
 } from './services/spreadsheetSetup'
 import { refreshAccessTokenSilently } from './services/tokenRefresh'
+import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
 
 function ConfigNotice() {
@@ -71,6 +72,14 @@ export default function App() {
 
   const { locked, unlock } = useAppLock()
 
+  const registerHandlers = useAppStore(state => state.registerHandlers)
+
+  const handleLogout = useCallback(() => {
+    setLoggedIn(false)
+    setNeedsReauth(false)
+    setNeedsSheetSetup(false)
+  }, [])
+
   const handleReauth = useCallback(async () => {
     if (scriptLoadedSuccessfully && hasStoredSession()) {
       const refreshed = await refreshAccessTokenSilently(clientId)
@@ -83,6 +92,10 @@ export default function App() {
     }
     setNeedsReauth(true)
   }, [clientId, scriptLoadedSuccessfully])
+
+  useEffect(() => {
+    registerHandlers({ onReauth: handleReauth, onLogout: handleLogout })
+  }, [handleLogout, handleReauth, registerHandlers])
 
   useTokenRefresh({
     clientId,
@@ -234,14 +247,5 @@ export default function App() {
     return <UnlockScreen onUnlock={unlock} />
   }
 
-  return (
-    <AppAuthenticatedRoutes
-      onLogout={() => {
-        setLoggedIn(false)
-        setNeedsReauth(false)
-        setNeedsSheetSetup(false)
-      }}
-      onReauth={handleReauth}
-    />
-  )
+  return <AppAuthenticatedRoutes />
 }

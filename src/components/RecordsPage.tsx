@@ -9,13 +9,11 @@ import RecordsToolbar from './records/RecordsToolbar'
 import { useRecordsPage } from './records/useRecordsPage'
 
 export default function RecordsPage({
-  onReauth,
   initialFormType
 }: {
-  onReauth?: () => void
   initialFormType?: 'income' | 'expense'
 }) {
-  const page = useRecordsPage(onReauth, initialFormType)
+  const page = useRecordsPage(initialFormType)
 
   if (!isConfigured()) {
     return (
@@ -96,7 +94,6 @@ export default function RecordsPage({
               value={page.formValues[field.id] ?? ''}
               onChange={next => page.setFormValues(prev => ({ ...prev, [field.id]: next }))}
               formId={page.editingForm!.id}
-              onReauth={onReauth}
             />
           ))}
         </FormModal>

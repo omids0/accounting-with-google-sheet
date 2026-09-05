@@ -11,6 +11,5 @@ export type CheckFormState = {
 }
 
 export type ChecksPageProps = {
-  onReauth?: () => void
   active?: boolean
 }

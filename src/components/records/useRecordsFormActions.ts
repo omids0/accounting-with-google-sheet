@@ -6,15 +6,10 @@ import type { CustomForm } from '../../types'
 
 type UseRecordsFormActionsOptions = {
   forms: CustomForm[]
-  onReauth?: () => void
   loadRecords: () => Promise<void>
 }
 
-export function useRecordsFormActions({
-  forms,
-  onReauth,
-  loadRecords
-}: UseRecordsFormActionsOptions) {
+export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActionsOptions) {
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingRecord, setEditingRecord] = useState<StoredRecord | null>(null)
@@ -72,7 +67,6 @@ export function useRecordsFormActions({
       const ok = await deleteStoredRecord({
         deletingRecord,
         forms,
-        onReauth,
         onSuccess: async () => {
           setDeletingRecord(null)
           await loadRecords()
@@ -95,7 +89,6 @@ export function useRecordsFormActions({
         editingRecord,
         editingForm,
         formValues,
-        onReauth,
         onSuccess: async () => {
           closeForm()
           await loadRecords()

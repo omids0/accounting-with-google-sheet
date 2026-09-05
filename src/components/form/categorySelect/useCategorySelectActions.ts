@@ -1,4 +1,3 @@
-import { isTokenValid } from '../../../services/auth'
 import type { CategoryType } from '../../../services/categories'
 import {
   saveDangCategoriesToSheet,
@@ -6,6 +5,7 @@ import {
   saveReceivableCategoriesToSheet
 } from '../../../services/categories'
 import { getSettings } from '../../../services/settings'
+import { requireAuth } from '../../../utils/authGuard'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showError, showSuccess } from '../../../utils/toast'
 
@@ -16,7 +16,6 @@ export interface CategorySelectProps {
   formId?: string
   categoryScope?: CategoryType
   onCategoriesChange?: (categories: string[]) => void
-  onReauth?: () => void
   disabled?: boolean
   'aria-label'?: string
   id?: string
@@ -27,7 +26,6 @@ export function useCategorySelectActions({
   formId,
   categoryScope,
   onCategoriesChange,
-  onReauth,
   onChange,
   value,
   setSaving
@@ -36,7 +34,6 @@ export function useCategorySelectActions({
   formId?: string
   categoryScope?: CategoryType
   onCategoriesChange?: (categories: string[]) => void
-  onReauth?: () => void
   onChange: (value: string) => void
   value: string
   setSaving: (saving: boolean) => void
@@ -49,11 +46,7 @@ export function useCategorySelectActions({
 
       return false
     }
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return false
-    }
+    if (!requireAuth()) return false
     if (!next.length) {
       showError('حداقل یک دسته‌بندی لازم است')
 
@@ -79,7 +72,7 @@ export function useCategorySelectActions({
 
       return true
     } catch (err) {
-      handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره دسته‌بندی‌ها' })
+      handleSheetError(err, { fallbackMessage: 'خطا در ذخیره دسته‌بندی‌ها' })
 
       return false
     } finally {

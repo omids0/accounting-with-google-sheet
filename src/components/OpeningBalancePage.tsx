@@ -5,13 +5,13 @@ import AmountInput from './AmountInput'
 import AppIcon from './AppIcon'
 import { FormField } from './form'
 import { InstallmentCardListSkeleton } from './skeleton'
-import { isTokenValid } from '../services/auth'
 import {
   fetchAllOpeningBalances,
   setOpeningBalance,
   type MonthlyOpeningBalance
 } from '../services/monthlyBalance'
 import { getSettings, isConfigured } from '../services/settings'
+import { requireAuth, requireSpreadsheetId } from '../utils/authGuard'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import { formatMoney } from '../utils/formatMoney'
 import { handleSheetError } from '../utils/sheetError'
@@ -24,7 +24,7 @@ type EditState = {
   note: string
 }
 
-export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void }) {
+export default function OpeningBalancePage() {
   const [items, setItems] = useState<OpeningBalanceWithRow[]>([])
 
   const [edits, setEdits] = useState<Record<string, EditState>>({})
@@ -50,11 +50,7 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) return
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!requireAuth()) return
 
     setLoading(true)
     try {
@@ -65,25 +61,20 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
       setItems(previousMonths)
       syncEdits(previousMonths)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری موجودی اول دوره' }))
-        return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری موجودی اول دوره' })) return
     } finally {
       setLoading(false)
     }
-  }, [currentMonthKey, onReauth, syncEdits])
+  }, [currentMonthKey, syncEdits])
 
   useEffect(() => {
     if (isConfigured()) loadItems()
   }, [loadItems])
 
   const handleSave = async (item: OpeningBalanceWithRow) => {
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     const edit = edits[item.monthKey]
 
@@ -98,7 +89,7 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
     setSavingId(item.monthKey)
     try {
       const updated = await setOpeningBalance(
-        settings.spreadsheetId,
+        spreadsheetId,
         item.monthKey,
         Number(edit.amount),
         edit.note.trim()
@@ -117,7 +108,7 @@ export default function OpeningBalancePage({ onReauth }: { onReauth?: () => void
       }))
       showSuccess(`موجودی ${formatJalaliMonthLabel(item.monthKey)} ذخیره شد`)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره موجودی اول' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره موجودی اول' })) return
       syncEdits([item])
     } finally {
       setSavingId('')

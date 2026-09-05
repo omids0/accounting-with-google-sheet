@@ -1,17 +1,17 @@
 import { showError } from './toast'
 import { isAuthError } from '../services/auth'
+import { requestReauth } from '../stores/appStore'
 
 type HandleSheetErrorOptions = {
-  onReauth?: () => void
   fallbackMessage?: string
 }
 
 /** Handle sheet/API errors. Returns true when an auth error was handled. */
 export function handleSheetError(err: unknown, options: HandleSheetErrorOptions = {}): boolean {
-  const { onReauth, fallbackMessage = 'خطا در انجام عملیات' } = options
+  const { fallbackMessage = 'خطا در انجام عملیات' } = options
 
   if (isAuthError(err)) {
-    onReauth?.()
+    requestReauth()
 
     return true
   }

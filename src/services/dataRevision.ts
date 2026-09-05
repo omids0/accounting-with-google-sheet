@@ -1,22 +1,31 @@
-let revision = 0
+import { create } from 'zustand'
 
-const listeners = new Set<() => void>()
+interface DataRevisionStore {
+  revision: number
+  bump: () => void
+}
+
+const useDataRevisionStore = create<DataRevisionStore>(set => ({
+  revision: 0,
+  bump: () => set(state => ({ revision: state.revision + 1 }))
+}))
 
 export function getDataRevision(): number {
-  return revision
+  return useDataRevisionStore.getState().revision
 }
 
 export function bumpDataRevision(): void {
-  revision += 1
-  for (const listener of listeners) {
-    listener()
-  }
+  useDataRevisionStore.getState().bump()
 }
 
 export function subscribeDataRevision(listener: () => void): () => void {
-  listeners.add(listener)
+  return useDataRevisionStore.subscribe((state, prevState) => {
+    if (state.revision !== prevState.revision) {
+      listener()
+    }
+  })
+}
 
-  return () => {
-    listeners.delete(listener)
-  }
+export function useDataRevision(): number {
+  return useDataRevisionStore(state => state.revision)
 }

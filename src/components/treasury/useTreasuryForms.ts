@@ -2,7 +2,6 @@ import { useState } from 'react'
 
 import type { TransactionWithRow, VaultFormState } from './types'
 import { formatQuantity } from './utils'
-import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
 import {
   createVaultTransaction,
@@ -10,6 +9,7 @@ import {
   updateVaultTransaction
 } from '../../services/treasury'
 import type { VaultAssetType } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
@@ -24,10 +24,7 @@ function createEmptyBuyForm(): VaultFormState {
   }
 }
 
-export function useTreasuryForms(
-  onReauth: (() => void) | undefined,
-  loadItems: () => Promise<void>
-) {
+export function useTreasuryForms(loadItems: () => Promise<void>) {
   const [showForm, setShowForm] = useState(false)
   const [editingTx, setEditingTx] = useState<TransactionWithRow | null>(null)
   const [deletingTx, setDeletingTx] = useState<TransactionWithRow | null>(null)
@@ -77,11 +74,7 @@ export function useTreasuryForms(
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const qty = Number(form.quantity)
 
@@ -131,7 +124,6 @@ export function useTreasuryForms(
     } catch (err) {
       if (
         handleSheetError(err, {
-          onReauth,
           fallbackMessage: editingTx ? 'خطا در ویرایش' : 'خطا در ثبت'
         })
       )
@@ -144,11 +136,7 @@ export function useTreasuryForms(
   const handleSell = async (assetType: VaultAssetType, available: number) => {
     if (!sellForm || sellForm.assetType !== assetType) return
 
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const qty = Number(sellForm.quantity)
 
@@ -189,7 +177,7 @@ export function useTreasuryForms(
       showSuccess('فروش ثبت شد')
       await loadItems()
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ثبت فروش' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در ثبت فروش' })) return
     } finally {
       setSellingAsset(null)
     }
@@ -198,11 +186,7 @@ export function useTreasuryForms(
   const handleDelete = async () => {
     if (!deletingTx) return
 
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()!
 
@@ -213,7 +197,7 @@ export function useTreasuryForms(
       showSuccess('تراکنش حذف شد')
       await loadItems()
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف تراکنش' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در حذف تراکنش' })) return
     } finally {
       setDeleting(false)
     }

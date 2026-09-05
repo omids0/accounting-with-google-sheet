@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import ReportToolbar from './ReportToolbar'
-import { isTokenValid } from '../../services/auth'
 import {
   getDueDateTypeLabel,
   loadDueDatesReport,
@@ -9,6 +8,7 @@ import {
   type DueDateStatus
 } from '../../services/reports'
 import { getSettings, isConfigured } from '../../services/settings'
+import { requireAuth } from '../../utils/authGuard'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { distributionSparkline } from '../../utils/sparklineData'
@@ -31,17 +31,13 @@ function DueDateBadge({ status }: { status: DueDateStatus }) {
   )
 }
 
-export default function DueDatesReportPage({ onReauth }: { onReauth?: () => void }) {
+export default function DueDatesReportPage() {
   const [items, setItems] = useState<DueDateItem[]>([])
 
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()
 
@@ -53,11 +49,11 @@ export default function DueDatesReportPage({ onReauth }: { onReauth?: () => void
 
       setItems(dueItems)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth])
+  }, [])
 
   useEffect(() => {
     load()

@@ -9,7 +9,6 @@ import { buildSearchChip, compactFilterChips } from '../../utils/filterChips'
 
 export function useTreasuryFilters(
   active: boolean,
-  onReauth: (() => void) | undefined,
   refreshTreasury: () => void,
   loading: boolean,
   priceLoading: boolean,
@@ -25,8 +24,7 @@ export function useTreasuryFilters(
       exportFn: exportTreasuryCsv,
       exportPdfFn: exportTreasuryPdf,
       importFn: importTreasuryCsv,
-      onComplete: refreshTreasury,
-      onReauth
+      onComplete: refreshTreasury
     })
 
   const openFilterModal = useCallback(() => {

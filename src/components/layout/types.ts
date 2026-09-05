@@ -91,8 +91,3 @@ export const TAB_TITLES: Record<Tab, string> = {
   'timesheet-detail': 'جزئیات تایم‌شیت',
   about: 'درباره'
 }
-
-export interface LayoutProps {
-  onLogout: () => void
-  onReauth: () => void
-}
