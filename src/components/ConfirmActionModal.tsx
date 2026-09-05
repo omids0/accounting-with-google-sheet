@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import { useModalLock } from '../hooks/useModalLock'
 import { cn } from '../utils/cn'
 import Button from './ui/Button'
 import { spinnerClass } from './ui/displayStyles'
@@ -38,21 +38,7 @@ export default function ConfirmActionModal({
   confirming = false,
   confirmLabel = 'بله'
 }: ConfirmActionModalProps) {
-  useEffect(() => {
-    if (!open) return
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !confirming) onClose()
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [open, confirming, onClose])
+  const { panelRef } = useModalLock({ open, onClose, blocked: confirming })
 
   if (!open) return null
 
@@ -72,7 +58,7 @@ export default function ConfirmActionModal({
         aria-label="بستن"
       />
 
-      <div className={formModalPanelClass}>
+      <div ref={panelRef} className={formModalPanelClass}>
         <div className={formModalHeaderClass}>
           <h2 id="confirm-action-title" className={formModalTitleClass}>
             {title}
@@ -83,12 +69,13 @@ export default function ConfirmActionModal({
             onClick={onClose}
             disabled={confirming}
             aria-label="بستن"
+            data-modal-close
           >
             <AppIcon name="close" size={18} strokeWidth={2} />
           </button>
         </div>
 
-        <div className={formModalBodyClass}>
+        <div className={formModalBodyClass} aria-busy={confirming}>
           <p className={confirmDeleteMessageClass}>{message}</p>
         </div>
 

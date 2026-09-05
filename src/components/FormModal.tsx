@@ -1,7 +1,8 @@
-import { useEffect, type FormEvent, type ReactNode } from 'react'
+import { type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
+import { useModalLock } from '../hooks/useModalLock'
 import { cn } from '../utils/cn'
 import Button, { type ButtonVariant } from './ui/Button'
 import { formActionsClassName } from './ui/formStyles'
@@ -38,21 +39,7 @@ export default function FormModal({
   saveButtonVariant = 'primary',
   children
 }: FormModalProps) {
-  useEffect(() => {
-    if (!open) return
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !saving) onClose()
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [open, saving, onClose])
+  const { panelRef } = useModalLock({ open, onClose, blocked: saving })
 
   if (!open) return null
 
@@ -72,7 +59,7 @@ export default function FormModal({
         aria-label="بستن"
       />
 
-      <div className={formModalPanelClass}>
+      <div ref={panelRef} className={formModalPanelClass}>
         <div className={formModalHeaderClass}>
           <h2 id="form-modal-title" className={formModalTitleClass}>
             {title}
@@ -83,12 +70,13 @@ export default function FormModal({
             onClick={onClose}
             disabled={saving}
             aria-label="بستن"
+            data-modal-close
           >
             <AppIcon name="close" size={18} strokeWidth={2} />
           </button>
         </div>
 
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSubmit} aria-busy={saving}>
           <div className={formModalBodyClass}>{children}</div>
 
           <div className={cn(formModalActionsClass, formActionsClassName())}>

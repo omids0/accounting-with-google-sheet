@@ -7,8 +7,8 @@ export const formModalRootClass = cn(
 )
 
 export const formModalBackdropClass = cn(
-  'absolute inset-0 cursor-default border-none bg-[var(--color-overlay)]',
-  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[3px]'
+  'absolute inset-0 cursor-default border-none bg-[var(--color-overlay-light)]',
+  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[4px]'
 )
 
 export const formModalPanelClass = cn(
@@ -17,7 +17,7 @@ export const formModalPanelClass = cn(
   'border border-[color-mix(in_srgb,var(--color-border)_72%,transparent)] backdrop-blur-xl backdrop-saturate-150',
   '[background:linear-gradient(165deg,color-mix(in_srgb,var(--color-surface)_92%,transparent)_0%,color-mix(in_srgb,var(--color-surface)_80%,transparent)_100%)]',
   'shadow-[0_12px_40px_rgba(15,23,42,0.14),inset_0_1px_0_rgba(255,255,255,0.55)]',
-  'animate-[form-modal-in_var(--duration-normal)_var(--ease-out)]',
+  'animate-[form-modal-in_var(--duration-normal)_var(--ease-out)] motion-reduce:animate-none',
   'min-[520px]:rounded-[calc(var(--radius)+4px)]',
   '[&_form]:flex [&_form]:min-h-0 [&_form]:flex-1 [&_form]:flex-col'
 )
@@ -40,8 +40,9 @@ export const formModalTitleClass = cn(
 export const formModalCloseClass = cn(
   'col-start-2 row-start-2 flex h-touch-min w-touch-min flex-shrink-0 cursor-pointer items-center justify-center',
   'self-center rounded-full border border-border bg-[var(--form-input-bg)] p-0 leading-none text-muted',
-  'transition-[background,color,border-color] duration-[var(--duration-fast)]',
+  'transition-[background,color,border-color,box-shadow] duration-[var(--duration-fast)]',
   'hover:enabled:border-[var(--form-input-border-hover)] hover:enabled:bg-accent-soft hover:enabled:text-text',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]',
   'disabled:cursor-not-allowed disabled:opacity-40'
 )
 
@@ -53,7 +54,8 @@ export const formModalBodyClass = cn(
 export const formModalActionsClass = cn(
   'mt-0 flex-shrink-0 items-center border-t border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] px-[1.15rem] pb-[calc(1.1rem+var(--safe-bottom))] pt-[0.9rem]',
   '[background:linear-gradient(0deg,color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)_0%,transparent_100%)]',
-  '[&>button]:min-w-[6.5rem] [&>button]:flex-1'
+  '[&>button]:min-w-[6.5rem] [&>button]:flex-1',
+  '[&>button]:focus-visible:outline-none [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] [&>button]:focus-visible:ring-offset-2 [&>button]:focus-visible:ring-offset-[var(--color-surface)]'
 )
 
 export const formModalSpinnerClass = 'flex-shrink-0'
