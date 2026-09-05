@@ -5,6 +5,7 @@ import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
   dangCardBodyClass,
+  dangCardContentRowClass,
   dangCardHeaderClass,
   installmentCardClass,
   installmentHeaderClass,
@@ -172,26 +173,30 @@ export function WalletAccountCardSkeleton() {
 export function DangCardSkeleton() {
   return (
     <div className={cardClassName(cn('dang-card', skeletonCardClass))} aria-hidden="true">
-      <Skeleton
-        variant="circle"
-        width="1.2rem"
-        height="1.2rem"
-        style={{ marginTop: '0.2rem', flexShrink: 0 }}
-      />
-      <div className={dangCardBodyClass}>
-        <div className={dangCardHeaderClass}>
-          <Skeleton width="45%" height="0.95rem" />
+      <div className={cardHeaderWithEditClass}>
+        <div className={dangCardContentRowClass}>
           <Skeleton
-            width="5.5rem"
-            height="1.75rem"
-            style={{ borderRadius: '8px', flexShrink: 0 }}
+            variant="circle"
+            width="1.35rem"
+            height="1.35rem"
+            style={{ marginTop: '0.1rem', flexShrink: 0 }}
           />
+          <div className={dangCardBodyClass}>
+            <div className={dangCardHeaderClass}>
+              <Skeleton width="45%" height="0.95rem" />
+              <Skeleton
+                width="5.5rem"
+                height="1.75rem"
+                style={{ borderRadius: '8px', flexShrink: 0 }}
+              />
+            </div>
+            <Skeleton width="68%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
+          </div>
         </div>
-        <Skeleton width="68%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
-      </div>
-      <div className={cardActionButtonsClass}>
-        <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-        <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+        <div className={cardActionButtonsClass}>
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+        </div>
       </div>
     </div>
   )

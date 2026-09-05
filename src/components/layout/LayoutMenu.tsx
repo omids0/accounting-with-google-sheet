@@ -7,7 +7,10 @@ import {
   appMenuAvatarPlaceholderClass,
   appMenuBackdropClass,
   appMenuChevronClass,
+  appMenuDividerClass,
   appMenuDrawerClass,
+  appMenuFooterClass,
+  appMenuFooterTextClass,
   appMenuGreetingClass,
   appMenuGroupClass,
   appMenuItemClass,
@@ -16,6 +19,7 @@ import {
   appMenuItemsClass,
   appMenuNameClass,
   appMenuProfileClass,
+  appMenuProfileInnerClass,
   appMenuProfileTextClass,
   appMenuSubmenuClass
 } from '../ui/layoutStyles'
@@ -73,16 +77,18 @@ export default function LayoutMenu({
       />
       <nav className={appMenuDrawerClass} aria-label="منوی اصلی">
         <div className={appMenuProfileClass}>
-          {userPicture ? (
-            <LazyImage src={userPicture} alt="" className={appMenuAvatarClass} />
-          ) : (
-            <div className={appMenuAvatarPlaceholderClass} aria-hidden>
-              <AppIcon name="dashboard" size={28} strokeWidth={1.5} />
+          <div className={appMenuProfileInnerClass}>
+            {userPicture ? (
+              <LazyImage src={userPicture} alt="" className={appMenuAvatarClass} />
+            ) : (
+              <div className={appMenuAvatarPlaceholderClass} aria-hidden>
+                <AppIcon name="dashboard" size={28} strokeWidth={1.5} />
+              </div>
+            )}
+            <div className={appMenuProfileTextClass}>
+              {userName && <div className={appMenuNameClass}>{userName}</div>}
+              <div className={appMenuGreetingClass}>سلام، خوش آمدید</div>
             </div>
-          )}
-          <div className={appMenuProfileTextClass}>
-            {userName && <div className={appMenuNameClass}>{userName}</div>}
-            <div className={appMenuGreetingClass}>سلام، خوش آمدید</div>
           </div>
         </div>
         <div className={appMenuItemsClass}>
@@ -171,6 +177,7 @@ export default function LayoutMenu({
               </div>
             )}
           </div>
+          <div className={appMenuDividerClass} aria-hidden="true" />
           <button
             type="button"
             className={appMenuItemClass(tab === 'about')}
@@ -187,6 +194,9 @@ export default function LayoutMenu({
             </span>
             تنظیمات
           </button>
+        </div>
+        <div className={appMenuFooterClass}>
+          <p className={appMenuFooterTextClass}>حسابداری شخصی</p>
         </div>
       </nav>
     </>

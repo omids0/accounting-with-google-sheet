@@ -1,6 +1,5 @@
 import { useRef } from 'react'
 
-import AppIcon from './AppIcon'
 import {
   amountFieldClass,
   amountFieldCompactClass,
@@ -11,6 +10,7 @@ import {
   amountFieldInputWrapClass,
   amountFieldInputWrapCompactClass,
   amountFieldSubmitBtnClass,
+  amountFieldSubmitBtnLabelClass,
   amountWordsClass
 } from './ui/formControlStyles'
 import { cn } from '../utils/cn'
@@ -94,9 +94,10 @@ export default function AmountInput({
                 handleSubmit()
               }}
               disabled={submitDisabled}
-              aria-label="ثبت"
+              aria-label="تأیید مبلغ وارده"
+              title="تأیید مبلغ"
             >
-              <AppIcon name="check" size={14} strokeWidth={2.5} />
+              <span className={amountFieldSubmitBtnLabelClass}>تأیید</span>
             </button>
           )}
           <input

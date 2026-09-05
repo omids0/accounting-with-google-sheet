@@ -67,7 +67,8 @@ export const listCardAmountPillClass = cn(
 
 export const cardHeaderWithEditClass = cn(
   'card-header-with-edit flex items-start',
-  '[&_.installment-header]:min-w-0 [&_.installment-header]:flex-1'
+  '[&_.installment-header]:min-w-0 [&_.installment-header]:flex-1',
+  '[&_.dang-card-content]:min-w-0 [&_.dang-card-content]:flex-1'
 )
 
 export const cardActionButtonsClass = cn(
@@ -75,7 +76,6 @@ export const cardActionButtonsClass = cn(
   'rounded-[calc(var(--radius-sm)-2px)] border border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)] p-[0.2rem]',
   '[&_.card-action-btn]:h-touch-min [&_.card-action-btn]:w-touch-min [&_.card-action-btn]:rounded-md',
   '[.card-header-with-edit_&]:m-2 [.card-header-with-edit_&]:ms-0 [.card-header-with-edit_&]:mt-2 [.card-header-with-edit_&]:self-start',
-  '[.dang-card_&]:m-2 [.dang-card_&]:self-start',
   '[.wallet-item-card_&]:m-2 [.wallet-item-card_&]:ms-0 [.wallet-item-card_&]:mt-2 [.wallet-item-card_&]:self-start'
 )
 
@@ -180,13 +180,15 @@ export const installmentDueLineClass = cn(
 
 export const installmentRangeLineClass = 'mb-[0.3rem] mt-[0.25rem]'
 
-const listCardCheckboxShellBase = cn(
-  interactiveCardClass,
-  'list-card relative flex items-start gap-2 overflow-hidden p-0',
+const listCardCheckboxShellBase = cn(interactiveCardClass, 'list-card relative overflow-hidden p-0')
+
+/** Checkbox + body row inside list cards (dang, checks, timesheet). */
+export const dangCardContentRowClass = cn(
+  'dang-card-content flex min-w-0 flex-1 items-start gap-2',
   listCardInsetClass
 )
 
-/** Checkbox row list cards (timesheet entries, dang, checks). Inner padding via listCardInsetClass. */
+/** Checkbox list cards (timesheet entries). Outer shell is p-0; use dangCardContentRowClass for inset. */
 export function listCardCheckboxShellClass(className?: string) {
   return cardClassName(cn(listCardCheckboxShellBase, className))
 }
@@ -243,7 +245,7 @@ export const dangCardNoteClass = 'm-[0.28rem_0_0] text-[0.76rem] leading-[1.45] 
 
 export const dangPaidAtClass = 'm-[0.5rem_0_0] text-[0.75rem] font-medium text-primary'
 
-export const dangCardAmountEditClass = 'px-0 pb-[0.15rem] pt-[0.35rem]'
+export const dangCardAmountEditClass = 'pt-[0.35rem] pb-[0.15rem]'
 
 export const dangTotalFooterClass = cn(
   'mt-1 flex items-center justify-between bg-bg px-5 py-[0.85rem] text-center',

@@ -207,7 +207,7 @@ export const amountFieldInputWrapClass = cn(
   'focus-within:border-primary focus-within:shadow-[var(--form-input-focus-shadow)]'
 )
 
-export const amountFieldInputWrapCompactClass = 'min-h-[2.4rem]'
+export const amountFieldInputWrapCompactClass = 'min-h-touch-min'
 
 export const amountFieldInputClass = cn(
   'min-h-touch-min min-w-0 flex-1 border-none! bg-transparent! px-[0.9rem] py-[0.72rem] text-[1.05rem] font-bold tracking-[0.02em] shadow-none! outline-none'
@@ -215,18 +215,27 @@ export const amountFieldInputClass = cn(
 
 export const amountFieldInputCompactClass = cn(
   amountFieldInputClass,
-  'min-h-0 px-[0.65rem] py-[0.52rem] text-[0.92rem] text-left tabular-nums'
+  'min-h-0 px-[0.65rem] py-[0.55rem] text-[0.92rem] text-left tabular-nums'
 )
 
 export const amountFieldCurrencyClass =
-  'inline-flex items-center whitespace-nowrap border-r border-border bg-accent-soft px-[0.85rem] text-[0.78rem] font-bold text-primary-dark'
+  'inline-flex items-center whitespace-nowrap border-s border-border bg-accent-soft px-[0.85rem] text-[0.78rem] font-bold text-primary-dark'
 
 export const amountFieldCurrencyCompactClass = 'px-[0.55rem] text-[0.68rem] font-bold'
 
 export const amountFieldSubmitBtnClass = cn(
-  'inline-flex h-full min-h-[2.4rem] w-8 shrink-0 cursor-pointer items-center justify-center border-none border-l border-border bg-transparent p-0 text-primary transition-[background,color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  'hover:enabled:bg-[var(--color-success-bg)] hover:enabled:text-success disabled:cursor-not-allowed disabled:opacity-45'
+  'amount-field-submit inline-flex min-h-touch-min shrink-0 cursor-pointer items-center justify-center border-none px-[0.7rem] py-0',
+  'border-s border-[color-mix(in_srgb,var(--color-primary-dark)_35%,rgba(255,255,255,0.35))]',
+  'text-[0.72rem] font-extrabold tracking-[0.01em] text-white',
+  '[background:linear-gradient(145deg,var(--color-primary-dark)_0%,var(--color-primary)_52%,var(--color-primary-light)_100%)]',
+  'shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]',
+  'transition-[filter,transform,opacity] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
+  'hover:enabled:brightness-105 active:enabled:scale-[0.96]',
+  'focus-visible:outline-none focus-visible:shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_0_0_3px_var(--color-focus-ring)]',
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:[background:color-mix(in_srgb,var(--color-border)_70%,var(--color-surface))] disabled:text-muted disabled:shadow-none'
 )
+
+export const amountFieldSubmitBtnLabelClass = 'whitespace-nowrap leading-none'
 
 export const amountWordsClass =
   'm-0 rounded-sm border border-dashed border-border bg-accent-soft px-[0.65rem] py-[0.45rem] text-[0.78rem] leading-[1.55] text-muted'
