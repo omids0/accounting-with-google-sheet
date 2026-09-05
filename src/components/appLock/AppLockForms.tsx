@@ -5,6 +5,7 @@ import {
   appLockCheckboxClass,
   appLockFormActionsClass,
   appLockFormClass,
+  appLockPinFieldProps,
   appLockPinInputClass
 } from '../ui/appLockStyles'
 import Button from '../ui/Button'
@@ -42,13 +43,11 @@ export function PinFieldsForm({
   onCancel
 }: PinFieldsFormProps) {
   return (
-    <form onSubmit={onSubmit} className={appLockFormClass}>
+    <form onSubmit={onSubmit} className={appLockFormClass} autoComplete="off">
       <FormField label={step === 'change-pin' ? 'رمز جدید' : 'رمز'}>
         <input
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
+          {...appLockPinFieldProps}
+          name="acct-app-lock-pin-new"
           value={pinValue}
           onChange={e => onPinChange(e.target.value.replace(/\D/g, ''))}
           placeholder="حداقل ۴ رقم"
@@ -59,10 +58,8 @@ export function PinFieldsForm({
       </FormField>
       <FormField label="تکرار رمز">
         <input
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
+          {...appLockPinFieldProps}
+          name="acct-app-lock-pin-confirm"
           value={confirmValue}
           onChange={e => onConfirmChange(e.target.value.replace(/\D/g, ''))}
           placeholder="تکرار رمز"
@@ -115,13 +112,11 @@ export function CurrentPinForm({
   onCancel
 }: CurrentPinFormProps) {
   return (
-    <form onSubmit={onSubmit} className={appLockFormClass}>
+    <form onSubmit={onSubmit} className={appLockFormClass} autoComplete="off">
       <FormField label="رمز فعلی">
         <input
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
+          {...appLockPinFieldProps}
+          name="acct-app-lock-pin-current"
           value={currentPin}
           onChange={e => onCurrentPinChange(e.target.value.replace(/\D/g, ''))}
           placeholder="رمز فعلی"
@@ -167,13 +162,11 @@ export function ChangePinForm({
   onCancel
 }: ChangePinFormProps) {
   return (
-    <form onSubmit={onSubmit} className={appLockFormClass}>
+    <form onSubmit={onSubmit} className={appLockFormClass} autoComplete="off">
       <FormField label="رمز فعلی">
         <input
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
+          {...appLockPinFieldProps}
+          name="acct-app-lock-pin-current"
           value={currentPin}
           onChange={e => onCurrentPinChange(e.target.value.replace(/\D/g, ''))}
           placeholder="رمز فعلی"
@@ -184,10 +177,8 @@ export function ChangePinForm({
       </FormField>
       <FormField label="رمز جدید">
         <input
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
+          {...appLockPinFieldProps}
+          name="acct-app-lock-pin-new"
           value={pin}
           onChange={e => onPinChange(e.target.value.replace(/\D/g, ''))}
           placeholder="حداقل ۴ رقم"
@@ -198,10 +189,8 @@ export function ChangePinForm({
       </FormField>
       <FormField label="تکرار رمز جدید">
         <input
-          type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
+          {...appLockPinFieldProps}
+          name="acct-app-lock-pin-confirm"
           value={confirmPin}
           onChange={e => onConfirmPinChange(e.target.value.replace(/\D/g, ''))}
           placeholder="تکرار رمز"

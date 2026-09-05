@@ -99,6 +99,20 @@ export const appLockFormClass =
 
 export const appLockPinInputClass = 'text-left tabular-nums tracking-[0.2em]'
 
+/** Local app-lock PIN — never use password type or autofill hints. */
+export const appLockPinFieldProps = {
+  type: 'tel' as const,
+  inputMode: 'numeric' as const,
+  pattern: '[0-9]*',
+  autoComplete: 'off',
+  autoCapitalize: 'off',
+  autoCorrect: 'off',
+  spellCheck: false,
+  'data-lpignore': 'true',
+  'data-1p-ignore': 'true',
+  'data-form-type': 'other'
+}
+
 export const appLockFormActionsClass = 'flex flex-wrap gap-2'
 
 export const appLockCheckboxClass =
