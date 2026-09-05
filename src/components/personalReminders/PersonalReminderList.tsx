@@ -1,11 +1,13 @@
 import PersonalReminderCard from './PersonalReminderCard'
 import type { PersonalReminderWithRow } from './types'
 import AppIcon from '../AppIcon'
+import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 type PersonalReminderListProps = {
   items: PersonalReminderWithRow[]
+  filteredItems: PersonalReminderWithRow[]
   loading: boolean
   completingId: string
   onComplete: (item: PersonalReminderWithRow) => void
@@ -15,6 +17,7 @@ type PersonalReminderListProps = {
 
 export default function PersonalReminderList({
   items,
+  filteredItems,
   loading,
   completingId,
   onComplete,
@@ -36,9 +39,13 @@ export default function PersonalReminderList({
     )
   }
 
+  if (filteredItems.length === 0) {
+    return <SearchEmptyState />
+  }
+
   return (
     <>
-      {items.map(item => (
+      {filteredItems.map(item => (
         <PersonalReminderCard
           key={item.id}
           item={item}

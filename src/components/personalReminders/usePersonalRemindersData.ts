@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import type { PersonalReminderWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
+import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import {
   completePersonalReminder,
   deletePersonalReminder,
@@ -10,6 +11,11 @@ import {
   getPersonalReminderCompletionMessage,
   sortPersonalReminders
 } from '../../services/personalReminders'
+import {
+  exportPersonalRemindersCsv,
+  exportPersonalRemindersPdf,
+  importPersonalRemindersCsv
+} from '../../services/personalRemindersSheetIO'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
@@ -120,6 +126,14 @@ export function usePersonalRemindersData() {
     }
   }
 
+  const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
+    useSheetImportExport({
+      exportFn: exportPersonalRemindersCsv,
+      exportPdfFn: exportPersonalRemindersPdf,
+      importFn: importPersonalRemindersCsv,
+      onComplete: loadItems
+    })
+
   return {
     items,
     loading,
@@ -136,6 +150,10 @@ export function usePersonalRemindersData() {
     handleDelete,
     openCompleteConfirm,
     closeCompleteConfirm,
-    handleComplete
+    handleComplete,
+    handleExport,
+    handleExportPdf,
+    handleImport,
+    importExportConfirmModal
   }
 }

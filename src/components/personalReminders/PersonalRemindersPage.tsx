@@ -3,13 +3,17 @@ import { useMemo } from 'react'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
+import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
+import FilterModal from '../FilterModal'
+import PageFilterPanel from '../PageFilterPanel'
 import PersonalReminderFormModal from './PersonalReminderFormModal'
 import PersonalReminderList from './PersonalReminderList'
 import type { PersonalRemindersPageProps } from './types'
 import { usePersonalRemindersData } from './usePersonalRemindersData'
+import { usePersonalRemindersFilters } from './usePersonalRemindersFilters'
 import { usePersonalRemindersForm } from './usePersonalRemindersForm'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
@@ -17,16 +21,49 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
   const data = usePersonalRemindersData()
   const form = usePersonalRemindersForm({ onSaved: data.loadItems })
 
+  const {
+    filterModalOpen,
+    setFilterModalOpen,
+    draftSearch,
+    setDraftSearch,
+    draftPaymentStatus,
+    setDraftPaymentStatus,
+    draftCategory,
+    setDraftCategory,
+    draftDatePreset,
+    draftCustomRange,
+    categoryOptions,
+    filteredItems,
+    openFilterModal,
+    filterChips,
+    clearAllFilters,
+    handleDraftDateFilterChange,
+    clearDraftFilters,
+    applyFilters
+  } = usePersonalRemindersFilters({ items: data.items })
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات یادآوری',
       actions: createPageSpeedDialActions({
         onAdd: () => form.openCreateForm(),
+        onFilter: openFilterModal,
         onRefresh: data.loadItems,
-        refreshDisabled: data.loading
+        refreshDisabled: data.loading,
+        onImport: data.handleImport,
+        onExport: data.handleExport,
+        onExportPdf: data.handleExportPdf
       })
     }),
-    [data.loadItems, data.loading, form.openCreateForm]
+    [
+      data.handleExport,
+      data.handleExportPdf,
+      data.handleImport,
+      data.loadItems,
+      data.loading,
+      form.openCreateForm,
+      openFilterModal
+    ]
   )
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
@@ -44,8 +81,41 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
 
   return (
     <div>
+      <ActiveFilterChips
+        chips={filterChips}
+        onOpenFilters={openFilterModal}
+        onClearAll={clearAllFilters}
+      />
+
+      <FilterModal
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={applyFilters}
+        onClear={clearDraftFilters}
+      >
+        <PageFilterPanel
+          search={draftSearch}
+          onSearchChange={setDraftSearch}
+          searchPlaceholder="جستجو در یادآوری‌ها..."
+          paymentStatus={draftPaymentStatus}
+          onPaymentStatusChange={setDraftPaymentStatus}
+          paymentStatusPaidLabel="غیرفعال"
+          paymentStatusUnpaidLabel="فعال"
+          category={draftCategory}
+          onCategoryChange={setDraftCategory}
+          categoryOptions={categoryOptions}
+          datePreset={draftDatePreset}
+          customRange={draftCustomRange}
+          onDateFilterChange={handleDraftDateFilterChange}
+          dateIncludeAll
+          dateLabel="بازه زمانی (موعد)"
+          dateLoading={data.loading}
+        />
+      </FilterModal>
+
       <PersonalReminderList
         items={data.items}
+        filteredItems={filteredItems}
         loading={data.loading}
         completingId={data.completingId}
         onComplete={data.openCompleteConfirm}
@@ -70,6 +140,8 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
         confirming={Boolean(data.completingId)}
         confirmLabel="تأیید"
       />
+
+      <ConfirmActionModal {...data.importExportConfirmModal} />
 
       <ConfirmDeleteModal
         open={data.deletingItem !== null}

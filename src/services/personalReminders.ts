@@ -94,6 +94,24 @@ function personalReminderToRow(item: PersonalReminder): string[] {
   ]
 }
 
+export function personalReminderRowFromImportCells(cells: (string | undefined)[]): string[] | null {
+  const title = String(cells[3] ?? '').trim()
+
+  if (!title) return null
+
+  return personalReminderToRow({
+    id: cells[0] ?? '',
+    createdAt: cells[1] ?? '',
+    category: parseCategory(cells[2] ?? ''),
+    title,
+    dueDate: cells[4] ?? '',
+    recurrence: parseRecurrence(cells[5] ?? ''),
+    amount: Number(cells[6]) || 0,
+    daysBefore: Math.max(0, Number(cells[7]) || 0),
+    enabled: parseBool(cells[8])
+  })
+}
+
 export function getPersonalReminderCategoryLabel(category: PersonalReminderCategory): string {
   return PERSONAL_REMINDER_CATEGORIES.find(item => item.value === category)?.label ?? 'سایر'
 }
