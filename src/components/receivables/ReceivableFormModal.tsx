@@ -14,7 +14,6 @@ type ReceivableFormModalProps = {
   saving: boolean
   onClose: () => void
   onSubmit: (e: React.FormEvent) => void
-  onReauth?: () => void
 }
 
 export default function ReceivableFormModal({
@@ -26,8 +25,7 @@ export default function ReceivableFormModal({
   setCategories,
   saving,
   onClose,
-  onSubmit,
-  onReauth
+  onSubmit
 }: ReceivableFormModalProps) {
   return (
     <FormModal
@@ -59,7 +57,6 @@ export default function ReceivableFormModal({
               setForm(f => ({ ...f, category: next[0] ?? '' }))
             }
           }}
-          onReauth={onReauth}
           aria-label="دسته‌بندی طلب"
         />
       </FormField>

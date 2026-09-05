@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -11,7 +11,6 @@ import {
 } from './types'
 import { useEngagementReminders } from '../../hooks/useEngagementReminders'
 import { usePageSpeedDialConfig } from '../../hooks/usePageSpeedDial'
-import type { LayoutOutletContext } from '../../routes/layoutOutletContext'
 import type { TabNavigationOptions } from '../../routes/paths'
 import {
   getPathForTab,
@@ -21,21 +20,18 @@ import {
   SETTINGS_PATH
 } from '../../routes/paths'
 import { getUserName, getUserPicture } from '../../services/auth'
+import { useAppStore } from '../../stores/appStore'
+import { useNavigationStore } from '../../stores/navigationStore'
 import type { DashboardNavTarget } from '../../types'
 
 interface TimesheetRouteState {
   title?: string
 }
 
-interface UseLayoutNavigationOptions {
-  onLogout: () => void
-  onReauth: () => void
-}
-
-export function useLayoutNavigation({ onLogout, onReauth }: UseLayoutNavigationOptions) {
+export function useLayoutNavigation() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [dataKey, setDataKey] = useState(0)
+  const spreadsheetKey = useAppStore(state => state.spreadsheetKey)
   const [menuOpen, setMenuOpen] = useState(false)
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false)
   const [reportsMenuExpanded, setReportsMenuExpanded] = useState(false)
@@ -116,6 +112,15 @@ export function useLayoutNavigation({ onLogout, onReauth }: UseLayoutNavigationO
   }, [navigate])
 
   useEffect(() => {
+    useNavigationStore.getState().registerNavigation({
+      onTabChange: handleTabChange,
+      onOpenRecords: openRecords,
+      onOpenEntry: openEntry,
+      onNavigateDashboard
+    })
+  }, [handleTabChange, onNavigateDashboard, openEntry, openRecords])
+
+  useEffect(() => {
     if (!menuOpen) return
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -172,22 +177,9 @@ export function useLayoutNavigation({ onLogout, onReauth }: UseLayoutNavigationO
     ? timesheetTitle
     : TAB_TITLES[tab]
 
-  const outletContext = useMemo<LayoutOutletContext>(
-    () => ({
-      onReauth,
-      onLogout,
-      onDataKeyChange: () => setDataKey(key => key + 1),
-      onTabChange: handleTabChange,
-      onOpenRecords: openRecords,
-      onOpenEntry: openEntry,
-      onNavigateDashboard
-    }),
-    [handleTabChange, onLogout, onNavigateDashboard, onReauth, openEntry, openRecords]
-  )
-
   return {
     tab,
-    dataKey,
+    spreadsheetKey,
     showSettings,
     menuOpen,
     setMenuOpen,
@@ -211,7 +203,6 @@ export function useLayoutNavigation({ onLogout, onReauth }: UseLayoutNavigationO
     isCalculationTab,
     isReportTab,
     isTimesheetTab,
-    headerTitle,
-    outletContext
+    headerTitle
   }
 }

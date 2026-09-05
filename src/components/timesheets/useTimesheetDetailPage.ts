@@ -9,7 +9,6 @@ import { useTimesheetEntryFilters } from './useTimesheetEntryFilters'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
-import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import {
@@ -21,6 +20,7 @@ import {
   totalDurationMinutes
 } from '../../services/timesheet'
 import type { Timesheet, TimesheetEntry } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import {
   calcDurationMinutes,
   getNowDateTimeIso,
@@ -32,7 +32,7 @@ import { handleSheetError } from '../../utils/sheetError'
 
 export type TimesheetEntryWithRow = TimesheetEntry & { rowNumber: number }
 
-export function useTimesheetDetailPage(timesheet: Timesheet, onReauth?: () => void) {
+export function useTimesheetDetailPage(timesheet: Timesheet) {
   const [items, setItems] = useState<TimesheetEntryWithRow[]>([])
 
   const [showForm, setShowForm] = useState(false)
@@ -80,11 +80,7 @@ export function useTimesheetDetailPage(timesheet: Timesheet, onReauth?: () => vo
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) return
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!requireAuth()) return
 
     setLoading(true)
     try {
@@ -94,11 +90,11 @@ export function useTimesheetDetailPage(timesheet: Timesheet, onReauth?: () => vo
 
       setItems(data)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری رکوردها' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری رکوردها' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth, timesheet.id])
+  }, [timesheet.id])
 
   useEffect(() => {
     if (isConfigured()) loadItems()
@@ -136,8 +132,7 @@ export function useTimesheetDetailPage(timesheet: Timesheet, onReauth?: () => vo
         exportTimesheetEntriesPdf(spreadsheetId, timesheet.id, timesheet.title),
       importFn: (spreadsheetId, csvContent) =>
         importTimesheetEntriesCsv(spreadsheetId, timesheet.id, csvContent),
-      onComplete: loadItems,
-      onReauth
+      onComplete: loadItems
     })
 
   const handleStartChange = (startAt: string) => {
@@ -162,7 +157,6 @@ export function useTimesheetDetailPage(timesheet: Timesheet, onReauth?: () => vo
       await toggleTimesheetEntryChecked({
         item,
         checked,
-        onReauth,
         onUpdated: (entry, nextChecked) => {
           setItems(current =>
             current.map(row => (row.id === entry.id ? { ...row, checked: nextChecked } : row))
@@ -184,7 +178,6 @@ export function useTimesheetDetailPage(timesheet: Timesheet, onReauth?: () => vo
         editingItem,
         form,
         durationMinutes,
-        onReauth,
         onSuccess: async () => {
           setShowForm(false)
           await loadItems()

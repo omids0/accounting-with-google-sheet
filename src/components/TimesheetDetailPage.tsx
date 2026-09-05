@@ -18,14 +18,12 @@ import { useTimesheetDetailPage } from './timesheets/useTimesheetDetailPage'
 
 export default function TimesheetDetailPage({
   timesheet,
-  onReauth,
   active = true
 }: {
   timesheet: Timesheet
-  onReauth?: () => void
   active?: boolean
 }) {
-  const page = useTimesheetDetailPage(timesheet, onReauth)
+  const page = useTimesheetDetailPage(timesheet)
 
   useRegisterPageSpeedDial(isConfigured() ? page.pageSpeedDialConfig : null, active)
 

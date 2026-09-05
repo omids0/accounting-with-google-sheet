@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
-import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import { isConfigured } from '../../services/settings'
@@ -10,6 +9,7 @@ import {
   exportWalletAccountsPdf,
   importWalletAccountsCsv
 } from '../../services/wallet'
+import { useNavigationStore } from '../../stores/navigationStore'
 import { distributionSparkline, flowTrendSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
@@ -30,18 +30,12 @@ import WalletFormModal from './WalletFormModal'
 import WalletOpeningBalanceCard from './WalletOpeningBalanceCard'
 import WalletReconciliationAlert from './WalletReconciliationAlert'
 
-export default function WalletPage({
-  onReauth,
-  onOpenOpeningBalances,
-  active = true
-}: WalletPageProps) {
+export default function WalletPage({ active = true }: WalletPageProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const [openingExpanded, setOpeningExpanded] = useState(false)
 
-  const dataRevision = useDataRefresh()
-
-  const data = useWalletData(onReauth, dataRevision)
+  const data = useWalletData()
 
   const filters = useWalletFilters(data.items)
 
@@ -56,7 +50,6 @@ export default function WalletPage({
     openingInput: data.openingInput,
     setOpeningInput: data.setOpeningInput,
     loadItems: data.loadItems,
-    onReauth,
     expandedId,
     setExpandedId
   })
@@ -66,8 +59,7 @@ export default function WalletPage({
       exportFn: exportWalletAccountsCsv,
       exportPdfFn: exportWalletAccountsPdf,
       importFn: importWalletAccountsCsv,
-      onComplete: data.loadItems,
-      onReauth
+      onComplete: data.loadItems
     })
 
   const pageSpeedDialConfig = useMemo(
@@ -141,7 +133,9 @@ export default function WalletPage({
           onToggleExpanded={() => setOpeningExpanded(v => !v)}
           onOpeningInputChange={data.setOpeningInput}
           onSave={mutations.handleSaveOpeningBalance}
-          onOpenOpeningBalances={onOpenOpeningBalances}
+          onOpenOpeningBalances={() =>
+            useNavigationStore.getState().onTabChange('opening-balances')
+          }
         />
       )}
 

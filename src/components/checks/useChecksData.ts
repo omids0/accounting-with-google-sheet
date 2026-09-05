@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from 'react'
 import type { CheckWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { usePaidItemActions } from '../../hooks/usePaidItemActions'
-import { isTokenValid } from '../../services/auth'
 import {
   deleteCheck,
   ensureChecksSheet,
@@ -16,9 +15,10 @@ import {
 } from '../../services/checks'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
+import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 
-export function useChecksData(onReauth?: () => void) {
+export function useChecksData() {
   const [items, setItems] = useState<CheckWithRow[]>([])
   const [loading, setLoading] = useState(() => {
     const settings = getSettings()
@@ -32,11 +32,7 @@ export function useChecksData(onReauth?: () => void) {
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) return
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!requireAuth()) return
 
     setLoading(true)
     try {
@@ -46,11 +42,11 @@ export function useChecksData(onReauth?: () => void) {
 
       setItems(data)
     } catch (err) {
-      handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری چک‌ها' })
+      handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری چک‌ها' })
     } finally {
       setLoading(false)
     }
-  }, [onReauth])
+  }, [])
 
   useEffect(() => {
     if (isConfigured()) loadItems()
@@ -58,7 +54,6 @@ export function useChecksData(onReauth?: () => void) {
 
   const paidActions = usePaidItemActions({
     setItems,
-    onReauth,
     loadItems,
     togglePaid: toggleCheckPaid,
     deleteItem: deleteCheck,

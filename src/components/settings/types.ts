@@ -1,10 +1,5 @@
 import type { FieldType, ThemeMode } from '../../types'
 
-export type SettingsPageProps = {
-  onLogout?: () => void
-  onSpreadsheetChange?: () => void
-}
-
 export const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'text', label: 'متن' },
   { value: 'number', label: 'عدد' },

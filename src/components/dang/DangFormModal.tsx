@@ -14,7 +14,6 @@ export type DangFormModalProps = {
   onSubmit: (e: React.FormEvent) => void
   onFormChange: (updater: (prev: DangFormState) => DangFormState) => void
   onCategoriesChange: (categories: string[]) => void
-  onReauth?: () => void
 }
 
 export default function DangFormModal({
@@ -26,8 +25,7 @@ export default function DangFormModal({
   onClose,
   onSubmit,
   onFormChange,
-  onCategoriesChange,
-  onReauth
+  onCategoriesChange
 }: DangFormModalProps) {
   return (
     <FormModal
@@ -59,7 +57,6 @@ export default function DangFormModal({
               onFormChange(f => ({ ...f, category: next[0] ?? '' }))
             }
           }}
-          onReauth={onReauth}
           aria-label="دسته‌بندی بدهی"
         />
       </FormField>

@@ -15,13 +15,7 @@ import { useDangFilters } from './useDangFilters'
 import { useDangForm } from './useDangForm'
 import { useDangItems } from './useDangItems'
 
-export default function DangPage({
-  onReauth,
-  active = true
-}: {
-  onReauth?: () => void
-  active?: boolean
-}) {
+export default function DangPage({ active = true }: { active?: boolean }) {
   const {
     items,
     loading,
@@ -45,7 +39,7 @@ export default function DangPage({
     handleExportPdf,
     handleImport,
     importExportConfirmModal
-  } = useDangItems(onReauth)
+  } = useDangItems()
 
   const {
     showForm,
@@ -59,7 +53,6 @@ export default function DangPage({
     handleSubmit
   } = useDangForm({
     categories,
-    onReauth,
     onSaved: loadItems
   })
 
@@ -173,7 +166,6 @@ export default function DangPage({
         onSubmit={handleSubmit}
         onFormChange={setForm}
         onCategoriesChange={setCategories}
-        onReauth={onReauth}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />

@@ -1,21 +1,20 @@
 import { useState } from 'react'
 
 import type { DangFormState, DangWithRow } from './types'
-import { isTokenValid } from '../../services/auth'
 import { createDang, updateDang } from '../../services/dang'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { Dang } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseDangFormOptions = {
   categories: string[]
-  onReauth?: () => void
   onSaved: () => Promise<void>
 }
 
-export function useDangForm({ categories, onReauth, onSaved }: UseDangFormOptions) {
+export function useDangForm({ categories, onSaved }: UseDangFormOptions) {
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState<DangWithRow | null>(null)
   const [saving, setSaving] = useState(false)
@@ -67,11 +66,7 @@ export function useDangForm({ categories, onReauth, onSaved }: UseDangFormOption
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     if (!form.title.trim()) {
       showError('عنوان الزامی است')
@@ -132,7 +127,6 @@ export function useDangForm({ categories, onReauth, onSaved }: UseDangFormOption
     } catch (err) {
       if (
         handleSheetError(err, {
-          onReauth,
           fallbackMessage: editingItem ? 'خطا در ویرایش بدهی' : 'خطا در ثبت بدهی'
         })
       )

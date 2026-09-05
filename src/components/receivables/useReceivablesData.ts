@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 
 import type { ReceivableWithRow } from './types'
-import { isTokenValid } from '../../services/auth'
+import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { syncCategoriesFromSheet } from '../../services/categories'
 import { ensureReceivablesSheet, fetchReceivables } from '../../services/receivables'
 import { getSettings, isConfigured, getReceivableCategories } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
+import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 
-export function useReceivablesData(onReauth: (() => void) | undefined, dataRevision: number) {
+export function useReceivablesData() {
+  const dataRevision = useDataRefresh()
   const [items, setItems] = useState<ReceivableWithRow[]>([])
 
   const [loading, setLoading] = useState(() => {
@@ -23,11 +25,7 @@ export function useReceivablesData(onReauth: (() => void) | undefined, dataRevis
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) return
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!requireAuth()) return
 
     setLoading(true)
     try {
@@ -39,11 +37,11 @@ export function useReceivablesData(onReauth: (() => void) | undefined, dataRevis
 
       setItems(data)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری طلب‌ها' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری طلب‌ها' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth])
+  }, [])
 
   useEffect(() => {
     if (isConfigured()) loadItems()

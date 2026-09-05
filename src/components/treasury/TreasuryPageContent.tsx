@@ -19,22 +19,15 @@ import { useTreasuryData } from './useTreasuryData'
 import { useTreasuryFilters } from './useTreasuryFilters'
 import { useTreasuryForms } from './useTreasuryForms'
 
-export default function TreasuryPageContent({
-  onReauth,
-  active = true
-}: {
-  onReauth?: () => void
-  active?: boolean
-}) {
+export default function TreasuryPageContent({ active = true }: { active?: boolean }) {
   const [searchQuery, setSearchQuery] = useState('')
 
-  const data = useTreasuryData(onReauth, active, searchQuery)
+  const data = useTreasuryData(active, searchQuery)
 
-  const forms = useTreasuryForms(onReauth, data.loadItems)
+  const forms = useTreasuryForms(data.loadItems)
 
   const filters = useTreasuryFilters(
     active,
-    onReauth,
     data.refreshTreasury,
     data.loading,
     data.priceLoading,

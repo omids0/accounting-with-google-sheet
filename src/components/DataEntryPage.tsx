@@ -4,19 +4,17 @@ import AppIcon from './AppIcon'
 import { FieldInput, getInitialFieldValue, sortFormFields } from './form'
 import { FormSkeleton } from './skeleton'
 import TransactionTypeSegment, { transactionTypeOptionsFromForms } from './TransactionTypeSegment'
-import { isTokenValid } from '../services/auth'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
 import type { CustomForm } from '../types'
+import { requireAuth } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
 
 export default function DataEntryPage({
-  onReauth,
   onCancel,
   initialFormType
 }: {
-  onReauth?: () => void
   onCancel?: () => void
   initialFormType?: 'income' | 'expense'
 }) {
@@ -89,11 +87,7 @@ export default function DataEntryPage({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
     if (!activeForm) return
 
     for (const field of activeForm.fields) {
@@ -122,7 +116,7 @@ export default function DataEntryPage({
       showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
       initValues(activeForm)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
     } finally {
       setLoading(false)
     }
@@ -168,7 +162,6 @@ export default function DataEntryPage({
                 onChange={next => handleChange(field.id, next)}
                 formId={activeForm.id}
                 onCategoriesChange={handleCategoriesChange}
-                onReauth={onReauth}
               />
             ))}
 

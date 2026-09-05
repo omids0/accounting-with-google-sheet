@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
-import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import {
@@ -25,15 +24,12 @@ import { useInstallmentMutations } from './useInstallmentMutations'
 import { useInstallmentsData } from './useInstallmentsData'
 import { useInstallmentsFilters } from './useInstallmentsFilters'
 
-export default function InstallmentsPage({ onReauth, active = true }: InstallmentsPageProps) {
-  const dataRevision = useDataRefresh()
-
-  const { plans, setPlans, loading, loadPlans } = useInstallmentsData(onReauth, dataRevision)
+export default function InstallmentsPage({ active = true }: InstallmentsPageProps) {
+  const { plans, setPlans, loading, loadPlans } = useInstallmentsData()
 
   const mutations = useInstallmentMutations({
     setPlans,
-    loadPlans,
-    onReauth
+    loadPlans
   })
 
   const filters = useInstallmentsFilters(plans)
@@ -43,8 +39,7 @@ export default function InstallmentsPage({ onReauth, active = true }: Installmen
       exportFn: exportInstallmentsCsv,
       exportPdfFn: exportInstallmentsPdf,
       importFn: importInstallmentsCsv,
-      onComplete: loadPlans,
-      onReauth
+      onComplete: loadPlans
     })
 
   const pageSpeedDialConfig = useMemo(

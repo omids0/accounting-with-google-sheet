@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
-import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import {
@@ -28,21 +27,15 @@ import { useReceivableMutations } from './useReceivableMutations'
 import { useReceivablesData } from './useReceivablesData'
 import { useReceivablesFilters } from './useReceivablesFilters'
 
-export default function ReceivablesPage({ onReauth, active = true }: ReceivablesPageProps) {
+export default function ReceivablesPage({ active = true }: ReceivablesPageProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const dataRevision = useDataRefresh()
-
-  const { items, setItems, loading, categories, setCategories, loadItems } = useReceivablesData(
-    onReauth,
-    dataRevision
-  )
+  const { items, setItems, loading, categories, setCategories, loadItems } = useReceivablesData()
 
   const mutations = useReceivableMutations({
     setItems,
     categories,
     loadItems,
-    onReauth,
     expandedId,
     setExpandedId
   })
@@ -54,8 +47,7 @@ export default function ReceivablesPage({ onReauth, active = true }: Receivables
       exportFn: exportReceivablesCsv,
       exportPdfFn: exportReceivablesPdf,
       importFn: importReceivablesCsv,
-      onComplete: loadItems,
-      onReauth
+      onComplete: loadItems
     })
 
   const pageSpeedDialConfig = useMemo(
@@ -185,7 +177,6 @@ export default function ReceivablesPage({ onReauth, active = true }: Receivables
         saving={mutations.saving}
         onClose={mutations.closeForm}
         onSubmit={mutations.handleSubmit}
-        onReauth={onReauth}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
-import { isTokenValid } from '../../services/auth'
 import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { DashboardData } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
@@ -21,7 +21,7 @@ import TransactionTypeSegment, {
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense'
 
-export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () => void }) {
+export default function IncomeExpenseReportPage() {
   const [data, setData] = useState<DashboardData | null>(null)
 
   const [loading, setLoading] = useState(false)
@@ -31,11 +31,7 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
   const { datePreset, customRange, handleDateFilterChange, dateRange } = useReportDateFilter()
 
   const load = useCallback(async () => {
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()
 
@@ -50,11 +46,11 @@ export default function IncomeExpenseReportPage({ onReauth }: { onReauth?: () =>
 
       setData(dash)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth, datePreset, customRange.start, customRange.end])
+  }, [datePreset, customRange.start, customRange.end])
 
   useEffect(() => {
     load()

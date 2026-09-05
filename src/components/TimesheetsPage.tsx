@@ -10,21 +10,14 @@ import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
+import { useNavigationStore } from '../stores/navigationStore'
 import type { Timesheet } from '../types'
 import FormField from './form/FormField'
 import TimesheetListCard from './timesheets/TimesheetListCard'
 import { useTimesheetsPage } from './timesheets/useTimesheetsPage'
 
-export default function TimesheetsPage({
-  onReauth,
-  active = true,
-  onOpenTimesheet
-}: {
-  onReauth?: () => void
-  active?: boolean
-  onOpenTimesheet: (timesheet: Timesheet) => void
-}) {
-  const page = useTimesheetsPage(onReauth)
+export default function TimesheetsPage({ active = true }: { active?: boolean }) {
+  const page = useTimesheetsPage()
 
   useRegisterPageSpeedDial(isConfigured() ? page.pageSpeedDialConfig : null, active)
 
@@ -34,6 +27,7 @@ export default function TimesheetsPage({
         <div className="icon">
           <AppIcon name="clock" />
         </div>
+
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     )
@@ -71,7 +65,9 @@ export default function TimesheetsPage({
           <div className="icon">
             <AppIcon name="clock" />
           </div>
+
           <p>هنوز تایم‌شیتی ثبت نشده</p>
+
           <button type="button" className="btn btn-primary btn-sm" onClick={page.openCreateForm}>
             افزودن تایم‌شیت
           </button>
@@ -83,7 +79,13 @@ export default function TimesheetsPage({
           <TimesheetListCard
             key={item.id}
             item={item}
-            onOpen={onOpenTimesheet}
+            onOpen={(timesheet: Timesheet) =>
+              useNavigationStore.getState().onTabChange('timesheet-detail', {
+                timesheetId: timesheet.id,
+
+                timesheetTitle: timesheet.title
+              })
+            }
             onEdit={page.openEditForm}
             onDelete={page.setDeletingItem}
           />
@@ -108,6 +110,7 @@ export default function TimesheetsPage({
             autoFocus
           />
         </FormField>
+
         <FormField label="توضیحات" className="form-field-note">
           <textarea
             className="form-control form-note-textarea"

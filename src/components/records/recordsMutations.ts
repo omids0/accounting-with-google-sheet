@@ -1,8 +1,8 @@
 import type { StoredRecord } from './recordsUtils'
-import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
 import { deleteRecord, updateRecord } from '../../services/sheets'
 import type { CustomForm } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
@@ -10,20 +10,14 @@ export async function submitRecordEdit({
   editingRecord,
   editingForm,
   formValues,
-  onReauth,
   onSuccess
 }: {
   editingRecord: StoredRecord
   editingForm: CustomForm
   formValues: Record<string, string | number>
-  onReauth?: () => void
   onSuccess: () => Promise<void>
 }): Promise<boolean> {
-  if (!isConfigured() || !isTokenValid()) {
-    onReauth?.()
-
-    return false
-  }
+  if (!isConfigured() || !requireAuth()) return false
 
   for (const field of editingForm.fields) {
     if (field.required) {
@@ -53,7 +47,7 @@ export async function submitRecordEdit({
 
     return true
   } catch (err) {
-    handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ویرایش تراکنش' })
+    handleSheetError(err, { fallbackMessage: 'خطا در ویرایش تراکنش' })
 
     return false
   }
@@ -62,23 +56,17 @@ export async function submitRecordEdit({
 export async function deleteStoredRecord({
   deletingRecord,
   forms,
-  onReauth,
   onSuccess
 }: {
   deletingRecord: StoredRecord
   forms: CustomForm[]
-  onReauth?: () => void
   onSuccess: () => Promise<void>
 }): Promise<boolean> {
   const form = forms.find(item => item.id === deletingRecord.formId)
 
   if (!form) return false
 
-  if (!isConfigured() || !isTokenValid()) {
-    onReauth?.()
-
-    return false
-  }
+  if (!isConfigured() || !requireAuth()) return false
 
   const settings = getSettings()!
 
@@ -89,7 +77,7 @@ export async function deleteStoredRecord({
 
     return true
   } catch (err) {
-    handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف تراکنش' })
+    handleSheetError(err, { fallbackMessage: 'خطا در حذف تراکنش' })
 
     return false
   }

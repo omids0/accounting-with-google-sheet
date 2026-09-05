@@ -1,7 +1,6 @@
 import type { PlanWithRow } from '../InstallmentPlanCard'
 
 export type InstallmentsPageProps = {
-  onReauth?: () => void
   active?: boolean
 }
 

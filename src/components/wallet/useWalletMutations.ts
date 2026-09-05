@@ -1,7 +1,6 @@
 import { useState } from 'react'
 
 import type { WalletAccountWithRow, WalletFormState } from './types'
-import { isTokenValid } from '../../services/auth'
 import { setOpeningBalance } from '../../services/monthlyBalance'
 import { getSettings, isConfigured } from '../../services/settings'
 import {
@@ -11,6 +10,7 @@ import {
   updateWalletAccount,
   type WalletPeriodFlow
 } from '../../services/wallet'
+import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
@@ -25,7 +25,6 @@ type UseWalletMutationsParams = {
   openingInput: number | ''
   setOpeningInput: React.Dispatch<React.SetStateAction<number | ''>>
   loadItems: () => Promise<void>
-  onReauth?: () => void
   expandedId: string | null
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
 }
@@ -39,7 +38,6 @@ export function useWalletMutations({
   openingInput,
   setOpeningInput,
   loadItems,
-  onReauth,
   expandedId,
   setExpandedId
 }: UseWalletMutationsParams) {
@@ -101,11 +99,7 @@ export function useWalletMutations({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     if (!form.title.trim()) {
       showError('عنوان الزامی است')
@@ -144,7 +138,6 @@ export function useWalletMutations({
     } catch (err) {
       if (
         handleSheetError(err, {
-          onReauth,
           fallbackMessage: editingAccount ? 'خطا در ویرایش حساب' : 'خطا در ثبت حساب'
         })
       )
@@ -155,13 +148,9 @@ export function useWalletMutations({
   }
 
   const handleBalanceSave = async (account: WalletAccountWithRow) => {
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     const nextBalance = balances[account.id]
 
@@ -175,7 +164,7 @@ export function useWalletMutations({
 
     setSavingId(account.id)
     try {
-      const updated = await updateWalletAccount(settings.spreadsheetId, {
+      const updated = await updateWalletAccount(spreadsheetId, {
         ...account,
         balance: nextBalance
       })
@@ -189,7 +178,7 @@ export function useWalletMutations({
       )
       showSuccess(`موجودی «${account.title}» ذخیره شد`)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره موجودی' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره موجودی' })) return
       syncBalances([account])
     } finally {
       setSavingId('')
@@ -199,27 +188,24 @@ export function useWalletMutations({
   const handleSaveOpeningBalance = async () => {
     if (!periodFlow) return
 
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     setSavingOpening(true)
     try {
       const amount = openingInput === '' ? 0 : Number(openingInput)
 
-      await setOpeningBalance(settings.spreadsheetId, periodFlow.monthKey, amount)
+      await setOpeningBalance(spreadsheetId, periodFlow.monthKey, amount)
 
+      const settings = getSettings()!
       const flow = await loadWalletPeriodFlow(settings)
 
       setPeriodFlow(flow)
       setOpeningInput(flow.openingBalance || '')
       showSuccess('موجودی اول دوره ذخیره شد')
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در ذخیره موجودی اول' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره موجودی اول' })) return
     } finally {
       setSavingOpening(false)
     }
@@ -228,23 +214,19 @@ export function useWalletMutations({
   const handleDelete = async () => {
     if (!deletingAccount) return
 
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     setDeleting(true)
     try {
-      await deleteWalletAccount(settings.spreadsheetId, deletingAccount.rowNumber)
+      await deleteWalletAccount(spreadsheetId, deletingAccount.rowNumber)
       if (expandedId === deletingAccount.id) setExpandedId(null)
       setDeletingAccount(null)
       showSuccess('حساب حذف شد')
       await loadItems()
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف حساب' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در حذف حساب' })) return
     } finally {
       setDeleting(false)
     }

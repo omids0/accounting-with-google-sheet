@@ -3,8 +3,6 @@ import type { WalletAccount } from '../../types'
 export type WalletAccountWithRow = WalletAccount & { rowNumber: number }
 
 export type WalletPageProps = {
-  onReauth?: () => void
-  onOpenOpeningBalances?: () => void
   active?: boolean
 }
 

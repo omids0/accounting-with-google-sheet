@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 
 import type { InstallmentFormState, PlanWithRow } from './types'
-import { isTokenValid } from '../../services/auth'
 import {
   createInstallmentPlan,
   deleteInstallmentPlan,
@@ -13,20 +12,19 @@ import {
 } from '../../services/installments'
 import { deleteLinkedExpenseRecord } from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
+import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseInstallmentFormActionsParams = {
   loadPlans: () => Promise<void>
-  onReauth?: () => void
   expandedId: string | null
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
 }
 
 export function useInstallmentFormActions({
   loadPlans,
-  onReauth,
   expandedId,
   setExpandedId
 }: UseInstallmentFormActionsParams) {
@@ -110,11 +108,7 @@ export function useInstallmentFormActions({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     if (!form.title.trim()) {
       showError('عنوان قسط الزامی است')
@@ -203,7 +197,6 @@ export function useInstallmentFormActions({
     } catch (err) {
       if (
         handleSheetError(err, {
-          onReauth,
           fallbackMessage: editingPlan ? 'خطا در ویرایش قسط' : 'خطا در ثبت قسط'
         })
       )
@@ -216,23 +209,19 @@ export function useInstallmentFormActions({
   const handleDelete = async () => {
     if (!deletingPlan) return
 
-    const settings = getSettings()
+    const spreadsheetId = requireSpreadsheetId()
 
-    if (!settings?.spreadsheetId || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!spreadsheetId) return
 
     setDeleting(true)
     try {
-      await deleteInstallmentPlan(settings.spreadsheetId, deletingPlan.rowNumber, deletingPlan)
+      await deleteInstallmentPlan(spreadsheetId, deletingPlan.rowNumber, deletingPlan)
       if (expandedId === deletingPlan.id) setExpandedId(null)
       setDeletingPlan(null)
       showSuccess('قسط حذف شد')
       await loadPlans()
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در حذف قسط' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در حذف قسط' })) return
     } finally {
       setDeleting(false)
     }

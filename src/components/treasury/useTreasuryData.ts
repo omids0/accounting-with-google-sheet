@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 
 import type { TransactionWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
-import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { fetchTgjuPrices, getCachedTgjuPrices, getAssetLabel } from '../../services/tgju'
@@ -12,15 +11,12 @@ import {
   fetchVaultTransactions
 } from '../../services/treasury'
 import type { VaultAssetType } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { matchSearch } from '../../utils/search'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError } from '../../utils/toast'
 
-export function useTreasuryData(
-  onReauth: (() => void) | undefined,
-  active: boolean,
-  searchQuery: string
-) {
+export function useTreasuryData(active: boolean, searchQuery: string) {
   const [transactions, setTransactions] = useState<TransactionWithRow[]>([])
 
   const [prices, setPrices] = useState<Record<VaultAssetType, number> | null>(() =>
@@ -56,11 +52,7 @@ export function useTreasuryData(
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) return
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!requireAuth()) return
 
     setLoading(true)
     try {
@@ -70,11 +62,11 @@ export function useTreasuryData(
 
       setTransactions(data)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری صندوقچه' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری صندوقچه' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth])
+  }, [])
 
   useEffect(() => {
     if (!isConfigured() || !active) return

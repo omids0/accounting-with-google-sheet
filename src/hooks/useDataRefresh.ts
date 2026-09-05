@@ -1,11 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useDataRevision } from '../services/dataRevision'
 
-import { getDataRevision, subscribeDataRevision } from '../services/dataRevision'
-
+/** Re-fetch list/dashboard data when spreadsheet content changes. */
 export function useDataRefresh(): number {
-  const [revision, setRevision] = useState(getDataRevision)
-
-  useEffect(() => subscribeDataRevision(() => setRevision(getDataRevision())), [])
-
-  return revision
+  return useDataRevision()
 }

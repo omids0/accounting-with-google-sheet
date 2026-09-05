@@ -1,20 +1,19 @@
 import { useState } from 'react'
 
 import type { CheckFormState, CheckWithRow } from './types'
-import { isTokenValid } from '../../services/auth'
 import { createCheck, updateCheck } from '../../services/checks'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { Check } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseChecksFormOptions = {
-  onReauth?: () => void
   onSaved: () => Promise<void>
 }
 
-export function useChecksForm({ onReauth, onSaved }: UseChecksFormOptions) {
+export function useChecksForm({ onSaved }: UseChecksFormOptions) {
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState<CheckWithRow | null>(null)
   const [saving, setSaving] = useState(false)
@@ -63,11 +62,7 @@ export function useChecksForm({ onReauth, onSaved }: UseChecksFormOptions) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     if (!form.checkNumber.trim()) {
       showError('شماره چک الزامی است')
@@ -126,7 +121,6 @@ export function useChecksForm({ onReauth, onSaved }: UseChecksFormOptions) {
     } catch (err) {
       if (
         handleSheetError(err, {
-          onReauth,
           fallbackMessage: editingItem ? 'خطا در ویرایش چک' : 'خطا در ثبت چک'
         })
       )

@@ -1,18 +1,14 @@
-import { Suspense } from 'react'
-import { Outlet } from 'react-router-dom'
-
-import PageSpeedDial from '../PageSpeedDial'
-import { AppLoadingSkeleton } from '../skeleton'
 import LayoutBottomNav from './LayoutBottomNav'
 import LayoutHeader from './LayoutHeader'
 import LayoutMenu from './LayoutMenu'
-import type { LayoutProps } from './types'
+import LayoutPageOutlet from './LayoutPageOutlet'
+import PageSpeedDial from '../PageSpeedDial'
 import { useLayoutNavigation } from './useLayoutNavigation'
 
-export default function Layout({ onLogout, onReauth }: LayoutProps) {
+export default function Layout() {
   const {
     tab,
-    dataKey,
+    spreadsheetKey,
     showSettings,
     menuOpen,
     setMenuOpen,
@@ -34,9 +30,8 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
     isCalculationTab,
     isReportTab,
     isTimesheetTab,
-    headerTitle,
-    outletContext
-  } = useLayoutNavigation({ onLogout, onReauth })
+    headerTitle
+  } = useLayoutNavigation()
 
   return (
     <div className="app-layout">
@@ -71,11 +66,7 @@ export default function Layout({ onLogout, onReauth }: LayoutProps) {
       />
 
       <main className="app-main">
-        <div key={showSettings ? 'settings' : String(dataKey)} className="page-content">
-          <Suspense fallback={<AppLoadingSkeleton />}>
-            <Outlet context={outletContext} />
-          </Suspense>
-        </div>
+        <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
       </main>
 
       <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />

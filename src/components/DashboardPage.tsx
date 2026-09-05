@@ -3,62 +3,68 @@ import { DashboardSkeleton } from './skeleton'
 import SpeedDialIcon from './SpeedDialIcon'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
-import type { DashboardNavTarget } from '../types'
+import { useNavigationStore } from '../stores/navigationStore'
 import DashboardContent from './dashboard/DashboardContent'
 import { useDashboardPage } from './dashboard/useDashboardPage'
 
-export default function DashboardPage({
-  onReauth,
-  onViewRecords,
-  onNewEntry,
-  onNavigate,
-  onConfigureNetAvailable,
-  active = true
-}: {
-  onReauth?: () => void
-  onViewRecords?: (formType?: 'income' | 'expense') => void
-  onNewEntry?: (formType: 'income' | 'expense') => void
-  onNavigate?: (target: DashboardNavTarget) => void
-  onConfigureNetAvailable?: () => void
-  active?: boolean
-}) {
-  const dashboard = useDashboardPage(onReauth)
+export default function DashboardPage({ active = true }: { active?: boolean }) {
+  const dashboard = useDashboardPage()
 
   useRegisterPageSpeedDial(
     isConfigured()
       ? {
           ariaLabel: 'عملیات داشبورد',
+
           actions: [
             {
               id: 'income',
+
               label: dashboard.incomeFormName,
+
               icon: <span className="speed-dial-type-icon speed-dial-type-icon--income">+</span>,
+
               className: 'speed-dial-action--income',
-              onClick: () => onNewEntry?.('income')
+
+              onClick: () => useNavigationStore.getState().onOpenEntry('income')
             },
+
             {
               id: 'expense',
+
               label: dashboard.expenseFormName,
+
               icon: <span className="speed-dial-type-icon speed-dial-type-icon--expense">−</span>,
+
               className: 'speed-dial-action--expense',
-              onClick: () => onNewEntry?.('expense')
+
+              onClick: () => useNavigationStore.getState().onOpenEntry('expense')
             },
+
             {
               id: 'filter',
+
               label: 'فیلتر',
+
               icon: <SpeedDialIcon name="filter" />,
+
               onClick: dashboard.openFilterModal
             },
+
             {
               id: 'refresh',
+
               label: 'بروزرسانی',
+
               icon: <SpeedDialIcon name="refresh" />,
+
               onClick: dashboard.load,
+
               disabled: dashboard.loading
             }
           ]
         }
       : null,
+
     active
   )
 
@@ -68,6 +74,7 @@ export default function DashboardPage({
         <div className="icon">
           <AppIcon name="dashboard" />
         </div>
+
         <p>ابتدا با گوگل وارد شوید</p>
       </div>
     )
@@ -93,7 +100,9 @@ export default function DashboardPage({
       setDraftCustomRange={dashboard.setDraftCustomRange}
       setDatePreset={dashboard.setDatePreset}
       setCustomRange={dashboard.setCustomRange}
-      onConfigureNetAvailable={onConfigureNetAvailable}
+      onConfigureNetAvailable={() =>
+        useNavigationStore.getState().onTabChange('net-available-settings')
+      }
       financial={dashboard.financial}
       incomeSparkline={dashboard.incomeSparkline}
       expenseSparkline={dashboard.expenseSparkline}
@@ -105,8 +114,8 @@ export default function DashboardPage({
       setTypeFilter={dashboard.setTypeFilter}
       transactionTypeOptions={dashboard.transactionTypeOptions}
       filteredRecords={dashboard.filteredRecords}
-      onViewRecords={onViewRecords}
-      onNavigate={onNavigate}
+      onViewRecords={formType => useNavigationStore.getState().onOpenRecords(formType)}
+      onNavigate={target => useNavigationStore.getState().onNavigateDashboard(target)}
       load={dashboard.load}
     />
   )

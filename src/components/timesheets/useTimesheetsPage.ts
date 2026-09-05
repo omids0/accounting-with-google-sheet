@@ -4,7 +4,6 @@ import { useTimesheetsFilters } from './useTimesheetsFilters'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
-import { isTokenValid } from '../../services/auth'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import {
@@ -18,12 +17,13 @@ import {
   updateTimesheet
 } from '../../services/timesheet'
 import type { Timesheet } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 export type TimesheetWithRow = Timesheet & { rowNumber: number }
 
-export function useTimesheetsPage(onReauth?: () => void) {
+export function useTimesheetsPage() {
   const [items, setItems] = useState<TimesheetWithRow[]>([])
 
   const [showForm, setShowForm] = useState(false)
@@ -67,11 +67,7 @@ export function useTimesheetsPage(onReauth?: () => void) {
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) return
-    if (!isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!requireAuth()) return
 
     setLoading(true)
     try {
@@ -81,12 +77,11 @@ export function useTimesheetsPage(onReauth?: () => void) {
 
       setItems(data)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری تایم‌شیت‌ها' }))
-        return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری تایم‌شیت‌ها' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth])
+  }, [])
 
   useEffect(() => {
     if (isConfigured()) loadItems()
@@ -109,17 +104,12 @@ export function useTimesheetsPage(onReauth?: () => void) {
       exportFn: exportTimesheetsCsv,
       exportPdfFn: exportTimesheetsPdf,
       importFn: importTimesheetsCsv,
-      onComplete: loadItems,
-      onReauth
+      onComplete: loadItems
     })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
     if (!form.title.trim()) {
       showError('عنوان الزامی است')
 
@@ -154,7 +144,7 @@ export function useTimesheetsPage(onReauth?: () => void) {
   }
 
   const handleDelete = async () => {
-    if (!deletingItem || !isConfigured() || !isTokenValid()) return
+    if (!deletingItem || !isConfigured() || !requireAuth()) return
 
     const settings = getSettings()!
 

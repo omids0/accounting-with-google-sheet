@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { isTokenValid } from '../services/auth'
 import { applyNetAvailableConfig, loadDashboardData } from '../services/dashboard'
 import {
   getSettings,
@@ -11,6 +10,7 @@ import {
 import type { FinancialSummary, NetAvailableConfig } from '../types'
 import MoneyDisplay from './MoneyDisplay'
 import ToggleChipGroup from './ToggleChipGroup'
+import { requireAuth } from '../utils/authGuard'
 import { getDateRange, getInstallmentDueRange } from '../utils/dateRange'
 import { handleSheetError } from '../utils/sheetError'
 
@@ -34,7 +34,7 @@ function toLiabilitySelected(config: NetAvailableConfig): Record<string, boolean
   return { ...config.liabilities }
 }
 
-export default function NetAvailableSettingsPage({ onReauth }: { onReauth?: () => void }) {
+export default function NetAvailableSettingsPage() {
   const [config, setConfig] = useState<NetAvailableConfig>(() => getNetAvailableConfig())
 
   const [financial, setFinancial] = useState<Omit<
@@ -45,11 +45,7 @@ export default function NetAvailableSettingsPage({ onReauth }: { onReauth?: () =
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()
 
@@ -71,11 +67,11 @@ export default function NetAvailableSettingsPage({ onReauth }: { onReauth?: () =
 
       setFinancial(raw)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth])
+  }, [])
 
   useEffect(() => {
     load()

@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { isTokenValid } from '../../services/auth'
+import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
 import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, getNetAvailableConfig, isConfigured } from '../../services/settings'
 import type { DashboardData } from '../../types'
+import { requireAuth } from '../../utils/authGuard'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import { DashboardSkeleton } from '../skeleton'
-import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
 
 function BreakdownRow({ label, value, total }: { label: string; value: number; total?: boolean }) {
   return (
@@ -22,7 +22,7 @@ function BreakdownRow({ label, value, total }: { label: string; value: number; t
   )
 }
 
-export default function AssetsLiabilitiesReportPage({ onReauth }: { onReauth?: () => void }) {
+export default function AssetsLiabilitiesReportPage() {
   const [data, setData] = useState<DashboardData | null>(null)
 
   const [loading, setLoading] = useState(false)
@@ -30,11 +30,7 @@ export default function AssetsLiabilitiesReportPage({ onReauth }: { onReauth?: (
   const { datePreset, customRange, handleDateFilterChange, dateRange } = useReportDateFilter()
 
   const load = useCallback(async () => {
-    if (!isConfigured() || !isTokenValid()) {
-      onReauth?.()
-
-      return
-    }
+    if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()
 
@@ -55,11 +51,11 @@ export default function AssetsLiabilitiesReportPage({ onReauth }: { onReauth?: (
 
       setData(dash)
     } catch (err) {
-      if (handleSheetError(err, { onReauth, fallbackMessage: 'خطا در بارگذاری' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
     }
-  }, [onReauth, datePreset, customRange.start, customRange.end])
+  }, [datePreset, customRange.start, customRange.end])
 
   useEffect(() => {
     load()

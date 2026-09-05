@@ -3,7 +3,6 @@ import type { Receivable } from '../../types'
 export type ReceivableWithRow = Receivable & { rowNumber: number }
 
 export type ReceivablesPageProps = {
-  onReauth?: () => void
   active?: boolean
 }
 
