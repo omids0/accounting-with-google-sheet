@@ -7,6 +7,9 @@ export const listCardInsetClass = 'p-2'
 
 export const listPageStackClass = cn('flex flex-col gap-3 [&_.list-card]:mb-0', listPageGridClass)
 
+/** List module pages — filters, card grid, footer stats with consistent vertical rhythm. */
+export const listModulePageClass = cn('flex flex-col gap-4 lg:gap-5 [&_.list-card]:mb-0')
+
 /** Wraps mapped list cards — responsive multi-column grid on desktop. */
 export const listCardsContainerClass = cn(
   'flex flex-col gap-3',

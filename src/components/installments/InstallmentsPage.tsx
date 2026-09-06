@@ -25,6 +25,7 @@ import { useInstallmentsData } from './useInstallmentsData'
 import { useInstallmentsFilters } from './useInstallmentsFilters'
 import { dashboardStatGridClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listModulePageClass } from '../ui/featureCardStyles'
 
 export default function InstallmentsPage({ active = true }: InstallmentsPageProps) {
   const { plans, setPlans, loading, loadPlans } = useInstallmentsData()
@@ -82,7 +83,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
   }
 
   return (
-    <div>
+    <div className={listModulePageClass}>
       <ActiveFilterChips
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}

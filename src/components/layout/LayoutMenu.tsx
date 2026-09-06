@@ -28,6 +28,7 @@ import {
   appMenuPromoItemClass,
   appMenuPromoLabelClass,
   appMenuPromoTextClass,
+  appMenuScrollBodyClass,
   appMenuSubmenuClass
 } from '../ui/layoutStyles'
 
@@ -104,139 +105,145 @@ export default function LayoutMenu({
           </div>
         </div>
 
-        <LayoutSidebarNav tab={tab} showSettings={showSettings} onTabChange={onTabChange} />
+        <div className={appMenuScrollBodyClass}>
+          <LayoutSidebarNav tab={tab} showSettings={showSettings} onTabChange={onTabChange} />
 
-        <div className={appMenuItemsClass}>
-          <button
-            type="button"
-            className={appMenuPromoItemClass(tab === 'personal-reminders')}
-            onClick={() => onTabChange('personal-reminders')}
-          >
-            <span className={appMenuPromoIconClass(tab === 'personal-reminders')}>
-              <AppIcon name="bell" size={20} strokeWidth={1.75} />
-            </span>
-            <span className={appMenuPromoTextClass}>
-              <span className={appMenuPromoLabelClass}>یادآوری</span>
-              <span className={appMenuPromoHintClass}>قبض، بیمه و مواعد شخصی</span>
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className={appMenuPromoItemClass(tab === 'counterparties')}
-            onClick={() => onTabChange('counterparties')}
-          >
-            <span className={appMenuPromoIconClass(tab === 'counterparties')}>
-              <AppIcon name="counterparties" size={20} strokeWidth={1.75} />
-            </span>
-            <span className={appMenuPromoTextClass}>
-              <span className={appMenuPromoLabelClass}>طرف حساب‌ها</span>
-              <span className={appMenuPromoHintClass}>اشخاص، تماس و حساب‌های بانکی</span>
-            </span>
-          </button>
-
-          <div className={appMenuGroupClass}>
+          <div className={appMenuItemsClass}>
             <button
               type="button"
-              className={appMenuItemClass(isReportTab, 'parent')}
-              onClick={onToggleReportsMenu}
-              aria-expanded={reportsMenuExpanded}
+              className={appMenuPromoItemClass(tab === 'personal-reminders')}
+              onClick={() => onTabChange('personal-reminders')}
             >
-              <span className={appMenuItemIconClass(isReportTab)}>
-                <AppIcon name="chart" size={20} strokeWidth={1.75} />
+              <span className={appMenuPromoIconClass(tab === 'personal-reminders')}>
+                <AppIcon name="bell" size={20} strokeWidth={1.75} />
               </span>
-              <span className={appMenuItemLabelClass}>گزارشات</span>
-              <span className={appMenuChevronClass(reportsMenuExpanded)} aria-hidden="true">
-                <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+              <span className={appMenuPromoTextClass}>
+                <span className={appMenuPromoLabelClass}>یادآوری</span>
+                <span className={appMenuPromoHintClass}>قبض، بیمه و مواعد شخصی</span>
               </span>
             </button>
-            {reportsMenuExpanded && <LayoutReportsSubmenu tab={tab} onTabChange={onTabChange} />}
-          </div>
-          <div className={appMenuGroupClass}>
+
             <button
               type="button"
-              className={appMenuItemClass(isCalculationTab, 'parent')}
-              onClick={onToggleCalcMenu}
-              aria-expanded={calcMenuExpanded}
+              className={appMenuPromoItemClass(tab === 'counterparties')}
+              onClick={() => onTabChange('counterparties')}
             >
-              <span className={appMenuItemIconClass(isCalculationTab)}>
-                <AppIcon name="calculator" size={20} strokeWidth={1.75} />
+              <span className={appMenuPromoIconClass(tab === 'counterparties')}>
+                <AppIcon name="counterparties" size={20} strokeWidth={1.75} />
               </span>
-              <span className={appMenuItemLabelClass}>محاسبات</span>
-              <span className={appMenuChevronClass(calcMenuExpanded)} aria-hidden="true">
-                <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+              <span className={appMenuPromoTextClass}>
+                <span className={appMenuPromoLabelClass}>طرف حساب‌ها</span>
+                <span className={appMenuPromoHintClass}>اشخاص، تماس و حساب‌های بانکی</span>
               </span>
             </button>
-            {calcMenuExpanded && (
-              <div className={appMenuSubmenuClass}>
-                <button
-                  type="button"
-                  className={appMenuItemClass(tab === 'loan-calculator', 'sub')}
-                  onClick={() => onTabChange('loan-calculator')}
-                >
-                  محاسبات درخواست وام
-                </button>
-                <button
-                  type="button"
-                  className={appMenuItemClass(tab === 'currency-converter', 'sub')}
-                  onClick={() => onTabChange('currency-converter')}
-                >
-                  تبدیل ارز
-                </button>
-                <button
-                  type="button"
-                  className={appMenuItemClass(tab === 'date-calculator', 'sub')}
-                  onClick={() => onTabChange('date-calculator')}
-                >
-                  محاسبه تاریخ
-                </button>
-              </div>
-            )}
-          </div>
-          <div className={appMenuGroupClass}>
+
+            <div className={appMenuGroupClass}>
+              <button
+                type="button"
+                className={appMenuItemClass(isReportTab, 'parent')}
+                onClick={onToggleReportsMenu}
+                aria-expanded={reportsMenuExpanded}
+              >
+                <span className={appMenuItemIconClass(isReportTab)}>
+                  <AppIcon name="chart" size={20} strokeWidth={1.75} />
+                </span>
+                <span className={appMenuItemLabelClass}>گزارشات</span>
+                <span className={appMenuChevronClass(reportsMenuExpanded)} aria-hidden="true">
+                  <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+                </span>
+              </button>
+              {reportsMenuExpanded && <LayoutReportsSubmenu tab={tab} onTabChange={onTabChange} />}
+            </div>
+            <div className={appMenuGroupClass}>
+              <button
+                type="button"
+                className={appMenuItemClass(isCalculationTab, 'parent')}
+                onClick={onToggleCalcMenu}
+                aria-expanded={calcMenuExpanded}
+              >
+                <span className={appMenuItemIconClass(isCalculationTab)}>
+                  <AppIcon name="calculator" size={20} strokeWidth={1.75} />
+                </span>
+                <span className={appMenuItemLabelClass}>محاسبات</span>
+                <span className={appMenuChevronClass(calcMenuExpanded)} aria-hidden="true">
+                  <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+                </span>
+              </button>
+              {calcMenuExpanded && (
+                <div className={appMenuSubmenuClass}>
+                  <button
+                    type="button"
+                    className={appMenuItemClass(tab === 'loan-calculator', 'sub')}
+                    onClick={() => onTabChange('loan-calculator')}
+                  >
+                    محاسبات درخواست وام
+                  </button>
+                  <button
+                    type="button"
+                    className={appMenuItemClass(tab === 'currency-converter', 'sub')}
+                    onClick={() => onTabChange('currency-converter')}
+                  >
+                    تبدیل ارز
+                  </button>
+                  <button
+                    type="button"
+                    className={appMenuItemClass(tab === 'date-calculator', 'sub')}
+                    onClick={() => onTabChange('date-calculator')}
+                  >
+                    محاسبه تاریخ
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className={appMenuGroupClass}>
+              <button
+                type="button"
+                className={appMenuItemClass(isTimesheetTab, 'parent')}
+                onClick={onToggleTimesheetMenu}
+                aria-expanded={timesheetMenuExpanded}
+              >
+                <span className={appMenuItemIconClass(isTimesheetTab)}>
+                  <AppIcon name="clock" size={20} strokeWidth={1.75} />
+                </span>
+                <span className={appMenuItemLabelClass}>تایم‌شیت</span>
+                <span className={appMenuChevronClass(timesheetMenuExpanded)} aria-hidden="true">
+                  <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+                </span>
+              </button>
+              {timesheetMenuExpanded && (
+                <div className={appMenuSubmenuClass}>
+                  <button
+                    type="button"
+                    className={appMenuItemClass(isTimesheetTab, 'sub')}
+                    onClick={onOpenTimesheetsList}
+                  >
+                    لیست تایم‌شیت‌ها
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className={appMenuDividerClass} aria-hidden="true" />
             <button
               type="button"
-              className={appMenuItemClass(isTimesheetTab, 'parent')}
-              onClick={onToggleTimesheetMenu}
-              aria-expanded={timesheetMenuExpanded}
+              className={appMenuItemClass(tab === 'about')}
+              onClick={() => onTabChange('about')}
             >
-              <span className={appMenuItemIconClass(isTimesheetTab)}>
-                <AppIcon name="clock" size={20} strokeWidth={1.75} />
+              <span className={appMenuItemIconClass(tab === 'about')}>
+                <AppIcon name="info" size={20} strokeWidth={1.75} />
               </span>
-              <span className={appMenuItemLabelClass}>تایم‌شیت</span>
-              <span className={appMenuChevronClass(timesheetMenuExpanded)} aria-hidden="true">
-                <AppIcon name="chevron-down" size={16} strokeWidth={2} />
-              </span>
+              درباره
             </button>
-            {timesheetMenuExpanded && (
-              <div className={appMenuSubmenuClass}>
-                <button
-                  type="button"
-                  className={appMenuItemClass(isTimesheetTab, 'sub')}
-                  onClick={onOpenTimesheetsList}
-                >
-                  لیست تایم‌شیت‌ها
-                </button>
-              </div>
-            )}
+            <button
+              type="button"
+              className={appMenuItemClass(showSettings)}
+              onClick={onOpenSettings}
+            >
+              <span className={appMenuItemIconClass(showSettings)}>
+                <AppIcon name="settings" size={20} strokeWidth={1.75} />
+              </span>
+              تنظیمات
+            </button>
           </div>
-          <div className={appMenuDividerClass} aria-hidden="true" />
-          <button
-            type="button"
-            className={appMenuItemClass(tab === 'about')}
-            onClick={() => onTabChange('about')}
-          >
-            <span className={appMenuItemIconClass(tab === 'about')}>
-              <AppIcon name="info" size={20} strokeWidth={1.75} />
-            </span>
-            درباره
-          </button>
-          <button type="button" className={appMenuItemClass(showSettings)} onClick={onOpenSettings}>
-            <span className={appMenuItemIconClass(showSettings)}>
-              <AppIcon name="settings" size={20} strokeWidth={1.75} />
-            </span>
-            تنظیمات
-          </button>
         </div>
         <div className={appMenuFooterClass}>
           <p className={appMenuFooterTextClass}>حسابداری شخصی</p>

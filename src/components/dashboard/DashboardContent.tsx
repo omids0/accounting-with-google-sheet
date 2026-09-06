@@ -28,8 +28,7 @@ import {
   dashboardHeroHeaderClass,
   dashboardHeroHintClass,
   dashboardHeroLabelClass,
-  dashboardPageClass,
-  dashboardStatGridClass
+  dashboardPageClass
 } from '../ui/chartStyles'
 import { emptyTextClass } from '../ui/displayStyles'
 import { cardHeaderRowClass, dashboardTransactionSegmentClass } from '../ui/recordsStyles'
@@ -148,24 +147,22 @@ export default function DashboardContent({
       </Card>
 
       <div className={cn(dashboardFlowSectionClass, dashboardFlowSectionAnimatedClass)}>
-        <div className={dashboardStatGridClass}>
-          <StatCard
-            label="درآمد دوره"
-            amount={data?.totalIncome ?? 0}
-            variant="income"
-            sparklineData={incomeSparkline}
-            animateIndex={0}
-            lift
-          />
-          <StatCard
-            label="هزینه دوره"
-            amount={data?.totalExpense ?? 0}
-            variant="expense"
-            sparklineData={expenseSparkline}
-            animateIndex={1}
-            lift
-          />
-        </div>
+        <StatCard
+          label="درآمد دوره"
+          amount={data?.totalIncome ?? 0}
+          variant="income"
+          sparklineData={incomeSparkline}
+          animateIndex={0}
+          lift
+        />
+        <StatCard
+          label="هزینه دوره"
+          amount={data?.totalExpense ?? 0}
+          variant="expense"
+          sparklineData={expenseSparkline}
+          animateIndex={1}
+          lift
+        />
         <StatCard
           label="خالص دوره"
           amount={data?.balance ?? 0}
