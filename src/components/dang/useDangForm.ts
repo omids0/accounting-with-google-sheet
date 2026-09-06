@@ -6,7 +6,7 @@ import { getSettings, isConfigured } from '../../services/settings'
 import type { Dang } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
-import { showError, showSuccess } from '../../utils/toast'
+import { showSuccess } from '../../utils/toast'
 
 type UseDangFormOptions = {
   onSaved: () => Promise<void>
@@ -35,32 +35,6 @@ export function useDangForm({ onSaved }: UseDangFormOptions) {
 
   const handleSubmit = async (form: DangFormState) => {
     if (!isConfigured() || !requireAuth()) return
-
-    if (!form.title.trim()) {
-      showError('عنوان الزامی است')
-
-      return
-    }
-    if (!form.category.trim()) {
-      showError('دسته‌بندی الزامی است')
-
-      return
-    }
-    if (!form.counterparty.trim()) {
-      showError('طرف حساب الزامی است')
-
-      return
-    }
-    if (!form.amount || Number(form.amount) <= 0) {
-      showError('مبلغ را وارد کنید')
-
-      return
-    }
-    if (!form.date) {
-      showError('تاریخ الزامی است')
-
-      return
-    }
 
     const settings = getSettings()!
 

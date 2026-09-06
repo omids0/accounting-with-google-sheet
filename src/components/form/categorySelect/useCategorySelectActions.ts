@@ -21,6 +21,7 @@ export interface CategorySelectProps {
   disabled?: boolean
   'aria-label'?: string
   id?: string
+  invalid?: boolean
 }
 
 export function useCategorySelectActions({

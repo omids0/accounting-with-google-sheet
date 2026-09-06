@@ -1,14 +1,21 @@
 import { useMemo, type FormEvent } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
+import type { CheckFormState, CheckWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import {
+  formFieldError,
+  requiredDate,
+  requiredField,
+  requiredPositiveAmount,
+  submitValidatedForm
+} from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import type { CounterpartyWithRow } from '../counterparties/types'
 import { CounterpartySelect, FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
-import type { CheckFormState, CheckWithRow } from './types'
 
 export type CheckFormModalProps = {
   open: boolean
@@ -49,8 +56,15 @@ export default function CheckFormModal({
     [editingItem]
   )
 
-  const { register, handleSubmit, reset, setValue, watch } = useForm<CheckFormState>({
-    defaultValues: initialValues
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm<CheckFormState>({
+    defaultValues: initialValues,
+    mode: 'onSubmit'
   })
 
   useModalFormReset(reset, initialValues, {
@@ -59,10 +73,8 @@ export default function CheckFormModal({
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
-
-  const counterparty = watch('counterparty')
 
   return (
     <FormModal
@@ -74,36 +86,84 @@ export default function CheckFormModal({
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره چک'}
     >
       <FormRow>
-        <FormField label="شماره چک" required>
-          <input type="text" {...register('checkNumber')} placeholder="شماره چک" dir="ltr" />
-        </FormField>
-
-        <FormField label="مبلغ" required>
-          <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
-        </FormField>
-      </FormRow>
-
-      <FormField label="طرف حساب" required controlWidth="full">
-        <CounterpartySelect
-          value={counterparty}
-          onChange={value => setValue('counterparty', value)}
-          counterparties={counterparties}
-          onCounterpartiesChange={onCounterpartiesChange}
-          aria-label="طرف حساب چک"
-        />
-      </FormField>
-
-      <FormRow>
-        <FormField label="تاریخ صدور" required>
-          <JalaliDatePicker
-            value={watch('creationDate')}
-            onChange={date => setValue('creationDate', date)}
+        <FormField label="شماره چک" required error={formFieldError(errors, 'checkNumber')}>
+          <input
+            type="text"
+            {...register('checkNumber', requiredField('شماره چک'))}
+            placeholder="شماره چک"
+            dir="ltr"
           />
         </FormField>
 
-        <FormField label="تاریخ سررسید" required>
-          <JalaliDatePicker value={watch('dueDate')} onChange={date => setValue('dueDate', date)} />
-        </FormField>
+        <Controller
+          name="amount"
+          control={control}
+          rules={requiredPositiveAmount()}
+          render={({ field, fieldState }) => (
+            <FormField label="مبلغ" required error={fieldState.error?.message}>
+              <AmountInput
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
+      </FormRow>
+
+      <Controller
+        name="counterparty"
+        control={control}
+        rules={requiredField('طرف حساب')}
+        render={({ field, fieldState }) => (
+          <FormField
+            label="طرف حساب"
+            required
+            controlWidth="full"
+            error={fieldState.error?.message}
+          >
+            <CounterpartySelect
+              value={field.value}
+              onChange={field.onChange}
+              counterparties={counterparties}
+              onCounterpartiesChange={onCounterpartiesChange}
+              aria-label="طرف حساب چک"
+              invalid={Boolean(fieldState.error)}
+            />
+          </FormField>
+        )}
+      />
+
+      <FormRow>
+        <Controller
+          name="creationDate"
+          control={control}
+          rules={requiredDate('تاریخ صدور')}
+          render={({ field, fieldState }) => (
+            <FormField label="تاریخ صدور" required error={fieldState.error?.message}>
+              <JalaliDatePicker
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
+
+        <Controller
+          name="dueDate"
+          control={control}
+          rules={requiredDate('تاریخ سررسید')}
+          render={({ field, fieldState }) => (
+            <FormField label="تاریخ سررسید" required error={fieldState.error?.message}>
+              <JalaliDatePicker
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
       </FormRow>
     </FormModal>
   )

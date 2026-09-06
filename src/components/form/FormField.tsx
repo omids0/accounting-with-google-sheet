@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  Children,
   cloneElement,
   isValidElement,
   useId,
@@ -16,9 +17,11 @@ import { formNoteTextareaClass } from '../ui/formControlStyles'
 import {
   type FormControlWidth,
   formControlClassName,
+  formControlInvalidClass,
   formControlWidthCompactClass,
   formControlWidthFullClass,
   formControlWidthStandardClass,
+  formErrorClass,
   formFieldClass,
   formHintClass,
   formLabelClass
@@ -28,6 +31,7 @@ interface FormFieldProps {
   label?: string
   required?: boolean
   hint?: ReactNode
+  error?: string
   className?: string
   style?: CSSProperties
   children: ReactNode
@@ -35,9 +39,16 @@ interface FormFieldProps {
   controlWidth?: FormControlWidth
 }
 
-type ControlProps = { id?: string; className?: string; type?: string }
+type ControlProps = {
+  id?: string
+  className?: string
+  type?: string
+  invalid?: boolean
+  'aria-invalid'?: boolean
+  'aria-describedby'?: string
+}
 
-function isNativeTextControl(element: ReactElement<ControlProps>): boolean {
+export function isNativeTextControl(element: ReactElement<ControlProps>): boolean {
   if (element.type === 'textarea') return true
   if (element.type !== 'input') return false
 
@@ -45,7 +56,26 @@ function isNativeTextControl(element: ReactElement<ControlProps>): boolean {
   return type !== 'checkbox' && type !== 'radio'
 }
 
-function enhanceControl(child: ReactNode, controlId: string): ReactNode {
+function resolveControlChild(children: ReactNode): ReactNode {
+  if (isValidElement(children)) {
+    return children
+  }
+
+  const items = Children.toArray(children).filter(isValidElement)
+
+  if (items.length === 1) {
+    return items[0]
+  }
+
+  return children
+}
+
+function enhanceControl(
+  child: ReactNode,
+  controlId: string,
+  invalid: boolean,
+  describedBy?: string
+): ReactNode {
   if (!isValidElement(child)) {
     return child
   }
@@ -58,9 +88,22 @@ function enhanceControl(child: ReactNode, controlId: string): ReactNode {
     patch.id = controlId
   }
 
+  if (invalid) {
+    patch.invalid = true
+    patch['aria-invalid'] = true
+  }
+
+  if (describedBy) {
+    patch['aria-describedby'] = describedBy
+  }
+
   if (isNativeTextControl(element)) {
     const textareaClass = element.type === 'textarea' ? formNoteTextareaClass : undefined
-    patch.className = cn(formControlClassName(textareaClass), className)
+    patch.className = cn(
+      formControlClassName(textareaClass),
+      className,
+      invalid && formControlInvalidClass
+    )
   }
 
   if (Object.keys(patch).length === 0) {
@@ -110,6 +153,7 @@ export default function FormField({
   label,
   required = false,
   hint,
+  error,
   className,
   style,
   children,
@@ -118,8 +162,12 @@ export default function FormField({
 }: FormFieldProps) {
   const autoId = useId()
   const controlId = id ?? autoId
-  const control = enhanceControl(children, controlId)
-  const controlShellClass = resolveControlWidthClass(children, controlWidth)
+  const errorId = `${controlId}-error`
+  const invalid = Boolean(error)
+  const describedBy = error ? errorId : undefined
+  const controlChild = resolveControlChild(children)
+  const control = enhanceControl(controlChild, controlId, invalid, describedBy)
+  const controlShellClass = resolveControlWidthClass(controlChild, controlWidth)
 
   return (
     <div className={cn(formFieldClass, className)} style={style}>
@@ -135,7 +183,13 @@ export default function FormField({
         </label>
       )}
       <div className={cn('form-control-shell', controlShellClass)}>{control}</div>
-      {hint && <div className={formHintClass}>{hint}</div>}
+      {error ? (
+        <p id={errorId} className={formErrorClass} role="alert">
+          {error}
+        </p>
+      ) : hint ? (
+        <div className={formHintClass}>{hint}</div>
+      ) : null}
     </div>
   )
 }

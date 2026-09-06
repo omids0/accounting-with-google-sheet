@@ -9,6 +9,7 @@ import {
   amountFieldInputCompactClass,
   amountFieldInputWrapClass,
   amountFieldInputWrapCompactClass,
+  amountFieldInputWrapInvalidClass,
   amountFieldSubmitBtnClass,
   amountFieldSubmitBtnLabelClass,
   amountWordsClass
@@ -26,6 +27,7 @@ interface AmountInputProps {
   onSubmit?: () => void
   submitDisabled?: boolean
   id?: string
+  invalid?: boolean
 }
 
 function parseDigitInput(value: string): string {
@@ -39,7 +41,8 @@ export default function AmountInput({
   onBlur,
   onSubmit,
   submitDisabled = false,
-  id
+  id,
+  invalid = false
 }: AmountInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -83,7 +86,13 @@ export default function AmountInput({
   if (compact) {
     return (
       <div className={cn(amountFieldClass, amountFieldCompactClass)}>
-        <div className={cn(amountFieldInputWrapClass, amountFieldInputWrapCompactClass)}>
+        <div
+          className={cn(
+            amountFieldInputWrapClass,
+            amountFieldInputWrapCompactClass,
+            invalid && amountFieldInputWrapInvalidClass
+          )}
+        >
           {onSubmit && (
             <button
               type="button"
@@ -123,7 +132,7 @@ export default function AmountInput({
 
   return (
     <div className={amountFieldClass}>
-      <div className={amountFieldInputWrapClass}>
+      <div className={cn(amountFieldInputWrapClass, invalid && amountFieldInputWrapInvalidClass)}>
         <input
           id={id}
           type="text"

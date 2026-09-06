@@ -1,4 +1,5 @@
 import { formTriggerBase } from './formControlStyles'
+import { formControlInvalidClass } from './formStyles'
 import { cn } from '../../utils/cn'
 
 export const pickerSheetPanelClass = 'max-h-[min(90vh,680px)]'
@@ -41,15 +42,18 @@ export const jalaliDatePickerWrapInlineClass = 'w-full'
 
 export function jalaliDatePickerTriggerClass({
   active,
-  empty
+  empty,
+  invalid
 }: {
   active?: boolean
   empty?: boolean
+  invalid?: boolean
 }) {
   return cn(
-    'w-full cursor-pointer px-[0.9rem] py-[0.72rem] text-right font-[inherit] leading-[1.4]',
+    'cursor-pointer',
     formTriggerBase,
     active && 'border-primary shadow-[var(--form-input-focus-shadow)]',
+    invalid && formControlInvalidClass,
     empty && 'font-medium text-muted',
     'focus-visible:outline-none focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)]'
   )

@@ -1,5 +1,6 @@
 import { type ButtonHTMLAttributes } from 'react'
 
+import LoadingDots, { type LoadingDotsTone } from './LoadingDots'
 import { cn } from '../../utils/cn'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'outflow' | 'inflow'
@@ -26,9 +27,16 @@ const variantClass: Record<ButtonVariant, string> = {
     'bg-success text-white shadow-[0_3px_12px_color-mix(in_srgb,var(--color-success)_28%,transparent)] hover:enabled:bg-[#15803d] disabled:opacity-60'
 }
 
+function loadingDotsTone(variant: ButtonVariant): LoadingDotsTone {
+  if (variant === 'secondary') return 'primary'
+  if (variant === 'danger') return 'danger'
+  return 'light'
+}
+
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant
   size?: ButtonSize
+  loading?: boolean
 }
 
 export function buttonClassName({
@@ -48,7 +56,34 @@ export default function Button({
   size = 'md',
   className,
   type = 'button',
+  loading = false,
+  disabled,
+  children,
+  'aria-label': ariaLabel,
   ...props
 }: ButtonProps) {
-  return <button type={type} className={buttonClassName({ variant, size, className })} {...props} />
+  const isDisabled = disabled || loading
+
+  return (
+    <button
+      type={type}
+      className={buttonClassName({ variant, size, className })}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
+      aria-label={loading ? 'در حال بارگذاری' : ariaLabel}
+      {...props}
+    >
+      {loading ? (
+        <span className="pointer-events-none absolute inset-0 inline-flex items-center justify-center">
+          <LoadingDots tone={loadingDotsTone(variant)} />
+        </span>
+      ) : null}
+      <span
+        className={cn('inline-flex items-center justify-center gap-2', loading && 'invisible')}
+        aria-hidden={loading || undefined}
+      >
+        {children}
+      </span>
+    </button>
+  )
 }

@@ -32,7 +32,8 @@ export default function CounterpartySelect({
   onCounterpartiesChange,
   disabled = false,
   'aria-label': ariaLabel = 'طرف حساب',
-  id
+  id,
+  invalid = false
 }: CounterpartySelectProps) {
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -140,7 +141,7 @@ export default function CounterpartySelect({
         className={cn(
           customSelectTriggerClass,
           categorySelectTriggerClass,
-          customSelectTriggerStateClass({ open, disabled: disabled || saving })
+          customSelectTriggerStateClass({ open, disabled: disabled || saving, invalid })
         )}
         onClick={() => !disabled && !saving && setOpen(true)}
         disabled={disabled || saving}

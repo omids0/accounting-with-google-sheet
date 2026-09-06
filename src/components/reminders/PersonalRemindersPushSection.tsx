@@ -66,8 +66,14 @@ export default function PersonalRemindersPushSection({
         <Button type="button" variant="secondary" size="sm" onClick={onManage}>
           مدیریت مواعد شخصی
         </Button>
-        <Button type="button" variant="primary" size="sm" onClick={onSave} disabled={saving}>
-          {saving && <span className="spinner" />}
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={onSave}
+          disabled={saving}
+          loading={saving}
+        >
           ذخیره تنظیمات
         </Button>
       </div>

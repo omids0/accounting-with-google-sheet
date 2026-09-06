@@ -9,7 +9,6 @@ import {
   appLockPinInputClass
 } from '../ui/appLockStyles'
 import Button from '../ui/Button'
-import { spinnerClass } from '../ui/displayStyles'
 
 type SetupStep = 'idle' | 'setup' | 'disable' | 'change-pin' | 'disable-biometric'
 
@@ -80,8 +79,7 @@ export function PinFieldsForm({
         </label>
       )}
       <div className={appLockFormActionsClass}>
-        <Button type="submit" variant="primary" size="sm" disabled={loading}>
-          {loading && <span className={spinnerClass} />}
+        <Button type="submit" variant="primary" size="sm" disabled={loading} loading={loading}>
           {submitLabel}
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
@@ -126,8 +124,13 @@ export function CurrentPinForm({
         />
       </FormField>
       <div className={appLockFormActionsClass}>
-        <Button type="submit" variant={danger ? 'danger' : 'primary'} size="sm" disabled={loading}>
-          {loading && <span className={spinnerClass} />}
+        <Button
+          type="submit"
+          variant={danger ? 'danger' : 'primary'}
+          size="sm"
+          disabled={loading}
+          loading={loading}
+        >
           {submitLabel}
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>
@@ -200,8 +203,7 @@ export function ChangePinForm({
         />
       </FormField>
       <div className={appLockFormActionsClass}>
-        <Button type="submit" variant="primary" size="sm" disabled={loading}>
-          {loading && <span className={spinnerClass} />}
+        <Button type="submit" variant="primary" size="sm" disabled={loading} loading={loading}>
           ذخیره رمز جدید
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={loading}>

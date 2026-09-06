@@ -99,8 +99,8 @@ export default function DueDateReminderSection({
         style={{ marginTop: '0.75rem' }}
         onClick={onSave}
         disabled={saving}
+        loading={saving}
       >
-        {saving && <span className="spinner" />}
         ذخیره تنظیمات
       </Button>
     </Card>

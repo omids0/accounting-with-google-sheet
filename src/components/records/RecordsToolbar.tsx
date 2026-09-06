@@ -38,9 +38,10 @@ export default function RecordsToolbar({
           className={recordsRefreshBtnClass}
           onClick={onRefresh}
           disabled={loading}
+          loading={loading}
           aria-label="بارگذاری مجدد"
         >
-          {loading ? '...' : '↻'}
+          ↻
         </Button>
       </div>
 

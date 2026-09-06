@@ -64,5 +64,3 @@ export const formModalActionsClass = cn(
   'lg:justify-end lg:[&>button]:flex-none',
   '[&>button]:focus-visible:outline-none [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] [&>button]:focus-visible:ring-offset-2 [&>button]:focus-visible:ring-offset-[var(--color-surface)]'
 )
-
-export const formModalSpinnerClass = 'flex-shrink-0'

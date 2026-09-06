@@ -1,8 +1,15 @@
 import { useMemo, type FormEvent } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
 import type { DangFormState, DangWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import {
+  formFieldError,
+  requiredDate,
+  requiredField,
+  requiredPositiveAmount,
+  submitValidatedForm
+} from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import type { CounterpartyWithRow } from '../counterparties/types'
@@ -55,8 +62,17 @@ export default function DangFormModal({
     [editingItem, categories]
   )
 
-  const { register, handleSubmit, reset, setValue, watch } = useForm<DangFormState>({
-    defaultValues: initialValues
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm<DangFormState>({
+    defaultValues: initialValues,
+    mode: 'onSubmit'
   })
 
   useModalFormReset(reset, initialValues, {
@@ -65,10 +81,9 @@ export default function DangFormModal({
   })
 
   const category = watch('category')
-  const counterparty = watch('counterparty')
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (
@@ -80,44 +95,99 @@ export default function DangFormModal({
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره بدهی'}
     >
-      <FormField label="عنوان" required controlWidth="full">
-        <input type="text" {...register('title')} placeholder="مثلاً: خرید از فروشگاه" />
-      </FormField>
-
-      <FormField label="دسته‌بندی" required controlWidth="full">
-        <CategorySelect
-          value={category}
-          onChange={value => setValue('category', value)}
-          categories={categories}
-          categoryScope="dang"
-          onCategoriesChange={next => {
-            onCategoriesChange(next)
-            if (!next.includes(category)) {
-              setValue('category', next[0] ?? '')
-            }
-          }}
-          aria-label="دسته‌بندی بدهی"
+      <FormField label="عنوان" required controlWidth="full" error={formFieldError(errors, 'title')}>
+        <input
+          type="text"
+          {...register('title', requiredField('عنوان'))}
+          placeholder="مثلاً: خرید از فروشگاه"
         />
       </FormField>
 
-      <FormField label="طرف حساب" required controlWidth="full">
-        <CounterpartySelect
-          value={counterparty}
-          onChange={value => setValue('counterparty', value)}
-          counterparties={counterparties}
-          onCounterpartiesChange={onCounterpartiesChange}
-          aria-label="طرف حساب بدهی"
-        />
-      </FormField>
+      <Controller
+        name="category"
+        control={control}
+        rules={requiredField('دسته‌بندی')}
+        render={({ field, fieldState }) => (
+          <FormField
+            label="دسته‌بندی"
+            required
+            controlWidth="full"
+            error={fieldState.error?.message}
+          >
+            <CategorySelect
+              value={field.value}
+              onChange={value => {
+                field.onChange(value)
+                setValue('category', value, { shouldValidate: true })
+              }}
+              categories={categories}
+              categoryScope="dang"
+              onCategoriesChange={next => {
+                onCategoriesChange(next)
+                if (!next.includes(category)) {
+                  setValue('category', next[0] ?? '', { shouldValidate: true })
+                }
+              }}
+              aria-label="دسته‌بندی بدهی"
+              invalid={Boolean(fieldState.error)}
+            />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        name="counterparty"
+        control={control}
+        rules={requiredField('طرف حساب')}
+        render={({ field, fieldState }) => (
+          <FormField
+            label="طرف حساب"
+            required
+            controlWidth="full"
+            error={fieldState.error?.message}
+          >
+            <CounterpartySelect
+              value={field.value}
+              onChange={field.onChange}
+              counterparties={counterparties}
+              onCounterpartiesChange={onCounterpartiesChange}
+              aria-label="طرف حساب بدهی"
+              invalid={Boolean(fieldState.error)}
+            />
+          </FormField>
+        )}
+      />
 
       <FormRow>
-        <FormField label="مبلغ" required>
-          <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
-        </FormField>
+        <Controller
+          name="amount"
+          control={control}
+          rules={requiredPositiveAmount()}
+          render={({ field, fieldState }) => (
+            <FormField label="مبلغ" required error={fieldState.error?.message}>
+              <AmountInput
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
 
-        <FormField label="تاریخ" required>
-          <JalaliDatePicker value={watch('date')} onChange={date => setValue('date', date)} />
-        </FormField>
+        <Controller
+          name="date"
+          control={control}
+          rules={requiredDate('تاریخ')}
+          render={({ field, fieldState }) => (
+            <FormField label="تاریخ" required error={fieldState.error?.message}>
+              <JalaliDatePicker
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
       </FormRow>
 
       <FormField label="توضیحات" controlWidth="full">

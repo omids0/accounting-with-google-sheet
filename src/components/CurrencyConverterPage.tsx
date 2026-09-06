@@ -139,9 +139,10 @@ export default function CurrencyConverterPage() {
             className={currencyConverterHeaderBtnClass}
             onClick={loadRates}
             disabled={loading}
+            loading={loading}
           >
             <AppIcon name="refresh" size={16} strokeWidth={2} />
-            {loading ? 'در حال بروزرسانی...' : 'بروزرسانی نرخ'}
+            بروزرسانی نرخ
           </Button>
         </div>
 

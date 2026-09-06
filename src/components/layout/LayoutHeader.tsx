@@ -7,6 +7,8 @@ import {
   appHeaderTitleClass,
   appHeaderWithBackClass,
   headerBackBtnClass,
+  headerGridCenterClass,
+  headerGridMenuClass,
   headerIconBtnMenuClass,
   headerIconSpacerClass
 } from '../ui/layoutStyles'
@@ -33,7 +35,7 @@ export default function LayoutHeader({
     <header className={cn(appHeaderClass, showHeaderBack && appHeaderWithBackClass)}>
       <button
         type="button"
-        className={cn(headerIconBtnMenuClass(menuOpen), mobileOnlyClass)}
+        className={cn(headerIconBtnMenuClass(menuOpen), mobileOnlyClass, headerGridMenuClass)}
         onClick={onToggleMenu}
         aria-label={menuOpen ? 'بستن منو' : 'باز کردن منو'}
         aria-expanded={menuOpen}
@@ -41,7 +43,7 @@ export default function LayoutHeader({
       >
         <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
       </button>
-      <div className={appHeaderCenterClass} data-header-center>
+      <div className={cn(appHeaderCenterClass, headerGridCenterClass)} data-header-center>
         <h1 className={appHeaderTitleClass} data-header-title>
           {headerTitle}
         </h1>

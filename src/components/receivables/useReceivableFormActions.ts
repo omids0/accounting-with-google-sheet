@@ -63,32 +63,6 @@ export function useReceivableFormActions({
   const handleSubmit = async (form: ReceivableFormState) => {
     if (!isConfigured() || !requireAuth()) return
 
-    if (!form.title.trim()) {
-      showError('عنوان الزامی است')
-
-      return
-    }
-    if (!form.debtor.trim()) {
-      showError('طرف حساب الزامی است')
-
-      return
-    }
-    if (!form.category.trim()) {
-      showError('دسته‌بندی الزامی است')
-
-      return
-    }
-    if (!form.amount || Number(form.amount) <= 0) {
-      showError('مبلغ را وارد کنید')
-
-      return
-    }
-    if (!form.borrowDate) {
-      showError('تاریخ قرض الزامی است')
-
-      return
-    }
-
     const settings = getSettings()!
 
     setSaving(true)

@@ -25,6 +25,7 @@ export interface CounterpartySelectProps {
   disabled?: boolean
   'aria-label'?: string
   id?: string
+  invalid?: boolean
 }
 
 export function useCounterpartySelectActions({

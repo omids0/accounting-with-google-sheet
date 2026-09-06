@@ -68,9 +68,9 @@ export default function SettingsSpreadsheetCard({
             size="sm"
             onClick={onRefreshSpreadsheets}
             disabled={loading}
+            loading={loading}
             style={{ marginTop: '0.5rem' }}
           >
-            {loading && <span className="spinner" />}
             بروزرسانی از Drive
           </Button>
         </>
@@ -129,8 +129,13 @@ export default function SettingsSpreadsheetCard({
             )}
           </FormField>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <Button variant="primary" size="sm" onClick={onCreateSpreadsheet} disabled={loading}>
-              {loading && <span className="spinner" />}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onCreateSpreadsheet}
+              disabled={loading}
+              loading={loading}
+            >
               ساخت
             </Button>
             <Button variant="secondary" size="sm" onClick={onCancelNewSheetForm} disabled={loading}>

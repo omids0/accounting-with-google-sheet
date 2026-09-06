@@ -63,34 +63,6 @@ export function useInstallmentFormActions({
   const handleSubmit = async (form: InstallmentFormState, computedEndDate: string) => {
     if (!isConfigured() || !requireAuth()) return
 
-    if (!form.title.trim()) {
-      showError('عنوان قسط الزامی است')
-
-      return
-    }
-    if (!form.amount || Number(form.amount) <= 0) {
-      showError('مبلغ قسط را وارد کنید')
-
-      return
-    }
-    if (!form.count || Number(form.count) < 1) {
-      showError('تعداد بازپرداخت باید حداقل ۱ باشد')
-
-      return
-    }
-
-    const dueDay = Number(form.dueDay)
-
-    if (!dueDay || dueDay < 1 || dueDay > 31) {
-      showError('موعد قسط باید بین ۱ تا ۳۱ باشد')
-
-      return
-    }
-    if (!form.startDate) {
-      showError('تاریخ شروع قسط الزامی است')
-
-      return
-    }
     if (form.paidUntil && form.paidUntil < form.startDate) {
       showError('تاریخ پرداخت‌شده نمی‌تواند قبل از تاریخ شروع باشد')
 
@@ -103,6 +75,7 @@ export function useInstallmentFormActions({
     }
 
     const settings = getSettings()!
+    const dueDay = Number(form.dueDay)
 
     setSaving(true)
     try {
