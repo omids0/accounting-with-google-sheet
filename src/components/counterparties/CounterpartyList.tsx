@@ -7,6 +7,7 @@ import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 type CounterpartyListProps = {
   items: CounterpartyWithRow[]
   filteredItems: CounterpartyWithRow[]
+  onView: (item: CounterpartyWithRow) => void
   onEdit: (item: CounterpartyWithRow) => void
   onDelete: (item: CounterpartyWithRow) => void
 }
@@ -14,6 +15,7 @@ type CounterpartyListProps = {
 export default function CounterpartyList({
   items,
   filteredItems,
+  onView,
   onEdit,
   onDelete
 }: CounterpartyListProps) {
@@ -35,7 +37,13 @@ export default function CounterpartyList({
   return (
     <>
       {filteredItems.map(item => (
-        <CounterpartyCard key={item.id} item={item} onEdit={onEdit} onDelete={onDelete} />
+        <CounterpartyCard
+          key={item.id}
+          item={item}
+          onView={onView}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       ))}
     </>
   )

@@ -18,7 +18,8 @@ export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
       },
       {
         title: 'جستجو و فیلتر',
-        description: 'جستجو در نام، تماس، آدرس، توضیحات و فیلتر بر اساس تاریخ تولد.'
+        description:
+          'جستجو در نام، تماس، آدرس، توضیحات و فیلتر بر اساس تاریخ تولد. مشاهده جزئیات با لمس کارت.'
       },
       {
         title: 'ورود و خروجی',

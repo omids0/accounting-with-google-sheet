@@ -10,17 +10,20 @@ import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import { DangCardListSkeleton } from '../skeleton'
+import CounterpartyDetailModal from './CounterpartyDetailModal'
 import CounterpartyFormModal from './CounterpartyFormModal'
 import CounterpartyList from './CounterpartyList'
 import type { CounterpartiesPageProps } from './types'
 import { useCounterpartiesData } from './useCounterpartiesData'
 import { useCounterpartiesFilters } from './useCounterpartiesFilters'
 import { useCounterpartiesForm } from './useCounterpartiesForm'
+import { useCounterpartyDetail } from './useCounterpartyDetail'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 export default function CounterpartiesPage({ active = true }: CounterpartiesPageProps) {
   const data = useCounterpartiesData()
   const form = useCounterpartiesForm({ onSaved: data.loadItems })
+  const detail = useCounterpartyDetail()
 
   const {
     filterModalOpen,
@@ -111,6 +114,7 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
           <CounterpartyList
             items={data.items}
             filteredItems={filteredItems}
+            onView={detail.openDetail}
             onEdit={form.openEditForm}
             onDelete={data.openDeleteConfirm}
           />
@@ -123,6 +127,16 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
         saving={form.saving}
         onClose={form.closeForm}
         onSubmit={form.handleSubmit}
+      />
+
+      <CounterpartyDetailModal
+        open={detail.viewingItem !== null}
+        item={detail.viewingItem}
+        onClose={detail.closeDetail}
+        onEdit={item => {
+          detail.closeDetail()
+          form.openEditForm(item)
+        }}
       />
 
       <ConfirmActionModal {...data.importExportConfirmModal} />

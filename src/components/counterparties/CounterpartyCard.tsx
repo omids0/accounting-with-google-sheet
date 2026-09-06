@@ -2,6 +2,7 @@ import { formatLocationLabel, getCounterpartyFullName } from '../../services/cou
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
+import PhoneNumberLinks from './PhoneNumberLinks'
 import type { CounterpartyWithRow } from './types'
 import {
   cardActionButtonsClass,
@@ -12,19 +13,25 @@ import {
   dangCardDateClass,
   dangCardHeaderClass,
   dangCardMetaClass,
+  dangCardTapAreaClass,
   dangCardTitleClass
 } from '../ui/featureCardStyles'
 
 type CounterpartyCardProps = {
   item: CounterpartyWithRow
+  onView: (item: CounterpartyWithRow) => void
   onEdit: (item: CounterpartyWithRow) => void
   onDelete: (item: CounterpartyWithRow) => void
 }
 
-export default function CounterpartyCard({ item, onEdit, onDelete }: CounterpartyCardProps) {
+export default function CounterpartyCard({
+  item,
+  onView,
+  onEdit,
+  onDelete
+}: CounterpartyCardProps) {
   const fullName = getCounterpartyFullName(item)
   const accountCount = item.accounts.length
-  const phoneLabel = item.phones.map(phone => phone.number).join(' · ')
   const locationLabel = formatLocationLabel(item.location)
 
   return (
@@ -32,33 +39,47 @@ export default function CounterpartyCard({ item, onEdit, onDelete }: Counterpart
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
           <div className={dangCardBodyClass}>
-            <div className={dangCardHeaderClass}>
-              <span className={dangCardTitleClass}>{fullName || '—'}</span>
-            </div>
-            {phoneLabel ? (
-              <div className={dangCardMetaClass} dir="ltr">
-                {phoneLabel}
+            <div
+              className={dangCardTapAreaClass()}
+              role="button"
+              tabIndex={0}
+              onClick={() => onView(item)}
+              onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onView(item)
+                }
+              }}
+              aria-label={`مشاهده جزئیات ${fullName || 'طرف حساب'}`}
+            >
+              <div className={dangCardHeaderClass}>
+                <span className={dangCardTitleClass}>{fullName || '—'}</span>
               </div>
-            ) : null}
-            {item.address ? <div className={dangCardMetaClass}>{item.address}</div> : null}
-            {item.note ? <div className={dangCardMetaClass}>{item.note}</div> : null}
-            {locationLabel ? (
-              <div className={dangCardMetaClass} dir="ltr">
-                موقعیت: {locationLabel}
+              {item.phones.length > 0 ? (
+                <div className={dangCardMetaClass}>
+                  <PhoneNumberLinks phones={item.phones} inline />
+                </div>
+              ) : null}
+              {item.address ? <div className={dangCardMetaClass}>{item.address}</div> : null}
+              {item.note ? <div className={dangCardMetaClass}>{item.note}</div> : null}
+              {locationLabel ? (
+                <div className={dangCardMetaClass} dir="ltr">
+                  موقعیت: {locationLabel}
+                </div>
+              ) : null}
+              <div className={dangCardMetaClass}>
+                {item.birthDate ? (
+                  <span className={dangCardDateClass}>
+                    تولد: {formatIsoDatePersian(item.birthDate)}
+                  </span>
+                ) : null}
+                {accountCount > 0 ? (
+                  <span>
+                    {item.birthDate ? ' · ' : ''}
+                    {accountCount.toLocaleString('fa-IR')} حساب
+                  </span>
+                ) : null}
               </div>
-            ) : null}
-            <div className={dangCardMetaClass}>
-              {item.birthDate ? (
-                <span className={dangCardDateClass}>
-                  تولد: {formatIsoDatePersian(item.birthDate)}
-                </span>
-              ) : null}
-              {accountCount > 0 ? (
-                <span>
-                  {item.birthDate ? ' · ' : ''}
-                  {accountCount.toLocaleString('fa-IR')} حساب
-                </span>
-              ) : null}
             </div>
           </div>
         </div>
