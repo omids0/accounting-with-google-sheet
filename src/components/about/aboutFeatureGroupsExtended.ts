@@ -9,7 +9,8 @@ export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
     features: [
       {
         title: 'ثبت طرف حساب',
-        description: 'نام، نام خانوادگی، تاریخ تولد، آدرس، چند شماره تماس و انتخاب موقعیت روی نقشه.'
+        description:
+          'نام، نام خانوادگی، تاریخ تولد، آدرس، چند شماره تماس، انتخاب موقعیت روی نقشه و توضیحات اختیاری.'
       },
       {
         title: 'چند حساب بانکی',
@@ -17,7 +18,7 @@ export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
       },
       {
         title: 'جستجو و فیلتر',
-        description: 'جستجو در نام، تماس، آدرس و فیلتر بر اساس تاریخ تولد.'
+        description: 'جستجو در نام، تماس، آدرس، توضیحات و فیلتر بر اساس تاریخ تولد.'
       },
       {
         title: 'ورود و خروجی',

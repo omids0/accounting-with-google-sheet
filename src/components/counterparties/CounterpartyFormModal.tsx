@@ -35,7 +35,8 @@ function buildInitialValues(editingItem: CounterpartyWithRow | null): Counterpar
       address: editingItem.address,
       location: editingItem.location,
       phones: editingItem.phones.length > 0 ? editingItem.phones : [{ ...EMPTY_PHONE }],
-      accounts: editingItem.accounts.length > 0 ? editingItem.accounts : [{ ...EMPTY_ACCOUNT }]
+      accounts: editingItem.accounts.length > 0 ? editingItem.accounts : [{ ...EMPTY_ACCOUNT }],
+      note: editingItem.note
     }
   }
 
@@ -46,7 +47,8 @@ function buildInitialValues(editingItem: CounterpartyWithRow | null): Counterpar
     address: '',
     location: null,
     phones: [{ ...EMPTY_PHONE }],
-    accounts: [{ ...EMPTY_ACCOUNT }]
+    accounts: [{ ...EMPTY_ACCOUNT }],
+    note: ''
   }
 }
 
@@ -97,22 +99,31 @@ export default function CounterpartyFormModal({
         />
       </FormField>
 
-      <FormField label="آدرس">
-        <textarea {...register('address')} placeholder="آدرس" rows={2} />
-      </FormField>
-
       <FormField label="لوکیشن">
         <Controller
           control={control}
           name="location"
           render={({ field }) => (
-            <LocationMapPicker value={field.value} onChange={field.onChange} />
+            <LocationMapPicker
+              active={open}
+              value={field.value}
+              onChange={field.onChange}
+              onAddressResolved={address => setValue('address', address, { shouldDirty: true })}
+            />
           )}
         />
       </FormField>
 
+      <FormField label="آدرس" hint="با انتخاب روی نقشه به‌صورت خودکار تکمیل می‌شود">
+        <textarea {...register('address')} placeholder="آدرس" rows={2} />
+      </FormField>
+
       <CounterpartyPhonesField control={control} register={register} />
       <CounterpartyAccountsField control={control} register={register} />
+
+      <FormField label="توضیحات">
+        <textarea {...register('note')} placeholder="توضیحات اختیاری" rows={2} />
+      </FormField>
     </FormModal>
   )
 }

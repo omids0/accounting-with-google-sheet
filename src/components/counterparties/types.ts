@@ -19,6 +19,7 @@ export type CounterpartyFormState = {
   location: CounterpartyLocation | null
   phones: CounterpartyPhoneFormState[]
   accounts: CounterpartyAccountFormState[]
+  note: string
 }
 
 export type CounterpartiesPageProps = {

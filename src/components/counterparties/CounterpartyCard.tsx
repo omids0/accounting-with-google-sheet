@@ -41,6 +41,7 @@ export default function CounterpartyCard({ item, onEdit, onDelete }: Counterpart
               </div>
             ) : null}
             {item.address ? <div className={dangCardMetaClass}>{item.address}</div> : null}
+            {item.note ? <div className={dangCardMetaClass}>{item.note}</div> : null}
             {locationLabel ? (
               <div className={dangCardMetaClass} dir="ltr">
                 موقعیت: {locationLabel}

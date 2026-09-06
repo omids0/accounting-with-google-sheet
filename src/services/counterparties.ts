@@ -23,7 +23,8 @@ export const COUNTERPARTIES_HEADERS = [
   'آدرس',
   'لوکیشن',
   'شماره تماس',
-  'حساب‌ها'
+  'حساب‌ها',
+  'توضیحات'
 ]
 
 export function parseCounterpartyAccounts(raw: string): CounterpartyAccount[] {
@@ -125,7 +126,8 @@ function rowToCounterparty(
     address: row[5] ?? '',
     location: parseCounterpartyLocation(row[6] ?? ''),
     phones: parseCounterpartyPhones(row[7] ?? ''),
-    accounts: parseCounterpartyAccounts(row[8] ?? '')
+    accounts: parseCounterpartyAccounts(row[8] ?? ''),
+    note: row[9] ?? ''
   }
 }
 
@@ -139,7 +141,8 @@ function counterpartyToRow(item: Counterparty): string[] {
     item.address,
     formatCounterpartyLocation(item.location),
     formatCounterpartyPhones(item.phones),
-    JSON.stringify(item.accounts)
+    JSON.stringify(item.accounts),
+    item.note
   ]
 }
 
@@ -158,7 +161,8 @@ export function counterpartyRowFromImportCells(cells: (string | undefined)[]): s
     address: cells[5] ?? '',
     location: parseCounterpartyLocation(cells[6] ?? ''),
     phones: parseCounterpartyPhones(cells[7] ?? ''),
-    accounts: parseCounterpartyAccounts(cells[8] ?? '')
+    accounts: parseCounterpartyAccounts(cells[8] ?? ''),
+    note: cells[9] ?? ''
   })
 }
 

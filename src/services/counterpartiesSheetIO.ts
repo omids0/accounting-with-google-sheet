@@ -57,7 +57,8 @@ export async function importCounterpartiesCsv(spreadsheetId: string, csvContent:
         row[5],
         row[6],
         row[7],
-        row[8]
+        row[8],
+        row[9]
       ]
     }
   )

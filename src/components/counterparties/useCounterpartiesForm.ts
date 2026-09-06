@@ -66,7 +66,8 @@ export function useCounterpartiesForm({ onSaved }: UseCounterpartiesFormOptions)
       address: values.address.trim(),
       location: values.location,
       phones: normalizePhones(values.phones),
-      accounts: normalizeAccounts(values.accounts)
+      accounts: normalizeAccounts(values.accounts),
+      note: values.note.trim()
     }
 
     setSaving(true)

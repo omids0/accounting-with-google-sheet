@@ -16,6 +16,7 @@ export function useCounterpartiesFilters({ items }: UseCounterpartiesFiltersOpti
       formatLocationLabel(item.location),
       item.birthDate,
       ...item.phones.map(phone => phone.number),
+      item.note,
       ...item.accounts.flatMap(account => [account.bankName, account.accountNumber])
     ],
     getDate: item => item.birthDate

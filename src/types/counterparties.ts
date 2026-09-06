@@ -22,4 +22,5 @@ export type Counterparty = {
   location: CounterpartyLocation | null
   phones: CounterpartyPhone[]
   accounts: CounterpartyAccount[]
+  note: string
 }
