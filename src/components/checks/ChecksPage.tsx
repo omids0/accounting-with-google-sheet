@@ -20,6 +20,8 @@ import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 export default function ChecksPage({ active = true }: ChecksPageProps) {
   const {
     items,
+    counterparties,
+    setCounterparties,
     loading,
     togglingId,
     deletingItem,
@@ -45,8 +47,11 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     setDraftSearch,
     draftPaymentStatus,
     setDraftPaymentStatus,
+    draftCounterparty,
+    setDraftCounterparty,
     draftDatePreset,
     draftCustomRange,
+    counterpartyOptions,
     filteredItems,
     openFilterModal,
     filterChips,
@@ -54,7 +59,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     handleDraftDateFilterChange,
     clearDraftFilters,
     applyFilters
-  } = useChecksFilters({ items })
+  } = useChecksFilters({ items, counterparties })
 
   const pageSpeedDialConfig = useMemo(
     () => ({
@@ -113,6 +118,9 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
           searchPlaceholder="جستجو در چک‌ها..."
           paymentStatus={draftPaymentStatus}
           onPaymentStatusChange={setDraftPaymentStatus}
+          counterparty={draftCounterparty}
+          onCounterpartyChange={setDraftCounterparty}
+          counterpartyOptions={counterpartyOptions}
           datePreset={draftDatePreset}
           customRange={draftCustomRange}
           onDateFilterChange={handleDraftDateFilterChange}
@@ -136,8 +144,10 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
         open={showForm}
         editingItem={editingItem}
         saving={saving}
+        counterparties={counterparties}
         onClose={closeForm}
         onSubmit={handleSubmit}
+        onCounterpartiesChange={setCounterparties}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />

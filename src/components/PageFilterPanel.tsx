@@ -42,6 +42,10 @@ interface PageFilterPanelProps {
   onCategoryChange?: (value: string) => void
   categoryOptions?: string[]
   categoryLabel?: string
+  counterparty?: string
+  onCounterpartyChange?: (value: string) => void
+  counterpartyOptions?: string[]
+  counterpartyLabel?: string
   paymentStatus?: PaymentStatusFilter
   onPaymentStatusChange?: (value: PaymentStatusFilter) => void
   paymentStatusLabel?: string
@@ -65,6 +69,10 @@ export default function PageFilterPanel({
   onCategoryChange,
   categoryOptions,
   categoryLabel = 'دسته‌بندی',
+  counterparty,
+  onCounterpartyChange,
+  counterpartyOptions,
+  counterpartyLabel = 'طرف حساب',
   paymentStatus,
   onPaymentStatusChange,
   paymentStatusLabel = 'وضعیت پرداخت',
@@ -129,6 +137,26 @@ export default function PageFilterPanel({
                 options={[
                   { value: 'all', label: 'همه' },
                   ...categoryOptions.map(item => ({ value: item, label: item }))
+                ]}
+              />
+            </div>
+          )}
+
+        {counterparty !== undefined &&
+          onCounterpartyChange &&
+          counterpartyOptions &&
+          counterpartyOptions.length > 0 && (
+            <div className={recordsFilterSectionClassName(true)}>
+              <span className={recordsFilterLabelClass}>{counterpartyLabel}</span>
+              <Select
+                className={recordsCategorySelectClass}
+                compact
+                aria-label={counterpartyLabel}
+                value={counterparty}
+                onChange={onCounterpartyChange}
+                options={[
+                  { value: 'all', label: 'همه' },
+                  ...counterpartyOptions.map(item => ({ value: item, label: item }))
                 ]}
               />
             </div>

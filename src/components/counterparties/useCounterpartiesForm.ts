@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { buildCounterpartyPayload, validateCounterpartyForm } from './counterpartyFormPayload'
 import type { CounterpartyFormState, CounterpartyWithRow } from './types'
 import { createCounterparty, updateCounterparty } from '../../services/counterparties'
 import { requireSpreadsheetId } from '../../utils/authGuard'
@@ -7,19 +8,6 @@ import { showError, showSuccess } from '../../utils/toast'
 
 type UseCounterpartiesFormOptions = {
   onSaved: () => Promise<void> | void
-}
-
-function normalizePhones(phones: CounterpartyFormState['phones']) {
-  return phones.map(phone => ({ number: phone.number.trim() })).filter(phone => phone.number)
-}
-
-function normalizeAccounts(accounts: CounterpartyFormState['accounts']) {
-  return accounts
-    .map(account => ({
-      bankName: account.bankName.trim(),
-      accountNumber: account.accountNumber.trim()
-    }))
-    .filter(account => account.bankName || account.accountNumber)
 }
 
 export function useCounterpartiesForm({ onSaved }: UseCounterpartiesFormOptions) {
@@ -48,27 +36,15 @@ export function useCounterpartiesForm({ onSaved }: UseCounterpartiesFormOptions)
 
     if (!spreadsheetId) return
 
-    if (!values.firstName.trim()) {
-      showError('نام الزامی است')
+    const validationError = validateCounterpartyForm(values)
+
+    if (validationError) {
+      showError(validationError)
 
       return
     }
-    if (!values.lastName.trim()) {
-      showError('نام خانوادگی الزامی است')
 
-      return
-    }
-
-    const payload = {
-      firstName: values.firstName.trim(),
-      lastName: values.lastName.trim(),
-      birthDate: values.birthDate,
-      address: values.address.trim(),
-      location: values.location,
-      phones: normalizePhones(values.phones),
-      accounts: normalizeAccounts(values.accounts),
-      note: values.note.trim()
-    }
+    const payload = buildCounterpartyPayload(values)
 
     setSaving(true)
     try {

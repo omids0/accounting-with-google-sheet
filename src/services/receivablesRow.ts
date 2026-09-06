@@ -5,7 +5,8 @@ export const RECEIVABLES_SHEET = 'طلب‌ها'
 export const RECEIVABLES_HEADERS = [
   'شناسه',
   'زمان ثبت',
-  'نام',
+  'عنوان',
+  'طرف حساب',
   'دسته‌بندی',
   'مبلغ',
   'تاریخ قرض',
@@ -32,6 +33,12 @@ function isLegacyReceivableRow(row: string[]): boolean {
   return row[3] !== '' && !Number.isNaN(amountAt3)
 }
 
+function isReceivableRowWithTitle(row: string[]): boolean {
+  const amountAt5 = Number(row[5])
+
+  return row[5] !== '' && !Number.isNaN(amountAt5)
+}
+
 export function rowToReceivable(
   row: string[],
   rowNumber: number
@@ -41,6 +48,7 @@ export function rowToReceivable(
       rowNumber,
       id: row[0] ?? '',
       createdAt: row[1] ?? '',
+      title: '',
       debtor: row[2] ?? '',
       category: 'سایر',
       amount: Number(row[3]) || 0,
@@ -50,10 +58,26 @@ export function rowToReceivable(
     }
   }
 
+  if (isReceivableRowWithTitle(row)) {
+    return {
+      rowNumber,
+      id: row[0] ?? '',
+      createdAt: row[1] ?? '',
+      title: row[2] ?? '',
+      debtor: row[3] ?? '',
+      category: row[4] ?? 'سایر',
+      amount: Number(row[5]) || 0,
+      borrowDate: row[6] ?? '',
+      note: row[7] ?? '',
+      payments: parsePayments(row[8] ?? '')
+    }
+  }
+
   return {
     rowNumber,
     id: row[0] ?? '',
     createdAt: row[1] ?? '',
+    title: '',
     debtor: row[2] ?? '',
     category: row[3] ?? 'سایر',
     amount: Number(row[4]) || 0,
@@ -67,6 +91,7 @@ export function receivableToRow(receivable: Receivable): string[] {
   return [
     receivable.id,
     receivable.createdAt,
+    receivable.title,
     receivable.debtor,
     receivable.category,
     String(receivable.amount),
@@ -86,6 +111,12 @@ export function remainingAmount(receivable: Receivable): number {
 
 export function isReceivableComplete(receivable: Receivable): boolean {
   return remainingAmount(receivable) <= 0
+}
+
+export function getReceivableDisplayTitle(
+  receivable: Pick<Receivable, 'title' | 'debtor'>
+): string {
+  return receivable.title.trim() || receivable.debtor
 }
 
 export function sortReceivables<T extends Receivable>(items: T[]): T[] {

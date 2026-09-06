@@ -32,7 +32,16 @@ import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 export default function ReceivablesPage({ active = true }: ReceivablesPageProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const { items, setItems, loading, categories, setCategories, loadItems } = useReceivablesData()
+  const {
+    items,
+    setItems,
+    loading,
+    categories,
+    setCategories,
+    counterparties,
+    setCounterparties,
+    loadItems
+  } = useReceivablesData()
 
   const mutations = useReceivableMutations({
     setItems,
@@ -41,7 +50,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
     setExpandedId
   })
 
-  const filters = useReceivablesFilters(items, categories)
+  const filters = useReceivablesFilters(items, categories, counterparties)
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
@@ -112,6 +121,9 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
           category={filters.draftCategory}
           onCategoryChange={filters.setDraftCategory}
           categoryOptions={filters.categoryOptions}
+          counterparty={filters.draftCounterparty}
+          onCounterpartyChange={filters.setDraftCounterparty}
+          counterpartyOptions={filters.counterpartyOptions}
           datePreset={filters.draftDatePreset}
           customRange={filters.draftCustomRange}
           onDateFilterChange={filter => {
@@ -169,7 +181,11 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
           }
           variant="balance"
           wide
-          sparklineData={distributionSparkline(items.map(item => remainingAmount(item)))}
+          sparklineData={distributionSparkline(
+            (filters.showFilteredTotal ? filters.filteredItems : items).map(item =>
+              remainingAmount(item)
+            )
+          )}
           className={receivableTotalCardClass}
         />
       )}
@@ -179,9 +195,11 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
         editingItem={mutations.editingItem}
         categories={categories}
         setCategories={setCategories}
+        counterparties={counterparties}
         saving={mutations.saving}
         onClose={mutations.closeForm}
         onSubmit={mutations.handleSubmit}
+        onCounterpartiesChange={setCounterparties}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />

@@ -41,12 +41,26 @@ export function buildPaymentStatusChip(
   })
 }
 
-export function buildCategoryChip(category: string, onRemove: () => void): FilterChip {
-  return withKind('category', {
-    id: 'category',
-    label: `دسته: ${category}`,
+function buildLabeledFilterChip(
+  kind: FilterChipKind,
+  id: string,
+  prefix: string,
+  value: string,
+  onRemove: () => void
+): FilterChip {
+  return withKind(kind, {
+    id,
+    label: `${prefix}: ${value}`,
     onRemove
   })
+}
+
+export function buildCategoryChip(category: string, onRemove: () => void): FilterChip {
+  return buildLabeledFilterChip('category', 'category', 'دسته', category, onRemove)
+}
+
+export function buildCounterpartyChip(counterparty: string, onRemove: () => void): FilterChip {
+  return buildLabeledFilterChip('counterparty', 'counterparty', 'طرف', counterparty, onRemove)
 }
 
 export function buildSortChip(label: string, onRemove: () => void): FilterChip {

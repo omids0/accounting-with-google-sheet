@@ -59,7 +59,7 @@ export default function DangList({
     return <SearchEmptyState />
   }
 
-  const totalUnpaid = unpaidDangTotal(items)
+  const totalUnpaid = unpaidDangTotal(filteredItems)
 
   return (
     <>
@@ -87,7 +87,7 @@ export default function DangList({
           variant="expense"
           wide
           sparklineData={distributionSparkline(
-            items.filter(item => !item.paid).map(item => item.amount)
+            filteredItems.filter(item => !item.paid).map(item => item.amount)
           )}
           className={dangTotalFooterClass}
         />

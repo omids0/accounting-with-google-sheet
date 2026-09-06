@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { FormField } from '../form'
+import type { CounterpartyWithRow } from '../counterparties/types'
+import { CounterpartySelect, FormField } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { CheckFormState, CheckWithRow } from './types'
@@ -13,16 +14,20 @@ export type CheckFormModalProps = {
   open: boolean
   editingItem: CheckWithRow | null
   saving: boolean
+  counterparties: CounterpartyWithRow[]
   onClose: () => void
   onSubmit: (values: CheckFormState) => void | Promise<void>
+  onCounterpartiesChange: (counterparties: CounterpartyWithRow[]) => void
 }
 
 export default function CheckFormModal({
   open,
   editingItem,
   saving,
+  counterparties,
   onClose,
-  onSubmit
+  onSubmit,
+  onCounterpartiesChange
 }: CheckFormModalProps) {
   const initialValues = useMemo<CheckFormState>(
     () =>
@@ -57,6 +62,8 @@ export default function CheckFormModal({
     void handleSubmit(values => onSubmit(values))(event)
   }
 
+  const counterparty = watch('counterparty')
+
   return (
     <FormModal
       open={open}
@@ -71,7 +78,13 @@ export default function CheckFormModal({
       </FormField>
 
       <FormField label="طرف حساب" required>
-        <input type="text" {...register('counterparty')} placeholder="نام طرف حساب" />
+        <CounterpartySelect
+          value={counterparty}
+          onChange={value => setValue('counterparty', value)}
+          counterparties={counterparties}
+          onCounterpartiesChange={onCounterpartiesChange}
+          aria-label="طرف حساب چک"
+        />
       </FormField>
 
       <FormField label="مبلغ" required>

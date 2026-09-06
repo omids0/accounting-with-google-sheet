@@ -63,8 +63,13 @@ export function useReceivableFormActions({
   const handleSubmit = async (form: ReceivableFormState) => {
     if (!isConfigured() || !requireAuth()) return
 
+    if (!form.title.trim()) {
+      showError('عنوان الزامی است')
+
+      return
+    }
     if (!form.debtor.trim()) {
-      showError('نام شخص یا ارگان الزامی است')
+      showError('طرف حساب الزامی است')
 
       return
     }
@@ -99,6 +104,7 @@ export function useReceivableFormActions({
 
         const updated = {
           ...editingItem,
+          title: form.title.trim(),
           debtor: form.debtor.trim(),
           category: form.category.trim(),
           amount: nextAmount,
@@ -110,6 +116,7 @@ export function useReceivableFormActions({
         showSuccess('طلب ویرایش شد')
       } else {
         await createReceivable(settings.spreadsheetId, {
+          title: form.title.trim(),
           debtor: form.debtor.trim(),
           category: form.category.trim(),
           amount: Number(form.amount),

@@ -23,7 +23,8 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
   const items = sortReceivables(await fetchReceivables(spreadsheetId))
 
   const headers = [
-    'نام',
+    'عنوان',
+    'طرف حساب',
     'دسته‌بندی',
     'مبلغ',
     'تاریخ قرض',
@@ -37,6 +38,7 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
     const summary = formatReceivableSummary(item)
 
     return [
+      item.title,
       item.debtor,
       item.category,
       formatMoney(item.amount),
@@ -49,6 +51,7 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
   })
 
   const cellClasses = items.map(() => [
+    '',
     '',
     '',
     'pdf-cell-amount',
@@ -75,19 +78,20 @@ export async function importReceivablesCsv(spreadsheetId: string, csvContent: st
     RECEIVABLES_HEADERS,
     csvContent,
     cells => {
-      const debtor = (cells[2] ?? '').trim()
+      const debtor = (cells[3] ?? '').trim()
 
       if (!debtor) return null
 
       return receivableToRow({
         id: newImportId(cells[0] ?? ''),
         createdAt: newImportTimestamp(cells[1] ?? ''),
+        title: cells[2] ?? '',
         debtor,
-        category: cells[3] ?? 'سایر',
-        amount: Number(cells[4]) || 0,
-        borrowDate: cells[5] ?? '',
-        note: cells[6] ?? '',
-        payments: parsePayments(cells[7] ?? '')
+        category: cells[4] ?? 'سایر',
+        amount: Number(cells[5]) || 0,
+        borrowDate: cells[6] ?? '',
+        note: cells[7] ?? '',
+        payments: parsePayments(cells[8] ?? '')
       })
     }
   )

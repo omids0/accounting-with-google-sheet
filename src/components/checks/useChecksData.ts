@@ -13,13 +13,16 @@ import {
   sortChecks,
   toggleCheckPaid
 } from '../../services/checks'
+import { ensureCounterpartiesSheet, fetchCounterparties } from '../../services/counterparties'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
+import type { CounterpartyWithRow } from '../counterparties/types'
 
 export function useChecksData() {
   const [items, setItems] = useState<CheckWithRow[]>([])
+  const [counterparties, setCounterparties] = useState<CounterpartyWithRow[]>([])
   const [loading, setLoading] = useState(() => {
     const settings = getSettings()
 
@@ -37,6 +40,8 @@ export function useChecksData() {
     setLoading(true)
     try {
       await ensureChecksSheet(settings.spreadsheetId)
+      await ensureCounterpartiesSheet(settings.spreadsheetId)
+      setCounterparties(await fetchCounterparties(settings.spreadsheetId))
 
       const data = await fetchChecks(settings.spreadsheetId)
 
@@ -69,6 +74,8 @@ export function useChecksData() {
 
   return {
     items,
+    counterparties,
+    setCounterparties,
     loading,
     loadItems,
     ...paidActions

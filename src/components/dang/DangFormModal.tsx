@@ -1,22 +1,25 @@
 import { useMemo, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
+import type { DangFormState, DangWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { CategorySelect, FormField } from '../form'
+import type { CounterpartyWithRow } from '../counterparties/types'
+import { CategorySelect, CounterpartySelect, FormField } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
-import type { DangFormState, DangWithRow } from './types'
 
 export type DangFormModalProps = {
   open: boolean
   editingItem: DangWithRow | null
   saving: boolean
   categories: string[]
+  counterparties: CounterpartyWithRow[]
   onClose: () => void
   onSubmit: (values: DangFormState) => void | Promise<void>
   onCategoriesChange: (categories: string[]) => void
+  onCounterpartiesChange: (counterparties: CounterpartyWithRow[]) => void
 }
 
 export default function DangFormModal({
@@ -24,9 +27,11 @@ export default function DangFormModal({
   editingItem,
   saving,
   categories,
+  counterparties,
   onClose,
   onSubmit,
-  onCategoriesChange
+  onCategoriesChange,
+  onCounterpartiesChange
 }: DangFormModalProps) {
   const initialValues = useMemo<DangFormState>(
     () =>
@@ -60,6 +65,7 @@ export default function DangFormModal({
   })
 
   const category = watch('category')
+  const counterparty = watch('counterparty')
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     void handleSubmit(values => onSubmit(values))(event)
@@ -95,7 +101,13 @@ export default function DangFormModal({
       </FormField>
 
       <FormField label="طرف حساب" required>
-        <input type="text" {...register('counterparty')} placeholder="نام شخص یا گروه" />
+        <CounterpartySelect
+          value={counterparty}
+          onChange={value => setValue('counterparty', value)}
+          counterparties={counterparties}
+          onCounterpartiesChange={onCounterpartiesChange}
+          aria-label="طرف حساب بدهی"
+        />
       </FormField>
 
       <FormField label="مبلغ" required>

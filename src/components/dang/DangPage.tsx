@@ -22,6 +22,8 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     loading,
     categories,
     setCategories,
+    counterparties,
+    setCounterparties,
     expandedId,
     setExpandedId,
     deletingItem,
@@ -56,9 +58,12 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     setDraftPaymentStatus,
     draftCategory,
     setDraftCategory,
+    draftCounterparty,
+    setDraftCounterparty,
     draftDatePreset,
     draftCustomRange,
     categoryOptions,
+    counterpartyOptions,
     filteredItems,
     openFilterModal,
     filterChips,
@@ -66,7 +71,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     handleDraftDateFilterChange,
     clearDraftFilters,
     applyFilters
-  } = useDangFilters({ items, categories })
+  } = useDangFilters({ items, categories, counterparties })
 
   const pageSpeedDialConfig = useMemo(
     () => ({
@@ -128,6 +133,9 @@ export default function DangPage({ active = true }: { active?: boolean }) {
           category={draftCategory}
           onCategoryChange={setDraftCategory}
           categoryOptions={categoryOptions}
+          counterparty={draftCounterparty}
+          onCounterpartyChange={setDraftCounterparty}
+          counterpartyOptions={counterpartyOptions}
           datePreset={draftDatePreset}
           customRange={draftCustomRange}
           onDateFilterChange={handleDraftDateFilterChange}
@@ -157,9 +165,11 @@ export default function DangPage({ active = true }: { active?: boolean }) {
         editingItem={editingItem}
         saving={saving}
         categories={categories}
+        counterparties={counterparties}
         onClose={closeForm}
         onSubmit={handleSubmit}
         onCategoriesChange={setCategories}
+        onCounterpartiesChange={setCounterparties}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />

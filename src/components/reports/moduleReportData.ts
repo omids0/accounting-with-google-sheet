@@ -11,6 +11,7 @@ import {
   remainingAmount,
   paidAmount
 } from '../../services/receivables'
+import { getReceivableDisplayTitle } from '../../services/receivablesRow'
 import { getCachedTgjuPrices } from '../../services/tgju'
 import { exportTreasuryPdf, computeHoldings, fetchVaultTransactions } from '../../services/treasury'
 import { exportWalletAccountsPdf, fetchWalletAccounts } from '../../services/wallet'
@@ -109,8 +110,8 @@ export async function loadModuleReport(
         secondaryLabel: 'تسویه‌شده',
         rows: items.map(item => ({
           id: item.id,
-          title: item.debtor,
-          subtitle: `${item.category} · ${formatIsoDatePersian(item.borrowDate)}`,
+          title: getReceivableDisplayTitle(item),
+          subtitle: `${item.debtor} · ${item.category} · ${formatIsoDatePersian(item.borrowDate)}`,
           amount: remainingAmount(item)
         }))
       }

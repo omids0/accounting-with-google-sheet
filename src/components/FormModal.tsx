@@ -41,6 +41,11 @@ export default function FormModal({
 }: FormModalProps) {
   const { panelRef } = useModalLock({ open, onClose, blocked: saving })
 
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.stopPropagation()
+    onSubmit(event)
+  }
+
   if (!open) return null
 
   return createPortal(
@@ -76,7 +81,7 @@ export default function FormModal({
           </button>
         </div>
 
-        <form onSubmit={onSubmit} aria-busy={saving}>
+        <form onSubmit={handleSubmit} aria-busy={saving}>
           <div className={formModalBodyClass}>{children}</div>
 
           <div className={cn(formModalActionsClass, formActionsClassName())}>

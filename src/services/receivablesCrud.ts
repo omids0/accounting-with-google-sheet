@@ -3,6 +3,7 @@ import { createLinkedIncomeRecord, deleteLinkedIncomeRecord } from './paymentTra
 import {
   RECEIVABLES_HEADERS,
   RECEIVABLES_SHEET,
+  getReceivableDisplayTitle,
   receivableToRow,
   rowToReceivable,
   sortReceivables
@@ -36,6 +37,7 @@ export async function fetchReceivables(
 export async function createReceivable(
   spreadsheetId: string,
   data: {
+    title: string
     debtor: string
     category: string
     amount: number
@@ -46,6 +48,7 @@ export async function createReceivable(
   const receivable: Receivable = {
     id: crypto.randomUUID(),
     createdAt: new Date().toLocaleString('fa-IR'),
+    title: data.title,
     debtor: data.debtor,
     category: data.category,
     amount: data.amount,
@@ -67,7 +70,7 @@ export async function addReceivablePayment(
   const paidAt = getTodayIso()
 
   const transactionRecordId = await createLinkedIncomeRecord(spreadsheetId, {
-    title: payment.title ?? `طلب: ${receivable.debtor}`,
+    title: payment.title ?? `طلب: ${getReceivableDisplayTitle(receivable)}`,
     amount: payment.amount,
     category: payment.category ?? receivable.category,
     date: paidAt,
