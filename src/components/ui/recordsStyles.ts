@@ -1,7 +1,7 @@
 import { cardClassName } from './Card'
 import { cn } from '../../utils/cn'
 
-export const recordsPageClass = 'flex flex-col gap-3'
+export const recordsPageClass = cn('flex flex-col gap-3', 'lg:gap-4')
 
 export const recordsToolbarClass = cn(
   'relative z-[2] mb-0 overflow-hidden rounded-[var(--radius)] border border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] p-4',

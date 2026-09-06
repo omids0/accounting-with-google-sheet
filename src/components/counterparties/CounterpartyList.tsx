@@ -3,6 +3,7 @@ import type { CounterpartyWithRow } from './types'
 import AppIcon from '../AppIcon'
 import SearchEmptyState from '../SearchEmptyState'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 type CounterpartyListProps = {
   items: CounterpartyWithRow[]
@@ -35,7 +36,7 @@ export default function CounterpartyList({
   }
 
   return (
-    <>
+    <div className={listCardsContainerClass}>
       {filteredItems.map(item => (
         <CounterpartyCard
           key={item.id}
@@ -45,6 +46,6 @@ export default function CounterpartyList({
           onDelete={onDelete}
         />
       ))}
-    </>
+    </div>
   )
 }

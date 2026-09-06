@@ -1,10 +1,17 @@
 import { cardClassName } from './Card'
+import { listPageGridClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
 /** Inner padding for list cards (installments, wallet, receivables, dang, checks). Tailwind p-2 = 0.5rem. */
 export const listCardInsetClass = 'p-2'
 
-export const listPageStackClass = 'flex flex-col gap-3 [&_.list-card]:mb-0'
+export const listPageStackClass = cn('flex flex-col gap-3 [&_.list-card]:mb-0', listPageGridClass)
+
+/** Wraps mapped list cards — responsive multi-column grid on desktop. */
+export const listCardsContainerClass = cn(
+  'flex flex-col gap-3',
+  'lg:grid lg:grid-cols-2 lg:gap-4 xl:grid-cols-3 [&_.list-card]:mb-0'
+)
 
 export const interactiveCardClass = cn(
   'transition-[box-shadow,border-color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',

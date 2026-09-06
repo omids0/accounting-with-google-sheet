@@ -1,6 +1,7 @@
+import { toolsPageDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
-export const loanCalculatorPageClass = 'flex flex-col gap-4'
+export const loanCalculatorPageClass = cn('flex flex-col gap-4', toolsPageDesktopClass)
 
 export const loanCalculatorHintClass = 'mb-3 text-[0.82rem] leading-[1.6] text-muted'
 
@@ -36,7 +37,7 @@ export const loanRateSuffixClass = cn(
   'flex flex-shrink-0 items-center justify-center bg-accent-soft px-[0.85rem] font-semibold text-muted'
 )
 
-export const currencyConverterPageClass = 'flex flex-col gap-4'
+export const currencyConverterPageClass = cn('flex flex-col gap-4', toolsPageDesktopClass)
 
 export const currencyConverterFormCardClass = 'relative z-[2] overflow-visible'
 
@@ -73,8 +74,10 @@ export const currencyConverterResultValueClass =
 
 export const currencyConverterEmptyCardClass = 'relative z-[1] text-center'
 
-export const dateCalculatorPageClass =
-  'flex flex-col gap-[0.6rem] [&>.card]:mb-0 [&>.card]:px-[0.9rem] [&>.card]:py-[0.85rem]'
+export const dateCalculatorPageClass = cn(
+  'flex flex-col gap-[0.6rem] [&>.card]:mb-0 [&>.card]:px-[0.9rem] [&>.card]:py-[0.85rem]',
+  toolsPageDesktopClass
+)
 
 export const dateCalculatorFormCardClass = 'relative z-[2] [&_.jalali-date-picker-wrap]:w-full'
 

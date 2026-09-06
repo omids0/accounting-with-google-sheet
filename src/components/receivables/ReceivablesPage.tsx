@@ -27,6 +27,7 @@ import { useReceivableMutations } from './useReceivableMutations'
 import { useReceivablesData } from './useReceivablesData'
 import { useReceivablesFilters } from './useReceivablesFilters'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listCardsContainerClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function ReceivablesPage({ active = true }: ReceivablesPageProps) {
@@ -148,29 +149,31 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       ) : filters.filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        filters.filteredItems.map((item, index) => (
-          <ReceivableCard
-            key={item.id}
-            item={item}
-            index={index}
-            expanded={expandedId === item.id}
-            payingId={mutations.payingId}
-            settlingId={mutations.settlingId}
-            togglingPaymentId={mutations.togglingPaymentId}
-            paymentReceivableId={mutations.paymentReceivableId}
-            settlementReceivableId={mutations.settlementReceivableId}
-            onToggleExpand={expanded => mutations.toggleExpanded(item.id, expanded)}
-            onEdit={() => mutations.openEditForm(item)}
-            onDelete={() => mutations.openDeleteConfirm(item)}
-            onOpenPaymentForm={mutations.setPaymentReceivableId}
-            onClosePaymentForm={() => mutations.setPaymentReceivableId(null)}
-            onOpenSettlementForm={mutations.setSettlementReceivableId}
-            onCloseSettlementForm={() => mutations.setSettlementReceivableId(null)}
-            onAddPayment={values => mutations.handleAddPayment(item, values)}
-            onSettle={values => mutations.handleSettle(item, values)}
-            onRemovePayment={paymentId => mutations.handleRemovePayment(item, paymentId)}
-          />
-        ))
+        <div className={listCardsContainerClass}>
+          {filters.filteredItems.map((item, index) => (
+            <ReceivableCard
+              key={item.id}
+              item={item}
+              index={index}
+              expanded={expandedId === item.id}
+              payingId={mutations.payingId}
+              settlingId={mutations.settlingId}
+              togglingPaymentId={mutations.togglingPaymentId}
+              paymentReceivableId={mutations.paymentReceivableId}
+              settlementReceivableId={mutations.settlementReceivableId}
+              onToggleExpand={expanded => mutations.toggleExpanded(item.id, expanded)}
+              onEdit={() => mutations.openEditForm(item)}
+              onDelete={() => mutations.openDeleteConfirm(item)}
+              onOpenPaymentForm={mutations.setPaymentReceivableId}
+              onClosePaymentForm={() => mutations.setPaymentReceivableId(null)}
+              onOpenSettlementForm={mutations.setSettlementReceivableId}
+              onCloseSettlementForm={() => mutations.setSettlementReceivableId(null)}
+              onAddPayment={values => mutations.handleAddPayment(item, values)}
+              onSettle={values => mutations.handleSettle(item, values)}
+              onRemovePayment={paymentId => mutations.handleRemovePayment(item, paymentId)}
+            />
+          ))}
+        </div>
       )}
 
       {items.length > 0 && (

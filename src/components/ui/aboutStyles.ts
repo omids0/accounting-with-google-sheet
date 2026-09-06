@@ -1,6 +1,6 @@
 import { cn } from '../../utils/cn'
 
-export const aboutPageClass = 'flex flex-col gap-2 pb-4'
+export const aboutPageClass = cn('flex flex-col gap-2 pb-4', 'lg:max-w-4xl lg:mx-auto lg:w-full')
 
 export const aboutHeroClass = 'px-4 py-5 text-center'
 

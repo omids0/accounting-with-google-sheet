@@ -16,6 +16,7 @@ import CheckCard from './CheckCard'
 import type { CheckWithRow } from './types'
 import { dashboardStatGridClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 export type CheckListProps = {
   items: CheckWithRow[]
@@ -68,16 +69,18 @@ export default function CheckList({
 
   return (
     <>
-      {filteredItems.map(item => (
-        <CheckCard
-          key={item.id}
-          item={item}
-          togglingId={togglingId}
-          onTogglePaid={onTogglePaid}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      ))}
+      <div className={listCardsContainerClass}>
+        {filteredItems.map(item => (
+          <CheckCard
+            key={item.id}
+            item={item}
+            togglingId={togglingId}
+            onTogglePaid={onTogglePaid}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))}
+      </div>
 
       <div className={dashboardStatGridClass}>
         <StatCard

@@ -30,6 +30,7 @@ import WalletFormModal from './WalletFormModal'
 import WalletOpeningBalanceCard from './WalletOpeningBalanceCard'
 import WalletReconciliationAlert from './WalletReconciliationAlert'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listCardsContainerClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function WalletPage({ active = true }: WalletPageProps) {
@@ -157,21 +158,23 @@ export default function WalletPage({ active = true }: WalletPageProps) {
       ) : filters.filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        filters.filteredItems.map(account => (
-          <WalletAccountCard
-            key={account.id}
-            account={account}
-            expanded={expandedId === account.id}
-            balance={data.balances[account.id] ?? account.balance}
-            saving={mutations.savingId === account.id}
-            onToggleExpand={() => setExpandedId(expandedId === account.id ? null : account.id)}
-            onEdit={() => mutations.openEditForm(account)}
-            onDelete={() => mutations.openDeleteConfirm(account)}
-            onBalanceChange={val => data.setBalances(prev => ({ ...prev, [account.id]: val }))}
-            onBalanceSave={() => mutations.handleBalanceSave(account)}
-            onClose={() => setExpandedId(null)}
-          />
-        ))
+        <div className={listCardsContainerClass}>
+          {filters.filteredItems.map(account => (
+            <WalletAccountCard
+              key={account.id}
+              account={account}
+              expanded={expandedId === account.id}
+              balance={data.balances[account.id] ?? account.balance}
+              saving={mutations.savingId === account.id}
+              onToggleExpand={() => setExpandedId(expandedId === account.id ? null : account.id)}
+              onEdit={() => mutations.openEditForm(account)}
+              onDelete={() => mutations.openDeleteConfirm(account)}
+              onBalanceChange={val => data.setBalances(prev => ({ ...prev, [account.id]: val }))}
+              onBalanceSave={() => mutations.handleBalanceSave(account)}
+              onClose={() => setExpandedId(null)}
+            />
+          ))}
+        </div>
       )}
 
       {data.items.length > 0 && (

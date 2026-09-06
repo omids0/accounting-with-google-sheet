@@ -1,9 +1,11 @@
 import { cardClassName } from './Card'
+import { statGridDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
 export const dashboardPageClass = cn(
   'flex flex-col gap-2',
-  '[&_.mb-stack]:mb-0 [&_.dashboard-flow-section]:mb-0 [&_.chart-card--animated]:mb-0'
+  '[&_.mb-stack]:mb-0 [&_.dashboard-flow-section]:mb-0 [&_.chart-card--animated]:mb-0',
+  'lg:gap-4'
 )
 
 export const dashboardHeroCardClass = cn(
@@ -31,7 +33,10 @@ export const dashboardHeroLabelClass =
 
 export const dashboardHeroHintClass = 'mt-2 px-1 text-[0.72rem] leading-[1.55] opacity-90'
 
-export const dashboardFlowSectionClass = 'dashboard-flow-section'
+export const dashboardFlowSectionClass = cn(
+  'dashboard-flow-section',
+  'lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start'
+)
 
 export const dashboardFlowSectionAnimatedClass = cn(
   '[&>.stat-grid_.stat-card]:animate-[statCardIn_0.5s_var(--ease-page)_both] [&>.stat-card-wide]:animate-[statCardIn_0.5s_var(--ease-page)_both]',
@@ -71,7 +76,7 @@ export const assetValueClass = cn(
   'asset-value text-[0.76rem] font-semibold tracking-[0.01em] text-primary-dark font-numeric tabular-nums'
 )
 
-export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem]'
+export const statGridClass = cn('mb-0 grid grid-cols-3 gap-[0.4rem]', statGridDesktopClass)
 
 export const statGrid2Class = 'grid-cols-2'
 
