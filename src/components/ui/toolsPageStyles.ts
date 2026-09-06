@@ -1,8 +1,7 @@
 import { listPageStackClass } from './featureCardStyles'
-import { reportPageDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
-export const reportPageClass = cn('flex flex-col gap-4', reportPageDesktopClass)
+export const reportPageClass = 'flex flex-col gap-4'
 
 export const reportHintClass = 'mt-3 text-[0.82rem] text-muted'
 
