@@ -10,9 +10,11 @@ import {
   formModalActionsClass,
   formModalBackdropClass,
   formModalBodyClass,
+  formModalFieldsLayoutClass,
   formModalCloseClass,
   formModalHeaderClass,
   formModalPanelClass,
+  formModalPanelWideClass,
   formModalRootClass,
   formModalSpinnerClass,
   formModalTitleClass
@@ -26,6 +28,7 @@ type FormModalProps = {
   saving?: boolean
   saveLabel: string
   saveButtonVariant?: ButtonVariant
+  size?: 'default' | 'wide'
   children: ReactNode
 }
 
@@ -37,6 +40,7 @@ export default function FormModal({
   saving = false,
   saveLabel,
   saveButtonVariant = 'primary',
+  size = 'default',
   children
 }: FormModalProps) {
   const { panelRef } = useModalLock({ open, onClose, blocked: saving })
@@ -64,7 +68,10 @@ export default function FormModal({
         aria-label="بستن"
       />
 
-      <div ref={panelRef} className={formModalPanelClass}>
+      <div
+        ref={panelRef}
+        className={cn(formModalPanelClass, size === 'wide' && formModalPanelWideClass)}
+      >
         <div className={formModalHeaderClass}>
           <h2 id="form-modal-title" className={formModalTitleClass}>
             {title}
@@ -82,7 +89,7 @@ export default function FormModal({
         </div>
 
         <form onSubmit={handleSubmit} aria-busy={saving}>
-          <div className={formModalBodyClass}>{children}</div>
+          <div className={cn(formModalBodyClass, formModalFieldsLayoutClass)}>{children}</div>
 
           <div className={cn(formModalActionsClass, formActionsClassName())}>
             {saving && <span className={cn('spinner', formModalSpinnerClass)} aria-hidden />}

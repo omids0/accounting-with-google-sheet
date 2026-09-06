@@ -1,7 +1,7 @@
 import { cardClassName } from './Card'
 import { cn } from '../../utils/cn'
 
-export const recordsPageClass = 'flex flex-col gap-3'
+export const recordsPageClass = cn('flex flex-col gap-3', 'lg:gap-4')
 
 export const recordsToolbarClass = cn(
   'relative z-[2] mb-0 overflow-hidden rounded-[var(--radius)] border border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] p-4',
@@ -125,6 +125,24 @@ export const receivablesFiltersBodySectionsClass =
 export const receivablesFiltersRangeClass = 'mt-[0.35rem]'
 
 export const dataEntryTypeSegmentClass = 'mb-4'
+
+export const dataEntryPageClass = 'mx-auto w-full max-w-[32rem]'
+
+export function dataEntryFormCardClass(type?: 'income' | 'expense' | 'custom') {
+  return cn(
+    'rounded-[var(--radius)] border bg-surface p-4 shadow-[var(--shadow)]',
+    'lg:p-5',
+    type === 'income' && 'border-[color-mix(in_srgb,var(--color-income)_22%,var(--color-border))]',
+    type === 'expense' &&
+      'border-[color-mix(in_srgb,var(--color-expense)_22%,var(--color-border))]',
+    (!type || type === 'custom') &&
+      'border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))]'
+  )
+}
+
+export const dataEntryFormActionsClass = cn(
+  'mt-1 border-t border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] pt-4'
+)
 
 export const formFieldNoteClass = 'mb-[1.15rem]'
 

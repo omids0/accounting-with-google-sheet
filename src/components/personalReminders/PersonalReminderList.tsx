@@ -4,6 +4,7 @@ import AppIcon from '../AppIcon'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 type PersonalReminderListProps = {
   items: PersonalReminderWithRow[]
@@ -44,7 +45,7 @@ export default function PersonalReminderList({
   }
 
   return (
-    <>
+    <div className={listCardsContainerClass}>
       {filteredItems.map(item => (
         <PersonalReminderCard
           key={item.id}
@@ -55,6 +56,6 @@ export default function PersonalReminderList({
           onDelete={onDelete}
         />
       ))}
-    </>
+    </div>
   )
 }

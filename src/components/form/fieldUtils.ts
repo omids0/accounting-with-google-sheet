@@ -3,6 +3,16 @@ import { getTodayIso } from '../../utils/jalaliDate'
 
 const STANDARD_FIELD_ORDER = ['date', 'title', 'category', 'amount', 'note']
 
+export const STANDARD_ENTRY_FIELD_IDS = STANDARD_FIELD_ORDER
+
+export function isStandardEntryForm(form: { fields: FieldConfig[] }): boolean {
+  if (form.fields.length !== STANDARD_FIELD_ORDER.length) return false
+
+  const ids = new Set(form.fields.map(field => field.id))
+
+  return STANDARD_FIELD_ORDER.every(id => ids.has(id))
+}
+
 export function sortFormFields(fields: FieldConfig[]): FieldConfig[] {
   const order = new Map(STANDARD_FIELD_ORDER.map((id, index) => [id, index]))
 

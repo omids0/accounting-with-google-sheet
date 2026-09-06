@@ -2,7 +2,8 @@ import { cn } from '../../utils/cn'
 
 export const fabContainerClass = cn(
   'pointer-events-none fixed bottom-[calc(5.75rem+var(--safe-bottom)+6px)] left-1/2 z-[25] flex w-full max-w-[480px] -translate-x-1/2 justify-start px-4',
-  'min-[380px]:px-5'
+  'min-[380px]:px-5',
+  'lg:bottom-[calc(1rem+var(--safe-bottom))] lg:left-auto lg:right-[calc(var(--sidebar-width)+1rem)] lg:max-w-none lg:translate-x-0 lg:justify-start lg:px-0'
 )
 
 export const speedDialContainerClass = 'z-[25]'

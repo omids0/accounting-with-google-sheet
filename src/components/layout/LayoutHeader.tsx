@@ -10,6 +10,7 @@ import {
   headerIconBtnMenuClass,
   headerIconSpacerClass
 } from '../ui/layoutStyles'
+import { mobileOnlyClass } from '../ui/responsiveStyles'
 
 interface LayoutHeaderProps {
   menuOpen: boolean
@@ -32,7 +33,7 @@ export default function LayoutHeader({
     <header className={cn(appHeaderClass, showHeaderBack && appHeaderWithBackClass)}>
       <button
         type="button"
-        className={headerIconBtnMenuClass(menuOpen)}
+        className={cn(headerIconBtnMenuClass(menuOpen), mobileOnlyClass)}
         onClick={onToggleMenu}
         aria-label={menuOpen ? 'بستن منو' : 'باز کردن منو'}
         aria-expanded={menuOpen}

@@ -5,7 +5,7 @@ import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import type { CounterpartyWithRow } from '../counterparties/types'
-import { CategorySelect, CounterpartySelect, FormField } from '../form'
+import { CategorySelect, CounterpartySelect, FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { ReceivableFormState, ReceivableWithRow } from './types'
@@ -80,11 +80,11 @@ export default function ReceivableFormModal({
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره طلب'}
     >
-      <FormField label="عنوان" required>
+      <FormField label="عنوان" required controlWidth="full">
         <input type="text" {...register('title')} placeholder="مثلاً: قرض خرید ماشین" />
       </FormField>
 
-      <FormField label="طرف حساب" required>
+      <FormField label="طرف حساب" required controlWidth="full">
         <CounterpartySelect
           value={counterparty}
           onChange={value => setValue('debtor', value)}
@@ -94,7 +94,7 @@ export default function ReceivableFormModal({
         />
       </FormField>
 
-      <FormField label="دسته‌بندی" required>
+      <FormField label="دسته‌بندی" required controlWidth="full">
         <CategorySelect
           value={category}
           onChange={value => setValue('category', value)}
@@ -110,18 +110,20 @@ export default function ReceivableFormModal({
         />
       </FormField>
 
-      <FormField label="مبلغ" required>
-        <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
-      </FormField>
+      <FormRow>
+        <FormField label="مبلغ" required>
+          <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
+        </FormField>
 
-      <FormField label="تاریخ قرض گرفتن" required>
-        <JalaliDatePicker
-          value={watch('borrowDate')}
-          onChange={iso => setValue('borrowDate', iso)}
-        />
-      </FormField>
+        <FormField label="تاریخ قرض گرفتن" required>
+          <JalaliDatePicker
+            value={watch('borrowDate')}
+            onChange={iso => setValue('borrowDate', iso)}
+          />
+        </FormField>
+      </FormRow>
 
-      <FormField label="توضیحات">
+      <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" />
       </FormField>
     </FormModal>

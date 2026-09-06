@@ -19,6 +19,7 @@ import { useTreasuryData } from './useTreasuryData'
 import { useTreasuryFilters } from './useTreasuryFilters'
 import { useTreasuryForms } from './useTreasuryForms'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listCardsContainerClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass, treasuryTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function TreasuryPageContent({ active = true }: { active?: boolean }) {
@@ -100,21 +101,23 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       ) : data.filteredHoldings.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        data.filteredHoldings.map(holding => (
-          <TreasuryHoldingCard
-            key={holding.assetType}
-            holding={holding}
-            expanded={data.expandedAsset === holding.assetType}
-            activeSellAsset={forms.activeSellAsset}
-            sellingAsset={forms.sellingAsset}
-            onToggle={() => handleToggleHolding(holding.assetType)}
-            onEdit={forms.openEditForm}
-            onDelete={forms.openDeleteConfirm}
-            onOpenSellForm={forms.openSellForm}
-            onCloseSellForm={forms.closeSellForm}
-            onSell={forms.handleSell}
-          />
-        ))
+        <div className={listCardsContainerClass}>
+          {data.filteredHoldings.map(holding => (
+            <TreasuryHoldingCard
+              key={holding.assetType}
+              holding={holding}
+              expanded={data.expandedAsset === holding.assetType}
+              activeSellAsset={forms.activeSellAsset}
+              sellingAsset={forms.sellingAsset}
+              onToggle={() => handleToggleHolding(holding.assetType)}
+              onEdit={forms.openEditForm}
+              onDelete={forms.openDeleteConfirm}
+              onOpenSellForm={forms.openSellForm}
+              onCloseSellForm={forms.closeSellForm}
+              onSell={forms.handleSell}
+            />
+          ))}
+        </div>
       )}
 
       {data.holdings.length > 0 && (

@@ -15,7 +15,7 @@ import {
 } from '../ui/aboutStyles'
 import { cardClassName } from '../ui/Card'
 
-const APP_VERSION = '1.1.2'
+const APP_VERSION = '1.2.0'
 
 export default function AboutPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set())
@@ -41,8 +41,8 @@ export default function AboutPage() {
         </div>
         <h1 className={aboutHeroTitleClass}>حسابداری شخصی</h1>
         <p className={aboutHeroTaglineClass}>
-          اپ موبایل‌فرست حسابداری با ذخیره‌سازی در Google Sheets — داده‌های شما همیشه در اختیار
-          خودتان است.
+          اپ حسابداری با ذخیره‌سازی در Google Sheets — روی موبایل و دسکتاپ با چیدمان واکنش‌گرا؛
+          داده‌های شما همیشه در اختیار خودتان است.
         </p>
         <p className={aboutHeroVersionClass}>نسخه {APP_VERSION}</p>
       </header>

@@ -2,7 +2,7 @@ import { useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { FormField } from '../form'
+import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import CounterpartyAccountsField from './CounterpartyAccountsField'
@@ -83,14 +83,17 @@ export default function CounterpartyFormModal({
       onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره طرف حساب'}
+      size="wide"
     >
-      <FormField label="نام" required>
-        <input type="text" {...register('firstName')} placeholder="نام" required />
-      </FormField>
+      <FormRow>
+        <FormField label="نام" required>
+          <input type="text" {...register('firstName')} placeholder="نام" required />
+        </FormField>
 
-      <FormField label="نام خانوادگی" required>
-        <input type="text" {...register('lastName')} placeholder="نام خانوادگی" required />
-      </FormField>
+        <FormField label="نام خانوادگی" required>
+          <input type="text" {...register('lastName')} placeholder="نام خانوادگی" required />
+        </FormField>
+      </FormRow>
 
       <FormField label="تاریخ تولد">
         <JalaliDatePicker
@@ -99,7 +102,7 @@ export default function CounterpartyFormModal({
         />
       </FormField>
 
-      <FormField label="لوکیشن">
+      <FormField label="لوکیشن" controlWidth="full">
         <Controller
           control={control}
           name="location"
@@ -114,14 +117,18 @@ export default function CounterpartyFormModal({
         />
       </FormField>
 
-      <FormField label="آدرس" hint="با انتخاب روی نقشه به‌صورت خودکار تکمیل می‌شود">
+      <FormField
+        label="آدرس"
+        hint="با انتخاب روی نقشه به‌صورت خودکار تکمیل می‌شود"
+        controlWidth="full"
+      >
         <textarea {...register('address')} placeholder="آدرس" rows={2} />
       </FormField>
 
       <CounterpartyPhonesField control={control} register={register} />
       <CounterpartyAccountsField control={control} register={register} />
 
-      <FormField label="توضیحات">
+      <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" rows={2} />
       </FormField>
     </FormModal>

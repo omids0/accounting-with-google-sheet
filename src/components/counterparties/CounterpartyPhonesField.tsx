@@ -25,7 +25,7 @@ export default function CounterpartyPhonesField({
   })
 
   return (
-    <FormField label="شماره تماس">
+    <FormField label="شماره تماس" controlWidth="full">
       <div className={counterpartyFieldArrayListClass}>
         {fields.map((field, index) => (
           <div key={field.id} className={counterpartyFieldArrayItemClass}>

@@ -2,12 +2,14 @@ import type { ReactNode } from 'react'
 
 import FormField from './FormField'
 import Select, { type SelectOption } from './Select'
+import type { FormControlWidth } from '../ui/formStyles'
 
 interface FormSelectProps {
   label?: string
   required?: boolean
   hint?: ReactNode
   className?: string
+  controlWidth?: FormControlWidth
   value: string
   onChange: (value: string) => void
   options: SelectOption[]
@@ -21,6 +23,7 @@ export default function FormSelect({
   required,
   hint,
   className,
+  controlWidth = 'full',
   value,
   onChange,
   options,
@@ -29,7 +32,13 @@ export default function FormSelect({
   compact
 }: FormSelectProps) {
   return (
-    <FormField label={label} required={required} hint={hint} className={className}>
+    <FormField
+      label={label}
+      required={required}
+      hint={hint}
+      className={className}
+      controlWidth={controlWidth}
+    >
       <Select
         value={value}
         onChange={onChange}

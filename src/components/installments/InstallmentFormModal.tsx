@@ -5,7 +5,7 @@ import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getInstallmentEndDate, getPaidUntilFromPlan } from '../../services/installments'
 import { formatIsoDatePersian, getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { FormField } from '../form'
+import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { InstallmentFormState, PlanWithRow } from './types'
@@ -78,6 +78,31 @@ export default function InstallmentFormModal({
     void handleSubmit(values => onSubmit(values, computedEndDate))(event)
   }
 
+  const paidUntilField = (
+    <FormField
+      label="پرداخت‌شده تا تاریخ"
+      hint="اقساطی که موعد آن‌ها تا این تاریخ است به‌عنوان پرداخت‌شده ثبت می‌شوند"
+    >
+      <JalaliDatePicker
+        value={paidUntil}
+        onChange={date => setValue('paidUntil', date)}
+        allowEmpty
+        emptyLabel="هنوز پرداختی ثبت نشده"
+      />
+      {paidUntil ? (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="mt-2"
+          onClick={() => setValue('paidUntil', '')}
+        >
+          پاک کردن
+        </Button>
+      ) : null}
+    </FormField>
+  )
+
   return (
     <FormModal
       open={open}
@@ -87,78 +112,65 @@ export default function InstallmentFormModal({
       saving={saving}
       saveLabel={editingPlan ? 'ذخیره تغییرات' : 'ذخیره قسط'}
     >
-      <FormField label="عنوان قسط" required>
+      <FormField label="عنوان قسط" required controlWidth="full">
         <input type="text" {...register('title')} placeholder="مثلاً: وام بانکی" />
       </FormField>
 
-      <FormField label="مبلغ قسط" required>
-        <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
-      </FormField>
+      <FormRow>
+        <FormField label="مبلغ قسط" required>
+          <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
+        </FormField>
 
-      <FormField label="تعداد بازپرداخت" required>
-        <input
-          type="number"
-          inputMode="numeric"
-          min={1}
-          value={count === '' ? '' : count}
-          onChange={e => setValue('count', e.target.value === '' ? '' : Number(e.target.value))}
-          dir="ltr"
-        />
-      </FormField>
+        <FormField label="تعداد بازپرداخت" required>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            value={count === '' ? '' : count}
+            onChange={e => setValue('count', e.target.value === '' ? '' : Number(e.target.value))}
+            dir="ltr"
+          />
+        </FormField>
+      </FormRow>
 
-      <FormField label="تاریخ شروع قسط" required>
-        <JalaliDatePicker value={startDate} onChange={date => setValue('startDate', date)} />
-      </FormField>
+      <FormRow>
+        <FormField label="تاریخ شروع قسط" required>
+          <JalaliDatePicker value={startDate} onChange={date => setValue('startDate', date)} />
+        </FormField>
 
-      <FormField
-        label="موعد قسط در ماه"
-        required
-        hint="روز پرداخت هر قسط در ماه (مثلاً ۵ برای پنجم هر ماه)"
-      >
-        <input
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={31}
-          value={dueDay === '' ? '' : dueDay}
-          onChange={e => setValue('dueDay', e.target.value === '' ? '' : Number(e.target.value))}
-          dir="ltr"
-          placeholder="۱ تا ۳۱"
-        />
-      </FormField>
+        <FormField
+          label="موعد قسط در ماه"
+          required
+          hint="روز پرداخت هر قسط در ماه (مثلاً ۵ برای پنجم هر ماه)"
+        >
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={31}
+            value={dueDay === '' ? '' : dueDay}
+            onChange={e => setValue('dueDay', e.target.value === '' ? '' : Number(e.target.value))}
+            dir="ltr"
+            placeholder="۱ تا ۳۱"
+          />
+        </FormField>
+      </FormRow>
 
       {computedEndDate ? (
-        <FormField
-          label="تاریخ پایان قسط"
-          hint="بر اساس تاریخ شروع، تعداد بازپرداخت و موعد ماهانه محاسبه می‌شود"
-        >
-          <div className={formReadonlyValueClass}>{formatIsoDatePersian(computedEndDate)}</div>
-        </FormField>
-      ) : null}
+        <FormRow>
+          <FormField
+            label="تاریخ پایان قسط"
+            hint="بر اساس تاریخ شروع، تعداد بازپرداخت و موعد ماهانه محاسبه می‌شود"
+          >
+            <div className={formReadonlyValueClass}>{formatIsoDatePersian(computedEndDate)}</div>
+          </FormField>
+          {paidUntilField}
+        </FormRow>
+      ) : (
+        paidUntilField
+      )}
 
-      <FormField
-        label="پرداخت‌شده تا تاریخ"
-        hint="اقساطی که موعد آن‌ها تا این تاریخ است به‌عنوان پرداخت‌شده ثبت می‌شوند"
-      >
-        <JalaliDatePicker
-          value={paidUntil}
-          onChange={date => setValue('paidUntil', date)}
-          allowEmpty
-          emptyLabel="هنوز پرداختی ثبت نشده"
-        />
-      </FormField>
-      {paidUntil ? (
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => setValue('paidUntil', '')}
-        >
-          پاک کردن
-        </Button>
-      ) : null}
-
-      <FormField label="توضیحات">
+      <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" />
       </FormField>
     </FormModal>

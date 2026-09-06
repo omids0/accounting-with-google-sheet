@@ -5,7 +5,7 @@ import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { PERSONAL_REMINDER_RECURRENCE_OPTIONS } from '../../types/personalReminders'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { CategorySelect, FormField, FormSelect } from '../form'
+import { CategorySelect, FormField, FormRow, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { PersonalReminderFormState, PersonalReminderWithRow } from './types'
@@ -78,11 +78,11 @@ export default function PersonalReminderFormModal({
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره یادآوری'}
     >
-      <FormField label="عنوان" required hint="مثلاً بیمه شخص ثالث پژو ۲۰۶">
+      <FormField label="عنوان" required hint="مثلاً بیمه شخص ثالث پژو ۲۰۶" controlWidth="full">
         <input type="text" {...register('title')} placeholder="عنوان یادآوری" required />
       </FormField>
 
-      <FormField label="دسته‌بندی" required>
+      <FormField label="دسته‌بندی" required controlWidth="full">
         <CategorySelect
           value={category}
           onChange={value => setValue('category', value)}
@@ -98,35 +98,40 @@ export default function PersonalReminderFormModal({
         />
       </FormField>
 
-      <FormField label="تاریخ موعد" required>
-        <JalaliDatePicker value={watch('dueDate')} onChange={date => setValue('dueDate', date)} />
-      </FormField>
+      <FormRow>
+        <FormField label="تاریخ موعد" required>
+          <JalaliDatePicker value={watch('dueDate')} onChange={date => setValue('dueDate', date)} />
+        </FormField>
 
-      <FormSelect
-        label="تکرار"
-        value={watch('recurrence')}
-        onChange={value => setValue('recurrence', value as PersonalReminderFormState['recurrence'])}
-        options={PERSONAL_REMINDER_RECURRENCE_OPTIONS.map(item => ({
-          value: item.value,
-          label: item.label
-        }))}
-      />
+        <FormSelect
+          label="تکرار"
+          controlWidth="full"
+          value={watch('recurrence')}
+          onChange={value =>
+            setValue('recurrence', value as PersonalReminderFormState['recurrence'])
+          }
+          options={PERSONAL_REMINDER_RECURRENCE_OPTIONS.map(item => ({
+            value: item.value,
+            label: item.label
+          }))}
+        />
+      </FormRow>
 
-      <FormField label="مبلغ (اختیاری)">
-        <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
-      </FormField>
+      <FormRow>
+        <FormField label="مبلغ (اختیاری)">
+          <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
+        </FormField>
 
-      <FormSelect
-        label="چند روز قبل یادآوری شود؟"
-        value={String(watch('daysBefore'))}
-        onChange={value => setValue('daysBefore', Number(value))}
-        options={DAYS_BEFORE_OPTIONS}
-      />
+        <FormSelect
+          label="چند روز قبل یادآوری شود؟"
+          controlWidth="full"
+          value={String(watch('daysBefore'))}
+          onChange={value => setValue('daysBefore', Number(value))}
+          options={DAYS_BEFORE_OPTIONS}
+        />
+      </FormRow>
 
-      <label
-        className="checkbox-row"
-        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-      >
+      <label className="checkbox-row flex items-center gap-2">
         <input type="checkbox" {...register('enabled')} />
         <span>فعال</span>
       </label>

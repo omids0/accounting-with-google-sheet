@@ -4,6 +4,7 @@ import SearchEmptyState from '../SearchEmptyState'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import type { DisplayPlanItem, PlanWithRow } from './types'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 export type InstallmentsListProps = {
   plans: PlanWithRow[]
@@ -70,27 +71,31 @@ export default function InstallmentsList({
     return <SearchEmptyState />
   }
 
-  return displayPlans.map(({ plan, done, complete, progress, dueDate }) => {
-    const togglingPaymentIndex = togglingKey.startsWith(`${plan.id}-`)
-      ? Number(togglingKey.slice(plan.id.length + 1))
-      : null
+  return (
+    <div className={listCardsContainerClass}>
+      {displayPlans.map(({ plan, done, complete, progress, dueDate }) => {
+        const togglingPaymentIndex = togglingKey.startsWith(`${plan.id}-`)
+          ? Number(togglingKey.slice(plan.id.length + 1))
+          : null
 
-    return (
-      <InstallmentPlanCard
-        key={plan.id}
-        plan={plan}
-        expanded={expandedId === plan.id}
-        done={done}
-        complete={complete}
-        progress={progress}
-        dueDate={dueDate}
-        togglingPaymentIndex={togglingPaymentIndex}
-        onToggleExpand={onToggleExpand}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onTogglePayment={onTogglePayment}
-        onPaymentAmountSave={onPaymentAmountSave}
-      />
-    )
-  })
+        return (
+          <InstallmentPlanCard
+            key={plan.id}
+            plan={plan}
+            expanded={expandedId === plan.id}
+            done={done}
+            complete={complete}
+            progress={progress}
+            dueDate={dueDate}
+            togglingPaymentIndex={togglingPaymentIndex}
+            onToggleExpand={onToggleExpand}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onTogglePayment={onTogglePayment}
+            onPaymentAmountSave={onPaymentAmountSave}
+          />
+        )
+      })}
+    </div>
+  )
 }

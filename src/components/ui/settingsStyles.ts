@@ -1,6 +1,7 @@
+import { settingsPageDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
-export const settingsPageClass = 'flex flex-col gap-5'
+export const settingsPageClass = cn('flex flex-col gap-5', settingsPageDesktopClass)
 
 export const settingsSectionClass = 'flex flex-col gap-3'
 

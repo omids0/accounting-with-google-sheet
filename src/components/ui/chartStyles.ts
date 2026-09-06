@@ -3,7 +3,8 @@ import { cn } from '../../utils/cn'
 
 export const dashboardPageClass = cn(
   'flex flex-col gap-2',
-  '[&_.mb-stack]:mb-0 [&_.dashboard-flow-section]:mb-0 [&_.chart-card--animated]:mb-0'
+  '[&_.mb-stack]:mb-0 [&_.dashboard-flow-section]:mb-0 [&_.chart-card--animated]:mb-0',
+  'lg:gap-4'
 )
 
 export const dashboardHeroCardClass = cn(
@@ -31,12 +32,21 @@ export const dashboardHeroLabelClass =
 
 export const dashboardHeroHintClass = 'mt-2 px-1 text-[0.72rem] leading-[1.55] opacity-90'
 
-export const dashboardFlowSectionClass = 'dashboard-flow-section'
+export const dashboardFlowSectionClass = cn(
+  'dashboard-flow-section grid grid-cols-2 gap-2',
+  'lg:grid-cols-4 lg:gap-4',
+  'lg:[&>.stat-card:not(.stat-card-wide)]:col-span-2',
+  '[&>.stat-card-wide]:col-span-2 lg:[&>.stat-card-wide]:col-span-4',
+  '[&>.stat-card:not(.stat-card-wide)]:flex [&>.stat-card:not(.stat-card-wide)]:min-h-[4.25rem] [&>.stat-card:not(.stat-card-wide)]:flex-col [&>.stat-card:not(.stat-card-wide)]:justify-center [&>.stat-card:not(.stat-card-wide)]:gap-1 [&>.stat-card:not(.stat-card-wide)]:px-[0.4rem] [&>.stat-card:not(.stat-card-wide)]:py-[0.6rem]',
+  '[&>.stat-card:not(.stat-card-wide)_.stat-label]:mb-0 [&>.stat-card:not(.stat-card-wide)_.stat-label]:text-[0.72rem]',
+  '[&>.stat-card:not(.stat-card-wide)_.stat-card__value-row]:items-stretch [&>.stat-card:not(.stat-card-wide)_.sparkline]:self-center',
+  '[&>.stat-card-wide]:mt-0'
+)
 
 export const dashboardFlowSectionAnimatedClass = cn(
-  '[&>.stat-grid_.stat-card]:animate-[statCardIn_0.5s_var(--ease-page)_both] [&>.stat-card-wide]:animate-[statCardIn_0.5s_var(--ease-page)_both]',
-  '[&>.stat-grid_.stat-card:nth-child(1)]:[animation-delay:0.05s] [&>.stat-grid_.stat-card:nth-child(2)]:[animation-delay:0.12s]',
-  '[&>.stat-card-wide:nth-of-type(2)]:[animation-delay:0.18s] [&>.stat-card-wide:nth-of-type(3)]:[animation-delay:0.24s]'
+  '[&>.stat-card]:animate-[statCardIn_0.5s_var(--ease-page)_both]',
+  '[&>.stat-card:nth-child(1)]:[animation-delay:0.05s] [&>.stat-card:nth-child(2)]:[animation-delay:0.12s]',
+  '[&>.stat-card:nth-child(3)]:[animation-delay:0.18s] [&>.stat-card:nth-child(4)]:[animation-delay:0.24s]'
 )
 
 export const dashboardAssetsCardClass = cn(
@@ -71,7 +81,7 @@ export const assetValueClass = cn(
   'asset-value text-[0.76rem] font-semibold tracking-[0.01em] text-primary-dark font-numeric tabular-nums'
 )
 
-export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem]'
+export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem] lg:gap-3'
 
 export const statGrid2Class = 'grid-cols-2'
 

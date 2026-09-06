@@ -7,7 +7,7 @@ import StatCard from '../StatCard'
 import DangCard from './DangCard'
 import type { DangWithRow } from './types'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
-import { dangTotalFooterClass } from '../ui/featureCardStyles'
+import { dangTotalFooterClass, listCardsContainerClass } from '../ui/featureCardStyles'
 
 export type DangListProps = {
   items: DangWithRow[]
@@ -63,22 +63,24 @@ export default function DangList({
 
   return (
     <>
-      {filteredItems.map(item => (
-        <DangCard
-          key={item.id}
-          item={item}
-          expanded={expandedId === item.id}
-          togglingId={togglingId}
-          savingAmountId={savingAmountId}
-          amountEdits={amountEdits}
-          onTogglePaid={onTogglePaid}
-          onExpand={onExpand}
-          onAmountChange={onAmountChange}
-          onAmountBlur={onAmountBlur}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      ))}
+      <div className={listCardsContainerClass}>
+        {filteredItems.map(item => (
+          <DangCard
+            key={item.id}
+            item={item}
+            expanded={expandedId === item.id}
+            togglingId={togglingId}
+            savingAmountId={savingAmountId}
+            amountEdits={amountEdits}
+            onTogglePaid={onTogglePaid}
+            onExpand={onExpand}
+            onAmountChange={onAmountChange}
+            onAmountBlur={onAmountBlur}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))}
+      </div>
 
       {totalUnpaid > 0 && (
         <StatCard
