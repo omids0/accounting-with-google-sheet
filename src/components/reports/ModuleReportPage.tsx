@@ -6,7 +6,7 @@ import {
   type ModuleReportData,
   type ModuleReportKind
 } from './moduleReportData'
-import ReportToolbar from './ReportToolbar'
+import { ReportStaticMetaBar } from './ReportDateFilterBar'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
@@ -99,15 +99,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
 
   return (
     <div className={cn(dashboardPageClass, reportPageClass)}>
-      <ReportToolbar
-        title={config.title}
-        preset="month-to-date"
-        customRange={{ start: '', end: '' }}
-        onFilterChange={() => {}}
-        onRefresh={load}
-        loading={loading}
-        showDateFilter={false}
-      />
+      <ReportStaticMetaBar subtitle="گزارش ماه جاری" onRefresh={load} loading={loading} />
 
       <Card className={reportExportCardClass}>
         <div className={reportExportCardBodyClass}>

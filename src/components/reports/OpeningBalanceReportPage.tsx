@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import ReportToolbar from './ReportToolbar'
+import { ReportStaticMetaBar } from './ReportDateFilterBar'
 import type { MonthlyOpeningBalance } from '../../services/monthlyBalance'
 import { loadOpeningBalancesReport } from '../../services/reports'
 import { getSettings, isConfigured } from '../../services/settings'
@@ -64,16 +64,7 @@ export default function OpeningBalanceReportPage() {
 
   return (
     <div className={cn(dashboardPageClass, reportPageClass)}>
-      <ReportToolbar
-        title="موجودی اول دوره"
-        preset="month-to-date"
-        customRange={{ start: '', end: '' }}
-        onFilterChange={() => {}}
-        onRefresh={load}
-        loading={loading}
-        showDateFilter={false}
-        subtitle="تاریخچه موجودی ماهانه"
-      />
+      <ReportStaticMetaBar subtitle="تاریخچه موجودی ماهانه" onRefresh={load} loading={loading} />
 
       {!!items.length && (
         <StatCard

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
+import ReportDateFilterBar from './ReportDateFilterBar'
+import { useReportDateFilter } from './ReportToolbar'
 import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { DashboardData } from '../../types'
@@ -23,7 +24,7 @@ import Card from '../ui/Card'
 import { chartTitleClass, dashboardPageClass, dashboardStatGridClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
 import { dashboardTransactionSegmentClass } from '../ui/recordsStyles'
-import { reportPageClass, reportPageSplitClass } from '../ui/toolsPageStyles'
+import { reportPageClass } from '../ui/toolsPageStyles'
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense'
 
@@ -103,8 +104,7 @@ export default function IncomeExpenseReportPage() {
 
   return (
     <div className={cn(dashboardPageClass, reportPageClass)}>
-      <ReportToolbar
-        title="درآمد و هزینه"
+      <ReportDateFilterBar
         preset={datePreset}
         customRange={customRange}
         onFilterChange={handleDateFilterChange}
@@ -131,41 +131,39 @@ export default function IncomeExpenseReportPage() {
         />
       </div>
 
-      <div className={reportPageSplitClass}>
-        <ReportCategoryChartsSection
-          expenseByCategory={data?.expenseByCategory ?? []}
-          incomeByCategory={data?.incomeByCategory ?? []}
-          categoryYAxisWidth={categoryYAxisWidth}
+      <ReportCategoryChartsSection
+        expenseByCategory={data?.expenseByCategory ?? []}
+        incomeByCategory={data?.incomeByCategory ?? []}
+        categoryYAxisWidth={categoryYAxisWidth}
+      />
+
+      <Card>
+        <h3 className={chartTitleClass}>تراکنش‌های دوره</h3>
+        <TransactionTypeSegment
+          className={dashboardTransactionSegmentClass}
+          options={transactionTypeOptions}
+          value={typeFilter}
+          onChange={id => setTypeFilter(id as TransactionTypeFilter)}
         />
 
-        <Card>
-          <h3 className={chartTitleClass}>تراکنش‌های دوره</h3>
-          <TransactionTypeSegment
-            className={dashboardTransactionSegmentClass}
-            options={transactionTypeOptions}
-            value={typeFilter}
-            onChange={id => setTypeFilter(id as TransactionTypeFilter)}
-          />
-
-          {!filteredRecords.length ? (
-            <p className={emptyTextClass}>تراکنشی در این دوره ثبت نشده</p>
-          ) : (
-            filteredRecords.map((record, index) => (
-              <TransactionListItem
-                key={`${record.date}-${index}`}
-                title={record.title}
-                meta={`${record.formName} · ${record.category} · ${formatIsoDatePersian(
-                  record.date
-                )}`}
-                tone={record.type === 'income' ? 'income' : 'expense'}
-                index={index}
-              >
-                <RecordAmount amount={record.amount} type={record.type} />
-              </TransactionListItem>
-            ))
-          )}
-        </Card>
-      </div>
+        {!filteredRecords.length ? (
+          <p className={emptyTextClass}>تراکنشی در این دوره ثبت نشده</p>
+        ) : (
+          filteredRecords.map((record, index) => (
+            <TransactionListItem
+              key={`${record.date}-${index}`}
+              title={record.title}
+              meta={`${record.formName} · ${record.category} · ${formatIsoDatePersian(
+                record.date
+              )}`}
+              tone={record.type === 'income' ? 'income' : 'expense'}
+              index={index}
+            >
+              <RecordAmount amount={record.amount} type={record.type} />
+            </TransactionListItem>
+          ))
+        )}
+      </Card>
     </div>
   )
 }
