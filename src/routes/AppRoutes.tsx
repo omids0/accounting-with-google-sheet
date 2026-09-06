@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-rou
 import {
   LazyAboutPage,
   LazyChecksPage,
+  LazyCounterpartiesPage,
   LazyCurrencyConverterPage,
   LazyDangPage,
   LazyDashboardPage,
@@ -69,6 +70,7 @@ export function AppAuthenticatedRoutes() {
         <Route path="dang" element={<LazyDangPage />} />
         <Route path="checks" element={<LazyChecksPage />} />
         <Route path="reminders" element={<LazyPersonalRemindersPage />} />
+        <Route path="counterparties" element={<LazyCounterpartiesPage />} />
         <Route path="receivables" element={<LazyReceivablesPage />} />
         <Route path="treasury" element={<LazyTreasuryPage />} />
         <Route path="wallet" element={<LazyWalletPage />} />

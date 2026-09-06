@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { formatMoney } from '../../utils/formatMoney'
 import { FormField } from '../form'
 import type { SettlementFormState } from './types'
@@ -18,6 +19,11 @@ type ReceivableSettlementFormProps = {
   onCancel: () => void
 }
 
+type SettlementFormValues = {
+  title: string
+  note: string
+}
+
 export default function ReceivableSettlementForm({
   receivableId,
   remaining,
@@ -27,33 +33,27 @@ export default function ReceivableSettlementForm({
   onSubmit,
   onCancel
 }: ReceivableSettlementFormProps) {
-  const initialValues = useMemo(
+  const initialValues = useMemo<SettlementFormValues>(
     () => ({ title: defaultTitle, note: defaultNote }),
     [defaultTitle, defaultNote]
   )
 
-  const form = useForm(initialValues, { resetKey: receivableId })
+  const { register, handleSubmit, reset } = useForm<SettlementFormValues>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, { resetKey: receivableId })
 
   return (
     <div className={receivablePaymentFormClass}>
       <FormField label="عنوان درآمد" required style={{ marginBottom: '0.75rem' }}>
-        <input
-          type="text"
-          value={form.values.title}
-          onChange={e => form.setField('title', e.target.value)}
-          placeholder="مثلاً: طلب: علی محمدی"
-        />
+        <input type="text" {...register('title')} placeholder="مثلاً: طلب: علی محمدی" />
       </FormField>
       <FormField label="مبلغ تسویه" style={{ marginBottom: '0.75rem' }}>
         <input type="text" value={formatMoney(remaining)} readOnly dir="ltr" />
       </FormField>
       <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
-        <input
-          type="text"
-          value={form.values.note}
-          onChange={e => form.setField('note', e.target.value)}
-          placeholder="اختیاری"
-        />
+        <input type="text" {...register('note')} placeholder="اختیاری" />
       </FormField>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <Button
@@ -61,7 +61,7 @@ export default function ReceivableSettlementForm({
           variant="inflow"
           size="sm"
           disabled={settling}
-          onClick={() => onSubmit(form.values)}
+          onClick={() => void handleSubmit(values => onSubmit(values))()}
         >
           {settling && <span className={spinnerClass} />}
           تسویه

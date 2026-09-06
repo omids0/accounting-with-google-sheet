@@ -1,6 +1,7 @@
 import type { AppSettings } from '../types'
 import { CATEGORIES_SHEET } from './categories'
 import { CHECKS_SHEET } from './checks'
+import { COUNTERPARTIES_SHEET } from './counterparties'
 import { DANG_SHEET } from './dang'
 import { INSTALLMENTS_SHEET } from './installments'
 import { MONTHLY_BALANCE_SHEET } from './monthlyBalance'
@@ -33,6 +34,7 @@ const STATIC_SHEETS = [
   INSTALLMENTS_SHEET,
   DANG_SHEET,
   CHECKS_SHEET,
+  COUNTERPARTIES_SHEET,
   RECEIVABLES_SHEET,
   TREASURY_SHEET,
   WALLET_SHEET,

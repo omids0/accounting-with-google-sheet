@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import {
   addMinutesToDateTime,
   calcDurationMinutes,
@@ -54,37 +55,36 @@ export default function TimesheetEntryFormModal({
     }
   }, [editingItem])
 
-  const form = useForm(initialValues, {
+  const { handleSubmit, reset, setValue, watch, getValues } = useForm<TimesheetEntryFormValues>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, {
     active: open,
     resetKey: editingItem?.id ?? 'create'
   })
 
   const [endPickerOpenToken, setEndPickerOpenToken] = useState(0)
 
-  const durationMinutes = useMemo(
-    () => calcDurationMinutes(form.values.startAt, form.values.endAt),
-    [form.values.startAt, form.values.endAt]
-  )
+  const startAt = watch('startAt')
+  const endAt = watch('endAt')
 
-  const handleStartChange = (startAt: string) => {
-    form.update(prev => ({
-      ...prev,
-      startAt,
-      endAt: syncEndDateTimeFromStart(startAt, prev.endAt, prev.startAt)
-    }))
+  const durationMinutes = useMemo(() => calcDurationMinutes(startAt, endAt), [startAt, endAt])
+
+  const handleStartChange = (nextStartAt: string) => {
+    const prev = getValues()
+
+    setValue('startAt', nextStartAt)
+    setValue('endAt', syncEndDateTimeFromStart(nextStartAt, prev.endAt, prev.startAt))
     setEndPickerOpenToken(token => token + 1)
   }
 
-  const handleEndChange = (endAt: string) => {
-    form.update(prev => ({
-      ...prev,
-      endAt: clampDateTimeToMin(endAt, prev.startAt)
-    }))
+  const handleEndChange = (nextEndAt: string) => {
+    setValue('endAt', clampDateTimeToMin(nextEndAt, getValues('startAt')))
   }
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    void onSubmit(form.values, durationMinutes)
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    void handleSubmit(values => onSubmit(values, durationMinutes))(event)
   }
 
   return (
@@ -92,15 +92,19 @@ export default function TimesheetEntryFormModal({
       open={open}
       title={editingItem ? 'ویرایش رکورد' : 'رکورد جدید'}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره' : 'ثبت'}
     >
       <TimesheetEntryForm
-        form={form.values}
+        form={watch()}
         durationMinutes={durationMinutes}
         endPickerOpenToken={endPickerOpenToken}
-        onFormChange={patch => form.setFields(patch)}
+        onFormChange={patch => {
+          ;(Object.entries(patch) as [keyof TimesheetEntryFormValues, string][]).forEach(
+            ([key, value]) => setValue(key, value)
+          )
+        }}
         onStartChange={handleStartChange}
         onEndChange={handleEndChange}
       />

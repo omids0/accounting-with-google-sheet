@@ -1,6 +1,7 @@
 import { useMemo, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
 import FormModal from '../FormModal'
@@ -37,14 +38,17 @@ export default function WalletFormModal({
     [editingAccount]
   )
 
-  const form = useForm(initialValues, {
+  const { register, handleSubmit, reset, setValue, watch } = useForm<WalletFormState>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, {
     active: open,
     resetKey: editingAccount?.id ?? 'create'
   })
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    void onSubmit(form.values)
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    void handleSubmit(values => onSubmit(values))(event)
   }
 
   return (
@@ -52,28 +56,20 @@ export default function WalletFormModal({
       open={open}
       title={editingAccount ? 'ویرایش حساب' : 'حساب جدید'}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingAccount ? 'ذخیره تغییرات' : 'ذخیره حساب'}
     >
       <FormField label="عنوان" required>
-        <input
-          value={form.values.title}
-          onChange={e => form.setField('title', e.target.value)}
-          placeholder="مثلاً: بانک ملت، نقدی، ..."
-        />
+        <input {...register('title')} placeholder="مثلاً: بانک ملت، نقدی، ..." />
       </FormField>
 
       <FormField label="موجودی" required>
-        <AmountInput value={form.values.balance} onChange={val => form.setField('balance', val)} />
+        <AmountInput value={watch('balance')} onChange={val => setValue('balance', val)} />
       </FormField>
 
       <FormField label="توضیحات">
-        <textarea
-          value={form.values.note}
-          onChange={e => form.setField('note', e.target.value)}
-          placeholder="توضیحات اختیاری"
-        />
+        <textarea {...register('note')} placeholder="توضیحات اختیاری" />
       </FormField>
     </FormModal>
   )

@@ -26,6 +26,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   dang: '/dang',
   checks: '/checks',
   'personal-reminders': '/reminders',
+  counterparties: '/counterparties',
   receivables: '/receivables',
   treasury: '/treasury',
   wallet: '/wallet',

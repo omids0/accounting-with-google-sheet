@@ -1,14 +1,21 @@
-import { useForm } from '../../hooks/useForm'
+import { useForm } from 'react-hook-form'
+
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
 import Button from '../ui/Button'
 import { spinnerClass } from '../ui/displayStyles'
 import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
+type PaymentFormValues = {
+  amount: number | ''
+  note: string
+}
+
 type ReceivablePaymentFormProps = {
   receivableId: string
   paying: boolean
-  onSubmit: (values: { amount: number | ''; note: string }) => void
+  onSubmit: (values: PaymentFormValues) => void
   onCancel: () => void
 }
 
@@ -18,21 +25,24 @@ export default function ReceivablePaymentForm({
   onSubmit,
   onCancel
 }: ReceivablePaymentFormProps) {
-  const form = useForm<{ amount: number | ''; note: string }>(
-    { amount: '', note: '' },
-    { resetKey: receivableId }
-  )
+  const initialValues: PaymentFormValues = { amount: '', note: '' }
+
+  const { handleSubmit, reset, setValue, watch } = useForm<PaymentFormValues>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, { resetKey: receivableId })
 
   return (
     <div className={receivablePaymentFormClass}>
       <FormField label="مبلغ پرداخت" style={{ marginBottom: '0.75rem' }}>
-        <AmountInput value={form.values.amount} onChange={val => form.setField('amount', val)} />
+        <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
       </FormField>
       <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
         <input
           type="text"
-          value={form.values.note}
-          onChange={e => form.setField('note', e.target.value)}
+          value={watch('note')}
+          onChange={e => setValue('note', e.target.value)}
           placeholder="اختیاری"
         />
       </FormField>
@@ -42,7 +52,7 @@ export default function ReceivablePaymentForm({
           variant="primary"
           size="sm"
           disabled={paying}
-          onClick={() => onSubmit(form.values)}
+          onClick={() => void handleSubmit(values => onSubmit(values))()}
         >
           {paying && <span className={spinnerClass} />}
           ثبت بخشی از پرداخت

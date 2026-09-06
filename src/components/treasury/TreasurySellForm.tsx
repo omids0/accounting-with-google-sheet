@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getAssetUnit } from '../../services/tgju'
 import type { VaultAssetType } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
@@ -38,8 +39,13 @@ export default function TreasurySellForm({
 }: TreasurySellFormProps) {
   const initialValues = useMemo(() => createEmptySellForm(assetType), [assetType])
 
-  const form = useForm(initialValues, { resetKey: assetType })
+  const { handleSubmit, reset, setValue, watch } = useForm<VaultFormState>({
+    defaultValues: initialValues
+  })
 
+  useModalFormReset(reset, initialValues, { resetKey: assetType })
+
+  const quantity = watch('quantity')
   const allowDecimal = assetType === 'geram18'
 
   return (
@@ -52,10 +58,8 @@ export default function TreasurySellForm({
           type="text"
           inputMode={allowDecimal ? 'decimal' : 'numeric'}
           dir="ltr"
-          value={form.values.quantity === '' ? '' : String(form.values.quantity)}
-          onChange={e =>
-            form.setField('quantity', parseQuantityInput(e.target.value, allowDecimal))
-          }
+          value={quantity === '' ? '' : String(quantity)}
+          onChange={e => setValue('quantity', parseQuantityInput(e.target.value, allowDecimal))}
           placeholder={allowDecimal ? 'مثلاً ۱' : 'مثلاً ۱'}
         />
       </FormField>
@@ -63,22 +67,19 @@ export default function TreasurySellForm({
         label={`قیمت هر ${getAssetUnit(assetType)} (تومان)`}
         style={{ marginBottom: '0.75rem' }}
       >
-        <AmountInput
-          value={form.values.unitPrice}
-          onChange={val => form.setField('unitPrice', val)}
-        />
+        <AmountInput value={watch('unitPrice')} onChange={val => setValue('unitPrice', val)} />
       </FormField>
       <FormField label="تاریخ فروش" style={{ marginBottom: '0.75rem' }}>
         <JalaliDatePicker
-          value={form.values.transactionDate}
-          onChange={iso => form.setField('transactionDate', iso)}
+          value={watch('transactionDate')}
+          onChange={iso => setValue('transactionDate', iso)}
         />
       </FormField>
       <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
         <input
           type="text"
-          value={form.values.note}
-          onChange={e => form.setField('note', e.target.value)}
+          value={watch('note')}
+          onChange={e => setValue('note', e.target.value)}
           placeholder="اختیاری"
         />
       </FormField>
@@ -88,7 +89,7 @@ export default function TreasurySellForm({
           variant="outflow"
           size="sm"
           disabled={selling}
-          onClick={() => onSell(form.values)}
+          onClick={() => void handleSubmit(values => onSell(values))()}
         >
           {selling && <span className={spinnerClass} />}
           ثبت فروش

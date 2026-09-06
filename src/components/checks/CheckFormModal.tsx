@@ -1,6 +1,7 @@
 import { useMemo, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
@@ -43,14 +44,17 @@ export default function CheckFormModal({
     [editingItem]
   )
 
-  const form = useForm(initialValues, {
+  const { register, handleSubmit, reset, setValue, watch } = useForm<CheckFormState>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, {
     active: open,
     resetKey: editingItem?.id ?? 'create'
   })
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    void onSubmit(form.values)
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    void handleSubmit(values => onSubmit(values))(event)
   }
 
   return (
@@ -58,45 +62,31 @@ export default function CheckFormModal({
       open={open}
       title={editingItem ? 'ویرایش چک' : 'ثبت چک جدید'}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره چک'}
     >
       <FormField label="شماره چک" required>
-        <input
-          type="text"
-          value={form.values.checkNumber}
-          onChange={e => form.setField('checkNumber', e.target.value)}
-          placeholder="شماره چک"
-          dir="ltr"
-        />
+        <input type="text" {...register('checkNumber')} placeholder="شماره چک" dir="ltr" />
       </FormField>
 
       <FormField label="طرف حساب" required>
-        <input
-          type="text"
-          value={form.values.counterparty}
-          onChange={e => form.setField('counterparty', e.target.value)}
-          placeholder="نام طرف حساب"
-        />
+        <input type="text" {...register('counterparty')} placeholder="نام طرف حساب" />
       </FormField>
 
       <FormField label="مبلغ" required>
-        <AmountInput value={form.values.amount} onChange={val => form.setField('amount', val)} />
+        <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
       </FormField>
 
       <FormField label="تاریخ صدور" required>
         <JalaliDatePicker
-          value={form.values.creationDate}
-          onChange={date => form.setField('creationDate', date)}
+          value={watch('creationDate')}
+          onChange={date => setValue('creationDate', date)}
         />
       </FormField>
 
       <FormField label="تاریخ سررسید" required>
-        <JalaliDatePicker
-          value={form.values.dueDate}
-          onChange={date => form.setField('dueDate', date)}
-        />
+        <JalaliDatePicker value={watch('dueDate')} onChange={date => setValue('dueDate', date)} />
       </FormField>
     </FormModal>
   )

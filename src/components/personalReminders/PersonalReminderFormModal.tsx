@@ -1,6 +1,7 @@
 import { useMemo, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { PERSONAL_REMINDER_RECURRENCE_OPTIONS } from '../../types/personalReminders'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
@@ -53,14 +54,19 @@ export default function PersonalReminderFormModal({
     [categories, editingItem]
   )
 
-  const form = useForm(initialValues, {
+  const { register, handleSubmit, reset, setValue, watch } = useForm<PersonalReminderFormState>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, {
     active: open,
     resetKey: editingItem?.id ?? 'create'
   })
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    void onSubmit(form.values)
+  const category = watch('category')
+
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    void handleSubmit(values => onSubmit(values))(event)
   }
 
   return (
@@ -68,30 +74,24 @@ export default function PersonalReminderFormModal({
       open={open}
       title={editingItem ? 'ویرایش یادآوری' : 'یادآوری جدید'}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره یادآوری'}
     >
       <FormField label="عنوان" required hint="مثلاً بیمه شخص ثالث پژو ۲۰۶">
-        <input
-          type="text"
-          value={form.values.title}
-          onChange={e => form.setField('title', e.target.value)}
-          placeholder="عنوان یادآوری"
-          required
-        />
+        <input type="text" {...register('title')} placeholder="عنوان یادآوری" required />
       </FormField>
 
       <FormField label="دسته‌بندی" required>
         <CategorySelect
-          value={form.values.category}
-          onChange={category => form.setField('category', category)}
+          value={category}
+          onChange={value => setValue('category', value)}
           categories={categories}
           categoryScope="personalReminder"
           onCategoriesChange={next => {
             onCategoriesChange(next)
-            if (!next.includes(form.values.category)) {
-              form.setField('category', next[0] ?? '')
+            if (!next.includes(category)) {
+              setValue('category', next[0] ?? '')
             }
           }}
           aria-label="دسته‌بندی یادآوری"
@@ -99,18 +99,13 @@ export default function PersonalReminderFormModal({
       </FormField>
 
       <FormField label="تاریخ موعد" required>
-        <JalaliDatePicker
-          value={form.values.dueDate}
-          onChange={date => form.setField('dueDate', date)}
-        />
+        <JalaliDatePicker value={watch('dueDate')} onChange={date => setValue('dueDate', date)} />
       </FormField>
 
       <FormSelect
         label="تکرار"
-        value={form.values.recurrence}
-        onChange={value =>
-          form.setField('recurrence', value as PersonalReminderFormState['recurrence'])
-        }
+        value={watch('recurrence')}
+        onChange={value => setValue('recurrence', value as PersonalReminderFormState['recurrence'])}
         options={PERSONAL_REMINDER_RECURRENCE_OPTIONS.map(item => ({
           value: item.value,
           label: item.label
@@ -118,16 +113,13 @@ export default function PersonalReminderFormModal({
       />
 
       <FormField label="مبلغ (اختیاری)">
-        <AmountInput
-          value={form.values.amount}
-          onChange={value => form.setField('amount', value)}
-        />
+        <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
       </FormField>
 
       <FormSelect
         label="چند روز قبل یادآوری شود؟"
-        value={String(form.values.daysBefore)}
-        onChange={value => form.setField('daysBefore', Number(value))}
+        value={String(watch('daysBefore'))}
+        onChange={value => setValue('daysBefore', Number(value))}
         options={DAYS_BEFORE_OPTIONS}
       />
 
@@ -135,11 +127,7 @@ export default function PersonalReminderFormModal({
         className="checkbox-row"
         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
       >
-        <input
-          type="checkbox"
-          checked={form.values.enabled}
-          onChange={e => form.setField('enabled', e.target.checked)}
-        />
+        <input type="checkbox" {...register('enabled')} />
         <span>فعال</span>
       </label>
     </FormModal>

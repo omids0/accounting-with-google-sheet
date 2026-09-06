@@ -1,7 +1,8 @@
 import { useMemo, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
 import { FieldInput, getInitialFieldValue, sortFormFields } from './form'
-import { useForm } from '../hooks/useForm'
+import { useModalFormReset } from '../hooks/useModalFormReset'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
 import type { CustomForm } from '../types'
@@ -38,60 +39,67 @@ export default function DataEntryForm({
 }: DataEntryFormProps) {
   const initialValues = useMemo(() => buildInitialValues(activeForm), [activeForm])
 
-  const form = useForm(initialValues, { resetKey: activeForm.id })
+  const { handleSubmit, reset, setValue, watch } = useForm<Record<string, string | number>>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, { resetKey: activeForm.id })
+
+  const values = watch()
 
   const handleCategoriesChange = (categories: string[]) => {
     onCategoriesRefresh()
-    if (!categories.includes(String(form.values.category ?? ''))) {
-      form.setField('category', categories[0] ?? '')
+    if (!categories.includes(String(values.category ?? ''))) {
+      setValue('category', categories[0] ?? '')
     }
   }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!isConfigured() || !requireAuth()) return
+  const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    await handleSubmit(async formValues => {
+      if (!isConfigured() || !requireAuth()) return
 
-    for (const field of activeForm.fields) {
-      if (field.required) {
-        const val = form.values[field.id]
+      for (const field of activeForm.fields) {
+        if (field.required) {
+          const val = formValues[field.id]
 
-        if (val === '' || val === undefined || val === null) {
-          showError(`فیلد «${field.label}» الزامی است`)
+          if (val === '' || val === undefined || val === null) {
+            showError(`فیلد «${field.label}» الزامی است`)
 
-          return
+            return
+          }
         }
       }
-    }
 
-    onLoadingChange(true)
-    try {
-      const settings = getSettings()!
+      onLoadingChange(true)
+      try {
+        const settings = getSettings()!
 
-      await appendRecord(
-        settings.spreadsheetId,
-        activeForm,
-        crypto.randomUUID(),
-        new Date().toLocaleString('fa-IR'),
-        form.values
-      )
-      showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
-      form.reset(buildInitialValues(activeForm))
-    } catch (err) {
-      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
-    } finally {
-      onLoadingChange(false)
-    }
+        await appendRecord(
+          settings.spreadsheetId,
+          activeForm,
+          crypto.randomUUID(),
+          new Date().toLocaleString('fa-IR'),
+          formValues
+        )
+        showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
+        reset(buildInitialValues(activeForm))
+      } catch (err) {
+        if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
+      } finally {
+        onLoadingChange(false)
+      }
+    })(event)
   }
 
   return (
     <div className={appFormClassName()}>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onFormSubmit}>
         {sortFormFields(activeForm.fields).map(field => (
           <FieldInput
             key={field.id}
             field={field}
-            value={form.values[field.id] ?? ''}
-            onChange={next => form.setField(field.id, next)}
+            value={values[field.id] ?? ''}
+            onChange={next => setValue(field.id, next)}
             formId={activeForm.id}
             onCategoriesChange={handleCategoriesChange}
           />

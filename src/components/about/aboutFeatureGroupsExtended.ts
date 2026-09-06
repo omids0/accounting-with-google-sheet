@@ -2,6 +2,32 @@ import type { AboutFeatureGroup } from './types'
 
 export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
   {
+    id: 'counterparties',
+    title: 'طرف حساب‌ها',
+    icon: 'counterparties',
+    summary: 'دفترچه اشخاص و اطلاعات تماس و حساب‌های بانکی.',
+    features: [
+      {
+        title: 'ثبت طرف حساب',
+        description:
+          'نام، نام خانوادگی، تاریخ تولد، آدرس، چند شماره تماس، جستجو و انتخاب موقعیت روی نقشه با حالت روز/شب، مسیر‌یابی و توضیحات اختیاری.'
+      },
+      {
+        title: 'چند حساب بانکی',
+        description: 'افزودن چند حساب بانکی برای هر طرف حساب.'
+      },
+      {
+        title: 'جستجو و فیلتر',
+        description:
+          'جستجو در نام، تماس، آدرس، توضیحات و فیلتر بر اساس تاریخ تولد. مشاهده جزئیات با لمس کارت.'
+      },
+      {
+        title: 'ورود و خروجی',
+        description: 'ایمپورت CSV و اکسپورت CSV/PDF.'
+      }
+    ]
+  },
+  {
     id: 'receivables',
     title: 'طلب‌ها',
     icon: 'receivables',

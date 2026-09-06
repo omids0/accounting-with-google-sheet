@@ -7,6 +7,8 @@ export const loadAboutPage: PageLoader = () => import('../components/about/About
 
 export const loadChecksPage: PageLoader = () => import('../components/ChecksPage')
 
+export const loadCounterpartiesPage: PageLoader = () => import('../components/CounterpartiesPage')
+
 export const loadCurrencyConverterPage: PageLoader = () =>
   import('../components/CurrencyConverterPage')
 
@@ -74,6 +76,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   dang: loadDangPage,
   checks: loadChecksPage,
   'personal-reminders': loadPersonalRemindersPage,
+  counterparties: loadCounterpartiesPage,
   receivables: loadReceivablesPage,
   treasury: loadTreasuryPage,
   wallet: loadWalletPage,

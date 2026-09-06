@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getAssetUnit, VAULT_ASSET_OPTIONS } from '../../services/tgju'
 import type { VaultAssetType } from '../../types'
 import AmountInput from '../AmountInput'
@@ -41,17 +42,22 @@ export default function TreasuryBuyFormModal({
     [editingTx]
   )
 
-  const form = useForm(initialValues, {
+  const { handleSubmit, reset, setValue, watch } = useForm<VaultFormState>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, {
     active: open,
     resetKey: editingTx?.id ?? 'create'
   })
 
-  const selectedAsset = VAULT_ASSET_OPTIONS.find(a => a.value === form.values.assetType)
-  const allowDecimal = form.values.assetType === 'geram18'
+  const assetType = watch('assetType')
+  const quantity = watch('quantity')
+  const selectedAsset = VAULT_ASSET_OPTIONS.find(asset => asset.value === assetType)
+  const allowDecimal = assetType === 'geram18'
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    void onSubmit(form.values)
+  const onFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    void handleSubmit(values => onSubmit(values))(event)
   }
 
   return (
@@ -59,7 +65,7 @@ export default function TreasuryBuyFormModal({
       open={open}
       title={editingTx ? 'ویرایش خرید' : 'ثبت خرید'}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingTx ? 'ذخیره تغییرات' : 'ذخیره خرید'}
       saveButtonVariant="outflow"
@@ -67,13 +73,11 @@ export default function TreasuryBuyFormModal({
       <FormSelect
         label="نوع دارایی"
         required
-        value={form.values.assetType}
-        onChange={next =>
-          form.setFields({
-            assetType: next as VaultAssetType,
-            quantity: ''
-          })
-        }
+        value={assetType}
+        onChange={next => {
+          setValue('assetType', next as VaultAssetType)
+          setValue('quantity', '')
+        }}
         options={VAULT_ASSET_OPTIONS.map(opt => ({
           value: opt.value,
           label: opt.label
@@ -85,37 +89,32 @@ export default function TreasuryBuyFormModal({
         }
       />
 
-      <FormField label={`مقدار (${getAssetUnit(form.values.assetType)})`} required>
+      <FormField label={`مقدار (${getAssetUnit(assetType)})`} required>
         <input
           type="text"
           inputMode={allowDecimal ? 'decimal' : 'numeric'}
           dir="ltr"
-          value={form.values.quantity === '' ? '' : String(form.values.quantity)}
-          onChange={e =>
-            form.setField('quantity', parseQuantityInput(e.target.value, allowDecimal))
-          }
+          value={quantity === '' ? '' : String(quantity)}
+          onChange={e => setValue('quantity', parseQuantityInput(e.target.value, allowDecimal))}
           placeholder={allowDecimal ? 'مثلاً ۲.۵' : 'مثلاً ۳'}
         />
       </FormField>
 
-      <FormField label={`قیمت هر ${getAssetUnit(form.values.assetType)} (تومان)`} required>
-        <AmountInput
-          value={form.values.unitPrice}
-          onChange={val => form.setField('unitPrice', val)}
-        />
+      <FormField label={`قیمت هر ${getAssetUnit(assetType)} (تومان)`} required>
+        <AmountInput value={watch('unitPrice')} onChange={val => setValue('unitPrice', val)} />
       </FormField>
 
       <FormField label="تاریخ خرید" required>
         <JalaliDatePicker
-          value={form.values.transactionDate}
-          onChange={iso => form.setField('transactionDate', iso)}
+          value={watch('transactionDate')}
+          onChange={iso => setValue('transactionDate', iso)}
         />
       </FormField>
 
       <FormField label="توضیحات">
         <textarea
-          value={form.values.note}
-          onChange={e => form.setField('note', e.target.value)}
+          value={watch('note')}
+          onChange={e => setValue('note', e.target.value)}
           placeholder="توضیحات اختیاری"
         />
       </FormField>

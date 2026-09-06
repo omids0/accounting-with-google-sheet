@@ -1,6 +1,7 @@
 import { useMemo, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { FormField } from '../form'
 import FormModal from '../FormModal'
 import type { TimesheetWithRow } from './useTimesheetsPage'
@@ -36,14 +37,17 @@ export default function TimesheetFormModal({
     [editingItem]
   )
 
-  const form = useForm(initialValues, {
+  const { register, handleSubmit, reset } = useForm<TimesheetFormValues>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, {
     active: open,
     resetKey: editingItem?.id ?? 'create'
   })
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    void onSubmit(form.values)
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    void handleSubmit(values => onSubmit(values))(event)
   }
 
   return (
@@ -51,7 +55,7 @@ export default function TimesheetFormModal({
       open={open}
       title={editingItem ? 'ویرایش تایم‌شیت' : 'تایم‌شیت جدید'}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره' : 'ایجاد'}
     >
@@ -59,8 +63,7 @@ export default function TimesheetFormModal({
         <input
           type="text"
           className={formControlClassName()}
-          value={form.values.title}
-          onChange={e => form.setField('title', e.target.value)}
+          {...register('title')}
           placeholder="مثلاً: پروژه الف"
           autoFocus
         />
@@ -70,8 +73,7 @@ export default function TimesheetFormModal({
         <textarea
           className={formControlClassName(formNoteTextareaClass)}
           rows={3}
-          value={form.values.description}
-          onChange={e => form.setField('description', e.target.value)}
+          {...register('description')}
           placeholder="توضیحات اضافه..."
         />
       </FormField>

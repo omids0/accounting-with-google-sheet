@@ -6,6 +6,7 @@ export type Tab =
   | 'dang'
   | 'checks'
   | 'personal-reminders'
+  | 'counterparties'
   | 'receivables'
   | 'treasury'
   | 'wallet'
@@ -65,6 +66,7 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'dang',
   'checks',
   'personal-reminders',
+  'counterparties',
   'receivables',
   'treasury',
   'wallet',
@@ -80,6 +82,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   dang: 'بدهی',
   checks: 'چک‌ها',
   'personal-reminders': 'یادآوری',
+  counterparties: 'طرف حساب‌ها',
   receivables: 'طلب‌ها',
   treasury: 'صندوقچه',
   wallet: 'کیف پول',

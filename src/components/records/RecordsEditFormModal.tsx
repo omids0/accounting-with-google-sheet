@@ -1,6 +1,7 @@
 import { useMemo, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import type { CustomForm } from '../../types'
 import { FieldInput, sortFormFields } from '../form'
 import FormModal from '../FormModal'
@@ -47,14 +48,19 @@ export default function RecordsEditFormModal({
     [editingForm, editingRecord]
   )
 
-  const form = useForm(initialValues, {
+  const { handleSubmit, reset, setValue, watch } = useForm<Record<string, string | number>>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, {
     active: open,
     resetKey: editingRecord.id
   })
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    void onSubmit(form.values)
+  const values = watch()
+
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    void handleSubmit(formValues => onSubmit(formValues))(event)
   }
 
   return (
@@ -62,7 +68,7 @@ export default function RecordsEditFormModal({
       open={open}
       title={`ویرایش ${editingForm.name}`}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onFormSubmit}
       saving={saving}
       saveLabel="ذخیره تغییرات"
       saveButtonVariant={
@@ -77,8 +83,8 @@ export default function RecordsEditFormModal({
         <FieldInput
           key={field.id}
           field={field}
-          value={form.values[field.id] ?? ''}
-          onChange={next => form.setField(field.id, next)}
+          value={values[field.id] ?? ''}
+          onChange={next => setValue(field.id, next)}
           formId={editingForm.id}
         />
       ))}

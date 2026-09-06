@@ -51,4 +51,6 @@ export type {
 
 export type { PersonalReminderRecurrence, PersonalReminder } from './personalReminders'
 
+export type { CounterpartyAccount, Counterparty } from './counterparties'
+
 export type { Timesheet, TimesheetEntry } from './timesheet'
