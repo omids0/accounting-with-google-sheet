@@ -16,6 +16,7 @@ import { usePersonalRemindersData } from './usePersonalRemindersData'
 import { usePersonalRemindersFilters } from './usePersonalRemindersFilters'
 import { usePersonalRemindersForm } from './usePersonalRemindersForm'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listModulePageClass } from '../ui/featureCardStyles'
 
 export default function PersonalRemindersPage({ active = true }: PersonalRemindersPageProps) {
   const data = usePersonalRemindersData()
@@ -80,7 +81,7 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
   }
 
   return (
-    <div>
+    <div className={listModulePageClass}>
       <ActiveFilterChips
         chips={filterChips}
         onOpenFilters={openFilterModal}

@@ -19,7 +19,7 @@ import { useTreasuryData } from './useTreasuryData'
 import { useTreasuryFilters } from './useTreasuryFilters'
 import { useTreasuryForms } from './useTreasuryForms'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
-import { listCardsContainerClass } from '../ui/featureCardStyles'
+import { listCardsContainerClass, listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass, treasuryTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function TreasuryPageContent({ active = true }: { active?: boolean }) {
@@ -58,7 +58,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
   }
 
   return (
-    <div>
+    <div className={listModulePageClass}>
       <ActiveFilterChips
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}

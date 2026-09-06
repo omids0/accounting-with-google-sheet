@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
+import MonthlyFlowTable from './MonthlyFlowTable'
+import ReportDateFilterBar from './ReportDateFilterBar'
+import { useReportDateFilter } from './ReportToolbar'
 import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { MonthlyFlow } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
-import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
 import MonthlyFlowChartSection from '../charts/MonthlyFlowChartSection'
@@ -17,16 +18,7 @@ import Card from '../ui/Card'
 import { chartTitleClass, dashboardPageClass, dashboardStatGridClass } from '../ui/chartStyles'
 import { emptyStateClass } from '../ui/displayStyles'
 import { cardHeaderRowClass } from '../ui/recordsStyles'
-import {
-  reportPageClass,
-  reportTableLabelClass,
-  reportTableRowClass,
-  reportTableValuesClass,
-  reportValueExpenseClass,
-  reportValueIncomeClass,
-  reportValueNegativeClass,
-  reportValuePositiveClass
-} from '../ui/toolsPageStyles'
+import { reportPageClass } from '../ui/toolsPageStyles'
 import YearFilter, { getDefaultChartYear } from '../YearFilter'
 
 export default function CashFlowReportPage() {
@@ -79,6 +71,8 @@ export default function CashFlowReportPage() {
 
   const netSparkline = monthlySparkline(monthlyFlow, 'net')
 
+  const yearChipLabel = `سال: ${monthlyFlowYear.toLocaleString('fa-IR')}`
+
   if (!isConfigured()) {
     return (
       <div className={emptyStateClass}>
@@ -93,15 +87,27 @@ export default function CashFlowReportPage() {
 
   return (
     <div className={cn(dashboardPageClass, reportPageClass)}>
-      <ReportToolbar
-        title="جریان نقدی"
+      <ReportDateFilterBar
         preset={datePreset}
         customRange={customRange}
         onFilterChange={handleDateFilterChange}
         onRefresh={load}
         loading={loading}
         showDateFilter={false}
-        subtitle={`سال ${monthlyFlowYear.toLocaleString('fa-IR')}`}
+        extraChips={[{ id: 'year', label: yearChipLabel, kind: 'date' }]}
+        filterModalChildren={
+          <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>
+            {({ trigger, panel }) => (
+              <Card>
+                <div className={cardHeaderRowClass}>
+                  <h3 className={chartTitleClass}>انتخاب سال</h3>
+                  {trigger}
+                </div>
+                {panel}
+              </Card>
+            )}
+          </YearFilter>
+        }
       />
 
       <div className={dashboardStatGridClass}>
@@ -150,35 +156,7 @@ export default function CashFlowReportPage() {
         }
       />
 
-      {!!monthlyFlow.length && (
-        <Card>
-          <h3 className={chartTitleClass}>جدول ماهانه</h3>
-          {monthlyFlow.map((item, index) => (
-            <div
-              key={item.monthKey}
-              className={reportTableRowClass}
-              style={{ animationDelay: `${index * 0.03}s` }}
-            >
-              <span className={reportTableLabelClass}>{item.label}</span>
-              <span className={reportTableValuesClass} dir="ltr">
-                <span className={reportValueIncomeClass}>{formatMoney(item.income)}</span>
-                <span className={reportValueExpenseClass}>{formatMoney(item.expense)}</span>
-                <span
-                  className={
-                    item.net < 0
-                      ? reportValueNegativeClass
-                      : item.net > 0
-                      ? reportValuePositiveClass
-                      : ''
-                  }
-                >
-                  {formatMoney(item.net)}
-                </span>
-              </span>
-            </div>
-          ))}
-        </Card>
-      )}
+      <MonthlyFlowTable items={monthlyFlow} />
     </div>
   )
 }

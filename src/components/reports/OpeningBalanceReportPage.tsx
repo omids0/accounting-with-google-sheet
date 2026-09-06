@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import ReportToolbar from './ReportToolbar'
+import { ReportStaticMetaBar } from './ReportDateFilterBar'
 import type { MonthlyOpeningBalance } from '../../services/monthlyBalance'
 import { loadOpeningBalancesReport } from '../../services/reports'
 import { getSettings, isConfigured } from '../../services/settings'
@@ -14,6 +14,7 @@ import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
 import Card from '../ui/Card'
+import { dashboardPageClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
 import { reportPageClass } from '../ui/toolsPageStyles'
 
@@ -62,17 +63,8 @@ export default function OpeningBalanceReportPage() {
   }
 
   return (
-    <div className={cn('dashboard-page', reportPageClass)}>
-      <ReportToolbar
-        title="موجودی اول دوره"
-        preset="month-to-date"
-        customRange={{ start: '', end: '' }}
-        onFilterChange={() => {}}
-        onRefresh={load}
-        loading={loading}
-        showDateFilter={false}
-        subtitle="تاریخچه موجودی ماهانه"
-      />
+    <div className={cn(dashboardPageClass, reportPageClass)}>
+      <ReportStaticMetaBar subtitle="تاریخچه موجودی ماهانه" onRefresh={load} loading={loading} />
 
       {!!items.length && (
         <StatCard

@@ -15,6 +15,7 @@ import { useDangFilters } from './useDangFilters'
 import { useDangForm } from './useDangForm'
 import { useDangItems } from './useDangItems'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listModulePageClass } from '../ui/featureCardStyles'
 
 export default function DangPage({ active = true }: { active?: boolean }) {
   const {
@@ -111,7 +112,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
   }
 
   return (
-    <div>
+    <div className={listModulePageClass}>
       <ActiveFilterChips
         chips={filterChips}
         onOpenFilters={openFilterModal}

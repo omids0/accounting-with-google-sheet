@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import ReportToolbar from './ReportToolbar'
+import { ReportStaticMetaBar } from './ReportDateFilterBar'
 import {
   getDueDateTypeLabel,
   loadDueDatesReport,
@@ -20,7 +20,12 @@ import TransactionListItem from '../TransactionListItem'
 import Card from '../ui/Card'
 import { chartTitleClass, dashboardPageClass, dashboardStatGridClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
-import { reportDueBadgeClass, reportDueItemEndClass, reportPageClass } from '../ui/toolsPageStyles'
+import {
+  reportDueBadgeClass,
+  reportDueItemEndClass,
+  reportPageClass,
+  reportStatusGroupsClass
+} from '../ui/toolsPageStyles'
 
 const STATUS_LABELS: Record<DueDateStatus, string> = {
   overdue: 'سررسید گذشته',
@@ -112,15 +117,10 @@ export default function DueDatesReportPage() {
 
   return (
     <div className={cn(dashboardPageClass, reportPageClass)}>
-      <ReportToolbar
-        title="سررسیدها"
-        preset="month-to-date"
-        customRange={{ start: '', end: '' }}
-        onFilterChange={() => {}}
+      <ReportStaticMetaBar
+        subtitle="۳۰ روز آینده و موارد معوق"
         onRefresh={load}
         loading={loading}
-        showDateFilter={false}
-        subtitle="۳۰ روز آینده و موارد معوق"
       />
 
       <div className={dashboardStatGridClass}>
@@ -148,27 +148,29 @@ export default function DueDatesReportPage() {
           <p className={emptyTextClass}>سررسیدی در این بازه ثبت نشده</p>
         </Card>
       ) : (
-        grouped.map(group => (
-          <Card key={group.status}>
-            <h3 className={chartTitleClass}>{STATUS_LABELS[group.status]}</h3>
-            {group.items.map((item, index) => (
-              <TransactionListItem
-                key={item.id}
-                title={item.title}
-                meta={`${getDueDateTypeLabel(item.type)} · ${
-                  item.subtitle
-                } · ${formatIsoDatePersian(item.dueDate)}`}
-                tone="expense"
-                index={index}
-              >
-                <div className={reportDueItemEndClass}>
-                  <DueDateBadge status={item.status} />
-                  <MoneyDisplay amount={item.amount} size="record" tone="expense" />
-                </div>
-              </TransactionListItem>
-            ))}
-          </Card>
-        ))
+        <div className={reportStatusGroupsClass(grouped.length)}>
+          {grouped.map(group => (
+            <Card key={group.status}>
+              <h3 className={chartTitleClass}>{STATUS_LABELS[group.status]}</h3>
+              {group.items.map((item, index) => (
+                <TransactionListItem
+                  key={item.id}
+                  title={item.title}
+                  meta={`${getDueDateTypeLabel(item.type)} · ${
+                    item.subtitle
+                  } · ${formatIsoDatePersian(item.dueDate)}`}
+                  tone="expense"
+                  index={index}
+                >
+                  <div className={reportDueItemEndClass}>
+                    <DueDateBadge status={item.status} />
+                    <MoneyDisplay amount={item.amount} size="record" tone="expense" />
+                  </div>
+                </TransactionListItem>
+              ))}
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   )

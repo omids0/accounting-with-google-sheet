@@ -1,7 +1,14 @@
 import { cardClassName } from './Card'
+import { recordsPageDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
-export const recordsPageClass = cn('flex flex-col gap-3', 'lg:gap-4')
+export const recordsPageClass = cn('records-page flex flex-col gap-3 lg:gap-4')
+
+export const recordsPageBodyClass = cn('flex flex-col gap-3 lg:gap-4', recordsPageDesktopClass)
+
+export const recordsPageSidebarClass = 'lg:sticky lg:top-4 lg:self-start'
+
+export const recordsPageMainClass = 'min-w-0'
 
 export const recordsToolbarClass = cn(
   'relative z-[2] mb-0 overflow-hidden rounded-[var(--radius)] border border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] p-4',

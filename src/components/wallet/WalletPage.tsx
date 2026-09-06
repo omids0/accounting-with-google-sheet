@@ -30,7 +30,7 @@ import WalletFormModal from './WalletFormModal'
 import WalletOpeningBalanceCard from './WalletOpeningBalanceCard'
 import WalletReconciliationAlert from './WalletReconciliationAlert'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
-import { listCardsContainerClass } from '../ui/featureCardStyles'
+import { listCardsContainerClass, listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function WalletPage({ active = true }: WalletPageProps) {
@@ -110,7 +110,7 @@ export default function WalletPage({ active = true }: WalletPageProps) {
   )
 
   return (
-    <div>
+    <div className={listModulePageClass}>
       <ActiveFilterChips
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}

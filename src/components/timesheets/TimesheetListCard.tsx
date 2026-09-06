@@ -7,11 +7,14 @@ import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
   installmentCardClass,
+  installmentChevronClass,
   installmentHeaderClass,
   listCardSubtitleClass,
   listCardTitleClass,
   walletItemCardClass,
-  walletItemInfoClass
+  walletItemInfoClass,
+  walletItemNoteClass,
+  walletItemTitleRowClass
 } from '../ui/featureCardStyles'
 
 interface TimesheetListCardProps {
@@ -36,8 +39,23 @@ export default function TimesheetListCard({
           onClick={() => onOpen(item)}
         >
           <div className={walletItemInfoClass}>
-            <div className={listCardTitleClass}>{item.title}</div>
-            {item.description && <div className={listCardSubtitleClass}>{item.description}</div>}
+            <div className={walletItemTitleRowClass}>
+              <div className={listCardTitleClass}>{item.title}</div>
+              <span
+                className={cn(installmentChevronClass, 'rotate-90 text-primary/70')}
+                aria-hidden
+              >
+                ▼
+              </span>
+            </div>
+            {item.description ? (
+              <div className={cn(walletItemNoteClass, listCardSubtitleClass)}>
+                {item.description}
+              </div>
+            ) : null}
+            {item.createdAt ? (
+              <div className={listCardSubtitleClass}>ایجاد: {item.createdAt}</div>
+            ) : null}
           </div>
         </button>
         <div

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import ReportToolbar, { useReportDateFilter } from './ReportToolbar'
+import ReportDateFilterBar from './ReportDateFilterBar'
+import { useReportDateFilter } from './ReportToolbar'
 import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { DashboardData } from '../../types'
@@ -103,8 +104,7 @@ export default function IncomeExpenseReportPage() {
 
   return (
     <div className={cn(dashboardPageClass, reportPageClass)}>
-      <ReportToolbar
-        title="درآمد و هزینه"
+      <ReportDateFilterBar
         preset={datePreset}
         customRange={customRange}
         onFilterChange={handleDateFilterChange}

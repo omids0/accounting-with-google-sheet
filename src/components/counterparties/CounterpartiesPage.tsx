@@ -19,6 +19,7 @@ import { useCounterpartiesFilters } from './useCounterpartiesFilters'
 import { useCounterpartiesForm } from './useCounterpartiesForm'
 import { useCounterpartyDetail } from './useCounterpartyDetail'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listModulePageClass } from '../ui/featureCardStyles'
 
 export default function CounterpartiesPage({ active = true }: CounterpartiesPageProps) {
   const data = useCounterpartiesData()
@@ -81,7 +82,7 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
   const isInitialLoading = data.loading && data.items.length === 0
 
   return (
-    <div>
+    <div className={listModulePageClass}>
       <FilterModal
         open={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}

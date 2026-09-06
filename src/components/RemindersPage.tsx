@@ -6,6 +6,7 @@ import PersonalRemindersPushSection from './reminders/PersonalRemindersPushSecti
 import PushStatusSection from './reminders/PushStatusSection'
 import { useRemindersPage } from './reminders/useRemindersPage'
 import Card from './ui/Card'
+import { settingsPageClass } from './ui/settingsStyles'
 
 const DUE_DATE_KINDS = ['installments', 'checks', 'dang'] as const
 
@@ -14,7 +15,7 @@ export default function RemindersPage() {
   const navigate = useNavigate()
 
   return (
-    <div>
+    <div className={settingsPageClass}>
       {page.loading ? (
         <Card>
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
