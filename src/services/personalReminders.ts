@@ -5,12 +5,7 @@ import {
   fetchSheetRows,
   updateSheetRow
 } from './sheets'
-import {
-  PERSONAL_REMINDER_CATEGORIES,
-  type PersonalReminder,
-  type PersonalReminderCategory,
-  type PersonalReminderRecurrence
-} from '../types/personalReminders'
+import { type PersonalReminder, type PersonalReminderRecurrence } from '../types/personalReminders'
 import { formatMoney } from '../utils/formatMoney'
 import {
   addDaysToIso,
@@ -35,8 +30,23 @@ export const PERSONAL_REMINDERS_HEADERS = [
   'فعال'
 ]
 
-const VALID_CATEGORIES = new Set(PERSONAL_REMINDER_CATEGORIES.map(item => item.value))
+const LEGACY_PERSONAL_REMINDER_CATEGORIES: Record<string, string> = {
+  bill: 'قبض',
+  insurance: 'بیمه',
+  tax: 'مالیات',
+  subscription: 'اشتراک',
+  other: 'سایر'
+}
+
 const VALID_RECURRENCE = new Set<PersonalReminderRecurrence>(['none', 'monthly', 'yearly'])
+
+function normalizePersonalReminderCategory(value: string): string {
+  const trimmed = String(value ?? '').trim()
+
+  if (!trimmed) return 'سایر'
+
+  return LEGACY_PERSONAL_REMINDER_CATEGORIES[trimmed] ?? trimmed
+}
 
 function parseBool(value: string | undefined): boolean {
   const v = String(value ?? '')
@@ -46,10 +56,8 @@ function parseBool(value: string | undefined): boolean {
   return v === 'true' || v === '1' || v === 'بله' || v === 'yes'
 }
 
-function parseCategory(value: string): PersonalReminderCategory {
-  const normalized = String(value ?? '').trim() as PersonalReminderCategory
-
-  return VALID_CATEGORIES.has(normalized) ? normalized : 'other'
+function parseCategory(value: string): string {
+  return normalizePersonalReminderCategory(value)
 }
 
 function parseRecurrence(value: string): PersonalReminderRecurrence {
@@ -110,10 +118,6 @@ export function personalReminderRowFromImportCells(cells: (string | undefined)[]
     daysBefore: Math.max(0, Number(cells[7]) || 0),
     enabled: parseBool(cells[8])
   })
-}
-
-export function getPersonalReminderCategoryLabel(category: PersonalReminderCategory): string {
-  return PERSONAL_REMINDER_CATEGORIES.find(item => item.value === category)?.label ?? 'سایر'
 }
 
 export function getPersonalReminderRecurrenceLabel(recurrence: PersonalReminderRecurrence): string {
@@ -246,7 +250,7 @@ export function getUpcomingPersonalReminderPushes(
       return item.dueDate.slice(0, 10) === targetDueDate
     })
     .map(item => {
-      const categoryLabel = getPersonalReminderCategoryLabel(item.category)
+      const categoryLabel = item.category.trim() || 'سایر'
       const title = item.title.trim() || categoryLabel
       const amountPart = item.amount > 0 ? ` (${formatMoney(item.amount)})` : ''
       const dueLabel = formatIsoDatePersian(item.dueDate)

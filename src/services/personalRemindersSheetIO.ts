@@ -3,7 +3,6 @@ import {
   PERSONAL_REMINDERS_HEADERS,
   PERSONAL_REMINDERS_SHEET,
   fetchPersonalReminders,
-  getPersonalReminderCategoryLabel,
   getPersonalReminderRecurrenceLabel,
   personalReminderRowFromImportCells
 } from './personalReminders'
@@ -28,7 +27,7 @@ export async function exportPersonalRemindersPdf(spreadsheetId: string): Promise
     headers: ['عنوان', 'دسته‌بندی', 'تاریخ', 'تکرار', 'مبلغ', 'روز قبل', 'وضعیت'],
     rows: items.map(item => [
       item.title,
-      getPersonalReminderCategoryLabel(item.category),
+      item.category,
       formatPersianDate(item.dueDate),
       getPersonalReminderRecurrenceLabel(item.recurrence),
       item.amount > 0 ? formatMoney(item.amount) : '—',

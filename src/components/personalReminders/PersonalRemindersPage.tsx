@@ -40,7 +40,7 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
     handleDraftDateFilterChange,
     clearDraftFilters,
     applyFilters
-  } = usePersonalRemindersFilters({ items: data.items })
+  } = usePersonalRemindersFilters({ items: data.items, categories: data.categories })
 
   const pageSpeedDialConfig = useMemo(
     () => ({
@@ -127,8 +127,10 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
         open={form.showForm}
         editingItem={form.editingItem}
         saving={form.saving}
+        categories={data.categories}
         onClose={form.closeForm}
         onSubmit={form.handleSubmit}
+        onCategoriesChange={data.setCategories}
       />
 
       <ConfirmActionModal

@@ -24,6 +24,7 @@ export const DEFAULT_EXPENSE_CATEGORIES = [
 ]
 export const DEFAULT_DANG_CATEGORIES = ['شخصی', 'قرض', 'خرید', 'سایر']
 export const DEFAULT_RECEIVABLE_CATEGORIES = ['شخصی', 'قرض', 'سازمان', 'سایر']
+export const DEFAULT_PERSONAL_REMINDER_CATEGORIES = ['قبض', 'بیمه', 'مالیات', 'اشتراک', 'سایر']
 
 function incomeForm(): CustomForm {
   return {
@@ -253,6 +254,12 @@ export function updateReceivableCategories(categories: string[]): void {
   const settings = getSettings() ?? getDefaultSettings()
 
   saveSettings({ ...settings, receivableCategories: categories })
+}
+
+export function updatePersonalReminderCategories(categories: string[]): void {
+  const settings = getSettings() ?? getDefaultSettings()
+
+  saveSettings({ ...settings, personalReminderCategories: categories })
 }
 
 export function getDefaultNetAvailableConfig(): NetAvailableConfig {

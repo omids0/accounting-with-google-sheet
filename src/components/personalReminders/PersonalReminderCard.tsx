@@ -1,7 +1,4 @@
-import {
-  getPersonalReminderCategoryLabel,
-  getPersonalReminderRecurrenceLabel
-} from '../../services/personalReminders'
+import { getPersonalReminderRecurrenceLabel } from '../../services/personalReminders'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
@@ -36,7 +33,7 @@ export default function PersonalReminderCard({
   onEdit,
   onDelete
 }: PersonalReminderCardProps) {
-  const categoryLabel = getPersonalReminderCategoryLabel(item.category)
+  const categoryLabel = item.category || '—'
   const recurrenceLabel = getPersonalReminderRecurrenceLabel(item.recurrence)
   const isDone = !item.enabled
 

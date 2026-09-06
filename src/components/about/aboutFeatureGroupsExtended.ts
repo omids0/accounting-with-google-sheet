@@ -204,7 +204,7 @@ export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
     features: [
       {
         title: 'دسته‌بندی و عنوان',
-        description: 'هر یادآوری یک عنوان اختصاصی و دسته (قبض، بیمه، مالیات، اشتراک، سایر) دارد.'
+        description: 'هر یادآوری یک عنوان اختصاصی و دسته‌بندی قابل ویرایش (مثل بدهی و طلب) دارد.'
       },
       {
         title: 'تکرار و انجام',

@@ -1,13 +1,10 @@
 import { useMemo, type FormEvent } from 'react'
 
 import { useForm } from '../../hooks/useForm'
-import {
-  PERSONAL_REMINDER_CATEGORIES,
-  PERSONAL_REMINDER_RECURRENCE_OPTIONS
-} from '../../types/personalReminders'
+import { PERSONAL_REMINDER_RECURRENCE_OPTIONS } from '../../types/personalReminders'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { FormField, FormSelect } from '../form'
+import { CategorySelect, FormField, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { PersonalReminderFormState, PersonalReminderWithRow } from './types'
@@ -17,16 +14,20 @@ type PersonalReminderFormModalProps = {
   open: boolean
   editingItem: PersonalReminderWithRow | null
   saving: boolean
+  categories: string[]
   onClose: () => void
   onSubmit: (values: PersonalReminderFormState) => void | Promise<void>
+  onCategoriesChange: (categories: string[]) => void
 }
 
 export default function PersonalReminderFormModal({
   open,
   editingItem,
   saving,
+  categories,
   onClose,
-  onSubmit
+  onSubmit,
+  onCategoriesChange
 }: PersonalReminderFormModalProps) {
   const initialValues = useMemo<PersonalReminderFormState>(
     () =>
@@ -42,14 +43,14 @@ export default function PersonalReminderFormModal({
           }
         : {
             title: '',
-            category: '',
+            category: categories[0] ?? '',
             dueDate: getTodayIso(),
             recurrence: 'yearly',
             amount: '',
             daysBefore: 3,
             enabled: true
           },
-    [editingItem]
+    [categories, editingItem]
   )
 
   const form = useForm(initialValues, {
@@ -81,21 +82,21 @@ export default function PersonalReminderFormModal({
         />
       </FormField>
 
-      <FormSelect
-        label="دسته‌بندی"
-        required
-        value={form.values.category}
-        onChange={value =>
-          form.setField('category', value as PersonalReminderFormState['category'])
-        }
-        options={[
-          { value: '', label: 'انتخاب دسته‌بندی', disabled: true },
-          ...PERSONAL_REMINDER_CATEGORIES.map(item => ({
-            value: item.value,
-            label: item.label
-          }))
-        ]}
-      />
+      <FormField label="دسته‌بندی" required>
+        <CategorySelect
+          value={form.values.category}
+          onChange={category => form.setField('category', category)}
+          categories={categories}
+          categoryScope="personalReminder"
+          onCategoriesChange={next => {
+            onCategoriesChange(next)
+            if (!next.includes(form.values.category)) {
+              form.setField('category', next[0] ?? '')
+            }
+          }}
+          aria-label="دسته‌بندی یادآوری"
+        />
+      </FormField>
 
       <FormField label="تاریخ موعد" required>
         <JalaliDatePicker

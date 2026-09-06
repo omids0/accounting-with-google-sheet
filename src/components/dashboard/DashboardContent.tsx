@@ -1,5 +1,7 @@
 import DashboardBreakdownSection from './DashboardBreakdownSection'
 import { RecordAmount } from './DashboardParts'
+import DashboardRemindersSection from './DashboardRemindersSection'
+import type { DashboardReminderItem } from '../../services/dashboardReminders'
 import type { DashboardData, DashboardNavTarget } from '../../types'
 import { cn } from '../../utils/cn'
 import type { RecordsDatePreset } from '../../utils/dateRange'
@@ -58,7 +60,9 @@ interface DashboardContentProps {
   setTypeFilter: (filter: TransactionTypeFilter) => void
   transactionTypeOptions: TransactionTypeSegmentOption[]
   filteredRecords: DashboardData['recentRecords']
+  upcomingReminders: DashboardReminderItem[]
   onViewRecords?: (formType?: 'income' | 'expense') => void
+  onViewReminders?: () => void
   onNavigate?: (target: DashboardNavTarget) => void
   load: () => void
 }
@@ -89,7 +93,9 @@ export default function DashboardContent({
   setTypeFilter,
   transactionTypeOptions,
   filteredRecords,
+  upcomingReminders,
   onViewRecords,
+  onViewReminders,
   onNavigate,
   load
 }: DashboardContentProps) {
@@ -184,6 +190,8 @@ export default function DashboardContent({
           animateIndex={3}
         />
       </div>
+
+      <DashboardRemindersSection items={upcomingReminders} onViewAll={onViewReminders} />
 
       <DashboardBreakdownSection financial={financial} onNavigate={onNavigate} />
 

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { PersonalReminderWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
+import { syncCategoriesFromSheet, getPersonalReminderCategories } from '../../services/categories'
 import {
   completePersonalReminder,
   deletePersonalReminder,
@@ -33,6 +34,7 @@ export function usePersonalRemindersData() {
   const [deleting, setDeleting] = useState(false)
   const [completingItem, setCompletingItem] = useState<PersonalReminderWithRow | null>(null)
   const [completingId, setCompletingId] = useState('')
+  const [categories, setCategories] = useState<string[]>(() => getPersonalReminderCategories())
 
   const dataRevision = useDataRefresh()
 
@@ -44,6 +46,9 @@ export function usePersonalRemindersData() {
     setLoading(true)
     try {
       await ensurePersonalRemindersSheet(spreadsheetId)
+      await syncCategoriesFromSheet(spreadsheetId)
+      setCategories(getPersonalReminderCategories())
+
       const data = await fetchPersonalReminders(spreadsheetId)
 
       setItems(data)
@@ -136,6 +141,8 @@ export function usePersonalRemindersData() {
 
   return {
     items,
+    categories,
+    setCategories,
     loading,
     deletingItem,
     deleting,
