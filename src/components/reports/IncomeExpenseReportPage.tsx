@@ -23,7 +23,7 @@ import Card from '../ui/Card'
 import { chartTitleClass, dashboardPageClass, dashboardStatGridClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
 import { dashboardTransactionSegmentClass } from '../ui/recordsStyles'
-import { reportPageClass } from '../ui/toolsPageStyles'
+import { reportPageClass, reportPageSplitClass } from '../ui/toolsPageStyles'
 
 type TransactionTypeFilter = 'all' | 'income' | 'expense'
 
@@ -131,39 +131,41 @@ export default function IncomeExpenseReportPage() {
         />
       </div>
 
-      <ReportCategoryChartsSection
-        expenseByCategory={data?.expenseByCategory ?? []}
-        incomeByCategory={data?.incomeByCategory ?? []}
-        categoryYAxisWidth={categoryYAxisWidth}
-      />
-
-      <Card>
-        <h3 className={chartTitleClass}>تراکنش‌های دوره</h3>
-        <TransactionTypeSegment
-          className={dashboardTransactionSegmentClass}
-          options={transactionTypeOptions}
-          value={typeFilter}
-          onChange={id => setTypeFilter(id as TransactionTypeFilter)}
+      <div className={reportPageSplitClass}>
+        <ReportCategoryChartsSection
+          expenseByCategory={data?.expenseByCategory ?? []}
+          incomeByCategory={data?.incomeByCategory ?? []}
+          categoryYAxisWidth={categoryYAxisWidth}
         />
 
-        {!filteredRecords.length ? (
-          <p className={emptyTextClass}>تراکنشی در این دوره ثبت نشده</p>
-        ) : (
-          filteredRecords.map((record, index) => (
-            <TransactionListItem
-              key={`${record.date}-${index}`}
-              title={record.title}
-              meta={`${record.formName} · ${record.category} · ${formatIsoDatePersian(
-                record.date
-              )}`}
-              tone={record.type === 'income' ? 'income' : 'expense'}
-              index={index}
-            >
-              <RecordAmount amount={record.amount} type={record.type} />
-            </TransactionListItem>
-          ))
-        )}
-      </Card>
+        <Card>
+          <h3 className={chartTitleClass}>تراکنش‌های دوره</h3>
+          <TransactionTypeSegment
+            className={dashboardTransactionSegmentClass}
+            options={transactionTypeOptions}
+            value={typeFilter}
+            onChange={id => setTypeFilter(id as TransactionTypeFilter)}
+          />
+
+          {!filteredRecords.length ? (
+            <p className={emptyTextClass}>تراکنشی در این دوره ثبت نشده</p>
+          ) : (
+            filteredRecords.map((record, index) => (
+              <TransactionListItem
+                key={`${record.date}-${index}`}
+                title={record.title}
+                meta={`${record.formName} · ${record.category} · ${formatIsoDatePersian(
+                  record.date
+                )}`}
+                tone={record.type === 'income' ? 'income' : 'expense'}
+                index={index}
+              >
+                <RecordAmount amount={record.amount} type={record.type} />
+              </TransactionListItem>
+            ))
+          )}
+        </Card>
+      </div>
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { cardClassName } from './Card'
 import { cn } from '../../utils/cn'
 
 export const dashboardPageClass = cn(
-  'flex flex-col gap-2',
+  'dashboard-page flex flex-col gap-2',
   '[&_.mb-stack]:mb-0 [&_.dashboard-flow-section]:mb-0 [&_.chart-card--animated]:mb-0',
   'lg:gap-4'
 )

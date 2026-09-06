@@ -1,7 +1,11 @@
 import { listModulePageClass } from './featureCardStyles'
+import { reportPageDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
-export const reportPageClass = 'flex flex-col gap-4'
+export const reportPageClass = cn('flex flex-col gap-4 lg:gap-5')
+
+/** Pair chart/table or twin summary cards side-by-side on desktop. */
+export const reportPageSplitClass = cn('flex flex-col gap-4', reportPageDesktopClass)
 
 export const reportHintClass = 'mt-3 text-[0.82rem] text-muted'
 

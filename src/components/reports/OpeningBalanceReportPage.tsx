@@ -14,6 +14,7 @@ import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
 import Card from '../ui/Card'
+import { dashboardPageClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
 import { reportPageClass } from '../ui/toolsPageStyles'
 
@@ -62,7 +63,7 @@ export default function OpeningBalanceReportPage() {
   }
 
   return (
-    <div className={cn('dashboard-page', reportPageClass)}>
+    <div className={cn(dashboardPageClass, reportPageClass)}>
       <ReportToolbar
         title="موجودی اول دوره"
         preset="month-to-date"

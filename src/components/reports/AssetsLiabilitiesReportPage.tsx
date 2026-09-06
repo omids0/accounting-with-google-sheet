@@ -27,7 +27,7 @@ import {
   dashboardPageClass
 } from '../ui/chartStyles'
 import { emptyStateClass } from '../ui/displayStyles'
-import { reportPageClass } from '../ui/toolsPageStyles'
+import { reportPageClass, reportPageSplitClass } from '../ui/toolsPageStyles'
 
 function BreakdownRow({ label, value, total }: { label: string; value: number; total?: boolean }) {
   return (
@@ -112,25 +112,27 @@ export default function AssetsLiabilitiesReportPage() {
         </p>
       </Card>
 
-      <Card className={dashboardAssetsCardClass}>
-        <h3 className={chartTitleClass}>دارایی‌ها</h3>
-        <div className={assetBreakdownClass}>
-          <BreakdownRow label="کیف پول" value={financial?.walletTotal ?? 0} />
-          <BreakdownRow label="صندوقچه" value={financial?.treasuryTotal ?? 0} />
-          <BreakdownRow label="طلب‌ها" value={financial?.receivablesTotal ?? 0} />
-          <BreakdownRow label="مجموع دارایی‌ها" value={financial?.totalAssets ?? 0} total />
-        </div>
-      </Card>
+      <div className={reportPageSplitClass}>
+        <Card className={dashboardAssetsCardClass}>
+          <h3 className={chartTitleClass}>دارایی‌ها</h3>
+          <div className={assetBreakdownClass}>
+            <BreakdownRow label="کیف پول" value={financial?.walletTotal ?? 0} />
+            <BreakdownRow label="صندوقچه" value={financial?.treasuryTotal ?? 0} />
+            <BreakdownRow label="طلب‌ها" value={financial?.receivablesTotal ?? 0} />
+            <BreakdownRow label="مجموع دارایی‌ها" value={financial?.totalAssets ?? 0} total />
+          </div>
+        </Card>
 
-      <Card className={dashboardLiabilitiesCardClass}>
-        <h3 className={chartTitleClass}>بدهی‌ها</h3>
-        <div className={assetBreakdownClass}>
-          <BreakdownRow label="اقساط این دوره" value={financial?.installmentsDue ?? 0} />
-          <BreakdownRow label="بدهی‌ها" value={financial?.dangsTotal ?? 0} />
-          <BreakdownRow label="چک‌های این دوره" value={financial?.checksDue ?? 0} />
-          <BreakdownRow label="مجموع بدهی‌ها" value={financial?.totalLiabilities ?? 0} total />
-        </div>
-      </Card>
+        <Card className={dashboardLiabilitiesCardClass}>
+          <h3 className={chartTitleClass}>بدهی‌ها</h3>
+          <div className={assetBreakdownClass}>
+            <BreakdownRow label="اقساط این دوره" value={financial?.installmentsDue ?? 0} />
+            <BreakdownRow label="بدهی‌ها" value={financial?.dangsTotal ?? 0} />
+            <BreakdownRow label="چک‌های این دوره" value={financial?.checksDue ?? 0} />
+            <BreakdownRow label="مجموع بدهی‌ها" value={financial?.totalLiabilities ?? 0} total />
+          </div>
+        </Card>
+      </div>
     </div>
   )
 }

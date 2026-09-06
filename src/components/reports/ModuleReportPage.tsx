@@ -21,6 +21,7 @@ import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
+import { dashboardPageClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
 import {
   reportExportCardBodyClass,
@@ -97,7 +98,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
   }
 
   return (
-    <div className={cn('dashboard-page', reportPageClass)}>
+    <div className={cn(dashboardPageClass, reportPageClass)}>
       <ReportToolbar
         title={config.title}
         preset="month-to-date"

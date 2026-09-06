@@ -20,6 +20,7 @@ import TransactionListItem from '../TransactionListItem'
 import Card from '../ui/Card'
 import { chartTitleClass, dashboardPageClass, dashboardStatGridClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
+import { listCardsContainerClass } from '../ui/featureCardStyles'
 import { reportDueBadgeClass, reportDueItemEndClass, reportPageClass } from '../ui/toolsPageStyles'
 
 const STATUS_LABELS: Record<DueDateStatus, string> = {
@@ -148,27 +149,29 @@ export default function DueDatesReportPage() {
           <p className={emptyTextClass}>سررسیدی در این بازه ثبت نشده</p>
         </Card>
       ) : (
-        grouped.map(group => (
-          <Card key={group.status}>
-            <h3 className={chartTitleClass}>{STATUS_LABELS[group.status]}</h3>
-            {group.items.map((item, index) => (
-              <TransactionListItem
-                key={item.id}
-                title={item.title}
-                meta={`${getDueDateTypeLabel(item.type)} · ${
-                  item.subtitle
-                } · ${formatIsoDatePersian(item.dueDate)}`}
-                tone="expense"
-                index={index}
-              >
-                <div className={reportDueItemEndClass}>
-                  <DueDateBadge status={item.status} />
-                  <MoneyDisplay amount={item.amount} size="record" tone="expense" />
-                </div>
-              </TransactionListItem>
-            ))}
-          </Card>
-        ))
+        <div className={listCardsContainerClass}>
+          {grouped.map(group => (
+            <Card key={group.status}>
+              <h3 className={chartTitleClass}>{STATUS_LABELS[group.status]}</h3>
+              {group.items.map((item, index) => (
+                <TransactionListItem
+                  key={item.id}
+                  title={item.title}
+                  meta={`${getDueDateTypeLabel(item.type)} · ${
+                    item.subtitle
+                  } · ${formatIsoDatePersian(item.dueDate)}`}
+                  tone="expense"
+                  index={index}
+                >
+                  <div className={reportDueItemEndClass}>
+                    <DueDateBadge status={item.status} />
+                    <MoneyDisplay amount={item.amount} size="record" tone="expense" />
+                  </div>
+                </TransactionListItem>
+              ))}
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   )

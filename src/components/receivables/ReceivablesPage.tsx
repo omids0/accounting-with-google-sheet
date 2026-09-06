@@ -27,7 +27,7 @@ import { useReceivableMutations } from './useReceivableMutations'
 import { useReceivablesData } from './useReceivablesData'
 import { useReceivablesFilters } from './useReceivablesFilters'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
-import { listCardsContainerClass } from '../ui/featureCardStyles'
+import { listCardsContainerClass, listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function ReceivablesPage({ active = true }: ReceivablesPageProps) {
@@ -99,7 +99,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
   }
 
   return (
-    <div>
+    <div className={listModulePageClass}>
       <ActiveFilterChips
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}

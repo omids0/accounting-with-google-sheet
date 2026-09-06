@@ -19,6 +19,7 @@ import { emptyStateClass } from '../ui/displayStyles'
 import { cardHeaderRowClass } from '../ui/recordsStyles'
 import {
   reportPageClass,
+  reportPageSplitClass,
   reportTableLabelClass,
   reportTableRowClass,
   reportTableValuesClass,
@@ -133,52 +134,54 @@ export default function CashFlowReportPage() {
         animateIndex={2}
       />
 
-      <MonthlyFlowChartSection
-        data={monthlyFlow}
-        header={
-          <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>
-            {({ trigger, panel }) => (
-              <>
-                <div className={cardHeaderRowClass}>
-                  <h3 className={chartTitleClass}>درآمد و هزینه ماهانه</h3>
-                  {trigger}
-                </div>
-                {panel}
-              </>
-            )}
-          </YearFilter>
-        }
-      />
+      <div className={reportPageSplitClass}>
+        <MonthlyFlowChartSection
+          data={monthlyFlow}
+          header={
+            <YearFilter year={monthlyFlowYear} onChange={setMonthlyFlowYear} loading={loading}>
+              {({ trigger, panel }) => (
+                <>
+                  <div className={cardHeaderRowClass}>
+                    <h3 className={chartTitleClass}>درآمد و هزینه ماهانه</h3>
+                    {trigger}
+                  </div>
+                  {panel}
+                </>
+              )}
+            </YearFilter>
+          }
+        />
 
-      {!!monthlyFlow.length && (
-        <Card>
-          <h3 className={chartTitleClass}>جدول ماهانه</h3>
-          {monthlyFlow.map((item, index) => (
-            <div
-              key={item.monthKey}
-              className={reportTableRowClass}
-              style={{ animationDelay: `${index * 0.03}s` }}
-            >
-              <span className={reportTableLabelClass}>{item.label}</span>
-              <span className={reportTableValuesClass} dir="ltr">
-                <span className={reportValueIncomeClass}>{formatMoney(item.income)}</span>
-                <span className={reportValueExpenseClass}>{formatMoney(item.expense)}</span>
-                <span
-                  className={
-                    item.net < 0
-                      ? reportValueNegativeClass
-                      : item.net > 0
-                      ? reportValuePositiveClass
-                      : ''
-                  }
-                >
-                  {formatMoney(item.net)}
+        {!!monthlyFlow.length && (
+          <Card>
+            <h3 className={chartTitleClass}>جدول ماهانه</h3>
+            {monthlyFlow.map((item, index) => (
+              <div
+                key={item.monthKey}
+                className={reportTableRowClass}
+                style={{ animationDelay: `${index * 0.03}s` }}
+              >
+                <span className={reportTableLabelClass}>{item.label}</span>
+                <span className={reportTableValuesClass} dir="ltr">
+                  <span className={reportValueIncomeClass}>{formatMoney(item.income)}</span>
+                  <span className={reportValueExpenseClass}>{formatMoney(item.expense)}</span>
+                  <span
+                    className={
+                      item.net < 0
+                        ? reportValueNegativeClass
+                        : item.net > 0
+                        ? reportValuePositiveClass
+                        : ''
+                    }
+                  >
+                    {formatMoney(item.net)}
+                  </span>
                 </span>
-              </span>
-            </div>
-          ))}
-        </Card>
-      )}
+              </div>
+            ))}
+          </Card>
+        )}
+      </div>
     </div>
   )
 }

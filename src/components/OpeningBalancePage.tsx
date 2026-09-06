@@ -14,6 +14,8 @@ import {
   installmentPaymentsClass,
   installmentCardClass,
   listCardAmountPillClass,
+  listCardsContainerClass,
+  listModulePageClass,
   walletItemAmountClass,
   walletItemCardClass,
   walletItemInfoClass,
@@ -145,7 +147,7 @@ export default function OpeningBalancePage() {
   }
 
   return (
-    <div>
+    <div className={listModulePageClass}>
       <div className={cardHeaderRowClass} style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>موجودی اول دوره</h2>
         <Button variant="secondary" size="sm" onClick={loadItems} disabled={loading} type="button">
@@ -167,83 +169,85 @@ export default function OpeningBalancePage() {
           <p>هنوز موجودی اول دوره‌ای برای ماه‌های قبل ثبت نشده</p>
         </div>
       ) : (
-        items.map(item => {
-          const expanded = expandedId === item.monthKey
+        <div className={listCardsContainerClass}>
+          {items.map(item => {
+            const expanded = expandedId === item.monthKey
 
-          const edit = edits[item.monthKey]
+            const edit = edits[item.monthKey]
 
-          const displayAmount =
-            edit?.amount === '' || edit?.amount == null ? item.amount : Number(edit.amount)
+            const displayAmount =
+              edit?.amount === '' || edit?.amount == null ? item.amount : Number(edit.amount)
 
-          return (
-            <div
-              key={item.monthKey}
-              className={cn(
-                installmentCardClass({ expanded }),
-                dashboardOpeningCardClass,
-                walletItemCardClass
-              )}
-            >
-              <button
-                type="button"
-                className={cn(installmentHeaderClass(expanded), 'wallet-item-header')}
-                onClick={() => setExpandedId(expanded ? null : item.monthKey)}
+            return (
+              <div
+                key={item.monthKey}
+                className={cn(
+                  installmentCardClass({ expanded }),
+                  dashboardOpeningCardClass,
+                  walletItemCardClass
+                )}
               >
-                <div className={walletItemInfoClass}>
-                  <div className={walletItemTitleRowClass}>
-                    <div className={walletItemTitleClass}>
-                      {formatJalaliMonthLabel(item.monthKey)}
+                <button
+                  type="button"
+                  className={cn(installmentHeaderClass(expanded), 'wallet-item-header')}
+                  onClick={() => setExpandedId(expanded ? null : item.monthKey)}
+                >
+                  <div className={walletItemInfoClass}>
+                    <div className={walletItemTitleRowClass}>
+                      <div className={walletItemTitleClass}>
+                        {formatJalaliMonthLabel(item.monthKey)}
+                      </div>
+                      <div className={cn(walletItemAmountClass, listCardAmountPillClass)} dir="ltr">
+                        {formatMoney(displayAmount)}
+                      </div>
                     </div>
-                    <div className={cn(walletItemAmountClass, listCardAmountPillClass)} dir="ltr">
-                      {formatMoney(displayAmount)}
-                    </div>
+                    {item.updatedAt && (
+                      <div className={walletItemNoteClass}>آخرین ویرایش: {item.updatedAt}</div>
+                    )}
                   </div>
-                  {item.updatedAt && (
-                    <div className={walletItemNoteClass}>آخرین ویرایش: {item.updatedAt}</div>
-                  )}
-                </div>
-                <span className={installmentChevronClass}>▼</span>
-              </button>
+                  <span className={installmentChevronClass}>▼</span>
+                </button>
 
-              <AccordionCollapse open={expanded && !!edit}>
-                <div className={cn(installmentPaymentsClass, dashboardOpeningBodyClass)}>
-                  <FormField label="موجودی اول دوره">
-                    <AmountInput
-                      value={edit.amount}
-                      onChange={val =>
-                        setEdits(prev => ({
-                          ...prev,
-                          [item.monthKey]: { ...prev[item.monthKey], amount: val }
-                        }))
-                      }
-                    />
-                  </FormField>
-                  <FormField label="توضیحات">
-                    <textarea
-                      value={edit.note}
-                      onChange={e =>
-                        setEdits(prev => ({
-                          ...prev,
-                          [item.monthKey]: { ...prev[item.monthKey], note: e.target.value }
-                        }))
-                      }
-                      placeholder="توضیحات اختیاری"
-                    />
-                  </FormField>
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handleSave(item)}
-                    disabled={savingId === item.monthKey || loading}
-                  >
-                    {savingId === item.monthKey ? '...' : 'ذخیره'}
-                  </Button>
-                </div>
-              </AccordionCollapse>
-            </div>
-          )
-        })
+                <AccordionCollapse open={expanded && !!edit}>
+                  <div className={cn(installmentPaymentsClass, dashboardOpeningBodyClass)}>
+                    <FormField label="موجودی اول دوره">
+                      <AmountInput
+                        value={edit.amount}
+                        onChange={val =>
+                          setEdits(prev => ({
+                            ...prev,
+                            [item.monthKey]: { ...prev[item.monthKey], amount: val }
+                          }))
+                        }
+                      />
+                    </FormField>
+                    <FormField label="توضیحات">
+                      <textarea
+                        value={edit.note}
+                        onChange={e =>
+                          setEdits(prev => ({
+                            ...prev,
+                            [item.monthKey]: { ...prev[item.monthKey], note: e.target.value }
+                          }))
+                        }
+                        placeholder="توضیحات اختیاری"
+                      />
+                    </FormField>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleSave(item)}
+                      disabled={savingId === item.monthKey || loading}
+                    >
+                      {savingId === item.monthKey ? '...' : 'ذخیره'}
+                    </Button>
+                  </div>
+                </AccordionCollapse>
+              </div>
+            )
+          })}
+        </div>
       )}
     </div>
   )
