@@ -5,7 +5,7 @@ import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getAssetUnit, VAULT_ASSET_OPTIONS } from '../../services/tgju'
 import type { VaultAssetType } from '../../types'
 import AmountInput from '../AmountInput'
-import { FormField, FormSelect } from '../form'
+import { FormField, FormRow, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { TransactionWithRow, VaultFormState } from './types'
@@ -73,6 +73,7 @@ export default function TreasuryBuyFormModal({
       <FormSelect
         label="نوع دارایی"
         required
+        controlWidth="full"
         value={assetType}
         onChange={next => {
           setValue('assetType', next as VaultAssetType)
@@ -89,20 +90,22 @@ export default function TreasuryBuyFormModal({
         }
       />
 
-      <FormField label={`مقدار (${getAssetUnit(assetType)})`} required>
-        <input
-          type="text"
-          inputMode={allowDecimal ? 'decimal' : 'numeric'}
-          dir="ltr"
-          value={quantity === '' ? '' : String(quantity)}
-          onChange={e => setValue('quantity', parseQuantityInput(e.target.value, allowDecimal))}
-          placeholder={allowDecimal ? 'مثلاً ۲.۵' : 'مثلاً ۳'}
-        />
-      </FormField>
+      <FormRow>
+        <FormField label={`مقدار (${getAssetUnit(assetType)})`} required>
+          <input
+            type="text"
+            inputMode={allowDecimal ? 'decimal' : 'numeric'}
+            dir="ltr"
+            value={quantity === '' ? '' : String(quantity)}
+            onChange={e => setValue('quantity', parseQuantityInput(e.target.value, allowDecimal))}
+            placeholder={allowDecimal ? 'مثلاً ۲.۵' : 'مثلاً ۳'}
+          />
+        </FormField>
 
-      <FormField label={`قیمت هر ${getAssetUnit(assetType)} (تومان)`} required>
-        <AmountInput value={watch('unitPrice')} onChange={val => setValue('unitPrice', val)} />
-      </FormField>
+        <FormField label={`قیمت هر ${getAssetUnit(assetType)} (تومان)`} required>
+          <AmountInput value={watch('unitPrice')} onChange={val => setValue('unitPrice', val)} />
+        </FormField>
+      </FormRow>
 
       <FormField label="تاریخ خرید" required>
         <JalaliDatePicker
@@ -111,7 +114,7 @@ export default function TreasuryBuyFormModal({
         />
       </FormField>
 
-      <FormField label="توضیحات">
+      <FormField label="توضیحات" controlWidth="full">
         <textarea
           value={watch('note')}
           onChange={e => setValue('note', e.target.value)}

@@ -7,10 +7,18 @@ import {
   type ReactNode
 } from 'react'
 
+import AmountInput from '../AmountInput'
+import JalaliDatePicker from '../JalaliDatePicker'
+import CategorySelect from './CategorySelect'
+import CounterpartySelect from './CounterpartySelect'
 import { cn } from '../../utils/cn'
 import { formNoteTextareaClass } from '../ui/formControlStyles'
 import {
+  type FormControlWidth,
   formControlClassName,
+  formControlWidthCompactClass,
+  formControlWidthFullClass,
+  formControlWidthStandardClass,
   formFieldClass,
   formHintClass,
   formLabelClass
@@ -24,6 +32,7 @@ interface FormFieldProps {
   style?: CSSProperties
   children: ReactNode
   id?: string
+  controlWidth?: FormControlWidth
 }
 
 type ControlProps = { id?: string; className?: string; type?: string }
@@ -61,6 +70,42 @@ function enhanceControl(child: ReactNode, controlId: string): ReactNode {
   return cloneElement(element, patch)
 }
 
+function resolveControlWidthClass(
+  children: ReactNode,
+  controlWidth: FormControlWidth = 'auto'
+): string {
+  if (controlWidth === 'compact') return formControlWidthCompactClass
+  if (controlWidth === 'standard') return formControlWidthStandardClass
+  if (controlWidth === 'full') return formControlWidthFullClass
+  if (!isValidElement(children)) return formControlWidthFullClass
+
+  const element = children as ReactElement<ControlProps>
+
+  if (
+    element.type === 'textarea' ||
+    element.type === CategorySelect ||
+    element.type === CounterpartySelect
+  ) {
+    return formControlWidthFullClass
+  }
+
+  if (element.type === AmountInput || element.type === JalaliDatePicker) {
+    return formControlWidthCompactClass
+  }
+
+  if (element.type === 'input') {
+    const type = element.props.type
+
+    if (type === 'number' || type === 'tel') {
+      return formControlWidthCompactClass
+    }
+
+    return formControlWidthStandardClass
+  }
+
+  return formControlWidthFullClass
+}
+
 export default function FormField({
   label,
   required = false,
@@ -68,11 +113,13 @@ export default function FormField({
   className,
   style,
   children,
-  id
+  id,
+  controlWidth = 'auto'
 }: FormFieldProps) {
   const autoId = useId()
   const controlId = id ?? autoId
   const control = enhanceControl(children, controlId)
+  const controlShellClass = resolveControlWidthClass(children, controlWidth)
 
   return (
     <div className={cn(formFieldClass, className)} style={style}>
@@ -87,7 +134,7 @@ export default function FormField({
           )}
         </label>
       )}
-      <div>{control}</div>
+      <div className={cn('form-control-shell', controlShellClass)}>{control}</div>
       {hint && <div className={formHintClass}>{hint}</div>}
     </div>
   )

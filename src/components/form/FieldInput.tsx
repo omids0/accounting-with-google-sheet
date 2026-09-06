@@ -5,7 +5,7 @@ import CategorySelect from './CategorySelect'
 import FormField from './FormField'
 import Select from './Select'
 import { formNoteTextareaClass } from '../ui/formControlStyles'
-import { formControlClassName } from '../ui/formStyles'
+import { formControlClassName, type FormControlWidth } from '../ui/formStyles'
 import { formFieldNoteClass } from '../ui/recordsStyles'
 
 interface FieldInputProps {
@@ -14,6 +14,7 @@ interface FieldInputProps {
   onChange: (value: string | number) => void
   formId?: string
   onCategoriesChange?: (categories: string[]) => void
+  controlWidth?: FormControlWidth
 }
 
 function fieldPlaceholder(field: FieldConfig): string | undefined {
@@ -24,20 +25,32 @@ function fieldPlaceholder(field: FieldConfig): string | undefined {
   return undefined
 }
 
+function defaultControlWidth(field: FieldConfig): FormControlWidth {
+  if (field.id === 'note' || field.id === 'category') return 'full'
+  if (field.id === 'amount') return 'standard'
+  if (field.type === 'date') return 'compact'
+  if (field.type === 'select') return 'full'
+
+  return 'standard'
+}
+
 export default function FieldInput({
   field,
   value,
   onChange,
   formId,
-  onCategoriesChange
+  onCategoriesChange,
+  controlWidth
 }: FieldInputProps) {
   const placeholder = fieldPlaceholder(field)
+  const resolvedWidth = controlWidth ?? defaultControlWidth(field)
 
   return (
     <FormField
       label={field.label}
       required={field.required}
       className={field.id === 'note' ? formFieldNoteClass : undefined}
+      controlWidth={resolvedWidth}
     >
       {field.type === 'text' && field.id === 'note' ? (
         <textarea

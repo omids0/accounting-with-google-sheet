@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import AmountInput from '../AmountInput'
-import { FormField } from '../form'
+import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import type { WalletAccountWithRow, WalletFormState } from './types'
 
@@ -60,15 +60,17 @@ export default function WalletFormModal({
       saving={saving}
       saveLabel={editingAccount ? 'ذخیره تغییرات' : 'ذخیره حساب'}
     >
-      <FormField label="عنوان" required>
-        <input {...register('title')} placeholder="مثلاً: بانک ملت، نقدی، ..." />
-      </FormField>
+      <FormRow>
+        <FormField label="عنوان" required>
+          <input {...register('title')} placeholder="مثلاً: بانک ملت، نقدی، ..." />
+        </FormField>
 
-      <FormField label="موجودی" required>
-        <AmountInput value={watch('balance')} onChange={val => setValue('balance', val)} />
-      </FormField>
+        <FormField label="موجودی" required>
+          <AmountInput value={watch('balance')} onChange={val => setValue('balance', val)} />
+        </FormField>
+      </FormRow>
 
-      <FormField label="توضیحات">
+      <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" />
       </FormField>
     </FormModal>

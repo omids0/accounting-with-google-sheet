@@ -1,3 +1,4 @@
+import { formFieldsLayoutClass } from './formStyles'
 import { cn } from '../../utils/cn'
 
 export const formModalRootClass = cn(
@@ -19,9 +20,11 @@ export const formModalPanelClass = cn(
   'shadow-[0_12px_40px_rgba(15,23,42,0.14),inset_0_1px_0_rgba(255,255,255,0.55)]',
   'animate-[form-modal-in_var(--duration-normal)_var(--ease-out)] motion-reduce:animate-none',
   'min-[520px]:rounded-[calc(var(--radius)+4px)]',
-  'lg:max-w-[32rem]',
+  'lg:max-w-[30rem]',
   '[&_form]:flex [&_form]:min-h-0 [&_form]:flex-1 [&_form]:flex-col'
 )
+
+export const formModalPanelWideClass = 'lg:max-w-[40rem]'
 
 export const formModalHeaderClass = cn(
   'grid flex-shrink-0 grid-cols-[1fr_auto] grid-rows-[auto_auto] items-center gap-x-3',
@@ -52,10 +55,13 @@ export const formModalBodyClass = cn(
   '[-webkit-overflow-scrolling:touch] [&_.form-field:last-child]:mb-0 [&_.form-group:last-child]:mb-0'
 )
 
+export const formModalFieldsLayoutClass = formFieldsLayoutClass
+
 export const formModalActionsClass = cn(
   'mt-0 flex-shrink-0 items-center border-t border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] px-[1.15rem] pb-[calc(1.1rem+var(--safe-bottom))] pt-[0.9rem]',
   '[background:linear-gradient(0deg,color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)_0%,transparent_100%)]',
   '[&>button]:min-w-[6.5rem] [&>button]:flex-1',
+  'lg:justify-end lg:[&>button]:flex-none',
   '[&>button]:focus-visible:outline-none [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] [&>button]:focus-visible:ring-offset-2 [&>button]:focus-visible:ring-offset-[var(--color-surface)]'
 )
 

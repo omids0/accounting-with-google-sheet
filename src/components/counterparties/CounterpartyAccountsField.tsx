@@ -25,7 +25,7 @@ export default function CounterpartyAccountsField({
   })
 
   return (
-    <FormField label="لیست حساب‌ها">
+    <FormField label="لیست حساب‌ها" controlWidth="full">
       <div className={counterpartyFieldArrayListClass}>
         {fields.map((field, index) => (
           <div key={field.id} className={counterpartyFieldArrayItemClass}>

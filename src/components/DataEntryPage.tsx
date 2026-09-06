@@ -7,7 +7,11 @@ import TransactionTypeSegment, { transactionTypeOptionsFromForms } from './Trans
 import { getSettings, isConfigured } from '../services/settings'
 import type { CustomForm } from '../types'
 import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
-import { dataEntryTypeSegmentClass } from './ui/recordsStyles'
+import {
+  dataEntryFormCardClass,
+  dataEntryPageClass,
+  dataEntryTypeSegmentClass
+} from './ui/recordsStyles'
 
 export default function DataEntryPage({
   onCancel,
@@ -70,8 +74,11 @@ export default function DataEntryPage({
     return <FormSkeleton />
   }
 
+  const activeTone =
+    activeForm?.type === 'income' || activeForm?.type === 'expense' ? activeForm.type : undefined
+
   return (
-    <div>
+    <div className={dataEntryPageClass}>
       <TransactionTypeSegment
         className={dataEntryTypeSegmentClass}
         options={transactionTypeOptionsFromForms(forms)}
@@ -81,14 +88,16 @@ export default function DataEntryPage({
       />
 
       {activeForm && (
-        <DataEntryForm
-          key={activeForm.id}
-          activeForm={activeForm}
-          loading={loading}
-          onLoadingChange={setLoading}
-          onCancel={onCancel}
-          onCategoriesRefresh={refreshForms}
-        />
+        <div className={dataEntryFormCardClass(activeTone)}>
+          <DataEntryForm
+            key={activeForm.id}
+            activeForm={activeForm}
+            loading={loading}
+            onLoadingChange={setLoading}
+            onCancel={onCancel}
+            onCategoriesRefresh={refreshForms}
+          />
+        </div>
       )}
     </div>
   )
