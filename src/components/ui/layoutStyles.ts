@@ -51,11 +51,24 @@ export const pageContentTransitioningClass = cn(
 export const animateInClass = 'animate-[scaleIn_0.65s_var(--ease-page)]'
 
 export const appLayoutClass = cn(
-  'mx-auto flex min-h-dvh max-w-[480px] flex-col overflow-x-clip bg-bg shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-border)_40%,transparent),0_8px_40px_color-mix(in_srgb,var(--color-primary)_8%,transparent)]'
+  'mx-auto flex min-h-dvh w-full flex-col overflow-x-clip bg-bg',
+  'max-w-[480px] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-border)_40%,transparent),0_8px_40px_color-mix(in_srgb,var(--color-primary)_8%,transparent)]',
+  'lg:max-w-none lg:shadow-none'
+)
+
+export const appShellClass = cn(
+  'flex min-h-dvh w-full flex-col',
+  'lg:flex-row-reverse lg:items-stretch'
+)
+
+export const appContentColumnClass = cn(
+  'relative flex min-h-dvh min-w-0 flex-1 flex-col',
+  'mx-auto w-full max-w-[480px] lg:max-w-none'
 )
 
 export const appMainClass = cn(
-  'flex-1 overflow-y-auto p-[var(--space-page)] pb-[calc(5.75rem+var(--safe-bottom))]'
+  'flex-1 overflow-y-auto p-[var(--space-page)] pb-[calc(5.75rem+var(--safe-bottom))]',
+  'lg:mx-auto lg:w-full lg:max-w-[var(--content-max-width)] lg:pb-[var(--space-page)]'
 )
 
 export const appHeaderClass = cn(
@@ -96,7 +109,8 @@ export const headerIconSpacerClass = 'h-touch-min w-touch-min flex-shrink-0'
 
 export const appMenuBackdropClass = cn(
   'fixed inset-0 z-40 cursor-default border-none bg-[var(--color-overlay-light)]',
-  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[5px]'
+  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[5px]',
+  'lg:hidden'
 )
 
 export const appMenuDrawerClass = cn(
@@ -105,14 +119,21 @@ export const appMenuDrawerClass = cn(
   '[background:linear-gradient(180deg,color-mix(in_srgb,var(--color-primary)_5%,var(--color-surface))_0%,var(--color-surface)_32%,var(--color-surface)_100%)]',
   'pb-[max(0.75rem,env(safe-area-inset-bottom))]',
   'shadow-[-10px_0_40px_color-mix(in_srgb,var(--color-primary)_14%,rgba(15,23,42,0.22))]',
-  'animate-[app-menu-slide-in_var(--duration-normal)_var(--ease-out)]'
+  'animate-[app-menu-slide-in_var(--duration-normal)_var(--ease-out)]',
+  'lg:static lg:z-auto lg:h-auto lg:min-h-dvh lg:w-[var(--sidebar-width)] lg:shrink-0 lg:animate-none lg:shadow-none lg:pb-0'
+)
+
+export const appSidebarNavClass = cn(
+  'hidden flex-col gap-[0.15rem] px-3 pb-1 lg:flex',
+  '[&_.app-menu-divider]:my-[0.25rem]'
 )
 
 export const appMenuProfileClass = cn(
   'relative flex items-center gap-[0.85rem] overflow-hidden border-b border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] px-[1.15rem] pb-[1.15rem] pt-[max(1rem,env(safe-area-inset-top))] text-white',
   '[background:linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_52%,#2dd4bf_100%)]',
   '[background-size:200%_200%] animate-[headerGlow_8s_ease_infinite]',
-  'after:pointer-events-none after:absolute after:inset-[-35%_-25%] after:animate-[heroShimmer_5s_ease-in-out_infinite] after:content-[""] after:[background:radial-gradient(circle,rgba(255,255,255,0.22),transparent_62%)]'
+  'after:pointer-events-none after:absolute after:inset-[-35%_-25%] after:animate-[heroShimmer_5s_ease-in-out_infinite] after:content-[""] after:[background:radial-gradient(circle,rgba(255,255,255,0.22),transparent_62%)]',
+  'lg:pt-4'
 )
 
 export const appMenuProfileInnerClass =

@@ -1,7 +1,9 @@
 import AppIcon from '../AppIcon'
 import LazyImage from '../LazyImage'
 import LayoutReportsSubmenu from './LayoutReportsSubmenu'
+import LayoutSidebarNav from './LayoutSidebarNav'
 import type { Tab } from './types'
+import { cn } from '../../utils/cn'
 import {
   appMenuAvatarClass,
   appMenuAvatarPlaceholderClass,
@@ -35,6 +37,7 @@ interface LayoutMenuProps {
   userName: string | null
   userPicture: string | null
   tab: Tab
+  showSettings: boolean
   isReportTab: boolean
   isCalculationTab: boolean
   isTimesheetTab: boolean
@@ -44,7 +47,6 @@ interface LayoutMenuProps {
   onToggleCalcMenu: () => void
   timesheetMenuExpanded: boolean
   onToggleTimesheetMenu: () => void
-  showSettings: boolean
   onTabChange: (tab: Tab) => void
   onOpenSettings: () => void
   onOpenTimesheetsList: () => void
@@ -70,17 +72,22 @@ export default function LayoutMenu({
   onOpenSettings,
   onOpenTimesheetsList
 }: LayoutMenuProps) {
-  if (!menuOpen) return null
+  const isVisible = menuOpen
 
   return (
     <>
-      <button
-        type="button"
-        className={appMenuBackdropClass}
-        onClick={onCloseMenu}
-        aria-label="بستن منو"
-      />
-      <nav className={appMenuDrawerClass} aria-label="منوی اصلی">
+      {isVisible && (
+        <button
+          type="button"
+          className={appMenuBackdropClass}
+          onClick={onCloseMenu}
+          aria-label="بستن منو"
+        />
+      )}
+      <nav
+        className={cn(appMenuDrawerClass, isVisible ? 'flex' : 'hidden lg:flex')}
+        aria-label="منوی اصلی"
+      >
         <div className={appMenuProfileClass}>
           <div className={appMenuProfileInnerClass}>
             {userPicture ? (
@@ -96,6 +103,9 @@ export default function LayoutMenu({
             </div>
           </div>
         </div>
+
+        <LayoutSidebarNav tab={tab} showSettings={showSettings} onTabChange={onTabChange} />
+
         <div className={appMenuItemsClass}>
           <button
             type="button"

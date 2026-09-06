@@ -4,7 +4,12 @@ import LayoutMenu from './LayoutMenu'
 import LayoutPageOutlet from './LayoutPageOutlet'
 import PageSpeedDial from '../PageSpeedDial'
 import { useLayoutNavigation } from './useLayoutNavigation'
-import { appLayoutClass, appMainClass } from '../ui/layoutStyles'
+import {
+  appContentColumnClass,
+  appLayoutClass,
+  appMainClass,
+  appShellClass
+} from '../ui/layoutStyles'
 
 export default function Layout() {
   const {
@@ -36,48 +41,52 @@ export default function Layout() {
 
   return (
     <div className={appLayoutClass}>
-      <LayoutHeader
-        menuOpen={menuOpen}
-        onToggleMenu={() => setMenuOpen(value => !value)}
-        showHeaderBack={showHeaderBack}
-        headerTitle={headerTitle}
-        showSettings={showSettings}
-        onHeaderBack={onHeaderBack}
-      />
-
-      <LayoutMenu
-        menuOpen={menuOpen}
-        onCloseMenu={() => setMenuOpen(false)}
-        userName={userName}
-        userPicture={userPicture}
-        tab={tab}
-        isReportTab={isReportTab}
-        isCalculationTab={isCalculationTab}
-        isTimesheetTab={isTimesheetTab}
-        reportsMenuExpanded={reportsMenuExpanded}
-        onToggleReportsMenu={() => setReportsMenuExpanded(value => !value)}
-        calcMenuExpanded={calcMenuExpanded}
-        onToggleCalcMenu={() => setCalcMenuExpanded(value => !value)}
-        timesheetMenuExpanded={timesheetMenuExpanded}
-        onToggleTimesheetMenu={() => setTimesheetMenuExpanded(value => !value)}
-        showSettings={showSettings}
-        onTabChange={handleTabChange}
-        onOpenSettings={openSettings}
-        onOpenTimesheetsList={openTimesheetsList}
-      />
-
-      <main className={appMainClass}>
-        <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
-      </main>
-
-      <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />
-
-      {showPageSpeedDial && pageSpeedDialConfig && (
-        <PageSpeedDial
-          actions={pageSpeedDialConfig.actions}
-          ariaLabel={pageSpeedDialConfig.ariaLabel}
+      <div className={appShellClass}>
+        <LayoutMenu
+          menuOpen={menuOpen}
+          onCloseMenu={() => setMenuOpen(false)}
+          userName={userName}
+          userPicture={userPicture}
+          tab={tab}
+          showSettings={showSettings}
+          isReportTab={isReportTab}
+          isCalculationTab={isCalculationTab}
+          isTimesheetTab={isTimesheetTab}
+          reportsMenuExpanded={reportsMenuExpanded}
+          onToggleReportsMenu={() => setReportsMenuExpanded(value => !value)}
+          calcMenuExpanded={calcMenuExpanded}
+          onToggleCalcMenu={() => setCalcMenuExpanded(value => !value)}
+          timesheetMenuExpanded={timesheetMenuExpanded}
+          onToggleTimesheetMenu={() => setTimesheetMenuExpanded(value => !value)}
+          onTabChange={handleTabChange}
+          onOpenSettings={openSettings}
+          onOpenTimesheetsList={openTimesheetsList}
         />
-      )}
+
+        <div className={appContentColumnClass}>
+          <LayoutHeader
+            menuOpen={menuOpen}
+            onToggleMenu={() => setMenuOpen(value => !value)}
+            showHeaderBack={showHeaderBack}
+            headerTitle={headerTitle}
+            showSettings={showSettings}
+            onHeaderBack={onHeaderBack}
+          />
+
+          <main className={appMainClass}>
+            <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
+          </main>
+
+          <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />
+
+          {showPageSpeedDial && pageSpeedDialConfig && (
+            <PageSpeedDial
+              actions={pageSpeedDialConfig.actions}
+              ariaLabel={pageSpeedDialConfig.ariaLabel}
+            />
+          )}
+        </div>
+      </div>
     </div>
   )
 }
