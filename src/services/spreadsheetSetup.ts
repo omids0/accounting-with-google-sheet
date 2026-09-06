@@ -8,6 +8,7 @@ import { DANG_HEADERS, DANG_SHEET } from './dang'
 import { listAccountingSpreadsheetsFromDrive } from './drive'
 import { INSTALLMENTS_HEADERS, INSTALLMENTS_SHEET } from './installments'
 import { MONTHLY_BALANCE_HEADERS, MONTHLY_BALANCE_SHEET } from './monthlyBalance'
+import { PERSONAL_REMINDERS_HEADERS, PERSONAL_REMINDERS_SHEET } from './personalReminders'
 import { RECEIVABLES_HEADERS, RECEIVABLES_SHEET } from './receivables'
 import {
   PUSH_SUBS_HEADERS,
@@ -79,6 +80,7 @@ function getAllSheetSpecs(): SheetSpec[] {
     { sheetName: CATEGORIES_SHEET, headers: CATEGORIES_HEADERS },
     { sheetName: ACTIVITY_SHEET, headers: ACTIVITY_HEADERS },
     { sheetName: REMINDERS_SHEET, headers: REMINDERS_HEADERS },
+    { sheetName: PERSONAL_REMINDERS_SHEET, headers: PERSONAL_REMINDERS_HEADERS },
     { sheetName: PUSH_SUBS_SHEET, headers: PUSH_SUBS_HEADERS },
     { sheetName: REMINDER_LOG_SHEET, headers: REMINDER_LOG_HEADERS },
     { sheetName: APP_LOCK_SHEET, headers: APP_LOCK_HEADERS }

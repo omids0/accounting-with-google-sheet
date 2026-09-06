@@ -53,6 +53,9 @@ export const loadModuleReportPage: PageLoader = () =>
 export const loadOpeningBalanceReportPage: PageLoader = () =>
   import('../components/reports/OpeningBalanceReportPage')
 
+export const loadPersonalRemindersPage: PageLoader = () =>
+  import('../components/PersonalRemindersPage')
+
 export const loadRemindersPage: PageLoader = () => import('../components/RemindersPage')
 
 export const loadSettingsPage: PageLoader = () => import('../components/SettingsPage')
@@ -70,6 +73,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   installments: loadInstallmentsPage,
   dang: loadDangPage,
   checks: loadChecksPage,
+  'personal-reminders': loadPersonalRemindersPage,
   receivables: loadReceivablesPage,
   treasury: loadTreasuryPage,
   wallet: loadWalletPage,

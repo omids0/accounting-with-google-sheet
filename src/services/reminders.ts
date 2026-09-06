@@ -1,18 +1,19 @@
 import {
-  fetchInstallmentPlans,
-  getInstallmentPaymentAmount,
-  INSTALLMENTS_SHEET
-} from './installments'
-import {
   ensureSheetWithHeaders,
   fetchSheetRows,
   updateSheetRow,
   appendSheetRow,
   deleteSheetRow
 } from './sheets'
-import type { PushSubscriptionRecord, ReminderKind, ReminderRule, InstallmentPlan } from '../types'
-import { formatMoney } from '../utils/formatMoney'
-import { addDaysToIso, formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate'
+import type { PushSubscriptionRecord, ReminderKind, ReminderRule } from '../types'
+
+export {
+  formatInstallmentReminderMessage,
+  getUpcomingInstallmentReminders,
+  previewInstallmentReminders,
+  type UpcomingDueDateReminder,
+  type UpcomingInstallmentReminder
+} from './reminderDueDates'
 
 export const REMINDERS_SHEET = 'یادآوری'
 export const PUSH_SUBS_SHEET = 'ناتیف'
@@ -22,13 +23,23 @@ export const REMINDERS_HEADERS = ['نوع', 'فعال', 'روز_قبل', 'ساع
 export const PUSH_SUBS_HEADERS = ['endpoint', 'p256dh', 'auth', 'دستگاه', 'زمان_ثبت']
 export const REMINDER_LOG_HEADERS = ['تاریخ', 'نوع', 'مرجع', 'زمان_ارسال']
 
+const VALID_KINDS: ReminderKind[] = ['installments', 'checks', 'dang', 'personal', 'daily']
+
 const REMINDER_KIND_LABELS: Record<ReminderKind, string> = {
   installments: 'اقساط',
+  checks: 'چک‌ها',
+  dang: 'بدهی‌ها',
+  personal: 'مواعد شخصی',
   daily: 'یادآوری روزانه'
 }
 
-const DEFAULT_RULES: ReminderRule[] = [
+const DUE_DATE_KINDS: ReminderKind[] = ['installments', 'checks', 'dang']
+
+export const DEFAULT_RULES: ReminderRule[] = [
   { kind: 'installments', enabled: false, daysBefore: 1, hour: 9, minute: 0 },
+  { kind: 'checks', enabled: false, daysBefore: 1, hour: 9, minute: 0 },
+  { kind: 'dang', enabled: false, daysBefore: 1, hour: 9, minute: 0 },
+  { kind: 'personal', enabled: false, daysBefore: 0, hour: 9, minute: 0 },
   { kind: 'daily', enabled: true, daysBefore: 0, hour: 9, minute: 0 }
 ]
 
@@ -40,10 +51,14 @@ function parseBool(value: string | undefined): boolean {
   return v === 'true' || v === '1' || v === 'بله' || v === 'yes'
 }
 
-function rowToRule(row: string[]): ReminderRule | null {
-  const kind = String(row[0] ?? '').trim() as ReminderKind
+function isReminderKind(value: string): value is ReminderKind {
+  return VALID_KINDS.includes(value as ReminderKind)
+}
 
-  if (kind !== 'installments' && kind !== 'daily') return null
+function rowToRule(row: string[]): ReminderRule | null {
+  const kind = String(row[0] ?? '').trim()
+
+  if (!isReminderKind(kind)) return null
 
   return {
     kind,
@@ -66,9 +81,7 @@ function ruleToRow(rule: ReminderRule): string[] {
 
 function rowToSubscription(row: string[]): PushSubscriptionRecord | null {
   const endpoint = String(row[0] ?? '').trim()
-
   const p256dh = String(row[1] ?? '').trim()
-
   const auth = String(row[2] ?? '').trim()
 
   if (!endpoint || !p256dh || !auth) return null
@@ -90,6 +103,12 @@ export function getReminderKindLabel(kind: ReminderKind): string {
   return REMINDER_KIND_LABELS[kind]
 }
 
+export function isDueDateReminderKind(
+  kind: ReminderKind
+): kind is 'installments' | 'checks' | 'dang' {
+  return DUE_DATE_KINDS.includes(kind)
+}
+
 export async function ensureReminderSheets(spreadsheetId: string): Promise<void> {
   await ensureSheetWithHeaders(spreadsheetId, REMINDERS_SHEET, REMINDERS_HEADERS)
   await ensureSheetWithHeaders(spreadsheetId, PUSH_SUBS_SHEET, PUSH_SUBS_HEADERS)
@@ -100,27 +119,19 @@ export async function fetchReminderRules(spreadsheetId: string): Promise<Reminde
   await ensureReminderSheets(spreadsheetId)
 
   const rows = await fetchSheetRows(spreadsheetId, REMINDERS_SHEET)
-
   const rules = rows.map(row => rowToRule(row)).filter((rule): rule is ReminderRule => rule != null)
 
-  if (!rules.length) {
-    return DEFAULT_RULES.map(rule => ({ ...rule }))
-  }
-
-  const merged = DEFAULT_RULES.map(defaults => {
+  return DEFAULT_RULES.map(defaults => {
     const existing = rules.find(rule => rule.kind === defaults.kind)
 
     return existing ?? { ...defaults }
   })
-
-  return merged
 }
 
 export async function ensureDefaultReminderRules(spreadsheetId: string): Promise<void> {
   await ensureReminderSheets(spreadsheetId)
 
   const rows = await fetchSheetRows(spreadsheetId, REMINDERS_SHEET)
-
   const dailyRow = rows.find(row => String(row[0] ?? '').trim() === 'daily')
 
   if (dailyRow && parseBool(dailyRow[1])) return
@@ -141,7 +152,7 @@ export function formatDailyEngagementMessage(): { title: string; body: string } 
     title: 'حسابداری شخصی',
     body:
       'دیروز به اپ سر نزدید و ثبت مالی هم نداشتید. اگر چیزی از قلم افتاده، همین الان بیایید ' +
-      'حساب‌وکتابتان را به‌روز کنید — دیر نشده!'
+      'حساب\u200cوکتابتان را به\u200cروز کنید — دیر نشده!'
   }
 }
 
@@ -152,18 +163,16 @@ export async function saveReminderRules(
   await ensureReminderSheets(spreadsheetId)
 
   const rows = await fetchSheetRows(spreadsheetId, REMINDERS_SHEET)
-
   const existingByKind = new Map<ReminderKind, number>()
 
   rows.forEach((row, index) => {
-    const kind = String(row[0] ?? '').trim() as ReminderKind
+    const kind = String(row[0] ?? '').trim()
 
-    if (kind) existingByKind.set(kind, index + 2)
+    if (isReminderKind(kind)) existingByKind.set(kind, index + 2)
   })
 
   for (const rule of rules) {
     const row = ruleToRow(rule)
-
     const rowNumber = existingByKind.get(rule.kind)
 
     if (rowNumber) {
@@ -198,9 +207,7 @@ export async function upsertPushSubscription(
   await ensureReminderSheets(spreadsheetId)
 
   const existing = await fetchPushSubscriptions(spreadsheetId)
-
   const match = existing.find(item => item.endpoint === subscription.endpoint)
-
   const row = subscriptionToRow(subscription)
 
   if (match) {
@@ -225,65 +232,4 @@ export async function removePushSubscription(
   }
 }
 
-export interface UpcomingInstallmentReminder {
-  planId: string
-  planTitle: string
-  paymentNumber: number
-  amount: number
-  dueDate: string
-  remindOn: string
-}
-
-export function getUpcomingInstallmentReminders(
-  plans: InstallmentPlan[],
-  rule: ReminderRule,
-  todayIso = getTodayIso()
-): UpcomingInstallmentReminder[] {
-  if (!rule.enabled) return []
-
-  const targetDueDate = addDaysToIso(todayIso, rule.daysBefore)
-
-  const reminders: UpcomingInstallmentReminder[] = []
-
-  for (const plan of plans) {
-    for (const payment of plan.payments) {
-      if (payment.paid) continue
-      if (payment.dueDate.slice(0, 10) !== targetDueDate) continue
-      reminders.push({
-        planId: plan.id,
-        planTitle: plan.title,
-        paymentNumber: payment.n,
-        amount: getInstallmentPaymentAmount(payment, plan),
-        dueDate: payment.dueDate,
-        remindOn: todayIso
-      })
-    }
-  }
-
-  return reminders.sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-}
-
-export async function previewInstallmentReminders(
-  spreadsheetId: string,
-  rule: ReminderRule
-): Promise<UpcomingInstallmentReminder[]> {
-  const plans = await fetchInstallmentPlans(spreadsheetId)
-
-  return getUpcomingInstallmentReminders(plans, rule)
-}
-
-export function formatInstallmentReminderMessage(reminder: UpcomingInstallmentReminder): {
-  title: string
-  body: string
-} {
-  const dueLabel = formatIsoDatePersian(reminder.dueDate)
-
-  return {
-    title: 'یادآوری قسط',
-    body: `${reminder.planTitle} — قسط ${reminder.paymentNumber} (${formatMoney(
-      reminder.amount
-    )}) — موعد: ${dueLabel}`
-  }
-}
-
-export { INSTALLMENTS_SHEET }
+export { INSTALLMENTS_SHEET } from './installments'

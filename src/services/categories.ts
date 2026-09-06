@@ -2,12 +2,14 @@ import {
   DEFAULT_DANG_CATEGORIES,
   DEFAULT_EXPENSE_CATEGORIES,
   DEFAULT_INCOME_CATEGORIES,
+  DEFAULT_PERSONAL_REMINDER_CATEGORIES,
   DEFAULT_RECEIVABLE_CATEGORIES,
   getDefaultSettings,
   getSettings,
   saveSettings,
   updateDangCategories,
   updateFormCategories,
+  updatePersonalReminderCategories,
   updateReceivableCategories
 } from './settings'
 import { ensureSheetWithHeaders, fetchSheetRows, replaceSheetDataRows } from './sheets'
@@ -15,13 +17,14 @@ import { ensureSheetWithHeaders, fetchSheetRows, replaceSheetDataRows } from './
 export const CATEGORIES_SHEET = 'دسته‌بندی‌ها'
 export const CATEGORIES_HEADERS = ['نوع', 'دسته‌بندی']
 
-export type CategoryType = 'income' | 'expense' | 'dang' | 'receivable'
+export type CategoryType = 'income' | 'expense' | 'dang' | 'receivable' | 'personalReminder'
 
 const FORM_TYPE_LABELS: Record<CategoryType, string> = {
   income: 'درآمد',
   expense: 'هزینه',
   dang: 'بدهی',
-  receivable: 'طلب'
+  receivable: 'طلب',
+  personalReminder: 'یادآوری'
 }
 
 export interface CategoryGroups {
@@ -29,6 +32,7 @@ export interface CategoryGroups {
   expense: string[]
   dang: string[]
   receivable: string[]
+  personalReminder: string[]
 }
 
 function parseFormType(value: string): CategoryType | null {
@@ -42,6 +46,14 @@ function parseFormType(value: string): CategoryType | null {
   if (normalized === 'receivable' || normalized === 'طلب') {
     return 'receivable'
   }
+  if (
+    normalized === 'personalreminder' ||
+    normalized === 'personal_reminder' ||
+    normalized === 'یادآوری' ||
+    normalized === 'موعد شخصی'
+  ) {
+    return 'personalReminder'
+  }
 
   return null
 }
@@ -51,7 +63,8 @@ function rowsToGroups(rows: string[][]): CategoryGroups {
     income: [],
     expense: [],
     dang: [],
-    receivable: []
+    receivable: [],
+    personalReminder: []
   }
 
   for (const row of rows) {
@@ -83,6 +96,9 @@ function groupsToRows(groups: CategoryGroups): string[][] {
   for (const category of groups.receivable) {
     rows.push([FORM_TYPE_LABELS.receivable, category])
   }
+  for (const category of groups.personalReminder) {
+    rows.push([FORM_TYPE_LABELS.personalReminder, category])
+  }
 
   return rows
 }
@@ -105,7 +121,8 @@ function applyGroupsToSettings(groups: CategoryGroups): void {
     ...settings,
     forms,
     dangCategories: groups.dang,
-    receivableCategories: groups.receivable
+    receivableCategories: groups.receivable,
+    personalReminderCategories: groups.personalReminder
   })
 }
 
@@ -137,7 +154,10 @@ function withDefaults(groups: CategoryGroups): CategoryGroups {
     income: groups.income.length ? groups.income : [...DEFAULT_INCOME_CATEGORIES],
     expense: groups.expense.length ? groups.expense : [...DEFAULT_EXPENSE_CATEGORIES],
     dang: groups.dang.length ? groups.dang : [...DEFAULT_DANG_CATEGORIES],
-    receivable: groups.receivable.length ? groups.receivable : [...DEFAULT_RECEIVABLE_CATEGORIES]
+    receivable: groups.receivable.length ? groups.receivable : [...DEFAULT_RECEIVABLE_CATEGORIES],
+    personalReminder: groups.personalReminder.length
+      ? groups.personalReminder
+      : [...DEFAULT_PERSONAL_REMINDER_CATEGORIES]
   }
 }
 
@@ -152,7 +172,8 @@ export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<Ca
     !fromSheet.income.length ||
     !fromSheet.expense.length ||
     !fromSheet.dang.length ||
-    !fromSheet.receivable.length
+    !fromSheet.receivable.length ||
+    !fromSheet.personalReminder.length
 
   if (needsSeed) {
     await writeCategoriesToSheet(spreadsheetId, groups)
@@ -215,4 +236,25 @@ export async function saveReceivableCategoriesToSheet(
 
   await writeCategoriesToSheet(spreadsheetId, next)
   updateReceivableCategories(categories)
+}
+
+export async function savePersonalReminderCategoriesToSheet(
+  spreadsheetId: string,
+  categories: string[]
+): Promise<void> {
+  const current = await fetchCategoriesFromSheet(spreadsheetId)
+
+  const next: CategoryGroups = {
+    ...withDefaults(current),
+    personalReminder: categories
+  }
+
+  await writeCategoriesToSheet(spreadsheetId, next)
+  updatePersonalReminderCategories(categories)
+}
+
+export function getPersonalReminderCategories(): string[] {
+  const stored = getSettings()?.personalReminderCategories
+
+  return stored?.length ? stored : [...DEFAULT_PERSONAL_REMINDER_CATEGORIES]
 }

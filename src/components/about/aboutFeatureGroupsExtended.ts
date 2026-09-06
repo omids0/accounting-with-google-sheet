@@ -167,7 +167,8 @@ export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
     features: [
       {
         title: 'یادآورها',
-        description: 'فعال‌سازی اعلان push برای اقساط. راهنمای راه‌اندازی cron برای سرور.'
+        description:
+          'فعال‌سازی اعلان push برای اقساط، چک‌ها، بدهی‌ها و مواعد شخصی. راهنمای راه‌اندازی cron برای سرور.'
       },
       {
         title: 'قفل اپ',
@@ -192,6 +193,28 @@ export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
       {
         title: 'فرم‌های سفارشی',
         description: 'ویرایش فیلدها و دسته‌بندی‌های فرم درآمد و هزینه.'
+      }
+    ]
+  },
+  {
+    id: 'personal-reminders',
+    title: 'یادآوری',
+    icon: 'bell',
+    summary: 'ثبت مواعد شخصی مثل قبض و بیمه با تکرار سالانه یا ماهانه.',
+    features: [
+      {
+        title: 'دسته‌بندی و عنوان',
+        description: 'هر یادآوری یک عنوان اختصاصی و دسته‌بندی قابل ویرایش (مثل بدهی و طلب) دارد.'
+      },
+      {
+        title: 'تکرار و انجام',
+        description:
+          'با زدن «انجام شد»، موعد سالانه یا ماهانه به دوره بعد منتقل می‌شود. موارد یک‌باره غیرفعال می‌شوند.'
+      },
+      {
+        title: 'نوتیف',
+        description:
+          'برای هر مورد «روز قبل» جدا تنظیم می‌شود. ارسال push از تنظیمات یادآورها و cron فعال می‌شود.'
       }
     ]
   },

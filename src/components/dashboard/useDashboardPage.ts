@@ -6,6 +6,10 @@ import {
   buildDashboardYearlyMonthlyFlow,
   peekCachedDashboardData
 } from '../../services/dashboard'
+import {
+  fetchDashboardReminderItems,
+  type DashboardReminderItem
+} from '../../services/dashboardReminders'
 import { getSettings, isConfigured, getNetAvailableConfig } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import type { DashboardData } from '../../types'
@@ -47,6 +51,8 @@ export function useDashboardPage() {
   })
 
   const [loading, setLoading] = useState(() => data == null)
+
+  const [upcomingReminders, setUpcomingReminders] = useState<DashboardReminderItem[]>([])
 
   const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date')
 
@@ -98,7 +104,12 @@ export function useDashboardPage() {
         getNetAvailableConfig()
       )
 
+      const reminderItems = await fetchDashboardReminderItems(settings.spreadsheetId).catch(
+        () => []
+      )
+
       setData(dash)
+      setUpcomingReminders(reminderItems)
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
@@ -245,6 +256,7 @@ export function useDashboardPage() {
     transactionTypeOptions,
     openFilterModal,
     filterChips,
-    clearAllFilters
+    clearAllFilters,
+    upcomingReminders
   }
 }

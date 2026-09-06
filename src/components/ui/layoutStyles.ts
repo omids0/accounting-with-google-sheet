@@ -137,14 +137,15 @@ export const appMenuGreetingClass = 'mt-[0.2rem] text-[0.78rem] font-medium text
 export const appMenuItemsClass = cn(
   'flex min-h-0 flex-1 flex-col gap-[0.2rem] overflow-y-auto overscroll-contain px-3 py-[0.75rem]',
   '[-webkit-overflow-scrolling:touch]',
+  '[&>.app-menu-promo]:animate-[menuItemIn_0.38s_var(--ease-page)_both] [&>.app-menu-promo]:[animation-delay:0.02s]',
   '[&>.app-menu-group]:animate-[menuItemIn_0.38s_var(--ease-page)_both]',
-  '[&>.app-menu-group:nth-child(1)]:[animation-delay:0.04s]',
-  '[&>.app-menu-group:nth-child(2)]:[animation-delay:0.08s]',
-  '[&>.app-menu-group:nth-child(3)]:[animation-delay:0.12s]',
-  '[&>.app-menu-item]:animate-[menuItemIn_0.38s_var(--ease-page)_both]',
-  '[&>.app-menu-item:nth-of-type(1)]:[animation-delay:0.16s]',
-  '[&>.app-menu-item:nth-of-type(2)]:[animation-delay:0.2s]',
-  '[&>.app-menu-divider]:animate-[menuItemIn_0.38s_var(--ease-page)_both] [&>.app-menu-divider]:[animation-delay:0.14s]'
+  '[&>.app-menu-group:nth-child(2)]:[animation-delay:0.06s]',
+  '[&>.app-menu-group:nth-child(3)]:[animation-delay:0.1s]',
+  '[&>.app-menu-group:nth-child(4)]:[animation-delay:0.14s]',
+  '[&>.app-menu-item:not(.app-menu-promo)]:animate-[menuItemIn_0.38s_var(--ease-page)_both]',
+  '[&>.app-menu-item:not(.app-menu-promo):nth-of-type(2)]:[animation-delay:0.18s]',
+  '[&>.app-menu-item:not(.app-menu-promo):nth-of-type(3)]:[animation-delay:0.22s]',
+  '[&>.app-menu-divider]:animate-[menuItemIn_0.38s_var(--ease-page)_both] [&>.app-menu-divider]:[animation-delay:0.16s]'
 )
 
 export const appMenuGroupClass = 'app-menu-group flex flex-col gap-[0.15rem]'
@@ -192,6 +193,42 @@ export function appMenuItemIconClass(active?: boolean) {
 }
 
 export const appMenuItemLabelClass = 'flex-1 text-right'
+
+export function appMenuPromoItemClass(active?: boolean) {
+  return cn(
+    'app-menu-item app-menu-promo flex w-full items-center gap-3 rounded-xl text-right transition-[background,color,transform,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    'min-h-touch-min border px-[0.85rem] py-[0.75rem]',
+    'border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))]',
+    '[background:linear-gradient(135deg,color-mix(in_srgb,var(--color-primary)_16%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_88%,var(--color-surface)))]',
+    'shadow-[0_4px_16px_color-mix(in_srgb,var(--color-primary)_14%,transparent),inset_0_1px_0_rgba(255,255,255,0.55)]',
+    active &&
+      cn(
+        'scale-[1.01] border-[color-mix(in_srgb,var(--color-primary)_42%,var(--color-border))]',
+        '[background:linear-gradient(135deg,color-mix(in_srgb,var(--color-primary)_24%,var(--color-surface)),color-mix(in_srgb,var(--color-primary)_8%,var(--color-accent-soft)))]',
+        'shadow-[0_6px_20px_color-mix(in_srgb,var(--color-primary)_20%,transparent),inset_-3px_0_0_var(--color-primary),inset_0_1px_0_rgba(255,255,255,0.65)] ring-1 ring-[color-mix(in_srgb,var(--color-primary)_16%,transparent)]'
+      ),
+    !active &&
+      'hover:-translate-y-0.5 hover:shadow-[0_6px_18px_color-mix(in_srgb,var(--color-primary)_18%,transparent)] active:scale-[0.99]'
+  )
+}
+
+export function appMenuPromoIconClass(active?: boolean) {
+  return cn(
+    appMenuItemIconClass(active),
+    'text-primary-dark',
+    '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_30%,var(--color-surface)),color-mix(in_srgb,var(--color-primary)_12%,var(--color-accent-soft)))]',
+    !active &&
+      'shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_3px_10px_color-mix(in_srgb,var(--color-primary)_14%,transparent)]'
+  )
+}
+
+export const appMenuPromoTextClass =
+  'flex min-w-0 flex-1 flex-col items-start gap-[0.12rem] text-right'
+
+export const appMenuPromoLabelClass =
+  'text-[0.96rem] font-extrabold tracking-[-0.01em] text-primary-dark'
+
+export const appMenuPromoHintClass = 'text-[0.72rem] font-semibold text-muted'
 
 export function appMenuChevronClass(expanded?: boolean) {
   return cn(

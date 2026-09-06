@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 import AppIcon from './AppIcon'
 import { DashboardSkeleton } from './skeleton'
 import SpeedDialIcon from './SpeedDialIcon'
@@ -8,6 +10,7 @@ import {
   speedDialTypeIconIncomeClass
 } from './ui/speedDialStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
+import { SETTINGS_REMINDERS_PATH } from '../routes/paths'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
 import DashboardContent from './dashboard/DashboardContent'
@@ -16,6 +19,7 @@ import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 
 export default function DashboardPage({ active = true }: { active?: boolean }) {
   const dashboard = useDashboardPage()
+  const navigate = useNavigate()
 
   useRegisterPageSpeedDial(
     isConfigured()
@@ -122,7 +126,9 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
       setTypeFilter={dashboard.setTypeFilter}
       transactionTypeOptions={dashboard.transactionTypeOptions}
       filteredRecords={dashboard.filteredRecords}
+      upcomingReminders={dashboard.upcomingReminders}
       onViewRecords={formType => useNavigationStore.getState().onOpenRecords(formType)}
+      onViewReminders={() => navigate(SETTINGS_REMINDERS_PATH)}
       onNavigate={target => useNavigationStore.getState().onNavigateDashboard(target)}
       load={dashboard.load}
     />

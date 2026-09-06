@@ -249,6 +249,13 @@ export const UI_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
     </IconSvg>
   ),
 
+  bell: props => (
+    <IconSvg {...props}>
+      <path d="M9 18h6" />
+      <path d="M6.5 16.5h11l-1.2-2.2a4.5 4.5 0 0 1-.8-2.6V10a5.5 5.5 0 0 0-11 0v1.7c0 .9-.3 1.8-.8 2.6L6.5 16.5Z" />
+    </IconSvg>
+  ),
+
   info: props => (
     <IconSvg {...props}>
       <circle cx="12" cy="12" r="8.5" />

@@ -2,6 +2,7 @@ import { FilterChipsSkeleton, ReportToolbarSkeleton, StatCardSkeleton } from './
 import { InstallmentCardListSkeleton } from './ListSkeletons'
 import { Skeleton } from './Skeleton'
 import { cn } from '../../utils/cn'
+import { dashboardRemindersCardClass } from '../dashboard/dashboardReminderStyles'
 import { cardClassName } from '../ui/Card'
 import {
   dashboardAssetsCardClass,
@@ -74,6 +75,19 @@ export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashbo
         </div>
         <StatCardSkeleton wide />
         <StatCardSkeleton wide />
+      </div>
+
+      <div className={cardClassName(cn(dashboardRemindersCardClass, skeletonCardClass))}>
+        <Skeleton width="40%" height="0.9rem" />
+        <Skeleton width="75%" height="0.72rem" style={{ marginTop: '0.55rem' }} />
+        <div className={skeletonBreakdownClass}>
+          {Array.from({ length: 3 }, (_, index) => (
+            <div key={index} className={skeletonBreakdownRowClass}>
+              <Skeleton width="45%" height="0.8rem" />
+              <Skeleton width="20%" height="0.8rem" />
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className={cardClassName(cn(dashboardAssetsCardClass, skeletonCardClass))}>

@@ -32,6 +32,7 @@ export type AppIconName =
   | 'lock'
   | 'fingerprint'
   | 'clock'
+  | 'bell'
   | 'info'
 
 export interface AppIconProps {

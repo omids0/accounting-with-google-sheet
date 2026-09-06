@@ -1,4 +1,4 @@
-export type ReminderKind = 'installments' | 'daily'
+export type ReminderKind = 'installments' | 'checks' | 'dang' | 'personal' | 'daily'
 
 export interface ReminderRule {
   kind: ReminderKind

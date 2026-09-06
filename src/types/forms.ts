@@ -51,6 +51,7 @@ export interface AppSettings {
   forms: CustomForm[]
   dangCategories?: string[]
   receivableCategories?: string[]
+  personalReminderCategories?: string[]
   currency?: CurrencyUnit
   theme?: ThemeMode
   netAvailableConfig?: NetAvailableConfig
