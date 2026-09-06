@@ -1,28 +1,38 @@
 import L from 'leaflet'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 
+import { createLocationMarkerIcon } from './locationMapMarker'
+import LocationMapSearch from './LocationMapSearch'
+import {
+  locationMapCoordsClass,
+  locationMapFrameClass,
+  locationMapOverlayClass,
+  locationMapShellClass,
+  locationMapStatusClass,
+  locationMapThemeToggleClass,
+  locationMapToolbarClass
+} from './locationMapStyles'
+import {
+  MAP_DEFAULT_HEIGHT,
+  MAP_TILE_LAYER,
+  mapThemePreferenceLabel,
+  nextMapThemePreference,
+  resolveMapVisualTheme,
+  type MapThemePreference
+} from './mapConfig'
+import { useAppThemeMode } from '../../hooks/useAppThemeMode'
 import type { CounterpartyLocation } from '../../types/counterparties'
+import { openMapDirections } from '../../utils/mapNavigation'
 import { reverseGeocode } from '../../utils/reverseGeocode'
 import Button from '../ui/Button'
 import 'leaflet/dist/leaflet.css'
+import './locationMap.css'
 
 const DEFAULT_CENTER: CounterpartyLocation = { lat: 35.6892, lng: 51.389 }
+const locationMarkerIcon = createLocationMarkerIcon()
 
-const defaultMarkerIcon = L.icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-})
-
-L.Marker.prototype.options.icon = defaultMarkerIcon
+L.Marker.prototype.options.icon = locationMarkerIcon
 
 type LocationMapPickerProps = {
   value: CounterpartyLocation | null
@@ -80,37 +90,50 @@ export default function LocationMapPicker({
   onAddressResolved,
   active = true
 }: LocationMapPickerProps) {
+  const appTheme = useAppThemeMode()
+  const [themePreference, setThemePreference] = useState<MapThemePreference>('auto')
   const [resolvingAddress, setResolvingAddress] = useState(false)
+
+  const visualTheme = resolveMapVisualTheme(themePreference, appTheme)
+  const themeLabel = mapThemePreferenceLabel(themePreference, visualTheme)
 
   const center: [number, number] = value
     ? [value.lat, value.lng]
     : [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng]
 
-  const resolveAddress = useCallback(
-    async (location: CounterpartyLocation) => {
-      if (!onAddressResolved) return
+  const mapKey = useMemo(() => `counterparty-location-map-${visualTheme}`, [visualTheme])
 
-      setResolvingAddress(true)
-      try {
-        const address = await reverseGeocode(location.lat, location.lng)
+  const resolveAddress = async (location: CounterpartyLocation) => {
+    if (!onAddressResolved) return
 
-        if (address) {
-          onAddressResolved(address)
-        }
-      } finally {
-        setResolvingAddress(false)
+    setResolvingAddress(true)
+
+    try {
+      const address = await reverseGeocode(location.lat, location.lng)
+
+      if (address) {
+        onAddressResolved(address)
       }
-    },
-    [onAddressResolved]
-  )
+    } finally {
+      setResolvingAddress(false)
+    }
+  }
 
-  const handleLocationPick = useCallback(
-    (location: CounterpartyLocation) => {
-      onChange(location)
-      void resolveAddress(location)
-    },
-    [onChange, resolveAddress]
-  )
+  const handleLocationPick = (location: CounterpartyLocation) => {
+    onChange(location)
+    void resolveAddress(location)
+  }
+
+  const handleSearchSelect = (location: CounterpartyLocation, label: string) => {
+    onChange(location)
+
+    if (onAddressResolved && label) {
+      onAddressResolved(label)
+      return
+    }
+
+    void resolveAddress(location)
+  }
 
   const handleLocate = () => {
     if (!navigator.geolocation) return
@@ -128,28 +151,30 @@ export default function LocationMapPicker({
   }
 
   return (
-    <div className="grid gap-2">
+    <div className={locationMapShellClass}>
+      <LocationMapSearch onSelect={handleSearchSelect} disabled={!active} />
+
       <div
-        className="overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--text)_12%,transparent)] [&_.leaflet-container]:z-0 [&_.leaflet-container]:h-full [&_.leaflet-container]:w-full [&_.leaflet-container]:min-h-[14rem]"
-        style={{ height: '14rem' }}
+        className={locationMapFrameClass}
+        data-map-theme={visualTheme}
+        style={{ height: MAP_DEFAULT_HEIGHT }}
       >
+        <div className={locationMapOverlayClass} aria-hidden="true" />
+
         {active ? (
           <MapContainer
-            key="counterparty-location-map"
+            key={mapKey}
             center={center}
             zoom={value ? 14 : 12}
             scrollWheelZoom={false}
-            style={{ height: '100%', width: '100%', minHeight: '14rem' }}
+            style={{ height: '100%', width: '100%', minHeight: MAP_DEFAULT_HEIGHT }}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            <TileLayer attribution={MAP_TILE_LAYER.attribution} url={MAP_TILE_LAYER.url} />
             <MapInvalidateSize active={active} />
             <MapClickHandler onPick={handleLocationPick} />
             {value ? (
               <>
-                <Marker position={[value.lat, value.lng]} />
+                <Marker position={[value.lat, value.lng]} icon={locationMarkerIcon} />
                 <MapRecenter center={[value.lat, value.lng]} />
               </>
             ) : null}
@@ -157,32 +182,52 @@ export default function LocationMapPicker({
         ) : null}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className={locationMapToolbarClass}>
+        <button
+          type="button"
+          className={locationMapThemeToggleClass}
+          onClick={() => setThemePreference(current => nextMapThemePreference(current))}
+          aria-label={`تغییر ظاهر نقشه: ${themeLabel}`}
+          title={`ظاهر نقشه: ${themeLabel}`}
+        >
+          <span aria-hidden="true">{visualTheme === 'dark' ? '🌙' : '☀️'}</span>
+          <span>{themeLabel}</span>
+        </button>
         <Button type="button" variant="secondary" size="sm" onClick={handleLocate}>
           موقعیت من
         </Button>
         {value ? (
-          <Button type="button" variant="secondary" size="sm" onClick={() => onChange(null)}>
-            پاک کردن
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => openMapDirections(value)}
+            >
+              مسیر‌یابی
+            </Button>
+            <Button type="button" variant="secondary" size="sm" onClick={() => onChange(null)}>
+              پاک کردن
+            </Button>
+          </>
         ) : null}
       </div>
 
-      <p className="text-sm text-[color-mix(in_srgb,var(--text)_70%,transparent)]">
+      <div className={locationMapStatusClass}>
         {resolvingAddress ? (
           'در حال تشخیص آدرس...'
         ) : value ? (
           <>
-            مختصات انتخاب‌شده:{' '}
-            <span dir="ltr">
+            <span>مختصات انتخاب‌شده: </span>
+            <span className={locationMapCoordsClass} dir="ltr">
               {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
             </span>
             {onAddressResolved ? ' · آدرس در فیلد پایین تکمیل می‌شود.' : null}
           </>
         ) : (
-          'روی نقشه ضربه بزنید تا موقعیت و آدرس ثبت شود.'
+          'روی نقشه ضربه بزنید یا آدرس را جستجو کنید. با دکمه ظاهر نقشه می‌توانید بین حالت روز، شب و خودکار جابه‌جا شوید.'
         )}
-      </p>
+      </div>
     </div>
   )
 }

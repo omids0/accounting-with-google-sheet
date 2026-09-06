@@ -16,6 +16,26 @@ type NominatimReverseResponse = {
 }
 
 const NOMINATIM_REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse'
+const NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search'
+
+const NOMINATIM_HEADERS = {
+  Accept: 'application/json',
+  'Accept-Language': 'fa',
+  'User-Agent': 'PersonalAccountingPWA/1.0 (counterparty-location-picker)'
+} as const
+
+export type GeocodeSearchResult = {
+  lat: number
+  lng: number
+  label: string
+}
+
+type NominatimSearchResponse = {
+  lat?: string
+  lon?: string
+  display_name?: string
+  name?: string
+}
 
 function formatNominatimAddress(data: NominatimReverseResponse): string {
   const address = data.address
@@ -49,11 +69,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
   })
 
   const response = await fetch(`${NOMINATIM_REVERSE_URL}?${params.toString()}`, {
-    headers: {
-      Accept: 'application/json',
-      'Accept-Language': 'fa',
-      'User-Agent': 'PersonalAccountingPWA/1.0 (counterparty-location-picker)'
-    }
+    headers: NOMINATIM_HEADERS
   })
 
   if (!response.ok) return null
@@ -62,4 +78,39 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
   const formatted = formatNominatimAddress(data)
 
   return formatted || null
+}
+
+export async function searchGeocode(query: string): Promise<GeocodeSearchResult[]> {
+  const trimmed = query.trim()
+
+  if (trimmed.length < 2) return []
+
+  const params = new URLSearchParams({
+    format: 'jsonv2',
+    q: trimmed,
+    limit: '6',
+    'accept-language': 'fa'
+  })
+
+  const response = await fetch(`${NOMINATIM_SEARCH_URL}?${params.toString()}`, {
+    headers: NOMINATIM_HEADERS
+  })
+
+  if (!response.ok) return []
+
+  const data = (await response.json()) as NominatimSearchResponse[]
+
+  if (!Array.isArray(data)) return []
+
+  return data
+    .map(item => {
+      const lat = Number(item.lat)
+      const lng = Number(item.lon)
+      const label = String(item.display_name ?? item.name ?? '').trim()
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || !label) return null
+
+      return { lat, lng, label }
+    })
+    .filter((item): item is GeocodeSearchResult => item !== null)
 }
