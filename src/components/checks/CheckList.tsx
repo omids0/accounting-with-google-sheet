@@ -41,10 +41,10 @@ export default function CheckList({
 
   const monthTotals = useMemo(
     () => ({
-      total: totalChecksInRange(items, monthRange),
-      unpaid: totalUnpaidChecksInRange(items, monthRange)
+      total: totalChecksInRange(filteredItems, monthRange),
+      unpaid: totalUnpaidChecksInRange(filteredItems, monthRange)
     }),
-    [items, monthRange]
+    [filteredItems, monthRange]
   )
 
   if (loading && items.length === 0) {
@@ -85,7 +85,7 @@ export default function CheckList({
           amount={monthTotals.total}
           variant="default"
           tone="primary"
-          sparklineData={distributionSparkline(items.map(item => item.amount))}
+          sparklineData={distributionSparkline(filteredItems.map(item => item.amount))}
           animateIndex={0}
           lift
         />
@@ -94,7 +94,7 @@ export default function CheckList({
           amount={monthTotals.unpaid}
           variant="expense"
           sparklineData={distributionSparkline(
-            items.filter(item => !item.paid).map(item => item.amount)
+            filteredItems.filter(item => !item.paid).map(item => item.amount)
           )}
           animateIndex={1}
           lift

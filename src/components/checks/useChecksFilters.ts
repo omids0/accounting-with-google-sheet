@@ -1,11 +1,21 @@
+import { useMemo } from 'react'
+
 import type { CheckWithRow } from './types'
 import { useListFilters } from '../../hooks/useListFilters'
+import { getCounterpartyFullName } from '../../services/counterparties'
+import type { CounterpartyWithRow } from '../counterparties/types'
 
 type UseChecksFiltersOptions = {
   items: CheckWithRow[]
+  counterparties: CounterpartyWithRow[]
 }
 
-export function useChecksFilters({ items }: UseChecksFiltersOptions) {
+export function useChecksFilters({ items, counterparties }: UseChecksFiltersOptions) {
+  const counterpartySeed = useMemo(
+    () => counterparties.map(item => getCounterpartyFullName(item)),
+    [counterparties]
+  )
+
   return useListFilters({
     items,
     getSearchParts: item => [
@@ -15,6 +25,8 @@ export function useChecksFilters({ items }: UseChecksFiltersOptions) {
       item.creationDate,
       item.dueDate
     ],
-    getDate: item => item.dueDate
+    getDate: item => item.dueDate,
+    getCounterparty: item => item.counterparty,
+    counterpartySeed
   })
 }
