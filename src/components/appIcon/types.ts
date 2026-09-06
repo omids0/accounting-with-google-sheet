@@ -17,6 +17,7 @@ export type AppIconName =
   | 'warning'
   | 'back'
   | 'menu'
+  | 'grip'
   | 'settings'
   | 'close'
   | 'check'

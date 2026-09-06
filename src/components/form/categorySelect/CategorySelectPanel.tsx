@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
 
 import CategorySelectItem from './CategorySelectItem'
+import { useDragReorder } from '../../../hooks/useDragReorder'
 import AppIcon from '../../AppIcon'
 import {
   categorySelectAddBtnClass,
@@ -45,6 +46,7 @@ interface CategorySelectPanelProps {
   onCancelDelete: () => void
   onDelete: (category: string) => void
   onOpenManageMode: () => void
+  onReorder: (fromIndex: number, toIndex: number) => void
 }
 
 export default function CategorySelectPanel({
@@ -74,8 +76,17 @@ export default function CategorySelectPanel({
   onConfirmDelete,
   onCancelDelete,
   onDelete,
-  onOpenManageMode
+  onOpenManageMode,
+  onReorder
 }: CategorySelectPanelProps) {
+  const canReorder =
+    manageMode && !searchQuery.trim() && !editingCategory && !confirmDelete && categories.length > 1
+
+  const { draggingIndex, getItemDragProps, getHandleProps } = useDragReorder({
+    disabled: !canReorder || saving,
+    onReorder
+  })
+
   return (
     <div className={categorySelectPanelClass}>
       {showSearch && (
@@ -142,7 +153,7 @@ export default function CategorySelectPanel({
             {searchQuery.trim() ? 'دسته‌ای با این نام پیدا نشد' : 'هنوز دسته‌بندی ثبت نشده'}
           </div>
         ) : (
-          filteredCategories.map(category => (
+          filteredCategories.map((category, index) => (
             <CategorySelectItem
               key={category}
               category={category}
@@ -153,6 +164,10 @@ export default function CategorySelectPanel({
               confirmDelete={confirmDelete}
               editText={editText}
               categoriesCount={categories.length}
+              canReorder={canReorder}
+              dragging={draggingIndex === index}
+              dragProps={getItemDragProps(index)}
+              handleProps={getHandleProps(index)}
               onSelect={onSelect}
               onStartEdit={onStartEdit}
               onCancelEdit={onCancelEdit}

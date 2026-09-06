@@ -3,10 +3,12 @@ import {
   deleteCounterparty,
   fetchCounterparties,
   getCounterpartyFullName,
+  reorderCounterparties,
   updateCounterparty
 } from '../../../services/counterparties'
 import { getSettings } from '../../../services/settings'
 import { requireAuth } from '../../../utils/authGuard'
+import { reorderItems } from '../../../utils/reorderItems'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showError, showSuccess } from '../../../utils/toast'
 import {
@@ -137,5 +139,31 @@ export function useCounterpartySelectActions({
     }
   }
 
-  return { handleSubmitForm, handleDelete }
+  const handleReorder = async (fromIndex: number, toIndex: number) => {
+    const settings = getSettings()
+
+    if (!settings?.spreadsheetId) {
+      showError('ابتدا شیت فعال را انتخاب کنید')
+
+      return
+    }
+    if (!requireAuth()) return
+
+    const next = reorderItems(counterparties, fromIndex, toIndex)
+
+    setSaving(true)
+    try {
+      await reorderCounterparties(
+        settings.spreadsheetId,
+        next.map(item => item.id)
+      )
+      await refreshList()
+    } catch (err) {
+      handleSheetError(err, { fallbackMessage: 'خطا در ذخیره ترتیب طرف حساب‌ها' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return { handleSubmitForm, handleDelete, handleReorder }
 }

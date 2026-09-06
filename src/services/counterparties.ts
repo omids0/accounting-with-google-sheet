@@ -3,6 +3,7 @@ import {
   deleteSheetRow,
   ensureSheetWithHeaders,
   fetchSheetRows,
+  replaceSheetDataRows,
   updateSheetRow
 } from './sheets'
 import type {
@@ -192,11 +193,40 @@ export async function fetchCounterparties(
 
   const rows = await fetchSheetRows(spreadsheetId, COUNTERPARTIES_SHEET)
 
-  return sortCounterparties(
-    rows
-      .map((row, index) => ({ row, rowNumber: index + 2 }))
-      .map(({ row, rowNumber }) => rowToCounterparty(row, rowNumber))
-      .filter((item): item is Counterparty & { rowNumber: number } => item !== null)
+  return rows
+    .map((row, index) => ({ row, rowNumber: index + 2 }))
+    .map(({ row, rowNumber }) => rowToCounterparty(row, rowNumber))
+    .filter((item): item is Counterparty & { rowNumber: number } => item !== null)
+}
+
+export async function reorderCounterparties(
+  spreadsheetId: string,
+  orderedIds: string[]
+): Promise<void> {
+  await ensureCounterpartiesSheet(spreadsheetId)
+
+  const items = await fetchCounterparties(spreadsheetId)
+  const byId = new Map(items.map(item => [item.id, item]))
+  const ordered: (Counterparty & { rowNumber: number })[] = []
+
+  for (const id of orderedIds) {
+    const item = byId.get(id)
+
+    if (item) {
+      ordered.push(item)
+      byId.delete(id)
+    }
+  }
+
+  for (const item of byId.values()) {
+    ordered.push(item)
+  }
+
+  await replaceSheetDataRows(
+    spreadsheetId,
+    COUNTERPARTIES_SHEET,
+    ordered.map(item => counterpartyToRow(item)),
+    COUNTERPARTIES_HEADERS.length
   )
 }
 

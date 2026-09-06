@@ -65,7 +65,7 @@ export default function CategorySelect({
     return categories.filter(category => category.toLowerCase().includes(query))
   }, [categories, searchQuery])
 
-  const { handleSaveEdit, handleDelete, handleAdd } = useCategorySelectActions({
+  const { handleSaveEdit, handleDelete, handleAdd, handleReorder } = useCategorySelectActions({
     categories,
     formId,
     categoryScope,
@@ -231,6 +231,7 @@ export default function CategorySelect({
           onCancelDelete={() => setConfirmDelete(null)}
           onDelete={category => handleDelete(category, setConfirmDelete)}
           onOpenManageMode={() => setManageMode(true)}
+          onReorder={handleReorder}
         />
       </CategorySelectSheet>
     </div>

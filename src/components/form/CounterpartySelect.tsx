@@ -57,7 +57,7 @@ export default function CounterpartySelect({
     )
   }, [counterparties, searchQuery])
 
-  const { handleSubmitForm, handleDelete } = useCounterpartySelectActions({
+  const { handleSubmitForm, handleDelete, handleReorder } = useCounterpartySelectActions({
     counterparties,
     onCounterpartiesChange,
     onChange,
@@ -180,6 +180,7 @@ export default function CounterpartySelect({
       >
         <CounterpartySelectPanel
           ariaLabel={ariaLabel}
+          items={counterparties}
           filteredItems={filteredItems}
           value={value}
           saving={saving}
@@ -199,6 +200,7 @@ export default function CounterpartySelect({
           onCancelDelete={() => setConfirmDelete(null)}
           onDelete={item => handleDelete(item, setConfirmDelete)}
           onOpenManageMode={() => setManageMode(true)}
+          onReorder={handleReorder}
         />
       </CategorySelectSheet>
 

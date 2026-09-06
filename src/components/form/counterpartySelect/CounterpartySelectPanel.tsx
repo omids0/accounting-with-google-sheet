@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
 
 import CounterpartySelectItem from './CounterpartySelectItem'
+import { useDragReorder } from '../../../hooks/useDragReorder'
 import AppIcon from '../../AppIcon'
 import type { CounterpartyWithRow } from '../../counterparties/types'
 import {
@@ -18,6 +19,7 @@ import {
 
 interface CounterpartySelectPanelProps {
   ariaLabel: string
+  items: CounterpartyWithRow[]
   filteredItems: CounterpartyWithRow[]
   value: string
   saving: boolean
@@ -35,10 +37,12 @@ interface CounterpartySelectPanelProps {
   onCancelDelete: () => void
   onDelete: (item: CounterpartyWithRow) => void
   onOpenManageMode: () => void
+  onReorder: (fromIndex: number, toIndex: number) => void
 }
 
 export default function CounterpartySelectPanel({
   ariaLabel,
+  items,
   filteredItems,
   value,
   saving,
@@ -55,8 +59,16 @@ export default function CounterpartySelectPanel({
   onConfirmDelete,
   onCancelDelete,
   onDelete,
-  onOpenManageMode
+  onOpenManageMode,
+  onReorder
 }: CounterpartySelectPanelProps) {
+  const canReorder = manageMode && !searchQuery.trim() && !confirmDelete && items.length > 1
+
+  const { draggingIndex, getItemDragProps, getHandleProps } = useDragReorder({
+    disabled: !canReorder || saving,
+    onReorder
+  })
+
   return (
     <div className={categorySelectPanelClass}>
       {showSearch && (
@@ -107,7 +119,7 @@ export default function CounterpartySelectPanel({
             {searchQuery.trim() ? 'طرف حسابی با این نام پیدا نشد' : 'هنوز طرف حسابی ثبت نشده'}
           </div>
         ) : (
-          filteredItems.map(item => (
+          filteredItems.map((item, index) => (
             <CounterpartySelectItem
               key={item.id}
               item={item}
@@ -115,6 +127,10 @@ export default function CounterpartySelectPanel({
               manageMode={manageMode}
               saving={saving}
               confirmDelete={confirmDelete}
+              canReorder={canReorder}
+              dragging={draggingIndex === index}
+              dragProps={getItemDragProps(index)}
+              handleProps={getHandleProps(index)}
               onSelect={onSelect}
               onStartEdit={onStartEdit}
               onConfirmDelete={onConfirmDelete}

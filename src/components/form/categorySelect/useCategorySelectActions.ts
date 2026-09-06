@@ -7,6 +7,7 @@ import {
 } from '../../../services/categories'
 import { getSettings } from '../../../services/settings'
 import { requireAuth } from '../../../utils/authGuard'
+import { reorderItems } from '../../../utils/reorderItems'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showError, showSuccess } from '../../../utils/toast'
 
@@ -39,7 +40,10 @@ export function useCategorySelectActions({
   value: string
   setSaving: (saving: boolean) => void
 }) {
-  const persistCategories = async (next: string[]): Promise<boolean> => {
+  const persistCategories = async (
+    next: string[],
+    options?: { silent?: boolean }
+  ): Promise<boolean> => {
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) {
@@ -71,7 +75,9 @@ export function useCategorySelectActions({
         await saveFormCategoriesToSheet(settings.spreadsheetId, formId, next)
       }
       onCategoriesChange?.(next)
-      showSuccess('دسته‌بندی‌ها ذخیره شد')
+      if (!options?.silent) {
+        showSuccess('دسته‌بندی‌ها ذخیره شد')
+      }
 
       return true
     } catch (err) {
@@ -152,5 +158,11 @@ export function useCategorySelectActions({
     }
   }
 
-  return { handleSaveEdit, handleDelete, handleAdd }
+  const handleReorder = async (fromIndex: number, toIndex: number) => {
+    const next = reorderItems(categories, fromIndex, toIndex)
+
+    await persistCategories(next, { silent: true })
+  }
+
+  return { handleSaveEdit, handleDelete, handleAdd, handleReorder }
 }
