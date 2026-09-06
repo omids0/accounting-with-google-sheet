@@ -19,6 +19,7 @@ export const formModalPanelClass = cn(
   'shadow-[0_12px_40px_rgba(15,23,42,0.14),inset_0_1px_0_rgba(255,255,255,0.55)]',
   'animate-[form-modal-in_var(--duration-normal)_var(--ease-out)] motion-reduce:animate-none',
   'min-[520px]:rounded-[calc(var(--radius)+4px)]',
+  'lg:max-w-[32rem]',
   '[&_form]:flex [&_form]:min-h-0 [&_form]:flex-1 [&_form]:flex-col'
 )
 

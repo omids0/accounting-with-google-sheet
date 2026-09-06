@@ -7,7 +7,8 @@ export const loginPageClass = cn(
 )
 
 export const loginCardClass = cn(
-  'w-full max-w-[400px] rounded-[20px] border border-border bg-surface p-8 px-6 shadow-lg'
+  'w-full max-w-[400px] rounded-[20px] border border-border bg-surface p-8 px-6 shadow-lg',
+  'lg:max-w-[440px] lg:p-10'
 )
 
 export const loginLogoClass = 'mb-6 text-center'
