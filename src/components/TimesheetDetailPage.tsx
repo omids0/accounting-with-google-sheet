@@ -17,6 +17,7 @@ import TimesheetEntryFormModal from './timesheets/TimesheetEntryFormModal'
 import { useTimesheetDetailPage } from './timesheets/useTimesheetDetailPage'
 import Button from './ui/Button'
 import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
+import { listCardsContainerClass } from './ui/featureCardStyles'
 import {
   timesheetDetailPageClass,
   timesheetDetailStatsClass,
@@ -124,16 +125,18 @@ export default function TimesheetDetailPage({
           ) : page.filteredItems.length === 0 ? (
             <SearchEmptyState />
           ) : (
-            page.filteredItems.map(item => (
-              <TimesheetEntryCard
-                key={item.id}
-                item={item}
-                togglingCheckId={page.togglingCheckId}
-                onToggleChecked={page.handleToggleChecked}
-                onEdit={page.openEditForm}
-                onDelete={page.setDeletingItem}
-              />
-            ))
+            <div className={listCardsContainerClass}>
+              {page.filteredItems.map(item => (
+                <TimesheetEntryCard
+                  key={item.id}
+                  item={item}
+                  togglingCheckId={page.togglingCheckId}
+                  onToggleChecked={page.handleToggleChecked}
+                  onEdit={page.openEditForm}
+                  onDelete={page.setDeletingItem}
+                />
+              ))}
+            </div>
           )}
         </>
       )}

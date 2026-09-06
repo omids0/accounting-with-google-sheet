@@ -1,11 +1,10 @@
 import { cardClassName } from './Card'
-import { listPageGridClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
 /** Inner padding for list cards (installments, wallet, receivables, dang, checks). Tailwind p-2 = 0.5rem. */
 export const listCardInsetClass = 'p-2'
 
-export const listPageStackClass = cn('flex flex-col gap-3 [&_.list-card]:mb-0', listPageGridClass)
+export const listPageStackClass = 'flex flex-col gap-3 [&_.list-card]:mb-0'
 
 /** List module pages — filters, card grid, footer stats with consistent vertical rhythm. */
 export const listModulePageClass = cn('flex flex-col gap-4 lg:gap-5 [&_.list-card]:mb-0')

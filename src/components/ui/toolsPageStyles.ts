@@ -1,4 +1,4 @@
-import { listPageStackClass } from './featureCardStyles'
+import { listModulePageClass } from './featureCardStyles'
 import { cn } from '../../utils/cn'
 
 export const reportPageClass = 'flex flex-col gap-4'
@@ -52,9 +52,9 @@ export const reportExportTitleClass = 'text-[0.9rem] font-bold'
 
 export const reportExportHintClass = 'mt-[0.1rem] text-[0.78rem] text-muted'
 
-export const timesheetsPageClass = listPageStackClass
+export const timesheetsPageClass = listModulePageClass
 
-export const timesheetDetailPageClass = listPageStackClass
+export const timesheetDetailPageClass = listModulePageClass
 
 export const timesheetDetailStatsClass = 'timesheet-detail-stats'
 

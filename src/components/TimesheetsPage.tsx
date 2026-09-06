@@ -9,6 +9,7 @@ import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
 import Button from './ui/Button'
 import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
+import { listCardsContainerClass } from './ui/featureCardStyles'
 import { timesheetsPageClass } from './ui/toolsPageStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
@@ -81,21 +82,23 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
       ) : page.filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        page.filteredItems.map(item => (
-          <TimesheetListCard
-            key={item.id}
-            item={item}
-            onOpen={(timesheet: Timesheet) =>
-              useNavigationStore.getState().onTabChange('timesheet-detail', {
-                timesheetId: timesheet.id,
+        <div className={listCardsContainerClass}>
+          {page.filteredItems.map(item => (
+            <TimesheetListCard
+              key={item.id}
+              item={item}
+              onOpen={(timesheet: Timesheet) =>
+                useNavigationStore.getState().onTabChange('timesheet-detail', {
+                  timesheetId: timesheet.id,
 
-                timesheetTitle: timesheet.title
-              })
-            }
-            onEdit={page.openEditForm}
-            onDelete={page.setDeletingItem}
-          />
-        ))
+                  timesheetTitle: timesheet.title
+                })
+              }
+              onEdit={page.openEditForm}
+              onDelete={page.setDeletingItem}
+            />
+          ))}
+        </div>
       )}
 
       <TimesheetFormModal

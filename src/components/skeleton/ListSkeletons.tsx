@@ -14,6 +14,7 @@ import { dashboardOpeningCardClass, dashboardStatGridClass } from '../ui/chartSt
 import {
   installmentCardClass,
   installmentHeaderClass,
+  listCardsContainerClass,
   walletItemCardClass,
   walletItemInfoClass,
   walletItemTitleRowClass
@@ -43,7 +44,7 @@ export function InstallmentCardListSkeleton({
   return (
     <div aria-busy="true" aria-label="در حال بارگذاری">
       <FilterChipsSkeleton count={filterChips} />
-      <div className={skeletonListClass}>
+      <div className={listCardsContainerClass}>
         {Array.from({ length: count }, (_, index) => (
           <CardSkeleton key={index} />
         ))}
@@ -133,7 +134,7 @@ export function TimesheetDetailListSkeleton({ count = 3 }: { count?: number }) {
         <StatCardSkeleton />
         <StatCardSkeleton />
       </div>
-      <div className={skeletonListClass}>
+      <div className={listCardsContainerClass}>
         {Array.from({ length: count }, (_, index) => (
           <InstallmentCardSkeleton key={index} />
         ))}
