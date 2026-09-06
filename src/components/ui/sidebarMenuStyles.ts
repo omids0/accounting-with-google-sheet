@@ -1,3 +1,4 @@
+import { scrollbarHiddenClass } from './scrollbarStyles'
 import { cn } from '../../utils/cn'
 
 export const appMenuBackdropClass = cn(
@@ -36,6 +37,7 @@ export const appMenuProfileClass = cn(
 )
 
 export const appMenuScrollBodyClass = cn(
+  scrollbarHiddenClass,
   'flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain',
   '[-webkit-overflow-scrolling:touch]'
 )

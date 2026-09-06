@@ -1,4 +1,5 @@
 import { formFieldsLayoutClass } from './formStyles'
+import { appScrollbarClass } from './scrollbarStyles'
 import { cn } from '../../utils/cn'
 
 export const formModalRootClass = cn(
@@ -51,6 +52,7 @@ export const formModalCloseClass = cn(
 )
 
 export const formModalBodyClass = cn(
+  appScrollbarClass,
   'min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-[1.15rem] pb-1 pt-[1.1rem]',
   '[-webkit-overflow-scrolling:touch] [&_.form-field:last-child]:mb-0 [&_.form-group:last-child]:mb-0'
 )

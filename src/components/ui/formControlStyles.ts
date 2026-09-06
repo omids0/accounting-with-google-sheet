@@ -1,4 +1,5 @@
 import { formControlClassName, formControlInvalidClass, formControlSizeClass } from './formStyles'
+import { appScrollbarClass } from './scrollbarStyles'
 import { cn } from '../../utils/cn'
 
 export const formTriggerBase = cn(
@@ -42,6 +43,7 @@ export function customSelectChevronClass(open?: boolean) {
 }
 
 export const customSelectMenuClass = cn(
+  appScrollbarClass,
   'absolute inset-x-0 top-[calc(100%+4px)] z-50 m-0 max-h-60 list-none overflow-y-auto rounded-sm border-[1.5px] border-border bg-surface p-[0.35rem] shadow-[var(--shadow)]',
   'animate-[slideDown_var(--duration-normal)_var(--ease-out)]'
 )
@@ -127,8 +129,10 @@ export const categorySelectAddBtnClass = cn(
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
 )
 
-export const categorySelectListClass =
+export const categorySelectListClass = cn(
+  appScrollbarClass,
   'm-0 min-h-0 flex-1 list-none overflow-y-auto overscroll-contain p-1 [-webkit-overflow-scrolling:touch]'
+)
 
 export function categorySelectItemClass({
   selected,

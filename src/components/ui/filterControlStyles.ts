@@ -1,3 +1,4 @@
+import { appScrollbarClass } from './scrollbarStyles'
 import { cn } from '../../utils/cn'
 
 export const pageFilterPanelClass = 'flex flex-col gap-[0.7rem]'
@@ -17,7 +18,10 @@ export const pageFilterPanelSearchInputClass =
 
 export const filterModalPanelClass = 'max-h-[min(88vh,720px)]'
 
-export const filterModalBodyClass = 'overflow-y-auto [&_.page-filter-panel]:gap-3'
+export const filterModalBodyClass = cn(
+  appScrollbarClass,
+  'overflow-y-auto [&_.page-filter-panel]:gap-3'
+)
 
 export const filterModalActionsClass = 'justify-end gap-2'
 
