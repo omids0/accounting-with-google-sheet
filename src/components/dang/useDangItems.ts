@@ -4,6 +4,7 @@ import type { DangWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { usePaidItemActions } from '../../hooks/usePaidItemActions'
 import { syncCategoriesFromSheet } from '../../services/categories'
+import { ensureCounterpartiesSheet, fetchCounterparties } from '../../services/counterparties'
 import {
   deleteDang,
   ensureDangSheet,
@@ -21,6 +22,7 @@ import type { Dang } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError } from '../../utils/toast'
+import type { CounterpartyWithRow } from '../counterparties/types'
 
 export function useDangItems() {
   const [items, setItems] = useState<DangWithRow[]>([])
@@ -33,6 +35,7 @@ export function useDangItems() {
   const [savingAmountId, setSavingAmountId] = useState('')
   const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({})
   const [categories, setCategories] = useState<string[]>(() => getDangCategories())
+  const [counterparties, setCounterparties] = useState<CounterpartyWithRow[]>([])
 
   const dataRevision = useDataRefresh()
 
@@ -46,6 +49,8 @@ export function useDangItems() {
       await ensureDangSheet(spreadsheetId)
       await syncCategoriesFromSheet(spreadsheetId)
       setCategories(getDangCategories())
+      await ensureCounterpartiesSheet(spreadsheetId)
+      setCounterparties(await fetchCounterparties(spreadsheetId))
 
       const data = await fetchDangs(spreadsheetId)
 
@@ -129,6 +134,8 @@ export function useDangItems() {
     loading,
     categories,
     setCategories,
+    counterparties,
+    setCounterparties,
     expandedId,
     setExpandedId,
     savingAmountId,

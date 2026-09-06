@@ -22,6 +22,8 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     loading,
     categories,
     setCategories,
+    counterparties,
+    setCounterparties,
     expandedId,
     setExpandedId,
     deletingItem,
@@ -157,9 +159,11 @@ export default function DangPage({ active = true }: { active?: boolean }) {
         editingItem={editingItem}
         saving={saving}
         categories={categories}
+        counterparties={counterparties}
         onClose={closeForm}
         onSubmit={handleSubmit}
         onCategoriesChange={setCategories}
+        onCounterpartiesChange={setCounterparties}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
