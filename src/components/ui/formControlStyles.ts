@@ -1,32 +1,32 @@
-import { formControlClassName } from './formStyles'
+import { formControlClassName, formControlInvalidClass, formControlSizeClass } from './formStyles'
 import { cn } from '../../utils/cn'
 
 export const formTriggerBase = cn(
   formControlClassName(),
-  'appearance-none cursor-pointer px-[0.9rem] py-[0.72rem] text-right font-[inherit] leading-[1.4]'
+  'inline-flex w-full items-center appearance-none cursor-pointer text-right font-[inherit]'
 )
 
 export function customSelectRootClass({ open, className }: { open?: boolean; className?: string }) {
   return cn('relative w-full', open && 'z-20', className)
 }
 
-export const customSelectTriggerClass = cn(
-  'flex w-full items-center justify-between gap-2 px-[0.9rem] py-[0.72rem] text-right font-[inherit] leading-[1.4]',
-  formTriggerBase
-)
+export const customSelectTriggerClass = cn('justify-between gap-2', formTriggerBase)
 
 export function customSelectTriggerStateClass({
   open,
   compact,
-  disabled
+  disabled,
+  invalid
 }: {
   open?: boolean
   compact?: boolean
   disabled?: boolean
+  invalid?: boolean
 }) {
   return cn(
     compact && 'rounded-form px-[0.55rem] py-[0.65rem] text-[0.9rem]',
     open && 'border-primary shadow-[var(--form-input-focus-shadow)]',
+    invalid && formControlInvalidClass,
     disabled && 'cursor-not-allowed opacity-60',
     'focus-visible:outline-none focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)]'
   )
@@ -221,14 +221,14 @@ export const amountFieldClass = 'flex flex-col gap-[0.45rem]'
 export const amountFieldCompactClass = 'w-full'
 
 export const amountFieldInputWrapClass = cn(
-  'flex items-stretch overflow-hidden rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+  'flex h-touch-min items-stretch overflow-hidden rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   'focus-within:border-primary focus-within:shadow-[var(--form-input-focus-shadow)]'
 )
 
 export const amountFieldInputWrapCompactClass = 'min-h-touch-min'
 
 export const amountFieldInputClass = cn(
-  'min-h-touch-min min-w-0 flex-1 border-none! bg-transparent! px-[0.9rem] py-[0.72rem] text-[1.05rem] font-bold tracking-[0.02em] shadow-none! outline-none'
+  'h-full min-h-0 min-w-0 flex-1 border-none! bg-transparent! px-3.5 py-0 text-[0.95rem] font-bold leading-[1.4] tracking-[0.02em] shadow-none! outline-none lg:px-3'
 )
 
 export const amountFieldInputCompactClass = cn(
@@ -237,9 +237,11 @@ export const amountFieldInputCompactClass = cn(
 )
 
 export const amountFieldCurrencyClass =
-  'inline-flex items-center whitespace-nowrap border-s border-border bg-accent-soft px-[0.85rem] text-[0.78rem] font-bold text-primary-dark'
+  'inline-flex h-full items-center whitespace-nowrap border-s border-border bg-accent-soft px-3 text-[0.78rem] font-bold text-primary-dark lg:px-2.5'
 
 export const amountFieldCurrencyCompactClass = 'px-[0.55rem] text-[0.68rem] font-bold'
+
+export const amountFieldInputWrapInvalidClass = formControlInvalidClass
 
 export const amountFieldSubmitBtnClass = cn(
   'amount-field-submit inline-flex min-h-touch-min shrink-0 cursor-pointer items-center justify-center border-none px-[0.7rem] py-0',
@@ -268,10 +270,11 @@ export const formFieldLabelClass =
 export const formFieldLabelTextClass = 'leading-[1.3]'
 
 export const formReadonlyValueClass = cn(
-  'min-h-touch-min rounded-form border border-[var(--form-input-border)] bg-[var(--surface-muted,var(--form-input-bg))] px-[0.9rem] py-[0.72rem] font-semibold text-text'
+  'flex items-center rounded-form border border-[var(--form-input-border)] bg-[var(--surface-muted,var(--form-input-bg))] font-semibold text-text',
+  formControlSizeClass
 )
 
-export const formNoteTextareaClass = 'min-h-[5.5rem] resize-y leading-[1.55]'
+export const formNoteTextareaClass = 'h-auto min-h-[5.5rem] resize-y leading-[1.55]'
 
 export const unlockFormGroupClass = formGroupClass
 

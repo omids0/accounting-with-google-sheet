@@ -150,8 +150,15 @@ export default function OpeningBalancePage() {
     <div className={listModulePageClass}>
       <div className={cardHeaderRowClass} style={{ marginBottom: '0.75rem' }}>
         <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>موجودی اول دوره</h2>
-        <Button variant="secondary" size="sm" onClick={loadItems} disabled={loading} type="button">
-          {loading ? '...' : '↻'}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={loadItems}
+          disabled={loading}
+          loading={loading}
+          type="button"
+        >
+          ↻
         </Button>
       </div>
 
@@ -239,8 +246,9 @@ export default function OpeningBalancePage() {
                       size="sm"
                       onClick={() => handleSave(item)}
                       disabled={savingId === item.monthKey || loading}
+                      loading={savingId === item.monthKey}
                     >
-                      {savingId === item.monthKey ? '...' : 'ذخیره'}
+                      ذخیره
                     </Button>
                   </div>
                 </AccordionCollapse>

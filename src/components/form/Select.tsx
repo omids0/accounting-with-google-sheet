@@ -26,6 +26,7 @@ interface SelectProps {
   'aria-label'?: string
   compact?: boolean
   className?: string
+  invalid?: boolean
 }
 
 export default function Select({
@@ -35,7 +36,8 @@ export default function Select({
   disabled = false,
   'aria-label': ariaLabel,
   compact = false,
-  className
+  className,
+  invalid = false
 }: SelectProps) {
   const [open, setOpen] = useState(false)
 
@@ -83,7 +85,7 @@ export default function Select({
         type="button"
         className={cn(
           customSelectTriggerClass,
-          customSelectTriggerStateClass({ open, compact, disabled })
+          customSelectTriggerStateClass({ open, compact, disabled, invalid })
         )}
         onClick={() => !disabled && setOpen(isOpen => !isOpen)}
         disabled={disabled}

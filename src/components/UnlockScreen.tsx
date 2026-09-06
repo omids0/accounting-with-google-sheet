@@ -4,7 +4,6 @@ import AppIcon from './AppIcon'
 import UnlockPinInput from './appLock/UnlockPinInput'
 import Alert from './ui/Alert'
 import Button from './ui/Button'
-import { spinnerClass } from './ui/displayStyles'
 import { animateInClass } from './ui/layoutStyles'
 import {
   unlockActionsClass,
@@ -155,9 +154,9 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               variant="primary"
               className={unlockPrimaryBtnClass}
               disabled={loading || pin.length < PIN_LENGTH}
-              aria-busy={loading}
+              loading={loading}
             >
-              {loading ? <span className={spinnerClass} /> : 'باز کردن قفل'}
+              باز کردن قفل
             </Button>
           </form>
 

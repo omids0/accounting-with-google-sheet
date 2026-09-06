@@ -4,7 +4,6 @@ import { useModalFormReset } from '../../hooks/useModalFormReset'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
 import Button from '../ui/Button'
-import { spinnerClass } from '../ui/displayStyles'
 import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
 type PaymentFormValues = {
@@ -52,9 +51,9 @@ export default function ReceivablePaymentForm({
           variant="primary"
           size="sm"
           disabled={paying}
+          loading={paying}
           onClick={() => void handleSubmit(values => onSubmit(values))()}
         >
-          {paying && <span className={spinnerClass} />}
           ثبت بخشی از پرداخت
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel}>

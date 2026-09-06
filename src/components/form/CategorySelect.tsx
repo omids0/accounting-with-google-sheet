@@ -31,7 +31,8 @@ export default function CategorySelect({
   onCategoriesChange,
   disabled = false,
   'aria-label': ariaLabel = 'دسته‌بندی',
-  id
+  id,
+  invalid = false
 }: CategorySelectProps) {
   const [open, setOpen] = useState(false)
 
@@ -161,7 +162,7 @@ export default function CategorySelect({
         className={cn(
           customSelectTriggerClass,
           categorySelectTriggerClass,
-          customSelectTriggerStateClass({ open, disabled: disabled || saving })
+          customSelectTriggerStateClass({ open, disabled: disabled || saving, invalid })
         )}
         onClick={() => !disabled && !saving && setOpen(true)}
         disabled={disabled || saving}

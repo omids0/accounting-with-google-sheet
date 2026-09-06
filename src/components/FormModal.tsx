@@ -16,7 +16,6 @@ import {
   formModalPanelClass,
   formModalPanelWideClass,
   formModalRootClass,
-  formModalSpinnerClass,
   formModalTitleClass
 } from './ui/modalStyles'
 
@@ -92,8 +91,7 @@ export default function FormModal({
           <div className={cn(formModalBodyClass, formModalFieldsLayoutClass)}>{children}</div>
 
           <div className={cn(formModalActionsClass, formActionsClassName())}>
-            {saving && <span className={cn('spinner', formModalSpinnerClass)} aria-hidden />}
-            <Button type="submit" variant={saveButtonVariant} disabled={saving}>
+            <Button type="submit" variant={saveButtonVariant} disabled={saving} loading={saving}>
               {saveLabel}
             </Button>
             <Button type="button" variant="secondary" disabled={saving} onClick={onClose}>

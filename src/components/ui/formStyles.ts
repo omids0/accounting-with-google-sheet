@@ -21,10 +21,20 @@ export const formLabelClass =
 
 export const formHintClass = 'my-1.5 text-[0.78rem] leading-[1.5] text-muted'
 
+export const formErrorClass = 'mt-1.5 text-[0.76rem] font-semibold leading-[1.45] text-danger'
+
+export const formControlInvalidClass = cn(
+  '!border-danger hover:enabled:!border-danger focus-visible:!border-danger',
+  'focus-within:!border-danger shadow-[0_0_0_3px_var(--color-danger-bg)]'
+)
+
+/** Fixed single-line control height so inputs, pickers, and selects align in form rows. */
+export const formControlSizeClass = 'h-touch-min px-3.5 text-[0.95rem] leading-[1.4] lg:px-3'
+
 export function formControlClassName(className?: string) {
   return cn(
-    'min-h-touch-min w-full rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] px-3.5 py-3 text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background-color] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:enabled:border-[var(--form-input-border-hover)] focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)] focus-visible:outline-none',
-    'lg:px-3 lg:py-2.5',
+    'w-full rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background-color] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:enabled:border-[var(--form-input-border-hover)] focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)] focus-visible:outline-none',
+    formControlSizeClass,
     className
   )
 }

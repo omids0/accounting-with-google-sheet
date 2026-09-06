@@ -26,6 +26,7 @@ interface JalaliDatePickerProps {
   allowEmpty?: boolean
   emptyLabel?: string
   id?: string
+  invalid?: boolean
 }
 
 function formatPickerLabel(iso: string, calendar: CalendarSystem): string {
@@ -43,7 +44,8 @@ export default function JalaliDatePicker({
   inline = false,
   allowEmpty = false,
   emptyLabel = 'انتخاب تاریخ',
-  id
+  id,
+  invalid = false
 }: JalaliDatePickerProps) {
   const hasValue = Boolean(value)
 
@@ -100,7 +102,8 @@ export default function JalaliDatePicker({
         type="button"
         className={jalaliDatePickerTriggerClass({
           active: editing,
-          empty: allowEmpty && !hasValue
+          empty: allowEmpty && !hasValue,
+          invalid
         })}
         onClick={handleOpen}
         aria-expanded={editing}

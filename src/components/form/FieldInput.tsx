@@ -4,8 +4,7 @@ import JalaliDatePicker from '../JalaliDatePicker'
 import CategorySelect from './CategorySelect'
 import FormField from './FormField'
 import Select from './Select'
-import { formNoteTextareaClass } from '../ui/formControlStyles'
-import { formControlClassName, type FormControlWidth } from '../ui/formStyles'
+import type { FormControlWidth } from '../ui/formStyles'
 import { formFieldNoteClass } from '../ui/recordsStyles'
 
 interface FieldInputProps {
@@ -15,6 +14,7 @@ interface FieldInputProps {
   formId?: string
   onCategoriesChange?: (categories: string[]) => void
   controlWidth?: FormControlWidth
+  error?: string
 }
 
 function fieldPlaceholder(field: FieldConfig): string | undefined {
@@ -40,57 +40,64 @@ export default function FieldInput({
   onChange,
   formId,
   onCategoriesChange,
-  controlWidth
+  controlWidth,
+  error
 }: FieldInputProps) {
   const placeholder = fieldPlaceholder(field)
   const resolvedWidth = controlWidth ?? defaultControlWidth(field)
 
-  return (
-    <FormField
-      label={field.label}
-      required={field.required}
-      className={field.id === 'note' ? formFieldNoteClass : undefined}
-      controlWidth={resolvedWidth}
-    >
-      {field.type === 'text' && field.id === 'note' ? (
+  const control = (() => {
+    if (field.type === 'text' && field.id === 'note') {
+      return (
         <textarea
-          className={formControlClassName(formNoteTextareaClass)}
           rows={4}
           value={String(value ?? '')}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
         />
-      ) : field.type === 'text' ? (
+      )
+    }
+
+    if (field.type === 'text') {
+      return (
         <input
           type="text"
-          className={formControlClassName()}
           value={String(value ?? '')}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
         />
-      ) : null}
+      )
+    }
 
-      {field.type === 'number' && field.id === 'amount' && (
-        <AmountInput value={value ?? ''} onChange={onChange} />
-      )}
+    if (field.type === 'number' && field.id === 'amount') {
+      return <AmountInput value={value ?? ''} onChange={onChange} invalid={Boolean(error)} />
+    }
 
-      {field.type === 'number' && field.id !== 'amount' && (
+    if (field.type === 'number') {
+      return (
         <input
           type="number"
-          className={formControlClassName()}
           inputMode="decimal"
           value={value === '' ? '' : value}
           onChange={e => onChange(e.target.value === '' ? '' : Number(e.target.value))}
           dir="ltr"
           placeholder={placeholder}
         />
-      )}
+      )
+    }
 
-      {field.type === 'date' && (
-        <JalaliDatePicker value={String(value ?? '')} onChange={iso => onChange(iso)} />
-      )}
+    if (field.type === 'date') {
+      return (
+        <JalaliDatePicker
+          value={String(value ?? '')}
+          onChange={iso => onChange(iso)}
+          invalid={Boolean(error)}
+        />
+      )
+    }
 
-      {field.type === 'select' && field.id === 'category' && formId ? (
+    if (field.type === 'select' && field.id === 'category' && formId) {
+      return (
         <CategorySelect
           value={String(value ?? '')}
           onChange={next => onChange(next)}
@@ -98,17 +105,37 @@ export default function FieldInput({
           formId={formId}
           onCategoriesChange={onCategoriesChange}
           aria-label={field.label}
+          invalid={Boolean(error)}
         />
-      ) : field.type === 'select' ? (
+      )
+    }
+
+    if (field.type === 'select') {
+      return (
         <Select
           value={String(value ?? '')}
           onChange={onChange}
+          invalid={Boolean(error)}
           options={(field.options ?? []).map(opt => ({
             value: opt,
             label: opt
           }))}
         />
-      ) : null}
+      )
+    }
+
+    return null
+  })()
+
+  return (
+    <FormField
+      label={field.label}
+      required={field.required}
+      error={error}
+      className={field.id === 'note' ? formFieldNoteClass : undefined}
+      controlWidth={resolvedWidth}
+    >
+      {control}
     </FormField>
   )
 }

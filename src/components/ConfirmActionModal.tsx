@@ -4,7 +4,6 @@ import AppIcon from './AppIcon'
 import { useModalLock } from '../hooks/useModalLock'
 import { cn } from '../utils/cn'
 import Button from './ui/Button'
-import { spinnerClass } from './ui/displayStyles'
 import { confirmDeleteMessageClass } from './ui/featureCardStyles'
 import { formActionsClassName } from './ui/formStyles'
 import {
@@ -15,7 +14,6 @@ import {
   formModalHeaderClass,
   formModalPanelClass,
   formModalRootClass,
-  formModalSpinnerClass,
   formModalTitleClass
 } from './ui/modalStyles'
 
@@ -80,8 +78,13 @@ export default function ConfirmActionModal({
         </div>
 
         <div className={cn(formModalActionsClass, formActionsClassName())}>
-          {confirming && <span className={cn(spinnerClass, formModalSpinnerClass)} aria-hidden />}
-          <Button type="button" variant="primary" disabled={confirming} onClick={onConfirm}>
+          <Button
+            type="button"
+            variant="primary"
+            disabled={confirming}
+            loading={confirming}
+            onClick={onConfirm}
+          >
             {confirmLabel}
           </Button>
           <Button type="button" variant="secondary" disabled={confirming} onClick={onClose}>

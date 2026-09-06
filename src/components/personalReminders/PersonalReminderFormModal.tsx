@@ -1,8 +1,14 @@
 import { useMemo, type FormEvent } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { PERSONAL_REMINDER_RECURRENCE_OPTIONS } from '../../types/personalReminders'
+import {
+  formFieldError,
+  requiredDate,
+  requiredField,
+  submitValidatedForm
+} from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import { CategorySelect, FormField, FormRow, FormSelect } from '../form'
@@ -54,8 +60,17 @@ export default function PersonalReminderFormModal({
     [categories, editingItem]
   )
 
-  const { register, handleSubmit, reset, setValue, watch } = useForm<PersonalReminderFormState>({
-    defaultValues: initialValues
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm<PersonalReminderFormState>({
+    defaultValues: initialValues,
+    mode: 'onSubmit'
   })
 
   useModalFormReset(reset, initialValues, {
@@ -66,7 +81,7 @@ export default function PersonalReminderFormModal({
   const category = watch('category')
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (
@@ -78,30 +93,67 @@ export default function PersonalReminderFormModal({
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره یادآوری'}
     >
-      <FormField label="عنوان" required hint="مثلاً بیمه شخص ثالث پژو ۲۰۶" controlWidth="full">
-        <input type="text" {...register('title')} placeholder="عنوان یادآوری" required />
-      </FormField>
-
-      <FormField label="دسته‌بندی" required controlWidth="full">
-        <CategorySelect
-          value={category}
-          onChange={value => setValue('category', value)}
-          categories={categories}
-          categoryScope="personalReminder"
-          onCategoriesChange={next => {
-            onCategoriesChange(next)
-            if (!next.includes(category)) {
-              setValue('category', next[0] ?? '')
-            }
-          }}
-          aria-label="دسته‌بندی یادآوری"
+      <FormField
+        label="عنوان"
+        required
+        hint="مثلاً بیمه شخص ثالث پژو ۲۰۶"
+        controlWidth="full"
+        error={formFieldError(errors, 'title')}
+      >
+        <input
+          type="text"
+          {...register('title', requiredField('عنوان'))}
+          placeholder="عنوان یادآوری"
         />
       </FormField>
 
+      <Controller
+        name="category"
+        control={control}
+        rules={requiredField('دسته‌بندی')}
+        render={({ field, fieldState }) => (
+          <FormField
+            label="دسته‌بندی"
+            required
+            controlWidth="full"
+            error={fieldState.error?.message}
+          >
+            <CategorySelect
+              value={field.value}
+              onChange={value => {
+                field.onChange(value)
+                setValue('category', value, { shouldValidate: true })
+              }}
+              categories={categories}
+              categoryScope="personalReminder"
+              onCategoriesChange={next => {
+                onCategoriesChange(next)
+                if (!next.includes(category)) {
+                  setValue('category', next[0] ?? '', { shouldValidate: true })
+                }
+              }}
+              aria-label="دسته‌بندی یادآوری"
+              invalid={Boolean(fieldState.error)}
+            />
+          </FormField>
+        )}
+      />
+
       <FormRow>
-        <FormField label="تاریخ موعد" required>
-          <JalaliDatePicker value={watch('dueDate')} onChange={date => setValue('dueDate', date)} />
-        </FormField>
+        <Controller
+          name="dueDate"
+          control={control}
+          rules={requiredDate('تاریخ موعد')}
+          render={({ field, fieldState }) => (
+            <FormField label="تاریخ موعد" required error={fieldState.error?.message}>
+              <JalaliDatePicker
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
 
         <FormSelect
           label="تکرار"

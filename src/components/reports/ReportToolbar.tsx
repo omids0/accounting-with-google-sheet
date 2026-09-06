@@ -61,9 +61,10 @@ export default function ReportToolbar({
           className={recordsRefreshBtnClass}
           onClick={onRefresh}
           disabled={loading}
+          loading={loading}
           aria-label="بارگذاری مجدد"
         >
-          {loading ? '...' : '↻'}
+          ↻
         </Button>
       </div>
 

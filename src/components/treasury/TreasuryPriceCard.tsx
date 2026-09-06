@@ -32,9 +32,10 @@ export default function TreasuryPriceCard({
           size="sm"
           onClick={onRefresh}
           disabled={priceLoading}
+          loading={priceLoading}
           style={{ width: 'auto', padding: '0.35rem 0.6rem' }}
         >
-          {priceLoading ? '...' : 'بروزرسانی'}
+          بروزرسانی
         </Button>
       </div>
       <div className={treasuryPriceGridClass}>

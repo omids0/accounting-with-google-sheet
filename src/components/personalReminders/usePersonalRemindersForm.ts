@@ -35,22 +35,6 @@ export function usePersonalRemindersForm({ onSaved }: UsePersonalRemindersFormOp
 
     if (!spreadsheetId) return
 
-    if (!values.title.trim()) {
-      showError('عنوان را وارد کنید')
-
-      return
-    }
-    if (!values.category) {
-      showError('دسته‌بندی را انتخاب کنید')
-
-      return
-    }
-    if (!values.dueDate) {
-      showError('تاریخ موعد را انتخاب کنید')
-
-      return
-    }
-
     const amount = values.amount === '' ? 0 : Number(values.amount)
 
     if (Number.isNaN(amount) || amount < 0) {

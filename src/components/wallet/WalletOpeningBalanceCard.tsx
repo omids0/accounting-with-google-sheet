@@ -92,8 +92,9 @@ export default function WalletOpeningBalanceCard({
               size="sm"
               onClick={onSave}
               disabled={savingOpening || loading}
+              loading={savingOpening}
             >
-              {savingOpening ? '...' : 'ذخیره'}
+              ذخیره
             </Button>
           </div>
           {onOpenOpeningBalances && (

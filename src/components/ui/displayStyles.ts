@@ -22,6 +22,23 @@ export const spinnerLgClass = cn(
   'h-8 w-8 rounded-full border-[3px] border-[rgba(15,118,110,0.15)] border-t-primary animate-[spin_0.6s_linear_infinite]'
 )
 
+export const loadingDotsClass = 'inline-flex items-center gap-1'
+
+export const loadingDotClass =
+  'h-1.5 w-1.5 rounded-full animate-[loadingDotBlink_1.2s_ease-in-out_infinite]'
+
+export const loadingDotDelayClasses = [
+  '[animation-delay:0s]',
+  '[animation-delay:0.2s]',
+  '[animation-delay:0.4s]'
+] as const
+
+export function loadingDotsToneClass(tone: 'light' | 'primary' | 'danger') {
+  if (tone === 'light') return 'bg-white'
+  if (tone === 'danger') return 'bg-danger'
+  return 'bg-primary'
+}
+
 export function statusBadgeClass(connected?: boolean) {
   return cn(
     'inline-flex items-center gap-[0.3rem] rounded-[20px] px-[0.6rem] py-1 text-[0.75rem] font-medium',

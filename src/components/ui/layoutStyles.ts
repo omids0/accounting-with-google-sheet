@@ -106,9 +106,15 @@ export function headerIconBtnMenuClass(active?: boolean) {
   return cn(headerIconBtnClass, 'text-white', active && 'bg-white/30')
 }
 
-export const headerBackBtnClass = cn(headerIconBtnClass, 'text-white')
+export const headerGridMenuClass = 'col-start-1 row-start-1'
 
-export const headerIconSpacerClass = 'h-touch-min w-touch-min flex-shrink-0'
+export const headerGridCenterClass = 'col-start-2 row-start-1'
+
+export const headerGridEndClass = 'col-start-3 row-start-1'
+
+export const headerBackBtnClass = cn(headerIconBtnClass, headerGridEndClass, 'text-white')
+
+export const headerIconSpacerClass = cn('h-touch-min w-touch-min flex-shrink-0', headerGridEndClass)
 
 export * from './sidebarMenuStyles'
 

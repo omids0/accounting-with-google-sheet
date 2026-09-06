@@ -104,9 +104,10 @@ export function ReportDateFilterBar({
           className={recordsRefreshBtnClass}
           onClick={onRefresh}
           disabled={loading}
+          loading={loading}
           aria-label="بارگذاری مجدد"
         >
-          {loading ? '...' : '↻'}
+          ↻
         </Button>
       </div>
 
@@ -160,9 +161,10 @@ export function ReportStaticMetaBar({
         className={recordsRefreshBtnClass}
         onClick={onRefresh}
         disabled={loading}
+        loading={loading}
         aria-label="بارگذاری مجدد"
       >
-        {loading ? '...' : '↻'}
+        ↻
       </Button>
     </div>
   )

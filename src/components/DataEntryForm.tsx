@@ -14,6 +14,7 @@ import { appendRecord } from '../services/sheets'
 import type { CustomForm, FieldConfig } from '../types'
 import { requireAuth } from '../utils/authGuard'
 import { cn } from '../utils/cn'
+import { formFieldError } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
 import Button from './ui/Button'
@@ -43,6 +44,7 @@ type EntryFieldRendererProps = {
   value: string | number
   formId: string
   controlWidth?: FormControlWidth
+  error?: string
   onChange: (value: string | number) => void
   onCategoriesChange: (categories: string[]) => void
 }
@@ -52,6 +54,7 @@ function EntryFieldRenderer({
   value,
   formId,
   controlWidth,
+  error,
   onChange,
   onCategoriesChange
 }: EntryFieldRendererProps) {
@@ -62,6 +65,7 @@ function EntryFieldRenderer({
       onChange={onChange}
       formId={formId}
       controlWidth={controlWidth}
+      error={error}
       onCategoriesChange={onCategoriesChange}
     />
   )
@@ -70,11 +74,13 @@ function EntryFieldRenderer({
 function StandardEntryFormFields({
   activeForm,
   values,
+  errors,
   setValue,
   onCategoriesRefresh
 }: {
   activeForm: CustomForm
   values: Record<string, string | number>
+  errors: ReturnType<typeof useForm<Record<string, string | number>>>['formState']['errors']
   setValue: (id: string, value: string | number) => void
   onCategoriesRefresh: () => void
 }) {
@@ -102,6 +108,7 @@ function StandardEntryFormFields({
         value={values[field.id] ?? ''}
         formId={activeForm.id}
         controlWidth={options?.controlWidth}
+        error={formFieldError(errors, field.id)}
         onChange={next => setValue(field.id, next)}
         onCategoriesChange={handleCategoriesChange}
       />
@@ -131,8 +138,17 @@ export default function DataEntryForm({
   const initialValues = useMemo(() => buildInitialValues(activeForm), [activeForm])
   const useStandardLayout = isStandardEntryForm(activeForm)
 
-  const { handleSubmit, reset, setValue, watch } = useForm<Record<string, string | number>>({
-    defaultValues: initialValues
+  const {
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    setError,
+    clearErrors,
+    formState: { errors }
+  } = useForm<Record<string, string | number>>({
+    defaultValues: initialValues,
+    mode: 'onSubmit'
   })
 
   useModalFormReset(reset, initialValues, { resetKey: activeForm.id })
@@ -146,21 +162,35 @@ export default function DataEntryForm({
     }
   }
 
+  const validateRequiredFields = (formValues: Record<string, string | number>) => {
+    clearErrors()
+    let hasError = false
+    let firstMessage: string | undefined
+
+    for (const field of activeForm.fields) {
+      if (!field.required) continue
+
+      const val = formValues[field.id]
+
+      if (val === '' || val === undefined || val === null) {
+        const message = `«${field.label}» الزامی است`
+        setError(field.id, { message })
+        firstMessage ??= message
+        hasError = true
+      }
+    }
+
+    if (firstMessage) {
+      showError(firstMessage)
+    }
+
+    return !hasError
+  }
+
   const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     await handleSubmit(async formValues => {
+      if (!validateRequiredFields(formValues)) return
       if (!isConfigured() || !requireAuth()) return
-
-      for (const field of activeForm.fields) {
-        if (field.required) {
-          const val = formValues[field.id]
-
-          if (val === '' || val === undefined || val === null) {
-            showError(`فیلد «${field.label}» الزامی است`)
-
-            return
-          }
-        }
-      }
 
       onLoadingChange(true)
       try {
@@ -190,6 +220,7 @@ export default function DataEntryForm({
           <StandardEntryFormFields
             activeForm={activeForm}
             values={values}
+            errors={errors}
             setValue={(id, value) => setValue(id, value)}
             onCategoriesRefresh={onCategoriesRefresh}
           />
@@ -201,6 +232,7 @@ export default function DataEntryForm({
               value={values[field.id] ?? ''}
               onChange={next => setValue(field.id, next)}
               formId={activeForm.id}
+              error={formFieldError(errors, field.id)}
               onCategoriesChange={handleCategoriesChange}
             />
           ))
@@ -217,8 +249,8 @@ export default function DataEntryForm({
                 : 'primary'
             }
             disabled={loading}
+            loading={loading}
           >
-            {loading && <span className="spinner" />}
             ذخیره
           </Button>
           <Button type="button" variant="secondary" disabled={loading} onClick={() => onCancel?.()}>

@@ -1,14 +1,21 @@
 import { useMemo, type FormEvent } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
+import type { ReceivableFormState, ReceivableWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import {
+  formFieldError,
+  requiredDate,
+  requiredField,
+  requiredPositiveAmount,
+  submitValidatedForm
+} from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import type { CounterpartyWithRow } from '../counterparties/types'
 import { CategorySelect, CounterpartySelect, FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
-import type { ReceivableFormState, ReceivableWithRow } from './types'
 
 type ReceivableFormModalProps = {
   open: boolean
@@ -55,8 +62,17 @@ export default function ReceivableFormModal({
     [editingItem, categories]
   )
 
-  const { register, handleSubmit, reset, setValue, watch } = useForm<ReceivableFormState>({
-    defaultValues: initialValues
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm<ReceivableFormState>({
+    defaultValues: initialValues,
+    mode: 'onSubmit'
   })
 
   useModalFormReset(reset, initialValues, {
@@ -65,10 +81,9 @@ export default function ReceivableFormModal({
   })
 
   const category = watch('category')
-  const counterparty = watch('debtor')
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (
@@ -80,47 +95,99 @@ export default function ReceivableFormModal({
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره طلب'}
     >
-      <FormField label="عنوان" required controlWidth="full">
-        <input type="text" {...register('title')} placeholder="مثلاً: قرض خرید ماشین" />
-      </FormField>
-
-      <FormField label="طرف حساب" required controlWidth="full">
-        <CounterpartySelect
-          value={counterparty}
-          onChange={value => setValue('debtor', value)}
-          counterparties={counterparties}
-          onCounterpartiesChange={onCounterpartiesChange}
-          aria-label="طرف حساب طلب"
+      <FormField label="عنوان" required controlWidth="full" error={formFieldError(errors, 'title')}>
+        <input
+          type="text"
+          {...register('title', requiredField('عنوان'))}
+          placeholder="مثلاً: قرض خرید ماشین"
         />
       </FormField>
 
-      <FormField label="دسته‌بندی" required controlWidth="full">
-        <CategorySelect
-          value={category}
-          onChange={value => setValue('category', value)}
-          categories={categories}
-          categoryScope="receivable"
-          onCategoriesChange={next => {
-            setCategories(next)
-            if (!next.includes(category)) {
-              setValue('category', next[0] ?? '')
-            }
-          }}
-          aria-label="دسته‌بندی طلب"
-        />
-      </FormField>
+      <Controller
+        name="debtor"
+        control={control}
+        rules={requiredField('طرف حساب')}
+        render={({ field, fieldState }) => (
+          <FormField
+            label="طرف حساب"
+            required
+            controlWidth="full"
+            error={fieldState.error?.message}
+          >
+            <CounterpartySelect
+              value={field.value}
+              onChange={field.onChange}
+              counterparties={counterparties}
+              onCounterpartiesChange={onCounterpartiesChange}
+              aria-label="طرف حساب طلب"
+              invalid={Boolean(fieldState.error)}
+            />
+          </FormField>
+        )}
+      />
+
+      <Controller
+        name="category"
+        control={control}
+        rules={requiredField('دسته‌بندی')}
+        render={({ field, fieldState }) => (
+          <FormField
+            label="دسته‌بندی"
+            required
+            controlWidth="full"
+            error={fieldState.error?.message}
+          >
+            <CategorySelect
+              value={field.value}
+              onChange={value => {
+                field.onChange(value)
+                setValue('category', value, { shouldValidate: true })
+              }}
+              categories={categories}
+              categoryScope="receivable"
+              onCategoriesChange={next => {
+                setCategories(next)
+                if (!next.includes(category)) {
+                  setValue('category', next[0] ?? '', { shouldValidate: true })
+                }
+              }}
+              aria-label="دسته‌بندی طلب"
+              invalid={Boolean(fieldState.error)}
+            />
+          </FormField>
+        )}
+      />
 
       <FormRow>
-        <FormField label="مبلغ" required>
-          <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
-        </FormField>
+        <Controller
+          name="amount"
+          control={control}
+          rules={requiredPositiveAmount()}
+          render={({ field, fieldState }) => (
+            <FormField label="مبلغ" required error={fieldState.error?.message}>
+              <AmountInput
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
 
-        <FormField label="تاریخ قرض گرفتن" required>
-          <JalaliDatePicker
-            value={watch('borrowDate')}
-            onChange={iso => setValue('borrowDate', iso)}
-          />
-        </FormField>
+        <Controller
+          name="borrowDate"
+          control={control}
+          rules={requiredDate('تاریخ قرض')}
+          render={({ field, fieldState }) => (
+            <FormField label="تاریخ قرض گرفتن" required error={fieldState.error?.message}>
+              <JalaliDatePicker
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
       </FormRow>
 
       <FormField label="توضیحات" controlWidth="full">

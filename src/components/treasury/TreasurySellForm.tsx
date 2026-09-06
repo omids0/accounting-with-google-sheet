@@ -11,7 +11,6 @@ import JalaliDatePicker from '../JalaliDatePicker'
 import type { VaultFormState } from './types'
 import { parseQuantityInput } from './utils'
 import Button from '../ui/Button'
-import { spinnerClass } from '../ui/displayStyles'
 import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
 type TreasurySellFormProps = {
@@ -89,9 +88,9 @@ export default function TreasurySellForm({
           variant="outflow"
           size="sm"
           disabled={selling}
+          loading={selling}
           onClick={() => void handleSubmit(values => onSell(values))()}
         >
-          {selling && <span className={spinnerClass} />}
           ثبت فروش
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel}>

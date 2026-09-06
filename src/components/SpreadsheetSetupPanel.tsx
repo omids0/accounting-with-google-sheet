@@ -13,7 +13,6 @@ import {
 import type { SpreadsheetEntry } from '../types'
 import AppIcon from './AppIcon'
 import { FormField, FormSelect } from './form'
-import { spinnerClass } from './ui/displayStyles'
 import { animateInClass } from './ui/layoutStyles'
 import {
   loginCardClass,
@@ -134,9 +133,9 @@ export default function SpreadsheetSetupPanel({
               variant="primary"
               onClick={handleActivate}
               disabled={loading || !selectedId}
+              loading={loading}
               style={{ width: '100%' }}
             >
-              {loading && <span className={spinnerClass} />}
               ادامه با این شیت
             </Button>
 
@@ -179,9 +178,9 @@ export default function SpreadsheetSetupPanel({
               variant="primary"
               onClick={handleCreate}
               disabled={loading}
+              loading={loading}
               style={{ width: '100%' }}
             >
-              {loading && <span className={spinnerClass} />}
               ساخت و ادامه
             </Button>
 

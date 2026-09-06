@@ -1,7 +1,13 @@
 import { useMemo, type FormEvent } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import {
+  formFieldError,
+  requiredField,
+  requiredNonNegativeAmount,
+  submitValidatedForm
+} from '../../utils/formValidation'
 import AmountInput from '../AmountInput'
 import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
@@ -38,8 +44,15 @@ export default function WalletFormModal({
     [editingAccount]
   )
 
-  const { register, handleSubmit, reset, setValue, watch } = useForm<WalletFormState>({
-    defaultValues: initialValues
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm<WalletFormState>({
+    defaultValues: initialValues,
+    mode: 'onSubmit'
   })
 
   useModalFormReset(reset, initialValues, {
@@ -48,7 +61,7 @@ export default function WalletFormModal({
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (
@@ -61,13 +74,27 @@ export default function WalletFormModal({
       saveLabel={editingAccount ? 'ذخیره تغییرات' : 'ذخیره حساب'}
     >
       <FormRow>
-        <FormField label="عنوان" required>
-          <input {...register('title')} placeholder="مثلاً: بانک ملت، نقدی، ..." />
+        <FormField label="عنوان" required error={formFieldError(errors, 'title')}>
+          <input
+            {...register('title', requiredField('عنوان'))}
+            placeholder="مثلاً: بانک ملت، نقدی، ..."
+          />
         </FormField>
 
-        <FormField label="موجودی" required>
-          <AmountInput value={watch('balance')} onChange={val => setValue('balance', val)} />
-        </FormField>
+        <Controller
+          name="balance"
+          control={control}
+          rules={requiredNonNegativeAmount('موجودی را وارد کنید')}
+          render={({ field, fieldState }) => (
+            <FormField label="موجودی" required error={fieldState.error?.message}>
+              <AmountInput
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
       </FormRow>
 
       <FormField label="توضیحات" controlWidth="full">

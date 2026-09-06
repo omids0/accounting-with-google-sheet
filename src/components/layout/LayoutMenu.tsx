@@ -125,16 +125,13 @@ export default function LayoutMenu({
 
             <button
               type="button"
-              className={appMenuPromoItemClass(tab === 'counterparties')}
+              className={appMenuItemClass(tab === 'counterparties')}
               onClick={() => onTabChange('counterparties')}
             >
-              <span className={appMenuPromoIconClass(tab === 'counterparties')}>
+              <span className={appMenuItemIconClass(tab === 'counterparties')}>
                 <AppIcon name="counterparties" size={20} strokeWidth={1.75} />
               </span>
-              <span className={appMenuPromoTextClass}>
-                <span className={appMenuPromoLabelClass}>طرف حساب‌ها</span>
-                <span className={appMenuPromoHintClass}>اشخاص، تماس و حساب‌های بانکی</span>
-              </span>
+              <span className={appMenuItemLabelClass}>طرف حساب‌ها</span>
             </button>
 
             <div className={appMenuGroupClass}>

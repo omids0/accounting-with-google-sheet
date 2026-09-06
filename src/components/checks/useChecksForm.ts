@@ -6,7 +6,7 @@ import { getSettings, isConfigured } from '../../services/settings'
 import type { Check } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
-import { showError, showSuccess } from '../../utils/toast'
+import { showSuccess } from '../../utils/toast'
 
 type UseChecksFormOptions = {
   onSaved: () => Promise<void>
@@ -35,32 +35,6 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
 
   const handleSubmit = async (form: CheckFormState) => {
     if (!isConfigured() || !requireAuth()) return
-
-    if (!form.checkNumber.trim()) {
-      showError('شماره چک الزامی است')
-
-      return
-    }
-    if (!form.counterparty.trim()) {
-      showError('طرف حساب الزامی است')
-
-      return
-    }
-    if (!form.amount || Number(form.amount) <= 0) {
-      showError('مبلغ را وارد کنید')
-
-      return
-    }
-    if (!form.creationDate) {
-      showError('تاریخ صدور الزامی است')
-
-      return
-    }
-    if (!form.dueDate) {
-      showError('تاریخ سررسید الزامی است')
-
-      return
-    }
 
     const settings = getSettings()!
 

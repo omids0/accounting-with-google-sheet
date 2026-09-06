@@ -147,8 +147,8 @@ export default function PushStatusSection({
             size="sm"
             onClick={onEnablePush}
             disabled={saving || pushStatus !== 'supported'}
+            loading={saving}
           >
-            {saving && <span className="spinner" />}
             فعال‌سازی نوتیف
           </Button>
         ) : (

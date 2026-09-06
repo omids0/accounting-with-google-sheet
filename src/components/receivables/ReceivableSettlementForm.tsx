@@ -6,7 +6,6 @@ import { formatMoney } from '../../utils/formatMoney'
 import { FormField } from '../form'
 import type { SettlementFormState } from './types'
 import Button from '../ui/Button'
-import { spinnerClass } from '../ui/displayStyles'
 import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
 type ReceivableSettlementFormProps = {
@@ -61,9 +60,9 @@ export default function ReceivableSettlementForm({
           variant="inflow"
           size="sm"
           disabled={settling}
+          loading={settling}
           onClick={() => void handleSubmit(values => onSubmit(values))()}
         >
-          {settling && <span className={spinnerClass} />}
           تسویه
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel}>

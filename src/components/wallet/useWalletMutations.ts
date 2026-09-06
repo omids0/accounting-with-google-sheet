@@ -83,17 +83,6 @@ export function useWalletMutations({
   const handleSubmit = async (form: WalletFormState) => {
     if (!isConfigured() || !requireAuth()) return
 
-    if (!form.title.trim()) {
-      showError('عنوان الزامی است')
-
-      return
-    }
-    if (form.balance === '' || Number(form.balance) < 0) {
-      showError('موجودی را وارد کنید')
-
-      return
-    }
-
     const settings = getSettings()!
 
     setSaving(true)
