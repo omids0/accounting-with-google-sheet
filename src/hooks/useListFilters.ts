@@ -9,6 +9,7 @@ import type { PaymentStatusFilter } from '../components/PageFilterPanel'
 import { formatDateRangeLabel, isDateInRange, resolveDateRange } from '../utils/dateRange'
 import {
   buildCategoryChip,
+  buildCounterpartyChip,
   buildDateRangeChip,
   buildPaymentStatusChip,
   buildSearchChip,
@@ -24,6 +25,8 @@ export type UseListFiltersOptions<T> = {
   getDate?: (item: T) => string
   getCategory?: (item: T) => string
   categorySeed?: string[]
+  getCounterparty?: (item: T) => string
+  counterpartySeed?: string[]
   isSettled?: (item: T) => boolean
   paymentStatusLabels?: PaymentStatusLabels
   defaultDateFilter?: AppliedDateRangeFilter
@@ -36,12 +39,15 @@ export function useListFilters<T>({
   getDate,
   getCategory,
   categorySeed = [],
+  getCounterparty,
+  counterpartySeed = [],
   isSettled,
   paymentStatusLabels,
   defaultDateFilter,
   dateChipLockedPresets = []
 }: UseListFiltersOptions<T>) {
   const hasCategory = Boolean(getCategory)
+  const hasCounterparty = Boolean(getCounterparty)
 
   const initialDateFilter = defaultDateFilter ?? createAllDateRangeFilter()
 
@@ -50,12 +56,14 @@ export function useListFilters<T>({
   const [draftSearch, setDraftSearch] = useState('')
   const [draftPaymentStatus, setDraftPaymentStatus] = useState<PaymentStatusFilter>('all')
   const [draftCategory, setDraftCategory] = useState('all')
+  const [draftCounterparty, setDraftCounterparty] = useState('all')
   const [draftDatePreset, setDraftDatePreset] = useState<DateRangeFilterPreset>(
     () => initialDateFilter.preset
   )
   const [draftCustomRange, setDraftCustomRange] = useState(() => initialDateFilter.customRange)
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<PaymentStatusFilter>('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [counterpartyFilter, setCounterpartyFilter] = useState('all')
   const [datePreset, setDatePreset] = useState<DateRangeFilterPreset>(
     () => initialDateFilter.preset
   )
@@ -80,6 +88,20 @@ export function useListFilters<T>({
     return [...options]
   }, [categorySeed, getCategory, items])
 
+  const counterpartyOptions = useMemo(() => {
+    if (!getCounterparty) return []
+
+    const options = new Set<string>(counterpartySeed)
+
+    for (const item of items) {
+      const counterparty = getCounterparty(item)
+
+      if (counterparty) options.add(counterparty)
+    }
+
+    return [...options].sort((a, b) => a.localeCompare(b, 'fa'))
+  }, [counterpartySeed, getCounterparty, items])
+
   const filteredItems = useMemo(
     () =>
       items.filter(item => {
@@ -87,6 +109,10 @@ export function useListFilters<T>({
 
         if (hasCategory && getCategory && categoryFilter !== 'all') {
           if (getCategory(item) !== categoryFilter) return false
+        }
+
+        if (hasCounterparty && getCounterparty && counterpartyFilter !== 'all') {
+          if (getCounterparty(item) !== counterpartyFilter) return false
         }
 
         if (getDate && dateRange && !isDateInRange(getDate(item), dateRange)) return false
@@ -105,6 +131,9 @@ export function useListFilters<T>({
       hasCategory,
       getCategory,
       categoryFilter,
+      hasCounterparty,
+      getCounterparty,
+      counterpartyFilter,
       getDate,
       dateRange,
       paymentStatusFilter,
@@ -116,10 +145,18 @@ export function useListFilters<T>({
     setDraftSearch(searchQuery)
     setDraftPaymentStatus(paymentStatusFilter)
     setDraftCategory(categoryFilter)
+    setDraftCounterparty(counterpartyFilter)
     setDraftDatePreset(datePreset)
     setDraftCustomRange(customRange)
     setFilterModalOpen(true)
-  }, [searchQuery, paymentStatusFilter, categoryFilter, datePreset, customRange])
+  }, [
+    searchQuery,
+    paymentStatusFilter,
+    categoryFilter,
+    counterpartyFilter,
+    datePreset,
+    customRange
+  ])
 
   const resetDateFilter = useCallback(() => {
     setDatePreset(initialDateFilter.preset)
@@ -139,6 +176,9 @@ export function useListFilters<T>({
         hasCategory &&
           categoryFilter !== 'all' &&
           buildCategoryChip(categoryFilter, () => setCategoryFilter('all')),
+        hasCounterparty &&
+          counterpartyFilter !== 'all' &&
+          buildCounterpartyChip(counterpartyFilter, () => setCounterpartyFilter('all')),
         datePreset !== 'all' &&
           dateRange &&
           buildDateRangeChip(
@@ -152,6 +192,8 @@ export function useListFilters<T>({
       paymentStatusLabels,
       hasCategory,
       categoryFilter,
+      hasCounterparty,
+      counterpartyFilter,
       datePreset,
       dateRange,
       dateChipLockedPresets,
@@ -168,6 +210,7 @@ export function useListFilters<T>({
     setDraftSearch('')
     setDraftPaymentStatus('all')
     setDraftCategory('all')
+    setDraftCounterparty('all')
     setDraftDatePreset(initialDateFilter.preset)
     setDraftCustomRange(initialDateFilter.customRange)
   }
@@ -176,6 +219,7 @@ export function useListFilters<T>({
     setSearchQuery(draftSearch)
     setPaymentStatusFilter(draftPaymentStatus)
     setCategoryFilter(draftCategory)
+    setCounterpartyFilter(draftCounterparty)
     setDatePreset(draftDatePreset)
     setCustomRange(draftCustomRange)
     setFilterModalOpen(false)
@@ -185,6 +229,7 @@ export function useListFilters<T>({
     setSearchQuery('')
     setPaymentStatusFilter('all')
     setCategoryFilter('all')
+    setCounterpartyFilter('all')
     resetDateFilter()
   }, [resetDateFilter])
 
@@ -192,6 +237,7 @@ export function useListFilters<T>({
     datePreset !== 'all' ||
     paymentStatusFilter !== 'all' ||
     categoryFilter !== 'all' ||
+    counterpartyFilter !== 'all' ||
     searchQuery.trim() !== ''
 
   return {
@@ -204,14 +250,18 @@ export function useListFilters<T>({
     setDraftPaymentStatus,
     draftCategory,
     setDraftCategory,
+    draftCounterparty,
+    setDraftCounterparty,
     draftDatePreset,
     setDraftDatePreset,
     draftCustomRange,
     setDraftCustomRange,
     datePreset,
     categoryFilter,
+    counterpartyFilter,
     paymentStatusFilter,
     categoryOptions,
+    counterpartyOptions,
     filteredItems,
     hasActiveFilters,
     openFilterModal,

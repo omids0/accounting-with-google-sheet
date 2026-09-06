@@ -63,6 +63,13 @@ export const UI_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
     </IconSvg>
   ),
 
+  contact: props => (
+    <IconSvg {...props}>
+      <circle cx="12" cy="8.25" r="2.75" />
+      <path d="M6.5 18.5c0-2.75 2.45-5 5.5-5s5.5 2.25 5.5 5" />
+    </IconSvg>
+  ),
+
   warning: props => (
     <IconSvg {...props}>
       <path className={appIconBgClass} d="M12 4 4.5 19.5h15L12 4Z" stroke="none" />

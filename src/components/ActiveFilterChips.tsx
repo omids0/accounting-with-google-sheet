@@ -26,6 +26,7 @@ const FILTER_CHIP_ICONS: Record<FilterChipKind, AppIconName> = {
   search: 'search',
   date: 'clock',
   category: 'folder',
+  counterparty: 'contact',
   payment: 'check',
   sort: 'swap',
   other: 'filter'
@@ -95,7 +96,7 @@ export default function ActiveFilterChips({
                 onClick={chip.onRemove}
                 aria-label={`حذف فیلتر ${chip.label}`}
               >
-                <AppIcon name="close" size={12} strokeWidth={2.4} />
+                <AppIcon name="x-mark" size={11} strokeWidth={2.5} />
               </button>
             )}
           </span>

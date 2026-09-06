@@ -13,6 +13,7 @@ export type AppIconName =
   | 'empty-inbox'
   | 'edit'
   | 'folder'
+  | 'contact'
   | 'warning'
   | 'back'
   | 'menu'

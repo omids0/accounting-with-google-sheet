@@ -53,7 +53,7 @@ export const activeFilterChipsClass = activeFilterBarClass
 
 export function activeFilterChipClass(kind: FilterChipKind = 'other') {
   return cn(
-    'active-filter-chip inline-flex max-w-full min-h-touch-min items-center gap-[0.1rem] rounded-full border py-[0.15rem] pe-[0.35rem] ps-[0.15rem] text-[0.78rem] font-semibold leading-[1.2] text-primary-dark shadow-[0_1px_4px_rgba(15,23,42,0.05)]',
+    'active-filter-chip inline-flex max-w-full items-center gap-[0.1rem] rounded-full border py-[0.15rem] pe-[0.35rem] ps-[0.15rem] text-[0.78rem] font-semibold leading-[1.2] text-primary-dark shadow-[0_1px_4px_rgba(15,23,42,0.05)]',
     '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))_0%,var(--color-surface)_100%)]',
     kind === 'sort' &&
       'border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))] [background:linear-gradient(145deg,color-mix(in_srgb,var(--color-accent-soft)_80%,var(--color-surface))_0%,var(--color-surface)_100%)]',
@@ -61,7 +61,14 @@ export function activeFilterChipClass(kind: FilterChipKind = 'other') {
   )
 }
 
-export type FilterChipKind = 'search' | 'date' | 'category' | 'payment' | 'sort' | 'other'
+export type FilterChipKind =
+  | 'search'
+  | 'date'
+  | 'category'
+  | 'counterparty'
+  | 'payment'
+  | 'sort'
+  | 'other'
 
 export const activeFilterChipIconClass =
   'inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary'
@@ -76,7 +83,7 @@ export function activeFilterChipMainClass(clickable?: boolean) {
 }
 
 export const activeFilterChipRemoveClass = cn(
-  'active-filter-chip__remove flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+  'active-filter-chip__remove flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   'hover:bg-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
 )
 
