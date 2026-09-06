@@ -3,11 +3,13 @@ import { useState, useEffect, useCallback } from 'react'
 import type { ReceivableWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { syncCategoriesFromSheet } from '../../services/categories'
+import { ensureCounterpartiesSheet, fetchCounterparties } from '../../services/counterparties'
 import { ensureReceivablesSheet, fetchReceivables } from '../../services/receivables'
 import { getSettings, isConfigured, getReceivableCategories } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
+import type { CounterpartyWithRow } from '../counterparties/types'
 
 export function useReceivablesData() {
   const dataRevision = useDataRefresh()
@@ -20,6 +22,7 @@ export function useReceivablesData() {
   })
 
   const [categories, setCategories] = useState<string[]>(() => getReceivableCategories())
+  const [counterparties, setCounterparties] = useState<CounterpartyWithRow[]>([])
 
   const loadItems = useCallback(async () => {
     const settings = getSettings()
@@ -32,6 +35,8 @@ export function useReceivablesData() {
       await ensureReceivablesSheet(settings.spreadsheetId)
       await syncCategoriesFromSheet(settings.spreadsheetId)
       setCategories(getReceivableCategories())
+      await ensureCounterpartiesSheet(settings.spreadsheetId)
+      setCounterparties(await fetchCounterparties(settings.spreadsheetId))
 
       const data = await fetchReceivables(settings.spreadsheetId)
 
@@ -53,6 +58,8 @@ export function useReceivablesData() {
     loading,
     categories,
     setCategories,
+    counterparties,
+    setCounterparties,
     loadItems
   }
 }

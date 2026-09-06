@@ -57,6 +57,7 @@ export interface ReceivablePayment {
 export interface Receivable {
   id: string
   createdAt: string
+  title: string
   debtor: string
   category: string
   amount: number

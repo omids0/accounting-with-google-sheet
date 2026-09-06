@@ -11,6 +11,7 @@ import ReceivablePaymentForm from './ReceivablePaymentForm'
 import ReceivableSettlementForm from './ReceivableSettlementForm'
 import type { ReceivableWithRow } from './types'
 import { buildSettlementTitle } from './utils'
+import { getReceivableDisplayTitle } from '../../services/receivablesRow'
 import Button from '../ui/Button'
 import {
   cardActionButtonsClass,
@@ -89,6 +90,10 @@ export default function ReceivableCard({
   const showPaymentForm = paymentReceivableId === item.id
   const showSettlementForm = settlementReceivableId === item.id
 
+  const displayTitle = getReceivableDisplayTitle(item)
+
+  const showDebtorInSubtitle = Boolean(item.title.trim())
+
   return (
     <div className={installmentCardClass({ expanded, complete })}>
       <div className={cardHeaderWithEditClass}>
@@ -98,8 +103,9 @@ export default function ReceivableCard({
           onClick={() => onToggleExpand(expanded)}
         >
           <div>
-            <div className={listCardTitleClass}>{item.debtor}</div>
+            <div className={listCardTitleClass}>{displayTitle}</div>
             <div className={listCardSubtitleClass}>
+              {showDebtorInSubtitle && <span>{item.debtor} · </span>}
               {item.category && <span>{item.category} · </span>}
               <span className={listCardAmountPillClass}>{formatMoney(item.amount)}</span>
               {complete ? ' · تسویه شده' : ` · مانده: ${formatMoney(remaining)}`}
@@ -108,7 +114,7 @@ export default function ReceivableCard({
               value={progress}
               variant={complete ? 'complete' : progress >= 100 ? 'success' : 'default'}
               animateIndex={index}
-              aria-label={`پیشرفت تسویه ${item.debtor}`}
+              aria-label={`پیشرفت تسویه ${displayTitle}`}
             />
           </div>
         </button>
@@ -194,7 +200,7 @@ export default function ReceivableCard({
                 <ReceivableSettlementForm
                   receivableId={item.id}
                   remaining={remaining}
-                  defaultTitle={buildSettlementTitle(item.debtor)}
+                  defaultTitle={buildSettlementTitle(item)}
                   defaultNote={item.note ?? ''}
                   settling={settlingId === item.id}
                   onSubmit={onSettle}

@@ -35,7 +35,7 @@ export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
     features: [
       {
         title: 'ثبت طلب',
-        description: 'عنوان، مبلغ کل، دسته‌بندی و تاریخ. پیگیری مبلغ باقی‌مانده.'
+        description: 'عنوان، طرف حساب، مبلغ کل، دسته‌بندی و تاریخ. پیگیری مبلغ باقی‌مانده.'
       },
       {
         title: 'دریافت جزئی',

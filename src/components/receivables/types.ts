@@ -7,6 +7,7 @@ export type ReceivablesPageProps = {
 }
 
 export type ReceivableFormState = {
+  title: string
   debtor: string
   category: string
   amount: number | ''
