@@ -1,4 +1,5 @@
 import AppIcon from '../../AppIcon'
+import DragReorderHandle from '../../ui/DragReorderHandle'
 import {
   categorySelectActionsClass,
   categorySelectConfirmActionsClass,
@@ -23,6 +24,18 @@ interface CategorySelectItemProps {
   confirmDelete: string | null
   editText: string
   categoriesCount: number
+  canReorder?: boolean
+  dragging?: boolean
+  dragProps?: {
+    'data-drag-over'?: boolean
+    onDragOver: (event: React.DragEvent<HTMLElement>) => void
+    onDrop: (event: React.DragEvent<HTMLElement>) => void
+  }
+  handleProps?: {
+    draggable: boolean
+    onDragStart: (event: React.DragEvent<HTMLElement>) => void
+    onDragEnd: () => void
+  }
   onSelect: (category: string) => void
   onStartEdit: (category: string) => void
   onCancelEdit: () => void
@@ -42,6 +55,10 @@ export default function CategorySelectItem({
   confirmDelete,
   editText,
   categoriesCount,
+  canReorder = false,
+  dragging = false,
+  dragProps,
+  handleProps,
   onSelect,
   onStartEdit,
   onCancelEdit,
@@ -62,8 +79,11 @@ export default function CategorySelectItem({
       className={categorySelectItemClass({
         selected: isSelected,
         editing: isEditing,
-        confirming: isConfirmingDelete
+        confirming: isConfirmingDelete,
+        dragging,
+        dragOver: dragProps?.['data-drag-over']
       })}
+      {...dragProps}
     >
       {isConfirmingDelete ? (
         <div className={categorySelectConfirmClass}>
@@ -126,6 +146,15 @@ export default function CategorySelectItem({
         </div>
       ) : (
         <>
+          {canReorder && handleProps && (
+            <DragReorderHandle
+              label={`تغییر ترتیب ${category}`}
+              disabled={saving}
+              draggable={handleProps.draggable}
+              onDragStart={handleProps.onDragStart}
+              onDragEnd={handleProps.onDragEnd}
+            />
+          )}
           <button
             type="button"
             role="option"

@@ -133,18 +133,31 @@ export const categorySelectListClass =
 export function categorySelectItemClass({
   selected,
   editing,
-  confirming
+  confirming,
+  dragging,
+  dragOver
 }: {
   selected?: boolean
   editing?: boolean
   confirming?: boolean
+  dragging?: boolean
+  dragOver?: boolean
 }) {
   return cn(
-    'mb-1 flex items-center gap-1 rounded-sm transition-[background] duration-[var(--duration-fast)] last:mb-0',
+    'mb-1 flex items-center gap-1 rounded-sm transition-[background,opacity,box-shadow] duration-[var(--duration-fast)] last:mb-0',
     selected && !editing && !confirming && 'bg-[rgba(15,118,110,0.08)]',
-    !editing && !confirming && 'hover:bg-bg'
+    !editing && !confirming && 'hover:bg-bg',
+    dragging && 'opacity-55',
+    dragOver && 'shadow-[inset_0_2px_0_var(--color-primary)]'
   )
 }
+
+export const categorySelectDragHandleClass = cn(
+  'inline-flex h-touch-min w-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-sm border-none bg-transparent p-0 text-muted transition-[color,background] duration-[var(--duration-fast)]',
+  'hover:enabled:bg-bg hover:enabled:text-primary-dark active:cursor-grabbing',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] focus-visible:ring-offset-2',
+  'disabled:cursor-not-allowed disabled:opacity-45'
+)
 
 export const categorySelectOptionBtnClass = cn(
   'flex min-h-touch-min min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-3 py-2 text-right font-[inherit] text-[0.92rem] text-text transition-[color,background-color] duration-[var(--duration-fast)]',

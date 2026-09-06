@@ -93,6 +93,17 @@ export const UI_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
     </IconSvg>
   ),
 
+  grip: props => (
+    <IconSvg {...props}>
+      <circle cx="9" cy="7" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="7" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="12" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="17" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="17" r="1.1" fill="currentColor" stroke="none" />
+    </IconSvg>
+  ),
+
   settings: props => (
     <IconSvg {...props}>
       <circle cx="12" cy="12" r="3.1" className={appIconBgClass} stroke="none" />

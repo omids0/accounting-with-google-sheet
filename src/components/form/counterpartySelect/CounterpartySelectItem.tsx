@@ -1,6 +1,7 @@
 import { getCounterpartyFullName } from '../../../services/counterparties'
 import AppIcon from '../../AppIcon'
 import type { CounterpartyWithRow } from '../../counterparties/types'
+import DragReorderHandle from '../../ui/DragReorderHandle'
 import {
   categorySelectActionsClass,
   categorySelectConfirmActionsClass,
@@ -20,6 +21,18 @@ interface CounterpartySelectItemProps {
   manageMode: boolean
   saving: boolean
   confirmDelete: CounterpartyWithRow | null
+  canReorder?: boolean
+  dragging?: boolean
+  dragProps?: {
+    'data-drag-over'?: boolean
+    onDragOver: (event: React.DragEvent<HTMLElement>) => void
+    onDrop: (event: React.DragEvent<HTMLElement>) => void
+  }
+  handleProps?: {
+    draggable: boolean
+    onDragStart: (event: React.DragEvent<HTMLElement>) => void
+    onDragEnd: () => void
+  }
   onSelect: (name: string) => void
   onStartEdit: (item: CounterpartyWithRow) => void
   onConfirmDelete: (item: CounterpartyWithRow) => void
@@ -33,6 +46,10 @@ export default function CounterpartySelectItem({
   manageMode,
   saving,
   confirmDelete,
+  canReorder = false,
+  dragging = false,
+  dragProps,
+  handleProps,
   onSelect,
   onStartEdit,
   onConfirmDelete,
@@ -48,8 +65,11 @@ export default function CounterpartySelectItem({
       className={categorySelectItemClass({
         selected: isSelected,
         editing: false,
-        confirming: isConfirmingDelete
+        confirming: isConfirmingDelete,
+        dragging,
+        dragOver: dragProps?.['data-drag-over']
       })}
+      {...dragProps}
     >
       {isConfirmingDelete ? (
         <div className={categorySelectConfirmClass}>
@@ -75,6 +95,15 @@ export default function CounterpartySelectItem({
         </div>
       ) : (
         <>
+          {canReorder && handleProps && (
+            <DragReorderHandle
+              label={`تغییر ترتیب ${fullName}`}
+              disabled={saving}
+              draggable={handleProps.draggable}
+              onDragStart={handleProps.onDragStart}
+              onDragEnd={handleProps.onDragEnd}
+            />
+          )}
           <button
             type="button"
             role="option"
