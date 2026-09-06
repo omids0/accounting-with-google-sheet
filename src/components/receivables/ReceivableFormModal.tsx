@@ -1,6 +1,7 @@
 import { useMemo, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import { CategorySelect, FormField } from '../form'
@@ -47,14 +48,19 @@ export default function ReceivableFormModal({
     [editingItem, categories]
   )
 
-  const form = useForm(initialValues, {
+  const { register, handleSubmit, reset, setValue, watch } = useForm<ReceivableFormState>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, {
     active: open,
     resetKey: editingItem?.id ?? 'create'
   })
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    void onSubmit(form.values)
+  const category = watch('category')
+
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    void handleSubmit(values => onSubmit(values))(event)
   }
 
   return (
@@ -62,29 +68,24 @@ export default function ReceivableFormModal({
       open={open}
       title={editingItem ? 'ویرایش طلب' : 'ثبت طلب جدید'}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره طلب'}
     >
       <FormField label="نام شخص یا ارگان" required>
-        <input
-          type="text"
-          value={form.values.debtor}
-          onChange={e => form.setField('debtor', e.target.value)}
-          placeholder="مثلاً: علی محمدی"
-        />
+        <input type="text" {...register('debtor')} placeholder="مثلاً: علی محمدی" />
       </FormField>
 
       <FormField label="دسته‌بندی" required>
         <CategorySelect
-          value={form.values.category}
-          onChange={category => form.setField('category', category)}
+          value={category}
+          onChange={value => setValue('category', value)}
           categories={categories}
           categoryScope="receivable"
           onCategoriesChange={next => {
             setCategories(next)
-            if (!next.includes(form.values.category)) {
-              form.setField('category', next[0] ?? '')
+            if (!next.includes(category)) {
+              setValue('category', next[0] ?? '')
             }
           }}
           aria-label="دسته‌بندی طلب"
@@ -92,22 +93,18 @@ export default function ReceivableFormModal({
       </FormField>
 
       <FormField label="مبلغ" required>
-        <AmountInput value={form.values.amount} onChange={val => form.setField('amount', val)} />
+        <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
       </FormField>
 
       <FormField label="تاریخ قرض گرفتن" required>
         <JalaliDatePicker
-          value={form.values.borrowDate}
-          onChange={iso => form.setField('borrowDate', iso)}
+          value={watch('borrowDate')}
+          onChange={iso => setValue('borrowDate', iso)}
         />
       </FormField>
 
       <FormField label="توضیحات">
-        <textarea
-          value={form.values.note}
-          onChange={e => form.setField('note', e.target.value)}
-          placeholder="توضیحات اختیاری"
-        />
+        <textarea {...register('note')} placeholder="توضیحات اختیاری" />
       </FormField>
     </FormModal>
   )

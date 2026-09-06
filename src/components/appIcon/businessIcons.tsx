@@ -142,6 +142,17 @@ export const BUSINESS_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
     </IconSvg>
   ),
 
+  counterparties: props => (
+    <IconSvg {...props}>
+      <circle cx="9" cy="8.5" r="2.75" className={appIconBgClass} stroke="none" />
+      <circle cx="15.5" cy="9.5" r="2.25" className={appIconBgClass} stroke="none" />
+      <path d="M4.5 18.5c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+      <path d="M13.5 18.5c0-1.8 1.4-3.2 3.2-3.2" />
+      <circle cx="15.5" cy="9.5" r="2.25" />
+      <circle cx="9" cy="8.5" r="2.75" />
+    </IconSvg>
+  ),
+
   records: props => (
     <IconSvg {...props}>
       <path

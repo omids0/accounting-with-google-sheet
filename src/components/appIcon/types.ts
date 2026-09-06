@@ -6,6 +6,7 @@ export type AppIconName =
   | 'receivables'
   | 'treasury'
   | 'wallet'
+  | 'counterparties'
   | 'records'
   | 'search'
   | 'filter'

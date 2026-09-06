@@ -5,6 +5,7 @@ import {
   loadAssetsLiabilitiesReportPage,
   loadCashFlowReportPage,
   loadChecksPage,
+  loadCounterpartiesPage,
   loadCurrencyConverterPage,
   loadDangPage,
   loadDashboardPage,
@@ -32,6 +33,7 @@ import {
 
 export const LazyAboutPage = lazy(loadAboutPage)
 export const LazyChecksPage = lazy(loadChecksPage)
+export const LazyCounterpartiesPage = lazy(loadCounterpartiesPage)
 export const LazyCurrencyConverterPage = lazy(loadCurrencyConverterPage)
 export const LazyDangPage = lazy(loadDangPage)
 export const LazyDashboardPage = lazy(loadDashboardPage)

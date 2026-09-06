@@ -1,6 +1,7 @@
 import { useMemo, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { useForm } from '../../hooks/useForm'
+import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import { CategorySelect, FormField } from '../form'
@@ -49,14 +50,19 @@ export default function DangFormModal({
     [editingItem, categories]
   )
 
-  const form = useForm(initialValues, {
+  const { register, handleSubmit, reset, setValue, watch } = useForm<DangFormState>({
+    defaultValues: initialValues
+  })
+
+  useModalFormReset(reset, initialValues, {
     active: open,
     resetKey: editingItem?.id ?? 'create'
   })
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    void onSubmit(form.values)
+  const category = watch('category')
+
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    void handleSubmit(values => onSubmit(values))(event)
   }
 
   return (
@@ -64,29 +70,24 @@ export default function DangFormModal({
       open={open}
       title={editingItem ? 'ویرایش بدهی' : 'ثبت بدهی جدید'}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره بدهی'}
     >
       <FormField label="عنوان" required>
-        <input
-          type="text"
-          value={form.values.title}
-          onChange={e => form.setField('title', e.target.value)}
-          placeholder="مثلاً: خرید از فروشگاه"
-        />
+        <input type="text" {...register('title')} placeholder="مثلاً: خرید از فروشگاه" />
       </FormField>
 
       <FormField label="دسته‌بندی" required>
         <CategorySelect
-          value={form.values.category}
-          onChange={category => form.setField('category', category)}
+          value={category}
+          onChange={value => setValue('category', value)}
           categories={categories}
           categoryScope="dang"
           onCategoriesChange={next => {
             onCategoriesChange(next)
-            if (!next.includes(form.values.category)) {
-              form.setField('category', next[0] ?? '')
+            if (!next.includes(category)) {
+              setValue('category', next[0] ?? '')
             }
           }}
           aria-label="دسته‌بندی بدهی"
@@ -94,28 +95,19 @@ export default function DangFormModal({
       </FormField>
 
       <FormField label="طرف حساب" required>
-        <input
-          type="text"
-          value={form.values.counterparty}
-          onChange={e => form.setField('counterparty', e.target.value)}
-          placeholder="نام شخص یا گروه"
-        />
+        <input type="text" {...register('counterparty')} placeholder="نام شخص یا گروه" />
       </FormField>
 
       <FormField label="مبلغ" required>
-        <AmountInput value={form.values.amount} onChange={val => form.setField('amount', val)} />
+        <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
       </FormField>
 
       <FormField label="تاریخ" required>
-        <JalaliDatePicker value={form.values.date} onChange={date => form.setField('date', date)} />
+        <JalaliDatePicker value={watch('date')} onChange={date => setValue('date', date)} />
       </FormField>
 
       <FormField label="توضیحات">
-        <textarea
-          value={form.values.note}
-          onChange={e => form.setField('note', e.target.value)}
-          placeholder="توضیحات اختیاری"
-        />
+        <textarea {...register('note')} placeholder="توضیحات اختیاری" />
       </FormField>
     </FormModal>
   )
