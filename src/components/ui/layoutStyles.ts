@@ -1,3 +1,4 @@
+import { appScrollbarClass } from './scrollbarStyles'
 import { cn } from '../../utils/cn'
 
 const pageEnterAnim = 'animate-[pageEnter_var(--duration-page)_var(--ease-page)_both]'
@@ -56,15 +57,19 @@ export const appLayoutClass = cn(
   'lg:max-w-none lg:shadow-none'
 )
 
-export const appShellClass = cn('flex min-h-dvh w-full flex-col', 'lg:flex-row lg:items-stretch')
+export const appShellClass = cn(
+  'flex min-h-dvh w-full flex-col',
+  'lg:h-dvh lg:min-h-0 lg:flex-row lg:items-stretch lg:overflow-hidden'
+)
 
 export const appContentColumnClass = cn(
-  'relative flex min-h-dvh min-w-0 flex-1 flex-col',
-  'mx-auto w-full max-w-[480px] lg:max-w-none'
+  'relative flex min-w-0 flex-1 flex-col min-h-dvh',
+  'mx-auto w-full max-w-[480px] lg:h-dvh lg:min-h-0 lg:max-w-none'
 )
 
 export const appMainClass = cn(
-  'flex-1 overflow-y-auto p-[var(--space-page)] pb-[calc(5.75rem+var(--safe-bottom))]',
+  appScrollbarClass,
+  'min-h-0 flex-1 overflow-y-auto p-[var(--space-page)] pb-[calc(5.75rem+var(--safe-bottom))]',
   'lg:mx-auto lg:w-full lg:max-w-[var(--content-max-width)] lg:pb-[var(--space-page)]'
 )
 
