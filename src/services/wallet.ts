@@ -1,6 +1,6 @@
 import type { AppSettings, CustomForm, WalletAccount } from '../types'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
-import { fetchOpeningBalance } from './monthlyBalance'
+import { resolveOpeningBalanceContext, syncDerivedOpeningBalances } from './openingBalanceService'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
@@ -89,6 +89,8 @@ export interface WalletPeriodFlow {
   totalExpense: number
   monthKey: string
   monthLabel: string
+  /** Month the automatic chain starts from; its opening balance is not derived. */
+  anchorMonthKey: string
 }
 
 function getDateFieldId(form: CustomForm | undefined): string {
@@ -104,20 +106,29 @@ export async function loadWalletPeriodFlow(settings: AppSettings): Promise<Walle
 
   const expenseForm = settings.forms.find(f => f.type === 'expense')
 
-  const [incomeRecords, expenseRecords, openingBalanceRecord] = await Promise.all([
+  const [incomeRecords, expenseRecords, accounts] = await Promise.all([
     incomeForm ? fetchRecords(settings.spreadsheetId, incomeForm) : Promise.resolve([]),
     expenseForm ? fetchRecords(settings.spreadsheetId, expenseForm) : Promise.resolve([]),
-    fetchOpeningBalance(settings.spreadsheetId, monthKey).catch(() => ({
-      monthKey,
-      amount: 0,
-      updatedAt: '',
-      note: ''
-    }))
+    fetchWalletAccounts(settings.spreadsheetId).catch(() => [])
   ])
 
   const incomeDateField = getDateFieldId(incomeForm)
 
   const expenseDateField = getDateFieldId(expenseForm)
+
+  const context = await resolveOpeningBalanceContext({
+    spreadsheetId: settings.spreadsheetId,
+    incomeRecords,
+    expenseRecords,
+    incomeDateField,
+    expenseDateField,
+    walletTotal: accounts.reduce((sum, account) => sum + account.balance, 0),
+    currentMonthKey: monthKey
+  })
+
+  void syncDerivedOpeningBalances(settings.spreadsheetId, context).catch(() => {
+    /* cache mirror only — derived values stay correct without it */
+  })
 
   const totalIncome = incomeRecords
     .filter(r => isDateInRange(r.values[incomeDateField] ?? '', range))
@@ -128,11 +139,12 @@ export async function loadWalletPeriodFlow(settings: AppSettings): Promise<Walle
     .reduce((s, r) => s + (Number(r.values.amount) || 0), 0)
 
   return {
-    openingBalance: openingBalanceRecord.amount,
+    openingBalance: context.openings.get(monthKey) ?? context.anchorAmount,
     totalIncome,
     totalExpense,
     monthKey,
-    monthLabel: formatJalaliMonthLabel(monthKey)
+    monthLabel: formatJalaliMonthLabel(monthKey),
+    anchorMonthKey: context.anchorMonthKey
   }
 }
 

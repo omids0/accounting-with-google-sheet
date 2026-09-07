@@ -1,7 +1,11 @@
 import { useState } from 'react'
 
 import { deleteStoredRecord, submitRecordEdit } from './recordsMutations'
-import type { StoredRecord } from './recordsUtils'
+import { getFormField, type StoredRecord } from './recordsUtils'
+import {
+  retroactiveMonthLabel,
+  useRetroactiveEntryWarning
+} from '../../hooks/useRetroactiveEntryWarning'
 import type { CustomForm } from '../../types'
 
 type UseRecordsFormActionsOptions = {
@@ -16,9 +20,19 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
   const [deletingRecord, setDeletingRecord] = useState<StoredRecord | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  const retroactiveWarning = useRetroactiveEntryWarning()
+
   const editingForm = editingRecord
     ? forms.find(form => form.id === editingRecord.formId)
     : undefined
+
+  const recordDate = (record: StoredRecord): string => {
+    const form = forms.find(item => item.id === record.formId)
+
+    const fieldId = form ? getFormField(form, 'date')?.id : undefined
+
+    return record.values[fieldId ?? 'date'] ?? ''
+  }
 
   const openEditForm = (record: StoredRecord) => {
     const form = forms.find(item => item.id === record.formId)
@@ -64,7 +78,7 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     }
   }
 
-  const handleSubmit = async (formValues: Record<string, string | number>) => {
+  const runSubmit = async (formValues: Record<string, string | number>) => {
     if (!editingRecord || !editingForm) return
 
     setSaving(true)
@@ -85,6 +99,28 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     }
   }
 
+  const handleSubmit = async (formValues: Record<string, string | number>) => {
+    if (!editingRecord || !editingForm) return
+
+    const dateFieldId = getFormField(editingForm, 'date')?.id
+
+    const nextDate = dateFieldId ? String(formValues[dateFieldId] ?? '') : ''
+
+    if (
+      retroactiveWarning.guard(
+        [recordDate(editingRecord), nextDate],
+        () => runSubmit(formValues),
+        'edit'
+      )
+    ) {
+      return
+    }
+
+    await runSubmit(formValues)
+  }
+
+  const deletingRetroLabel = deletingRecord ? retroactiveMonthLabel(recordDate(deletingRecord)) : ''
+
   return {
     saving,
     showForm,
@@ -92,6 +128,10 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     deletingRecord,
     deleting,
     editingForm,
+    retroactiveWarning,
+    deleteMessage: deletingRetroLabel
+      ? `این مورد مربوط به ${deletingRetroLabel} است. با حذف آن، موجودی اول دوره ماه‌های بعد از آن به‌صورت خودکار به‌روز می‌شود. از حذف مطمئن هستید؟`
+      : 'از حذف این مورد مطمئن هستید؟',
     openEditForm,
     closeForm,
     openDeleteConfirm,

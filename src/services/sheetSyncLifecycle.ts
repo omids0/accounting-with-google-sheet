@@ -1,16 +1,7 @@
-import type { AppSettings } from '../types'
-import { CATEGORIES_SHEET } from './categories'
-import { CHECKS_SHEET } from './checks'
-import { COUNTERPARTIES_SHEET } from './counterparties'
-import { DANG_SHEET } from './dang'
-import { INSTALLMENTS_SHEET } from './installments'
-import { MONTHLY_BALANCE_SHEET } from './monthlyBalance'
-import { PERSONAL_REMINDERS_SHEET } from './personalReminders'
-import { RECEIVABLES_SHEET } from './receivables'
-import { REMINDERS_SHEET, PUSH_SUBS_SHEET } from './reminders'
 import { getSettings } from './settings'
 import { isQuotaExceededError } from './sheets'
 import { flushOutbox, invalidateDerivedCaches, isQuotaBlocked } from './sheetSyncOutbox'
+import { getKnownSheetNames } from './sheetSyncSheetNames'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import {
   clearStore,
@@ -23,30 +14,13 @@ import {
 } from './spreadsheetStore'
 import { getOutboxSheetNames, hasPendingOutbox, clearOutbox, getOutboxCount } from './syncOutbox'
 import { getSyncStatus, setLastSyncedAt, setSyncState, setPendingWrites } from './syncStatus'
-import { TIMESHEETS_SHEET, TIMESHEET_ENTRIES_SHEET } from './timesheet'
-import { TREASURY_SHEET } from './treasury'
-import { WALLET_SHEET } from './wallet'
 
 const SYNC_INTERVAL_MS = 120_000
 
 const MIN_SYNC_COOLDOWN_MS = 30_000
 
-const STATIC_SHEETS = [
-  INSTALLMENTS_SHEET,
-  DANG_SHEET,
-  CHECKS_SHEET,
-  COUNTERPARTIES_SHEET,
-  RECEIVABLES_SHEET,
-  TREASURY_SHEET,
-  WALLET_SHEET,
-  CATEGORIES_SHEET,
-  MONTHLY_BALANCE_SHEET,
-  REMINDERS_SHEET,
-  PERSONAL_REMINDERS_SHEET,
-  PUSH_SUBS_SHEET,
-  TIMESHEETS_SHEET,
-  TIMESHEET_ENTRIES_SHEET
-]
+/** Focus-triggered syncs bypass the cooldown but not faster than this. */
+const FOCUS_SYNC_THROTTLE_MS = 4_000
 
 let activeSpreadsheetId: string | null = null
 
@@ -54,13 +28,9 @@ let syncTimer: ReturnType<typeof setInterval> | null = null
 
 let fullSyncInFlight: Promise<void> | null = null
 
-export function getKnownSheetNames(settings: AppSettings = getSettings()!): string[] {
-  if (!settings) return [...STATIC_SHEETS]
+let lastFocusSyncAt = 0
 
-  const formSheets = settings.forms.map(form => form.sheetName)
-
-  return [...new Set([...formSheets, ...STATIC_SHEETS])]
-}
+let visibilityListenerBound = false
 
 function isSyncCoolingDown(spreadsheetId: string): boolean {
   if (isQuotaBlocked()) return true
@@ -240,6 +210,8 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
     await fullSyncFromRemote(spreadsheetId, { background: false, force: true })
   }
 
+  bindVisibilitySync()
+
   if (syncTimer) clearInterval(syncTimer)
   syncTimer = setInterval(() => {
     refreshInBackground(spreadsheetId)
@@ -263,13 +235,36 @@ export function resetSheetSync(spreadsheetId: string): void {
   notifySpreadsheetDataChanged(spreadsheetId)
 }
 
+/**
+ * Pulls remote changes as soon as the user comes back to the app. Polling alone
+ * left a second device up to two minutes stale, which reads as a bug even though
+ * the data was queued correctly.
+ */
 export function onPageEnter(): void {
   if (!activeSpreadsheetId) return
-  void flushOutbox(activeSpreadsheetId).then(flushed => {
-    if (flushed) {
-      refreshInBackground(activeSpreadsheetId ?? undefined)
-    }
+
+  const now = Date.now()
+
+  if (now - lastFocusSyncAt < FOCUS_SYNC_THROTTLE_MS) return
+
+  lastFocusSyncAt = now
+
+  const spreadsheetId = activeSpreadsheetId
+
+  void flushOutbox(spreadsheetId).finally(() => {
+    refreshInBackground(spreadsheetId, { force: true })
   })
+}
+
+function bindVisibilitySync(): void {
+  if (visibilityListenerBound || typeof document === 'undefined') return
+
+  visibilityListenerBound = true
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') onPageEnter()
+  })
+  window.addEventListener('focus', onPageEnter)
 }
 
 export function getActiveSpreadsheetId(): string | null {

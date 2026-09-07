@@ -1,15 +1,13 @@
 import type { WalletPeriodFlow } from '../../services/wallet'
 import { cn } from '../../utils/cn'
+import { formatJalaliMonthLabel } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
-import AmountInput from '../AmountInput'
 import Button from '../ui/Button'
 import {
   dashboardOpeningBodyClass,
   dashboardOpeningCardClass,
-  dashboardOpeningFormClass,
   dashboardOpeningHintClass,
-  dashboardOpeningInputWrapClass,
   walletOpeningMoreBtnClass
 } from '../ui/chartStyles'
 import {
@@ -28,28 +26,17 @@ import {
 type WalletOpeningBalanceCardProps = {
   periodFlow: WalletPeriodFlow
   openingExpanded: boolean
-  openingInput: number | ''
-  savingOpening: boolean
-  loading: boolean
   onToggleExpanded: () => void
-  onOpeningInputChange: (value: number | '') => void
-  onSave: () => void
   onOpenOpeningBalances?: () => void
 }
 
 export default function WalletOpeningBalanceCard({
   periodFlow,
   openingExpanded,
-  openingInput,
-  savingOpening,
-  loading,
   onToggleExpanded,
-  onOpeningInputChange,
-  onSave,
   onOpenOpeningBalances
 }: WalletOpeningBalanceCardProps) {
-  const displayOpeningBalance =
-    openingInput === '' ? periodFlow.openingBalance ?? 0 : Number(openingInput)
+  const isAnchorMonth = periodFlow.monthKey === periodFlow.anchorMonthKey
 
   return (
     <div
@@ -68,7 +55,7 @@ export default function WalletOpeningBalanceCard({
           <div className={walletItemTitleRowClass}>
             <div className={listCardTitleClass}>موجودی اول دوره</div>
             <div className={listCardAmountPillClass} dir="ltr">
-              {formatMoney(displayOpeningBalance)}
+              {formatMoney(periodFlow.openingBalance ?? 0)}
             </div>
           </div>
           <div className={listCardSubtitleClass}>ابتدای {periodFlow.monthLabel}</div>
@@ -79,24 +66,12 @@ export default function WalletOpeningBalanceCard({
       <AccordionCollapse open={openingExpanded}>
         <div className={cn(installmentPaymentsClass, dashboardOpeningBodyClass)}>
           <p className={dashboardOpeningHintClass}>
-            موجودی کیف پول در ابتدای {periodFlow.monthLabel} را وارد کنید. با خالص دوره (درآمد −
-            هزینه) جمع می‌شود تا با کیف پول فعلی تطبیق دهید.
+            {isAnchorMonth
+              ? `محاسبه خودکار از این ماه شروع می‌شود، پس این عدد را خودت تعیین می‌کنی و در صفحه موجودی اول دوره قابل ویرایش است. از ماه بعد، موجودی اول دوره خودش از مانده پایان ${periodFlow.monthLabel} حساب می‌شود.`
+              : `این عدد خودکار از مانده پایان ماه قبل محاسبه شده و قابل ویرایش نیست. شروع محاسبه: ${formatJalaliMonthLabel(
+                  periodFlow.anchorMonthKey
+                )}.`}
           </p>
-          <div className={dashboardOpeningFormClass}>
-            <div className={dashboardOpeningInputWrapClass}>
-              <AmountInput value={openingInput} onChange={onOpeningInputChange} />
-            </div>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={onSave}
-              disabled={savingOpening || loading}
-              loading={savingOpening}
-            >
-              ذخیره
-            </Button>
-          </div>
           {onOpenOpeningBalances && (
             <Button
               type="button"
@@ -105,7 +80,7 @@ export default function WalletOpeningBalanceCard({
               className={walletOpeningMoreBtnClass}
               onClick={onOpenOpeningBalances}
             >
-              گزینه‌های بیشتر
+              سابقه ماه‌های گذشته
             </Button>
           )}
         </div>

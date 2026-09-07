@@ -138,6 +138,50 @@ export function getJalaliMonthKey(isoDate: string): string {
   return `${year}-${String(month).padStart(2, '0')}`
 }
 
+export function parseJalaliMonthKey(monthKey: string): { year: number; month: number } | null {
+  const match = /^(\d{4})-(\d{1,2})$/.exec(monthKey.trim())
+
+  if (!match) return null
+
+  const year = Number(match[1])
+
+  const month = Number(match[2])
+
+  if (month < 1 || month > 12) return null
+
+  return { year, month }
+}
+
+export function buildJalaliMonthKey(year: number, month: number): string {
+  return `${year}-${String(month).padStart(2, '0')}`
+}
+
+export function nextJalaliMonthKey(monthKey: string): string {
+  const parts = parseJalaliMonthKey(monthKey)
+
+  if (!parts) return monthKey
+
+  return parts.month === 12
+    ? buildJalaliMonthKey(parts.year + 1, 1)
+    : buildJalaliMonthKey(parts.year, parts.month + 1)
+}
+
+/** Inclusive list of month keys from `startKey` to `endKey`, empty when reversed. */
+export function listJalaliMonthKeys(startKey: string, endKey: string): string[] {
+  if (!parseJalaliMonthKey(startKey) || !parseJalaliMonthKey(endKey)) return []
+
+  const keys: string[] = []
+
+  let cursor = startKey
+
+  while (cursor <= endKey && keys.length <= 1200) {
+    keys.push(cursor)
+    cursor = nextJalaliMonthKey(cursor)
+  }
+
+  return keys
+}
+
 export function formatJalaliMonthLabel(monthKey: string): string {
   const [yearStr, monthStr] = monthKey.split('-')
 

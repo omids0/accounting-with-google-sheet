@@ -8,6 +8,11 @@ import { DANG_HEADERS, DANG_SHEET } from './dang'
 import { listAccountingSpreadsheetsFromDrive } from './drive'
 import { INSTALLMENTS_HEADERS, INSTALLMENTS_SHEET } from './installments'
 import { MONTHLY_BALANCE_HEADERS, MONTHLY_BALANCE_SHEET } from './monthlyBalance'
+import {
+  ensureMembershipDate,
+  PERIOD_SETTINGS_HEADERS,
+  PERIOD_SETTINGS_SHEET
+} from './periodSettings'
 import { PERSONAL_REMINDERS_HEADERS, PERSONAL_REMINDERS_SHEET } from './personalReminders'
 import { RECEIVABLES_HEADERS, RECEIVABLES_SHEET } from './receivables'
 import {
@@ -77,6 +82,7 @@ function getAllSheetSpecs(): SheetSpec[] {
       sheetName: MONTHLY_BALANCE_SHEET,
       headers: MONTHLY_BALANCE_HEADERS
     },
+    { sheetName: PERIOD_SETTINGS_SHEET, headers: PERIOD_SETTINGS_HEADERS },
     { sheetName: CATEGORIES_SHEET, headers: CATEGORIES_HEADERS },
     { sheetName: ACTIVITY_SHEET, headers: ACTIVITY_HEADERS },
     { sheetName: REMINDERS_SHEET, headers: REMINDERS_HEADERS },
@@ -202,6 +208,7 @@ async function finalizeSpreadsheetActivation(
 
   await ensureAllSheets(spreadsheetId)
   await syncCategoriesFromSheet(spreadsheetId)
+  await ensureMembershipDate(spreadsheetId).catch(() => '')
   markAllKnownSheetsPrepared(spreadsheetId)
   markSessionPrepared(spreadsheetId)
 

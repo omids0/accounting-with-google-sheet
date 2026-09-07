@@ -27,6 +27,8 @@ interface JalaliDatePickerProps {
   emptyLabel?: string
   id?: string
   invalid?: boolean
+  /** Earliest selectable date; blocks entries before the accounting start. */
+  minIso?: string
 }
 
 function formatPickerLabel(iso: string, calendar: CalendarSystem): string {
@@ -45,7 +47,8 @@ export default function JalaliDatePicker({
   allowEmpty = false,
   emptyLabel = 'انتخاب تاریخ',
   id,
-  invalid = false
+  invalid = false,
+  minIso
 }: JalaliDatePickerProps) {
   const hasValue = Boolean(value)
 
@@ -82,6 +85,7 @@ export default function JalaliDatePicker({
           calendar={calendar}
           iso={hasValue ? iso : getTodayIso()}
           onIsoChange={onChange}
+          minIso={minIso}
         />
       </div>
     )
@@ -148,7 +152,12 @@ export default function JalaliDatePicker({
             امروز
           </button>
         </div>
-        <CalendarWheelFields calendar={calendar} iso={pendingIso} onIsoChange={setPendingIso} />
+        <CalendarWheelFields
+          calendar={calendar}
+          iso={pendingIso}
+          onIsoChange={setPendingIso}
+          minIso={minIso}
+        />
       </PickerSheet>
     </div>
   )

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 
 import type { WalletAccountWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
-import { ensureAutoOpeningBalanceForCurrentMonth } from '../../services/monthlyBalance'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import {
@@ -21,8 +20,6 @@ export function useWalletData() {
   const [balances, setBalances] = useState<Record<string, number | ''>>({})
 
   const [periodFlow, setPeriodFlow] = useState<WalletPeriodFlow | null>(null)
-
-  const [openingInput, setOpeningInput] = useState<number | ''>('')
 
   const [loading, setLoading] = useState(() => {
     const settings = getSettings()
@@ -49,18 +46,14 @@ export function useWalletData() {
     try {
       await ensureWalletSheet(settings.spreadsheetId)
 
-      const data = await fetchWalletAccounts(settings.spreadsheetId)
-
-      const walletTotal = data.reduce((sum, item) => sum + item.balance, 0)
-
-      await ensureAutoOpeningBalanceForCurrentMonth(settings.spreadsheetId, walletTotal)
-
-      const flow = await loadWalletPeriodFlow(settings)
+      const [data, flow] = await Promise.all([
+        fetchWalletAccounts(settings.spreadsheetId),
+        loadWalletPeriodFlow(settings)
+      ])
 
       setItems(data)
       syncBalances(data)
       setPeriodFlow(flow)
-      setOpeningInput(flow.openingBalance || '')
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری کیف پول' })) return
     } finally {
@@ -79,8 +72,6 @@ export function useWalletData() {
     setBalances,
     periodFlow,
     setPeriodFlow,
-    openingInput,
-    setOpeningInput,
     loading,
     loadItems,
     syncBalances

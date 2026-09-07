@@ -26,23 +26,45 @@ interface CalendarWheelFieldsProps {
   iso: string
   onIsoChange: (iso: string) => void
   className?: string
+  /** Earliest selectable date; wheels hide anything before it. */
+  minIso?: string
 }
 
 export default function CalendarWheelFields({
   calendar,
   iso,
   onIsoChange,
-  className
+  className,
+  minIso
 }: CalendarWheelFieldsProps) {
-  const { year, month, day } = getCalendarParts(iso, calendar)
+  const effectiveIso = minIso && iso && iso < minIso ? minIso : iso
 
-  const years = useMemo(() => getCalendarYearRange(calendar, iso), [calendar, iso])
+  const { year, month, day } = getCalendarParts(effectiveIso, calendar)
 
-  const monthItems = useMemo(() => getCalendarMonthWheelItems(calendar), [calendar])
+  const minParts = useMemo(
+    () => (minIso ? getCalendarParts(minIso, calendar) : null),
+    [minIso, calendar]
+  )
+
+  const years = useMemo(() => {
+    const range = getCalendarYearRange(calendar, effectiveIso)
+
+    return minParts ? range.filter(itemYear => itemYear >= minParts.year) : range
+  }, [calendar, effectiveIso, minParts])
+
+  const monthItems = useMemo(() => {
+    const items = getCalendarMonthWheelItems(calendar)
+
+    if (!minParts || year !== minParts.year) return items
+
+    return items.filter(item => Number(item.value) >= minParts.month)
+  }, [calendar, minParts, year])
 
   const maxDay = daysInCalendarMonth(year, month, calendar)
 
-  const safeDay = Math.min(day, maxDay)
+  const minDay = minParts && year === minParts.year && month === minParts.month ? minParts.day : 1
+
+  const safeDay = Math.min(Math.max(day, minDay), maxDay)
 
   const yearItems = useMemo(
     () =>
@@ -56,19 +78,26 @@ export default function CalendarWheelFields({
   const dayItems = useMemo(() => {
     const dayCount = daysInCalendarMonth(year, month, calendar)
 
-    return Array.from({ length: dayCount }, (_, index) => {
-      const itemDay = index + 1
+    const from = minParts && year === minParts.year && month === minParts.month ? minParts.day : 1
 
-      return { value: String(itemDay), label: fa(itemDay) }
-    })
-  }, [year, month, calendar])
+    const items: { value: string; label: string }[] = []
+
+    for (let itemDay = from; itemDay <= dayCount; itemDay += 1) {
+      items.push({ value: String(itemDay), label: fa(itemDay) })
+    }
+
+    return items
+  }, [year, month, calendar, minParts])
 
   const update = (nextYear: number, nextMonth: number, nextDay: number) => {
     const max = daysInCalendarMonth(nextYear, nextMonth, calendar)
 
-    onIsoChange(
-      partsToIso({ year: nextYear, month: nextMonth, day: Math.min(nextDay, max) }, calendar)
+    const nextIso = partsToIso(
+      { year: nextYear, month: nextMonth, day: Math.min(nextDay, max) },
+      calendar
     )
+
+    onIsoChange(minIso && nextIso < minIso ? minIso : nextIso)
   }
 
   return (
