@@ -2,7 +2,6 @@ import type {
   AppSettings,
   CurrencyUnit,
   CustomForm,
-  FieldConfig,
   NetAvailableConfig,
   SpreadsheetEntry,
   ThemeMode
@@ -203,18 +202,6 @@ export function isConfigured(): boolean {
 
 export function getFormById(formId: string): CustomForm | undefined {
   return getSettings()?.forms.find(f => f.id === formId)
-}
-
-export function addCustomForm(name: string, fields: FieldConfig[]): CustomForm {
-  const id = `form_${Date.now()}`
-
-  return {
-    id,
-    name,
-    sheetName: name.slice(0, 30),
-    type: 'custom',
-    fields
-  }
 }
 
 export function updateFormCategories(formId: string, categories: string[]): void {

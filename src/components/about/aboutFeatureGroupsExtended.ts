@@ -222,11 +222,7 @@ export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
       },
       {
         title: 'عمومی',
-        description: 'تم روشن/تاریک و واحد پول (ریال یا تومان).'
-      },
-      {
-        title: 'فرم‌های سفارشی',
-        description: 'ویرایش فیلدها و دسته‌بندی‌های فرم درآمد و هزینه.'
+        description: 'واحد پول (ریال یا تومان). تغییر تم روشن/تاریک از منوی کناری.'
       }
     ]
   },

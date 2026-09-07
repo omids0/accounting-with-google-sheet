@@ -1,14 +1,28 @@
-import { settingsPageDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
-export const settingsPageClass = cn('flex flex-col gap-5', settingsPageDesktopClass)
-
-export const settingsSectionClass = 'flex flex-col gap-3'
+export const settingsPageClass = cn('flex w-full flex-col gap-2', '[&_.settings-section]:w-full')
+export const settingsSectionClass = 'settings-section flex w-full flex-col gap-2'
 
 export const settingsSectionTitleClass =
-  'm-0 px-1 text-[0.8rem] font-bold tracking-[0.02em] text-muted'
+  'm-0 flex-1 text-[0.88rem] font-extrabold tracking-[-0.01em] text-text'
 
-export const settingsSectionItemsClass = 'flex flex-col gap-3 [&>.card]:m-0'
+export function settingsSectionTriggerClass(expanded?: boolean) {
+  return cn(
+    'flex w-full items-center gap-2 rounded-xl border border-transparent px-2 py-2 text-right transition-[background,border-color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    'hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_28%,transparent)]',
+    expanded &&
+      'border-[color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))] bg-[color-mix(in_srgb,var(--color-primary)_5%,var(--color-surface))]'
+  )
+}
+
+export function settingsSectionChevronClass(expanded?: boolean) {
+  return cn(
+    'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-muted transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    expanded && 'rotate-180'
+  )
+}
+
+export const settingsSectionItemsClass = 'flex flex-col gap-3 pt-1 [&>.card]:m-0'
 
 export const settingsGoogleAccountRowClass = 'flex items-center gap-3'
 
@@ -18,14 +32,3 @@ export const settingsGoogleAccountAvatarClass =
 export const settingsGoogleAccountBodyClass = 'min-w-0'
 
 export const settingsGoogleAccountEmailClass = 'text-[0.85rem] font-semibold text-text'
-
-export const formListItemClass = cn(
-  'mb-3 rounded-sm bg-bg p-3 transition-[transform,box-shadow] duration-[var(--duration-fast)]',
-  'hover:-translate-x-0.5 hover:shadow-[var(--shadow)]'
-)
-
-export const formListHeaderClass = 'flex items-center justify-between'
-
-export const formTypeBadgeClass = cn(
-  'rounded-xl border border-border bg-surface px-2 py-[0.15rem] text-[0.7rem] text-muted'
-)
