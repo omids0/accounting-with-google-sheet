@@ -1,6 +1,12 @@
-import { getItem, removeItem, setItem } from './storage'
-
-const STORE_KEY_PREFIX = 'accounting_sheet_store_'
+import {
+  cancelScheduledPersist,
+  deleteSnapshot,
+  loadPersistedSnapshot,
+  readLastSyncedAt,
+  registerSnapshotProvider,
+  schedulePersist,
+  writeLastSyncedAt
+} from './spreadsheetStorePersist'
 
 export interface SheetStoreSnapshot {
   spreadsheetId: string
@@ -10,9 +16,11 @@ export interface SheetStoreSnapshot {
 
 let memoryStore: SheetStoreSnapshot | null = null
 
-let persistTimer: ReturnType<typeof setTimeout> | null = null
-
 const listeners = new Set<() => void>()
+
+registerSnapshotProvider(() =>
+  memoryStore ? { spreadsheetId: memoryStore.spreadsheetId, sheets: memoryStore.sheets } : null
+)
 
 function sheetRowsEqual(prev: string[][], next: string[][]): boolean {
   if (prev.length !== next.length) return false
@@ -31,24 +39,6 @@ function sheetRowsEqual(prev: string[][], next: string[][]): boolean {
   return true
 }
 
-function schedulePersistToStorage(store: SheetStoreSnapshot): void {
-  if (persistTimer) {
-    clearTimeout(persistTimer)
-  }
-
-  persistTimer = setTimeout(() => {
-    persistTimer = null
-
-    if (memoryStore?.spreadsheetId === store.spreadsheetId) {
-      setItem(storageKey(store.spreadsheetId), memoryStore)
-    }
-  }, 0)
-}
-
-function storageKey(spreadsheetId: string): string {
-  return `${STORE_KEY_PREFIX}${spreadsheetId}`
-}
-
 function notifyListeners(): void {
   for (const listener of listeners) {
     listener()
@@ -57,7 +47,7 @@ function notifyListeners(): void {
 
 function persistStore(store: SheetStoreSnapshot): void {
   memoryStore = store
-  schedulePersistToStorage(store)
+  schedulePersist(store.spreadsheetId)
   notifyListeners()
 }
 
@@ -70,19 +60,7 @@ export function subscribeStore(listener: () => void): () => void {
 }
 
 export function getStore(spreadsheetId: string): SheetStoreSnapshot | null {
-  if (memoryStore?.spreadsheetId === spreadsheetId) {
-    return memoryStore
-  }
-
-  const stored = getItem<SheetStoreSnapshot>(storageKey(spreadsheetId))
-
-  if (stored?.spreadsheetId === spreadsheetId) {
-    memoryStore = stored
-
-    return stored
-  }
-
-  return null
+  return memoryStore?.spreadsheetId === spreadsheetId ? memoryStore : null
 }
 
 export function initStore(spreadsheetId: string): SheetStoreSnapshot {
@@ -93,12 +71,31 @@ export function initStore(spreadsheetId: string): SheetStoreSnapshot {
   const fresh: SheetStoreSnapshot = {
     spreadsheetId,
     sheets: {},
-    lastSyncedAt: null
+    lastSyncedAt: readLastSyncedAt(spreadsheetId)
   }
 
-  persistStore(fresh)
+  memoryStore = fresh
 
   return fresh
+}
+
+/**
+ * Loads the cached mirror from IndexedDB into memory. Must be awaited before any
+ * screen reads sheets, because every read path below is synchronous by design.
+ */
+export async function hydrateStore(spreadsheetId: string): Promise<SheetStoreSnapshot> {
+  const persisted = await loadPersistedSnapshot(spreadsheetId)
+
+  const store: SheetStoreSnapshot = {
+    spreadsheetId,
+    sheets: persisted?.sheets ?? {},
+    lastSyncedAt: readLastSyncedAt(spreadsheetId)
+  }
+
+  memoryStore = store
+  notifyListeners()
+
+  return store
 }
 
 export function hasStoreData(spreadsheetId: string): boolean {
@@ -110,19 +107,27 @@ export function hasStoreData(spreadsheetId: string): boolean {
 }
 
 export function getSheetAllRows(spreadsheetId: string, sheetName: string): string[][] | null {
-  const store = getStore(spreadsheetId)
+  const rows = getStore(spreadsheetId)?.sheets[sheetName]
 
-  if (!store?.sheets[sheetName]) return null
+  if (!rows) return null
 
-  return store.sheets[sheetName].map(row => [...row])
+  return rows.map(row => [...row])
 }
 
 export function getSheetDataRows(spreadsheetId: string, sheetName: string): string[][] | null {
-  const allRows = getSheetAllRows(spreadsheetId, sheetName)
+  const allRows = getStore(spreadsheetId)?.sheets[sheetName]
 
   if (!allRows) return null
 
-  return allRows.length <= 1 ? [] : allRows.slice(1).map(row => [...row])
+  if (allRows.length <= 1) return []
+
+  const dataRows: string[][] = new Array(allRows.length - 1)
+
+  for (let rowIndex = 1; rowIndex < allRows.length; rowIndex += 1) {
+    dataRows[rowIndex - 1] = [...allRows[rowIndex]]
+  }
+
+  return dataRows
 }
 
 export function setSheetAllRows(
@@ -134,9 +139,10 @@ export function setSheetAllRows(
   const store = initStore(spreadsheetId)
 
   store.sheets[sheetName] = allRows.map(row => [...row])
+
   if (options.silent) {
     memoryStore = store
-    schedulePersistToStorage(store)
+    schedulePersist(spreadsheetId)
 
     return
   }
@@ -165,7 +171,7 @@ export function setManySheetAllRows(
   memoryStore = store
 
   if (changed) {
-    schedulePersistToStorage(store)
+    schedulePersist(spreadsheetId)
   }
 
   return changed
@@ -236,17 +242,19 @@ export function setStoreLastSyncedAt(spreadsheetId: string, ts: number): void {
   const store = initStore(spreadsheetId)
 
   store.lastSyncedAt = ts
-  persistStore(store)
+  writeLastSyncedAt(spreadsheetId, ts)
 }
 
 export function getStoreLastSyncedAt(spreadsheetId: string): number | null {
-  return getStore(spreadsheetId)?.lastSyncedAt ?? null
+  return getStore(spreadsheetId)?.lastSyncedAt ?? readLastSyncedAt(spreadsheetId)
 }
 
 export function clearStore(spreadsheetId: string): void {
+  cancelScheduledPersist()
+
   if (memoryStore?.spreadsheetId === spreadsheetId) {
     memoryStore = null
   }
-  removeItem(storageKey(spreadsheetId))
+  void deleteSnapshot(spreadsheetId)
   notifyListeners()
 }
