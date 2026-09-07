@@ -75,7 +75,7 @@ export default function OpeningBalanceCard({
             </div>
           </div>
           <div className={walletItemNoteClass}>
-            {isAnchor ? 'مبنای محاسبه' : derived ? 'محاسبه خودکار' : 'ثبت دستی (تاریخی)'}
+            {isAnchor ? 'شروع محاسبه' : derived ? 'محاسبه خودکار' : 'ثبت دستی (تاریخی)'}
             {item.updatedAt ? ` • ${item.updatedAt}` : ''}
           </div>
         </div>
@@ -86,14 +86,19 @@ export default function OpeningBalanceCard({
         <div className={cn(installmentPaymentsClass, dashboardOpeningBodyClass)}>
           {derived ? (
             <p className={openingBalancePageHintClass}>
-              {isAnchor
-                ? 'این ماه مبنای محاسبه خودکار است و بقیه ماه‌ها از آن زنجیر می‌شوند.'
-                : 'این عدد از مانده پایان ماه قبل محاسبه شده است. برای تغییرش، درآمد یا هزینه ماه قبل را اصلاح کنید.'}
+              این عدد از مانده پایان ماه قبل محاسبه شده است. برای تغییرش، درآمد یا هزینه ماه قبل را
+              اصلاح کنید.
               {item.note ? ` ${item.note}` : ''}
             </p>
           ) : (
             edit && (
               <>
+                {isAnchor && (
+                  <p className={openingBalancePageHintClass}>
+                    محاسبه خودکار از این ماه شروع می‌شود، پس این عدد داده می‌شود نه محاسبه. با
+                    تغییرش، موجودی اول همه ماه‌های بعد از نو حساب می‌شود.
+                  </p>
+                )}
                 <FormField label="موجودی اول دوره">
                   <AmountInput
                     value={edit.amount}

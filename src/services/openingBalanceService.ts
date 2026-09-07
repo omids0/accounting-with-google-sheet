@@ -10,13 +10,14 @@ import {
   deriveOpeningBalances,
   findEarliestRecordDate,
   resolveAccountingStartDate,
+  shouldReseedStartAmount,
   type MonthlyNetTotals
 } from './openingBalanceDerive'
 import { getAnchorMonthKey, getMembershipDate, setAnchorMonthKey } from './periodSettings'
 import { parseJalaliMonthKey } from '../utils/dateRange'
 import { findGregorianForJalali, toIsoDate } from '../utils/jalaliDate'
 
-export const ANCHOR_NOTE = 'لنگر دوره — مبنای محاسبه خودکار'
+export const ANCHOR_NOTE = 'ماه شروع محاسبه خودکار'
 
 /**
  * Wallet and dashboard both trigger the mirror write. Sharing one in-flight
@@ -66,13 +67,19 @@ export function firstDayOfJalaliMonth(monthKey: string): string {
 function resolveAnchor(
   spreadsheetId: string,
   currentMonthKey: string,
-  walletTotal: number
+  walletTotal: number,
+  hasRecords: boolean
 ): Promise<{ monthKey: string; amount: number }> {
   const pending = anchorInFlight.get(spreadsheetId)
 
   if (pending) return pending
 
-  const task = resolveAnchorUncached(spreadsheetId, currentMonthKey, walletTotal).finally(() => {
+  const task = resolveAnchorUncached(
+    spreadsheetId,
+    currentMonthKey,
+    walletTotal,
+    hasRecords
+  ).finally(() => {
     anchorInFlight.delete(spreadsheetId)
   })
 
@@ -84,14 +91,27 @@ function resolveAnchor(
 async function resolveAnchorUncached(
   spreadsheetId: string,
   currentMonthKey: string,
-  walletTotal: number
+  walletTotal: number,
+  hasRecords: boolean
 ): Promise<{ monthKey: string; amount: number }> {
   const storedKey = await getAnchorMonthKey(spreadsheetId).catch(() => '')
 
   if (storedKey && parseJalaliMonthKey(storedKey)) {
     const existing = await fetchOpeningBalance(spreadsheetId, storedKey)
 
-    return { monthKey: storedKey, amount: existing.amount }
+    const reseed = shouldReseedStartAmount({
+      anchorMonthKey: storedKey,
+      currentMonthKey,
+      storedAmount: existing.amount,
+      walletTotal,
+      hasRecords
+    })
+
+    if (!reseed) return { monthKey: storedKey, amount: existing.amount }
+
+    await setOpeningBalance(spreadsheetId, storedKey, walletTotal, ANCHOR_NOTE)
+
+    return { monthKey: storedKey, amount: walletTotal }
   }
 
   const existing = await fetchOpeningBalance(spreadsheetId, currentMonthKey)
@@ -120,7 +140,9 @@ export async function resolveOpeningBalanceContext(
     currentMonthKey
   } = input
 
-  const anchor = await resolveAnchor(spreadsheetId, currentMonthKey, walletTotal)
+  const hasRecords = incomeRecords.length > 0 || expenseRecords.length > 0
+
+  const anchor = await resolveAnchor(spreadsheetId, currentMonthKey, walletTotal, hasRecords)
 
   const monthlyNet = aggregateMonthlyNet(
     incomeRecords,
@@ -181,6 +203,15 @@ export async function syncDerivedOpeningBalances(
   mirrorInFlight.set(spreadsheetId, task)
 
   return task
+}
+
+/**
+ * Joins an in-flight mirror write. Callers that need to re-read the sheet right
+ * after triggering a recompute (editing the start month, for instance) must
+ * wait for it, since the write itself is fire-and-forget everywhere else.
+ */
+export function joinOpeningBalanceMirror(spreadsheetId: string): Promise<number> {
+  return mirrorInFlight.get(spreadsheetId) ?? Promise.resolve(0)
 }
 
 async function writeDerivedOpeningBalances(

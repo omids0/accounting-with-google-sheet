@@ -7,7 +7,10 @@ export const PERIOD_SETTINGS_HEADERS = ['کلید', 'مقدار', 'زمان ثب
 
 export const MEMBERSHIP_DATE_KEY = 'تاریخ عضویت'
 
-export const ANCHOR_MONTH_KEY = 'ماه لنگر'
+export const ANCHOR_MONTH_KEY = 'ماه شروع محاسبه'
+
+/** Sheets written before the rename still carry this key. */
+const LEGACY_ANCHOR_MONTH_KEY = 'ماه لنگر'
 
 /**
  * Period settings are infrastructure, not user data: skipping the revision bump
@@ -99,8 +102,16 @@ export async function getMembershipDate(spreadsheetId: string): Promise<string> 
   return getPeriodSetting(spreadsheetId, MEMBERSHIP_DATE_KEY)
 }
 
+/**
+ * Falls back to the pre-rename key so existing sheets keep their anchor instead
+ * of looking unset and getting re-seeded to the current month.
+ */
 export async function getAnchorMonthKey(spreadsheetId: string): Promise<string> {
-  return getPeriodSetting(spreadsheetId, ANCHOR_MONTH_KEY)
+  const current = await getPeriodSetting(spreadsheetId, ANCHOR_MONTH_KEY)
+
+  if (current) return current
+
+  return getPeriodSetting(spreadsheetId, LEGACY_ANCHOR_MONTH_KEY)
 }
 
 export async function setAnchorMonthKey(spreadsheetId: string, monthKey: string): Promise<void> {

@@ -15,7 +15,7 @@ import {
   type MonthlyOpeningBalance
 } from '../services/monthlyBalance'
 import { isBeforeAnchor } from '../services/openingBalanceDerive'
-import { ensureAnchorMonthKey } from '../services/openingBalanceRefresh'
+import { ensureAnchorMonthKey, refreshOpeningBalances } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../utils/authGuard'
 import { formatJalaliMonthLabel } from '../utils/dateRange'
@@ -25,13 +25,15 @@ import { showError, showSuccess } from '../utils/toast'
 type OpeningBalanceWithRow = MonthlyOpeningBalance & { rowNumber: number }
 
 /**
- * Without a known anchor nothing is derived yet, so months stay editable rather
- * than silently locking the whole history behind a failed lookup.
+ * Editable months are the historical ones plus the start month itself, whose
+ * amount is a given rather than a computed value. Without a known start month
+ * nothing is derived yet, so everything stays editable rather than silently
+ * locking the whole history behind a failed lookup.
  */
 function isEditableMonth(monthKey: string, anchorMonthKey: string): boolean {
   if (!anchorMonthKey) return true
 
-  return isBeforeAnchor(monthKey, anchorMonthKey)
+  return monthKey === anchorMonthKey || isBeforeAnchor(monthKey, anchorMonthKey)
 }
 
 export default function OpeningBalancePage() {
@@ -119,6 +121,11 @@ export default function OpeningBalancePage() {
       )
       syncEdits([{ ...updated, rowNumber: item.rowNumber }])
       showSuccess(`موجودی ${formatJalaliMonthLabel(item.monthKey)} ذخیره شد`)
+
+      if (item.monthKey === anchorMonthKey) {
+        await refreshOpeningBalances()
+        await loadItems()
+      }
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره موجودی اول' })) return
       syncEdits([item])
@@ -156,9 +163,9 @@ export default function OpeningBalancePage() {
 
       <p className={openingBalancePageHintClass}>
         {anchorMonthKey
-          ? `از ${formatJalaliMonthLabel(
+          ? `محاسبه خودکار از ${formatJalaliMonthLabel(
               anchorMonthKey
-            )} به بعد، موجودی اول هر ماه خودکار از مانده پایان ماه قبل محاسبه می‌شود و قابل ویرایش نیست.`
+            )} شروع می‌شود: موجودی اول همان ماه را خودت تعیین می‌کنی و ماه‌های بعد از مانده پایان ماه قبل حساب می‌شوند.`
           : 'موجودی کیف پول در ابتدای هر ماه.'}
       </p>
 

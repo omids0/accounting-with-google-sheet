@@ -67,8 +67,8 @@ export default function WalletOpeningBalanceCard({
         <div className={cn(installmentPaymentsClass, dashboardOpeningBodyClass)}>
           <p className={dashboardOpeningHintClass}>
             {isAnchorMonth
-              ? `این ماه مبنای محاسبه خودکار است. از ماه بعد، موجودی اول دوره خودش از مانده پایان ${periodFlow.monthLabel} حساب می‌شود.`
-              : `این عدد خودکار از مانده پایان ماه قبل محاسبه شده و قابل ویرایش نیست. مبنای محاسبه: ${formatJalaliMonthLabel(
+              ? `محاسبه خودکار از این ماه شروع می‌شود، پس این عدد را خودت تعیین می‌کنی و در صفحه موجودی اول دوره قابل ویرایش است. از ماه بعد، موجودی اول دوره خودش از مانده پایان ${periodFlow.monthLabel} حساب می‌شود.`
+              : `این عدد خودکار از مانده پایان ماه قبل محاسبه شده و قابل ویرایش نیست. شروع محاسبه: ${formatJalaliMonthLabel(
                   periodFlow.anchorMonthKey
                 )}.`}
           </p>

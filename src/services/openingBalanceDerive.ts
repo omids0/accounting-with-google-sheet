@@ -101,6 +101,35 @@ export function closingBalanceOf(
   return opening + (totals?.income ?? 0) - (totals?.expense ?? 0)
 }
 
+export interface StartAmountReseedInput {
+  anchorMonthKey: string
+  currentMonthKey: string
+  storedAmount: number
+  walletTotal: number
+  hasRecords: boolean
+}
+
+/**
+ * A zero start amount almost always means the dashboard loaded before the user
+ * got around to entering a wallet account, and freezing the chain at zero makes
+ * every later month wrong. Until the first transaction is recorded the wallet
+ * total is still a faithful "money I had before I started" snapshot, so keep
+ * adopting it.
+ *
+ * Once anything is recorded the snapshot may already include that
+ * transaction's effect, and once the month rolls over the amount is load
+ * bearing for derived months — either way it must stay put.
+ */
+export function shouldReseedStartAmount(input: StartAmountReseedInput): boolean {
+  const { anchorMonthKey, currentMonthKey, storedAmount, walletTotal, hasRecords } = input
+
+  if (anchorMonthKey !== currentMonthKey) return false
+  if (hasRecords) return false
+  if (storedAmount !== 0) return false
+
+  return walletTotal !== 0
+}
+
 export function isBeforeAnchor(monthKey: string, anchorMonthKey: string): boolean {
   if (!parseJalaliMonthKey(monthKey) || !parseJalaliMonthKey(anchorMonthKey)) return false
 

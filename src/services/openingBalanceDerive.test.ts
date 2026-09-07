@@ -7,6 +7,7 @@ import {
   findEarliestRecordDate,
   isBeforeAnchor,
   resolveAccountingStartDate,
+  shouldReseedStartAmount,
   type MonthlyNetTotals
 } from './openingBalanceDerive'
 import { getJalaliMonthKey } from '../utils/dateRange'
@@ -163,5 +164,35 @@ describe('findEarliestRecordDate', () => {
 
   it('returns an empty string when there are no dated records', () => {
     expect(findEarliestRecordDate([], [], 'date', 'date')).toBe('')
+  })
+})
+
+describe('shouldReseedStartAmount', () => {
+  const base = {
+    anchorMonthKey: '1405-06',
+    currentMonthKey: '1405-06',
+    storedAmount: 0,
+    walletTotal: 5_000_000,
+    hasRecords: false
+  }
+
+  it('adopts the wallet total when the start month was seeded before any wallet existed', () => {
+    expect(shouldReseedStartAmount(base)).toBe(true)
+  })
+
+  it('freezes once the first transaction is recorded', () => {
+    expect(shouldReseedStartAmount({ ...base, hasRecords: true })).toBe(false)
+  })
+
+  it('freezes once the start month is in the past', () => {
+    expect(shouldReseedStartAmount({ ...base, currentMonthKey: '1405-07' })).toBe(false)
+  })
+
+  it('never overwrites an amount the user already has', () => {
+    expect(shouldReseedStartAmount({ ...base, storedAmount: 3_000_000 })).toBe(false)
+  })
+
+  it('does nothing while the wallet is still empty', () => {
+    expect(shouldReseedStartAmount({ ...base, walletTotal: 0 })).toBe(false)
   })
 })
