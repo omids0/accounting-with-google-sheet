@@ -32,7 +32,12 @@ export default function CategorySelect({
   disabled = false,
   'aria-label': ariaLabel = 'دسته‌بندی',
   id,
-  invalid = false
+  invalid = false,
+  className,
+  placeholder = 'انتخاب دسته‌بندی',
+  allOption,
+  allowManage = allOption == null,
+  showSearchAlways = false
 }: CategorySelectProps) {
   const [open, setOpen] = useState(false)
 
@@ -54,9 +59,13 @@ export default function CategorySelect({
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  const hasValue = Boolean(value)
+  const isAllSelected = Boolean(allOption && value === allOption.value)
 
-  const showSearch = categories.length > 3
+  const hasValue = allOption ? !isAllSelected && Boolean(value) : Boolean(value)
+
+  const displayValue = isAllSelected ? allOption?.label : value
+
+  const showSearch = showSearchAlways || categories.length > 3
 
   const filteredCategories = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -153,7 +162,7 @@ export default function CategorySelect({
 
   return (
     <div
-      className={categorySelectRootClass({ open, disabled, saving })}
+      className={cn(categorySelectRootClass({ open, disabled, saving }), className)}
       data-open={open || undefined}
     >
       <button
@@ -173,8 +182,13 @@ export default function CategorySelect({
         <span className={categorySelectLeadingClass} aria-hidden="true">
           <AppIcon name="folder" size={16} strokeWidth={2} />
         </span>
-        <span className={cn(customSelectValueClass, !hasValue && categorySelectPlaceholderClass)}>
-          {hasValue ? value : 'انتخاب دسته‌بندی'}
+        <span
+          className={cn(
+            customSelectValueClass,
+            !hasValue && !isAllSelected && categorySelectPlaceholderClass
+          )}
+        >
+          {hasValue || isAllSelected ? displayValue : placeholder}
         </span>
         {saving ? (
           <span className={cn('spinner', categorySelectSpinnerClass)} aria-hidden="true" />
@@ -208,6 +222,8 @@ export default function CategorySelect({
           value={value}
           saving={saving}
           manageMode={manageMode}
+          allowManage={allowManage}
+          allOption={allOption}
           showSearch={showSearch}
           searchQuery={searchQuery}
           editingCategory={editingCategory}

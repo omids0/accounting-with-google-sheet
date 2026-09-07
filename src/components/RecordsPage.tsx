@@ -7,6 +7,7 @@ import PageFilterPanel from './PageFilterPanel'
 import { isConfigured } from '../services/settings'
 import RecordsEditFormModal from './records/RecordsEditFormModal'
 import RecordsList from './records/RecordsList'
+import RecordsSummary from './records/RecordsSummary'
 import RecordsToolbar from './records/RecordsToolbar'
 import { useRecordsPage } from './records/useRecordsPage'
 import { RecordListSkeleton } from './skeleton'
@@ -91,14 +92,23 @@ export default function RecordsPage({
               <p>تراکنشی با این فیلتر یافت نشد</p>
             </div>
           ) : (
-            <RecordsList
-              forms={page.forms}
-              activeForm={page.activeForm}
-              isAllForms={page.isAllForms}
-              filteredRecords={page.filteredRecords}
-              onEdit={page.openEditForm}
-              onDelete={page.openDeleteConfirm}
-            />
+            <>
+              <RecordsList
+                forms={page.forms}
+                activeForm={page.activeForm}
+                isAllForms={page.isAllForms}
+                filteredRecords={page.filteredRecords}
+                onEdit={page.openEditForm}
+                onDelete={page.openDeleteConfirm}
+              />
+              <RecordsSummary
+                filteredRecords={page.filteredRecords}
+                forms={page.forms}
+                activeForm={page.activeForm}
+                isAllForms={page.isAllForms}
+                showFilteredLabel={page.showFilteredSummary}
+              />
+            </>
           )}
         </div>
       </div>

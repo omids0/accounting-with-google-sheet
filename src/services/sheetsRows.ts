@@ -145,9 +145,10 @@ export async function replaceSheetDataRows(
   spreadsheetId: string,
   sheetName: string,
   rows: string[][],
-  columnCount = 2
+  columnCount = 2,
+  headerRow?: string[]
 ): Promise<void> {
-  replaceSheetDataRowsInStore(spreadsheetId, sheetName, rows)
+  replaceSheetDataRowsInStore(spreadsheetId, sheetName, rows, headerRow)
   notifySpreadsheetDataChanged(spreadsheetId)
 
   const { enqueueSheetWrite } = await import('./sheetSync')

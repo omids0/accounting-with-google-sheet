@@ -11,6 +11,11 @@ import { reorderItems } from '../../../utils/reorderItems'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showError, showSuccess } from '../../../utils/toast'
 
+export interface CategorySelectAllOption {
+  value: string
+  label: string
+}
+
 export interface CategorySelectProps {
   value: string
   onChange: (value: string) => void
@@ -22,6 +27,11 @@ export interface CategorySelectProps {
   'aria-label'?: string
   id?: string
   invalid?: boolean
+  className?: string
+  placeholder?: string
+  allOption?: CategorySelectAllOption
+  allowManage?: boolean
+  showSearchAlways?: boolean
 }
 
 export function useCategorySelectActions({

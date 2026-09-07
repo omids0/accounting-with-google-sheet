@@ -145,7 +145,8 @@ async function writeCategoriesToSheet(
     spreadsheetId,
     CATEGORIES_SHEET,
     groupsToRows(groups),
-    CATEGORIES_HEADERS.length
+    CATEGORIES_HEADERS.length,
+    CATEGORIES_HEADERS
   )
 }
 

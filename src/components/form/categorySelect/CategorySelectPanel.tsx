@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
 
 import CategorySelectItem from './CategorySelectItem'
+import type { CategorySelectAllOption } from './useCategorySelectActions'
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import AppIcon from '../../AppIcon'
 import {
@@ -11,7 +12,11 @@ import {
   categorySelectEmptyClass,
   categorySelectFooterBtnClass,
   categorySelectFooterClass,
+  categorySelectItemClass,
   categorySelectListClass,
+  categorySelectOptionBtnClass,
+  categorySelectOptionCheckClass,
+  categorySelectOptionLabelClass,
   categorySelectPanelClass,
   categorySelectSearchClass,
   categorySelectSearchClearClass,
@@ -25,6 +30,8 @@ interface CategorySelectPanelProps {
   value: string
   saving: boolean
   manageMode: boolean
+  allowManage: boolean
+  allOption?: CategorySelectAllOption
   showSearch: boolean
   searchQuery: string
   editingCategory: string | null
@@ -56,6 +63,8 @@ export default function CategorySelectPanel({
   value,
   saving,
   manageMode,
+  allowManage,
+  allOption,
   showSearch,
   searchQuery,
   editingCategory,
@@ -86,6 +95,11 @@ export default function CategorySelectPanel({
     disabled: !canReorder || saving,
     onReorder
   })
+
+  const showAllOption =
+    allOption && allOption.label.toLowerCase().includes(searchQuery.trim().toLowerCase())
+
+  const listIsEmpty = !showAllOption && filteredCategories.length === 0
 
   return (
     <div className={categorySelectPanelClass}>
@@ -148,7 +162,27 @@ export default function CategorySelectPanel({
       )}
 
       <div className={categorySelectListClass} role="listbox" aria-label={ariaLabel}>
-        {filteredCategories.length === 0 ? (
+        {showAllOption && (
+          <div className={categorySelectItemClass({ selected: value === allOption.value })}>
+            <button
+              type="button"
+              role="option"
+              aria-selected={value === allOption.value}
+              className={categorySelectOptionBtnClass}
+              onClick={() => onSelect(allOption.value)}
+              disabled={saving || manageMode}
+            >
+              <span className={categorySelectOptionCheckClass} aria-hidden="true">
+                {value === allOption.value && <AppIcon name="check" size={14} strokeWidth={2.5} />}
+              </span>
+              <span className={categorySelectOptionLabelClass(value === allOption.value)}>
+                {allOption.label}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {listIsEmpty ? (
           <div className={categorySelectEmptyClass}>
             {searchQuery.trim() ? 'دسته‌ای با این نام پیدا نشد' : 'هنوز دسته‌بندی ثبت نشده'}
           </div>
@@ -181,7 +215,7 @@ export default function CategorySelectPanel({
         )}
       </div>
 
-      {!manageMode && (
+      {!manageMode && allowManage && (
         <div className={categorySelectFooterClass}>
           <button
             type="button"
