@@ -2,6 +2,5 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 # Pull main/develop to receive the latest package version after merges.
-# When on the default integration branch, prune merged remote branches and
-# delete stale local branches (see scripts/git-prune-branches.sh).
+# Branch cleanup runs after merge (post-merge) and rebase pull (post-rewrite).
 sh "$(dirname -- "$0")/../scripts/git-prune-branches.sh" || true
