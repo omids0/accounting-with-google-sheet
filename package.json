@@ -22,7 +22,11 @@
     "e2e:browser-check": "node scripts/check-browser.mjs",
     "size-limit": "size-limit",
     "quality": "npm run lint && npm run types && npm run build && npm run size-limit && npm run e2e:a11y && npm run lighthouse",
-    "quality:ci": "npm run lint && npm run types && npm run build && npm run size-limit && npm run e2e:a11y && npm run lighthouse"
+    "quality:ci": "npm run lint && npm run types && npm run build && npm run size-limit && npm run e2e:a11y && npm run lighthouse",
+    "editor:extensions": "node scripts/install-editor-extensions.mjs",
+    "editor:keybindings": "node scripts/apply-editor-keybindings.mjs",
+    "editor:setup": "node scripts/setup-editor.mjs",
+    "git:prune-branches": "sh scripts/git-prune-branches.sh"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
