@@ -46,6 +46,9 @@ const UNLOCKED_KEY = 'accounting_app_lock_unlocked'
 const PENDING_KEY = 'accounting_app_lock_pending'
 const HIDDEN_AT_KEY = 'accounting_app_lock_hidden_at'
 const LAST_ACTIVITY_KEY = 'accounting_app_lock_last_activity'
+const EXTERNAL_HANDOFF_KEY = 'accounting_app_lock_external_handoff'
+
+const EXTERNAL_HANDOFF_GRACE_MS = 90_000
 
 function readSession(key: string): string | null {
   try {
@@ -144,8 +147,27 @@ function isIdleExpiredSinceHidden(): boolean {
   return Date.now() - hiddenAt > getIdleMinutes() * 60_000
 }
 
+export function isExternalAppHandoffActive(): boolean {
+  const startedAt = Number(readSession(EXTERNAL_HANDOFF_KEY) || 0)
+
+  if (!startedAt) return false
+
+  if (Date.now() - startedAt > EXTERNAL_HANDOFF_GRACE_MS) {
+    removeSession(EXTERNAL_HANDOFF_KEY)
+    return false
+  }
+
+  return true
+}
+
+export function markExternalAppHandoff(): void {
+  writeSession(EXTERNAL_HANDOFF_KEY, String(Date.now()))
+  clearBackgroundPending()
+}
+
 export function shouldLockOnForeground(): boolean {
   if (!isAppLockEnabled()) return false
+  if (isExternalAppHandoffActive()) return false
 
   const policy = getLockPolicy()
 
@@ -164,6 +186,7 @@ export function shouldLockOnForeground(): boolean {
 
 export function markBackgroundPending(): void {
   if (!isAppLockEnabled() || !shouldMarkBackgroundPending()) return
+  if (isExternalAppHandoffActive()) return
 
   writeSession(PENDING_KEY, '1')
   writeSession(HIDDEN_AT_KEY, String(Date.now()))
