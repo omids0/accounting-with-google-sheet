@@ -1,8 +1,7 @@
 #!/usr/bin/env sh
 # Prune merged remote branches and remove stale local branches after pulling main.
 #
-# Runs automatically from .husky/post-merge when the current branch is the
-# default integration branch (origin HEAD, usually main).
+# Runs automatically from .husky/post-merge (git pull) and post-rewrite (git pull --rebase).
 #
 # Manual run:
 #   sh scripts/git-prune-branches.sh
@@ -46,6 +45,11 @@ if [ "$current_branch" != "$default_branch" ]; then
   exit 0
 fi
 
+integration_ref="origin/$default_branch"
+if ! git rev-parse --verify "$integration_ref" >/dev/null 2>&1; then
+  integration_ref="$default_branch"
+fi
+
 is_protected() {
   branch="$1"
   for protected in $PROTECTED; do
@@ -54,6 +58,23 @@ is_protected() {
     fi
   done
   return 1
+}
+
+delete_local_branch() {
+  branch="$1"
+  reason="$2"
+  if is_protected "$branch"; then
+    return 0
+  fi
+  if [ "$branch" = "$current_branch" ]; then
+    return 0
+  fi
+  echo "      - $branch ($reason)"
+  if [ "$DRY_RUN" = "1" ]; then
+    printf '[dry-run] git branch -D %s\n' "$branch"
+    return 0
+  fi
+  git branch -D "$branch" 2>/dev/null || git branch -d "$branch" 2>/dev/null || true
 }
 
 run_cmd() {
@@ -70,7 +91,7 @@ echo '   ↳ fetching origin with prune...'
 run_cmd git fetch origin --prune
 
 echo '   ↳ deleting merged remote branches...'
-git branch -r --merged "origin/$default_branch" 2>/dev/null \
+git branch -r --merged "$integration_ref" 2>/dev/null \
   | sed 's/^[[:space:]]*//' \
   | grep -E '^origin/' \
   | grep -vE '^origin/HEAD ->' \
@@ -80,7 +101,7 @@ git branch -r --merged "origin/$default_branch" 2>/dev/null \
       if is_protected "$branch"; then
         continue
       fi
-      echo "      - origin/$branch (merged)"
+      echo "      - origin/$branch (merged on remote)"
       run_cmd git push origin --delete "$branch" || true
     done
 
@@ -94,38 +115,16 @@ git branch -vv 2>/dev/null \
   | sed 's/^\*//' \
   | while IFS= read -r branch; do
       [ -z "$branch" ] && continue
-      if is_protected "$branch"; then
-        continue
-      fi
-      if [ "$branch" = "$current_branch" ]; then
-        continue
-      fi
-      echo "      - $branch (upstream gone)"
-      if [ "$DRY_RUN" = "1" ]; then
-        printf '[dry-run] git branch -D %s\n' "$branch"
-      else
-        git branch -D "$branch" 2>/dev/null || git branch -d "$branch" 2>/dev/null || true
-      fi
+      delete_local_branch "$branch" "upstream gone"
     done
 
-echo "   ↳ removing local branches already merged into ${default_branch}..."
-git branch --merged "$default_branch" 2>/dev/null \
+echo "   ↳ removing local branches already merged into ${integration_ref}..."
+git branch --merged "$integration_ref" 2>/dev/null \
   | sed 's/^[[:space:]]*//' \
   | sed 's/^\* //' \
   | while IFS= read -r branch; do
       [ -z "$branch" ] && continue
-      if is_protected "$branch"; then
-        continue
-      fi
-      if [ "$branch" = "$current_branch" ]; then
-        continue
-      fi
-      echo "      - $branch (merged locally)"
-      if [ "$DRY_RUN" = "1" ]; then
-        printf '[dry-run] git branch -d %s\n' "$branch"
-      else
-        git branch -d "$branch" 2>/dev/null || true
-      fi
+      delete_local_branch "$branch" "merged locally"
     done
 
 echo '✅ Branch cleanup finished.'

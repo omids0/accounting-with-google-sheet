@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# git pull --rebase (and rebase/amend) does not run post-merge; prune here instead.
+sh "$(dirname -- "$0")/../scripts/git-prune-branches.sh" || true
