@@ -11,6 +11,7 @@ import {
 } from './form'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
+import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
 import type { CustomForm, FieldConfig } from '../types'
@@ -204,6 +205,7 @@ export default function DataEntryForm({
         formValues
       )
       showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
+      refreshOpeningBalancesInBackground()
       reset(buildInitialValues(activeForm))
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
@@ -234,7 +236,7 @@ export default function DataEntryForm({
         title={retroactiveWarning.title}
         message={retroactiveWarning.message}
         confirming={retroactiveWarning.confirming}
-        confirmLabel="ثبت کن"
+        confirmLabel={retroactiveWarning.confirmLabel}
         onClose={retroactiveWarning.cancel}
         onConfirm={retroactiveWarning.confirm}
       />

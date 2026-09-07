@@ -1,7 +1,8 @@
 export { markQuotaExceeded, queueOutboxWrite, flushOutbox } from './sheetSyncOutbox'
 
+export { getKnownSheetNames } from './sheetSyncSheetNames'
+
 export {
-  getKnownSheetNames,
   fullSyncFromRemote,
   refreshInBackground,
   initializeSheetSync,

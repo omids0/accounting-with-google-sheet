@@ -3,9 +3,30 @@ import { useCallback, useState } from 'react'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import { normalizeSheetDate } from '../utils/sheetValues'
 
+export type RetroactiveAction = 'create' | 'edit' | 'delete'
+
 interface PendingEntry {
   monthLabel: string
+  action: RetroactiveAction
   run: () => Promise<void>
+}
+
+const COPY: Record<RetroactiveAction, { title: string; confirmLabel: string; body: string }> = {
+  create: {
+    title: 'ثبت برای ماه گذشته',
+    confirmLabel: 'ثبت کن',
+    body: 'ثبت می‌شود'
+  },
+  edit: {
+    title: 'ویرایش ماه گذشته',
+    confirmLabel: 'ویرایش کن',
+    body: 'ویرایش می‌شود'
+  },
+  delete: {
+    title: 'حذف از ماه گذشته',
+    confirmLabel: 'حذف کن',
+    body: 'حذف می‌شود'
+  }
 }
 
 export function isRetroactiveDate(dateIso: string): boolean {
@@ -14,6 +35,27 @@ export function isRetroactiveDate(dateIso: string): boolean {
   if (!normalized) return false
 
   return getJalaliMonthKey(normalized) < getJalaliMonthKey(getDateRange('month-to-date').start)
+}
+
+/** Jalali month label when the date falls in a past month, otherwise empty. */
+export function retroactiveMonthLabel(dateIso: string): string {
+  if (!isRetroactiveDate(dateIso)) return ''
+
+  return formatJalaliMonthLabel(getJalaliMonthKey(normalizeSheetDate(dateIso)))
+}
+
+/**
+ * Earliest affected past month across the given dates. An edit that moves a
+ * record between months touches both, and the earlier one bounds how far the
+ * derived opening balances shift.
+ */
+function earliestRetroactiveMonth(dates: string[]): string {
+  return (
+    dates
+      .filter(isRetroactiveDate)
+      .map(date => getJalaliMonthKey(normalizeSheetDate(date)))
+      .sort()[0] ?? ''
+  )
 }
 
 /**
@@ -26,15 +68,22 @@ export function useRetroactiveEntryWarning() {
 
   const [confirming, setConfirming] = useState(false)
 
-  const guard = useCallback((dateIso: string, run: () => Promise<void>): boolean => {
-    if (!isRetroactiveDate(dateIso)) return false
+  const guard = useCallback(
+    (
+      dateIso: string | string[],
+      run: () => Promise<void>,
+      action: RetroactiveAction = 'create'
+    ): boolean => {
+      const monthKey = earliestRetroactiveMonth(Array.isArray(dateIso) ? dateIso : [dateIso])
 
-    const monthKey = getJalaliMonthKey(normalizeSheetDate(dateIso))
+      if (!monthKey) return false
 
-    setPending({ monthLabel: formatJalaliMonthLabel(monthKey), run })
+      setPending({ monthLabel: formatJalaliMonthLabel(monthKey), action, run })
 
-    return true
-  }, [])
+      return true
+    },
+    []
+  )
 
   const confirm = useCallback(async () => {
     if (!pending) return
@@ -53,12 +102,15 @@ export function useRetroactiveEntryWarning() {
     setPending(null)
   }, [confirming])
 
+  const copy = COPY[pending?.action ?? 'create']
+
   return {
     open: pending !== null,
     confirming,
-    title: 'ثبت برای ماه گذشته',
+    title: copy.title,
+    confirmLabel: copy.confirmLabel,
     message: pending
-      ? `این مورد برای ${pending.monthLabel} ثبت می‌شود. با این کار موجودی اول دوره ماه‌های بعد از آن به‌صورت خودکار به‌روز می‌شود. ادامه می‌دهید؟`
+      ? `این مورد برای ${pending.monthLabel} ${copy.body}. با این کار موجودی اول دوره ماه‌های بعد از آن به‌صورت خودکار به‌روز می‌شود. ادامه می‌دهید؟`
       : '',
     guard,
     confirm,

@@ -1,5 +1,6 @@
 import ActiveFilterChips from './ActiveFilterChips'
 import AppIcon from './AppIcon'
+import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import FilterModal from './FilterModal'
 import PageFilterPanel from './PageFilterPanel'
@@ -115,10 +116,20 @@ export default function RecordsPage({
 
       <ConfirmDeleteModal
         open={page.deletingRecord !== null}
-        message="از حذف این مورد مطمئن هستید؟"
+        message={page.deleteMessage}
         onClose={page.closeDeleteConfirm}
         onConfirm={page.handleDelete}
         deleting={page.deleting}
+      />
+
+      <ConfirmActionModal
+        open={page.retroactiveWarning.open}
+        title={page.retroactiveWarning.title}
+        message={page.retroactiveWarning.message}
+        confirming={page.retroactiveWarning.confirming}
+        confirmLabel={page.retroactiveWarning.confirmLabel}
+        onClose={page.retroactiveWarning.cancel}
+        onConfirm={page.retroactiveWarning.confirm}
       />
     </div>
   )

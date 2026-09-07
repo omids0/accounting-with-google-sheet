@@ -1,4 +1,5 @@
 import type { StoredRecord } from './recordsUtils'
+import { refreshOpeningBalancesInBackground } from '../../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../../services/settings'
 import { deleteRecord, updateRecord } from '../../services/sheets'
 import type { CustomForm } from '../../types'
@@ -43,6 +44,7 @@ export async function submitRecordEdit({
       formValues
     )
     showSuccess('تراکنش ویرایش شد')
+    refreshOpeningBalancesInBackground()
     await onSuccess()
 
     return true
@@ -73,6 +75,7 @@ export async function deleteStoredRecord({
   try {
     await deleteRecord(settings.spreadsheetId, form, deletingRecord.rowNumber)
     showSuccess('تراکنش حذف شد')
+    refreshOpeningBalancesInBackground()
     await onSuccess()
 
     return true

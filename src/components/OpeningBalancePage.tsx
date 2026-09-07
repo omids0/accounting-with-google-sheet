@@ -15,7 +15,7 @@ import {
   type MonthlyOpeningBalance
 } from '../services/monthlyBalance'
 import { isBeforeAnchor } from '../services/openingBalanceDerive'
-import { getAnchorMonthKey } from '../services/periodSettings'
+import { ensureAnchorMonthKey } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../utils/authGuard'
 import { formatJalaliMonthLabel } from '../utils/dateRange'
@@ -69,7 +69,7 @@ export default function OpeningBalancePage() {
     try {
       const [data, anchor] = await Promise.all([
         fetchAllOpeningBalances(settings.spreadsheetId),
-        getAnchorMonthKey(settings.spreadsheetId).catch(() => '')
+        ensureAnchorMonthKey().catch(() => '')
       ])
 
       setAnchorMonthKey(anchor)
