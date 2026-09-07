@@ -108,7 +108,7 @@ git branch -vv 2>/dev/null \
       fi
     done
 
-echo '   ↳ removing local branches already merged into '"$default_branch"'..."
+echo "   ↳ removing local branches already merged into ${default_branch}..."
 git branch --merged "$default_branch" 2>/dev/null \
   | sed 's/^[[:space:]]*//' \
   | sed 's/^\* //' \
