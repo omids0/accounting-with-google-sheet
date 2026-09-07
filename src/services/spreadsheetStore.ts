@@ -226,11 +226,14 @@ export function deleteSheetDataRow(
 export function replaceSheetDataRows(
   spreadsheetId: string,
   sheetName: string,
-  dataRows: string[][]
+  dataRows: string[][],
+  headerRow?: string[]
 ): void {
   const store = initStore(spreadsheetId)
 
-  const header = store.sheets[sheetName]?.[0]
+  const existingHeader = store.sheets[sheetName]?.[0]
+  const hasExistingHeader = Boolean(existingHeader?.some(cell => String(cell ?? '').trim()))
+  const header = hasExistingHeader ? existingHeader : headerRow
 
   store.sheets[sheetName] = header
     ? [header, ...dataRows.map(row => [...row])]

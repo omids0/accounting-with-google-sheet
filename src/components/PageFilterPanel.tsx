@@ -2,7 +2,7 @@ import DateRangeFilter, {
   type AppliedDateRangeFilter,
   type DateRangeFilterPreset
 } from './DateRangeFilter'
-import { Select } from './form'
+import { CategoryFilterSelect, CounterpartyFilterSelect } from './form'
 import PageSearchInput from './PageSearchInput'
 import {
   pageFilterPanelClass,
@@ -122,42 +122,28 @@ export default function PageFilterPanel({
           </div>
         )}
 
-        {category !== undefined &&
-          onCategoryChange &&
-          categoryOptions &&
-          categoryOptions.length > 0 && (
-            <div className={recordsFilterSectionClassName(true)}>
-              <span className={recordsFilterLabelClass}>{categoryLabel}</span>
-              <Select
-                className={recordsCategorySelectClass}
-                compact
-                aria-label={categoryLabel}
-                value={category}
-                onChange={onCategoryChange}
-                options={[
-                  { value: 'all', label: 'همه' },
-                  ...categoryOptions.map(item => ({ value: item, label: item }))
-                ]}
-              />
-            </div>
-          )}
+        {category !== undefined && onCategoryChange && categoryOptions !== undefined && (
+          <div className={recordsFilterSectionClassName()}>
+            <CategoryFilterSelect
+              className={recordsCategorySelectClass}
+              aria-label={categoryLabel}
+              value={category}
+              onChange={onCategoryChange}
+              categories={categoryOptions}
+            />
+          </div>
+        )}
 
         {counterparty !== undefined &&
           onCounterpartyChange &&
-          counterpartyOptions &&
-          counterpartyOptions.length > 0 && (
-            <div className={recordsFilterSectionClassName(true)}>
-              <span className={recordsFilterLabelClass}>{counterpartyLabel}</span>
-              <Select
+          counterpartyOptions !== undefined && (
+            <div className={recordsFilterSectionClassName()}>
+              <CounterpartyFilterSelect
                 className={recordsCategorySelectClass}
-                compact
                 aria-label={counterpartyLabel}
                 value={counterparty}
                 onChange={onCounterpartyChange}
-                options={[
-                  { value: 'all', label: 'همه' },
-                  ...counterpartyOptions.map(item => ({ value: item, label: item }))
-                ]}
+                counterparties={counterpartyOptions}
               />
             </div>
           )}

@@ -1,8 +1,8 @@
-import { useMemo, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import type { CustomForm } from '../../types'
+import type { CustomForm, FieldConfig } from '../../types'
 import { FieldInput, sortFormFields } from '../form'
 import FormModal from '../FormModal'
 import type { StoredRecord } from './recordsUtils'
@@ -48,6 +48,8 @@ export default function RecordsEditFormModal({
     [editingForm, editingRecord]
   )
 
+  const [fields, setFields] = useState<FieldConfig[]>(editingForm.fields)
+
   const { handleSubmit, reset, setValue, watch } = useForm<Record<string, string | number>>({
     defaultValues: initialValues
   })
@@ -57,7 +59,19 @@ export default function RecordsEditFormModal({
     resetKey: editingRecord.id
   })
 
+  useEffect(() => {
+    if (open) {
+      setFields(editingForm.fields)
+    }
+  }, [open, editingForm.fields, editingForm.id])
+
   const values = watch()
+
+  const handleCategoriesChange = (categories: string[]) => {
+    setFields(current =>
+      current.map(field => (field.id === 'category' ? { ...field, options: categories } : field))
+    )
+  }
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     void handleSubmit(formValues => onSubmit(formValues))(event)
@@ -79,13 +93,14 @@ export default function RecordsEditFormModal({
           : 'primary'
       }
     >
-      {sortFormFields(editingForm.fields).map(field => (
+      {sortFormFields(fields).map(field => (
         <FieldInput
           key={field.id}
           field={field}
           value={values[field.id] ?? ''}
           onChange={next => setValue(field.id, next)}
           formId={editingForm.id}
+          onCategoriesChange={handleCategoriesChange}
         />
       ))}
     </FormModal>

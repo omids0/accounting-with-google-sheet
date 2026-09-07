@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
 
 import CounterpartySelectItem from './CounterpartySelectItem'
+import type { CounterpartySelectAllOption } from './useCounterpartySelectActions'
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import AppIcon from '../../AppIcon'
 import type { CounterpartyWithRow } from '../../counterparties/types'
@@ -10,7 +11,11 @@ import {
   categorySelectEmptyClass,
   categorySelectFooterBtnClass,
   categorySelectFooterClass,
+  categorySelectItemClass,
   categorySelectListClass,
+  categorySelectOptionBtnClass,
+  categorySelectOptionCheckClass,
+  categorySelectOptionLabelClass,
   categorySelectPanelClass,
   categorySelectSearchClass,
   categorySelectSearchClearClass,
@@ -24,6 +29,8 @@ interface CounterpartySelectPanelProps {
   value: string
   saving: boolean
   manageMode: boolean
+  allowManage: boolean
+  allOption?: CounterpartySelectAllOption
   showSearch: boolean
   searchQuery: string
   confirmDelete: CounterpartyWithRow | null
@@ -47,6 +54,8 @@ export default function CounterpartySelectPanel({
   value,
   saving,
   manageMode,
+  allowManage,
+  allOption,
   showSearch,
   searchQuery,
   confirmDelete,
@@ -68,6 +77,11 @@ export default function CounterpartySelectPanel({
     disabled: !canReorder || saving,
     onReorder
   })
+
+  const showAllOption =
+    allOption && allOption.label.toLowerCase().includes(searchQuery.trim().toLowerCase())
+
+  const listIsEmpty = !showAllOption && filteredItems.length === 0
 
   return (
     <div className={categorySelectPanelClass}>
@@ -97,7 +111,7 @@ export default function CounterpartySelectPanel({
         </div>
       )}
 
-      {manageMode && (
+      {manageMode && allowManage && (
         <div className={categorySelectAddClass}>
           <div className={categorySelectAddRowClass}>
             <button
@@ -114,7 +128,27 @@ export default function CounterpartySelectPanel({
       )}
 
       <div className={categorySelectListClass} role="listbox" aria-label={ariaLabel}>
-        {filteredItems.length === 0 ? (
+        {showAllOption && (
+          <div className={categorySelectItemClass({ selected: value === allOption.value })}>
+            <button
+              type="button"
+              role="option"
+              aria-selected={value === allOption.value}
+              className={categorySelectOptionBtnClass}
+              onClick={() => onSelect(allOption.value)}
+              disabled={saving || manageMode}
+            >
+              <span className={categorySelectOptionCheckClass} aria-hidden="true">
+                {value === allOption.value && <AppIcon name="check" size={14} strokeWidth={2.5} />}
+              </span>
+              <span className={categorySelectOptionLabelClass(value === allOption.value)}>
+                {allOption.label}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {listIsEmpty ? (
           <div className={categorySelectEmptyClass}>
             {searchQuery.trim() ? 'طرف حسابی با این نام پیدا نشد' : 'هنوز طرف حسابی ثبت نشده'}
           </div>
@@ -141,7 +175,7 @@ export default function CounterpartySelectPanel({
         )}
       </div>
 
-      {!manageMode && (
+      {!manageMode && allowManage && (
         <div className={categorySelectFooterClass}>
           <button
             type="button"

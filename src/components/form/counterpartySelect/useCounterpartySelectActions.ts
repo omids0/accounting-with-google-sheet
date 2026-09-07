@@ -17,6 +17,11 @@ import {
 } from '../../counterparties/counterpartyFormPayload'
 import type { CounterpartyFormState, CounterpartyWithRow } from '../../counterparties/types'
 
+export interface CounterpartySelectAllOption {
+  value: string
+  label: string
+}
+
 export interface CounterpartySelectProps {
   value: string
   onChange: (value: string) => void
@@ -26,6 +31,11 @@ export interface CounterpartySelectProps {
   'aria-label'?: string
   id?: string
   invalid?: boolean
+  className?: string
+  placeholder?: string
+  allOption?: CounterpartySelectAllOption
+  allowManage?: boolean
+  showSearchAlways?: boolean
 }
 
 export function useCounterpartySelectActions({

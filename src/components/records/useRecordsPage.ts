@@ -8,6 +8,7 @@ import {
   type StoredRecord
 } from './recordsUtils'
 import { useRecordsFormActions } from './useRecordsFormActions'
+import { syncCategoriesFromSheet } from '../../services/categories'
 import { getSettings, isConfigured } from '../../services/settings'
 import { fetchRecords } from '../../services/sheets'
 import type { CustomForm } from '../../types'
@@ -48,13 +49,20 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
 
     if (!requireAuth()) return
 
-    const formsToLoad =
-      activeFormId === 'all' ? settings.forms : settings.forms.filter(f => f.id === activeFormId)
-
-    if (!formsToLoad.length) return
-
     setLoading(true)
     try {
+      await syncCategoriesFromSheet(settings.spreadsheetId)
+      const refreshedSettings = getSettings() ?? settings
+
+      setForms(refreshedSettings.forms)
+
+      const formsToLoad =
+        activeFormId === 'all'
+          ? refreshedSettings.forms
+          : refreshedSettings.forms.filter(f => f.id === activeFormId)
+
+      if (!formsToLoad.length) return
+
       const batches = await Promise.all(
         formsToLoad.map(async form => {
           const data = await fetchRecords(settings.spreadsheetId, form)
@@ -63,7 +71,7 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
         })
       )
 
-      setRecords(sortRecords(batches.flat(), settings.forms))
+      setRecords(sortRecords(batches.flat(), refreshedSettings.forms))
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
@@ -108,6 +116,8 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
       const categories = new Set<string>()
 
       for (const form of forms) {
+        if (!getFormField(form, 'category')) continue
+
         const formRecords = records.filter(record => record.formId === form.id)
 
         getCategoryOptions(form, formRecords).forEach(cat => categories.add(cat))
@@ -164,6 +174,10 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
   )
 
   const openFilterModal = useCallback(() => {
+    const settings = getSettings()
+
+    if (settings) setForms(settings.forms)
+
     setDraftDatePreset(datePreset)
     setDraftCustomRange(customRange)
     setDraftCategory(categoryFilter)
@@ -196,6 +210,14 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
     setCategoryFilter('all')
   }, [resetDateFilter])
 
+  const showFilteredSummary = useMemo(
+    () =>
+      categoryFilter !== 'all' ||
+      datePreset !== 'month-to-date' ||
+      filteredRecords.length !== records.length,
+    [categoryFilter, datePreset, filteredRecords.length, records.length]
+  )
+
   const handleFormChange = (formId: string) => {
     setActiveFormId(formId)
     setCategoryFilter('all')
@@ -217,6 +239,7 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
     showCategoryFilter,
     categoryOptions,
     filteredRecords,
+    showFilteredSummary,
     handleFormChange,
     filterModalOpen,
     setFilterModalOpen,

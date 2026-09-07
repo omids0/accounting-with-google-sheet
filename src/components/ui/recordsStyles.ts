@@ -78,6 +78,15 @@ export const recordsListHeaderClass =
 
 export const recordsListCountClass = 'text-[0.75rem] font-semibold text-muted'
 
+export const recordsSummarySectionClass = 'mt-3 flex flex-col gap-2'
+
+export const recordsSummaryHintClass = 'm-0 text-center text-[0.72rem] font-medium text-muted'
+
+export const recordsSummaryTotalCardClass = cn(
+  'p-4 text-center transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:shadow-[var(--shadow)]',
+  '[&.stat-card_.stat-card__value-row--wide]:justify-center'
+)
+
 export function recordsListTypeClass(type: 'income' | 'expense') {
   return cn(
     'rounded-full px-2 py-[0.15rem] text-[0.72rem] font-semibold',

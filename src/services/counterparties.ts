@@ -226,7 +226,8 @@ export async function reorderCounterparties(
     spreadsheetId,
     COUNTERPARTIES_SHEET,
     ordered.map(item => counterpartyToRow(item)),
-    COUNTERPARTIES_HEADERS.length
+    COUNTERPARTIES_HEADERS.length,
+    COUNTERPARTIES_HEADERS
   )
 }
 
