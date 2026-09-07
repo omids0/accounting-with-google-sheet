@@ -16,15 +16,11 @@ import {
 } from './dashboardCache'
 import { applyNetAvailableConfig } from './dashboardNetAvailable'
 import { fetchInstallmentPlans, totalUnpaidInstallments } from './installments'
-import {
-  ensureAutoOpeningBalanceForCurrentMonth,
-  fetchOpeningBalance,
-  hasUserOpeningBalance
-} from './monthlyBalance'
+import { fetchOpeningBalance } from './monthlyBalance'
+import { resolveOpeningBalanceContext, syncDerivedOpeningBalances } from './openingBalanceService'
 import { fetchReceivables, remainingAmount } from './receivables'
 import { getDefaultNetAvailableConfig } from './settings'
 import { fetchRecords } from './sheets'
-import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import { getCachedTgjuPrices } from './tgju'
 import { computeHoldings, fetchVaultTransactions } from './treasury'
 import { fetchWalletAccounts } from './wallet'
@@ -57,7 +53,7 @@ async function fetchDashboardBundleUncached(
     installmentPlans,
     checks,
     dangs,
-    openingBalanceRecord
+    storedOpeningBalance
   ] = await Promise.all([
     incomeForm ? fetchRecords(settings.spreadsheetId, incomeForm) : Promise.resolve([]),
     expenseForm ? fetchRecords(settings.spreadsheetId, expenseForm) : Promise.resolve([]),
@@ -83,17 +79,20 @@ async function fetchDashboardBundleUncached(
 
   const currentMonthKey = getJalaliMonthKey(getDateRange('month-to-date').start)
 
-  const resolvedOpeningBalance = openingBalanceRecord
+  const openingContext = await resolveOpeningBalanceContext({
+    spreadsheetId: settings.spreadsheetId,
+    incomeRecords,
+    expenseRecords,
+    incomeDateField,
+    expenseDateField,
+    walletTotal: walletAccounts.reduce((s, a) => s + a.balance, 0),
+    currentMonthKey
+  }).catch(() => null)
 
-  if (monthKey === currentMonthKey && !hasUserOpeningBalance(openingBalanceRecord)) {
-    const walletTotal = walletAccounts.reduce((s, a) => s + a.balance, 0)
-
-    void ensureAutoOpeningBalanceForCurrentMonth(settings.spreadsheetId, walletTotal).then(
-      autoFilled => {
-        if (!autoFilled) return
-        notifySpreadsheetDataChanged(settings.spreadsheetId)
-      }
-    )
+  if (openingContext) {
+    void syncDerivedOpeningBalances(settings.spreadsheetId, openingContext).catch(() => {
+      /* cache mirror only — derived values stay correct without it */
+    })
   }
 
   const filteredIncome = filterByDateRange(incomeRecords, range, incomeDateField)
@@ -132,7 +131,9 @@ async function fetchDashboardBundleUncached(
     netAvailableConfig
   )
 
-  const openingBalance = resolvedOpeningBalance.amount
+  // Months from the anchor onward are derived; anything older keeps the
+  // historical value stored in «موجودی ماهانه».
+  const openingBalance = openingContext?.openings.get(monthKey) ?? storedOpeningBalance.amount
 
   const periodBalance = openingBalance + totalIncome - totalExpense
 

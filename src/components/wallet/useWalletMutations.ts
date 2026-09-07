@@ -1,7 +1,10 @@
 import { useState } from 'react'
 
 import type { WalletAccountWithRow, WalletFormState } from './types'
-import { setOpeningBalance } from '../../services/monthlyBalance'
+import {
+  createLinkedExpenseRecord,
+  createLinkedIncomeRecord
+} from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import {
   createWalletAccount,
@@ -22,8 +25,6 @@ type UseWalletMutationsParams = {
   syncBalances: (accounts: WalletAccountWithRow[]) => void
   periodFlow: WalletPeriodFlow | null
   setPeriodFlow: React.Dispatch<React.SetStateAction<WalletPeriodFlow | null>>
-  openingInput: number | ''
-  setOpeningInput: React.Dispatch<React.SetStateAction<number | ''>>
   loadItems: () => Promise<void>
   expandedId: string | null
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
@@ -35,8 +36,6 @@ export function useWalletMutations({
   syncBalances,
   periodFlow,
   setPeriodFlow,
-  openingInput,
-  setOpeningInput,
   loadItems,
   expandedId,
   setExpandedId
@@ -156,8 +155,12 @@ export function useWalletMutations({
     }
   }
 
-  const handleSaveOpeningBalance = async () => {
-    if (!periodFlow) return
+  /**
+   * Opening balances are derived, so a wallet/ledger gap is closed by recording
+   * a real adjustment entry instead of silently rewriting the period anchor.
+   */
+  const handleReconcileBalance = async (difference: number) => {
+    if (!periodFlow || difference === 0) return
 
     const spreadsheetId = requireSpreadsheetId()
 
@@ -165,18 +168,27 @@ export function useWalletMutations({
 
     setSavingOpening(true)
     try {
-      const amount = openingInput === '' ? 0 : Number(openingInput)
+      const amount = Math.abs(difference)
 
-      await setOpeningBalance(spreadsheetId, periodFlow.monthKey, amount)
+      const params = {
+        title: 'اصلاح موجودی',
+        amount,
+        note: `تطبیق کیف پول با مانده محاسبه‌شده — ${periodFlow.monthLabel}`
+      }
+
+      if (difference > 0) {
+        await createLinkedIncomeRecord(spreadsheetId, params)
+      } else {
+        await createLinkedExpenseRecord(spreadsheetId, params)
+      }
 
       const settings = getSettings()!
       const flow = await loadWalletPeriodFlow(settings)
 
       setPeriodFlow(flow)
-      setOpeningInput(flow.openingBalance || '')
-      showSuccess('موجودی اول دوره ذخیره شد')
+      showSuccess('رکورد اصلاح موجودی ثبت شد')
     } catch (err) {
-      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره موجودی اول' })) return
+      if (handleSheetError(err, { fallbackMessage: 'خطا در ثبت اصلاح موجودی' })) return
     } finally {
       setSavingOpening(false)
     }
@@ -218,7 +230,7 @@ export function useWalletMutations({
     closeDeleteConfirm,
     handleSubmit,
     handleBalanceSave,
-    handleSaveOpeningBalance,
+    handleReconcileBalance,
     handleDelete
   }
 }

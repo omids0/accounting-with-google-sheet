@@ -50,8 +50,6 @@ export default function WalletPage({ active = true }: WalletPageProps) {
     syncBalances: data.syncBalances,
     periodFlow: data.periodFlow,
     setPeriodFlow: data.setPeriodFlow,
-    openingInput: data.openingInput,
-    setOpeningInput: data.setOpeningInput,
     loadItems: data.loadItems,
     expandedId,
     setExpandedId
@@ -134,12 +132,7 @@ export default function WalletPage({ active = true }: WalletPageProps) {
         <WalletOpeningBalanceCard
           periodFlow={data.periodFlow}
           openingExpanded={openingExpanded}
-          openingInput={data.openingInput}
-          savingOpening={mutations.savingOpening}
-          loading={data.loading}
           onToggleExpanded={() => setOpeningExpanded(v => !v)}
-          onOpeningInputChange={data.setOpeningInput}
-          onSave={mutations.handleSaveOpeningBalance}
           onOpenOpeningBalances={() =>
             useNavigationStore.getState().onTabChange('opening-balances')
           }
@@ -201,6 +194,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
           totalBalance={totalBalance}
           periodBalance={periodBalance}
           reconciliationDiff={reconciliationDiff}
+          reconciling={mutations.savingOpening}
+          onReconcile={() => mutations.handleReconcileBalance(reconciliationDiff)}
         />
       )}
 

@@ -5,6 +5,7 @@ import { COUNTERPARTIES_SHEET } from './counterparties'
 import { DANG_SHEET } from './dang'
 import { INSTALLMENTS_SHEET } from './installments'
 import { MONTHLY_BALANCE_SHEET } from './monthlyBalance'
+import { PERIOD_SETTINGS_SHEET } from './periodSettings'
 import { PERSONAL_REMINDERS_SHEET } from './personalReminders'
 import { RECEIVABLES_SHEET } from './receivables'
 import { REMINDERS_SHEET, PUSH_SUBS_SHEET } from './reminders'
@@ -41,6 +42,7 @@ const STATIC_SHEETS = [
   WALLET_SHEET,
   CATEGORIES_SHEET,
   MONTHLY_BALANCE_SHEET,
+  PERIOD_SETTINGS_SHEET,
   REMINDERS_SHEET,
   PERSONAL_REMINDERS_SHEET,
   PUSH_SUBS_SHEET,

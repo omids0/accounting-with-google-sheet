@@ -4,6 +4,7 @@ import JalaliDatePicker from '../JalaliDatePicker'
 import CategorySelect from './CategorySelect'
 import FormField from './FormField'
 import Select from './Select'
+import { getAccountingStartDate } from '../../services/accountingStartDate'
 import type { FormControlWidth } from '../ui/formStyles'
 import { formFieldNoteClass } from '../ui/recordsStyles'
 
@@ -92,6 +93,7 @@ export default function FieldInput({
           value={String(value ?? '')}
           onChange={iso => onChange(iso)}
           invalid={Boolean(error)}
+          minIso={getAccountingStartDate() || undefined}
         />
       )
     }

@@ -1,5 +1,5 @@
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
-import { getDateRange, getJalaliMonthKey } from '../utils/dateRange'
+import type { SheetWriteOptions } from './sheetsRows'
 
 export const MONTHLY_BALANCE_SHEET = 'موجودی ماهانه'
 
@@ -69,7 +69,8 @@ export async function setOpeningBalance(
   spreadsheetId: string,
   monthKey: string,
   amount: number,
-  note = ''
+  note = '',
+  options?: SheetWriteOptions
 ): Promise<MonthlyOpeningBalance> {
   await ensureMonthlyBalanceSheet(spreadsheetId)
 
@@ -87,38 +88,14 @@ export async function setOpeningBalance(
       spreadsheetId,
       MONTHLY_BALANCE_SHEET,
       existing.rowNumber,
-      balanceToRow(balance)
+      balanceToRow(balance),
+      options
     )
   } else {
-    await appendSheetRow(spreadsheetId, MONTHLY_BALANCE_SHEET, balanceToRow(balance))
+    await appendSheetRow(spreadsheetId, MONTHLY_BALANCE_SHEET, balanceToRow(balance), options)
   }
 
   return balance
 }
 
-export function monthKeyFromRangeStart(rangeStart: string): string {
-  return getJalaliMonthKey(rangeStart)
-}
-
-export const AUTO_OPENING_BALANCE_NOTE = 'ثبت خودکار از مجموع کیف پول'
-
-export function hasUserOpeningBalance(balance: MonthlyOpeningBalance): boolean {
-  return balance.rowNumber != null
-}
-
-export async function ensureAutoOpeningBalanceForCurrentMonth(
-  spreadsheetId: string,
-  walletTotal: number
-): Promise<MonthlyOpeningBalance | null> {
-  await ensureMonthlyBalanceSheet(spreadsheetId)
-
-  const monthKey = getJalaliMonthKey(getDateRange('month-to-date').start)
-
-  const existing = await fetchOpeningBalance(spreadsheetId, monthKey)
-
-  if (hasUserOpeningBalance(existing)) {
-    return null
-  }
-
-  return setOpeningBalance(spreadsheetId, monthKey, walletTotal, AUTO_OPENING_BALANCE_NOTE)
-}
+export const DERIVED_OPENING_BALANCE_NOTE = 'محاسبه خودکار از مانده پایان ماه قبل'

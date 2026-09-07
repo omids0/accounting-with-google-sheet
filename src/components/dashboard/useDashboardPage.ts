@@ -96,17 +96,16 @@ export function useDashboardPage() {
       const installmentRange =
         datePreset === 'custom' ? range : getInstallmentDueRange(datePreset as DateRangePreset)
 
-      const dash = await loadDashboardData(
-        settings,
-        range,
-        installmentRange,
-        monthlyFlowYear,
-        getNetAvailableConfig()
-      )
-
-      const reminderItems = await fetchDashboardReminderItems(settings.spreadsheetId).catch(
-        () => []
-      )
+      const [dash, reminderItems] = await Promise.all([
+        loadDashboardData(
+          settings,
+          range,
+          installmentRange,
+          monthlyFlowYear,
+          getNetAvailableConfig()
+        ),
+        fetchDashboardReminderItems(settings.spreadsheetId).catch(() => [])
+      ])
 
       setData(dash)
       setUpcomingReminders(reminderItems)

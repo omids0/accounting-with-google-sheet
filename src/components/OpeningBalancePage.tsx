@@ -1,53 +1,45 @@
 import { useState, useEffect, useCallback } from 'react'
 
-import { AccordionCollapse } from './AccordionCollapse'
-import AmountInput from './AmountInput'
 import AppIcon from './AppIcon'
-import { FormField } from './form'
+import OpeningBalanceCard, {
+  type OpeningBalanceEditState
+} from './openingBalances/OpeningBalanceCard'
 import { InstallmentCardListSkeleton } from './skeleton'
 import Button from './ui/Button'
-import { dashboardOpeningBodyClass, dashboardOpeningCardClass } from './ui/chartStyles'
 import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
-import {
-  installmentChevronClass,
-  installmentHeaderClass,
-  installmentPaymentsClass,
-  installmentCardClass,
-  listCardAmountPillClass,
-  listCardsContainerClass,
-  listModulePageClass,
-  walletItemAmountClass,
-  walletItemCardClass,
-  walletItemInfoClass,
-  walletItemNoteClass,
-  walletItemTitleClass,
-  walletItemTitleRowClass
-} from './ui/featureCardStyles'
+import { listCardsContainerClass, listModulePageClass } from './ui/featureCardStyles'
 import { cardHeaderRowClass, openingBalancePageHintClass } from './ui/recordsStyles'
 import {
   fetchAllOpeningBalances,
   setOpeningBalance,
   type MonthlyOpeningBalance
 } from '../services/monthlyBalance'
+import { isBeforeAnchor } from '../services/openingBalanceDerive'
+import { getAnchorMonthKey } from '../services/periodSettings'
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../utils/authGuard'
-import { cn } from '../utils/cn'
-import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
-import { formatMoney } from '../utils/formatMoney'
+import { formatJalaliMonthLabel } from '../utils/dateRange'
 import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
 
 type OpeningBalanceWithRow = MonthlyOpeningBalance & { rowNumber: number }
 
-type EditState = {
-  amount: number | ''
-  note: string
+/**
+ * Without a known anchor nothing is derived yet, so months stay editable rather
+ * than silently locking the whole history behind a failed lookup.
+ */
+function isEditableMonth(monthKey: string, anchorMonthKey: string): boolean {
+  if (!anchorMonthKey) return true
+
+  return isBeforeAnchor(monthKey, anchorMonthKey)
 }
 
 export default function OpeningBalancePage() {
   const [items, setItems] = useState<OpeningBalanceWithRow[]>([])
 
-  const [edits, setEdits] = useState<Record<string, EditState>>({})
+  const [edits, setEdits] = useState<Record<string, OpeningBalanceEditState>>({})
+
+  const [anchorMonthKey, setAnchorMonthKey] = useState('')
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -55,15 +47,16 @@ export default function OpeningBalancePage() {
 
   const [savingId, setSavingId] = useState('')
 
-  const currentMonthKey = getJalaliMonthKey(getDateRange('month-to-date').start)
-
   const syncEdits = useCallback((balances: OpeningBalanceWithRow[]) => {
-    const next: Record<string, EditState> = {}
+    setEdits(prev => {
+      const next = { ...prev }
 
-    for (const item of balances) {
-      next[item.monthKey] = { amount: item.amount, note: item.note }
-    }
-    setEdits(next)
+      for (const item of balances) {
+        next[item.monthKey] = { amount: item.amount, note: item.note }
+      }
+
+      return next
+    })
   }, [])
 
   const loadItems = useCallback(async () => {
@@ -74,18 +67,20 @@ export default function OpeningBalancePage() {
 
     setLoading(true)
     try {
-      const data = await fetchAllOpeningBalances(settings.spreadsheetId)
+      const [data, anchor] = await Promise.all([
+        fetchAllOpeningBalances(settings.spreadsheetId),
+        getAnchorMonthKey(settings.spreadsheetId).catch(() => '')
+      ])
 
-      const previousMonths = data.filter(item => item.monthKey < currentMonthKey)
-
-      setItems(previousMonths)
-      syncEdits(previousMonths)
+      setAnchorMonthKey(anchor)
+      setItems(data)
+      syncEdits(data.filter(item => isEditableMonth(item.monthKey, anchor)))
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری موجودی اول دوره' })) return
     } finally {
       setLoading(false)
     }
-  }, [currentMonthKey, syncEdits])
+  }, [syncEdits])
 
   useEffect(() => {
     if (isConfigured()) loadItems()
@@ -122,10 +117,7 @@ export default function OpeningBalancePage() {
           )
           .sort((a, b) => b.monthKey.localeCompare(a.monthKey))
       )
-      setEdits(prev => ({
-        ...prev,
-        [item.monthKey]: { amount: updated.amount, note: updated.note }
-      }))
+      syncEdits([{ ...updated, rowNumber: item.rowNumber }])
       showSuccess(`موجودی ${formatJalaliMonthLabel(item.monthKey)} ذخیره شد`)
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره موجودی اول' })) return
@@ -163,7 +155,11 @@ export default function OpeningBalancePage() {
       </div>
 
       <p className={openingBalancePageHintClass}>
-        موجودی کیف پول در ابتدای هر ماه. ماه جاری را از صفحه کیف پول ویرایش کنید.
+        {anchorMonthKey
+          ? `از ${formatJalaliMonthLabel(
+              anchorMonthKey
+            )} به بعد، موجودی اول هر ماه خودکار از مانده پایان ماه قبل محاسبه می‌شود و قابل ویرایش نیست.`
+          : 'موجودی کیف پول در ابتدای هر ماه.'}
       </p>
 
       {loading && items.length === 0 ? (
@@ -173,88 +169,24 @@ export default function OpeningBalancePage() {
           <div className={emptyStateIconClass}>
             <AppIcon name="installments" />
           </div>
-          <p>هنوز موجودی اول دوره‌ای برای ماه‌های قبل ثبت نشده</p>
+          <p>هنوز موجودی اول دوره‌ای ثبت نشده</p>
         </div>
       ) : (
         <div className={listCardsContainerClass}>
-          {items.map(item => {
-            const expanded = expandedId === item.monthKey
-
-            const edit = edits[item.monthKey]
-
-            const displayAmount =
-              edit?.amount === '' || edit?.amount == null ? item.amount : Number(edit.amount)
-
-            return (
-              <div
-                key={item.monthKey}
-                className={cn(
-                  installmentCardClass({ expanded }),
-                  dashboardOpeningCardClass,
-                  walletItemCardClass
-                )}
-              >
-                <button
-                  type="button"
-                  className={cn(installmentHeaderClass(expanded), 'wallet-item-header')}
-                  onClick={() => setExpandedId(expanded ? null : item.monthKey)}
-                >
-                  <div className={walletItemInfoClass}>
-                    <div className={walletItemTitleRowClass}>
-                      <div className={walletItemTitleClass}>
-                        {formatJalaliMonthLabel(item.monthKey)}
-                      </div>
-                      <div className={cn(walletItemAmountClass, listCardAmountPillClass)} dir="ltr">
-                        {formatMoney(displayAmount)}
-                      </div>
-                    </div>
-                    {item.updatedAt && (
-                      <div className={walletItemNoteClass}>آخرین ویرایش: {item.updatedAt}</div>
-                    )}
-                  </div>
-                  <span className={installmentChevronClass}>▼</span>
-                </button>
-
-                <AccordionCollapse open={expanded && !!edit}>
-                  <div className={cn(installmentPaymentsClass, dashboardOpeningBodyClass)}>
-                    <FormField label="موجودی اول دوره">
-                      <AmountInput
-                        value={edit.amount}
-                        onChange={val =>
-                          setEdits(prev => ({
-                            ...prev,
-                            [item.monthKey]: { ...prev[item.monthKey], amount: val }
-                          }))
-                        }
-                      />
-                    </FormField>
-                    <FormField label="توضیحات">
-                      <textarea
-                        value={edit.note}
-                        onChange={e =>
-                          setEdits(prev => ({
-                            ...prev,
-                            [item.monthKey]: { ...prev[item.monthKey], note: e.target.value }
-                          }))
-                        }
-                        placeholder="توضیحات اختیاری"
-                      />
-                    </FormField>
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleSave(item)}
-                      disabled={savingId === item.monthKey || loading}
-                      loading={savingId === item.monthKey}
-                    >
-                      ذخیره
-                    </Button>
-                  </div>
-                </AccordionCollapse>
-              </div>
-            )
-          })}
+          {items.map(item => (
+            <OpeningBalanceCard
+              key={item.monthKey}
+              item={item}
+              expanded={expandedId === item.monthKey}
+              derived={!isEditableMonth(item.monthKey, anchorMonthKey)}
+              isAnchor={item.monthKey === anchorMonthKey}
+              edit={edits[item.monthKey]}
+              saving={savingId === item.monthKey}
+              onToggle={() => setExpandedId(expandedId === item.monthKey ? null : item.monthKey)}
+              onEditChange={next => setEdits(prev => ({ ...prev, [item.monthKey]: next }))}
+              onSave={() => handleSave(item)}
+            />
+          ))}
         </div>
       )}
     </div>

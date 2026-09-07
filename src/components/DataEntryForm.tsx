@@ -1,6 +1,7 @@
 import { useMemo, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
+import ConfirmActionModal from './ConfirmActionModal'
 import {
   FieldInput,
   FormRow,
@@ -9,6 +10,7 @@ import {
   sortFormFields
 } from './form'
 import { useModalFormReset } from '../hooks/useModalFormReset'
+import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
 import type { CustomForm, FieldConfig } from '../types'
@@ -153,6 +155,8 @@ export default function DataEntryForm({
 
   useModalFormReset(reset, initialValues, { resetKey: activeForm.id })
 
+  const retroactiveWarning = useRetroactiveEntryWarning()
+
   const values = watch()
 
   const handleCategoriesChange = (categories: string[]) => {
@@ -187,34 +191,53 @@ export default function DataEntryForm({
     return !hasError
   }
 
+  const saveRecord = async (formValues: Record<string, string | number>) => {
+    onLoadingChange(true)
+    try {
+      const settings = getSettings()!
+
+      await appendRecord(
+        settings.spreadsheetId,
+        activeForm,
+        crypto.randomUUID(),
+        new Date().toLocaleString('fa-IR'),
+        formValues
+      )
+      showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
+      reset(buildInitialValues(activeForm))
+    } catch (err) {
+      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
+    } finally {
+      onLoadingChange(false)
+    }
+  }
+
   const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     await handleSubmit(async formValues => {
       if (!validateRequiredFields(formValues)) return
       if (!isConfigured() || !requireAuth()) return
 
-      onLoadingChange(true)
-      try {
-        const settings = getSettings()!
+      const dateFieldId = activeForm.fields.find(field => field.type === 'date')?.id
 
-        await appendRecord(
-          settings.spreadsheetId,
-          activeForm,
-          crypto.randomUUID(),
-          new Date().toLocaleString('fa-IR'),
-          formValues
-        )
-        showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
-        reset(buildInitialValues(activeForm))
-      } catch (err) {
-        if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
-      } finally {
-        onLoadingChange(false)
-      }
+      const dateValue = dateFieldId ? String(formValues[dateFieldId] ?? '') : ''
+
+      if (retroactiveWarning.guard(dateValue, () => saveRecord(formValues))) return
+
+      await saveRecord(formValues)
     })(event)
   }
 
   return (
     <div className={appFormClassName()}>
+      <ConfirmActionModal
+        open={retroactiveWarning.open}
+        title={retroactiveWarning.title}
+        message={retroactiveWarning.message}
+        confirming={retroactiveWarning.confirming}
+        confirmLabel="ثبت کن"
+        onClose={retroactiveWarning.cancel}
+        onConfirm={retroactiveWarning.confirm}
+      />
       <form onSubmit={onFormSubmit}>
         {useStandardLayout ? (
           <StandardEntryFormFields
