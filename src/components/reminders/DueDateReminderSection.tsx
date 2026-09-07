@@ -5,6 +5,7 @@ import { FormSelect } from '../form'
 import Alert from '../ui/Alert'
 import Button from '../ui/Button'
 import Card, { CardTitle } from '../ui/Card'
+import { reminderCheckboxRowClass, reminderRuleFieldsClass } from '../ui/reminderStyles'
 
 const DUE_DATE_DESCRIPTIONS: Record<'installments' | 'checks' | 'dang', string> = {
   installments: 'یادآوری اقساط پرداخت‌نشده',
@@ -38,10 +39,7 @@ export default function DueDateReminderSection({
   return (
     <Card>
       <CardTitle>{getReminderKindLabel(kind as ReminderKind)}</CardTitle>
-      <label
-        className="checkbox-row"
-        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-      >
+      <label className={reminderCheckboxRowClass}>
         <input
           type="checkbox"
           checked={rule.enabled}
@@ -50,27 +48,31 @@ export default function DueDateReminderSection({
         <span>{DUE_DATE_DESCRIPTIONS[kind]}</span>
       </label>
 
-      <div style={{ marginTop: '1rem', display: 'grid', gap: '0.75rem' }}>
+      <div className={reminderRuleFieldsClass}>
         <FormSelect
           label="چند روز قبل از موعد؟"
           value={String(rule.daysBefore)}
           onChange={value => onUpdateRule({ daysBefore: Number(value) })}
           options={DAYS_BEFORE_OPTIONS}
+          controlWidth="compact"
+          compact
         />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-          <FormSelect
-            label="ساعت ارسال"
-            value={String(rule.hour)}
-            onChange={value => onUpdateRule({ hour: Number(value) })}
-            options={HOUR_OPTIONS}
-          />
-          <FormSelect
-            label="دقیقه"
-            value={String(rule.minute)}
-            onChange={value => onUpdateRule({ minute: Number(value) })}
-            options={MINUTE_OPTIONS}
-          />
-        </div>
+        <FormSelect
+          label="ساعت ارسال"
+          value={String(rule.hour)}
+          onChange={value => onUpdateRule({ hour: Number(value) })}
+          options={HOUR_OPTIONS}
+          controlWidth="compact"
+          compact
+        />
+        <FormSelect
+          label="دقیقه"
+          value={String(rule.minute)}
+          onChange={value => onUpdateRule({ minute: Number(value) })}
+          options={MINUTE_OPTIONS}
+          controlWidth="compact"
+          compact
+        />
       </div>
 
       {rule.enabled && (

@@ -2,6 +2,7 @@ import AppIcon from '../AppIcon'
 import LazyImage from '../LazyImage'
 import LayoutReportsSubmenu from './LayoutReportsSubmenu'
 import LayoutSidebarNav from './LayoutSidebarNav'
+import LayoutThemeToggle from './LayoutThemeToggle'
 import type { Tab } from './types'
 import { cn } from '../../utils/cn'
 import {
@@ -101,6 +102,7 @@ export default function LayoutMenu({
             <div className={appMenuProfileTextClass}>
               {userName && <div className={appMenuNameClass}>{userName}</div>}
               <div className={appMenuGreetingClass}>سلام، خوش آمدید</div>
+              <LayoutThemeToggle />
             </div>
           </div>
         </div>

@@ -61,7 +61,7 @@ export const appMenuProfileTextClass = 'min-w-0'
 export const appMenuNameClass =
   'break-words text-base font-bold leading-[1.35] lg:truncate lg:text-[0.94rem] lg:leading-tight'
 
-export const appMenuGreetingClass = 'mt-[0.2rem] text-[0.78rem] font-medium text-white/88 lg:hidden'
+export const appMenuGreetingClass = 'mt-[0.2rem] text-[0.78rem] font-medium text-white/88'
 
 export const appMenuItemsClass = cn(
   'flex flex-col gap-[0.2rem] px-3 py-[0.75rem]',
@@ -174,3 +174,28 @@ export const appMenuSubmenuLabelClass = cn(
   'px-[0.85rem] pb-[0.15rem] pt-[0.55rem] text-[0.7rem] font-extrabold tracking-[0.04em] text-muted',
   'before:me-1.5 before:inline-block before:h-1 before:w-1 before:rounded-full before:bg-[color-mix(in_srgb,var(--color-primary)_45%,transparent)] before:content-[""]'
 )
+
+export const appMenuHeaderThemeWrapClass = 'mt-1 inline-flex w-fit'
+
+export const appMenuHeaderThemeClass = cn(
+  'relative grid h-[1.85rem] w-[3.55rem] grid-cols-2 items-center rounded-full p-[0.14rem]',
+  'bg-white/12 ring-1 ring-white/22'
+)
+
+export function appMenuHeaderThemeBtnClass(active?: boolean) {
+  return cn(
+    'relative z-[1] flex h-full w-full items-center justify-center rounded-full',
+    'transition-[color,opacity] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/60',
+    active ? 'text-primary-dark' : 'text-white/45'
+  )
+}
+
+export function appMenuHeaderThemeThumbClass(isDark?: boolean) {
+  return cn(
+    'pointer-events-none absolute inset-y-[0.14rem] w-[calc(50%-0.14rem)] rounded-full bg-white/92',
+    'shadow-[0_1px_4px_rgba(15,23,42,0.14)]',
+    'transition-[inset-inline-start] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    isDark ? 'start-[calc(50%)]' : 'start-[0.14rem]'
+  )
+}

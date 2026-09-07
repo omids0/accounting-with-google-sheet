@@ -1,30 +1,27 @@
-import { THEME_OPTIONS } from './types'
-import type { CurrencyUnit, ThemeMode } from '../../types'
+import type { CurrencyUnit } from '../../types'
 import { CURRENCY_OPTIONS } from '../../utils/formatMoney'
 import { FormSelect } from '../form'
 import Card, { CardTitle } from '../ui/Card'
 
 type SettingsGeneralCardProps = {
-  theme: ThemeMode
   currency: CurrencyUnit
-  onThemeChange: (value: ThemeMode) => void
   onCurrencyChange: (value: CurrencyUnit) => void
 }
 
 export default function SettingsGeneralCard({
-  theme,
   currency,
-  onThemeChange,
   onCurrencyChange
 }: SettingsGeneralCardProps) {
   return (
     <Card>
       <CardTitle>تنظیمات عمومی</CardTitle>
       <FormSelect
-        label="حالت نمایش"
-        value={theme}
-        onChange={next => onThemeChange(next as ThemeMode)}
-        options={THEME_OPTIONS.map(option => ({
+        label="واحد پول"
+        value={currency}
+        onChange={next => onCurrencyChange(next as CurrencyUnit)}
+        controlWidth="compact"
+        compact
+        options={CURRENCY_OPTIONS.map(option => ({
           value: option.value,
           label: option.label
         }))}
@@ -36,32 +33,10 @@ export default function SettingsGeneralCard({
               marginTop: '0.5rem'
             }}
           >
-            انتخاب بین لایت مود و نایت مود برای تمام صفحات اپ
+            واحد پول در تمام نمایش مبالغ (داشبورد، رکوردها و ...) اعمال می‌شود
           </p>
         }
       />
-      <div style={{ marginTop: '1rem' }}>
-        <FormSelect
-          label="واحد پول"
-          value={currency}
-          onChange={next => onCurrencyChange(next as CurrencyUnit)}
-          options={CURRENCY_OPTIONS.map(option => ({
-            value: option.value,
-            label: option.label
-          }))}
-          hint={
-            <p
-              style={{
-                fontSize: '0.75rem',
-                color: 'var(--color-text-muted)',
-                marginTop: '0.5rem'
-              }}
-            >
-              واحد پول در تمام نمایش مبالغ (داشبورد، رکوردها و ...) اعمال می‌شود
-            </p>
-          }
-        />
-      </div>
     </Card>
   )
 }

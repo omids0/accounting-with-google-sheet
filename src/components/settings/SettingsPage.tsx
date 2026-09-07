@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
 import { SettingsSkeleton } from '../skeleton'
-import SettingsCustomFormsCard from './SettingsCustomFormsCard'
 import SettingsGeneralCard from './SettingsGeneralCard'
 import SettingsGoogleAccountCard from './SettingsGoogleAccountCard'
 import SettingsPwaInstallCard from './SettingsPwaInstallCard'
@@ -17,10 +16,6 @@ export default function SettingsPage() {
   const navigate = useNavigate()
   const settings = useSettingsPage()
 
-  const handleToggleEditForm = (formId: string) => {
-    settings.setEditingFormId(settings.editingFormId === formId ? null : formId)
-  }
-
   if (settings.initialLoading) {
     return <SettingsSkeleton />
   }
@@ -29,9 +24,7 @@ export default function SettingsPage() {
     <div className={settingsPageClass}>
       <SettingsSection title="عمومی">
         <SettingsGeneralCard
-          theme={settings.theme}
           currency={settings.currency}
-          onThemeChange={settings.handleThemeChange}
           onCurrencyChange={settings.handleCurrencyChange}
         />
 
@@ -71,18 +64,6 @@ export default function SettingsPage() {
 
       <SettingsSection title="اعلان‌ها">
         <SettingsRemindersCard onOpenReminders={() => navigate(SETTINGS_REMINDERS_PATH)} />
-      </SettingsSection>
-
-      <SettingsSection title="پیشرفته">
-        <SettingsCustomFormsCard
-          forms={settings.forms}
-          categoriesKey={settings.categoriesKey}
-          editingFormId={settings.editingFormId}
-          loading={settings.loading}
-          onToggleEditForm={handleToggleEditForm}
-          onSaveCategories={settings.handleSaveCategories}
-          onSaveFormFields={settings.handleSaveFormFields}
-        />
       </SettingsSection>
     </div>
   )

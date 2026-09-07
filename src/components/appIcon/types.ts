@@ -37,6 +37,8 @@ export type AppIconName =
   | 'clock'
   | 'bell'
   | 'info'
+  | 'sun'
+  | 'moon'
 
 export interface AppIconProps {
   name: AppIconName

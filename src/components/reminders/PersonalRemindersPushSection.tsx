@@ -4,6 +4,7 @@ import type { ReminderRule } from '../../types'
 import { FormSelect } from '../form'
 import Button from '../ui/Button'
 import Card, { CardTitle } from '../ui/Card'
+import { reminderCheckboxRowClass, reminderTimeFieldsClass } from '../ui/reminderStyles'
 
 interface PersonalRemindersPushSectionProps {
   personalRule: ReminderRule
@@ -28,10 +29,7 @@ export default function PersonalRemindersPushSection({
         تنظیم می‌شود.
       </p>
 
-      <label
-        className="checkbox-row"
-        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-      >
+      <label className={reminderCheckboxRowClass}>
         <input
           type="checkbox"
           checked={personalRule.enabled}
@@ -40,25 +38,22 @@ export default function PersonalRemindersPushSection({
         <span>ارسال نوتیف برای مواعد شخصی فعال</span>
       </label>
 
-      <div
-        style={{
-          marginTop: '1rem',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '0.75rem'
-        }}
-      >
+      <div className={reminderTimeFieldsClass}>
         <FormSelect
           label="ساعت ارسال"
           value={String(personalRule.hour)}
           onChange={value => onUpdateRule({ hour: Number(value) })}
           options={HOUR_OPTIONS}
+          controlWidth="compact"
+          compact
         />
         <FormSelect
           label="دقیقه"
           value={String(personalRule.minute)}
           onChange={value => onUpdateRule({ minute: Number(value) })}
           options={MINUTE_OPTIONS}
+          controlWidth="compact"
+          compact
         />
       </div>
 

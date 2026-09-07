@@ -2,15 +2,8 @@ import { useEffect, useState } from 'react'
 
 import { usePwaInstall } from '../../hooks/usePwaInstall'
 import { isTokenValid, logout } from '../../services/auth'
-import { saveFormCategoriesToSheet, syncCategoriesFromSheet } from '../../services/categories'
-import {
-  getSettings,
-  saveSettings,
-  getDefaultSettings,
-  getSpreadsheets,
-  updateCurrency,
-  updateTheme as persistTheme
-} from '../../services/settings'
+import { syncCategoriesFromSheet } from '../../services/categories'
+import { getSettings, getSpreadsheets, updateCurrency } from '../../services/settings'
 import { formatSpreadsheetTitle, getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
 import {
   createNamedSpreadsheet,
@@ -18,8 +11,7 @@ import {
   syncSpreadsheetsFromDrive
 } from '../../services/spreadsheetSetup'
 import { bumpSpreadsheetKey, requestLogout } from '../../stores/appStore'
-import type { CurrencyUnit, FieldConfig, SpreadsheetEntry, ThemeMode } from '../../types'
-import { applyTheme } from '../../utils/theme'
+import type { CurrencyUnit, SpreadsheetEntry } from '../../types'
 import { showError, showSuccess } from '../../utils/toast'
 
 export function useSettingsPage() {
@@ -31,15 +23,7 @@ export function useSettingsPage() {
 
   const [showNewSheetForm, setShowNewSheetForm] = useState(false)
 
-  const [forms, setForms] = useState(getDefaultSettings().forms)
-
   const [currency, setCurrency] = useState<CurrencyUnit>('toman')
-
-  const [theme, setTheme] = useState<ThemeMode>('light')
-
-  const [editingFormId, setEditingFormId] = useState<string | null>(null)
-
-  const [categoriesKey, setCategoriesKey] = useState(0)
 
   const [loading, setLoading] = useState(false)
 
@@ -48,13 +32,11 @@ export function useSettingsPage() {
   const { canInstall, isInstalled, showIosHint, isIos, install, dismissIosHint } = usePwaInstall()
 
   useEffect(() => {
-    const settings = getSettings() ?? getDefaultSettings()
+    const settings = getSettings()
 
-    setSpreadsheetId(settings.spreadsheetId)
+    setSpreadsheetId(settings?.spreadsheetId ?? '')
     setSpreadsheets(getSpreadsheets())
-    setForms(settings.forms)
-    setCurrency(settings.currency ?? 'toman')
-    setTheme(settings.theme ?? 'light')
+    setCurrency(settings?.currency ?? 'toman')
 
     if (!isTokenValid()) {
       setInitialLoading(false)
@@ -64,19 +46,14 @@ export function useSettingsPage() {
 
     const loadSheetData = async () => {
       try {
-        if (settings.spreadsheetId) {
+        if (settings?.spreadsheetId) {
           await syncCategoriesFromSheet(settings.spreadsheetId)
-
-          const refreshed = getSettings() ?? getDefaultSettings()
-
-          setForms(refreshed.forms)
-          setCategoriesKey(key => key + 1)
         }
 
         const merged = await syncSpreadsheetsFromDrive()
 
         setSpreadsheets(merged)
-        setSpreadsheetId(getSettings()?.spreadsheetId ?? settings.spreadsheetId)
+        setSpreadsheetId(getSettings()?.spreadsheetId ?? settings?.spreadsheetId ?? '')
       } catch {
         // Keep local list if Drive sync fails (e.g. old token scope).
       } finally {
@@ -162,11 +139,6 @@ export function useSettingsPage() {
       setSpreadsheets(getSpreadsheets())
       await syncCategoriesFromSheet(nextId)
 
-      const refreshed = getSettings() ?? getDefaultSettings()
-
-      setForms(refreshed.forms)
-      setCategoriesKey(key => key + 1)
-
       const selected = getSpreadsheets().find(sheet => sheet.id === nextId)
 
       showSuccess(`شیت فعال: ${selected ? getSpreadsheetLabel(selected.name) : 'انتخاب‌شده'}`)
@@ -178,65 +150,10 @@ export function useSettingsPage() {
     }
   }
 
-  const handleSaveCategories = async (formId: string, categoriesText: string) => {
-    const categories = categoriesText
-      .split(/[,،]/)
-      .map(s => s.trim())
-      .filter(Boolean)
-
-    if (!categories.length) return
-
-    const settings = getSettings() ?? getDefaultSettings()
-
-    if (!settings.spreadsheetId) {
-      showError('ابتدا شیت فعال را انتخاب کنید')
-
-      return
-    }
-    if (!isTokenValid()) {
-      showError('نشست منقضی شده')
-
-      return
-    }
-
-    setLoading(true)
-    try {
-      await saveFormCategoriesToSheet(settings.spreadsheetId, formId, categories)
-
-      const refreshed = getSettings() ?? getDefaultSettings()
-
-      setForms(refreshed.forms)
-      setCategoriesKey(key => key + 1)
-      showSuccess('دسته‌بندی‌ها در گوگل شیت ذخیره شد')
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در ذخیره دسته‌بندی‌ها')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleCurrencyChange = (value: CurrencyUnit) => {
     setCurrency(value)
     updateCurrency(value)
     showSuccess('واحد پول ذخیره شد')
-  }
-
-  const handleThemeChange = (value: ThemeMode) => {
-    setTheme(value)
-    persistTheme(value)
-    applyTheme(value)
-    showSuccess('حالت نمایش ذخیره شد')
-  }
-
-  const handleSaveFormFields = (formId: string, fields: FieldConfig[]) => {
-    const settings = getSettings() ?? getDefaultSettings()
-
-    const updatedForms = settings.forms.map(f => (f.id === formId ? { ...f, fields } : f))
-
-    saveSettings({ ...settings, forms: updatedForms })
-    setForms(updatedForms)
-    setEditingFormId(null)
-    showSuccess('فیلدها ذخیره شد')
   }
 
   const cancelNewSheetForm = () => {
@@ -251,12 +168,7 @@ export function useSettingsPage() {
     setNewSheetName,
     showNewSheetForm,
     setShowNewSheetForm,
-    forms,
     currency,
-    theme,
-    editingFormId,
-    setEditingFormId,
-    categoriesKey,
     loading,
     initialLoading,
     canInstall,
@@ -269,10 +181,7 @@ export function useSettingsPage() {
     handleRefreshSpreadsheets,
     handleCreateSpreadsheet,
     handleSwitchSpreadsheet,
-    handleSaveCategories,
     handleCurrencyChange,
-    handleThemeChange,
-    handleSaveFormFields,
     cancelNewSheetForm
   }
 }
