@@ -16,6 +16,7 @@ import {
   clearStore,
   getStoreLastSyncedAt,
   hasStoreData,
+  hydrateStore,
   initStore,
   setManySheetAllRows,
   setStoreLastSyncedAt
@@ -218,7 +219,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   if (!spreadsheetId) return
 
   activeSpreadsheetId = spreadsheetId
-  initStore(spreadsheetId)
+  await hydrateStore(spreadsheetId)
   setPendingWrites(getOutboxCount(spreadsheetId))
 
   const lastSyncedAt = getStoreLastSyncedAt(spreadsheetId)

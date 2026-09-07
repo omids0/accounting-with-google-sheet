@@ -1,0 +1,15 @@
+# No Local Git CLI
+
+The user's machine does **not** have `git` or `gh` installed locally. Do not search for installation options or suggest installing them.
+
+## Agent workflow
+
+Use the **Cursor shell** (or cloud agent) for all git operations: branch, commit, push.
+
+For merge/PR links, **build the GitHub URL directly** after push — do not rely on `gh pr create`:
+
+```
+https://github.com/omids0/accounting-with-google-sheet/compare/main...<branch-name>?expand=1
+```
+
+Replace `<branch-name>` with the pushed branch. Give the user that link as the merge/PR URL.
