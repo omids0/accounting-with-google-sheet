@@ -73,7 +73,7 @@ export default function InstallmentsList({
 
   return (
     <div className={listCardsContainerClass}>
-      {displayPlans.map(({ plan, done, complete, progress, dueDate }) => {
+      {displayPlans.map(({ plan, done, complete, settledForRange, progress, dueDate }) => {
         const togglingPaymentIndex = togglingKey.startsWith(`${plan.id}-`)
           ? Number(togglingKey.slice(plan.id.length + 1))
           : null
@@ -85,6 +85,7 @@ export default function InstallmentsList({
             expanded={expandedId === plan.id}
             done={done}
             complete={complete}
+            settledForRange={settledForRange}
             progress={progress}
             dueDate={dueDate}
             togglingPaymentIndex={togglingPaymentIndex}

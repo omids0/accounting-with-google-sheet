@@ -23,12 +23,16 @@ export const interactiveCardClass = cn(
 export function installmentCardClass({
   expanded,
   complete,
+  settledForRange,
   className
 }: {
   expanded?: boolean
   complete?: boolean
+  settledForRange?: boolean
   className?: string
 }) {
+  const mutedCard = complete || settledForRange
+
   return cardClassName(
     cn(
       interactiveCardClass,
@@ -41,7 +45,8 @@ export function installmentCardClass({
         'border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))] shadow-[var(--shadow-lg),0_6px_22px_color-mix(in_srgb,var(--color-primary)_14%,transparent)] -translate-y-0.5',
       expanded &&
         'hover:shadow-[var(--shadow-lg),0_8px_26px_color-mix(in_srgb,var(--color-primary)_18%,transparent)]',
-      complete && 'opacity-55 [&_.installment-header]:text-muted',
+      mutedCard &&
+        'opacity-55 [&_.installment-header]:text-muted [&_.list-card-title]:text-muted [&_.list-card-subtitle]:text-muted [&_.installment-due]:text-muted [&_.money-display]:text-muted',
       className
     )
   )
