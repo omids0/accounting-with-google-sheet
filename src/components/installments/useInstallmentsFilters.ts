@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo } from 'react'
 import type { DisplayPlanItem, PlanWithRow } from './types'
 import {
   getInstallmentDueDateInRange,
+  installmentAmountInRange,
   isInstallmentPlanComplete,
   isInstallmentPlanVisible,
   isInstallmentSettledForRange,
@@ -10,7 +11,8 @@ import {
   sortInstallmentPlans,
   totalInstallmentAmount,
   totalInstallmentsInRange,
-  totalUnpaidInstallments
+  totalUnpaidInstallments,
+  unpaidInstallmentAmountInRange
 } from '../../services/installments'
 import {
   formatDateRangeLabel,
@@ -21,7 +23,6 @@ import {
   type RecordsDatePreset
 } from '../../utils/dateRange'
 import { buildDateRangeChip, buildSearchChip, compactFilterChips } from '../../utils/filterChips'
-import { getTodayIso } from '../../utils/jalaliDate'
 import { matchSearch } from '../../utils/search'
 import { distributionSparkline } from '../../utils/sparklineData'
 import { createDefaultDateRangeFilter } from '../DateRangeFilter'
@@ -55,21 +56,16 @@ export function useInstallmentsFilters(plans: PlanWithRow[]) {
     return getInstallmentDueRange(datePreset)
   }, [datePreset, customRange])
 
-  const monthLabel = useMemo(
-    () =>
-      datePreset === 'month-to-date'
-        ? formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso()))
-        : formatDateRangeLabel(effectiveRange),
-    [datePreset, effectiveRange]
-  )
+  const monthLabel = useMemo(() => {
+    const startMonthKey = getJalaliMonthKey(effectiveRange.start)
+    const endMonthKey = getJalaliMonthKey(effectiveRange.end)
 
-  const monthTotals = useMemo(
-    () => ({
-      total: totalInstallmentsInRange(plans, effectiveRange),
-      unpaid: totalUnpaidInstallments(plans, effectiveRange)
-    }),
-    [plans, effectiveRange]
-  )
+    if (startMonthKey === endMonthKey) {
+      return formatJalaliMonthLabel(startMonthKey)
+    }
+
+    return formatDateRangeLabel(effectiveRange)
+  }, [effectiveRange])
 
   const monthPlans = useMemo(
     () =>
@@ -83,6 +79,14 @@ export function useInstallmentsFilters(plans: PlanWithRow[]) {
         matchSearch(searchQuery, plan.title, plan.note, plan.amount, plan.count)
       ),
     [monthPlans, searchQuery]
+  )
+
+  const monthTotals = useMemo(
+    () => ({
+      total: totalInstallmentsInRange(filteredPlans, effectiveRange),
+      unpaid: totalUnpaidInstallments(filteredPlans, effectiveRange)
+    }),
+    [filteredPlans, effectiveRange]
   )
 
   const displayPlans = useMemo(
@@ -115,20 +119,21 @@ export function useInstallmentsFilters(plans: PlanWithRow[]) {
   )
 
   const monthAmountSparkline = useMemo(
-    () => distributionSparkline(monthPlans.map(plan => plan.amount)),
-    [monthPlans]
+    () =>
+      distributionSparkline(
+        filteredPlans.map(plan => installmentAmountInRange(plan, effectiveRange))
+      ),
+    [filteredPlans, effectiveRange]
   )
 
   const monthUnpaidSparkline = useMemo(
     () =>
       distributionSparkline(
-        monthPlans.flatMap(plan =>
-          plan.payments
-            .filter(payment => !payment.paid)
-            .map(payment => payment.amount ?? plan.amount)
-        )
+        filteredPlans
+          .map(plan => unpaidInstallmentAmountInRange(plan, effectiveRange))
+          .filter(amount => amount > 0)
       ),
-    [monthPlans]
+    [filteredPlans, effectiveRange]
   )
 
   const openFilterModal = useCallback(() => {

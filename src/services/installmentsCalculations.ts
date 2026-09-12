@@ -24,6 +24,8 @@ export function getInstallmentDueDateInRange(plan: InstallmentPlan, range: DateR
 
   if (unpaidInRange) return unpaidInRange.dueDate
 
+  if (inRange.length > 0) return inRange[inRange.length - 1].dueDate
+
   return getNextInstallmentDueDate(plan)
 }
 
@@ -81,13 +83,9 @@ export function hasInstallmentDueInRange(plan: InstallmentPlan, range: DateRange
   return installmentCountInRange(plan, range) > 0
 }
 
-/** Active plans stay visible even when the next due date is outside the current month. */
+/** Show a plan only when at least one installment is due in the selected range. */
 export function isInstallmentPlanVisible(plan: InstallmentPlan, range: DateRange): boolean {
-  if (!isInstallmentPlanComplete(plan)) return true
-
-  const lastPayment = plan.payments[plan.payments.length - 1]
-
-  return lastPayment ? isDateInRange(lastPayment.dueDate, range) : false
+  return hasInstallmentDueInRange(plan, range)
 }
 
 export function totalInstallmentAmount(plan: InstallmentPlan): number {
