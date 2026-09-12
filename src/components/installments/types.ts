@@ -18,6 +18,7 @@ export type DisplayPlanItem = {
   plan: PlanWithRow
   done: number
   complete: boolean
+  settledForRange: boolean
   progress: number
   dueDate: string
 }

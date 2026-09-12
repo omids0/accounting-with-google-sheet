@@ -20,11 +20,20 @@ export function getInstallmentDueDateInRange(plan: InstallmentPlan, range: DateR
     .filter(payment => isDateInRange(payment.dueDate, range))
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
 
-  if (inRange.length === 0) return getNextInstallmentDueDate(plan)
+  const unpaidInRange = inRange.find(payment => !payment.paid)
 
-  const unpaid = inRange.find(payment => !payment.paid)
+  if (unpaidInRange) return unpaidInRange.dueDate
 
-  return (unpaid ?? inRange[0]).dueDate
+  return getNextInstallmentDueDate(plan)
+}
+
+/** Current range is fully paid but the plan still has future installments. */
+export function isInstallmentSettledForRange(plan: InstallmentPlan, range: DateRange): boolean {
+  if (isInstallmentPlanComplete(plan)) return false
+
+  const inRange = plan.payments.filter(payment => isDateInRange(payment.dueDate, range))
+
+  return inRange.length > 0 && inRange.every(payment => payment.paid)
 }
 
 export function sortInstallmentPlans<T extends InstallmentPlan>(plans: T[]): T[] {
@@ -76,7 +85,9 @@ export function hasInstallmentDueInRange(plan: InstallmentPlan, range: DateRange
 export function isInstallmentPlanVisible(plan: InstallmentPlan, range: DateRange): boolean {
   if (!isInstallmentPlanComplete(plan)) return true
 
-  return hasInstallmentDueInRange(plan, range)
+  const lastPayment = plan.payments[plan.payments.length - 1]
+
+  return lastPayment ? isDateInRange(lastPayment.dueDate, range) : false
 }
 
 export function totalInstallmentAmount(plan: InstallmentPlan): number {

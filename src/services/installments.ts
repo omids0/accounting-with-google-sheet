@@ -35,6 +35,7 @@ export {
   installmentCountInRange,
   hasInstallmentDueInRange,
   isInstallmentPlanVisible,
+  isInstallmentSettledForRange,
   totalInstallmentAmount,
   paidInstallmentAmount,
   remainingInstallmentAmount,

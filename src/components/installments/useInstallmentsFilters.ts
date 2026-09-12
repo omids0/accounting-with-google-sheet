@@ -5,6 +5,7 @@ import {
   getInstallmentDueDateInRange,
   isInstallmentPlanComplete,
   isInstallmentPlanVisible,
+  isInstallmentSettledForRange,
   paidInstallmentAmount,
   sortInstallmentPlans,
   totalInstallmentAmount,
@@ -99,7 +100,16 @@ export function useInstallmentsFilters(plans: PlanWithRow[]) {
 
         const dueDate = getInstallmentDueDateInRange(plan, effectiveRange)
 
-        return { plan, done, complete, progress, dueDate } satisfies DisplayPlanItem
+        const settledForRange = isInstallmentSettledForRange(plan, effectiveRange)
+
+        return {
+          plan,
+          done,
+          complete,
+          settledForRange,
+          progress,
+          dueDate
+        } satisfies DisplayPlanItem
       }),
     [filteredPlans, effectiveRange]
   )

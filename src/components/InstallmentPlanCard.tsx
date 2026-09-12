@@ -45,6 +45,7 @@ export type InstallmentPlanCardProps = {
   expanded: boolean
   done: number
   complete: boolean
+  settledForRange?: boolean
   progress: number
   dueDate: string
   togglingPaymentIndex: number | null
@@ -60,6 +61,7 @@ function InstallmentPlanCard({
   expanded,
   done,
   complete,
+  settledForRange = false,
   progress,
   dueDate,
   togglingPaymentIndex,
@@ -147,7 +149,7 @@ function InstallmentPlanCard({
   )
 
   return (
-    <div className={installmentCardClass({ expanded, complete })}>
+    <div className={installmentCardClass({ expanded, complete, settledForRange })}>
       <div className={cardHeaderWithEditClass}>
         <button
           type="button"
