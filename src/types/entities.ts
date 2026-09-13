@@ -89,10 +89,19 @@ export interface VaultHolding {
   transactions: VaultTransaction[]
 }
 
+export type WalletAccountKind = 'bank' | 'cash' | 'other'
+
 export interface WalletAccount {
   id: string
   createdAt: string
   title: string
   balance: number
   note: string
+  accountKind: WalletAccountKind | ''
+  bankId: string
+  cardNumber: string
+  cardHolder: string
+  cardColor: string
+  cardColorPrimary: string
+  cardColorSecondary: string
 }

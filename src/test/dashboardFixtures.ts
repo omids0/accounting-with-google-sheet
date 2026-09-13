@@ -52,6 +52,6 @@ export function seedDashboardSheets(spreadsheetId: string, walletBalance: number
   ])
   setSheetAllRows(spreadsheetId, WALLET_SHEET, [
     WALLET_HEADERS,
-    ['wallet-1', '2024', 'Main wallet', String(walletBalance), '']
+    ['wallet-1', '2024', 'Main wallet', String(walletBalance), '', '', '', '', '', '', '', '']
   ])
 }

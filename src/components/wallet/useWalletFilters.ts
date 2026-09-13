@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 
+import { getBankById } from './banks'
 import type { WalletAccountWithRow } from './types'
 import { buildSearchChip, compactFilterChips } from '../../utils/filterChips'
 import { matchSearch } from '../../utils/search'
@@ -16,7 +17,17 @@ export function useWalletFilters(items: WalletAccountWithRow[]) {
 
     if (!searchQuery.trim()) return sorted
 
-    return sorted.filter(item => matchSearch(searchQuery, item.title, item.note, item.balance))
+    return sorted.filter(item =>
+      matchSearch(
+        searchQuery,
+        item.title,
+        item.note,
+        item.balance,
+        item.cardHolder,
+        item.cardNumber,
+        getBankById(item.bankId)?.label
+      )
+    )
   }, [items, searchQuery])
 
   const filterChips = useMemo(

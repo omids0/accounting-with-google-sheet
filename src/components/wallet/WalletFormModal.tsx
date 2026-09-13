@@ -1,5 +1,5 @@
 import { useMemo, type FormEvent } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import {
@@ -9,9 +9,18 @@ import {
   submitValidatedForm
 } from '../../utils/formValidation'
 import AmountInput from '../AmountInput'
-import { FormField, FormRow } from '../form'
+import { FormField, FormRow, Select } from '../form'
 import FormModal from '../FormModal'
+import { getDefaultBankCardColor } from './bankCardColorVariants'
+import { getBankById, getBankSelectOptions, WALLET_ACCOUNT_KIND_OPTIONS } from './banks'
+import { isCustomCardColor } from './customCardTheme'
 import type { WalletAccountWithRow, WalletFormState } from './types'
+import WalletAccountCardVisual from './WalletAccountCardVisual'
+import WalletCardColorSection from './WalletCardColorSection'
+import WalletCardNumberInput from './WalletCardNumberInput'
+import { walletCardPreviewClass } from './walletCardStyles'
+import { isValidCardNumber } from './walletCardUtils'
+import { buildWalletFormInitialValues, buildWalletPreviewAccount } from './walletFormDefaults'
 
 type WalletFormModalProps = {
   open: boolean
@@ -28,19 +37,8 @@ export default function WalletFormModal({
   onClose,
   onSubmit
 }: WalletFormModalProps) {
-  const initialValues = useMemo<WalletFormState>(
-    () =>
-      editingAccount
-        ? {
-            title: editingAccount.title,
-            balance: editingAccount.balance,
-            note: editingAccount.note
-          }
-        : {
-            title: '',
-            balance: '',
-            note: ''
-          },
+  const initialValues = useMemo(
+    () => buildWalletFormInitialValues(editingAccount),
     [editingAccount]
   )
 
@@ -49,6 +47,7 @@ export default function WalletFormModal({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors }
   } = useForm<WalletFormState>({
     defaultValues: initialValues,
@@ -60,9 +59,20 @@ export default function WalletFormModal({
     resetKey: editingAccount?.id ?? 'create'
   })
 
+  const watched = useWatch({ control })
+  const bankId = watched.bankId ?? ''
+  const accountKind = watched.accountKind ?? 'other'
+
+  const previewAccount = useMemo(
+    () => buildWalletPreviewAccount(watched, bankId, accountKind),
+    [watched, bankId, accountKind]
+  )
+
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
+
+  const isBankAccount = accountKind === 'bank'
 
   return (
     <FormModal
@@ -73,11 +83,107 @@ export default function WalletFormModal({
       saving={saving}
       saveLabel={editingAccount ? 'ذخیره تغییرات' : 'ذخیره حساب'}
     >
+      <FormField label="نوع حساب" required controlWidth="full">
+        <Controller
+          name="accountKind"
+          control={control}
+          rules={requiredField('نوع حساب')}
+          render={({ field, fieldState }) => (
+            <Select
+              value={field.value}
+              onChange={value => {
+                field.onChange(value)
+                if (value !== 'bank') {
+                  setValue('bankId', '')
+                  setValue('cardNumber', '')
+                  setValue('cardHolder', '')
+                  if (!isCustomCardColor(watched.cardColor ?? '')) {
+                    setValue('cardColor', '')
+                  }
+                }
+              }}
+              options={WALLET_ACCOUNT_KIND_OPTIONS}
+              invalid={Boolean(fieldState.error)}
+              aria-label="نوع حساب"
+            />
+          )}
+        />
+      </FormField>
+
+      {isBankAccount && (
+        <FormField
+          label="بانک"
+          required
+          error={formFieldError(errors, 'bankId')}
+          controlWidth="full"
+        >
+          <Controller
+            name="bankId"
+            control={control}
+            rules={requiredField('بانک را انتخاب کنید')}
+            render={({ field, fieldState }) => (
+              <Select
+                value={field.value}
+                onChange={value => {
+                  field.onChange(value)
+                  const bank = getBankById(value)
+                  if (bank && !watched.title?.trim()) {
+                    setValue('title', bank.label)
+                  }
+                  if (!isCustomCardColor(watched.cardColor ?? '')) {
+                    setValue('cardColor', getDefaultBankCardColor(value))
+                  }
+                }}
+                options={getBankSelectOptions()}
+                invalid={Boolean(fieldState.error)}
+                aria-label="بانک"
+              />
+            )}
+          />
+        </FormField>
+      )}
+
+      <FormField controlWidth="full">
+        <Controller
+          name="cardColor"
+          control={control}
+          render={({ field: cardColorField }) => (
+            <Controller
+              name="cardColorPrimary"
+              control={control}
+              render={({ field: primaryField }) => (
+                <Controller
+                  name="cardColorSecondary"
+                  control={control}
+                  render={({ field: secondaryField }) => (
+                    <WalletCardColorSection
+                      accountKind={accountKind}
+                      bankId={bankId}
+                      cardColor={cardColorField.value}
+                      cardColorPrimary={primaryField.value}
+                      cardColorSecondary={secondaryField.value}
+                      onCardColorChange={cardColorField.onChange}
+                      onPrimaryChange={primaryField.onChange}
+                      onSecondaryChange={secondaryField.onChange}
+                      disabled={saving}
+                    />
+                  )}
+                />
+              )}
+            />
+          )}
+        />
+      </FormField>
+
+      <div className={walletCardPreviewClass}>
+        <WalletAccountCardVisual account={previewAccount} />
+      </div>
+
       <FormRow>
         <FormField label="عنوان" required error={formFieldError(errors, 'title')}>
           <input
             {...register('title', requiredField('عنوان'))}
-            placeholder="مثلاً: بانک ملت، نقدی، ..."
+            placeholder={isBankAccount ? 'مثلاً: حساب اصلی' : 'مثلاً: نقدی، صندوق، ...'}
           />
         </FormField>
 
@@ -96,6 +202,32 @@ export default function WalletFormModal({
           )}
         />
       </FormRow>
+
+      {isBankAccount && (
+        <FormRow>
+          <Controller
+            name="cardNumber"
+            control={control}
+            rules={{
+              required: 'شماره کارت ۱۶ رقمی را وارد کنید',
+              validate: value => isValidCardNumber(value) || 'شماره کارت باید ۱۶ رقم باشد'
+            }}
+            render={({ field, fieldState }) => (
+              <FormField label="شماره کارت" required error={fieldState.error?.message}>
+                <WalletCardNumberInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  invalid={Boolean(fieldState.error)}
+                />
+              </FormField>
+            )}
+          />
+
+          <FormField label="نام دارنده کارت" hint="اختیاری — روی کارت نمایش داده می‌شود">
+            <input {...register('cardHolder')} placeholder="مثلاً: علی محمدی" />
+          </FormField>
+        </FormRow>
+      )}
 
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" />

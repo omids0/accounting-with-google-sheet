@@ -26,11 +26,12 @@ import { useWalletFilters } from './useWalletFilters'
 import { useWalletMutations } from './useWalletMutations'
 import { computeReconciliation, computeTotalBalance } from './utils'
 import WalletAccountCard from './WalletAccountCard'
+import { walletCardsListClass } from './walletCardStyles'
 import WalletFormModal from './WalletFormModal'
 import WalletOpeningBalanceCard from './WalletOpeningBalanceCard'
 import WalletReconciliationAlert from './WalletReconciliationAlert'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
-import { listCardsContainerClass, listModulePageClass } from '../ui/featureCardStyles'
+import { listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function WalletPage({ active = true }: WalletPageProps) {
@@ -151,7 +152,7 @@ export default function WalletPage({ active = true }: WalletPageProps) {
       ) : filters.filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        <div className={listCardsContainerClass}>
+        <div className={walletCardsListClass}>
           {filters.filteredItems.map(account => (
             <WalletAccountCard
               key={account.id}

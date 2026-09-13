@@ -8,10 +8,7 @@ import {
   dangCardContentRowClass,
   dangCardHeaderClass,
   installmentCardClass,
-  installmentHeaderClass,
-  walletItemCardClass,
-  walletItemInfoClass,
-  walletItemTitleRowClass
+  installmentHeaderClass
 } from '../ui/featureCardStyles'
 import { activeFilterBarClass, activeFilterTriggerClass } from '../ui/filterControlStyles'
 import { progressBarMetaClass } from '../ui/progressStyles'
@@ -144,28 +141,18 @@ export function TreasuryHoldingCardSkeleton() {
 
 export function WalletAccountCardSkeleton() {
   return (
-    <div
-      className={cn(installmentCardClass({}), walletItemCardClass, skeletonCardClass)}
-      aria-hidden="true"
-    >
-      <div className={cardHeaderWithEditClass}>
-        <div className={cn(installmentHeaderClass(), 'wallet-item-header')}>
-          <div className={walletItemInfoClass} style={{ width: '100%' }}>
-            <div className={walletItemTitleRowClass}>
-              <Skeleton width="46%" height="0.95rem" />
-              <Skeleton
-                width="4.75rem"
-                height="1.55rem"
-                style={{ borderRadius: '999px', flexShrink: 0 }}
-              />
-            </div>
-            <Skeleton width="54%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
+    <div className={cn('wallet-item-card list-card p-0', skeletonCardClass)} aria-hidden="true">
+      <div className="p-0">
+        <div className="relative">
+          <Skeleton
+            variant="rect"
+            style={{ width: '100%', height: '6.35rem', borderRadius: '12px' }}
+          />
+          <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
+            <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+            <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+            <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
           </div>
-        </div>
-        <div className={cardActionButtonsClass}>
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
         </div>
       </div>
     </div>

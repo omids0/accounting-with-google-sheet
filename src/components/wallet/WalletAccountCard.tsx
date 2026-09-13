@@ -1,26 +1,19 @@
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
 import type { WalletAccountWithRow } from './types'
+import WalletAccountCardVisual from './WalletAccountCardVisual'
 import {
-  cardActionButtonsClass,
-  cardHeaderWithEditClass,
-  installmentHeaderClass,
-  installmentPaymentsClass,
-  installmentCardClass,
-  listCardSubtitleClass,
-  listCardTitleClass,
-  walletItemAmountPillClass,
-  walletItemCardClass,
-  walletItemEditClass,
-  walletItemInfoClass,
-  walletItemNoteClass,
-  walletItemTitleRowClass
-} from '../ui/featureCardStyles'
+  walletAccountCardBodyClass,
+  walletAccountCardShellClass,
+  walletAccountCardVisualHostClass,
+  walletCardActionOverlayClass,
+  walletCardActionOverlayExpandedClass
+} from './walletCardStyles'
+import { installmentPaymentsClass, walletItemEditClass } from '../ui/featureCardStyles'
 
 type WalletAccountCardProps = {
   account: WalletAccountWithRow
@@ -50,48 +43,30 @@ export default function WalletAccountCard({
   const displayBalance = balance === '' ? account.balance : Number(balance)
 
   return (
-    <div className={cn(installmentCardClass({ expanded }), walletItemCardClass)}>
-      <div className={cardHeaderWithEditClass}>
-        <button
-          type="button"
-          className={cn(
-            'installment-header',
-            installmentHeaderClass(expanded),
-            'wallet-item-header'
-          )}
-          onClick={onToggleExpand}
-        >
-          <div className={walletItemInfoClass}>
-            <div className={walletItemTitleRowClass}>
-              <div className={listCardTitleClass}>{account.title}</div>
-              <div className={walletItemAmountPillClass} dir="ltr">
-                {formatMoney(displayBalance)}
-              </div>
-            </div>
-            {account.note && (
-              <div className={cn(walletItemNoteClass, listCardSubtitleClass)}>{account.note}</div>
-            )}
-          </div>
+    <div
+      className={cn(
+        walletAccountCardShellClass,
+        expanded &&
+          'rounded-[12px] ring-2 ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
+      )}
+    >
+      <div className={walletAccountCardVisualHostClass}>
+        <button type="button" className={walletAccountCardBodyClass} onClick={onToggleExpand}>
+          <WalletAccountCardVisual account={account} displayBalance={displayBalance} />
         </button>
-        <div className={cardActionButtonsClass}>
-          <CardEditButton
-            onClick={event => {
-              event.stopPropagation()
-              onEdit()
-            }}
-          />
-          <CardDeleteButton
-            onClick={event => {
-              event.stopPropagation()
-              onDelete()
-            }}
-          />
+
+        <div
+          className={cn(
+            walletCardActionOverlayClass,
+            expanded && walletCardActionOverlayExpandedClass
+          )}
+        >
+          <CardEditButton onClick={() => onEdit()} />
+          <CardDeleteButton onClick={() => onDelete()} />
           <CardExpandButton
             expanded={expanded}
-            onClick={event => {
-              event.stopPropagation()
-              onToggleExpand()
-            }}
+            className={expanded ? 'card-action-btn--expanded' : undefined}
+            onClick={() => onToggleExpand()}
             ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات حساب'}
           />
         </div>
