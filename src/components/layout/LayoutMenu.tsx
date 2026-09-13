@@ -113,6 +113,26 @@ export default function LayoutMenu({
           <div className={appMenuItemsClass}>
             <button
               type="button"
+              className={appMenuPromoItemClass(
+                tab === 'vehicle-service' || tab === 'vehicle-detail'
+              )}
+              onClick={() => onTabChange('vehicle-service')}
+            >
+              <span
+                className={appMenuPromoIconClass(
+                  tab === 'vehicle-service' || tab === 'vehicle-detail'
+                )}
+              >
+                <AppIcon name="settings" size={20} strokeWidth={1.75} />
+              </span>
+              <span className={appMenuPromoTextClass}>
+                <span className={appMenuPromoLabelClass}>سرویس دوره‌ای خودرو</span>
+                <span className={appMenuPromoHintClass}>کارکرد، سرویس، بیمه و مکانیک</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
               className={appMenuPromoItemClass(tab === 'personal-reminders')}
               onClick={() => onTabChange('personal-reminders')}
             >

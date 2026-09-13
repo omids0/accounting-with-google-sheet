@@ -4,6 +4,8 @@ import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 export interface TabNavigationOptions {
   timesheetId?: string
   timesheetTitle?: string
+  vehicleId?: string
+  vehicleTitle?: string
   formType?: 'income' | 'expense'
 }
 
@@ -26,6 +28,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   dang: '/dang',
   checks: '/checks',
   'personal-reminders': '/reminders',
+  'vehicle-service': '/vehicles',
   counterparties: '/counterparties',
   receivables: '/receivables',
   treasury: '/treasury',
@@ -70,6 +73,10 @@ export function getTabFromPath(pathname: string): Tab {
     return 'timesheet-detail'
   }
 
+  if (/^\/vehicles\/[^/]+$/.test(path)) {
+    return 'vehicle-detail'
+  }
+
   return PATH_TO_TAB[path] ?? 'dashboard'
 }
 
@@ -78,6 +85,12 @@ export function getPathForTab(tab: Tab, options?: TabNavigationOptions): string 
     if (!options?.timesheetId) return EXACT_TAB_PATHS.timesheets ?? '/timesheets'
 
     return `/timesheets/${encodeURIComponent(options.timesheetId)}`
+  }
+
+  if (tab === 'vehicle-detail') {
+    if (!options?.vehicleId) return EXACT_TAB_PATHS['vehicle-service'] ?? '/vehicles'
+
+    return `/vehicles/${encodeURIComponent(options.vehicleId)}`
   }
 
   const basePath = EXACT_TAB_PATHS[tab]

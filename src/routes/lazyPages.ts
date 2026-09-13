@@ -27,6 +27,8 @@ import {
   loadSettingsPage,
   loadTimesheetDetailPage,
   loadTimesheetsPage,
+  loadVehicleDetailPage,
+  loadVehiclesPage,
   loadTreasuryPage,
   loadWalletPage
 } from './pageChunks'
@@ -57,5 +59,7 @@ export const LazyRemindersPage = lazy(loadRemindersPage)
 export const LazySettingsPage = lazy(loadSettingsPage)
 export const LazyTimesheetDetailPage = lazy(loadTimesheetDetailPage)
 export const LazyTimesheetsPage = lazy(loadTimesheetsPage)
+export const LazyVehicleDetailPage = lazy(loadVehicleDetailPage)
+export const LazyVehiclesPage = lazy(loadVehiclesPage)
 export const LazyTreasuryPage = lazy(loadTreasuryPage)
 export const LazyWalletPage = lazy(loadWalletPage)

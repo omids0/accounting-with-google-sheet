@@ -6,6 +6,8 @@ export type Tab =
   | 'dang'
   | 'checks'
   | 'personal-reminders'
+  | 'vehicle-service'
+  | 'vehicle-detail'
   | 'counterparties'
   | 'receivables'
   | 'treasury'
@@ -34,6 +36,8 @@ export type Tab =
 export const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter', 'date-calculator']
 
 export const TIMESHEET_TABS: Tab[] = ['timesheets', 'timesheet-detail']
+
+export const VEHICLE_TABS: Tab[] = ['vehicle-service', 'vehicle-detail']
 
 export const REPORT_TABS: Tab[] = [
   'report-financial-summary',
@@ -66,6 +70,8 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'dang',
   'checks',
   'personal-reminders',
+  'vehicle-service',
+  'vehicle-detail',
   'counterparties',
   'receivables',
   'treasury',
@@ -82,6 +88,8 @@ export const TAB_TITLES: Record<Tab, string> = {
   dang: 'بدهی',
   checks: 'چک‌ها',
   'personal-reminders': 'یادآوری',
+  'vehicle-service': 'سرویس خودرو',
+  'vehicle-detail': 'پروفایل خودرو',
   counterparties: 'طرف حساب‌ها',
   receivables: 'طلب‌ها',
   treasury: 'صندوقچه',

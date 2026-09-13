@@ -27,9 +27,11 @@ import {
   LazySettingsPage,
   LazyTimesheetsPage,
   LazyTreasuryPage,
+  LazyVehiclesPage,
   LazyWalletPage
 } from './lazyPages'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
+import VehicleDetailRoute from './VehicleDetailRoute'
 import Layout from '../components/Layout'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 
@@ -98,6 +100,8 @@ export function AppAuthenticatedRoutes() {
         <Route path="reports/checks" element={<ModuleReportRoute kind="checks" />} />
         <Route path="timesheets" element={<LazyTimesheetsPage />} />
         <Route path="timesheets/:timesheetId" element={<TimesheetDetailRoute />} />
+        <Route path="vehicles" element={<LazyVehiclesPage />} />
+        <Route path="vehicles/:vehicleId" element={<VehicleDetailRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

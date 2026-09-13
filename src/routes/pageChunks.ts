@@ -66,6 +66,11 @@ export const loadTimesheetDetailPage: PageLoader = () => import('../components/T
 
 export const loadTimesheetsPage: PageLoader = () => import('../components/TimesheetsPage')
 
+export const loadVehicleDetailPage: PageLoader = () =>
+  import('../components/vehicles/VehicleDetailPage')
+
+export const loadVehiclesPage: PageLoader = () => import('../components/VehiclesPage')
+
 export const loadTreasuryPage: PageLoader = () => import('../components/TreasuryPage')
 
 export const loadWalletPage: PageLoader = () => import('../components/WalletPage')
@@ -101,5 +106,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'report-installments': loadModuleReportPage,
   'report-checks': loadModuleReportPage,
   timesheets: loadTimesheetsPage,
-  'timesheet-detail': loadTimesheetDetailPage
+  'timesheet-detail': loadTimesheetDetailPage,
+  'vehicle-service': loadVehiclesPage,
+  'vehicle-detail': loadVehicleDetailPage
 }
