@@ -11,6 +11,7 @@ import AppIcon from '../AppIcon'
 import { FormField, FormRow, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
+import MileageInput from './MileageInput'
 import Button from '../ui/Button'
 
 type VehicleMechanicFormModalProps = {
@@ -75,7 +76,10 @@ export default function VehicleMechanicFormModal({
         </FormField>
 
         <FormField label="کارکرد (اختیاری)">
-          <input type="text" inputMode="numeric" {...register('mileage')} />
+          <MileageInput
+            value={watch('mileage')}
+            onChange={value => setValue('mileage', value === '' ? '' : String(value))}
+          />
         </FormField>
       </FormRow>
 

@@ -7,6 +7,8 @@ import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
 import { FormField, FormRow, FormSelect } from '../form'
 import FormModal from '../FormModal'
+import IranPlateInput from './IranPlateInput'
+import MileageInput from './MileageInput'
 
 type VehicleProfileFormModalProps = {
   open: boolean
@@ -93,20 +95,17 @@ export default function VehicleProfileFormModal({
         />
       </FormField>
 
-      <FormRow>
-        <FormField label="کارکرد (km)" required error={formFieldError(errors, 'mileage')}>
-          <input
-            type="text"
-            inputMode="numeric"
-            {...register('mileage', requiredField('کارکرد'))}
-            placeholder="کارکرد فعلی"
-          />
-        </FormField>
+      <FormField label="کارکرد (km)" required error={formFieldError(errors, 'mileage')}>
+        <MileageInput
+          value={watch('mileage')}
+          onChange={value => setValue('mileage', value === '' ? '' : String(value))}
+          invalid={Boolean(errors.mileage)}
+        />
+      </FormField>
 
-        <FormField label="پلاک">
-          <input type="text" {...register('plate')} placeholder="پلاک" />
-        </FormField>
-      </FormRow>
+      <FormField label="پلاک" controlWidth="full">
+        <IranPlateInput value={watch('plate')} onChange={value => setValue('plate', value)} />
+      </FormField>
 
       <FormRow>
         <FormField label="VIN">

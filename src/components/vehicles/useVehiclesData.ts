@@ -9,6 +9,7 @@ import {
   validateMileageIncrease
 } from './utils'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
+import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { fetchAllVehicleDeadlines } from '../../services/vehicleDeadlines'
@@ -20,6 +21,11 @@ import {
   fetchVehicles,
   updateVehicle
 } from '../../services/vehicleProfiles'
+import {
+  exportVehiclesCsv,
+  exportVehiclesPdf,
+  importVehiclesCsv
+} from '../../services/vehicleSheetIO'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { handleSheetError } from '../../utils/sheetError'
@@ -189,6 +195,14 @@ export function useVehiclesData() {
 
   const actionCountById = useMemo(() => actionCounts, [actionCounts])
 
+  const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
+    useSheetImportExport({
+      exportFn: exportVehiclesCsv,
+      exportPdfFn: exportVehiclesPdf,
+      importFn: importVehiclesCsv,
+      onComplete: loadItems
+    })
+
   return {
     items,
     actionCountById,
@@ -205,6 +219,10 @@ export function useVehiclesData() {
     handleSubmit,
     openDeleteConfirm,
     closeDeleteConfirm,
-    handleDelete
+    handleDelete,
+    handleExport,
+    handleExportPdf,
+    handleImport,
+    importExportConfirmModal
   }
 }

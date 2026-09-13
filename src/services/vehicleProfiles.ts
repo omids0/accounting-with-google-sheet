@@ -92,6 +92,26 @@ function vehicleToRow(item: VehicleProfile): string[] {
   ]
 }
 
+export function vehicleRowFromImportCells(cells: (string | undefined)[]): string[] | null {
+  const title = String(cells[2] ?? '').trim()
+
+  if (!title) return null
+
+  return vehicleToRow({
+    id: cells[0] ?? '',
+    createdAt: cells[1] ?? '',
+    title,
+    mileage: Math.max(0, Number(cells[3]) || 0),
+    vin: String(cells[4] ?? '').trim(),
+    buildYear: String(cells[5] ?? '').trim(),
+    capacity: String(cells[6] ?? '').trim(),
+    plate: String(cells[7] ?? '').trim(),
+    mileageReminderInterval: parseInterval(cells[8] ?? ''),
+    lastMileageUpdate: String(cells[9] ?? '').trim(),
+    active: parseBool(cells[10] ?? 'true')
+  })
+}
+
 export async function ensureVehiclesSheet(spreadsheetId: string): Promise<void> {
   await ensureSheetWithHeaders(spreadsheetId, VEHICLES_SHEET, VEHICLES_HEADERS)
 }

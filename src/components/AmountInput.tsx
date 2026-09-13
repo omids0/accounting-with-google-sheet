@@ -28,6 +28,10 @@ interface AmountInputProps {
   submitDisabled?: boolean
   id?: string
   invalid?: boolean
+  /** When set, shown instead of the currency symbol (e.g. km). */
+  unit?: string
+  /** Hide Persian amount words (useful for non-money numeric fields). */
+  hideWords?: boolean
 }
 
 function parseDigitInput(value: string): string {
@@ -42,7 +46,9 @@ export default function AmountInput({
   onSubmit,
   submitDisabled = false,
   id,
-  invalid = false
+  invalid = false,
+  unit,
+  hideWords = false
 }: AmountInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -52,9 +58,9 @@ export default function AmountInput({
 
   const display = raw ? Number(raw).toLocaleString('fa-IR') : ''
 
-  const words = raw ? numberToPersianWords(Number(raw)) : ''
+  const words = raw && !hideWords ? numberToPersianWords(Number(raw)) : ''
 
-  const currency = getCurrencySymbol()
+  const suffix = unit ?? getCurrencySymbol()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = parseDigitInput(e.target.value)
@@ -120,10 +126,10 @@ export default function AmountInput({
             dir="ltr"
             placeholder="۰"
             className={cn(amountFieldInputClass, amountFieldInputCompactClass, 'numeric')}
-            aria-label="مبلغ"
+            aria-label={unit ? unit : 'مبلغ'}
           />
           <span className={cn(amountFieldCurrencyClass, amountFieldCurrencyCompactClass)}>
-            {currency}
+            {suffix}
           </span>
         </div>
       </div>
@@ -143,13 +149,13 @@ export default function AmountInput({
           dir="ltr"
           placeholder="۰"
           className={cn(amountFieldInputClass, 'numeric')}
-          aria-label="مبلغ"
+          aria-label={unit ? unit : 'مبلغ'}
         />
-        <span className={amountFieldCurrencyClass}>{currency}</span>
+        <span className={amountFieldCurrencyClass}>{suffix}</span>
       </div>
       {words && (
         <p className={amountWordsClass}>
-          {words} {currency}
+          {words} {suffix}
         </p>
       )}
     </div>

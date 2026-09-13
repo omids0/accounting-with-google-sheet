@@ -1,12 +1,20 @@
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
+import IranPlateBadge, { isEmptyPlate } from './IranPlateBadge'
 import type { VehicleProfileWithRow } from './types'
 import {
   vehicleHorizontalCardActionsClass,
-  vehicleHorizontalCardClass,
-  vehicleHorizontalCardMainClass
+  vehicleProfileCardClass,
+  vehicleProfileCardContentClass
 } from './vehicleCardStyles'
 import { cn } from '../../utils/cn'
+import {
+  cardHeaderWithEditClass,
+  installmentHeaderClass,
+  listCardSubtitleClass,
+  listCardTitleClass,
+  walletItemInfoClass
+} from '../ui/featureCardStyles'
 
 type VehicleProfileCardProps = {
   item: VehicleProfileWithRow
@@ -24,39 +32,55 @@ export default function VehicleProfileCard({
   onDelete
 }: VehicleProfileCardProps) {
   const title = item.title || '—'
-  const plateLabel = item.plate || '—'
+  const showPlate = !isEmptyPlate(item.plate)
 
   return (
-    <div className={vehicleHorizontalCardClass}>
-      <div
-        className={cn(vehicleHorizontalCardMainClass, 'cursor-pointer')}
-        role="button"
-        tabIndex={0}
-        onClick={() => onOpen(item)}
-        onKeyDown={event => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault()
-            onOpen(item)
-          }
-        }}
-        aria-label={`مشاهده جزئیات ${title}`}
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[0.95rem] font-bold text-primary">{title}</span>
-          {actionNeededCount > 0 ? (
-            <span className="rounded-full bg-[color-mix(in_srgb,var(--color-expense)_14%,transparent)] px-2 py-0.5 text-[0.72rem] font-bold text-expense">
-              {actionNeededCount.toLocaleString('fa-IR')} اقدام
-            </span>
-          ) : null}
-        </div>
-        <div className="mt-1 text-[0.82rem] text-muted">
-          کارکرد: {item.mileage.toLocaleString('fa-IR')} km · پلاک: {plateLabel}
-        </div>
-      </div>
+    <div className={vehicleProfileCardClass}>
+      <div className={cardHeaderWithEditClass}>
+        <button
+          type="button"
+          className={cn('installment-header', installmentHeaderClass(), 'wallet-item-header')}
+          onClick={() => onOpen(item)}
+          aria-label={`مشاهده جزئیات ${title}`}
+        >
+          <div className={walletItemInfoClass}>
+            <div className={vehicleProfileCardContentClass}>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={listCardTitleClass}>{title}</span>
+                {actionNeededCount > 0 ? (
+                  <span className="rounded-full bg-[color-mix(in_srgb,var(--color-expense)_14%,transparent)] px-2 py-0.5 text-[0.72rem] font-bold text-expense">
+                    {actionNeededCount.toLocaleString('fa-IR')} اقدام
+                  </span>
+                ) : null}
+              </div>
 
-      <div className={vehicleHorizontalCardActionsClass}>
-        <CardEditButton onClick={() => onEdit(item)} />
-        <CardDeleteButton onClick={() => onDelete(item)} />
+              {showPlate ? <IranPlateBadge value={item.plate} /> : null}
+
+              <div className={listCardSubtitleClass}>
+                کارکرد: {item.mileage.toLocaleString('fa-IR')} km
+              </div>
+            </div>
+          </div>
+        </button>
+
+        <div
+          className={vehicleHorizontalCardActionsClass}
+          role="group"
+          onPointerDown={event => event.stopPropagation()}
+        >
+          <CardEditButton
+            onClick={event => {
+              event.stopPropagation()
+              onEdit(item)
+            }}
+          />
+          <CardDeleteButton
+            onClick={event => {
+              event.stopPropagation()
+              onDelete(item)
+            }}
+          />
+        </div>
       </div>
     </div>
   )

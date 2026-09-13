@@ -1,21 +1,42 @@
+import { useMemo } from 'react'
+
 import { isConfigured } from '../../services/settings'
+import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
+import FilterModal from '../FilterModal'
+import PageFilterPanel from '../PageFilterPanel'
+import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
+import SpeedDialIcon from '../SpeedDialIcon'
+import IranPlateBadge, { isEmptyPlate } from './IranPlateBadge'
 import type { VehicleProfileWithRow } from './types'
 import { useVehicleDetail } from './useVehicleDetail'
+import { useVehicleDetailFilters, type VehicleDetailFilterItem } from './useVehicleDetailFilters'
 import VehicleActiveItemCard from './VehicleActiveItemCard'
-import { vehicleHorizontalCardsContainerClass } from './vehicleCardStyles'
+import {
+  vehicleHorizontalCardBodyClass,
+  vehicleHorizontalCardHeaderClass,
+  vehicleHorizontalCardsContainerClass,
+  vehicleProfileCardClass,
+  vehicleProfileCardContentClass
+} from './vehicleCardStyles'
 import VehicleCompleteModal from './VehicleCompleteModal'
 import VehicleDeadlineFormModal from './VehicleDeadlineFormModal'
+import type { HistoryWithRow } from './vehicleDetailMutations'
 import VehicleHistoryCard from './VehicleHistoryCard'
 import VehicleItemDeleteModal from './VehicleItemDeleteModal'
 import VehicleMechanicFormModal from './VehicleMechanicFormModal'
 import VehicleMileageModal from './VehicleMileageModal'
 import VehiclePeriodicFormModal from './VehiclePeriodicFormModal'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
+import type { VehicleActiveListItem } from '../../types/vehicles'
 import Button from '../ui/Button'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
-import { listModulePageClass } from '../ui/featureCardStyles'
+import {
+  listCardSubtitleClass,
+  listCardTitleClass,
+  listModulePageClass
+} from '../ui/featureCardStyles'
 
 export default function VehicleDetailPage({
   vehicle,
@@ -25,8 +46,34 @@ export default function VehicleDetailPage({
   active?: boolean
 }) {
   const page = useVehicleDetail(vehicle)
+  const filters = useVehicleDetailFilters({
+    detailTab: page.detailTab,
+    activeItems: page.activeItems,
+    historyItems: page.history
+  })
 
-  useRegisterPageSpeedDial(isConfigured() ? page.pageSpeedDialConfig : null, active)
+  const speedDialConfig = useMemo(() => {
+    if (!isConfigured()) return null
+
+    return {
+      ...page.pageSpeedDialConfig,
+      actions: [
+        {
+          id: 'filter',
+          label: 'فیلتر',
+          icon: <SpeedDialIcon name="filter" />,
+          onClick: filters.openFilterModal
+        },
+        ...page.pageSpeedDialConfig.actions
+      ]
+    }
+  }, [filters.openFilterModal, page.pageSpeedDialConfig])
+
+  useRegisterPageSpeedDial(speedDialConfig, active)
+
+  const sourceItems = page.detailTab === 'active' ? page.activeItems : page.history
+  const listItems = filters.filteredItems
+  const isActiveTab = page.detailTab === 'active'
 
   if (!isConfigured()) {
     return (
@@ -41,6 +88,39 @@ export default function VehicleDetailPage({
 
   return (
     <div className={listModulePageClass}>
+      <ActiveFilterChips
+        chips={filters.filterChips}
+        onOpenFilters={filters.openFilterModal}
+        onClearAll={filters.clearAllFilters}
+      />
+
+      <FilterModal
+        open={filters.filterModalOpen}
+        onClose={() => filters.setFilterModalOpen(false)}
+        onApply={filters.applyFilters}
+        onClear={filters.clearDraftFilters}
+      >
+        <PageFilterPanel
+          search={filters.draftSearch}
+          onSearchChange={filters.setDraftSearch}
+          searchPlaceholder={isActiveTab ? 'جستجو در موارد فعال...' : 'جستجو در تاریخچه...'}
+          category={filters.draftCategory}
+          onCategoryChange={filters.setDraftCategory}
+          categoryOptions={filters.categoryOptions}
+          categoryLabel={isActiveTab ? 'فوریت' : 'نوع'}
+          {...(isActiveTab
+            ? {}
+            : {
+                datePreset: filters.draftDatePreset,
+                customRange: filters.draftCustomRange,
+                onDateFilterChange: filters.handleDraftDateFilterChange,
+                dateIncludeAll: true as const,
+                dateLabel: 'بازه زمانی (تاریخ)',
+                dateLoading: page.loading
+              })}
+        />
+      </FilterModal>
+
       <div className="mb-4 flex flex-wrap gap-2">
         <Button
           type="button"
@@ -60,56 +140,55 @@ export default function VehicleDetailPage({
         </Button>
       </div>
 
-      <div className="mb-4 rounded-sm border border-border bg-[color-mix(in_srgb,var(--color-accent-soft)_35%,transparent)] p-3 text-[0.85rem]">
-        کارکرد فعلی: <strong>{page.currentVehicle.mileage.toLocaleString('fa-IR')} km</strong>
-        {page.currentVehicle.plate ? ` · پلاک: ${page.currentVehicle.plate}` : ''}
+      <div className={vehicleProfileCardClass}>
+        <div className={vehicleHorizontalCardHeaderClass}>
+          <div className={vehicleHorizontalCardBodyClass}>
+            <div className={vehicleProfileCardContentClass}>
+              <div className={listCardTitleClass}>{page.currentVehicle.title || '—'}</div>
+              {!isEmptyPlate(page.currentVehicle.plate) ? (
+                <IranPlateBadge value={page.currentVehicle.plate} compact />
+              ) : null}
+              <div className={listCardSubtitleClass}>
+                کارکرد: {page.currentVehicle.mileage.toLocaleString('fa-IR')} km
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {page.loading && page.activeItems.length === 0 && page.history.length === 0 ? (
-        <DangCardListSkeleton filterChips={0} />
-      ) : page.detailTab === 'active' ? (
-        page.activeItems.length === 0 ? (
-          <div className={emptyStateClass}>
-            <div className={emptyStateIconClass}>
-              <AppIcon name="settings" />
-            </div>
-            <p>مورد فعالی ثبت نشده</p>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={() => page.setDetailTab('active')}
-            >
-              افزودن از منوی عملیات
-            </Button>
-          </div>
-        ) : (
-          <div className={vehicleHorizontalCardsContainerClass}>
-            {page.activeItems.map(item => (
-              <VehicleActiveItemCard
-                key={item.id}
-                item={item}
-                onComplete={page.openComplete}
-                onRenew={page.openDeadlineRenew}
-                onEdit={item.kind === 'periodic' ? page.openPeriodicEdit : page.openDeadlineEdit}
-                onDelete={activeItem => {
-                  if (activeItem.kind === 'periodic' && activeItem.periodic) {
-                    page.openDeleteTarget({ kind: 'periodic', item: activeItem.periodic })
-                  } else if (activeItem.deadline) {
-                    page.openDeleteTarget({ kind: 'deadline', item: activeItem.deadline })
-                  }
-                }}
-              />
-            ))}
-          </div>
-        )
-      ) : page.history.length === 0 ? (
+        <DangCardListSkeleton filterChips={filters.filterChips.length} />
+      ) : sourceItems.length === 0 ? (
         <div className={emptyStateClass}>
-          <p>تاریخچه‌ای ثبت نشده</p>
+          <div className={emptyStateIconClass}>
+            <AppIcon name="settings" />
+          </div>
+          <p>{isActiveTab ? 'مورد فعالی ثبت نشده' : 'تاریخچه‌ای ثبت نشده'}</p>
+        </div>
+      ) : listItems.length === 0 ? (
+        <SearchEmptyState />
+      ) : isActiveTab ? (
+        <div className={vehicleHorizontalCardsContainerClass}>
+          {(listItems as VehicleActiveListItem[]).map(item => (
+            <VehicleActiveItemCard
+              key={item.id}
+              item={item}
+              onComplete={page.openComplete}
+              onRenew={page.openDeadlineRenew}
+              onEdit={item.kind === 'periodic' ? page.openPeriodicEdit : page.openDeadlineEdit}
+              onDelete={activeItem => {
+                if (activeItem.kind === 'periodic' && activeItem.periodic) {
+                  page.openDeleteTarget({ kind: 'periodic', item: activeItem.periodic })
+                } else if (activeItem.deadline) {
+                  page.openDeleteTarget({ kind: 'deadline', item: activeItem.deadline })
+                }
+              }}
+            />
+          ))}
         </div>
       ) : (
         <div className={vehicleHorizontalCardsContainerClass}>
-          {page.history.map(item => (
+          {(listItems as VehicleDetailFilterItem[] as HistoryWithRow[]).map(item => (
             <VehicleHistoryCard
               key={item.id}
               item={item}

@@ -2,15 +2,22 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useVehiclesData } from './useVehiclesData'
+import { useVehiclesFilters } from './useVehiclesFilters'
+import MileageRangeFilter from '../MileageRangeFilter'
 import VehicleProfileCard from './VehicleProfileCard'
 import VehicleProfileFormModal from './VehicleProfileFormModal'
+import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { getPathForTab } from '../../routes/paths'
 import { isConfigured } from '../../services/settings'
+import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
+import ConfirmActionModal from '../ConfirmActionModal'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
+import FilterModal from '../FilterModal'
+import PageFilterPanel from '../PageFilterPanel'
+import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
-import SpeedDialIcon from '../SpeedDialIcon'
 import { vehicleHorizontalCardsContainerClass } from './vehicleCardStyles'
 import Button from '../ui/Button'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
@@ -20,26 +27,49 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
   const data = useVehiclesData()
   const navigate = useNavigate()
 
+  const {
+    filterModalOpen,
+    setFilterModalOpen,
+    draftSearch,
+    setDraftSearch,
+    draftPaymentStatus,
+    setDraftPaymentStatus,
+    draftMileageRange,
+    setDraftMileageRange,
+    mileageSliderMax,
+    filteredItems,
+    openFilterModal,
+    filterChips,
+    clearAllFilters,
+    applyFilters,
+    clearDraftFilters
+  } = useVehiclesFilters({
+    items: data.items,
+    actionCountById: data.actionCountById
+  })
+
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات سرویس خودرو',
-      actions: [
-        {
-          id: 'add',
-          label: 'افزودن',
-          icon: <SpeedDialIcon name="add" />,
-          onClick: data.openCreateForm
-        },
-        {
-          id: 'refresh',
-          label: 'بروزرسانی',
-          icon: <SpeedDialIcon name="refresh" />,
-          onClick: data.loadItems,
-          disabled: data.loading
-        }
-      ]
+      actions: createPageSpeedDialActions({
+        onAdd: data.openCreateForm,
+        onFilter: openFilterModal,
+        onRefresh: data.loadItems,
+        refreshDisabled: data.loading,
+        onImport: data.handleImport,
+        onExport: data.handleExport,
+        onExportPdf: data.handleExportPdf
+      })
     }),
-    [data.loadItems, data.loading, data.openCreateForm]
+    [
+      data.handleExport,
+      data.handleExportPdf,
+      data.handleImport,
+      data.loadItems,
+      data.loading,
+      data.openCreateForm,
+      openFilterModal
+    ]
   )
 
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
@@ -59,8 +89,38 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
 
   return (
     <div className={listModulePageClass}>
+      <ActiveFilterChips
+        chips={filterChips}
+        onOpenFilters={openFilterModal}
+        onClearAll={clearAllFilters}
+      />
+
+      <FilterModal
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={applyFilters}
+        onClear={clearDraftFilters}
+      >
+        <PageFilterPanel
+          search={draftSearch}
+          onSearchChange={setDraftSearch}
+          searchPlaceholder="جستجو در خودروها..."
+          paymentStatus={draftPaymentStatus}
+          onPaymentStatusChange={setDraftPaymentStatus}
+          paymentStatusLabel="وضعیت اقدام"
+          paymentStatusPaidLabel="بدون اقدام"
+          paymentStatusUnpaidLabel="نیاز به اقدام"
+        >
+          <MileageRangeFilter
+            value={draftMileageRange}
+            onChange={setDraftMileageRange}
+            sliderMax={mileageSliderMax}
+          />
+        </PageFilterPanel>
+      </FilterModal>
+
       {isInitialLoading ? (
-        <DangCardListSkeleton filterChips={0} />
+        <DangCardListSkeleton filterChips={filterChips.length} />
       ) : data.items.length === 0 ? (
         <div className={emptyStateClass}>
           <div className={emptyStateIconClass}>
@@ -71,9 +131,11 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
             افزودن خودرو
           </Button>
         </div>
+      ) : filteredItems.length === 0 ? (
+        <SearchEmptyState />
       ) : (
         <div className={vehicleHorizontalCardsContainerClass}>
-          {data.items.map(item => (
+          {filteredItems.map(item => (
             <VehicleProfileCard
               key={item.id}
               item={item}
@@ -105,6 +167,8 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
         onConfirm={data.handleDelete}
         deleting={data.deleting}
       />
+
+      <ConfirmActionModal {...data.importExportConfirmModal} />
     </div>
   )
 }

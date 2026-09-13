@@ -1,0 +1,180 @@
+/* Physical Iranian plate layout — always LTR regardless of page direction. */
+.iran-plate {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-grid;
+  grid-template-columns: 2.1rem minmax(0, 1fr) 2.35rem;
+  align-items: stretch;
+  max-width: 100%;
+  overflow: hidden;
+  border: 2px solid #1a1a1a;
+  border-radius: 0.45rem;
+  background: #f7f7f2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.iran-plate--compact {
+  grid-template-columns: 1.75rem minmax(0, 1fr) 2rem;
+  border-width: 1.5px;
+  border-radius: 0.35rem;
+}
+
+.iran-plate__flag {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.25rem 0.125rem;
+  background: linear-gradient(180deg, #0b4f9c 0%, #083b78 100%);
+  color: #fff;
+}
+
+.iran-plate__main {
+  grid-column: 2;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 0;
+  padding: 0.25rem 0.5rem;
+  border-inline: 1px solid rgba(26, 26, 26, 0.1);
+}
+
+.iran-plate__region {
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.25rem 0.125rem;
+  border-inline-start: 1px solid rgba(26, 26, 26, 0.2);
+  background: #efefe8;
+}
+
+.iran-plate__flag-bars {
+  display: flex;
+  flex-direction: column;
+  width: 1.15rem;
+  height: 0.85rem;
+  overflow: hidden;
+  border-radius: 1px;
+}
+
+.iran-plate__flag-bar--green {
+  height: 33%;
+  background: #009639;
+}
+
+.iran-plate__flag-bar--white {
+  height: 34%;
+  background: #fff;
+}
+
+.iran-plate__flag-bar--red {
+  height: 33%;
+  background: #da0000;
+}
+
+.iran-plate__flag-label {
+  font-size: 0.38rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.iran-plate__segment {
+  min-width: 0;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: #111;
+  font-variant-numeric: tabular-nums;
+}
+
+.iran-plate--compact .iran-plate__segment {
+  font-size: 0.82rem;
+}
+
+.iran-plate__letter {
+  min-width: 1.1rem;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #111;
+}
+
+.iran-plate--compact .iran-plate__letter {
+  min-width: 0.9rem;
+  font-size: 0.82rem;
+}
+
+.iran-plate__iran-label {
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #111;
+}
+
+.iran-plate--compact .iran-plate__iran-label {
+  font-size: 0.5rem;
+}
+
+.iran-plate__province {
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: #111;
+  font-variant-numeric: tabular-nums;
+}
+
+.iran-plate--compact .iran-plate__province {
+  font-size: 0.82rem;
+}
+
+.iran-plate__input,
+.iran-plate__select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #111;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.iran-plate__input::placeholder {
+  color: #999;
+}
+
+.iran-plate__input:focus,
+.iran-plate__select:focus {
+  border-radius: 0.2rem;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.iran-plate__select {
+  cursor: pointer;
+  appearance: none;
+}
+
+.iran-plate__province-input {
+  width: 2rem;
+  font-size: 1rem;
+}
+
+.iran-plate__badge-scale {
+  transform: scale(0.82);
+  transform-origin: center;
+}

@@ -49,7 +49,10 @@ export function useListFilters<T>({
   const hasCategory = Boolean(getCategory)
   const hasCounterparty = Boolean(getCounterparty)
 
-  const initialDateFilter = defaultDateFilter ?? createAllDateRangeFilter()
+  const initialDateFilter = useMemo(
+    () => defaultDateFilter ?? createAllDateRangeFilter(),
+    [defaultDateFilter]
+  )
 
   const [searchQuery, setSearchQuery] = useState('')
   const [filterModalOpen, setFilterModalOpen] = useState(false)

@@ -19,6 +19,11 @@ interface UseModalLockOptions {
 export function useModalLock({ open, onClose, blocked = false }: UseModalLockOptions) {
   const panelRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
+  const onCloseRef = useRef(onClose)
+  const blockedRef = useRef(blocked)
+
+  onCloseRef.current = onClose
+  blockedRef.current = blocked
 
   useEffect(() => {
     if (!open) return
@@ -37,9 +42,9 @@ export function useModalLock({ open, onClose, blocked = false }: UseModalLockOpt
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !blocked) {
+      if (event.key === 'Escape' && !blockedRef.current) {
         event.preventDefault()
-        onClose()
+        onCloseRef.current()
 
         return
       }
@@ -75,7 +80,7 @@ export function useModalLock({ open, onClose, blocked = false }: UseModalLockOpt
       document.body.style.overflow = previousOverflow
       previousFocusRef.current?.focus({ preventScroll: true })
     }
-  }, [open, blocked, onClose])
+  }, [open])
 
   return { panelRef }
 }

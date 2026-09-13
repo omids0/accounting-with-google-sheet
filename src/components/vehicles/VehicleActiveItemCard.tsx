@@ -4,10 +4,13 @@ import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import {
   vehicleHorizontalCardActionsClass,
+  vehicleHorizontalCardBodyClass,
   vehicleHorizontalCardClass,
-  vehicleHorizontalCardMainClass
+  vehicleHorizontalCardHeaderClass,
+  vehicleHorizontalCardSideActionsClass
 } from './vehicleCardStyles'
 import Button from '../ui/Button'
+import { listCardSubtitleClass, listCardTitleClass } from '../ui/featureCardStyles'
 
 type VehicleActiveItemCardProps = {
   item: VehicleActiveListItem
@@ -58,33 +61,37 @@ export default function VehicleActiveItemCard({
 
   return (
     <div className={cn(vehicleHorizontalCardClass, urgencyBorderClass(item.urgency))}>
-      <div className={vehicleHorizontalCardMainClass}>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[0.95rem] font-bold text-primary">{item.title}</span>
-          <span
-            className={cn(
-              'rounded-full px-2 py-0.5 text-[0.68rem] font-bold',
-              urgencyBadgeClass(item.urgency)
-            )}
-          >
-            {urgencyLabel(item.urgency)}
-          </span>
+      <div className={vehicleHorizontalCardHeaderClass}>
+        <div className={vehicleHorizontalCardBodyClass}>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={listCardTitleClass}>{item.title}</span>
+            <span
+              className={cn(
+                'rounded-full px-2 py-0.5 text-[0.68rem] font-bold',
+                urgencyBadgeClass(item.urgency)
+              )}
+            >
+              {urgencyLabel(item.urgency)}
+            </span>
+          </div>
+          <div className={cn(listCardSubtitleClass, 'mt-1')}>{item.subtitle}</div>
         </div>
-        <div className="mt-1 text-[0.82rem] text-muted">{item.subtitle}</div>
-      </div>
 
-      <div className={vehicleHorizontalCardActionsClass}>
-        {isPeriodic ? (
-          <Button type="button" variant="primary" size="sm" onClick={() => onComplete?.(item)}>
-            انجام شد
-          </Button>
-        ) : (
-          <Button type="button" variant="secondary" size="sm" onClick={() => onRenew?.(item)}>
-            تمدید
-          </Button>
-        )}
-        <CardEditButton onClick={() => onEdit(item)} />
-        <CardDeleteButton onClick={() => onDelete(item)} />
+        <div className={vehicleHorizontalCardSideActionsClass}>
+          {isPeriodic ? (
+            <Button type="button" variant="primary" size="sm" onClick={() => onComplete?.(item)}>
+              انجام شد
+            </Button>
+          ) : (
+            <Button type="button" variant="secondary" size="sm" onClick={() => onRenew?.(item)}>
+              تمدید
+            </Button>
+          )}
+          <div className={vehicleHorizontalCardActionsClass} role="group">
+            <CardEditButton onClick={() => onEdit(item)} />
+            <CardDeleteButton onClick={() => onDelete(item)} />
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 import AppIcon from './AppIcon'
 import {
   pageSearchClass,
+  pageSearchClearClass,
   pageSearchIconClass,
   pageSearchInputClass
 } from './ui/filterControlStyles'
@@ -18,27 +19,32 @@ export default function PageSearchInput({
 }: PageSearchInputProps) {
   return (
     <div className={pageSearchClass}>
-      <span className={pageSearchIconClass} aria-hidden="true">
-        <AppIcon name="search" size={15} strokeWidth={2} />
-      </span>
+      {!value ? (
+        <span className={pageSearchIconClass} aria-hidden="true">
+          <AppIcon name="search" size={15} strokeWidth={2} />
+        </span>
+      ) : null}
       <input
-        type="search"
+        type="text"
+        enterKeyHint="search"
+        autoComplete="off"
         className={pageSearchInputClass}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
       />
-      {value && (
+      {value ? (
         <button
           type="button"
-          className="page-search-clear"
+          className={pageSearchClearClass}
           onClick={() => onChange('')}
           aria-label="پاک کردن جستجو"
+          tabIndex={-1}
         >
-          <AppIcon name="close" size={16} strokeWidth={2} />
+          <AppIcon name="close" size={15} strokeWidth={2} />
         </button>
-      )}
+      ) : null}
     </div>
   )
 }

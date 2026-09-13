@@ -3,9 +3,10 @@ import { useForm } from 'react-hook-form'
 
 import type { VehicleMileageFormState } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
+import { formFieldError, submitValidatedForm } from '../../utils/formValidation'
 import { FormField } from '../form'
 import FormModal from '../FormModal'
+import MileageInput from './MileageInput'
 
 type VehicleMileageModalProps = {
   open: boolean
@@ -28,9 +29,10 @@ export default function VehicleMileageModal({
   )
 
   const {
-    register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors }
   } = useForm<VehicleMileageFormState>({
     defaultValues: initialValues,
@@ -59,11 +61,10 @@ export default function VehicleMileageModal({
         controlWidth="full"
         error={formFieldError(errors, 'mileage')}
       >
-        <input
-          type="text"
-          inputMode="numeric"
-          {...register('mileage', requiredField('کارکرد'))}
-          placeholder="کارکرد جدید"
+        <MileageInput
+          value={watch('mileage')}
+          onChange={value => setValue('mileage', value === '' ? '' : String(value))}
+          invalid={Boolean(errors.mileage)}
         />
       </FormField>
     </FormModal>

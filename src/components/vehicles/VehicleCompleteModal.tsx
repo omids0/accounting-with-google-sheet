@@ -4,13 +4,14 @@ import { useForm } from 'react-hook-form'
 import type { VehicleCompleteFormState } from './types'
 import { calculateNextKm } from './utils'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
+import { formFieldError, submitValidatedForm } from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { parseNumeric } from '../../utils/parseNumeric'
 import AmountInput from '../AmountInput'
 import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
+import MileageInput from './MileageInput'
 
 type VehicleCompleteModalProps = {
   open: boolean
@@ -87,18 +88,18 @@ export default function VehicleCompleteModal({
     >
       <FormRow>
         <FormField label="کارکرد (km)" required error={formFieldError(errors, 'mileage')}>
-          <input
-            type="text"
-            inputMode="numeric"
-            {...register('mileage', requiredField('کارکرد'))}
+          <MileageInput
+            value={watch('mileage')}
+            onChange={value => setValue('mileage', value === '' ? '' : String(value))}
+            invalid={Boolean(errors.mileage)}
           />
         </FormField>
 
         <FormField label="فاصله (km)" required error={formFieldError(errors, 'intervalKm')}>
-          <input
-            type="text"
-            inputMode="numeric"
-            {...register('intervalKm', requiredField('فاصله'))}
+          <MileageInput
+            value={watch('intervalKm')}
+            onChange={value => setValue('intervalKm', value === '' ? '' : String(value))}
+            invalid={Boolean(errors.intervalKm)}
           />
         </FormField>
       </FormRow>
