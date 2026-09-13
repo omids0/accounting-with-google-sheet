@@ -17,6 +17,7 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { fetchVehicleDeadlines } from '../../services/vehicleDeadlines'
 import { fetchVehicleHistory } from '../../services/vehicleHistory'
+import { getVehicleMechanicCategories } from '../../services/vehicleMechanicCategories'
 import { getVehiclePeriodicCategories } from '../../services/vehiclePeriodicCategories'
 import { fetchVehiclePeriodicServices } from '../../services/vehiclePeriodicServices'
 import { fetchVehicles } from '../../services/vehicleProfiles'
@@ -51,6 +52,9 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
   const [deleteLinkedExpense, setDeleteLinkedExpense] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [serviceTypes, setServiceTypes] = useState<string[]>(() => getVehiclePeriodicCategories())
+  const [mechanicCategories, setMechanicCategories] = useState<string[]>(() =>
+    getVehicleMechanicCategories()
+  )
 
   const dataRevision = useDataRefresh()
 
@@ -63,6 +67,7 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
     try {
       await syncCategoriesFromSheet(spreadsheetId)
       setServiceTypes(getVehiclePeriodicCategories())
+      setMechanicCategories(getVehicleMechanicCategories())
 
       const [vehicles, periodics, deadlines, historyItems, reminderRules] = await Promise.all([
         fetchVehicles(spreadsheetId),
@@ -230,6 +235,8 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
     setDeleteLinkedExpense,
     serviceTypes,
     setServiceTypes,
+    mechanicCategories,
+    setMechanicCategories,
     loadDetail,
     pageSpeedDialConfig,
     ...handlers,

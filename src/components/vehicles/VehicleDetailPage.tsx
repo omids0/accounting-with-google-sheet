@@ -253,6 +253,8 @@ export default function VehicleDetailPage({
       <VehicleMechanicFormModal
         open={page.showMechanicForm}
         defaultMileage={page.currentVehicle.mileage}
+        mechanicCategories={page.mechanicCategories}
+        onMechanicCategoriesChange={page.setMechanicCategories}
         saving={page.saving}
         onClose={page.closeMechanicForm}
         onSubmit={page.handleMechanicSubmit}
@@ -260,6 +262,7 @@ export default function VehicleDetailPage({
 
       <VehicleMileageModal
         open={page.showMileageModal}
+        vehicleTitle={page.currentVehicle.title}
         currentMileage={page.currentVehicle.mileage}
         saving={page.saving}
         onClose={page.closeMileageModal}

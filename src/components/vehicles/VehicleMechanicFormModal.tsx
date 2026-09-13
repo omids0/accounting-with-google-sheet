@@ -1,14 +1,13 @@
 import { useMemo, type FormEvent } from 'react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
 
-import { VEHICLE_MECHANIC_CATEGORIES } from './constants'
 import type { VehicleMechanicFormState, VehicleMechanicItemFormState } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { submitValidatedForm } from '../../utils/formValidation'
+import { requiredField, submitValidatedForm } from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import AppIcon from '../AppIcon'
-import { FormField, FormRow, FormSelect } from '../form'
+import { CategorySelect, FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import MileageInput from './MileageInput'
@@ -17,35 +16,44 @@ import Button from '../ui/Button'
 type VehicleMechanicFormModalProps = {
   open: boolean
   defaultMileage: number
+  mechanicCategories: string[]
   saving: boolean
   onClose: () => void
   onSubmit: (values: VehicleMechanicFormState) => void | Promise<void>
+  onMechanicCategoriesChange: (categories: string[]) => void
 }
 
-const EMPTY_ITEM: VehicleMechanicItemFormState = {
-  category: VEHICLE_MECHANIC_CATEGORIES[0],
-  note: ''
+function buildEmptyItem(categories: string[]): VehicleMechanicItemFormState {
+  return {
+    category: categories[0] ?? '',
+    note: ''
+  }
 }
 
-function buildDefaults(defaultMileage: number): VehicleMechanicFormState {
+function buildDefaults(defaultMileage: number, categories: string[]): VehicleMechanicFormState {
   return {
     date: getTodayIso(),
     mileage: String(defaultMileage),
     location: '',
     totalAmount: '',
     notes: '',
-    items: [{ ...EMPTY_ITEM }]
+    items: [buildEmptyItem(categories)]
   }
 }
 
 export default function VehicleMechanicFormModal({
   open,
   defaultMileage,
+  mechanicCategories,
   saving,
   onClose,
-  onSubmit
+  onSubmit,
+  onMechanicCategoriesChange
 }: VehicleMechanicFormModalProps) {
-  const defaults = useMemo(() => buildDefaults(defaultMileage), [defaultMileage])
+  const defaults = useMemo(
+    () => buildDefaults(defaultMileage, mechanicCategories),
+    [defaultMileage, mechanicCategories]
+  )
 
   const { register, control, handleSubmit, reset, setValue, watch } =
     useForm<VehicleMechanicFormState>({
@@ -55,6 +63,16 @@ export default function VehicleMechanicFormModal({
   const { fields, append, remove } = useFieldArray({ control, name: 'items' })
 
   useModalFormReset(reset, defaults, { active: open, resetKey: 'mechanic' })
+
+  const handleCategoriesChange = (next: string[]) => {
+    onMechanicCategoriesChange(next)
+    fields.forEach((_, index) => {
+      const current = watch(`items.${index}.category`)
+      if (!next.includes(current)) {
+        setValue(`items.${index}.category`, next[0] ?? '', { shouldValidate: true })
+      }
+    })
+  }
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     submitValidatedForm(handleSubmit, values => onSubmit(values), event)
@@ -92,15 +110,32 @@ export default function VehicleMechanicFormModal({
         {fields.map((field, index) => (
           <div key={field.id} className="flex flex-col gap-2 rounded-sm border border-border p-3">
             <FormRow>
-              <FormSelect
-                label="دسته"
-                controlWidth="full"
-                value={watch(`items.${index}.category`)}
-                onChange={value => setValue(`items.${index}.category`, value)}
-                options={VEHICLE_MECHANIC_CATEGORIES.map(category => ({
-                  value: category,
-                  label: category
-                }))}
+              <Controller
+                name={`items.${index}.category`}
+                control={control}
+                rules={requiredField('دسته')}
+                render={({ field: categoryField, fieldState }) => (
+                  <FormField
+                    label="دسته"
+                    required
+                    controlWidth="full"
+                    error={fieldState.error?.message}
+                  >
+                    <CategorySelect
+                      value={categoryField.value}
+                      onChange={value => {
+                        categoryField.onChange(value)
+                        setValue(`items.${index}.category`, value, { shouldValidate: true })
+                      }}
+                      categories={mechanicCategories}
+                      categoryScope="vehicleMechanic"
+                      onCategoriesChange={handleCategoriesChange}
+                      aria-label="دسته"
+                      placeholder="انتخاب دسته"
+                      invalid={Boolean(fieldState.error)}
+                    />
+                  </FormField>
+                )}
               />
               <FormField label="توضیح">
                 <input type="text" {...register(`items.${index}.note`)} placeholder="توضیح کوتاه" />
@@ -117,7 +152,7 @@ export default function VehicleMechanicFormModal({
           type="button"
           variant="secondary"
           size="sm"
-          onClick={() => append({ ...EMPTY_ITEM })}
+          onClick={() => append(buildEmptyItem(mechanicCategories))}
         >
           <AppIcon name="add" size={16} />
           افزودن ردیف

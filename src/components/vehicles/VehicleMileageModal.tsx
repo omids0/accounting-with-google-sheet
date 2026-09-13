@@ -10,6 +10,7 @@ import MileageInput from './MileageInput'
 
 type VehicleMileageModalProps = {
   open: boolean
+  vehicleTitle: string
   currentMileage: number
   saving: boolean
   onClose: () => void
@@ -18,6 +19,7 @@ type VehicleMileageModalProps = {
 
 export default function VehicleMileageModal({
   open,
+  vehicleTitle,
   currentMileage,
   saving,
   onClose,
@@ -48,7 +50,7 @@ export default function VehicleMileageModal({
   return (
     <FormModal
       open={open}
-      title="بروزرسانی کارکرد"
+      title={`بروزرسانی کارکرد خودرو ${vehicleTitle}`}
       onClose={onClose}
       onSubmit={onFormSubmit}
       saving={saving}

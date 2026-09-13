@@ -10,16 +10,7 @@ export const VEHICLE_DEADLINE_CATEGORIES = [
   'سایر'
 ] as const
 
-export const VEHICLE_MECHANIC_CATEGORIES = [
-  'لاستیک',
-  'جلو بندی',
-  'رینگ',
-  'فنر',
-  'ترمز',
-  'برق',
-  'بدنه',
-  'سایر'
-] as const
+export { DEFAULT_VEHICLE_MECHANIC_CATEGORIES as VEHICLE_MECHANIC_CATEGORIES } from '../../services/vehicleMechanicCategories'
 
 export const VEHICLE_MILEAGE_REMINDER_OPTIONS: {
   value: VehicleMileageReminderInterval
