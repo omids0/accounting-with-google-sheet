@@ -47,7 +47,7 @@ export default function WalletAccountCard({
       className={cn(
         walletAccountCardShellClass,
         expanded &&
-          'border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))] shadow-[var(--shadow-lg),0_6px_22px_color-mix(in_srgb,var(--color-primary)_14%,transparent)]'
+          'rounded-[12px] ring-2 ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
       )}
     >
       <div className={walletAccountCardVisualHostClass}>

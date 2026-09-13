@@ -2,13 +2,15 @@ import { cn } from '../../utils/cn'
 
 export const walletCardControllerGutterClass = 'pl-[3.35rem]'
 
+const walletCardShadowClass =
+  'shadow-[0_2px_8px_rgba(15,23,42,0.1),0_1px_2px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.06]'
+
 export const walletBankCardClass = cn(
   'wallet-bank-card relative flex h-[6.35rem] w-full flex-col overflow-hidden rounded-[12px] p-[0.65rem_0.75rem]',
   walletCardControllerGutterClass,
-  'text-right shadow-[0_5px_16px_rgba(0,0,0,0.2)] sm:h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[3.35rem]',
-  'transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
-  'before:pointer-events-none before:absolute before:inset-0 before:opacity-90 before:content-[""]',
-  'after:pointer-events-none after:absolute after:-right-[20%] after:-top-[30%] after:h-[70%] after:w-[55%] after:rounded-full after:bg-[rgba(255,255,255,0.06)] after:content-[""]'
+  walletCardShadowClass,
+  'text-right sm:h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[3.35rem]',
+  'transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]'
 )
 
 export const walletBankCardTopRowClass = 'relative z-[1] flex items-start justify-between gap-2'
@@ -23,10 +25,13 @@ export const walletBankCardLogoClass = cn(
 )
 
 export const walletBankCardChipClass = cn(
-  'relative z-[1] mt-[0.2rem] h-[1.05rem] w-[1.45rem] shrink-0 rounded-[3px]',
+  'relative z-[1] h-[1.05rem] w-[1.45rem] shrink-0 rounded-[3px]',
   'border border-[rgba(255,255,255,0.35)] bg-[linear-gradient(145deg,#d4af37,#f0d060,#c9a227)]',
   'shadow-[inset_0_1px_2px_rgba(255,255,255,0.45),inset_0_-1px_2px_rgba(0,0,0,0.15)]'
 )
+
+export const walletBankCardTopLeftClass =
+  'relative z-[1] flex shrink-0 flex-col items-start gap-[0.22rem]'
 
 export const walletBankCardNumberWrapClass =
   'relative z-[1] flex min-h-0 flex-1 items-center justify-center px-0.5 py-0'
@@ -57,12 +62,12 @@ export const walletBankCardContactlessClass = cn(
 export const walletCardPreviewClass = 'mx-auto max-w-[18rem]'
 
 export const walletCardsListClass = cn(
-  'flex flex-col gap-1.5',
+  'flex flex-col gap-2',
   'lg:grid lg:grid-cols-2 lg:gap-2 xl:grid-cols-3 [&_.list-card]:mb-0'
 )
 
 export const walletAccountCardShellClass = cn(
-  'wallet-item-card list-card relative overflow-hidden p-0',
+  'wallet-item-card list-card relative overflow-visible border-0 bg-transparent p-0 shadow-none',
   '[content-visibility:auto] [contain-intrinsic-size:auto_6.75rem]'
 )
 
@@ -72,7 +77,7 @@ export const walletAccountCardBodyClass = cn(
   'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_20%,transparent)]'
 )
 
-export const walletAccountCardVisualHostClass = 'relative min-w-0 p-1'
+export const walletAccountCardVisualHostClass = 'relative min-w-0 p-0'
 
 export const walletCardActionOverlayClass = cn(
   'wallet-card-action-overlay absolute top-1/2 left-2 z-20 flex -translate-y-1/2 flex-col gap-[0.1rem] rounded-[calc(var(--radius-sm)+1px)] p-[0.1rem]',
@@ -91,7 +96,8 @@ export const walletCardActionOverlayExpandedClass = cn(
 const walletTileBaseClass = cn(
   'relative flex h-[6.35rem] w-full flex-col justify-between overflow-hidden rounded-[12px] p-[0.65rem_0.75rem] text-right',
   walletCardControllerGutterClass,
-  'shadow-[0_4px_14px_rgba(0,0,0,0.16)] sm:h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[3.35rem]'
+  walletCardShadowClass,
+  'sm:h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[3.35rem]'
 )
 
 const walletTileTopRowClass = 'relative z-[2] flex items-start justify-between gap-2'

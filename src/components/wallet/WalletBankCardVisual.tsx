@@ -6,6 +6,7 @@ import {
   walletBankCardBottomRowClass,
   walletBankCardBrandClass,
   walletBankCardChipClass,
+  walletBankCardTopLeftClass,
   walletBankCardClass,
   walletBankCardContactlessClass,
   walletBankCardHolderClass,
@@ -93,12 +94,13 @@ export default function WalletBankCardVisual({
             )}
           </span>
         </div>
-        <span className={walletBankCardContactlessClass}>
-          <ContactlessIcon />
-        </span>
+        <div className={walletBankCardTopLeftClass}>
+          <span className={walletBankCardContactlessClass}>
+            <ContactlessIcon />
+          </span>
+          <div className={walletBankCardChipClass} aria-hidden="true" />
+        </div>
       </div>
-
-      <div className={walletBankCardChipClass} aria-hidden="true" />
 
       <div className={walletBankCardNumberWrapClass}>
         {showCardNumber && (

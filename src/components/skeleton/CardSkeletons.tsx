@@ -142,7 +142,7 @@ export function TreasuryHoldingCardSkeleton() {
 export function WalletAccountCardSkeleton() {
   return (
     <div className={cn('wallet-item-card list-card p-0', skeletonCardClass)} aria-hidden="true">
-      <div className="p-1">
+      <div className="p-0">
         <div className="relative">
           <Skeleton
             variant="rect"
