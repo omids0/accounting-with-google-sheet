@@ -16,7 +16,7 @@ export default function SettingsRemindersCard({ onOpenReminders }: SettingsRemin
           marginBottom: '0.75rem'
         }}
       >
-        یادآوری اقساط، چک‌ها، بدهی‌ها و مواعد شخصی را با نوتیف PWA مدیریت کنید.
+        یادآوری اقساط، چک‌ها، بدهی‌ها، مواعد شخصی، کارکرد و موعد خودرو را با نوتیف PWA مدیریت کنید.
       </p>
       <Button type="button" variant="primary" size="sm" onClick={onOpenReminders}>
         مدیریت یادآوری‌ها
