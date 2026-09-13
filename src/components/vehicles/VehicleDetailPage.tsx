@@ -8,17 +8,15 @@ import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import SpeedDialIcon from '../SpeedDialIcon'
-import IranPlateBadge, { isEmptyPlate } from './IranPlateBadge'
 import type { VehicleProfileWithRow } from './types'
 import { useVehicleDetail } from './useVehicleDetail'
 import { useVehicleDetailFilters, type VehicleDetailFilterItem } from './useVehicleDetailFilters'
 import VehicleActiveItemCard from './VehicleActiveItemCard'
 import {
-  vehicleHorizontalCardBodyClass,
-  vehicleHorizontalCardHeaderClass,
-  vehicleHorizontalCardsContainerClass,
-  vehicleProfileCardClass,
-  vehicleProfileCardContentClass
+  vehicleDetailMileageClass,
+  vehicleDetailMileageValueClass,
+  vehicleDetailToolbarClass,
+  vehicleHorizontalCardsContainerClass
 } from './vehicleCardStyles'
 import VehicleCompleteModal from './VehicleCompleteModal'
 import VehicleDeadlineFormModal from './VehicleDeadlineFormModal'
@@ -30,13 +28,10 @@ import VehicleMileageModal from './VehicleMileageModal'
 import VehiclePeriodicFormModal from './VehiclePeriodicFormModal'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import type { VehicleActiveListItem } from '../../types/vehicles'
-import Button from '../ui/Button'
+import TransactionTypeSegment from '../TransactionTypeSegment'
+import Card from '../ui/Card'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
-import {
-  listCardSubtitleClass,
-  listCardTitleClass,
-  listModulePageClass
-} from '../ui/featureCardStyles'
+import { listModulePageClass } from '../ui/featureCardStyles'
 
 export default function VehicleDetailPage({
   vehicle,
@@ -51,6 +46,14 @@ export default function VehicleDetailPage({
     activeItems: page.activeItems,
     historyItems: page.history
   })
+
+  const detailTabOptions = useMemo(
+    () => [
+      { id: 'active', label: `موارد فعال (${page.activeItems.length.toLocaleString('fa-IR')})` },
+      { id: 'history', label: `تاریخچه (${page.history.length.toLocaleString('fa-IR')})` }
+    ],
+    [page.activeItems.length, page.history.length]
+  )
 
   const speedDialConfig = useMemo(() => {
     if (!isConfigured()) return null
@@ -121,40 +124,21 @@ export default function VehicleDetailPage({
         />
       </FilterModal>
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant={page.detailTab === 'active' ? 'primary' : 'secondary'}
-          size="sm"
-          onClick={() => page.setDetailTab('active')}
-        >
-          موارد فعال ({page.activeItems.length.toLocaleString('fa-IR')})
-        </Button>
-        <Button
-          type="button"
-          variant={page.detailTab === 'history' ? 'primary' : 'secondary'}
-          size="sm"
-          onClick={() => page.setDetailTab('history')}
-        >
-          تاریخچه ({page.history.length.toLocaleString('fa-IR')})
-        </Button>
-      </div>
-
-      <div className={vehicleProfileCardClass}>
-        <div className={vehicleHorizontalCardHeaderClass}>
-          <div className={vehicleHorizontalCardBodyClass}>
-            <div className={vehicleProfileCardContentClass}>
-              <div className={listCardTitleClass}>{page.currentVehicle.title || '—'}</div>
-              {!isEmptyPlate(page.currentVehicle.plate) ? (
-                <IranPlateBadge value={page.currentVehicle.plate} compact />
-              ) : null}
-              <div className={listCardSubtitleClass}>
-                کارکرد: {page.currentVehicle.mileage.toLocaleString('fa-IR')} km
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Card className={vehicleDetailToolbarClass}>
+        <p className={vehicleDetailMileageClass}>
+          کارکرد فعلی:{' '}
+          <span className={vehicleDetailMileageValueClass}>
+            {page.currentVehicle.mileage.toLocaleString('fa-IR')} km
+          </span>
+        </p>
+        <TransactionTypeSegment
+          options={detailTabOptions}
+          value={page.detailTab}
+          onChange={id => page.setDetailTab(id as 'active' | 'history')}
+          ariaLabel="بخش جزئیات خودرو"
+          className="mb-0"
+        />
+      </Card>
 
       {page.loading && page.activeItems.length === 0 && page.history.length === 0 ? (
         <DangCardListSkeleton filterChips={filters.filterChips.length} />
@@ -204,6 +188,8 @@ export default function VehicleDetailPage({
         open={page.showPeriodicForm}
         title={page.editingPeriodic ? 'ویرایش سرویس دوره‌ای' : 'سرویس دوره‌ای جدید'}
         defaultMileage={page.currentVehicle.mileage}
+        serviceTypes={page.serviceTypes}
+        onServiceTypesChange={page.setServiceTypes}
         initialValues={
           page.editingPeriodic
             ? {

@@ -6,6 +6,7 @@ import {
   saveReceivableCategoriesToSheet
 } from '../../../services/categories'
 import { getSettings } from '../../../services/settings'
+import { saveVehiclePeriodicCategoriesToSheet } from '../../../services/vehiclePeriodicCategories'
 import { requireAuth } from '../../../utils/authGuard'
 import { reorderItems } from '../../../utils/reorderItems'
 import { handleSheetError } from '../../../utils/sheetError'
@@ -77,6 +78,8 @@ export function useCategorySelectActions({
         await saveReceivableCategoriesToSheet(settings.spreadsheetId, next)
       } else if (categoryScope === 'personalReminder') {
         await savePersonalReminderCategoriesToSheet(settings.spreadsheetId, next)
+      } else if (categoryScope === 'vehiclePeriodic') {
+        await saveVehiclePeriodicCategoriesToSheet(settings.spreadsheetId, next)
       } else {
         if (!formId) {
           showError('فرم دسته‌بندی معتبر نیست')

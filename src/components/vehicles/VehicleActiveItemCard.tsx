@@ -2,15 +2,16 @@ import type { VehicleActiveListItem } from '../../types/vehicles'
 import { cn } from '../../utils/cn'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
-import {
-  vehicleHorizontalCardActionsClass,
-  vehicleHorizontalCardBodyClass,
-  vehicleHorizontalCardClass,
-  vehicleHorizontalCardHeaderClass,
-  vehicleHorizontalCardSideActionsClass
-} from './vehicleCardStyles'
+import { vehicleHorizontalCardClass } from './vehicleCardStyles'
 import Button from '../ui/Button'
-import { listCardSubtitleClass, listCardTitleClass } from '../ui/featureCardStyles'
+import {
+  cardActionButtonsClass,
+  cardHeaderWithEditClass,
+  dangCardBodyClass,
+  dangCardContentRowClass,
+  dangCardMetaClass,
+  listCardTitleClass
+} from '../ui/featureCardStyles'
 
 type VehicleActiveItemCardProps = {
   item: VehicleActiveListItem
@@ -61,36 +62,43 @@ export default function VehicleActiveItemCard({
 
   return (
     <div className={cn(vehicleHorizontalCardClass, urgencyBorderClass(item.urgency))}>
-      <div className={vehicleHorizontalCardHeaderClass}>
-        <div className={vehicleHorizontalCardBodyClass}>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={listCardTitleClass}>{item.title}</span>
-            <span
-              className={cn(
-                'rounded-full px-2 py-0.5 text-[0.68rem] font-bold',
-                urgencyBadgeClass(item.urgency)
+      <div className={cardHeaderWithEditClass}>
+        <div className={dangCardContentRowClass}>
+          <div className={dangCardBodyClass}>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={listCardTitleClass}>{item.title}</span>
+              <span
+                className={cn(
+                  'rounded-full px-2 py-0.5 text-[0.68rem] font-bold',
+                  urgencyBadgeClass(item.urgency)
+                )}
+              >
+                {urgencyLabel(item.urgency)}
+              </span>
+            </div>
+            <div className={dangCardMetaClass}>{item.subtitle}</div>
+            <div className="mt-2">
+              {isPeriodic ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => onComplete?.(item)}
+                >
+                  انجام شد
+                </Button>
+              ) : (
+                <Button type="button" variant="secondary" size="sm" onClick={() => onRenew?.(item)}>
+                  تمدید
+                </Button>
               )}
-            >
-              {urgencyLabel(item.urgency)}
-            </span>
+            </div>
           </div>
-          <div className={cn(listCardSubtitleClass, 'mt-1')}>{item.subtitle}</div>
         </div>
 
-        <div className={vehicleHorizontalCardSideActionsClass}>
-          {isPeriodic ? (
-            <Button type="button" variant="primary" size="sm" onClick={() => onComplete?.(item)}>
-              انجام شد
-            </Button>
-          ) : (
-            <Button type="button" variant="secondary" size="sm" onClick={() => onRenew?.(item)}>
-              تمدید
-            </Button>
-          )}
-          <div className={vehicleHorizontalCardActionsClass} role="group">
-            <CardEditButton onClick={() => onEdit(item)} />
-            <CardDeleteButton onClick={() => onDelete(item)} />
-          </div>
+        <div className={cardActionButtonsClass} role="group">
+          <CardEditButton onClick={() => onEdit(item)} />
+          <CardDeleteButton onClick={() => onDelete(item)} />
         </div>
       </div>
     </div>

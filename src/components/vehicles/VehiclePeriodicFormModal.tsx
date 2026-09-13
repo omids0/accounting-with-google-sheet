@@ -1,15 +1,14 @@
 import { useMemo, type FormEvent } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
-import { VEHICLE_PERIODIC_SERVICE_TYPES } from './constants'
 import type { VehiclePeriodicFormState } from './types'
 import { calculateNextKm } from './utils'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { formFieldError, submitValidatedForm } from '../../utils/formValidation'
+import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { parseNumeric } from '../../utils/parseNumeric'
 import AmountInput from '../AmountInput'
-import { FormField, FormRow, FormSelect } from '../form'
+import { CategorySelect, FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import MileageInput from './MileageInput'
@@ -18,18 +17,21 @@ type VehiclePeriodicFormModalProps = {
   open: boolean
   title: string
   defaultMileage: number
+  serviceTypes: string[]
   initialValues?: Partial<VehiclePeriodicFormState>
   saving: boolean
   onClose: () => void
   onSubmit: (values: VehiclePeriodicFormState) => void | Promise<void>
+  onServiceTypesChange: (serviceTypes: string[]) => void
 }
 
 function buildDefaults(
   defaultMileage: number,
+  serviceTypes: string[],
   initialValues?: Partial<VehiclePeriodicFormState>
 ): VehiclePeriodicFormState {
   return {
-    serviceType: initialValues?.serviceType ?? VEHICLE_PERIODIC_SERVICE_TYPES[0],
+    serviceType: initialValues?.serviceType ?? serviceTypes[0] ?? '',
     mileage: initialValues?.mileage ?? String(defaultMileage),
     intervalKm: initialValues?.intervalKm ?? '',
     brand: initialValues?.brand ?? '',
@@ -44,18 +46,21 @@ export default function VehiclePeriodicFormModal({
   open,
   title,
   defaultMileage,
+  serviceTypes,
   initialValues,
   saving,
   onClose,
-  onSubmit
+  onSubmit,
+  onServiceTypesChange
 }: VehiclePeriodicFormModalProps) {
   const defaults = useMemo(
-    () => buildDefaults(defaultMileage, initialValues),
-    [defaultMileage, initialValues]
+    () => buildDefaults(defaultMileage, serviceTypes, initialValues),
+    [defaultMileage, initialValues, serviceTypes]
   )
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setValue,
@@ -71,6 +76,7 @@ export default function VehiclePeriodicFormModal({
     resetKey: JSON.stringify(initialValues ?? 'create')
   })
 
+  const serviceType = watch('serviceType')
   const mileage = parseNumeric(watch('mileage'))
   const intervalKm = parseNumeric(watch('intervalKm'))
   const nextKmPreview = mileage > 0 && intervalKm > 0 ? calculateNextKm(mileage, intervalKm) : null
@@ -88,13 +94,37 @@ export default function VehiclePeriodicFormModal({
       saving={saving}
       saveLabel="ذخیره سرویس"
     >
-      <FormSelect
-        label="نوع سرویس"
-        required
-        controlWidth="full"
-        value={watch('serviceType')}
-        onChange={value => setValue('serviceType', value)}
-        options={VEHICLE_PERIODIC_SERVICE_TYPES.map(type => ({ value: type, label: type }))}
+      <Controller
+        name="serviceType"
+        control={control}
+        rules={requiredField('نوع سرویس')}
+        render={({ field, fieldState }) => (
+          <FormField
+            label="نوع سرویس"
+            required
+            controlWidth="full"
+            error={fieldState.error?.message}
+          >
+            <CategorySelect
+              value={field.value}
+              onChange={value => {
+                field.onChange(value)
+                setValue('serviceType', value, { shouldValidate: true })
+              }}
+              categories={serviceTypes}
+              categoryScope="vehiclePeriodic"
+              onCategoriesChange={next => {
+                onServiceTypesChange(next)
+                if (!next.includes(serviceType)) {
+                  setValue('serviceType', next[0] ?? '', { shouldValidate: true })
+                }
+              }}
+              aria-label="نوع سرویس"
+              placeholder="انتخاب نوع سرویس"
+              invalid={Boolean(fieldState.error)}
+            />
+          </FormField>
+        )}
       />
 
       <FormRow>
@@ -136,7 +166,7 @@ export default function VehiclePeriodicFormModal({
           <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
         </FormField>
 
-        <FormField label="تاریخ">
+        <FormField label="تاریخ اقدام">
           <JalaliDatePicker value={watch('date')} onChange={date => setValue('date', date)} />
         </FormField>
       </FormRow>

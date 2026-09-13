@@ -125,7 +125,7 @@ export default function VehicleCompleteModal({
           <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
         </FormField>
 
-        <FormField label="تاریخ">
+        <FormField label="تاریخ اقدام">
           <JalaliDatePicker value={watch('date')} onChange={date => setValue('date', date)} />
         </FormField>
       </FormRow>

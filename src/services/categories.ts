@@ -13,18 +13,26 @@ import {
   updateReceivableCategories
 } from './settings'
 import { ensureSheetWithHeaders, fetchSheetRows, replaceSheetDataRows } from './sheets'
+import { DEFAULT_VEHICLE_PERIODIC_CATEGORIES } from './vehiclePeriodicCategories'
 
 export const CATEGORIES_SHEET = 'دسته‌بندی‌ها'
 export const CATEGORIES_HEADERS = ['نوع', 'دسته‌بندی']
 
-export type CategoryType = 'income' | 'expense' | 'dang' | 'receivable' | 'personalReminder'
+export type CategoryType =
+  | 'income'
+  | 'expense'
+  | 'dang'
+  | 'receivable'
+  | 'personalReminder'
+  | 'vehiclePeriodic'
 
 const FORM_TYPE_LABELS: Record<CategoryType, string> = {
   income: 'درآمد',
   expense: 'هزینه',
   dang: 'بدهی',
   receivable: 'طلب',
-  personalReminder: 'یادآوری'
+  personalReminder: 'یادآوری',
+  vehiclePeriodic: 'سرویس دوره‌ای'
 }
 
 export interface CategoryGroups {
@@ -33,6 +41,7 @@ export interface CategoryGroups {
   dang: string[]
   receivable: string[]
   personalReminder: string[]
+  vehiclePeriodic: string[]
 }
 
 function parseFormType(value: string): CategoryType | null {
@@ -54,6 +63,13 @@ function parseFormType(value: string): CategoryType | null {
   ) {
     return 'personalReminder'
   }
+  if (
+    normalized === 'vehicleperiodic' ||
+    normalized === 'vehicle_periodic' ||
+    normalized === 'سرویس دوره‌ای' ||
+    normalized === 'سرویس خودرو'
+  )
+    return 'vehiclePeriodic'
 
   return null
 }
@@ -64,7 +80,8 @@ function rowsToGroups(rows: string[][]): CategoryGroups {
     expense: [],
     dang: [],
     receivable: [],
-    personalReminder: []
+    personalReminder: [],
+    vehiclePeriodic: []
   }
 
   for (const row of rows) {
@@ -99,6 +116,9 @@ function groupsToRows(groups: CategoryGroups): string[][] {
   for (const category of groups.personalReminder) {
     rows.push([FORM_TYPE_LABELS.personalReminder, category])
   }
+  for (const category of groups.vehiclePeriodic) {
+    rows.push([FORM_TYPE_LABELS.vehiclePeriodic, category])
+  }
 
   return rows
 }
@@ -122,7 +142,8 @@ function applyGroupsToSettings(groups: CategoryGroups): void {
     forms,
     dangCategories: groups.dang,
     receivableCategories: groups.receivable,
-    personalReminderCategories: groups.personalReminder
+    personalReminderCategories: groups.personalReminder,
+    vehiclePeriodicCategories: groups.vehiclePeriodic
   })
 }
 
@@ -134,6 +155,18 @@ export async function fetchCategoriesFromSheet(spreadsheetId: string): Promise<C
   const rows = await fetchSheetRows(spreadsheetId, CATEGORIES_SHEET)
 
   return rowsToGroups(rows)
+}
+
+export async function saveCategoryGroupOnSheet(
+  spreadsheetId: string,
+  group: Partial<CategoryGroups>
+): Promise<CategoryGroups> {
+  const current = await fetchCategoriesFromSheet(spreadsheetId)
+  const next = withDefaults({ ...current, ...group })
+
+  await writeCategoriesToSheet(spreadsheetId, next)
+
+  return next
 }
 
 async function writeCategoriesToSheet(
@@ -158,7 +191,10 @@ function withDefaults(groups: CategoryGroups): CategoryGroups {
     receivable: groups.receivable.length ? groups.receivable : [...DEFAULT_RECEIVABLE_CATEGORIES],
     personalReminder: groups.personalReminder.length
       ? groups.personalReminder
-      : [...DEFAULT_PERSONAL_REMINDER_CATEGORIES]
+      : [...DEFAULT_PERSONAL_REMINDER_CATEGORIES],
+    vehiclePeriodic: groups.vehiclePeriodic.length
+      ? groups.vehiclePeriodic
+      : [...DEFAULT_VEHICLE_PERIODIC_CATEGORIES]
   }
 }
 
@@ -174,7 +210,8 @@ export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<Ca
     !fromSheet.expense.length ||
     !fromSheet.dang.length ||
     !fromSheet.receivable.length ||
-    !fromSheet.personalReminder.length
+    !fromSheet.personalReminder.length ||
+    !fromSheet.vehiclePeriodic.length
 
   if (needsSeed) {
     await writeCategoriesToSheet(spreadsheetId, groups)

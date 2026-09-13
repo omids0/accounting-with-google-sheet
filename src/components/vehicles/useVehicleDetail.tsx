@@ -11,11 +11,13 @@ import {
 import type { DeadlineWithRow, HistoryWithRow, PeriodicWithRow } from './vehicleDetailMutations'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import type { PageSpeedDialAction } from '../../hooks/usePageSpeedDial'
+import { syncCategoriesFromSheet } from '../../services/categories'
 import { fetchReminderRules } from '../../services/reminders'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { fetchVehicleDeadlines } from '../../services/vehicleDeadlines'
 import { fetchVehicleHistory } from '../../services/vehicleHistory'
+import { getVehiclePeriodicCategories } from '../../services/vehiclePeriodicCategories'
 import { fetchVehiclePeriodicServices } from '../../services/vehiclePeriodicServices'
 import { fetchVehicles } from '../../services/vehicleProfiles'
 import type { VehicleActiveListItem } from '../../types/vehicles'
@@ -48,6 +50,7 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
   const [deletingTarget, setDeletingTarget] = useState<VehicleDeleteTarget | null>(null)
   const [deleteLinkedExpense, setDeleteLinkedExpense] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [serviceTypes, setServiceTypes] = useState<string[]>(() => getVehiclePeriodicCategories())
 
   const dataRevision = useDataRefresh()
 
@@ -58,6 +61,9 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
 
     setLoading(true)
     try {
+      await syncCategoriesFromSheet(spreadsheetId)
+      setServiceTypes(getVehiclePeriodicCategories())
+
       const [vehicles, periodics, deadlines, historyItems, reminderRules] = await Promise.all([
         fetchVehicles(spreadsheetId),
         fetchVehiclePeriodicServices(spreadsheetId, vehicle.id),
@@ -222,6 +228,8 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
     deletingTarget,
     deleteLinkedExpense,
     setDeleteLinkedExpense,
+    serviceTypes,
+    setServiceTypes,
     loadDetail,
     pageSpeedDialConfig,
     ...handlers,

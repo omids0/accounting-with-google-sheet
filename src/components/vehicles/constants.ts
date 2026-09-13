@@ -2,20 +2,6 @@ import type { VehicleMileageReminderInterval } from '../../types/vehicles'
 
 export const VEHICLE_EXPENSE_CATEGORY = 'خودرو'
 
-export const VEHICLE_PERIODIC_SERVICE_TYPES = [
-  'روغن موتور',
-  'فیلتر روغن',
-  'فیلتر هوا',
-  'فیلتر کابین',
-  'شمع',
-  'لنت ترمز',
-  'تسمه تایم',
-  'ضدیخ',
-  'باتری',
-  'لاستیک',
-  'سایر'
-] as const
-
 export const VEHICLE_DEADLINE_CATEGORIES = [
   'بیمه شخص ثالث',
   'بیمه بدنه',

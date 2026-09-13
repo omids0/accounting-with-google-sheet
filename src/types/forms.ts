@@ -52,6 +52,7 @@ export interface AppSettings {
   dangCategories?: string[]
   receivableCategories?: string[]
   personalReminderCategories?: string[]
+  vehiclePeriodicCategories?: string[]
   currency?: CurrencyUnit
   theme?: ThemeMode
   netAvailableConfig?: NetAvailableConfig
