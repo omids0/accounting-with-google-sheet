@@ -171,6 +171,7 @@ export default function SpreadsheetSetupPanel({
                 onChange={e => setNewLabel(e.target.value)}
                 placeholder="مثلاً: 1406"
                 disabled={loading}
+                autoFocus
               />
             </FormField>
 

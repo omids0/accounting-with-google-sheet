@@ -43,9 +43,15 @@ export default function UnlockPinInput({
   }
 
   useEffect(() => {
+    if (!autoFocus || disabled) return
+
+    setInputReady(true)
+  }, [autoFocus, disabled])
+
+  useEffect(() => {
     if (!inputReady || disabled) return
 
-    inputRef.current?.focus()
+    inputRef.current?.focus({ preventScroll: true })
   }, [disabled, inputReady])
 
   const handleChange = (nextValue: string) => {

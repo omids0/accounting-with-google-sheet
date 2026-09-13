@@ -141,6 +141,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               }}
               disabled={loading}
               hasError={!!error}
+              autoFocus
             />
 
             {error && (
