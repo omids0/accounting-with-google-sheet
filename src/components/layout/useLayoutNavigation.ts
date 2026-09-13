@@ -7,6 +7,7 @@ import {
   SPEED_DIAL_TABS,
   TAB_TITLES,
   TIMESHEET_TABS,
+  VEHICLE_TABS,
   type Tab
 } from './types'
 import { useEngagementReminders } from '../../hooks/useEngagementReminders'
@@ -30,6 +31,10 @@ interface TimesheetRouteState {
   title?: string
 }
 
+interface VehicleRouteState {
+  title?: string
+}
+
 export function useLayoutNavigation() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -49,6 +54,7 @@ export function useLayoutNavigation() {
   const tab = pendingTab ?? routeTab
   const showSettings = isSettingsPath(location.pathname)
   const timesheetTitle = (location.state as TimesheetRouteState | null)?.title
+  const vehicleTitle = (location.state as VehicleRouteState | null)?.title
 
   const userName = getUserName()
   const userPicture = getUserPicture()
@@ -75,6 +81,9 @@ export function useLayoutNavigation() {
       if (TIMESHEET_TABS.includes(newTab)) {
         setTimesheetMenuExpanded(true)
       }
+      if (VEHICLE_TABS.includes(newTab)) {
+        setMenuOpen(false)
+      }
 
       const nextPath = getPathForTab(newTab, options)
 
@@ -83,6 +92,12 @@ export function useLayoutNavigation() {
       startNavigationTransition(() => {
         if (newTab === 'timesheet-detail' && options?.timesheetTitle) {
           navigate(nextPath, { state: { title: options.timesheetTitle } })
+
+          return
+        }
+
+        if (newTab === 'vehicle-detail' && options?.vehicleTitle) {
+          navigate(nextPath, { state: { title: options.vehicleTitle } })
 
           return
         }
@@ -165,8 +180,11 @@ export function useLayoutNavigation() {
     tab === 'opening-balances' ||
     tab === 'net-available-settings' ||
     tab === 'personal-reminders' ||
+    tab === 'vehicle-service' ||
+    tab === 'vehicle-detail' ||
     tab === 'about' ||
     TIMESHEET_TABS.includes(tab) ||
+    VEHICLE_TABS.includes(tab) ||
     CALCULATION_TABS.includes(tab) ||
     REPORT_TABS.includes(tab)
 
@@ -189,12 +207,19 @@ export function useLayoutNavigation() {
       return
     }
 
+    if (tab === 'vehicle-detail') {
+      handleTabChange('vehicle-service')
+
+      return
+    }
+
     handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
   }, [handleTabChange, location.pathname, navigate, showSettings, tab])
 
   const isCalculationTab = CALCULATION_TABS.includes(tab)
   const isReportTab = REPORT_TABS.includes(tab)
   const isTimesheetTab = TIMESHEET_TABS.includes(tab)
+  const isVehicleTab = VEHICLE_TABS.includes(tab)
 
   const headerTitle = isSettingsRemindersPath(location.pathname)
     ? 'یادآوری‌ها'
@@ -202,6 +227,8 @@ export function useLayoutNavigation() {
     ? 'تنظیمات'
     : tab === 'timesheet-detail' && timesheetTitle
     ? timesheetTitle
+    : tab === 'vehicle-detail' && vehicleTitle
+    ? vehicleTitle
     : TAB_TITLES[tab]
 
   return {
@@ -230,6 +257,7 @@ export function useLayoutNavigation() {
     isCalculationTab,
     isReportTab,
     isTimesheetTab,
+    isVehicleTab,
     headerTitle
   }
 }

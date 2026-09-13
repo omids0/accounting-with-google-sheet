@@ -12,6 +12,11 @@ import { REMINDERS_SHEET, PUSH_SUBS_SHEET } from './reminders'
 import { getSettings } from './settings'
 import { TIMESHEETS_SHEET, TIMESHEET_ENTRIES_SHEET } from './timesheet'
 import { TREASURY_SHEET } from './treasury'
+import { VEHICLE_DEADLINE_SHEET } from './vehicleDeadlines'
+import { VEHICLE_HISTORY_SHEET } from './vehicleHistory'
+import { VEHICLE_MECHANIC_SHEET } from './vehicleMechanicVisits'
+import { VEHICLE_PERIODIC_SHEET } from './vehiclePeriodicServices'
+import { VEHICLES_SHEET } from './vehicleProfiles'
 import { WALLET_SHEET } from './wallet'
 
 /** Sheets every account has, regardless of which custom forms it defines. */
@@ -30,7 +35,12 @@ const STATIC_SHEETS = [
   PERSONAL_REMINDERS_SHEET,
   PUSH_SUBS_SHEET,
   TIMESHEETS_SHEET,
-  TIMESHEET_ENTRIES_SHEET
+  TIMESHEET_ENTRIES_SHEET,
+  VEHICLES_SHEET,
+  VEHICLE_PERIODIC_SHEET,
+  VEHICLE_DEADLINE_SHEET,
+  VEHICLE_HISTORY_SHEET,
+  VEHICLE_MECHANIC_SHEET
 ]
 
 export function getKnownSheetNames(settings: AppSettings = getSettings()!): string[] {

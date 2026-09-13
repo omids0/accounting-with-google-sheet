@@ -55,3 +55,16 @@ export type { PersonalReminderRecurrence, PersonalReminder } from './personalRem
 export type { CounterpartyAccount, Counterparty } from './counterparties'
 
 export type { Timesheet, TimesheetEntry } from './timesheet'
+
+export type {
+  VehicleProfile,
+  VehiclePeriodicService,
+  VehicleDeadline,
+  VehicleMechanicVisit,
+  VehicleMechanicItem,
+  VehicleHistoryEntry,
+  VehicleMileageReminderInterval,
+  VehicleRecordKind,
+  VehicleUrgencyLevel,
+  VehicleActiveListItem
+} from './vehicles'

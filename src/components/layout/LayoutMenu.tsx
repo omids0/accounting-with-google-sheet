@@ -127,6 +127,21 @@ export default function LayoutMenu({
 
             <button
               type="button"
+              className={appMenuItemClass(tab === 'vehicle-service' || tab === 'vehicle-detail')}
+              onClick={() => onTabChange('vehicle-service')}
+            >
+              <span
+                className={appMenuItemIconClass(
+                  tab === 'vehicle-service' || tab === 'vehicle-detail'
+                )}
+              >
+                <AppIcon name="car" size={20} strokeWidth={1.75} />
+              </span>
+              <span className={appMenuItemLabelClass}>سرویس دوره‌ای خودرو</span>
+            </button>
+
+            <button
+              type="button"
               className={appMenuItemClass(tab === 'counterparties')}
               onClick={() => onTabChange('counterparties')}
             >

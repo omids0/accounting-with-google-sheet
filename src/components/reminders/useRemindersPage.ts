@@ -1,28 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import { createRemindersPushHandlers } from './useRemindersPushHandlers'
+import { resolveVehicleReminderRule, useVehicleReminderRules } from './useVehicleReminderRules'
 import { usePwaInstall } from '../../hooks/usePwaInstall'
 import { isTokenValid } from '../../services/auth'
 import {
   getCurrentPushSubscription,
-  getDeviceLabel,
   getNotificationPermission,
   getPushSupportStatus,
-  getServiceWorkerStatus,
-  showLocalTestNotification,
-  subscribeToPush,
-  unsubscribeFromPush
+  getServiceWorkerStatus
 } from '../../services/pushNotifications'
 import {
   previewDueDateReminders,
   type UpcomingDueDateReminder
 } from '../../services/reminderDueDates'
-import {
-  DEFAULT_RULES,
-  fetchReminderRules,
-  removePushSubscription,
-  saveReminderRules,
-  upsertPushSubscription
-} from '../../services/reminders'
+import { DEFAULT_RULES, fetchReminderRules, saveReminderRules } from '../../services/reminders'
 import { getSettings } from '../../services/settings'
 import type { ReminderKind, ReminderRule } from '../../types'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -55,6 +47,7 @@ export function useRemindersPage() {
     hour: 9,
     minute: 0
   })
+  const vehicleRules = useVehicleReminderRules()
   const [previews, setPreviews] = useState<Record<DueDateKind, UpcomingDueDateReminder[]>>({
     installments: [],
     checks: [],
@@ -108,6 +101,8 @@ export function useRemindersPage() {
         const personal = fetchedRules.find(item => item.kind === 'personal')
 
         if (personal) setPersonalRule(personal)
+
+        vehicleRules.applyFetchedRules(fetchedRules)
 
         const previewEntries = await Promise.all(
           DUE_DATE_KINDS.map(
@@ -163,61 +158,36 @@ export function useRemindersPage() {
     [previews]
   )
 
-  const handleEnablePush = async () => {
+  const { handleEnablePush, handleDisablePush, handleTestNotification } = useMemo(
+    () =>
+      createRemindersPushHandlers({
+        spreadsheetId,
+        setSavingKind,
+        setPermission,
+        setHasSubscription
+      }),
+    [spreadsheetId]
+  )
+
+  const handleSaveRule = async (
+    kind: DueDateKind | 'personal' | 'vehicle-mileage' | 'vehicle-deadline'
+  ) => {
     if (!spreadsheetId) {
       showError('ابتدا یک شیت فعال انتخاب کنید')
 
       return
     }
 
-    setSavingKind('daily')
-    try {
-      const subscription = await subscribeToPush()
-
-      await upsertPushSubscription(spreadsheetId, {
-        endpoint: subscription.endpoint!,
-        p256dh: subscription.keys!.p256dh!,
-        auth: subscription.keys!.auth!,
-        deviceLabel: getDeviceLabel(),
-        updatedAt: new Date().toISOString()
-      })
-      setPermission(getNotificationPermission())
-      setHasSubscription(true)
-      showSuccess('نوتیف فعال شد و این دستگاه ثبت گردید')
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'فعال‌سازی نوتیف ناموفق بود')
-    } finally {
-      setSavingKind(null)
-    }
-  }
-
-  const handleDisablePush = async () => {
-    setSavingKind('daily')
-    try {
-      const current = await getCurrentPushSubscription()
-
-      if (current?.endpoint && spreadsheetId) {
-        await removePushSubscription(spreadsheetId, current.endpoint)
-      }
-      await unsubscribeFromPush()
-      setHasSubscription(false)
-      setPermission(getNotificationPermission())
-      showSuccess('نوتیف این دستگاه غیرفعال شد')
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'غیرفعال‌سازی ناموفق بود')
-    } finally {
-      setSavingKind(null)
-    }
-  }
-
-  const handleSaveRule = async (kind: DueDateKind | 'personal') => {
-    if (!spreadsheetId) {
-      showError('ابتدا یک شیت فعال انتخاب کنید')
-
-      return
-    }
-
-    const rule = kind === 'personal' ? personalRule : rules[kind]
+    const rule =
+      kind === 'personal'
+        ? personalRule
+        : kind === 'vehicle-mileage' || kind === 'vehicle-deadline'
+        ? resolveVehicleReminderRule(
+            kind,
+            vehicleRules.vehicleMileageRule,
+            vehicleRules.vehicleDeadlineRule
+          )
+        : rules[kind]
 
     if (rule.enabled && !hasSubscription) {
       showError('برای فعال‌کردن یادآوری، ابتدا نوتیف را روشن کنید')
@@ -229,7 +199,7 @@ export function useRemindersPage() {
     try {
       await saveReminderRules(spreadsheetId, [rule])
 
-      if (kind !== 'personal') {
+      if (kind !== 'personal' && kind !== 'vehicle-mileage' && kind !== 'vehicle-deadline') {
         const upcoming = await previewDueDateReminders(spreadsheetId, kind, rule)
 
         setPreviews(current => ({ ...current, [kind]: upcoming }))
@@ -238,18 +208,6 @@ export function useRemindersPage() {
       showSuccess('تنظیمات یادآوری ذخیره شد')
     } catch (err) {
       showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
-    } finally {
-      setSavingKind(null)
-    }
-  }
-
-  const handleTestNotification = async () => {
-    setSavingKind('daily')
-    try {
-      await showLocalTestNotification()
-      showSuccess('نوتیف تست ارسال شد')
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'ارسال تست ناموفق بود')
     } finally {
       setSavingKind(null)
     }
@@ -277,6 +235,8 @@ export function useRemindersPage() {
     setShowSetup,
     rules,
     personalRule,
+    vehicleMileageRule: vehicleRules.vehicleMileageRule,
+    vehicleDeadlineRule: vehicleRules.vehicleDeadlineRule,
     previewLinesByKind,
     permission,
     hasSubscription,
@@ -293,6 +253,8 @@ export function useRemindersPage() {
     handleSaveRule,
     handleTestNotification,
     updateRule,
-    updatePersonalRule
+    updatePersonalRule,
+    updateVehicleMileageRule: vehicleRules.updateVehicleMileageRule,
+    updateVehicleDeadlineRule: vehicleRules.updateVehicleDeadlineRule
   }
 }

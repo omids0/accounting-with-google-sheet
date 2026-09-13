@@ -91,15 +91,22 @@ export const activeFilterChipRemoveClass = cn(
   'hover:bg-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
 )
 
-export const pageSearchClass = 'page-search relative min-w-0 max-w-[220px] flex-1'
+export const pageSearchClass = 'page-search relative min-w-0 max-w-[220px] flex-1 overflow-hidden'
 
 export const pageSearchIconClass =
-  'pointer-events-none absolute end-[0.7rem] top-1/2 flex -translate-y-1/2 items-center justify-center text-muted opacity-70'
+  'pointer-events-none absolute left-[0.7rem] top-1/2 flex -translate-y-1/2 items-center justify-center text-muted opacity-70'
+
+export const pageSearchClearClass = cn(
+  'absolute left-[0.7rem] top-1/2 z-[1] flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 leading-none text-muted',
+  'transition-[color,opacity] duration-[var(--duration-fast)] hover:text-text active:opacity-70',
+  'focus:outline-none focus-visible:outline-none'
+)
 
 export const pageSearchInputClass = cn(
-  'page-search-input w-full rounded-full border-[1.5px] border-border bg-[var(--form-input-bg)] px-[2.1rem] py-2 font-[inherit] text-[0.82rem] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background,transform] duration-[var(--duration-normal)]',
+  'page-search-input w-full rounded-full border-[1.5px] border-border bg-[var(--form-input-bg)] py-2 pl-[2.1rem] pr-[0.85rem] font-[inherit] text-[0.82rem] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background] duration-[var(--duration-normal)]',
   'placeholder:text-muted placeholder:opacity-75',
-  'focus:border-primary-light focus:bg-surface focus:shadow-[var(--form-input-focus-shadow)] focus:outline-none focus:-translate-y-px'
+  'focus:border-primary-light focus:bg-surface focus:shadow-[var(--form-input-focus-shadow)] focus:outline-none',
+  '[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden'
 )
 
 export const pageFilterBarClass = cn(
