@@ -1,28 +1,9 @@
 import { sortFormFields } from '../components/form/fieldUtils'
 import type { FieldConfig, SpreadsheetEntry } from '../types'
-import { ACTIVITY_HEADERS, ACTIVITY_SHEET } from './activityTracking'
-import { APP_LOCK_HEADERS, APP_LOCK_SHEET } from './appLockSync'
-import { CATEGORIES_HEADERS, CATEGORIES_SHEET, syncCategoriesFromSheet } from './categories'
-import { CHECKS_HEADERS, CHECKS_SHEET } from './checks'
-import { DANG_HEADERS, DANG_SHEET } from './dang'
+import { syncCategoriesFromSheet } from './categories'
 import { listAccountingSpreadsheetsFromDrive } from './drive'
-import { INSTALLMENTS_HEADERS, INSTALLMENTS_SHEET } from './installments'
-import { MONTHLY_BALANCE_HEADERS, MONTHLY_BALANCE_SHEET } from './monthlyBalance'
-import {
-  ensureMembershipDate,
-  PERIOD_SETTINGS_HEADERS,
-  PERIOD_SETTINGS_SHEET
-} from './periodSettings'
-import { PERSONAL_REMINDERS_HEADERS, PERSONAL_REMINDERS_SHEET } from './personalReminders'
-import { RECEIVABLES_HEADERS, RECEIVABLES_SHEET } from './receivables'
-import {
-  PUSH_SUBS_HEADERS,
-  PUSH_SUBS_SHEET,
-  REMINDER_LOG_HEADERS,
-  REMINDER_LOG_SHEET,
-  REMINDERS_HEADERS,
-  REMINDERS_SHEET
-} from './reminders'
+import { MODULE_SHEET_SPECS } from './moduleSheetSpecs'
+import { ensureMembershipDate } from './periodSettings'
 import { getDefaultSettings, getSettings, registerSpreadsheet, saveSettings } from './settings'
 import {
   createSpreadsheet,
@@ -33,8 +14,6 @@ import {
   type SheetSpec
 } from './sheets'
 import { formatSpreadsheetTitle } from './spreadsheetCatalog'
-import { TREASURY_HEADERS, TREASURY_SHEET } from './treasury'
-import { WALLET_HEADERS, WALLET_SHEET } from './wallet'
 import { getJalaliParts } from '../utils/jalaliDate'
 
 const SESSION_PREPARED_KEY = 'accounting_sheets_ready'
@@ -70,27 +49,7 @@ function getAllSheetSpecs(): SheetSpec[] {
     headers: buildHeaders(form)
   }))
 
-  return [
-    ...formSheets,
-    { sheetName: INSTALLMENTS_SHEET, headers: INSTALLMENTS_HEADERS },
-    { sheetName: DANG_SHEET, headers: DANG_HEADERS },
-    { sheetName: CHECKS_SHEET, headers: CHECKS_HEADERS },
-    { sheetName: RECEIVABLES_SHEET, headers: RECEIVABLES_HEADERS },
-    { sheetName: TREASURY_SHEET, headers: TREASURY_HEADERS },
-    { sheetName: WALLET_SHEET, headers: WALLET_HEADERS },
-    {
-      sheetName: MONTHLY_BALANCE_SHEET,
-      headers: MONTHLY_BALANCE_HEADERS
-    },
-    { sheetName: PERIOD_SETTINGS_SHEET, headers: PERIOD_SETTINGS_HEADERS },
-    { sheetName: CATEGORIES_SHEET, headers: CATEGORIES_HEADERS },
-    { sheetName: ACTIVITY_SHEET, headers: ACTIVITY_HEADERS },
-    { sheetName: REMINDERS_SHEET, headers: REMINDERS_HEADERS },
-    { sheetName: PERSONAL_REMINDERS_SHEET, headers: PERSONAL_REMINDERS_HEADERS },
-    { sheetName: PUSH_SUBS_SHEET, headers: PUSH_SUBS_HEADERS },
-    { sheetName: REMINDER_LOG_SHEET, headers: REMINDER_LOG_HEADERS },
-    { sheetName: APP_LOCK_SHEET, headers: APP_LOCK_HEADERS }
-  ]
+  return [...formSheets, ...MODULE_SHEET_SPECS]
 }
 
 function markAllKnownSheetsPrepared(spreadsheetId: string): void {

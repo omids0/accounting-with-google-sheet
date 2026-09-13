@@ -23,14 +23,24 @@ export const REMINDERS_HEADERS = ['نوع', 'فعال', 'روز_قبل', 'ساع
 export const PUSH_SUBS_HEADERS = ['endpoint', 'p256dh', 'auth', 'دستگاه', 'زمان_ثبت']
 export const REMINDER_LOG_HEADERS = ['تاریخ', 'نوع', 'مرجع', 'زمان_ارسال']
 
-const VALID_KINDS: ReminderKind[] = ['installments', 'checks', 'dang', 'personal', 'daily']
+const VALID_KINDS: ReminderKind[] = [
+  'installments',
+  'checks',
+  'dang',
+  'personal',
+  'daily',
+  'vehicle-mileage',
+  'vehicle-deadline'
+]
 
 const REMINDER_KIND_LABELS: Record<ReminderKind, string> = {
   installments: 'اقساط',
   checks: 'چک‌ها',
   dang: 'بدهی‌ها',
   personal: 'مواعد شخصی',
-  daily: 'یادآوری روزانه'
+  daily: 'یادآوری روزانه',
+  'vehicle-mileage': 'کارکرد خودرو',
+  'vehicle-deadline': 'موعد خودرو'
 }
 
 const DUE_DATE_KINDS: ReminderKind[] = ['installments', 'checks', 'dang']
@@ -40,7 +50,9 @@ export const DEFAULT_RULES: ReminderRule[] = [
   { kind: 'checks', enabled: false, daysBefore: 1, hour: 9, minute: 0 },
   { kind: 'dang', enabled: false, daysBefore: 1, hour: 9, minute: 0 },
   { kind: 'personal', enabled: false, daysBefore: 0, hour: 9, minute: 0 },
-  { kind: 'daily', enabled: true, daysBefore: 0, hour: 9, minute: 0 }
+  { kind: 'daily', enabled: true, daysBefore: 0, hour: 9, minute: 0 },
+  { kind: 'vehicle-mileage', enabled: false, daysBefore: 0, hour: 9, minute: 0 },
+  { kind: 'vehicle-deadline', enabled: false, daysBefore: 14, hour: 9, minute: 0 }
 ]
 
 function parseBool(value: string | undefined): boolean {

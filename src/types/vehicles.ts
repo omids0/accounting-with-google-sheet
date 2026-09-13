@@ -1,0 +1,105 @@
+export type VehicleMileageReminderInterval =
+  | 'first-of-month'
+  | 'every-2-months'
+  | 'every-3-months'
+  | 'every-6-months'
+  | 'yearly'
+  | 'weekly'
+  | 'biweekly'
+  | 'triweekly'
+  | 'daily'
+  | 'every-3-days'
+  | 'every-10-days'
+
+export type VehicleRecordKind = 'periodic' | 'deadline' | 'mechanic'
+
+export interface VehicleProfile {
+  id: string
+  createdAt: string
+  title: string
+  mileage: number
+  vin: string
+  buildYear: string
+  capacity: string
+  plate: string
+  mileageReminderInterval: VehicleMileageReminderInterval
+  lastMileageUpdate: string
+  active: boolean
+}
+
+export interface VehiclePeriodicService {
+  id: string
+  vehicleId: string
+  createdAt: string
+  serviceType: string
+  currentMileage: number
+  intervalKm: number
+  nextKm: number
+  brand: string
+  location: string
+  amount: number
+  notes: string
+  expenseRecordId: string
+  active: boolean
+}
+
+export interface VehicleDeadline {
+  id: string
+  vehicleId: string
+  createdAt: string
+  category: string
+  startDate: string
+  endDate: string
+  amount: number
+  notes: string
+  expenseRecordId: string
+  active: boolean
+}
+
+export interface VehicleMechanicItem {
+  category: string
+  note: string
+}
+
+export interface VehicleMechanicVisit {
+  id: string
+  vehicleId: string
+  createdAt: string
+  date: string
+  mileage: number
+  location: string
+  totalAmount: number
+  items: VehicleMechanicItem[]
+  notes: string
+  expenseRecordId: string
+}
+
+export interface VehicleHistoryEntry {
+  id: string
+  vehicleId: string
+  createdAt: string
+  recordKind: VehicleRecordKind
+  referenceId: string
+  date: string
+  mileage: number
+  nextKm: number
+  details: string
+  amount: number
+  expenseRecordId: string
+}
+
+export type VehicleUrgencyLevel = 'overdue' | 'soon' | 'ok'
+
+export interface VehicleActiveListItem {
+  id: string
+  vehicleId: string
+  kind: 'periodic' | 'deadline'
+  title: string
+  subtitle: string
+  urgency: VehicleUrgencyLevel
+  sortKey: number
+  remainingKm: number | null
+  remainingDays: number | null
+  periodic?: VehiclePeriodicService & { rowNumber: number }
+  deadline?: VehicleDeadline & { rowNumber: number }
+}

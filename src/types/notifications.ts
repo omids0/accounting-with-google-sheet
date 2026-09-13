@@ -1,4 +1,11 @@
-export type ReminderKind = 'installments' | 'checks' | 'dang' | 'personal' | 'daily'
+export type ReminderKind =
+  | 'installments'
+  | 'checks'
+  | 'dang'
+  | 'personal'
+  | 'daily'
+  | 'vehicle-mileage'
+  | 'vehicle-deadline'
 
 export interface ReminderRule {
   kind: ReminderKind
