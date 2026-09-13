@@ -20,7 +20,26 @@ import { downloadTablePdf } from '../utils/pdf'
 
 export const WALLET_SHEET = 'کیف پول'
 
-export const WALLET_HEADERS = ['شناسه', 'زمان ثبت', 'عنوان', 'موجودی', 'توضیحات']
+export const WALLET_HEADERS = [
+  'شناسه',
+  'زمان ثبت',
+  'عنوان',
+  'موجودی',
+  'توضیحات',
+  'نوع حساب',
+  'بانک',
+  'شماره کارت',
+  'نام دارنده',
+  'رنگ کارت',
+  'رنگ اصلی',
+  'رنگ ثانویه'
+]
+
+function parseAccountKind(value: string): WalletAccount['accountKind'] {
+  if (value === 'bank' || value === 'cash' || value === 'other') return value
+
+  return ''
+}
 
 function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNumber: number } {
   return {
@@ -29,12 +48,32 @@ function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNu
     createdAt: row[1] ?? '',
     title: row[2] ?? '',
     balance: Number(row[3]) || 0,
-    note: row[4] ?? ''
+    note: row[4] ?? '',
+    accountKind: parseAccountKind(row[5] ?? ''),
+    bankId: row[6] ?? '',
+    cardNumber: row[7] ?? '',
+    cardHolder: row[8] ?? '',
+    cardColor: row[9] ?? '',
+    cardColorPrimary: row[10] ?? '',
+    cardColorSecondary: row[11] ?? ''
   }
 }
 
 function accountToRow(account: WalletAccount): string[] {
-  return [account.id, account.createdAt, account.title, String(account.balance), account.note]
+  return [
+    account.id,
+    account.createdAt,
+    account.title,
+    String(account.balance),
+    account.note,
+    account.accountKind,
+    account.bankId,
+    account.cardNumber,
+    account.cardHolder,
+    account.cardColor,
+    account.cardColorPrimary,
+    account.cardColorSecondary
+  ]
 }
 
 export async function ensureWalletSheet(spreadsheetId: string): Promise<void> {
@@ -53,16 +92,36 @@ export async function fetchWalletAccounts(
     .sort((a, b) => b.balance - a.balance)
 }
 
+export type WalletAccountInput = {
+  title: string
+  balance: number
+  note: string
+  accountKind: WalletAccount['accountKind']
+  bankId: string
+  cardNumber: string
+  cardHolder: string
+  cardColor: string
+  cardColorPrimary: string
+  cardColorSecondary: string
+}
+
 export async function createWalletAccount(
   spreadsheetId: string,
-  data: { title: string; balance: number; note: string }
+  data: WalletAccountInput
 ): Promise<WalletAccount> {
   const account: WalletAccount = {
     id: crypto.randomUUID(),
     createdAt: new Date().toLocaleString('fa-IR'),
     title: data.title,
     balance: data.balance,
-    note: data.note
+    note: data.note,
+    accountKind: data.accountKind,
+    bankId: data.bankId,
+    cardNumber: data.cardNumber,
+    cardHolder: data.cardHolder,
+    cardColor: data.cardColor,
+    cardColorPrimary: data.cardColorPrimary,
+    cardColorSecondary: data.cardColorSecondary
   }
 
   await appendSheetRow(spreadsheetId, WALLET_SHEET, accountToRow(account))
@@ -155,9 +214,16 @@ export async function exportWalletAccountsCsv(spreadsheetId: string): Promise<vo
 export async function exportWalletAccountsPdf(spreadsheetId: string): Promise<void> {
   const accounts = await fetchWalletAccounts(spreadsheetId)
 
-  const headers = ['عنوان', 'موجودی', 'توضیحات']
+  const headers = ['عنوان', 'موجودی', 'نوع', 'بانک', 'شماره کارت', 'توضیحات']
 
-  const rows = accounts.map(account => [account.title, formatMoney(account.balance), account.note])
+  const rows = accounts.map(account => [
+    account.title,
+    formatMoney(account.balance),
+    account.accountKind || '—',
+    account.bankId || '—',
+    account.cardNumber ? `****${account.cardNumber.slice(-4)}` : '—',
+    account.note
+  ])
 
   const cellClasses = accounts.map(() => ['', 'pdf-cell-amount', ''])
 
@@ -181,7 +247,14 @@ export async function importWalletAccountsCsv(spreadsheetId: string, csvContent:
       createdAt: newImportTimestamp(cells[1] ?? ''),
       title,
       balance: Number(cells[3]) || 0,
-      note: cells[4] ?? ''
+      note: cells[4] ?? '',
+      accountKind: parseAccountKind(cells[5] ?? ''),
+      bankId: cells[6] ?? '',
+      cardNumber: cells[7] ?? '',
+      cardHolder: cells[8] ?? '',
+      cardColor: cells[9] ?? '',
+      cardColorPrimary: cells[10] ?? '',
+      cardColorSecondary: cells[11] ?? ''
     })
   })
 }

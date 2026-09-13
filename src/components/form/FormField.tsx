@@ -26,6 +26,7 @@ import {
   formHintClass,
   formLabelClass
 } from '../ui/formStyles'
+import WalletCardNumberInput from '../wallet/WalletCardNumberInput'
 
 interface FormFieldProps {
   label?: string
@@ -134,6 +135,10 @@ function resolveControlWidthClass(
 
   if (element.type === AmountInput || element.type === JalaliDatePicker) {
     return formControlWidthCompactClass
+  }
+
+  if (element.type === WalletCardNumberInput) {
+    return formControlWidthStandardClass
   }
 
   if (element.type === 'input') {

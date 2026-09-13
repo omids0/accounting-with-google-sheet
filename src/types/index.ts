@@ -38,7 +38,8 @@ export type {
   VaultAction,
   VaultTransaction,
   VaultHolding,
-  WalletAccount
+  WalletAccount,
+  WalletAccountKind
 } from './entities'
 
 export type {

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+import { getDefaultBankCardColor, hasBankColorPalette } from './bankCardColorVariants'
+import { CUSTOM_CARD_COLOR_ID, isCustomCardColor, normalizeHexColor } from './customCardTheme'
 import type { WalletAccountWithRow, WalletFormState } from './types'
 import {
   createLinkedExpenseRecord,
@@ -86,21 +88,34 @@ export function useWalletMutations({
 
     setSaving(true)
     try {
+      const useCustomColor = isCustomCardColor(form.cardColor)
+
+      const payload = {
+        title: form.title.trim(),
+        balance: Number(form.balance),
+        note: form.note.trim(),
+        accountKind: form.accountKind,
+        bankId: form.accountKind === 'bank' ? form.bankId : '',
+        cardNumber: form.accountKind === 'bank' ? form.cardNumber : '',
+        cardHolder: form.accountKind === 'bank' ? form.cardHolder.trim() : '',
+        cardColor: useCustomColor
+          ? CUSTOM_CARD_COLOR_ID
+          : form.accountKind === 'bank' && hasBankColorPalette(form.bankId)
+          ? form.cardColor || getDefaultBankCardColor(form.bankId)
+          : '',
+        cardColorPrimary: useCustomColor ? normalizeHexColor(form.cardColorPrimary) : '',
+        cardColorSecondary: useCustomColor ? normalizeHexColor(form.cardColorSecondary) : ''
+      }
+
       if (editingAccount) {
         await updateWalletAccount(settings.spreadsheetId, {
           ...editingAccount,
-          title: form.title.trim(),
-          balance: Number(form.balance),
-          note: form.note.trim()
+          ...payload
         })
         showSuccess('حساب ویرایش شد')
         await loadItems()
       } else {
-        await createWalletAccount(settings.spreadsheetId, {
-          title: form.title.trim(),
-          balance: Number(form.balance),
-          note: form.note.trim()
-        })
+        await createWalletAccount(settings.spreadsheetId, payload)
         showSuccess('حساب جدید اضافه شد')
         await loadItems()
       }

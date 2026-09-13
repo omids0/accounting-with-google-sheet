@@ -7,18 +7,20 @@ type CardExpandButtonProps = {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
   ariaLabel?: string
+  className?: string
 }
 
 export default function CardExpandButton({
   expanded,
   onClick,
   disabled = false,
-  ariaLabel = 'نمایش جزئیات'
+  ariaLabel = 'نمایش جزئیات',
+  className
 }: CardExpandButtonProps) {
   return (
     <button
       type="button"
-      className={cn(cardActionBtnClass, 'card-action-btn', cardExpandBtnClass(expanded))}
+      className={cn(cardActionBtnClass, 'card-action-btn', cardExpandBtnClass(expanded), className)}
       onClick={onClick}
       disabled={disabled}
       aria-expanded={expanded}

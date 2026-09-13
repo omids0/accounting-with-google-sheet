@@ -48,7 +48,7 @@ describe('dashboard realtime updates', () => {
 
     setSheetAllRows(TEST_SPREADSHEET_ID, WALLET_SHEET, [
       WALLET_HEADERS,
-      ['wallet-1', '2024', 'Main wallet', '250000', '']
+      ['wallet-1', '2024', 'Main wallet', '250000', '', '', '', '', '', '']
     ])
 
     const stalePeek = peekCachedDashboardData(
@@ -148,7 +148,14 @@ describe('dashboard realtime updates', () => {
       createdAt: '2024',
       title: 'Main wallet',
       balance: 400_000,
-      note: ''
+      note: '',
+      accountKind: '',
+      bankId: '',
+      cardNumber: '',
+      cardHolder: '',
+      cardColor: '',
+      cardColorPrimary: '',
+      cardColorSecondary: ''
     })
 
     const updated = await loadDashboardData(
@@ -225,7 +232,7 @@ describe('dashboard realtime updates', () => {
 
     setSheetAllRows(TEST_SPREADSHEET_ID, WALLET_SHEET, [
       WALLET_HEADERS,
-      ['wallet-1', '2024', 'Main wallet', '999999', '']
+      ['wallet-1', '2024', 'Main wallet', '999999', '', '', '', '', '', '']
     ])
 
     bumpDataRevision()
