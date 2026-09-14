@@ -27,6 +27,8 @@ export type VehiclePeriodicFormState = {
   amount: number | ''
   notes: string
   date: string
+  /** ثبت سابقه: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
+  isHistorical: boolean
 }
 
 export type VehicleDeadlineFormState = {
@@ -45,6 +47,8 @@ export type VehicleCompleteFormState = {
   amount: number | ''
   notes: string
   date: string
+  /** ثبت سابقه: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
+  isHistorical: boolean
 }
 
 export type VehicleMechanicItemFormState = {
@@ -59,6 +63,8 @@ export type VehicleMechanicFormState = {
   totalAmount: number | ''
   notes: string
   items: VehicleMechanicItemFormState[]
+  /** ثبت سابقه: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
+  isHistorical: boolean
 }
 
 export type VehicleMileageFormState = {

@@ -4,11 +4,15 @@ import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import FilterModal from '../FilterModal'
-import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import SpeedDialIcon from '../SpeedDialIcon'
-import type { VehicleProfileWithRow } from './types'
+import type {
+  VehicleProfileWithRow,
+  VehicleCompleteFormState,
+  VehicleDeadlineFormState,
+  VehiclePeriodicFormState
+} from './types'
 import { useVehicleDetail } from './useVehicleDetail'
 import { useVehicleDetailFilters, type VehicleDetailFilterItem } from './useVehicleDetailFilters'
 import VehicleActiveItemCard from './VehicleActiveItemCard'
@@ -20,6 +24,7 @@ import {
 } from './vehicleCardStyles'
 import VehicleCompleteModal from './VehicleCompleteModal'
 import VehicleDeadlineFormModal from './VehicleDeadlineFormModal'
+import VehicleDetailFilterFields from './VehicleDetailFilterFields'
 import type { HistoryWithRow } from './vehicleDetailMutations'
 import VehicleHistoryCard from './VehicleHistoryCard'
 import VehicleItemDeleteModal from './VehicleItemDeleteModal'
@@ -44,7 +49,8 @@ export default function VehicleDetailPage({
   const filters = useVehicleDetailFilters({
     detailTab: page.detailTab,
     activeItems: page.activeItems,
-    historyItems: page.history
+    historyItems: page.history,
+    serviceTypeSeed: page.serviceTypes
   })
 
   const detailTabOptions = useMemo(
@@ -74,9 +80,61 @@ export default function VehicleDetailPage({
 
   useRegisterPageSpeedDial(speedDialConfig, active)
 
+  const isActiveTab = page.detailTab === 'active'
+
+  const periodicInitialValues = useMemo(
+    (): Partial<VehiclePeriodicFormState> | undefined =>
+      page.editingPeriodic
+        ? {
+            serviceType: page.editingPeriodic.serviceType,
+            mileage: String(page.editingPeriodic.currentMileage),
+            isHistorical: page.editingPeriodic.currentMileage < page.currentVehicle.mileage,
+            intervalKm: String(page.editingPeriodic.intervalKm),
+            brand: page.editingPeriodic.brand,
+            location: page.editingPeriodic.location,
+            amount: page.editingPeriodic.amount > 0 ? page.editingPeriodic.amount : '',
+            notes: page.editingPeriodic.notes
+          }
+        : undefined,
+    [page.editingPeriodic, page.currentVehicle.mileage]
+  )
+
+  const deadlineInitialValues = useMemo(
+    (): Partial<VehicleDeadlineFormState> | undefined =>
+      page.editingDeadline
+        ? {
+            category: page.editingDeadline.category,
+            startDate: page.editingDeadline.startDate,
+            endDate: page.editingDeadline.endDate,
+            amount: page.editingDeadline.amount > 0 ? page.editingDeadline.amount : '',
+            notes: page.editingDeadline.notes
+          }
+        : undefined,
+    [page.editingDeadline]
+  )
+
+  const completeInitialValues = useMemo(
+    (): Partial<VehicleCompleteFormState> | undefined =>
+      page.completingPeriodic
+        ? {
+            mileage: String(
+              page.completingPeriodic.currentMileage < page.currentVehicle.mileage
+                ? page.completingPeriodic.currentMileage
+                : page.currentVehicle.mileage
+            ),
+            isHistorical: page.completingPeriodic.currentMileage < page.currentVehicle.mileage,
+            intervalKm: String(page.completingPeriodic.intervalKm),
+            brand: page.completingPeriodic.brand,
+            location: page.completingPeriodic.location,
+            amount: page.completingPeriodic.amount > 0 ? page.completingPeriodic.amount : '',
+            notes: page.completingPeriodic.notes
+          }
+        : undefined,
+    [page.completingPeriodic, page.currentVehicle.mileage]
+  )
+
   const sourceItems = page.detailTab === 'active' ? page.activeItems : page.history
   const listItems = filters.filteredItems
-  const isActiveTab = page.detailTab === 'active'
 
   if (!isConfigured()) {
     return (
@@ -103,24 +161,20 @@ export default function VehicleDetailPage({
         onApply={filters.applyFilters}
         onClear={filters.clearDraftFilters}
       >
-        <PageFilterPanel
-          search={filters.draftSearch}
-          onSearchChange={filters.setDraftSearch}
-          searchPlaceholder={isActiveTab ? 'جستجو در موارد فعال...' : 'جستجو در تاریخچه...'}
-          category={filters.draftCategory}
-          onCategoryChange={filters.setDraftCategory}
+        <VehicleDetailFilterFields
+          isActiveTab={isActiveTab}
+          loading={page.loading}
+          draftSearch={filters.draftSearch}
+          setDraftSearch={filters.setDraftSearch}
+          draftCategory={filters.draftCategory}
+          setDraftCategory={filters.setDraftCategory}
           categoryOptions={filters.categoryOptions}
-          categoryLabel={isActiveTab ? 'فوریت' : 'نوع'}
-          {...(isActiveTab
-            ? {}
-            : {
-                datePreset: filters.draftDatePreset,
-                customRange: filters.draftCustomRange,
-                onDateFilterChange: filters.handleDraftDateFilterChange,
-                dateIncludeAll: true as const,
-                dateLabel: 'بازه زمانی (تاریخ)',
-                dateLoading: page.loading
-              })}
+          draftDatePreset={filters.draftDatePreset}
+          draftCustomRange={filters.draftCustomRange}
+          handleDraftDateFilterChange={filters.handleDraftDateFilterChange}
+          draftServiceTypeFilter={filters.draftServiceTypeFilter}
+          setDraftServiceTypeFilter={filters.setDraftServiceTypeFilter}
+          serviceTypeOptions={filters.serviceTypeOptions}
         />
       </FilterModal>
 
@@ -190,19 +244,7 @@ export default function VehicleDetailPage({
         defaultMileage={page.currentVehicle.mileage}
         serviceTypes={page.serviceTypes}
         onServiceTypesChange={page.setServiceTypes}
-        initialValues={
-          page.editingPeriodic
-            ? {
-                serviceType: page.editingPeriodic.serviceType,
-                mileage: String(page.editingPeriodic.currentMileage),
-                intervalKm: String(page.editingPeriodic.intervalKm),
-                brand: page.editingPeriodic.brand,
-                location: page.editingPeriodic.location,
-                amount: page.editingPeriodic.amount || '',
-                notes: page.editingPeriodic.notes
-              }
-            : undefined
-        }
+        initialValues={periodicInitialValues}
         saving={page.saving}
         onClose={page.closePeriodicForm}
         onSubmit={page.handlePeriodicSubmit}
@@ -213,17 +255,7 @@ export default function VehicleDetailPage({
         title={
           page.renewingDeadline ? 'تمدید موعد' : page.editingDeadline ? 'ویرایش موعد' : 'موعد جدید'
         }
-        initialValues={
-          page.editingDeadline
-            ? {
-                category: page.editingDeadline.category,
-                startDate: page.editingDeadline.startDate,
-                endDate: page.editingDeadline.endDate,
-                amount: page.editingDeadline.amount || '',
-                notes: page.editingDeadline.notes
-              }
-            : undefined
-        }
+        initialValues={deadlineInitialValues}
         saving={page.saving}
         onClose={page.closeDeadlineForm}
         onSubmit={page.handleDeadlineSubmit}
@@ -233,18 +265,7 @@ export default function VehicleDetailPage({
         open={page.showCompleteModal}
         serviceType={page.completingPeriodic?.serviceType ?? ''}
         defaultMileage={page.currentVehicle.mileage}
-        initialValues={
-          page.completingPeriodic
-            ? {
-                mileage: String(page.currentVehicle.mileage),
-                intervalKm: String(page.completingPeriodic.intervalKm),
-                brand: page.completingPeriodic.brand,
-                location: page.completingPeriodic.location,
-                amount: page.completingPeriodic.amount || '',
-                notes: page.completingPeriodic.notes
-              }
-            : undefined
-        }
+        initialValues={completeInitialValues}
         saving={page.saving}
         onClose={page.closeCompleteModal}
         onSubmit={page.handleCompleteSubmit}

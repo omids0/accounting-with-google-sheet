@@ -27,14 +27,19 @@ function buildDefaults(
   defaultMileage: number,
   initialValues?: Partial<VehicleCompleteFormState>
 ): VehicleCompleteFormState {
+  const mileage = initialValues?.mileage ?? String(defaultMileage)
+
   return {
-    mileage: initialValues?.mileage ?? String(defaultMileage),
+    mileage,
     intervalKm: initialValues?.intervalKm ?? '',
     brand: initialValues?.brand ?? '',
     location: initialValues?.location ?? '',
     amount: initialValues?.amount ?? '',
     notes: initialValues?.notes ?? '',
-    date: initialValues?.date ?? getTodayIso()
+    date: initialValues?.date ?? getTodayIso(),
+    isHistorical:
+      initialValues?.isHistorical ??
+      (initialValues?.mileage != null && parseNumeric(mileage) < defaultMileage)
   }
 }
 
@@ -47,9 +52,11 @@ export default function VehicleCompleteModal({
   onClose,
   onSubmit
 }: VehicleCompleteModalProps) {
+  const formResetKey = JSON.stringify(initialValues ?? 'create')
+
   const defaults = useMemo(
     () => buildDefaults(defaultMileage, initialValues),
-    [defaultMileage, initialValues]
+    [defaultMileage, formResetKey]
   )
 
   const {
@@ -66,11 +73,12 @@ export default function VehicleCompleteModal({
 
   useModalFormReset(reset, defaults, {
     active: open,
-    resetKey: serviceType
+    resetKey: `${serviceType}:${formResetKey}`
   })
 
   const mileage = parseNumeric(watch('mileage'))
   const intervalKm = parseNumeric(watch('intervalKm'))
+  const isHistorical = watch('isHistorical')
   const nextKmPreview = mileage > 0 && intervalKm > 0 ? calculateNextKm(mileage, intervalKm) : null
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -103,6 +111,23 @@ export default function VehicleCompleteModal({
           />
         </FormField>
       </FormRow>
+
+      <label className="flex cursor-pointer items-start gap-2 text-[0.85rem] text-primary">
+        <input type="checkbox" className="mt-1" {...register('isHistorical')} />
+        <span>
+          ثبت سابقه
+          <span className="mt-0.5 block text-[0.78rem] font-normal text-muted">
+            برای ثبت انجام سرویس در گذشته؛ کارکرد فعلی خودرو (
+            {defaultMileage.toLocaleString('fa-IR')} km) تغییر نمی‌کند.
+          </span>
+        </span>
+      </label>
+
+      {isHistorical ? (
+        <p className="text-[0.78rem] text-muted">
+          در حالت ثبت سابقه می‌توانید کارکرد کمتر از کارکرد فعلی وارد کنید.
+        </p>
+      ) : null}
 
       {nextKmPreview != null ? (
         <p className="text-[0.82rem] text-muted">

@@ -37,7 +37,8 @@ function buildDefaults(defaultMileage: number, categories: string[]): VehicleMec
     location: '',
     totalAmount: '',
     notes: '',
-    items: [buildEmptyItem(categories)]
+    items: [buildEmptyItem(categories)],
+    isHistorical: false
   }
 }
 
@@ -59,6 +60,8 @@ export default function VehicleMechanicFormModal({
     useForm<VehicleMechanicFormState>({
       defaultValues: defaults
     })
+
+  const isHistorical = watch('isHistorical')
 
   const { fields, append, remove } = useFieldArray({ control, name: 'items' })
 
@@ -100,6 +103,23 @@ export default function VehicleMechanicFormModal({
           />
         </FormField>
       </FormRow>
+
+      <label className="flex cursor-pointer items-start gap-2 text-[0.85rem] text-primary">
+        <input type="checkbox" className="mt-1" {...register('isHistorical')} />
+        <span>
+          ثبت سابقه
+          <span className="mt-0.5 block text-[0.78rem] font-normal text-muted">
+            برای مراجعات قبلی؛ کارکرد فعلی خودرو ({defaultMileage.toLocaleString('fa-IR')} km) تغییر
+            نمی‌کند.
+          </span>
+        </span>
+      </label>
+
+      {isHistorical ? (
+        <p className="text-[0.78rem] text-muted">
+          در حالت ثبت سابقه می‌توانید کارکرد کمتر از کارکرد فعلی وارد کنید.
+        </p>
+      ) : null}
 
       <FormField label="مکان">
         <input type="text" {...register('location')} placeholder="نام تعمیرگاه" />

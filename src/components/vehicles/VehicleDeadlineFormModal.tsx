@@ -42,7 +42,9 @@ export default function VehicleDeadlineFormModal({
   onClose,
   onSubmit
 }: VehicleDeadlineFormModalProps) {
-  const defaults = useMemo(() => buildDefaults(initialValues), [initialValues])
+  const formResetKey = JSON.stringify(initialValues ?? 'create')
+
+  const defaults = useMemo(() => buildDefaults(initialValues), [formResetKey])
 
   const {
     register,
@@ -58,7 +60,7 @@ export default function VehicleDeadlineFormModal({
 
   useModalFormReset(reset, defaults, {
     active: open,
-    resetKey: JSON.stringify(initialValues ?? 'create')
+    resetKey: formResetKey
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {

@@ -30,15 +30,20 @@ function buildDefaults(
   serviceTypes: string[],
   initialValues?: Partial<VehiclePeriodicFormState>
 ): VehiclePeriodicFormState {
+  const mileage = initialValues?.mileage ?? String(defaultMileage)
+
   return {
     serviceType: initialValues?.serviceType ?? serviceTypes[0] ?? '',
-    mileage: initialValues?.mileage ?? String(defaultMileage),
+    mileage,
     intervalKm: initialValues?.intervalKm ?? '',
     brand: initialValues?.brand ?? '',
     location: initialValues?.location ?? '',
     amount: initialValues?.amount ?? '',
     notes: initialValues?.notes ?? '',
-    date: initialValues?.date ?? getTodayIso()
+    date: initialValues?.date ?? getTodayIso(),
+    isHistorical:
+      initialValues?.isHistorical ??
+      (initialValues?.mileage != null && parseNumeric(mileage) < defaultMileage)
   }
 }
 
@@ -53,9 +58,11 @@ export default function VehiclePeriodicFormModal({
   onSubmit,
   onServiceTypesChange
 }: VehiclePeriodicFormModalProps) {
+  const formResetKey = JSON.stringify(initialValues ?? 'create')
+
   const defaults = useMemo(
     () => buildDefaults(defaultMileage, serviceTypes, initialValues),
-    [defaultMileage, initialValues, serviceTypes]
+    [defaultMileage, serviceTypes, formResetKey]
   )
 
   const {
@@ -73,12 +80,13 @@ export default function VehiclePeriodicFormModal({
 
   useModalFormReset(reset, defaults, {
     active: open,
-    resetKey: JSON.stringify(initialValues ?? 'create')
+    resetKey: formResetKey
   })
 
   const serviceType = watch('serviceType')
   const mileage = parseNumeric(watch('mileage'))
   const intervalKm = parseNumeric(watch('intervalKm'))
+  const isHistorical = watch('isHistorical')
   const nextKmPreview = mileage > 0 && intervalKm > 0 ? calculateNextKm(mileage, intervalKm) : null
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -144,6 +152,23 @@ export default function VehiclePeriodicFormModal({
           />
         </FormField>
       </FormRow>
+
+      <label className="flex cursor-pointer items-start gap-2 text-[0.85rem] text-primary">
+        <input type="checkbox" className="mt-1" {...register('isHistorical')} />
+        <span>
+          ثبت سابقه
+          <span className="mt-0.5 block text-[0.78rem] font-normal text-muted">
+            برای وارد کردن سرویس‌های قبلی؛ کارکرد فعلی خودرو (
+            {defaultMileage.toLocaleString('fa-IR')} km) تغییر نمی‌کند.
+          </span>
+        </span>
+      </label>
+
+      {isHistorical ? (
+        <p className="text-[0.78rem] text-muted">
+          در حالت ثبت سابقه می‌توانید کارکرد کمتر از کارکرد فعلی وارد کنید.
+        </p>
+      ) : null}
 
       {nextKmPreview != null ? (
         <p className="text-[0.82rem] text-muted">

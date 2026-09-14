@@ -1,8 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { HistoryWithRow } from './vehicleDetailMutations'
 import { useListFilters } from '../../hooks/useListFilters'
 import type { VehicleActiveListItem, VehicleHistoryEntry } from '../../types/vehicles'
+import { compactFilterChips } from '../../utils/filterChips'
+import type { FilterChip } from '../ActiveFilterChips'
 
 const ACTIVE_URGENCY_LABELS: Record<VehicleActiveListItem['urgency'], string> = {
   overdue: 'معوق',
@@ -22,19 +24,49 @@ function isActiveItem(item: VehicleDetailFilterItem): item is VehicleActiveListI
   return 'kind' in item
 }
 
+function getItemServiceType(item: VehicleDetailFilterItem): string | null {
+  if (isActiveItem(item)) {
+    if (item.kind !== 'periodic') return null
+
+    return item.periodic?.serviceType ?? item.title
+  }
+
+  if (item.recordKind !== 'periodic') return null
+
+  const detail = item.details.trim()
+
+  if (!detail) return null
+
+  return detail.split(' · ')[0]?.trim() ?? null
+}
+
+function buildServiceTypeChip(serviceType: string, onRemove: () => void): FilterChip {
+  return {
+    id: 'service-type',
+    kind: 'category',
+    label: `نوع سرویس: ${serviceType}`,
+    onRemove
+  }
+}
+
 type UseVehicleDetailFiltersOptions = {
   detailTab: 'active' | 'history'
   activeItems: VehicleActiveListItem[]
   historyItems: HistoryWithRow[]
+  serviceTypeSeed?: string[]
 }
 
 export function useVehicleDetailFilters({
   detailTab,
   activeItems,
-  historyItems
+  historyItems,
+  serviceTypeSeed = []
 }: UseVehicleDetailFiltersOptions) {
   const isActiveTab = detailTab === 'active'
   const items: VehicleDetailFilterItem[] = isActiveTab ? activeItems : historyItems
+
+  const [serviceTypeFilter, setServiceTypeFilter] = useState('all')
+  const [draftServiceTypeFilter, setDraftServiceTypeFilter] = useState('all')
 
   const filters = useListFilters<VehicleDetailFilterItem>({
     items,
@@ -66,7 +98,57 @@ export function useVehicleDetailFilters({
       : Object.values(HISTORY_KIND_LABELS)
   })
 
-  const { clearAllFilters, clearDraftFilters } = filters
+  const serviceTypeOptions = useMemo(() => {
+    const options = new Set<string>(serviceTypeSeed)
+
+    for (const item of items) {
+      const serviceType = getItemServiceType(item)
+
+      if (serviceType) options.add(serviceType)
+    }
+
+    return [...options].sort((a, b) => a.localeCompare(b, 'fa'))
+  }, [items, serviceTypeSeed])
+
+  const filteredItems = useMemo(() => {
+    if (serviceTypeFilter === 'all') return filters.filteredItems
+
+    return filters.filteredItems.filter(item => getItemServiceType(item) === serviceTypeFilter)
+  }, [filters.filteredItems, serviceTypeFilter])
+
+  const filterChips = useMemo(
+    () =>
+      compactFilterChips([
+        ...filters.filterChips,
+        serviceTypeFilter !== 'all' &&
+          buildServiceTypeChip(serviceTypeFilter, () => setServiceTypeFilter('all'))
+      ]),
+    [filters.filterChips, serviceTypeFilter]
+  )
+
+  const openFilterModal = useCallback(() => {
+    setDraftServiceTypeFilter(serviceTypeFilter)
+    filters.openFilterModal()
+  }, [filters, serviceTypeFilter])
+
+  const clearDraftFilters = useCallback(() => {
+    setDraftServiceTypeFilter('all')
+    filters.clearDraftFilters()
+  }, [filters])
+
+  const applyFilters = useCallback(() => {
+    setServiceTypeFilter(draftServiceTypeFilter)
+    filters.applyFilters()
+  }, [draftServiceTypeFilter, filters])
+
+  const clearAllFilters = useCallback(() => {
+    setServiceTypeFilter('all')
+    setDraftServiceTypeFilter('all')
+    filters.clearAllFilters()
+  }, [filters])
+
+  const hasActiveFilters = filters.hasActiveFilters || serviceTypeFilter !== 'all'
+
   const previousTabRef = useRef(detailTab)
 
   useEffect(() => {
@@ -77,7 +159,19 @@ export function useVehicleDetailFilters({
     clearDraftFilters()
   }, [detailTab, clearAllFilters, clearDraftFilters])
 
-  return filters
+  return {
+    ...filters,
+    filteredItems,
+    filterChips,
+    hasActiveFilters,
+    openFilterModal,
+    clearDraftFilters,
+    applyFilters,
+    clearAllFilters,
+    draftServiceTypeFilter,
+    setDraftServiceTypeFilter,
+    serviceTypeOptions
+  }
 }
 
 export type { VehicleDetailFilterItem }
