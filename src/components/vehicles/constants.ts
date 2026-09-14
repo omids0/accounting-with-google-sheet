@@ -2,6 +2,10 @@ import type { VehicleMileageReminderInterval } from '../../types/vehicles'
 
 export const VEHICLE_EXPENSE_CATEGORY = 'خودرو'
 
+export const VEHICLE_FUEL_EXPENSE_TYPE = 'بنزین'
+
+export const VEHICLE_OTHER_OPTION = 'سایر'
+
 export const VEHICLE_DEADLINE_CATEGORIES = [
   'بیمه شخص ثالث',
   'بیمه بدنه',

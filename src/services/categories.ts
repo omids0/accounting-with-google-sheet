@@ -15,6 +15,7 @@ import {
   updateReceivableCategories
 } from './settings'
 import { ensureSheetWithHeaders, fetchSheetRows, replaceSheetDataRows } from './sheets'
+import { withLockedExpenseCategories } from '../utils/protectedCategories'
 
 export type { CategoryGroups, CategoryType } from './categoryGroups'
 
@@ -71,13 +72,18 @@ export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<Ca
     !fromSheet.receivable.length ||
     !fromSheet.personalReminder.length ||
     !fromSheet.vehiclePeriodic.length ||
-    !fromSheet.vehicleMechanic.length
+    !fromSheet.vehicleMechanic.length ||
+    !fromSheet.vehicleExpense.length
 
   if (needsSeed) {
     await writeCategoriesToSheet(spreadsheetId, groups)
   }
 
   applyGroupsToSettings(groups)
+
+  const { ensureVehicleExpenseCategory } = await import('./vehicleExpenses')
+
+  await ensureVehicleExpenseCategory()
 
   return groups
 }
@@ -96,14 +102,15 @@ export async function saveFormCategoriesToSheet(
   }
 
   const current = await fetchCategoriesFromSheet(spreadsheetId)
+  const normalized = form.type === 'expense' ? withLockedExpenseCategories(categories) : categories
 
   const next: CategoryGroups = {
     ...withDefaults(current),
-    [form.type]: categories
+    [form.type]: normalized
   }
 
   await writeCategoriesToSheet(spreadsheetId, next)
-  updateFormCategories(formId, categories)
+  updateFormCategories(formId, normalized)
 }
 
 export async function saveDangCategoriesToSheet(

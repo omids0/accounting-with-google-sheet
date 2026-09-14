@@ -31,6 +31,7 @@ interface CategorySelectPanelProps {
   saving: boolean
   manageMode: boolean
   allowManage: boolean
+  lockedCategories: string[]
   allOption?: CategorySelectAllOption
   showSearch: boolean
   searchQuery: string
@@ -64,6 +65,7 @@ export default function CategorySelectPanel({
   saving,
   manageMode,
   allowManage,
+  lockedCategories,
   allOption,
   showSearch,
   searchQuery,
@@ -198,7 +200,8 @@ export default function CategorySelectPanel({
               confirmDelete={confirmDelete}
               editText={editText}
               categoriesCount={categories.length}
-              canReorder={canReorder}
+              locked={lockedCategories.includes(category)}
+              canReorder={canReorder && !lockedCategories.includes(category)}
               dragging={draggingIndex === index}
               dragProps={getItemDragProps(index)}
               handleProps={getHandleProps(index)}

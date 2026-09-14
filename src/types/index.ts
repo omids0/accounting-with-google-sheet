@@ -66,5 +66,10 @@ export type {
   VehicleMileageReminderInterval,
   VehicleRecordKind,
   VehicleUrgencyLevel,
-  VehicleActiveListItem
+  VehicleActiveListItem,
+  VehicleExpenseMeta,
+  VehicleTransactionItem,
+  VehicleTransactionSource,
+  MonthlyFuelStats,
+  MonthlyFuelPriceBreakdown
 } from './vehicles'

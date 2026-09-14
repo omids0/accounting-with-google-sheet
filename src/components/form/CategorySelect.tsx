@@ -37,7 +37,8 @@ export default function CategorySelect({
   placeholder = 'انتخاب دسته‌بندی',
   allOption,
   allowManage = allOption == null,
-  showSearchAlways = false
+  showSearchAlways = false,
+  lockedCategories = []
 }: CategorySelectProps) {
   const [open, setOpen] = useState(false)
 
@@ -82,7 +83,8 @@ export default function CategorySelect({
     onCategoriesChange,
     onChange,
     value,
-    setSaving
+    setSaving,
+    lockedCategories
   })
 
   const resetTransientState = useCallback(() => {
@@ -223,6 +225,7 @@ export default function CategorySelect({
           saving={saving}
           manageMode={manageMode}
           allowManage={allowManage}
+          lockedCategories={lockedCategories}
           allOption={allOption}
           showSearch={showSearch}
           searchQuery={searchQuery}

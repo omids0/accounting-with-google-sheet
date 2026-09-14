@@ -13,6 +13,7 @@ import { getSettings } from './settings'
 import { TIMESHEETS_SHEET, TIMESHEET_ENTRIES_SHEET } from './timesheet'
 import { TREASURY_SHEET } from './treasury'
 import { VEHICLE_DEADLINE_SHEET } from './vehicleDeadlines'
+import { VEHICLE_EXPENSE_META_SHEET } from './vehicleExpenseRecords'
 import { VEHICLE_HISTORY_SHEET } from './vehicleHistory'
 import { VEHICLE_MECHANIC_SHEET } from './vehicleMechanicVisits'
 import { VEHICLE_PERIODIC_SHEET } from './vehiclePeriodicServices'
@@ -40,7 +41,8 @@ const STATIC_SHEETS = [
   VEHICLE_PERIODIC_SHEET,
   VEHICLE_DEADLINE_SHEET,
   VEHICLE_HISTORY_SHEET,
-  VEHICLE_MECHANIC_SHEET
+  VEHICLE_MECHANIC_SHEET,
+  VEHICLE_EXPENSE_META_SHEET
 ]
 
 export function getKnownSheetNames(settings: AppSettings = getSettings()!): string[] {
