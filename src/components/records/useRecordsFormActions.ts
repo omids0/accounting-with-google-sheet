@@ -78,7 +78,10 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     }
   }
 
-  const runSubmit = async (formValues: Record<string, string | number>) => {
+  const runSubmit = async (
+    formValues: Record<string, string | number>,
+    vehicleExpense?: Parameters<typeof submitRecordEdit>[0]['vehicleExpense']
+  ) => {
     if (!editingRecord || !editingForm) return
 
     setSaving(true)
@@ -87,6 +90,7 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
         editingRecord,
         editingForm,
         formValues,
+        vehicleExpense,
         onSuccess: async () => {
           closeForm()
           await loadRecords()
@@ -99,7 +103,10 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     }
   }
 
-  const handleSubmit = async (formValues: Record<string, string | number>) => {
+  const handleSubmit = async (
+    formValues: Record<string, string | number>,
+    vehicleExpense?: Parameters<typeof submitRecordEdit>[0]['vehicleExpense']
+  ) => {
     if (!editingRecord || !editingForm) return
 
     const dateFieldId = getFormField(editingForm, 'date')?.id
@@ -109,14 +116,14 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     if (
       retroactiveWarning.guard(
         [recordDate(editingRecord), nextDate],
-        () => runSubmit(formValues),
+        () => runSubmit(formValues, vehicleExpense),
         'edit'
       )
     ) {
       return
     }
 
-    await runSubmit(formValues)
+    await runSubmit(formValues, vehicleExpense)
   }
 
   const deletingRetroLabel = deletingRecord ? retroactiveMonthLabel(recordDate(deletingRecord)) : ''

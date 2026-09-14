@@ -1,27 +1,26 @@
-import { useMemo, type FormEvent } from 'react'
+import { useEffect, useMemo, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
 import ConfirmActionModal from './ConfirmActionModal'
-import {
-  FieldInput,
-  FormRow,
-  getInitialFieldValue,
-  isStandardEntryForm,
-  sortFormFields
-} from './form'
+import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
+import { FieldInput, getInitialFieldValue, isStandardEntryForm, sortFormFields } from './form'
+import VehicleExpenseFields from './vehicleExpenses/VehicleExpenseFields'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
+import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
-import type { CustomForm, FieldConfig } from '../types'
+import { createManualVehicleExpense } from '../services/vehicleExpenseActions'
+import type { CustomForm } from '../types'
 import { requireAuth } from '../utils/authGuard'
 import { cn } from '../utils/cn'
 import { formFieldError } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
+import { isVehicleExpenseCategory } from '../utils/vehicleExpenseUtils'
 import Button from './ui/Button'
-import { appFormClassName, formActionsClassName, type FormControlWidth } from './ui/formStyles'
+import { appFormClassName, formActionsClassName } from './ui/formStyles'
 import { dataEntryFormActionsClass } from './ui/recordsStyles'
 
 type DataEntryFormProps = {
@@ -42,95 +41,6 @@ function buildInitialValues(form: CustomForm): Record<string, string | number> {
   return initial
 }
 
-type EntryFieldRendererProps = {
-  field: FieldConfig
-  value: string | number
-  formId: string
-  controlWidth?: FormControlWidth
-  error?: string
-  onChange: (value: string | number) => void
-  onCategoriesChange: (categories: string[]) => void
-}
-
-function EntryFieldRenderer({
-  field,
-  value,
-  formId,
-  controlWidth,
-  error,
-  onChange,
-  onCategoriesChange
-}: EntryFieldRendererProps) {
-  return (
-    <FieldInput
-      field={field}
-      value={value}
-      onChange={onChange}
-      formId={formId}
-      controlWidth={controlWidth}
-      error={error}
-      onCategoriesChange={onCategoriesChange}
-    />
-  )
-}
-
-function StandardEntryFormFields({
-  activeForm,
-  values,
-  errors,
-  setValue,
-  onCategoriesRefresh
-}: {
-  activeForm: CustomForm
-  values: Record<string, string | number>
-  errors: ReturnType<typeof useForm<Record<string, string | number>>>['formState']['errors']
-  setValue: (id: string, value: string | number) => void
-  onCategoriesRefresh: () => void
-}) {
-  const fieldById = useMemo(
-    () => new Map(activeForm.fields.map(field => [field.id, field])),
-    [activeForm.fields]
-  )
-
-  const handleCategoriesChange = (categories: string[]) => {
-    onCategoriesRefresh()
-    if (!categories.includes(String(values.category ?? ''))) {
-      setValue('category', categories[0] ?? '')
-    }
-  }
-
-  const renderField = (id: string, options?: { controlWidth?: FormControlWidth }) => {
-    const field = fieldById.get(id)
-
-    if (!field) return null
-
-    return (
-      <EntryFieldRenderer
-        key={field.id}
-        field={field}
-        value={values[field.id] ?? ''}
-        formId={activeForm.id}
-        controlWidth={options?.controlWidth}
-        error={formFieldError(errors, field.id)}
-        onChange={next => setValue(field.id, next)}
-        onCategoriesChange={handleCategoriesChange}
-      />
-    )
-  }
-
-  return (
-    <>
-      <FormRow>
-        {renderField('date', { controlWidth: 'full' })}
-        {renderField('amount', { controlWidth: 'full' })}
-      </FormRow>
-      {renderField('title', { controlWidth: 'full' })}
-      {renderField('category')}
-      {renderField('note')}
-    </>
-  )
-}
-
 export default function DataEntryForm({
   activeForm,
   loading,
@@ -140,6 +50,8 @@ export default function DataEntryForm({
 }: DataEntryFormProps) {
   const initialValues = useMemo(() => buildInitialValues(activeForm), [activeForm])
   const useStandardLayout = isStandardEntryForm(activeForm)
+  const isExpenseForm = activeForm.type === 'expense'
+  const vehicleExpense = useVehicleExpenseEntry(isExpenseForm)
 
   const {
     handleSubmit,
@@ -156,9 +68,13 @@ export default function DataEntryForm({
 
   useModalFormReset(reset, initialValues, { resetKey: activeForm.id })
 
-  const retroactiveWarning = useRetroactiveEntryWarning()
+  useEffect(() => {
+    vehicleExpense.resetVehicleValues()
+  }, [activeForm.id, vehicleExpense.resetVehicleValues])
 
+  const retroactiveWarning = useRetroactiveEntryWarning()
   const values = watch()
+  const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(String(values.category ?? ''))
 
   const handleCategoriesChange = (categories: string[]) => {
     onCategoriesRefresh()
@@ -174,6 +90,7 @@ export default function DataEntryForm({
 
     for (const field of activeForm.fields) {
       if (!field.required) continue
+      if (showVehicleFields && field.id === 'title') continue
 
       const val = formValues[field.id]
 
@@ -185,9 +102,23 @@ export default function DataEntryForm({
       }
     }
 
-    if (firstMessage) {
-      showError(firstMessage)
+    if (showVehicleFields) {
+      const vehicleErrors = vehicleExpense.validateVehicleExpense(
+        String(formValues.category ?? ''),
+        formValues.amount ?? ''
+      )
+
+      if (vehicleErrors) {
+        for (const [key, message] of Object.entries(vehicleErrors)) {
+          if (!message) continue
+          setError(key, { message })
+          firstMessage ??= message
+          hasError = true
+        }
+      }
     }
+
+    if (firstMessage) showError(firstMessage)
 
     return !hasError
   }
@@ -197,16 +128,25 @@ export default function DataEntryForm({
     try {
       const settings = getSettings()!
 
-      await appendRecord(
-        settings.spreadsheetId,
-        activeForm,
-        crypto.randomUUID(),
-        new Date().toLocaleString('fa-IR'),
-        formValues
-      )
+      if (showVehicleFields) {
+        await createManualVehicleExpense(
+          settings.spreadsheetId,
+          vehicleExpense.buildVehicleExpenseInput(formValues)
+        )
+      } else {
+        await appendRecord(
+          settings.spreadsheetId,
+          activeForm,
+          crypto.randomUUID(),
+          new Date().toLocaleString('fa-IR'),
+          formValues
+        )
+      }
+
       showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
       refreshOpeningBalancesInBackground()
       reset(buildInitialValues(activeForm))
+      vehicleExpense.resetVehicleValues()
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
     } finally {
@@ -220,7 +160,6 @@ export default function DataEntryForm({
       if (!isConfigured() || !requireAuth()) return
 
       const dateFieldId = activeForm.fields.find(field => field.type === 'date')?.id
-
       const dateValue = dateFieldId ? String(formValues[dateFieldId] ?? '') : ''
 
       if (retroactiveWarning.guard(dateValue, () => saveRecord(formValues))) return
@@ -248,20 +187,37 @@ export default function DataEntryForm({
             errors={errors}
             setValue={(id, value) => setValue(id, value)}
             onCategoriesRefresh={onCategoriesRefresh}
+            showVehicleFields={showVehicleFields}
+            vehicleExpense={vehicleExpense}
           />
         ) : (
-          sortFormFields(activeForm.fields).map(field => (
-            <FieldInput
-              key={field.id}
-              field={field}
-              value={values[field.id] ?? ''}
-              onChange={next => setValue(field.id, next)}
-              formId={activeForm.id}
-              error={formFieldError(errors, field.id)}
-              onCategoriesChange={handleCategoriesChange}
-            />
-          ))
+          sortFormFields(activeForm.fields).map(field => {
+            if (showVehicleFields && field.id === 'title') return null
+
+            return (
+              <FieldInput
+                key={field.id}
+                field={field}
+                value={values[field.id] ?? ''}
+                onChange={next => setValue(field.id, next)}
+                formId={activeForm.id}
+                error={formFieldError(errors, field.id)}
+                onCategoriesChange={handleCategoriesChange}
+              />
+            )
+          })
         )}
+
+        {!useStandardLayout && showVehicleFields ? (
+          <VehicleExpenseFields
+            values={vehicleExpense.vehicleValues}
+            amount={values.amount ?? ''}
+            onChange={vehicleExpense.patchVehicleValues}
+            vehicles={vehicleExpense.vehicles}
+            expenseTypes={vehicleExpense.expenseTypes}
+            onExpenseTypesChange={vehicleExpense.setExpenseTypes}
+          />
+        ) : null}
 
         <div className={cn(formActionsClassName(), dataEntryFormActionsClass)}>
           <Button
@@ -273,7 +229,7 @@ export default function DataEntryForm({
                 ? 'inflow'
                 : 'primary'
             }
-            disabled={loading}
+            disabled={loading || vehicleExpense.loading}
             loading={loading}
           >
             ذخیره

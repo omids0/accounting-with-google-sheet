@@ -50,7 +50,7 @@ function buildServiceTypeChip(serviceType: string, onRemove: () => void): Filter
 }
 
 type UseVehicleDetailFiltersOptions = {
-  detailTab: 'active' | 'history'
+  detailTab: 'active' | 'history' | 'transactions' | 'fuel'
   activeItems: VehicleActiveListItem[]
   historyItems: HistoryWithRow[]
   serviceTypeSeed?: string[]
@@ -63,7 +63,12 @@ export function useVehicleDetailFilters({
   serviceTypeSeed = []
 }: UseVehicleDetailFiltersOptions) {
   const isActiveTab = detailTab === 'active'
-  const items: VehicleDetailFilterItem[] = isActiveTab ? activeItems : historyItems
+  const isHistoryTab = detailTab === 'history'
+  const items: VehicleDetailFilterItem[] = isActiveTab
+    ? activeItems
+    : isHistoryTab
+    ? historyItems
+    : []
 
   const [serviceTypeFilter, setServiceTypeFilter] = useState('all')
   const [draftServiceTypeFilter, setDraftServiceTypeFilter] = useState('all')

@@ -4,35 +4,30 @@ import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import FilterModal from '../FilterModal'
-import SearchEmptyState from '../SearchEmptyState'
-import { DangCardListSkeleton } from '../skeleton'
 import SpeedDialIcon from '../SpeedDialIcon'
-import type {
-  VehicleProfileWithRow,
-  VehicleCompleteFormState,
-  VehicleDeadlineFormState,
-  VehiclePeriodicFormState
-} from './types'
+import type { VehicleProfileWithRow } from './types'
 import { useVehicleDetail } from './useVehicleDetail'
-import { useVehicleDetailFilters, type VehicleDetailFilterItem } from './useVehicleDetailFilters'
-import VehicleActiveItemCard from './VehicleActiveItemCard'
+import { useVehicleDetailFilters } from './useVehicleDetailFilters'
 import {
   vehicleDetailMileageClass,
   vehicleDetailMileageValueClass,
-  vehicleDetailToolbarClass,
-  vehicleHorizontalCardsContainerClass
+  vehicleDetailToolbarClass
 } from './vehicleCardStyles'
 import VehicleCompleteModal from './VehicleCompleteModal'
 import VehicleDeadlineFormModal from './VehicleDeadlineFormModal'
 import VehicleDetailFilterFields from './VehicleDetailFilterFields'
-import type { HistoryWithRow } from './vehicleDetailMutations'
-import VehicleHistoryCard from './VehicleHistoryCard'
+import {
+  buildCompleteInitialValues,
+  buildDeadlineInitialValues,
+  buildPeriodicInitialValues
+} from './vehicleDetailFormInitialValues'
+import VehicleDetailTabContent from './VehicleDetailTabContent'
 import VehicleItemDeleteModal from './VehicleItemDeleteModal'
 import VehicleMechanicFormModal from './VehicleMechanicFormModal'
 import VehicleMileageModal from './VehicleMileageModal'
 import VehiclePeriodicFormModal from './VehiclePeriodicFormModal'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
-import type { VehicleActiveListItem } from '../../types/vehicles'
+import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import TransactionTypeSegment from '../TransactionTypeSegment'
 import Card from '../ui/Card'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
@@ -56,9 +51,14 @@ export default function VehicleDetailPage({
   const detailTabOptions = useMemo(
     () => [
       { id: 'active', label: `موارد فعال (${page.activeItems.length.toLocaleString('fa-IR')})` },
-      { id: 'history', label: `تاریخچه (${page.history.length.toLocaleString('fa-IR')})` }
+      { id: 'history', label: `تاریخچه (${page.history.length.toLocaleString('fa-IR')})` },
+      {
+        id: 'transactions',
+        label: `تراکنش‌ها (${page.transactions.length.toLocaleString('fa-IR')})`
+      },
+      { id: 'fuel', label: 'مصرف بنزین' }
     ],
-    [page.activeItems.length, page.history.length]
+    [page.activeItems.length, page.history.length, page.transactions.length]
   )
 
   const speedDialConfig = useMemo(() => {
@@ -81,60 +81,25 @@ export default function VehicleDetailPage({
   useRegisterPageSpeedDial(speedDialConfig, active)
 
   const isActiveTab = page.detailTab === 'active'
+  const isHistoryTab = page.detailTab === 'history'
 
   const periodicInitialValues = useMemo(
-    (): Partial<VehiclePeriodicFormState> | undefined =>
-      page.editingPeriodic
-        ? {
-            serviceType: page.editingPeriodic.serviceType,
-            mileage: String(page.editingPeriodic.currentMileage),
-            isHistorical: page.editingPeriodic.currentMileage < page.currentVehicle.mileage,
-            intervalKm: String(page.editingPeriodic.intervalKm),
-            brand: page.editingPeriodic.brand,
-            location: page.editingPeriodic.location,
-            amount: page.editingPeriodic.amount > 0 ? page.editingPeriodic.amount : '',
-            notes: page.editingPeriodic.notes
-          }
-        : undefined,
+    () => buildPeriodicInitialValues(page.editingPeriodic, page.currentVehicle.mileage),
     [page.editingPeriodic, page.currentVehicle.mileage]
   )
 
   const deadlineInitialValues = useMemo(
-    (): Partial<VehicleDeadlineFormState> | undefined =>
-      page.editingDeadline
-        ? {
-            category: page.editingDeadline.category,
-            startDate: page.editingDeadline.startDate,
-            endDate: page.editingDeadline.endDate,
-            amount: page.editingDeadline.amount > 0 ? page.editingDeadline.amount : '',
-            notes: page.editingDeadline.notes
-          }
-        : undefined,
+    () => buildDeadlineInitialValues(page.editingDeadline),
     [page.editingDeadline]
   )
 
   const completeInitialValues = useMemo(
-    (): Partial<VehicleCompleteFormState> | undefined =>
-      page.completingPeriodic
-        ? {
-            mileage: String(
-              page.completingPeriodic.currentMileage < page.currentVehicle.mileage
-                ? page.completingPeriodic.currentMileage
-                : page.currentVehicle.mileage
-            ),
-            isHistorical: page.completingPeriodic.currentMileage < page.currentVehicle.mileage,
-            intervalKm: String(page.completingPeriodic.intervalKm),
-            brand: page.completingPeriodic.brand,
-            location: page.completingPeriodic.location,
-            amount: page.completingPeriodic.amount > 0 ? page.completingPeriodic.amount : '',
-            notes: page.completingPeriodic.notes
-          }
-        : undefined,
-    [page.completingPeriodic, page.currentVehicle.mileage]
+    () => buildCompleteInitialValues(page.completingPeriodic, page.currentVehicle),
+    [page.completingPeriodic, page.currentVehicle]
   )
 
-  const sourceItems = page.detailTab === 'active' ? page.activeItems : page.history
-  const listItems = filters.filteredItems
+  const sourceItems = isActiveTab ? page.activeItems : isHistoryTab ? page.history : []
+  const listItems = isActiveTab || isHistoryTab ? filters.filteredItems : []
 
   if (!isConfigured()) {
     return (
@@ -188,55 +153,38 @@ export default function VehicleDetailPage({
         <TransactionTypeSegment
           options={detailTabOptions}
           value={page.detailTab}
-          onChange={id => page.setDetailTab(id as 'active' | 'history')}
+          onChange={id => page.setDetailTab(id as 'active' | 'history' | 'transactions' | 'fuel')}
           ariaLabel="بخش جزئیات خودرو"
           className="mb-0"
         />
       </Card>
 
-      {page.loading && page.activeItems.length === 0 && page.history.length === 0 ? (
-        <DangCardListSkeleton filterChips={filters.filterChips.length} />
-      ) : sourceItems.length === 0 ? (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="settings" />
-          </div>
-          <p>{isActiveTab ? 'مورد فعالی ثبت نشده' : 'تاریخچه‌ای ثبت نشده'}</p>
-        </div>
-      ) : listItems.length === 0 ? (
-        <SearchEmptyState />
-      ) : isActiveTab ? (
-        <div className={vehicleHorizontalCardsContainerClass}>
-          {(listItems as VehicleActiveListItem[]).map(item => (
-            <VehicleActiveItemCard
-              key={item.id}
-              item={item}
-              onComplete={page.openComplete}
-              onRenew={page.openDeadlineRenew}
-              onEdit={item.kind === 'periodic' ? page.openPeriodicEdit : page.openDeadlineEdit}
-              onDelete={activeItem => {
-                if (activeItem.kind === 'periodic' && activeItem.periodic) {
-                  page.openDeleteTarget({ kind: 'periodic', item: activeItem.periodic })
-                } else if (activeItem.deadline) {
-                  page.openDeleteTarget({ kind: 'deadline', item: activeItem.deadline })
-                }
-              }}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className={vehicleHorizontalCardsContainerClass}>
-          {(listItems as VehicleDetailFilterItem[] as HistoryWithRow[]).map(item => (
-            <VehicleHistoryCard
-              key={item.id}
-              item={item}
-              onDelete={historyItem =>
-                page.openDeleteTarget({ kind: 'history', item: historyItem })
-              }
-            />
-          ))}
-        </div>
-      )}
+      <VehicleDetailTabContent
+        detailTab={page.detailTab}
+        loading={page.loading}
+        activeItems={page.activeItems}
+        history={page.history}
+        transactions={page.transactions}
+        fuelStats={page.fuelStats}
+        filterChipsCount={filters.filterChips.length}
+        sourceItems={sourceItems}
+        listItems={listItems}
+        onComplete={page.openComplete}
+        onRenew={page.openDeadlineRenew}
+        onPeriodicEdit={page.openPeriodicEdit}
+        onDeadlineEdit={page.openDeadlineEdit}
+        onDeleteActive={activeItem => {
+          if (activeItem.kind === 'periodic' && activeItem.periodic) {
+            page.openDeleteTarget({ kind: 'periodic', item: activeItem.periodic })
+          } else if (activeItem.deadline) {
+            page.openDeleteTarget({ kind: 'deadline', item: activeItem.deadline })
+          }
+        }}
+        onDeleteHistory={historyItem =>
+          page.openDeleteTarget({ kind: 'history', item: historyItem })
+        }
+        onDeleteTransaction={transaction => page.setDeletingTransaction(transaction)}
+      />
 
       <VehiclePeriodicFormModal
         open={page.showPeriodicForm}
@@ -298,6 +246,18 @@ export default function VehicleDetailPage({
         deleting={page.deleting}
         onClose={page.closeDeleteTarget}
         onConfirm={page.handleDelete}
+      />
+
+      <ConfirmDeleteModal
+        open={page.deletingTransaction !== null}
+        title="حذف تراکنش"
+        message="این تراکنش از لیست هزینه‌ها هم حذف می‌شود. مطمئن هستید؟"
+        deleting={page.deleting}
+        onClose={() => {
+          if (page.deleting) return
+          page.setDeletingTransaction(null)
+        }}
+        onConfirm={() => void page.handleDeleteTransaction()}
       />
     </div>
   )
