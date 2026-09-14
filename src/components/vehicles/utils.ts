@@ -172,3 +172,19 @@ export function validateMileageIncrease(
 
   return null
 }
+
+export function validateVehicleMileageEntry(
+  mileage: number,
+  currentMileage: number,
+  options?: { isHistorical?: boolean; minimumMileage?: number }
+): string | null {
+  const { isHistorical = false, minimumMileage } = options ?? {}
+
+  if (!Number.isFinite(mileage) || mileage <= 0) {
+    return 'کارکرد باید عدد مثبت باشد'
+  }
+
+  if (isHistorical) return null
+
+  return validateMileageIncrease(mileage, currentMileage, minimumMileage ?? currentMileage)
+}

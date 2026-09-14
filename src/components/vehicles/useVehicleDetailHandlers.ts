@@ -7,7 +7,7 @@ import type {
   VehicleProfileWithRow,
   VehicleDeleteTarget
 } from './types'
-import { validateMileageIncrease } from './utils'
+import { validateMileageIncrease, validateVehicleMileageEntry } from './utils'
 import {
   deleteVehicleDetailItem,
   submitCompleteForm,
@@ -71,7 +71,8 @@ export function createVehicleDetailHandlers(context: HandlerContext) {
       const mileageError = validatePeriodicMileage(
         parseNumeric(values.mileage),
         context.currentVehicle,
-        parseNumeric(values.intervalKm)
+        parseNumeric(values.intervalKm),
+        values.isHistorical
       )
 
       if (mileageError) {
@@ -102,7 +103,8 @@ export function createVehicleDetailHandlers(context: HandlerContext) {
       const mileageError = validatePeriodicMileage(
         parseNumeric(values.mileage),
         context.currentVehicle,
-        parseNumeric(values.intervalKm)
+        parseNumeric(values.intervalKm),
+        values.isHistorical
       )
 
       if (mileageError) {
@@ -165,11 +167,9 @@ export function createVehicleDetailHandlers(context: HandlerContext) {
       const mileage = parseNumeric(values.mileage)
 
       if (mileage > 0) {
-        const mileageError = validateMileageIncrease(
-          mileage,
-          context.currentVehicle.mileage,
-          context.currentVehicle.mileage
-        )
+        const mileageError = validateVehicleMileageEntry(mileage, context.currentVehicle.mileage, {
+          isHistorical: values.isHistorical
+        })
 
         if (mileageError) {
           showError(mileageError)

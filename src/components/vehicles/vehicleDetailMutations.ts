@@ -7,7 +7,7 @@ import type {
   VehicleProfileWithRow,
   VehicleDeleteTarget
 } from './types'
-import { calculateNextKm, validateMileageIncrease } from './utils'
+import { calculateNextKm, validateVehicleMileageEntry } from './utils'
 import {
   completePeriodicService,
   renewVehicleDeadline,
@@ -63,7 +63,7 @@ export async function submitPeriodicForm(params: {
       notes: values.notes.trim()
     })
 
-    if (mileage !== vehicle.mileage) {
+    if (!values.isHistorical && mileage > vehicle.mileage) {
       await updateVehicleMileage(spreadsheetId, vehicle.rowNumber, mileage, values.date)
     }
 
@@ -109,7 +109,7 @@ export async function submitPeriodicForm(params: {
     })
   }
 
-  if (mileage !== vehicle.mileage) {
+  if (!values.isHistorical && mileage > vehicle.mileage) {
     await updateVehicleMileage(spreadsheetId, vehicle.rowNumber, mileage, values.date)
   }
 }
@@ -135,7 +135,8 @@ export async function submitCompleteForm(params: {
     amount: parseNumeric(values.amount),
     notes: values.notes.trim(),
     date: values.date || getTodayIso(),
-    previousExpenseId: completingPeriodic.expenseRecordId
+    previousExpenseId: completingPeriodic.expenseRecordId,
+    isHistorical: values.isHistorical
   })
 }
 
@@ -218,7 +219,8 @@ export async function submitMechanicForm(params: {
     location: values.location.trim(),
     totalAmount: parseNumeric(values.totalAmount),
     items,
-    notes: values.notes.trim()
+    notes: values.notes.trim(),
+    isHistorical: values.isHistorical
   })
 }
 
@@ -256,11 +258,12 @@ export async function deleteVehicleDetailItem(params: {
 export function validatePeriodicMileage(
   mileage: number,
   vehicle: VehicleProfileWithRow,
-  intervalKm: number
+  intervalKm: number,
+  isHistorical = false
 ): string | null {
   if (intervalKm <= 0) return 'فاصله سرویس باید بیشتر از صفر باشد'
 
-  return validateMileageIncrease(mileage, vehicle.mileage, vehicle.mileage)
+  return validateVehicleMileageEntry(mileage, vehicle.mileage, { isHistorical })
 }
 
 export type { PeriodicWithRow, DeadlineWithRow, HistoryWithRow }

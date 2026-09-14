@@ -4,7 +4,6 @@ import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import FilterModal from '../FilterModal'
-import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import SpeedDialIcon from '../SpeedDialIcon'
@@ -20,6 +19,7 @@ import {
 } from './vehicleCardStyles'
 import VehicleCompleteModal from './VehicleCompleteModal'
 import VehicleDeadlineFormModal from './VehicleDeadlineFormModal'
+import VehicleDetailFilterFields from './VehicleDetailFilterFields'
 import type { HistoryWithRow } from './vehicleDetailMutations'
 import VehicleHistoryCard from './VehicleHistoryCard'
 import VehicleItemDeleteModal from './VehicleItemDeleteModal'
@@ -44,7 +44,8 @@ export default function VehicleDetailPage({
   const filters = useVehicleDetailFilters({
     detailTab: page.detailTab,
     activeItems: page.activeItems,
-    historyItems: page.history
+    historyItems: page.history,
+    serviceTypeSeed: page.serviceTypes
   })
 
   const detailTabOptions = useMemo(
@@ -103,24 +104,20 @@ export default function VehicleDetailPage({
         onApply={filters.applyFilters}
         onClear={filters.clearDraftFilters}
       >
-        <PageFilterPanel
-          search={filters.draftSearch}
-          onSearchChange={filters.setDraftSearch}
-          searchPlaceholder={isActiveTab ? 'جستجو در موارد فعال...' : 'جستجو در تاریخچه...'}
-          category={filters.draftCategory}
-          onCategoryChange={filters.setDraftCategory}
+        <VehicleDetailFilterFields
+          isActiveTab={isActiveTab}
+          loading={page.loading}
+          draftSearch={filters.draftSearch}
+          setDraftSearch={filters.setDraftSearch}
+          draftCategory={filters.draftCategory}
+          setDraftCategory={filters.setDraftCategory}
           categoryOptions={filters.categoryOptions}
-          categoryLabel={isActiveTab ? 'فوریت' : 'نوع'}
-          {...(isActiveTab
-            ? {}
-            : {
-                datePreset: filters.draftDatePreset,
-                customRange: filters.draftCustomRange,
-                onDateFilterChange: filters.handleDraftDateFilterChange,
-                dateIncludeAll: true as const,
-                dateLabel: 'بازه زمانی (تاریخ)',
-                dateLoading: page.loading
-              })}
+          draftDatePreset={filters.draftDatePreset}
+          draftCustomRange={filters.draftCustomRange}
+          handleDraftDateFilterChange={filters.handleDraftDateFilterChange}
+          draftServiceTypeFilter={filters.draftServiceTypeFilter}
+          setDraftServiceTypeFilter={filters.setDraftServiceTypeFilter}
+          serviceTypeOptions={filters.serviceTypeOptions}
         />
       </FilterModal>
 
@@ -195,6 +192,7 @@ export default function VehicleDetailPage({
             ? {
                 serviceType: page.editingPeriodic.serviceType,
                 mileage: String(page.editingPeriodic.currentMileage),
+                isHistorical: page.editingPeriodic.currentMileage < page.currentVehicle.mileage,
                 intervalKm: String(page.editingPeriodic.intervalKm),
                 brand: page.editingPeriodic.brand,
                 location: page.editingPeriodic.location,
@@ -236,7 +234,12 @@ export default function VehicleDetailPage({
         initialValues={
           page.completingPeriodic
             ? {
-                mileage: String(page.currentVehicle.mileage),
+                mileage: String(
+                  page.completingPeriodic.currentMileage < page.currentVehicle.mileage
+                    ? page.completingPeriodic.currentMileage
+                    : page.currentVehicle.mileage
+                ),
+                isHistorical: page.completingPeriodic.currentMileage < page.currentVehicle.mileage,
                 intervalKm: String(page.completingPeriodic.intervalKm),
                 brand: page.completingPeriodic.brand,
                 location: page.completingPeriodic.location,

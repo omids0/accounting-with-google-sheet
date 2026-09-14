@@ -14,7 +14,7 @@ export async function syncVehicleMileage(
   mileage: number,
   date = getTodayIso()
 ): Promise<void> {
-  if (mileage === vehicle.mileage) return
+  if (mileage <= vehicle.mileage) return
 
   await updateVehicleMileage(spreadsheetId, vehicle.rowNumber, mileage, date)
 }
@@ -33,6 +33,7 @@ export async function completePeriodicService(params: {
   notes: string
   date: string
   previousExpenseId?: string
+  isHistorical?: boolean
 }): Promise<void> {
   const {
     spreadsheetId,
@@ -47,14 +48,17 @@ export async function completePeriodicService(params: {
     amount,
     notes,
     date,
-    previousExpenseId
+    previousExpenseId,
+    isHistorical = false
   } = params
 
   if (previousExpenseId) {
     await deleteVehicleExpense(spreadsheetId, previousExpenseId)
   }
 
-  await syncVehicleMileage(spreadsheetId, vehicle, mileage, date)
+  if (!isHistorical && mileage > vehicle.mileage) {
+    await syncVehicleMileage(spreadsheetId, vehicle, mileage, date)
+  }
 
   const nextKm = calculateNextKm(mileage, intervalKm)
   const expenseRecordId =
@@ -162,10 +166,21 @@ export async function saveMechanicVisit(params: {
   totalAmount: number
   items: VehicleMechanicItem[]
   notes: string
+  isHistorical?: boolean
 }): Promise<void> {
-  const { spreadsheetId, vehicle, date, mileage, location, totalAmount, items, notes } = params
+  const {
+    spreadsheetId,
+    vehicle,
+    date,
+    mileage,
+    location,
+    totalAmount,
+    items,
+    notes,
+    isHistorical = false
+  } = params
 
-  if (mileage > 0) {
+  if (mileage > 0 && !isHistorical) {
     await syncVehicleMileage(spreadsheetId, vehicle, mileage, date)
   }
 
