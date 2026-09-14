@@ -1,9 +1,10 @@
 import { fetchPersonalReminders } from './personalReminders'
 import { getReminderKindLabel } from './reminders'
 import { loadDueDatesReport, type DueDateItem, type DueDateStatus } from './reports'
+import { fetchVehicleDashboardReminderItems } from './vehicleDashboardReminders'
 import { addDaysToIso, getTodayIso } from '../utils/jalaliDate'
 
-export type DashboardReminderKind = 'installments' | 'checks' | 'dang' | 'personal'
+export type DashboardReminderKind = 'installments' | 'checks' | 'dang' | 'personal' | 'vehicle'
 
 export interface DashboardReminderItem {
   id: string
@@ -55,9 +56,10 @@ export async function fetchDashboardReminderItems(
   const today = getTodayIso().slice(0, 10)
   const horizonEnd = addDaysToIso(today, horizonDays).slice(0, 10)
 
-  const [dueItems, personalItems] = await Promise.all([
+  const [dueItems, personalItems, vehicleItems] = await Promise.all([
     loadDueDatesReport(spreadsheetId, horizonDays).catch(() => [] as DueDateItem[]),
-    fetchPersonalReminders(spreadsheetId).catch(() => [])
+    fetchPersonalReminders(spreadsheetId).catch(() => []),
+    fetchVehicleDashboardReminderItems(spreadsheetId).catch(() => [])
   ])
 
   const personalMapped: DashboardReminderItem[] = personalItems
@@ -74,7 +76,21 @@ export async function fetchDashboardReminderItems(
       status: getPersonalReminderDueStatus(item.dueDate, today)
     }))
 
-  return [...dueItems.map(mapDueDateItem), ...personalMapped]
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+  const vehicleMapped = vehicleItems.filter(item => {
+    const due = item.dueDate.slice(0, 10)
+
+    return due <= horizonEnd
+  })
+
+  return [...dueItems.map(mapDueDateItem), ...personalMapped, ...vehicleMapped]
+    .sort((a, b) => {
+      const statusRank = { overdue: 0, today: 1, upcoming: 2 } as const
+
+      const statusDiff = statusRank[a.status] - statusRank[b.status]
+
+      if (statusDiff !== 0) return statusDiff
+
+      return a.dueDate.localeCompare(b.dueDate)
+    })
     .slice(0, limit)
 }

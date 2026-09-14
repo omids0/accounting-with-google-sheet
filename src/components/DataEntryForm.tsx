@@ -72,6 +72,10 @@ export default function DataEntryForm({
     vehicleExpense.resetVehicleValues()
   }, [activeForm.id, vehicleExpense.resetVehicleValues])
 
+  useEffect(() => {
+    clearErrors(['mileage', 'fuelPricePerLiter', 'expenseType', 'vehicleId', 'amount'])
+  }, [vehicleExpense.vehicleValues, clearErrors])
+
   const retroactiveWarning = useRetroactiveEntryWarning()
   const values = watch()
   const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(String(values.category ?? ''))
@@ -109,12 +113,8 @@ export default function DataEntryForm({
       )
 
       if (vehicleErrors) {
-        for (const [key, message] of Object.entries(vehicleErrors)) {
-          if (!message) continue
-          setError(key, { message })
-          firstMessage ??= message
-          hasError = true
-        }
+        firstMessage ??= Object.values(vehicleErrors).find(Boolean)
+        hasError = true
       }
     }
 
@@ -194,14 +194,24 @@ export default function DataEntryForm({
           sortFormFields(activeForm.fields).map(field => {
             if (showVehicleFields && field.id === 'title') return null
 
+            const fieldError =
+              showVehicleFields && field.id === 'amount'
+                ? vehicleExpense.fieldErrors.amount || formFieldError(errors, field.id)
+                : formFieldError(errors, field.id)
+
             return (
               <FieldInput
                 key={field.id}
                 field={field}
                 value={values[field.id] ?? ''}
-                onChange={next => setValue(field.id, next)}
+                onChange={next => {
+                  if (showVehicleFields && field.id === 'amount') {
+                    vehicleExpense.clearFieldError('amount')
+                  }
+                  setValue(field.id, next)
+                }}
                 formId={activeForm.id}
-                error={formFieldError(errors, field.id)}
+                error={fieldError}
                 onCategoriesChange={handleCategoriesChange}
               />
             )
@@ -216,6 +226,7 @@ export default function DataEntryForm({
             vehicles={vehicleExpense.vehicles}
             expenseTypes={vehicleExpense.expenseTypes}
             onExpenseTypesChange={vehicleExpense.setExpenseTypes}
+            errors={vehicleExpense.fieldErrors}
           />
         ) : null}
 

@@ -13,6 +13,7 @@ import AmountInput from '../AmountInput'
 import CategorySelect from '../form/CategorySelect'
 import FormField from '../form/FormField'
 import { VEHICLE_OTHER_OPTION } from '../vehicles/constants'
+import MileageInput from '../vehicles/MileageInput'
 
 type VehicleExpenseFieldsProps = {
   values: VehicleExpenseFormValues
@@ -37,7 +38,6 @@ export default function VehicleExpenseFields({
 }: VehicleExpenseFieldsProps) {
   const categories = expenseTypes ?? getVehicleExpenseCategories()
   const isFuel = isFuelExpenseType(values.expenseType)
-  const selectedVehicle = vehicles.find(item => item.id === values.vehicleId)
   const fuelLiters = useMemo(() => {
     if (!isFuel) return 0
 
@@ -87,23 +87,11 @@ export default function VehicleExpenseFields({
             />
           </FormField>
 
-          <FormField label="کارکرد فعلی (km)" required controlWidth="full" error={errors.mileage}>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={values.mileage === '' ? '' : values.mileage}
-              onChange={event =>
-                onChange({
-                  mileage: event.target.value === '' ? '' : Number(event.target.value)
-                })
-              }
-              dir="ltr"
-              disabled={disabled}
-              placeholder={
-                selectedVehicle
-                  ? `حداقل ${selectedVehicle.mileage.toLocaleString('fa-IR')}`
-                  : 'مثلاً ۱۲۰۰۰۰'
-              }
+          <FormField label="کارکرد فعلی" required controlWidth="full" error={errors.mileage}>
+            <MileageInput
+              value={values.mileage}
+              onChange={mileage => onChange({ mileage })}
+              invalid={Boolean(errors.mileage)}
             />
           </FormField>
 

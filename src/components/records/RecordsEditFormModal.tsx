@@ -157,6 +157,7 @@ export default function RecordsEditFormModal({
           expenseTypes={vehicleExpense.expenseTypes}
           onExpenseTypesChange={vehicleExpense.setExpenseTypes}
           disabled={saving}
+          errors={vehicleExpense.fieldErrors}
         />
       ) : null}
     </FormModal>

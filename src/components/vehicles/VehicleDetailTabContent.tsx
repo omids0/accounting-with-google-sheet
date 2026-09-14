@@ -4,7 +4,7 @@ import { vehicleHorizontalCardsContainerClass } from './vehicleCardStyles'
 import type { HistoryWithRow } from './vehicleDetailMutations'
 import VehicleFuelReportSection from './VehicleFuelReportSection'
 import VehicleHistoryCard from './VehicleHistoryCard'
-import VehicleTransactionCard from './VehicleTransactionCard'
+import VehicleTransactionsSection from './VehicleTransactionsSection'
 import type {
   MonthlyFuelStats,
   VehicleActiveListItem,
@@ -67,13 +67,7 @@ export default function VehicleDetailTabContent({
       )
     }
 
-    return (
-      <div className={vehicleHorizontalCardsContainerClass}>
-        {transactions.map(item => (
-          <VehicleTransactionCard key={item.id} item={item} onDelete={onDeleteTransaction} />
-        ))}
-      </div>
-    )
+    return <VehicleTransactionsSection transactions={transactions} onDelete={onDeleteTransaction} />
   }
 
   if (detailTab === 'fuel') {

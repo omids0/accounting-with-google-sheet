@@ -75,6 +75,11 @@ export default function StandardEntryFormFields({
     if (!field) return null
     if (showVehicleFields && id === 'title') return null
 
+    const vehicleAmountError =
+      showVehicleFields && id === 'amount'
+        ? vehicleExpense.fieldErrors.amount || formFieldError(errors, field.id)
+        : formFieldError(errors, field.id)
+
     return (
       <EntryFieldRenderer
         key={field.id}
@@ -82,8 +87,13 @@ export default function StandardEntryFormFields({
         value={values[field.id] ?? ''}
         formId={activeForm.id}
         controlWidth={options?.controlWidth}
-        error={formFieldError(errors, field.id)}
-        onChange={next => setValue(field.id, next)}
+        error={vehicleAmountError}
+        onChange={next => {
+          if (showVehicleFields && id === 'amount') {
+            vehicleExpense.clearFieldError('amount')
+          }
+          setValue(field.id, next)
+        }}
         onCategoriesChange={handleCategoriesChange}
       />
     )
@@ -105,6 +115,7 @@ export default function StandardEntryFormFields({
           vehicles={vehicleExpense.vehicles}
           expenseTypes={vehicleExpense.expenseTypes}
           onExpenseTypesChange={vehicleExpense.setExpenseTypes}
+          errors={vehicleExpense.fieldErrors}
         />
       ) : null}
       {renderField('note')}

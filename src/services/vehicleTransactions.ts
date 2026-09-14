@@ -196,3 +196,35 @@ export function filterFuelTransactions(
 ): VehicleTransactionItem[] {
   return transactions.filter(item => isFuelExpenseType(item.expenseType ?? ''))
 }
+
+function resolveTransactionTypeLabel(item: VehicleTransactionItem): string {
+  if (item.expenseType?.trim()) return item.expenseType.trim()
+
+  if (item.source === 'periodic') return 'سرویس دوره‌ای'
+  if (item.source === 'deadline') return 'موعد'
+  if (item.source === 'mechanic') return 'مکانیک'
+
+  return item.title || 'سایر'
+}
+
+export function buildVehicleExpenseTypeBreakdown(
+  transactions: VehicleTransactionItem[]
+): { name: string; total: number }[] {
+  const totals = new Map<string, number>()
+
+  for (const item of transactions) {
+    if (item.amount <= 0) continue
+
+    const label = resolveTransactionTypeLabel(item)
+
+    totals.set(label, (totals.get(label) ?? 0) + item.amount)
+  }
+
+  return [...totals.entries()]
+    .map(([name, total]) => ({ name, total }))
+    .sort((a, b) => b.total - a.total)
+}
+
+export function sumVehicleTransactionAmounts(transactions: VehicleTransactionItem[]): number {
+  return transactions.reduce((sum, item) => sum + Math.max(0, item.amount), 0)
+}

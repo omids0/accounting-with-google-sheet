@@ -15,17 +15,26 @@ import {
   type VehicleExpenseFormValues
 } from '../utils/vehicleExpenseUtils'
 
-const DEFAULT_VALUES: VehicleExpenseFormValues = {
-  vehicleId: VEHICLE_OTHER_OPTION,
-  expenseType: VEHICLE_FUEL_EXPENSE_TYPE,
-  fuelPricePerLiter: '',
-  mileage: ''
+export type VehicleExpenseFieldErrors = Partial<
+  Record<keyof VehicleExpenseFormValues | 'amount', string>
+>
+
+function createDefaultValues(vehicles: VehicleProfile[]): VehicleExpenseFormValues {
+  return {
+    vehicleId: vehicles[0]?.id ?? VEHICLE_OTHER_OPTION,
+    expenseType: VEHICLE_FUEL_EXPENSE_TYPE,
+    fuelPricePerLiter: '',
+    mileage: ''
+  }
 }
 
 export function useVehicleExpenseEntry(active: boolean) {
   const [vehicles, setVehicles] = useState<VehicleProfile[]>([])
   const [expenseTypes, setExpenseTypes] = useState<string[]>(() => getVehicleExpenseCategories())
-  const [vehicleValues, setVehicleValues] = useState<VehicleExpenseFormValues>(DEFAULT_VALUES)
+  const [vehicleValues, setVehicleValues] = useState<VehicleExpenseFormValues>(() =>
+    createDefaultValues([])
+  )
+  const [fieldErrors, setFieldErrors] = useState<VehicleExpenseFieldErrors>({})
   const [loading, setLoading] = useState(false)
 
   const loadData = useCallback(async () => {
@@ -38,8 +47,16 @@ export function useVehicleExpenseEntry(active: boolean) {
       await syncCategoriesFromSheet(settings.spreadsheetId)
       setExpenseTypes(getVehicleExpenseCategories())
       const items = await fetchVehicles(settings.spreadsheetId)
+      const activeVehicles = items.filter(item => item.active)
 
-      setVehicles(items.filter(item => item.active))
+      setVehicles(activeVehicles)
+      setVehicleValues(current => {
+        const hasValidVehicle = activeVehicles.some(item => item.id === current.vehicleId)
+
+        if (hasValidVehicle) return current
+
+        return { ...current, vehicleId: activeVehicles[0]?.id ?? VEHICLE_OTHER_OPTION }
+      })
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری خودروها' })
     } finally {
@@ -53,22 +70,48 @@ export function useVehicleExpenseEntry(active: boolean) {
     void loadData()
   }, [active, loadData])
 
-  const resetVehicleValues = useCallback((seed?: Partial<VehicleExpenseFormValues>) => {
-    setVehicleValues({ ...DEFAULT_VALUES, ...seed })
+  const resetVehicleValues = useCallback(
+    (seed?: Partial<VehicleExpenseFormValues>) => {
+      setFieldErrors({})
+      setVehicleValues({ ...createDefaultValues(vehicles), ...seed })
+    },
+    [vehicles]
+  )
+
+  const clearFieldError = useCallback((key: keyof VehicleExpenseFieldErrors) => {
+    setFieldErrors(current => {
+      if (!current[key]) return current
+
+      const next = { ...current }
+
+      delete next[key]
+
+      return next
+    })
   }, [])
 
   const patchVehicleValues = useCallback((patch: Partial<VehicleExpenseFormValues>) => {
+    setFieldErrors(current => {
+      const next = { ...current }
+
+      for (const key of Object.keys(patch) as Array<keyof VehicleExpenseFormValues>) {
+        delete next[key]
+      }
+
+      return next
+    })
     setVehicleValues(current => ({ ...current, ...patch }))
   }, [])
 
   const validateVehicleExpense = useCallback(
-    (
-      category: string,
-      amount: string | number
-    ): Partial<Record<keyof VehicleExpenseFormValues | 'amount', string>> | null => {
-      if (!isVehicleExpenseCategory(category)) return null
+    (category: string, amount: string | number): VehicleExpenseFieldErrors | null => {
+      if (!isVehicleExpenseCategory(category)) {
+        setFieldErrors({})
 
-      const errors: Partial<Record<keyof VehicleExpenseFormValues | 'amount', string>> = {}
+        return null
+      }
+
+      const errors: VehicleExpenseFieldErrors = {}
 
       if (!vehicleValues.expenseType.trim()) {
         errors.expenseType = 'نوع هزینه الزامی است'
@@ -90,6 +133,8 @@ export function useVehicleExpenseEntry(active: boolean) {
       if (parseNumericField(amount) <= 0) {
         errors.amount = 'مبلغ الزامی است'
       }
+
+      setFieldErrors(errors)
 
       return Object.keys(errors).length ? errors : null
     },
@@ -126,10 +171,12 @@ export function useVehicleExpenseEntry(active: boolean) {
     vehicles,
     expenseTypes,
     vehicleValues,
+    fieldErrors,
     loading,
     setExpenseTypes,
     resetVehicleValues,
     patchVehicleValues,
+    clearFieldError,
     validateVehicleExpense,
     buildVehicleExpenseInput,
     isVehicleCategory: (category: string) => isVehicleExpenseCategory(category)
