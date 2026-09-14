@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { DefaultValues, FieldValues, UseFormReset } from 'react-hook-form'
 
 export type UseModalFormResetOptions = {
@@ -13,9 +13,12 @@ export function useModalFormReset<T extends FieldValues>(
   initialValues: T,
   { active = true, resetKey }: UseModalFormResetOptions = {}
 ) {
+  const valuesRef = useRef(initialValues)
+  valuesRef.current = initialValues
+
   useEffect(() => {
     if (active) {
-      reset(initialValues as DefaultValues<T>)
+      reset(valuesRef.current as DefaultValues<T>)
     }
-  }, [active, resetKey, initialValues, reset])
+  }, [active, resetKey, reset])
 }

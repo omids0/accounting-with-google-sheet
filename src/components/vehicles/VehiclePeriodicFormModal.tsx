@@ -58,9 +58,11 @@ export default function VehiclePeriodicFormModal({
   onSubmit,
   onServiceTypesChange
 }: VehiclePeriodicFormModalProps) {
+  const formResetKey = JSON.stringify(initialValues ?? 'create')
+
   const defaults = useMemo(
     () => buildDefaults(defaultMileage, serviceTypes, initialValues),
-    [defaultMileage, initialValues, serviceTypes]
+    [defaultMileage, serviceTypes, formResetKey]
   )
 
   const {
@@ -78,7 +80,7 @@ export default function VehiclePeriodicFormModal({
 
   useModalFormReset(reset, defaults, {
     active: open,
-    resetKey: JSON.stringify(initialValues ?? 'create')
+    resetKey: formResetKey
   })
 
   const serviceType = watch('serviceType')

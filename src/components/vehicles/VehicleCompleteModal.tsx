@@ -52,9 +52,11 @@ export default function VehicleCompleteModal({
   onClose,
   onSubmit
 }: VehicleCompleteModalProps) {
+  const formResetKey = JSON.stringify(initialValues ?? 'create')
+
   const defaults = useMemo(
     () => buildDefaults(defaultMileage, initialValues),
-    [defaultMileage, initialValues]
+    [defaultMileage, formResetKey]
   )
 
   const {
@@ -71,7 +73,7 @@ export default function VehicleCompleteModal({
 
   useModalFormReset(reset, defaults, {
     active: open,
-    resetKey: serviceType
+    resetKey: `${serviceType}:${formResetKey}`
   })
 
   const mileage = parseNumeric(watch('mileage'))
