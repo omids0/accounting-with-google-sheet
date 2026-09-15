@@ -8,8 +8,10 @@ import {
   getSettings,
   saveSettings
 } from './settings'
+import { DEFAULT_VEHICLE_EXPENSE_CATEGORIES } from './vehicleExpenseCategories'
 import { DEFAULT_VEHICLE_MECHANIC_CATEGORIES } from './vehicleMechanicCategories'
 import { DEFAULT_VEHICLE_PERIODIC_CATEGORIES } from './vehiclePeriodicCategories'
+import { withLockedExpenseCategories } from '../utils/protectedCategories'
 
 export type CategoryType =
   | 'income'
@@ -19,6 +21,7 @@ export type CategoryType =
   | 'personalReminder'
   | 'vehiclePeriodic'
   | 'vehicleMechanic'
+  | 'vehicleExpense'
 
 const FORM_TYPE_LABELS: Record<CategoryType, string> = {
   income: 'درآمد',
@@ -27,7 +30,8 @@ const FORM_TYPE_LABELS: Record<CategoryType, string> = {
   receivable: 'طلب',
   personalReminder: 'یادآوری',
   vehiclePeriodic: 'سرویس دوره‌ای',
-  vehicleMechanic: 'مکانیک'
+  vehicleMechanic: 'مکانیک',
+  vehicleExpense: 'هزینه خودرو'
 }
 
 export interface CategoryGroups {
@@ -38,6 +42,7 @@ export interface CategoryGroups {
   personalReminder: string[]
   vehiclePeriodic: string[]
   vehicleMechanic: string[]
+  vehicleExpense: string[]
 }
 
 function parseFormType(value: string): CategoryType | null {
@@ -73,6 +78,13 @@ function parseFormType(value: string): CategoryType | null {
     normalized === 'مراجعه مکانیک'
   )
     return 'vehicleMechanic'
+  if (
+    normalized === 'vehicleexpense' ||
+    normalized === 'vehicle_expense' ||
+    normalized === 'هزینه خودرو' ||
+    normalized === 'هزینه_خودرو'
+  )
+    return 'vehicleExpense'
 
   return null
 }
@@ -85,7 +97,8 @@ export function rowsToGroups(rows: string[][]): CategoryGroups {
     receivable: [],
     personalReminder: [],
     vehiclePeriodic: [],
-    vehicleMechanic: []
+    vehicleMechanic: [],
+    vehicleExpense: []
   }
 
   for (const row of rows) {
@@ -126,6 +139,9 @@ export function groupsToRows(groups: CategoryGroups): string[][] {
   for (const category of groups.vehicleMechanic) {
     rows.push([FORM_TYPE_LABELS.vehicleMechanic, category])
   }
+  for (const category of groups.vehicleExpense) {
+    rows.push([FORM_TYPE_LABELS.vehicleExpense, category])
+  }
 
   return rows
 }
@@ -144,7 +160,10 @@ export function withDefaults(groups: CategoryGroups): CategoryGroups {
       : [...DEFAULT_VEHICLE_PERIODIC_CATEGORIES],
     vehicleMechanic: groups.vehicleMechanic.length
       ? groups.vehicleMechanic
-      : [...DEFAULT_VEHICLE_MECHANIC_CATEGORIES]
+      : [...DEFAULT_VEHICLE_MECHANIC_CATEGORIES],
+    vehicleExpense: groups.vehicleExpense.length
+      ? groups.vehicleExpense
+      : [...DEFAULT_VEHICLE_EXPENSE_CATEGORIES]
   }
 }
 
@@ -154,7 +173,8 @@ export function applyGroupsToSettings(groups: CategoryGroups): void {
   const forms = settings.forms.map(form => {
     if (form.type !== 'income' && form.type !== 'expense') return form
 
-    const options = groups[form.type]
+    const options =
+      form.type === 'expense' ? withLockedExpenseCategories(groups.expense) : groups[form.type]
 
     return {
       ...form,
@@ -169,6 +189,7 @@ export function applyGroupsToSettings(groups: CategoryGroups): void {
     receivableCategories: groups.receivable,
     personalReminderCategories: groups.personalReminder,
     vehiclePeriodicCategories: groups.vehiclePeriodic,
-    vehicleMechanicCategories: groups.vehicleMechanic
+    vehicleMechanicCategories: groups.vehicleMechanic,
+    vehicleExpenseCategories: groups.vehicleExpense
   })
 }

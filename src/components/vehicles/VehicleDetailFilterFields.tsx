@@ -7,8 +7,10 @@ import {
   recordsFilterSectionClassName
 } from '../ui/recordsStyles'
 
+type VehicleDetailFilterMode = 'active' | 'history' | 'transactions'
+
 type VehicleDetailFilterFieldsProps = {
-  isActiveTab: boolean
+  filterMode: VehicleDetailFilterMode
   loading: boolean
   draftSearch: string
   setDraftSearch: (value: string) => void
@@ -24,7 +26,7 @@ type VehicleDetailFilterFieldsProps = {
 }
 
 export default function VehicleDetailFilterFields({
-  isActiveTab,
+  filterMode,
   loading,
   draftSearch,
   setDraftSearch,
@@ -38,15 +40,24 @@ export default function VehicleDetailFilterFields({
   setDraftServiceTypeFilter,
   serviceTypeOptions
 }: VehicleDetailFilterFieldsProps) {
+  const isActiveTab = filterMode === 'active'
+  const isTransactionsTab = filterMode === 'transactions'
+  const searchPlaceholder = isTransactionsTab
+    ? 'جستجو در عنوان...'
+    : isActiveTab
+    ? 'جستجو در موارد فعال...'
+    : 'جستجو در تاریخچه...'
+  const categoryLabel = isTransactionsTab ? 'دسته‌بندی' : isActiveTab ? 'فوریت' : 'نوع'
+
   return (
     <PageFilterPanel
       search={draftSearch}
       onSearchChange={setDraftSearch}
-      searchPlaceholder={isActiveTab ? 'جستجو در موارد فعال...' : 'جستجو در تاریخچه...'}
+      searchPlaceholder={searchPlaceholder}
       category={draftCategory}
       onCategoryChange={setDraftCategory}
       categoryOptions={categoryOptions}
-      categoryLabel={isActiveTab ? 'فوریت' : 'نوع'}
+      categoryLabel={categoryLabel}
       {...(isActiveTab
         ? {}
         : {
@@ -58,7 +69,7 @@ export default function VehicleDetailFilterFields({
             dateLoading: loading
           })}
     >
-      {serviceTypeOptions.length > 0 ? (
+      {!isTransactionsTab && serviceTypeOptions.length > 0 ? (
         <div className={recordsFilterSectionClassName()}>
           <span className={recordsFilterLabelClass}>نوع سرویس</span>
           <CategoryFilterSelect

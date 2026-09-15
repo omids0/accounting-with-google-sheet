@@ -59,7 +59,7 @@ export default function DashboardRemindersSection({
       </div>
 
       <p className={dashboardRemindersHintClass}>
-        اقساط، چک، بدهی و مواعد شخصی تا ۳۰ روز آینده و موارد معوق
+        اقساط، چک، بدهی، مواعد شخصی و سرویس دوره‌ای خودرو تا ۳۰ روز آینده و موارد معوق
       </p>
 
       {!items.length ? (

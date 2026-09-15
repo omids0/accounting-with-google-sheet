@@ -24,6 +24,7 @@ interface CategorySelectItemProps {
   confirmDelete: string | null
   editText: string
   categoriesCount: number
+  locked?: boolean
   canReorder?: boolean
   dragging?: boolean
   dragProps?: {
@@ -55,6 +56,7 @@ export default function CategorySelectItem({
   confirmDelete,
   editText,
   categoriesCount,
+  locked = false,
   canReorder = false,
   dragging = false,
   dragProps,
@@ -168,7 +170,7 @@ export default function CategorySelectItem({
             </span>
             <span className={categorySelectOptionLabelClass(isSelected)}>{category}</span>
           </button>
-          {manageMode && (
+          {manageMode && !locked && (
             <div className={categorySelectActionsClass}>
               <button
                 type="button"

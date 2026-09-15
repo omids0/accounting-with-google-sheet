@@ -1,6 +1,7 @@
 import { createLinkedExpenseRecord, deleteLinkedRecord } from './paymentTransactions'
 import { getSettings, updateFormCategories } from './settings'
 import { VEHICLE_EXPENSE_CATEGORY } from '../components/vehicles/constants'
+import { withLockedExpenseCategories } from '../utils/protectedCategories'
 
 export async function ensureVehicleExpenseCategory(): Promise<void> {
   const settings = getSettings()
@@ -12,10 +13,11 @@ export async function ensureVehicleExpenseCategory(): Promise<void> {
   if (!expenseForm) return
 
   const options = expenseForm.fields.find(field => field.id === 'category')?.options ?? []
+  const next = withLockedExpenseCategories(options)
 
-  if (options.includes(VEHICLE_EXPENSE_CATEGORY)) return
+  if (next.length === options.length && options.includes(VEHICLE_EXPENSE_CATEGORY)) return
 
-  updateFormCategories(expenseForm.id, [...options, VEHICLE_EXPENSE_CATEGORY])
+  updateFormCategories(expenseForm.id, next)
 }
 
 export async function createVehicleExpense(

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { VehicleDeleteTarget, VehicleProfileWithRow } from './types'
 import { createVehicleDetailHandlers } from './useVehicleDetailHandlers'
+import { useVehicleDetailModalActions } from './useVehicleDetailModalActions'
 import {
   buildDeadlineListItem,
   buildPeriodicListItem,
@@ -10,28 +11,42 @@ import {
 } from './utils'
 import type { DeadlineWithRow, HistoryWithRow, PeriodicWithRow } from './vehicleDetailMutations'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
-import type { PageSpeedDialAction } from '../../hooks/usePageSpeedDial'
 import { syncCategoriesFromSheet } from '../../services/categories'
 import { fetchReminderRules } from '../../services/reminders'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { fetchVehicleDeadlines } from '../../services/vehicleDeadlines'
+import { deleteManualVehicleExpense } from '../../services/vehicleExpenseActions'
 import { fetchVehicleHistory } from '../../services/vehicleHistory'
 import { getVehicleMechanicCategories } from '../../services/vehicleMechanicCategories'
 import { getVehiclePeriodicCategories } from '../../services/vehiclePeriodicCategories'
 import { fetchVehiclePeriodicServices } from '../../services/vehiclePeriodicServices'
 import { fetchVehicles } from '../../services/vehicleProfiles'
-import type { VehicleActiveListItem } from '../../types/vehicles'
+import {
+  buildMonthlyFuelStats,
+  fetchVehicleTransactions,
+  filterFuelTransactions
+} from '../../services/vehicleTransactions'
+import type {
+  MonthlyFuelStats,
+  VehicleActiveListItem,
+  VehicleTransactionItem
+} from '../../types/vehicles'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
-import AppIcon from '../AppIcon'
-import SpeedDialIcon from '../SpeedDialIcon'
 
 export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
   const [currentVehicle, setCurrentVehicle] = useState(vehicle)
   const [activeItems, setActiveItems] = useState<VehicleActiveListItem[]>([])
   const [history, setHistory] = useState<HistoryWithRow[]>([])
-  const [detailTab, setDetailTab] = useState<'active' | 'history'>('active')
+  const [detailTab, setDetailTab] = useState<'active' | 'history' | 'transactions' | 'fuel'>(
+    'active'
+  )
+  const [transactions, setTransactions] = useState<VehicleTransactionItem[]>([])
+  const [fuelStats, setFuelStats] = useState<MonthlyFuelStats[]>([])
+  const [deletingTransaction, setDeletingTransaction] = useState<VehicleTransactionItem | null>(
+    null
+  )
   const [loading, setLoading] = useState(() => {
     const settings = getSettings()
 
@@ -91,6 +106,11 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
         ])
       )
       setHistory(historyItems)
+
+      const transactionItems = await fetchVehicleTransactions(spreadsheetId, vehicle.id)
+
+      setTransactions(transactionItems)
+      setFuelStats(buildMonthlyFuelStats(filterFuelTransactions(transactionItems)))
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری جزئیات خودرو' })
     } finally {
@@ -165,62 +185,58 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
     ]
   )
 
-  const pageSpeedDialConfig = useMemo(
-    () => ({
-      ariaLabel: `عملیات ${currentVehicle.title}`,
-      actions: [
-        {
-          id: 'periodic',
-          label: 'سرویس دوره‌ای',
-          icon: <AppIcon name="settings" size={18} />,
-          onClick: () => {
-            setEditingPeriodic(null)
-            setShowPeriodicForm(true)
-          }
-        },
-        {
-          id: 'deadline',
-          label: 'موعد',
-          icon: <AppIcon name="clock" size={18} />,
-          onClick: () => {
-            setEditingDeadline(null)
-            setRenewingDeadline(false)
-            setShowDeadlineForm(true)
-          }
-        },
-        {
-          id: 'mechanic',
-          label: 'مکانیک',
-          icon: <AppIcon name="settings" size={18} />,
-          onClick: () => setShowMechanicForm(true)
-        },
-        {
-          id: 'mileage',
-          label: 'کارکرد',
-          icon: <AppIcon name="clock" size={18} />,
-          onClick: () => setShowMileageModal(true)
-        },
-        {
-          id: 'refresh',
-          label: 'بروزرسانی',
-          icon: <SpeedDialIcon name="refresh" />,
-          onClick: loadDetail,
-          disabled: loading
-        }
-      ] as PageSpeedDialAction[]
-    }),
-    [currentVehicle.title, loadDetail, loading]
-  )
+  const modalActions = useVehicleDetailModalActions({
+    vehicleTitle: currentVehicle.title,
+    loading,
+    saving,
+    deleting,
+    loadDetail,
+    setShowPeriodicForm,
+    setEditingPeriodic,
+    setShowDeadlineForm,
+    setEditingDeadline,
+    setRenewingDeadline,
+    setShowCompleteModal,
+    setCompletingPeriodic,
+    setShowMechanicForm,
+    setShowMileageModal,
+    setDeletingTarget,
+    setDeleteLinkedExpense
+  })
+
+  const handleDeleteTransaction = async () => {
+    if (!deletingTransaction?.expenseRecordId) return
+
+    const spreadsheetId = requireSpreadsheetId()
+
+    if (!spreadsheetId) return
+
+    setDeleting(true)
+    try {
+      await deleteManualVehicleExpense(spreadsheetId, deletingTransaction.expenseRecordId)
+      setDeletingTransaction(null)
+      await loadDetail()
+    } catch (err) {
+      handleSheetError(err, { fallbackMessage: 'خطا در حذف تراکنش' })
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   return {
     currentVehicle,
     activeItems,
     history,
+    transactions,
+    fuelStats,
     detailTab,
     setDetailTab,
     loading,
     saving,
     deleting,
+    deletingTransaction,
+    setDeletingTransaction,
+    handleDeleteTransaction,
     showPeriodicForm,
     editingPeriodic,
     showDeadlineForm,
@@ -238,61 +254,7 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
     mechanicCategories,
     setMechanicCategories,
     loadDetail,
-    pageSpeedDialConfig,
     ...handlers,
-    closePeriodicForm: () => {
-      if (saving) return
-      setShowPeriodicForm(false)
-      setEditingPeriodic(null)
-    },
-    closeDeadlineForm: () => {
-      if (saving) return
-      setShowDeadlineForm(false)
-      setEditingDeadline(null)
-      setRenewingDeadline(false)
-    },
-    openDeleteTarget: (target: VehicleDeleteTarget) => {
-      setDeletingTarget(target)
-      setDeleteLinkedExpense(Boolean(target.item.expenseRecordId))
-    },
-    closeDeleteTarget: () => {
-      if (deleting) return
-      setDeletingTarget(null)
-    },
-    openComplete: (item: VehicleActiveListItem) => {
-      if (!item.periodic) return
-      setCompletingPeriodic(item.periodic)
-      setShowCompleteModal(true)
-    },
-    openPeriodicEdit: (item: VehicleActiveListItem) => {
-      if (!item.periodic) return
-      setEditingPeriodic(item.periodic)
-      setShowPeriodicForm(true)
-    },
-    openDeadlineEdit: (item: VehicleActiveListItem) => {
-      if (!item.deadline) return
-      setEditingDeadline(item.deadline)
-      setRenewingDeadline(false)
-      setShowDeadlineForm(true)
-    },
-    openDeadlineRenew: (item: VehicleActiveListItem) => {
-      if (!item.deadline) return
-      setEditingDeadline(item.deadline)
-      setRenewingDeadline(true)
-      setShowDeadlineForm(true)
-    },
-    closeCompleteModal: () => {
-      if (saving) return
-      setShowCompleteModal(false)
-      setCompletingPeriodic(null)
-    },
-    closeMechanicForm: () => {
-      if (saving) return
-      setShowMechanicForm(false)
-    },
-    closeMileageModal: () => {
-      if (saving) return
-      setShowMileageModal(false)
-    }
+    ...modalActions
   }
 }

@@ -54,6 +54,7 @@ export interface AppSettings {
   personalReminderCategories?: string[]
   vehiclePeriodicCategories?: string[]
   vehicleMechanicCategories?: string[]
+  vehicleExpenseCategories?: string[]
   currency?: CurrencyUnit
   theme?: ThemeMode
   netAvailableConfig?: NetAvailableConfig

@@ -6,6 +6,7 @@ import {
   saveReceivableCategoriesToSheet
 } from '../../../services/categories'
 import { getSettings } from '../../../services/settings'
+import { saveVehicleExpenseCategoriesToSheet } from '../../../services/vehicleExpenseCategories'
 import { saveVehicleMechanicCategoriesToSheet } from '../../../services/vehicleMechanicCategories'
 import { saveVehiclePeriodicCategoriesToSheet } from '../../../services/vehiclePeriodicCategories'
 import { requireAuth } from '../../../utils/authGuard'
@@ -34,6 +35,7 @@ export interface CategorySelectProps {
   allOption?: CategorySelectAllOption
   allowManage?: boolean
   showSearchAlways?: boolean
+  lockedCategories?: string[]
 }
 
 export function useCategorySelectActions({
@@ -43,7 +45,8 @@ export function useCategorySelectActions({
   onCategoriesChange,
   onChange,
   value,
-  setSaving
+  setSaving,
+  lockedCategories = []
 }: {
   categories: string[]
   formId?: string
@@ -52,7 +55,9 @@ export function useCategorySelectActions({
   onChange: (value: string) => void
   value: string
   setSaving: (saving: boolean) => void
+  lockedCategories?: string[]
 }) {
+  const lockedSet = new Set(lockedCategories)
   const persistCategories = async (
     next: string[],
     options?: { silent?: boolean }
@@ -83,6 +88,8 @@ export function useCategorySelectActions({
         await saveVehiclePeriodicCategoriesToSheet(settings.spreadsheetId, next)
       } else if (categoryScope === 'vehicleMechanic') {
         await saveVehicleMechanicCategoriesToSheet(settings.spreadsheetId, next)
+      } else if (categoryScope === 'vehicleExpense') {
+        await saveVehicleExpenseCategoriesToSheet(settings.spreadsheetId, next)
       } else {
         if (!formId) {
           showError('فرم دسته‌بندی معتبر نیست')
@@ -106,11 +113,19 @@ export function useCategorySelectActions({
     }
   }
 
+  const isLockedCategory = (name: string): boolean => lockedSet.has(name)
+
   const handleSaveEdit = async (
     oldName: string,
     editText: string,
     cancelEdit: () => void
   ): Promise<void> => {
+    if (isLockedCategory(oldName)) {
+      showError('این دسته‌بندی قابل ویرایش نیست')
+
+      return
+    }
+
     const name = editText.trim()
 
     if (!name) {
@@ -138,6 +153,12 @@ export function useCategorySelectActions({
   }
 
   const handleDelete = async (category: string, setConfirmDelete: (v: string | null) => void) => {
+    if (isLockedCategory(category)) {
+      showError('این دسته‌بندی قابل حذف نیست')
+
+      return
+    }
+
     if (categories.length <= 1) {
       showError('حداقل یک دسته‌بندی باید بماند')
 
