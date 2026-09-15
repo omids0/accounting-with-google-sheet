@@ -6,7 +6,7 @@ import {
 } from '../../services/vehicleTransactions'
 import type { VehicleTransactionItem } from '../../types/vehicles'
 import { formatMoney } from '../../utils/formatMoney'
-import CategoryDonutChart from '../charts/CategoryDonutChart'
+import CategoryBarChart from '../charts/CategoryBarChart'
 
 type VehicleTransactionsSectionProps = {
   transactions: VehicleTransactionItem[]
@@ -30,7 +30,7 @@ export default function VehicleTransactionsSection({
       </div>
 
       {breakdown.length > 0 ? (
-        <CategoryDonutChart title="تفکیک هزینه‌ها" data={breakdown} tone="expense" maxSlices={8} />
+        <CategoryBarChart title="تفکیک هزینه‌ها" data={breakdown} tone="expense" />
       ) : null}
 
       <div className={vehicleHorizontalCardsContainerClass}>

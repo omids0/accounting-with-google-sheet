@@ -8,6 +8,7 @@ import SpeedDialIcon from '../SpeedDialIcon'
 import type { VehicleProfileWithRow } from './types'
 import { useVehicleDetail } from './useVehicleDetail'
 import { useVehicleDetailFilters } from './useVehicleDetailFilters'
+import { useVehicleTransactionFilters } from './useVehicleTransactionFilters'
 import {
   vehicleDetailMileageClass,
   vehicleDetailMileageValueClass,
@@ -41,12 +42,13 @@ export default function VehicleDetailPage({
   active?: boolean
 }) {
   const page = useVehicleDetail(vehicle)
-  const filters = useVehicleDetailFilters({
+  const tabFilters = useVehicleDetailFilters({
     detailTab: page.detailTab,
     activeItems: page.activeItems,
     historyItems: page.history,
     serviceTypeSeed: page.serviceTypes
   })
+  const transactionFilters = useVehicleTransactionFilters(page.transactions, page.detailTab)
 
   const detailTabOptions = useMemo(
     () => [
@@ -60,6 +62,9 @@ export default function VehicleDetailPage({
     ],
     [page.activeItems.length, page.history.length, page.transactions.length]
   )
+
+  const isTransactionsTab = page.detailTab === 'transactions'
+  const filters = isTransactionsTab ? transactionFilters : tabFilters
 
   const speedDialConfig = useMemo(() => {
     if (!isConfigured()) return null
@@ -99,7 +104,10 @@ export default function VehicleDetailPage({
   )
 
   const sourceItems = isActiveTab ? page.activeItems : isHistoryTab ? page.history : []
-  const listItems = isActiveTab || isHistoryTab ? filters.filteredItems : []
+  const listItems = isActiveTab || isHistoryTab ? tabFilters.filteredItems : []
+  const filteredTransactions = isTransactionsTab
+    ? transactionFilters.filteredItems
+    : page.transactions
 
   if (!isConfigured()) {
     return (
@@ -127,7 +135,7 @@ export default function VehicleDetailPage({
         onClear={filters.clearDraftFilters}
       >
         <VehicleDetailFilterFields
-          isActiveTab={isActiveTab}
+          filterMode={isTransactionsTab ? 'transactions' : isActiveTab ? 'active' : 'history'}
           loading={page.loading}
           draftSearch={filters.draftSearch}
           setDraftSearch={filters.setDraftSearch}
@@ -137,9 +145,9 @@ export default function VehicleDetailPage({
           draftDatePreset={filters.draftDatePreset}
           draftCustomRange={filters.draftCustomRange}
           handleDraftDateFilterChange={filters.handleDraftDateFilterChange}
-          draftServiceTypeFilter={filters.draftServiceTypeFilter}
-          setDraftServiceTypeFilter={filters.setDraftServiceTypeFilter}
-          serviceTypeOptions={filters.serviceTypeOptions}
+          draftServiceTypeFilter={tabFilters.draftServiceTypeFilter}
+          setDraftServiceTypeFilter={tabFilters.setDraftServiceTypeFilter}
+          serviceTypeOptions={tabFilters.serviceTypeOptions}
         />
       </FilterModal>
 
@@ -164,7 +172,8 @@ export default function VehicleDetailPage({
         loading={page.loading}
         activeItems={page.activeItems}
         history={page.history}
-        transactions={page.transactions}
+        transactions={filteredTransactions}
+        allTransactionsCount={page.transactions.length}
         fuelStats={page.fuelStats}
         filterChipsCount={filters.filterChips.length}
         sourceItems={sourceItems}

@@ -21,6 +21,7 @@ type VehicleDetailTabContentProps = {
   activeItems: VehicleActiveListItem[]
   history: HistoryWithRow[]
   transactions: VehicleTransactionItem[]
+  allTransactionsCount: number
   fuelStats: MonthlyFuelStats[]
   filterChipsCount: number
   sourceItems: VehicleActiveListItem[] | HistoryWithRow[]
@@ -40,6 +41,7 @@ export default function VehicleDetailTabContent({
   activeItems,
   history,
   transactions,
+  allTransactionsCount,
   fuelStats,
   filterChipsCount,
   sourceItems,
@@ -56,7 +58,7 @@ export default function VehicleDetailTabContent({
   const isHistoryTab = detailTab === 'history'
 
   if (detailTab === 'transactions') {
-    if (transactions.length === 0) {
+    if (allTransactionsCount === 0) {
       return (
         <div className={emptyStateClass}>
           <div className={emptyStateIconClass}>
@@ -65,6 +67,10 @@ export default function VehicleDetailTabContent({
           <p>تراکنش مرتبطی ثبت نشده</p>
         </div>
       )
+    }
+
+    if (transactions.length === 0) {
+      return <SearchEmptyState />
     }
 
     return <VehicleTransactionsSection transactions={transactions} onDelete={onDeleteTransaction} />

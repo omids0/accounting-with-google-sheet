@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { VEHICLE_FUEL_EXPENSE_TYPE, VEHICLE_OTHER_OPTION } from '../components/vehicles/constants'
 import { syncCategoriesFromSheet } from '../services/categories'
@@ -52,10 +52,18 @@ export function useVehicleExpenseEntry(active: boolean) {
       setVehicles(activeVehicles)
       setVehicleValues(current => {
         const hasValidVehicle = activeVehicles.some(item => item.id === current.vehicleId)
+        const vehicleId = hasValidVehicle
+          ? current.vehicleId
+          : activeVehicles[0]?.id ?? VEHICLE_OTHER_OPTION
+        const vehicle = activeVehicles.find(item => item.id === vehicleId)
+        const shouldSeedMileage =
+          isFuelExpenseType(current.expenseType) && vehicleId !== VEHICLE_OTHER_OPTION && vehicle
 
-        if (hasValidVehicle) return current
-
-        return { ...current, vehicleId: activeVehicles[0]?.id ?? VEHICLE_OTHER_OPTION }
+        return {
+          ...current,
+          vehicleId,
+          mileage: shouldSeedMileage ? vehicle.mileage : current.mileage
+        }
       })
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری خودروها' })
@@ -90,18 +98,45 @@ export function useVehicleExpenseEntry(active: boolean) {
     })
   }, [])
 
-  const patchVehicleValues = useCallback((patch: Partial<VehicleExpenseFormValues>) => {
-    setFieldErrors(current => {
-      const next = { ...current }
+  const patchVehicleValues = useCallback(
+    (patch: Partial<VehicleExpenseFormValues>) => {
+      setFieldErrors(current => {
+        const next = { ...current }
 
-      for (const key of Object.keys(patch) as Array<keyof VehicleExpenseFormValues>) {
-        delete next[key]
-      }
+        for (const key of Object.keys(patch) as Array<keyof VehicleExpenseFormValues>) {
+          delete next[key]
+        }
 
-      return next
-    })
-    setVehicleValues(current => ({ ...current, ...patch }))
-  }, [])
+        return next
+      })
+
+      setVehicleValues(current => {
+        const next = { ...current, ...patch }
+
+        if ('expenseType' in patch && !isFuelExpenseType(next.expenseType)) {
+          next.mileage = ''
+          next.fuelPricePerLiter = ''
+        }
+
+        const shouldSyncMileage =
+          isFuelExpenseType(next.expenseType) &&
+          ('vehicleId' in patch || 'expenseType' in patch || current.mileage === '')
+
+        if (shouldSyncMileage) {
+          if (!next.vehicleId || next.vehicleId === VEHICLE_OTHER_OPTION) {
+            next.mileage = ''
+          } else {
+            const vehicle = vehicles.find(item => item.id === next.vehicleId)
+
+            if (vehicle) next.mileage = vehicle.mileage
+          }
+        }
+
+        return next
+      })
+    },
+    [vehicles]
+  )
 
   const validateVehicleExpense = useCallback(
     (category: string, amount: string | number): VehicleExpenseFieldErrors | null => {
@@ -150,22 +185,6 @@ export function useVehicleExpenseEntry(active: boolean) {
     }),
     [vehicleValues]
   )
-
-  const defaultMileageSeed = useMemo(() => {
-    if (!vehicleValues.vehicleId || vehicleValues.vehicleId === VEHICLE_OTHER_OPTION) return ''
-
-    const vehicle = vehicles.find(item => item.id === vehicleValues.vehicleId)
-
-    return vehicle?.mileage ?? ''
-  }, [vehicleValues.vehicleId, vehicles])
-
-  useEffect(() => {
-    if (!isFuelExpenseType(vehicleValues.expenseType)) return
-    if (vehicleValues.mileage !== '' && vehicleValues.mileage !== undefined) return
-    if (!defaultMileageSeed) return
-
-    setVehicleValues(current => ({ ...current, mileage: defaultMileageSeed }))
-  }, [defaultMileageSeed, vehicleValues.expenseType, vehicleValues.mileage])
 
   return {
     vehicles,

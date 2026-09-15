@@ -18,7 +18,7 @@ import { cn } from '../utils/cn'
 import { formFieldError } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
-import { isVehicleExpenseCategory } from '../utils/vehicleExpenseUtils'
+import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
 import Button from './ui/Button'
 import { appFormClassName, formActionsClassName } from './ui/formStyles'
 import { dataEntryFormActionsClass } from './ui/recordsStyles'
@@ -53,28 +53,20 @@ export default function DataEntryForm({
   const isExpenseForm = activeForm.type === 'expense'
   const vehicleExpense = useVehicleExpenseEntry(isExpenseForm)
 
-  const {
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    setError,
-    clearErrors,
-    formState: { errors }
-  } = useForm<Record<string, string | number>>({
+  const { reset, setValue, watch, setError, clearErrors, getValues, formState } = useForm<
+    Record<string, string | number>
+  >({
     defaultValues: initialValues,
     mode: 'onSubmit'
   })
+
+  const { errors } = formState
 
   useModalFormReset(reset, initialValues, { resetKey: activeForm.id })
 
   useEffect(() => {
     vehicleExpense.resetVehicleValues()
   }, [activeForm.id, vehicleExpense.resetVehicleValues])
-
-  useEffect(() => {
-    clearErrors(['mileage', 'fuelPricePerLiter', 'expenseType', 'vehicleId', 'amount'])
-  }, [vehicleExpense.vehicleValues, clearErrors])
 
   const retroactiveWarning = useRetroactiveEntryWarning()
   const values = watch()
@@ -94,7 +86,7 @@ export default function DataEntryForm({
 
     for (const field of activeForm.fields) {
       if (!field.required) continue
-      if (showVehicleFields && field.id === 'title') continue
+      if (showVehicleFields && (field.id === 'title' || field.id === 'amount')) continue
 
       const val = formValues[field.id]
 
@@ -155,18 +147,30 @@ export default function DataEntryForm({
   }
 
   const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    await handleSubmit(async formValues => {
-      if (!validateRequiredFields(formValues)) return
-      if (!isConfigured() || !requireAuth()) return
+    event.preventDefault()
+    clearErrors()
 
-      const dateFieldId = activeForm.fields.find(field => field.type === 'date')?.id
-      const dateValue = dateFieldId ? String(formValues[dateFieldId] ?? '') : ''
+    const formValues = getValues()
 
-      if (retroactiveWarning.guard(dateValue, () => saveRecord(formValues))) return
+    if (!validateRequiredFields(formValues)) return
+    if (!isConfigured() || !requireAuth()) return
 
-      await saveRecord(formValues)
-    })(event)
+    const dateFieldId = activeForm.fields.find(field => field.type === 'date')?.id
+    const dateValue = dateFieldId ? String(formValues[dateFieldId] ?? '') : ''
+
+    if (retroactiveWarning.guard(dateValue, () => saveRecord(formValues))) return
+
+    await saveRecord(formValues)
   }
+
+  useEffect(() => {
+    if (!showVehicleFields) return
+
+    if (parseNumericField(values.amount) > 0) {
+      vehicleExpense.clearFieldError('amount')
+      clearErrors('amount')
+    }
+  }, [values.amount, showVehicleFields, vehicleExpense.clearFieldError, clearErrors])
 
   return (
     <div className={appFormClassName()}>
@@ -179,7 +183,7 @@ export default function DataEntryForm({
         onClose={retroactiveWarning.cancel}
         onConfirm={retroactiveWarning.confirm}
       />
-      <form onSubmit={onFormSubmit}>
+      <form onSubmit={onFormSubmit} noValidate>
         {useStandardLayout ? (
           <StandardEntryFormFields
             activeForm={activeForm}
@@ -189,6 +193,10 @@ export default function DataEntryForm({
             onCategoriesRefresh={onCategoriesRefresh}
             showVehicleFields={showVehicleFields}
             vehicleExpense={vehicleExpense}
+            clearFieldError={fieldId => {
+              vehicleExpense.clearFieldError(fieldId as keyof typeof vehicleExpense.fieldErrors)
+              clearErrors(fieldId)
+            }}
           />
         ) : (
           sortFormFields(activeForm.fields).map(field => {
@@ -207,6 +215,7 @@ export default function DataEntryForm({
                 onChange={next => {
                   if (showVehicleFields && field.id === 'amount') {
                     vehicleExpense.clearFieldError('amount')
+                    clearErrors('amount')
                   }
                   setValue(field.id, next)
                 }}

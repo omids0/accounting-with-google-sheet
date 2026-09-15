@@ -123,12 +123,21 @@ export interface MonthlyFuelPriceBreakdown {
   amount: number
 }
 
+export interface MonthlyFuelEntry {
+  date: string
+  liters: number
+  amount: number
+  price: number
+  mileage?: number
+}
+
 export interface MonthlyFuelStats {
   monthKey: string
   totalLiters: number
   totalAmount: number
   byPrice: MonthlyFuelPriceBreakdown[]
   efficiencyL100km: number | null
+  entries: MonthlyFuelEntry[]
 }
 
 export interface VehicleActiveListItem {

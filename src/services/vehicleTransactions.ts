@@ -184,7 +184,16 @@ export function buildMonthlyFuelStats(
       byPrice: [...priceMap.entries()]
         .map(([price, values]) => ({ price, ...values }))
         .sort((a, b) => a.price - b.price),
-      efficiencyL100km
+      efficiencyL100km,
+      entries: [...items]
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .map(item => ({
+          date: item.date,
+          liters: item.fuelLiters ?? 0,
+          amount: item.amount,
+          price: item.fuelPricePerLiter ?? 0,
+          mileage: item.mileage
+        }))
     })
   }
 
@@ -205,6 +214,10 @@ function resolveTransactionTypeLabel(item: VehicleTransactionItem): string {
   if (item.source === 'mechanic') return 'مکانیک'
 
   return item.title || 'سایر'
+}
+
+export function getVehicleTransactionCategoryLabel(item: VehicleTransactionItem): string {
+  return resolveTransactionTypeLabel(item)
 }
 
 export function buildVehicleExpenseTypeBreakdown(

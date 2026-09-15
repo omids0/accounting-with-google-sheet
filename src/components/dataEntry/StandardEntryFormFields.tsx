@@ -47,7 +47,8 @@ export default function StandardEntryFormFields({
   setValue,
   onCategoriesRefresh,
   showVehicleFields,
-  vehicleExpense
+  vehicleExpense,
+  clearFieldError
 }: {
   activeForm: CustomForm
   values: Record<string, string | number>
@@ -56,6 +57,7 @@ export default function StandardEntryFormFields({
   onCategoriesRefresh: () => void
   showVehicleFields: boolean
   vehicleExpense: ReturnType<typeof useVehicleExpenseEntry>
+  clearFieldError?: (fieldId: string) => void
 }) {
   const fieldById = useMemo(
     () => new Map(activeForm.fields.map(field => [field.id, field])),
@@ -75,9 +77,10 @@ export default function StandardEntryFormFields({
     if (!field) return null
     if (showVehicleFields && id === 'title') return null
 
-    const vehicleAmountError =
-      showVehicleFields && id === 'amount'
-        ? vehicleExpense.fieldErrors.amount || formFieldError(errors, field.id)
+    const vehicleFieldError =
+      showVehicleFields && (id === 'amount' || id === 'date' || id === 'category')
+        ? vehicleExpense.fieldErrors[id as keyof typeof vehicleExpense.fieldErrors] ||
+          formFieldError(errors, field.id)
         : formFieldError(errors, field.id)
 
     return (
@@ -87,11 +90,9 @@ export default function StandardEntryFormFields({
         value={values[field.id] ?? ''}
         formId={activeForm.id}
         controlWidth={options?.controlWidth}
-        error={vehicleAmountError}
+        error={vehicleFieldError}
         onChange={next => {
-          if (showVehicleFields && id === 'amount') {
-            vehicleExpense.clearFieldError('amount')
-          }
+          clearFieldError?.(field.id)
           setValue(field.id, next)
         }}
         onCategoriesChange={handleCategoriesChange}
