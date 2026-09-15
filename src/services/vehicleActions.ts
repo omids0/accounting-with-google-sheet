@@ -106,7 +106,8 @@ export async function renewVehicleDeadline(params: {
   amount: number
   notes: string
   date: string
-  previousExpenseId?: string
+  reminderEnabled: boolean
+  daysBefore: number
 }): Promise<void> {
   const {
     spreadsheetId,
@@ -119,29 +120,18 @@ export async function renewVehicleDeadline(params: {
     amount,
     notes,
     date,
-    previousExpenseId
+    reminderEnabled,
+    daysBefore
   } = params
-
-  if (previousExpenseId) {
-    await deleteVehicleExpense(spreadsheetId, previousExpenseId)
-  }
-
-  const expenseRecordId =
-    amount > 0
-      ? await createVehicleExpense(spreadsheetId, {
-          title: `${category} — ${vehicle.title}`,
-          amount,
-          date,
-          note: notes
-        })
-      : ''
 
   await updateVehicleDeadline(spreadsheetId, rowNumber, {
     startDate,
     endDate,
     amount,
     notes,
-    expenseRecordId
+    reminderEnabled,
+    daysBefore,
+    expenseRecordId: ''
   })
 
   await createVehicleHistoryEntry(spreadsheetId, {
@@ -153,7 +143,7 @@ export async function renewVehicleDeadline(params: {
     nextKm: 0,
     details: `${category} · پایان: ${endDate}${notes ? ` · ${notes}` : ''}`,
     amount,
-    expenseRecordId
+    expenseRecordId: ''
   })
 }
 

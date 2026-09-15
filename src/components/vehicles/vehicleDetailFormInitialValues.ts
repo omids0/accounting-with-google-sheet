@@ -34,7 +34,9 @@ export function buildDeadlineInitialValues(
     startDate: editingDeadline.startDate,
     endDate: editingDeadline.endDate,
     amount: editingDeadline.amount > 0 ? editingDeadline.amount : '',
-    notes: editingDeadline.notes
+    notes: editingDeadline.notes,
+    reminderEnabled: editingDeadline.reminderEnabled,
+    daysBefore: editingDeadline.daysBefore
   }
 }
 

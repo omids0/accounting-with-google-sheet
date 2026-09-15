@@ -46,7 +46,7 @@ function urgencyBadgeClass(urgency: VehicleActiveListItem['urgency']): string {
 }
 
 function urgencyLabel(urgency: VehicleActiveListItem['urgency']): string {
-  if (urgency === 'overdue') return 'معوق'
+  if (urgency === 'overdue') return 'گذشته'
   if (urgency === 'soon') return 'نزدیک'
   return 'عادی'
 }
@@ -77,6 +77,11 @@ export default function VehicleActiveItemCard({
               </span>
             </div>
             <div className={dangCardMetaClass}>{item.subtitle}</div>
+            {item.detailLines?.map(line => (
+              <div key={line} className={dangCardMetaClass}>
+                {line}
+              </div>
+            ))}
             <div className="mt-2">
               {isPeriodic ? (
                 <Button

@@ -1,3 +1,4 @@
+import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { getSettings } from './settings'
 import { isQuotaExceededError } from './sheets'
 import { flushOutbox, invalidateDerivedCaches, isQuotaBlocked } from './sheetSyncOutbox'
@@ -190,6 +191,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
 
   activeSpreadsheetId = spreadsheetId
   await hydrateStore(spreadsheetId)
+  void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   setPendingWrites(getOutboxCount(spreadsheetId))
 
   const lastSyncedAt = getStoreLastSyncedAt(spreadsheetId)

@@ -1,15 +1,43 @@
-# No Local Git CLI
+---
+description: GitHub merge workflow — no gh CLI; give compare link immediately
+alwaysApply: true
+---
 
-The user's machine does **not** have `git` or `gh` installed locally. Do not search for installation options or suggest installing them.
+# GitHub Merge Workflow (No gh CLI)
 
-## Agent workflow
+`gh` (GitHub CLI) is **not installed** on this machine and **must not** be installed or searched for.
 
-Use the **Cursor shell** (or cloud agent) for all git operations: branch, commit, push.
+## When the user asks for commit / push / merge
 
-For merge/PR links, **build the GitHub URL directly** after push — do not rely on `gh pr create`:
+Do this fast — no detours:
+
+1. **Commit** on the feature branch (if there are changes).
+2. **Push** the feature branch to `origin`.
+3. **Give the merge link immediately** — do not try `gh`, do not push to `main`, do not retry blocked actions.
+
+`main` is **protected** on GitHub. Direct `git push origin main` will always fail. Merge only via PR in the browser.
+
+## Merge link template
+
+Build this URL after push (replace `<branch-name>`):
 
 ```
 https://github.com/omids0/accounting-with-google-sheet/compare/main...<branch-name>?expand=1
 ```
 
-Replace `<branch-name>` with the pushed branch. Give the user that link as the merge/PR URL.
+Example:
+
+```
+https://github.com/omids0/accounting-with-google-sheet/compare/main...feature/ACCT-0/ACCT-0/my-branch?expand=1
+```
+
+## Do not
+
+- Run `gh`, `which gh`, or suggest installing GitHub CLI
+- Push to `origin/main` or request smart-mode approval for protected-branch push
+- Spend multiple turns diagnosing merge — if branch is pushed, send the link
+- Re-explain the same protected-branch limitation every session
+
+## After user merges on GitHub
+
+Remind them once (if relevant): `git checkout main && git pull origin main`

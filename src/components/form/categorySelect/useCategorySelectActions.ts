@@ -6,6 +6,7 @@ import {
   saveReceivableCategoriesToSheet
 } from '../../../services/categories'
 import { getSettings } from '../../../services/settings'
+import { saveVehicleDeadlineCategoriesToSheet } from '../../../services/vehicleDeadlineCategories'
 import { saveVehicleExpenseCategoriesToSheet } from '../../../services/vehicleExpenseCategories'
 import { saveVehicleMechanicCategoriesToSheet } from '../../../services/vehicleMechanicCategories'
 import { saveVehiclePeriodicCategoriesToSheet } from '../../../services/vehiclePeriodicCategories'
@@ -86,6 +87,8 @@ export function useCategorySelectActions({
         await savePersonalReminderCategoriesToSheet(settings.spreadsheetId, next)
       } else if (categoryScope === 'vehiclePeriodic') {
         await saveVehiclePeriodicCategoriesToSheet(settings.spreadsheetId, next)
+      } else if (categoryScope === 'vehicleDeadline') {
+        await saveVehicleDeadlineCategoriesToSheet(settings.spreadsheetId, next)
       } else if (categoryScope === 'vehicleMechanic') {
         await saveVehicleMechanicCategoriesToSheet(settings.spreadsheetId, next)
       } else if (categoryScope === 'vehicleExpense') {

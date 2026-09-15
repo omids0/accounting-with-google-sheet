@@ -6,7 +6,7 @@ import type { VehicleTransactionItem } from '../../types/vehicles'
 
 export function useVehicleTransactionFilters(
   transactions: VehicleTransactionItem[],
-  detailTab: 'active' | 'history' | 'transactions' | 'fuel'
+  detailTab: 'active' | 'deadlines' | 'history' | 'transactions' | 'fuel'
 ) {
   const filters = useListFilters<VehicleTransactionItem>({
     items: transactions,

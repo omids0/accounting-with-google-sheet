@@ -14,11 +14,16 @@ export function useModalFormReset<T extends FieldValues>(
   { active = true, resetKey }: UseModalFormResetOptions = {}
 ) {
   const valuesRef = useRef(initialValues)
+  const resetRef = useRef(reset)
+
   valuesRef.current = initialValues
+  resetRef.current = reset
 
   useEffect(() => {
     if (active) {
-      reset(valuesRef.current as DefaultValues<T>)
+      resetRef.current(valuesRef.current as DefaultValues<T>)
     }
-  }, [active, resetKey, reset])
+    // Intentionally omit `reset` — react-hook-form recreates it when defaultValues change
+    // (e.g. category list reorder), which must not wipe in-progress form input.
+  }, [active, resetKey])
 }

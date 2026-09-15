@@ -1,8 +1,8 @@
 import { useGoogleOAuth } from '@react-oauth/google'
 import { useState, useEffect, useCallback } from 'react'
-import { registerSW } from 'virtual:pwa-register'
 
 import AppIcon from './components/AppIcon'
+import AppUpdateModal from './components/AppUpdateModal'
 import LoginPage from './components/LoginPage'
 import { AppLoadingSkeleton } from './components/skeleton'
 import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel'
@@ -18,6 +18,7 @@ import {
 } from './components/ui/loginStyles'
 import UnlockScreen from './components/UnlockScreen'
 import { useAppLock } from './hooks/useAppLock'
+import { useAppUpdate } from './hooks/useAppUpdate'
 import { useTokenRefresh } from './hooks/useTokenRefresh'
 import { AppAuthenticatedRoutes } from './routes/AppRoutes'
 import { syncAppLockFromSheet } from './services/appLock'
@@ -78,6 +79,7 @@ export default function App() {
   const { scriptLoadedSuccessfully } = useGoogleOAuth()
 
   const { locked, unlock } = useAppLock()
+  const { showPrompt, applying, applyUpdate, dismissUpdate } = useAppUpdate(locked)
 
   const registerHandlers = useAppStore(state => state.registerHandlers)
 
@@ -194,14 +196,6 @@ export default function App() {
 
     init()
 
-    registerSW({
-      onNeedRefresh() {
-        if (confirm('نسخه جدید موجود است. بروزرسانی شود؟')) {
-          window.location.reload()
-        }
-      }
-    })
-
     return () => {
       cancelled = true
     }
@@ -220,39 +214,69 @@ export default function App() {
     setSheetError('')
   }
 
+  const updateModal = (
+    <AppUpdateModal
+      open={showPrompt}
+      applying={applying}
+      onApply={applyUpdate}
+      onDismiss={dismissUpdate}
+    />
+  )
+
   if (!isOAuthConfigured) return <ConfigNotice />
   if (!ready) {
-    return <AppLoadingSkeleton />
+    return (
+      <>
+        {updateModal}
+        <AppLoadingSkeleton />
+      </>
+    )
   }
 
   if (needsSheetSetup && isTokenValid()) {
     return (
-      <SpreadsheetSetupPanel
-        mode={sheetSetupMode}
-        options={sheetOptions}
-        defaultLabel={getDefaultFirstSheetLabel()}
-        onComplete={handleSheetSetupComplete}
-      />
+      <>
+        {updateModal}
+        <SpreadsheetSetupPanel
+          mode={sheetSetupMode}
+          options={sheetOptions}
+          defaultLabel={getDefaultFirstSheetLabel()}
+          onComplete={handleSheetSetupComplete}
+        />
+      </>
     )
   }
 
   if (!loggedIn || needsReauth) {
     return (
-      <LoginPage
-        initialError={sheetError}
-        onSuccess={() => {
-          setLoggedIn(true)
-          setNeedsReauth(false)
-          setNeedsSheetSetup(false)
-          setSheetError('')
-        }}
-      />
+      <>
+        {updateModal}
+        <LoginPage
+          initialError={sheetError}
+          onSuccess={() => {
+            setLoggedIn(true)
+            setNeedsReauth(false)
+            setNeedsSheetSetup(false)
+            setSheetError('')
+          }}
+        />
+      </>
     )
   }
 
   if (locked) {
-    return <UnlockScreen onUnlock={unlock} />
+    return (
+      <>
+        {updateModal}
+        <UnlockScreen onUnlock={unlock} />
+      </>
+    )
   }
 
-  return <AppAuthenticatedRoutes />
+  return (
+    <>
+      {updateModal}
+      <AppAuthenticatedRoutes />
+    </>
+  )
 }

@@ -25,6 +25,7 @@ type ConfirmActionModalProps = {
   onConfirm: () => void
   confirming?: boolean
   confirmLabel?: string
+  cancelLabel?: string
 }
 
 export default function ConfirmActionModal({
@@ -34,7 +35,8 @@ export default function ConfirmActionModal({
   onClose,
   onConfirm,
   confirming = false,
-  confirmLabel = 'بله'
+  confirmLabel = 'بله',
+  cancelLabel = 'خیر'
 }: ConfirmActionModalProps) {
   const { panelRef } = useModalLock({ open, onClose, blocked: confirming })
 
@@ -88,7 +90,7 @@ export default function ConfirmActionModal({
             {confirmLabel}
           </Button>
           <Button type="button" variant="secondary" disabled={confirming} onClick={onClose}>
-            خیر
+            {cancelLabel}
           </Button>
         </div>
       </div>

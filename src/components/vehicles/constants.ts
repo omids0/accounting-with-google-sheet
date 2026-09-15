@@ -2,17 +2,14 @@ import type { VehicleMileageReminderInterval } from '../../types/vehicles'
 
 export const VEHICLE_EXPENSE_CATEGORY = 'خودرو'
 
+/** @deprecated Legacy expense category merged into {@link VEHICLE_EXPENSE_CATEGORY}. */
+export const LEGACY_VEHICLE_EXPENSE_CATEGORY = 'ماشین'
+
 export const VEHICLE_FUEL_EXPENSE_TYPE = 'بنزین'
 
 export const VEHICLE_OTHER_OPTION = 'سایر'
 
-export const VEHICLE_DEADLINE_CATEGORIES = [
-  'بیمه شخص ثالث',
-  'بیمه بدنه',
-  'معاینه فنی',
-  'عوارض خودرو',
-  'سایر'
-] as const
+export { DEFAULT_VEHICLE_DEADLINE_CATEGORIES as VEHICLE_DEADLINE_CATEGORIES } from '../../services/vehicleDeadlineCategories'
 
 export { DEFAULT_VEHICLE_MECHANIC_CATEGORIES as VEHICLE_MECHANIC_CATEGORIES } from '../../services/vehicleMechanicCategories'
 

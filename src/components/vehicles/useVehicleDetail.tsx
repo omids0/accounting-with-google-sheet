@@ -15,6 +15,7 @@ import { syncCategoriesFromSheet } from '../../services/categories'
 import { fetchReminderRules } from '../../services/reminders'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
+import { getVehicleDeadlineCategories } from '../../services/vehicleDeadlineCategories'
 import { fetchVehicleDeadlines } from '../../services/vehicleDeadlines'
 import { deleteManualVehicleExpense } from '../../services/vehicleExpenseActions'
 import { fetchVehicleHistory } from '../../services/vehicleHistory'
@@ -39,9 +40,9 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
   const [currentVehicle, setCurrentVehicle] = useState(vehicle)
   const [activeItems, setActiveItems] = useState<VehicleActiveListItem[]>([])
   const [history, setHistory] = useState<HistoryWithRow[]>([])
-  const [detailTab, setDetailTab] = useState<'active' | 'history' | 'transactions' | 'fuel'>(
-    'active'
-  )
+  const [detailTab, setDetailTab] = useState<
+    'active' | 'deadlines' | 'history' | 'transactions' | 'fuel'
+  >('active')
   const [transactions, setTransactions] = useState<VehicleTransactionItem[]>([])
   const [fuelStats, setFuelStats] = useState<MonthlyFuelStats[]>([])
   const [deletingTransaction, setDeletingTransaction] = useState<VehicleTransactionItem | null>(
@@ -67,6 +68,9 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
   const [deleteLinkedExpense, setDeleteLinkedExpense] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [serviceTypes, setServiceTypes] = useState<string[]>(() => getVehiclePeriodicCategories())
+  const [deadlineCategories, setDeadlineCategories] = useState<string[]>(() =>
+    getVehicleDeadlineCategories()
+  )
   const [mechanicCategories, setMechanicCategories] = useState<string[]>(() =>
     getVehicleMechanicCategories()
   )
@@ -82,6 +86,7 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
     try {
       await syncCategoriesFromSheet(spreadsheetId)
       setServiceTypes(getVehiclePeriodicCategories())
+      setDeadlineCategories(getVehicleDeadlineCategories())
       setMechanicCategories(getVehicleMechanicCategories())
 
       const [vehicles, periodics, deadlines, historyItems, reminderRules] = await Promise.all([
@@ -251,6 +256,8 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
     setDeleteLinkedExpense,
     serviceTypes,
     setServiceTypes,
+    deadlineCategories,
+    setDeadlineCategories,
     mechanicCategories,
     setMechanicCategories,
     loadDetail,

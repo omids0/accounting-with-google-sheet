@@ -5,7 +5,9 @@ import type {
   VehiclePeriodicService,
   VehicleUrgencyLevel
 } from '../../types/vehicles'
-import { getTodayIso, isoToJalali } from '../../utils/jalaliDate'
+import { formatMoney } from '../../utils/formatMoney'
+import { formatIsoDatePersian, getTodayIso, isoToJalali } from '../../utils/jalaliDate'
+import { DAYS_BEFORE_OPTIONS } from '../reminders/reminderConstants'
 
 function diffIsoDays(fromIso: string, toIso: string): number {
   const from = new Date(`${fromIso.slice(0, 10)}T12:00:00`)
@@ -35,6 +37,37 @@ export function getUrgencyFromDays(remainingDays: number): VehicleUrgencyLevel {
   return 'ok'
 }
 
+export function formatPeriodicRemainingSubtitle(remainingKm: number, nextKm: number): string {
+  if (remainingKm < 0) {
+    return `گذشته · بعدی: ${nextKm.toLocaleString('fa-IR')} km`
+  }
+
+  return `${remainingKm.toLocaleString('fa-IR')} km مانده · بعدی: ${nextKm.toLocaleString(
+    'fa-IR'
+  )} km`
+}
+
+export function formatDeadlineRemainingSubtitle(remainingDays: number, endDate: string): string {
+  const endLabel = formatIsoDatePersian(endDate)
+
+  if (remainingDays < 0) {
+    return `گذشته · پایان: ${endLabel}`
+  }
+
+  return `${remainingDays.toLocaleString('fa-IR')} روز مانده · پایان: ${endLabel}`
+}
+
+export function shouldShowVehicleDeadlineReminder(
+  deadline: Pick<VehicleDeadline, 'reminderEnabled' | 'daysBefore' | 'endDate'>,
+  todayIso = getTodayIso()
+): boolean {
+  if (!deadline.reminderEnabled) return false
+
+  const remainingDays = diffIsoDays(todayIso, deadline.endDate)
+
+  return remainingDays <= deadline.daysBefore
+}
+
 export function buildPeriodicListItem(
   item: VehiclePeriodicService & { rowNumber: number },
   vehicleMileage: number
@@ -47,15 +80,41 @@ export function buildPeriodicListItem(
     vehicleId: item.vehicleId,
     kind: 'periodic',
     title: item.serviceType,
-    subtitle: `${remainingKm.toLocaleString('fa-IR')} km مانده · بعدی: ${item.nextKm.toLocaleString(
-      'fa-IR'
-    )} km`,
+    subtitle: formatPeriodicRemainingSubtitle(remainingKm, item.nextKm),
     urgency,
     sortKey: remainingKm,
     remainingKm,
     remainingDays: null,
     periodic: item
   }
+}
+
+function formatDeadlineReminderLabel(daysBefore: number): string {
+  const option = DAYS_BEFORE_OPTIONS.find(item => Number(item.value) === daysBefore)
+
+  return option?.label ?? `${daysBefore.toLocaleString('fa-IR')} روز قبل`
+}
+
+export function buildDeadlineDetailLines(item: VehicleDeadline): string[] {
+  const lines = [
+    `شروع: ${formatIsoDatePersian(item.startDate)} · پایان: ${formatIsoDatePersian(item.endDate)}`
+  ]
+
+  if (item.amount > 0) {
+    lines.push(`مبلغ یادداشت: ${formatMoney(item.amount)}`)
+  }
+
+  lines.push(
+    item.reminderEnabled
+      ? `یادآوری: فعال · ${formatDeadlineReminderLabel(item.daysBefore)}`
+      : 'یادآوری: غیرفعال'
+  )
+
+  if (item.notes.trim()) {
+    lines.push(item.notes.trim())
+  }
+
+  return lines
 }
 
 export function buildDeadlineListItem(
@@ -69,7 +128,8 @@ export function buildDeadlineListItem(
     vehicleId: item.vehicleId,
     kind: 'deadline',
     title: item.category,
-    subtitle: `${remainingDays.toLocaleString('fa-IR')} روز مانده · پایان: ${item.endDate}`,
+    subtitle: formatDeadlineRemainingSubtitle(remainingDays, item.endDate),
+    detailLines: buildDeadlineDetailLines(item),
     urgency,
     sortKey: remainingDays,
     remainingKm: null,

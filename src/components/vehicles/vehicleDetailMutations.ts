@@ -162,7 +162,8 @@ export async function submitDeadlineForm(params: {
       amount,
       notes: values.notes.trim(),
       date: values.startDate,
-      previousExpenseId: editingDeadline.expenseRecordId
+      reminderEnabled: values.reminderEnabled,
+      daysBefore: values.daysBefore
     })
 
     return
@@ -174,21 +175,13 @@ export async function submitDeadlineForm(params: {
       startDate: values.startDate,
       endDate: values.endDate,
       amount,
-      notes: values.notes.trim()
+      notes: values.notes.trim(),
+      reminderEnabled: values.reminderEnabled,
+      daysBefore: values.daysBefore
     })
 
     return
   }
-
-  const expenseRecordId =
-    amount > 0
-      ? await createVehicleExpense(spreadsheetId, {
-          title: `${values.category} — ${vehicle.title}`,
-          amount,
-          date: values.endDate,
-          note: values.notes
-        })
-      : ''
 
   await createVehicleDeadline(spreadsheetId, {
     vehicleId: vehicle.id,
@@ -197,7 +190,8 @@ export async function submitDeadlineForm(params: {
     endDate: values.endDate,
     amount,
     notes: values.notes.trim(),
-    expenseRecordId
+    reminderEnabled: values.reminderEnabled,
+    daysBefore: values.daysBefore
   })
 }
 

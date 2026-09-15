@@ -37,6 +37,8 @@ export type VehicleDeadlineFormState = {
   endDate: string
   amount: number | ''
   notes: string
+  reminderEnabled: boolean
+  daysBefore: number
 }
 
 export type VehicleCompleteFormState = {
