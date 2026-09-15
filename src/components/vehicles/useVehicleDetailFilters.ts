@@ -7,7 +7,7 @@ import { compactFilterChips } from '../../utils/filterChips'
 import type { FilterChip } from '../ActiveFilterChips'
 
 const ACTIVE_URGENCY_LABELS: Record<VehicleActiveListItem['urgency'], string> = {
-  overdue: 'معوق',
+  overdue: 'گذشته',
   soon: 'نزدیک',
   ok: 'عادی'
 }

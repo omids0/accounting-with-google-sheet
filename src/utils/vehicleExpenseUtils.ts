@@ -1,4 +1,5 @@
 import {
+  LEGACY_VEHICLE_EXPENSE_CATEGORY,
   VEHICLE_EXPENSE_CATEGORY,
   VEHICLE_FUEL_EXPENSE_TYPE,
   VEHICLE_OTHER_OPTION
@@ -12,7 +13,9 @@ export type VehicleExpenseFormValues = {
 }
 
 export function isVehicleExpenseCategory(category: string): boolean {
-  return category.trim() === VEHICLE_EXPENSE_CATEGORY
+  const normalized = category.trim()
+
+  return normalized === VEHICLE_EXPENSE_CATEGORY || normalized === LEGACY_VEHICLE_EXPENSE_CATEGORY
 }
 
 export function isFuelExpenseType(expenseType: string): boolean {

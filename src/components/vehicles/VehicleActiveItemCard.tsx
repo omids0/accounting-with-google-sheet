@@ -46,7 +46,7 @@ function urgencyBadgeClass(urgency: VehicleActiveListItem['urgency']): string {
 }
 
 function urgencyLabel(urgency: VehicleActiveListItem['urgency']): string {
-  if (urgency === 'overdue') return 'معوق'
+  if (urgency === 'overdue') return 'گذشته'
   if (urgency === 'soon') return 'نزدیک'
   return 'عادی'
 }

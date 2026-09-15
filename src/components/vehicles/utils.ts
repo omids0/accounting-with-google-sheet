@@ -35,6 +35,24 @@ export function getUrgencyFromDays(remainingDays: number): VehicleUrgencyLevel {
   return 'ok'
 }
 
+export function formatPeriodicRemainingSubtitle(remainingKm: number, nextKm: number): string {
+  if (remainingKm < 0) {
+    return `گذشته · بعدی: ${nextKm.toLocaleString('fa-IR')} km`
+  }
+
+  return `${remainingKm.toLocaleString('fa-IR')} km مانده · بعدی: ${nextKm.toLocaleString(
+    'fa-IR'
+  )} km`
+}
+
+export function formatDeadlineRemainingSubtitle(remainingDays: number, endDate: string): string {
+  if (remainingDays < 0) {
+    return `گذشته · پایان: ${endDate}`
+  }
+
+  return `${remainingDays.toLocaleString('fa-IR')} روز مانده · پایان: ${endDate}`
+}
+
 export function buildPeriodicListItem(
   item: VehiclePeriodicService & { rowNumber: number },
   vehicleMileage: number
@@ -47,9 +65,7 @@ export function buildPeriodicListItem(
     vehicleId: item.vehicleId,
     kind: 'periodic',
     title: item.serviceType,
-    subtitle: `${remainingKm.toLocaleString('fa-IR')} km مانده · بعدی: ${item.nextKm.toLocaleString(
-      'fa-IR'
-    )} km`,
+    subtitle: formatPeriodicRemainingSubtitle(remainingKm, item.nextKm),
     urgency,
     sortKey: remainingKm,
     remainingKm,
@@ -69,7 +85,7 @@ export function buildDeadlineListItem(
     vehicleId: item.vehicleId,
     kind: 'deadline',
     title: item.category,
-    subtitle: `${remainingDays.toLocaleString('fa-IR')} روز مانده · پایان: ${item.endDate}`,
+    subtitle: formatDeadlineRemainingSubtitle(remainingDays, item.endDate),
     urgency,
     sortKey: remainingDays,
     remainingKm: null,
