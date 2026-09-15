@@ -1,53 +1,64 @@
 import { useMemo, type FormEvent } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
-import { VEHICLE_DEADLINE_CATEGORIES } from './constants'
 import type { VehicleDeadlineFormState } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { formFieldError, submitValidatedForm } from '../../utils/formValidation'
+import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { FormField, FormRow, FormSelect } from '../form'
+import { CategorySelect, FormField, FormRow, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
+import { DAYS_BEFORE_OPTIONS } from '../reminders/reminderConstants'
 
 type VehicleDeadlineFormModalProps = {
   open: boolean
   title: string
+  categories: string[]
   initialValues?: Partial<VehicleDeadlineFormState>
   saving: boolean
   onClose: () => void
   onSubmit: (values: VehicleDeadlineFormState) => void | Promise<void>
+  onCategoriesChange: (categories: string[]) => void
 }
 
 function buildDefaults(
+  categories: string[],
   initialValues?: Partial<VehicleDeadlineFormState>
 ): VehicleDeadlineFormState {
   const today = getTodayIso()
 
   return {
-    category: initialValues?.category ?? VEHICLE_DEADLINE_CATEGORIES[0],
+    category: initialValues?.category ?? categories[0] ?? '',
     startDate: initialValues?.startDate ?? today,
     endDate: initialValues?.endDate ?? today,
     amount: initialValues?.amount ?? '',
-    notes: initialValues?.notes ?? ''
+    notes: initialValues?.notes ?? '',
+    reminderEnabled: initialValues?.reminderEnabled ?? false,
+    daysBefore: initialValues?.daysBefore ?? 3
   }
 }
 
 export default function VehicleDeadlineFormModal({
   open,
   title,
+  categories,
   initialValues,
   saving,
   onClose,
-  onSubmit
+  onSubmit,
+  onCategoriesChange
 }: VehicleDeadlineFormModalProps) {
   const formResetKey = JSON.stringify(initialValues ?? 'create')
 
-  const defaults = useMemo(() => buildDefaults(initialValues), [formResetKey])
+  const defaults = useMemo(
+    () => buildDefaults(categories, initialValues),
+    [categories, formResetKey]
+  )
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setValue,
@@ -63,6 +74,8 @@ export default function VehicleDeadlineFormModal({
     resetKey: formResetKey
   })
 
+  const category = watch('category')
+
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
@@ -76,16 +89,31 @@ export default function VehicleDeadlineFormModal({
       saving={saving}
       saveLabel="ذخیره موعد"
     >
-      <FormSelect
-        label="دسته"
-        required
-        controlWidth="full"
-        value={watch('category')}
-        onChange={value => setValue('category', value)}
-        options={VEHICLE_DEADLINE_CATEGORIES.map(category => ({
-          value: category,
-          label: category
-        }))}
+      <Controller
+        name="category"
+        control={control}
+        rules={requiredField('دسته')}
+        render={({ field, fieldState }) => (
+          <FormField label="دسته" required controlWidth="full" error={fieldState.error?.message}>
+            <CategorySelect
+              value={field.value}
+              onChange={value => {
+                field.onChange(value)
+                setValue('category', value, { shouldValidate: true })
+              }}
+              categories={categories}
+              categoryScope="vehicleDeadline"
+              onCategoriesChange={next => {
+                onCategoriesChange(next)
+                if (!next.includes(category)) {
+                  setValue('category', next[0] ?? '', { shouldValidate: true })
+                }
+              }}
+              aria-label="دسته موعد"
+              invalid={Boolean(fieldState.error)}
+            />
+          </FormField>
+        )}
       />
 
       <FormRow>
@@ -104,13 +132,28 @@ export default function VehicleDeadlineFormModal({
         </FormField>
       </FormRow>
 
-      <FormField label="مبلغ (اختیاری)">
+      <FormField label="مبلغ (اختیاری)" hint="فقط برای یادداشت؛ در هزینه‌ها ثبت نمی‌شود">
         <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
       </FormField>
 
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('notes')} rows={2} placeholder="توضیحات اختیاری" />
       </FormField>
+
+      <label className="checkbox-row flex items-center gap-2">
+        <input type="checkbox" {...register('reminderEnabled')} />
+        <span>یادآوری موعد</span>
+      </label>
+
+      {watch('reminderEnabled') ? (
+        <FormSelect
+          label="چند روز قبل یادآوری شود؟"
+          controlWidth="full"
+          value={String(watch('daysBefore'))}
+          onChange={value => setValue('daysBefore', Number(value))}
+          options={DAYS_BEFORE_OPTIONS}
+        />
+      ) : null}
     </FormModal>
   )
 }

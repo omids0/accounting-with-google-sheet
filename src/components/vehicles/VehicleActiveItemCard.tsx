@@ -77,6 +77,11 @@ export default function VehicleActiveItemCard({
               </span>
             </div>
             <div className={dangCardMetaClass}>{item.subtitle}</div>
+            {item.detailLines?.map(line => (
+              <div key={line} className={dangCardMetaClass}>
+                {line}
+              </div>
+            ))}
             <div className="mt-2">
               {isPeriodic ? (
                 <Button

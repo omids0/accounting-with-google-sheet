@@ -17,7 +17,7 @@ export default function AppUpdateModal({
     <ConfirmActionModal
       open={open}
       title="بروزرسانی اپ"
-      message="نسخه جدید اپ آماده است. می‌خواهید الان بروزرسانی شود یا بعداً انجام دهید؟"
+      message="نسخه جدید اپ آماده است. می‌خواهید الان بروزرسانی شود یا بعداً از دکمه بالای صفحه انجام دهید؟"
       confirming={applying}
       confirmLabel="بروزرسانی"
       cancelLabel="بعداً"

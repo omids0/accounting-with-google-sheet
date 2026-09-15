@@ -19,7 +19,9 @@ export const VEHICLE_DEADLINE_HEADERS = [
   'مبلغ',
   'توضیحات',
   'expense_id',
-  'فعال'
+  'فعال',
+  'یادآوری_فعال',
+  'روز_قبل'
 ]
 
 function parseBool(value: string | undefined): boolean {
@@ -49,7 +51,9 @@ function rowToDeadline(
     amount: Math.max(0, Number(row[6]) || 0),
     notes: row[7] ?? '',
     expenseRecordId: row[8] ?? '',
-    active: parseBool(row[9] ?? 'true')
+    active: parseBool(row[9] ?? 'true'),
+    reminderEnabled: parseBool(row[10] ?? 'false'),
+    daysBefore: Math.max(0, Number(row[11]) || 3)
   }
 }
 
@@ -64,7 +68,9 @@ function deadlineToRow(item: VehicleDeadline): string[] {
     String(item.amount),
     item.notes,
     item.expenseRecordId,
-    item.active ? 'TRUE' : 'FALSE'
+    item.active ? 'TRUE' : 'FALSE',
+    item.reminderEnabled ? 'TRUE' : 'FALSE',
+    String(item.daysBefore)
   ]
 }
 
@@ -91,6 +97,8 @@ export async function createVehicleDeadline(
   input: Omit<VehicleDeadline, 'id' | 'createdAt' | 'expenseRecordId' | 'active'> & {
     expenseRecordId?: string
     active?: boolean
+    reminderEnabled?: boolean
+    daysBefore?: number
   }
 ): Promise<VehicleDeadline & { rowNumber: number }> {
   await ensureVehicleDeadlineSheet(spreadsheetId)
@@ -105,7 +113,9 @@ export async function createVehicleDeadline(
     amount: input.amount,
     notes: input.notes.trim(),
     expenseRecordId: input.expenseRecordId ?? '',
-    active: input.active ?? true
+    active: input.active ?? true,
+    reminderEnabled: input.reminderEnabled ?? false,
+    daysBefore: input.daysBefore ?? 3
   }
 
   await appendSheetRow(spreadsheetId, VEHICLE_DEADLINE_SHEET, deadlineToRow(item))

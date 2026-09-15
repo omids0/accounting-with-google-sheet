@@ -6,6 +6,7 @@ import { fetchVehicles } from './vehicleProfiles'
 import {
   buildDeadlineListItem,
   buildPeriodicListItem,
+  shouldShowVehicleDeadlineReminder,
   sortActiveItems
 } from '../components/vehicles/utils'
 import { addDaysToIso, getTodayIso } from '../utils/jalaliDate'
@@ -56,7 +57,11 @@ export async function fetchVehicleDashboardReminderItems(
     ])
 
     for (const item of activeItems) {
-      if (item.urgency === 'ok') continue
+      if (item.kind === 'deadline') {
+        if (!item.deadline || !shouldShowVehicleDeadlineReminder(item.deadline)) continue
+      } else if (item.urgency === 'ok') {
+        continue
+      }
 
       const vehicleTitle = vehicleTitleById.get(item.vehicleId) ?? 'خودرو'
       const kindLabel = item.kind === 'periodic' ? 'سرویس دوره‌ای' : 'موعد خودرو'

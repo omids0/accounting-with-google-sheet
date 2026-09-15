@@ -5,7 +5,9 @@ import type {
   VehiclePeriodicService,
   VehicleUrgencyLevel
 } from '../../types/vehicles'
-import { getTodayIso, isoToJalali } from '../../utils/jalaliDate'
+import { formatMoney } from '../../utils/formatMoney'
+import { formatIsoDatePersian, getTodayIso, isoToJalali } from '../../utils/jalaliDate'
+import { DAYS_BEFORE_OPTIONS } from '../reminders/reminderConstants'
 
 function diffIsoDays(fromIso: string, toIso: string): number {
   const from = new Date(`${fromIso.slice(0, 10)}T12:00:00`)
@@ -46,11 +48,24 @@ export function formatPeriodicRemainingSubtitle(remainingKm: number, nextKm: num
 }
 
 export function formatDeadlineRemainingSubtitle(remainingDays: number, endDate: string): string {
+  const endLabel = formatIsoDatePersian(endDate)
+
   if (remainingDays < 0) {
-    return `گذشته · پایان: ${endDate}`
+    return `گذشته · پایان: ${endLabel}`
   }
 
-  return `${remainingDays.toLocaleString('fa-IR')} روز مانده · پایان: ${endDate}`
+  return `${remainingDays.toLocaleString('fa-IR')} روز مانده · پایان: ${endLabel}`
+}
+
+export function shouldShowVehicleDeadlineReminder(
+  deadline: Pick<VehicleDeadline, 'reminderEnabled' | 'daysBefore' | 'endDate'>,
+  todayIso = getTodayIso()
+): boolean {
+  if (!deadline.reminderEnabled) return false
+
+  const remainingDays = diffIsoDays(todayIso, deadline.endDate)
+
+  return remainingDays <= deadline.daysBefore
 }
 
 export function buildPeriodicListItem(
@@ -74,6 +89,34 @@ export function buildPeriodicListItem(
   }
 }
 
+function formatDeadlineReminderLabel(daysBefore: number): string {
+  const option = DAYS_BEFORE_OPTIONS.find(item => Number(item.value) === daysBefore)
+
+  return option?.label ?? `${daysBefore.toLocaleString('fa-IR')} روز قبل`
+}
+
+export function buildDeadlineDetailLines(item: VehicleDeadline): string[] {
+  const lines = [
+    `شروع: ${formatIsoDatePersian(item.startDate)} · پایان: ${formatIsoDatePersian(item.endDate)}`
+  ]
+
+  if (item.amount > 0) {
+    lines.push(`مبلغ یادداشت: ${formatMoney(item.amount)}`)
+  }
+
+  lines.push(
+    item.reminderEnabled
+      ? `یادآوری: فعال · ${formatDeadlineReminderLabel(item.daysBefore)}`
+      : 'یادآوری: غیرفعال'
+  )
+
+  if (item.notes.trim()) {
+    lines.push(item.notes.trim())
+  }
+
+  return lines
+}
+
 export function buildDeadlineListItem(
   item: VehicleDeadline & { rowNumber: number }
 ): VehicleActiveListItem {
@@ -86,6 +129,7 @@ export function buildDeadlineListItem(
     kind: 'deadline',
     title: item.category,
     subtitle: formatDeadlineRemainingSubtitle(remainingDays, item.endDate),
+    detailLines: buildDeadlineDetailLines(item),
     urgency,
     sortKey: remainingDays,
     remainingKm: null,

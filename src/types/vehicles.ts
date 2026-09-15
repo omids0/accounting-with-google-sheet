@@ -54,6 +54,8 @@ export interface VehicleDeadline {
   notes: string
   expenseRecordId: string
   active: boolean
+  reminderEnabled: boolean
+  daysBefore: number
 }
 
 export interface VehicleMechanicItem {
@@ -146,6 +148,7 @@ export interface VehicleActiveListItem {
   kind: 'periodic' | 'deadline'
   title: string
   subtitle: string
+  detailLines?: string[]
   urgency: VehicleUrgencyLevel
   sortKey: number
   remainingKm: number | null

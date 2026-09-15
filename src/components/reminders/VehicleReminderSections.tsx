@@ -1,4 +1,4 @@
-import { DAYS_BEFORE_OPTIONS, HOUR_OPTIONS, MINUTE_OPTIONS } from './reminderConstants'
+import { HOUR_OPTIONS, MINUTE_OPTIONS } from './reminderConstants'
 import { getReminderKindLabel } from '../../services/reminders'
 import type { ReminderRule } from '../../types'
 import { FormSelect } from '../form'
@@ -92,18 +92,10 @@ export function VehicleDeadlineReminderSection({
           checked={rule.enabled}
           onChange={e => onUpdateRule({ enabled: e.target.checked })}
         />
-        <span>یادآوری بیمه، معاینه فنی و موعدهای خودرو</span>
+        <span>ارسال push برای موعدهای خودرو (هر موعد در فرم ثبت، زمان یادآوری خودش را دارد)</span>
       </label>
 
       <div className={reminderRuleFieldsClass}>
-        <FormSelect
-          label="چند روز قبل از پایان؟"
-          value={String(rule.daysBefore)}
-          onChange={value => onUpdateRule({ daysBefore: Number(value) })}
-          options={DAYS_BEFORE_OPTIONS}
-          controlWidth="compact"
-          compact
-        />
         <FormSelect
           label="ساعت ارسال"
           value={String(rule.hour)}

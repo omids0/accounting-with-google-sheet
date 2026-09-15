@@ -17,6 +17,8 @@ var SHEET_INSTALLMENTS = 'اقساط';
 var SHEET_CHECKS = 'چک‌ها';
 var SHEET_DANG = 'دنگ';
 var SHEET_PERSONAL = 'مواعد_شخصی';
+var SHEET_VEHICLE_DEADLINE = 'موعد_خودرو';
+var SHEET_VEHICLES = 'خودرو';
 var SHEET_ACTIVITY = 'فعالیت';
 var TZ = 'Asia/Tehran';
 
@@ -45,6 +47,21 @@ function runReminderCron() {
   if (personalRule && isReminderWindow_(personalRule.hour, personalRule.minute)) {
     var personalReminders = findPersonalReminders_(ss);
     sentCount += sendReminders_(ss, workerUrl, workerSecret, subscriptions, personalReminders, 'personal');
+  }
+
+  var vehicleDeadlineRule = rules.filter(function (r) {
+    return r.kind === 'vehicle-deadline' && r.enabled;
+  })[0];
+  if (vehicleDeadlineRule && isReminderWindow_(vehicleDeadlineRule.hour, vehicleDeadlineRule.minute)) {
+    var vehicleDeadlineReminders = findVehicleDeadlineReminders_(ss);
+    sentCount += sendReminders_(
+      ss,
+      workerUrl,
+      workerSecret,
+      subscriptions,
+      vehicleDeadlineReminders,
+      'vehicle-deadline'
+    );
   }
 
   var dailyRule = rules.filter(function (r) {
@@ -289,6 +306,65 @@ var PERSONAL_CATEGORY_LABELS_ = {
   subscription: 'اشتراک',
   other: 'سایر',
 };
+
+function findVehicleDeadlineReminders_(ss) {
+  var sheet = ss.getSheetByName(SHEET_VEHICLE_DEADLINE);
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 2) return [];
+
+  var vehicleTitles = readVehicleTitles_(ss);
+  var today = formatIsoDate_(new Date());
+  var reminders = [];
+
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var id = String(row[0] || '').trim();
+    if (!id) continue;
+    if (!parseBool_(row[9] ?? 'true')) continue;
+    if (!parseBool_(row[10] ?? 'false')) continue;
+
+    var vehicleId = String(row[1] || '').trim();
+    var category = String(row[3] || '').trim() || 'موعد';
+    var endDate = String(row[5] || '').slice(0, 10);
+    var amount = Number(row[6]) || 0;
+    var daysBefore = Number(row[11]) || 3;
+    var targetDue = addDaysIso_(today, daysBefore);
+
+    if (endDate !== targetDue) continue;
+
+    var vehicleTitle = vehicleTitles[vehicleId] || 'خودرو';
+    var amountPart = amount > 0 ? ' (' + formatMoney_(amount) + ')' : '';
+
+    reminders.push({
+      reference: 'vehicle_deadline_' + id + '_' + endDate,
+      title: 'یادآوری موعد خودرو',
+      body:
+        vehicleTitle +
+        ' — ' +
+        category +
+        amountPart +
+        ' — پایان: ' +
+        formatPersianDate_(endDate),
+    });
+  }
+
+  return reminders;
+}
+
+function readVehicleTitles_(ss) {
+  var sheet = ss.getSheetByName(SHEET_VEHICLES);
+  if (!sheet) return {};
+  var values = sheet.getDataRange().getValues();
+  var titles = {};
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var id = String(row[0] || '').trim();
+    if (!id) continue;
+    titles[id] = String(row[2] || '').trim() || 'خودرو';
+  }
+  return titles;
+}
 
 function findPersonalReminders_(ss) {
   var sheet = ss.getSheetByName(SHEET_PERSONAL);

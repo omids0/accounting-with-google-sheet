@@ -42,9 +42,13 @@ export default function VehicleDetailPage({
   active?: boolean
 }) {
   const page = useVehicleDetail(vehicle)
+  const deadlineItems = useMemo(
+    () => page.activeItems.filter(item => item.kind === 'deadline'),
+    [page.activeItems]
+  )
   const tabFilters = useVehicleDetailFilters({
     detailTab: page.detailTab,
-    activeItems: page.activeItems,
+    activeItems: page.detailTab === 'deadlines' ? deadlineItems : page.activeItems,
     historyItems: page.history,
     serviceTypeSeed: page.serviceTypes
   })
@@ -53,6 +57,7 @@ export default function VehicleDetailPage({
   const detailTabOptions = useMemo(
     () => [
       { id: 'active', label: `موارد فعال (${page.activeItems.length.toLocaleString('fa-IR')})` },
+      { id: 'deadlines', label: `موعدها (${deadlineItems.length.toLocaleString('fa-IR')})` },
       { id: 'history', label: `تاریخچه (${page.history.length.toLocaleString('fa-IR')})` },
       {
         id: 'transactions',
@@ -60,7 +65,7 @@ export default function VehicleDetailPage({
       },
       { id: 'fuel', label: 'مصرف بنزین' }
     ],
-    [page.activeItems.length, page.history.length, page.transactions.length]
+    [deadlineItems.length, page.activeItems.length, page.history.length, page.transactions.length]
   )
 
   const isTransactionsTab = page.detailTab === 'transactions'
@@ -85,7 +90,7 @@ export default function VehicleDetailPage({
 
   useRegisterPageSpeedDial(speedDialConfig, active)
 
-  const isActiveTab = page.detailTab === 'active'
+  const isActiveTab = page.detailTab === 'active' || page.detailTab === 'deadlines'
   const isHistoryTab = page.detailTab === 'history'
 
   const periodicInitialValues = useMemo(
@@ -103,7 +108,13 @@ export default function VehicleDetailPage({
     [page.completingPeriodic, page.currentVehicle]
   )
 
-  const sourceItems = isActiveTab ? page.activeItems : isHistoryTab ? page.history : []
+  const sourceItems = isActiveTab
+    ? page.detailTab === 'deadlines'
+      ? deadlineItems
+      : page.activeItems
+    : isHistoryTab
+    ? page.history
+    : []
   const listItems = isActiveTab || isHistoryTab ? tabFilters.filteredItems : []
   const filteredTransactions = isTransactionsTab
     ? transactionFilters.filteredItems
@@ -135,7 +146,15 @@ export default function VehicleDetailPage({
         onClear={filters.clearDraftFilters}
       >
         <VehicleDetailFilterFields
-          filterMode={isTransactionsTab ? 'transactions' : isActiveTab ? 'active' : 'history'}
+          filterMode={
+            isTransactionsTab
+              ? 'transactions'
+              : page.detailTab === 'deadlines'
+              ? 'deadlines'
+              : isActiveTab
+              ? 'active'
+              : 'history'
+          }
           loading={page.loading}
           draftSearch={filters.draftSearch}
           setDraftSearch={filters.setDraftSearch}
@@ -161,7 +180,9 @@ export default function VehicleDetailPage({
         <TransactionTypeSegment
           options={detailTabOptions}
           value={page.detailTab}
-          onChange={id => page.setDetailTab(id as 'active' | 'history' | 'transactions' | 'fuel')}
+          onChange={id =>
+            page.setDetailTab(id as 'active' | 'deadlines' | 'history' | 'transactions' | 'fuel')
+          }
           ariaLabel="بخش جزئیات خودرو"
           className="mb-0"
         />
@@ -212,6 +233,8 @@ export default function VehicleDetailPage({
         title={
           page.renewingDeadline ? 'تمدید موعد' : page.editingDeadline ? 'ویرایش موعد' : 'موعد جدید'
         }
+        categories={page.deadlineCategories}
+        onCategoriesChange={page.setDeadlineCategories}
         initialValues={deadlineInitialValues}
         saving={page.saving}
         onClose={page.closeDeadlineForm}

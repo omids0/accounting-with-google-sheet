@@ -7,7 +7,7 @@ import {
   recordsFilterSectionClassName
 } from '../ui/recordsStyles'
 
-type VehicleDetailFilterMode = 'active' | 'history' | 'transactions'
+type VehicleDetailFilterMode = 'active' | 'deadlines' | 'history' | 'transactions'
 
 type VehicleDetailFilterFieldsProps = {
   filterMode: VehicleDetailFilterMode
@@ -40,10 +40,12 @@ export default function VehicleDetailFilterFields({
   setDraftServiceTypeFilter,
   serviceTypeOptions
 }: VehicleDetailFilterFieldsProps) {
-  const isActiveTab = filterMode === 'active'
+  const isActiveTab = filterMode === 'active' || filterMode === 'deadlines'
   const isTransactionsTab = filterMode === 'transactions'
   const searchPlaceholder = isTransactionsTab
     ? 'جستجو در عنوان...'
+    : filterMode === 'deadlines'
+    ? 'جستجو در موعدها...'
     : isActiveTab
     ? 'جستجو در موارد فعال...'
     : 'جستجو در تاریخچه...'

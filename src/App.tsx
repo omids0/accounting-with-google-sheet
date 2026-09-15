@@ -79,7 +79,7 @@ export default function App() {
   const { scriptLoadedSuccessfully } = useGoogleOAuth()
 
   const { locked, unlock } = useAppLock()
-  const { showPrompt, applying, applyUpdate, dismissUpdate } = useAppUpdate()
+  const { showPrompt, applying, applyUpdate, dismissUpdate } = useAppUpdate(locked)
 
   const registerHandlers = useAppStore(state => state.registerHandlers)
 

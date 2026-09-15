@@ -72,6 +72,7 @@ export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<Ca
     !fromSheet.receivable.length ||
     !fromSheet.personalReminder.length ||
     !fromSheet.vehiclePeriodic.length ||
+    !fromSheet.vehicleDeadline.length ||
     !fromSheet.vehicleMechanic.length ||
     !fromSheet.vehicleExpense.length
 

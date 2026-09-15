@@ -1,6 +1,5 @@
 import { getSettings } from './settings'
 import { fetchRecords } from './sheets'
-import { fetchVehicleDeadlines } from './vehicleDeadlines'
 import { fetchVehicleExpenseMetaByVehicle } from './vehicleExpenseRecords'
 import { fetchVehicleHistory } from './vehicleHistory'
 import { fetchVehicleMechanicVisits } from './vehicleMechanicVisits'
@@ -24,15 +23,13 @@ export async function fetchVehicleTransactions(
   vehicleId: string
 ): Promise<VehicleTransactionItem[]> {
   const expenseForm = getSettings()?.forms.find(form => form.type === 'expense')
-  const [metaItems, history, periodics, deadlines, mechanicVisits, expenseRecords] =
-    await Promise.all([
-      fetchVehicleExpenseMetaByVehicle(spreadsheetId, vehicleId),
-      fetchVehicleHistory(spreadsheetId, vehicleId),
-      fetchVehiclePeriodicServices(spreadsheetId, vehicleId),
-      fetchVehicleDeadlines(spreadsheetId, vehicleId),
-      fetchVehicleMechanicVisits(spreadsheetId, vehicleId),
-      expenseForm ? fetchRecords(spreadsheetId, expenseForm) : Promise.resolve([])
-    ])
+  const [metaItems, history, periodics, mechanicVisits, expenseRecords] = await Promise.all([
+    fetchVehicleExpenseMetaByVehicle(spreadsheetId, vehicleId),
+    fetchVehicleHistory(spreadsheetId, vehicleId),
+    fetchVehiclePeriodicServices(spreadsheetId, vehicleId),
+    fetchVehicleMechanicVisits(spreadsheetId, vehicleId),
+    expenseForm ? fetchRecords(spreadsheetId, expenseForm) : Promise.resolve([])
+  ])
 
   const expenseById = new Map(expenseRecords.map(record => [record.id, record]))
   const linkedFromMeta = new Set(metaItems.map(item => item.expenseRecordId))
@@ -83,21 +80,6 @@ export async function fetchVehicleTransactions(
       amount: item.amount,
       expenseRecordId: item.expenseRecordId,
       mileage: item.currentMileage
-    })
-  }
-
-  for (const item of deadlines) {
-    if (!item.expenseRecordId || item.amount <= 0 || linkedFromMeta.has(item.expenseRecordId)) {
-      continue
-    }
-
-    transactions.push({
-      id: item.id,
-      source: 'deadline',
-      date: item.endDate,
-      title: `موعد — ${item.category}`,
-      amount: item.amount,
-      expenseRecordId: item.expenseRecordId
     })
   }
 
