@@ -51,6 +51,12 @@ export function useVehicleDetailModalActions(options: VehicleDetailModalActionsO
       ariaLabel: `عملیات ${vehicleTitle}`,
       actions: [
         {
+          id: 'mileage',
+          label: 'کارکرد',
+          icon: <AppIcon name="clock" size={18} />,
+          onClick: () => setShowMileageModal(true)
+        },
+        {
           id: 'periodic',
           label: 'سرویس دوره‌ای',
           icon: <AppIcon name="settings" size={18} />,
@@ -58,6 +64,12 @@ export function useVehicleDetailModalActions(options: VehicleDetailModalActionsO
             setEditingPeriodic(null)
             setShowPeriodicForm(true)
           }
+        },
+        {
+          id: 'mechanic',
+          label: 'مکانیک',
+          icon: <AppIcon name="settings" size={18} />,
+          onClick: () => setShowMechanicForm(true)
         },
         {
           id: 'deadline',
@@ -68,18 +80,6 @@ export function useVehicleDetailModalActions(options: VehicleDetailModalActionsO
             setRenewingDeadline(false)
             setShowDeadlineForm(true)
           }
-        },
-        {
-          id: 'mechanic',
-          label: 'مکانیک',
-          icon: <AppIcon name="settings" size={18} />,
-          onClick: () => setShowMechanicForm(true)
-        },
-        {
-          id: 'mileage',
-          label: 'کارکرد',
-          icon: <AppIcon name="clock" size={18} />,
-          onClick: () => setShowMileageModal(true)
         },
         {
           id: 'refresh',

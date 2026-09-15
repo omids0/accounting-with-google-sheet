@@ -28,7 +28,8 @@ export const ABOUT_VEHICLE_FEATURE_GROUP: AboutFeatureGroup = {
     },
     {
       title: 'ورود و خروجی',
-      description: 'ایمپورت CSV و اکسپورت CSV/PDF برای لیست خودروها.'
+      description:
+        'ایمپورت CSV و اکسپورت CSV/PDF برای لیست خودروها. در پروفایل هر خودرو هم از منوی شناور می‌توانید خروجی CSV/PDF تب فعلی (موارد فعال، موعدها، تاریخچه، تراکنش‌ها، مصرف بنزین) را بگیرید.'
     },
     {
       title: 'فیلتر',

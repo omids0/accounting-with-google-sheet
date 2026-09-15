@@ -1,34 +1,24 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import FilterModal from '../FilterModal'
-import SpeedDialIcon from '../SpeedDialIcon'
 import type { VehicleProfileWithRow } from './types'
 import { useVehicleDetail } from './useVehicleDetail'
 import { useVehicleDetailFilters } from './useVehicleDetailFilters'
+import { useVehicleDetailSpeedDial } from './useVehicleDetailSpeedDial'
 import { useVehicleTransactionFilters } from './useVehicleTransactionFilters'
 import {
   vehicleDetailMileageClass,
   vehicleDetailMileageValueClass,
   vehicleDetailToolbarClass
 } from './vehicleCardStyles'
-import VehicleCompleteModal from './VehicleCompleteModal'
-import VehicleDeadlineFormModal from './VehicleDeadlineFormModal'
 import VehicleDetailFilterFields from './VehicleDetailFilterFields'
-import {
-  buildCompleteInitialValues,
-  buildDeadlineInitialValues,
-  buildPeriodicInitialValues
-} from './vehicleDetailFormInitialValues'
+import VehicleDetailModals from './VehicleDetailModals'
+import type { HistoryWithRow } from './vehicleDetailMutations'
 import VehicleDetailTabContent from './VehicleDetailTabContent'
-import VehicleItemDeleteModal from './VehicleItemDeleteModal'
-import VehicleMechanicFormModal from './VehicleMechanicFormModal'
-import VehicleMileageModal from './VehicleMileageModal'
-import VehiclePeriodicFormModal from './VehiclePeriodicFormModal'
-import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
+import type { VehicleActiveListItem } from '../../types/vehicles'
 import TransactionTypeSegment from '../TransactionTypeSegment'
 import Card from '../ui/Card'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
@@ -70,43 +60,8 @@ export default function VehicleDetailPage({
 
   const isTransactionsTab = page.detailTab === 'transactions'
   const filters = isTransactionsTab ? transactionFilters : tabFilters
-
-  const speedDialConfig = useMemo(() => {
-    if (!isConfigured()) return null
-
-    return {
-      ...page.pageSpeedDialConfig,
-      actions: [
-        {
-          id: 'filter',
-          label: 'فیلتر',
-          icon: <SpeedDialIcon name="filter" />,
-          onClick: filters.openFilterModal
-        },
-        ...page.pageSpeedDialConfig.actions
-      ]
-    }
-  }, [filters.openFilterModal, page.pageSpeedDialConfig])
-
-  useRegisterPageSpeedDial(speedDialConfig, active)
-
   const isActiveTab = page.detailTab === 'active' || page.detailTab === 'deadlines'
   const isHistoryTab = page.detailTab === 'history'
-
-  const periodicInitialValues = useMemo(
-    () => buildPeriodicInitialValues(page.editingPeriodic, page.currentVehicle.mileage),
-    [page.editingPeriodic, page.currentVehicle.mileage]
-  )
-
-  const deadlineInitialValues = useMemo(
-    () => buildDeadlineInitialValues(page.editingDeadline),
-    [page.editingDeadline]
-  )
-
-  const completeInitialValues = useMemo(
-    () => buildCompleteInitialValues(page.completingPeriodic, page.currentVehicle),
-    [page.completingPeriodic, page.currentVehicle]
-  )
 
   const sourceItems = isActiveTab
     ? page.detailTab === 'deadlines'
@@ -119,6 +74,28 @@ export default function VehicleDetailPage({
   const filteredTransactions = isTransactionsTab
     ? transactionFilters.filteredItems
     : page.transactions
+
+  const getExportPayload = useCallback(
+    () => ({
+      vehicleTitle: page.currentVehicle.title,
+      tab: page.detailTab,
+      activeItems:
+        page.detailTab === 'active' || page.detailTab === 'deadlines'
+          ? (listItems as VehicleActiveListItem[])
+          : [],
+      historyItems: page.detailTab === 'history' ? (listItems as HistoryWithRow[]) : [],
+      transactions: page.detailTab === 'transactions' ? filteredTransactions : [],
+      fuelStats: page.detailTab === 'fuel' ? page.fuelStats : []
+    }),
+    [filteredTransactions, listItems, page.currentVehicle.title, page.detailTab, page.fuelStats]
+  )
+
+  const exportConfirmModal = useVehicleDetailSpeedDial({
+    active,
+    pageSpeedDialConfig: page.pageSpeedDialConfig,
+    openFilterModal: filters.openFilterModal,
+    getExportPayload
+  })
 
   if (!isConfigured()) {
     return (
@@ -216,80 +193,47 @@ export default function VehicleDetailPage({
         onDeleteTransaction={transaction => page.setDeletingTransaction(transaction)}
       />
 
-      <VehiclePeriodicFormModal
-        open={page.showPeriodicForm}
-        title={page.editingPeriodic ? 'ویرایش سرویس دوره‌ای' : 'سرویس دوره‌ای جدید'}
-        defaultMileage={page.currentVehicle.mileage}
+      <VehicleDetailModals
+        vehicle={page.currentVehicle}
         serviceTypes={page.serviceTypes}
         onServiceTypesChange={page.setServiceTypes}
-        initialValues={periodicInitialValues}
-        saving={page.saving}
-        onClose={page.closePeriodicForm}
-        onSubmit={page.handlePeriodicSubmit}
-      />
-
-      <VehicleDeadlineFormModal
-        open={page.showDeadlineForm}
-        title={
-          page.renewingDeadline ? 'تمدید موعد' : page.editingDeadline ? 'ویرایش موعد' : 'موعد جدید'
-        }
-        categories={page.deadlineCategories}
-        onCategoriesChange={page.setDeadlineCategories}
-        initialValues={deadlineInitialValues}
-        saving={page.saving}
-        onClose={page.closeDeadlineForm}
-        onSubmit={page.handleDeadlineSubmit}
-      />
-
-      <VehicleCompleteModal
-        open={page.showCompleteModal}
-        serviceType={page.completingPeriodic?.serviceType ?? ''}
-        defaultMileage={page.currentVehicle.mileage}
-        initialValues={completeInitialValues}
-        saving={page.saving}
-        onClose={page.closeCompleteModal}
-        onSubmit={page.handleCompleteSubmit}
-      />
-
-      <VehicleMechanicFormModal
-        open={page.showMechanicForm}
-        defaultMileage={page.currentVehicle.mileage}
+        deadlineCategories={page.deadlineCategories}
+        onDeadlineCategoriesChange={page.setDeadlineCategories}
         mechanicCategories={page.mechanicCategories}
         onMechanicCategoriesChange={page.setMechanicCategories}
+        showPeriodicForm={page.showPeriodicForm}
+        editingPeriodic={page.editingPeriodic}
+        showDeadlineForm={page.showDeadlineForm}
+        editingDeadline={page.editingDeadline}
+        renewingDeadline={page.renewingDeadline}
+        showCompleteModal={page.showCompleteModal}
+        completingPeriodic={page.completingPeriodic}
+        showMechanicForm={page.showMechanicForm}
+        showMileageModal={page.showMileageModal}
         saving={page.saving}
-        onClose={page.closeMechanicForm}
-        onSubmit={page.handleMechanicSubmit}
-      />
-
-      <VehicleMileageModal
-        open={page.showMileageModal}
-        vehicleTitle={page.currentVehicle.title}
-        currentMileage={page.currentVehicle.mileage}
-        saving={page.saving}
-        onClose={page.closeMileageModal}
-        onSubmit={page.handleMileageSubmit}
-      />
-
-      <VehicleItemDeleteModal
-        open={page.deletingTarget !== null}
-        target={page.deletingTarget}
+        deleting={page.deleting}
+        deletingTarget={page.deletingTarget}
         deleteLinkedExpense={page.deleteLinkedExpense}
         onDeleteLinkedExpenseChange={page.setDeleteLinkedExpense}
-        deleting={page.deleting}
-        onClose={page.closeDeleteTarget}
-        onConfirm={page.handleDelete}
-      />
-
-      <ConfirmDeleteModal
-        open={page.deletingTransaction !== null}
-        title="حذف تراکنش"
-        message="این تراکنش از لیست هزینه‌ها هم حذف می‌شود. مطمئن هستید؟"
-        deleting={page.deleting}
-        onClose={() => {
+        deletingTransaction={page.deletingTransaction}
+        exportConfirmModal={exportConfirmModal}
+        onClosePeriodicForm={page.closePeriodicForm}
+        onPeriodicSubmit={page.handlePeriodicSubmit}
+        onCloseDeadlineForm={page.closeDeadlineForm}
+        onDeadlineSubmit={page.handleDeadlineSubmit}
+        onCloseCompleteModal={page.closeCompleteModal}
+        onCompleteSubmit={page.handleCompleteSubmit}
+        onCloseMechanicForm={page.closeMechanicForm}
+        onMechanicSubmit={page.handleMechanicSubmit}
+        onCloseMileageModal={page.closeMileageModal}
+        onMileageSubmit={page.handleMileageSubmit}
+        onCloseDeleteTarget={page.closeDeleteTarget}
+        onDelete={page.handleDelete}
+        onCloseDeletingTransaction={() => {
           if (page.deleting) return
           page.setDeletingTransaction(null)
         }}
-        onConfirm={() => void page.handleDeleteTransaction()}
+        onDeleteTransaction={page.handleDeleteTransaction}
       />
     </div>
   )
