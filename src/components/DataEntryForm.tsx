@@ -3,7 +3,15 @@ import { useForm } from 'react-hook-form'
 
 import ConfirmActionModal from './ConfirmActionModal'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
-import { FieldInput, getInitialFieldValue, isStandardEntryForm, sortFormFields } from './form'
+import {
+  FieldInput,
+  getInitialFieldValue,
+  isStandardEntryForm,
+  sortFormFields,
+  SUBCATEGORY_FIELD_ID
+} from './form'
+import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
+import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import VehicleExpenseFields from './vehicleExpenses/VehicleExpenseFields'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
@@ -70,11 +78,15 @@ export default function DataEntryForm({
 
   const retroactiveWarning = useRetroactiveEntryWarning()
   const values = watch()
-  const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(String(values.category ?? ''))
+  const selectedCategory = String(values.category ?? '')
+  const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(selectedCategory)
+
+  const hasSubcategories =
+    readSubcategories(resolveCategoryType(undefined, activeForm.id), selectedCategory).length > 0
 
   const handleCategoriesChange = (categories: string[]) => {
     onCategoriesRefresh()
-    if (!categories.includes(String(values.category ?? ''))) {
+    if (!categories.includes(selectedCategory)) {
       setValue('category', categories[0] ?? '')
     }
   }
@@ -201,6 +213,9 @@ export default function DataEntryForm({
         ) : (
           sortFormFields(activeForm.fields).map(field => {
             if (showVehicleFields && field.id === 'title') return null
+            if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {
+              return null
+            }
 
             const fieldError =
               showVehicleFields && field.id === 'amount'
@@ -218,9 +233,11 @@ export default function DataEntryForm({
                     clearErrors('amount')
                   }
                   setValue(field.id, next)
+                  if (field.id === 'category') setValue(SUBCATEGORY_FIELD_ID, '')
                 }}
                 formId={activeForm.id}
                 error={fieldError}
+                parentCategory={selectedCategory}
                 onCategoriesChange={handleCategoriesChange}
               />
             )

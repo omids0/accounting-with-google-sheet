@@ -9,7 +9,9 @@ import { metaToFormValues } from '../../services/vehicleExpenseActions'
 import { findVehicleExpenseMetaByRecordId } from '../../services/vehicleExpenseRecords'
 import type { CustomForm, FieldConfig } from '../../types'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
-import { FieldInput, sortFormFields } from '../form'
+import { FieldInput, sortFormFields, SUBCATEGORY_FIELD_ID } from '../form'
+import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
+import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
 import FormModal from '../FormModal'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
 
@@ -103,7 +105,11 @@ export default function RecordsEditFormModal({
   ])
 
   const values = watch()
-  const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(String(values.category ?? ''))
+  const selectedCategory = String(values.category ?? '')
+  const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(selectedCategory)
+
+  const hasSubcategories =
+    readSubcategories(resolveCategoryType(undefined, editingForm.id), selectedCategory).length > 0
 
   const handleCategoriesChange = (categories: string[]) => {
     setFields(current =>
@@ -135,14 +141,21 @@ export default function RecordsEditFormModal({
     >
       {sortFormFields(fields).map(field => {
         if (showVehicleFields && field.id === 'title') return null
+        if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {
+          return null
+        }
 
         return (
           <FieldInput
             key={field.id}
             field={field}
             value={values[field.id] ?? ''}
-            onChange={next => setValue(field.id, next)}
+            onChange={next => {
+              setValue(field.id, next)
+              if (field.id === 'category') setValue(SUBCATEGORY_FIELD_ID, '')
+            }}
             formId={editingForm.id}
+            parentCategory={selectedCategory}
             onCategoriesChange={handleCategoriesChange}
           />
         )

@@ -1,24 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { cn } from '../../utils/cn'
-import AppIcon from '../AppIcon'
-import {
-  categorySelectLeadingClass,
-  categorySelectPlaceholderClass,
-  categorySelectRootClass,
-  categorySelectSpinnerClass,
-  categorySelectTriggerClass,
-  customSelectChevronClass,
-  customSelectTriggerClass,
-  customSelectTriggerStateClass,
-  customSelectValueClass
-} from '../ui/formControlStyles'
+import { categorySelectRootClass } from '../ui/formControlStyles'
 import CategorySelectPanel from './categorySelect/CategorySelectPanel'
 import CategorySelectSheet from './categorySelect/CategorySelectSheet'
+import CategorySelectTrigger from './categorySelect/CategorySelectTrigger'
 import {
+  resolveCategoryType,
   useCategorySelectActions,
   type CategorySelectProps
 } from './categorySelect/useCategorySelectActions'
+import { useSubcategoryManager } from './categorySelect/useSubcategoryManager'
 
 export type { CategorySelectProps } from './categorySelect/useCategorySelectActions'
 
@@ -38,7 +30,11 @@ export default function CategorySelect({
   allOption,
   allowManage = allOption == null,
   showSearchAlways = false,
-  lockedCategories = []
+  lockedCategories = [],
+  onPersist,
+  allowEmpty = false,
+  manageTitle = 'مدیریت دسته‌ها',
+  allowSubcategories = false
 }: CategorySelectProps) {
   const [open, setOpen] = useState(false)
 
@@ -66,17 +62,27 @@ export default function CategorySelect({
 
   const displayValue = isAllSelected ? allOption?.label : value
 
-  const showSearch = showSearchAlways || categories.length > 3
+  const subcategory = useSubcategoryManager(
+    allowSubcategories ? resolveCategoryType(categoryScope, formId) : undefined
+  )
+
+  const { close: closeSubcategories } = subcategory
+
+  const inSubcategories = subcategory.managingCategory !== null
+
+  const activeCategories = inSubcategories ? subcategory.subcategories : categories
+
+  const showSearch = showSearchAlways || activeCategories.length > 3
 
   const filteredCategories = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
 
-    if (!query) return categories
+    if (!query) return activeCategories
 
-    return categories.filter(category => category.toLowerCase().includes(query))
-  }, [categories, searchQuery])
+    return activeCategories.filter(category => category.toLowerCase().includes(query))
+  }, [activeCategories, searchQuery])
 
-  const { handleSaveEdit, handleDelete, handleAdd, handleReorder } = useCategorySelectActions({
+  const ownActions = useCategorySelectActions({
     categories,
     formId,
     categoryScope,
@@ -84,8 +90,27 @@ export default function CategorySelect({
     onChange,
     value,
     setSaving,
-    lockedCategories
+    lockedCategories,
+    onPersist,
+    allowEmpty
   })
+
+  const subcategoryActions = useCategorySelectActions({
+    categories: subcategory.subcategories,
+    onCategoriesChange: next => {
+      subcategory.setSubcategories(next)
+      onCategoriesChange?.(categories)
+    },
+    onChange: () => {},
+    value: '',
+    setSaving,
+    onPersist: subcategory.persist,
+    allowEmpty: true
+  })
+
+  const { handleSaveEdit, handleDelete, handleAdd, handleReorder } = inSubcategories
+    ? subcategoryActions
+    : ownActions
 
   const resetTransientState = useCallback(() => {
     setManageMode(false)
@@ -93,7 +118,8 @@ export default function CategorySelect({
     setEditingCategory(null)
     setEditText('')
     setConfirmDelete(null)
-  }, [])
+    closeSubcategories()
+  }, [closeSubcategories])
 
   const handleClose = useCallback(() => {
     if (saving) return
@@ -111,6 +137,13 @@ export default function CategorySelect({
       return
     }
 
+    if (inSubcategories) {
+      closeSubcategories()
+      setSearchQuery('')
+
+      return
+    }
+
     if (manageMode) {
       setManageMode(false)
 
@@ -119,7 +152,15 @@ export default function CategorySelect({
 
     setOpen(false)
     resetTransientState()
-  }, [confirmDelete, editingCategory, manageMode, resetTransientState, saving])
+  }, [
+    confirmDelete,
+    editingCategory,
+    inSubcategories,
+    manageMode,
+    resetTransientState,
+    saving,
+    closeSubcategories
+  ])
 
   useEffect(() => {
     if (!open) return
@@ -160,73 +201,62 @@ export default function CategorySelect({
     resetTransientState()
   }
 
-  const sheetTitle = manageMode ? 'مدیریت دسته‌ها' : ariaLabel
+  const sheetTitle = inSubcategories
+    ? `زیردسته‌های «${subcategory.managingCategory}»`
+    : manageMode
+    ? manageTitle
+    : ariaLabel
 
   return (
     <div
       className={cn(categorySelectRootClass({ open, disabled, saving }), className)}
       data-open={open || undefined}
     >
-      <button
+      <CategorySelectTrigger
         id={id}
-        type="button"
-        className={cn(
-          customSelectTriggerClass,
-          categorySelectTriggerClass,
-          customSelectTriggerStateClass({ open, disabled: disabled || saving, invalid })
-        )}
-        onClick={() => !disabled && !saving && setOpen(true)}
-        disabled={disabled || saving}
-        aria-label={ariaLabel}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-      >
-        <span className={categorySelectLeadingClass} aria-hidden="true">
-          <AppIcon name="folder" size={16} strokeWidth={2} />
-        </span>
-        <span
-          className={cn(
-            customSelectValueClass,
-            !hasValue && !isAllSelected && categorySelectPlaceholderClass
-          )}
-        >
-          {hasValue || isAllSelected ? displayValue : placeholder}
-        </span>
-        {saving ? (
-          <span className={cn('spinner', categorySelectSpinnerClass)} aria-hidden="true" />
-        ) : (
-          <AppIcon
-            name="chevron-down"
-            size={12}
-            strokeWidth={2.5}
-            className={customSelectChevronClass(open)}
-            aria-hidden
-          />
-        )}
-      </button>
+        ariaLabel={ariaLabel}
+        open={open}
+        disabled={disabled}
+        saving={saving}
+        invalid={invalid}
+        label={hasValue || isAllSelected ? displayValue || placeholder : placeholder}
+        isPlaceholder={!hasValue && !isAllSelected}
+        onOpen={() => !disabled && !saving && setOpen(true)}
+      />
 
       <CategorySelectSheet
         open={open}
         title={sheetTitle}
-        manageMode={manageMode}
+        manageMode={manageMode || inSubcategories}
         blocked={saving}
         onClose={handleClose}
         onBackFromManage={() => {
-          setManageMode(false)
           setEditingCategory(null)
           setConfirmDelete(null)
+          if (inSubcategories) {
+            closeSubcategories()
+            setSearchQuery('')
+
+            return
+          }
+          setManageMode(false)
         }}
       >
         <CategorySelectPanel
           ariaLabel={ariaLabel}
-          categories={categories}
+          categories={activeCategories}
           filteredCategories={filteredCategories}
-          value={value}
+          value={inSubcategories ? '' : value}
           saving={saving}
-          manageMode={manageMode}
+          manageMode={manageMode || inSubcategories}
+          manageLabel={manageTitle}
           allowManage={allowManage}
-          lockedCategories={lockedCategories}
-          allOption={allOption}
+          lockedCategories={inSubcategories ? [] : lockedCategories}
+          canDeleteLast={allowEmpty || inSubcategories}
+          onManageSubcategories={
+            manageMode && !inSubcategories && subcategory.enabled ? subcategory.open : undefined
+          }
+          allOption={inSubcategories ? undefined : allOption}
           showSearch={showSearch}
           searchQuery={searchQuery}
           editingCategory={editingCategory}
