@@ -6,8 +6,10 @@ import {
   formatPeriodicRemainingSubtitle,
   getUrgencyFromDays,
   getUrgencyFromKm,
-  shouldShowVehicleDeadlineReminder
+  shouldShowVehicleDeadlineReminder,
+  sortActiveItems
 } from './utils'
+import type { VehicleActiveListItem } from '../../types/vehicles'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 
 describe('vehicle urgency helpers', () => {
@@ -77,5 +79,67 @@ describe('vehicle urgency helpers', () => {
 
   it('marks negative remaining days as overdue', () => {
     expect(getUrgencyFromDays(-1)).toBe('overdue')
+  })
+})
+
+function activeStub(
+  partial: Pick<VehicleActiveListItem, 'kind' | 'urgency' | 'sortKey'> & {
+    id: string
+    remainingDays?: number | null
+  }
+): VehicleActiveListItem {
+  return {
+    id: partial.id,
+    vehicleId: 'v1',
+    title: partial.id,
+    subtitle: '',
+    urgency: partial.urgency,
+    sortKey: partial.sortKey,
+    remainingKm: partial.kind === 'periodic' ? partial.sortKey : null,
+    remainingDays: partial.kind === 'deadline' ? partial.remainingDays ?? partial.sortKey : null,
+    kind: partial.kind
+  }
+}
+
+describe('sortActiveItems', () => {
+  it('puts far-future deadlines after periodic services with comfortable remaining km', () => {
+    const sorted = sortActiveItems([
+      activeStub({
+        id: 'far-deadline',
+        kind: 'deadline',
+        urgency: 'ok',
+        sortKey: 400,
+        remainingDays: 400
+      }),
+      activeStub({
+        id: 'periodic-ok',
+        kind: 'periodic',
+        urgency: 'ok',
+        sortKey: 3_000
+      })
+    ])
+
+    expect(sorted.map(item => item.id)).toEqual(['periodic-ok', 'far-deadline'])
+  })
+
+  it('keeps near deadlines above far-future deadlines', () => {
+    const sorted = sortActiveItems([
+      activeStub({
+        id: 'far',
+        kind: 'deadline',
+        urgency: 'ok',
+        sortKey: 365,
+        remainingDays: 365
+      }),
+      activeStub({
+        id: 'near',
+        kind: 'deadline',
+        urgency: 'ok',
+        sortKey: 20,
+        remainingDays: 20
+      })
+    ])
+
+    expect(sorted.map(item => item.id)).toEqual(['near', 'far'])
   })
 })
