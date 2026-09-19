@@ -16,6 +16,7 @@ import {
 import type { MonthlyFuelStats } from '../../types/vehicles'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
+import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import Card from '../ui/Card'
 import { emptyStateClass } from '../ui/displayStyles'
 
@@ -75,7 +76,9 @@ function FuelEntryList({ month }: { month: MonthlyFuelStats }) {
             className={fuelEntryCardClass}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className={fuelEntryDateBadgeClass}>{entry.date}</span>
+              <span className={fuelEntryDateBadgeClass}>
+                {entry.date ? formatIsoDatePersian(entry.date) : '—'}
+              </span>
               {entry.mileage ? (
                 <span className="text-[0.72rem] text-muted" dir="ltr">
                   کارکرد {entry.mileage.toLocaleString('fa-IR')} km

@@ -18,6 +18,8 @@ function diffIsoDays(fromIso: string, toIso: string): number {
 
 const SOON_KM_THRESHOLD = 500
 const SOON_DAYS_THRESHOLD = 14
+/** موعدهای دورتر از این بازه در تب موارد فعال به انتهای لیست می‌روند */
+const ACTIVE_DEADLINE_NEAR_DAYS = 30
 
 export function calculateNextKm(currentMileage: number, intervalKm: number): number {
   return currentMileage + Math.max(0, intervalKm)
@@ -138,17 +140,28 @@ export function buildDeadlineListItem(
   }
 }
 
-export function sortActiveItems(items: VehicleActiveListItem[]): VehicleActiveListItem[] {
-  const urgencyRank: Record<VehicleUrgencyLevel, number> = {
-    overdue: 0,
-    soon: 1,
-    ok: 2
+function getActiveItemSortTier(item: VehicleActiveListItem): number {
+  if (item.urgency === 'overdue') return 0
+  if (item.urgency === 'soon') return 1
+
+  if (item.kind === 'deadline') {
+    const days = item.remainingDays ?? 0
+
+    if (days > ACTIVE_DEADLINE_NEAR_DAYS) return 3
   }
 
-  return [...items].sort((a, b) => {
-    const urgencyDiff = urgencyRank[a.urgency] - urgencyRank[b.urgency]
+  return 2
+}
 
-    if (urgencyDiff !== 0) return urgencyDiff
+export function sortActiveItems(items: VehicleActiveListItem[]): VehicleActiveListItem[] {
+  return [...items].sort((a, b) => {
+    const tierDiff = getActiveItemSortTier(a) - getActiveItemSortTier(b)
+
+    if (tierDiff !== 0) return tierDiff
+
+    if (a.kind !== b.kind && getActiveItemSortTier(a) === 2) {
+      return a.kind === 'periodic' ? -1 : 1
+    }
 
     return a.sortKey - b.sortKey
   })
