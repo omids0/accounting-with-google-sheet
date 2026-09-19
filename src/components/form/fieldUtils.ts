@@ -1,16 +1,41 @@
-import type { FieldConfig } from '../../types'
+import type { CustomForm, FieldConfig } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
 
-const STANDARD_FIELD_ORDER = ['date', 'title', 'category', 'amount', 'note']
+export const SUBCATEGORY_FIELD_ID = 'subCategory'
+export const SUBCATEGORY_FIELD_LABEL = 'زیردسته'
+
+const STANDARD_FIELD_ORDER = ['date', 'title', 'category', SUBCATEGORY_FIELD_ID, 'amount', 'note']
+
+const REQUIRED_ENTRY_FIELD_IDS = ['date', 'title', 'category', 'amount', 'note']
 
 export const STANDARD_ENTRY_FIELD_IDS = STANDARD_FIELD_ORDER
 
 export function isStandardEntryForm(form: { fields: FieldConfig[] }): boolean {
-  if (form.fields.length !== STANDARD_FIELD_ORDER.length) return false
-
   const ids = new Set(form.fields.map(field => field.id))
 
-  return STANDARD_FIELD_ORDER.every(id => ids.has(id))
+  return (
+    REQUIRED_ENTRY_FIELD_IDS.every(id => ids.has(id)) &&
+    form.fields.every(field => STANDARD_FIELD_ORDER.includes(field.id))
+  )
+}
+
+export function createSubCategoryField(): FieldConfig {
+  return {
+    id: SUBCATEGORY_FIELD_ID,
+    label: SUBCATEGORY_FIELD_LABEL,
+    type: 'select',
+    required: false,
+    options: []
+  }
+}
+
+export function withSubCategoryField(forms: CustomForm[]): CustomForm[] {
+  return forms.map(form => {
+    if (form.type !== 'income' && form.type !== 'expense') return form
+    if (form.fields.some(field => field.id === SUBCATEGORY_FIELD_ID)) return form
+
+    return { ...form, fields: [...form.fields, createSubCategoryField()] }
+  })
 }
 
 export function sortFormFields(fields: FieldConfig[]): FieldConfig[] {

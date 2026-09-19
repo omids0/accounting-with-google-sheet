@@ -12,6 +12,7 @@ import { DEFAULT_VEHICLE_DEADLINE_CATEGORIES } from './vehicleDeadlineCategories
 import { DEFAULT_VEHICLE_EXPENSE_CATEGORIES } from './vehicleExpenseCategories'
 import { DEFAULT_VEHICLE_MECHANIC_CATEGORIES } from './vehicleMechanicCategories'
 import { DEFAULT_VEHICLE_PERIODIC_CATEGORIES } from './vehiclePeriodicCategories'
+import type { CategorySubcategoryMap } from '../types'
 import { withLockedExpenseCategories } from '../utils/protectedCategories'
 
 export type CategoryType =
@@ -48,6 +49,8 @@ export interface CategoryGroups {
   vehicleMechanic: string[]
   vehicleExpense: string[]
 }
+
+const CATEGORY_TYPES = Object.keys(FORM_TYPE_LABELS) as CategoryType[]
 
 function parseFormType(value: string): CategoryType | null {
   const normalized = value.trim().toLowerCase()
@@ -119,6 +122,7 @@ export function rowsToGroups(rows: string[][]): CategoryGroups {
     const category = String(row[1] ?? '').trim()
 
     if (!formType || !category) continue
+    if (String(row[2] ?? '').trim()) continue
     if (!groups[formType].includes(category)) {
       groups[formType].push(category)
     }
@@ -127,35 +131,55 @@ export function rowsToGroups(rows: string[][]): CategoryGroups {
   return groups
 }
 
-export function groupsToRows(groups: CategoryGroups): string[][] {
+export function rowsToSubcategories(rows: string[][]): CategorySubcategoryMap {
+  const map: CategorySubcategoryMap = {}
+
+  for (const row of rows) {
+    const formType = parseFormType(row[0] ?? '')
+
+    const category = String(row[1] ?? '').trim()
+
+    const subcategory = String(row[2] ?? '').trim()
+
+    if (!formType || !category || !subcategory) continue
+
+    const forType = (map[formType] ??= {})
+
+    const list = (forType[category] ??= [])
+
+    if (!list.includes(subcategory)) list.push(subcategory)
+  }
+
+  return map
+}
+
+export function groupsToRows(
+  groups: CategoryGroups,
+  subcategories: CategorySubcategoryMap = {}
+): string[][] {
   const rows: string[][] = []
 
-  for (const category of groups.income) {
-    rows.push([FORM_TYPE_LABELS.income, category])
-  }
-  for (const category of groups.expense) {
-    rows.push([FORM_TYPE_LABELS.expense, category])
-  }
-  for (const category of groups.dang) {
-    rows.push([FORM_TYPE_LABELS.dang, category])
-  }
-  for (const category of groups.receivable) {
-    rows.push([FORM_TYPE_LABELS.receivable, category])
-  }
-  for (const category of groups.personalReminder) {
-    rows.push([FORM_TYPE_LABELS.personalReminder, category])
-  }
-  for (const category of groups.vehiclePeriodic) {
-    rows.push([FORM_TYPE_LABELS.vehiclePeriodic, category])
-  }
-  for (const category of groups.vehicleDeadline) {
-    rows.push([FORM_TYPE_LABELS.vehicleDeadline, category])
-  }
-  for (const category of groups.vehicleMechanic) {
-    rows.push([FORM_TYPE_LABELS.vehicleMechanic, category])
-  }
-  for (const category of groups.vehicleExpense) {
-    rows.push([FORM_TYPE_LABELS.vehicleExpense, category])
+  for (const formType of CATEGORY_TYPES) {
+    const label = FORM_TYPE_LABELS[formType]
+
+    const pending = { ...(subcategories[formType] ?? {}) }
+
+    for (const category of groups[formType]) {
+      rows.push([label, category, ''])
+
+      for (const subcategory of pending[category] ?? []) {
+        rows.push([label, category, subcategory])
+      }
+      delete pending[category]
+    }
+
+    // Subcategories of a category that is mid-rename or mid-delete keep their rows,
+    // so a two-step rename cannot lose them between the writes.
+    for (const [category, list] of Object.entries(pending) as [string, string[]][]) {
+      for (const subcategory of list) {
+        rows.push([label, category, subcategory])
+      }
+    }
   }
 
   return rows
@@ -185,7 +209,10 @@ export function withDefaults(groups: CategoryGroups): CategoryGroups {
   }
 }
 
-export function applyGroupsToSettings(groups: CategoryGroups): void {
+export function applyGroupsToSettings(
+  groups: CategoryGroups,
+  subcategories?: CategorySubcategoryMap
+): void {
   const settings = getSettings() ?? getDefaultSettings()
 
   const forms = settings.forms.map(form => {
@@ -203,6 +230,7 @@ export function applyGroupsToSettings(groups: CategoryGroups): void {
   saveSettings({
     ...settings,
     forms,
+    categorySubcategories: subcategories ?? settings.categorySubcategories,
     dangCategories: groups.dang,
     receivableCategories: groups.receivable,
     personalReminderCategories: groups.personalReminder,
