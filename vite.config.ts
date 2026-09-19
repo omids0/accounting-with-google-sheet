@@ -17,7 +17,7 @@ export default defineConfig(({ command }) => ({
     tailwindcss(),
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       devOptions: {
         enabled: true,
         type: 'module'

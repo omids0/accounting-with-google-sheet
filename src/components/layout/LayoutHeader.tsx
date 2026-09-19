@@ -1,6 +1,5 @@
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
-import AppUpdateHeaderAction from '../AppUpdateHeaderAction'
 import SyncStatusBadge from '../SyncStatusBadge'
 import {
   appHeaderCenterClass,
@@ -49,7 +48,6 @@ export default function LayoutHeader({
           {headerTitle}
         </h1>
         <div className="flex max-w-full flex-wrap items-center gap-1.5">
-          <AppUpdateHeaderAction />
           {!showSettings && <SyncStatusBadge />}
         </div>
       </div>
