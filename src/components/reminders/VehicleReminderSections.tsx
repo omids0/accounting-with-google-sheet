@@ -128,3 +128,62 @@ export function VehicleDeadlineReminderSection({
     </Card>
   )
 }
+
+interface VehiclePeriodicReminderSectionProps {
+  rule: ReminderRule
+  saving: boolean
+  onUpdateRule: (patch: Partial<ReminderRule>) => void
+  onSave: () => void
+}
+
+export function VehiclePeriodicReminderSection({
+  rule,
+  saving,
+  onUpdateRule,
+  onSave
+}: VehiclePeriodicReminderSectionProps) {
+  return (
+    <Card>
+      <CardTitle>{getReminderKindLabel('vehicle-periodic-service')}</CardTitle>
+      <label className={reminderCheckboxRowClass}>
+        <input
+          type="checkbox"
+          checked={rule.enabled}
+          onChange={e => onUpdateRule({ enabled: e.target.checked })}
+        />
+        <span>ارسال push برای سرویس‌های دوره‌ای نزدیک به کیلومتر هدف (آستانه در فرم هر سرویس)</span>
+      </label>
+
+      <div className={reminderRuleFieldsClass}>
+        <FormSelect
+          label="ساعت ارسال"
+          value={String(rule.hour)}
+          onChange={value => onUpdateRule({ hour: Number(value) })}
+          options={HOUR_OPTIONS}
+          controlWidth="compact"
+          compact
+        />
+        <FormSelect
+          label="دقیقه"
+          value={String(rule.minute)}
+          onChange={value => onUpdateRule({ minute: Number(value) })}
+          options={MINUTE_OPTIONS}
+          controlWidth="compact"
+          compact
+        />
+      </div>
+
+      <Button
+        type="button"
+        variant="primary"
+        size="sm"
+        style={{ marginTop: '0.75rem' }}
+        onClick={onSave}
+        disabled={saving}
+        loading={saving}
+      >
+        ذخیره تنظیمات
+      </Button>
+    </Card>
+  )
+}

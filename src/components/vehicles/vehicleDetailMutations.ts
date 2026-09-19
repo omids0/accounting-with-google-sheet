@@ -60,7 +60,9 @@ export async function submitPeriodicForm(params: {
       brand: values.brand.trim(),
       location: values.location.trim(),
       amount,
-      notes: values.notes.trim()
+      notes: values.notes.trim(),
+      reminderEnabled: values.reminderEnabled,
+      reminderThresholdKm: values.reminderThresholdKm
     })
 
     if (!values.isHistorical && mileage > vehicle.mileage) {
@@ -90,7 +92,9 @@ export async function submitPeriodicForm(params: {
     location: values.location.trim(),
     amount,
     notes: values.notes.trim(),
-    expenseRecordId
+    expenseRecordId,
+    reminderEnabled: values.reminderEnabled,
+    reminderThresholdKm: values.reminderThresholdKm
   })
 
   if (values.date) {

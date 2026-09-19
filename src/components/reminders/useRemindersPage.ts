@@ -170,7 +170,12 @@ export function useRemindersPage() {
   )
 
   const handleSaveRule = async (
-    kind: DueDateKind | 'personal' | 'vehicle-mileage' | 'vehicle-deadline'
+    kind:
+      | DueDateKind
+      | 'personal'
+      | 'vehicle-mileage'
+      | 'vehicle-deadline'
+      | 'vehicle-periodic-service'
   ) => {
     if (!spreadsheetId) {
       showError('ابتدا یک شیت فعال انتخاب کنید')
@@ -181,11 +186,14 @@ export function useRemindersPage() {
     const rule =
       kind === 'personal'
         ? personalRule
-        : kind === 'vehicle-mileage' || kind === 'vehicle-deadline'
+        : kind === 'vehicle-mileage' ||
+          kind === 'vehicle-deadline' ||
+          kind === 'vehicle-periodic-service'
         ? resolveVehicleReminderRule(
             kind,
             vehicleRules.vehicleMileageRule,
-            vehicleRules.vehicleDeadlineRule
+            vehicleRules.vehicleDeadlineRule,
+            vehicleRules.vehiclePeriodicRule
           )
         : rules[kind]
 
@@ -199,7 +207,12 @@ export function useRemindersPage() {
     try {
       await saveReminderRules(spreadsheetId, [rule])
 
-      if (kind !== 'personal' && kind !== 'vehicle-mileage' && kind !== 'vehicle-deadline') {
+      if (
+        kind !== 'personal' &&
+        kind !== 'vehicle-mileage' &&
+        kind !== 'vehicle-deadline' &&
+        kind !== 'vehicle-periodic-service'
+      ) {
         const upcoming = await previewDueDateReminders(spreadsheetId, kind, rule)
 
         setPreviews(current => ({ ...current, [kind]: upcoming }))
@@ -237,6 +250,7 @@ export function useRemindersPage() {
     personalRule,
     vehicleMileageRule: vehicleRules.vehicleMileageRule,
     vehicleDeadlineRule: vehicleRules.vehicleDeadlineRule,
+    vehiclePeriodicRule: vehicleRules.vehiclePeriodicRule,
     previewLinesByKind,
     permission,
     hasSubscription,
@@ -255,6 +269,7 @@ export function useRemindersPage() {
     updateRule,
     updatePersonalRule,
     updateVehicleMileageRule: vehicleRules.updateVehicleMileageRule,
-    updateVehicleDeadlineRule: vehicleRules.updateVehicleDeadlineRule
+    updateVehicleDeadlineRule: vehicleRules.updateVehicleDeadlineRule,
+    updateVehiclePeriodicRule: vehicleRules.updateVehiclePeriodicRule
   }
 }

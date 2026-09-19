@@ -7,6 +7,7 @@ import {
   buildDeadlineListItem,
   buildPeriodicListItem,
   shouldShowVehicleDeadlineReminder,
+  shouldShowVehiclePeriodicReminder,
   sortActiveItems
 } from '../components/vehicles/utils'
 import { addDaysToIso, getTodayIso } from '../utils/jalaliDate'
@@ -59,7 +60,10 @@ export async function fetchVehicleDashboardReminderItems(
     for (const item of activeItems) {
       if (item.kind === 'deadline') {
         if (!item.deadline || !shouldShowVehicleDeadlineReminder(item.deadline)) continue
-      } else if (item.urgency === 'ok') {
+      } else if (
+        !item.periodic ||
+        !shouldShowVehiclePeriodicReminder(item.periodic, item.remainingKm ?? Infinity)
+      ) {
         continue
       }
 

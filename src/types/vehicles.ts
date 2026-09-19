@@ -41,6 +41,8 @@ export interface VehiclePeriodicService {
   notes: string
   expenseRecordId: string
   active: boolean
+  reminderEnabled: boolean
+  reminderThresholdKm: number
 }
 
 export interface VehicleDeadline {

@@ -20,7 +20,9 @@ export function buildPeriodicInitialValues(
     brand: editingPeriodic.brand,
     location: editingPeriodic.location,
     amount: editingPeriodic.amount > 0 ? editingPeriodic.amount : '',
-    notes: editingPeriodic.notes
+    notes: editingPeriodic.notes,
+    reminderEnabled: editingPeriodic.reminderEnabled,
+    reminderThresholdKm: editingPeriodic.reminderThresholdKm
   }
 }
 

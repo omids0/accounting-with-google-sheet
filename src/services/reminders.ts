@@ -30,7 +30,8 @@ const VALID_KINDS: ReminderKind[] = [
   'personal',
   'daily',
   'vehicle-mileage',
-  'vehicle-deadline'
+  'vehicle-deadline',
+  'vehicle-periodic-service'
 ]
 
 const REMINDER_KIND_LABELS: Record<ReminderKind, string> = {
@@ -40,7 +41,8 @@ const REMINDER_KIND_LABELS: Record<ReminderKind, string> = {
   personal: 'مواعد شخصی',
   daily: 'یادآوری روزانه',
   'vehicle-mileage': 'کارکرد خودرو',
-  'vehicle-deadline': 'موعد خودرو'
+  'vehicle-deadline': 'موعد خودرو',
+  'vehicle-periodic-service': 'سرویس دوره‌ای خودرو'
 }
 
 const DUE_DATE_KINDS: ReminderKind[] = ['installments', 'checks', 'dang']
@@ -52,7 +54,8 @@ export const DEFAULT_RULES: ReminderRule[] = [
   { kind: 'personal', enabled: false, daysBefore: 0, hour: 9, minute: 0 },
   { kind: 'daily', enabled: true, daysBefore: 0, hour: 9, minute: 0 },
   { kind: 'vehicle-mileage', enabled: false, daysBefore: 0, hour: 9, minute: 0 },
-  { kind: 'vehicle-deadline', enabled: false, daysBefore: 14, hour: 9, minute: 0 }
+  { kind: 'vehicle-deadline', enabled: false, daysBefore: 14, hour: 9, minute: 0 },
+  { kind: 'vehicle-periodic-service', enabled: false, daysBefore: 0, hour: 9, minute: 0 }
 ]
 
 function parseBool(value: string | undefined): boolean {

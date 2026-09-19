@@ -22,7 +22,9 @@ export const VEHICLE_PERIODIC_HEADERS = [
   'مبلغ',
   'توضیحات',
   'expense_id',
-  'فعال'
+  'فعال',
+  'یادآوری_فعال',
+  'آستانه_کیلومتر'
 ]
 
 function parseBool(value: string | undefined): boolean {
@@ -55,7 +57,9 @@ function rowToPeriodic(
     amount: Math.max(0, Number(row[9]) || 0),
     notes: row[10] ?? '',
     expenseRecordId: row[11] ?? '',
-    active: parseBool(row[12] ?? 'true')
+    active: parseBool(row[12] ?? 'true'),
+    reminderEnabled: parseBool(row[13] ?? 'true'),
+    reminderThresholdKm: Math.max(0, Number(row[14]) || 500)
   }
 }
 
@@ -73,7 +77,9 @@ function periodicToRow(item: VehiclePeriodicService): string[] {
     String(item.amount),
     item.notes,
     item.expenseRecordId,
-    item.active ? 'TRUE' : 'FALSE'
+    item.active ? 'TRUE' : 'FALSE',
+    item.reminderEnabled ? 'TRUE' : 'FALSE',
+    String(item.reminderThresholdKm)
   ]
 }
 
@@ -97,9 +103,14 @@ export async function fetchVehiclePeriodicServices(
 
 export async function createVehiclePeriodicService(
   spreadsheetId: string,
-  input: Omit<VehiclePeriodicService, 'id' | 'createdAt' | 'expenseRecordId' | 'active'> & {
+  input: Omit<
+    VehiclePeriodicService,
+    'id' | 'createdAt' | 'expenseRecordId' | 'active' | 'reminderEnabled' | 'reminderThresholdKm'
+  > & {
     expenseRecordId?: string
     active?: boolean
+    reminderEnabled?: boolean
+    reminderThresholdKm?: number
   }
 ): Promise<VehiclePeriodicService & { rowNumber: number }> {
   await ensureVehiclePeriodicSheet(spreadsheetId)
@@ -117,7 +128,9 @@ export async function createVehiclePeriodicService(
     amount: input.amount,
     notes: input.notes.trim(),
     expenseRecordId: input.expenseRecordId ?? '',
-    active: input.active ?? true
+    active: input.active ?? true,
+    reminderEnabled: input.reminderEnabled ?? true,
+    reminderThresholdKm: input.reminderThresholdKm ?? 500
   }
 
   await appendSheetRow(spreadsheetId, VEHICLE_PERIODIC_SHEET, periodicToRow(item))
