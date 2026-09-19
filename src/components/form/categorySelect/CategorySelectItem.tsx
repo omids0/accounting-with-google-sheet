@@ -24,7 +24,9 @@ interface CategorySelectItemProps {
   confirmDelete: string | null
   editText: string
   categoriesCount: number
+  canDeleteLast?: boolean
   locked?: boolean
+  onManageSubcategories?: (category: string) => void
   canReorder?: boolean
   dragging?: boolean
   dragProps?: {
@@ -56,11 +58,13 @@ export default function CategorySelectItem({
   confirmDelete,
   editText,
   categoriesCount,
+  canDeleteLast = false,
   locked = false,
   canReorder = false,
   dragging = false,
   dragProps,
   handleProps,
+  onManageSubcategories,
   onSelect,
   onStartEdit,
   onCancelEdit,
@@ -172,6 +176,20 @@ export default function CategorySelectItem({
           </button>
           {manageMode && !locked && (
             <div className={categorySelectActionsClass}>
+              {onManageSubcategories && (
+                <button
+                  type="button"
+                  className={categorySelectIconBtnClass()}
+                  onClick={e => {
+                    e.stopPropagation()
+                    onManageSubcategories(category)
+                  }}
+                  disabled={saving}
+                  aria-label={`زیردسته‌های ${category}`}
+                >
+                  <AppIcon name="folder" size={14} strokeWidth={2} />
+                </button>
+              )}
               <button
                 type="button"
                 className={categorySelectIconBtnClass()}
@@ -191,7 +209,7 @@ export default function CategorySelectItem({
                   e.stopPropagation()
                   onConfirmDelete(category)
                 }}
-                disabled={saving || categoriesCount <= 1}
+                disabled={saving || (!canDeleteLast && categoriesCount <= 1)}
                 aria-label={`حذف ${category}`}
               >
                 <AppIcon name="trash" size={14} strokeWidth={2} />

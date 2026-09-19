@@ -4,8 +4,11 @@ import { LOCKED_EXPENSE_CATEGORIES } from '../../utils/protectedCategories'
 import AmountInput from '../AmountInput'
 import JalaliDatePicker from '../JalaliDatePicker'
 import CategorySelect from './CategorySelect'
+import { resolveCategoryType } from './categorySelect/useCategorySelectActions'
+import { SUBCATEGORY_FIELD_ID } from './fieldUtils'
 import FormField from './FormField'
 import Select from './Select'
+import SubCategorySelect from './SubCategorySelect'
 import { getAccountingStartDate } from '../../services/accountingStartDate'
 import type { FormControlWidth } from '../ui/formStyles'
 import { formFieldNoteClass } from '../ui/recordsStyles'
@@ -18,6 +21,8 @@ interface FieldInputProps {
   onCategoriesChange?: (categories: string[]) => void
   controlWidth?: FormControlWidth
   error?: string
+  /** Selected category, for the subcategory field. */
+  parentCategory?: string
 }
 
 function fieldPlaceholder(field: FieldConfig): string | undefined {
@@ -44,7 +49,8 @@ export default function FieldInput({
   formId,
   onCategoriesChange,
   controlWidth,
-  error
+  error,
+  parentCategory
 }: FieldInputProps) {
   const placeholder = fieldPlaceholder(field)
   const resolvedWidth = controlWidth ?? defaultControlWidth(field)
@@ -112,8 +118,25 @@ export default function FieldInput({
           formId={formId}
           onCategoriesChange={onCategoriesChange}
           lockedCategories={lockedCategories}
+          allowSubcategories
           aria-label={field.label}
           invalid={Boolean(error)}
+        />
+      )
+    }
+
+    if (field.id === SUBCATEGORY_FIELD_ID && formId) {
+      const categoryType = resolveCategoryType(undefined, formId)
+
+      if (!categoryType || !parentCategory) return null
+
+      return (
+        <SubCategorySelect
+          value={String(value ?? '')}
+          onChange={next => onChange(next)}
+          categoryType={categoryType}
+          category={parentCategory}
+          aria-label={field.label}
         />
       )
     }
@@ -134,6 +157,8 @@ export default function FieldInput({
 
     return null
   })()
+
+  if (control === null) return null
 
   return (
     <FormField

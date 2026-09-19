@@ -2,9 +2,17 @@ import {
   applyGroupsToSettings,
   groupsToRows,
   rowsToGroups,
+  rowsToSubcategories,
   withDefaults,
-  type CategoryGroups
+  type CategoryGroups,
+  type CategoryType
 } from './categoryGroups'
+import {
+  removeSubcategoryOwner,
+  renameSubcategoryOwner,
+  setSubcategoriesOf,
+  updateCategorySubcategories
+} from './categorySubcategories'
 import {
   DEFAULT_PERSONAL_REMINDER_CATEGORIES,
   getDefaultSettings,
@@ -15,44 +23,97 @@ import {
   updateReceivableCategories
 } from './settings'
 import { ensureSheetWithHeaders, fetchSheetRows, replaceSheetDataRows } from './sheets'
+import type { CategorySubcategoryMap } from '../types'
 import { withLockedExpenseCategories } from '../utils/protectedCategories'
 
 export type { CategoryGroups, CategoryType } from './categoryGroups'
 
 export const CATEGORIES_SHEET = 'دسته‌بندی‌ها'
-export const CATEGORIES_HEADERS = ['نوع', 'دسته‌بندی']
+export const CATEGORIES_HEADERS = ['نوع', 'دسته‌بندی', 'زیردسته']
 
 export async function ensureCategoriesSheet(spreadsheetId: string): Promise<void> {
   await ensureSheetWithHeaders(spreadsheetId, CATEGORIES_SHEET, CATEGORIES_HEADERS)
 }
 
-export async function fetchCategoriesFromSheet(spreadsheetId: string): Promise<CategoryGroups> {
+export interface CategorySheetData {
+  groups: CategoryGroups
+  subcategories: CategorySubcategoryMap
+}
+
+export async function fetchCategorySheetData(spreadsheetId: string): Promise<CategorySheetData> {
   const rows = await fetchSheetRows(spreadsheetId, CATEGORIES_SHEET)
 
-  return rowsToGroups(rows)
+  return { groups: rowsToGroups(rows), subcategories: rowsToSubcategories(rows) }
 }
 
 export async function saveCategoryGroupOnSheet(
   spreadsheetId: string,
   group: Partial<CategoryGroups>
 ): Promise<CategoryGroups> {
-  const current = await fetchCategoriesFromSheet(spreadsheetId)
-  const next = withDefaults({ ...current, ...group })
+  const current = await fetchCategorySheetData(spreadsheetId)
+  const next = withDefaults({ ...current.groups, ...group })
 
-  await writeCategoriesToSheet(spreadsheetId, next)
+  await writeCategoriesToSheet(spreadsheetId, next, current.subcategories)
 
   return next
 }
 
+export async function saveSubcategoriesToSheet(
+  spreadsheetId: string,
+  categoryType: CategoryType,
+  category: string,
+  subcategories: string[]
+): Promise<CategorySubcategoryMap> {
+  const current = await fetchCategorySheetData(spreadsheetId)
+  const next = setSubcategoriesOf(current.subcategories, categoryType, category, subcategories)
+
+  await writeCategoriesToSheet(spreadsheetId, withDefaults(current.groups), next)
+  updateCategorySubcategories(next)
+
+  return next
+}
+
+export async function renameSubcategoryOwnerOnSheet(
+  spreadsheetId: string,
+  categoryType: CategoryType,
+  oldName: string,
+  newName: string
+): Promise<void> {
+  const current = await fetchCategorySheetData(spreadsheetId)
+
+  if (!current.subcategories[categoryType]?.[oldName]?.length) return
+
+  const next = renameSubcategoryOwner(current.subcategories, categoryType, oldName, newName)
+
+  await writeCategoriesToSheet(spreadsheetId, withDefaults(current.groups), next)
+  updateCategorySubcategories(next)
+}
+
+export async function removeSubcategoryOwnerOnSheet(
+  spreadsheetId: string,
+  categoryType: CategoryType,
+  category: string
+): Promise<void> {
+  const current = await fetchCategorySheetData(spreadsheetId)
+
+  if (!current.subcategories[categoryType]?.[category]?.length) return
+
+  const next = removeSubcategoryOwner(current.subcategories, categoryType, category)
+
+  await writeCategoriesToSheet(spreadsheetId, withDefaults(current.groups), next)
+  updateCategorySubcategories(next)
+}
+
 async function writeCategoriesToSheet(
   spreadsheetId: string,
-  groups: CategoryGroups
+  groups: CategoryGroups,
+  subcategories: CategorySubcategoryMap
 ): Promise<void> {
   await ensureCategoriesSheet(spreadsheetId)
   await replaceSheetDataRows(
     spreadsheetId,
     CATEGORIES_SHEET,
-    groupsToRows(groups),
+    groupsToRows(groups, subcategories),
     CATEGORIES_HEADERS.length,
     CATEGORIES_HEADERS
   )
@@ -61,7 +122,7 @@ async function writeCategoriesToSheet(
 export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<CategoryGroups> {
   await ensureCategoriesSheet(spreadsheetId)
 
-  const fromSheet = await fetchCategoriesFromSheet(spreadsheetId)
+  const { groups: fromSheet, subcategories } = await fetchCategorySheetData(spreadsheetId)
 
   const groups = withDefaults(fromSheet)
 
@@ -77,10 +138,10 @@ export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<Ca
     !fromSheet.vehicleExpense.length
 
   if (needsSeed) {
-    await writeCategoriesToSheet(spreadsheetId, groups)
+    await writeCategoriesToSheet(spreadsheetId, groups, subcategories)
   }
 
-  applyGroupsToSettings(groups)
+  applyGroupsToSettings(groups, subcategories)
 
   const { ensureVehicleExpenseCategory } = await import('./vehicleExpenses')
 
@@ -102,15 +163,15 @@ export async function saveFormCategoriesToSheet(
     throw new Error('فرم دسته‌بندی معتبر نیست')
   }
 
-  const current = await fetchCategoriesFromSheet(spreadsheetId)
+  const current = await fetchCategorySheetData(spreadsheetId)
   const normalized = form.type === 'expense' ? withLockedExpenseCategories(categories) : categories
 
   const next: CategoryGroups = {
-    ...withDefaults(current),
+    ...withDefaults(current.groups),
     [form.type]: normalized
   }
 
-  await writeCategoriesToSheet(spreadsheetId, next)
+  await writeCategoriesToSheet(spreadsheetId, next, current.subcategories)
   updateFormCategories(formId, normalized)
 }
 
@@ -118,14 +179,14 @@ export async function saveDangCategoriesToSheet(
   spreadsheetId: string,
   categories: string[]
 ): Promise<void> {
-  const current = await fetchCategoriesFromSheet(spreadsheetId)
+  const current = await fetchCategorySheetData(spreadsheetId)
 
   const next: CategoryGroups = {
-    ...withDefaults(current),
+    ...withDefaults(current.groups),
     dang: categories
   }
 
-  await writeCategoriesToSheet(spreadsheetId, next)
+  await writeCategoriesToSheet(spreadsheetId, next, current.subcategories)
   updateDangCategories(categories)
 }
 
@@ -133,14 +194,14 @@ export async function saveReceivableCategoriesToSheet(
   spreadsheetId: string,
   categories: string[]
 ): Promise<void> {
-  const current = await fetchCategoriesFromSheet(spreadsheetId)
+  const current = await fetchCategorySheetData(spreadsheetId)
 
   const next: CategoryGroups = {
-    ...withDefaults(current),
+    ...withDefaults(current.groups),
     receivable: categories
   }
 
-  await writeCategoriesToSheet(spreadsheetId, next)
+  await writeCategoriesToSheet(spreadsheetId, next, current.subcategories)
   updateReceivableCategories(categories)
 }
 
@@ -148,14 +209,14 @@ export async function savePersonalReminderCategoriesToSheet(
   spreadsheetId: string,
   categories: string[]
 ): Promise<void> {
-  const current = await fetchCategoriesFromSheet(spreadsheetId)
+  const current = await fetchCategorySheetData(spreadsheetId)
 
   const next: CategoryGroups = {
-    ...withDefaults(current),
+    ...withDefaults(current.groups),
     personalReminder: categories
   }
 
-  await writeCategoriesToSheet(spreadsheetId, next)
+  await writeCategoriesToSheet(spreadsheetId, next, current.subcategories)
   updatePersonalReminderCategories(categories)
 }
 

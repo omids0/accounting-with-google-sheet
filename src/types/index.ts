@@ -10,6 +10,7 @@ export type {
   NetAvailableLiabilityConfig,
   NetAvailableConfig,
   AppSettings,
+  CategorySubcategoryMap,
   GoogleSession,
   AppLockAccountConfig,
   AppLockDeviceConfig,

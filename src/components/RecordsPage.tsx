@@ -60,6 +60,13 @@ export default function RecordsPage({
           category={page.showCategoryFilter ? page.draftCategory : undefined}
           onCategoryChange={page.showCategoryFilter ? page.setDraftCategory : undefined}
           categoryOptions={page.showCategoryFilter ? page.categoryOptions : undefined}
+          subCategory={page.subcategory.showDraft ? page.subcategory.draftSubCategory : undefined}
+          onSubCategoryChange={
+            page.subcategory.showDraft ? page.subcategory.setDraftSubCategory : undefined
+          }
+          subCategoryOptions={
+            page.subcategory.showDraft ? page.subcategory.draftOptions : undefined
+          }
         />
       </FilterModal>
 

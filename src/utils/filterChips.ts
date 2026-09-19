@@ -59,6 +59,10 @@ export function buildCategoryChip(category: string, onRemove: () => void): Filte
   return buildLabeledFilterChip('category', 'category', 'دسته', category, onRemove)
 }
 
+export function buildSubCategoryChip(subCategory: string, onRemove: () => void): FilterChip {
+  return buildLabeledFilterChip('category', 'subcategory', 'زیردسته', subCategory, onRemove)
+}
+
 export function buildCounterpartyChip(counterparty: string, onRemove: () => void): FilterChip {
   return buildLabeledFilterChip('counterparty', 'counterparty', 'طرف', counterparty, onRemove)
 }

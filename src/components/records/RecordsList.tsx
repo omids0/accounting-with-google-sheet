@@ -6,6 +6,7 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { parseNumeric } from '../../utils/parseNumeric'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
+import { SUBCATEGORY_FIELD_ID } from '../form'
 import TransactionListItem from '../TransactionListItem'
 import Card from '../ui/Card'
 import { cardActionButtonsClass } from '../ui/featureCardStyles'
@@ -70,6 +71,8 @@ export default function RecordsList({
 
         const date = recordDateField ? record.values[recordDateField.id] : ''
 
+        const subCategory = record.values[SUBCATEGORY_FIELD_ID] ?? ''
+
         const isIncome = form.type === 'income'
 
         return (
@@ -81,6 +84,7 @@ export default function RecordsList({
                 {isAllForms && `${record.formName} · `}
                 {date ? formatIsoDatePersian(date) : record.createdAt}
                 {category && ` · ${category}`}
+                {subCategory && ` › ${subCategory}`}
               </>
             }
             tone={isIncome ? 'income' : form.type === 'expense' ? 'expense' : 'neutral'}

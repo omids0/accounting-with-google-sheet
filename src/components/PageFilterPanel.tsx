@@ -42,6 +42,10 @@ interface PageFilterPanelProps {
   onCategoryChange?: (value: string) => void
   categoryOptions?: string[]
   categoryLabel?: string
+  subCategory?: string
+  onSubCategoryChange?: (value: string) => void
+  subCategoryOptions?: string[]
+  subCategoryLabel?: string
   counterparty?: string
   onCounterpartyChange?: (value: string) => void
   counterpartyOptions?: string[]
@@ -69,6 +73,10 @@ export default function PageFilterPanel({
   onCategoryChange,
   categoryOptions,
   categoryLabel = 'دسته‌بندی',
+  subCategory,
+  onSubCategoryChange,
+  subCategoryOptions,
+  subCategoryLabel = 'زیردسته',
   counterparty,
   onCounterpartyChange,
   counterpartyOptions,
@@ -130,6 +138,18 @@ export default function PageFilterPanel({
               value={category}
               onChange={onCategoryChange}
               categories={categoryOptions}
+            />
+          </div>
+        )}
+
+        {subCategory !== undefined && onSubCategoryChange && subCategoryOptions !== undefined && (
+          <div className={recordsFilterSectionClassName()}>
+            <CategoryFilterSelect
+              className={recordsCategorySelectClass}
+              aria-label={subCategoryLabel}
+              value={subCategory}
+              onChange={onSubCategoryChange}
+              categories={subCategoryOptions}
             />
           </div>
         )}

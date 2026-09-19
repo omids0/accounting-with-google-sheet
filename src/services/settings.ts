@@ -8,6 +8,7 @@ import type {
 } from '../types'
 import { isTokenValid } from './auth'
 import { getItem, setItem, STORAGE_KEYS } from './storage'
+import { withSubCategoryField } from '../components/form/fieldUtils'
 
 export const DEFAULT_INCOME_CATEGORIES = ['حقوق', 'فروش', 'سرمایه‌گذاری', 'هدیه', 'طلب', 'سایر']
 export const DEFAULT_EXPENSE_CATEGORIES = [
@@ -70,10 +71,12 @@ function expenseForm(): CustomForm {
 }
 
 export function getDefaultForms(): CustomForm[] {
-  return [incomeForm(), expenseForm()]
+  return withSubCategoryField([incomeForm(), expenseForm()])
 }
 
-export function normalizeSettings(settings: AppSettings): AppSettings {
+export function normalizeSettings(input: AppSettings): AppSettings {
+  const settings: AppSettings = { ...input, forms: withSubCategoryField(input.forms) }
+
   if (settings.spreadsheets?.length) {
     const activeId =
       settings.spreadsheetId &&

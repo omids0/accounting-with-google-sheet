@@ -1,5 +1,6 @@
 export { default as CategorySelect } from './CategorySelect'
 export { default as CategoryFilterSelect } from './CategoryFilterSelect'
+export { default as SubCategorySelect } from './SubCategorySelect'
 export { default as CounterpartySelect } from './CounterpartySelect'
 export { default as CounterpartyFilterSelect } from './CounterpartyFilterSelect'
 export { default as Select } from './Select'
@@ -8,4 +9,9 @@ export { default as FormField } from './FormField'
 export { default as FormRow } from './FormRow'
 export { default as FormSelect } from './FormSelect'
 export { default as FieldInput } from './FieldInput'
-export { getInitialFieldValue, isStandardEntryForm, sortFormFields } from './fieldUtils'
+export {
+  getInitialFieldValue,
+  isStandardEntryForm,
+  sortFormFields,
+  SUBCATEGORY_FIELD_ID
+} from './fieldUtils'

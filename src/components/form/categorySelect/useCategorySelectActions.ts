@@ -1,5 +1,7 @@
 import type { CategoryType } from '../../../services/categories'
 import {
+  removeSubcategoryOwnerOnSheet,
+  renameSubcategoryOwnerOnSheet,
   saveDangCategoriesToSheet,
   saveFormCategoriesToSheet,
   savePersonalReminderCategoriesToSheet,
@@ -37,6 +39,24 @@ export interface CategorySelectProps {
   allowManage?: boolean
   showSearchAlways?: boolean
   lockedCategories?: string[]
+  /** Overrides where the edited list is saved. Used for subcategory lists. */
+  onPersist?: (next: string[]) => Promise<boolean>
+  allowEmpty?: boolean
+  manageTitle?: string
+  /** Lets each category in manage mode drill down into its own subcategories. */
+  allowSubcategories?: boolean
+}
+
+/** The category type a list belongs to, used to look up and store its subcategories. */
+export function resolveCategoryType(
+  categoryScope?: CategoryType,
+  formId?: string
+): CategoryType | undefined {
+  if (categoryScope) return categoryScope
+
+  const formType = formId ? getSettings()?.forms.find(form => form.id === formId)?.type : undefined
+
+  return formType === 'income' || formType === 'expense' ? formType : undefined
 }
 
 export function useCategorySelectActions({
@@ -47,7 +67,9 @@ export function useCategorySelectActions({
   onChange,
   value,
   setSaving,
-  lockedCategories = []
+  lockedCategories = [],
+  onPersist,
+  allowEmpty = false
 }: {
   categories: string[]
   formId?: string
@@ -57,6 +79,8 @@ export function useCategorySelectActions({
   value: string
   setSaving: (saving: boolean) => void
   lockedCategories?: string[]
+  onPersist?: (next: string[]) => Promise<boolean>
+  allowEmpty?: boolean
 }) {
   const lockedSet = new Set(lockedCategories)
   const persistCategories = async (
@@ -71,7 +95,7 @@ export function useCategorySelectActions({
       return false
     }
     if (!requireAuth()) return false
-    if (!next.length) {
+    if (!allowEmpty && !next.length) {
       showError('حداقل یک دسته‌بندی لازم است')
 
       return false
@@ -79,7 +103,9 @@ export function useCategorySelectActions({
 
     setSaving(true)
     try {
-      if (categoryScope === 'dang') {
+      if (onPersist) {
+        if (!(await onPersist(next))) return false
+      } else if (categoryScope === 'dang') {
         await saveDangCategoriesToSheet(settings.spreadsheetId, next)
       } else if (categoryScope === 'receivable') {
         await saveReceivableCategoriesToSheet(settings.spreadsheetId, next)
@@ -118,6 +144,22 @@ export function useCategorySelectActions({
 
   const isLockedCategory = (name: string): boolean => lockedSet.has(name)
 
+  const syncSubcategoryOwner = async (oldName: string, newName: string | null): Promise<void> => {
+    const ownerType = onPersist ? undefined : resolveCategoryType(categoryScope, formId)
+
+    const spreadsheetId = getSettings()?.spreadsheetId
+
+    if (!ownerType || !spreadsheetId) return
+
+    if (newName === null) {
+      await removeSubcategoryOwnerOnSheet(spreadsheetId, ownerType, oldName)
+
+      return
+    }
+
+    await renameSubcategoryOwnerOnSheet(spreadsheetId, ownerType, oldName, newName)
+  }
+
   const handleSaveEdit = async (
     oldName: string,
     editText: string,
@@ -150,6 +192,7 @@ export function useCategorySelectActions({
     const next = categories.map(item => (item === oldName ? name : item))
 
     if (await persistCategories(next)) {
+      await syncSubcategoryOwner(oldName, name)
       if (value === oldName) onChange(name)
       cancelEdit()
     }
@@ -162,7 +205,7 @@ export function useCategorySelectActions({
       return
     }
 
-    if (categories.length <= 1) {
+    if (!allowEmpty && categories.length <= 1) {
       showError('حداقل یک دسته‌بندی باید بماند')
 
       return
@@ -171,6 +214,7 @@ export function useCategorySelectActions({
     const next = categories.filter(item => item !== category)
 
     if (await persistCategories(next)) {
+      await syncSubcategoryOwner(category, null)
       if (value === category) onChange(next[0] ?? '')
       setConfirmDelete(null)
     }

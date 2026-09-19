@@ -45,6 +45,9 @@ export interface NetAvailableConfig {
   liabilities: NetAvailableLiabilityConfig
 }
 
+/** category type -> category name -> its subcategories */
+export type CategorySubcategoryMap = Record<string, Record<string, string[]>>
+
 export interface AppSettings {
   spreadsheetId: string
   spreadsheets?: SpreadsheetEntry[]
@@ -56,6 +59,7 @@ export interface AppSettings {
   vehicleDeadlineCategories?: string[]
   vehicleMechanicCategories?: string[]
   vehicleExpenseCategories?: string[]
+  categorySubcategories?: CategorySubcategoryMap
   currency?: CurrencyUnit
   theme?: ThemeMode
   netAvailableConfig?: NetAvailableConfig

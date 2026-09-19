@@ -4,7 +4,9 @@ import type { useForm } from 'react-hook-form'
 import type { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
 import type { CustomForm, FieldConfig } from '../../types'
 import { formFieldError } from '../../utils/formValidation'
-import { FieldInput, FormRow } from '../form'
+import { FieldInput, FormRow, SUBCATEGORY_FIELD_ID } from '../form'
+import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
+import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
 import type { FormControlWidth } from '../ui/formStyles'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
 
@@ -14,6 +16,7 @@ type EntryFieldRendererProps = {
   formId: string
   controlWidth?: FormControlWidth
   error?: string
+  parentCategory?: string
   onChange: (value: string | number) => void
   onCategoriesChange: (categories: string[]) => void
 }
@@ -24,6 +27,7 @@ function EntryFieldRenderer({
   formId,
   controlWidth,
   error,
+  parentCategory,
   onChange,
   onCategoriesChange
 }: EntryFieldRendererProps) {
@@ -35,6 +39,7 @@ function EntryFieldRenderer({
       formId={formId}
       controlWidth={controlWidth}
       error={error}
+      parentCategory={parentCategory}
       onCategoriesChange={onCategoriesChange}
     />
   )
@@ -64,9 +69,15 @@ export default function StandardEntryFormFields({
     [activeForm.fields]
   )
 
+  const selectedCategory = String(values.category ?? '')
+
+  const categoryType = resolveCategoryType(undefined, activeForm.id)
+
+  const hasSubcategories = readSubcategories(categoryType, selectedCategory).length > 0
+
   const handleCategoriesChange = (categories: string[]) => {
     onCategoriesRefresh()
-    if (!categories.includes(String(values.category ?? ''))) {
+    if (!categories.includes(selectedCategory)) {
       setValue('category', categories[0] ?? '')
     }
   }
@@ -91,9 +102,11 @@ export default function StandardEntryFormFields({
         formId={activeForm.id}
         controlWidth={options?.controlWidth}
         error={vehicleFieldError}
+        parentCategory={selectedCategory}
         onChange={next => {
           clearFieldError?.(field.id)
           setValue(field.id, next)
+          if (field.id === 'category') setValue(SUBCATEGORY_FIELD_ID, '')
         }}
         onCategoriesChange={handleCategoriesChange}
       />
@@ -108,6 +121,7 @@ export default function StandardEntryFormFields({
       </FormRow>
       {renderField('title', { controlWidth: 'full' })}
       {renderField('category')}
+      {!showVehicleFields && hasSubcategories ? renderField(SUBCATEGORY_FIELD_ID) : null}
       {showVehicleFields ? (
         <VehicleExpenseFields
           values={vehicleExpense.vehicleValues}

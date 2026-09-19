@@ -30,8 +30,11 @@ interface CategorySelectPanelProps {
   value: string
   saving: boolean
   manageMode: boolean
+  manageLabel?: string
   allowManage: boolean
   lockedCategories: string[]
+  canDeleteLast?: boolean
+  onManageSubcategories?: (category: string) => void
   allOption?: CategorySelectAllOption
   showSearch: boolean
   searchQuery: string
@@ -64,8 +67,11 @@ export default function CategorySelectPanel({
   value,
   saving,
   manageMode,
+  manageLabel = 'مدیریت دسته‌ها',
   allowManage,
   lockedCategories,
+  canDeleteLast = false,
+  onManageSubcategories,
   allOption,
   showSearch,
   searchQuery,
@@ -200,11 +206,13 @@ export default function CategorySelectPanel({
               confirmDelete={confirmDelete}
               editText={editText}
               categoriesCount={categories.length}
+              canDeleteLast={canDeleteLast}
               locked={lockedCategories.includes(category)}
               canReorder={canReorder && !lockedCategories.includes(category)}
               dragging={draggingIndex === index}
               dragProps={getItemDragProps(index)}
               handleProps={getHandleProps(index)}
+              onManageSubcategories={onManageSubcategories}
               onSelect={onSelect}
               onStartEdit={onStartEdit}
               onCancelEdit={onCancelEdit}
@@ -227,7 +235,7 @@ export default function CategorySelectPanel({
             disabled={saving}
           >
             <AppIcon name="settings" size={15} strokeWidth={2} />
-            مدیریت دسته‌ها
+            {manageLabel}
           </button>
         </div>
       )}

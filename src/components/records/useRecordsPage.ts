@@ -7,39 +7,23 @@ import {
   sortRecords,
   type StoredRecord
 } from './recordsUtils'
+import { useRecordsFilters } from './useRecordsFilters'
 import { useRecordsFormActions } from './useRecordsFormActions'
 import { syncCategoriesFromSheet } from '../../services/categories'
 import { getSettings, isConfigured } from '../../services/settings'
 import { fetchRecords } from '../../services/sheets'
 import type { CustomForm } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
-import {
-  formatDateRangeLabel,
-  isDateInRange,
-  resolveDateRange,
-  type RecordsDatePreset
-} from '../../utils/dateRange'
-import { buildCategoryChip, buildDateRangeChip, compactFilterChips } from '../../utils/filterChips'
+import { isDateInRange } from '../../utils/dateRange'
 import { handleSheetError } from '../../utils/sheetError'
-import { createDefaultDateRangeFilter, type AppliedDateRangeFilter } from '../DateRangeFilter'
 
 export function useRecordsPage(initialFormType?: 'income' | 'expense') {
   const [forms, setForms] = useState<CustomForm[]>([])
   const [activeFormId, setActiveFormId] = useState('')
   const [records, setRecords] = useState<StoredRecord[]>([])
   const [loading, setLoading] = useState(false)
-  const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date')
-  const [customRange, setCustomRange] = useState(() => createDefaultDateRangeFilter().customRange)
-  const [categoryFilter, setCategoryFilter] = useState('all')
-  const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [draftDatePreset, setDraftDatePreset] = useState<RecordsDatePreset>('month-to-date')
-  const [draftCustomRange, setDraftCustomRange] = useState(
-    () => createDefaultDateRangeFilter().customRange
-  )
-  const [draftCategory, setDraftCategory] = useState('all')
 
   const activeForm = activeFormId === 'all' ? undefined : forms.find(f => f.id === activeFormId)
-  const dateRange = resolveDateRange(datePreset, customRange)
   const isAllForms = activeFormId === 'all'
 
   const loadRecords = useCallback(async () => {
@@ -129,6 +113,17 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
     return getCategoryOptions(activeForm, records)
   }, [isAllForms, forms, activeForm, records])
 
+  const filters = useRecordsFilters({
+    records,
+    activeForm,
+    showCategoryFilter: Boolean(showCategoryFilter),
+    onFormsRefresh: setForms
+  })
+
+  const { categoryFilter, dateRange, datePreset, subcategory, setCategoryFilter } = filters
+
+  const { matches: matchesSubcategory, subCategoryFilter } = subcategory
+
   const filteredRecords = useMemo(() => {
     return records.filter(record => {
       const form = forms.find(f => f.id === record.formId)
@@ -147,75 +142,19 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
 
         if (category !== categoryFilter) return false
       }
+      if (!matchesSubcategory(record)) return false
 
       return true
     })
-  }, [records, dateRange, categoryFilter, forms])
-
-  const resetDateFilter = useCallback(() => {
-    const defaults = createDefaultDateRangeFilter()
-
-    setDatePreset('month-to-date')
-    setCustomRange(defaults.customRange)
-  }, [])
-
-  const filterChips = useMemo(
-    () =>
-      compactFilterChips([
-        buildDateRangeChip(
-          formatDateRangeLabel(dateRange),
-          datePreset !== 'month-to-date' ? resetDateFilter : undefined
-        ),
-        showCategoryFilter &&
-          categoryFilter !== 'all' &&
-          buildCategoryChip(categoryFilter, () => setCategoryFilter('all'))
-      ]),
-    [categoryFilter, datePreset, dateRange, resetDateFilter, showCategoryFilter]
-  )
-
-  const openFilterModal = useCallback(() => {
-    const settings = getSettings()
-
-    if (settings) setForms(settings.forms)
-
-    setDraftDatePreset(datePreset)
-    setDraftCustomRange(customRange)
-    setDraftCategory(categoryFilter)
-    setFilterModalOpen(true)
-  }, [categoryFilter, customRange, datePreset])
-
-  const handleDraftDateFilterChange = (filter: AppliedDateRangeFilter) => {
-    if (filter.preset === 'all') return
-    setDraftDatePreset(filter.preset)
-    setDraftCustomRange(filter.customRange)
-  }
-
-  const clearDraftFilters = useCallback(() => {
-    const defaults = createDefaultDateRangeFilter()
-
-    setDraftDatePreset('month-to-date')
-    setDraftCustomRange(defaults.customRange)
-    setDraftCategory('all')
-  }, [])
-
-  const applyFilters = useCallback(() => {
-    setDatePreset(draftDatePreset)
-    setCustomRange(draftCustomRange)
-    setCategoryFilter(draftCategory)
-    setFilterModalOpen(false)
-  }, [draftCategory, draftCustomRange, draftDatePreset])
-
-  const clearAllFilters = useCallback(() => {
-    resetDateFilter()
-    setCategoryFilter('all')
-  }, [resetDateFilter])
+  }, [records, dateRange, categoryFilter, forms, matchesSubcategory])
 
   const showFilteredSummary = useMemo(
     () =>
       categoryFilter !== 'all' ||
+      subCategoryFilter !== 'all' ||
       datePreset !== 'month-to-date' ||
       filteredRecords.length !== records.length,
-    [categoryFilter, datePreset, filteredRecords.length, records.length]
+    [categoryFilter, datePreset, filteredRecords.length, records.length, subCategoryFilter]
   )
 
   const handleFormChange = (formId: string) => {
@@ -229,11 +168,6 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
     activeFormId,
     records,
     loading,
-    datePreset,
-    customRange,
-    categoryFilter,
-    setCategoryFilter,
-    dateRange,
     isAllForms,
     loadRecords,
     showCategoryFilter,
@@ -241,18 +175,7 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
     filteredRecords,
     showFilteredSummary,
     handleFormChange,
-    filterModalOpen,
-    setFilterModalOpen,
-    draftDatePreset,
-    draftCustomRange,
-    draftCategory,
-    setDraftCategory,
-    filterChips,
-    openFilterModal,
-    handleDraftDateFilterChange,
-    clearDraftFilters,
-    applyFilters,
-    clearAllFilters,
+    ...filters,
     ...formActions
   }
 }
