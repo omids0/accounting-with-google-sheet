@@ -43,7 +43,9 @@ function buildDefaults(
     date: initialValues?.date ?? getTodayIso(),
     isHistorical:
       initialValues?.isHistorical ??
-      (initialValues?.mileage != null && parseNumeric(mileage) < defaultMileage)
+      (initialValues?.mileage != null && parseNumeric(mileage) < defaultMileage),
+    reminderEnabled: initialValues?.reminderEnabled ?? true,
+    reminderThresholdKm: initialValues?.reminderThresholdKm ?? 500
   }
 }
 
@@ -199,6 +201,20 @@ export default function VehiclePeriodicFormModal({
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('notes')} rows={2} placeholder="توضیحات اختیاری" />
       </FormField>
+
+      <label className="checkbox-row flex items-center gap-2">
+        <input type="checkbox" {...register('reminderEnabled')} />
+        <span>یادآوری سرویس</span>
+      </label>
+
+      {watch('reminderEnabled') ? (
+        <FormField label="چند کیلومتر مانده یادآوری شود؟">
+          <MileageInput
+            value={watch('reminderThresholdKm')}
+            onChange={value => setValue('reminderThresholdKm', value === '' ? 0 : value)}
+          />
+        </FormField>
+      ) : null}
     </FormModal>
   )
 }

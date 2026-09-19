@@ -70,6 +70,15 @@ export function shouldShowVehicleDeadlineReminder(
   return remainingDays <= deadline.daysBefore
 }
 
+export function shouldShowVehiclePeriodicReminder(
+  item: Pick<VehiclePeriodicService, 'reminderEnabled' | 'reminderThresholdKm'>,
+  remainingKm: number
+): boolean {
+  if (!item.reminderEnabled) return false
+
+  return remainingKm <= item.reminderThresholdKm
+}
+
 export function buildPeriodicListItem(
   item: VehiclePeriodicService & { rowNumber: number },
   vehicleMileage: number

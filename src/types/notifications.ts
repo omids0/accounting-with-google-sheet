@@ -6,6 +6,7 @@ export type ReminderKind =
   | 'daily'
   | 'vehicle-mileage'
   | 'vehicle-deadline'
+  | 'vehicle-periodic-service'
 
 export interface ReminderRule {
   kind: ReminderKind

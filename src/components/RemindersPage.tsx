@@ -7,7 +7,8 @@ import PushStatusSection from './reminders/PushStatusSection'
 import { useRemindersPage } from './reminders/useRemindersPage'
 import {
   VehicleDeadlineReminderSection,
-  VehicleMileageReminderSection
+  VehicleMileageReminderSection,
+  VehiclePeriodicReminderSection
 } from './reminders/VehicleReminderSections'
 import Card from './ui/Card'
 import { remindersPageClass } from './ui/reminderStyles'
@@ -77,6 +78,13 @@ export default function RemindersPage() {
             saving={page.savingKind === 'vehicle-deadline'}
             onUpdateRule={page.updateVehicleDeadlineRule}
             onSave={() => page.handleSaveRule('vehicle-deadline')}
+          />
+
+          <VehiclePeriodicReminderSection
+            rule={page.vehiclePeriodicRule}
+            saving={page.savingKind === 'vehicle-periodic-service'}
+            onUpdateRule={page.updateVehiclePeriodicRule}
+            onSave={() => page.handleSaveRule('vehicle-periodic-service')}
           />
 
           <CronSetupSection

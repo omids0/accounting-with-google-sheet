@@ -7,6 +7,7 @@ import {
   getUrgencyFromDays,
   getUrgencyFromKm,
   shouldShowVehicleDeadlineReminder,
+  shouldShowVehiclePeriodicReminder,
   sortActiveItems
 } from './utils'
 import type { VehicleActiveListItem } from '../../types/vehicles'
@@ -79,6 +80,20 @@ describe('vehicle urgency helpers', () => {
 
   it('marks negative remaining days as overdue', () => {
     expect(getUrgencyFromDays(-1)).toBe('overdue')
+  })
+
+  it('shows dashboard reminder only when enabled and within reminderThresholdKm', () => {
+    expect(
+      shouldShowVehiclePeriodicReminder({ reminderEnabled: false, reminderThresholdKm: 500 }, 200)
+    ).toBe(false)
+
+    expect(
+      shouldShowVehiclePeriodicReminder({ reminderEnabled: true, reminderThresholdKm: 500 }, 800)
+    ).toBe(false)
+
+    expect(
+      shouldShowVehiclePeriodicReminder({ reminderEnabled: true, reminderThresholdKm: 500 }, 200)
+    ).toBe(true)
   })
 })
 

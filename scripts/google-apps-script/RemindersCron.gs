@@ -18,6 +18,7 @@ var SHEET_CHECKS = 'چک‌ها';
 var SHEET_DANG = 'دنگ';
 var SHEET_PERSONAL = 'مواعد_شخصی';
 var SHEET_VEHICLE_DEADLINE = 'موعد_خودرو';
+var SHEET_VEHICLE_PERIODIC = 'سرویس_خودرو';
 var SHEET_VEHICLES = 'خودرو';
 var SHEET_ACTIVITY = 'فعالیت';
 var TZ = 'Asia/Tehran';
@@ -61,6 +62,21 @@ function runReminderCron() {
       subscriptions,
       vehicleDeadlineReminders,
       'vehicle-deadline'
+    );
+  }
+
+  var vehiclePeriodicRule = rules.filter(function (r) {
+    return r.kind === 'vehicle-periodic-service' && r.enabled;
+  })[0];
+  if (vehiclePeriodicRule && isReminderWindow_(vehiclePeriodicRule.hour, vehiclePeriodicRule.minute)) {
+    var vehiclePeriodicReminders = findVehiclePeriodicReminders_(ss);
+    sentCount += sendReminders_(
+      ss,
+      workerUrl,
+      workerSecret,
+      subscriptions,
+      vehiclePeriodicReminders,
+      'vehicle-periodic-service'
     );
   }
 
@@ -350,6 +366,71 @@ function findVehicleDeadlineReminders_(ss) {
   }
 
   return reminders;
+}
+
+function findVehiclePeriodicReminders_(ss) {
+  var sheet = ss.getSheetByName(SHEET_VEHICLE_PERIODIC);
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 2) return [];
+
+  var vehicleTitles = readVehicleTitles_(ss);
+  var vehicleMileages = readVehicleMileages_(ss);
+  var today = formatIsoDate_(new Date());
+  var reminders = [];
+
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var id = String(row[0] || '').trim();
+    if (!id) continue;
+    if (!parseBool_(row[12] ?? 'true')) continue;
+    if (!parseBool_(row[13] ?? 'true')) continue;
+
+    var vehicleId = String(row[1] || '').trim();
+    var serviceType = String(row[3] || '').trim() || 'سرویس';
+    var nextKm = Number(row[6]) || 0;
+    var thresholdKm = Number(row[14]) || 500;
+    var vehicleMileage = vehicleMileages[vehicleId] || 0;
+    var remainingKm = nextKm - vehicleMileage;
+
+    if (remainingKm > thresholdKm) continue;
+
+    var vehicleTitle = vehicleTitles[vehicleId] || 'خودرو';
+    var remainingLabel =
+      remainingKm < 0
+        ? 'گذشته از موعد'
+        : remainingKm.toLocaleString('fa-IR') + ' km مانده';
+
+    reminders.push({
+      reference: 'vehicle_periodic_' + id + '_' + today,
+      title: 'یادآوری سرویس دوره‌ای',
+      body:
+        vehicleTitle +
+        ' — ' +
+        serviceType +
+        ' — ' +
+        remainingLabel +
+        ' (بعدی: ' +
+        nextKm.toLocaleString('fa-IR') +
+        ' km)',
+    });
+  }
+
+  return reminders;
+}
+
+function readVehicleMileages_(ss) {
+  var sheet = ss.getSheetByName(SHEET_VEHICLES);
+  if (!sheet) return {};
+  var values = sheet.getDataRange().getValues();
+  var mileages = {};
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var id = String(row[0] || '').trim();
+    if (!id) continue;
+    mileages[id] = Number(row[3]) || 0;
+  }
+  return mileages;
 }
 
 function readVehicleTitles_(ss) {

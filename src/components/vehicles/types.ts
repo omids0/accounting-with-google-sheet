@@ -29,6 +29,8 @@ export type VehiclePeriodicFormState = {
   date: string
   /** ثبت سابقه: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
   isHistorical: boolean
+  reminderEnabled: boolean
+  reminderThresholdKm: number
 }
 
 export type VehicleDeadlineFormState = {
