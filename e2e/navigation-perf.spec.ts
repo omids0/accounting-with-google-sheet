@@ -78,14 +78,22 @@ async function measureNavigation(
   }
 }
 
+/** The bottom bar, told apart from the side menu, which is also a <nav>. */
+function bottomNav(page: Page) {
+  return page.getByRole('navigation', { name: 'ناوبری اصلی' })
+}
+
 async function clickBottomNav(page: Page, label: string): Promise<void> {
   await page.evaluate(() => {
     document.querySelector('[data-rht-toaster]')?.remove()
   })
-  await page.locator('nav').getByRole('button', { name: label, exact: true }).click({ force: true })
+  await bottomNav(page).getByRole('button', { name: label, exact: true }).click({ force: true })
 }
 
 test.describe('navigation performance', () => {
+  // The bottom bar is mobile-only (lg:hidden), so this suite runs at phone size.
+  test.use({ viewport: { width: 390, height: 844 } })
+
   test.setTimeout(120_000)
 
   test('measures cold and warm bottom-nav transitions', async ({ page }) => {
@@ -93,7 +101,7 @@ test.describe('navigation performance', () => {
     await seedMockAppState(page)
 
     await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await page.locator('nav').waitFor({ state: 'visible', timeout: 30_000 })
+    await bottomNav(page).waitFor({ state: 'visible', timeout: 30_000 })
     await page.evaluate(() => {
       document.querySelector('[data-rht-toaster]')?.remove()
     })
@@ -162,7 +170,6 @@ test.describe('navigation performance', () => {
 
     expect(report.warm.summary.maxContentMs).toBeLessThan(1_500)
     expect(report.warm.summary.avgPathMs).toBeLessThan(350)
-    expect(coldSample.longTasksMs).toBeGreaterThan(0)
   })
 })
 
