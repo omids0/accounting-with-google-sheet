@@ -94,6 +94,7 @@ export default function CategoryTreeReportPage() {
         onFilterChange={tree.handleDateFilterChange}
         onRefresh={tree.load}
         loading={tree.loading}
+        showRefresh={false}
       />
 
       <CategoryTreeSummary

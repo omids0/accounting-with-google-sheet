@@ -35,6 +35,8 @@ type ReportDateFilterBarProps = {
   showDateFilter?: boolean
   extraChips?: FilterChip[]
   filterModalChildren?: React.ReactNode
+  /** Pages whose speed dial already offers a refresh action hide this one. */
+  showRefresh?: boolean
 }
 
 export function ReportDateFilterBar({
@@ -47,7 +49,8 @@ export function ReportDateFilterBar({
   dateLabel,
   showDateFilter = true,
   extraChips = [],
-  filterModalChildren
+  filterModalChildren,
+  showRefresh = true
 }: ReportDateFilterBarProps) {
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [draftPreset, setDraftPreset] = useState<DateRangeFilterPreset>(preset)
@@ -97,18 +100,20 @@ export function ReportDateFilterBar({
           onOpenFilters={() => setFilterModalOpen(true)}
           onClearAll={clearDraftFilters}
         />
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          className={recordsRefreshBtnClass}
-          onClick={onRefresh}
-          disabled={loading}
-          loading={loading}
-          aria-label="بارگذاری مجدد"
-        >
-          ↻
-        </Button>
+        {showRefresh && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className={recordsRefreshBtnClass}
+            onClick={onRefresh}
+            disabled={loading}
+            loading={loading}
+            aria-label="بارگذاری مجدد"
+          >
+            ↻
+          </Button>
+        )}
       </div>
 
       <FilterModal
