@@ -1,6 +1,7 @@
 import ConfirmActionModal from '../ConfirmActionModal'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
-import type { VehicleProfileWithRow ,
+import type {
+  VehicleProfileWithRow,
   VehicleCompleteFormState,
   VehicleDeadlineFormState,
   VehicleDeleteTarget,

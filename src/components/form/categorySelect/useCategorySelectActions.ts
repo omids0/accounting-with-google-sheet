@@ -13,7 +13,11 @@ import { saveVehicleExpenseCategoriesToSheet } from '../../../services/vehicleEx
 import { saveVehicleMechanicCategoriesToSheet } from '../../../services/vehicleMechanicCategories'
 import { saveVehiclePeriodicCategoriesToSheet } from '../../../services/vehiclePeriodicCategories'
 import { requireAuth } from '../../../utils/authGuard'
-import { reorderItems } from '../../../utils/reorderItems'
+import {
+  isOtherCategory,
+  reorderWithOtherLast,
+  withOtherLast
+} from '../../../utils/categoryOrdering'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showError, showSuccess } from '../../../utils/toast'
 
@@ -142,7 +146,7 @@ export function useCategorySelectActions({
     }
   }
 
-  const isLockedCategory = (name: string): boolean => lockedSet.has(name)
+  const isLockedCategory = (name: string): boolean => lockedSet.has(name) || isOtherCategory(name)
 
   const syncSubcategoryOwner = async (oldName: string, newName: string | null): Promise<void> => {
     const ownerType = onPersist ? undefined : resolveCategoryType(categoryScope, formId)
@@ -234,7 +238,7 @@ export function useCategorySelectActions({
       return
     }
 
-    const next = [...categories, name]
+    const next = withOtherLast([...categories, name])
 
     if (await persistCategories(next)) {
       setNewCategory('')
@@ -244,7 +248,9 @@ export function useCategorySelectActions({
   }
 
   const handleReorder = async (fromIndex: number, toIndex: number) => {
-    const next = reorderItems(categories, fromIndex, toIndex)
+    const next = reorderWithOtherLast(categories, fromIndex, toIndex)
+
+    if (next === categories) return
 
     await persistCategories(next, { silent: true })
   }

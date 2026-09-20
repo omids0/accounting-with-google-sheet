@@ -24,7 +24,7 @@ export function createSubCategoryField(): FieldConfig {
     id: SUBCATEGORY_FIELD_ID,
     label: SUBCATEGORY_FIELD_LABEL,
     type: 'select',
-    required: false,
+    required: true,
     options: []
   }
 }
@@ -32,9 +32,22 @@ export function createSubCategoryField(): FieldConfig {
 export function withSubCategoryField(forms: CustomForm[]): CustomForm[] {
   return forms.map(form => {
     if (form.type !== 'income' && form.type !== 'expense') return form
-    if (form.fields.some(field => field.id === SUBCATEGORY_FIELD_ID)) return form
 
-    return { ...form, fields: [...form.fields, createSubCategoryField()] }
+    const existing = form.fields.find(field => field.id === SUBCATEGORY_FIELD_ID)
+
+    if (!existing) {
+      return { ...form, fields: [...form.fields, createSubCategoryField()] }
+    }
+
+    // Forms stored before the subcategory became mandatory keep required: false.
+    if (existing.required) return form
+
+    return {
+      ...form,
+      fields: form.fields.map(field =>
+        field.id === SUBCATEGORY_FIELD_ID ? { ...field, required: true } : field
+      )
+    }
   })
 }
 

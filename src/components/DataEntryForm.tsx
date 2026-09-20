@@ -100,6 +100,15 @@ export default function DataEntryForm({
       if (!field.required) continue
       if (showVehicleFields && (field.id === 'title' || field.id === 'amount')) continue
 
+      // The subcategory picker only exists once a category is chosen, and the
+      // vehicle branch replaces it with its own fields.
+      if (
+        field.id === SUBCATEGORY_FIELD_ID &&
+        (showVehicleFields || !selectedCategory || !hasSubcategories)
+      ) {
+        continue
+      }
+
       const val = formValues[field.id]
 
       if (val === '' || val === undefined || val === null) {

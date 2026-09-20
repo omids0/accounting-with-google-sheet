@@ -3,6 +3,7 @@ import type { RefObject } from 'react'
 import CategorySelectItem from './CategorySelectItem'
 import type { CategorySelectAllOption } from './useCategorySelectActions'
 import { useDragReorder } from '../../../hooks/useDragReorder'
+import { isOtherCategory } from '../../../utils/categoryOrdering'
 import AppIcon from '../../AppIcon'
 import {
   categorySelectAddBtnClass,
@@ -207,8 +208,8 @@ export default function CategorySelectPanel({
               editText={editText}
               categoriesCount={categories.length}
               canDeleteLast={canDeleteLast}
-              locked={lockedCategories.includes(category)}
-              canReorder={canReorder && !lockedCategories.includes(category)}
+              locked={lockedCategories.includes(category) || isOtherCategory(category)}
+              canReorder={canReorder && !isOtherCategory(category)}
               dragging={draggingIndex === index}
               dragProps={getItemDragProps(index)}
               handleProps={getHandleProps(index)}
