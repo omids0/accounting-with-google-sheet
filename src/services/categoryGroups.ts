@@ -13,7 +13,7 @@ import { DEFAULT_VEHICLE_EXPENSE_CATEGORIES } from './vehicleExpenseCategories'
 import { DEFAULT_VEHICLE_MECHANIC_CATEGORIES } from './vehicleMechanicCategories'
 import { DEFAULT_VEHICLE_PERIODIC_CATEGORIES } from './vehiclePeriodicCategories'
 import type { CategorySubcategoryMap } from '../types'
-import { withLockedExpenseCategories } from '../utils/protectedCategories'
+import { withLockedFormCategories } from '../utils/protectedCategories'
 
 export type CategoryType =
   | 'income'
@@ -218,8 +218,7 @@ export function applyGroupsToSettings(
   const forms = settings.forms.map(form => {
     if (form.type !== 'income' && form.type !== 'expense') return form
 
-    const options =
-      form.type === 'expense' ? withLockedExpenseCategories(groups.expense) : groups[form.type]
+    const options = withLockedFormCategories(form.type, groups[form.type])
 
     return {
       ...form,

@@ -1,18 +1,16 @@
 import type { CustomForm } from '../types'
 import { getSettings } from './settings'
 import { appendRecord, deleteRecord, ensureFormSheet, fetchRecords } from './sheets'
+import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 import { getTodayIso } from '../utils/jalaliDate'
 
 function getFormByType(type: 'income' | 'expense'): CustomForm | undefined {
   return getSettings()?.forms.find(f => f.type === type)
 }
 
-function resolveCategory(form: CustomForm, category?: string): string {
-  if (category?.trim()) return category.trim()
-
-  const options = form.fields.find(f => f.id === 'category')?.options ?? []
-
-  return options[0] ?? 'سایر'
+/** An unnamed category falls into «سایر» rather than whichever option happens to be first. */
+function resolveCategory(category?: string): string {
+  return category?.trim() || OTHER_CATEGORY
 }
 
 export async function createLinkedExpenseRecord(
@@ -40,7 +38,7 @@ export async function createLinkedExpenseRecord(
   await appendRecord(spreadsheetId, expenseForm, recordId, createdAt, {
     date,
     title: params.title,
-    category: resolveCategory(expenseForm, params.category),
+    category: resolveCategory(params.category),
     amount: params.amount,
     note: params.note ?? ''
   })
@@ -73,7 +71,7 @@ export async function createLinkedIncomeRecord(
   await appendRecord(spreadsheetId, incomeForm, recordId, createdAt, {
     date,
     title: params.title,
-    category: resolveCategory(incomeForm, params.category),
+    category: resolveCategory(params.category),
     amount: params.amount,
     note: params.note ?? ''
   })

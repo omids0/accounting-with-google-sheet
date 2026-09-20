@@ -1,6 +1,6 @@
 import { getSettings } from '../../services/settings'
 import type { FieldConfig } from '../../types'
-import { LOCKED_EXPENSE_CATEGORIES } from '../../utils/protectedCategories'
+import { lockedCategoriesFor } from '../../utils/protectedCategories'
 import AmountInput from '../AmountInput'
 import JalaliDatePicker from '../JalaliDatePicker'
 import CategorySelect from './CategorySelect'
@@ -108,7 +108,8 @@ export default function FieldInput({
 
     if (field.type === 'select' && field.id === 'category' && formId) {
       const formType = getSettings()?.forms.find(form => form.id === formId)?.type
-      const lockedCategories = formType === 'expense' ? [...LOCKED_EXPENSE_CATEGORIES] : undefined
+      const lockedCategories =
+        formType === 'income' || formType === 'expense' ? lockedCategoriesFor(formType) : undefined
 
       return (
         <CategorySelect
