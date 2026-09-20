@@ -10,6 +10,7 @@ import RecordsList from './records/RecordsList'
 import RecordsSummary from './records/RecordsSummary'
 import RecordsToolbar from './records/RecordsToolbar'
 import { useRecordsPage } from './records/useRecordsPage'
+import { useRecordsSpeedDial } from './records/useRecordsSpeedDial'
 import { RecordListSkeleton } from './skeleton'
 import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 import {
@@ -25,6 +26,16 @@ export default function RecordsPage({
   initialFormType?: 'income' | 'expense'
 }) {
   const page = useRecordsPage(initialFormType)
+
+  useRecordsSpeedDial({
+    forms: page.forms,
+    filteredRecords: page.filteredRecords,
+    loading: page.loading,
+    incomeFormName: page.forms.find(form => form.type === 'income')?.name ?? 'درآمد',
+    expenseFormName: page.forms.find(form => form.type === 'expense')?.name ?? 'هزینه',
+    onOpenFilters: page.openFilterModal,
+    onRefresh: page.loadRecords
+  })
 
   if (!isConfigured()) {
     return (

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 import { getCounterpartyFullName } from '../../services/counterparties'
 import { cn } from '../../utils/cn'
@@ -100,20 +100,6 @@ export default function CounterpartySelect({
     setOpen(false)
     resetTransientState()
   }, [confirmDelete, formOpen, manageMode, resetTransientState, saving])
-
-  useEffect(() => {
-    if (!open || formOpen) return
-
-    const focusTimer = window.setTimeout(() => {
-      if (showSearch) {
-        searchInputRef.current?.focus()
-      }
-    }, 50)
-
-    return () => {
-      window.clearTimeout(focusTimer)
-    }
-  }, [formOpen, open, showSearch])
 
   const openCreateForm = () => {
     setFormEditingItem(null)

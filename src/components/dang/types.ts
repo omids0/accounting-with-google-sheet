@@ -5,6 +5,7 @@ export type DangWithRow = Dang & { rowNumber: number }
 export type DangFormState = {
   title: string
   category: string
+  subCategory: string
   counterparty: string
   amount: number | ''
   date: string

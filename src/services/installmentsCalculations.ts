@@ -155,6 +155,7 @@ export function reconcilePaymentsOnEdit(
     dueDay: number
     amount: number
     title: string
+    subCategory?: string
     note: string
     startDate: string
     paidUntil?: string
@@ -200,6 +201,7 @@ export function reconcilePaymentsOnEdit(
   return {
     ...plan,
     title: data.title,
+    subCategory: data.subCategory ?? '',
     amount: data.amount,
     count: data.count,
     dueDay: data.dueDay,

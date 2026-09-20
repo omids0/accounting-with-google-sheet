@@ -1,29 +1,31 @@
-import type { CustomForm } from '../types'
 import { getSettings } from './settings'
 import { appendRecord, deleteRecord, ensureFormSheet, fetchRecords } from './sheets'
+import { SUBCATEGORY_FIELD_ID } from '../components/form/fieldUtils'
+import type { CustomForm } from '../types'
+import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 import { getTodayIso } from '../utils/jalaliDate'
 
 function getFormByType(type: 'income' | 'expense'): CustomForm | undefined {
   return getSettings()?.forms.find(f => f.type === type)
 }
 
-function resolveCategory(form: CustomForm, category?: string): string {
-  if (category?.trim()) return category.trim()
+/** An unnamed category falls into «سایر» rather than whichever option happens to be first. */
+function resolveCategory(category?: string): string {
+  return category?.trim() || OTHER_CATEGORY
+}
 
-  const options = form.fields.find(f => f.id === 'category')?.options ?? []
-
-  return options[0] ?? 'سایر'
+export interface LinkedRecordParams {
+  title: string
+  amount: number
+  category?: string
+  subCategory?: string
+  note?: string
+  date?: string
 }
 
 export async function createLinkedExpenseRecord(
   spreadsheetId: string,
-  params: {
-    title: string
-    amount: number
-    category?: string
-    note?: string
-    date?: string
-  }
+  params: LinkedRecordParams
 ): Promise<string> {
   const expenseForm = getFormByType('expense')
 
@@ -40,7 +42,8 @@ export async function createLinkedExpenseRecord(
   await appendRecord(spreadsheetId, expenseForm, recordId, createdAt, {
     date,
     title: params.title,
-    category: resolveCategory(expenseForm, params.category),
+    category: resolveCategory(params.category),
+    [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
     amount: params.amount,
     note: params.note ?? ''
   })
@@ -50,13 +53,7 @@ export async function createLinkedExpenseRecord(
 
 export async function createLinkedIncomeRecord(
   spreadsheetId: string,
-  params: {
-    title: string
-    amount: number
-    category?: string
-    note?: string
-    date?: string
-  }
+  params: LinkedRecordParams
 ): Promise<string> {
   const incomeForm = getFormByType('income')
 
@@ -73,7 +70,8 @@ export async function createLinkedIncomeRecord(
   await appendRecord(spreadsheetId, incomeForm, recordId, createdAt, {
     date,
     title: params.title,
-    category: resolveCategory(incomeForm, params.category),
+    category: resolveCategory(params.category),
+    [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
     amount: params.amount,
     note: params.note ?? ''
   })

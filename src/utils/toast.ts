@@ -1,13 +1,13 @@
-import toast from 'react-hot-toast';
+import toast from 'react-hot-toast'
 
 export function showSuccess(message: string) {
-  toast.success(message);
+  toast.success(message)
 }
 
 export function showError(message: string) {
-  toast.error(message);
+  toast.error(message)
 }
 
 export function showInfo(message: string) {
-  toast(message);
+  toast(message)
 }

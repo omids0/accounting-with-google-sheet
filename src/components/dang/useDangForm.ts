@@ -45,6 +45,7 @@ export function useDangForm({ onSaved }: UseDangFormOptions) {
           ...editingItem,
           title: form.title.trim(),
           category: form.category.trim(),
+          subCategory: form.subCategory.trim(),
           counterparty: form.counterparty.trim(),
           amount: Number(form.amount),
           date: form.date,
@@ -57,6 +58,7 @@ export function useDangForm({ onSaved }: UseDangFormOptions) {
         await createDang(settings.spreadsheetId, {
           title: form.title.trim(),
           category: form.category.trim(),
+          subCategory: form.subCategory.trim(),
           counterparty: form.counterparty.trim(),
           amount: Number(form.amount),
           date: form.date,

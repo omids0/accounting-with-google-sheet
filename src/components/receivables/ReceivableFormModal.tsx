@@ -13,7 +13,13 @@ import {
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import type { CounterpartyWithRow } from '../counterparties/types'
-import { CategorySelect, CounterpartySelect, FormField, FormRow } from '../form'
+import {
+  CategorySelect,
+  CounterpartySelect,
+  FormField,
+  FormRow,
+  PaymentSubCategoryField
+} from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 
@@ -47,6 +53,7 @@ export default function ReceivableFormModal({
             title: editingItem.title,
             debtor: editingItem.debtor,
             category: editingItem.category,
+            subCategory: editingItem.subCategory ?? '',
             amount: editingItem.amount,
             borrowDate: editingItem.borrowDate,
             note: editingItem.note
@@ -55,6 +62,7 @@ export default function ReceivableFormModal({
             title: '',
             debtor: '',
             category: categories[0] ?? '',
+            subCategory: '',
             amount: '',
             borrowDate: getTodayIso(),
             note: ''
@@ -155,6 +163,20 @@ export default function ReceivableFormModal({
               invalid={Boolean(fieldState.error)}
             />
           </FormField>
+        )}
+      />
+
+      <Controller
+        name="subCategory"
+        control={control}
+        render={({ field }) => (
+          <PaymentSubCategoryField
+            value={field.value}
+            onChange={field.onChange}
+            categoryType="income"
+            category={category}
+            ariaLabel="زیردسته طلب"
+          />
         )}
       />
 

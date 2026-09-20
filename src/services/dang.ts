@@ -25,7 +25,8 @@ export const DANG_HEADERS = [
   'توضیحات',
   'پرداخت شده',
   'زمان پرداخت',
-  'شناسه تراکنش'
+  'شناسه تراکنش',
+  'زیردسته'
 ]
 
 function parsePaid(raw: string): boolean {
@@ -56,7 +57,8 @@ function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number
       note: row[6] ?? '',
       paid: parsePaid(row[7] ?? ''),
       paidAt: row[8] ?? '',
-      transactionRecordId: ''
+      transactionRecordId: '',
+      subCategory: ''
     }
   }
 
@@ -72,7 +74,8 @@ function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number
     note: row[7] ?? '',
     paid: parsePaid(row[8] ?? ''),
     paidAt: row[9] ?? '',
-    transactionRecordId: row[10] ?? ''
+    transactionRecordId: row[10] ?? '',
+    subCategory: row[11] ?? ''
   }
 }
 
@@ -88,7 +91,8 @@ function dangToRow(dang: Dang): string[] {
     dang.note,
     dang.paid ? 'بله' : 'خیر',
     dang.paidAt,
-    dang.transactionRecordId ?? ''
+    dang.transactionRecordId ?? '',
+    dang.subCategory ?? ''
   ]
 }
 
@@ -120,6 +124,7 @@ export async function createDang(
   data: {
     title: string
     category: string
+    subCategory?: string
     counterparty: string
     amount: number
     date: string
@@ -131,6 +136,7 @@ export async function createDang(
     createdAt: new Date().toLocaleString('fa-IR'),
     title: data.title,
     category: data.category,
+    subCategory: data.subCategory ?? '',
     counterparty: data.counterparty,
     amount: data.amount,
     date: data.date,
@@ -173,6 +179,7 @@ export async function toggleDangPaid(
       title: `بدهی: ${dang.title}`,
       amount: dang.amount,
       category: dang.category,
+      subCategory: dang.subCategory,
       note: dang.note
     })
 
@@ -259,7 +266,8 @@ export async function importDangsCsv(spreadsheetId: string, csvContent: string) 
       note: cells[7] ?? '',
       paid: parsePaid(cells[8] ?? ''),
       paidAt: cells[9] ?? '',
-      transactionRecordId: cells[10] ?? ''
+      transactionRecordId: cells[10] ?? '',
+      subCategory: cells[11] ?? ''
     })
   })
 }

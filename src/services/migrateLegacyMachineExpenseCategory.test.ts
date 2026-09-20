@@ -5,6 +5,8 @@ import {
   removeLegacyMachineCategory
 } from './migrateLegacyMachineExpenseCategory'
 import { VEHICLE_EXPENSE_CATEGORY } from '../components/vehicles/constants'
+import { OTHER_CATEGORY } from '../utils/categoryOrdering'
+import { RECONCILIATION_CATEGORY } from '../utils/protectedCategories'
 
 describe('migrateLegacyMachineExpenseCategory helpers', () => {
   it('detects legacy machine category', () => {
@@ -13,11 +15,13 @@ describe('migrateLegacyMachineExpenseCategory helpers', () => {
     expect(isLegacyMachineExpenseCategory('خودرو')).toBe(false)
   })
 
-  it('removes legacy category and keeps locked vehicle category', () => {
+  it('removes legacy category and keeps the locked categories with «سایر» last', () => {
     expect(removeLegacyMachineCategory(['خوراک', 'ماشین', 'حمل‌ونقل'])).toEqual([
       'خوراک',
       'حمل‌ونقل',
-      VEHICLE_EXPENSE_CATEGORY
+      VEHICLE_EXPENSE_CATEGORY,
+      RECONCILIATION_CATEGORY,
+      OTHER_CATEGORY
     ])
   })
 })

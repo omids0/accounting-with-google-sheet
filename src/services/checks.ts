@@ -16,6 +16,9 @@ import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
 
 export const CHECKS_SHEET = 'چک‌ها'
 
+/** Expense category of the record a paid check creates. */
+export const CHECK_EXPENSE_CATEGORY = 'چک'
+
 export const CHECKS_HEADERS = [
   'شناسه',
   'زمان ثبت',
@@ -26,7 +29,8 @@ export const CHECKS_HEADERS = [
   'تاریخ سررسید',
   'پرداخت شده',
   'زمان پرداخت',
-  'شناسه تراکنش'
+  'شناسه تراکنش',
+  'زیردسته'
 ]
 
 function parsePaid(raw: string): boolean {
@@ -49,7 +53,8 @@ function rowToCheck(row: string[], rowNumber: number): Check & { rowNumber: numb
     dueDate: row[6] ?? '',
     paid: parsePaid(row[7] ?? ''),
     paidAt: row[8] ?? '',
-    transactionRecordId: row[9] ?? ''
+    transactionRecordId: row[9] ?? '',
+    subCategory: row[10] ?? ''
   }
 }
 
@@ -64,7 +69,8 @@ function checkToRow(check: Check): string[] {
     check.dueDate,
     check.paid ? 'بله' : 'خیر',
     check.paidAt,
-    check.transactionRecordId ?? ''
+    check.transactionRecordId ?? '',
+    check.subCategory ?? ''
   ]
 }
 
@@ -98,6 +104,7 @@ export async function createCheck(
   data: {
     checkNumber: string
     counterparty: string
+    subCategory?: string
     amount: number
     creationDate: string
     dueDate: string
@@ -108,6 +115,7 @@ export async function createCheck(
     createdAt: new Date().toLocaleString('fa-IR'),
     checkNumber: data.checkNumber,
     counterparty: data.counterparty,
+    subCategory: data.subCategory ?? '',
     amount: data.amount,
     creationDate: data.creationDate,
     dueDate: data.dueDate,
@@ -148,7 +156,8 @@ export async function toggleCheckPaid(
     const transactionRecordId = await createLinkedExpenseRecord(spreadsheetId, {
       title: `چک: ${check.checkNumber} — ${check.counterparty}`,
       amount: check.amount,
-      category: 'چک',
+      category: CHECK_EXPENSE_CATEGORY,
+      subCategory: check.subCategory,
       note: `سررسید: ${check.dueDate}`
     })
 
@@ -250,7 +259,8 @@ export async function importChecksCsv(spreadsheetId: string, csvContent: string)
       dueDate: cells[6] ?? '',
       paid: parsePaid(cells[7] ?? ''),
       paidAt: cells[8] ?? '',
-      transactionRecordId: cells[9] ?? ''
+      transactionRecordId: cells[9] ?? '',
+      subCategory: cells[10] ?? ''
     })
   })
 }

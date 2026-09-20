@@ -10,6 +10,7 @@ export type ReceivableFormState = {
   title: string
   debtor: string
   category: string
+  subCategory: string
   amount: number | ''
   borrowDate: string
   note: string

@@ -1,6 +1,7 @@
 export { default as CategorySelect } from './CategorySelect'
 export { default as CategoryFilterSelect } from './CategoryFilterSelect'
 export { default as SubCategorySelect } from './SubCategorySelect'
+export { default as PaymentSubCategoryField } from './PaymentSubCategoryField'
 export { default as CounterpartySelect } from './CounterpartySelect'
 export { default as CounterpartyFilterSelect } from './CounterpartyFilterSelect'
 export { default as Select } from './Select'

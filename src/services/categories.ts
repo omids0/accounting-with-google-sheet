@@ -24,7 +24,7 @@ import {
 } from './settings'
 import { ensureSheetWithHeaders, fetchSheetRows, replaceSheetDataRows } from './sheets'
 import type { CategorySubcategoryMap } from '../types'
-import { withLockedExpenseCategories } from '../utils/protectedCategories'
+import { withLockedFormCategories } from '../utils/protectedCategories'
 
 export type { CategoryGroups, CategoryType } from './categoryGroups'
 
@@ -164,7 +164,7 @@ export async function saveFormCategoriesToSheet(
   }
 
   const current = await fetchCategorySheetData(spreadsheetId)
-  const normalized = form.type === 'expense' ? withLockedExpenseCategories(categories) : categories
+  const normalized = withLockedFormCategories(form.type, categories)
 
   const next: CategoryGroups = {
     ...withDefaults(current.groups),

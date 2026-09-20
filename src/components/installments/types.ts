@@ -6,6 +6,7 @@ export type InstallmentsPageProps = {
 
 export type InstallmentFormState = {
   title: string
+  subCategory: string
   amount: number | ''
   count: number | ''
   dueDay: number | ''

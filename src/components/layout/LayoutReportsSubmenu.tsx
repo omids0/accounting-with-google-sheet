@@ -31,6 +31,13 @@ export default function LayoutReportsSubmenu({ tab, onTabChange }: LayoutReports
       >
         جریان نقدی
       </button>
+      <button
+        type="button"
+        className={appMenuItemClass(tab === 'report-category-tree', 'sub')}
+        onClick={() => onTabChange('report-category-tree')}
+      >
+        درختواره درآمد/هزینه
+      </button>
       <div className={appMenuSubmenuLabelClass}>ترکیبی</div>
       <button
         type="button"

@@ -7,24 +7,23 @@ import type {
   ThemeMode
 } from '../types'
 import { isTokenValid } from './auth'
+import {
+  DEFAULT_DANG_CATEGORIES,
+  DEFAULT_EXPENSE_CATEGORIES,
+  DEFAULT_INCOME_CATEGORIES,
+  DEFAULT_RECEIVABLE_CATEGORIES,
+  normalizeCategoryLists
+} from './settingsCategoryLists'
 import { getItem, setItem, STORAGE_KEYS } from './storage'
 import { withSubCategoryField } from '../components/form/fieldUtils'
 
-export const DEFAULT_INCOME_CATEGORIES = ['حقوق', 'فروش', 'سرمایه‌گذاری', 'هدیه', 'طلب', 'سایر']
-export const DEFAULT_EXPENSE_CATEGORIES = [
-  'خوراک',
-  'حمل‌ونقل',
-  'اجاره',
-  'قبوض',
-  'تفریح',
-  'پوشاک',
-  'قسط',
-  'چک',
-  'سایر'
-]
-export const DEFAULT_DANG_CATEGORIES = ['شخصی', 'قرض', 'خرید', 'سایر']
-export const DEFAULT_RECEIVABLE_CATEGORIES = ['شخصی', 'قرض', 'سازمان', 'سایر']
-export const DEFAULT_PERSONAL_REMINDER_CATEGORIES = ['قبض', 'بیمه', 'مالیات', 'اشتراک', 'سایر']
+export {
+  DEFAULT_DANG_CATEGORIES,
+  DEFAULT_EXPENSE_CATEGORIES,
+  DEFAULT_INCOME_CATEGORIES,
+  DEFAULT_PERSONAL_REMINDER_CATEGORIES,
+  DEFAULT_RECEIVABLE_CATEGORIES
+} from './settingsCategoryLists'
 
 function incomeForm(): CustomForm {
   return {
@@ -75,7 +74,10 @@ export function getDefaultForms(): CustomForm[] {
 }
 
 export function normalizeSettings(input: AppSettings): AppSettings {
-  const settings: AppSettings = { ...input, forms: withSubCategoryField(input.forms) }
+  const settings: AppSettings = normalizeCategoryLists({
+    ...input,
+    forms: withSubCategoryField(input.forms)
+  })
 
   if (settings.spreadsheets?.length) {
     const activeId =

@@ -16,6 +16,7 @@ import {
   type WalletPeriodFlow
 } from '../../services/wallet'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
+import { RECONCILIATION_CATEGORY } from '../../utils/protectedCategories'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
@@ -186,8 +187,9 @@ export function useWalletMutations({
       const amount = Math.abs(difference)
 
       const params = {
-        title: 'اصلاح موجودی',
+        title: RECONCILIATION_CATEGORY,
         amount,
+        category: RECONCILIATION_CATEGORY,
         note: `تطبیق کیف پول با مانده محاسبه‌شده — ${periodFlow.monthLabel}`
       }
 

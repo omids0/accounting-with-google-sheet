@@ -90,6 +90,7 @@ export async function importInstallmentsCsv(spreadsheetId: string, csvContent: s
         dueDay,
         startDate,
         note: cells[7] ?? '',
+        subCategory: cells[9] ?? '',
         payments: parsePayments(
           planId,
           cells[8] ?? '',
