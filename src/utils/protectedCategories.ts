@@ -3,15 +3,24 @@ import {
   VEHICLE_EXPENSE_CATEGORY,
   VEHICLE_FUEL_EXPENSE_TYPE
 } from '../components/vehicles/constants'
+import { CHECK_EXPENSE_CATEGORY } from '../services/checks'
+import { INSTALLMENT_EXPENSE_CATEGORY } from '../services/installmentsConstants'
 
 /** Category of the record that closes a wallet reconciliation gap. */
 export const RECONCILIATION_CATEGORY = 'اصلاح موجودی'
 
 export const LOCKED_INCOME_CATEGORIES = new Set<string>([RECONCILIATION_CATEGORY])
 
+// Installments and checks write their linked expense record under these exact
+// category names (see installmentsCrud.ts and checks.ts). Renaming or deleting
+// the category would not touch those hardcoded writes, so payments would keep
+// landing under a category the picker no longer offers — same failure mode
+// «خودرو» and «اصلاح موجودی» are locked against.
 export const LOCKED_EXPENSE_CATEGORIES = new Set<string>([
   VEHICLE_EXPENSE_CATEGORY,
-  RECONCILIATION_CATEGORY
+  RECONCILIATION_CATEGORY,
+  INSTALLMENT_EXPENSE_CATEGORY,
+  CHECK_EXPENSE_CATEGORY
 ])
 
 export const LOCKED_VEHICLE_EXPENSE_TYPES = new Set<string>([VEHICLE_FUEL_EXPENSE_TYPE])

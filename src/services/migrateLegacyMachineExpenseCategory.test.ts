@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { CHECK_EXPENSE_CATEGORY } from './checks'
+import { INSTALLMENT_EXPENSE_CATEGORY } from './installmentsConstants'
 import {
   isLegacyMachineExpenseCategory,
   removeLegacyMachineCategory
@@ -21,6 +23,8 @@ describe('migrateLegacyMachineExpenseCategory helpers', () => {
       'حمل‌ونقل',
       VEHICLE_EXPENSE_CATEGORY,
       RECONCILIATION_CATEGORY,
+      INSTALLMENT_EXPENSE_CATEGORY,
+      CHECK_EXPENSE_CATEGORY,
       OTHER_CATEGORY
     ])
   })

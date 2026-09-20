@@ -6,6 +6,7 @@ import {
   categorySelectConfirmClass,
   categorySelectConfirmDangerBtnClass,
   categorySelectConfirmBtnClass,
+  categorySelectDragHandleSpacerClass,
   categorySelectEditClass,
   categorySelectEditInputClass,
   categorySelectIconBtnClass,
@@ -25,7 +26,10 @@ interface CategorySelectItemProps {
   editText: string
   categoriesCount: number
   canDeleteLast?: boolean
+  /** A real category whose name is fixed (payments write records under it by name). */
   locked?: boolean
+  /** The synthetic «سایر» bucket: not a stored category, so it gets no manage actions at all. */
+  isOther?: boolean
   onManageSubcategories?: (category: string) => void
   canReorder?: boolean
   dragging?: boolean
@@ -60,6 +64,7 @@ export default function CategorySelectItem({
   categoriesCount,
   canDeleteLast = false,
   locked = false,
+  isOther = false,
   canReorder = false,
   dragging = false,
   dragProps,
@@ -152,7 +157,7 @@ export default function CategorySelectItem({
         </div>
       ) : (
         <>
-          {canReorder && handleProps && (
+          {canReorder && handleProps ? (
             <DragReorderHandle
               label={`تغییر ترتیب ${category}`}
               disabled={saving}
@@ -160,6 +165,10 @@ export default function CategorySelectItem({
               onDragStart={handleProps.onDragStart}
               onDragEnd={handleProps.onDragEnd}
             />
+          ) : (
+            manageMode && (
+              <span className={categorySelectDragHandleSpacerClass} aria-hidden="true" />
+            )
           )}
           <button
             type="button"
@@ -174,7 +183,7 @@ export default function CategorySelectItem({
             </span>
             <span className={categorySelectOptionLabelClass(isSelected)}>{category}</span>
           </button>
-          {manageMode && !locked && (
+          {manageMode && !isOther && (
             <div className={categorySelectActionsClass}>
               {onManageSubcategories && (
                 <button
@@ -197,8 +206,9 @@ export default function CategorySelectItem({
                   e.stopPropagation()
                   onStartEdit(category)
                 }}
-                disabled={saving}
+                disabled={saving || locked}
                 aria-label={`ویرایش ${category}`}
+                title={locked ? 'این دسته‌بندی قابل ویرایش نیست' : undefined}
               >
                 <AppIcon name="edit" size={14} strokeWidth={2} />
               </button>
@@ -209,8 +219,9 @@ export default function CategorySelectItem({
                   e.stopPropagation()
                   onConfirmDelete(category)
                 }}
-                disabled={saving || (!canDeleteLast && categoriesCount <= 1)}
+                disabled={saving || locked || (!canDeleteLast && categoriesCount <= 1)}
                 aria-label={`حذف ${category}`}
+                title={locked ? 'این دسته‌بندی قابل حذف نیست' : undefined}
               >
                 <AppIcon name="trash" size={14} strokeWidth={2} />
               </button>
