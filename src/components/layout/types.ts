@@ -68,6 +68,8 @@ export const BOTTOM_NAV_TABS: Tab[] = [
 
 export const SPEED_DIAL_TABS: Tab[] = [
   'dashboard',
+  'records',
+  'report-category-tree',
   'installments',
   'dang',
   'checks',
