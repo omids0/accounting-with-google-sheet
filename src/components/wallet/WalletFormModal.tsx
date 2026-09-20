@@ -97,6 +97,8 @@ export default function WalletFormModal({
                   setValue('bankId', '')
                   setValue('cardNumber', '')
                   setValue('cardHolder', '')
+                  setValue('iban', '')
+                  setValue('accountNumber', '')
                   if (!isCustomCardColor(watched.cardColor ?? '')) {
                     setValue('cardColor', '')
                   }
@@ -143,6 +145,10 @@ export default function WalletFormModal({
         </FormField>
       )}
 
+      <div className={walletCardPreviewClass}>
+        <WalletAccountCardVisual account={previewAccount} />
+      </div>
+
       <FormField controlWidth="full">
         <Controller
           name="cardColor"
@@ -174,10 +180,6 @@ export default function WalletFormModal({
           )}
         />
       </FormField>
-
-      <div className={walletCardPreviewClass}>
-        <WalletAccountCardVisual account={previewAccount} />
-      </div>
 
       <FormRow>
         <FormField label="عنوان" required error={formFieldError(errors, 'title')}>
@@ -225,6 +227,18 @@ export default function WalletFormModal({
 
           <FormField label="نام دارنده کارت" hint="اختیاری — روی کارت نمایش داده می‌شود">
             <input {...register('cardHolder')} placeholder="مثلاً: علی محمدی" />
+          </FormField>
+        </FormRow>
+      )}
+
+      {isBankAccount && (
+        <FormRow>
+          <FormField label="شماره حساب" hint="اختیاری — روی کارت نمایش داده می‌شود">
+            <input {...register('accountNumber')} dir="ltr" placeholder="مثلاً: 0123456789" />
+          </FormField>
+
+          <FormField label="شماره شبا" hint="اختیاری — روی کارت نمایش داده می‌شود">
+            <input {...register('iban')} dir="ltr" placeholder="مثلاً: IR12 3456 7890..." />
           </FormField>
         </FormRow>
       )}

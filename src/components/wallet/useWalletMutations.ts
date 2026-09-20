@@ -99,6 +99,8 @@ export function useWalletMutations({
         bankId: form.accountKind === 'bank' ? form.bankId : '',
         cardNumber: form.accountKind === 'bank' ? form.cardNumber : '',
         cardHolder: form.accountKind === 'bank' ? form.cardHolder.trim() : '',
+        accountNumber: form.accountKind === 'bank' ? form.accountNumber.trim() : '',
+        iban: form.accountKind === 'bank' ? form.iban.trim() : '',
         cardColor: useCustomColor
           ? CUSTOM_CARD_COLOR_ID
           : form.accountKind === 'bank' && hasBankColorPalette(form.bankId)

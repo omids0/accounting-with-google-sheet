@@ -20,7 +20,9 @@ export const EMPTY_WALLET_FORM: WalletFormState = {
   cardHolder: '',
   cardColor: '',
   cardColorPrimary: DEFAULT_CUSTOM_CARD_PRIMARY,
-  cardColorSecondary: DEFAULT_CUSTOM_CARD_SECONDARY
+  cardColorSecondary: DEFAULT_CUSTOM_CARD_SECONDARY,
+  iban: '',
+  accountNumber: ''
 }
 
 function resolveInitialCustomColors(account: WalletAccountWithRow) {
@@ -56,6 +58,8 @@ export function buildWalletFormInitialValues(
     bankId: editingAccount.bankId,
     cardNumber: editingAccount.cardNumber,
     cardHolder: editingAccount.cardHolder,
+    iban: editingAccount.iban,
+    accountNumber: editingAccount.accountNumber,
     cardColor: isCustomCardColor(editingAccount.cardColor)
       ? CUSTOM_CARD_COLOR_ID
       : parseBankCardColor(editingAccount.bankId, editingAccount.cardColor),
@@ -77,6 +81,8 @@ export function buildWalletPreviewAccount(
     bankId,
     cardNumber: watched.cardNumber ?? '',
     cardHolder: watched.cardHolder ?? '',
+    iban: watched.iban ?? '',
+    accountNumber: watched.accountNumber ?? '',
     cardColor: isCustomCardColor(watched.cardColor ?? '')
       ? CUSTOM_CARD_COLOR_ID
       : accountKind === 'bank' && hasBankColorPalette(bankId)

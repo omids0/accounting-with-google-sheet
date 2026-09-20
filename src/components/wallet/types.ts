@@ -16,4 +16,6 @@ export type WalletFormState = {
   cardColor: string
   cardColorPrimary: string
   cardColorSecondary: string
+  iban: string
+  accountNumber: string
 }

@@ -9,6 +9,9 @@ import {
   walletBankCardTopLeftClass,
   walletBankCardClass,
   walletBankCardContactlessClass,
+  walletBankCardCopyBtnClass,
+  walletBankCardExtraInfoClass,
+  walletBankCardExtraInfoItemClass,
   walletBankCardHolderClass,
   walletBankCardLogoClass,
   walletBankCardNumberCenterClass,
@@ -16,9 +19,11 @@ import {
   walletBankCardTitleClass,
   walletBankCardTopRowClass
 } from './walletCardStyles'
-import { formatCardNumberDisplay, resolveCardTheme } from './walletCardUtils'
+import { formatCardNumberDisplay, normalizeCardNumber, resolveCardTheme } from './walletCardUtils'
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard'
 import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
+import AppIcon from '../AppIcon'
 
 type WalletBankCardVisualProps = {
   account: Pick<
@@ -33,10 +38,33 @@ type WalletBankCardVisualProps = {
     | 'cardColorPrimary'
     | 'cardColorSecondary'
     | 'note'
+    | 'iban'
+    | 'accountNumber'
   >
   displayBalance?: number
   compact?: boolean
   className?: string
+}
+
+function CardCopyButton({ value, label }: { value: string; label: string }) {
+  const { copy } = useCopyToClipboard()
+
+  if (!value) return null
+
+  return (
+    <button
+      type="button"
+      className={walletBankCardCopyBtnClass}
+      aria-label={label}
+      title={label}
+      onClick={event => {
+        event.stopPropagation()
+        void copy(value, `${label} شد`)
+      }}
+    >
+      <AppIcon name="copy" size={11} strokeWidth={2} />
+    </button>
+  )
 }
 
 function ContactlessIcon() {
@@ -65,6 +93,8 @@ export default function WalletBankCardVisual({
   const showTitleBesideBank = Boolean(accountTitle) && accountTitle !== theme.label
   const holderLabel = account.cardHolder.trim() || (showTitleBesideBank ? '' : accountTitle)
   const subtitle = account.note.trim()
+  const iban = account.iban.trim()
+  const accountNumber = account.accountNumber.trim()
 
   const cardStyle: CSSProperties = {
     background: theme.gradient,
@@ -104,11 +134,40 @@ export default function WalletBankCardVisual({
 
       <div className={walletBankCardNumberWrapClass}>
         {showCardNumber && (
-          <div className={walletBankCardNumberCenterClass} dir="ltr" lang="en">
-            {formatCardNumberDisplay(account.cardNumber)}
+          <div className="flex items-center justify-center gap-[0.4rem]">
+            <div className={walletBankCardNumberCenterClass} dir="ltr" lang="en">
+              {formatCardNumberDisplay(account.cardNumber)}
+            </div>
+            <CardCopyButton
+              value={normalizeCardNumber(account.cardNumber)}
+              label="کپی شماره کارت"
+            />
           </div>
         )}
       </div>
+
+      {(iban || accountNumber) && (
+        <div className={walletBankCardExtraInfoClass}>
+          {accountNumber && (
+            <span className={walletBankCardExtraInfoItemClass}>
+              <span>شماره حساب:</span>
+              <span dir="ltr" lang="en" className="truncate">
+                {accountNumber}
+              </span>
+              <CardCopyButton value={accountNumber} label="کپی شماره حساب" />
+            </span>
+          )}
+          {iban && (
+            <span className={walletBankCardExtraInfoItemClass}>
+              <span>شبا:</span>
+              <span dir="ltr" lang="en" className="truncate">
+                {iban}
+              </span>
+              <CardCopyButton value={iban} label="کپی شماره شبا" />
+            </span>
+          )}
+        </div>
+      )}
 
       <div className={walletBankCardBottomRowClass}>
         <div className="min-w-0 flex-1 text-right">

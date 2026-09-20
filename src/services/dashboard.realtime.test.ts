@@ -155,7 +155,9 @@ describe('dashboard realtime updates', () => {
       cardHolder: '',
       cardColor: '',
       cardColorPrimary: '',
-      cardColorSecondary: ''
+      cardColorSecondary: '',
+      accountNumber: '',
+      iban: ''
     })
 
     const updated = await loadDashboardData(
