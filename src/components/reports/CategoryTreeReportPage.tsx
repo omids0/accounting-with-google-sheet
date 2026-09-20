@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
-import CategoryTreeNodeRow from './categoryTree/CategoryTreeNodeRow'
+import CategoryTreeSection from './categoryTree/CategoryTreeSection'
+import CategoryTreeSummary from './categoryTree/CategoryTreeSummary'
 import {
   useCategoryTreeReport,
   type CategoryTreeFilter
@@ -9,7 +10,7 @@ import ReportDateFilterBar from './ReportDateFilterBar'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { getSettings, isConfigured } from '../../services/settings'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
+import { formatPersianNumber } from '../../utils/formatMoney'
 import AppIcon from '../AppIcon'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import SpeedDialIcon from '../SpeedDialIcon'
@@ -18,13 +19,15 @@ import TransactionTypeSegment, {
 } from '../TransactionTypeSegment'
 import Card from '../ui/Card'
 import {
-  categoryTreeControlsClass,
-  categoryTreeListClass,
-  categoryTreeSummaryClass,
-  categoryTreeToggleAllClass
+  categoryTreeCaptionClass,
+  categoryTreeEmptyClass,
+  categoryTreeEmptyIconClass,
+  categoryTreeToggleAllClass,
+  categoryTreeToggleIconClass,
+  categoryTreeToolbarClass
 } from '../ui/categoryTreeStyles'
 import { dashboardPageClass } from '../ui/chartStyles'
-import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
+import { emptyStateClass } from '../ui/displayStyles'
 import { dashboardTransactionSegmentClass } from '../ui/recordsStyles'
 import { reportPageClass } from '../ui/toolsPageStyles'
 
@@ -33,18 +36,14 @@ export default function CategoryTreeReportPage() {
 
   const settings = getSettings()
 
+  const incomeLabel = settings?.forms.find(form => form.type === 'income')?.name ?? 'درآمد'
+
+  const expenseLabel = settings?.forms.find(form => form.type === 'expense')?.name ?? 'هزینه'
+
   const typeOptions: TransactionTypeSegmentOption[] = [
     { id: 'all', label: 'همه' },
-    {
-      id: 'income',
-      label: settings?.forms.find(form => form.type === 'income')?.name ?? 'درآمد',
-      tone: 'income'
-    },
-    {
-      id: 'expense',
-      label: settings?.forms.find(form => form.type === 'expense')?.name ?? 'هزینه',
-      tone: 'expense'
-    }
+    { id: 'income', label: incomeLabel, tone: 'income' },
+    { id: 'expense', label: expenseLabel, tone: 'expense' }
   ]
 
   const speedDial = useMemo(
@@ -97,6 +96,14 @@ export default function CategoryTreeReportPage() {
         loading={tree.loading}
       />
 
+      <CategoryTreeSummary
+        filter={tree.typeFilter}
+        incomeTotal={tree.incomeTotal}
+        expenseTotal={tree.expenseTotal}
+        incomeLabel={incomeLabel}
+        expenseLabel={expenseLabel}
+      />
+
       <Card>
         <TransactionTypeSegment
           className={dashboardTransactionSegmentClass}
@@ -106,37 +113,57 @@ export default function CategoryTreeReportPage() {
           ariaLabel="نوع درختواره"
         />
 
-        <div className={categoryTreeControlsClass}>
+        <div className={categoryTreeToolbarClass}>
           <button
             type="button"
             className={categoryTreeToggleAllClass}
             onClick={tree.toggleAll}
-            disabled={!tree.nodes.length}
+            disabled={!tree.canToggleAll}
+            aria-label={tree.allExpanded ? 'بستن همه دسته‌ها' : 'باز کردن همه دسته‌ها'}
           >
-            <AppIcon name={tree.allExpanded ? 'close' : 'add'} size={14} strokeWidth={2.5} />
+            <span className={categoryTreeToggleIconClass(tree.allExpanded)} aria-hidden="true">
+              <AppIcon name="chevron-down" size={14} strokeWidth={2.5} />
+            </span>
             {tree.allExpanded ? 'بستن همه' : 'باز کردن همه'}
           </button>
-          <span className={categoryTreeSummaryClass}>
-            {tree.nodes.length.toLocaleString('fa-IR')} دسته · {formatMoney(tree.total)}
-          </span>
+
+          <p className={categoryTreeCaptionClass}>
+            {formatPersianNumber(tree.nodes.length, { useGrouping: false })} دسته
+          </p>
         </div>
 
         {tree.loading && !tree.nodes.length ? (
           <InstallmentCardListSkeleton count={3} />
         ) : !tree.nodes.length ? (
-          <p className={emptyTextClass}>در این دوره تراکنشی ثبت نشده</p>
-        ) : (
-          <div className={categoryTreeListClass}>
-            {tree.nodes.map(node => (
-              <CategoryTreeNodeRow
-                key={node.id}
-                node={node}
-                open={tree.expanded.has(node.id)}
-                showTypeBadge={tree.typeFilter === 'all'}
-                onToggle={tree.toggleNode}
-              />
-            ))}
+          <div className={categoryTreeEmptyClass}>
+            <span className={categoryTreeEmptyIconClass} aria-hidden="true">
+              <AppIcon name="chart" size={22} strokeWidth={2} />
+            </span>
+            <p>در این دوره تراکنشی ثبت نشده</p>
           </div>
+        ) : (
+          <>
+            <CategoryTreeSection
+              type="income"
+              title={incomeLabel}
+              nodes={tree.incomeNodes}
+              total={tree.incomeTotal}
+              showHeader={tree.typeFilter === 'all'}
+              expandedIds={tree.expanded}
+              isExpandable={tree.isExpandable}
+              onToggle={tree.toggleNode}
+            />
+            <CategoryTreeSection
+              type="expense"
+              title={expenseLabel}
+              nodes={tree.expenseNodes}
+              total={tree.expenseTotal}
+              showHeader={tree.typeFilter === 'all'}
+              expandedIds={tree.expanded}
+              isExpandable={tree.isExpandable}
+              onToggle={tree.toggleNode}
+            />
+          </>
         )}
       </Card>
     </div>

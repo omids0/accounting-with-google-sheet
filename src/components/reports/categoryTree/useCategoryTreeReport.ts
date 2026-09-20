@@ -1,14 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { exportCategoryTreeCsv, exportCategoryTreePdf } from '../../../services/categoryTreeExport'
-import { loadCategoryTreeReport, type CategoryTreeNode } from '../../../services/categoryTreeReport'
+import {
+  loadCategoryTreeReport,
+  sumCategoryTree,
+  type CategoryTreeNode
+} from '../../../services/categoryTreeReport'
 import { getSettings, isConfigured } from '../../../services/settings'
 import { requireAuth } from '../../../utils/authGuard'
+import { isOtherCategory } from '../../../utils/categoryOrdering'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showSuccess } from '../../../utils/toast'
 import { useReportDateFilter } from '../ReportToolbar'
 
 export type CategoryTreeFilter = 'all' | 'income' | 'expense'
+
+/** A category whose only subcategory is the «سایر» fallback has nothing to open. */
+function isExpandable(node: CategoryTreeNode): boolean {
+  if (node.children.length > 1) return true
+
+  return node.children.length === 1 && !isOtherCategory(node.children[0].name)
+}
 
 export function useCategoryTreeReport() {
   const [nodes, setNodes] = useState<CategoryTreeNode[]>([])
@@ -52,9 +64,26 @@ export function useCategoryTreeReport() {
     [nodes, typeFilter]
   )
 
+  const incomeTotal = useMemo(() => sumCategoryTree(nodes, 'income'), [nodes])
+
+  const expenseTotal = useMemo(() => sumCategoryTree(nodes, 'expense'), [nodes])
+
+  const incomeNodes = useMemo(
+    () => visibleNodes.filter(node => node.type === 'income'),
+    [visibleNodes]
+  )
+
+  const expenseNodes = useMemo(
+    () => visibleNodes.filter(node => node.type === 'expense'),
+    [visibleNodes]
+  )
+
+  const expandableNodes = useMemo(() => visibleNodes.filter(isExpandable), [visibleNodes])
+
   const expanded = useMemo(() => new Set(expandedIds), [expandedIds])
 
-  const allExpanded = visibleNodes.length > 0 && visibleNodes.every(node => expanded.has(node.id))
+  const allExpanded =
+    expandableNodes.length > 0 && expandableNodes.every(node => expanded.has(node.id))
 
   const toggleNode = useCallback((id: string) => {
     setExpandedIds(current =>
@@ -63,13 +92,8 @@ export function useCategoryTreeReport() {
   }, [])
 
   const toggleAll = useCallback(() => {
-    setExpandedIds(allExpanded ? [] : visibleNodes.map(node => node.id))
-  }, [allExpanded, visibleNodes])
-
-  const total = useMemo(
-    () => visibleNodes.reduce((sum, node) => sum + node.total, 0),
-    [visibleNodes]
-  )
+    setExpandedIds(allExpanded ? [] : expandableNodes.map(node => node.id))
+  }, [allExpanded, expandableNodes])
 
   const exportCsv = useCallback(() => {
     exportCategoryTreeCsv(visibleNodes)
@@ -90,6 +114,12 @@ export function useCategoryTreeReport() {
 
   return {
     nodes: visibleNodes,
+    incomeNodes,
+    expenseNodes,
+    incomeTotal,
+    expenseTotal,
+    isExpandable,
+    canToggleAll: expandableNodes.length > 0,
     loading,
     exporting,
     typeFilter,
@@ -98,7 +128,6 @@ export function useCategoryTreeReport() {
     allExpanded,
     toggleNode,
     toggleAll,
-    total,
     datePreset,
     customRange,
     handleDateFilterChange,
