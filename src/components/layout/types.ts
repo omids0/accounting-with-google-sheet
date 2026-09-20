@@ -19,6 +19,7 @@ export type Tab =
   | 'date-calculator'
   | 'report-financial-summary'
   | 'report-income-expense'
+  | 'report-category-tree'
   | 'report-cash-flow'
   | 'report-due-dates'
   | 'report-assets-liabilities'
@@ -42,6 +43,7 @@ export const VEHICLE_TABS: Tab[] = ['vehicle-service', 'vehicle-detail']
 export const REPORT_TABS: Tab[] = [
   'report-financial-summary',
   'report-income-expense',
+  'report-category-tree',
   'report-cash-flow',
   'report-due-dates',
   'report-assets-liabilities',
@@ -101,6 +103,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   'date-calculator': 'محاسبه تاریخ',
   'report-financial-summary': 'خلاصه مالی',
   'report-income-expense': 'درآمد و هزینه',
+  'report-category-tree': 'درختواره درآمد/هزینه',
   'report-cash-flow': 'جریان نقدی',
   'report-due-dates': 'سررسیدها',
   'report-assets-liabilities': 'دارایی و بدهی',

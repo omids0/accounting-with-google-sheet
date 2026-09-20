@@ -19,6 +19,7 @@ import {
   LazyCashFlowReportPage,
   LazyDueDatesReportPage,
   LazyFinancialSummaryReportPage,
+  LazyCategoryTreeReportPage,
   LazyIncomeExpenseReportPage,
   LazyModuleReportPage,
   LazyOpeningBalanceReportPage,
@@ -88,6 +89,7 @@ export function AppAuthenticatedRoutes() {
         <Route path="settings" element={<LazySettingsPage />} />
         <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
         <Route path="reports/income-expense" element={<LazyIncomeExpenseReportPage />} />
+        <Route path="reports/category-tree" element={<LazyCategoryTreeReportPage />} />
         <Route path="reports/cash-flow" element={<LazyCashFlowReportPage />} />
         <Route path="reports/due-dates" element={<LazyDueDatesReportPage />} />
         <Route path="reports/assets-liabilities" element={<LazyAssetsLiabilitiesReportPage />} />

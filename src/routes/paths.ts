@@ -43,6 +43,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   about: '/about',
   'report-financial-summary': '/reports/financial-summary',
   'report-income-expense': '/reports/income-expense',
+  'report-category-tree': '/reports/category-tree',
   'report-cash-flow': '/reports/cash-flow',
   'report-due-dates': '/reports/due-dates',
   'report-assets-liabilities': '/reports/assets-liabilities',

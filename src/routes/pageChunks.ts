@@ -49,6 +49,9 @@ export const loadFinancialSummaryReportPage: PageLoader = () =>
 export const loadIncomeExpenseReportPage: PageLoader = () =>
   import('../components/reports/IncomeExpenseReportPage')
 
+export const loadCategoryTreeReportPage: PageLoader = () =>
+  import('../components/reports/CategoryTreeReportPage')
+
 export const loadModuleReportPage: PageLoader = () =>
   import('../components/reports/ModuleReportPage')
 
@@ -95,6 +98,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'date-calculator': loadDateCalculatorPage,
   'report-financial-summary': loadFinancialSummaryReportPage,
   'report-income-expense': loadIncomeExpenseReportPage,
+  'report-category-tree': loadCategoryTreeReportPage,
   'report-cash-flow': loadCashFlowReportPage,
   'report-due-dates': loadDueDatesReportPage,
   'report-assets-liabilities': loadAssetsLiabilitiesReportPage,
