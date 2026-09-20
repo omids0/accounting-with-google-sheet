@@ -47,7 +47,7 @@ export const categoryTreeSectionCountClass = 'numeric text-[0.7rem] font-semibol
 export const categoryTreeSectionRuleClass =
   'h-px flex-1 bg-[color-mix(in_srgb,var(--tree-tone)_22%,transparent)]'
 
-export const categoryTreeSectionTotalClass = 'numeric text-[0.76rem] font-bold'
+export const categoryTreeSectionTotalClass = 'numeric text-[0.82rem] font-bold'
 
 export const categoryTreeListClass = 'flex flex-col gap-0.5'
 
@@ -106,21 +106,21 @@ export const categoryTreeFillClass = (subtle = false) =>
 
 export const categoryTreeShareLabelClass = (subtle = false) =>
   cn(
-    'numeric w-[2.75rem] shrink-0 text-left text-[0.72rem] font-semibold',
-    subtle ? 'text-muted' : 'text-[var(--tree-tone)]'
+    'numeric w-[2.5rem] shrink-0 text-left font-semibold',
+    subtle ? 'text-[0.6rem] text-muted' : 'text-[0.64rem] text-[var(--tree-tone)]'
   )
 
 export const categoryTreeAmountClass = cn(
   'shrink-0',
-  '[&_.money-display__value]:text-[0.74rem] [&_.money-display__value]:font-bold',
-  '[&_.money-display__unit]:text-[0.46rem] [&_.money-display__unit]:opacity-55'
+  String.raw`[&_.money-display\_\_value]:!text-[0.68rem] [&_.money-display\_\_value]:font-bold`,
+  String.raw`[&_.money-display\_\_unit]:!text-[0.42rem] [&_.money-display\_\_unit]:opacity-55`
 )
 
 /** Subcategory amounts sit a step below their parent. */
 export const categoryTreeChildAmountClass = cn(
   'shrink-0 opacity-85',
-  '[&_.money-display__value]:text-[0.66rem] [&_.money-display__value]:font-semibold',
-  '[&_.money-display__unit]:text-[0.42rem] [&_.money-display__unit]:opacity-50'
+  String.raw`[&_.money-display\_\_value]:!text-[0.6rem] [&_.money-display\_\_value]:font-semibold`,
+  String.raw`[&_.money-display\_\_unit]:!text-[0.38rem] [&_.money-display\_\_unit]:opacity-50`
 )
 
 /** Children hang off a rail on the start side, which is the right in RTL. */
