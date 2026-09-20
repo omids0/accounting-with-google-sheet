@@ -40,14 +40,14 @@ export const categoryTreeSectionClass = 'mt-3 first:mt-1'
 export const categoryTreeSectionHeaderClass =
   'mb-1.5 flex items-baseline gap-2 px-1 text-[var(--tree-tone)]'
 
-export const categoryTreeSectionTitleClass = 'text-[0.8rem] font-extrabold'
+export const categoryTreeSectionTitleClass = 'text-[15px] font-extrabold'
 
-export const categoryTreeSectionCountClass = 'numeric text-[0.7rem] font-semibold opacity-70'
+export const categoryTreeSectionCountClass = 'numeric text-[12px] font-semibold opacity-70'
 
 export const categoryTreeSectionRuleClass =
   'h-px flex-1 bg-[color-mix(in_srgb,var(--tree-tone)_22%,transparent)]'
 
-export const categoryTreeSectionTotalClass = 'numeric text-[0.82rem] font-bold'
+export const categoryTreeSectionTotalClass = 'numeric text-[18px] font-bold'
 
 export const categoryTreeListClass = 'flex flex-col gap-0.5'
 
@@ -83,10 +83,10 @@ export const categoryTreeLeafDotClass = cn(
 
 export const categoryTreeHeadingRowClass = 'flex min-w-0 flex-1 items-center gap-1.5'
 
-export const categoryTreeNameClass = 'min-w-0 truncate text-[0.88rem] font-bold'
+export const categoryTreeNameClass = 'min-w-0 truncate text-[16px] font-bold'
 
 export const categoryTreeCountClass = cn(
-  'numeric shrink-0 rounded-full px-1.5 py-px text-[0.66rem] font-semibold text-muted',
+  'numeric shrink-0 rounded-full px-1.5 py-px text-[11px] font-semibold text-muted',
   'bg-[color-mix(in_srgb,var(--color-border)_45%,transparent)]'
 )
 
@@ -94,23 +94,23 @@ export const categoryTreeValueGroupClass = 'flex shrink-0 items-center gap-2'
 
 export const categoryTreeShareLabelClass = (subtle = false) =>
   cn(
-    'numeric w-[2.5rem] shrink-0 text-left font-semibold',
+    'numeric shrink-0 text-left font-semibold',
     subtle
-      ? 'text-[0.6rem] text-muted'
-      : 'rounded-full bg-[color-mix(in_srgb,var(--tree-tone)_12%,transparent)] px-1.5 py-px text-center text-[0.62rem] text-[var(--tree-tone)]'
+      ? 'w-[2.6rem] text-[11px] text-muted'
+      : 'rounded-full bg-[color-mix(in_srgb,var(--tree-tone)_12%,transparent)] px-2 py-px text-center text-[12px] text-[var(--tree-tone)]'
   )
 
 export const categoryTreeAmountClass = cn(
   'shrink-0',
-  String.raw`[&_.money-display\_\_value]:!text-[0.68rem] [&_.money-display\_\_value]:font-bold`,
-  String.raw`[&_.money-display\_\_unit]:!text-[0.42rem] [&_.money-display\_\_unit]:opacity-55`
+  String.raw`[&_.money-display\_\_value]:!text-[16px] [&_.money-display\_\_value]:font-bold`,
+  String.raw`[&_.money-display\_\_unit]:!text-[10px] [&_.money-display\_\_unit]:opacity-55`
 )
 
 /** Subcategory amounts sit a step below their parent. */
 export const categoryTreeChildAmountClass = cn(
   'shrink-0 opacity-85',
-  String.raw`[&_.money-display\_\_value]:!text-[0.6rem] [&_.money-display\_\_value]:font-semibold`,
-  String.raw`[&_.money-display\_\_unit]:!text-[0.38rem] [&_.money-display\_\_unit]:opacity-50`
+  String.raw`[&_.money-display\_\_value]:!text-[15px] [&_.money-display\_\_value]:font-semibold`,
+  String.raw`[&_.money-display\_\_unit]:!text-[9px] [&_.money-display\_\_unit]:opacity-50`
 )
 
 /** Children hang off a rail on the start side, which is the right in RTL. */
@@ -128,7 +128,7 @@ export const categoryTreeChildRowClass = cn(
 )
 
 export const categoryTreeChildNameClass =
-  'flex min-w-0 flex-1 items-center gap-1.5 text-[0.82rem] text-[var(--color-text)]'
+  'flex min-w-0 flex-1 items-center gap-1.5 text-[14px] text-[var(--color-text)]'
 
 export const categoryTreeEmptyClass =
   'flex flex-col items-center gap-2 py-10 text-center text-[0.85rem] text-muted'
