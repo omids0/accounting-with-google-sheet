@@ -8,6 +8,7 @@ import {
   categoryTreeAmountClass,
   categoryTreeBarRowClass,
   categoryTreeChevronClass,
+  categoryTreeChildAmountClass,
   categoryTreeChildBarRowClass,
   categoryTreeChildListClass,
   categoryTreeChildNameClass,
@@ -126,7 +127,9 @@ export default function CategoryTreeNodeRow({
                     {formatPersianNumber(child.count, { useGrouping: false })}
                   </span>
                 </span>
-                <MoneyDisplay amount={child.total} size="record" tone={node.type} />
+                <span className={categoryTreeChildAmountClass}>
+                  <MoneyDisplay amount={child.total} size="record" tone={node.type} />
+                </span>
                 <span className={categoryTreeChildBarRowClass}>
                   <ShareBar percent={childShare} subtle />
                 </span>

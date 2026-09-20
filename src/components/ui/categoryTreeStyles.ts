@@ -110,7 +110,18 @@ export const categoryTreeShareLabelClass = (subtle = false) =>
     subtle ? 'text-muted' : 'text-[var(--tree-tone)]'
   )
 
-export const categoryTreeAmountClass = 'shrink-0'
+export const categoryTreeAmountClass = cn(
+  'shrink-0',
+  '[&_.money-display__value]:text-[0.74rem] [&_.money-display__value]:font-bold',
+  '[&_.money-display__unit]:text-[0.46rem] [&_.money-display__unit]:opacity-55'
+)
+
+/** Subcategory amounts sit a step below their parent. */
+export const categoryTreeChildAmountClass = cn(
+  'shrink-0 opacity-85',
+  '[&_.money-display__value]:text-[0.66rem] [&_.money-display__value]:font-semibold',
+  '[&_.money-display__unit]:text-[0.42rem] [&_.money-display__unit]:opacity-50'
+)
 
 /** Children hang off a rail on the start side, which is the right in RTL. */
 export const categoryTreeChildListClass = cn(
