@@ -1,8 +1,10 @@
 import { useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import type { InstallmentFormState, PlanWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getInstallmentEndDate, getPaidUntilFromPlan } from '../../services/installments'
+import { INSTALLMENT_EXPENSE_CATEGORY } from '../../services/installmentsConstants'
 import {
   formFieldError,
   requiredDate,
@@ -13,10 +15,9 @@ import {
 } from '../../utils/formValidation'
 import { formatIsoDatePersian, getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { FormField, FormRow } from '../form'
+import { FormField, FormRow, PaymentSubCategoryField } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
-import type { InstallmentFormState, PlanWithRow } from './types'
 import Button from '../ui/Button'
 import { formReadonlyValueClass } from '../ui/formControlStyles'
 
@@ -39,6 +40,7 @@ export default function InstallmentFormModal({
     if (editingPlan) {
       return {
         title: editingPlan.title,
+        subCategory: editingPlan.subCategory ?? '',
         amount: editingPlan.amount,
         count: editingPlan.count,
         dueDay: editingPlan.dueDay,
@@ -50,6 +52,7 @@ export default function InstallmentFormModal({
 
     return {
       title: '',
+      subCategory: '',
       amount: '',
       count: '',
       dueDay: '',
@@ -216,6 +219,20 @@ export default function InstallmentFormModal({
       ) : (
         paidUntilField
       )}
+
+      <Controller
+        name="subCategory"
+        control={control}
+        render={({ field }) => (
+          <PaymentSubCategoryField
+            value={field.value}
+            onChange={field.onChange}
+            categoryType="expense"
+            category={INSTALLMENT_EXPENSE_CATEGORY}
+            ariaLabel="زیردسته قسط"
+          />
+        )}
+      />
 
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" />

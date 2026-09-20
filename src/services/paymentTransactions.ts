@@ -1,6 +1,7 @@
-import type { CustomForm } from '../types'
 import { getSettings } from './settings'
 import { appendRecord, deleteRecord, ensureFormSheet, fetchRecords } from './sheets'
+import { SUBCATEGORY_FIELD_ID } from '../components/form/fieldUtils'
+import type { CustomForm } from '../types'
 import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 import { getTodayIso } from '../utils/jalaliDate'
 
@@ -13,15 +14,18 @@ function resolveCategory(category?: string): string {
   return category?.trim() || OTHER_CATEGORY
 }
 
+export interface LinkedRecordParams {
+  title: string
+  amount: number
+  category?: string
+  subCategory?: string
+  note?: string
+  date?: string
+}
+
 export async function createLinkedExpenseRecord(
   spreadsheetId: string,
-  params: {
-    title: string
-    amount: number
-    category?: string
-    note?: string
-    date?: string
-  }
+  params: LinkedRecordParams
 ): Promise<string> {
   const expenseForm = getFormByType('expense')
 
@@ -39,6 +43,7 @@ export async function createLinkedExpenseRecord(
     date,
     title: params.title,
     category: resolveCategory(params.category),
+    [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
     amount: params.amount,
     note: params.note ?? ''
   })
@@ -48,13 +53,7 @@ export async function createLinkedExpenseRecord(
 
 export async function createLinkedIncomeRecord(
   spreadsheetId: string,
-  params: {
-    title: string
-    amount: number
-    category?: string
-    note?: string
-    date?: string
-  }
+  params: LinkedRecordParams
 ): Promise<string> {
   const incomeForm = getFormByType('income')
 
@@ -72,6 +71,7 @@ export async function createLinkedIncomeRecord(
     date,
     title: params.title,
     category: resolveCategory(params.category),
+    [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
     amount: params.amount,
     note: params.note ?? ''
   })

@@ -11,6 +11,7 @@ export interface InstallmentPlan {
   id: string
   createdAt: string
   title: string
+  subCategory?: string
   amount: number
   count: number
   dueDay: number
@@ -24,6 +25,7 @@ export interface Dang {
   createdAt: string
   title: string
   category: string
+  subCategory?: string
   counterparty: string
   amount: number
   date: string
@@ -37,6 +39,7 @@ export interface Check {
   id: string
   createdAt: string
   checkNumber: string
+  subCategory?: string
   counterparty: string
   amount: number
   creationDate: string
@@ -60,6 +63,7 @@ export interface Receivable {
   title: string
   debtor: string
   category: string
+  subCategory?: string
   amount: number
   borrowDate: string
   note: string

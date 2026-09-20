@@ -27,6 +27,9 @@ export function invalidateInstallmentsCache(spreadsheetId?: string): void {
 
 export const INSTALLMENTS_SHEET = 'اقساط'
 
+/** Expense category of the record a paid installment creates. */
+export const INSTALLMENT_EXPENSE_CATEGORY = 'قسط'
+
 export const INSTALLMENTS_HEADERS = [
   'شناسه',
   'زمان ثبت',
@@ -36,7 +39,8 @@ export const INSTALLMENTS_HEADERS = [
   'موعد در ماه',
   'تاریخ شروع',
   'توضیحات',
-  'وضعیت پرداخت'
+  'وضعیت پرداخت',
+  'زیردسته'
 ]
 
 export function getInstallmentPaymentAmount(

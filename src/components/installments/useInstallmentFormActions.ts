@@ -82,6 +82,7 @@ export function useInstallmentFormActions({
       if (editingPlan) {
         const reconciled = reconcilePaymentsOnEdit(editingPlan, {
           title: form.title.trim(),
+          subCategory: form.subCategory.trim(),
           amount: Number(form.amount),
           count: Number(form.count),
           dueDay,
@@ -109,6 +110,7 @@ export function useInstallmentFormActions({
       } else {
         await createInstallmentPlan(settings.spreadsheetId, {
           title: form.title.trim(),
+          subCategory: form.subCategory.trim(),
           amount: Number(form.amount),
           count: Number(form.count),
           dueDay,

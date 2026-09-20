@@ -5,6 +5,7 @@ export type CheckWithRow = Check & { rowNumber: number }
 export type CheckFormState = {
   checkNumber: string
   counterparty: string
+  subCategory: string
   amount: number | ''
   creationDate: string
   dueDate: string

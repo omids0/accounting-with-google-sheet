@@ -40,6 +40,7 @@ export async function createReceivable(
     title: string
     debtor: string
     category: string
+    subCategory?: string
     amount: number
     borrowDate: string
     note: string
@@ -51,6 +52,7 @@ export async function createReceivable(
     title: data.title,
     debtor: data.debtor,
     category: data.category,
+    subCategory: data.subCategory ?? '',
     amount: data.amount,
     borrowDate: data.borrowDate,
     note: data.note,
@@ -73,6 +75,7 @@ export async function addReceivablePayment(
     title: payment.title ?? `طلب: ${getReceivableDisplayTitle(receivable)}`,
     amount: payment.amount,
     category: payment.category ?? receivable.category,
+    subCategory: receivable.subCategory,
     date: paidAt,
     note: payment.note ?? receivable.note
   })

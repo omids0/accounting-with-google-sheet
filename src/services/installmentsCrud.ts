@@ -1,6 +1,7 @@
 import type { InstallmentPlan } from '../types'
 import {
   INSTALLMENTS_CACHE_TTL_MS,
+  INSTALLMENT_EXPENSE_CATEGORY,
   INSTALLMENTS_HEADERS,
   INSTALLMENTS_SHEET,
   getInstallmentPaymentAmount,
@@ -38,6 +39,7 @@ function rowToPlan(row: string[], rowNumber: number): InstallmentPlan & { rowNum
     dueDay,
     startDate,
     note: row[7] ?? '',
+    subCategory: row[9] ?? '',
     payments: parsePayments(planId, row[8] ?? '', count, dueDay, startDate, Number(row[3]) || 0)
   }
 }
@@ -52,7 +54,8 @@ export function planToRow(plan: InstallmentPlan): string[] {
     String(plan.dueDay),
     plan.startDate,
     plan.note,
-    JSON.stringify(plan.payments)
+    JSON.stringify(plan.payments),
+    plan.subCategory ?? ''
   ]
 }
 
@@ -94,6 +97,7 @@ export async function createInstallmentPlan(
   spreadsheetId: string,
   data: {
     title: string
+    subCategory?: string
     amount: number
     count: number
     dueDay: number
@@ -106,6 +110,7 @@ export async function createInstallmentPlan(
     id: crypto.randomUUID(),
     createdAt: new Date().toLocaleString('fa-IR'),
     title: data.title,
+    subCategory: data.subCategory ?? '',
     amount: data.amount,
     count: data.count,
     dueDay: data.dueDay,
@@ -165,7 +170,8 @@ export async function toggleInstallmentPayment(
     const transactionRecordId = await createLinkedExpenseRecord(spreadsheetId, {
       title: `قسط: ${plan.title} (#${payment.n})`,
       amount,
-      category: 'قسط',
+      category: INSTALLMENT_EXPENSE_CATEGORY,
+      subCategory: plan.subCategory,
       note: plan.note
     })
 

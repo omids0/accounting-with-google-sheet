@@ -13,7 +13,13 @@ import {
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import type { CounterpartyWithRow } from '../counterparties/types'
-import { CategorySelect, CounterpartySelect, FormField, FormRow } from '../form'
+import {
+  CategorySelect,
+  CounterpartySelect,
+  FormField,
+  FormRow,
+  PaymentSubCategoryField
+} from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 
@@ -46,6 +52,7 @@ export default function DangFormModal({
         ? {
             title: editingItem.title,
             category: editingItem.category,
+            subCategory: editingItem.subCategory ?? '',
             counterparty: editingItem.counterparty,
             amount: editingItem.amount,
             date: editingItem.date,
@@ -54,6 +61,7 @@ export default function DangFormModal({
         : {
             title: '',
             category: categories[0] ?? '',
+            subCategory: '',
             counterparty: '',
             amount: '',
             date: getTodayIso(),
@@ -132,6 +140,20 @@ export default function DangFormModal({
               invalid={Boolean(fieldState.error)}
             />
           </FormField>
+        )}
+      />
+
+      <Controller
+        name="subCategory"
+        control={control}
+        render={({ field }) => (
+          <PaymentSubCategoryField
+            value={field.value}
+            onChange={field.onChange}
+            categoryType="expense"
+            category={category}
+            ariaLabel="زیردسته بدهی"
+          />
         )}
       />
 

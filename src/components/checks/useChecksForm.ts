@@ -44,6 +44,7 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
         const updated: Check = {
           ...editingItem,
           checkNumber: form.checkNumber.trim(),
+          subCategory: form.subCategory.trim(),
           counterparty: form.counterparty.trim(),
           amount: Number(form.amount),
           creationDate: form.creationDate,
@@ -55,6 +56,7 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
       } else {
         await createCheck(settings.spreadsheetId, {
           checkNumber: form.checkNumber.trim(),
+          subCategory: form.subCategory.trim(),
           counterparty: form.counterparty.trim(),
           amount: Number(form.amount),
           creationDate: form.creationDate,

@@ -3,6 +3,7 @@ import { Controller, useForm } from 'react-hook-form'
 
 import type { CheckFormState, CheckWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import { CHECK_EXPENSE_CATEGORY } from '../../services/checks'
 import {
   formFieldError,
   requiredDate,
@@ -13,7 +14,7 @@ import {
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import type { CounterpartyWithRow } from '../counterparties/types'
-import { CounterpartySelect, FormField, FormRow } from '../form'
+import { CounterpartySelect, FormField, FormRow, PaymentSubCategoryField } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 
@@ -42,6 +43,7 @@ export default function CheckFormModal({
         ? {
             checkNumber: editingItem.checkNumber,
             counterparty: editingItem.counterparty,
+            subCategory: editingItem.subCategory ?? '',
             amount: editingItem.amount,
             creationDate: editingItem.creationDate,
             dueDate: editingItem.dueDate
@@ -49,6 +51,7 @@ export default function CheckFormModal({
         : {
             checkNumber: '',
             counterparty: '',
+            subCategory: '',
             amount: '',
             creationDate: getTodayIso(),
             dueDate: getTodayIso()
@@ -131,6 +134,20 @@ export default function CheckFormModal({
               invalid={Boolean(fieldState.error)}
             />
           </FormField>
+        )}
+      />
+
+      <Controller
+        name="subCategory"
+        control={control}
+        render={({ field }) => (
+          <PaymentSubCategoryField
+            value={field.value}
+            onChange={field.onChange}
+            categoryType="expense"
+            category={CHECK_EXPENSE_CATEGORY}
+            ariaLabel="زیردسته چک"
+          />
         )}
       />
 

@@ -11,7 +11,8 @@ export const RECEIVABLES_HEADERS = [
   'مبلغ',
   'تاریخ قرض',
   'توضیحات',
-  'پرداخت‌ها'
+  'پرداخت‌ها',
+  'زیردسته'
 ]
 
 export function parsePayments(raw: string): ReceivablePayment[] {
@@ -69,6 +70,7 @@ export function rowToReceivable(
       amount: Number(row[5]) || 0,
       borrowDate: row[6] ?? '',
       note: row[7] ?? '',
+      subCategory: row[9] ?? '',
       payments: parsePayments(row[8] ?? '')
     }
   }
@@ -97,7 +99,8 @@ export function receivableToRow(receivable: Receivable): string[] {
     String(receivable.amount),
     receivable.borrowDate,
     receivable.note,
-    JSON.stringify(receivable.payments)
+    JSON.stringify(receivable.payments),
+    receivable.subCategory ?? ''
   ]
 }
 

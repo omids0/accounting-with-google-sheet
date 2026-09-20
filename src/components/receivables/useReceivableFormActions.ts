@@ -81,6 +81,7 @@ export function useReceivableFormActions({
           title: form.title.trim(),
           debtor: form.debtor.trim(),
           category: form.category.trim(),
+          subCategory: form.subCategory.trim(),
           amount: nextAmount,
           borrowDate: form.borrowDate,
           note: form.note.trim()
@@ -93,6 +94,7 @@ export function useReceivableFormActions({
           title: form.title.trim(),
           debtor: form.debtor.trim(),
           category: form.category.trim(),
+          subCategory: form.subCategory.trim(),
           amount: Number(form.amount),
           borrowDate: form.borrowDate,
           note: form.note.trim()

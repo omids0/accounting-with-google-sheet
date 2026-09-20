@@ -1,4 +1,8 @@
 import { CATEGORIES_SHEET } from './categories'
+import { CHECKS_SHEET } from './checks'
+import { DANG_SHEET } from './dang'
+import { INSTALLMENTS_SHEET } from './installmentsConstants'
+import { RECEIVABLES_SHEET } from './receivablesRow'
 import { getSettings } from './settings'
 import { writeSheetHeaders } from './sheetsEnsure'
 import { normalizeHeaderLabel } from './sheetsHeaders'
@@ -7,7 +11,11 @@ import { getSheetAllRows, setSheetAllRows } from './spreadsheetStore'
 import { getItem, setItem } from './storage'
 import { SUBCATEGORY_FIELD_LABEL } from '../components/form/fieldUtils'
 
-const MIGRATION_STORAGE_KEY = 'accounting_subcategory_column_migration'
+// Bumped when the migration grew to cover the installment, check, dang and
+// receivable sheets, so it runs again on spreadsheets that already migrated.
+const MIGRATION_STORAGE_KEY = 'accounting_subcategory_column_migration_v2'
+
+const MODULE_SHEETS = [INSTALLMENTS_SHEET, CHECKS_SHEET, DANG_SHEET, RECEIVABLES_SHEET]
 
 type MigrationState = Record<string, true>
 
@@ -41,7 +49,10 @@ async function appendHeaderColumn(
   setSheetAllRows(spreadsheetId, sheetName, [nextHeader, ...allRows.slice(1)])
 }
 
-/** Adds the «زیردسته» column to income/expense sheets and to the categories sheet. */
+/**
+ * Adds the «زیردسته» column to the income/expense sheets, the categories sheet,
+ * and the module sheets whose payments create an income or expense record.
+ */
 export async function migrateSubCategoryColumn(spreadsheetId: string): Promise<void> {
   if (!spreadsheetId || isMigrated(spreadsheetId)) return
 
@@ -54,6 +65,10 @@ export async function migrateSubCategoryColumn(spreadsheetId: string): Promise<v
   }
 
   await appendHeaderColumn(spreadsheetId, CATEGORIES_SHEET, SUBCATEGORY_FIELD_LABEL)
+
+  for (const sheetName of MODULE_SHEETS) {
+    await appendHeaderColumn(spreadsheetId, sheetName, SUBCATEGORY_FIELD_LABEL)
+  }
 
   markMigrated(spreadsheetId)
 }
