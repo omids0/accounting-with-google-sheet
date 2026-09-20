@@ -162,25 +162,17 @@ export default function CategorySelect({
     closeSubcategories
   ])
 
+  // The search field is never focused programmatically: on mobile that leaves it
+  // focused without a keyboard, so the user taps it themselves.
   useEffect(() => {
-    if (!open) return
+    if (!open || !manageMode) return
 
-    const focusTimer = window.setTimeout(() => {
-      if (manageMode) {
-        addInputRef.current?.focus()
-
-        return
-      }
-
-      if (showSearch) {
-        searchInputRef.current?.focus()
-      }
-    }, 50)
+    const focusTimer = window.setTimeout(() => addInputRef.current?.focus(), 50)
 
     return () => {
       window.clearTimeout(focusTimer)
     }
-  }, [manageMode, open, showSearch])
+  }, [manageMode, open])
 
   const startEdit = (category: string) => {
     setEditingCategory(category)
