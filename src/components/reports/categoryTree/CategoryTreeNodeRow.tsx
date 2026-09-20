@@ -6,29 +6,26 @@ import AppIcon from '../../AppIcon'
 import MoneyDisplay from '../../MoneyDisplay'
 import {
   categoryTreeAmountClass,
-  categoryTreeBarRowClass,
   categoryTreeChevronClass,
   categoryTreeChildAmountClass,
-  categoryTreeChildBarRowClass,
   categoryTreeChildListClass,
   categoryTreeChildNameClass,
   categoryTreeChildRowClass,
   categoryTreeCountClass,
-  categoryTreeFillClass,
   categoryTreeHeadingRowClass,
   categoryTreeLeafDotClass,
   categoryTreeNameClass,
   categoryTreeNodeClass,
   categoryTreeRowClass,
   categoryTreeShareLabelClass,
-  categoryTreeTrackClass
+  categoryTreeValueGroupClass
 } from '../../ui/categoryTreeStyles'
 
 interface CategoryTreeNodeRowProps {
   node: CategoryTreeNode
   open: boolean
   expandable: boolean
-  /** Total of the node's own type, so every bar is read against the same base. */
+  /** Total of the node's own type, so every share is read against the same base. */
   typeTotal: number
   onToggle: (id: string) => void
 }
@@ -41,17 +38,6 @@ function sharePercent(part: number, whole: number): number {
 
 function formatShare(percent: number): string {
   return `${formatPersianNumber(percent, { useGrouping: false })}٪`
-}
-
-function ShareBar({ percent, subtle }: { percent: number; subtle?: boolean }) {
-  return (
-    <>
-      <span className={categoryTreeTrackClass} aria-hidden="true">
-        <span className={categoryTreeFillClass(subtle)} style={{ width: `${percent}%` }} />
-      </span>
-      <span className={categoryTreeShareLabelClass(subtle)}>{formatShare(percent)}</span>
-    </>
-  )
 }
 
 export default function CategoryTreeNodeRow({
@@ -80,12 +66,11 @@ export default function CategoryTreeNodeRow({
         </span>
       </span>
 
-      <span className={categoryTreeAmountClass}>
-        <MoneyDisplay amount={node.total} size="record" tone={node.type} />
-      </span>
-
-      <span className={categoryTreeBarRowClass}>
-        <ShareBar percent={share} />
+      <span className={categoryTreeValueGroupClass}>
+        <span className={categoryTreeShareLabelClass()}>{formatShare(share)}</span>
+        <span className={categoryTreeAmountClass}>
+          <MoneyDisplay amount={node.total} size="record" tone={node.type} />
+        </span>
       </span>
     </>
   )
@@ -127,11 +112,13 @@ export default function CategoryTreeNodeRow({
                     {formatPersianNumber(child.count, { useGrouping: false })}
                   </span>
                 </span>
-                <span className={categoryTreeChildAmountClass}>
-                  <MoneyDisplay amount={child.total} size="record" tone={node.type} />
-                </span>
-                <span className={categoryTreeChildBarRowClass}>
-                  <ShareBar percent={childShare} subtle />
+                <span className={categoryTreeValueGroupClass}>
+                  <span className={categoryTreeShareLabelClass(true)}>
+                    {formatShare(childShare)}
+                  </span>
+                  <span className={categoryTreeChildAmountClass}>
+                    <MoneyDisplay amount={child.total} size="record" tone={node.type} />
+                  </span>
                 </span>
               </div>
             )

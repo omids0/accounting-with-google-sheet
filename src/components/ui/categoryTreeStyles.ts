@@ -60,7 +60,7 @@ export const categoryTreeNodeClass = (open: boolean) =>
   )
 
 export const categoryTreeRowClass = cn(
-  'relative grid w-full grid-cols-[1.75rem_1fr_auto] items-center gap-x-2 gap-y-1 px-2 py-2 text-right',
+  'relative flex w-full items-center gap-2 px-2 py-2.5 text-right',
   'before:absolute before:inset-y-1.5 before:right-0 before:w-[3px] before:rounded-full',
   'before:bg-[var(--tree-tone)] before:opacity-0 before:transition-opacity before:content-[""]',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)]',
@@ -81,7 +81,7 @@ export const categoryTreeLeafDotClass = cn(
   'before:h-1.5 before:w-1.5 before:rounded-full before:bg-[var(--tree-tone)] before:opacity-45 before:content-[""]'
 )
 
-export const categoryTreeHeadingRowClass = 'flex min-w-0 items-center gap-1.5'
+export const categoryTreeHeadingRowClass = 'flex min-w-0 flex-1 items-center gap-1.5'
 
 export const categoryTreeNameClass = 'min-w-0 truncate text-[0.88rem] font-bold'
 
@@ -90,24 +90,14 @@ export const categoryTreeCountClass = cn(
   'bg-[color-mix(in_srgb,var(--color-border)_45%,transparent)]'
 )
 
-export const categoryTreeBarRowClass = 'col-span-2 col-start-2 flex items-center gap-2'
-
-export const categoryTreeTrackClass = cn(
-  'relative h-1.5 min-w-0 flex-1 overflow-hidden rounded-full',
-  'bg-[color-mix(in_srgb,var(--tree-tone)_13%,transparent)]'
-)
-
-export const categoryTreeFillClass = (subtle = false) =>
-  cn(
-    'absolute inset-y-0 start-0 rounded-full bg-[var(--tree-tone)]',
-    'transition-[width] duration-[var(--duration-slow)] ease-[var(--ease-out)] motion-reduce:transition-none',
-    subtle && 'opacity-45'
-  )
+export const categoryTreeValueGroupClass = 'flex shrink-0 items-center gap-2'
 
 export const categoryTreeShareLabelClass = (subtle = false) =>
   cn(
     'numeric w-[2.5rem] shrink-0 text-left font-semibold',
-    subtle ? 'text-[0.6rem] text-muted' : 'text-[0.64rem] text-[var(--tree-tone)]'
+    subtle
+      ? 'text-[0.6rem] text-muted'
+      : 'rounded-full bg-[color-mix(in_srgb,var(--tree-tone)_12%,transparent)] px-1.5 py-px text-center text-[0.62rem] text-[var(--tree-tone)]'
   )
 
 export const categoryTreeAmountClass = cn(
@@ -131,16 +121,14 @@ export const categoryTreeChildListClass = cn(
 )
 
 export const categoryTreeChildRowClass = cn(
-  'relative grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-1 rounded-[var(--radius-sm)] px-2 py-1.5',
-  'before:absolute before:right-[-0.75rem] before:top-[1.1rem] before:h-px before:w-[0.55rem] before:content-[""]',
+  'relative flex items-center gap-2 rounded-[var(--radius-sm)] px-2 py-1.5',
+  'before:absolute before:right-[-0.75rem] before:top-1/2 before:h-px before:w-[0.55rem] before:content-[""]',
   'before:bg-[color-mix(in_srgb,var(--tree-tone)_28%,transparent)]',
   'animate-[fadeInUp_0.3s_var(--ease-page)_both] motion-reduce:animate-none'
 )
 
 export const categoryTreeChildNameClass =
-  'flex min-w-0 items-center gap-1.5 text-[0.82rem] text-[var(--color-text)]'
-
-export const categoryTreeChildBarRowClass = 'col-span-2 flex items-center gap-2'
+  'flex min-w-0 flex-1 items-center gap-1.5 text-[0.82rem] text-[var(--color-text)]'
 
 export const categoryTreeEmptyClass =
   'flex flex-col items-center gap-2 py-10 text-center text-[0.85rem] text-muted'
