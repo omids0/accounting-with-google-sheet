@@ -208,7 +208,8 @@ export default function CategorySelectPanel({
               editText={editText}
               categoriesCount={categories.length}
               canDeleteLast={canDeleteLast}
-              locked={lockedCategories.includes(category) || isOtherCategory(category)}
+              locked={lockedCategories.includes(category)}
+              isOther={isOtherCategory(category)}
               canReorder={canReorder && !isOtherCategory(category)}
               dragging={draggingIndex === index}
               dragProps={getItemDragProps(index)}

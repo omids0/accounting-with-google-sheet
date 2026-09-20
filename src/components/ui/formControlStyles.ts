@@ -163,6 +163,9 @@ export const categorySelectDragHandleClass = cn(
   'disabled:cursor-not-allowed disabled:opacity-45'
 )
 
+/** Same footprint as the drag handle, for a row that can't be reordered, so every row stays aligned. */
+export const categorySelectDragHandleSpacerClass = 'inline-block h-touch-min w-8 shrink-0'
+
 export const categorySelectOptionBtnClass = cn(
   'flex min-h-touch-min min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-3 py-2 text-right font-[inherit] text-[0.92rem] text-text transition-[color,background-color] duration-[var(--duration-fast)]',
   'hover:enabled:bg-[rgba(15,118,110,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] disabled:cursor-default'
