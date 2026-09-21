@@ -17,6 +17,8 @@ type WalletAccountCardVisualProps = {
     | 'cardColorPrimary'
     | 'cardColorSecondary'
     | 'note'
+    | 'iban'
+    | 'accountNumber'
   >
   displayBalance?: number
   compact?: boolean

@@ -32,7 +32,9 @@ export const WALLET_HEADERS = [
   'نام دارنده',
   'رنگ کارت',
   'رنگ اصلی',
-  'رنگ ثانویه'
+  'رنگ ثانویه',
+  'شماره حساب',
+  'شماره شبا'
 ]
 
 function parseAccountKind(value: string): WalletAccount['accountKind'] {
@@ -55,7 +57,9 @@ function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNu
     cardHolder: row[8] ?? '',
     cardColor: row[9] ?? '',
     cardColorPrimary: row[10] ?? '',
-    cardColorSecondary: row[11] ?? ''
+    cardColorSecondary: row[11] ?? '',
+    accountNumber: row[12] ?? '',
+    iban: row[13] ?? ''
   }
 }
 
@@ -72,7 +76,9 @@ function accountToRow(account: WalletAccount): string[] {
     account.cardHolder,
     account.cardColor,
     account.cardColorPrimary,
-    account.cardColorSecondary
+    account.cardColorSecondary,
+    account.accountNumber,
+    account.iban
   ]
 }
 
@@ -103,6 +109,8 @@ export type WalletAccountInput = {
   cardColor: string
   cardColorPrimary: string
   cardColorSecondary: string
+  accountNumber: string
+  iban: string
 }
 
 export async function createWalletAccount(
@@ -121,7 +129,9 @@ export async function createWalletAccount(
     cardHolder: data.cardHolder,
     cardColor: data.cardColor,
     cardColorPrimary: data.cardColorPrimary,
-    cardColorSecondary: data.cardColorSecondary
+    cardColorSecondary: data.cardColorSecondary,
+    accountNumber: data.accountNumber,
+    iban: data.iban
   }
 
   await appendSheetRow(spreadsheetId, WALLET_SHEET, accountToRow(account))
@@ -254,7 +264,9 @@ export async function importWalletAccountsCsv(spreadsheetId: string, csvContent:
       cardHolder: cells[8] ?? '',
       cardColor: cells[9] ?? '',
       cardColorPrimary: cells[10] ?? '',
-      cardColorSecondary: cells[11] ?? ''
+      cardColorSecondary: cells[11] ?? '',
+      accountNumber: cells[12] ?? '',
+      iban: cells[13] ?? ''
     })
   })
 }

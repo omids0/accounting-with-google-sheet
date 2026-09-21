@@ -51,9 +51,21 @@ export default function WalletAccountCard({
       )}
     >
       <div className={walletAccountCardVisualHostClass}>
-        <button type="button" className={walletAccountCardBodyClass} onClick={onToggleExpand}>
+        <div
+          role="button"
+          tabIndex={0}
+          className={walletAccountCardBodyClass}
+          onClick={onToggleExpand}
+          onKeyDown={event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              onToggleExpand()
+            }
+          }}
+          aria-label={expanded ? 'بستن جزئیات حساب' : 'نمایش جزئیات حساب'}
+        >
           <WalletAccountCardVisual account={account} displayBalance={displayBalance} />
-        </button>
+        </div>
 
         <div
           className={cn(

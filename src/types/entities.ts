@@ -108,4 +108,6 @@ export interface WalletAccount {
   cardColor: string
   cardColorPrimary: string
   cardColorSecondary: string
+  iban: string
+  accountNumber: string
 }

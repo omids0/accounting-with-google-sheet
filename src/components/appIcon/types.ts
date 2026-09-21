@@ -40,6 +40,7 @@ export type AppIconName =
   | 'info'
   | 'sun'
   | 'moon'
+  | 'copy'
 
 export interface AppIconProps {
   name: AppIconName

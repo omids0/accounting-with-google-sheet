@@ -6,10 +6,10 @@ const walletCardShadowClass =
   'shadow-[0_2px_8px_rgba(15,23,42,0.1),0_1px_2px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.06]'
 
 export const walletBankCardClass = cn(
-  'wallet-bank-card relative flex h-[6.35rem] w-full flex-col overflow-hidden rounded-[12px] p-[0.65rem_0.75rem]',
+  'wallet-bank-card relative flex min-h-[6.35rem] w-full flex-col overflow-hidden rounded-[12px] p-[0.65rem_0.75rem]',
   walletCardControllerGutterClass,
   walletCardShadowClass,
-  'text-right sm:h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[3.35rem]',
+  'text-right sm:min-h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[3.35rem]',
   'transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]'
 )
 
@@ -60,6 +60,20 @@ export const walletBankCardContactlessClass = cn(
 )
 
 export const walletCardPreviewClass = 'mx-auto max-w-[18rem]'
+
+export const walletBankCardCopyBtnClass = cn(
+  'copy-btn relative z-[1] inline-flex h-[1rem] w-[1rem] shrink-0 cursor-pointer items-center justify-center',
+  'rounded-[3px] border-none bg-transparent p-0 text-inherit opacity-70',
+  'transition-opacity duration-[var(--duration-fast)] hover:opacity-100',
+  'focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,255,255,0.55)]',
+  '[&_svg]:h-[0.7rem] [&_svg]:w-[0.7rem]'
+)
+
+export const walletBankCardExtraInfoClass =
+  'relative z-[1] flex flex-wrap items-center gap-x-[0.6rem] gap-y-[0.15rem] pb-[0.1rem]'
+
+export const walletBankCardExtraInfoItemClass =
+  'inline-flex min-w-0 items-center gap-[0.25rem] text-[0.56rem] font-medium opacity-85 sm:text-[0.6rem]'
 
 export const walletCardsListClass = cn(
   'flex flex-col gap-2',
