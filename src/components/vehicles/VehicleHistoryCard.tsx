@@ -22,7 +22,8 @@ type VehicleHistoryCardProps = {
 const KIND_LABELS: Record<VehicleHistoryEntry['recordKind'], string> = {
   periodic: 'سرویس دوره‌ای',
   deadline: 'موعد',
-  mechanic: 'مکانیک'
+  mechanic: 'مکانیک',
+  mileage: 'ثبت کارکرد'
 }
 
 export default function VehicleHistoryCard({ item, onDelete }: VehicleHistoryCardProps) {

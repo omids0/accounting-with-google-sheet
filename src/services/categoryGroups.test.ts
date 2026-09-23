@@ -12,7 +12,9 @@ function emptyGroups() {
     vehiclePeriodic: [],
     vehicleDeadline: [],
     vehicleMechanic: [],
-    vehicleExpense: []
+    vehicleExpense: [],
+    walletBank: [],
+    walletAccountKind: []
   }
 }
 

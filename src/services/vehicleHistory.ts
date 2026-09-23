@@ -17,7 +17,7 @@ export const VEHICLE_HISTORY_HEADERS = [
   'expense_id'
 ]
 
-const VALID_KINDS = new Set<VehicleRecordKind>(['periodic', 'deadline', 'mechanic'])
+const VALID_KINDS = new Set<VehicleRecordKind>(['periodic', 'deadline', 'mechanic', 'mileage'])
 
 function parseKind(value: string): VehicleRecordKind {
   const normalized = String(value ?? '').trim() as VehicleRecordKind

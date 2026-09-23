@@ -77,6 +77,7 @@ export async function submitPeriodicForm(params: {
       ? await createVehicleExpense(spreadsheetId, {
           title: `${values.serviceType} — ${vehicle.title}`,
           amount,
+          subCategory: values.serviceType.trim(),
           date: values.date,
           note: [values.brand, values.location, values.notes].filter(Boolean).join(' · ')
         })
@@ -228,8 +229,23 @@ export async function submitMileageForm(params: {
   values: VehicleMileageFormState
 }): Promise<void> {
   const { spreadsheetId, vehicle, values } = params
+  const mileage = parseNumeric(values.mileage)
 
-  await syncVehicleMileage(spreadsheetId, vehicle, parseNumeric(values.mileage))
+  await syncVehicleMileage(spreadsheetId, vehicle, mileage)
+
+  const time = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })
+
+  await createVehicleHistoryEntry(spreadsheetId, {
+    vehicleId: vehicle.id,
+    recordKind: 'mileage',
+    referenceId: '',
+    date: getTodayIso(),
+    mileage,
+    nextKm: 0,
+    details: `ساعت ${time}`,
+    amount: 0,
+    expenseRecordId: ''
+  })
 }
 
 export async function deleteVehicleDetailItem(params: {

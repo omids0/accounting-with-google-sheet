@@ -1,4 +1,4 @@
-import type { WalletAccount, WalletAccountKind } from '../../types'
+import type { WalletAccount } from '../../types'
 
 export type WalletAccountWithRow = WalletAccount & { rowNumber: number }
 
@@ -9,7 +9,7 @@ export type WalletFormState = {
   title: string
   balance: number | ''
   note: string
-  accountKind: WalletAccountKind
+  accountKind: string
   bankId: string
   cardNumber: string
   cardHolder: string

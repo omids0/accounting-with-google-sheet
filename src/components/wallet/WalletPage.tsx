@@ -9,6 +9,10 @@ import {
   exportWalletAccountsPdf,
   importWalletAccountsCsv
 } from '../../services/wallet'
+import {
+  getWalletAccountKindCategories,
+  getWalletBankCategories
+} from '../../services/walletCategories'
 import { useNavigationStore } from '../../stores/navigationStore'
 import { distributionSparkline, flowTrendSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
@@ -38,6 +42,11 @@ export default function WalletPage({ active = true }: WalletPageProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const [openingExpanded, setOpeningExpanded] = useState(false)
+
+  const [bankCategories, setBankCategories] = useState<string[]>(() => getWalletBankCategories())
+  const [accountKindCategories, setAccountKindCategories] = useState<string[]>(() =>
+    getWalletAccountKindCategories()
+  )
 
   const data = useWalletData()
 
@@ -204,6 +213,10 @@ export default function WalletPage({ active = true }: WalletPageProps) {
         open={mutations.showForm}
         editingAccount={mutations.editingAccount}
         saving={mutations.saving}
+        bankCategories={bankCategories}
+        onBankCategoriesChange={setBankCategories}
+        accountKindCategories={accountKindCategories}
+        onAccountKindCategoriesChange={setAccountKindCategories}
         onClose={mutations.closeForm}
         onSubmit={mutations.handleSubmit}
       />

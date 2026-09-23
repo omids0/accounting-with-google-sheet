@@ -24,7 +24,8 @@ const CATEGORY_LIST_KEYS = [
   'vehiclePeriodicCategories',
   'vehicleDeadlineCategories',
   'vehicleMechanicCategories',
-  'vehicleExpenseCategories'
+  'vehicleExpenseCategories',
+  'walletAccountKindCategories'
 ] as const
 
 /** Every stored category list keeps «سایر» as its last option. */

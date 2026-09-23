@@ -135,7 +135,9 @@ export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<Ca
     !fromSheet.vehiclePeriodic.length ||
     !fromSheet.vehicleDeadline.length ||
     !fromSheet.vehicleMechanic.length ||
-    !fromSheet.vehicleExpense.length
+    !fromSheet.vehicleExpense.length ||
+    !fromSheet.walletBank.length ||
+    !fromSheet.walletAccountKind.length
 
   if (needsSeed) {
     await writeCategoriesToSheet(spreadsheetId, groups, subcategories)

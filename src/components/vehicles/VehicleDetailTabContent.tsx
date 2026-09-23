@@ -16,7 +16,7 @@ import { DangCardListSkeleton } from '../skeleton'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 type VehicleDetailTabContentProps = {
-  detailTab: 'active' | 'deadlines' | 'history' | 'transactions' | 'fuel'
+  detailTab: 'active' | 'deadlines' | 'history' | 'mileage' | 'transactions' | 'fuel'
   loading: boolean
   activeItems: VehicleActiveListItem[]
   history: HistoryWithRow[]
@@ -55,7 +55,7 @@ export default function VehicleDetailTabContent({
   onDeleteTransaction
 }: VehicleDetailTabContentProps) {
   const isActiveTab = detailTab === 'active' || detailTab === 'deadlines'
-  const isHistoryTab = detailTab === 'history'
+  const isHistoryTab = detailTab === 'history' || detailTab === 'mileage'
 
   if (detailTab === 'transactions') {
     if (allTransactionsCount === 0) {
@@ -95,6 +95,8 @@ export default function VehicleDetailTabContent({
             ? 'موعدی ثبت نشده'
             : isActiveTab
             ? 'مورد فعالی ثبت نشده'
+            : detailTab === 'mileage'
+            ? 'کارکردی ثبت نشده'
             : 'تاریخچه‌ای ثبت نشده'}
         </p>
       </div>

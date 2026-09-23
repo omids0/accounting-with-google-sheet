@@ -11,6 +11,7 @@ import {
 } from './vehicleExpenseRecords'
 import { ensureVehicleExpenseCategory } from './vehicleExpenses'
 import { fetchVehicles, updateVehicleMileage } from './vehicleProfiles'
+import { SUBCATEGORY_FIELD_ID } from '../components/form/fieldUtils'
 import { VEHICLE_OTHER_OPTION } from '../components/vehicles/constants'
 import type { VehicleExpenseMeta } from '../types/vehicles'
 import {
@@ -128,6 +129,7 @@ export async function createManualVehicleExpense(
     title,
     amount,
     category: 'خودرو',
+    subCategory: expenseType,
     note: input.note ?? '',
     date: input.date
   })
@@ -173,6 +175,7 @@ export async function upsertManualVehicleExpenseMeta(
     date: input.date,
     title,
     category: 'خودرو',
+    [SUBCATEGORY_FIELD_ID]: expenseType,
     amount,
     note: input.note ?? record.values.note ?? ''
   })

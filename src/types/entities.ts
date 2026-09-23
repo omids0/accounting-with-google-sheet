@@ -101,7 +101,8 @@ export interface WalletAccount {
   title: string
   balance: number
   note: string
-  accountKind: WalletAccountKind | ''
+  /** The wallet-account-kind category label (or a legacy 'bank'/'cash'/'other' code). */
+  accountKind: string
   bankId: string
   cardNumber: string
   cardHolder: string

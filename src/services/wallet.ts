@@ -37,12 +37,6 @@ export const WALLET_HEADERS = [
   'شماره شبا'
 ]
 
-function parseAccountKind(value: string): WalletAccount['accountKind'] {
-  if (value === 'bank' || value === 'cash' || value === 'other') return value
-
-  return ''
-}
-
 function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNumber: number } {
   return {
     rowNumber,
@@ -51,7 +45,7 @@ function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNu
     title: row[2] ?? '',
     balance: Number(row[3]) || 0,
     note: row[4] ?? '',
-    accountKind: parseAccountKind(row[5] ?? ''),
+    accountKind: row[5] ?? '',
     bankId: row[6] ?? '',
     cardNumber: row[7] ?? '',
     cardHolder: row[8] ?? '',
@@ -258,7 +252,7 @@ export async function importWalletAccountsCsv(spreadsheetId: string, csvContent:
       title,
       balance: Number(cells[3]) || 0,
       note: cells[4] ?? '',
-      accountKind: parseAccountKind(cells[5] ?? ''),
+      accountKind: cells[5] ?? '',
       bankId: cells[6] ?? '',
       cardNumber: cells[7] ?? '',
       cardHolder: cells[8] ?? '',

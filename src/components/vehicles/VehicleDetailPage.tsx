@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
 
 import { isConfigured } from '../../services/settings'
+import { buildMonthlyFuelStats, filterFuelTransactions } from '../../services/vehicleTransactions'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import FilterModal from '../FilterModal'
@@ -36,39 +37,64 @@ export default function VehicleDetailPage({
     () => page.activeItems.filter(item => item.kind === 'deadline'),
     [page.activeItems]
   )
+  const mileageLogItems = useMemo(
+    () => page.history.filter(item => item.recordKind === 'mileage'),
+    [page.history]
+  )
+  const historyOnlyItems = useMemo(
+    () => page.history.filter(item => item.recordKind !== 'mileage'),
+    [page.history]
+  )
   const tabFilters = useVehicleDetailFilters({
     detailTab: page.detailTab,
     activeItems: page.detailTab === 'deadlines' ? deadlineItems : page.activeItems,
-    historyItems: page.history,
+    historyItems: page.detailTab === 'mileage' ? mileageLogItems : historyOnlyItems,
     serviceTypeSeed: page.serviceTypes
   })
   const transactionFilters = useVehicleTransactionFilters(page.transactions, page.detailTab)
+  const filteredFuelStats = useMemo(
+    () => buildMonthlyFuelStats(filterFuelTransactions(transactionFilters.filteredItems)),
+    [transactionFilters.filteredItems]
+  )
 
   const detailTabOptions = useMemo(
     () => [
       { id: 'active', label: `موارد فعال (${page.activeItems.length.toLocaleString('fa-IR')})` },
       { id: 'deadlines', label: `موعدها (${deadlineItems.length.toLocaleString('fa-IR')})` },
-      { id: 'history', label: `تاریخچه (${page.history.length.toLocaleString('fa-IR')})` },
+      { id: 'history', label: `تاریخچه (${historyOnlyItems.length.toLocaleString('fa-IR')})` },
+      {
+        id: 'mileage',
+        label: `تاریخچه کارکرد (${mileageLogItems.length.toLocaleString('fa-IR')})`
+      },
       {
         id: 'transactions',
         label: `تراکنش‌ها (${page.transactions.length.toLocaleString('fa-IR')})`
       },
       { id: 'fuel', label: 'مصرف بنزین' }
     ],
-    [deadlineItems.length, page.activeItems.length, page.history.length, page.transactions.length]
+    [
+      deadlineItems.length,
+      historyOnlyItems.length,
+      mileageLogItems.length,
+      page.activeItems.length,
+      page.transactions.length
+    ]
   )
 
   const isTransactionsTab = page.detailTab === 'transactions'
-  const filters = isTransactionsTab ? transactionFilters : tabFilters
+  const isFuelTab = page.detailTab === 'fuel'
+  const filters = isTransactionsTab || isFuelTab ? transactionFilters : tabFilters
   const isActiveTab = page.detailTab === 'active' || page.detailTab === 'deadlines'
-  const isHistoryTab = page.detailTab === 'history'
+  const isHistoryTab = page.detailTab === 'history' || page.detailTab === 'mileage'
 
   const sourceItems = isActiveTab
     ? page.detailTab === 'deadlines'
       ? deadlineItems
       : page.activeItems
     : isHistoryTab
-    ? page.history
+    ? page.detailTab === 'mileage'
+      ? mileageLogItems
+      : historyOnlyItems
     : []
   const listItems = isActiveTab || isHistoryTab ? tabFilters.filteredItems : []
   const filteredTransactions = isTransactionsTab
@@ -83,11 +109,19 @@ export default function VehicleDetailPage({
         page.detailTab === 'active' || page.detailTab === 'deadlines'
           ? (listItems as VehicleActiveListItem[])
           : [],
-      historyItems: page.detailTab === 'history' ? (listItems as HistoryWithRow[]) : [],
+      historyItems: isHistoryTab ? (listItems as HistoryWithRow[]) : [],
       transactions: page.detailTab === 'transactions' ? filteredTransactions : [],
-      fuelStats: page.detailTab === 'fuel' ? page.fuelStats : []
+      fuelStats: isFuelTab ? filteredFuelStats : []
     }),
-    [filteredTransactions, listItems, page.currentVehicle.title, page.detailTab, page.fuelStats]
+    [
+      filteredFuelStats,
+      filteredTransactions,
+      isFuelTab,
+      isHistoryTab,
+      listItems,
+      page.currentVehicle.title,
+      page.detailTab
+    ]
   )
 
   const exportConfirmModal = useVehicleDetailSpeedDial({
@@ -126,6 +160,8 @@ export default function VehicleDetailPage({
           filterMode={
             isTransactionsTab
               ? 'transactions'
+              : isFuelTab
+              ? 'fuel'
               : page.detailTab === 'deadlines'
               ? 'deadlines'
               : isActiveTab
@@ -158,7 +194,9 @@ export default function VehicleDetailPage({
           options={detailTabOptions}
           value={page.detailTab}
           onChange={id =>
-            page.setDetailTab(id as 'active' | 'deadlines' | 'history' | 'transactions' | 'fuel')
+            page.setDetailTab(
+              id as 'active' | 'deadlines' | 'history' | 'mileage' | 'transactions' | 'fuel'
+            )
           }
           ariaLabel="بخش جزئیات خودرو"
           className="mb-0"
@@ -172,7 +210,7 @@ export default function VehicleDetailPage({
         history={page.history}
         transactions={filteredTransactions}
         allTransactionsCount={page.transactions.length}
-        fuelStats={page.fuelStats}
+        fuelStats={filteredFuelStats}
         filterChipsCount={filters.filterChips.length}
         sourceItems={sourceItems}
         listItems={listItems}

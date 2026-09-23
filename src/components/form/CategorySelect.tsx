@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 import { cn } from '../../utils/cn'
 import { categorySelectRootClass } from '../ui/formControlStyles'
@@ -161,18 +161,6 @@ export default function CategorySelect({
     saving,
     closeSubcategories
   ])
-
-  // The search field is never focused programmatically: on mobile that leaves it
-  // focused without a keyboard, so the user taps it themselves.
-  useEffect(() => {
-    if (!open || !manageMode) return
-
-    const focusTimer = window.setTimeout(() => addInputRef.current?.focus(), 50)
-
-    return () => {
-      window.clearTimeout(focusTimer)
-    }
-  }, [manageMode, open])
 
   const startEdit = (category: string) => {
     setEditingCategory(category)

@@ -66,6 +66,7 @@ export async function completePeriodicService(params: {
       ? await createVehicleExpense(spreadsheetId, {
           title: `${serviceType} — ${vehicle.title}`,
           amount,
+          subCategory: serviceType,
           date,
           note: [brand, location, notes].filter(Boolean).join(' · ')
         })
@@ -180,6 +181,7 @@ export async function saveMechanicVisit(params: {
       ? await createVehicleExpense(spreadsheetId, {
           title: `مکانیک — ${vehicle.title}`,
           amount: totalAmount,
+          subCategory: 'مکانیک',
           date,
           note: [summary, location, notes].filter(Boolean).join(' · ')
         })

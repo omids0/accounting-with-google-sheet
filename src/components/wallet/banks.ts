@@ -5,16 +5,9 @@ import {
   getHiBankBaseTheme,
   resolveBankCardTheme
 } from './bankColorPalettes'
-import type { WalletAccountKind } from '../../types'
 
 export type { BankCardTheme } from './bankCardTypes'
 export { BLU_BANK_ID, HIBANK_BANK_ID, isBluBank } from './bankColorPalettes'
-
-export const WALLET_ACCOUNT_KIND_OPTIONS: { value: WalletAccountKind; label: string }[] = [
-  { value: 'bank', label: 'حساب بانکی' },
-  { value: 'cash', label: 'نقدی' },
-  { value: 'other', label: 'سایر' }
-]
 
 export const IRANIAN_BANKS: BankCardTheme[] = [
   { ...getBluBankBaseTheme() },
@@ -236,8 +229,12 @@ export const GENERIC_CARD_THEME: BankCardTheme = {
   initials: 'حساب'
 }
 
+/**
+ * Matches by internal id (legacy stored accounts) or by label (the bank picker's
+ * category value), so both old and newly-saved accounts resolve to their theme.
+ */
 export function getBankDefinition(bankId: string): BankCardTheme | undefined {
-  return IRANIAN_BANKS.find(bank => bank.id === bankId)
+  return IRANIAN_BANKS.find(bank => bank.id === bankId || bank.label === bankId)
 }
 
 export function getBankById(bankId: string, cardColor = ''): BankCardTheme | undefined {
@@ -245,9 +242,15 @@ export function getBankById(bankId: string, cardColor = ''): BankCardTheme | und
 
   if (!base) return undefined
 
-  return resolveBankCardTheme(bankId, cardColor, base)
+  return resolveBankCardTheme(base.id, cardColor, base)
 }
 
-export function getBankSelectOptions() {
-  return IRANIAN_BANKS.map(bank => ({ value: bank.id, label: bank.label }))
+/** The short internal id used by the color-palette lookups, from either an id or a label. */
+export function resolveBankInternalId(bankId: string): string {
+  return getBankDefinition(bankId)?.id ?? bankId
+}
+
+/** The display label used by the bank picker, from either an id or a label. */
+export function resolveBankLabel(bankId: string): string {
+  return getBankDefinition(bankId)?.label ?? bankId
 }
