@@ -1,5 +1,5 @@
 import { hasBankColorPalette, parseBankCardColor } from './bankCardColorVariants'
-import { CASH_CARD_THEME, GENERIC_CARD_THEME, getBankById } from './banks'
+import { CASH_CARD_THEME, GENERIC_CARD_THEME, getBankById, resolveBankInternalId } from './banks'
 import {
   CUSTOM_CARD_COLOR_ID,
   DEFAULT_CUSTOM_CARD_PRIMARY,
@@ -9,12 +9,18 @@ import {
   normalizeHexColor
 } from './customCardTheme'
 import type { WalletAccountWithRow, WalletFormState } from './types'
+import { resolveAccountKind } from './walletCardUtils'
+import {
+  resolveWalletAccountKindLabel,
+  WALLET_ACCOUNT_KIND_BANK
+} from '../../services/walletCategories'
+import type { WalletAccountKind } from '../../types'
 
 export const EMPTY_WALLET_FORM: WalletFormState = {
   title: '',
   balance: '',
   note: '',
-  accountKind: 'bank',
+  accountKind: WALLET_ACCOUNT_KIND_BANK,
   bankId: '',
   cardNumber: '',
   cardHolder: '',
@@ -26,7 +32,7 @@ export const EMPTY_WALLET_FORM: WalletFormState = {
 }
 
 function resolveInitialCustomColors(account: WalletAccountWithRow) {
-  const kind = account.accountKind || 'other'
+  const kind = resolveAccountKind(account)
   let base = GENERIC_CARD_THEME
 
   if (kind === 'bank' && account.bankId) {
@@ -49,20 +55,21 @@ export function buildWalletFormInitialValues(
   if (!editingAccount) return EMPTY_WALLET_FORM
 
   const customColors = resolveInitialCustomColors(editingAccount)
+  const internalBankId = resolveBankInternalId(editingAccount.bankId)
 
   return {
     title: editingAccount.title,
     balance: editingAccount.balance,
     note: editingAccount.note,
-    accountKind: editingAccount.accountKind || 'other',
-    bankId: editingAccount.bankId,
+    accountKind: resolveWalletAccountKindLabel(editingAccount.accountKind),
+    bankId: getBankById(editingAccount.bankId)?.label ?? editingAccount.bankId,
     cardNumber: editingAccount.cardNumber,
     cardHolder: editingAccount.cardHolder,
     iban: editingAccount.iban,
     accountNumber: editingAccount.accountNumber,
     cardColor: isCustomCardColor(editingAccount.cardColor)
       ? CUSTOM_CARD_COLOR_ID
-      : parseBankCardColor(editingAccount.bankId, editingAccount.cardColor),
+      : parseBankCardColor(internalBankId, editingAccount.cardColor),
     cardColorPrimary: customColors.primary,
     cardColorSecondary: customColors.secondary
   }
@@ -71,8 +78,10 @@ export function buildWalletFormInitialValues(
 export function buildWalletPreviewAccount(
   watched: Partial<WalletFormState>,
   bankId: string,
-  accountKind: WalletFormState['accountKind']
+  accountKind: WalletAccountKind
 ) {
+  const internalBankId = resolveBankInternalId(bankId)
+
   return {
     title: watched.title ?? '',
     balance: watched.balance === '' ? 0 : Number(watched.balance),
@@ -85,8 +94,8 @@ export function buildWalletPreviewAccount(
     accountNumber: watched.accountNumber ?? '',
     cardColor: isCustomCardColor(watched.cardColor ?? '')
       ? CUSTOM_CARD_COLOR_ID
-      : accountKind === 'bank' && hasBankColorPalette(bankId)
-      ? parseBankCardColor(bankId, watched.cardColor ?? '')
+      : accountKind === 'bank' && hasBankColorPalette(internalBankId)
+      ? parseBankCardColor(internalBankId, watched.cardColor ?? '')
       : watched.cardColor ?? '',
     cardColorPrimary: watched.cardColorPrimary ?? DEFAULT_CUSTOM_CARD_PRIMARY,
     cardColorSecondary: watched.cardColorSecondary ?? DEFAULT_CUSTOM_CARD_SECONDARY

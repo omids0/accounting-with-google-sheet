@@ -5,16 +5,17 @@ import {
   isCustomCardColor,
   normalizeHexColor
 } from './customCardTheme'
+import { WALLET_ACCOUNT_KIND_BANK, WALLET_ACCOUNT_KIND_CASH } from '../../services/walletCategories'
 import type { WalletAccount, WalletAccountKind } from '../../types'
 import { normalizeDigits } from '../../utils/normalizeDigits'
 
+/** Recognizes both the current label-based storage and legacy 'bank'/'cash'/'other' codes. */
 export function resolveAccountKind(account: Pick<WalletAccount, 'accountKind'>): WalletAccountKind {
-  if (
-    account.accountKind === 'bank' ||
-    account.accountKind === 'cash' ||
-    account.accountKind === 'other'
-  ) {
-    return account.accountKind
+  if (account.accountKind === 'bank' || account.accountKind === WALLET_ACCOUNT_KIND_BANK) {
+    return 'bank'
+  }
+  if (account.accountKind === 'cash' || account.accountKind === WALLET_ACCOUNT_KIND_CASH) {
+    return 'cash'
   }
 
   return 'other'

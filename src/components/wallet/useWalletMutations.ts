@@ -1,8 +1,10 @@
 import { useState } from 'react'
 
 import { getDefaultBankCardColor, hasBankColorPalette } from './bankCardColorVariants'
+import { resolveBankInternalId } from './banks'
 import { CUSTOM_CARD_COLOR_ID, isCustomCardColor, normalizeHexColor } from './customCardTheme'
 import type { WalletAccountWithRow, WalletFormState } from './types'
+import { resolveAccountKind } from './walletCardUtils'
 import {
   createLinkedExpenseRecord,
   createLinkedIncomeRecord
@@ -90,21 +92,23 @@ export function useWalletMutations({
     setSaving(true)
     try {
       const useCustomColor = isCustomCardColor(form.cardColor)
+      const isBankAccount = resolveAccountKind({ accountKind: form.accountKind }) === 'bank'
+      const internalBankId = resolveBankInternalId(form.bankId)
 
       const payload = {
         title: form.title.trim(),
         balance: Number(form.balance),
         note: form.note.trim(),
         accountKind: form.accountKind,
-        bankId: form.accountKind === 'bank' ? form.bankId : '',
-        cardNumber: form.accountKind === 'bank' ? form.cardNumber : '',
-        cardHolder: form.accountKind === 'bank' ? form.cardHolder.trim() : '',
-        accountNumber: form.accountKind === 'bank' ? form.accountNumber.trim() : '',
-        iban: form.accountKind === 'bank' ? form.iban.trim() : '',
+        bankId: isBankAccount ? form.bankId : '',
+        cardNumber: isBankAccount ? form.cardNumber : '',
+        cardHolder: isBankAccount ? form.cardHolder.trim() : '',
+        accountNumber: isBankAccount ? form.accountNumber.trim() : '',
+        iban: isBankAccount ? form.iban.trim() : '',
         cardColor: useCustomColor
           ? CUSTOM_CARD_COLOR_ID
-          : form.accountKind === 'bank' && hasBankColorPalette(form.bankId)
-          ? form.cardColor || getDefaultBankCardColor(form.bankId)
+          : isBankAccount && hasBankColorPalette(internalBankId)
+          ? form.cardColor || getDefaultBankCardColor(internalBankId)
           : '',
         cardColorPrimary: useCustomColor ? normalizeHexColor(form.cardColorPrimary) : '',
         cardColorSecondary: useCustomColor ? normalizeHexColor(form.cardColorSecondary) : ''

@@ -4,7 +4,7 @@ import {
   getDefaultBankCardColor,
   hasBankColorPalette
 } from './bankCardColorVariants'
-import { getBankById, CASH_CARD_THEME, GENERIC_CARD_THEME } from './banks'
+import { getBankById, resolveBankInternalId, CASH_CARD_THEME, GENERIC_CARD_THEME } from './banks'
 import {
   CUSTOM_CARD_COLOR_ID,
   getCustomCardColorOption,
@@ -43,9 +43,12 @@ function resolveBaseThemeForPicker(accountKind: WalletAccountKind, bankId: strin
 }
 
 function buildPickerOptions(accountKind: WalletAccountKind, bankId: string) {
+  const internalBankId = resolveBankInternalId(bankId)
   const customOption = getCustomCardColorOption()
   const presetOptions =
-    accountKind === 'bank' && hasBankColorPalette(bankId) ? getBankCardColorOptions(bankId) : []
+    accountKind === 'bank' && hasBankColorPalette(internalBankId)
+      ? getBankCardColorOptions(internalBankId)
+      : []
 
   if (presetOptions.length > 0) {
     return [...presetOptions, customOption]
@@ -74,10 +77,11 @@ export default function WalletCardColorSection({
   onSecondaryChange,
   disabled
 }: WalletCardColorSectionProps) {
+  const internalBankId = resolveBankInternalId(bankId)
   const options = buildPickerOptions(accountKind, bankId)
   const pickerValue =
-    accountKind === 'bank' && hasBankColorPalette(bankId)
-      ? cardColor || getDefaultBankCardColor(bankId)
+    accountKind === 'bank' && hasBankColorPalette(internalBankId)
+      ? cardColor || getDefaultBankCardColor(internalBankId)
       : isCustomCardColor(cardColor)
       ? CUSTOM_CARD_COLOR_ID
       : DEFAULT_CARD_COLOR_ID

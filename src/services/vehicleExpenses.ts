@@ -25,6 +25,7 @@ export async function createVehicleExpense(
   params: {
     title: string
     amount: number
+    subCategory?: string
     note?: string
     date?: string
   }

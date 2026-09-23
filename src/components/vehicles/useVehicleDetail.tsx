@@ -41,7 +41,7 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
   const [activeItems, setActiveItems] = useState<VehicleActiveListItem[]>([])
   const [history, setHistory] = useState<HistoryWithRow[]>([])
   const [detailTab, setDetailTab] = useState<
-    'active' | 'deadlines' | 'history' | 'transactions' | 'fuel'
+    'active' | 'deadlines' | 'history' | 'mileage' | 'transactions' | 'fuel'
   >('active')
   const [transactions, setTransactions] = useState<VehicleTransactionItem[]>([])
   const [fuelStats, setFuelStats] = useState<MonthlyFuelStats[]>([])

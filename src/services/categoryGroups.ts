@@ -12,6 +12,10 @@ import { DEFAULT_VEHICLE_DEADLINE_CATEGORIES } from './vehicleDeadlineCategories
 import { DEFAULT_VEHICLE_EXPENSE_CATEGORIES } from './vehicleExpenseCategories'
 import { DEFAULT_VEHICLE_MECHANIC_CATEGORIES } from './vehicleMechanicCategories'
 import { DEFAULT_VEHICLE_PERIODIC_CATEGORIES } from './vehiclePeriodicCategories'
+import {
+  DEFAULT_WALLET_ACCOUNT_KIND_CATEGORIES,
+  DEFAULT_WALLET_BANK_CATEGORIES
+} from './walletCategories'
 import type { CategorySubcategoryMap } from '../types'
 import { withLockedFormCategories } from '../utils/protectedCategories'
 
@@ -25,6 +29,8 @@ export type CategoryType =
   | 'vehicleDeadline'
   | 'vehicleMechanic'
   | 'vehicleExpense'
+  | 'walletBank'
+  | 'walletAccountKind'
 
 const FORM_TYPE_LABELS: Record<CategoryType, string> = {
   income: 'درآمد',
@@ -35,7 +41,9 @@ const FORM_TYPE_LABELS: Record<CategoryType, string> = {
   vehiclePeriodic: 'سرویس دوره‌ای',
   vehicleDeadline: 'موعد خودرو',
   vehicleMechanic: 'مکانیک',
-  vehicleExpense: 'هزینه خودرو'
+  vehicleExpense: 'هزینه خودرو',
+  walletBank: 'بانک کیف پول',
+  walletAccountKind: 'نوع حساب کیف پول'
 }
 
 export interface CategoryGroups {
@@ -48,6 +56,8 @@ export interface CategoryGroups {
   vehicleDeadline: string[]
   vehicleMechanic: string[]
   vehicleExpense: string[]
+  walletBank: string[]
+  walletAccountKind: string[]
 }
 
 const CATEGORY_TYPES = Object.keys(FORM_TYPE_LABELS) as CategoryType[]
@@ -99,6 +109,20 @@ function parseFormType(value: string): CategoryType | null {
     normalized === 'هزینه_خودرو'
   )
     return 'vehicleExpense'
+  if (
+    normalized === 'walletbank' ||
+    normalized === 'wallet_bank' ||
+    normalized === 'بانک کیف پول' ||
+    normalized === 'بانک_کیف_پول'
+  )
+    return 'walletBank'
+  if (
+    normalized === 'walletaccountkind' ||
+    normalized === 'wallet_account_kind' ||
+    normalized === 'نوع حساب کیف پول' ||
+    normalized === 'نوع_حساب_کیف_پول'
+  )
+    return 'walletAccountKind'
 
   return null
 }
@@ -113,7 +137,9 @@ export function rowsToGroups(rows: string[][]): CategoryGroups {
     vehiclePeriodic: [],
     vehicleDeadline: [],
     vehicleMechanic: [],
-    vehicleExpense: []
+    vehicleExpense: [],
+    walletBank: [],
+    walletAccountKind: []
   }
 
   for (const row of rows) {
@@ -205,7 +231,11 @@ export function withDefaults(groups: CategoryGroups): CategoryGroups {
       : [...DEFAULT_VEHICLE_MECHANIC_CATEGORIES],
     vehicleExpense: groups.vehicleExpense.length
       ? groups.vehicleExpense
-      : [...DEFAULT_VEHICLE_EXPENSE_CATEGORIES]
+      : [...DEFAULT_VEHICLE_EXPENSE_CATEGORIES],
+    walletBank: groups.walletBank.length ? groups.walletBank : [...DEFAULT_WALLET_BANK_CATEGORIES],
+    walletAccountKind: groups.walletAccountKind.length
+      ? groups.walletAccountKind
+      : [...DEFAULT_WALLET_ACCOUNT_KIND_CATEGORIES]
   }
 }
 
@@ -236,6 +266,8 @@ export function applyGroupsToSettings(
     vehiclePeriodicCategories: groups.vehiclePeriodic,
     vehicleDeadlineCategories: groups.vehicleDeadline,
     vehicleMechanicCategories: groups.vehicleMechanic,
-    vehicleExpenseCategories: groups.vehicleExpense
+    vehicleExpenseCategories: groups.vehicleExpense,
+    walletBankCategories: groups.walletBank,
+    walletAccountKindCategories: groups.walletAccountKind
   })
 }

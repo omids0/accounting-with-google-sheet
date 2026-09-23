@@ -59,6 +59,8 @@ export interface AppSettings {
   vehicleDeadlineCategories?: string[]
   vehicleMechanicCategories?: string[]
   vehicleExpenseCategories?: string[]
+  walletBankCategories?: string[]
+  walletAccountKindCategories?: string[]
   categorySubcategories?: CategorySubcategoryMap
   currency?: CurrencyUnit
   theme?: ThemeMode

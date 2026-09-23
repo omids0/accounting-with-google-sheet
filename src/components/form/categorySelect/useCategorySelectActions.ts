@@ -12,6 +12,10 @@ import { saveVehicleDeadlineCategoriesToSheet } from '../../../services/vehicleD
 import { saveVehicleExpenseCategoriesToSheet } from '../../../services/vehicleExpenseCategories'
 import { saveVehicleMechanicCategoriesToSheet } from '../../../services/vehicleMechanicCategories'
 import { saveVehiclePeriodicCategoriesToSheet } from '../../../services/vehiclePeriodicCategories'
+import {
+  saveWalletAccountKindCategoriesToSheet,
+  saveWalletBankCategoriesToSheet
+} from '../../../services/walletCategories'
 import { requireAuth } from '../../../utils/authGuard'
 import {
   isOtherCategory,
@@ -123,6 +127,10 @@ export function useCategorySelectActions({
         await saveVehicleMechanicCategoriesToSheet(settings.spreadsheetId, next)
       } else if (categoryScope === 'vehicleExpense') {
         await saveVehicleExpenseCategoriesToSheet(settings.spreadsheetId, next)
+      } else if (categoryScope === 'walletBank') {
+        await saveWalletBankCategoriesToSheet(settings.spreadsheetId, next)
+      } else if (categoryScope === 'walletAccountKind') {
+        await saveWalletAccountKindCategoriesToSheet(settings.spreadsheetId, next)
       } else {
         if (!formId) {
           showError('فرم دسته‌بندی معتبر نیست')

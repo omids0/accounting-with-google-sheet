@@ -11,7 +11,7 @@ export type VehicleMileageReminderInterval =
   | 'every-3-days'
   | 'every-10-days'
 
-export type VehicleRecordKind = 'periodic' | 'deadline' | 'mechanic'
+export type VehicleRecordKind = 'periodic' | 'deadline' | 'mechanic' | 'mileage'
 
 export interface VehicleProfile {
   id: string

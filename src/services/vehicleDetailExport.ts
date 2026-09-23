@@ -10,7 +10,13 @@ import { formatMoney } from '../utils/formatMoney'
 import { formatIsoDatePersian } from '../utils/jalaliDate'
 import { downloadTablePdf } from '../utils/pdf'
 
-export type VehicleDetailExportTab = 'active' | 'deadlines' | 'history' | 'transactions' | 'fuel'
+export type VehicleDetailExportTab =
+  | 'active'
+  | 'deadlines'
+  | 'history'
+  | 'mileage'
+  | 'transactions'
+  | 'fuel'
 
 export type VehicleDetailExportPayload = {
   vehicleTitle: string
@@ -25,6 +31,7 @@ const TAB_LABELS: Record<VehicleDetailExportTab, string> = {
   active: 'موارد-فعال',
   deadlines: 'موعدها',
   history: 'تاریخچه',
+  mileage: 'تاریخچه-کارکرد',
   transactions: 'تراکنش‌ها',
   fuel: 'مصرف-بنزین'
 }
@@ -38,7 +45,8 @@ const URGENCY_LABELS: Record<VehicleActiveListItem['urgency'], string> = {
 const HISTORY_KIND_LABELS = {
   periodic: 'سرویس دوره‌ای',
   deadline: 'موعد',
-  mechanic: 'مکانیک'
+  mechanic: 'مکانیک',
+  mileage: 'ثبت کارکرد'
 } as const
 
 function safeFilePart(value: string): string {
@@ -163,6 +171,7 @@ function resolveTable(payload: VehicleDetailExportPayload): {
     case 'deadlines':
       return buildDeadlineRows(payload.activeItems)
     case 'history':
+    case 'mileage':
       return buildHistoryRows(payload.historyItems)
     case 'transactions':
       return buildTransactionRows(payload.transactions)
@@ -181,6 +190,8 @@ function resolveTitle(payload: VehicleDetailExportPayload): string {
       ? 'موعدها'
       : payload.tab === 'history'
       ? 'تاریخچه'
+      : payload.tab === 'mileage'
+      ? 'تاریخچه کارکرد'
       : payload.tab === 'transactions'
       ? 'تراکنش‌ها'
       : 'مصرف بنزین'

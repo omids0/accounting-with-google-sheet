@@ -7,7 +7,7 @@ import {
   recordsFilterSectionClassName
 } from '../ui/recordsStyles'
 
-type VehicleDetailFilterMode = 'active' | 'deadlines' | 'history' | 'transactions'
+type VehicleDetailFilterMode = 'active' | 'deadlines' | 'history' | 'transactions' | 'fuel'
 
 type VehicleDetailFilterFieldsProps = {
   filterMode: VehicleDetailFilterMode
@@ -42,24 +42,30 @@ export default function VehicleDetailFilterFields({
 }: VehicleDetailFilterFieldsProps) {
   const isActiveTab = filterMode === 'active' || filterMode === 'deadlines'
   const isTransactionsTab = filterMode === 'transactions'
-  const searchPlaceholder = isTransactionsTab
+  const isFuelTab = filterMode === 'fuel'
+  const searchPlaceholder = isFuelTab
+    ? 'جستجو در تراکنش‌های بنزین...'
+    : isTransactionsTab
     ? 'جستجو در عنوان...'
     : filterMode === 'deadlines'
     ? 'جستجو در موعدها...'
     : isActiveTab
     ? 'جستجو در موارد فعال...'
     : 'جستجو در تاریخچه...'
-  const categoryLabel = isTransactionsTab ? 'دسته‌بندی' : isActiveTab ? 'فوریت' : 'نوع'
 
   return (
     <PageFilterPanel
       search={draftSearch}
       onSearchChange={setDraftSearch}
       searchPlaceholder={searchPlaceholder}
-      category={draftCategory}
-      onCategoryChange={setDraftCategory}
-      categoryOptions={categoryOptions}
-      categoryLabel={categoryLabel}
+      {...(isFuelTab
+        ? {}
+        : {
+            category: draftCategory,
+            onCategoryChange: setDraftCategory,
+            categoryOptions,
+            categoryLabel: isTransactionsTab ? 'دسته‌بندی' : isActiveTab ? 'فوریت' : 'نوع'
+          })}
       {...(isActiveTab
         ? {}
         : {
@@ -71,7 +77,7 @@ export default function VehicleDetailFilterFields({
             dateLoading: loading
           })}
     >
-      {!isTransactionsTab && serviceTypeOptions.length > 0 ? (
+      {!isTransactionsTab && !isFuelTab && serviceTypeOptions.length > 0 ? (
         <div className={recordsFilterSectionClassName()}>
           <span className={recordsFilterLabelClass}>نوع سرویس</span>
           <CategoryFilterSelect

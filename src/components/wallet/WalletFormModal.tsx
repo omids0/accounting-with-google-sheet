@@ -9,23 +9,28 @@ import {
   submitValidatedForm
 } from '../../utils/formValidation'
 import AmountInput from '../AmountInput'
-import { FormField, FormRow, Select } from '../form'
+import { CategorySelect, FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import { getDefaultBankCardColor } from './bankCardColorVariants'
-import { getBankById, getBankSelectOptions, WALLET_ACCOUNT_KIND_OPTIONS } from './banks'
+import { getBankById, resolveBankInternalId } from './banks'
 import { isCustomCardColor } from './customCardTheme'
 import type { WalletAccountWithRow, WalletFormState } from './types'
 import WalletAccountCardVisual from './WalletAccountCardVisual'
 import WalletCardColorSection from './WalletCardColorSection'
 import WalletCardNumberInput from './WalletCardNumberInput'
 import { walletCardPreviewClass } from './walletCardStyles'
-import { isValidCardNumber } from './walletCardUtils'
+import { isValidCardNumber, resolveAccountKind } from './walletCardUtils'
 import { buildWalletFormInitialValues, buildWalletPreviewAccount } from './walletFormDefaults'
+import { WALLET_ACCOUNT_KIND_BANK, WALLET_ACCOUNT_KIND_CASH } from '../../services/walletCategories'
 
 type WalletFormModalProps = {
   open: boolean
   editingAccount: WalletAccountWithRow | null
   saving: boolean
+  bankCategories: string[]
+  onBankCategoriesChange: (next: string[]) => void
+  accountKindCategories: string[]
+  onAccountKindCategoriesChange: (next: string[]) => void
   onClose: () => void
   onSubmit: (values: WalletFormState) => void | Promise<void>
 }
@@ -34,6 +39,10 @@ export default function WalletFormModal({
   open,
   editingAccount,
   saving,
+  bankCategories,
+  onBankCategoriesChange,
+  accountKindCategories,
+  onAccountKindCategoriesChange,
   onClose,
   onSubmit
 }: WalletFormModalProps) {
@@ -61,18 +70,18 @@ export default function WalletFormModal({
 
   const watched = useWatch({ control })
   const bankId = watched.bankId ?? ''
-  const accountKind = watched.accountKind ?? 'other'
+  const resolvedKind = resolveAccountKind({ accountKind: watched.accountKind ?? '' })
 
   const previewAccount = useMemo(
-    () => buildWalletPreviewAccount(watched, bankId, accountKind),
-    [watched, bankId, accountKind]
+    () => buildWalletPreviewAccount(watched, bankId, resolvedKind),
+    [watched, bankId, resolvedKind]
   )
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
-  const isBankAccount = accountKind === 'bank'
+  const isBankAccount = resolvedKind === 'bank'
 
   return (
     <FormModal
@@ -89,11 +98,11 @@ export default function WalletFormModal({
           control={control}
           rules={requiredField('نوع حساب')}
           render={({ field, fieldState }) => (
-            <Select
+            <CategorySelect
               value={field.value}
               onChange={value => {
                 field.onChange(value)
-                if (value !== 'bank') {
+                if (resolveAccountKind({ accountKind: value }) !== 'bank') {
                   setValue('bankId', '')
                   setValue('cardNumber', '')
                   setValue('cardHolder', '')
@@ -104,9 +113,14 @@ export default function WalletFormModal({
                   }
                 }
               }}
-              options={WALLET_ACCOUNT_KIND_OPTIONS}
+              categories={accountKindCategories}
+              categoryScope="walletAccountKind"
+              onCategoriesChange={onAccountKindCategoriesChange}
+              lockedCategories={[WALLET_ACCOUNT_KIND_BANK, WALLET_ACCOUNT_KIND_CASH]}
               invalid={Boolean(fieldState.error)}
               aria-label="نوع حساب"
+              placeholder="انتخاب نوع حساب"
+              manageTitle="مدیریت نوع حساب"
             />
           )}
         />
@@ -124,7 +138,7 @@ export default function WalletFormModal({
             control={control}
             rules={requiredField('بانک را انتخاب کنید')}
             render={({ field, fieldState }) => (
-              <Select
+              <CategorySelect
                 value={field.value}
                 onChange={value => {
                   field.onChange(value)
@@ -133,12 +147,16 @@ export default function WalletFormModal({
                     setValue('title', bank.label)
                   }
                   if (!isCustomCardColor(watched.cardColor ?? '')) {
-                    setValue('cardColor', getDefaultBankCardColor(value))
+                    setValue('cardColor', getDefaultBankCardColor(resolveBankInternalId(value)))
                   }
                 }}
-                options={getBankSelectOptions()}
+                categories={bankCategories}
+                categoryScope="walletBank"
+                onCategoriesChange={onBankCategoriesChange}
                 invalid={Boolean(fieldState.error)}
                 aria-label="بانک"
+                placeholder="انتخاب بانک"
+                manageTitle="مدیریت بانک‌ها"
               />
             )}
           />
@@ -163,7 +181,7 @@ export default function WalletFormModal({
                   control={control}
                   render={({ field: secondaryField }) => (
                     <WalletCardColorSection
-                      accountKind={accountKind}
+                      accountKind={resolvedKind}
                       bankId={bankId}
                       cardColor={cardColorField.value}
                       cardColorPrimary={primaryField.value}

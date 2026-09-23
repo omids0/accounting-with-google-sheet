@@ -5,6 +5,7 @@ import { useListFilters } from '../../hooks/useListFilters'
 import type { VehicleActiveListItem, VehicleHistoryEntry } from '../../types/vehicles'
 import { compactFilterChips } from '../../utils/filterChips'
 import type { FilterChip } from '../ActiveFilterChips'
+import { createAllDateRangeFilter, createDefaultDateRangeFilter } from '../DateRangeFilter'
 
 const ACTIVE_URGENCY_LABELS: Record<VehicleActiveListItem['urgency'], string> = {
   overdue: 'گذشته',
@@ -15,7 +16,8 @@ const ACTIVE_URGENCY_LABELS: Record<VehicleActiveListItem['urgency'], string> = 
 const HISTORY_KIND_LABELS: Record<VehicleHistoryEntry['recordKind'], string> = {
   periodic: 'سرویس دوره‌ای',
   deadline: 'موعد',
-  mechanic: 'مکانیک'
+  mechanic: 'مکانیک',
+  mileage: 'ثبت کارکرد'
 }
 
 type VehicleDetailFilterItem = VehicleActiveListItem | HistoryWithRow
@@ -50,7 +52,7 @@ function buildServiceTypeChip(serviceType: string, onRemove: () => void): Filter
 }
 
 type UseVehicleDetailFiltersOptions = {
-  detailTab: 'active' | 'deadlines' | 'history' | 'transactions' | 'fuel'
+  detailTab: 'active' | 'deadlines' | 'history' | 'mileage' | 'transactions' | 'fuel'
   activeItems: VehicleActiveListItem[]
   historyItems: HistoryWithRow[]
   serviceTypeSeed?: string[]
@@ -63,7 +65,7 @@ export function useVehicleDetailFilters({
   serviceTypeSeed = []
 }: UseVehicleDetailFiltersOptions) {
   const isActiveTab = detailTab === 'active' || detailTab === 'deadlines'
-  const isHistoryTab = detailTab === 'history'
+  const isHistoryTab = detailTab === 'history' || detailTab === 'mileage'
   const items: VehicleDetailFilterItem[] = isActiveTab
     ? activeItems
     : isHistoryTab
@@ -73,8 +75,14 @@ export function useVehicleDetailFilters({
   const [serviceTypeFilter, setServiceTypeFilter] = useState('all')
   const [draftServiceTypeFilter, setDraftServiceTypeFilter] = useState('all')
 
+  const defaultDateFilter = useMemo(
+    () => (isActiveTab ? createAllDateRangeFilter() : createDefaultDateRangeFilter()),
+    [isActiveTab]
+  )
+
   const filters = useListFilters<VehicleDetailFilterItem>({
     items,
+    defaultDateFilter,
     getSearchParts: item => {
       if (isActiveItem(item)) {
         return [item.title, item.subtitle, item.kind, ACTIVE_URGENCY_LABELS[item.urgency]]
