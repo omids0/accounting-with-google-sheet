@@ -1,6 +1,20 @@
+import { BiometricAuth } from '@aparajita/capacitor-biometric-auth'
+
 import { base64ToBuffer, bufferToBase64 } from './appLockCrypto'
 import { getAccountConfig, getDeviceConfig, saveDeviceConfig } from './appLockStorage'
 import { getUserEmail, getUserName } from './auth'
+import { isNativePlatform } from './googleAuthNative'
+
+/** The APK has no WebAuthn, so there is no credential to store — only a marker. */
+const NATIVE_CREDENTIAL_ID = 'native-biometric'
+
+async function authenticateNative(): Promise<void> {
+  await BiometricAuth.authenticate({
+    reason: 'برای باز کردن قفل اپ احراز هویت کنید',
+    cancelTitle: 'انصراف',
+    allowDeviceCredential: true
+  })
+}
 
 async function registerBiometricCredential(): Promise<string> {
   const email = getUserEmail()
@@ -42,6 +56,14 @@ async function registerBiometricCredential(): Promise<string> {
 }
 
 export async function isBiometricAvailable(): Promise<boolean> {
+  if (isNativePlatform()) {
+    try {
+      return (await BiometricAuth.checkBiometry()).isAvailable
+    } catch {
+      return false
+    }
+  }
+
   if (typeof window === 'undefined' || !window.PublicKeyCredential) return false
   try {
     return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
@@ -61,6 +83,13 @@ export function isBiometricEnabled(): boolean {
 }
 
 export async function registerAppLockBiometric(): Promise<void> {
+  if (isNativePlatform()) {
+    await authenticateNative()
+    saveDeviceConfig({ biometricEnabled: true, credentialId: NATIVE_CREDENTIAL_ID })
+
+    return
+  }
+
   const credentialId = await registerBiometricCredential()
 
   saveDeviceConfig({ biometricEnabled: true, credentialId })
@@ -84,6 +113,16 @@ export async function verifyBiometric(): Promise<boolean> {
   const device = getDeviceConfig()
 
   if (!device?.credentialId) return false
+
+  if (isNativePlatform()) {
+    try {
+      await authenticateNative()
+
+      return true
+    } catch {
+      return false
+    }
+  }
 
   try {
     const challenge = crypto.getRandomValues(new Uint8Array(32))
