@@ -2,9 +2,11 @@ import { useNavigate } from 'react-router-dom'
 
 import CronSetupSection from './reminders/CronSetupSection'
 import DueDateReminderSection from './reminders/DueDateReminderSection'
+import NativeNotificationSection from './reminders/NativeNotificationSection'
 import PersonalRemindersPushSection from './reminders/PersonalRemindersPushSection'
 import PushStatusSection from './reminders/PushStatusSection'
 import { useRemindersPage } from './reminders/useRemindersPage'
+import { isNativePlatform } from '../services/googleAuthNative'
 import {
   VehicleDeadlineReminderSection,
   VehicleMileageReminderSection,
@@ -29,22 +31,26 @@ export default function RemindersPage() {
         </Card>
       ) : (
         <>
-          <PushStatusSection
-            pushStatus={page.pushStatus}
-            permission={page.permission}
-            swStatus={page.swStatus}
-            isInstalled={page.isInstalled}
-            hasSubscription={page.hasSubscription}
-            saving={page.saving}
-            canInstall={page.canInstall}
-            isIos={page.isIos}
-            showIosHint={page.showIosHint}
-            install={page.install}
-            dismissIosHint={page.dismissIosHint}
-            onEnablePush={page.handleEnablePush}
-            onDisablePush={page.handleDisablePush}
-            onTestNotification={page.handleTestNotification}
-          />
+          {isNativePlatform() ? (
+            <NativeNotificationSection />
+          ) : (
+            <PushStatusSection
+              pushStatus={page.pushStatus}
+              permission={page.permission}
+              swStatus={page.swStatus}
+              isInstalled={page.isInstalled}
+              hasSubscription={page.hasSubscription}
+              saving={page.saving}
+              canInstall={page.canInstall}
+              isIos={page.isIos}
+              showIosHint={page.showIosHint}
+              install={page.install}
+              dismissIosHint={page.dismissIosHint}
+              onEnablePush={page.handleEnablePush}
+              onDisablePush={page.handleDisablePush}
+              onTestNotification={page.handleTestNotification}
+            />
+          )}
 
           {DUE_DATE_KINDS.map(kind => (
             <DueDateReminderSection
