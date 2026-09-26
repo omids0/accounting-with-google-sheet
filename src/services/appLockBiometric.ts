@@ -1,5 +1,3 @@
-import { BiometricAuth } from '@aparajita/capacitor-biometric-auth'
-
 import { base64ToBuffer, bufferToBase64 } from './appLockCrypto'
 import { getAccountConfig, getDeviceConfig, saveDeviceConfig } from './appLockStorage'
 import { getUserEmail, getUserName } from './auth'
@@ -8,7 +6,14 @@ import { isNativePlatform } from './googleAuthNative'
 /** The APK has no WebAuthn, so there is no credential to store — only a marker. */
 const NATIVE_CREDENTIAL_ID = 'native-biometric'
 
+/** Imported on demand so the plugin never loads in the browser build or in tests. */
+async function loadBiometricAuth() {
+  return (await import('@aparajita/capacitor-biometric-auth')).BiometricAuth
+}
+
 async function authenticateNative(): Promise<void> {
+  const BiometricAuth = await loadBiometricAuth()
+
   await BiometricAuth.authenticate({
     reason: 'برای باز کردن قفل اپ احراز هویت کنید',
     cancelTitle: 'انصراف',
@@ -58,6 +63,8 @@ async function registerBiometricCredential(): Promise<string> {
 export async function isBiometricAvailable(): Promise<boolean> {
   if (isNativePlatform()) {
     try {
+      const BiometricAuth = await loadBiometricAuth()
+
       return (await BiometricAuth.checkBiometry()).isAvailable
     } catch {
       return false
