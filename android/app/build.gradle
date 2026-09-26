@@ -16,6 +16,20 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        debug {
+            // Pinned so every CI build signs with the same certificate: Google matches the
+            // APK's fingerprint against the Android OAuth client, and Gradle's auto-generated
+            // debug keystore is not stable across runners.
+            def pinnedKeystore = rootProject.file("debug.keystore")
+            if (pinnedKeystore.exists()) {
+                storeFile pinnedKeystore
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
