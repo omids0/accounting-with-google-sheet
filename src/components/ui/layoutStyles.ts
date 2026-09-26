@@ -39,6 +39,7 @@ const pageContentStagger = cn(
 )
 
 export const pageContentClass = cn(
+  'page-content',
   'animate-[pageFade_var(--duration-page)_var(--ease-page)_both]',
   pageContentChildAnims,
   pageContentStagger

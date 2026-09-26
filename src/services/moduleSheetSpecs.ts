@@ -2,6 +2,7 @@ import { ACTIVITY_HEADERS, ACTIVITY_SHEET } from './activityTracking'
 import { APP_LOCK_HEADERS, APP_LOCK_SHEET } from './appLockSync'
 import { CATEGORIES_HEADERS, CATEGORIES_SHEET } from './categories'
 import { CHECKS_HEADERS, CHECKS_SHEET } from './checks'
+import { COUNTERPARTIES_HEADERS, COUNTERPARTIES_SHEET } from './counterparties'
 import { DANG_HEADERS, DANG_SHEET } from './dang'
 import { INSTALLMENTS_HEADERS, INSTALLMENTS_SHEET } from './installments'
 import { MONTHLY_BALANCE_HEADERS, MONTHLY_BALANCE_SHEET } from './monthlyBalance'
@@ -17,6 +18,12 @@ import {
   REMINDERS_SHEET
 } from './reminders'
 import type { SheetSpec } from './sheets'
+import {
+  TIMESHEET_ENTRIES_HEADERS,
+  TIMESHEET_ENTRIES_SHEET,
+  TIMESHEETS_HEADERS,
+  TIMESHEETS_SHEET
+} from './timesheetRow'
 import { TREASURY_HEADERS, TREASURY_SHEET } from './treasury'
 import { VEHICLE_DEADLINE_HEADERS, VEHICLE_DEADLINE_SHEET } from './vehicleDeadlines'
 import { VEHICLE_EXPENSE_META_HEADERS, VEHICLE_EXPENSE_META_SHEET } from './vehicleExpenseRecords'
@@ -36,6 +43,9 @@ export const MODULE_SHEET_SPECS: SheetSpec[] = [
   { sheetName: MONTHLY_BALANCE_SHEET, headers: MONTHLY_BALANCE_HEADERS },
   { sheetName: PERIOD_SETTINGS_SHEET, headers: PERIOD_SETTINGS_HEADERS },
   { sheetName: CATEGORIES_SHEET, headers: CATEGORIES_HEADERS },
+  { sheetName: COUNTERPARTIES_SHEET, headers: COUNTERPARTIES_HEADERS },
+  { sheetName: TIMESHEETS_SHEET, headers: TIMESHEETS_HEADERS },
+  { sheetName: TIMESHEET_ENTRIES_SHEET, headers: TIMESHEET_ENTRIES_HEADERS },
   { sheetName: ACTIVITY_SHEET, headers: ACTIVITY_HEADERS },
   { sheetName: REMINDERS_SHEET, headers: REMINDERS_HEADERS },
   { sheetName: PERSONAL_REMINDERS_SHEET, headers: PERSONAL_REMINDERS_HEADERS },

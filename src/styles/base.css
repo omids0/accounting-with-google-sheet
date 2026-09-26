@@ -103,4 +103,26 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /*
+   * The Android WebView repaints gradients, blur and staggered mount animations
+   * much more expensively than a desktop browser, which reads as lag on every
+   * navigation. Keep the short fades, drop the parts that cost frames.
+   */
+  html.native .page-content > * > * {
+    animation-delay: 0s !important;
+  }
+
+  html.native [class*='headerGlow'],
+  html.native [class*='heroShimmer'],
+  html.native [class*='progressShine'],
+  html.native [class*='progressGlowTravel'],
+  html.native [class*='animate-[float'] {
+    animation: none !important;
+    background-position: 0 0 !important;
+  }
+
+  html.native [class*='backdrop-blur'] {
+    backdrop-filter: none !important;
+  }
 }

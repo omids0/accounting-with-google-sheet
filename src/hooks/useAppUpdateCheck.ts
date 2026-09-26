@@ -9,6 +9,9 @@ import {
 
 const RECHECK_THROTTLE_MS = 30 * 60_000
 
+/** Keeps the check off the critical path while the app is still loading sheet data. */
+const FIRST_CHECK_DELAY_MS = 8_000
+
 export function useAppUpdateCheck(): {
   update: AvailableUpdate | null
   dismiss: () => void
@@ -35,11 +38,13 @@ export function useAppUpdateCheck(): {
       void run()
     }
 
-    void run()
+    const firstCheck = window.setTimeout(() => void run(), FIRST_CHECK_DELAY_MS)
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
       cancelled = true
+      window.clearTimeout(firstCheck)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
