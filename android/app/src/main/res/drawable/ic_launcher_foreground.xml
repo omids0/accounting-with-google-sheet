@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chart glyph from public/favicon.svg, scaled into the adaptive icon's 72dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M33.84,69.84V38.16"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.52"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M33.84,69.84H74.16"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.52"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M42.48,55.44V66.96"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5.76"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M51.12,46.8V66.96"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5.76"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M59.76,58.32V66.96"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5.76"
+        android:strokeLineCap="round" />
+</vector>
