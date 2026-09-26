@@ -33,23 +33,17 @@ jobs:
       - name: Restore debug keystore cache
         uses: actions/cache@v4
         with:
-          path: ~/.android/debug.keystore
+          path: android/debug.keystore
           key: debug-keystore-v1
 
       - name: Ensure debug keystore exists
         run: |
-          mkdir -p ~/.android
-          if [ ! -f ~/.android/debug.keystore ]; then
-            keytool -genkeypair -v -keystore ~/.android/debug.keystore \
+          if [ ! -f android/debug.keystore ]; then
+            keytool -genkeypair -v -keystore android/debug.keystore \
               -storepass android -alias androiddebugkey -keypass android \
               -keyalg RSA -keysize 2048 -validity 10000 \
               -dname "CN=Android Debug,O=Android,C=US"
           fi
-
-      - name: Print debug keystore SHA1
-        run: |
-          echo "Register this SHA1 once as an Android OAuth client in Google Cloud Console:"
-          keytool -list -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey | grep SHA1
 
       - name: Install dependencies
         run: npm ci
@@ -83,6 +77,16 @@ jobs:
 
       - name: Build debug APK
         run: cd android && ./gradlew assembleDebug --no-daemon
+
+      - name: Print the APK's signing certificate
+        run: |
+          APK=android/app/build/outputs/apk/debug/hesab-ketab.apk
+          echo "Register this SHA-1 as the Android OAuth client fingerprint in Google Cloud Console:"
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
+          if [ -n "$APKSIGNER" ]; then
+            "$APKSIGNER" verify --print-certs "$APK" | grep -i "SHA-1" || true
+          fi
+          keytool -printcert -jarfile "$APK" | grep -i "SHA1:" || true
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
