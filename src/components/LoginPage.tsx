@@ -106,7 +106,11 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
       await continueAfterAuth(profile.name)
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ورود لغو شد یا با خطا مواجه شد')
+      const code = (err as { code?: string })?.code
+
+      const message = err instanceof Error ? err.message : 'ورود لغو شد یا با خطا مواجه شد'
+
+      showError(code ? `${message} (کد ${code})` : message)
     } finally {
       setLoading(false)
     }
