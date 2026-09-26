@@ -158,8 +158,9 @@ async function finalizeSpreadsheetActivation(
   previousId?: string
 ): Promise<string> {
   registerSpreadsheet(spreadsheetId, name)
-  clearSpreadsheetPrepareSession(previousId)
-  clearSpreadsheetPrepareSession(spreadsheetId)
+  if (previousId && previousId !== spreadsheetId) {
+    clearSpreadsheetPrepareSession(previousId)
+  }
 
   if (isSessionPrepared(spreadsheetId)) {
     markAllKnownSheetsPrepared(spreadsheetId)

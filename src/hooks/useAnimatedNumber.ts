@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { prefersReducedMotion } from './useChartTheme'
+import { isNativePlatform } from '../services/googleAuthNative'
 
 export function useAnimatedNumber(value: number, duration = 650, enabled = true): number {
   const [display, setDisplay] = useState(value)
@@ -8,7 +9,8 @@ export function useAnimatedNumber(value: number, duration = 650, enabled = true)
   const fromRef = useRef(value)
 
   useEffect(() => {
-    if (!enabled || prefersReducedMotion()) {
+    // Counting up re-renders every money value for ~650ms, which the WebView feels.
+    if (!enabled || isNativePlatform() || prefersReducedMotion()) {
       fromRef.current = value
       setDisplay(value)
 
