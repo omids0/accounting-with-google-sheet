@@ -134,6 +134,11 @@ export default function AppLockSettings() {
                   غیرفعال‌سازی اثر انگشت
                 </Button>
               )}
+              {!lock.biometricAvailable && lock.biometricUnavailableReason && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', width: '100%' }}>
+                  {lock.biometricUnavailableReason}
+                </p>
+              )}
               <Button
                 type="button"
                 variant="danger"

@@ -79,6 +79,32 @@ export async function isBiometricAvailable(): Promise<boolean> {
   }
 }
 
+/**
+ * Explains why the device reports no usable biometry, so the settings screen can
+ * say what to fix instead of silently hiding the option.
+ */
+export async function getBiometricUnavailableReason(): Promise<string | null> {
+  if (!isNativePlatform()) return null
+
+  try {
+    const BiometricAuth = await loadBiometricAuth()
+
+    const result = await BiometricAuth.checkBiometry()
+
+    if (result.isAvailable) return null
+
+    if (!result.deviceIsSecure) {
+      return 'برای استفاده از اثر انگشت، ابتدا قفل صفحه (رمز، الگو یا PIN) گوشی را فعال کنید.'
+    }
+
+    const detail = result.reason || result.code || 'نامشخص'
+
+    return `اثر انگشت روی این دستگاه در دسترس نیست (${detail}).`
+  } catch (err) {
+    return `بررسی اثر انگشت ناموفق بود (${err instanceof Error ? err.message : 'خطای نامشخص'}).`
+  }
+}
+
 export function isBiometricEnabled(): boolean {
   const account = getAccountConfig()
 
