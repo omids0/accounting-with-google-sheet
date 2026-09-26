@@ -22,6 +22,7 @@ import { useTokenRefresh } from './hooks/useTokenRefresh'
 import { AppAuthenticatedRoutes } from './routes/AppRoutes'
 import { syncAppLockFromSheet } from './services/appLock'
 import { hasStoredSession, isAuthError, isTokenValid } from './services/auth'
+import { isNativePlatform } from './services/googleAuthNative'
 import { isConfigured, getSettings } from './services/settings'
 import { initializeSheetSync } from './services/sheetSync'
 import {
@@ -193,7 +194,7 @@ export default function App() {
     }
 
     init()
-    registerSW()
+    if (!isNativePlatform()) registerSW()
 
     return () => {
       cancelled = true
