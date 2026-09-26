@@ -5,10 +5,12 @@ import { BrowserRouter } from 'react-router-dom'
 
 import App from './App'
 import AppToaster from './components/AppToaster'
+import { initializeNativeGoogleAuth } from './services/googleAuthNative'
 import { initTheme } from './utils/theme'
 import './index.css'
 
 initTheme()
+void initializeNativeGoogleAuth()
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '')

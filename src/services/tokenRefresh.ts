@@ -5,6 +5,7 @@ import {
   renewSessionToken,
   shouldRefreshToken
 } from './auth'
+import { isNativePlatform, refreshNativeToken } from './googleAuthNative'
 
 let refreshInFlight: Promise<boolean> | null = null
 
@@ -13,12 +14,29 @@ export function refreshAccessTokenSilently(clientId: string): Promise<boolean> {
 
   const session = getSession()
 
-  if (!clientId || !session?.email) {
+  if (!session?.email) {
     return Promise.resolve(false)
   }
 
   if (isTokenValid() && !shouldRefreshToken()) {
     return Promise.resolve(true)
+  }
+
+  if (isNativePlatform()) {
+    refreshInFlight = refreshNativeToken().then(accessToken => {
+      refreshInFlight = null
+
+      if (!accessToken) return false
+      renewSessionToken(accessToken)
+
+      return true
+    })
+
+    return refreshInFlight
+  }
+
+  if (!clientId) {
+    return Promise.resolve(false)
   }
 
   refreshInFlight = new Promise(resolve => {

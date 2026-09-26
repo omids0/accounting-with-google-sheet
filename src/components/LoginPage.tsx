@@ -21,6 +21,7 @@ import {
 } from './ui/loginStyles'
 import { syncAppLockFromSheet } from '../services/appLock'
 import { saveSession, createSession, fetchUserProfile, GOOGLE_OAUTH_SCOPE } from '../services/auth'
+import { isNativePlatform, signInNative } from '../services/googleAuthNative'
 import {
   getDefaultFirstSheetLabel,
   prepareUserSpreadsheet,
@@ -96,7 +97,27 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
     }
   })
 
+  const handleNativeLogin = async () => {
+    setLoading(true)
+    try {
+      const { accessToken, profile } = await signInNative()
+
+      saveSession(createSession(accessToken, profile))
+
+      await continueAfterAuth(profile.name)
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'ورود لغو شد یا با خطا مواجه شد')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleLogin = () => {
+    if (isNativePlatform()) {
+      void handleNativeLogin()
+
+      return
+    }
     setLoading(true)
     login()
   }
