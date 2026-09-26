@@ -5,6 +5,7 @@ dev-dist
 .env.local
 *.local
 .DS_Store
+.claude/worktrees/
 __pycache__/
 *.pyc
 .lighthouseci
