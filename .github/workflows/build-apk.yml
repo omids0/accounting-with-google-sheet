@@ -84,6 +84,16 @@ jobs:
       - name: Build debug APK
         run: cd android && ./gradlew assembleDebug --no-daemon
 
+      - name: Print the APK's actual signing certificate
+        run: |
+          APK=android/app/build/outputs/apk/debug/hesab-ketab.apk
+          echo "This fingerprint is what Play Services checks against the Android OAuth client:"
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
+          if [ -n "$APKSIGNER" ]; then
+            "$APKSIGNER" verify --print-certs "$APK" | grep -i "SHA-1" || true
+          fi
+          keytool -printcert -jarfile "$APK" | grep -i "SHA1:" || true
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
