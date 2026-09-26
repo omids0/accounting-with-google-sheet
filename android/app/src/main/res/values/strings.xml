@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">حسابداری شخصی</string>
+    <string name="title_activity_main">حسابداری شخصی</string>
+    <string name="package_name">com.omids0.accounting</string>
+    <string name="custom_url_scheme">com.omids0.accounting</string>
+</resources>
