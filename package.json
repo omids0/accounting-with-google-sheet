@@ -1,7 +1,7 @@
 {
   "name": "personal-accounting-pwa",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -29,6 +29,7 @@
     "git:prune-branches": "sh scripts/git-prune-branches.sh"
   },
   "dependencies": {
+    "@capacitor/app": "^6.0.3",
     "@capacitor/core": "^6.2.2",
     "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@react-oauth/google": "^0.13.5",

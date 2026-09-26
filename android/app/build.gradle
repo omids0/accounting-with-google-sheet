@@ -7,8 +7,10 @@ android {
         applicationId "com.omids0.accounting"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // Supplied by the APK workflow; Android only treats a build as an update
+        // when versionCode increases, so it tracks the CI run number.
+        versionCode (project.findProperty("appVersionCode") ?: "1").toString().toInteger()
+        versionName (project.findProperty("appVersionName") ?: "0.0.0").toString()
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

@@ -3,6 +3,7 @@ import LayoutHeader from './LayoutHeader'
 import LayoutMenu from './LayoutMenu'
 import LayoutPageOutlet from './LayoutPageOutlet'
 import PageSpeedDial from '../PageSpeedDial'
+import UpdateBanner from '../UpdateBanner'
 import { useLayoutNavigation } from './useLayoutNavigation'
 import {
   appContentColumnClass,
@@ -72,6 +73,8 @@ export default function Layout() {
             showSettings={showSettings}
             onHeaderBack={onHeaderBack}
           />
+
+          <UpdateBanner />
 
           <main className={appMainClass}>
             <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
