@@ -30,20 +30,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Restore debug keystore cache
-        uses: actions/cache@v4
-        with:
-          path: android/debug.keystore
-          key: debug-keystore-v1
-
-      - name: Ensure debug keystore exists
+      - name: Restore the pinned debug keystore
+        env:
+          ANDROID_DEBUG_KEYSTORE_BASE64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_BASE64 }}
         run: |
-          if [ ! -f android/debug.keystore ]; then
-            keytool -genkeypair -v -keystore android/debug.keystore \
-              -storepass android -alias androiddebugkey -keypass android \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
+          if [ -z "$ANDROID_DEBUG_KEYSTORE_BASE64" ]; then
+            echo "Missing the ANDROID_DEBUG_KEYSTORE_BASE64 repository secret."
+            echo "Google matches the APK's signing certificate against the Android OAuth"
+            echo "client, so every build has to use the same key. Add the secret, then re-run."
+            exit 1
           fi
+          echo "$ANDROID_DEBUG_KEYSTORE_BASE64" | base64 -d > android/debug.keystore
 
       - name: Install dependencies
         run: npm ci
@@ -78,15 +75,21 @@ jobs:
       - name: Build debug APK
         run: cd android && ./gradlew assembleDebug --no-daemon
 
-      - name: Print the APK's signing certificate
+      - name: Verify the APK's signing certificate
+        env:
+          # Registered on the Android OAuth client in Google Cloud Console.
+          EXPECTED_SHA1: 3b63741fece7cdb990a363699a5eaf943ee1f005
         run: |
           APK=android/app/build/outputs/apk/debug/hesab-ketab.apk
-          echo "Register this SHA-1 as the Android OAuth client fingerprint in Google Cloud Console:"
-          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
-          if [ -n "$APKSIGNER" ]; then
-            "$APKSIGNER" verify --print-certs "$APK" | grep -i "SHA-1" || true
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          ACTUAL=$("$APKSIGNER" verify --print-certs "$APK" | grep -i "SHA-1 digest" | head -1 | awk '{print $NF}')
+          echo "APK certificate SHA-1: $ACTUAL"
+          if [ "$ACTUAL" != "$EXPECTED_SHA1" ]; then
+            echo "Expected:              $EXPECTED_SHA1"
+            echo "The APK is signed with a different key than the one registered in Google"
+            echo "Cloud Console, so sign-in would fail with DEVELOPER_ERROR (10)."
+            exit 1
           fi
-          keytool -printcert -jarfile "$APK" | grep -i "SHA1:" || true
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
