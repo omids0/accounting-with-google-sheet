@@ -65,6 +65,19 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
         run: npx cap sync android
 
+      - name: Verify Google client ID reached the Android config
+        run: |
+          node -e "
+            const cfg = require('./android/app/src/main/assets/capacitor.config.json');
+            const id = cfg.plugins?.GoogleAuth?.clientId ?? '';
+            if (!id.endsWith('.apps.googleusercontent.com')) {
+              console.error('GoogleAuth clientId is missing or invalid (value length: ' + id.length + ').');
+              console.error('Set the VITE_GOOGLE_CLIENT_ID repository secret to the Web OAuth client ID.');
+              process.exit(1);
+            }
+            console.log('GoogleAuth clientId present, project prefix: ' + id.split('-')[0]);
+          "
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
