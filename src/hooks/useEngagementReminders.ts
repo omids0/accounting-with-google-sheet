@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 
 import { syncAppOpen } from '../services/activityTracking'
 import { isTokenValid } from '../services/auth'
+import { isNativePlatform } from '../services/googleAuthNative'
+import { refreshScheduledReminders } from '../services/localNotifications'
 import {
   getCurrentPushSubscription,
   getDeviceLabel,
@@ -74,7 +76,13 @@ export function useEngagementReminders(): void {
       try {
         await ensureDefaultReminderRules(spreadsheetId)
         await syncAppOpen(spreadsheetId)
-        await tryAutoSubscribePush(spreadsheetId)
+
+        // The APK has no service worker, so its reminders are scheduled on the device.
+        if (isNativePlatform()) {
+          await refreshScheduledReminders(spreadsheetId)
+        } else {
+          await tryAutoSubscribePush(spreadsheetId)
+        }
       } catch {
         /* non-blocking background setup */
       }
