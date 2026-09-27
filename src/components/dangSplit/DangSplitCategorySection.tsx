@@ -1,5 +1,11 @@
 import DangSplitPersonCard from './DangSplitPersonCard'
-import { dangSplitCountBadgeClass, dangSplitEmptySectionClass } from './dangSplitStyles'
+import {
+  dangSplitBalanceLabelClass,
+  dangSplitBalanceRowClass,
+  dangSplitBalanceValueClass,
+  dangSplitCountBadgeClass,
+  dangSplitEmptySectionClass
+} from './dangSplitStyles'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitPersonSummary } from '../../types/dangSplit'
 import { cn } from '../../utils/cn'
@@ -73,10 +79,19 @@ export default function DangSplitCategorySection({
                 {people.length.toLocaleString('fa-IR')} نفر
               </span>
             </div>
+            <div className={dangSplitBalanceRowClass}>
+              <span className={dangSplitBalanceLabelClass}>{balanceLabel}:</span>
+              <span
+                className={dangSplitBalanceValueClass(
+                  totals.balance === 0 ? 'settled' : totals.balance < 0 ? 'credit' : 'debt'
+                )}
+              >
+                {formatMoney(Math.abs(totals.balance))}
+              </span>
+            </div>
+
             <div className={listCardSubtitleClass}>
               جمع سهم: <span className={listCardAmountPillClass}>{formatMoney(totals.share)}</span>
-              {' · '}
-              {balanceLabel}: {formatMoney(Math.abs(totals.balance))}
             </div>
           </div>
         </button>
