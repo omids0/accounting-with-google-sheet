@@ -32,6 +32,8 @@ export function useAppLockSettings() {
 
   const [biometricDetail, setBiometricDetail] = useState<string | null>(null)
 
+  const [biometricError, setBiometricError] = useState<string | null>(null)
+
   const [biometricOn, setBiometricOn] = useState(isBiometricEnabled)
 
   const [step, setStep] = useState<SetupStep>('idle')
@@ -148,12 +150,18 @@ export function useAppLockSettings() {
 
   const handleEnableBiometric = async () => {
     setLoading(true)
+    setBiometricError(null)
     try {
       await enableBiometric()
       setBiometricOn(true)
       showSuccess('اثر انگشت فعال شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در فعال‌سازی اثر انگشت')
+      const message = err instanceof Error ? err.message : 'خطا در فعال‌سازی اثر انگشت'
+
+      // Kept on screen as well as in the toast; a prompt that fails instantly is
+      // otherwise indistinguishable from a button that did nothing.
+      setBiometricError(message)
+      showError(message)
     } finally {
       setLoading(false)
     }
@@ -196,6 +204,7 @@ export function useAppLockSettings() {
     biometricAvailable,
     biometricUnavailableReason,
     biometricDetail,
+    biometricError,
     biometricOn,
     step,
     setStep,

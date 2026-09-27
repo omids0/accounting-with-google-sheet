@@ -7,25 +7,21 @@ interface AppLockBiometricRowProps {
   enabled: boolean
   unavailableReason: string | null
   detail: string | null
+  error: string | null
   loading: boolean
   onEnable: () => void
   onDisable: () => void
 }
 
-/**
- * Always says something about biometry — a button when it can be used, and the
- * device's own answer when it cannot — so the option never disappears silently.
- */
-export default function AppLockBiometricRow({
+function BiometricBody({
   lockEnabled,
   available,
   enabled,
   unavailableReason,
-  detail,
   loading,
   onEnable,
   onDisable
-}: AppLockBiometricRowProps) {
+}: Omit<AppLockBiometricRowProps, 'detail' | 'error'>) {
   if (enabled) {
     return (
       <Button type="button" variant="secondary" size="sm" onClick={onDisable}>
@@ -36,7 +32,14 @@ export default function AppLockBiometricRow({
 
   if (available && lockEnabled) {
     return (
-      <Button type="button" variant="secondary" size="sm" onClick={onEnable} disabled={loading}>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        onClick={onEnable}
+        disabled={loading}
+        loading={loading}
+      >
         فعال‌سازی اثر انگشت
       </Button>
     )
@@ -51,10 +54,21 @@ export default function AppLockBiometricRow({
   }
 
   return (
+    <p className={appLockBiometricNoteClass}>
+      {unavailableReason ?? 'اثر انگشت روی این دستگاه در دسترس نیست.'}
+    </p>
+  )
+}
+
+/**
+ * Always says something about biometry — a button when it can be used, the device's
+ * own answer when it cannot, and the last failure when the prompt refused to open.
+ */
+export default function AppLockBiometricRow({ detail, error, ...body }: AppLockBiometricRowProps) {
+  return (
     <>
-      <p className={appLockBiometricNoteClass}>
-        {unavailableReason ?? 'اثر انگشت روی این دستگاه در دسترس نیست.'}
-      </p>
+      <BiometricBody {...body} />
+      {error && <p className={appLockBiometricNoteClass}>{error}</p>}
       {detail && <p className={appLockBiometricDetailClass}>وضعیت دستگاه: {detail}</p>}
     </>
   )

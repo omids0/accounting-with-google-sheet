@@ -89,6 +89,7 @@ export default function AppLockSettings() {
                 enabled={false}
                 unavailableReason={lock.biometricUnavailableReason}
                 detail={lock.biometricDetail}
+                error={lock.biometricError}
                 loading={lock.loading}
                 onEnable={() => void lock.handleEnableBiometric()}
                 onDisable={() => lock.setStep('disable-biometric')}
@@ -132,6 +133,7 @@ export default function AppLockSettings() {
                 enabled={lock.biometricOn}
                 unavailableReason={lock.biometricUnavailableReason}
                 detail={lock.biometricDetail}
+                error={lock.biometricError}
                 loading={lock.loading}
                 onEnable={() => void lock.handleEnableBiometric()}
                 onDisable={() => lock.setStep('disable-biometric')}
