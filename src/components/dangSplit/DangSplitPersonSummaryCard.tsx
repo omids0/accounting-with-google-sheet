@@ -192,7 +192,7 @@ export default function DangSplitPersonSummaryCard({
             <div className={receivableAddPaymentClass}>
               {showPaymentForm ? (
                 <DangSplitPaymentForm
-                  remaining={Math.abs(item.balance)}
+                  hint={`مانده: ${formatMoney(Math.abs(item.balance))}`}
                   label={isCreditor ? 'مبلغ دریافت' : 'مبلغ پرداخت'}
                   submitLabel={isCreditor ? 'ثبت دریافت' : 'ثبت پرداخت'}
                   saving={saving}

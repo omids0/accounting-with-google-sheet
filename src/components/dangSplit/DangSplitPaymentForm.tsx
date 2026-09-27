@@ -9,14 +9,14 @@ import {
 } from '../ui/treasuryReceivableStyles'
 
 export default function DangSplitPaymentForm({
-  remaining,
+  hint,
   label,
   submitLabel,
   saving,
   onSubmit,
   onCancel
 }: {
-  remaining: number
+  hint: string
   label: string
   submitLabel: string
   saving: boolean
@@ -27,7 +27,7 @@ export default function DangSplitPaymentForm({
 
   return (
     <div className={receivablePaymentFormClass}>
-      <FormField label={label} hint={`مانده: ${remaining.toLocaleString('fa-IR')} تومان`}>
+      <FormField label={label} hint={hint}>
         <AmountInput value={amount} onChange={setAmount} />
       </FormField>
       <div className={receivableAddPaymentActionsClass}>

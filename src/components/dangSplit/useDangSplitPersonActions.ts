@@ -2,7 +2,11 @@ import { useState } from 'react'
 
 import type { DangSplitPersonFormState, DangSplitPersonWithRow } from './types'
 import { deleteDangSplitPersonCascade } from '../../services/dangSplitBundle'
-import { createDangSplitPerson, updateDangSplitPerson } from '../../services/dangSplitPeople'
+import {
+  addDangSplitPersonDeposit,
+  createDangSplitPerson,
+  updateDangSplitPerson
+} from '../../services/dangSplitPeople'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
 
@@ -18,6 +22,8 @@ export function useDangSplitPersonActions({
   const [saving, setSaving] = useState(false)
   const [deletingItem, setDeletingItem] = useState<DangSplitPersonWithRow | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [depositPersonId, setDepositPersonId] = useState<string | null>(null)
+  const [savingDepositId, setSavingDepositId] = useState<string | null>(null)
 
   const openCreateForm = () => {
     setEditingItem(null)
@@ -120,6 +126,32 @@ export function useDangSplitPersonActions({
     }
   }
 
+  /** شارژ صندوق: مبلغ وارد شده به واریز قبلی همان فرد اضافه می‌شود */
+  const handleDeposit = async (person: DangSplitPersonWithRow, amount: number | '') => {
+    const spreadsheetId = requireSpreadsheetId()
+    const value = amount === '' ? 0 : Number(amount)
+
+    if (!spreadsheetId) return
+
+    if (!Number.isFinite(value) || value <= 0) {
+      showError('مبلغ شارژ باید بزرگ‌تر از صفر باشد')
+
+      return
+    }
+
+    setSavingDepositId(person.id)
+    try {
+      await addDangSplitPersonDeposit(spreadsheetId, person, value)
+      setDepositPersonId(null)
+      showSuccess('صندوق شارژ شد')
+      await onSaved()
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'ثبت شارژ ناموفق بود')
+    } finally {
+      setSavingDepositId(null)
+    }
+  }
+
   return {
     showForm,
     editingItem,
@@ -132,6 +164,11 @@ export function useDangSplitPersonActions({
     handleSubmit,
     setDeletingItem,
     closeDeleteConfirm,
-    handleDelete
+    handleDelete,
+    depositPersonId,
+    savingDepositId,
+    openDepositForm: setDepositPersonId,
+    closeDepositForm: () => setDepositPersonId(null),
+    handleDeposit
   }
 }

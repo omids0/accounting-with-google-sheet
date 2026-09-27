@@ -164,6 +164,22 @@ export async function deleteDangSplitPerson(
   await deleteSheetRow(spreadsheetId, DANG_SPLIT_PEOPLE_SHEET, rowNumber)
 }
 
+/** شارژ صندوق: مبلغ جدید به واریز قبلی این فرد اضافه می‌شود */
+export async function addDangSplitPersonDeposit(
+  spreadsheetId: string,
+  person: DangSplitPersonWithRow,
+  amount: number
+): Promise<DangSplitPerson> {
+  const updated: DangSplitPerson = {
+    ...person,
+    deposit: person.deposit + amount
+  }
+
+  await updateDangSplitPerson(spreadsheetId, person.rowNumber, updated)
+
+  return updated
+}
+
 /**
  * ثبت تسویه نقدی یک فرد. مقدار منفی یعنی پولش را پس گرفته (طلبکار بوده). `due` سهم
  * منهای بستانکاری است؛ زمان تسویه وقتی پرداخت به آن رسید پر و در غیر این صورت پاک می‌شود.

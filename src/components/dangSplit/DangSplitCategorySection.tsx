@@ -33,8 +33,13 @@ export default function DangSplitCategorySection({
   summaryByPerson,
   expanded,
   onToggleExpand,
+  depositPersonId,
+  savingDepositId,
   onEditPerson,
   onDeletePerson,
+  onOpenDepositForm,
+  onCloseDepositForm,
+  onDeposit,
   onEditCategory,
   onDeleteCategory
 }: {
@@ -44,8 +49,13 @@ export default function DangSplitCategorySection({
   summaryByPerson: Map<string, DangSplitPersonSummary>
   expanded: boolean
   onToggleExpand: () => void
+  depositPersonId: string | null
+  savingDepositId: string | null
   onEditPerson: (item: DangSplitPersonWithRow) => void
   onDeletePerson: (item: DangSplitPersonWithRow) => void
+  onOpenDepositForm: (personId: string) => void
+  onCloseDepositForm: () => void
+  onDeposit: (person: DangSplitPersonWithRow, amount: number | '') => void
   onEditCategory: (item: DangSplitCategoryWithRow) => void
   onDeleteCategory: (item: DangSplitCategoryWithRow) => void
 }) {
@@ -136,8 +146,13 @@ export default function DangSplitCategorySection({
                   key={item.id}
                   item={item}
                   summary={summaryByPerson.get(item.id)}
+                  showDepositForm={depositPersonId === item.id}
+                  savingDeposit={savingDepositId === item.id}
                   onEdit={onEditPerson}
                   onDelete={onDeletePerson}
+                  onOpenDepositForm={() => onOpenDepositForm(item.id)}
+                  onCloseDepositForm={onCloseDepositForm}
+                  onDeposit={amount => onDeposit(item, amount)}
                 />
               ))}
             </div>

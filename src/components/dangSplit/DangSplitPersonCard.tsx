@@ -1,4 +1,6 @@
+import DangSplitPaymentForm from './DangSplitPaymentForm'
 import {
+  dangSplitChipsRowClass,
   dangSplitStatLabelClass,
   dangSplitStatValueClass,
   dangSplitStatusClass
@@ -8,6 +10,7 @@ import type { DangSplitPersonSummary } from '../../types/dangSplit'
 import { formatMoney } from '../../utils/formatMoney'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
+import Button from '../ui/Button'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
@@ -31,13 +34,23 @@ const STATUS_LABELS: Record<DangSplitPersonSummary['status'], string> = {
 export default function DangSplitPersonCard({
   item,
   summary,
+  showDepositForm,
+  savingDeposit,
   onEdit,
-  onDelete
+  onDelete,
+  onOpenDepositForm,
+  onCloseDepositForm,
+  onDeposit
 }: {
   item: DangSplitPersonWithRow
   summary?: DangSplitPersonSummary
+  showDepositForm: boolean
+  savingDeposit: boolean
   onEdit: (item: DangSplitPersonWithRow) => void
   onDelete: (item: DangSplitPersonWithRow) => void
+  onOpenDepositForm: () => void
+  onCloseDepositForm: () => void
+  onDeposit: (amount: number | '') => void
 }) {
   const share = summary?.share ?? 0
   const credit = summary?.credit ?? 0
@@ -78,6 +91,29 @@ export default function DangSplitPersonCard({
               ) : null}
             </div>
             {item.note ? <p className={dangCardNoteClass}>{item.note}</p> : null}
+
+            {showDepositForm ? (
+              <DangSplitPaymentForm
+                label="مبلغ شارژ صندوق"
+                submitLabel="ثبت شارژ"
+                hint={`واریز فعلی: ${formatMoney(item.deposit)}`}
+                saving={savingDeposit}
+                onSubmit={onDeposit}
+                onCancel={onCloseDepositForm}
+              />
+            ) : (
+              <div className={dangSplitChipsRowClass}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={savingDeposit}
+                  onClick={onOpenDepositForm}
+                >
+                  + شارژ صندوق
+                </Button>
+              </div>
+            )}
           </div>
         </div>
         <div className={cardActionButtonsClass}>

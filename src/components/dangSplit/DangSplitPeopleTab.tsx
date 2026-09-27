@@ -19,18 +19,28 @@ export default function DangSplitPeopleTab({
   people,
   categories,
   summary,
+  depositPersonId,
+  savingDepositId,
   onAddPerson,
   onEditPerson,
   onDeletePerson,
+  onOpenDepositForm,
+  onCloseDepositForm,
+  onDeposit,
   onEditCategory,
   onDeleteCategory
 }: {
   people: DangSplitPersonWithRow[]
   categories: DangSplitCategoryWithRow[]
   summary: DangSplitGroupSummary
+  depositPersonId: string | null
+  savingDepositId: string | null
   onAddPerson: () => void
   onEditPerson: (item: DangSplitPersonWithRow) => void
   onDeletePerson: (item: DangSplitPersonWithRow) => void
+  onOpenDepositForm: (personId: string) => void
+  onCloseDepositForm: () => void
+  onDeposit: (person: DangSplitPersonWithRow, amount: number | '') => void
   onEditCategory: (item: DangSplitCategoryWithRow) => void
   onDeleteCategory: (item: DangSplitCategoryWithRow) => void
 }) {
@@ -91,8 +101,13 @@ export default function DangSplitPeopleTab({
           summaryByPerson={summaryByPerson}
           expanded={expandedKeys.includes(section.key)}
           onToggleExpand={() => toggleSection(section.key)}
+          depositPersonId={depositPersonId}
+          savingDepositId={savingDepositId}
           onEditPerson={onEditPerson}
           onDeletePerson={onDeletePerson}
+          onOpenDepositForm={onOpenDepositForm}
+          onCloseDepositForm={onCloseDepositForm}
+          onDeposit={onDeposit}
           onEditCategory={onEditCategory}
           onDeleteCategory={onDeleteCategory}
         />

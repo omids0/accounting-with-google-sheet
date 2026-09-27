@@ -94,9 +94,14 @@ export default function DangSplitDetailPage({
           people={data.people}
           categories={data.categories}
           summary={data.summary}
+          depositPersonId={personActions.depositPersonId}
+          savingDepositId={personActions.savingDepositId}
           onAddPerson={personActions.openCreateForm}
           onEditPerson={personActions.openEditForm}
           onDeletePerson={personActions.setDeletingItem}
+          onOpenDepositForm={personActions.openDepositForm}
+          onCloseDepositForm={personActions.closeDepositForm}
+          onDeposit={(person, amount) => void personActions.handleDeposit(person, amount)}
           onEditCategory={categoryActions.openEditForm}
           onDeleteCategory={categoryActions.setDeletingItem}
         />
