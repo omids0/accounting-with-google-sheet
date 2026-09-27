@@ -192,21 +192,23 @@ export function buildGroupSummary({
     }
   }
 
-  const creditByPerson = new Map<string, number>()
+  const expensePaidByPerson = new Map<string, number>()
 
   for (const expense of expenses) {
     if (!expense.payerId || !knownPeople.has(expense.payerId)) continue
 
-    creditByPerson.set(
+    expensePaidByPerson.set(
       expense.payerId,
-      (creditByPerson.get(expense.payerId) ?? 0) + safeAmount(expense.amount)
+      (expensePaidByPerson.get(expense.payerId) ?? 0) + safeAmount(expense.amount)
     )
   }
 
   const summaries: DangSplitPersonSummary[] = people.map(item => {
     const breakdown = breakdowns.get(item.id) ?? []
     const share = breakdown.reduce((sum, entry) => sum + entry.share, 0)
-    const credit = creditByPerson.get(item.id) ?? 0
+    const deposit = safeAmount(item.deposit)
+    const expensePaid = expensePaidByPerson.get(item.id) ?? 0
+    const credit = deposit + expensePaid
     const paid = Number.isFinite(item.paidAmount) ? item.paidAmount : 0
     const balance = share - credit - paid
 
@@ -215,6 +217,8 @@ export function buildGroupSummary({
       name: item.name,
       categoryId: item.categoryId,
       share,
+      deposit,
+      expensePaid,
       credit,
       paid,
       balance,
@@ -227,7 +231,8 @@ export function buildGroupSummary({
 
   return {
     total: expenses.reduce((sum, item) => sum + safeAmount(item.amount), 0),
-    covered: expenses.reduce((sum, item) => sum + (item.payerId ? safeAmount(item.amount) : 0), 0),
+    covered: summaries.reduce((sum, item) => sum + item.credit, 0),
+    depositTotal: summaries.reduce((sum, item) => sum + item.deposit, 0),
     paid: summaries.reduce((sum, item) => sum + item.paid, 0),
     balance: summaries.reduce((sum, item) => sum + item.balance, 0),
     debtTotal: summaries.reduce((sum, item) => sum + Math.max(0, item.balance), 0),

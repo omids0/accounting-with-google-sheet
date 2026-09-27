@@ -2,7 +2,9 @@ import {
   appendSheetRow,
   deleteSheetRow,
   ensureManySheetsWithHeaders,
+  fetchSheetRangeFromApi,
   fetchSheetRows,
+  replaceSheetDataRows,
   updateSheetRow,
   type SheetSpec
 } from './sheets'
@@ -26,7 +28,8 @@ export const DANG_SPLIT_PEOPLE_HEADERS = [
   'ضریب پیش‌فرض',
   'مبلغ پرداخت‌شده',
   'زمان تسویه',
-  'یادداشت'
+  'یادداشت',
+  'واریز به صندوق'
 ]
 
 export const DANG_SPLIT_EXPENSES_HEADERS = [
@@ -71,6 +74,39 @@ export function mapSheetRows<T>(
 
 export function nowTimestamp(): string {
   return new Date().toLocaleString('fa-IR')
+}
+
+const repairedHeaders = new Set<string>()
+
+/**
+ * ستون‌هایی که بعد از ساخته‌شدن شیت اضافه شده‌اند. `ensureSheetWithHeaders` سربرگ
+ * موجود را دست نمی‌زند، پس یک‌بار در هر نشست سربرگ کوتاه را کامل می‌کنیم.
+ */
+export async function repairDangSplitHeaders(
+  spreadsheetId: string,
+  sheetName: string,
+  headers: string[],
+  rebuildRows: (rows: string[][]) => string[][]
+): Promise<void> {
+  const key = `${spreadsheetId}:${sheetName}`
+
+  if (repairedHeaders.has(key)) return
+
+  repairedHeaders.add(key)
+
+  try {
+    const headerRows = await fetchSheetRangeFromApi(spreadsheetId, sheetName, 'A1:Z1')
+    const header = headerRows[0] ?? []
+
+    if (header.length === 0 || header.length >= headers.length) return
+
+    const rows = await fetchSheetRows(spreadsheetId, sheetName)
+
+    await replaceSheetDataRows(spreadsheetId, sheetName, rebuildRows(rows), headers.length, headers)
+  } catch {
+    // تکمیل سربرگ بهترین‌تلاش است؛ خواندن داده نباید به‌خاطرش شکست بخورد.
+    repairedHeaders.delete(key)
+  }
 }
 
 function rowToGroup(row: string[], rowNumber: number): DangSplitGroupWithRow {

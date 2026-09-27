@@ -9,6 +9,7 @@ import type {
 } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
+import AmountInput from '../AmountInput'
 import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 
@@ -38,9 +39,10 @@ export default function DangSplitPersonFormModal({
             name: editingItem.name,
             categoryId: editingItem.categoryId,
             defaultWeight: editingItem.defaultWeight,
+            deposit: editingItem.deposit,
             note: editingItem.note
           }
-        : { name: '', categoryId: '', defaultWeight: 1, note: '' },
+        : { name: '', categoryId: '', defaultWeight: 1, deposit: '', note: '' },
     [editingItem]
   )
 
@@ -108,6 +110,19 @@ export default function DangSplitPersonFormModal({
           />
         </FormField>
       </FormRow>
+
+      <Controller
+        name="deposit"
+        control={control}
+        render={({ field }) => (
+          <FormField
+            label="واریز به صندوق"
+            hint="پولی که این فرد اول کار به صندوق گروه ریخته؛ هزینه‌ها از همین کم می‌شود"
+          >
+            <AmountInput value={field.value} onChange={field.onChange} />
+          </FormField>
+        )}
+      />
 
       <FormField label="یادداشت" controlWidth="full">
         <textarea {...register('note')} placeholder="یادداشت اختیاری" />

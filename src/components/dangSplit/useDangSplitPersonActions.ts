@@ -49,9 +49,16 @@ export function useDangSplitPersonActions({
     }
 
     const defaultWeight = values.defaultWeight === '' ? 1 : Number(values.defaultWeight)
+    const deposit = values.deposit === '' ? 0 : Number(values.deposit)
 
     if (!Number.isFinite(defaultWeight) || defaultWeight <= 0) {
       showError('ضریب باید عددی بزرگ‌تر از صفر باشد')
+
+      return
+    }
+
+    if (!Number.isFinite(deposit) || deposit < 0) {
+      showError('واریز به صندوق نمی‌تواند منفی باشد')
 
       return
     }
@@ -64,6 +71,7 @@ export function useDangSplitPersonActions({
           name,
           categoryId: values.categoryId,
           defaultWeight,
+          deposit,
           note: values.note.trim()
         })
         showSuccess('فرد ویرایش شد')
@@ -73,6 +81,7 @@ export function useDangSplitPersonActions({
           name,
           categoryId: values.categoryId,
           defaultWeight,
+          deposit,
           note: values.note.trim()
         })
         showSuccess('فرد اضافه شد')

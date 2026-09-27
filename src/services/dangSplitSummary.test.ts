@@ -10,6 +10,7 @@ function person(id: string, overrides: Partial<DangSplitPerson> = {}): DangSplit
     name: id,
     categoryId: '',
     defaultWeight: 1,
+    deposit: 0,
     paidAmount: 0,
     settledAt: '',
     note: '',
@@ -113,6 +114,7 @@ describe('buildGroupSummary', () => {
     })
     const byId = new Map(summary.people.map(item => [item.personId, item]))
 
+    expect(byId.get('ali')?.expensePaid).toBe(300_000)
     expect(byId.get('ali')?.credit).toBe(300_000)
     expect(byId.get('ali')?.share).toBe(200_000)
     // ۳۰۰٬۰۰۰ داده و ۲۰۰٬۰۰۰ سهمش بوده، پس ۱۰۰٬۰۰۰ طلبکار است
@@ -172,6 +174,7 @@ describe('buildGroupSummary', () => {
 
     expect(summary.total).toBe(250_000)
     expect(summary.covered).toBe(200_000)
+    expect(summary.depositTotal).toBe(0)
     expect(summary.debtTotal).toBe(100_000)
     expect(summary.creditTotal).toBe(100_000)
     expect(summary.unallocatedTotal).toBe(50_000)
@@ -204,5 +207,39 @@ describe('buildGroupSummary', () => {
     })
 
     expect(summary.people[0].share).toBe(100_000)
+  })
+})
+
+describe('buildGroupSummary with fund deposits', () => {
+  it('counts a deposit as credit and covers the share with it', () => {
+    const summary = buildGroupSummary({
+      people: [person('ali', { deposit: 2_000_000 }), person('reza', { deposit: 2_000_000 })],
+      expenses: [expense('villa', 3_000_000)],
+      allocations: [allocation('villa', 'ali', 1), allocation('villa', 'reza', 1)]
+    })
+    const byId = new Map(summary.people.map(item => [item.personId, item]))
+
+    expect(byId.get('ali')?.deposit).toBe(2_000_000)
+    expect(byId.get('ali')?.share).toBe(1_500_000)
+    // ۲٬۰۰۰٬۰۰۰ واریز کرده و ۱٬۵۰۰٬۰۰۰ خرج شده، پس ۵۰۰٬۰۰۰ طلبکار است
+    expect(byId.get('ali')?.balance).toBe(-500_000)
+    expect(byId.get('ali')?.status).toBe('creditor')
+    expect(summary.depositTotal).toBe(4_000_000)
+    expect(summary.covered).toBe(4_000_000)
+  })
+
+  it('adds an out-of-pocket expense to the same person credit', () => {
+    const summary = buildGroupSummary({
+      people: [person('ali', { deposit: 1_000_000 }), person('reza')],
+      expenses: [expense('taxi', 400_000, 'ali')],
+      allocations: [allocation('taxi', 'ali', 1), allocation('taxi', 'reza', 1)]
+    })
+    const byId = new Map(summary.people.map(item => [item.personId, item]))
+
+    expect(byId.get('ali')?.deposit).toBe(1_000_000)
+    expect(byId.get('ali')?.expensePaid).toBe(400_000)
+    expect(byId.get('ali')?.credit).toBe(1_400_000)
+    expect(byId.get('ali')?.balance).toBe(200_000 - 1_400_000)
+    expect(byId.get('reza')?.balance).toBe(200_000)
   })
 })

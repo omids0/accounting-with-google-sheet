@@ -123,8 +123,12 @@ export default function DangSplitPersonSummaryCard({
               <span>{formatMoney(item.share)}</span>
             </div>
             <div>
-              <span className={receivableSummaryLabelClass}>پرداختی بابت گروه</span>
-              <span className={receivablePaidClass}>{formatMoney(item.credit)}</span>
+              <span className={receivableSummaryLabelClass}>واریز به صندوق</span>
+              <span className={receivablePaidClass}>{formatMoney(item.deposit)}</span>
+            </div>
+            <div>
+              <span className={receivableSummaryLabelClass}>پرداختی اقلام</span>
+              <span className={receivablePaidClass}>{formatMoney(item.expensePaid)}</span>
             </div>
             <div>
               <span className={receivableSummaryLabelClass}>

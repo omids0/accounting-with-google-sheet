@@ -4,13 +4,13 @@ import {
   DANG_SPLIT_EXPENSES_HEADERS,
   DANG_SPLIT_EXPENSES_SHEET,
   mapSheetRows,
-  nowTimestamp
+  nowTimestamp,
+  repairDangSplitHeaders
 } from './dangSplit'
 import type { DangSplitWeight } from './dangSplitMath'
 import {
   appendSheetRow,
   deleteSheetRow,
-  fetchSheetRangeFromApi,
   fetchSheetRows,
   replaceSheetDataRows,
   updateSheetRow
@@ -69,47 +69,16 @@ export function allocationToRow(allocation: DangSplitAllocation): string[] {
   ]
 }
 
-const repairedHeaders = new Set<string>()
-
-/**
- * ستون «پرداخت‌کننده» بعد از ساخته‌شدن شیت اضافه شد و `ensureSheetWithHeaders` سربرگ
- * موجود را دست نمی‌زند، پس یک‌بار در هر نشست سربرگ کوتاه را کامل می‌کنیم.
- */
-async function repairExpenseHeaders(spreadsheetId: string): Promise<void> {
-  if (repairedHeaders.has(spreadsheetId)) return
-
-  repairedHeaders.add(spreadsheetId)
-
-  try {
-    const headerRows = await fetchSheetRangeFromApi(
-      spreadsheetId,
-      DANG_SPLIT_EXPENSES_SHEET,
-      'A1:Z1'
-    )
-    const header = headerRows[0] ?? []
-
-    if (header.length === 0 || header.length >= DANG_SPLIT_EXPENSES_HEADERS.length) return
-
-    const rows = await fetchSheetRows(spreadsheetId, DANG_SPLIT_EXPENSES_SHEET)
-
-    await replaceSheetDataRows(
-      spreadsheetId,
-      DANG_SPLIT_EXPENSES_SHEET,
-      mapSheetRows(rows, rowToExpense).map(expenseToRow),
-      DANG_SPLIT_EXPENSES_HEADERS.length,
-      DANG_SPLIT_EXPENSES_HEADERS
-    )
-  } catch {
-    // تکمیل سربرگ بهترین‌تلاش است؛ خواندن اقلام نباید به‌خاطرش شکست بخورد.
-    repairedHeaders.delete(spreadsheetId)
-  }
-}
-
 export async function fetchDangSplitExpenses(
   spreadsheetId: string,
   groupId?: string
 ): Promise<DangSplitExpenseWithRow[]> {
-  await repairExpenseHeaders(spreadsheetId)
+  await repairDangSplitHeaders(
+    spreadsheetId,
+    DANG_SPLIT_EXPENSES_SHEET,
+    DANG_SPLIT_EXPENSES_HEADERS,
+    rows => mapSheetRows(rows, rowToExpense).map(expenseToRow)
+  )
 
   const rows = await fetchSheetRows(spreadsheetId, DANG_SPLIT_EXPENSES_SHEET)
 

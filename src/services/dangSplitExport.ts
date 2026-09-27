@@ -18,7 +18,8 @@ export async function exportDangSplitSummaryPdf(
   const rows = summary.people.map(item => [
     item.name,
     formatMoney(item.share),
-    formatMoney(item.credit),
+    formatMoney(item.deposit),
+    formatMoney(item.expensePaid),
     formatMoney(item.paid),
     formatMoney(item.balance),
     STATUS_LABELS[item.status]
@@ -27,7 +28,8 @@ export async function exportDangSplitSummaryPdf(
   rows.push([
     'جمع',
     formatMoney(summary.total),
-    formatMoney(summary.covered),
+    formatMoney(summary.depositTotal),
+    formatMoney(summary.covered - summary.depositTotal),
     formatMoney(summary.paid),
     formatMoney(summary.debtTotal),
     `${summary.settledCount.toLocaleString('fa-IR')} تسویه‌شده`
@@ -35,11 +37,12 @@ export async function exportDangSplitSummaryPdf(
 
   await downloadTablePdf({
     title: `جمع‌بندی دنگ: ${groupTitle}`,
-    headers: ['نام', 'سهم', 'پرداختی بابت گروه', 'تسویه نقدی', 'مانده', 'وضعیت'],
+    headers: ['نام', 'سهم', 'واریز به صندوق', 'پرداختی اقلام', 'تسویه نقدی', 'مانده', 'وضعیت'],
     rows,
     filename: `دنگ-${groupTitle}.pdf`,
     cellClasses: rows.map(() => [
       '',
+      'pdf-cell-amount',
       'pdf-cell-amount',
       'pdf-cell-amount',
       'pdf-cell-amount',

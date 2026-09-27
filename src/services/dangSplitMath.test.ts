@@ -10,6 +10,7 @@ function person(id: string, overrides: Partial<DangSplitPerson> = {}): DangSplit
     name: id,
     categoryId: '',
     defaultWeight: 1,
+    deposit: 0,
     paidAmount: 0,
     settledAt: '',
     note: '',

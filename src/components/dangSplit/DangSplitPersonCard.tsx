@@ -38,6 +38,13 @@ export default function DangSplitPersonCard({
             <div className={dangCardMetaClass}>
               <span className={dangSplitStatLabelClass}>ضریب: </span>
               {item.defaultWeight.toLocaleString('fa-IR')}
+              {item.deposit > 0 ? (
+                <>
+                  {' · '}
+                  <span className={dangSplitStatLabelClass}>واریز به صندوق: </span>
+                  {formatMoney(item.deposit)}
+                </>
+              ) : null}
             </div>
             {item.note ? <p className={dangCardNoteClass}>{item.note}</p> : null}
           </div>

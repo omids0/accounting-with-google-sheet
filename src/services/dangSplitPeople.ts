@@ -1,8 +1,10 @@
 import {
   DANG_SPLIT_CATEGORIES_SHEET,
+  DANG_SPLIT_PEOPLE_HEADERS,
   DANG_SPLIT_PEOPLE_SHEET,
   mapSheetRows,
-  nowTimestamp
+  nowTimestamp,
+  repairDangSplitHeaders
 } from './dangSplit'
 import { appendSheetRow, deleteSheetRow, fetchSheetRows, updateSheetRow } from './sheets'
 import type { DangSplitPerson, DangSplitPersonCategory } from '../types/dangSplit'
@@ -35,7 +37,8 @@ function rowToPerson(row: string[], rowNumber: number): DangSplitPersonWithRow {
     defaultWeight: parseNumeric(row[4]) || 1,
     paidAmount: parseNumeric(row[5]),
     settledAt: row[6] ?? '',
-    note: row[7] ?? ''
+    note: row[7] ?? '',
+    deposit: parseNumeric(row[8])
   }
 }
 
@@ -48,7 +51,8 @@ export function personToRow(person: DangSplitPerson): string[] {
     String(person.defaultWeight),
     String(person.paidAmount),
     person.settledAt,
-    person.note
+    person.note,
+    String(person.deposit)
   ]
 }
 
@@ -103,6 +107,13 @@ export async function fetchDangSplitPeople(
   spreadsheetId: string,
   groupId?: string
 ): Promise<DangSplitPersonWithRow[]> {
+  await repairDangSplitHeaders(
+    spreadsheetId,
+    DANG_SPLIT_PEOPLE_SHEET,
+    DANG_SPLIT_PEOPLE_HEADERS,
+    rows => mapSheetRows(rows, rowToPerson).map(personToRow)
+  )
+
   const rows = await fetchSheetRows(spreadsheetId, DANG_SPLIT_PEOPLE_SHEET)
 
   return mapSheetRows(rows, rowToPerson)
@@ -117,6 +128,7 @@ export async function createDangSplitPerson(
     name: string
     categoryId: string
     defaultWeight: number
+    deposit: number
     note: string
   }
 ): Promise<DangSplitPerson> {
@@ -126,6 +138,7 @@ export async function createDangSplitPerson(
     name: data.name,
     categoryId: data.categoryId,
     defaultWeight: data.defaultWeight,
+    deposit: data.deposit,
     paidAmount: 0,
     settledAt: '',
     note: data.note

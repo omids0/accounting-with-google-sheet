@@ -24,6 +24,7 @@ export type DangSplitPersonFormState = {
   name: string
   categoryId: string
   defaultWeight: number | ''
+  deposit: number | ''
   note: string
 }
 

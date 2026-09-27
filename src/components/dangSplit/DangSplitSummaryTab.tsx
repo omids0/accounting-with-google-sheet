@@ -33,7 +33,7 @@ export default function DangSplitSummaryTab({
       <div className={dashboardStatGridClass}>
         <StatCard label="جمع کل" amount={summary.total} variant="balance" animateIndex={0} lift />
         <StatCard
-          label="پرداخت‌شده توسط افراد"
+          label="بستانکاری افراد (واریز + پرداختی)"
           amount={summary.covered}
           variant="income"
           animateIndex={1}

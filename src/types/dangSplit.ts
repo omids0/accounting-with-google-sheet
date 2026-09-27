@@ -22,6 +22,8 @@ export interface DangSplitPerson {
   categoryId: string
   /** ضریب پیش‌فرض سهم این فرد (پیش‌فرض ۱) */
   defaultWeight: number
+  /** پولی که اول کار به صندوق گروه واریز کرده */
+  deposit: number
   /** مبلغی که این فرد تا حالا پرداخت کرده */
   paidAmount: number
   /** زمان رسیدن مانده به صفر */
@@ -72,7 +74,11 @@ export interface DangSplitPersonSummary {
   name: string
   categoryId: string
   share: number
-  /** مبلغ اقلامی که خودش پرداخت کرده (بستانکاری) */
+  /** واریز اولیه به صندوق */
+  deposit: number
+  /** مبلغ اقلامی که خودش پرداخت کرده */
+  expensePaid: number
+  /** کل بستانکاری: واریز + اقلام پرداختی */
   credit: number
   /** تسویه نقدی؛ منفی یعنی پولش را پس گرفته */
   paid: number
@@ -85,8 +91,10 @@ export interface DangSplitPersonSummary {
 /** جمع‌بندی کل گروه */
 export interface DangSplitGroupSummary {
   total: number
-  /** مبلغ اقلامی که پرداخت‌کننده‌شان مشخص است */
+  /** کل بستانکاری افراد: واریز به صندوق + اقلامی که خودشان پرداخت کرده‌اند */
   covered: number
+  /** جمع واریزهای اولیه به صندوق */
+  depositTotal: number
   paid: number
   balance: number
   /** جمع مانده بدهکارها */
