@@ -57,10 +57,11 @@ export async function checkForUpdate(): Promise<AvailableUpdate | null> {
   }
 }
 
-export function isUpdateDismissed(versionCode: number): boolean {
-  return getItem<number>(DISMISSED_KEY) === versionCode
-}
-
 export function dismissUpdate(versionCode: number): void {
   setItem(DISMISSED_KEY, versionCode)
+}
+
+/** Null until the user postpones an update, so the menu can still surface it later. */
+export function getDismissedVersionCode(): number | null {
+  return getItem<number>(DISMISSED_KEY)
 }

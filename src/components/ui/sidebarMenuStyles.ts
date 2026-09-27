@@ -199,3 +199,9 @@ export function appMenuHeaderThemeThumbClass(isDark?: boolean) {
     isDark ? 'start-[calc(50%)]' : 'start-[0.14rem]'
   )
 }
+
+export const appMenuUpdateDotClass = cn(
+  'h-[0.5rem] w-[0.5rem] flex-shrink-0 rounded-full bg-[var(--color-warning)]',
+  'shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-warning)_22%,transparent)]',
+  'animate-[syncPulse_1.6s_ease-in-out_infinite]'
+)

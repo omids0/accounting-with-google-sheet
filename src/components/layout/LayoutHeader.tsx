@@ -1,3 +1,4 @@
+import { useAppUpdateStore } from '../../stores/appUpdateStore'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
 import SyncStatusBadge from '../SyncStatusBadge'
@@ -10,7 +11,8 @@ import {
   headerGridCenterClass,
   headerGridMenuClass,
   headerIconBtnMenuClass,
-  headerIconSpacerClass
+  headerIconSpacerClass,
+  headerMenuDotClass
 } from '../ui/layoutStyles'
 import { mobileOnlyClass } from '../ui/responsiveStyles'
 
@@ -31,17 +33,31 @@ export default function LayoutHeader({
   showSettings,
   onHeaderBack
 }: LayoutHeaderProps) {
+  const updateAvailable = useAppUpdateStore(state => !!state.update)
+
   return (
     <header className={cn(appHeaderClass, showHeaderBack && appHeaderWithBackClass)}>
       <button
         type="button"
-        className={cn(headerIconBtnMenuClass(menuOpen), mobileOnlyClass, headerGridMenuClass)}
+        className={cn(
+          headerIconBtnMenuClass(menuOpen),
+          mobileOnlyClass,
+          headerGridMenuClass,
+          'relative'
+        )}
         onClick={onToggleMenu}
-        aria-label={menuOpen ? 'بستن منو' : 'باز کردن منو'}
+        aria-label={
+          menuOpen
+            ? 'بستن منو'
+            : updateAvailable
+            ? 'باز کردن منو — به‌روزرسانی موجود'
+            : 'باز کردن منو'
+        }
         aria-expanded={menuOpen}
         title="منو"
       >
         <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
+        {updateAvailable && !menuOpen && <span className={headerMenuDotClass} aria-hidden="true" />}
       </button>
       <div className={cn(appHeaderCenterClass, headerGridCenterClass)} data-header-center>
         <h1 className={appHeaderTitleClass} data-header-title>
