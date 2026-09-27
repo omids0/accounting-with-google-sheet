@@ -112,6 +112,12 @@ export function headerIconBtnMenuClass(active?: boolean) {
   return cn(headerIconBtnClass, 'text-white', active && 'bg-white/30')
 }
 
+export const headerMenuDotClass = cn(
+  'pointer-events-none absolute end-[0.45rem] top-[0.45rem] h-[0.5rem] w-[0.5rem] rounded-full',
+  'bg-[var(--color-warning)] ring-2 ring-white/80',
+  'animate-[syncPulse_1.6s_ease-in-out_infinite]'
+)
+
 export const headerGridMenuClass = 'col-start-1 row-start-1'
 
 export const headerGridCenterClass = 'col-start-2 row-start-1'

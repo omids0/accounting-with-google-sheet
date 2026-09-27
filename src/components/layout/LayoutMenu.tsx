@@ -3,6 +3,7 @@ import LazyImage from '../LazyImage'
 import LayoutReportsSubmenu from './LayoutReportsSubmenu'
 import LayoutSidebarNav from './LayoutSidebarNav'
 import LayoutThemeToggle from './LayoutThemeToggle'
+import LayoutUpdateItem from './LayoutUpdateItem'
 import type { Tab } from './types'
 import { cn } from '../../utils/cn'
 import {
@@ -257,6 +258,7 @@ export default function LayoutMenu({
               </span>
               تنظیمات
             </button>
+            <LayoutUpdateItem />
           </div>
         </div>
         <div className={appMenuFooterClass}>
