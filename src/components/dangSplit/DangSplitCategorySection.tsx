@@ -1,6 +1,7 @@
 import DangSplitPersonCard from './DangSplitPersonCard'
 import { dangSplitCountBadgeClass, dangSplitEmptySectionClass } from './dangSplitStyles'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
+import type { DangSplitPersonSummary } from '../../types/dangSplit'
 import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
@@ -23,7 +24,7 @@ export default function DangSplitCategorySection({
   title,
   category,
   people,
-  shareByPerson,
+  summaryByPerson,
   expanded,
   onToggleExpand,
   onEditPerson,
@@ -34,7 +35,7 @@ export default function DangSplitCategorySection({
   title: string
   category: DangSplitCategoryWithRow | null
   people: DangSplitPersonWithRow[]
-  shareByPerson: Map<string, number>
+  summaryByPerson: Map<string, DangSplitPersonSummary>
   expanded: boolean
   onToggleExpand: () => void
   onEditPerson: (item: DangSplitPersonWithRow) => void
@@ -42,7 +43,18 @@ export default function DangSplitCategorySection({
   onEditCategory: (item: DangSplitCategoryWithRow) => void
   onDeleteCategory: (item: DangSplitCategoryWithRow) => void
 }) {
-  const totalShare = people.reduce((sum, item) => sum + (shareByPerson.get(item.id) ?? 0), 0)
+  const totals = people.reduce(
+    (acc, item) => {
+      const summary = summaryByPerson.get(item.id)
+
+      return {
+        share: acc.share + (summary?.share ?? 0),
+        balance: acc.balance + (summary?.balance ?? 0)
+      }
+    },
+    { share: 0, balance: 0 }
+  )
+  const balanceLabel = totals.balance < 0 ? 'طلبکار' : totals.balance > 0 ? 'بدهکار' : 'مانده'
 
   return (
     <div className={installmentCardClass({ expanded })}>
@@ -62,7 +74,9 @@ export default function DangSplitCategorySection({
               </span>
             </div>
             <div className={listCardSubtitleClass}>
-              جمع سهم: <span className={listCardAmountPillClass}>{formatMoney(totalShare)}</span>
+              جمع سهم: <span className={listCardAmountPillClass}>{formatMoney(totals.share)}</span>
+              {' · '}
+              {balanceLabel}: {formatMoney(Math.abs(totals.balance))}
             </div>
           </div>
         </button>
@@ -106,7 +120,7 @@ export default function DangSplitCategorySection({
                 <DangSplitPersonCard
                   key={item.id}
                   item={item}
-                  share={shareByPerson.get(item.id) ?? 0}
+                  summary={summaryByPerson.get(item.id)}
                   onEdit={onEditPerson}
                   onDelete={onDeletePerson}
                 />

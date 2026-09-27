@@ -37,8 +37,8 @@ export default function DangSplitPeopleTab({
   // دسته‌ها بسته شروع می‌شوند؛ این مجموعه دسته‌های بازشده را نگه می‌دارد.
   const [expandedKeys, setExpandedKeys] = useState<string[]>([])
 
-  const shareByPerson = useMemo(
-    () => new Map(summary.people.map(item => [item.personId, item.share])),
+  const summaryByPerson = useMemo(
+    () => new Map(summary.people.map(item => [item.personId, item])),
     [summary.people]
   )
 
@@ -88,7 +88,7 @@ export default function DangSplitPeopleTab({
           title={section.title}
           category={section.category}
           people={section.people}
-          shareByPerson={shareByPerson}
+          summaryByPerson={summaryByPerson}
           expanded={expandedKeys.includes(section.key)}
           onToggleExpand={() => toggleSection(section.key)}
           onEditPerson={onEditPerson}
