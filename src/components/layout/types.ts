@@ -17,6 +17,8 @@ export type Tab =
   | 'loan-calculator'
   | 'currency-converter'
   | 'date-calculator'
+  | 'dang-split'
+  | 'dang-split-detail'
   | 'report-financial-summary'
   | 'report-income-expense'
   | 'report-category-tree'
@@ -34,7 +36,15 @@ export type Tab =
   | 'timesheet-detail'
   | 'about'
 
-export const CALCULATION_TABS: Tab[] = ['loan-calculator', 'currency-converter', 'date-calculator']
+export const CALCULATION_TABS: Tab[] = [
+  'loan-calculator',
+  'currency-converter',
+  'date-calculator',
+  'dang-split',
+  'dang-split-detail'
+]
+
+export const DANG_SPLIT_TABS: Tab[] = ['dang-split', 'dang-split-detail']
 
 export const TIMESHEET_TABS: Tab[] = ['timesheets', 'timesheet-detail']
 
@@ -81,7 +91,9 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'treasury',
   'wallet',
   'timesheets',
-  'timesheet-detail'
+  'timesheet-detail',
+  'dang-split',
+  'dang-split-detail'
 ]
 
 export const TAB_TITLES: Record<Tab, string> = {
@@ -103,6 +115,8 @@ export const TAB_TITLES: Record<Tab, string> = {
   'loan-calculator': 'محاسبات درخواست وام',
   'currency-converter': 'تبدیل ارز',
   'date-calculator': 'محاسبه تاریخ',
+  'dang-split': 'محاسبه دنگ',
+  'dang-split-detail': 'جزئیات دنگ',
   'report-financial-summary': 'خلاصه مالی',
   'report-income-expense': 'درآمد و هزینه',
   'report-category-tree': 'درختواره درآمد/هزینه',

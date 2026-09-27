@@ -6,6 +6,8 @@ export interface TabNavigationOptions {
   timesheetTitle?: string
   vehicleId?: string
   vehicleTitle?: string
+  dangSplitGroupId?: string
+  dangSplitGroupTitle?: string
   formType?: 'income' | 'expense'
 }
 
@@ -40,6 +42,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'loan-calculator': '/calculators/loan',
   'currency-converter': '/calculators/currency',
   'date-calculator': '/calculators/date',
+  'dang-split': '/dang-split',
   about: '/about',
   'report-financial-summary': '/reports/financial-summary',
   'report-income-expense': '/reports/income-expense',
@@ -78,6 +81,10 @@ export function getTabFromPath(pathname: string): Tab {
     return 'vehicle-detail'
   }
 
+  if (/^\/dang-split\/[^/]+$/.test(path)) {
+    return 'dang-split-detail'
+  }
+
   return PATH_TO_TAB[path] ?? 'dashboard'
 }
 
@@ -92,6 +99,12 @@ export function getPathForTab(tab: Tab, options?: TabNavigationOptions): string 
     if (!options?.vehicleId) return EXACT_TAB_PATHS['vehicle-service'] ?? '/vehicles'
 
     return `/vehicles/${encodeURIComponent(options.vehicleId)}`
+  }
+
+  if (tab === 'dang-split-detail') {
+    if (!options?.dangSplitGroupId) return EXACT_TAB_PATHS['dang-split'] ?? '/dang-split'
+
+    return `/dang-split/${encodeURIComponent(options.dangSplitGroupId)}`
   }
 
   const basePath = EXACT_TAB_PATHS[tab]

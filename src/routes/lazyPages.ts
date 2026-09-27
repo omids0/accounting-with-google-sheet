@@ -9,6 +9,8 @@ import {
   loadCounterpartiesPage,
   loadCurrencyConverterPage,
   loadDangPage,
+  loadDangSplitDetailPage,
+  loadDangSplitPage,
   loadDashboardPage,
   loadDataEntryPage,
   loadDateCalculatorPage,
@@ -39,6 +41,8 @@ export const LazyChecksPage = lazy(loadChecksPage)
 export const LazyCounterpartiesPage = lazy(loadCounterpartiesPage)
 export const LazyCurrencyConverterPage = lazy(loadCurrencyConverterPage)
 export const LazyDangPage = lazy(loadDangPage)
+export const LazyDangSplitPage = lazy(loadDangSplitPage)
+export const LazyDangSplitDetailPage = lazy(loadDangSplitDetailPage)
 export const LazyDashboardPage = lazy(loadDashboardPage)
 export const LazyDataEntryPage = lazy(loadDataEntryPage)
 export const LazyDateCalculatorPage = lazy(loadDateCalculatorPage)
