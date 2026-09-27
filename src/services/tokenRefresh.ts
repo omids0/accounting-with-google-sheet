@@ -9,7 +9,7 @@ import { isNativePlatform, refreshNativeToken } from './googleAuthNative'
 
 let refreshInFlight: Promise<boolean> | null = null
 
-export function refreshAccessTokenSilently(clientId: string): Promise<boolean> {
+export function refreshAccessTokenSilently(clientId: string, force = false): Promise<boolean> {
   if (refreshInFlight) return refreshInFlight
 
   const session = getSession()
@@ -18,7 +18,7 @@ export function refreshAccessTokenSilently(clientId: string): Promise<boolean> {
     return Promise.resolve(false)
   }
 
-  if (isTokenValid() && !shouldRefreshToken()) {
+  if (!force && isTokenValid() && !shouldRefreshToken()) {
     return Promise.resolve(true)
   }
 
@@ -78,4 +78,13 @@ export function refreshAccessTokenSilently(clientId: string): Promise<boolean> {
   })
 
   return refreshInFlight
+}
+
+/**
+ * Google can reject a token the app still considers valid — after a password
+ * change or a revoked grant — so this forces a new one instead of trusting the
+ * stored expiry.
+ */
+export function forceRefreshAccessToken(): Promise<boolean> {
+  return refreshAccessTokenSilently(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '', true)
 }

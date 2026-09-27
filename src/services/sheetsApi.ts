@@ -18,7 +18,11 @@ export function isQuotaExceededError(err: unknown): boolean {
   return /quota exceeded|rate limit|too many requests/i.test(msg)
 }
 
-export async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
+export async function apiRequest<T>(
+  url: string,
+  options: RequestInit = {},
+  allowAuthRetry = true
+): Promise<T> {
   const res = await fetch(url, {
     ...options,
     headers: {
@@ -27,6 +31,14 @@ export async function apiRequest<T>(url: string, options: RequestInit = {}): Pro
       ...options.headers
     }
   })
+
+  // A token the app still believes in can already be dead on Google's side, and
+  // the reply carries no status the caller could match on. Renew once, quietly.
+  if (res.status === 401 && allowAuthRetry) {
+    const { forceRefreshAccessToken } = await import('./tokenRefresh')
+
+    if (await forceRefreshAccessToken()) return apiRequest<T>(url, options, false)
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
