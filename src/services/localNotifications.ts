@@ -15,6 +15,33 @@ const HORIZON_DAYS = 30
 
 const MAX_SCHEDULED = 64
 
+/**
+ * Own channel instead of the plugin's fallback, which is literally named "Default",
+ * sits at IMPORTANCE_DEFAULT (no heads-up banner) and plays its sound through the
+ * alarm stream.
+ */
+const REMINDER_CHANNEL_ID = 'reminders'
+
+let channelReady: Promise<void> | null = null
+
+function ensureReminderChannel(): Promise<void> {
+  if (!channelReady) {
+    channelReady = LocalNotifications.createChannel({
+      id: REMINDER_CHANNEL_ID,
+      name: 'یادآوری‌ها',
+      description: 'یادآوری اقساط، چک‌ها، قرض‌ها و یادآوری‌های شخصی',
+      importance: 5,
+      visibility: 1,
+      vibration: true
+    }).catch(() => {
+      // A failed channel still leaves the plugin's fallback, so schedule anyway.
+      channelReady = null
+    })
+  }
+
+  return channelReady
+}
+
 export type LocalNotificationPermission = 'granted' | 'denied' | 'prompt'
 
 interface PlannedNotification {
@@ -166,11 +193,14 @@ export async function refreshScheduledReminders(
 
   if (planned.length === 0) return 0
 
+  await ensureReminderChannel()
+
   await LocalNotifications.schedule({
     notifications: planned.map(item => ({
       id: item.id,
       title: item.title,
       body: item.body,
+      channelId: REMINDER_CHANNEL_ID,
       schedule: { at: item.at, allowWhileIdle: true }
     }))
   })
@@ -185,12 +215,15 @@ export async function countScheduledReminders(): Promise<number> {
 }
 
 export async function showTestNotification(): Promise<void> {
+  await ensureReminderChannel()
+
   await LocalNotifications.schedule({
     notifications: [
       {
         id: 1,
         title: 'یادآوری آزمایشی',
         body: 'اعلان‌های این دستگاه فعال است.',
+        channelId: REMINDER_CHANNEL_ID,
         schedule: { at: new Date(Date.now() + 3000) }
       }
     ]
