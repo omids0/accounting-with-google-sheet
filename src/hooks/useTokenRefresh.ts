@@ -2,6 +2,7 @@ import { useGoogleOAuth } from '@react-oauth/google'
 import { useEffect, useRef } from 'react'
 
 import { getMsUntilTokenRefresh, hasStoredSession, shouldRefreshToken } from '../services/auth'
+import { isNativePlatform } from '../services/googleAuthNative'
 import { refreshAccessTokenSilently } from '../services/tokenRefresh'
 
 interface UseTokenRefreshOptions {
@@ -28,9 +29,12 @@ export function useTokenRefresh({
   onRefreshSuccessRef.current = onRefreshSuccess
 
   useEffect(() => {
-    if (!enabled || !scriptLoadedSuccessfully || !clientId || !hasStoredSession()) {
-      return
-    }
+    // The APK refreshes through the native plugin and needs neither Google's web
+    // script nor a web client id.
+    const native = isNativePlatform()
+
+    if (!enabled || !hasStoredSession()) return
+    if (!native && (!scriptLoadedSuccessfully || !clientId)) return
 
     let cancelled = false
 

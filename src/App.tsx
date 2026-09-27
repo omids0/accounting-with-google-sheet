@@ -78,6 +78,10 @@ export default function App() {
 
   const { scriptLoadedSuccessfully } = useGoogleOAuth()
 
+  // The APK renews its token through the native plugin, so Google's web script
+  // never loading there must not block a refresh.
+  const canRefreshSilently = isNativePlatform() || scriptLoadedSuccessfully
+
   const { locked, unlock } = useAppLock()
 
   const registerHandlers = useAppStore(state => state.registerHandlers)
@@ -89,7 +93,7 @@ export default function App() {
   }, [])
 
   const handleReauth = useCallback(async () => {
-    if (scriptLoadedSuccessfully && hasStoredSession()) {
+    if (canRefreshSilently && hasStoredSession()) {
       const refreshed = await refreshAccessTokenSilently(clientId)
 
       if (refreshed && isTokenValid()) {
@@ -99,7 +103,7 @@ export default function App() {
       }
     }
     setNeedsReauth(true)
-  }, [clientId, scriptLoadedSuccessfully])
+  }, [clientId, canRefreshSilently])
 
   useEffect(() => {
     registerHandlers({ onReauth: handleReauth, onLogout: handleLogout })
@@ -121,7 +125,7 @@ export default function App() {
 
     const canTryRefresh = hasStoredSession() && !isTokenValid()
 
-    if (canTryRefresh && !scriptLoadedSuccessfully) return
+    if (canTryRefresh && !canRefreshSilently) return
 
     async function init() {
       let tokenValid = isTokenValid()
@@ -199,7 +203,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [clientId, scriptLoadedSuccessfully])
+  }, [clientId, canRefreshSilently])
 
   const handleSheetSetupComplete = async () => {
     await syncAppLockFromSheet()

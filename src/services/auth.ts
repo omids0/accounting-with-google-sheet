@@ -32,7 +32,11 @@ export function isTokenValid(): boolean {
 export function isAuthError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err)
 
-  return /منقضی|401|invalid credentials|unauthenticated|invalid_grant/i.test(msg)
+  // Google answers an expired access token with prose, not a status code, so the
+  // wording it actually uses has to be matched here.
+  return /منقضی|401|invalid credentials|invalid authentication credentials|expected oauth ?2|unauthenticated|invalid_grant|invalid_token/i.test(
+    msg
+  )
 }
 
 export function hasStoredSession(): boolean {
