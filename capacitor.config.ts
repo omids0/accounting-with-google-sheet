@@ -5,6 +5,13 @@ const config: CapacitorConfig = {
   appName: 'حسابداری شخصی',
   webDir: 'dist',
   plugins: {
+    LocalNotifications: {
+      // Android 5+ ignores the launcher icon in the status bar and needs a flat
+      // alpha-only drawable; without this the plugin falls back to the system
+      // ic_dialog_info glyph, which looks nothing like the app.
+      smallIcon: 'ic_stat_reminder',
+      iconColor: '#0F766E'
+    },
     GoogleAuth: {
       scopes: [
         'email',
