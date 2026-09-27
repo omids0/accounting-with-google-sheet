@@ -19,6 +19,23 @@ export const dangSplitToolbarClass = 'flex flex-col gap-3'
 export const dangSplitSectionTitleClass =
   'mt-1 mb-1 text-[0.82rem] font-bold text-[var(--color-primary-dark)]'
 
+export const dangSplitGroupClass = 'flex flex-col gap-2'
+
+export const dangSplitGroupHeaderClass = cn(
+  'flex items-center justify-between gap-2 border-b border-border pb-1.5'
+)
+
+export const dangSplitGroupHeaderTitleClass = cn(
+  'flex items-center gap-2 text-[0.85rem] font-bold text-[var(--color-primary-dark)]'
+)
+
+export const dangSplitCountBadgeClass = cn(
+  'inline-flex items-center rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5',
+  'text-[0.7rem] font-bold text-[var(--color-primary-dark)]'
+)
+
+export const dangSplitEmptySectionClass = 'py-1 text-[0.78rem] text-muted'
+
 export const dangSplitChipsRowClass = 'mt-2 flex flex-wrap gap-1.5'
 
 export const dangSplitChipClass = cn(

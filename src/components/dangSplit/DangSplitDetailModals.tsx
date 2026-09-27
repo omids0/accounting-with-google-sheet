@@ -10,6 +10,8 @@ import type { DangSplitAllocationWithRow } from '../../services/dangSplitExpense
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
 
 export default function DangSplitDetailModals({
+  groupId,
+  onCategoriesSaved,
   people,
   categories,
   allocationsByExpense,
@@ -17,6 +19,8 @@ export default function DangSplitDetailModals({
   categoryActions,
   expenseActions
 }: {
+  groupId: string
+  onCategoriesSaved: () => Promise<void> | void
   people: DangSplitPersonWithRow[]
   categories: DangSplitCategoryWithRow[]
   allocationsByExpense: Map<string, DangSplitAllocationWithRow[]>
@@ -29,7 +33,9 @@ export default function DangSplitDetailModals({
       <DangSplitPersonFormModal
         open={personActions.showForm}
         editingItem={personActions.editingItem}
+        groupId={groupId}
         categories={categories}
+        onCategoriesSaved={onCategoriesSaved}
         saving={personActions.saving}
         onClose={personActions.closeForm}
         onSubmit={personActions.handleSubmit}

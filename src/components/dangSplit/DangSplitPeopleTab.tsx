@@ -1,7 +1,14 @@
 import { useMemo } from 'react'
 
 import DangSplitPersonCard from './DangSplitPersonCard'
-import { dangSplitSectionTitleClass, dangSplitToolbarClass } from './dangSplitStyles'
+import {
+  dangSplitCountBadgeClass,
+  dangSplitEmptySectionClass,
+  dangSplitGroupClass,
+  dangSplitGroupHeaderClass,
+  dangSplitGroupHeaderTitleClass,
+  dangSplitToolbarClass
+} from './dangSplitStyles'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitGroupSummary } from '../../types/dangSplit'
 import AppIcon from '../AppIcon'
@@ -25,7 +32,6 @@ export default function DangSplitPeopleTab({
   onAddPerson,
   onEditPerson,
   onDeletePerson,
-  onAddCategory,
   onEditCategory,
   onDeleteCategory
 }: {
@@ -35,7 +41,6 @@ export default function DangSplitPeopleTab({
   onAddPerson: () => void
   onEditPerson: (item: DangSplitPersonWithRow) => void
   onDeletePerson: (item: DangSplitPersonWithRow) => void
-  onAddCategory: () => void
   onEditCategory: (item: DangSplitCategoryWithRow) => void
   onDeleteCategory: (item: DangSplitCategoryWithRow) => void
 }) {
@@ -62,61 +67,62 @@ export default function DangSplitPeopleTab({
     return grouped
   }, [categories, people])
 
-  return (
-    <div className={dangSplitToolbarClass}>
-      <div className={cardActionButtonsClass}>
-        <Button type="button" variant="secondary" size="sm" onClick={onAddCategory}>
-          افزودن دسته
-        </Button>
+  if (people.length === 0 && categories.length === 0) {
+    return (
+      <div className={emptyStateClass}>
+        <div className={emptyStateIconClass}>
+          <AppIcon name="counterparties" />
+        </div>
+        <p>هنوز کسی به این دنگ اضافه نشده</p>
         <Button type="button" variant="primary" size="sm" onClick={onAddPerson}>
           افزودن فرد
         </Button>
       </div>
+    )
+  }
 
-      {people.length === 0 && categories.length === 0 ? (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="counterparties" />
+  return (
+    <div className={dangSplitToolbarClass}>
+      {sections.map(section => (
+        <div key={section.key} className={dangSplitGroupClass}>
+          <div className={dangSplitGroupHeaderClass}>
+            <span className={dangSplitGroupHeaderTitleClass}>
+              {section.title}
+              <span className={dangSplitCountBadgeClass}>
+                {section.people.length.toLocaleString('fa-IR')} نفر
+              </span>
+            </span>
+            {section.category ? (
+              <span className={cardActionButtonsClass}>
+                <CardEditButton
+                  onClick={() => onEditCategory(section.category as DangSplitCategoryWithRow)}
+                  ariaLabel={`ویرایش دسته ${section.title}`}
+                />
+                <CardDeleteButton
+                  onClick={() => onDeleteCategory(section.category as DangSplitCategoryWithRow)}
+                  ariaLabel={`حذف دسته ${section.title}`}
+                />
+              </span>
+            ) : null}
           </div>
-          <p>هنوز کسی به این دنگ اضافه نشده</p>
-        </div>
-      ) : (
-        sections.map(section => (
-          <div key={section.key}>
-            <div className={dangSplitSectionTitleClass}>
-              {section.title} ({section.people.length.toLocaleString('fa-IR')})
-              {section.category ? (
-                <span className={cardActionButtonsClass}>
-                  <CardEditButton
-                    onClick={() => onEditCategory(section.category as DangSplitCategoryWithRow)}
-                    ariaLabel="ویرایش دسته"
-                  />
-                  <CardDeleteButton
-                    onClick={() => onDeleteCategory(section.category as DangSplitCategoryWithRow)}
-                    ariaLabel="حذف دسته"
-                  />
-                </span>
-              ) : null}
+
+          {section.people.length === 0 ? (
+            <p className={dangSplitEmptySectionClass}>کسی در این دسته نیست</p>
+          ) : (
+            <div className={listCardsContainerClass}>
+              {section.people.map(item => (
+                <DangSplitPersonCard
+                  key={item.id}
+                  item={item}
+                  share={shareByPerson.get(item.id) ?? 0}
+                  onEdit={onEditPerson}
+                  onDelete={onDeletePerson}
+                />
+              ))}
             </div>
-
-            {section.people.length === 0 ? (
-              <p className={dangSplitSectionTitleClass}>کسی در این دسته نیست</p>
-            ) : (
-              <div className={listCardsContainerClass}>
-                {section.people.map(item => (
-                  <DangSplitPersonCard
-                    key={item.id}
-                    item={item}
-                    share={shareByPerson.get(item.id) ?? 0}
-                    onEdit={onEditPerson}
-                    onDelete={onDeletePerson}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ))
-      )}
+          )}
+        </div>
+      ))}
     </div>
   )
 }

@@ -97,7 +97,6 @@ export default function DangSplitDetailPage({
           onAddPerson={personActions.openCreateForm}
           onEditPerson={personActions.openEditForm}
           onDeletePerson={personActions.setDeletingItem}
-          onAddCategory={categoryActions.openCreateForm}
           onEditCategory={categoryActions.openEditForm}
           onDeleteCategory={categoryActions.setDeletingItem}
         />
@@ -114,6 +113,8 @@ export default function DangSplitDetailPage({
       )}
 
       <DangSplitDetailModals
+        groupId={group.id}
+        onCategoriesSaved={data.loadItems}
         people={data.people}
         categories={data.categories}
         allocationsByExpense={data.allocationsByExpense}

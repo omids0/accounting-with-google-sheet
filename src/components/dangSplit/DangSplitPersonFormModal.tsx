@@ -1,6 +1,7 @@
 import { useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import DangSplitCategorySelect from './DangSplitCategorySelect'
 import type {
   DangSplitCategoryWithRow,
   DangSplitPersonFormState,
@@ -8,23 +9,27 @@ import type {
 } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
-import { FormField, FormRow, FormSelect } from '../form'
+import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 
 export default function DangSplitPersonFormModal({
   open,
   editingItem,
+  groupId,
   categories,
   saving,
   onClose,
-  onSubmit
+  onSubmit,
+  onCategoriesSaved
 }: {
   open: boolean
   editingItem: DangSplitPersonWithRow | null
+  groupId: string
   categories: DangSplitCategoryWithRow[]
   saving: boolean
   onClose: () => void
   onSubmit: (values: DangSplitPersonFormState) => void | Promise<void>
+  onCategoriesSaved: () => Promise<void> | void
 }) {
   const initialValues = useMemo<DangSplitPersonFormState>(
     () =>
@@ -37,14 +42,6 @@ export default function DangSplitPersonFormModal({
           }
         : { name: '', categoryId: '', defaultWeight: 1, note: '' },
     [editingItem]
-  )
-
-  const categoryOptions = useMemo(
-    () => [
-      { value: '', label: 'بدون دسته' },
-      ...categories.map(category => ({ value: category.id, label: category.title }))
-    ],
-    [categories]
   )
 
   const {
@@ -82,14 +79,19 @@ export default function DangSplitPersonFormModal({
           name="categoryId"
           control={control}
           render={({ field }) => (
-            <FormSelect
+            <FormField
               label="دسته"
+              controlWidth="full"
               hint="افراد یک خانواده یا تیم را در یک دسته بگذارید تا تخصیصشان یک‌جا انجام شود"
-              value={field.value}
-              onChange={field.onChange}
-              options={categoryOptions}
-              aria-label="دسته فرد"
-            />
+            >
+              <DangSplitCategorySelect
+                groupId={groupId}
+                categories={categories}
+                value={field.value}
+                onChange={field.onChange}
+                onCategoriesSaved={onCategoriesSaved}
+              />
+            </FormField>
           )}
         />
 
