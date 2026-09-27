@@ -1,6 +1,7 @@
 import {
   DANG_SPLIT_ALLOCATIONS_HEADERS,
   DANG_SPLIT_ALLOCATIONS_SHEET,
+  DANG_SPLIT_EXPENSES_HEADERS,
   DANG_SPLIT_EXPENSES_SHEET,
   mapSheetRows,
   nowTimestamp
@@ -9,6 +10,7 @@ import type { DangSplitWeight } from './dangSplitMath'
 import {
   appendSheetRow,
   deleteSheetRow,
+  fetchSheetRangeFromApi,
   fetchSheetRows,
   replaceSheetDataRows,
   updateSheetRow
@@ -28,7 +30,8 @@ function rowToExpense(row: string[], rowNumber: number): DangSplitExpenseWithRow
     date: row[3] ?? '',
     amount: parseNumeric(row[4]),
     note: row[5] ?? '',
-    createdAt: row[6] ?? ''
+    createdAt: row[6] ?? '',
+    payerId: row[7] ?? ''
   }
 }
 
@@ -40,7 +43,8 @@ export function expenseToRow(expense: DangSplitExpense): string[] {
     expense.date,
     String(expense.amount),
     expense.note,
-    expense.createdAt
+    expense.createdAt,
+    expense.payerId
   ]
 }
 
@@ -65,10 +69,48 @@ export function allocationToRow(allocation: DangSplitAllocation): string[] {
   ]
 }
 
+const repairedHeaders = new Set<string>()
+
+/**
+ * ستون «پرداخت‌کننده» بعد از ساخته‌شدن شیت اضافه شد و `ensureSheetWithHeaders` سربرگ
+ * موجود را دست نمی‌زند، پس یک‌بار در هر نشست سربرگ کوتاه را کامل می‌کنیم.
+ */
+async function repairExpenseHeaders(spreadsheetId: string): Promise<void> {
+  if (repairedHeaders.has(spreadsheetId)) return
+
+  repairedHeaders.add(spreadsheetId)
+
+  try {
+    const headerRows = await fetchSheetRangeFromApi(
+      spreadsheetId,
+      DANG_SPLIT_EXPENSES_SHEET,
+      'A1:Z1'
+    )
+    const header = headerRows[0] ?? []
+
+    if (header.length === 0 || header.length >= DANG_SPLIT_EXPENSES_HEADERS.length) return
+
+    const rows = await fetchSheetRows(spreadsheetId, DANG_SPLIT_EXPENSES_SHEET)
+
+    await replaceSheetDataRows(
+      spreadsheetId,
+      DANG_SPLIT_EXPENSES_SHEET,
+      mapSheetRows(rows, rowToExpense).map(expenseToRow),
+      DANG_SPLIT_EXPENSES_HEADERS.length,
+      DANG_SPLIT_EXPENSES_HEADERS
+    )
+  } catch {
+    // تکمیل سربرگ بهترین‌تلاش است؛ خواندن اقلام نباید به‌خاطرش شکست بخورد.
+    repairedHeaders.delete(spreadsheetId)
+  }
+}
+
 export async function fetchDangSplitExpenses(
   spreadsheetId: string,
   groupId?: string
 ): Promise<DangSplitExpenseWithRow[]> {
+  await repairExpenseHeaders(spreadsheetId)
+
   const rows = await fetchSheetRows(spreadsheetId, DANG_SPLIT_EXPENSES_SHEET)
 
   return mapSheetRows(rows, rowToExpense)
@@ -78,7 +120,14 @@ export async function fetchDangSplitExpenses(
 
 export async function createDangSplitExpense(
   spreadsheetId: string,
-  data: { groupId: string; title: string; date: string; amount: number; note: string }
+  data: {
+    groupId: string
+    title: string
+    date: string
+    amount: number
+    note: string
+    payerId: string
+  }
 ): Promise<DangSplitExpense> {
   const expense: DangSplitExpense = {
     id: crypto.randomUUID(),
@@ -87,6 +136,7 @@ export async function createDangSplitExpense(
     date: data.date,
     amount: data.amount,
     note: data.note,
+    payerId: data.payerId,
     createdAt: nowTimestamp()
   }
 

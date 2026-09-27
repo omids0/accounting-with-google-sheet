@@ -1,7 +1,11 @@
 import { useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
-import type { DangSplitExpenseFormState, DangSplitExpenseWithRow } from './types'
+import type {
+  DangSplitExpenseFormState,
+  DangSplitExpenseWithRow,
+  DangSplitPersonWithRow
+} from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import {
   formFieldError,
@@ -12,19 +16,21 @@ import {
 } from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { FormField, FormRow } from '../form'
+import { FormField, FormRow, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 
 export default function DangSplitExpenseFormModal({
   open,
   editingItem,
+  people,
   saving,
   onClose,
   onSubmit
 }: {
   open: boolean
   editingItem: DangSplitExpenseWithRow | null
+  people: DangSplitPersonWithRow[]
   saving: boolean
   onClose: () => void
   onSubmit: (values: DangSplitExpenseFormState) => void | Promise<void>
@@ -36,9 +42,10 @@ export default function DangSplitExpenseFormModal({
             title: editingItem.title,
             date: editingItem.date,
             amount: editingItem.amount,
+            payerId: editingItem.payerId,
             note: editingItem.note
           }
-        : { title: '', date: getTodayIso(), amount: '', note: '' },
+        : { title: '', date: getTodayIso(), amount: '', payerId: '', note: '' },
     [editingItem]
   )
 
@@ -54,6 +61,14 @@ export default function DangSplitExpenseFormModal({
     active: open,
     resetKey: editingItem?.id ?? 'create'
   })
+
+  const payerOptions = useMemo(
+    () => [
+      { value: '', label: 'ثبت نشده' },
+      ...people.map(person => ({ value: person.id, label: person.name }))
+    ],
+    [people]
+  )
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     submitValidatedForm(handleSubmit, values => onSubmit(values), event)
@@ -112,6 +127,21 @@ export default function DangSplitExpenseFormModal({
           )}
         />
       </FormRow>
+
+      <Controller
+        name="payerId"
+        control={control}
+        render={({ field }) => (
+          <FormSelect
+            label="پرداخت‌کننده"
+            hint="هر چه این نفر پرداخت کند، از بدهی خودش کم و بقیه به او بدهکار می‌شوند"
+            value={field.value}
+            onChange={field.onChange}
+            options={payerOptions}
+            aria-label="پرداخت‌کننده هزینه"
+          />
+        )}
+      />
 
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" />

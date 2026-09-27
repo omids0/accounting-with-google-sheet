@@ -70,6 +70,7 @@ export function useDangSplitExpenseActions({
           title,
           date: values.date,
           amount,
+          payerId: values.payerId,
           note: values.note.trim()
         })
         showSuccess('هزینه ویرایش شد')
@@ -79,6 +80,7 @@ export function useDangSplitExpenseActions({
           title,
           date: values.date,
           amount,
+          payerId: values.payerId,
           note: values.note.trim()
         })
         showSuccess('هزینه ثبت شد')

@@ -32,13 +32,25 @@ export default function DangSplitSummaryTab({
     <>
       <div className={dashboardStatGridClass}>
         <StatCard label="جمع کل" amount={summary.total} variant="balance" animateIndex={0} lift />
-        <StatCard label="پرداخت‌شده" amount={summary.paid} variant="income" animateIndex={1} lift />
-        <StatCard label="مانده" amount={summary.balance} variant="expense" animateIndex={2} lift />
         <StatCard
-          label={`تسویه‌شده (${summary.settledCount.toLocaleString(
+          label="پرداخت‌شده توسط افراد"
+          amount={summary.covered}
+          variant="income"
+          animateIndex={1}
+          lift
+        />
+        <StatCard
+          label="مانده بدهکاران"
+          amount={summary.debtTotal}
+          variant="expense"
+          animateIndex={2}
+          lift
+        />
+        <StatCard
+          label={`طلبکاران (${summary.settledCount.toLocaleString(
             'fa-IR'
-          )} از ${summary.peopleCount.toLocaleString('fa-IR')})`}
-          amount={summary.total - summary.balance}
+          )} از ${summary.peopleCount.toLocaleString('fa-IR')} تسویه)`}
+          amount={summary.creditTotal}
           variant="default"
           animateIndex={3}
           lift

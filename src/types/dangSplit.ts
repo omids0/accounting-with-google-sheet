@@ -36,6 +36,8 @@ export interface DangSplitExpense {
   date: string
   amount: number
   note: string
+  /** شناسه فردی که پول این قلم را داده؛ خالی یعنی پرداخت‌کننده ثبت نشده */
+  payerId: string
   createdAt: string
 }
 
@@ -49,7 +51,7 @@ export interface DangSplitAllocation {
   weight: number
 }
 
-export type DangSplitSettlementStatus = 'none' | 'unpaid' | 'partial' | 'settled'
+export type DangSplitSettlementStatus = 'none' | 'unpaid' | 'partial' | 'settled' | 'creditor'
 
 /** سهم یک فرد از یک قلم هزینه */
 export interface DangSplitPersonExpenseShare {
@@ -57,6 +59,8 @@ export interface DangSplitPersonExpenseShare {
   expenseTitle: string
   expenseDate: string
   expenseAmount: number
+  /** نام کسی که پول این قلم را داده؛ خالی یعنی ثبت نشده */
+  payerName: string
   weight: number
   weightTotal: number
   share: number
@@ -68,7 +72,11 @@ export interface DangSplitPersonSummary {
   name: string
   categoryId: string
   share: number
+  /** مبلغ اقلامی که خودش پرداخت کرده (بستانکاری) */
+  credit: number
+  /** تسویه نقدی؛ منفی یعنی پولش را پس گرفته */
   paid: number
+  /** سهم منهای بستانکاری و تسویه؛ مثبت = بدهکار، منفی = طلبکار */
   balance: number
   status: DangSplitSettlementStatus
   breakdown: DangSplitPersonExpenseShare[]
@@ -77,8 +85,16 @@ export interface DangSplitPersonSummary {
 /** جمع‌بندی کل گروه */
 export interface DangSplitGroupSummary {
   total: number
+  /** مبلغ اقلامی که پرداخت‌کننده‌شان مشخص است */
+  covered: number
   paid: number
   balance: number
+  /** جمع مانده بدهکارها */
+  debtTotal: number
+  /** جمع مانده طلبکارها */
+  creditTotal: number
+  /** مبلغ اقلامی که هنوز به کسی تخصیص نخورده‌اند */
+  unallocatedTotal: number
   peopleCount: number
   settledCount: number
   expensesCount: number

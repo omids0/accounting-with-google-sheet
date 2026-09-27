@@ -34,8 +34,8 @@ export default function DangSplitPeopleTab({
   onEditCategory: (item: DangSplitCategoryWithRow) => void
   onDeleteCategory: (item: DangSplitCategoryWithRow) => void
 }) {
-  // دسته‌ها باز شروع می‌شوند؛ این مجموعه فقط دسته‌های بسته‌شده را نگه می‌دارد.
-  const [collapsedKeys, setCollapsedKeys] = useState<string[]>([])
+  // دسته‌ها بسته شروع می‌شوند؛ این مجموعه دسته‌های بازشده را نگه می‌دارد.
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([])
 
   const shareByPerson = useMemo(
     () => new Map(summary.people.map(item => [item.personId, item.share])),
@@ -61,7 +61,7 @@ export default function DangSplitPeopleTab({
   }, [categories, people])
 
   const toggleSection = (key: string) => {
-    setCollapsedKeys(current =>
+    setExpandedKeys(current =>
       current.includes(key) ? current.filter(item => item !== key) : [...current, key]
     )
   }
@@ -89,7 +89,7 @@ export default function DangSplitPeopleTab({
           category={section.category}
           people={section.people}
           shareByPerson={shareByPerson}
-          expanded={!collapsedKeys.includes(section.key)}
+          expanded={expandedKeys.includes(section.key)}
           onToggleExpand={() => toggleSection(section.key)}
           onEditPerson={onEditPerson}
           onDeletePerson={onDeletePerson}

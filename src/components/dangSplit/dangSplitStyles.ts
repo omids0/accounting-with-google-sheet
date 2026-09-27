@@ -49,12 +49,15 @@ export const dangSplitBreakdownClass = cn(
 
 export const dangSplitBreakdownRowClass = 'flex items-center justify-between gap-2'
 
-export const dangSplitStatusClass = (tone: 'settled' | 'partial' | 'unpaid' | 'none') =>
+export const dangSplitStatusClass = (
+  tone: 'settled' | 'partial' | 'unpaid' | 'creditor' | 'none'
+) =>
   cn(
     'inline-flex items-center rounded-full px-2 py-0.5 text-[0.72rem] font-bold',
     tone === 'settled' && 'bg-[var(--color-success-bg)] text-success',
     tone === 'partial' && 'bg-[var(--color-accent-soft)] text-primary-dark',
     tone === 'unpaid' && 'bg-[var(--color-danger-bg)] text-danger',
+    tone === 'creditor' && 'bg-[var(--color-success-bg)] text-success',
     tone === 'none' && 'bg-bg text-muted'
   )
 

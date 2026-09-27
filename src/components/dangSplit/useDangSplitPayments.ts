@@ -2,11 +2,14 @@ import { useState } from 'react'
 
 import type { DangSplitPersonWithRow } from './types'
 import { setDangSplitPersonPaid } from '../../services/dangSplitPeople'
-import type { DangSplitGroupSummary } from '../../types/dangSplit'
+import type { DangSplitGroupSummary, DangSplitPersonSummary } from '../../types/dangSplit'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
 
-/** ثبت پرداخت جزئی و تسویه کامل هر فرد در تب جمع‌بندی */
+/**
+ * تسویه نقدی هر فرد در تب جمع‌بندی. بدهکار پول می‌دهد (عدد مثبت) و طلبکار پول
+ * پس می‌گیرد (عدد منفی)؛ هدف هر دو رساندن مانده به صفر است.
+ */
 export function useDangSplitPayments({
   people,
   summary,
@@ -19,53 +22,69 @@ export function useDangSplitPayments({
   const [paymentPersonId, setPaymentPersonId] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
 
+  const personSummary = (personId: string): DangSplitPersonSummary | undefined =>
+    summary.people.find(item => item.personId === personId)
+
   const savePaid = async (personId: string, paid: number) => {
     const spreadsheetId = requireSpreadsheetId()
     const person = people.find(item => item.id === personId)
 
-    if (!spreadsheetId || !person) return
+    if (!spreadsheetId || !person) return false
 
-    const share = summary.people.find(item => item.personId === personId)?.share ?? 0
+    const current = personSummary(personId)
+    const due = (current?.share ?? 0) - (current?.credit ?? 0)
 
     setSavingId(personId)
     try {
-      await setDangSplitPersonPaid(spreadsheetId, person, paid, share)
+      await setDangSplitPersonPaid(spreadsheetId, person, paid, due)
       setPaymentPersonId(null)
       await onSaved()
+
+      return true
     } catch (err) {
       showError(err instanceof Error ? err.message : 'ثبت پرداخت ناموفق بود')
+
+      return false
     } finally {
       setSavingId(null)
     }
   }
 
+  /** ثبت پرداخت یا دریافت جزئی؛ جهت از روی بدهکار/طلبکار بودن فرد تعیین می‌شود. */
   const addPayment = async (personId: string, amount: number | '') => {
     const value = amount === '' ? 0 : Number(amount)
 
     if (!Number.isFinite(value) || value <= 0) {
-      showError('مبلغ پرداخت باید بزرگ‌تر از صفر باشد')
+      showError('مبلغ باید بزرگ‌تر از صفر باشد')
 
       return
     }
 
     const person = people.find(item => item.id === personId)
+    const current = personSummary(personId)
 
-    if (!person) return
+    if (!person || !current) return
 
-    await savePaid(personId, person.paidAmount + value)
-    showSuccess('پرداخت ثبت شد')
+    const signed = current.balance < 0 ? -value : value
+
+    if (await savePaid(personId, person.paidAmount + signed)) {
+      showSuccess(current.balance < 0 ? 'دریافت ثبت شد' : 'پرداخت ثبت شد')
+    }
   }
 
   const settleFull = async (personId: string) => {
-    const share = summary.people.find(item => item.personId === personId)?.share ?? 0
+    const current = personSummary(personId)
+    const due = (current?.share ?? 0) - (current?.credit ?? 0)
 
-    await savePaid(personId, share)
-    showSuccess('تسویه کامل ثبت شد')
+    if (await savePaid(personId, due)) {
+      showSuccess('تسویه کامل ثبت شد')
+    }
   }
 
   const undoPayments = async (personId: string) => {
-    await savePaid(personId, 0)
-    showSuccess('پرداخت‌های این فرد پاک شد')
+    if (await savePaid(personId, 0)) {
+      showSuccess('تسویه این فرد لغو شد')
+    }
   }
 
   return {

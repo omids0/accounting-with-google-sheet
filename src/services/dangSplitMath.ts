@@ -17,6 +17,10 @@ function normalizeWeight(value: number): number {
   return Number.isFinite(value) && value > 0 ? value : 0
 }
 
+function safeAmount(value: number): number {
+  return Number.isFinite(value) ? value : 0
+}
+
 /** ضریب پیش‌فرض فرد؛ مقدار نامعتبر یا صفر یعنی ۱ */
 export function personDefaultWeight(person: Pick<DangSplitPerson, 'defaultWeight'>): number {
   const weight = normalizeWeight(person.defaultWeight)
@@ -120,12 +124,27 @@ export function resolveManualWeights(
   })
 }
 
-export function settlementStatus(share: number, paid: number): DangSplitSettlementStatus {
-  if (share <= 0) return 'none'
-  if (paid <= 0) return 'unpaid'
-  if (share - paid > 0) return 'partial'
+/**
+ * وضعیت یک فرد از روی سهم، بستانکاری (اقلامی که خودش پرداخت کرده) و تسویه نقدی.
+ * مانده مثبت یعنی بدهکار، منفی یعنی طلبکار.
+ */
+export function settlementStatus({
+  share,
+  credit,
+  paid,
+  balance
+}: {
+  share: number
+  credit: number
+  paid: number
+  balance: number
+}): DangSplitSettlementStatus {
+  if (share <= 0 && credit <= 0 && paid === 0) return 'none'
+  if (balance === 0) return 'settled'
+  if (balance < 0) return 'creditor'
+  if (paid !== 0 || credit > 0) return 'partial'
 
-  return 'settled'
+  return 'unpaid'
 }
 
 /** جمع‌بندی گروه: سهم، پرداختی و مانده هر فرد به‌همراه ریز اقلام */
@@ -139,6 +158,7 @@ export function buildGroupSummary({
   allocations: DangSplitAllocation[]
 }): DangSplitGroupSummary {
   const knownPeople = new Set(people.map(item => item.id))
+  const nameById = new Map(people.map(item => [item.id, item.name]))
   const breakdowns = new Map<string, DangSplitPersonExpenseShare[]>()
 
   for (const expense of expenses) {
@@ -163,6 +183,7 @@ export function buildGroupSummary({
         expenseTitle: expense.title,
         expenseDate: expense.date,
         expenseAmount: expense.amount,
+        payerName: nameById.get(expense.payerId) ?? '',
         weight: normalizeWeight(item.weight),
         weightTotal: weightTotal > 0 ? weightTotal : expenseAllocations.length,
         share: shares.get(item.personId) ?? 0
@@ -171,30 +192,50 @@ export function buildGroupSummary({
     }
   }
 
+  const creditByPerson = new Map<string, number>()
+
+  for (const expense of expenses) {
+    if (!expense.payerId || !knownPeople.has(expense.payerId)) continue
+
+    creditByPerson.set(
+      expense.payerId,
+      (creditByPerson.get(expense.payerId) ?? 0) + safeAmount(expense.amount)
+    )
+  }
+
   const summaries: DangSplitPersonSummary[] = people.map(item => {
     const breakdown = breakdowns.get(item.id) ?? []
     const share = breakdown.reduce((sum, entry) => sum + entry.share, 0)
-    const paid = normalizeWeight(item.paidAmount)
+    const credit = creditByPerson.get(item.id) ?? 0
+    const paid = Number.isFinite(item.paidAmount) ? item.paidAmount : 0
+    const balance = share - credit - paid
 
     return {
       personId: item.id,
       name: item.name,
       categoryId: item.categoryId,
       share,
+      credit,
       paid,
-      balance: share - paid,
-      status: settlementStatus(share, paid),
+      balance,
+      status: settlementStatus({ share, credit, paid, balance }),
       breakdown
     }
   })
 
+  const allocatedExpenseIds = new Set(allocations.map(item => item.expenseId))
+
   return {
-    total: expenses.reduce(
-      (sum, item) => sum + (Number.isFinite(item.amount) ? item.amount : 0),
-      0
-    ),
+    total: expenses.reduce((sum, item) => sum + safeAmount(item.amount), 0),
+    covered: expenses.reduce((sum, item) => sum + (item.payerId ? safeAmount(item.amount) : 0), 0),
     paid: summaries.reduce((sum, item) => sum + item.paid, 0),
     balance: summaries.reduce((sum, item) => sum + item.balance, 0),
+    debtTotal: summaries.reduce((sum, item) => sum + Math.max(0, item.balance), 0),
+    creditTotal: summaries.reduce((sum, item) => sum + Math.max(0, -item.balance), 0),
+    unallocatedTotal: expenses.reduce(
+      (sum, item) => sum + (allocatedExpenseIds.has(item.id) ? 0 : safeAmount(item.amount)),
+      0
+    ),
     peopleCount: people.length,
     settledCount: summaries.filter(item => item.status === 'settled').length,
     expensesCount: expenses.length,

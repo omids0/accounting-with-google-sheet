@@ -74,6 +74,7 @@ export default function DangSplitDetailModals({
       <DangSplitExpenseFormModal
         open={expenseActions.showForm}
         editingItem={expenseActions.editingItem}
+        people={people}
         saving={expenseActions.saving}
         onClose={expenseActions.closeForm}
         onSubmit={expenseActions.handleSubmit}

@@ -36,10 +36,10 @@ export default function DangSplitGroupCard({
   onDelete: (item: DangSplitGroupListItem) => void
 }) {
   const { summary } = item
-  const settledRatio = summary.total > 0 ? (summary.paid / summary.total) * 100 : 0
+  const settledRatio = summary.total > 0 ? (summary.covered / summary.total) * 100 : 0
 
   return (
-    <div className={dangCardClass({ paid: summary.total > 0 && summary.balance <= 0 })}>
+    <div className={dangCardClass({ paid: summary.total > 0 && summary.debtTotal <= 0 })}>
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
           <div className={dangCardBodyClass}>
@@ -73,13 +73,13 @@ export default function DangSplitGroupCard({
                 <span>
                   <span className={dangSplitStatLabelClass}>پرداخت‌شده: </span>
                   <span className={dangSplitStatValueSuccessClass}>
-                    {formatMoney(summary.paid)}
+                    {formatMoney(summary.covered)}
                   </span>
                 </span>
                 <span>
-                  <span className={dangSplitStatLabelClass}>مانده: </span>
+                  <span className={dangSplitStatLabelClass}>مانده بدهکاران: </span>
                   <span className={dangSplitStatValueDangerClass}>
-                    {formatMoney(summary.balance)}
+                    {formatMoney(summary.debtTotal)}
                   </span>
                 </span>
               </div>

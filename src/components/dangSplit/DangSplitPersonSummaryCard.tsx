@@ -36,6 +36,7 @@ const STATUS_LABELS: Record<DangSplitPersonSummary['status'], string> = {
   settled: 'تسویه کامل',
   partial: 'پرداخت جزئی',
   unpaid: 'نپرداخته',
+  creditor: 'طلبکار',
   none: 'بدون سهم'
 }
 
@@ -67,7 +68,11 @@ export default function DangSplitPersonSummaryCard({
   onUndoPayments: () => void
 }) {
   const complete = item.status === 'settled'
-  const progress = item.share > 0 ? Math.round((item.paid / item.share) * 100) : 0
+  const isCreditor = item.balance < 0
+  const due = item.share - item.credit
+  const progress = due === 0 ? (complete ? 100 : 0) : Math.round(Math.min(1, item.paid / due) * 100)
+  const balanceLabel = isCreditor ? 'طلبکار' : 'بدهکار'
+  const hasActivity = item.share > 0 || item.credit > 0
 
   return (
     <div className={installmentCardClass({ expanded, complete })}>
@@ -86,7 +91,9 @@ export default function DangSplitPersonSummaryCard({
               <span className={dangSplitStatusClass(item.status)}>
                 {STATUS_LABELS[item.status]}
               </span>
-              {complete || item.share === 0 ? '' : ` · مانده: ${formatMoney(item.balance)}`}
+              {complete || !hasActivity
+                ? ''
+                : ` · ${balanceLabel}: ${formatMoney(Math.abs(item.balance))}`}
             </div>
             <ProgressBar
               value={progress}
@@ -116,13 +123,21 @@ export default function DangSplitPersonSummaryCard({
               <span>{formatMoney(item.share)}</span>
             </div>
             <div>
-              <span className={receivableSummaryLabelClass}>پرداخت‌شده</span>
-              <span className={receivablePaidClass}>{formatMoney(item.paid)}</span>
+              <span className={receivableSummaryLabelClass}>پرداختی بابت گروه</span>
+              <span className={receivablePaidClass}>{formatMoney(item.credit)}</span>
             </div>
             <div>
-              <span className={receivableSummaryLabelClass}>مانده</span>
+              <span className={receivableSummaryLabelClass}>
+                {item.paid < 0 ? 'دریافت نقدی' : 'تسویه نقدی'}
+              </span>
+              <span className={receivablePaidClass}>{formatMoney(Math.abs(item.paid))}</span>
+            </div>
+            <div>
+              <span className={receivableSummaryLabelClass}>
+                {complete ? 'مانده' : balanceLabel}
+              </span>
               <span className={complete ? receivableSettledClass : receivableRemainingClass}>
-                {formatMoney(item.balance)}
+                {formatMoney(Math.abs(item.balance))}
               </span>
             </div>
           </div>
@@ -136,7 +151,8 @@ export default function DangSplitPersonSummaryCard({
                     <span>{entry.expenseTitle}</span>
                     <span className={installmentDueClass}>
                       {entry.expenseDate ? formatIsoDatePersian(entry.expenseDate) : '—'} · کل:{' '}
-                      {formatMoney(entry.expenseAmount)}
+                      {formatMoney(entry.expenseAmount)} · پرداخت‌کننده:{' '}
+                      {entry.payerName || 'ثبت نشده'}
                     </span>
                   </div>
                   <span className={listCardAmountPillClass}>{formatMoney(entry.share)}</span>
@@ -145,11 +161,13 @@ export default function DangSplitPersonSummaryCard({
             </div>
           ) : null}
 
-          {item.share > 0 ? (
+          {hasActivity ? (
             <div className={receivableAddPaymentClass}>
               {showPaymentForm ? (
                 <DangSplitPaymentForm
-                  remaining={item.balance}
+                  remaining={Math.abs(item.balance)}
+                  label={isCreditor ? 'مبلغ دریافت' : 'مبلغ پرداخت'}
+                  submitLabel={isCreditor ? 'ثبت دریافت' : 'ثبت پرداخت'}
                   saving={saving}
                   onSubmit={onAddPayment}
                   onCancel={onClosePaymentForm}
@@ -175,7 +193,7 @@ export default function DangSplitPersonSummaryCard({
                         disabled={saving}
                         onClick={onOpenPaymentForm}
                       >
-                        + ثبت بخشی از پرداخت
+                        {isCreditor ? '+ ثبت بخشی از دریافت' : '+ ثبت بخشی از پرداخت'}
                       </Button>
                       <Button
                         type="button"
@@ -185,7 +203,7 @@ export default function DangSplitPersonSummaryCard({
                         loading={saving}
                         onClick={onSettleFull}
                       >
-                        تسویه کامل
+                        {isCreditor ? 'تسویه کامل (پرداخت به او)' : 'تسویه کامل'}
                       </Button>
                     </>
                   )}

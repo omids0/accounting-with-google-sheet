@@ -37,6 +37,7 @@ export default function DangSplitExpenseCard({
   onEdit: (item: DangSplitExpenseWithRow) => void
   onDelete: (item: DangSplitExpenseWithRow) => void
 }) {
+  const payerName = item.payerId ? peopleById.get(item.payerId)?.name ?? '' : ''
   const names = allocations
     .map(allocation => peopleById.get(allocation.personId)?.name)
     .filter((name): name is string => Boolean(name))
@@ -53,7 +54,8 @@ export default function DangSplitExpenseCard({
 
             <div className={dangCardMetaClass}>
               {item.date ? formatIsoDatePersian(item.date) : '—'} ·{' '}
-              {names.length === 0 ? 'بدون تخصیص' : `${names.length.toLocaleString('fa-IR')} نفر`}
+              {names.length === 0 ? 'بدون تخصیص' : `${names.length.toLocaleString('fa-IR')} نفر`} ·
+              پرداخت‌کننده: {payerName || 'ثبت نشده'}
             </div>
 
             {item.note ? <p className={dangCardNoteClass}>{item.note}</p> : null}

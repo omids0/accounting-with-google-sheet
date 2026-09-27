@@ -152,17 +152,17 @@ export async function deleteDangSplitPerson(
 }
 
 /**
- * ثبت مبلغ پرداخت‌شده یک فرد. زمان تسویه وقتی مانده صفر شد پر می‌شود و اگر دیگر صفر
- * نبود پاک می‌شود.
+ * ثبت تسویه نقدی یک فرد. مقدار منفی یعنی پولش را پس گرفته (طلبکار بوده). `due` سهم
+ * منهای بستانکاری است؛ زمان تسویه وقتی پرداخت به آن رسید پر و در غیر این صورت پاک می‌شود.
  */
 export async function setDangSplitPersonPaid(
   spreadsheetId: string,
   person: DangSplitPersonWithRow,
   paidAmount: number,
-  share: number
+  due: number
 ): Promise<DangSplitPerson> {
-  const paid = Math.max(0, paidAmount)
-  const settled = share > 0 && paid >= share
+  const paid = paidAmount
+  const settled = due === 0 ? paid === 0 : due > 0 ? paid >= due : paid <= due
   const updated: DangSplitPerson = {
     ...person,
     paidAmount: paid,

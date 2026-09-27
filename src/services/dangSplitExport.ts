@@ -4,6 +4,7 @@ import { downloadTablePdf } from '../utils/pdf'
 
 const STATUS_LABELS: Record<DangSplitGroupSummary['people'][number]['status'], string> = {
   settled: 'تسویه کامل',
+  creditor: 'طلبکار',
   partial: 'پرداخت جزئی',
   unpaid: 'نپرداخته',
   none: 'بدون سهم'
@@ -17,24 +18,24 @@ export async function exportDangSplitSummaryPdf(
   const rows = summary.people.map(item => [
     item.name,
     formatMoney(item.share),
+    formatMoney(item.credit),
     formatMoney(item.paid),
     formatMoney(item.balance),
-    STATUS_LABELS[item.status],
-    item.breakdown.length.toLocaleString('fa-IR')
+    STATUS_LABELS[item.status]
   ])
 
   rows.push([
     'جمع',
     formatMoney(summary.total),
+    formatMoney(summary.covered),
     formatMoney(summary.paid),
-    formatMoney(summary.balance),
-    `${summary.settledCount.toLocaleString('fa-IR')} تسویه‌شده`,
-    summary.expensesCount.toLocaleString('fa-IR')
+    formatMoney(summary.debtTotal),
+    `${summary.settledCount.toLocaleString('fa-IR')} تسویه‌شده`
   ])
 
   await downloadTablePdf({
     title: `جمع‌بندی دنگ: ${groupTitle}`,
-    headers: ['نام', 'سهم', 'پرداخت‌شده', 'مانده', 'وضعیت', 'تعداد قلم'],
+    headers: ['نام', 'سهم', 'پرداختی بابت گروه', 'تسویه نقدی', 'مانده', 'وضعیت'],
     rows,
     filename: `دنگ-${groupTitle}.pdf`,
     cellClasses: rows.map(() => [
@@ -42,7 +43,7 @@ export async function exportDangSplitSummaryPdf(
       'pdf-cell-amount',
       'pdf-cell-amount',
       'pdf-cell-amount',
-      '',
+      'pdf-cell-amount',
       ''
     ])
   })

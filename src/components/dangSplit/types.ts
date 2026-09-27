@@ -35,6 +35,7 @@ export type DangSplitExpenseFormState = {
   title: string
   date: string
   amount: number | ''
+  payerId: string
   note: string
 }
 

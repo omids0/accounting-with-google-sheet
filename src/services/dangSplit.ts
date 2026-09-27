@@ -36,7 +36,8 @@ export const DANG_SPLIT_EXPENSES_HEADERS = [
   'تاریخ',
   'مبلغ',
   'توضیحات',
-  'زمان ثبت'
+  'زمان ثبت',
+  'پرداخت‌کننده'
 ]
 
 export const DANG_SPLIT_ALLOCATIONS_HEADERS = [

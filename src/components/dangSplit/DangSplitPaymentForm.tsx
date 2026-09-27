@@ -10,11 +10,15 @@ import {
 
 export default function DangSplitPaymentForm({
   remaining,
+  label,
+  submitLabel,
   saving,
   onSubmit,
   onCancel
 }: {
   remaining: number
+  label: string
+  submitLabel: string
   saving: boolean
   onSubmit: (amount: number | '') => void
   onCancel: () => void
@@ -23,7 +27,7 @@ export default function DangSplitPaymentForm({
 
   return (
     <div className={receivablePaymentFormClass}>
-      <FormField label="مبلغ پرداخت" hint={`مانده: ${remaining.toLocaleString('fa-IR')} تومان`}>
+      <FormField label={label} hint={`مانده: ${remaining.toLocaleString('fa-IR')} تومان`}>
         <AmountInput value={amount} onChange={setAmount} />
       </FormField>
       <div className={receivableAddPaymentActionsClass}>
@@ -35,7 +39,7 @@ export default function DangSplitPaymentForm({
           loading={saving}
           onClick={() => onSubmit(amount)}
         >
-          ثبت پرداخت
+          {submitLabel}
         </Button>
         <Button type="button" variant="secondary" size="sm" disabled={saving} onClick={onCancel}>
           انصراف
