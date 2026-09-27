@@ -60,48 +60,73 @@ async function registerBiometricCredential(): Promise<string> {
   return bufferToBase64(credential.rawId)
 }
 
-export async function isBiometricAvailable(): Promise<boolean> {
-  if (isNativePlatform()) {
-    try {
-      const BiometricAuth = await loadBiometricAuth()
+export interface BiometricStatus {
+  available: boolean
+  /** Persian sentence shown when `available` is false. */
+  reason: string | null
+  /** Raw platform answer, shown in small print so a screenshot is diagnosable. */
+  detail: string | null
+}
 
-      return (await BiometricAuth.checkBiometry()).isAvailable
-    } catch {
-      return false
+async function getNativeStatus(): Promise<BiometricStatus> {
+  const { BiometricAuth, BiometryType } = await import('@aparajita/capacitor-biometric-auth')
+
+  const result = await BiometricAuth.checkBiometry()
+
+  const detail = [
+    `type=${BiometryType[result.biometryType] ?? result.biometryType}`,
+    `enrolled=${result.isAvailable}`,
+    `strong=${result.strongBiometryIsAvailable}`,
+    `secure=${result.deviceIsSecure}`,
+    `code=${result.code || '-'}`
+  ].join(' · ')
+
+  // The prompt passes allowDeviceCredential, so a secured device can unlock with
+  // its PIN, pattern or password even when no finger is enrolled.
+  if (result.isAvailable || result.deviceIsSecure) {
+    return { available: true, reason: null, detail }
+  }
+
+  return {
+    available: false,
+    reason: 'برای استفاده از اثر انگشت، ابتدا قفل صفحه (رمز، الگو یا PIN) گوشی را فعال کنید.',
+    detail
+  }
+}
+
+async function getWebStatus(): Promise<BiometricStatus> {
+  if (typeof window === 'undefined' || !window.PublicKeyCredential) {
+    return {
+      available: false,
+      reason: 'مرورگر این دستگاه از ورود با اثر انگشت پشتیبانی نمی‌کند.',
+      detail: 'webauthn=unsupported'
     }
   }
 
-  if (typeof window === 'undefined' || !window.PublicKeyCredential) return false
-  try {
-    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-  } catch {
-    return false
+  const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+
+  return {
+    available,
+    reason: available ? null : 'روی این دستگاه حسگر اثر انگشتِ قابل استفاده پیدا نشد.',
+    detail: `webauthn=${available}`
   }
 }
 
 /**
- * Explains why the device reports no usable biometry, so the settings screen can
- * say what to fix instead of silently hiding the option.
+ * One call for both the toggle and its explanation, so the screen never hides the
+ * option without saying why.
  */
-export async function getBiometricUnavailableReason(): Promise<string | null> {
-  if (!isNativePlatform()) return null
-
+export async function getBiometricStatus(): Promise<BiometricStatus> {
   try {
-    const BiometricAuth = await loadBiometricAuth()
-
-    const result = await BiometricAuth.checkBiometry()
-
-    if (result.isAvailable) return null
-
-    if (!result.deviceIsSecure) {
-      return 'برای استفاده از اثر انگشت، ابتدا قفل صفحه (رمز، الگو یا PIN) گوشی را فعال کنید.'
-    }
-
-    const detail = result.reason || result.code || 'نامشخص'
-
-    return `اثر انگشت روی این دستگاه در دسترس نیست (${detail}).`
+    return isNativePlatform() ? await getNativeStatus() : await getWebStatus()
   } catch (err) {
-    return `بررسی اثر انگشت ناموفق بود (${err instanceof Error ? err.message : 'خطای نامشخص'}).`
+    const message = err instanceof Error ? err.message : 'خطای نامشخص'
+
+    return {
+      available: false,
+      reason: `بررسی اثر انگشت ناموفق بود (${message}).`,
+      detail: `error=${message}`
+    }
   }
 }
 
