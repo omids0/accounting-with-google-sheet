@@ -6,19 +6,49 @@ import { isNativePlatform } from './googleAuthNative'
 /** The APK has no WebAuthn, so there is no credential to store — only a marker. */
 const NATIVE_CREDENTIAL_ID = 'native-biometric'
 
+/** The prompt lives in its own activity, so a lost result would hang the screen. */
+const AUTH_TIMEOUT_MS = 90_000
+
 /** Imported on demand so the plugin never loads in the browser build or in tests. */
 async function loadBiometricAuth() {
-  return (await import('@aparajita/capacitor-biometric-auth')).BiometricAuth
+  return await import('@aparajita/capacitor-biometric-auth')
 }
 
-async function authenticateNative(): Promise<void> {
-  const BiometricAuth = await loadBiometricAuth()
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(
+      () => reject(new Error('پاسخی از احراز هویت دستگاه دریافت نشد')),
+      ms
+    )
 
-  await BiometricAuth.authenticate({
-    reason: 'برای باز کردن قفل اپ احراز هویت کنید',
-    cancelTitle: 'انصراف',
-    allowDeviceCredential: true
+    promise.then(resolve, reject).finally(() => window.clearTimeout(timer))
   })
+}
+
+/**
+ * androidx.biometric rejects BIOMETRIC_WEAK | DEVICE_CREDENTIAL outright, and the
+ * plugin ORs DEVICE_CREDENTIAL onto whatever strength it is given — so asking for
+ * both at once builds an unsupported prompt. Ask for exactly one of them.
+ */
+async function authenticateNative(enrolled: boolean): Promise<void> {
+  const { AndroidBiometryStrength, BiometricAuth } = await loadBiometricAuth()
+
+  const reason = 'برای باز کردن قفل اپ احراز هویت کنید'
+
+  const options = enrolled
+    ? {
+        reason,
+        cancelTitle: 'انصراف',
+        allowDeviceCredential: false,
+        androidBiometryStrength: AndroidBiometryStrength.weak
+      }
+    : {
+        reason,
+        allowDeviceCredential: true,
+        androidBiometryStrength: AndroidBiometryStrength.strong
+      }
+
+  await withTimeout(BiometricAuth.authenticate(options), AUTH_TIMEOUT_MS)
 }
 
 async function registerBiometricCredential(): Promise<string> {
@@ -62,6 +92,8 @@ async function registerBiometricCredential(): Promise<string> {
 
 export interface BiometricStatus {
   available: boolean
+  /** True once the user has enrolled a finger or face; false means screen-lock only. */
+  enrolled: boolean
   /** Persian sentence shown when `available` is false. */
   reason: string | null
   /** Raw platform answer, shown in small print so a screenshot is diagnosable. */
@@ -69,7 +101,7 @@ export interface BiometricStatus {
 }
 
 async function getNativeStatus(): Promise<BiometricStatus> {
-  const { BiometricAuth, BiometryType } = await import('@aparajita/capacitor-biometric-auth')
+  const { BiometricAuth, BiometryType } = await loadBiometricAuth()
 
   const result = await BiometricAuth.checkBiometry()
 
@@ -81,14 +113,15 @@ async function getNativeStatus(): Promise<BiometricStatus> {
     `code=${result.code || '-'}`
   ].join(' · ')
 
-  // The prompt passes allowDeviceCredential, so a secured device can unlock with
-  // its PIN, pattern or password even when no finger is enrolled.
+  // A secured device can unlock with its PIN, pattern or password even when no
+  // finger is enrolled, so screen-lock alone is enough to offer the option.
   if (result.isAvailable || result.deviceIsSecure) {
-    return { available: true, reason: null, detail }
+    return { available: true, enrolled: result.isAvailable, reason: null, detail }
   }
 
   return {
     available: false,
+    enrolled: false,
     reason: 'برای استفاده از اثر انگشت، ابتدا قفل صفحه (رمز، الگو یا PIN) گوشی را فعال کنید.',
     detail
   }
@@ -98,6 +131,7 @@ async function getWebStatus(): Promise<BiometricStatus> {
   if (typeof window === 'undefined' || !window.PublicKeyCredential) {
     return {
       available: false,
+      enrolled: false,
       reason: 'مرورگر این دستگاه از ورود با اثر انگشت پشتیبانی نمی‌کند.',
       detail: 'webauthn=unsupported'
     }
@@ -107,6 +141,7 @@ async function getWebStatus(): Promise<BiometricStatus> {
 
   return {
     available,
+    enrolled: available,
     reason: available ? null : 'روی این دستگاه حسگر اثر انگشتِ قابل استفاده پیدا نشد.',
     detail: `webauthn=${available}`
   }
@@ -124,6 +159,7 @@ export async function getBiometricStatus(): Promise<BiometricStatus> {
 
     return {
       available: false,
+      enrolled: false,
       reason: `بررسی اثر انگشت ناموفق بود (${message}).`,
       detail: `error=${message}`
     }
@@ -142,7 +178,7 @@ export function isBiometricEnabled(): boolean {
 
 export async function registerAppLockBiometric(): Promise<void> {
   if (isNativePlatform()) {
-    await authenticateNative()
+    await authenticateNative((await getBiometricStatus()).enrolled)
     saveDeviceConfig({ biometricEnabled: true, credentialId: NATIVE_CREDENTIAL_ID })
 
     return
@@ -174,7 +210,7 @@ export async function verifyBiometric(): Promise<boolean> {
 
   if (isNativePlatform()) {
     try {
-      await authenticateNative()
+      await authenticateNative((await getBiometricStatus()).enrolled)
 
       return true
     } catch {
