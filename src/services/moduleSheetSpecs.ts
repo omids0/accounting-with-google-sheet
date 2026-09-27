@@ -4,6 +4,7 @@ import { CATEGORIES_HEADERS, CATEGORIES_SHEET } from './categories'
 import { CHECKS_HEADERS, CHECKS_SHEET } from './checks'
 import { COUNTERPARTIES_HEADERS, COUNTERPARTIES_SHEET } from './counterparties'
 import { DANG_HEADERS, DANG_SHEET } from './dang'
+import { DANG_SPLIT_SHEET_SPECS } from './dangSplit'
 import { INSTALLMENTS_HEADERS, INSTALLMENTS_SHEET } from './installments'
 import { MONTHLY_BALANCE_HEADERS, MONTHLY_BALANCE_SHEET } from './monthlyBalance'
 import { PERIOD_SETTINGS_HEADERS, PERIOD_SETTINGS_SHEET } from './periodSettings'
@@ -36,6 +37,7 @@ import { WALLET_HEADERS, WALLET_SHEET } from './wallet'
 export const MODULE_SHEET_SPECS: SheetSpec[] = [
   { sheetName: INSTALLMENTS_SHEET, headers: INSTALLMENTS_HEADERS },
   { sheetName: DANG_SHEET, headers: DANG_HEADERS },
+  ...DANG_SPLIT_SHEET_SPECS,
   { sheetName: CHECKS_SHEET, headers: CHECKS_HEADERS },
   { sheetName: RECEIVABLES_SHEET, headers: RECEIVABLES_HEADERS },
   { sheetName: TREASURY_SHEET, headers: TREASURY_HEADERS },

@@ -3,6 +3,13 @@ import { CATEGORIES_SHEET } from './categories'
 import { CHECKS_SHEET } from './checks'
 import { COUNTERPARTIES_SHEET } from './counterparties'
 import { DANG_SHEET } from './dang'
+import {
+  DANG_SPLIT_ALLOCATIONS_SHEET,
+  DANG_SPLIT_CATEGORIES_SHEET,
+  DANG_SPLIT_EXPENSES_SHEET,
+  DANG_SPLIT_GROUPS_SHEET,
+  DANG_SPLIT_PEOPLE_SHEET
+} from './dangSplit'
 import { INSTALLMENTS_SHEET } from './installments'
 import { MONTHLY_BALANCE_SHEET } from './monthlyBalance'
 import { PERIOD_SETTINGS_SHEET } from './periodSettings'
@@ -24,6 +31,11 @@ import { WALLET_SHEET } from './wallet'
 const STATIC_SHEETS = [
   INSTALLMENTS_SHEET,
   DANG_SHEET,
+  DANG_SPLIT_GROUPS_SHEET,
+  DANG_SPLIT_CATEGORIES_SHEET,
+  DANG_SPLIT_PEOPLE_SHEET,
+  DANG_SPLIT_EXPENSES_SHEET,
+  DANG_SPLIT_ALLOCATIONS_SHEET,
   CHECKS_SHEET,
   COUNTERPARTIES_SHEET,
   RECEIVABLES_SHEET,
