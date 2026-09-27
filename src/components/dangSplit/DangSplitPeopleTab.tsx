@@ -1,22 +1,12 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
-import DangSplitPersonCard from './DangSplitPersonCard'
-import {
-  dangSplitCountBadgeClass,
-  dangSplitEmptySectionClass,
-  dangSplitGroupClass,
-  dangSplitGroupHeaderClass,
-  dangSplitGroupHeaderTitleClass,
-  dangSplitToolbarClass
-} from './dangSplitStyles'
+import DangSplitCategorySection from './DangSplitCategorySection'
+import { dangSplitToolbarClass } from './dangSplitStyles'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitGroupSummary } from '../../types/dangSplit'
 import AppIcon from '../AppIcon'
-import CardDeleteButton from '../CardDeleteButton'
-import CardEditButton from '../CardEditButton'
 import Button from '../ui/Button'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
-import { cardActionButtonsClass, listCardsContainerClass } from '../ui/featureCardStyles'
 
 type PeopleSection = {
   key: string
@@ -44,6 +34,9 @@ export default function DangSplitPeopleTab({
   onEditCategory: (item: DangSplitCategoryWithRow) => void
   onDeleteCategory: (item: DangSplitCategoryWithRow) => void
 }) {
+  // دسته‌ها باز شروع می‌شوند؛ این مجموعه فقط دسته‌های بسته‌شده را نگه می‌دارد.
+  const [collapsedKeys, setCollapsedKeys] = useState<string[]>([])
+
   const shareByPerson = useMemo(
     () => new Map(summary.people.map(item => [item.personId, item.share])),
     [summary.people]
@@ -67,7 +60,13 @@ export default function DangSplitPeopleTab({
     return grouped
   }, [categories, people])
 
-  if (people.length === 0 && categories.length === 0) {
+  const toggleSection = (key: string) => {
+    setCollapsedKeys(current =>
+      current.includes(key) ? current.filter(item => item !== key) : [...current, key]
+    )
+  }
+
+  if (sections.length === 0) {
     return (
       <div className={emptyStateClass}>
         <div className={emptyStateIconClass}>
@@ -84,44 +83,19 @@ export default function DangSplitPeopleTab({
   return (
     <div className={dangSplitToolbarClass}>
       {sections.map(section => (
-        <div key={section.key} className={dangSplitGroupClass}>
-          <div className={dangSplitGroupHeaderClass}>
-            <span className={dangSplitGroupHeaderTitleClass}>
-              {section.title}
-              <span className={dangSplitCountBadgeClass}>
-                {section.people.length.toLocaleString('fa-IR')} نفر
-              </span>
-            </span>
-            {section.category ? (
-              <span className={cardActionButtonsClass}>
-                <CardEditButton
-                  onClick={() => onEditCategory(section.category as DangSplitCategoryWithRow)}
-                  ariaLabel={`ویرایش دسته ${section.title}`}
-                />
-                <CardDeleteButton
-                  onClick={() => onDeleteCategory(section.category as DangSplitCategoryWithRow)}
-                  ariaLabel={`حذف دسته ${section.title}`}
-                />
-              </span>
-            ) : null}
-          </div>
-
-          {section.people.length === 0 ? (
-            <p className={dangSplitEmptySectionClass}>کسی در این دسته نیست</p>
-          ) : (
-            <div className={listCardsContainerClass}>
-              {section.people.map(item => (
-                <DangSplitPersonCard
-                  key={item.id}
-                  item={item}
-                  share={shareByPerson.get(item.id) ?? 0}
-                  onEdit={onEditPerson}
-                  onDelete={onDeletePerson}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <DangSplitCategorySection
+          key={section.key}
+          title={section.title}
+          category={section.category}
+          people={section.people}
+          shareByPerson={shareByPerson}
+          expanded={!collapsedKeys.includes(section.key)}
+          onToggleExpand={() => toggleSection(section.key)}
+          onEditPerson={onEditPerson}
+          onDeletePerson={onDeletePerson}
+          onEditCategory={onEditCategory}
+          onDeleteCategory={onDeleteCategory}
+        />
       ))}
     </div>
   )
