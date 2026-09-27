@@ -117,3 +117,8 @@ export const appLockFormActionsClass = 'flex flex-wrap gap-2'
 
 export const appLockCheckboxClass =
   'flex cursor-pointer items-start gap-2 rounded-sm border border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] bg-surface px-[0.6rem] py-[0.5rem] text-[0.8rem] leading-[1.45] text-muted [&_input]:mt-[0.12rem]'
+
+export const appLockBiometricNoteClass = 'w-full text-[0.74rem] leading-[1.6] text-muted'
+
+export const appLockBiometricDetailClass =
+  'w-full break-all font-mono text-[0.66rem] leading-[1.5] text-muted opacity-70'

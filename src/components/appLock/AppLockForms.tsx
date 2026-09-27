@@ -75,7 +75,7 @@ export function PinFieldsForm({
             onChange={e => onUseBiometricChange(e.target.checked)}
             disabled={loading}
           />
-          <span>ورود با اثر انگشت (در صورت پشتیبانی دستگاه)</span>
+          <span>ورود با اثر انگشت یا قفل صفحهٔ گوشی</span>
         </label>
       )}
       <div className={appLockFormActionsClass}>

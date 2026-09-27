@@ -1,4 +1,5 @@
 import AppIcon from './AppIcon'
+import AppLockBiometricRow from './appLock/AppLockBiometricRow'
 import { ChangePinForm, CurrentPinForm, PinFieldsForm } from './appLock/AppLockForms'
 import AppLockPolicySettings from './appLock/AppLockPolicySettings'
 import { useAppLockSettings } from './appLock/useAppLockSettings'
@@ -81,6 +82,18 @@ export default function AppLockSettings() {
             >
               فعال‌سازی قفل اپ
             </Button>
+            <div className={appLockActionsClass}>
+              <AppLockBiometricRow
+                lockEnabled={false}
+                available={lock.biometricAvailable}
+                enabled={false}
+                unavailableReason={lock.biometricUnavailableReason}
+                detail={lock.biometricDetail}
+                loading={lock.loading}
+                onEnable={() => void lock.handleEnableBiometric()}
+                onDisable={() => lock.setStep('disable-biometric')}
+              />
+            </div>
           </section>
         )}
 
@@ -113,32 +126,16 @@ export default function AppLockSettings() {
               >
                 تغییر رمز
               </Button>
-              {lock.biometricAvailable && !lock.biometricOn && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => void lock.handleEnableBiometric()}
-                  disabled={lock.loading}
-                >
-                  فعال‌سازی اثر انگشت
-                </Button>
-              )}
-              {lock.biometricOn && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => lock.setStep('disable-biometric')}
-                >
-                  غیرفعال‌سازی اثر انگشت
-                </Button>
-              )}
-              {!lock.biometricAvailable && lock.biometricUnavailableReason && (
-                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', width: '100%' }}>
-                  {lock.biometricUnavailableReason}
-                </p>
-              )}
+              <AppLockBiometricRow
+                lockEnabled
+                available={lock.biometricAvailable}
+                enabled={lock.biometricOn}
+                unavailableReason={lock.biometricUnavailableReason}
+                detail={lock.biometricDetail}
+                loading={lock.loading}
+                onEnable={() => void lock.handleEnableBiometric()}
+                onDisable={() => lock.setStep('disable-biometric')}
+              />
               <Button
                 type="button"
                 variant="danger"

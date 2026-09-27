@@ -5,9 +5,8 @@ import {
   disableAppLock,
   disableBiometric,
   enableBiometric,
-  getBiometricUnavailableReason,
+  getBiometricStatus,
   isAppLockEnabled,
-  isBiometricAvailable,
   isBiometricEnabled,
   setupAppLock,
   syncAppLockFromSheet,
@@ -31,6 +30,8 @@ export function useAppLockSettings() {
 
   const [biometricUnavailableReason, setBiometricUnavailableReason] = useState<string | null>(null)
 
+  const [biometricDetail, setBiometricDetail] = useState<string | null>(null)
+
   const [biometricOn, setBiometricOn] = useState(isBiometricEnabled)
 
   const [step, setStep] = useState<SetupStep>('idle')
@@ -50,8 +51,11 @@ export function useAppLockSettings() {
   const [idleMinutes, setIdleMinutesState] = useState(getIdleMinutes)
 
   useEffect(() => {
-    void isBiometricAvailable().then(setBiometricAvailable)
-    void getBiometricUnavailableReason().then(setBiometricUnavailableReason)
+    void getBiometricStatus().then(status => {
+      setBiometricAvailable(status.available)
+      setBiometricUnavailableReason(status.reason)
+      setBiometricDetail(status.detail)
+    })
     void syncAppLockFromSheet().then(() => {
       setEnabled(isAppLockEnabled())
       setBiometricOn(isBiometricEnabled())
@@ -191,6 +195,7 @@ export function useAppLockSettings() {
     enabled,
     biometricAvailable,
     biometricUnavailableReason,
+    biometricDetail,
     biometricOn,
     step,
     setStep,

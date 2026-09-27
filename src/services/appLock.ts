@@ -1,8 +1,7 @@
 import {
   clearBiometricConfig,
   enableBiometric,
-  getBiometricUnavailableReason,
-  isBiometricAvailable,
+  getBiometricStatus,
   isBiometricEnabled,
   registerAppLockBiometric,
   verifyBiometric
@@ -23,13 +22,8 @@ import type { AppLockAccountConfig, AppLockConfig } from '../types'
 const PIN_MIN_LENGTH = 4
 
 export { APP_LOCK_CHANGED_EVENT }
-export {
-  isBiometricAvailable,
-  isBiometricEnabled,
-  enableBiometric,
-  verifyBiometric,
-  getBiometricUnavailableReason
-}
+export { isBiometricEnabled, enableBiometric, verifyBiometric, getBiometricStatus }
+export type { BiometricStatus } from './appLockBiometric'
 
 async function syncAccountToSheet(config: AppLockAccountConfig): Promise<void> {
   const spreadsheetId = getSpreadsheetId()
