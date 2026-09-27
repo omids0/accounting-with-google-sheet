@@ -36,6 +36,20 @@ export const dangSplitCountBadgeClass = cn(
 
 export const dangSplitEmptySectionClass = 'py-1 text-[0.78rem] text-muted'
 
+export const dangSplitBalanceRowClass = 'mt-1 flex items-baseline gap-1.5'
+
+export const dangSplitBalanceLabelClass = 'text-[0.78rem] text-muted'
+
+export const dangSplitBalanceValueClass = (tone: 'debt' | 'credit' | 'settled') =>
+  cn(
+    'text-[1.15rem] font-extrabold tabular-nums leading-tight',
+    tone === 'debt' && 'text-danger',
+    tone === 'credit' && 'text-success',
+    tone === 'settled' && 'text-muted'
+  )
+
+export const dangSplitMetaLineClass = 'mt-1 text-[0.78rem] leading-[1.6] text-muted'
+
 export const dangSplitChipsRowClass = 'mt-2 flex flex-wrap gap-1.5'
 
 export const dangSplitChipClass = cn(

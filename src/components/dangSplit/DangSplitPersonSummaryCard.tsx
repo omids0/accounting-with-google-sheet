@@ -1,5 +1,11 @@
 import DangSplitPaymentForm from './DangSplitPaymentForm'
-import { dangSplitStatusClass } from './dangSplitStyles'
+import {
+  dangSplitBalanceLabelClass,
+  dangSplitBalanceRowClass,
+  dangSplitBalanceValueClass,
+  dangSplitMetaLineClass,
+  dangSplitStatusClass
+} from './dangSplitStyles'
 import type { DangSplitPersonSummary } from '../../types/dangSplit'
 import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
@@ -84,16 +90,33 @@ export default function DangSplitPersonSummaryCard({
         >
           <div>
             <div className={listCardTitleClass}>{item.name || '—'}</div>
+
+            <div className={dangSplitBalanceRowClass}>
+              <span className={dangSplitBalanceLabelClass}>
+                {complete || !hasActivity ? 'مانده' : balanceLabel}:
+              </span>
+              <span
+                className={dangSplitBalanceValueClass(
+                  complete || !hasActivity ? 'settled' : isCreditor ? 'credit' : 'debt'
+                )}
+              >
+                {formatMoney(Math.abs(item.balance))}
+              </span>
+            </div>
+
+            <div className={dangSplitMetaLineClass}>
+              <span className={dangSplitBalanceLabelClass}>بستانکاری: </span>
+              {formatMoney(item.credit)}
+              {' · '}
+              <span className={dangSplitBalanceLabelClass}>سهم: </span>
+              {formatMoney(item.share)}
+            </div>
+
             <div className={listCardSubtitleClass}>
               {categoryTitle ? <span>{categoryTitle} · </span> : null}
-              <span className={listCardAmountPillClass}>{formatMoney(item.share)}</span>
-              {' · '}
               <span className={dangSplitStatusClass(item.status)}>
                 {STATUS_LABELS[item.status]}
               </span>
-              {complete || !hasActivity
-                ? ''
-                : ` · ${balanceLabel}: ${formatMoney(Math.abs(item.balance))}`}
             </div>
             <ProgressBar
               value={progress}
