@@ -50,6 +50,16 @@ export const dangSplitBalanceValueClass = (tone: 'debt' | 'credit' | 'settled') 
 
 export const dangSplitMetaLineClass = 'mt-1 text-[0.75rem] leading-[1.55] text-muted'
 
+export const dangSplitAssignButtonClass = (mode: 'assign' | 'leave') =>
+  cn('relative', mode === 'assign' ? 'hover:enabled:text-primary' : 'hover:enabled:text-danger')
+
+export const dangSplitAssignBadgeClass = (mode: 'assign' | 'leave') =>
+  cn(
+    'absolute bottom-0.5 left-0.5 inline-flex h-3.5 w-3.5 items-center justify-center',
+    'rounded-full text-[0.65rem] font-bold leading-none text-white',
+    mode === 'assign' ? 'bg-primary' : 'bg-danger'
+  )
+
 export const dangSplitChipsRowClass = 'mt-2 flex flex-wrap gap-1.5'
 
 export const dangSplitChipClass = cn(

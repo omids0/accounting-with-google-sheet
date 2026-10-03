@@ -29,6 +29,8 @@ export default function DangSplitPeopleTab({
   onOpenDepositForm,
   onCloseDepositForm,
   onDeposit,
+  onAssignCategory,
+  onLeaveCategory,
   onEditCategory,
   onDeleteCategory
 }: {
@@ -43,6 +45,8 @@ export default function DangSplitPeopleTab({
   onOpenDepositForm: (personId: string) => void
   onCloseDepositForm: () => void
   onDeposit: (person: DangSplitPersonWithRow, amount: number | '') => void
+  onAssignCategory: (item: DangSplitPersonWithRow) => void
+  onLeaveCategory: (item: DangSplitPersonWithRow) => void
   onEditCategory: (item: DangSplitCategoryWithRow) => void
   onDeleteCategory: (item: DangSplitCategoryWithRow) => void
 }) {
@@ -112,6 +116,8 @@ export default function DangSplitPeopleTab({
           onOpenDepositForm={onOpenDepositForm}
           onCloseDepositForm={onCloseDepositForm}
           onDeposit={onDeposit}
+          onAssignCategory={onAssignCategory}
+          onLeaveCategory={onLeaveCategory}
           onEditCategory={onEditCategory}
           onDeleteCategory={onDeleteCategory}
         />
@@ -131,6 +137,8 @@ export default function DangSplitPeopleTab({
               onOpenDepositForm={() => onOpenDepositForm(item.id)}
               onCloseDepositForm={onCloseDepositForm}
               onDeposit={amount => onDeposit(item, amount)}
+              onAssignCategory={onAssignCategory}
+              onLeaveCategory={onLeaveCategory}
             />
           ))}
         </div>

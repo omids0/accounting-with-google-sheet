@@ -1,4 +1,5 @@
 import DangSplitAllocationModal from './DangSplitAllocationModal'
+import DangSplitAssignCategoryModal from './DangSplitAssignCategoryModal'
 import DangSplitCategoryFormModal from './DangSplitCategoryFormModal'
 import DangSplitExpenseFormModal from './DangSplitExpenseFormModal'
 import DangSplitPersonFormModal from './DangSplitPersonFormModal'
@@ -7,6 +8,7 @@ import type { useDangSplitCategoryActions } from './useDangSplitCategoryActions'
 import type { useDangSplitExpenseActions } from './useDangSplitExpenseActions'
 import type { useDangSplitPersonActions } from './useDangSplitPersonActions'
 import type { DangSplitAllocationWithRow } from '../../services/dangSplitExpenses'
+import ConfirmActionModal from '../ConfirmActionModal'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
 
 export default function DangSplitDetailModals({
@@ -50,6 +52,37 @@ export default function DangSplitDetailModals({
         deleting={personActions.deleting}
         onClose={personActions.closeDeleteConfirm}
         onConfirm={personActions.handleDelete}
+      />
+
+      <DangSplitAssignCategoryModal
+        open={personActions.assigningItem !== null}
+        person={personActions.assigningItem}
+        groupId={groupId}
+        categories={categories}
+        saving={personActions.savingCategory}
+        onClose={personActions.closeAssignCategory}
+        onCategoriesSaved={onCategoriesSaved}
+        onSubmit={categoryId => {
+          if (personActions.assigningItem) {
+            void personActions.saveCategory(personActions.assigningItem, categoryId)
+          }
+        }}
+      />
+
+      <ConfirmActionModal
+        open={personActions.leavingItem !== null}
+        title="خروج از دسته"
+        message={`«${
+          personActions.leavingItem?.name ?? ''
+        }» از دسته‌اش خارج شود؟ خود فرد و هزینه‌هایش حذف نمی‌شوند.`}
+        confirmLabel="خارج کن"
+        confirming={personActions.savingCategory}
+        onClose={personActions.closeLeaveCategory}
+        onConfirm={() => {
+          if (personActions.leavingItem) {
+            void personActions.saveCategory(personActions.leavingItem, '')
+          }
+        }}
       />
 
       <DangSplitCategoryFormModal

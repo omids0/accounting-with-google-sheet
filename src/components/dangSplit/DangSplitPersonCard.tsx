@@ -1,3 +1,4 @@
+import DangSplitCategoryAssignButton from './DangSplitCategoryAssignButton'
 import DangSplitPaymentForm from './DangSplitPaymentForm'
 import {
   dangSplitChipsRowClass,
@@ -40,7 +41,9 @@ export default function DangSplitPersonCard({
   onDelete,
   onOpenDepositForm,
   onCloseDepositForm,
-  onDeposit
+  onDeposit,
+  onAssignCategory,
+  onLeaveCategory
 }: {
   item: DangSplitPersonWithRow
   summary?: DangSplitPersonSummary
@@ -51,6 +54,8 @@ export default function DangSplitPersonCard({
   onOpenDepositForm: () => void
   onCloseDepositForm: () => void
   onDeposit: (amount: number | '') => void
+  onAssignCategory: (item: DangSplitPersonWithRow) => void
+  onLeaveCategory: (item: DangSplitPersonWithRow) => void
 }) {
   const share = summary?.share ?? 0
   const credit = summary?.credit ?? 0
@@ -119,6 +124,13 @@ export default function DangSplitPersonCard({
         <div className={cardActionButtonsClass}>
           <CardEditButton onClick={() => onEdit(item)} />
           <CardDeleteButton onClick={() => onDelete(item)} />
+          <DangSplitCategoryAssignButton
+            mode={item.categoryId ? 'leave' : 'assign'}
+            ariaLabel={
+              item.categoryId ? `خروج ${item.name} از دسته` : `افزودن ${item.name} به دسته`
+            }
+            onClick={() => (item.categoryId ? onLeaveCategory(item) : onAssignCategory(item))}
+          />
         </div>
       </div>
     </div>

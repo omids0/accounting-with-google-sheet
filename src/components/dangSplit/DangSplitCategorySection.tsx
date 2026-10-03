@@ -40,6 +40,8 @@ export default function DangSplitCategorySection({
   onOpenDepositForm,
   onCloseDepositForm,
   onDeposit,
+  onAssignCategory,
+  onLeaveCategory,
   onEditCategory,
   onDeleteCategory
 }: {
@@ -56,6 +58,8 @@ export default function DangSplitCategorySection({
   onOpenDepositForm: (personId: string) => void
   onCloseDepositForm: () => void
   onDeposit: (person: DangSplitPersonWithRow, amount: number | '') => void
+  onAssignCategory: (item: DangSplitPersonWithRow) => void
+  onLeaveCategory: (item: DangSplitPersonWithRow) => void
   onEditCategory: (item: DangSplitCategoryWithRow) => void
   onDeleteCategory: (item: DangSplitCategoryWithRow) => void
 }) {
@@ -153,6 +157,8 @@ export default function DangSplitCategorySection({
                   onOpenDepositForm={() => onOpenDepositForm(item.id)}
                   onCloseDepositForm={onCloseDepositForm}
                   onDeposit={amount => onDeposit(item, amount)}
+                  onAssignCategory={onAssignCategory}
+                  onLeaveCategory={onLeaveCategory}
                 />
               ))}
             </div>

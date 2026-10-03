@@ -22,6 +22,9 @@ export function useDangSplitPersonActions({
   const [saving, setSaving] = useState(false)
   const [deletingItem, setDeletingItem] = useState<DangSplitPersonWithRow | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [assigningItem, setAssigningItem] = useState<DangSplitPersonWithRow | null>(null)
+  const [leavingItem, setLeavingItem] = useState<DangSplitPersonWithRow | null>(null)
+  const [savingCategory, setSavingCategory] = useState(false)
   const [depositPersonId, setDepositPersonId] = useState<string | null>(null)
   const [savingDepositId, setSavingDepositId] = useState<string | null>(null)
 
@@ -126,6 +129,26 @@ export function useDangSplitPersonActions({
     }
   }
 
+  /** تغییر دسته یک فرد؛ شناسه خالی یعنی از دسته خارج شود */
+  const saveCategory = async (person: DangSplitPersonWithRow, categoryId: string) => {
+    const spreadsheetId = requireSpreadsheetId()
+
+    if (!spreadsheetId) return
+
+    setSavingCategory(true)
+    try {
+      await updateDangSplitPerson(spreadsheetId, person.rowNumber, { ...person, categoryId })
+      setAssigningItem(null)
+      setLeavingItem(null)
+      showSuccess(categoryId ? 'فرد به دسته اضافه شد' : 'فرد از دسته خارج شد')
+      await onSaved()
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'تغییر دسته ناموفق بود')
+    } finally {
+      setSavingCategory(false)
+    }
+  }
+
   /** شارژ صندوق: مبلغ وارد شده به واریز قبلی همان فرد اضافه می‌شود */
   const handleDeposit = async (person: DangSplitPersonWithRow, amount: number | '') => {
     const spreadsheetId = requireSpreadsheetId()
@@ -165,6 +188,14 @@ export function useDangSplitPersonActions({
     setDeletingItem,
     closeDeleteConfirm,
     handleDelete,
+    assigningItem,
+    leavingItem,
+    savingCategory,
+    openAssignCategory: setAssigningItem,
+    closeAssignCategory: () => setAssigningItem(null),
+    openLeaveCategory: setLeavingItem,
+    closeLeaveCategory: () => setLeavingItem(null),
+    saveCategory,
     depositPersonId,
     savingDepositId,
     openDepositForm: setDepositPersonId,
