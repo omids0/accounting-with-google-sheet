@@ -108,6 +108,12 @@ export default function DangSplitDetailModals({
         open={expenseActions.showForm}
         editingItem={expenseActions.editingItem}
         people={people}
+        categories={categories}
+        currentAllocations={
+          expenseActions.editingItem
+            ? allocationsByExpense.get(expenseActions.editingItem.id) ?? []
+            : []
+        }
         saving={expenseActions.saving}
         onClose={expenseActions.closeForm}
         onSubmit={expenseActions.handleSubmit}

@@ -42,7 +42,7 @@ export function useDangSplitExpenseActions({
     setEditingItem(null)
   }
 
-  const handleSubmit = async (values: DangSplitExpenseFormState) => {
+  const handleSubmit = async (values: DangSplitExpenseFormState, weights: DangSplitWeight[]) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
@@ -73,9 +73,14 @@ export function useDangSplitExpenseActions({
           payerId: values.payerId,
           note: values.note.trim()
         })
+        await replaceDangSplitAllocations(spreadsheetId, {
+          groupId,
+          expenseId: editingItem.id,
+          weights
+        })
         showSuccess('هزینه ویرایش شد')
       } else {
-        await createDangSplitExpense(spreadsheetId, {
+        const created = await createDangSplitExpense(spreadsheetId, {
           groupId,
           title,
           date: values.date,
@@ -83,6 +88,15 @@ export function useDangSplitExpenseActions({
           payerId: values.payerId,
           note: values.note.trim()
         })
+
+        if (weights.length > 0) {
+          await replaceDangSplitAllocations(spreadsheetId, {
+            groupId,
+            expenseId: created.id,
+            weights
+          })
+        }
+
         showSuccess('هزینه ثبت شد')
       }
 

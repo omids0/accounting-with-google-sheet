@@ -1,12 +1,18 @@
 import { useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import DangSplitAllocationFields from './DangSplitAllocationFields'
+import { dangSplitSectionTitleClass } from './dangSplitStyles'
 import type {
+  DangSplitCategoryWithRow,
   DangSplitExpenseFormState,
   DangSplitExpenseWithRow,
   DangSplitPersonWithRow
 } from './types'
+import { useDangSplitAllocationDraft } from './useDangSplitAllocationDraft'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import type { DangSplitAllocationWithRow } from '../../services/dangSplitExpenses'
+import type { DangSplitWeight } from '../../services/dangSplitMath'
 import {
   formFieldError,
   requiredDate,
@@ -24,6 +30,8 @@ export default function DangSplitExpenseFormModal({
   open,
   editingItem,
   people,
+  categories,
+  currentAllocations,
   saving,
   onClose,
   onSubmit
@@ -31,9 +39,11 @@ export default function DangSplitExpenseFormModal({
   open: boolean
   editingItem: DangSplitExpenseWithRow | null
   people: DangSplitPersonWithRow[]
+  categories: DangSplitCategoryWithRow[]
+  currentAllocations: DangSplitAllocationWithRow[]
   saving: boolean
   onClose: () => void
-  onSubmit: (values: DangSplitExpenseFormState) => void | Promise<void>
+  onSubmit: (values: DangSplitExpenseFormState, weights: DangSplitWeight[]) => void | Promise<void>
 }) {
   const initialValues = useMemo<DangSplitExpenseFormState>(
     () =>
@@ -54,6 +64,7 @@ export default function DangSplitExpenseFormModal({
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors }
   } = useForm<DangSplitExpenseFormState>({ defaultValues: initialValues, mode: 'onSubmit' })
 
@@ -70,8 +81,17 @@ export default function DangSplitExpenseFormModal({
     [people]
   )
 
+  const amount = watch('amount')
+  const draft = useDangSplitAllocationDraft({
+    open,
+    amount: amount === '' ? 0 : Number(amount),
+    people,
+    categories,
+    currentAllocations
+  })
+
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
+    submitValidatedForm(handleSubmit, values => onSubmit(values, draft.weights), event)
   }
 
   return (
@@ -82,6 +102,7 @@ export default function DangSplitExpenseFormModal({
       onSubmit={onFormSubmit}
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره هزینه'}
+      size="wide"
     >
       <FormField
         label="عنوان هزینه"
@@ -146,6 +167,10 @@ export default function DangSplitExpenseFormModal({
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" />
       </FormField>
+
+      <p className={dangSplitSectionTitleClass}>تخصیص افراد</p>
+
+      <DangSplitAllocationFields draft={draft} people={people} categories={categories} />
     </FormModal>
   )
 }
