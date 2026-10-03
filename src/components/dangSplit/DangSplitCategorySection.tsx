@@ -4,7 +4,8 @@ import {
   dangSplitBalanceRowClass,
   dangSplitBalanceValueClass,
   dangSplitCountBadgeClass,
-  dangSplitEmptySectionClass
+  dangSplitEmptySectionClass,
+  dangSplitSectionHeadRowClass
 } from './dangSplitStyles'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitPersonSummary } from '../../types/dangSplit'
@@ -87,8 +88,8 @@ export default function DangSplitCategorySection({
           aria-label={expanded ? `بستن افراد ${title}` : `نمایش افراد ${title}`}
         >
           <div>
-            <div className={listCardTitleClass}>
-              {title}
+            <div className={dangSplitSectionHeadRowClass}>
+              <span className={listCardTitleClass}>{title}</span>
               <span className={dangSplitCountBadgeClass}>
                 {people.length.toLocaleString('fa-IR')} نفر
               </span>

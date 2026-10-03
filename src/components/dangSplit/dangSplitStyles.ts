@@ -50,6 +50,8 @@ export const dangSplitBalanceValueClass = (tone: 'debt' | 'credit' | 'settled') 
 
 export const dangSplitMetaLineClass = 'mt-1 text-[0.75rem] leading-[1.55] text-muted'
 
+export const dangSplitSectionHeadRowClass = 'flex flex-wrap items-center gap-2'
+
 export const dangSplitAssignButtonClass = (mode: 'assign' | 'leave') =>
   cn('relative', mode === 'assign' ? 'hover:enabled:text-primary' : 'hover:enabled:text-danger')
 

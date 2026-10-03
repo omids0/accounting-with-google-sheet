@@ -60,12 +60,15 @@ export default function DangSplitPeopleTab({
 
   const sections = useMemo<PeopleSection[]>(
     () =>
-      categories.map(category => ({
-        key: category.id,
-        title: category.title,
-        category,
-        people: people.filter(item => item.categoryId === category.id)
-      })),
+      categories
+        .map(category => ({
+          key: category.id,
+          title: category.title,
+          category,
+          people: people.filter(item => item.categoryId === category.id)
+        }))
+        // دسته بدون عضو کارتی نمی‌گیرد؛ مدیریتش از انتخابگر دسته‌بندی انجام می‌شود.
+        .filter(section => section.people.length > 0),
     [categories, people]
   )
 
