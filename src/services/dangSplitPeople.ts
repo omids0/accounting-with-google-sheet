@@ -8,6 +8,7 @@ import {
 } from './dangSplit'
 import { appendSheetRow, deleteSheetRow, fetchSheetRows, updateSheetRow } from './sheets'
 import type { DangSplitPerson, DangSplitPersonCategory } from '../types/dangSplit'
+import { isOtherCategory } from '../utils/categoryOrdering'
 import { parseNumeric } from '../utils/parseNumeric'
 
 export type DangSplitPersonWithRow = DangSplitPerson & { rowNumber: number }
@@ -64,7 +65,15 @@ export async function fetchDangSplitCategories(
 
   return mapSheetRows(rows, rowToCategory)
     .filter(item => !groupId || item.groupId === groupId)
-    .sort((a, b) => a.title.localeCompare(b.title, 'fa'))
+    .sort((a, b) => {
+      // «سایر» همیشه ته لیست می‌ماند تا دسته‌های تازه بالای آن بنشینند.
+      const otherA = isOtherCategory(a.title)
+      const otherB = isOtherCategory(b.title)
+
+      if (otherA !== otherB) return otherA ? 1 : -1
+
+      return a.title.localeCompare(b.title, 'fa')
+    })
 }
 
 export async function createDangSplitCategory(
