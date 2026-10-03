@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
 
 import DangSplitCategorySection from './DangSplitCategorySection'
+import DangSplitPersonCard from './DangSplitPersonCard'
 import { dangSplitToolbarClass } from './dangSplitStyles'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitGroupSummary } from '../../types/dangSplit'
 import AppIcon from '../AppIcon'
 import Button from '../ui/Button'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 type PeopleSection = {
   key: string
@@ -52,23 +54,25 @@ export default function DangSplitPeopleTab({
     [summary.people]
   )
 
-  const sections = useMemo<PeopleSection[]>(() => {
-    const grouped: PeopleSection[] = categories.map(category => ({
-      key: category.id,
-      title: category.title,
-      category,
-      people: people.filter(item => item.categoryId === category.id)
-    }))
-    const loose = people.filter(
-      item => !item.categoryId || !categories.some(category => category.id === item.categoryId)
-    )
+  const sections = useMemo<PeopleSection[]>(
+    () =>
+      categories.map(category => ({
+        key: category.id,
+        title: category.title,
+        category,
+        people: people.filter(item => item.categoryId === category.id)
+      })),
+    [categories, people]
+  )
 
-    if (loose.length > 0) {
-      grouped.push({ key: 'none', title: 'بدون دسته', category: null, people: loose })
-    }
-
-    return grouped
-  }, [categories, people])
+  // افراد بی‌دسته کارت گروهی ندارند و مستقیم لیست می‌شوند.
+  const loosePeople = useMemo(
+    () =>
+      people.filter(
+        item => !item.categoryId || !categories.some(category => category.id === item.categoryId)
+      ),
+    [categories, people]
+  )
 
   const toggleSection = (key: string) => {
     setExpandedKeys(current =>
@@ -76,7 +80,7 @@ export default function DangSplitPeopleTab({
     )
   }
 
-  if (sections.length === 0) {
+  if (sections.length === 0 && loosePeople.length === 0) {
     return (
       <div className={emptyStateClass}>
         <div className={emptyStateIconClass}>
@@ -112,6 +116,25 @@ export default function DangSplitPeopleTab({
           onDeleteCategory={onDeleteCategory}
         />
       ))}
+
+      {loosePeople.length > 0 ? (
+        <div className={listCardsContainerClass}>
+          {loosePeople.map(item => (
+            <DangSplitPersonCard
+              key={item.id}
+              item={item}
+              summary={summaryByPerson.get(item.id)}
+              showDepositForm={depositPersonId === item.id}
+              savingDeposit={savingDepositId === item.id}
+              onEdit={onEditPerson}
+              onDelete={onDeletePerson}
+              onOpenDepositForm={() => onOpenDepositForm(item.id)}
+              onCloseDepositForm={onCloseDepositForm}
+              onDeposit={amount => onDeposit(item, amount)}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }
