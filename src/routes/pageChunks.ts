@@ -14,6 +14,11 @@ export const loadCurrencyConverterPage: PageLoader = () =>
 
 export const loadDangPage: PageLoader = () => import('../components/DangPage')
 
+export const loadDangSplitPage: PageLoader = () => import('../components/dangSplit/DangSplitPage')
+
+export const loadDangSplitDetailPage: PageLoader = () =>
+  import('../components/dangSplit/DangSplitDetailPage')
+
 export const loadDashboardPage: PageLoader = () => import('../components/DashboardPage')
 
 export const loadDataEntryPage: PageLoader = () => import('../components/DataEntryPage')
@@ -112,5 +117,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   timesheets: loadTimesheetsPage,
   'timesheet-detail': loadTimesheetDetailPage,
   'vehicle-service': loadVehiclesPage,
-  'vehicle-detail': loadVehicleDetailPage
+  'vehicle-detail': loadVehicleDetailPage,
+  'dang-split': loadDangSplitPage,
+  'dang-split-detail': loadDangSplitDetailPage
 }

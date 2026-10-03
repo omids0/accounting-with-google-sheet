@@ -35,6 +35,10 @@ interface VehicleRouteState {
   title?: string
 }
 
+interface DangSplitRouteState {
+  title?: string
+}
+
 export function useLayoutNavigation() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -55,6 +59,7 @@ export function useLayoutNavigation() {
   const showSettings = isSettingsPath(location.pathname)
   const timesheetTitle = (location.state as TimesheetRouteState | null)?.title
   const vehicleTitle = (location.state as VehicleRouteState | null)?.title
+  const dangSplitTitle = (location.state as DangSplitRouteState | null)?.title
 
   const userName = getUserName()
   const userPicture = getUserPicture()
@@ -98,6 +103,12 @@ export function useLayoutNavigation() {
 
         if (newTab === 'vehicle-detail' && options?.vehicleTitle) {
           navigate(nextPath, { state: { title: options.vehicleTitle } })
+
+          return
+        }
+
+        if (newTab === 'dang-split-detail' && options?.dangSplitGroupTitle) {
+          navigate(nextPath, { state: { title: options.dangSplitGroupTitle } })
 
           return
         }
@@ -213,6 +224,12 @@ export function useLayoutNavigation() {
       return
     }
 
+    if (tab === 'dang-split-detail') {
+      handleTabChange('dang-split')
+
+      return
+    }
+
     handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
   }, [handleTabChange, location.pathname, navigate, showSettings, tab])
 
@@ -229,6 +246,8 @@ export function useLayoutNavigation() {
     ? timesheetTitle
     : tab === 'vehicle-detail' && vehicleTitle
     ? vehicleTitle
+    : tab === 'dang-split-detail' && dangSplitTitle
+    ? dangSplitTitle
     : TAB_TITLES[tab]
 
   return {

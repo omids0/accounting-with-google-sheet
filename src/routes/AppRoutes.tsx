@@ -1,11 +1,13 @@
 import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router-dom'
 
+import DangSplitDetailRoute from './DangSplitDetailRoute'
 import {
   LazyAboutPage,
   LazyChecksPage,
   LazyCounterpartiesPage,
   LazyCurrencyConverterPage,
   LazyDangPage,
+  LazyDangSplitPage,
   LazyDashboardPage,
   LazyDataEntryPage,
   LazyDateCalculatorPage,
@@ -104,6 +106,8 @@ export function AppAuthenticatedRoutes() {
         <Route path="timesheets/:timesheetId" element={<TimesheetDetailRoute />} />
         <Route path="vehicles" element={<LazyVehiclesPage />} />
         <Route path="vehicles/:vehicleId" element={<VehicleDetailRoute />} />
+        <Route path="dang-split" element={<LazyDangSplitPage />} />
+        <Route path="dang-split/:groupId" element={<DangSplitDetailRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

@@ -207,6 +207,16 @@ export default function LayoutMenu({
                   >
                     محاسبه تاریخ
                   </button>
+                  <button
+                    type="button"
+                    className={appMenuItemClass(
+                      tab === 'dang-split' || tab === 'dang-split-detail',
+                      'sub'
+                    )}
+                    onClick={() => onTabChange('dang-split')}
+                  >
+                    محاسبه دنگ
+                  </button>
                 </div>
               )}
             </div>
