@@ -86,7 +86,7 @@ export default function DangSplitDetailPage({
         <DangSplitSummaryTab
           summary={data.summary}
           people={data.people}
-          categoryTitleById={data.categoryTitleById}
+          categories={data.categories}
           onSaved={data.loadItems}
         />
       ) : detailTab === 'people' ? (
