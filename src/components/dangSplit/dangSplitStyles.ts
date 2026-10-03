@@ -6,11 +6,11 @@ export const dangSplitStatsRowClass = cn(
 
 export const dangSplitStatLabelClass = 'text-muted'
 
-export const dangSplitStatValueClass = 'font-bold tabular-nums text-primary-dark'
+export const dangSplitStatValueClass = 'text-[0.85rem] font-bold tabular-nums text-primary-dark'
 
-export const dangSplitStatValueDangerClass = 'font-bold tabular-nums text-danger'
+export const dangSplitStatValueDangerClass = 'text-[0.85rem] font-bold tabular-nums text-danger'
 
-export const dangSplitStatValueSuccessClass = 'font-bold tabular-nums text-success'
+export const dangSplitStatValueSuccessClass = 'text-[0.85rem] font-bold tabular-nums text-success'
 
 export const dangSplitProgressClass = 'mt-2'
 
@@ -36,19 +36,19 @@ export const dangSplitCountBadgeClass = cn(
 
 export const dangSplitEmptySectionClass = 'py-1 text-[0.78rem] text-muted'
 
-export const dangSplitBalanceRowClass = 'mt-1 flex items-baseline gap-1.5'
+export const dangSplitBalanceRowClass = 'mt-0.5 flex items-baseline gap-1.5'
 
-export const dangSplitBalanceLabelClass = 'text-[0.78rem] text-muted'
+export const dangSplitBalanceLabelClass = 'text-[0.75rem] text-muted'
 
 export const dangSplitBalanceValueClass = (tone: 'debt' | 'credit' | 'settled') =>
   cn(
-    'text-[1.15rem] font-extrabold tabular-nums leading-tight',
+    'text-[0.95rem] font-bold tabular-nums leading-tight',
     tone === 'debt' && 'text-danger',
     tone === 'credit' && 'text-success',
     tone === 'settled' && 'text-muted'
   )
 
-export const dangSplitMetaLineClass = 'mt-1 text-[0.78rem] leading-[1.6] text-muted'
+export const dangSplitMetaLineClass = 'mt-1 text-[0.75rem] leading-[1.55] text-muted'
 
 export const dangSplitChipsRowClass = 'mt-2 flex flex-wrap gap-1.5'
 
