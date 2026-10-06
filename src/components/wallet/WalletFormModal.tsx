@@ -164,7 +164,7 @@ export default function WalletFormModal({
       )}
 
       <div className={walletCardPreviewClass}>
-        <WalletAccountCardVisual account={previewAccount} />
+        <WalletAccountCardVisual account={previewAccount} maskCardNumber={false} />
       </div>
 
       <FormField controlWidth="full">
