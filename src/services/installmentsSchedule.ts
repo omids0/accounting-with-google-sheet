@@ -1,5 +1,5 @@
 import type { InstallmentPayment } from '../types'
-import { paymentScheduleCache } from './installmentsConstants'
+import { paymentScheduleCache, paymentScheduleCacheKey } from './installmentsConstants'
 import { getInstallmentDueDate } from './installmentsDueDates'
 import { addJalaliMonths } from '../utils/jalaliDate'
 import { normalizeSheetDate } from '../utils/sheetValues'
@@ -113,11 +113,21 @@ export function parsePayments(
   count: number,
   dueDay: number,
   startDate: string,
-  planAmount: number
+  planAmount: number,
+  spreadsheetId = ''
 ): InstallmentPayment[] {
   if (!raw) return buildPayments(count, dueDay, startDate, planAmount)
 
-  const cacheKey = `${planId}:${raw}`
+  // The parsed schedule depends on the plan columns too, not only the payments JSON.
+  const cacheKey = paymentScheduleCacheKey(
+    spreadsheetId,
+    planId,
+    count,
+    dueDay,
+    startDate,
+    planAmount,
+    raw
+  )
 
   const cached = paymentScheduleCache.get(cacheKey)
 

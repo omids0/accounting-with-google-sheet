@@ -1,4 +1,4 @@
-import type { InstallmentPlan } from '../types'
+import type { InstallmentPayment, InstallmentPlan } from '../types'
 import {
   INSTALLMENTS_CACHE_TTL_MS,
   INSTALLMENT_EXPENSE_CATEGORY,
@@ -17,10 +17,13 @@ import {
   fetchSheetRows,
   updateSheetRow
 } from './sheets'
+import { getSheetDataRows } from './spreadsheetStore'
 import { getTodayIso } from '../utils/jalaliDate'
 import { normalizeSheetDate } from '../utils/sheetValues'
 
-function rowToPlan(row: string[], rowNumber: number): InstallmentPlan & { rowNumber: number } {
+type PlanWithRowNumber = InstallmentPlan & { rowNumber: number }
+
+function rowToPlan(row: string[], rowNumber: number, spreadsheetId: string): PlanWithRowNumber {
   const count = Number(row[4]) || 0
 
   const dueDay = Number(row[5]) || 1
@@ -40,8 +43,30 @@ function rowToPlan(row: string[], rowNumber: number): InstallmentPlan & { rowNum
     startDate,
     note: row[7] ?? '',
     subCategory: row[9] ?? '',
-    payments: parsePayments(planId, row[8] ?? '', count, dueDay, startDate, Number(row[3]) || 0)
+    payments: parsePayments(
+      planId,
+      row[8] ?? '',
+      count,
+      dueDay,
+      startDate,
+      Number(row[3]) || 0,
+      spreadsheetId
+    )
   }
+}
+
+/**
+ * Latest saved copy of a plan from the local spreadsheet store. Read synchronously
+ * right before a write so concurrent mutations never rebuild from a stale snapshot.
+ */
+function readLatestPlan(spreadsheetId: string, plan: PlanWithRowNumber): PlanWithRowNumber {
+  const rows = getSheetDataRows(spreadsheetId, INSTALLMENTS_SHEET)
+
+  const index = rows ? rows.findIndex(row => row[0] === plan.id) : -1
+
+  if (!rows || index < 0) return plan
+
+  return rowToPlan(rows[index], index + 2, spreadsheetId)
 }
 
 export function planToRow(plan: InstallmentPlan): string[] {
@@ -80,7 +105,7 @@ export async function fetchInstallmentPlans(
   const plans = rows
     .map((row, index) => ({ row, rowNumber: index + 2 }))
     .filter(({ row }) => String(row[0] ?? '').trim())
-    .map(({ row, rowNumber }) => rowToPlan(row, rowNumber))
+    .map(({ row, rowNumber }) => rowToPlan(row, rowNumber, spreadsheetId))
 
   installmentsCache.set(spreadsheetId, {
     plans,
@@ -156,41 +181,56 @@ export async function deleteInstallmentPlan(
   invalidateInstallmentsCache(spreadsheetId)
 }
 
+/**
+ * Patch one payment on the latest stored copy of the plan and save it. The read and
+ * the store write happen in the same tick, so overlapping mutations cannot drop
+ * each other's changes.
+ */
+async function savePaymentPatch(
+  spreadsheetId: string,
+  plan: PlanWithRowNumber,
+  paymentIndex: number,
+  patch: Partial<InstallmentPayment>
+): Promise<PlanWithRowNumber> {
+  const latest = readLatestPlan(spreadsheetId, plan)
+
+  const payments = latest.payments.map((payment, index) =>
+    index === paymentIndex ? { ...payment, ...patch } : payment
+  )
+
+  const updated: PlanWithRowNumber = { ...latest, payments }
+
+  await updateInstallmentPlan(spreadsheetId, latest.rowNumber, updated)
+
+  return updated
+}
+
 export async function toggleInstallmentPayment(
   spreadsheetId: string,
-  plan: InstallmentPlan & { rowNumber: number },
+  plan: PlanWithRowNumber,
   paymentIndex: number,
   paid: boolean
-): Promise<InstallmentPlan> {
-  const payment = plan.payments[paymentIndex]
+): Promise<PlanWithRowNumber> {
+  const current = readLatestPlan(spreadsheetId, plan)
+
+  const payment = current.payments[paymentIndex]
+
+  if (!payment) return current
 
   if (paid && !payment.paid) {
-    const amount = getInstallmentPaymentAmount(payment, plan)
-
     const transactionRecordId = await createLinkedExpenseRecord(spreadsheetId, {
-      title: `قسط: ${plan.title} (#${payment.n})`,
-      amount,
+      title: `قسط: ${current.title} (#${payment.n})`,
+      amount: getInstallmentPaymentAmount(payment, current),
       category: INSTALLMENT_EXPENSE_CATEGORY,
-      subCategory: plan.subCategory,
-      note: plan.note
+      subCategory: current.subCategory,
+      note: current.note
     })
 
-    const payments = plan.payments.map((p, index) => {
-      if (index !== paymentIndex) return p
-
-      return {
-        ...p,
-        paid: true,
-        paidAt: getTodayIso(),
-        transactionRecordId
-      }
+    return savePaymentPatch(spreadsheetId, current, paymentIndex, {
+      paid: true,
+      paidAt: getTodayIso(),
+      transactionRecordId
     })
-
-    const updated: InstallmentPlan = { ...plan, payments }
-
-    await updateInstallmentPlan(spreadsheetId, plan.rowNumber, updated)
-
-    return updated
   }
 
   if (!paid && payment.paid) {
@@ -198,42 +238,21 @@ export async function toggleInstallmentPayment(
       await deleteLinkedExpenseRecord(spreadsheetId, payment.transactionRecordId)
     }
 
-    const payments = plan.payments.map((p, index) => {
-      if (index !== paymentIndex) return p
-
-      return {
-        ...p,
-        paid: false,
-        paidAt: '',
-        transactionRecordId: undefined
-      }
+    return savePaymentPatch(spreadsheetId, current, paymentIndex, {
+      paid: false,
+      paidAt: '',
+      transactionRecordId: undefined
     })
-
-    const updated: InstallmentPlan = { ...plan, payments }
-
-    await updateInstallmentPlan(spreadsheetId, plan.rowNumber, updated)
-
-    return updated
   }
 
-  return plan
+  return current
 }
 
 export async function updateInstallmentPaymentAmount(
   spreadsheetId: string,
-  plan: InstallmentPlan & { rowNumber: number },
+  plan: PlanWithRowNumber,
   paymentIndex: number,
   amount: number
-): Promise<InstallmentPlan> {
-  const payments = plan.payments.map((payment, index) => {
-    if (index !== paymentIndex) return payment
-
-    return { ...payment, amount }
-  })
-
-  const updated: InstallmentPlan = { ...plan, payments }
-
-  await updateInstallmentPlan(spreadsheetId, plan.rowNumber, updated)
-
-  return updated
+): Promise<PlanWithRowNumber> {
+  return savePaymentPatch(spreadsheetId, plan, paymentIndex, { amount })
 }

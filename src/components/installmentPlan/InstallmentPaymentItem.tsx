@@ -66,7 +66,8 @@ export default function InstallmentPaymentItem({
         <input
           type="checkbox"
           checked={payment.paid}
-          disabled={togglingPaymentIndex === paymentIndex}
+          // Lock every toggle of this plan while one is saving, so writes never overlap.
+          disabled={togglingPaymentIndex !== null}
           onChange={e => onTogglePayment(plan, paymentIndex, e.target.checked)}
           onClick={e => e.stopPropagation()}
         />

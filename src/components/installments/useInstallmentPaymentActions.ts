@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 
 import type { PlanWithRow } from './types'
 import {
@@ -17,27 +17,37 @@ type UseInstallmentPaymentActionsParams = {
 export function useInstallmentPaymentActions({ setPlans }: UseInstallmentPaymentActionsParams) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const [togglingKey, setTogglingKey] = useState('')
+  /** planId → index of the payment whose toggle is in flight (one per plan at a time). */
+  const [togglingByPlan, setTogglingByPlan] = useState<Record<string, number>>({})
+
+  // Synchronous guard: state updates land after a re-render, so fast taps need a ref.
+  const togglingPlanIds = useRef(new Set<string>())
 
   const handleTogglePayment = useCallback(
     async (plan: PlanWithRow, paymentIndex: number, paid: boolean) => {
+      if (togglingPlanIds.current.has(plan.id)) return
+
       const spreadsheetId = requireSpreadsheetId()
 
       if (!spreadsheetId) return
 
-      const key = `${plan.id}-${paymentIndex}`
-
-      setTogglingKey(key)
+      togglingPlanIds.current.add(plan.id)
+      setTogglingByPlan(prev => ({ ...prev, [plan.id]: paymentIndex }))
       try {
         const updated = await toggleInstallmentPayment(spreadsheetId, plan, paymentIndex, paid)
 
-        setPlans(prev =>
-          prev.map(p => (p.id === plan.id ? { ...updated, rowNumber: plan.rowNumber } : p))
-        )
+        setPlans(prev => prev.map(p => (p.id === plan.id ? updated : p)))
       } catch (err) {
         if (handleSheetError(err, { fallbackMessage: 'خطا در بروزرسانی پرداخت' })) return
       } finally {
-        setTogglingKey('')
+        togglingPlanIds.current.delete(plan.id)
+        setTogglingByPlan(prev => {
+          const next = { ...prev }
+
+          delete next[plan.id]
+
+          return next
+        })
       }
     },
     [setPlans]
@@ -65,9 +75,7 @@ export function useInstallmentPaymentActions({ setPlans }: UseInstallmentPayment
           nextAmount
         )
 
-        const updatedPlan = { ...updated, rowNumber: plan.rowNumber }
-
-        setPlans(prev => prev.map(p => (p.id === plan.id ? updatedPlan : p)))
+        setPlans(prev => prev.map(p => (p.id === plan.id ? updated : p)))
         showSuccess('مبلغ قسط ذخیره شد')
       } catch (err) {
         if (handleSheetError(err, { fallbackMessage: 'خطا در به‌روزرسانی مبلغ' })) return
@@ -84,7 +92,7 @@ export function useInstallmentPaymentActions({ setPlans }: UseInstallmentPayment
   return {
     expandedId,
     setExpandedId,
-    togglingKey,
+    togglingByPlan,
     handleTogglePayment,
     handlePaymentAmountSave,
     handleToggleExpand

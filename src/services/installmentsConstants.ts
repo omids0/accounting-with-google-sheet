@@ -9,6 +9,25 @@ export const installmentsCache = new Map<
 
 export const paymentScheduleCache = new Map<string, InstallmentPayment[]>()
 
+/**
+ * Upper bound on installments per plan (25 years monthly). The whole schedule is stored
+ * as JSON in one sheet cell (50,000 char limit); a fully paid payment with a linked
+ * record id is ~150 chars, so 360 could overflow the cell while 300 stays under it.
+ */
+export const MAX_INSTALLMENT_COUNT = 300
+
+/**
+ * Key of `paymentScheduleCache`. Prefixed by spreadsheet id so
+ * `invalidateInstallmentsCache(spreadsheetId)` can drop that sheet's entries.
+ */
+export function paymentScheduleCacheKey(
+  spreadsheetId: string,
+  planId: string,
+  ...parts: (string | number)[]
+): string {
+  return [spreadsheetId, planId, ...parts].join(':')
+}
+
 export function invalidateInstallmentsCache(spreadsheetId?: string): void {
   if (!spreadsheetId) {
     installmentsCache.clear()
@@ -19,7 +38,7 @@ export function invalidateInstallmentsCache(spreadsheetId?: string): void {
 
   installmentsCache.delete(spreadsheetId)
   for (const key of paymentScheduleCache.keys()) {
-    if (key.startsWith(`${spreadsheetId}:`)) {
+    if (key.startsWith(paymentScheduleCacheKey(spreadsheetId, ''))) {
       paymentScheduleCache.delete(key)
     }
   }

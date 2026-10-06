@@ -14,7 +14,7 @@ export type InstallmentsListProps = {
   monthLabel: string
   loading: boolean
   expandedId: string | null
-  togglingKey: string
+  togglingByPlan: Record<string, number>
   onToggleExpand: (planId: string) => void
   onEdit: (plan: PlanWithRow) => void
   onDelete: (plan: PlanWithRow) => void
@@ -34,7 +34,7 @@ export default function InstallmentsList({
   monthLabel,
   loading,
   expandedId,
-  togglingKey,
+  togglingByPlan,
   onToggleExpand,
   onEdit,
   onDelete,
@@ -74,9 +74,7 @@ export default function InstallmentsList({
   return (
     <div className={listCardsContainerClass}>
       {displayPlans.map(({ plan, done, complete, settledForRange, progress, dueDate }) => {
-        const togglingPaymentIndex = togglingKey.startsWith(`${plan.id}-`)
-          ? Number(togglingKey.slice(plan.id.length + 1))
-          : null
+        const togglingPaymentIndex = togglingByPlan[plan.id] ?? null
 
         return (
           <InstallmentPlanCard

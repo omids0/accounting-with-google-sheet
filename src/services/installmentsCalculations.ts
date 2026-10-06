@@ -1,6 +1,6 @@
 import type { InstallmentPayment, InstallmentPlan } from '../types'
 import { getInstallmentPaymentAmount } from './installmentsConstants'
-import { getInstallmentDueDate } from './installmentsDueDates'
+import { getInstallmentDueDate, getPaidUntilFromPlan } from './installmentsDueDates'
 import { applyPaidUntilToPayments } from './installmentsSchedule'
 import type { DateRange } from '../utils/dateRange'
 import { isDateInRange } from '../utils/dateRange'
@@ -179,10 +179,15 @@ export function reconcilePaymentsOnEdit(
     const existing = plan.payments[i]
 
     if (existing) {
+      const existingAmount = getInstallmentPaymentAmount(existing, plan)
+
+      // Paid and custom-amount payments keep their amount; only default unpaid ones follow the plan.
+      const keepAmount = existing.paid || existingAmount !== plan.amount
+
       payments.push({
         ...existing,
         n,
-        amount: data.amount,
+        amount: keepAmount ? existingAmount : data.amount,
         dueDate: getInstallmentDueDate(data.startDate, data.dueDay, i)
       })
     } else {
@@ -196,7 +201,13 @@ export function reconcilePaymentsOnEdit(
     }
   }
 
-  const syncedPayments = applyPaidUntilToPayments(payments, data.paidUntil ?? '')
+  // Re-apply «paid until» only when the user changed the prefilled value; otherwise
+  // keep each payment's own paid state (it may have gaps, e.g. #3 unpaid but #4 paid).
+  const paidUntil = data.paidUntil ?? ''
+
+  const paidUntilChanged = paidUntil !== getPaidUntilFromPlan(plan)
+
+  const syncedPayments = paidUntilChanged ? applyPaidUntilToPayments(payments, paidUntil) : payments
 
   return {
     ...plan,
