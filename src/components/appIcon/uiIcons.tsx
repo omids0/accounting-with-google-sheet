@@ -242,24 +242,6 @@ export const UI_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
     </IconSvg>
   ),
 
-  lock: props => (
-    <IconSvg {...props}>
-      <rect x="6.5" y="10.5" width="11" height="9" rx="2" />
-      <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
-      <circle cx="12" cy="15" r="1" fill="currentColor" stroke="none" />
-    </IconSvg>
-  ),
-
-  fingerprint: props => (
-    <IconSvg {...props}>
-      <path d="M12 3.5a6.5 6.5 0 0 0-6.5 6.5" />
-      <path d="M5.5 10v1.5a6.5 6.5 0 0 0 13 0V10" />
-      <path d="M8 10.5v2a4 4 0 0 0 8 0v-2" />
-      <path d="M9.5 13v1.5a2.5 2.5 0 0 0 5 0V13" />
-      <path d="M12 15.5v2" />
-    </IconSvg>
-  ),
-
   clock: props => (
     <IconSvg {...props}>
       <circle cx="12" cy="12" r="8.5" />
