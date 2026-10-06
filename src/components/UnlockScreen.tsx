@@ -38,7 +38,10 @@ const PIN_LENGTH = 4
 export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  // PIN checks and the (often silent) biometric prompt load separately, so a
+  // pending fingerprint prompt never greys out the PIN button.
+  const [pinLoading, setPinLoading] = useState(false)
+  const [biometricLoading, setBiometricLoading] = useState(false)
   const [biometricReady, setBiometricReady] = useState(false)
 
   const biometricTried = useRef(false)
@@ -46,7 +49,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   const handleBiometric = useCallback(
     async ({ silent = false }: { silent?: boolean } = {}) => {
       setError('')
-      setLoading(true)
+      setBiometricLoading(true)
       try {
         const ok = await verifyBiometric()
 
@@ -60,7 +63,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
           setError('اثر انگشت در دسترس نیست')
         }
       } finally {
-        setLoading(false)
+        setBiometricLoading(false)
       }
     },
     [onUnlock]
@@ -85,7 +88,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
         return
       }
 
-      setLoading(true)
+      setPinLoading(true)
       setError('')
       try {
         const ok = await verifyPin(pinToVerify)
@@ -97,7 +100,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
           setPin('')
         }
       } finally {
-        setLoading(false)
+        setPinLoading(false)
       }
     },
     [onUnlock]
@@ -105,7 +108,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (loading) return
+    if (pinLoading) return
 
     await attemptPinUnlock(pin)
   }
@@ -139,7 +142,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               onComplete={nextPin => {
                 void attemptPinUnlock(nextPin)
               }}
-              disabled={loading}
+              disabled={pinLoading}
               hasError={!!error}
               autoFocus
             />
@@ -154,8 +157,8 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               type="submit"
               variant="primary"
               className={unlockPrimaryBtnClass}
-              disabled={loading || pin.length < PIN_LENGTH}
-              loading={loading}
+              disabled={pinLoading || pin.length < PIN_LENGTH}
+              loading={pinLoading}
             >
               باز کردن قفل
             </Button>
@@ -174,7 +177,8 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                 variant="secondary"
                 className={unlockBiometricBtnClass}
                 onClick={() => void handleBiometric()}
-                disabled={loading}
+                disabled={pinLoading || biometricLoading}
+                loading={biometricLoading}
               >
                 <AppIcon name="fingerprint" size={20} strokeWidth={2} />
                 ورود با اثر انگشت
