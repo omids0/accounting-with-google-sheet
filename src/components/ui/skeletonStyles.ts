@@ -6,9 +6,10 @@ export const skeletonShineClass = cn(
   'animate-[progressShine_4.8s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-0'
 )
 
+/** Full-width layer with the glow dot at its edge — travels by transform, no blur filter. */
 export const skeletonGlowClass = cn(
-  'pointer-events-none absolute top-1/2 h-[7px] w-[7px] rounded-full',
-  'bg-white/28 opacity-45 blur-[1.5px] shadow-[0_0_4px_rgba(255,255,255,0.2)]',
+  'pointer-events-none absolute inset-0 opacity-0',
+  '[background:radial-gradient(circle_at_0_50%,rgba(255,255,255,0.36)_0,rgba(255,255,255,0.2)_2px,transparent_4.5px)]',
   'animate-[progressGlowTravel_4.8s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-0'
 )
 

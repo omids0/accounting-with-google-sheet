@@ -18,9 +18,8 @@ export function progressBarClass({
     variant === 'success' && 'progress-bar--success',
     variant === 'complete' && 'progress-bar--complete',
     !animated &&
-      'progress-bar--static-width [&_.progress-bar__track]:animate-none [&_.progress-bar__fill]:will-change-auto',
-    !shimmer &&
-      'progress-bar--no-shimmer [&_.progress-bar__shine]:hidden [&_.progress-bar__glow]:hidden',
+      'progress-bar--static-width [&_.progress-bar__track]:animate-none [&_.progress-bar__fill]:animate-none [&_.progress-bar__fill]:transition-none',
+    !shimmer && 'progress-bar--no-shimmer [&_.progress-bar__sweep]:hidden',
     className
   )
 }
@@ -33,9 +32,16 @@ export const progressBarTrackClass = cn(
   'animate-[progressTrackIn_0.45s_var(--ease-page)_both] [animation-delay:var(--progress-delay,0s)]'
 )
 
+/**
+ * The fill spans the whole track and slides in from the RTL start edge with
+ * transform only, so growing runs on the compositor instead of re-laying out
+ * every frame. The gradient is sized to the visible part (see ProgressBar).
+ */
 export function progressBarFillClass(variant: ProgressBarVariant = 'default') {
   return cn(
-    'progress-bar__fill relative h-full min-w-0 overflow-hidden rounded-[inherit] will-change-[width]',
+    'progress-bar__fill absolute inset-0 overflow-hidden rounded-[inherit]',
+    'transition-transform duration-[750ms] ease-[cubic-bezier(0.33,1,0.68,1)]',
+    'animate-[progressFillIn_750ms_cubic-bezier(0.33,1,0.68,1)_backwards] [animation-delay:var(--progress-delay,0s)]',
     variant === 'success' &&
       '[background:linear-gradient(90deg,#15803d_0%,var(--color-success)_55%,#4ade80_100%)] shadow-[0_0_10px_color-mix(in_srgb,var(--color-success)_14%,transparent)]',
     variant === 'complete' &&
@@ -45,16 +51,21 @@ export function progressBarFillClass(variant: ProgressBarVariant = 'default') {
   )
 }
 
+/** Holds the shine + glow over the visible part of the fill only. */
+export const progressBarSweepClass =
+  'progress-bar__sweep pointer-events-none absolute inset-y-0 left-0 motion-reduce:hidden'
+
+/** Two sweeps after mount, then rest — no infinite compositor work per bar. */
 export const progressBarShineClass = cn(
-  'progress-bar__shine pointer-events-none absolute inset-0',
+  'progress-bar__shine absolute inset-0 opacity-0',
   '[background:linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.05)_35%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.05)_65%,transparent_100%)]',
-  'animate-[progressShine_4.8s_ease-in-out_infinite] [animation-delay:calc(var(--progress-delay,0s)+0.8s)]'
+  'animate-[progressShine_4.8s_ease-in-out_2] [animation-delay:calc(var(--progress-delay,0s)+0.8s)]'
 )
 
 export const progressBarGlowClass = cn(
-  'progress-bar__glow pointer-events-none absolute top-1/2 h-[7px] w-[7px] rounded-full',
-  'bg-white/30 opacity-50 blur-[1.5px] shadow-[0_0_4px_rgba(255,255,255,0.25)]',
-  'animate-[progressGlowTravel_4.8s_ease-in-out_infinite] [animation-delay:calc(var(--progress-delay,0s)+0.8s)]'
+  'progress-bar__glow absolute inset-0 opacity-0',
+  '[background:radial-gradient(circle_at_0_50%,rgba(255,255,255,0.4)_0,rgba(255,255,255,0.22)_2px,transparent_4.5px)]',
+  'animate-[progressGlowTravel_4.8s_ease-in-out_2] [animation-delay:calc(var(--progress-delay,0s)+0.8s)]'
 )
 
 export function progressBarLabelClass(variant: ProgressBarVariant = 'default') {

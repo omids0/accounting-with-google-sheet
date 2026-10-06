@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { memo, type CSSProperties, type ReactNode } from 'react'
 
 import { recordItemMainClass } from './ui/displayStyles'
 import {
@@ -20,7 +20,7 @@ interface TransactionListItemProps {
   className?: string
 }
 
-export default function TransactionListItem({
+function TransactionListItem({
   title,
   meta,
   children,
@@ -52,3 +52,6 @@ export default function TransactionListItem({
     </div>
   )
 }
+
+/** Skips re-render when callers pass stable props (records rows are memoized one level up). */
+export default memo(TransactionListItem)

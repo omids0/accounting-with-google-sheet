@@ -1,8 +1,9 @@
-import { useMemo, type FormEvent } from 'react'
+import { lazy, Suspense, useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { FormField, FormRow } from '../form'
+import FormField from '../form/FormField'
+import FormRow from '../form/FormRow'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import CounterpartyAccountsField from './CounterpartyAccountsField'
@@ -13,7 +14,10 @@ import type {
   CounterpartyPhoneFormState,
   CounterpartyWithRow
 } from './types'
-import LocationMapPicker from '../location/LocationMapPicker'
+import { Skeleton } from '../skeleton/Skeleton'
+
+// Leaflet + its CSS are large; load them only when this modal actually shows the map.
+const LocationMapPicker = lazy(() => import('../location/LocationMapPicker'))
 
 type CounterpartyFormModalProps = {
   open: boolean
@@ -107,12 +111,14 @@ export default function CounterpartyFormModal({
           control={control}
           name="location"
           render={({ field }) => (
-            <LocationMapPicker
-              active={open}
-              value={field.value}
-              onChange={field.onChange}
-              onAddressResolved={address => setValue('address', address, { shouldDirty: true })}
-            />
+            <Suspense fallback={<Skeleton variant="rect" width="100%" height="17.5rem" />}>
+              <LocationMapPicker
+                active={open}
+                value={field.value}
+                onChange={field.onChange}
+                onAddressResolved={address => setValue('address', address, { shouldDirty: true })}
+              />
+            </Suspense>
           )}
         />
       </FormField>
