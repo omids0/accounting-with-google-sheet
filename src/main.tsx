@@ -7,6 +7,7 @@ import App from './App'
 import AppToaster from './components/AppToaster'
 import { initializeNativeGoogleAuth, isNativePlatform } from './services/googleAuthNative'
 import { initTheme } from './utils/theme'
+import './styles/fonts.css'
 import './index.css'
 
 initTheme()
