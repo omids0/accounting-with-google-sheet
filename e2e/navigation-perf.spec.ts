@@ -92,7 +92,10 @@ async function clickBottomNav(page: Page, label: string): Promise<void> {
 
 test.describe('navigation performance', () => {
   // The bottom bar is mobile-only (lg:hidden), so this suite runs at phone size.
-  test.use({ viewport: { width: 390, height: 844 } })
+  // page.route() cannot see requests the service worker makes, so once the PWA
+  // worker takes control, Sheets calls would skip mockGoogleApis and reach the
+  // real API. Block it; this suite measures routing, not the worker.
+  test.use({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' })
 
   test.setTimeout(120_000)
 

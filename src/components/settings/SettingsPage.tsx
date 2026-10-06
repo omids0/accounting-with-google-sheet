@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'

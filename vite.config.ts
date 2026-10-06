@@ -6,6 +6,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 const basePath = process.env.VITE_BASE_PATH ?? '/'
 
+/** Name prefixes of the hashed chunks only PDF export loads (checked against dist/assets). */
+const pdfExportChunks = ['jspdf', 'html2canvas', 'purify.es', 'index.es']
+const pdfExportChunkPattern = new RegExp(
+  `/assets/(?:${pdfExportChunks.map(name => name.replace('.', '\\.')).join('|')})[^/]*\\.js$`
+)
+
 export default defineConfig(({ command }) => ({
   base: basePath,
   test: {
@@ -65,11 +71,28 @@ export default defineConfig(({ command }) => ({
       },
       workbox: {
         globPatterns: command === 'serve' ? [] : ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // PDF export only: jspdf, html2canvas and their lazy deps (DOMPurify,
+        // canvg as `index.es`). Most sessions never load them, so they are cached
+        // on first use (rule below) instead of on install.
+        globIgnores: ['**/node_modules/**/*', ...pdfExportChunks.map(name => `**/${name}*.js`)],
         importScripts: ['push-handler.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/sheets\.googleapis\.com\/.*/i,
             handler: 'NetworkOnly'
+          },
+          {
+            // Not anchored at the start, so Workbox only matches same-origin URLs.
+            urlPattern: pdfExportChunkPattern,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'pdf-export-chunks',
+              expiration: {
+                maxEntries: 12,
+                maxAgeSeconds: 60 * 60 * 24 * 90,
+                purgeOnQuotaError: true
+              }
+            }
           }
         ]
       }

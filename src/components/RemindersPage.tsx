@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import CronSetupSection from './reminders/CronSetupSection'
 import DueDateReminderSection from './reminders/DueDateReminderSection'

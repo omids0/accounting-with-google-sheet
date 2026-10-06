@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 import { LazyDangSplitDetailPage } from './lazyPages'
 import type { DangSplitGroupWithRow } from '../components/dangSplit/types'
