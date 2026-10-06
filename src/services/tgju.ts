@@ -1,4 +1,5 @@
 import type { VaultAssetType } from '../types'
+import { parseNumericStrict } from '../utils/parseNumeric'
 
 const TGJU_API = 'https://call5.tgju.org/ajax.json'
 
@@ -39,19 +40,21 @@ export function getAssetUnit(assetType: VaultAssetType): string {
   return VAULT_ASSET_OPTIONS.find(a => a.value === assetType)?.unit ?? ''
 }
 
-function parseTgjuPrice(raw: string | undefined): number {
-  if (!raw) return 0
-
-  const num = Number(String(raw).replace(/,/g, ''))
-
-  return num / 10
-}
-
+/** tgju quotes rial; non-numeric or non-positive values read as 0 (unavailable), never NaN. */
 function parseTgjuRialRate(raw: string | undefined): number {
-  if (!raw) return 0
+  const rial = parseNumericStrict(raw)
 
-  return Number(String(raw).replace(/,/g, ''))
+  return rial != null && rial > 0 ? rial : 0
 }
+
+/** Asset prices are kept in toman (rial ÷ 10). */
+function parseTgjuPrice(raw: string | undefined): number {
+  return parseTgjuRialRate(raw) / 10
+}
+
+const TGJU_EUR_KEY = 'price_eur'
+
+let eurTomanCache = 0
 
 export type ExchangeCurrencyCode =
   | 'irr'
@@ -145,8 +148,14 @@ async function fetchTgjuCurrent(): Promise<
   }
 }
 
+/** Raw tgju asset prices, always in toman. */
 export function getCachedTgjuPrices(): Record<VaultAssetType, number> | null {
   return pricesCache
+}
+
+/** Toman per euro from the last tgju fetch (0 when unknown). */
+export function getCachedTgjuEurToman(): number {
+  return eurTomanCache || (exchangeRatesCache?.eur?.rateInRial ?? 0) / 10
 }
 
 export function getCachedTgjuExchangeRates(): Record<
@@ -235,6 +244,8 @@ export async function fetchTgjuPrices(): Promise<Record<VaultAssetType, number>>
     for (const [asset, key] of Object.entries(ASSET_TGJU_KEYS) as [VaultAssetType, string][]) {
       prices[asset] = parseTgjuPrice(current[key]?.p)
     }
+
+    eurTomanCache = parseTgjuPrice(current[TGJU_EUR_KEY]?.p)
 
     pricesCache = prices
     pricesCacheAt = Date.now()

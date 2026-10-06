@@ -5,6 +5,7 @@ import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { fetchTgjuPrices, getCachedTgjuPrices, getAssetLabel } from '../../services/tgju'
+import { getDisplayTgjuPrices, getSummableTgjuPrices } from '../../services/tgjuCurrency'
 import {
   computeHoldings,
   ensureTreasurySheet,
@@ -79,7 +80,11 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
     loadPrices()
   }, [loadItems, loadPrices])
 
-  const holdings = prices ? computeHoldings(transactions, prices) : []
+  const displayPrices = useMemo(() => getDisplayTgjuPrices(prices), [prices])
+
+  const summablePrices = useMemo(() => getSummableTgjuPrices(prices), [prices])
+
+  const holdings = summablePrices ? computeHoldings(transactions, summablePrices) : []
 
   const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0)
 
@@ -100,7 +105,7 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
 
   return {
     transactions,
-    prices,
+    prices: displayPrices,
     loading,
     priceLoading,
     expandedAsset,

@@ -86,7 +86,10 @@ export function computeHoldings(
       (b.transactionDate || '').localeCompare(a.transactionDate || '')
     )
 
-    const unitPrice = prices[assetType] ?? 0
+    const rawPrice = prices[assetType]
+
+    // Never let a NaN quote poison the holding value or the dashboard total.
+    const unitPrice = rawPrice != null && Number.isFinite(rawPrice) && rawPrice > 0 ? rawPrice : 0
 
     holdings.push({
       assetType,
