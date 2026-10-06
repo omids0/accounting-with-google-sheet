@@ -23,6 +23,16 @@ export async function signInNative(): Promise<{
   }
 }
 
+/** Forgets the native Google account so the next sign-in shows the account picker. */
+export async function signOutNative(): Promise<void> {
+  if (!isNativePlatform()) return
+  try {
+    await GoogleAuth.signOut()
+  } catch {
+    // Sign-out is best effort; local data is already gone.
+  }
+}
+
 export async function refreshNativeToken(): Promise<string | null> {
   try {
     const { accessToken } = await GoogleAuth.refresh()

@@ -29,9 +29,27 @@ self.addEventListener('push', (event) => {
   );
 });
 
+/**
+ * Push payloads come from outside the app, so a click may only open pages
+ * inside this app's scope; anything else falls back to the app root.
+ */
+function resolveSafeTargetUrl(rawUrl) {
+  const scope = self.registration.scope;
+  if (!rawUrl) return scope;
+  try {
+    const target = new URL(String(rawUrl), scope);
+    if (target.origin === self.location.origin && target.href.startsWith(scope)) {
+      return target.href;
+    }
+  } catch {
+    /* fall through to scope */
+  }
+  return scope;
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || self.registration.scope;
+  const targetUrl = resolveSafeTargetUrl(event.notification.data?.url);
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {

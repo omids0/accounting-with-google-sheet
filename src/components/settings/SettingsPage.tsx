@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
+import ConfirmActionModal from '../ConfirmActionModal'
 import { SettingsSkeleton } from '../skeleton'
 import SettingsGeneralCard from './SettingsGeneralCard'
 import SettingsGoogleAccountCard from './SettingsGoogleAccountCard'
@@ -40,6 +41,7 @@ export default function SettingsPage() {
 
       <SettingsSection title="حساب و داده">
         <SettingsGoogleAccountCard onLogout={settings.handleLogout} />
+        <ConfirmActionModal {...settings.logoutModalProps} />
 
         {(settings.spreadsheetId || settings.spreadsheets.length > 0) && (
           <SettingsSpreadsheetCard

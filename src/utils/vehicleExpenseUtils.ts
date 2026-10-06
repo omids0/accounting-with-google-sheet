@@ -1,3 +1,4 @@
+import { parseNumeric } from './parseNumeric'
 import {
   LEGACY_VEHICLE_EXPENSE_CATEGORY,
   VEHICLE_EXPENSE_CATEGORY,
@@ -40,10 +41,7 @@ export function buildVehicleExpenseTitle(
   return `${expenseType} — ${vehicleTitle.trim()}`
 }
 
+/** Form fields may hold Persian digits or separators, so reuse the shared parser. */
 export function parseNumericField(value: string | number): number {
-  if (value === '' || value === undefined || value === null) return 0
-
-  const parsed = typeof value === 'number' ? value : Number(value)
-
-  return Number.isFinite(parsed) ? parsed : 0
+  return parseNumeric(value)
 }

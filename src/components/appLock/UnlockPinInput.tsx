@@ -1,6 +1,8 @@
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react'
 
+import { PIN_MAX_LENGTH, PIN_MIN_LENGTH } from '../../services/appLock'
 import { cn } from '../../utils/cn'
+import { normalizeDigits } from '../../utils/normalizeDigits'
 import { appLockPinFieldProps } from '../ui/appLockStyles'
 import {
   unlockHiddenInputClass,
@@ -11,13 +13,16 @@ import {
   unlockPinSectionClass
 } from '../ui/unlockStyles'
 
-const PIN_LENGTH = 4
-
 interface UnlockPinInputProps {
   id: string
   value: string
   onChange: (value: string) => void
   onComplete?: (value: string) => void
+  /**
+   * Digits in the stored PIN. With a known length the field auto-submits once
+   * full; with `null` (length unknown) it grows and waits for the submit button.
+   */
+  length?: number | null
   disabled?: boolean
   hasError?: boolean
   autoFocus?: boolean
@@ -28,13 +33,16 @@ export default function UnlockPinInput({
   value,
   onChange,
   onComplete,
+  length = PIN_MIN_LENGTH,
   disabled,
   hasError,
   autoFocus
 }: UnlockPinInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [inputReady, setInputReady] = useState(false)
-  const digits = value.padEnd(PIN_LENGTH, ' ').slice(0, PIN_LENGTH).split('')
+  const maxLength = length ?? PIN_MAX_LENGTH
+  const cellCount = length ?? Math.min(PIN_MAX_LENGTH, Math.max(PIN_MIN_LENGTH, value.length + 1))
+  const digits = value.padEnd(cellCount, ' ').slice(0, cellCount).split('')
 
   const activateInput = () => {
     if (disabled || inputReady) return
@@ -57,7 +65,7 @@ export default function UnlockPinInput({
   const handleChange = (nextValue: string) => {
     onChange(nextValue)
 
-    if (nextValue.length === PIN_LENGTH) {
+    if (length && nextValue.length === length) {
       onComplete?.(nextValue)
     }
   }
@@ -110,14 +118,14 @@ export default function UnlockPinInput({
         {...appLockPinFieldProps}
         name="acct-app-lock-code"
         autoFocus={autoFocus}
-        maxLength={PIN_LENGTH}
+        maxLength={maxLength}
         value={value}
         disabled={disabled}
         readOnly={!inputReady}
         dir="ltr"
         className={cn(unlockHiddenInputClass)}
         onChange={event => {
-          handleChange(event.target.value.replace(/\D/g, '').slice(0, PIN_LENGTH))
+          handleChange(normalizeDigits(event.target.value).replace(/\D/g, '').slice(0, maxLength))
         }}
         onKeyDown={handleKeyDown}
         aria-invalid={hasError || undefined}

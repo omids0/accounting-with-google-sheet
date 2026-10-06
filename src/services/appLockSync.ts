@@ -12,15 +12,19 @@ function parseBool(value: string | undefined): boolean {
   return v === 'true' || v === '1' || v === 'بله' || v === 'yes'
 }
 
+/**
+ * A blank row means "never configured". A row without a hash is an explicit
+ * disable and is returned as such, so its timestamp can be compared.
+ */
 function rowToAccountConfig(row: string[]): AppLockAccountConfig | null {
+  if (!row.some(cell => String(cell ?? '').trim())) return null
+
   const pinHash = String(row[1] ?? '').trim()
 
   const pinSalt = String(row[2] ?? '').trim()
 
-  if (!pinHash || !pinSalt) return null
-
   return {
-    enabled: parseBool(row[0]),
+    enabled: parseBool(row[0]) && !!pinHash && !!pinSalt,
     pinHash,
     pinSalt,
     updatedAt: String(row[3] ?? '').trim() || undefined

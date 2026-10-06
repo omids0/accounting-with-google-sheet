@@ -48,7 +48,15 @@ const HIDDEN_AT_KEY = 'accounting_app_lock_hidden_at'
 const LAST_ACTIVITY_KEY = 'accounting_app_lock_last_activity'
 const EXTERNAL_HANDOFF_KEY = 'accounting_app_lock_external_handoff'
 
-const EXTERNAL_HANDOFF_GRACE_MS = 90_000
+const EXTERNAL_HANDOFF_GRACE_MS = 30_000
+
+const SESSION_LOCK_KEYS = [
+  UNLOCKED_KEY,
+  PENDING_KEY,
+  HIDDEN_AT_KEY,
+  LAST_ACTIVITY_KEY,
+  EXTERNAL_HANDOFF_KEY
+] as const
 
 function readSession(key: string): string | null {
   try {
@@ -199,6 +207,11 @@ export function clearBackgroundPending(): void {
 
 export function touchActivity(): void {
   writeSession(LAST_ACTIVITY_KEY, String(Date.now()))
+}
+
+/** Drops every per-tab unlock marker, e.g. when the account signs out. */
+export function clearAppLockSessionState(): void {
+  for (const key of SESSION_LOCK_KEYS) removeSession(key)
 }
 
 export function requestAppLock(): void {
