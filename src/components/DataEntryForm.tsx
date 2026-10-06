@@ -111,11 +111,12 @@ export default function DataEntryForm({
 
       const val = formValues[field.id]
 
-      const amountCheck = field.id === 'amount' ? validatePositiveAmount(val) : true
+      const isEmpty = val === '' || val === undefined || val === null
 
-      if (val === '' || val === undefined || val === null || amountCheck !== true) {
-        const message =
-          amountCheck === true || val === '' ? `«${field.label}» الزامی است` : amountCheck
+      const amountCheck = !isEmpty && field.id === 'amount' ? validatePositiveAmount(val) : true
+
+      if (isEmpty || amountCheck !== true) {
+        const message = amountCheck === true ? `«${field.label}» الزامی است` : amountCheck
         setError(field.id, { message })
         firstMessage ??= message
         hasError = true
