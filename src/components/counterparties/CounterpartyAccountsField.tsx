@@ -1,13 +1,13 @@
 import { useFieldArray, type Control, type UseFormRegister } from 'react-hook-form'
 
 import AppIcon from '../AppIcon'
-import { FormField } from '../form'
 import {
   counterpartyFieldArrayActionsClass,
   counterpartyFieldArrayItemClass,
   counterpartyFieldArrayListClass
 } from './counterpartyFormStyles'
 import type { CounterpartyFormState } from './types'
+import FormField from '../form/FormField'
 import Button from '../ui/Button'
 
 type CounterpartyAccountsFieldProps = {

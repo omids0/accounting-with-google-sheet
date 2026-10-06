@@ -8,11 +8,9 @@ import {
   type ReactNode
 } from 'react'
 
+import { cn } from '../../utils/cn'
 import AmountInput from '../AmountInput'
 import JalaliDatePicker from '../JalaliDatePicker'
-import CategorySelect from './CategorySelect'
-import CounterpartySelect from './CounterpartySelect'
-import { cn } from '../../utils/cn'
 import { formNoteTextareaClass } from '../ui/formControlStyles'
 import {
   type FormControlWidth,
@@ -125,11 +123,10 @@ function resolveControlWidthClass(
 
   const element = children as ReactElement<ControlProps>
 
-  if (
-    element.type === 'textarea' ||
-    element.type === CategorySelect ||
-    element.type === CounterpartySelect
-  ) {
+  // Textareas and custom pickers (CategorySelect, CounterpartySelect, …) fall
+  // through to full width below. They are deliberately not imported here: that
+  // pulled the counterparty modal, react-hook-form and the map into every form.
+  if (element.type === 'textarea') {
     return formControlWidthFullClass
   }
 
