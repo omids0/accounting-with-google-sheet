@@ -133,7 +133,8 @@ export const ABOUT_FEATURE_GROUPS_TOOLS: AboutFeatureGroup[] = [
       },
       {
         title: 'قفل اپ',
-        description: 'تنظیم PIN و احراز هویت بیومتریک.'
+        description:
+          'تنظیم رمز (حداقل ۶ رقم) فقط برای همین دستگاه، اثر انگشت و زمان قفل شدن. روشن کردن قفل، اطلاعات ذخیره‌شده روی دستگاه را هم رمزگذاری می‌کند.'
       },
       {
         title: 'حساب Google',

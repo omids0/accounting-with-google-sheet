@@ -1,4 +1,8 @@
-import { APP_LOCK_POLICY_OPTIONS, IDLE_MINUTE_OPTIONS } from '../../services/appLockPolicy'
+import {
+  APP_LOCK_COLD_START_NOTE,
+  APP_LOCK_POLICY_OPTIONS,
+  IDLE_MINUTE_OPTIONS
+} from '../../services/appLockPolicy'
 import type { AppLockPolicy } from '../../types'
 import { cn } from '../../utils/cn'
 import type { AppIconName } from '../AppIcon'
@@ -51,6 +55,7 @@ export default function AppLockPolicySettings({
   return (
     <section className={cn(appLockSectionClass, appLockPolicyClass)}>
       <h3 className={appLockSectionTitleClass}>زمان درخواست رمز</h3>
+      <p className={appLockPolicyOptionDescriptionClass}>{APP_LOCK_COLD_START_NOTE}</p>
 
       <div className={cn(formFieldClass, formGroupClass)}>
         <span className={formFieldLabelClass}>

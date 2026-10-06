@@ -9,12 +9,12 @@ import {
   isAppLockEnabled,
   isBiometricEnabled,
   setupAppLock,
-  syncAppLockFromSheet,
   validatePinFormat
 } from '../../services/appLock'
 import {
   getIdleMinutes,
   getLockPolicy,
+  markSessionUnlocked,
   requestAppLock,
   setLockPolicy
 } from '../../services/appLockPolicy'
@@ -58,12 +58,6 @@ export function useAppLockSettings() {
       setBiometricUnavailableReason(status.reason)
       setBiometricDetail(status.detail)
     })
-    void syncAppLockFromSheet().then(() => {
-      setEnabled(isAppLockEnabled())
-      setBiometricOn(isBiometricEnabled())
-      setLockPolicyState(getLockPolicy())
-      setIdleMinutesState(getIdleMinutes())
-    })
   }, [])
 
   const resetForm = () => {
@@ -92,6 +86,8 @@ export function useAppLockSettings() {
 
     setLoading(true)
     try {
+      // The user is already in the app; enabling must not lock it straight away.
+      markSessionUnlocked()
       await setupAppLock(pin, useBiometric && biometricAvailable)
       setEnabled(true)
       setBiometricOn(useBiometric && biometricAvailable)

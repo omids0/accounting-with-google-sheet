@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { APP_LOCK_CHANGED_EVENT, isAppLockEnabled } from '../services/appLock'
+import { clearDataKey } from '../services/appLockDataKey'
 import {
   APP_LOCK_REQUEST_EVENT,
   clearBackgroundPending,
@@ -12,6 +13,17 @@ import {
   shouldLockOnMount,
   touchActivity
 } from '../services/appLockPolicy'
+
+/**
+ * Locking also drops the data key from memory, so nothing new is decrypted or
+ * persisted until the next unlock (pending writes are encrypted first).
+ */
+function engageLock(setLocked: (locked: boolean) => void): void {
+  clearBackgroundPending()
+  clearSessionUnlocked()
+  clearDataKey()
+  setLocked(true)
+}
 
 export function useAppLock() {
   const [lockEnabled, setLockEnabled] = useState(isAppLockEnabled)
@@ -26,17 +38,17 @@ export function useAppLock() {
         clearBackgroundPending()
         clearSessionUnlocked()
         setLocked(false)
+      } else if (shouldLockOnMount()) {
+        engageLock(setLocked)
       } else {
-        setLocked(shouldLockOnMount())
+        setLocked(false)
       }
     }
 
     const lockIfNeeded = () => {
       if (!shouldLockOnForeground()) return
 
-      clearBackgroundPending()
-      clearSessionUnlocked()
-      setLocked(true)
+      engageLock(setLocked)
     }
 
     const onVisibility = () => {
@@ -66,9 +78,7 @@ export function useAppLock() {
     const onLockRequested = () => {
       if (!isAppLockEnabled()) return
 
-      clearBackgroundPending()
-      clearSessionUnlocked()
-      setLocked(true)
+      engageLock(setLocked)
     }
 
     const onActivity = () => {
@@ -80,11 +90,7 @@ export function useAppLock() {
     const idleInterval =
       lockEnabled && getLockPolicy() === 'idle'
         ? window.setInterval(() => {
-            if (shouldLockOnForeground()) {
-              clearBackgroundPending()
-              clearSessionUnlocked()
-              setLocked(true)
-            }
+            if (shouldLockOnForeground()) engageLock(setLocked)
           }, 30_000)
         : undefined
 
@@ -121,9 +127,7 @@ export function useAppLock() {
   const lock = useCallback(() => {
     if (!isAppLockEnabled()) return
 
-    clearBackgroundPending()
-    clearSessionUnlocked()
-    setLocked(true)
+    engageLock(setLocked)
   }, [])
 
   return {

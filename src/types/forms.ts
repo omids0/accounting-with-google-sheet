@@ -77,17 +77,29 @@ export interface GoogleSession {
   scope?: string
 }
 
-/** Account-wide lock config synced via Google Sheets */
+/** PIN-wrapped data key; see services/appLockVault. */
+export interface AppLockVaultConfig {
+  v: 1
+  salt: string
+  iterations: number
+  iv: string
+  wrappedKey: string
+}
+
+/** This device's lock config (local only; no longer synced to Google Sheets). */
 export interface AppLockAccountConfig {
   enabled: boolean
-  pinHash: string
-  pinSalt: string
+  /** Legacy PBKDF2 hash, kept only until the first unlock replaces it with `vault`. */
+  pinHash?: string
+  pinSalt?: string
+  /** Data key wrapped with the PIN; it also encrypts this device's copy of the data. */
+  vault?: AppLockVaultConfig
   updatedAt?: string
-  /** Local only: Google account the stored PIN belongs to. Never written to the sheet. */
+  /** Google account the stored PIN belongs to. */
   ownerEmail?: string
   /**
-   * Local only: number of PIN digits. Missing means a legacy 4-digit PIN; `null`
-   * means unknown (PIN arrived from another device through the sheet).
+   * Number of PIN digits. Missing means a legacy 4-digit PIN; `null` means
+   * unknown (PIN arrived from another device through the old sheet sync).
    */
   pinLength?: number | null
 }

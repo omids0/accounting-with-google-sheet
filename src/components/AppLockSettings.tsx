@@ -36,8 +36,7 @@ export default function AppLockSettings() {
           <div>
             <h2 className={appLockHeroTitleClass}>قفل اپ</h2>
             <p className={appLockHeroSubtitleClass}>
-              رمز روی همه دستگاه‌ها یکسان است؛ اثر انگشت و زمان قفل فقط روی همین دستگاه تنظیم
-              می‌شود.
+              رمز، اثر انگشت و زمان قفل فقط برای همین دستگاه است؛ روی هر دستگاه جداگانه تنظیم کنید.
             </p>
           </div>
         </div>
@@ -71,7 +70,8 @@ export default function AppLockSettings() {
           <section className={appLockSectionClass}>
             <h3 className={appLockSectionTitleClass}>فعال‌سازی</h3>
             <p className={appLockIntroClass}>
-              با تعیین یک رمز ۴ رقمی، داده‌های مالی شما پشت قفل محافظت می‌شوند.
+              با تعیین رمزی حداقل ۶ رقمی، اپ پشت قفل می‌رود و نسخهٔ اطلاعات مالی روی همین دستگاه هم
+              رمزگذاری می‌شود.
             </p>
             <Button
               type="button"
@@ -188,7 +188,9 @@ export default function AppLockSettings() {
 
         {lock.enabled && lock.step === 'idle' && getAppLockConfig() && (
           <p className={appLockFootnoteClass}>
-            رمز روی همه دستگاه‌ها یکسان است. اثر انگشت را در هر دستگاه جداگانه فعال کنید.
+            اطلاعات روی این دستگاه رمزگذاری شده و فقط با رمز یا اثر انگشت باز می‌شود. رمز در گوگل
+            شیت ذخیره نمی‌شود؛ اگر فراموشش کنید، از صفحهٔ قفل با ورود دوباره به همین حساب گوگل
+            می‌توانید قفل را بردارید.
           </p>
         )}
       </div>

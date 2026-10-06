@@ -1,12 +1,19 @@
+import {
+  getDataKey,
+  isEncryptionRequired,
+  onBeforeDataKeyRelease,
+  onDataKeyChange
+} from './appLockDataKey'
+import {
+  decodeSnapshot,
+  encodeSnapshot,
+  type PersistedSnapshot,
+  type StoredSnapshotRecord
+} from './spreadsheetStoreCodec'
+import { type LegacySnapshot, legacyKey, snapshotDb } from './spreadsheetStoreDb'
 import { getItem, removeItem, setItem } from './storage'
 
-const DB_NAME = 'accounting_sheet_store'
-
-const DB_VERSION = 1
-
-const OBJECT_STORE = 'snapshots'
-
-const LEGACY_KEY_PREFIX = 'accounting_sheet_store_'
+export type { PersistedSnapshot } from './spreadsheetStoreCodec'
 
 const SYNCED_AT_KEY_PREFIX = 'accounting_sheet_synced_at_'
 
@@ -14,25 +21,10 @@ const PERSIST_DEBOUNCE_MS = 1500
 
 const PERSIST_IDLE_TIMEOUT_MS = 3000
 
-/**
- * Shape written to IndexedDB. `lastSyncedAt` is intentionally excluded so that
- * refreshing the sync timestamp never rewrites the whole sheet mirror.
- */
-export interface PersistedSnapshot {
-  spreadsheetId: string
-  sheets: Record<string, string[][]>
-}
-
-interface LegacySnapshot extends PersistedSnapshot {
-  lastSyncedAt?: number | null
-}
-
 type IdleHost = typeof globalThis & {
   requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number
   cancelIdleCallback?: (handle: number) => void
 }
-
-let dbPromise: Promise<IDBDatabase | null> | null = null
 
 let snapshotProvider: (() => PersistedSnapshot | null) | null = null
 
@@ -44,86 +36,33 @@ let pendingPersistId: string | null = null
 
 let flushListenersBound = false
 
-function legacyKey(spreadsheetId: string): string {
-  return `${LEGACY_KEY_PREFIX}${spreadsheetId}`
-}
+/** Spreadsheets that changed while locked; written once the data key is back. */
+const deferredPersistIds = new Set<string>()
 
 function syncedAtKey(spreadsheetId: string): string {
   return `${SYNCED_AT_KEY_PREFIX}${spreadsheetId}`
 }
 
-function openDb(): Promise<IDBDatabase | null> {
-  if (dbPromise) return dbPromise
+/**
+ * With the app lock on, the mirror is only ever written encrypted; while the
+ * key is not in memory nothing is written at all (the change waits for unlock).
+ * The key is read synchronously so a lock right after this call cannot drop it.
+ */
+function writeSnapshot(snapshot: PersistedSnapshot): Promise<boolean> {
+  const required = isEncryptionRequired()
 
-  dbPromise = new Promise<IDBDatabase | null>(resolve => {
-    if (typeof indexedDB === 'undefined') {
-      resolve(null)
+  const key = getDataKey()
 
-      return
-    }
+  if (required && !key) {
+    deferredPersistIds.add(snapshot.spreadsheetId)
 
-    try {
-      const request = indexedDB.open(DB_NAME, DB_VERSION)
+    return Promise.resolve(false)
+  }
 
-      request.onupgradeneeded = () => {
-        const db = request.result
-
-        if (!db.objectStoreNames.contains(OBJECT_STORE)) {
-          db.createObjectStore(OBJECT_STORE, { keyPath: 'spreadsheetId' })
-        }
-      }
-
-      request.onsuccess = () => {
-        const db = request.result
-
-        // Let a sign-out in another tab delete the database instead of blocking it.
-        db.onversionchange = () => {
-          db.close()
-          dbPromise = null
-        }
-        resolve(db)
-      }
-      request.onerror = () => resolve(null)
-      request.onblocked = () => resolve(null)
-    } catch {
-      resolve(null)
-    }
-  })
-
-  return dbPromise
-}
-
-function runRequest<T>(
-  mode: IDBTransactionMode,
-  build: (store: IDBObjectStore) => IDBRequest<T>
-): Promise<T | null> {
-  return openDb().then(db => {
-    if (!db) return null
-
-    return new Promise<T | null>(resolve => {
-      try {
-        const tx = db.transaction(OBJECT_STORE, mode)
-
-        const request = build(tx.objectStore(OBJECT_STORE))
-
-        request.onsuccess = () => resolve(request.result ?? null)
-        request.onerror = () => resolve(null)
-        tx.onabort = () => resolve(null)
-      } catch {
-        resolve(null)
-      }
-    })
-  })
-}
-
-function readSnapshot(spreadsheetId: string): Promise<PersistedSnapshot | null> {
-  return runRequest<PersistedSnapshot>('readonly', store => store.get(spreadsheetId))
-}
-
-function writeSnapshot(snapshot: PersistedSnapshot): Promise<void> {
-  return runRequest('readwrite', store =>
-    store.put({ spreadsheetId: snapshot.spreadsheetId, sheets: snapshot.sheets })
-  ).then(() => undefined)
+  return encodeSnapshot(snapshot, required ? key : null).then(
+    record => snapshotDb.put(record),
+    () => false
+  )
 }
 
 export function readLastSyncedAt(spreadsheetId: string): number | null {
@@ -138,6 +77,11 @@ export function writeLastSyncedAt(spreadsheetId: string, ts: number): void {
 
 export function registerSnapshotProvider(provider: () => PersistedSnapshot | null): void {
   snapshotProvider = provider
+}
+
+/** The in-memory mirror, which is newer than anything persisted. */
+export function getLiveSnapshot(): PersistedSnapshot | null {
+  return snapshotProvider?.() ?? null
 }
 
 export function cancelScheduledPersist(): void {
@@ -158,7 +102,8 @@ export function cancelScheduledPersist(): void {
 
 /**
  * Writes the pending mirror to IndexedDB now. Bound to page-hide so a debounced
- * write is never dropped when the tab goes away.
+ * write is never dropped when the tab goes away, and run just before the data
+ * key is released so the last edits are still encrypted with it.
  */
 export function flushStorePersist(): void {
   const spreadsheetId = pendingPersistId
@@ -208,60 +153,47 @@ export function schedulePersist(spreadsheetId: string): void {
   }, PERSIST_DEBOUNCE_MS)
 }
 
+onBeforeDataKeyRelease(flushStorePersist)
+
+onDataKeyChange(key => {
+  if (!key || !deferredPersistIds.size) return
+
+  const current = snapshotProvider?.()?.spreadsheetId
+
+  if (current && deferredPersistIds.has(current)) schedulePersist(current)
+  deferredPersistIds.clear()
+})
+
 export function deleteSnapshot(spreadsheetId: string): Promise<void> {
   cancelScheduledPersist()
   removeItem(legacyKey(spreadsheetId))
   removeItem(syncedAtKey(spreadsheetId))
 
-  return runRequest('readwrite', store => store.delete(spreadsheetId)).then(() => undefined)
+  return snapshotDb.delete(spreadsheetId)
 }
 
-/**
- * Drops the whole sheet mirror database (sign-out). The cached connection is
- * closed first, otherwise the delete request stays blocked by this tab.
- */
+/** Drops the whole sheet mirror database (sign-out). */
 export async function deletePersistedDatabase(): Promise<void> {
   cancelScheduledPersist()
-
-  const pending = dbPromise
-
-  dbPromise = null
-
-  const db = pending ? await pending : null
-
-  db?.close()
-
-  if (typeof indexedDB === 'undefined') return
-
-  await new Promise<void>(resolve => {
-    try {
-      const request = indexedDB.deleteDatabase(DB_NAME)
-
-      request.onsuccess = () => resolve()
-      request.onerror = () => resolve()
-      // Another tab still holds a connection; the delete completes once it closes.
-      request.onblocked = () => resolve()
-    } catch {
-      resolve()
-    }
-  })
+  deferredPersistIds.clear()
+  await snapshotDb.deleteDatabase()
 }
 
 /**
- * Moves a pre-IndexedDB mirror out of `localStorage`. The legacy blob is only
- * dropped once the IndexedDB copy is confirmed readable, so an interrupted
- * migration retries on the next launch instead of losing cached sheets.
+ * Moves a pre-IndexedDB mirror out of `localStorage` (encrypted when the app
+ * lock is on). The legacy blob is only dropped once the IndexedDB copy is
+ * confirmed, so an interrupted migration retries instead of losing cached sheets.
  */
 async function migrateLegacySnapshot(spreadsheetId: string): Promise<PersistedSnapshot | null> {
   const legacy = getItem<LegacySnapshot>(legacyKey(spreadsheetId))
 
   if (!legacy?.sheets || legacy.spreadsheetId !== spreadsheetId) return null
 
-  await writeSnapshot({ spreadsheetId, sheets: legacy.sheets })
+  const snapshot = { spreadsheetId, sheets: legacy.sheets }
 
-  const confirmed = await readSnapshot(spreadsheetId)
+  const written = await writeSnapshot(snapshot)
 
-  if (!confirmed?.sheets) return { spreadsheetId, sheets: legacy.sheets }
+  if (!written || !(await snapshotDb.get(spreadsheetId))) return snapshot
 
   if (typeof legacy.lastSyncedAt === 'number') {
     writeLastSyncedAt(spreadsheetId, legacy.lastSyncedAt)
@@ -269,15 +201,33 @@ async function migrateLegacySnapshot(spreadsheetId: string): Promise<PersistedSn
 
   removeItem(legacyKey(spreadsheetId))
 
-  return confirmed
+  return snapshot
 }
 
+/**
+ * Reads the mirror. While the app lock holds the key back nothing is read; a
+ * plaintext record found after unlocking is rewritten encrypted in place.
+ */
 export async function loadPersistedSnapshot(
   spreadsheetId: string
 ): Promise<PersistedSnapshot | null> {
-  const stored = await readSnapshot(spreadsheetId)
+  const required = isEncryptionRequired()
 
-  if (stored?.sheets) return stored
+  const key = getDataKey()
+
+  if (required && !key) return null
+
+  const record = await snapshotDb.get<StoredSnapshotRecord>(spreadsheetId)
+
+  const decoded = await decodeSnapshot(record, key)
+
+  if (decoded.status === 'ok') {
+    if (required && !decoded.encrypted) await writeSnapshot(decoded.snapshot)
+
+    return decoded.snapshot
+  }
+
+  if (decoded.status === 'locked') return null
 
   return migrateLegacySnapshot(spreadsheetId)
 }

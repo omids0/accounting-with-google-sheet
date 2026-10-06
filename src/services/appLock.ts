@@ -1,59 +1,45 @@
 import {
+  canUnlockWithBiometric,
   clearBiometricConfig,
-  enableBiometric,
+  ensureBiometricKeyCopy,
   getBiometricStatus,
   isBiometricEnabled,
   registerAppLockBiometric,
-  verifyBiometric
+  unlockBiometricDataKey
 } from './appLockBiometric'
-import { base64ToBuffer, bufferToBase64, hashPin, randomSalt } from './appLockCrypto'
+import { deleteBiometricKeyDatabase } from './appLockBiometricKey'
+import { base64ToBuffer, hashPin } from './appLockCrypto'
+import { clearDataKey, getDataKey, setDataKey } from './appLockDataKey'
+import { isAcceptableUnlockPin, validatePinFormat } from './appLockPin'
+import { dismissPinUpgrade, notePinUnlock } from './appLockPrompts'
 import {
   APP_LOCK_CHANGED_EVENT,
   clearAccountConfig,
   clearDeviceConfig,
   getAccountConfig,
   getDeviceConfig,
-  getSpreadsheetId,
+  isLockConfigEnabled,
   saveAccountConfig
 } from './appLockStorage'
-import { clearAppLockFromSheet, fetchAppLockFromSheet, saveAppLockToSheet } from './appLockSync'
-import { getUserEmail } from './auth'
-import type { AppLockAccountConfig, AppLockConfig } from '../types'
+import { generateDataKey, unwrapDataKey, wrapDataKey } from './appLockVault'
+import { reencodeAllSnapshots, sealPlaintextSnapshots } from './spreadsheetStoreEncryption'
+import type { AppLockAccountConfig, AppLockConfig, AppLockVaultConfig } from '../types'
 
-export const PIN_MIN_LENGTH = 4
-
-export const PIN_MAX_LENGTH = 12
+export {
+  LEGACY_PIN_MIN_LENGTH,
+  PIN_MAX_LENGTH,
+  PIN_MIN_LENGTH,
+  validatePinFormat
+} from './appLockPin'
+export { APP_LOCK_CHANGED_EVENT }
+export { canUnlockWithBiometric, getBiometricStatus, isBiometricEnabled }
+export type { BiometricStatus } from './appLockBiometric'
 
 /** Configs saved before the length was tracked could only be unlocked with 4 digits. */
 const LEGACY_PIN_LENGTH = 4
 
-function isConfigEnabled(config: AppLockAccountConfig | null | undefined): boolean {
-  return !!(config?.enabled && config.pinHash && config.pinSalt)
-}
-
-function parseTimestamp(iso: string | undefined): number {
-  const time = iso ? Date.parse(iso) : 0
-
-  return Number.isFinite(time) ? time : 0
-}
-
-export { APP_LOCK_CHANGED_EVENT }
-export { isBiometricEnabled, enableBiometric, verifyBiometric, getBiometricStatus }
-export type { BiometricStatus } from './appLockBiometric'
-
-async function syncAccountToSheet(config: AppLockAccountConfig): Promise<void> {
-  const spreadsheetId = getSpreadsheetId()
-
-  if (!spreadsheetId) return
-  if (config.enabled && config.pinHash && config.pinSalt) {
-    await saveAppLockToSheet(spreadsheetId, config)
-  } else {
-    await clearAppLockFromSheet(spreadsheetId)
-  }
-}
-
 export function isAppLockEnabled(): boolean {
-  return isConfigEnabled(getAccountConfig())
+  return isLockConfigEnabled(getAccountConfig())
 }
 
 export function getAppLockConfig(): AppLockConfig | null {
@@ -61,23 +47,7 @@ export function getAppLockConfig(): AppLockConfig | null {
 
   if (!account) return null
 
-  const device = getDeviceConfig()
-
-  return { ...account, ...device }
-}
-
-export function validatePinFormat(pin: string): string | null {
-  if (pin.length < PIN_MIN_LENGTH) {
-    return `رمز باید حداقل ${PIN_MIN_LENGTH} رقم باشد`
-  }
-  if (pin.length > PIN_MAX_LENGTH) {
-    return `رمز حداکثر ${PIN_MAX_LENGTH} رقم می‌تواند باشد`
-  }
-  if (!/^\d+$/.test(pin)) {
-    return 'رمز فقط باید عدد باشد'
-  }
-
-  return null
+  return { ...account, ...getDeviceConfig() }
 }
 
 /** PIN length the unlock screen expects; `null` when it must accept any length. */
@@ -89,154 +59,165 @@ export function getStoredPinLength(): number | null {
   return config.pinLength ?? LEGACY_PIN_LENGTH
 }
 
-/** A PIN that came through the sheet keeps the local length only if it is the same PIN. */
-function adoptRemoteConfig(
-  remote: AppLockAccountConfig,
-  local: AppLockAccountConfig | null
-): AppLockAccountConfig {
-  const samePin = !!local && local.pinHash === remote.pinHash && local.pinSalt === remote.pinSalt
+/** From here on the vault is the only PIN secret on the device: the legacy hash goes. */
+function saveVaultConfig(
+  base: AppLockAccountConfig,
+  vault: AppLockVaultConfig,
+  pinLength: number
+): void {
+  const { pinHash: _hash, pinSalt: _salt, ...rest } = base
 
-  return { ...remote, pinLength: samePin ? local.pinLength : null }
+  saveAccountConfig({
+    ...rest,
+    enabled: true,
+    vault,
+    pinLength,
+    updatedAt: new Date().toISOString()
+  })
+}
+
+async function legacyPinMatches(config: AppLockAccountConfig, pin: string): Promise<boolean> {
+  if (!config.pinHash || !config.pinSalt) return false
+
+  const hash = await hashPin(pin, new Uint8Array(base64ToBuffer(config.pinSalt)))
+
+  return hash === config.pinHash
 }
 
 /**
- * Reconciles the local lock with the account's sheet. The local config is
- * already scoped to the signed-in account (see getAccountConfig), so it is
- * never pushed into another account's sheet. Enabling or changing the PIN
- * syncs as before; a remote disable only wins when it is newer than the local
- * config, so editing the sheet cannot silently switch the lock off.
+ * A lock set up before encryption existed: the right PIN creates the data key,
+ * wraps it, drops the legacy hash and encrypts what is already on the device.
  */
-export async function syncAppLockFromSheet(): Promise<void> {
-  const spreadsheetId = getSpreadsheetId()
+async function migrateLegacyLock(config: AppLockAccountConfig, pin: string): Promise<CryptoKey> {
+  const dataKey = await generateDataKey()
 
-  if (!spreadsheetId || !getUserEmail()) return
+  saveVaultConfig(config, await wrapDataKey(dataKey, pin), pin.length)
+  setDataKey(dataKey)
+  await reencodeAllSnapshots(null, dataKey)
 
-  const remote = await fetchAppLockFromSheet(spreadsheetId)
-
-  const local = getAccountConfig()
-
-  const localEnabled = isConfigEnabled(local)
-
-  if (!remote) {
-    if (local && localEnabled) await saveAppLockToSheet(spreadsheetId, local)
-
-    return
-  }
-
-  const remoteTime = parseTimestamp(remote.updatedAt)
-
-  const localTime = parseTimestamp(local?.updatedAt)
-
-  if (!isConfigEnabled(remote)) {
-    if (!local || !localEnabled) return
-
-    if (remoteTime > localTime) {
-      clearAccountConfig()
-      window.dispatchEvent(new CustomEvent(APP_LOCK_CHANGED_EVENT, { detail: { enabled: false } }))
-    } else {
-      await saveAppLockToSheet(spreadsheetId, local)
-    }
-
-    return
-  }
-
-  if (!local || remoteTime >= localTime) {
-    saveAccountConfig(adoptRemoteConfig(remote, local))
-  } else if (local.enabled) {
-    await saveAppLockToSheet(spreadsheetId, local)
-  }
+  return dataKey
 }
 
+/** The data key for this PIN, or null when the PIN is wrong. */
+async function openDataKeyWithPin(pin: string): Promise<CryptoKey | null> {
+  const config = getAccountConfig()
+
+  if (!config || !isLockConfigEnabled(config) || !isAcceptableUnlockPin(pin)) return null
+
+  if (config.vault) return await unwrapDataKey(config.vault, pin)
+
+  if (!(await legacyPinMatches(config, pin))) return null
+
+  return await migrateLegacyLock(config, pin)
+}
+
+/** Unlock screen: a right PIN puts the data key in memory. */
+export async function unlockWithPin(pin: string): Promise<boolean> {
+  const dataKey = await openDataKeyWithPin(pin)
+
+  if (!dataKey) return false
+
+  const config = getAccountConfig()
+
+  // Learn the length of a PIN that arrived from another device so the unlock
+  // screen can auto-submit next time.
+  if (config && config.pinLength !== pin.length) {
+    saveAccountConfig({ ...config, pinLength: pin.length })
+  }
+
+  setDataKey(dataKey)
+  await sealPlaintextSnapshots(dataKey)
+  await ensureBiometricKeyCopy(dataKey)
+  notePinUnlock(pin.length)
+
+  return true
+}
+
+export async function unlockWithBiometric(): Promise<boolean> {
+  const dataKey = await unlockBiometricDataKey()
+
+  if (!dataKey) return false
+
+  setDataKey(dataKey)
+
+  return true
+}
+
+/** Turns the lock on and encrypts this device's copy of the data with a new key. */
 export async function setupAppLock(pin: string, enableBiometricOnSetup = false): Promise<void> {
   const formatError = validatePinFormat(pin)
 
   if (formatError) throw new Error(formatError)
 
-  const salt = randomSalt()
+  const dataKey = await generateDataKey()
 
-  const pinHash = await hashPin(pin, salt)
+  const vault = await wrapDataKey(dataKey, pin)
 
-  const config: AppLockAccountConfig = {
+  setDataKey(dataKey)
+  saveAccountConfig({
     enabled: true,
-    pinHash,
-    pinSalt: bufferToBase64(salt.buffer as ArrayBuffer),
+    vault,
     updatedAt: new Date().toISOString(),
     pinLength: pin.length
-  }
+  })
+  await reencodeAllSnapshots(null, dataKey)
 
-  saveAccountConfig(config)
-  await syncAccountToSheet(config)
-
-  if (enableBiometricOnSetup) {
-    await registerAppLockBiometric()
-  }
+  if (enableBiometricOnSetup) await registerAppLockBiometric(dataKey)
 }
 
-export async function verifyPin(pin: string): Promise<boolean> {
-  const config = getAccountConfig()
-
-  if (!config?.pinHash || !config.pinSalt) return false
-
-  const salt = new Uint8Array(base64ToBuffer(config.pinSalt))
-
-  const hash = await hashPin(pin, salt)
-
-  if (hash !== config.pinHash) return false
-
-  // Learn the length of a PIN that arrived from another device so the unlock
-  // screen can auto-submit next time.
-  if (config.pinLength !== pin.length) {
-    saveAccountConfig({ ...config, pinLength: pin.length })
-  }
-
-  return true
-}
-
-export async function disableAppLock(pin: string): Promise<void> {
-  const valid = await verifyPin(pin)
-
-  if (!valid) throw new Error('رمز اشتباه است')
-
-  clearAccountConfig()
-  clearDeviceConfig()
-  await syncAccountToSheet({ enabled: false, pinHash: '', pinSalt: '' })
-
-  window.dispatchEvent(new CustomEvent(APP_LOCK_CHANGED_EVENT, { detail: { enabled: false } }))
-}
-
+/** Re-wraps the same data key with the new PIN; the data is not re-encrypted. */
 export async function changePin(currentPin: string, newPin: string): Promise<void> {
-  const valid = await verifyPin(currentPin)
-
-  if (!valid) throw new Error('رمز فعلی اشتباه است')
-
   const formatError = validatePinFormat(newPin)
 
   if (formatError) throw new Error(formatError)
+
+  const dataKey = await openDataKeyWithPin(currentPin)
+
+  if (!dataKey) throw new Error('رمز فعلی اشتباه است')
 
   const config = getAccountConfig()
 
   if (!config) throw new Error('قفل اپ فعال نیست')
 
-  const salt = randomSalt()
+  saveVaultConfig(config, await wrapDataKey(dataKey, newPin), newPin.length)
+  setDataKey(dataKey)
+  dismissPinUpgrade()
+}
 
-  const pinHash = await hashPin(newPin, salt)
+/** Decrypts this device's data back to plaintext and deletes all key material. */
+export async function disableAppLock(pin: string): Promise<void> {
+  const dataKey = await openDataKeyWithPin(pin)
 
-  const updated: AppLockAccountConfig = {
-    ...config,
-    pinHash,
-    pinSalt: bufferToBase64(salt.buffer as ArrayBuffer),
-    updatedAt: new Date().toISOString(),
-    pinLength: newPin.length
+  if (!dataKey) throw new Error('رمز اشتباه است')
+
+  // Config first: from here on every write is plaintext, so none is lost.
+  clearAccountConfig()
+  clearDeviceConfig()
+  clearDataKey()
+  await reencodeAllSnapshots(dataKey, null)
+  await deleteBiometricKeyDatabase()
+
+  window.dispatchEvent(new CustomEvent(APP_LOCK_CHANGED_EVENT, { detail: { enabled: false } }))
+}
+
+export async function enableBiometric(): Promise<void> {
+  if (!isAppLockEnabled()) throw new Error('ابتدا قفل اپ را فعال کنید')
+
+  const dataKey = getDataKey()
+
+  if (!dataKey?.extractable || !getAccountConfig()?.vault) {
+    throw new Error('یک بار قفل را با رمز باز کنید و دوباره تلاش کنید')
   }
 
-  saveAccountConfig(updated)
-  await syncAccountToSheet(updated)
+  await registerAppLockBiometric(dataKey)
 }
 
 export async function disableBiometric(pin: string): Promise<void> {
-  const valid = await verifyPin(pin)
+  const dataKey = await openDataKeyWithPin(pin)
 
-  if (!valid) throw new Error('رمز اشتباه است')
+  if (!dataKey) throw new Error('رمز اشتباه است')
 
+  // A key opened by the PIN can be copied again if biometric is re-enabled later.
+  setDataKey(dataKey)
   clearBiometricConfig()
 }
