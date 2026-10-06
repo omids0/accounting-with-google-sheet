@@ -7,6 +7,7 @@ import type {
   UseFormHandleSubmit
 } from 'react-hook-form'
 
+import { parseNumericStrict } from './parseNumeric'
 import { showError } from './toast'
 
 export function requiredField(label: string) {
@@ -25,24 +26,40 @@ export function requiredField(label: string) {
   }
 }
 
+export const INVALID_AMOUNT_MESSAGE = 'مبلغ واردشده عدد معتبری نیست'
+
+export const NON_POSITIVE_AMOUNT_MESSAGE = 'مبلغ باید بیشتر از صفر باشد'
+
+/** `true` when valid, otherwise a Persian message. Rejects empty, NaN/non-numeric and ≤ 0. */
+export function validatePositiveAmount(
+  value: string | number | null | undefined,
+  emptyMessage = 'مبلغ را وارد کنید'
+): string | true {
+  if (value === '' || value == null) return emptyMessage
+
+  const parsed = parseNumericStrict(value)
+
+  if (parsed === null) return INVALID_AMOUNT_MESSAGE
+  if (parsed <= 0) return NON_POSITIVE_AMOUNT_MESSAGE
+
+  return true
+}
+
 export function requiredPositiveAmount(message = 'مبلغ را وارد کنید') {
   return {
-    validate: (value: string | number | '') => {
-      if (value === '' || value === undefined || Number(value) <= 0) {
-        return message
-      }
-
-      return true
-    }
+    validate: (value: string | number | '') => validatePositiveAmount(value, message)
   }
 }
 
 export function requiredNonNegativeAmount(message = 'مبلغ را وارد کنید') {
   return {
     validate: (value: string | number | '') => {
-      if (value === '' || value === undefined || Number(value) < 0) {
-        return message
-      }
+      if (value === '' || value === undefined) return message
+
+      const parsed = parseNumericStrict(value)
+
+      if (parsed === null) return INVALID_AMOUNT_MESSAGE
+      if (parsed < 0) return message
 
       return true
     }
@@ -52,7 +69,7 @@ export function requiredNonNegativeAmount(message = 'مبلغ را وارد کن
 export function requiredPositiveInteger(label: string, min = 1, max?: number) {
   return {
     validate: (value: string | number | '') => {
-      const parsed = Number(value)
+      const parsed = parseNumericStrict(value) ?? Number.NaN
 
       if (value === '' || !Number.isFinite(parsed) || parsed < min) {
         return `${label} را وارد کنید`
