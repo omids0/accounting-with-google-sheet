@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>حریم خصوصی — حسابداری شخصی</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6fbfa;
+        --fg: #10302b;
+        --muted: #4b6661;
+        --card: #ffffff;
+        --line: #d5e8e4;
+        --accent: #0f766e;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d1716;
+          --fg: #e3f2ef;
+          --muted: #9db8b2;
+          --card: #142220;
+          --line: #24403b;
+          --accent: #5eead4;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Vazirmatn, Tahoma, system-ui, sans-serif;
+        line-height: 1.9;
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 32px 16px 64px;
+      }
+      h1 {
+        font-size: 1.6rem;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 1.1rem;
+        margin: 28px 0 8px;
+        color: var(--accent);
+      }
+      p,
+      li {
+        margin: 6px 0;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      section.card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 8px 20px 16px;
+        margin-top: 20px;
+      }
+      code {
+        direction: ltr;
+        unicode-bidi: isolate;
+        font-size: 0.85em;
+      }
+      a {
+        color: var(--accent);
+      }
+      [lang='en'] {
+        direction: ltr;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>سیاست حریم خصوصی «حسابداری شخصی»</h1>
+      <p class="muted">آخرین به‌روزرسانی: ۱۴ مهر ۱۴۰۵ (۶ اکتبر ۲۰۲۶)</p>
+
+      <section class="card">
+        <h2>خلاصه</h2>
+        <p>
+          «حسابداری شخصی» سرور یا پایگاه داده‌ای از خودش ندارد. همه داده‌های مالی شما در یک فایل Google
+          Sheets داخل Google Drive خود شما ذخیره می‌شود و فقط خودتان (و کسانی که خودتان فایل را با آن‌ها
+          به اشتراک بگذارید) به آن دسترسی دارید. سازنده اپ هیچ نسخه‌ای از داده‌های شما را دریافت یا
+          نگهداری نمی‌کند.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>دسترسی به حساب Google</h2>
+        <ul>
+          <li>
+            اپ فقط دسترسی <code>drive.file</code> را می‌خواهد: یعنی فقط به فایل‌هایی که خود اپ ساخته یا
+            شما با اپ باز کرده‌اید دسترسی دارد و بقیه فایل‌های Drive شما را نمی‌بیند.
+          </li>
+          <li>
+            از اطلاعات پایه حساب (نام، ایمیل و تصویر پروفایل) فقط برای نمایش در اپ و تشخیص حساب واردشده
+            استفاده می‌شود.
+          </li>
+          <li>
+            هر زمان بخواهید می‌توانید دسترسی اپ را از
+            <a href="https://myaccount.google.com/permissions">صفحه دسترسی‌های حساب Google</a> بردارید.
+          </li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>داده‌های ذخیره‌شده روی دستگاه شما</h2>
+        <ul>
+          <li>
+            برای سرعت و کار آفلاین، یک کپی از داده‌های شیت روی همان دستگاه (در مرورگر یا اپ اندروید)
+            نگهداری می‌شود. اگر قفل اپ را فعال کنید، این کپی با کلیدی که از رمز شما ساخته می‌شود رمزنگاری
+            می‌شود.
+          </li>
+          <li>
+            تغییراتی که هنوز به شیت ارسال نشده‌اند تا لحظه ارسال روی دستگاه می‌مانند.
+          </li>
+          <li>با خروج از حساب، داده‌های این دستگاه پاک می‌شود و دسترسی ورود باطل می‌گردد.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>سرویس‌های جانبی</h2>
+        <ul>
+          <li>
+            <strong>Google</strong> (ورود، Google Sheets و Google Drive) — برای ذخیره و خواندن داده‌های
+            شما در Drive خودتان.
+          </li>
+          <li>
+            <strong>tgju.org</strong> — برای دریافت قیمت لحظه‌ای طلا و ارز. فقط درخواست قیمت ارسال می‌شود؛
+            هیچ داده مالی شما ارسال نمی‌شود.
+          </li>
+          <li>
+            <strong>OpenStreetMap / Nominatim</strong> — فقط وقتی برای یک طرف حساب موقعیت روی نقشه انتخاب
+            یا جست‌وجو می‌کنید؛ مختصات یا متن جست‌وجو برای نمایش نقشه و آدرس به این سرویس ارسال می‌شود.
+          </li>
+          <li>
+            <strong>اعلان‌ها (اختیاری)</strong> — اگر اعلان یادآوری را فعال کنید، اطلاعات اشتراک اعلان
+            دستگاه در شیت خود شما ذخیره می‌شود و یک سرویس ارسال اعلان (Cloudflare Workers) فقط برای
+            فرستادن متن یادآوری از آن استفاده می‌کند.
+          </li>
+        </ul>
+        <p class="muted">
+          این سرویس‌ها مانند هر وب‌سایتی آدرس IP درخواست‌کننده را می‌بینند و تابع سیاست حریم خصوصی خودشان
+          هستند.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>تبلیغات، ردیابی و فروش داده</h2>
+        <p>اپ هیچ تبلیغ، ابزار تحلیل یا ردیاب شخص ثالثی ندارد و داده‌ای را نمی‌فروشد یا به کسی نمی‌دهد.</p>
+      </section>
+
+      <section class="card">
+        <h2>تماس</h2>
+        <p>
+          برای سؤال درباره حریم خصوصی:
+          <a href="mailto:soheilniao@gmail.com">soheilniao@gmail.com</a>
+        </p>
+      </section>
+
+      <section class="card" lang="en">
+        <h2>Privacy Policy (English summary)</h2>
+        <p>
+          “Personal Accounting” has no backend of its own. All financial data is stored in a Google Sheets
+          file in the user's own Google Drive. The app requests only the
+          <code>drive.file</code> scope (files the app created or the user opened with it) plus basic
+          profile/email to identify the signed-in account. Google user data is used solely to provide the
+          app's features to that user, is never transferred to the developer or third parties, and is not
+          used for advertising. A local cache is kept on the user's device for speed and offline use and is
+          encrypted when the app lock is enabled; it is erased on sign-out. Gold/currency prices are fetched
+          from tgju.org and map tiles/geocoding from OpenStreetMap without sending financial data. The app's
+          use of information received from Google APIs adheres to the
+          <a href="https://developers.google.com/terms/api-services-user-data-policy"
+            >Google API Services User Data Policy</a
+          >, including the Limited Use requirements. Contact:
+          <a href="mailto:soheilniao@gmail.com">soheilniao@gmail.com</a>.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
