@@ -11,11 +11,12 @@ export const dashboardHeroCardClass = cn(
   cardClassName(),
   'dashboard-hero-card relative overflow-hidden border-none !p-4 text-center text-white',
   'shadow-[0_8px_28px_rgba(15,118,110,0.3)]',
-  '[background:linear-gradient(135deg,#0f766e_0%,#14b8a6_50%,#2dd4bf_100%)] [background-size:200%_200%] animate-[headerGlow_6s_ease_infinite]'
+  '[background:linear-gradient(135deg,#0f766e_0%,#14b8a6_50%,#2dd4bf_100%)]'
 )
 
+/** Transform/opacity-only shimmer, played a couple of times on mount (not forever). */
 export const dashboardHeroCardAnimatedClass =
-  'after:pointer-events-none after:absolute after:inset-[-40%_-20%] after:animate-[heroShimmer_5s_ease-in-out_infinite] after:content-[""] after:[background:radial-gradient(circle,rgba(255,255,255,0.18),transparent_60%)]'
+  'after:pointer-events-none after:absolute after:inset-[-40%_-20%] after:animate-[heroShimmer_5s_ease-in-out_2] after:content-[""] after:[background:radial-gradient(circle,rgba(255,255,255,0.18),transparent_60%)]'
 
 export const dashboardHeroHeaderClass = cn(
   'dashboard-hero-header relative z-[1] mb-2 grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-1',

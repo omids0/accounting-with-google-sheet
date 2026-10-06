@@ -23,6 +23,19 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'ss01' on;
+  }
+
+  /*
+   * Decorative wash on its own fixed layer. background-attachment: fixed made
+   * the browser repaint the whole body on every scroll frame; a fixed layer
+   * is composited once and never repainted while scrolling.
+   */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image: radial-gradient(
         ellipse 80% 50% at 50% -10%,
         color-mix(in srgb, var(--color-primary) 6%, transparent),
@@ -33,7 +46,6 @@
         color-mix(in srgb, var(--color-accent-mid) 8%, transparent),
         transparent
       );
-    background-attachment: fixed;
   }
 
   .lazy-image {
@@ -99,8 +111,11 @@
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0s !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      transition-delay: 0s !important;
+      scroll-behavior: auto !important;
     }
   }
 
@@ -113,13 +128,11 @@
     animation-delay: 0s !important;
   }
 
-  html.native [class*='headerGlow'],
-  html.native [class*='heroShimmer'],
+  html.native [class*='heroShimmer']::after,
   html.native [class*='progressShine'],
   html.native [class*='progressGlowTravel'],
   html.native [class*='animate-[float'] {
     animation: none !important;
-    background-position: 0 0 !important;
   }
 
   html.native [class*='backdrop-blur'] {

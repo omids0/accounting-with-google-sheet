@@ -3,9 +3,10 @@ import { cn } from '../../utils/cn'
 export const bottomNavClass = cn(
   'bottom-nav relative fixed bottom-0 left-1/2 z-20 grid w-full max-w-[480px] -translate-x-1/2 grid-cols-[1fr_auto_1fr] items-stretch',
   'border-t border-[color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))]',
+  // Near-opaque bg, no backdrop blur: blurring the scrolling page under an
+  // always-visible fixed bar re-rendered it on every scroll frame.
   'bg-[var(--color-nav-bg)] px-1 pb-[calc(0.5rem+var(--safe-bottom))] pt-1',
   'shadow-[0_-8px_32px_color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
-  'backdrop-blur-[18px] backdrop-saturate-150',
   'before:pointer-events-none before:absolute before:inset-x-4 before:top-0 before:h-px before:content-[""]',
   'before:bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--color-primary)_40%,transparent),transparent)]',
   'lg:hidden'

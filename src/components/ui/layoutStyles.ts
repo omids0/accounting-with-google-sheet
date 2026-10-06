@@ -78,8 +78,9 @@ export const appMainClass = cn(
 export const appShellHeaderBarClass = cn(
   'py-[0.65rem] pt-[max(0.65rem,env(safe-area-inset-top))]',
   'border-b border-[var(--header-border)] shadow-[var(--header-shadow)]',
-  '[background:var(--header-bg)] [background-size:200%_200%] animate-[headerGlow_8s_ease_infinite]',
-  'supports-[backdrop-filter]:backdrop-blur-[2px]',
+  // Static gradient: an infinite background-position loop + backdrop blur on an
+  // always-visible sticky bar repainted it every frame. The gradient is opaque.
+  '[background:var(--header-bg)]',
   'lg:box-border lg:min-h-[var(--shell-header-height)]'
 )
 
