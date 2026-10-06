@@ -38,7 +38,11 @@ export function useRecordsFilters({
   )
   const [draftCategory, setDraftCategoryValue] = useState('all')
 
-  const dateRange = resolveDateRange(datePreset, customRange)
+  // Stable identity: filteredRecords / filterChips memoize on dateRange.
+  const dateRange = useMemo(
+    () => resolveDateRange(datePreset, customRange),
+    [datePreset, customRange]
+  )
 
   const subcategory = useRecordsSubcategoryFilter(
     categoryFilter,

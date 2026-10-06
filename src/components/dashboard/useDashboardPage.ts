@@ -70,7 +70,11 @@ export function useDashboardPage() {
     () => createDefaultDateRangeFilter().customRange
   )
 
-  const dateRange = resolveDateRange(datePreset, customRange)
+  // Stable identity so memos keyed on dateRange don't recompute every render.
+  const dateRange = useMemo(
+    () => resolveDateRange(datePreset, customRange),
+    [datePreset, customRange]
+  )
 
   const dataRevision = useDataRefresh()
 
