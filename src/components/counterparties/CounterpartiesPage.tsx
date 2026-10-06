@@ -118,6 +118,7 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
             onView={detail.openDetail}
             onEdit={form.openEditForm}
             onDelete={data.openDeleteConfirm}
+            onAdd={form.openCreateForm}
           />
         </>
       )}

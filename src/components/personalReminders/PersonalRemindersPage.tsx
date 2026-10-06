@@ -122,6 +122,7 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
         onComplete={data.openCompleteConfirm}
         onEdit={form.openEditForm}
         onDelete={data.openDeleteConfirm}
+        onAdd={form.openCreateForm}
       />
 
       <PersonalReminderFormModal

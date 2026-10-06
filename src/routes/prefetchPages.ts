@@ -1,6 +1,6 @@
 import { TAB_PAGE_LOADERS } from './pageChunks'
 import type { Tab } from '../components/layout/types'
-import { BOTTOM_NAV_TABS } from '../components/layout/types'
+import { PRIMARY_NAV_TABS } from '../components/layout/types'
 
 const prefetchedTabs = new Set<Tab>()
 
@@ -18,7 +18,7 @@ export function prefetchTabPage(tab: Tab): void {
 }
 
 export function prefetchBottomNavPages(): void {
-  for (const tab of BOTTOM_NAV_TABS) {
+  for (const tab of PRIMARY_NAV_TABS) {
     prefetchTabPage(tab)
   }
 }
@@ -28,7 +28,7 @@ export function prefetchSecondaryAppPages(): void {
   secondaryPrefetchStarted = true
 
   const secondaryTabs = (Object.keys(TAB_PAGE_LOADERS) as Tab[]).filter(
-    tab => !BOTTOM_NAV_TABS.includes(tab)
+    tab => !PRIMARY_NAV_TABS.includes(tab)
   )
 
   const scheduleNext = (index: number) => {

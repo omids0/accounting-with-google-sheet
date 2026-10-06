@@ -3,7 +3,7 @@ import { memo } from 'react'
 import { getFormField, type StoredRecord } from './recordsUtils'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
+import { formatSignedMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { parseNumeric } from '../../utils/parseNumeric'
 import CardDeleteButton from '../CardDeleteButton'
@@ -78,8 +78,9 @@ function RecordsListRow({
             className={cn(isIncome ? amountIncomeClass : isExpense ? amountExpenseClass : '')}
             dir="ltr"
           >
-            {isIncome ? '+' : isExpense ? '-' : ''}
-            {formatMoney(parseNumeric(amount))}
+            {formatSignedMoney(isExpense ? -Math.abs(parseNumeric(amount)) : parseNumeric(amount), {
+              showPlus: isIncome
+            })}
           </div>
         )}
         <div className={cardActionButtonsClass}>

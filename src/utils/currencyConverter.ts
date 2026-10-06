@@ -1,3 +1,4 @@
+import { formatPersianNumber } from './formatMoney'
 import type { ExchangeCurrencyCode } from '../services/tgju'
 import { getExchangeCurrencySymbol } from '../services/tgju'
 
@@ -64,7 +65,7 @@ export function formatCurrencyAmount(
 
   const decimals = getCurrencyDecimalPlaces(decimalsCode)
 
-  const number = rounded.toLocaleString('fa-IR', {
+  const number = formatPersianNumber(rounded, {
     maximumFractionDigits: decimals,
     minimumFractionDigits: 0
   })
@@ -81,7 +82,7 @@ export function formatDecimalAmountInput(raw: string): string {
 
   const decPart = parts[1]
 
-  const formattedInt = intPart ? Number(intPart).toLocaleString('fa-IR') : ''
+  const formattedInt = intPart ? formatPersianNumber(Number(intPart)) : ''
 
   if (!raw.includes('.')) return formattedInt
   if (decPart === undefined) return `${formattedInt}.`

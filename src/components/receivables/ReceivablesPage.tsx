@@ -12,9 +12,9 @@ import {
 import { isConfigured } from '../../services/settings'
 import { distributionSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
-import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
+import EmptyState from '../EmptyState'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
@@ -26,7 +26,6 @@ import type { ReceivablesPageProps } from './types'
 import { useReceivableMutations } from './useReceivableMutations'
 import { useReceivablesData } from './useReceivablesData'
 import { useReceivablesFilters } from './useReceivablesFilters'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listCardsContainerClass, listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
@@ -88,14 +87,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="receivables" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <EmptyState icon="receivables" message="ابتدا با گوگل وارد شوید" />
   }
 
   return (
@@ -140,12 +132,11 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       {loading && items.length === 0 ? (
         <InstallmentCardListSkeleton footerStats={1} />
       ) : items.length === 0 ? (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="receivables" />
-          </div>
-          <p>هنوز طلبی ثبت نشده</p>
-        </div>
+        <EmptyState
+          icon="receivables"
+          message="هنوز طلبی ثبت نشده"
+          action={{ label: 'افزودن طلب', onClick: () => mutations.openCreateForm() }}
+        />
       ) : filters.filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (

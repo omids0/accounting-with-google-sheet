@@ -81,6 +81,13 @@ export function formatCardNumberDisplay(cardNumber: string): string {
   )} ${normalized.slice(12, 16)}`
 }
 
+/** `•••• •••• •••• 4514` — only the last four digits stay visible. */
+export function formatMaskedCardNumber(cardNumber: string): string {
+  const lastFour = normalizeCardNumber(cardNumber).slice(-4).padStart(4, '•')
+
+  return `•••• •••• •••• ${lastFour}`
+}
+
 export function isValidCardNumber(cardNumber: string): boolean {
   return normalizeCardNumber(cardNumber).length === 16
 }

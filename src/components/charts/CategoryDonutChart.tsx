@@ -4,7 +4,12 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import ChartTooltip from './ChartTooltip'
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
 import { cn } from '../../utils/cn'
-import { formatMoney, formatPersianNumber } from '../../utils/formatMoney'
+import {
+  formatCompactNumber,
+  formatMoney,
+  formatPersianNumber,
+  getCurrencySymbol
+} from '../../utils/formatMoney'
 import {
   categoryDonutCenterClass,
   categoryDonutCenterLabelClass,
@@ -34,6 +39,15 @@ interface CategoryDonutChartProps {
   tone: 'income' | 'expense'
   className?: string
   maxSlices?: number
+}
+
+/** Inner ring is 100px across; keep the number inside it with some breathing room. */
+const donutCenterValueFitClass =
+  'max-w-[84px] truncate text-[0.74rem] leading-tight [direction:ltr] [unicode-bidi:isolate]'
+
+/** Full amount while it fits inside the ring, compact (`۱٫۲ میلیارد`) beyond that. */
+function formatDonutCenterNumber(total: number): string {
+  return Math.abs(total) < 1_000_000_000 ? formatPersianNumber(total) : formatCompactNumber(total)
 }
 
 function buildSlices(
@@ -112,7 +126,10 @@ function CategoryDonutChart({
           </ResponsiveContainer>
           <div className={categoryDonutCenterClass} dir="rtl">
             <span className={categoryDonutCenterLabelClass}>مجموع</span>
-            <span className={categoryDonutCenterValueClass}>{formatMoney(total)}</span>
+            <span className={cn(categoryDonutCenterValueClass, donutCenterValueFitClass)}>
+              {formatDonutCenterNumber(total)}
+            </span>
+            <span className={categoryDonutCenterLabelClass}>{getCurrencySymbol()}</span>
           </div>
         </div>
 

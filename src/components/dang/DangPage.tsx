@@ -159,6 +159,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
         onAmountBlur={handleAmountBlur}
         onEdit={openEditForm}
         onDelete={openDeleteConfirm}
+        onAdd={openCreateForm}
       />
 
       <DangFormModal

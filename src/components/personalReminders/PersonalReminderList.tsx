@@ -1,9 +1,8 @@
 import PersonalReminderCard from './PersonalReminderCard'
 import type { PersonalReminderWithRow } from './types'
-import AppIcon from '../AppIcon'
+import EmptyState from '../EmptyState'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 type PersonalReminderListProps = {
@@ -14,6 +13,8 @@ type PersonalReminderListProps = {
   onComplete: (item: PersonalReminderWithRow) => void
   onEdit: (item: PersonalReminderWithRow) => void
   onDelete: (item: PersonalReminderWithRow) => void
+  /** Opens the same create form as the page speed dial. */
+  onAdd?: () => void
 }
 
 export default function PersonalReminderList({
@@ -23,7 +24,8 @@ export default function PersonalReminderList({
   completingId,
   onComplete,
   onEdit,
-  onDelete
+  onDelete,
+  onAdd
 }: PersonalReminderListProps) {
   if (loading && items.length === 0) {
     return <DangCardListSkeleton />
@@ -31,12 +33,11 @@ export default function PersonalReminderList({
 
   if (items.length === 0) {
     return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="bell" />
-        </div>
-        <p>هنوز یادآوری ثبت نشده</p>
-      </div>
+      <EmptyState
+        icon="bell"
+        message="هنوز یادآوری ثبت نشده"
+        action={onAdd ? { label: 'افزودن یادآوری', onClick: onAdd } : undefined}
+      />
     )
   }
 

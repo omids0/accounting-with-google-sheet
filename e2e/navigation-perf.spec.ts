@@ -87,7 +87,7 @@ async function clickBottomNav(page: Page, label: string): Promise<void> {
   await page.evaluate(() => {
     document.querySelector('[data-rht-toaster]')?.remove()
   })
-  await bottomNav(page).getByRole('button', { name: label, exact: true }).click({ force: true })
+  await bottomNav(page).getByRole('link', { name: label, exact: true }).click({ force: true })
 }
 
 test.describe('navigation performance', () => {
@@ -109,11 +109,9 @@ test.describe('navigation performance', () => {
     const routes = [
       { from: 'dashboard', to: 'installments', label: 'اقساط', path: '/installments' },
       { from: 'installments', to: 'dang', label: 'بدهی', path: '/dang' },
-      { from: 'dang', to: 'checks', label: 'چک‌ها', path: '/checks' },
-      { from: 'checks', to: 'dashboard', label: 'داشبورد', path: '/' },
+      { from: 'dang', to: 'dashboard', label: 'داشبورد', path: '/' },
       { from: 'dashboard', to: 'receivables', label: 'طلب‌ها', path: '/receivables' },
-      { from: 'receivables', to: 'treasury', label: 'صندوق', path: '/treasury' },
-      { from: 'treasury', to: 'wallet', label: 'کیف پول', path: '/wallet' },
+      { from: 'receivables', to: 'wallet', label: 'کیف پول', path: '/wallet' },
       { from: 'wallet', to: 'dashboard', label: 'داشبورد', path: '/' }
     ]
 

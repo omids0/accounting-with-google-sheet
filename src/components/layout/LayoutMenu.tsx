@@ -1,22 +1,24 @@
 import AppIcon from '../AppIcon'
 import LazyImage from '../LazyImage'
+import LayoutMenuGroup from './LayoutMenuGroup'
 import LayoutReportsSubmenu from './LayoutReportsSubmenu'
 import LayoutSidebarNav from './LayoutSidebarNav'
 import LayoutThemeToggle from './LayoutThemeToggle'
 import LayoutUpdateItem from './LayoutUpdateItem'
-import type { Tab } from './types'
+import TabNavLink from './TabNavLink'
+import { TAB_TITLES, type Tab } from './types'
+import { SETTINGS_PATH } from '../../routes/paths'
 import { cn } from '../../utils/cn'
+import type { AppIconName } from '../appIcon/types'
 import {
   appMenuAvatarClass,
   appMenuAvatarPlaceholderClass,
   appMenuBackdropClass,
-  appMenuChevronClass,
   appMenuDividerClass,
   appMenuDrawerClass,
   appMenuFooterClass,
   appMenuFooterTextClass,
   appMenuGreetingClass,
-  appMenuGroupClass,
   appMenuItemClass,
   appMenuItemIconClass,
   appMenuItemLabelClass,
@@ -26,12 +28,8 @@ import {
   appMenuProfileInnerClass,
   appMenuProfileTextClass,
   appMenuPromoHintClass,
-  appMenuPromoIconClass,
-  appMenuPromoItemClass,
-  appMenuPromoLabelClass,
   appMenuPromoTextClass,
-  appMenuScrollBodyClass,
-  appMenuSubmenuClass
+  appMenuScrollBodyClass
 } from '../ui/layoutStyles'
 
 interface LayoutMenuProps {
@@ -55,6 +53,44 @@ interface LayoutMenuProps {
   onOpenTimesheetsList: () => void
 }
 
+const CALC_MENU_ITEMS: { tab: Tab; activeTabs: Tab[] }[] = [
+  { tab: 'loan-calculator', activeTabs: ['loan-calculator'] },
+  { tab: 'currency-converter', activeTabs: ['currency-converter'] },
+  { tab: 'date-calculator', activeTabs: ['date-calculator'] },
+  { tab: 'dang-split', activeTabs: ['dang-split', 'dang-split-detail'] }
+]
+
+interface MenuLinkItemProps {
+  tab: Tab
+  icon: AppIconName
+  active: boolean
+  hint?: string
+  onTabChange: (tab: Tab) => void
+}
+
+function MenuLinkItem({ tab, icon, active, hint, onTabChange }: MenuLinkItemProps) {
+  return (
+    <TabNavLink
+      tab={tab}
+      active={active}
+      className={appMenuItemClass(active)}
+      onNavigate={() => onTabChange(tab)}
+    >
+      <span className={appMenuItemIconClass(active)}>
+        <AppIcon name={icon} size={20} strokeWidth={1.75} />
+      </span>
+      {hint ? (
+        <span className={appMenuPromoTextClass}>
+          <span>{TAB_TITLES[tab]}</span>
+          <span className={appMenuPromoHintClass}>{hint}</span>
+        </span>
+      ) : (
+        <span className={appMenuItemLabelClass}>{TAB_TITLES[tab]}</span>
+      )}
+    </TabNavLink>
+  )
+}
+
 export default function LayoutMenu({
   menuOpen,
   onCloseMenu,
@@ -76,6 +112,7 @@ export default function LayoutMenu({
   onOpenTimesheetsList
 }: LayoutMenuProps) {
   const isVisible = menuOpen
+  const onPage = (...tabs: Tab[]) => !showSettings && tabs.includes(tab)
 
   return (
     <>
@@ -112,162 +149,90 @@ export default function LayoutMenu({
           <LayoutSidebarNav tab={tab} showSettings={showSettings} onTabChange={onTabChange} />
 
           <div className={appMenuItemsClass}>
-            <button
-              type="button"
-              className={appMenuPromoItemClass(tab === 'personal-reminders')}
-              onClick={() => onTabChange('personal-reminders')}
-            >
-              <span className={appMenuPromoIconClass(tab === 'personal-reminders')}>
-                <AppIcon name="bell" size={20} strokeWidth={1.75} />
-              </span>
-              <span className={appMenuPromoTextClass}>
-                <span className={appMenuPromoLabelClass}>یادآوری</span>
-                <span className={appMenuPromoHintClass}>قبض، بیمه و مواعد شخصی</span>
-              </span>
-            </button>
+            <MenuLinkItem
+              tab="personal-reminders"
+              icon="bell"
+              hint="قبض، بیمه و مواعد شخصی"
+              active={onPage('personal-reminders')}
+              onTabChange={onTabChange}
+            />
+            <MenuLinkItem
+              tab="vehicle-service"
+              icon="car"
+              active={onPage('vehicle-service', 'vehicle-detail')}
+              onTabChange={onTabChange}
+            />
+            <MenuLinkItem
+              tab="counterparties"
+              icon="counterparties"
+              active={onPage('counterparties')}
+              onTabChange={onTabChange}
+            />
 
-            <button
-              type="button"
-              className={appMenuItemClass(tab === 'vehicle-service' || tab === 'vehicle-detail')}
-              onClick={() => onTabChange('vehicle-service')}
+            <LayoutMenuGroup
+              label="گزارشات"
+              icon="chart"
+              active={isReportTab}
+              expanded={reportsMenuExpanded}
+              onToggle={onToggleReportsMenu}
             >
-              <span
-                className={appMenuItemIconClass(
-                  tab === 'vehicle-service' || tab === 'vehicle-detail'
-                )}
-              >
-                <AppIcon name="car" size={20} strokeWidth={1.75} />
-              </span>
-              <span className={appMenuItemLabelClass}>سرویس دوره‌ای خودرو</span>
-            </button>
-
-            <button
-              type="button"
-              className={appMenuItemClass(tab === 'counterparties')}
-              onClick={() => onTabChange('counterparties')}
+              <LayoutReportsSubmenu tab={tab} onTabChange={onTabChange} />
+            </LayoutMenuGroup>
+            <LayoutMenuGroup
+              label="محاسبات"
+              icon="calculator"
+              active={isCalculationTab}
+              expanded={calcMenuExpanded}
+              onToggle={onToggleCalcMenu}
+              submenu
             >
-              <span className={appMenuItemIconClass(tab === 'counterparties')}>
-                <AppIcon name="counterparties" size={20} strokeWidth={1.75} />
-              </span>
-              <span className={appMenuItemLabelClass}>طرف حساب‌ها</span>
-            </button>
-
-            <div className={appMenuGroupClass}>
-              <button
-                type="button"
-                className={appMenuItemClass(isReportTab, 'parent')}
-                onClick={onToggleReportsMenu}
-                aria-expanded={reportsMenuExpanded}
+              {CALC_MENU_ITEMS.map(item => (
+                <TabNavLink
+                  key={item.tab}
+                  tab={item.tab}
+                  active={onPage(...item.activeTabs)}
+                  className={appMenuItemClass(onPage(...item.activeTabs), 'sub')}
+                  onNavigate={() => onTabChange(item.tab)}
+                >
+                  {TAB_TITLES[item.tab]}
+                </TabNavLink>
+              ))}
+            </LayoutMenuGroup>
+            <LayoutMenuGroup
+              label="تایم‌شیت"
+              icon="clock"
+              active={isTimesheetTab}
+              expanded={timesheetMenuExpanded}
+              onToggle={onToggleTimesheetMenu}
+              submenu
+            >
+              <TabNavLink
+                tab="timesheets"
+                active={isTimesheetTab}
+                className={appMenuItemClass(isTimesheetTab, 'sub')}
+                onNavigate={onOpenTimesheetsList}
               >
-                <span className={appMenuItemIconClass(isReportTab)}>
-                  <AppIcon name="chart" size={20} strokeWidth={1.75} />
-                </span>
-                <span className={appMenuItemLabelClass}>گزارشات</span>
-                <span className={appMenuChevronClass(reportsMenuExpanded)} aria-hidden="true">
-                  <AppIcon name="chevron-down" size={16} strokeWidth={2} />
-                </span>
-              </button>
-              {reportsMenuExpanded && <LayoutReportsSubmenu tab={tab} onTabChange={onTabChange} />}
-            </div>
-            <div className={appMenuGroupClass}>
-              <button
-                type="button"
-                className={appMenuItemClass(isCalculationTab, 'parent')}
-                onClick={onToggleCalcMenu}
-                aria-expanded={calcMenuExpanded}
-              >
-                <span className={appMenuItemIconClass(isCalculationTab)}>
-                  <AppIcon name="calculator" size={20} strokeWidth={1.75} />
-                </span>
-                <span className={appMenuItemLabelClass}>محاسبات</span>
-                <span className={appMenuChevronClass(calcMenuExpanded)} aria-hidden="true">
-                  <AppIcon name="chevron-down" size={16} strokeWidth={2} />
-                </span>
-              </button>
-              {calcMenuExpanded && (
-                <div className={appMenuSubmenuClass}>
-                  <button
-                    type="button"
-                    className={appMenuItemClass(tab === 'loan-calculator', 'sub')}
-                    onClick={() => onTabChange('loan-calculator')}
-                  >
-                    محاسبات درخواست وام
-                  </button>
-                  <button
-                    type="button"
-                    className={appMenuItemClass(tab === 'currency-converter', 'sub')}
-                    onClick={() => onTabChange('currency-converter')}
-                  >
-                    تبدیل ارز
-                  </button>
-                  <button
-                    type="button"
-                    className={appMenuItemClass(tab === 'date-calculator', 'sub')}
-                    onClick={() => onTabChange('date-calculator')}
-                  >
-                    محاسبه تاریخ
-                  </button>
-                  <button
-                    type="button"
-                    className={appMenuItemClass(
-                      tab === 'dang-split' || tab === 'dang-split-detail',
-                      'sub'
-                    )}
-                    onClick={() => onTabChange('dang-split')}
-                  >
-                    محاسبه دنگ
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className={appMenuGroupClass}>
-              <button
-                type="button"
-                className={appMenuItemClass(isTimesheetTab, 'parent')}
-                onClick={onToggleTimesheetMenu}
-                aria-expanded={timesheetMenuExpanded}
-              >
-                <span className={appMenuItemIconClass(isTimesheetTab)}>
-                  <AppIcon name="clock" size={20} strokeWidth={1.75} />
-                </span>
-                <span className={appMenuItemLabelClass}>تایم‌شیت</span>
-                <span className={appMenuChevronClass(timesheetMenuExpanded)} aria-hidden="true">
-                  <AppIcon name="chevron-down" size={16} strokeWidth={2} />
-                </span>
-              </button>
-              {timesheetMenuExpanded && (
-                <div className={appMenuSubmenuClass}>
-                  <button
-                    type="button"
-                    className={appMenuItemClass(isTimesheetTab, 'sub')}
-                    onClick={onOpenTimesheetsList}
-                  >
-                    لیست تایم‌شیت‌ها
-                  </button>
-                </div>
-              )}
-            </div>
+                لیست تایم‌شیت‌ها
+              </TabNavLink>
+            </LayoutMenuGroup>
             <div className={appMenuDividerClass} aria-hidden="true" />
-            <button
-              type="button"
-              className={appMenuItemClass(tab === 'about')}
-              onClick={() => onTabChange('about')}
-            >
-              <span className={appMenuItemIconClass(tab === 'about')}>
-                <AppIcon name="info" size={20} strokeWidth={1.75} />
-              </span>
-              درباره
-            </button>
-            <button
-              type="button"
+            <MenuLinkItem
+              tab="about"
+              icon="info"
+              active={onPage('about')}
+              onTabChange={onTabChange}
+            />
+            <TabNavLink
+              to={SETTINGS_PATH}
+              active={showSettings}
               className={appMenuItemClass(showSettings)}
-              onClick={onOpenSettings}
+              onNavigate={onOpenSettings}
             >
               <span className={appMenuItemIconClass(showSettings)}>
                 <AppIcon name="settings" size={20} strokeWidth={1.75} />
               </span>
-              تنظیمات
-            </button>
+              <span className={appMenuItemLabelClass}>تنظیمات</span>
+            </TabNavLink>
             <LayoutUpdateItem />
           </div>
         </div>

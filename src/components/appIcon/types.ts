@@ -41,6 +41,9 @@ export type AppIconName =
   | 'sun'
   | 'moon'
   | 'copy'
+  | 'eye'
+  | 'eye-off'
+  | 'map-pin'
 
 export interface AppIconProps {
   name: AppIconName

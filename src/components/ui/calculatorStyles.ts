@@ -1,7 +1,18 @@
 import { toolsPageDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
-export const loanCalculatorPageClass = cn('flex flex-col gap-4', toolsPageDesktopClass)
+/**
+ * Calculator forms are a single narrow column, so every field uses the full
+ * column width instead of the per-control caps (compact / standard) that
+ * wide desktop forms use; otherwise neighbouring fields end at different edges.
+ */
+const calculatorFieldWidthClass = '[&_.form-control-shell]:max-w-none'
+
+export const loanCalculatorPageClass = cn(
+  'flex flex-col gap-4',
+  calculatorFieldWidthClass,
+  toolsPageDesktopClass
+)
 
 export const loanCalculatorHintClass = 'mb-3 text-[0.82rem] leading-[1.6] text-muted'
 
@@ -53,7 +64,11 @@ export const loanRateSuffixClass = cn(
   'flex flex-shrink-0 items-center justify-center bg-accent-soft px-[0.85rem] font-semibold text-muted'
 )
 
-export const currencyConverterPageClass = cn('flex flex-col gap-4', toolsPageDesktopClass)
+export const currencyConverterPageClass = cn(
+  'flex flex-col gap-4',
+  calculatorFieldWidthClass,
+  toolsPageDesktopClass
+)
 
 export const currencyConverterFormCardClass = 'relative z-[2] overflow-visible'
 
@@ -86,12 +101,13 @@ export const currencyConverterUpdatedAtClass = 'mb-3 text-[0.82rem] leading-[1.6
 export const currencyConverterResultCardClass = 'relative z-[1] text-center'
 
 export const currencyConverterResultValueClass =
-  'text-[clamp(1.5rem,5vw,2rem)] font-extrabold leading-[1.35] text-[var(--color-primary-dark)]'
+  'font-numeric tabular-nums text-[clamp(1.5rem,5vw,2rem)] font-extrabold leading-[1.35] text-[var(--color-primary-dark)]'
 
 export const currencyConverterEmptyCardClass = 'relative z-[1] text-center'
 
 export const dateCalculatorPageClass = cn(
   'flex flex-col gap-[0.6rem] [&>.card]:mb-0 [&>.card]:px-[0.9rem] [&>.card]:py-[0.85rem]',
+  calculatorFieldWidthClass,
   toolsPageDesktopClass
 )
 

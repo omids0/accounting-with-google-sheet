@@ -66,15 +66,19 @@ export const REPORT_TABS: Tab[] = [
   'report-checks'
 ]
 
-export const BOTTOM_NAV_TABS: Tab[] = [
-  'installments',
-  'dang',
-  'checks',
+/** Main modules in menu order: dashboard first, then money on hand, then obligations. */
+export const PRIMARY_NAV_TABS: Tab[] = [
   'dashboard',
+  'wallet',
   'receivables',
-  'treasury',
-  'wallet'
+  'dang',
+  'installments',
+  'checks',
+  'treasury'
 ]
+
+/** The mobile bottom bar holds at most five items; the rest stay in the side menu. */
+export const BOTTOM_NAV_TABS: Tab[] = PRIMARY_NAV_TABS.slice(0, 5)
 
 export const SPEED_DIAL_TABS: Tab[] = [
   'dashboard',
