@@ -5,6 +5,7 @@ import {
   appendSheetDataRow,
   deleteSheetDataRow,
   getSheetDataRows,
+  getSheetRow,
   replaceSheetDataRows as replaceSheetDataRowsInStore,
   setSheetAllRows,
   updateSheetDataRow
@@ -14,10 +15,13 @@ import { cellToString } from '../utils/sheetValues'
 
 export type SheetWriteOptions = OutboxWriteOptions
 
+/** Open-ended: every row the sheet has. A fixed end row silently dropped data past it. */
+export const SHEET_FULL_RANGE = 'A:Z'
+
 export async function fetchSheetRangeFromApi(
   spreadsheetId: string,
   sheetName: string,
-  rangeSuffix = 'A1:Z2000'
+  rangeSuffix = SHEET_FULL_RANGE
 ): Promise<string[][]> {
   const range = encodeURIComponent(`${sheetName}!${rangeSuffix}`)
 
@@ -38,15 +42,25 @@ export async function batchFetchSheetRangesFromApi(
 
   const chunkSize = 20
 
+  const chunks: string[][] = []
+
   for (let i = 0; i < sheetNames.length; i += chunkSize) {
-    const chunk = sheetNames.slice(i, i + chunkSize)
+    chunks.push(sheetNames.slice(i, i + chunkSize))
+  }
 
-    const params = chunk.map(name => `ranges=${encodeURIComponent(`${name}!A1:Z2000`)}`).join('&')
+  const responses = await Promise.all(
+    chunks.map(chunk => {
+      const params = chunk
+        .map(name => `ranges=${encodeURIComponent(`${name}!${SHEET_FULL_RANGE}`)}`)
+        .join('&')
 
-    const data = await apiRequest<{
-      valueRanges?: { range?: string; values?: unknown[][] }[]
-    }>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`)
+      return apiRequest<{
+        valueRanges?: { range?: string; values?: unknown[][] }[]
+      }>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`)
+    })
+  )
 
+  for (const data of responses) {
     for (const valueRange of data.valueRanges ?? []) {
       if (!valueRange.range) continue
 
@@ -108,6 +122,8 @@ export async function updateSheetRow(
 ): Promise<void> {
   const row = typeof rowOrBuilder === 'function' ? rowOrBuilder() : rowOrBuilder
 
+  const expectedRow = getSheetRow(spreadsheetId, sheetName, rowNumber) ?? undefined
+
   updateSheetDataRow(spreadsheetId, sheetName, rowNumber, row)
   if (!options?.skipRevision) {
     notifySpreadsheetDataChanged(spreadsheetId)
@@ -120,6 +136,7 @@ export async function updateSheetRow(
     sheetName,
     rowNumber,
     row,
+    expectedRow,
     writeOptions: options
   })
 }
@@ -129,6 +146,8 @@ export async function deleteSheetRow(
   sheetName: string,
   rowNumber: number
 ): Promise<void> {
+  const expectedRow = getSheetRow(spreadsheetId, sheetName, rowNumber) ?? undefined
+
   deleteSheetDataRow(spreadsheetId, sheetName, rowNumber)
   notifySpreadsheetDataChanged(spreadsheetId)
 
@@ -137,7 +156,8 @@ export async function deleteSheetRow(
   enqueueSheetWrite(spreadsheetId, {
     type: 'delete',
     sheetName,
-    rowNumber
+    rowNumber,
+    expectedRow
   })
 }
 
