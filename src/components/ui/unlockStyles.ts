@@ -50,12 +50,14 @@ export const unlockGreetingClass =
 
 export const unlockBodyClass = 'flex flex-col gap-4 px-6 pb-6 pt-1'
 
-export const unlockPinSectionClass = 'flex flex-col items-center gap-3 [direction:ltr]'
+export const unlockPinSectionClass = 'flex w-full flex-col items-center gap-3 [direction:ltr]'
 
 export const unlockPinLabelClass =
   'm-0 w-full text-center text-[0.76rem] font-bold tracking-[0.02em] text-[var(--form-label-color)] [direction:rtl]'
 
-export const unlockPinCellsClass = 'flex items-center justify-center gap-3 [direction:ltr]'
+/** Cells share the row: up to 12 digits must fit a 320px phone without overflowing. */
+export const unlockPinCellsClass =
+  'flex w-full max-w-full items-center justify-center gap-1.5 sm:gap-3 [direction:ltr]'
 
 export function unlockPinCellClass({
   filled,
@@ -67,7 +69,7 @@ export function unlockPinCellClass({
   error?: boolean
 }) {
   return cn(
-    'flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-[14px] border-[1.5px] transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    'flex aspect-square min-w-0 max-w-[3.25rem] flex-1 basis-0 items-center justify-center rounded-[14px] border-[1.5px] transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]',
     error
       ? 'border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-danger)_12%,transparent)]'
       : active
