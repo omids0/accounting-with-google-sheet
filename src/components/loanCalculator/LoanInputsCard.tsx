@@ -120,6 +120,8 @@ export default function LoanInputsCard({
           inputMode="numeric"
           value={months}
           onChange={e => onMonthsChange(sanitizeIntegerInput(e.target.value))}
+          aria-invalid={Boolean(errors.months)}
+          aria-label="تعداد ماه بازپرداخت"
           dir="ltr"
         />
       </FormField>
