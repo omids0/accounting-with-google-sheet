@@ -77,8 +77,10 @@ export const PRIMARY_NAV_TABS: Tab[] = [
   'treasury'
 ]
 
-/** The mobile bottom bar holds at most five items; the rest stay in the side menu. */
-export const BOTTOM_NAV_TABS: Tab[] = PRIMARY_NAV_TABS.slice(0, 5)
+/** Mobile bottom bar: three tabs on each side of the raised dashboard button in the middle. */
+export const BOTTOM_NAV_START_TABS: Tab[] = ['installments', 'dang', 'checks']
+
+export const BOTTOM_NAV_END_TABS: Tab[] = ['receivables', 'treasury', 'wallet']
 
 export const SPEED_DIAL_TABS: Tab[] = [
   'dashboard',

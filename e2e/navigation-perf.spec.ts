@@ -109,9 +109,11 @@ test.describe('navigation performance', () => {
     const routes = [
       { from: 'dashboard', to: 'installments', label: 'اقساط', path: '/installments' },
       { from: 'installments', to: 'dang', label: 'بدهی', path: '/dang' },
-      { from: 'dang', to: 'dashboard', label: 'داشبورد', path: '/' },
+      { from: 'dang', to: 'checks', label: 'چک‌ها', path: '/checks' },
+      { from: 'checks', to: 'dashboard', label: 'داشبورد', path: '/' },
       { from: 'dashboard', to: 'receivables', label: 'طلب‌ها', path: '/receivables' },
-      { from: 'receivables', to: 'wallet', label: 'کیف پول', path: '/wallet' },
+      { from: 'receivables', to: 'treasury', label: 'صندوقچه', path: '/treasury' },
+      { from: 'treasury', to: 'wallet', label: 'کیف پول', path: '/wallet' },
       { from: 'wallet', to: 'dashboard', label: 'داشبورد', path: '/' }
     ]
 
