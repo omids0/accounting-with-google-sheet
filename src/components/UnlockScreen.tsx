@@ -2,6 +2,7 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 
 import AppIcon from './AppIcon'
 import UnlockPinInput from './appLock/UnlockPinInput'
+import { useUnlockLockout, wrongPinMessage } from './appLock/useUnlockLockout'
 import Alert from './ui/Alert'
 import Button from './ui/Button'
 import { animateInClass } from './ui/layoutStyles'
@@ -25,7 +26,13 @@ import {
   unlockTitleClass,
   unlockTrustBadgeClass
 } from './ui/unlockStyles'
-import { isBiometricEnabled, verifyBiometric, verifyPin } from '../services/appLock'
+import {
+  getStoredPinLength,
+  isBiometricEnabled,
+  PIN_MIN_LENGTH,
+  verifyBiometric,
+  verifyPin
+} from '../services/appLock'
 import { getUserName } from '../services/auth'
 import { cn } from '../utils/cn'
 
@@ -33,13 +40,15 @@ interface UnlockScreenProps {
   onUnlock: () => void
 }
 
-const PIN_LENGTH = 4
-
 export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [biometricReady, setBiometricReady] = useState(false)
+  const [pinLength] = useState(getStoredPinLength)
+  const { locked, lockoutMessage, registerFailure, registerSuccess } = useUnlockLockout()
+
+  const minPinLength = pinLength ?? PIN_MIN_LENGTH
 
   const biometricTried = useRef(false)
 
@@ -51,6 +60,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
         const ok = await verifyBiometric()
 
         if (ok) {
+          registerSuccess()
           onUnlock()
         } else if (!silent) {
           setError('اثر انگشت تأیید نشد')
@@ -63,7 +73,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
         setLoading(false)
       }
     },
-    [onUnlock]
+    [onUnlock, registerSuccess]
   )
 
   useEffect(() => {
@@ -79,7 +89,9 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
 
   const attemptPinUnlock = useCallback(
     async (pinToVerify: string) => {
-      if (pinToVerify.length < PIN_LENGTH) {
+      if (locked) return
+
+      if (pinToVerify.length < minPinLength) {
         setError('رمز را وارد کنید')
 
         return
@@ -91,16 +103,18 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
         const ok = await verifyPin(pinToVerify)
 
         if (ok) {
+          registerSuccess()
           onUnlock()
         } else {
-          setError('رمز اشتباه است')
+          registerFailure()
+          setError(wrongPinMessage())
           setPin('')
         }
       } finally {
         setLoading(false)
       }
     },
-    [onUnlock]
+    [locked, minPinLength, onUnlock, registerFailure, registerSuccess]
   )
 
   const handleSubmit = async (event: FormEvent) => {
@@ -139,14 +153,20 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               onComplete={nextPin => {
                 void attemptPinUnlock(nextPin)
               }}
-              disabled={loading}
-              hasError={!!error}
+              length={pinLength}
+              disabled={loading || locked}
+              hasError={!!(lockoutMessage || error)}
               autoFocus
             />
 
-            {error && (
-              <Alert variant="error" id="unlock-pin-error" className={unlockErrorClass}>
-                {error}
+            {(lockoutMessage || error) && (
+              <Alert
+                variant="error"
+                id="unlock-pin-error"
+                className={unlockErrorClass}
+                role={lockoutMessage ? 'timer' : 'alert'}
+              >
+                {lockoutMessage || error}
               </Alert>
             )}
 
@@ -154,7 +174,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               type="submit"
               variant="primary"
               className={unlockPrimaryBtnClass}
-              disabled={loading || pin.length < PIN_LENGTH}
+              disabled={loading || locked || pin.length < minPinLength}
               loading={loading}
             >
               باز کردن قفل
