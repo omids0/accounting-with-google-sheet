@@ -13,9 +13,11 @@ import {
   getCalendarMonthWheelItems,
   getCalendarParts,
   getCalendarYearRange,
+  INVALID_CALENDAR_DATE_MESSAGE,
   partsToIso,
   type CalendarSystem
 } from '../utils/dateConverter'
+import { showError } from '../utils/toast'
 
 function fa(n: number): string {
   return n.toLocaleString('fa-IR', { useGrouping: false })
@@ -96,6 +98,11 @@ export default function CalendarWheelFields({
       { year: nextYear, month: nextMonth, day: Math.min(nextDay, max) },
       calendar
     )
+
+    if (!nextIso) {
+      showError(INVALID_CALENDAR_DATE_MESSAGE)
+      return
+    }
 
     onIsoChange(minIso && nextIso < minIso ? minIso : nextIso)
   }
