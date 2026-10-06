@@ -73,7 +73,16 @@ function openDb(): Promise<IDBDatabase | null> {
         }
       }
 
-      request.onsuccess = () => resolve(request.result)
+      request.onsuccess = () => {
+        const db = request.result
+
+        // Let a sign-out in another tab delete the database instead of blocking it.
+        db.onversionchange = () => {
+          db.close()
+          dbPromise = null
+        }
+        resolve(db)
+      }
       request.onerror = () => resolve(null)
       request.onblocked = () => resolve(null)
     } catch {
@@ -205,6 +214,37 @@ export function deleteSnapshot(spreadsheetId: string): Promise<void> {
   removeItem(syncedAtKey(spreadsheetId))
 
   return runRequest('readwrite', store => store.delete(spreadsheetId)).then(() => undefined)
+}
+
+/**
+ * Drops the whole sheet mirror database (sign-out). The cached connection is
+ * closed first, otherwise the delete request stays blocked by this tab.
+ */
+export async function deletePersistedDatabase(): Promise<void> {
+  cancelScheduledPersist()
+
+  const pending = dbPromise
+
+  dbPromise = null
+
+  const db = pending ? await pending : null
+
+  db?.close()
+
+  if (typeof indexedDB === 'undefined') return
+
+  await new Promise<void>(resolve => {
+    try {
+      const request = indexedDB.deleteDatabase(DB_NAME)
+
+      request.onsuccess = () => resolve()
+      request.onerror = () => resolve()
+      // Another tab still holds a connection; the delete completes once it closes.
+      request.onblocked = () => resolve()
+    } catch {
+      resolve()
+    }
+  })
 }
 
 /**

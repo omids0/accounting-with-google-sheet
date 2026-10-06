@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 
+import { useLogoutFlow } from '../../hooks/useLocalDataWipe'
 import { usePwaInstall } from '../../hooks/usePwaInstall'
-import { isTokenValid, logout } from '../../services/auth'
+import { isTokenValid } from '../../services/auth'
 import { syncCategoriesFromSheet } from '../../services/categories'
 import { getSettings, getSpreadsheets, updateCurrency } from '../../services/settings'
 import { formatSpreadsheetTitle, getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
@@ -10,7 +11,7 @@ import {
   switchActiveSpreadsheet,
   syncSpreadsheetsFromDrive
 } from '../../services/spreadsheetSetup'
-import { bumpSpreadsheetKey, requestLogout } from '../../stores/appStore'
+import { bumpSpreadsheetKey } from '../../stores/appStore'
 import type { CurrencyUnit, SpreadsheetEntry } from '../../types'
 import { showError, showSuccess } from '../../utils/toast'
 
@@ -64,12 +65,7 @@ export function useSettingsPage() {
     loadSheetData()
   }, [])
 
-  const handleLogout = () => {
-    if (confirm('از حساب خارج می‌شوید؟')) {
-      logout()
-      requestLogout()
-    }
-  }
+  const { startLogout: handleLogout, modalProps: logoutModalProps } = useLogoutFlow()
 
   const handleRefreshSpreadsheets = async () => {
     if (!isTokenValid()) {
@@ -178,6 +174,7 @@ export function useSettingsPage() {
     install,
     dismissIosHint,
     handleLogout,
+    logoutModalProps,
     handleRefreshSpreadsheets,
     handleCreateSpreadsheet,
     handleSwitchSpreadsheet,

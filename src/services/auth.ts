@@ -1,4 +1,4 @@
-import { getItem, setItem, removeItem, STORAGE_KEYS } from './storage'
+import { getItem, setItem, STORAGE_KEYS } from './storage'
 import type { GoogleSession } from '../types'
 
 export const GOOGLE_OAUTH_SCOPE =
@@ -132,8 +132,4 @@ export function createSession(
     accessToken,
     tokenExpiry: Date.now() + expiresIn * 1000
   }
-}
-
-export function logout(): void {
-  removeItem(STORAGE_KEYS.SESSION)
 }

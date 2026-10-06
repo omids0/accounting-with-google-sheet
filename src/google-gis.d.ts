@@ -21,6 +21,7 @@ interface Window {
           hint?: string
           prompt?: string
         }): GoogleTokenClient
+        revoke?(accessToken: string, done?: () => void): void
       }
     }
   }
