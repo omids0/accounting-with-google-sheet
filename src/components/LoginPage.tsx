@@ -21,7 +21,6 @@ import {
   loginTrustBadgeClass
 } from './ui/loginStyles'
 import { useAccountSwitchGuard } from '../hooks/useLocalDataWipe'
-import { syncAppLockFromSheet } from '../services/appLock'
 import { saveSession, createSession, fetchUserProfile, GOOGLE_OAUTH_SCOPE } from '../services/auth'
 import { isNativePlatform, signInNative, signOutNative } from '../services/googleAuthNative'
 import {
@@ -62,7 +61,6 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
     if (session.status === 'ready') {
       await prepareUserSpreadsheet(profileName)
-      await syncAppLockFromSheet()
       onSuccess()
 
       return
@@ -158,10 +156,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
         mode={setupMode}
         options={sheetOptions}
         defaultLabel={defaultLabel}
-        onComplete={async () => {
-          await syncAppLockFromSheet()
-          onSuccess()
-        }}
+        onComplete={onSuccess}
       />
     )
   }

@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react'
 
-import { PIN_MAX_LENGTH, PIN_MIN_LENGTH } from '../../services/appLock'
+import { LEGACY_PIN_MIN_LENGTH, PIN_MAX_LENGTH } from '../../services/appLock'
 import { cn } from '../../utils/cn'
 import { normalizeDigits } from '../../utils/normalizeDigits'
 import { appLockPinFieldProps } from '../ui/appLockStyles'
@@ -33,7 +33,7 @@ export default function UnlockPinInput({
   value,
   onChange,
   onComplete,
-  length = PIN_MIN_LENGTH,
+  length = LEGACY_PIN_MIN_LENGTH,
   disabled,
   hasError,
   autoFocus
@@ -41,7 +41,8 @@ export default function UnlockPinInput({
   const inputRef = useRef<HTMLInputElement>(null)
   const [inputReady, setInputReady] = useState(false)
   const maxLength = length ?? PIN_MAX_LENGTH
-  const cellCount = length ?? Math.min(PIN_MAX_LENGTH, Math.max(PIN_MIN_LENGTH, value.length + 1))
+  const cellCount =
+    length ?? Math.min(PIN_MAX_LENGTH, Math.max(LEGACY_PIN_MIN_LENGTH, value.length + 1))
   const digits = value.padEnd(cellCount, ' ').slice(0, cellCount).split('')
 
   const activateInput = () => {

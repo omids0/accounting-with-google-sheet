@@ -2,12 +2,9 @@ import { getUserEmail } from './auth'
 import { getSettings } from './settings'
 import { getItem, removeItem, setItem, STORAGE_KEYS } from './storage'
 import type { AppLockAccountConfig, AppLockConfig, AppLockDeviceConfig } from '../types'
+import { normalizeEmail } from '../utils/email'
 
 export const APP_LOCK_CHANGED_EVENT = 'accounting-app-lock-changed'
-
-function normalizeEmail(email: string | null | undefined): string {
-  return (email ?? '').trim().toLowerCase()
-}
 
 /**
  * Moves biometric fields from the pre-split record into the device config. Only
@@ -73,10 +70,15 @@ export function getDeviceConfig(): AppLockDeviceConfig | null {
   return getItem<AppLockDeviceConfig>(STORAGE_KEYS.APP_LOCK_DEVICE)
 }
 
+/** A lock is on when it holds a PIN secret: the vault, or a legacy hash not yet migrated. */
+export function isLockConfigEnabled(config: AppLockAccountConfig | null | undefined): boolean {
+  return !!(config?.enabled && (config.vault || (config.pinHash && config.pinSalt)))
+}
+
 export function saveAccountConfig(config: AppLockAccountConfig): void {
   const previous = getAccountConfig()
-  const nextEnabled = !!(config.enabled && config.pinHash && config.pinSalt)
-  const previousEnabled = !!(previous?.enabled && previous?.pinHash && previous?.pinSalt)
+  const nextEnabled = isLockConfigEnabled(config)
+  const previousEnabled = isLockConfigEnabled(previous)
   const email = normalizeEmail(getUserEmail())
 
   setItem(STORAGE_KEYS.APP_LOCK, email ? { ...config, ownerEmail: email } : config)
@@ -92,6 +94,11 @@ export function saveAccountConfig(config: AppLockAccountConfig): void {
 
 export function saveDeviceConfig(config: AppLockDeviceConfig): void {
   setItem(STORAGE_KEYS.APP_LOCK_DEVICE, config)
+}
+
+/** Changes some device fields and keeps the rest (e.g. the lock policy). */
+export function updateDeviceConfig(patch: AppLockDeviceConfig): void {
+  saveDeviceConfig({ ...getDeviceConfig(), ...patch })
 }
 
 export function getSpreadsheetId(): string | null {

@@ -1,5 +1,6 @@
 import type { AppLockPolicy } from '../types'
 import { isAppLockEnabled } from './appLock'
+import { hasDataKey } from './appLockDataKey'
 import { getDeviceConfig, saveDeviceConfig } from './appLockStorage'
 
 export const APP_LOCK_REQUEST_EVENT = 'accounting-app-lock-request'
@@ -18,17 +19,17 @@ export const APP_LOCK_POLICY_OPTIONS: Array<{
   {
     value: 'background',
     label: 'فقط بعد از خروج از اپ',
-    description: 'رفرش صفحه رمز نمی‌خواهد؛ با تعویض تب یا بستن اپ دوباره قفل می‌شود.'
+    description: 'با تعویض تب، رفتن به اپ دیگر یا بستن اپ دوباره قفل می‌شود.'
   },
   {
     value: 'session',
     label: 'یک‌بار در هر نشست',
-    description: 'تا وقتی تب باز است رفرش و جابه‌جایی داخل مرورگر رمز نمی‌خواهد.'
+    description: 'تا وقتی اپ باز است، جابه‌جایی بین تب‌ها و اپ‌ها رمز نمی‌خواهد.'
   },
   {
     value: 'always',
     label: 'همیشه',
-    description: 'با هر بار باز کردن یا رفرش اپ رمز می‌خواهد (امن‌ترین).'
+    description: 'با هر بار باز کردن یا برگشتن به اپ رمز می‌خواهد (امن‌ترین).'
   },
   {
     value: 'idle',
@@ -38,9 +39,17 @@ export const APP_LOCK_POLICY_OPTIONS: Array<{
   {
     value: 'manual',
     label: 'فقط دستی',
-    description: 'خودکار قفل نمی‌شود؛ با دکمه «قفل الان» می‌توانید قفل کنید.'
+    description: 'تا وقتی اپ باز است خودکار قفل نمی‌شود؛ با دکمه «قفل الان» می‌توانید قفل کنید.'
   }
 ]
+
+/**
+ * The data on this device is encrypted with a key that only exists in memory,
+ * so every fresh start (open, refresh, reload) asks for the PIN or fingerprint
+ * whatever the policy; the policy decides when a running app locks again.
+ */
+export const APP_LOCK_COLD_START_NOTE =
+  'چون اطلاعات روی دستگاه رمزگذاری شده، هر بار که اپ از نو باز یا رفرش شود رمز یا اثر انگشت لازم است.'
 
 const UNLOCKED_KEY = 'accounting_app_lock_unlocked'
 const PENDING_KEY = 'accounting_app_lock_pending'
@@ -124,6 +133,8 @@ export function isSessionUnlocked(): boolean {
 
 export function shouldLockOnMount(): boolean {
   if (!isAppLockEnabled()) return false
+  // A fresh page has no data key in memory; the encrypted data needs an unlock.
+  if (!hasDataKey()) return true
 
   const policy = getLockPolicy()
 

@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import { getUserEmail } from '../services/auth'
 import { clearAllLocalData, getPendingSyncCount } from '../services/localDataWipe'
 import { requestLogout } from '../stores/appStore'
+import { sameEmail } from '../utils/email'
 import { formatPersianNumber } from '../utils/formatMoney'
 
 /** Props spread onto ConfirmActionModal. */
@@ -17,14 +18,10 @@ export interface WipeConfirmModalProps {
   onConfirm: () => void
 }
 
-function unsyncedLossWarning(count: number): string {
+export function unsyncedLossWarning(count: number): string {
   const changes = formatPersianNumber(count)
 
   return `هشدار: ${changes} تغییر هنوز در گوگل شیت ذخیره نشده و با این کار برای همیشه از بین می‌رود. برای حفظ آن‌ها ابتدا اتصال اینترنت را بررسی کنید و صبر کنید همگام‌سازی کامل شود.`
-}
-
-function sameEmail(a: string | null, b: string): boolean {
-  return (a ?? '').trim().toLowerCase() === b.trim().toLowerCase()
 }
 
 /**

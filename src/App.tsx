@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { registerSW } from 'virtual:pwa-register'
 
 import AppIcon from './components/AppIcon'
+import AppLockPrompts from './components/appLock/AppLockPrompts'
 import LoginPage from './components/LoginPage'
 import { AppLoadingSkeleton } from './components/skeleton'
 import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel'
@@ -20,7 +21,8 @@ import UnlockScreen from './components/UnlockScreen'
 import { useAppLock } from './hooks/useAppLock'
 import { useTokenRefresh } from './hooks/useTokenRefresh'
 import { AppAuthenticatedRoutes } from './routes/AppRoutes'
-import { syncAppLockFromSheet } from './services/appLock'
+import { isAppLockEnabled } from './services/appLock'
+import { scrubPinHashFromSheetOnce } from './services/appLockSheetScrub'
 import { hasStoredSession, isAuthError, isTokenValid } from './services/auth'
 import { isNativePlatform } from './services/googleAuthNative'
 import { isConfigured, getSettings } from './services/settings'
@@ -89,6 +91,16 @@ export default function App() {
 
   const { locked, unlock } = useAppLock()
 
+  // With the app lock on, this device's data is encrypted: nothing is read from
+  // it, synced or persisted until the first unlock of this page puts the key in
+  // memory. Without a lock (or without a session to unlock) start-up is as before.
+  const [dataUnlocked, setDataUnlocked] = useState(() => !isAppLockEnabled() || !hasStoredSession())
+
+  const handleUnlock = useCallback(() => {
+    unlock()
+    setDataUnlocked(true)
+  }, [unlock])
+
   const registerHandlers = useAppStore(state => state.registerHandlers)
 
   const handleLogout = useCallback(() => {
@@ -133,7 +145,7 @@ export default function App() {
 
     const cachedId = getSettings()?.spreadsheetId
 
-    if (hasStoredSession() && cachedId) {
+    if (dataUnlocked && hasStoredSession() && cachedId) {
       void hydrateStore(cachedId).then(() => {
         if (!cancelled && hasStoreData(cachedId)) {
           setLoggedIn(true)
@@ -145,14 +157,14 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [dataUnlocked])
 
   useEffect(() => {
     let cancelled = false
 
     const canTryRefresh = hasStoredSession() && !isTokenValid()
 
-    if (canTryRefresh && !canRefreshSilently) return
+    if (!dataUnlocked || (canTryRefresh && !canRefreshSilently)) return
 
     async function init() {
       let tokenValid = isTokenValid()
@@ -180,12 +192,12 @@ export default function App() {
 
         if (session.status === 'ready') {
           await prepareUserSpreadsheet()
-          await syncAppLockFromSheet()
 
           const settings = getSettings()
 
           if (settings?.spreadsheetId) {
             await initializeSheetSync(settings.spreadsheetId)
+            void scrubPinHashFromSheetOnce().catch(() => undefined)
           }
           if (!cancelled) {
             setLoggedIn(true)
@@ -232,11 +244,9 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [clientId, canRefreshSilently])
+  }, [clientId, canRefreshSilently, dataUnlocked])
 
   const handleSheetSetupComplete = async () => {
-    await syncAppLockFromSheet()
-
     const settings = getSettings()
 
     if (settings?.spreadsheetId) {
@@ -248,6 +258,8 @@ export default function App() {
   }
 
   if (!isOAuthConfigured) return <ConfigNotice />
+  // The PIN comes before anything else, including the cached data.
+  if (locked && hasStoredSession()) return <UnlockScreen onUnlock={handleUnlock} />
   if (!ready) return <AppLoadingSkeleton />
 
   if (needsSheetSetup && isTokenValid()) {
@@ -275,7 +287,12 @@ export default function App() {
     )
   }
 
-  if (locked) return <UnlockScreen onUnlock={unlock} />
+  if (locked) return <UnlockScreen onUnlock={handleUnlock} />
 
-  return <AppAuthenticatedRoutes />
+  return (
+    <>
+      <AppAuthenticatedRoutes />
+      <AppLockPrompts />
+    </>
+  )
 }

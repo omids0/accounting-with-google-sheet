@@ -111,3 +111,11 @@ export const unlockTrustBadgeClass = cn(
   '[background:color-mix(in_srgb,var(--color-primary)_7%,transparent)]',
   'border border-[color-mix(in_srgb,var(--color-primary)_16%,transparent)]'
 )
+
+export const unlockForgotLinkClass = cn(
+  'mt-3 block w-full text-center text-[0.78rem] font-semibold text-primary',
+  'underline underline-offset-4 hover:text-[var(--color-primary-dark)]',
+  'disabled:cursor-not-allowed disabled:opacity-60'
+)
+
+export const unlockHintClass = 'text-center text-[0.74rem] leading-[1.6] text-muted'
