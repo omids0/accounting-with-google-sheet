@@ -1,8 +1,7 @@
 import CounterpartyCard from './CounterpartyCard'
 import type { CounterpartyWithRow } from './types'
-import AppIcon from '../AppIcon'
+import EmptyState from '../EmptyState'
 import SearchEmptyState from '../SearchEmptyState'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 type CounterpartyListProps = {
@@ -11,6 +10,8 @@ type CounterpartyListProps = {
   onView: (item: CounterpartyWithRow) => void
   onEdit: (item: CounterpartyWithRow) => void
   onDelete: (item: CounterpartyWithRow) => void
+  /** Opens the same create form as the page speed dial. */
+  onAdd?: () => void
 }
 
 export default function CounterpartyList({
@@ -18,16 +19,16 @@ export default function CounterpartyList({
   filteredItems,
   onView,
   onEdit,
-  onDelete
+  onDelete,
+  onAdd
 }: CounterpartyListProps) {
   if (items.length === 0) {
     return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="counterparties" />
-        </div>
-        <p>هنوز طرف حسابی ثبت نشده</p>
-      </div>
+      <EmptyState
+        icon="counterparties"
+        message="هنوز طرف حسابی ثبت نشده"
+        action={onAdd ? { label: 'افزودن طرف حساب', onClick: onAdd } : undefined}
+      />
     )
   }
 

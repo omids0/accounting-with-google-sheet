@@ -1,5 +1,5 @@
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows } from './sheets'
-import { downloadTextFile, parseCsv, rowsToCsv } from '../utils/csv'
+import { downloadTextFile, parseCsv, restoreCsvFormula, rowsToCsv } from '../utils/csv'
 
 export interface ImportResult {
   imported: number
@@ -34,7 +34,7 @@ export async function importSheetCsv(
 ): Promise<ImportResult> {
   await ensureSheetWithHeaders(spreadsheetId, sheetName, headers)
 
-  const parsed = parseCsv(csvContent)
+  const parsed = parseCsv(csvContent).map(cells => cells.map(restoreCsvFormula))
 
   if (!parsed.length) {
     throw new Error('فایل خالی است')

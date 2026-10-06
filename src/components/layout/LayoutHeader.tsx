@@ -6,12 +6,10 @@ import {
   appHeaderCenterClass,
   appHeaderClass,
   appHeaderTitleClass,
-  appHeaderWithBackClass,
-  headerBackBtnClass,
   headerGridCenterClass,
   headerGridMenuClass,
+  headerBackBtnClass,
   headerIconBtnMenuClass,
-  headerIconSpacerClass,
   headerMenuDotClass
 } from '../ui/layoutStyles'
 import { mobileOnlyClass } from '../ui/responsiveStyles'
@@ -25,6 +23,10 @@ interface LayoutHeaderProps {
   onHeaderBack: () => void
 }
 
+/**
+ * One header for every page: the title is start-aligned (right in RTL) and the
+ * back button, when a page has one, sits on the far end (left in RTL) pointing left.
+ */
 export default function LayoutHeader({
   menuOpen,
   onToggleMenu,
@@ -36,29 +38,28 @@ export default function LayoutHeader({
   const updateAvailable = useAppUpdateStore(state => !!state.update)
 
   return (
-    <header className={cn(appHeaderClass, showHeaderBack && appHeaderWithBackClass)}>
-      <button
-        type="button"
-        className={cn(
-          headerIconBtnMenuClass(menuOpen),
-          mobileOnlyClass,
-          headerGridMenuClass,
-          'relative'
-        )}
-        onClick={onToggleMenu}
-        aria-label={
-          menuOpen
-            ? 'بستن منو'
-            : updateAvailable
-            ? 'باز کردن منو — به‌روزرسانی موجود'
-            : 'باز کردن منو'
-        }
-        aria-expanded={menuOpen}
-        title="منو"
-      >
-        <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
-        {updateAvailable && !menuOpen && <span className={headerMenuDotClass} aria-hidden="true" />}
-      </button>
+    <header className={appHeaderClass}>
+      <div className={cn(headerGridMenuClass, 'flex items-center gap-1.5')}>
+        <button
+          type="button"
+          className={cn(headerIconBtnMenuClass(menuOpen), mobileOnlyClass, 'relative')}
+          onClick={onToggleMenu}
+          aria-label={
+            menuOpen
+              ? 'بستن منو'
+              : updateAvailable
+              ? 'باز کردن منو — به‌روزرسانی موجود'
+              : 'باز کردن منو'
+          }
+          aria-expanded={menuOpen}
+          title="منو"
+        >
+          <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
+          {updateAvailable && !menuOpen && (
+            <span className={headerMenuDotClass} aria-hidden="true" />
+          )}
+        </button>
+      </div>
       <div className={cn(appHeaderCenterClass, headerGridCenterClass)} data-header-center>
         <h1 className={appHeaderTitleClass} data-header-title>
           {headerTitle}
@@ -67,7 +68,7 @@ export default function LayoutHeader({
           {!showSettings && <SyncStatusBadge />}
         </div>
       </div>
-      {showHeaderBack ? (
+      {showHeaderBack && (
         <button
           type="button"
           className={headerBackBtnClass}
@@ -77,8 +78,6 @@ export default function LayoutHeader({
         >
           <AppIcon name="back" size={20} strokeWidth={2} />
         </button>
-      ) : (
-        <span className={headerIconSpacerClass} aria-hidden="true" />
       )}
     </header>
   )

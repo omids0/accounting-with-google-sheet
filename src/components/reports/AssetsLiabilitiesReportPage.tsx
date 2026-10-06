@@ -4,45 +4,29 @@ import ReportDateFilterBar from './ReportDateFilterBar'
 import { useReportDateFilter } from './ReportToolbar'
 import { loadDashboardData } from '../../services/dashboard'
 import { getSettings, getNetAvailableConfig, isConfigured } from '../../services/settings'
-import type { DashboardData } from '../../types'
+import { useNavigationStore } from '../../stores/navigationStore'
+import type { DashboardData, NetAvailableConfig } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
-import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
+import DashboardBreakdownSection from '../dashboard/DashboardBreakdownSection'
 import { DashboardSkeleton } from '../skeleton'
 import Card from '../ui/Card'
 import {
-  assetBreakdownClass,
-  assetLabelClass,
-  assetRowClass,
-  assetRowTotalClass,
-  assetValueClass,
-  chartTitleClass,
-  dashboardAssetsCardClass,
   dashboardHeroCardClass,
   dashboardHeroHintClass,
   dashboardHeroLabelClass,
-  dashboardLiabilitiesCardClass,
   dashboardPageClass
 } from '../ui/chartStyles'
 import { emptyStateClass } from '../ui/displayStyles'
 import { reportPageClass, reportPageSplitClass } from '../ui/toolsPageStyles'
 
-function BreakdownRow({ label, value, total }: { label: string; value: number; total?: boolean }) {
-  return (
-    <div className={cn(assetRowClass, total && assetRowTotalClass)}>
-      <span className={assetLabelClass}>{label}</span>
-      <span className={assetValueClass} dir="ltr">
-        {formatMoney(value)}
-      </span>
-    </div>
-  )
-}
-
 export default function AssetsLiabilitiesReportPage() {
   const [data, setData] = useState<DashboardData | null>(null)
+
+  const [config, setConfig] = useState<NetAvailableConfig>(() => getNetAvailableConfig())
 
   const [loading, setLoading] = useState(false)
 
@@ -60,14 +44,17 @@ export default function AssetsLiabilitiesReportPage() {
       const installmentRange =
         datePreset === 'custom' ? dateRange : getInstallmentDueRange(datePreset as DateRangePreset)
 
+      const netAvailableConfig = getNetAvailableConfig()
+
       const dash = await loadDashboardData(
         settings,
         dateRange,
         installmentRange,
         undefined,
-        getNetAvailableConfig()
+        netAvailableConfig
       )
 
+      setConfig(netAvailableConfig)
       setData(dash)
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
@@ -113,25 +100,11 @@ export default function AssetsLiabilitiesReportPage() {
       </Card>
 
       <div className={reportPageSplitClass}>
-        <Card className={dashboardAssetsCardClass}>
-          <h3 className={chartTitleClass}>دارایی‌ها</h3>
-          <div className={assetBreakdownClass}>
-            <BreakdownRow label="کیف پول" value={financial?.walletTotal ?? 0} />
-            <BreakdownRow label="صندوقچه" value={financial?.treasuryTotal ?? 0} />
-            <BreakdownRow label="طلب‌ها" value={financial?.receivablesTotal ?? 0} />
-            <BreakdownRow label="مجموع دارایی‌ها" value={financial?.totalAssets ?? 0} total />
-          </div>
-        </Card>
-
-        <Card className={dashboardLiabilitiesCardClass}>
-          <h3 className={chartTitleClass}>بدهی‌ها</h3>
-          <div className={assetBreakdownClass}>
-            <BreakdownRow label="اقساط این دوره" value={financial?.installmentsDue ?? 0} />
-            <BreakdownRow label="بدهی‌ها" value={financial?.dangsTotal ?? 0} />
-            <BreakdownRow label="چک‌های این دوره" value={financial?.checksDue ?? 0} />
-            <BreakdownRow label="مجموع بدهی‌ها" value={financial?.totalLiabilities ?? 0} total />
-          </div>
-        </Card>
+        <DashboardBreakdownSection
+          financial={financial}
+          config={config}
+          onConfigure={() => useNavigationStore.getState().onTabChange('net-available-settings')}
+        />
       </div>
     </div>
   )

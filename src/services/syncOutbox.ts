@@ -19,12 +19,15 @@ export type OutboxOperation =
       sheetName: string
       rowNumber: number
       row: string[]
+      /** The row as the app saw it before the edit; used to re-find it if rows moved. */
+      expectedRow?: string[]
       writeOptions?: OutboxWriteOptions
     }
   | {
       type: 'delete'
       sheetName: string
       rowNumber: number
+      expectedRow?: string[]
     }
   | {
       type: 'replace'
@@ -113,4 +116,47 @@ export function markOutboxEntryFailed(spreadsheetId: string, entryId: string, er
 
 export function clearOutbox(spreadsheetId: string): void {
   removeItem(outboxKey(spreadsheetId))
+}
+
+const FAILED_KEY_PREFIX = 'accounting_sync_failed_'
+
+const MAX_FAILED_ENTRIES = 50
+
+function failedKey(spreadsheetId: string): string {
+  return `${FAILED_KEY_PREFIX}${spreadsheetId}`
+}
+
+/**
+ * Writes Google rejected for good (bad range, conflicting row, oversized cell).
+ * They are parked here instead of blocking every later write forever.
+ */
+export function getFailedOutboxEntries(spreadsheetId: string): OutboxEntry[] {
+  return getItem<OutboxEntry[]>(failedKey(spreadsheetId)) ?? []
+}
+
+export function moveOutboxEntryToFailed(
+  spreadsheetId: string,
+  entryId: string,
+  error: string
+): void {
+  const entries = readOutbox(spreadsheetId)
+  const entry = entries.find(item => item.id === entryId)
+
+  if (!entry) return
+
+  writeOutbox(
+    spreadsheetId,
+    entries.filter(item => item.id !== entryId)
+  )
+
+  const failed = [
+    ...getFailedOutboxEntries(spreadsheetId),
+    { ...entry, attempts: entry.attempts + 1, lastError: error }
+  ].slice(-MAX_FAILED_ENTRIES)
+
+  setItem(failedKey(spreadsheetId), failed)
+}
+
+export function clearFailedOutboxEntries(spreadsheetId: string): void {
+  removeItem(failedKey(spreadsheetId))
 }

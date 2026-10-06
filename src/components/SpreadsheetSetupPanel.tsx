@@ -12,7 +12,8 @@ import {
 } from '../services/spreadsheetSetup'
 import type { SpreadsheetEntry } from '../types'
 import AppIcon from './AppIcon'
-import { FormField, FormSelect } from './form'
+import FormField from './form/FormField'
+import FormSelect from './form/FormSelect'
 import { animateInClass } from './ui/layoutStyles'
 import {
   loginCardClass,

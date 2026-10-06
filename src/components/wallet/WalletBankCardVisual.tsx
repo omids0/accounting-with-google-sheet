@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { type CSSProperties, useState } from 'react'
 
 import type { WalletAccountWithRow } from './types'
 import {
@@ -19,7 +19,12 @@ import {
   walletBankCardTitleClass,
   walletBankCardTopRowClass
 } from './walletCardStyles'
-import { formatCardNumberDisplay, normalizeCardNumber, resolveCardTheme } from './walletCardUtils'
+import {
+  formatCardNumberDisplay,
+  formatMaskedCardNumber,
+  normalizeCardNumber,
+  resolveCardTheme
+} from './walletCardUtils'
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard'
 import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
@@ -44,6 +49,28 @@ type WalletBankCardVisualProps = {
   displayBalance?: number
   compact?: boolean
   className?: string
+  /** Hide all but the last four digits until the eye toggle is pressed. */
+  maskCardNumber?: boolean
+}
+
+function CardRevealButton({ revealed, onToggle }: { revealed: boolean; onToggle: () => void }) {
+  const label = revealed ? 'پنهان کردن شماره کارت' : 'نمایش شماره کارت'
+
+  return (
+    <button
+      type="button"
+      className={walletBankCardCopyBtnClass}
+      aria-label={label}
+      aria-pressed={revealed}
+      title={label}
+      onClick={event => {
+        event.stopPropagation()
+        onToggle()
+      }}
+    >
+      <AppIcon name={revealed ? 'eye-off' : 'eye'} size={11} strokeWidth={2} />
+    </button>
+  )
 }
 
 function CardCopyButton({ value, label }: { value: string; label: string }) {
@@ -84,8 +111,10 @@ export default function WalletBankCardVisual({
   account,
   displayBalance,
   compact,
-  className
+  className,
+  maskCardNumber = true
 }: WalletBankCardVisualProps) {
+  const [revealed, setRevealed] = useState(false)
   const theme = resolveCardTheme(account)
   const balance = displayBalance ?? account.balance
   const showCardNumber = Boolean(account.cardNumber)
@@ -136,8 +165,13 @@ export default function WalletBankCardVisual({
         {showCardNumber && (
           <div className="flex items-center justify-center gap-[0.4rem]">
             <div className={walletBankCardNumberCenterClass} dir="ltr" lang="en">
-              {formatCardNumberDisplay(account.cardNumber)}
+              {maskCardNumber && !revealed
+                ? formatMaskedCardNumber(account.cardNumber)
+                : formatCardNumberDisplay(account.cardNumber)}
             </div>
+            {maskCardNumber && (
+              <CardRevealButton revealed={revealed} onToggle={() => setRevealed(value => !value)} />
+            )}
             <CardCopyButton
               value={normalizeCardNumber(account.cardNumber)}
               label="کپی شماره کارت"

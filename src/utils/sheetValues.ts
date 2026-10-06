@@ -1,7 +1,20 @@
 import { jalaliToIso, toIsoDate } from './jalaliDate'
 import { normalizeDigits } from './normalizeDigits'
+import { parseNumericStrict } from './parseNumeric'
 
-function parseJalaliDateString(text: string): string | null {
+/** Jalali years in use are ~1300–1500; anything from 1900 on is a Gregorian date. */
+const GREGORIAN_YEAR_THRESHOLD = 1900
+
+function gregorianPartsToIso(year: number, month: number, day: number): string | null {
+  const date = new Date(Date.UTC(year, month - 1, day))
+
+  // Reject impossible days (2024/02/30) instead of letting Date roll them over.
+  if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
+
+  return date.toISOString().slice(0, 10)
+}
+
+function parseYmdDateString(text: string): string | null {
   const normalized = normalizeDigits(text.trim())
 
   const match = normalized.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/)
@@ -15,6 +28,9 @@ function parseJalaliDateString(text: string): string | null {
   const day = Number(match[3])
 
   if (!year || month < 1 || month > 12 || day < 1 || day > 31) return null
+
+  // An impossible Gregorian day reads as "no date" rather than a rolled-over or Jalali guess.
+  if (year >= GREGORIAN_YEAR_THRESHOLD) return gregorianPartsToIso(year, month, day) ?? ''
 
   return jalaliToIso(year, month, day)
 }
@@ -52,9 +68,9 @@ export function normalizeSheetDate(value: unknown): string {
     return text.slice(0, 10)
   }
 
-  const jalali = parseJalaliDateString(text)
+  const ymd = parseYmdDateString(text)
 
-  if (jalali) return jalali
+  if (ymd !== null) return ymd
 
   const asciiDigits = normalizeDigits(text)
 
@@ -79,4 +95,23 @@ export function isSheetHeaderRow(row: unknown[]): boolean {
   const first = cellToString(row[0]).normalize('NFC').trim()
 
   return first === 'شناسه'
+}
+
+/** The historical `Number()`-based numeric check — kept so existing layout detection is unchanged. */
+export function isPlainNumberCell(value: unknown): boolean {
+  return value != null && value !== '' && !Number.isNaN(Number(value))
+}
+
+/** Numeric check that also accepts thousands separators, Persian/Arabic digits and «٫». */
+export function isNumericCell(value: unknown): boolean {
+  if (typeof value !== 'string' && typeof value !== 'number') return false
+
+  return String(value).trim() !== '' && parseNumericStrict(value) !== null
+}
+
+/** A payments-style JSON array cell, or an empty one. */
+export function isJsonArrayCell(value: unknown): boolean {
+  const text = cellToString(value).trim()
+
+  return text === '' || text.startsWith('[')
 }

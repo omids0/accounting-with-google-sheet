@@ -1,4 +1,6 @@
 import type { Receivable, ReceivablePayment } from '../types'
+import { parseNumeric } from '../utils/parseNumeric'
+import { isJsonArrayCell, isNumericCell, isPlainNumberCell } from '../utils/sheetValues'
 
 export const RECEIVABLES_SHEET = 'طلب‌ها'
 
@@ -28,23 +30,29 @@ export function parsePayments(raw: string): ReceivablePayment[] {
   return []
 }
 
-function isLegacyReceivableRow(row: string[]): boolean {
-  const amountAt3 = Number(row[3])
+type ReceivableRowLayout = 'legacy' | 'withTitle' | 'withCategory'
 
-  return row[3] !== '' && !Number.isNaN(amountAt3)
-}
+/**
+ * Three column layouts exist in users' sheets. The plain `Number()` checks run first so
+ * rows that already parsed keep their layout; the tolerant checks only rescue rows whose
+ * amount is formatted (`1,500,000`, Persian digits) and used to fall through.
+ */
+export function detectReceivableRowLayout(row: string[]): ReceivableRowLayout {
+  if (isPlainNumberCell(row[3])) return 'legacy'
+  if (isPlainNumberCell(row[5])) return 'withTitle'
+  if (isNumericCell(row[3]) && isJsonArrayCell(row[6])) return 'legacy'
+  if (isNumericCell(row[5]) && isJsonArrayCell(row[8])) return 'withTitle'
 
-function isReceivableRowWithTitle(row: string[]): boolean {
-  const amountAt5 = Number(row[5])
-
-  return row[5] !== '' && !Number.isNaN(amountAt5)
+  return 'withCategory'
 }
 
 export function rowToReceivable(
   row: string[],
   rowNumber: number
 ): Receivable & { rowNumber: number } {
-  if (isLegacyReceivableRow(row)) {
+  const layout = detectReceivableRowLayout(row)
+
+  if (layout === 'legacy') {
     return {
       rowNumber,
       id: row[0] ?? '',
@@ -52,14 +60,14 @@ export function rowToReceivable(
       title: '',
       debtor: row[2] ?? '',
       category: 'سایر',
-      amount: Number(row[3]) || 0,
+      amount: parseNumeric(row[3]),
       borrowDate: row[4] ?? '',
       note: row[5] ?? '',
       payments: parsePayments(row[6] ?? '')
     }
   }
 
-  if (isReceivableRowWithTitle(row)) {
+  if (layout === 'withTitle') {
     return {
       rowNumber,
       id: row[0] ?? '',
@@ -67,7 +75,7 @@ export function rowToReceivable(
       title: row[2] ?? '',
       debtor: row[3] ?? '',
       category: row[4] ?? 'سایر',
-      amount: Number(row[5]) || 0,
+      amount: parseNumeric(row[5]),
       borrowDate: row[6] ?? '',
       note: row[7] ?? '',
       subCategory: row[9] ?? '',
@@ -82,7 +90,7 @@ export function rowToReceivable(
     title: '',
     debtor: row[2] ?? '',
     category: row[3] ?? 'سایر',
-    amount: Number(row[4]) || 0,
+    amount: parseNumeric(row[4]),
     borrowDate: row[5] ?? '',
     note: row[6] ?? '',
     payments: parsePayments(row[7] ?? '')

@@ -161,7 +161,11 @@ export function buildGroupSummary({
   const nameById = new Map(people.map(item => [item.id, item.name]))
   const breakdowns = new Map<string, DangSplitPersonExpenseShare[]>()
 
-  for (const expense of expenses) {
+  // پرداخت‌کننده‌ی این اقلام از گروه حذف شده و کسی برای دریافت طلبش نمانده؛ اگر سهم‌ها
+  // حساب شوند، بدهی بدون طلبکار می‌ماند و جمع مانده‌ها صفر نمی‌شود.
+  const activeExpenses = expenses.filter(item => !item.payerId || knownPeople.has(item.payerId))
+
+  for (const expense of activeExpenses) {
     const expenseAllocations = allocations.filter(
       item => item.expenseId === expense.id && knownPeople.has(item.personId)
     )
@@ -194,8 +198,8 @@ export function buildGroupSummary({
 
   const expensePaidByPerson = new Map<string, number>()
 
-  for (const expense of expenses) {
-    if (!expense.payerId || !knownPeople.has(expense.payerId)) continue
+  for (const expense of activeExpenses) {
+    if (!expense.payerId) continue
 
     expensePaidByPerson.set(
       expense.payerId,
@@ -230,14 +234,14 @@ export function buildGroupSummary({
   const allocatedExpenseIds = new Set(allocations.map(item => item.expenseId))
 
   return {
-    total: expenses.reduce((sum, item) => sum + safeAmount(item.amount), 0),
+    total: activeExpenses.reduce((sum, item) => sum + safeAmount(item.amount), 0),
     covered: summaries.reduce((sum, item) => sum + item.credit, 0),
     depositTotal: summaries.reduce((sum, item) => sum + item.deposit, 0),
     paid: summaries.reduce((sum, item) => sum + item.paid, 0),
     balance: summaries.reduce((sum, item) => sum + item.balance, 0),
     debtTotal: summaries.reduce((sum, item) => sum + Math.max(0, item.balance), 0),
     creditTotal: summaries.reduce((sum, item) => sum + Math.max(0, -item.balance), 0),
-    unallocatedTotal: expenses.reduce(
+    unallocatedTotal: activeExpenses.reduce(
       (sum, item) => sum + (allocatedExpenseIds.has(item.id) ? 0 : safeAmount(item.amount)),
       0
     ),

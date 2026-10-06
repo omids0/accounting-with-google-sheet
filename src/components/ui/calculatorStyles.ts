@@ -1,7 +1,18 @@
 import { toolsPageDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
-export const loanCalculatorPageClass = cn('flex flex-col gap-4', toolsPageDesktopClass)
+/**
+ * Calculator forms are a single narrow column, so every field uses the full
+ * column width instead of the per-control caps (compact / standard) that
+ * wide desktop forms use; otherwise neighbouring fields end at different edges.
+ */
+const calculatorFieldWidthClass = '[&_.form-control-shell]:max-w-none'
+
+export const loanCalculatorPageClass = cn(
+  'flex flex-col gap-4',
+  calculatorFieldWidthClass,
+  toolsPageDesktopClass
+)
 
 export const loanCalculatorHintClass = 'mb-3 text-[0.82rem] leading-[1.6] text-muted'
 
@@ -25,6 +36,22 @@ export const loanCalculatorSummaryLabelClass = 'text-[0.88rem] font-semibold tex
 
 export const loanCalculatorEmptyCardClass = 'text-center'
 
+export const loanMethodBadgeClass = cn(
+  'mx-auto mb-2 inline-flex rounded-full px-[0.6rem] py-[0.15rem] text-[0.72rem] font-bold',
+  'bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary'
+)
+
+export const loanScheduleToggleClass = 'mt-1 w-full'
+
+export const loanScheduleTableWrapClass = 'mt-3 overflow-x-auto'
+
+export const loanScheduleTableClass = cn(
+  'w-full min-w-[26rem] border-collapse text-[0.78rem] tabular-nums',
+  '[&_th]:border-b [&_th]:border-border [&_th]:px-1 [&_th]:pb-2 [&_th]:text-start [&_th]:font-bold [&_th]:text-muted',
+  '[&_td]:border-b [&_td]:border-border [&_td]:px-1 [&_td]:py-[0.45rem] [&_td]:font-semibold',
+  '[&_tr:last-child_td]:border-b-0'
+)
+
 export const loanRateInputWrapClass = cn(
   'flex w-full items-stretch overflow-hidden rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] shadow-[var(--form-input-shadow)]',
   'transition-[border-color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
@@ -37,7 +64,11 @@ export const loanRateSuffixClass = cn(
   'flex flex-shrink-0 items-center justify-center bg-accent-soft px-[0.85rem] font-semibold text-muted'
 )
 
-export const currencyConverterPageClass = cn('flex flex-col gap-4', toolsPageDesktopClass)
+export const currencyConverterPageClass = cn(
+  'flex flex-col gap-4',
+  calculatorFieldWidthClass,
+  toolsPageDesktopClass
+)
 
 export const currencyConverterFormCardClass = 'relative z-[2] overflow-visible'
 
@@ -70,12 +101,13 @@ export const currencyConverterUpdatedAtClass = 'mb-3 text-[0.82rem] leading-[1.6
 export const currencyConverterResultCardClass = 'relative z-[1] text-center'
 
 export const currencyConverterResultValueClass =
-  'text-[clamp(1.5rem,5vw,2rem)] font-extrabold leading-[1.35] text-[var(--color-primary-dark)]'
+  'font-numeric tabular-nums text-[clamp(1.5rem,5vw,2rem)] font-extrabold leading-[1.35] text-[var(--color-primary-dark)]'
 
 export const currencyConverterEmptyCardClass = 'relative z-[1] text-center'
 
 export const dateCalculatorPageClass = cn(
   'flex flex-col gap-[0.6rem] [&>.card]:mb-0 [&>.card]:px-[0.9rem] [&>.card]:py-[0.85rem]',
+  calculatorFieldWidthClass,
   toolsPageDesktopClass
 )
 

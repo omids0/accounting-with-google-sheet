@@ -6,6 +6,7 @@ import {
   deleteSheetRow
 } from './sheets'
 import type { PushSubscriptionRecord, ReminderKind, ReminderRule } from '../types'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export {
   formatInstallmentReminderMessage,
@@ -78,9 +79,9 @@ function rowToRule(row: string[]): ReminderRule | null {
   return {
     kind,
     enabled: parseBool(row[1]),
-    daysBefore: Math.max(0, Number(row[2]) || 0),
-    hour: Math.min(23, Math.max(0, Number(row[3]) || 9)),
-    minute: Math.min(59, Math.max(0, Number(row[4]) || 0))
+    daysBefore: Math.max(0, parseNumeric(row[2])),
+    hour: Math.min(23, Math.max(0, parseNumeric(row[3]) || 9)),
+    minute: Math.min(59, Math.max(0, parseNumeric(row[4])))
   }
 }
 
@@ -108,6 +109,23 @@ function rowToSubscription(row: string[]): PushSubscriptionRecord | null {
     deviceLabel: String(row[3] ?? '').trim() || 'دستگاه',
     updatedAt: String(row[4] ?? '').trim()
   }
+}
+
+const SUBSCRIPTION_REFRESH_MS = 7 * 24 * 60 * 60_000
+
+function isSameRecentSubscription(
+  stored: PushSubscriptionRecord,
+  next: PushSubscriptionRecord
+): boolean {
+  const storedAt = Date.parse(stored.updatedAt)
+
+  return (
+    stored.p256dh === next.p256dh &&
+    stored.auth === next.auth &&
+    stored.deviceLabel === next.deviceLabel &&
+    Number.isFinite(storedAt) &&
+    Date.now() - storedAt < SUBSCRIPTION_REFRESH_MS
+  )
 }
 
 function subscriptionToRow(sub: PushSubscriptionRecord): string[] {
@@ -156,8 +174,8 @@ export async function ensureDefaultReminderRules(spreadsheetId: string): Promise
       kind: 'daily',
       enabled: true,
       daysBefore: 0,
-      hour: Math.min(23, Math.max(0, Number(dailyRow?.[3]) || 9)),
-      minute: Math.min(59, Math.max(0, Number(dailyRow?.[4]) || 0))
+      hour: Math.min(23, Math.max(0, parseNumeric(dailyRow?.[3]) || 9)),
+      minute: Math.min(59, Math.max(0, parseNumeric(dailyRow?.[4])))
     }
   ])
 }
@@ -224,6 +242,9 @@ export async function upsertPushSubscription(
   const existing = await fetchPushSubscriptions(spreadsheetId)
   const match = existing.find(item => item.endpoint === subscription.endpoint)
   const row = subscriptionToRow(subscription)
+
+  // Every app open used to rewrite this row just to bump the timestamp.
+  if (match && isSameRecentSubscription(match, subscription)) return
 
   if (match) {
     await updateSheetRow(spreadsheetId, PUSH_SUBS_SHEET, match.rowNumber, row)

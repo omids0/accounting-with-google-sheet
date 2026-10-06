@@ -116,7 +116,21 @@ export default function CurrencyConverterPage() {
 
   const roundedConverted = roundCurrencyAmount(convertedAmount, toCurrency)
 
+  const amountError =
+    amount !== '' && !(amountValue > 0) ? 'مبلغ باید عددی بزرگ‌تر از صفر باشد' : undefined
+
+  const missingRate = Boolean(rates) && (fromRate <= 0 || toRate <= 0)
+
   const hasValidInput = amount !== '' && amountValue > 0 && fromRate > 0 && toRate > 0
+
+  const emptyMessage =
+    loading && !rates
+      ? 'در حال دریافت نرخ ارز...'
+      : amountError
+      ? 'برای دیدن نتیجه، مبلغی بزرگ‌تر از صفر وارد کنید.'
+      : missingRate && amount !== ''
+      ? 'نرخ ارز انتخاب‌شده در دسترس نیست؛ نرخ‌ها را بروزرسانی کنید.'
+      : 'پس از وارد کردن مبلغ، نتیجه تبدیل اینجا نمایش داده می‌شود.'
 
   const crossRate = fromRate > 0 && toRate > 0 ? fromRate / toRate : 0
 
@@ -179,7 +193,11 @@ export default function CurrencyConverterPage() {
           />
         </div>
 
-        <FormField label={`مبلغ (${getExchangeCurrencyLabel(fromCurrency)})`} required>
+        <FormField
+          label={`مبلغ (${getExchangeCurrencyLabel(fromCurrency)})`}
+          required
+          error={amountError}
+        >
           <input
             type="text"
             inputMode="decimal"
@@ -218,11 +236,7 @@ export default function CurrencyConverterPage() {
         </Card>
       ) : (
         <Card className={currencyConverterEmptyCardClass}>
-          <p className={emptyTextClass}>
-            {loading && !rates
-              ? 'در حال دریافت نرخ ارز...'
-              : 'پس از وارد کردن مبلغ، نتیجه تبدیل اینجا نمایش داده می‌شود.'}
-          </p>
+          <p className={emptyTextClass}>{emptyMessage}</p>
         </Card>
       )}
     </div>

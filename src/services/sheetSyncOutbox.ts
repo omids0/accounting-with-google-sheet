@@ -1,21 +1,29 @@
 import { invalidateInstallmentsCache } from './installments'
 import { isQuotaExceededError } from './sheets'
+import { isPermanentApiError } from './sheetsApi'
+import { createRowGuardSession, RowConflictError } from './sheetsRowGuard'
 import {
   addOutboxEntry,
+  clearFailedOutboxEntries,
+  getFailedOutboxEntries,
   getOutboxCount,
   getOutboxEntries,
   hasPendingOutbox,
   markOutboxEntryFailed,
+  moveOutboxEntryToFailed,
   removeOutboxEntry
 } from './syncOutbox'
 import type { OutboxOperation } from './syncOutbox'
-import { setPendingWrites, setSyncState } from './syncStatus'
+import { setFailedWrites, setPendingWrites, setSyncState } from './syncStatus'
 
 const QUOTA_BACKOFF_MS = 90_000
 
+/** Safety net so a queue that keeps growing during a flush cannot spin forever. */
+const MAX_FLUSH_PASSES = 5
+
 let quotaBlockedUntil = 0
 
-let flushInFlight: Promise<boolean> | null = null
+const flushesInFlight = new Map<string, Promise<boolean>>()
 
 export function markQuotaExceeded(): void {
   quotaBlockedUntil = Date.now() + QUOTA_BACKOFF_MS
@@ -33,73 +41,124 @@ function refreshPendingCount(spreadsheetId: string): void {
   setPendingWrites(getOutboxCount(spreadsheetId))
 }
 
+export function refreshFailedCount(spreadsheetId: string): void {
+  setFailedWrites(getFailedOutboxEntries(spreadsheetId).length)
+}
+
+/** The user has seen the parked writes; forget them. */
+export function dismissFailedWrites(spreadsheetId: string): void {
+  clearFailedOutboxEntries(spreadsheetId)
+  setFailedWrites(0)
+}
+
 export function queueOutboxWrite(spreadsheetId: string, operation: OutboxOperation): void {
   addOutboxEntry(spreadsheetId, operation)
   refreshPendingCount(spreadsheetId)
   void flushOutbox(spreadsheetId)
 }
 
-export async function flushOutbox(spreadsheetId: string): Promise<boolean> {
-  if (!spreadsheetId) return true
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return false
-  if (isQuotaBlocked()) return false
+function isOffline(): boolean {
+  return typeof navigator !== 'undefined' && !navigator.onLine
+}
 
-  if (flushInFlight) {
-    return flushInFlight
-  }
+type PassResult = 'done' | 'blocked'
 
-  const task = (async () => {
-    const { executeOutboxOperation } = await import('./sheets')
+/** Sends every entry queued right now. Permanent failures are parked, not retried forever. */
+async function flushPass(spreadsheetId: string): Promise<PassResult> {
+  const { executeOutboxOperation } = await import('./sheets')
 
-    const entries = getOutboxEntries(spreadsheetId)
+  const session = createRowGuardSession()
 
-    if (!entries.length) {
+  for (const entry of getOutboxEntries(spreadsheetId)) {
+    if (isQuotaBlocked() || isOffline()) return 'blocked'
+
+    try {
+      await executeOutboxOperation(spreadsheetId, entry.operation, {
+        session,
+        isRetry: entry.attempts > 0
+      })
+      removeOutboxEntry(spreadsheetId, entry.id)
+      refreshPendingCount(spreadsheetId)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی'
+
+      if (err instanceof RowConflictError || isPermanentApiError(err)) {
+        moveOutboxEntryToFailed(spreadsheetId, entry.id, message)
+        refreshPendingCount(spreadsheetId)
+        refreshFailedCount(spreadsheetId)
+        setSyncState('error', `یک تغییر اعمال نشد: ${message}`)
+        continue
+      }
+
+      markOutboxEntryFailed(spreadsheetId, entry.id, message)
+
+      if (isQuotaExceededError(err)) {
+        markQuotaExceeded()
+
+        return 'blocked'
+      }
+
+      setSyncState('error', message)
       refreshPendingCount(spreadsheetId)
 
-      return true
+      return 'blocked'
     }
+  }
 
-    setSyncState('syncing')
+  return 'done'
+}
 
-    for (const entry of entries) {
-      if (isQuotaBlocked()) return false
-      if (typeof navigator !== 'undefined' && !navigator.onLine) return false
-
-      try {
-        await executeOutboxOperation(spreadsheetId, entry.operation)
-        removeOutboxEntry(spreadsheetId, entry.id)
-        refreshPendingCount(spreadsheetId)
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی'
-
-        markOutboxEntryFailed(spreadsheetId, entry.id, message)
-
-        if (isQuotaExceededError(err)) {
-          markQuotaExceeded()
-
-          return false
-        }
-
-        setSyncState('error', message)
-        refreshPendingCount(spreadsheetId)
-
-        return false
-      }
-    }
-
+async function runFlush(spreadsheetId: string): Promise<boolean> {
+  if (!hasPendingOutbox(spreadsheetId)) {
     refreshPendingCount(spreadsheetId)
-    if (!hasPendingOutbox(spreadsheetId)) {
-      setSyncState('idle')
-    }
 
     return true
-  })()
+  }
 
-  flushInFlight = task.finally(() => {
-    flushInFlight = null
+  setSyncState('syncing')
+
+  // Writes queued while a pass was running are picked up by the next pass
+  // instead of waiting for the next sync trigger.
+  for (let pass = 0; pass < MAX_FLUSH_PASSES && hasPendingOutbox(spreadsheetId); pass += 1) {
+    if ((await flushPass(spreadsheetId)) === 'blocked') return false
+  }
+
+  refreshPendingCount(spreadsheetId)
+  if (!hasPendingOutbox(spreadsheetId)) {
+    setSyncState('idle')
+  }
+
+  return !hasPendingOutbox(spreadsheetId)
+}
+
+/**
+ * Two open tabs share one localStorage outbox; without a cross-tab lock both
+ * would send the same append twice and the second delete would hit another row.
+ */
+function withOutboxLock(spreadsheetId: string, task: () => Promise<boolean>): Promise<boolean> {
+  const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined
+
+  if (!locks?.request) return task()
+
+  return locks.request(`accounting-outbox-${spreadsheetId}`, task).then(result => result)
+}
+
+export async function flushOutbox(spreadsheetId: string): Promise<boolean> {
+  if (!spreadsheetId) return true
+  if (isOffline()) return false
+  if (isQuotaBlocked()) return false
+
+  const running = flushesInFlight.get(spreadsheetId)
+
+  if (running) return running
+
+  const task = withOutboxLock(spreadsheetId, () => runFlush(spreadsheetId)).finally(() => {
+    flushesInFlight.delete(spreadsheetId)
   })
 
-  return flushInFlight
+  flushesInFlight.set(spreadsheetId, task)
+
+  return task
 }
 
 export function invalidateDerivedCaches(spreadsheetId: string): void {

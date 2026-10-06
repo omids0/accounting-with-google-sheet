@@ -6,6 +6,7 @@ import {
   updateSheetRow
 } from './sheets'
 import type { VehicleExpenseMeta } from '../types/vehicles'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export const VEHICLE_EXPENSE_META_SHEET = 'هزینه_خودرو'
 
@@ -33,9 +34,9 @@ function rowToMeta(row: string[], rowNumber: number): VehicleExpenseMetaWithRow 
     expenseRecordId: row[1] ?? '',
     vehicleId: row[2] ?? '',
     expenseType: row[3] ?? '',
-    fuelPricePerLiter: Math.max(0, Number(row[4]) || 0),
-    fuelLiters: Math.max(0, Number(row[5]) || 0),
-    mileage: Math.max(0, Number(row[6]) || 0),
+    fuelPricePerLiter: Math.max(0, parseNumeric(row[4])),
+    fuelLiters: Math.max(0, parseNumeric(row[5])),
+    mileage: Math.max(0, parseNumeric(row[6])),
     createdAt: row[7] ?? ''
   }
 }

@@ -1,3 +1,4 @@
+import { bumpSheetWriteVersion } from './sheetWriteVersions'
 import {
   cancelScheduledPersist,
   deleteSnapshot,
@@ -130,6 +131,17 @@ export function getSheetDataRows(spreadsheetId: string, sheetName: string): stri
   return dataRows
 }
 
+/** The row at a 1-based sheet row number (header is row 1), or null. */
+export function getSheetRow(
+  spreadsheetId: string,
+  sheetName: string,
+  rowNumber: number
+): string[] | null {
+  const row = getStore(spreadsheetId)?.sheets[sheetName]?.[rowNumber - 1]
+
+  return row ? [...row] : null
+}
+
 export function setSheetAllRows(
   spreadsheetId: string,
   sheetName: string,
@@ -183,6 +195,7 @@ export function appendSheetDataRow(spreadsheetId: string, sheetName: string, row
   const sheet = store.sheets[sheetName] ?? []
 
   store.sheets[sheetName] = [...sheet, [...row]]
+  bumpSheetWriteVersion(spreadsheetId, sheetName)
   persistStore(store)
 }
 
@@ -201,6 +214,7 @@ export function updateSheetDataRow(
   if (index >= 0 && index < sheet.length) {
     sheet[index] = [...row]
     store.sheets[sheetName] = sheet
+    bumpSheetWriteVersion(spreadsheetId, sheetName)
     persistStore(store)
   }
 }
@@ -219,6 +233,7 @@ export function deleteSheetDataRow(
   if (index >= 0 && index < sheet.length) {
     sheet.splice(index, 1)
     store.sheets[sheetName] = sheet
+    bumpSheetWriteVersion(spreadsheetId, sheetName)
     persistStore(store)
   }
 }
@@ -238,6 +253,7 @@ export function replaceSheetDataRows(
   store.sheets[sheetName] = header
     ? [header, ...dataRows.map(row => [...row])]
     : dataRows.map(row => [...row])
+  bumpSheetWriteVersion(spreadsheetId, sheetName)
   persistStore(store)
 }
 

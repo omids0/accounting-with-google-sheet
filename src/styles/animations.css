@@ -89,16 +89,6 @@
   }
 }
 
-@keyframes headerGlow {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
 @keyframes navIndicator {
   from {
     transform: scaleX(0);
@@ -202,25 +192,32 @@
   }
 }
 
+/*
+ * Runs on a full-width layer whose glow dot sits at its left edge, so the dot
+ * travels with transform only (no left/blur repaint every frame).
+ */
 @keyframes progressGlowTravel {
   0%,
   100% {
-    left: 0%;
     opacity: 0;
-    transform: translate(-40%, -50%) scale(0.85);
+    transform: translateX(0);
   }
   12% {
     opacity: 0.28;
-    transform: translate(-40%, -50%) scale(0.95);
   }
   50% {
-    left: 100%;
     opacity: 0.32;
-    transform: translate(-60%, -50%) scale(1);
+    transform: translateX(100%);
   }
   88% {
     opacity: 0;
-    transform: translate(-60%, -50%) scale(0.9);
+  }
+}
+
+/* Fill grows in from the RTL start edge; the end value is the element's own transform. */
+@keyframes progressFillIn {
+  from {
+    transform: translateX(100%);
   }
 }
 

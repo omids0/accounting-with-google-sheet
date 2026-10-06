@@ -1,4 +1,4 @@
-import { getAccessToken } from './auth'
+import { getAccessToken, isTokenValid } from './auth'
 
 export const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets'
 
@@ -12,10 +12,35 @@ export function isSpreadsheetNotFoundError(err: unknown): boolean {
   return /not found|requested entity was not found/i.test(msg)
 }
 
+/** Error from the Sheets API that keeps the HTTP status, so callers need not match text. */
+export class SheetsApiError extends Error {
+  readonly status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'SheetsApiError'
+    this.status = status
+  }
+}
+
 export function isQuotaExceededError(err: unknown): boolean {
+  if (err instanceof SheetsApiError && err.status === 429) return true
+
   const msg = err instanceof Error ? err.message : String(err)
 
   return /quota exceeded|rate limit|too many requests/i.test(msg)
+}
+
+/**
+ * True when retrying the same request can never succeed (bad range, invalid
+ * value, oversized cell). Auth, quota and server errors are worth retrying.
+ */
+export function isPermanentApiError(err: unknown): boolean {
+  if (!(err instanceof SheetsApiError)) return false
+
+  const { status } = err
+
+  return status >= 400 && status < 500 && ![401, 403, 408, 409, 429].includes(status)
 }
 
 export async function apiRequest<T>(
@@ -23,6 +48,12 @@ export async function apiRequest<T>(
   options: RequestInit = {},
   allowAuthRetry = true
 ): Promise<T> {
+  if (!isTokenValid()) {
+    const { ensureFreshAccessToken } = await import('./tokenRefresh')
+
+    await ensureFreshAccessToken()
+  }
+
   const res = await fetch(url, {
     ...options,
     headers: {
@@ -46,15 +77,16 @@ export async function apiRequest<T>(
     const message =
       (err as { error?: { message?: string } }).error?.message || `خطای API: ${res.status}`
 
-    if (isQuotaExceededError(message)) {
+    if (res.status === 429 || isQuotaExceededError(message)) {
       const { markQuotaExceeded } = await import('./sheetSync')
 
       markQuotaExceeded()
-      throw new Error(
-        'محدودیت درخواست Google Sheets پر شده. حدود یک دقیقه صبر کنید و دوباره تلاش کنید.'
+      throw new SheetsApiError(
+        'محدودیت درخواست Google Sheets پر شده. حدود یک دقیقه صبر کنید و دوباره تلاش کنید.',
+        429
       )
     }
-    throw new Error(message)
+    throw new SheetsApiError(message, res.status)
   }
   if (res.status === 204) return {} as T
 

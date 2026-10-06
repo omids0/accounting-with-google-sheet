@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { deleteStoredRecord, submitRecordEdit } from './recordsMutations'
 import { getFormField, type StoredRecord } from './recordsUtils'
@@ -34,14 +34,18 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     return record.values[fieldId ?? 'date'] ?? ''
   }
 
-  const openEditForm = (record: StoredRecord) => {
-    const form = forms.find(item => item.id === record.formId)
+  // Stable callbacks: each memoized records row receives these as props.
+  const openEditForm = useCallback(
+    (record: StoredRecord) => {
+      const form = forms.find(item => item.id === record.formId)
 
-    if (!form) return
+      if (!form) return
 
-    setEditingRecord(record)
-    setShowForm(true)
-  }
+      setEditingRecord(record)
+      setShowForm(true)
+    },
+    [forms]
+  )
 
   const closeForm = () => {
     if (saving) return
@@ -49,9 +53,9 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     setEditingRecord(null)
   }
 
-  const openDeleteConfirm = (record: StoredRecord) => {
+  const openDeleteConfirm = useCallback((record: StoredRecord) => {
     setDeletingRecord(record)
-  }
+  }, [])
 
   const closeDeleteConfirm = () => {
     if (deleting) return

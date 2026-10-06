@@ -15,7 +15,7 @@ import {
   amountWordsClass
 } from './ui/formControlStyles'
 import { cn } from '../utils/cn'
-import { getCurrencySymbol } from '../utils/formatMoney'
+import { formatPersianNumber, getCurrencySymbol } from '../utils/formatMoney'
 import { normalizeDigits } from '../utils/normalizeDigits'
 import { numberToPersianWords } from '../utils/numberToWords'
 
@@ -56,7 +56,7 @@ export default function AmountInput({
 
   const raw = value === '' || value === undefined ? '' : String(Math.trunc(Number(value)))
 
-  const display = raw ? Number(raw).toLocaleString('fa-IR') : ''
+  const display = raw ? formatPersianNumber(Number(raw)) : ''
 
   const words = raw && !hideWords ? numberToPersianWords(Number(raw)) : ''
 

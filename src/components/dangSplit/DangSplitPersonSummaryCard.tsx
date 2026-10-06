@@ -10,6 +10,7 @@ import type { DangSplitPersonSummary } from '../../types/dangSplit'
 import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { progressPercent } from '../../utils/progress'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardExpandButton from '../CardExpandButton'
 import ProgressBar from '../ProgressBar'
@@ -76,7 +77,7 @@ export default function DangSplitPersonSummaryCard({
   const complete = item.status === 'settled'
   const isCreditor = item.balance < 0
   const due = item.share - item.credit
-  const progress = due === 0 ? (complete ? 100 : 0) : Math.round(Math.min(1, item.paid / due) * 100)
+  const progress = due === 0 ? (complete ? 100 : 0) : progressPercent(item.paid, due)
   const balanceLabel = isCreditor ? 'طلبکار' : 'بدهکار'
   const hasActivity = item.share > 0 || item.credit > 0
 

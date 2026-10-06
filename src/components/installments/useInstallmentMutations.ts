@@ -19,7 +19,7 @@ export function useInstallmentMutations({ setPlans, loadPlans }: UseInstallmentM
   return {
     ...formActions,
     expandedId: payments.expandedId,
-    togglingKey: payments.togglingKey,
+    togglingByPlan: payments.togglingByPlan,
     handleTogglePayment: payments.handleTogglePayment,
     handlePaymentAmountSave: payments.handlePaymentAmountSave,
     handleToggleExpand: payments.handleToggleExpand

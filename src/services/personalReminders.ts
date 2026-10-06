@@ -15,6 +15,7 @@ import {
   getTodayIso,
   isoToJalali
 } from '../utils/jalaliDate'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export const PERSONAL_REMINDERS_SHEET = 'مواعد_شخصی'
 
@@ -82,8 +83,8 @@ function rowToPersonalReminder(
     title: row[3] ?? '',
     dueDate: row[4] ?? '',
     recurrence: parseRecurrence(row[5] ?? ''),
-    amount: Number(row[6]) || 0,
-    daysBefore: Math.max(0, Number(row[7]) || 0),
+    amount: parseNumeric(row[6]),
+    daysBefore: Math.max(0, parseNumeric(row[7])),
     enabled: parseBool(row[8])
   }
 }
@@ -114,8 +115,8 @@ export function personalReminderRowFromImportCells(cells: (string | undefined)[]
     title,
     dueDate: cells[4] ?? '',
     recurrence: parseRecurrence(cells[5] ?? ''),
-    amount: Number(cells[6]) || 0,
-    daysBefore: Math.max(0, Number(cells[7]) || 0),
+    amount: parseNumeric(cells[6]),
+    daysBefore: Math.max(0, parseNumeric(cells[7])),
     enabled: parseBool(cells[8])
   })
 }

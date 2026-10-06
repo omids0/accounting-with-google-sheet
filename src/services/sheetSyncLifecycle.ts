@@ -1,19 +1,17 @@
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
 import { getSettings } from './settings'
+import { forgetRemoteVersion } from './sheetRemoteVersion'
 import { isQuotaExceededError } from './sheets'
-import { flushOutbox, invalidateDerivedCaches, isQuotaBlocked } from './sheetSyncOutbox'
-import { getKnownSheetNames } from './sheetSyncSheetNames'
-import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import {
-  clearStore,
-  getStoreLastSyncedAt,
-  hasStoreData,
-  hydrateStore,
-  initStore,
-  setManySheetAllRows,
-  setStoreLastSyncedAt
-} from './spreadsheetStore'
+  flushOutbox,
+  invalidateDerivedCaches,
+  isQuotaBlocked,
+  refreshFailedCount
+} from './sheetSyncOutbox'
+import { pullRemoteSheets } from './sheetSyncPull'
+import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
+import { clearStore, getStoreLastSyncedAt, hasStoreData, hydrateStore } from './spreadsheetStore'
 import { getOutboxSheetNames, hasPendingOutbox, clearOutbox, getOutboxCount } from './syncOutbox'
 import { getSyncStatus, setLastSyncedAt, setSyncState, setPendingWrites } from './syncStatus'
 
@@ -21,8 +19,11 @@ const SYNC_INTERVAL_MS = 120_000
 
 const MIN_SYNC_COOLDOWN_MS = 30_000
 
-/** Focus-triggered syncs bypass the cooldown but not faster than this. */
-const FOCUS_SYNC_THROTTLE_MS = 4_000
+/**
+ * Focus-triggered syncs bypass the cooldown but not faster than this. They are
+ * cheap now: a Drive modifiedTime check decides whether to download anything.
+ */
+const FOCUS_SYNC_THROTTLE_MS = 10_000
 
 let activeSpreadsheetId: string | null = null
 
@@ -44,18 +45,9 @@ function isSyncCoolingDown(spreadsheetId: string): boolean {
   return Date.now() - lastSyncedAt < MIN_SYNC_COOLDOWN_MS
 }
 
-async function fetchSheetsBatchFromApi(
-  spreadsheetId: string,
-  sheetNames: string[]
-): Promise<Map<string, string[][]>> {
-  const { batchFetchSheetRangesFromApi } = await import('./sheets')
-
-  return batchFetchSheetRangesFromApi(spreadsheetId, sheetNames)
-}
-
 export async function fullSyncFromRemote(
   spreadsheetId: string,
-  options: { background?: boolean; force?: boolean } = {}
+  options: { background?: boolean; force?: boolean; skipIfUnchanged?: boolean } = {}
 ): Promise<void> {
   if (!spreadsheetId) return
   if (isQuotaBlocked()) return
@@ -106,48 +98,16 @@ export async function fullSyncFromRemote(
         }
       }
 
-      const stillBlocked = getOutboxSheetNames(spreadsheetId)
-
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         setSyncState('idle')
 
         return
       }
 
-      initStore(spreadsheetId)
-
-      const sheetNames = getKnownSheetNames(settings)
-
-      const fetched = await fetchSheetsBatchFromApi(spreadsheetId, sheetNames)
-
-      const filtered = new Map<string, string[][]>()
-
-      for (const [sheetName, rows] of fetched) {
-        if (stillBlocked.has(sheetName)) continue
-        filtered.set(sheetName, rows)
-      }
-
-      if (!filtered.size) {
-        if (!hasPendingOutbox(spreadsheetId)) {
-          setSyncState('idle')
-        }
-
-        return
-      }
-
-      const changed = setManySheetAllRows(spreadsheetId, filtered)
-
-      const now = Date.now()
-
-      setStoreLastSyncedAt(spreadsheetId, now)
-      setLastSyncedAt(now)
-
-      if (changed) {
-        invalidateDerivedCaches(spreadsheetId)
-        queueMicrotask(() => notifySpreadsheetDataChanged(spreadsheetId))
-      } else if (!hasPendingOutbox(spreadsheetId)) {
-        setSyncState('idle')
-      }
+      await pullRemoteSheets(spreadsheetId, settings, {
+        skipIfUnchanged: options.skipIfUnchanged,
+        hadData
+      })
     } catch (err) {
       if (isQuotaExceededError(err)) {
         const { markQuotaExceeded } = await import('./sheetSyncOutbox')
@@ -182,7 +142,12 @@ export function refreshInBackground(
   if (getSyncStatus().syncState === 'syncing') return
   if (!options.force && isSyncCoolingDown(id) && !hasPendingOutbox(id)) return
 
-  void fullSyncFromRemote(id, { background: true, force: options.force }).catch(() => {
+  // Background refreshes first ask Drive whether anything changed at all.
+  void fullSyncFromRemote(id, {
+    background: true,
+    force: options.force,
+    skipIfUnchanged: true
+  }).catch(() => {
     /* error state handled in fullSyncFromRemote */
   })
 }
@@ -191,10 +156,13 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   if (!spreadsheetId) return
 
   activeSpreadsheetId = spreadsheetId
-  await hydrateStore(spreadsheetId)
+  // App start may already have hydrated it to show cached data; re-reading IndexedDB
+  // then would drop writes made since that are not persisted yet.
+  if (!hasStoreData(spreadsheetId)) await hydrateStore(spreadsheetId)
   void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   void migrateSubCategoryColumn(spreadsheetId).catch(() => undefined)
   setPendingWrites(getOutboxCount(spreadsheetId))
+  refreshFailedCount(spreadsheetId)
 
   const lastSyncedAt = getStoreLastSyncedAt(spreadsheetId)
 
@@ -218,6 +186,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
 
   if (syncTimer) clearInterval(syncTimer)
   syncTimer = setInterval(() => {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
     refreshInBackground(spreadsheetId)
   }, SYNC_INTERVAL_MS)
 }
@@ -232,6 +201,7 @@ export function stopSheetSync(): void {
 
 export function resetSheetSync(spreadsheetId: string): void {
   stopSheetSync()
+  forgetRemoteVersion(spreadsheetId)
   clearStore(spreadsheetId)
   clearOutbox(spreadsheetId)
   setPendingWrites(0)

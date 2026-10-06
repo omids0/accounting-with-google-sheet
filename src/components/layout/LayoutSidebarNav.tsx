@@ -1,6 +1,7 @@
-import { prefetchTabPage } from '../../routes/prefetchPages'
 import AppIcon from '../AppIcon'
-import { BOTTOM_NAV_TABS, TAB_TITLES, type Tab } from './types'
+import { PRIMARY_NAV_ICONS } from './navIcons'
+import TabNavLink from './TabNavLink'
+import { PRIMARY_NAV_TABS, TAB_TITLES, type Tab } from './types'
 import {
   appMenuDividerClass,
   appMenuItemClass,
@@ -8,16 +9,6 @@ import {
   appMenuItemLabelClass,
   appSidebarNavClass
 } from '../ui/layoutStyles'
-
-const BOTTOM_NAV_ICONS = {
-  installments: 'installments',
-  dang: 'debt',
-  checks: 'checks',
-  dashboard: 'dashboard',
-  receivables: 'receivables',
-  treasury: 'treasury',
-  wallet: 'wallet'
-} as const
 
 interface LayoutSidebarNavProps {
   tab: Tab
@@ -34,27 +25,26 @@ export default function LayoutSidebarNav({
 
   return (
     <div className={appSidebarNavClass}>
-      {BOTTOM_NAV_TABS.map(navTab => {
+      {PRIMARY_NAV_TABS.map(navTab => {
         const active = navTab === 'dashboard' ? dashboardActive : !showSettings && tab === navTab
 
         return (
-          <button
+          <TabNavLink
             key={navTab}
-            type="button"
+            tab={navTab}
+            active={active}
             className={appMenuItemClass(active)}
-            onPointerDown={() => prefetchTabPage(navTab)}
-            onClick={() => onTabChange(navTab)}
-            aria-current={active ? 'page' : undefined}
+            onNavigate={() => onTabChange(navTab)}
           >
             <span className={appMenuItemIconClass(active)}>
               <AppIcon
-                name={BOTTOM_NAV_ICONS[navTab as keyof typeof BOTTOM_NAV_ICONS]}
+                name={PRIMARY_NAV_ICONS[navTab] ?? 'dashboard'}
                 size={20}
                 strokeWidth={1.75}
               />
             </span>
             <span className={appMenuItemLabelClass}>{TAB_TITLES[navTab]}</span>
-          </button>
+          </TabNavLink>
         )
       })}
       <div className={appMenuDividerClass} aria-hidden="true" />

@@ -11,11 +11,12 @@ export const dashboardHeroCardClass = cn(
   cardClassName(),
   'dashboard-hero-card relative overflow-hidden border-none !p-4 text-center text-white',
   'shadow-[0_8px_28px_rgba(15,118,110,0.3)]',
-  '[background:linear-gradient(135deg,#0f766e_0%,#14b8a6_50%,#2dd4bf_100%)] [background-size:200%_200%] animate-[headerGlow_6s_ease_infinite]'
+  '[background:linear-gradient(135deg,#0f766e_0%,#14b8a6_50%,#2dd4bf_100%)]'
 )
 
+/** Transform/opacity-only shimmer, played a couple of times on mount (not forever). */
 export const dashboardHeroCardAnimatedClass =
-  'after:pointer-events-none after:absolute after:inset-[-40%_-20%] after:animate-[heroShimmer_5s_ease-in-out_infinite] after:content-[""] after:[background:radial-gradient(circle,rgba(255,255,255,0.18),transparent_60%)]'
+  'after:pointer-events-none after:absolute after:inset-[-40%_-20%] after:animate-[heroShimmer_5s_ease-in-out_2] after:content-[""] after:[background:radial-gradient(circle,rgba(255,255,255,0.18),transparent_60%)]'
 
 export const dashboardHeroHeaderClass = cn(
   'dashboard-hero-header relative z-[1] mb-2 grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-1',
@@ -80,6 +81,14 @@ export const assetLabelLinkClass = cn(
 export const assetValueClass = cn(
   'asset-value text-[0.76rem] font-semibold tracking-[0.01em] text-primary-dark font-numeric tabular-nums'
 )
+
+/** Row left out of the «دارایی قابل اتکا» total — shown, but visibly not counted. */
+export const assetRowExcludedClass = '[&_.asset-value]:font-medium [&_.asset-value]:text-muted'
+
+export const assetExcludedTagClass = 'ms-1 text-[0.62rem] font-normal text-muted'
+
+export const assetSettingsHintClass =
+  'mt-1 cursor-pointer border-none bg-transparent p-0 text-start text-[0.64rem] text-muted underline decoration-dotted underline-offset-2 hover:text-primary'
 
 export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem] lg:gap-3'
 

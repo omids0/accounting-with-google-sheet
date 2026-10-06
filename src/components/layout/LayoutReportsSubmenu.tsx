@@ -1,3 +1,6 @@
+import { Fragment } from 'react'
+
+import TabNavLink from './TabNavLink'
 import type { Tab } from './types'
 import { appMenuItemClass, appMenuSubmenuClass, appMenuSubmenuLabelClass } from '../ui/layoutStyles'
 
@@ -6,103 +9,56 @@ interface LayoutReportsSubmenuProps {
   onTabChange: (tab: Tab) => void
 }
 
+const REPORT_MENU_GROUPS: { label: string; items: { tab: Tab; label: string }[] }[] = [
+  {
+    label: 'خلاصه',
+    items: [
+      { tab: 'report-financial-summary', label: 'خلاصه مالی' },
+      { tab: 'report-income-expense', label: 'درآمد و هزینه' },
+      { tab: 'report-cash-flow', label: 'جریان نقدی' },
+      { tab: 'report-category-tree', label: 'درختواره درآمد/هزینه' }
+    ]
+  },
+  {
+    label: 'ترکیبی',
+    items: [
+      { tab: 'report-due-dates', label: 'سررسیدها' },
+      { tab: 'report-assets-liabilities', label: 'دارایی و بدهی' },
+      { tab: 'report-opening-balances', label: 'موجودی اول دوره' }
+    ]
+  },
+  {
+    label: 'تفصیلی',
+    items: [
+      { tab: 'report-wallet', label: 'کیف پول' },
+      { tab: 'report-treasury', label: 'صندوقچه' },
+      { tab: 'report-receivables', label: 'طلب‌ها' },
+      { tab: 'report-dang', label: 'بدهی‌ها' },
+      { tab: 'report-installments', label: 'اقساط' },
+      { tab: 'report-checks', label: 'چک‌ها' }
+    ]
+  }
+]
+
 export default function LayoutReportsSubmenu({ tab, onTabChange }: LayoutReportsSubmenuProps) {
   return (
     <div className={appMenuSubmenuClass}>
-      <div className={appMenuSubmenuLabelClass}>خلاصه</div>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-financial-summary', 'sub')}
-        onClick={() => onTabChange('report-financial-summary')}
-      >
-        خلاصه مالی
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-income-expense', 'sub')}
-        onClick={() => onTabChange('report-income-expense')}
-      >
-        درآمد و هزینه
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-cash-flow', 'sub')}
-        onClick={() => onTabChange('report-cash-flow')}
-      >
-        جریان نقدی
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-category-tree', 'sub')}
-        onClick={() => onTabChange('report-category-tree')}
-      >
-        درختواره درآمد/هزینه
-      </button>
-      <div className={appMenuSubmenuLabelClass}>ترکیبی</div>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-due-dates', 'sub')}
-        onClick={() => onTabChange('report-due-dates')}
-      >
-        سررسیدها
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-assets-liabilities', 'sub')}
-        onClick={() => onTabChange('report-assets-liabilities')}
-      >
-        دارایی و بدهی
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-opening-balances', 'sub')}
-        onClick={() => onTabChange('report-opening-balances')}
-      >
-        موجودی اول دوره
-      </button>
-      <div className={appMenuSubmenuLabelClass}>تفصیلی</div>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-wallet', 'sub')}
-        onClick={() => onTabChange('report-wallet')}
-      >
-        کیف پول
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-treasury', 'sub')}
-        onClick={() => onTabChange('report-treasury')}
-      >
-        صندوقچه
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-receivables', 'sub')}
-        onClick={() => onTabChange('report-receivables')}
-      >
-        طلب‌ها
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-dang', 'sub')}
-        onClick={() => onTabChange('report-dang')}
-      >
-        بدهی‌ها
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-installments', 'sub')}
-        onClick={() => onTabChange('report-installments')}
-      >
-        اقساط
-      </button>
-      <button
-        type="button"
-        className={appMenuItemClass(tab === 'report-checks', 'sub')}
-        onClick={() => onTabChange('report-checks')}
-      >
-        چک‌ها
-      </button>
+      {REPORT_MENU_GROUPS.map(group => (
+        <Fragment key={group.label}>
+          <div className={appMenuSubmenuLabelClass}>{group.label}</div>
+          {group.items.map(item => (
+            <TabNavLink
+              key={item.tab}
+              tab={item.tab}
+              active={tab === item.tab}
+              className={appMenuItemClass(tab === item.tab, 'sub')}
+              onNavigate={() => onTabChange(item.tab)}
+            >
+              {item.label}
+            </TabNavLink>
+          ))}
+        </Fragment>
+      ))}
     </div>
   )
 }

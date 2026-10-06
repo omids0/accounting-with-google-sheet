@@ -1,5 +1,5 @@
 import { useGoogleOAuth } from '@react-oauth/google'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { registerSW } from 'virtual:pwa-register'
 
 import AppIcon from './components/AppIcon'
@@ -30,6 +30,7 @@ import {
   prepareUserSpreadsheet,
   resolveSpreadsheetSession
 } from './services/spreadsheetSetup'
+import { hasStoreData, hydrateStore } from './services/spreadsheetStore'
 import { refreshAccessTokenSilently } from './services/tokenRefresh'
 import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
@@ -72,6 +73,10 @@ export default function App() {
 
   const [sheetError, setSheetError] = useState('')
 
+  // While start-up is still renewing the token, an early 401 from a page must
+  // not flash the re-login screen; start-up decides that itself.
+  const startupDoneRef = useRef(false)
+
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
   const isOAuthConfigured = !!clientId && !clientId.startsWith('xxx')
@@ -93,6 +98,7 @@ export default function App() {
   }, [])
 
   const handleReauth = useCallback(async () => {
+    if (!startupDoneRef.current) return
     if (canRefreshSilently && hasStoredSession()) {
       const refreshed = await refreshAccessTokenSilently(clientId)
 
@@ -120,6 +126,27 @@ export default function App() {
     }
   })
 
+  // Returning users see their cached data at once; token renewal, sheet checks
+  // and the first sync then run behind it instead of in front of it.
+  useEffect(() => {
+    let cancelled = false
+
+    const cachedId = getSettings()?.spreadsheetId
+
+    if (hasStoredSession() && cachedId) {
+      void hydrateStore(cachedId).then(() => {
+        if (!cancelled && hasStoreData(cachedId)) {
+          setLoggedIn(true)
+          setReady(true)
+        }
+      })
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   useEffect(() => {
     let cancelled = false
 
@@ -137,6 +164,7 @@ export default function App() {
       }
 
       if (!tokenValid) {
+        startupDoneRef.current = true
         if (!cancelled) {
           setLoggedIn(false)
           setNeedsReauth(isConfigured())
@@ -194,6 +222,7 @@ export default function App() {
         }
       }
 
+      startupDoneRef.current = true
       if (!cancelled) setReady(true)
     }
 

@@ -95,15 +95,16 @@ export const walletAccountCardVisualHostClass = 'relative min-w-0 p-0'
 
 export const walletCardActionOverlayClass = cn(
   'wallet-card-action-overlay absolute top-1/2 left-2 z-20 flex -translate-y-1/2 flex-col gap-[0.1rem] rounded-[calc(var(--radius-sm)+1px)] p-[0.1rem]',
-  'border border-[rgba(255,255,255,0.32)] bg-[rgba(15,23,42,0.28)] shadow-[0_4px_14px_rgba(0,0,0,0.22)]',
-  'backdrop-blur-md backdrop-saturate-150',
+  // No per-card backdrop blur (one offscreen blur pass per wallet card); a
+  // slightly denser tint keeps the buttons legible instead.
+  'border border-[rgba(255,255,255,0.32)] bg-[rgba(15,23,42,0.38)] shadow-[0_4px_14px_rgba(0,0,0,0.22)]',
   '[&_.card-action-btn]:h-[1.65rem] [&_.card-action-btn]:w-[1.65rem] [&_.card-action-btn]:rounded-md',
   '[&_.card-action-btn]:text-white/95 [&_.card-action-btn]:hover:enabled:bg-[rgba(255,255,255,0.16)]',
   '[&_.card-action-btn]:hover:enabled:text-white'
 )
 
 export const walletCardActionOverlayExpandedClass = cn(
-  'border-[rgba(255,255,255,0.42)] bg-[rgba(15,23,42,0.34)] shadow-[0_8px_22px_rgba(0,0,0,0.26)]',
+  'border-[rgba(255,255,255,0.42)] bg-[rgba(15,23,42,0.44)] shadow-[0_8px_22px_rgba(0,0,0,0.26)]',
   '[&_.card-action-btn--expanded]:bg-[rgba(255,255,255,0.18)] [&_.card-action-btn--expanded]:text-white'
 )
 

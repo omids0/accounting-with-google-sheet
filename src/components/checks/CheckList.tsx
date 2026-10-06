@@ -8,14 +8,13 @@ import {
 } from '../../utils/dateRange'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { distributionSparkline } from '../../utils/sparklineData'
-import AppIcon from '../AppIcon'
+import EmptyState from '../EmptyState'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import CheckCard from './CheckCard'
 import type { CheckWithRow } from './types'
 import { dashboardStatGridClass } from '../ui/chartStyles'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 export type CheckListProps = {
@@ -26,6 +25,8 @@ export type CheckListProps = {
   onTogglePaid: (item: CheckWithRow, paid: boolean) => void
   onEdit: (item: CheckWithRow) => void
   onDelete: (item: CheckWithRow) => void
+  /** Opens the same create form as the page speed dial. */
+  onAdd?: () => void
 }
 
 export default function CheckList({
@@ -35,7 +36,8 @@ export default function CheckList({
   togglingId,
   onTogglePaid,
   onEdit,
-  onDelete
+  onDelete,
+  onAdd
 }: CheckListProps) {
   const monthRange = useMemo(() => getInstallmentDueRange('month-to-date'), [])
   const monthLabel = useMemo(() => formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso())), [])
@@ -54,12 +56,11 @@ export default function CheckList({
 
   if (items.length === 0) {
     return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="checks" />
-        </div>
-        <p>هنوز چکی ثبت نشده</p>
-      </div>
+      <EmptyState
+        icon="checks"
+        message="هنوز چکی ثبت نشده"
+        action={onAdd ? { label: 'افزودن چک', onClick: onAdd } : undefined}
+      />
     )
   }
 

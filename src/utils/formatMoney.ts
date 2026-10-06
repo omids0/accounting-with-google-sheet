@@ -75,3 +75,49 @@ function getNumberFormatter(options?: Intl.NumberFormatOptions): Intl.NumberForm
 export function formatPersianNumber(n: number, options?: Intl.NumberFormatOptions): string {
   return getNumberFormatter(options).format(n)
 }
+
+/** Typographic minus (U+2212); `-` is a hyphen and renders shorter and looser. */
+export const MINUS_SIGN = '−'
+
+/** Left-to-right mark: keeps a leading sign glued to the digits inside RTL text. */
+const LRM = '‎'
+
+/**
+ * A signed amount in one shape everywhere: `−۴٬۵۴۰٬۰۰۰` / `+۱۲۰٬۰۰۰`, sign attached
+ * to the digits with no space. `showPlus` adds `+` for positive values.
+ */
+export function formatSignedNumber(n: number, options?: { showPlus?: boolean }): string {
+  const number = formatPersianNumber(Math.abs(n))
+
+  if (n < 0) return `${LRM}${MINUS_SIGN}${number}`
+  if (n > 0 && options?.showPlus) return `${LRM}+${number}`
+
+  return number
+}
+
+export function formatSignedMoney(
+  n: number,
+  options?: { showPlus?: boolean; currency?: CurrencyUnit }
+): string {
+  return `${formatSignedNumber(n, options)} ${getCurrencySymbol(options?.currency)}`
+}
+
+const COMPACT_UNITS: { value: number; suffix: string }[] = [
+  { value: 1_000_000_000, suffix: 'میلیارد' },
+  { value: 1_000_000, suffix: 'م' },
+  { value: 1_000, suffix: 'ه' }
+]
+
+/**
+ * Short Persian form for tight spots (chart axes, donut centers):
+ * `۳٫۵ م` (million), `۱۲۰ ه` (thousand), `۱٫۲ میلیارد`.
+ */
+export function formatCompactNumber(n: number): string {
+  const abs = Math.abs(n)
+  const unit = COMPACT_UNITS.find(item => abs >= item.value)
+  const scaled = unit ? abs / unit.value : abs
+  const digits = formatPersianNumber(scaled, { maximumFractionDigits: scaled < 100 ? 1 : 0 })
+  const text = unit ? `${digits} ${unit.suffix}` : digits
+
+  return n < 0 ? `${LRM}${MINUS_SIGN}${text}` : text
+}

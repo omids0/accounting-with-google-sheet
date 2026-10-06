@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react'
-
 import AppIcon from '../AppIcon'
-import type { Tab } from './types'
-import { prefetchTabPage } from '../../routes/prefetchPages'
+import { PRIMARY_NAV_ICONS } from './navIcons'
+import TabNavLink from './TabNavLink'
+import { BOTTOM_NAV_END_TABS, BOTTOM_NAV_START_TABS, TAB_TITLES, type Tab } from './types'
+import { cn } from '../../utils/cn'
 import {
   bottomNavCenterClass,
   bottomNavClass,
@@ -21,27 +21,40 @@ interface LayoutBottomNavProps {
   onTabChange: (tab: Tab) => void
 }
 
-interface BottomNavTabButtonProps {
+/** Links are not `:enabled`, so the shared press feedback is restated for them. */
+const bottomNavLinkPressClass = 'active:scale-[0.94] motion-reduce:active:scale-100'
+
+interface BottomNavSideProps {
+  tabs: Tab[]
+  showSettings: boolean
   tab: Tab
-  active: boolean
-  label: string
-  icon: ReactNode
   onTabChange: (tab: Tab) => void
 }
 
-function BottomNavTabButton({ tab, active, label, icon, onTabChange }: BottomNavTabButtonProps) {
+function BottomNavSide({ tabs, showSettings, tab, onTabChange }: BottomNavSideProps) {
   return (
-    <button
-      type="button"
-      className={bottomNavTabBtnClass(active)}
-      onPointerDown={() => prefetchTabPage(tab)}
-      onClick={() => onTabChange(tab)}
-      aria-label={label}
-      aria-current={active ? 'page' : undefined}
-    >
-      <span className={bottomNavTabIconClass(active)}>{icon}</span>
-      <span className={bottomNavTabLabelClass}>{label}</span>
-    </button>
+    <div className={bottomNavSideClass}>
+      {tabs.map(navTab => {
+        const active = !showSettings && tab === navTab
+        const label = TAB_TITLES[navTab]
+
+        return (
+          <TabNavLink
+            key={navTab}
+            tab={navTab}
+            active={active}
+            className={cn(bottomNavTabBtnClass(active), bottomNavLinkPressClass)}
+            aria-label={label}
+            onNavigate={() => onTabChange(navTab)}
+          >
+            <span className={bottomNavTabIconClass(active)}>
+              <AppIcon name={PRIMARY_NAV_ICONS[navTab] ?? 'dashboard'} />
+            </span>
+            <span className={bottomNavTabLabelClass}>{label}</span>
+          </TabNavLink>
+        )
+      })}
+    </div>
   )
 }
 
@@ -50,69 +63,34 @@ export default function LayoutBottomNav({ showSettings, tab, onTabChange }: Layo
 
   return (
     <nav className={bottomNavClass} aria-label="ناوبری اصلی">
-      <div className={bottomNavSideClass}>
-        <BottomNavTabButton
-          tab="installments"
-          active={!showSettings && tab === 'installments'}
-          label="اقساط"
-          icon={<AppIcon name="installments" />}
-          onTabChange={onTabChange}
-        />
-        <BottomNavTabButton
-          tab="dang"
-          active={!showSettings && tab === 'dang'}
-          label="بدهی"
-          icon={<AppIcon name="debt" />}
-          onTabChange={onTabChange}
-        />
-        <BottomNavTabButton
-          tab="checks"
-          active={!showSettings && tab === 'checks'}
-          label="چک‌ها"
-          icon={<AppIcon name="checks" />}
-          onTabChange={onTabChange}
-        />
-      </div>
+      <BottomNavSide
+        tabs={BOTTOM_NAV_START_TABS}
+        showSettings={showSettings}
+        tab={tab}
+        onTabChange={onTabChange}
+      />
 
       <div className={bottomNavCenterClass}>
-        <button
-          type="button"
-          className={bottomNavDashboardClass(dashboardActive)}
-          onPointerDown={() => prefetchTabPage('dashboard')}
-          onClick={() => onTabChange('dashboard')}
-          aria-label="داشبورد"
-          aria-current={dashboardActive ? 'page' : undefined}
+        <TabNavLink
+          tab="dashboard"
+          active={dashboardActive}
+          className={cn(bottomNavDashboardClass(dashboardActive), bottomNavLinkPressClass)}
+          aria-label={TAB_TITLES.dashboard}
+          onNavigate={() => onTabChange('dashboard')}
         >
           <span className={bottomNavDashboardIconClass}>
             <AppIcon name="dashboard" />
           </span>
-          <span className={bottomNavDashboardLabelClass}>داشبورد</span>
-        </button>
+          <span className={bottomNavDashboardLabelClass}>{TAB_TITLES.dashboard}</span>
+        </TabNavLink>
       </div>
 
-      <div className={bottomNavSideClass}>
-        <BottomNavTabButton
-          tab="receivables"
-          active={!showSettings && tab === 'receivables'}
-          label="طلب‌ها"
-          icon={<AppIcon name="receivables" />}
-          onTabChange={onTabChange}
-        />
-        <BottomNavTabButton
-          tab="treasury"
-          active={!showSettings && tab === 'treasury'}
-          label="صندوق"
-          icon={<AppIcon name="treasury" />}
-          onTabChange={onTabChange}
-        />
-        <BottomNavTabButton
-          tab="wallet"
-          active={!showSettings && tab === 'wallet'}
-          label="کیف پول"
-          icon={<AppIcon name="wallet" />}
-          onTabChange={onTabChange}
-        />
-      </div>
+      <BottomNavSide
+        tabs={BOTTOM_NAV_END_TABS}
+        showSettings={showSettings}
+        tab={tab}
+        onTabChange={onTabChange}
+      />
     </nav>
   )
 }

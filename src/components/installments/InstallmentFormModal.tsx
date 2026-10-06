@@ -4,7 +4,10 @@ import { Controller, useForm } from 'react-hook-form'
 import type { InstallmentFormState, PlanWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getInstallmentEndDate, getPaidUntilFromPlan } from '../../services/installments'
-import { INSTALLMENT_EXPENSE_CATEGORY } from '../../services/installmentsConstants'
+import {
+  INSTALLMENT_EXPENSE_CATEGORY,
+  MAX_INSTALLMENT_COUNT
+} from '../../services/installmentsConstants'
 import {
   formFieldError,
   requiredDate,
@@ -166,7 +169,11 @@ export default function InstallmentFormModal({
             type="number"
             inputMode="numeric"
             min={1}
-            {...register('count', requiredPositiveInteger('تعداد بازپرداخت', 1))}
+            max={MAX_INSTALLMENT_COUNT}
+            {...register(
+              'count',
+              requiredPositiveInteger('تعداد بازپرداخت', 1, MAX_INSTALLMENT_COUNT)
+            )}
             dir="ltr"
           />
         </FormField>

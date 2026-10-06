@@ -83,7 +83,9 @@ const HIJRI_SEARCH_WINDOW_DAYS = 45
  * number from mean year/month lengths and scan a small window around it. This
  * replaces a scan of five full Gregorian years (~1,800 probes) with ~90.
  */
-function findGregorianForHijri(year: number, month: number, day: number): Date {
+function findGregorianForHijri(year: number, month: number, day: number): Date | null {
+  if (!Number.isInteger(year) || month < 1 || month > 12 || day < 1 || day > 30) return null
+
   const estimatedJdn = Math.round(
     HIJRI_EPOCH_JDN + (year - 1) * HIJRI_YEAR_DAYS + (month - 1) * HIJRI_MONTH_DAYS + (day - 1)
   )
@@ -102,15 +104,18 @@ function findGregorianForHijri(year: number, month: number, day: number): Date {
     }
   }
 
-  return new Date()
+  // No such Hijri day (e.g. the 30th of a 29-day month) — never silently fall back to today.
+  return null
 }
+
+export const INVALID_CALENDAR_DATE_MESSAGE = 'این تاریخ در تقویم انتخاب‌شده وجود ندارد'
 
 function findGregorianForCalendar(
   year: number,
   month: number,
   day: number,
   calendar: CalendarSystem
-): Date {
+): Date | null {
   if (calendar === 'shamsi') {
     return jalaliToDate(year, month, day)
   }
@@ -122,12 +127,15 @@ function findGregorianForCalendar(
   return new Date(year, month - 1, day, 12, 0, 0, 0)
 }
 
-export function partsToIso(parts: CalendarDateParts, calendar: CalendarSystem): string {
+/** ISO date for calendar parts, or null when that day does not exist (invalid Hijri date). */
+export function partsToIso(parts: CalendarDateParts, calendar: CalendarSystem): string | null {
   if (calendar === 'miladi') {
     return toIsoDate(new Date(parts.year, parts.month - 1, parts.day))
   }
 
-  return toIsoDate(findGregorianForCalendar(parts.year, parts.month, parts.day, calendar))
+  const date = findGregorianForCalendar(parts.year, parts.month, parts.day, calendar)
+
+  return date ? toIsoDate(date) : null
 }
 
 export function daysInCalendarMonth(year: number, month: number, calendar: CalendarSystem): number {
@@ -137,6 +145,8 @@ export function daysInCalendarMonth(year: number, month: number, calendar: Calen
 
   for (let day = 31; day >= 28; day--) {
     const iso = partsToIso({ year, month, day }, calendar)
+
+    if (!iso) continue
 
     const parts = getCalendarParts(iso, calendar)
 
@@ -175,7 +185,7 @@ const computeMonthNames = memoizeByKey(
     return Array.from({ length: 12 }, (_, index) => {
       const iso = partsToIso({ year: refYear, month: index + 1, day: 1 }, calendar)
 
-      return formatFa(parseIso(iso), calendar, { month: 'long' })
+      return iso ? formatFa(parseIso(iso), calendar, { month: 'long' }) : String(index + 1)
     })
   },
   calendar => calendar

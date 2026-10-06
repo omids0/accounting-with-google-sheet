@@ -6,7 +6,7 @@ import {
   moneyDisplayValueClassName
 } from './ui/displayStyles'
 import { cn } from '../utils/cn'
-import { formatMoney, formatMoneyParts } from '../utils/formatMoney'
+import { MINUS_SIGN, formatMoney, formatMoneyParts } from '../utils/formatMoney'
 
 export type MoneyDisplaySize = 'hero' | 'stat' | 'stat-wide' | 'record'
 export type MoneyDisplayTone =
@@ -34,7 +34,7 @@ export default function MoneyDisplay({
   const displayAmount = signed ? Math.abs(amount) : amount
   const { number, symbol } = formatMoneyParts(displayAmount)
 
-  const sign = signed && amount > 0 ? '+' : signed && amount < 0 ? '−' : signed ? '' : null
+  const sign = signed && amount > 0 ? '+' : signed && amount < 0 ? MINUS_SIGN : null
 
   return (
     <span
@@ -46,8 +46,11 @@ export default function MoneyDisplay({
       dir="ltr"
       aria-label={formatMoney(amount)}
     >
-      {sign ? <span className={moneyDisplaySignClass}>{sign}</span> : null}
-      <span className={moneyDisplayValueClassName}>{number}</span>
+      {/* The sign sits inside the value so it never drifts away from the digits. */}
+      <span className={moneyDisplayValueClassName}>
+        {sign ? <span className={moneyDisplaySignClass}>{sign}</span> : null}
+        {number}
+      </span>
       <span className={moneyDisplayUnitClassName}>{symbol}</span>
     </span>
   )

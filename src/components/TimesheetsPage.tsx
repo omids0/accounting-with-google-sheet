@@ -1,14 +1,12 @@
 import ActiveFilterChips from './ActiveFilterChips'
-import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
+import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
 import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
-import Button from './ui/Button'
-import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 import { listCardsContainerClass } from './ui/featureCardStyles'
 import { timesheetsPageClass } from './ui/toolsPageStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
@@ -25,15 +23,7 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
   useRegisterPageSpeedDial(isConfigured() ? page.pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="clock" />
-        </div>
-
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <EmptyState icon="clock" message="ابتدا با گوگل وارد شوید" />
   }
 
   return (
@@ -68,17 +58,11 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
       {page.loading && page.items.length === 0 ? (
         <InstallmentCardListSkeleton footerStats={0} />
       ) : page.items.length === 0 ? (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="clock" />
-          </div>
-
-          <p>هنوز تایم‌شیتی ثبت نشده</p>
-
-          <Button type="button" variant="primary" size="sm" onClick={page.openCreateForm}>
-            افزودن تایم‌شیت
-          </Button>
-        </div>
+        <EmptyState
+          icon="clock"
+          message="هنوز تایم‌شیتی ثبت نشده"
+          action={{ label: 'افزودن تایم‌شیت', onClick: page.openCreateForm }}
+        />
       ) : page.filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (

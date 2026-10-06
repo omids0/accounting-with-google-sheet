@@ -12,7 +12,7 @@ import {
   paidAmount
 } from '../../services/receivables'
 import { getReceivableDisplayTitle } from '../../services/receivablesRow'
-import { getCachedTgjuPrices } from '../../services/tgju'
+import { getSummableTgjuPrices } from '../../services/tgjuCurrency'
 import { exportTreasuryPdf, computeHoldings, fetchVaultTransactions } from '../../services/treasury'
 import { exportWalletAccountsPdf, fetchWalletAccounts } from '../../services/wallet'
 import { getDateRange } from '../../utils/dateRange'
@@ -78,7 +78,7 @@ export async function loadModuleReport(
     }
 
     case 'treasury': {
-      const prices = getCachedTgjuPrices()
+      const prices = getSummableTgjuPrices()
 
       const transactions = prices ? await fetchVaultTransactions(spreadsheetId) : []
 

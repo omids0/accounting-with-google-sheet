@@ -81,6 +81,13 @@ export interface AppLockAccountConfig {
   pinHash: string
   pinSalt: string
   updatedAt?: string
+  /** Local only: Google account the stored PIN belongs to. Never written to the sheet. */
+  ownerEmail?: string
+  /**
+   * Local only: number of PIN digits. Missing means a legacy 4-digit PIN; `null`
+   * means unknown (PIN arrived from another device through the sheet).
+   */
+  pinLength?: number | null
 }
 
 /** When the app should ask for the PIN again (per-device preference). */

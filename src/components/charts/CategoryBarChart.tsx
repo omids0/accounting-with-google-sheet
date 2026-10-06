@@ -11,7 +11,7 @@ import {
 } from 'recharts'
 
 import ChartTooltip from './ChartTooltip'
-import { formatAxisMoney, truncateCategoryLabel } from './chartUtils'
+import { formatAxisMoney, getCategoryLabelAxisWidth, truncateCategoryLabel } from './chartUtils'
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
 import { cn } from '../../utils/cn'
 import { chartBarWrapClass, chartCardClass, chartTitleClass } from '../ui/chartStyles'
@@ -50,10 +50,7 @@ function CategoryBarChart({
 
   const height = Math.max(180, data.length * rowHeight)
 
-  const maxLabelLen = Math.max(...data.map(d => d.name.length), 1)
-
-  const yAxisWidth =
-    yAxisWidthProp ?? Math.min(68, Math.max(30, Math.ceil(Math.min(maxLabelLen, 9) * 5.2)))
+  const yAxisWidth = yAxisWidthProp ?? getCategoryLabelAxisWidth(data.map(d => d.name))
 
   const maxTotal = Math.max(...data.map(d => d.total), 1)
 

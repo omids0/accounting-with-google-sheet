@@ -17,6 +17,21 @@ import { getItem, setItem } from '../services/storage'
 
 const PUSH_PROMPT_KEY = 'accounting_push_prompted'
 
+const TOKEN_WAIT_MS = 60_000
+
+const TOKEN_POLL_MS = 1_000
+
+async function waitForValidToken(): Promise<boolean> {
+  const deadline = Date.now() + TOKEN_WAIT_MS
+
+  while (!isTokenValid()) {
+    if (Date.now() > deadline) return false
+    await new Promise(resolve => setTimeout(resolve, TOKEN_POLL_MS))
+  }
+
+  return true
+}
+
 async function tryAutoSubscribePush(spreadsheetId: string): Promise<void> {
   if (getPushSupportStatus() !== 'supported') return
 
@@ -70,10 +85,12 @@ export function useEngagementReminders(): void {
 
     const spreadsheetId = getSettings()?.spreadsheetId
 
-    if (!spreadsheetId || !isTokenValid()) return
+    if (!spreadsheetId) return
 
     void (async () => {
       try {
+        // Cached data now shows before the token is renewed; wait for it.
+        if (!(await waitForValidToken())) return
         await ensureDefaultReminderRules(spreadsheetId)
         await syncAppOpen(spreadsheetId)
 

@@ -1,9 +1,28 @@
 import { recordOperation, ACTIVITY_SHEET } from './activityTracking'
 import { apiRequest, SHEETS_API } from './sheetsApi'
+import { columnLetter, toSheetRowValues } from './sheetsCellValues'
 import { getSheetId } from './sheetsEnsure'
+import {
+  appendAlreadyApplied,
+  createRowGuardSession,
+  resolveTargetRow,
+  RowConflictError,
+  trackAppend,
+  trackDelete,
+  trackReplace,
+  trackUpdate
+} from './sheetsRowGuard'
+import type { RowGuardSession } from './sheetsRowGuard'
 import type { OutboxOperation, OutboxWriteOptions } from './syncOutbox'
 
 export type SheetWriteOptions = OutboxWriteOptions
+
+/**
+ * RAW keeps text exactly as typed: "=…" never turns into a formula, "0912…"
+ * keeps its zero and 16-digit check numbers are not rounded. Plain numbers are
+ * still sent as numbers (see toSheetCellValue).
+ */
+const VALUE_INPUT = 'valueInputOption=RAW'
 
 function shouldRecordActivity(sheetName: string, options?: SheetWriteOptions): boolean {
   return !options?.skipActivity && sheetName !== ACTIVITY_SHEET
@@ -18,10 +37,10 @@ export async function appendSheetRowApi(
   const range = encodeURIComponent(`${sheetName}!A:Z`)
 
   await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+    `${SHEETS_API}/${spreadsheetId}/values/${range}:append?${VALUE_INPUT}&insertDataOption=INSERT_ROWS`,
     {
       method: 'POST',
-      body: JSON.stringify({ values: [row] })
+      body: JSON.stringify({ values: [toSheetRowValues(row)] })
     }
   )
   if (shouldRecordActivity(sheetName, options)) {
@@ -36,13 +55,13 @@ export async function updateSheetRowApi(
   row: string[],
   options?: SheetWriteOptions
 ): Promise<void> {
-  const endCol = String.fromCharCode(64 + Math.max(row.length, 1))
+  const endCol = columnLetter(Math.max(row.length, 1))
 
   const range = encodeURIComponent(`${sheetName}!A${rowNumber}:${endCol}${rowNumber}`)
 
-  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?valueInputOption=USER_ENTERED`, {
+  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?${VALUE_INPUT}`, {
     method: 'PUT',
-    body: JSON.stringify({ values: [row] })
+    body: JSON.stringify({ values: [toSheetRowValues(row)] })
   })
   if (shouldRecordActivity(sheetName, options)) {
     recordOperation()
@@ -77,58 +96,96 @@ export async function deleteSheetRowApi(
   })
 }
 
+/**
+ * Writes the new rows first and only then clears what is left below them, so a
+ * failure half-way leaves stale extra rows instead of an empty sheet.
+ */
 async function replaceSheetDataRowsApi(
   spreadsheetId: string,
   sheetName: string,
   rows: string[][],
   columnCount: number
 ): Promise<void> {
-  const endCol = String.fromCharCode(64 + Math.max(columnCount, 1))
+  const width = Math.max(columnCount, ...rows.map(row => row.length), 1)
+  const endCol = columnLetter(width)
 
-  const clearRange = encodeURIComponent(`${sheetName}!A2:${endCol}1000`)
+  if (rows.length) {
+    const writeRange = encodeURIComponent(`${sheetName}!A2:${endCol}${rows.length + 1}`)
+
+    await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${writeRange}?${VALUE_INPUT}`, {
+      method: 'PUT',
+      body: JSON.stringify({ values: rows.map(toSheetRowValues) })
+    })
+  }
+
+  const clearRange = encodeURIComponent(`${sheetName}!A${rows.length + 2}:${endCol}`)
 
   await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`, { method: 'POST' })
+}
 
-  if (!rows.length) return
-
-  const writeRange = encodeURIComponent(`${sheetName}!A2:${endCol}${rows.length + 1}`)
-
-  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${writeRange}?valueInputOption=RAW`, {
-    method: 'PUT',
-    body: JSON.stringify({ values: rows })
-  })
+export interface OutboxExecutionContext {
+  session?: RowGuardSession
+  /** True when this entry already failed once, so an append may have landed. */
+  isRetry?: boolean
 }
 
 export async function executeOutboxOperation(
   spreadsheetId: string,
-  operation: OutboxOperation
+  operation: OutboxOperation,
+  context: OutboxExecutionContext = {}
 ): Promise<void> {
+  const session = context.session ?? createRowGuardSession()
+
   switch (operation.type) {
-    case 'append':
-      await appendSheetRowApi(
-        spreadsheetId,
-        operation.sheetName,
-        operation.row,
-        operation.writeOptions
-      )
+    case 'append': {
+      const { sheetName, row } = operation
+
+      if (context.isRetry && (await appendAlreadyApplied(session, spreadsheetId, sheetName, row))) {
+        return
+      }
+      await appendSheetRowApi(spreadsheetId, sheetName, row, operation.writeOptions)
+      trackAppend(session, sheetName, row)
 
       return
+    }
 
-    case 'update':
-      await updateSheetRowApi(
+    case 'update': {
+      const { sheetName, row } = operation
+      const target = await resolveTargetRow(
+        session,
         spreadsheetId,
-        operation.sheetName,
+        sheetName,
         operation.rowNumber,
-        operation.row,
-        operation.writeOptions
+        operation.expectedRow
       )
 
-      return
-
-    case 'delete':
-      await deleteSheetRowApi(spreadsheetId, operation.sheetName, operation.rowNumber)
+      await updateSheetRowApi(spreadsheetId, sheetName, target, row, operation.writeOptions)
+      trackUpdate(session, sheetName, target, row)
 
       return
+    }
+
+    case 'delete': {
+      const { sheetName } = operation
+      const target = await resolveTargetRow(
+        session,
+        spreadsheetId,
+        sheetName,
+        operation.rowNumber,
+        operation.expectedRow
+      ).catch(err => {
+        // The row is already gone (deleted on another device): nothing left to do.
+        if (err instanceof RowConflictError) return null
+        throw err
+      })
+
+      if (target === null) return
+
+      await deleteSheetRowApi(spreadsheetId, sheetName, target)
+      trackDelete(session, sheetName, target)
+
+      return
+    }
 
     case 'replace':
       await replaceSheetDataRowsApi(
@@ -137,6 +194,7 @@ export async function executeOutboxOperation(
         operation.rows,
         operation.columnCount
       )
+      trackReplace(session, operation.sheetName, operation.rows)
 
       return
 

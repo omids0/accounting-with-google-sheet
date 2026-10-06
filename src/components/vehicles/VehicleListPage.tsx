@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useVehiclesData } from './useVehiclesData'
 import { useVehiclesFilters } from './useVehiclesFilters'
 import MileageRangeFilter from '../MileageRangeFilter'
+import { vehicleHorizontalCardsContainerClass } from './vehicleCardStyles'
 import VehicleProfileCard from './VehicleProfileCard'
 import VehicleProfileFormModal from './VehicleProfileFormModal'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
@@ -11,16 +12,13 @@ import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { getPathForTab } from '../../routes/paths'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
-import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
+import EmptyState from '../EmptyState'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
-import { vehicleHorizontalCardsContainerClass } from './vehicleCardStyles'
-import Button from '../ui/Button'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
 export default function VehicleListPage({ active = true }: { active?: boolean }) {
@@ -75,14 +73,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="settings" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <EmptyState icon="car" message="ابتدا با گوگل وارد شوید" />
   }
 
   const isInitialLoading = data.loading && data.items.length === 0
@@ -122,15 +113,11 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
       {isInitialLoading ? (
         <DangCardListSkeleton filterChips={filterChips.length} />
       ) : data.items.length === 0 ? (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="settings" />
-          </div>
-          <p>یک خودرو اضافه کنید</p>
-          <Button type="button" variant="primary" size="sm" onClick={data.openCreateForm}>
-            افزودن خودرو
-          </Button>
-        </div>
+        <EmptyState
+          icon="car"
+          message="هنوز خودرویی ثبت نشده"
+          action={{ label: 'افزودن خودرو', onClick: data.openCreateForm }}
+        />
       ) : filteredItems.length === 0 ? (
         <SearchEmptyState />
       ) : (

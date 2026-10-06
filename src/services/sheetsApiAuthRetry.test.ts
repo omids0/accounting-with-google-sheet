@@ -8,7 +8,7 @@ vi.mock('./tokenRefresh', () => ({ forceRefreshAccessToken }))
 
 let accessToken = 'stale'
 
-vi.mock('./auth', () => ({ getAccessToken: () => accessToken }))
+vi.mock('./auth', () => ({ getAccessToken: () => accessToken, isTokenValid: () => true }))
 
 function response(status: number, body: unknown) {
   return {

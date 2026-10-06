@@ -2,6 +2,7 @@ import { useGoogleLogin } from '@react-oauth/google'
 import { useState, useEffect } from 'react'
 
 import AppIcon from './AppIcon'
+import ConfirmActionModal from './ConfirmActionModal'
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel'
 import Button from './ui/Button'
 import { animateInClass } from './ui/layoutStyles'
@@ -19,9 +20,10 @@ import {
   loginPageClass,
   loginTrustBadgeClass
 } from './ui/loginStyles'
+import { useAccountSwitchGuard } from '../hooks/useLocalDataWipe'
 import { syncAppLockFromSheet } from '../services/appLock'
 import { saveSession, createSession, fetchUserProfile, GOOGLE_OAUTH_SCOPE } from '../services/auth'
-import { isNativePlatform, signInNative } from '../services/googleAuthNative'
+import { isNativePlatform, signInNative, signOutNative } from '../services/googleAuthNative'
 import {
   getDefaultFirstSheetLabel,
   prepareUserSpreadsheet,
@@ -49,6 +51,8 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
   const [defaultLabel, setDefaultLabel] = useState('اصلی')
 
+  const { guardAccountSwitch, modalProps: switchModalProps } = useAccountSwitchGuard()
+
   useEffect(() => {
     if (initialError) showError(initialError)
   }, [initialError])
@@ -75,6 +79,32 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
     setStep('setup')
   }
 
+  const completeSignIn = async (
+    accessToken: string,
+    profile: { email: string; name: string; picture?: string },
+    expiresIn?: number
+  ) => {
+    const outcome = await guardAccountSwitch(profile.email)
+
+    if (outcome === 'cancelled') {
+      await signOutNative()
+      showError('ورود لغو شد؛ اطلاعات حساب قبلی روی این دستگاه باقی ماند')
+
+      return
+    }
+
+    saveSession(createSession(accessToken, profile, expiresIn))
+
+    if (outcome === 'switched') {
+      // Start clean so nothing cached in memory from the previous account survives.
+      window.location.reload()
+
+      return
+    }
+
+    await continueAfterAuth(profile.name)
+  }
+
   const login = useGoogleLogin({
     scope: GOOGLE_OAUTH_SCOPE,
     onSuccess: async tokenResponse => {
@@ -82,9 +112,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
       try {
         const profile = await fetchUserProfile(tokenResponse.access_token)
 
-        saveSession(createSession(tokenResponse.access_token, profile, tokenResponse.expires_in))
-
-        await continueAfterAuth(profile.name)
+        await completeSignIn(tokenResponse.access_token, profile, tokenResponse.expires_in)
       } catch (err) {
         showError(err instanceof Error ? err.message : 'خطا در ورود')
       } finally {
@@ -102,9 +130,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
     try {
       const { accessToken, profile } = await signInNative()
 
-      saveSession(createSession(accessToken, profile))
-
-      await continueAfterAuth(profile.name)
+      await completeSignIn(accessToken, profile)
     } catch (err) {
       const code = (err as { code?: string })?.code
 
@@ -211,6 +237,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           <span>داده‌ها فقط در Google Drive شما ذخیره می‌شوند</span>
         </div>
       </div>
+      <ConfirmActionModal {...switchModalProps} />
     </div>
   )
 }

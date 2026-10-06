@@ -1,4 +1,9 @@
-export { markQuotaExceeded, queueOutboxWrite, flushOutbox } from './sheetSyncOutbox'
+export {
+  markQuotaExceeded,
+  queueOutboxWrite,
+  flushOutbox,
+  dismissFailedWrites
+} from './sheetSyncOutbox'
 
 export { getKnownSheetNames } from './sheetSyncSheetNames'
 

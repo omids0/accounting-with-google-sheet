@@ -1,9 +1,12 @@
-import { formatLocationLabel, getCounterpartyFullName } from '../../services/counterparties'
+import { getCounterpartyFullName } from '../../services/counterparties'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { openMapDirections } from '../../utils/mapNavigation'
+import AppIcon from '../AppIcon'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import PhoneNumberLinks from './PhoneNumberLinks'
 import type { CounterpartyWithRow } from './types'
+import Button from '../ui/Button'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
@@ -32,7 +35,7 @@ export default function CounterpartyCard({
 }: CounterpartyCardProps) {
   const fullName = getCounterpartyFullName(item)
   const accountCount = item.accounts.length
-  const locationLabel = formatLocationLabel(item.location)
+  const location = item.location
 
   return (
     <div className={dangCardClass({})}>
@@ -62,11 +65,6 @@ export default function CounterpartyCard({
               ) : null}
               {item.address ? <div className={dangCardMetaClass}>{item.address}</div> : null}
               {item.note ? <div className={dangCardMetaClass}>{item.note}</div> : null}
-              {locationLabel ? (
-                <div className={dangCardMetaClass} dir="ltr">
-                  موقعیت: {locationLabel}
-                </div>
-              ) : null}
               <div className={dangCardMetaClass}>
                 {item.birthDate ? (
                   <span className={dangCardDateClass}>
@@ -81,6 +79,18 @@ export default function CounterpartyCard({
                 ) : null}
               </div>
             </div>
+            {location ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="mt-1.5"
+                onClick={() => openMapDirections(location)}
+              >
+                <AppIcon name="map-pin" size={14} strokeWidth={2} />
+                نمایش روی نقشه
+              </Button>
+            ) : null}
           </div>
         </div>
         <div className={cardActionButtonsClass}>

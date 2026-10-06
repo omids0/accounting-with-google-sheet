@@ -1,8 +1,9 @@
 import { VAULT_ASSET_OPTIONS } from '../../services/tgju'
-import type { VaultAssetType } from '../../types'
-import { formatMoney } from '../../utils/formatMoney'
+import type { TgjuDisplayPrices } from '../../services/tgjuCurrency'
+import { formatMoney, getCurrency } from '../../utils/formatMoney'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
+import { formHintClass } from '../ui/formStyles'
 import {
   treasuryPriceCardClass,
   treasuryPriceGridClass,
@@ -12,7 +13,7 @@ import {
 } from '../ui/treasuryReceivableStyles'
 
 type TreasuryPriceCardProps = {
-  prices: Record<VaultAssetType, number>
+  prices: TgjuDisplayPrices
   priceLoading: boolean
   onRefresh: () => void
 }
@@ -22,6 +23,11 @@ export default function TreasuryPriceCard({
   priceLoading,
   onRefresh
 }: TreasuryPriceCardProps) {
+  const shownInToman = prices.currency !== getCurrency()
+
+  // A missing or non-numeric tgju quote is stored as 0 — skip it rather than show «۰» or NaN.
+  const options = VAULT_ASSET_OPTIONS.filter(opt => prices.prices[opt.value] > 0)
+
   return (
     <Card className={treasuryPriceCardClass}>
       <div className={treasuryPriceHeaderClass}>
@@ -39,16 +45,22 @@ export default function TreasuryPriceCard({
         </Button>
       </div>
       <div className={treasuryPriceGridClass}>
-        {VAULT_ASSET_OPTIONS.map(opt => (
+        {options.map(opt => (
           <div key={opt.value} className={treasuryPriceItemClass}>
             <span>
               {opt.label}
               {opt.unit !== 'عدد' && opt.unit !== 'دلار' && ` (${opt.unit})`}
             </span>
-            <span dir="ltr">{formatMoney(prices[opt.value])}</span>
+            <span dir="ltr">{formatMoney(prices.prices[opt.value], prices.currency)}</span>
           </div>
         ))}
       </div>
+      {shownInToman && (
+        <p className={formHintClass}>
+          نرخ تبدیل به واحد پول انتخابی در دسترس نبود؛ قیمت‌ها به تومان نمایش داده شده‌اند و در
+          مجموع دارایی‌ها لحاظ نمی‌شوند.
+        </p>
+      )}
     </Card>
   )
 }
