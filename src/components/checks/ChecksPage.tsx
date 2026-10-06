@@ -139,6 +139,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
         onTogglePaid={handleTogglePaid}
         onEdit={openEditForm}
         onDelete={openDeleteConfirm}
+        onAdd={openCreateForm}
       />
 
       <CheckFormModal

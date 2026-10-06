@@ -9,11 +9,9 @@ import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import { useNavigationStore } from '../../stores/navigationStore'
-import AppIcon from '../AppIcon'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
+import EmptyState from '../EmptyState'
 import { DangCardListSkeleton } from '../skeleton'
-import Button from '../ui/Button'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listCardsContainerClass, listModulePageClass } from '../ui/featureCardStyles'
 
 export default function DangSplitPage({ active = true }: { active?: boolean }) {
@@ -53,14 +51,7 @@ export default function DangSplitPage({ active = true }: { active?: boolean }) {
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="calculator" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <EmptyState icon="calculator" message="ابتدا با گوگل وارد شوید" />
   }
 
   if (loading && items.length === 0) {
@@ -70,15 +61,11 @@ export default function DangSplitPage({ active = true }: { active?: boolean }) {
   return (
     <div className={listModulePageClass}>
       {items.length === 0 ? (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="calculator" />
-          </div>
-          <p>هنوز گروه دنگی ساخته نشده</p>
-          <Button type="button" variant="primary" size="sm" onClick={openCreateForm}>
-            افزودن گروه دنگ
-          </Button>
-        </div>
+        <EmptyState
+          icon="calculator"
+          message="هنوز گروه دنگی ساخته نشده"
+          action={{ label: 'افزودن گروه دنگ', onClick: openCreateForm }}
+        />
       ) : (
         <div className={listCardsContainerClass}>
           {items.map(item => (

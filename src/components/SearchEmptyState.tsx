@@ -1,13 +1,5 @@
-import AppIcon from './AppIcon'
-import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
+import EmptyState from './EmptyState'
 
 export default function SearchEmptyState() {
-  return (
-    <div className={emptyStateClass}>
-      <div className={emptyStateIconClass}>
-        <AppIcon name="search" />
-      </div>
-      <p>نتیجه‌ای یافت نشد</p>
-    </div>
-  )
+  return <EmptyState icon="search" message="نتیجه‌ای یافت نشد" />
 }

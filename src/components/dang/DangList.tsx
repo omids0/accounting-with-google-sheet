@@ -1,12 +1,11 @@
 import { unpaidDangTotal } from '../../services/dang'
 import { distributionSparkline } from '../../utils/sparklineData'
-import AppIcon from '../AppIcon'
+import EmptyState from '../EmptyState'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import DangCard from './DangCard'
 import type { DangWithRow } from './types'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { dangTotalFooterClass, listCardsContainerClass } from '../ui/featureCardStyles'
 
 export type DangListProps = {
@@ -23,6 +22,8 @@ export type DangListProps = {
   onAmountBlur: (item: DangWithRow) => void
   onEdit: (item: DangWithRow) => void
   onDelete: (item: DangWithRow) => void
+  /** Opens the same create form as the page speed dial. */
+  onAdd?: () => void
 }
 
 export default function DangList({
@@ -38,7 +39,8 @@ export default function DangList({
   onAmountChange,
   onAmountBlur,
   onEdit,
-  onDelete
+  onDelete,
+  onAdd
 }: DangListProps) {
   if (loading && items.length === 0) {
     return <DangCardListSkeleton />
@@ -46,12 +48,11 @@ export default function DangList({
 
   if (items.length === 0) {
     return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="debt" />
-        </div>
-        <p>هنوز بدهی ثبت نشده</p>
-      </div>
+      <EmptyState
+        icon="debt"
+        message="هنوز بدهی ثبت نشده"
+        action={onAdd ? { label: 'افزودن بدهی', onClick: onAdd } : undefined}
+      />
     )
   }
 
