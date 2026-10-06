@@ -56,6 +56,7 @@ export default function SettingsPage() {
             onRefreshSpreadsheets={settings.handleRefreshSpreadsheets}
             onCreateSpreadsheet={settings.handleCreateSpreadsheet}
             onSwitchSpreadsheet={settings.handleSwitchSpreadsheet}
+            sheetPicker={settings.sheetPicker}
           />
         )}
       </SettingsSection>

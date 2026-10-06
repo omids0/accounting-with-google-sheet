@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { useLogoutFlow } from '../../hooks/useLocalDataWipe'
+import { useOpenSheetWithGoogle } from '../../hooks/useOpenSheetWithGoogle'
 import { usePwaInstall } from '../../hooks/usePwaInstall'
 import { isTokenValid } from '../../services/auth'
 import { syncCategoriesFromSheet } from '../../services/categories'
@@ -146,6 +147,13 @@ export function useSettingsPage() {
     }
   }
 
+  const sheetPicker = useOpenSheetWithGoogle(async openedId => {
+    setSpreadsheetId(openedId)
+    setSpreadsheets(getSpreadsheets())
+    showSuccess('شیت با گوگل باز و فعال شد')
+    bumpSpreadsheetKey()
+  })
+
   const handleCurrencyChange = (value: CurrencyUnit) => {
     setCurrency(value)
     updateCurrency(value)
@@ -178,6 +186,7 @@ export function useSettingsPage() {
     handleRefreshSpreadsheets,
     handleCreateSpreadsheet,
     handleSwitchSpreadsheet,
+    sheetPicker,
     handleCurrencyChange,
     cancelNewSheetForm
   }

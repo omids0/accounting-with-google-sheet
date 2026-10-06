@@ -23,6 +23,21 @@ export class SheetsApiError extends Error {
   }
 }
 
+/**
+ * With the drive.file scope Google answers a spreadsheet this app neither created
+ * nor opened through the Picker with 403 "The caller does not have permission"
+ * (or hides it behind a 404). Either way the app cannot use that file. Other 403s
+ * (quota, missing scope, API disabled) are not this case.
+ */
+export function isSpreadsheetAccessDeniedError(err: unknown): boolean {
+  if (isSpreadsheetNotFoundError(err)) return true
+  if (err instanceof SheetsApiError && err.status === 404) return true
+
+  const msg = err instanceof Error ? err.message : String(err)
+
+  return /caller does not have permission|permission[_ ]denied/i.test(msg)
+}
+
 export function isQuotaExceededError(err: unknown): boolean {
   if (err instanceof SheetsApiError && err.status === 429) return true
 
