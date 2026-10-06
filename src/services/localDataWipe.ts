@@ -14,6 +14,7 @@ import { getOutboxCount } from './syncOutbox'
 /** Per-spreadsheet keys: unsynced writes, legacy mirrors and sync timestamps. */
 const ACCOUNT_KEY_PREFIXES = [
   'accounting_sync_outbox_',
+  'accounting_sync_failed_',
   'accounting_sheet_store_',
   'accounting_sheet_synced_at_'
 ] as const
@@ -25,7 +26,8 @@ const ACCOUNT_KEYS = [
   STORAGE_KEYS.APP_LOCK_DEVICE,
   UNLOCK_ATTEMPTS_KEY,
   'accounting_start_date',
-  'accounting_activity'
+  'accounting_activity',
+  'accounting_sheets_ready'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

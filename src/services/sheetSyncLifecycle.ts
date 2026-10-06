@@ -3,7 +3,12 @@ import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
 import { getSettings } from './settings'
 import { forgetRemoteVersion } from './sheetRemoteVersion'
 import { isQuotaExceededError } from './sheets'
-import { flushOutbox, invalidateDerivedCaches, isQuotaBlocked } from './sheetSyncOutbox'
+import {
+  flushOutbox,
+  invalidateDerivedCaches,
+  isQuotaBlocked,
+  refreshFailedCount
+} from './sheetSyncOutbox'
 import { pullRemoteSheets } from './sheetSyncPull'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import { clearStore, getStoreLastSyncedAt, hasStoreData, hydrateStore } from './spreadsheetStore'
@@ -157,6 +162,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   void migrateSubCategoryColumn(spreadsheetId).catch(() => undefined)
   setPendingWrites(getOutboxCount(spreadsheetId))
+  refreshFailedCount(spreadsheetId)
 
   const lastSyncedAt = getStoreLastSyncedAt(spreadsheetId)
 

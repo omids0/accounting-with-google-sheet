@@ -4,6 +4,8 @@ import { isPermanentApiError } from './sheetsApi'
 import { createRowGuardSession, RowConflictError } from './sheetsRowGuard'
 import {
   addOutboxEntry,
+  clearFailedOutboxEntries,
+  getFailedOutboxEntries,
   getOutboxCount,
   getOutboxEntries,
   hasPendingOutbox,
@@ -12,7 +14,7 @@ import {
   removeOutboxEntry
 } from './syncOutbox'
 import type { OutboxOperation } from './syncOutbox'
-import { setPendingWrites, setSyncState } from './syncStatus'
+import { setFailedWrites, setPendingWrites, setSyncState } from './syncStatus'
 
 const QUOTA_BACKOFF_MS = 90_000
 
@@ -37,6 +39,16 @@ export function isQuotaBlocked(): boolean {
 
 function refreshPendingCount(spreadsheetId: string): void {
   setPendingWrites(getOutboxCount(spreadsheetId))
+}
+
+export function refreshFailedCount(spreadsheetId: string): void {
+  setFailedWrites(getFailedOutboxEntries(spreadsheetId).length)
+}
+
+/** The user has seen the parked writes; forget them. */
+export function dismissFailedWrites(spreadsheetId: string): void {
+  clearFailedOutboxEntries(spreadsheetId)
+  setFailedWrites(0)
 }
 
 export function queueOutboxWrite(spreadsheetId: string, operation: OutboxOperation): void {
@@ -73,6 +85,7 @@ async function flushPass(spreadsheetId: string): Promise<PassResult> {
       if (err instanceof RowConflictError || isPermanentApiError(err)) {
         moveOutboxEntryToFailed(spreadsheetId, entry.id, message)
         refreshPendingCount(spreadsheetId)
+        refreshFailedCount(spreadsheetId)
         setSyncState('error', `یک تغییر اعمال نشد: ${message}`)
         continue
       }

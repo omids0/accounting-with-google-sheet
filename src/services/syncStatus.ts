@@ -6,6 +6,8 @@ export interface SyncStatusSnapshot {
   syncState: SyncState
   lastSyncedAt: number | null
   pendingWrites: number
+  /** Writes Google refused for good; kept until the user dismisses them. */
+  failedWrites: number
   lastError: string | null
 }
 
@@ -14,6 +16,7 @@ let status: SyncStatusSnapshot = {
   syncState: 'idle',
   lastSyncedAt: null,
   pendingWrites: 0,
+  failedWrites: 0,
   lastError: null
 }
 
@@ -61,6 +64,11 @@ export function setLastSyncedAt(lastSyncedAt: number): void {
 export function setPendingWrites(pendingWrites: number): void {
   if (status.pendingWrites === pendingWrites) return
   patchStatus({ pendingWrites })
+}
+
+export function setFailedWrites(failedWrites: number): void {
+  if (status.failedWrites === failedWrites) return
+  patchStatus({ failedWrites })
 }
 
 export function initSyncStatusListeners(): () => void {
