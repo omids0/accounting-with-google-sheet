@@ -1,9 +1,43 @@
+import { normalizeDigits } from './normalizeDigits'
+
+/** Spreadsheet apps evaluate a cell that starts with one of these as a formula. */
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/
+
+const NUMERIC_CELL = /^[+-]?(?:\d+(?:[.,]\d+)*|\.\d+)$/
+
+const FORMULA_ESCAPE = "'"
+
+function isPlainNumber(value: string): boolean {
+  return NUMERIC_CELL.test(normalizeDigits(value))
+}
+
+/**
+ * Prefixes a quote to cells Excel/Sheets would run as a formula (CSV injection).
+ * Plain numbers such as `-1500` stay untouched so amounts keep their type.
+ */
+export function neutralizeCsvFormula(value: string): string {
+  if (!FORMULA_TRIGGER.test(value) || isPlainNumber(value)) return value
+
+  return `${FORMULA_ESCAPE}${value}`
+}
+
+/** Reverses {@link neutralizeCsvFormula} so an exported file re-imports unchanged. */
+export function restoreCsvFormula(value: string): string {
+  if (!value.startsWith(FORMULA_ESCAPE)) return value
+
+  const rest = value.slice(FORMULA_ESCAPE.length)
+
+  return FORMULA_TRIGGER.test(rest) && !isPlainNumber(rest) ? rest : value
+}
+
 export function escapeCsvValue(value: string): string {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`
+  const safe = neutralizeCsvFormula(value)
+
+  if (/[",\n\r]/.test(safe)) {
+    return `"${safe.replace(/"/g, '""')}"`
   }
 
-  return value
+  return safe
 }
 
 export function rowsToCsv(headers: string[], rows: string[][]): string {
