@@ -88,3 +88,29 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
 export function forceRefreshAccessToken(): Promise<boolean> {
   return refreshAccessTokenSilently(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '', true)
 }
+
+const GIS_WAIT_MS = 10_000
+
+const GIS_POLL_MS = 200
+
+async function waitForGoogleScript(): Promise<void> {
+  const deadline = Date.now() + GIS_WAIT_MS
+
+  while (!window.google?.accounts?.oauth2 && Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, GIS_POLL_MS))
+  }
+}
+
+/**
+ * Cached screens open before the token is renewed, so the first API call of a
+ * session may find an expired token. Renew it here (once, shared) instead of
+ * failing the call and sending the user to the login screen.
+ */
+export async function ensureFreshAccessToken(): Promise<boolean> {
+  if (isTokenValid()) return true
+  if (!getSession()?.email) return false
+
+  if (!isNativePlatform()) await waitForGoogleScript()
+
+  return refreshAccessTokenSilently(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '')
+}

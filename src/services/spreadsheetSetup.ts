@@ -61,9 +61,31 @@ function markAllKnownSheetsPrepared(spreadsheetId: string): void {
   )
 }
 
+/** Re-check headers at least daily even when nothing in the app changed. */
+const PREPARED_MAX_AGE_MS = 24 * 60 * 60_000
+
+/**
+ * Kept in localStorage (sessionStorage is wiped every time the PWA closes, which
+ * made every cold start re-check all headers). The signature changes whenever an
+ * app update adds a sheet or a column, which forces a fresh check.
+ */
+function preparedSignature(spreadsheetId: string): string {
+  const specs = getAllSheetSpecs().map(sheet => `${sheet.sheetName}:${sheet.headers.length}`)
+
+  return `${spreadsheetId}|${specs.join(',')}`
+}
+
 function isSessionPrepared(spreadsheetId: string): boolean {
   try {
-    return sessionStorage.getItem(SESSION_PREPARED_KEY) === spreadsheetId
+    const stored = JSON.parse(localStorage.getItem(SESSION_PREPARED_KEY) ?? 'null') as {
+      signature?: string
+      at?: number
+    } | null
+
+    return (
+      stored?.signature === preparedSignature(spreadsheetId) &&
+      Date.now() - (stored.at ?? 0) < PREPARED_MAX_AGE_MS
+    )
   } catch {
     return false
   }
@@ -71,7 +93,10 @@ function isSessionPrepared(spreadsheetId: string): boolean {
 
 function markSessionPrepared(spreadsheetId: string): void {
   try {
-    sessionStorage.setItem(SESSION_PREPARED_KEY, spreadsheetId)
+    localStorage.setItem(
+      SESSION_PREPARED_KEY,
+      JSON.stringify({ signature: preparedSignature(spreadsheetId), at: Date.now() })
+    )
   } catch {
     // Ignore storage failures in private mode.
   }
@@ -79,6 +104,7 @@ function markSessionPrepared(spreadsheetId: string): void {
 
 export function clearSpreadsheetPrepareSession(spreadsheetId?: string): void {
   try {
+    localStorage.removeItem(SESSION_PREPARED_KEY)
     sessionStorage.removeItem(SESSION_PREPARED_KEY)
   } catch {
     // Ignore storage failures in private mode.
@@ -164,6 +190,8 @@ async function finalizeSpreadsheetActivation(
 
   if (isSessionPrepared(spreadsheetId)) {
     markAllKnownSheetsPrepared(spreadsheetId)
+    // Headers are known good; categories may have changed on another device.
+    void syncCategoriesFromSheet(spreadsheetId).catch(() => undefined)
 
     return spreadsheetId
   }

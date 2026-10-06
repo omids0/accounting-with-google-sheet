@@ -110,6 +110,23 @@ function rowToSubscription(row: string[]): PushSubscriptionRecord | null {
   }
 }
 
+const SUBSCRIPTION_REFRESH_MS = 7 * 24 * 60 * 60_000
+
+function isSameRecentSubscription(
+  stored: PushSubscriptionRecord,
+  next: PushSubscriptionRecord
+): boolean {
+  const storedAt = Date.parse(stored.updatedAt)
+
+  return (
+    stored.p256dh === next.p256dh &&
+    stored.auth === next.auth &&
+    stored.deviceLabel === next.deviceLabel &&
+    Number.isFinite(storedAt) &&
+    Date.now() - storedAt < SUBSCRIPTION_REFRESH_MS
+  )
+}
+
 function subscriptionToRow(sub: PushSubscriptionRecord): string[] {
   return [sub.endpoint, sub.p256dh, sub.auth, sub.deviceLabel, sub.updatedAt]
 }
@@ -224,6 +241,9 @@ export async function upsertPushSubscription(
   const existing = await fetchPushSubscriptions(spreadsheetId)
   const match = existing.find(item => item.endpoint === subscription.endpoint)
   const row = subscriptionToRow(subscription)
+
+  // Every app open used to rewrite this row just to bump the timestamp.
+  if (match && isSameRecentSubscription(match, subscription)) return
 
   if (match) {
     await updateSheetRow(spreadsheetId, PUSH_SUBS_SHEET, match.rowNumber, row)

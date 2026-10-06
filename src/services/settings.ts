@@ -6,7 +6,7 @@ import type {
   SpreadsheetEntry,
   ThemeMode
 } from '../types'
-import { isTokenValid } from './auth'
+import { hasStoredSession, isTokenValid } from './auth'
 import {
   DEFAULT_DANG_CATEGORIES,
   DEFAULT_EXPENSE_CATEGORIES,
@@ -202,7 +202,8 @@ export function updateTheme(theme: ThemeMode): void {
 export function isConfigured(): boolean {
   const settings = getSettings()
 
-  return !!(settings?.spreadsheetId && isTokenValid())
+  // A stored session counts: cached data is shown while its token is renewed.
+  return !!(settings?.spreadsheetId && (isTokenValid() || hasStoredSession()))
 }
 
 export function getFormById(formId: string): CustomForm | undefined {

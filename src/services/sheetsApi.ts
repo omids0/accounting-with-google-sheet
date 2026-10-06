@@ -1,4 +1,4 @@
-import { getAccessToken } from './auth'
+import { getAccessToken, isTokenValid } from './auth'
 
 export const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets'
 
@@ -48,6 +48,12 @@ export async function apiRequest<T>(
   options: RequestInit = {},
   allowAuthRetry = true
 ): Promise<T> {
+  if (!isTokenValid()) {
+    const { ensureFreshAccessToken } = await import('./tokenRefresh')
+
+    await ensureFreshAccessToken()
+  }
+
   const res = await fetch(url, {
     ...options,
     headers: {

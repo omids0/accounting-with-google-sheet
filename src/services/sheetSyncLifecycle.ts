@@ -151,7 +151,9 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   if (!spreadsheetId) return
 
   activeSpreadsheetId = spreadsheetId
-  await hydrateStore(spreadsheetId)
+  // App start may already have hydrated it to show cached data; re-reading IndexedDB
+  // then would drop writes made since that are not persisted yet.
+  if (!hasStoreData(spreadsheetId)) await hydrateStore(spreadsheetId)
   void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   void migrateSubCategoryColumn(spreadsheetId).catch(() => undefined)
   setPendingWrites(getOutboxCount(spreadsheetId))
