@@ -8,7 +8,7 @@ import {
   appHeaderTitleClass,
   headerGridCenterClass,
   headerGridMenuClass,
-  headerIconBtnClass,
+  headerBackBtnClass,
   headerIconBtnMenuClass,
   headerMenuDotClass
 } from '../ui/layoutStyles'
@@ -25,7 +25,7 @@ interface LayoutHeaderProps {
 
 /**
  * One header for every page: the title is start-aligned (right in RTL) and the
- * back button, when a page has one, sits on the start side next to the menu.
+ * back button, when a page has one, sits on the far end (left in RTL) pointing left.
  */
 export default function LayoutHeader({
   menuOpen,
@@ -59,17 +59,6 @@ export default function LayoutHeader({
             <span className={headerMenuDotClass} aria-hidden="true" />
           )}
         </button>
-        {showHeaderBack && (
-          <button
-            type="button"
-            className={cn(headerIconBtnClass, 'text-white')}
-            onClick={onHeaderBack}
-            aria-label="بازگشت"
-            title="بازگشت"
-          >
-            <AppIcon name="back" size={20} strokeWidth={2} />
-          </button>
-        )}
       </div>
       <div className={cn(appHeaderCenterClass, headerGridCenterClass)} data-header-center>
         <h1 className={appHeaderTitleClass} data-header-title>
@@ -79,6 +68,17 @@ export default function LayoutHeader({
           {!showSettings && <SyncStatusBadge />}
         </div>
       </div>
+      {showHeaderBack && (
+        <button
+          type="button"
+          className={headerBackBtnClass}
+          onClick={onHeaderBack}
+          aria-label="بازگشت"
+          title="بازگشت"
+        >
+          <AppIcon name="back" size={20} strokeWidth={2} />
+        </button>
+      )}
     </header>
   )
 }
