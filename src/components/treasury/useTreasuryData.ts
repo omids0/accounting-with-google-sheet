@@ -84,7 +84,10 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
 
   const summablePrices = useMemo(() => getSummableTgjuPrices(prices), [prices])
 
-  const holdings = summablePrices ? computeHoldings(transactions, summablePrices) : []
+  const holdings = useMemo(
+    () => (summablePrices ? computeHoldings(transactions, summablePrices) : []),
+    [summablePrices, transactions]
+  )
 
   const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0)
 
