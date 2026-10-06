@@ -190,7 +190,11 @@ export default function DashboardContent({
 
       <DashboardRemindersSection items={upcomingReminders} onViewAll={onViewReminders} />
 
-      <DashboardBreakdownSection financial={financial} onNavigate={onNavigate} />
+      <DashboardBreakdownSection
+        financial={financial}
+        onNavigate={onNavigate}
+        onConfigure={onConfigureNetAvailable}
+      />
 
       {data && (
         <DashboardChartsSection
