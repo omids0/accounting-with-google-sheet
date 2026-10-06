@@ -5,6 +5,16 @@ test.describe('personal-accounting-pwa accessibility', () => {
   test('home page has no critical axe violations', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await page.locator('.login-page').waitFor({ state: 'visible' })
+    // The login copy fades in; axe must read the settled colors, not a mid-fade frame.
+    await page.waitForFunction(() =>
+      document
+        .getAnimations()
+        .every(
+          animation =>
+            animation.playState !== 'running' ||
+            animation.effect?.getComputedTiming().iterations === Infinity
+        )
+    )
 
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

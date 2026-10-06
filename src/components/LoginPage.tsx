@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel'
+import Alert from './ui/Alert'
 import Button from './ui/Button'
 import { animateInClass } from './ui/layoutStyles'
 import {
@@ -21,8 +22,14 @@ import {
   loginTrustBadgeClass
 } from './ui/loginStyles'
 import { useAccountSwitchGuard } from '../hooks/useLocalDataWipe'
-import { syncAppLockFromSheet } from '../services/appLock'
-import { saveSession, createSession, fetchUserProfile, GOOGLE_OAUTH_SCOPE } from '../services/auth'
+import {
+  createSession,
+  fetchUserProfile,
+  GOOGLE_OAUTH_SCOPE,
+  hasRequiredGoogleScopes,
+  saveSession,
+  sessionNeedsScopeUpgrade
+} from '../services/auth'
 import { isNativePlatform, signInNative, signOutNative } from '../services/googleAuthNative'
 import {
   getDefaultFirstSheetLabel,
@@ -51,6 +58,9 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
   const [defaultLabel, setDefaultLabel] = useState('اصلی')
 
+  // A session from before the drive.file switch: say why sign-in is needed again.
+  const [scopeUpgrade] = useState(sessionNeedsScopeUpgrade)
+
   const { guardAccountSwitch, modalProps: switchModalProps } = useAccountSwitchGuard()
 
   useEffect(() => {
@@ -62,7 +72,6 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
     if (session.status === 'ready') {
       await prepareUserSpreadsheet(profileName)
-      await syncAppLockFromSheet()
       onSuccess()
 
       return
@@ -82,7 +91,8 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
   const completeSignIn = async (
     accessToken: string,
     profile: { email: string; name: string; picture?: string },
-    expiresIn?: number
+    expiresIn: number | undefined,
+    scope: string
   ) => {
     const outcome = await guardAccountSwitch(profile.email)
 
@@ -93,7 +103,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
       return
     }
 
-    saveSession(createSession(accessToken, profile, expiresIn))
+    saveSession(createSession(accessToken, profile, expiresIn, scope))
 
     if (outcome === 'switched') {
       // Start clean so nothing cached in memory from the previous account survives.
@@ -107,12 +117,29 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
 
   const login = useGoogleLogin({
     scope: GOOGLE_OAUTH_SCOPE,
+    // Ask for drive.file only; older broad grants must not ride along in the token.
+    include_granted_scopes: false,
     onSuccess: async tokenResponse => {
       setLoading(true)
       try {
+        // Google's granular consent lets the user untick drive.file; saving such a
+        // session would only bounce them back here, so stop and say why.
+        if (!hasRequiredGoogleScopes(tokenResponse.scope)) {
+          showError(
+            'بدون اجازهٔ «فایل‌هایی که این اپ می‌سازد» اپ نمی‌تواند داده‌ها را ذخیره کند. دوباره وارد شوید و این گزینه را تیک بزنید.'
+          )
+
+          return
+        }
+
         const profile = await fetchUserProfile(tokenResponse.access_token)
 
-        await completeSignIn(tokenResponse.access_token, profile, tokenResponse.expires_in)
+        await completeSignIn(
+          tokenResponse.access_token,
+          profile,
+          tokenResponse.expires_in,
+          tokenResponse.scope
+        )
       } catch (err) {
         showError(err instanceof Error ? err.message : 'خطا در ورود')
       } finally {
@@ -128,9 +155,9 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
   const handleNativeLogin = async () => {
     setLoading(true)
     try {
-      const { accessToken, profile } = await signInNative()
+      const { accessToken, profile, scope } = await signInNative()
 
-      await completeSignIn(accessToken, profile)
+      await completeSignIn(accessToken, profile, undefined, scope)
     } catch (err) {
       const code = (err as { code?: string })?.code
 
@@ -158,10 +185,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
         mode={setupMode}
         options={sheetOptions}
         defaultLabel={defaultLabel}
-        onComplete={async () => {
-          await syncAppLockFromSheet()
-          onSuccess()
-        }}
+        onComplete={onSuccess}
       />
     )
   }
@@ -178,6 +202,13 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
             مدیریت مالی روزانه با ذخیره‌سازی امن در Google Sheets
           </p>
         </div>
+
+        {scopeUpgrade && (
+          <Alert variant="info">
+            برای امنیت بیشتر، دسترسی اپ به گوگل محدودتر شد؛ یک‌بار دوباره وارد شوید. از این پس اپ
+            فقط به شیت‌هایی که خودش ساخته دسترسی دارد، نه به بقیهٔ Drive شما.
+          </Alert>
+        )}
 
         <ul className={loginFeaturesClass} aria-label="ویژگی‌های اصلی">
           <li className={loginFeatureClass}>

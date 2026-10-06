@@ -1,12 +1,11 @@
 import { sortFormFields } from '../components/form/fieldUtils'
 import type { FieldConfig, SpreadsheetEntry } from '../types'
 import { syncCategoriesFromSheet } from './categories'
-import { listAccountingSpreadsheetsFromDrive } from './drive'
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
 import { MODULE_SHEET_SPECS } from './moduleSheetSpecs'
 import { ensureMembershipDate } from './periodSettings'
-import { getDefaultSettings, getSettings, registerSpreadsheet, saveSettings } from './settings'
+import { getDefaultSettings, getSettings, registerSpreadsheet } from './settings'
 import {
   createSpreadsheet,
   ensureManySheetsWithHeaders,
@@ -15,8 +14,16 @@ import {
   verifySpreadsheetExists,
   type SheetSpec
 } from './sheets'
+import {
+  clearInaccessibleSpreadsheet,
+  markSpreadsheetInaccessible,
+  SPREADSHEET_NO_ACCESS_MESSAGE
+} from './spreadsheetAccess'
 import { formatSpreadsheetTitle } from './spreadsheetCatalog'
+import { syncSpreadsheetsFromDrive } from './spreadsheetDriveSync'
 import { getJalaliParts } from '../utils/jalaliDate'
+
+export { syncSpreadsheetsFromDrive }
 
 const SESSION_PREPARED_KEY = 'accounting_sheets_ready'
 
@@ -118,58 +125,29 @@ async function ensureAllSheets(spreadsheetId: string): Promise<void> {
   await ensureManySheetsWithHeaders(spreadsheetId, getAllSheetSpecs())
 }
 
-function driveFileToEntry(file: {
-  id: string
-  name: string
-  modifiedTime: string
-}): SpreadsheetEntry {
-  return {
-    id: file.id,
-    name: file.name,
-    createdAt: file.modifiedTime
-  }
-}
-
-export async function syncSpreadsheetsFromDrive(): Promise<SpreadsheetEntry[]> {
-  const settings = getSettings() ?? getDefaultSettings()
-
-  const fromDrive = await listAccountingSpreadsheetsFromDrive()
-
-  const merged = new Map<string, SpreadsheetEntry>()
-
-  for (const sheet of settings.spreadsheets ?? []) {
-    merged.set(sheet.id, sheet)
-  }
-  for (const file of fromDrive) {
-    merged.set(file.id, driveFileToEntry(file))
-  }
-
-  const spreadsheets = Array.from(merged.values()).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
-
-  const activeId =
-    settings.spreadsheetId && spreadsheets.some(sheet => sheet.id === settings.spreadsheetId)
-      ? settings.spreadsheetId
-      : settings.spreadsheetId
-
-  saveSettings({
-    ...settings,
-    spreadsheets,
-    spreadsheetId: activeId
-  })
-
-  return spreadsheets
-}
-
 export async function resolveSpreadsheetSession(): Promise<SpreadsheetSessionStatus> {
   const settings = getSettings() ?? getDefaultSettings()
 
-  if (settings.spreadsheetId && (await verifySpreadsheetExists(settings.spreadsheetId))) {
-    return { status: 'ready', spreadsheetId: settings.spreadsheetId }
+  const activeId = settings.spreadsheetId
+
+  if (activeId && (await verifySpreadsheetExists(activeId))) {
+    clearInaccessibleSpreadsheet()
+
+    return { status: 'ready', spreadsheetId: activeId }
   }
 
-  const options = await syncSpreadsheetsFromDrive()
+  if (activeId) {
+    // Usually a sheet copied by hand in Drive: drive.file never let the app see it.
+    markSpreadsheetInaccessible(
+      settings.spreadsheets?.find(sheet => sheet.id === activeId) ?? {
+        id: activeId,
+        name: activeId,
+        createdAt: ''
+      }
+    )
+  }
+
+  const options = (await syncSpreadsheetsFromDrive()).filter(sheet => sheet.id !== activeId)
 
   if (options.length > 0) {
     return { status: 'need_selection', options }
@@ -184,6 +162,7 @@ async function finalizeSpreadsheetActivation(
   previousId?: string
 ): Promise<string> {
   registerSpreadsheet(spreadsheetId, name)
+  clearInaccessibleSpreadsheet()
   if (previousId && previousId !== spreadsheetId) {
     clearSpreadsheetPrepareSession(previousId)
   }
@@ -209,7 +188,9 @@ async function finalizeSpreadsheetActivation(
 
 export async function activateSpreadsheet(
   spreadsheetId: string,
-  previousId?: string
+  previousId?: string,
+  /** Name from Google Picker, for a sheet Drive's name filter or list does not show yet. */
+  pickedName?: string
 ): Promise<string> {
   return runExclusiveSpreadsheetSetup(async () => {
     const settings = getSettings() ?? getDefaultSettings()
@@ -218,13 +199,14 @@ export async function activateSpreadsheet(
 
     const entry =
       options.find(sheet => sheet.id === spreadsheetId) ??
-      settings.spreadsheets?.find(sheet => sheet.id === spreadsheetId)
+      settings.spreadsheets?.find(sheet => sheet.id === spreadsheetId) ??
+      (pickedName ? { name: pickedName } : undefined)
 
     if (!entry) {
       throw new Error('شیت انتخاب‌شده پیدا نشد')
     }
     if (!(await verifySpreadsheetExists(spreadsheetId))) {
-      throw new Error('این شیت در Google Drive پیدا نشد')
+      throw new Error(SPREADSHEET_NO_ACCESS_MESSAGE)
     }
 
     const prev = previousId ?? settings.spreadsheetId

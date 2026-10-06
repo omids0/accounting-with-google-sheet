@@ -1,5 +1,8 @@
 import { UNLOCK_ATTEMPTS_KEY } from './appLockAttempts'
+import { deleteBiometricKeyDatabase } from './appLockBiometricKey'
+import { clearDataKey } from './appLockDataKey'
 import { clearAppLockSessionState } from './appLockPolicy'
+import { LOCK_SETUP_OFFER_KEY } from './appLockPrompts'
 import { getSession } from './auth'
 import { invalidateDashboardCache } from './dashboardCache'
 import { isNativePlatform, signOutNative } from './googleAuthNative'
@@ -25,6 +28,7 @@ const ACCOUNT_KEYS = [
   STORAGE_KEYS.APP_LOCK,
   STORAGE_KEYS.APP_LOCK_DEVICE,
   UNLOCK_ATTEMPTS_KEY,
+  LOCK_SETUP_OFFER_KEY,
   'accounting_start_date',
   'accounting_activity',
   'accounting_sheets_ready'
@@ -120,8 +124,10 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
   invalidateDashboardCache()
   clearSpreadsheetPrepareSession()
   clearAppLockSessionState()
+  clearDataKey()
 
   await deletePersistedDatabase()
+  await deleteBiometricKeyDatabase()
 
   if (revokeAccess) await revokeGoogleAccess(accessToken)
 }

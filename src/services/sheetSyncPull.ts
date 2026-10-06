@@ -1,5 +1,7 @@
 import type { AppSettings } from '../types'
 import { checkRemoteChanged, rememberRemoteVersion } from './sheetRemoteVersion'
+import type { RevisionMap } from './sheetRevisions'
+import { fetchSheetRevisions, findChangedSheets, markSheetsSeen } from './sheetRevisions'
 import { invalidateDerivedCaches } from './sheetSyncOutbox'
 import { getKnownSheetNames } from './sheetSyncSheetNames'
 import { getSheetWriteVersion, snapshotSheetWriteVersions } from './sheetWriteVersions'
@@ -18,6 +20,23 @@ async function fetchSheetsBatchFromApi(
 }
 
 /**
+ * Background refreshes download only the tabs whose change token moved. When
+ * Drive says the file changed but no token moved, someone edited the sheet by
+ * hand (or an older app version wrote to it), so everything is downloaded.
+ */
+function pickSheetsToFetch(
+  spreadsheetId: string,
+  allSheets: string[],
+  options: { skipIfUnchanged?: boolean; hadData: boolean; revisions: RevisionMap | null }
+): string[] {
+  if (!options.skipIfUnchanged || !options.hadData || !options.revisions) return allSheets
+
+  const changed = findChangedSheets(spreadsheetId, allSheets, options.revisions)
+
+  return changed?.length ? changed : allSheets
+}
+
+/**
  * Downloads every known sheet and merges it into the local mirror, skipping
  * sheets that still have queued writes or were written locally while the
  * download was in flight.
@@ -29,7 +48,11 @@ export async function pullRemoteSheets(
 ): Promise<void> {
   initStore(spreadsheetId)
 
-  const remote = await checkRemoteChanged(spreadsheetId)
+  // Both are tiny metadata reads; the token map is unused when nothing changed.
+  const [remote, revisions] = await Promise.all([
+    checkRemoteChanged(spreadsheetId),
+    fetchSheetRevisions(spreadsheetId).catch(() => null)
+  ])
 
   if (
     options.skipIfUnchanged &&
@@ -42,7 +65,10 @@ export async function pullRemoteSheets(
     return
   }
 
-  const sheetNames = getKnownSheetNames(settings)
+  const sheetNames = pickSheetsToFetch(spreadsheetId, getKnownSheetNames(settings), {
+    ...options,
+    revisions
+  })
 
   const versionsBefore = snapshotSheetWriteVersions(spreadsheetId, sheetNames)
 
@@ -61,6 +87,7 @@ export async function pullRemoteSheets(
   }
 
   rememberRemoteVersion(spreadsheetId, remote.modifiedTime)
+  if (revisions) markSheetsSeen(spreadsheetId, [...filtered.keys()], revisions)
 
   if (!filtered.size) {
     if (!hasPendingOutbox(spreadsheetId)) {

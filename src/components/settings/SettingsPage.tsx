@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
@@ -56,6 +56,7 @@ export default function SettingsPage() {
             onRefreshSpreadsheets={settings.handleRefreshSpreadsheets}
             onCreateSpreadsheet={settings.handleCreateSpreadsheet}
             onSwitchSpreadsheet={settings.handleSwitchSpreadsheet}
+            sheetPicker={settings.sheetPicker}
           />
         )}
       </SettingsSection>

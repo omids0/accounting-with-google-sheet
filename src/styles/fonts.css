@@ -1,0 +1,67 @@
+/*
+ * Self-hosted Vazirmatn (OFL, npm package `vazirmatn`). Vite emits the files
+ * with hashed names and the PWA precaches them (`woff2` in globPatterns), so
+ * text renders in the right face offline. index.html preloads the text face.
+ * Imported from main.tsx rather than index.css: Tailwind's @import inlining
+ * would rewrite these package URLs as paths relative to src/styles.
+ *
+ * - `Vazirmatn`: one variable file covering every weight, used for all text.
+ * - `Vazirmatn FD`: Farsi-digit build (Latin digits drawn as Persian digits),
+ *   used for amounts and numeric inputs. Only the weights the app uses.
+ */
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('vazirmatn/fonts/webfonts/Vazirmatn[wght].woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('vazirmatn/misc/Farsi-Digits/fonts/webfonts/Vazirmatn-FD-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('vazirmatn/misc/Farsi-Digits/fonts/webfonts/Vazirmatn-FD-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('vazirmatn/misc/Farsi-Digits/fonts/webfonts/Vazirmatn-FD-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('vazirmatn/misc/Farsi-Digits/fonts/webfonts/Vazirmatn-FD-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('vazirmatn/misc/Farsi-Digits/fonts/webfonts/Vazirmatn-FD-ExtraBold.woff2')
+    format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn FD';
+  src: url('vazirmatn/misc/Farsi-Digits/fonts/webfonts/Vazirmatn-FD-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}

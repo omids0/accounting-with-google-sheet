@@ -1,6 +1,19 @@
-import { base64ToBuffer, bufferToBase64 } from './appLockCrypto'
-import { getAccountConfig, getDeviceConfig, saveDeviceConfig } from './appLockStorage'
-import { getUserEmail, getUserName } from './auth'
+import {
+  deleteBiometricDataKey,
+  getPrfSalt,
+  loadBiometricKeyRecord,
+  newPrfSalt,
+  openBiometricDataKey,
+  storeDeviceBoundDataKey,
+  storePrfWrappedDataKey
+} from './appLockBiometricKey'
+import {
+  getAccountConfig,
+  getDeviceConfig,
+  isLockConfigEnabled,
+  updateDeviceConfig
+} from './appLockStorage'
+import { getWebAuthnAssertion, registerWebAuthnCredential } from './appLockWebAuthn'
 import { isNativePlatform } from './googleAuthNative'
 
 /** The APK has no WebAuthn, so there is no credential to store — only a marker. */
@@ -49,45 +62,6 @@ async function authenticateNative(enrolled: boolean): Promise<void> {
       }
 
   await withTimeout(BiometricAuth.authenticate(options), AUTH_TIMEOUT_MS)
-}
-
-async function registerBiometricCredential(): Promise<string> {
-  const email = getUserEmail()
-
-  if (!email) throw new Error('ابتدا وارد حساب شوید')
-
-  const challenge = crypto.getRandomValues(new Uint8Array(32))
-
-  const userId = crypto.getRandomValues(new Uint8Array(16))
-
-  const credential = (await navigator.credentials.create({
-    publicKey: {
-      challenge,
-      rp: {
-        name: 'حسابداری شخصی',
-        id: window.location.hostname
-      },
-      user: {
-        id: userId,
-        name: email,
-        displayName: getUserName() || email
-      },
-      pubKeyCredParams: [
-        { alg: -7, type: 'public-key' },
-        { alg: -257, type: 'public-key' }
-      ],
-      authenticatorSelection: {
-        authenticatorAttachment: 'platform',
-        userVerification: 'required'
-      },
-      timeout: 60_000,
-      attestation: 'none'
-    }
-  })) as PublicKeyCredential | null
-
-  if (!credential) throw new Error('ثبت اثر انگشت لغو شد')
-
-  return bufferToBase64(credential.rawId)
 }
 
 export interface BiometricStatus {
@@ -167,77 +141,95 @@ export async function getBiometricStatus(): Promise<BiometricStatus> {
 }
 
 export function isBiometricEnabled(): boolean {
-  const account = getAccountConfig()
-
-  if (!account?.enabled || !account.pinHash || !account.pinSalt) return false
+  if (!isLockConfigEnabled(getAccountConfig())) return false
 
   const device = getDeviceConfig()
 
   return !!(device?.biometricEnabled && device.credentialId)
 }
 
-export async function registerAppLockBiometric(): Promise<void> {
+/**
+ * Biometric unlock also has to hand over the data key, so it needs a stored
+ * key copy. A lock from before encryption has none until one PIN unlock.
+ */
+export async function canUnlockWithBiometric(): Promise<boolean> {
+  if (!isBiometricEnabled() || !getAccountConfig()?.vault) return false
+
+  return !!(await loadBiometricKeyRecord())
+}
+
+/**
+ * After a PIN unlock: gives an enabled fingerprint the key copy it lacks (a lock
+ * from before encryption, or cleared site data). No prompt is shown, so the
+ * copy is device-bound even where WebAuthn PRF would be available.
+ */
+export async function ensureBiometricKeyCopy(dataKey: CryptoKey): Promise<void> {
+  if (!isBiometricEnabled() || (await loadBiometricKeyRecord())) return
+
+  await storeDeviceBoundDataKey(dataKey).catch(() => undefined)
+}
+
+/** Web: PRF-wrapped when the authenticator supports it, else a device-bound key. */
+async function registerWebBiometric(dataKey: CryptoKey): Promise<string> {
+  const prfSalt = newPrfSalt()
+
+  const created = await registerWebAuthnCredential(prfSalt)
+
+  let prfOutput = created.prfOutput
+
+  // Most authenticators only return PRF output on an assertion, not on creation.
+  if (!prfOutput && created.prfEnabled) {
+    prfOutput = (await getWebAuthnAssertion(created.credentialId, prfSalt))?.prfOutput ?? null
+  }
+
+  if (prfOutput) {
+    await storePrfWrappedDataKey(dataKey, prfOutput, prfSalt)
+  } else {
+    await storeDeviceBoundDataKey(dataKey)
+  }
+
+  return created.credentialId
+}
+
+/** Registers the fingerprint and stores a copy of the (extractable) data key for it. */
+export async function registerAppLockBiometric(dataKey: CryptoKey): Promise<void> {
   if (isNativePlatform()) {
     await authenticateNative((await getBiometricStatus()).enrolled)
-    saveDeviceConfig({ biometricEnabled: true, credentialId: NATIVE_CREDENTIAL_ID })
+    await storeDeviceBoundDataKey(dataKey)
+    updateDeviceConfig({ biometricEnabled: true, credentialId: NATIVE_CREDENTIAL_ID })
 
     return
   }
 
-  const credentialId = await registerBiometricCredential()
+  const credentialId = await registerWebBiometric(dataKey)
 
-  saveDeviceConfig({ biometricEnabled: true, credentialId })
-}
-
-export async function enableBiometric(): Promise<void> {
-  const account = getAccountConfig()
-
-  if (!account?.enabled || !account.pinHash || !account.pinSalt) {
-    throw new Error('ابتدا قفل اپ را فعال کنید')
-  }
-
-  await registerAppLockBiometric()
+  updateDeviceConfig({ biometricEnabled: true, credentialId })
 }
 
 export function clearBiometricConfig(): void {
-  saveDeviceConfig({ biometricEnabled: false, credentialId: undefined })
+  updateDeviceConfig({ biometricEnabled: false, credentialId: undefined })
+  void deleteBiometricDataKey()
 }
 
-export async function verifyBiometric(): Promise<boolean> {
+/** Runs the fingerprint check and returns the data key, or null when refused. */
+export async function unlockBiometricDataKey(): Promise<CryptoKey | null> {
   const device = getDeviceConfig()
 
-  if (!device?.credentialId) return false
+  const record = device?.credentialId ? await loadBiometricKeyRecord() : null
+
+  if (!device?.credentialId || !record) return null
 
   if (isNativePlatform()) {
     try {
       await authenticateNative((await getBiometricStatus()).enrolled)
-
-      return true
     } catch {
-      return false
+      return null
     }
+
+    return await openBiometricDataKey(record, null)
   }
 
-  try {
-    const challenge = crypto.getRandomValues(new Uint8Array(32))
+  const assertion = await getWebAuthnAssertion(device.credentialId, getPrfSalt(record))
 
-    const credential = await navigator.credentials.get({
-      publicKey: {
-        challenge,
-        rpId: window.location.hostname,
-        allowCredentials: [
-          {
-            id: base64ToBuffer(device.credentialId),
-            type: 'public-key'
-          }
-        ],
-        userVerification: 'required',
-        timeout: 60_000
-      }
-    })
-
-    return !!credential
-  } catch {
-    return false
-  }
+  return assertion ? await openBiometricDataKey(record, assertion.prfOutput) : null
 }

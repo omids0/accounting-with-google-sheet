@@ -5,7 +5,7 @@ import type { AppIconName, IconSvgProps } from './types'
 
 type IconRenderer = (props: IconSvgProps) => ReactNode
 
-/** Small inline-action icons: reveal/hide sensitive values, open a location. */
+/** Small inline-action and app-lock icons: reveal/hide values, open a location, lock. */
 export const DETAIL_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
   eye: props => (
     <IconSvg {...props}>
@@ -27,6 +27,24 @@ export const DETAIL_ICONS: Partial<Record<AppIconName, IconRenderer>> = {
     <IconSvg {...props}>
       <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" />
       <circle cx="12" cy="10" r="2.25" />
+    </IconSvg>
+  ),
+
+  lock: props => (
+    <IconSvg {...props}>
+      <rect x="6.5" y="10.5" width="11" height="9" rx="2" />
+      <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
+      <circle cx="12" cy="15" r="1" fill="currentColor" stroke="none" />
+    </IconSvg>
+  ),
+
+  fingerprint: props => (
+    <IconSvg {...props}>
+      <path d="M12 3.5a6.5 6.5 0 0 0-6.5 6.5" />
+      <path d="M5.5 10v1.5a6.5 6.5 0 0 0 13 0V10" />
+      <path d="M8 10.5v2a4 4 0 0 0 8 0v-2" />
+      <path d="M9.5 13v1.5a2.5 2.5 0 0 0 5 0V13" />
+      <path d="M12 15.5v2" />
     </IconSvg>
   )
 }

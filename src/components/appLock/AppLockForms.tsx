@@ -49,7 +49,7 @@ export function PinFieldsForm({
           name="acct-app-lock-pin-new"
           value={pinValue}
           onChange={e => onPinChange(e.target.value.replace(/\D/g, ''))}
-          placeholder="حداقل ۴ رقم"
+          placeholder="حداقل ۶ رقم"
           disabled={loading}
           dir="ltr"
           className={appLockPinInputClass}
@@ -184,7 +184,7 @@ export function ChangePinForm({
           name="acct-app-lock-pin-new"
           value={pin}
           onChange={e => onPinChange(e.target.value.replace(/\D/g, ''))}
-          placeholder="حداقل ۴ رقم"
+          placeholder="حداقل ۶ رقم"
           disabled={loading}
           dir="ltr"
           className={appLockPinInputClass}

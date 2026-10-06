@@ -13,16 +13,15 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'sha256-hBnJUCQYdTeCltSX8mFZhxPxYwzCvl9flehjmg/D+eg=' 'sha256-+ojSL6M8TYUhhVh3VY2v6S9dCk/OobJ+Zc4Fix4tlAE=' 'sha256-/AO8vAagk08SqUGxY96ci/dGyTDsuoetPOJYMn7sc+E=' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com/gsi/style; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.googleusercontent.com https://tile.openstreetmap.org; connect-src 'self' https://sheets.googleapis.com https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com/gsi/ https://call5.tgju.org https://nominatim.openstreetmap.org; frame-src https://accounts.google.com/gsi/; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; script-src 'self' 'sha256-hBnJUCQYdTeCltSX8mFZhxPxYwzCvl9flehjmg/D+eg=' 'sha256-+ojSL6M8TYUhhVh3VY2v6S9dCk/OobJ+Zc4Fix4tlAE=' 'sha256-/AO8vAagk08SqUGxY96ci/dGyTDsuoetPOJYMn7sc+E=' https://accounts.google.com/gsi/client https://apis.google.com; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; font-src 'self' data:; img-src 'self' data: blob: https://*.googleusercontent.com https://tile.openstreetmap.org; connect-src 'self' https://sheets.googleapis.com https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com/gsi/ https://call5.tgju.org https://nominatim.openstreetmap.org; frame-src https://accounts.google.com/gsi/ https://docs.google.com https://drive.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <!-- Self-hosted Vazirmatn text face (src/styles/fonts.css); Vite rewrites the hashed URL. -->
     <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-FD-font-face.css"
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/node_modules/vazirmatn/fonts/webfonts/Vazirmatn[wght].woff2"
+      crossorigin
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

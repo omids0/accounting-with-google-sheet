@@ -1,5 +1,5 @@
 import type { CustomForm } from '../types'
-import { apiRequest, SHEETS_API, isSpreadsheetNotFoundError } from './sheetsApi'
+import { apiRequest, SHEETS_API, isSpreadsheetAccessDeniedError } from './sheetsApi'
 import {
   invalidateSheetTitlesCache,
   invalidateSpreadsheetCache,
@@ -63,7 +63,8 @@ export async function verifySpreadsheetExists(spreadsheetId: string): Promise<bo
 
     return true
   } catch (err) {
-    if (isSpreadsheetNotFoundError(err)) return false
+    // Deleted, or (under drive.file) never opened with this app: unusable either way.
+    if (isSpreadsheetAccessDeniedError(err)) return false
     throw err
   }
 }

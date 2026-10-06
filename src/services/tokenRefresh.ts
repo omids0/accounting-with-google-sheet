@@ -1,8 +1,10 @@
 import {
   FULL_GOOGLE_OAUTH_SCOPE,
   getSession,
+  hasRequiredGoogleScopes,
   isTokenValid,
   renewSessionToken,
+  sessionNeedsScopeUpgrade,
   shouldRefreshToken
 } from './auth'
 import { isNativePlatform, refreshNativeToken } from './googleAuthNative'
@@ -14,7 +16,9 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
 
   const session = getSession()
 
-  if (!session?.email) {
+  // Old-scope sessions never got drive.file; a silent request cannot add it, so
+  // send them straight to the one-time sign-in instead of failing at Google.
+  if (!session?.email || sessionNeedsScopeUpgrade()) {
     return Promise.resolve(false)
   }
 
@@ -61,9 +65,13 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
     const client = google.initTokenClient({
       client_id: clientId,
       scope: FULL_GOOGLE_OAUTH_SCOPE,
+      // Only the scopes asked for here, not every scope this client ever got.
+      include_granted_scopes: false,
       hint: session.email,
       callback: response => {
-        if (response.error || !response.access_token) {
+        const scopeLost = !!response.scope && !hasRequiredGoogleScopes(response.scope)
+
+        if (response.error || !response.access_token || scopeLost) {
           finish(false)
 
           return

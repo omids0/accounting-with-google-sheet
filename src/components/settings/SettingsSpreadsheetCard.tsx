@@ -1,3 +1,4 @@
+import type { OpenSheetWithGoogle } from '../../hooks/useOpenSheetWithGoogle'
 import { getSpreadsheetUrl } from '../../services/sheets'
 import {
   SPREADSHEET_TITLE_PREFIX,
@@ -21,6 +22,8 @@ type SettingsSpreadsheetCardProps = {
   onRefreshSpreadsheets: () => void
   onCreateSpreadsheet: () => void
   onSwitchSpreadsheet: (nextId: string) => void
+  /** Google Picker: grants the app access to a sheet it did not create. */
+  sheetPicker: OpenSheetWithGoogle
 }
 
 export default function SettingsSpreadsheetCard({
@@ -34,7 +37,8 @@ export default function SettingsSpreadsheetCard({
   onCancelNewSheetForm,
   onRefreshSpreadsheets,
   onCreateSpreadsheet,
-  onSwitchSpreadsheet
+  onSwitchSpreadsheet,
+  sheetPicker
 }: SettingsSpreadsheetCardProps) {
   return (
     <Card>
@@ -59,7 +63,8 @@ export default function SettingsSpreadsheetCard({
                   marginTop: '0.5rem'
                 }}
               >
-                لیست از Google Drive همگام می‌شود — روی دستگاه جدید همان شیت‌ها را می‌بینید.
+                لیست از Google Drive همگام می‌شود — فقط شیت‌هایی که اپ ساخته یا با «باز کردن شیت با
+                گوگل» باز کرده‌اید؛ روی دستگاه جدید هم همان‌ها را می‌بینید.
               </p>
             }
           />
@@ -74,6 +79,19 @@ export default function SettingsSpreadsheetCard({
             بروزرسانی از Drive
           </Button>
         </>
+      )}
+
+      {sheetPicker.available && (
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => void sheetPicker.openWithGoogle()}
+          disabled={loading || sheetPicker.opening}
+          loading={sheetPicker.opening}
+          style={{ marginTop: '0.5rem', marginInlineStart: '0.5rem' }}
+        >
+          باز کردن شیت با گوگل
+        </Button>
       )}
 
       {spreadsheetId && (

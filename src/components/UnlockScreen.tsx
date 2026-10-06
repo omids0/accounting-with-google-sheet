@@ -2,7 +2,9 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 
 import AppIcon from './AppIcon'
 import UnlockPinInput from './appLock/UnlockPinInput'
+import { usePinRecovery } from './appLock/usePinRecovery'
 import { useUnlockLockout, wrongPinMessage } from './appLock/useUnlockLockout'
+import ConfirmActionModal from './ConfirmActionModal'
 import Alert from './ui/Alert'
 import Button from './ui/Button'
 import { animateInClass } from './ui/layoutStyles'
@@ -18,7 +20,9 @@ import {
   unlockDividerLineClass,
   unlockErrorClass,
   unlockFooterClass,
+  unlockForgotLinkClass,
   unlockGreetingClass,
+  unlockHintClass,
   unlockIconWrapClass,
   unlockPageClass,
   unlockPrimaryBtnClass,
@@ -27,11 +31,12 @@ import {
   unlockTrustBadgeClass
 } from './ui/unlockStyles'
 import {
+  canUnlockWithBiometric,
   getStoredPinLength,
   isBiometricEnabled,
-  PIN_MIN_LENGTH,
-  verifyBiometric,
-  verifyPin
+  LEGACY_PIN_MIN_LENGTH,
+  unlockWithBiometric,
+  unlockWithPin
 } from '../services/appLock'
 import { getUserName } from '../services/auth'
 import { cn } from '../utils/cn'
@@ -48,10 +53,13 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   const [pinLoading, setPinLoading] = useState(false)
   const [biometricLoading, setBiometricLoading] = useState(false)
   const [biometricReady, setBiometricReady] = useState(false)
+  // Fingerprint is on but its key copy does not exist yet (lock from before encryption).
+  const [biometricNeedsPin, setBiometricNeedsPin] = useState(false)
   const [pinLength] = useState(getStoredPinLength)
   const { locked, lockoutMessage, registerFailure, registerSuccess } = useUnlockLockout()
+  const recovery = usePinRecovery()
 
-  const minPinLength = pinLength ?? PIN_MIN_LENGTH
+  const minPinLength = pinLength ?? LEGACY_PIN_MIN_LENGTH
 
   const biometricTried = useRef(false)
 
@@ -60,7 +68,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
       setError('')
       setBiometricLoading(true)
       try {
-        const ok = await verifyBiometric()
+        const ok = await unlockWithBiometric()
 
         if (ok) {
           registerSuccess()
@@ -80,14 +88,23 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   )
 
   useEffect(() => {
-    const ready = isBiometricEnabled()
+    let cancelled = false
 
-    setBiometricReady(ready)
+    void canUnlockWithBiometric().then(ready => {
+      if (cancelled) return
 
-    if (!ready || biometricTried.current) return
+      setBiometricReady(ready)
+      setBiometricNeedsPin(!ready && isBiometricEnabled())
 
-    biometricTried.current = true
-    void handleBiometric({ silent: true })
+      if (!ready || biometricTried.current) return
+
+      biometricTried.current = true
+      void handleBiometric({ silent: true })
+    })
+
+    return () => {
+      cancelled = true
+    }
   }, [handleBiometric])
 
   const attemptPinUnlock = useCallback(
@@ -103,7 +120,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
       setPinLoading(true)
       setError('')
       try {
-        const ok = await verifyPin(pinToVerify)
+        const ok = await unlockWithPin(pinToVerify)
 
         if (ok) {
           registerSuccess()
@@ -128,6 +145,8 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   }
 
   const displayName = getUserName()
+
+  const message = lockoutMessage || error || recovery.error
 
   return (
     <div className={unlockPageClass}>
@@ -157,19 +176,19 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                 void attemptPinUnlock(nextPin)
               }}
               length={pinLength}
-              disabled={pinLoading || locked}
-              hasError={!!(lockoutMessage || error)}
+              disabled={pinLoading || locked || recovery.working}
+              hasError={!!message}
               autoFocus
             />
 
-            {(lockoutMessage || error) && (
+            {message && (
               <Alert
                 variant="error"
                 id="unlock-pin-error"
                 className={unlockErrorClass}
                 role={lockoutMessage ? 'timer' : 'alert'}
               >
-                {lockoutMessage || error}
+                {message}
               </Alert>
             )}
 
@@ -177,7 +196,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               type="submit"
               variant="primary"
               className={unlockPrimaryBtnClass}
-              disabled={pinLoading || locked || pin.length < minPinLength}
+              disabled={pinLoading || locked || recovery.working || pin.length < minPinLength}
               loading={pinLoading}
             >
               باز کردن قفل
@@ -197,7 +216,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                 variant="secondary"
                 className={unlockBiometricBtnClass}
                 onClick={() => void handleBiometric()}
-                disabled={pinLoading || biometricLoading}
+                disabled={pinLoading || biometricLoading || recovery.working}
                 loading={biometricLoading}
               >
                 <AppIcon name="fingerprint" size={20} strokeWidth={2} />
@@ -206,14 +225,30 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
             </>
           )}
 
+          {biometricNeedsPin && (
+            <p className={unlockHintClass}>
+              بعد از به‌روزرسانی، یک بار با رمز وارد شوید تا اثر انگشت دوباره کار کند.
+            </p>
+          )}
+
           <footer className={unlockFooterClass}>
             <div className={unlockTrustBadgeClass}>
               <AppIcon name="check" size={14} strokeWidth={2.25} />
-              <span>رمز روی همه دستگاه‌ها یکسان است</span>
+              <span>رمز فقط برای همین دستگاه است</span>
             </div>
+            <button
+              type="button"
+              className={unlockForgotLinkClass}
+              onClick={recovery.start}
+              disabled={pinLoading || recovery.working}
+            >
+              {recovery.working ? 'در حال ورود با گوگل…' : 'رمز را فراموش کرده‌ام'}
+            </button>
           </footer>
         </div>
       </div>
+
+      <ConfirmActionModal {...recovery.modalProps} />
     </div>
   )
 }

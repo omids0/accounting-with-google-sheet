@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { getInaccessibleSpreadsheet } from '../services/spreadsheetAccess'
 import {
   SPREADSHEET_TITLE_PREFIX,
   formatSpreadsheetTitle,
@@ -14,6 +15,8 @@ import type { SpreadsheetEntry } from '../types'
 import AppIcon from './AppIcon'
 import FormField from './form/FormField'
 import FormSelect from './form/FormSelect'
+import SheetAccessNotice from './SheetAccessNotice'
+import Button from './ui/Button'
 import { animateInClass } from './ui/layoutStyles'
 import {
   loginCardClass,
@@ -24,7 +27,6 @@ import {
   loginPageClass
 } from './ui/loginStyles'
 import { cn } from '../utils/cn'
-import Button from './ui/Button'
 import { showError } from '../utils/toast'
 
 interface SpreadsheetSetupPanelProps {
@@ -47,6 +49,9 @@ export default function SpreadsheetSetupPanel({
   const [newLabel, setNewLabel] = useState(defaultLabel)
 
   const [loading, setLoading] = useState(false)
+
+  // Set by resolveSpreadsheetSession when drive.file cannot reach the active sheet.
+  const [inaccessible] = useState(() => getInaccessibleSpreadsheet())
 
   const handleActivate = async () => {
     if (!selectedId) {
@@ -96,7 +101,7 @@ export default function SpreadsheetSetupPanel({
             <AppIcon name="folder" />
           </span>
           <h1 className={loginLogoTitleClass}>
-            {mode === 'pick' ? 'انتخاب شیت' : 'ساخت اولین شیت'}
+            {mode === 'pick' ? 'انتخاب شیت' : inaccessible ? 'ساخت شیت جدید' : 'ساخت اولین شیت'}
           </h1>
           <p className={loginLogoSubtitleClass}>
             {mode === 'pick'
@@ -104,6 +109,15 @@ export default function SpreadsheetSetupPanel({
               : 'اولین شیت با فرمت استاندارد ساخته می‌شود و روی همه دستگاه‌ها قابل پیدا کردن است.'}
           </p>
         </div>
+
+        {inaccessible && (
+          <SheetAccessNotice
+            sheet={inaccessible}
+            disabled={loading}
+            onOpened={onComplete}
+            onCreateNew={mode === 'pick' ? () => setMode('create') : undefined}
+          />
+        )}
 
         {mode === 'pick' ? (
           <>
@@ -124,8 +138,8 @@ export default function SpreadsheetSetupPanel({
                     marginTop: '0.5rem'
                   }}
                 >
-                  فقط فایل‌های با فرمت «{SPREADSHEET_TITLE_PREFIX}…» یا «حسابداری …» نمایش داده
-                  می‌شوند.
+                  فقط شیت‌هایی که این اپ ساخته یا با آن باز شده‌اند، با فرمت «
+                  {SPREADSHEET_TITLE_PREFIX}…» یا «حسابداری …»، نمایش داده می‌شوند.
                 </p>
               }
             />

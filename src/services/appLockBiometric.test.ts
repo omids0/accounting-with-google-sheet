@@ -12,15 +12,30 @@ vi.mock('@aparajita/capacitor-biometric-auth', () => ({
 
 vi.mock('./googleAuthNative', () => ({ isNativePlatform: () => true }))
 
-const saveDeviceConfig = vi.fn()
+const updateDeviceConfig = vi.fn()
 
 vi.mock('./appLockStorage', () => ({
   getAccountConfig: () => ({ enabled: true, pinHash: 'h', pinSalt: 's' }),
   getDeviceConfig: () => ({ biometricEnabled: true, credentialId: 'native-biometric' }),
-  saveDeviceConfig: (...args: unknown[]) => saveDeviceConfig(...args)
+  isLockConfigEnabled: () => true,
+  updateDeviceConfig: (...args: unknown[]) => updateDeviceConfig(...args)
+}))
+
+const storeDeviceBoundDataKey = vi.fn(async (_key: CryptoKey) => undefined)
+
+vi.mock('./appLockBiometricKey', () => ({
+  deleteBiometricDataKey: vi.fn(async () => undefined),
+  getPrfSalt: vi.fn(),
+  loadBiometricKeyRecord: vi.fn(async () => null),
+  newPrfSalt: () => new Uint8Array(32),
+  openBiometricDataKey: vi.fn(),
+  storeDeviceBoundDataKey: (key: CryptoKey) => storeDeviceBoundDataKey(key),
+  storePrfWrappedDataKey: vi.fn()
 }))
 
 vi.mock('./auth', () => ({ getUserEmail: () => 'a@b.c', getUserName: () => 'A' }))
+
+const FAKE_KEY = { extractable: true } as CryptoKey
 
 function biometry(overrides: Record<string, unknown>) {
   return {
@@ -45,11 +60,17 @@ describe('native biometric prompt options', () => {
 
     const { registerAppLockBiometric } = await import('./appLockBiometric')
 
-    await registerAppLockBiometric()
+    await registerAppLockBiometric(FAKE_KEY)
 
     expect(authenticate).toHaveBeenCalledWith(
       expect.objectContaining({ allowDeviceCredential: false, androidBiometryStrength: 0 })
     )
+    // The APK has no secure key store in the plugin: a non-extractable copy is kept.
+    expect(storeDeviceBoundDataKey).toHaveBeenCalledWith(FAKE_KEY)
+    expect(updateDeviceConfig).toHaveBeenCalledWith({
+      biometricEnabled: true,
+      credentialId: 'native-biometric'
+    })
   })
 
   it('falls back to the screen lock when nothing is enrolled', async () => {
@@ -57,7 +78,7 @@ describe('native biometric prompt options', () => {
 
     const { registerAppLockBiometric } = await import('./appLockBiometric')
 
-    await registerAppLockBiometric()
+    await registerAppLockBiometric(FAKE_KEY)
 
     expect(authenticate).toHaveBeenCalledWith(
       expect.objectContaining({ allowDeviceCredential: true, androidBiometryStrength: 1 })
@@ -70,7 +91,7 @@ describe('native biometric prompt options', () => {
 
       const { registerAppLockBiometric } = await import('./appLockBiometric')
 
-      await registerAppLockBiometric()
+      await registerAppLockBiometric(FAKE_KEY)
     }
 
     for (const [options] of authenticate.mock.calls as unknown as [

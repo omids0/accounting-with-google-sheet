@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 import { LazyTimesheetDetailPage } from './lazyPages'
 import { TimesheetDetailListSkeleton } from '../components/skeleton'

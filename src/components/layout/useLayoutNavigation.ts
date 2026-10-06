@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useTransition } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router'
 
 import {
   CALCULATION_TABS,
