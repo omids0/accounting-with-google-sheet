@@ -17,13 +17,9 @@ const config: CapacitorConfig = {
       iconColor: '#0F766E'
     },
     GoogleAuth: {
-      scopes: [
-        'email',
-        'profile',
-        'openid',
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive.metadata.readonly'
-      ],
+      // Keep equal to NATIVE_GOOGLE_SCOPES in src/services/auth.ts (a test checks it).
+      // drive.file is non-sensitive: only files the app created or the user opened with it.
+      scopes: ['email', 'profile', 'openid', 'https://www.googleapis.com/auth/drive.file'],
       // Android's requestIdToken() needs the Web client ID (not an Android-type client ID).
       // `serverClientId` below is the same value but is only read on iOS by this plugin.
       clientId: process.env.VITE_GOOGLE_CLIENT_ID ?? '',

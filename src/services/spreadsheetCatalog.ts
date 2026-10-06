@@ -35,3 +35,12 @@ export function parseSpreadsheetIdFromUrl(input: string): string | null {
 
   return match?.[1] ?? (trimmed.length >= 20 && !trimmed.includes('/') ? trimmed : null)
 }
+
+/**
+ * Looser than isAccountingSpreadsheetTitle: a sheet copied by hand is often named
+ * «Copy of حسابداری · 1405». Guards the Picker against adding the app's tabs to
+ * an unrelated spreadsheet.
+ */
+export function mentionsAccounting(title: string): boolean {
+  return title.includes('حسابداری')
+}

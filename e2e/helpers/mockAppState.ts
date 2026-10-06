@@ -6,7 +6,9 @@ const MOCK_SESSION = {
   email: 'perf@test.local',
   name: 'Perf Test',
   accessToken: 'mock-access-token',
-  tokenExpiry: Date.now() + 60 * 60 * 1000
+  tokenExpiry: Date.now() + 60 * 60 * 1000,
+  // Sessions without drive.file are treated as pre-migration and sent to sign-in.
+  scope: 'openid email profile https://www.googleapis.com/auth/drive.file'
 }
 
 const MOCK_SETTINGS = {

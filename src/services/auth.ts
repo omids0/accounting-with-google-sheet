@@ -1,11 +1,25 @@
 import { getItem, setItem, STORAGE_KEYS } from './storage'
 import type { GoogleSession } from '../types'
 
-export const GOOGLE_OAUTH_SCOPE =
-  'openid email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata.readonly'
+/**
+ * Non-sensitive per Google's Sheets API scope table: the app sees only the files
+ * it created or the user opened with it, never the rest of Drive. The sensitive
+ * scopes used before (spreadsheets, drive.metadata.readonly) need verification.
+ */
+export const DRIVE_FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
+
+export const GOOGLE_OAUTH_SCOPE = `openid email profile ${DRIVE_FILE_SCOPE}`
 
 /** Must match @react-oauth/google implicit-flow scope prefix. */
 export const FULL_GOOGLE_OAUTH_SCOPE = `openid profile email ${GOOGLE_OAUTH_SCOPE}`
+
+/** The Android plugin takes a list; capacitor.config.ts must request the same. */
+export const NATIVE_GOOGLE_SCOPES = ['email', 'profile', 'openid', DRIVE_FILE_SCOPE]
+
+/** True when a space-separated grant (token response `scope`) covers what the app needs. */
+export function hasRequiredGoogleScopes(granted: string | undefined | null): boolean {
+  return !!granted && granted.split(/\s+/).includes(DRIVE_FILE_SCOPE)
+}
 
 /** Refresh access token this long before Google expiry. */
 export const TOKEN_REFRESH_BUFFER_MS = 5 * 60_000
@@ -25,8 +39,20 @@ export function isTokenValid(): boolean {
   const session = getSession()
 
   if (!session?.accessToken || !session?.tokenExpiry) return false
+  // A token granted for the old broad scopes is retired: one sign-in replaces it.
+  if (!hasRequiredGoogleScopes(session.scope)) return false
 
   return Date.now() < session.tokenExpiry - TOKEN_VALIDITY_GRACE_MS
+}
+
+/**
+ * Sessions saved before the switch to drive.file carry no `scope` (or only the
+ * old broad ones), and Google will not renew them without a new consent.
+ */
+export function sessionNeedsScopeUpgrade(): boolean {
+  const session = getSession()
+
+  return !!session?.accessToken && !hasRequiredGoogleScopes(session.scope)
 }
 
 export function isAuthError(err: unknown): boolean {
@@ -123,13 +149,15 @@ export async function fetchUserProfile(accessToken: string): Promise<{
 export function createSession(
   accessToken: string,
   profile: { email: string; name: string; picture?: string },
-  expiresIn = 3600
+  expiresIn = 3600,
+  scope?: string
 ): GoogleSession {
   return {
     email: profile.email,
     name: profile.name,
     picture: profile.picture,
     accessToken,
-    tokenExpiry: Date.now() + expiresIn * 1000
+    tokenExpiry: Date.now() + expiresIn * 1000,
+    scope
   }
 }
