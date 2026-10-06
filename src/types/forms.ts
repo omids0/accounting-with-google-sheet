@@ -73,6 +73,8 @@ export interface GoogleSession {
   picture?: string
   accessToken: string
   tokenExpiry: number
+  /** Space-separated scopes Google granted; missing on sessions from before drive.file. */
+  scope?: string
 }
 
 /** Account-wide lock config synced via Google Sheets */
