@@ -82,6 +82,14 @@ export const assetValueClass = cn(
   'asset-value text-[0.76rem] font-semibold tracking-[0.01em] text-primary-dark font-numeric tabular-nums'
 )
 
+/** Row left out of the «دارایی قابل اتکا» total — shown, but visibly not counted. */
+export const assetRowExcludedClass = '[&_.asset-value]:font-medium [&_.asset-value]:text-muted'
+
+export const assetExcludedTagClass = 'ms-1 text-[0.62rem] font-normal text-muted'
+
+export const assetSettingsHintClass =
+  'mt-1 cursor-pointer border-none bg-transparent p-0 text-start text-[0.64rem] text-muted underline decoration-dotted underline-offset-2 hover:text-primary'
+
 export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem] lg:gap-3'
 
 export const statGrid2Class = 'grid-cols-2'

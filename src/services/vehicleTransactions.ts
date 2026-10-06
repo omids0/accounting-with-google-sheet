@@ -6,6 +6,7 @@ import { fetchVehicleMechanicVisits } from './vehicleMechanicVisits'
 import { fetchVehiclePeriodicServices } from './vehiclePeriodicServices'
 import type { MonthlyFuelStats, VehicleTransactionItem } from '../types/vehicles'
 import { getJalaliMonthKey } from '../utils/dateRange'
+import { parseNumeric } from '../utils/parseNumeric'
 import { isFuelExpenseType } from '../utils/vehicleExpenseUtils'
 
 const KIND_LABELS: Record<string, string> = {
@@ -43,7 +44,7 @@ export async function fetchVehicleTransactions(
       source: 'expense',
       date: record?.values.date ?? '',
       title: record?.values.title ?? meta.expenseType,
-      amount: Math.max(0, Number(record?.values.amount) || 0),
+      amount: Math.max(0, parseNumeric(record?.values.amount)),
       expenseType: meta.expenseType,
       expenseRecordId: meta.expenseRecordId,
       fuelLiters: meta.fuelLiters,

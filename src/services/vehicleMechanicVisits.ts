@@ -1,5 +1,6 @@
 import { appendSheetRow, deleteSheetRow, ensureSheetWithHeaders, fetchSheetRows } from './sheets'
 import type { VehicleMechanicItem, VehicleMechanicVisit } from '../types/vehicles'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export const VEHICLE_MECHANIC_SHEET = 'مکانیک_خودرو'
 
@@ -53,9 +54,9 @@ function rowToMechanicVisit(
     vehicleId: row[1] ?? '',
     createdAt: row[2] ?? '',
     date: row[3] ?? '',
-    mileage: Math.max(0, Number(row[4]) || 0),
+    mileage: Math.max(0, parseNumeric(row[4])),
     location: row[5] ?? '',
-    totalAmount: Math.max(0, Number(row[6]) || 0),
+    totalAmount: Math.max(0, parseNumeric(row[6])),
     items: parseMechanicItems(row[7] ?? ''),
     notes: row[8] ?? '',
     expenseRecordId: row[9] ?? ''

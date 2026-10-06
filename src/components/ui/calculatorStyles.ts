@@ -25,6 +25,22 @@ export const loanCalculatorSummaryLabelClass = 'text-[0.88rem] font-semibold tex
 
 export const loanCalculatorEmptyCardClass = 'text-center'
 
+export const loanMethodBadgeClass = cn(
+  'mx-auto mb-2 inline-flex rounded-full px-[0.6rem] py-[0.15rem] text-[0.72rem] font-bold',
+  'bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary'
+)
+
+export const loanScheduleToggleClass = 'mt-1 w-full'
+
+export const loanScheduleTableWrapClass = 'mt-3 overflow-x-auto'
+
+export const loanScheduleTableClass = cn(
+  'w-full min-w-[26rem] border-collapse text-[0.78rem] tabular-nums',
+  '[&_th]:border-b [&_th]:border-border [&_th]:px-1 [&_th]:pb-2 [&_th]:text-start [&_th]:font-bold [&_th]:text-muted',
+  '[&_td]:border-b [&_td]:border-border [&_td]:px-1 [&_td]:py-[0.45rem] [&_td]:font-semibold',
+  '[&_tr:last-child_td]:border-b-0'
+)
+
 export const loanRateInputWrapClass = cn(
   'flex w-full items-stretch overflow-hidden rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] shadow-[var(--form-input-shadow)]',
   'transition-[border-color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',

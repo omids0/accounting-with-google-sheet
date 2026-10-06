@@ -2,9 +2,11 @@ import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import MoneyDisplay from '../MoneyDisplay'
 import {
+  assetExcludedTagClass,
   assetLabelClass,
   assetLabelLinkClass,
   assetRowClass,
+  assetRowExcludedClass,
   assetRowTotalClass,
   assetValueClass
 } from '../ui/chartStyles'
@@ -26,15 +28,22 @@ export function BreakdownRow({
   label,
   value,
   total,
+  excluded,
   onNavigate
 }: {
   label: string
   value: number
   total?: boolean
+  /** Not counted in the total (per «دارایی قابل اتکا» settings). */
+  excluded?: boolean
   onNavigate?: () => void
 }) {
+  const tag = excluded ? <span className={assetExcludedTagClass}>(لحاظ نشده)</span> : null
+
   return (
-    <div className={cn(assetRowClass, total && assetRowTotalClass)}>
+    <div
+      className={cn(assetRowClass, total && assetRowTotalClass, excluded && assetRowExcludedClass)}
+    >
       {onNavigate ? (
         <button
           type="button"
@@ -42,9 +51,13 @@ export function BreakdownRow({
           onClick={onNavigate}
         >
           {label}
+          {tag}
         </button>
       ) : (
-        <span className={assetLabelClass}>{label}</span>
+        <span className={assetLabelClass}>
+          {label}
+          {tag}
+        </span>
       )}
       <span className={assetValueClass} dir="ltr">
         {formatMoney(value)}

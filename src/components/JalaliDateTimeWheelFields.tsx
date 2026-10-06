@@ -20,10 +20,12 @@ import {
   getCalendarMonthWheelItems,
   getCalendarParts,
   getCalendarYearRange,
+  INVALID_CALENDAR_DATE_MESSAGE,
   partsToIso,
   type CalendarSystem
 } from '../utils/dateConverter'
 import { clampDateTimeToMin, fromDateTimeIso, toDateTimeIso } from '../utils/datetime'
+import { showError } from '../utils/toast'
 
 function fa(n: number): string {
   return n.toLocaleString('fa-IR', { useGrouping: false })
@@ -115,6 +117,12 @@ export default function DateTimeWheelFields({
       { year: nextYear, month: nextMonth, day: Math.min(Math.max(nextDay, 1), max) },
       calendar
     )
+
+    if (!nextDateIso) {
+      showError(INVALID_CALENDAR_DATE_MESSAGE)
+      return
+    }
+
     const nextValue = toDateTimeIso(nextDateIso, nextHour, nextMinute)
 
     onChange(minDateTime ? clampDateTimeToMin(nextValue, minDateTime) : nextValue)

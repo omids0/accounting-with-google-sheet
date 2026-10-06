@@ -6,6 +6,7 @@ import {
   updateSheetRow
 } from './sheets'
 import type { VehiclePeriodicService } from '../types/vehicles'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export const VEHICLE_PERIODIC_SHEET = 'سرویس_خودرو'
 
@@ -49,17 +50,17 @@ function rowToPeriodic(
     vehicleId: row[1] ?? '',
     createdAt: row[2] ?? '',
     serviceType: row[3] ?? '',
-    currentMileage: Math.max(0, Number(row[4]) || 0),
-    intervalKm: Math.max(0, Number(row[5]) || 0),
-    nextKm: Math.max(0, Number(row[6]) || 0),
+    currentMileage: Math.max(0, parseNumeric(row[4])),
+    intervalKm: Math.max(0, parseNumeric(row[5])),
+    nextKm: Math.max(0, parseNumeric(row[6])),
     brand: row[7] ?? '',
     location: row[8] ?? '',
-    amount: Math.max(0, Number(row[9]) || 0),
+    amount: Math.max(0, parseNumeric(row[9])),
     notes: row[10] ?? '',
     expenseRecordId: row[11] ?? '',
     active: parseBool(row[12] ?? 'true'),
     reminderEnabled: parseBool(row[13] ?? 'true'),
-    reminderThresholdKm: Math.max(0, Number(row[14]) || 500)
+    reminderThresholdKm: Math.max(0, parseNumeric(row[14]) || 500)
   }
 }
 

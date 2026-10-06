@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 
 import { cn } from '../utils/cn'
 import { formatPersianNumber } from '../utils/formatMoney'
+import { floorPercent } from '../utils/progress'
 import {
   progressBarClass,
   progressBarFillClass,
@@ -82,7 +83,7 @@ export default function ProgressBar({
         </div>
         {showLabel ? (
           <span className={cn(progressBarLabelClass(variant), 'numeric')} aria-hidden="true">
-            {formatPersianNumber(Math.round(clamped), { useGrouping: false })}٪
+            {formatPersianNumber(floorPercent(clamped), { useGrouping: false })}٪
           </span>
         ) : null}
       </div>

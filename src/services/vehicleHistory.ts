@@ -1,5 +1,6 @@
 import { appendSheetRow, deleteSheetRow, ensureSheetWithHeaders, fetchSheetRows } from './sheets'
 import type { VehicleHistoryEntry, VehicleRecordKind } from '../types/vehicles'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export const VEHICLE_HISTORY_SHEET = 'تاریخچه_خودرو'
 
@@ -41,10 +42,10 @@ function rowToHistory(
     recordKind: parseKind(row[3] ?? ''),
     referenceId: row[4] ?? '',
     date: row[5] ?? '',
-    mileage: Math.max(0, Number(row[6]) || 0),
-    nextKm: Math.max(0, Number(row[7]) || 0),
+    mileage: Math.max(0, parseNumeric(row[6])),
+    nextKm: Math.max(0, parseNumeric(row[7])),
     details: row[8] ?? '',
-    amount: Math.max(0, Number(row[9]) || 0),
+    amount: Math.max(0, parseNumeric(row[9])),
     expenseRecordId: row[10] ?? ''
   }
 }

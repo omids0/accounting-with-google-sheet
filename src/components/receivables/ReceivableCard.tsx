@@ -1,17 +1,18 @@
+import ReceivablePaymentForm from './ReceivablePaymentForm'
+import ReceivableSettlementForm from './ReceivableSettlementForm'
+import type { ReceivableWithRow } from './types'
+import { buildSettlementTitle } from './utils'
 import { isReceivableComplete, paidAmount, remainingAmount } from '../../services/receivables'
+import { getReceivableDisplayTitle } from '../../services/receivablesRow'
 import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { progressPercent } from '../../utils/progress'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
 import ProgressBar from '../ProgressBar'
-import ReceivablePaymentForm from './ReceivablePaymentForm'
-import ReceivableSettlementForm from './ReceivableSettlementForm'
-import type { ReceivableWithRow } from './types'
-import { buildSettlementTitle } from './utils'
-import { getReceivableDisplayTitle } from '../../services/receivablesRow'
 import Button from '../ui/Button'
 import {
   cardActionButtonsClass,
@@ -85,7 +86,7 @@ export default function ReceivableCard({
 
   const complete = isReceivableComplete(item)
 
-  const progress = item.amount > 0 ? Math.round((paid / item.amount) * 100) : 0
+  const progress = progressPercent(paid, item.amount)
 
   const showPaymentForm = paymentReceivableId === item.id
   const showSettlementForm = settlementReceivableId === item.id

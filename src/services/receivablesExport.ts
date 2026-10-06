@@ -8,6 +8,7 @@ import {
   sortReceivables
 } from './receivablesRow'
 import { formatMoney } from '../utils/formatMoney'
+import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import {
   formatReceivablePayments,
@@ -88,7 +89,7 @@ export async function importReceivablesCsv(spreadsheetId: string, csvContent: st
         title: cells[2] ?? '',
         debtor,
         category: cells[4] ?? 'سایر',
-        amount: Number(cells[5]) || 0,
+        amount: parseNumeric(cells[5]),
         borrowDate: cells[6] ?? '',
         note: cells[7] ?? '',
         payments: parsePayments(cells[8] ?? '')

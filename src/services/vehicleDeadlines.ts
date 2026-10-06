@@ -6,6 +6,7 @@ import {
   updateSheetRow
 } from './sheets'
 import type { VehicleDeadline } from '../types/vehicles'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export const VEHICLE_DEADLINE_SHEET = 'موعد_خودرو'
 
@@ -48,12 +49,12 @@ function rowToDeadline(
     category: row[3] ?? '',
     startDate: row[4] ?? '',
     endDate: row[5] ?? '',
-    amount: Math.max(0, Number(row[6]) || 0),
+    amount: Math.max(0, parseNumeric(row[6])),
     notes: row[7] ?? '',
     expenseRecordId: row[8] ?? '',
     active: parseBool(row[9] ?? 'true'),
     reminderEnabled: parseBool(row[10] ?? 'false'),
-    daysBefore: Math.max(0, Number(row[11]) || 3)
+    daysBefore: Math.max(0, parseNumeric(row[11]) || 3)
   }
 }
 

@@ -21,7 +21,7 @@ import { resolveOpeningBalanceContext, syncDerivedOpeningBalances } from './open
 import { fetchReceivables, remainingAmount } from './receivables'
 import { getDefaultNetAvailableConfig } from './settings'
 import { fetchRecords } from './sheets'
-import { getCachedTgjuPrices } from './tgju'
+import { getSummableTgjuPrices } from './tgjuCurrency'
 import { computeHoldings, fetchVaultTransactions } from './treasury'
 import { fetchWalletAccounts } from './wallet'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
@@ -40,7 +40,7 @@ async function fetchDashboardBundleUncached(
 
   const monthKey = getJalaliMonthKey(range.start)
 
-  const tgjuPrices = getCachedTgjuPrices()
+  const tgjuPrices = getSummableTgjuPrices()
 
   const shouldFetchVault = netAvailableConfig.assets.treasury && tgjuPrices != null
 

@@ -23,7 +23,7 @@ import { createManualVehicleExpense } from '../services/vehicleExpenseActions'
 import type { CustomForm } from '../types'
 import { requireAuth } from '../utils/authGuard'
 import { cn } from '../utils/cn'
-import { formFieldError } from '../utils/formValidation'
+import { formFieldError, validatePositiveAmount } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
 import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
@@ -111,8 +111,12 @@ export default function DataEntryForm({
 
       const val = formValues[field.id]
 
-      if (val === '' || val === undefined || val === null) {
-        const message = `«${field.label}» الزامی است`
+      const isEmpty = val === '' || val === undefined || val === null
+
+      const amountCheck = !isEmpty && field.id === 'amount' ? validatePositiveAmount(val) : true
+
+      if (isEmpty || amountCheck !== true) {
+        const message = amountCheck === true ? `«${field.label}» الزامی است` : amountCheck
         setError(field.id, { message })
         firstMessage ??= message
         hasError = true
