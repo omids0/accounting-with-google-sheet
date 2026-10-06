@@ -48,7 +48,10 @@ export function parseNumericStrict(value: string | number | undefined | null): n
 
   const parsed = Number(normalized)
 
-  return Number.isFinite(parsed) ? parsed : null
+  if (!Number.isFinite(parsed)) return null
+
+  // `Number(x) || 0` used to fold «-0» into 0; keep that so it never renders as «−۰».
+  return parsed === 0 ? 0 : parsed
 }
 
 /** Lenient variant of {@link parseNumericStrict}: empty or invalid input reads as 0. */

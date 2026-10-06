@@ -1,5 +1,6 @@
 import type { Timesheet, TimesheetEntry } from '../types'
 import { calcDurationMinutes, normalizeDateTimeIso } from '../utils/datetime'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export const TIMESHEETS_SHEET = 'تایم‌شیت‌ها'
 export const TIMESHEET_ENTRIES_SHEET = 'رکوردهای تایم‌شیت'
@@ -55,7 +56,7 @@ export function rowToTimesheetEntry(
     title: row[3] ?? '',
     startAt: normalizeDateTimeIso(row[4] ?? '') || String(row[4] ?? '').trim(),
     endAt: normalizeDateTimeIso(row[5] ?? '') || String(row[5] ?? '').trim(),
-    durationMinutes: Number(row[6]) || 0,
+    durationMinutes: parseNumeric(row[6]),
     description: row[7] ?? '',
     checked: parseChecked(row[8] ?? '')
   }

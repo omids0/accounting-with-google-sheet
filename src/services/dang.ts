@@ -9,8 +9,10 @@ import {
   deleteSheetRow
 } from './sheets'
 import { formatMoney } from '../utils/formatMoney'
+import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
+import { isNumericCell, isPlainNumberCell } from '../utils/sheetValues'
 
 export const DANG_SHEET = 'دنگ'
 
@@ -37,13 +39,18 @@ function parsePaid(raw: string): boolean {
   return v === 'true' || v === '1' || v === 'بله' || v === 'yes'
 }
 
-function isLegacyDangRow(row: string[]): boolean {
-  const amountAt4 = Number(row[4])
+/**
+ * Legacy rows keep the amount in column 4 (no category column). The plain `Number()`
+ * check runs first so already-detected rows are unchanged; the tolerant one only
+ * rescues formatted amounts (`1,500,000`, Persian digits) where column 5 is no amount.
+ */
+export function isLegacyDangRow(row: string[]): boolean {
+  if (isPlainNumberCell(row[4])) return true
 
-  return row[4] !== '' && !Number.isNaN(amountAt4)
+  return isNumericCell(row[4]) && !isNumericCell(row[5])
 }
 
-function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number } {
+export function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number } {
   if (isLegacyDangRow(row)) {
     return {
       rowNumber,
@@ -52,7 +59,7 @@ function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number
       title: row[2] ?? '',
       category: 'سایر',
       counterparty: row[3] ?? '',
-      amount: Number(row[4]) || 0,
+      amount: parseNumeric(row[4]),
       date: row[5] ?? '',
       note: row[6] ?? '',
       paid: parsePaid(row[7] ?? ''),
@@ -69,7 +76,7 @@ function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number
     title: row[2] ?? '',
     category: row[3] ?? 'سایر',
     counterparty: row[4] ?? '',
-    amount: Number(row[5]) || 0,
+    amount: parseNumeric(row[5]),
     date: row[6] ?? '',
     note: row[7] ?? '',
     paid: parsePaid(row[8] ?? ''),
@@ -261,7 +268,7 @@ export async function importDangsCsv(spreadsheetId: string, csvContent: string) 
       title,
       category: cells[3] ?? 'سایر',
       counterparty: cells[4] ?? '',
-      amount: Number(cells[5]) || 0,
+      amount: parseNumeric(cells[5]),
       date: cells[6] ?? '',
       note: cells[7] ?? '',
       paid: parsePaid(cells[8] ?? ''),

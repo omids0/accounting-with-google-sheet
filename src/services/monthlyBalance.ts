@@ -1,5 +1,6 @@
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
 import type { SheetWriteOptions } from './sheetsRows'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export const MONTHLY_BALANCE_SHEET = 'موجودی ماهانه'
 
@@ -20,7 +21,7 @@ function rowToBalance(
   return {
     rowNumber,
     monthKey: row[0] ?? '',
-    amount: Number(row[1]) || 0,
+    amount: parseNumeric(row[1]),
     updatedAt: row[2] ?? '',
     note: row[3] ?? ''
   }

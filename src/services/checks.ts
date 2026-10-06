@@ -11,6 +11,7 @@ import {
 import type { DateRange } from '../utils/dateRange'
 import { isDateInRange } from '../utils/dateRange'
 import { formatMoney } from '../utils/formatMoney'
+import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
 
@@ -48,7 +49,7 @@ function rowToCheck(row: string[], rowNumber: number): Check & { rowNumber: numb
     createdAt: row[1] ?? '',
     checkNumber: row[2] ?? '',
     counterparty: row[3] ?? '',
-    amount: Number(row[4]) || 0,
+    amount: parseNumeric(row[4]),
     creationDate: row[5] ?? '',
     dueDate: row[6] ?? '',
     paid: parsePaid(row[7] ?? ''),
@@ -254,7 +255,7 @@ export async function importChecksCsv(spreadsheetId: string, csvContent: string)
       createdAt: newImportTimestamp(cells[1] ?? ''),
       checkNumber,
       counterparty,
-      amount: Number(cells[4]) || 0,
+      amount: parseNumeric(cells[4]),
       creationDate: cells[5] ?? '',
       dueDate: cells[6] ?? '',
       paid: parsePaid(cells[7] ?? ''),

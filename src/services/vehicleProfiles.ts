@@ -7,6 +7,7 @@ import {
 } from './sheets'
 import type { VehicleMileageReminderInterval, VehicleProfile } from '../types/vehicles'
 import { getTodayIso } from '../utils/jalaliDate'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export const VEHICLES_SHEET = 'خودرو'
 
@@ -65,7 +66,7 @@ function rowToVehicle(
     id,
     createdAt: row[1] ?? '',
     title: row[2] ?? '',
-    mileage: Math.max(0, Number(row[3]) || 0),
+    mileage: Math.max(0, parseNumeric(row[3])),
     vin: row[4] ?? '',
     buildYear: row[5] ?? '',
     capacity: row[6] ?? '',
@@ -101,7 +102,7 @@ export function vehicleRowFromImportCells(cells: (string | undefined)[]): string
     id: cells[0] ?? '',
     createdAt: cells[1] ?? '',
     title,
-    mileage: Math.max(0, Number(cells[3]) || 0),
+    mileage: Math.max(0, parseNumeric(cells[3])),
     vin: String(cells[4] ?? '').trim(),
     buildYear: String(cells[5] ?? '').trim(),
     capacity: String(cells[6] ?? '').trim(),

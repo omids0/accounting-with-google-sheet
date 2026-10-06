@@ -1,5 +1,6 @@
 import { jalaliToIso, toIsoDate } from './jalaliDate'
 import { normalizeDigits } from './normalizeDigits'
+import { parseNumericStrict } from './parseNumeric'
 
 function parseJalaliDateString(text: string): string | null {
   const normalized = normalizeDigits(text.trim())
@@ -79,4 +80,23 @@ export function isSheetHeaderRow(row: unknown[]): boolean {
   const first = cellToString(row[0]).normalize('NFC').trim()
 
   return first === 'شناسه'
+}
+
+/** The historical `Number()`-based numeric check — kept so existing layout detection is unchanged. */
+export function isPlainNumberCell(value: unknown): boolean {
+  return value != null && value !== '' && !Number.isNaN(Number(value))
+}
+
+/** Numeric check that also accepts thousands separators, Persian/Arabic digits and «٫». */
+export function isNumericCell(value: unknown): boolean {
+  if (typeof value !== 'string' && typeof value !== 'number') return false
+
+  return String(value).trim() !== '' && parseNumericStrict(value) !== null
+}
+
+/** A payments-style JSON array cell, or an empty one. */
+export function isJsonArrayCell(value: unknown): boolean {
+  const text = cellToString(value).trim()
+
+  return text === '' || text.startsWith('[')
 }

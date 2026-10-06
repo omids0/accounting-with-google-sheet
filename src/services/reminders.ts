@@ -6,6 +6,7 @@ import {
   deleteSheetRow
 } from './sheets'
 import type { PushSubscriptionRecord, ReminderKind, ReminderRule } from '../types'
+import { parseNumeric } from '../utils/parseNumeric'
 
 export {
   formatInstallmentReminderMessage,
@@ -78,9 +79,9 @@ function rowToRule(row: string[]): ReminderRule | null {
   return {
     kind,
     enabled: parseBool(row[1]),
-    daysBefore: Math.max(0, Number(row[2]) || 0),
-    hour: Math.min(23, Math.max(0, Number(row[3]) || 9)),
-    minute: Math.min(59, Math.max(0, Number(row[4]) || 0))
+    daysBefore: Math.max(0, parseNumeric(row[2])),
+    hour: Math.min(23, Math.max(0, parseNumeric(row[3]) || 9)),
+    minute: Math.min(59, Math.max(0, parseNumeric(row[4])))
   }
 }
 
@@ -156,8 +157,8 @@ export async function ensureDefaultReminderRules(spreadsheetId: string): Promise
       kind: 'daily',
       enabled: true,
       daysBefore: 0,
-      hour: Math.min(23, Math.max(0, Number(dailyRow?.[3]) || 9)),
-      minute: Math.min(59, Math.max(0, Number(dailyRow?.[4]) || 0))
+      hour: Math.min(23, Math.max(0, parseNumeric(dailyRow?.[3]) || 9)),
+      minute: Math.min(59, Math.max(0, parseNumeric(dailyRow?.[4])))
     }
   ])
 }

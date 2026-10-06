@@ -87,6 +87,11 @@ describe('parseNumeric', () => {
     expect(parseNumeric(Number.NaN)).toBe(0)
   })
 
+  it('folds negative zero into 0', () => {
+    expect(Object.is(parseNumeric('-0'), 0)).toBe(true)
+    expect(Object.is(parseNumericStrict('−0'), 0)).toBe(true)
+  })
+
   it('no longer drops the Persian decimal separator', () => {
     expect(parseNumeric('۱۲٫۵')).toBe(12.5)
   })

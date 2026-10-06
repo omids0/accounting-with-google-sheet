@@ -9,6 +9,7 @@ import {
 } from './sheets'
 import { getAssetLabel, getAssetUnit } from './tgju'
 import { formatMoney } from '../utils/formatMoney'
+import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPersianDate, formatVaultAction } from '../utils/pdfFormat'
 
@@ -35,8 +36,8 @@ function rowToTransaction(
     createdAt: row[1] ?? '',
     assetType: (row[2] ?? 'sekeb') as VaultAssetType,
     action: (row[3] ?? 'buy') as VaultAction,
-    quantity: Number(row[4]) || 0,
-    unitPrice: Number(row[5]) || 0,
+    quantity: parseNumeric(row[4]),
+    unitPrice: parseNumeric(row[5]),
     transactionDate: row[6] ?? '',
     note: row[7] ?? ''
   }
@@ -217,7 +218,7 @@ export async function importTreasuryCsv(spreadsheetId: string, csvContent: strin
       return null
     }
 
-    const quantity = Number(cells[4])
+    const quantity = parseNumeric(cells[4])
 
     if (!quantity) return null
 
@@ -227,7 +228,7 @@ export async function importTreasuryCsv(spreadsheetId: string, csvContent: strin
       assetType,
       action,
       quantity,
-      unitPrice: Number(cells[5]) || 0,
+      unitPrice: parseNumeric(cells[5]),
       transactionDate: cells[6] ?? '',
       note: cells[7] ?? ''
     })

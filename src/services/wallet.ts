@@ -16,6 +16,7 @@ import {
   isDateInRange
 } from '../utils/dateRange'
 import { formatMoney } from '../utils/formatMoney'
+import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 
 export const WALLET_SHEET = 'کیف پول'
@@ -43,7 +44,7 @@ function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNu
     id: row[0] ?? '',
     createdAt: row[1] ?? '',
     title: row[2] ?? '',
-    balance: Number(row[3]) || 0,
+    balance: parseNumeric(row[3]),
     note: row[4] ?? '',
     accountKind: row[5] ?? '',
     bankId: row[6] ?? '',
@@ -195,11 +196,11 @@ export async function loadWalletPeriodFlow(settings: AppSettings): Promise<Walle
 
   const totalIncome = incomeRecords
     .filter(r => isDateInRange(r.values[incomeDateField] ?? '', range))
-    .reduce((s, r) => s + (Number(r.values.amount) || 0), 0)
+    .reduce((s, r) => s + parseNumeric(r.values.amount), 0)
 
   const totalExpense = expenseRecords
     .filter(r => isDateInRange(r.values[expenseDateField] ?? '', range))
-    .reduce((s, r) => s + (Number(r.values.amount) || 0), 0)
+    .reduce((s, r) => s + parseNumeric(r.values.amount), 0)
 
   return {
     openingBalance: context.openings.get(monthKey) ?? context.anchorAmount,
@@ -250,7 +251,7 @@ export async function importWalletAccountsCsv(spreadsheetId: string, csvContent:
       id: newImportId(cells[0] ?? ''),
       createdAt: newImportTimestamp(cells[1] ?? ''),
       title,
-      balance: Number(cells[3]) || 0,
+      balance: parseNumeric(cells[3]),
       note: cells[4] ?? '',
       accountKind: cells[5] ?? '',
       bankId: cells[6] ?? '',
