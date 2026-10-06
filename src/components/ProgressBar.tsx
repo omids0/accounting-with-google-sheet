@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { useAnimatedProgress } from '../hooks/useAnimatedProgress'
 import { cn } from '../utils/cn'
 import { formatPersianNumber } from '../utils/formatMoney'
+import { floorPercent } from '../utils/progress'
 import {
   progressBarClass,
   progressBarFillClass,
@@ -41,7 +42,7 @@ export default function ProgressBar({
 
   const animatedValue = useAnimatedProgress(clamped, 750, animated)
 
-  const displayPct = Math.round(animatedValue)
+  const displayPct = floorPercent(animatedValue)
 
   const style = {
     '--progress-delay': `${Math.min(animateIndex, 10) * 0.07}s`
