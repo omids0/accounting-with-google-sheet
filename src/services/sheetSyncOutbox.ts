@@ -63,8 +63,27 @@ function isOffline(): boolean {
 
 type PassResult = 'done' | 'blocked'
 
+/**
+ * Tells other devices which tabs changed (change tokens) and records the new
+ * Drive modifiedTime, so this device does not re-download its own writes.
+ * Best effort: on failure others still see the change through modifiedTime.
+ */
+async function announceWrites(spreadsheetId: string, touched: Set<string>): Promise<void> {
+  if (!touched.size) return
+
+  try {
+    const { stampSheetRevisions } = await import('./sheetRevisions')
+    const { fetchRemoteModifiedTime, rememberRemoteVersion } = await import('./sheetRemoteVersion')
+
+    await stampSheetRevisions(spreadsheetId, touched)
+    rememberRemoteVersion(spreadsheetId, await fetchRemoteModifiedTime(spreadsheetId))
+  } catch {
+    /* change detection falls back to a full download */
+  }
+}
+
 /** Sends every entry queued right now. Permanent failures are parked, not retried forever. */
-async function flushPass(spreadsheetId: string): Promise<PassResult> {
+async function flushPass(spreadsheetId: string, touched: Set<string>): Promise<PassResult> {
   const { executeOutboxOperation } = await import('./sheets')
 
   const session = createRowGuardSession()
@@ -79,6 +98,7 @@ async function flushPass(spreadsheetId: string): Promise<PassResult> {
       })
       removeOutboxEntry(spreadsheetId, entry.id)
       refreshPendingCount(spreadsheetId)
+      touched.add(entry.operation.sheetName)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی'
 
@@ -119,8 +139,14 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
 
   // Writes queued while a pass was running are picked up by the next pass
   // instead of waiting for the next sync trigger.
-  for (let pass = 0; pass < MAX_FLUSH_PASSES && hasPendingOutbox(spreadsheetId); pass += 1) {
-    if ((await flushPass(spreadsheetId)) === 'blocked') return false
+  const touched = new Set<string>()
+
+  try {
+    for (let pass = 0; pass < MAX_FLUSH_PASSES && hasPendingOutbox(spreadsheetId); pass += 1) {
+      if ((await flushPass(spreadsheetId, touched)) === 'blocked') return false
+    }
+  } finally {
+    await announceWrites(spreadsheetId, touched)
   }
 
   refreshPendingCount(spreadsheetId)

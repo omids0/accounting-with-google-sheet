@@ -2,6 +2,7 @@ import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpen
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
 import { getSettings } from './settings'
 import { forgetRemoteVersion } from './sheetRemoteVersion'
+import { forgetSheetRevisions } from './sheetRevisions'
 import { isQuotaExceededError } from './sheets'
 import {
   flushOutbox,
@@ -202,6 +203,7 @@ export function stopSheetSync(): void {
 export function resetSheetSync(spreadsheetId: string): void {
   stopSheetSync()
   forgetRemoteVersion(spreadsheetId)
+  forgetSheetRevisions(spreadsheetId)
   clearStore(spreadsheetId)
   clearOutbox(spreadsheetId)
   setPendingWrites(0)
