@@ -1,7 +1,7 @@
 import { getFormField, type StoredRecord } from './recordsUtils'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
+import { formatSignedMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { parseNumeric } from '../../utils/parseNumeric'
 import CardDeleteButton from '../CardDeleteButton'
@@ -98,8 +98,12 @@ export default function RecordsList({
                   )}
                   dir="ltr"
                 >
-                  {isIncome ? '+' : form.type === 'expense' ? '-' : ''}
-                  {formatMoney(parseNumeric(amount))}
+                  {formatSignedMoney(
+                    form.type === 'expense'
+                      ? -Math.abs(parseNumeric(amount))
+                      : parseNumeric(amount),
+                    { showPlus: isIncome }
+                  )}
                 </div>
               )}
               <div className={cardActionButtonsClass}>

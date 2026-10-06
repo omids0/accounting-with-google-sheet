@@ -1,11 +1,17 @@
-const CATEGORY_LABEL_MAX_LEN = 9
+import { formatCompactNumber } from '../../utils/formatMoney'
 
+const CATEGORY_LABEL_MAX_LEN = 14
+
+/** Approximate width of one Persian character at the 10px axis font. */
+const CATEGORY_LABEL_CHAR_PX = 5.6
+
+const CATEGORY_AXIS_MIN_PX = 36
+
+const CATEGORY_AXIS_MAX_PX = 96
+
+/** Axis ticks in Persian digits and units (`۳٫۵ م`), never `3.5M`. */
 export function formatAxisMoney(value: number): string {
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)}B`
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`
-
-  return String(value)
+  return formatCompactNumber(value)
 }
 
 export function truncateCategoryLabel(label: string, maxLen = CATEGORY_LABEL_MAX_LEN): string {
@@ -14,11 +20,19 @@ export function truncateCategoryLabel(label: string, maxLen = CATEGORY_LABEL_MAX
   return `${label.slice(0, maxLen - 1)}…`
 }
 
-/** Shared Y-axis width so expense/income bar charts align on the same page. */
-export function getCategoryBarYAxisWidth(datasets: { name: string }[][]): number {
-  const maxLabelLen = Math.max(1, ...datasets.flat().map(item => item.name.length))
+/** Y-axis width that fits category labels up to the truncation length. */
+export function getCategoryLabelAxisWidth(names: string[]): number {
+  const maxLabelLen = Math.max(1, ...names.map(name => name.length))
 
   const truncatedLen = Math.min(maxLabelLen, CATEGORY_LABEL_MAX_LEN)
 
-  return Math.min(68, Math.max(30, Math.ceil(truncatedLen * 5.2)))
+  return Math.min(
+    CATEGORY_AXIS_MAX_PX,
+    Math.max(CATEGORY_AXIS_MIN_PX, Math.ceil(truncatedLen * CATEGORY_LABEL_CHAR_PX) + 6)
+  )
+}
+
+/** Shared Y-axis width so expense/income bar charts align on the same page. */
+export function getCategoryBarYAxisWidth(datasets: { name: string }[][]): number {
+  return getCategoryLabelAxisWidth(datasets.flat().map(item => item.name))
 }

@@ -70,7 +70,7 @@ export const currencyConverterUpdatedAtClass = 'mb-3 text-[0.82rem] leading-[1.6
 export const currencyConverterResultCardClass = 'relative z-[1] text-center'
 
 export const currencyConverterResultValueClass =
-  'text-[clamp(1.5rem,5vw,2rem)] font-extrabold leading-[1.35] text-[var(--color-primary-dark)]'
+  'font-numeric tabular-nums text-[clamp(1.5rem,5vw,2rem)] font-extrabold leading-[1.35] text-[var(--color-primary-dark)]'
 
 export const currencyConverterEmptyCardClass = 'relative z-[1] text-center'
 
