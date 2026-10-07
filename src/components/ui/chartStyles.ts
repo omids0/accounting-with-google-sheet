@@ -40,7 +40,7 @@ export const dashboardFlowSectionClass = cn(
   '[&>.stat-card-wide]:col-span-2 lg:[&>.stat-card-wide]:col-span-4',
   '[&>.stat-card:not(.stat-card-wide)]:flex [&>.stat-card:not(.stat-card-wide)]:min-h-[4.25rem] [&>.stat-card:not(.stat-card-wide)]:flex-col [&>.stat-card:not(.stat-card-wide)]:justify-center [&>.stat-card:not(.stat-card-wide)]:gap-1 [&>.stat-card:not(.stat-card-wide)]:px-[0.4rem] [&>.stat-card:not(.stat-card-wide)]:py-[0.6rem]',
   '[&>.stat-card:not(.stat-card-wide)_.stat-label]:mb-0 [&>.stat-card:not(.stat-card-wide)_.stat-label]:text-[0.72rem]',
-  '[&>.stat-card:not(.stat-card-wide)_.stat-card__value-row]:items-stretch [&>.stat-card:not(.stat-card-wide)_.sparkline]:self-center',
+  '[&>.stat-card:not(.stat-card-wide)_.stat-card-value-row]:items-stretch [&>.stat-card:not(.stat-card-wide)_.sparkline]:self-center',
   '[&>.stat-card-wide]:mt-0'
 )
 
@@ -96,7 +96,7 @@ export const statGrid2Class = 'grid-cols-2'
 
 export const dashboardStatGridClass = cn(
   statGridClass,
-  'grid-cols-2 [&_.stat-card]:flex [&_.stat-card]:min-h-[4.25rem] [&_.stat-card]:flex-col [&_.stat-card]:justify-center [&_.stat-card]:gap-1 [&_.stat-card]:px-[0.4rem] [&_.stat-card]:py-[0.6rem] [&_.stat-label]:mb-0 [&_.stat-label]:text-[0.72rem] [&_.stat-card__value-row]:items-stretch [&_.sparkline]:self-center'
+  'grid-cols-2 [&_.stat-card]:flex [&_.stat-card]:min-h-[4.25rem] [&_.stat-card]:flex-col [&_.stat-card]:justify-center [&_.stat-card]:gap-1 [&_.stat-card]:px-[0.4rem] [&_.stat-card]:py-[0.6rem] [&_.stat-label]:mb-0 [&_.stat-label]:text-[0.72rem] [&_.stat-card-value-row]:items-stretch [&_.sparkline]:self-center'
 )
 
 export function statCardClass({

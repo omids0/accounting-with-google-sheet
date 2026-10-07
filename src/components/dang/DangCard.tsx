@@ -73,9 +73,7 @@ export default function DangCard({
             >
               <div className={dangCardHeaderClass}>
                 <span className={dangCardTitleClass}>{item.title}</span>
-                <span className={dangCardAmountClass} dir="ltr">
-                  {formatMoney(displayAmount)}
-                </span>
+                <span className={dangCardAmountClass}>{formatMoney(displayAmount)}</span>
               </div>
               <div className={dangCardMetaClass}>
                 {item.category && `${item.category} · `}

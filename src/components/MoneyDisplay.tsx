@@ -43,11 +43,14 @@ export default function MoneyDisplay({
         size === 'hero' && tone === 'hero' && dashboardHeroMoneyDisplayClass,
         className
       )}
-      dir="ltr"
+      dir="rtl"
       aria-label={formatMoney(amount)}
     >
-      {/* The sign sits inside the value so it never drifts away from the digits. */}
-      <span className={moneyDisplayValueClassName}>
+      {/*
+        Only the digits (with their sign) are left-to-right; the block itself stays
+        right-to-left so the unit follows the number as Persian is read.
+      */}
+      <span className={moneyDisplayValueClassName} dir="ltr">
         {sign ? <span className={moneyDisplaySignClass}>{sign}</span> : null}
         {number}
       </span>

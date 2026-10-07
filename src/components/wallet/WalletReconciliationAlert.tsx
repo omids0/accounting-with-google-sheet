@@ -1,4 +1,4 @@
-import { formatMoney } from '../../utils/formatMoney'
+import { formatMoney, formatSignedMoney } from '../../utils/formatMoney'
 import Alert from '../ui/Alert'
 import Button from '../ui/Button'
 import {
@@ -31,9 +31,8 @@ export default function WalletReconciliationAlert({
         کیف پول فعلی ({formatMoney(totalBalance)}) با مانده محاسبه‌شده ({formatMoney(periodBalance)}
         ) {reconciliationDiff > 0 ? 'بیشتر' : 'کمتر'} است.
       </p>
-      <p dir="ltr" className={reconcileDiffClass}>
-        اختلاف: {formatMoney(Math.abs(reconciliationDiff))}
-        {reconciliationDiff > 0 ? ' +' : ' −'}
+      <p className={reconcileDiffClass}>
+        اختلاف: {formatSignedMoney(reconciliationDiff, { showPlus: true })}
       </p>
       <p className={dashboardReconcileFormulaClass}>
         موجودی اول + درآمد − هزینه = مانده محاسبه‌شده

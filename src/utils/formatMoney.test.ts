@@ -7,7 +7,8 @@ import {
   formatSignedNumber
 } from './formatMoney'
 
-const LRM = '‎'
+const LRI = '\u2066'
+const PDI = '\u2069'
 
 describe('formatCompactNumber', () => {
   it('uses Persian digits and units', () => {
@@ -23,14 +24,18 @@ describe('formatCompactNumber', () => {
   })
 
   it('keeps the minus attached', () => {
-    expect(formatCompactNumber(-2_000_000)).toBe(`${LRM}${MINUS_SIGN}${formatPersianNumber(2)} م`)
+    expect(formatCompactNumber(-2_000_000)).toBe(
+      `${LRI}${MINUS_SIGN}${formatPersianNumber(2)}${PDI} م`
+    )
   })
 })
 
 describe('formatSignedNumber', () => {
   it('attaches the sign with no space', () => {
-    expect(formatSignedNumber(-170_000)).toBe(`${LRM}${MINUS_SIGN}${formatPersianNumber(170_000)}`)
-    expect(formatSignedNumber(5, { showPlus: true })).toBe(`${LRM}+${formatPersianNumber(5)}`)
+    expect(formatSignedNumber(-170_000)).toBe(
+      `${LRI}${MINUS_SIGN}${formatPersianNumber(170_000)}${PDI}`
+    )
+    expect(formatSignedNumber(5, { showPlus: true })).toBe(`${LRI}+${formatPersianNumber(5)}${PDI}`)
     expect(formatSignedNumber(5)).toBe(formatPersianNumber(5))
   })
 })

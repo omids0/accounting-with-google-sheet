@@ -177,7 +177,7 @@ export default function ReceivableCard({
                     onClick={e => e.stopPropagation()}
                   />
                   <div>
-                    <span dir="ltr">{formatMoney(payment.amount)}</span>
+                    <span>{formatMoney(payment.amount)}</span>
                     <span className={installmentDueClass}>
                       {formatIsoDatePersian(payment.paidAt)}
                     </span>

@@ -208,9 +208,7 @@ export default function WalletBankCardVisual({
           <div className={walletBankCardHolderClass}>{holderLabel}</div>
           {subtitle && <div className={walletBankCardTitleClass}>{subtitle}</div>}
         </div>
-        <div className={walletBankCardBalanceClass} dir="ltr">
-          {formatMoney(balance)}
-        </div>
+        <div className={walletBankCardBalanceClass}>{formatMoney(balance)}</div>
       </div>
     </div>
   )

@@ -147,9 +147,7 @@ function CategoryDonutChart({
                 <span className={categoryDonutLegendPctClass}>
                   {formatPersianNumber(pct, { useGrouping: false })}٪
                 </span>
-                <span className={categoryDonutLegendValueClass} dir="ltr">
-                  {formatMoney(slice.total)}
-                </span>
+                <span className={categoryDonutLegendValueClass}>{formatMoney(slice.total)}</span>
               </li>
             )
           })}

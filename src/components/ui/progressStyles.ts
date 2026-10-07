@@ -18,8 +18,8 @@ export function progressBarClass({
     variant === 'success' && 'progress-bar--success',
     variant === 'complete' && 'progress-bar--complete',
     !animated &&
-      'progress-bar--static-width [&_.progress-bar__track]:animate-none [&_.progress-bar__fill]:animate-none [&_.progress-bar__fill]:transition-none',
-    !shimmer && 'progress-bar--no-shimmer [&_.progress-bar__sweep]:hidden',
+      'progress-bar--static-width [&_.progress-bar-track]:animate-none [&_.progress-bar-fill]:animate-none [&_.progress-bar-fill]:transition-none',
+    !shimmer && 'progress-bar--no-shimmer [&_.progress-bar-sweep]:hidden',
     className
   )
 }
@@ -27,7 +27,7 @@ export function progressBarClass({
 export const progressBarMetaClass = 'progress-bar__meta flex items-center gap-[0.55rem]'
 
 export const progressBarTrackClass = cn(
-  'progress-bar__track relative h-[7px] min-w-0 flex-1 overflow-hidden rounded-full',
+  'progress-bar-track relative h-[7px] min-w-0 flex-1 overflow-hidden rounded-full',
   '[background:color-mix(in_srgb,var(--color-border)_62%,transparent)] shadow-[inset_0_1px_2px_rgba(15,23,42,0.07)]',
   'animate-[progressTrackIn_0.45s_var(--ease-page)_both] [animation-delay:var(--progress-delay,0s)]'
 )
@@ -39,7 +39,7 @@ export const progressBarTrackClass = cn(
  */
 export function progressBarFillClass(variant: ProgressBarVariant = 'default') {
   return cn(
-    'progress-bar__fill absolute inset-0 overflow-hidden rounded-[inherit]',
+    'progress-bar-fill absolute inset-0 overflow-hidden rounded-[inherit]',
     'transition-transform duration-[750ms] ease-[cubic-bezier(0.33,1,0.68,1)]',
     'animate-[progressFillIn_750ms_cubic-bezier(0.33,1,0.68,1)_backwards] [animation-delay:var(--progress-delay,0s)]',
     variant === 'success' &&
@@ -53,7 +53,7 @@ export function progressBarFillClass(variant: ProgressBarVariant = 'default') {
 
 /** Holds the shine + glow over the visible part of the fill only. */
 export const progressBarSweepClass =
-  'progress-bar__sweep pointer-events-none absolute inset-y-0 left-0 motion-reduce:hidden'
+  'progress-bar-sweep pointer-events-none absolute inset-y-0 left-0 motion-reduce:hidden'
 
 /** Two sweeps after mount, then rest — no infinite compositor work per bar. */
 export const progressBarShineClass = cn(

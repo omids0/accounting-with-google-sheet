@@ -70,7 +70,7 @@ export default function OpeningBalanceCard({
         <div className={walletItemInfoClass}>
           <div className={walletItemTitleRowClass}>
             <div className={walletItemTitleClass}>{formatJalaliMonthLabel(item.monthKey)}</div>
-            <div className={cn(walletItemAmountClass, listCardAmountPillClass)} dir="ltr">
+            <div className={cn(walletItemAmountClass, listCardAmountPillClass)}>
               {formatMoney(displayAmount)}
             </div>
           </div>

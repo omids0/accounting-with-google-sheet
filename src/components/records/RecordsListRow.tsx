@@ -74,10 +74,7 @@ function RecordsListRow({
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         {amount && (
-          <div
-            className={cn(isIncome ? amountIncomeClass : isExpense ? amountExpenseClass : '')}
-            dir="ltr"
-          >
+          <div className={cn(isIncome ? amountIncomeClass : isExpense ? amountExpenseClass : '')}>
             {formatSignedMoney(isExpense ? -Math.abs(parseNumeric(amount)) : parseNumeric(amount), {
               showPlus: isIncome
             })}

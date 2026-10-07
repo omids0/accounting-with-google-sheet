@@ -87,9 +87,7 @@ export default function InstallmentPaymentItem({
               </span>
             ) : null}
           </div>
-          <div className={installmentPaymentAmountDisplayClass} dir="ltr">
-            {formatMoney(displayAmount)}
-          </div>
+          <div className={installmentPaymentAmountDisplayClass}>{formatMoney(displayAmount)}</div>
           <AppIcon
             name="chevron-down"
             size={14}

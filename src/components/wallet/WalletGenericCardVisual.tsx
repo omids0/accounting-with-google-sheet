@@ -76,9 +76,7 @@ export default function WalletGenericCardVisual({
         <div className="min-w-0 flex-1 text-right">
           {note ? <div className={walletGenericCardNoteClass}>{note}</div> : null}
         </div>
-        <div className={walletGenericCardBalanceClass} dir="ltr">
-          {formatMoney(balance)}
-        </div>
+        <div className={walletGenericCardBalanceClass}>{formatMoney(balance)}</div>
       </div>
     </div>
   )

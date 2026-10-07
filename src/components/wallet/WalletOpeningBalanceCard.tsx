@@ -54,7 +54,7 @@ export default function WalletOpeningBalanceCard({
         <div className={walletItemInfoClass}>
           <div className={walletItemTitleRowClass}>
             <div className={listCardTitleClass}>موجودی اول دوره</div>
-            <div className={listCardAmountPillClass} dir="ltr">
+            <div className={listCardAmountPillClass}>
               {formatMoney(periodFlow.openingBalance ?? 0)}
             </div>
           </div>

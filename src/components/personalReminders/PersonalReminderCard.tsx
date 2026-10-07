@@ -57,9 +57,7 @@ export default function PersonalReminderCard({
             <div className={dangCardHeaderClass}>
               <span className={dangCardTitleClass}>{item.title || '—'}</span>
               {item.amount > 0 ? (
-                <span className={dangCardAmountClass} dir="ltr">
-                  {formatMoney(item.amount)}
-                </span>
+                <span className={dangCardAmountClass}>{formatMoney(item.amount)}</span>
               ) : null}
             </div>
             <div className={dangCardMetaClass}>

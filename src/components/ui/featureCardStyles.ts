@@ -263,7 +263,7 @@ export const dangCardAmountEditClass = 'pt-[0.35rem] pb-[0.15rem]'
 
 export const dangTotalFooterClass = cn(
   'mt-1 flex items-center justify-between bg-bg px-5 py-[0.85rem] text-center',
-  '[&.stat-card_.stat-card__value-row--wide]:justify-center'
+  '[&.stat-card_.stat-card-value-row--wide]:justify-center'
 )
 
 export const dangTotalLabelClass = 'text-[0.85rem] text-muted'
