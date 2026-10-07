@@ -1,3 +1,11 @@
+import {
+  accordionCardChevronClass,
+  accordionCardIconClass,
+  accordionCardSummaryClass,
+  accordionCardTextClass,
+  accordionCardTitleClass,
+  accordionCardTriggerClass
+} from './accordionCardStyles'
 import { cn } from '../../utils/cn'
 
 export const aboutPageClass = cn('flex flex-col gap-2 pb-4', 'lg:max-w-4xl lg:mx-auto lg:w-full')
@@ -22,28 +30,17 @@ export function aboutSectionClass(expanded?: boolean) {
   return cn('overflow-hidden p-0', expanded && 'about-section--expanded')
 }
 
-export const aboutSectionTriggerClass = cn(
-  'flex w-full cursor-pointer items-center gap-3 border-none bg-transparent p-4 py-[0.875rem] text-start text-inherit',
-  'hover:[background:var(--color-surface-elevated,rgba(0,0,0,0.03))]'
-)
+export const aboutSectionTriggerClass = accordionCardTriggerClass
 
-export const aboutSectionIconClass = cn(
-  'inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[0.625rem] text-primary',
-  '[background:var(--color-surface-elevated,rgba(0,0,0,0.04))]'
-)
+export const aboutSectionIconClass = accordionCardIconClass
 
-export const aboutSectionTextClass = 'flex min-w-0 flex-1 flex-col gap-[0.15rem]'
+export const aboutSectionTextClass = accordionCardTextClass
 
-export const aboutSectionTitleClass = 'text-[0.9375rem] font-bold leading-[1.4]'
+export const aboutSectionTitleClass = accordionCardTitleClass
 
-export const aboutSectionSummaryClass = 'text-xs leading-[1.5] text-muted'
+export const aboutSectionSummaryClass = accordionCardSummaryClass
 
-export function aboutSectionChevronClass(expanded?: boolean) {
-  return cn(
-    'inline-flex flex-shrink-0 text-muted transition-transform duration-[var(--duration-slow,0.25s)] ease-[var(--ease-out,ease)]',
-    expanded && 'rotate-180'
-  )
-}
+export const aboutSectionChevronClass = accordionCardChevronClass
 
 export const aboutFeatureListClass = 'm-0 flex list-none flex-col gap-1 px-4 pb-3'
 
