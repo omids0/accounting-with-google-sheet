@@ -34,6 +34,20 @@ public class BankSmsPlugin extends Plugin {
     private static final String[] PROJECTION = { Telephony.Sms.ADDRESS, Telephony.Sms.BODY, Telephony.Sms.DATE };
 
     @PluginMethod
+    public void setEnabled(PluginCall call) {
+        boolean enabled = Boolean.TRUE.equals(call.getBoolean("enabled", false));
+
+        BankSmsStore.setEnabled(getContext(), enabled);
+
+        if (!enabled) {
+            BankSmsStore.clear(getContext());
+            BankSmsNotifier.cancel(getContext());
+        }
+
+        call.resolve();
+    }
+
+    @PluginMethod
     public void getPending(PluginCall call) {
         JSObject ret = new JSObject();
 

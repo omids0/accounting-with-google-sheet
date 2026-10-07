@@ -55,3 +55,25 @@ export const smsInboxListClass =
 
 export const smsInboxItemClass =
   'w-full rounded-[var(--radius-sm)] border border-border bg-surface p-2 text-start text-[0.78rem] leading-[1.6] hover:border-primary'
+
+export const smsPageClass = 'flex flex-col gap-3'
+
+export const smsCardClass = 'flex flex-col gap-3'
+
+export const smsCardHeadClass = 'flex flex-wrap items-center justify-between gap-2'
+
+export const smsCardTitleClass = 'm-0 text-[0.9rem] font-bold text-primary-dark'
+
+export function smsAmountClass(direction: 'debit' | 'credit') {
+  return cn(
+    'text-[1rem] font-bold',
+    direction === 'debit' ? 'text-[var(--color-expense)]' : 'text-[var(--color-income)]'
+  )
+}
+
+export const smsMetaClass = 'm-0 flex flex-wrap gap-x-3 gap-y-1 text-[0.75rem] text-muted'
+
+export const smsRawClass = 'text-[0.75rem] leading-[1.7] text-muted [&>summary]:cursor-pointer'
+
+export const smsBadgeClass =
+  'rounded-full border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-2 py-0.5 text-[0.7rem] font-bold text-warning'

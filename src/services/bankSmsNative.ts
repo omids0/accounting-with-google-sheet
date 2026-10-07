@@ -24,6 +24,7 @@ interface BankSmsPlugin {
   scanInbox(options: { sinceMs: string }): Promise<{ added: number; scannedAt: number }>
   listInbox(options: { limit: number }): Promise<{ items: BankSmsItem[] }>
   clear(): Promise<void>
+  setEnabled(options: { enabled: boolean }): Promise<void>
 }
 
 const BankSms = registerPlugin<BankSmsPlugin>('BankSms')
@@ -71,8 +72,9 @@ export async function listBankSmsInbox(limit = 30): Promise<BankSmsItem[]> {
   return (await BankSms.listInbox({ limit })).items
 }
 
-export async function clearBankSmsStore(): Promise<void> {
+/** Turning it off also clears the native queue and silences the receiver. */
+export async function setBankSmsCaptureEnabled(enabled: boolean): Promise<void> {
   if (!isBankSmsAvailable()) return
 
-  await BankSms.clear()
+  await BankSms.setEnabled({ enabled })
 }

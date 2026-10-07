@@ -8,6 +8,7 @@ import type { RecordsDatePreset } from '../../utils/dateRange'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import ActiveFilterChips, { type FilterChip } from '../ActiveFilterChips'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
+import BankSmsPendingBanner from '../bankSms/BankSmsPendingBanner'
 import CardEditButton from '../CardEditButton'
 import DashboardChartsSection from '../charts/DashboardChartsSection'
 import DateRangeFilter, { createDefaultDateRangeFilter } from '../DateRangeFilter'
@@ -100,6 +101,7 @@ export default function DashboardContent({
 }: DashboardContentProps) {
   return (
     <div className={dashboardPageClass}>
+      <BankSmsPendingBanner />
       <ActiveFilterChips
         chips={filterChips}
         onOpenFilters={openFilterModal}

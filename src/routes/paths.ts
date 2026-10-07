@@ -35,6 +35,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   receivables: '/receivables',
   treasury: '/treasury',
   wallet: '/wallet',
+  'bank-sms': '/bank-sms',
   entry: '/entry',
   records: '/records',
   'opening-balances': '/wallet/opening-balances',

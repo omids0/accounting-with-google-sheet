@@ -16,6 +16,7 @@ public class BankSmsReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent == null || !Telephony.Sms.Intents.SMS_RECEIVED_ACTION.equals(intent.getAction())) return;
+        if (!BankSmsStore.isEnabled(context)) return;
 
         SmsMessage[] messages = Telephony.Sms.Intents.getMessagesFromIntent(intent);
 

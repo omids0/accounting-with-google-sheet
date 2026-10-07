@@ -1,6 +1,7 @@
 package com.omids0.accounting.banksms;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
@@ -50,6 +51,8 @@ final class BankSmsStore {
     }
 
     private static final String FILE_NAME = "bank_sms_store.bin";
+    private static final String PREFS_NAME = "bank_sms";
+    private static final String PREF_ENABLED = "enabled";
     private static final String KEY_ALIAS = "bank_sms_store";
     private static final String KEYSTORE = "AndroidKeyStore";
     private static final long HANDLED_TTL_MS = 120L * 24 * 60 * 60 * 1000;
@@ -58,6 +61,19 @@ final class BankSmsStore {
     private static final byte FORMAT_AES_GCM = 1;
 
     private BankSmsStore() {}
+
+    /** Mirrors the in-app switch so the receiver stays silent while the feature is off. */
+    static boolean isEnabled(Context context) {
+        return prefs(context).getBoolean(PREF_ENABLED, false);
+    }
+
+    static void setEnabled(Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(PREF_ENABLED, enabled).apply();
+    }
+
+    private static SharedPreferences prefs(Context context) {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
 
     /** Bank SMS carry the balance and time, so the body alone identifies one. */
     static String idFor(String body) {

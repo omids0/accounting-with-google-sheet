@@ -8,6 +8,7 @@ import LayoutUpdateItem from './LayoutUpdateItem'
 import TabNavLink from './TabNavLink'
 import { TAB_TITLES, type Tab } from './types'
 import { SETTINGS_PATH } from '../../routes/paths'
+import { isBankSmsAvailable } from '../../services/bankSmsNative'
 import { cn } from '../../utils/cn'
 import type { AppIconName } from '../appIcon/types'
 import {
@@ -162,6 +163,15 @@ export default function LayoutMenu({
               active={onPage('vehicle-service', 'vehicle-detail')}
               onTabChange={onTabChange}
             />
+            {isBankSmsAvailable() && (
+              <MenuLinkItem
+                tab="bank-sms"
+                icon="empty-inbox"
+                hint="ثبت هزینه و درآمد از پیامک بانک"
+                active={onPage('bank-sms')}
+                onTabChange={onTabChange}
+              />
+            )}
             <MenuLinkItem
               tab="counterparties"
               icon="counterparties"

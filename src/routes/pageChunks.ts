@@ -83,6 +83,8 @@ export const loadTreasuryPage: PageLoader = () => import('../components/Treasury
 
 export const loadWalletPage: PageLoader = () => import('../components/WalletPage')
 
+export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
+
 export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   dashboard: loadDashboardPage,
   installments: loadInstallmentsPage,
@@ -93,6 +95,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   receivables: loadReceivablesPage,
   treasury: loadTreasuryPage,
   wallet: loadWalletPage,
+  'bank-sms': loadBankSmsPage,
   records: loadRecordsPage,
   entry: loadDataEntryPage,
   'opening-balances': loadOpeningBalancePage,
