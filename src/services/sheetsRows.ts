@@ -1,5 +1,5 @@
-import { apiRequest, SHEETS_API } from './sheetsApi'
-import { parseSheetNameFromRange } from './sheetsMeta'
+import { apiRequest, SHEETS_API, SheetsApiError } from './sheetsApi'
+import { normalizeSheetTitle, parseSheetNameFromRange } from './sheetsMeta'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import {
   appendSheetDataRow,
@@ -32,6 +32,41 @@ export async function fetchSheetRangeFromApi(
   return (data.values ?? []).map(row => row.map(cell => cellToString(cell)))
 }
 
+type BatchGetResponse = { valueRanges?: { range?: string; values?: unknown[][] }[] }
+
+function batchGet(spreadsheetId: string, sheetNames: string[]): Promise<BatchGetResponse> {
+  const params = sheetNames
+    .map(name => `ranges=${encodeURIComponent(`${name}!${SHEET_FULL_RANGE}`)}`)
+    .join('&')
+
+  return apiRequest<BatchGetResponse>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`)
+}
+
+/**
+ * Google rejects a whole batchGet (400 «Unable to parse range») when one tab is
+ * missing, e.g. a tab a newer app version knows but this spreadsheet never got.
+ * Retry once with only the tabs that exist, so one missing tab cannot stop every
+ * other sheet from syncing.
+ */
+async function batchGetSkippingMissing(
+  spreadsheetId: string,
+  sheetNames: string[]
+): Promise<BatchGetResponse> {
+  try {
+    return await batchGet(spreadsheetId, sheetNames)
+  } catch (err) {
+    if (!(err instanceof SheetsApiError) || err.status !== 400) throw err
+
+    const { getSheetTitles } = await import('./sheetsEnsure')
+    const existing = new Set((await getSheetTitles(spreadsheetId, true)).map(normalizeSheetTitle))
+    const present = sheetNames.filter(name => existing.has(normalizeSheetTitle(name)))
+
+    if (present.length === sheetNames.length) throw err
+
+    return present.length ? batchGet(spreadsheetId, present) : {}
+  }
+}
+
 export async function batchFetchSheetRangesFromApi(
   spreadsheetId: string,
   sheetNames: string[]
@@ -49,15 +84,7 @@ export async function batchFetchSheetRangesFromApi(
   }
 
   const responses = await Promise.all(
-    chunks.map(chunk => {
-      const params = chunk
-        .map(name => `ranges=${encodeURIComponent(`${name}!${SHEET_FULL_RANGE}`)}`)
-        .join('&')
-
-      return apiRequest<{
-        valueRanges?: { range?: string; values?: unknown[][] }[]
-      }>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`)
-    })
+    chunks.map(chunk => batchGetSkippingMissing(spreadsheetId, chunk))
   )
 
   for (const data of responses) {

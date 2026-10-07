@@ -2,6 +2,7 @@ import type { AppSettings } from '../types'
 import { checkRemoteChanged, rememberRemoteVersion } from './sheetRemoteVersion'
 import type { RevisionMap } from './sheetRevisions'
 import { fetchSheetRevisions, findChangedSheets, markSheetsSeen } from './sheetRevisions'
+import { missingSheetNames } from './sheetsMeta'
 import { invalidateDerivedCaches } from './sheetSyncOutbox'
 import { getKnownSheetNames } from './sheetSyncSheetNames'
 import { getSheetWriteVersion, snapshotSheetWriteVersions } from './sheetWriteVersions'
@@ -73,6 +74,14 @@ export async function pullRemoteSheets(
   const versionsBefore = snapshotSheetWriteVersions(spreadsheetId, sheetNames)
 
   const fetched = await fetchSheetsBatchFromApi(spreadsheetId, sheetNames)
+  const missing = missingSheetNames(sheetNames, fetched.keys())
+
+  if (missing.length) {
+    // Download skipped them; create them so the next sync covers them too.
+    void import('./spreadsheetSetup')
+      .then(({ repairMissingSheets }) => repairMissingSheets(spreadsheetId, missing))
+      .catch(() => undefined)
+  }
 
   // Checked after the fetch: a local write made while it was in flight must
   // not be overwritten by the older copy that just arrived.
