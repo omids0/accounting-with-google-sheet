@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 
 import { BANK_SMS_FIXTURES, fixtureAccount } from './bankSmsFixtures'
 import { guessTemplate } from './bankSmsGuess'
-import { accountMatchesRef, compileTemplate, matchSms, refDigits } from './bankSmsMatch'
+import {
+  accountMatchesRef,
+  compileTemplate,
+  matchSms,
+  refDigits,
+  sampleRefDigits
+} from './bankSmsMatch'
 import { normalizeSmsText } from './bankSmsText'
 import type { SmsTemplate } from '../types'
 
@@ -84,10 +90,43 @@ describe('matchSms — choosing the account', () => {
     })
   })
 
-  it('is unknown when the reference belongs to no saved account', () => {
+  it('asks which account when the digits fit none of the candidates', () => {
     const stranger = MELLAT.next.replace('4567***1234', '4567***5555')
 
-    expect(matchSms(stranger, [mellatA, mellatB], accounts)).toEqual({ kind: 'unknown' })
+    expect(matchSms(stranger, [mellatA, mellatB], accounts)).toMatchObject({
+      kind: 'ambiguous',
+      candidates: [{ accountId: 'accA' }, { accountId: 'accB' }]
+    })
+  })
+
+  it('still offers the SMS when the account only has a card number saved (account digits in SMS)', () => {
+    // The phone case: template built from this bank's SMS, but the SMS shows the
+    // account number while the app only knows the card number.
+    const cardOnly = [fixtureAccount('accA', { cardNumber: '6104337800001111' })]
+
+    expect(matchSms(MELLAT.next, [mellatA], cardOnly)).toMatchObject({
+      kind: 'ambiguous',
+      candidates: [{ accountId: 'accA' }]
+    })
+    expect(matchSms(MELLAT.next, [mellatA], cardOnly, { '1234': 'accA' })).toMatchObject({
+      kind: 'matched',
+      accountId: 'accA',
+      ref: '1234'
+    })
+  })
+
+  it('lets learned digits pick between two same-bank accounts', () => {
+    const blank = [fixtureAccount('accA'), fixtureAccount('accB')]
+
+    expect(matchSms(MELLAT.next, [mellatA, mellatB], blank, { '1234': 'accB' })).toMatchObject({
+      kind: 'matched',
+      accountId: 'accB'
+    })
+  })
+
+  it('reads the reference digits of a sample', () => {
+    expect(sampleRefDigits(mellatA.parts, MELLAT.sample)).toBe('1234')
+    expect(sampleRefDigits(mellatA.parts, 'متن دیگر')).toBe('')
   })
 
   it('ignores templates whose account was deleted', () => {

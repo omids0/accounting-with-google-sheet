@@ -80,7 +80,6 @@ export function compileTemplate(parts: SmsTemplatePart[]): CompiledSmsTemplate {
 interface TemplateHit {
   template: SmsTemplate
   values: SmsParsedValues
-  accountRef: string | null
   literalLength: number
 }
 
@@ -97,6 +96,7 @@ function runTemplate(template: SmsTemplate, text: string): TemplateHit | null {
   }
 
   const balance = captured('balance')
+  const accountRef = captured('accountRef')
 
   return {
     template,
@@ -104,9 +104,9 @@ function runTemplate(template: SmsTemplate, text: string): TemplateHit | null {
       direction: template.direction,
       unit: template.unit,
       amount: parseNumeric(captured('amount')),
-      balance: balance === null ? null : parseNumeric(balance)
+      balance: balance === null ? null : parseNumeric(balance),
+      ref: accountRef ? refDigits(accountRef) : ''
     },
-    accountRef: captured('accountRef'),
     literalLength: template.parts.reduce(
       (sum, part) => sum + (part.kind === 'text' ? part.value.trim().length : 0),
       0
@@ -139,15 +139,46 @@ export function accountMatchesRef(account: RefAccount, ref: string | null): bool
   return known.some(value => value.endsWith(digits) || digits.endsWith(value))
 }
 
+/** Visible reference digits in a sample SMS read with `parts` ('' when none). */
+export function sampleRefDigits(parts: SmsTemplatePart[], raw: string): string {
+  const { regex, roles } = compileTemplate(parts)
+  const match = normalizeSmsText(raw).match(regex)
+  const index = roles.indexOf('accountRef')
+
+  return match && index >= 0 ? refDigits(match[index + 1]) : ''
+}
+
+/** Reference digits the user tied to an account (device-local, see bankSmsPrefs). */
+export type LearnedSmsRefs = Record<string, string>
+
+function fitsAccount(
+  hit: TemplateHit,
+  account: RefAccount,
+  learned: LearnedSmsRefs
+): boolean | null {
+  const { ref } = hit.values
+  const owner = ref ? learned[ref] : undefined
+
+  if (owner) return owner === account.id
+
+  return accountMatchesRef(account, ref || null)
+}
+
 function toCandidate(hit: TemplateHit): SmsMatchCandidate {
   return { templateId: hit.template.id, accountId: hit.template.accountId }
 }
 
-/** Recognise one SMS against all saved templates. */
+/**
+ * Recognise one SMS against all saved templates.
+ * The account comes from the matched template; its card/account digits, or digits
+ * the user tied to an account before (`learned`), decide between same-shape templates.
+ * When the digits fit none of them the SMS is still offered, as «which account?».
+ */
 export function matchSms(
   raw: string,
   templates: SmsTemplate[],
-  accounts: RefAccount[]
+  accounts: RefAccount[],
+  learned: LearnedSmsRefs = {}
 ): SmsMatchResult {
   const text = normalizeSmsText(raw)
   const accountById = new Map(accounts.map(account => [account.id, account]))
@@ -161,17 +192,16 @@ export function matchSms(
 
   const verdicts = hits.map(hit => ({
     hit,
-    fits: accountMatchesRef(accountById.get(hit.template.accountId) as RefAccount, hit.accountRef)
+    fits: fitsAccount(hit, accountById.get(hit.template.accountId) as RefAccount, learned)
   }))
 
   const confirmed = verdicts.filter(v => v.fits === true).map(v => v.hit)
-  const pool = confirmed.length ? confirmed : verdicts.filter(v => v.fits === null).map(v => v.hit)
-
-  if (!pool.length) return { kind: 'unknown' }
-
+  const undecided = verdicts.filter(v => v.fits === null).map(v => v.hit)
+  const pool = confirmed.length ? confirmed : undecided.length ? undecided : hits
   const perAccount = [...new Map(pool.map(hit => [hit.template.accountId, hit])).values()]
 
-  if (perAccount.length === 1) {
+  // Digits that fit no candidate: let the user pick (and learn) instead of guessing.
+  if (perAccount.length === 1 && pool !== hits) {
     return { kind: 'matched', ...toCandidate(perAccount[0]), ...perAccount[0].values }
   }
 

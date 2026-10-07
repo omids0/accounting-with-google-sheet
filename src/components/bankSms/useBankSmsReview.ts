@@ -4,11 +4,14 @@ import { useSmsTemplates } from './useSmsTemplates'
 import {
   confirmSmsEntry,
   confirmSmsTransfer,
+  defaultSmsRecord,
   dismissSms,
+  isConfirmable,
   type ConfirmableSms,
   type SmsRecordInput
 } from '../../services/bankSmsApply'
 import { matchSms } from '../../services/bankSmsMatch'
+import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { buildReviewItems, reviewSms, type LedgerEntry } from '../../services/bankSmsQueue'
 import { getSettings } from '../../services/settings'
 import { fetchRecords } from '../../services/sheets'
@@ -89,7 +92,13 @@ export function useBankSmsReview() {
   }, [pending, templates, accounts, templatesLoading, refresh])
 
   const items = useMemo(
-    () => buildReviewItems(reviewSms(pending, templates, accounts, currency), ledger, noPair),
+    () =>
+      buildReviewItems(
+        // Prefs change when a template is saved or an SMS confirmed, which also changes these deps.
+        reviewSms(pending, templates, accounts, currency, getBankSmsPrefs().refAccounts),
+        ledger,
+        noPair
+      ),
     [pending, templates, accounts, currency, ledger, noPair]
   )
 
@@ -115,8 +124,27 @@ export function useBankSmsReview() {
     }
   }
 
+  /** Recognised, single-account, not a probable duplicate: safe for «ثبت همه». */
+  const bulk = items.flatMap(item =>
+    item.kind === 'single' && !item.probableDuplicate && isConfirmable(item.entry)
+      ? [item.entry]
+      : []
+  )
+
+  const confirmAll = () =>
+    run('all', `${bulk.length} تراکنش ثبت شد`, async spreadsheetId => {
+      for (const entry of bulk) {
+        const title =
+          accounts.find(account => account.id === entry.result.accountId)?.title ?? 'حساب'
+
+        await confirmSmsEntry(spreadsheetId, entry, defaultSmsRecord(entry, title))
+      }
+    })
+
   return {
     items,
+    bulkCount: bulk.length,
+    confirmAll,
     accounts,
     currency,
     busyKey,

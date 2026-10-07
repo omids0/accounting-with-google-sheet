@@ -5,6 +5,7 @@ import { resolveBankInternalId } from './banks'
 import { CUSTOM_CARD_COLOR_ID, isCustomCardColor, normalizeHexColor } from './customCardTheme'
 import type { WalletAccountWithRow, WalletFormState } from './types'
 import { resolveAccountKind } from './walletCardUtils'
+import { learnSmsRef } from '../../services/bankSmsPrefs'
 import { createSmsTemplate, deleteAccountSmsTemplates } from '../../services/bankSmsTemplates'
 import {
   createLinkedExpenseRecord,
@@ -132,8 +133,9 @@ export function useWalletMutations({
       } else {
         const account = await createWalletAccount(settings.spreadsheetId, payload)
 
-        for (const draft of smsDrafts) {
+        for (const { sampleRef, ...draft } of smsDrafts) {
           await createSmsTemplate(settings.spreadsheetId, { ...draft, accountId: account.id })
+          learnSmsRef(sampleRef, account.id)
         }
         showSuccess('حساب جدید اضافه شد')
         await loadItems()

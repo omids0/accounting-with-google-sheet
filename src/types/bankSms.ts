@@ -33,6 +33,8 @@ export interface SmsParsedValues {
   /** In the SMS's own unit; convert with `toAppCurrency` before storing. */
   amount: number
   balance: number | null
+  /** Visible digits of the card/account reference in the SMS ('' when none). */
+  ref: string
 }
 
 export interface SmsMatchCandidate {

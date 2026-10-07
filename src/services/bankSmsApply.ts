@@ -1,8 +1,9 @@
 import { markBankSmsHandled } from './bankSmsNative'
-import { getBankSmsPrefs, updateBankSmsPrefs } from './bankSmsPrefs'
+import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
 import { nextAccountBalance, type ConfirmableSms } from './bankSmsQueue'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
+import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 import { toIsoDate } from '../utils/jalaliDate'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
@@ -16,6 +17,8 @@ export interface SmsRecordInput {
 export const SMS_RECORD_NOTE = 'ثبت از پیامک'
 
 async function applyBalance(spreadsheetId: string, entry: ConfirmableSms): Promise<void> {
+  learnSmsRef(entry.result.ref, entry.result.accountId)
+
   const account = (await fetchWalletAccounts(spreadsheetId)).find(
     item => item.id === entry.result.accountId
   )
@@ -98,4 +101,15 @@ export async function confirmSmsTransfer(
 
 export async function dismissSms(ids: string[]): Promise<void> {
   await markBankSmsHandled(ids)
+}
+
+/** Title and category used when confirming without opening the card («ثبت همه»). */
+export function defaultSmsRecord(entry: ConfirmableSms, accountTitle: string): SmsRecordInput {
+  const remembered = getBankSmsPrefs().lastCategory[entry.result.templateId]
+
+  return {
+    title: `${accountTitle} — پیامک`,
+    category: remembered?.category || OTHER_CATEGORY,
+    subCategory: remembered?.subCategory ?? ''
+  }
 }
