@@ -44,7 +44,11 @@ export default function Sparkline({
 
   const gradientId = useId().replace(/:/g, '')
 
-  const chartData = useMemo(() => data.map((value, index) => ({ index, value })), [data])
+  // Right-to-left like the bar charts: the first point sits on the right edge.
+  const chartData = useMemo(
+    () => [...data].reverse().map((value, index) => ({ index, value })),
+    [data]
+  )
 
   if (chartData.length < 2) return null
 

@@ -11,7 +11,13 @@ import {
 } from 'recharts'
 
 import ChartTooltip from './ChartTooltip'
-import { formatAxisMoney, getCategoryLabelAxisWidth, truncateCategoryLabel } from './chartUtils'
+import {
+  formatAxisMoney,
+  getCategoryLabelAxisWidth,
+  rtlTickTextProps,
+  truncateCategoryLabel
+} from './chartUtils'
+import RtlCategoryTick from './RtlCategoryTick'
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
 import { cn } from '../../utils/cn'
 import { chartBarWrapClass, chartCardClass, chartTitleClass } from '../ui/chartStyles'
@@ -21,6 +27,9 @@ type ChartTooltipEntry = {
   dataKey?: string | number
   value?: number | string
 }
+
+/** Labels sit on the right; the left keeps room for the centred «۱۸ م» end tick. */
+const CHART_MARGIN = { top: 4, right: 0, left: 14, bottom: 2 }
 
 interface CategoryBarChartProps {
   title: string
@@ -61,14 +70,9 @@ function CategoryBarChart({
       <h3 className={chartTitleClass}>{title}</h3>
       <div className={chartBarWrapClass} dir="ltr">
         <ResponsiveContainer width="100%" height={height}>
-          <BarChart
-            data={chartData}
-            layout="vertical"
-            margin={{ top: 4, right: 4, left: 0, bottom: 2 }}
-            barCategoryGap="18%"
-          >
+          <BarChart data={chartData} layout="vertical" margin={CHART_MARGIN} barCategoryGap="18%">
             <defs>
-              <linearGradient id={`${gradientId}-cat-bar-${tone}`} x1="0" y1="0" x2="1" y2="0">
+              <linearGradient id={`${gradientId}-cat-bar-${tone}`} x1="1" y1="0" x2="0" y2="0">
                 <stop
                   offset="0%"
                   stopColor={tone === 'income' ? theme.income : theme.expense}
@@ -90,8 +94,9 @@ function CategoryBarChart({
             <XAxis
               type="number"
               domain={[0, maxTotal]}
+              reversed
               tickFormatter={v => formatAxisMoney(v)}
-              tick={{ fontSize: 10, fill: theme.muted }}
+              tick={{ fontSize: 10, fill: theme.muted, ...rtlTickTextProps }}
               axisLine={false}
               tickLine={false}
             />
@@ -99,10 +104,18 @@ function CategoryBarChart({
               type="category"
               dataKey="name"
               width={yAxisWidth}
-              orientation="left"
-              tick={{ fontSize: 10, fill: theme.muted, textAnchor: 'end' }}
+              orientation="right"
+              tick={tickProps => (
+                <RtlCategoryTick
+                  {...tickProps}
+                  axisWidth={yAxisWidth}
+                  tickMargin={4}
+                  fill={theme.muted}
+                  fontSize={10}
+                  format={truncateCategoryLabel}
+                />
+              )}
               tickMargin={4}
-              tickFormatter={value => truncateCategoryLabel(String(value))}
               axisLine={false}
               tickLine={false}
             />
