@@ -1,14 +1,17 @@
+import { cn } from '../../utils/cn'
 import type { LoanInputErrors, LoanMethod } from '../../utils/loanCalculator'
 import { normalizeDigits } from '../../utils/normalizeDigits'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
 import TransactionTypeSegment from '../TransactionTypeSegment'
-import {
-  loanCalculatorHintClass,
-  loanRateInputWrapClass,
-  loanRateSuffixClass
-} from '../ui/calculatorStyles'
+import { loanCalculatorHintClass } from '../ui/calculatorStyles'
 import Card, { CardTitle } from '../ui/Card'
+import {
+  amountFieldCurrencyClass,
+  amountFieldInputClass,
+  amountFieldInputWrapClass,
+  amountFieldInputWrapInvalidClass
+} from '../ui/formControlStyles'
 import { formFieldClass, formHintClass, formLabelClass } from '../ui/formStyles'
 
 export const LOAN_METHOD_OPTIONS: { id: LoanMethod; label: string }[] = [
@@ -89,7 +92,13 @@ export default function LoanInputsCard({
           ) : undefined
         }
       >
-        <div className={loanRateInputWrapClass} dir="ltr">
+        {/* Same shell as AmountInput: the number first, its unit chip at the end (left in RTL). */}
+        <div
+          className={cn(
+            amountFieldInputWrapClass,
+            errors.annualRate && amountFieldInputWrapInvalidClass
+          )}
+        >
           <input
             type="text"
             inputMode="decimal"
@@ -98,8 +107,10 @@ export default function LoanInputsCard({
             aria-invalid={Boolean(errors.annualRate)}
             aria-label="نرخ سود سالانه"
             dir="ltr"
+            placeholder="۰"
+            className={cn(amountFieldInputClass, 'numeric')}
           />
-          <span className={loanRateSuffixClass} aria-hidden="true">
+          <span className={amountFieldCurrencyClass} aria-hidden="true">
             ٪
           </span>
         </div>

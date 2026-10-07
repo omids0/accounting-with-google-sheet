@@ -128,7 +128,10 @@ export default function VehicleMechanicFormModal({
       <div className="flex flex-col gap-3">
         <div className="text-[0.85rem] font-bold text-primary">اقلام کار</div>
         {fields.map((field, index) => (
-          <div key={field.id} className="flex flex-col gap-2 rounded-sm border border-border p-3">
+          <div
+            key={field.id}
+            className="flex flex-col gap-2 rounded-sm border border-border p-3 [&>.form-row]:mb-0"
+          >
             <FormRow>
               <Controller
                 name={`items.${index}.category`}

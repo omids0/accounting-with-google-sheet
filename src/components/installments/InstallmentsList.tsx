@@ -1,9 +1,8 @@
-import AppIcon from '../AppIcon'
+import EmptyState from '../EmptyState'
 import InstallmentPlanCard from '../InstallmentPlanCard'
 import SearchEmptyState from '../SearchEmptyState'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import type { DisplayPlanItem, PlanWithRow } from './types'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 export type InstallmentsListProps = {
@@ -24,6 +23,8 @@ export type InstallmentsListProps = {
     paymentIndex: number,
     nextAmount: number
   ) => Promise<void>
+  /** Opens the add form — the same action as the page speed dial. */
+  onAdd?: () => void
 }
 
 export default function InstallmentsList({
@@ -39,7 +40,8 @@ export default function InstallmentsList({
   onEdit,
   onDelete,
   onTogglePayment,
-  onPaymentAmountSave
+  onPaymentAmountSave,
+  onAdd
 }: InstallmentsListProps) {
   if (loading && plans.length === 0) {
     return <InstallmentCardListSkeleton filterChips={1} footerStats={2} />
@@ -47,24 +49,16 @@ export default function InstallmentsList({
 
   if (plans.length === 0) {
     return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="installments" />
-        </div>
-        <p>هنوز قسطی ثبت نشده</p>
-      </div>
+      <EmptyState
+        icon="installments"
+        message="هنوز قسطی ثبت نشده"
+        action={onAdd ? { label: 'افزودن قسط', onClick: onAdd } : undefined}
+      />
     )
   }
 
   if (monthPlans.length === 0) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="installments" />
-        </div>
-        <p>هیچ قسطی برای {monthLabel} نیست</p>
-      </div>
-    )
+    return <EmptyState icon="installments" message={`هیچ قسطی برای ${monthLabel} نیست`} />
   }
 
   if (filteredPlans.length === 0) {

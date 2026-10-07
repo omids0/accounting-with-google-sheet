@@ -208,7 +208,8 @@ export default function InstallmentFormModal({
             max={31}
             {...register('dueDay', requiredPositiveInteger('موعد قسط', 1, 31))}
             dir="ltr"
-            placeholder="۱ تا ۳۱"
+            // A Persian word inside this left-to-right field scrambled the order («تا ۱ ۳۱»).
+            placeholder="۱–۳۱"
           />
         </FormField>
       </FormRow>

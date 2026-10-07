@@ -124,7 +124,8 @@ export const ABOUT_FEATURE_GROUPS_TOOLS: AboutFeatureGroup[] = [
     id: 'settings',
     title: 'تنظیمات',
     icon: 'settings',
-    summary: 'شخصی‌سازی اپ، اعلان‌ها و مدیریت حساب.',
+    summary:
+      'شخصی‌سازی اپ، اعلان‌ها و مدیریت حساب؛ در چهار کارت «عمومی»، «حساب و داده»، «امنیت» و «اعلان‌ها» که با لمس باز و بسته می‌شوند.',
     features: [
       {
         title: 'یادآورها',

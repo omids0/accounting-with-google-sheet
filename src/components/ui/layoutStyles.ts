@@ -70,8 +70,10 @@ export const appContentColumnClass = cn(
 
 export const appMainClass = cn(
   appScrollbarClass,
-  'min-h-0 flex-1 overflow-y-auto p-[var(--space-page)] pb-[calc(5.75rem+var(--safe-bottom))]',
-  'lg:mx-auto lg:w-full lg:max-w-[var(--content-max-width)] lg:pb-[var(--space-page)]'
+  // Bottom room = bottom nav (5.75rem) + speed-dial button and its gap (4rem),
+  // so the last card scrolls fully clear of both.
+  'min-h-0 flex-1 overflow-y-auto p-[var(--space-page)] pb-[calc(9.75rem+var(--safe-bottom))]',
+  'lg:mx-auto lg:w-full lg:max-w-[var(--content-max-width)] lg:pb-[calc(var(--space-page)+4rem)]'
 )
 
 /** Shared shell header bar metrics — main header + desktop sidebar profile. */

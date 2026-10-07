@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 
 import SpeedDialIcon from './SpeedDialIcon'
+import { useHideOnScroll } from '../hooks/useHideOnScroll'
 import { cn } from '../utils/cn'
 import {
   fabContainerClass,
@@ -25,6 +26,9 @@ export default function PageSpeedDial({
   ariaLabel: string
 }) {
   const [open, setOpen] = useState(false)
+
+  // Slides away while the page scrolls down so it never sits on card content.
+  const { hidden, reveal } = useHideOnScroll({ disabled: open })
 
   const handleClose = () => setOpen(false)
 
@@ -54,7 +58,7 @@ export default function PageSpeedDial({
       )}
 
       <div className={cn(fabContainerClass, speedDialContainerClass)}>
-        <div className={speedDialClass}>
+        <div className={speedDialClass(hidden)} onFocusCapture={reveal}>
           <div className={speedDialActionsClass} role="menu">
             {actions.map((action, index) => (
               <div
@@ -89,7 +93,7 @@ export default function PageSpeedDial({
 
           <button
             type="button"
-            className={speedDialTriggerClass(open)}
+            className={speedDialTriggerClass(open, hidden)}
             onClick={() => (open ? handleClose() : handleOpen())}
             aria-label={ariaLabel}
             aria-expanded={open}

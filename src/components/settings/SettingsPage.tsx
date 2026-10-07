@@ -23,7 +23,7 @@ export default function SettingsPage() {
 
   return (
     <div className={settingsPageClass}>
-      <SettingsSection title="عمومی">
+      <SettingsSection title="عمومی" icon="settings" description="واحد پول و نصب اپ روی گوشی">
         <SettingsGeneralCard
           currency={settings.currency}
           onCurrencyChange={settings.handleCurrencyChange}
@@ -39,7 +39,7 @@ export default function SettingsPage() {
         />
       </SettingsSection>
 
-      <SettingsSection title="حساب و داده">
+      <SettingsSection title="حساب و داده" icon="folder" description="حساب گوگل و شیت داده‌ها">
         <SettingsGoogleAccountCard onLogout={settings.handleLogout} />
         <ConfirmActionModal {...settings.logoutModalProps} />
 
@@ -61,11 +61,11 @@ export default function SettingsPage() {
         )}
       </SettingsSection>
 
-      <SettingsSection title="امنیت">
+      <SettingsSection title="امنیت" icon="lock" description="قفل اپ با رمز و اثر انگشت">
         <AppLockSettings />
       </SettingsSection>
 
-      <SettingsSection title="اعلان‌ها">
+      <SettingsSection title="اعلان‌ها" icon="bell" description="یادآورها و اعلان‌های سررسید">
         <SettingsRemindersCard onOpenReminders={() => navigate(SETTINGS_REMINDERS_PATH)} />
       </SettingsSection>
     </div>

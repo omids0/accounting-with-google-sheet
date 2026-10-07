@@ -195,7 +195,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
             <Button
               type="submit"
               variant="primary"
-              className={unlockPrimaryBtnClass}
+              className={unlockPrimaryBtnClass(!pinLoading && pin.length < minPinLength)}
               disabled={pinLoading || locked || recovery.working || pin.length < minPinLength}
               loading={pinLoading}
             >
