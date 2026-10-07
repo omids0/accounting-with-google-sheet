@@ -2,8 +2,15 @@ import { cn } from '../../utils/cn'
 
 export type FormControlWidth = 'auto' | 'compact' | 'standard' | 'full'
 
-/** Single-column form rhythm — pairing is explicit via `FormRow`. */
-export const formFieldsLayoutClass = 'flex flex-col gap-[var(--form-gap)]'
+/**
+ * Single-column form rhythm — pairing is explicit via `FormRow`. The flex gap
+ * is the only spacing here: direct fields and rows drop their own bottom margin,
+ * otherwise standalone fields got gap + margin while paired ones got gap only.
+ */
+export const formFieldsLayoutClass = cn(
+  'flex flex-col gap-[var(--form-gap)]',
+  '[&>.form-field]:mb-0 [&>.form-row]:mb-0'
+)
 
 export const formFieldClass = cn('form-field min-w-0', 'mb-[var(--form-gap)] last:mb-0')
 
