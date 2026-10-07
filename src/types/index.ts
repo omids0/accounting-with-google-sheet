@@ -75,3 +75,15 @@ export type {
   MonthlyFuelStats,
   MonthlyFuelPriceBreakdown
 } from './vehicles'
+
+export type {
+  SmsSlotRole,
+  SmsDirection,
+  SmsAmountUnit,
+  SmsTemplatePart,
+  SmsTemplate,
+  SmsTemplateIssue,
+  SmsParsedValues,
+  SmsMatchCandidate,
+  SmsMatchResult
+} from './bankSms'

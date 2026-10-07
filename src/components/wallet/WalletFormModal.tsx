@@ -9,6 +9,8 @@ import {
   submitValidatedForm
 } from '../../utils/formValidation'
 import AmountInput from '../AmountInput'
+import type { SmsTemplateDraft } from '../bankSms/SmsSampleEditor'
+import SmsTemplatesSection from '../bankSms/SmsTemplatesSection'
 import { CategorySelect, FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import { getDefaultBankCardColor } from './bankCardColorVariants'
@@ -33,6 +35,8 @@ type WalletFormModalProps = {
   onAccountKindCategoriesChange: (next: string[]) => void
   onClose: () => void
   onSubmit: (values: WalletFormState) => void | Promise<void>
+  smsDrafts: SmsTemplateDraft[]
+  onSmsDraftsChange: (next: SmsTemplateDraft[]) => void
 }
 
 export default function WalletFormModal({
@@ -44,7 +48,9 @@ export default function WalletFormModal({
   accountKindCategories,
   onAccountKindCategoriesChange,
   onClose,
-  onSubmit
+  onSubmit,
+  smsDrafts,
+  onSmsDraftsChange
 }: WalletFormModalProps) {
   const initialValues = useMemo(
     () => buildWalletFormInitialValues(editingAccount),
@@ -264,6 +270,14 @@ export default function WalletFormModal({
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" />
       </FormField>
+
+      {resolvedKind !== 'cash' && (
+        <SmsTemplatesSection
+          accountId={editingAccount?.id ?? null}
+          drafts={smsDrafts}
+          onDraftsChange={onSmsDraftsChange}
+        />
+      )}
     </FormModal>
   )
 }

@@ -5,6 +5,7 @@ import LayoutPageOutlet from './LayoutPageOutlet'
 import PageSpeedDial from '../PageSpeedDial'
 import UpdateBanner from '../UpdateBanner'
 import { useLayoutNavigation } from './useLayoutNavigation'
+import { useBankSmsSync } from '../../hooks/useBankSmsSync'
 import {
   appContentColumnClass,
   appLayoutClass,
@@ -39,6 +40,8 @@ export default function Layout() {
     isTimesheetTab,
     headerTitle
   } = useLayoutNavigation()
+
+  useBankSmsSync()
 
   return (
     <div className={appLayoutClass}>

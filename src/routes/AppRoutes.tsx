@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-rou
 import DangSplitDetailRoute from './DangSplitDetailRoute'
 import {
   LazyAboutPage,
+  LazyBankSmsPage,
   LazyChecksPage,
   LazyCounterpartiesPage,
   LazyCurrencyConverterPage,
@@ -79,6 +80,7 @@ export function AppAuthenticatedRoutes() {
         <Route path="receivables" element={<LazyReceivablesPage />} />
         <Route path="treasury" element={<LazyTreasuryPage />} />
         <Route path="wallet" element={<LazyWalletPage />} />
+        <Route path="bank-sms" element={<LazyBankSmsPage />} />
         <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
         <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />
         <Route path="entry" element={<EntryRoute />} />

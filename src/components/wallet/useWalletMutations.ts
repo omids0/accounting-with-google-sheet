@@ -5,6 +5,7 @@ import { resolveBankInternalId } from './banks'
 import { CUSTOM_CARD_COLOR_ID, isCustomCardColor, normalizeHexColor } from './customCardTheme'
 import type { WalletAccountWithRow, WalletFormState } from './types'
 import { resolveAccountKind } from './walletCardUtils'
+import { createSmsTemplate, deleteAccountSmsTemplates } from '../../services/bankSmsTemplates'
 import {
   createLinkedExpenseRecord,
   createLinkedIncomeRecord
@@ -21,6 +22,7 @@ import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { RECONCILIATION_CATEGORY } from '../../utils/protectedCategories'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
+import type { SmsTemplateDraft } from '../bankSms/SmsSampleEditor'
 
 type UseWalletMutationsParams = {
   items: WalletAccountWithRow[]
@@ -59,13 +61,18 @@ export function useWalletMutations({
 
   const [savingOpening, setSavingOpening] = useState(false)
 
+  /** Sample-SMS templates added while creating an account; saved once it has an id. */
+  const [smsDrafts, setSmsDrafts] = useState<SmsTemplateDraft[]>([])
+
   const openCreateForm = () => {
     setEditingAccount(null)
+    setSmsDrafts([])
     setShowForm(true)
   }
 
   const openEditForm = (account: WalletAccountWithRow) => {
     setEditingAccount(account)
+    setSmsDrafts([])
     setShowForm(true)
   }
 
@@ -73,6 +80,7 @@ export function useWalletMutations({
     if (saving) return
     setShowForm(false)
     setEditingAccount(null)
+    setSmsDrafts([])
   }
 
   const openDeleteConfirm = (account: WalletAccountWithRow) => {
@@ -122,7 +130,11 @@ export function useWalletMutations({
         showSuccess('حساب ویرایش شد')
         await loadItems()
       } else {
-        await createWalletAccount(settings.spreadsheetId, payload)
+        const account = await createWalletAccount(settings.spreadsheetId, payload)
+
+        for (const draft of smsDrafts) {
+          await createSmsTemplate(settings.spreadsheetId, { ...draft, accountId: account.id })
+        }
         showSuccess('حساب جدید اضافه شد')
         await loadItems()
       }
@@ -227,6 +239,7 @@ export function useWalletMutations({
     setDeleting(true)
     try {
       await deleteWalletAccount(spreadsheetId, deletingAccount.rowNumber)
+      await deleteAccountSmsTemplates(spreadsheetId, deletingAccount.id)
       if (expandedId === deletingAccount.id) setExpandedId(null)
       setDeletingAccount(null)
       showSuccess('حساب حذف شد')
@@ -246,6 +259,8 @@ export function useWalletMutations({
     deleting,
     savingId,
     savingOpening,
+    smsDrafts,
+    setSmsDrafts,
     openCreateForm,
     openEditForm,
     closeForm,

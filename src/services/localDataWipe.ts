@@ -4,6 +4,8 @@ import { clearDataKey } from './appLockDataKey'
 import { clearAppLockSessionState } from './appLockPolicy'
 import { LOCK_SETUP_OFFER_KEY } from './appLockPrompts'
 import { getSession } from './auth'
+import { setBankSmsCaptureEnabled } from './bankSmsNative'
+import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
 import { invalidateDashboardCache } from './dashboardCache'
 import { isNativePlatform, signOutNative } from './googleAuthNative'
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
@@ -31,7 +33,8 @@ const ACCOUNT_KEYS = [
   LOCK_SETUP_OFFER_KEY,
   'accounting_start_date',
   'accounting_activity',
-  'accounting_sheets_ready'
+  'accounting_sheets_ready',
+  BANK_SMS_PREFS_KEY
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000
@@ -128,6 +131,8 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
 
   await deletePersistedDatabase()
   await deleteBiometricKeyDatabase()
+  // Stop capturing bank SMS and drop the native queue: it belongs to the old account.
+  await setBankSmsCaptureEnabled(false).catch(() => undefined)
 
   if (revokeAccess) await revokeGoogleAccess(accessToken)
 }

@@ -33,10 +33,12 @@ import {
   loadVehicleDetailPage,
   loadVehiclesPage,
   loadTreasuryPage,
-  loadWalletPage
+  loadWalletPage,
+  loadBankSmsPage
 } from './pageChunks'
 
 export const LazyAboutPage = lazy(loadAboutPage)
+export const LazyBankSmsPage = lazy(loadBankSmsPage)
 export const LazyChecksPage = lazy(loadChecksPage)
 export const LazyCounterpartiesPage = lazy(loadCounterpartiesPage)
 export const LazyCurrencyConverterPage = lazy(loadCurrencyConverterPage)

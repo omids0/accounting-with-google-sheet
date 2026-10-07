@@ -1,5 +1,15 @@
 import { useMemo, useState } from 'react'
 
+import type { WalletPageProps } from './types'
+import { useWalletData } from './useWalletData'
+import { useWalletFilters } from './useWalletFilters'
+import { useWalletMutations } from './useWalletMutations'
+import { computeReconciliation, computeTotalBalance } from './utils'
+import WalletAccountCard from './WalletAccountCard'
+import { walletCardsListClass } from './walletCardStyles'
+import WalletFormModal from './WalletFormModal'
+import WalletOpeningBalanceCard from './WalletOpeningBalanceCard'
+import WalletReconciliationAlert from './WalletReconciliationAlert'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
@@ -16,6 +26,7 @@ import {
 import { useNavigationStore } from '../../stores/navigationStore'
 import { distributionSparkline, flowTrendSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
+import BankSmsPendingBanner from '../bankSms/BankSmsPendingBanner'
 import ConfirmActionModal from '../ConfirmActionModal'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import EmptyState from '../EmptyState'
@@ -24,16 +35,6 @@ import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
 import { WalletPageSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
-import type { WalletPageProps } from './types'
-import { useWalletData } from './useWalletData'
-import { useWalletFilters } from './useWalletFilters'
-import { useWalletMutations } from './useWalletMutations'
-import { computeReconciliation, computeTotalBalance } from './utils'
-import WalletAccountCard from './WalletAccountCard'
-import { walletCardsListClass } from './walletCardStyles'
-import WalletFormModal from './WalletFormModal'
-import WalletOpeningBalanceCard from './WalletOpeningBalanceCard'
-import WalletReconciliationAlert from './WalletReconciliationAlert'
 import { listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
@@ -111,6 +112,7 @@ export default function WalletPage({ active = true }: WalletPageProps) {
 
   return (
     <div className={listModulePageClass}>
+      <BankSmsPendingBanner />
       <ActiveFilterChips
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}
@@ -210,6 +212,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
         onAccountKindCategoriesChange={setAccountKindCategories}
         onClose={mutations.closeForm}
         onSubmit={mutations.handleSubmit}
+        smsDrafts={mutations.smsDrafts}
+        onSmsDraftsChange={mutations.setSmsDrafts}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />

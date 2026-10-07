@@ -1,5 +1,6 @@
 import { ACTIVITY_HEADERS, ACTIVITY_SHEET } from './activityTracking'
 import { APP_LOCK_HEADERS, APP_LOCK_SHEET } from './appLockSync'
+import { SMS_TEMPLATES_HEADERS, SMS_TEMPLATES_SHEET } from './bankSmsTemplates'
 import { CATEGORIES_HEADERS, CATEGORIES_SHEET } from './categories'
 import { CHECKS_HEADERS, CHECKS_SHEET } from './checks'
 import { COUNTERPARTIES_HEADERS, COUNTERPARTIES_SHEET } from './counterparties'
@@ -42,6 +43,7 @@ export const MODULE_SHEET_SPECS: SheetSpec[] = [
   { sheetName: RECEIVABLES_SHEET, headers: RECEIVABLES_HEADERS },
   { sheetName: TREASURY_SHEET, headers: TREASURY_HEADERS },
   { sheetName: WALLET_SHEET, headers: WALLET_HEADERS },
+  { sheetName: SMS_TEMPLATES_SHEET, headers: SMS_TEMPLATES_HEADERS },
   { sheetName: MONTHLY_BALANCE_SHEET, headers: MONTHLY_BALANCE_HEADERS },
   { sheetName: PERIOD_SETTINGS_SHEET, headers: PERIOD_SETTINGS_HEADERS },
   { sheetName: CATEGORIES_SHEET, headers: CATEGORIES_HEADERS },

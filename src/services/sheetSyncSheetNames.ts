@@ -1,4 +1,5 @@
 import type { AppSettings } from '../types'
+import { SMS_TEMPLATES_SHEET } from './bankSmsTemplates'
 import { CATEGORIES_SHEET } from './categories'
 import { CHECKS_SHEET } from './checks'
 import { COUNTERPARTIES_SHEET } from './counterparties'
@@ -41,6 +42,7 @@ const STATIC_SHEETS = [
   RECEIVABLES_SHEET,
   TREASURY_SHEET,
   WALLET_SHEET,
+  SMS_TEMPLATES_SHEET,
   CATEGORIES_SHEET,
   MONTHLY_BALANCE_SHEET,
   PERIOD_SETTINGS_SHEET,
