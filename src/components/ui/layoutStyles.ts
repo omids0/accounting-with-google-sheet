@@ -84,8 +84,12 @@ export const appShellHeaderBarClass = cn(
   'lg:box-border lg:min-h-[var(--shell-header-height)]'
 )
 
+/**
+ * One fixed row (the 44px icon buttons) on every page, with or without the sync
+ * badge, so the content below never jumps when navigating.
+ */
 export const appHeaderClass = cn(
-  'app-header sticky top-0 z-30 grid grid-cols-[auto_1fr_auto] items-center gap-2 px-4 text-white',
+  'app-header sticky top-0 z-30 grid grid-cols-[auto_1fr_auto] grid-rows-[var(--touch-min)] items-center gap-2 px-4 text-white',
   appShellHeaderBarClass
 )
 
@@ -95,10 +99,12 @@ export const appHeaderWithBackClass = cn(
   '[&_[data-sync-badge]]:justify-center'
 )
 
-export const appHeaderCenterClass = 'flex min-w-0 flex-col items-start gap-[0.1rem]'
+/** Title + compact badge stack; fits inside the 44px header row. */
+export const appHeaderCenterClass =
+  'flex h-full min-w-0 flex-col items-start justify-center gap-[0.15rem] overflow-hidden'
 
 export const appHeaderTitleClass = cn(
-  'w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-start text-[1.05rem] font-extrabold tracking-[-0.02em]',
+  'w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-start text-[1rem] font-extrabold leading-[1.3] tracking-[-0.02em]',
   '[text-shadow:0_1px_3px_rgba(15,23,42,0.22)]'
 )
 
@@ -134,8 +140,8 @@ export * from './sidebarMenuStyles'
 type SyncStatus = 'online' | 'syncing' | 'offline' | 'error'
 
 export const syncStatusBadgeClass = cn(
-  'inline-flex max-w-full items-center gap-[0.4rem] rounded-full px-[0.5rem] py-[0.15rem]',
-  'bg-black/12 text-[0.75rem] font-semibold text-white ring-1 ring-white/18',
+  'inline-flex max-w-full items-center gap-[0.35rem] rounded-full px-[0.45rem] py-[0.05rem]',
+  'bg-black/12 text-[0.68rem] font-semibold leading-[1.35] text-white ring-1 ring-white/18',
   '[text-shadow:0_1px_2px_rgba(15,23,42,0.2)]'
 )
 
