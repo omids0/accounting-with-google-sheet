@@ -152,7 +152,6 @@ export function useBankSmsReview(sinceMs: number) {
 
   return {
     items,
-    hiddenCount: pending.filter(sms => sms.receivedAt < sinceMs).length,
     bulkCount: bulk.length,
     confirmAll,
     accounts,

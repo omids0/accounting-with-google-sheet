@@ -43,7 +43,6 @@ function BankSmsReview() {
       {enabled && (
         <BankSmsRangeBar
           days={days}
-          hiddenCount={review.hiddenCount}
           onChange={next => {
             setDays(next)
             updateBankSmsPrefs({ viewDays: next })
