@@ -1,6 +1,7 @@
 import { invalidateInstallmentsCache } from './installments'
 import { isQuotaExceededError } from './sheets'
 import { isPermanentApiError } from './sheetsApi'
+import { normalizeSheetTitle } from './sheetsMeta'
 import { createRowGuardSession, RowConflictError } from './sheetsRowGuard'
 import {
   addOutboxEntry,
@@ -11,7 +12,8 @@ import {
   hasPendingOutbox,
   markOutboxEntryFailed,
   moveOutboxEntryToFailed,
-  removeOutboxEntry
+  removeOutboxEntry,
+  requeueMissingTabAppends
 } from './syncOutbox'
 import type { OutboxOperation } from './syncOutbox'
 import { setFailedWrites, setPendingWrites, setSyncState } from './syncStatus'
@@ -185,6 +187,38 @@ export async function flushOutbox(spreadsheetId: string): Promise<boolean> {
   flushesInFlight.set(spreadsheetId, task)
 
   return task
+}
+
+/**
+ * A download just returned these tabs. Appends parked while a tab was missing go out
+ * again, and the returned map is each such tab as it will read once they land:
+ * the downloaded rows plus the revived ones (the download replaced the local copy).
+ */
+export function reviveMissingTabAppends(
+  spreadsheetId: string,
+  fetched: Map<string, string[][]>
+): Map<string, string[][]> {
+  const revived = requeueMissingTabAppends(spreadsheetId, fetched.keys())
+  const downloaded = new Map(
+    [...fetched].map(([name, rows]) => [normalizeSheetTitle(name), { name, rows }])
+  )
+  const merged = new Map<string, string[][]>()
+
+  for (const { operation } of revived) {
+    const tab = downloaded.get(normalizeSheetTitle(operation.sheetName))
+
+    if (operation.type !== 'append' || !tab) continue
+
+    merged.set(tab.name, [...(merged.get(tab.name) ?? tab.rows), operation.row])
+  }
+
+  if (revived.length) {
+    refreshPendingCount(spreadsheetId)
+    refreshFailedCount(spreadsheetId)
+    void flushOutbox(spreadsheetId)
+  }
+
+  return merged
 }
 
 export function invalidateDerivedCaches(spreadsheetId: string): void {

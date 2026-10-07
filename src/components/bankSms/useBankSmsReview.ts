@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useSmsTemplates } from './useSmsTemplates'
+import { useDataRefresh } from '../../hooks/useDataRefresh'
 import {
   confirmSmsEntry,
   confirmSmsTransfer,
@@ -75,10 +76,16 @@ export function useBankSmsReview(sinceMs: number) {
     }
   }, [])
 
+  // Accounts and records also change on sync, not only through this page.
+  const dataRevision = useDataRefresh()
+
   useEffect(() => {
     void loadContext()
+  }, [loadContext, dataRevision])
+
+  useEffect(() => {
     void refresh()
-  }, [loadContext, refresh])
+  }, [refresh])
 
   const currency = getCurrency()
   const { templates, loading: templatesLoading } = templatesApi

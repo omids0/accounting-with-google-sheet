@@ -66,6 +66,48 @@ describe('flushOutbox', () => {
     expect(getOutboxEntries(SHEET_ID)[0].attempts).toBe(1)
   })
 
+  it('sends appends parked for a missing tab again once a download returns that tab', async () => {
+    const template: OutboxOperation = { type: 'append', sheetName: 'قالب_پیامک', row: ['t1'] }
+
+    addOutboxEntry(SHEET_ID, template)
+    addOutboxEntry(SHEET_ID, op('kept'))
+    executeOutboxOperation
+      .mockRejectedValueOnce(new SheetsApiError('Unable to parse range: قالب_پیامک!A:Z', 400))
+      .mockRejectedValueOnce(new RowConflictError('x'))
+
+    const { flushOutbox, reviveMissingTabAppends } = await import('./sheetSyncOutbox')
+
+    await flushOutbox(SHEET_ID)
+    expect(getFailedOutboxEntries(SHEET_ID)).toHaveLength(2)
+
+    executeOutboxOperation.mockResolvedValue(undefined)
+
+    const merged = reviveMissingTabAppends(SHEET_ID, new Map([['قالب_پیامک', [['شناسه']]]]))
+
+    expect(merged.get('قالب_پیامک')).toEqual([['شناسه'], ['t1']])
+    expect(getFailedOutboxEntries(SHEET_ID).map(entry => entry.operation)).toEqual([op('kept')])
+
+    await flushOutbox(SHEET_ID)
+
+    expect(executeOutboxOperation).toHaveBeenLastCalledWith(SHEET_ID, template, {
+      session: expect.anything(),
+      isRetry: true
+    })
+    expect(getOutboxEntries(SHEET_ID)).toHaveLength(0)
+  })
+
+  it('leaves appends parked while their tab is still missing', async () => {
+    addOutboxEntry(SHEET_ID, op('a'))
+    executeOutboxOperation.mockRejectedValueOnce(new SheetsApiError('Unable to parse range', 400))
+
+    const { flushOutbox, reviveMissingTabAppends } = await import('./sheetSyncOutbox')
+
+    await flushOutbox(SHEET_ID)
+
+    expect(reviveMissingTabAppends(SHEET_ID, new Map([['other', []]])).size).toBe(0)
+    expect(getFailedOutboxEntries(SHEET_ID)).toHaveLength(1)
+  })
+
   it('marks the retry so an append that already landed is not duplicated', async () => {
     addOutboxEntry(SHEET_ID, op('a'))
     executeOutboxOperation

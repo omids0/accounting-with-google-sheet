@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { learnSmsRef } from '../../services/bankSmsPrefs'
 import {
   createSmsTemplate,
@@ -33,9 +34,12 @@ export function useSmsTemplates() {
     }
   }, [])
 
+  // Also after a sync: templates may arrive from another device or a revived write.
+  const dataRevision = useDataRefresh()
+
   useEffect(() => {
     void reload()
-  }, [reload])
+  }, [reload, dataRevision])
 
   /** `sampleRef`: digits shown in the sample SMS, tied to the account on save. */
   const add = async ({
