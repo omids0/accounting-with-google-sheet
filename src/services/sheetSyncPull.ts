@@ -3,11 +3,16 @@ import { checkRemoteChanged, rememberRemoteVersion } from './sheetRemoteVersion'
 import type { RevisionMap } from './sheetRevisions'
 import { fetchSheetRevisions, findChangedSheets, markSheetsSeen } from './sheetRevisions'
 import { missingSheetNames } from './sheetsMeta'
-import { invalidateDerivedCaches } from './sheetSyncOutbox'
+import { invalidateDerivedCaches, reviveMissingTabAppends } from './sheetSyncOutbox'
 import { getKnownSheetNames } from './sheetSyncSheetNames'
 import { getSheetWriteVersion, snapshotSheetWriteVersions } from './sheetWriteVersions'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
-import { initStore, setManySheetAllRows, setStoreLastSyncedAt } from './spreadsheetStore'
+import {
+  initStore,
+  setManySheetAllRows,
+  setSheetAllRows,
+  setStoreLastSyncedAt
+} from './spreadsheetStore'
 import { getOutboxSheetNames, hasPendingOutbox } from './syncOutbox'
 import { setLastSyncedAt, setSyncState } from './syncStatus'
 
@@ -82,6 +87,13 @@ export async function pullRemoteSheets(
       .then(({ repairMissingSheets }) => repairMissingSheets(spreadsheetId, missing))
       .catch(() => undefined)
   }
+
+  // Rows written while their tab was missing were parked, then the empty tab replaced
+  // them locally: send them again and keep them visible until they land.
+  const revived = reviveMissingTabAppends(spreadsheetId, fetched)
+
+  for (const [sheetName, rows] of revived) setSheetAllRows(spreadsheetId, sheetName, rows)
+  if (revived.size) queueMicrotask(() => notifySpreadsheetDataChanged(spreadsheetId))
 
   // Checked after the fetch: a local write made while it was in flight must
   // not be overwritten by the older copy that just arrived.

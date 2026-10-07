@@ -1,3 +1,4 @@
+import { normalizeSheetTitle } from './sheetsMeta'
 import { getItem, removeItem, setItem } from './storage'
 
 const OUTBOX_KEY_PREFIX = 'accounting_sync_outbox_'
@@ -159,4 +160,37 @@ export function moveOutboxEntryToFailed(
 
 export function clearFailedOutboxEntries(spreadsheetId: string): void {
   removeItem(failedKey(spreadsheetId))
+}
+
+/** Google's answer to a write into a tab the spreadsheet does not have. */
+const MISSING_TAB_ERROR = /unable to parse range/i
+
+/**
+ * Appends parked only because their tab was missing, for tabs that exist now:
+ * moved back into the outbox. `attempts` stays above 0, so the send first checks
+ * that the row did not land after all.
+ */
+export function requeueMissingTabAppends(
+  spreadsheetId: string,
+  existingSheets: Iterable<string>
+): OutboxEntry[] {
+  const existing = new Set([...existingSheets].map(normalizeSheetTitle))
+  const failed = getFailedOutboxEntries(spreadsheetId)
+  const revived = failed.filter(
+    entry =>
+      entry.operation.type === 'append' &&
+      existing.has(normalizeSheetTitle(entry.operation.sheetName)) &&
+      MISSING_TAB_ERROR.test(entry.lastError ?? '')
+  )
+
+  if (!revived.length) return []
+
+  const kept = failed.filter(entry => !revived.includes(entry))
+
+  if (kept.length) setItem(failedKey(spreadsheetId), kept)
+  else clearFailedOutboxEntries(spreadsheetId)
+
+  writeOutbox(spreadsheetId, [...readOutbox(spreadsheetId), ...revived])
+
+  return revived
 }
