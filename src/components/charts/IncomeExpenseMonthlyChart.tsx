@@ -3,7 +3,8 @@ import { memo, useId, useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import ChartTooltip from './ChartTooltip'
-import { formatAxisMoney } from './chartUtils'
+import { formatAxisMoney, rtlTickTextProps } from './chartUtils'
+import RtlCategoryTick from './RtlCategoryTick'
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
 import type { MonthlyFlow } from '../../types'
 import { cn } from '../../utils/cn'
@@ -25,6 +26,12 @@ type ChartTooltipEntry = {
   value?: number | string
 }
 
+/** Two 16px bars plus breathing room per month. */
+const MONTH_ROW_PX = 48
+
+/** X-axis ticks plus the chart's top and bottom margins. */
+const AXIS_BAND_PX = 44
+
 interface IncomeExpenseMonthlyChartProps {
   data: MonthlyFlow[]
   header?: ReactNode
@@ -44,14 +51,17 @@ function IncomeExpenseMonthlyChart({
 
   const chartData = useMemo(
     () =>
-      data.map(item => ({
-        ...item,
-        shortLabel: item.label.split(' ')[0] ?? item.label
-      })),
+      // A month with neither income nor expense would only be an empty row.
+      data
+        .filter(item => item.income !== 0 || item.expense !== 0)
+        .map(item => ({
+          ...item,
+          shortLabel: item.label.split(' ')[0] ?? item.label
+        })),
     [data]
   )
 
-  const height = Math.max(300, chartData.length * 56)
+  const height = chartData.length * MONTH_ROW_PX + AXIS_BAND_PX
 
   const maxLabelLen = chartData.length ? Math.max(...chartData.map(d => d.shortLabel.length)) : 1
 
@@ -69,16 +79,16 @@ function IncomeExpenseMonthlyChart({
               <BarChart
                 data={chartData}
                 layout="vertical"
-                margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
+                margin={{ top: 8, right: 0, left: 16, bottom: 4 }}
                 barGap={4}
                 barCategoryGap="18%"
               >
                 <defs>
-                  <linearGradient id={`${gradientId}-chart-income`} x1="0" y1="0" x2="1" y2="0">
+                  <linearGradient id={`${gradientId}-chart-income`} x1="1" y1="0" x2="0" y2="0">
                     <stop offset="0%" stopColor={theme.income} stopOpacity={0.75} />
                     <stop offset="100%" stopColor={theme.income} stopOpacity={1} />
                   </linearGradient>
-                  <linearGradient id={`${gradientId}-chart-expense`} x1="0" y1="0" x2="1" y2="0">
+                  <linearGradient id={`${gradientId}-chart-expense`} x1="1" y1="0" x2="0" y2="0">
                     <stop offset="0%" stopColor={theme.expense} stopOpacity={0.75} />
                     <stop offset="100%" stopColor={theme.expense} stopOpacity={1} />
                   </linearGradient>
@@ -91,8 +101,9 @@ function IncomeExpenseMonthlyChart({
                 />
                 <XAxis
                   type="number"
+                  reversed
                   tickFormatter={value => formatAxisMoney(value)}
-                  tick={{ fontSize: 10, fill: theme.muted }}
+                  tick={{ fontSize: 10, fill: theme.muted, ...rtlTickTextProps }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -100,8 +111,16 @@ function IncomeExpenseMonthlyChart({
                   type="category"
                   dataKey="shortLabel"
                   width={yAxisWidth}
-                  orientation="left"
-                  tick={{ fontSize: 12, fill: theme.muted, textAnchor: 'end' }}
+                  orientation="right"
+                  tick={tickProps => (
+                    <RtlCategoryTick
+                      {...tickProps}
+                      axisWidth={yAxisWidth}
+                      tickMargin={6}
+                      fill={theme.muted}
+                      fontSize={12}
+                    />
+                  )}
                   tickMargin={6}
                   axisLine={false}
                   tickLine={false}
