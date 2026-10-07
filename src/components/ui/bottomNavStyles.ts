@@ -18,11 +18,12 @@ export const bottomNavCenterClass =
   'relative z-[2] flex items-end justify-center self-end px-0.5 min-[380px]:px-1'
 
 export const bottomNavTabLabelClass =
-  'max-w-full truncate text-[0.68rem] leading-tight min-[380px]:text-[0.72rem]'
+  // No truncation: on 320px phones a cut label («کیف پ…») is worse than a smaller one.
+  'max-w-full whitespace-nowrap text-[0.6rem] leading-tight tracking-[-0.01em] min-[360px]:text-[0.68rem] min-[380px]:text-[0.72rem]'
 
 export function bottomNavTabBtnClass(active?: boolean) {
   return cn(
-    'relative flex min-h-touch-min min-w-0 max-w-[4.25rem] flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5',
+    'relative flex min-h-touch-min min-w-0 max-w-[4.25rem] flex-1 flex-col items-center justify-center gap-0.5 px-0 py-1.5 min-[360px]:px-0.5',
     'min-[380px]:max-w-[4.75rem] min-[380px]:gap-1 min-[380px]:px-1 min-[380px]:py-2',
     'touch-manipulation text-[0.68rem] font-semibold text-muted transition-[color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
     'min-[380px]:text-[0.72rem]',

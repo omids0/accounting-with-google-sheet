@@ -84,6 +84,18 @@
     color: var(--color-primary);
   }
 
+  /* Amounts and counts are typed, never stepped: no spinner arrows on desktop. */
+  input[type='number'] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
   :is(
       .asset-value,
       .wallet-item-amount,
