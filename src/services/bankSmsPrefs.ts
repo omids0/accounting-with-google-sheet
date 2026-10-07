@@ -1,5 +1,6 @@
 import type { LearnedSmsRefs } from './bankSmsMatch'
 import type { AccountBalanceState } from './bankSmsQueue'
+import { DEFAULT_SMS_RANGE_DAYS } from './bankSmsRange'
 import { getItem, setItem } from './storage'
 
 /**
@@ -14,6 +15,8 @@ export interface BankSmsPrefs {
   balanceStates: Record<string, AccountBalanceState>
   /** Card/account digits seen in SMS → the account the user tied them to. */
   refAccounts: LearnedSmsRefs
+  /** «Show SMS from» range on the page, in calendar days counting today. */
+  viewDays: number
   /** Per template: the category last chosen for it, offered as the next default. */
   lastCategory: Record<string, { category: string; subCategory: string }>
 }
@@ -25,6 +28,7 @@ const DEFAULT_PREFS: BankSmsPrefs = {
   lastScanAt: 0,
   balanceStates: {},
   refAccounts: {},
+  viewDays: DEFAULT_SMS_RANGE_DAYS,
   lastCategory: {}
 }
 

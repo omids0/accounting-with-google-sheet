@@ -7,9 +7,7 @@ import {
   setBankSmsCaptureEnabled
 } from '../../services/bankSmsNative'
 import { getBankSmsPrefs, updateBankSmsPrefs } from '../../services/bankSmsPrefs'
-import { useBankSmsStore } from '../../stores/bankSmsStore'
 import { showError, showSuccess } from '../../utils/toast'
-import ToggleChipGroup from '../ToggleChipGroup'
 import {
   smsActionsRowClass,
   smsCardClass,
@@ -19,27 +17,15 @@ import {
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 
-const DAY_MS = 24 * 60 * 60 * 1000
-
-const BACKFILL_OPTIONS = [
-  { id: '1', label: 'دیروز' },
-  { id: '3', label: '۳ روز' },
-  { id: '7', label: '۷ روز' },
-  { id: '30', label: '۳۰ روز' },
-  { id: '90', label: '۹۰ روز' }
-]
-
 type BankSmsSettingsCardProps = {
   onChanged: () => void
 }
 
-/** On/off switch, permission state and «read older SMS» for bank SMS capture. */
+/** On/off switch and permission state for bank SMS capture. */
 export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardProps) {
-  const scanFrom = useBankSmsStore(state => state.scanFrom)
   const [enabled, setEnabled] = useState(() => getBankSmsPrefs().enabled)
   const [granted, setGranted] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [days, setDays] = useState('7')
 
   useEffect(() => {
     void getBankSmsPermission()
@@ -60,7 +46,7 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
       }
       await LocalNotifications.requestPermissions().catch(() => undefined)
       await setBankSmsCaptureEnabled(true)
-      // Start from now; older SMS are read only when the user asks below.
+      // Start from now; older SMS are read for the range chosen on the page.
       updateBankSmsPrefs({ enabled: true, lastScanAt: Date.now() })
       setEnabled(true)
       showSuccess('ثبت از پیامک بانکی فعال شد')
@@ -79,19 +65,6 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
       updateBankSmsPrefs({ enabled: false })
       setEnabled(false)
       onChanged()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const readOlder = async () => {
-    setBusy(true)
-    try {
-      const added = await scanFrom(Date.now() - Number(days) * DAY_MS)
-
-      showSuccess(added ? `${added} پیامک قبلی به صف اضافه شد` : 'پیامک تازه‌ای پیدا نشد')
-    } catch {
-      showError('خواندن پیامک‌های قبلی ممکن نشد')
     } finally {
       setBusy(false)
     }
@@ -129,24 +102,6 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
           </Button>
         )}
       </div>
-
-      {enabled && granted && (
-        <>
-          <p className={smsHintClass}>پیامک‌های قبلی از:</p>
-          {/* Chips instead of a dropdown: the dropdown menu was hidden under the next card. */}
-          <ToggleChipGroup
-            ariaLabel="بازه پیامک‌های قبلی"
-            options={BACKFILL_OPTIONS}
-            selected={{ [days]: true }}
-            onToggle={setDays}
-          />
-          <div className={smsActionsRowClass}>
-            <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={readOlder}>
-              خواندن پیامک‌های قبلی
-            </Button>
-          </div>
-        </>
-      )}
     </Card>
   )
 }
