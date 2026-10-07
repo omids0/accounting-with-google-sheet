@@ -210,6 +210,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
         onAccountKindCategoriesChange={setAccountKindCategories}
         onClose={mutations.closeForm}
         onSubmit={mutations.handleSubmit}
+        smsDrafts={mutations.smsDrafts}
+        onSmsDraftsChange={mutations.setSmsDrafts}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
