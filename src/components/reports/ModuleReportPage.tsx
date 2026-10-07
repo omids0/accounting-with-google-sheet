@@ -151,9 +151,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
         ) : (
           data.rows.map((row, index) => (
             <TransactionListItem key={row.id} title={row.title} meta={row.subtitle} index={index}>
-              <span className="asset-value" dir="ltr">
-                {formatMoney(row.amount)}
-              </span>
+              <span className="asset-value">{formatMoney(row.amount)}</span>
             </TransactionListItem>
           ))
         )}

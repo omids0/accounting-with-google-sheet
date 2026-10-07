@@ -88,9 +88,7 @@ export default function OpeningBalanceReportPage() {
               meta={item.note || undefined}
               index={index}
             >
-              <span className="asset-value" dir="ltr">
-                {formatMoney(item.amount)}
-              </span>
+              <span className="asset-value">{formatMoney(item.amount)}</span>
             </TransactionListItem>
           ))
         )}

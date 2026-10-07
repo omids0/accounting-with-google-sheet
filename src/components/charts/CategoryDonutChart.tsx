@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import ChartTooltip from './ChartTooltip'
+import { formatPersianPercent } from './chartUtils'
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
 import { cn } from '../../utils/cn'
 import {
@@ -144,12 +145,8 @@ function CategoryDonutChart({
                   style={{ background: palette[index % palette.length] }}
                 />
                 <span className={categoryDonutLegendNameClass}>{slice.name}</span>
-                <span className={categoryDonutLegendPctClass}>
-                  {formatPersianNumber(pct, { useGrouping: false })}٪
-                </span>
-                <span className={categoryDonutLegendValueClass} dir="ltr">
-                  {formatMoney(slice.total)}
-                </span>
+                <span className={categoryDonutLegendPctClass}>{formatPersianPercent(pct)}</span>
+                <span className={categoryDonutLegendValueClass}>{formatMoney(slice.total)}</span>
               </li>
             )
           })}

@@ -51,7 +51,7 @@ export default function TreasuryPriceCard({
               {opt.label}
               {opt.unit !== 'عدد' && opt.unit !== 'دلار' && ` (${opt.unit})`}
             </span>
-            <span dir="ltr">{formatMoney(prices.prices[opt.value], prices.currency)}</span>
+            <span>{formatMoney(prices.prices[opt.value], prices.currency)}</span>
           </div>
         ))}
       </div>

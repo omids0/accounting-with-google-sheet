@@ -13,7 +13,15 @@ export const speedDialBackdropClass = cn(
   'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[4px]'
 )
 
-export const speedDialClass = 'relative flex flex-col items-start gap-4'
+/** Slides down behind the bottom nav while hidden on scroll (transform/opacity only). */
+export function speedDialClass(hidden?: boolean) {
+  return cn(
+    'relative flex flex-col items-start gap-4',
+    'transition-[transform,opacity] duration-[var(--duration-normal)] ease-[var(--ease-out)] motion-reduce:transition-none',
+    hidden &&
+      'pointer-events-none translate-y-[calc(100%+1.5rem)] opacity-0 motion-reduce:translate-y-0'
+  )
+}
 
 export const speedDialActionsClass = 'flex flex-col-reverse items-start gap-2.5'
 
@@ -73,9 +81,10 @@ export const fabClass = cn(
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]'
 )
 
-export function speedDialTriggerClass(open?: boolean) {
+export function speedDialTriggerClass(open?: boolean, hidden?: boolean) {
   return cn(
     fabClass,
+    hidden && 'pointer-events-none',
     open &&
       cn(
         'opacity-100 bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--color-surface))] text-primary',

@@ -47,9 +47,7 @@ export default function CheckCard({
           <div className={dangCardBodyClass}>
             <div className={dangCardHeaderClass}>
               <span className={dangCardTitleClass}>چک {item.checkNumber}</span>
-              <span className={dangCardAmountClass} dir="ltr">
-                {formatMoney(item.amount)}
-              </span>
+              <span className={dangCardAmountClass}>{formatMoney(item.amount)}</span>
             </div>
             <div className={dangCardMetaClass}>طرف حساب: {item.counterparty}</div>
             <div className={dangCardMetaClass}>

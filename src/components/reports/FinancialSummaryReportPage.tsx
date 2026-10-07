@@ -41,9 +41,7 @@ function BreakdownRow({ label, value, total }: { label: string; value: number; t
   return (
     <div className={cn(assetRowClass, reportTableRowClass, total && assetRowTotalClass)}>
       <span className={assetLabelClass}>{label}</span>
-      <span className={assetValueClass} dir="ltr">
-        {formatMoney(value)}
-      </span>
+      <span className={assetValueClass}>{formatMoney(value)}</span>
     </div>
   )
 }

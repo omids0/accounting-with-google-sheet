@@ -64,9 +64,11 @@ export default function LayoutHeader({
         <h1 className={appHeaderTitleClass} data-header-title>
           {headerTitle}
         </h1>
-        <div className="flex max-w-full flex-wrap items-center gap-1.5">
-          {!showSettings && <SyncStatusBadge />}
-        </div>
+        {!showSettings && (
+          <div className="flex min-w-0 max-w-full items-center">
+            <SyncStatusBadge />
+          </div>
+        )}
       </div>
       {showHeaderBack && (
         <button

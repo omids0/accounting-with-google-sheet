@@ -50,7 +50,7 @@ export default function TreasuryTransactionItem({
         <span>{formatQuantity(tx.quantity, tx.assetType)}</span>
       </div>
       <div className={treasuryTxDetailsClass}>
-        <span dir="ltr">
+        <span>
           {formatMoney(tx.unitPrice)} / {getAssetUnit(tx.assetType)}
         </span>
         <span className={installmentDueClass}>{formatIsoDatePersian(tx.transactionDate)}</span>

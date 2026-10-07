@@ -18,11 +18,12 @@ export const bottomNavCenterClass =
   'relative z-[2] flex items-end justify-center self-end px-0.5 min-[380px]:px-1'
 
 export const bottomNavTabLabelClass =
-  'max-w-full truncate text-[0.68rem] leading-tight min-[380px]:text-[0.72rem]'
+  // No truncation: on 320px phones a cut label («کیف پ…») is worse than a smaller one.
+  'max-w-full whitespace-nowrap text-[0.6rem] leading-tight tracking-[-0.01em] min-[360px]:text-[0.68rem] min-[380px]:text-[0.72rem]'
 
 export function bottomNavTabBtnClass(active?: boolean) {
   return cn(
-    'relative flex min-h-touch-min min-w-0 max-w-[4.25rem] flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5',
+    'relative flex min-h-touch-min min-w-0 max-w-[4.25rem] flex-1 flex-col items-center justify-center gap-0.5 px-0 py-1.5 min-[360px]:px-0.5',
     'min-[380px]:max-w-[4.75rem] min-[380px]:gap-1 min-[380px]:px-1 min-[380px]:py-2',
     'touch-manipulation text-[0.68rem] font-semibold text-muted transition-[color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
     'min-[380px]:text-[0.72rem]',
@@ -60,7 +61,7 @@ export function bottomNavDashboardClass(active?: boolean) {
   return cn(
     'bottom-nav-fab relative mb-1 mt-[-2.2rem] flex h-[4.25rem] w-[4.25rem] flex-col items-center justify-center gap-0.5 rounded-full text-white',
     'min-[380px]:mt-[-2.4rem] min-[380px]:h-[4.6rem] min-[380px]:w-[4.6rem] min-[380px]:gap-1',
-    '[background:linear-gradient(145deg,var(--color-primary-dark)_0%,var(--color-primary)_45%,var(--color-primary-light)_100%)]',
+    '[background:var(--nav-fab-bg)]',
     'shadow-[var(--nav-fab-shadow),0_0_0_4px_var(--nav-fab-ring)] min-[380px]:shadow-[var(--nav-fab-shadow),0_0_0_5px_var(--nav-fab-ring)]',
     'before:pointer-events-none before:absolute before:inset-[3px] before:rounded-full before:content-[""] before:[background:linear-gradient(145deg,rgba(255,255,255,0.2)_0%,transparent_55%)]',
     'touch-manipulation transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
@@ -68,7 +69,7 @@ export function bottomNavDashboardClass(active?: boolean) {
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-nav-bg)]',
     active &&
       cn(
-        '[background:linear-gradient(145deg,#0a5c56_0%,var(--color-primary-dark)_50%,var(--color-primary)_100%)]',
+        '[background:var(--nav-fab-bg-active)]',
         'shadow-[0_14px_36px_color-mix(in_srgb,var(--color-primary)_55%,transparent),0_6px_18px_rgba(15,118,110,0.35),0_0_0_4px_color-mix(in_srgb,var(--color-primary-light)_55%,var(--nav-fab-ring))]',
         'min-[380px]:shadow-[0_14px_36px_color-mix(in_srgb,var(--color-primary)_55%,transparent),0_6px_18px_rgba(15,118,110,0.35),0_0_0_5px_color-mix(in_srgb,var(--color-primary-light)_55%,var(--nav-fab-ring))]'
       )

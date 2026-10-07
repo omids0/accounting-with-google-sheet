@@ -35,7 +35,7 @@ export default function VehicleHistoryCard({ item, onDelete }: VehicleHistoryCar
             <div className="flex flex-wrap items-center gap-2">
               <span className={listCardTitleClass}>{KIND_LABELS[item.recordKind]}</span>
               {item.amount > 0 ? (
-                <span className="text-[0.82rem] font-bold text-expense" dir="ltr">
+                <span className="text-[0.82rem] font-bold text-expense">
                   {formatMoney(item.amount)}
                 </span>
               ) : null}

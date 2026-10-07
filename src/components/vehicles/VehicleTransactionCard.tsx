@@ -40,7 +40,7 @@ export default function VehicleTransactionCard({ item, onDelete }: VehicleTransa
                 {SOURCE_LABELS[item.source]}
               </span>
               {item.amount > 0 ? (
-                <span className="text-[0.82rem] font-bold text-expense" dir="ltr">
+                <span className="text-[0.82rem] font-bold text-expense">
                   {formatMoney(item.amount)}
                 </span>
               ) : null}

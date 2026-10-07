@@ -79,8 +79,13 @@ export function formatPersianNumber(n: number, options?: Intl.NumberFormatOption
 /** Typographic minus (U+2212); `-` is a hyphen and renders shorter and looser. */
 export const MINUS_SIGN = '−'
 
-/** Left-to-right mark: keeps a leading sign glued to the digits inside RTL text. */
-const LRM = '‎'
+/**
+ * Left-to-right isolate around a signed number: the sign stays glued to the left
+ * of the digits, and the number as a whole still flows right-to-left with the
+ * text around it (so a unit after it lands on its left, as Persian is read).
+ */
+const LRI = '\u2066'
+const PDI = '\u2069'
 
 /**
  * A signed amount in one shape everywhere: `−۴٬۵۴۰٬۰۰۰` / `+۱۲۰٬۰۰۰`, sign attached
@@ -89,8 +94,8 @@ const LRM = '‎'
 export function formatSignedNumber(n: number, options?: { showPlus?: boolean }): string {
   const number = formatPersianNumber(Math.abs(n))
 
-  if (n < 0) return `${LRM}${MINUS_SIGN}${number}`
-  if (n > 0 && options?.showPlus) return `${LRM}+${number}`
+  if (n < 0) return `${LRI}${MINUS_SIGN}${number}${PDI}`
+  if (n > 0 && options?.showPlus) return `${LRI}+${number}${PDI}`
 
   return number
 }
@@ -117,7 +122,9 @@ export function formatCompactNumber(n: number): string {
   const unit = COMPACT_UNITS.find(item => abs >= item.value)
   const scaled = unit ? abs / unit.value : abs
   const digits = formatPersianNumber(scaled, { maximumFractionDigits: scaled < 100 ? 1 : 0 })
-  const text = unit ? `${digits} ${unit.suffix}` : digits
+  const signed = n < 0 ? `${LRI}${MINUS_SIGN}${digits}${PDI}` : digits
 
-  return n < 0 ? `${LRM}${MINUS_SIGN}${text}` : text
+  // Only the signed digits are isolated: the Persian suffix must stay outside so
+  // it follows the number in right-to-left order («۱۵ م», never «م ۱۵»).
+  return unit ? `${signed} ${unit.suffix}` : signed
 }

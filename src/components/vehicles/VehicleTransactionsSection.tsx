@@ -24,9 +24,7 @@ export default function VehicleTransactionsSection({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3">
         <span className="text-[0.88rem] text-muted">مجموع هزینه‌ها</span>
-        <span className="text-[1rem] font-bold text-expense" dir="ltr">
-          {formatMoney(totalAmount)}
-        </span>
+        <span className="text-[1rem] font-bold text-expense">{formatMoney(totalAmount)}</span>
       </div>
 
       {breakdown.length > 0 ? (

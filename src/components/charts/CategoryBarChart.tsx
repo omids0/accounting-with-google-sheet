@@ -1,145 +1,95 @@
-import { memo, useId } from 'react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
-} from 'recharts'
+import { memo, useEffect, useState } from 'react'
 
-import ChartTooltip from './ChartTooltip'
-import { formatAxisMoney, getCategoryLabelAxisWidth, truncateCategoryLabel } from './chartUtils'
-import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
+import { formatPersianPercent } from './chartUtils'
+import { prefersReducedMotion } from '../../hooks/useChartTheme'
 import { cn } from '../../utils/cn'
-import { chartBarWrapClass, chartCardClass, chartTitleClass } from '../ui/chartStyles'
-
-type ChartTooltipEntry = {
-  name?: string | number
-  dataKey?: string | number
-  value?: number | string
-}
+import { formatMoney } from '../../utils/formatMoney'
+import { chartCardClass, chartTitleClass } from '../ui/chartStyles'
 
 interface CategoryBarChartProps {
   title: string
   data: { name: string; total: number }[]
   tone: 'income' | 'expense'
   className?: string
-  /** Pass the same width for charts on one page so bars start at the same column. */
+  /** Kept for callers that line several charts up; the list layout needs no axis width. */
   yAxisWidth?: number
 }
 
-function CategoryBarChart({
-  title,
-  data,
-  tone,
-  className = '',
-  yAxisWidth: yAxisWidthProp
-}: CategoryBarChartProps) {
-  const theme = useChartTheme()
+const listClass = 'relative z-[1] m-0 flex list-none flex-col gap-3 p-0'
 
-  const animate = !prefersReducedMotion()
+const rowHeadClass = 'mb-1.5 flex items-baseline justify-between gap-3'
 
-  const gradientId = useId().replace(/:/g, '')
+const nameClass =
+  'min-w-0 flex-1 truncate text-[0.82rem] font-semibold leading-snug text-[var(--color-text)]'
+
+const amountClass =
+  'shrink-0 whitespace-nowrap font-numeric text-[0.78rem] font-bold tabular-nums text-[var(--color-text)]'
+
+const shareClass = 'ms-1.5 text-[0.7rem] font-semibold text-muted'
+
+const trackClass =
+  'h-2 w-full overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--color-accent-soft)_70%,transparent)]'
+
+const barClass =
+  'h-full rounded-full origin-right transition-transform duration-700 ease-out motion-reduce:transition-none'
+
+/**
+ * Category totals as a list: name and amount on one line, a bar under it that
+ * grows from the right. Unlike an SVG axis chart it never truncates names into
+ * «خوراک و نوشید…», leaves no gap between a short label and its bar, and shows
+ * the exact amount without needing a tooltip on a phone.
+ */
+function CategoryBarChart({ title, data, tone, className = '' }: CategoryBarChartProps) {
+  const [grown, setGrown] = useState(() => prefersReducedMotion())
+
+  useEffect(() => {
+    if (grown) return
+
+    const frame = requestAnimationFrame(() => setGrown(true))
+
+    return () => cancelAnimationFrame(frame)
+  }, [grown])
 
   if (!data.length) return null
 
-  const rowHeight = 36
-
-  const height = Math.max(180, data.length * rowHeight)
-
-  const yAxisWidth = yAxisWidthProp ?? getCategoryLabelAxisWidth(data.map(d => d.name))
-
-  const maxTotal = Math.max(...data.map(d => d.total), 1)
-
-  const chartData = data.map(item => ({ ...item, maxTotal }))
+  const maxTotal = Math.max(...data.map(item => item.total), 1)
+  const sum = data.reduce((acc, item) => acc + item.total, 0) || 1
+  const barColor = tone === 'income' ? 'var(--color-income)' : 'var(--color-expense)'
 
   return (
     <div className={cn(chartCardClass, 'chart-card--animated', className)}>
       <h3 className={chartTitleClass}>{title}</h3>
-      <div className={chartBarWrapClass} dir="ltr">
-        <ResponsiveContainer width="100%" height={height}>
-          <BarChart
-            data={chartData}
-            layout="vertical"
-            margin={{ top: 4, right: 4, left: 0, bottom: 2 }}
-            barCategoryGap="18%"
-          >
-            <defs>
-              <linearGradient id={`${gradientId}-cat-bar-${tone}`} x1="0" y1="0" x2="1" y2="0">
-                <stop
-                  offset="0%"
-                  stopColor={tone === 'income' ? theme.income : theme.expense}
-                  stopOpacity={0.72}
+      <ul className={listClass}>
+        {data.map(item => {
+          const ratio = item.total / maxTotal
+
+          return (
+            <li key={item.name}>
+              <div className={rowHeadClass}>
+                <span className={nameClass} title={item.name}>
+                  {item.name}
+                </span>
+                <span className={amountClass}>
+                  {formatMoney(item.total)}
+                  <span className={shareClass}>
+                    {formatPersianPercent((item.total / sum) * 100)}
+                  </span>
+                </span>
+              </div>
+              <div className={trackClass} aria-hidden="true">
+                <div
+                  className={barClass}
+                  style={{
+                    background: barColor,
+                    // A visible sliver even for tiny shares, so every row has a bar.
+                    transform: `scaleX(${grown ? Math.max(ratio, 0.015) : 0})`
+                  }}
                 />
-                <stop
-                  offset="100%"
-                  stopColor={tone === 'income' ? theme.income : theme.expense}
-                  stopOpacity={1}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              horizontal={false}
-              stroke={theme.grid}
-              strokeDasharray="4 6"
-              strokeOpacity={0.45}
-            />
-            <XAxis
-              type="number"
-              domain={[0, maxTotal]}
-              tickFormatter={v => formatAxisMoney(v)}
-              tick={{ fontSize: 10, fill: theme.muted }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={yAxisWidth}
-              orientation="left"
-              tick={{ fontSize: 10, fill: theme.muted, textAnchor: 'end' }}
-              tickMargin={4}
-              tickFormatter={value => truncateCategoryLabel(String(value))}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              content={props => (
-                <ChartTooltip
-                  active={props.active}
-                  payload={props.payload as unknown as ChartTooltipEntry[] | undefined}
-                  label={String(props.label ?? '')}
-                />
-              )}
-              cursor={{ fill: 'rgba(15, 118, 110, 0.06)', radius: 8 }}
-            />
-            <Bar
-              name="مجموع"
-              dataKey="total"
-              radius={[0, 8, 8, 0]}
-              maxBarSize={22}
-              isAnimationActive={animate}
-              animationDuration={700}
-              animationEasing="ease-out"
-              background={{
-                fill: theme.accentSoft,
-                radius: 8
-              }}
-            >
-              {chartData.map((_, i) => (
-                <Cell
-                  key={i}
-                  fill={`url(#${gradientId}-cat-bar-${tone})`}
-                  fillOpacity={1 - (i % 3) * 0.08}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+              </div>
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }

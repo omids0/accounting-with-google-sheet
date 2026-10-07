@@ -1,29 +1,19 @@
 import type { ReactNode } from 'react'
-import { memo, useId, useMemo } from 'react'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { memo, useEffect, useMemo, useState } from 'react'
 
-import ChartTooltip from './ChartTooltip'
-import { formatAxisMoney } from './chartUtils'
-import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
+import { prefersReducedMotion } from '../../hooks/useChartTheme'
 import type { MonthlyFlow } from '../../types'
 import { cn } from '../../utils/cn'
+import { formatMoney, formatSignedMoney } from '../../utils/formatMoney'
 import {
-  chartBarWrapClass,
   chartCardClass,
   chartMonthlyLegendClass,
   chartMonthlyLegendDotClass,
   chartMonthlyLegendDotExpenseClass,
   chartMonthlyLegendDotIncomeClass,
-  chartMonthlyLegendItemClass,
-  chartMonthlyWrapClass
+  chartMonthlyLegendItemClass
 } from '../ui/chartStyles'
 import { emptyTextClass } from '../ui/displayStyles'
-
-type ChartTooltipEntry = {
-  name?: string | number
-  dataKey?: string | number
-  value?: number | string
-}
 
 interface IncomeExpenseMonthlyChartProps {
   data: MonthlyFlow[]
@@ -31,121 +21,98 @@ interface IncomeExpenseMonthlyChartProps {
   className?: string
 }
 
+const listClass = 'relative z-[1] m-0 flex list-none flex-col gap-4 p-0'
+
+const monthHeadClass = 'mb-1.5 flex items-baseline justify-between gap-3'
+
+const monthNameClass = 'text-[0.82rem] font-bold text-[var(--color-text)]'
+
+const netClass = 'whitespace-nowrap font-numeric text-[0.74rem] font-bold tabular-nums'
+
+const barRowClass = 'flex items-center gap-2'
+
+const trackClass =
+  'h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--color-accent-soft)_70%,transparent)]'
+
+const barClass =
+  'h-full rounded-full origin-right transition-transform duration-700 ease-out motion-reduce:transition-none'
+
+const valueClass =
+  'w-[6.5rem] shrink-0 whitespace-nowrap text-left font-numeric text-[0.7rem] font-semibold tabular-nums text-muted'
+
+/**
+ * Income and expense per month as a list: two thin bars per month growing from
+ * the right with their exact amounts, and the month's net beside its name.
+ * Months with no activity are left out.
+ */
 function IncomeExpenseMonthlyChart({
   data,
   header,
   className = ''
 }: IncomeExpenseMonthlyChartProps) {
-  const theme = useChartTheme()
+  const [grown, setGrown] = useState(() => prefersReducedMotion())
 
-  const animate = !prefersReducedMotion()
+  useEffect(() => {
+    if (grown) return
 
-  const gradientId = useId().replace(/:/g, '')
+    const frame = requestAnimationFrame(() => setGrown(true))
 
-  const chartData = useMemo(
-    () =>
-      data.map(item => ({
-        ...item,
-        shortLabel: item.label.split(' ')[0] ?? item.label
-      })),
-    [data]
+    return () => cancelAnimationFrame(frame)
+  }, [grown])
+
+  const months = useMemo(() => data.filter(item => item.income !== 0 || item.expense !== 0), [data])
+
+  const max = Math.max(1, ...months.map(item => Math.max(item.income, item.expense)))
+
+  const bar = (value: number, color: string) => (
+    <div className={trackClass} aria-hidden="true">
+      <div
+        className={barClass}
+        style={{
+          background: color,
+          transform: `scaleX(${grown ? (value > 0 ? Math.max(value / max, 0.015) : 0) : 0})`
+        }}
+      />
+    </div>
   )
-
-  const height = Math.max(300, chartData.length * 56)
-
-  const maxLabelLen = chartData.length ? Math.max(...chartData.map(d => d.shortLabel.length)) : 1
-
-  const yAxisWidth = Math.min(72, Math.max(44, Math.ceil(maxLabelLen * 7)))
 
   return (
     <div className={cn(chartCardClass, 'chart-card--animated', className)}>
       {header}
-      {!chartData.length ? (
+      {months.length === 0 ? (
         <p className={emptyTextClass}>داده‌ای برای این سال ثبت نشده</p>
       ) : (
         <>
-          <div className={cn(chartBarWrapClass, chartMonthlyWrapClass)} dir="ltr">
-            <ResponsiveContainer width="100%" height={height}>
-              <BarChart
-                data={chartData}
-                layout="vertical"
-                margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
-                barGap={4}
-                barCategoryGap="18%"
-              >
-                <defs>
-                  <linearGradient id={`${gradientId}-chart-income`} x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor={theme.income} stopOpacity={0.75} />
-                    <stop offset="100%" stopColor={theme.income} stopOpacity={1} />
-                  </linearGradient>
-                  <linearGradient id={`${gradientId}-chart-expense`} x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor={theme.expense} stopOpacity={0.75} />
-                    <stop offset="100%" stopColor={theme.expense} stopOpacity={1} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  horizontal={false}
-                  stroke={theme.grid}
-                  strokeDasharray="4 6"
-                  strokeOpacity={0.45}
-                />
-                <XAxis
-                  type="number"
-                  tickFormatter={value => formatAxisMoney(value)}
-                  tick={{ fontSize: 10, fill: theme.muted }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="shortLabel"
-                  width={yAxisWidth}
-                  orientation="left"
-                  tick={{ fontSize: 12, fill: theme.muted, textAnchor: 'end' }}
-                  tickMargin={6}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  content={props => (
-                    <ChartTooltip
-                      active={props.active}
-                      payload={props.payload as unknown as ChartTooltipEntry[] | undefined}
-                      label={
-                        props.payload?.[0]?.payload?.label
-                          ? String(props.payload[0].payload.label)
-                          : props.label != null
-                          ? String(props.label)
-                          : undefined
-                      }
-                    />
-                  )}
-                  cursor={{ fill: 'rgba(15, 118, 110, 0.06)', radius: 8 }}
-                />
-                <Bar
-                  name="income"
-                  dataKey="income"
-                  fill={`url(#${gradientId}-chart-income)`}
-                  radius={[0, 6, 6, 0]}
-                  maxBarSize={16}
-                  isAnimationActive={animate}
-                  animationDuration={750}
-                  animationEasing="ease-out"
-                />
-                <Bar
-                  name="expense"
-                  dataKey="expense"
-                  fill={`url(#${gradientId}-chart-expense)`}
-                  radius={[0, 6, 6, 0]}
-                  maxBarSize={16}
-                  isAnimationActive={animate}
-                  animationDuration={850}
-                  animationEasing="ease-out"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className={chartMonthlyLegendClass} dir="rtl">
+          <ul className={listClass}>
+            {months.map(item => {
+              const net = item.income - item.expense
+
+              return (
+                <li key={item.label}>
+                  <div className={monthHeadClass}>
+                    <span className={monthNameClass}>{item.label.split(' ')[0] ?? item.label}</span>
+                    <span
+                      className={cn(netClass, net >= 0 ? 'text-success' : 'text-danger')}
+                      title="خالص ماه"
+                    >
+                      {formatSignedMoney(net, { showPlus: true })}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <div className={barRowClass}>
+                      {bar(item.income, 'var(--color-income)')}
+                      <span className={valueClass}>{formatMoney(item.income)}</span>
+                    </div>
+                    <div className={barRowClass}>
+                      {bar(item.expense, 'var(--color-expense)')}
+                      <span className={valueClass}>{formatMoney(item.expense)}</span>
+                    </div>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+          <div className={chartMonthlyLegendClass}>
             <span className={chartMonthlyLegendItemClass}>
               <span className={cn(chartMonthlyLegendDotClass, chartMonthlyLegendDotIncomeClass)} />
               درآمد

@@ -7,6 +7,7 @@ import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
+import EmptyState from '../EmptyState'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
@@ -92,12 +93,11 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       {data.loading && data.holdings.length === 0 ? (
         <TreasurySkeleton />
       ) : data.holdings.length === 0 ? (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="treasury" />
-          </div>
-          <p>هنوز دارایی‌ای ثبت نشده</p>
-        </div>
+        <EmptyState
+          icon="treasury"
+          message="هنوز دارایی‌ای ثبت نشده"
+          action={{ label: 'افزودن دارایی', onClick: () => forms.openCreateForm() }}
+        />
       ) : data.filteredHoldings.length === 0 ? (
         <SearchEmptyState />
       ) : (

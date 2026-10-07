@@ -1,4 +1,18 @@
-import { formatCompactNumber } from '../../utils/formatMoney'
+import { formatCompactNumber, formatPersianNumber } from '../../utils/formatMoney'
+
+/** Arabic letter mark: keeps «٪» out of the digit run so it sits after the number. */
+const ALM = '؜'
+
+/**
+ * SVG `<text>` is left-to-right by default, which shows «۱۵ م» as «م ۱۵».
+ * Spread into a recharts `tick` so axis labels read right-to-left.
+ */
+export const rtlTickTextProps = { direction: 'rtl' } as const
+
+/** Persian percent that reads «۷۴٪» right-to-left (sign after the digits). */
+export function formatPersianPercent(pct: number): string {
+  return `${formatPersianNumber(pct, { useGrouping: false })}${ALM}٪`
+}
 
 const CATEGORY_LABEL_MAX_LEN = 14
 

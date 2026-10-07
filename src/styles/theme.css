@@ -70,6 +70,25 @@
   );
   --header-shadow: 0 4px 24px color-mix(in srgb, var(--color-primary-dark) 28%, transparent);
   --header-border: rgba(255, 255, 255, 0.12);
+  /* White-text hero cards (dashboard «دارایی قابل اتکا», menu profile) */
+  --hero-bg: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #2dd4bf 100%);
+  /* Filled buttons: white text must stay readable (≥4.5:1) in both themes. */
+  --btn-primary-bg: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  --btn-primary-bg-hover: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+  --nav-fab-bg: linear-gradient(
+    145deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary) 45%,
+    var(--color-primary-light) 100%
+  );
+  --nav-fab-bg-active: linear-gradient(
+    145deg,
+    #0a5c56 0%,
+    var(--color-primary-dark) 50%,
+    var(--color-primary) 100%
+  );
+  --hero-shadow: 0 8px 28px rgba(15, 118, 110, 0.3);
+  --hero-ring: transparent;
   /* title + sync badge row in main header */
   --shell-header-inner-min: 3.125rem;
   --shell-header-height: calc(
@@ -130,6 +149,14 @@
   --header-bg: linear-gradient(135deg, #08332f 0%, #0f5c54 52%, #134e4a 100%);
   --header-shadow: 0 4px 28px rgba(0, 0, 0, 0.42);
   --header-border: rgba(255, 255, 255, 0.08);
+  /* Deep teal: the light gradient glares on the dark page and washes out white text. */
+  --hero-bg: linear-gradient(135deg, #0a3f3a 0%, #0e5a52 55%, #11695f 100%);
+  --btn-primary-bg: linear-gradient(135deg, #0f766e, #0d9488);
+  --btn-primary-bg-hover: linear-gradient(135deg, #115e59, #0f766e);
+  --nav-fab-bg: linear-gradient(145deg, #0a3f3a 0%, #0f766e 55%, #0d9488 100%);
+  --nav-fab-bg-active: linear-gradient(145deg, #083330 0%, #0b5f58 55%, #0f766e 100%);
+  --hero-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  --hero-ring: rgba(94, 234, 212, 0.16);
   --nav-fab-ring: color-mix(in srgb, var(--color-surface) 88%, var(--color-primary-light));
   --nav-fab-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 4px 14px rgba(15, 118, 110, 0.35);
 }

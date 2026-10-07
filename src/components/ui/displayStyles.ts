@@ -53,24 +53,24 @@ const moneyDisplayRootBaseClass = 'money-display tabular-nums [font-feature-sett
 const moneyDisplaySizeClass: Record<MoneyDisplaySize, string> = {
   hero: cn(
     'mb-[0.35rem] flex flex-col items-center gap-[0.2rem] text-inherit',
-    '[&_.money-display__value]:text-[clamp(1.35rem,6vw,1.85rem)] [&_.money-display__value]:font-extrabold [&_.money-display__value]:leading-[1.05] [&_.money-display__value]:tracking-[0.02em]',
-    '[&_.money-display__unit]:text-[0.74rem] [&_.money-display__unit]:font-semibold [&_.money-display__unit]:opacity-90'
+    '[&_.money-display-value]:text-[clamp(1.35rem,6vw,1.85rem)] [&_.money-display-value]:font-extrabold [&_.money-display-value]:leading-[1.05] [&_.money-display-value]:tracking-[0.02em]',
+    '[&_.money-display-unit]:text-[0.74rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:opacity-90'
   ),
   stat: cn(
     'flex max-w-full min-w-0 flex-col items-center gap-[0.12rem]',
-    '[&_.money-display__value]:max-w-full [&_.money-display__value]:text-[clamp(0.88rem,3.2vw,1.05rem)] [&_.money-display__value]:font-extrabold [&_.money-display__value]:leading-[1.15] [&_.money-display__value]:tracking-[0.015em]',
-    '[&_.money-display__unit]:text-[0.62rem] [&_.money-display__unit]:font-semibold [&_.money-display__unit]:leading-none [&_.money-display__unit]:opacity-75'
+    '[&_.money-display-value]:max-w-full [&_.money-display-value]:text-[clamp(0.88rem,3.2vw,1.05rem)] [&_.money-display-value]:font-extrabold [&_.money-display-value]:leading-[1.15] [&_.money-display-value]:tracking-[0.015em]',
+    '[&_.money-display-unit]:text-[0.62rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:leading-none [&_.money-display-unit]:opacity-75'
   ),
   'stat-wide': cn(
     'inline-flex flex-shrink-0 items-baseline gap-1 whitespace-nowrap',
-    '[&_.money-display__value]:text-[clamp(0.92rem,3.2vw,1.08rem)] [&_.money-display__value]:font-extrabold [&_.money-display__value]:tracking-[0.015em]',
-    '[&_.money-display__unit]:text-[0.66rem] [&_.money-display__unit]:font-semibold [&_.money-display__unit]:opacity-75'
+    '[&_.money-display-value]:text-[clamp(0.92rem,3.2vw,1.08rem)] [&_.money-display-value]:font-extrabold [&_.money-display-value]:tracking-[0.015em]',
+    '[&_.money-display-unit]:text-[0.66rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:opacity-75'
   ),
   record: cn(
     'inline-flex flex-shrink-0 items-baseline gap-[0.12rem] whitespace-nowrap leading-[1.2]',
-    '[&_.money-display__sign]:text-[0.68rem] [&_.money-display__sign]:font-semibold [&_.money-display__sign]:opacity-85',
-    '[&_.money-display__value]:text-[0.76rem] [&_.money-display__value]:font-semibold [&_.money-display__value]:tracking-[0.01em]',
-    '[&_.money-display__unit]:text-[0.52rem] [&_.money-display__unit]:font-normal [&_.money-display__unit]:opacity-65'
+    '[&_.money-display-sign]:text-[0.68rem] [&_.money-display-sign]:font-semibold [&_.money-display-sign]:opacity-85',
+    '[&_.money-display-value]:text-[0.76rem] [&_.money-display-value]:font-semibold [&_.money-display-value]:tracking-[0.01em]',
+    '[&_.money-display-unit]:text-[0.64rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:opacity-80'
   )
 }
 
@@ -103,13 +103,13 @@ export function moneyDisplayClass({
   )
 }
 
-export const moneyDisplaySignClass = cn('money-display__sign font-numeric')
+export const moneyDisplaySignClass = cn('money-display-sign font-numeric')
 
 export const moneyDisplayValueClassName = cn(
-  'money-display__value stat-value font-numeric tabular-nums tracking-[-0.02em]'
+  'money-display-value stat-value font-numeric tabular-nums tracking-[-0.02em]'
 )
 
-export const moneyDisplayUnitClassName = cn('money-display__unit font-sans')
+export const moneyDisplayUnitClassName = cn('money-display-unit font-sans')
 
 export const recordItemClass =
   'flex items-center justify-between gap-3 border-b border-border py-[0.85rem] last:border-b-0'

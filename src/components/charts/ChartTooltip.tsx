@@ -46,7 +46,7 @@ export default function ChartTooltip({ active, payload, label }: ChartTooltipPro
             <div key={`${name}-${String(entry.dataKey)}`} className={chartTooltipRowClass}>
               <span className={chartTooltipDotClass(tone)} />
               <span className={chartTooltipNameClass}>{displayName}</span>
-              <span className={chartTooltipValueClass} dir="ltr">
+              <span className={chartTooltipValueClass}>
                 {formatMoney(Number(entry.value) || 0)}
               </span>
             </div>

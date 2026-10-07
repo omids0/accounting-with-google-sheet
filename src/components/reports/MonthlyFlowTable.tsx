@@ -30,12 +30,8 @@ export default function MonthlyFlowTable({ items }: { items: MonthlyFlow[] }) {
           {items.map(item => (
             <div key={item.monthKey} className={reportDataTableRowClass}>
               <span>{item.label}</span>
-              <span className={reportValueIncomeClass} dir="ltr">
-                {formatMoney(item.income)}
-              </span>
-              <span className={reportValueExpenseClass} dir="ltr">
-                {formatMoney(item.expense)}
-              </span>
+              <span className={reportValueIncomeClass}>{formatMoney(item.income)}</span>
+              <span className={reportValueExpenseClass}>{formatMoney(item.expense)}</span>
               <span
                 className={
                   item.net < 0
@@ -44,7 +40,6 @@ export default function MonthlyFlowTable({ items }: { items: MonthlyFlow[] }) {
                     ? reportValuePositiveClass
                     : 'font-numeric tabular-nums'
                 }
-                dir="ltr"
               >
                 {formatMoney(item.net)}
               </span>

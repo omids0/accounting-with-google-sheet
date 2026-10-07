@@ -52,18 +52,6 @@ export const loanScheduleTableClass = cn(
   '[&_tr:last-child_td]:border-b-0'
 )
 
-export const loanRateInputWrapClass = cn(
-  'flex w-full items-stretch overflow-hidden rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] shadow-[var(--form-input-shadow)]',
-  'transition-[border-color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  'focus-within:border-primary focus-within:shadow-[var(--form-input-focus-shadow)]',
-  '[&_input]:min-w-0 [&_input]:flex-1 [&_input]:w-auto [&_input]:border-none [&_input]:bg-transparent [&_input]:px-[0.85rem] [&_input]:py-[0.7rem] [&_input]:shadow-none',
-  '[&_input:focus]:border-none [&_input:focus]:bg-transparent [&_input:focus]:shadow-none [&_input:focus]:outline-none'
-)
-
-export const loanRateSuffixClass = cn(
-  'flex flex-shrink-0 items-center justify-center bg-accent-soft px-[0.85rem] font-semibold text-muted'
-)
-
 export const currencyConverterPageClass = cn(
   'flex flex-col gap-4',
   calculatorFieldWidthClass,

@@ -1,12 +1,13 @@
 import { cn } from '../../utils/cn'
 
 export const unlockPageClass = cn(
-  'relative flex min-h-dvh items-center justify-center overflow-hidden p-5',
+  'relative flex min-h-dvh items-center justify-center overflow-hidden p-4 min-[380px]:p-5',
   '[background:radial-gradient(ellipse_120%_80%_at_50%_-20%,color-mix(in_srgb,var(--color-primary)_18%,transparent),transparent_55%),linear-gradient(165deg,var(--color-bg)_0%,color-mix(in_srgb,var(--color-accent-soft)_70%,var(--color-bg))_45%,color-mix(in_srgb,var(--color-accent-mid)_55%,var(--color-bg))_100%)]'
 )
 
 export const unlockBackdropOrbPrimaryClass = cn(
-  'pointer-events-none absolute -top-24 end-[-4rem] h-56 w-56 rounded-full opacity-70 blur-3xl',
+  // Kept faint: the card's backdrop blur pulls it into the hero as a grey smudge.
+  'pointer-events-none absolute -top-24 end-[-4rem] h-56 w-56 rounded-full opacity-30 blur-3xl',
   '[background:radial-gradient(circle,color-mix(in_srgb,var(--color-primary-light)_35%,transparent)_0%,transparent_70%)]',
   'animate-[float_8s_ease-in-out_infinite]'
 )
@@ -26,9 +27,9 @@ export const unlockCardClass = cn(
 )
 
 export const unlockCardHeroClass = cn(
-  'relative overflow-hidden px-6 pb-5 pt-7 text-center',
+  'relative overflow-hidden px-5 pb-6 pt-7 text-center min-[380px]:px-6',
+  'border-b border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))]',
   '[background:linear-gradient(155deg,color-mix(in_srgb,var(--color-primary)_11%,var(--color-surface))_0%,color-mix(in_srgb,var(--color-accent-soft)_65%,var(--color-surface))_100%)]',
-  'before:pointer-events-none before:absolute before:-top-10 before:end-[-2rem] before:h-28 before:w-28 before:rounded-full before:bg-[color-mix(in_srgb,var(--color-primary-light)_22%,transparent)] before:blur-2xl before:content-[""]',
   'after:pointer-events-none after:absolute after:-bottom-8 after:start-[-1.5rem] after:h-24 after:w-24 after:rounded-full after:bg-[color-mix(in_srgb,var(--color-accent-mid)_30%,transparent)] after:blur-2xl after:content-[""]'
 )
 
@@ -48,14 +49,16 @@ export const unlockSubtitleClass = 'relative z-[1] mt-2 text-[0.84rem] leading-[
 export const unlockGreetingClass =
   'relative z-[1] mt-1 text-[0.9rem] font-semibold text-[var(--color-primary-dark)]'
 
-export const unlockBodyClass = 'flex flex-col gap-4 px-6 pb-6 pt-1'
+export const unlockBodyClass = 'flex flex-col gap-4 px-5 pb-6 pt-5 min-[380px]:px-6'
 
-export const unlockPinSectionClass = 'flex flex-col items-center gap-3 [direction:ltr]'
+export const unlockPinSectionClass = 'flex w-full flex-col items-center gap-3 [direction:ltr]'
 
 export const unlockPinLabelClass =
   'm-0 w-full text-center text-[0.76rem] font-bold tracking-[0.02em] text-[var(--form-label-color)] [direction:rtl]'
 
-export const unlockPinCellsClass = 'flex items-center justify-center gap-3 [direction:ltr]'
+/** Cells share the row: up to 12 digits must fit a 320px phone without overflowing. */
+export const unlockPinCellsClass =
+  'flex w-full max-w-full items-center justify-center gap-1.5 sm:gap-3 [direction:ltr]'
 
 export function unlockPinCellClass({
   filled,
@@ -67,11 +70,12 @@ export function unlockPinCellClass({
   error?: boolean
 }) {
   return cn(
-    'flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-[14px] border-[1.5px] transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    'flex aspect-square min-w-0 max-w-[3.25rem] flex-1 basis-0 items-center justify-center rounded-[14px] border-[1.5px] transition-[border-color,background-color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    // One clean ring per state: a thicker border, never border + outer glow.
     error
-      ? 'border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-danger)_12%,transparent)]'
+      ? 'border-2 border-[var(--color-danger)] bg-[var(--color-danger-bg)]'
       : active
-      ? 'border-primary bg-[color-mix(in_srgb,var(--color-primary)_8%,var(--color-surface))] shadow-[var(--form-input-focus-shadow)]'
+      ? 'border-2 border-primary bg-[color-mix(in_srgb,var(--color-primary)_6%,var(--color-surface))]'
       : filled
       ? 'border-[color-mix(in_srgb,var(--color-primary)_40%,var(--color-border))] bg-[color-mix(in_srgb,var(--color-primary)_6%,var(--color-surface))]'
       : 'border-[var(--form-input-border)] bg-[var(--form-input-bg)] shadow-[var(--form-input-shadow)]'
@@ -87,11 +91,17 @@ export const unlockHiddenInputClass = 'sr-only'
 
 export const unlockErrorClass = 'm-0 w-full text-center text-[0.8rem]'
 
-export const unlockActionsClass = 'flex flex-col gap-2.5'
+export const unlockActionsClass = 'flex flex-col gap-4'
 
-export const unlockPrimaryBtnClass = cn(
-  '!rounded-[14px] !py-[0.85rem] !text-[0.95rem] !shadow-[0_8px_22px_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'
-)
+/** `incomplete`: PIN not fully typed — flat and muted so it reads as unavailable. */
+export function unlockPrimaryBtnClass(incomplete?: boolean) {
+  return cn(
+    '!rounded-[14px] !py-[0.85rem] !text-[0.95rem]',
+    incomplete
+      ? '!text-muted !shadow-none disabled:!opacity-100 ![background:color-mix(in_srgb,var(--color-text)_9%,var(--color-surface))] before:hidden'
+      : '!shadow-[0_8px_22px_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'
+  )
+}
 
 export const unlockBiometricBtnClass = cn(
   '!rounded-[14px] !border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))] !bg-[color-mix(in_srgb,var(--color-primary)_5%,var(--color-surface))] !py-[0.8rem]',

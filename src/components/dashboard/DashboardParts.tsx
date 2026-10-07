@@ -59,9 +59,7 @@ export function BreakdownRow({
           {tag}
         </span>
       )}
-      <span className={assetValueClass} dir="ltr">
-        {formatMoney(value)}
-      </span>
+      <span className={assetValueClass}>{formatMoney(value)}</span>
     </div>
   )
 }

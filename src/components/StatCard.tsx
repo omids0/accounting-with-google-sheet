@@ -114,9 +114,9 @@ export default function StatCard({
       <span className={cn('stat-label', statLabelClass)}>{label}</span>
       <div
         className={cn(
-          'stat-card__value-row',
+          'stat-card-value-row',
           statCardValueRowClass,
-          wide && 'stat-card__value-row--wide',
+          wide && 'stat-card-value-row--wide',
           wide && statCardValueRowWideClass
         )}
       >

@@ -44,6 +44,8 @@ export default function Sparkline({
 
   const gradientId = useId().replace(/:/g, '')
 
+  // Time runs left to right even in RTL: an axis-less trend line is read like a
+  // symbol, and a rising series drawn right-to-left looks like a decline.
   const chartData = useMemo(() => data.map((value, index) => ({ index, value })), [data])
 
   if (chartData.length < 2) return null

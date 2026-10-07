@@ -31,7 +31,7 @@ export const receivablePaymentFormClass =
 
 export const receivableTotalCardClass = cn(
   'p-4 text-center transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:shadow-[var(--shadow)]',
-  '[&.stat-card_.stat-card__value-row--wide]:justify-center'
+  '[&.stat-card_.stat-card-value-row--wide]:justify-center'
 )
 
 export const receivableTotalLabelClass = 'mb-[0.35rem] text-[0.8rem] text-muted'
