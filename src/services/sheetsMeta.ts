@@ -40,3 +40,17 @@ export function parseSheetNameFromRange(range: string): string {
 
   return raw.replace(/^'/, '').replace(/'$/, '')
 }
+
+/** Forget that these tabs were prepared, so the next ensure call checks (and creates) them. */
+export function unmarkSheetsPrepared(spreadsheetId: string, sheetNames: string[]): void {
+  const set = preparedSheets.get(spreadsheetId)
+
+  for (const name of sheetNames) set?.delete(normalizeSheetTitle(name))
+}
+
+/** Requested tabs a download did not return, i.e. tabs missing from the spreadsheet. */
+export function missingSheetNames(requested: string[], fetched: Iterable<string>): string[] {
+  const got = new Set([...fetched].map(normalizeSheetTitle))
+
+  return requested.filter(name => !got.has(normalizeSheetTitle(name)))
+}

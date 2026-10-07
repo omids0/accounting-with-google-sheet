@@ -32,7 +32,10 @@ async function fetchSheetTitlesFromApi(spreadsheetId: string): Promise<string[]>
   return (meta.sheets ?? []).map(s => s.properties?.title ?? '').filter(Boolean)
 }
 
-async function getSheetTitles(spreadsheetId: string, forceRefresh = false): Promise<string[]> {
+export async function getSheetTitles(
+  spreadsheetId: string,
+  forceRefresh = false
+): Promise<string[]> {
   const cached = sheetTitlesCache.get(spreadsheetId)
 
   if (!forceRefresh && cached && Date.now() < cached.expiresAt) {

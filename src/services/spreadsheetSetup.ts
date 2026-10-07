@@ -15,6 +15,7 @@ import {
   verifySpreadsheetExists,
   type SheetSpec
 } from './sheets'
+import { invalidateSheetTitlesCache, unmarkSheetsPrepared } from './sheetsMeta'
 import {
   clearInaccessibleSpreadsheet,
   markSpreadsheetInaccessible,
@@ -275,4 +276,24 @@ export function getDefaultFirstSheetLabel(): string {
 /** @deprecated Use createNamedSpreadsheet instead */
 export async function recreateUserSpreadsheet(): Promise<string> {
   return createNamedSpreadsheet(getDefaultFirstSheetLabel())
+}
+
+/**
+ * Creates known tabs that turned out to be missing (a sync download did not return
+ * them), e.g. a tab added by an app update on a spreadsheet already marked prepared.
+ */
+export async function repairMissingSheets(
+  spreadsheetId: string,
+  sheetNames: string[]
+): Promise<void> {
+  const specs = getAllSheetSpecs().filter(spec => sheetNames.includes(spec.sheetName))
+
+  if (!specs.length) return
+
+  unmarkSheetsPrepared(
+    spreadsheetId,
+    specs.map(spec => spec.sheetName)
+  )
+  invalidateSheetTitlesCache(spreadsheetId)
+  await ensureManySheetsWithHeaders(spreadsheetId, specs)
 }
