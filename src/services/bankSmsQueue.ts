@@ -1,5 +1,5 @@
 import { toAppCurrency } from './bankSmsAmount'
-import { matchSms } from './bankSmsMatch'
+import { matchSms, type LearnedSmsRefs } from './bankSmsMatch'
 import type { BankSmsItem } from './bankSmsNative'
 import type { CurrencyUnit, SmsMatchResult, SmsTemplate, WalletAccount } from '../types'
 
@@ -44,12 +44,13 @@ export function reviewSms(
   items: BankSmsItem[],
   templates: SmsTemplate[],
   accounts: MatchAccount[],
-  currency: CurrencyUnit
+  currency: CurrencyUnit,
+  learned: LearnedSmsRefs = {}
 ): ReviewedSms[] {
   return [...items]
     .sort((a, b) => a.receivedAt - b.receivedAt)
     .map(sms => {
-      const result = matchSms(sms.body, templates, accounts)
+      const result = matchSms(sms.body, templates, accounts, learned)
       const values = result.kind === 'matched' || result.kind === 'ambiguous' ? result : null
 
       return {

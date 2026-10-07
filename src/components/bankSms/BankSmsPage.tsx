@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import BankSmsBulkBar from './BankSmsBulkBar'
 import BankSmsEntryCard from './BankSmsEntryCard'
 import BankSmsSettingsCard from './BankSmsSettingsCard'
 import BankSmsTransferCard from './BankSmsTransferCard'
@@ -29,6 +30,14 @@ function BankSmsReview() {
         <EmptyState
           icon="empty-inbox"
           message={review.loading ? 'در حال خواندن پیامک‌ها…' : 'پیامک بانکی در انتظار بررسی نیست'}
+        />
+      )}
+
+      {enabled && (
+        <BankSmsBulkBar
+          count={review.bulkCount}
+          busy={review.busyKey === 'all'}
+          onConfirmAll={() => void review.confirmAll()}
         />
       )}
 

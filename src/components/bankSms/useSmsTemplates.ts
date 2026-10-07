@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { learnSmsRef } from '../../services/bankSmsPrefs'
 import {
   createSmsTemplate,
   deleteSmsTemplate,
@@ -36,7 +37,11 @@ export function useSmsTemplates() {
     void reload()
   }, [reload])
 
-  const add = async (input: Omit<SmsTemplate, 'id' | 'createdAt'>) => {
+  /** `sampleRef`: digits shown in the sample SMS, tied to the account on save. */
+  const add = async ({
+    sampleRef,
+    ...input
+  }: Omit<SmsTemplate, 'id' | 'createdAt'> & { sampleRef?: string }) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return null
@@ -44,6 +49,8 @@ export function useSmsTemplates() {
     setSaving(true)
     try {
       const template = await createSmsTemplate(spreadsheetId, input)
+
+      learnSmsRef(sampleRef, input.accountId)
 
       await reload()
 

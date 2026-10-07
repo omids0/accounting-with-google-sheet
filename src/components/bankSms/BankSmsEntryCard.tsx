@@ -33,12 +33,12 @@ function resolveEntry(entry: ReviewedSms, accountId: string): ConfirmableSms | n
 
   if (!candidate) return null
 
-  const { direction, unit, balance } = result
+  const { direction, unit, balance, ref } = result
 
   return {
     ...entry,
     amount,
-    result: { kind: 'matched', ...candidate, direction, unit, amount: result.amount, balance }
+    result: { kind: 'matched', ...candidate, direction, unit, amount: result.amount, balance, ref }
   }
 }
 

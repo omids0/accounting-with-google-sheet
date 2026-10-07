@@ -8,18 +8,13 @@ import {
   SMS_UNIT_LABELS
 } from './smsLabels'
 import SmsTokenChips from './SmsTokenChips'
+import { toAppCurrency } from '../../services/bankSmsAmount'
 import { guessTemplate, validateTemplateParts } from '../../services/bankSmsGuess'
-import { matchSms } from '../../services/bankSmsMatch'
+import { matchSms, sampleRefDigits } from '../../services/bankSmsMatch'
 import { isBankSmsAvailable } from '../../services/bankSmsNative'
 import { normalizeSmsText, tokenizeSms } from '../../services/bankSmsText'
-import type {
-  SmsAmountUnit,
-  SmsDirection,
-  SmsSlotRole,
-  SmsTemplate,
-  SmsTemplatePart
-} from '../../types'
-import { formatMoney } from '../../utils/formatMoney'
+import type { SmsDirection, SmsSlotRole, SmsTemplate, SmsTemplatePart } from '../../types'
+import { formatMoney, getCurrency, getCurrencySymbol } from '../../utils/formatMoney'
 import ToggleChipGroup from '../ToggleChipGroup'
 import {
   smsActionsRowClass,
@@ -31,7 +26,10 @@ import {
 } from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
 
-export type SmsTemplateDraft = Pick<SmsTemplate, 'direction' | 'unit' | 'parts'>
+export type SmsTemplateDraft = Pick<SmsTemplate, 'direction' | 'unit' | 'parts'> & {
+  /** Card/account digits shown in the sample, so its account is learned on save. */
+  sampleRef?: string
+}
 
 type SmsSampleEditorProps = {
   /** Templates already saved anywhere; they teach the guesser. */
@@ -54,7 +52,6 @@ export default function SmsSampleEditor({
   const [text, setText] = useState(initialText)
   const [roles, setRoles] = useState<Record<number, SmsSlotRole>>({})
   const [direction, setDirection] = useState<SmsDirection | null>(null)
-  const [unit, setUnit] = useState<SmsAmountUnit | null>(null)
 
   const normalized = useMemo(() => normalizeSmsText(text), [text])
   const tokens = useMemo(() => tokenizeSms(normalized), [normalized])
@@ -73,8 +70,16 @@ export default function SmsSampleEditor({
 
   const draft: SmsTemplateDraft | null = useMemo(
     () =>
-      guess ? { parts, direction: direction ?? guess.direction, unit: unit ?? guess.unit } : null,
-    [guess, parts, direction, unit]
+      guess
+        ? {
+            parts,
+            direction: direction ?? guess.direction,
+            // Read from the SMS text itself («تومان» or not); converted to the app unit on save.
+            unit: guess.unit,
+            sampleRef: sampleRefDigits(parts, normalized)
+          }
+        : null,
+    [guess, parts, direction, normalized]
   )
 
   const issues = draft ? validateTemplateParts(draft.parts) : []
@@ -93,7 +98,12 @@ export default function SmsSampleEditor({
     setText(next)
     setRoles({})
     setDirection(null)
-    setUnit(null)
+  }
+
+  const inApp = (value: number) => {
+    const converted = draft ? toAppCurrency(value, draft.unit, getCurrency()) : null
+
+    return converted === null ? formatMoney(value, draft?.unit) : formatMoney(converted)
   }
 
   return (
@@ -128,12 +138,12 @@ export default function SmsSampleEditor({
             selected={{ [draft.direction]: true }}
             onToggle={id => setDirection(id as SmsDirection)}
           />
-          <ToggleChipGroup
-            ariaLabel="واحد مبلغ در پیامک"
-            options={(['rial', 'toman'] as const).map(id => ({ id, label: SMS_UNIT_LABELS[id] }))}
-            selected={{ [draft.unit]: true }}
-            onToggle={id => setUnit(id as SmsAmountUnit)}
-          />
+          <p className={smsHintClass}>
+            مبلغ این پیامک به {SMS_UNIT_LABELS[draft.unit]} است
+            {draft.unit !== getCurrency() &&
+              ` و هنگام ثبت خودکار به ${getCurrencySymbol()} تبدیل می‌شود`}
+            .
+          </p>
 
           {issues.length > 0 && (
             <ul className={smsIssueListClass}>
@@ -146,11 +156,9 @@ export default function SmsSampleEditor({
           {preview && (
             <div className={smsPreviewClass} aria-label="نتیجه خواندن پیامک">
               <span className={smsPreviewLabelClass}>{SMS_ROLE_LABELS.amount}</span>
-              <span>{formatMoney(preview.amount, preview.unit)}</span>
+              <span>{inApp(preview.amount)}</span>
               <span className={smsPreviewLabelClass}>{SMS_ROLE_LABELS.balance}</span>
-              <span>
-                {preview.balance === null ? '—' : formatMoney(preview.balance, preview.unit)}
-              </span>
+              <span>{preview.balance === null ? '—' : inApp(preview.balance)}</span>
             </div>
           )}
         </>
