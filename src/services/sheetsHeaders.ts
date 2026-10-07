@@ -18,7 +18,8 @@ export function buildFieldColumnMap(headers: string[], fields: FieldConfig[]): M
     normalizedHeaders.findIndex(header => header === normalizeHeaderLabel(field.label))
   )
   const claimed = new Set(byLabel.filter(column => column >= 0))
-  let nextFree = Math.max(normalizedHeaders.length, 2 + fields.length)
+  // Same column the header migration appends to (end of the header row).
+  let nextFree = normalizedHeaders.length
 
   fields.forEach((field, index) => {
     if (byLabel[index] >= 0) {

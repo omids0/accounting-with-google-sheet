@@ -17,6 +17,24 @@ export interface SmsRecordInput {
 
 export const SMS_RECORD_NOTE = 'ثبت از پیامک'
 
+/**
+ * A newer «مانده» of this account already includes the SMS. Then the balance does not
+ * move, and the record must not name the account (deleting it later would undo an
+ * amount that was never applied).
+ */
+export function smsAlreadyInBalance(entry: ConfirmableSms, accountId: string): boolean {
+  const anchor = getBankSmsPrefs().balanceStates[accountId]?.anchor
+
+  return (
+    accountId === entry.result.accountId && anchor !== undefined && entry.sms.receivedAt < anchor
+  )
+}
+
+/** The record's type agrees with the SMS (expense ↔ debit). */
+function sameDirection(entry: ConfirmableSms, effect: RecordWalletEffect): boolean {
+  return effect.delta < 0 === (entry.result.direction === 'debit')
+}
+
 async function applyBalance(spreadsheetId: string, entry: ConfirmableSms): Promise<void> {
   learnSmsRef(entry.result.ref, entry.result.accountId)
 
@@ -64,7 +82,9 @@ export async function confirmSmsEntry(
       note: SMS_RECORD_NOTE,
       date: smsRecordDate(entry.sms.body, entry.sms.receivedAt),
       // Ties the record to the account, so editing or deleting it later fixes the balance.
-      walletAccount: entry.result.accountId
+      walletAccount: smsAlreadyInBalance(entry, entry.result.accountId)
+        ? ''
+        : entry.result.accountId
     }
 
     if (entry.result.direction === 'debit') {
@@ -136,7 +156,9 @@ export async function settleSmsFromEntry(
     lastCategory: { ...prefs.lastCategory, [entry.result.templateId]: record }
   })
 
-  if (effect && effect.accountId === entry.result.accountId) {
+  // Same account and same direction as the SMS: follow its «مانده». Otherwise (another
+  // account, or the user switched income/expense) the record's own effect applies.
+  if (effect && effect.accountId === entry.result.accountId && sameDirection(entry, effect)) {
     await applyBalance(spreadsheetId, { ...entry, amount: Math.abs(effect.delta) })
 
     return

@@ -17,7 +17,14 @@ export interface ReviewedSms {
 export type ConfirmableSms = ReviewedSms & { result: MatchedSms; amount: number }
 
 export type BankSmsReviewItem =
-  | { kind: 'single'; key: string; entry: ReviewedSms; probableDuplicate: boolean }
+  | {
+      kind: 'single'
+      key: string
+      entry: ReviewedSms
+      probableDuplicate: boolean
+      /** The matching record names this SMS's account, so it already moved the balance. */
+      duplicateMovedBalance: boolean
+    }
   | {
       kind: 'transfer'
       key: string
@@ -31,6 +38,8 @@ export interface LedgerEntry {
   amount: number
   /** `YYYY-MM-DD` */
   date: string
+  /** Wallet account the record names ('' when none). */
+  accountId: string
 }
 
 /** Debit and credit SMS of one own-account transfer arrive within this window. */
@@ -83,18 +92,22 @@ function ledgerDay(iso: string): number {
   return Date.UTC(year, (month ?? 1) - 1, day ?? 1)
 }
 
-export function isProbableDuplicate(entry: ReviewedSms, ledger: LedgerEntry[]): boolean {
-  if (!isConfirmable(entry)) return false
+function findDuplicates(entry: ReviewedSms, ledger: LedgerEntry[]): LedgerEntry[] {
+  if (!isConfirmable(entry)) return []
 
   const type = entry.result.direction === 'debit' ? 'expense' : 'income'
   const day = smsDay(entry.sms.receivedAt)
 
-  return ledger.some(
+  return ledger.filter(
     record =>
       record.type === type &&
       record.amount === entry.amount &&
       Math.abs(ledgerDay(record.date) - day) <= DAY_MS
   )
+}
+
+export function isProbableDuplicate(entry: ReviewedSms, ledger: LedgerEntry[]): boolean {
+  return findDuplicates(entry, ledger).length > 0
 }
 
 /**
@@ -141,7 +154,10 @@ export function buildReviewItems(
       kind: 'single',
       key: entry.sms.id,
       entry,
-      probableDuplicate: isProbableDuplicate(entry, ledger)
+      probableDuplicate: isProbableDuplicate(entry, ledger),
+      duplicateMovedBalance:
+        isConfirmable(entry) &&
+        findDuplicates(entry, ledger).some(record => record.accountId === entry.result.accountId)
     })
   }
 

@@ -34,7 +34,6 @@ import {
   LazyVehiclesPage,
   LazyWalletPage
 } from './lazyPages'
-import { getPathForTab } from './paths'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
 import Layout from '../components/Layout'
@@ -59,8 +58,7 @@ function EntryRoute() {
   const location = useLocation()
   const smsDraft = readBankSmsEntryDraft(location.state)
   // Opened from a bank SMS card: go back to the queue, and drop the pre-filled form from history.
-  const back = () =>
-    smsDraft ? navigate(getPathForTab('bank-sms'), { replace: true }) : navigate('/')
+  const back = () => (smsDraft ? navigate(-1) : navigate('/'))
 
   return (
     <LazyDataEntryPage

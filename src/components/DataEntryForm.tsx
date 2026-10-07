@@ -17,7 +17,7 @@ import VehicleExpenseFields from './vehicleExpenses/VehicleExpenseFields'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
 import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
-import { settleEntryWallet } from '../services/entryWallet'
+import { prepareEntryValues, settleEntryWallet } from '../services/entryWallet'
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
@@ -131,11 +131,12 @@ export default function DataEntryForm({
     return !hasError
   }
 
-  const saveRecord = async (formValues: Record<string, string | number>) => {
+  const saveRecord = async (entered: Record<string, string | number>) => {
     onLoadingChange(true)
-    try {
-      const settings = getSettings()!
+    const settings = getSettings()!
+    const formValues = prepareEntryValues(activeForm.type, entered, bankSms)
 
+    try {
       if (showVehicleFields) {
         await createManualVehicleExpense(
           settings.spreadsheetId,
@@ -150,18 +151,23 @@ export default function DataEntryForm({
           formValues
         )
       }
-
-      await settleEntryWallet(settings.spreadsheetId, activeForm.type, formValues, bankSms)
-      showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
-      refreshOpeningBalancesInBackground()
-      if (onSaved) return onSaved()
-      reset(buildFormInitialValues(activeForm))
-      vehicleExpense.resetVehicleValues()
     } catch (err) {
-      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
-    } finally {
+      handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })
       onLoadingChange(false)
+
+      return
     }
+
+    // The record exists now: a wallet/SMS failure must not invite a second save.
+    await settleEntryWallet(settings.spreadsheetId, activeForm.type, formValues, bankSms).catch(
+      () => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد')
+    )
+    showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
+    refreshOpeningBalancesInBackground()
+    onLoadingChange(false)
+    if (onSaved) return onSaved()
+    reset(buildFormInitialValues(activeForm))
+    vehicleExpense.resetVehicleValues()
   }
 
   const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {

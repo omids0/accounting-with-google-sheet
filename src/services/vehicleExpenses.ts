@@ -1,4 +1,5 @@
 import { createLinkedExpenseRecord, deleteLinkedRecord } from './paymentTransactions'
+import { applyWalletChanges } from './recordWallet'
 import { getSettings, updateFormCategories } from './settings'
 import { VEHICLE_EXPENSE_CATEGORY } from '../components/vehicles/constants'
 import { withLockedExpenseCategories } from '../utils/protectedCategories'
@@ -28,23 +29,35 @@ export async function createVehicleExpense(
     subCategory?: string
     note?: string
     date?: string
+    /** Account of the record this one replaces; its balance moves with the new amount. */
+    walletAccount?: string
   }
 ): Promise<string> {
   await ensureVehicleExpenseCategory()
 
   if (params.amount <= 0) return ''
 
-  return createLinkedExpenseRecord(spreadsheetId, {
+  const recordId = await createLinkedExpenseRecord(spreadsheetId, {
     ...params,
     category: VEHICLE_EXPENSE_CATEGORY
   })
+
+  if (params.walletAccount) {
+    await applyWalletChanges(spreadsheetId, null, {
+      accountId: params.walletAccount,
+      delta: -params.amount
+    })
+  }
+
+  return recordId
 }
 
+/** @returns the wallet account the deleted record named ('' if none). */
 export async function deleteVehicleExpense(
   spreadsheetId: string,
   expenseRecordId: string
-): Promise<void> {
-  if (!expenseRecordId) return
+): Promise<string> {
+  if (!expenseRecordId) return ''
 
-  await deleteLinkedRecord(spreadsheetId, 'expense', expenseRecordId)
+  return deleteLinkedRecord(spreadsheetId, 'expense', expenseRecordId)
 }

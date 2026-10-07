@@ -73,9 +73,16 @@ describe('buildReviewItems', () => {
 
   it('flags a probable duplicate of a record already entered by hand', () => {
     const reviewed = reviewSms([sms('a', MELLAT_DEBIT.next)], templates, accounts, 'toman')
-    const ledger: LedgerEntry[] = [{ type: 'expense', amount: 9000, date: '2026-10-08' }]
+    const ledger: LedgerEntry[] = [
+      { type: 'expense', amount: 9000, date: '2026-10-08', accountId: '' }
+    ]
 
-    expect(buildReviewItems(reviewed, ledger)).toMatchObject([{ probableDuplicate: true }])
+    expect(buildReviewItems(reviewed, ledger)).toMatchObject([
+      { probableDuplicate: true, duplicateMovedBalance: false }
+    ])
+    expect(buildReviewItems(reviewed, [{ ...ledger[0], accountId: 'mellat' }])).toMatchObject([
+      { probableDuplicate: true, duplicateMovedBalance: true }
+    ])
     expect(buildReviewItems(reviewed, [{ ...ledger[0], type: 'income' }])).toMatchObject([
       { probableDuplicate: false }
     ])

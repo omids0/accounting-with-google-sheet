@@ -88,6 +88,7 @@ function BankSmsReview() {
               key={item.key}
               entry={entry}
               probableDuplicate={item.probableDuplicate}
+              duplicateMovedBalance={item.duplicateMovedBalance}
               accounts={review.accounts}
               busy={busy}
               onOpenEntry={(resolved, accountTitle) => {

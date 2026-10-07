@@ -13,6 +13,8 @@ import type { WalletAccountWithRow } from '../wallet/types'
 type BankSmsEntryCardProps = {
   entry: ReviewedSms
   probableDuplicate: boolean
+  /** A matching record already moved this account's balance: «balance only» would count it twice. */
+  duplicateMovedBalance: boolean
   accounts: WalletAccountWithRow[]
   busy: boolean
   /** Opens the normal income/expense form pre-filled from this SMS. */
@@ -49,6 +51,7 @@ function resolveEntry(entry: ReviewedSms, accountId: string): ConfirmableSms | n
 export default function BankSmsEntryCard({
   entry,
   probableDuplicate,
+  duplicateMovedBalance,
   accounts,
   busy,
   onOpenEntry,
@@ -75,7 +78,11 @@ export default function BankSmsEntryCard({
       )}
 
       {probableDuplicate && (
-        <span className={smsBadgeClass}>احتمالاً تکراری — رکوردی با همین مبلغ و تاریخ هست</span>
+        <span className={smsBadgeClass}>
+          {duplicateMovedBalance
+            ? 'احتمالاً قبلاً ثبت شده و موجودی حساب هم به‌روز شده — «قبلاً ثبت شده» را بزنید'
+            : 'احتمالاً تکراری — رکوردی با همین مبلغ و تاریخ هست'}
+        </span>
       )}
 
       {candidates.length > 1 && (
@@ -105,7 +112,7 @@ export default function BankSmsEntryCard({
         >
           {direction === 'debit' ? 'ثبت هزینه' : 'ثبت درآمد'}
         </Button>
-        {resolved && (
+        {resolved && !duplicateMovedBalance && (
           <Button
             type="button"
             size="sm"

@@ -1,6 +1,6 @@
-import { settleSmsFromEntry, type ConfirmableSms } from './bankSmsApply'
+import { settleSmsFromEntry, smsAlreadyInBalance, type ConfirmableSms } from './bankSmsApply'
 import { applyWalletChanges, walletEffectOf } from './recordWallet'
-import { SUBCATEGORY_FIELD_ID } from '../components/form/fieldUtils'
+import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import type { FormType } from '../types'
 
 /**
@@ -26,4 +26,20 @@ export async function settleEntryWallet(
     category: String(values.category ?? ''),
     subCategory: String(values[SUBCATEGORY_FIELD_ID] ?? '')
   })
+}
+
+/**
+ * Values to store for a record opened from a bank SMS: drop the account when a newer
+ * «مانده» already includes this SMS, so the record never undoes an amount it never applied.
+ */
+export function prepareEntryValues(
+  type: FormType,
+  values: Record<string, string | number>,
+  bankSms?: ConfirmableSms
+): Record<string, string | number> {
+  const effect = walletEffectOf(type, values)
+
+  if (!bankSms || !effect || !smsAlreadyInBalance(bankSms, effect.accountId)) return values
+
+  return { ...values, [WALLET_ACCOUNT_FIELD_ID]: '' }
 }

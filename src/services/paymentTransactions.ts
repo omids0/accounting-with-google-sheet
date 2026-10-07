@@ -84,16 +84,17 @@ export async function createLinkedIncomeRecord(
   return recordId
 }
 
+/** Deletes the record and undoes its wallet effect; returns the account it named ('' if none). */
 export async function deleteLinkedRecord(
   spreadsheetId: string,
   formType: 'income' | 'expense',
   recordId: string
-): Promise<void> {
-  if (!recordId) return
+): Promise<string> {
+  if (!recordId) return ''
 
   const form = getFormByType(formType)
 
-  if (!form) return
+  if (!form) return ''
 
   const records = await fetchRecords(spreadsheetId, form)
 
@@ -102,7 +103,11 @@ export async function deleteLinkedRecord(
   if (match) {
     await deleteRecord(spreadsheetId, form, match.rowNumber)
     await applyWalletChanges(spreadsheetId, walletEffectOf(formType, match.values), null)
+
+    return match.values[WALLET_ACCOUNT_FIELD_ID] ?? ''
   }
+
+  return ''
 }
 
 export async function deleteLinkedExpenseRecord(

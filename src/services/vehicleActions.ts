@@ -52,9 +52,9 @@ export async function completePeriodicService(params: {
     isHistorical = false
   } = params
 
-  if (previousExpenseId) {
-    await deleteVehicleExpense(spreadsheetId, previousExpenseId)
-  }
+  const walletAccount = previousExpenseId
+    ? await deleteVehicleExpense(spreadsheetId, previousExpenseId)
+    : ''
 
   if (!isHistorical && mileage > vehicle.mileage) {
     await syncVehicleMileage(spreadsheetId, vehicle, mileage, date)
@@ -68,7 +68,8 @@ export async function completePeriodicService(params: {
           amount,
           subCategory: serviceType,
           date,
-          note: [brand, location, notes].filter(Boolean).join(' · ')
+          note: [brand, location, notes].filter(Boolean).join(' · '),
+          walletAccount
         })
       : ''
 

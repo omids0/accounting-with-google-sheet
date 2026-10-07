@@ -34,6 +34,7 @@ describe('buildFieldColumnMap', () => {
 
     expect(map.get('project')).toBe(3)
     expect(map.get('walletAccount')).not.toBe(3)
-    expect(map.get('walletAccount')).toBe(5)
+    // Where migrateWalletAccountColumn appends the «حساب» header.
+    expect(map.get('walletAccount')).toBe(4)
   })
 })
