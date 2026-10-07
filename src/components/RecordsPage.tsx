@@ -2,9 +2,11 @@ import ActiveFilterChips from './ActiveFilterChips'
 import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
+import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
 import PageFilterPanel from './PageFilterPanel'
 import { isConfigured } from '../services/settings'
+import { useNavigationStore } from '../stores/navigationStore'
 import RecordsEditFormModal from './records/RecordsEditFormModal'
 import RecordsList from './records/RecordsList'
 import RecordsSummary from './records/RecordsSummary'
@@ -96,12 +98,14 @@ export default function RecordsPage({
           {page.loading && page.records.length === 0 ? (
             <RecordListSkeleton />
           ) : page.records.length === 0 ? (
-            <div className={emptyStateClass}>
-              <div className={emptyStateIconClass}>
-                <AppIcon name="empty-inbox" />
-              </div>
-              <p>هنوز رکوردی ثبت نشده</p>
-            </div>
+            <EmptyState
+              icon="empty-inbox"
+              message="هنوز رکوردی ثبت نشده"
+              action={{
+                label: 'ثبت تراکنش',
+                onClick: () => useNavigationStore.getState().onOpenEntry()
+              }}
+            />
           ) : page.filteredRecords.length === 0 ? (
             <div className={emptyStateClass}>
               <div className={emptyStateIconClass}>

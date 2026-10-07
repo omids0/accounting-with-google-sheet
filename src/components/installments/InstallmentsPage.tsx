@@ -126,6 +126,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
         onDelete={mutations.openDeleteConfirm}
         onTogglePayment={mutations.handleTogglePayment}
         onPaymentAmountSave={mutations.handlePaymentAmountSave}
+        onAdd={mutations.openCreateForm}
       />
 
       {plans.length > 0 && (
