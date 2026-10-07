@@ -20,6 +20,9 @@ interface BankSmsStore {
 
 let inFlight: Promise<void> | null = null
 
+/** A refresh requested while one runs: one more pass after it, shared by all callers. */
+let followUp: Promise<void> | null = null
+
 async function loadPending(): Promise<BankSmsItem[]> {
   const prefs = getBankSmsPrefs()
 
@@ -38,7 +41,16 @@ export const useBankSmsStore = create<BankSmsStore>((set, get) => ({
   pending: [],
   loading: false,
   refresh: () => {
-    if (inFlight) return inFlight
+    // The running pass may have read the queue before the caller's change.
+    if (inFlight) {
+      followUp ??= inFlight.then(() => {
+        followUp = null
+
+        return get().refresh()
+      })
+
+      return followUp
+    }
 
     set({ loading: true })
     inFlight = loadPending()

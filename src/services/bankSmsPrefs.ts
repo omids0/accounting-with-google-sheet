@@ -1,3 +1,4 @@
+import type { AccountBalanceState } from './bankSmsQueue'
 import { getItem, setItem } from './storage'
 
 /**
@@ -8,11 +9,8 @@ export interface BankSmsPrefs {
   enabled: boolean
   /** Inbox catch-up resumes from here (epoch ms). */
   lastScanAt: number
-  /**
-   * Per account: `receivedAt` of the newest SMS whose «مانده» set the balance.
-   * Older SMS never move the balance past it.
-   */
-  balanceAnchors: Record<string, number>
+  /** Per account: which SMS the balance already includes (see `nextAccountBalance`). */
+  balanceStates: Record<string, AccountBalanceState>
   /** Per template: the category last chosen for it, offered as the next default. */
   lastCategory: Record<string, { category: string; subCategory: string }>
 }
@@ -22,7 +20,7 @@ export const BANK_SMS_PREFS_KEY = 'accounting_bank_sms'
 const DEFAULT_PREFS: BankSmsPrefs = {
   enabled: false,
   lastScanAt: 0,
-  balanceAnchors: {},
+  balanceStates: {},
   lastCategory: {}
 }
 

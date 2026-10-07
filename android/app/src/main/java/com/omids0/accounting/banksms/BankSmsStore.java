@@ -168,6 +168,18 @@ final class BankSmsStore {
         }
     }
 
+    /** Drops waiting SMS but remembers handled ids, so a later inbox scan cannot re-queue them. */
+    static synchronized void clearPending(Context context) {
+        try {
+            JSONObject state = load(context);
+
+            state.put("items", new JSONArray());
+            save(context, state);
+        } catch (JSONException ignored) {
+            // Constant key cannot fail.
+        }
+    }
+
     static synchronized void clear(Context context) {
         File file = file(context);
 

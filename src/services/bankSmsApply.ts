@@ -31,7 +31,7 @@ async function applyBalance(spreadsheetId: string, entry: ConfirmableSms): Promi
       amount: entry.amount
     },
     entry.balance,
-    prefs.balanceAnchors[account.id]
+    prefs.balanceStates[account.id] ?? {}
   )
 
   if (!next) return
@@ -39,9 +39,7 @@ async function applyBalance(spreadsheetId: string, entry: ConfirmableSms): Promi
   if (next.balance !== account.balance) {
     await updateWalletAccount(spreadsheetId, { ...account, balance: next.balance })
   }
-  if (next.anchor !== undefined) {
-    updateBankSmsPrefs({ balanceAnchors: { ...prefs.balanceAnchors, [account.id]: next.anchor } })
-  }
+  updateBankSmsPrefs({ balanceStates: { ...prefs.balanceStates, [account.id]: next.state } })
 }
 
 /**
@@ -69,6 +67,10 @@ export async function confirmSmsEntry(
       await createLinkedIncomeRecord(spreadsheetId, params)
     }
 
+    // Leave the queue right after the record exists, so a failure below can
+    // never lead to the same record being written twice.
+    await markBankSmsHandled([entry.sms.id])
+
     const prefs = getBankSmsPrefs()
 
     updateBankSmsPrefs({
@@ -79,8 +81,8 @@ export async function confirmSmsEntry(
     })
   }
 
+  if (!record) await markBankSmsHandled([entry.sms.id])
   await applyBalance(spreadsheetId, entry)
-  await markBankSmsHandled([entry.sms.id])
 }
 
 /** Own-account transfer: both balances move, no income or expense is recorded. */
@@ -89,9 +91,9 @@ export async function confirmSmsTransfer(
   debit: ConfirmableSms,
   credit: ConfirmableSms
 ): Promise<void> {
+  await markBankSmsHandled([debit.sms.id, credit.sms.id])
   await applyBalance(spreadsheetId, debit)
   await applyBalance(spreadsheetId, credit)
-  await markBankSmsHandled([debit.sms.id, credit.sms.id])
 }
 
 export async function dismissSms(ids: string[]): Promise<void> {

@@ -40,7 +40,7 @@ public class BankSmsPlugin extends Plugin {
         BankSmsStore.setEnabled(getContext(), enabled);
 
         if (!enabled) {
-            BankSmsStore.clear(getContext());
+            BankSmsStore.clearPending(getContext());
             BankSmsNotifier.cancel(getContext());
         }
 
@@ -94,7 +94,8 @@ public class BankSmsPlugin extends Plugin {
                     PROJECTION,
                     Telephony.Sms.DATE + " > ?",
                     new String[] { String.valueOf(since) },
-                    Telephony.Sms.DATE + " ASC"
+                    // Newest first, so a capped scan keeps the most recent SMS.
+                    Telephony.Sms.DATE + " DESC"
                 )
         ) {
             while (cursor != null && cursor.moveToNext() && candidates.size() < MAX_SCAN_ROWS) {

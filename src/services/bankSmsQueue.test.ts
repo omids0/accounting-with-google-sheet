@@ -86,20 +86,37 @@ describe('nextAccountBalance', () => {
   const change = { receivedAt: 1000, direction: 'debit' as const, amount: 50 }
 
   it('takes the SMS balance and moves the anchor', () => {
-    expect(nextAccountBalance(999, change, 700, undefined)).toEqual({ balance: 700, anchor: 1000 })
+    expect(nextAccountBalance(999, change, 700, {})).toEqual({
+      balance: 700,
+      state: { anchor: 1000, lastAppliedAt: 1000 }
+    })
   })
 
   it('adds or subtracts the amount when the SMS has no balance', () => {
-    expect(nextAccountBalance(500, change, null, 900)).toEqual({ balance: 450, anchor: 900 })
-    expect(nextAccountBalance(500, { ...change, direction: 'credit' }, null, undefined)).toEqual({
+    expect(nextAccountBalance(500, change, null, { anchor: 900 })).toEqual({
+      balance: 450,
+      state: { anchor: 900, lastAppliedAt: 1000 }
+    })
+    expect(nextAccountBalance(500, { ...change, direction: 'credit' }, null, {})).toEqual({
       balance: 550,
-      anchor: undefined
+      state: { anchor: undefined, lastAppliedAt: 1000 }
     })
   })
 
   it('leaves the balance alone for an SMS older than the anchor', () => {
-    expect(nextAccountBalance(500, change, 700, 2000)).toBeNull()
-    expect(nextAccountBalance(500, change, null, 2000)).toBeNull()
+    expect(nextAccountBalance(500, change, 700, { anchor: 2000 })).toBeNull()
+    expect(nextAccountBalance(500, change, null, { anchor: 2000 })).toBeNull()
+  })
+
+  it('does not let an older «مانده» undo a newer SMS confirmed first', () => {
+    // 1000 → B (t=2000, −50, no «مانده») → 950. Then A (t=1000, −100, «مانده» 900).
+    const afterB = nextAccountBalance(1000, { ...change, receivedAt: 2000 }, null, {})
+
+    expect(afterB).toEqual({ balance: 950, state: { anchor: undefined, lastAppliedAt: 2000 } })
+    expect(nextAccountBalance(950, { ...change, amount: 100 }, 900, afterB!.state)).toEqual({
+      balance: 850,
+      state: { anchor: undefined, lastAppliedAt: 2000 }
+    })
   })
 })
 

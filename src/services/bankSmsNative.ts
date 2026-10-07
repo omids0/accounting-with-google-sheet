@@ -2,7 +2,7 @@ import { Capacitor, registerPlugin, type PermissionState } from '@capacitor/core
 
 /** One raw SMS as captured by the native `BankSms` plugin. */
 export interface BankSmsItem {
-  /** SHA-256 of sender + body; stable between live capture and inbox scans. */
+  /** SHA-256 of the body; stable between live capture and inbox scans. */
   id: string
   sender: string
   body: string

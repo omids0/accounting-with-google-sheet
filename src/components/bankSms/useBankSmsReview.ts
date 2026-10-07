@@ -8,6 +8,7 @@ import {
   type ConfirmableSms,
   type SmsRecordInput
 } from '../../services/bankSmsApply'
+import { matchSms } from '../../services/bankSmsMatch'
 import { buildReviewItems, reviewSms, type LedgerEntry } from '../../services/bankSmsQueue'
 import { getSettings } from '../../services/settings'
 import { fetchRecords } from '../../services/sheets'
@@ -74,7 +75,18 @@ export function useBankSmsReview() {
   }, [loadContext, refresh])
 
   const currency = getCurrency()
-  const { templates } = templatesApi
+  const { templates, loading: templatesLoading } = templatesApi
+
+  // Not bank-like and fitting no template: nothing to review, drop it from the native queue.
+  useEffect(() => {
+    if (templatesLoading) return
+
+    const stale = pending
+      .filter(sms => matchSms(sms.body, templates, accounts).kind === 'irrelevant')
+      .map(sms => sms.id)
+
+    if (stale.length) void dismissSms(stale).then(() => refresh())
+  }, [pending, templates, accounts, templatesLoading, refresh])
 
   const items = useMemo(
     () => buildReviewItems(reviewSms(pending, templates, accounts, currency), ledger, noPair),
@@ -93,11 +105,12 @@ export function useBankSmsReview() {
     setBusyKey(key)
     try {
       await task(spreadsheetId)
-      await Promise.all([refresh(), loadContext()])
       showSuccess(message)
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در ثبت تراکنش پیامکی' })
     } finally {
+      // Also after a failure: part of the task may have been written already.
+      await Promise.all([refresh(), loadContext()])
       setBusyKey(null)
     }
   }
