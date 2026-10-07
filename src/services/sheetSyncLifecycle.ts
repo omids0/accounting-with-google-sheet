@@ -1,5 +1,6 @@
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
+import { migrateWalletAccountColumn } from './migrateWalletAccountColumn'
 import { getSettings } from './settings'
 import { forgetRemoteVersion } from './sheetRemoteVersion'
 import { forgetSheetRevisions } from './sheetRevisions'
@@ -161,7 +162,10 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   // then would drop writes made since that are not persisted yet.
   if (!hasStoreData(spreadsheetId)) await hydrateStore(spreadsheetId)
   void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
-  void migrateSubCategoryColumn(spreadsheetId).catch(() => undefined)
+  void migrateSubCategoryColumn(spreadsheetId)
+    .catch(() => undefined)
+    .then(() => migrateWalletAccountColumn(spreadsheetId))
+    .catch(() => undefined)
   setPendingWrites(getOutboxCount(spreadsheetId))
   refreshFailedCount(spreadsheetId)
 

@@ -29,7 +29,7 @@ function markMigrated(spreadsheetId: string): void {
   setItem(MIGRATION_STORAGE_KEY, { ...state, [spreadsheetId]: true })
 }
 
-async function appendHeaderColumn(
+export async function appendHeaderColumn(
   spreadsheetId: string,
   sheetName: string,
   label: string

@@ -14,13 +14,29 @@ export function buildFieldColumnMap(headers: string[], fields: FieldConfig[]): M
   const normalizedHeaders = headers.map(normalizeHeaderLabel)
 
   const map = new Map<string, number>()
+  const byLabel = fields.map(field =>
+    normalizedHeaders.findIndex(header => header === normalizeHeaderLabel(field.label))
+  )
+  const claimed = new Set(byLabel.filter(column => column >= 0))
+  let nextFree = Math.max(normalizedHeaders.length, 2 + fields.length)
 
   fields.forEach((field, index) => {
-    const label = normalizeHeaderLabel(field.label)
+    if (byLabel[index] >= 0) {
+      map.set(field.id, byLabel[index])
 
-    const byLabel = normalizedHeaders.findIndex(header => header === label)
+      return
+    }
 
-    map.set(field.id, byLabel >= 0 ? byLabel : index + 2)
+    // Positional fallback, unless another field already owns that column by its
+    // label (a field added before its header exists must not overwrite it).
+    let column = index + 2
+
+    if (claimed.has(column)) {
+      while (claimed.has(nextFree)) nextFree++
+      column = nextFree++
+    }
+    claimed.add(column)
+    map.set(field.id, column)
   })
 
   return map

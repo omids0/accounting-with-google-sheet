@@ -4,7 +4,7 @@ import type { useForm } from 'react-hook-form'
 import type { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
 import type { CustomForm, FieldConfig } from '../../types'
 import { formFieldError } from '../../utils/formValidation'
-import { FieldInput, FormRow, SUBCATEGORY_FIELD_ID } from '../form'
+import { FieldInput, FormRow, SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../form'
 import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
 import type { FormControlWidth } from '../ui/formStyles'
@@ -133,6 +133,7 @@ export default function StandardEntryFormFields({
           errors={vehicleExpense.fieldErrors}
         />
       ) : null}
+      {renderField(WALLET_ACCOUNT_FIELD_ID)}
       {renderField('note')}
     </>
   )

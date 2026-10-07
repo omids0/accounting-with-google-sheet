@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
 import AppIcon from './AppIcon'
+import type { DataEntryFormProps } from './dataEntry/types'
 import DataEntryForm from './DataEntryForm'
 import { FormSkeleton } from './skeleton'
 import TransactionTypeSegment, { transactionTypeOptionsFromForms } from './TransactionTypeSegment'
@@ -15,9 +16,11 @@ import {
 
 export default function DataEntryPage({
   onCancel,
-  initialFormType
-}: {
-  onCancel?: () => void
+  initialFormType,
+  prefill,
+  bankSms,
+  onSaved
+}: Pick<DataEntryFormProps, 'onCancel' | 'prefill' | 'bankSms' | 'onSaved'> & {
   initialFormType?: 'income' | 'expense'
 }) {
   const [forms, setForms] = useState<CustomForm[]>([])
@@ -96,6 +99,9 @@ export default function DataEntryPage({
             onLoadingChange={setLoading}
             onCancel={onCancel}
             onCategoriesRefresh={refreshForms}
+            prefill={prefill}
+            bankSms={bankSms}
+            onSaved={onSaved}
           />
         </div>
       )}

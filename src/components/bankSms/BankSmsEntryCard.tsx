@@ -1,14 +1,11 @@
 import { useMemo, useState } from 'react'
 
 import BankSmsCardHead from './BankSmsCardHead'
-import type { ConfirmableSms, SmsRecordInput } from '../../services/bankSmsApply'
-import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
+import type { ConfirmableSms } from '../../services/bankSmsApply'
 import type { ReviewedSms } from '../../services/bankSmsQueue'
-import { getSettings } from '../../services/settings'
-import { OTHER_CATEGORY } from '../../utils/categoryOrdering'
-import { CategorySelect, FormField, PaymentSubCategoryField, Select } from '../form'
+import ToggleChipGroup from '../ToggleChipGroup'
 import Alert from '../ui/Alert'
-import { smsActionsRowClass, smsBadgeClass, smsCardClass } from '../ui/bankSmsStyles'
+import { smsActionsRowClass, smsBadgeClass, smsCardClass, smsHintClass } from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import type { WalletAccountWithRow } from '../wallet/types'
@@ -18,12 +15,16 @@ type BankSmsEntryCardProps = {
   probableDuplicate: boolean
   accounts: WalletAccountWithRow[]
   busy: boolean
-  onConfirm: (entry: ConfirmableSms, record: SmsRecordInput | null) => void
+  /** Opens the normal income/expense form pre-filled from this SMS. */
+  onOpenEntry: (entry: ConfirmableSms, accountTitle: string) => void
+  /** Record already exists: only move the balance. */
+  onBalanceOnly: (entry: ConfirmableSms) => void
   onDismiss: () => void
   /** Already entered by hand (record and balance): just drop it from the list. */
   onAlreadyRecorded: () => void
 }
 
+/** Pin an SMS that fits several accounts to one of them. */
 function resolveEntry(entry: ReviewedSms, accountId: string): ConfirmableSms | null {
   const { result, amount } = entry
 
@@ -44,45 +45,30 @@ function resolveEntry(entry: ReviewedSms, accountId: string): ConfirmableSms | n
   }
 }
 
-/** A recognised SMS (or one that fits several accounts) waiting for confirmation. */
+/** A recognised SMS waiting to be recorded. The detected account is preselected. */
 export default function BankSmsEntryCard({
   entry,
   probableDuplicate,
   accounts,
   busy,
-  onConfirm,
+  onOpenEntry,
+  onBalanceOnly,
   onDismiss,
   onAlreadyRecorded
 }: BankSmsEntryCardProps) {
   const { result } = entry
   const candidates = result.kind === 'ambiguous' ? result.candidates : []
-  const [accountId, setAccountId] = useState(result.kind === 'matched' ? result.accountId : '')
+  const [accountId, setAccountId] = useState(
+    result.kind === 'matched' ? result.accountId : candidates[0]?.accountId ?? ''
+  )
   const resolved = useMemo(() => resolveEntry(entry, accountId), [entry, accountId])
-
-  const direction =
-    result.kind === 'matched' || result.kind === 'ambiguous' ? result.direction : 'debit'
-  const type = direction === 'debit' ? 'expense' : 'income'
-  const form = getSettings()?.forms.find(item => item.type === type)
-  const categories = form?.fields.find(field => field.id === 'category')?.options ?? []
-  const templateId = result.kind === 'matched' ? result.templateId : candidates[0]?.templateId
-  const remembered = templateId ? getBankSmsPrefs().lastCategory[templateId] : undefined
-
-  const [title, setTitle] = useState('')
-  const [category, setCategory] = useState(remembered?.category ?? OTHER_CATEGORY)
-  const [subCategory, setSubCategory] = useState(remembered?.subCategory ?? '')
-
-  const account = accounts.find(item => item.id === (resolved?.result.accountId ?? accountId))
-  const defaultTitle = `${account?.title ?? 'حساب'} — پیامک`
-
-  const record = (): SmsRecordInput => ({
-    title: title.trim() || defaultTitle,
-    category,
-    subCategory
-  })
+  const direction = resolved?.result.direction ?? 'debit'
+  const titleOf = (id: string) => accounts.find(item => item.id === id)?.title ?? 'حساب'
+  const accountTitle = titleOf(accountId)
 
   return (
     <Card className={smsCardClass}>
-      <BankSmsCardHead entry={entry} accountTitle={account?.title} />
+      <BankSmsCardHead entry={entry} accountTitle={accountTitle} />
 
       {entry.amount === null && (
         <Alert variant="warning">واحد پول اپ ریال یا تومان نیست؛ این پیامک قابل ثبت نیست.</Alert>
@@ -92,53 +78,21 @@ export default function BankSmsEntryCard({
         <span className={smsBadgeClass}>احتمالاً تکراری — رکوردی با همین مبلغ و تاریخ هست</span>
       )}
 
-      {candidates.length > 0 && (
-        <FormField label="کدام حساب؟" required controlWidth="full">
-          <Select
-            value={accountId}
-            onChange={setAccountId}
-            aria-label="انتخاب حساب پیامک"
-            options={[
-              { value: '', label: 'انتخاب حساب', disabled: true },
-              ...candidates.map(candidate => ({
-                value: candidate.accountId,
-                label: accounts.find(item => item.id === candidate.accountId)?.title ?? '—'
-              }))
-            ]}
-          />
-        </FormField>
+      {candidates.length > 1 && (
+        <ToggleChipGroup
+          ariaLabel="حساب این پیامک"
+          options={candidates.map(candidate => ({
+            id: candidate.accountId,
+            label: titleOf(candidate.accountId)
+          }))}
+          selected={{ [accountId]: true }}
+          onToggle={setAccountId}
+        />
       )}
-
-      {resolved && (
-        <>
-          <FormField label="عنوان" controlWidth="full">
-            <input
-              value={title}
-              onChange={event => setTitle(event.target.value)}
-              placeholder={defaultTitle}
-            />
-          </FormField>
-          <FormField label="دسته‌بندی" required controlWidth="full">
-            <CategorySelect
-              value={category}
-              onChange={next => {
-                setCategory(next)
-                setSubCategory('')
-              }}
-              categories={categories}
-              formId={form?.id}
-              allowManage={false}
-              aria-label="دسته‌بندی تراکنش پیامکی"
-            />
-          </FormField>
-          <PaymentSubCategoryField
-            value={subCategory}
-            onChange={setSubCategory}
-            categoryType={type}
-            category={category}
-            ariaLabel="زیردسته تراکنش پیامکی"
-          />
-        </>
+      {result.kind === 'ambiguous' && (
+        <p className={smsHintClass}>
+          حساب را از روی پیامک حدس زدیم؛ اگر درست نیست، در فرم ثبت عوضش کنید.
+        </p>
       )}
 
       <div className={smsActionsRowClass}>
@@ -147,8 +101,7 @@ export default function BankSmsEntryCard({
           size="sm"
           variant={direction === 'debit' ? 'outflow' : 'inflow'}
           disabled={!resolved || busy}
-          loading={busy}
-          onClick={() => resolved && onConfirm(resolved, record())}
+          onClick={() => resolved && onOpenEntry(resolved, accountTitle)}
         >
           {direction === 'debit' ? 'ثبت هزینه' : 'ثبت درآمد'}
         </Button>
@@ -158,7 +111,8 @@ export default function BankSmsEntryCard({
             size="sm"
             variant="secondary"
             disabled={busy}
-            onClick={() => onConfirm(resolved, null)}
+            loading={busy}
+            onClick={() => onBalanceOnly(resolved)}
           >
             فقط به‌روزرسانی موجودی
           </Button>

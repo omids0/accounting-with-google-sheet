@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router'
+import { Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router'
 
 import DangSplitDetailRoute from './DangSplitDetailRoute'
 import {
@@ -34,10 +34,12 @@ import {
   LazyVehiclesPage,
   LazyWalletPage
 } from './lazyPages'
+import { getPathForTab } from './paths'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
 import Layout from '../components/Layout'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
+import { readBankSmsEntryDraft } from '../services/bankSmsEntry'
 
 function parseFormType(value: string | null): 'income' | 'expense' | undefined {
   if (value === 'income' || value === 'expense') return value
@@ -54,11 +56,19 @@ function RecordsRoute() {
 function EntryRoute() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const smsDraft = readBankSmsEntryDraft(location.state)
+  // Opened from a bank SMS card: go back to the queue, and drop the pre-filled form from history.
+  const back = () =>
+    smsDraft ? navigate(getPathForTab('bank-sms'), { replace: true }) : navigate('/')
 
   return (
     <LazyDataEntryPage
-      initialFormType={parseFormType(searchParams.get('type'))}
-      onCancel={() => navigate('/')}
+      initialFormType={smsDraft?.formType ?? parseFormType(searchParams.get('type'))}
+      onCancel={back}
+      prefill={smsDraft?.prefill}
+      bankSms={smsDraft?.bankSms}
+      onSaved={smsDraft ? back : undefined}
     />
   )
 }

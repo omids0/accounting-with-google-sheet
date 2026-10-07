@@ -4,7 +4,19 @@ import { getTodayIso } from '../../utils/jalaliDate'
 export const SUBCATEGORY_FIELD_ID = 'subCategory'
 export const SUBCATEGORY_FIELD_LABEL = 'زیردسته'
 
-const STANDARD_FIELD_ORDER = ['date', 'title', 'category', SUBCATEGORY_FIELD_ID, 'amount', 'note']
+/** Optional wallet account of an income/expense record; its balance follows the record. */
+export const WALLET_ACCOUNT_FIELD_ID = 'walletAccount'
+export const WALLET_ACCOUNT_FIELD_LABEL = 'حساب'
+
+const STANDARD_FIELD_ORDER = [
+  'date',
+  'title',
+  'category',
+  SUBCATEGORY_FIELD_ID,
+  'amount',
+  WALLET_ACCOUNT_FIELD_ID,
+  'note'
+]
 
 const REQUIRED_ENTRY_FIELD_IDS = ['date', 'title', 'category', 'amount', 'note']
 
@@ -51,6 +63,26 @@ export function withSubCategoryField(forms: CustomForm[]): CustomForm[] {
   })
 }
 
+function createWalletAccountField(): FieldConfig {
+  return {
+    id: WALLET_ACCOUNT_FIELD_ID,
+    label: WALLET_ACCOUNT_FIELD_LABEL,
+    type: 'select',
+    required: false,
+    options: []
+  }
+}
+
+/** Adds the optional «حساب» field to income/expense forms that lack it. */
+export function withWalletAccountField(forms: CustomForm[]): CustomForm[] {
+  return forms.map(form =>
+    (form.type === 'income' || form.type === 'expense') &&
+    !form.fields.some(field => field.id === WALLET_ACCOUNT_FIELD_ID)
+      ? { ...form, fields: [...form.fields, createWalletAccountField()] }
+      : form
+  )
+}
+
 export function sortFormFields(fields: FieldConfig[]): FieldConfig[] {
   const order = new Map(STANDARD_FIELD_ORDER.map((id, index) => [id, index]))
 
@@ -71,4 +103,18 @@ export function getInitialFieldValue(field: FieldConfig): string | number {
   if (field.type === 'select' && field.options?.length) return field.options[0]
 
   return ''
+}
+
+/** Empty form values, overridden by `prefill` (e.g. from a bank SMS). */
+export function buildFormInitialValues(
+  form: CustomForm,
+  prefill: Record<string, string | number> = {}
+): Record<string, string | number> {
+  const initial: Record<string, string | number> = {}
+
+  form.fields.forEach(field => {
+    initial[field.id] = prefill[field.id] ?? getInitialFieldValue(field)
+  })
+
+  return initial
 }

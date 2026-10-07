@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import BankSmsBulkBar from './BankSmsBulkBar'
 import BankSmsEntryCard from './BankSmsEntryCard'
@@ -6,6 +7,8 @@ import BankSmsSettingsCard from './BankSmsSettingsCard'
 import BankSmsTransferCard from './BankSmsTransferCard'
 import BankSmsUnknownCard from './BankSmsUnknownCard'
 import { useBankSmsReview } from './useBankSmsReview'
+import { getPathForTab } from '../../routes/paths'
+import { buildBankSmsEntryState } from '../../services/bankSmsEntry'
 import { isBankSmsAvailable } from '../../services/bankSmsNative'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { isConfigured } from '../../services/settings'
@@ -14,6 +17,7 @@ import { smsPageClass } from '../ui/bankSmsStyles'
 
 function BankSmsReview() {
   const review = useBankSmsReview()
+  const navigate = useNavigate()
   const [enabled, setEnabled] = useState(() => getBankSmsPrefs().enabled)
   const { templates, saving, add } = review.templatesApi
 
@@ -86,7 +90,13 @@ function BankSmsReview() {
               probableDuplicate={item.probableDuplicate}
               accounts={review.accounts}
               busy={busy}
-              onConfirm={(resolved, record) => void review.confirm(resolved, record)}
+              onOpenEntry={(resolved, accountTitle) => {
+                const state = buildBankSmsEntryState(resolved, accountTitle)
+                const formType = state.bankSmsEntry.formType
+
+                navigate(getPathForTab('entry', { formType }), { state })
+              }}
+              onBalanceOnly={resolved => void review.confirm(resolved, null)}
               onDismiss={dismiss}
               onAlreadyRecorded={() =>
                 void review.dismiss(item.key, [entry.sms.id], 'از لیست خارج شد')

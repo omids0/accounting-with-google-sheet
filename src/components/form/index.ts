@@ -11,8 +11,10 @@ export { default as FormRow } from './FormRow'
 export { default as FormSelect } from './FormSelect'
 export { default as FieldInput } from './FieldInput'
 export {
+  buildFormInitialValues,
   getInitialFieldValue,
   isStandardEntryForm,
   sortFormFields,
-  SUBCATEGORY_FIELD_ID
+  SUBCATEGORY_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_ID
 } from './fieldUtils'
