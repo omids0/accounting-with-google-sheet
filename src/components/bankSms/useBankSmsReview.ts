@@ -158,8 +158,8 @@ export function useBankSmsReview() {
       ),
     confirmTransfer: (key: string, debit: ConfirmableSms, credit: ConfirmableSms) =>
       run(key, 'انتقال داخلی ثبت شد', id => confirmSmsTransfer(id, debit, credit)),
-    dismiss: (key: string, ids: string[]) =>
-      run(key, 'پیامک نادیده گرفته شد', () => dismissSms(ids)),
+    dismiss: (key: string, ids: string[], message = 'پیامک نادیده گرفته شد') =>
+      run(key, message, () => dismissSms(ids)),
     splitTransfer: (ids: string[]) => setNoPair(prev => new Set([...prev, ...ids]))
   }
 }

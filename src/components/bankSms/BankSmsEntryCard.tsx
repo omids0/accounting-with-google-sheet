@@ -20,6 +20,8 @@ type BankSmsEntryCardProps = {
   busy: boolean
   onConfirm: (entry: ConfirmableSms, record: SmsRecordInput | null) => void
   onDismiss: () => void
+  /** Already entered by hand (record and balance): just drop it from the list. */
+  onAlreadyRecorded: () => void
 }
 
 function resolveEntry(entry: ReviewedSms, accountId: string): ConfirmableSms | null {
@@ -49,7 +51,8 @@ export default function BankSmsEntryCard({
   accounts,
   busy,
   onConfirm,
-  onDismiss
+  onDismiss,
+  onAlreadyRecorded
 }: BankSmsEntryCardProps) {
   const { result } = entry
   const candidates = result.kind === 'ambiguous' ? result.candidates : []
@@ -149,7 +152,7 @@ export default function BankSmsEntryCard({
         >
           {direction === 'debit' ? 'ثبت هزینه' : 'ثبت درآمد'}
         </Button>
-        {probableDuplicate && resolved && (
+        {resolved && (
           <Button
             type="button"
             size="sm"
@@ -160,6 +163,15 @@ export default function BankSmsEntryCard({
             فقط به‌روزرسانی موجودی
           </Button>
         )}
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          disabled={busy}
+          onClick={onAlreadyRecorded}
+        >
+          قبلاً ثبت شده
+        </Button>
         <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={onDismiss}>
           نادیده
         </Button>

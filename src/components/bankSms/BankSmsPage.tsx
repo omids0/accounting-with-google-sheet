@@ -88,6 +88,9 @@ function BankSmsReview() {
               busy={busy}
               onConfirm={(resolved, record) => void review.confirm(resolved, record)}
               onDismiss={dismiss}
+              onAlreadyRecorded={() =>
+                void review.dismiss(item.key, [entry.sms.id], 'از لیست خارج شد')
+              }
             />
           )
         })}
