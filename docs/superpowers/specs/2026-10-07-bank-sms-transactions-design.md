@@ -105,10 +105,14 @@ how amounts and card numbers stay out of the sheet.
 in the ~15 characters before each number:
 
 - Date or time token → `ignore`.
-- Masked token, or preceded by `کارت|حساب|از|به` with ≥4 digits → `accountRef`.
-- Preceded by `مانده|موجودی` → `balance`.
-- Preceded by `مبلغ|برداشت|واریز|خرید|انتقال|برداشت از|واریز به`, or the first remaining
-  unmasked number → `amount`.
+- Masked or dotted token → `accountRef`.
+- Otherwise, the keyword nearest the number in the preceding ~20 characters decides:
+  - `مانده|موجودی` → `balance`
+  - `کارت|حساب|شماره` (with ≥4 digits) → `accountRef`
+  - `مبلغ|برداشت|واریز|خرید|انتقال|پرداخت|کسر|سود` → `amount`
+- An unlabelled run of 10 or more digits with no separators → `accountRef`.
+- If still no amount was found, the first remaining unmasked number → `amount`.
+- Each role is used once. A second candidate for the same role becomes `ignore`.
 - Anything else → `ignore`.
 
 Direction:
@@ -131,8 +135,12 @@ A template must have exactly one `amount`, at most one `balance` and at most one
 - `amount` / `balance` → `([\d,٬]+)`
 - `accountRef` → `([\d*xX.]+)`
 - `ignore` → `[\d/:,٬.*xX-]+`
-- Anchored at the start. **Text after the last slot is optional.** Banks often append ad
-  lines, and the match must survive them.
+- Anchored at the start. **Everything after the last captured (non-`ignore`) slot is
+  optional.** Banks often append ad lines and dates, and the match must survive them.
+- The one exception is a `+` or `-` sign directly after that slot. It stays required,
+  because it is what separates the debit template from the credit template.
+- The account reference is compared with the card number, the account number and the
+  IBAN digits.
 
 The regex uses only syntax that Java also supports, which keeps approach B possible
 later.
