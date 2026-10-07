@@ -1,10 +1,11 @@
+import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
 import { nextAccountBalance, type ConfirmableSms } from './bankSmsQueue'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
+import { applyWalletChanges, type RecordWalletEffect } from './recordWallet'
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
 import { OTHER_CATEGORY } from '../utils/categoryOrdering'
-import { toIsoDate } from '../utils/jalaliDate'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
 
@@ -15,6 +16,24 @@ export interface SmsRecordInput {
 }
 
 export const SMS_RECORD_NOTE = 'ثبت از پیامک'
+
+/**
+ * A newer «مانده» of this account already includes the SMS. Then the balance does not
+ * move, and the record must not name the account (deleting it later would undo an
+ * amount that was never applied).
+ */
+export function smsAlreadyInBalance(entry: ConfirmableSms, accountId: string): boolean {
+  const anchor = getBankSmsPrefs().balanceStates[accountId]?.anchor
+
+  return (
+    accountId === entry.result.accountId && anchor !== undefined && entry.sms.receivedAt < anchor
+  )
+}
+
+/** The record's type agrees with the SMS (expense ↔ debit). */
+function sameDirection(entry: ConfirmableSms, effect: RecordWalletEffect): boolean {
+  return effect.delta < 0 === (entry.result.direction === 'debit')
+}
 
 async function applyBalance(spreadsheetId: string, entry: ConfirmableSms): Promise<void> {
   learnSmsRef(entry.result.ref, entry.result.accountId)
@@ -61,7 +80,11 @@ export async function confirmSmsEntry(
       category: record.category,
       subCategory: record.subCategory,
       note: SMS_RECORD_NOTE,
-      date: toIsoDate(new Date(entry.sms.receivedAt))
+      date: smsRecordDate(entry.sms.body, entry.sms.receivedAt),
+      // Ties the record to the account, so editing or deleting it later fixes the balance.
+      walletAccount: smsAlreadyInBalance(entry, entry.result.accountId)
+        ? ''
+        : entry.result.accountId
     }
 
     if (entry.result.direction === 'debit') {
@@ -112,4 +135,34 @@ export function defaultSmsRecord(entry: ConfirmableSms, accountTitle: string): S
     category: remembered?.category || OTHER_CATEGORY,
     subCategory: remembered?.subCategory ?? ''
   }
+}
+
+/**
+ * After the user saved the record from the normal entry form (opened from an SMS card):
+ * drop the SMS from the queue and move the balance. Same account as the SMS → the SMS
+ * «مانده» rule; another account → plain add/subtract, and its digits are learned for it.
+ */
+export async function settleSmsFromEntry(
+  spreadsheetId: string,
+  entry: ConfirmableSms,
+  effect: RecordWalletEffect | null,
+  record: Pick<SmsRecordInput, 'category' | 'subCategory'>
+): Promise<void> {
+  await markBankSmsHandled([entry.sms.id])
+
+  const prefs = getBankSmsPrefs()
+
+  updateBankSmsPrefs({
+    lastCategory: { ...prefs.lastCategory, [entry.result.templateId]: record }
+  })
+
+  // Same account and same direction as the SMS: follow its «مانده». Otherwise (another
+  // account, or the user switched income/expense) the record's own effect applies.
+  if (effect && effect.accountId === entry.result.accountId && sameDirection(entry, effect)) {
+    await applyBalance(spreadsheetId, { ...entry, amount: Math.abs(effect.delta) })
+
+    return
+  }
+  if (effect) learnSmsRef(entry.result.ref, effect.accountId)
+  await applyWalletChanges(spreadsheetId, null, effect)
 }

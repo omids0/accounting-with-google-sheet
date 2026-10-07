@@ -9,7 +9,7 @@ import {
 import { getBankSmsPrefs, updateBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { useBankSmsStore } from '../../stores/bankSmsStore'
 import { showError, showSuccess } from '../../utils/toast'
-import { Select } from '../form'
+import ToggleChipGroup from '../ToggleChipGroup'
 import {
   smsActionsRowClass,
   smsCardClass,
@@ -22,10 +22,11 @@ import Card from '../ui/Card'
 const DAY_MS = 24 * 60 * 60 * 1000
 
 const BACKFILL_OPTIONS = [
-  { value: '1', label: 'از دیروز' },
-  { value: '7', label: '۷ روز گذشته' },
-  { value: '30', label: '۳۰ روز گذشته' },
-  { value: '90', label: '۹۰ روز گذشته' }
+  { id: '1', label: 'دیروز' },
+  { id: '3', label: '۳ روز' },
+  { id: '7', label: '۷ روز' },
+  { id: '30', label: '۳۰ روز' },
+  { id: '90', label: '۹۰ روز' }
 ]
 
 type BankSmsSettingsCardProps = {
@@ -103,8 +104,9 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
         ۱) برای هر بانک یک‌بار قالب بسازید: روی «ساخت قالب» یک پیامک بزنید (یا از کیف پول ← ویرایش
         حساب). بقیه پیامک‌های همان شکل خودکار شناخته می‌شوند. ۲) روی هر کارت شناخته‌شده «ثبت هزینه»
         یا «ثبت درآمد» را بزنید (یا «ثبت همه»)؛ همان لحظه در درآمد/هزینه ثبت و موجودی حساب به‌روز
-        می‌شود. مبلغ ریالی پیامک خودکار به واحد اپ تبدیل می‌شود. متن پیامک‌ها فقط روی همین گوشی
-        می‌ماند.
+        می‌شود. اگر تراکنش را قبلاً دستی ثبت کرده‌اید: «فقط به‌روزرسانی موجودی» فقط موجودی حساب را
+        درست می‌کند و «قبلاً ثبت شده» پیامک را بدون هیچ تغییری از لیست خارج می‌کند. مبلغ ریالی پیامک
+        خودکار به واحد اپ تبدیل می‌شود. متن پیامک‌ها فقط روی همین گوشی می‌ماند.
       </p>
 
       {enabled && !granted && (
@@ -129,18 +131,21 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
       </div>
 
       {enabled && granted && (
-        <div className={smsActionsRowClass}>
-          <Select
-            value={days}
-            onChange={setDays}
+        <>
+          <p className={smsHintClass}>پیامک‌های قبلی از:</p>
+          {/* Chips instead of a dropdown: the dropdown menu was hidden under the next card. */}
+          <ToggleChipGroup
+            ariaLabel="بازه پیامک‌های قبلی"
             options={BACKFILL_OPTIONS}
-            compact
-            aria-label="بازه پیامک‌های قبلی"
+            selected={{ [days]: true }}
+            onToggle={setDays}
           />
-          <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={readOlder}>
-            خواندن پیامک‌های قبلی
-          </Button>
-        </div>
+          <div className={smsActionsRowClass}>
+            <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={readOlder}>
+              خواندن پیامک‌های قبلی
+            </Button>
+          </div>
+        </>
       )}
     </Card>
   )

@@ -3,9 +3,10 @@ import { useForm } from 'react-hook-form'
 
 import ConfirmActionModal from './ConfirmActionModal'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
+import type { DataEntryFormProps } from './dataEntry/types'
 import {
+  buildFormInitialValues,
   FieldInput,
-  getInitialFieldValue,
   isStandardEntryForm,
   sortFormFields,
   SUBCATEGORY_FIELD_ID
@@ -16,11 +17,11 @@ import VehicleExpenseFields from './vehicleExpenses/VehicleExpenseFields'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
 import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
+import { prepareEntryValues, settleEntryWallet } from '../services/entryWallet'
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
 import { createManualVehicleExpense } from '../services/vehicleExpenseActions'
-import type { CustomForm } from '../types'
 import { requireAuth } from '../utils/authGuard'
 import { cn } from '../utils/cn'
 import { formFieldError, validatePositiveAmount } from '../utils/formValidation'
@@ -31,32 +32,20 @@ import Button from './ui/Button'
 import { appFormClassName, formActionsClassName } from './ui/formStyles'
 import { dataEntryFormActionsClass } from './ui/recordsStyles'
 
-type DataEntryFormProps = {
-  activeForm: CustomForm
-  loading: boolean
-  onLoadingChange: (loading: boolean) => void
-  onCancel?: () => void
-  onCategoriesRefresh: () => void
-}
-
-function buildInitialValues(form: CustomForm): Record<string, string | number> {
-  const initial: Record<string, string | number> = {}
-
-  form.fields.forEach(field => {
-    initial[field.id] = getInitialFieldValue(field)
-  })
-
-  return initial
-}
-
 export default function DataEntryForm({
   activeForm,
   loading,
   onLoadingChange,
   onCancel,
-  onCategoriesRefresh
+  onCategoriesRefresh,
+  prefill,
+  bankSms,
+  onSaved
 }: DataEntryFormProps) {
-  const initialValues = useMemo(() => buildInitialValues(activeForm), [activeForm])
+  const initialValues = useMemo(
+    () => buildFormInitialValues(activeForm, prefill),
+    [activeForm, prefill]
+  )
   const useStandardLayout = isStandardEntryForm(activeForm)
   const isExpenseForm = activeForm.type === 'expense'
   const vehicleExpense = useVehicleExpenseEntry(isExpenseForm)
@@ -70,7 +59,9 @@ export default function DataEntryForm({
 
   const { errors } = formState
 
-  useModalFormReset(reset, initialValues, { resetKey: activeForm.id })
+  useModalFormReset(reset, initialValues, {
+    resetKey: `${activeForm.id}:${bankSms?.sms.id ?? ''}`
+  })
 
   useEffect(() => {
     vehicleExpense.resetVehicleValues()
@@ -140,11 +131,12 @@ export default function DataEntryForm({
     return !hasError
   }
 
-  const saveRecord = async (formValues: Record<string, string | number>) => {
+  const saveRecord = async (entered: Record<string, string | number>) => {
     onLoadingChange(true)
-    try {
-      const settings = getSettings()!
+    const settings = getSettings()!
+    const formValues = prepareEntryValues(activeForm.type, entered, bankSms)
 
+    try {
       if (showVehicleFields) {
         await createManualVehicleExpense(
           settings.spreadsheetId,
@@ -159,16 +151,23 @@ export default function DataEntryForm({
           formValues
         )
       }
-
-      showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
-      refreshOpeningBalancesInBackground()
-      reset(buildInitialValues(activeForm))
-      vehicleExpense.resetVehicleValues()
     } catch (err) {
-      if (handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })) return
-    } finally {
+      handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })
       onLoadingChange(false)
+
+      return
     }
+
+    // The record exists now: a wallet/SMS failure must not invite a second save.
+    await settleEntryWallet(settings.spreadsheetId, activeForm.type, formValues, bankSms).catch(
+      () => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد')
+    )
+    showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
+    refreshOpeningBalancesInBackground()
+    onLoadingChange(false)
+    if (onSaved) return onSaved()
+    reset(buildFormInitialValues(activeForm))
+    vehicleExpense.resetVehicleValues()
   }
 
   const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {

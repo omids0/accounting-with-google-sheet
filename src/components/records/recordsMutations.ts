@@ -1,5 +1,6 @@
 import type { StoredRecord } from './recordsUtils'
 import { refreshOpeningBalancesInBackground } from '../../services/openingBalanceRefresh'
+import { applyWalletChanges, walletEffectOf } from '../../services/recordWallet'
 import { getSettings, isConfigured } from '../../services/settings'
 import { deleteRecord, updateRecord } from '../../services/sheets'
 import {
@@ -61,7 +62,8 @@ export async function submitRecordEdit({
         ...vehicleExpense,
         date: String(formValues.date ?? ''),
         amount: Number(formValues.amount) || 0,
-        note: String(formValues.note ?? '')
+        note: String(formValues.note ?? ''),
+        walletAccount: String(formValues.walletAccount ?? '')
       })
     } else {
       await updateRecord(
@@ -86,6 +88,11 @@ export async function submitRecordEdit({
       }
     }
 
+    await applyWalletChanges(
+      settings.spreadsheetId,
+      walletEffectOf(editingForm.type, editingRecord.values),
+      walletEffectOf(editingForm.type, formValues)
+    )
     showSuccess('تراکنش ویرایش شد')
     refreshOpeningBalancesInBackground()
     await onSuccess()
@@ -122,6 +129,11 @@ export async function deleteStoredRecord({
     }
 
     await deleteRecord(settings.spreadsheetId, form, deletingRecord.rowNumber)
+    await applyWalletChanges(
+      settings.spreadsheetId,
+      walletEffectOf(form.type, deletingRecord.values),
+      null
+    )
     showSuccess('تراکنش حذف شد')
     refreshOpeningBalancesInBackground()
     await onSuccess()

@@ -5,10 +5,11 @@ import AmountInput from '../AmountInput'
 import JalaliDatePicker from '../JalaliDatePicker'
 import CategorySelect from './CategorySelect'
 import { resolveCategoryType } from './categorySelect/useCategorySelectActions'
-import { SUBCATEGORY_FIELD_ID } from './fieldUtils'
+import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from './fieldUtils'
 import FormField from './FormField'
 import Select from './Select'
 import SubCategorySelect from './SubCategorySelect'
+import WalletAccountSelect from './WalletAccountSelect'
 import { getAccountingStartDate } from '../../services/accountingStartDate'
 import type { FormControlWidth } from '../ui/formStyles'
 import { formFieldNoteClass } from '../ui/recordsStyles'
@@ -137,6 +138,16 @@ export default function FieldInput({
           onChange={next => onChange(next)}
           categoryType={categoryType}
           category={parentCategory}
+          aria-label={field.label}
+        />
+      )
+    }
+
+    if (field.id === WALLET_ACCOUNT_FIELD_ID) {
+      return (
+        <WalletAccountSelect
+          value={String(value ?? '')}
+          onChange={next => onChange(next)}
           aria-label={field.label}
         />
       )

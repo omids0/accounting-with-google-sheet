@@ -15,7 +15,7 @@ import {
   normalizeCategoryLists
 } from './settingsCategoryLists'
 import { getItem, setItem, STORAGE_KEYS } from './storage'
-import { withSubCategoryField } from '../components/form/fieldUtils'
+import { withSubCategoryField, withWalletAccountField } from '../components/form/fieldUtils'
 
 export {
   DEFAULT_DANG_CATEGORIES,
@@ -70,13 +70,13 @@ function expenseForm(): CustomForm {
 }
 
 export function getDefaultForms(): CustomForm[] {
-  return withSubCategoryField([incomeForm(), expenseForm()])
+  return withWalletAccountField(withSubCategoryField([incomeForm(), expenseForm()]))
 }
 
 export function normalizeSettings(input: AppSettings): AppSettings {
   const settings: AppSettings = normalizeCategoryLists({
     ...input,
-    forms: withSubCategoryField(input.forms)
+    forms: withWalletAccountField(withSubCategoryField(input.forms))
   })
 
   if (settings.spreadsheets?.length) {

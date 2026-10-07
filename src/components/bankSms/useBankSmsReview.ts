@@ -23,6 +23,7 @@ import { getCurrency } from '../../utils/formatMoney'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
+import { WALLET_ACCOUNT_FIELD_ID } from '../form/fieldUtils'
 import type { WalletAccountWithRow } from '../wallet/types'
 
 async function loadLedger(settings: AppSettings): Promise<LedgerEntry[]> {
@@ -34,7 +35,8 @@ async function loadLedger(settings: AppSettings): Promise<LedgerEntry[]> {
       ).map(record => ({
         type: form.type as LedgerEntry['type'],
         amount: parseNumeric(record.values.amount),
-        date: record.values.date ?? ''
+        date: record.values.date ?? '',
+        accountId: record.values[WALLET_ACCOUNT_FIELD_ID] ?? ''
       }))
     )
   )
@@ -158,8 +160,8 @@ export function useBankSmsReview() {
       ),
     confirmTransfer: (key: string, debit: ConfirmableSms, credit: ConfirmableSms) =>
       run(key, 'انتقال داخلی ثبت شد', id => confirmSmsTransfer(id, debit, credit)),
-    dismiss: (key: string, ids: string[]) =>
-      run(key, 'پیامک نادیده گرفته شد', () => dismissSms(ids)),
+    dismiss: (key: string, ids: string[], message = 'پیامک نادیده گرفته شد') =>
+      run(key, message, () => dismissSms(ids)),
     splitTransfer: (ids: string[]) => setNoPair(prev => new Set([...prev, ...ids]))
   }
 }

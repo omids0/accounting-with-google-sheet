@@ -3,6 +3,7 @@ import type { FieldConfig, SpreadsheetEntry } from '../types'
 import { syncCategoriesFromSheet } from './categories'
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
+import { migrateWalletAccountColumn } from './migrateWalletAccountColumn'
 import { MODULE_SHEET_SPECS } from './moduleSheetSpecs'
 import { ensureMembershipDate } from './periodSettings'
 import { getDefaultSettings, getSettings, registerSpreadsheet } from './settings'
@@ -179,6 +180,7 @@ async function finalizeSpreadsheetActivation(
   await syncCategoriesFromSheet(spreadsheetId)
   await migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   await migrateSubCategoryColumn(spreadsheetId).catch(() => undefined)
+  await migrateWalletAccountColumn(spreadsheetId).catch(() => undefined)
   await ensureMembershipDate(spreadsheetId).catch(() => '')
   markAllKnownSheetsPrepared(spreadsheetId)
   markSessionPrepared(spreadsheetId)
