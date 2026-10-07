@@ -156,7 +156,7 @@ export const statCardValueRowWideClass =
 export const statLiabilityClass =
   'border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] [&_.stat-value]:text-[var(--color-warning)]'
 
-export const sparklineClass = 'w-full max-w-[5.5rem] shrink-0 opacity-85'
+export const sparklineClass = 'mt-1 w-full shrink-0 opacity-85'
 
 export const sparklineWideClass = 'max-w-[4.5rem]'
 

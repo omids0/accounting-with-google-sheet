@@ -70,7 +70,7 @@ const moneyDisplaySizeClass: Record<MoneyDisplaySize, string> = {
     'inline-flex flex-shrink-0 items-baseline gap-[0.12rem] whitespace-nowrap leading-[1.2]',
     '[&_.money-display-sign]:text-[0.68rem] [&_.money-display-sign]:font-semibold [&_.money-display-sign]:opacity-85',
     '[&_.money-display-value]:text-[0.76rem] [&_.money-display-value]:font-semibold [&_.money-display-value]:tracking-[0.01em]',
-    '[&_.money-display-unit]:text-[0.52rem] [&_.money-display-unit]:font-normal [&_.money-display-unit]:opacity-65'
+    '[&_.money-display-unit]:text-[0.64rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:opacity-80'
   )
 }
 

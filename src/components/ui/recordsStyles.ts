@@ -34,6 +34,17 @@ export const recordsTypeSegmentClass = cn(
   '[&_button.active]:bg-surface [&_button.active]:shadow-[0_1px_4px_rgba(0,0,0,0.08)] [&_button.active.income]:text-success [&_button.active.expense]:text-danger'
 )
 
+/**
+ * Many tabs (e.g. vehicle detail, six of them) cannot share one phone-width row:
+ * they scroll sideways instead of wrapping or getting cut at the edge.
+ */
+export const recordsTypeSegmentScrollClass = cn(
+  'overflow-x-auto overscroll-x-contain scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+  '[&_button]:flex-none [&_button]:whitespace-nowrap [&_button]:px-3.5',
+  // Faded edges hint that more tabs sit off-screen.
+  '[mask-image:linear-gradient(to_left,transparent,black_18px,black_calc(100%-18px),transparent)]'
+)
+
 export const recordsFilterSectionClass = 'flex flex-col gap-[0.45rem]'
 
 export const recordsFilterSectionInlineClass = 'flex-row items-center gap-[0.65rem]'
