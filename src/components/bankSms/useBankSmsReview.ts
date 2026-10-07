@@ -45,7 +45,8 @@ async function loadLedger(settings: AppSettings): Promise<LedgerEntry[]> {
 }
 
 /** Everything the «پیامک‌های بانکی» page shows and does. */
-export function useBankSmsReview() {
+/** `sinceMs`: only SMS received from this moment on are listed (older ones stay queued). */
+export function useBankSmsReview(sinceMs: number) {
   const pending = useBankSmsStore(state => state.pending)
   const queueLoading = useBankSmsStore(state => state.loading)
   const refresh = useBankSmsStore(state => state.refresh)
@@ -97,11 +98,17 @@ export function useBankSmsReview() {
     () =>
       buildReviewItems(
         // Prefs change when a template is saved or an SMS confirmed, which also changes these deps.
-        reviewSms(pending, templates, accounts, currency, getBankSmsPrefs().refAccounts),
+        reviewSms(
+          pending.filter(sms => sms.receivedAt >= sinceMs),
+          templates,
+          accounts,
+          currency,
+          getBankSmsPrefs().refAccounts
+        ),
         ledger,
         noPair
       ),
-    [pending, templates, accounts, currency, ledger, noPair]
+    [pending, sinceMs, templates, accounts, currency, ledger, noPair]
   )
 
   const run = async (
@@ -145,6 +152,7 @@ export function useBankSmsReview() {
 
   return {
     items,
+    hiddenCount: pending.filter(sms => sms.receivedAt < sinceMs).length,
     bulkCount: bulk.length,
     confirmAll,
     accounts,

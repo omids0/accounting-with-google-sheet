@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import BankSmsBulkBar from './BankSmsBulkBar'
 import BankSmsEntryCard from './BankSmsEntryCard'
+import BankSmsRangeBar from './BankSmsRangeBar'
 import BankSmsSettingsCard from './BankSmsSettingsCard'
 import BankSmsTransferCard from './BankSmsTransferCard'
 import BankSmsUnknownCard from './BankSmsUnknownCard'
@@ -10,16 +11,25 @@ import { useBankSmsReview } from './useBankSmsReview'
 import { getPathForTab } from '../../routes/paths'
 import { buildBankSmsEntryState } from '../../services/bankSmsEntry'
 import { isBankSmsAvailable } from '../../services/bankSmsNative'
-import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
+import { getBankSmsPrefs, updateBankSmsPrefs } from '../../services/bankSmsPrefs'
+import { smsRangeStart } from '../../services/bankSmsRange'
 import { isConfigured } from '../../services/settings'
 import EmptyState from '../EmptyState'
 import { smsPageClass } from '../ui/bankSmsStyles'
 
 function BankSmsReview() {
-  const review = useBankSmsReview()
+  const [days, setDays] = useState(() => getBankSmsPrefs().viewDays)
+  const sinceMs = useMemo(() => smsRangeStart(days), [days])
+  const review = useBankSmsReview(sinceMs)
   const navigate = useNavigate()
   const [enabled, setEnabled] = useState(() => getBankSmsPrefs().enabled)
   const { templates, saving, add } = review.templatesApi
+  const { scanFrom } = review
+
+  // Read the chosen range from the inbox (already handled SMS never come back).
+  useEffect(() => {
+    if (enabled) void scanFrom(sinceMs).catch(() => undefined)
+  }, [enabled, sinceMs, scanFrom])
 
   return (
     <div className={smsPageClass}>
@@ -29,6 +39,17 @@ function BankSmsReview() {
           void review.refresh()
         }}
       />
+
+      {enabled && (
+        <BankSmsRangeBar
+          days={days}
+          hiddenCount={review.hiddenCount}
+          onChange={next => {
+            setDays(next)
+            updateBankSmsPrefs({ viewDays: next })
+          }}
+        />
+      )}
 
       {enabled && review.items.length === 0 && (
         <EmptyState
