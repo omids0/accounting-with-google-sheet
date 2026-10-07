@@ -26,7 +26,7 @@ export const appSidebarNavClass = cn(
 export const appMenuProfileClass = cn(
   'relative flex shrink-0 items-center gap-[0.85rem] overflow-hidden text-white',
   'border-b border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] px-[1.15rem] pb-[1.15rem] pt-[max(1rem,env(safe-area-inset-top))]',
-  '[background:linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-light)_52%,#2dd4bf_100%)]',
+  '[background:var(--hero-bg)]',
   // Static gradient; the shimmer is transform/opacity only and plays a couple of
   // times when the drawer opens instead of looping forever.
   'after:pointer-events-none after:absolute after:inset-[-35%_-25%] after:animate-[heroShimmer_5s_ease-in-out_2] after:content-[""] after:[background:radial-gradient(circle,rgba(255,255,255,0.22),transparent_62%)]',

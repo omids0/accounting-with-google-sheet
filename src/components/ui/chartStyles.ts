@@ -10,8 +10,8 @@ export const dashboardPageClass = cn(
 export const dashboardHeroCardClass = cn(
   cardClassName(),
   'dashboard-hero-card relative overflow-hidden border-none !p-4 text-center text-white',
-  'shadow-[0_8px_28px_rgba(15,118,110,0.3)]',
-  '[background:linear-gradient(135deg,#0f766e_0%,#14b8a6_50%,#2dd4bf_100%)]'
+  'shadow-[var(--hero-shadow),inset_0_0_0_1px_var(--hero-ring)]',
+  '[background:var(--hero-bg)]'
 )
 
 /** Transform/opacity-only shimmer, played a couple of times on mount (not forever). */
@@ -234,18 +234,23 @@ export const categoryDonutCenterLabelClass = 'text-[0.68rem] font-semibold text-
 export const categoryDonutCenterValueClass =
   'text-[0.78rem] font-extrabold tabular-nums text-primary-dark [font-feature-settings:"tnum"_1]'
 
-export const categoryDonutLegendClass = 'm-0 flex list-none flex-col gap-[0.3rem] p-0'
+/** Rows share one grid (subgrid) so the percent and amount columns line up. */
+export const categoryDonutLegendClass =
+  'm-0 grid list-none grid-cols-[auto_minmax(0,1fr)_auto_auto] gap-y-[0.3rem] p-0'
 
+/** Reads right-to-left: dot • name • percent • amount. */
 export const categoryDonutLegendItemClass =
-  'grid grid-cols-[auto_1fr_auto_auto] items-center gap-[0.35rem] rounded-sm px-[0.35rem] py-1 text-[0.72rem] transition-[background] duration-[var(--duration-fast)] hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_70%,transparent)]'
+  'col-span-4 grid grid-cols-subgrid items-center gap-x-2 rounded-sm px-[0.35rem] py-1 text-[0.72rem] transition-[background] duration-[var(--duration-fast)] hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_70%,transparent)]'
 
 export const categoryDonutLegendDotClass = 'h-[0.55rem] w-[0.55rem] shrink-0 rounded-full'
 
 export const categoryDonutLegendNameClass =
   'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-text'
 
-export const categoryDonutLegendPctClass =
-  'text-[0.68rem] font-bold tabular-nums text-muted [font-feature-settings:"tnum"_1]'
+export const categoryDonutLegendPctClass = cn(
+  'min-w-[2.6rem] rounded-full px-1.5 py-px text-center text-[0.68rem] font-bold tabular-nums text-muted [font-feature-settings:"tnum"_1]',
+  'bg-[color-mix(in_srgb,var(--color-accent-soft)_75%,transparent)]'
+)
 
 export const categoryDonutLegendValueClass =
   'font-extrabold tabular-nums text-primary-dark [font-feature-settings:"tnum"_1]'
