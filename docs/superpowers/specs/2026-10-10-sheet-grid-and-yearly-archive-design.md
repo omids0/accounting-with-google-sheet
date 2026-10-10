@@ -59,22 +59,24 @@ Two independent parts, shipped as two PRs in this order:
 ### Units
 
 - **`src/services/sheetGrid.ts`** (new)
-  - `planGridTrim(input): GridTrimPlan`. Pure function. Input per tab: `sheetId`,
-    `gridProperties` (`rowCount`, `columnCount`, `frozenRowCount`), schema width, last
-    non-empty row, last non-empty column. Output: `deleteDimension` requests or nothing.
-  - `ensureGridSize(spreadsheetId, sheetName, minRows, minCols)`. Sends `appendDimension`
-    only when the cached grid is smaller than needed.
-  - A grid-properties cache per spreadsheet, filled by the metadata call that already runs
-    on every pull (see below).
-- **`src/services/migrateCompactGrids.ts`** (new). One-time migration per spreadsheet, wired
-  like the existing migrations (`sheetSyncLifecycle.ts:164-168`) with a localStorage flag
-  `accounting_grid_compact_v1_<spreadsheetId>`.
+  - `planGridTrim(input): DeleteDimensionRequest[]`. Pure function. Input per tab: grid info
+    (`sheetId`, `rowCount`, `columnCount`, `frozenRowCount`), schema width, last non-empty
+    row, last non-empty column. Output: `deleteDimension` requests, or none.
+  - `fetchGridInfo(spreadsheetId)`. One metadata GET for all tabs.
+  - `withGridGrowth(spreadsheetId, sheetName, minRows, minColumns, write)`. Runs the write.
+    Only on a 400 «exceeds grid limits» error, it grows the grid with `appendDimension` and
+    retries once. A successful write costs no extra request.
+- **`src/services/migrateCompactGrids.ts`** (new). One-time migration per spreadsheet, kept in
+  localStorage under `accounting_grid_compact_migration_v1` like the existing migrations.
+  It runs after a successful pull.
 
-### Getting grid sizes without a new request
+### Sheet ranges
 
-`fetchSheetRevisions` already reads `sheets.properties(sheetId,title)` on every pull. Extend
-its `fields` to `properties(sheetId,title,gridProperties)` and store the grid sizes in the
-grid cache. There is no extra round trip.
+- Reads and appends use the quoted whole-sheet reference `'<tab>'` instead of `<tab>!A:Z`.
+- A range that names columns past a narrow grid could be rejected. A whole-sheet reference
+  never is, and it also reads hand-added columns past Z.
+- Quoting is also required for Part 2 tab names that contain a space.
+- `dangSplit.ts` reads its header with `1:1` instead of `A1:Z1`.
 
 ### New tabs
 
@@ -86,24 +88,27 @@ grid cache. There is no extra round trip.
 ### Compaction of existing tabs (the migration)
 
 The migration runs right after a successful pull, while the local mirror is fresh, and only
-when the outbox is empty. Steps:
+when the outbox is empty. It only touches tabs in the app's schema. Tabs the user created
+are never changed. Steps:
 
-1. **Read grid sizes** from the grid cache.
-2. **Compute target width** per tab: `schemaWidth = headers.length` (base tab) or the header
-   row width (archive tabs and unknown tabs).
-3. **Probe the columns that would be deleted.** One `values:batchGet` with, for every tab
-   where `columnCount > targetWidth`, the range `'<tab>'!<targetWidth+1 letter>:<last letter>`.
-   - Any returned value raises that tab's target width to its last non-empty column.
-   - The response length also gives the last data row in those columns.
-   - Normally every range is empty, so the response is tiny.
-4. **Compute target height:** `lastDataRow + ROW_BUFFER`, where `lastDataRow` is the larger
-   of the mirror's row count and the probe's row count, and `ROW_BUFFER = 50`.
-   - Rows are trimmed only when the surplus exceeds `ROW_BUFFER * 2`.
+1. **Read grid sizes** with `fetchGridInfo`.
+2. **Find the data extent** per tab from the local mirror. A tab with no mirror copy (for
+   example, فعالیت) is read whole in the probe below.
+3. **Probe the columns that would be deleted.** One `values:batchGet`. For every tab whose
+   grid is wider than `max(schema width, last data column)`, it requests the columns past
+   that width.
+   - **If any probed cell has a value, that tab is skipped entirely.** A hand-modified tab is
+     left alone.
+   - Normally every probed range is empty, so the response is tiny.
+4. **Compute the target size.**
+   - Width: `max(schemaWidth, lastDataColumn, 1)`.
+   - Height: `max(lastDataRow + ROW_BUFFER, frozenRowCount + 1)`, with `ROW_BUFFER = 50`.
+     Rows are trimmed only when the grid has more than `lastDataRow + 2 * ROW_BUFFER` rows.
    - **Why a buffer:** `deleteDimension` uses absolute indices. An append from another device
      between our read and our delete lands at `lastDataRow + 1`. Fifty rows of margin make
      that race harmless. The cost is about 450 cells per tab.
-5. **Send one `batchUpdate`** with all `deleteDimension` requests, columns and rows per tab,
-   each list in descending index order.
+5. **Send one `batchUpdate`** with every `deleteDimension` request. Each tab gets at most one
+   column range and one row range, both cut from the end.
 6. **Set the flag** only after the `batchUpdate` succeeds. A failure leaves the flag unset,
    and the next pull retries. Re-running on another device is harmless, because trimmed tabs
    produce an empty plan.
@@ -111,26 +116,17 @@ when the outbox is empty. Steps:
 ### Writes that need a larger grid
 
 - `append` with `INSERT_ROWS` grows the grid by itself, so no change is needed.
-- `appendHeaderColumn` (column migrations) calls `ensureGridSize(…, cols + 1)` before writing.
-- The outbox `replace` operation calls `ensureGridSize(…, rows.length + 1, width)` before
-  `replaceSheetDataRowsApi`.
-- `writeSheetHeaders` calls `ensureGridSize(…, 1, headers.length)`.
-
-The plan's first task verifies against the real API whether `values.update` past the grid
-edge fails. The explicit `ensureGridSize` stays either way, because it costs nothing when
-the grid is already big enough.
-
-### Read range
-
-`SHEET_FULL_RANGE = 'A:Z'` is replaced by a per-tab range built from the tab's width:
-`'<tab>'!A:<columnLetter(max(schemaWidth, 26))>`. Never reading less than today means no
-regression for tabs with hand-added columns.
+- These writes are wrapped in `withGridGrowth`:
+  - `updateSheetRowApi`
+  - the write step of `replaceSheetDataRowsApi` (outbox `replace`)
+  - `appendHeaderColumn` (column migrations)
+- Reason: `values.update` past the grid edge fails with «exceeds grid limits».
 
 ### Error handling
 
 - A failure in the migration is logged and swallowed. Sync continues, and the next pull
   retries.
-- An `ensureGridSize` failure fails the write. The write stays in the outbox, as today.
+- A failed grid growth fails the write. The write stays in the outbox, as today.
 
 ### Tests (vitest)
 
