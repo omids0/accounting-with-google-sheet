@@ -4,7 +4,7 @@ import {
   type DeleteDimensionRequest,
   type GridInfo
 } from './sheetGrid'
-import { apiRequest, SHEETS_API } from './sheetsApi'
+import { apiRequest, SHEETS_API, SheetsApiError } from './sheetsApi'
 import { columnLetter } from './sheetsCellValues'
 import type { SheetSpec } from './sheetsEnsure'
 import { normalizeSheetTitle, quoteSheetName } from './sheetsMeta'
@@ -20,17 +20,9 @@ type MigrationState = Record<string, true>
 
 const running = new Set<string>()
 
-interface Tab {
-  spec: SheetSpec
+interface TabTrim {
   grid: GridInfo
-  rows: unknown[][] | null
-}
-
-interface Probe {
-  tab: number
-  range: string
-  /** True when the probe reads the whole tab because the mirror has no copy. */
-  whole: boolean
+  requests: DeleteDimensionRequest[]
 }
 
 function isMigrated(spreadsheetId: string): boolean {
@@ -62,21 +54,16 @@ export function sheetExtent(rows: unknown[][]): { lastDataRow: number; lastDataC
   return { lastDataRow, lastDataColumn }
 }
 
-function buildProbes(tabs: Tab[]): Probe[] {
-  return tabs.flatMap((tab, index): Probe[] => {
-    const ref = quoteSheetName(tab.grid.title)
+/** The A1 range a deleteDimension request would remove. */
+function regionOf(title: string, request: DeleteDimensionRequest): string {
+  const { dimension, startIndex, endIndex } = request.deleteDimension.range
 
-    if (!tab.rows) return [{ tab: index, range: ref, whole: true }]
+  const bounds =
+    dimension === 'COLUMNS'
+      ? `${columnLetter(startIndex + 1)}:${columnLetter(endIndex)}`
+      : `${startIndex + 1}:${endIndex}`
 
-    // The mirror may come from an older A:Z read, so the columns about to go are checked live.
-    const width = Math.max(tab.spec.headers.length, sheetExtent(tab.rows).lastDataColumn, 1)
-
-    if (tab.grid.columnCount <= width) return []
-
-    const range = `${ref}!${columnLetter(width + 1)}:${columnLetter(tab.grid.columnCount)}`
-
-    return [{ tab: index, range, whole: false }]
-  })
+  return `${quoteSheetName(title)}!${bounds}`
 }
 
 async function batchGetValues(spreadsheetId: string, ranges: string[]): Promise<unknown[][][]> {
@@ -98,53 +85,81 @@ async function batchGetValues(spreadsheetId: string, ranges: string[]): Promise<
   return values
 }
 
-async function planCompaction(
-  spreadsheetId: string,
-  specs: SheetSpec[]
-): Promise<DeleteDimensionRequest[]> {
+/**
+ * The mirror only proposes a trim: it can be stale or partial. Every region a
+ * request would remove is read live, and a tab is trimmed only when all of its
+ * regions come back empty.
+ */
+async function planCompaction(spreadsheetId: string, specs: SheetSpec[]): Promise<TabTrim[]> {
   const grids = await fetchGridInfo(spreadsheetId)
 
-  const tabs = specs.flatMap((spec): Tab[] => {
+  const proposed = specs.flatMap((spec): TabTrim[] => {
     const grid = grids.get(normalizeSheetTitle(spec.sheetName))
 
-    return grid ? [{ spec, grid, rows: getSheetAllRows(spreadsheetId, spec.sheetName) }] : []
+    if (!grid) return []
+
+    const rows = getSheetAllRows(spreadsheetId, spec.sheetName) ?? []
+
+    const requests = planGridTrim({ grid, minWidth: spec.headers.length, ...sheetExtent(rows) })
+
+    return requests.length ? [{ grid, requests }] : []
   })
 
-  const probes = buildProbes(tabs)
+  const regions = proposed.flatMap((tab, index) =>
+    tab.requests.map(request => ({ tab: index, range: regionOf(tab.grid.title, request) }))
+  )
 
-  const results = probes.length
+  const results = regions.length
     ? await batchGetValues(
         spreadsheetId,
-        probes.map(probe => probe.range)
+        regions.map(region => region.range)
       )
     : []
 
-  const skipped = new Set<number>()
+  const unsafe = new Set<number>()
 
-  const fetched = new Map<number, unknown[][]>()
-
-  probes.forEach((probe, index) => {
+  regions.forEach((region, index) => {
     const values = results[index]
 
-    // A missing answer is treated as unknown: the tab is left alone.
-    if (!values) skipped.add(probe.tab)
-    else if (probe.whole) fetched.set(probe.tab, values)
-    else if (sheetExtent(values).lastDataRow) skipped.add(probe.tab)
+    // No answer is treated as unknown, and data means the region is in use.
+    if (!values || sheetExtent(values).lastDataRow) unsafe.add(region.tab)
   })
 
-  return tabs.flatMap((tab, index) => {
-    const rows = tab.rows ?? fetched.get(index)
+  return proposed.filter((_, index) => !unsafe.has(index))
+}
 
-    if (skipped.has(index) || !rows) return []
-
-    return planGridTrim({ grid: tab.grid, minWidth: tab.spec.headers.length, ...sheetExtent(rows) })
+async function sendTrims(spreadsheetId: string, requests: DeleteDimensionRequest[]): Promise<void> {
+  await apiRequest(`${SHEETS_API}/${spreadsheetId}:batchUpdate`, {
+    method: 'POST',
+    body: JSON.stringify({ requests })
   })
 }
 
 /**
+ * One batchUpdate is all-or-nothing, so a tab Sheets refuses to trim would
+ * block every other tab on every pull. On a refusal each tab is sent on its own
+ * and the ones still refused are left as they are.
+ */
+async function applyTrims(spreadsheetId: string, trims: TabTrim[]): Promise<void> {
+  try {
+    await sendTrims(
+      spreadsheetId,
+      trims.flatMap(tab => tab.requests)
+    )
+  } catch (err) {
+    if (!(err instanceof SheetsApiError) || err.status !== 400) throw err
+
+    for (const tab of trims) {
+      // A tab Sheets still refuses stays as it is; the others are already trimmed.
+      await sendTrims(spreadsheetId, tab.requests).catch(() => undefined)
+    }
+  }
+}
+
+/**
  * Shrinks every app tab to its schema width plus a small row buffer, once per
- * spreadsheet. Runs after a pull (fresh mirror) with an empty outbox, and only
- * removes rows and columns proven empty. Tabs the user created are not touched.
+ * spreadsheet. Runs after a pull with an empty outbox, removes only regions a
+ * live read just proved empty, and never touches tabs the user created.
  */
 export async function migrateCompactGrids(spreadsheetId: string): Promise<void> {
   if (!spreadsheetId || isMigrated(spreadsheetId) || running.has(spreadsheetId)) return
@@ -154,14 +169,12 @@ export async function migrateCompactGrids(spreadsheetId: string): Promise<void> 
   try {
     const { getAllSheetSpecs } = await import('./spreadsheetSetup')
 
-    const requests = await planCompaction(spreadsheetId, getAllSheetSpecs())
+    const trims = await planCompaction(spreadsheetId, getAllSheetSpecs())
 
-    if (requests.length) {
-      await apiRequest(`${SHEETS_API}/${spreadsheetId}:batchUpdate`, {
-        method: 'POST',
-        body: JSON.stringify({ requests })
-      })
-    }
+    // A local write queued while probing could land inside a region: try again later.
+    if (hasPendingOutbox(spreadsheetId)) return
+
+    if (trims.length) await applyTrims(spreadsheetId, trims)
     markMigrated(spreadsheetId)
   } finally {
     running.delete(spreadsheetId)

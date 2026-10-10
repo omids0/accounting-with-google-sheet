@@ -84,6 +84,43 @@ describe('writes on a trimmed grid', () => {
     ).resolves.toBeUndefined()
   })
 
+  it('grows the columns when an appended row is wider than the grid', async () => {
+    let rejected = false
+
+    apiRequest.mockImplementation(async (url: string) => {
+      if (url.includes(':append') && !rejected) {
+        rejected = true
+        throw new SheetsApiError('exceeds grid limits. Max rows: 3, max columns: 3', 400)
+      }
+      if (url.includes('?fields=')) {
+        return {
+          sheets: [
+            {
+              properties: {
+                sheetId: 5,
+                title: SHEET,
+                gridProperties: { rowCount: 3, columnCount: 3 }
+              }
+            }
+          ]
+        }
+      }
+
+      return {}
+    })
+
+    await executeOutboxOperation('sid', {
+      type: 'append',
+      sheetName: SHEET,
+      row: ['id', 'name', 'parent', 'extra']
+    })
+
+    expect(growRequests()).toEqual([
+      { appendDimension: { sheetId: 5, dimension: 'COLUMNS', length: 1 } }
+    ])
+    expect(apiRequest.mock.calls.filter(([url]) => String(url).includes(':append'))).toHaveLength(2)
+  })
+
   it('grows the columns when an updated row is wider than the grid', async () => {
     rejectFirstPut()
 

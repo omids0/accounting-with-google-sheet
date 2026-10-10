@@ -41,7 +41,8 @@ describe('fetchGridInfo', () => {
       title: 'هزینه',
       rowCount: 60,
       columnCount: 9,
-      frozenRowCount: 1
+      frozenRowCount: 1,
+      frozenColumnCount: 0
     })
   })
 })

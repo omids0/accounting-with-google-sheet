@@ -14,6 +14,7 @@ export interface GridInfo {
   rowCount: number
   columnCount: number
   frozenRowCount: number
+  frozenColumnCount: number
 }
 
 export interface GridTrimInput {
@@ -52,7 +53,8 @@ export function planGridTrim({
 }: GridTrimInput): DeleteDimensionRequest[] {
   const requests: DeleteDimensionRequest[] = []
 
-  const targetColumns = Math.max(minWidth, lastDataColumn, 1)
+  // Sheets also refuses a grid whose only columns are frozen.
+  const targetColumns = Math.max(minWidth, lastDataColumn, grid.frozenColumnCount + 1)
 
   if (grid.columnCount > targetColumns) {
     requests.push(deleteRange(grid.sheetId, 'COLUMNS', targetColumns, grid.columnCount))
@@ -73,7 +75,12 @@ interface GridMetadataResponse {
     properties?: {
       sheetId?: number
       title?: string
-      gridProperties?: { rowCount?: number; columnCount?: number; frozenRowCount?: number }
+      gridProperties?: {
+        rowCount?: number
+        columnCount?: number
+        frozenRowCount?: number
+        frozenColumnCount?: number
+      }
     }
   }[]
 }
@@ -81,7 +88,7 @@ interface GridMetadataResponse {
 /** Grid size of every tab in one metadata request, keyed by normalized title. */
 export async function fetchGridInfo(spreadsheetId: string): Promise<Map<string, GridInfo>> {
   const fields = encodeURIComponent(
-    'sheets.properties(sheetId,title,gridProperties(rowCount,columnCount,frozenRowCount))'
+    'sheets.properties(sheetId,title,gridProperties(rowCount,columnCount,frozenRowCount,frozenColumnCount))'
   )
 
   const data = await apiRequest<GridMetadataResponse>(
@@ -100,7 +107,8 @@ export async function fetchGridInfo(spreadsheetId: string): Promise<Map<string, 
       title: props.title,
       rowCount: props.gridProperties?.rowCount ?? 0,
       columnCount: props.gridProperties?.columnCount ?? 0,
-      frozenRowCount: props.gridProperties?.frozenRowCount ?? 0
+      frozenRowCount: props.gridProperties?.frozenRowCount ?? 0,
+      frozenColumnCount: props.gridProperties?.frozenColumnCount ?? 0
     })
   }
 

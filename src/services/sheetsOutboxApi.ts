@@ -38,12 +38,15 @@ export async function appendSheetRowApi(
 ): Promise<void> {
   const range = encodeURIComponent(quoteSheetName(sheetName))
 
-  await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${range}:append?${VALUE_INPUT}&insertDataOption=INSERT_ROWS`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ values: [toSheetRowValues(row)] })
-    }
+  // INSERT_ROWS adds rows, not columns: a row wider than a trimmed grid grows it first.
+  await withGridGrowth(spreadsheetId, sheetName, 1, Math.max(row.length, 1), () =>
+    apiRequest(
+      `${SHEETS_API}/${spreadsheetId}/values/${range}:append?${VALUE_INPUT}&insertDataOption=INSERT_ROWS`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ values: [toSheetRowValues(row)] })
+      }
+    )
   )
   if (shouldRecordActivity(sheetName, options)) {
     recordOperation()

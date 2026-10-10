@@ -9,6 +9,7 @@ function grid(overrides: Partial<GridInfo> = {}): GridInfo {
     rowCount: 1000,
     columnCount: 26,
     frozenRowCount: 1,
+    frozenColumnCount: 0,
     ...overrides
   }
 }
@@ -44,6 +45,17 @@ describe('planGridTrim', () => {
     expect(planGridTrim({ grid: small, minWidth: 9, lastDataRow: 10, lastDataColumn: 9 })).toEqual(
       []
     )
+  })
+
+  it('keeps one unfrozen column past frozen columns', () => {
+    expect(
+      planGridTrim({
+        grid: grid({ frozenColumnCount: 5 }),
+        minWidth: 3,
+        lastDataRow: 1,
+        lastDataColumn: 3
+      })[0]
+    ).toEqual(range('COLUMNS', 6, 26))
   })
 
   it('never cuts an empty tab below one unfrozen row or one column', () => {

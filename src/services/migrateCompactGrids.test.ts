@@ -24,6 +24,7 @@ vi.mock('./spreadsheetSetup', () => ({
 }))
 
 const { migrateCompactGrids, sheetExtent } = await import('./migrateCompactGrids')
+const { SheetsApiError } = await import('./sheetsApi')
 
 function gridOf(sheetId: number, title: string, frozenRowCount?: number) {
   return {
@@ -50,6 +51,12 @@ function respond(probeValues: Record<string, unknown[][]>) {
 
     return GRIDS
   })
+}
+
+function probedRanges(): string[] {
+  return apiRequest.mock.calls
+    .filter(([url]) => String(url).includes('values:batchGet'))
+    .flatMap(([url]) => new URL(url).searchParams.getAll('ranges'))
 }
 
 type SentRequest = { deleteDimension: { range: { sheetId: number } } }
@@ -84,12 +91,7 @@ describe('migrateCompactGrids', () => {
   })
 
   it('trims app tabs in one batchUpdate and never touches user tabs', async () => {
-    respond({
-      "'فعالیت'": [
-        ['کلید', 'مقدار'],
-        ['last', 'x']
-      ]
-    })
+    respond({})
 
     await migrateCompactGrids('sid')
 
@@ -97,18 +99,37 @@ describe('migrateCompactGrids', () => {
       trim(1, 'COLUMNS', 3),
       trim(1, 'ROWS', 52),
       trim(2, 'COLUMNS', 2),
-      trim(2, 'ROWS', 52)
+      trim(2, 'ROWS', 50)
     ])
   })
 
-  it('probes columns past the data width and skips a tab that has data there', async () => {
+  it('reads live every region it is about to delete', async () => {
+    respond({})
+
+    await migrateCompactGrids('sid')
+
+    expect(probedRanges()).toEqual([
+      "'هزینه'!D:Z",
+      "'هزینه'!53:1000",
+      "'فعالیت'!C:Z",
+      "'فعالیت'!51:1000"
+    ])
+  })
+
+  it('skips a tab whose stale mirror missed rows that the live probe finds', async () => {
+    respond({ "'هزینه'!53:1000": [['از', 'دستگاه', 'دیگر']] })
+
+    await migrateCompactGrids('sid')
+
+    expect((sentRequests() ?? []).some(r => r.deleteDimension.range.sheetId === 1)).toBe(false)
+    expect((sentRequests() ?? []).some(r => r.deleteDimension.range.sheetId === 2)).toBe(true)
+  })
+
+  it('skips a tab that has data in the columns past the schema', async () => {
     respond({ "'هزینه'!D:Z": [[], ['', '', 'دستی']] })
 
     await migrateCompactGrids('sid')
 
-    const batchGet = apiRequest.mock.calls.find(([url]) => String(url).includes('values:batchGet'))!
-
-    expect(new URL(batchGet[0]).searchParams.getAll('ranges')).toContain("'هزینه'!D:Z")
     expect((sentRequests() ?? []).some(r => r.deleteDimension.range.sheetId === 1)).toBe(false)
   })
 
@@ -127,18 +148,49 @@ describe('migrateCompactGrids', () => {
     expect(apiRequest.mock.calls.length).toBe(callsAfterFirstRun)
   })
 
-  it('leaves the flag unset when the batchUpdate fails', async () => {
+  it('deletes nothing when a write is queued while it was probing', async () => {
+    respond({})
+    hasPendingOutbox.mockReturnValueOnce(false).mockReturnValue(true)
+
+    await migrateCompactGrids('sid')
+    expect(sentRequests()).toBeNull()
+
+    hasPendingOutbox.mockReturnValue(false)
+    await migrateCompactGrids('sid')
+    expect(sentRequests()).not.toBeNull()
+  })
+
+  it('falls back to one batchUpdate per tab when the combined one is refused', async () => {
     respond({})
     const answer = apiRequest.getMockImplementation()!
 
-    apiRequest.mockImplementation(async (url: string, init?: unknown) => {
-      if (url.includes(':batchUpdate')) throw new Error('boom')
+    apiRequest.mockImplementation(async (url: string, init?: { body?: string }) => {
+      if (url.includes(':batchUpdate') && init?.body?.includes('"sheetId":2')) {
+        throw new SheetsApiError('You cannot delete all non-frozen columns', 400)
+      }
 
       return answer(url, init)
     })
 
-    await expect(migrateCompactGrids('sid')).rejects.toThrow('boom')
+    await migrateCompactGrids('sid')
+
+    const updates = apiRequest.mock.calls.filter(([url]) => String(url).includes(':batchUpdate'))
+
+    expect(updates).toHaveLength(3)
+    expect(JSON.parse(updates[1][1].body).requests).toEqual([
+      trim(1, 'COLUMNS', 3),
+      trim(1, 'ROWS', 52)
+    ])
+
     apiRequest.mockClear()
+    await migrateCompactGrids('sid')
+    expect(apiRequest).not.toHaveBeenCalled()
+  })
+
+  it('leaves the flag unset when the tabs cannot be read', async () => {
+    apiRequest.mockRejectedValueOnce(new Error('offline'))
+
+    await expect(migrateCompactGrids('sid')).rejects.toThrow('offline')
     respond({})
     await migrateCompactGrids('sid')
     expect(sentRequests()).not.toBeNull()
