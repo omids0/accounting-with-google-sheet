@@ -15,7 +15,7 @@ import {
 } from '../ui/aboutStyles'
 import { cardClassName } from '../ui/Card'
 
-const APP_VERSION = '1.14.0'
+const APP_VERSION = '1.15.0'
 
 export default function AboutPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set())

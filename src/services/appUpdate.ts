@@ -8,6 +8,10 @@ import { getItem, setItem } from './storage'
 const VERSION_MANIFEST_URL =
   'https://github.com/omids0/accounting-with-google-sheet/releases/latest/download/version.json'
 
+/** Same asset the manifest points at; the web build links it for first installs. */
+export const APK_DOWNLOAD_URL =
+  'https://github.com/omids0/accounting-with-google-sheet/releases/latest/download/hesab-ketab.apk'
+
 const DISMISSED_KEY = 'accounting_update_dismissed'
 
 export interface AvailableUpdate {
