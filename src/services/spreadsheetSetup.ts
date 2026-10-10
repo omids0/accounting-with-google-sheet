@@ -52,7 +52,7 @@ function buildHeaders(form: { fields: FieldConfig[] }): string[] {
   return ['شناسه', 'زمان ثبت', ...sortFormFields(form.fields).map(field => field.label)]
 }
 
-function getAllSheetSpecs(): SheetSpec[] {
+export function getAllSheetSpecs(): SheetSpec[] {
   const settings = getSettings() ?? getDefaultSettings()
 
   const formSheets = settings.forms.map(form => ({

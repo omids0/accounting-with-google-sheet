@@ -110,6 +110,10 @@ export async function fullSyncFromRemote(
         skipIfUnchanged: options.skipIfUnchanged,
         hadData
       })
+      // Runs once per spreadsheet, right after a pull while the local mirror is fresh.
+      void import('./migrateCompactGrids')
+        .then(({ migrateCompactGrids }) => migrateCompactGrids(spreadsheetId))
+        .catch(() => undefined)
     } catch (err) {
       if (isQuotaExceededError(err)) {
         const { markQuotaExceeded } = await import('./sheetSyncOutbox')
