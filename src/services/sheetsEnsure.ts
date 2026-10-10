@@ -1,5 +1,6 @@
 import type { CustomForm } from '../types'
 import { apiRequest, SHEETS_API, isSpreadsheetAccessDeniedError } from './sheetsApi'
+import { columnLetter } from './sheetsCellValues'
 import {
   invalidateSheetTitlesCache,
   invalidateSpreadsheetCache,
@@ -89,15 +90,31 @@ export async function ensureSpreadsheet(
   return createSpreadsheet(title, forms)
 }
 
-async function batchAddSheetTabs(spreadsheetId: string, sheetNames: string[]): Promise<void> {
-  if (!sheetNames.length) return
+/**
+ * Exact grid for a new tab instead of Google's 1000×26 default; Sheets needs
+ * one unfrozen row under the frozen header.
+ */
+export function tabGridProperties(headerCount: number) {
+  return headerCount > 0 ? { rowCount: 2, columnCount: headerCount, frozenRowCount: 1 } : undefined
+}
+
+async function batchAddSheetTabs(spreadsheetId: string, sheets: SheetSpec[]): Promise<void> {
+  if (!sheets.length) return
 
   await apiRequest(`${SHEETS_API}/${spreadsheetId}:batchUpdate`, {
     method: 'POST',
     body: JSON.stringify({
-      requests: sheetNames.map(name => ({
-        addSheet: { properties: { title: name } }
-      }))
+      requests: sheets.map(sheet => {
+        const gridProperties = tabGridProperties(sheet.headers.length)
+
+        return {
+          addSheet: {
+            properties: gridProperties
+              ? { title: sheet.sheetName, gridProperties }
+              : { title: sheet.sheetName }
+          }
+        }
+      })
     })
   })
   invalidateSheetTitlesCache(spreadsheetId)
@@ -135,9 +152,9 @@ async function writeSheetHeaders(
   sheetName: string,
   headers: string[]
 ): Promise<void> {
-  const endCol = String.fromCharCode(64 + headers.length)
-
-  const range = encodeURIComponent(`${sheetName}!A1:${endCol}1`)
+  const range = encodeURIComponent(
+    `${quoteSheetName(sheetName)}!A1:${columnLetter(headers.length)}1`
+  )
 
   await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?valueInputOption=RAW`, {
     method: 'PUT',
@@ -180,10 +197,7 @@ async function ensureManySheetsWithHeadersInner(
   const missingTabs = pending.filter(sheet => !sheetExistsInTitles(titles, sheet.sheetName))
 
   if (missingTabs.length) {
-    await batchAddSheetTabs(
-      spreadsheetId,
-      missingTabs.map(sheet => sheet.sheetName)
-    )
+    await batchAddSheetTabs(spreadsheetId, missingTabs)
     titles = await getSheetTitles(spreadsheetId, true)
   }
 
