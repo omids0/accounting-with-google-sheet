@@ -38,7 +38,16 @@ export function parseSheetNameFromRange(range: string): string {
 
   const raw = bang >= 0 ? range.slice(0, bang) : range
 
-  return raw.replace(/^'/, '').replace(/'$/, '')
+  if (raw.length >= 2 && raw.startsWith("'") && raw.endsWith("'")) {
+    return raw.slice(1, -1).replace(/''/g, "'")
+  }
+
+  return raw
+}
+
+/** A1 sheet reference that stays valid for names with spaces or quotes. */
+export function quoteSheetName(sheetName: string): string {
+  return `'${sheetName.replace(/'/g, "''")}'`
 }
 
 /** Forget that these tabs were prepared, so the next ensure call checks (and creates) them. */

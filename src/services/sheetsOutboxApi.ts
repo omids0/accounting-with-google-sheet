@@ -2,6 +2,7 @@ import { recordOperation, ACTIVITY_SHEET } from './activityTracking'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { columnLetter, toSheetRowValues } from './sheetsCellValues'
 import { getSheetId } from './sheetsEnsure'
+import { quoteSheetName } from './sheetsMeta'
 import {
   appendAlreadyApplied,
   createRowGuardSession,
@@ -34,7 +35,7 @@ export async function appendSheetRowApi(
   row: string[],
   options?: SheetWriteOptions
 ): Promise<void> {
-  const range = encodeURIComponent(`${sheetName}!A:Z`)
+  const range = encodeURIComponent(quoteSheetName(sheetName))
 
   await apiRequest(
     `${SHEETS_API}/${spreadsheetId}/values/${range}:append?${VALUE_INPUT}&insertDataOption=INSERT_ROWS`,
@@ -57,7 +58,9 @@ export async function updateSheetRowApi(
 ): Promise<void> {
   const endCol = columnLetter(Math.max(row.length, 1))
 
-  const range = encodeURIComponent(`${sheetName}!A${rowNumber}:${endCol}${rowNumber}`)
+  const range = encodeURIComponent(
+    `${quoteSheetName(sheetName)}!A${rowNumber}:${endCol}${rowNumber}`
+  )
 
   await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?${VALUE_INPUT}`, {
     method: 'PUT',
@@ -110,7 +113,9 @@ async function replaceSheetDataRowsApi(
   const endCol = columnLetter(width)
 
   if (rows.length) {
-    const writeRange = encodeURIComponent(`${sheetName}!A2:${endCol}${rows.length + 1}`)
+    const writeRange = encodeURIComponent(
+      `${quoteSheetName(sheetName)}!A2:${endCol}${rows.length + 1}`
+    )
 
     await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${writeRange}?${VALUE_INPUT}`, {
       method: 'PUT',
@@ -118,7 +123,9 @@ async function replaceSheetDataRowsApi(
     })
   }
 
-  const clearRange = encodeURIComponent(`${sheetName}!A${rows.length + 2}:${endCol}`)
+  const clearRange = encodeURIComponent(
+    `${quoteSheetName(sheetName)}!A${rows.length + 2}:${endCol}`
+  )
 
   await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`, { method: 'POST' })
 }

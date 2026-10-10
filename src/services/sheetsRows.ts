@@ -1,5 +1,5 @@
 import { apiRequest, SHEETS_API, SheetsApiError } from './sheetsApi'
-import { normalizeSheetTitle, parseSheetNameFromRange } from './sheetsMeta'
+import { normalizeSheetTitle, parseSheetNameFromRange, quoteSheetName } from './sheetsMeta'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import {
   appendSheetDataRow,
@@ -15,15 +15,19 @@ import { cellToString } from '../utils/sheetValues'
 
 export type SheetWriteOptions = OutboxWriteOptions
 
-/** Open-ended: every row the sheet has. A fixed end row silently dropped data past it. */
-export const SHEET_FULL_RANGE = 'A:Z'
-
+/**
+ * Without a suffix the whole sheet is read. No row or column bound: a fixed end
+ * row dropped data past it, and `A:Z` is rejected by a trimmed grid narrower
+ * than Z (while also missing hand-added columns past it).
+ */
 export async function fetchSheetRangeFromApi(
   spreadsheetId: string,
   sheetName: string,
-  rangeSuffix = SHEET_FULL_RANGE
+  rangeSuffix?: string
 ): Promise<string[][]> {
-  const range = encodeURIComponent(`${sheetName}!${rangeSuffix}`)
+  const ref = quoteSheetName(sheetName)
+
+  const range = encodeURIComponent(rangeSuffix ? `${ref}!${rangeSuffix}` : ref)
 
   const data = await apiRequest<{ values?: unknown[][] }>(
     `${SHEETS_API}/${spreadsheetId}/values/${range}`
@@ -36,7 +40,7 @@ type BatchGetResponse = { valueRanges?: { range?: string; values?: unknown[][] }
 
 function batchGet(spreadsheetId: string, sheetNames: string[]): Promise<BatchGetResponse> {
   const params = sheetNames
-    .map(name => `ranges=${encodeURIComponent(`${name}!${SHEET_FULL_RANGE}`)}`)
+    .map(name => `ranges=${encodeURIComponent(quoteSheetName(name))}`)
     .join('&')
 
   return apiRequest<BatchGetResponse>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`)

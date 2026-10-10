@@ -32,12 +32,12 @@ describe('batchFetchSheetRangesFromApi', () => {
     apiRequest.mockImplementation(async (url: string) => {
       const ranges = rangesOf(url)
 
-      if (ranges.some(range => range.startsWith('قالب_پیامک'))) {
+      if (ranges.some(range => range.includes('قالب_پیامک'))) {
         throw new SheetsApiError('Unable to parse range: قالب_پیامک!A:Z', 400)
       }
 
       return {
-        valueRanges: ranges.map(range => ({ range, values: [['h'], [range.split('!')[0]]] }))
+        valueRanges: ranges.map(range => ({ range, values: [['h'], [range.replace(/'/g, '')]] }))
       }
     })
     getSheetTitles.mockResolvedValue(['درآمد', 'هزینه'])
@@ -47,6 +47,7 @@ describe('batchFetchSheetRangesFromApi', () => {
     expect([...result.keys()]).toEqual(['درآمد', 'هزینه'])
     expect(result.get('هزینه')).toEqual([['h'], ['هزینه']])
     expect(getSheetTitles).toHaveBeenCalledWith('sheet-id', true)
+    expect(rangesOf(apiRequest.mock.calls[0][0])).toEqual(["'درآمد'", "'قالب_پیامک'", "'هزینه'"])
   })
 
   it('rethrows errors that are not about a missing tab', async () => {

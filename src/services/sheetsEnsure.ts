@@ -7,6 +7,7 @@ import {
   markSheetsPrepared,
   normalizeSheetTitle,
   parseSheetNameFromRange,
+  quoteSheetName,
   sheetTitlesCache,
   TITLES_CACHE_TTL_MS
 } from './sheetsMeta'
@@ -108,7 +109,9 @@ async function batchGetHeaderRows(
 ): Promise<Map<string, string[]>> {
   if (!sheetNames.length) return new Map()
 
-  const params = sheetNames.map(name => `ranges=${encodeURIComponent(`${name}!1:1`)}`).join('&')
+  const params = sheetNames
+    .map(name => `ranges=${encodeURIComponent(`${quoteSheetName(name)}!1:1`)}`)
+    .join('&')
 
   const data = await apiRequest<{
     valueRanges?: { range?: string; values?: string[][] }[]
