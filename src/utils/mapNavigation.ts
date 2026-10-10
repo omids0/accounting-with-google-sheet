@@ -1,12 +1,9 @@
+import { isAndroidDevice } from './platform'
 import { markExternalAppHandoff } from '../services/appLockPolicy'
 import type { CounterpartyLocation } from '../types/counterparties'
 
 function isIosDevice(): boolean {
   return /iPad|iPhone|iPod/i.test(navigator.userAgent)
-}
-
-function isAndroidDevice(): boolean {
-  return /Android/i.test(navigator.userAgent)
 }
 
 function isMobileDevice(): boolean {

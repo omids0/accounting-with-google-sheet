@@ -1,5 +1,7 @@
+import LayoutApkDownloadItem from './LayoutApkDownloadItem'
 import { isNativePlatform } from '../../services/googleAuthNative'
 import { useAppUpdateStore } from '../../stores/appUpdateStore'
+import { isAndroidDevice } from '../../utils/platform'
 import { showError, showInfo, showSuccess } from '../../utils/toast'
 import AppIcon from '../AppIcon'
 import {
@@ -9,7 +11,10 @@ import {
   appMenuUpdateDotClass
 } from '../ui/layoutStyles'
 
-/** Only the APK installs updates by hand; the web build refreshes itself. */
+/**
+ * Only the APK installs updates by hand; the web build refreshes itself.
+ * An Android browser gets the APK download in the same slot instead.
+ */
 export default function LayoutUpdateItem() {
   const update = useAppUpdateStore(state => state.update)
 
@@ -17,7 +22,7 @@ export default function LayoutUpdateItem() {
 
   const check = useAppUpdateStore(state => state.check)
 
-  if (!isNativePlatform()) return null
+  if (!isNativePlatform()) return isAndroidDevice() ? <LayoutApkDownloadItem /> : null
 
   const label = update
     ? `نسخهٔ ${update.versionName} آماده نصب است`
