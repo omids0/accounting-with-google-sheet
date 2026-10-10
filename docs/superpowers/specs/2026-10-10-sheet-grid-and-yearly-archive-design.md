@@ -91,41 +91,46 @@ The migration runs right after a successful pull, while the local mirror is fres
 when the outbox is empty. It only touches tabs in the app's schema. Tabs the user created
 are never changed. Steps:
 
-1. **Read grid sizes** with `fetchGridInfo`.
-2. **Find the data extent** per tab from the local mirror. A tab with no mirror copy (for
-   example, فعالیت) is read whole in the probe below.
-3. **Probe the columns that would be deleted.** One `values:batchGet`. For every tab whose
-   grid is wider than `max(schema width, last data column)`, it requests the columns past
-   that width.
-   - **If any probed cell has a value, that tab is skipped entirely.** A hand-modified tab is
-     left alone.
-   - Normally every probed range is empty, so the response is tiny.
-4. **Compute the target size.**
-   - Width: `max(schemaWidth, lastDataColumn, 1)`.
+1. **Read grid sizes** with `fetchGridInfo`, including frozen rows and columns.
+2. **Propose a trim** per tab from the local mirror's data extent. A tab with no mirror copy
+   counts as empty. The mirror only proposes: it can be stale or partial.
+   - Width: `max(schemaWidth, lastDataColumn, frozenColumnCount + 1)`.
    - Height: `max(lastDataRow + ROW_BUFFER, frozenRowCount + 1)`, with `ROW_BUFFER = 50`.
      Rows are trimmed only when the grid has more than `lastDataRow + 2 * ROW_BUFFER` rows.
    - **Why a buffer:** `deleteDimension` uses absolute indices. An append from another device
      between our read and our delete lands at `lastDataRow + 1`. Fifty rows of margin make
      that race harmless. The cost is about 450 cells per tab.
+3. **Read live every region the trim would remove**, in one `values:batchGet`: the columns
+   past the target width and the rows past the target height.
+   - **If any of a tab's regions has a value, or returns no answer, that tab is skipped
+     entirely.**
+   - Normally every region is empty, so the response is tiny.
+4. **Re-check the outbox.** If a local write was queued during the probe, stop without
+   setting the flag.
 5. **Send one `batchUpdate`** with every `deleteDimension` request. Each tab gets at most one
    column range and one row range, both cut from the end.
-6. **Set the flag** only after the `batchUpdate` succeeds. A failure leaves the flag unset,
-   and the next pull retries. Re-running on another device is harmless, because trimmed tabs
+   - If Sheets refuses the combined batch (400), each tab is sent on its own, and a tab that
+     is still refused is left as it is.
+6. **Set the flag** after the trims are sent. A network failure leaves the flag unset, and
+   the next pull retries. Re-running on another device is harmless, because trimmed tabs
    produce an empty plan.
 
 ### Writes that need a larger grid
 
-- `append` with `INSERT_ROWS` grows the grid by itself, so no change is needed.
-- These writes are wrapped in `withGridGrowth`:
-  - `updateSheetRowApi`
-  - the write step of `replaceSheetDataRowsApi` (outbox `replace`)
-  - `appendHeaderColumn` (column migrations)
-- Reason: `values.update` past the grid edge fails with «exceeds grid limits».
+These writes are wrapped in `withGridGrowth`:
+
+- `appendSheetRowApi`. `INSERT_ROWS` adds rows, but not columns.
+- `updateSheetRowApi`.
+- The write step of `replaceSheetDataRowsApi` (outbox `replace`). Its trailing clear ignores
+  «exceeds grid limits», because nothing exists past the grid edge.
+- `appendHeaderColumn` (column migrations).
+
+Reason: `values.update` past the grid edge fails with «exceeds grid limits».
 
 ### Error handling
 
-- A failure in the migration is logged and swallowed. Sync continues, and the next pull
-  retries.
+- A failure in the migration is swallowed silently, because the repo's lint rules forbid
+  `console`. Sync continues, and the next pull retries.
 - A failed grid growth fails the write. The write stays in the outbox, as today.
 
 ### Tests (vitest)
