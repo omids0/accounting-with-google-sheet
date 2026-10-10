@@ -1,4 +1,5 @@
 import { recordOperation, ACTIVITY_SHEET } from './activityTracking'
+import { isGridLimitError, withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { columnLetter, toSheetRowValues } from './sheetsCellValues'
 import { getSheetId } from './sheetsEnsure'
@@ -62,10 +63,12 @@ export async function updateSheetRowApi(
     `${quoteSheetName(sheetName)}!A${rowNumber}:${endCol}${rowNumber}`
   )
 
-  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?${VALUE_INPUT}`, {
-    method: 'PUT',
-    body: JSON.stringify({ values: [toSheetRowValues(row)] })
-  })
+  await withGridGrowth(spreadsheetId, sheetName, rowNumber, Math.max(row.length, 1), () =>
+    apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?${VALUE_INPUT}`, {
+      method: 'PUT',
+      body: JSON.stringify({ values: [toSheetRowValues(row)] })
+    })
+  )
   if (shouldRecordActivity(sheetName, options)) {
     recordOperation()
   }
@@ -117,17 +120,26 @@ async function replaceSheetDataRowsApi(
       `${quoteSheetName(sheetName)}!A2:${endCol}${rows.length + 1}`
     )
 
-    await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${writeRange}?${VALUE_INPUT}`, {
-      method: 'PUT',
-      body: JSON.stringify({ values: rows.map(toSheetRowValues) })
-    })
+    await withGridGrowth(spreadsheetId, sheetName, rows.length + 1, width, () =>
+      apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${writeRange}?${VALUE_INPUT}`, {
+        method: 'PUT',
+        body: JSON.stringify({ values: rows.map(toSheetRowValues) })
+      })
+    )
   }
 
   const clearRange = encodeURIComponent(
     `${quoteSheetName(sheetName)}!A${rows.length + 2}:${endCol}`
   )
 
-  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`, { method: 'POST' })
+  try {
+    await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`, {
+      method: 'POST'
+    })
+  } catch (err) {
+    // The rows below start past the grid edge: nothing is left to clear.
+    if (!isGridLimitError(err)) throw err
+  }
 }
 
 export interface OutboxExecutionContext {

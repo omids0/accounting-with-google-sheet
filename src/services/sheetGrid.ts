@@ -107,7 +107,7 @@ export async function fetchGridInfo(spreadsheetId: string): Promise<Map<string, 
   return grids
 }
 
-function isGridLimitError(err: unknown): boolean {
+export function isGridLimitError(err: unknown): boolean {
   return (
     err instanceof SheetsApiError && err.status === 400 && /exceeds grid limits/i.test(err.message)
   )

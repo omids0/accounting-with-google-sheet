@@ -4,6 +4,7 @@ import { DANG_SHEET } from './dang'
 import { INSTALLMENTS_SHEET } from './installmentsConstants'
 import { RECEIVABLES_SHEET } from './receivablesRow'
 import { getSettings } from './settings'
+import { withGridGrowth } from './sheetGrid'
 import { writeSheetHeaders } from './sheetsEnsure'
 import { normalizeHeaderLabel } from './sheetsHeaders'
 import { fetchSheetRangeFromApi } from './sheetsRows'
@@ -45,7 +46,9 @@ export async function appendHeaderColumn(
 
   const nextHeader = [...header, label]
 
-  await writeSheetHeaders(spreadsheetId, sheetName, nextHeader)
+  await withGridGrowth(spreadsheetId, sheetName, 1, nextHeader.length, () =>
+    writeSheetHeaders(spreadsheetId, sheetName, nextHeader)
+  )
   setSheetAllRows(spreadsheetId, sheetName, [nextHeader, ...allRows.slice(1)])
 }
 
