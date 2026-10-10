@@ -1,3 +1,6 @@
+import { apiRequest, SHEETS_API, SheetsApiError } from './sheetsApi'
+import { normalizeSheetTitle } from './sheetsMeta'
+
 /**
  * Empty rows kept under the data when trimming. deleteDimension uses absolute
  * indices, so an append from another device racing the trim lands inside this
@@ -63,4 +66,98 @@ export function planGridTrim({
   }
 
   return requests
+}
+
+interface GridMetadataResponse {
+  sheets?: {
+    properties?: {
+      sheetId?: number
+      title?: string
+      gridProperties?: { rowCount?: number; columnCount?: number; frozenRowCount?: number }
+    }
+  }[]
+}
+
+/** Grid size of every tab in one metadata request, keyed by normalized title. */
+export async function fetchGridInfo(spreadsheetId: string): Promise<Map<string, GridInfo>> {
+  const fields = encodeURIComponent(
+    'sheets.properties(sheetId,title,gridProperties(rowCount,columnCount,frozenRowCount))'
+  )
+
+  const data = await apiRequest<GridMetadataResponse>(
+    `${SHEETS_API}/${spreadsheetId}?fields=${fields}`
+  )
+
+  const grids = new Map<string, GridInfo>()
+
+  for (const sheet of data.sheets ?? []) {
+    const props = sheet.properties
+
+    if (!props?.title || props.sheetId === undefined) continue
+
+    grids.set(normalizeSheetTitle(props.title), {
+      sheetId: props.sheetId,
+      title: props.title,
+      rowCount: props.gridProperties?.rowCount ?? 0,
+      columnCount: props.gridProperties?.columnCount ?? 0,
+      frozenRowCount: props.gridProperties?.frozenRowCount ?? 0
+    })
+  }
+
+  return grids
+}
+
+function isGridLimitError(err: unknown): boolean {
+  return (
+    err instanceof SheetsApiError && err.status === 400 && /exceeds grid limits/i.test(err.message)
+  )
+}
+
+async function growGrid(
+  spreadsheetId: string,
+  sheetName: string,
+  minRows: number,
+  minColumns: number
+): Promise<void> {
+  const grid = (await fetchGridInfo(spreadsheetId)).get(normalizeSheetTitle(sheetName))
+
+  if (!grid) return
+
+  const grow = (dimension: Dimension, length: number) => ({
+    appendDimension: { sheetId: grid.sheetId, dimension, length }
+  })
+
+  const requests = [
+    ...(grid.rowCount < minRows ? [grow('ROWS', minRows - grid.rowCount)] : []),
+    ...(grid.columnCount < minColumns ? [grow('COLUMNS', minColumns - grid.columnCount)] : [])
+  ]
+
+  if (!requests.length) return
+
+  await apiRequest(`${SHEETS_API}/${spreadsheetId}:batchUpdate`, {
+    method: 'POST',
+    body: JSON.stringify({ requests })
+  })
+}
+
+/**
+ * values.update fails past the grid edge (only append grows it). Trimmed grids
+ * make that reachable, so a write that hits the edge grows the grid and retries
+ * once. A write that fits costs nothing extra.
+ */
+export async function withGridGrowth<T>(
+  spreadsheetId: string,
+  sheetName: string,
+  minRows: number,
+  minColumns: number,
+  write: () => Promise<T>
+): Promise<T> {
+  try {
+    return await write()
+  } catch (err) {
+    if (!isGridLimitError(err)) throw err
+    await growGrid(spreadsheetId, sheetName, minRows, minColumns)
+
+    return write()
+  }
 }
