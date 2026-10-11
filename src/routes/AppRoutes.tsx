@@ -36,6 +36,7 @@ import {
 } from './lazyPages'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
+import WalletAccountDetailRoute from './WalletAccountDetailRoute'
 import Layout from '../components/Layout'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 import { readBankSmsEntryDraft } from '../services/bankSmsEntry'
@@ -90,6 +91,7 @@ export function AppAuthenticatedRoutes() {
         <Route path="wallet" element={<LazyWalletPage />} />
         <Route path="bank-sms" element={<LazyBankSmsPage />} />
         <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
+        <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
         <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />
         <Route path="entry" element={<EntryRoute />} />
         <Route path="records" element={<RecordsRoute />} />

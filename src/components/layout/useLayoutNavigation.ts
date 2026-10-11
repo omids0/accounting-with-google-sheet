@@ -39,6 +39,10 @@ interface DangSplitRouteState {
   title?: string
 }
 
+interface WalletAccountRouteState {
+  title?: string
+}
+
 export function useLayoutNavigation() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -60,6 +64,7 @@ export function useLayoutNavigation() {
   const timesheetTitle = (location.state as TimesheetRouteState | null)?.title
   const vehicleTitle = (location.state as VehicleRouteState | null)?.title
   const dangSplitTitle = (location.state as DangSplitRouteState | null)?.title
+  const walletAccountTitle = (location.state as WalletAccountRouteState | null)?.title
 
   const userName = getUserName()
   const userPicture = getUserPicture()
@@ -193,6 +198,7 @@ export function useLayoutNavigation() {
     tab === 'personal-reminders' ||
     tab === 'vehicle-service' ||
     tab === 'vehicle-detail' ||
+    tab === 'wallet-account-detail' ||
     tab === 'about' ||
     TIMESHEET_TABS.includes(tab) ||
     VEHICLE_TABS.includes(tab) ||
@@ -230,7 +236,9 @@ export function useLayoutNavigation() {
       return
     }
 
-    handleTabChange(tab === 'opening-balances' ? 'wallet' : 'dashboard')
+    const backToWallet = tab === 'opening-balances' || tab === 'wallet-account-detail'
+
+    handleTabChange(backToWallet ? 'wallet' : 'dashboard')
   }, [handleTabChange, location.pathname, navigate, showSettings, tab])
 
   const isCalculationTab = CALCULATION_TABS.includes(tab)
@@ -248,6 +256,8 @@ export function useLayoutNavigation() {
     ? vehicleTitle
     : tab === 'dang-split-detail' && dangSplitTitle
     ? dangSplitTitle
+    : tab === 'wallet-account-detail' && walletAccountTitle
+    ? walletAccountTitle
     : TAB_TITLES[tab]
 
   return {

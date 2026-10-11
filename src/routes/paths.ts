@@ -9,6 +9,7 @@ export interface TabNavigationOptions {
   dangSplitGroupId?: string
   dangSplitGroupTitle?: string
   formType?: 'income' | 'expense'
+  walletAccountId?: string
 }
 
 const REPORT_KIND_BY_TAB: Partial<Record<Tab, ModuleReportKind>> = {
@@ -86,6 +87,11 @@ export function getTabFromPath(pathname: string): Tab {
     return 'dang-split-detail'
   }
 
+  // `/wallet/opening-balances` is an exact path, not an account id.
+  if (!PATH_TO_TAB[path] && /^\/wallet\/[^/]+$/.test(path)) {
+    return 'wallet-account-detail'
+  }
+
   return PATH_TO_TAB[path] ?? 'dashboard'
 }
 
@@ -106,6 +112,12 @@ export function getPathForTab(tab: Tab, options?: TabNavigationOptions): string 
     if (!options?.dangSplitGroupId) return EXACT_TAB_PATHS['dang-split'] ?? '/dang-split'
 
     return `/dang-split/${encodeURIComponent(options.dangSplitGroupId)}`
+  }
+
+  if (tab === 'wallet-account-detail') {
+    if (!options?.walletAccountId) return EXACT_TAB_PATHS.wallet ?? '/wallet'
+
+    return `/wallet/${encodeURIComponent(options.walletAccountId)}`
   }
 
   const basePath = EXACT_TAB_PATHS[tab]

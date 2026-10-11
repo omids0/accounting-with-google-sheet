@@ -12,6 +12,7 @@ export type Tab =
   | 'receivables'
   | 'treasury'
   | 'wallet'
+  | 'wallet-account-detail'
   | 'bank-sms'
   | 'opening-balances'
   | 'net-available-settings'
@@ -117,6 +118,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   receivables: 'طلب‌ها',
   treasury: 'صندوقچه',
   wallet: 'کیف پول',
+  'wallet-account-detail': 'گردش حساب',
   'bank-sms': 'پیامک‌های بانکی',
   'opening-balances': 'موجودی اول دوره',
   'net-available-settings': 'دارایی قابل اتکا',

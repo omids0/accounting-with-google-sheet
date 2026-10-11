@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import type { WalletPageProps } from './types'
 import { useWalletData } from './useWalletData'
@@ -13,6 +14,7 @@ import WalletReconciliationAlert from './WalletReconciliationAlert'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
+import { getPathForTab } from '../../routes/paths'
 import { isConfigured } from '../../services/settings'
 import {
   exportWalletAccountsCsv,
@@ -39,6 +41,7 @@ import { listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function WalletPage({ active = true }: WalletPageProps) {
+  const navigate = useNavigate()
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const [openingExpanded, setOpeningExpanded] = useState(false)
@@ -163,6 +166,11 @@ export default function WalletPage({ active = true }: WalletPageProps) {
               balance={data.balances[account.id] ?? account.balance}
               saving={mutations.savingId === account.id}
               onToggleExpand={() => setExpandedId(expandedId === account.id ? null : account.id)}
+              onOpen={() =>
+                navigate(getPathForTab('wallet-account-detail', { walletAccountId: account.id }), {
+                  state: { title: account.title }
+                })
+              }
               onEdit={() => mutations.openEditForm(account)}
               onDelete={() => mutations.openDeleteConfirm(account)}
               onBalanceChange={val => data.setBalances(prev => ({ ...prev, [account.id]: val }))}
