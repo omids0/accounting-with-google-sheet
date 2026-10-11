@@ -1,3 +1,4 @@
+import AppSplash from './AppSplash'
 import { FilterChipsSkeleton, ReportToolbarSkeleton, StatCardSkeleton } from './CardSkeletons'
 import { InstallmentCardListSkeleton } from './ListSkeletons'
 import { Skeleton } from './Skeleton'
@@ -12,7 +13,6 @@ import {
   dashboardStatGridClass
 } from '../ui/chartStyles'
 import {
-  appLoadingClass,
   appLoadingDotClass,
   appLoadingDotDelayClasses,
   appLoadingDotsClass,
@@ -205,10 +205,10 @@ export function AppLoadingSkeleton({
 }: {
   variant?: 'fullscreen' | 'inline'
 }) {
-  const containerClass = variant === 'inline' ? appLoadingInlineClass : appLoadingClass
+  if (variant === 'fullscreen') return <AppSplash />
 
   return (
-    <div className={containerClass} aria-busy="true" aria-label="در حال بارگذاری">
+    <div className={appLoadingInlineClass} aria-busy="true" aria-label="در حال بارگذاری">
       <div className={appLoadingDotsClass} role="status" aria-live="polite">
         {appLoadingDotDelayClasses.map(delayClass => (
           <span key={delayClass} className={cn(appLoadingDotClass, delayClass)} />
