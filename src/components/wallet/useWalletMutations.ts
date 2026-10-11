@@ -19,6 +19,7 @@ import {
   updateWalletAccount,
   type WalletPeriodFlow
 } from '../../services/wallet'
+import { logBalanceSet } from '../../services/walletLedger'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { RECONCILIATION_CATEGORY } from '../../utils/protectedCategories'
 import { handleSheetError } from '../../utils/sheetError'
@@ -128,10 +129,19 @@ export function useWalletMutations({
           ...editingAccount,
           ...payload
         })
+        await logBalanceSet(
+          settings.spreadsheetId,
+          editingAccount.id,
+          editingAccount.balance,
+          payload.balance,
+          'اصلاح دستی'
+        )
         showSuccess('حساب ویرایش شد')
         await loadItems()
       } else {
         const account = await createWalletAccount(settings.spreadsheetId, payload)
+
+        await logBalanceSet(settings.spreadsheetId, account.id, 0, account.balance, 'موجودی اولیه')
 
         for (const { sampleRef, ...draft } of smsDrafts) {
           await createSmsTemplate(settings.spreadsheetId, { ...draft, accountId: account.id })
@@ -174,6 +184,8 @@ export function useWalletMutations({
         ...account,
         balance: nextBalance
       })
+
+      await logBalanceSet(spreadsheetId, account.id, account.balance, nextBalance, 'اصلاح دستی')
 
       setItems(prev =>
         prev

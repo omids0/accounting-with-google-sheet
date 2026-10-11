@@ -6,11 +6,13 @@ import {
   fetchLedger,
   ledgerEntry,
   ledgerRow,
+  logBalanceSet,
   rowToLedgerEntry,
   WALLET_LEDGER_HEADERS,
   WALLET_LEDGER_SHEET
 } from './walletLedger'
 
+vi.mock('../utils/toast', () => ({ showError: vi.fn() }))
 vi.mock('./sheetSync', () => ({
   enqueueSheetWrite: vi.fn(),
   queueOutboxWrite: vi.fn()
@@ -33,6 +35,30 @@ describe('ledger rows', () => {
 
     expect(ledgerRow(entry)[9]).toBe('خیر')
     expect(rowToLedgerEntry(ledgerRow(entry)).applied).toBe(false)
+  })
+})
+
+describe('logBalanceSet', () => {
+  beforeEach(() => {
+    clearStore(SPREADSHEET_ID)
+    setSheetAllRows(SPREADSHEET_ID, WALLET_LEDGER_SHEET, [WALLET_LEDGER_HEADERS])
+  })
+
+  it('logs a manual edit as the difference to the new balance', async () => {
+    await logBalanceSet(SPREADSHEET_ID, 'acc', 500, 650, 'اصلاح دستی')
+
+    expect((await fetchLedger(SPREADSHEET_ID, 'acc'))[0]).toMatchObject({
+      delta: 150,
+      balanceAfter: 650,
+      source: 'اصلاح دستی',
+      title: 'اصلاح دستی موجودی'
+    })
+  })
+
+  it('logs nothing when the balance did not change', async () => {
+    await logBalanceSet(SPREADSHEET_ID, 'acc', 0, 0, 'موجودی اولیه')
+
+    expect(await fetchLedger(SPREADSHEET_ID, 'acc')).toEqual([])
   })
 })
 

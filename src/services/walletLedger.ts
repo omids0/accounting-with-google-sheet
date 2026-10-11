@@ -1,4 +1,5 @@
 import { appendSheetRow, fetchSheetRows } from './sheets'
+import { getTodayIso } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
 import { showError } from '../utils/toast'
 
@@ -108,6 +109,30 @@ export async function logLedger(spreadsheetId: string, entries: LedgerEntry[]): 
   await appendLedgerEntries(spreadsheetId, entries).catch(() =>
     showError('موجودی به‌روز شد ولی گردش حساب ثبت نشد')
   )
+}
+
+const BALANCE_SET_TITLES = {
+  'اصلاح دستی': 'اصلاح دستی موجودی',
+  'موجودی اولیه': 'موجودی اولیه حساب'
+} as const
+
+/** A balance typed in by the user (edit, or a new account's starting balance). */
+export async function logBalanceSet(
+  spreadsheetId: string,
+  accountId: string,
+  before: number,
+  after: number,
+  source: keyof typeof BALANCE_SET_TITLES
+): Promise<void> {
+  if (after === before) return
+
+  await logLedger(spreadsheetId, [
+    ledgerEntry(accountId, after - before, after, {
+      title: BALANCE_SET_TITLES[source],
+      date: getTodayIso(),
+      source
+    })
+  ])
 }
 
 /** History of one account, newest first (rows are only ever appended). */
