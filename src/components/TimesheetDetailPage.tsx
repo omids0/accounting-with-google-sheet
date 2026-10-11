@@ -1,7 +1,7 @@
 import ActiveFilterChips from './ActiveFilterChips'
-import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
+import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
 import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
@@ -15,8 +15,6 @@ import { formatDurationFa, formatJiraTimesheetHours } from '../utils/datetime'
 import TimesheetEntryCard from './timesheets/TimesheetEntryCard'
 import TimesheetEntryFormModal from './timesheets/TimesheetEntryFormModal'
 import { useTimesheetDetailPage } from './timesheets/useTimesheetDetailPage'
-import Button from './ui/Button'
-import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 import { listCardsContainerClass } from './ui/featureCardStyles'
 import {
   timesheetDetailPageClass,
@@ -38,14 +36,7 @@ export default function TimesheetDetailPage({
   useRegisterPageSpeedDial(isConfigured() ? page.pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="clock" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <EmptyState icon="clock" message="ابتدا با گوگل وارد شوید" />
   }
 
   return (
@@ -113,15 +104,12 @@ export default function TimesheetDetailPage({
           </div>
 
           {page.items.length === 0 ? (
-            <div className={emptyStateClass}>
-              <div className={emptyStateIconClass}>
-                <AppIcon name="clock" />
-              </div>
-              <p>هنوز رکوردی ثبت نشده</p>
-              <Button type="button" variant="primary" size="sm" onClick={page.openCreateForm}>
-                افزودن رکورد
-              </Button>
-            </div>
+            <EmptyState
+              icon="clock"
+              description="هر رکورد یعنی چند ساعت کار روی این پروژه در یک روز."
+              message="هنوز رکوردی ثبت نشده"
+              action={{ label: 'افزودن رکورد', onClick: page.openCreateForm }}
+            />
           ) : page.filteredItems.length === 0 ? (
             <SearchEmptyState />
           ) : (

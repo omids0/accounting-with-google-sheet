@@ -10,10 +10,9 @@ import type {
   VehicleActiveListItem,
   VehicleTransactionItem
 } from '../../types/vehicles'
-import AppIcon from '../AppIcon'
+import EmptyState from '../EmptyState'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 
 type VehicleDetailTabContentProps = {
   detailTab: 'active' | 'deadlines' | 'history' | 'mileage' | 'transactions' | 'fuel'
@@ -60,12 +59,11 @@ export default function VehicleDetailTabContent({
   if (detailTab === 'transactions') {
     if (allTransactionsCount === 0) {
       return (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="settings" />
-          </div>
-          <p>تراکنش مرتبطی ثبت نشده</p>
-        </div>
+        <EmptyState
+          icon="car"
+          description="هزینه‌هایی که با این خودرو ثبت می‌کنی این‌جا جمع می‌شوند."
+          message="تراکنش مرتبطی ثبت نشده"
+        />
       )
     }
 
@@ -86,20 +84,18 @@ export default function VehicleDetailTabContent({
 
   if (sourceItems.length === 0) {
     return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="settings" />
-        </div>
-        <p>
-          {detailTab === 'deadlines'
+      <EmptyState
+        icon="car"
+        message={
+          detailTab === 'deadlines'
             ? 'موعدی ثبت نشده'
             : isActiveTab
             ? 'مورد فعالی ثبت نشده'
             : detailTab === 'mileage'
             ? 'کارکردی ثبت نشده'
-            : 'تاریخچه‌ای ثبت نشده'}
-        </p>
-      </div>
+            : 'تاریخچه‌ای ثبت نشده'
+        }
+      />
     )
   }
 

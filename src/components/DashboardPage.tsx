@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router'
 
-import AppIcon from './AppIcon'
+import EmptyState from './EmptyState'
 import { DashboardSkeleton } from './skeleton'
 import SpeedDialIcon from './SpeedDialIcon'
 import {
@@ -15,7 +15,6 @@ import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
 import DashboardContent from './dashboard/DashboardContent'
 import { useDashboardPage } from './dashboard/useDashboardPage'
-import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 
 export default function DashboardPage({ active = true }: { active?: boolean }) {
   const dashboard = useDashboardPage()
@@ -80,15 +79,7 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
   )
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="dashboard" />
-        </div>
-
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <EmptyState icon="dashboard" message="ابتدا با گوگل وارد شوید" />
   }
 
   if (dashboard.loading && !dashboard.data) {

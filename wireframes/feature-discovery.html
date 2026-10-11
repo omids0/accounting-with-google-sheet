@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — آشنایی با قابلیت‌ها</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+  </head>
+  <body>
+    <h1>وایرفریم: کارت «می‌دانستی؟» — کشف تدریجی قابلیت‌ها</h1>
+    <div class="wrap">
+      <!-- ===== phone ===== -->
+      <div class="phone">
+        <div class="app-header">
+          <span class="icon">☰</span>
+          <span>داشبورد</span>
+          <span class="icon">👤</span>
+        </div>
+
+        <div class="content">
+          <div class="card hero">
+            <h3>دارایی قابل اتکا</h3>
+            <div class="num">۲۹٬۷۷۰٬۰۰۰ تومان</div>
+            <small>داشبورد عادی — کاربر چند روزی است کار می‌کند</small>
+          </div>
+
+          <!-- discovery card -->
+          <div class="card disco-card" id="discoCard">
+            <span class="badge">۱</span>
+            <div class="disco-head">
+              <strong>💡 می‌دانستی؟</strong>
+              <span class="progress" id="discoCount">۱ از ۵</span>
+            </div>
+            <div class="disco-body" id="discoBody"></div>
+            <div class="disco-actions">
+              <button class="btn-sm" id="discoGo">برو ببین</button>
+              <button class="btn-skip" id="discoNext" style="width: auto; padding: 7px 12px">
+                بعدی
+              </button>
+              <button class="linkbtn" id="discoOff">دیگر نشان نده</button>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">درآمد دوره <b>۱۸٬۰۰۰٬۰۰۰</b></div>
+            <div class="stat">هزینه دوره <b>۷۳۰٬۰۰۰</b></div>
+            <div class="stat">خالص دوره <b>۱۷٬۲۷۰٬۰۰۰</b></div>
+            <div class="stat">مانده محاسبه‌شده <b>۲۹٬۷۷۰٬۰۰۰</b></div>
+          </div>
+
+          <div class="chart-ph">نمودارها</div>
+
+          <div class="card">
+            <h3>تراکنش‌های دوره</h3>
+            <div class="tx-row"><span>خرید سوپرمارکت · خواروبار</span><span>−۲۵۰٬۰۰۰</span></div>
+            <div class="tx-row"><span>حقوق مهر · درآمد ثابت</span><span>+۱۸٬۰۰۰٬۰۰۰</span></div>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <span><i></i>اقساط</span>
+          <span><i></i>بدهی</span>
+          <span><i></i>چک‌ها</span>
+          <span class="center"><i></i>داشبورد</span>
+          <span><i></i>طلب‌ها</span>
+          <span><i></i>صندوقچه</span>
+          <span><i></i>کیف پول</span>
+        </div>
+      </div>
+
+      <!-- ===== notes ===== -->
+      <div class="notes">
+        <div class="note">
+          <b class="n">۱</b><b>یک کارت، یک پیشنهاد</b> — نه carousel شلوغ. هر بازدید داشبورد حداکثر
+          یک پیشنهاد. «بعدی» دستی ورق می‌زند؛ «برو ببین» به خود صفحه فیچر می‌رود؛ «دیگر نشان نده» کل
+          کارت را دائمی می‌بندد (flag).
+        </div>
+        <div class="note">
+          <b>کی ظاهر می‌شود؟</b> فقط بعد از بسته‌شدن پرونده ویزارد (تمام یا رها) + حداقل چند روز
+          استفاده یا N تراکنش — تا با onboarding تداخل نکند. اولویت با کارت «ادامه راه‌اندازی» است؛
+          هر دو هم‌زمان نمایش داده نمی‌شوند.
+        </div>
+        <div class="note">
+          <b>حذف خودکار هوشمند</b> — پیشنهادی که فیچرش داده دارد از صف حذف می‌شود: خودرو تعریف شده ←
+          پیشنهاد «سرویس خودرو» نمی‌آید؛ چک ثبت شده ← پیشنهاد چک نمی‌آید. صف خالی شد ← کارت برای
+          همیشه می‌رود.
+        </div>
+        <div class="note">
+          <b>نسخه بعد (الان نه)</b> — پیشنهاد زمینه‌ای: دسته «خودرو» در هزینه‌ها دیده شد ← همان لحظه
+          پیشنهاد سرویس خودرو. فعلاً صف ثابت کافی است.
+        </div>
+        <div class="note">
+          <b>مکمل‌های passive</b> — hint زیر آیتم‌های منو + EmptyState هر صفحه با توضیح «این صفحه
+          برای چیست» (هر دو قبلاً تأیید شده). کارت «می‌دانستی؟» مسیر active است، آن دو passive.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const items = [
+        ['سرویس خودرو', 'موعد تعویض روغن، بیمه و معاینه فنی ماشینت را ثبت کن تا یادت نرود.'],
+        ['یادآوری شخصی', 'قبض، بیمه و موعدهای شخصی — سر وقت نوتیفیکیشن بگیر.'],
+        ['چک‌ها', 'چک‌های پرداختی و دریافتی را با تاریخ سررسید مدیریت کن.'],
+        ['محاسبه دنگ', 'هزینه مشترک سفر و مهمانی را بین افراد تقسیم کن.'],
+        ['تایم‌شیت', 'ساعت کاری پروژه‌هایت را ثبت کن و گزارش بگیر.']
+      ]
+      let i = 0
+      const fa = n => '۱۲۳۴۵'[n]
+      function render() {
+        document.getElementById('discoBody').innerHTML = '<b>' + items[i][0] + '</b>' + items[i][1]
+        document.getElementById('discoCount').textContent = fa(i) + ' از ۵'
+      }
+      document.getElementById('discoNext').onclick = () => {
+        i = (i + 1) % items.length
+        render()
+      }
+      document.getElementById('discoGo').onclick = () => alert('می‌رود به صفحه ' + items[i][0])
+      document.getElementById('discoOff').onclick = () =>
+        document.getElementById('discoCard').classList.add('hidden')
+      render()
+    </script>
+  </body>
+</html>

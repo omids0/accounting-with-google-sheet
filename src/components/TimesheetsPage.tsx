@@ -60,6 +60,7 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
       ) : page.items.length === 0 ? (
         <EmptyState
           icon="clock"
+          description="برای هر پروژه یا کارفرما یک تایم‌شیت بساز و ساعت‌های کارت را در آن ثبت کن."
           message="هنوز تایم‌شیتی ثبت نشده"
           action={{ label: 'افزودن تایم‌شیت', onClick: page.openCreateForm }}
         />

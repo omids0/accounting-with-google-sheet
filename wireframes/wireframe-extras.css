@@ -1,0 +1,110 @@
+/* resume mini-card (dashboard) */
+.resume-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid #666;
+  background: #f1f1f1;
+}
+.resume-card .rtext {
+  flex: 1;
+}
+.resume-card .rtext b {
+  font-size: 13px;
+  display: block;
+}
+.resume-card .rtext small {
+  color: #888;
+  font-size: 11px;
+}
+.btn-sm {
+  background: #555;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* discovery card */
+.disco-card {
+  border: 2px dashed #777;
+  background: #f6f6f6;
+}
+.disco-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.disco-head strong {
+  font-size: 13px;
+}
+.disco-body {
+  font-size: 13px;
+  line-height: 1.9;
+  color: #555;
+  min-height: 52px;
+}
+.disco-body b {
+  display: block;
+}
+.disco-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* state toggle tabs above phone */
+.state-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  width: 375px;
+}
+.state-tabs button {
+  flex: 1;
+  font: inherit;
+  font-size: 11px;
+  padding: 6px 4px;
+  border: 1px solid #888;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.state-tabs button.on {
+  background: #555;
+  color: #fff;
+  border-color: #555;
+}
+.tx-row {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px dashed #ddd;
+  padding: 8px 2px;
+  font-size: 12px;
+  color: #666;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* unified empty-state wireframe */
+.e-purpose {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.9;
+  max-width: 260px;
+  margin: 0 auto 6px;
+}
+.empty .e-msg {
+  color: #666;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}

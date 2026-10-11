@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — ویزارد راه‌اندازی اولیه (نسخه نهایی)</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+  </head>
+  <body>
+    <h1>وایرفریم: ویزارد راه‌اندازی — تصمیم‌های نهایی اعمال شده</h1>
+    <div class="wrap">
+      <!-- ===== phone ===== -->
+      <div class="phone">
+        <div class="app-header">
+          <span></span>
+          <span>راه‌اندازی اولیه</span>
+          <span class="icon">👤</span>
+        </div>
+
+        <div class="seg-bar" id="segBar">
+          <div class="seg"></div>
+          <div class="seg"></div>
+          <div class="seg"></div>
+          <div class="seg"></div>
+        </div>
+        <div class="wiz-count" id="wizCount">مرحله ۱ از ۴</div>
+
+        <!-- step 1: wallet account -->
+        <div class="wiz-body wiz-step" data-i="0">
+          <div>
+            <div class="wiz-title">حساب کیف پول بساز</div>
+            <div class="wiz-sub">
+              بانک‌ها، کارت‌ها و پول نقدت را تعریف کن. موجودی فعلی هر حساب را همین‌جا می‌نویسی —
+              همین می‌شود موجودی اولیه‌ات.
+            </div>
+          </div>
+          <div class="f-row">
+            <label>نام حساب</label>
+            <div class="f-input">مثلاً: بانک ملت</div>
+          </div>
+          <div class="f-row">
+            <label>نوع</label>
+            <div class="f-select">
+              <span class="on">بانک</span><span>کارت</span><span>نقد</span>
+            </div>
+          </div>
+          <div class="f-row">
+            <label>موجودی فعلی</label>
+            <div class="f-input">مبلغ (تومان)</div>
+          </div>
+          <div class="added-list demo-submit">
+            + افزودن حساب — لیست حساب‌های ساخته‌شده همین‌جا (دمو: کلیک = ثبت)
+          </div>
+        </div>
+
+        <!-- step 2: more accounts -->
+        <div class="wiz-body wiz-step hidden" data-i="1">
+          <div>
+            <div class="wiz-title">بقیه حساب‌هایت را هم اضافه کن</div>
+            <div class="wiz-sub">
+              هرچه کامل‌تر، «دارایی قابل اتکا» دقیق‌تر. نقد، کارت هدیه، حساب دوم…
+            </div>
+          </div>
+          <div class="added-list">✓ بانک ملت — ۱۲٬۵۰۰٬۰۰۰</div>
+          <div class="added-list demo-submit">+ افزودن حساب دیگر (دمو: کلیک = ثبت)</div>
+        </div>
+
+        <!-- step 3: first transaction -->
+        <div class="wiz-body wiz-step hidden" data-i="2">
+          <div>
+            <div class="wiz-title">اولین تراکنش را ثبت کن</div>
+            <div class="wiz-sub">
+              همان فرم ثبت اصلی اپ (DataEntryPage)، embed شده در همین مرحله.
+            </div>
+          </div>
+          <div class="f-row">
+            <div class="f-select"><span class="on">هزینه</span><span>درآمد</span></div>
+          </div>
+          <div class="f-row">
+            <label>مبلغ</label>
+            <div class="f-input">مثلاً: ۲۵۰٬۰۰۰</div>
+          </div>
+          <div class="f-row">
+            <label>دسته‌بندی</label>
+            <div class="f-input">انتخاب دسته…</div>
+          </div>
+          <div class="added-list demo-submit">ثبت تراکنش (دمو: کلیک = ثبت)</div>
+        </div>
+
+        <!-- step 4: bank sms (android only) -->
+        <div class="wiz-body wiz-step hidden" data-i="3">
+          <div>
+            <div class="wiz-title">پیامک بانکی</div>
+            <div class="wiz-sub">
+              تراکنش‌ها از پیامک بانک خودکار پیشنهاد می‌شوند. دیالوگ مجوز اندروید همین‌جا باز
+              می‌شود. روی وب این مرحله کلاً حذف است (ویزارد ۳ مرحله‌ای).
+            </div>
+          </div>
+          <div class="added-list demo-submit">🔔 دادن مجوز پیامک (دمو: کلیک = مجوز داده شد)</div>
+        </div>
+
+        <!-- success -->
+        <div class="success hidden" id="successView">
+          <div class="bigtick">✓</div>
+          <div class="wiz-title">آماده‌ای!</div>
+          <div class="sum-row"><span>حساب کیف پول</span><span class="st" data-i="0"></span></div>
+          <div class="sum-row"><span>حساب‌های بیشتر</span><span class="st" data-i="1"></span></div>
+          <div class="sum-row"><span>اولین تراکنش</span><span class="st" data-i="2"></span></div>
+          <div class="sum-row"><span>پیامک بانکی</span><span class="st" data-i="3"></span></div>
+          <div class="wiz-sub">مراحل ردشده را بعداً از کارت کوچک داشبورد تکمیل کن.</div>
+        </div>
+
+        <div class="wiz-actions" id="wizActions">
+          <button class="btn-primary" id="btnNext" disabled>ادامه</button>
+          <button class="btn-skip" id="btnSkip">رد شدن از این مرحله</button>
+          <div class="wiz-exit">
+            <button class="linkbtn" id="btnExit">بعداً تکمیل می‌کنم — برو به داشبورد</button>
+          </div>
+        </div>
+        <div class="wiz-actions hidden" id="doneActions">
+          <button class="btn-primary" id="btnFinish">ورود به داشبورد</button>
+        </div>
+      </div>
+
+      <!-- ===== notes ===== -->
+      <div class="notes">
+        <div class="note">
+          <b>تصمیم‌های قفل‌شده</b><br />
+          • شرط نمایش: <b>شیت بدون داده</b> — نه حسابی، نه رکوردی (شیت تازه یا موجودِ خالی).<br />
+          • «ادامه» <b>غیرفعال</b> تا حداقل یک ثبت در آن مرحله. «رد شدن» همیشه فعال.<br />
+          • پیامک بانکی: داخل ویزارد، مرحله ۴، فقط اندروید.<br />
+          • رد شدن مرحله ۱ = رد خودکار مرحله ۲.
+        </div>
+        <div class="note">
+          <b>تغییر ساختاری بعد از بررسی کد</b> — «موجودی اول دوره» صفحه جدا برای این کار نیست؛
+          موجودی اولیه همان فیلد «موجودی فعلی» فرمِ ساخت حساب است (<code>WalletFormModal</code> خودش
+          «موجودی اولیه» را ثبت می‌کند). پس مرحله ۲ شد «بقیه حساب‌ها» به‌جای صفحه موجودی اول دوره —
+          ساده‌تر برای کاربر، بدون صفحه اضافه.
+        </div>
+        <div class="note">
+          <b>خروج</b> — «بعداً تکمیل می‌کنم» ← داشبورد + کارت کوچک «ادامه راه‌اندازی (x از ۴
+          مانده)». وایرفریم آن حالت: <a href="dashboard-new-user.html">dashboard-new-user.html</a>
+        </div>
+        <div class="note">
+          <i>دمو: روی کادر خط‌چین هر مرحله کلیک کن = ثبت نمونه، «ادامه» روشن می‌شود.</i>
+        </div>
+        <div class="controls"><button id="reset">دمو: از اول</button></div>
+      </div>
+    </div>
+
+    <script>
+      const segs = [...document.querySelectorAll('.seg')]
+      const stepsEls = [...document.querySelectorAll('.wiz-step')]
+      const count = document.getElementById('wizCount')
+      const btnNext = document.getElementById('btnNext')
+      const status = [null, null, null, null]
+      const hasData = [false, false, false, false]
+      let cur = 0
+      const fa = ['۱', '۲', '۳', '۴']
+
+      function render() {
+        segs.forEach((s, i) => {
+          s.className =
+            'seg' +
+            (status[i] === 'done'
+              ? ' done'
+              : status[i] === 'skip'
+              ? ' skipped'
+              : i === cur
+              ? ' current'
+              : '')
+        })
+        stepsEls.forEach(el => el.classList.toggle('hidden', +el.dataset.i !== cur))
+        const finished = cur >= 4
+        document.getElementById('successView').classList.toggle('hidden', !finished)
+        document.getElementById('wizActions').classList.toggle('hidden', finished)
+        document.getElementById('doneActions').classList.toggle('hidden', !finished)
+        count.textContent = finished ? 'تمام شد' : 'مرحله ' + fa[cur] + ' از ۴'
+        if (!finished) btnNext.disabled = !hasData[cur]
+        if (finished)
+          document.querySelectorAll('.st').forEach(el => {
+            const st = status[+el.dataset.i]
+            el.textContent = st === 'done' ? '✓ انجام شد' : '— رد شد'
+            el.className = 'st ' + (st === 'done' ? 'st-done' : 'st-skip')
+          })
+      }
+      function advance(st) {
+        status[cur] = st
+        cur += 1
+        // skipping step 1 (accounts) auto-skips step 2 (more accounts)
+        if (cur === 1 && status[0] === 'skip') {
+          status[1] = 'skip'
+          cur = 2
+        }
+        render()
+      }
+      document.querySelectorAll('.demo-submit').forEach(el =>
+        el.addEventListener('click', () => {
+          hasData[cur] = true
+          render()
+        })
+      )
+      btnNext.onclick = () => advance('done')
+      document.getElementById('btnSkip').onclick = () => advance('skip')
+      document.getElementById('btnExit').onclick = () =>
+        alert(
+          'می‌رود داشبورد + کارت کوچک «ادامه راه‌اندازی» می‌ماند — ببین dashboard-new-user.html'
+        )
+      document.getElementById('btnFinish').onclick = () => alert('ورود به داشبورد')
+      document.getElementById('reset').onclick = () => {
+        status.fill(null)
+        hasData.fill(false)
+        cur = 0
+        render()
+      }
+      render()
+    </script>
+  </body>
+</html>

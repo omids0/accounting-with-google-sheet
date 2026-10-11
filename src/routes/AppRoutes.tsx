@@ -38,6 +38,7 @@ import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
 import WalletAccountDetailRoute from './WalletAccountDetailRoute'
 import Layout from '../components/Layout'
+import OnboardingGate from '../components/onboarding/OnboardingGate'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 import { readBankSmsEntryDraft } from '../services/bankSmsEntry'
 import { readEntryDraft } from '../services/entryDraft'
@@ -80,50 +81,52 @@ function ModuleReportRoute({ kind }: { kind: ModuleReportKind }) {
 
 export function AppAuthenticatedRoutes() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route index element={<LazyDashboardPage />} />
-        <Route path="installments" element={<LazyInstallmentsPage />} />
-        <Route path="dang" element={<LazyDangPage />} />
-        <Route path="checks" element={<LazyChecksPage />} />
-        <Route path="reminders" element={<LazyPersonalRemindersPage />} />
-        <Route path="counterparties" element={<LazyCounterpartiesPage />} />
-        <Route path="receivables" element={<LazyReceivablesPage />} />
-        <Route path="treasury" element={<LazyTreasuryPage />} />
-        <Route path="wallet" element={<LazyWalletPage />} />
-        <Route path="bank-sms" element={<LazyBankSmsPage />} />
-        <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
-        <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
-        <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />
-        <Route path="entry" element={<EntryRoute />} />
-        <Route path="records" element={<RecordsRoute />} />
-        <Route path="calculators/loan" element={<LazyLoanRequestCalculatorPage />} />
-        <Route path="calculators/currency" element={<LazyCurrencyConverterPage />} />
-        <Route path="calculators/date" element={<LazyDateCalculatorPage />} />
-        <Route path="about" element={<LazyAboutPage />} />
-        <Route path="settings/reminders" element={<LazyRemindersPage />} />
-        <Route path="settings" element={<LazySettingsPage />} />
-        <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
-        <Route path="reports/income-expense" element={<LazyIncomeExpenseReportPage />} />
-        <Route path="reports/category-tree" element={<LazyCategoryTreeReportPage />} />
-        <Route path="reports/cash-flow" element={<LazyCashFlowReportPage />} />
-        <Route path="reports/due-dates" element={<LazyDueDatesReportPage />} />
-        <Route path="reports/assets-liabilities" element={<LazyAssetsLiabilitiesReportPage />} />
-        <Route path="reports/opening-balances" element={<LazyOpeningBalanceReportPage />} />
-        <Route path="reports/wallet" element={<ModuleReportRoute kind="wallet" />} />
-        <Route path="reports/treasury" element={<ModuleReportRoute kind="treasury" />} />
-        <Route path="reports/receivables" element={<ModuleReportRoute kind="receivables" />} />
-        <Route path="reports/dang" element={<ModuleReportRoute kind="dang" />} />
-        <Route path="reports/installments" element={<ModuleReportRoute kind="installments" />} />
-        <Route path="reports/checks" element={<ModuleReportRoute kind="checks" />} />
-        <Route path="timesheets" element={<LazyTimesheetsPage />} />
-        <Route path="timesheets/:timesheetId" element={<TimesheetDetailRoute />} />
-        <Route path="vehicles" element={<LazyVehiclesPage />} />
-        <Route path="vehicles/:vehicleId" element={<VehicleDetailRoute />} />
-        <Route path="dang-split" element={<LazyDangSplitPage />} />
-        <Route path="dang-split/:groupId" element={<DangSplitDetailRoute />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
+    <OnboardingGate>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route index element={<LazyDashboardPage />} />
+          <Route path="installments" element={<LazyInstallmentsPage />} />
+          <Route path="dang" element={<LazyDangPage />} />
+          <Route path="checks" element={<LazyChecksPage />} />
+          <Route path="reminders" element={<LazyPersonalRemindersPage />} />
+          <Route path="counterparties" element={<LazyCounterpartiesPage />} />
+          <Route path="receivables" element={<LazyReceivablesPage />} />
+          <Route path="treasury" element={<LazyTreasuryPage />} />
+          <Route path="wallet" element={<LazyWalletPage />} />
+          <Route path="bank-sms" element={<LazyBankSmsPage />} />
+          <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
+          <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
+          <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />
+          <Route path="entry" element={<EntryRoute />} />
+          <Route path="records" element={<RecordsRoute />} />
+          <Route path="calculators/loan" element={<LazyLoanRequestCalculatorPage />} />
+          <Route path="calculators/currency" element={<LazyCurrencyConverterPage />} />
+          <Route path="calculators/date" element={<LazyDateCalculatorPage />} />
+          <Route path="about" element={<LazyAboutPage />} />
+          <Route path="settings/reminders" element={<LazyRemindersPage />} />
+          <Route path="settings" element={<LazySettingsPage />} />
+          <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
+          <Route path="reports/income-expense" element={<LazyIncomeExpenseReportPage />} />
+          <Route path="reports/category-tree" element={<LazyCategoryTreeReportPage />} />
+          <Route path="reports/cash-flow" element={<LazyCashFlowReportPage />} />
+          <Route path="reports/due-dates" element={<LazyDueDatesReportPage />} />
+          <Route path="reports/assets-liabilities" element={<LazyAssetsLiabilitiesReportPage />} />
+          <Route path="reports/opening-balances" element={<LazyOpeningBalanceReportPage />} />
+          <Route path="reports/wallet" element={<ModuleReportRoute kind="wallet" />} />
+          <Route path="reports/treasury" element={<ModuleReportRoute kind="treasury" />} />
+          <Route path="reports/receivables" element={<ModuleReportRoute kind="receivables" />} />
+          <Route path="reports/dang" element={<ModuleReportRoute kind="dang" />} />
+          <Route path="reports/installments" element={<ModuleReportRoute kind="installments" />} />
+          <Route path="reports/checks" element={<ModuleReportRoute kind="checks" />} />
+          <Route path="timesheets" element={<LazyTimesheetsPage />} />
+          <Route path="timesheets/:timesheetId" element={<TimesheetDetailRoute />} />
+          <Route path="vehicles" element={<LazyVehiclesPage />} />
+          <Route path="vehicles/:vehicleId" element={<VehicleDetailRoute />} />
+          <Route path="dang-split" element={<LazyDangSplitPage />} />
+          <Route path="dang-split/:groupId" element={<DangSplitDetailRoute />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </OnboardingGate>
   )
 }

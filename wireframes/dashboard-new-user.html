@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — داشبورد بعد از ویزارد (۳ حالت)</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+  </head>
+  <body>
+    <h1>وایرفریم: داشبورد بعد از ویزارد — سه حالت ممکن</h1>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs">
+          <button class="on" data-s="exit">خروج وسط ویزارد</button>
+          <button data-s="skipped">تراکنش ردشده</button>
+          <button data-s="normal">روال عادی</button>
+        </div>
+
+        <!-- ===== phone ===== -->
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span>
+            <span>داشبورد</span>
+            <span class="icon">👤</span>
+          </div>
+
+          <div class="content">
+            <!-- resume mini-card: only state 'exit' -->
+            <div class="card resume-card" id="resumeCard">
+              <span class="badge">۱</span>
+              <div class="rtext">
+                <b>ادامه راه‌اندازی</b>
+                <small>۲ از ۴ مرحله مانده — حساب‌ها ساختی، تراکنش و پیامک مانده</small>
+              </div>
+              <button class="btn-sm">ادامه</button>
+            </div>
+
+            <!-- hero -->
+            <div class="card hero">
+              <h3>دارایی قابل اتکا</h3>
+              <div class="num" id="heroNum">۱۲٬۵۰۰٬۰۰۰ تومان</div>
+              <small>مجموع دارایی‌های انتخاب‌شده منهای بدهی‌های انتخاب‌شده</small>
+            </div>
+
+            <div class="stats">
+              <div class="stat">درآمد دوره <b class="statNum">۰</b></div>
+              <div class="stat">هزینه دوره <b class="statNum">۰</b></div>
+              <div class="stat">خالص دوره <b class="statNum">۰</b></div>
+              <div class="stat">مانده محاسبه‌شده <b class="statNum">۰</b></div>
+            </div>
+
+            <div class="chart-ph">نمودارها</div>
+
+            <!-- transactions card -->
+            <div class="card">
+              <span class="badge b2">۲</span>
+              <h3>تراکنش‌های دوره</h3>
+
+              <!-- empty + CTA: states 'exit' and 'skipped' -->
+              <div class="empty" id="txEmpty">
+                <div class="eicon">⊘</div>
+                <p>هنوز تراکنشی در این دوره ثبت نشده</p>
+                <button class="btn-primary" id="firstEntry">+ ثبت اولین تراکنش</button>
+              </div>
+
+              <!-- list: state 'normal' -->
+              <div id="txList" class="hidden">
+                <div class="tx-row">
+                  <span>خرید سوپرمارکت · خواروبار</span><span>−۲۵۰٬۰۰۰</span>
+                </div>
+                <div class="tx-row"><span>حقوق مهر · درآمد ثابت</span><span>+۱۸٬۰۰۰٬۰۰۰</span></div>
+                <div class="tx-row"><span>قبض برق · قبوض</span><span>−۴۸۰٬۰۰۰</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span>
+            <span><i></i>بدهی</span>
+            <span><i></i>چک‌ها</span>
+            <span class="center"><i></i>داشبورد</span>
+            <span><i></i>طلب‌ها</span>
+            <span><i></i>صندوقچه</span>
+            <span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== notes ===== -->
+      <div class="notes">
+        <div class="note">
+          <b class="n">۱</b><b>کارت «ادامه راه‌اندازی»</b> — فقط وقتی کاربر وسط ویزارد زده «بعداً
+          تکمیل می‌کنم». جمع‌وجور، یک خط وضعیت + دکمه «ادامه» که ویزارد را از همان مرحله باز می‌کند.
+          همه مراحل که انجام/رد شد، دیگر نمی‌آید. (کارت بزرگ چک‌لیستِ طرح اول حذف شد — جایش را
+          ویزارد گرفت.)
+        </div>
+        <div class="note">
+          <b class="n">۲</b><b>EmptyState تراکنش‌ها</b> — فقط وقتی رکوردی در دوره نیست (تراکنش در
+          ویزارد رد شده، یا دوره جدید خالی). دکمه ← فرم ثبت. تراکنش که ثبت شد، لیست عادی (حالت سوم).
+        </div>
+        <div class="note">
+          <b>سه حالت بالا</b><br />
+          • <b>خروج وسط ویزارد</b>: کارت ادامه + EmptyState.<br />
+          • <b>تراکنش ردشده</b>: ویزارد تمام، فقط EmptyState.<br />
+          • <b>روال عادی</b>: هیچ عنصر onboarding — داشبورد معمولی.
+        </div>
+        <div class="note">
+          <i>دمو: تب‌های بالای قاب را عوض کن.</i>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const views = {
+        exit: { resume: true, empty: true, nums: false },
+        skipped: { resume: false, empty: true, nums: false },
+        normal: { resume: false, empty: false, nums: true }
+      }
+      const tabs = [...document.querySelectorAll('.state-tabs button')]
+      function setState(s) {
+        const v = views[s]
+        document.getElementById('resumeCard').classList.toggle('hidden', !v.resume)
+        document.getElementById('txEmpty').classList.toggle('hidden', !v.empty)
+        document.getElementById('txList').classList.toggle('hidden', v.empty)
+        document.querySelectorAll('.statNum').forEach((el, i) => {
+          el.textContent = v.nums ? ['۱۸٬۰۰۰٬۰۰۰', '۷۳۰٬۰۰۰', '۱۷٬۲۷۰٬۰۰۰', '۲۹٬۷۷۰٬۰۰۰'][i] : '۰'
+        })
+        tabs.forEach(t => t.classList.toggle('on', t.dataset.s === s))
+      }
+      tabs.forEach(t => (t.onclick = () => setState(t.dataset.s)))
+      document.getElementById('firstEntry').onclick = () => alert('می‌رود به فرم ثبت (entry)')
+      setState('exit')
+    </script>
+  </body>
+</html>

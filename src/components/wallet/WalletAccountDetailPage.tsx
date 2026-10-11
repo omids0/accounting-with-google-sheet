@@ -13,7 +13,12 @@ import { recordsListCountClass, recordsListHeaderClass } from '../ui/recordsStyl
 /** One account's balance history («گردش حساب»), opened by tapping its wallet card. */
 export default function WalletAccountDetailPage({ account }: { account: WalletAccountWithRow }) {
   const { entries, loading, reload } = useWalletLedger(account.id)
-  const exportConfirm = useWalletLedgerSpeedDial({ account, entries, loading, reload })
+  const { confirmModal, openEntry } = useWalletLedgerSpeedDial({
+    account,
+    entries,
+    loading,
+    reload
+  })
 
   return (
     <div className={listModulePageClass}>
@@ -22,7 +27,12 @@ export default function WalletAccountDetailPage({ account }: { account: WalletAc
       {loading && entries.length === 0 ? (
         <RecordListSkeleton />
       ) : entries.length === 0 ? (
-        <EmptyState icon="wallet" message="هنوز گردشی ثبت نشده" />
+        <EmptyState
+          icon="wallet"
+          description="هر تغییر موجودی این حساب، از ثبت هزینه و درآمد تا اصلاح دستی، این‌جا ثبت می‌شود."
+          message="هنوز گردشی ثبت نشده"
+          action={{ label: 'ثبت هزینه', onClick: () => openEntry('expense') }}
+        />
       ) : (
         <Card className="records-list-card">
           <div className={recordsListHeaderClass}>
@@ -35,7 +45,7 @@ export default function WalletAccountDetailPage({ account }: { account: WalletAc
         </Card>
       )}
 
-      <ConfirmActionModal {...exportConfirm} />
+      <ConfirmActionModal {...confirmModal} />
     </div>
   )
 }

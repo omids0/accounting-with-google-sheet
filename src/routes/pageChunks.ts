@@ -33,6 +33,9 @@ export const loadLoanRequestCalculatorPage: PageLoader = () =>
 export const loadNetAvailableSettingsPage: PageLoader = () =>
   import('../components/NetAvailableSettingsPage')
 
+export const loadOnboardingWizard: PageLoader = () =>
+  import('../components/onboarding/OnboardingWizard')
+
 export const loadOpeningBalancePage: PageLoader = () => import('../components/OpeningBalancePage')
 
 export const loadReceivablesPage: PageLoader = () => import('../components/ReceivablesPage')

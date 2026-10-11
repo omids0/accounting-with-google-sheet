@@ -58,6 +58,7 @@ export default function CheckList({
     return (
       <EmptyState
         icon="checks"
+        description="چک‌های پرداختی و دریافتی‌ات را با تاریخ سررسید این‌جا مدیریت کن تا هیچ چکی از قلم نیفتد."
         message="هنوز چکی ثبت نشده"
         action={onAdd ? { label: 'افزودن چک', onClick: onAdd } : undefined}
       />

@@ -151,6 +151,7 @@ export default function WalletPage({ active = true }: WalletPageProps) {
       ) : data.items.length === 0 ? (
         <EmptyState
           icon="wallet"
+          description="بانک‌ها، کارت‌ها و پول نقدت را این‌جا تعریف کن تا موجودی واقعی‌ات همیشه جلوی چشمت باشد."
           message="هنوز حسابی ثبت نشده"
           action={{ label: 'افزودن حساب', onClick: () => mutations.openCreateForm() }}
         />

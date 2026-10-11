@@ -7,7 +7,9 @@ import { getSession } from './auth'
 import { setBankSmsCaptureEnabled } from './bankSmsNative'
 import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
 import { invalidateDashboardCache } from './dashboardCache'
+import { DISCOVERY_STORAGE_KEY } from './featureDiscovery'
 import { isNativePlatform, signOutNative } from './googleAuthNative'
+import { ONBOARDING_STORAGE_KEY } from './onboarding'
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
 import { stopSheetSync } from './sheetSyncLifecycle'
 import { clearSpreadsheetPrepareSession } from './spreadsheetSetup'
@@ -34,7 +36,9 @@ const ACCOUNT_KEYS = [
   'accounting_start_date',
   'accounting_activity',
   'accounting_sheets_ready',
-  BANK_SMS_PREFS_KEY
+  BANK_SMS_PREFS_KEY,
+  ONBOARDING_STORAGE_KEY,
+  DISCOVERY_STORAGE_KEY
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

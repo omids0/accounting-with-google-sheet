@@ -1,12 +1,12 @@
 import AppIcon from '../AppIcon'
+import MenuItemLabel from './MenuItemLabel'
 import { PRIMARY_NAV_ICONS } from './navIcons'
 import TabNavLink from './TabNavLink'
-import { PRIMARY_NAV_TABS, TAB_TITLES, type Tab } from './types'
+import { PRIMARY_NAV_TABS, type Tab } from './types'
 import {
   appMenuDividerClass,
   appMenuItemClass,
   appMenuItemIconClass,
-  appMenuItemLabelClass,
   appSidebarNavClass
 } from '../ui/layoutStyles'
 
@@ -43,7 +43,7 @@ export default function LayoutSidebarNav({
                 strokeWidth={1.75}
               />
             </span>
-            <span className={appMenuItemLabelClass}>{TAB_TITLES[navTab]}</span>
+            <MenuItemLabel tab={navTab} />
           </TabNavLink>
         )
       })}

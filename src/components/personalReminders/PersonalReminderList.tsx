@@ -35,6 +35,7 @@ export default function PersonalReminderList({
     return (
       <EmptyState
         icon="bell"
+        description="قبض، بیمه و موعدهای شخصی را ثبت کن تا سر وقت اعلان بگیری."
         message="هنوز یادآوری ثبت نشده"
         action={onAdd ? { label: 'افزودن یادآوری', onClick: onAdd } : undefined}
       />
