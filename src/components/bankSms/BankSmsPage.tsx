@@ -11,8 +11,9 @@ import { useBankSmsReview } from './useBankSmsReview'
 import { getPathForTab } from '../../routes/paths'
 import { buildBankSmsEntryState } from '../../services/bankSmsEntry'
 import { isBankSmsAvailable } from '../../services/bankSmsNative'
-import { getBankSmsPrefs, updateBankSmsPrefs } from '../../services/bankSmsPrefs'
+import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { smsRangeStart } from '../../services/bankSmsRange'
+import { applyBankSmsViewDays } from '../../services/bankSmsViewRange'
 import { isConfigured } from '../../services/settings'
 import EmptyState from '../EmptyState'
 import { smsPageClass } from '../ui/bankSmsStyles'
@@ -45,7 +46,7 @@ function BankSmsReview() {
           days={days}
           onChange={next => {
             setDays(next)
-            updateBankSmsPrefs({ viewDays: next })
+            void applyBankSmsViewDays(next)
           }}
         />
       )}

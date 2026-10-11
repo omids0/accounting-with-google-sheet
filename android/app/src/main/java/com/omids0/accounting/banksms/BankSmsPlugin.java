@@ -39,10 +39,25 @@ public class BankSmsPlugin extends Plugin {
 
         BankSmsStore.setEnabled(getContext(), enabled);
 
-        if (!enabled) {
+        if (enabled) {
+            BankSmsDailyCheck.schedule(getContext());
+        } else {
             BankSmsStore.clearPending(getContext());
             BankSmsNotifier.cancel(getContext());
+            BankSmsDailyCheck.cancel(getContext());
         }
+
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void setViewDays(PluginCall call) {
+        Integer days = call.getInt("days", 7);
+
+        BankSmsStore.setViewDays(getContext(), days == null ? 7 : days);
+
+        // A narrower range can leave the shown count pointing at nothing listed.
+        if (BankSmsStore.pendingInRangeCount(getContext()) == 0) BankSmsNotifier.cancel(getContext());
 
         call.resolve();
     }
@@ -70,7 +85,7 @@ public class BankSmsPlugin extends Plugin {
 
         BankSmsStore.markHandled(getContext(), list);
 
-        if (BankSmsStore.pendingCount(getContext()) == 0) BankSmsNotifier.cancel(getContext());
+        if (BankSmsStore.pendingInRangeCount(getContext()) == 0) BankSmsNotifier.cancel(getContext());
 
         call.resolve();
     }

@@ -25,6 +25,8 @@ interface BankSmsPlugin {
   listInbox(options: { limit: number }): Promise<{ items: BankSmsItem[] }>
   clear(): Promise<void>
   setEnabled(options: { enabled: boolean }): Promise<void>
+  /** Review page range in days; native notifications only count SMS inside it. */
+  setViewDays(options: { days: number }): Promise<void>
 }
 
 const BankSms = registerPlugin<BankSmsPlugin>('BankSms')
@@ -70,6 +72,12 @@ export async function listBankSmsInbox(limit = 30): Promise<BankSmsItem[]> {
   if (!isBankSmsAvailable()) return []
 
   return (await BankSms.listInbox({ limit })).items
+}
+
+export async function setBankSmsNativeViewDays(days: number): Promise<void> {
+  if (!isBankSmsAvailable()) return
+
+  await BankSms.setViewDays({ days: Math.max(1, Math.floor(days)) })
 }
 
 /** Turning it off also clears the native queue and silences the receiver. */
