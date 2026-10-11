@@ -12,6 +12,7 @@ import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function useDangSplitGroups() {
   const [items, setItems] = useState<DangSplitGroupListItem[]>([])
@@ -85,7 +86,7 @@ export function useDangSplitGroups() {
       setDeletingItem(null)
       showSuccess('گروه دنگ حذف شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'حذف ناموفق بود')
+      showError(toUserMessage(err, 'حذف ناموفق بود'))
     } finally {
       setDeleting(false)
     }

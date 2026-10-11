@@ -16,6 +16,7 @@ import { requireAuth } from '../../utils/authGuard'
 import { matchSearch } from '../../utils/search'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function useTreasuryData(active: boolean, searchQuery: string) {
   const [transactions, setTransactions] = useState<TransactionWithRow[]>([])
@@ -43,7 +44,7 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
 
       setPrices(data)
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در دریافت قیمت‌ها')
+      showError(toUserMessage(err, 'خطا در دریافت قیمت‌ها'))
     } finally {
       setPriceLoading(false)
     }

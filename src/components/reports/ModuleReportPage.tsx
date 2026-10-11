@@ -14,6 +14,7 @@ import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { distributionSparkline } from '../../utils/sparklineData'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import { InstallmentCardListSkeleton } from '../skeleton'
@@ -78,7 +79,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
       await config.exportPdf(spreadsheetId)
       showSuccess('فایل PDF ایجاد شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در خروجی PDF')
+      showError(toUserMessage(err, 'خطا در خروجی PDF'))
     } finally {
       setExporting(false)
       setShowExportConfirm(false)

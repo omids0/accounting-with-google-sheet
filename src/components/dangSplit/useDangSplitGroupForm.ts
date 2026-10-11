@@ -8,6 +8,7 @@ import {
 } from '../../services/dangSplit'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function useDangSplitGroupForm({ onSaved }: { onSaved: () => Promise<void> | void }) {
   const [showForm, setShowForm] = useState(false)
@@ -64,7 +65,7 @@ export function useDangSplitGroupForm({ onSaved }: { onSaved: () => Promise<void
       setEditingItem(null)
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
+      showError(toUserMessage(err, 'ذخیره ناموفق بود'))
     } finally {
       setSaving(false)
     }

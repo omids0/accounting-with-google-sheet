@@ -28,6 +28,7 @@ import { hasStoreData, hydrateStore } from './services/spreadsheetStore'
 import { refreshAccessTokenSilently } from './services/tokenRefresh'
 import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
+import { toUserMessage } from './utils/userMessage'
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -184,7 +185,7 @@ export default function App() {
         }
       } catch (err) {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت'
+          const message = toUserMessage(err, 'خطا در اتصال به گوگل شیت')
 
           if (isAuthError(err)) {
             setLoggedIn(false)

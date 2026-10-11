@@ -39,6 +39,7 @@ import {
 import type { SpreadsheetEntry } from '../types'
 import { cn } from '../utils/cn'
 import { showError } from '../utils/toast'
+import { toUserMessage } from '../utils/userMessage'
 
 type Step = 'login' | 'setup'
 
@@ -141,7 +142,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           tokenResponse.scope
         )
       } catch (err) {
-        showError(err instanceof Error ? err.message : 'خطا در ورود')
+        showError(toUserMessage(err, 'خطا در ورود'))
       } finally {
         setLoading(false)
       }
@@ -161,7 +162,7 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
     } catch (err) {
       const code = (err as { code?: string })?.code
 
-      const message = err instanceof Error ? err.message : 'ورود لغو شد یا با خطا مواجه شد'
+      const message = toUserMessage(err, 'ورود لغو شد یا با خطا مواجه شد')
 
       showError(code ? `${message} (کد ${code})` : message)
     } finally {

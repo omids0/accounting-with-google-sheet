@@ -5,6 +5,7 @@ import { setDangSplitPersonPaid } from '../../services/dangSplitPeople'
 import type { DangSplitGroupSummary, DangSplitPersonSummary } from '../../types/dangSplit'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 /**
  * تسویه نقدی هر فرد در تب جمع‌بندی. بدهکار پول می‌دهد (عدد مثبت) و طلبکار پول
@@ -42,7 +43,7 @@ export function useDangSplitPayments({
 
       return true
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ثبت پرداخت ناموفق بود')
+      showError(toUserMessage(err, 'ثبت پرداخت ناموفق بود'))
 
       return false
     } finally {

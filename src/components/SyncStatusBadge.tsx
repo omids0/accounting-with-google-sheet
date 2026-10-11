@@ -5,6 +5,7 @@ import { useSyncStatus } from '../hooks/useSyncStatus'
 import { dismissFailedWrites, getActiveSpreadsheetId } from '../services/sheetSync'
 import { getFailedOutboxEntries } from '../services/syncOutbox'
 import { syncStatusBadgeClass, syncStatusDotClass, syncStatusLabelClass } from './ui/layoutStyles'
+import { toUserMessage } from '../utils/userMessage'
 
 function formatRelativeTime(timestamp: number | null): string {
   if (!timestamp) return 'هنوز همگام نشده'
@@ -73,7 +74,10 @@ export default function SyncStatusBadge() {
 
     const details = spreadsheetId
       ? getFailedOutboxEntries(spreadsheetId)
-          .map(entry => `• ${entry.operation.sheetName}: ${entry.lastError ?? 'خطای نامشخص'}`)
+          .map(
+            entry =>
+              `• ${entry.operation.sheetName}: ${toUserMessage(entry.lastError, 'خطای نامشخص')}`
+          )
           .join('\n')
       : ''
 
@@ -109,7 +113,11 @@ export default function SyncStatusBadge() {
       aria-live="polite"
       data-sync-badge
       className={syncStatusBadgeClass}
-      title={lastError ?? `آخرین بروزرسانی: ${formatRelativeTime(lastSyncedAt)}`}
+      title={
+        lastError
+          ? toUserMessage(lastError, 'خطا در همگام‌سازی')
+          : `آخرین بروزرسانی: ${formatRelativeTime(lastSyncedAt)}`
+      }
     >
       {badgeContent}
     </div>

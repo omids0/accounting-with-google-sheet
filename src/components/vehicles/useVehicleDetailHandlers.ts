@@ -22,6 +22,7 @@ import {
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 type HandlerContext = {
   currentVehicle: VehicleProfileWithRow
@@ -55,7 +56,7 @@ async function runMutation(
     showSuccess(successMessage)
     await context.loadDetail()
   } catch (err) {
-    showError(err instanceof Error ? err.message : 'عملیات ناموفق بود')
+    showError(toUserMessage(err, 'عملیات ناموفق بود'))
   } finally {
     context.setSaving(false)
   }
@@ -227,7 +228,7 @@ export function createVehicleDetailHandlers(context: HandlerContext) {
         showSuccess('حذف شد')
         await context.loadDetail()
       } catch (err) {
-        showError(err instanceof Error ? err.message : 'حذف ناموفق بود')
+        showError(toUserMessage(err, 'حذف ناموفق بود'))
       } finally {
         context.setDeleting(false)
       }

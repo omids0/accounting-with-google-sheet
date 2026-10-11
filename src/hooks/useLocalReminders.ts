@@ -10,6 +10,7 @@ import {
 } from '../services/localNotifications'
 import { getSettings } from '../services/settings'
 import { showError, showSuccess } from '../utils/toast'
+import { toUserMessage } from '../utils/userMessage'
 
 export function useLocalReminders(): {
   supported: boolean
@@ -78,7 +79,7 @@ export function useLocalReminders(): {
       await reschedule(true)
       showSuccess('یادآوری‌ها روی این دستگاه زمان‌بندی شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'زمان‌بندی یادآوری‌ها ناموفق بود')
+      showError(toUserMessage(err, 'زمان‌بندی یادآوری‌ها ناموفق بود'))
     } finally {
       setBusy(false)
     }
@@ -88,7 +89,7 @@ export function useLocalReminders(): {
     try {
       await showTestNotification()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ارسال اعلان آزمایشی ناموفق بود')
+      showError(toUserMessage(err, 'ارسال اعلان آزمایشی ناموفق بود'))
     }
   }, [])
 

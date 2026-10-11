@@ -8,6 +8,7 @@ import {
 import type { Timesheet } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export async function toggleTimesheetEntryChecked({
   item,
@@ -31,7 +32,7 @@ export async function toggleTimesheetEntryChecked({
 
     return true
   } catch (err) {
-    showError(err instanceof Error ? err.message : 'خطا در به‌روزرسانی')
+    showError(toUserMessage(err, 'خطا در به‌روزرسانی'))
 
     return false
   }
@@ -94,7 +95,7 @@ export async function submitTimesheetEntry({
 
     return true
   } catch (err) {
-    showError(err instanceof Error ? err.message : 'خطا در ذخیره')
+    showError(toUserMessage(err, 'خطا در ذخیره'))
 
     return false
   }
@@ -118,7 +119,7 @@ export async function deleteTimesheetEntryItem({
 
     return true
   } catch (err) {
-    showError(err instanceof Error ? err.message : 'خطا در حذف')
+    showError(toUserMessage(err, 'خطا در حذف'))
 
     return false
   }

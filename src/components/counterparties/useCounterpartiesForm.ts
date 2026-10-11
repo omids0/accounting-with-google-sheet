@@ -5,6 +5,7 @@ import type { CounterpartyFormState, CounterpartyWithRow } from './types'
 import { createCounterparty, updateCounterparty } from '../../services/counterparties'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 type UseCounterpartiesFormOptions = {
   onSaved: () => Promise<void> | void
@@ -63,7 +64,7 @@ export function useCounterpartiesForm({ onSaved }: UseCounterpartiesFormOptions)
       setEditingItem(null)
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
+      showError(toUserMessage(err, 'ذخیره ناموفق بود'))
     } finally {
       setSaving(false)
     }

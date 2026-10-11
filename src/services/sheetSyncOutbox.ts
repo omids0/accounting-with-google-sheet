@@ -17,6 +17,7 @@ import {
 } from './syncOutbox'
 import type { OutboxOperation } from './syncOutbox'
 import { setFailedWrites, setPendingWrites, setSyncState } from './syncStatus'
+import { toUserMessage } from '../utils/userMessage'
 
 const QUOTA_BACKOFF_MS = 90_000
 
@@ -143,7 +144,7 @@ async function flushPass(
         moveOutboxEntryToFailed(spreadsheetId, entry.id, message)
         refreshPendingCount(spreadsheetId)
         refreshFailedCount(spreadsheetId)
-        setSyncState('error', `یک تغییر اعمال نشد: ${message}`)
+        setSyncState('error', `یک تغییر اعمال نشد: ${toUserMessage(err, 'خطای نامشخص')}`)
         continue
       }
 

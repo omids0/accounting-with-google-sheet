@@ -5,6 +5,7 @@ import { getSettings } from '../services/settings'
 import { mentionsAccounting } from '../services/spreadsheetCatalog'
 import { activateSpreadsheet } from '../services/spreadsheetSetup'
 import { showError } from '../utils/toast'
+import { toUserMessage } from '../utils/userMessage'
 
 /**
  * «باز کردن شیت با گوگل»: the user picks a spreadsheet in Google Picker, which
@@ -28,7 +29,7 @@ export function useOpenSheetWithGoogle(onOpened: (spreadsheetId: string) => void
       await activateSpreadsheet(picked.id, getSettings()?.spreadsheetId, picked.name)
       await onOpened(picked.id)
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'باز کردن شیت با گوگل ناموفق بود')
+      showError(toUserMessage(err, 'باز کردن شیت با گوگل ناموفق بود'))
     } finally {
       setOpening(false)
     }

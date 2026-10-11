@@ -21,6 +21,7 @@ import type { Timesheet } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export type TimesheetWithRow = Timesheet & { rowNumber: number }
 
@@ -140,7 +141,7 @@ export function useTimesheetsPage() {
       closeForm()
       await loadItems()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در ذخیره')
+      showError(toUserMessage(err, 'خطا در ذخیره'))
     } finally {
       setSaving(false)
     }
@@ -158,7 +159,7 @@ export function useTimesheetsPage() {
       setDeletingItem(null)
       await loadItems()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در حذف')
+      showError(toUserMessage(err, 'خطا در حذف'))
     } finally {
       setDeleting(false)
     }

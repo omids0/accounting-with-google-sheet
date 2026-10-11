@@ -6,6 +6,7 @@ import { recoverPinWithGoogleToken } from '../../services/appLockRecovery'
 import { GOOGLE_OAUTH_SCOPE, getUserEmail } from '../../services/auth'
 import { isNativePlatform, signInNative } from '../../services/googleAuthNative'
 import { getPendingSyncCount } from '../../services/localDataWipe'
+import { toUserMessage } from '../../utils/userMessage'
 
 const CANCELLED_MESSAGE = 'ورود با گوگل انجام نشد؛ چیزی از این دستگاه پاک نشد.'
 
@@ -51,7 +52,7 @@ export function usePinRecovery() {
 
         window.location.reload()
       } catch (err) {
-        fail(err instanceof Error ? err.message : CANCELLED_MESSAGE)
+        fail(toUserMessage(err, CANCELLED_MESSAGE))
       }
     },
     [email, fail]
