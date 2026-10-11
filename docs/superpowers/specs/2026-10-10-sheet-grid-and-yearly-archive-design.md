@@ -174,12 +174,23 @@ Also: `writeSheetHeaders` with more than 26 headers.
 
 ### Sweep (move past-year rows out of the base tab)
 
-**Trigger.** After a pull, per form, when an in-memory check of the base rows finds a row
-with Jalali year below the current one. The check needs no API call, so steady state costs
-nothing. The sweep also requires the outbox for the base tab to be empty.
+**Trigger (updated 2026-10-11).** After a pull, per form, from an in-memory check of the base
+rows. The check needs no API call, so steady state costs nothing. All of these must hold:
 
-The first run for existing users is the same sweep. It moves each past year's rows into its
-own archive tab. No separate migration exists.
+- The base tab holds more than `ARCHIVE_THRESHOLD_ROWS = 5000` data rows.
+- At least one row has a Jalali year below the current one.
+- The whole outbox is empty.
+
+Users with small sheets never get archive tabs, and their sheet stays simple.
+
+- **Why 5,000:** benchmark of the real parse path on synthetic 9-column rows, about
+  34 bytes per row on the wire after gzip. A 5,000-row tab is about 170 KB per download;
+  20,000 rows is about 680 KB.
+- In-app processing stays under 100 ms even at 20,000 rows, so the network is the cost.
+- Once the threshold is reached, every past year moves out, so the base tab holds roughly the
+  current year.
+
+The first run for existing users is the same sweep. No separate migration exists.
 
 Steps for each past year `Y` found in the base tab:
 
@@ -213,17 +224,31 @@ same verify-then-delete pattern.
   tab, so placement affects only sync cost, never correctness. This avoids a cross-tab move
   on every edit.
 
-### Sync cold tier
+### Sync cold tier (updated 2026-10-11)
 
-- The regular pull (`pickSheetsToFetch`) uses only hot-tier tabs.
-- The cold tier is fetched per archive tab when any of these hold:
-  - the tab is not in the IndexedDB mirror
-  - its change token differs from the token persisted at its last download
-  - its last download is older than 24 h; this is the safety net for hand edits, which do
-    not stamp tokens
-- Last-download token and time per archive tab are persisted with the mirror. This differs
-  from hot-tier tokens, which stay session-only as today.
-- Result: a cold start or a 10-minute refresh downloads only the current year.
+The changed-tabs sync (merged in PR #125) already persists change tokens with the mirror, so
+an archive tab whose token did not move is never downloaded. Only the "download everything"
+plans need a cold-tier rule.
+
+- **Archive tabs are discovered from the change-token read.** `fetchSheetRevisions` already
+  lists every tab on each pull, and `RevisionEntry` gains the real `title`. A tab is an
+  archive when `parseArchiveSheetName` matches it.
+- **`planSheetFetch` gets `coldSheets`, the archive tabs:**
+
+  | Plan | Archives included |
+  |------|-------------------|
+  | Token moved on an archive tab | that archive tab |
+  | Hand edit, or the 15-minute suspect window | only archive tabs missing from the mirror |
+  | Daily safety net (24 h), unknown tokens, no mirror | all archive tabs |
+
+- **Result:** a hand edit, or another device's write, downloads only the current year.
+  Archive tabs come down once and then once a day at most.
+
+### Reads
+
+`fetchRecords(form)` reads the base tab and every archive tab of that form held in the mirror.
+It dedupes by `id`, keeping the base copy, and tags each record with its `sheetName`.
+Archive tabs not yet in the mirror are fetched on demand, as the base tab is today.
 
 ### UI and About page
 
