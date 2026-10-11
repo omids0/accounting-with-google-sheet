@@ -86,16 +86,20 @@ async function readDriveTime(spreadsheetId: string): Promise<string | null> {
 async function announceWrites(
   spreadsheetId: string,
   touched: Set<string>,
-  driveBefore: string | null
+  driveBefore: string | null,
+  redirected: Set<string> = new Set()
 ): Promise<void> {
   if (!touched.size) return
 
   try {
-    const { stampSheetRevisions } = await import('./sheetRevisions')
+    const { forgetSeenSheets, stampSheetRevisions } = await import('./sheetRevisions')
     const { fetchRemoteModifiedTime, rememberRemoteVersion } = await import('./sheetRemoteVersion')
     const { getSyncMeta } = await import('./spreadsheetSyncMeta')
 
     await stampSheetRevisions(spreadsheetId, touched)
+    // A write that followed its row into an archive changed that tab only
+    // remotely: download it again rather than trust the local copy.
+    if (redirected.size) forgetSeenSheets(spreadsheetId, redirected)
 
     if (driveBefore && driveBefore === getSyncMeta(spreadsheetId)?.modifiedTime) {
       rememberRemoteVersion(spreadsheetId, await fetchRemoteModifiedTime(spreadsheetId))
@@ -106,7 +110,11 @@ async function announceWrites(
 }
 
 /** Sends every entry queued right now. Permanent failures are parked, not retried forever. */
-async function flushPass(spreadsheetId: string, touched: Set<string>): Promise<PassResult> {
+async function flushPass(
+  spreadsheetId: string,
+  touched: Set<string>,
+  redirected: Set<string>
+): Promise<PassResult> {
   const { executeOutboxOperation } = await import('./sheets')
 
   const session = createRowGuardSession()
@@ -124,6 +132,7 @@ async function flushPass(spreadsheetId: string, touched: Set<string>): Promise<P
       refreshPendingCount(spreadsheetId)
       // An edit may have followed its row into a yearly archive: stamp that tab.
       touched.add(written || entry.operation.sheetName)
+      if (written && written !== entry.operation.sheetName) redirected.add(written)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی'
 
@@ -166,14 +175,16 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
   // instead of waiting for the next sync trigger.
   const touched = new Set<string>()
 
+  const redirected = new Set<string>()
+
   const driveBefore = await readDriveTime(spreadsheetId)
 
   try {
     for (let pass = 0; pass < MAX_FLUSH_PASSES && hasPendingOutbox(spreadsheetId); pass += 1) {
-      if ((await flushPass(spreadsheetId, touched)) === 'blocked') return false
+      if ((await flushPass(spreadsheetId, touched, redirected)) === 'blocked') return false
     }
   } finally {
-    await announceWrites(spreadsheetId, touched, driveBefore)
+    await announceWrites(spreadsheetId, touched, driveBefore, redirected)
   }
 
   refreshPendingCount(spreadsheetId)

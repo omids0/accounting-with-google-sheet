@@ -1,22 +1,17 @@
-import { parseArchiveSheetName } from './recordArchive'
+import { archiveTabsOfForm } from './archiveRegistry'
 import { getSettings } from './settings'
-import { getSheetTitles } from './sheetsEnsure'
 import { normalizeSheetTitle } from './sheetsMeta'
 import { resolveTargetRow, RowConflictError, type RowGuardSession } from './sheetsRowGuard'
 
-/** Yearly archive tabs of the form whose tab is `sheetName`; none for other tabs. */
-async function archivesOf(spreadsheetId: string, sheetName: string): Promise<string[]> {
+/** The app's archive tabs of the form whose tab is `sheetName`; none for other tabs. */
+function archivesOf(spreadsheetId: string, sheetName: string): string[] {
   const forms = getSettings()?.forms ?? []
 
-  const base = normalizeSheetTitle(sheetName)
+  const form = forms.find(
+    item => normalizeSheetTitle(item.sheetName) === normalizeSheetTitle(sheetName)
+  )
 
-  if (!forms.some(form => normalizeSheetTitle(form.sheetName) === base)) return []
-
-  return (await getSheetTitles(spreadsheetId)).filter(title => {
-    const archive = parseArchiveSheetName(title, forms)
-
-    return archive !== null && normalizeSheetTitle(archive.form.sheetName) === base
-  })
+  return form ? archiveTabsOfForm(spreadsheetId, form, forms) : []
 }
 
 /**
@@ -38,7 +33,7 @@ export async function resolveRowAnywhere(
   } catch (err) {
     if (!(err instanceof RowConflictError) || !expectedRow?.[0]?.trim()) throw err
 
-    for (const archive of await archivesOf(spreadsheetId, sheetName)) {
+    for (const archive of archivesOf(spreadsheetId, sheetName)) {
       const found = await resolveTargetRow(session, spreadsheetId, archive, 0, expectedRow).catch(
         () => null
       )

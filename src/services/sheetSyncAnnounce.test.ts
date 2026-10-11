@@ -17,6 +17,9 @@ vi.mock('./installments', () => ({ invalidateInstallmentsCache: vi.fn() }))
 vi.mock('./sheetRevisions', () => ({
   stampSheetRevisions: async (...args: unknown[]) => {
     stamped.push(args[1] as Set<string>)
+  },
+  forgetSeenSheets: (...args: unknown[]) => {
+    forgotten.push([...(args[1] as Iterable<string>)])
   }
 }))
 vi.mock('./sheetRemoteVersion', () => ({
@@ -28,6 +31,8 @@ vi.mock('./spreadsheetSyncMeta', () => ({
 }))
 
 const stamped: Set<string>[] = []
+
+const forgotten: string[][] = []
 
 const { flushOutbox } = await import('./sheetSyncOutbox')
 
@@ -72,6 +77,7 @@ describe('stamping the tab a write really landed in', () => {
   it('stamps the archive when a queued edit followed its row there', async () => {
     localStorage.clear()
     stamped.length = 0
+    forgotten.length = 0
     driveTime.mockReset().mockResolvedValue('T1')
     remembered.mockReturnValue('T1')
     executeOutboxOperation.mockReset().mockResolvedValue('هزینه 1402')
@@ -80,5 +86,7 @@ describe('stamping the tab a write really landed in', () => {
     await flushOutbox(ID)
 
     expect([...stamped[0]]).toEqual(['هزینه 1402'])
+    // Its local copy was not changed, so it must be downloaded again.
+    expect(forgotten).toEqual([['هزینه 1402']])
   })
 })

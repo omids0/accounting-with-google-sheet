@@ -1,3 +1,4 @@
+import { ARCHIVE_MARKER_KEY } from './recordArchive'
 import { withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { columnLetter } from './sheetsCellValues'
@@ -6,9 +7,6 @@ import { normalizeHeaderLabel } from './sheetsHeaders'
 import { invalidateSheetTitlesCache, normalizeSheetTitle, quoteSheetName } from './sheetsMeta'
 import { fetchSheetRangeFromApi } from './sheetsRows'
 import { cellToString } from '../utils/sheetValues'
-
-/** Developer metadata that marks a tab as an archive this app created. */
-export const ARCHIVE_MARKER_KEY = 'accounting_archive'
 
 export interface TabInfo {
   sheetId: number

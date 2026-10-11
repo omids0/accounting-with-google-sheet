@@ -27,6 +27,7 @@ vi.mock('./settings', () => ({ getSettings: () => ({ forms: [EXPENSE] }) }))
 
 const { fetchRecords, updateRecord, deleteRecord } = await import('./sheetsRecords')
 const { initStore, setSheetAllRows } = await import('./spreadsheetStore')
+const { updateSyncMeta } = await import('./spreadsheetSyncMeta')
 
 const ID = 'sheet-1'
 
@@ -48,6 +49,13 @@ describe('records across a form tab and its archives', () => {
       ['dup', 't', '2023-06-02', '1']
     ])
     setSheetAllRows(ID, 'شیت دیگر 1402', [HEADER, ['alien', 't', '2023-06-01', '5']])
+    // A hand-made backup tab with an archive-like name and no app marker.
+    setSheetAllRows(ID, 'هزینه 1401', [
+      HEADER,
+      ['backup', 't', '2022-06-01', '3'],
+      ['dup', 't', '2022-06-02', '4']
+    ])
+    updateSyncMeta(ID, { archiveTabs: ['هزینه 1402'] })
   })
 
   it('returns base and archive rows, tagged with their tab, the base copy winning', async () => {
@@ -90,6 +98,7 @@ describe('deleting a record held in two tabs', () => {
   it('deletes every copy, so the archived one cannot come back', async () => {
     deleteSheetRow.mockReset()
     initStore(ID)
+    updateSyncMeta(ID, { archiveTabs: ['هزینه 1402'] })
     setSheetAllRows(ID, 'هزینه', [
       HEADER,
       ['new', 't', '2025-06-01', '10'],
@@ -107,5 +116,23 @@ describe('deleting a record held in two tabs', () => {
       ['هزینه', 3],
       ['هزینه 1402', 3]
     ])
+  })
+})
+
+describe('tabs named like archives but not created by the app', () => {
+  it('are neither read nor touched by a delete', async () => {
+    deleteSheetRow.mockReset()
+    initStore(ID)
+    setSheetAllRows(ID, 'هزینه', [HEADER, ['dup', 't', '2025-06-02', '99']])
+    setSheetAllRows(ID, 'هزینه 1401', [HEADER, ['dup', 't', '2022-06-02', '4']])
+    updateSyncMeta(ID, { archiveTabs: [] })
+
+    const records = await fetchRecords(ID, EXPENSE)
+
+    expect(records.map(r => r.sheetName)).toEqual(['هزینه'])
+
+    await deleteRecord(ID, EXPENSE, 2, 'هزینه')
+
+    expect(deleteSheetRow.mock.calls.map(call => call[1])).toEqual(['هزینه'])
   })
 })

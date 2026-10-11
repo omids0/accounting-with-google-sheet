@@ -210,10 +210,12 @@ Steps for each past year `Y` found in the base tab, revised after the final revi
    - Values, number formats, dates and formulas arrive exactly as they are; nothing is
      re-written from formatted text.
    - A re-run after a crash copies nothing twice.
-3. **Verify.** The archive is read again.
-   - New rows that are not the intended ones are removed. They come from a shifted base, or
-     from another device copying at the same time.
-   - Every planned id must then be present. Otherwise the sweep stops and nothing is deleted.
+3. **Verify.** The archive is read again. Only two kinds of new rows are removed:
+   - a second copy of an id;
+   - a row that still lives unchanged in the base tab, i.e. pasted from a shifted range.
+
+   Any other new row may be another device's valid copy, and it stays. Every planned id must
+   then be present. Otherwise the sweep stops and nothing is deleted.
 4. **Content-checked delete.** From a fresh read of the base tab, only past-year rows whose
    whole content equals their archived copy are deleted, at most one per id. Deletion uses
    descending, merged `deleteDimension` ranges.
@@ -228,6 +230,22 @@ Steps for each past year `Y` found in the base tab, revised after the final revi
 
 **Deleting a record** removes every copy of its id across the form tab and its archives,
 bottom rows first. An archived copy left by an interrupted move therefore cannot come back.
+
+**Only marked tabs are archives.** The `accounting_archive` marker is read with the change
+tokens on every pull and kept in the sync meta (`archiveTabs`).
+- Reads, deletes, outbox fallbacks and the cold tier all use that list.
+- A tab merely named like an archive, such as a user's own backup, is never read, deleted
+  from or written to.
+
+**After a write lands in an archive.** When a queued edit follows its row into an archive,
+that archive's seen token is dropped, so the next pull downloads it. The sweep also drops the
+token of any archive whose mirror changed locally during the sweep.
+
+**Known limit (accepted).** There is a sub-second window between the base re-read and the
+delete. If another device edits a past-year row inside it, that edit is lost, and the archive
+keeps the pre-edit content. If another device deletes a row inside it, the row may be put
+back. This needs another device to save a past-year row at the exact moment of a sweep that
+runs about once a year.
 
 ### Edits after a move
 

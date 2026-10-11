@@ -17,7 +17,10 @@ vi.mock('./sheetsRows', () => ({
   fetchSheetRangeFromApi: async (_id: string, name: string, suffix?: string) =>
     fake.read!(name, suffix)
 }))
-vi.mock('./sheetRevisions', () => ({ stampSheetRevisions: async () => undefined }))
+vi.mock('./sheetRevisions', () => ({
+  stampSheetRevisions: async () => undefined,
+  forgetSeenSheets: () => undefined
+}))
 
 const sheets = fakeSheets()
 
@@ -148,7 +151,7 @@ describe('sweepFormArchives', () => {
     expect(sheets.tab(ARCHIVE).rows[0]).toEqual(HEADER)
   })
 
-  it('removes rows another device copied at the same time', async () => {
+  it('removes a second copy another device made at the same time', async () => {
     seed([OLD_A, ...current(ARCHIVE_THRESHOLD_ROWS)])
     sheets.hooks.afterCopy = () => {
       sheets.tab(ARCHIVE).rows.push([...OLD_A])
@@ -157,6 +160,39 @@ describe('sweepFormArchives', () => {
     await sweepFormArchives(ID, EXPENSE, 1404)
 
     expect(ids(ARCHIVE)).toEqual(['oldA'])
+  })
+
+  it('keeps a valid copy another device made of a row this run did not plan', async () => {
+    seed([OLD_A, ...current(ARCHIVE_THRESHOLD_ROWS)])
+    sheets.hooks.afterCopy = () => {
+      sheets.tab(ARCHIVE).rows.push(['oldZ', 't', '2023-07-01', '9'])
+    }
+
+    await sweepFormArchives(ID, EXPENSE, 1404)
+
+    expect(ids(ARCHIVE)).toEqual(['oldA', 'oldZ'])
+  })
+
+  it('removes a current-year row pasted by mistake while it is still in the form tab', async () => {
+    seed([OLD_A, ...current(ARCHIVE_THRESHOLD_ROWS)])
+    sheets.hooks.afterCopy = () => {
+      sheets.tab(ARCHIVE).rows.push(['c5', 't', '2025-06-01', '5'])
+    }
+
+    await sweepFormArchives(ID, EXPENSE, 1404)
+
+    expect(ids(ARCHIVE)).toEqual(['oldA'])
+    expect(ids(BASE)).toContain('c5')
+  })
+
+  it('records the archive tab as the app’s own', async () => {
+    const { getSyncMeta } = await import('./spreadsheetSyncMeta')
+
+    seed([OLD_A, ...current(ARCHIVE_THRESHOLD_ROWS)])
+
+    await sweepFormArchives(ID, EXPENSE, 1404)
+
+    expect(getSyncMeta(ID)?.archiveTabs).toEqual([ARCHIVE])
   })
 
   it('puts back a row another device shifted into the delete range', async () => {

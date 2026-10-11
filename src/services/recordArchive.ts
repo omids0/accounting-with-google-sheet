@@ -10,6 +10,9 @@ import { cellToString, isSheetHeaderRow, normalizeSheetDate } from '../utils/she
  */
 export const ARCHIVE_THRESHOLD_ROWS = 5000
 
+/** Developer metadata that marks a tab as an archive this app created. */
+export const ARCHIVE_MARKER_KEY = 'accounting_archive'
+
 const ARCHIVE_TITLE = /^(.+) (1[34]\d\d)$/
 
 export function archiveSheetName(baseSheetName: string, year: number): string {

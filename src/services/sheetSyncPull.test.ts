@@ -177,7 +177,11 @@ describe('pullRemoteSheets archive tabs', () => {
     revisionsFetch.mockReset().mockResolvedValue(
       new Map([
         ['هزینه', { title: 'هزینه', sheetId: 1, token: 'a', metadataIds: [] }],
-        [ARCHIVE, { title: ARCHIVE, sheetId: 9, token: 'z', metadataIds: [] }]
+        [ARCHIVE, { title: ARCHIVE, sheetId: 9, token: 'z', metadataIds: [], archive: true }],
+        [
+          'هزینه 1401',
+          { title: 'هزینه 1401', sheetId: 8, token: '', metadataIds: [], archive: false }
+        ]
       ])
     )
     batchFetch.mockReset().mockImplementation(async (_id: string, names: string[]) => {
@@ -237,6 +241,8 @@ describe('pullRemoteSheets archive tabs without change tokens', () => {
     })
     initStore(ID)
     setSheetAllRows(ID, 'هزینه 1402', [['شناسه'], ['old']])
+    updateSyncMeta(ID, { archiveTabs: ['هزینه 1402'] })
+    setSheetAllRows(ID, 'هزینه 1401', [['شناسه'], ['manual']])
 
     await pullRemoteSheets(ID, { forms: [{ sheetName: 'هزینه' }] } as AppSettings, {
       skipIfUnchanged: true,
@@ -244,5 +250,35 @@ describe('pullRemoteSheets archive tabs without change tokens', () => {
     })
 
     expect(fetchedTabs()).toEqual(['هزینه', 'درآمد', 'هزینه 1402'])
+  })
+})
+
+describe('pullRemoteSheets archive registry', () => {
+  it('remembers only marked archive tabs from the change-token read', async () => {
+    localStorage.clear()
+    remote.mockReset().mockResolvedValue({ driveChanged: false, modifiedTime: 'T9' })
+    revisionsFetch.mockReset().mockResolvedValue(
+      new Map([
+        [
+          'هزینه 1402',
+          { title: 'هزینه 1402', sheetId: 9, token: 'z', metadataIds: [], archive: true }
+        ],
+        [
+          'هزینه 1401',
+          { title: 'هزینه 1401', sheetId: 8, token: '', metadataIds: [], archive: false }
+        ]
+      ])
+    )
+    findChanged.mockReset().mockReturnValue([])
+    batchFetch.mockReset().mockResolvedValue(new Map())
+    initStore(ID)
+    updateSyncMeta(ID, { fullSyncAt: Date.now(), coldSyncAt: Date.now() })
+
+    await pullRemoteSheets(ID, { forms: [{ sheetName: 'هزینه' }] } as AppSettings, {
+      skipIfUnchanged: true,
+      hadData: true
+    })
+
+    expect(getSyncMeta(ID)?.archiveTabs).toEqual(['هزینه 1402'])
   })
 })

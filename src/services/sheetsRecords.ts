@@ -1,15 +1,10 @@
 import type { CustomForm } from '../types'
-import { parseArchiveSheetName } from './recordArchive'
+import { archiveTabsOfForm } from './archiveRegistry'
 import { getSettings } from './settings'
 import { buildFieldColumnMap, buildHeaders, buildRecordRow, mapRowToValues } from './sheetsHeaders'
 import { fetchSheetRangeFromApi, deleteSheetRow, updateSheetRow } from './sheetsRows'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
-import {
-  appendSheetDataRow,
-  getSheetAllRows,
-  getStoreSheetNames,
-  setSheetAllRows
-} from './spreadsheetStore'
+import { appendSheetDataRow, getSheetAllRows, setSheetAllRows } from './spreadsheetStore'
 import type { OutboxWriteOptions } from './syncOutbox'
 import { cellToString, isSheetHeaderRow } from '../utils/sheetValues'
 
@@ -96,15 +91,9 @@ async function loadBaseRows(spreadsheetId: string, form: CustomForm): Promise<st
   return rows
 }
 
-/** Yearly archive tabs of `form` the mirror holds, oldest first. */
+/** The app's yearly archive tabs of `form` (marked tabs only), oldest first. */
 function archiveTabsOf(spreadsheetId: string, form: CustomForm): string[] {
-  const forms = getSettings()?.forms ?? [form]
-
-  return getStoreSheetNames(spreadsheetId)
-    .map(name => ({ name, archive: parseArchiveSheetName(name, forms) }))
-    .filter(({ archive }) => archive?.form.id === form.id)
-    .sort((a, b) => (a.archive?.year ?? 0) - (b.archive?.year ?? 0))
-    .map(({ name }) => name)
+  return archiveTabsOfForm(spreadsheetId, form, getSettings()?.forms ?? [form])
 }
 
 /**

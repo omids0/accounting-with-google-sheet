@@ -14,6 +14,8 @@ export interface SyncMeta {
   fullSyncAt: number | null
   /** When a partial pull accepted a Drive change that may hide a hand edit. */
   absorbedAt?: number | null
+  /** Archive tabs carrying the app marker, as of the last change-token read. */
+  archiveTabs?: string[]
   /** When every yearly archive tab was last downloaded. */
   coldSyncAt?: number | null
 }

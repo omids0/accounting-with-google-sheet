@@ -81,7 +81,9 @@ export async function copyRowsToArchive(
   base: TabInfo,
   baseRows: string[][],
   archive: TabInfo,
-  indexes: number[]
+  indexes: number[],
+  /** Form-tab rows that stay there (current year, undated), by id. */
+  stays: Map<string, string[]>
 ): Promise<string[][] | null> {
   const before = await fetchSheetRangeFromApi(spreadsheetId, archive.title)
 
@@ -131,17 +133,21 @@ export async function copyRowsToArchive(
 
   let after = await fetchSheetRangeFromApi(spreadsheetId, archive.title)
 
-  const wanted = new Set(toCopy.map(index => idOf(baseRows[index])))
-
   const kept = idSet(before.slice(0, start))
 
   const extras: number[] = []
 
+  // Only two kinds of new rows are removed: a second copy of an id, and a row
+  // that still lives unchanged in the form tab (pasted from a shifted range).
+  // Anything else may be another device's valid copy and stays.
   for (let index = start; index < after.length; index += 1) {
     const id = idOf(after[index])
 
     if (!id) continue
-    if (!wanted.has(id) || kept.has(id)) extras.push(index)
+
+    const stay = stays.get(id)
+
+    if (kept.has(id) || (stay && rowsMatchForCompare(after[index], stay))) extras.push(index)
     else kept.add(id)
   }
 

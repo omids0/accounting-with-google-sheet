@@ -20,6 +20,8 @@ vi.mock('./settings', () => ({
 
 const { resolveRowAnywhere } = await import('./sheetsRowLocate')
 const { createRowGuardSession, RowConflictError } = await import('./sheetsRowGuard')
+const { initStore } = await import('./spreadsheetStore')
+const { updateSyncMeta } = await import('./spreadsheetSyncMeta')
 
 const HEADER = ['شناسه', 'زمان ثبت']
 
@@ -29,6 +31,9 @@ describe('resolveRowAnywhere', () => {
     tabs.set('هزینه', [HEADER, ['keep', 't']])
     tabs.set('هزینه 1402', [HEADER, ['x', 't'], ['moved', 't']])
     tabs.set('یادداشت 1402', [HEADER, ['moved', 't']])
+    tabs.set('هزینه 1401', [HEADER, ['manual', 't']])
+    initStore('sid')
+    updateSyncMeta('sid', { archiveTabs: ['هزینه 1402'] })
   })
 
   it('finds a row in the form tab first', async () => {
@@ -46,6 +51,14 @@ describe('resolveRowAnywhere', () => {
   it('still reports a conflict when the row is nowhere', async () => {
     await expect(
       resolveRowAnywhere(createRowGuardSession(), 'sid', 'هزینه', 5, ['gone', 't'])
+    ).rejects.toBeInstanceOf(RowConflictError)
+  })
+})
+
+describe('resolveRowAnywhere and unmarked tabs', () => {
+  it('never follows a row into a tab the app did not create', async () => {
+    await expect(
+      resolveRowAnywhere(createRowGuardSession(), 'sid', 'هزینه', 5, ['manual', 't'])
     ).rejects.toBeInstanceOf(RowConflictError)
   })
 })

@@ -1,8 +1,9 @@
 import type { CustomForm } from '../types'
+import { addArchiveTab } from './archiveRegistry'
 import { prepareArchiveTab, readTabs } from './archiveTabs'
 import { archiveSheetName, planYearSweep } from './recordArchive'
-import { copyRowsToArchive, deleteArchivedRows } from './recordArchiveMove'
-import { stampSheetRevisions } from './sheetRevisions'
+import { copyRowsToArchive, deleteArchivedRows, idOf } from './recordArchiveMove'
+import { forgetSeenSheets, stampSheetRevisions } from './sheetRevisions'
 import { normalizeSheetTitle } from './sheetsMeta'
 import { fetchSheetRangeFromApi } from './sheetsRows'
 import { withOutboxLock } from './sheetSyncOutbox'
@@ -41,7 +42,17 @@ export async function sweepFormArchives(
 
   const header = baseRows[0].map(cell => cellToString(cell))
 
+  const planned = new Set([...plan.values()].flat())
+
+  const stays = new Map<string, string[]>()
+
+  baseRows.forEach((row, index) => {
+    if (index > 0 && !planned.has(index) && idOf(row)) stays.set(idOf(row), row)
+  })
+
   const archives = new Map<string, string[][]>()
+
+  const archiveVersions = new Map<string, number>()
 
   for (const [year, indexes] of [...plan].sort(([a], [b]) => a - b)) {
     const tab = await prepareArchiveTab(
@@ -53,7 +64,10 @@ export async function sweepFormArchives(
 
     if (!tab) continue
 
-    const archived = await copyRowsToArchive(spreadsheetId, base, baseRows, tab, indexes)
+    addArchiveTab(spreadsheetId, tab.title)
+    archiveVersions.set(tab.title, getSheetWriteVersion(spreadsheetId, tab.title))
+
+    const archived = await copyRowsToArchive(spreadsheetId, base, baseRows, tab, indexes, stays)
 
     if (!archived) return false
 
@@ -61,6 +75,11 @@ export async function sweepFormArchives(
   }
 
   if (!archives.size) return false
+
+  // Fresh copies right before deleting: the delete compares against them.
+  for (const title of archives.keys()) {
+    archives.set(title, await fetchSheetRangeFromApi(spreadsheetId, title))
+  }
 
   const remaining = await deleteArchivedRows(
     spreadsheetId,
@@ -70,7 +89,15 @@ export async function sweepFormArchives(
     currentYear
   )
 
-  for (const [tab, rows] of archives) setSheetAllRows(spreadsheetId, tab, rows)
+  const stale: string[] = []
+
+  for (const [tab, rows] of archives) {
+    if (getSheetWriteVersion(spreadsheetId, tab) === archiveVersions.get(tab)) {
+      setSheetAllRows(spreadsheetId, tab, rows)
+    } else {
+      stale.push(tab)
+    }
+  }
   // A local write made meanwhile is newer than this read; the next pull brings both.
   if (getSheetWriteVersion(spreadsheetId, form.sheetName) === versionBefore) {
     setSheetAllRows(spreadsheetId, form.sheetName, remaining)
@@ -79,6 +106,8 @@ export async function sweepFormArchives(
   await stampSheetRevisions(spreadsheetId, [form.sheetName, ...archives.keys()]).catch(
     () => undefined
   )
+  // A local write hit these mirrors meanwhile: download them again instead.
+  if (stale.length) forgetSeenSheets(spreadsheetId, stale)
   notifySpreadsheetDataChanged(spreadsheetId)
 
   return true

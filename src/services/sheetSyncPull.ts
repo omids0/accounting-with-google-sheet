@@ -1,4 +1,5 @@
 import type { AppSettings } from '../types'
+import { getArchiveTabs, setArchiveTabs } from './archiveRegistry'
 import { listArchiveSheets } from './recordArchive'
 import { checkRemoteChanged, rememberRemoteVersion } from './sheetRemoteVersion'
 import type { RevisionMap } from './sheetRevisions'
@@ -11,7 +12,6 @@ import { getSheetWriteVersion, snapshotSheetWriteVersions } from './sheetWriteVe
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import {
   getSheetAllRows,
-  getStoreSheetNames,
   initStore,
   setManySheetAllRows,
   setSheetAllRows,
@@ -74,14 +74,16 @@ export async function pullRemoteSheets(
 
   const allSheets = getKnownSheetNames(settings)
 
-  // Archives come from the token read; the mirror's own copies cover a failed read.
-  const coldSheets = listArchiveSheets(
-    new Set([
-      ...(revisions ? [...revisions.values()].map(entry => entry.title) : []),
-      ...getStoreSheetNames(spreadsheetId)
-    ]),
-    settings.forms ?? []
-  )
+  // Archives are tabs carrying the app marker, as listed by the token read; the
+  // last known list covers a failed read. A tab merely named like one is ignored.
+  if (revisions) {
+    setArchiveTabs(
+      spreadsheetId,
+      [...revisions.values()].filter(entry => entry.archive).map(entry => entry.title)
+    )
+  }
+
+  const coldSheets = listArchiveSheets(getArchiveTabs(spreadsheetId), settings.forms ?? [])
 
   const plan = planSheetFetch({
     allSheets,
