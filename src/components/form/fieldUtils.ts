@@ -8,6 +8,12 @@ export const SUBCATEGORY_FIELD_LABEL = 'زیردسته'
 export const WALLET_ACCOUNT_FIELD_ID = 'walletAccount'
 export const WALLET_ACCOUNT_FIELD_LABEL = 'حساب'
 
+/** Whether a record that names an account also moves its balance; '' (older rows) means yes. */
+export const WALLET_APPLY_FIELD_ID = 'walletApply'
+export const WALLET_APPLY_FIELD_LABEL = 'اثر بر موجودی'
+export const WALLET_APPLY_YES = 'بله'
+export const WALLET_APPLY_NO = 'خیر'
+
 const STANDARD_FIELD_ORDER = [
   'date',
   'title',
@@ -15,6 +21,7 @@ const STANDARD_FIELD_ORDER = [
   SUBCATEGORY_FIELD_ID,
   'amount',
   WALLET_ACCOUNT_FIELD_ID,
+  WALLET_APPLY_FIELD_ID,
   'note'
 ]
 
@@ -81,6 +88,38 @@ export function withWalletAccountField(forms: CustomForm[]): CustomForm[] {
       ? { ...form, fields: [...form.fields, createWalletAccountField()] }
       : form
   )
+}
+
+function createWalletApplyField(): FieldConfig {
+  return {
+    id: WALLET_APPLY_FIELD_ID,
+    label: WALLET_APPLY_FIELD_LABEL,
+    type: 'select',
+    required: false,
+    options: [WALLET_APPLY_YES, WALLET_APPLY_NO]
+  }
+}
+
+/** Adds the «اثر بر موجودی» switch to income/expense forms that lack it. */
+export function withWalletApplyField(forms: CustomForm[]): CustomForm[] {
+  return forms.map(form =>
+    (form.type === 'income' || form.type === 'expense') &&
+    !form.fields.some(field => field.id === WALLET_APPLY_FIELD_ID)
+      ? { ...form, fields: [...form.fields, createWalletApplyField()] }
+      : form
+  )
+}
+
+export function isWalletApplied(values: Record<string, string | number | undefined>): boolean {
+  return String(values[WALLET_APPLY_FIELD_ID] ?? '').trim() !== WALLET_APPLY_NO
+}
+
+/** The balance switch only means something once the record names an account. */
+export function isFieldHidden(
+  field: FieldConfig,
+  values: Record<string, string | number | undefined>
+): boolean {
+  return field.id === WALLET_APPLY_FIELD_ID && !String(values[WALLET_ACCOUNT_FIELD_ID] ?? '').trim()
 }
 
 export function sortFormFields(fields: FieldConfig[]): FieldConfig[] {

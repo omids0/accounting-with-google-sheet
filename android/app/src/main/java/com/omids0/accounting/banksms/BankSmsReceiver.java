@@ -54,7 +54,10 @@ public class BankSmsReceiver extends BroadcastReceiver {
         }
 
         if (BankSmsStore.addAll(context, candidates) > 0) {
-            BankSmsNotifier.notifyPending(context, BankSmsStore.pendingCount(context));
+            // Same count as the review page: SMS older than its range are not listed there.
+            BankSmsNotifier.notifyPending(context, BankSmsStore.pendingInRangeCount(context));
         }
+        // Re-arms the daily reminder, which a reboot drops.
+        BankSmsDailyCheck.schedule(context);
     }
 }

@@ -1,0 +1,38 @@
+import type { LedgerEntry } from '../../services/walletLedger'
+import { cn } from '../../utils/cn'
+import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import MoneyDisplay from '../MoneyDisplay'
+import TransactionListItem from '../TransactionListItem'
+
+export default function WalletLedgerItem({ entry, index }: { entry: LedgerEntry; index: number }) {
+  const tone = !entry.applied ? 'neutral' : entry.delta < 0 ? 'expense' : 'income'
+  const meta = [
+    entry.date ? formatIsoDatePersian(entry.date) : '',
+    entry.source,
+    entry.applied ? '' : 'بدون اثر'
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  return (
+    <TransactionListItem
+      title={entry.title}
+      meta={meta}
+      tone={tone}
+      index={index}
+      className={cn(!entry.applied && 'opacity-60')}
+    >
+      <div className="flex flex-col items-end gap-0.5">
+        <MoneyDisplay
+          amount={entry.delta}
+          size="record"
+          tone={tone === 'neutral' ? 'default' : tone}
+          signed
+        />
+        <span className="text-[0.75rem] text-muted">
+          موجودی بعد: <MoneyDisplay amount={entry.balanceAfter} size="record" />
+        </span>
+      </div>
+    </TransactionListItem>
+  )
+}

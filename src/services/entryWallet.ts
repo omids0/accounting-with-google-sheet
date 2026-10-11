@@ -1,6 +1,15 @@
 import { settleSmsFromEntry, smsAlreadyInBalance, type ConfirmableSms } from './bankSmsApply'
-import { applyWalletChanges, walletEffectOf } from './recordWallet'
-import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
+import {
+  applyWalletChanges,
+  logUnappliedRecord,
+  recordLedgerContext,
+  walletEffectOf
+} from './recordWallet'
+import {
+  SUBCATEGORY_FIELD_ID,
+  WALLET_APPLY_FIELD_ID,
+  WALLET_APPLY_NO
+} from '../components/form/fieldUtils'
 import type { FormType } from '../types'
 
 /**
@@ -12,25 +21,46 @@ export async function settleEntryWallet(
   spreadsheetId: string,
   type: FormType,
   values: Record<string, string | number>,
-  bankSms?: ConfirmableSms
+  bankSms: ConfirmableSms | undefined,
+  recordId: string
 ): Promise<void> {
   const effect = walletEffectOf(type, values)
+  const context = recordLedgerContext(values, 'ثبت', recordId)
+
+  await logUnappliedRecord(spreadsheetId, type, values, context)
 
   if (!bankSms) {
-    await applyWalletChanges(spreadsheetId, null, effect)
+    await applyWalletChanges(spreadsheetId, null, effect, context)
 
     return
   }
 
-  await settleSmsFromEntry(spreadsheetId, bankSms, effect, {
-    category: String(values.category ?? ''),
-    subCategory: String(values[SUBCATEGORY_FIELD_ID] ?? '')
-  })
+  await settleSmsFromEntry(
+    spreadsheetId,
+    bankSms,
+    effect,
+    {
+      category: String(values.category ?? ''),
+      subCategory: String(values[SUBCATEGORY_FIELD_ID] ?? '')
+    },
+    context
+  )
+}
+
+/** Why the balance switch starts off for a record opened from an SMS (undefined: it does not). */
+export function smsBalanceHint(
+  bankSms: ConfirmableSms | undefined,
+  accountId: string
+): string | undefined {
+  if (!bankSms || !smsAlreadyInBalance(bankSms, accountId)) return undefined
+
+  return 'موجودی از پیامک جدیدتر به‌روز شده است'
 }
 
 /**
- * Values to store for a record opened from a bank SMS: drop the account when a newer
- * «مانده» already includes this SMS, so the record never undoes an amount it never applied.
+ * Values to store for a record opened from a bank SMS: keep the account but turn the balance
+ * update off when a newer «مانده» already includes this SMS, so the record never undoes an
+ * amount it never applied.
  */
 export function prepareEntryValues(
   type: FormType,
@@ -41,5 +71,5 @@ export function prepareEntryValues(
 
   if (!bankSms || !effect || !smsAlreadyInBalance(bankSms, effect.accountId)) return values
 
-  return { ...values, [WALLET_ACCOUNT_FIELD_ID]: '' }
+  return { ...values, [WALLET_APPLY_FIELD_ID]: WALLET_APPLY_NO }
 }

@@ -3,8 +3,8 @@ import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
 
 import { getPathForTab } from '../routes/paths'
-import { isBankSmsAvailable, setBankSmsCaptureEnabled } from '../services/bankSmsNative'
-import { getBankSmsPrefs } from '../services/bankSmsPrefs'
+import { isBankSmsAvailable } from '../services/bankSmsNative'
+import { syncBankSmsNativeSettings } from '../services/bankSmsViewRange'
 import { useBankSmsStore } from '../stores/bankSmsStore'
 
 /** Matches the URL the native notification opens (BankSmsNotifier.OPEN_URL). */
@@ -32,10 +32,8 @@ export function useBankSmsSync(): void {
       if (url?.includes(OPEN_URL_MARKER)) navigateRef.current(getPathForTab('bank-sms'))
     }
 
-    // Re-sync the native switch (e.g. after an update) before reading the queue.
-    void setBankSmsCaptureEnabled(getBankSmsPrefs().enabled)
-      .catch(() => {})
-      .then(() => refresh())
+    // Re-sync the native switch and range (e.g. after an update) before reading the queue.
+    void syncBankSmsNativeSettings().then(() => refresh())
 
     if (!launchUrlHandled) {
       launchUrlHandled = true

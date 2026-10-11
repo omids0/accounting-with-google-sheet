@@ -8,8 +8,8 @@ vi.mock('./migrateLegacyMachineExpenseCategory', () => ({
   migrateLegacyMachineExpenseCategory: async () => undefined
 }))
 vi.mock('./migrateSubCategoryColumn', () => ({ migrateSubCategoryColumn: async () => undefined }))
-vi.mock('./migrateWalletAccountColumn', () => ({
-  migrateWalletAccountColumn: async () => undefined
+vi.mock('./migrateWalletApplyColumn', () => ({
+  migrateWalletColumns: async () => undefined
 }))
 vi.mock('./settings', () => ({ getSettings: () => ({ forms: [] }) }))
 vi.mock('./sheetSyncOutbox', () => ({

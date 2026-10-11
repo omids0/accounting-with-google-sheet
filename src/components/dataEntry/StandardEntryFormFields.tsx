@@ -4,7 +4,14 @@ import type { useForm } from 'react-hook-form'
 import type { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
 import type { CustomForm, FieldConfig } from '../../types'
 import { formFieldError } from '../../utils/formValidation'
-import { FieldInput, FormRow, SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../form'
+import {
+  FieldInput,
+  FormRow,
+  isFieldHidden,
+  SUBCATEGORY_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_ID,
+  WALLET_APPLY_FIELD_ID
+} from '../form'
 import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
 import type { FormControlWidth } from '../ui/formStyles'
@@ -17,6 +24,7 @@ type EntryFieldRendererProps = {
   controlWidth?: FormControlWidth
   error?: string
   parentCategory?: string
+  hint?: string
   onChange: (value: string | number) => void
   onCategoriesChange: (categories: string[]) => void
 }
@@ -29,7 +37,8 @@ function EntryFieldRenderer({
   error,
   parentCategory,
   onChange,
-  onCategoriesChange
+  onCategoriesChange,
+  hint
 }: EntryFieldRendererProps) {
   return (
     <FieldInput
@@ -41,6 +50,7 @@ function EntryFieldRenderer({
       error={error}
       parentCategory={parentCategory}
       onCategoriesChange={onCategoriesChange}
+      hint={hint}
     />
   )
 }
@@ -53,7 +63,8 @@ export default function StandardEntryFormFields({
   onCategoriesRefresh,
   showVehicleFields,
   vehicleExpense,
-  clearFieldError
+  clearFieldError,
+  walletApplyHint
 }: {
   activeForm: CustomForm
   values: Record<string, string | number>
@@ -63,6 +74,8 @@ export default function StandardEntryFormFields({
   showVehicleFields: boolean
   vehicleExpense: ReturnType<typeof useVehicleExpenseEntry>
   clearFieldError?: (fieldId: string) => void
+  /** Why the balance switch starts unchecked (record opened from an SMS). */
+  walletApplyHint?: string
 }) {
   const fieldById = useMemo(
     () => new Map(activeForm.fields.map(field => [field.id, field])),
@@ -85,7 +98,7 @@ export default function StandardEntryFormFields({
   const renderField = (id: string, options?: { controlWidth?: FormControlWidth }) => {
     const field = fieldById.get(id)
 
-    if (!field) return null
+    if (!field || isFieldHidden(field, values)) return null
     if (showVehicleFields && id === 'title') return null
 
     const vehicleFieldError =
@@ -103,6 +116,7 @@ export default function StandardEntryFormFields({
         controlWidth={options?.controlWidth}
         error={vehicleFieldError}
         parentCategory={selectedCategory}
+        hint={field.id === WALLET_APPLY_FIELD_ID ? walletApplyHint : undefined}
         onChange={next => {
           clearFieldError?.(field.id)
           setValue(field.id, next)
@@ -134,6 +148,7 @@ export default function StandardEntryFormFields({
         />
       ) : null}
       {renderField(WALLET_ACCOUNT_FIELD_ID)}
+      {renderField(WALLET_APPLY_FIELD_ID)}
       {renderField('note')}
     </>
   )

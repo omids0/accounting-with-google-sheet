@@ -7,6 +7,7 @@ import type { DataEntryFormProps } from './dataEntry/types'
 import {
   buildFormInitialValues,
   FieldInput,
+  isFieldHidden,
   isStandardEntryForm,
   sortFormFields,
   SUBCATEGORY_FIELD_ID
@@ -17,7 +18,7 @@ import VehicleExpenseFields from './vehicleExpenses/VehicleExpenseFields'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
 import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
-import { prepareEntryValues, settleEntryWallet } from '../services/entryWallet'
+import { prepareEntryValues, settleEntryWallet, smsBalanceHint } from '../services/entryWallet'
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
@@ -135,21 +136,18 @@ export default function DataEntryForm({
     onLoadingChange(true)
     const settings = getSettings()!
     const formValues = prepareEntryValues(activeForm.type, entered, bankSms)
+    let recordId: string = crypto.randomUUID()
 
     try {
       if (showVehicleFields) {
-        await createManualVehicleExpense(
+        recordId = await createManualVehicleExpense(
           settings.spreadsheetId,
           vehicleExpense.buildVehicleExpenseInput(formValues)
         )
       } else {
-        await appendRecord(
-          settings.spreadsheetId,
-          activeForm,
-          crypto.randomUUID(),
-          new Date().toLocaleString('fa-IR'),
-          formValues
-        )
+        const createdAt = new Date().toLocaleString('fa-IR')
+
+        await appendRecord(settings.spreadsheetId, activeForm, recordId, createdAt, formValues)
       }
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })
@@ -159,9 +157,13 @@ export default function DataEntryForm({
     }
 
     // The record exists now: a wallet/SMS failure must not invite a second save.
-    await settleEntryWallet(settings.spreadsheetId, activeForm.type, formValues, bankSms).catch(
-      () => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد')
-    )
+    await settleEntryWallet(
+      settings.spreadsheetId,
+      activeForm.type,
+      formValues,
+      bankSms,
+      recordId
+    ).catch(() => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد'))
     showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
     refreshOpeningBalancesInBackground()
     onLoadingChange(false)
@@ -217,6 +219,7 @@ export default function DataEntryForm({
             onCategoriesRefresh={onCategoriesRefresh}
             showVehicleFields={showVehicleFields}
             vehicleExpense={vehicleExpense}
+            walletApplyHint={smsBalanceHint(bankSms, String(values.walletAccount ?? ''))}
             clearFieldError={fieldId => {
               vehicleExpense.clearFieldError(fieldId as keyof typeof vehicleExpense.fieldErrors)
               clearErrors(fieldId)
@@ -224,6 +227,7 @@ export default function DataEntryForm({
           />
         ) : (
           sortFormFields(activeForm.fields).map(field => {
+            if (isFieldHidden(field, values)) return null
             if (showVehicleFields && field.id === 'title') return null
             if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {
               return null

@@ -24,6 +24,11 @@ final class BankSmsNotifier {
     private BankSmsNotifier() {}
 
     static void notifyPending(Context context, int count) {
+        notifyPending(context, count, "پیامک بانکی جدید");
+    }
+
+    /** Same notification (one id), so a daily reminder replaces a live one instead of stacking. */
+    static void notifyPending(Context context, int count, String title) {
         if (count <= 0) return;
 
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
@@ -48,7 +53,7 @@ final class BankSmsNotifier {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(smallIcon(context))
-            .setContentTitle("پیامک بانکی جدید")
+            .setContentTitle(title)
             .setContentText(text)
             .setContentIntent(pending)
             .setAutoCancel(true)

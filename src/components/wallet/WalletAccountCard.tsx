@@ -21,6 +21,8 @@ type WalletAccountCardProps = {
   balance: number | ''
   saving: boolean
   onToggleExpand: () => void
+  /** Opens the account history page. */
+  onOpen: () => void
   onEdit: () => void
   onDelete: () => void
   onBalanceChange: (value: number | '') => void
@@ -34,6 +36,7 @@ export default function WalletAccountCard({
   balance,
   saving,
   onToggleExpand,
+  onOpen,
   onEdit,
   onDelete,
   onBalanceChange,
@@ -55,14 +58,14 @@ export default function WalletAccountCard({
           role="button"
           tabIndex={0}
           className={walletAccountCardBodyClass}
-          onClick={onToggleExpand}
+          onClick={onOpen}
           onKeyDown={event => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault()
-              onToggleExpand()
+              onOpen()
             }
           }}
-          aria-label={expanded ? 'بستن جزئیات حساب' : 'نمایش جزئیات حساب'}
+          aria-label={`گردش حساب ${account.title}`}
         >
           <WalletAccountCardVisual account={account} displayBalance={displayBalance} />
         </div>

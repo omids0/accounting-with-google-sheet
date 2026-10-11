@@ -34,6 +34,7 @@ import { VEHICLE_MECHANIC_HEADERS, VEHICLE_MECHANIC_SHEET } from './vehicleMecha
 import { VEHICLE_PERIODIC_HEADERS, VEHICLE_PERIODIC_SHEET } from './vehiclePeriodicServices'
 import { VEHICLES_HEADERS, VEHICLES_SHEET } from './vehicleProfiles'
 import { WALLET_HEADERS, WALLET_SHEET } from './wallet'
+import { WALLET_LEDGER_HEADERS, WALLET_LEDGER_SHEET } from './walletLedger'
 
 export const MODULE_SHEET_SPECS: SheetSpec[] = [
   { sheetName: INSTALLMENTS_SHEET, headers: INSTALLMENTS_HEADERS },
@@ -43,6 +44,7 @@ export const MODULE_SHEET_SPECS: SheetSpec[] = [
   { sheetName: RECEIVABLES_SHEET, headers: RECEIVABLES_HEADERS },
   { sheetName: TREASURY_SHEET, headers: TREASURY_HEADERS },
   { sheetName: WALLET_SHEET, headers: WALLET_HEADERS },
+  { sheetName: WALLET_LEDGER_SHEET, headers: WALLET_LEDGER_HEADERS },
   { sheetName: SMS_TEMPLATES_SHEET, headers: SMS_TEMPLATES_HEADERS },
   { sheetName: MONTHLY_BALANCE_SHEET, headers: MONTHLY_BALANCE_HEADERS },
   { sheetName: PERIOD_SETTINGS_SHEET, headers: PERIOD_SETTINGS_HEADERS },

@@ -19,6 +19,21 @@ describe('walletEffectOf', () => {
     expect(walletEffectOf('expense', { amount: '', walletAccount: 'a' })).toBeNull()
     expect(walletEffectOf('custom', { amount: '100', walletAccount: 'a' })).toBeNull()
   })
+
+  it('has no effect when the record opted out of moving the balance', () => {
+    expect(
+      walletEffectOf('expense', { amount: '100', walletAccount: 'a', walletApply: 'خیر' })
+    ).toBeNull()
+  })
+
+  it('keeps the effect for rows saved before the switch and for an explicit yes', () => {
+    expect(
+      walletEffectOf('expense', { amount: '100', walletAccount: 'a', walletApply: '' })
+    ).toEqual({ accountId: 'a', delta: -100 })
+    expect(
+      walletEffectOf('income', { amount: '100', walletAccount: 'a', walletApply: 'بله' })
+    ).toEqual({ accountId: 'a', delta: 100 })
+  })
 })
 
 describe('netWalletChanges', () => {

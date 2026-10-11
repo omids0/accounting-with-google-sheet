@@ -1,7 +1,11 @@
-import { applyWalletChanges, walletEffectOf } from './recordWallet'
+import { applyWalletChanges, recordLedgerContext, walletEffectOf } from './recordWallet'
 import { getSettings } from './settings'
 import { appendRecord, deleteRecord, ensureFormSheet, fetchRecords } from './sheets'
-import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
+import {
+  SUBCATEGORY_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_ID,
+  WALLET_APPLY_FIELD_ID
+} from '../components/form/fieldUtils'
 import type { CustomForm } from '../types'
 import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 import { getTodayIso } from '../utils/jalaliDate'
@@ -15,6 +19,12 @@ function resolveCategory(category?: string): string {
   return category?.trim() || OTHER_CATEGORY
 }
 
+/** Wallet fields of a deleted record ('' when it had none). */
+export interface LinkedRecordWallet {
+  walletAccount: string
+  walletApply: string
+}
+
 export interface LinkedRecordParams {
   title: string
   amount: number
@@ -24,6 +34,8 @@ export interface LinkedRecordParams {
   date?: string
   /** Wallet account the record names (its balance is moved by the caller). */
   walletAccount?: string
+  /** «خیر» when the record names the account without moving its balance. */
+  walletApply?: string
 }
 
 export async function createLinkedExpenseRecord(
@@ -49,7 +61,8 @@ export async function createLinkedExpenseRecord(
     [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
     amount: params.amount,
     note: params.note ?? '',
-    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? ''
+    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? '',
+    [WALLET_APPLY_FIELD_ID]: params.walletApply ?? ''
   })
 
   return recordId
@@ -78,36 +91,48 @@ export async function createLinkedIncomeRecord(
     [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
     amount: params.amount,
     note: params.note ?? '',
-    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? ''
+    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? '',
+    [WALLET_APPLY_FIELD_ID]: params.walletApply ?? ''
   })
 
   return recordId
 }
 
-/** Deletes the record and undoes its wallet effect; returns the account it named ('' if none). */
+/**
+ * Deletes the record and undoes its wallet effect; returns its account and balance switch,
+ * so a record re-created in its place keeps both.
+ */
 export async function deleteLinkedRecord(
   spreadsheetId: string,
   formType: 'income' | 'expense',
   recordId: string
-): Promise<string> {
-  if (!recordId) return ''
+): Promise<LinkedRecordWallet> {
+  const none = { walletAccount: '', walletApply: '' }
+
+  if (!recordId) return none
 
   const form = getFormByType(formType)
 
-  if (!form) return ''
+  if (!form) return none
 
   const records = await fetchRecords(spreadsheetId, form)
 
   const match = records.find(r => r.id === recordId)
 
-  if (match) {
-    await deleteRecord(spreadsheetId, form, match.rowNumber, match.sheetName)
-    await applyWalletChanges(spreadsheetId, walletEffectOf(formType, match.values), null)
+  if (!match) return none
 
-    return match.values[WALLET_ACCOUNT_FIELD_ID] ?? ''
+  await deleteRecord(spreadsheetId, form, match.rowNumber, match.sheetName)
+  await applyWalletChanges(
+    spreadsheetId,
+    walletEffectOf(formType, match.values),
+    null,
+    recordLedgerContext(match.values, 'حذف', match.id)
+  )
+
+  return {
+    walletAccount: match.values[WALLET_ACCOUNT_FIELD_ID] ?? '',
+    walletApply: match.values[WALLET_APPLY_FIELD_ID] ?? ''
   }
-
-  return ''
 }
 
 export async function deleteLinkedExpenseRecord(

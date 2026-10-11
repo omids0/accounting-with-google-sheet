@@ -182,7 +182,8 @@ export function useVehicleExpenseEntry(active: boolean) {
       date: String(formValues.date ?? ''),
       amount: parseNumericField(formValues.amount),
       note: String(formValues.note ?? ''),
-      walletAccount: String(formValues.walletAccount ?? '')
+      walletAccount: String(formValues.walletAccount ?? ''),
+      walletApply: String(formValues.walletApply ?? '')
     }),
     [vehicleValues]
   )

@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +54,9 @@ final class BankSmsStore {
     private static final String FILE_NAME = "bank_sms_store.bin";
     private static final String PREFS_NAME = "bank_sms";
     private static final String PREF_ENABLED = "enabled";
+    private static final String PREF_VIEW_DAYS = "view_days";
+    /** Same default as DEFAULT_SMS_RANGE_DAYS in the web app. */
+    private static final int DEFAULT_VIEW_DAYS = 7;
     private static final String KEY_ALIAS = "bank_sms_store";
     private static final String KEYSTORE = "AndroidKeyStore";
     private static final long HANDLED_TTL_MS = 120L * 24 * 60 * 60 * 1000;
@@ -69,6 +73,44 @@ final class BankSmsStore {
 
     static void setEnabled(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(PREF_ENABLED, enabled).apply();
+    }
+
+    /** Mirrors the review page range, so notifications count only what that page lists. */
+    static int viewDays(Context context) {
+        return Math.max(1, prefs(context).getInt(PREF_VIEW_DAYS, DEFAULT_VIEW_DAYS));
+    }
+
+    static void setViewDays(Context context, int days) {
+        prefs(context).edit().putInt(PREF_VIEW_DAYS, Math.max(1, days)).apply();
+    }
+
+    /** Local midnight that opens the range; today is day 1 (same as smsRangeStart in the web app). */
+    static long rangeStart(int days, long now) {
+        Calendar start = Calendar.getInstance();
+
+        start.setTimeInMillis(now);
+        start.set(Calendar.HOUR_OF_DAY, 0);
+        start.set(Calendar.MINUTE, 0);
+        start.set(Calendar.SECOND, 0);
+        start.set(Calendar.MILLISECOND, 0);
+        start.add(Calendar.DAY_OF_MONTH, -(Math.max(1, days) - 1));
+
+        return start.getTimeInMillis();
+    }
+
+    /** Pending SMS inside the review page range; older ones stay queued but are not listed. */
+    static synchronized int pendingInRangeCount(Context context) {
+        long since = rangeStart(viewDays(context), System.currentTimeMillis());
+        JSONArray items = pending(context);
+        int count = 0;
+
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject item = items.optJSONObject(i);
+
+            if (item != null && item.optLong("receivedAt", 0L) >= since) count++;
+        }
+
+        return count;
     }
 
     private static SharedPreferences prefs(Context context) {
@@ -136,10 +178,6 @@ final class BankSmsStore {
         } catch (JSONException e) {
             return new JSONArray();
         }
-    }
-
-    static synchronized int pendingCount(Context context) {
-        return pending(context).length();
     }
 
     static synchronized void markHandled(Context context, List<String> ids) {

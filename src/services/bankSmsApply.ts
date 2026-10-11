@@ -3,8 +3,15 @@ import { markBankSmsHandled } from './bankSmsNative'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
 import { nextAccountBalance, type ConfirmableSms } from './bankSmsQueue'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
-import { applyWalletChanges, type RecordWalletEffect } from './recordWallet'
+import {
+  applyWalletChanges,
+  logUnappliedRecord,
+  recordLedgerContext,
+  type RecordWalletEffect
+} from './recordWallet'
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
+import { ledgerEntry, logLedger, type LedgerContext } from './walletLedger'
+import { WALLET_APPLY_NO } from '../components/form/fieldUtils'
 import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
@@ -19,8 +26,8 @@ export const SMS_RECORD_NOTE = 'ثبت از پیامک'
 
 /**
  * A newer «مانده» of this account already includes the SMS. Then the balance does not
- * move, and the record must not name the account (deleting it later would undo an
- * amount that was never applied).
+ * move, and the record is saved with «اثر بر موجودی» = خیر (deleting it later must not
+ * undo an amount that was never applied).
  */
 export function smsAlreadyInBalance(entry: ConfirmableSms, accountId: string): boolean {
   const anchor = getBankSmsPrefs().balanceStates[accountId]?.anchor
@@ -35,7 +42,14 @@ function sameDirection(entry: ConfirmableSms, effect: RecordWalletEffect): boole
   return effect.delta < 0 === (entry.result.direction === 'debit')
 }
 
-async function applyBalance(spreadsheetId: string, entry: ConfirmableSms): Promise<void> {
+/** Title and record of the ledger row; the source is always «پیامک». */
+type SmsLedgerNote = { title?: string; recordId?: string }
+
+async function applyBalance(
+  spreadsheetId: string,
+  entry: ConfirmableSms,
+  note: SmsLedgerNote = {}
+): Promise<void> {
   learnSmsRef(entry.result.ref, entry.result.accountId)
 
   const account = (await fetchWalletAccounts(spreadsheetId)).find(
@@ -62,6 +76,16 @@ async function applyBalance(spreadsheetId: string, entry: ConfirmableSms): Promi
     await updateWalletAccount(spreadsheetId, { ...account, balance: next.balance })
   }
   updateBankSmsPrefs({ balanceStates: { ...prefs.balanceStates, [account.id]: next.state } })
+  if (next.balance === account.balance) return
+
+  await logLedger(spreadsheetId, [
+    ledgerEntry(account.id, next.balance - account.balance, next.balance, {
+      title: note.title || `پیامک ${account.title}`,
+      date: smsRecordDate(entry.sms.body, entry.sms.receivedAt),
+      source: 'پیامک',
+      recordId: note.recordId
+    })
+  ])
 }
 
 /**
@@ -73,6 +97,8 @@ export async function confirmSmsEntry(
   entry: ConfirmableSms,
   record: SmsRecordInput | null
 ): Promise<void> {
+  let recordId = ''
+
   if (record) {
     const params = {
       title: record.title,
@@ -81,17 +107,17 @@ export async function confirmSmsEntry(
       subCategory: record.subCategory,
       note: SMS_RECORD_NOTE,
       date: smsRecordDate(entry.sms.body, entry.sms.receivedAt),
-      // Ties the record to the account, so editing or deleting it later fixes the balance.
-      walletAccount: smsAlreadyInBalance(entry, entry.result.accountId)
-        ? ''
-        : entry.result.accountId
+      // Ties the record to the account, so editing or deleting it later fixes the balance —
+      // unless a newer «مانده» already holds it; then it must never move the balance.
+      walletAccount: entry.result.accountId,
+      walletApply: smsAlreadyInBalance(entry, entry.result.accountId) ? WALLET_APPLY_NO : ''
     }
+    const type = entry.result.direction === 'debit' ? 'expense' : 'income'
 
-    if (entry.result.direction === 'debit') {
-      await createLinkedExpenseRecord(spreadsheetId, params)
-    } else {
-      await createLinkedIncomeRecord(spreadsheetId, params)
-    }
+    recordId =
+      type === 'expense'
+        ? await createLinkedExpenseRecord(spreadsheetId, params)
+        : await createLinkedIncomeRecord(spreadsheetId, params)
 
     // Leave the queue right after the record exists, so a failure below can
     // never lead to the same record being written twice.
@@ -105,10 +131,16 @@ export async function confirmSmsEntry(
         [entry.result.templateId]: { category: record.category, subCategory: record.subCategory }
       }
     })
+    await logUnappliedRecord(
+      spreadsheetId,
+      type,
+      params,
+      recordLedgerContext(params, 'پیامک', recordId)
+    ).catch(() => undefined)
   }
 
   if (!record) await markBankSmsHandled([entry.sms.id])
-  await applyBalance(spreadsheetId, entry)
+  await applyBalance(spreadsheetId, entry, { title: record?.title, recordId })
 }
 
 /** Own-account transfer: both balances move, no income or expense is recorded. */
@@ -118,8 +150,10 @@ export async function confirmSmsTransfer(
   credit: ConfirmableSms
 ): Promise<void> {
   await markBankSmsHandled([debit.sms.id, credit.sms.id])
-  await applyBalance(spreadsheetId, debit)
-  await applyBalance(spreadsheetId, credit)
+  const note = { title: 'انتقال بین حساب‌ها' }
+
+  await applyBalance(spreadsheetId, debit, note)
+  await applyBalance(spreadsheetId, credit, note)
 }
 
 export async function dismissSms(ids: string[]): Promise<void> {
@@ -146,7 +180,8 @@ export async function settleSmsFromEntry(
   spreadsheetId: string,
   entry: ConfirmableSms,
   effect: RecordWalletEffect | null,
-  record: Pick<SmsRecordInput, 'category' | 'subCategory'>
+  record: Pick<SmsRecordInput, 'category' | 'subCategory'>,
+  context: LedgerContext
 ): Promise<void> {
   await markBankSmsHandled([entry.sms.id])
 
@@ -159,10 +194,10 @@ export async function settleSmsFromEntry(
   // Same account and same direction as the SMS: follow its «مانده». Otherwise (another
   // account, or the user switched income/expense) the record's own effect applies.
   if (effect && effect.accountId === entry.result.accountId && sameDirection(entry, effect)) {
-    await applyBalance(spreadsheetId, { ...entry, amount: Math.abs(effect.delta) })
+    await applyBalance(spreadsheetId, { ...entry, amount: Math.abs(effect.delta) }, context)
 
     return
   }
   if (effect) learnSmsRef(entry.result.ref, effect.accountId)
-  await applyWalletChanges(spreadsheetId, null, effect)
+  await applyWalletChanges(spreadsheetId, null, effect, context)
 }
