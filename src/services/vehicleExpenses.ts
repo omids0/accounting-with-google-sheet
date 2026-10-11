@@ -1,5 +1,14 @@
-import { createLinkedExpenseRecord, deleteLinkedRecord } from './paymentTransactions'
-import { applyWalletChanges, recordLedgerContext } from './recordWallet'
+import {
+  createLinkedExpenseRecord,
+  deleteLinkedRecord,
+  type LinkedRecordWallet
+} from './paymentTransactions'
+import {
+  applyWalletChanges,
+  logUnappliedRecord,
+  recordLedgerContext,
+  walletEffectOf
+} from './recordWallet'
 import { getSettings, updateFormCategories } from './settings'
 import { VEHICLE_EXPENSE_CATEGORY } from '../components/vehicles/constants'
 import { getTodayIso } from '../utils/jalaliDate'
@@ -30,8 +39,12 @@ export async function createVehicleExpense(
     subCategory?: string
     note?: string
     date?: string
-    /** Account of the record this one replaces; its balance moves with the new amount. */
+    /**
+     * Account (and balance switch) of the record this one replaces; the balance moves
+     * with the new amount unless that record opted out.
+     */
     walletAccount?: string
+    walletApply?: string
   }
 ): Promise<string> {
   await ensureVehicleExpenseCategory()
@@ -42,29 +55,19 @@ export async function createVehicleExpense(
     ...params,
     category: VEHICLE_EXPENSE_CATEGORY
   })
+  const values = { ...params, date: params.date ?? getTodayIso() }
+  const context = recordLedgerContext(values, 'ثبت', recordId)
 
-  if (params.walletAccount) {
-    await applyWalletChanges(
-      spreadsheetId,
-      null,
-      { accountId: params.walletAccount, delta: -params.amount },
-      recordLedgerContext(
-        { title: params.title, date: params.date ?? getTodayIso() },
-        'ثبت',
-        recordId
-      )
-    )
-  }
+  await applyWalletChanges(spreadsheetId, null, walletEffectOf('expense', values), context)
+  await logUnappliedRecord(spreadsheetId, 'expense', values, context)
 
   return recordId
 }
 
-/** @returns the wallet account the deleted record named ('' if none). */
+/** @returns the wallet account and balance switch of the deleted record. */
 export async function deleteVehicleExpense(
   spreadsheetId: string,
   expenseRecordId: string
-): Promise<string> {
-  if (!expenseRecordId) return ''
-
+): Promise<LinkedRecordWallet> {
   return deleteLinkedRecord(spreadsheetId, 'expense', expenseRecordId)
 }

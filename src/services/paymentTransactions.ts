@@ -19,6 +19,12 @@ function resolveCategory(category?: string): string {
   return category?.trim() || OTHER_CATEGORY
 }
 
+/** Wallet fields of a deleted record ('' when it had none). */
+export interface LinkedRecordWallet {
+  walletAccount: string
+  walletApply: string
+}
+
 export interface LinkedRecordParams {
   title: string
   amount: number
@@ -93,40 +99,40 @@ export async function createLinkedIncomeRecord(
 }
 
 /**
- * Deletes the record and undoes its wallet effect; returns the account whose balance it
- * had moved ('' if none).
+ * Deletes the record and undoes its wallet effect; returns its account and balance switch,
+ * so a record re-created in its place keeps both.
  */
 export async function deleteLinkedRecord(
   spreadsheetId: string,
   formType: 'income' | 'expense',
   recordId: string
-): Promise<string> {
-  if (!recordId) return ''
+): Promise<LinkedRecordWallet> {
+  const none = { walletAccount: '', walletApply: '' }
+
+  if (!recordId) return none
 
   const form = getFormByType(formType)
 
-  if (!form) return ''
+  if (!form) return none
 
   const records = await fetchRecords(spreadsheetId, form)
 
   const match = records.find(r => r.id === recordId)
 
-  if (match) {
-    await deleteRecord(spreadsheetId, form, match.rowNumber, match.sheetName)
-    const effect = walletEffectOf(formType, match.values)
+  if (!match) return none
 
-    await applyWalletChanges(
-      spreadsheetId,
-      effect,
-      null,
-      recordLedgerContext(match.values, 'حذف', match.id)
-    )
+  await deleteRecord(spreadsheetId, form, match.rowNumber, match.sheetName)
+  await applyWalletChanges(
+    spreadsheetId,
+    walletEffectOf(formType, match.values),
+    null,
+    recordLedgerContext(match.values, 'حذف', match.id)
+  )
 
-    // A record that never moved its balance must not hand its account to a re-created one.
-    return effect?.accountId ?? ''
+  return {
+    walletAccount: match.values[WALLET_ACCOUNT_FIELD_ID] ?? '',
+    walletApply: match.values[WALLET_APPLY_FIELD_ID] ?? ''
   }
-
-  return ''
 }
 
 export async function deleteLinkedExpenseRecord(
