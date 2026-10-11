@@ -1,11 +1,7 @@
-import { LocalNotifications } from '@capacitor/local-notifications'
 import { useEffect, useState } from 'react'
 
-import {
-  getBankSmsPermission,
-  requestBankSmsPermission,
-  setBankSmsCaptureEnabled
-} from '../../services/bankSmsNative'
+import { BANK_SMS_ENABLE_MESSAGES, enableBankSmsCapture } from '../../services/bankSmsEnable'
+import { getBankSmsPermission, setBankSmsCaptureEnabled } from '../../services/bankSmsNative'
 import { getBankSmsPrefs, updateBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { showError, showSuccess } from '../../utils/toast'
 import {
@@ -36,23 +32,18 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
   const enable = async () => {
     setBusy(true)
     try {
-      const allowed = (await requestBankSmsPermission()) === 'granted'
+      const result = await enableBankSmsCapture()
 
-      setGranted(allowed)
-      if (!allowed) {
-        showError('بدون اجازه دسترسی به پیامک‌ها این قابلیت کار نمی‌کند')
+      if (result === 'denied') setGranted(false)
+      if (result !== 'enabled') {
+        showError(BANK_SMS_ENABLE_MESSAGES[result])
 
         return
       }
-      await LocalNotifications.requestPermissions().catch(() => undefined)
-      await setBankSmsCaptureEnabled(true)
-      // Start from now; older SMS are read for the range chosen on the page.
-      updateBankSmsPrefs({ enabled: true, lastScanAt: Date.now() })
+      setGranted(true)
       setEnabled(true)
-      showSuccess('ثبت از پیامک بانکی فعال شد')
+      showSuccess(BANK_SMS_ENABLE_MESSAGES.enabled)
       onChanged()
-    } catch {
-      showError('فعال‌سازی ممکن نشد')
     } finally {
       setBusy(false)
     }

@@ -1,19 +1,14 @@
 import { useState } from 'react'
 
-import { getDefaultBankCardColor, hasBankColorPalette } from './bankCardColorVariants'
-import { resolveBankInternalId } from './banks'
-import { CUSTOM_CARD_COLOR_ID, isCustomCardColor, normalizeHexColor } from './customCardTheme'
 import type { WalletAccountWithRow, WalletFormState } from './types'
-import { resolveAccountKind } from './walletCardUtils'
-import { learnSmsRef } from '../../services/bankSmsPrefs'
-import { createSmsTemplate, deleteAccountSmsTemplates } from '../../services/bankSmsTemplates'
+import { buildWalletAccountPayload, createWalletAccountFromForm } from './walletAccountCreate'
+import { deleteAccountSmsTemplates } from '../../services/bankSmsTemplates'
 import {
   createLinkedExpenseRecord,
   createLinkedIncomeRecord
 } from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import {
-  createWalletAccount,
   deleteWalletAccount,
   loadWalletPeriodFlow,
   updateWalletAccount,
@@ -101,30 +96,9 @@ export function useWalletMutations({
 
     setSaving(true)
     try {
-      const useCustomColor = isCustomCardColor(form.cardColor)
-      const isBankAccount = resolveAccountKind({ accountKind: form.accountKind }) === 'bank'
-      const internalBankId = resolveBankInternalId(form.bankId)
-
-      const payload = {
-        title: form.title.trim(),
-        balance: Number(form.balance),
-        note: form.note.trim(),
-        accountKind: form.accountKind,
-        bankId: isBankAccount ? form.bankId : '',
-        cardNumber: isBankAccount ? form.cardNumber : '',
-        cardHolder: isBankAccount ? form.cardHolder.trim() : '',
-        accountNumber: isBankAccount ? form.accountNumber.trim() : '',
-        iban: isBankAccount ? form.iban.trim() : '',
-        cardColor: useCustomColor
-          ? CUSTOM_CARD_COLOR_ID
-          : isBankAccount && hasBankColorPalette(internalBankId)
-          ? form.cardColor || getDefaultBankCardColor(internalBankId)
-          : '',
-        cardColorPrimary: useCustomColor ? normalizeHexColor(form.cardColorPrimary) : '',
-        cardColorSecondary: useCustomColor ? normalizeHexColor(form.cardColorSecondary) : ''
-      }
-
       if (editingAccount) {
+        const payload = buildWalletAccountPayload(form)
+
         await updateWalletAccount(settings.spreadsheetId, {
           ...editingAccount,
           ...payload
@@ -139,14 +113,7 @@ export function useWalletMutations({
         showSuccess('حساب ویرایش شد')
         await loadItems()
       } else {
-        const account = await createWalletAccount(settings.spreadsheetId, payload)
-
-        await logBalanceSet(settings.spreadsheetId, account.id, 0, account.balance, 'موجودی اولیه')
-
-        for (const { sampleRef, ...draft } of smsDrafts) {
-          await createSmsTemplate(settings.spreadsheetId, { ...draft, accountId: account.id })
-          learnSmsRef(sampleRef, account.id)
-        }
+        await createWalletAccountFromForm(settings.spreadsheetId, form, smsDrafts)
         showSuccess('حساب جدید اضافه شد')
         await loadItems()
       }
