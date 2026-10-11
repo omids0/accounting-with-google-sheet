@@ -178,6 +178,11 @@ export async function seedMockAppState(page: Page): Promise<void> {
         })
       )
       sessionStorage.setItem('accounting_sheets_ready', spreadsheetId)
+      // An established user: the first-run setup wizard must not cover the pages under test.
+      localStorage.setItem(
+        'accounting_onboarding_v1',
+        JSON.stringify({ [spreadsheetId]: { status: 'finished', steps: {} } })
+      )
     },
     {
       session: MOCK_SESSION,
