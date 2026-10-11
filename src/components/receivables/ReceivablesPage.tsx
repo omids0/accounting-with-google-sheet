@@ -134,6 +134,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       ) : items.length === 0 ? (
         <EmptyState
           icon="receivables"
+          description="پولی که به دیگران قرض داده‌ای یا از کسی طلب داری را این‌جا ثبت کن تا فراموش نشود."
           message="هنوز طلبی ثبت نشده"
           action={{ label: 'افزودن طلب', onClick: () => mutations.openCreateForm() }}
         />

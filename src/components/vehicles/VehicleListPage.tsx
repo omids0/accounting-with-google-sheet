@@ -115,6 +115,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
       ) : data.items.length === 0 ? (
         <EmptyState
           icon="car"
+          description="تعویض روغن، بیمه و معاینه فنی هر خودرو را ثبت کن تا موعد بعدی یادآوری شود."
           message="هنوز خودرویی ثبت نشده"
           action={{ label: 'افزودن خودرو', onClick: data.openCreateForm }}
         />

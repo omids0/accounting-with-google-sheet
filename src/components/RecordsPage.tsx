@@ -1,10 +1,10 @@
 import ActiveFilterChips from './ActiveFilterChips'
-import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
 import PageFilterPanel from './PageFilterPanel'
+import SearchEmptyState from './SearchEmptyState'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
 import RecordsEditFormModal from './records/RecordsEditFormModal'
@@ -14,7 +14,6 @@ import RecordsToolbar from './records/RecordsToolbar'
 import { useRecordsPage } from './records/useRecordsPage'
 import { useRecordsSpeedDial } from './records/useRecordsSpeedDial'
 import { RecordListSkeleton } from './skeleton'
-import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 import {
   recordsPageBodyClass,
   recordsPageClass,
@@ -40,14 +39,7 @@ export default function RecordsPage({
   })
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="records" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <EmptyState icon="records" message="ابتدا با گوگل وارد شوید" />
   }
 
   return (
@@ -100,6 +92,7 @@ export default function RecordsPage({
           ) : page.records.length === 0 ? (
             <EmptyState
               icon="empty-inbox"
+              description="همه درآمدها و هزینه‌هایت این‌جا فهرست می‌شوند؛ با فیلتر و جستجو هر تراکنشی را پیدا کن."
               message="هنوز رکوردی ثبت نشده"
               action={{
                 label: 'ثبت تراکنش',
@@ -107,12 +100,7 @@ export default function RecordsPage({
               }}
             />
           ) : page.filteredRecords.length === 0 ? (
-            <div className={emptyStateClass}>
-              <div className={emptyStateIconClass}>
-                <AppIcon name="search" />
-              </div>
-              <p>تراکنشی با این فیلتر یافت نشد</p>
-            </div>
+            <SearchEmptyState />
           ) : (
             <>
               <RecordsList

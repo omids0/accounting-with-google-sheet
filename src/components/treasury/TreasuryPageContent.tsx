@@ -95,6 +95,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       ) : data.holdings.length === 0 ? (
         <EmptyState
           icon="treasury"
+          description="پس‌انداز هدف‌دار: طلا، ارز یا پولی که کنار گذاشته‌ای را جدا از حساب‌های روزمره دنبال کن."
           message="هنوز دارایی‌ای ثبت نشده"
           action={{ label: 'افزودن دارایی', onClick: () => forms.openCreateForm() }}
         />

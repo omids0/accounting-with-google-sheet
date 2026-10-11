@@ -5,9 +5,7 @@ import DangSplitPersonCard from './DangSplitPersonCard'
 import { dangSplitToolbarClass } from './dangSplitStyles'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitGroupSummary } from '../../types/dangSplit'
-import AppIcon from '../AppIcon'
-import Button from '../ui/Button'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import EmptyState from '../EmptyState'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 type PeopleSection = {
@@ -89,15 +87,12 @@ export default function DangSplitPeopleTab({
 
   if (sections.length === 0 && loosePeople.length === 0) {
     return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="counterparties" />
-        </div>
-        <p>هنوز کسی به این دنگ اضافه نشده</p>
-        <Button type="button" variant="primary" size="sm" onClick={onAddPerson}>
-          افزودن فرد
-        </Button>
-      </div>
+      <EmptyState
+        icon="counterparties"
+        description="کسانی که در این هزینه‌ها شریک‌اند را اضافه کن."
+        message="هنوز کسی به این دنگ اضافه نشده"
+        action={{ label: 'افزودن فرد', onClick: onAddPerson }}
+      />
     )
   }
 

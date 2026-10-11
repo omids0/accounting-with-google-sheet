@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 
-import AppIcon from './AppIcon'
+import EmptyState from './EmptyState'
 import OpeningBalanceCard, {
   type OpeningBalanceEditState
 } from './openingBalances/OpeningBalanceCard'
 import { InstallmentCardListSkeleton } from './skeleton'
 import Button from './ui/Button'
-import { emptyStateClass, emptyStateIconClass } from './ui/displayStyles'
 import { listCardsContainerClass, listModulePageClass } from './ui/featureCardStyles'
 import { cardHeaderRowClass, openingBalancePageHintClass } from './ui/recordsStyles'
 import {
@@ -135,14 +134,7 @@ export default function OpeningBalancePage() {
   }
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="installments" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <EmptyState icon="wallet" message="ابتدا با گوگل وارد شوید" />
   }
 
   return (
@@ -172,12 +164,11 @@ export default function OpeningBalancePage() {
       {loading && items.length === 0 ? (
         <InstallmentCardListSkeleton />
       ) : items.length === 0 ? (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="installments" />
-          </div>
-          <p>هنوز موجودی اول دوره‌ای ثبت نشده</p>
-        </div>
+        <EmptyState
+          icon="wallet"
+          description="موجودی اول هر ماه از حساب‌های کیف پول و گردش ماه قبل ساخته می‌شود."
+          message="هنوز موجودی اول دوره‌ای ثبت نشده"
+        />
       ) : (
         <div className={listCardsContainerClass}>
           {items.map(item => (

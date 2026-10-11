@@ -6,6 +6,9 @@ export const emptyTextClass = 'py-4 text-center text-[0.85rem] text-muted'
 export const emptyStateClass =
   'px-[0.65rem] py-6 text-center text-muted animate-[fadeInUp_0.45s_var(--ease-page)_both]'
 
+export const emptyStateDescriptionClass =
+  'mx-auto mb-2 max-w-[320px] text-[0.8rem] leading-[1.9] text-muted opacity-80'
+
 export const emptyStateIconClass = cn(
   'mb-4 inline-flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-[20px] text-primary',
   '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_14%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_90%,var(--color-surface)))]',

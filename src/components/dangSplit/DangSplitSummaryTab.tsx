@@ -13,11 +13,10 @@ import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import { useDangSplitPayments } from './useDangSplitPayments'
 import type { DangSplitGroupSummary, DangSplitPersonSummary } from '../../types/dangSplit'
 import { formatMoney } from '../../utils/formatMoney'
-import AppIcon from '../AppIcon'
+import EmptyState from '../EmptyState'
 import ProgressBar from '../ProgressBar'
 import StatCard from '../StatCard'
 import { dashboardStatGridClass } from '../ui/chartStyles'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 type SummarySection = {
@@ -123,12 +122,11 @@ export default function DangSplitSummaryTab({
       </div>
 
       {summary.people.length === 0 ? (
-        <div className={emptyStateClass}>
-          <div className={emptyStateIconClass}>
-            <AppIcon name="counterparties" />
-          </div>
-          <p>ابتدا افراد و اقلام هزینه را ثبت کنید</p>
-        </div>
+        <EmptyState
+          icon="counterparties"
+          description="این‌جا معلوم می‌شود چه کسی به چه کسی چقدر بدهکار است."
+          message="ابتدا افراد و اقلام هزینه را ثبت کنید"
+        />
       ) : (
         sections.map(section => (
           <div key={section.key} className={dangSplitGroupClass}>

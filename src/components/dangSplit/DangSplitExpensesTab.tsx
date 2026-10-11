@@ -2,9 +2,7 @@ import DangSplitExpenseCard from './DangSplitExpenseCard'
 import { dangSplitToolbarClass } from './dangSplitStyles'
 import type { DangSplitExpenseWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitAllocationWithRow } from '../../services/dangSplitExpenses'
-import AppIcon from '../AppIcon'
-import Button from '../ui/Button'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
+import EmptyState from '../EmptyState'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 export default function DangSplitExpensesTab({
@@ -26,15 +24,12 @@ export default function DangSplitExpensesTab({
 }) {
   if (expenses.length === 0) {
     return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="records" />
-        </div>
-        <p>هنوز هزینه‌ای ثبت نشده</p>
-        <Button type="button" variant="primary" size="sm" onClick={onAdd}>
-          افزودن هزینه
-        </Button>
-      </div>
+      <EmptyState
+        icon="records"
+        description="هر خرید مشترک را این‌جا ثبت کن تا سهم هر نفر حساب شود."
+        message="هنوز هزینه‌ای ثبت نشده"
+        action={{ label: 'افزودن هزینه', onClick: onAdd }}
+      />
     )
   }
 

@@ -50,6 +50,7 @@ export default function DangList({
     return (
       <EmptyState
         icon="debt"
+        description="بدهی‌هایت به دیگران را این‌جا ثبت کن و هر پرداخت را علامت بزن تا مانده‌اش معلوم باشد."
         message="هنوز بدهی ثبت نشده"
         action={onAdd ? { label: 'افزودن بدهی', onClick: onAdd } : undefined}
       />

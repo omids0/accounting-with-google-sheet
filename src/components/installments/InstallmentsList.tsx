@@ -51,6 +51,7 @@ export default function InstallmentsList({
     return (
       <EmptyState
         icon="installments"
+        description="وام و خریدهای قسطی‌ات را ثبت کن تا سررسید هر قسط و مانده بدهی را یک‌جا ببینی."
         message="هنوز قسطی ثبت نشده"
         action={onAdd ? { label: 'افزودن قسط', onClick: onAdd } : undefined}
       />
@@ -58,7 +59,13 @@ export default function InstallmentsList({
   }
 
   if (monthPlans.length === 0) {
-    return <EmptyState icon="installments" message={`هیچ قسطی برای ${monthLabel} نیست`} />
+    return (
+      <EmptyState
+        icon="installments"
+        message={`هیچ قسطی برای ${monthLabel} نیست`}
+        action={onAdd ? { label: 'افزودن قسط', onClick: onAdd } : undefined}
+      />
+    )
   }
 
   if (filteredPlans.length === 0) {

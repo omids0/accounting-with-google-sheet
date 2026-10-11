@@ -63,6 +63,7 @@ export default function DangSplitPage({ active = true }: { active?: boolean }) {
       {items.length === 0 ? (
         <EmptyState
           icon="calculator"
+          description="برای هر سفر یا دورهمی یک گروه بساز تا هزینه‌های مشترک بین افراد عادلانه تقسیم شود."
           message="هنوز گروه دنگی ساخته نشده"
           action={{ label: 'افزودن گروه دنگ', onClick: openCreateForm }}
         />

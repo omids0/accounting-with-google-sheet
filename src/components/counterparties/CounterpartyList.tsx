@@ -26,6 +26,7 @@ export default function CounterpartyList({
     return (
       <EmptyState
         icon="counterparties"
+        description="افرادی که با آن‌ها حساب‌وکتاب داری را یک‌بار تعریف کن تا در طلب، بدهی و چک‌ها انتخابشان کنی."
         message="هنوز طرف حسابی ثبت نشده"
         action={onAdd ? { label: 'افزودن طرف حساب', onClick: onAdd } : undefined}
       />

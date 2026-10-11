@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 
 import type { WalletAccountWithRow } from './types'
@@ -41,13 +41,16 @@ export function useWalletLedgerSpeedDial({
     onComplete: () => {}
   })
 
-  const config = useMemo(() => {
-    if (!isConfigured()) return null
-
-    const openEntry = (formType: 'income' | 'expense') =>
+  const openEntry = useCallback(
+    (formType: 'income' | 'expense') =>
       navigate(getPathForTab('entry', { formType }), {
         state: buildEntryDraftState(formType, { [WALLET_ACCOUNT_FIELD_ID]: account.id })
-      })
+      }),
+    [account.id, navigate]
+  )
+
+  const config = useMemo(() => {
+    if (!isConfigured()) return null
 
     return {
       ariaLabel: 'عملیات گردش حساب',
@@ -89,9 +92,9 @@ export function useWalletLedgerSpeedDial({
         }
       ]
     }
-  }, [account.id, entries.length, handleExport, handleExportPdf, loading, navigate, reload])
+  }, [entries.length, handleExport, handleExportPdf, loading, openEntry, reload])
 
   useRegisterPageSpeedDial(config)
 
-  return importExportConfirmModal
+  return { confirmModal: importExportConfirmModal, openEntry }
 }
