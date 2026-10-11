@@ -18,7 +18,7 @@ type BankSmsEntryCardProps = {
   accounts: WalletAccountWithRow[]
   busy: boolean
   /** Opens the normal income/expense form pre-filled from this SMS. */
-  onOpenEntry: (entry: ConfirmableSms, accountTitle: string) => void
+  onOpenEntry: (entry: ConfirmableSms) => void
   /** Record already exists: only move the balance. */
   onBalanceOnly: (entry: ConfirmableSms) => void
   onDismiss: () => void
@@ -108,7 +108,7 @@ export default function BankSmsEntryCard({
           size="sm"
           variant={direction === 'debit' ? 'outflow' : 'inflow'}
           disabled={!resolved || busy}
-          onClick={() => resolved && onOpenEntry(resolved, accountTitle)}
+          onClick={() => resolved && onOpenEntry(resolved)}
         >
           {direction === 'debit' ? 'ثبت هزینه' : 'ثبت درآمد'}
         </Button>

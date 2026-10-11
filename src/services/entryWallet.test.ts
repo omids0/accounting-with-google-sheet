@@ -40,12 +40,23 @@ describe('smsBalanceHint', () => {
 describe('bank SMS entry prefill', () => {
   beforeEach(() => localStorage.clear())
 
+  it('leaves title and category for the user to fill in every time', () => {
+    updateBankSmsPrefs({ lastCategory: { t: { category: 'خوراک', subCategory: 'رستوران' } } })
+
+    const { prefill } = buildBankSmsEntryState(sms).bankSmsEntry
+
+    expect(prefill.title).toBe('')
+    expect(prefill.category).toBe('')
+    expect(prefill.subCategory).toBe('')
+    expect(prefill).toMatchObject({ amount: 500, walletAccount: 'acc' })
+  })
+
   it('starts with the balance update on, or off when a newer «مانده» covers the SMS', () => {
-    expect(buildBankSmsEntryState(sms, 'کارت').bankSmsEntry.prefill.walletApply).toBe('بله')
+    expect(buildBankSmsEntryState(sms).bankSmsEntry.prefill.walletApply).toBe('بله')
 
     updateBankSmsPrefs({ balanceStates: { acc: { anchor: 2000, lastAppliedAt: 2000 } } })
 
-    expect(buildBankSmsEntryState(sms, 'کارت').bankSmsEntry.prefill.walletApply).toBe('خیر')
+    expect(buildBankSmsEntryState(sms).bankSmsEntry.prefill.walletApply).toBe('خیر')
   })
 })
 

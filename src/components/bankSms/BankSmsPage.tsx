@@ -112,8 +112,8 @@ function BankSmsReview() {
               duplicateMovedBalance={item.duplicateMovedBalance}
               accounts={review.accounts}
               busy={busy}
-              onOpenEntry={(resolved, accountTitle) => {
-                const state = buildBankSmsEntryState(resolved, accountTitle)
+              onOpenEntry={resolved => {
+                const state = buildBankSmsEntryState(resolved)
                 const formType = state.bankSmsEntry.formType
 
                 navigate(getPathForTab('entry', { formType }), { state })
