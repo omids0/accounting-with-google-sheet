@@ -81,7 +81,7 @@ describe('writes on a trimmed grid', () => {
 
     await expect(
       executeOutboxOperation('sid', { type: 'replace', sheetName: SHEET, rows, columnCount: 3 })
-    ).resolves.toBeUndefined()
+    ).resolves.toBe(SHEET)
   })
 
   it('grows the columns when an appended row is wider than the grid', async () => {

@@ -68,10 +68,15 @@ export async function migrateLegacyMachineExpenseCategory(
   )
 
   for (const record of legacyRecords) {
-    await updateRecord(spreadsheetId, expenseForm, record.rowNumber, record.id, record.createdAt, {
-      ...record.values,
-      category: VEHICLE_EXPENSE_CATEGORY
-    })
+    await updateRecord(
+      spreadsheetId,
+      expenseForm,
+      record.rowNumber,
+      record.id,
+      record.createdAt,
+      { ...record.values, category: VEHICLE_EXPENSE_CATEGORY },
+      record.sheetName
+    )
 
     const existingMeta = await findVehicleExpenseMetaByRecordId(spreadsheetId, record.id)
 

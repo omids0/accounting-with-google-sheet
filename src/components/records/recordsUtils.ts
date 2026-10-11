@@ -5,6 +5,8 @@ export interface RecordItem {
   id: string
   createdAt: string
   rowNumber: number
+  /** The tab holding the row (form tab or yearly archive); the form tab when unset. */
+  sheetName?: string
   values: Record<string, string>
 }
 

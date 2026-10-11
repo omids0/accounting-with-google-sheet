@@ -174,34 +174,78 @@ Also: `writeSheetHeaders` with more than 26 headers.
 
 ### Sweep (move past-year rows out of the base tab)
 
-**Trigger.** After a pull, per form, when an in-memory check of the base rows finds a row
-with Jalali year below the current one. The check needs no API call, so steady state costs
-nothing. The sweep also requires the outbox for the base tab to be empty.
+**Trigger (updated 2026-10-11).** After a pull, per form, from an in-memory check of the base
+rows. The check needs no API call, so steady state costs nothing. All of these must hold:
 
-The first run for existing users is the same sweep. It moves each past year's rows into its
-own archive tab. No separate migration exists.
+- The base tab holds more than `ARCHIVE_THRESHOLD_ROWS = 5000` data rows.
+- At least one row has a Jalali year below the current one.
+- The whole outbox is empty.
 
-Steps for each past year `Y` found in the base tab:
+Users with small sheets never get archive tabs, and their sheet stays simple.
 
-1. **Ensure the archive tab** `<base> Y` exists. Its header row is a copy of the base tab's
-   header row, not the schema, so hand-mapped or older column layouts survive. It is created
-   with an exact grid (Part 1).
-2. **Fresh read** of the archive tab. Append only the rows whose `شناسه` is not already
-   there. This makes the step idempotent after a crash.
-3. **Fresh read** of the archive tab again. Confirm that every row being moved is present by
-   id. If any is missing, stop. Nothing is deleted.
-4. **Fresh read** of the base tab. Map each moved id to its current row number. Rows whose id
-   is no longer present (deleted meanwhile) are skipped.
-5. **One `batchUpdate`** deletes those rows. It uses `deleteDimension` requests in descending
-   index order, merged into contiguous ranges. The single request is atomic.
-6. **Stamp change tokens** on both tabs with the existing revision stamping, so other devices
-   re-pull.
-7. **Update the local mirror** for both tabs from the fresh reads, minus the deleted rows.
-   Then bump the write versions so an in-flight pull cannot overwrite the result.
+- **Why 5,000:** benchmark of the real parse path on synthetic 9-column rows, about
+  34 bytes per row on the wire after gzip. A 5,000-row tab is about 170 KB per download;
+  20,000 rows is about 680 KB.
+- In-app processing stays under 100 ms even at 20,000 rows, so the network is the cost.
+- Once the threshold is reached, every past year moves out, so the base tab holds roughly the
+  current year.
 
-**Two devices sweeping at once.** A duplicate id in an archive is possible. It is harmless,
-because reads dedupe by id. The next sweep removes extra copies inside the archive with the
-same verify-then-delete pattern.
+The first run for existing users is the same sweep. No separate migration exists.
+
+The whole sweep runs inside the outbox's cross-tab lock, so no write from this device reaches
+the sheet while rows move. It runs only with an empty outbox, and a tab without a header row
+is never swept.
+
+Steps for each past year `Y` found in the base tab, revised after the final review:
+
+1. **Prepare the archive tab** `<base> Y`.
+   - **New tab:** created with an exact grid and the developer-metadata marker
+     `accounting_archive`, both in one atomic `batchUpdate`. The header row is a copy of the
+     base tab's header row.
+   - **Existing tab:** used only if it carries the marker and its header equals the base
+     header. An older prefix is extended. Any other tab with that name is left alone, and its
+     rows stay in the base tab.
+2. **Server-side copy.** From a fresh read of the archive, only rows whose `شناسه` is not
+   there yet are copied, with `copyPaste` in one `batchUpdate` that grows the grid first.
+   - Values, number formats, dates and formulas arrive exactly as they are; nothing is
+     re-written from formatted text.
+   - A re-run after a crash copies nothing twice.
+3. **Verify.** The archive is read again. Only two kinds of new rows are removed:
+   - a second copy of an id;
+   - a row that still lives unchanged in the base tab, i.e. pasted from a shifted range.
+
+   Any other new row may be another device's valid copy, and it stays. Every planned id must
+   then be present. Otherwise the sweep stops and nothing is deleted.
+4. **Content-checked delete.** From a fresh read of the base tab, only past-year rows whose
+   whole content equals their archived copy are deleted, at most one per id. Deletion uses
+   descending, merged `deleteDimension` ranges.
+   - A row edited after the copy stays in the base tab.
+   - A current-year row sharing an id stays in the base tab.
+5. **Put back.** The base is read again. Any other row the delete hit, because another device
+   shifted rows in between, is appended back. In that sub-second window a row deleted
+   elsewhere may also come back; restoring is preferred to losing data.
+6. **Stamp change tokens** on the base tab and the archives.
+7. **Update the local mirror.** The base copy is replaced only if no local write happened
+   meanwhile.
+
+**Deleting a record** removes every copy of its id across the form tab and its archives,
+bottom rows first. An archived copy left by an interrupted move therefore cannot come back.
+
+**Only marked tabs are archives.** The `accounting_archive` marker is read with the change
+tokens on every pull and kept in the sync meta (`archiveTabs`).
+- Reads, deletes, outbox fallbacks and the cold tier all use that list.
+- A tab merely named like an archive, such as a user's own backup, is never read, deleted
+  from or written to.
+
+**After a write lands in an archive.** When a queued edit follows its row into an archive,
+that archive's seen token is dropped, so the next pull downloads it. The sweep also drops the
+token of any archive whose mirror changed locally during the sweep.
+
+**Known limit (accepted).** There is a sub-second window between the base re-read and the
+delete. If another device edits a past-year row inside it, that edit is lost, and the archive
+keeps the pre-edit content. If another device deletes a row inside it, the row may be put
+back. This needs another device to save a past-year row at the exact moment of a sweep that
+runs about once a year.
 
 ### Edits after a move
 
@@ -213,17 +257,31 @@ same verify-then-delete pattern.
   tab, so placement affects only sync cost, never correctness. This avoids a cross-tab move
   on every edit.
 
-### Sync cold tier
+### Sync cold tier (updated 2026-10-11)
 
-- The regular pull (`pickSheetsToFetch`) uses only hot-tier tabs.
-- The cold tier is fetched per archive tab when any of these hold:
-  - the tab is not in the IndexedDB mirror
-  - its change token differs from the token persisted at its last download
-  - its last download is older than 24 h; this is the safety net for hand edits, which do
-    not stamp tokens
-- Last-download token and time per archive tab are persisted with the mirror. This differs
-  from hot-tier tokens, which stay session-only as today.
-- Result: a cold start or a 10-minute refresh downloads only the current year.
+The changed-tabs sync (merged in PR #125) already persists change tokens with the mirror, so
+an archive tab whose token did not move is never downloaded. Only the "download everything"
+plans need a cold-tier rule.
+
+- **Archive tabs are discovered from the change-token read.** `fetchSheetRevisions` already
+  lists every tab on each pull, and `RevisionEntry` gains the real `title`. A tab is an
+  archive when `parseArchiveSheetName` matches it.
+- **`planSheetFetch` gets `coldSheets`, the archive tabs:**
+
+  | Plan | Archives included |
+  |------|-------------------|
+  | Token moved on an archive tab | that archive tab |
+  | Hand edit, or the 15-minute suspect window | only archive tabs missing from the mirror |
+  | Daily safety net (24 h), unknown tokens, no mirror | all archive tabs |
+
+- **Result:** a hand edit, or another device's write, downloads only the current year.
+  Archive tabs come down once and then once a day at most.
+
+### Reads
+
+`fetchRecords(form)` reads the base tab and every archive tab of that form held in the mirror.
+It dedupes by `id`, keeping the base copy, and tags each record with its `sheetName`.
+Archive tabs not yet in the mirror are fetched on demand, as the base tab is today.
 
 ### UI and About page
 

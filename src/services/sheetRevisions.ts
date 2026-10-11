@@ -1,3 +1,4 @@
+import { ARCHIVE_MARKER_KEY } from './recordArchive'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { normalizeSheetTitle } from './sheetsMeta'
 import { clearSyncMeta, getSyncMeta, updateSyncMeta } from './spreadsheetSyncMeta'
@@ -12,6 +13,10 @@ import { clearSyncMeta, getSyncMeta, updateSyncMeta } from './spreadsheetSyncMet
 export const REVISION_METADATA_KEY = 'accounting_rev'
 
 interface RevisionEntry {
+  /** Carries the archive marker (a yearly archive tab this app created). */
+  archive: boolean
+  /** The tab title as Google has it (map keys are normalized). */
+  title: string
   sheetId: number
   /** Joined value of every matching metadata entry (duplicates can appear after concurrent creates). */
   token: string
@@ -67,6 +72,10 @@ export async function fetchSheetRevisions(spreadsheetId: string): Promise<Revisi
     )
 
     map.set(sheetKey(title), {
+      archive: (sheet.developerMetadata ?? []).some(
+        item => item.metadataKey === ARCHIVE_MARKER_KEY
+      ),
+      title,
       sheetId,
       token: own
         .map(item => item.metadataValue ?? '')
@@ -224,4 +233,14 @@ export async function stampSheetRevisions(
 
 export function forgetSheetRevisions(spreadsheetId: string): void {
   clearSyncMeta(spreadsheetId)
+}
+
+/** Marks tabs as not held locally as they are remotely, so the next pull downloads them. */
+export function forgetSeenSheets(spreadsheetId: string, sheetNames: Iterable<string>): void {
+  const seen = readSeen(spreadsheetId)
+
+  if (!seen) return
+
+  for (const name of sheetNames) seen.delete(sheetKey(name))
+  writeSeen(spreadsheetId, seen)
 }

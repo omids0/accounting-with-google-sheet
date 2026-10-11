@@ -123,6 +123,12 @@ export async function fullSyncFromRemote(
       void import('./migrateCompactGrids')
         .then(({ migrateCompactGrids }) => migrateCompactGrids(spreadsheetId))
         .catch(() => undefined)
+      // Free unless a form tab is over the archive threshold (checked on the mirror).
+      void import('./recordArchiveSweep')
+        .then(({ sweepArchivesAfterPull }) =>
+          sweepArchivesAfterPull(spreadsheetId, settings.forms ?? [])
+        )
+        .catch(() => undefined)
     } catch (err) {
       if (isQuotaExceededError(err)) {
         const { markQuotaExceeded } = await import('./sheetSyncOutbox')
