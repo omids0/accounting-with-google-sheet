@@ -130,7 +130,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       </FilterModal>
 
       {loading && items.length === 0 ? (
-        <InstallmentCardListSkeleton footerStats={1} />
+        <InstallmentCardListSkeleton footerStats={1} footerClassName={receivableTotalCardClass} />
       ) : items.length === 0 ? (
         <EmptyState
           icon="receivables"

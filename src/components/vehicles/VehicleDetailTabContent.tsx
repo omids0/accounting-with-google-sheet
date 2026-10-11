@@ -22,7 +22,6 @@ type VehicleDetailTabContentProps = {
   transactions: VehicleTransactionItem[]
   allTransactionsCount: number
   fuelStats: MonthlyFuelStats[]
-  filterChipsCount: number
   sourceItems: VehicleActiveListItem[] | HistoryWithRow[]
   listItems: VehicleDetailFilterItem[]
   onComplete: (item: VehicleActiveListItem) => void
@@ -42,7 +41,6 @@ export default function VehicleDetailTabContent({
   transactions,
   allTransactionsCount,
   fuelStats,
-  filterChipsCount,
   sourceItems,
   listItems,
   onComplete,
@@ -79,7 +77,7 @@ export default function VehicleDetailTabContent({
   }
 
   if (loading && activeItems.length === 0 && history.length === 0) {
-    return <DangCardListSkeleton filterChips={filterChipsCount} />
+    return <DangCardListSkeleton />
   }
 
   if (sourceItems.length === 0) {

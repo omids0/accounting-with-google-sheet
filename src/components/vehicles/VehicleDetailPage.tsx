@@ -211,7 +211,6 @@ export default function VehicleDetailPage({
         transactions={filteredTransactions}
         allTransactionsCount={page.transactions.length}
         fuelStats={filteredFuelStats}
-        filterChipsCount={filters.filterChips.length}
         sourceItems={sourceItems}
         listItems={listItems}
         onComplete={page.openComplete}

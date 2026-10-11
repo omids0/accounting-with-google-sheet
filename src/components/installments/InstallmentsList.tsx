@@ -44,7 +44,7 @@ export default function InstallmentsList({
   onAdd
 }: InstallmentsListProps) {
   if (loading && plans.length === 0) {
-    return <InstallmentCardListSkeleton filterChips={1} footerStats={2} />
+    return <InstallmentCardListSkeleton footerStats={2} />
   }
 
   if (plans.length === 0) {

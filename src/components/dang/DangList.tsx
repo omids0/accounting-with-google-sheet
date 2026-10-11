@@ -43,7 +43,14 @@ export default function DangList({
   onAdd
 }: DangListProps) {
   if (loading && items.length === 0) {
-    return <DangCardListSkeleton />
+    return (
+      <DangCardListSkeleton
+        actions={3}
+        metaLines={1}
+        footerStats={1}
+        footerClassName={dangTotalFooterClass}
+      />
+    )
   }
 
   if (items.length === 0) {

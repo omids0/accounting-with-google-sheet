@@ -81,7 +81,7 @@ export default function DangSplitDetailPage({
       </Card>
 
       {data.loading && data.people.length === 0 && data.expenses.length === 0 ? (
-        <DangCardListSkeleton filterChips={0} />
+        <DangCardListSkeleton />
       ) : detailTab === 'summary' ? (
         <DangSplitSummaryTab
           summary={data.summary}

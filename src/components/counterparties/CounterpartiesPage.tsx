@@ -103,7 +103,7 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
       </FilterModal>
 
       {isInitialLoading ? (
-        <DangCardListSkeleton filterChips={0} />
+        <DangCardListSkeleton filterBar />
       ) : (
         <>
           <ActiveFilterChips
