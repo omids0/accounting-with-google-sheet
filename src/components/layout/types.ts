@@ -98,6 +98,7 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'receivables',
   'treasury',
   'wallet',
+  'wallet-account-detail',
   'timesheets',
   'timesheet-detail',
   'dang-split',

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { getSettings } from '../../services/settings'
 import { fetchLedger, type LedgerEntry } from '../../services/walletLedger'
@@ -8,9 +8,9 @@ import { handleSheetError } from '../../utils/sheetError'
 export function useWalletLedger(accountId: string) {
   const [entries, setEntries] = useState<LedgerEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const mounted = useRef(true)
 
-  useEffect(() => {
-    let cancelled = false
+  const reload = useCallback(async () => {
     const spreadsheetId = getSettings()?.spreadsheetId
 
     if (!spreadsheetId) {
@@ -20,19 +20,25 @@ export function useWalletLedger(accountId: string) {
     }
 
     setLoading(true)
-    fetchLedger(spreadsheetId, accountId)
-      .then(rows => {
-        if (!cancelled) setEntries(rows)
-      })
-      .catch(error => handleSheetError(error, { fallbackMessage: 'خطا در دریافت گردش حساب' }))
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+    try {
+      const rows = await fetchLedger(spreadsheetId, accountId)
 
-    return () => {
-      cancelled = true
+      if (mounted.current) setEntries(rows)
+    } catch (error) {
+      if (mounted.current) handleSheetError(error, { fallbackMessage: 'خطا در دریافت گردش حساب' })
+    } finally {
+      if (mounted.current) setLoading(false)
     }
   }, [accountId])
 
-  return { entries, loading }
+  useEffect(() => {
+    mounted.current = true
+    void reload()
+
+    return () => {
+      mounted.current = false
+    }
+  }, [reload])
+
+  return { entries, loading, reload }
 }

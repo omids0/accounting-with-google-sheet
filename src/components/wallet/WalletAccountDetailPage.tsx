@@ -1,7 +1,9 @@
 import type { WalletAccountWithRow } from './types'
 import { useWalletLedger } from './useWalletLedger'
+import { useWalletLedgerSpeedDial } from './useWalletLedgerSpeedDial'
 import WalletAccountCardVisual from './WalletAccountCardVisual'
 import WalletLedgerItem from './WalletLedgerItem'
+import ConfirmActionModal from '../ConfirmActionModal'
 import EmptyState from '../EmptyState'
 import { RecordListSkeleton } from '../skeleton'
 import Card from '../ui/Card'
@@ -10,13 +12,14 @@ import { recordsListCountClass, recordsListHeaderClass } from '../ui/recordsStyl
 
 /** One account's balance history («گردش حساب»), opened by tapping its wallet card. */
 export default function WalletAccountDetailPage({ account }: { account: WalletAccountWithRow }) {
-  const { entries, loading } = useWalletLedger(account.id)
+  const { entries, loading, reload } = useWalletLedger(account.id)
+  const exportConfirm = useWalletLedgerSpeedDial({ account, entries, loading, reload })
 
   return (
     <div className={listModulePageClass}>
       <WalletAccountCardVisual account={account} displayBalance={account.balance} />
 
-      {loading ? (
+      {loading && entries.length === 0 ? (
         <RecordListSkeleton />
       ) : entries.length === 0 ? (
         <EmptyState icon="wallet" message="هنوز گردشی ثبت نشده" />
@@ -31,6 +34,8 @@ export default function WalletAccountDetailPage({ account }: { account: WalletAc
           ))}
         </Card>
       )}
+
+      <ConfirmActionModal {...exportConfirm} />
     </div>
   )
 }

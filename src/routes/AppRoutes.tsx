@@ -40,6 +40,7 @@ import WalletAccountDetailRoute from './WalletAccountDetailRoute'
 import Layout from '../components/Layout'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 import { readBankSmsEntryDraft } from '../services/bankSmsEntry'
+import { readEntryDraft } from '../services/entryDraft'
 
 function parseFormType(value: string | null): 'income' | 'expense' | undefined {
   if (value === 'income' || value === 'expense') return value
@@ -58,16 +59,17 @@ function EntryRoute() {
   const navigate = useNavigate()
   const location = useLocation()
   const smsDraft = readBankSmsEntryDraft(location.state)
-  // Opened from a bank SMS card: go back to the queue, and drop the pre-filled form from history.
-  const back = () => (smsDraft ? navigate(-1) : navigate('/'))
+  const draft = smsDraft ?? readEntryDraft(location.state)
+  // Opened pre-filled (bank SMS card, account history): go back there, and drop the form from history.
+  const back = () => (draft ? navigate(-1) : navigate('/'))
 
   return (
     <LazyDataEntryPage
-      initialFormType={smsDraft?.formType ?? parseFormType(searchParams.get('type'))}
+      initialFormType={draft?.formType ?? parseFormType(searchParams.get('type'))}
       onCancel={back}
-      prefill={smsDraft?.prefill}
+      prefill={draft?.prefill}
       bankSms={smsDraft?.bankSms}
-      onSaved={smsDraft ? back : undefined}
+      onSaved={draft ? back : undefined}
     />
   )
 }
