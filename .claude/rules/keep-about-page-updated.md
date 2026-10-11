@@ -24,7 +24,7 @@ Update the About content whenever you:
    - `src/components/about/aboutFeatureGroupsExtended.ts`
 2. **New section** — add a new `AboutFeatureGroup` with `id`, `title`, `icon`, `summary`, and `features[]`.
 3. **Navigation** — if the feature has a new sidebar/menu entry, ensure About mentions where users find it.
-4. **Version** — bump `APP_VERSION` in `AboutPage.tsx` when shipping a release that changes documented behavior.
+4. **Version** — bump `version` in `package.json` (About and the APK release both read it) when shipping a release that changes documented behavior.
 
 ## Checklist before finishing feature work
 
