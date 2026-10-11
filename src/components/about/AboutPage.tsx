@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
 
+// The APK release workflow names builds from the same field, so the two never drift.
+import { version as APP_VERSION } from '../../../package.json'
 import AppIcon from '../AppIcon'
 import { ABOUT_FEATURE_GROUPS } from './aboutFeatures'
 import AboutFeatureSection from './AboutFeatureSection'
@@ -14,8 +16,6 @@ import {
   aboutPageClass
 } from '../ui/aboutStyles'
 import { cardClassName } from '../ui/Card'
-
-const APP_VERSION = '1.18.3'
 
 export default function AboutPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set())
