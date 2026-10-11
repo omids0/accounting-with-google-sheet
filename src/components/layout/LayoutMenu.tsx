@@ -5,6 +5,7 @@ import LayoutReportsSubmenu from './LayoutReportsSubmenu'
 import LayoutSidebarNav from './LayoutSidebarNav'
 import LayoutThemeToggle from './LayoutThemeToggle'
 import LayoutUpdateItem from './LayoutUpdateItem'
+import MenuItemLabel from './MenuItemLabel'
 import TabNavLink from './TabNavLink'
 import { TAB_TITLES, type Tab } from './types'
 import { SETTINGS_PATH } from '../../routes/paths'
@@ -28,8 +29,6 @@ import {
   appMenuProfileClass,
   appMenuProfileInnerClass,
   appMenuProfileTextClass,
-  appMenuPromoHintClass,
-  appMenuPromoTextClass,
   appMenuScrollBodyClass
 } from '../ui/layoutStyles'
 
@@ -65,11 +64,10 @@ interface MenuLinkItemProps {
   tab: Tab
   icon: AppIconName
   active: boolean
-  hint?: string
   onTabChange: (tab: Tab) => void
 }
 
-function MenuLinkItem({ tab, icon, active, hint, onTabChange }: MenuLinkItemProps) {
+function MenuLinkItem({ tab, icon, active, onTabChange }: MenuLinkItemProps) {
   return (
     <TabNavLink
       tab={tab}
@@ -80,14 +78,7 @@ function MenuLinkItem({ tab, icon, active, hint, onTabChange }: MenuLinkItemProp
       <span className={appMenuItemIconClass(active)}>
         <AppIcon name={icon} size={20} strokeWidth={1.75} />
       </span>
-      {hint ? (
-        <span className={appMenuPromoTextClass}>
-          <span>{TAB_TITLES[tab]}</span>
-          <span className={appMenuPromoHintClass}>{hint}</span>
-        </span>
-      ) : (
-        <span className={appMenuItemLabelClass}>{TAB_TITLES[tab]}</span>
-      )}
+      <MenuItemLabel tab={tab} />
     </TabNavLink>
   )
 }
@@ -153,7 +144,6 @@ export default function LayoutMenu({
             <MenuLinkItem
               tab="personal-reminders"
               icon="bell"
-              hint="قبض، بیمه و مواعد شخصی"
               active={onPage('personal-reminders')}
               onTabChange={onTabChange}
             />
@@ -167,7 +157,6 @@ export default function LayoutMenu({
               <MenuLinkItem
                 tab="bank-sms"
                 icon="empty-inbox"
-                hint="ثبت هزینه و درآمد از پیامک بانک"
                 active={onPage('bank-sms')}
                 onTabChange={onTabChange}
               />
