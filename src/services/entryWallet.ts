@@ -47,6 +47,16 @@ export async function settleEntryWallet(
   )
 }
 
+/** Why the balance switch starts off for a record opened from an SMS (undefined: it does not). */
+export function smsBalanceHint(
+  bankSms: ConfirmableSms | undefined,
+  accountId: string
+): string | undefined {
+  if (!bankSms || !smsAlreadyInBalance(bankSms, accountId)) return undefined
+
+  return 'موجودی از پیامک جدیدتر به‌روز شده است'
+}
+
 /**
  * Values to store for a record opened from a bank SMS: keep the account but turn the balance
  * update off when a newer «مانده» already includes this SMS, so the record never undoes an

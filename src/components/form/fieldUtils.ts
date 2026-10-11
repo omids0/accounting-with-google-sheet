@@ -114,6 +114,14 @@ export function isWalletApplied(values: Record<string, string | number | undefin
   return String(values[WALLET_APPLY_FIELD_ID] ?? '').trim() !== WALLET_APPLY_NO
 }
 
+/** The balance switch only means something once the record names an account. */
+export function isFieldHidden(
+  field: FieldConfig,
+  values: Record<string, string | number | undefined>
+): boolean {
+  return field.id === WALLET_APPLY_FIELD_ID && !String(values[WALLET_ACCOUNT_FIELD_ID] ?? '').trim()
+}
+
 export function sortFormFields(fields: FieldConfig[]): FieldConfig[] {
   const order = new Map(STANDARD_FIELD_ORDER.map((id, index) => [id, index]))
 

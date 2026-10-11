@@ -5,7 +5,14 @@ import AmountInput from '../AmountInput'
 import JalaliDatePicker from '../JalaliDatePicker'
 import CategorySelect from './CategorySelect'
 import { resolveCategoryType } from './categorySelect/useCategorySelectActions'
-import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from './fieldUtils'
+import CheckboxField from './CheckboxField'
+import {
+  SUBCATEGORY_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_ID,
+  WALLET_APPLY_FIELD_ID,
+  WALLET_APPLY_NO,
+  WALLET_APPLY_YES
+} from './fieldUtils'
 import FormField from './FormField'
 import Select from './Select'
 import SubCategorySelect from './SubCategorySelect'
@@ -24,6 +31,8 @@ interface FieldInputProps {
   error?: string
   /** Selected category, for the subcategory field. */
   parentCategory?: string
+  /** Muted explanation under the control (used by the balance switch). */
+  hint?: string
 }
 
 function fieldPlaceholder(field: FieldConfig): string | undefined {
@@ -51,10 +60,22 @@ export default function FieldInput({
   onCategoriesChange,
   controlWidth,
   error,
-  parentCategory
+  parentCategory,
+  hint
 }: FieldInputProps) {
   const placeholder = fieldPlaceholder(field)
   const resolvedWidth = controlWidth ?? defaultControlWidth(field)
+
+  if (field.id === WALLET_APPLY_FIELD_ID) {
+    return (
+      <CheckboxField
+        checked={value !== WALLET_APPLY_NO}
+        onChange={checked => onChange(checked ? WALLET_APPLY_YES : WALLET_APPLY_NO)}
+        label="موجودی حساب هم به‌روز شود"
+        hint={hint}
+      />
+    )
+  }
 
   const control = (() => {
     if (field.type === 'text' && field.id === 'note') {

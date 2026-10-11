@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import type { ConfirmableSms } from './bankSmsApply'
+import { buildBankSmsEntryState } from './bankSmsEntry'
 import { updateBankSmsPrefs } from './bankSmsPrefs'
-import { prepareEntryValues } from './entryWallet'
+import { prepareEntryValues, smsBalanceHint } from './entryWallet'
 
 const sms: ConfirmableSms = {
   sms: { id: 's1', sender: '', body: '', receivedAt: 1000, source: 'live' },
@@ -21,6 +22,32 @@ const sms: ConfirmableSms = {
 }
 
 const values = { amount: 500, walletAccount: 'acc', title: 'x' }
+
+describe('smsBalanceHint', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('explains the unchecked box only for the SMS account already in a newer «مانده»', () => {
+    expect(smsBalanceHint(sms, 'acc')).toBeUndefined()
+
+    updateBankSmsPrefs({ balanceStates: { acc: { anchor: 2000, lastAppliedAt: 2000 } } })
+
+    expect(smsBalanceHint(sms, 'acc')).toBe('موجودی از پیامک جدیدتر به‌روز شده است')
+    expect(smsBalanceHint(sms, 'other')).toBeUndefined()
+    expect(smsBalanceHint(undefined, 'acc')).toBeUndefined()
+  })
+})
+
+describe('bank SMS entry prefill', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('starts with the balance update on, or off when a newer «مانده» covers the SMS', () => {
+    expect(buildBankSmsEntryState(sms, 'کارت').bankSmsEntry.prefill.walletApply).toBe('بله')
+
+    updateBankSmsPrefs({ balanceStates: { acc: { anchor: 2000, lastAppliedAt: 2000 } } })
+
+    expect(buildBankSmsEntryState(sms, 'کارت').bankSmsEntry.prefill.walletApply).toBe('خیر')
+  })
+})
 
 describe('prepareEntryValues', () => {
   beforeEach(() => localStorage.clear())

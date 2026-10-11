@@ -10,11 +10,14 @@ export { default as FormField } from './FormField'
 export { default as FormRow } from './FormRow'
 export { default as FormSelect } from './FormSelect'
 export { default as FieldInput } from './FieldInput'
+export { default as CheckboxField } from './CheckboxField'
 export {
   buildFormInitialValues,
   getInitialFieldValue,
+  isFieldHidden,
   isStandardEntryForm,
   sortFormFields,
   SUBCATEGORY_FIELD_ID,
-  WALLET_ACCOUNT_FIELD_ID
+  WALLET_ACCOUNT_FIELD_ID,
+  WALLET_APPLY_FIELD_ID
 } from './fieldUtils'

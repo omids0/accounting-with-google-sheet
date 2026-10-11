@@ -7,6 +7,7 @@ import type { DataEntryFormProps } from './dataEntry/types'
 import {
   buildFormInitialValues,
   FieldInput,
+  isFieldHidden,
   isStandardEntryForm,
   sortFormFields,
   SUBCATEGORY_FIELD_ID
@@ -17,7 +18,7 @@ import VehicleExpenseFields from './vehicleExpenses/VehicleExpenseFields'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
 import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
-import { prepareEntryValues, settleEntryWallet } from '../services/entryWallet'
+import { prepareEntryValues, settleEntryWallet, smsBalanceHint } from '../services/entryWallet'
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
@@ -218,6 +219,7 @@ export default function DataEntryForm({
             onCategoriesRefresh={onCategoriesRefresh}
             showVehicleFields={showVehicleFields}
             vehicleExpense={vehicleExpense}
+            walletApplyHint={smsBalanceHint(bankSms, String(values.walletAccount ?? ''))}
             clearFieldError={fieldId => {
               vehicleExpense.clearFieldError(fieldId as keyof typeof vehicleExpense.fieldErrors)
               clearErrors(fieldId)
@@ -225,6 +227,7 @@ export default function DataEntryForm({
           />
         ) : (
           sortFormFields(activeForm.fields).map(field => {
+            if (isFieldHidden(field, values)) return null
             if (showVehicleFields && field.id === 'title') return null
             if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {
               return null
