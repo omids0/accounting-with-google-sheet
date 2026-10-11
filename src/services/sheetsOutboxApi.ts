@@ -1,7 +1,9 @@
 import { recordOperation, ACTIVITY_SHEET } from './activityTracking'
+import { isGridLimitError, withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { columnLetter, toSheetRowValues } from './sheetsCellValues'
 import { getSheetId } from './sheetsEnsure'
+import { quoteSheetName } from './sheetsMeta'
 import {
   appendAlreadyApplied,
   createRowGuardSession,
@@ -34,14 +36,17 @@ export async function appendSheetRowApi(
   row: string[],
   options?: SheetWriteOptions
 ): Promise<void> {
-  const range = encodeURIComponent(`${sheetName}!A:Z`)
+  const range = encodeURIComponent(quoteSheetName(sheetName))
 
-  await apiRequest(
-    `${SHEETS_API}/${spreadsheetId}/values/${range}:append?${VALUE_INPUT}&insertDataOption=INSERT_ROWS`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ values: [toSheetRowValues(row)] })
-    }
+  // INSERT_ROWS adds rows, not columns: a row wider than a trimmed grid grows it first.
+  await withGridGrowth(spreadsheetId, sheetName, 1, Math.max(row.length, 1), () =>
+    apiRequest(
+      `${SHEETS_API}/${spreadsheetId}/values/${range}:append?${VALUE_INPUT}&insertDataOption=INSERT_ROWS`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ values: [toSheetRowValues(row)] })
+      }
+    )
   )
   if (shouldRecordActivity(sheetName, options)) {
     recordOperation()
@@ -57,12 +62,16 @@ export async function updateSheetRowApi(
 ): Promise<void> {
   const endCol = columnLetter(Math.max(row.length, 1))
 
-  const range = encodeURIComponent(`${sheetName}!A${rowNumber}:${endCol}${rowNumber}`)
+  const range = encodeURIComponent(
+    `${quoteSheetName(sheetName)}!A${rowNumber}:${endCol}${rowNumber}`
+  )
 
-  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?${VALUE_INPUT}`, {
-    method: 'PUT',
-    body: JSON.stringify({ values: [toSheetRowValues(row)] })
-  })
+  await withGridGrowth(spreadsheetId, sheetName, rowNumber, Math.max(row.length, 1), () =>
+    apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${range}?${VALUE_INPUT}`, {
+      method: 'PUT',
+      body: JSON.stringify({ values: [toSheetRowValues(row)] })
+    })
+  )
   if (shouldRecordActivity(sheetName, options)) {
     recordOperation()
   }
@@ -110,17 +119,30 @@ async function replaceSheetDataRowsApi(
   const endCol = columnLetter(width)
 
   if (rows.length) {
-    const writeRange = encodeURIComponent(`${sheetName}!A2:${endCol}${rows.length + 1}`)
+    const writeRange = encodeURIComponent(
+      `${quoteSheetName(sheetName)}!A2:${endCol}${rows.length + 1}`
+    )
 
-    await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${writeRange}?${VALUE_INPUT}`, {
-      method: 'PUT',
-      body: JSON.stringify({ values: rows.map(toSheetRowValues) })
-    })
+    await withGridGrowth(spreadsheetId, sheetName, rows.length + 1, width, () =>
+      apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${writeRange}?${VALUE_INPUT}`, {
+        method: 'PUT',
+        body: JSON.stringify({ values: rows.map(toSheetRowValues) })
+      })
+    )
   }
 
-  const clearRange = encodeURIComponent(`${sheetName}!A${rows.length + 2}:${endCol}`)
+  const clearRange = encodeURIComponent(
+    `${quoteSheetName(sheetName)}!A${rows.length + 2}:${endCol}`
+  )
 
-  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`, { method: 'POST' })
+  try {
+    await apiRequest(`${SHEETS_API}/${spreadsheetId}/values/${clearRange}:clear`, {
+      method: 'POST'
+    })
+  } catch (err) {
+    // The rows below start past the grid edge: nothing is left to clear.
+    if (!isGridLimitError(err)) throw err
+  }
 }
 
 export interface OutboxExecutionContext {

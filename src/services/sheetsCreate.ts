@@ -1,6 +1,6 @@
 import type { CustomForm } from '../types'
 import { apiRequest, SHEETS_API } from './sheetsApi'
-import { batchAddSheetTabs, writeSheetHeaders } from './sheetsEnsure'
+import { batchAddSheetTabs, tabGridProperties, writeSheetHeaders } from './sheetsEnsure'
 import { buildHeaders } from './sheetsHeaders'
 import { markSheetsPrepared, sheetTitlesCache, TITLES_CACHE_TTL_MS } from './sheetsMeta'
 
@@ -26,7 +26,9 @@ async function createSpreadsheetInner(title: string, forms: CustomForm[]): Promi
       sheets: forms.map(form => ({
         properties: {
           title: form.sheetName,
-          gridProperties: { frozenRowCount: 1 }
+          gridProperties: tabGridProperties(buildHeaders(form.fields).length) ?? {
+            frozenRowCount: 1
+          }
         }
       }))
     })
@@ -51,7 +53,7 @@ async function createSpreadsheetInner(title: string, forms: CustomForm[]): Promi
 }
 
 export async function addSheetTab(spreadsheetId: string, sheetName: string): Promise<void> {
-  await batchAddSheetTabs(spreadsheetId, [sheetName])
+  await batchAddSheetTabs(spreadsheetId, [{ sheetName, headers: [] }])
 }
 
 export async function ensureFormSheet(spreadsheetId: string, form: CustomForm): Promise<void> {

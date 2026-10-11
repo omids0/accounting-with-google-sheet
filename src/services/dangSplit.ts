@@ -95,7 +95,7 @@ export async function repairDangSplitHeaders(
   repairedHeaders.add(key)
 
   try {
-    const headerRows = await fetchSheetRangeFromApi(spreadsheetId, sheetName, 'A1:Z1')
+    const headerRows = await fetchSheetRangeFromApi(spreadsheetId, sheetName, '1:1')
     const header = headerRows[0] ?? []
 
     if (header.length === 0 || header.length >= headers.length) return
