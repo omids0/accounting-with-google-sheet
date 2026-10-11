@@ -9,7 +9,13 @@ import { metaToFormValues } from '../../services/vehicleExpenseActions'
 import { findVehicleExpenseMetaByRecordId } from '../../services/vehicleExpenseRecords'
 import type { CustomForm, FieldConfig } from '../../types'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
-import { FieldInput, isFieldHidden, sortFormFields, SUBCATEGORY_FIELD_ID } from '../form'
+import {
+  FieldInput,
+  isFieldHidden,
+  sortFormFields,
+  SUBCATEGORY_FIELD_ID,
+  withAutoTitle
+} from '../form'
 import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
 import FormModal from '../FormModal'
@@ -119,7 +125,10 @@ export default function RecordsEditFormModal({
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     void handleSubmit(formValues =>
-      onSubmit(formValues, showVehicleFields ? vehicleExpense.vehicleValues : undefined)
+      onSubmit(
+        withAutoTitle(formValues),
+        showVehicleFields ? vehicleExpense.vehicleValues : undefined
+      )
     )(event)
   }
 

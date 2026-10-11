@@ -10,7 +10,8 @@ import {
   isFieldHidden,
   isStandardEntryForm,
   sortFormFields,
-  SUBCATEGORY_FIELD_ID
+  SUBCATEGORY_FIELD_ID,
+  withAutoTitle
 } from './form'
 import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
@@ -135,7 +136,7 @@ export default function DataEntryForm({
   const saveRecord = async (entered: Record<string, string | number>) => {
     onLoadingChange(true)
     const settings = getSettings()!
-    const formValues = prepareEntryValues(activeForm.type, entered, bankSms)
+    const formValues = prepareEntryValues(activeForm.type, withAutoTitle(entered), bankSms)
     let recordId: string = crypto.randomUUID()
 
     try {

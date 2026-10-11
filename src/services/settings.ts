@@ -37,7 +37,7 @@ function incomeForm(): CustomForm {
     type: 'income',
     fields: [
       { id: 'date', label: 'تاریخ', type: 'date', required: true },
-      { id: 'title', label: 'عنوان', type: 'text', required: true },
+      { id: 'title', label: 'عنوان', type: 'text', required: false },
       {
         id: 'category',
         label: 'دسته‌بندی',
@@ -59,7 +59,7 @@ function expenseForm(): CustomForm {
     type: 'expense',
     fields: [
       { id: 'date', label: 'تاریخ', type: 'date', required: true },
-      { id: 'title', label: 'عنوان', type: 'text', required: true },
+      { id: 'title', label: 'عنوان', type: 'text', required: false },
       {
         id: 'category',
         label: 'دسته‌بندی',
