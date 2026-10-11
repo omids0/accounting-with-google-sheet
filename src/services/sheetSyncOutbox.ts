@@ -96,10 +96,13 @@ async function announceWrites(
     const { fetchRemoteModifiedTime, rememberRemoteVersion } = await import('./sheetRemoteVersion')
     const { getSyncMeta } = await import('./spreadsheetSyncMeta')
 
-    await stampSheetRevisions(spreadsheetId, touched)
-    // A write that followed its row into an archive changed that tab only
-    // remotely: download it again rather than trust the local copy.
-    if (redirected.size) forgetSeenSheets(spreadsheetId, redirected)
+    try {
+      await stampSheetRevisions(spreadsheetId, touched)
+    } finally {
+      // A write that followed its row into an archive changed that tab only
+      // remotely: download it again rather than trust the local copy.
+      if (redirected.size) forgetSeenSheets(spreadsheetId, redirected)
+    }
 
     if (driveBefore && driveBefore === getSyncMeta(spreadsheetId)?.modifiedTime) {
       rememberRemoteVersion(spreadsheetId, await fetchRemoteModifiedTime(spreadsheetId))

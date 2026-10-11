@@ -17,6 +17,7 @@ vi.mock('./installments', () => ({ invalidateInstallmentsCache: vi.fn() }))
 vi.mock('./sheetRevisions', () => ({
   stampSheetRevisions: async (...args: unknown[]) => {
     stamped.push(args[1] as Set<string>)
+    if (stampFails.value) throw new Error('stamp failed')
   },
   forgetSeenSheets: (...args: unknown[]) => {
     forgotten.push([...(args[1] as Iterable<string>)])
@@ -33,6 +34,8 @@ vi.mock('./spreadsheetSyncMeta', () => ({
 const stamped: Set<string>[] = []
 
 const forgotten: string[][] = []
+
+const stampFails = { value: false }
 
 const { flushOutbox } = await import('./sheetSyncOutbox')
 
@@ -87,6 +90,23 @@ describe('stamping the tab a write really landed in', () => {
 
     expect([...stamped[0]]).toEqual(['هزینه 1402'])
     // Its local copy was not changed, so it must be downloaded again.
+    expect(forgotten).toEqual([['هزینه 1402']])
+  })
+})
+
+describe('a redirected write when stamping fails', () => {
+  it('still marks the archive for download', async () => {
+    localStorage.clear()
+    stamped.length = 0
+    forgotten.length = 0
+    stampFails.value = true
+    driveTime.mockReset().mockResolvedValue('T1')
+    executeOutboxOperation.mockReset().mockResolvedValue('هزینه 1402')
+    addOutboxEntry(ID, { type: 'update', sheetName: 'هزینه', rowNumber: 2, row: ['x'] })
+
+    await flushOutbox(ID)
+    stampFails.value = false
+
     expect(forgotten).toEqual([['هزینه 1402']])
   })
 })
