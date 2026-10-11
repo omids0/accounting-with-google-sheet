@@ -7,7 +7,6 @@ import { quoteSheetName } from './sheetsMeta'
 import {
   appendAlreadyApplied,
   createRowGuardSession,
-  resolveTargetRow,
   RowConflictError,
   trackAppend,
   trackDelete,
@@ -15,6 +14,7 @@ import {
   trackUpdate
 } from './sheetsRowGuard'
 import type { RowGuardSession } from './sheetsRowGuard'
+import { resolveRowAnywhere } from './sheetsRowLocate'
 import type { OutboxOperation, OutboxWriteOptions } from './syncOutbox'
 
 export type SheetWriteOptions = OutboxWriteOptions
@@ -172,27 +172,32 @@ export async function executeOutboxOperation(
     }
 
     case 'update': {
-      const { sheetName, row } = operation
-      const target = await resolveTargetRow(
+      const { row } = operation
+      const target = await resolveRowAnywhere(
         session,
         spreadsheetId,
-        sheetName,
+        operation.sheetName,
         operation.rowNumber,
         operation.expectedRow
       )
 
-      await updateSheetRowApi(spreadsheetId, sheetName, target, row, operation.writeOptions)
-      trackUpdate(session, sheetName, target, row)
+      await updateSheetRowApi(
+        spreadsheetId,
+        target.sheetName,
+        target.rowNumber,
+        row,
+        operation.writeOptions
+      )
+      trackUpdate(session, target.sheetName, target.rowNumber, row)
 
       return
     }
 
     case 'delete': {
-      const { sheetName } = operation
-      const target = await resolveTargetRow(
+      const target = await resolveRowAnywhere(
         session,
         spreadsheetId,
-        sheetName,
+        operation.sheetName,
         operation.rowNumber,
         operation.expectedRow
       ).catch(err => {
@@ -203,8 +208,8 @@ export async function executeOutboxOperation(
 
       if (target === null) return
 
-      await deleteSheetRowApi(spreadsheetId, sheetName, target)
-      trackDelete(session, sheetName, target)
+      await deleteSheetRowApi(spreadsheetId, target.sheetName, target.rowNumber)
+      trackDelete(session, target.sheetName, target.rowNumber)
 
       return
     }
