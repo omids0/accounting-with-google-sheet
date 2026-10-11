@@ -135,21 +135,18 @@ export default function DataEntryForm({
     onLoadingChange(true)
     const settings = getSettings()!
     const formValues = prepareEntryValues(activeForm.type, entered, bankSms)
+    let recordId: string = crypto.randomUUID()
 
     try {
       if (showVehicleFields) {
-        await createManualVehicleExpense(
+        recordId = await createManualVehicleExpense(
           settings.spreadsheetId,
           vehicleExpense.buildVehicleExpenseInput(formValues)
         )
       } else {
-        await appendRecord(
-          settings.spreadsheetId,
-          activeForm,
-          crypto.randomUUID(),
-          new Date().toLocaleString('fa-IR'),
-          formValues
-        )
+        const createdAt = new Date().toLocaleString('fa-IR')
+
+        await appendRecord(settings.spreadsheetId, activeForm, recordId, createdAt, formValues)
       }
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })
@@ -159,9 +156,13 @@ export default function DataEntryForm({
     }
 
     // The record exists now: a wallet/SMS failure must not invite a second save.
-    await settleEntryWallet(settings.spreadsheetId, activeForm.type, formValues, bankSms).catch(
-      () => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد')
-    )
+    await settleEntryWallet(
+      settings.spreadsheetId,
+      activeForm.type,
+      formValues,
+      bankSms,
+      recordId
+    ).catch(() => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد'))
     showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
     refreshOpeningBalancesInBackground()
     onLoadingChange(false)

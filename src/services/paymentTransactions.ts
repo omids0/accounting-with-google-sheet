@@ -1,4 +1,4 @@
-import { applyWalletChanges, walletEffectOf } from './recordWallet'
+import { applyWalletChanges, recordLedgerContext, walletEffectOf } from './recordWallet'
 import { getSettings } from './settings'
 import { appendRecord, deleteRecord, ensureFormSheet, fetchRecords } from './sheets'
 import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
@@ -84,7 +84,10 @@ export async function createLinkedIncomeRecord(
   return recordId
 }
 
-/** Deletes the record and undoes its wallet effect; returns the account it named ('' if none). */
+/**
+ * Deletes the record and undoes its wallet effect; returns the account whose balance it
+ * had moved ('' if none).
+ */
 export async function deleteLinkedRecord(
   spreadsheetId: string,
   formType: 'income' | 'expense',
@@ -102,9 +105,17 @@ export async function deleteLinkedRecord(
 
   if (match) {
     await deleteRecord(spreadsheetId, form, match.rowNumber, match.sheetName)
-    await applyWalletChanges(spreadsheetId, walletEffectOf(formType, match.values), null)
+    const effect = walletEffectOf(formType, match.values)
 
-    return match.values[WALLET_ACCOUNT_FIELD_ID] ?? ''
+    await applyWalletChanges(
+      spreadsheetId,
+      effect,
+      null,
+      recordLedgerContext(match.values, 'حذف', match.id)
+    )
+
+    // A record that never moved its balance must not hand its account to a re-created one.
+    return effect?.accountId ?? ''
   }
 
   return ''

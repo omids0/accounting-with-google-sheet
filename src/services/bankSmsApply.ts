@@ -5,6 +5,7 @@ import { nextAccountBalance, type ConfirmableSms } from './bankSmsQueue'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
 import { applyWalletChanges, type RecordWalletEffect } from './recordWallet'
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
+import type { LedgerContext } from './walletLedger'
 import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
@@ -146,7 +147,8 @@ export async function settleSmsFromEntry(
   spreadsheetId: string,
   entry: ConfirmableSms,
   effect: RecordWalletEffect | null,
-  record: Pick<SmsRecordInput, 'category' | 'subCategory'>
+  record: Pick<SmsRecordInput, 'category' | 'subCategory'>,
+  context: LedgerContext
 ): Promise<void> {
   await markBankSmsHandled([entry.sms.id])
 
@@ -164,5 +166,5 @@ export async function settleSmsFromEntry(
     return
   }
   if (effect) learnSmsRef(entry.result.ref, effect.accountId)
-  await applyWalletChanges(spreadsheetId, null, effect)
+  await applyWalletChanges(spreadsheetId, null, effect, context)
 }

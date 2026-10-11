@@ -1,7 +1,8 @@
 import { createLinkedExpenseRecord, deleteLinkedRecord } from './paymentTransactions'
-import { applyWalletChanges } from './recordWallet'
+import { applyWalletChanges, recordLedgerContext } from './recordWallet'
 import { getSettings, updateFormCategories } from './settings'
 import { VEHICLE_EXPENSE_CATEGORY } from '../components/vehicles/constants'
+import { getTodayIso } from '../utils/jalaliDate'
 import { withLockedExpenseCategories } from '../utils/protectedCategories'
 
 export async function ensureVehicleExpenseCategory(): Promise<void> {
@@ -43,10 +44,16 @@ export async function createVehicleExpense(
   })
 
   if (params.walletAccount) {
-    await applyWalletChanges(spreadsheetId, null, {
-      accountId: params.walletAccount,
-      delta: -params.amount
-    })
+    await applyWalletChanges(
+      spreadsheetId,
+      null,
+      { accountId: params.walletAccount, delta: -params.amount },
+      recordLedgerContext(
+        { title: params.title, date: params.date ?? getTodayIso() },
+        'ثبت',
+        recordId
+      )
+    )
   }
 
   return recordId

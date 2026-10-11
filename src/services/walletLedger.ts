@@ -1,5 +1,6 @@
 import { appendSheetRow, fetchSheetRows } from './sheets'
 import { parseNumeric } from '../utils/parseNumeric'
+import { showError } from '../utils/toast'
 
 /** One row per wallet balance change, with the balance right after it. */
 export const WALLET_LEDGER_SHEET = 'گردش حساب'
@@ -98,6 +99,15 @@ export async function appendLedgerEntries(
   for (const entry of entries) {
     await appendSheetRow(spreadsheetId, WALLET_LEDGER_SHEET, ledgerRow(entry))
   }
+}
+
+/** Appends entries; a failure only warns, because the balance itself is already saved. */
+export async function logLedger(spreadsheetId: string, entries: LedgerEntry[]): Promise<void> {
+  if (!entries.length) return
+
+  await appendLedgerEntries(spreadsheetId, entries).catch(() =>
+    showError('موجودی به‌روز شد ولی گردش حساب ثبت نشد')
+  )
 }
 
 /** History of one account, newest first (rows are only ever appended). */

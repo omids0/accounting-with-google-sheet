@@ -1,5 +1,10 @@
 import { settleSmsFromEntry, smsAlreadyInBalance, type ConfirmableSms } from './bankSmsApply'
-import { applyWalletChanges, walletEffectOf } from './recordWallet'
+import {
+  applyWalletChanges,
+  logUnappliedRecord,
+  recordLedgerContext,
+  walletEffectOf
+} from './recordWallet'
 import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import type { FormType } from '../types'
 
@@ -12,20 +17,30 @@ export async function settleEntryWallet(
   spreadsheetId: string,
   type: FormType,
   values: Record<string, string | number>,
-  bankSms?: ConfirmableSms
+  bankSms: ConfirmableSms | undefined,
+  recordId: string
 ): Promise<void> {
   const effect = walletEffectOf(type, values)
+  const context = recordLedgerContext(values, 'ثبت', recordId)
+
+  await logUnappliedRecord(spreadsheetId, type, values, context)
 
   if (!bankSms) {
-    await applyWalletChanges(spreadsheetId, null, effect)
+    await applyWalletChanges(spreadsheetId, null, effect, context)
 
     return
   }
 
-  await settleSmsFromEntry(spreadsheetId, bankSms, effect, {
-    category: String(values.category ?? ''),
-    subCategory: String(values[SUBCATEGORY_FIELD_ID] ?? '')
-  })
+  await settleSmsFromEntry(
+    spreadsheetId,
+    bankSms,
+    effect,
+    {
+      category: String(values.category ?? ''),
+      subCategory: String(values[SUBCATEGORY_FIELD_ID] ?? '')
+    },
+    context
+  )
 }
 
 /**

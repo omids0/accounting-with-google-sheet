@@ -1,5 +1,16 @@
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
-import { isWalletApplied, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
+import {
+  ledgerEntry,
+  logLedger,
+  type LedgerContext,
+  type LedgerEntry,
+  type LedgerSource
+} from './walletLedger'
+import {
+  isWalletApplied,
+  WALLET_ACCOUNT_FIELD_ID,
+  WALLET_APPLY_FIELD_ID
+} from '../components/form/fieldUtils'
 import type { FormType } from '../types'
 import { parseNumeric } from '../utils/parseNumeric'
 
@@ -40,25 +51,71 @@ export function netWalletChanges(
   return changes
 }
 
+/** Ledger context of a change caused by an income/expense record. */
+export function recordLedgerContext(
+  values: RecordValues,
+  source: LedgerSource,
+  recordId?: string
+): LedgerContext {
+  // Vehicle expenses build their title later; the category still says what it was.
+  const title = String(values.title || values.category || '')
+
+  return { title, date: String(values.date ?? ''), source, recordId }
+}
+
 /**
- * Keep wallet balances in step with records: undo `before`, apply `after`.
- * Create = (null, effect); delete = (effect, null); edit = (old, new).
+ * Keep wallet balances in step with records: undo `before`, apply `after`, and log each
+ * change in «گردش حساب». Create = (null, effect); delete = (effect, null); edit = (old, new).
  */
 export async function applyWalletChanges(
   spreadsheetId: string,
   before: RecordWalletEffect | null,
-  after: RecordWalletEffect | null
+  after: RecordWalletEffect | null,
+  context: LedgerContext
 ): Promise<void> {
   const changes = netWalletChanges(before, after)
 
   if (!changes.size) return
 
   const accounts = await fetchWalletAccounts(spreadsheetId)
+  const entries: LedgerEntry[] = []
 
   for (const [accountId, delta] of changes) {
     const account = accounts.find(item => item.id === accountId)
 
-    if (account)
-      await updateWalletAccount(spreadsheetId, { ...account, balance: account.balance + delta })
+    if (!account) continue
+
+    const balance = account.balance + delta
+
+    await updateWalletAccount(spreadsheetId, { ...account, balance })
+    entries.push(ledgerEntry(accountId, delta, balance, context))
   }
+  await logLedger(spreadsheetId, entries)
+}
+
+/**
+ * A record that names an account but chose not to move its balance still shows up in
+ * the account history, marked «بدون اثر», with the balance left as it was.
+ */
+export async function logUnappliedRecord(
+  spreadsheetId: string,
+  type: FormType,
+  values: RecordValues,
+  context: LedgerContext
+): Promise<void> {
+  if (isWalletApplied(values)) return
+
+  const effect = walletEffectOf(type, { ...values, [WALLET_APPLY_FIELD_ID]: '' })
+
+  if (!effect) return
+
+  const account = (await fetchWalletAccounts(spreadsheetId)).find(
+    item => item.id === effect.accountId
+  )
+
+  if (!account) return
+
+  await logLedger(spreadsheetId, [
+    ledgerEntry(account.id, effect.delta, account.balance, context, false)
+  ])
 }

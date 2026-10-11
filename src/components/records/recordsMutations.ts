@@ -1,6 +1,10 @@
 import type { StoredRecord } from './recordsUtils'
 import { refreshOpeningBalancesInBackground } from '../../services/openingBalanceRefresh'
-import { applyWalletChanges, walletEffectOf } from '../../services/recordWallet'
+import {
+  applyWalletChanges,
+  recordLedgerContext,
+  walletEffectOf
+} from '../../services/recordWallet'
 import { getSettings, isConfigured } from '../../services/settings'
 import { deleteRecord, updateRecord } from '../../services/sheets'
 import {
@@ -92,7 +96,8 @@ export async function submitRecordEdit({
     await applyWalletChanges(
       settings.spreadsheetId,
       walletEffectOf(editingForm.type, editingRecord.values),
-      walletEffectOf(editingForm.type, formValues)
+      walletEffectOf(editingForm.type, formValues),
+      recordLedgerContext(formValues, 'ویرایش', editingRecord.id)
     )
     showSuccess('تراکنش ویرایش شد')
     refreshOpeningBalancesInBackground()
@@ -138,7 +143,8 @@ export async function deleteStoredRecord({
     await applyWalletChanges(
       settings.spreadsheetId,
       walletEffectOf(form.type, deletingRecord.values),
-      null
+      null,
+      recordLedgerContext(deletingRecord.values, 'حذف', deletingRecord.id)
     )
     showSuccess('تراکنش حذف شد')
     refreshOpeningBalancesInBackground()
