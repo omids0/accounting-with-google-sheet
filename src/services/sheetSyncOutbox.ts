@@ -115,13 +115,15 @@ async function flushPass(spreadsheetId: string, touched: Set<string>): Promise<P
     if (isQuotaBlocked() || isOffline()) return 'blocked'
 
     try {
-      await executeOutboxOperation(spreadsheetId, entry.operation, {
+      const written = await executeOutboxOperation(spreadsheetId, entry.operation, {
         session,
         isRetry: entry.attempts > 0
       })
+
       removeOutboxEntry(spreadsheetId, entry.id)
       refreshPendingCount(spreadsheetId)
-      touched.add(entry.operation.sheetName)
+      // An edit may have followed its row into a yearly archive: stamp that tab.
+      touched.add(written || entry.operation.sheetName)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی'
 
@@ -186,7 +188,11 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
  * Two open tabs share one localStorage outbox; without a cross-tab lock both
  * would send the same append twice and the second delete would hit another row.
  */
-function withOutboxLock(spreadsheetId: string, task: () => Promise<boolean>): Promise<boolean> {
+/**
+ * Cross-tab lock shared by the outbox flush and the yearly archive sweep, so
+ * no local write reaches the sheet while rows are being moved.
+ */
+export function withOutboxLock<T>(spreadsheetId: string, task: () => Promise<T>): Promise<T> {
   const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined
 
   if (!locks?.request) return task()

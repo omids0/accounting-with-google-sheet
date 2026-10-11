@@ -151,11 +151,12 @@ export interface OutboxExecutionContext {
   isRetry?: boolean
 }
 
+/** Runs one queued write and returns the tab it actually wrote to. */
 export async function executeOutboxOperation(
   spreadsheetId: string,
   operation: OutboxOperation,
   context: OutboxExecutionContext = {}
-): Promise<void> {
+): Promise<string> {
   const session = context.session ?? createRowGuardSession()
 
   switch (operation.type) {
@@ -163,12 +164,12 @@ export async function executeOutboxOperation(
       const { sheetName, row } = operation
 
       if (context.isRetry && (await appendAlreadyApplied(session, spreadsheetId, sheetName, row))) {
-        return
+        return sheetName
       }
       await appendSheetRowApi(spreadsheetId, sheetName, row, operation.writeOptions)
       trackAppend(session, sheetName, row)
 
-      return
+      return sheetName
     }
 
     case 'update': {
@@ -190,7 +191,7 @@ export async function executeOutboxOperation(
       )
       trackUpdate(session, target.sheetName, target.rowNumber, row)
 
-      return
+      return target.sheetName
     }
 
     case 'delete': {
@@ -206,12 +207,12 @@ export async function executeOutboxOperation(
         throw err
       })
 
-      if (target === null) return
+      if (target === null) return operation.sheetName
 
       await deleteSheetRowApi(spreadsheetId, target.sheetName, target.rowNumber)
       trackDelete(session, target.sheetName, target.rowNumber)
 
-      return
+      return target.sheetName
     }
 
     case 'replace':
@@ -223,7 +224,7 @@ export async function executeOutboxOperation(
       )
       trackReplace(session, operation.sheetName, operation.rows)
 
-      return
+      return operation.sheetName
 
     default:
       throw new Error('عملیات ناشناخته در صف همگام‌سازی')

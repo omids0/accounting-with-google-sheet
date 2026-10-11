@@ -14,7 +14,11 @@ vi.mock('./sheets', () => ({
   isQuotaExceededError: () => false
 }))
 vi.mock('./installments', () => ({ invalidateInstallmentsCache: vi.fn() }))
-vi.mock('./sheetRevisions', () => ({ stampSheetRevisions: async () => undefined }))
+vi.mock('./sheetRevisions', () => ({
+  stampSheetRevisions: async (...args: unknown[]) => {
+    stamped.push(args[1] as Set<string>)
+  }
+}))
 vi.mock('./sheetRemoteVersion', () => ({
   fetchRemoteModifiedTime: (...args: unknown[]) => driveTime(...args),
   rememberRemoteVersion: (...args: unknown[]) => remember(...args)
@@ -22,6 +26,8 @@ vi.mock('./sheetRemoteVersion', () => ({
 vi.mock('./spreadsheetSyncMeta', () => ({
   getSyncMeta: () => ({ tokens: {}, modifiedTime: remembered(), fullSyncAt: 1 })
 }))
+
+const stamped: Set<string>[] = []
 
 const { flushOutbox } = await import('./sheetSyncOutbox')
 
@@ -59,5 +65,20 @@ describe('announcing own writes', () => {
     await flushOutbox(ID)
 
     expect(remember).not.toHaveBeenCalled()
+  })
+})
+
+describe('stamping the tab a write really landed in', () => {
+  it('stamps the archive when a queued edit followed its row there', async () => {
+    localStorage.clear()
+    stamped.length = 0
+    driveTime.mockReset().mockResolvedValue('T1')
+    remembered.mockReturnValue('T1')
+    executeOutboxOperation.mockReset().mockResolvedValue('هزینه 1402')
+    addOutboxEntry(ID, { type: 'update', sheetName: 'هزینه', rowNumber: 2, row: ['x'] })
+
+    await flushOutbox(ID)
+
+    expect([...stamped[0]]).toEqual(['هزینه 1402'])
   })
 })
