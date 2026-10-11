@@ -179,3 +179,14 @@ describe('sheet change tokens', () => {
     expect(findChangedSheets(ID, ['هزینه'], await fetchSheetRevisions(ID))).toEqual(['هزینه'])
   })
 })
+
+describe('change token entries', () => {
+  it('keep the real tab title next to the normalized key', async () => {
+    vi.resetModules()
+    const { fetchSheetRevisions } = await import('./sheetRevisions')
+
+    apiRequest.mockResolvedValueOnce(layout([{ title: 'هزینه 1403', sheetId: 4 }]))
+
+    expect((await fetchSheetRevisions(ID)).get('هزینه 1403')?.title).toBe('هزینه 1403')
+  })
+})

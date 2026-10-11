@@ -82,3 +82,16 @@ describe('planYearSweep', () => {
     expect(planYearSweep(rows, EXPENSE, 1404)).toBeNull()
   })
 })
+
+describe('listArchiveSheets', () => {
+  it('keeps only archive tabs of configured forms', async () => {
+    const { listArchiveSheets } = await import('./recordArchive')
+
+    expect(
+      listArchiveSheets(
+        ['هزینه', 'هزینه 1402', 'درآمد 1402', 'یادداشت 1401', 'هزینه 1403'],
+        [EXPENSE]
+      )
+    ).toEqual(['هزینه 1402', 'هزینه 1403'])
+  })
+})

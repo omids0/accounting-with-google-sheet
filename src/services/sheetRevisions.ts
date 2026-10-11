@@ -12,6 +12,8 @@ import { clearSyncMeta, getSyncMeta, updateSyncMeta } from './spreadsheetSyncMet
 export const REVISION_METADATA_KEY = 'accounting_rev'
 
 interface RevisionEntry {
+  /** The tab title as Google has it (map keys are normalized). */
+  title: string
   sheetId: number
   /** Joined value of every matching metadata entry (duplicates can appear after concurrent creates). */
   token: string
@@ -67,6 +69,7 @@ export async function fetchSheetRevisions(spreadsheetId: string): Promise<Revisi
     )
 
     map.set(sheetKey(title), {
+      title,
       sheetId,
       token: own
         .map(item => item.metadataValue ?? '')

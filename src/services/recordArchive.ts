@@ -87,3 +87,8 @@ export function planYearSweep(
 
   return byYear.size ? byYear : null
 }
+
+/** The archive tabs among `titles`, in their given order. */
+export function listArchiveSheets(titles: Iterable<string>, forms: CustomForm[]): string[] {
+  return [...titles].filter(title => parseArchiveSheetName(title, forms) !== null)
+}
