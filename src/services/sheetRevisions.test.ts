@@ -27,6 +27,10 @@ const ID = 'sheet-1'
 async function load() {
   vi.resetModules()
 
+  const { initStore } = await import('./spreadsheetStore')
+
+  initStore(ID)
+
   return import('./sheetRevisions')
 }
 
@@ -62,6 +66,42 @@ describe('sheet change tokens', () => {
     const next = await fetchSheetRevisions(ID)
 
     expect(findChangedSheets(ID, ['هزینه', 'درآمد'], next)).toEqual(['هزینه'])
+  })
+
+  it('keeps the seen tokens in the persisted sync meta, not in session memory', async () => {
+    const { fetchSheetRevisions, markSheetsSeen } = await load()
+    const { getSyncMeta } = await import('./spreadsheetSyncMeta')
+
+    apiRequest.mockResolvedValueOnce(layout([{ title: 'هزینه', sheetId: 1, meta: [rev(10, 'a')] }]))
+    markSheetsSeen(ID, ['هزینه'], await fetchSheetRevisions(ID))
+
+    expect(getSyncMeta(ID)?.tokens).toEqual({ هزینه: 'a' })
+  })
+
+  it('treats a mirror restored without tokens as unknown', async () => {
+    const { fetchSheetRevisions, findChangedSheets } = await load()
+    const { updateSyncMeta } = await import('./spreadsheetSyncMeta')
+
+    updateSyncMeta(ID, { modifiedTime: 'T1' })
+    apiRequest.mockResolvedValueOnce(layout([{ title: 'هزینه', sheetId: 1, meta: [rev(10, 'a')] }]))
+
+    expect(findChangedSheets(ID, ['هزینه'], await fetchSheetRevisions(ID))).toBeNull()
+  })
+
+  it('treats a tab this device never downloaded as changed, even without a token', async () => {
+    const { fetchSheetRevisions, findChangedSheets, markSheetsSeen } = await load()
+
+    apiRequest.mockResolvedValueOnce(
+      layout([
+        { title: 'هزینه', sheetId: 1 },
+        { title: 'درآمد', sheetId: 2 }
+      ])
+    )
+    const revisions = await fetchSheetRevisions(ID)
+
+    markSheetsSeen(ID, ['هزینه'], revisions)
+
+    expect(findChangedSheets(ID, ['هزینه', 'درآمد'], revisions)).toEqual(['درآمد'])
   })
 
   it('ignores metadata written by anything else', async () => {

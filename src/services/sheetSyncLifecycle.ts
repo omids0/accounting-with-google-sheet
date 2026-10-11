@@ -17,9 +17,18 @@ import { clearStore, getStoreLastSyncedAt, hasStoreData, hydrateStore } from './
 import { getOutboxSheetNames, hasPendingOutbox, clearOutbox, getOutboxCount } from './syncOutbox'
 import { getSyncStatus, setLastSyncedAt, setSyncState, setPendingWrites } from './syncStatus'
 
-const SYNC_INTERVAL_MS = 120_000
+/**
+ * A poll is two tiny metadata reads unless a tab really changed, so changes
+ * from another device show up within half a minute. Per open device that is
+ * about 2 Sheets reads a minute (plus 2 on Drive's separate quota), well under
+ * Sheets' 60 reads per user per minute even with several devices open.
+ */
+export const SYNC_INTERVAL_MS = 30_000
 
-const MIN_SYNC_COOLDOWN_MS = 30_000
+const MIN_SYNC_COOLDOWN_MS = 15_000
+
+/** A cached mirror plus persisted change tokens: download only what changed since. */
+const COLD_START_WITH_MIRROR = { background: true, force: true, skipIfUnchanged: true }
 
 /**
  * Focus-triggered syncs bypass the cooldown but not faster than this. They are
@@ -182,10 +191,10 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   if (hasStoreData(spreadsheetId)) {
     if (hasPendingOutbox(spreadsheetId)) {
       void flushOutbox(spreadsheetId).then(() => {
-        void fullSyncFromRemote(spreadsheetId, { background: true, force: true })
+        void fullSyncFromRemote(spreadsheetId, COLD_START_WITH_MIRROR)
       })
     } else {
-      void fullSyncFromRemote(spreadsheetId, { background: true, force: true })
+      void fullSyncFromRemote(spreadsheetId, COLD_START_WITH_MIRROR)
     }
   } else {
     await fullSyncFromRemote(spreadsheetId, { background: false, force: true })

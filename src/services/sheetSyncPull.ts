@@ -4,6 +4,7 @@ import type { RevisionMap } from './sheetRevisions'
 import { fetchSheetRevisions, findChangedSheets, markSheetsSeen } from './sheetRevisions'
 import { missingSheetNames } from './sheetsMeta'
 import { invalidateDerivedCaches, reviveMissingTabAppends } from './sheetSyncOutbox'
+import { planSheetFetch, type SheetFetchPlan } from './sheetSyncPlan'
 import { getKnownSheetNames } from './sheetSyncSheetNames'
 import { getSheetWriteVersion, snapshotSheetWriteVersions } from './sheetWriteVersions'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
@@ -13,6 +14,7 @@ import {
   setSheetAllRows,
   setStoreLastSyncedAt
 } from './spreadsheetStore'
+import { getSyncMeta, updateSyncMeta } from './spreadsheetSyncMeta'
 import { getOutboxSheetNames, hasPendingOutbox } from './syncOutbox'
 import { setLastSyncedAt, setSyncState } from './syncStatus'
 
@@ -25,21 +27,26 @@ async function fetchSheetsBatchFromApi(
   return batchFetchSheetRangesFromApi(spreadsheetId, sheetNames)
 }
 
-/**
- * Background refreshes download only the tabs whose change token moved. When
- * Drive says the file changed but no token moved, someone edited the sheet by
- * hand (or an older app version wrote to it), so everything is downloaded.
- */
-function pickSheetsToFetch(
+function recordPullOutcome(
+  spreadsheetId: string,
+  plan: SheetFetchPlan,
+  modifiedTime: string | null
+): void {
+  rememberRemoteVersion(spreadsheetId, modifiedTime)
+
+  if (plan.full) {
+    updateSyncMeta(spreadsheetId, { fullSyncAt: Date.now(), absorbedAt: null })
+  } else if (plan.absorbs && getSyncMeta(spreadsheetId)?.absorbedAt == null) {
+    updateSyncMeta(spreadsheetId, { absorbedAt: Date.now() })
+  }
+}
+
+function changedSheets(
   spreadsheetId: string,
   allSheets: string[],
-  options: { skipIfUnchanged?: boolean; hadData: boolean; revisions: RevisionMap | null }
-): string[] {
-  if (!options.skipIfUnchanged || !options.hadData || !options.revisions) return allSheets
-
-  const changed = findChangedSheets(spreadsheetId, allSheets, options.revisions)
-
-  return changed?.length ? changed : allSheets
+  revisions: RevisionMap | null
+): string[] | null {
+  return revisions ? findChangedSheets(spreadsheetId, allSheets, revisions) : null
 }
 
 /**
@@ -54,29 +61,43 @@ export async function pullRemoteSheets(
 ): Promise<void> {
   initStore(spreadsheetId)
 
-  // Both are tiny metadata reads; the token map is unused when nothing changed.
+  // Both are tiny metadata reads; together they say which tabs changed.
   const [remote, revisions] = await Promise.all([
     checkRemoteChanged(spreadsheetId),
     fetchSheetRevisions(spreadsheetId).catch(() => null)
   ])
 
-  if (
-    options.skipIfUnchanged &&
-    remote.skip &&
-    options.hadData &&
-    !hasPendingOutbox(spreadsheetId)
-  ) {
-    setSyncState('idle')
+  const allSheets = getKnownSheetNames(settings)
+
+  const plan = planSheetFetch({
+    allSheets,
+    allowPartial: Boolean(options.skipIfUnchanged),
+    hadData: options.hadData,
+    changed: changedSheets(spreadsheetId, allSheets, revisions),
+    driveChanged: remote.driveChanged,
+    fullSyncAt: getSyncMeta(spreadsheetId)?.fullSyncAt ?? null,
+    absorbedAt: getSyncMeta(spreadsheetId)?.absorbedAt ?? null,
+    now: Date.now()
+  })
+
+  if (!plan.sheets.length) {
+    // Nothing changed remotely: the mirror is current as of this check.
+    const now = Date.now()
+
+    setStoreLastSyncedAt(spreadsheetId, now)
+    setLastSyncedAt(now)
+    if (!hasPendingOutbox(spreadsheetId)) setSyncState('idle')
 
     return
   }
 
-  const sheetNames = pickSheetsToFetch(spreadsheetId, getKnownSheetNames(settings), {
-    ...options,
-    revisions
-  })
+  const sheetNames = plan.sheets
 
   const versionsBefore = snapshotSheetWriteVersions(spreadsheetId, sheetNames)
+
+  // A write queued now may be sent while the download is in flight; its tab
+  // would then look unblocked afterwards and the older copy would win.
+  const blockedBefore = getOutboxSheetNames(spreadsheetId)
 
   const fetched = await fetchSheetsBatchFromApi(spreadsheetId, sheetNames)
   const missing = missingSheetNames(sheetNames, fetched.keys())
@@ -102,12 +123,16 @@ export async function pullRemoteSheets(
   const filtered = new Map<string, string[][]>()
 
   for (const [sheetName, rows] of fetched) {
-    if (stillBlocked.has(sheetName)) continue
+    if (blockedBefore.has(sheetName) || stillBlocked.has(sheetName)) continue
     if (getSheetWriteVersion(spreadsheetId, sheetName) !== versionsBefore.get(sheetName)) continue
     filtered.set(sheetName, rows)
   }
 
-  rememberRemoteVersion(spreadsheetId, remote.modifiedTime)
+  // A skipped tab was not refreshed: keep the old Drive time and safety nets so
+  // a hand edit on it is still downloaded later.
+  if (![...fetched.keys()].some(name => !filtered.has(name))) {
+    recordPullOutcome(spreadsheetId, plan, remote.modifiedTime)
+  }
   if (revisions) markSheetsSeen(spreadsheetId, [...filtered.keys()], revisions)
 
   if (!filtered.size) {

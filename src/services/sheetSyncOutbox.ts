@@ -65,20 +65,41 @@ function isOffline(): boolean {
 
 type PassResult = 'done' | 'blocked'
 
+/** Drive's modifiedTime right before this device writes; null when unreadable. */
+async function readDriveTime(spreadsheetId: string): Promise<string | null> {
+  try {
+    const { fetchRemoteModifiedTime } = await import('./sheetRemoteVersion')
+
+    return await fetchRemoteModifiedTime(spreadsheetId)
+  } catch {
+    return null
+  }
+}
+
 /**
- * Tells other devices which tabs changed (change tokens) and records the new
- * Drive modifiedTime, so this device does not re-download its own writes.
+ * Tells other devices which tabs changed (change tokens). The new Drive
+ * modifiedTime is taken as this device's own only when Drive still matched the
+ * mirror right before the flush: otherwise it would also cover a hand edit made
+ * since the last check, and that edit would never be downloaded.
  * Best effort: on failure others still see the change through modifiedTime.
  */
-async function announceWrites(spreadsheetId: string, touched: Set<string>): Promise<void> {
+async function announceWrites(
+  spreadsheetId: string,
+  touched: Set<string>,
+  driveBefore: string | null
+): Promise<void> {
   if (!touched.size) return
 
   try {
     const { stampSheetRevisions } = await import('./sheetRevisions')
     const { fetchRemoteModifiedTime, rememberRemoteVersion } = await import('./sheetRemoteVersion')
+    const { getSyncMeta } = await import('./spreadsheetSyncMeta')
 
     await stampSheetRevisions(spreadsheetId, touched)
-    rememberRemoteVersion(spreadsheetId, await fetchRemoteModifiedTime(spreadsheetId))
+
+    if (driveBefore && driveBefore === getSyncMeta(spreadsheetId)?.modifiedTime) {
+      rememberRemoteVersion(spreadsheetId, await fetchRemoteModifiedTime(spreadsheetId))
+    }
   } catch {
     /* change detection falls back to a full download */
   }
@@ -143,12 +164,14 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
   // instead of waiting for the next sync trigger.
   const touched = new Set<string>()
 
+  const driveBefore = await readDriveTime(spreadsheetId)
+
   try {
     for (let pass = 0; pass < MAX_FLUSH_PASSES && hasPendingOutbox(spreadsheetId); pass += 1) {
       if ((await flushPass(spreadsheetId, touched)) === 'blocked') return false
     }
   } finally {
-    await announceWrites(spreadsheetId, touched)
+    await announceWrites(spreadsheetId, touched, driveBefore)
   }
 
   refreshPendingCount(spreadsheetId)
