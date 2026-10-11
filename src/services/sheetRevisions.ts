@@ -95,7 +95,7 @@ export function findChangedSheets(
   return sheetNames.filter(name => {
     const key = sheetKey(name)
 
-    return (revisions.get(key)?.token ?? '') !== (seen.get(key) ?? '')
+    return !seen.has(key) || (revisions.get(key)?.token ?? '') !== seen.get(key)
   })
 }
 

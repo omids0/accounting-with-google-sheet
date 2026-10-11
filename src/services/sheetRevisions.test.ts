@@ -88,6 +88,22 @@ describe('sheet change tokens', () => {
     expect(findChangedSheets(ID, ['هزینه'], await fetchSheetRevisions(ID))).toBeNull()
   })
 
+  it('treats a tab this device never downloaded as changed, even without a token', async () => {
+    const { fetchSheetRevisions, findChangedSheets, markSheetsSeen } = await load()
+
+    apiRequest.mockResolvedValueOnce(
+      layout([
+        { title: 'هزینه', sheetId: 1 },
+        { title: 'درآمد', sheetId: 2 }
+      ])
+    )
+    const revisions = await fetchSheetRevisions(ID)
+
+    markSheetsSeen(ID, ['هزینه'], revisions)
+
+    expect(findChangedSheets(ID, ['هزینه', 'درآمد'], revisions)).toEqual(['درآمد'])
+  })
+
   it('ignores metadata written by anything else', async () => {
     const { fetchSheetRevisions, findChangedSheets, markSheetsSeen } = await load()
 

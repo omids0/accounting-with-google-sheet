@@ -6,10 +6,11 @@ const remote = vi.fn()
 const revisionsFetch = vi.fn()
 const findChanged = vi.fn()
 const batchFetch = vi.fn()
+const remember = vi.fn()
 
 vi.mock('./sheetRemoteVersion', () => ({
   checkRemoteChanged: (...args: unknown[]) => remote(...args),
-  rememberRemoteVersion: vi.fn()
+  rememberRemoteVersion: (...args: unknown[]) => remember(...args)
 }))
 vi.mock('./sheetRevisions', () => ({
   fetchSheetRevisions: (...args: unknown[]) => revisionsFetch(...args),
@@ -26,7 +27,8 @@ vi.mock('./sheetSyncOutbox', () => ({
 vi.mock('./sheetSyncSheetNames', () => ({ getKnownSheetNames: () => ['هزینه', 'درآمد'] }))
 
 const { pullRemoteSheets } = await import('./sheetSyncPull')
-const { initStore } = await import('./spreadsheetStore')
+const { initStore, getSheetAllRows, setSheetAllRows } = await import('./spreadsheetStore')
+const { addOutboxEntry, clearOutbox } = await import('./syncOutbox')
 const { getSyncMeta, updateSyncMeta } = await import('./spreadsheetSyncMeta')
 
 const ID = 'sheet-1'
@@ -45,6 +47,8 @@ describe('pullRemoteSheets', () => {
     batchFetch.mockReset().mockImplementation(async (_id: string, names: string[]) => {
       return new Map(names.map(name => [name, [['شناسه'], [name]]]))
     })
+    localStorage.clear()
+    remember.mockReset()
     initStore(ID)
     updateSyncMeta(ID, { fullSyncAt: Date.now() })
   })
@@ -88,5 +92,78 @@ describe('pullRemoteSheets', () => {
     await pullRemoteSheets(ID, SETTINGS, { skipIfUnchanged: true, hadData: true })
 
     expect(fetchedTabs()).toEqual(['هزینه', 'درآمد'])
+  })
+})
+
+describe('pullRemoteSheets with local writes in flight', () => {
+  const LOCAL = [['شناسه'], ['local']]
+
+  beforeEach(() => {
+    localStorage.clear()
+    remember.mockReset()
+    remote.mockReset().mockResolvedValue({ driveChanged: true, modifiedTime: 'T2' })
+    revisionsFetch.mockReset().mockResolvedValue(new Map())
+    findChanged.mockReset().mockReturnValue([])
+    initStore(ID)
+    setSheetAllRows(ID, 'هزینه', LOCAL)
+    updateSyncMeta(ID, { fullSyncAt: 0 })
+    addOutboxEntry(ID, { type: 'append', sheetName: 'هزینه', row: ['local'] })
+  })
+
+  it('keeps a tab whose queued write was sent while the download was in flight', async () => {
+    batchFetch.mockReset().mockImplementation(async (_id: string, names: string[]) => {
+      clearOutbox(ID)
+
+      return new Map(names.map(name => [name, [['شناسه'], ['old']]]))
+    })
+
+    await pullRemoteSheets(ID, SETTINGS, { skipIfUnchanged: true, hadData: true })
+
+    expect(getSheetAllRows(ID, 'هزینه')).toEqual(LOCAL)
+    expect(getSheetAllRows(ID, 'درآمد')).toEqual([['شناسه'], ['old']])
+  })
+
+  it('does not count a full download that skipped a tab as a full sync', async () => {
+    batchFetch.mockReset().mockImplementation(async (_id: string, names: string[]) => {
+      return new Map(names.map(name => [name, [['شناسه'], ['remote']]]))
+    })
+
+    await pullRemoteSheets(ID, SETTINGS, { skipIfUnchanged: true, hadData: true })
+
+    expect(getSyncMeta(ID)?.fullSyncAt).toBe(0)
+    expect(remember).not.toHaveBeenCalled()
+  })
+})
+
+describe('pullRemoteSheets suspect hand edits', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    remember.mockReset()
+    revisionsFetch.mockReset().mockResolvedValue(new Map())
+    batchFetch.mockReset().mockImplementation(async (_id: string, names: string[]) => {
+      return new Map(names.map(name => [name, [['شناسه'], [name]]]))
+    })
+    initStore(ID)
+    updateSyncMeta(ID, { fullSyncAt: Date.now(), absorbedAt: null })
+  })
+
+  it('flags a possible hand edit when tokens and Drive moved together', async () => {
+    remote.mockReset().mockResolvedValue({ driveChanged: true, modifiedTime: 'T3' })
+    findChanged.mockReset().mockReturnValue(['هزینه'])
+
+    await pullRemoteSheets(ID, SETTINGS, { skipIfUnchanged: true, hadData: true })
+
+    expect(fetchedTabs()).toEqual(['هزینه'])
+    expect(getSyncMeta(ID)?.absorbedAt).toBeGreaterThan(0)
+  })
+
+  it('clears the flag after a full download', async () => {
+    remote.mockReset().mockResolvedValue({ driveChanged: true, modifiedTime: 'T4' })
+    findChanged.mockReset().mockReturnValue([])
+    updateSyncMeta(ID, { absorbedAt: 5 })
+
+    await pullRemoteSheets(ID, SETTINGS, { skipIfUnchanged: true, hadData: true })
+
+    expect(getSyncMeta(ID)?.absorbedAt ?? null).toBeNull()
   })
 })

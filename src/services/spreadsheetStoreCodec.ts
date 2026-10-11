@@ -12,6 +12,8 @@ export interface SyncMeta {
   modifiedTime: string | null
   /** When every tab was last downloaded. */
   fullSyncAt: number | null
+  /** When a partial pull accepted a Drive change that may hide a hand edit. */
+  absorbedAt?: number | null
 }
 
 /**

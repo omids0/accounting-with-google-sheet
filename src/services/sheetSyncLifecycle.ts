@@ -19,8 +19,9 @@ import { getSyncStatus, setLastSyncedAt, setSyncState, setPendingWrites } from '
 
 /**
  * A poll is two tiny metadata reads unless a tab really changed, so changes
- * from another device show up within half a minute (about 4 reads a minute,
- * well under Google's 60 per user).
+ * from another device show up within half a minute. Per open device that is
+ * about 2 Sheets reads a minute (plus 2 on Drive's separate quota), well under
+ * Sheets' 60 reads per user per minute even with several devices open.
  */
 export const SYNC_INTERVAL_MS = 30_000
 

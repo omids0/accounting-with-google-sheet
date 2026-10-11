@@ -1,9 +1,15 @@
 /**
  * Safety net: at least one download of every tab per day. It catches the rare
- * hand edit in Google Sheets made at the same moment another device wrote
- * (the token change hides the Drive change from the rules below).
+ * race no rule below can see (two writes within the same second).
  */
 export const FULL_SYNC_MAX_AGE_MS = 24 * 60 * 60_000
+
+/**
+ * A Drive change that arrives together with moved tokens may also hide a hand
+ * edit on another tab: app writes and hand edits both move Drive's time. Those
+ * pulls stay partial, but a full download follows within this window.
+ */
+export const SUSPECT_FULL_SYNC_MS = 15 * 60_000
 
 export interface SheetFetchInput {
   allSheets: string[]
@@ -15,13 +21,17 @@ export interface SheetFetchInput {
   /** Drive modifiedTime differs from the one the mirror matches. */
   driveChanged: boolean
   fullSyncAt: number | null
+  /** When a partial pull last accepted a Drive change it could not explain. */
+  absorbedAt: number | null
   now: number
 }
 
 export interface SheetFetchPlan {
   sheets: string[]
-  /** True when every tab is downloaded (resets the daily safety net). */
+  /** True when every tab is downloaded (resets both safety nets). */
   full: boolean
+  /** True when a partial pull accepts a Drive change that may include a hand edit. */
+  absorbs: boolean
 }
 
 /**
@@ -30,15 +40,25 @@ export interface SheetFetchPlan {
  * stamps nothing and only shows as a Drive change, so it downloads everything.
  */
 export function planSheetFetch(input: SheetFetchInput): SheetFetchPlan {
-  const everything = { sheets: input.allSheets, full: true }
+  const everything = { sheets: input.allSheets, full: true, absorbs: false }
 
-  const stale = input.fullSyncAt === null || input.now - input.fullSyncAt >= FULL_SYNC_MAX_AGE_MS
+  const sinceFull = input.fullSyncAt === null ? Infinity : input.now - input.fullSyncAt
 
-  if (!input.allowPartial || !input.hadData || input.changed === null || stale) return everything
+  if (!input.allowPartial || !input.hadData || input.changed === null) return everything
 
-  if (input.changed.length) return { sheets: input.changed, full: false }
+  if (sinceFull >= FULL_SYNC_MAX_AGE_MS) return everything
+
+  const suspectDue = sinceFull >= SUSPECT_FULL_SYNC_MS
+
+  if (input.absorbedAt !== null && suspectDue) return everything
+
+  if (input.changed.length) {
+    if (input.driveChanged && suspectDue) return everything
+
+    return { sheets: input.changed, full: false, absorbs: input.driveChanged }
+  }
 
   if (input.driveChanged) return everything
 
-  return { sheets: [], full: false }
+  return { sheets: [], full: false, absorbs: false }
 }
