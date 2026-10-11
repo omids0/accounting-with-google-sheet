@@ -1,4 +1,5 @@
 import { appendSheetRow, fetchSheetRows } from './sheets'
+import { getSheetAllRows, setSheetAllRows } from './spreadsheetStore'
 import { getTodayIso } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
 import { showError } from '../utils/toast'
@@ -97,6 +98,10 @@ export async function appendLedgerEntries(
   spreadsheetId: string,
   entries: LedgerEntry[]
 ): Promise<void> {
+  // A tab not hydrated yet would take the first appended row as its header.
+  if (getSheetAllRows(spreadsheetId, WALLET_LEDGER_SHEET) === null) {
+    setSheetAllRows(spreadsheetId, WALLET_LEDGER_SHEET, [WALLET_LEDGER_HEADERS])
+  }
   for (const entry of entries) {
     await appendSheetRow(spreadsheetId, WALLET_LEDGER_SHEET, ledgerRow(entry))
   }

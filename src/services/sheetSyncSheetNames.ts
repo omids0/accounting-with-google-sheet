@@ -27,6 +27,7 @@ import { VEHICLE_MECHANIC_SHEET } from './vehicleMechanicVisits'
 import { VEHICLE_PERIODIC_SHEET } from './vehiclePeriodicServices'
 import { VEHICLES_SHEET } from './vehicleProfiles'
 import { WALLET_SHEET } from './wallet'
+import { WALLET_LEDGER_SHEET } from './walletLedger'
 
 /** Sheets every account has, regardless of which custom forms it defines. */
 const STATIC_SHEETS = [
@@ -42,6 +43,7 @@ const STATIC_SHEETS = [
   RECEIVABLES_SHEET,
   TREASURY_SHEET,
   WALLET_SHEET,
+  WALLET_LEDGER_SHEET,
   SMS_TEMPLATES_SHEET,
   CATEGORIES_SHEET,
   MONTHLY_BALANCE_SHEET,

@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { MODULE_SHEET_SPECS } from './moduleSheetSpecs'
+import { getKnownSheetNames } from './sheetSyncSheetNames'
 import { clearStore, setSheetAllRows } from './spreadsheetStore'
+import type { AppSettings } from '../types'
 import {
   appendLedgerEntries,
   fetchLedger,
@@ -59,6 +62,26 @@ describe('logBalanceSet', () => {
     await logBalanceSet(SPREADSHEET_ID, 'acc', 0, 0, 'موجودی اولیه')
 
     expect(await fetchLedger(SPREADSHEET_ID, 'acc')).toEqual([])
+  })
+})
+
+describe('ledger tab', () => {
+  it('is created and synced with the other module tabs', () => {
+    expect(MODULE_SHEET_SPECS).toContainEqual({
+      sheetName: WALLET_LEDGER_SHEET,
+      headers: WALLET_LEDGER_HEADERS
+    })
+    expect(getKnownSheetNames({ forms: [] } as unknown as AppSettings)).toContain(
+      WALLET_LEDGER_SHEET
+    )
+  })
+
+  it('keeps the first entry when the tab is not in the local store yet', async () => {
+    clearStore(SPREADSHEET_ID)
+
+    await appendLedgerEntries(SPREADSHEET_ID, [ledgerEntry('acc', -100, 900, context)])
+
+    expect(await fetchLedger(SPREADSHEET_ID, 'acc')).toHaveLength(1)
   })
 })
 
