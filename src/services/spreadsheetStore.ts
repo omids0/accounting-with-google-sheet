@@ -1,4 +1,5 @@
 import { bumpSheetWriteVersion } from './sheetWriteVersions'
+import type { SyncMeta } from './spreadsheetStoreCodec'
 import {
   cancelScheduledPersist,
   deleteSnapshot,
@@ -13,6 +14,8 @@ export interface SheetStoreSnapshot {
   spreadsheetId: string
   sheets: Record<string, string[][]>
   lastSyncedAt: number | null
+  /** What the mirror matches remotely; null when unknown. */
+  sync?: SyncMeta | null
 }
 
 let memoryStore: SheetStoreSnapshot | null = null
@@ -20,7 +23,13 @@ let memoryStore: SheetStoreSnapshot | null = null
 const listeners = new Set<() => void>()
 
 registerSnapshotProvider(() =>
-  memoryStore ? { spreadsheetId: memoryStore.spreadsheetId, sheets: memoryStore.sheets } : null
+  memoryStore
+    ? {
+        spreadsheetId: memoryStore.spreadsheetId,
+        sheets: memoryStore.sheets,
+        sync: memoryStore.sync
+      }
+    : null
 )
 
 function sheetRowsEqual(prev: string[][], next: string[][]): boolean {
@@ -90,6 +99,7 @@ export async function hydrateStore(spreadsheetId: string): Promise<SheetStoreSna
   const store: SheetStoreSnapshot = {
     spreadsheetId,
     sheets: persisted?.sheets ?? {},
+    sync: persisted?.sync ?? null,
     lastSyncedAt: readLastSyncedAt(spreadsheetId)
   }
 

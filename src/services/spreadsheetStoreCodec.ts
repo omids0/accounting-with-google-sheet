@@ -1,12 +1,27 @@
 import { decryptJson, encryptJson, type EncryptedPayload, isEncryptedPayload } from './appLockVault'
 
 /**
+ * What this device knows about the remote copy its mirror was taken from. It
+ * lives in the same record as the sheets, so the two can never disagree after
+ * a restart. Change tokens are random ids, not data, so they stay plaintext.
+ */
+export interface SyncMeta {
+  /** Change token per tab as of its last download; null when unknown. */
+  tokens: Record<string, string> | null
+  /** Drive modifiedTime the mirror matches. */
+  modifiedTime: string | null
+  /** When every tab was last downloaded. */
+  fullSyncAt: number | null
+}
+
+/**
  * Shape written to IndexedDB. `lastSyncedAt` is intentionally excluded so that
  * refreshing the sync timestamp never rewrites the whole sheet mirror.
  */
 export interface PersistedSnapshot {
   spreadsheetId: string
   sheets: Record<string, string[][]>
+  sync?: SyncMeta | null
 }
 
 /** A record holds either plaintext `sheets` (no app lock) or `enc` (app lock on). */
@@ -14,6 +29,7 @@ export interface StoredSnapshotRecord {
   spreadsheetId: string
   sheets?: Record<string, string[][]>
   enc?: EncryptedPayload
+  sync?: SyncMeta | null
 }
 
 export type DecodedSnapshot =
@@ -31,9 +47,11 @@ export function encodeSnapshot(
 ): Promise<StoredSnapshotRecord> {
   const { spreadsheetId, sheets } = snapshot
 
-  if (!key) return Promise.resolve({ spreadsheetId, sheets })
+  const meta = snapshot.sync ? { sync: structuredClone(snapshot.sync) } : {}
 
-  return encryptJson(key, sheets, spreadsheetId).then(enc => ({ spreadsheetId, enc }))
+  if (!key) return Promise.resolve({ spreadsheetId, sheets, ...meta })
+
+  return encryptJson(key, sheets, spreadsheetId).then(enc => ({ spreadsheetId, enc, ...meta }))
 }
 
 export async function decodeSnapshot(
@@ -44,20 +62,26 @@ export async function decodeSnapshot(
 
   const { spreadsheetId } = record
 
+  const sync = record.sync ?? null
+
   if (isEncryptedPayload(record.enc)) {
     if (!key) return { status: 'locked' }
 
     try {
       const sheets = await decryptJson<Record<string, string[][]>>(key, record.enc, spreadsheetId)
 
-      return { status: 'ok', snapshot: { spreadsheetId, sheets }, encrypted: true }
+      return { status: 'ok', snapshot: { spreadsheetId, sheets, sync }, encrypted: true }
     } catch {
       return { status: 'unreadable' }
     }
   }
 
   if (record.sheets) {
-    return { status: 'ok', snapshot: { spreadsheetId, sheets: record.sheets }, encrypted: false }
+    return {
+      status: 'ok',
+      snapshot: { spreadsheetId, sheets: record.sheets, sync },
+      encrypted: false
+    }
   }
 
   return { status: 'unreadable' }
