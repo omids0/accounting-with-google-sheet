@@ -1,6 +1,6 @@
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
-import { migrateWalletAccountColumn } from './migrateWalletAccountColumn'
+import { migrateWalletColumns } from './migrateWalletApplyColumn'
 import { getSettings } from './settings'
 import { forgetRemoteVersion } from './sheetRemoteVersion'
 import { forgetSheetRevisions } from './sheetRevisions'
@@ -183,7 +183,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   void migrateSubCategoryColumn(spreadsheetId)
     .catch(() => undefined)
-    .then(() => migrateWalletAccountColumn(spreadsheetId))
+    .then(() => migrateWalletColumns(spreadsheetId))
     .catch(() => undefined)
   setPendingWrites(getOutboxCount(spreadsheetId))
   refreshFailedCount(spreadsheetId)

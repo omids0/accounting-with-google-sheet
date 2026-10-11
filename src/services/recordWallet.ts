@@ -1,5 +1,5 @@
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
-import { WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
+import { isWalletApplied, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import type { FormType } from '../types'
 import { parseNumeric } from '../utils/parseNumeric'
 
@@ -13,6 +13,7 @@ type RecordValues = Record<string, string | number | undefined>
 
 export function walletEffectOf(type: FormType, values: RecordValues): RecordWalletEffect | null {
   if (type !== 'income' && type !== 'expense') return null
+  if (!isWalletApplied(values)) return null
 
   const accountId = String(values[WALLET_ACCOUNT_FIELD_ID] ?? '').trim()
   const amount = parseNumeric(values.amount)
