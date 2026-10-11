@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { confirmSmsEntry, confirmSmsTransfer, type ConfirmableSms } from './bankSmsApply'
+import { markBankSmsHandled } from './bankSmsNative'
 import { updateBankSmsPrefs } from './bankSmsPrefs'
 import { createLinkedExpenseRecord } from './paymentTransactions'
 import { clearStore, setSheetAllRows } from './spreadsheetStore'
 import { fetchWalletAccounts, WALLET_HEADERS, WALLET_SHEET } from './wallet'
+import type * as WalletModule from './wallet'
 import { fetchLedger, WALLET_LEDGER_HEADERS, WALLET_LEDGER_SHEET } from './walletLedger'
 
 vi.mock('./sheetSync', () => ({ enqueueSheetWrite: vi.fn(), queueOutboxWrite: vi.fn() }))
@@ -14,6 +16,11 @@ vi.mock('./paymentTransactions', () => ({
   createLinkedIncomeRecord: vi.fn(async () => 'rec-2')
 }))
 vi.mock('../utils/toast', () => ({ showError: vi.fn() }))
+vi.mock('./wallet', async importOriginal => {
+  const actual = await importOriginal<typeof WalletModule>()
+
+  return { ...actual, fetchWalletAccounts: vi.fn(actual.fetchWalletAccounts) }
+})
 
 const ID = 'sms-ledger'
 
@@ -82,6 +89,15 @@ describe('SMS balance moves in the ledger', () => {
     })
     expect((await fetchWalletAccounts(ID)).find(a => a.id === 'acc')!.balance).toBe(1000)
     expect((await fetchLedger(ID, 'acc'))[0]).toMatchObject({ applied: false, balanceAfter: 1000 })
+  })
+
+  it('leaves the SMS queue even when logging the opted-out record fails', async () => {
+    updateBankSmsPrefs({ balanceStates: { acc: { anchor: 2000, lastAppliedAt: 2000 } } })
+    vi.mocked(fetchWalletAccounts).mockRejectedValueOnce(new Error('offline'))
+
+    await confirmSmsEntry(ID, sms('s1', 'acc', 'debit'), record).catch(() => undefined)
+
+    expect(markBankSmsHandled).toHaveBeenCalledWith(['s1'])
   })
 
   it('logs both sides of an own-account transfer', async () => {

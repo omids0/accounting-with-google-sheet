@@ -118,12 +118,6 @@ export async function confirmSmsEntry(
       type === 'expense'
         ? await createLinkedExpenseRecord(spreadsheetId, params)
         : await createLinkedIncomeRecord(spreadsheetId, params)
-    await logUnappliedRecord(
-      spreadsheetId,
-      type,
-      params,
-      recordLedgerContext(params, 'پیامک', recordId)
-    )
 
     // Leave the queue right after the record exists, so a failure below can
     // never lead to the same record being written twice.
@@ -137,6 +131,12 @@ export async function confirmSmsEntry(
         [entry.result.templateId]: { category: record.category, subCategory: record.subCategory }
       }
     })
+    await logUnappliedRecord(
+      spreadsheetId,
+      type,
+      params,
+      recordLedgerContext(params, 'پیامک', recordId)
+    ).catch(() => undefined)
   }
 
   if (!record) await markBankSmsHandled([entry.sms.id])
