@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 
 import SpeedDialIcon from './SpeedDialIcon'
 import { useHideOnScroll } from '../hooks/useHideOnScroll'
+import { useRegisterOverlay } from '../hooks/useRegisterOverlay'
 import { cn } from '../utils/cn'
 import {
   fabContainerClass,
@@ -33,6 +34,8 @@ export default function PageSpeedDial({
   const handleClose = () => setOpen(false)
 
   const handleOpen = () => setOpen(true)
+
+  useRegisterOverlay(open, handleClose)
 
   useEffect(() => {
     if (!open) return

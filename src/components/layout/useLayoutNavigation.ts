@@ -13,6 +13,7 @@ import {
 import { useEngagementReminders } from '../../hooks/useEngagementReminders'
 import { usePageSpeedDialConfig } from '../../hooks/usePageSpeedDial'
 import { usePrefetchAppPages } from '../../hooks/usePrefetchAppPages'
+import { useRegisterOverlay } from '../../hooks/useRegisterOverlay'
 import type { TabNavigationOptions } from '../../routes/paths'
 import {
   getPathForTab,
@@ -53,6 +54,8 @@ export function useLayoutNavigation() {
   const [timesheetMenuExpanded, setTimesheetMenuExpanded] = useState(false)
   const [, startNavigationTransition] = useTransition()
   const [pendingTab, setPendingTab] = useState<Tab | null>(null)
+
+  useRegisterOverlay(menuOpen, () => setMenuOpen(false))
 
   const routeTab = getTabFromPath(location.pathname)
 
