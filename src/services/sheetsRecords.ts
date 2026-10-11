@@ -1,8 +1,15 @@
 import type { CustomForm } from '../types'
+import { parseArchiveSheetName } from './recordArchive'
+import { getSettings } from './settings'
 import { buildFieldColumnMap, buildHeaders, buildRecordRow, mapRowToValues } from './sheetsHeaders'
 import { fetchSheetRangeFromApi, deleteSheetRow, updateSheetRow } from './sheetsRows'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
-import { appendSheetDataRow, getSheetAllRows, setSheetAllRows } from './spreadsheetStore'
+import {
+  appendSheetDataRow,
+  getSheetAllRows,
+  getStoreSheetNames,
+  setSheetAllRows
+} from './spreadsheetStore'
 import type { OutboxWriteOptions } from './syncOutbox'
 import { cellToString, isSheetHeaderRow } from '../utils/sheetValues'
 
@@ -12,10 +19,12 @@ export type SheetRecord = {
   id: string
   createdAt: string
   rowNumber: number
+  /** The tab holding the row: the form tab, or one of its yearly archives. */
+  sheetName: string
   values: Record<string, string>
 }
 
-function parseSheetRecords(rows: unknown[][], form: CustomForm): SheetRecord[] {
+function parseSheetRecords(rows: unknown[][], form: CustomForm, sheetName: string): SheetRecord[] {
   if (!rows.length) return []
 
   const hasHeader = isSheetHeaderRow(rows[0])
@@ -33,6 +42,7 @@ function parseSheetRecords(rows: unknown[][], form: CustomForm): SheetRecord[] {
       id: cellToString(row[0]),
       createdAt: cellToString(row[1]),
       rowNumber,
+      sheetName,
       values: mapRowToValues(row, form.fields, columnMap)
     }))
 }
@@ -74,21 +84,50 @@ export async function appendRecord(
   })
 }
 
-export async function fetchRecords(
-  spreadsheetId: string,
-  form: CustomForm
-): Promise<SheetRecord[]> {
+async function loadBaseRows(spreadsheetId: string, form: CustomForm): Promise<string[][]> {
   const cached = getSheetAllRows(spreadsheetId, form.sheetName)
 
-  if (cached) {
-    return parseSheetRecords(cached, form)
-  }
+  if (cached) return cached
 
   const rows = await fetchSheetRangeFromApi(spreadsheetId, form.sheetName)
 
   setSheetAllRows(spreadsheetId, form.sheetName, rows)
 
-  return parseSheetRecords(rows, form)
+  return rows
+}
+
+/** Yearly archive tabs of `form` the mirror holds, oldest first. */
+function archiveTabsOf(spreadsheetId: string, form: CustomForm): string[] {
+  const forms = getSettings()?.forms ?? [form]
+
+  return getStoreSheetNames(spreadsheetId)
+    .map(name => ({ name, archive: parseArchiveSheetName(name, forms) }))
+    .filter(({ archive }) => archive?.form.id === form.id)
+    .sort((a, b) => (a.archive?.year ?? 0) - (b.archive?.year ?? 0))
+    .map(({ name }) => name)
+}
+
+/**
+ * Every record of the form: its tab plus its yearly archives. A record present
+ * in both (a move interrupted halfway) is listed once, from the form tab.
+ */
+export async function fetchRecords(
+  spreadsheetId: string,
+  form: CustomForm
+): Promise<SheetRecord[]> {
+  const records = parseSheetRecords(await loadBaseRows(spreadsheetId, form), form, form.sheetName)
+
+  const seen = new Set(records.map(record => record.id))
+
+  for (const tab of archiveTabsOf(spreadsheetId, form)) {
+    for (const record of parseSheetRecords(getSheetAllRows(spreadsheetId, tab) ?? [], form, tab)) {
+      if (seen.has(record.id)) continue
+      seen.add(record.id)
+      records.push(record)
+    }
+  }
+
+  return records
 }
 
 export async function updateRecord(
@@ -97,10 +136,11 @@ export async function updateRecord(
   rowNumber: number,
   recordId: string,
   createdAt: string,
-  values: Record<string, string | number>
+  values: Record<string, string | number>,
+  sheetName: string = form.sheetName
 ): Promise<void> {
-  await updateSheetRow(spreadsheetId, form.sheetName, rowNumber, () => {
-    const headers = getSheetHeaderRowFromStore(spreadsheetId, form.sheetName, form)
+  await updateSheetRow(spreadsheetId, sheetName, rowNumber, () => {
+    const headers = getSheetHeaderRowFromStore(spreadsheetId, sheetName, form)
 
     return buildRecordRow(headers, form.fields, recordId, createdAt, values)
   })
@@ -109,7 +149,8 @@ export async function updateRecord(
 export async function deleteRecord(
   spreadsheetId: string,
   form: CustomForm,
-  rowNumber: number
+  rowNumber: number,
+  sheetName: string = form.sheetName
 ): Promise<void> {
-  await deleteSheetRow(spreadsheetId, form.sheetName, rowNumber)
+  await deleteSheetRow(spreadsheetId, sheetName, rowNumber)
 }

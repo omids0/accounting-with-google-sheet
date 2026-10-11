@@ -173,15 +173,23 @@ export async function upsertManualVehicleExpenseMeta(
 
   if (!record) throw new Error('تراکنش هزینه یافت نشد')
 
-  await updateRecord(spreadsheetId, expenseForm, record.rowNumber, record.id, record.createdAt, {
-    date: input.date,
-    title,
-    category: 'خودرو',
-    [SUBCATEGORY_FIELD_ID]: expenseType,
-    amount,
-    note: input.note ?? record.values.note ?? '',
-    [WALLET_ACCOUNT_FIELD_ID]: input.walletAccount ?? record.values[WALLET_ACCOUNT_FIELD_ID] ?? ''
-  })
+  await updateRecord(
+    spreadsheetId,
+    expenseForm,
+    record.rowNumber,
+    record.id,
+    record.createdAt,
+    {
+      date: input.date,
+      title,
+      category: 'خودرو',
+      [SUBCATEGORY_FIELD_ID]: expenseType,
+      amount,
+      note: input.note ?? record.values.note ?? '',
+      [WALLET_ACCOUNT_FIELD_ID]: input.walletAccount ?? record.values[WALLET_ACCOUNT_FIELD_ID] ?? ''
+    },
+    record.sheetName
+  )
 
   const existing = await findVehicleExpenseMetaByRecordId(spreadsheetId, expenseRecordId)
   const metaPayload = {

@@ -287,3 +287,8 @@ export function clearStore(spreadsheetId: string): void {
   void deleteSnapshot(spreadsheetId)
   notifyListeners()
 }
+
+/** Tab names the loaded mirror holds a copy of. */
+export function getStoreSheetNames(spreadsheetId: string): string[] {
+  return Object.keys(getStore(spreadsheetId)?.sheets ?? {})
+}

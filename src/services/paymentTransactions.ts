@@ -101,7 +101,7 @@ export async function deleteLinkedRecord(
   const match = records.find(r => r.id === recordId)
 
   if (match) {
-    await deleteRecord(spreadsheetId, form, match.rowNumber)
+    await deleteRecord(spreadsheetId, form, match.rowNumber, match.sheetName)
     await applyWalletChanges(spreadsheetId, walletEffectOf(formType, match.values), null)
 
     return match.values[WALLET_ACCOUNT_FIELD_ID] ?? ''

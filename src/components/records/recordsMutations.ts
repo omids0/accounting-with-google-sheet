@@ -72,7 +72,8 @@ export async function submitRecordEdit({
         editingRecord.rowNumber,
         editingRecord.id,
         editingRecord.createdAt,
-        formValues
+        formValues,
+        editingRecord.sheetName
       )
 
       if (editingForm.type === 'expense') {
@@ -128,7 +129,12 @@ export async function deleteStoredRecord({
       await handleExpenseRecordDeleted(settings.spreadsheetId, deletingRecord.id, category)
     }
 
-    await deleteRecord(settings.spreadsheetId, form, deletingRecord.rowNumber)
+    await deleteRecord(
+      settings.spreadsheetId,
+      form,
+      deletingRecord.rowNumber,
+      deletingRecord.sheetName
+    )
     await applyWalletChanges(
       settings.spreadsheetId,
       walletEffectOf(form.type, deletingRecord.values),
