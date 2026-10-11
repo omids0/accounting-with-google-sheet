@@ -17,14 +17,19 @@ function plan(overrides: Partial<Parameters<typeof planSheetFetch>[0]> = {}) {
     driveChanged: false,
     fullSyncAt: RECENT,
     absorbedAt: null,
+    coldSheets: [],
+    coldMissing: [],
+    coldSyncAt: RECENT,
     now: NOW,
     ...overrides
   })
 }
 
-const NOTHING = { sheets: [], full: false, absorbs: false }
+const NOTHING = { sheets: [], full: false, absorbs: false, cold: false }
 
-const EVERYTHING = { sheets: ALL, full: true, absorbs: false }
+const EVERYTHING = { sheets: ALL, full: true, absorbs: false, cold: false }
+
+const EVERYTHING_COLD = { ...EVERYTHING, cold: true }
 
 describe('planSheetFetch', () => {
   it('downloads nothing when no token moved and Drive is unchanged', () => {
@@ -35,7 +40,8 @@ describe('planSheetFetch', () => {
     expect(plan({ changed: ['هزینه'] })).toEqual({
       sheets: ['هزینه'],
       full: false,
-      absorbs: false
+      absorbs: false,
+      cold: false
     })
   })
 
@@ -47,7 +53,8 @@ describe('planSheetFetch', () => {
     expect(plan({ changed: ['هزینه'], driveChanged: true })).toEqual({
       sheets: ['هزینه'],
       full: false,
-      absorbs: true
+      absorbs: true,
+      cold: false
     })
   })
 
@@ -63,7 +70,7 @@ describe('planSheetFetch', () => {
   })
 
   it('downloads everything when this device knows no tokens yet', () => {
-    expect(plan({ changed: null })).toEqual(EVERYTHING)
+    expect(plan({ changed: null })).toEqual(EVERYTHING_COLD)
   })
 
   it('downloads everything once the last full download is a day old', () => {
@@ -72,7 +79,41 @@ describe('planSheetFetch', () => {
   })
 
   it('downloads everything without a local mirror or when a partial pull is not allowed', () => {
-    expect(plan({ hadData: false })).toEqual(EVERYTHING)
-    expect(plan({ allowPartial: false })).toEqual(EVERYTHING)
+    expect(plan({ hadData: false })).toEqual(EVERYTHING_COLD)
+    expect(plan({ allowPartial: false })).toEqual(EVERYTHING_COLD)
+  })
+})
+
+describe('planSheetFetch cold tier (archive tabs)', () => {
+  const COLD = ['هزینه 1402', 'هزینه 1403']
+
+  it('leaves archives out of a hand-edit full download unless one is missing locally', () => {
+    expect(plan({ driveChanged: true, coldSheets: COLD }).sheets).toEqual(ALL)
+    expect(
+      plan({ driveChanged: true, coldSheets: COLD, coldMissing: ['هزینه 1403'] }).sheets
+    ).toEqual([...ALL, 'هزینه 1403'])
+  })
+
+  it('downloads an archive whose token moved, and only that', () => {
+    expect(plan({ changed: ['هزینه 1402'], coldSheets: COLD })).toEqual({
+      sheets: ['هزینه 1402'],
+      full: false,
+      absorbs: false,
+      cold: false
+    })
+  })
+
+  it('downloads every archive once a day', () => {
+    expect(plan({ coldSheets: COLD, coldSyncAt: NOW - FULL_SYNC_MAX_AGE_MS })).toEqual({
+      sheets: COLD,
+      full: false,
+      absorbs: false,
+      cold: true
+    })
+    expect(plan({ coldSheets: COLD, coldSyncAt: null }).cold).toBe(true)
+  })
+
+  it('downloads every archive when tokens are unknown', () => {
+    expect(plan({ changed: null, coldSheets: COLD }).sheets).toEqual([...ALL, ...COLD])
   })
 })

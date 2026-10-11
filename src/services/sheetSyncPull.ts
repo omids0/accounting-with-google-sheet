@@ -1,4 +1,5 @@
 import type { AppSettings } from '../types'
+import { listArchiveSheets } from './recordArchive'
 import { checkRemoteChanged, rememberRemoteVersion } from './sheetRemoteVersion'
 import type { RevisionMap } from './sheetRevisions'
 import { fetchSheetRevisions, findChangedSheets, markSheetsSeen } from './sheetRevisions'
@@ -9,6 +10,7 @@ import { getKnownSheetNames } from './sheetSyncSheetNames'
 import { getSheetWriteVersion, snapshotSheetWriteVersions } from './sheetWriteVersions'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import {
+  getSheetAllRows,
   initStore,
   setManySheetAllRows,
   setSheetAllRows,
@@ -33,6 +35,8 @@ function recordPullOutcome(
   modifiedTime: string | null
 ): void {
   rememberRemoteVersion(spreadsheetId, modifiedTime)
+
+  if (plan.cold) updateSyncMeta(spreadsheetId, { coldSyncAt: Date.now() })
 
   if (plan.full) {
     updateSyncMeta(spreadsheetId, { fullSyncAt: Date.now(), absorbedAt: null })
@@ -69,14 +73,24 @@ export async function pullRemoteSheets(
 
   const allSheets = getKnownSheetNames(settings)
 
+  const coldSheets = revisions
+    ? listArchiveSheets(
+        [...revisions.values()].map(entry => entry.title),
+        settings.forms ?? []
+      )
+    : []
+
   const plan = planSheetFetch({
     allSheets,
     allowPartial: Boolean(options.skipIfUnchanged),
     hadData: options.hadData,
-    changed: changedSheets(spreadsheetId, allSheets, revisions),
+    changed: changedSheets(spreadsheetId, [...allSheets, ...coldSheets], revisions),
     driveChanged: remote.driveChanged,
     fullSyncAt: getSyncMeta(spreadsheetId)?.fullSyncAt ?? null,
     absorbedAt: getSyncMeta(spreadsheetId)?.absorbedAt ?? null,
+    coldSheets,
+    coldMissing: coldSheets.filter(name => !getSheetAllRows(spreadsheetId, name)),
+    coldSyncAt: getSyncMeta(spreadsheetId)?.coldSyncAt ?? null,
     now: Date.now()
   })
 

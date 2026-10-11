@@ -167,3 +167,62 @@ describe('pullRemoteSheets suspect hand edits', () => {
     expect(getSyncMeta(ID)?.absorbedAt ?? null).toBeNull()
   })
 })
+
+describe('pullRemoteSheets archive tabs', () => {
+  const ARCHIVE = 'هزینه 1402'
+
+  beforeEach(() => {
+    localStorage.clear()
+    remember.mockReset()
+    revisionsFetch.mockReset().mockResolvedValue(
+      new Map([
+        ['هزینه', { title: 'هزینه', sheetId: 1, token: 'a', metadataIds: [] }],
+        [ARCHIVE, { title: ARCHIVE, sheetId: 9, token: 'z', metadataIds: [] }]
+      ])
+    )
+    batchFetch.mockReset().mockImplementation(async (_id: string, names: string[]) => {
+      return new Map(names.map(name => [name, [['شناسه'], [name]]]))
+    })
+    findChanged.mockReset().mockReturnValue([])
+    initStore(ID)
+  })
+
+  it('downloads an archive missing locally during a hand-edit full download', async () => {
+    remote.mockReset().mockResolvedValue({ driveChanged: true, modifiedTime: 'T9' })
+    updateSyncMeta(ID, { fullSyncAt: Date.now(), coldSyncAt: Date.now() })
+
+    await pullRemoteSheets(ID, { forms: [{ sheetName: 'هزینه' }] } as AppSettings, {
+      skipIfUnchanged: true,
+      hadData: true
+    })
+
+    expect(fetchedTabs()).toEqual(['هزینه', 'درآمد', ARCHIVE])
+  })
+
+  it('leaves an archive already held locally out of a hand-edit full download', async () => {
+    remote.mockReset().mockResolvedValue({ driveChanged: true, modifiedTime: 'T9' })
+    setSheetAllRows(ID, ARCHIVE, [['شناسه'], ['old']])
+    updateSyncMeta(ID, { fullSyncAt: Date.now(), coldSyncAt: Date.now() })
+
+    await pullRemoteSheets(ID, { forms: [{ sheetName: 'هزینه' }] } as AppSettings, {
+      skipIfUnchanged: true,
+      hadData: true
+    })
+
+    expect(fetchedTabs()).toEqual(['هزینه', 'درآمد'])
+  })
+
+  it('records the daily archive download', async () => {
+    remote.mockReset().mockResolvedValue({ driveChanged: false, modifiedTime: 'T9' })
+    setSheetAllRows(ID, ARCHIVE, [['شناسه'], ['old']])
+    updateSyncMeta(ID, { fullSyncAt: Date.now(), coldSyncAt: 0 })
+
+    await pullRemoteSheets(ID, { forms: [{ sheetName: 'هزینه' }] } as AppSettings, {
+      skipIfUnchanged: true,
+      hadData: true
+    })
+
+    expect(fetchedTabs()).toEqual([ARCHIVE])
+    expect(getSyncMeta(ID)?.coldSyncAt).toBeGreaterThan(0)
+  })
+})
