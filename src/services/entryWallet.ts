@@ -5,7 +5,11 @@ import {
   recordLedgerContext,
   walletEffectOf
 } from './recordWallet'
-import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
+import {
+  SUBCATEGORY_FIELD_ID,
+  WALLET_APPLY_FIELD_ID,
+  WALLET_APPLY_NO
+} from '../components/form/fieldUtils'
 import type { FormType } from '../types'
 
 /**
@@ -44,8 +48,9 @@ export async function settleEntryWallet(
 }
 
 /**
- * Values to store for a record opened from a bank SMS: drop the account when a newer
- * «مانده» already includes this SMS, so the record never undoes an amount it never applied.
+ * Values to store for a record opened from a bank SMS: keep the account but turn the balance
+ * update off when a newer «مانده» already includes this SMS, so the record never undoes an
+ * amount it never applied.
  */
 export function prepareEntryValues(
   type: FormType,
@@ -56,5 +61,5 @@ export function prepareEntryValues(
 
   if (!bankSms || !effect || !smsAlreadyInBalance(bankSms, effect.accountId)) return values
 
-  return { ...values, [WALLET_ACCOUNT_FIELD_ID]: '' }
+  return { ...values, [WALLET_APPLY_FIELD_ID]: WALLET_APPLY_NO }
 }

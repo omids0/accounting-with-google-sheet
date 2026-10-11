@@ -1,7 +1,11 @@
 import { applyWalletChanges, recordLedgerContext, walletEffectOf } from './recordWallet'
 import { getSettings } from './settings'
 import { appendRecord, deleteRecord, ensureFormSheet, fetchRecords } from './sheets'
-import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
+import {
+  SUBCATEGORY_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_ID,
+  WALLET_APPLY_FIELD_ID
+} from '../components/form/fieldUtils'
 import type { CustomForm } from '../types'
 import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 import { getTodayIso } from '../utils/jalaliDate'
@@ -24,6 +28,8 @@ export interface LinkedRecordParams {
   date?: string
   /** Wallet account the record names (its balance is moved by the caller). */
   walletAccount?: string
+  /** «خیر» when the record names the account without moving its balance. */
+  walletApply?: string
 }
 
 export async function createLinkedExpenseRecord(
@@ -49,7 +55,8 @@ export async function createLinkedExpenseRecord(
     [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
     amount: params.amount,
     note: params.note ?? '',
-    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? ''
+    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? '',
+    [WALLET_APPLY_FIELD_ID]: params.walletApply ?? ''
   })
 
   return recordId
@@ -78,7 +85,8 @@ export async function createLinkedIncomeRecord(
     [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
     amount: params.amount,
     note: params.note ?? '',
-    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? ''
+    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? '',
+    [WALLET_APPLY_FIELD_ID]: params.walletApply ?? ''
   })
 
   return recordId

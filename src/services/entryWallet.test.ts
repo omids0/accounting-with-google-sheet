@@ -30,10 +30,10 @@ describe('prepareEntryValues', () => {
     expect(prepareEntryValues('expense', values, sms)).toBe(values)
   })
 
-  it('drops the account when a newer «مانده» already includes the SMS', () => {
+  it('keeps the account but skips the balance when a newer «مانده» already includes the SMS', () => {
     updateBankSmsPrefs({ balanceStates: { acc: { anchor: 2000, lastAppliedAt: 2000 } } })
 
-    expect(prepareEntryValues('expense', values, sms)).toEqual({ ...values, walletAccount: '' })
+    expect(prepareEntryValues('expense', values, sms)).toEqual({ ...values, walletApply: 'خیر' })
     // Another account is not covered by that «مانده».
     expect(prepareEntryValues('expense', { ...values, walletAccount: 'other' }, sms)).toEqual({
       ...values,

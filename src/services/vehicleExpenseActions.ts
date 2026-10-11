@@ -11,7 +11,11 @@ import {
 } from './vehicleExpenseRecords'
 import { ensureVehicleExpenseCategory } from './vehicleExpenses'
 import { fetchVehicles, updateVehicleMileage } from './vehicleProfiles'
-import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
+import {
+  SUBCATEGORY_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_ID,
+  WALLET_APPLY_FIELD_ID
+} from '../components/form/fieldUtils'
 import { VEHICLE_OTHER_OPTION } from '../components/vehicles/constants'
 import type { VehicleExpenseMeta } from '../types/vehicles'
 import {
@@ -28,6 +32,7 @@ export type VehicleExpenseInput = VehicleExpenseFormValues & {
   amount: number
   note?: string
   walletAccount?: string
+  walletApply?: string
 }
 
 function resolveVehicleTitle(vehicleId: string, vehicles: { id: string; title: string }[]): string {
@@ -133,7 +138,8 @@ export async function createManualVehicleExpense(
     subCategory: expenseType,
     note: input.note ?? '',
     date: input.date,
-    walletAccount: input.walletAccount
+    walletAccount: input.walletAccount,
+    walletApply: input.walletApply
   })
 
   await createVehicleExpenseMeta(spreadsheetId, {
@@ -186,7 +192,9 @@ export async function upsertManualVehicleExpenseMeta(
       [SUBCATEGORY_FIELD_ID]: expenseType,
       amount,
       note: input.note ?? record.values.note ?? '',
-      [WALLET_ACCOUNT_FIELD_ID]: input.walletAccount ?? record.values[WALLET_ACCOUNT_FIELD_ID] ?? ''
+      [WALLET_ACCOUNT_FIELD_ID]:
+        input.walletAccount ?? record.values[WALLET_ACCOUNT_FIELD_ID] ?? '',
+      [WALLET_APPLY_FIELD_ID]: input.walletApply ?? record.values[WALLET_APPLY_FIELD_ID] ?? ''
     },
     record.sheetName
   )

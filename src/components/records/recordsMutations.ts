@@ -67,7 +67,8 @@ export async function submitRecordEdit({
         date: String(formValues.date ?? ''),
         amount: Number(formValues.amount) || 0,
         note: String(formValues.note ?? ''),
-        walletAccount: String(formValues.walletAccount ?? '')
+        walletAccount: String(formValues.walletAccount ?? ''),
+        walletApply: String(formValues.walletApply ?? '')
       })
     } else {
       await updateRecord(
