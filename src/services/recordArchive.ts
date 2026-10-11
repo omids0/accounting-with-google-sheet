@@ -1,5 +1,5 @@
 import type { CustomForm } from '../types'
-import { buildFieldColumnMap, buildHeaders } from './sheetsHeaders'
+import { buildFieldColumnMap } from './sheetsHeaders'
 import { normalizeSheetTitle } from './sheetsMeta'
 import { isoToJalali } from '../utils/jalaliDate'
 import { cellToString, isSheetHeaderRow, normalizeSheetDate } from '../utils/sheetValues'
@@ -49,40 +49,41 @@ function rowJalaliYear(row: unknown[], column: number): number | null {
 }
 
 /**
- * Past-year data rows grouped by Jalali year, or null when the tab is not
- * over the threshold or has nothing older than `currentYear`. Rows without a
- * readable date always stay in the base tab.
+ * Indexes (into `allRows`, header at 0) of past-year rows grouped by Jalali
+ * year, or null when the tab has no header row, is not over the threshold, or
+ * has nothing older than `currentYear`. Rows without an id or a readable date
+ * always stay in the form tab.
  */
 export function planYearSweep(
   allRows: string[][],
   form: CustomForm,
   currentYear: number
-): Map<number, string[][]> | null {
-  const hasHeader = allRows.length > 0 && isSheetHeaderRow(allRows[0])
+): Map<number, number[]> | null {
+  if (!allRows.length || !isSheetHeaderRow(allRows[0])) return null
 
-  const header = hasHeader ? allRows[0].map(cell => cellToString(cell)) : buildHeaders(form.fields)
+  const header = allRows[0].map(cell => cellToString(cell))
 
-  const dataRows = (hasHeader ? allRows.slice(1) : allRows).filter(row =>
-    cellToString(row[0]).trim()
-  )
+  const dataIndexes = allRows
+    .map((row, index) => (index > 0 && cellToString(row[0]).trim() ? index : -1))
+    .filter(index => index > 0)
 
-  if (dataRows.length <= ARCHIVE_THRESHOLD_ROWS) return null
+  if (dataIndexes.length <= ARCHIVE_THRESHOLD_ROWS) return null
 
   const column = dateColumn(form, header)
 
   if (column === null) return null
 
-  const byYear = new Map<number, string[][]>()
+  const byYear = new Map<number, number[]>()
 
-  for (const row of dataRows) {
-    const year = rowJalaliYear(row, column)
+  for (const index of dataIndexes) {
+    const year = rowJalaliYear(allRows[index], column)
 
     if (year === null || year >= currentYear) continue
 
     const bucket = byYear.get(year)
 
-    if (bucket) bucket.push(row)
-    else byYear.set(year, [row])
+    if (bucket) bucket.push(index)
+    else byYear.set(year, [index])
   }
 
   return byYear.size ? byYear : null

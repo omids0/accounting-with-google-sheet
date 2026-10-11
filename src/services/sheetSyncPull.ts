@@ -11,6 +11,7 @@ import { getSheetWriteVersion, snapshotSheetWriteVersions } from './sheetWriteVe
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import {
   getSheetAllRows,
+  getStoreSheetNames,
   initStore,
   setManySheetAllRows,
   setSheetAllRows,
@@ -73,12 +74,14 @@ export async function pullRemoteSheets(
 
   const allSheets = getKnownSheetNames(settings)
 
-  const coldSheets = revisions
-    ? listArchiveSheets(
-        [...revisions.values()].map(entry => entry.title),
-        settings.forms ?? []
-      )
-    : []
+  // Archives come from the token read; the mirror's own copies cover a failed read.
+  const coldSheets = listArchiveSheets(
+    new Set([
+      ...(revisions ? [...revisions.values()].map(entry => entry.title) : []),
+      ...getStoreSheetNames(spreadsheetId)
+    ]),
+    settings.forms ?? []
+  )
 
   const plan = planSheetFetch({
     allSheets,

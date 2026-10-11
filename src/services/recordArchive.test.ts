@@ -72,8 +72,8 @@ describe('planYearSweep', () => {
     const plan = planYearSweep(rows, EXPENSE, 1404)!
 
     expect([...plan.keys()].sort()).toEqual([1399, 1400])
-    expect(plan.get(1399)!.map(r => r[0])).toEqual(['a', 'b'])
-    expect(plan.get(1400)!.map(r => r[0])).toEqual(['c'])
+    expect(plan.get(1399)!.map(i => rows[i][0])).toEqual(['a', 'b'])
+    expect(plan.get(1400)!.map(i => rows[i][0])).toEqual(['c'])
   })
 
   it('returns null when every row is current, future or undated', () => {
@@ -93,5 +93,13 @@ describe('listArchiveSheets', () => {
         [EXPENSE]
       )
     ).toEqual(['هزینه 1402', 'هزینه 1403'])
+  })
+})
+
+describe('planYearSweep without a header row', () => {
+  it('never plans a sweep, since the first row would be taken as the header', () => {
+    const rows = [row('old', '2020-05-01'), ...filler(ARCHIVE_THRESHOLD_ROWS + 1)]
+
+    expect(planYearSweep(rows, EXPENSE, 1404)).toBeNull()
   })
 })

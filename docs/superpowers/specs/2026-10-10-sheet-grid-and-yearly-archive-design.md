@@ -192,27 +192,42 @@ Users with small sheets never get archive tabs, and their sheet stays simple.
 
 The first run for existing users is the same sweep. No separate migration exists.
 
-Steps for each past year `Y` found in the base tab:
+The whole sweep runs inside the outbox's cross-tab lock, so no write from this device reaches
+the sheet while rows move. It runs only with an empty outbox, and a tab without a header row
+is never swept.
 
-1. **Ensure the archive tab** `<base> Y` exists. Its header row is a copy of the base tab's
-   header row, not the schema, so hand-mapped or older column layouts survive. It is created
-   with an exact grid (Part 1).
-2. **Fresh read** of the archive tab. Append only the rows whose `شناسه` is not already
-   there. This makes the step idempotent after a crash.
-3. **Fresh read** of the archive tab again. Confirm that every row being moved is present by
-   id. If any is missing, stop. Nothing is deleted.
-4. **Fresh read** of the base tab. Map each moved id to its current row number. Rows whose id
-   is no longer present (deleted meanwhile) are skipped.
-5. **One `batchUpdate`** deletes those rows. It uses `deleteDimension` requests in descending
-   index order, merged into contiguous ranges. The single request is atomic.
-6. **Stamp change tokens** on both tabs with the existing revision stamping, so other devices
-   re-pull.
-7. **Update the local mirror** for both tabs from the fresh reads, minus the deleted rows.
-   Then bump the write versions so an in-flight pull cannot overwrite the result.
+Steps for each past year `Y` found in the base tab, revised after the final review:
 
-**Two devices sweeping at once.** A duplicate id in an archive is possible. It is harmless,
-because reads dedupe by id. The next sweep removes extra copies inside the archive with the
-same verify-then-delete pattern.
+1. **Prepare the archive tab** `<base> Y`.
+   - **New tab:** created with an exact grid and the developer-metadata marker
+     `accounting_archive`, both in one atomic `batchUpdate`. The header row is a copy of the
+     base tab's header row.
+   - **Existing tab:** used only if it carries the marker and its header equals the base
+     header. An older prefix is extended. Any other tab with that name is left alone, and its
+     rows stay in the base tab.
+2. **Server-side copy.** From a fresh read of the archive, only rows whose `شناسه` is not
+   there yet are copied, with `copyPaste` in one `batchUpdate` that grows the grid first.
+   - Values, number formats, dates and formulas arrive exactly as they are; nothing is
+     re-written from formatted text.
+   - A re-run after a crash copies nothing twice.
+3. **Verify.** The archive is read again.
+   - New rows that are not the intended ones are removed. They come from a shifted base, or
+     from another device copying at the same time.
+   - Every planned id must then be present. Otherwise the sweep stops and nothing is deleted.
+4. **Content-checked delete.** From a fresh read of the base tab, only past-year rows whose
+   whole content equals their archived copy are deleted, at most one per id. Deletion uses
+   descending, merged `deleteDimension` ranges.
+   - A row edited after the copy stays in the base tab.
+   - A current-year row sharing an id stays in the base tab.
+5. **Put back.** The base is read again. Any other row the delete hit, because another device
+   shifted rows in between, is appended back. In that sub-second window a row deleted
+   elsewhere may also come back; restoring is preferred to losing data.
+6. **Stamp change tokens** on the base tab and the archives.
+7. **Update the local mirror.** The base copy is replaced only if no local write happened
+   meanwhile.
+
+**Deleting a record** removes every copy of its id across the form tab and its archives,
+bottom rows first. An archived copy left by an interrupted move therefore cannot come back.
 
 ### Edits after a move
 

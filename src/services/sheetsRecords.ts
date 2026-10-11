@@ -146,11 +146,40 @@ export async function updateRecord(
   })
 }
 
+/** Other rows holding `id` in the form tab and its archives (a move interrupted halfway). */
+function otherCopies(
+  spreadsheetId: string,
+  form: CustomForm,
+  id: string,
+  except: { sheetName: string; rowNumber: number }
+): { sheetName: string; rowNumber: number }[] {
+  return [form.sheetName, ...archiveTabsOf(spreadsheetId, form)].flatMap(tab =>
+    (getSheetAllRows(spreadsheetId, tab) ?? []).flatMap((row, index) => {
+      const rowNumber = index + 1
+
+      const same = tab === except.sheetName && rowNumber === except.rowNumber
+
+      return index > 0 && !same && cellToString(row[0]).trim() === id
+        ? [{ sheetName: tab, rowNumber }]
+        : []
+    })
+  )
+}
+
+/** Deletes the record and every other copy of it, so an archived copy cannot come back. */
 export async function deleteRecord(
   spreadsheetId: string,
   form: CustomForm,
   rowNumber: number,
   sheetName: string = form.sheetName
 ): Promise<void> {
-  await deleteSheetRow(spreadsheetId, sheetName, rowNumber)
+  const id = cellToString(getSheetAllRows(spreadsheetId, sheetName)?.[rowNumber - 1]?.[0]).trim()
+
+  const copies = id ? otherCopies(spreadsheetId, form, id, { sheetName, rowNumber }) : []
+
+  // Bottom rows first, so a second copy in the same tab keeps its row number.
+  const targets = [{ sheetName, rowNumber }, ...copies].sort((a, b) => b.rowNumber - a.rowNumber)
+
+  for (const target of targets)
+    await deleteSheetRow(spreadsheetId, target.sheetName, target.rowNumber)
 }

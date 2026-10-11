@@ -85,3 +85,27 @@ describe('records across a form tab and its archives', () => {
     expect(deleteSheetRow).toHaveBeenCalledWith(ID, 'هزینه', 3)
   })
 })
+
+describe('deleting a record held in two tabs', () => {
+  it('deletes every copy, so the archived one cannot come back', async () => {
+    deleteSheetRow.mockReset()
+    initStore(ID)
+    setSheetAllRows(ID, 'هزینه', [
+      HEADER,
+      ['new', 't', '2025-06-01', '10'],
+      ['dup', 't', '2023-06-02', '99']
+    ])
+    setSheetAllRows(ID, 'هزینه 1402', [
+      HEADER,
+      ['old', 't', '2023-06-01', '20'],
+      ['dup', 't', '2023-06-02', '1']
+    ])
+
+    await deleteRecord(ID, EXPENSE, 3, 'هزینه')
+
+    expect(deleteSheetRow.mock.calls.map(call => call.slice(1))).toEqual([
+      ['هزینه', 3],
+      ['هزینه 1402', 3]
+    ])
+  })
+})

@@ -226,3 +226,23 @@ describe('pullRemoteSheets archive tabs', () => {
     expect(getSyncMeta(ID)?.coldSyncAt).toBeGreaterThan(0)
   })
 })
+
+describe('pullRemoteSheets archive tabs without change tokens', () => {
+  it('still refreshes archives this device holds when tokens cannot be read', async () => {
+    localStorage.clear()
+    remote.mockReset().mockResolvedValue({ driveChanged: true, modifiedTime: 'T9' })
+    revisionsFetch.mockReset().mockRejectedValue(new Error('offline'))
+    batchFetch.mockReset().mockImplementation(async (_id: string, names: string[]) => {
+      return new Map(names.map(name => [name, [['شناسه'], [name]]]))
+    })
+    initStore(ID)
+    setSheetAllRows(ID, 'هزینه 1402', [['شناسه'], ['old']])
+
+    await pullRemoteSheets(ID, { forms: [{ sheetName: 'هزینه' }] } as AppSettings, {
+      skipIfUnchanged: true,
+      hadData: true
+    })
+
+    expect(fetchedTabs()).toEqual(['هزینه', 'درآمد', 'هزینه 1402'])
+  })
+})
