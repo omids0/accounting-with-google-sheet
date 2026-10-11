@@ -1,5 +1,6 @@
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { normalizeSheetTitle } from './sheetsMeta'
+import { clearSyncMeta, getSyncMeta, updateSyncMeta } from './spreadsheetSyncMeta'
 
 /**
  * Per-sheet change tokens kept as developer metadata on each tab. Every write
@@ -26,8 +27,19 @@ interface SpreadsheetMetadataResponse {
   }[]
 }
 
-/** Last tokens this device has data for, per spreadsheet (session memory). */
-const seenTokens = new Map<string, Map<string, string>>()
+/**
+ * Last tokens this device has data for. Kept in the sync meta persisted with the
+ * mirror, so a restart still knows which tabs it already holds.
+ */
+function readSeen(spreadsheetId: string): Map<string, string> | null {
+  const tokens = getSyncMeta(spreadsheetId)?.tokens
+
+  return tokens ? new Map(Object.entries(tokens)) : null
+}
+
+function writeSeen(spreadsheetId: string, seen: Map<string, string>): void {
+  updateSyncMeta(spreadsheetId, { tokens: Object.fromEntries(seen) })
+}
 
 function sheetKey(title: string): string {
   return normalizeSheetTitle(title)
@@ -69,14 +81,14 @@ export async function fetchSheetRevisions(spreadsheetId: string): Promise<Revisi
 
 /**
  * Tabs whose token differs from what this device last downloaded. Returns null
- * when nothing is known yet for this session (caller must download everything).
+ * when this device knows nothing yet (caller must download everything).
  */
 export function findChangedSheets(
   spreadsheetId: string,
   sheetNames: string[],
   revisions: RevisionMap
 ): string[] | null {
-  const seen = seenTokens.get(spreadsheetId)
+  const seen = readSeen(spreadsheetId)
 
   if (!seen) return null
 
@@ -93,7 +105,7 @@ export function markSheetsSeen(
   sheetNames: string[],
   revisions: RevisionMap
 ): void {
-  const seen = seenTokens.get(spreadsheetId) ?? new Map<string, string>()
+  const seen = readSeen(spreadsheetId) ?? new Map<string, string>()
 
   for (const name of sheetNames) {
     const key = sheetKey(name)
@@ -101,7 +113,7 @@ export function markSheetsSeen(
     seen.set(key, revisions.get(key)?.token ?? '')
   }
 
-  seenTokens.set(spreadsheetId, seen)
+  writeSeen(spreadsheetId, seen)
 }
 
 function newToken(): string {
@@ -120,7 +132,7 @@ export async function stampSheetRevisions(
 
   if (!names.length) return
 
-  const seenBefore = seenTokens.get(spreadsheetId)
+  const seenBefore = readSeen(spreadsheetId)
 
   // A fresh read tells whether another device stamped a tab since this device
   // last downloaded it; such tabs stay "unseen" so the next pull fetches them.
@@ -178,6 +190,8 @@ export async function stampSheetRevisions(
   // the next check does not download these tabs again.
   let replyIndex = 0
 
+  const ownTokens = new Map<string, string>()
+
   for (const [key, { token, changedElsewhere }] of stamped) {
     const entry = layout.get(key)
 
@@ -196,10 +210,18 @@ export async function stampSheetRevisions(
     const joined = entry.metadataIds.map(() => token).join('|')
 
     entry.token = joined
-    if (!changedElsewhere) seenBefore?.set(key, joined)
+    if (!changedElsewhere) ownTokens.set(key, joined)
   }
+
+  // Re-read: a pull may have recorded other tabs while this request was in flight.
+  const seenNow = readSeen(spreadsheetId)
+
+  if (!seenNow || !ownTokens.size) return
+
+  for (const [key, token] of ownTokens) seenNow.set(key, token)
+  writeSeen(spreadsheetId, seenNow)
 }
 
 export function forgetSheetRevisions(spreadsheetId: string): void {
-  seenTokens.delete(spreadsheetId)
+  clearSyncMeta(spreadsheetId)
 }
