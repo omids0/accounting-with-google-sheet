@@ -155,3 +155,57 @@
   font-size: 15px;
   margin: 0 0 8px;
 }
+
+.dk-g {
+  font-size: 10px;
+  color: #999;
+  padding: 8px 8px 2px;
+}
+.dk-edit {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #999;
+  border-radius: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #555;
+}
+.dk-strip {
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px dashed #bbb;
+  margin-top: 8px;
+  padding-top: 6px;
+  font-size: 11px;
+  color: #666;
+}
+.dk-strip b {
+  display: block;
+  color: #333;
+}
+.dk-table tr.over td {
+  color: #a33;
+}
+.dk-bar {
+  height: 5px;
+  background: #e4e4e4;
+  border-radius: 3px;
+}
+.dk-bar i {
+  display: block;
+  height: 5px;
+  background: #777;
+  border-radius: 3px;
+}
+.dk-card h4 small {
+  float: left;
+  font-weight: 400;
+  color: #888;
+  font-size: 10px;
+}
