@@ -81,3 +81,28 @@ export const treasuryTxInteractiveClass = cx(
   interactiveCardClass,
   'relative -mx-3 rounded-sm px-3 py-[0.65rem] hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_55%,transparent)]'
 )
+
+/** «قیمت دستی · ۱۲ مهر ✎» line on a manually priced holding. */
+export const treasuryManualPriceClass =
+  'mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.75rem] text-muted [&_.card-action-btn]:h-7 [&_.card-action-btn]:w-7'
+
+export const treasuryStaleHintClass =
+  'rounded-full border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-2 py-0.5 text-[0.7rem] font-semibold text-warning'
+
+/** Class and symbol above a holding's name. */
+export const treasuryClassTagClass = 'mb-0.5 text-[0.7rem] font-semibold text-muted'
+
+export const treasuryManualRowClass = 'px-4 pb-3 -mt-1'
+
+/** Slim section header over each class's cards in «همه», with the class subtotal. */
+export const treasuryGroupHeaderClass =
+  'mb-2 mt-1 flex items-baseline justify-between gap-3 border-b border-border px-1 pb-1 text-[0.78rem] font-bold text-muted first:mt-0'
+
+export const treasuryGroupTotalClass =
+  'text-[0.78rem] font-semibold text-primary-dark font-numeric tabular-nums'
+
+export const treasuryClassChipsClass =
+  'mb-3 -mx-1 overflow-x-auto px-1 [&>div]:flex-nowrap [&_button]:shrink-0'
+
+/** Class filter inside the desktop table's «کلاس» header. */
+export const treasuryTableFilterClass = 'ms-2 inline-block w-28 align-middle font-normal'

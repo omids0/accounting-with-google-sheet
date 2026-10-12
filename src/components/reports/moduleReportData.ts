@@ -12,8 +12,13 @@ import {
   paidAmount
 } from '../../services/receivables'
 import { getReceivableDisplayTitle } from '../../services/receivablesRow'
-import { getSummableTgjuPrices } from '../../services/tgjuCurrency'
-import { exportTreasuryPdf, computeHoldings, fetchVaultTransactions } from '../../services/treasury'
+import { fetchTgjuPrices } from '../../services/tgju'
+import { getSummableTgjuPrices, vaultPriceKeys } from '../../services/tgjuCurrency'
+import { exportTreasuryPdf, fetchVaultTransactions } from '../../services/treasury'
+import { getAssetClassLabel } from '../../services/treasuryCatalog'
+import { loadVaultCatalog } from '../../services/treasuryCatalogSheet'
+import { computeHoldings, totalsByClass } from '../../services/treasuryHoldings'
+import { formatQuantityValue } from '../../services/treasuryQuantity'
 import { exportWalletAccountsPdf, fetchWalletAccounts } from '../../services/wallet'
 import { getDateRange } from '../../utils/dateRange'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -49,8 +54,16 @@ export interface ReportRow {
   amount: number
 }
 
+/** A subtotal line (the vault's asset classes). */
+export interface ReportGroup {
+  id: string
+  label: string
+  total: number
+}
+
 export interface ModuleReportData {
   total: number
+  groups?: ReportGroup[]
   secondaryTotal?: number
   secondaryLabel?: string
   rows: ReportRow[]
@@ -78,9 +91,15 @@ export async function loadModuleReport(
     }
 
     case 'treasury': {
-      const prices = getSummableTgjuPrices()
+      const [transactions] = await Promise.all([
+        fetchVaultTransactions(spreadsheetId),
+        loadVaultCatalog(spreadsheetId)
+      ])
 
-      const transactions = prices ? await fetchVaultTransactions(spreadsheetId) : []
+      // Opened straight from the menu, before the vault page cached tgju's quotes.
+      await fetchTgjuPrices(vaultPriceKeys()).catch(() => null)
+
+      const prices = getSummableTgjuPrices()
 
       const holdings = prices ? computeHoldings(transactions, prices) : []
 
@@ -88,11 +107,22 @@ export async function loadModuleReport(
 
       return {
         total,
-        rows: holdings.map(holding => ({
-          id: holding.assetType,
-          title: holding.assetType,
-          subtitle: `موجودی: ${holding.netQuantity}`,
-          amount: holding.totalValue
+        groups: totalsByClass(holdings).map(group => ({
+          id: group.assetClass,
+          label: group.label,
+          total: group.total
+        })),
+        rows: holdings.map(({ asset, assetType, netQuantity, totalValue }) => ({
+          id: assetType,
+          title: asset.name,
+          subtitle: [
+            getAssetClassLabel(asset.assetClass),
+            asset.symbol,
+            `موجودی: ${formatQuantityValue(netQuantity, asset.decimals)} ${asset.unit}`
+          ]
+            .filter(Boolean)
+            .join(' · '),
+          amount: totalValue
         }))
       }
     }

@@ -2,45 +2,69 @@ import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { getAssetUnit, VAULT_ASSET_OPTIONS } from '../../services/tgju'
-import type { VaultAssetType } from '../../types'
+import { resolveVaultAsset } from '../../services/treasuryCatalog'
+import type { VaultAsset, VaultAssetClass } from '../../types'
 import AmountInput from '../AmountInput'
-import { FormField, FormRow, FormSelect } from '../form'
+import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
-import type { TransactionWithRow, VaultFormState } from './types'
-import { createEmptyBuyForm } from './useTreasuryForms'
-import { parseQuantityInput } from './utils'
-import { treasuryHintClass } from '../ui/treasuryReceivableStyles'
+import QuantityInput from './QuantityInput'
+import TreasuryAssetPicker, { defaultAssetForClass, emptyNewAsset } from './TreasuryAssetPicker'
+import { NEW_ASSET_OPTION, type TransactionWithRow, type VaultFormState } from './types'
+import { getTodayIso } from '../../utils/jalaliDate'
 
 type TreasuryBuyFormModalProps = {
   open: boolean
   editingTx: TransactionWithRow | null
+  catalog: VaultAsset[]
+  /** Class a new purchase starts in (the selected chip). */
+  defaultClass: VaultAssetClass
   saving: boolean
   onClose: () => void
   onSubmit: (values: VaultFormState) => void | Promise<void>
 }
 
+export function createEmptyBuyForm(
+  catalog: VaultAsset[],
+  assetClass: VaultAssetClass = 'gold'
+): VaultFormState {
+  return {
+    assetClass,
+    assetType: defaultAssetForClass(catalog, assetClass),
+    newAsset: emptyNewAsset(assetClass),
+    quantity: '',
+    unitPrice: '',
+    transactionDate: getTodayIso(),
+    note: ''
+  }
+}
+
 export default function TreasuryBuyFormModal({
   open,
   editingTx,
+  catalog,
+  defaultClass,
   saving,
   onClose,
   onSubmit
 }: TreasuryBuyFormModalProps) {
-  const initialValues = useMemo<VaultFormState>(
-    () =>
-      editingTx
-        ? {
-            assetType: editingTx.assetType,
-            quantity: editingTx.quantity,
-            unitPrice: editingTx.unitPrice,
-            transactionDate: editingTx.transactionDate,
-            note: editingTx.note
-          }
-        : createEmptyBuyForm(),
-    [editingTx]
-  )
+  const initialValues = useMemo<VaultFormState>(() => {
+    if (!editingTx) return createEmptyBuyForm(catalog, defaultClass)
+
+    const { assetClass } = resolveVaultAsset(editingTx.assetType, catalog)
+
+    return {
+      assetClass,
+      assetType: editingTx.assetType,
+      newAsset: emptyNewAsset(assetClass),
+      quantity: editingTx.quantity,
+      unitPrice: editingTx.unitPrice,
+      transactionDate: editingTx.transactionDate,
+      note: editingTx.note
+    }
+    // The catalog only fills in the form when it opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingTx, defaultClass, open])
 
   const { handleSubmit, reset, setValue, watch } = useForm<VaultFormState>({
     defaultValues: initialValues
@@ -48,13 +72,16 @@ export default function TreasuryBuyFormModal({
 
   useModalFormReset(reset, initialValues, {
     active: open,
-    resetKey: editingTx?.id ?? 'create'
+    resetKey: editingTx?.id ?? `create-${defaultClass}`
   })
 
+  const assetClass = watch('assetClass')
   const assetType = watch('assetType')
-  const quantity = watch('quantity')
-  const selectedAsset = VAULT_ASSET_OPTIONS.find(asset => asset.value === assetType)
-  const allowDecimal = assetType === 'geram18'
+  const newAsset = watch('newAsset')
+  const isNew = assetType === NEW_ASSET_OPTION
+  const asset = isNew ? null : resolveVaultAsset(assetType, catalog)
+  const decimals = asset ? asset.decimals : newAsset.decimals
+  const unit = (asset ? asset.unit : newAsset.unit) || 'واحد'
 
   const onFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     void handleSubmit(values => onSubmit(values))(event)
@@ -71,39 +98,28 @@ export default function TreasuryBuyFormModal({
       saveLabel={editingTx ? 'ذخیره تغییرات' : 'ذخیره خرید'}
       saveButtonVariant="outflow"
     >
-      <FormSelect
-        label="نوع دارایی"
-        required
-        controlWidth="full"
-        value={assetType}
-        onChange={next => {
-          setValue('assetType', next as VaultAssetType)
-          setValue('quantity', '')
+      <TreasuryAssetPicker
+        catalog={catalog}
+        value={{ assetClass, assetType, newAsset }}
+        allowNew={!editingTx}
+        onChange={patch => {
+          for (const [key, value] of Object.entries(patch)) {
+            setValue(key as keyof typeof patch, value as never)
+          }
+          if (patch.assetType !== undefined) setValue('quantity', '')
         }}
-        options={VAULT_ASSET_OPTIONS.map(opt => ({
-          value: opt.value,
-          label: opt.label
-        }))}
-        hint={
-          selectedAsset?.hint ? (
-            <p className={treasuryHintClass}>{selectedAsset.hint}</p>
-          ) : undefined
-        }
       />
 
       <FormRow>
-        <FormField label={`مقدار (${getAssetUnit(assetType)})`} required>
-          <input
-            type="text"
-            inputMode={allowDecimal ? 'decimal' : 'numeric'}
-            dir="ltr"
-            value={quantity === '' ? '' : String(quantity)}
-            onChange={e => setValue('quantity', parseQuantityInput(e.target.value, allowDecimal))}
-            placeholder={allowDecimal ? 'مثلاً ۲.۵' : 'مثلاً ۳'}
+        <FormField label={`مقدار (${unit})`} required controlWidth="standard">
+          <QuantityInput
+            value={watch('quantity')}
+            decimals={decimals}
+            onChange={value => setValue('quantity', value)}
           />
         </FormField>
 
-        <FormField label={`قیمت هر ${getAssetUnit(assetType)} (تومان)`} required>
+        <FormField label={`قیمت هر ${unit} (تومان)`} required>
           <AmountInput value={watch('unitPrice')} onChange={val => setValue('unitPrice', val)} />
         </FormField>
       </FormRow>

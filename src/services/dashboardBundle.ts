@@ -22,7 +22,9 @@ import { fetchReceivables, remainingAmount } from './receivables'
 import { getDefaultNetAvailableConfig } from './settings'
 import { fetchRecords } from './sheets'
 import { getSummableTgjuPrices } from './tgjuCurrency'
-import { computeHoldings, fetchVaultTransactions } from './treasury'
+import { fetchVaultTransactions } from './treasury'
+import { loadVaultCatalog } from './treasuryCatalogSheet'
+import { computeHoldings, totalsByClass } from './treasuryHoldings'
 import { fetchWalletAccounts } from './wallet'
 import { WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
@@ -41,9 +43,7 @@ async function fetchDashboardBundleUncached(
 
   const monthKey = getJalaliMonthKey(range.start)
 
-  const tgjuPrices = getSummableTgjuPrices()
-
-  const shouldFetchVault = netAvailableConfig.assets.treasury && tgjuPrices != null
+  const shouldFetchVault = netAvailableConfig.assets.treasury && getSummableTgjuPrices() != null
 
   const [
     incomeRecords,
@@ -60,7 +60,13 @@ async function fetchDashboardBundleUncached(
     expenseForm ? fetchRecords(settings.spreadsheetId, expenseForm) : Promise.resolve([]),
     fetchWalletAccounts(settings.spreadsheetId).catch(() => []),
     shouldFetchVault
-      ? fetchVaultTransactions(settings.spreadsheetId).catch(() => [])
+      ? Promise.all([
+          fetchVaultTransactions(settings.spreadsheetId),
+          loadVaultCatalog(settings.spreadsheetId)
+        ]).then(
+          ([transactions]) => transactions,
+          () => []
+        )
       : Promise.resolve([]),
     fetchReceivables(settings.spreadsheetId).catch(() => []),
     fetchInstallmentPlans(settings.spreadsheetId).catch(() => []),
@@ -106,9 +112,18 @@ async function fetchDashboardBundleUncached(
 
   const walletTotal = walletAccounts.reduce((s, a) => s + a.balance, 0)
 
+  // After the catalog loads, so user-added tgju keys and manual prices count.
+  const tgjuPrices = getSummableTgjuPrices()
+
   const holdings = tgjuPrices ? computeHoldings(vaultTransactions, tgjuPrices) : []
 
   const treasuryTotal = holdings.reduce((s, h) => s + h.totalValue, 0)
+
+  const treasuryByClass = totalsByClass(holdings).map(({ assetClass, label, total }) => ({
+    assetClass,
+    label,
+    total
+  }))
 
   const receivablesTotal = receivables.reduce((s, r) => s + remainingAmount(r), 0)
 
@@ -121,6 +136,7 @@ async function fetchDashboardBundleUncached(
   const rawFinancial = {
     walletTotal,
     treasuryTotal,
+    treasuryByClass,
     receivablesTotal,
     installmentsDue,
     dangsTotal,

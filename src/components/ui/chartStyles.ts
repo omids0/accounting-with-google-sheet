@@ -75,6 +75,12 @@ export const assetValueClass = cx(
   'asset-value text-[0.76rem] font-semibold tracking-[0.01em] text-primary-dark font-numeric tabular-nums'
 )
 
+/** A part of the row above (the vault's asset classes), indented and quieter. */
+export const assetRowSubClass = cx(
+  'asset-row-sub -mt-1.5 border-b-0 py-0 ps-3',
+  '[&_.asset-label]:text-[0.66rem] [&_.asset-value]:text-[0.7rem] [&_.asset-value]:font-medium [&_.asset-value]:text-muted'
+)
+
 /** Row left out of the «دارایی قابل اتکا» total — shown, but visibly not counted. */
 export const assetRowExcludedClass = '[&_.asset-value]:font-medium [&_.asset-value]:text-muted'
 

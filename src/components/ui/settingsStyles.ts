@@ -62,3 +62,16 @@ export const settingsPaneTitleClass = cx(
 /** The section's cards side by side when the pane is wide enough; one alone spans it. */
 export const settingsPaneItemsClass =
   'grid grid-cols-[repeat(auto-fit,minmax(20rem,1fr))] items-start gap-3 [&>*]:mb-0!'
+
+/** «دارایی‌های صندوقچه»: class heading and one row per catalog asset. */
+export const settingsVaultClassTitleClass = 'mt-3 mb-1 text-[0.78rem] font-bold text-muted'
+
+export function settingsVaultAssetRowClass(active: boolean) {
+  return cx(
+    'flex items-center gap-2 border-b border-border py-2 last:border-b-0',
+    !active && 'opacity-60'
+  )
+}
+
+export const settingsVaultAssetMetaClass =
+  'mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] text-muted'

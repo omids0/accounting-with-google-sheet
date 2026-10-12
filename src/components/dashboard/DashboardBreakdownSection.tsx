@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import { BreakdownRow } from './DashboardParts'
 import { getNetAvailableConfig } from '../../services/settings'
 import type { DashboardData, DashboardNavTarget, NetAvailableConfig } from '../../types'
@@ -17,6 +19,8 @@ type BreakdownItem = {
   value: number
   included: boolean
   target: DashboardNavTarget
+  /** Parts of this row (the vault per asset class). */
+  parts?: { label: string; value: number }[]
 }
 
 type DashboardBreakdownSectionProps = {
@@ -51,13 +55,17 @@ function BreakdownCard({
       <h3 className={chartTitleClass}>{title}</h3>
       <div className={assetBreakdownClass}>
         {items.map(item => (
-          <BreakdownRow
-            key={item.target}
-            label={item.label}
-            value={item.value}
-            excluded={!item.included}
-            onNavigate={onNavigate ? () => onNavigate(item.target) : undefined}
-          />
+          <Fragment key={item.target}>
+            <BreakdownRow
+              label={item.label}
+              value={item.value}
+              excluded={!item.included}
+              onNavigate={onNavigate ? () => onNavigate(item.target) : undefined}
+            />
+            {item.parts?.map(part => (
+              <BreakdownRow key={part.label} label={part.label} value={part.value} sub />
+            ))}
+          </Fragment>
         ))}
         <BreakdownRow label={totalLabel} value={total} total />
         {hasExcluded && onConfigure && (
@@ -87,7 +95,12 @@ export default function DashboardBreakdownSection({
       label: 'صندوقچه',
       value: financial?.treasuryTotal ?? 0,
       included: config.assets.treasury,
-      target: 'treasury'
+      target: 'treasury',
+      // One class only says nothing the row does not already say.
+      parts:
+        (financial?.treasuryByClass?.length ?? 0) > 1
+          ? financial?.treasuryByClass?.map(({ label, total }) => ({ label, value: total }))
+          : undefined
     },
     {
       label: 'طلب‌ها',

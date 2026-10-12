@@ -158,6 +158,21 @@ export const TREASURY_HEADERS = [
   'توضیحات'
 ]
 
+/** Vault asset catalog; built-in rows keep the legacy «نوع دارایی» ids. */
+export const TREASURY_ASSETS_HEADERS = [
+  'شناسه',
+  'کلاس',
+  'نماد',
+  'نام',
+  'واحد',
+  'اعشار',
+  'منبع قیمت',
+  'کلید tgju',
+  'قیمت دستی',
+  'زمان قیمت دستی',
+  'فعال'
+]
+
 export const VEHICLE_DEADLINE_HEADERS = [
   'شناسه',
   'خودرو_id',

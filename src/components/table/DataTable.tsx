@@ -24,6 +24,8 @@ export interface DataTableColumn<T> extends SortableColumn<T> {
   numeric?: boolean
   /** Header read by screen readers only (checkbox columns). */
   hideHeader?: boolean
+  /** A filter control shown in the header cell after its title. */
+  headerFilter?: ReactNode
   className?: string
 }
 
@@ -95,6 +97,7 @@ export default function DataTable<T>({
                   ) : (
                     column.header
                   )}
+                  {column.headerFilter}
                 </th>
               )
             })}

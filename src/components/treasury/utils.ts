@@ -1,22 +1,9 @@
-import { getAssetUnit } from '../../services/tgju'
-import type { VaultAssetType } from '../../types'
-import { normalizeDigits } from '../../utils/normalizeDigits'
+import { resolveVaultAsset } from '../../services/treasuryCatalog'
+import { formatQuantityValue } from '../../services/treasuryQuantity'
 
-export function formatQuantity(qty: number, assetType: VaultAssetType): string {
-  const formatted =
-    assetType === 'geram18'
-      ? qty.toLocaleString('fa-IR', { maximumFractionDigits: 2 })
-      : qty.toLocaleString('fa-IR', { maximumFractionDigits: 0 })
+/** «۲٫۵ گرم» with the asset's catalog decimals and unit. */
+export function formatQuantity(qty: number, assetType: string): string {
+  const asset = resolveVaultAsset(assetType)
 
-  return `${formatted} ${getAssetUnit(assetType)}`
-}
-
-export function parseQuantityInput(value: string, allowDecimal: boolean): number | '' {
-  const normalized = normalizeDigits(value).replace(/[^\d.]/g, '')
-
-  if (!normalized) return ''
-
-  const num = allowDecimal ? Number(normalized) : Math.trunc(Number(normalized))
-
-  return Number.isFinite(num) && num > 0 ? num : ''
+  return `${formatQuantityValue(qty, asset.decimals)} ${asset.unit}`.trim()
 }

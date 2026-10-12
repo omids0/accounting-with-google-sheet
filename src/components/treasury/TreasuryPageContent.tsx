@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { isConfigured } from '../../services/settings'
+import { isBuiltinAsset } from '../../services/treasuryCatalog'
+import type { VaultAsset } from '../../types'
 import { cn } from '../../utils/cn'
 import { distributionSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
@@ -13,24 +15,36 @@ import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
 import { TreasurySkeleton } from '../skeleton'
 import StatCard from '../StatCard'
+import TreasuryAssetFormModal from './TreasuryAssetFormModal'
 import TreasuryBuyFormModal from './TreasuryBuyFormModal'
+import TreasuryClassChips from './TreasuryClassChips'
 import TreasuryHoldingCard from './TreasuryHoldingCard'
+import TreasuryHoldingList from './TreasuryHoldingList'
 import TreasuryHoldingTable from './TreasuryHoldingTable'
 import TreasuryPriceCard from './TreasuryPriceCard'
+import { useTreasuryClassFilter } from './useTreasuryClassFilter'
 import { useTreasuryData } from './useTreasuryData'
 import { useTreasuryFilters } from './useTreasuryFilters'
 import { useTreasuryForms } from './useTreasuryForms'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
-import { listCardsContainerClass, listModulePageClass } from '../ui/featureCardStyles'
+import { listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass, treasuryTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function TreasuryPageContent({ active = true }: { active?: boolean }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [editingAsset, setEditingAsset] = useState<VaultAsset | null>(null)
   const isDesktop = useIsDesktop()
 
   const data = useTreasuryData(active, searchQuery)
 
-  const forms = useTreasuryForms(data.loadItems, data.transactions, data.undoableDelete)
+  const classFilter = useTreasuryClassFilter(data.holdings, data.searchedHoldings)
+
+  const forms = useTreasuryForms(
+    data.loadItems,
+    data.transactions,
+    data.undoableDelete,
+    data.reloadCatalog
+  )
 
   const filters = useTreasuryFilters(
     active,
@@ -42,7 +56,21 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
     setSearchQuery
   )
 
-  const handleToggleHolding = (assetType: Parameters<typeof data.setExpandedAsset>[0]) => {
+  // tgju quotes for the class: the original seven plus any asset the user holds.
+  const priceAssets = useMemo(() => {
+    const held = new Set(data.holdings.map(holding => holding.assetType))
+
+    return data.catalog.filter(
+      asset =>
+        asset.priceSource === 'tgju' &&
+        (!classFilter.assetClass || asset.assetClass === classFilter.assetClass) &&
+        ((isBuiltinAsset(asset.id) && asset.assetClass === 'gold') ||
+          asset.id === 'usd' ||
+          held.has(asset.id))
+    )
+  }, [data.catalog, data.holdings, classFilter.assetClass])
+
+  const handleToggleHolding = (assetType: string) => {
     const expanded = data.expandedAsset === assetType
 
     data.setExpandedAsset(expanded ? null : assetType)
@@ -63,6 +91,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       onOpenSellForm={forms.openSellForm}
       onCloseSellForm={forms.closeSellForm}
       onSell={forms.handleSell}
+      onEditAsset={setEditingAsset}
     />
   )
 
@@ -76,6 +105,8 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       </div>
     )
   }
+
+  const { visibleHoldings } = classFilter
 
   return (
     <div className={listModulePageClass}>
@@ -102,9 +133,18 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
         />
       </FilterModal>
 
+      {data.holdings.length > 0 && (
+        <TreasuryClassChips
+          counts={classFilter.counts}
+          value={classFilter.selected}
+          onChange={classFilter.select}
+        />
+      )}
+
       {data.prices && (
         <TreasuryPriceCard
           prices={data.prices}
+          assets={priceAssets}
           priceLoading={data.priceLoading}
           onRefresh={data.loadPrices}
         />
@@ -115,32 +155,39 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       ) : data.holdings.length === 0 ? (
         <EmptyState
           icon="treasury"
-          description="پس‌انداز هدف‌دار: طلا، ارز یا پولی که کنار گذاشته‌ای را جدا از حساب‌های روزمره دنبال کن."
+          description="پس‌انداز هدف‌دار: طلا، ارز، سهام، رمزارز یا هر دارایی دیگری را جدا از حساب‌های روزمره دنبال کن."
           message="هنوز دارایی‌ای ثبت نشده"
           action={{ label: 'افزودن دارایی', onClick: () => forms.openCreateForm() }}
         />
-      ) : data.filteredHoldings.length === 0 ? (
+      ) : visibleHoldings.length === 0 ? (
         <SearchEmptyState />
       ) : isDesktop ? (
         <TreasuryHoldingTable
-          holdings={data.filteredHoldings}
+          holdings={visibleHoldings}
           expandedAsset={data.expandedAsset}
           onToggle={holding => handleToggleHolding(holding.assetType)}
           renderDetail={holding => renderHolding(holding, true)}
+          counts={classFilter.counts}
+          classFilter={classFilter.selected}
+          onClassFilterChange={classFilter.select}
         />
       ) : (
-        <div className={listCardsContainerClass}>
-          {data.filteredHoldings.map(holding => renderHolding(holding))}
-        </div>
+        <TreasuryHoldingList
+          groups={classFilter.groups}
+          grouped={classFilter.assetClass == null}
+          renderHolding={holding => renderHolding(holding)}
+        />
       )}
 
       {data.holdings.length > 0 && (
         <StatCard
-          label="ارزش کل صندوقچه (بر اساس قیمت روز)"
-          amount={data.totalValue}
+          label={classFilter.totalLabel}
+          amount={classFilter.classTotal}
           variant="balance"
           wide
-          sparklineData={distributionSparkline(data.holdings.map(holding => holding.totalValue))}
+          sparklineData={distributionSparkline(
+            classFilter.classHoldings.map(holding => holding.totalValue)
+          )}
           className={cn(receivableTotalCardClass, treasuryTotalCardClass)}
         />
       )}
@@ -148,9 +195,17 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       <TreasuryBuyFormModal
         open={forms.showForm}
         editingTx={forms.editingTx}
+        catalog={data.catalog}
+        defaultClass={classFilter.assetClass ?? 'gold'}
         saving={forms.saving}
         onClose={forms.closeForm}
         onSubmit={forms.handleSubmit}
+      />
+
+      <TreasuryAssetFormModal
+        asset={editingAsset}
+        onClose={() => setEditingAsset(null)}
+        onSaved={data.reloadCatalog}
       />
 
       <ConfirmActionModal {...filters.importExportConfirmModal} />

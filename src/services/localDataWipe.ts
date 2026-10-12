@@ -19,6 +19,7 @@ import { clearStore } from './spreadsheetStore'
 import { deletePersistedDatabase } from './spreadsheetStorePersist'
 import { removeItem, STORAGE_KEYS } from './storage'
 import { getOutboxCount } from './syncOutbox'
+import { TREASURY_CLASS_STORAGE_KEY } from './treasuryClassPref'
 
 /** Per-spreadsheet keys: unsynced writes, legacy mirrors and sync timestamps. */
 const ACCOUNT_KEY_PREFIXES = [
@@ -42,7 +43,8 @@ const ACCOUNT_KEYS = [
   ONBOARDING_STORAGE_KEY,
   DISCOVERY_STORAGE_KEY,
   'accounting_nudges_v1',
-  BACKUP_STORAGE_KEY
+  BACKUP_STORAGE_KEY,
+  TREASURY_CLASS_STORAGE_KEY
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

@@ -19,7 +19,7 @@ import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
 import Button from '../ui/Button'
-import Card from '../ui/Card'
+import Card, { CardTitle } from '../ui/Card'
 import { dashboardPageClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
 import {
@@ -137,6 +137,17 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
           )}
           animateIndex={1}
         />
+      )}
+
+      {data?.groups && data.groups.length > 1 && (
+        <Card>
+          <CardTitle>جمع هر کلاس</CardTitle>
+          {data.groups.map((group, index) => (
+            <TransactionListItem key={group.id} title={group.label} index={index}>
+              <span className="asset-value">{formatMoney(group.total)}</span>
+            </TransactionListItem>
+          ))}
+        </Card>
       )}
 
       <Card>

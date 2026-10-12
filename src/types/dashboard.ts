@@ -1,3 +1,5 @@
+import type { VaultAssetClass } from './entities'
+
 export interface CategorySummary {
   name: string
   total: number
@@ -37,6 +39,8 @@ export interface DashboardRecord {
 export interface FinancialSummary {
   walletTotal: number
   treasuryTotal: number
+  /** Vault value per asset class (classes with holdings); sums to `treasuryTotal`. */
+  treasuryByClass?: { assetClass: VaultAssetClass; label: string; total: number }[]
   receivablesTotal: number
   totalAssets: number
   installmentsDue: number

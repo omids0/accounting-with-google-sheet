@@ -1,5 +1,5 @@
-import { VAULT_ASSET_OPTIONS } from '../../services/tgju'
 import type { TgjuDisplayPrices } from '../../services/tgjuCurrency'
+import type { VaultAsset } from '../../types'
 import { formatMoney, getCurrency } from '../../utils/formatMoney'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
@@ -14,19 +14,24 @@ import {
 
 type TreasuryPriceCardProps = {
   prices: TgjuDisplayPrices
+  /** tgju-priced assets to list (the selected class). */
+  assets: VaultAsset[]
   priceLoading: boolean
   onRefresh: () => void
 }
 
 export default function TreasuryPriceCard({
   prices,
+  assets,
   priceLoading,
   onRefresh
 }: TreasuryPriceCardProps) {
   const shownInToman = prices.currency !== getCurrency()
 
   // A missing or non-numeric tgju quote is stored as 0 — skip it rather than show «۰» or NaN.
-  const options = VAULT_ASSET_OPTIONS.filter(opt => prices.prices[opt.value] > 0)
+  const options = assets.filter(asset => prices.prices[asset.id] > 0)
+
+  if (!options.length) return null
 
   return (
     <Card className={treasuryPriceCardClass}>
@@ -45,13 +50,13 @@ export default function TreasuryPriceCard({
         </Button>
       </div>
       <div className={treasuryPriceGridClass}>
-        {options.map(opt => (
-          <div key={opt.value} className={treasuryPriceItemClass}>
+        {options.map(asset => (
+          <div key={asset.id} className={treasuryPriceItemClass}>
             <span>
-              {opt.label}
-              {opt.unit !== 'عدد' && opt.unit !== 'دلار' && ` (${opt.unit})`}
+              {asset.name}
+              {asset.unit === 'گرم' && ` (${asset.unit})`}
             </span>
-            <span>{formatMoney(prices.prices[opt.value], prices.currency)}</span>
+            <span>{formatMoney(prices.prices[asset.id], prices.currency)}</span>
           </div>
         ))}
       </div>

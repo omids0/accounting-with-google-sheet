@@ -1,8 +1,19 @@
 import { getCachedTgjuEurToman, getCachedTgjuPrices } from './tgju'
-import type { CurrencyUnit, VaultAssetType } from '../types'
+import { vaultTgjuKeys } from './treasuryCatalog'
+import type { CurrencyUnit } from '../types'
 import { getCurrency } from '../utils/formatMoney'
 
-export type TgjuPriceTable = Record<VaultAssetType, number>
+/** asset id → price; always carries `usd`, the rate prices are converted with. */
+export type TgjuPriceTable = Record<string, number>
+
+/** tgju keys to price: every tgju catalog asset, plus the dollar for conversion. */
+export function vaultPriceKeys(): Record<string, string> {
+  return { usd: 'price_dollar_rl', ...vaultTgjuKeys() }
+}
+
+function cachedVaultPrices(): TgjuPriceTable | null {
+  return getCachedTgjuPrices(vaultPriceKeys())
+}
 
 export interface TgjuDisplayPrices {
   prices: TgjuPriceTable
@@ -17,7 +28,7 @@ function safePrice(value: number | undefined): number {
 function mapPrices(prices: TgjuPriceTable, fn: (toman: number) => number): TgjuPriceTable {
   const result = {} as TgjuPriceTable
 
-  for (const asset of Object.keys(prices) as VaultAssetType[]) {
+  for (const asset of Object.keys(prices)) {
     const toman = safePrice(prices[asset])
 
     result[asset] = toman > 0 ? fn(toman) : 0
@@ -52,7 +63,7 @@ export function convertTgjuPrices(
 
 /** Cached tgju prices in the display currency, or null when not loaded. */
 export function getDisplayTgjuPrices(
-  tomanPrices: TgjuPriceTable | null = getCachedTgjuPrices(),
+  tomanPrices: TgjuPriceTable | null = cachedVaultPrices(),
   currency: CurrencyUnit = getCurrency()
 ): TgjuDisplayPrices | null {
   if (!tomanPrices) return null
@@ -65,7 +76,7 @@ export function getDisplayTgjuPrices(
  * could not be converted into the display currency (never mix toman into a USD total).
  */
 export function getSummableTgjuPrices(
-  tomanPrices: TgjuPriceTable | null = getCachedTgjuPrices(),
+  tomanPrices: TgjuPriceTable | null = cachedVaultPrices(),
   currency: CurrencyUnit = getCurrency()
 ): TgjuPriceTable | null {
   const display = getDisplayTgjuPrices(tomanPrices, currency)

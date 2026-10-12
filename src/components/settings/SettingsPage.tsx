@@ -13,6 +13,7 @@ import SettingsRemindersCard from './SettingsRemindersCard'
 import SettingsSection from './SettingsSection'
 import SettingsSpreadsheetCard from './SettingsSpreadsheetCard'
 import SettingsTwoPane, { type SettingsSectionConfig } from './SettingsTwoPane'
+import SettingsVaultAssetsCard from './SettingsVaultAssetsCard'
 import SheetSwitchConfirmModal from './SheetSwitchConfirmModal'
 import { useSettingsPage } from './useSettingsPage'
 import {
@@ -85,6 +86,17 @@ export default function SettingsPage() {
         </>
       )
     },
+    ...(settings.spreadsheetId
+      ? [
+          {
+            id: 'vault-assets',
+            title: 'دارایی‌های صندوقچه',
+            icon: 'treasury' as const,
+            description: 'نام، اعشار، قیمت دستی و غیرفعال کردن دارایی‌ها',
+            content: <SettingsVaultAssetsCard spreadsheetId={settings.spreadsheetId} />
+          }
+        ]
+      : []),
     {
       id: 'security',
       title: 'امنیت',
