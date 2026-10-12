@@ -5,6 +5,8 @@ type PageLoader = () => Promise<{ default: ComponentType<any> }>
 
 export const loadAboutPage: PageLoader = () => import('../components/about/AboutPage')
 
+export const loadChartsPage: PageLoader = () => import('../components/chartsPage/ChartsPage')
+
 export const loadChecksPage: PageLoader = () => import('../components/ChecksPage')
 
 export const loadCounterpartiesPage: PageLoader = () => import('../components/CounterpartiesPage')
@@ -93,6 +95,7 @@ export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/B
 
 export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   dashboard: loadDashboardPage,
+  charts: loadChartsPage,
   installments: loadInstallmentsPage,
   dang: loadDangPage,
   checks: loadChecksPage,

@@ -2,7 +2,8 @@ import { fetchPersonalReminders } from './personalReminders'
 import { getReminderKindLabel } from './reminders'
 import { loadDueDatesReport, type DueDateItem, type DueDateStatus } from './reports'
 import { fetchVehicleDashboardReminderItems } from './vehicleDashboardReminders'
-import { addDaysToIso, getTodayIso } from '../utils/jalaliDate'
+import { formatPersianNumber } from '../utils/formatMoney'
+import { addDaysToIso, diffIsoDays, getTodayIso } from '../utils/jalaliDate'
 
 export type DashboardReminderKind = 'installments' | 'checks' | 'dang' | 'personal' | 'vehicle'
 
@@ -82,15 +83,61 @@ export async function fetchDashboardReminderItems(
     return due <= horizonEnd
   })
 
-  return [...dueItems.map(mapDueDateItem), ...personalMapped, ...vehicleMapped]
-    .sort((a, b) => {
-      const statusRank = { overdue: 0, today: 1, upcoming: 2 } as const
+  return orderDashboardReminders([
+    ...dueItems.map(mapDueDateItem),
+    ...personalMapped,
+    ...vehicleMapped
+  ]).slice(0, limit)
+}
 
-      const statusDiff = statusRank[a.status] - statusRank[b.status]
+const STATUS_RANK: Record<DueDateStatus, number> = { overdue: 0, today: 1, upcoming: 2 }
 
-      if (statusDiff !== 0) return statusDiff
+/** Overdue first (oldest first), then today, then upcoming by date. */
+export function orderDashboardReminders<
+  T extends Pick<DashboardReminderItem, 'status' | 'dueDate'>
+>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const statusDiff = STATUS_RANK[a.status] - STATUS_RANK[b.status]
 
-      return a.dueDate.localeCompare(b.dueDate)
-    })
-    .slice(0, limit)
+    if (statusDiff !== 0) return statusDiff
+
+    return a.dueDate.localeCompare(b.dueDate)
+  })
+}
+
+export interface UpcomingRow {
+  item: DashboardReminderItem
+  /** Days from today to the due date; negative once overdue. */
+  days: number
+}
+
+export interface UpcomingSummary {
+  rows: UpcomingRow[]
+  overdueCount: number
+}
+
+/** The dashboard «پیش رو» block: the first `limit` items, overdue leading, and the overdue count. */
+export function summarizeUpcoming(
+  items: DashboardReminderItem[],
+  todayIso: string = getTodayIso(),
+  limit = 3
+): UpcomingSummary {
+  const ordered = orderDashboardReminders(items)
+
+  return {
+    rows: ordered
+      .slice(0, limit)
+      .map(item => ({ item, days: diffIsoDays(todayIso, item.dueDate) })),
+    overdueCount: ordered.filter(item => item.status === 'overdue').length
+  }
+}
+
+/** «معوق · ۵ روز گذشته», «امروز», «۱۵ روز دیگر». */
+export function formatDueRelative(status: DueDateStatus, days: number): string {
+  if (status === 'overdue') {
+    return days < 0 ? `معوق · ${formatPersianNumber(-days)} روز گذشته` : 'معوق'
+  }
+  if (status === 'today' || days <= 0) return 'امروز'
+
+  return `${formatPersianNumber(days)} روز دیگر`
 }

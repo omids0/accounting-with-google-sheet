@@ -27,6 +27,7 @@ const REPORT_TAB_BY_KIND = Object.fromEntries(
 
 const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   dashboard: '/',
+  charts: '/charts',
   installments: '/installments',
   dang: '/dang',
   checks: '/checks',

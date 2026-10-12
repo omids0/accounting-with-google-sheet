@@ -6,15 +6,8 @@ import type {
   VehicleUrgencyLevel
 } from '../../types/vehicles'
 import { formatMoney } from '../../utils/formatMoney'
-import { formatIsoDatePersian, getTodayIso, isoToJalali } from '../../utils/jalaliDate'
+import { diffIsoDays, formatIsoDatePersian, getTodayIso, isoToJalali } from '../../utils/jalaliDate'
 import { DAYS_BEFORE_OPTIONS } from '../reminders/reminderConstants'
-
-function diffIsoDays(fromIso: string, toIso: string): number {
-  const from = new Date(`${fromIso.slice(0, 10)}T12:00:00`)
-  const to = new Date(`${toIso.slice(0, 10)}T12:00:00`)
-
-  return Math.round((to.getTime() - from.getTime()) / 86_400_000)
-}
 
 const SOON_KM_THRESHOLD = 500
 const SOON_DAYS_THRESHOLD = 14

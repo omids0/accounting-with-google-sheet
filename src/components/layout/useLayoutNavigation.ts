@@ -182,6 +182,7 @@ export function useLayoutNavigation() {
 
   const showHeaderBack =
     showSettings ||
+    tab === 'charts' ||
     tab === 'records' ||
     tab === 'entry' ||
     tab === 'opening-balances' ||

@@ -4,6 +4,7 @@ import DangSplitDetailRoute from './DangSplitDetailRoute'
 import {
   LazyAboutPage,
   LazyBankSmsPage,
+  LazyChartsPage,
   LazyChecksPage,
   LazyCounterpartiesPage,
   LazyCurrencyConverterPage,
@@ -85,6 +86,7 @@ export function AppAuthenticatedRoutes() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<LazyDashboardPage />} />
+          <Route path="charts" element={<LazyChartsPage />} />
           <Route path="installments" element={<LazyInstallmentsPage />} />
           <Route path="dang" element={<LazyDangPage />} />
           <Route path="checks" element={<LazyChecksPage />} />

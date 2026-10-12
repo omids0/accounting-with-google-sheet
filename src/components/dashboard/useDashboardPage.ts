@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 
 import { useDataRefresh } from '../../hooks/useDataRefresh'
-import {
-  loadDashboardData,
-  buildDashboardYearlyMonthlyFlow,
-  peekCachedDashboardData
-} from '../../services/dashboard'
+import { loadDashboardData, peekCachedDashboardData } from '../../services/dashboard'
 import {
   fetchDashboardReminderItems,
   type DashboardReminderItem
@@ -18,19 +14,23 @@ import {
   getInstallmentDueRange,
   getPreviousJalaliMonthRange,
   resolveDateRange,
+  type DateRange,
   type DateRangePreset,
   type RecordsDatePreset
 } from '../../utils/dateRange'
-import { formatDateRangeLabel } from '../../utils/dateRange'
-import { buildDateRangeChip, compactFilterChips } from '../../utils/filterChips'
+import { getTodayIso } from '../../utils/jalaliDate'
+import { describePeriod } from '../../utils/periodLabel'
 import { handleSheetError } from '../../utils/sheetError'
-import { monthlySparkline } from '../../utils/sparklineData'
-import { getCategoryBarYAxisWidth } from '../charts/chartUtils'
 import { createDefaultDateRangeFilter } from '../DateRangeFilter'
-import type { TransactionTypeSegmentOption } from '../TransactionTypeSegment'
+import type { DashboardFilterControls } from './DashboardContent'
 import { getDefaultChartYear } from '../YearFilter'
 
-export type TransactionTypeFilter = 'all' | 'income' | 'expense'
+/** Enough to count every overdue item for the «· N معوق» note; the block shows three. */
+const UPCOMING_FETCH_LIMIT = 50
+
+function installmentRangeFor(preset: RecordsDatePreset, range: DateRange): DateRange {
+  return preset === 'custom' ? range : getInstallmentDueRange(preset as DateRangePreset)
+}
 
 export function useDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(() => {
@@ -40,12 +40,10 @@ export function useDashboardPage() {
 
     const range = resolveDateRange('month-to-date', createDefaultDateRangeFilter().customRange)
 
-    const installmentRange = getInstallmentDueRange('month-to-date')
-
     return peekCachedDashboardData(
       settings,
       range,
-      installmentRange,
+      getInstallmentDueRange('month-to-date'),
       getDefaultChartYear(),
       getNetAvailableConfig()
     )
@@ -58,10 +56,6 @@ export function useDashboardPage() {
   const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date')
 
   const [customRange, setCustomRange] = useState(() => createDefaultDateRangeFilter().customRange)
-
-  const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all')
-
-  const [monthlyFlowYear, setMonthlyFlowYear] = useState(getDefaultChartYear)
 
   const [filterModalOpen, setFilterModalOpen] = useState(false)
 
@@ -76,6 +70,8 @@ export function useDashboardPage() {
     () => resolveDateRange(datePreset, customRange),
     [datePreset, customRange]
   )
+
+  const period = useMemo(() => describePeriod(dateRange, getTodayIso()), [dateRange])
 
   const dataRevision = useDataRefresh()
 
@@ -98,18 +94,17 @@ export function useDashboardPage() {
     try {
       const range = resolveDateRange(datePreset, customRange)
 
-      const installmentRange =
-        datePreset === 'custom' ? range : getInstallmentDueRange(datePreset as DateRangePreset)
-
       const [dash, reminderItems] = await Promise.all([
         loadDashboardData(
           settings,
           range,
-          installmentRange,
-          monthlyFlowYear,
+          installmentRangeFor(datePreset, range),
+          getDefaultChartYear(),
           getNetAvailableConfig()
         ),
-        fetchDashboardReminderItems(settings.spreadsheetId).catch(() => [])
+        fetchDashboardReminderItems(settings.spreadsheetId, { limit: UPCOMING_FETCH_LIMIT }).catch(
+          () => []
+        )
       ])
 
       setData(dash)
@@ -119,87 +114,17 @@ export function useDashboardPage() {
     } finally {
       setLoading(false)
     }
-  }, [datePreset, customRange, monthlyFlowYear])
+  }, [datePreset, customRange])
 
   useEffect(() => {
     load()
   }, [load, dataRevision])
 
-  useEffect(() => {
-    const settings = getSettings()
-
-    if (!settings || !data) return
-
-    const range = resolveDateRange(datePreset, customRange)
-
-    const installmentRange =
-      datePreset === 'custom' ? range : getInstallmentDueRange(datePreset as DateRangePreset)
-
-    const nextFlow = buildDashboardYearlyMonthlyFlow(
-      settings,
-      range,
-      installmentRange,
-      getNetAvailableConfig(),
-      monthlyFlowYear
-    )
-
-    if (!nextFlow) return
-
-    setData(prev => {
-      if (!prev || prev.yearlyMonthlyFlow === nextFlow) return prev
-
-      return { ...prev, yearlyMonthlyFlow: nextFlow }
-    })
-  }, [monthlyFlowYear, datePreset, customRange])
-
-  const filteredRecords = useMemo(() => {
-    if (!data?.recentRecords.length) return []
-
-    return data.recentRecords
-      .filter(r => typeFilter === 'all' || r.type === typeFilter)
-      .slice(0, 10)
-  }, [data?.recentRecords, typeFilter])
-
-  const categoryYAxisWidth = useMemo(
-    () => getCategoryBarYAxisWidth([data?.expenseByCategory ?? [], data?.incomeByCategory ?? []]),
-    [data?.expenseByCategory, data?.incomeByCategory]
-  )
-
-  const financial = data?.financial
-
-  const incomeSparkline = useMemo(
-    () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'income'),
-    [data?.yearlyMonthlyFlow]
-  )
-
-  const expenseSparkline = useMemo(
-    () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'expense'),
-    [data?.yearlyMonthlyFlow]
-  )
-
-  const netSparkline = useMemo(
-    () => monthlySparkline(data?.yearlyMonthlyFlow ?? [], 'net'),
-    [data?.yearlyMonthlyFlow]
-  )
-
   const settings = useMemo(() => getSettings(), [])
 
-  const incomeForm = settings?.forms.find(f => f.type === 'income')
+  const incomeFormName = settings?.forms.find(f => f.type === 'income')?.name ?? 'درآمد'
 
-  const expenseForm = settings?.forms.find(f => f.type === 'expense')
-
-  const incomeFormName = incomeForm?.name ?? 'درآمد'
-
-  const expenseFormName = expenseForm?.name ?? 'هزینه'
-
-  const transactionTypeOptions = useMemo<TransactionTypeSegmentOption[]>(
-    () => [
-      { id: 'all', label: 'همه' },
-      { id: 'income', label: incomeFormName, tone: 'income' },
-      { id: 'expense', label: expenseFormName, tone: 'expense' }
-    ],
-    [incomeFormName, expenseFormName]
-  )
+  const expenseFormName = settings?.forms.find(f => f.type === 'expense')?.name ?? 'هزینه'
 
   const openFilterModal = useCallback(() => {
     setDraftDatePreset(datePreset)
@@ -207,29 +132,19 @@ export function useDashboardPage() {
     setFilterModalOpen(true)
   }, [datePreset, customRange])
 
-  const resetDateFilter = useCallback(() => {
-    const defaults = createDefaultDateRangeFilter()
-
-    setDatePreset(defaults.preset as RecordsDatePreset)
-    setCustomRange(defaults.customRange)
-  }, [])
-
-  const filterChips = useMemo(
-    () =>
-      compactFilterChips([
-        buildDateRangeChip(
-          formatDateRangeLabel(dateRange),
-          datePreset !== 'month-to-date' ? resetDateFilter : undefined
-        )
-      ]),
-    [dateRange, datePreset, resetDateFilter]
-  )
-
-  const clearAllFilters = useCallback(() => {
-    if (datePreset !== 'month-to-date') {
-      resetDateFilter()
+  const filter: DashboardFilterControls = {
+    open: filterModalOpen,
+    setOpen: setFilterModalOpen,
+    draftPreset: draftDatePreset,
+    setDraftPreset: setDraftDatePreset,
+    draftRange: draftCustomRange,
+    setDraftRange: setDraftCustomRange,
+    apply: () => {
+      setDatePreset(draftDatePreset)
+      setCustomRange(draftCustomRange)
+      setFilterModalOpen(false)
     }
-  }, [datePreset, resetDateFilter])
+  }
 
   const showPreviousMonth = useCallback(() => {
     if (datePreset === 'month-to-date') {
@@ -245,33 +160,12 @@ export function useDashboardPage() {
   return {
     data,
     loading,
-    datePreset,
-    setDatePreset,
-    customRange,
-    setCustomRange,
-    typeFilter,
-    setTypeFilter,
-    monthlyFlowYear,
-    setMonthlyFlowYear,
-    filterModalOpen,
-    setFilterModalOpen,
-    draftDatePreset,
-    setDraftDatePreset,
-    draftCustomRange,
-    setDraftCustomRange,
+    period,
+    filter,
     load,
-    filteredRecords,
-    categoryYAxisWidth,
-    financial,
-    incomeSparkline,
-    expenseSparkline,
-    netSparkline,
     incomeFormName,
     expenseFormName,
-    transactionTypeOptions,
     openFilterModal,
-    filterChips,
-    clearAllFilters,
     showPreviousMonth,
     upcomingReminders
   }

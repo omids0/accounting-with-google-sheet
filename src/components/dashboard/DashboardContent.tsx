@@ -1,280 +1,113 @@
-import DashboardBreakdownSection from './DashboardBreakdownSection'
-import DashboardEmptyRecords from './DashboardEmptyRecords'
+import DashboardAnalysisBlock from './DashboardAnalysisBlock'
+import DashboardBalanceBlock from './DashboardBalanceBlock'
 import DashboardGuideCard from './DashboardGuideCard'
-import { RecordAmount } from './DashboardParts'
-import DashboardRemindersSection from './DashboardRemindersSection'
+import DashboardHero from './DashboardHero'
+import DashboardPeriodRow from './DashboardPeriodRow'
+import DashboardRecentBlock from './DashboardRecentBlock'
+import DashboardUpcomingBlock from './DashboardUpcomingBlock'
 import type { DashboardReminderItem } from '../../services/dashboardReminders'
-import type { DashboardData, DashboardNavTarget } from '../../types'
-import { cn } from '../../utils/cn'
+import type { DashboardData } from '../../types'
 import type { RecordsDatePreset } from '../../utils/dateRange'
-import { formatIsoDatePersian } from '../../utils/jalaliDate'
-import ActiveFilterChips, { type FilterChip } from '../ActiveFilterChips'
-import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
-import AppIcon from '../AppIcon'
+import type { PeriodDescription } from '../../utils/periodLabel'
 import BankSmsPendingBanner from '../bankSms/BankSmsPendingBanner'
-import CardEditButton from '../CardEditButton'
-import DashboardChartsSection from '../charts/DashboardChartsSection'
 import DateRangeFilter, { createDefaultDateRangeFilter } from '../DateRangeFilter'
 import FilterModal from '../FilterModal'
-import HelpHint from '../HelpHint'
-import { HELP_HINTS } from '../helpHints'
-import StatCard from '../StatCard'
-import TransactionListItem from '../TransactionListItem'
-import TransactionTypeSegment from '../TransactionTypeSegment'
-import type { TransactionTypeFilter } from './useDashboardPage'
-import type { TransactionTypeSegmentOption } from '../TransactionTypeSegment'
-import Button from '../ui/Button'
-import Card from '../ui/Card'
-import {
-  chartTitleClass,
-  dashboardFlowSectionAnimatedClass,
-  dashboardFlowSectionClass,
-  dashboardHeroCardAnimatedClass,
-  dashboardHeroCardClass,
-  dashboardHeroHeaderClass,
-  dashboardHeroHintClass,
-  dashboardHeroLabelClass,
-  dashboardPageClass
-} from '../ui/chartStyles'
-import { emptyTextClass } from '../ui/displayStyles'
-import { cardHeaderRowClass, dashboardTransactionSegmentClass } from '../ui/recordsStyles'
+import { dashboardCalmPageClass } from '../ui/dashboardCalmStyles'
+
+export interface DashboardFilterControls {
+  open: boolean
+  setOpen: (open: boolean) => void
+  draftPreset: RecordsDatePreset
+  setDraftPreset: (preset: RecordsDatePreset) => void
+  draftRange: { start: string; end: string }
+  setDraftRange: (range: { start: string; end: string }) => void
+  apply: () => void
+}
+
+export interface DashboardNavigation {
+  onOpenFilter: () => void
+  onConfigureNetAvailable: () => void
+  onViewDueDates: () => void
+  onViewRecords: () => void
+  onOpenCharts: () => void
+  onViewBreakdown: () => void
+  onShowPreviousMonth: () => void
+}
 
 interface DashboardContentProps {
   data: DashboardData
   loading: boolean
-  filterChips: FilterChip[]
-  openFilterModal: () => void
-  clearAllFilters: () => void
-  filterModalOpen: boolean
-  setFilterModalOpen: (open: boolean) => void
-  draftDatePreset: RecordsDatePreset
-  setDraftDatePreset: (preset: RecordsDatePreset) => void
-  draftCustomRange: { start: string; end: string }
-  setDraftCustomRange: (range: { start: string; end: string }) => void
-  setDatePreset: (preset: RecordsDatePreset) => void
-  setCustomRange: (range: { start: string; end: string }) => void
-  onShowPreviousMonth: () => void
-  onConfigureNetAvailable?: () => void
-  financial?: DashboardData['financial']
-  incomeSparkline: number[]
-  expenseSparkline: number[]
-  netSparkline: number[]
-  categoryYAxisWidth: number
-  monthlyFlowYear: number
-  setMonthlyFlowYear: (year: number) => void
-  typeFilter: TransactionTypeFilter
-  setTypeFilter: (filter: TransactionTypeFilter) => void
-  transactionTypeOptions: TransactionTypeSegmentOption[]
-  filteredRecords: DashboardData['recentRecords']
+  period: PeriodDescription
   upcomingReminders: DashboardReminderItem[]
-  onViewRecords?: (formType?: 'income' | 'expense') => void
-  onViewReminders?: () => void
-  onNavigate?: (target: DashboardNavTarget) => void
-  load: () => void
+  filter: DashboardFilterControls
+  nav: DashboardNavigation
 }
 
+/**
+ * Round 5 dashboard, top to bottom: guide/discovery row, period row, hero, then
+ * four flat blocks. Each block is self-contained so a wider layout can grid them.
+ */
 export default function DashboardContent({
   data,
   loading,
-  filterChips,
-  openFilterModal,
-  clearAllFilters,
-  filterModalOpen,
-  setFilterModalOpen,
-  draftDatePreset,
-  setDraftDatePreset,
-  draftCustomRange,
-  setDraftCustomRange,
-  setDatePreset,
-  setCustomRange,
-  onShowPreviousMonth,
-  onConfigureNetAvailable,
-  financial,
-  incomeSparkline,
-  expenseSparkline,
-  netSparkline,
-  categoryYAxisWidth,
-  monthlyFlowYear,
-  setMonthlyFlowYear,
-  typeFilter,
-  setTypeFilter,
-  transactionTypeOptions,
-  filteredRecords,
+  period,
   upcomingReminders,
-  onViewRecords,
-  onViewReminders,
-  onNavigate,
-  load
+  filter,
+  nav
 }: DashboardContentProps) {
   return (
-    <div className={dashboardPageClass}>
+    <div className={dashboardCalmPageClass}>
       <BankSmsPendingBanner />
       <DashboardGuideCard />
-      <ActiveFilterChips
-        chips={filterChips}
-        onOpenFilters={openFilterModal}
-        onClearAll={clearAllFilters}
-      />
+      <DashboardPeriodRow label={period.label} onOpen={nav.onOpenFilter} />
 
       <FilterModal
-        open={filterModalOpen}
-        onClose={() => setFilterModalOpen(false)}
-        onApply={() => {
-          setDatePreset(draftDatePreset)
-          setCustomRange(draftCustomRange)
-          setFilterModalOpen(false)
-        }}
+        open={filter.open}
+        onClose={() => filter.setOpen(false)}
+        onApply={filter.apply}
         onClear={() => {
           const defaults = createDefaultDateRangeFilter()
 
-          setDraftDatePreset(defaults.preset as RecordsDatePreset)
-          setDraftCustomRange(defaults.customRange)
+          filter.setDraftPreset(defaults.preset as RecordsDatePreset)
+          filter.setDraftRange(defaults.customRange)
         }}
       >
         <DateRangeFilter
-          preset={draftDatePreset}
-          customRange={draftCustomRange}
-          onChange={filter => {
-            if (filter.preset === 'all') return
-            setDraftDatePreset(filter.preset)
-            setDraftCustomRange(filter.customRange)
+          preset={filter.draftPreset}
+          customRange={filter.draftRange}
+          onChange={next => {
+            if (next.preset === 'all') return
+            filter.setDraftPreset(next.preset)
+            filter.setDraftRange(next.customRange)
           }}
           loading={loading}
         />
       </FilterModal>
 
-      <Card className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass)}>
-        <div className={dashboardHeroHeaderClass}>
-          <div className={dashboardHeroLabelClass}>
-            دارایی قابل اتکا
-            <HelpHint {...HELP_HINTS.netAvailable} />
-          </div>
-          {onConfigureNetAvailable && (
-            <CardEditButton onClick={onConfigureNetAvailable} ariaLabel="تنظیم دارایی قابل اتکا" />
-          )}
-        </div>
-        <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
-        <p className={dashboardHeroHintClass}>
-          مجموع دارایی‌های انتخاب‌شده منهای بدهی‌های انتخاب‌شده
-        </p>
-      </Card>
-
-      <div className={cn(dashboardFlowSectionClass, dashboardFlowSectionAnimatedClass)}>
-        <StatCard
-          label="درآمد دوره"
-          amount={data?.totalIncome ?? 0}
-          variant="income"
-          sparklineData={incomeSparkline}
-          animateIndex={0}
-          lift
-        />
-        <StatCard
-          label="هزینه دوره"
-          amount={data?.totalExpense ?? 0}
-          variant="expense"
-          sparklineData={expenseSparkline}
-          animateIndex={1}
-          lift
-        />
-        <StatCard
-          label="خالص دوره"
-          labelHint={<HelpHint {...HELP_HINTS.netFlow} />}
-          amount={data?.balance ?? 0}
-          variant="flow"
-          wide
-          flowDirection={
-            (data?.balance ?? 0) < 0
-              ? 'negative'
-              : (data?.balance ?? 0) > 0
-              ? 'positive'
-              : 'neutral'
-          }
-          sparklineData={netSparkline}
-          animateIndex={2}
-        />
-        <StatCard
-          label="مانده محاسبه‌شده"
-          labelHint={<HelpHint {...HELP_HINTS.periodBalance} />}
-          amount={data?.periodBalance ?? 0}
-          variant="balance"
-          wide
-          sparklineData={netSparkline}
-          animateIndex={3}
-        />
-      </div>
-
-      <DashboardRemindersSection items={upcomingReminders} onViewAll={onViewReminders} />
-
-      <DashboardBreakdownSection
-        financial={financial}
-        onNavigate={onNavigate}
-        onConfigure={onConfigureNetAvailable}
+      <DashboardHero
+        netAvailable={data.financial.netAvailable}
+        totalIncome={data.totalIncome}
+        totalExpense={data.totalExpense}
+        periodNoun={period.noun}
+        onConfigure={nav.onConfigureNetAvailable}
       />
 
-      {data && (
-        <DashboardChartsSection
-          expenseByCategory={data.expenseByCategory}
-          incomeByCategory={data.incomeByCategory}
-          categoryYAxisWidth={categoryYAxisWidth}
-          yearlyMonthlyFlow={data.yearlyMonthlyFlow}
-          monthlyFlowYear={monthlyFlowYear}
-          setMonthlyFlowYear={setMonthlyFlowYear}
-          loading={loading}
-        />
-      )}
+      <DashboardUpcomingBlock items={upcomingReminders} onViewAll={nav.onViewDueDates} />
 
-      <Card>
-        <div className={cardHeaderRowClass}>
-          <h3 className={chartTitleClass}>تراکنش‌های دوره</h3>
-          <div className="flex gap-2">
-            {!!data?.recentRecords.length && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => onViewRecords?.(typeFilter === 'all' ? undefined : typeFilter)}
-              >
-                جزئیات بیشتر
-              </Button>
-            )}
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={load}
-              disabled={loading}
-              aria-label="بروزرسانی"
-              title="بروزرسانی"
-            >
-              <AppIcon name="refresh" size={16} />
-            </Button>
-          </div>
-        </div>
+      <DashboardRecentBlock
+        records={data.recentRecords}
+        onViewAll={nav.onViewRecords}
+        onShowPreviousMonth={nav.onShowPreviousMonth}
+      />
 
-        <TransactionTypeSegment
-          className={dashboardTransactionSegmentClass}
-          options={transactionTypeOptions}
-          value={typeFilter}
-          onChange={id => setTypeFilter(id as TransactionTypeFilter)}
-        />
+      <DashboardAnalysisBlock
+        expenseByCategory={data.expenseByCategory}
+        incomeByCategory={data.incomeByCategory}
+        onOpenCharts={nav.onOpenCharts}
+        periodNoun={period.noun}
+      />
 
-        {!data?.recentRecords.length ? (
-          <DashboardEmptyRecords onShowPreviousMonth={onShowPreviousMonth} />
-        ) : !filteredRecords.length ? (
-          <p className={emptyTextClass}>تراکنشی با این فیلتر یافت نشد</p>
-        ) : (
-          filteredRecords.map((r, i) => (
-            <TransactionListItem
-              key={i}
-              title={r.title}
-              meta={`${r.formName} · ${r.category} · ${formatIsoDatePersian(r.date)}`}
-              tone={r.type === 'income' ? 'income' : 'expense'}
-              index={i}
-            >
-              <RecordAmount amount={r.amount} type={r.type} />
-            </TransactionListItem>
-          ))
-        )}
-      </Card>
+      <DashboardBalanceBlock financial={data.financial} onDetails={nav.onViewBreakdown} />
     </div>
   )
 }

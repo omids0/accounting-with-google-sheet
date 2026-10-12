@@ -3,6 +3,18 @@ export interface CategorySummary {
   total: number
 }
 
+/** A category total with its share of all categories of that type (0–1). */
+export interface CategoryShare extends CategorySummary {
+  share: number
+}
+
+/** One point of a month-by-month series (trend line, net bars). */
+export interface MonthlyPoint {
+  monthKey: string
+  label: string
+  value: number
+}
+
 export interface MonthlyFlow {
   monthKey: string
   label: string
@@ -18,6 +30,8 @@ export interface DashboardRecord {
   type: 'income' | 'expense'
   category: string
   date: string
+  /** Title of the wallet account the record names, if any. */
+  account?: string
 }
 
 export interface FinancialSummary {

@@ -1,11 +1,8 @@
-import type { AppSettings, DashboardData, MonthlyFlow, NetAvailableConfig } from '../types'
-import { aggregateYearToDateMonthlyFlow } from './dashboardAggregation'
+import type { AppSettings, DashboardData, NetAvailableConfig } from '../types'
 import { assembleDashboardData, getDashboardBundle } from './dashboardBundle'
 import {
   DASHBOARD_CACHE_TTL_MS,
-  buildDashboardBundleCacheKey,
   buildDashboardCacheKey,
-  dashboardBundleCache,
   dashboardCache,
   dashboardInFlight,
   invalidateDashboardCache
@@ -16,28 +13,6 @@ import type { DateRange } from '../utils/dateRange'
 import { getJalaliParts } from '../utils/jalaliDate'
 
 export { applyNetAvailableConfig, invalidateDashboardCache }
-
-export function buildDashboardYearlyMonthlyFlow(
-  settings: AppSettings,
-  range: DateRange,
-  installmentRange: DateRange,
-  netAvailableConfig: NetAvailableConfig,
-  monthlyFlowYear: number
-): MonthlyFlow[] | null {
-  const bundle = dashboardBundleCache.get(
-    buildDashboardBundleCacheKey(settings, range, installmentRange, netAvailableConfig)
-  )
-
-  if (!bundle || Date.now() > bundle.expiresAt) return null
-
-  return aggregateYearToDateMonthlyFlow(
-    monthlyFlowYear,
-    bundle.incomeRecords,
-    bundle.expenseRecords,
-    bundle.incomeDateField,
-    bundle.expenseDateField
-  )
-}
 
 export async function loadDashboardData(
   settings: AppSettings,

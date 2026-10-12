@@ -88,6 +88,14 @@ export function addDaysToIso(iso: string, days: number): string {
   return toIsoDate(d)
 }
 
+/** Whole calendar days from `fromIso` to `toIso` (negative when `toIso` is earlier). */
+export function diffIsoDays(fromIso: string, toIso: string): number {
+  const from = new Date(`${fromIso.slice(0, 10)}T12:00:00`)
+  const to = new Date(`${toIso.slice(0, 10)}T12:00:00`)
+
+  return Math.round((to.getTime() - from.getTime()) / 86_400_000)
+}
+
 /**
  * Reused across every list row; constructing `Intl.DateTimeFormat` per call was
  * measurably the most expensive thing in list rendering.

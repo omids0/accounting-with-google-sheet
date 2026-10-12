@@ -1,5 +1,6 @@
 export type Tab =
   | 'dashboard'
+  | 'charts'
   | 'entry'
   | 'records'
   | 'installments'
@@ -107,6 +108,7 @@ export const SPEED_DIAL_TABS: Tab[] = [
 
 export const TAB_TITLES: Record<Tab, string> = {
   dashboard: 'داشبورد',
+  charts: 'نمودارها',
   entry: 'ثبت جدید',
   records: 'رکوردها',
   installments: 'اقساط',

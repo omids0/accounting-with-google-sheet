@@ -1,7 +1,9 @@
-import type { CategorySummary, CustomForm, MonthlyFlow } from '../types'
+import type { CategorySummary, CustomForm, MonthlyFlow, MonthlyPoint } from '../types'
 import {
+  buildJalaliMonthKey,
   formatJalaliMonthLabel,
   getJalaliMonthKey,
+  getJalaliMonthRange,
   getJalaliYearRange,
   isDateInRange
 } from '../utils/dateRange'
@@ -22,64 +24,101 @@ export function filterByDateRange<T extends { values: Record<string, string> }>(
   return records.filter(r => isDateInRange(r.values[dateFieldId] ?? '', range))
 }
 
-export function aggregateYearToDateMonthlyFlow(
-  year: number,
-  incomeRecords: { values: Record<string, string> }[],
-  expenseRecords: { values: Record<string, string> }[],
+type SheetRecord = { values: Record<string, string> }
+
+function addMonthTotals(
+  totals: Map<string, { income: number; expense: number }>,
+  records: SheetRecord[],
+  dateField: string,
+  range: DateRange,
+  key: 'income' | 'expense'
+) {
+  for (const record of records) {
+    const date = normalizeSheetDate(record.values[dateField] ?? '')
+
+    if (!date || !isDateInRange(date, range)) continue
+
+    const monthKey = getJalaliMonthKey(date)
+
+    const entry = totals.get(monthKey) ?? { income: 0, expense: 0 }
+
+    entry[key] += parseNumeric(record.values.amount)
+    totals.set(monthKey, entry)
+  }
+}
+
+/** Income, expense and net for each of `monthKeys` (in the given order), zero when empty. */
+export function aggregateMonthlyFlowForKeys(
+  monthKeys: string[],
+  incomeRecords: SheetRecord[],
+  expenseRecords: SheetRecord[],
   incomeDateField: string,
-  expenseDateField: string
+  expenseDateField: string,
+  /** Narrows the months' own span (e.g. the current year stops at today). */
+  clamp?: DateRange
 ): MonthlyFlow[] {
-  const range = getJalaliYearRange(year)
+  const first = getJalaliMonthRange(monthKeys[0] ?? '')
+  const last = getJalaliMonthRange(monthKeys[monthKeys.length - 1] ?? '')
+
+  if (!first || !last) return []
+
+  const range = clamp ?? { start: first.start, end: last.end }
 
   const totals = new Map<string, { income: number; expense: number }>()
 
-  for (const record of incomeRecords) {
-    const date = normalizeSheetDate(record.values[incomeDateField] ?? '')
+  addMonthTotals(totals, incomeRecords, incomeDateField, range, 'income')
+  addMonthTotals(totals, expenseRecords, expenseDateField, range, 'expense')
 
-    if (!date || !isDateInRange(date, range)) continue
-
-    const monthKey = getJalaliMonthKey(date)
-
-    const entry = totals.get(monthKey) ?? { income: 0, expense: 0 }
-
-    entry.income += parseNumeric(record.values.amount)
-    totals.set(monthKey, entry)
-  }
-
-  for (const record of expenseRecords) {
-    const date = normalizeSheetDate(record.values[expenseDateField] ?? '')
-
-    if (!date || !isDateInRange(date, range)) continue
-
-    const monthKey = getJalaliMonthKey(date)
-
-    const entry = totals.get(monthKey) ?? { income: 0, expense: 0 }
-
-    entry.expense += parseNumeric(record.values.amount)
-    totals.set(monthKey, entry)
-  }
-
-  const { year: currentYear, month: currentMonth } = getJalaliParts(new Date())
-
-  const maxMonth = year < currentYear ? 12 : year === currentYear ? currentMonth : 0
-
-  const flow: MonthlyFlow[] = []
-
-  for (let month = 1; month <= maxMonth; month += 1) {
-    const monthKey = `${year}-${String(month).padStart(2, '0')}`
-
+  return monthKeys.map(monthKey => {
     const { income = 0, expense = 0 } = totals.get(monthKey) ?? {}
 
-    flow.push({
+    return {
       monthKey,
       label: formatJalaliMonthLabel(monthKey),
       income,
       expense,
       net: income - expense
-    })
-  }
+    }
+  })
+}
 
-  return flow
+export function aggregateYearToDateMonthlyFlow(
+  year: number,
+  incomeRecords: SheetRecord[],
+  expenseRecords: SheetRecord[],
+  incomeDateField: string,
+  expenseDateField: string
+): MonthlyFlow[] {
+  const { year: currentYear, month: currentMonth } = getJalaliParts(new Date())
+
+  const maxMonth = year < currentYear ? 12 : year === currentYear ? currentMonth : 0
+
+  const monthKeys = Array.from({ length: maxMonth }, (_, index) =>
+    buildJalaliMonthKey(year, index + 1)
+  )
+
+  return aggregateMonthlyFlowForKeys(
+    monthKeys,
+    incomeRecords,
+    expenseRecords,
+    incomeDateField,
+    expenseDateField,
+    getJalaliYearRange(year)
+  )
+}
+
+/**
+ * Running total of the monthly net: what the months of the window added to (or
+ * took from) your money together, starting from zero before the first month.
+ */
+export function cumulativeNetSeries(flow: MonthlyFlow[]): MonthlyPoint[] {
+  let running = 0
+
+  return flow.map(item => {
+    running += item.net
+
+    return { monthKey: item.monthKey, label: item.label, value: running }
+  })
 }
 
 export function sumByCategory(

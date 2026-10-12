@@ -1,16 +1,8 @@
 import AppSplash from './AppSplash'
-import {
-  FilterChipsSkeleton,
-  MoneySkeleton,
-  ReportToolbarSkeleton,
-  SkeletonActionButton,
-  SkeletonText,
-  StatCardSkeleton
-} from './CardSkeletons'
+import { SkeletonText } from './CardSkeletons'
 import { InstallmentCardListSkeleton } from './ListSkeletons'
 import { Skeleton } from './Skeleton'
 import { cn } from '../../utils/cn'
-import { dashboardRemindersCardClass } from '../dashboard/dashboardReminderStyles'
 import {
   accordionCardChevronClass,
   accordionCardSummaryClass,
@@ -19,15 +11,6 @@ import {
   accordionCardTriggerClass
 } from '../ui/accordionCardStyles'
 import { cardClassName } from '../ui/Card'
-import {
-  dashboardAssetsCardClass,
-  dashboardFlowSectionClass,
-  dashboardHeroCardClass,
-  dashboardHeroHeaderClass,
-  dashboardHeroHintClass,
-  dashboardHeroLabelClass,
-  dashboardPageClass
-} from '../ui/chartStyles'
 import {
   appLoadingDotClass,
   appLoadingDotDelayClasses,
@@ -41,14 +24,10 @@ import {
   settingsSectionClass,
   settingsSectionIconClass
 } from '../ui/settingsStyles'
-import {
-  skeletonBreakdownClass,
-  skeletonBreakdownRowClass,
-  skeletonCardClass,
-  skeletonFormClass,
-  skeletonFormRowClass
-} from '../ui/skeletonStyles'
+import { skeletonCardClass, skeletonFormClass, skeletonFormRowClass } from '../ui/skeletonStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
+
+export { DashboardSkeleton } from './DashboardSkeletons'
 
 export {
   FilterChipsSkeleton,
@@ -69,71 +48,6 @@ export {
   RecordListSkeleton,
   TimesheetDetailListSkeleton
 } from './ListSkeletons'
-
-export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashboard' | 'report' }) {
-  return (
-    <div
-      className={cn('skeleton-dashboard', dashboardPageClass)}
-      aria-busy="true"
-      aria-label="در حال بارگذاری داشبورد"
-    >
-      {variant === 'dashboard' ? <FilterChipsSkeleton count={1} /> : <ReportToolbarSkeleton />}
-
-      <div className={cn(dashboardHeroCardClass, skeletonCardClass)}>
-        <div className={dashboardHeroHeaderClass}>
-          <SkeletonText className={cn(dashboardHeroLabelClass, 'justify-center')} width="7rem" />
-          <SkeletonActionButton />
-        </div>
-        <MoneySkeleton size="hero" width="9rem" />
-        <SkeletonText className={cn(dashboardHeroHintClass, 'justify-center')} width="80%" />
-      </div>
-
-      <div className={dashboardFlowSectionClass}>
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton wide />
-        <StatCardSkeleton wide />
-      </div>
-
-      <div className={cardClassName(cn(dashboardRemindersCardClass, skeletonCardClass))}>
-        <Skeleton width="40%" height="0.9rem" />
-        <Skeleton width="75%" height="0.72rem" style={{ marginTop: '0.55rem' }} />
-        <div className={skeletonBreakdownClass}>
-          {Array.from({ length: 3 }, (_, index) => (
-            <div key={index} className={skeletonBreakdownRowClass}>
-              <Skeleton width="45%" height="0.8rem" />
-              <Skeleton width="20%" height="0.8rem" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={cardClassName(cn(dashboardAssetsCardClass, skeletonCardClass))}>
-        <Skeleton width="25%" height="0.9rem" />
-        <div className={skeletonBreakdownClass}>
-          {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className={skeletonBreakdownRowClass}>
-              <Skeleton width="30%" height="0.8rem" />
-              <Skeleton width="25%" height="0.8rem" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={cardClassName(cn(dashboardAssetsCardClass, skeletonCardClass))}>
-        <Skeleton width="25%" height="0.9rem" />
-        <div className={skeletonBreakdownClass}>
-          {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className={skeletonBreakdownRowClass}>
-              <Skeleton width="35%" height="0.8rem" />
-              <Skeleton width="25%" height="0.8rem" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 /** Holdings only: the treasury page keeps its own filter bar and price card on screen. */
 export function TreasurySkeleton() {

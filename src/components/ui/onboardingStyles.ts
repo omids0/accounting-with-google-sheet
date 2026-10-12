@@ -71,15 +71,3 @@ export const guideCardTextClass = 'flex min-w-0 flex-1 flex-col gap-0.5'
 export const guideCardTitleClass = 'text-[0.9rem] font-extrabold text-text'
 
 export const guideCardHintClass = 'text-[0.78rem] leading-[1.7] text-muted'
-
-export const discoveryCardClass = cn(
-  'flex flex-col gap-2 border-[1.5px] border-dashed border-[color-mix(in_srgb,var(--color-primary)_40%,var(--color-border))]',
-  'bg-[color-mix(in_srgb,var(--color-accent-soft)_40%,var(--color-surface))]'
-)
-
-export const discoveryHeadClass = 'flex items-center justify-between gap-2'
-
-export const discoveryCountClass =
-  'rounded-full border border-border px-2 py-0.5 text-[0.7rem] text-muted'
-
-export const discoveryActionsClass = 'flex flex-wrap items-center gap-2'

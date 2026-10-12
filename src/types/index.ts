@@ -22,6 +22,8 @@ export type {
 
 export type {
   CategorySummary,
+  CategoryShare,
+  MonthlyPoint,
   MonthlyFlow,
   DashboardRecord,
   FinancialSummary,

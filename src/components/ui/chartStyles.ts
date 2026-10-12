@@ -44,12 +44,6 @@ export const dashboardFlowSectionClass = cn(
   '[&>.stat-card-wide]:mt-0'
 )
 
-export const dashboardFlowSectionAnimatedClass = cn(
-  '[&>.stat-card]:animate-[statCardIn_0.5s_var(--ease-page)_both]',
-  '[&>.stat-card:nth-child(1)]:[animation-delay:0.05s] [&>.stat-card:nth-child(2)]:[animation-delay:0.12s]',
-  '[&>.stat-card:nth-child(3)]:[animation-delay:0.18s] [&>.stat-card:nth-child(4)]:[animation-delay:0.24s]'
-)
-
 export const dashboardAssetsCardClass = cn(
   'dashboard-assets-card',
   '[&_.asset-value]:text-success [&_.asset-row-total_.asset-value]:text-success'

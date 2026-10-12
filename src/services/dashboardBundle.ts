@@ -24,6 +24,7 @@ import { fetchRecords } from './sheets'
 import { getSummableTgjuPrices } from './tgjuCurrency'
 import { computeHoldings, fetchVaultTransactions } from './treasury'
 import { fetchWalletAccounts } from './wallet'
+import { WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import type { DateRange } from '../utils/dateRange'
 import { parseNumeric } from '../utils/parseNumeric'
@@ -139,6 +140,11 @@ async function fetchDashboardBundleUncached(
 
   const reconciliationDiff = walletTotal - periodBalance
 
+  const accountTitles = new Map(walletAccounts.map(account => [account.id, account.title]))
+
+  const accountOf = (values: Record<string, string>) =>
+    accountTitles.get(String(values[WALLET_ACCOUNT_FIELD_ID] ?? '').trim()) || undefined
+
   const recent = [
     ...filteredIncome.map(r => ({
       formName: incomeForm?.name ?? 'درآمد',
@@ -147,6 +153,7 @@ async function fetchDashboardBundleUncached(
       type: 'income' as const,
       category: r.values.category || 'سایر',
       date: r.values[incomeDateField] ?? '',
+      account: accountOf(r.values),
       createdAt: r.createdAt
     })),
     ...filteredExpense.map(r => ({
@@ -156,6 +163,7 @@ async function fetchDashboardBundleUncached(
       type: 'expense' as const,
       category: r.values.category || 'سایر',
       date: r.values[expenseDateField] ?? '',
+      account: accountOf(r.values),
       createdAt: r.createdAt
     }))
   ]
