@@ -49,12 +49,6 @@ export interface AppIconProps {
   name: AppIconName
   size?: number
   className?: string
+  /** Ignored: Phosphor Regular has a fixed stroke. Kept so old call sites compile. */
   strokeWidth?: number
-}
-
-export type IconSvgProps = {
-  width: number
-  height: number
-  strokeWidth: number
-  className?: string
 }

@@ -60,7 +60,7 @@ export default function LocationMapSearch({ onSelect, disabled }: LocationMapSea
           className="pointer-events-none absolute end-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-muted opacity-80"
           aria-hidden="true"
         >
-          <AppIcon name="search" size={16} strokeWidth={2} />
+          <AppIcon name="search" size={16} />
         </span>
         <input
           type="search"
@@ -81,7 +81,7 @@ export default function LocationMapSearch({ onSelect, disabled }: LocationMapSea
             }}
             aria-label="پاک کردن جستجو"
           >
-            <AppIcon name="close" size={16} strokeWidth={2} />
+            <AppIcon name="close" size={16} />
           </button>
         ) : null}
       </div>

@@ -9,6 +9,7 @@ import { buildDateRangeChip, compactFilterChips } from '../../utils/filterChips'
 import type { DateRange } from '../../utils/jalaliDate'
 import type { FilterChip } from '../ActiveFilterChips'
 import ActiveFilterChips from '../ActiveFilterChips'
+import AppIcon from '../AppIcon'
 import {
   createDefaultDateRangeFilter,
   type AppliedDateRangeFilter,
@@ -111,7 +112,7 @@ export function ReportDateFilterBar({
             loading={loading}
             aria-label="بارگذاری مجدد"
           >
-            ↻
+            <AppIcon name="refresh" size={16} />
           </Button>
         )}
       </div>
@@ -169,7 +170,7 @@ export function ReportStaticMetaBar({
         loading={loading}
         aria-label="بارگذاری مجدد"
       >
-        ↻
+        <AppIcon name="refresh" size={16} />
       </Button>
     </div>
   )

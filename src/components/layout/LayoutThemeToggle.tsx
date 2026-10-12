@@ -37,7 +37,7 @@ export default function LayoutThemeToggle() {
           aria-label="لایت مود"
           title="لایت مود"
         >
-          <AppIcon name="sun" size={13} strokeWidth={2} />
+          <AppIcon name="sun" size={13} />
         </button>
         <button
           type="button"
@@ -47,7 +47,7 @@ export default function LayoutThemeToggle() {
           aria-label="نایت مود"
           title="نایت مود"
         >
-          <AppIcon name="moon" size={13} strokeWidth={2} />
+          <AppIcon name="moon" size={13} />
         </button>
       </div>
     </div>

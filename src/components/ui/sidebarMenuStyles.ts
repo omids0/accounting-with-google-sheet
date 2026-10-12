@@ -106,17 +106,11 @@ export function appMenuItemClass(active?: boolean, variant?: 'default' | 'parent
 }
 
 export function appMenuItemIconClass(active?: boolean) {
+  // Bare icon, no box: the row's tint and inset line carry the active state.
   return cn(
-    'flex h-[2.35rem] w-[2.35rem] flex-shrink-0 items-center justify-center rounded-[13px] text-primary',
-    '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_10%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_90%,var(--color-surface)))]',
-    'shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_2px_8px_color-mix(in_srgb,var(--color-primary)_8%,transparent)]',
-    'transition-[transform,background,color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-    active &&
-      cn(
-        'scale-[1.04] text-primary-dark',
-        '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_24%,var(--color-surface)),color-mix(in_srgb,var(--color-primary)_10%,var(--color-accent-soft)))]',
-        'shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_4px_12px_color-mix(in_srgb,var(--color-primary)_16%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--color-primary)_18%,transparent)]'
-      )
+    'flex h-7 w-7 flex-shrink-0 items-center justify-center text-primary-dark',
+    'transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    active && 'text-primary'
   )
 }
 
@@ -141,13 +135,7 @@ export function appMenuPromoItemClass(active?: boolean) {
 }
 
 export function appMenuPromoIconClass(active?: boolean) {
-  return cn(
-    appMenuItemIconClass(active),
-    'text-primary-dark',
-    '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_30%,var(--color-surface)),color-mix(in_srgb,var(--color-primary)_12%,var(--color-accent-soft)))]',
-    !active &&
-      'shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_3px_10px_color-mix(in_srgb,var(--color-primary)_14%,transparent)]'
-  )
+  return appMenuItemIconClass(active)
 }
 
 export const appMenuPromoTextClass =

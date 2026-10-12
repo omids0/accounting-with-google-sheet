@@ -37,7 +37,7 @@ export default function AboutPage() {
     <div className={aboutPageClass}>
       <header className={cardClassName(aboutHeroClass)}>
         <div className={aboutHeroIconClass} aria-hidden="true">
-          <AppIcon name="dashboard" size={36} strokeWidth={1.5} />
+          <AppIcon name="dashboard" size={36} />
         </div>
         <h1 className={aboutHeroTitleClass}>حسابداری شخصی</h1>
         <p className={aboutHeroTaglineClass}>

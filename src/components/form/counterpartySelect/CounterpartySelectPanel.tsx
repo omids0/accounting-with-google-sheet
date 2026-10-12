@@ -87,7 +87,7 @@ export default function CounterpartySelectPanel({
     <div className={categorySelectPanelClass}>
       {showSearch && (
         <div className={categorySelectSearchClass}>
-          <AppIcon name="search" size={15} strokeWidth={2} />
+          <AppIcon name="search" size={15} />
           <input
             ref={searchInputRef}
             type="search"
@@ -105,7 +105,7 @@ export default function CounterpartySelectPanel({
               onClick={onClearSearch}
               aria-label="پاک کردن جستجو"
             >
-              <AppIcon name="close" size={14} strokeWidth={2} />
+              <AppIcon name="close" size={14} />
             </button>
           )}
         </div>
@@ -120,7 +120,7 @@ export default function CounterpartySelectPanel({
               onClick={onOpenCreateForm}
               disabled={saving}
             >
-              <AppIcon name="add" size={18} strokeWidth={2.5} />
+              <AppIcon name="add" size={18} />
               ثبت طرف حساب جدید
             </button>
           </div>
@@ -139,7 +139,7 @@ export default function CounterpartySelectPanel({
               disabled={saving || manageMode}
             >
               <span className={categorySelectOptionCheckClass} aria-hidden="true">
-                {value === allOption.value && <AppIcon name="check" size={14} strokeWidth={2.5} />}
+                {value === allOption.value && <AppIcon name="check" size={14} />}
               </span>
               <span className={categorySelectOptionLabelClass(value === allOption.value)}>
                 {allOption.label}
@@ -183,7 +183,7 @@ export default function CounterpartySelectPanel({
             onClick={onOpenCreateForm}
             disabled={saving}
           >
-            <AppIcon name="add" size={15} strokeWidth={2} />
+            <AppIcon name="add" size={15} />
             ثبت طرف حساب جدید
           </button>
           <button
@@ -192,7 +192,7 @@ export default function CounterpartySelectPanel({
             onClick={onOpenManageMode}
             disabled={saving}
           >
-            <AppIcon name="settings" size={15} strokeWidth={2} />
+            <AppIcon name="settings" size={15} />
             مدیریت طرف حساب‌ها
           </button>
         </div>

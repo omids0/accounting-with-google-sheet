@@ -31,7 +31,7 @@ export default function AppLockSettings() {
       <header className={appLockHeroClass}>
         <div className={appLockHeroContentClass}>
           <span className={appLockHeroIconClass} aria-hidden="true">
-            <AppIcon name="lock" size={24} strokeWidth={2.25} />
+            <AppIcon name="lock" size={24} />
           </span>
           <div>
             <h2 className={appLockHeroTitleClass}>قفل اپ</h2>
@@ -45,12 +45,12 @@ export default function AppLockSettings() {
       <div className={appLockBodyClass}>
         <div className={appLockStatusStripClass}>
           <span className={appLockStatusPillClass(lock.enabled)}>
-            <AppIcon name={lock.enabled ? 'lock' : 'x-mark'} size={12} strokeWidth={2.5} />
+            <AppIcon name={lock.enabled ? 'lock' : 'x-mark'} size={12} />
             {lock.enabled ? 'قفل فعال' : 'قفل غیرفعال'}
           </span>
           {lock.enabled && lock.biometricOn && (
             <span className={appLockStatusPillClass(true)}>
-              <AppIcon name="fingerprint" size={12} strokeWidth={2.5} />
+              <AppIcon name="fingerprint" size={12} />
               اثر انگشت فعال
             </span>
           )}

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — دارک مود (نسخه ۲)</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <style>
+      body {
+        background: #e4e4e4;
+      }
+      .cmp {
+        max-width: 1240px;
+        margin: 0 auto 28px;
+      }
+      .cmp h2 {
+        font-size: 15px;
+        margin: 0 0 8px;
+      }
+      .cmp .row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+      .cmp figure {
+        margin: 0;
+        background: #fff;
+        border: 1px solid #bbb;
+        border-radius: 12px;
+        padding: 8px;
+      }
+      .cmp img {
+        width: 100%;
+        display: block;
+        border-radius: 8px;
+      }
+      .cmp figcaption {
+        font-size: 12px;
+        font-weight: 800;
+        text-align: center;
+        padding: 6px 0 2px;
+      }
+      .tok {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        background: #fff;
+      }
+      .tok th,
+      .tok td {
+        border: 1px solid #ddd;
+        padding: 5px 8px;
+        text-align: right;
+      }
+      .tok code {
+        direction: ltr;
+        display: inline-block;
+      }
+      .sw {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        border: 1px solid #999;
+        vertical-align: middle;
+        margin-left: 4px;
+      }
+      .notes.wide {
+        width: 100%;
+        max-width: 1240px;
+        margin: 0 auto 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>وایرفریم: دارک مود — C و دو گزینه برای رنگ accent</h1>
+
+    <div class="notes wide">
+      <div class="note">
+        <b>سطح‌ها در هر سه گزینه یکی است (C):</b> پایه نزدیک سیاه، کارت یک پله روشن‌تر با حاشیه سفید
+        ۸٪، ورودی فرم یک پله دیگر، متن کم‌رنگ خاکستری. منبع: سبک «Modern Dark (Cinema Mobile)» از
+        دیتاست ui-ux-pro-max. فرقشان فقط <b>رنگ accent</b> است — همان چیزی که گفتی آزارت می‌دهد.
+      </div>
+      <div class="note">
+        <b>C — teal روشن:</b> accent مینتی پررنگ (<code>#2dd4bf</code>) با glow؛ دکمه داشبورد سبز
+        توپر. همان چیزی که دیدی.
+      </div>
+      <div class="note">
+        <b>C2 — teal آرام:</b> همان خانواده رنگ برند ولی تیره‌تر و کم‌اشباع (<code>#1f9e92</code>)،
+        متن accent نرم (<code>#8fd3ca</code>)، <b>دکمه وسط نوار پایین دیگر سبز توپر نیست</b> — سطح
+        تیره با آیکون teal، فقط دکمه‌های اصلی و hero رنگ دارند. glow حذف.
+      </div>
+      <div class="note">
+        <b>D — طلایی:</b> گرافیت گرم + accent طلایی نرم (<code>#c99a3f</code>) — الگوی «بانکداری:
+        سرمه‌ای + طلا» روی تیره. سبز/قرمز درآمد و هزینه سر جایشان می‌مانند. نکته: در حالت روشن برند
+        teal می‌ماند؛ عوض شدن accent بین روشن و تاریک برای خیلی اپ‌ها عادی است، ولی تصمیم برند توست.
+      </div>
+      <div class="note">
+        <b>پیاده‌سازی:</b> همه‌چیز توکن <code>theme.css</code> به‌جز سه مورد که باید وصل شوند: سربرگ
+        منوی کشویی (<code>--hero-bg</code> می‌گیرد)، هاله پس‌زمینه روی <code>body</code>، سایه
+        دکمه‌ها در <code>Button.tsx</code>. تست a11y دارک همراهش.
+      </div>
+    </div>
+
+    <div class="cmp" id="cmp"></div>
+
+    <div class="notes wide">
+      <table class="tok">
+        <tr>
+          <th>توکن</th>
+          <th>فعلی</th>
+          <th>C</th>
+          <th>C2</th>
+          <th>D</th>
+        </tr>
+        <tr>
+          <td>پس‌زمینه / کارت</td>
+          <td><code>#0c1a19</code> / <code>#152a28</code></td>
+          <td colspan="2"><code>#070a0a</code> / <code>#111616</code></td>
+          <td><code>#0a0a09</code> / <code>#141412</code></td>
+        </tr>
+        <tr>
+          <td>accent</td>
+          <td><span class="sw" style="background: #2dd4bf"></span><code>#2dd4bf</code></td>
+          <td><span class="sw" style="background: #2dd4bf"></span><code>#2dd4bf</code> + glow</td>
+          <td>
+            <span class="sw" style="background: #1f9e92"></span><code>#1f9e92</code> / متن
+            <code>#8fd3ca</code>
+          </td>
+          <td>
+            <span class="sw" style="background: #c99a3f"></span><code>#c99a3f</code> / متن
+            <code>#e8c57a</code>
+          </td>
+        </tr>
+        <tr>
+          <td>دکمه وسط نوار پایین</td>
+          <td>سبز توپر</td>
+          <td>سبز توپر + glow</td>
+          <td>سطح تیره، آیکون teal</td>
+          <td>طلایی توپر</td>
+        </tr>
+        <tr>
+          <td>متن / کم‌رنگ</td>
+          <td><code>#ecfdf5</code> / <code>#7aab9f</code></td>
+          <td colspan="2"><code>#ededef</code> / <code>#8f9a98</code></td>
+          <td><code>#efece6</code> / <code>#9b968c</code></td>
+        </tr>
+      </table>
+      <p style="font-size: 12px; color: #777; margin-top: 10px">
+        A و B حذف شدند؛ تصویرهایشان در <code>assets/</code> مانده.
+      </p>
+    </div>
+
+    <script>
+      const pages = [
+        ['داشبورد', 'dashboard'],
+        ['کیف پول', 'wallet'],
+        ['چک‌ها', 'checks'],
+        ['فرم ثبت', 'entry'],
+        ['منو', 'menu']
+      ]
+      const cols = [
+        ['فعلی', 'before'],
+        ['C — teal روشن', 'c'],
+        ['C2 — teal آرام، FAB بدون سبز', 'c2'],
+        ['D — طلایی', 'd']
+      ]
+      document.getElementById('cmp').innerHTML = pages
+        .map(
+          ([title, key]) =>
+            '<h2>' +
+            title +
+            '</h2><div class="row">' +
+            cols
+              .map(
+                ([c, tag]) =>
+                  '<figure><img src="assets/dark-' +
+                  tag +
+                  '-' +
+                  key +
+                  '.png" alt=""><figcaption>' +
+                  c +
+                  '</figcaption></figure>'
+              )
+              .join('') +
+            '</div>'
+        )
+        .join('')
+    </script>
+  </body>
+</html>

@@ -4,6 +4,7 @@ import { formatJalaliMonthLabel } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AmountInput from '../AmountInput'
+import AppIcon from '../AppIcon'
 import { FormField } from '../form'
 import Button from '../ui/Button'
 import { dashboardOpeningBodyClass, dashboardOpeningCardClass } from '../ui/chartStyles'
@@ -79,7 +80,9 @@ export default function OpeningBalanceCard({
             {item.updatedAt ? ` • ${item.updatedAt}` : ''}
           </div>
         </div>
-        <span className={installmentChevronClass}>▼</span>
+        <span className={installmentChevronClass} aria-hidden>
+          <AppIcon name="chevron-down" size={14} />
+        </span>
       </button>
 
       <AccordionCollapse open={expanded && (derived || !!edit)}>

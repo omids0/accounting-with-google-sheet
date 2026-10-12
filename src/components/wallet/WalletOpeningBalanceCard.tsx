@@ -3,6 +3,7 @@ import { cn } from '../../utils/cn'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
+import AppIcon from '../AppIcon'
 import Button from '../ui/Button'
 import {
   dashboardOpeningBodyClass,
@@ -60,7 +61,9 @@ export default function WalletOpeningBalanceCard({
           </div>
           <div className={listCardSubtitleClass}>ابتدای {periodFlow.monthLabel}</div>
         </div>
-        <span className={installmentChevronClass}>▼</span>
+        <span className={installmentChevronClass} aria-hidden>
+          <AppIcon name="chevron-down" size={14} />
+        </span>
       </button>
 
       <AccordionCollapse open={openingExpanded}>

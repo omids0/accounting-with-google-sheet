@@ -68,7 +68,7 @@ function CardRevealButton({ revealed, onToggle }: { revealed: boolean; onToggle:
         onToggle()
       }}
     >
-      <AppIcon name={revealed ? 'eye-off' : 'eye'} size={11} strokeWidth={2} />
+      <AppIcon name={revealed ? 'eye-off' : 'eye'} size={11} />
     </button>
   )
 }
@@ -89,7 +89,7 @@ function CardCopyButton({ value, label }: { value: string; label: string }) {
         void copy(value, `${label} شد`)
       }}
     >
-      <AppIcon name="copy" size={11} strokeWidth={2} />
+      <AppIcon name="copy" size={11} />
     </button>
   )
 }

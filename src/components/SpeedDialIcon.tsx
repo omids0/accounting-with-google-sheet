@@ -6,5 +6,5 @@ type SpeedDialIconName = Extract<
 >
 
 export default function SpeedDialIcon({ name }: { name: SpeedDialIconName }) {
-  return <AppIcon name={name} size={18} strokeWidth={2} />
+  return <AppIcon name={name} size={18} />
 }

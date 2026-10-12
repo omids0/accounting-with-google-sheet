@@ -26,7 +26,7 @@ export default function DragReorderHandle({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <AppIcon name="grip" size={16} strokeWidth={2} />
+      <AppIcon name="grip" size={16} />
     </button>
   )
 }

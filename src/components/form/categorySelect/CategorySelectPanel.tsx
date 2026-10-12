@@ -114,7 +114,7 @@ export default function CategorySelectPanel({
     <div className={categorySelectPanelClass}>
       {showSearch && (
         <div className={categorySelectSearchClass}>
-          <AppIcon name="search" size={15} strokeWidth={2} />
+          <AppIcon name="search" size={15} />
           <input
             ref={searchInputRef}
             type="search"
@@ -132,7 +132,7 @@ export default function CategorySelectPanel({
               onClick={onClearSearch}
               aria-label="پاک کردن جستجو"
             >
-              <AppIcon name="close" size={14} strokeWidth={2} />
+              <AppIcon name="close" size={14} />
             </button>
           )}
         </div>
@@ -164,7 +164,7 @@ export default function CategorySelectPanel({
               disabled={saving || !newCategory.trim()}
               aria-label="افزودن دسته"
             >
-              <AppIcon name="add" size={18} strokeWidth={2.5} />
+              <AppIcon name="add" size={18} />
             </button>
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function CategorySelectPanel({
               disabled={saving || manageMode}
             >
               <span className={categorySelectOptionCheckClass} aria-hidden="true">
-                {value === allOption.value && <AppIcon name="check" size={14} strokeWidth={2.5} />}
+                {value === allOption.value && <AppIcon name="check" size={14} />}
               </span>
               <span className={categorySelectOptionLabelClass(value === allOption.value)}>
                 {allOption.label}
@@ -236,7 +236,7 @@ export default function CategorySelectPanel({
             onClick={onOpenManageMode}
             disabled={saving}
           >
-            <AppIcon name="settings" size={15} strokeWidth={2} />
+            <AppIcon name="settings" size={15} />
             {manageLabel}
           </button>
         </div>

@@ -24,7 +24,7 @@ export default function DangSplitCategoryAssignButton({
       aria-label={ariaLabel}
       title={ariaLabel}
     >
-      <AppIcon name="counterparties" size={18} strokeWidth={2} />
+      <AppIcon name="counterparties" size={18} />
       <span className={dangSplitAssignBadgeClass(mode)} aria-hidden="true">
         {mode === 'assign' ? '+' : '−'}
       </span>

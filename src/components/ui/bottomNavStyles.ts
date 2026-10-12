@@ -40,20 +40,11 @@ export function bottomNavTabBtnClass(active?: boolean) {
 }
 
 export function bottomNavTabIconClass(active?: boolean) {
+  // Bare icon, no box: color plus the tab's top indicator line mark the active tab.
   return cn(
-    'inline-flex h-9 w-9 items-center justify-center rounded-[13px] leading-none min-[380px]:h-10 min-[380px]:w-10 min-[380px]:rounded-[14px]',
-    '[background:color-mix(in_srgb,var(--color-accent-soft)_78%,transparent)] text-muted',
-    'shadow-[inset_0_1px_0_color-mix(in_srgb,var(--color-surface)_65%,transparent)]',
-    'transition-[transform,background,color,box-shadow] duration-[var(--duration-normal)]',
-    !active &&
-      'hover:bg-[color-mix(in_srgb,var(--color-primary)_8%,var(--color-accent-soft))] hover:text-primary-dark',
-    active &&
-      cn(
-        'scale-[1.06] text-primary-dark motion-reduce:scale-100',
-        '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_20%,var(--color-surface)),color-mix(in_srgb,var(--color-primary)_10%,var(--color-accent-soft)))]',
-        'shadow-[0_4px_14px_color-mix(in_srgb,var(--color-primary)_22%,transparent),inset_0_1px_0_color-mix(in_srgb,var(--color-surface)_70%,transparent)]',
-        'ring-1 ring-[color-mix(in_srgb,var(--color-primary)_18%,transparent)]'
-      )
+    'inline-flex h-7 w-7 items-center justify-center leading-none',
+    'transition-colors duration-[var(--duration-normal)]',
+    active && 'text-primary'
   )
 }
 

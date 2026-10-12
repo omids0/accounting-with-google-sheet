@@ -37,11 +37,7 @@ export default function LayoutSidebarNav({
             onNavigate={() => onTabChange(navTab)}
           >
             <span className={appMenuItemIconClass(active)}>
-              <AppIcon
-                name={PRIMARY_NAV_ICONS[navTab] ?? 'dashboard'}
-                size={20}
-                strokeWidth={1.75}
-              />
+              <AppIcon name={PRIMARY_NAV_ICONS[navTab] ?? 'dashboard'} size={22} />
             </span>
             <MenuItemLabel tab={navTab} />
           </TabNavLink>

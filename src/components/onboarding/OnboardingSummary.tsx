@@ -32,7 +32,13 @@ export default function OnboardingSummary({ steps, state }: OnboardingSummaryPro
             <li key={step} className={onboardingSummaryRowClass}>
               <span>{ONBOARDING_STEP_TITLES[step]}</span>
               <span className={onboardingSummaryStatusClass(done)}>
-                {done ? '✓ انجام شد' : '— رد شد'}
+                {done ? (
+                  <>
+                    <AppIcon name="check" size={14} className="inline align-[-2px]" /> انجام شد
+                  </>
+                ) : (
+                  '— رد شد'
+                )}
               </span>
             </li>
           )

@@ -156,7 +156,7 @@ export default function CurrencyConverterPage() {
             disabled={loading}
             loading={loading}
           >
-            <AppIcon name="refresh" size={16} strokeWidth={2} />
+            <AppIcon name="refresh" size={16} />
             بروزرسانی نرخ
           </Button>
         </div>
@@ -182,7 +182,7 @@ export default function CurrencyConverterPage() {
             aria-label="جابه‌جایی ارز مبدا و مقصد"
             title="جابه‌جایی"
           >
-            <AppIcon name="swap" size={20} strokeWidth={2} />
+            <AppIcon name="swap" size={20} />
           </button>
 
           <FormSelect

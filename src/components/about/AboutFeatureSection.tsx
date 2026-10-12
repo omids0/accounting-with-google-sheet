@@ -43,7 +43,7 @@ function AboutFeatureItem({ feature }: { feature: AboutFeature }) {
       >
         <span className={aboutFeatureTitleClass}>{feature.title}</span>
         <span className={aboutFeatureChevronClass(expanded)} aria-hidden="true">
-          <AppIcon name="chevron-down" size={14} strokeWidth={2} />
+          <AppIcon name="chevron-down" size={14} />
         </span>
       </button>
       <AccordionCollapse open={expanded}>
@@ -68,7 +68,7 @@ export default function AboutFeatureSection({
         aria-controls={`about-panel-${group.id}`}
       >
         <span className={aboutSectionIconClass} aria-hidden="true">
-          <AppIcon name={group.icon} size={22} strokeWidth={1.75} />
+          <AppIcon name={group.icon} size={22} />
         </span>
         <span className={aboutSectionTextClass}>
           <span id={`about-${group.id}`} className={aboutSectionTitleClass}>
@@ -77,7 +77,7 @@ export default function AboutFeatureSection({
           <span className={aboutSectionSummaryClass}>{group.summary}</span>
         </span>
         <span className={aboutSectionChevronClass(expanded)} aria-hidden="true">
-          <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+          <AppIcon name="chevron-down" size={16} />
         </span>
       </button>
 

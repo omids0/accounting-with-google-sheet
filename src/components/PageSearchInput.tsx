@@ -21,7 +21,7 @@ export default function PageSearchInput({
     <div className={pageSearchClass}>
       {!value ? (
         <span className={pageSearchIconClass} aria-hidden="true">
-          <AppIcon name="search" size={15} strokeWidth={2} />
+          <AppIcon name="search" size={15} />
         </span>
       ) : null}
       <input
@@ -42,7 +42,7 @@ export default function PageSearchInput({
           aria-label="پاک کردن جستجو"
           tabIndex={-1}
         >
-          <AppIcon name="close" size={15} strokeWidth={2} />
+          <AppIcon name="close" size={15} />
         </button>
       ) : null}
     </div>

@@ -67,7 +67,7 @@ export default function ConfirmDeleteModal({
             aria-label="بستن"
             data-modal-close
           >
-            <AppIcon name="close" size={18} strokeWidth={2} />
+            <AppIcon name="close" size={18} />
           </button>
         </div>
 

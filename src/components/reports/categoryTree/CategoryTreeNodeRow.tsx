@@ -53,7 +53,7 @@ export default function CategoryTreeNodeRow({
     <>
       {expandable ? (
         <span className={categoryTreeChevronClass(open)} aria-hidden="true">
-          <AppIcon name="chevron-down" size={15} strokeWidth={2.5} />
+          <AppIcon name="chevron-down" size={15} />
         </span>
       ) : (
         <span className={categoryTreeLeafDotClass} aria-hidden="true" />

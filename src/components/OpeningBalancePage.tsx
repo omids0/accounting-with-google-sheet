@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 
+import AppIcon from './AppIcon'
 import EmptyState from './EmptyState'
 import OpeningBalanceCard, {
   type OpeningBalanceEditState
@@ -148,8 +149,9 @@ export default function OpeningBalancePage() {
           disabled={loading}
           loading={loading}
           type="button"
+          aria-label="بارگذاری مجدد"
         >
-          ↻
+          <AppIcon name="refresh" size={16} />
         </Button>
       </div>
 
