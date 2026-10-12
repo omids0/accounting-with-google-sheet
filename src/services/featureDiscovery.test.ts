@@ -17,6 +17,7 @@ vi.mock('./vehicleProfiles', () => ({ VEHICLES_SHEET: 'خودرو' }))
 
 const discovery = await import('./featureDiscovery')
 const onboarding = await import('./onboarding')
+const nudges = await import('./nudges')
 
 const ID = 'sheet-1'
 const STEPS = onboarding.getOnboardingSteps(false)
@@ -58,11 +59,12 @@ describe('feature discovery', () => {
   })
 
   it('drops features that already have data', () => {
-    setSheets({ 'کیف پول': [], هزینه: rows(5), خودرو: [['پراید']], 'چک‌ها': [['', '']] })
+    setSheets({ 'کیف پول': [], هزینه: rows(5), 'تایم‌شیت‌ها': [['پروژه']], 'چک‌ها': [['', '']] })
 
     const ids = discovery.getDiscoveryQueue(ID).map(feature => feature.id)
 
     expect(ids).not.toContain('vehicle')
+    expect(ids).not.toContain('timesheets')
     expect(ids).toContain('checks')
   })
 
@@ -85,5 +87,14 @@ describe('feature discovery', () => {
     discovery.dismissDiscovery(ID)
     expect(discovery.isDiscoveryEligible(ID, STEPS)).toBe(false)
     expect(discovery.getDiscoveryIndex(ID)).toBe(3)
+  })
+
+  it('steps aside on a day a contextual suggestion was shown', () => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
+
+    nudges.claimNudge(ID, 'counterparty', false, yesterday)
+    expect(nudges.claimNudge(ID, 'counterparty', false)).toBe(true)
+    expect(discovery.isDiscoveryEligible(ID, STEPS)).toBe(false)
+    expect(discovery.isDiscoveryEligible(ID, STEPS, Date.now() + 24 * 60 * 60 * 1000)).toBe(true)
   })
 })

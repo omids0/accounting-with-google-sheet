@@ -39,7 +39,8 @@ const ACCOUNT_KEYS = [
   'accounting_sheets_ready',
   BANK_SMS_PREFS_KEY,
   ONBOARDING_STORAGE_KEY,
-  DISCOVERY_STORAGE_KEY
+  DISCOVERY_STORAGE_KEY,
+  'accounting_nudges_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

@@ -120,7 +120,10 @@ export function useVehicleExpenseEntry(active: boolean) {
 
         const shouldSyncMileage =
           isFuelExpenseType(next.expenseType) &&
-          ('vehicleId' in patch || 'expenseType' in patch || current.mileage === '')
+          ('vehicleId' in patch ||
+            'expenseType' in patch ||
+            // Typing the first digits for «سایر» must not be wiped by the sync.
+            (current.mileage === '' && !('mileage' in patch)))
 
         if (shouldSyncMileage) {
           if (!next.vehicleId || next.vehicleId === VEHICLE_OTHER_OPTION) {

@@ -16,6 +16,7 @@ import {
 } from './form'
 import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
+import { showSavedForEntry } from './nudges/saveNudges'
 import VehicleExpenseFields from './vehicleExpenses/VehicleExpenseFields'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
@@ -28,7 +29,7 @@ import { createManualVehicleExpense } from '../services/vehicleExpenseActions'
 import { requireAuth } from '../utils/authGuard'
 import { formFieldError, validatePositiveAmount } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
-import { showError, showSuccess } from '../utils/toast'
+import { showError } from '../utils/toast'
 import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
 import { appFormClassName } from './ui/formStyles'
 import { entryFormGridClass } from './ui/recordsStyles'
@@ -165,7 +166,12 @@ export default function DataEntryForm({
       bankSms,
       recordId
     ).catch(() => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد'))
-    showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
+    showSavedForEntry(
+      activeForm,
+      recordId,
+      formValues,
+      showVehicleFields ? vehicleExpense.buildVehicleExpenseInput(formValues) : null
+    )
     refreshOpeningBalancesInBackground()
     onLoadingChange(false)
     if (onSaved && !keepOpen) return onSaved()

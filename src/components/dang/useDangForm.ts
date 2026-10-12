@@ -7,6 +7,7 @@ import type { Dang } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
+import { showSavedForCounterparty } from '../nudges/saveNudges'
 
 type UseDangFormOptions = {
   onSaved: () => Promise<void>
@@ -64,7 +65,7 @@ export function useDangForm({ onSaved }: UseDangFormOptions) {
           date: form.date,
           note: form.note.trim()
         })
-        showSuccess('بدهی جدید ثبت شد')
+        showSavedForCounterparty('بدهی جدید ثبت شد', form.counterparty)
       }
       closeForm()
       await onSaved()

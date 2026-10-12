@@ -1,26 +1,12 @@
 import {
   getCurrentPushSubscription,
-  getDeviceLabel,
   showLocalTestNotification,
-  subscribeToPush,
+  subscribeThisDevice,
   unsubscribeFromPush
 } from '../../services/pushNotifications'
-import { removePushSubscription, upsertPushSubscription } from '../../services/reminders'
+import { removePushSubscription } from '../../services/reminders'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
-
-/** Asks the browser for permission (if needed) and registers this device in the sheet. */
-export async function subscribeThisDevice(spreadsheetId: string): Promise<void> {
-  const subscription = await subscribeToPush()
-
-  await upsertPushSubscription(spreadsheetId, {
-    endpoint: subscription.endpoint!,
-    p256dh: subscription.keys!.p256dh!,
-    auth: subscription.keys!.auth!,
-    deviceLabel: getDeviceLabel(),
-    updatedAt: new Date().toISOString()
-  })
-}
 
 /** Web push actions of the advanced (developer) section. */
 export function createRemindersPushHandlers(options: {

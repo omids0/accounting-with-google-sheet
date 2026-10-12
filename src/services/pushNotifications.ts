@@ -1,3 +1,4 @@
+import { upsertPushSubscription } from './reminders'
 import type { StoredPushSubscription } from '../types'
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -209,4 +210,17 @@ export function getDeviceLabel(): string {
   if (/mac/i.test(ua)) return 'macOS'
 
   return 'مرورگر'
+}
+
+/** Asks the browser for permission (if needed) and registers this device in the sheet. */
+export async function subscribeThisDevice(spreadsheetId: string): Promise<void> {
+  const subscription = await subscribeToPush()
+
+  await upsertPushSubscription(spreadsheetId, {
+    endpoint: subscription.endpoint!,
+    p256dh: subscription.keys!.p256dh!,
+    auth: subscription.keys!.auth!,
+    deviceLabel: getDeviceLabel(),
+    updatedAt: new Date().toISOString()
+  })
 }
