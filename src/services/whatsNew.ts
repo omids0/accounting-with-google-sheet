@@ -1,3 +1,4 @@
+import { ONBOARDING_STORAGE_KEY, type OnboardingState } from './onboarding'
 import { getItem, setItem } from './storage'
 import { version as APP_VERSION } from '../../package.json'
 import { toIsoDate } from '../utils/jalaliDate'
@@ -57,21 +58,42 @@ export function selectWhatsNewItems(
     .slice(0, max)
 }
 
+/** Last version shipped before this key existed; devices already in use count as upgrading from it. */
+export const PRE_WHATS_NEW_VERSION = '2.0.0'
+
 /**
  * What a launch should do. A first install only records the version; on the first
  * day after that a newer version is marked seen silently; otherwise the sheet shows.
+ * `inUseSince` (ISO day) marks a device that used the app before this key existed.
  */
 export function decideWhatsNew(
-  stored: LastSeenVersion | null,
+  storedValue: LastSeenVersion | null,
   current: string,
-  today: string
+  today: string,
+  inUseSince?: string
 ): { show: boolean; next: LastSeenVersion | null } {
+  const stored =
+    storedValue ??
+    (inUseSince && inUseSince < today
+      ? { version: PRE_WHATS_NEW_VERSION, firstDay: inUseSince }
+      : null)
+
   if (!stored) return { show: false, next: { version: current, firstDay: today } }
   if (compareVersions(current, stored.version) <= 0) return { show: false, next: null }
 
   const next = { ...stored, version: current }
 
   return { show: stored.firstDay < today, next }
+}
+
+/** Earliest day any spreadsheet's setup wizard was closed on this device, if any. */
+function deviceInUseSince(): string | undefined {
+  const store = getItem<Record<string, OnboardingState>>(ONBOARDING_STORAGE_KEY) ?? {}
+  const closed = Object.values(store)
+    .map(state => state?.closedAt)
+    .filter((value): value is number => typeof value === 'number')
+
+  return closed.length ? toIsoDate(new Date(Math.min(...closed))) : undefined
 }
 
 let claimed: { lastSeen: string | null } | null = null
@@ -84,10 +106,10 @@ export function claimWhatsNew(now = new Date()): string | null {
   if (claimed) return claimed.lastSeen
 
   const stored = getItem<LastSeenVersion>(LAST_SEEN_VERSION_KEY)
-  const { show, next } = decideWhatsNew(stored, APP_VERSION, toIsoDate(now))
+  const { show, next } = decideWhatsNew(stored, APP_VERSION, toIsoDate(now), deviceInUseSince())
 
   if (next) setItem(LAST_SEEN_VERSION_KEY, next)
-  claimed = { lastSeen: show && stored ? stored.version : null }
+  claimed = { lastSeen: show ? stored?.version ?? PRE_WHATS_NEW_VERSION : null }
 
   return claimed.lastSeen
 }

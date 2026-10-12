@@ -65,4 +65,18 @@ describe('decideWhatsNew', () => {
     expect(decideWhatsNew(stored, '2.2.0', today)).toEqual({ show: false, next: null })
     expect(decideWhatsNew(stored, '2.1.0', today)).toEqual({ show: false, next: null })
   })
+
+  it('treats a device already in use before the key existed as upgrading from 2.0.0', () => {
+    expect(decideWhatsNew(null, '2.2.0', today, '2026-05-01')).toEqual({
+      show: true,
+      next: { version: '2.2.0', firstDay: '2026-05-01' }
+    })
+  })
+
+  it('does not show on a device first used today', () => {
+    expect(decideWhatsNew(null, '2.2.0', today, today)).toEqual({
+      show: false,
+      next: { version: '2.2.0', firstDay: today }
+    })
+  })
 })
