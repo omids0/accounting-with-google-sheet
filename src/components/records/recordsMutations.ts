@@ -112,49 +112,31 @@ export async function submitRecordEdit({
   }
 }
 
+/**
+ * The sheet write behind an undoable delete. `record` must carry its current
+ * row and tab. Throws on failure so the undo hook can report it and restore.
+ */
 export async function deleteStoredRecord({
-  deletingRecord,
-  forms,
-  onSuccess
+  spreadsheetId,
+  record,
+  form
 }: {
-  deletingRecord: StoredRecord
-  forms: CustomForm[]
-  onSuccess: () => Promise<void>
-}): Promise<boolean> {
-  const form = forms.find(item => item.id === deletingRecord.formId)
+  spreadsheetId: string
+  record: StoredRecord
+  form: CustomForm
+}): Promise<void> {
+  const category = String(record.values.category ?? '')
 
-  if (!form) return false
-
-  if (!isConfigured() || !requireAuth()) return false
-
-  const settings = getSettings()!
-  const category = String(deletingRecord.values.category ?? '')
-
-  try {
-    if (form.type === 'expense' && isVehicleExpenseCategory(category)) {
-      await handleExpenseRecordDeleted(settings.spreadsheetId, deletingRecord.id, category)
-    }
-
-    await deleteRecord(
-      settings.spreadsheetId,
-      form,
-      deletingRecord.rowNumber,
-      deletingRecord.sheetName
-    )
-    await applyWalletChanges(
-      settings.spreadsheetId,
-      walletEffectOf(form.type, deletingRecord.values),
-      null,
-      recordLedgerContext(deletingRecord.values, 'حذف', deletingRecord.id)
-    )
-    showSuccess('تراکنش حذف شد')
-    refreshOpeningBalancesInBackground()
-    await onSuccess()
-
-    return true
-  } catch (err) {
-    handleSheetError(err, { fallbackMessage: 'خطا در حذف تراکنش' })
-
-    return false
+  if (form.type === 'expense' && isVehicleExpenseCategory(category)) {
+    await handleExpenseRecordDeleted(spreadsheetId, record.id, category)
   }
+
+  await deleteRecord(spreadsheetId, form, record.rowNumber, record.sheetName)
+  await applyWalletChanges(
+    spreadsheetId,
+    walletEffectOf(form.type, record.values),
+    null,
+    recordLedgerContext(record.values, 'حذف', record.id)
+  )
+  refreshOpeningBalancesInBackground()
 }

@@ -77,11 +77,11 @@ export default function AppLockPolicySettings({
               >
                 <span className={appLockPolicyOptionMainClass}>
                   <span className={appLockPolicyOptionIconClass(selected)} aria-hidden="true">
-                    <AppIcon name={POLICY_ICONS[option.value]} size={16} strokeWidth={2.1} />
+                    <AppIcon name={POLICY_ICONS[option.value]} size={16} />
                   </span>
                   <span className={appLockPolicyOptionLabelClass}>{option.label}</span>
                   <span className={appLockPolicyOptionRadioClass(selected)} aria-hidden="true">
-                    {selected && <AppIcon name="check" size={10} strokeWidth={2.5} />}
+                    {selected && <AppIcon name="check" size={10} />}
                   </span>
                 </span>
                 <span className={appLockPolicyOptionDescriptionClass}>{option.description}</span>

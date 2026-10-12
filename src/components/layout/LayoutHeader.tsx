@@ -54,7 +54,7 @@ export default function LayoutHeader({
           aria-expanded={menuOpen}
           title="منو"
         >
-          <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} strokeWidth={2} />
+          <AppIcon name={menuOpen ? 'close' : 'menu'} size={20} />
           {updateAvailable && !menuOpen && (
             <span className={headerMenuDotClass} aria-hidden="true" />
           )}
@@ -78,7 +78,7 @@ export default function LayoutHeader({
           aria-label="بازگشت"
           title="بازگشت"
         >
-          <AppIcon name="back" size={20} strokeWidth={2} />
+          <AppIcon name="back" size={20} />
         </button>
       )}
     </header>

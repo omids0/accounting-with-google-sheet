@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { PersonalReminderWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
+import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { syncCategoriesFromSheet, getPersonalReminderCategories } from '../../services/categories'
 import {
   completePersonalReminder,
@@ -31,13 +32,17 @@ export function usePersonalRemindersData() {
 
     return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
   })
-  const [deletingItem, setDeletingItem] = useState<PersonalReminderWithRow | null>(null)
-  const [deleting, setDeleting] = useState(false)
   const [completingItem, setCompletingItem] = useState<PersonalReminderWithRow | null>(null)
   const [completingId, setCompletingId] = useState('')
   const [categories, setCategories] = useState<string[]>(() => getPersonalReminderCategories())
 
   const dataRevision = useDataRefresh()
+
+  const undoableDelete = useUndoableDelete()
+  // Rows shift after every delete; writes look their row up again by id.
+  const itemsRef = useRef(items)
+
+  itemsRef.current = items
 
   const loadItems = useCallback(async () => {
     const spreadsheetId = requireSpreadsheetId()
@@ -66,31 +71,24 @@ export function usePersonalRemindersData() {
     void loadItems()
   }, [loadItems, dataRevision])
 
-  const openDeleteConfirm = (item: PersonalReminderWithRow) => {
-    setDeletingItem(item)
-  }
-
-  const closeDeleteConfirm = () => {
-    if (deleting) return
-    setDeletingItem(null)
-  }
-
-  const handleDelete = async () => {
+  const requestDelete = (item: PersonalReminderWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
-    if (!spreadsheetId || !deletingItem) return
+    if (!spreadsheetId) return
 
-    setDeleting(true)
-    try {
-      await deletePersonalReminder(spreadsheetId, deletingItem.rowNumber)
-      setItems(current => current.filter(item => item.id !== deletingItem.id))
-      setDeletingItem(null)
-      showSuccess('یادآوری حذف شد')
-    } catch (err) {
-      showError(toUserMessage(err, 'حذف ناموفق بود'))
-    } finally {
-      setDeleting(false)
-    }
+    const title = item.title.trim()
+
+    void undoableDelete.schedule({
+      id: item.id,
+      label: title ? `یادآوری «${title}»` : 'یادآوری',
+      errorMessage: 'حذف ناموفق بود',
+      commit: async () => {
+        const current = itemsRef.current.find(entry => entry.id === item.id) ?? item
+
+        await deletePersonalReminder(spreadsheetId, current.rowNumber)
+        await loadItems()
+      }
+    })
   }
 
   const openCompleteConfirm = (item: PersonalReminderWithRow) => {
@@ -109,7 +107,8 @@ export function usePersonalRemindersData() {
 
     setCompletingId(completingItem.id)
     try {
-      const updated = await completePersonalReminder(spreadsheetId, completingItem)
+      const current = itemsRef.current.find(item => item.id === completingItem.id) ?? completingItem
+      const updated = await completePersonalReminder(spreadsheetId, current)
 
       setItems(current =>
         sortPersonalReminders(
@@ -141,21 +140,18 @@ export function usePersonalRemindersData() {
     })
 
   return {
-    items,
+    /** The list minus the row waiting in the undo window. */
+    items: undoableDelete.visible(items),
     categories,
     setCategories,
     loading,
-    deletingItem,
-    deleting,
     completingItem,
     completingId,
     completionMessage: completingItem
       ? getPersonalReminderCompletionMessage(completingItem.recurrence)
       : '',
     loadItems,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
+    requestDelete,
     openCompleteConfirm,
     closeCompleteConfirm,
     handleComplete,

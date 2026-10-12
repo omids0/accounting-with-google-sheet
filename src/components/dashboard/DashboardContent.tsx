@@ -17,6 +17,8 @@ import DashboardChartsSection from '../charts/DashboardChartsSection'
 import DateRangeFilter, { createDefaultDateRangeFilter } from '../DateRangeFilter'
 import EmptyState from '../EmptyState'
 import FilterModal from '../FilterModal'
+import HelpHint from '../HelpHint'
+import { HELP_HINTS } from '../helpHints'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
 import TransactionTypeSegment from '../TransactionTypeSegment'
@@ -142,7 +144,10 @@ export default function DashboardContent({
 
       <Card className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass)}>
         <div className={dashboardHeroHeaderClass}>
-          <div className={dashboardHeroLabelClass}>دارایی قابل اتکا</div>
+          <div className={dashboardHeroLabelClass}>
+            دارایی قابل اتکا
+            <HelpHint {...HELP_HINTS.netAvailable} />
+          </div>
           {onConfigureNetAvailable && (
             <CardEditButton onClick={onConfigureNetAvailable} ariaLabel="تنظیم دارایی قابل اتکا" />
           )}
@@ -172,6 +177,7 @@ export default function DashboardContent({
         />
         <StatCard
           label="خالص دوره"
+          labelHint={<HelpHint {...HELP_HINTS.netFlow} />}
           amount={data?.balance ?? 0}
           variant="flow"
           wide
@@ -187,6 +193,7 @@ export default function DashboardContent({
         />
         <StatCard
           label="مانده محاسبه‌شده"
+          labelHint={<HelpHint {...HELP_HINTS.periodBalance} />}
           amount={data?.periodBalance ?? 0}
           variant="balance"
           wide

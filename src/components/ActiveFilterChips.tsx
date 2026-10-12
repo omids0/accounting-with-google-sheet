@@ -60,7 +60,7 @@ export default function ActiveFilterChips({
         aria-label={hasChips ? `${filterLabel} (${chips.length} فعال)` : filterLabel}
         aria-haspopup="dialog"
       >
-        <AppIcon name="filter" size={16} strokeWidth={2} aria-hidden />
+        <AppIcon name="filter" size={16} aria-hidden />
         <span className={activeFilterTriggerLabelClass}>{filterLabel}</span>
         {hasChips && (
           <span className={activeFilterTriggerDotClass} aria-hidden="true">
@@ -83,7 +83,7 @@ export default function ActiveFilterChips({
               aria-label={`ویرایش فیلتر ${chip.label}`}
             >
               <span className={activeFilterChipIconClass} aria-hidden="true">
-                <AppIcon name={icon} size={13} strokeWidth={2.2} />
+                <AppIcon name={icon} size={13} />
               </span>
               <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
                 {chip.label}
@@ -96,7 +96,7 @@ export default function ActiveFilterChips({
                 onClick={chip.onRemove}
                 aria-label={`حذف فیلتر ${chip.label}`}
               >
-                <AppIcon name="x-mark" size={11} strokeWidth={2.5} />
+                <AppIcon name="x-mark" size={11} />
               </button>
             )}
           </span>

@@ -36,7 +36,7 @@ export default function EmptyState({
       {action ? (
         <div className="mt-3">
           <Button type="button" variant="primary" size="sm" onClick={() => action.onClick()}>
-            <AppIcon name="add" size={16} strokeWidth={2} />
+            <AppIcon name="add" size={16} />
             {action.label}
           </Button>
         </div>

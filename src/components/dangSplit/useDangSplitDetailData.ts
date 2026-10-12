@@ -15,11 +15,18 @@ import type { DangSplitGroupSummary } from '../../types/dangSplit'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 
-export function useDangSplitDetailData(group: DangSplitGroupWithRow) {
+/**
+ * `pendingDeleteId` is the person or expense waiting in the undo window: it and its
+ * allocations are left out of every list and of the summary, as if already deleted.
+ */
+export function useDangSplitDetailData(
+  group: DangSplitGroupWithRow,
+  pendingDeleteId: string | null = null
+) {
   const [categories, setCategories] = useState<DangSplitCategoryWithRow[]>([])
-  const [people, setPeople] = useState<DangSplitPersonWithRow[]>([])
-  const [expenses, setExpenses] = useState<DangSplitExpenseWithRow[]>([])
-  const [allocations, setAllocations] = useState<DangSplitAllocationWithRow[]>([])
+  const [allPeople, setPeople] = useState<DangSplitPersonWithRow[]>([])
+  const [allExpenses, setExpenses] = useState<DangSplitExpenseWithRow[]>([])
+  const [allAllocations, setAllocations] = useState<DangSplitAllocationWithRow[]>([])
   const [loading, setLoading] = useState(true)
 
   const dataRevision = useDataRefresh()
@@ -50,6 +57,22 @@ export function useDangSplitDetailData(group: DangSplitGroupWithRow) {
     void loadItems()
   }, [loadItems, dataRevision])
 
+  const people = useMemo(
+    () => allPeople.filter(item => item.id !== pendingDeleteId),
+    [allPeople, pendingDeleteId]
+  )
+  const expenses = useMemo(
+    () => allExpenses.filter(item => item.id !== pendingDeleteId),
+    [allExpenses, pendingDeleteId]
+  )
+  const allocations = useMemo(
+    () =>
+      allAllocations.filter(
+        item => item.personId !== pendingDeleteId && item.expenseId !== pendingDeleteId
+      ),
+    [allAllocations, pendingDeleteId]
+  )
+
   const summary: DangSplitGroupSummary = useMemo(
     () => buildGroupSummary({ people, expenses, allocations }),
     [allocations, expenses, people]
@@ -77,6 +100,8 @@ export function useDangSplitDetailData(group: DangSplitGroupWithRow) {
 
   return {
     categories,
+    allPeople,
+    allExpenses,
     people,
     expenses,
     allocations,

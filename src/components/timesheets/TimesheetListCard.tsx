@@ -1,5 +1,6 @@
 import type { Timesheet } from '../../types'
 import { cn } from '../../utils/cn'
+import AppIcon from '../AppIcon'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { TimesheetWithRow } from './useTimesheetsPage'
@@ -45,7 +46,7 @@ export default function TimesheetListCard({
                 className={cn(installmentChevronClass, 'rotate-90 text-primary/70')}
                 aria-hidden
               >
-                ▼
+                <AppIcon name="chevron-down" size={14} />
               </span>
             </div>
             {item.description ? (

@@ -1,5 +1,4 @@
 import ConfirmActionModal from '../ConfirmActionModal'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import type {
   VehicleProfileWithRow,
   VehicleCompleteFormState,
@@ -21,7 +20,6 @@ import VehicleItemDeleteModal from './VehicleItemDeleteModal'
 import VehicleMechanicFormModal from './VehicleMechanicFormModal'
 import VehicleMileageModal from './VehicleMileageModal'
 import VehiclePeriodicFormModal from './VehiclePeriodicFormModal'
-import type { VehicleTransactionItem } from '../../types/vehicles'
 
 type VehicleDetailModalsProps = {
   vehicle: VehicleProfileWithRow
@@ -41,11 +39,9 @@ type VehicleDetailModalsProps = {
   showMechanicForm: boolean
   showMileageModal: boolean
   saving: boolean
-  deleting: boolean
   deletingTarget: VehicleDeleteTarget | null
   deleteLinkedExpense: boolean
   onDeleteLinkedExpenseChange: (value: boolean) => void
-  deletingTransaction: VehicleTransactionItem | null
   exportConfirmModal: {
     open: boolean
     title: string
@@ -66,8 +62,6 @@ type VehicleDetailModalsProps = {
   onMileageSubmit: (values: VehicleMileageFormState) => void | Promise<void>
   onCloseDeleteTarget: () => void
   onDelete: () => void
-  onCloseDeletingTransaction: () => void
-  onDeleteTransaction: () => void | Promise<void>
 }
 
 export default function VehicleDetailModals({
@@ -88,11 +82,9 @@ export default function VehicleDetailModals({
   showMechanicForm,
   showMileageModal,
   saving,
-  deleting,
   deletingTarget,
   deleteLinkedExpense,
   onDeleteLinkedExpenseChange,
-  deletingTransaction,
   exportConfirmModal,
   onClosePeriodicForm,
   onPeriodicSubmit,
@@ -105,9 +97,7 @@ export default function VehicleDetailModals({
   onCloseMileageModal,
   onMileageSubmit,
   onCloseDeleteTarget,
-  onDelete,
-  onCloseDeletingTransaction,
-  onDeleteTransaction
+  onDelete
 }: VehicleDetailModalsProps) {
   const periodicInitialValues = buildPeriodicInitialValues(editingPeriodic, vehicle.mileage)
   const deadlineInitialValues = buildDeadlineInitialValues(editingDeadline)
@@ -172,21 +162,11 @@ export default function VehicleDetailModals({
         target={deletingTarget}
         deleteLinkedExpense={deleteLinkedExpense}
         onDeleteLinkedExpenseChange={onDeleteLinkedExpenseChange}
-        deleting={deleting}
         onClose={onCloseDeleteTarget}
         onConfirm={onDelete}
       />
 
       <ConfirmActionModal {...exportConfirmModal} />
-
-      <ConfirmDeleteModal
-        open={deletingTransaction !== null}
-        title="حذف تراکنش"
-        message="این تراکنش از لیست هزینه‌ها هم حذف می‌شود. مطمئن هستید؟"
-        deleting={deleting}
-        onClose={onCloseDeletingTransaction}
-        onConfirm={() => void onDeleteTransaction()}
-      />
     </>
   )
 }

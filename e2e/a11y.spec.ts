@@ -42,32 +42,61 @@ test.describe('personal-accounting-pwa accessibility', () => {
   })
 })
 
-test.describe('signed-in screens accessibility', () => {
-  // A service worker would fetch past the route mocks and hit the real Google API.
-  test.use({ serviceWorkers: 'block' })
+/** Switches the seeded settings to the dark theme before the app reads them. */
+async function useDarkTheme(page: Page) {
+  await page.addInitScript(() => {
+    const settings = JSON.parse(localStorage.getItem('accounting_settings') ?? '{}')
 
-  for (const screen of SIGNED_IN_SCREENS) {
-    test(`${screen.name} has no axe violations`, async ({ page }) => {
+    localStorage.setItem('accounting_settings', JSON.stringify({ ...settings, theme: 'dark' }))
+  })
+}
+
+for (const theme of ['light', 'dark'] as const) {
+  const suffix = theme === 'dark' ? ' (dark)' : ''
+
+  test.describe(`signed-in screens accessibility${suffix}`, () => {
+    // A service worker would fetch past the route mocks and hit the real Google API.
+    test.use({ serviceWorkers: 'block' })
+
+    test.beforeEach(async ({ page }) => {
       await mockGoogleApis(page)
       await seedMockAppState(page)
-      await page.goto(screen.path, { waitUntil: 'domcontentloaded' })
-      await page.locator('main').waitFor({ state: 'visible' })
-      await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0)
+      if (theme === 'dark') await useDarkTheme(page)
+    })
+
+    for (const screen of SIGNED_IN_SCREENS) {
+      test(`${screen.name} has no axe violations`, async ({ page }) => {
+        await page.goto(screen.path, { waitUntil: 'domcontentloaded' })
+        await page.locator('main').waitFor({ state: 'visible' })
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
+        // Cold preview builds can keep a list loading past the default 5 s.
+        await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0, { timeout: 15_000 })
+        await waitForSettledAnimations(page)
+        await expectNoViolations(page)
+      })
+    }
+
+    if (theme === 'dark') {
+      test('login page has no axe violations', async ({ page }) => {
+        // Seeded settings stay dark; without a session the login page shows.
+        await page.addInitScript(() => localStorage.removeItem('accounting_session'))
+        await page.goto('/', { waitUntil: 'domcontentloaded' })
+        await page.locator('.login-page').waitFor({ state: 'visible' })
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+        await waitForSettledAnimations(page)
+        await expectNoViolations(page)
+      })
+    }
+
+    test('setup wizard has no axe violations', async ({ page }) => {
+      await page.addInitScript(() => localStorage.removeItem('accounting_onboarding_v1'))
+      await page.goto('/', { waitUntil: 'domcontentloaded' })
+      await page.getByRole('heading', { name: 'راه‌اندازی اولیه' }).waitFor()
       await waitForSettledAnimations(page)
       await expectNoViolations(page)
     })
-  }
-
-  test('setup wizard has no axe violations', async ({ page }) => {
-    await mockGoogleApis(page)
-    await seedMockAppState(page)
-    await page.addInitScript(() => localStorage.removeItem('accounting_onboarding_v1'))
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await page.getByRole('heading', { name: 'راه‌اندازی اولیه' }).waitFor()
-    await waitForSettledAnimations(page)
-    await expectNoViolations(page)
   })
-})
+}
 
 function formatViolations(
   violations: Array<{

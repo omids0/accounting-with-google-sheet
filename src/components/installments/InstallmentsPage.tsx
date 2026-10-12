@@ -13,7 +13,6 @@ import type { RecordsDatePreset } from '../../utils/dateRange'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import StatCard from '../StatCard'
@@ -28,12 +27,14 @@ import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
 export default function InstallmentsPage({ active = true }: InstallmentsPageProps) {
-  const { plans, setPlans, loading, loadPlans } = useInstallmentsData()
+  const { plans: allPlans, setPlans, loading, loadPlans } = useInstallmentsData()
 
   const mutations = useInstallmentMutations({
+    plans: allPlans,
     setPlans,
     loadPlans
   })
+  const plans = mutations.visiblePlans
 
   const filters = useInstallmentsFilters(plans)
 
@@ -123,7 +124,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
         togglingByPlan={mutations.togglingByPlan}
         onToggleExpand={mutations.handleToggleExpand}
         onEdit={mutations.openEditForm}
-        onDelete={mutations.openDeleteConfirm}
+        onDelete={mutations.requestDelete}
         onTogglePayment={mutations.handleTogglePayment}
         onPaymentAmountSave={mutations.handlePaymentAmountSave}
         onAdd={mutations.openCreateForm}
@@ -162,14 +163,6 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
-
-      <ConfirmDeleteModal
-        open={mutations.deletingPlan !== null}
-        message="از حذف این مورد مطمئن هستید؟"
-        onClose={mutations.closeDeleteConfirm}
-        onConfirm={mutations.handleDelete}
-        deleting={mutations.deleting}
-      />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import type { CustomForm } from '../../types'
+import AppIcon from '../AppIcon'
 import TransactionTypeSegment, { transactionTypeOptionsFromForms } from '../TransactionTypeSegment'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
@@ -41,7 +42,7 @@ export default function RecordsToolbar({
           loading={loading}
           aria-label="بارگذاری مجدد"
         >
-          ↻
+          <AppIcon name="refresh" size={16} />
         </Button>
       </div>
 

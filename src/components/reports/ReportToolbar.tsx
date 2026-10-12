@@ -7,6 +7,7 @@ import {
   type RecordsDatePreset
 } from '../../utils/dateRange'
 import type { DateRange } from '../../utils/jalaliDate'
+import AppIcon from '../AppIcon'
 import DateRangeFilter, {
   createDefaultDateRangeFilter,
   type AppliedDateRangeFilter
@@ -64,7 +65,7 @@ export default function ReportToolbar({
           loading={loading}
           aria-label="بارگذاری مجدد"
         >
-          ↻
+          <AppIcon name="refresh" size={16} />
         </Button>
       </div>
 

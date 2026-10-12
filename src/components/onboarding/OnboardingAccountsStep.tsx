@@ -114,7 +114,7 @@ export default function OnboardingAccountsStep({
       )}
 
       <Button type="button" variant="secondary" onClick={openForm}>
-        <AppIcon name="add" size={18} strokeWidth={2} />
+        <AppIcon name="add" size={18} />
         {copy.add}
       </Button>
 

@@ -123,7 +123,7 @@ export default function CategoryTreeReportPage() {
             aria-label={tree.allExpanded ? 'بستن همه دسته‌ها' : 'باز کردن همه دسته‌ها'}
           >
             <span className={categoryTreeToggleIconClass(tree.allExpanded)} aria-hidden="true">
-              <AppIcon name="chevron-down" size={14} strokeWidth={2.5} />
+              <AppIcon name="chevron-down" size={14} />
             </span>
             {tree.allExpanded ? 'بستن همه' : 'باز کردن همه'}
           </button>
@@ -138,7 +138,7 @@ export default function CategoryTreeReportPage() {
         ) : !tree.nodes.length ? (
           <div className={categoryTreeEmptyClass}>
             <span className={categoryTreeEmptyIconClass} aria-hidden="true">
-              <AppIcon name="chart" size={22} strokeWidth={2} />
+              <AppIcon name="chart" size={22} />
             </span>
             <p>در این دوره تراکنشی ثبت نشده</p>
           </div>

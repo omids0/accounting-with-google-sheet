@@ -67,7 +67,7 @@ export function installmentHeaderClass(expanded?: boolean) {
 }
 
 export const installmentChevronClass =
-  'mt-[0.15rem] inline-flex shrink-0 text-[0.75rem] text-muted transition-[transform,color] duration-[var(--duration-slow)] ease-[var(--ease-out)]'
+  'installment-chevron mt-[0.15rem] inline-flex shrink-0 text-[0.75rem] text-muted transition-[transform,color] duration-[var(--duration-slow)] ease-[var(--ease-out)]'
 
 export const listCardTitleClass =
   'list-card-title text-[0.88rem] font-bold leading-[1.3] tracking-[-0.015em] text-text'

@@ -30,12 +30,12 @@ export default function SettingsGoogleAccountCard({ onLogout }: SettingsGoogleAc
           <span className={statusBadgeClass(isTokenValid())}>
             {isTokenValid() ? (
               <>
-                <AppIcon name="check" size={12} strokeWidth={2.5} />
+                <AppIcon name="check" size={12} />
                 متصل
               </>
             ) : (
               <>
-                <AppIcon name="x-mark" size={12} strokeWidth={2.5} />
+                <AppIcon name="x-mark" size={12} />
                 نیاز به ورود مجدد
               </>
             )}

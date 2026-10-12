@@ -1,6 +1,5 @@
 import ActiveFilterChips from './ActiveFilterChips'
 import ConfirmActionModal from './ConfirmActionModal'
-import ConfirmDeleteModal from './ConfirmDeleteModal'
 import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
 import ListSortSection from './ListSortSection'
@@ -121,7 +120,7 @@ export default function TimesheetDetailPage({
                   togglingCheckId={page.togglingCheckId}
                   onToggleChecked={page.handleToggleChecked}
                   onEdit={page.openEditForm}
-                  onDelete={page.setDeletingItem}
+                  onDelete={page.requestDelete}
                 />
               ))}
             </div>
@@ -135,15 +134,6 @@ export default function TimesheetDetailPage({
         saving={page.saving}
         onClose={page.closeForm}
         onSubmit={page.handleSubmit}
-      />
-
-      <ConfirmDeleteModal
-        open={page.deletingItem !== null}
-        title="حذف رکورد"
-        message={`آیا از حذف «${page.deletingItem?.title ?? ''}» اطمینان دارید؟`}
-        deleting={page.deleting}
-        onClose={() => page.setDeletingItem(null)}
-        onConfirm={page.handleDelete}
       />
 
       <ConfirmActionModal {...page.importExportConfirmModal} />

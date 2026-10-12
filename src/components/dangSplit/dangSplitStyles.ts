@@ -58,8 +58,8 @@ export const dangSplitAssignButtonClass = (mode: 'assign' | 'leave') =>
 export const dangSplitAssignBadgeClass = (mode: 'assign' | 'leave') =>
   cn(
     'absolute bottom-0.5 left-0.5 inline-flex h-3.5 w-3.5 items-center justify-center',
-    'rounded-full text-[0.65rem] font-bold leading-none text-white',
-    mode === 'assign' ? 'bg-primary' : 'bg-danger'
+    'rounded-full text-[0.65rem] font-bold leading-none',
+    mode === 'assign' ? 'bg-primary text-on-primary' : 'bg-danger text-on-solid'
   )
 
 export const dangSplitChipsRowClass = 'mt-2 flex flex-wrap gap-1.5'

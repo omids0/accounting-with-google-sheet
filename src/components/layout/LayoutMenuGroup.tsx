@@ -41,11 +41,11 @@ export default function LayoutMenuGroup({
         aria-expanded={expanded}
       >
         <span className={appMenuItemIconClass(active)}>
-          <AppIcon name={icon} size={20} strokeWidth={1.75} />
+          <AppIcon name={icon} size={22} />
         </span>
         <span className={appMenuItemLabelClass}>{label}</span>
         <span className={appMenuChevronClass(expanded)} aria-hidden="true">
-          <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+          <AppIcon name="chevron-down" size={16} />
         </span>
       </button>
       {expanded && (submenu ? <div className={appMenuSubmenuClass}>{children}</div> : children)}

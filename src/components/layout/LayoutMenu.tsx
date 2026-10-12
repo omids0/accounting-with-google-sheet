@@ -76,7 +76,7 @@ function MenuLinkItem({ tab, icon, active, onTabChange }: MenuLinkItemProps) {
       onNavigate={() => onTabChange(tab)}
     >
       <span className={appMenuItemIconClass(active)}>
-        <AppIcon name={icon} size={20} strokeWidth={1.75} />
+        <AppIcon name={icon} size={22} />
       </span>
       <MenuItemLabel tab={tab} />
     </TabNavLink>
@@ -126,7 +126,7 @@ export default function LayoutMenu({
               <LazyImage src={userPicture} alt="" className={appMenuAvatarClass} />
             ) : (
               <div className={appMenuAvatarPlaceholderClass} aria-hidden>
-                <AppIcon name="dashboard" size={28} strokeWidth={1.5} />
+                <AppIcon name="dashboard" size={28} />
               </div>
             )}
             <div className={appMenuProfileTextClass}>
@@ -228,7 +228,7 @@ export default function LayoutMenu({
               onNavigate={onOpenSettings}
             >
               <span className={appMenuItemIconClass(showSettings)}>
-                <AppIcon name="settings" size={20} strokeWidth={1.75} />
+                <AppIcon name="settings" size={22} />
               </span>
               <span className={appMenuItemLabelClass}>تنظیمات</span>
             </TabNavLink>

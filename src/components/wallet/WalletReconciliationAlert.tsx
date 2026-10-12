@@ -1,4 +1,6 @@
 import { formatMoney, formatSignedMoney } from '../../utils/formatMoney'
+import HelpHint from '../HelpHint'
+import { HELP_HINTS } from '../helpHints'
 import Alert from '../ui/Alert'
 import Button from '../ui/Button'
 import {
@@ -26,7 +28,10 @@ export default function WalletReconciliationAlert({
 
   return (
     <Alert variant={variant} className={dashboardReconcileAlertClass}>
-      <strong>تطبیق کیف پول</strong>
+      <strong>
+        تطبیق کیف پول
+        <HelpHint {...HELP_HINTS.reconciliation} />
+      </strong>
       <p>
         کیف پول فعلی ({formatMoney(totalBalance)}) با مانده محاسبه‌شده ({formatMoney(periodBalance)}
         ) {reconciliationDiff > 0 ? 'بیشتر' : 'کمتر'} است.

@@ -97,7 +97,6 @@ export default function Select({
         <AppIcon
           name="chevron-down"
           size={12}
-          strokeWidth={2.5}
           className={customSelectChevronClass(open)}
           aria-hidden
         />

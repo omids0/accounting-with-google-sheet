@@ -11,6 +11,7 @@ import { useDangSplitDetailData } from './useDangSplitDetailData'
 import { useDangSplitDetailSpeedDial } from './useDangSplitDetailSpeedDial'
 import { useDangSplitExpenseActions } from './useDangSplitExpenseActions'
 import { useDangSplitPersonActions } from './useDangSplitPersonActions'
+import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { isConfigured } from '../../services/settings'
 import AppIcon from '../AppIcon'
 import { DangCardListSkeleton } from '../skeleton'
@@ -27,14 +28,27 @@ export default function DangSplitDetailPage({
   active?: boolean
 }) {
   const [detailTab, setDetailTab] = useState<DangSplitDetailTab>('summary')
-  const data = useDangSplitDetailData(group)
+  // One undo window for people and expenses: both cascades rewrite the allocations
+  // sheet, so their writes must never overlap.
+  const undoableDelete = useUndoableDelete()
+  const data = useDangSplitDetailData(group, undoableDelete.pendingId)
 
-  const personActions = useDangSplitPersonActions({ groupId: group.id, onSaved: data.loadItems })
+  const personActions = useDangSplitPersonActions({
+    groupId: group.id,
+    items: data.allPeople,
+    scheduleDelete: undoableDelete.schedule,
+    onSaved: data.loadItems
+  })
   const categoryActions = useDangSplitCategoryActions({
     groupId: group.id,
     onSaved: data.loadItems
   })
-  const expenseActions = useDangSplitExpenseActions({ groupId: group.id, onSaved: data.loadItems })
+  const expenseActions = useDangSplitExpenseActions({
+    groupId: group.id,
+    items: data.allExpenses,
+    scheduleDelete: undoableDelete.schedule,
+    onSaved: data.loadItems
+  })
 
   useDangSplitDetailSpeedDial({
     active,
@@ -98,7 +112,7 @@ export default function DangSplitDetailPage({
           savingDepositId={personActions.savingDepositId}
           onAddPerson={personActions.openCreateForm}
           onEditPerson={personActions.openEditForm}
-          onDeletePerson={personActions.setDeletingItem}
+          onDeletePerson={personActions.requestDelete}
           onOpenDepositForm={personActions.openDepositForm}
           onCloseDepositForm={personActions.closeDepositForm}
           onDeposit={(person, amount) => void personActions.handleDeposit(person, amount)}
@@ -115,7 +129,7 @@ export default function DangSplitDetailPage({
           onAdd={expenseActions.openCreateForm}
           onAllocate={expenseActions.setAllocatingItem}
           onEdit={expenseActions.openEditForm}
-          onDelete={expenseActions.setDeletingItem}
+          onDelete={expenseActions.requestDelete}
         />
       )}
 

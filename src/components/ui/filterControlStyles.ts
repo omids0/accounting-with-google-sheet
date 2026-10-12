@@ -44,7 +44,7 @@ export const activeFilterTriggerClass = (active?: boolean) =>
 export const activeFilterTriggerLabelClass = 'leading-none'
 
 export const activeFilterTriggerDotClass = cn(
-  'inline-flex h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-primary px-[0.3rem] text-[0.62rem] font-extrabold leading-none text-white'
+  'inline-flex h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-primary px-[0.3rem] text-[0.62rem] font-extrabold leading-none text-on-primary'
 )
 
 export const activeFilterClearAllClass = cn(

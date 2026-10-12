@@ -64,7 +64,7 @@ export default function CategorySelectSheet({
                 aria-label="بازگشت به انتخاب دسته"
                 disabled={blocked}
               >
-                <AppIcon name="back" size={18} strokeWidth={2} />
+                <AppIcon name="back" size={18} />
               </button>
             )}
             <h2 id="category-select-sheet-title" className={cn(formModalTitleClass, 'min-w-0')}>
@@ -79,7 +79,7 @@ export default function CategorySelectSheet({
             data-modal-close
             disabled={blocked}
           >
-            <AppIcon name="close" size={18} strokeWidth={2} />
+            <AppIcon name="close" size={18} />
           </button>
         </div>
 

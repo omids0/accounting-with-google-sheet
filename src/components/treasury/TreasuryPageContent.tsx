@@ -6,7 +6,6 @@ import { distributionSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import EmptyState from '../EmptyState'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
@@ -28,7 +27,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
 
   const data = useTreasuryData(active, searchQuery)
 
-  const forms = useTreasuryForms(data.loadItems)
+  const forms = useTreasuryForms(data.loadItems, data.transactions, data.undoableDelete)
 
   const filters = useTreasuryFilters(
     active,
@@ -112,7 +111,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
               sellingAsset={forms.sellingAsset}
               onToggle={() => handleToggleHolding(holding.assetType)}
               onEdit={forms.openEditForm}
-              onDelete={forms.openDeleteConfirm}
+              onDelete={forms.requestDelete}
               onOpenSellForm={forms.openSellForm}
               onCloseSellForm={forms.closeSellForm}
               onSell={forms.handleSell}
@@ -141,14 +140,6 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       />
 
       <ConfirmActionModal {...filters.importExportConfirmModal} />
-
-      <ConfirmDeleteModal
-        open={forms.deletingTx !== null}
-        message="از حذف این مورد مطمئن هستید؟"
-        onClose={forms.closeDeleteConfirm}
-        onConfirm={forms.handleDelete}
-        deleting={forms.deleting}
-      />
     </div>
   )
 }

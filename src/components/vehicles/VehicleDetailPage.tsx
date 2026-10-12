@@ -227,7 +227,7 @@ export default function VehicleDetailPage({
         onDeleteHistory={historyItem =>
           page.openDeleteTarget({ kind: 'history', item: historyItem })
         }
-        onDeleteTransaction={transaction => page.setDeletingTransaction(transaction)}
+        onDeleteTransaction={page.requestDeleteTransaction}
       />
 
       <VehicleDetailModals
@@ -248,11 +248,9 @@ export default function VehicleDetailPage({
         showMechanicForm={page.showMechanicForm}
         showMileageModal={page.showMileageModal}
         saving={page.saving}
-        deleting={page.deleting}
         deletingTarget={page.deletingTarget}
         deleteLinkedExpense={page.deleteLinkedExpense}
         onDeleteLinkedExpenseChange={page.setDeleteLinkedExpense}
-        deletingTransaction={page.deletingTransaction}
         exportConfirmModal={exportConfirmModal}
         onClosePeriodicForm={page.closePeriodicForm}
         onPeriodicSubmit={page.handlePeriodicSubmit}
@@ -266,11 +264,6 @@ export default function VehicleDetailPage({
         onMileageSubmit={page.handleMileageSubmit}
         onCloseDeleteTarget={page.closeDeleteTarget}
         onDelete={page.handleDelete}
-        onCloseDeletingTransaction={() => {
-          if (page.deleting) return
-          page.setDeletingTransaction(null)
-        }}
-        onDeleteTransaction={page.handleDeleteTransaction}
       />
     </div>
   )

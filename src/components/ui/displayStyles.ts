@@ -22,7 +22,7 @@ export const spinnerClass = cn(
 )
 
 export const spinnerLgClass = cn(
-  'h-8 w-8 rounded-full border-[3px] border-[rgba(15,118,110,0.15)] border-t-primary animate-[spin_0.6s_linear_infinite]'
+  'h-8 w-8 rounded-full border-[3px] border-[color-mix(in_srgb,var(--color-primary)_15%,transparent)] border-t-primary animate-[spin_0.6s_linear_infinite]'
 )
 
 export const loadingDotsClass = 'inline-flex items-center gap-1'

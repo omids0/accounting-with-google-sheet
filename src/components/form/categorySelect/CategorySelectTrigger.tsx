@@ -50,7 +50,7 @@ export default function CategorySelectTrigger({
       aria-haspopup="dialog"
     >
       <span className={categorySelectLeadingClass} aria-hidden="true">
-        <AppIcon name="folder" size={16} strokeWidth={2} />
+        <AppIcon name="folder" size={16} />
       </span>
       <span className={cn(customSelectValueClass, isPlaceholder && categorySelectPlaceholderClass)}>
         {label}
@@ -61,7 +61,6 @@ export default function CategorySelectTrigger({
         <AppIcon
           name="chevron-down"
           size={12}
-          strokeWidth={2.5}
           className={customSelectChevronClass(open)}
           aria-hidden
         />

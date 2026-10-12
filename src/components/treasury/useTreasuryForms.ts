@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import type { TransactionWithRow, VaultFormState } from './types'
 import { formatQuantity } from './utils'
+import type { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { getSettings, isConfigured } from '../../services/settings'
 import {
   createVaultTransaction,
@@ -24,14 +25,20 @@ function createEmptyBuyForm(): VaultFormState {
   }
 }
 
-export function useTreasuryForms(loadItems: () => Promise<void>) {
+export function useTreasuryForms(
+  loadItems: () => Promise<void>,
+  transactions: TransactionWithRow[],
+  undoableDelete: ReturnType<typeof useUndoableDelete>
+) {
   const [showForm, setShowForm] = useState(false)
   const [editingTx, setEditingTx] = useState<TransactionWithRow | null>(null)
-  const [deletingTx, setDeletingTx] = useState<TransactionWithRow | null>(null)
   const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const [activeSellAsset, setActiveSellAsset] = useState<VaultAssetType | null>(null)
   const [sellingAsset, setSellingAsset] = useState<VaultAssetType | null>(null)
+  // Rows shift after every delete; writes look their row up again by id.
+  const transactionsRef = useRef(transactions)
+
+  transactionsRef.current = transactions
 
   const openCreateForm = () => {
     setEditingTx(null)
@@ -47,15 +54,6 @@ export function useTreasuryForms(loadItems: () => Promise<void>) {
     if (saving) return
     setShowForm(false)
     setEditingTx(null)
-  }
-
-  const openDeleteConfirm = (tx: TransactionWithRow) => {
-    setDeletingTx(tx)
-  }
-
-  const closeDeleteConfirm = () => {
-    if (deleting) return
-    setDeletingTx(null)
   }
 
   const openSellForm = (assetType: VaultAssetType) => {
@@ -92,7 +90,9 @@ export function useTreasuryForms(loadItems: () => Promise<void>) {
     setSaving(true)
     try {
       if (editingTx) {
-        await updateVaultTransaction(settings.spreadsheetId, editingTx.rowNumber, {
+        const current = transactionsRef.current.find(tx => tx.id === editingTx.id) ?? editingTx
+
+        await updateVaultTransaction(settings.spreadsheetId, current.rowNumber, {
           ...editingTx,
           assetType: form.assetType,
           quantity: qty,
@@ -178,44 +178,38 @@ export function useTreasuryForms(loadItems: () => Promise<void>) {
     }
   }
 
-  const handleDelete = async () => {
-    if (!deletingTx) return
-
+  const requestDelete = (tx: TransactionWithRow) => {
     if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()!
 
-    setDeleting(true)
-    try {
-      await deleteVaultTransaction(settings.spreadsheetId, deletingTx.rowNumber)
-      setDeletingTx(null)
-      showSuccess('تراکنش حذف شد')
-      await loadItems()
-    } catch (err) {
-      if (handleSheetError(err, { fallbackMessage: 'خطا در حذف تراکنش' })) return
-    } finally {
-      setDeleting(false)
-    }
+    void undoableDelete.schedule({
+      id: tx.id,
+      label: 'تراکنش صندوقچه',
+      errorMessage: 'خطا در حذف تراکنش',
+      commit: async () => {
+        const current = transactionsRef.current.find(entry => entry.id === tx.id) ?? tx
+
+        await deleteVaultTransaction(settings.spreadsheetId, current.rowNumber)
+        await loadItems()
+      }
+    })
   }
 
   return {
     showForm,
     editingTx,
-    deletingTx,
     saving,
-    deleting,
     activeSellAsset,
     sellingAsset,
     openCreateForm,
     openEditForm,
     closeForm,
-    openDeleteConfirm,
-    closeDeleteConfirm,
     openSellForm,
     closeSellForm,
     handleSubmit,
     handleSell,
-    handleDelete
+    requestDelete
   }
 }
 

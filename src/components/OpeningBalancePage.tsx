@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 
+import AppIcon from './AppIcon'
 import EmptyState from './EmptyState'
+import HelpHint from './HelpHint'
+import { HELP_HINTS } from './helpHints'
 import OpeningBalanceCard, {
   type OpeningBalanceEditState
 } from './openingBalances/OpeningBalanceCard'
@@ -140,7 +143,13 @@ export default function OpeningBalancePage() {
   return (
     <div className={listModulePageClass}>
       <div className={cardHeaderRowClass} style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>موجودی اول دوره</h2>
+        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+          موجودی اول دوره
+          <HelpHint
+            {...HELP_HINTS.openingBalance}
+            actions={HELP_HINTS.openingBalance.actions.slice(1)}
+          />
+        </h2>
         <Button
           variant="secondary"
           size="sm"
@@ -148,8 +157,9 @@ export default function OpeningBalancePage() {
           disabled={loading}
           loading={loading}
           type="button"
+          aria-label="بارگذاری مجدد"
         >
-          ↻
+          <AppIcon name="refresh" size={16} />
         </Button>
       </div>
 

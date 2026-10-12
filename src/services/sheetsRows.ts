@@ -144,6 +144,31 @@ export async function appendSheetRow(
   })
 }
 
+/**
+ * A row number captured before another row of the sheet was deleted (e.g. an
+ * edit form left open through an undo window) can point one row off. On sheets
+ * keyed by «شناسه», when the row there has another id, follow the id instead.
+ */
+export function currentRowNumberFor(
+  spreadsheetId: string,
+  sheetName: string,
+  rowNumber: number,
+  row: string[]
+): number {
+  const id = row[0]?.trim()
+
+  if (!id || getSheetRow(spreadsheetId, sheetName, 1)?.[0]?.trim() !== 'شناسه') return rowNumber
+  if (getSheetRow(spreadsheetId, sheetName, rowNumber)?.[0]?.trim() === id) return rowNumber
+
+  const matches: number[] = []
+
+  getSheetDataRows(spreadsheetId, sheetName)?.forEach((current, index) => {
+    if (current[0]?.trim() === id) matches.push(index + 2)
+  })
+
+  return matches.length === 1 ? matches[0] : rowNumber
+}
+
 export async function updateSheetRow(
   spreadsheetId: string,
   sheetName: string,
@@ -152,6 +177,8 @@ export async function updateSheetRow(
   options?: SheetWriteOptions
 ): Promise<void> {
   const row = typeof rowOrBuilder === 'function' ? rowOrBuilder() : rowOrBuilder
+
+  rowNumber = currentRowNumberFor(spreadsheetId, sheetName, rowNumber, row)
 
   const expectedRow = getSheetRow(spreadsheetId, sheetName, rowNumber) ?? undefined
 

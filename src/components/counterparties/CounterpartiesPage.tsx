@@ -6,7 +6,6 @@ import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import { DangCardListSkeleton } from '../skeleton'
@@ -117,7 +116,7 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
             filteredItems={filteredItems}
             onView={detail.openDetail}
             onEdit={form.openEditForm}
-            onDelete={data.openDeleteConfirm}
+            onDelete={data.requestDelete}
             onAdd={form.openCreateForm}
           />
         </>
@@ -142,14 +141,6 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
       />
 
       <ConfirmActionModal {...data.importExportConfirmModal} />
-
-      <ConfirmDeleteModal
-        open={data.deletingItem !== null}
-        message="از حذف این طرف حساب مطمئن هستید؟"
-        onClose={data.closeDeleteConfirm}
-        onConfirm={data.handleDelete}
-        deleting={data.deleting}
-      />
     </div>
   )
 }

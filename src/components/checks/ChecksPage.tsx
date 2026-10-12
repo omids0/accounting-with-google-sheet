@@ -6,7 +6,6 @@ import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import CheckFormModal from './CheckFormModal'
@@ -25,13 +24,9 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     setCounterparties,
     loading,
     togglingId,
-    deletingItem,
-    deleting,
     loadItems,
     handleTogglePaid,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
+    requestDelete,
     handleExport,
     handleExportPdf,
     handleImport,
@@ -138,7 +133,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
         togglingId={togglingId}
         onTogglePaid={handleTogglePaid}
         onEdit={openEditForm}
-        onDelete={openDeleteConfirm}
+        onDelete={requestDelete}
         onAdd={openCreateForm}
       />
 
@@ -153,14 +148,6 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
-
-      <ConfirmDeleteModal
-        open={deletingItem !== null}
-        message="از حذف این مورد مطمئن هستید؟"
-        onClose={closeDeleteConfirm}
-        onConfirm={handleDelete}
-        deleting={deleting}
-      />
     </div>
   )
 }

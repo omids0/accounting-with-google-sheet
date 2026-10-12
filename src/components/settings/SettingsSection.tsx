@@ -47,14 +47,14 @@ export default function SettingsSection({
           aria-controls={panelId}
         >
           <span className={settingsSectionIconClass(expanded)} aria-hidden="true">
-            <AppIcon name={icon} size={20} strokeWidth={1.9} />
+            <AppIcon name={icon} size={20} />
           </span>
           <span className={accordionCardTextClass}>
             <span className={accordionCardTitleClass}>{title}</span>
             <span className={accordionCardSummaryClass}>{description}</span>
           </span>
           <span className={accordionCardChevronClass(expanded)} aria-hidden="true">
-            <AppIcon name="chevron-down" size={16} strokeWidth={2} />
+            <AppIcon name="chevron-down" size={16} />
           </span>
         </button>
       </h2>

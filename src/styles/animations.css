@@ -287,3 +287,10 @@
     opacity: 0.85;
   }
 }
+
+/* Undo toast: the bar empties over the undo window. */
+@keyframes undoCountdown {
+  to {
+    transform: scaleX(0);
+  }
+}

@@ -282,10 +282,6 @@ export const walletOpeningMoreBtnClass = 'mt-3 w-full'
 
 export const appIconClass = 'block shrink-0 [shape-rendering:geometricPrecision]'
 
-export const appIconBgClass = 'fill-current opacity-[0.14]'
-
-export const appIconAccentClass = 'fill-current opacity-[0.28]'
-
 export const headerIconAppIconClass = '[&_.app-icon]:drop-shadow-[0_1px_1px_rgba(0,0,0,0.08)]'
 
 export const fabAppIconClass = '[&_.app-icon]:drop-shadow-[0_1px_2px_rgba(0,0,0,0.12)]'

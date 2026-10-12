@@ -113,7 +113,7 @@ export default function CounterpartySelectItem({
             disabled={saving || manageMode}
           >
             <span className={categorySelectOptionCheckClass} aria-hidden="true">
-              {isSelected && <AppIcon name="check" size={14} strokeWidth={2.5} />}
+              {isSelected && <AppIcon name="check" size={14} />}
             </span>
             <span className={categorySelectOptionLabelClass(isSelected)}>{fullName}</span>
           </button>
@@ -129,7 +129,7 @@ export default function CounterpartySelectItem({
                 disabled={saving}
                 aria-label={`ویرایش ${fullName}`}
               >
-                <AppIcon name="edit" size={14} strokeWidth={2} />
+                <AppIcon name="edit" size={14} />
               </button>
               <button
                 type="button"
@@ -141,7 +141,7 @@ export default function CounterpartySelectItem({
                 disabled={saving}
                 aria-label={`حذف ${fullName}`}
               >
-                <AppIcon name="trash" size={14} strokeWidth={2} />
+                <AppIcon name="trash" size={14} />
               </button>
             </div>
           )}

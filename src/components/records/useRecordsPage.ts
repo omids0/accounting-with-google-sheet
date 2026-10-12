@@ -7,6 +7,7 @@ import {
   sortRecords,
   type StoredRecord
 } from './recordsUtils'
+import { useRecordsDelete } from './useRecordsDelete'
 import { useRecordsFilters } from './useRecordsFilters'
 import { useRecordsFormActions } from './useRecordsFormActions'
 import { syncCategoriesFromSheet } from '../../services/categories'
@@ -20,7 +21,7 @@ import { handleSheetError } from '../../utils/sheetError'
 export function useRecordsPage(initialFormType?: 'income' | 'expense') {
   const [forms, setForms] = useState<CustomForm[]>([])
   const [activeFormId, setActiveFormId] = useState('')
-  const [records, setRecords] = useState<StoredRecord[]>([])
+  const [rawRecords, setRecords] = useState<StoredRecord[]>([])
   const [loading, setLoading] = useState(false)
 
   const activeForm = activeFormId === 'all' ? undefined : forms.find(f => f.id === activeFormId)
@@ -64,6 +65,14 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
   }, [activeFormId])
 
   const formActions = useRecordsFormActions({ forms, loadRecords })
+  const { requestDelete, flushPendingDelete, visibleRecords } = useRecordsDelete({
+    forms,
+    records: rawRecords,
+    loadRecords
+  })
+
+  // Everything below (filters, totals, counts) sees the list without the row in its undo window.
+  const records = visibleRecords
 
   useEffect(() => {
     const settings = getSettings()
@@ -158,6 +167,7 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
   )
 
   const handleFormChange = (formId: string) => {
+    void flushPendingDelete()
     setActiveFormId(formId)
     setCategoryFilter('all')
   }
@@ -176,6 +186,7 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
     showFilteredSummary,
     handleFormChange,
     ...filters,
+    requestDelete,
     ...formActions
   }
 }

@@ -1,0 +1,154 @@
+import { useRef, useState } from 'react'
+
+import type { VehicleDeleteTarget } from './types'
+import { deleteVehicleDetailItem, type HistoryWithRow } from './vehicleDetailMutations'
+import { useUndoableDelete } from '../../hooks/useUndoableDelete'
+import { deleteManualVehicleExpense } from '../../services/vehicleExpenseActions'
+import type { VehicleActiveListItem, VehicleTransactionItem } from '../../types/vehicles'
+import { requireSpreadsheetId } from '../../utils/authGuard'
+
+type VehicleDetailDeletesOptions = {
+  activeItems: VehicleActiveListItem[]
+  history: HistoryWithRow[]
+  transactions: VehicleTransactionItem[]
+  loadDetail: () => Promise<void>
+}
+
+// One undo slot for the whole screen, so ids are prefixed by list.
+function activeKey(item: VehicleActiveListItem) {
+  return `${item.kind}:${item.periodic?.id ?? item.deadline?.id ?? item.id}`
+}
+
+function targetKey(target: VehicleDeleteTarget) {
+  return `${target.kind}:${target.item.id}`
+}
+
+function targetLabel(target: VehicleDeleteTarget) {
+  if (target.kind === 'periodic') {
+    return target.item.serviceType ? `سرویس «${target.item.serviceType}»` : 'سرویس'
+  }
+
+  if (target.kind === 'deadline') {
+    return target.item.category ? `موعد «${target.item.category}»` : 'موعد'
+  }
+
+  return 'رکورد تاریخچه'
+}
+
+/** Rows shift after every delete, so the write looks its row up again by id. */
+function findFreshTarget(
+  target: VehicleDeleteTarget,
+  activeItems: VehicleActiveListItem[],
+  history: HistoryWithRow[]
+): VehicleDeleteTarget | null {
+  if (target.kind === 'history') {
+    const item = history.find(entry => entry.id === target.item.id)
+
+    return item ? { kind: 'history', item } : null
+  }
+
+  const match = activeItems.find(entry => activeKey(entry) === targetKey(target))
+
+  if (target.kind === 'periodic') {
+    return match?.periodic ? { kind: 'periodic', item: match.periodic } : null
+  }
+
+  return match?.deadline ? { kind: 'deadline', item: match.deadline } : null
+}
+
+export function useVehicleDetailDeletes({
+  activeItems,
+  history,
+  transactions,
+  loadDetail
+}: VehicleDetailDeletesOptions) {
+  const undoableDelete = useUndoableDelete()
+  const { pendingId } = undoableDelete
+  const [deletingTarget, setDeletingTarget] = useState<VehicleDeleteTarget | null>(null)
+  const [deleteLinkedExpense, setDeleteLinkedExpense] = useState(true)
+  const dataRef = useRef({ activeItems, history })
+
+  dataRef.current = { activeItems, history }
+
+  const scheduleTargetDelete = (target: VehicleDeleteTarget, withLinkedExpense: boolean) => {
+    const spreadsheetId = requireSpreadsheetId()
+
+    if (!spreadsheetId) return
+
+    void undoableDelete.schedule({
+      id: targetKey(target),
+      label: targetLabel(target),
+      errorMessage: 'حذف ناموفق بود',
+      commit: async () => {
+        const fresh = findFreshTarget(target, dataRef.current.activeItems, dataRef.current.history)
+
+        if (fresh) {
+          await deleteVehicleDetailItem({
+            spreadsheetId,
+            target: fresh,
+            deleteLinkedExpense: withLinkedExpense
+          })
+        }
+        await loadDetail()
+      }
+    })
+  }
+
+  /** Rows with a linked expense keep the confirm so the user can choose to keep that expense. */
+  const openDeleteTarget = (target: VehicleDeleteTarget) => {
+    if (target.item.expenseRecordId) {
+      setDeletingTarget(target)
+      setDeleteLinkedExpense(true)
+
+      return
+    }
+
+    scheduleTargetDelete(target, false)
+  }
+
+  const closeDeleteTarget = () => setDeletingTarget(null)
+
+  const handleDelete = () => {
+    if (!deletingTarget) return
+
+    setDeletingTarget(null)
+    scheduleTargetDelete(deletingTarget, deleteLinkedExpense)
+  }
+
+  const requestDeleteTransaction = (item: VehicleTransactionItem) => {
+    if (!item.expenseRecordId) return
+
+    const spreadsheetId = requireSpreadsheetId()
+
+    if (!spreadsheetId) return
+
+    void undoableDelete.schedule({
+      id: `transaction:${item.id}`,
+      label: item.title ? `تراکنش «${item.title}»` : 'تراکنش',
+      errorMessage: 'خطا در حذف تراکنش',
+      commit: async () => {
+        await deleteManualVehicleExpense(spreadsheetId, item.expenseRecordId)
+        await loadDetail()
+      }
+    })
+  }
+
+  return {
+    visibleActiveItems: pendingId
+      ? activeItems.filter(item => activeKey(item) !== pendingId)
+      : activeItems,
+    visibleHistory: pendingId
+      ? history.filter(item => `history:${item.id}` !== pendingId)
+      : history,
+    visibleTransactions: pendingId
+      ? transactions.filter(item => `transaction:${item.id}` !== pendingId)
+      : transactions,
+    deletingTarget,
+    deleteLinkedExpense,
+    setDeleteLinkedExpense,
+    openDeleteTarget,
+    closeDeleteTarget,
+    handleDelete,
+    requestDeleteTransaction
+  }
+}

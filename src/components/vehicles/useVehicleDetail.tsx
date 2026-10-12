@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import type { VehicleDeleteTarget, VehicleProfileWithRow } from './types'
+import type { VehicleProfileWithRow } from './types'
+import { useVehicleDetailDeletes } from './useVehicleDetailDeletes'
 import { createVehicleDetailHandlers } from './useVehicleDetailHandlers'
 import { useVehicleDetailModalActions } from './useVehicleDetailModalActions'
 import {
@@ -17,7 +18,6 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { getVehicleDeadlineCategories } from '../../services/vehicleDeadlineCategories'
 import { fetchVehicleDeadlines } from '../../services/vehicleDeadlines'
-import { deleteManualVehicleExpense } from '../../services/vehicleExpenseActions'
 import { fetchVehicleHistory } from '../../services/vehicleHistory'
 import { getVehicleMechanicCategories } from '../../services/vehicleMechanicCategories'
 import { getVehiclePeriodicCategories } from '../../services/vehiclePeriodicCategories'
@@ -45,9 +45,6 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
   >('active')
   const [transactions, setTransactions] = useState<VehicleTransactionItem[]>([])
   const [fuelStats, setFuelStats] = useState<MonthlyFuelStats[]>([])
-  const [deletingTransaction, setDeletingTransaction] = useState<VehicleTransactionItem | null>(
-    null
-  )
   const [loading, setLoading] = useState(() => {
     const settings = getSettings()
 
@@ -64,9 +61,6 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
   const [showMechanicForm, setShowMechanicForm] = useState(false)
   const [showMileageModal, setShowMileageModal] = useState(false)
   const [mileageReminderEnabled, setMileageReminderEnabled] = useState(false)
-  const [deletingTarget, setDeletingTarget] = useState<VehicleDeleteTarget | null>(null)
-  const [deleteLinkedExpense, setDeleteLinkedExpense] = useState(true)
-  const [deleting, setDeleting] = useState(false)
   const [serviceTypes, setServiceTypes] = useState<string[]>(() => getVehiclePeriodicCategories())
   const [deadlineCategories, setDeadlineCategories] = useState<string[]>(() =>
     getVehicleDeadlineCategories()
@@ -156,11 +150,7 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
         completingPeriodic,
         editingDeadline,
         renewingDeadline,
-        deletingTarget,
-        deleteLinkedExpense,
         setSaving,
-        setDeleting,
-        setDeletingTarget,
         loadDetail,
         onPeriodicSaved: () => {
           setShowPeriodicForm(false)
@@ -184,17 +174,16 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
       completingPeriodic,
       editingDeadline,
       renewingDeadline,
-      deletingTarget,
-      deleteLinkedExpense,
       loadDetail
     ]
   )
+
+  const deletes = useVehicleDetailDeletes({ activeItems, history, transactions, loadDetail })
 
   const modalActions = useVehicleDetailModalActions({
     vehicleTitle: currentVehicle.title,
     loading,
     saving,
-    deleting,
     loadDetail,
     setShowPeriodicForm,
     setEditingPeriodic,
@@ -204,44 +193,21 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
     setShowCompleteModal,
     setCompletingPeriodic,
     setShowMechanicForm,
-    setShowMileageModal,
-    setDeletingTarget,
-    setDeleteLinkedExpense
+    setShowMileageModal
   })
-
-  const handleDeleteTransaction = async () => {
-    if (!deletingTransaction?.expenseRecordId) return
-
-    const spreadsheetId = requireSpreadsheetId()
-
-    if (!spreadsheetId) return
-
-    setDeleting(true)
-    try {
-      await deleteManualVehicleExpense(spreadsheetId, deletingTransaction.expenseRecordId)
-      setDeletingTransaction(null)
-      await loadDetail()
-    } catch (err) {
-      handleSheetError(err, { fallbackMessage: 'خطا در حذف تراکنش' })
-    } finally {
-      setDeleting(false)
-    }
-  }
 
   return {
     currentVehicle,
-    activeItems,
-    history,
-    transactions,
+    // Lists hide the row waiting in the undo window; counts and filters read these.
+    activeItems: deletes.visibleActiveItems,
+    history: deletes.visibleHistory,
+    transactions: deletes.visibleTransactions,
     fuelStats,
     detailTab,
     setDetailTab,
     loading,
     saving,
-    deleting,
-    deletingTransaction,
-    setDeletingTransaction,
-    handleDeleteTransaction,
+    requestDeleteTransaction: deletes.requestDeleteTransaction,
     showPeriodicForm,
     editingPeriodic,
     showDeadlineForm,
@@ -251,9 +217,12 @@ export function useVehicleDetail(vehicle: VehicleProfileWithRow) {
     completingPeriodic,
     showMechanicForm,
     showMileageModal,
-    deletingTarget,
-    deleteLinkedExpense,
-    setDeleteLinkedExpense,
+    deletingTarget: deletes.deletingTarget,
+    deleteLinkedExpense: deletes.deleteLinkedExpense,
+    setDeleteLinkedExpense: deletes.setDeleteLinkedExpense,
+    openDeleteTarget: deletes.openDeleteTarget,
+    closeDeleteTarget: deletes.closeDeleteTarget,
+    handleDelete: deletes.handleDelete,
     serviceTypes,
     setServiceTypes,
     deadlineCategories,

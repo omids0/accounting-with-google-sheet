@@ -1,3 +1,4 @@
+import AppIcon from '../AppIcon'
 import TreasurySellForm from './TreasurySellForm'
 import TreasuryTransactionItem from './TreasuryTransactionItem'
 import type { TransactionWithRow, VaultFormState } from './types'
@@ -70,7 +71,9 @@ export default function TreasuryHoldingCard({
             ارزش کل: {formatMoney(holding.totalValue)}
           </div>
         </div>
-        <span className={installmentChevronClass}>▼</span>
+        <span className={installmentChevronClass} aria-hidden>
+          <AppIcon name="chevron-down" size={14} />
+        </span>
       </button>
 
       <AccordionCollapse open={expanded}>

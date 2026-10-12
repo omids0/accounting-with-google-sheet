@@ -1,11 +1,8 @@
 import { useCallback, useState } from 'react'
 
-import { deleteStoredRecord, submitRecordEdit } from './recordsMutations'
+import { submitRecordEdit } from './recordsMutations'
 import { getFormField, type StoredRecord } from './recordsUtils'
-import {
-  retroactiveMonthLabel,
-  useRetroactiveEntryWarning
-} from '../../hooks/useRetroactiveEntryWarning'
+import { useRetroactiveEntryWarning } from '../../hooks/useRetroactiveEntryWarning'
 import type { CustomForm } from '../../types'
 
 type UseRecordsFormActionsOptions = {
@@ -17,8 +14,6 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingRecord, setEditingRecord] = useState<StoredRecord | null>(null)
-  const [deletingRecord, setDeletingRecord] = useState<StoredRecord | null>(null)
-  const [deleting, setDeleting] = useState(false)
 
   const retroactiveWarning = useRetroactiveEntryWarning()
 
@@ -51,35 +46,6 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     if (saving) return
     setShowForm(false)
     setEditingRecord(null)
-  }
-
-  const openDeleteConfirm = useCallback((record: StoredRecord) => {
-    setDeletingRecord(record)
-  }, [])
-
-  const closeDeleteConfirm = () => {
-    if (deleting) return
-    setDeletingRecord(null)
-  }
-
-  const handleDelete = async () => {
-    if (!deletingRecord) return
-
-    setDeleting(true)
-    try {
-      const ok = await deleteStoredRecord({
-        deletingRecord,
-        forms,
-        onSuccess: async () => {
-          setDeletingRecord(null)
-          await loadRecords()
-        }
-      })
-
-      if (!ok) return
-    } finally {
-      setDeleting(false)
-    }
   }
 
   const runSubmit = async (
@@ -130,24 +96,14 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     await runSubmit(formValues, vehicleExpense)
   }
 
-  const deletingRetroLabel = deletingRecord ? retroactiveMonthLabel(recordDate(deletingRecord)) : ''
-
   return {
     saving,
     showForm,
     editingRecord,
-    deletingRecord,
-    deleting,
     editingForm,
     retroactiveWarning,
-    deleteMessage: deletingRetroLabel
-      ? `این مورد مربوط به ${deletingRetroLabel} است. با حذف آن، موجودی اول دوره ماه‌های بعد از آن به‌صورت خودکار به‌روز می‌شود. از حذف مطمئن هستید؟`
-      : 'از حذف این مورد مطمئن هستید؟',
     openEditForm,
     closeForm,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
     handleSubmit
   }
 }

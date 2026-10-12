@@ -156,7 +156,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
       <div className={cn(unlockCardClass, animateInClass)}>
         <header className={unlockCardHeroClass}>
           <span className={unlockIconWrapClass} aria-hidden="true">
-            <AppIcon name="lock" size={32} strokeWidth={2.25} />
+            <AppIcon name="lock" size={32} />
           </span>
           <h1 className={unlockTitleClass}>قفل اپ</h1>
           {displayName ? <p className={unlockGreetingClass}>سلام {displayName}</p> : null}
@@ -219,7 +219,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                 disabled={pinLoading || biometricLoading || recovery.working}
                 loading={biometricLoading}
               >
-                <AppIcon name="fingerprint" size={20} strokeWidth={2} />
+                <AppIcon name="fingerprint" size={20} />
                 ورود با اثر انگشت
               </Button>
             </>
@@ -233,7 +233,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
 
           <footer className={unlockFooterClass}>
             <div className={unlockTrustBadgeClass}>
-              <AppIcon name="check" size={14} strokeWidth={2.25} />
+              <AppIcon name="check" size={14} />
               <span>رمز فقط برای همین دستگاه است</span>
             </div>
             <button

@@ -143,7 +143,7 @@ export default function CategorySelectItem({
             disabled={saving}
             aria-label="تایید"
           >
-            <AppIcon name="check" size={14} strokeWidth={2.5} />
+            <AppIcon name="check" size={14} />
           </button>
           <button
             type="button"
@@ -152,7 +152,7 @@ export default function CategorySelectItem({
             disabled={saving}
             aria-label="انصراف"
           >
-            <AppIcon name="close" size={14} strokeWidth={2} />
+            <AppIcon name="close" size={14} />
           </button>
         </div>
       ) : (
@@ -179,7 +179,7 @@ export default function CategorySelectItem({
             disabled={saving || manageMode}
           >
             <span className={categorySelectOptionCheckClass} aria-hidden="true">
-              {isSelected && <AppIcon name="check" size={14} strokeWidth={2.5} />}
+              {isSelected && <AppIcon name="check" size={14} />}
             </span>
             <span className={categorySelectOptionLabelClass(isSelected)}>{category}</span>
           </button>
@@ -196,7 +196,7 @@ export default function CategorySelectItem({
                   disabled={saving}
                   aria-label={`زیردسته‌های ${category}`}
                 >
-                  <AppIcon name="folder" size={14} strokeWidth={2} />
+                  <AppIcon name="folder" size={14} />
                 </button>
               )}
               <button
@@ -210,7 +210,7 @@ export default function CategorySelectItem({
                 aria-label={`ویرایش ${category}`}
                 title={locked ? 'این دسته‌بندی قابل ویرایش نیست' : undefined}
               >
-                <AppIcon name="edit" size={14} strokeWidth={2} />
+                <AppIcon name="edit" size={14} />
               </button>
               <button
                 type="button"
@@ -223,7 +223,7 @@ export default function CategorySelectItem({
                 aria-label={`حذف ${category}`}
                 title={locked ? 'این دسته‌بندی قابل حذف نیست' : undefined}
               >
-                <AppIcon name="trash" size={14} strokeWidth={2} />
+                <AppIcon name="trash" size={14} />
               </button>
             </div>
           )}

@@ -1,17 +1,14 @@
-import { BUSINESS_ICONS } from './appIcon/businessIcons'
-import { DETAIL_ICONS } from './appIcon/detailIcons'
-import { THEME_ICONS } from './appIcon/themeIcons'
-import { UI_ICONS } from './appIcon/uiIcons'
+import { APP_ICON_COMPONENTS } from './appIcon/iconMap'
+import type { AppIconProps } from './appIcon/types'
+import { appIconClass } from './ui/chartStyles'
+import { cn } from '../utils/cn'
 
 export type { AppIconName } from './appIcon/types'
 
-import type { AppIconProps } from './appIcon/types'
+export default function AppIcon({ name, size = 22, className }: AppIconProps) {
+  const Icon = APP_ICON_COMPONENTS[name]
 
-const ICON_RENDERERS = { ...BUSINESS_ICONS, ...UI_ICONS, ...THEME_ICONS, ...DETAIL_ICONS }
-
-export default function AppIcon({ name, size = 22, className, strokeWidth = 2 }: AppIconProps) {
-  const props = { width: size, height: size, strokeWidth, className }
-  const render = ICON_RENDERERS[name]
-
-  return render ? render(props) : null
+  return Icon ? (
+    <Icon size={size} weight="regular" className={cn(appIconClass, className)} aria-hidden />
+  ) : null
 }

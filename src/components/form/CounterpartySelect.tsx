@@ -146,7 +146,7 @@ export default function CounterpartySelect({
         aria-haspopup="dialog"
       >
         <span className={categorySelectLeadingClass} aria-hidden="true">
-          <AppIcon name="counterparties" size={16} strokeWidth={2} />
+          <AppIcon name="counterparties" size={16} />
         </span>
         <span
           className={cn(
@@ -162,7 +162,6 @@ export default function CounterpartySelect({
           <AppIcon
             name="chevron-down"
             size={12}
-            strokeWidth={2.5}
             className={customSelectChevronClass(open)}
             aria-hidden
           />

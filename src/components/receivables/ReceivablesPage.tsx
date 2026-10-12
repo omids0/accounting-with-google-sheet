@@ -13,7 +13,6 @@ import { isConfigured } from '../../services/settings'
 import { distributionSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
 import ConfirmActionModal from '../ConfirmActionModal'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import EmptyState from '../EmptyState'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
@@ -33,7 +32,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const {
-    items,
+    items: allItems,
     setItems,
     loading,
     categories,
@@ -44,11 +43,12 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
   } = useReceivablesData()
 
   const mutations = useReceivableMutations({
+    items: allItems,
     setItems,
     loadItems,
-    expandedId,
     setExpandedId
   })
+  const items = mutations.visibleItems
 
   const filters = useReceivablesFilters(items, categories, counterparties)
 
@@ -155,7 +155,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
               settlementReceivableId={mutations.settlementReceivableId}
               onToggleExpand={expanded => mutations.toggleExpanded(item.id, expanded)}
               onEdit={() => mutations.openEditForm(item)}
-              onDelete={() => mutations.openDeleteConfirm(item)}
+              onDelete={() => mutations.requestDelete(item)}
               onOpenPaymentForm={mutations.setPaymentReceivableId}
               onClosePaymentForm={() => mutations.setPaymentReceivableId(null)}
               onOpenSettlementForm={mutations.setSettlementReceivableId}
@@ -198,14 +198,6 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
-
-      <ConfirmDeleteModal
-        open={mutations.deletingItem !== null}
-        message="از حذف این مورد مطمئن هستید؟"
-        onClose={mutations.closeDeleteConfirm}
-        onConfirm={mutations.handleDelete}
-        deleting={mutations.deleting}
-      />
     </div>
   )
 }

@@ -87,7 +87,7 @@ export default function CounterpartyCard({
                 className="mt-1.5"
                 onClick={() => openMapDirections(location)}
               >
-                <AppIcon name="map-pin" size={14} strokeWidth={2} />
+                <AppIcon name="map-pin" size={14} />
                 نمایش روی نقشه
               </Button>
             ) : null}

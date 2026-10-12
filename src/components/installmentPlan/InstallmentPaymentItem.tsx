@@ -91,7 +91,6 @@ export default function InstallmentPaymentItem({
           <AppIcon
             name="chevron-down"
             size={14}
-            strokeWidth={2}
             className={installmentPaymentChevronClass(paymentExpanded)}
           />
         </button>

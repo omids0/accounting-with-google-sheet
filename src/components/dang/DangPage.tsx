@@ -6,7 +6,6 @@ import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import DangFormModal from './DangFormModal'
@@ -27,8 +26,6 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     setCounterparties,
     expandedId,
     setExpandedId,
-    deletingItem,
-    deleting,
     togglingId,
     savingAmountId,
     amountEdits,
@@ -36,9 +33,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     handleTogglePaid,
     handleAmountChange,
     handleAmountBlur,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
+    requestDelete,
     handleExport,
     handleExportPdf,
     handleImport,
@@ -158,7 +153,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
         onAmountChange={handleAmountChange}
         onAmountBlur={handleAmountBlur}
         onEdit={openEditForm}
-        onDelete={openDeleteConfirm}
+        onDelete={requestDelete}
         onAdd={openCreateForm}
       />
 
@@ -175,14 +170,6 @@ export default function DangPage({ active = true }: { active?: boolean }) {
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
-
-      <ConfirmDeleteModal
-        open={deletingItem !== null}
-        message="از حذف این مورد مطمئن هستید؟"
-        onClose={closeDeleteConfirm}
-        onConfirm={handleDelete}
-        deleting={deleting}
-      />
     </div>
   )
 }
