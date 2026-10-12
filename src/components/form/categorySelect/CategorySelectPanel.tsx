@@ -1,9 +1,10 @@
-import type { RefObject } from 'react'
+import { type KeyboardEvent, type RefObject, useRef } from 'react'
 
 import CategorySelectItem from './CategorySelectItem'
 import type { CategorySelectAllOption } from './useCategorySelectActions'
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import { isOtherCategory } from '../../../utils/categoryOrdering'
+import { moveFocusWithArrows } from '../../../utils/keyboardNav'
 import AppIcon from '../../AppIcon'
 import {
   categorySelectAddBtnClass,
@@ -110,6 +111,15 @@ export default function CategorySelectPanel({
 
   const listIsEmpty = !showAllOption && filteredCategories.length === 0
 
+  const listRef = useRef<HTMLDivElement>(null)
+
+  // ↑↓ Home/End walk the options; ↓ in the search box enters the list (round 5, F4).
+  const moveInList = (event: KeyboardEvent<HTMLElement>) => {
+    const options = listRef.current?.querySelectorAll<HTMLElement>('[role="option"]:not(:disabled)')
+
+    if (options) moveFocusWithArrows(event, Array.from(options), { axis: 'vertical' })
+  }
+
   return (
     <div className={categorySelectPanelClass}>
       {showSearch && (
@@ -121,6 +131,7 @@ export default function CategorySelectPanel({
             className={categorySelectSearchInputClass}
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
+            onKeyDown={e => e.key === 'ArrowDown' && moveInList(e)}
             placeholder="جستجو در دسته‌ها..."
             disabled={saving}
             aria-label="جستجوی دسته‌بندی"
@@ -170,7 +181,15 @@ export default function CategorySelectPanel({
         </div>
       )}
 
-      <div className={categorySelectListClass} role="listbox" aria-label={ariaLabel}>
+      <div
+        ref={listRef}
+        className={categorySelectListClass}
+        role="listbox"
+        aria-label={ariaLabel}
+        tabIndex={-1}
+        // Rename fields inside the list keep their own arrow and Home/End keys.
+        onKeyDown={e => !(e.target as HTMLElement).matches('input, textarea') && moveInList(e)}
+      >
         {showAllOption && (
           <div className={categorySelectItemClass({ selected: value === allOption.value })}>
             <button

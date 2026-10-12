@@ -42,8 +42,7 @@ const speedDialActionBaseClass = cn(
   'transition-[transform,box-shadow,background,color] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
   'touch-manipulation hover:enabled:bg-[color-mix(in_srgb,var(--color-primary)_5%,var(--color-surface))]',
   'hover:enabled:shadow-[0_4px_14px_color-mix(in_srgb,var(--color-primary)_10%,rgba(15,23,42,0.12))]',
-  'active:enabled:scale-[0.94] disabled:cursor-not-allowed disabled:opacity-55',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]'
+  'active:enabled:scale-[0.94] disabled:cursor-not-allowed disabled:opacity-55'
 )
 
 export const speedDialActionClass = speedDialActionBaseClass
@@ -77,8 +76,7 @@ export const fabClass = cn(
   'transition-[transform,box-shadow,background,color] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
   'touch-manipulation hover:opacity-100 hover:bg-[color-mix(in_srgb,var(--color-primary)_6%,var(--color-surface))]',
   'hover:shadow-[0_6px_20px_color-mix(in_srgb,var(--color-primary)_16%,rgba(15,23,42,0.14))]',
-  'active:scale-[0.94]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]'
+  'active:scale-[0.94]'
 )
 
 export function speedDialTriggerClass(open?: boolean, hidden?: boolean) {

@@ -78,7 +78,6 @@ export const currencyConverterSwapBtnClass = cn(
   'mb-4 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-primary',
   'transition-[background,transform] duration-[var(--duration-fast)]',
   'hover:[background:color-mix(in_srgb,var(--color-primary)_14%,transparent)] hover:scale-[1.04]',
-  'focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)]',
   'max-[520px]:mx-auto max-[520px]:mb-2 max-[520px]:rotate-90 max-[520px]:hover:rotate-90 max-[520px]:hover:scale-[1.04]'
 )
 

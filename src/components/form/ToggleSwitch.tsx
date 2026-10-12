@@ -28,7 +28,6 @@ export default function ToggleSwitch({
       className={cn(
         'relative inline-flex h-6 w-11 flex-none items-center rounded-full border-0 p-0.5',
         'transition-colors duration-(--duration-normal) ease-out',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
         'disabled:cursor-not-allowed disabled:opacity-60',
         checked ? 'bg-primary' : 'bg-border',
         className

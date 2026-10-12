@@ -17,8 +17,7 @@ export const locationMapOverlayClass =
 
 export const locationMapThemeToggleClass = cn(
   'inline-flex min-h-touch-min shrink-0 items-center gap-1 rounded-full border border-[color-mix(in_srgb,var(--color-primary)_24%,var(--color-border))] bg-[color-mix(in_srgb,var(--color-surface)_88%,transparent)] px-2.5 py-1.5 text-[0.72rem] font-bold text-primary-dark shadow-[0_2px_8px_rgba(15,23,42,0.08)] transition-[transform,background,border-color] duration-[var(--duration-fast)]',
-  'hover:enabled:-translate-y-px hover:enabled:border-primary-light hover:enabled:bg-surface',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
+  'hover:enabled:-translate-y-px hover:enabled:border-primary-light hover:enabled:bg-surface'
 )
 
 export const locationMapToolbarClass =
@@ -38,7 +37,7 @@ export const locationMapSearchWrapClass = cn(
 export const locationMapSearchInputClass = cn(
   'w-full rounded-[calc(var(--radius-sm)-2px)] border-[1.5px] border-[color-mix(in_srgb,var(--color-primary)_16%,var(--color-border))] bg-[var(--form-input-bg)] px-10 py-2.5 font-[inherit] text-[0.84rem] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background,transform] duration-[var(--duration-normal)]',
   'placeholder:text-muted placeholder:opacity-80',
-  'focus:border-primary-light focus:bg-surface focus:shadow-[var(--form-input-focus-shadow)] focus:outline-none focus:-translate-y-px'
+  'focus:border-primary-light focus:bg-surface focus:shadow-[var(--form-input-focus-shadow)] focus:-translate-y-px'
 )
 
 export const locationMapSearchResultsClass =

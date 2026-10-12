@@ -144,6 +144,7 @@ export default function JalaliDateTimePicker({
           onChange={setPendingValue}
           minDateTime={minDateTime}
           layout="sheet"
+          onEnter={handleConfirm}
         />
       </PickerSheet>
     </div>

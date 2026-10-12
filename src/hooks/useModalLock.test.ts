@@ -25,11 +25,18 @@ describe('modal Escape and focus', () => {
   const modal = (props: Omit<FormModalProps, 'children'>, ...children: ReactNode[]) =>
     createElement(FormModal, props as FormModalProps, ...children)
 
-  const render = (innerOpen: boolean, innerSaving: boolean) =>
+  const render = (innerOpen: boolean, innerSaving: boolean, outerVariant?: 'panel') =>
     act(() =>
       root.render(
         modal(
-          { open: true, title: 'بیرونی', onClose: closeOuter, onSubmit: vi.fn(), saveLabel: 'ثبت' },
+          {
+            open: true,
+            title: 'بیرونی',
+            onClose: closeOuter,
+            onSubmit: vi.fn(),
+            saveLabel: 'ثبت',
+            variant: outerVariant
+          },
           createElement('input', { 'aria-label': 'مبلغ' }),
           modal(
             {
@@ -47,9 +54,9 @@ describe('modal Escape and focus', () => {
     )
 
   // The inner modal opens from inside the outer one, as in the app.
-  const renderNested = (innerSaving = false) => {
-    render(false, false)
-    render(true, innerSaving)
+  const renderNested = (innerSaving = false, outerVariant?: 'panel') => {
+    render(false, false, outerVariant)
+    render(true, innerSaving, outerVariant)
   }
 
   beforeAll(() => {
@@ -94,6 +101,32 @@ describe('modal Escape and focus', () => {
 
     expect(closeInner).not.toHaveBeenCalled()
     expect(closeOuter).not.toHaveBeenCalled()
+  })
+
+  it('closes only the top modal over the desktop side panel', () => {
+    renderNested(false, 'panel')
+    pressEscape()
+
+    expect(closeInner).toHaveBeenCalledOnce()
+    expect(closeOuter).not.toHaveBeenCalled()
+  })
+
+  it('keeps Shift+Tab inside the top modal', () => {
+    renderNested()
+
+    const panels = document.body.querySelectorAll('[role="dialog"]')
+    const inner = panels[panels.length - 1]
+
+    // From the inner modal's first control (✕), Shift+Tab wraps to its last one.
+    act(() => inner.querySelector<HTMLElement>('[data-modal-close]')?.focus())
+    act(() => {
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, cancelable: true })
+      )
+    })
+
+    expect(inner.contains(document.activeElement)).toBe(true)
+    expect(document.activeElement?.textContent).toBe('انصراف')
   })
 
   it('focuses the first field instead of the close button', () => {

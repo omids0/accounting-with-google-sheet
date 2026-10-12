@@ -126,7 +126,6 @@ export function appMenuThemeBtnClass(active?: boolean) {
   return cn(
     'relative z-[1] flex h-full w-full items-center justify-center rounded-full',
     'transition-[color,opacity] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
     active ? 'text-primary-dark' : 'text-muted'
   )
 }

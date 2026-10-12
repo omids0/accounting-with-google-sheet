@@ -40,7 +40,7 @@ export const formControlSizeClass = 'h-touch-min px-3.5 text-[0.95rem] leading-[
 
 export function formControlClassName(className?: string) {
   return cn(
-    'w-full rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background-color] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:enabled:border-[var(--form-input-border-hover)] focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)] focus-visible:outline-none',
+    'w-full rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background-color] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:enabled:border-[var(--form-input-border-hover)] focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)]',
     formControlSizeClass,
     className
   )

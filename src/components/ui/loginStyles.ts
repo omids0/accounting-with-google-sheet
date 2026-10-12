@@ -50,8 +50,7 @@ export const loginTrustBadgeClass = cn(
 export const googleSignInBtnClass = cn(
   // bg-none drops the primary variant's gradient image, which painted over the surface color.
   '!min-h-touch-min !border-[1.5px] !border-border !bg-surface !bg-none !text-text',
-  'hover:enabled:!-translate-y-px hover:enabled:!border-[var(--color-primary-light)] hover:enabled:!bg-bg',
-  'focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)]'
+  'hover:enabled:!-translate-y-px hover:enabled:!border-[var(--color-primary-light)] hover:enabled:!bg-bg'
 )
 
 export const appLoadingInlineClass = cn(

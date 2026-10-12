@@ -28,8 +28,7 @@ export const wheelPickerFadeBottomClass = cn(
 )
 
 export const wheelPickerItemClass = cn(
-  'relative z-[2] flex w-full cursor-pointer items-center justify-center border-none bg-transparent p-0 font-[var(--font-numeric,var(--font))] text-[0.95rem] font-medium leading-none text-muted shadow-none outline-none will-change-[transform,opacity] snap-center snap-always whitespace-nowrap [transform-origin:center]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)]'
+  'relative z-[2] flex w-full cursor-pointer items-center justify-center border-none bg-transparent p-0 font-[var(--font-numeric,var(--font))] text-[0.95rem] font-medium leading-none text-muted shadow-none outline-none will-change-[transform,opacity] snap-center snap-always whitespace-nowrap [transform-origin:center]'
 )
 
 export function wheelPickerItemSelectedClass(selected?: boolean) {
@@ -55,7 +54,7 @@ export function jalaliDatePickerTriggerClass({
     active && 'border-primary shadow-[var(--form-input-focus-shadow)]',
     invalid && formControlInvalidClass,
     empty && 'font-medium text-muted',
-    'focus-visible:outline-none focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)]'
+    'focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)]'
   )
 }
 
@@ -64,8 +63,7 @@ export const jalaliDatePickerPreviewClass =
 
 export const jalaliDatePickerTodayBtnClass = cn(
   'inline-flex min-h-touch-min w-full cursor-pointer items-center justify-center rounded-sm border border-[color-mix(in_srgb,var(--color-primary)_24%,var(--color-border))] bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))] px-3 py-2 font-[inherit] text-[0.84rem] font-bold text-primary-dark transition-[background,border-color] duration-[var(--duration-fast)]',
-  'hover:enabled:border-primary-light hover:enabled:bg-accent-soft',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] focus-visible:ring-offset-2'
+  'hover:enabled:border-primary-light hover:enabled:bg-accent-soft'
 )
 
 export const pickerQuickActionsClass = 'flex w-full flex-col gap-2'

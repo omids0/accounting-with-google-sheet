@@ -16,7 +16,7 @@ export const dataTableHeadCellClass = cn(
 
 export const dataTableSortBtnClass = cn(
   'inline-flex cursor-pointer items-center gap-1 rounded-md border-none bg-transparent p-0 font-[inherit] text-[inherit]',
-  'hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+  'hover:text-text'
 )
 
 export function dataTableSortIconClass(direction?: 'asc' | 'desc') {
@@ -52,7 +52,7 @@ export const dataTableDetailCellClass = cn(
 /** A text button inside a cell (opens the row: a vehicle, a timesheet). */
 export const dataTableLinkClass = cn(
   'cursor-pointer border-none bg-transparent p-0 text-start font-[inherit] font-semibold text-text',
-  'hover:text-primary-dark hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+  'hover:text-primary-dark hover:underline'
 )
 
 /** Totals under a table: cards side by side. */

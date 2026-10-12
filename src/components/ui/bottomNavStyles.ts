@@ -28,7 +28,6 @@ export function bottomNavTabBtnClass(active?: boolean) {
     'touch-manipulation text-[0.68rem] font-semibold text-muted transition-[color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
     'min-[380px]:text-[0.72rem]',
     'rounded-xl active:enabled:scale-[0.94] motion-reduce:active:scale-100',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--color-nav-bg)]',
     active &&
       cn(
         'font-bold text-primary-dark',
@@ -50,14 +49,14 @@ export function bottomNavTabIconClass(active?: boolean) {
 
 export function bottomNavDashboardClass(active?: boolean) {
   return cn(
-    'bottom-nav-fab relative mb-1 mt-[-2.2rem] flex h-[4.25rem] w-[4.25rem] flex-col items-center justify-center gap-0.5 rounded-full text-on-primary',
+    // The ring clears the FAB's own 5px halo.
+    '[--focus-ring-offset:7px] bottom-nav-fab relative mb-1 mt-[-2.2rem] flex h-[4.25rem] w-[4.25rem] flex-col items-center justify-center gap-0.5 rounded-full text-on-primary',
     'min-[380px]:mt-[-2.4rem] min-[380px]:h-[4.6rem] min-[380px]:w-[4.6rem] min-[380px]:gap-1',
     '[background:var(--nav-fab-bg)]',
     'shadow-[var(--nav-fab-shadow),0_0_0_4px_var(--nav-fab-ring)] min-[380px]:shadow-[var(--nav-fab-shadow),0_0_0_5px_var(--nav-fab-ring)]',
     'before:pointer-events-none before:absolute before:inset-[3px] before:rounded-full before:content-[""] before:[background:linear-gradient(145deg,rgba(255,255,255,0.2)_0%,transparent_55%)]',
     'touch-manipulation transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
     'hover:-translate-y-0.5 active:scale-[0.94] active:translate-y-0 motion-reduce:hover:translate-y-0',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-nav-bg)]',
     active && '[background:var(--nav-fab-bg-active)]'
   )
 }

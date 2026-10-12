@@ -9,6 +9,7 @@ import PullToRefresh from './PullToRefresh'
 import PageSpeedDial from '../PageSpeedDial'
 import UpdateBanner from '../UpdateBanner'
 import { useLayoutNavigation } from './useLayoutNavigation'
+import { useMainFocus } from './useMainFocus'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
 import { installSelectionHaptics } from '../../utils/haptics'
@@ -16,7 +17,8 @@ import {
   appContentColumnClass,
   appLayoutClass,
   appMainClass,
-  appShellClass
+  appShellClass,
+  skipLinkClass
 } from '../ui/layoutStyles'
 
 export default function Layout() {
@@ -48,6 +50,7 @@ export default function Layout() {
   } = useLayoutNavigation()
 
   useBankSmsSync()
+  const { mainRef, focusMain } = useMainFocus()
   useEffect(installSelectionHaptics, [])
 
   const isDesktop = useIsDesktop()
@@ -61,6 +64,16 @@ export default function Layout() {
 
   return (
     <div className={appLayoutClass}>
+      <a
+        href="#main-content"
+        className={skipLinkClass}
+        onClick={event => {
+          event.preventDefault()
+          focusMain()
+        }}
+      >
+        پرش به محتوا
+      </a>
       <div className={appShellClass}>
         <LayoutMenu
           variant={isDesktop ? 'sidebar' : isTablet ? 'rail' : 'drawer'}
@@ -100,7 +113,7 @@ export default function Layout() {
 
             <UpdateBanner />
 
-            <main className={appMainClass}>
+            <main id="main-content" ref={mainRef} tabIndex={-1} className={appMainClass}>
               <PullToRefresh enabled={canPullToRefresh} />
               <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
             </main>

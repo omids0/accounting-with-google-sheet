@@ -98,7 +98,7 @@ export default function LocationMapSearch({ onSelect, disabled }: LocationMapSea
             <button
               key={`${result.lat}-${result.lng}-${result.label}`}
               type="button"
-              className="flex w-full items-start border-0 bg-transparent px-3 py-2.5 text-start text-[0.82rem] leading-[1.45] text-text transition-[background] duration-[var(--duration-fast)] hover:bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-inset"
+              className="flex w-full items-start border-0 bg-transparent px-3 py-2.5 text-start text-[0.82rem] leading-[1.45] text-text transition-[background] duration-[var(--duration-fast)] hover:bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)]"
               onClick={() => handleSelect(result)}
             >
               {result.label}

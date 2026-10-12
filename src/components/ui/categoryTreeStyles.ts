@@ -23,7 +23,6 @@ export const categoryTreeToggleAllClass = cn(
   'text-[0.78rem] font-bold text-[var(--color-primary-dark)]',
   'transition-[background-color,box-shadow,transform] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   'hover:bg-[var(--color-accent-soft)] hover:shadow-[var(--shadow)] active:scale-[0.97]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)]',
   'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none'
 )
 
@@ -60,10 +59,9 @@ export const categoryTreeNodeClass = (open: boolean) =>
   )
 
 export const categoryTreeRowClass = cn(
-  'relative flex w-full items-center gap-2 px-2 py-2.5 text-right',
+  'focus-ring-inset relative flex w-full items-center gap-2 px-2 py-2.5 text-right',
   'before:absolute before:inset-y-1.5 before:right-0 before:w-[3px] before:rounded-full',
   'before:bg-[var(--tree-tone)] before:opacity-0 before:transition-opacity before:content-[""]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)]',
   'data-[open=true]:before:opacity-100'
 )
 

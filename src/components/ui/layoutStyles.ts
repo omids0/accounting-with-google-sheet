@@ -77,13 +77,19 @@ export const appMainClass = cn(
   'md:mx-auto md:w-full md:max-w-[var(--content-max-width)] md:pb-[calc(var(--space-page)+4rem)] xl:pb-[calc(var(--space-page)+1rem)]'
 )
 
+/** «پرش به محتوا»: the first Tab stop, hidden until it has focus. */
+export const skipLinkClass = cn(
+  'sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-[calc(var(--safe-top)+0.6rem)] focus:z-[100]',
+  'focus:rounded-lg focus:bg-text focus:px-4 focus:py-2 focus:text-[0.85rem] focus:font-bold focus:text-surface focus:shadow-lg'
+)
+
 /** Shared shell header bar metrics — main header + desktop sidebar profile. */
 export const appShellHeaderBarClass = cn(
   'py-[0.65rem] pt-[max(0.65rem,var(--safe-top))]',
   'border-b border-[var(--header-border)] shadow-[var(--header-shadow)]',
   // Static gradient: an infinite background-position loop + backdrop blur on an
   // always-visible sticky bar repainted it every frame. The gradient is opaque.
-  '[background:var(--header-bg)]',
+  '[background:var(--header-bg)] [--focus-ring:var(--focus-ring-on-brand)]',
   'md:box-border md:min-h-[var(--shell-header-height)]',
   // Desktop: one 48px row (title, period / filters, page actions).
   'xl:min-h-[var(--desktop-header-height)] xl:py-0 xl:pt-0'
@@ -119,8 +125,7 @@ export const appHeaderTitleClass = cn(
 export const headerIconBtnClass = cn(
   'flex h-touch-min w-touch-min flex-shrink-0 items-center justify-center rounded-full leading-none',
   'bg-white/15 ring-1 ring-white/10 transition-[background,transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
-  'hover:bg-white/30 hover:ring-white/20 active:scale-90',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent'
+  'hover:bg-white/30 hover:ring-white/20 active:scale-90'
 )
 
 export function headerIconBtnMenuClass(active?: boolean) {
@@ -164,7 +169,6 @@ export const headerActionBtnClass = cn(
 export const headerPrimaryActionClass = cn(
   'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-surface px-4 text-[0.84rem] font-bold text-primary-dark',
   'shadow-[0_2px_8px_rgba(15,23,42,0.18)] transition-[opacity,transform] duration-[var(--duration-fast)] hover:opacity-90 active:scale-95',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary',
   'disabled:pointer-events-none disabled:opacity-60'
 )
 

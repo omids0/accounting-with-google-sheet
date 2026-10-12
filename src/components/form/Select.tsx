@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-
-import { useRegisterOverlay } from '../../hooks/useRegisterOverlay'
+import { useSelectListbox } from './useSelectListbox'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
 import {
@@ -40,53 +38,39 @@ export default function Select({
   className,
   invalid = false
 }: SelectProps) {
-  const [open, setOpen] = useState(false)
-
-  const rootRef = useRef<HTMLDivElement>(null)
+  const listbox = useSelectListbox(options, value, option => onChange(option.value))
+  const { open, activeIndex } = listbox
 
   const selected = options.find(option => option.value === value)
 
   const displayLabel = selected?.label ?? value
 
-  useRegisterOverlay(open, () => setOpen(false))
-
-  useEffect(() => {
-    if (!open) return
-
-    const onPointerDown = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', onPointerDown)
-
-    return () => document.removeEventListener('mousedown', onPointerDown)
-  }, [open])
-
   const handleSelect = (option: SelectOption) => {
     if (option.disabled) return
     onChange(option.value)
-    setOpen(false)
+    listbox.close(true)
   }
 
   return (
     <div
-      ref={rootRef}
+      ref={listbox.rootRef}
       className={customSelectRootClass({ open, className })}
       data-open={open || undefined}
     >
       <button
+        ref={listbox.triggerRef}
         type="button"
         className={cn(
           customSelectTriggerClass,
           customSelectTriggerStateClass({ open, compact, disabled, invalid })
         )}
-        onClick={() => !disabled && setOpen(isOpen => !isOpen)}
+        onClick={() => !disabled && listbox.toggle()}
+        onKeyDown={event => !disabled && listbox.onTriggerKeyDown(event)}
         disabled={disabled}
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-controls={open ? listbox.listboxId : undefined}
       >
         <span className={customSelectValueClass}>{displayLabel}</span>
         <AppIcon
@@ -98,20 +82,35 @@ export default function Select({
       </button>
 
       {open && (
-        <div className={customSelectMenuClass} role="listbox" aria-label={ariaLabel}>
-          {options.map(option => {
+        <div
+          ref={listbox.listboxRef}
+          id={listbox.listboxId}
+          className={customSelectMenuClass}
+          role="listbox"
+          aria-label={ariaLabel}
+          tabIndex={-1}
+          aria-activedescendant={activeIndex >= 0 ? listbox.optionId(activeIndex) : undefined}
+          onKeyDown={listbox.onListKeyDown}
+        >
+          {options.map((option, index) => {
             const isSelected = option.value === value
 
             return (
               <button
                 key={option.value}
+                id={listbox.optionId(index)}
                 type="button"
                 role="option"
+                tabIndex={-1}
                 aria-selected={isSelected}
                 className={customSelectOptionClass({
                   selected: isSelected,
-                  disabled: option.disabled
+                  disabled: option.disabled,
+                  active: index === activeIndex
                 })}
+                // Keeps focus on the listbox, which owns the keyboard.
+                onMouseDown={event => event.preventDefault()}
+                onMouseEnter={() => !option.disabled && listbox.setActiveIndex(index)}
                 onClick={() => handleSelect(option)}
                 disabled={option.disabled}
               >

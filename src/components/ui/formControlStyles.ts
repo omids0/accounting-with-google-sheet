@@ -29,7 +29,7 @@ export function customSelectTriggerStateClass({
     open && 'border-primary shadow-[var(--form-input-focus-shadow)]',
     invalid && formControlInvalidClass,
     disabled && 'cursor-not-allowed opacity-60',
-    'focus-visible:outline-none focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)]'
+    'focus-visible:border-primary focus-visible:shadow-[var(--form-input-focus-shadow)]'
   )
 }
 
@@ -50,17 +50,24 @@ export const customSelectMenuClass = cn(
 
 export function customSelectOptionClass({
   selected,
-  disabled
+  disabled,
+  active
 }: {
   selected?: boolean
   disabled?: boolean
+  /** The keyboard's current option (focus stays on the listbox). */
+  active?: boolean
 }) {
   return cn(
     'w-full cursor-pointer rounded-lg px-3 py-[0.6rem] text-[0.95rem] leading-[1.4] transition-[background-color,color] duration-[var(--duration-fast)]',
     selected
       ? 'bg-primary text-on-primary hover:bg-primary-dark'
       : 'hover:bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)]',
-    disabled && 'cursor-not-allowed opacity-45 hover:bg-transparent'
+    disabled && 'cursor-not-allowed opacity-45 hover:bg-transparent',
+    active &&
+      (selected
+        ? 'bg-primary-dark'
+        : 'bg-[color-mix(in_srgb,var(--color-primary)_14%,transparent)] text-primary-dark')
   )
 }
 
@@ -108,7 +115,7 @@ export function categorySelectManageBtnClass(active?: boolean) {
 }
 
 export const categorySelectSearchClass =
-  'flex items-center gap-[0.45rem] border-b border-border px-3 py-[0.55rem] text-muted'
+  'focus-ring-within flex items-center gap-[0.45rem] border-b border-border px-3 py-[0.55rem] text-muted [--focus-ring-offset:-3px]'
 
 export const categorySelectSearchInputClass =
   'min-w-0 flex-1 border-none bg-transparent p-0 font-[inherit] text-[0.88rem] text-text outline-none placeholder:text-muted'
@@ -127,8 +134,7 @@ export const categorySelectAddInputClass = cn(
 
 export const categorySelectAddBtnClass = cn(
   'inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-primary p-0 text-on-primary transition-[background,transform] duration-[var(--duration-fast)]',
-  'hover:enabled:bg-primary-dark active:enabled:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
+  'hover:enabled:bg-primary-dark active:enabled:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45'
 )
 
 export const categorySelectListClass = cn(
@@ -164,7 +170,6 @@ export function categorySelectItemClass({
 export const categorySelectDragHandleClass = cn(
   'inline-flex h-touch-min w-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-sm border-none bg-transparent p-0 text-muted transition-[color,background] duration-[var(--duration-fast)]',
   'hover:enabled:bg-bg hover:enabled:text-primary-dark active:cursor-grabbing',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] focus-visible:ring-offset-2',
   'disabled:cursor-not-allowed disabled:opacity-45'
 )
 
@@ -173,7 +178,7 @@ export const categorySelectDragHandleSpacerClass = 'inline-block h-touch-min w-8
 
 export const categorySelectOptionBtnClass = cn(
   'flex min-h-touch-min min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-3 py-2 text-right font-[inherit] text-[0.92rem] text-text transition-[color,background-color] duration-[var(--duration-fast)]',
-  'hover:enabled:bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] disabled:cursor-default'
+  'hover:enabled:bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] disabled:cursor-default'
 )
 
 export const categorySelectOptionCheckClass =
@@ -224,8 +229,7 @@ export const categorySelectFooterClass =
 
 export const categorySelectFooterBtnClass = cn(
   'inline-flex min-h-touch-min w-full cursor-pointer items-center justify-center gap-[0.35rem] rounded-sm border border-border bg-surface px-[0.65rem] py-2 font-[inherit] text-[0.84rem] font-semibold text-primary-dark transition-[background,border-color] duration-[var(--duration-fast)]',
-  'hover:enabled:border-primary-light hover:enabled:bg-accent-soft',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] focus-visible:ring-offset-2'
+  'hover:enabled:border-primary-light hover:enabled:bg-accent-soft'
 )
 
 export const amountFieldClass = 'flex flex-col gap-[0.45rem]'
@@ -234,7 +238,7 @@ export const amountFieldCompactClass = 'w-full'
 
 export const amountFieldInputWrapClass = cn(
   'flex h-touch-min items-stretch overflow-hidden rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  'focus-within:border-primary focus-within:shadow-[var(--form-input-focus-shadow)]'
+  'focus-ring-within focus-within:border-primary focus-within:shadow-[var(--form-input-focus-shadow)]'
 )
 
 export const amountFieldInputWrapCompactClass = 'min-h-touch-min'
@@ -263,7 +267,6 @@ export const amountFieldSubmitBtnClass = cn(
   'shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]',
   'transition-[filter,transform,opacity] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
   'hover:enabled:brightness-105 active:enabled:scale-[0.96]',
-  'focus-visible:outline-none focus-visible:shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_0_0_3px_var(--color-focus-ring)]',
   'disabled:cursor-not-allowed disabled:opacity-50 disabled:[background:color-mix(in_srgb,var(--color-border)_70%,var(--color-surface))] disabled:text-muted disabled:shadow-none'
 )
 

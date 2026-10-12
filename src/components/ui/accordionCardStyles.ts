@@ -5,9 +5,8 @@ import { cn } from '../../utils/cn'
  * chevron. Shared by the About feature groups and the Settings sections.
  */
 export const accordionCardTriggerClass = cn(
-  'flex min-h-touch-min w-full cursor-pointer items-center gap-3 border-none bg-transparent p-4 py-[0.875rem] text-start text-inherit',
-  'hover:[background:var(--color-surface-elevated,rgba(0,0,0,0.03))]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-focus-ring)]'
+  'focus-ring-inset flex min-h-touch-min w-full cursor-pointer items-center gap-3 border-none bg-transparent p-4 py-[0.875rem] text-start text-inherit',
+  'hover:[background:var(--color-surface-elevated,rgba(0,0,0,0.03))]'
 )
 
 export const accordionCardIconClass = cn(

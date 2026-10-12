@@ -1,8 +1,11 @@
+import { useRef } from 'react'
+
 import LayoutMenuFooter from './LayoutMenuFooter'
 import LayoutMenuNav, { type LayoutMenuNavProps } from './LayoutMenuNav'
 import LayoutMenuRail from './LayoutMenuRail'
 import LayoutMenuUserRow from './LayoutMenuUserRow'
 import { useActiveSpreadsheetName } from '../../hooks/useActiveSpreadsheetName'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 import { cn } from '../../utils/cn'
 import {
   appMenuBackdropClass,
@@ -27,6 +30,11 @@ interface LayoutMenuProps extends LayoutMenuNavProps {
 export default function LayoutMenu(props: LayoutMenuProps) {
   const { variant, menuOpen, onOpenMenu, onCloseMenu, userName, userPicture, ...navProps } = props
   const sheetName = useActiveSpreadsheetName()
+  const navRef = useRef<HTMLElement>(null)
+
+  // The open drawer focuses the current page's link and hands focus back to ☰
+  // (or the tablet rail button) on close.
+  useFocusTrap(variant === 'drawer' && menuOpen, navRef, '[aria-current="page"]')
 
   if (variant === 'rail') {
     return (
@@ -51,6 +59,7 @@ export default function LayoutMenu(props: LayoutMenuProps) {
         />
       )}
       <nav
+        ref={navRef}
         className={cn(appMenuDrawerClass(variant), !isVisible && 'hidden')}
         aria-label="منوی اصلی"
       >

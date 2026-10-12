@@ -65,7 +65,8 @@ export const walletBankCardCopyBtnClass = cn(
   'copy-btn relative z-[1] inline-flex h-[1rem] w-[1rem] shrink-0 cursor-pointer items-center justify-center',
   'rounded-[3px] border-none bg-transparent p-0 text-inherit opacity-70',
   'transition-opacity duration-[var(--duration-fast)] hover:opacity-100',
-  'focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,255,255,0.55)]',
+  // Bank cards carry white text, so a white ring matches its contrast.
+  'focus-visible:opacity-100 [--focus-ring:#fff]',
   '[&_svg]:h-[0.7rem] [&_svg]:w-[0.7rem]'
 )
 
@@ -167,7 +168,6 @@ export const walletColorInputClass = cn(
   'bg-[var(--color-surface)] p-[0.15rem]',
   'transition-[border-color,box-shadow] duration-[var(--duration-fast)]',
   'hover:enabled:border-[var(--form-input-border-hover)]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]',
   'disabled:cursor-not-allowed disabled:opacity-45'
 )
 
@@ -185,6 +185,6 @@ export const bluColorPickerBtnClass = cn(
 
 /** Covers the whole card header so any tap toggles it. */
 export const walletOpeningToggleClass =
-  'absolute inset-0 z-0 cursor-pointer rounded-[inherit] border-none bg-transparent p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)]'
+  'focus-ring-inset absolute inset-0 z-0 cursor-pointer rounded-[inherit] border-none bg-transparent p-0'
 
 export const walletOpeningHintClass = 'relative z-[1]'

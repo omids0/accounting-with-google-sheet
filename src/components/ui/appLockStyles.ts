@@ -91,7 +91,7 @@ export const appLockPolicyOptionDescriptionClass =
 export const appLockPolicyIdleClass = 'pt-[0.1rem]'
 
 export const appLockPolicyMoreToggleClass =
-  'inline-flex items-center gap-1 self-start rounded-sm py-1 text-[0.78rem] font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
+  'inline-flex items-center gap-1 self-start rounded-sm py-1 text-[0.78rem] font-semibold text-primary'
 
 export const appLockPolicyNoteClass = 'text-[0.73rem] leading-[1.45] text-muted'
 

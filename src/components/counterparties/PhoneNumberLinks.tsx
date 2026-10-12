@@ -7,7 +7,7 @@ import { buildPhoneTelHref } from '../../utils/phoneLink'
 export const phoneNumberLinkClass = cn(
   'font-[inherit] text-primary underline-offset-2 transition-[color,text-decoration-color] duration-[var(--duration-fast)]',
   'hover:text-primary-dark hover:underline',
-  'focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
+  'focus-visible:rounded-sm'
 )
 
 type PhoneNumberLinksProps = {

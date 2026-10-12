@@ -14,7 +14,8 @@ export const undoToastLabelClass = 'min-w-0 flex-1 truncate font-medium'
 export const undoToastActionClass = cn(
   'inline-flex min-h-touch-min shrink-0 items-center rounded-[calc(var(--radius-sm)-2px)] border-none bg-transparent px-3',
   'cursor-pointer font-extrabold text-primary-light hover:bg-white/10',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light'
+  // The bar clips an outer ring and is dark in both themes.
+  'focus-ring-inset [--focus-ring:var(--color-primary-light)]'
 )
 
 export const undoToastBarClass = cn(

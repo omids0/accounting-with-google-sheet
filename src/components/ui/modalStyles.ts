@@ -47,7 +47,6 @@ export const formModalCloseClass = cn(
   'self-center rounded-full border border-border bg-[var(--form-input-bg)] p-0 leading-none text-muted',
   'transition-[background,color,border-color,box-shadow] duration-[var(--duration-fast)]',
   'hover:enabled:border-[var(--form-input-border-hover)] hover:enabled:bg-accent-soft hover:enabled:text-text',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]',
   'disabled:cursor-not-allowed disabled:opacity-40'
 )
 
@@ -63,8 +62,7 @@ export const formModalActionsClass = cn(
   'mt-0 flex-shrink-0 items-center border-t border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] px-[1.15rem] pb-[calc(1.1rem+var(--safe-bottom))] pt-[0.9rem]',
   '[background:linear-gradient(0deg,color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)_0%,transparent_100%)]',
   '[&>button]:min-w-[6.5rem] [&>button]:flex-1',
-  'md:justify-end md:[&>button]:flex-none',
-  '[&>button]:focus-visible:outline-none [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] [&>button]:focus-visible:ring-offset-2 [&>button]:focus-visible:ring-offset-[var(--color-surface)]'
+  'md:justify-end md:[&>button]:flex-none'
 )
 
 /**

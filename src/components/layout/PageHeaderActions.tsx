@@ -1,4 +1,5 @@
 import { getPageSpeedDialConfig, type PageSpeedDialAction } from '../../hooks/usePageSpeedDial'
+import { moveFocusWithArrows } from '../../utils/keyboardNav'
 import { headerActionBtnClass, headerPrimaryActionClass } from '../ui/layoutStyles'
 
 /** Runs the latest registered handler, as the floating speed dial does. */
@@ -26,7 +27,19 @@ export default function PageHeaderActions({
   const secondary = actions.filter(action => !isPrimary(action))
 
   return (
-    <div className="flex items-center gap-1.5" role="toolbar" aria-label={ariaLabel}>
+    <div
+      className="flex items-center gap-1.5"
+      role="toolbar"
+      aria-label={ariaLabel}
+      // A toolbar moves with ←→ (by what is on screen, so RTL just works) and Home/End.
+      onKeyDown={event =>
+        moveFocusWithArrows(
+          event,
+          Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled)')),
+          { axis: 'horizontal' }
+        )
+      }
+    >
       {secondary.map(action => (
         <button
           key={action.id}

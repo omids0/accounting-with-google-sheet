@@ -11,7 +11,7 @@ export const dashboardHeroCardClass = cn(
   cardClassName(),
   'dashboard-hero-card relative overflow-hidden border-none !p-4 text-center text-white',
   'shadow-[var(--hero-shadow),inset_0_0_0_1px_var(--hero-ring)]',
-  '[background:var(--hero-bg)]'
+  '[background:var(--hero-bg)] [--focus-ring:var(--focus-ring-on-brand)]'
 )
 
 /** Transform/opacity-only shimmer, played a couple of times on mount (not forever). */
@@ -24,8 +24,7 @@ export const dashboardHeroHeaderClass = cn(
   '[&_.card-action-btn]:col-start-3 [&_.card-action-btn]:row-start-1 [&_.card-action-btn]:justify-self-center',
   '[&_.card-action-btn]:!h-9 [&_.card-action-btn]:!w-9 [&_.card-action-btn]:rounded-lg',
   '[&_.card-action-btn]:border [&_.card-action-btn]:border-white/25 [&_.card-action-btn]:bg-white/15 [&_.card-action-btn]:text-white/95',
-  'hover:[&_.card-action-btn]:bg-white/25 hover:[&_.card-action-btn]:text-white',
-  'focus-visible:[&_.card-action-btn]:ring-2 focus-visible:[&_.card-action-btn]:ring-white/60 focus-visible:[&_.card-action-btn]:ring-offset-1 focus-visible:[&_.card-action-btn]:ring-offset-transparent'
+  'hover:[&_.card-action-btn]:bg-white/25 hover:[&_.card-action-btn]:text-white'
 )
 
 export const dashboardHeroLabelClass =

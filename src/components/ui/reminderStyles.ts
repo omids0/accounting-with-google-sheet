@@ -24,7 +24,7 @@ export const reminderStatusHintClass = 'mt-2 mb-0 text-[0.8rem] leading-relaxed 
 /** Link-styled inline action, e.g. «چطور فعال کنم؟». */
 export const reminderTextButtonClass = cn(
   'cursor-pointer border-0 bg-transparent p-0 text-[0.82rem] font-semibold text-primary underline',
-  'underline-offset-2 focus-visible:outline-2 focus-visible:outline-primary'
+  'underline-offset-2'
 )
 
 /** One reminder: text, time and switch on a line, dashed separator like the wireframe. */
