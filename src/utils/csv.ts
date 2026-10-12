@@ -1,4 +1,5 @@
 import { normalizeDigits } from './normalizeDigits'
+import { saveExportFile } from './saveFile'
 
 /** Spreadsheet apps evaluate a cell that starts with one of these as a formula. */
 const FORMULA_TRIGGER = /^[=+\-@\t\r]/
@@ -108,17 +109,8 @@ export function downloadTextFile(
   filename: string,
   content: string,
   mimeType = 'text/csv;charset=utf-8'
-): void {
-  const blob = new Blob(['\uFEFF' + content], { type: mimeType })
-
-  const url = URL.createObjectURL(blob)
-
-  const anchor = document.createElement('a')
-
-  anchor.href = url
-  anchor.download = filename
-  anchor.click()
-  URL.revokeObjectURL(url)
+): Promise<string | null> {
+  return saveExportFile(filename, new Blob(['\uFEFF' + content], { type: mimeType }))
 }
 
 /** Some browsers refocus the window before `change` fires, so wait a moment before calling it a cancel. */

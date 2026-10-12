@@ -2,14 +2,14 @@ import { useCallback, useRef, useState, type Dispatch, type SetStateAction } fro
 
 import { useSheetImportExport } from './useSheetImportExport'
 import { useUndoableDelete } from './useUndoableDelete'
-import type { ImportResult } from '../services/importExport'
+import type { ImportPreview } from '../services/importExport'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 
 type ImportExportFns = {
-  exportFn: (spreadsheetId: string) => Promise<void>
-  exportPdfFn: (spreadsheetId: string) => Promise<void>
-  importFn: (spreadsheetId: string, csvContent: string) => Promise<ImportResult>
+  exportFn: (spreadsheetId: string) => Promise<string | null>
+  exportPdfFn: (spreadsheetId: string) => Promise<string | null>
+  importFn: (spreadsheetId: string, csvContent: string) => Promise<ImportPreview>
 }
 
 type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {

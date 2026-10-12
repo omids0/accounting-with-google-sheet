@@ -10,8 +10,8 @@ import { formatMoney } from '../utils/formatMoney'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPersianDate } from '../utils/pdfFormat'
 
-export async function exportPersonalRemindersCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(
+export async function exportPersonalRemindersCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(
     spreadsheetId,
     PERSONAL_REMINDERS_SHEET,
     PERSONAL_REMINDERS_HEADERS,
@@ -19,10 +19,10 @@ export async function exportPersonalRemindersCsv(spreadsheetId: string): Promise
   )
 }
 
-export async function exportPersonalRemindersPdf(spreadsheetId: string): Promise<void> {
+export async function exportPersonalRemindersPdf(spreadsheetId: string): Promise<string | null> {
   const items = await fetchPersonalReminders(spreadsheetId)
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش یادآوری‌ها',
     headers: ['عنوان', 'دسته‌بندی', 'تاریخ', 'تکرار', 'مبلغ', 'روز قبل', 'وضعیت'],
     rows: items.map(item => [

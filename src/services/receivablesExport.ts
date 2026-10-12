@@ -16,11 +16,11 @@ import {
   formatPersianDate
 } from '../utils/pdfFormat'
 
-export async function exportReceivablesCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, RECEIVABLES_SHEET, RECEIVABLES_HEADERS, 'طلب‌ها.csv')
+export async function exportReceivablesCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, RECEIVABLES_SHEET, RECEIVABLES_HEADERS, 'طلب‌ها.csv')
 }
 
-export async function exportReceivablesPdf(spreadsheetId: string): Promise<void> {
+export async function exportReceivablesPdf(spreadsheetId: string): Promise<string | null> {
   const items = sortReceivables(await fetchReceivables(spreadsheetId))
 
   const headers = [
@@ -63,7 +63,7 @@ export async function exportReceivablesPdf(spreadsheetId: string): Promise<void>
     'pdf-cell-multiline'
   ])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش طلب‌ها',
     headers,
     rows,

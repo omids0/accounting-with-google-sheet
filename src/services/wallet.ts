@@ -212,11 +212,11 @@ export async function loadWalletPeriodFlow(settings: AppSettings): Promise<Walle
   }
 }
 
-export async function exportWalletAccountsCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, WALLET_SHEET, WALLET_HEADERS, 'کیف-پول.csv')
+export async function exportWalletAccountsCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, WALLET_SHEET, WALLET_HEADERS, 'کیف-پول.csv')
 }
 
-export async function exportWalletAccountsPdf(spreadsheetId: string): Promise<void> {
+export async function exportWalletAccountsPdf(spreadsheetId: string): Promise<string | null> {
   const accounts = await fetchWalletAccounts(spreadsheetId)
 
   const headers = ['عنوان', 'موجودی', 'نوع', 'بانک', 'شماره کارت', 'توضیحات']
@@ -232,7 +232,7 @@ export async function exportWalletAccountsPdf(spreadsheetId: string): Promise<vo
 
   const cellClasses = accounts.map(() => ['', 'pdf-cell-amount', ''])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش کیف پول',
     headers,
     rows,

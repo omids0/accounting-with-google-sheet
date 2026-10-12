@@ -10,8 +10,8 @@ import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from 
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPersianDate } from '../utils/pdfFormat'
 
-export async function exportCounterpartiesCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(
+export async function exportCounterpartiesCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(
     spreadsheetId,
     COUNTERPARTIES_SHEET,
     COUNTERPARTIES_HEADERS,
@@ -19,10 +19,10 @@ export async function exportCounterpartiesCsv(spreadsheetId: string): Promise<vo
   )
 }
 
-export async function exportCounterpartiesPdf(spreadsheetId: string): Promise<void> {
+export async function exportCounterpartiesPdf(spreadsheetId: string): Promise<string | null> {
   const items = await fetchCounterparties(spreadsheetId)
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش طرف حساب‌ها',
     headers: ['نام', 'تاریخ تولد', 'آدرس', 'لوکیشن', 'شماره تماس', 'تعداد حساب'],
     rows: items.map(item => [

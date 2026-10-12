@@ -173,11 +173,11 @@ const VALID_ASSET_TYPES = new Set<VaultAssetType>([
 
 const VALID_ACTIONS = new Set<VaultAction>(['buy', 'sell'])
 
-export async function exportTreasuryCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, TREASURY_SHEET, TREASURY_HEADERS, 'صندوقچه.csv')
+export async function exportTreasuryCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, TREASURY_SHEET, TREASURY_HEADERS, 'صندوقچه.csv')
 }
 
-export async function exportTreasuryPdf(spreadsheetId: string): Promise<void> {
+export async function exportTreasuryPdf(spreadsheetId: string): Promise<string | null> {
   const transactions = await fetchVaultTransactions(spreadsheetId)
 
   const headers = ['نوع دارایی', 'عملیات', 'مقدار', 'قیمت واحد', 'جمع', 'تاریخ', 'توضیحات']
@@ -202,7 +202,7 @@ export async function exportTreasuryPdf(spreadsheetId: string): Promise<void> {
     ''
   ])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش صندوقچه',
     headers,
     rows,

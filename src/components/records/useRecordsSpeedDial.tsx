@@ -6,8 +6,7 @@ import { useRegisterPageSpeedDial, type PageSpeedDialAction } from '../../hooks/
 import { isConfigured } from '../../services/settings'
 import { useNavigationStore } from '../../stores/navigationStore'
 import type { CustomForm } from '../../types'
-import { handleSheetError } from '../../utils/sheetError'
-import { showSuccess } from '../../utils/toast'
+import { runExport } from '../../utils/exportFeedback'
 import SpeedDialIcon from '../SpeedDialIcon'
 import {
   speedDialActionExpenseClass,
@@ -39,17 +38,13 @@ export function useRecordsSpeedDial({
   const [exporting, setExporting] = useState(false)
 
   const exportCsv = useCallback(() => {
-    exportRecordsCsv(filteredRecords, forms)
-    showSuccess('خروجی اکسل آماده شد')
+    void runExport(() => exportRecordsCsv(filteredRecords, forms), 'خطا در ساخت خروجی CSV')
   }, [filteredRecords, forms])
 
   const exportPdf = useCallback(async () => {
     setExporting(true)
     try {
-      await exportRecordsPdf(filteredRecords, forms)
-      showSuccess('خروجی PDF آماده شد')
-    } catch (err) {
-      handleSheetError(err, { fallbackMessage: 'خطا در ساخت خروجی PDF' })
+      await runExport(() => exportRecordsPdf(filteredRecords, forms), 'خطا در ساخت خروجی PDF')
     } finally {
       setExporting(false)
     }
@@ -88,7 +83,7 @@ export function useRecordsSpeedDial({
       },
       {
         id: 'export',
-        label: 'خروجی اکسل',
+        label: 'خروجی CSV',
         icon: <SpeedDialIcon name="export" />,
         onClick: exportCsv,
         disabled: !hasRecords

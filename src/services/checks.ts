@@ -204,11 +204,11 @@ export function totalUnpaidChecksInRange(checks: Check[], range: DateRange): num
     .reduce((sum, c) => sum + c.amount, 0)
 }
 
-export async function exportChecksCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, 'چک‌ها.csv')
+export async function exportChecksCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, 'چک‌ها.csv')
 }
 
-export async function exportChecksPdf(spreadsheetId: string): Promise<void> {
+export async function exportChecksPdf(spreadsheetId: string): Promise<string | null> {
   const checks = sortChecks(await fetchChecks(spreadsheetId))
 
   const headers = [
@@ -233,7 +233,7 @@ export async function exportChecksPdf(spreadsheetId: string): Promise<void> {
 
   const cellClasses = checks.map(() => ['', '', 'pdf-cell-amount', '', '', '', ''])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش چک‌ها',
     headers,
     rows,

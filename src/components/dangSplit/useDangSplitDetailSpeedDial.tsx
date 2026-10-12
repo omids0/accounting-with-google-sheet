@@ -6,8 +6,7 @@ import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { exportDangSplitSummaryPdf } from '../../services/dangSplitExport'
 import { isConfigured } from '../../services/settings'
 import type { DangSplitGroupSummary } from '../../types/dangSplit'
-import { showError } from '../../utils/toast'
-import { toUserMessage } from '../../utils/userMessage'
+import { runExport } from '../../utils/exportFeedback'
 import SpeedDialIcon from '../SpeedDialIcon'
 
 /**
@@ -66,9 +65,7 @@ export function useDangSplitDetailSpeedDial({
       label: 'خروجی جمع‌بندی',
       icon: <SpeedDialIcon name="pdf" />,
       onClick: () => {
-        void exportDangSplitSummaryPdf(groupTitle, summary).catch(err =>
-          showError(toUserMessage(err, 'خروجی ناموفق بود'))
-        )
+        void runExport(() => exportDangSplitSummaryPdf(groupTitle, summary), 'خروجی ناموفق بود')
       },
       disabled: summary.people.length === 0
     }

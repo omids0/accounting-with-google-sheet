@@ -1,3 +1,5 @@
+import { saveExportFile } from './saveFile'
+
 const A4_WIDTH_MM = 210
 
 const A4_HEIGHT_MM = 297
@@ -201,9 +203,8 @@ function createPdfContainer(
 
 async function renderContainerToPdf(
   container: HTMLDivElement,
-  orientation: 'portrait' | 'landscape',
-  filename: string
-): Promise<void> {
+  orientation: 'portrait' | 'landscape'
+): Promise<Blob> {
   const [{ jsPDF }, html2canvasModule] = await Promise.all([import('jspdf'), import('html2canvas')])
   const html2canvas = html2canvasModule.default
   const root = container.querySelector('.pdf-export-root') as HTMLElement
@@ -252,9 +253,7 @@ async function renderContainerToPdf(
     heightLeft -= pageHeight
   }
 
-  const safeFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
-
-  pdf.save(safeFilename)
+  return pdf.output('blob')
 }
 
 export async function downloadTablePdf({
@@ -269,15 +268,19 @@ export async function downloadTablePdf({
   rows: string[][]
   filename: string
   cellClasses?: string[][]
-}): Promise<void> {
+}): Promise<string | null> {
   const orientation =
     headers.length > 6 || rows.some(row => row.length > 8) ? 'landscape' : 'portrait'
 
   const container = createPdfContainer(title, headers, rows, orientation, cellClasses)
 
+  let blob: Blob
+
   try {
-    await renderContainerToPdf(container, orientation, filename)
+    blob = await renderContainerToPdf(container, orientation)
   } finally {
     container.remove()
   }
+
+  return saveExportFile(filename.endsWith('.pdf') ? filename : `${filename}.pdf`, blob)
 }

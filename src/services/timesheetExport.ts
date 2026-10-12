@@ -11,59 +11,35 @@ import {
   timesheetEntryToRow,
   timesheetToRow
 } from './timesheetRow'
+import { downloadTextFile, rowsToCsv } from '../utils/csv'
 import { formatDateTimePersian, formatDurationFa } from '../utils/datetime'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPersianDate } from '../utils/pdfFormat'
 
-export async function exportTimesheetsCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, TIMESHEETS_SHEET, TIMESHEETS_HEADERS, 'تایم‌شیت‌ها.csv')
+export async function exportTimesheetsCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, TIMESHEETS_SHEET, TIMESHEETS_HEADERS, 'تایم‌شیت‌ها.csv')
 }
 
 export async function exportTimesheetEntriesCsv(
   spreadsheetId: string,
   timesheetId: string,
   filename: string
-): Promise<void> {
+): Promise<string | null> {
   const rows = await fetchSheetRows(spreadsheetId, TIMESHEET_ENTRIES_SHEET)
 
   const filtered = rows.filter(row => row[1] === timesheetId)
 
-  const csvRows = [TIMESHEET_ENTRIES_HEADERS, ...filtered]
-
-  const content = csvRows
-    .map(row =>
-      row
-        .map(cell => {
-          const value = String(cell ?? '')
-
-          if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`
-
-          return value
-        })
-        .join(',')
-    )
-    .join('\n')
-
-  const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8' })
-
-  const url = URL.createObjectURL(blob)
-
-  const link = document.createElement('a')
-
-  link.href = url
-  link.download = filename
-  link.click()
-  URL.revokeObjectURL(url)
+  return downloadTextFile(filename, rowsToCsv(TIMESHEET_ENTRIES_HEADERS, filtered))
 }
 
-export async function exportTimesheetsPdf(spreadsheetId: string): Promise<void> {
+export async function exportTimesheetsPdf(spreadsheetId: string): Promise<string | null> {
   const items = sortTimesheets(await fetchTimesheets(spreadsheetId))
 
   const headers = ['عنوان', 'توضیحات', 'زمان ثبت']
 
   const rows = items.map(item => [item.title, item.description, item.createdAt])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش تایم‌شیت‌ها',
     headers,
     rows,
@@ -75,7 +51,7 @@ export async function exportTimesheetEntriesPdf(
   spreadsheetId: string,
   timesheetId: string,
   timesheetTitle: string
-): Promise<void> {
+): Promise<string | null> {
   const entries = await fetchTimesheetEntries(spreadsheetId, timesheetId)
 
   const totalMinutes = totalDurationMinutes(entries)
@@ -93,7 +69,7 @@ export async function exportTimesheetEntriesPdf(
 
   rows.push(['', '', 'جمع کل', formatDurationFa(totalMinutes), '', ''])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: `گزارش تایم‌شیت: ${timesheetTitle}`,
     headers,
     rows,

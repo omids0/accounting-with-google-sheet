@@ -5,6 +5,7 @@
  */
 export const USER_MESSAGES = {
   offline: 'اتصال اینترنت برقرار نیست؛ تغییرها بعد از اتصال ارسال می‌شوند.',
+  exportOffline: 'برای خروجی به اینترنت نیاز است',
   auth: 'نشست ورود منقضی شده؛ دوباره با گوگل وارد شوید.',
   noAccess: 'به این شیت دسترسی ندارید؛ با همان حساب گوگلی که شیت را ساخته وارد شوید.',
   notFound: 'شیت یا برگه موردنظر پیدا نشد؛ شاید حذف یا جابه‌جا شده باشد.',
@@ -63,4 +64,11 @@ export function toUserMessage(err: unknown, fallback: string): string {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return USER_MESSAGES.offline
 
   return PERSIAN_LETTER.test(text) ? text : fallback
+}
+
+/** Exports are not queued like sheet writes, so "sent after reconnect" would be a false promise. */
+export function toExportErrorMessage(err: unknown, fallback: string): string {
+  const message = toUserMessage(err, fallback)
+
+  return message === USER_MESSAGES.offline ? USER_MESSAGES.exportOffline : message
 }

@@ -39,14 +39,14 @@ export function categoryTreeRows(nodes: CategoryTreeNode[]): string[][] {
   return rows
 }
 
-export function exportCategoryTreeCsv(nodes: CategoryTreeNode[]): void {
-  downloadTextFile('درختواره-درآمد-هزینه.csv', rowsToCsv(HEADERS, categoryTreeRows(nodes)))
+export function exportCategoryTreeCsv(nodes: CategoryTreeNode[]): Promise<string | null> {
+  return downloadTextFile('درختواره-درآمد-هزینه.csv', rowsToCsv(HEADERS, categoryTreeRows(nodes)))
 }
 
-export async function exportCategoryTreePdf(nodes: CategoryTreeNode[]): Promise<void> {
+export async function exportCategoryTreePdf(nodes: CategoryTreeNode[]): Promise<string | null> {
   const rows = categoryTreeRows(nodes)
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'درختواره درآمد و هزینه',
     headers: HEADERS,
     rows,

@@ -13,11 +13,11 @@ import {
   formatPersianDate
 } from '../utils/pdfFormat'
 
-export async function exportInstallmentsCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, INSTALLMENTS_SHEET, INSTALLMENTS_HEADERS, 'اقساط.csv')
+export async function exportInstallmentsCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, INSTALLMENTS_SHEET, INSTALLMENTS_HEADERS, 'اقساط.csv')
 }
 
-export async function exportInstallmentsPdf(spreadsheetId: string): Promise<void> {
+export async function exportInstallmentsPdf(spreadsheetId: string): Promise<string | null> {
   const plans = sortInstallmentPlans(await fetchInstallmentPlans(spreadsheetId))
 
   const headers = [
@@ -53,7 +53,7 @@ export async function exportInstallmentsPdf(spreadsheetId: string): Promise<void
     'pdf-cell-multiline'
   ])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش اقساط',
     headers,
     rows,

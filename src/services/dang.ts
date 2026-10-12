@@ -226,11 +226,11 @@ export function unpaidDangTotal(items: Dang[]): number {
   return items.filter(d => !d.paid).reduce((sum, d) => sum + d.amount, 0)
 }
 
-export async function exportDangsCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, 'بدهی.csv')
+export async function exportDangsCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, 'بدهی.csv')
 }
 
-export async function exportDangsPdf(spreadsheetId: string): Promise<void> {
+export async function exportDangsPdf(spreadsheetId: string): Promise<string | null> {
   const items = sortDangs(await fetchDangs(spreadsheetId))
 
   const headers = ['عنوان', 'دسته‌بندی', 'طرف حساب', 'مبلغ', 'تاریخ', 'وضعیت', 'توضیحات']
@@ -247,7 +247,7 @@ export async function exportDangsPdf(spreadsheetId: string): Promise<void> {
 
   const cellClasses = items.map(() => ['', '', '', 'pdf-cell-amount', '', '', ''])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش بدهی‌ها',
     headers,
     rows,

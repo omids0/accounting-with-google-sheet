@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { toUserMessage, USER_MESSAGES } from './userMessage'
+import { toExportErrorMessage, toUserMessage, USER_MESSAGES } from './userMessage'
 
 class StatusError extends Error {
   constructor(message: string, readonly status: number) {
@@ -56,5 +56,20 @@ describe('toUserMessage', () => {
     )
     expect(toUserMessage(undefined, 'ذخیره ناموفق بود')).toBe('ذخیره ناموفق بود')
     expect(toUserMessage('Requested entity was not found', 'x')).toBe(USER_MESSAGES.notFound)
+  })
+})
+
+describe('toExportErrorMessage', () => {
+  it('says an export needs the internet instead of promising a later send', () => {
+    expect(toExportErrorMessage(new TypeError('Failed to fetch'), 'x')).toBe(
+      USER_MESSAGES.exportOffline
+    )
+  })
+
+  it('keeps every other message', () => {
+    expect(toExportErrorMessage(new StatusError('Quota exceeded', 429), 'x')).toBe(
+      USER_MESSAGES.quota
+    )
+    expect(toExportErrorMessage(new Error('ساخت PDF ناموفق بود'), 'x')).toBe('ساخت PDF ناموفق بود')
   })
 })

@@ -10,13 +10,11 @@ import { ReportStaticMetaBar } from './ReportDateFilterBar'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
+import { runExport } from '../../utils/exportFeedback'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { distributionSparkline } from '../../utils/sparklineData'
-import { showError, showSuccess } from '../../utils/toast'
-import { toUserMessage } from '../../utils/userMessage'
 import AppIcon from '../AppIcon'
-import ConfirmActionModal from '../ConfirmActionModal'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
@@ -43,8 +41,6 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
   const [loading, setLoading] = useState(false)
 
   const [exporting, setExporting] = useState(false)
-
-  const [showExportConfirm, setShowExportConfirm] = useState(false)
 
   const load = useCallback(async () => {
     if (!isConfigured() || !requireAuth()) return
@@ -76,13 +72,9 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
 
     setExporting(true)
     try {
-      await config.exportPdf(spreadsheetId)
-      showSuccess('فایل PDF ایجاد شد')
-    } catch (err) {
-      showError(toUserMessage(err, 'خطا در خروجی PDF'))
+      await runExport(() => config.exportPdf(spreadsheetId), 'خطا در خروجی PDF')
     } finally {
       setExporting(false)
-      setShowExportConfirm(false)
     }
   }
 
@@ -116,8 +108,9 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
           type="button"
           variant="secondary"
           size="sm"
-          onClick={() => setShowExportConfirm(true)}
+          onClick={() => void handleExportPdf()}
           disabled={exporting}
+          loading={exporting}
         >
           <AppIcon name="pdf" size={16} />
           PDF
@@ -157,16 +150,6 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
           ))
         )}
       </Card>
-
-      <ConfirmActionModal
-        open={showExportConfirm}
-        title="تأیید خروجی PDF"
-        message="آیا از گرفتن خروجی PDF اطمینان دارید؟"
-        confirmLabel="خروجی PDF"
-        confirming={exporting}
-        onConfirm={handleExportPdf}
-        onClose={() => setShowExportConfirm(false)}
-      />
     </div>
   )
 }

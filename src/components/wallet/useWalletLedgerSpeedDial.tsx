@@ -35,10 +35,8 @@ export function useWalletLedgerSpeedDial({
 }) {
   const navigate = useNavigate()
   const { handleExport, handleExportPdf, importExportConfirmModal } = useSheetImportExport({
-    exportFn: async () => exportLedgerCsv(account.title, entries),
-    exportPdfFn: async () => exportLedgerPdf(account.title, entries),
-    importFn: async () => ({ imported: 0, skipped: 0 }),
-    onComplete: () => {}
+    exportFn: () => exportLedgerCsv(account.title, entries),
+    exportPdfFn: () => exportLedgerPdf(account.title, entries)
   })
 
   const openEntry = useCallback(
@@ -78,7 +76,7 @@ export function useWalletLedgerSpeedDial({
         },
         {
           id: 'export',
-          label: 'اکسپورت',
+          label: 'خروجی CSV',
           icon: <SpeedDialIcon name="export" />,
           onClick: handleExport,
           disabled: !entries.length

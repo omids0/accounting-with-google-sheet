@@ -78,7 +78,7 @@ export default function ConfirmActionModal({
         </div>
 
         <div className={formModalBodyClass} aria-busy={confirming}>
-          <p className={confirmDeleteMessageClass}>{message}</p>
+          <p className={cn(confirmDeleteMessageClass, 'whitespace-pre-line')}>{message}</p>
         </div>
 
         <div className={cn(formModalActionsClass, formActionsClassName())}>

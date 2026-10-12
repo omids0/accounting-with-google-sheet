@@ -29,17 +29,20 @@ export function recordsExportRows(records: StoredRecord[], forms: CustomForm[]):
   })
 }
 
-export function exportRecordsCsv(records: StoredRecord[], forms: CustomForm[]): void {
-  downloadTextFile('تراکنش‌ها.csv', rowsToCsv(HEADERS, recordsExportRows(records, forms)))
+export function exportRecordsCsv(
+  records: StoredRecord[],
+  forms: CustomForm[]
+): Promise<string | null> {
+  return downloadTextFile('تراکنش‌ها.csv', rowsToCsv(HEADERS, recordsExportRows(records, forms)))
 }
 
 export async function exportRecordsPdf(
   records: StoredRecord[],
   forms: CustomForm[]
-): Promise<void> {
+): Promise<string | null> {
   const rows = recordsExportRows(records, forms)
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش تراکنش‌ها',
     headers: HEADERS,
     rows,
