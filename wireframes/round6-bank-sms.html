@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — بازبینی پیامک بانکی (round 6)</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+    <link rel="stylesheet" href="wireframe-r6.css" />
+    <link rel="stylesheet" href="wireframe-r6-2.css" />
+  </head>
+  <body>
+    <p class="back"><a href="index.html">← فهرست وایرفریم‌ها</a></p>
+    <h1>وایرفریم round 6: صفحه بازبینی پیامک بانکی (فقط اندروید)</h1>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs">
+          <button class="on">فعلی — بازسازی از کد (وب نشانش نمی‌دهد)</button>
+        </div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>پیامک‌های بانکی</span><span class="icon">⌕</span>
+          </div>
+          <div class="content">
+            <div class="card">
+              <h3>ثبت خودکار از پیامک بانکی</h3>
+              <p class="e-purpose" style="text-align: right; max-width: none; margin: 4px 0">
+                ۱) برای هر بانک یک‌بار قالب بسازید: روی «ساخت قالب» یک پیامک بزنید (یا از کیف پول ←
+                ویرایش حساب). بقیه پیامک‌های همان شکل خودکار شناخته می‌شوند. ۲) روی هر کارت
+                شناخته‌شده «ثبت هزینه» یا «ثبت درآمد» را بزنید (یا «ثبت همه»)؛ … (۸ خط متن)
+              </p>
+              <button class="btn-skip" style="width: auto; padding: 6px 10px">غیرفعال‌سازی</button>
+            </div>
+            <div class="card">
+              <h3>بازه پیامک‌ها</h3>
+              <div class="chips">
+                <span>۳ روز</span><span class="on">۷ روز</span><span>۳۰ روز</span>
+              </div>
+            </div>
+            <div class="card">
+              <h3>قالب‌های پیامک</h3>
+              <div class="r">
+                <span class="t">بانک ملت<small>۲ نمونه</small></span
+                ><span class="a" style="font-weight: 400">حذف قالب</span>
+              </div>
+            </div>
+            <div class="sms">
+              <div class="hd">
+                <span>بانک ملت · امروز ۱۴:۰۲</span><span class="badge red">احتمالاً تکراری</span>
+              </div>
+              <div class="amt">۴۸۰٬۰۰۰ تومان <span class="badge">برداشت</span></div>
+              <div class="raw">برداشت ۴٬۸۰۰٬۰۰۰ ریال از حساب ...۱۲۳۴ مانده ۱۲۵٬۰۰۰٬۰۰۰</div>
+              <div class="r" style="padding: 4px 0">
+                <span class="t">حساب این پیامک</span
+                ><span class="a" style="font-weight: 400">بانک ملت ▾</span>
+              </div>
+              <div class="acts">
+                <span class="p">ثبت هزینه</span><span>ثبت درآمد</span
+                ><span>فقط به‌روزرسانی موجودی</span><span>قبلاً ثبت شده</span><span>نادیده</span>
+              </div>
+            </div>
+            <div class="sms">
+              <div class="hd">
+                <span>شماره ناشناس · دیروز</span><span class="badge">پیامک ناشناخته</span>
+              </div>
+              <div class="raw">خرید ۲۵۰٬۰۰۰ ریال ... ترمینال ۱۲۳</div>
+              <div class="acts"><span class="p">ساخت قالب</span><span>نادیده</span></div>
+            </div>
+            <div class="card" style="text-align: center">
+              <button class="btn-primary" style="width: 100%">ثبت همه پیامک‌ها</button>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">پیشنهاد — صف بازبینی</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>پیامک‌های بانکی</span><span class="icon">⚙</span>
+          </div>
+          <div class="content">
+            <div class="seg">
+              <span style="background: #555; color: #fff; border-color: #555">در انتظار ۳</span
+              ><span>ثبت‌شده</span><span>نادیده</span
+              ><span style="border: 0; color: #999">۷ روز ▾</span>
+            </div>
+            <div class="sms">
+              <div class="hd">
+                <span>ملت · امروز ۱۴:۰۲</span><span class="badge red">تکراری؟ · رکورد ۱۴:۰۰</span>
+              </div>
+              <div class="amt">
+                −۴۸۰٬۰۰۰ <small style="font-size: 12px; color: #777">از بانک ملت</small>
+              </div>
+              <div class="r" style="padding: 4px 0; border: 0">
+                <span class="t"
+                  >دسته پیشنهادی<small>قبوض — چون ۳ بار قبل همین مبلغ را «قبوض» زدی</small></span
+                ><span class="a" style="font-weight: 400">قبوض ▾</span>
+              </div>
+              <div class="acts">
+                <span class="p">✓ ثبت هزینه</span><span>فقط موجودی</span><span>⋯</span>
+              </div>
+            </div>
+            <div class="sms">
+              <div class="hd"><span>ملت · امروز ۰۹:۱۵</span></div>
+              <div class="amt">
+                +۱۸٬۰۰۰٬۰۰۰ <small style="font-size: 12px; color: #777">به بانک ملت</small>
+              </div>
+              <div class="r" style="padding: 4px 0; border: 0">
+                <span class="t"
+                  >دسته پیشنهادی<small>حقوق — تکرار ماهانه «حقوق» با همین مبلغ</small></span
+                ><span class="a" style="font-weight: 400">حقوق ▾</span>
+              </div>
+              <div class="acts"><span class="p">✓ ثبت درآمد</span><span>⋯</span></div>
+            </div>
+            <div class="sms" style="border-style: dashed">
+              <div class="hd">
+                <span>شماره ناشناس · دیروز</span><span class="badge">ناشناخته</span>
+              </div>
+              <div class="raw">خرید ۲۵۰٬۰۰۰ ریال … ترمینال ۱۲۳</div>
+              <p style="margin: 4px 0; font-size: 11px; color: #777">
+                مبلغ را در متن لمس کن تا قالب این بانک ساخته شود — یک بار.
+              </p>
+              <div class="acts"><span class="p">۲۵۰٬۰۰۰ ← مبلغ</span><span>نادیده</span></div>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: 0">
+              کشیدن کارت به راست = ثبت با دسته پیشنهادی · به چپ = نادیده. «⋯» = قبلاً ثبت شده، تغییر
+              حساب، دیدن متن کامل.
+            </p>
+          </div>
+          <div class="sheet" style="padding: 10px 12px">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 12px;
+              "
+            >
+              <span>۲ پیامک شناخته‌شده</span
+              ><button class="btn-sm">ثبت هر دو با دسته پیشنهادی</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>فعلی (از کد):</b> صفحه با کارت راهنمای ۸ خطی، کارت بازه، کارت قالب‌ها شروع می‌شود و
+          تازه بعدش صف پیامک‌ها؛ هر کارت ۵ دکمه هم‌وزن («ثبت هزینه»، «ثبت درآمد»، «فقط به‌روزرسانی
+          موجودی»، «قبلاً ثبت شده»، «نادیده»)؛ متن خام ریالی نمایش داده می‌شود؛ دسته باید در فرم
+          بعدی انتخاب شود.
+        </div>
+        <div class="note">
+          <b>پیشنهاد:</b> صف اول، تنظیمات (راهنما، بازه، قالب‌ها) پشت ⚙. هر کارت: علامت و مبلغ
+          تومانی بزرگ، حساب، <b>دسته پیشنهادی</b> (از سابقه‌ی همین مبلغ/فرستنده یا تکرار ماهانه)،
+          <b>یک</b> اکشن اصلی مطابق جهت پیامک (برداشت = ثبت هزینه، واریز = ثبت درآمد) + «فقط موجودی»
+          + ⋯. کشیدن برای ثبت/نادیده. «تکراری؟» با زمان رکورد مشکوک. نوار پایین «ثبت همه
+          شناخته‌شده‌ها با دسته پیشنهادی».
+        </div>
+        <div class="note">
+          <b>پیامک ناشناخته:</b> به‌جای «ساخت قالب» و صفحه جدا، همان‌جا روی عدد مبلغ در متن لمس
+          می‌کند؛ قالب ساخته می‌شود و بقیه پیامک‌های همان فرستنده همان لحظه شناخته می‌شوند.
+        </div>
+        <div class="note">
+          <b>نگه‌داشته‌ها:</b> منطق تشخیص تکراری، «قبلاً ثبت شده» (بدون تغییر موجودی)، بازه،
+          قالب‌ها، اعلان ۱۰ صبح و جمع‌بندی شبانه round 4. فقط چیدمان و ترتیب اکشن‌ها عوض می‌شود.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

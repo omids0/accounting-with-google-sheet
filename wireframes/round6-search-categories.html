@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — جستجو و دسته‌ها (round 6)</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+    <link rel="stylesheet" href="wireframe-r6.css" />
+    <link rel="stylesheet" href="wireframe-r6-2.css" />
+    <style>
+      .shot {
+        width: 375px;
+        border: 2px solid #444;
+        border-radius: 24px;
+        overflow: hidden;
+      }
+      .shot img {
+        width: 100%;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="back"><a href="index.html">← فهرست وایرفریم‌ها</a></p>
+    <h1>وایرفریم round 6: جستجوی سراسری، مدیریت دسته‌ها، دسته‌های پیش‌فرض</h1>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs"><button class="on">۱ · جستجوی سراسری</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>جستجو</span
+            ><span class="icon" style="border: 0"></span>
+          </div>
+          <div class="content">
+            <div class="search">
+              ⌕ <span style="color: #333">علی</span><span style="flex: 1"></span
+              ><span style="color: #aaa">✕</span>
+            </div>
+            <div class="chips">
+              <span class="on">همه ۷</span><span>تراکنش ۳</span><span>چک ۲</span><span>طلب ۱</span
+              ><span>طرف حساب ۱</span>
+            </div>
+            <div class="flat">
+              <div class="grp">طرف حساب</div>
+              <div class="r">
+                <span class="d">👤</span
+                ><span class="t">علی رضایی<small>۲ چک · ۱ طلب · ۰۹۱۲…</small></span>
+              </div>
+              <div class="grp">چک‌ها</div>
+              <div class="r">
+                <span class="d">چک</span
+                ><span class="t">چک ۱۲۳۴۵۲ · علی رضایی<small>سررسید ۱۱ آبان</small></span
+                ><span class="a">۲٬۰۰۰٬۰۰۰</span>
+              </div>
+              <div class="r">
+                <span class="d">چک</span
+                ><span class="t">چک ۱۲۳۴۵۳ · علی رضایی<small>سررسید ۱۲ آبان</small></span
+                ><span class="a">۴٬۰۰۰٬۰۰۰</span>
+              </div>
+              <div class="grp">تراکنش‌ها</div>
+              <div class="r">
+                <span class="d">۱۹</span
+                ><span class="t">قرض به علی<small>هزینه · سایر · مهر</small></span
+                ><span class="a">−۵۰۰٬۰۰۰</span>
+              </div>
+              <div class="grp">پیشنهاد</div>
+              <div class="chips">
+                <span>علی رضایی</span><span>مبلغ &gt; ۱ میلیون</span><span>مهر ۱۴۰۵</span>
+              </div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۲ · مدیریت دسته‌ها — فعلی</button></div>
+        <div class="shot"><img src="assets/category-manage-current.png" alt="" /></div>
+        <p
+          class="cap"
+          style="width: 375px; font-size: 11px; color: #777; text-align: center; margin: 6px 0 0"
+        >
+          شیت کوتاه داخل فرم ثبت؛ هر ردیف چهار آیکون؛ زیردسته‌ها پشت آیکون پوشه؛ بودجه و تعداد
+          استفاده دیده نمی‌شود
+        </p>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs">
+          <button class="on">۲ · مدیریت دسته‌ها — پیشنهاد (صفحه مستقل در تنظیمات)</button>
+        </div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>دسته‌ها</span><span class="icon">+</span>
+          </div>
+          <div class="content">
+            <div class="seg">
+              <span style="background: #555; color: #fff; border-color: #555">هزینه</span
+              ><span>درآمد</span>
+            </div>
+            <div class="search">⌕ جستجوی دسته</div>
+            <div class="flat">
+              <div class="r">
+                <span class="d">⋮⋮</span
+                ><span class="t"
+                  >خوراک<small>۴ زیردسته · ۳۱ تراکنش این ماه · بودجه ۸۰۰٬۰۰۰</small></span
+                ><span class="a" style="color: #999">›</span>
+              </div>
+              <div class="r">
+                <span class="d">⋮⋮</span
+                ><span class="t">قبوض<small>۳ زیردسته · ۴ تراکنش</small></span
+                ><span class="a" style="color: #999">›</span>
+              </div>
+              <div class="r">
+                <span class="d">⋮⋮</span
+                ><span class="t"
+                  >خودرو <span class="badge">سیستمی</span
+                  ><small>به سرویس خودرو وصل است</small></span
+                ><span class="a" style="color: #999">›</span>
+              </div>
+              <div class="r" style="opacity: 0.6">
+                <span class="d">⋮⋮</span
+                ><span class="t"
+                  >پوشاک<small>۰ تراکنش در ۶ ماه · <a>ادغام یا حذف؟</a></small></span
+                ><span class="a" style="color: #999">›</span>
+              </div>
+            </div>
+          </div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <h3>خوراک</h3>
+            <div class="r">
+              <span class="t">نام</span><span class="a" style="font-weight: 400">خوراک ✎</span>
+            </div>
+            <div class="r">
+              <span class="t">بودجه ماهانه</span
+              ><span class="a" style="font-weight: 400">۸۰۰٬۰۰۰ ✎</span>
+            </div>
+            <div class="r">
+              <span class="t">زیردسته‌ها<small>سوپرمارکت · رستوران · نان · میوه</small></span
+              ><span class="a" style="font-weight: 400">+</span>
+            </div>
+            <div class="disco-actions" style="margin-top: 8px">
+              <button class="btn-skip" style="width: auto; padding: 7px 12px">
+                ادغام در دسته دیگر…</button
+              ><button class="linkbtn" style="color: #a33">حذف</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col" style="width: 375px">
+        <div class="state-tabs"><button class="on">۳ · دسته‌های پیش‌فرض — پیشنهاد</button></div>
+        <table class="tbl">
+          <tr>
+            <th>هزینه (الان: خوراک، حمل‌ونقل، اجاره، قبوض، تفریح، پوشاک، قسط، چک، سایر)</th>
+          </tr>
+          <tr>
+            <td><b>خوراک</b> — سوپرمارکت، نان و لبنیات، میوه، رستوران و بیرون‌بر</td>
+          </tr>
+          <tr>
+            <td><b>خانه</b> — اجاره، شارژ، تعمیر و لوازم، خدمتکار</td>
+          </tr>
+          <tr>
+            <td><b>قبوض</b> — برق، گاز، آب، اینترنت، موبایل</td>
+          </tr>
+          <tr>
+            <td><b>حمل‌ونقل</b> — بنزین، تاکسی و اسنپ، مترو و اتوبوس، پارکینگ و عوارض</td>
+          </tr>
+          <tr>
+            <td><b>خودرو</b> (سیستمی) — سرویس، بیمه، معاینه فنی، جریمه</td>
+          </tr>
+          <tr>
+            <td><b>سلامت</b> — دکتر، دارو، آزمایش، بیمه درمان</td>
+          </tr>
+          <tr>
+            <td><b>آموزش</b> — شهریه، کتاب و لوازم، کلاس</td>
+          </tr>
+          <tr>
+            <td><b>پوشاک و زیبایی</b> — لباس، کفش، آرایشگاه</td>
+          </tr>
+          <tr>
+            <td><b>تفریح و سفر</b> — سینما و کافه، سفر، اشتراک‌ها</td>
+          </tr>
+          <tr>
+            <td><b>هدیه و مناسبت</b> — هدیه، عیدی، مهمانی، نذری و خیریه</td>
+          </tr>
+          <tr>
+            <td><b>خانواده و فرزند</b> — مهد و مدرسه، اسباب‌بازی، پوشک</td>
+          </tr>
+          <tr>
+            <td>
+              <b>قسط</b> (سیستمی)، <b>چک</b> (سیستمی)، <b>انتقال</b> (سیستمی: بین حساب‌ها، به هدف)،
+              <b>سایر</b>
+            </td>
+          </tr>
+          <tr>
+            <th>درآمد (الان: حقوق، فروش، سرمایه‌گذاری، هدیه، طلب، سایر)</th>
+          </tr>
+          <tr>
+            <td>
+              <b>حقوق</b> — حقوق، اضافه‌کار، عیدی و پاداش · <b>کار آزاد</b> — پروژه، فروش ·
+              <b>سود و سرمایه</b> — سود بانکی، سهام، اجاره‌بها · <b>هدیه و یارانه</b> — یارانه، هدیه
+              · <b>طلب</b> (سیستمی) · <b>سایر</b>
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 11px; color: #777; width: 375px">
+          فقط برای کاربر جدید؛ کاربر فعلی دست نمی‌خورد و فقط پیشنهاد «افزودن دسته‌های پیشنهادی»
+          می‌بیند.
+        </p>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>۱ · جستجوی سراسری</b> — ورودی: آیکون ⌕ در هدر (موبایل) و چیپ جستجو در هدر دسکتاپ. یک
+          کادر، نتیجه از همه ماژول‌ها گروه‌بندی‌شده با شمارنده و چیپ فیلتر؛ همان نرمال‌سازی موجود
+          (ي/ی، ک/ك، نیم‌فاصله، ارقام). پیشنهادها: عدد = جستجوی مبلغ، نام = طرف حساب، ماه. نتیجه لمس
+          شود ← همان صفحه با آن مورد باز/هایلایت. جستجو روی داده‌ی محلی (آنی)، بدون سرور.
+        </div>
+        <div class="note">
+          <b>۲ · مدیریت دسته‌ها</b> — شیت داخل فرم برای «افزودن سریع» می‌ماند؛ مدیریت کامل یک صفحه
+          در تنظیمات: ردیف هر دسته با تعداد زیردسته، تعداد استفاده و بودجه؛ جابه‌جایی با کشیدن؛ لمس
+          = شیت جزئیات (نام، بودجه، زیردسته‌ها، ادغام، حذف). حذف دسته‌ای که تراکنش دارد = اجباری
+          «ادغام در…» (رکوردها بازنویسی می‌شوند)؛ دسته‌های سیستمی (خودرو، قسط، چک، انتقال) قفل.
+          دسته‌های بی‌استفاده ۶ ماه کم‌رنگ با پیشنهاد ادغام.
+        </div>
+        <div class="note">
+          <b>۳ · دسته‌های پیش‌فرض</b> — ۹ دسته‌ی هزینه‌ی الان برای خانواده ایرانی کم است (سلامت،
+          آموزش، خانه، هدیه/نذری ندارد) و زیردسته‌ی پیش‌فرض ندارد؛ جدول بالا پیشنهاد است و روی
+          کاربران فعلی اعمال نمی‌شود. تصمیم تو: کدام‌ها بمانند، کدام‌ها نه.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,151 @@
+/* Round 6 wireframes, part 2 */
+.flat {
+  border: 0;
+  background: transparent;
+  padding: 0 2px;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid #666;
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #555;
+  background: #fff;
+}
+.grp {
+  font-size: 10px;
+  color: #999;
+  margin: 10px 2px 0;
+}
+.os {
+  background: #222;
+  color: #eee;
+  border-radius: 14px;
+  padding: 10px;
+  font-size: 12px;
+}
+.os .ic {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #0f766e;
+  margin: 0 auto 6px;
+}
+.os .mi {
+  background: #333;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-top: 6px;
+}
+.sms {
+  border: 1px solid #bbb;
+  border-radius: 12px;
+  padding: 10px;
+  background: #fafafa;
+  font-size: 12px;
+}
+.sms .hd {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 4px;
+}
+.sms .amt {
+  font-size: 18px;
+  font-weight: 800;
+  color: #333;
+}
+.sms .raw {
+  font-size: 10px;
+  color: #999;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin: 6px 0;
+  direction: rtl;
+}
+.sms .acts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.sms .acts span {
+  border: 1px solid #999;
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+.sms .acts span.p {
+  background: #555;
+  color: #fff;
+  border-color: #555;
+}
+.badge {
+  display: inline-block;
+  border-radius: 99px;
+  padding: 1px 7px;
+  font-size: 10px;
+  background: #eee;
+  color: #555;
+}
+.badge.red {
+  background: #fde0e0;
+  color: #a33;
+}
+.goal {
+  border: 1px solid #bbb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  font-size: 12px;
+}
+.goal .bar {
+  height: 8px;
+  background: #e4e4e4;
+  border-radius: 4px;
+  margin: 6px 0 4px;
+}
+.goal .bar i {
+  display: block;
+  height: 8px;
+  background: #777;
+  border-radius: 4px;
+}
+.cmp {
+  font-size: 11px;
+  color: #888;
+}
+.cmp.up {
+  color: #a33;
+}
+.cmp.dn {
+  color: #2a7;
+}
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: #fff;
+}
+.tbl th,
+.tbl td {
+  border: 1px solid #ddd;
+  padding: 5px 8px;
+  text-align: right;
+  vertical-align: top;
+}
+.tbl th {
+  background: #f0f0f0;
+  font-weight: 800;
+}
+.back {
+  display: block;
+  text-align: center;
+  margin: 0 0 14px;
+  font-size: 12px;
+}
