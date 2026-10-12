@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router'
 
+import SettingsBackupCard from './backup/SettingsBackupCard'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
@@ -57,7 +58,7 @@ export default function SettingsPage() {
       id: 'account',
       title: 'حساب و داده',
       icon: 'folder',
-      description: 'حساب گوگل و شیت داده‌ها',
+      description: 'حساب گوگل، شیت داده‌ها و پشتیبان',
       content: (
         <>
           <SettingsGoogleAccountCard onLogout={settings.handleLogout} />
@@ -78,6 +79,9 @@ export default function SettingsPage() {
               sheetPicker={settings.sheetPicker}
             />
           )}
+          {settings.spreadsheetId ? (
+            <SettingsBackupCard spreadsheetId={settings.spreadsheetId} />
+          ) : null}
         </>
       )
     },

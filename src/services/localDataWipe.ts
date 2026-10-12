@@ -4,6 +4,7 @@ import { clearDataKey } from './appLockDataKey'
 import { clearAppLockSessionState } from './appLockPolicy'
 import { LOCK_SETUP_OFFER_KEY } from './appLockPrompts'
 import { getSession } from './auth'
+import { BACKUP_STORAGE_KEY } from './backupReminder'
 import { setBankSmsCaptureEnabled } from './bankSmsNative'
 import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
 import { invalidateDashboardCache } from './dashboardCache'
@@ -40,7 +41,8 @@ const ACCOUNT_KEYS = [
   BANK_SMS_PREFS_KEY,
   ONBOARDING_STORAGE_KEY,
   DISCOVERY_STORAGE_KEY,
-  'accounting_nudges_v1'
+  'accounting_nudges_v1',
+  BACKUP_STORAGE_KEY
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000
