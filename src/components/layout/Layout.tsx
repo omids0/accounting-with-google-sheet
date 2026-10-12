@@ -6,6 +6,7 @@ import PageSpeedDial from '../PageSpeedDial'
 import UpdateBanner from '../UpdateBanner'
 import { useLayoutNavigation } from './useLayoutNavigation'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import {
   appContentColumnClass,
   appLayoutClass,
@@ -43,10 +44,13 @@ export default function Layout() {
 
   useBankSmsSync()
 
+  const isDesktop = useIsDesktop()
+
   return (
     <div className={appLayoutClass}>
       <div className={appShellClass}>
         <LayoutMenu
+          variant={isDesktop ? 'sidebar' : 'drawer'}
           menuOpen={menuOpen}
           onCloseMenu={() => setMenuOpen(false)}
           userName={userName}

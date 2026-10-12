@@ -104,7 +104,6 @@
   --btn-inflow-hover: #166534;
   --btn-primary-shadow-hover: 0 6px 20px rgba(15, 118, 110, 0.35);
   --page-glow: none;
-  --menu-profile-bg: var(--hero-bg);
 }
 
 @media (min-width: 1024px) {
@@ -187,8 +186,6 @@
     rgba(201, 154, 63, 0.07) 0%,
     rgba(201, 154, 63, 0) 60%
   );
-  /* The drawer top is a header, not a second hero card. */
-  --menu-profile-bg: var(--header-bg);
 }
 
 @theme inline {

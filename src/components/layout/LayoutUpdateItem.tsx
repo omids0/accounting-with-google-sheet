@@ -61,7 +61,7 @@ export default function LayoutUpdateItem() {
       aria-busy={checking}
     >
       <span className={appMenuItemIconClass(!!update)}>
-        <AppIcon name={update ? 'import' : 'refresh'} size={22} />
+        <AppIcon name={update ? 'import' : 'refresh'} size={20} />
       </span>
       <span className={appMenuItemLabelClass}>{label}</span>
       {update && <span className={appMenuUpdateDotClass} aria-hidden="true" />}
