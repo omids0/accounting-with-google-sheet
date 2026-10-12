@@ -69,7 +69,8 @@ for (const theme of ['light', 'dark'] as const) {
         await page.goto(screen.path, { waitUntil: 'domcontentloaded' })
         await page.locator('main').waitFor({ state: 'visible' })
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
-        await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0)
+        // Cold preview builds can keep a list loading past the default 5 s.
+        await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0, { timeout: 15_000 })
         await waitForSettledAnimations(page)
         await expectNoViolations(page)
       })
