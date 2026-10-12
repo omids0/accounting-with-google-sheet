@@ -35,8 +35,7 @@ export const loginFeatureClass = cn(
 
 export const loginFeatureIconClass = cn(
   'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-primary-dark',
-  '[background:color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
-  '[&_svg_*]:fill-none'
+  '[background:color-mix(in_srgb,var(--color-primary)_12%,transparent)]'
 )
 
 export const loginFooterNoteClass = 'mt-4 text-center text-xs leading-[1.55] text-muted'
@@ -49,7 +48,8 @@ export const loginTrustBadgeClass = cn(
 )
 
 export const googleSignInBtnClass = cn(
-  '!min-h-touch-min !border-[1.5px] !border-border !bg-surface !text-text',
+  // bg-none drops the primary variant's gradient image, which painted over the surface color.
+  '!min-h-touch-min !border-[1.5px] !border-border !bg-surface !bg-none !text-text',
   'hover:enabled:!-translate-y-px hover:enabled:!border-[var(--color-primary-light)] hover:enabled:!bg-bg',
   'focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)]'
 )
