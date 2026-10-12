@@ -1,4 +1,5 @@
 import type { VaultAssetClass } from './entities'
+import type { PreviousMonthSummary } from './insights'
 
 export interface CategorySummary {
   name: string
@@ -41,6 +42,8 @@ export interface FinancialSummary {
   treasuryTotal: number
   /** Vault value per asset class (classes with holdings); sums to `treasuryTotal`. */
   treasuryByClass?: { assetClass: VaultAssetClass; label: string; total: number }[]
+  /** Savings goal balances, already inside `treasuryTotal`. */
+  goalsTotal?: number
   receivablesTotal: number
   totalAssets: number
   installmentsDue: number
@@ -70,6 +73,8 @@ export interface DashboardData {
   financial: FinancialSummary
   incomeByCategory: CategorySummary[]
   expenseByCategory: CategorySummary[]
+  /** The month before the period starts, for «↑ ۳۰٪ از شهریور» (shown for month periods). */
+  previousMonth?: PreviousMonthSummary
   yearlyMonthlyFlow: MonthlyFlow[]
   recentRecords: DashboardRecord[]
 }

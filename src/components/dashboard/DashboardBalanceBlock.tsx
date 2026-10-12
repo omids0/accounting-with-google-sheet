@@ -13,13 +13,17 @@ import {
 } from '../ui/calmListStyles'
 
 /** Names of the parts counted in each total, in the order the breakdown view lists them. */
-export function selectedPartLabels(config: NetAvailableConfig): {
+export function selectedPartLabels(
+  config: NetAvailableConfig,
+  hasGoals = false
+): {
   assets: string[]
   liabilities: string[]
 } {
   const assets = [
     config.assets.wallet && 'کیف پول',
     config.assets.treasury && 'صندوقچه',
+    config.assets.goals && hasGoals && 'هدف‌ها',
     config.assets.receivables && 'طلب‌ها'
   ]
   const liabilities = [
@@ -46,7 +50,7 @@ export default function DashboardBalanceBlock({
   onDetails: () => void
   config?: NetAvailableConfig
 }) {
-  const parts = selectedPartLabels(config)
+  const parts = selectedPartLabels(config, (financial.goalsTotal ?? 0) > 0)
 
   const rows = [
     {

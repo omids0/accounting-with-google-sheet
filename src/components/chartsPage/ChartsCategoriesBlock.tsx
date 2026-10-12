@@ -1,10 +1,14 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 
+import { useCategoryBudgets } from '../../hooks/useCategoryBudgets'
 import { useChartTheme } from '../../hooks/useChartTheme'
 import type { ChartsData } from '../../services/chartsData'
+import { compareCategories } from '../../services/monthComparison'
 import { cn } from '../../utils/cn'
 import { formatPersianNumber } from '../../utils/formatMoney'
+import BudgetSheet from '../budgets/BudgetSheet'
 import CalmBlock from '../CalmBlock'
+import type { CategoryInsights } from '../charts/CategoryRowInsights'
 import CategoryShareList from '../charts/CategoryShareList'
 import { CATEGORY_TONE_OPTIONS, type CategoryTone } from '../charts/categoryTone'
 import { donutSliceColorIndex } from '../charts/chartUtils'
@@ -19,6 +23,8 @@ const DONUT_MAX_SLICES = 6
 export default function ChartsCategoriesBlock({ data }: { data: ChartsData }) {
   const [tone, setTone] = useState<CategoryTone>('expense')
   const theme = useChartTheme()
+  const isMonth = data.previousMonth != null
+  const { budgets, editing, openBudget, closeBudget } = useCategoryBudgets(isMonth)
 
   const items = tone === 'expense' ? data.expenseByCategory : data.incomeByCategory
   const palette = tone === 'expense' ? theme.expensePalette : theme.incomePalette
@@ -26,6 +32,22 @@ export default function ChartsCategoriesBlock({ data }: { data: ChartsData }) {
     (_, index) =>
       palette[donutSliceColorIndex(index, items.length, DONUT_MAX_SLICES) % palette.length]
   )
+
+  // Month view only (data.previousMonth is set): budgets on expense rows, comparison on all.
+  const insights = useMemo<CategoryInsights | undefined>(() => {
+    if (!data.previousMonth) return undefined
+
+    const previous =
+      tone === 'expense'
+        ? data.previousMonth.expenseByCategory
+        : data.previousMonth.incomeByCategory
+
+    return {
+      comparisons: compareCategories(items, previous),
+      previousMonthName: data.previousMonth.monthName,
+      ...(tone === 'expense' ? { budgets, onBudget: openBudget } : {})
+    }
+  }, [data.previousMonth, tone, items, budgets, openBudget])
 
   return (
     <CalmBlock
@@ -61,9 +83,16 @@ export default function ChartsCategoriesBlock({ data }: { data: ChartsData }) {
               className={cn(calmChartFlatClass)}
             />
           </Suspense>
-          <CategoryShareList items={items} tone={tone} variant="dot" colors={colors} />
+          <CategoryShareList
+            items={items}
+            tone={tone}
+            variant="dot"
+            colors={colors}
+            insights={insights}
+          />
         </>
       )}
+      <BudgetSheet category={editing} onClose={closeBudget} />
     </CalmBlock>
   )
 }

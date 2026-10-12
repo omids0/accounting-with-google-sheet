@@ -55,7 +55,7 @@ function BreakdownCard({
       <h3 className={chartTitleClass}>{title}</h3>
       <div className={assetBreakdownClass}>
         {items.map(item => (
-          <Fragment key={item.target}>
+          <Fragment key={item.label}>
             <BreakdownRow
               label={item.label}
               value={item.value}
@@ -84,6 +84,8 @@ export default function DashboardBreakdownSection({
   onConfigure,
   config = getNetAvailableConfig()
 }: DashboardBreakdownSectionProps) {
+  const goalsTotal = financial?.goalsTotal ?? 0
+
   const assets: BreakdownItem[] = [
     {
       label: 'کیف پول',
@@ -93,7 +95,7 @@ export default function DashboardBreakdownSection({
     },
     {
       label: 'صندوقچه',
-      value: financial?.treasuryTotal ?? 0,
+      value: (financial?.treasuryTotal ?? 0) - goalsTotal,
       included: config.assets.treasury,
       target: 'treasury',
       // One class only says nothing the row does not already say.
@@ -102,6 +104,17 @@ export default function DashboardBreakdownSection({
           ? financial?.treasuryByClass?.map(({ label, total }) => ({ label, value: total }))
           : undefined
     },
+    // Inside the vault total, but counted by its own net-available switch.
+    ...(goalsTotal > 0
+      ? [
+          {
+            label: 'هدف‌های پس‌انداز',
+            value: goalsTotal,
+            included: config.assets.goals,
+            target: 'treasury' as const
+          }
+        ]
+      : []),
     {
       label: 'طلب‌ها',
       value: financial?.receivablesTotal ?? 0,

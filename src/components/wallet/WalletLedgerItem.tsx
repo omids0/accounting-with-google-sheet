@@ -1,4 +1,4 @@
-import type { LedgerEntry } from '../../services/walletLedger'
+import { ledgerSourceLabel, type LedgerEntry } from '../../services/walletLedger'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import MoneyDisplay from '../MoneyDisplay'
@@ -8,7 +8,7 @@ export default function WalletLedgerItem({ entry, index }: { entry: LedgerEntry;
   const tone = !entry.applied ? 'neutral' : entry.delta < 0 ? 'expense' : 'income'
   const meta = [
     entry.date ? formatIsoDatePersian(entry.date) : '',
-    entry.source,
+    ledgerSourceLabel(entry.source),
     entry.applied ? '' : 'بدون اثر'
   ]
     .filter(Boolean)

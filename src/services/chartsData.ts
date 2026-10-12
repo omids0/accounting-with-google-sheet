@@ -1,4 +1,10 @@
-import type { AppSettings, CategoryShare, MonthlyFlow, MonthlyPoint } from '../types'
+import type {
+  AppSettings,
+  CategoryShare,
+  MonthlyFlow,
+  MonthlyPoint,
+  PreviousMonthSummary
+} from '../types'
 import {
   aggregateMonthlyFlowForKeys,
   aggregateYearToDateMonthlyFlow,
@@ -7,6 +13,7 @@ import {
   getDateFieldId,
   sumByCategory
 } from './dashboardAggregation'
+import { summarizePreviousMonth } from './monthComparison'
 import { fetchRecords } from './sheets'
 import { toCategoryShares } from '../utils/categoryShares'
 import {
@@ -38,6 +45,8 @@ export interface ChartsData {
   flow: MonthlyFlow[]
   /** Running sum of the monthly net over the same window. */
   cumulative: MonthlyPoint[]
+  /** Month mode only: the month before, for the category comparison. */
+  previousMonth?: PreviousMonthSummary
 }
 
 type SheetRecord = { values: Record<string, string> }
@@ -100,7 +109,8 @@ export function buildChartsData(
     incomeByCategory: toCategoryShares(sumByCategory(income)),
     expenseByCategory: toCategoryShares(sumByCategory(expense)),
     flow,
-    cumulative: cumulativeNetSeries(flow)
+    cumulative: cumulativeNetSeries(flow),
+    previousMonth: period.mode === 'month' ? summarizePreviousMonth(records, period.key) : undefined
   }
 }
 

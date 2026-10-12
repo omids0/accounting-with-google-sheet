@@ -38,6 +38,8 @@ public class NightlyDigest extends BroadcastReceiver {
     private static final String PREF_HOUR = "hour";
     private static final String PREF_MINUTE = "minute";
     private static final String PREF_LAST_OPERATION = "last_operation_date";
+    private static final String PREF_NOTES = "notes";
+    private static final String PREF_NOTES_DATE = "notes_date";
     private static final int DEFAULT_HOUR = 21;
 
     @Override
@@ -57,7 +59,11 @@ public class NightlyDigest extends BroadcastReceiver {
 
         int smsCount = BankSmsStore.isEnabled(context) ? BankSmsStore.pendingInRangeCount(context) : 0;
         boolean recordedToday = today().equals(prefs(context).getString(PREF_LAST_OPERATION, ""));
-        String body = body(smsCount, recordedToday);
+        SharedPreferences digestPrefs = prefs(context);
+        String notes = today().equals(digestPrefs.getString(PREF_NOTES_DATE, ""))
+            ? digestPrefs.getString(PREF_NOTES, "")
+            : "";
+        String body = withNotes(body(smsCount, recordedToday), notes);
 
         if (body != null) notifyDigest(context, body, smsCount > 0 ? BankSmsNotifier.OPEN_URL : ENTRY_URL);
     }
@@ -72,6 +78,14 @@ public class NightlyDigest extends BroadcastReceiver {
         return sms + " و هنوز چیزی ثبت نکردی";
     }
 
+    /** Budget alerts go under the undone-today line; alone when nothing else is undone. */
+    static String withNotes(String body, String notes) {
+        if (notes == null || notes.trim().isEmpty()) return body;
+        if (body == null) return notes.trim();
+
+        return body + "\n" + notes.trim();
+    }
+
     static void configure(Context context, boolean enabled, int hour, int minute) {
         prefs(context)
             .edit()
@@ -84,6 +98,14 @@ public class NightlyDigest extends BroadcastReceiver {
 
     static void setLastOperationDate(Context context, String date) {
         prefs(context).edit().putString(PREF_LAST_OPERATION, date == null ? "" : date.trim()).apply();
+    }
+
+    static void setNotes(Context context, String date, String lines) {
+        prefs(context)
+            .edit()
+            .putString(PREF_NOTES_DATE, date == null ? "" : date.trim())
+            .putString(PREF_NOTES, lines == null ? "" : lines)
+            .apply();
     }
 
     /** Safe to call often: the same PendingIntent replaces the earlier alarm. */

@@ -64,3 +64,28 @@ export const calmSegmentClass =
 /** Charts reused on a flat page: drop their card box, keep their content. */
 export const calmChartFlatClass =
   'border-0 !p-0 shadow-none [background:none] before:hidden [&.chart-card--animated]:animate-none'
+
+/** A category row that opens its budget sheet: the whole name/bar column is the button. */
+export const calmRowButtonClass = cx(
+  'focus-ring-inset min-w-0 flex-1 cursor-pointer rounded-md border-0 bg-transparent p-0',
+  'text-start text-inherit'
+)
+
+export const calmRowHeadClass = 'flex min-w-0 items-baseline gap-1.5'
+
+/** «↑ ۳۰٪ از شهریور» next to a category name. */
+export const calmCompareClass = 'shrink-0 whitespace-nowrap text-[0.68rem] font-semibold'
+
+export const calmCompareToneClass = {
+  bad: 'text-[color-mix(in_srgb,var(--color-danger)_80%,var(--color-text))]',
+  good: 'text-[color-mix(in_srgb,var(--color-success)_80%,var(--color-text))]',
+  same: 'text-muted'
+} as const
+
+/** Budget bar: grey up to 100%, red past it. */
+export const calmBudgetBarColor = {
+  within: 'color-mix(in srgb, var(--color-text) 42%, transparent)',
+  over: 'var(--color-danger)'
+} as const
+
+export const calmBudgetLinkClass = 'font-semibold text-primary-dark'

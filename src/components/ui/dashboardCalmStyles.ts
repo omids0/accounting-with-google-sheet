@@ -24,6 +24,10 @@ export const dashboardHeroStripItemClass =
 export const dashboardHeroStripValueClass =
   'max-w-full truncate font-numeric text-[0.8rem] font-bold tabular-nums text-white'
 
+/** Under the strip: «هزینه ماه ۱۲٪ کمتر از شهریور». */
+export const dashboardHeroCompareClass =
+  'relative z-[1] m-0 mt-2 text-center text-[0.72rem] font-medium text-white/90'
+
 /** «می‌دانستی؟» as one line: title, «برو ببین» and a close button. */
 export const discoveryRowClass = cx(
   'flex min-h-11 items-center gap-2 rounded-[var(--radius)] border border-border bg-surface px-3 py-1.5',

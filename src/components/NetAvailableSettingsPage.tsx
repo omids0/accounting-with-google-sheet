@@ -29,6 +29,7 @@ import { handleSheetError } from '../utils/sheetError'
 const ASSET_OPTIONS = [
   { id: 'wallet', label: 'کیف پول' },
   { id: 'treasury', label: 'صندوقچه' },
+  { id: 'goals', label: 'هدف‌های پس‌انداز' },
   { id: 'receivables', label: 'طلب‌ها' }
 ] as const
 

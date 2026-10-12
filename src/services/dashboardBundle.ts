@@ -15,10 +15,13 @@ import {
   dashboardBundleInFlight
 } from './dashboardCache'
 import { applyNetAvailableConfig } from './dashboardNetAvailable'
+import { buildRecentRecords } from './dashboardRecent'
 import { fetchInstallmentPlans, totalUnpaidInstallments } from './installments'
+import { summarizePreviousMonth } from './monthComparison'
 import { fetchOpeningBalance } from './monthlyBalance'
 import { resolveOpeningBalanceContext, syncDerivedOpeningBalances } from './openingBalanceService'
 import { fetchReceivables, remainingAmount } from './receivables'
+import { loadSavingsGoals, sumGoalBalances } from './savingsGoalsSheet'
 import { getDefaultNetAvailableConfig } from './settings'
 import { fetchRecords } from './sheets'
 import { getSummableTgjuPrices } from './tgjuCurrency'
@@ -26,7 +29,6 @@ import { fetchVaultTransactions } from './treasury'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
 import { computeHoldings, totalsByClass } from './treasuryHoldings'
 import { fetchWalletAccounts } from './wallet'
-import { WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import type { DateRange } from '../utils/dateRange'
 import { parseNumeric } from '../utils/parseNumeric'
@@ -54,7 +56,8 @@ async function fetchDashboardBundleUncached(
     installmentPlans,
     checks,
     dangs,
-    storedOpeningBalance
+    storedOpeningBalance,
+    goals
   ] = await Promise.all([
     incomeForm ? fetchRecords(settings.spreadsheetId, incomeForm) : Promise.resolve([]),
     expenseForm ? fetchRecords(settings.spreadsheetId, expenseForm) : Promise.resolve([]),
@@ -77,7 +80,8 @@ async function fetchDashboardBundleUncached(
       amount: 0,
       updatedAt: '',
       note: ''
-    }))
+    })),
+    loadSavingsGoals(settings.spreadsheetId).catch(() => [])
   ])
 
   const incomeDateField = getDateFieldId(incomeForm)
@@ -117,7 +121,10 @@ async function fetchDashboardBundleUncached(
 
   const holdings = tgjuPrices ? computeHoldings(vaultTransactions, tgjuPrices) : []
 
-  const treasuryTotal = holdings.reduce((s, h) => s + h.totalValue, 0)
+  const goalsTotal = sumGoalBalances(goals)
+
+  // Goal balances are vault assets too; the net-available switch for them is separate.
+  const treasuryTotal = holdings.reduce((s, h) => s + h.totalValue, 0) + goalsTotal
 
   const treasuryByClass = totalsByClass(holdings).map(({ assetClass, label, total }) => ({
     assetClass,
@@ -137,6 +144,7 @@ async function fetchDashboardBundleUncached(
     walletTotal,
     treasuryTotal,
     treasuryByClass,
+    goalsTotal,
     receivablesTotal,
     installmentsDue,
     dangsTotal,
@@ -156,41 +164,15 @@ async function fetchDashboardBundleUncached(
 
   const reconciliationDiff = walletTotal - periodBalance
 
-  const accountTitles = new Map(walletAccounts.map(account => [account.id, account.title]))
-
-  const accountOf = (values: Record<string, string>) =>
-    accountTitles.get(String(values[WALLET_ACCOUNT_FIELD_ID] ?? '').trim()) || undefined
-
-  const recent = [
-    ...filteredIncome.map(r => ({
-      formName: incomeForm?.name ?? 'درآمد',
-      title: r.values.title || '—',
-      amount: parseNumeric(r.values.amount),
-      type: 'income' as const,
-      category: r.values.category || 'سایر',
-      date: r.values[incomeDateField] ?? '',
-      account: accountOf(r.values),
-      createdAt: r.createdAt
-    })),
-    ...filteredExpense.map(r => ({
+  const recent = buildRecentRecords(
+    { records: filteredIncome, formName: incomeForm?.name ?? 'درآمد', dateField: incomeDateField },
+    {
+      records: filteredExpense,
       formName: expenseForm?.name ?? 'هزینه',
-      title: r.values.title || '—',
-      amount: parseNumeric(r.values.amount),
-      type: 'expense' as const,
-      category: r.values.category || 'سایر',
-      date: r.values[expenseDateField] ?? '',
-      account: accountOf(r.values),
-      createdAt: r.createdAt
-    }))
-  ]
-    .sort((a, b) => {
-      const byDate = (b.date || '').localeCompare(a.date || '')
-
-      if (byDate !== 0) return byDate
-
-      return (b.createdAt || '').localeCompare(a.createdAt || '')
-    })
-    .map(({ createdAt: _, ...record }) => record)
+      dateField: expenseDateField
+    },
+    walletAccounts
+  )
 
   return {
     expiresAt: Date.now() + DASHBOARD_CACHE_TTL_MS,
@@ -215,6 +197,10 @@ async function fetchDashboardBundleUncached(
       },
       incomeByCategory: sumByCategory(filteredIncome),
       expenseByCategory: sumByCategory(filteredExpense),
+      previousMonth: summarizePreviousMonth(
+        { incomeRecords, expenseRecords, incomeDateField, expenseDateField },
+        monthKey
+      ),
       recentRecords: recent
     }
   }

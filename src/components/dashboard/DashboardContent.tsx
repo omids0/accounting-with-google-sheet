@@ -1,5 +1,6 @@
 import DashboardAnalysisBlock from './DashboardAnalysisBlock'
 import DashboardBalanceBlock from './DashboardBalanceBlock'
+import DashboardGoalCongratsCard from './DashboardGoalCongratsCard'
 import DashboardGuideCard from './DashboardGuideCard'
 import DashboardHero from './DashboardHero'
 import DashboardPeriodRow from './DashboardPeriodRow'
@@ -63,6 +64,7 @@ export default function DashboardContent({
   return (
     <div className={dashboardCalmPageClass}>
       <BankSmsPendingBanner />
+      <DashboardGoalCongratsCard />
       <DashboardGuideCard />
       <DashboardPeriodRow label={period.label} onOpen={nav.onOpenFilter} />
 
@@ -97,6 +99,7 @@ export default function DashboardContent({
           totalExpense={data.totalExpense}
           periodNoun={period.noun}
           onConfigure={nav.onConfigureNetAvailable}
+          previousMonth={period.kind === 'month' ? data.previousMonth : undefined}
         />
 
         <DashboardUpcomingBlock
@@ -116,6 +119,8 @@ export default function DashboardContent({
           className={dashboardCellClass.analysis}
           expenseByCategory={data.expenseByCategory}
           incomeByCategory={data.incomeByCategory}
+          previousMonth={data.previousMonth}
+          isMonth={period.kind === 'month'}
           onOpenCharts={nav.onOpenCharts}
           periodNoun={period.noun}
         />

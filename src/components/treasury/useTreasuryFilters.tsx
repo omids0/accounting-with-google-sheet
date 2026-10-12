@@ -1,11 +1,35 @@
 import { useState, useCallback, useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import type { PageSpeedDialAction } from '../../hooks/usePageSpeedDial'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import { isConfigured } from '../../services/settings'
 import { exportTreasuryCsv, exportTreasuryPdf, importTreasuryCsv } from '../../services/treasury'
 import { buildSearchChip, compactFilterChips } from '../../utils/filterChips'
+import SpeedDialIcon from '../SpeedDialIcon'
+
+/** «هدف تازه» right after «ثبت خرید»: a second header pill on desktop. */
+function withGoalAction(
+  actions: PageSpeedDialAction[],
+  onAddGoal: (() => void) | undefined
+): PageSpeedDialAction[] {
+  if (!onAddGoal) return actions
+
+  const [add, ...rest] = actions
+
+  return [
+    add,
+    {
+      id: 'add-goal',
+      label: 'هدف پس‌انداز تازه',
+      headerLabel: '+ هدف تازه',
+      icon: <SpeedDialIcon name="add" />,
+      onClick: onAddGoal
+    },
+    ...rest
+  ]
+}
 
 export function useTreasuryFilters(
   active: boolean,
@@ -14,7 +38,8 @@ export function useTreasuryFilters(
   priceLoading: boolean,
   openCreateForm: () => void,
   searchQuery: string,
-  setSearchQuery: (value: string) => void
+  setSearchQuery: (value: string) => void,
+  openGoalForm?: () => void
 ) {
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [draftSearch, setDraftSearch] = useState('')
@@ -35,16 +60,19 @@ export function useTreasuryFilters(
   const pageSpeedDialConfig = useMemo(
     () => ({
       ariaLabel: 'عملیات صندوقچه',
-      actions: createPageSpeedDialActions({
-        onAdd: () => openCreateForm(),
-        addLabel: 'ثبت خرید',
-        onFilter: openFilterModal,
-        onRefresh: refreshTreasury,
-        refreshDisabled: loading || priceLoading,
-        onImport: handleImport,
-        onExport: handleExport,
-        onExportPdf: handleExportPdf
-      })
+      actions: withGoalAction(
+        createPageSpeedDialActions({
+          onAdd: () => openCreateForm(),
+          addLabel: 'ثبت خرید',
+          onFilter: openFilterModal,
+          onRefresh: refreshTreasury,
+          refreshDisabled: loading || priceLoading,
+          onImport: handleImport,
+          onExport: handleExport,
+          onExportPdf: handleExportPdf
+        }),
+        openGoalForm
+      )
     }),
     [
       openFilterModal,
@@ -54,7 +82,8 @@ export function useTreasuryFilters(
       handleImport,
       handleExport,
       handleExportPdf,
-      openCreateForm
+      openCreateForm,
+      openGoalForm
     ]
   )
 

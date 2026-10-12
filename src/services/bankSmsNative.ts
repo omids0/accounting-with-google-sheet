@@ -31,6 +31,8 @@ interface BankSmsPlugin {
   setNightlyDigest(options: { enabled: boolean; hour: number; minute: number }): Promise<void>
   /** Local `YYYY-MM-DD` of the last recorded entry, for "nothing recorded today". */
   setLastOperationDate(options: { date: string }): Promise<void>
+  /** Lines (newline-joined) appended to the digest on `date` only. */
+  setDigestNotes(options: { date: string; lines: string }): Promise<void>
   openNotificationSettings(): Promise<void>
 }
 
@@ -111,6 +113,13 @@ export async function setLastOperationDateNative(date: string): Promise<void> {
   if (!isBankSmsAvailable()) return
 
   await BankSms.setLastOperationDate({ date }).catch(() => undefined)
+}
+
+/** Extra digest lines (budget alerts) that count only on `date`. */
+export async function setDigestNotesNative(date: string, lines: string[]): Promise<void> {
+  if (!isBankSmsAvailable()) return
+
+  await BankSms.setDigestNotes({ date, lines: lines.join('\n') }).catch(() => undefined)
 }
 
 /** Opens this app's notification settings; false when the screen could not be opened. */

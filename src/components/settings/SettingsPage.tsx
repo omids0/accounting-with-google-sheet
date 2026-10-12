@@ -6,6 +6,7 @@ import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
 import ConfirmActionModal from '../ConfirmActionModal'
 import { SettingsSkeleton } from '../skeleton'
+import SettingsBudgetsCard from './SettingsBudgetsCard'
 import SettingsGeneralCard from './SettingsGeneralCard'
 import SettingsGoogleAccountCard from './SettingsGoogleAccountCard'
 import SettingsPwaInstallCard from './SettingsPwaInstallCard'
@@ -94,6 +95,13 @@ export default function SettingsPage() {
             icon: 'treasury' as const,
             description: 'نام، اعشار، قیمت دستی و غیرفعال کردن دارایی‌ها',
             content: <SettingsVaultAssetsCard spreadsheetId={settings.spreadsheetId} />
+          },
+          {
+            id: 'budgets',
+            title: 'بودجه‌ها',
+            icon: 'chart' as const,
+            description: 'بودجه ماهانه دسته‌های هزینه',
+            content: <SettingsBudgetsCard />
           }
         ]
       : []),

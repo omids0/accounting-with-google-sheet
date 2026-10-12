@@ -1,5 +1,8 @@
+import { compareMonths } from '../../services/monthComparison'
+import type { PreviousMonthSummary } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatSignedNumber } from '../../utils/formatMoney'
+import { heroExpenseComparisonText } from '../../utils/insightText'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import CardEditButton from '../CardEditButton'
 import HelpHint from '../HelpHint'
@@ -12,6 +15,7 @@ import {
   dashboardHeroLabelClass
 } from '../ui/chartStyles'
 import {
+  dashboardHeroCompareClass,
   dashboardHeroStripClass,
   dashboardHeroStripItemClass,
   dashboardHeroStripValueClass
@@ -23,6 +27,8 @@ export interface DashboardHeroProps {
   totalExpense: number
   /** «ماه», «سال» or «دوره» — names the period in the strip labels. */
   periodNoun: string
+  /** Set for a month period: «هزینه ماه ۱۲٪ کمتر از شهریور». */
+  previousMonth?: PreviousMonthSummary
   onConfigure?: () => void
   className?: string
 }
@@ -33,6 +39,7 @@ export default function DashboardHero({
   totalIncome,
   totalExpense,
   periodNoun,
+  previousMonth,
   onConfigure,
   className
 }: DashboardHeroProps) {
@@ -44,6 +51,10 @@ export default function DashboardHero({
       value: formatSignedNumber(totalIncome - totalExpense, { showPlus: true })
     }
   ]
+
+  const expenseComparison = previousMonth
+    ? compareMonths(totalExpense, previousMonth.totalExpense)
+    : null
 
   return (
     <Card className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass, className)}>
@@ -63,6 +74,11 @@ export default function DashboardHero({
           </div>
         ))}
       </dl>
+      {expenseComparison && previousMonth ? (
+        <p className={dashboardHeroCompareClass}>
+          {heroExpenseComparisonText(expenseComparison, previousMonth.monthName, periodNoun)}
+        </p>
+      ) : null}
     </Card>
   )
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { isConfigured } from '../../services/settings'
@@ -15,6 +15,7 @@ import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
 import { TreasurySkeleton } from '../skeleton'
 import StatCard from '../StatCard'
+import SavingsGoalsSection from './SavingsGoalsSection'
 import TreasuryAssetFormModal from './TreasuryAssetFormModal'
 import TreasuryBuyFormModal from './TreasuryBuyFormModal'
 import TreasuryClassChips from './TreasuryClassChips'
@@ -22,6 +23,7 @@ import TreasuryHoldingCard from './TreasuryHoldingCard'
 import TreasuryHoldingList from './TreasuryHoldingList'
 import TreasuryHoldingTable from './TreasuryHoldingTable'
 import TreasuryPriceCard from './TreasuryPriceCard'
+import { useSavingsGoals } from './useSavingsGoals'
 import { useTreasuryClassFilter } from './useTreasuryClassFilter'
 import { useTreasuryData } from './useTreasuryData'
 import { useTreasuryFilters } from './useTreasuryFilters'
@@ -39,6 +41,10 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
 
   const classFilter = useTreasuryClassFilter(data.holdings, data.searchedHoldings)
 
+  const goals = useSavingsGoals(active)
+  const { setEditing: setEditingGoal } = goals
+  const openGoalForm = useCallback(() => setEditingGoal('new'), [setEditingGoal])
+
   const forms = useTreasuryForms(
     data.loadItems,
     data.transactions,
@@ -53,7 +59,8 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
     data.priceLoading,
     forms.openCreateForm,
     searchQuery,
-    setSearchQuery
+    setSearchQuery,
+    openGoalForm
   )
 
   // tgju quotes for the class: the original seven plus any asset the user holds.
@@ -107,6 +114,23 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
   }
 
   const { visibleHoldings } = classFilter
+  const hasGoals = goals.visibleGoals.length > 0
+  // The «هدف‌ها» chip disappears with the last open goal; «همه» takes over then.
+  const goalsOnly = classFilter.selected === 'goals' && hasGoals
+  const chipValue = classFilter.selected === 'goals' && !hasGoals ? 'all' : classFilter.selected
+  const inAll = !goalsOnly && classFilter.assetClass == null
+  const hasAnything = data.holdings.length > 0 || hasGoals
+  const total = goalsOnly
+    ? {
+        label: 'جمع هدف‌ها',
+        amount: goals.total,
+        parts: goals.visibleGoals.map(goal => goal.balance)
+      }
+    : {
+        label: classFilter.totalLabel,
+        amount: classFilter.classTotal + (inAll ? goals.total : 0),
+        parts: classFilter.classHoldings.map(holding => holding.totalValue)
+      }
 
   return (
     <div className={listModulePageClass}>
@@ -133,15 +157,16 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
         />
       </FilterModal>
 
-      {data.holdings.length > 0 && (
+      {hasAnything && (
         <TreasuryClassChips
           counts={classFilter.counts}
-          value={classFilter.selected}
+          goalsCount={goals.visibleGoals.length}
+          value={chipValue}
           onChange={classFilter.select}
         />
       )}
 
-      {data.prices && (
+      {data.prices && !goalsOnly && (
         <TreasuryPriceCard
           prices={data.prices}
           assets={priceAssets}
@@ -150,15 +175,19 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
         />
       )}
 
-      {data.loading && data.holdings.length === 0 ? (
+      {(inAll || goalsOnly) && <SavingsGoalsSection goals={goals} goalsOnly={goalsOnly} />}
+
+      {goalsOnly ? null : data.loading && data.holdings.length === 0 ? (
         <TreasurySkeleton />
       ) : data.holdings.length === 0 ? (
-        <EmptyState
-          icon="treasury"
-          description="پس‌انداز هدف‌دار: طلا، ارز، سهام، رمزارز یا هر دارایی دیگری را جدا از حساب‌های روزمره دنبال کن."
-          message="هنوز دارایی‌ای ثبت نشده"
-          action={{ label: 'افزودن دارایی', onClick: () => forms.openCreateForm() }}
-        />
+        hasGoals ? null : (
+          <EmptyState
+            icon="treasury"
+            description="پس‌انداز هدف‌دار: طلا، ارز، سهام، رمزارز یا هر دارایی دیگری را جدا از حساب‌های روزمره دنبال کن."
+            message="هنوز دارایی‌ای ثبت نشده"
+            action={{ label: 'افزودن دارایی', onClick: () => forms.openCreateForm() }}
+          />
+        )
       ) : visibleHoldings.length === 0 ? (
         <SearchEmptyState />
       ) : isDesktop ? (
@@ -179,15 +208,13 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
         />
       )}
 
-      {data.holdings.length > 0 && (
+      {hasAnything && (
         <StatCard
-          label={classFilter.totalLabel}
-          amount={classFilter.classTotal}
+          label={total.label}
+          amount={total.amount}
           variant="balance"
           wide
-          sparklineData={distributionSparkline(
-            classFilter.classHoldings.map(holding => holding.totalValue)
-          )}
+          sparklineData={distributionSparkline(total.parts)}
           className={cn(receivableTotalCardClass, treasuryTotalCardClass)}
         />
       )}

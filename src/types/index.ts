@@ -51,6 +51,16 @@ export type {
 } from './entities'
 
 export type {
+  CategoryBudget,
+  MonthComparison,
+  MonthTrend,
+  PreviousMonthSummary,
+  SavingsGoal,
+  SavingsGoalStatus,
+  SavingsGoalView
+} from './insights'
+
+export type {
   ReminderKind,
   ReminderRule,
   PushSubscriptionRecord,

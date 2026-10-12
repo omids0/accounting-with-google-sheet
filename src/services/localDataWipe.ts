@@ -9,6 +9,7 @@ import { setBankSmsCaptureEnabled } from './bankSmsNative'
 import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
 import { invalidateDashboardCache } from './dashboardCache'
 import { DISCOVERY_STORAGE_KEY } from './featureDiscovery'
+import { GOAL_CONGRATS_STORAGE_KEY } from './goalCongrats'
 import { isNativePlatform, signOutNative } from './googleAuthNative'
 import { loadGoogleIdentityScript } from './googleIdentityScript'
 import { ONBOARDING_STORAGE_KEY } from './onboarding'
@@ -44,7 +45,10 @@ const ACCOUNT_KEYS = [
   DISCOVERY_STORAGE_KEY,
   'accounting_nudges_v1',
   BACKUP_STORAGE_KEY,
-  TREASURY_CLASS_STORAGE_KEY
+  TREASURY_CLASS_STORAGE_KEY,
+  GOAL_CONGRATS_STORAGE_KEY,
+  // Budget alert gate (budgetDigest.ts), named here to keep that module out of this chunk.
+  'accounting_budget_alerts_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000
