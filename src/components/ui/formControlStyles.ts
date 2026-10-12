@@ -57,7 +57,9 @@ export function customSelectOptionClass({
 }) {
   return cn(
     'w-full cursor-pointer rounded-lg px-3 py-[0.6rem] text-[0.95rem] leading-[1.4] transition-[background-color,color] duration-[var(--duration-fast)]',
-    selected ? 'bg-primary text-white hover:bg-primary-dark' : 'hover:bg-[rgba(15,118,110,0.1)]',
+    selected
+      ? 'bg-primary text-on-primary hover:bg-primary-dark'
+      : 'hover:bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)]',
     disabled && 'cursor-not-allowed opacity-45 hover:bg-transparent'
   )
 }
@@ -95,13 +97,13 @@ export const categorySelectHeaderTitleClass =
   'flex items-center gap-[0.45rem] text-[0.82rem] font-bold text-text'
 
 export const categorySelectCountClass =
-  'inline-flex h-[1.35rem] min-w-[1.35rem] items-center justify-center rounded-full bg-primary px-[0.35rem] text-[0.68rem] font-bold text-white'
+  'inline-flex h-[1.35rem] min-w-[1.35rem] items-center justify-center rounded-full bg-primary px-[0.35rem] text-[0.68rem] font-bold text-on-primary'
 
 export function categorySelectManageBtnClass(active?: boolean) {
   return cn(
     'inline-flex cursor-pointer items-center gap-[0.3rem] rounded-full border border-border bg-surface px-[0.6rem] py-[0.35rem] font-[inherit] text-[0.72rem] font-semibold text-muted transition-[background,color,border-color] duration-[var(--duration-fast)]',
     'hover:enabled:border-primary-light hover:enabled:text-primary-dark',
-    active && 'border-primary bg-primary text-white'
+    active && 'border-primary bg-primary text-on-primary'
   )
 }
 
@@ -124,7 +126,7 @@ export const categorySelectAddInputClass = cn(
 )
 
 export const categorySelectAddBtnClass = cn(
-  'inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-primary p-0 text-white transition-[background,transform] duration-[var(--duration-fast)]',
+  'inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-primary p-0 text-on-primary transition-[background,transform] duration-[var(--duration-fast)]',
   'hover:enabled:bg-primary-dark active:enabled:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2'
 )
@@ -149,7 +151,10 @@ export function categorySelectItemClass({
 }) {
   return cn(
     'mb-1 flex items-center gap-1 rounded-sm transition-[background,opacity,box-shadow] duration-[var(--duration-fast)] last:mb-0',
-    selected && !editing && !confirming && 'bg-[rgba(15,118,110,0.08)]',
+    selected &&
+      !editing &&
+      !confirming &&
+      'bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)]',
     !editing && !confirming && 'hover:bg-bg',
     dragging && 'opacity-55',
     dragOver && 'shadow-[inset_0_2px_0_var(--color-primary)]'
@@ -168,7 +173,7 @@ export const categorySelectDragHandleSpacerClass = 'inline-block h-touch-min w-8
 
 export const categorySelectOptionBtnClass = cn(
   'flex min-h-touch-min min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-3 py-2 text-right font-[inherit] text-[0.92rem] text-text transition-[color,background-color] duration-[var(--duration-fast)]',
-  'hover:enabled:bg-[rgba(15,118,110,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] disabled:cursor-default'
+  'hover:enabled:bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] disabled:cursor-default'
 )
 
 export const categorySelectOptionCheckClass =
@@ -209,7 +214,7 @@ export const categorySelectConfirmBtnClass =
 
 export const categorySelectConfirmDangerBtnClass = cn(
   categorySelectConfirmBtnClass,
-  'border-danger bg-danger text-white'
+  'border-danger bg-danger text-on-solid'
 )
 
 export const categorySelectEmptyClass = 'px-3 py-5 text-center text-[0.85rem] text-muted'
@@ -253,7 +258,7 @@ export const amountFieldInputWrapInvalidClass = formControlInvalidClass
 export const amountFieldSubmitBtnClass = cn(
   'amount-field-submit inline-flex min-h-touch-min shrink-0 cursor-pointer items-center justify-center border-none px-[0.7rem] py-0',
   'border-s border-[color-mix(in_srgb,var(--color-primary-dark)_35%,rgba(255,255,255,0.35))]',
-  'text-[0.72rem] font-extrabold tracking-[0.01em] text-white',
+  'text-[0.72rem] font-extrabold tracking-[0.01em] text-on-primary',
   '[background:linear-gradient(145deg,var(--color-primary-dark)_0%,var(--color-primary)_52%,var(--color-primary-light)_100%)]',
   'shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]',
   'transition-[filter,transform,opacity] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',

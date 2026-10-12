@@ -71,7 +71,7 @@ export const recordsFilterActionsClass = cn(
 export const recordsDateGridClass = cn(
   'grid grid-cols-2 gap-[0.4rem]',
   '[&_button]:rounded-[var(--radius)] [&_button]:border [&_button]:border-border [&_button]:bg-bg [&_button]:px-[0.35rem] [&_button]:py-[0.48rem] [&_button]:text-[0.76rem] [&_button]:font-semibold [&_button]:text-muted [&_button]:transition-[background,color,border-color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  '[&_button.active]:border-primary [&_button.active]:bg-primary [&_button.active]:text-white'
+  '[&_button.active]:border-primary [&_button.active]:bg-primary [&_button.active]:text-on-primary'
 )
 
 export const recordsSortDirectionGridClass = 'mt-[0.45rem]'
@@ -199,7 +199,7 @@ export const reconcileDiffClass = 'font-bold'
 export const toggleChipGridClass = cn(
   'flex flex-wrap gap-[0.45rem]',
   '[&_button]:rounded-full [&_button]:border [&_button]:border-border [&_button]:bg-bg [&_button]:px-[0.85rem] [&_button]:py-[0.45rem] [&_button]:text-[0.78rem] [&_button]:font-semibold [&_button]:text-muted [&_button]:transition-[background,color,border-color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  '[&_button.active]:border-primary [&_button.active]:bg-primary [&_button.active]:text-white'
+  '[&_button.active]:border-primary [&_button.active]:bg-primary [&_button.active]:text-on-primary'
 )
 
 export function toggleChipBtnClass(active?: boolean) {
@@ -211,7 +211,7 @@ export function recordsDateGridBtnClass(active?: boolean) {
 }
 
 export function yearFilterTriggerClass(active?: boolean) {
-  return active ? 'border-primary bg-primary text-white' : ''
+  return active ? 'border-primary bg-primary text-on-primary' : ''
 }
 
 export const yearFilterPanelClass = 'records-custom-range year-filter-panel'

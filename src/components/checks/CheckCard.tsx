@@ -42,6 +42,7 @@ export default function CheckCard({
             className={dangCheckboxClass}
             checked={item.paid}
             disabled={togglingId === item.id}
+            aria-label={`پرداخت شد: چک ${item.checkNumber}`}
             onChange={e => onTogglePaid(item, e.target.checked)}
           />
           <div className={dangCardBodyClass}>
