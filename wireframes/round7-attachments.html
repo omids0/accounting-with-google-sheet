@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — پیوست رسید، حالت مخفی، تقویم (round 7)</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+    <link rel="stylesheet" href="wireframe-r6.css" />
+    <link rel="stylesheet" href="wireframe-r6-2.css" />
+    <style>
+      .thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: repeating-linear-gradient(45deg, #ddd, #ddd 4px, #eee 4px, #eee 8px);
+        border: 1px solid #bbb;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #666;
+      }
+      .mask {
+        letter-spacing: 2px;
+        color: #777;
+      }
+      .cal {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 3px;
+        font-size: 10px;
+        text-align: center;
+      }
+      .cal .h {
+        color: #999;
+        font-size: 9px;
+      }
+      .cal span {
+        border-radius: 8px;
+        padding: 5px 0 3px;
+        position: relative;
+      }
+      .cal span.e {
+        border: 1.5px solid #555;
+        font-weight: 800;
+      }
+      .cal span.o {
+        border: 1.5px solid #a33;
+        color: #a33;
+        font-weight: 800;
+      }
+      .cal span i {
+        display: block;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #555;
+        margin: 2px auto 0;
+      }
+      .cal span.t {
+        background: #555;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="back"><a href="index.html">← فهرست وایرفریم‌ها</a></p>
+    <h1>وایرفریم round 7: پیوست رسید، حالت مخفی ارقام، تقویم سررسیدها</h1>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs"><button class="on">۱ · پیوست رسید به رکورد</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>ثبت جدید</span
+            ><span class="icon" style="border: 0"></span>
+          </div>
+          <div class="content">
+            <div class="card">
+              <div class="f-row">
+                <label>مبلغ</label>
+                <div class="f-input" style="color: #333">۲٬۴۰۰٬۰۰۰</div>
+              </div>
+              <div class="f-row">
+                <label>دسته‌بندی</label>
+                <div class="f-input" style="color: #333">خانه › تعمیر و لوازم</div>
+              </div>
+              <div class="f-row">
+                <label>پیوست</label>
+                <div style="display: flex; gap: 6px; align-items: center">
+                  <div class="thumb">فاکتور</div>
+                  <div class="thumb" style="background: #fff; border-style: dashed">📷</div>
+                  <div class="thumb" style="background: #fff; border-style: dashed">🖼</div>
+                  <small style="color: #888">حداکثر ۳ · فشرده می‌شود</small>
+                </div>
+              </div>
+              <button class="btn-primary" style="width: 100%; margin-top: 12px">ذخیره</button>
+            </div>
+            <div class="sec-h">در لیست رکوردها</div>
+            <div class="flat">
+              <div class="r">
+                <span class="d">۱۲</span
+                ><span class="t"
+                  >تعمیر یخچال <span class="badge">📎 ۱</span><small>خانه · ملت</small></span
+                ><span class="a">−۲٬۴۰۰٬۰۰۰</span>
+              </div>
+              <div class="r">
+                <span class="d">۱۱</span><span class="t">سوپر<small>خوراک · نقدی</small></span
+                ><span class="a">−۲۵۰٬۰۰۰</span>
+              </div>
+            </div>
+          </div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <h3>فاکتور تعمیر یخچال</h3>
+            <div
+              style="
+                height: 120px;
+                border: 1px solid #bbb;
+                border-radius: 10px;
+                background: repeating-linear-gradient(45deg, #ddd, #ddd 4px, #eee 4px, #eee 8px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                color: #666;
+              "
+            >
+              پیش‌نمایش تصویر
+            </div>
+            <div class="disco-actions" style="margin-top: 8px">
+              <button class="btn-sm">باز کردن در Drive</button
+              ><button class="linkbtn">اشتراک</button
+              ><button class="linkbtn" style="color: #a33">حذف</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۲ · حالت مخفی ارقام</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>حساب کتاب</span
+            ><span class="icon" style="border-color: #555">◉</span>
+          </div>
+          <div class="content">
+            <div class="card hero2">
+              <div class="lbl">دارایی قابل اتکا</div>
+              <div class="num mask">••••••••</div>
+              <small style="color: #888">لمس برای دیدن ۵ ثانیه</small>
+            </div>
+            <div class="flat">
+              <div class="sec-h">پیش رو</div>
+              <div class="r">
+                <span class="d">۵</span><span class="t">قسط وام مسکن</span
+                ><span class="a mask">•••••</span>
+              </div>
+              <div class="r">
+                <span class="d">۱۱</span><span class="t">چک ۱۲۳۴۵۲</span
+                ><span class="a mask">•••••</span>
+              </div>
+              <div class="sec-h">تراکنش‌های اخیر</div>
+              <div class="r">
+                <span class="d">۱۲</span><span class="t">تعمیر یخچال<small>خانه · ملت</small></span
+                ><span class="a mask">•••••</span>
+              </div>
+              <div class="r">
+                <span class="d">۱۱</span><span class="t">سوپر<small>خوراک · نقدی</small></span
+                ><span class="a mask">•••••</span>
+              </div>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: auto 0 0">
+              آیکون چشم در هدر: همهٔ مبلغ‌ها، نمودارها و موجودی‌ها «•••». لمس یک مبلغ = همان یکی ۵
+              ثانیه نمایش. تا خاموش کردن می‌ماند، حتی بعد از بستن اپ.
+            </p>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۳ · تقویم سررسیدها</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>سررسیدها</span><span class="icon">⋯</span>
+          </div>
+          <div class="content">
+            <div class="segs">
+              <span>فهرست</span
+              ><span style="background: #555; color: #fff; border-color: #555">تقویم</span>
+            </div>
+            <div class="sec-h">‹ مهر ۱۴۰۵ ›</div>
+            <div class="card" style="padding: 8px">
+              <div class="cal">
+                <span class="h">ش</span><span class="h">ی</span><span class="h">د</span
+                ><span class="h">س</span><span class="h">چ</span><span class="h">پ</span
+                ><span class="h">ج</span> <span>۱</span><span>۲</span
+                ><span class="o">۳<i style="background: #a33"></i></span><span>۴</span
+                ><span class="e">۵<i></i></span><span>۶</span><span>۷</span> <span>۸</span
+                ><span>۹</span><span>۱۰</span><span class="e">۱۱<i></i></span
+                ><span class="t">۱۲</span><span>۱۳</span><span>۱۴</span> <span>۱۵</span
+                ><span>۱۶</span><span>۱۷</span><span>۱۸</span><span>۱۹</span
+                ><span class="e">۲۰<i></i></span><span>۲۱</span> <span>۲۲</span><span>۲۳</span
+                ><span>۲۴</span><span class="e">۲۵<i></i></span><span>۲۶</span><span>۲۷</span
+                ><span>۲۸</span> <span>۲۹</span><span>۳۰</span>
+              </div>
+            </div>
+            <div class="flat">
+              <div class="r">
+                <span class="d" style="background: #fdd; color: #a33">۳</span
+                ><span class="t">قسط خودرو<small>معوق · ۹ روز گذشته</small></span
+                ><span class="a">۱٬۲۰۰٬۰۰۰</span>
+              </div>
+              <div class="r">
+                <span class="d">۵</span><span class="t">قسط وام مسکن</span
+                ><span class="a">۳٬۰۰۰٬۰۰۰</span>
+              </div>
+              <div class="r">
+                <span class="d">۱۱</span><span class="t">چک ۱۲۳۴۵۲ · علی رضایی</span
+                ><span class="a">۲٬۰۰۰٬۰۰۰</span>
+              </div>
+            </div>
+            <div class="flat" style="margin-top: auto">
+              <div class="r">
+                <span class="d">📅</span
+                ><span class="t"
+                  >افزودن به تقویم گوشی<small
+                    >یادآور ۱ روز قبل · فایل ICS یا Google Calendar</small
+                  ></span
+                ><span class="a" style="font-weight: 400; color: #999">›</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>۱ · پیوست</b> — رکورد، چک، قسط، هزینهٔ خودرو. ذخیره در پوشهٔ Drive کنار شیت (<code
+            >drive.ts</code
+          >
+          و scope فعلی)، زیرپوشهٔ «پیوست‌ها/۱۴۰۵»؛ تصویر قبل از آپلود به حداکثر ۱۶۰۰px و ~۳۰۰KB
+          فشرده می‌شود؛ شناسهٔ فایل Drive در ستون جدید «پیوست» ردیف. بدون اینترنت: در صف outbox
+          می‌ماند و بندانگشتی محلی نشان داده می‌شود. حذف رکورد = پرسش «پیوست هم پاک شود؟». PDF هم
+          مجاز.
+        </div>
+        <div class="note">
+          <b>۲ · حالت مخفی</b> — یک کلید per device (<code>accounting_amounts_hidden</code>)؛
+          <code>MoneyDisplay</code> و نمودارها آن را می‌خوانند، پس بدون دست زدن به صفحه‌ها اعمال
+          می‌شود. لمس روی یک مبلغ = ۵ ثانیه همان مبلغ. ورودی فرم‌ها مخفی نمی‌شوند. با قفل اپ ترکیب
+          می‌شود: قفل = امنیت، مخفی = حریم در جمع.
+        </div>
+        <div class="note">
+          <b>۳ · تقویم</b> — نمای دوم گزارش سررسیدها (همان داده‌ی <code>dashboardReminders</code>):
+          قسط، چک، بدهی، یادآور شخصی، سرویس خودرو. روزهای دارای مورد نقطه، معوق قرمز، امروز پر. لمس
+          روز = لیست همان روز. «افزودن به تقویم گوشی»: فایل ICS با همهٔ موارد ۱۲ ماه آینده و یادآور
+          ۱ روز قبل (بدون scope جدید)؛ گزینهٔ Google Calendar فقط اگر scope بخواهیم — تصمیم تو.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
