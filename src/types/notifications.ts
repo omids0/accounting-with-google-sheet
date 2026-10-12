@@ -4,6 +4,7 @@ export type ReminderKind =
   | 'dang'
   | 'personal'
   | 'daily'
+  | 'nightly'
   | 'vehicle-mileage'
   | 'vehicle-deadline'
   | 'vehicle-periodic-service'

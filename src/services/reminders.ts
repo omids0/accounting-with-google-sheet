@@ -30,6 +30,7 @@ const VALID_KINDS: ReminderKind[] = [
   'dang',
   'personal',
   'daily',
+  'nightly',
   'vehicle-mileage',
   'vehicle-deadline',
   'vehicle-periodic-service'
@@ -40,7 +41,8 @@ const REMINDER_KIND_LABELS: Record<ReminderKind, string> = {
   checks: 'چک‌ها',
   dang: 'بدهی‌ها',
   personal: 'مواعد شخصی',
-  daily: 'یادآوری روزانه',
+  daily: 'دیروز سر نزدی',
+  nightly: 'جمع‌بندی شبانه',
   'vehicle-mileage': 'کارکرد خودرو',
   'vehicle-deadline': 'موعد خودرو',
   'vehicle-periodic-service': 'سرویس دوره‌ای خودرو'
@@ -49,11 +51,12 @@ const REMINDER_KIND_LABELS: Record<ReminderKind, string> = {
 const DUE_DATE_KINDS: ReminderKind[] = ['installments', 'checks', 'dang']
 
 export const DEFAULT_RULES: ReminderRule[] = [
-  { kind: 'installments', enabled: false, daysBefore: 1, hour: 9, minute: 0 },
-  { kind: 'checks', enabled: false, daysBefore: 1, hour: 9, minute: 0 },
-  { kind: 'dang', enabled: false, daysBefore: 1, hour: 9, minute: 0 },
-  { kind: 'personal', enabled: false, daysBefore: 0, hour: 9, minute: 0 },
-  { kind: 'daily', enabled: true, daysBefore: 0, hour: 9, minute: 0 },
+  { kind: 'installments', enabled: true, daysBefore: 1, hour: 9, minute: 0 },
+  { kind: 'checks', enabled: true, daysBefore: 1, hour: 9, minute: 0 },
+  { kind: 'dang', enabled: true, daysBefore: 1, hour: 9, minute: 0 },
+  { kind: 'personal', enabled: true, daysBefore: 0, hour: 9, minute: 0 },
+  { kind: 'nightly', enabled: true, daysBefore: 0, hour: 21, minute: 0 },
+  { kind: 'daily', enabled: false, daysBefore: 0, hour: 9, minute: 0 },
   { kind: 'vehicle-mileage', enabled: false, daysBefore: 0, hour: 9, minute: 0 },
   { kind: 'vehicle-deadline', enabled: false, daysBefore: 14, hour: 9, minute: 0 },
   { kind: 'vehicle-periodic-service', enabled: false, daysBefore: 0, hour: 9, minute: 0 }
@@ -84,6 +87,14 @@ function rowToRule(row: string[]): ReminderRule | null {
     minute: Math.min(59, Math.max(0, parseNumeric(row[4])))
   }
 }
+
+/** Rule rows of the «یادآوری» tab; unknown kinds are skipped. */
+export function parseReminderRows(rows: string[][]): ReminderRule[] {
+  return rows.map(row => rowToRule(row)).filter((rule): rule is ReminderRule => rule != null)
+}
+
+/** Settings tabs are not bookkeeping, so they must not count as "recorded something today". */
+const SETTINGS_WRITE_OPTIONS = { skipActivity: true } as const
 
 function ruleToRow(rule: ReminderRule): string[] {
   return [
@@ -152,32 +163,13 @@ export async function fetchReminderRules(spreadsheetId: string): Promise<Reminde
   await ensureReminderSheets(spreadsheetId)
 
   const rows = await fetchSheetRows(spreadsheetId, REMINDERS_SHEET)
-  const rules = rows.map(row => rowToRule(row)).filter((rule): rule is ReminderRule => rule != null)
+  const rules = parseReminderRows(rows)
 
   return DEFAULT_RULES.map(defaults => {
     const existing = rules.find(rule => rule.kind === defaults.kind)
 
     return existing ?? { ...defaults }
   })
-}
-
-export async function ensureDefaultReminderRules(spreadsheetId: string): Promise<void> {
-  await ensureReminderSheets(spreadsheetId)
-
-  const rows = await fetchSheetRows(spreadsheetId, REMINDERS_SHEET)
-  const dailyRow = rows.find(row => String(row[0] ?? '').trim() === 'daily')
-
-  if (dailyRow && parseBool(dailyRow[1])) return
-
-  await saveReminderRules(spreadsheetId, [
-    {
-      kind: 'daily',
-      enabled: true,
-      daysBefore: 0,
-      hour: Math.min(23, Math.max(0, parseNumeric(dailyRow?.[3]) || 9)),
-      minute: Math.min(59, Math.max(0, parseNumeric(dailyRow?.[4])))
-    }
-  ])
 }
 
 export function formatDailyEngagementMessage(): { title: string; body: string } {
@@ -209,9 +201,9 @@ export async function saveReminderRules(
     const rowNumber = existingByKind.get(rule.kind)
 
     if (rowNumber) {
-      await updateSheetRow(spreadsheetId, REMINDERS_SHEET, rowNumber, row)
+      await updateSheetRow(spreadsheetId, REMINDERS_SHEET, rowNumber, row, SETTINGS_WRITE_OPTIONS)
     } else {
-      await appendSheetRow(spreadsheetId, REMINDERS_SHEET, row)
+      await appendSheetRow(spreadsheetId, REMINDERS_SHEET, row, SETTINGS_WRITE_OPTIONS)
     }
   }
 }
@@ -247,12 +239,18 @@ export async function upsertPushSubscription(
   if (match && isSameRecentSubscription(match, subscription)) return
 
   if (match) {
-    await updateSheetRow(spreadsheetId, PUSH_SUBS_SHEET, match.rowNumber, row)
+    await updateSheetRow(
+      spreadsheetId,
+      PUSH_SUBS_SHEET,
+      match.rowNumber,
+      row,
+      SETTINGS_WRITE_OPTIONS
+    )
 
     return
   }
 
-  await appendSheetRow(spreadsheetId, PUSH_SUBS_SHEET, row)
+  await appendSheetRow(spreadsheetId, PUSH_SUBS_SHEET, row, SETTINGS_WRITE_OPTIONS)
 }
 
 export async function removePushSubscription(

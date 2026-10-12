@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 
+import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import { BANK_SMS_ENABLE_MESSAGES, enableBankSmsCapture } from '../../services/bankSmsEnable'
 import { getBankSmsPermission, setBankSmsCaptureEnabled } from '../../services/bankSmsNative'
 import { getBankSmsPrefs, updateBankSmsPrefs } from '../../services/bankSmsPrefs'
+import { getNotificationPermission } from '../../services/localNotifications'
 import { showError, showSuccess } from '../../utils/toast'
 import {
   smsActionsRowClass,
@@ -22,10 +25,15 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
   const [enabled, setEnabled] = useState(() => getBankSmsPrefs().enabled)
   const [granted, setGranted] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [notifyAllowed, setNotifyAllowed] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     void getBankSmsPermission()
       .then(state => setGranted(state === 'granted'))
+      .catch(() => {})
+    void getNotificationPermission()
+      .then(state => setNotifyAllowed(state === 'granted'))
       .catch(() => {})
   }, [])
 
@@ -75,6 +83,21 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
 
       {enabled && !granted && (
         <p className={smsHintClass}>اجازه دسترسی به پیامک‌ها لغو شده است؛ دوباره اجازه دهید.</p>
+      )}
+
+      {enabled && !notifyAllowed && (
+        <p className={smsHintClass}>
+          برای اینکه شب‌ها از پیامک‌های ثبت‌نشده خبردار شوید، «جمع‌بندی شبانه» را در یادآوری‌ها روشن
+          کنید.{' '}
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => navigate(SETTINGS_REMINDERS_PATH)}
+          >
+            یادآوری‌ها
+          </Button>
+        </p>
       )}
 
       <div className={smsActionsRowClass}>

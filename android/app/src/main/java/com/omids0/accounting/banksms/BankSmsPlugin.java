@@ -1,7 +1,12 @@
 package com.omids0.accounting.banksms;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import android.provider.Telephony;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -48,6 +53,54 @@ public class BankSmsPlugin extends Plugin {
         }
 
         call.resolve();
+    }
+
+    /** Alarms do not survive a reboot or an update; every app start arms the digest again. */
+    @Override
+    public void load() {
+        NightlyDigest.schedule(getContext());
+    }
+
+    @PluginMethod
+    public void setNightlyDigest(PluginCall call) {
+        Boolean enabled = call.getBoolean("enabled", true);
+        Integer hour = call.getInt("hour", 21);
+        Integer minute = call.getInt("minute", 0);
+
+        NightlyDigest.configure(
+            getContext(),
+            !Boolean.FALSE.equals(enabled),
+            hour == null ? 21 : hour,
+            minute == null ? 0 : minute
+        );
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void setLastOperationDate(PluginCall call) {
+        NightlyDigest.setLastOperationDate(getContext(), call.getString("date", ""));
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void openNotificationSettings(PluginCall call) {
+        String packageName = getContext().getPackageName();
+        Intent intent;
+
+        if (Build.VERSION.SDK_INT >= 26) {
+            intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName);
+        } else {
+            intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null));
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        try {
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (ActivityNotFoundException e) {
+            call.reject("Notification settings are not available", e);
+        }
     }
 
     @PluginMethod

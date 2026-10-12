@@ -1,3 +1,4 @@
+import { setLastOperationDateNative } from './bankSmsNative'
 import { getSettings } from './settings'
 import { ensureSheetWithHeaders, fetchSheetRows, updateSheetRow, appendSheetRow } from './sheets'
 import { getItem, setItem } from './storage'
@@ -22,7 +23,18 @@ function getState(): ActivityState {
 }
 
 function saveState(state: ActivityState): void {
+  const previous = getState().lastOperationDate
+
   setItem(ACTIVITY_KEY, state)
+
+  // The Android nightly digest reads it while the app is closed.
+  if (state.lastOperationDate && state.lastOperationDate !== previous) {
+    void setLastOperationDateNative(state.lastOperationDate)
+  }
+}
+
+export function getLastOperationDate(): string {
+  return getState().lastOperationDate ?? ''
 }
 
 async function ensureActivitySheet(spreadsheetId: string): Promise<void> {

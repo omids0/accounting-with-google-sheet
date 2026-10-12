@@ -1,16 +1,16 @@
-import { LocalNotifications } from '@capacitor/local-notifications'
-
 import { requestBankSmsPermission, setBankSmsCaptureEnabled } from './bankSmsNative'
 import { updateBankSmsPrefs } from './bankSmsPrefs'
 
 export type BankSmsEnableResult = 'enabled' | 'denied' | 'failed'
 
-/** Asks for SMS (and notification) permission and turns capture on from now. */
+/**
+ * Asks for SMS permission and turns capture on from now. Notification permission is asked
+ * separately, with its own reason, from the nightly digest on the reminders page.
+ */
 export async function enableBankSmsCapture(): Promise<BankSmsEnableResult> {
   try {
     if ((await requestBankSmsPermission()) !== 'granted') return 'denied'
 
-    await LocalNotifications.requestPermissions().catch(() => undefined)
     await setBankSmsCaptureEnabled(true)
     // Start from now; older SMS are read for the range chosen on the page.
     updateBankSmsPrefs({ enabled: true, lastScanAt: Date.now() })
