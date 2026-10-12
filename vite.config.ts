@@ -37,9 +37,9 @@ export default defineConfig(({ command }) => ({
       ],
       manifest: {
         id: basePath,
-        name: 'حسابداری شخصی',
-        short_name: 'حسابداری',
-        description: 'نرم‌افزار حسابداری شخصی با ذخیره‌سازی در گوگل شیت',
+        name: 'حساب کتاب',
+        short_name: 'حساب کتاب',
+        description: 'حساب کتاب: حسابداری شخصی با ذخیره‌سازی در گوگل شیت',
         theme_color: '#0f766e',
         background_color: '#f0fdfa',
         display: 'standalone',

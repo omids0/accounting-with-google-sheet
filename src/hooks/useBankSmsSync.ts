@@ -7,8 +7,10 @@ import { isBankSmsAvailable } from '../services/bankSmsNative'
 import { syncBankSmsNativeSettings } from '../services/bankSmsViewRange'
 import { useBankSmsStore } from '../stores/bankSmsStore'
 
-/** Matches the URL the native notification opens (BankSmsNotifier.OPEN_URL). */
+/** URLs the native notifications open (BankSmsNotifier.OPEN_URL, NightlyDigest.ENTRY_URL). */
 const OPEN_URL_MARKER = '://bank-sms'
+
+const ENTRY_URL_MARKER = '://entry'
 
 /** The launch URL stays the same for the whole session; follow it only once. */
 let launchUrlHandled = false
@@ -30,6 +32,7 @@ export function useBankSmsSync(): void {
     const { refresh } = useBankSmsStore.getState()
     const openIfBankSms = (url: string | undefined) => {
       if (url?.includes(OPEN_URL_MARKER)) navigateRef.current(getPathForTab('bank-sms'))
+      else if (url?.includes(ENTRY_URL_MARKER)) navigateRef.current(getPathForTab('entry'))
     }
 
     // Re-sync the native switch and range (e.g. after an update) before reading the queue.

@@ -49,7 +49,7 @@ export function useVehicleDetailSpeedDial({
         },
         {
           id: 'export',
-          label: 'اکسپورت',
+          label: 'خروجی CSV',
           icon: <SpeedDialIcon name="export" />,
           onClick: exportActions.handleExport
         },

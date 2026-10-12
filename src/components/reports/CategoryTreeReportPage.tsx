@@ -59,7 +59,7 @@ export default function CategoryTreeReportPage() {
         },
         {
           id: 'export',
-          label: 'خروجی اکسل',
+          label: 'خروجی CSV',
           icon: <SpeedDialIcon name="export" />,
           onClick: tree.exportCsv,
           disabled: !tree.nodes.length

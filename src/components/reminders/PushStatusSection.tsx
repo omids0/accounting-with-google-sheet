@@ -38,7 +38,7 @@ export default function PushStatusSection({
 }: PushStatusSectionProps) {
   return (
     <Card>
-      <CardTitle>وضعیت نوتیف</CardTitle>
+      <CardTitle>وضعیت فنی اعلان وب</CardTitle>
       <p
         style={{
           fontSize: '0.85rem',
@@ -46,9 +46,8 @@ export default function PushStatusSection({
           marginBottom: '0.75rem'
         }}
       >
-        یادآوری روزانه (وقتی دیروز اپ را باز نکردید) به‌صورت پیش‌فرض فعال است و با cron ارسال
-        می‌شود. برای اقساط و cron، PWA را نصب کنید، اجازهٔ نوتیف بدهید و یک‌بار راه‌اندازی را انجام
-        دهید.
+        در نسخهٔ وب، اعلان‌ها را cron شیت (Apps Script) و Worker می‌فرستند. این دستگاه باید اجازهٔ
+        اعلان داده و در شیت ثبت شده باشد؛ راه‌اندازی cron یک‌بار برای هر شیت لازم است.
       </p>
 
       <div style={{ display: 'grid', gap: '0.5rem', fontSize: '0.85rem' }}>
@@ -105,7 +104,7 @@ export default function PushStatusSection({
               hasSubscription ? 'status-connected' : 'status-disconnected'
             }`}
           >
-            {hasSubscription ? 'ثبت‌شده برای نوتیف' : 'ثبت نشده'}
+            {hasSubscription ? 'ثبت‌شده برای اعلان' : 'ثبت نشده'}
           </span>
         </div>
       </div>
@@ -114,7 +113,7 @@ export default function PushStatusSection({
         <Alert variant="info" style={{ marginTop: '0.75rem' }}>
           <p style={{ marginBottom: '0.5rem' }}>
             {isIos
-              ? 'در iOS برای نوتیf حتماً اپ را به Home Screen اضافه کنید.'
+              ? 'در iOS برای اعلان حتماً اپ را به Home Screen اضافه کنید.'
               : 'برای تجربهٔ بهتر (مخصوصاً روی گوشی) اپ را نصب کنید.'}
           </p>
           {(canInstall || isIos) && (
@@ -149,7 +148,7 @@ export default function PushStatusSection({
             disabled={saving || pushStatus !== 'supported'}
             loading={saving}
           >
-            فعال‌سازی نوتیف
+            روشن کردن اعلان
           </Button>
         ) : (
           <Button
@@ -169,7 +168,7 @@ export default function PushStatusSection({
           onClick={onTestNotification}
           disabled={saving || permission !== 'granted'}
         >
-          تست نوتیف
+          اعلان آزمایشی
         </Button>
       </div>
     </Card>

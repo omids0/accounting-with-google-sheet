@@ -31,3 +31,7 @@ export const settingsGoogleAccountAvatarClass =
 export const settingsGoogleAccountBodyClass = 'min-w-0'
 
 export const settingsGoogleAccountEmailClass = 'text-[0.85rem] font-semibold text-text'
+
+export const settingsActiveSheetClass = 'm-0 truncate px-1 text-[0.82rem] text-muted'
+
+export const settingsActiveSheetNameClass = 'font-bold text-text'

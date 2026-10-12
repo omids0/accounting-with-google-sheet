@@ -1,5 +1,5 @@
 /**
- * یادآوری سررسیدها و یادآوری روزانه — Google Apps Script (cron رایگان)
+ * یادآوری سررسیدها، جمع‌بندی شبانه و یادآوری روزانه — Google Apps Script (cron رایگان)
  *
  * نصب:
  * 1. Google Sheet → Extensions → Apps Script
@@ -86,6 +86,14 @@ function runReminderCron() {
   if (dailyRule && isReminderWindow_(dailyRule.hour, dailyRule.minute)) {
     var dailyReminders = findDailyEngagementReminders_(ss);
     sentCount += sendReminders_(ss, workerUrl, workerSecret, subscriptions, dailyReminders, 'daily');
+  }
+
+  var nightlyRule = rules.filter(function (r) {
+    return r.kind === 'nightly' && r.enabled;
+  })[0];
+  if (nightlyRule && isReminderWindow_(nightlyRule.hour, nightlyRule.minute)) {
+    var nightlyReminders = findNightlyDigestReminders_(ss);
+    sentCount += sendReminders_(ss, workerUrl, workerSecret, subscriptions, nightlyReminders, 'nightly');
   }
 
   if (sentCount > 0) {
@@ -189,10 +197,22 @@ function findDailyEngagementReminders_(ss) {
   var reference = 'daily_' + yesterday;
   return [{
     reference: reference,
-    title: 'حسابداری شخصی',
+    title: 'حساب کتاب',
     body:
       'دیروز به اپ سر نزدید و ثبت مالی هم نداشتید. اگر چیزی از قلم افتاده، همین الان بیایید ' +
       'حساب\u200cوکتابتان را به\u200cروز کنید — دیر نشده!',
+  }];
+}
+
+/** Nightly digest: nothing was recorded today. SMS counts exist only in the Android app. */
+function findNightlyDigestReminders_(ss) {
+  var today = formatIsoDate_(new Date());
+  if (readActivity_(ss).lastOperation === today) return [];
+
+  return [{
+    reference: 'nightly_' + today,
+    title: 'حساب کتاب',
+    body: 'امروز هنوز چیزی ثبت نکردی. اگر خرج یا درآمدی داشتی، همین حالا ثبتش کن.',
   }];
 }
 

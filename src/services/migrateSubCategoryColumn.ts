@@ -1,10 +1,12 @@
-import { CATEGORIES_SHEET } from './categories'
-import { CHECKS_SHEET } from './checks'
-import { DANG_SHEET } from './dang'
-import { INSTALLMENTS_SHEET } from './installmentsConstants'
-import { RECEIVABLES_SHEET } from './receivablesRow'
 import { getSettings } from './settings'
 import { withGridGrowth } from './sheetGrid'
+import {
+  CATEGORIES_SHEET,
+  CHECKS_SHEET,
+  DANG_SHEET,
+  INSTALLMENTS_SHEET,
+  RECEIVABLES_SHEET
+} from './sheetNames'
 import { writeSheetHeaders } from './sheetsEnsure'
 import { normalizeHeaderLabel } from './sheetsHeaders'
 import { fetchSheetRangeFromApi } from './sheetsRows'

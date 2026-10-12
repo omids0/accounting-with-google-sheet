@@ -1,6 +1,8 @@
 import type { Check } from '../types'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
+import { CHECKS_HEADERS } from './sheetHeaders'
+import { CHECKS_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
@@ -15,24 +17,10 @@ import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
 
-export const CHECKS_SHEET = 'چک‌ها'
+export { CHECKS_SHEET, CHECKS_HEADERS }
 
 /** Expense category of the record a paid check creates. */
 export const CHECK_EXPENSE_CATEGORY = 'چک'
-
-export const CHECKS_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'شماره چک',
-  'طرف حساب',
-  'مبلغ',
-  'تاریخ صدور',
-  'تاریخ سررسید',
-  'پرداخت شده',
-  'زمان پرداخت',
-  'شناسه تراکنش',
-  'زیردسته'
-]
 
 function parsePaid(raw: string): boolean {
   const v = String(raw ?? '')
@@ -204,11 +192,11 @@ export function totalUnpaidChecksInRange(checks: Check[], range: DateRange): num
     .reduce((sum, c) => sum + c.amount, 0)
 }
 
-export async function exportChecksCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, 'چک‌ها.csv')
+export async function exportChecksCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, 'چک‌ها.csv')
 }
 
-export async function exportChecksPdf(spreadsheetId: string): Promise<void> {
+export async function exportChecksPdf(spreadsheetId: string): Promise<string | null> {
   const checks = sortChecks(await fetchChecks(spreadsheetId))
 
   const headers = [
@@ -233,7 +221,7 @@ export async function exportChecksPdf(spreadsheetId: string): Promise<void> {
 
   const cellClasses = checks.map(() => ['', '', 'pdf-cell-amount', '', '', '', ''])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش چک‌ها',
     headers,
     rows,

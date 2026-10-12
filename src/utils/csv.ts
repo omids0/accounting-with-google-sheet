@@ -1,4 +1,5 @@
 import { normalizeDigits } from './normalizeDigits'
+import { saveExportFile } from './saveFile'
 
 /** Spreadsheet apps evaluate a cell that starts with one of these as a formula. */
 const FORMULA_TRIGGER = /^[=+\-@\t\r]/
@@ -108,35 +109,57 @@ export function downloadTextFile(
   filename: string,
   content: string,
   mimeType = 'text/csv;charset=utf-8'
-): void {
-  const blob = new Blob(['\uFEFF' + content], { type: mimeType })
-
-  const url = URL.createObjectURL(blob)
-
-  const anchor = document.createElement('a')
-
-  anchor.href = url
-  anchor.download = filename
-  anchor.click()
-  URL.revokeObjectURL(url)
+): Promise<string | null> {
+  return saveExportFile(filename, new Blob(['\uFEFF' + content], { type: mimeType }))
 }
 
+/** Some browsers refocus the window before `change` fires, so wait a moment before calling it a cancel. */
+export const PICKER_CANCEL_GRACE_MS = 1000
+
+/** Resolves `null` when the picker is dismissed, so callers never hang on a cancelled pick. */
 export function pickTextFile(accept = '.csv,text/csv'): Promise<string | null> {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const input = document.createElement('input')
+
+    let settled = false
+
+    let focusTimer: ReturnType<typeof setTimeout> | undefined
+
+    const settle = () => {
+      if (settled) return false
+      settled = true
+      window.removeEventListener('focus', handleFocus)
+      clearTimeout(focusTimer)
+
+      return true
+    }
+
+    const cancel = () => {
+      if (settle()) resolve(null)
+    }
+
+    // Fallback for browsers without the input `cancel` event (older Chrome/Safari, some WebViews).
+    function handleFocus() {
+      clearTimeout(focusTimer)
+      focusTimer = setTimeout(() => {
+        if (!input.files?.length) cancel()
+      }, PICKER_CANCEL_GRACE_MS)
+    }
 
     input.type = 'file'
     input.accept = accept
-    input.onchange = async () => {
+    input.addEventListener('cancel', cancel)
+    input.addEventListener('change', () => {
       const file = input.files?.[0]
 
       if (!file) {
-        resolve(null)
+        cancel()
 
         return
       }
-      resolve(await file.text())
-    }
+      if (settle()) file.text().then(resolve, reject)
+    })
     input.click()
+    window.addEventListener('focus', handleFocus)
   })
 }

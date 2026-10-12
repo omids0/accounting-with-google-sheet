@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'com.omids0.accounting',
-  appName: 'حسابداری شخصی',
+  appName: 'حساب کتاب',
   webDir: 'dist',
   android: {
     // Release APKs must not expose the WebView (and its stored tokens) to chrome://inspect.
@@ -15,6 +15,11 @@ const config: CapacitorConfig = {
       // ic_dialog_info glyph, which looks nothing like the app.
       smallIcon: 'ic_stat_reminder',
       iconColor: '#0F766E'
+    },
+    PrivacyScreen: {
+      // The plugin turns FLAG_SECURE on at start by default; the app enables it
+      // from JS only while the lock and the «محو کردن اپ در پس‌زمینه» toggle are on.
+      enable: false
     },
     GoogleAuth: {
       // Keep equal to NATIVE_GOOGLE_SCOPES in src/services/auth.ts (a test checks it).

@@ -1,12 +1,13 @@
 import { LocalNotifications } from '@capacitor/local-notifications'
 
+import { setNightlyDigestNative } from './bankSmsNative'
 import { fetchChecks } from './checks'
 import { fetchDangs } from './dang'
 import { isNativePlatform } from './googleAuthNative'
 import { fetchInstallmentPlans } from './installments'
 import { fetchPersonalReminders, getUpcomingPersonalReminderPushes } from './personalReminders'
 import { getUpcomingDueDateReminders } from './reminderDueDates'
-import { fetchReminderRules } from './reminders'
+import { DEFAULT_RULES, fetchReminderRules, formatDailyEngagementMessage } from './reminders'
 import type { ReminderKind, ReminderRule } from '../types'
 import { addDaysToIso, getTodayIso } from '../utils/jalaliDate'
 
@@ -70,8 +71,35 @@ function scheduledAt(dayIso: string, rule: ReminderRule): Date {
   return new Date(`${day}T${hour}:${minute}:00`)
 }
 
+/** The nightly digest is a native alarm; it only needs the rule's switch and time. */
+async function syncNightlyDigestRule(rules: ReminderRule[]): Promise<void> {
+  const rule =
+    rules.find(item => item.kind === 'nightly') ??
+    DEFAULT_RULES.find(item => item.kind === 'nightly')!
+
+  await setNightlyDigestNative(rule)
+}
+
+/**
+ * "You did not open the app yesterday": every launch moves the single pending nudge to
+ * the day after tomorrow, so it only fires after a full day without opening the app.
+ */
+function planDailyNudge(rule: ReminderRule | undefined, today: string): PlannedNotification[] {
+  if (!rule) return []
+
+  return [
+    {
+      id: notificationId('daily_engagement'),
+      ...formatDailyEngagementMessage(),
+      at: scheduledAt(addDaysToIso(today, 2), rule)
+    }
+  ]
+}
+
 async function collectPlanned(spreadsheetId: string): Promise<PlannedNotification[]> {
   const rules = await fetchReminderRules(spreadsheetId)
+
+  await syncNightlyDigestRule(rules)
 
   const ruleFor = (kind: ReminderKind): ReminderRule | undefined =>
     rules.find(rule => rule.kind === kind && rule.enabled)
@@ -91,9 +119,9 @@ async function collectPlanned(spreadsheetId: string): Promise<PlannedNotificatio
     personalRule ? fetchPersonalReminders(spreadsheetId) : []
   ])
 
-  const planned: PlannedNotification[] = []
-
   const today = getTodayIso()
+
+  const planned: PlannedNotification[] = planDailyNudge(ruleFor('daily'), today)
 
   for (let offset = 0; offset <= HORIZON_DAYS; offset += 1) {
     const dayIso = addDaysToIso(today, offset)

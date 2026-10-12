@@ -1,3 +1,5 @@
+import { APP_LOCK_HEADERS } from './sheetHeaders'
+import { APP_LOCK_SHEET } from './sheetNames'
 import { ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
 
 /**
@@ -5,8 +7,7 @@ import { ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets
  * and the sheet row is never read for lock decisions; the sheet itself is kept
  * so existing spreadsheets keep their layout.
  */
-export const APP_LOCK_SHEET = 'قفل_اپ'
-export const APP_LOCK_HEADERS = ['فعال', 'رمز_هش', 'نمک', 'زمان_بروزرسانی']
+export { APP_LOCK_SHEET, APP_LOCK_HEADERS }
 
 /**
  * Blanks the hash and salt cells of the old row (enabled = FALSE, fresh

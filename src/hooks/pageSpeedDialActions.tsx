@@ -41,7 +41,7 @@ export function createPageSpeedDialActions({
     },
     {
       id: 'export',
-      label: 'اکسپورت',
+      label: 'خروجی CSV',
       icon: <SpeedDialIcon name="export" />,
       onClick: onExport ?? (() => undefined),
       disabled: !onExport

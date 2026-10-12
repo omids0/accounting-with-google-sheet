@@ -29,7 +29,7 @@ export default function CronSetupSection({ showSetup, onToggle }: CronSetupSecti
         >
           <p style={{ marginBottom: '0.75rem' }}>
             <strong>cron سبک</strong> یعنی یک job زمان‌بندی‌شده که مثلاً هر ۱۵ دقیقه اجرا می‌شود،
-            اقساط را از همین Google Sheet می‌خواند و نوتیf می‌فرستد — بدون سرور پولی.
+            اقساط را از همین Google Sheet می‌خواند و اعلان می‌فرستد — بدون سرور پولی.
           </p>
           <ol
             style={{

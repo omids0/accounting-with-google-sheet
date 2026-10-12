@@ -1,15 +1,23 @@
+import { planImport, parseImportCsv, type ImportPlan, type ImportRowTransform } from './importPlan'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows } from './sheets'
-import { downloadTextFile, parseCsv, restoreCsvFormula, rowsToCsv } from '../utils/csv'
+import { downloadTextFile, rowsToCsv } from '../utils/csv'
 
 export interface ImportResult {
   imported: number
   skipped: number
 }
 
-function hasHeaderRow(firstRow: string[], headers: string[]): boolean {
-  if (firstRow.length < headers.length) return false
+/** The parsed file, checked against the sheet; nothing is written until `apply`. */
+export interface ImportPreview extends ImportPlan {
+  apply: () => Promise<ImportResult>
+}
 
-  return headers.every((header, index) => firstRow[index]?.trim() === header)
+/** Appending stopped part-way: `imported` rows are in, the `remaining` ones are not. */
+export class PartialImportError extends Error {
+  constructor(readonly imported: number, readonly remaining: number, readonly failure: unknown) {
+    super('ایمپورت نیمه‌کاره ماند')
+    this.name = 'PartialImportError'
+  }
 }
 
 export async function exportSheetCsv(
@@ -17,12 +25,29 @@ export async function exportSheetCsv(
   sheetName: string,
   headers: string[],
   filename: string
-): Promise<void> {
+): Promise<string | null> {
   const rows = await fetchSheetRows(spreadsheetId, sheetName)
 
-  const content = rowsToCsv(headers, rows)
+  return downloadTextFile(filename, rowsToCsv(headers, rows))
+}
 
-  downloadTextFile(filename, content)
+async function appendPlannedRows(
+  spreadsheetId: string,
+  sheetName: string,
+  plan: ImportPlan
+): Promise<ImportResult> {
+  let imported = 0
+
+  for (const row of plan.rows) {
+    try {
+      await appendSheetRow(spreadsheetId, sheetName, row)
+    } catch (err) {
+      throw new PartialImportError(imported, plan.rows.length - imported, err)
+    }
+    imported++
+  }
+
+  return { imported, skipped: plan.duplicates + plan.invalid.length }
 }
 
 export async function importSheetCsv(
@@ -30,40 +55,19 @@ export async function importSheetCsv(
   sheetName: string,
   headers: string[],
   csvContent: string,
-  transformRow: (cells: string[]) => string[] | null
-): Promise<ImportResult> {
+  transformRow: ImportRowTransform
+): Promise<ImportPreview> {
+  const parsed = parseImportCsv(csvContent, headers)
+
   await ensureSheetWithHeaders(spreadsheetId, sheetName, headers)
 
-  const parsed = parseCsv(csvContent).map(cells => cells.map(restoreCsvFormula))
+  const existingIds = (await fetchSheetRows(spreadsheetId, sheetName)).map(row =>
+    String(row[0] ?? '')
+  )
 
-  if (!parsed.length) {
-    throw new Error('فایل خالی است')
-  }
+  const plan = planImport({ ...parsed, existingIds, transformRow })
 
-  const dataRows = hasHeaderRow(parsed[0], headers) ? parsed.slice(1) : parsed
-
-  let imported = 0
-
-  let skipped = 0
-
-  for (const cells of dataRows) {
-    if (!cells.some(cell => cell.trim())) {
-      skipped++
-      continue
-    }
-
-    const row = transformRow(cells)
-
-    if (!row) {
-      skipped++
-      continue
-    }
-
-    await appendSheetRow(spreadsheetId, sheetName, row)
-    imported++
-  }
-
-  return { imported, skipped }
+  return { ...plan, apply: () => appendPlannedRows(spreadsheetId, sheetName, plan) }
 }
 
 export function newImportId(raw: string): string {

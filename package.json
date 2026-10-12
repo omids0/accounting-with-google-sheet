@@ -1,7 +1,7 @@
 {
   "name": "personal-accounting-pwa",
   "private": true,
-  "version": "1.21.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -30,11 +30,14 @@
   },
   "dependencies": {
     "@aparajita/capacitor-biometric-auth": "9.0.0",
+    "@capacitor-community/privacy-screen": "^5.2.1",
     "@capacitor/app": "^6.0.3",
     "@capacitor/core": "^6.2.2",
+    "@capacitor/filesystem": "^6.0.4",
     "@capacitor/local-notifications": "^6.1.3",
+    "@capacitor/share": "^6.0.4",
     "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
-    "@phosphor-icons/react": "^2.1.10",
+    "@phosphor-icons/core": "^2.1.1",
     "@react-oauth/google": "^0.13.5",
     "@types/leaflet": "^1.9.22",
     "clsx": "^2.1.1",
@@ -91,6 +94,7 @@
     "lint-staged": "^14.0.0",
     "prettier": "^2.8.3",
     "size-limit": "^11.1.6",
+    "subset-font": "^2.9.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.5.4",
     "vite": "^5.4.2",

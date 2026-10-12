@@ -14,7 +14,7 @@ const STATUS_LABELS: Record<DangSplitGroupSummary['people'][number]['status'], s
 export async function exportDangSplitSummaryPdf(
   groupTitle: string,
   summary: DangSplitGroupSummary
-): Promise<void> {
+): Promise<string | null> {
   const rows = summary.people.map(item => [
     item.name,
     formatMoney(item.share),
@@ -35,7 +35,7 @@ export async function exportDangSplitSummaryPdf(
     `${summary.settledCount.toLocaleString('fa-IR')} تسویه‌شده`
   ])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: `جمع‌بندی دنگ: ${groupTitle}`,
     headers: ['نام', 'سهم', 'واریز به صندوق', 'پرداختی اقلام', 'تسویه نقدی', 'مانده', 'وضعیت'],
     rows,

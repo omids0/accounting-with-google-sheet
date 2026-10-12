@@ -27,6 +27,11 @@ interface BankSmsPlugin {
   setEnabled(options: { enabled: boolean }): Promise<void>
   /** Review page range in days; native notifications only count SMS inside it. */
   setViewDays(options: { days: number }): Promise<void>
+  /** Nightly digest alarm; the body is built natively when it fires. */
+  setNightlyDigest(options: { enabled: boolean; hour: number; minute: number }): Promise<void>
+  /** Local `YYYY-MM-DD` of the last recorded entry, for "nothing recorded today". */
+  setLastOperationDate(options: { date: string }): Promise<void>
+  openNotificationSettings(): Promise<void>
 }
 
 const BankSms = registerPlugin<BankSmsPlugin>('BankSms')
@@ -85,4 +90,34 @@ export async function setBankSmsCaptureEnabled(enabled: boolean): Promise<void> 
   if (!isBankSmsAvailable()) return
 
   await BankSms.setEnabled({ enabled })
+}
+
+// The bundled web app can be newer than the installed APK, so a missing method is ignored.
+export async function setNightlyDigestNative(rule: {
+  enabled: boolean
+  hour: number
+  minute: number
+}): Promise<void> {
+  if (!isBankSmsAvailable()) return
+
+  await BankSms.setNightlyDigest({
+    enabled: rule.enabled,
+    hour: rule.hour,
+    minute: rule.minute
+  }).catch(() => undefined)
+}
+
+export async function setLastOperationDateNative(date: string): Promise<void> {
+  if (!isBankSmsAvailable()) return
+
+  await BankSms.setLastOperationDate({ date }).catch(() => undefined)
+}
+
+/** Opens this app's notification settings; false when the screen could not be opened. */
+export async function openNativeNotificationSettings(): Promise<boolean> {
+  if (!isBankSmsAvailable()) return false
+
+  return BankSms.openNotificationSettings()
+    .then(() => true)
+    .catch(() => false)
 }

@@ -1,6 +1,7 @@
 import AppIcon from '../AppIcon'
 import LazyImage from '../LazyImage'
 import LayoutMenuGroup from './LayoutMenuGroup'
+import LayoutMenuSheetName from './LayoutMenuSheetName'
 import LayoutReportsSubmenu from './LayoutReportsSubmenu'
 import LayoutSidebarNav from './LayoutSidebarNav'
 import LayoutThemeToggle from './LayoutThemeToggle'
@@ -236,7 +237,8 @@ export default function LayoutMenu({
           </div>
         </div>
         <div className={appMenuFooterClass}>
-          <p className={appMenuFooterTextClass}>حسابداری شخصی</p>
+          <p className={appMenuFooterTextClass}>حساب کتاب</p>
+          <LayoutMenuSheetName />
         </div>
       </nav>
     </>

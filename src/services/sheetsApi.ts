@@ -49,11 +49,15 @@ export function isQuotaExceededError(err: unknown): boolean {
 /**
  * True when retrying the same request can never succeed (bad range, invalid
  * value, oversized cell). Auth, quota and server errors are worth retrying.
+ * A 403 is final only when the app lost access to the file; other 403s (quota,
+ * API briefly disabled) clear up on their own.
  */
 export function isPermanentApiError(err: unknown): boolean {
   if (!(err instanceof SheetsApiError)) return false
 
   const { status } = err
+
+  if (status === 403) return isSpreadsheetAccessDeniedError(err)
 
   return status >= 400 && status < 500 && ![401, 403, 408, 409, 429].includes(status)
 }

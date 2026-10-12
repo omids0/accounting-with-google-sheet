@@ -1,25 +1,44 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
-import type { ImportResult } from '../services/importExport'
+import { PartialImportError, type ImportPreview } from '../services/importExport'
+import { formatImportSummary } from '../services/importPlan'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { pickTextFile } from '../utils/csv'
+import { runExport } from '../utils/exportFeedback'
 import { showError, showSuccess } from '../utils/toast'
 import { toUserMessage } from '../utils/userMessage'
 
-type PendingAction = 'export' | 'exportPdf' | 'import'
+type SheetExportFn = (spreadsheetId: string) => Promise<string | null>
 
-const ACTION_MODAL_CONTENT: Record<PendingAction, { title: string; message: string }> = {
-  export: {
-    title: 'تأیید اکسپورت',
-    message: 'آیا از گرفتن خروجی اکسل اطمینان دارید؟'
-  },
-  exportPdf: {
-    title: 'تأیید خروجی PDF',
-    message: 'آیا از گرفتن خروجی PDF اطمینان دارید؟'
-  },
-  import: {
-    title: 'تأیید ایمپورت',
-    message: 'آیا از وارد کردن داده از فایل اطمینان دارید؟'
+const IMPORT_ERROR = 'خطا در ایمپورت'
+
+function faCount(value: number): string {
+  return value.toLocaleString('fa-IR')
+}
+
+function importErrorMessage(err: unknown): string {
+  if (!(err instanceof PartialImportError)) return toUserMessage(err, IMPORT_ERROR)
+
+  return `${faCount(err.imported)} ردیف افزوده شد؛ ${faCount(
+    err.remaining
+  )} ردیف باقی‌مانده افزوده نشد. ${toUserMessage(err.failure, IMPORT_ERROR)}`
+}
+
+function previewModalContent(preview: ImportPreview | null) {
+  if (!preview) {
+    return {
+      title: 'تأیید ایمپورت',
+      message: 'آیا از وارد کردن داده از فایل اطمینان دارید؟'
+    }
+  }
+
+  return {
+    title: 'پیش‌نمایش ایمپورت',
+    message: formatImportSummary(preview),
+    confirmLabel: preview.rows.length
+      ? `ایمپورت ${faCount(preview.rows.length)} ردیف`
+      : 'متوجه شدم',
+    cancelLabel: 'انصراف'
   }
 }
 
@@ -29,110 +48,121 @@ export function useSheetImportExport({
   importFn,
   onComplete
 }: {
-  exportFn: (spreadsheetId: string) => Promise<void>
-  exportPdfFn?: (spreadsheetId: string) => Promise<void>
-  importFn: (spreadsheetId: string, csvContent: string) => Promise<ImportResult>
-  onComplete: () => void | Promise<void>
+  exportFn: SheetExportFn
+  exportPdfFn?: SheetExportFn
+  importFn?: (spreadsheetId: string, csvContent: string) => Promise<ImportPreview>
+  onComplete?: () => void | Promise<void>
 }) {
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const [importOpen, setImportOpen] = useState(false)
+
+  const [preview, setPreview] = useState<ImportPreview | null>(null)
 
   const [confirming, setConfirming] = useState(false)
 
-  const ensureAuth = useCallback(() => requireSpreadsheetId(), [])
+  const exportingRef = useRef(false)
 
-  const executeExport = useCallback(async () => {
-    const spreadsheetId = ensureAuth()
+  const runSheetExport = useCallback(async (fn: SheetExportFn, fallbackMessage: string) => {
+    if (exportingRef.current) return
 
-    if (!spreadsheetId) return
-
-    try {
-      await exportFn(spreadsheetId)
-      showSuccess('فایل اکسپورت شد')
-    } catch (err) {
-      showError(toUserMessage(err, 'خطا در اکسپورت'))
-    }
-  }, [exportFn, ensureAuth])
-
-  const executeExportPdf = useCallback(async () => {
-    if (!exportPdfFn) return
-
-    const spreadsheetId = ensureAuth()
+    const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
+    exportingRef.current = true
     try {
-      await exportPdfFn(spreadsheetId)
-      showSuccess('فایل PDF ذخیره شد')
-    } catch (err) {
-      showError(toUserMessage(err, 'خطا در خروجی PDF'))
+      await runExport(() => fn(spreadsheetId), fallbackMessage)
+    } finally {
+      exportingRef.current = false
     }
-  }, [exportPdfFn, ensureAuth])
-
-  const executeImport = useCallback(async () => {
-    const spreadsheetId = ensureAuth()
-
-    if (!spreadsheetId) return
-
-    try {
-      const content = await pickTextFile()
-
-      if (!content) return
-
-      const result = await importFn(spreadsheetId, content)
-
-      const skipped = result.skipped > 0 ? ` (${result.skipped.toLocaleString('fa-IR')} رد شد)` : ''
-
-      showSuccess(`${result.imported.toLocaleString('fa-IR')} مورد وارد شد${skipped}`)
-      await onComplete()
-    } catch (err) {
-      showError(toUserMessage(err, 'خطا در ایمپورت'))
-    }
-  }, [importFn, onComplete, ensureAuth])
+  }, [])
 
   const handleExport = useCallback(() => {
-    if (!ensureAuth()) return
-    setPendingAction('export')
-  }, [ensureAuth])
+    void runSheetExport(exportFn, 'خطا در خروجی CSV')
+  }, [exportFn, runSheetExport])
 
   const handleExportPdf = useCallback(() => {
-    if (!exportPdfFn) return
-    if (!ensureAuth()) return
-    setPendingAction('exportPdf')
-  }, [exportPdfFn, ensureAuth])
+    if (exportPdfFn) void runSheetExport(exportPdfFn, 'خطا در خروجی PDF')
+  }, [exportPdfFn, runSheetExport])
 
   const handleImport = useCallback(() => {
-    if (!ensureAuth()) return
-    setPendingAction('import')
-  }, [ensureAuth])
+    if (!importFn || !requireSpreadsheetId()) return
+    setPreview(null)
+    setImportOpen(true)
+  }, [importFn])
+
+  const closeImport = useCallback(() => {
+    setImportOpen(false)
+    setPreview(null)
+  }, [])
 
   const closeConfirm = useCallback(() => {
-    if (!confirming) setPendingAction(null)
-  }, [confirming])
+    if (!confirming) closeImport()
+  }, [confirming, closeImport])
+
+  /** Resolves true when a preview is ready and the modal should stay open. */
+  const loadPreview = useCallback(
+    async (spreadsheetId: string): Promise<boolean> => {
+      const content = importFn ? await pickTextFile() : null
+
+      if (!importFn || !content) return false
+
+      setPreview(await importFn(spreadsheetId, content))
+
+      return true
+    },
+    [importFn]
+  )
+
+  const applyPreview = useCallback(
+    async (current: ImportPreview) => {
+      try {
+        const { imported, skipped } = await current.apply()
+
+        const skippedNote = skipped > 0 ? ` (${faCount(skipped)} رد شد)` : ''
+
+        showSuccess(`${faCount(imported)} ردیف وارد شد${skippedNote}`)
+        await onComplete?.()
+      } catch (err) {
+        showError(importErrorMessage(err))
+        if (err instanceof PartialImportError && err.imported > 0) await onComplete?.()
+      }
+    },
+    [onComplete]
+  )
 
   const handleConfirm = useCallback(async () => {
-    if (!pendingAction) return
+    if (preview && !preview.rows.length) {
+      closeImport()
+
+      return
+    }
+
+    const spreadsheetId = requireSpreadsheetId()
+
+    if (!spreadsheetId) return
 
     setConfirming(true)
+
+    let keepOpen = false
+
     try {
-      if (pendingAction === 'export') await executeExport()
-      else if (pendingAction === 'exportPdf') await executeExportPdf()
-      else if (pendingAction === 'import') await executeImport()
-      setPendingAction(null)
+      if (preview) await applyPreview(preview)
+      else keepOpen = await loadPreview(spreadsheetId)
+    } catch (err) {
+      showError(toUserMessage(err, IMPORT_ERROR))
     } finally {
       setConfirming(false)
+      if (!keepOpen) closeImport()
     }
-  }, [pendingAction, executeExport, executeExportPdf, executeImport])
-
-  const modalContent = pendingAction ? ACTION_MODAL_CONTENT[pendingAction] : null
+  }, [preview, closeImport, applyPreview, loadPreview])
 
   return {
     handleExport,
     handleExportPdf,
     handleImport,
     importExportConfirmModal: {
-      open: pendingAction !== null,
-      title: modalContent?.title ?? '',
-      message: modalContent?.message ?? '',
+      open: importOpen,
+      ...previewModalContent(preview),
       confirming,
       onClose: closeConfirm,
       onConfirm: handleConfirm

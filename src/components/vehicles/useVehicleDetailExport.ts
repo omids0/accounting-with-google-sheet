@@ -5,19 +5,13 @@ import type { VehicleDetailExportPayload } from '../../services/vehicleDetailExp
 import { exportVehicleDetailCsv, exportVehicleDetailPdf } from '../../services/vehicleDetailExport'
 
 export function useVehicleDetailExport(getPayload: () => VehicleDetailExportPayload) {
-  const exportFn = useCallback(async () => {
-    await exportVehicleDetailCsv(getPayload())
-  }, [getPayload])
+  const exportFn = useCallback(() => exportVehicleDetailCsv(getPayload()), [getPayload])
 
-  const exportPdfFn = useCallback(async () => {
-    await exportVehicleDetailPdf(getPayload())
-  }, [getPayload])
+  const exportPdfFn = useCallback(() => exportVehicleDetailPdf(getPayload()), [getPayload])
 
   const { handleExport, handleExportPdf, importExportConfirmModal } = useSheetImportExport({
-    exportFn: async () => exportFn(),
-    exportPdfFn: async () => exportPdfFn(),
-    importFn: async () => ({ imported: 0, skipped: 0 }),
-    onComplete: () => {}
+    exportFn,
+    exportPdfFn
   })
 
   return useMemo(

@@ -9,8 +9,8 @@ import {
 import { getSettings, isConfigured } from '../../../services/settings'
 import { requireAuth } from '../../../utils/authGuard'
 import { isOtherCategory } from '../../../utils/categoryOrdering'
+import { runExport } from '../../../utils/exportFeedback'
 import { handleSheetError } from '../../../utils/sheetError'
-import { showSuccess } from '../../../utils/toast'
 import { useReportDateFilter } from '../ReportToolbar'
 
 export type CategoryTreeFilter = 'all' | 'income' | 'expense'
@@ -96,17 +96,13 @@ export function useCategoryTreeReport() {
   }, [allExpanded, expandableNodes])
 
   const exportCsv = useCallback(() => {
-    exportCategoryTreeCsv(visibleNodes)
-    showSuccess('خروجی اکسل آماده شد')
+    void runExport(() => exportCategoryTreeCsv(visibleNodes), 'خطا در ساخت خروجی CSV')
   }, [visibleNodes])
 
   const exportPdf = useCallback(async () => {
     setExporting(true)
     try {
-      await exportCategoryTreePdf(visibleNodes)
-      showSuccess('خروجی PDF آماده شد')
-    } catch (err) {
-      handleSheetError(err, { fallbackMessage: 'خطا در ساخت خروجی PDF' })
+      await runExport(() => exportCategoryTreePdf(visibleNodes), 'خطا در ساخت خروجی PDF')
     } finally {
       setExporting(false)
     }

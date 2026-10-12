@@ -1,6 +1,8 @@
 import type { AppSettings, CustomForm, WalletAccount } from '../types'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { resolveOpeningBalanceContext, syncDerivedOpeningBalances } from './openingBalanceService'
+import { WALLET_HEADERS } from './sheetHeaders'
+import { WALLET_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
@@ -19,24 +21,7 @@ import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 
-export const WALLET_SHEET = 'کیف پول'
-
-export const WALLET_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'عنوان',
-  'موجودی',
-  'توضیحات',
-  'نوع حساب',
-  'بانک',
-  'شماره کارت',
-  'نام دارنده',
-  'رنگ کارت',
-  'رنگ اصلی',
-  'رنگ ثانویه',
-  'شماره حساب',
-  'شماره شبا'
-]
+export { WALLET_SHEET, WALLET_HEADERS }
 
 function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNumber: number } {
   return {
@@ -212,11 +197,11 @@ export async function loadWalletPeriodFlow(settings: AppSettings): Promise<Walle
   }
 }
 
-export async function exportWalletAccountsCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, WALLET_SHEET, WALLET_HEADERS, 'کیف-پول.csv')
+export async function exportWalletAccountsCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, WALLET_SHEET, WALLET_HEADERS, 'کیف-پول.csv')
 }
 
-export async function exportWalletAccountsPdf(spreadsheetId: string): Promise<void> {
+export async function exportWalletAccountsPdf(spreadsheetId: string): Promise<string | null> {
   const accounts = await fetchWalletAccounts(spreadsheetId)
 
   const headers = ['عنوان', 'موجودی', 'نوع', 'بانک', 'شماره کارت', 'توضیحات']
@@ -232,7 +217,7 @@ export async function exportWalletAccountsPdf(spreadsheetId: string): Promise<vo
 
   const cellClasses = accounts.map(() => ['', 'pdf-cell-amount', ''])
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش کیف پول',
     headers,
     rows,

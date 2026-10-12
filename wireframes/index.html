@@ -3,87 +3,191 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>وایرفریم‌ها — onboarding و کشف قابلیت‌ها</title>
+    <title>فهرست وایرفریم‌ها و اسناد UX</title>
     <link rel="stylesheet" href="wireframe.css" />
-    <link rel="stylesheet" href="wireframe-wizard.css" />
-    <link rel="stylesheet" href="wireframe-extras.css" />
     <style>
       .idx {
-        max-width: 560px;
+        max-width: 760px;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 22px;
       }
-      .idx a {
-        display: block;
+      .rnd {
         background: #fff;
         border: 1px solid #bbb;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 14px 16px;
+      }
+      .rnd h2 {
+        margin: 0 0 4px;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .rnd .st {
+        font-size: 10px;
+        border-radius: 99px;
+        padding: 2px 8px;
+        border: 1px solid #999;
+        color: #555;
+        font-weight: 400;
+      }
+      .rnd .st.done {
+        background: #e2f2e9;
+        border-color: #8c8;
+        color: #262;
+      }
+      .rnd .st.wip {
+        background: #fdf3dc;
+        border-color: #d9b34a;
+        color: #765;
+      }
+      .rnd .st.todo {
+        background: #eee;
+      }
+      .rnd p {
+        margin: 0 0 10px;
+        font-size: 12px;
+        color: #777;
+      }
+      .rnd a {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        padding: 8px 6px;
+        border-top: 1px dashed #e4e4e4;
         color: #333;
         text-decoration: none;
+        font-size: 13px;
       }
-      .idx a b {
-        display: block;
-        margin-bottom: 4px;
+      .rnd a:hover {
+        background: #f6f6f6;
       }
-      .idx a small {
+      .rnd a small {
         color: #888;
-        line-height: 1.8;
+        font-size: 11px;
+        flex: 1;
+      }
+      .rnd a i {
+        font-style: normal;
+        font-size: 10px;
+        color: #999;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 1px 5px;
       }
     </style>
   </head>
   <body>
-    <h1>وایرفریم‌های تجربه کاربر تازه‌وارد</h1>
+    <h1>وایرفریم‌ها و اسناد UX — فهرست</h1>
     <div class="idx">
-      <a href="onboarding-wizard.html">
-        <b>۱. ویزارد راه‌اندازی اولیه</b>
-        <small
-          >تمام‌صفحه بعد از شیتِ بدون داده. ۴ مرحله (وب: ۳). «ادامه» غیرفعال تا ثبت، «رد شدن» همیشه،
-          خروج با «بعداً تکمیل می‌کنم».</small
+      <div class="rnd">
+        <h2>Round 1 — ورود کاربر تازه <span class="st done">مرج شد</span></h2>
+        <p>ویزارد راه‌اندازی، کارت ادامه، EmptyState با توضیح، hint منو، کارت «می‌دانستی؟».</p>
+        <a href="IMPLEMENTATION-SPEC.md"><i>سند</i>مشخصات پیاده‌سازی round 1</a>
+        <a href="onboarding-wizard.html"
+          ><i>وایرفریم</i>ویزارد راه‌اندازی اولیه<small
+            >تمام‌صفحه، ۴ مرحله، ادامه/رد شدن/بعداً</small
+          ></a
         >
-      </a>
-      <a href="dashboard-new-user.html">
-        <b>۲. داشبورد بعد از ویزارد — ۳ حالت</b>
-        <small
-          >کارت کوچک «ادامه راه‌اندازی» (خروج وسط کار) · EmptyState «ثبت اولین تراکنش» (تراکنش
-          ردشده) · روال عادی.</small
+        <a href="dashboard-new-user.html"
+          ><i>وایرفریم</i>داشبورد بعد از ویزارد<small
+            >سه حالت: خروج وسط کار، تراکنش ردشده، عادی</small
+          ></a
         >
-      </a>
-      <a href="empty-states.html">
-        <b>۳. EmptyState یکدست صفحات</b>
-        <small
-          >الگوی واحد: توضیح «این صفحه برای چیست» + پیام خالی + دکمه افزودن. نمونه: چک‌ها، صندوقچه،
-          اقساط، سرویس خودرو.</small
+        <a href="empty-states.html"
+          ><i>وایرفریم</i>EmptyState یکدست<small>توضیح صفحه + پیام + دکمه افزودن</small></a
         >
-      </a>
-      <a href="feature-discovery.html">
-        <b>۴. کارت «می‌دانستی؟» — کشف قابلیت‌ها</b>
-        <small
-          >بعد از onboarding: یک پیشنهاد در هر بازدید (سرویس خودرو، یادآوری، چک‌ها…)، حذف خودکار
-          وقتی فیچر داده دارد.</small
+        <a href="feature-discovery.html"
+          ><i>وایرفریم</i>کارت «می‌دانستی؟»<small>یک پیشنهاد در هر بازدید</small></a
         >
-      </a>
-      <a href="icons.html">
-        <b>۵. آیکون‌ها — فعلی در برابر Phosphor و Lucide</b>
-        <small>هر ۴۵ آیکون کنار هم، روشن و تاریک، و نمونه در منو و نوار پایین.</small>
-      </a>
-      <a href="dark-mode.html">
-        <b>۶. دارک مود — فعلی در برابر دو پیشنهاد</b>
-        <small>اسکرین‌شات واقعی ۵ صفحه با توکن‌های گرافیت و اسلیت + جدول رنگ‌ها.</small>
-      </a>
-      <a href="inline-help-undo.html">
-        <b>۷. راهنمای درجا «؟» و بازگردانی حذف</b>
-        <small>پاپ‌اور توضیح مفاهیم سنگین؛ toast بازگردانی به‌جای مودال تأیید.</small>
-      </a>
-      <a href="notifications-lock.html">
-        <b>۸. اعلان‌ها و قفل اپ (round 4)</b>
-        <small
-          >یادآوری‌های پیش‌فرض روشن + جمع‌بندی شبانه؛ انتخاب رفتار قفل با پیش‌فرض ۵ دقیقه؛ محو شدن
-          در پس‌زمینه.</small
+      </div>
+
+      <div class="rnd">
+        <h2>Round 2 — کار روزمره <span class="st done">مرج شد</span></h2>
+        <p>
+          خطاهای فارسی، دکمه بازگشت اندروید، splash، فرم سبک‌تر، a11y صفحات پشت لاگین، اسکلتون‌های
+          هم‌تراز.
+        </p>
+        <a href="UX-ROUND2-SPEC.md"><i>سند</i>مشخصات round 2</a>
+      </div>
+
+      <div class="rnd">
+        <h2>Round 3 — ظاهر <span class="st done">مرج شد</span></h2>
+        <p>آیکون‌های Phosphor، دارک‌مود طلایی، راهنمای درجا «؟»، بازگردانی حذف، تست a11y دارک.</p>
+        <a href="UX-ROUND3-SPEC.md"><i>سند</i>مشخصات round 3</a>
+        <a href="icons.html"
+          ><i>وایرفریم</i>آیکون‌ها<small
+            >فعلی در برابر Phosphor و Lucide، در منو و نوار پایین</small
+          ></a
         >
-      </a>
+        <a href="dark-mode.html"
+          ><i>وایرفریم</i>دارک‌مود<small>فعلی، C، C2، D — اسکرین‌شات واقعی</small></a
+        >
+        <a href="inline-help-undo.html"><i>وایرفریم</i>راهنمای درجا و بازگردانی حذف</a>
+      </div>
+
+      <div class="rnd">
+        <h2>
+          Round 4 — باگ‌ها، اعلان‌ها، قفل، کارایی، نام <span class="st wip">در حال اجرا</span>
+        </h2>
+        <p>
+          ۱۰ باگ audit، یادآوری پیش‌فرض روشن + جمع‌بندی شبانه، قفل ۵ دقیقه + محو پس‌زمینه،
+          import/export، کارایی، «حساب کتاب».
+        </p>
+        <a href="UX-ROUND4-SPEC.md"><i>سند</i>مشخصات round 4</a>
+        <a href="notifications-lock.html"
+          ><i>وایرفریم</i>اعلان‌ها و قفل اپ<small
+            >یادآوری‌ها، انتخاب رفتار قفل، محو شدن در پس‌زمینه</small
+          ></a
+        >
+      </div>
+
+      <div class="rnd">
+        <h2>Round 5 — خلوت و دسکتاپ <span class="st todo">تأیید شده، در صف</span></h2>
+        <p>
+          داشبورد ۵ بلوکی و نمودارها، منو/سایدبار، دسکتاپ و تبلت، کشف زمینه‌ای، پالیش بومی، کیبورد،
+          پشتیبان کامل.
+        </p>
+        <a href="UX-ROUND5-SPEC.md"><i>سند</i>مشخصات round 5</a>
+        <a href="mobile-calm.html"
+          ><i>وایرفریم</i>موبایل خلوت — داشبورد و نمودارها<small>فعلی کنار پیشنهاد</small></a
+        >
+        <a href="mobile-calm-2.html"><i>وایرفریم</i>موبایل خلوت — منو و قواعد</a>
+        <a href="desktop-layout.html"><i>وایرفریم</i>دسکتاپ — داشبورد و لیست با پنل کناری</a>
+        <a href="desktop-layout-2.html"
+          ><i>وایرفریم</i>دسکتاپ — فرم ثبت، تنظیمات، تبلت، قواعد، اسکرین‌شات فعلی</a
+        >
+        <a href="round5-extras.html"
+          ><i>وایرفریم</i>کشف زمینه‌ای، پالیش بومی، کیبورد، پشتیبان کامل</a
+        >
+      </div>
+
+      <div class="rnd">
+        <h2>Round 6 — اپ عالی <span class="st todo">پیشنهاد، در بررسی</span></h2>
+        <p>
+          ثبت سریع‌تر، بودجه و مقایسه، هدف پس‌انداز، «چه خبر؟»، جستجوی سراسری، دسته‌ها، بازبینی
+          پیامک بانکی.
+        </p>
+        <a href="round6-entry.html"
+          ><i>وایرفریم</i>ثبت سریع‌تر<small
+            >الگو، تکرار ماهانه، تشخیص تکراری، میان‌بر و share target</small
+          ></a
+        >
+        <a href="round6-insights.html"
+          ><i>وایرفریم</i>معنی دادن به اعداد<small
+            >بودجه، مقایسه با ماه قبل، هدف پس‌انداز، «چه خبر؟»</small
+          ></a
+        >
+        <a href="round6-search-categories.html"
+          ><i>وایرفریم</i>جستجوی سراسری، مدیریت دسته‌ها، دسته‌های پیش‌فرض</a
+        >
+        <a href="round6-bank-sms.html"
+          ><i>وایرفریم</i>بازبینی پیامک بانکی<small>فعلی (بازسازی از کد) کنار پیشنهاد</small></a
+        >
+      </div>
     </div>
   </body>
 </html>

@@ -1,33 +1,35 @@
 import type { AppSettings } from '../types'
-import { SMS_TEMPLATES_SHEET } from './bankSmsTemplates'
-import { CATEGORIES_SHEET } from './categories'
-import { CHECKS_SHEET } from './checks'
-import { COUNTERPARTIES_SHEET } from './counterparties'
-import { DANG_SHEET } from './dang'
+import { getSettings } from './settings'
 import {
+  CATEGORIES_SHEET,
+  CHECKS_SHEET,
+  COUNTERPARTIES_SHEET,
+  DANG_SHEET,
   DANG_SPLIT_ALLOCATIONS_SHEET,
   DANG_SPLIT_CATEGORIES_SHEET,
   DANG_SPLIT_EXPENSES_SHEET,
   DANG_SPLIT_GROUPS_SHEET,
-  DANG_SPLIT_PEOPLE_SHEET
-} from './dangSplit'
-import { INSTALLMENTS_SHEET } from './installments'
-import { MONTHLY_BALANCE_SHEET } from './monthlyBalance'
-import { PERIOD_SETTINGS_SHEET } from './periodSettings'
-import { PERSONAL_REMINDERS_SHEET } from './personalReminders'
-import { RECEIVABLES_SHEET } from './receivables'
-import { REMINDERS_SHEET, PUSH_SUBS_SHEET } from './reminders'
-import { getSettings } from './settings'
-import { TIMESHEETS_SHEET, TIMESHEET_ENTRIES_SHEET } from './timesheet'
-import { TREASURY_SHEET } from './treasury'
-import { VEHICLE_DEADLINE_SHEET } from './vehicleDeadlines'
-import { VEHICLE_EXPENSE_META_SHEET } from './vehicleExpenseRecords'
-import { VEHICLE_HISTORY_SHEET } from './vehicleHistory'
-import { VEHICLE_MECHANIC_SHEET } from './vehicleMechanicVisits'
-import { VEHICLE_PERIODIC_SHEET } from './vehiclePeriodicServices'
-import { VEHICLES_SHEET } from './vehicleProfiles'
-import { WALLET_SHEET } from './wallet'
-import { WALLET_LEDGER_SHEET } from './walletLedger'
+  DANG_SPLIT_PEOPLE_SHEET,
+  INSTALLMENTS_SHEET,
+  MONTHLY_BALANCE_SHEET,
+  PERIOD_SETTINGS_SHEET,
+  PERSONAL_REMINDERS_SHEET,
+  PUSH_SUBS_SHEET,
+  RECEIVABLES_SHEET,
+  REMINDERS_SHEET,
+  SMS_TEMPLATES_SHEET,
+  TIMESHEETS_SHEET,
+  TIMESHEET_ENTRIES_SHEET,
+  TREASURY_SHEET,
+  VEHICLES_SHEET,
+  VEHICLE_DEADLINE_SHEET,
+  VEHICLE_EXPENSE_META_SHEET,
+  VEHICLE_HISTORY_SHEET,
+  VEHICLE_MECHANIC_SHEET,
+  VEHICLE_PERIODIC_SHEET,
+  WALLET_LEDGER_SHEET,
+  WALLET_SHEET
+} from './sheetNames'
 
 /** Sheets every account has, regardless of which custom forms it defines. */
 const STATIC_SHEETS = [

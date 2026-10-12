@@ -1,11 +1,13 @@
 import { TAB_PAGE_LOADERS } from './pageChunks'
 import type { Tab } from '../components/layout/types'
 import { PRIMARY_NAV_TABS } from '../components/layout/types'
+import { canPrefetchOnThisConnection } from '../utils/prefetchPolicy'
 
 const prefetchedTabs = new Set<Tab>()
 
 let secondaryPrefetchStarted = false
 
+/** Loads a tab's chunk now; for a tap or navigation that is already happening. */
 export function prefetchTabPage(tab: Tab): void {
   if (prefetchedTabs.has(tab)) return
 
@@ -17,14 +19,21 @@ export function prefetchTabPage(tab: Tab): void {
   void loader()
 }
 
+/** Speculative warm-up for a menu item the pointer or thumb is resting on. */
+export function prefetchTabPageOnIntent(tab: Tab): void {
+  if (canPrefetchOnThisConnection()) prefetchTabPage(tab)
+}
+
 export function prefetchBottomNavPages(): void {
+  if (!canPrefetchOnThisConnection()) return
+
   for (const tab of PRIMARY_NAV_TABS) {
     prefetchTabPage(tab)
   }
 }
 
 export function prefetchSecondaryAppPages(): void {
-  if (secondaryPrefetchStarted) return
+  if (secondaryPrefetchStarted || !canPrefetchOnThisConnection()) return
   secondaryPrefetchStarted = true
 
   const secondaryTabs = (Object.keys(TAB_PAGE_LOADERS) as Tab[]).filter(

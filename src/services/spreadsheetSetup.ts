@@ -1,11 +1,6 @@
 import { sortFormFields } from '../components/form/fieldUtils'
 import type { FieldConfig, SpreadsheetEntry } from '../types'
-import { syncCategoriesFromSheet } from './categories'
-import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
-import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
-import { migrateWalletColumns } from './migrateWalletApplyColumn'
 import { MODULE_SHEET_SPECS } from './moduleSheetSpecs'
-import { ensureMembershipDate } from './periodSettings'
 import { getDefaultSettings, getSettings, registerSpreadsheet } from './settings'
 import {
   createSpreadsheet,
@@ -172,17 +167,17 @@ async function finalizeSpreadsheetActivation(
   if (isSessionPrepared(spreadsheetId)) {
     markAllKnownSheetsPrepared(spreadsheetId)
     // Headers are known good; categories may have changed on another device.
-    void syncCategoriesFromSheet(spreadsheetId).catch(() => undefined)
+    void import('./spreadsheetPrepare')
+      .then(prepare => prepare.syncCategoriesFromSheet(spreadsheetId))
+      .catch(() => undefined)
 
     return spreadsheetId
   }
 
   await ensureAllSheets(spreadsheetId)
-  await syncCategoriesFromSheet(spreadsheetId)
-  await migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
-  await migrateSubCategoryColumn(spreadsheetId).catch(() => undefined)
-  await migrateWalletColumns(spreadsheetId).catch(() => undefined)
-  await ensureMembershipDate(spreadsheetId).catch(() => '')
+  // Loaded on demand: category and migration code is not needed to show cached data.
+  const { prepareSpreadsheetContents } = await import('./spreadsheetPrepare')
+  await prepareSpreadsheetContents(spreadsheetId)
   markAllKnownSheetsPrepared(spreadsheetId)
   markSessionPrepared(spreadsheetId)
 

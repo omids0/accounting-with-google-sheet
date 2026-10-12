@@ -16,6 +16,8 @@ interface EmptyStateProps {
   description?: ReactNode
   /** Optional call to action, e.g. the same "add" form the page's speed dial opens. */
   action?: { label: string; onClick: () => void }
+  /** Lighter alternative shown before the main action, e.g. widening a filter. */
+  secondaryAction?: { label: string; onClick: () => void }
   className?: string
 }
 
@@ -24,6 +26,7 @@ export default function EmptyState({
   message,
   description,
   action,
+  secondaryAction,
   className
 }: EmptyStateProps) {
   return (
@@ -33,12 +36,24 @@ export default function EmptyState({
       </div>
       {description ? <p className={emptyStateDescriptionClass}>{description}</p> : null}
       <p>{message}</p>
-      {action ? (
-        <div className="mt-3">
-          <Button type="button" variant="primary" size="sm" onClick={() => action.onClick()}>
-            <AppIcon name="add" size={16} />
-            {action.label}
-          </Button>
+      {action || secondaryAction ? (
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          {secondaryAction ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => secondaryAction.onClick()}
+            >
+              {secondaryAction.label}
+            </Button>
+          ) : null}
+          {action ? (
+            <Button type="button" variant="primary" size="sm" onClick={() => action.onClick()}>
+              <AppIcon name="add" size={16} />
+              {action.label}
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </div>

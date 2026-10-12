@@ -30,7 +30,7 @@ export type ModuleReportKind =
 interface ModuleConfig {
   title: string
   icon: AppIconName
-  exportPdf: (spreadsheetId: string) => Promise<void>
+  exportPdf: (spreadsheetId: string) => Promise<string | null>
 }
 
 export const MODULE_CONFIG: Record<ModuleReportKind, ModuleConfig> = {

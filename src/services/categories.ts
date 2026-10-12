@@ -22,14 +22,15 @@ import {
   updatePersonalReminderCategories,
   updateReceivableCategories
 } from './settings'
+import { CATEGORIES_HEADERS } from './sheetHeaders'
+import { CATEGORIES_SHEET } from './sheetNames'
 import { ensureSheetWithHeaders, fetchSheetRows, replaceSheetDataRows } from './sheets'
 import type { CategorySubcategoryMap } from '../types'
 import { withLockedFormCategories } from '../utils/protectedCategories'
 
 export type { CategoryGroups, CategoryType } from './categoryGroups'
 
-export const CATEGORIES_SHEET = 'دسته‌بندی‌ها'
-export const CATEGORIES_HEADERS = ['نوع', 'دسته‌بندی', 'زیردسته']
+export { CATEGORIES_SHEET, CATEGORIES_HEADERS }
 
 export async function ensureCategoriesSheet(spreadsheetId: string): Promise<void> {
   await ensureSheetWithHeaders(spreadsheetId, CATEGORIES_SHEET, CATEGORIES_HEADERS)

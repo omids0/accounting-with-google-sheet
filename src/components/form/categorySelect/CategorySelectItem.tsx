@@ -130,7 +130,11 @@ export default function CategorySelectItem({
                 e.preventDefault()
                 onSaveEdit(category)
               }
-              if (e.key === 'Escape') onCancelEdit()
+              if (e.key === 'Escape') {
+                // Cancels the edit only; the overlay stack skips handled Escapes.
+                e.preventDefault()
+                onCancelEdit()
+              }
             }}
             disabled={saving}
             aria-label="ویرایش دسته‌بندی"

@@ -1,3 +1,5 @@
+import { VEHICLE_PERIODIC_HEADERS } from './sheetHeaders'
+import { VEHICLE_PERIODIC_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   deleteSheetRow,
@@ -8,25 +10,7 @@ import {
 import type { VehiclePeriodicService } from '../types/vehicles'
 import { parseNumeric } from '../utils/parseNumeric'
 
-export const VEHICLE_PERIODIC_SHEET = 'سرویس_خودرو'
-
-export const VEHICLE_PERIODIC_HEADERS = [
-  'شناسه',
-  'خودرو_id',
-  'زمان_ثبت',
-  'نوع_سرویس',
-  'کارکرد_فعلی',
-  'فاصله_km',
-  'km_بعدی',
-  'برند',
-  'محل',
-  'مبلغ',
-  'توضیحات',
-  'expense_id',
-  'فعال',
-  'یادآوری_فعال',
-  'آستانه_کیلومتر'
-]
+export { VEHICLE_PERIODIC_SHEET, VEHICLE_PERIODIC_HEADERS }
 
 function parseBool(value: string | undefined): boolean {
   const v = String(value ?? '')

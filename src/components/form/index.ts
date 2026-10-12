@@ -22,3 +22,4 @@ export {
   WALLET_APPLY_FIELD_ID,
   withAutoTitle
 } from './fieldUtils'
+export { default as ToggleSwitch } from './ToggleSwitch'

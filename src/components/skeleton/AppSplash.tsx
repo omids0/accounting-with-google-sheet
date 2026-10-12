@@ -13,7 +13,7 @@ export default function AppSplash() {
         <rect x="42" y="36" width="8" height="36" rx="2" fill="#fff" />
         <rect x="54" y="52" width="8" height="20" rx="2" fill="#fff" />
       </svg>
-      <p className="boot-title">حسابداری شخصی</p>
+      <p className="boot-title">حساب کتاب</p>
       <div className="boot-dots" role="status">
         <span />
         <span />

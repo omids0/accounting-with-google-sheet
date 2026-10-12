@@ -4,7 +4,7 @@ vi.mock('./auth', () => ({ getAccessToken: () => 'token', isTokenValid: () => tr
 
 vi.mock('./tokenRefresh', () => ({ forceRefreshAccessToken: vi.fn(async () => false) }))
 
-import { isSpreadsheetAccessDeniedError, SheetsApiError } from './sheetsApi'
+import { isPermanentApiError, isSpreadsheetAccessDeniedError, SheetsApiError } from './sheetsApi'
 import { verifySpreadsheetExists } from './sheetsEnsure'
 import { invalidateSpreadsheetCache } from './sheetsMeta'
 
@@ -41,6 +41,20 @@ describe('isSpreadsheetAccessDeniedError', () => {
     }
     expect(isSpreadsheetAccessDeniedError(new SheetsApiError('Internal error', 500))).toBe(false)
     expect(isSpreadsheetAccessDeniedError(new TypeError('Failed to fetch'))).toBe(false)
+  })
+})
+
+describe('isPermanentApiError for 403', () => {
+  it('gives up on a write only when the app lost access to the sheet', () => {
+    expect(
+      isPermanentApiError(new SheetsApiError('The caller does not have permission', 403))
+    ).toBe(true)
+    expect(isPermanentApiError(new SheetsApiError('Quota exceeded for quota metric', 403))).toBe(
+      false
+    )
+    expect(
+      isPermanentApiError(new SheetsApiError('Google Sheets API has not been used ...', 403))
+    ).toBe(false)
   })
 })
 

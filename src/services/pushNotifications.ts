@@ -95,19 +95,19 @@ export async function subscribeToPush(): Promise<PushSubscriptionJSON> {
   const status = getPushSupportStatus()
 
   if (status === 'missing-api') {
-    throw new Error('مرورگر از نوتیف پشتیبانی نمی‌کند')
+    throw new Error('این مرورگر اعلان نمی‌فرستد')
   }
   if (status === 'ios-needs-install') {
-    throw new Error('در iOS ابتدا اپ را به Home Screen اضافه کنید')
+    throw new Error('در آیفون اول اپ را به صفحهٔ اصلی (Add to Home Screen) اضافه کنید')
   }
   if (status === 'missing-vapid') {
-    throw new Error('کلید VAPID در تنظیمات سرور (VITE_VAPID_PUBLIC_KEY) تعریف نشده')
+    throw new Error('اعلان روی این نسخهٔ اپ راه‌اندازی نشده است')
   }
 
   const permission = await Notification.requestPermission()
 
   if (permission !== 'granted') {
-    throw new Error('اجازهٔ نمایش نوتیف داده نشد')
+    throw new Error('اجازهٔ نمایش اعلان داده نشد')
   }
 
   const registration = await getServiceWorkerRegistration()
@@ -116,14 +116,12 @@ export async function subscribeToPush(): Promise<PushSubscriptionJSON> {
     const status = await getServiceWorkerStatus()
 
     if (status === 'missing' && import.meta.env.DEV) {
-      throw new Error(
-        'Service Worker در dev فعال نیست — dev server را restart کنید (Ctrl+C و npm run dev)'
-      )
+      throw new Error('اعلان در حالت توسعه فعال نیست — dev server را دوباره اجرا کنید')
     }
     if (getPushSupportStatus() === 'ios-needs-install') {
-      throw new Error('در iOS ابتدا اپ را به Home Screen اضافه کنید')
+      throw new Error('در آیفون اول اپ را به صفحهٔ اصلی (Add to Home Screen) اضافه کنید')
     }
-    throw new Error('Service Worker هنوز آماده نیست — صفحه را refresh کنید یا اپ را نصب کنید')
+    throw new Error('اعلان‌ها هنوز آماده نیستند؛ صفحه را دوباره باز کنید')
   }
 
   const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY!.trim()
@@ -140,7 +138,7 @@ export async function subscribeToPush(): Promise<PushSubscriptionJSON> {
   const json = subscription.toJSON()
 
   if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
-    throw new Error('اشتراک نوتیف نامعتبر است')
+    throw new Error('ثبت این دستگاه برای اعلان ناموفق بود')
   }
 
   return json
@@ -184,16 +182,16 @@ export async function showLocalTestNotification(): Promise<void> {
   const permission = await Notification.requestPermission()
 
   if (permission !== 'granted') {
-    throw new Error('اجازهٔ نمایش نوتیف داده نشد')
+    throw new Error('اجازهٔ نمایش اعلان داده نشد')
   }
 
   const registration = await getServiceWorkerRegistration()
 
   if (!registration) {
-    throw new Error('Service Worker هنوز آماده نیست — صفحه را refresh کنید')
+    throw new Error('اعلان‌ها هنوز آماده نیستند؛ صفحه را دوباره باز کنید')
   }
-  await registration.showNotification('تست یادآوری', {
-    body: 'نوتیف محلی کار می‌کند. برای یادآوری خودکار، cron را راه‌اندازی کنید.',
+  await registration.showNotification('اعلان آزمایشی', {
+    body: 'اعلان‌های این دستگاه کار می‌کند.',
     icon: `${import.meta.env.BASE_URL}pwa-192x192.png`,
     badge: `${import.meta.env.BASE_URL}pwa-192x192.png`,
     dir: 'rtl',

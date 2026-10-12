@@ -1,6 +1,3 @@
-import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
-import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
-import { migrateWalletColumns } from './migrateWalletApplyColumn'
 import { getSettings } from './settings'
 import { forgetRemoteVersion } from './sheetRemoteVersion'
 import { forgetSheetRevisions } from './sheetRevisions'
@@ -181,10 +178,8 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   // App start may already have hydrated it to show cached data; re-reading IndexedDB
   // then would drop writes made since that are not persisted yet.
   if (!hasStoreData(spreadsheetId)) await hydrateStore(spreadsheetId)
-  void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
-  void migrateSubCategoryColumn(spreadsheetId)
-    .catch(() => undefined)
-    .then(() => migrateWalletColumns(spreadsheetId))
+  void import('./spreadsheetPrepare')
+    .then(prepare => prepare.runBackgroundMigrations(spreadsheetId))
     .catch(() => undefined)
   setPendingWrites(getOutboxCount(spreadsheetId))
   refreshFailedCount(spreadsheetId)
@@ -224,13 +219,21 @@ export function stopSheetSync(): void {
   activeSpreadsheetId = null
 }
 
-export function resetSheetSync(spreadsheetId: string): void {
+/**
+ * `keepOutbox`: leaving a sheet with unsent changes keeps them queued under its
+ * id, so they go out the next time that sheet is opened.
+ */
+export function resetSheetSync(
+  spreadsheetId: string,
+  { keepOutbox = false }: { keepOutbox?: boolean } = {}
+): void {
   stopSheetSync()
   forgetRemoteVersion(spreadsheetId)
   forgetSheetRevisions(spreadsheetId)
   clearStore(spreadsheetId)
-  clearOutbox(spreadsheetId)
+  if (!keepOutbox) clearOutbox(spreadsheetId)
   setPendingWrites(0)
+  setSyncState('idle')
   invalidateDerivedCaches(spreadsheetId)
   notifySpreadsheetDataChanged(spreadsheetId)
 }

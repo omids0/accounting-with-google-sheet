@@ -180,18 +180,6 @@ export function useLayoutNavigation() {
     prefetchSecondaryAppPages()
   }, [menuOpen])
 
-  useEffect(() => {
-    if (!menuOpen) return
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false)
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [menuOpen])
-
   const showHeaderBack =
     showSettings ||
     tab === 'records' ||

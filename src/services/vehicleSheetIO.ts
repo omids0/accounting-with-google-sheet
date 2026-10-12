@@ -9,14 +9,14 @@ import { getMileageReminderLabel } from '../components/vehicles/constants'
 import { formatIranPlateLabel } from '../components/vehicles/iranPlateUtils'
 import { downloadTablePdf } from '../utils/pdf'
 
-export async function exportVehiclesCsv(spreadsheetId: string): Promise<void> {
-  await exportSheetCsv(spreadsheetId, VEHICLES_SHEET, VEHICLES_HEADERS, 'خودرو.csv')
+export async function exportVehiclesCsv(spreadsheetId: string): Promise<string | null> {
+  return exportSheetCsv(spreadsheetId, VEHICLES_SHEET, VEHICLES_HEADERS, 'خودرو.csv')
 }
 
-export async function exportVehiclesPdf(spreadsheetId: string): Promise<void> {
+export async function exportVehiclesPdf(spreadsheetId: string): Promise<string | null> {
   const items = await fetchVehicles(spreadsheetId)
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: 'گزارش خودروها',
     headers: [
       'عنوان',

@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useModalLock } from '../../../hooks/useModalLock'
@@ -35,6 +35,7 @@ export default function CategorySelectSheet({
   children
 }: CategorySelectSheetProps) {
   const { panelRef } = useModalLock({ open, onClose, blocked })
+  const titleId = useId()
 
   if (!open) return null
 
@@ -43,7 +44,7 @@ export default function CategorySelectSheet({
       className={cn(formModalRootClass, 'category-select-sheet')}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="category-select-sheet-title"
+      aria-labelledby={titleId}
     >
       <button
         type="button"
@@ -67,7 +68,7 @@ export default function CategorySelectSheet({
                 <AppIcon name="back" size={18} />
               </button>
             )}
-            <h2 id="category-select-sheet-title" className={cn(formModalTitleClass, 'min-w-0')}>
+            <h2 id={titleId} className={cn(formModalTitleClass, 'min-w-0')}>
               {title}
             </h2>
           </div>

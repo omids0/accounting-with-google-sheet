@@ -1,3 +1,5 @@
+import { PERSONAL_REMINDERS_HEADERS } from './sheetHeaders'
+import { PERSONAL_REMINDERS_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   deleteSheetRow,
@@ -17,19 +19,7 @@ import {
 } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
 
-export const PERSONAL_REMINDERS_SHEET = 'مواعد_شخصی'
-
-export const PERSONAL_REMINDERS_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'دسته‌بندی',
-  'عنوان',
-  'تاریخ',
-  'تکرار',
-  'مبلغ',
-  'روز_قبل',
-  'فعال'
-]
+export { PERSONAL_REMINDERS_SHEET, PERSONAL_REMINDERS_HEADERS }
 
 const LEGACY_PERSONAL_REMINDER_CATEGORIES: Record<string, string> = {
   bill: 'قبض',

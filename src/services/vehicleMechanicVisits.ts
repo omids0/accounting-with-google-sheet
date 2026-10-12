@@ -1,21 +1,10 @@
+import { VEHICLE_MECHANIC_HEADERS } from './sheetHeaders'
+import { VEHICLE_MECHANIC_SHEET } from './sheetNames'
 import { appendSheetRow, deleteSheetRow, ensureSheetWithHeaders, fetchSheetRows } from './sheets'
 import type { VehicleMechanicItem, VehicleMechanicVisit } from '../types/vehicles'
 import { parseNumeric } from '../utils/parseNumeric'
 
-export const VEHICLE_MECHANIC_SHEET = 'مکانیک_خودرو'
-
-export const VEHICLE_MECHANIC_HEADERS = [
-  'شناسه',
-  'خودرو_id',
-  'زمان_ثبت',
-  'تاریخ',
-  'کارکرد',
-  'مکان',
-  'مبلغ_کل',
-  'اقلام_json',
-  'توضیحات',
-  'expense_id'
-]
+export { VEHICLE_MECHANIC_SHEET, VEHICLE_MECHANIC_HEADERS }
 
 export function parseMechanicItems(raw: string): VehicleMechanicItem[] {
   if (!raw) return []

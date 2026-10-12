@@ -199,27 +199,31 @@ function resolveTitle(payload: VehicleDetailExportPayload): string {
   return `گزارش ${tabTitle} — ${payload.vehicleTitle}`
 }
 
-export async function exportVehicleDetailCsv(payload: VehicleDetailExportPayload): Promise<void> {
+export async function exportVehicleDetailCsv(
+  payload: VehicleDetailExportPayload
+): Promise<string | null> {
   const { headers, rows } = resolveTable(payload)
 
   if (!rows.length) {
     throw new Error('داده‌ای برای خروجی وجود ندارد')
   }
 
-  downloadTextFile(
+  return downloadTextFile(
     buildFilename(payload.vehicleTitle, payload.tab, 'csv'),
     rowsToCsv(headers, rows)
   )
 }
 
-export async function exportVehicleDetailPdf(payload: VehicleDetailExportPayload): Promise<void> {
+export async function exportVehicleDetailPdf(
+  payload: VehicleDetailExportPayload
+): Promise<string | null> {
   const { headers, rows } = resolveTable(payload)
 
   if (!rows.length) {
     throw new Error('داده‌ای برای خروجی وجود ندارد')
   }
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: resolveTitle(payload),
     headers,
     rows,

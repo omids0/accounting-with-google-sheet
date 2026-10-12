@@ -82,7 +82,7 @@ final class BankSmsNotifier {
         );
     }
 
-    private static int smallIcon(Context context) {
+    static int smallIcon(Context context) {
         int id = context.getResources().getIdentifier("ic_stat_reminder", "drawable", context.getPackageName());
 
         return id != 0 ? id : context.getApplicationInfo().icon;

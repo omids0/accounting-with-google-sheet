@@ -10,7 +10,7 @@ export const DRIVE_FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
 
 export const GOOGLE_OAUTH_SCOPE = `openid email profile ${DRIVE_FILE_SCOPE}`
 
-/** Must match @react-oauth/google implicit-flow scope prefix. */
+/** Interactive sign-in and silent renewal both ask Google for exactly this scope string. */
 export const FULL_GOOGLE_OAUTH_SCOPE = `openid profile email ${GOOGLE_OAUTH_SCOPE}`
 
 /** The Android plugin takes a list; capacitor.config.ts must request the same. */

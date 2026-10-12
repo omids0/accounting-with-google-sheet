@@ -1,0 +1,160 @@
+/* Desktop / tablet wireframe frames (round 5) */
+.dk-frame {
+  background: #fff;
+  border: 2px solid #444;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 560px;
+  direction: rtl;
+}
+.dk-frame.rail {
+  grid-template-columns: 64px 1fr;
+}
+.dk-side {
+  background: #f1f1f1;
+  border-left: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px;
+  gap: 2px;
+}
+.dk-brand {
+  font-weight: 800;
+  font-size: 13px;
+  padding: 6px 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dk-brand i {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: #555;
+  display: inline-block;
+}
+.dk-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #444;
+}
+.dk-nav i {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #777;
+  border-radius: 4px;
+  display: inline-block;
+  flex: none;
+}
+.dk-nav.on {
+  background: #d9d9d9;
+  font-weight: 800;
+}
+.dk-sep {
+  height: 1px;
+  background: #ccc;
+  margin: 6px 4px;
+}
+.dk-side .grow {
+  flex: 1;
+}
+.dk-sync {
+  font-size: 10px;
+  color: #777;
+  padding: 6px 8px;
+  border-top: 1px dashed #ccc;
+}
+.rail .dk-brand span,
+.rail .dk-nav span,
+.rail .dk-sync {
+  display: none;
+}
+.rail .dk-nav {
+  justify-content: center;
+}
+.dk-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.dk-top {
+  height: 48px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+.dk-top b {
+  font-size: 14px;
+}
+.dk-top .sp {
+  flex: 1;
+}
+.dk-top .chip {
+  border: 1px solid #999;
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: #555;
+}
+.dk-top .btn {
+  background: #555;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.dk-body {
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+  align-content: start;
+}
+.dk-card {
+  border: 1px solid #bbb;
+  border-radius: 10px;
+  background: #fafafa;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #555;
+  min-height: 56px;
+}
+.dk-card h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #333;
+}
+.dk-card .big {
+  font-size: 20px;
+  font-weight: 800;
+  color: #666;
+}
+.dk-card .ph {
+  height: 70px;
+  border: 1px dashed #bbb;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 11px;
+  margin-top: 6px;
+}
+.c3 {
+  grid-column: span 3;
+}
+.c4 {
+  grid-column: span 4;
+}
+.c6 {
+  grid-column: span 6;
+}

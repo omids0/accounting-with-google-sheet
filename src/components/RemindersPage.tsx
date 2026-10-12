@@ -1,21 +1,12 @@
 import { useNavigate } from 'react-router'
 
-import CronSetupSection from './reminders/CronSetupSection'
-import DueDateReminderSection from './reminders/DueDateReminderSection'
-import NativeNotificationSection from './reminders/NativeNotificationSection'
-import PersonalRemindersPushSection from './reminders/PersonalRemindersPushSection'
-import PushStatusSection from './reminders/PushStatusSection'
+import AdvancedPushSetup from './reminders/AdvancedPushSetup'
+import NotificationStatusCard from './reminders/NotificationStatusCard'
+import ReminderRulesList from './reminders/ReminderRulesList'
 import { useRemindersPage } from './reminders/useRemindersPage'
-import { isNativePlatform } from '../services/googleAuthNative'
-import {
-  VehicleDeadlineReminderSection,
-  VehicleMileageReminderSection,
-  VehiclePeriodicReminderSection
-} from './reminders/VehicleReminderSections'
 import Card from './ui/Card'
 import { remindersPageClass } from './ui/reminderStyles'
-
-const DUE_DATE_KINDS = ['installments', 'checks', 'dang'] as const
+import { getPathForTab } from '../routes/paths'
 
 export default function RemindersPage() {
   const page = useRemindersPage()
@@ -23,82 +14,28 @@ export default function RemindersPage() {
 
   return (
     <div className={remindersPageClass}>
+      <NotificationStatusCard
+        permission={page.permission}
+        onGrant={() => void page.grantPermission()}
+      />
+
       {page.loading ? (
         <Card>
-          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-            در حال بارگذاری...
-          </p>
+          <p className="m-0 text-[0.85rem] text-muted">در حال بارگذاری...</p>
         </Card>
       ) : (
-        <>
-          {isNativePlatform() ? (
-            <NativeNotificationSection />
-          ) : (
-            <PushStatusSection
-              pushStatus={page.pushStatus}
-              permission={page.permission}
-              swStatus={page.swStatus}
-              isInstalled={page.isInstalled}
-              hasSubscription={page.hasSubscription}
-              saving={page.saving}
-              canInstall={page.canInstall}
-              isIos={page.isIos}
-              showIosHint={page.showIosHint}
-              install={page.install}
-              dismissIosHint={page.dismissIosHint}
-              onEnablePush={page.handleEnablePush}
-              onDisablePush={page.handleDisablePush}
-              onTestNotification={page.handleTestNotification}
-            />
-          )}
-
-          {DUE_DATE_KINDS.map(kind => (
-            <DueDateReminderSection
-              key={kind}
-              kind={kind}
-              rule={page.rules[kind]}
-              previewLines={page.previewLinesByKind[kind]}
-              saving={page.savingKind === kind}
-              onUpdateRule={patch => page.updateRule(kind, patch)}
-              onSave={() => page.handleSaveRule(kind)}
-            />
-          ))}
-
-          <PersonalRemindersPushSection
-            personalRule={page.personalRule}
-            saving={page.savingKind === 'personal'}
-            onUpdateRule={page.updatePersonalRule}
-            onSave={() => page.handleSaveRule('personal')}
-            onManage={() => navigate('/reminders')}
-          />
-
-          <VehicleMileageReminderSection
-            rule={page.vehicleMileageRule}
-            saving={page.savingKind === 'vehicle-mileage'}
-            onUpdateRule={page.updateVehicleMileageRule}
-            onSave={() => page.handleSaveRule('vehicle-mileage')}
-          />
-
-          <VehicleDeadlineReminderSection
-            rule={page.vehicleDeadlineRule}
-            saving={page.savingKind === 'vehicle-deadline'}
-            onUpdateRule={page.updateVehicleDeadlineRule}
-            onSave={() => page.handleSaveRule('vehicle-deadline')}
-          />
-
-          <VehiclePeriodicReminderSection
-            rule={page.vehiclePeriodicRule}
-            saving={page.savingKind === 'vehicle-periodic-service'}
-            onUpdateRule={page.updateVehiclePeriodicRule}
-            onSave={() => page.handleSaveRule('vehicle-periodic-service')}
-          />
-
-          <CronSetupSection
-            showSetup={page.showSetup}
-            onToggle={() => page.setShowSetup(value => !value)}
-          />
-        </>
+        <ReminderRulesList
+          rules={page.rules}
+          savingKind={page.savingKind}
+          hasVehicle={page.hasVehicle}
+          permission={page.permission}
+          onChange={(kind, patch) => void page.changeRule(kind, patch)}
+          onGrant={() => void page.grantPermission()}
+          onManagePersonal={() => navigate(getPathForTab('personal-reminders'))}
+        />
       )}
+
+      <AdvancedPushSetup spreadsheetId={page.spreadsheetId} onChanged={page.permission.refresh} />
     </div>
   )
 }

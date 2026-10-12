@@ -1,4 +1,3 @@
-import { useGoogleOAuth } from '@react-oauth/google'
 import { useEffect, useRef } from 'react'
 
 import { getMsUntilTokenRefresh, hasStoredSession, shouldRefreshToken } from '../services/auth'
@@ -18,8 +17,6 @@ export function useTokenRefresh({
   onRefreshFailed,
   onRefreshSuccess
 }: UseTokenRefreshOptions): void {
-  const { scriptLoadedSuccessfully } = useGoogleOAuth()
-
   const onRefreshFailedRef = useRef(onRefreshFailed)
 
   onRefreshFailedRef.current = onRefreshFailed
@@ -29,12 +26,10 @@ export function useTokenRefresh({
   onRefreshSuccessRef.current = onRefreshSuccess
 
   useEffect(() => {
-    // The APK refreshes through the native plugin and needs neither Google's web
-    // script nor a web client id.
-    const native = isNativePlatform()
-
+    // The APK refreshes through the native plugin and needs no web client id; on
+    // the web, Google's script is fetched by the refresh itself when one is due.
     if (!enabled || !hasStoredSession()) return
-    if (!native && (!scriptLoadedSuccessfully || !clientId)) return
+    if (!isNativePlatform() && !clientId) return
 
     let cancelled = false
 
@@ -87,5 +82,5 @@ export function useTokenRefresh({
       if (timeoutId !== undefined) window.clearTimeout(timeoutId)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [clientId, enabled, scriptLoadedSuccessfully])
+  }, [clientId, enabled])
 }

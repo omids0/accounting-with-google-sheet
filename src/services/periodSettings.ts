@@ -1,9 +1,9 @@
+import { PERIOD_SETTINGS_HEADERS } from './sheetHeaders'
+import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
 import { getTodayIso } from '../utils/jalaliDate'
 
-export const PERIOD_SETTINGS_SHEET = 'تنظیمات دوره'
-
-export const PERIOD_SETTINGS_HEADERS = ['کلید', 'مقدار', 'زمان ثبت']
+export { PERIOD_SETTINGS_SHEET, PERIOD_SETTINGS_HEADERS }
 
 export const MEMBERSHIP_DATE_KEY = 'تاریخ عضویت'
 

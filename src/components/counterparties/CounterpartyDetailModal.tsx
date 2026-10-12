@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { createPortal } from 'react-dom'
 
 import {
@@ -62,6 +63,7 @@ export default function CounterpartyDetailModal({
   onEdit
 }: CounterpartyDetailModalProps) {
   const { panelRef } = useModalLock({ open, onClose })
+  const titleId = useId()
 
   if (!open || !item) return null
 
@@ -73,7 +75,7 @@ export default function CounterpartyDetailModal({
       className={cn(formModalRootClass, 'counterparty-detail-modal')}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="counterparty-detail-title"
+      aria-labelledby={titleId}
     >
       <button
         type="button"
@@ -84,7 +86,7 @@ export default function CounterpartyDetailModal({
 
       <div ref={panelRef} className={formModalPanelClass}>
         <div className={formModalHeaderClass}>
-          <h2 id="counterparty-detail-title" className={formModalTitleClass}>
+          <h2 id={titleId} className={formModalTitleClass}>
             {fullName || 'جزئیات طرف حساب'}
           </h2>
           <button

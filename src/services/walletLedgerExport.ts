@@ -25,16 +25,22 @@ function fileName(accountTitle: string, extension: string): string {
   return `گردش-${accountTitle.trim().replace(/\s+/g, '-') || 'حساب'}.${extension}`
 }
 
-export function exportLedgerCsv(accountTitle: string, entries: LedgerEntry[]): void {
+export function exportLedgerCsv(
+  accountTitle: string,
+  entries: LedgerEntry[]
+): Promise<string | null> {
   const { headers, rows } = ledgerTable(entries)
 
-  downloadTextFile(fileName(accountTitle, 'csv'), rowsToCsv(headers, rows))
+  return downloadTextFile(fileName(accountTitle, 'csv'), rowsToCsv(headers, rows))
 }
 
-export async function exportLedgerPdf(accountTitle: string, entries: LedgerEntry[]): Promise<void> {
+export async function exportLedgerPdf(
+  accountTitle: string,
+  entries: LedgerEntry[]
+): Promise<string | null> {
   const { headers, rows } = ledgerTable(entries)
 
-  await downloadTablePdf({
+  return downloadTablePdf({
     title: `گردش حساب ${accountTitle}`,
     headers,
     rows: rows.map((row, index) => [

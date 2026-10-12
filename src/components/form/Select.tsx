@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { useRegisterOverlay } from '../../hooks/useRegisterOverlay'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
 import {
@@ -47,6 +48,8 @@ export default function Select({
 
   const displayLabel = selected?.label ?? value
 
+  useRegisterOverlay(open, () => setOpen(false))
+
   useEffect(() => {
     if (!open) return
 
@@ -56,17 +59,9 @@ export default function Select({
       }
     }
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-
     document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
 
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
+    return () => document.removeEventListener('mousedown', onPointerDown)
   }, [open])
 
   const handleSelect = (option: SelectOption) => {

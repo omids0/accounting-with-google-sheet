@@ -1,21 +1,7 @@
 import { useEffect, useRef } from 'react'
 
-import { syncAppOpen } from '../services/activityTracking'
 import { isTokenValid } from '../services/auth'
-import { isNativePlatform } from '../services/googleAuthNative'
-import { refreshScheduledReminders } from '../services/localNotifications'
-import {
-  getCurrentPushSubscription,
-  getDeviceLabel,
-  getNotificationPermission,
-  getPushSupportStatus,
-  subscribeToPush
-} from '../services/pushNotifications'
-import { ensureDefaultReminderRules, upsertPushSubscription } from '../services/reminders'
 import { getSettings } from '../services/settings'
-import { getItem, setItem } from '../services/storage'
-
-const PUSH_PROMPT_KEY = 'accounting_push_prompted'
 
 const TOKEN_WAIT_MS = 60_000
 
@@ -30,50 +16,6 @@ async function waitForValidToken(): Promise<boolean> {
   }
 
   return true
-}
-
-async function tryAutoSubscribePush(spreadsheetId: string): Promise<void> {
-  if (getPushSupportStatus() !== 'supported') return
-
-  const permission = getNotificationPermission()
-
-  if (permission === 'denied') return
-
-  const existing = await getCurrentPushSubscription()
-
-  if (existing?.endpoint) {
-    await upsertPushSubscription(spreadsheetId, {
-      endpoint: existing.endpoint,
-      p256dh: existing.keys!.p256dh!,
-      auth: existing.keys!.auth!,
-      deviceLabel: getDeviceLabel(),
-      updatedAt: new Date().toISOString()
-    })
-
-    return
-  }
-
-  if (permission === 'default' && getItem<boolean>(PUSH_PROMPT_KEY)) {
-    return
-  }
-
-  if (permission === 'default') {
-    setItem(PUSH_PROMPT_KEY, true)
-  }
-
-  try {
-    const subscription = await subscribeToPush()
-
-    await upsertPushSubscription(spreadsheetId, {
-      endpoint: subscription.endpoint!,
-      p256dh: subscription.keys!.p256dh!,
-      auth: subscription.keys!.auth!,
-      deviceLabel: getDeviceLabel(),
-      updatedAt: new Date().toISOString()
-    })
-  } catch {
-    /* user denied or environment not ready */
-  }
 }
 
 export function useEngagementReminders(): void {
@@ -91,15 +33,9 @@ export function useEngagementReminders(): void {
       try {
         // Cached data now shows before the token is renewed; wait for it.
         if (!(await waitForValidToken())) return
-        await ensureDefaultReminderRules(spreadsheetId)
-        await syncAppOpen(spreadsheetId)
-
-        // The APK has no service worker, so its reminders are scheduled on the device.
-        if (isNativePlatform()) {
-          await refreshScheduledReminders(spreadsheetId)
-        } else {
-          await tryAutoSubscribePush(spreadsheetId)
-        }
+        // Loaded on demand so reminder and push code stays out of the main chunk.
+        const { runEngagementStartup } = await import('../services/engagementStartup')
+        await runEngagementStartup(spreadsheetId)
       } catch {
         /* non-blocking background setup */
       }

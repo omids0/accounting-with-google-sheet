@@ -16,6 +16,7 @@ import type { DashboardData } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import {
   getInstallmentDueRange,
+  getPreviousJalaliMonthRange,
   resolveDateRange,
   type DateRangePreset,
   type RecordsDatePreset
@@ -230,6 +231,17 @@ export function useDashboardPage() {
     }
   }, [datePreset, resetDateFilter])
 
+  const showPreviousMonth = useCallback(() => {
+    if (datePreset === 'month-to-date') {
+      setDatePreset('last-month')
+
+      return
+    }
+
+    setDatePreset('custom')
+    setCustomRange(getPreviousJalaliMonthRange(dateRange))
+  }, [datePreset, dateRange])
+
   return {
     data,
     loading,
@@ -260,6 +272,7 @@ export function useDashboardPage() {
     openFilterModal,
     filterChips,
     clearAllFilters,
+    showPreviousMonth,
     upcomingReminders
   }
 }

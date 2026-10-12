@@ -6,7 +6,9 @@ const ID_HEADER = 'شناسه'
 /** Thrown when the row an edit or delete was meant for is no longer in the sheet. */
 export class RowConflictError extends Error {
   constructor(sheetName: string) {
-    super(`ردیف موردنظر در «${sheetName}» پیدا نشد؛ احتمالاً روی دستگاه دیگری تغییر کرده است.`)
+    super(
+      `این ردیف در «${sheetName}» پیدا نشد یا چند بار تکرار شده؛ احتمالاً روی دستگاه دیگری تغییر کرده است.`
+    )
     this.name = 'RowConflictError'
   }
 }
