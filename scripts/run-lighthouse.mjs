@@ -15,12 +15,63 @@ import { resolveLighthouseChromePath } from '../tools/quality/resolveBrowser.mjs
 
 const require = createRequire(import.meta.url)
 const assertions = require('../tools/lighthouse/assertions.cjs')
+// The signed-in state the e2e suite uses (e2e/helpers/mockAppState.ts).
+const mockSeed = require('../e2e/helpers/mockAppSeed.json')
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const workspaceRoot = join(__dirname, '..')
 
 const APP_NAME = 'personal-accounting-pwa'
-const LIGHTHOUSE_PATH = '/'
+
+const SEED_FLAG = 'lighthouse-seed'
+const SEED_SCRIPT_PATH = '/__lighthouse/seed.js'
+
+/**
+ * Lighthouse drives plain Chrome, so Google's APIs cannot be mocked as in the
+ * e2e suite: they (and the other third-party hosts) are blocked instead and the
+ * dashboard renders from the seeded local copy, as it does offline.
+ */
+const SIGNED_IN_BLOCKED_URLS = [
+  '*googleapis.com*',
+  '*accounts.google.com*',
+  '*apis.google.com*',
+  '*tgju.org*',
+  '*openstreetmap.org*'
+]
+
+const AUDIT_PAGES = [
+  { name: 'login', path: '/', report: 'report' },
+  {
+    name: 'dashboard (signed in)',
+    path: `/?${SEED_FLAG}`,
+    report: 'report-dashboard',
+    blockedUrlPatterns: SIGNED_IN_BLOCKED_URLS
+  }
+]
+
+/** Runs before the app (and before index.html's CSP meta) to write the signed-in state. */
+function buildSeedScript() {
+  const { spreadsheetId, session, settings, sheets } = mockSeed
+  const local = {
+    accounting_session: { ...session, tokenExpiry: '__EXPIRY__' },
+    accounting_settings: settings,
+    [`accounting_sheet_store_${spreadsheetId}`]: { spreadsheetId, sheets, lastSyncedAt: '__NOW__' },
+    accounting_onboarding_v1: { [spreadsheetId]: { status: 'finished', steps: {} } }
+  }
+
+  return `(function () {
+  var now = Date.now()
+  var local = ${JSON.stringify(local)}
+  Object.keys(local).forEach(function (key) {
+    var value = JSON.stringify(local[key])
+      .replace('"__EXPIRY__"', String(now + 3600000))
+      .replace('"__NOW__"', String(now))
+    localStorage.setItem(key, value)
+  })
+  sessionStorage.setItem('accounting_sheets_ready', ${JSON.stringify(spreadsheetId)})
+})()
+`
+}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -66,20 +117,35 @@ function cleanupRunTempDir(lighthouseTempDir) {
   }
 }
 
-function startStaticServer(distDir, pagePath = '/') {
+/** The app page with the seed script ahead of everything, including the CSP meta. */
+function readSeededIndex(distDir) {
+  const html = readFileSync(join(distDir, 'index.html'), 'utf8')
+
+  return Buffer.from(html.replace('<head>', `<head><script src="${SEED_SCRIPT_PATH}"></script>`))
+}
+
+function startStaticServer(distDir) {
   return new Promise((resolve, reject) => {
     const server = createServer((req, res) => {
       try {
-        const requestPath = (req.url ?? '/').split('?')[0]
+        const [requestPath, query = ''] = (req.url ?? '/').split('?')
         let filePath = join(distDir, requestPath === '/' ? 'index.html' : requestPath.slice(1))
+        let body
 
-        if (!existsSync(filePath) || statSync(filePath).isDirectory()) {
+        if (requestPath === SEED_SCRIPT_PATH) {
+          filePath = 'seed.js'
+          body = Buffer.from(buildSeedScript())
+        } else if (!existsSync(filePath) || statSync(filePath).isDirectory()) {
           filePath = join(distDir, 'index.html')
+        }
+
+        if (!body && filePath.endsWith('index.html') && query.split('&').includes(SEED_FLAG)) {
+          body = readSeededIndex(distDir)
         }
 
         const extension = extname(filePath).toLowerCase()
         const contentType = MIME_TYPES[extension] ?? 'application/octet-stream'
-        let body = readFileSync(filePath)
+        body ??= readFileSync(filePath)
         const headers = { 'Content-Type': contentType }
         const acceptsGzip = (req.headers['accept-encoding'] ?? '').includes('gzip')
 
@@ -106,12 +172,7 @@ function startStaticServer(distDir, pagePath = '/') {
         return
       }
 
-      const normalizedPath = pagePath.startsWith('/') ? pagePath : `/${pagePath}`
-
-      resolve({
-        server,
-        url: `http://127.0.0.1:${address.port}${normalizedPath}`
-      })
+      resolve({ server, origin: `http://127.0.0.1:${address.port}` })
     })
   })
 }
@@ -128,7 +189,13 @@ async function safeKillChrome(chrome) {
   }
 }
 
-async function runLighthouseAudit({ url, chromePath, chromeProfileDir, lighthouseTempDir }) {
+async function runLighthouseAudit({
+  url,
+  chromePath,
+  chromeProfileDir,
+  lighthouseTempDir,
+  blockedUrlPatterns = []
+}) {
   const chrome = await launchChrome({
     chromePath,
     userDataDir: chromeProfileDir,
@@ -152,6 +219,7 @@ async function runLighthouseAudit({ url, chromePath, chromeProfileDir, lighthous
       output: 'json',
       port: chrome.port,
       hostname: '127.0.0.1',
+      blockedUrlPatterns,
       onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
       formFactor: 'desktop',
       screenEmulation: {
@@ -190,7 +258,9 @@ function evaluateAssertions(lhr) {
       const score = lhr.categories[categoryId]?.score
 
       if (typeof score === 'number' && score < options.minScore) {
-        const message = `${categoryId}: ${Math.round(score * 100)}% (min ${Math.round(options.minScore * 100)}%)`
+        const message = `${categoryId}: ${Math.round(score * 100)}% (min ${Math.round(
+          options.minScore * 100
+        )}%)`
         ;(level === 'error' ? errors : warnings).push(message)
       }
 
@@ -254,41 +324,53 @@ async function runLighthouse() {
 
   mkdirSync(outputDir, { recursive: true })
 
-  console.log(`\n🔦 Running Lighthouse for ${APP_NAME}...`)
-  console.log(`   URL: ${LIGHTHOUSE_PATH}`)
+  console.log(`
+🔦 Running Lighthouse for ${APP_NAME}...`)
   console.log(`   Dist: ${distDir}`)
   console.log(`   Chrome: ${chromePath}`)
   console.log(`   Temp profile: ${chromeProfileDir}`)
 
-  const { server, url } = await startStaticServer(distDir, LIGHTHOUSE_PATH)
+  const { server, origin } = await startStaticServer(distDir)
+  const failures = []
 
   try {
-    const lhr = await runLighthouseAudit({
-      url,
-      chromePath,
-      chromeProfileDir,
-      lighthouseTempDir
-    })
+    for (const page of AUDIT_PAGES) {
+      console.log(`
+   Page: ${page.name} (${page.path})`)
 
-    writeFileSync(join(outputDir, 'report.json'), JSON.stringify(lhr, null, 2))
-    writeFileSync(join(outputDir, 'report.html'), ReportGenerator.generateReportHtml(lhr))
+      const lhr = await runLighthouseAudit({
+        url: `${origin}${page.path}`,
+        chromePath,
+        chromeProfileDir,
+        lighthouseTempDir,
+        blockedUrlPatterns: page.blockedUrlPatterns
+      })
 
-    console.log('   Scores:')
-    printScores(lhr)
-    console.log(`   Report: ${join(outputDir, 'report.html')}`)
+      writeFileSync(join(outputDir, `${page.report}.json`), JSON.stringify(lhr, null, 2))
+      writeFileSync(join(outputDir, `${page.report}.html`), ReportGenerator.generateReportHtml(lhr))
 
-    const { errors, warnings } = evaluateAssertions(lhr)
+      console.log('   Scores:')
+      printScores(lhr)
+      console.log(`   Report: ${join(outputDir, `${page.report}.html`)}`)
 
-    for (const warning of warnings) {
-      console.warn(`   ⚠️  ${warning}`)
+      const { errors, warnings } = evaluateAssertions(lhr)
+
+      for (const warning of warnings) {
+        console.warn(`   ⚠️  ${warning}`)
+      }
+
+      failures.push(...errors.map(error => `${page.name}: ${error}`))
     }
 
-    if (errors.length > 0) {
-      console.error(`\n❌ Lighthouse assertions failed:`)
-      for (const error of errors) {
-        console.error(`   - ${error}`)
+    if (failures.length > 0) {
+      console.error(`
+❌ Lighthouse assertions failed:`)
+      for (const failure of failures) {
+        console.error(`   - ${failure}`)
       }
-      process.exit(1)
+      process.exitCode = 1
+
+      return
     }
 
     console.log(`✅ Lighthouse passed`)
