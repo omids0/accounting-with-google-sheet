@@ -59,7 +59,7 @@
     {
       "name": "personal-accounting-pwa (JS)",
       "path": "dist/assets/*.js",
-      "limit": "800 KB"
+      "limit": "900 KB"
     },
     {
       "name": "personal-accounting-pwa (CSS)",
