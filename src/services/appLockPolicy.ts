@@ -5,43 +5,55 @@ import { getDeviceConfig, saveDeviceConfig } from './appLockStorage'
 
 export const APP_LOCK_REQUEST_EVENT = 'accounting-app-lock-request'
 
-export const DEFAULT_APP_LOCK_POLICY: AppLockPolicy = 'background'
+export const APP_LOCK_POLICY_CHANGED_EVENT = 'accounting-app-lock-policy-changed'
+
+export const DEFAULT_APP_LOCK_POLICY: AppLockPolicy = 'idle'
 
 export const DEFAULT_IDLE_MINUTES = 5
 
 export const IDLE_MINUTE_OPTIONS = [5, 15, 30] as const
 
+/** `advanced` options sit behind «گزینه‌های بیشتر» in the chooser. */
 export const APP_LOCK_POLICY_OPTIONS: Array<{
   value: AppLockPolicy
   label: string
   description: string
+  advanced?: boolean
 }> = [
   {
+    value: 'idle',
+    label: 'بعد از ۵ دقیقه بی‌فعالیت',
+    description: 'پیش‌فرض · رفت‌وبرگشت کوتاه به اپ دیگر رمز نمی‌خواهد.'
+  },
+  {
     value: 'background',
-    label: 'فقط بعد از خروج از اپ',
-    description: 'با تعویض تب، رفتن به اپ دیگر یا بستن اپ دوباره قفل می‌شود.'
+    label: 'هر بار خروج از اپ',
+    description: 'با هر جابه‌جایی به اپ یا تب دیگر قفل می‌شود.'
   },
   {
     value: 'session',
-    label: 'یک‌بار در هر نشست',
-    description: 'تا وقتی اپ باز است، جابه‌جایی بین تب‌ها و اپ‌ها رمز نمی‌خواهد.'
+    label: 'فقط هنگام باز شدن اپ',
+    description: 'تا وقتی اپ باز است، جابه‌جایی بین اپ‌ها رمز نمی‌خواهد.'
   },
   {
     value: 'always',
     label: 'همیشه',
-    description: 'با هر بار باز کردن یا برگشتن به اپ رمز می‌خواهد (امن‌ترین).'
-  },
-  {
-    value: 'idle',
-    label: 'بعد از بی‌فعالیت',
-    description: 'اگر مدتی کاری نکنید یا اپ در پس‌زمینه بماند، قفل می‌شود.'
+    description: 'با هر بار باز کردن یا برگشتن به اپ رمز می‌خواهد (امن‌ترین).',
+    advanced: true
   },
   {
     value: 'manual',
     label: 'فقط دستی',
-    description: 'تا وقتی اپ باز است خودکار قفل نمی‌شود؛ با دکمه «قفل الان» می‌توانید قفل کنید.'
+    description: 'تا وقتی اپ باز است خودکار قفل نمی‌شود؛ با دکمه «قفل الان» می‌توانید قفل کنید.',
+    advanced: true
   }
 ]
+
+export function getPolicyLabel(policy: AppLockPolicy, idleMinutes: number): string {
+  if (policy === 'idle') return `بعد از ${idleMinutes.toLocaleString('fa-IR')} دقیقه بی‌فعالیت`
+
+  return APP_LOCK_POLICY_OPTIONS.find(option => option.value === policy)?.label ?? ''
+}
 
 /**
  * The data on this device is encrypted with a key that only exists in memory,
@@ -103,14 +115,17 @@ export function getIdleMinutes(): number {
     : DEFAULT_IDLE_MINUTES
 }
 
-export function setLockPolicy(policy: AppLockPolicy, idleMinutes?: number): void {
+/** `chosen` marks a policy the user picked; the default migration never overrides it. */
+export function setLockPolicy(policy: AppLockPolicy, idleMinutes?: number, chosen = false): void {
   const device = getDeviceConfig() ?? {}
 
   saveDeviceConfig({
     ...device,
     lockPolicy: policy,
-    idleMinutes: idleMinutes ?? device.idleMinutes ?? DEFAULT_IDLE_MINUTES
+    idleMinutes: idleMinutes ?? device.idleMinutes ?? DEFAULT_IDLE_MINUTES,
+    policyChosen: chosen || device.policyChosen
   })
+  window.dispatchEvent(new Event(APP_LOCK_POLICY_CHANGED_EVENT))
 }
 
 export function getPolicyDescription(policy: AppLockPolicy): string {
@@ -218,6 +233,15 @@ export function clearBackgroundPending(): void {
 
 export function touchActivity(): void {
   writeSession(LAST_ACTIVITY_KEY, String(Date.now()))
+}
+
+/**
+ * The app came back without locking (a short trip under `idle`): drop the
+ * background marker, or the idle timer would still count from when it was hidden.
+ */
+export function markForegroundReturn(): void {
+  clearBackgroundPending()
+  touchActivity()
 }
 
 /** Drops every per-tab unlock marker, e.g. when the account signs out. */

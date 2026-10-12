@@ -16,6 +16,11 @@ const config: CapacitorConfig = {
       smallIcon: 'ic_stat_reminder',
       iconColor: '#0F766E'
     },
+    PrivacyScreen: {
+      // The plugin turns FLAG_SECURE on at start by default; the app enables it
+      // from JS only while the lock and the «محو کردن اپ در پس‌زمینه» toggle are on.
+      enable: false
+    },
     GoogleAuth: {
       // Keep equal to NATIVE_GOOGLE_SCOPES in src/services/auth.ts (a test checks it).
       // drive.file is non-sensitive: only files the app created or the user opened with it.

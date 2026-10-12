@@ -113,6 +113,12 @@ export interface AppLockDeviceConfig {
   credentialId?: string
   lockPolicy?: AppLockPolicy
   idleMinutes?: number
+  /** Set only when the user picks a policy; an unset flag means the implicit default. */
+  policyChosen?: boolean
+  /** One-time toast after moving an implicit `background` policy to the new idle default. */
+  policyNoticePending?: boolean
+  /** Blur the app in the background (FLAG_SECURE on Android); unset means on. */
+  privacyScreen?: boolean
 }
 
 /** @deprecated Use AppLockAccountConfig + AppLockDeviceConfig */

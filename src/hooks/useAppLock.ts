@@ -3,16 +3,24 @@ import { useCallback, useEffect, useState } from 'react'
 import { APP_LOCK_CHANGED_EVENT, isAppLockEnabled } from '../services/appLock'
 import { clearDataKey } from '../services/appLockDataKey'
 import {
+  APP_LOCK_POLICY_CHANGED_EVENT,
   APP_LOCK_REQUEST_EVENT,
   clearBackgroundPending,
   clearSessionUnlocked,
   getLockPolicy,
   markBackgroundPending,
+  markForegroundReturn,
   markSessionUnlocked,
   shouldLockOnForeground,
   shouldLockOnMount,
   touchActivity
 } from '../services/appLockPolicy'
+import {
+  consumeLockPolicyNotice,
+  LOCK_POLICY_MIGRATION_NOTICE,
+  migrateImplicitLockPolicy
+} from '../services/appLockPolicyMigration'
+import { showInfo } from '../utils/toast'
 
 /**
  * Locking also drops the data key from memory, so nothing new is decrypted or
@@ -27,7 +35,13 @@ function engageLock(setLocked: (locked: boolean) => void): void {
 
 export function useAppLock() {
   const [lockEnabled, setLockEnabled] = useState(isAppLockEnabled)
-  const [locked, setLocked] = useState(shouldLockOnMount)
+  const [locked, setLocked] = useState(() => {
+    // Runs before the first policy read so a migrated device starts on idle.
+    migrateImplicitLockPolicy()
+
+    return shouldLockOnMount()
+  })
+  const [policy, setPolicy] = useState(getLockPolicy)
 
   useEffect(() => {
     const onLockChanged = (event: Event) => {
@@ -46,9 +60,11 @@ export function useAppLock() {
     }
 
     const lockIfNeeded = () => {
-      if (!shouldLockOnForeground()) return
-
-      engageLock(setLocked)
+      if (shouldLockOnForeground()) {
+        engageLock(setLocked)
+      } else if (document.visibilityState === 'visible') {
+        markForegroundReturn()
+      }
     }
 
     const onVisibility = () => {
@@ -87,13 +103,6 @@ export function useAppLock() {
       touchActivity()
     }
 
-    const idleInterval =
-      lockEnabled && getLockPolicy() === 'idle'
-        ? window.setInterval(() => {
-            if (shouldLockOnForeground()) engageLock(setLocked)
-          }, 30_000)
-        : undefined
-
     window.addEventListener(APP_LOCK_CHANGED_EVENT, onLockChanged)
     window.addEventListener(APP_LOCK_REQUEST_EVENT, onLockRequested)
     document.addEventListener('visibilitychange', onVisibility)
@@ -114,10 +123,32 @@ export function useAppLock() {
       document.removeEventListener('resume', onResume)
       window.removeEventListener('pointerdown', onActivity)
       window.removeEventListener('keydown', onActivity)
-
-      if (idleInterval) window.clearInterval(idleInterval)
     }
   }, [lockEnabled])
+
+  useEffect(() => {
+    const onPolicyChanged = () => setPolicy(getLockPolicy())
+
+    window.addEventListener(APP_LOCK_POLICY_CHANGED_EVENT, onPolicyChanged)
+
+    return () => window.removeEventListener(APP_LOCK_POLICY_CHANGED_EVENT, onPolicyChanged)
+  }, [])
+
+  useEffect(() => {
+    if (!lockEnabled || policy !== 'idle') return
+
+    const idleInterval = window.setInterval(() => {
+      if (shouldLockOnForeground()) engageLock(setLocked)
+    }, 30_000)
+
+    return () => window.clearInterval(idleInterval)
+  }, [lockEnabled, policy])
+
+  useEffect(() => {
+    if (lockEnabled && !locked && consumeLockPolicyNotice()) {
+      showInfo(LOCK_POLICY_MIGRATION_NOTICE)
+    }
+  }, [lockEnabled, locked])
 
   const unlock = useCallback(() => {
     markSessionUnlocked()

@@ -58,10 +58,13 @@ export default function AppLockSettings() {
 
         {lock.enabled && lock.step === 'idle' && (
           <AppLockPolicySettings
+            mode="settings"
             policy={lock.lockPolicy}
             idleMinutes={lock.idleMinutes}
+            privacyScreen={lock.privacyScreen}
             onPolicyChange={lock.handlePolicyChange}
             onIdleMinutesChange={lock.handleIdleMinutesChange}
+            onPrivacyScreenChange={lock.handlePrivacyScreenChange}
             onLockNow={lock.handleLockNow}
           />
         )}
@@ -96,6 +99,18 @@ export default function AppLockSettings() {
               />
             </div>
           </section>
+        )}
+
+        {lock.step === 'setup' && (
+          <AppLockPolicySettings
+            mode="setup"
+            policy={lock.lockPolicy}
+            idleMinutes={lock.idleMinutes}
+            privacyScreen={lock.privacyScreen}
+            onPolicyChange={lock.handlePolicyChange}
+            onIdleMinutesChange={lock.handleIdleMinutesChange}
+            onPrivacyScreenChange={lock.handlePrivacyScreenChange}
+          />
         )}
 
         {lock.step === 'setup' && (

@@ -55,6 +55,9 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   const [biometricReady, setBiometricReady] = useState(false)
   // Fingerprint is on but its key copy does not exist yet (lock from before encryption).
   const [biometricNeedsPin, setBiometricNeedsPin] = useState(false)
+  // With fingerprint on, the keyboard must not open under the system prompt:
+  // the PIN gets focus only once biometrics turn out to be unusable.
+  const [biometricChecked, setBiometricChecked] = useState(() => !isBiometricEnabled())
   const [pinLength] = useState(getStoredPinLength)
   const { locked, lockoutMessage, registerFailure, registerSuccess } = useUnlockLockout()
   const recovery = usePinRecovery()
@@ -95,6 +98,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
 
       setBiometricReady(ready)
       setBiometricNeedsPin(!ready && isBiometricEnabled())
+      setBiometricChecked(true)
 
       if (!ready || biometricTried.current) return
 
@@ -164,6 +168,28 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
         </header>
 
         <div className={unlockBodyClass}>
+          {biometricReady && (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                className={unlockBiometricBtnClass}
+                onClick={() => void handleBiometric()}
+                disabled={pinLoading || biometricLoading || recovery.working}
+                loading={biometricLoading}
+              >
+                <AppIcon name="fingerprint" size={20} />
+                ورود با اثر انگشت
+              </Button>
+
+              <div className={unlockDividerClass} aria-hidden="true">
+                <span className={unlockDividerLineClass} />
+                <span>یا با رمز</span>
+                <span className={unlockDividerLineClass} />
+              </div>
+            </>
+          )}
+
           <form onSubmit={handleSubmit} className={unlockActionsClass} autoComplete="off">
             <UnlockPinInput
               id="unlock-pin"
@@ -178,7 +204,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               length={pinLength}
               disabled={pinLoading || locked || recovery.working}
               hasError={!!message}
-              autoFocus
+              autoFocus={biometricChecked && !biometricReady}
             />
 
             {message && (
@@ -202,28 +228,6 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               باز کردن قفل
             </Button>
           </form>
-
-          {biometricReady && (
-            <>
-              <div className={unlockDividerClass} aria-hidden="true">
-                <span className={unlockDividerLineClass} />
-                <span>یا</span>
-                <span className={unlockDividerLineClass} />
-              </div>
-
-              <Button
-                type="button"
-                variant="secondary"
-                className={unlockBiometricBtnClass}
-                onClick={() => void handleBiometric()}
-                disabled={pinLoading || biometricLoading || recovery.working}
-                loading={biometricLoading}
-              >
-                <AppIcon name="fingerprint" size={20} />
-                ورود با اثر انگشت
-              </Button>
-            </>
-          )}
 
           {biometricNeedsPin && (
             <p className={unlockHintClass}>

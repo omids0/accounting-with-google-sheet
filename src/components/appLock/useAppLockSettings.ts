@@ -18,6 +18,10 @@ import {
   requestAppLock,
   setLockPolicy
 } from '../../services/appLockPolicy'
+import {
+  getPrivacyScreenPreference,
+  setPrivacyScreenPreference
+} from '../../services/privacyScreen'
 import type { AppLockPolicy } from '../../types'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
@@ -53,6 +57,8 @@ export function useAppLockSettings() {
 
   const [idleMinutes, setIdleMinutesState] = useState(getIdleMinutes)
 
+  const [privacyScreen, setPrivacyScreenState] = useState(getPrivacyScreenPreference)
+
   useEffect(() => {
     void getBiometricStatus().then(status => {
       setBiometricAvailable(status.available)
@@ -67,6 +73,10 @@ export function useAppLockSettings() {
     setConfirmPin('')
     setCurrentPin('')
     setUseBiometric(false)
+    // Drops a choice made in an abandoned setup; after a save these are the saved values.
+    setLockPolicyState(getLockPolicy())
+    setIdleMinutesState(getIdleMinutes())
+    setPrivacyScreenState(getPrivacyScreenPreference())
   }
 
   const handleEnable = async (event: FormEvent) => {
@@ -89,6 +99,9 @@ export function useAppLockSettings() {
     try {
       // The user is already in the app; enabling must not lock it straight away.
       markSessionUnlocked()
+      // The chooser is part of setup, so the policy shown there counts as picked.
+      setLockPolicy(lockPolicy, idleMinutes, true)
+      setPrivacyScreenPreference(privacyScreen)
       await setupAppLock(pin, useBiometric && biometricAvailable)
       setEnabled(true)
       setBiometricOn(useBiometric && biometricAvailable)
@@ -179,16 +192,28 @@ export function useAppLockSettings() {
     }
   }
 
+  // During setup the chooser only collects values; handleEnable saves them.
+  const savesNow = step !== 'setup'
+
   const handlePolicyChange = (policy: AppLockPolicy) => {
-    setLockPolicy(policy, idleMinutes)
     setLockPolicyState(policy)
+    if (!savesNow) return
+
+    setLockPolicy(policy, idleMinutes, true)
     showSuccess('سیاست قفل ذخیره شد')
   }
 
   const handleIdleMinutesChange = (minutes: number) => {
-    setLockPolicy(lockPolicy, minutes)
     setIdleMinutesState(minutes)
+    if (!savesNow) return
+
+    setLockPolicy(lockPolicy, minutes)
     showSuccess('مدت بی‌فعالیت ذخیره شد')
+  }
+
+  const handlePrivacyScreenChange = (on: boolean) => {
+    setPrivacyScreenState(on)
+    if (savesNow) setPrivacyScreenPreference(on)
   }
 
   const handleLockNow = () => {
@@ -216,6 +241,7 @@ export function useAppLockSettings() {
     loading,
     lockPolicy,
     idleMinutes,
+    privacyScreen,
     resetForm,
     handleEnable,
     handleDisable,
@@ -224,6 +250,7 @@ export function useAppLockSettings() {
     handleDisableBiometric,
     handlePolicyChange,
     handleIdleMinutesChange,
+    handlePrivacyScreenChange,
     handleLockNow
   }
 }

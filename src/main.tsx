@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 
 import App from './App'
+import PrivacyScreen from './components/appLock/PrivacyScreen'
 import AppToaster from './components/AppToaster'
 import { AppLoadingSkeleton } from './components/skeleton'
 import { initializeNativeGoogleAuth, isNativePlatform } from './services/googleAuthNative'
@@ -26,6 +27,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <App />
       </Suspense>
       <AppToaster />
+      <PrivacyScreen />
     </GoogleRouter>
   </React.StrictMode>
 )
