@@ -182,3 +182,9 @@ export const bluColorPickerBtnClass = cn(
   '[&.blu-color-picker-btn--selected]:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]',
   '[&.blu-color-picker-btn--selected]:scale-110'
 )
+
+/** Covers the whole card header so any tap toggles it. */
+export const walletOpeningToggleClass =
+  'absolute inset-0 z-0 cursor-pointer rounded-[inherit] border-none bg-transparent p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)]'
+
+export const walletOpeningHintClass = 'relative z-[1]'

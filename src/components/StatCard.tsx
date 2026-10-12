@@ -34,6 +34,8 @@ interface StatCardProps {
   lift?: boolean
   className?: string
   footer?: ReactNode
+  /** Inline help beside the label, e.g. a HelpHint. */
+  labelHint?: ReactNode
 }
 
 function defaultTone(variant: StatCardVariant, flowDirection?: FlowDirection): MoneyDisplayTone {
@@ -75,7 +77,8 @@ export default function StatCard({
   animated = true,
   lift = false,
   className,
-  footer
+  footer,
+  labelHint
 }: StatCardProps) {
   const style: CSSProperties | undefined =
     animateIndex != null ? { animationDelay: `${animateIndex * 0.07}s` } : undefined
@@ -111,7 +114,10 @@ export default function StatCard({
       )}
       style={style}
     >
-      <span className={cn('stat-label', statLabelClass)}>{label}</span>
+      <span className={cn('stat-label', statLabelClass)}>
+        {label}
+        {labelHint}
+      </span>
       <div
         className={cn(
           'stat-card-value-row',

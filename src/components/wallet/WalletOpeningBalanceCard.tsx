@@ -4,6 +4,9 @@ import { formatJalaliMonthLabel } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AppIcon from '../AppIcon'
+import HelpHint from '../HelpHint'
+import { HELP_HINTS } from '../helpHints'
+import { walletOpeningHintClass, walletOpeningToggleClass } from './walletCardStyles'
 import Button from '../ui/Button'
 import {
   dashboardOpeningBodyClass,
@@ -47,14 +50,21 @@ export default function WalletOpeningBalanceCard({
         walletItemCardClass
       )}
     >
-      <button
-        type="button"
-        className={cn(installmentHeaderClass(openingExpanded), 'wallet-item-header')}
-        onClick={onToggleExpanded}
-      >
+      {/* A stretched button opens the card; the «؟» sits above it, never inside a button. */}
+      <div className={cn(installmentHeaderClass(openingExpanded), 'wallet-item-header relative')}>
+        <button
+          type="button"
+          className={walletOpeningToggleClass}
+          onClick={onToggleExpanded}
+          aria-expanded={openingExpanded}
+          aria-label={`موجودی اول دوره، ابتدای ${periodFlow.monthLabel}`}
+        />
         <div className={walletItemInfoClass}>
           <div className={walletItemTitleRowClass}>
-            <div className={listCardTitleClass}>موجودی اول دوره</div>
+            <div className={listCardTitleClass}>
+              موجودی اول دوره
+              <HelpHint {...HELP_HINTS.openingBalance} className={walletOpeningHintClass} />
+            </div>
             <div className={listCardAmountPillClass}>
               {formatMoney(periodFlow.openingBalance ?? 0)}
             </div>
@@ -64,7 +74,7 @@ export default function WalletOpeningBalanceCard({
         <span className={installmentChevronClass} aria-hidden>
           <AppIcon name="chevron-down" size={14} />
         </span>
-      </button>
+      </div>
 
       <AccordionCollapse open={openingExpanded}>
         <div className={cn(installmentPaymentsClass, dashboardOpeningBodyClass)}>
