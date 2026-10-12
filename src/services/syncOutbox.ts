@@ -44,6 +44,8 @@ export interface OutboxEntry {
   operation: OutboxOperation
   attempts: number
   lastError?: string
+  /** Parked write whose change was taken back out of the local mirror. */
+  reverted?: boolean
 }
 
 function outboxKey(spreadsheetId: string): string {
@@ -135,10 +137,16 @@ export function getFailedOutboxEntries(spreadsheetId: string): OutboxEntry[] {
   return getItem<OutboxEntry[]>(failedKey(spreadsheetId)) ?? []
 }
 
+function writeFailed(spreadsheetId: string, entries: OutboxEntry[]): void {
+  if (entries.length) setItem(failedKey(spreadsheetId), entries.slice(-MAX_FAILED_ENTRIES))
+  else clearFailedOutboxEntries(spreadsheetId)
+}
+
 export function moveOutboxEntryToFailed(
   spreadsheetId: string,
   entryId: string,
-  error: string
+  error: string,
+  extra: Pick<OutboxEntry, 'reverted'> = {}
 ): void {
   const entries = readOutbox(spreadsheetId)
   const entry = entries.find(item => item.id === entryId)
@@ -149,17 +157,40 @@ export function moveOutboxEntryToFailed(
     spreadsheetId,
     entries.filter(item => item.id !== entryId)
   )
-
-  const failed = [
+  writeFailed(spreadsheetId, [
     ...getFailedOutboxEntries(spreadsheetId),
-    { ...entry, attempts: entry.attempts + 1, lastError: error }
-  ].slice(-MAX_FAILED_ENTRIES)
-
-  setItem(failedKey(spreadsheetId), failed)
+    { ...entry, ...extra, attempts: entry.attempts + 1, lastError: error }
+  ])
 }
 
 export function clearFailedOutboxEntries(spreadsheetId: string): void {
   removeItem(failedKey(spreadsheetId))
+}
+
+/** Removes one parked write from the failed list and returns it. */
+export function takeFailedOutboxEntry(spreadsheetId: string, entryId: string): OutboxEntry | null {
+  const failed = getFailedOutboxEntries(spreadsheetId)
+  const entry = failed.find(item => item.id === entryId)
+
+  if (!entry) return null
+  writeFailed(
+    spreadsheetId,
+    failed.filter(item => item.id !== entryId)
+  )
+
+  return entry
+}
+
+/**
+ * Puts parked writes back at the end of the outbox. `attempts` stays above 0, so
+ * an append is first checked for having landed after all.
+ */
+export function requeueOutboxEntries(spreadsheetId: string, entries: OutboxEntry[]): void {
+  if (!entries.length) return
+
+  const revived = entries.map(({ reverted: _reverted, ...entry }) => entry)
+
+  writeOutbox(spreadsheetId, [...readOutbox(spreadsheetId), ...revived])
 }
 
 /** Google's answer to a write into a tab the spreadsheet does not have. */
@@ -185,12 +216,11 @@ export function requeueMissingTabAppends(
 
   if (!revived.length) return []
 
-  const kept = failed.filter(entry => !revived.includes(entry))
-
-  if (kept.length) setItem(failedKey(spreadsheetId), kept)
-  else clearFailedOutboxEntries(spreadsheetId)
-
-  writeOutbox(spreadsheetId, [...readOutbox(spreadsheetId), ...revived])
+  writeFailed(
+    spreadsheetId,
+    failed.filter(entry => !revived.includes(entry))
+  )
+  requeueOutboxEntries(spreadsheetId, revived)
 
   return revived
 }

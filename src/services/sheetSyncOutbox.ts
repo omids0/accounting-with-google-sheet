@@ -141,7 +141,12 @@ async function flushPass(
       const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی'
 
       if (err instanceof RowConflictError || isPermanentApiError(err)) {
-        moveOutboxEntryToFailed(spreadsheetId, entry.id, message)
+        // Otherwise the app keeps showing a change the sheet never got.
+        const { revertFailedWrite } = await import('./failedWriteMirror')
+        const reverted = revertFailedWrite(spreadsheetId, entry.operation)
+
+        moveOutboxEntryToFailed(spreadsheetId, entry.id, message, { reverted })
+        if (reverted) invalidateDerivedCaches(spreadsheetId)
         refreshPendingCount(spreadsheetId)
         refreshFailedCount(spreadsheetId)
         setSyncState('error', `یک تغییر اعمال نشد: ${toUserMessage(err, 'خطای نامشخص')}`)

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { useSheetSwitchGuard } from './useSheetSwitchGuard'
 import { useLogoutFlow } from '../../hooks/useLocalDataWipe'
 import { useOpenSheetWithGoogle } from '../../hooks/useOpenSheetWithGoogle'
 import { usePwaInstall } from '../../hooks/usePwaInstall'
@@ -12,6 +13,7 @@ import {
   switchActiveSpreadsheet,
   syncSpreadsheetsFromDrive
 } from '../../services/spreadsheetSetup'
+import { moveSyncToSpreadsheet } from '../../services/spreadsheetSwitch'
 import { bumpSpreadsheetKey } from '../../stores/appStore'
 import type { CurrencyUnit, SpreadsheetEntry } from '../../types'
 import { showError, showSuccess } from '../../utils/toast'
@@ -33,6 +35,8 @@ export function useSettingsPage() {
   const [initialLoading, setInitialLoading] = useState(() => isTokenValid())
 
   const { canInstall, isInstalled, showIosHint, isIos, install, dismissIosHint } = usePwaInstall()
+
+  const switchGuard = useSheetSwitchGuard(spreadsheetId)
 
   useEffect(() => {
     const settings = getSettings()
@@ -102,13 +106,15 @@ export function useSettingsPage() {
       return
     }
 
+    await switchGuard.guard(() => createSpreadsheet(newSheetName.trim()))
+  }
+
+  const createSpreadsheet = async (trimmedName: string) => {
     setLoading(true)
-
-    const trimmedName = newSheetName.trim()
-
     try {
       const newId = await createNamedSpreadsheet(trimmedName)
 
+      await moveSyncToSpreadsheet(spreadsheetId, newId)
       setSpreadsheetId(newId)
       setSpreadsheets(getSpreadsheets())
       setNewSheetName('')
@@ -130,9 +136,14 @@ export function useSettingsPage() {
       return
     }
 
+    await switchGuard.guard(() => switchSpreadsheet(nextId))
+  }
+
+  const switchSpreadsheet = async (nextId: string) => {
     setLoading(true)
     try {
       await switchActiveSpreadsheet(nextId)
+      await moveSyncToSpreadsheet(spreadsheetId, nextId)
       setSpreadsheetId(nextId)
       setSpreadsheets(getSpreadsheets())
       await syncCategoriesFromSheet(nextId)
@@ -148,12 +159,20 @@ export function useSettingsPage() {
     }
   }
 
-  const sheetPicker = useOpenSheetWithGoogle(async openedId => {
+  const googlePicker = useOpenSheetWithGoogle(async openedId => {
+    await moveSyncToSpreadsheet(spreadsheetId, openedId)
     setSpreadsheetId(openedId)
     setSpreadsheets(getSpreadsheets())
     showSuccess('شیت با گوگل باز و فعال شد')
     bumpSpreadsheetKey()
   })
+
+  const sheetPicker = {
+    ...googlePicker,
+    openWithGoogle: () => switchGuard.guard(googlePicker.openWithGoogle)
+  }
+
+  const activeSheet = spreadsheets.find(sheet => sheet.id === spreadsheetId)
 
   const handleCurrencyChange = (value: CurrencyUnit) => {
     setCurrency(value)
@@ -188,6 +207,8 @@ export function useSettingsPage() {
     handleCreateSpreadsheet,
     handleSwitchSpreadsheet,
     sheetPicker,
+    switchGuardModalProps: switchGuard.modalProps,
+    activeSheetName: activeSheet ? getSpreadsheetLabel(activeSheet.name) : '',
     handleCurrencyChange,
     cancelNewSheetForm
   }

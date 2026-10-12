@@ -224,13 +224,21 @@ export function stopSheetSync(): void {
   activeSpreadsheetId = null
 }
 
-export function resetSheetSync(spreadsheetId: string): void {
+/**
+ * `keepOutbox`: leaving a sheet with unsent changes keeps them queued under its
+ * id, so they go out the next time that sheet is opened.
+ */
+export function resetSheetSync(
+  spreadsheetId: string,
+  { keepOutbox = false }: { keepOutbox?: boolean } = {}
+): void {
   stopSheetSync()
   forgetRemoteVersion(spreadsheetId)
   forgetSheetRevisions(spreadsheetId)
   clearStore(spreadsheetId)
-  clearOutbox(spreadsheetId)
+  if (!keepOutbox) clearOutbox(spreadsheetId)
   setPendingWrites(0)
+  setSyncState('idle')
   invalidateDerivedCaches(spreadsheetId)
   notifySpreadsheetDataChanged(spreadsheetId)
 }

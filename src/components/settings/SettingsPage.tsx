@@ -10,8 +10,13 @@ import SettingsPwaInstallCard from './SettingsPwaInstallCard'
 import SettingsRemindersCard from './SettingsRemindersCard'
 import SettingsSection from './SettingsSection'
 import SettingsSpreadsheetCard from './SettingsSpreadsheetCard'
+import SheetSwitchConfirmModal from './SheetSwitchConfirmModal'
 import { useSettingsPage } from './useSettingsPage'
-import { settingsPageClass } from '../ui/settingsStyles'
+import {
+  settingsActiveSheetClass,
+  settingsActiveSheetNameClass,
+  settingsPageClass
+} from '../ui/settingsStyles'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -23,6 +28,13 @@ export default function SettingsPage() {
 
   return (
     <div className={settingsPageClass}>
+      {settings.activeSheetName && (
+        <p className={settingsActiveSheetClass}>
+          شیت فعال: <span className={settingsActiveSheetNameClass}>{settings.activeSheetName}</span>
+        </p>
+      )}
+      <SheetSwitchConfirmModal {...settings.switchGuardModalProps} />
+
       <SettingsSection title="عمومی" icon="settings" description="واحد پول و نصب اپ روی گوشی">
         <SettingsGeneralCard
           currency={settings.currency}
