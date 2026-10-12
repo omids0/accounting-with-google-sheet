@@ -1,7 +1,12 @@
 import BankSmsCardHead from './BankSmsCardHead'
 import type { ConfirmableSms } from '../../services/bankSmsApply'
 import { formatMoney } from '../../utils/formatMoney'
-import { smsActionsRowClass, smsCardClass, smsHintClass } from '../ui/bankSmsStyles'
+import {
+  smsActionsRowClass,
+  smsBadgeClass,
+  smsHintClass,
+  smsQueueCardClass
+} from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import type { WalletAccountWithRow } from '../wallet/types'
@@ -29,8 +34,8 @@ export default function BankSmsTransferCard({
   const to = titleOf(credit.result.accountId)
 
   return (
-    <Card className={smsCardClass}>
-      <BankSmsCardHead entry={debit} accountTitle={`انتقال داخلی: ${from} ← ${to}`} />
+    <Card className={smsQueueCardClass}>
+      <BankSmsCardHead entry={debit} badge={<span className={smsBadgeClass}>انتقال داخلی</span>} />
       <p className={smsHintClass}>
         {formatMoney(debit.amount)} از «{from}» برداشت و به «{to}» واریز شده است. با تأیید، فقط
         موجودی هر دو حساب به‌روز می‌شود و درآمد یا هزینه‌ای ثبت نمی‌شود.

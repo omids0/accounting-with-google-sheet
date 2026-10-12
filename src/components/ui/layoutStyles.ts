@@ -194,3 +194,7 @@ export function syncStatusDotClass(status: SyncStatus) {
 }
 
 export const syncStatusLabelClass = 'overflow-hidden text-ellipsis whitespace-nowrap'
+
+/** Header slot for a page's own button, on every width (end cell on phones). */
+export const appHeaderPageEndClass =
+  'col-start-3 row-start-1 flex items-center gap-1.5 empty:hidden'

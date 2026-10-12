@@ -6,9 +6,15 @@ export interface HeaderSlots {
   toolbar: HTMLElement | null
   /** End of the row: the page's speed-dial actions as buttons. */
   actions: HTMLElement | null
+  /** End of the row on every width: a page's own header button (bank SMS ⚙). */
+  pageEnd: HTMLElement | null
 }
 
-export const HeaderSlotsContext = createContext<HeaderSlots>({ toolbar: null, actions: null })
+export const HeaderSlotsContext = createContext<HeaderSlots>({
+  toolbar: null,
+  actions: null,
+  pageEnd: null
+})
 
 export function useHeaderSlots(): HeaderSlots {
   return useContext(HeaderSlotsContext)

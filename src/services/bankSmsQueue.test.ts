@@ -84,8 +84,20 @@ describe('buildReviewItems', () => {
       { probableDuplicate: true, duplicateMovedBalance: true }
     ])
     expect(buildReviewItems(reviewed, [{ ...ledger[0], type: 'income' }])).toMatchObject([
-      { probableDuplicate: false }
+      { probableDuplicate: false, duplicateOf: null }
     ])
+  })
+
+  it('names the newest matching record for the «تکراری؟» badge', () => {
+    const reviewed = reviewSms([sms('a', MELLAT_DEBIT.next)], templates, accounts, 'toman')
+    const base: LedgerEntry = { type: 'expense', amount: 9000, date: '2026-10-07', accountId: '' }
+    const ledger = [
+      { ...base, id: 'old', createdAtMs: 5 },
+      { ...base, id: 'new', date: '2026-10-08', createdAtMs: 1 },
+      { ...base, id: 'mid', date: '2026-10-08', createdAtMs: 0 }
+    ]
+
+    expect(buildReviewItems(reviewed, ledger)).toMatchObject([{ duplicateOf: { id: 'new' } }])
   })
 })
 

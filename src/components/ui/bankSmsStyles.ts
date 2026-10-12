@@ -77,3 +77,59 @@ export const smsRawClass = 'text-[0.75rem] leading-[1.7] text-muted [&>summary]:
 
 export const smsBadgeClass =
   'rounded-full border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-2 py-0.5 text-[0.7rem] font-bold text-warning'
+
+/* Round 6 review queue */
+
+/** Queue cards sit inside a swipe row, which owns the spacing. */
+export const smsQueueCardClass = 'mb-0 flex flex-col gap-2.5'
+
+export const smsQueueListClass = 'flex flex-col gap-3'
+
+export function smsBigAmountClass(direction: 'debit' | 'credit') {
+  return cn(
+    'text-[1.45rem] font-extrabold leading-tight tabular-nums',
+    direction === 'debit' ? 'text-[var(--color-expense)]' : 'text-[var(--color-income)]'
+  )
+}
+
+export const smsAmountRowClass = 'flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1'
+
+export const smsAccountLineClass = 'text-[0.8rem] text-muted'
+
+export const smsChoiceRowClass =
+  'flex items-center justify-between gap-2 rounded-[var(--radius-sm)] bg-[var(--color-accent-soft)] px-3 py-2'
+
+export const smsChoiceButtonClass =
+  'inline-flex min-h-touch-min shrink-0 items-center gap-1 rounded-full border border-border bg-surface px-3 text-[0.82rem] font-bold text-primary-dark hover:border-primary disabled:opacity-50'
+
+export const smsChoiceReasonClass = 'm-0 min-w-0 text-[0.72rem] leading-[1.6] text-muted'
+
+export const smsRawTextClass =
+  'm-0 whitespace-pre-line rounded-[var(--radius-sm)] bg-bg p-2 text-[0.75rem] leading-[1.7] text-muted'
+
+export const smsStatusRowClass =
+  'flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-sm)] border border-border bg-surface px-3 py-2 text-[0.85rem] font-bold text-primary-dark'
+
+export const smsStatusRangeClass =
+  'inline-flex min-h-touch-min items-center gap-1 rounded-full px-2 text-[0.78rem] font-normal text-muted hover:text-primary'
+
+/**
+ * Phones: fixed above the bottom nav (the document scrolls there, so sticky cannot hold);
+ * tablet and desktop: sticky at the bottom of the scrolling main column.
+ */
+export const smsBulkBarClass = cn(
+  'fixed bottom-[calc(6.25rem+var(--safe-bottom))] left-1/2 z-20 mb-0 w-[calc(100%-2rem)] max-w-[448px] -translate-x-1/2',
+  'md:sticky md:bottom-3 md:left-auto md:w-auto md:max-w-none md:translate-x-0',
+  'flex flex-wrap items-center justify-between gap-2 shadow-[var(--shadow-lg)]'
+)
+
+/** Room under the queue on phones, so the fixed bar never hides the last card. */
+export const smsBulkBarSpacerClass = 'h-16 md:hidden'
+
+export const smsAmountTokenClass =
+  'inline-flex items-center gap-1 rounded-full border border-[var(--color-expense-border)] bg-[var(--color-expense-bg)] px-2 py-0.5 font-bold text-[var(--color-expense)] [direction:ltr] hover:brightness-95 disabled:opacity-50'
+
+export const smsMenuListClass = 'm-0 flex list-none flex-col gap-1 p-0'
+
+export const smsMenuItemClass =
+  'flex min-h-touch-min w-full items-center gap-2 rounded-[var(--radius-sm)] px-3 text-start text-[0.9rem] text-text hover:bg-[var(--color-accent-soft)] disabled:opacity-50'

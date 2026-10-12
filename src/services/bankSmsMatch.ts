@@ -207,3 +207,25 @@ export function matchSms(
 
   return { kind: 'ambiguous', candidates: perAccount.map(toCandidate), ...perAccount[0].values }
 }
+
+/**
+ * Account of a sample SMS before it has a template: the account its card/account digits
+ * were tied to or fit, else the only candidate; '' when the user has to pick.
+ */
+export function guessSampleAccount(
+  parts: SmsTemplatePart[],
+  raw: string,
+  accounts: RefAccount[],
+  learned: LearnedSmsRefs = {}
+): string {
+  const digits = sampleRefDigits(parts, raw)
+  const owner = digits ? learned[digits] : undefined
+
+  if (owner && accounts.some(account => account.id === owner)) return owner
+
+  const fits = digits ? accounts.filter(account => accountMatchesRef(account, digits)) : []
+
+  if (fits.length === 1) return fits[0].id
+
+  return accounts.length === 1 ? accounts[0].id : ''
+}

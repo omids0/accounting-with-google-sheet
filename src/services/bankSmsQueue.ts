@@ -28,6 +28,8 @@ export type BankSmsReviewItem =
       probableDuplicate: boolean
       /** The matching record names this SMS's account, so it already moved the balance. */
       duplicateMovedBalance: boolean
+      /** The newest matching record, for «تکراری؟ · رکورد ۱۲ دقیقه پیش». */
+      duplicateOf: LedgerEntry | null
     }
   | {
       kind: 'transfer'
@@ -85,6 +87,19 @@ function findDuplicates(entry: ReviewedSms, ledger: LedgerEntry[]): LedgerEntry[
   return ledger.filter(record => matchesDuplicate(candidate, record, { dayTolerance: 1 }))
 }
 
+/** Latest by date, then by «زمان ثبت»; `null` for an empty list. */
+export function newestRecord(records: LedgerEntry[]): LedgerEntry | null {
+  return records.reduce<LedgerEntry | null>(
+    (best, record) =>
+      !best ||
+      record.date > best.date ||
+      (record.date === best.date && (record.createdAtMs ?? 0) > (best.createdAtMs ?? 0))
+        ? record
+        : best,
+    null
+  )
+}
+
 export function isProbableDuplicate(entry: ReviewedSms, ledger: LedgerEntry[]): boolean {
   return findDuplicates(entry, ledger).length > 0
 }
@@ -129,14 +144,17 @@ export function buildReviewItems(
       continue
     }
 
+    const duplicates = findDuplicates(entry, ledger)
+
     items.push({
       kind: 'single',
       key: entry.sms.id,
       entry,
-      probableDuplicate: isProbableDuplicate(entry, ledger),
+      probableDuplicate: duplicates.length > 0,
       duplicateMovedBalance:
         isConfirmable(entry) &&
-        findDuplicates(entry, ledger).some(record => record.accountId === entry.result.accountId)
+        duplicates.some(record => record.accountId === entry.result.accountId),
+      duplicateOf: newestRecord(duplicates)
     })
   }
 
@@ -177,4 +195,34 @@ export function nextAccountBalance(
   const delta = change.direction === 'debit' ? -change.amount : change.amount
 
   return { balance: current + delta, state: { anchor, lastAppliedAt: lastApplied } }
+}
+
+/** Pin an SMS that fits several accounts to one of them; `null` when it cannot be written. */
+export function resolveSmsAccount(entry: ReviewedSms, accountId: string): ConfirmableSms | null {
+  const { result, amount } = entry
+
+  if (amount === null) return null
+  if (result.kind === 'matched') return { ...entry, result, amount }
+  if (result.kind !== 'ambiguous') return null
+
+  const candidate = result.candidates.find(item => item.accountId === accountId)
+
+  if (!candidate) return null
+
+  const { direction, unit, balance, ref } = result
+
+  return {
+    ...entry,
+    amount,
+    result: { kind: 'matched', ...candidate, direction, unit, amount: result.amount, balance, ref }
+  }
+}
+
+/** The account a card starts with: the matched one, else the first candidate. */
+export function initialSmsAccount(entry: ReviewedSms): string {
+  const { result } = entry
+
+  if (result.kind === 'matched') return result.accountId
+
+  return result.kind === 'ambiguous' ? result.candidates[0]?.accountId ?? '' : ''
 }

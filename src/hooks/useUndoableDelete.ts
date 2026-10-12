@@ -19,6 +19,8 @@ export interface UndoableDelete {
   /** Undoes `optimisticRemove`; also runs when `commit` fails. */
   restore?: () => void
   errorMessage?: string
+  /** Whole toast text instead of «label حذف شد» (e.g. «پیامک نادیده گرفته شد»). */
+  message?: string
 }
 
 type Pending = UndoableDelete & { timer: ReturnType<typeof setTimeout>; toastId: string }
@@ -75,7 +77,7 @@ export function useUndoableDelete() {
       pendingRef.current = {
         ...entry,
         timer: setTimeout(() => void flush(), UNDO_WINDOW_MS),
-        toastId: showUndoToast(entry.label, UNDO_WINDOW_MS, undo)
+        toastId: showUndoToast(entry.label, UNDO_WINDOW_MS, undo, entry.message)
       }
       setPendingId(entry.id)
     },

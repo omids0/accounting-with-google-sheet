@@ -57,7 +57,8 @@ export default function Layout() {
   const isTablet = useIsTablet()
   const [toolbar, setToolbar] = useState<HTMLElement | null>(null)
   const [actions, setActions] = useState<HTMLElement | null>(null)
-  const headerSlots = useMemo(() => ({ toolbar, actions }), [toolbar, actions])
+  const [pageEnd, setPageEnd] = useState<HTMLElement | null>(null)
+  const headerSlots = useMemo(() => ({ toolbar, actions, pageEnd }), [toolbar, actions, pageEnd])
   // Pull-to-refresh runs the same «بروزرسانی» action the speed dial shows.
   const canPullToRefresh =
     showPageSpeedDial && !!pageSpeedDialConfig?.actions.some(action => action.id === 'refresh')
@@ -109,6 +110,7 @@ export default function Layout() {
               onHeaderBack={onHeaderBack}
               toolbarRef={setToolbar}
               actionsRef={setActions}
+              pageEndRef={setPageEnd}
             />
 
             <UpdateBanner />

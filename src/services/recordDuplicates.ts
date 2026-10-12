@@ -18,6 +18,8 @@ export interface LedgerEntry {
   accountId: string
   id?: string
   category?: string
+  subCategory?: string
+  title?: string
   /** «زمان ثبت» as epoch ms; `null` when the cell cannot be read. */
   createdAtMs?: number | null
 }

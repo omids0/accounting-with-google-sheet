@@ -63,3 +63,30 @@ describe('validateTemplateParts', () => {
     ).toEqual(['amount-multiple', 'balance-multiple', 'accountRef-multiple'])
   })
 })
+
+describe('guessTemplate with a tapped amount', () => {
+  const text = 'بانک آینده خرید 250,000 مانده 900,000'
+  // Tokens: text, 250,000, text, 900,000
+  const AMOUNT = 1
+  const BALANCE = 3
+
+  it('makes the tapped number the only amount', () => {
+    const guess = guessTemplate(text, [], BALANCE)
+
+    expect(guess.parts[BALANCE]).toEqual({ kind: 'slot', role: 'amount' })
+    expect(guess.parts[AMOUNT]).toEqual({ kind: 'slot', role: 'ignore' })
+    expect(validateTemplateParts(guess.parts)).toEqual([])
+  })
+
+  it('keeps the other guessed roles', () => {
+    expect(capturedRoles(guessTemplate(text, [], AMOUNT).parts)).toEqual(['amount', 'balance'])
+  })
+
+  it('pins the tap over a same-shape saved template', () => {
+    const saved = { id: 't', createdAt: '', accountId: 'a', ...guessTemplate(text) }
+    const guess = guessTemplate(text.replace('250,000', '90,000'), [saved], BALANCE)
+
+    expect(guess.parts[BALANCE]).toEqual({ kind: 'slot', role: 'amount' })
+    expect(guess.direction).toBe(saved.direction)
+  })
+})

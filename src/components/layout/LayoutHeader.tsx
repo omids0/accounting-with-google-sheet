@@ -6,6 +6,7 @@ import {
   appHeaderActionsClass,
   appHeaderCenterClass,
   appHeaderClass,
+  appHeaderPageEndClass,
   appHeaderTitleClass,
   appHeaderToolbarClass,
   headerGridCenterClass,
@@ -26,6 +27,8 @@ interface LayoutHeaderProps {
   /** Desktop-only containers filled through `DesktopHeaderPortal`. */
   toolbarRef: (element: HTMLDivElement | null) => void
   actionsRef: (element: HTMLDivElement | null) => void
+  /** Every width: `HeaderSlots.pageEnd`. */
+  pageEndRef: (element: HTMLDivElement | null) => void
 }
 
 /**
@@ -41,7 +44,8 @@ export default function LayoutHeader({
   showSettings,
   onHeaderBack,
   toolbarRef,
-  actionsRef
+  actionsRef,
+  pageEndRef
 }: LayoutHeaderProps) {
   const updateAvailable = useAppUpdateStore(state => !!state.update)
 
@@ -80,6 +84,8 @@ export default function LayoutHeader({
       </div>
       <div ref={toolbarRef} className={appHeaderToolbarClass} />
       <div ref={actionsRef} className={appHeaderActionsClass} />
+      {/* Shares the end cell with «بازگشت»; pages with a back button do not use it. */}
+      <div ref={pageEndRef} className={cn(appHeaderPageEndClass, showHeaderBack && 'hidden')} />
       {showHeaderBack && (
         <button
           type="button"

@@ -64,7 +64,12 @@ describe('useUndoableDelete', () => {
     await act(() => hook.schedule(item))
 
     expect(item.optimisticRemove).toHaveBeenCalledOnce()
-    expect(showUndoToast).toHaveBeenCalledWith('چک c1', UNDO_WINDOW_MS, expect.any(Function))
+    expect(showUndoToast).toHaveBeenCalledWith(
+      'چک c1',
+      UNDO_WINDOW_MS,
+      expect.any(Function),
+      undefined
+    )
     expect(hook.pendingId).toBe('c1')
     expect(hook.visible([{ id: 'c1' }, { id: 'c2' }])).toEqual([{ id: 'c2' }])
 
