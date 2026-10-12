@@ -7,6 +7,7 @@ import AppLockSettings from '../AppLockSettings'
 import ConfirmActionModal from '../ConfirmActionModal'
 import { SettingsSkeleton } from '../skeleton'
 import SettingsBudgetsCard from './SettingsBudgetsCard'
+import SettingsCategoriesCard from './SettingsCategoriesCard'
 import SettingsGeneralCard from './SettingsGeneralCard'
 import SettingsGoogleAccountCard from './SettingsGoogleAccountCard'
 import SettingsPwaInstallCard from './SettingsPwaInstallCard'
@@ -95,6 +96,13 @@ export default function SettingsPage() {
             icon: 'treasury' as const,
             description: 'نام، اعشار، قیمت دستی و غیرفعال کردن دارایی‌ها',
             content: <SettingsVaultAssetsCard spreadsheetId={settings.spreadsheetId} />
+          },
+          {
+            id: 'categories',
+            title: 'دسته‌ها',
+            icon: 'records' as const,
+            description: 'ترتیب، زیردسته، ادغام و دسته‌های پیشنهادی',
+            content: <SettingsCategoriesCard />
           },
           {
             id: 'budgets',

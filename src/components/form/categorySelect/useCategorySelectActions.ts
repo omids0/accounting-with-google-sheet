@@ -53,6 +53,8 @@ export interface CategorySelectProps {
   manageTitle?: string
   /** Lets each category in manage mode drill down into its own subcategories. */
   allowSubcategories?: boolean
+  /** «مدیریت کامل» in manage mode: the settings category page (round 6, D1). */
+  fullManagePath?: string
 }
 
 /** The category type a list belongs to, used to look up and store its subcategories. */

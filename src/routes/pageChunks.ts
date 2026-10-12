@@ -73,6 +73,9 @@ export const loadPersonalRemindersPage: PageLoader = () =>
 
 export const loadRemindersPage: PageLoader = () => import('../components/RemindersPage')
 
+export const loadCategoriesPage: PageLoader = () =>
+  import('../components/categories/CategoriesPage')
+
 export const loadSettingsPage: PageLoader = () => import('../components/SettingsPage')
 
 export const loadTimesheetDetailPage: PageLoader = () => import('../components/TimesheetDetailPage')

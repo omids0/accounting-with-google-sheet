@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 
 import { cn } from '../../utils/cn'
 import { categorySelectRootClass } from '../ui/formControlStyles'
+import CategoryFullManageLink from './categorySelect/CategoryFullManageLink'
 import CategorySelectPanel from './categorySelect/CategorySelectPanel'
 import CategorySelectSheet from './categorySelect/CategorySelectSheet'
 import CategorySelectTrigger from './categorySelect/CategorySelectTrigger'
@@ -34,7 +35,8 @@ export default function CategorySelect({
   onPersist,
   allowEmpty = false,
   manageTitle = 'مدیریت دسته‌ها',
-  allowSubcategories = false
+  allowSubcategories = false,
+  fullManagePath
 }: CategorySelectProps) {
   const [open, setOpen] = useState(false)
 
@@ -263,6 +265,15 @@ export default function CategorySelect({
           onOpenManageMode={() => setManageMode(true)}
           onReorder={handleReorder}
         />
+        {fullManagePath && manageMode && !inSubcategories ? (
+          <CategoryFullManageLink
+            to={fullManagePath}
+            onNavigate={() => {
+              setOpen(false)
+              resetTransientState()
+            }}
+          />
+        ) : null}
       </CategorySelectSheet>
     </div>
   )

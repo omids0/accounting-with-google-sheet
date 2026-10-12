@@ -48,7 +48,9 @@ const ACCOUNT_KEYS = [
   TREASURY_CLASS_STORAGE_KEY,
   GOAL_CONGRATS_STORAGE_KEY,
   // Budget alert gate (budgetDigest.ts), named here to keep that module out of this chunk.
-  'accounting_budget_alerts_v1'
+  'accounting_budget_alerts_v1',
+  // «دسته‌های پیشنهادی» offer dismissal (categoryDefaults.ts), named here for the same reason.
+  'accounting_category_defaults_offer_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

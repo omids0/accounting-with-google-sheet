@@ -1,16 +1,31 @@
 import type { AppSettings } from '../types'
 import { withOtherLast } from '../utils/categoryOrdering'
 
-export const DEFAULT_INCOME_CATEGORIES = ['حقوق', 'فروش', 'سرمایه‌گذاری', 'هدیه', 'طلب', 'سایر']
+// Defaults of a new spreadsheet only (round 6, D2). Existing spreadsheets keep their
+// lists; the category page offers them the missing names once (categoryDefaults.ts).
+export const DEFAULT_INCOME_CATEGORIES = [
+  'حقوق',
+  'کار آزاد',
+  'سود و سرمایه',
+  'هدیه و یارانه',
+  'طلب',
+  'سایر'
+]
 export const DEFAULT_EXPENSE_CATEGORIES = [
   'خوراک',
-  'حمل‌ونقل',
-  'اجاره',
+  'خانه',
   'قبوض',
-  'تفریح',
-  'پوشاک',
+  'حمل‌ونقل',
+  'خودرو',
+  'سلامت',
+  'آموزش',
+  'پوشاک و زیبایی',
+  'تفریح و سفر',
+  'هدیه و مناسبت',
+  'خانواده و فرزند',
   'قسط',
   'چک',
+  'انتقال',
   'سایر'
 ]
 export const DEFAULT_DANG_CATEGORIES = ['شخصی', 'قرض', 'خرید', 'سایر']

@@ -29,6 +29,7 @@ import {
   LazyOpeningBalanceReportPage,
   LazyPersonalRemindersPage,
   LazyRemindersPage,
+  LazyCategoriesPage,
   LazySettingsPage,
   LazyTimesheetsPage,
   LazyTreasuryPage,
@@ -106,6 +107,7 @@ export function AppAuthenticatedRoutes() {
           <Route path="calculators/date" element={<LazyDateCalculatorPage />} />
           <Route path="about" element={<LazyAboutPage />} />
           <Route path="settings/reminders" element={<LazyRemindersPage />} />
+          <Route path="settings/categories" element={<LazyCategoriesPage />} />
           <Route path="settings" element={<LazySettingsPage />} />
           <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
           <Route path="reports/income-expense" element={<LazyIncomeExpenseReportPage />} />

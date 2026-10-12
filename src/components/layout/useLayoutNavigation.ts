@@ -18,8 +18,8 @@ import type { TabNavigationOptions } from '../../routes/paths'
 import {
   getPathForTab,
   getTabFromPath,
+  getSettingsSubpageTitle,
   isSettingsPath,
-  isSettingsRemindersPath,
   SETTINGS_PATH
 } from '../../routes/paths'
 import { prefetchTabPage, prefetchSecondaryAppPages } from '../../routes/prefetchPages'
@@ -198,7 +198,7 @@ export function useLayoutNavigation() {
     REPORT_TABS.includes(tab)
 
   const onHeaderBack = useCallback(() => {
-    if (isSettingsRemindersPath(location.pathname)) {
+    if (getSettingsSubpageTitle(location.pathname)) {
       navigate(SETTINGS_PATH)
 
       return
@@ -238,8 +238,10 @@ export function useLayoutNavigation() {
   const isTimesheetTab = TIMESHEET_TABS.includes(tab)
   const isVehicleTab = VEHICLE_TABS.includes(tab)
 
-  const headerTitle = isSettingsRemindersPath(location.pathname)
-    ? 'یادآوری‌ها'
+  const settingsSubpageTitle = getSettingsSubpageTitle(location.pathname)
+
+  const headerTitle = settingsSubpageTitle
+    ? settingsSubpageTitle
     : showSettings
     ? 'تنظیمات'
     : tab === 'timesheet-detail' && timesheetTitle

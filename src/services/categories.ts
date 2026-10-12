@@ -10,6 +10,7 @@ import {
 import {
   removeSubcategoryOwner,
   renameSubcategoryOwner,
+  seedDefaultSubcategories,
   setSubcategoriesOf,
   updateCategorySubcategories
 } from './categorySubcategories'
@@ -120,25 +121,42 @@ async function writeCategoriesToSheet(
   )
 }
 
+/**
+ * One list and (optionally) the whole subcategory map in a single write, mirrored to
+ * the local settings. Used by the category page, where a rename or merge changes both.
+ */
+export async function saveCategoryListToSheet(
+  spreadsheetId: string,
+  categoryType: CategoryType,
+  categories: string[],
+  subcategories?: CategorySubcategoryMap
+): Promise<void> {
+  const current = await fetchCategorySheetData(spreadsheetId)
+  const list =
+    categoryType === 'income' || categoryType === 'expense'
+      ? withLockedFormCategories(categoryType, categories)
+      : categories
+  const groups: CategoryGroups = { ...withDefaults(current.groups), [categoryType]: list }
+  const map = subcategories ?? current.subcategories
+
+  await writeCategoriesToSheet(spreadsheetId, groups, map)
+  applyGroupsToSettings(groups, map)
+}
+
 export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<CategoryGroups> {
   await ensureCategoriesSheet(spreadsheetId)
 
-  const { groups: fromSheet, subcategories } = await fetchCategorySheetData(spreadsheetId)
+  const { groups: fromSheet, subcategories: sheetSubcategories } = await fetchCategorySheetData(
+    spreadsheetId
+  )
 
   const groups = withDefaults(fromSheet)
 
-  const needsSeed =
-    !fromSheet.income.length ||
-    !fromSheet.expense.length ||
-    !fromSheet.dang.length ||
-    !fromSheet.receivable.length ||
-    !fromSheet.personalReminder.length ||
-    !fromSheet.vehiclePeriodic.length ||
-    !fromSheet.vehicleDeadline.length ||
-    !fromSheet.vehicleMechanic.length ||
-    !fromSheet.vehicleExpense.length ||
-    !fromSheet.walletBank.length ||
-    !fromSheet.walletAccountKind.length
+  // Only a list missing from the sheet is seeded — a new spreadsheet, never an existing one.
+  const seededFormTypes = (['income', 'expense'] as const).filter(type => !fromSheet[type].length)
+  const subcategories = seedDefaultSubcategories(sheetSubcategories, seededFormTypes)
+
+  const needsSeed = Object.values(fromSheet).some(list => !list.length)
 
   if (needsSeed) {
     await writeCategoriesToSheet(spreadsheetId, groups, subcategories)

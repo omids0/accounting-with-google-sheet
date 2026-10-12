@@ -152,6 +152,19 @@ export function isSettingsPath(pathname: string): boolean {
   return path === SETTINGS_PATH || path.startsWith(`${SETTINGS_PATH}/`)
 }
 
-export function isSettingsRemindersPath(pathname: string): boolean {
-  return normalizePath(pathname) === SETTINGS_REMINDERS_PATH
+export const SETTINGS_CATEGORIES_PATH = '/settings/categories'
+
+const SETTINGS_SUBPAGE_TITLES: Record<string, string> = {
+  [SETTINGS_REMINDERS_PATH]: 'یادآوری‌ها',
+  [SETTINGS_CATEGORIES_PATH]: 'دسته‌ها'
+}
+
+/** Header title of a settings sub-page, whose back button returns to Settings; null elsewhere. */
+export function getSettingsSubpageTitle(pathname: string): string | null {
+  return SETTINGS_SUBPAGE_TITLES[normalizePath(pathname)] ?? null
+}
+
+/** The category page, opened on the income or expense list. */
+export function getCategoriesPath(type?: 'income' | 'expense'): string {
+  return type ? `${SETTINGS_CATEGORIES_PATH}?type=${type}` : SETTINGS_CATEGORIES_PATH
 }

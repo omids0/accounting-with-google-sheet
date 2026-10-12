@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getPathForTab, getTabFromPath } from './paths'
+import { getCategoriesPath, getPathForTab, getSettingsSubpageTitle, getTabFromPath } from './paths'
 
 describe('wallet account detail path', () => {
   it('opens the account history for /wallet/<id>', () => {
@@ -15,5 +15,18 @@ describe('wallet account detail path', () => {
   it('builds the path from the account id', () => {
     expect(getPathForTab('wallet-account-detail', { walletAccountId: 'a b' })).toBe('/wallet/a%20b')
     expect(getPathForTab('wallet-account-detail')).toBe('/wallet')
+  })
+})
+
+describe('settings sub-pages', () => {
+  it('titles the reminders and category pages and nothing else', () => {
+    expect(getSettingsSubpageTitle('/settings/categories/')).toBe('دسته‌ها')
+    expect(getSettingsSubpageTitle('/settings/reminders')).toBe('یادآوری‌ها')
+    expect(getSettingsSubpageTitle('/settings')).toBeNull()
+  })
+
+  it('opens the category page on a form type', () => {
+    expect(getCategoriesPath('income')).toBe('/settings/categories?type=income')
+    expect(getCategoriesPath()).toBe('/settings/categories')
   })
 })
