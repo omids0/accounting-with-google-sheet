@@ -1,3 +1,5 @@
+import type { Ref } from 'react'
+
 import AppIcon from './AppIcon'
 import {
   pageSearchClass,
@@ -10,12 +12,17 @@ interface PageSearchInputProps {
   value: string
   onChange: (value: string) => void
   placeholder?: string
+  inputRef?: Ref<HTMLInputElement>
+  /** Enter in the field (the global search remembers the query). */
+  onSubmit?: () => void
 }
 
 export default function PageSearchInput({
   value,
   onChange,
-  placeholder = 'جستجو...'
+  placeholder = 'جستجو...',
+  inputRef,
+  onSubmit
 }: PageSearchInputProps) {
   return (
     <div className={pageSearchClass}>
@@ -25,12 +32,14 @@ export default function PageSearchInput({
         </span>
       ) : null}
       <input
+        ref={inputRef}
         type="text"
         enterKeyHint="search"
         autoComplete="off"
         className={pageSearchInputClass}
         value={value}
         onChange={e => onChange(e.target.value)}
+        onKeyDown={onSubmit ? e => e.key === 'Enter' && onSubmit() : undefined}
         placeholder={placeholder}
         aria-label={placeholder}
       />

@@ -96,6 +96,8 @@ export const loadWalletAccountDetailPage: PageLoader = () =>
 
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
+export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')
+
 export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   dashboard: loadDashboardPage,
   charts: loadChartsPage,
@@ -109,6 +111,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   wallet: loadWalletPage,
   'wallet-account-detail': loadWalletAccountDetailPage,
   'bank-sms': loadBankSmsPage,
+  search: loadSearchPage,
   records: loadRecordsPage,
   entry: loadDataEntryPage,
   'opening-balances': loadOpeningBalancePage,

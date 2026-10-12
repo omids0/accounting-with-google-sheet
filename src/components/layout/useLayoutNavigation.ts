@@ -192,6 +192,7 @@ export function useLayoutNavigation() {
     tab === 'vehicle-detail' ||
     tab === 'wallet-account-detail' ||
     tab === 'about' ||
+    tab === 'search' ||
     TIMESHEET_TABS.includes(tab) ||
     VEHICLE_TABS.includes(tab) ||
     CALCULATION_TABS.includes(tab) ||
@@ -206,6 +207,13 @@ export function useLayoutNavigation() {
 
     if (showSettings) {
       navigate('/')
+
+      return
+    }
+
+    // Search returns to the page it was opened from.
+    if (tab === 'search' && location.key !== 'default') {
+      navigate(-1)
 
       return
     }
@@ -231,7 +239,7 @@ export function useLayoutNavigation() {
     const backToWallet = tab === 'opening-balances' || tab === 'wallet-account-detail'
 
     handleTabChange(backToWallet ? 'wallet' : 'dashboard')
-  }, [handleTabChange, location.pathname, navigate, showSettings, tab])
+  }, [handleTabChange, location.key, location.pathname, navigate, showSettings, tab])
 
   const isCalculationTab = CALCULATION_TABS.includes(tab)
   const isReportTab = REPORT_TABS.includes(tab)

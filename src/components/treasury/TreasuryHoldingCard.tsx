@@ -65,6 +65,7 @@ export default function TreasuryHoldingCard({
       className={
         bodyOnly ? undefined : cn(installmentCardClass({ expanded }), treasuryHoldingCardClass)
       }
+      data-highlight-id={bodyOnly ? undefined : holding.assetType}
     >
       {!bodyOnly && (
         <button type="button" className={installmentHeaderClass(expanded)} onClick={onToggle}>

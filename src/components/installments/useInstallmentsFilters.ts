@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 
 import type { DisplayPlanItem, PlanWithRow } from './types'
 import {
@@ -27,7 +27,8 @@ import { matchSearch } from '../../utils/search'
 import { distributionSparkline } from '../../utils/sparklineData'
 import { createDefaultDateRangeFilter } from '../DateRangeFilter'
 
-export function useInstallmentsFilters(plans: PlanWithRow[]) {
+/** `highlightId`: a plan opened from the search widens the range to its schedule if needed. */
+export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: string | null) {
   const [searchQuery, setSearchQuery] = useState('')
 
   const [filterModalOpen, setFilterModalOpen] = useState(false)
@@ -66,6 +67,26 @@ export function useInstallmentsFilters(plans: PlanWithRow[]) {
 
     return formatDateRangeLabel(effectiveRange)
   }, [effectiveRange])
+
+  useEffect(() => {
+    const plan = highlightId ? plans.find(item => item.id === highlightId) : undefined
+
+    if (!plan || isInstallmentPlanVisible(plan, effectiveRange)) return
+
+    const dues = plan.payments
+      .map(payment => payment.dueDate.slice(0, 10))
+      .filter(Boolean)
+      .sort()
+
+    if (!dues.length) return
+
+    const range = { start: dues[0], end: dues[dues.length - 1] }
+
+    setDatePreset('custom')
+    setCustomRange(range)
+    setDraftDatePreset('custom')
+    setDraftCustomRange(range)
+  }, [highlightId, plans, effectiveRange])
 
   const monthPlans = useMemo(
     () =>

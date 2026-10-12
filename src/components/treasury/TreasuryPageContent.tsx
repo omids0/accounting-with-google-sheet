@@ -28,6 +28,7 @@ import { useTreasuryClassFilter } from './useTreasuryClassFilter'
 import { useTreasuryData } from './useTreasuryData'
 import { useTreasuryFilters } from './useTreasuryFilters'
 import { useTreasuryForms } from './useTreasuryForms'
+import { useTreasuryHighlight } from './useTreasuryHighlight'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass, treasuryTotalCardClass } from '../ui/treasuryReceivableStyles'
@@ -44,6 +45,14 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
   const goals = useSavingsGoals(active)
   const { setEditing: setEditingGoal } = goals
   const openGoalForm = useCallback(() => setEditingGoal('new'), [setEditingGoal])
+
+  useTreasuryHighlight({
+    holdings: data.holdings,
+    goals: goals.goals,
+    selected: classFilter.selected,
+    select: classFilter.select,
+    expandHolding: data.setExpandedAsset
+  })
 
   const forms = useTreasuryForms(
     data.loadItems,

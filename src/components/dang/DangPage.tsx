@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
@@ -39,6 +40,8 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     handleImport,
     importExportConfirmModal
   } = useDangItems()
+
+  useHighlightParam(setExpandedId)
 
   const { showForm, editingItem, saving, openCreateForm, openEditForm, closeForm, handleSubmit } =
     useDangForm({

@@ -38,7 +38,7 @@ export default function CounterpartyCard({
   const location = item.location
 
   return (
-    <div className={dangCardClass({})}>
+    <div className={dangCardClass({})} data-highlight-id={item.id}>
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
           <div className={dangCardBodyClass}>

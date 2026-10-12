@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import {
@@ -36,7 +37,8 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
   })
   const plans = mutations.visiblePlans
 
-  const filters = useInstallmentsFilters(plans)
+  const highlightId = useHighlightParam(mutations.expandPlan)
+  const filters = useInstallmentsFilters(plans, highlightId)
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({

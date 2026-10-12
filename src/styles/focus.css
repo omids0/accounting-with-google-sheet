@@ -33,3 +33,51 @@
 main[tabindex='-1']:focus {
   outline: none;
 }
+
+/*
+ * An item opened from the global search (`?highlight=<id>`, `useHighlightParam`):
+ * a brand ring and tint that fade out, and room above it under the sticky header.
+ */
+[data-highlight-id] {
+  scroll-margin-block: 5.5rem;
+}
+
+[data-highlighted] {
+  animation: searchHighlight 2.4s ease-out both;
+}
+
+tr[data-highlighted] > td {
+  animation: searchHighlightRow 2.4s ease-out both;
+}
+
+@keyframes searchHighlight {
+  0%,
+  55% {
+    outline: var(--focus-ring-width) solid var(--color-primary);
+    outline-offset: 2px;
+    background-color: color-mix(
+      in srgb,
+      var(--color-primary) 10%,
+      var(--color-surface, transparent)
+    );
+  }
+  100% {
+    outline: var(--focus-ring-width) solid transparent;
+    outline-offset: 2px;
+  }
+}
+
+@keyframes searchHighlightRow {
+  0%,
+  55% {
+    background-color: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-highlighted],
+  tr[data-highlighted] > td {
+    animation-duration: 0.01ms;
+    animation-delay: 2s;
+  }
+}

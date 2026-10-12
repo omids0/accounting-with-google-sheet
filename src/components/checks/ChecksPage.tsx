@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
@@ -32,6 +33,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     handleImport,
     importExportConfirmModal
   } = useChecksData()
+
+  useHighlightParam()
 
   const { showForm, editingItem, saving, openCreateForm, openEditForm, closeForm, handleSubmit } =
     useChecksForm({ onSaved: loadItems })

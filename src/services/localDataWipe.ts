@@ -54,7 +54,9 @@ const ACCOUNT_KEYS = [
   // «پرتکرار» pins/hides (entryTemplates.ts), named here to keep that module out of this chunk.
   'accounting_entry_templates_v1',
   // Once-a-month digest line «N تکرار ثبت‌نشده» (recurringDigest.ts).
-  'accounting_recurring_digest_v1'
+  'accounting_recurring_digest_v1',
+  // Last global searches (searchRecent.ts), named here to keep that module out of this chunk.
+  'accounting_search_recent_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

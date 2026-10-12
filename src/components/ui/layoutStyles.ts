@@ -158,7 +158,7 @@ export const appHeaderToolbarClass = cx(
 )
 
 /** Desktop header slot for the page's speed-dial actions. */
-export const appHeaderActionsClass = 'hidden shrink-0 items-center gap-1.5 xl:ms-auto xl:flex'
+export const appHeaderActionsClass = 'hidden shrink-0 items-center gap-1.5 xl:flex'
 
 export const headerActionBtnClass = cn(
   headerIconBtnClass,
@@ -195,6 +195,8 @@ export function syncStatusDotClass(status: SyncStatus) {
 
 export const syncStatusLabelClass = 'overflow-hidden text-ellipsis whitespace-nowrap'
 
-/** Header slot for a page's own button, on every width (end cell on phones). */
-export const appHeaderPageEndClass =
-  'col-start-3 row-start-1 flex items-center gap-1.5 empty:hidden'
+/** End cell on phones (the page's own button, then ⌕); its children join the row on desktop. */
+export const appHeaderEndClass = 'col-start-3 row-start-1 flex items-center gap-1.5 xl:contents'
+
+/** Header slot for a page's own button, on every width. */
+export const appHeaderPageEndClass = 'flex items-center gap-1.5 empty:hidden'

@@ -99,7 +99,10 @@ export default function ReceivableCard({
   const showDebtorInSubtitle = Boolean(item.title.trim())
 
   return (
-    <div className={bodyOnly ? undefined : installmentCardClass({ expanded, complete })}>
+    <div
+      className={bodyOnly ? undefined : installmentCardClass({ expanded, complete })}
+      data-highlight-id={bodyOnly ? undefined : item.id}
+    >
       {!bodyOnly && (
         <div className={cardHeaderWithEditClass}>
           <button

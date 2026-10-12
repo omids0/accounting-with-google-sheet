@@ -55,7 +55,7 @@ export default function DangCard({
   const displayAmount = rawAmount === '' ? item.amount : Number(rawAmount)
 
   return (
-    <div className={dangCardClass({ paid: item.paid, expanded })}>
+    <div className={dangCardClass({ paid: item.paid, expanded })} data-highlight-id={item.id}>
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
           <input

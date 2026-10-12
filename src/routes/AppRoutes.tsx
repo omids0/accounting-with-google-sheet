@@ -18,6 +18,7 @@ import {
   LazyNetAvailableSettingsPage,
   LazyOpeningBalancePage,
   LazyReceivablesPage,
+  LazySearchPage,
   LazyRecordsPage,
   LazyAssetsLiabilitiesReportPage,
   LazyCashFlowReportPage,
@@ -104,6 +105,7 @@ export function AppAuthenticatedRoutes() {
           <Route path="treasury" element={<LazyTreasuryPage />} />
           <Route path="wallet" element={<LazyWalletPage />} />
           <Route path="bank-sms" element={<LazyBankSmsPage />} />
+          <Route path="search" element={<LazySearchPage />} />
           <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
           <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
           <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />

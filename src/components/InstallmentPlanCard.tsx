@@ -156,6 +156,7 @@ function InstallmentPlanCard({
       className={
         bodyOnly ? undefined : installmentCardClass({ expanded, complete, settledForRange })
       }
+      data-highlight-id={bodyOnly ? undefined : plan.id}
     >
       {!bodyOnly && (
         <div className={cardHeaderWithEditClass}>

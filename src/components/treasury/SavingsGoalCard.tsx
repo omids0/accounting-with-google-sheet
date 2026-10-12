@@ -33,7 +33,10 @@ export default function SavingsGoalCard({
   const plan = goalPlanLine(goal, getTodayIso())
 
   return (
-    <Card className={cn(goalCardClass, goal.status === 'archived' && 'opacity-70')}>
+    <Card
+      className={cn(goalCardClass, goal.status === 'archived' && 'opacity-70')}
+      data-highlight-id={goal.id}
+    >
       <div className={goalCardHeadClass}>
         <h3 className="m-0 truncate text-[0.95rem] font-bold">{goal.title}</h3>
         <span className={goalBadgeClass}>{STATUS_BADGE[goal.status]}</span>

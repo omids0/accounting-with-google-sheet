@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
@@ -33,6 +34,8 @@ import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 export default function ReceivablesPage({ active = true }: ReceivablesPageProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const isDesktop = useIsDesktop()
+
+  useHighlightParam(setExpandedId)
 
   const {
     items: allItems,

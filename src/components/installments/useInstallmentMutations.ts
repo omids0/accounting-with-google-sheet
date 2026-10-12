@@ -27,6 +27,8 @@ export function useInstallmentMutations({
     togglingByPlan: payments.togglingByPlan,
     handleTogglePayment: payments.handleTogglePayment,
     handlePaymentAmountSave: payments.handlePaymentAmountSave,
-    handleToggleExpand: payments.handleToggleExpand
+    handleToggleExpand: payments.handleToggleExpand,
+    /** Opens one plan (search highlight) without toggling it shut. */
+    expandPlan: payments.setExpandedId
   }
 }

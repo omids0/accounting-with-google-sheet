@@ -15,6 +15,7 @@ export type Tab =
   | 'wallet'
   | 'wallet-account-detail'
   | 'bank-sms'
+  | 'search'
   | 'opening-balances'
   | 'net-available-settings'
   | 'loan-calculator'
@@ -123,6 +124,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   wallet: 'کیف پول',
   'wallet-account-detail': 'گردش حساب',
   'bank-sms': 'پیامک‌های بانکی',
+  search: 'جستجو',
   'opening-balances': 'موجودی اول دوره',
   'net-available-settings': 'دارایی قابل اتکا',
   'loan-calculator': 'محاسبات درخواست وام',

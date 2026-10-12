@@ -38,6 +38,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   treasury: '/treasury',
   wallet: '/wallet',
   'bank-sms': '/bank-sms',
+  search: '/search',
   entry: '/entry',
   records: '/records',
   'opening-balances': '/wallet/opening-balances',
@@ -149,6 +150,14 @@ export const RECORD_FOCUS_PARAM = 'record'
 /** The records page showing only `recordId`. */
 export function recordFocusPath(type: 'income' | 'expense', recordId: string): string {
   return `/records?type=${type}&${RECORD_FOCUS_PARAM}=${encodeURIComponent(recordId)}`
+}
+
+/** Query key a module page reads to scroll to and flash one item (`useHighlightParam`). */
+export const HIGHLIGHT_PARAM = 'highlight'
+
+/** `basePath` with the item `id` highlighted. */
+export function highlightPath(basePath: string, id: string): string {
+  return `${basePath}?${HIGHLIGHT_PARAM}=${encodeURIComponent(id)}`
 }
 
 export const SETTINGS_PATH = '/settings'

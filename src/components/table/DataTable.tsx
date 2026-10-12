@@ -114,7 +114,7 @@ export default function DataTable<T>({
 
             return (
               <Fragment key={key}>
-                <tr className={dataTableRowClass(isMuted?.(row))}>
+                <tr className={dataTableRowClass(isMuted?.(row))} data-highlight-id={key}>
                   {columns.map(column => (
                     <td
                       key={column.id}

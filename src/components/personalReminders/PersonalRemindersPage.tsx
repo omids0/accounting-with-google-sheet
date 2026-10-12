@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
@@ -20,6 +21,8 @@ import { listModulePageClass } from '../ui/featureCardStyles'
 export default function PersonalRemindersPage({ active = true }: PersonalRemindersPageProps) {
   const data = usePersonalRemindersData()
   const form = usePersonalRemindersForm({ onSaved: data.loadItems })
+
+  useHighlightParam()
 
   const {
     filterModalOpen,
