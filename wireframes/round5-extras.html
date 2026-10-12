@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — کشف زمینه‌ای، پالیش بومی، کیبورد، پشتیبان</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+    <style>
+      .ctx-card {
+        border: 1.5px dashed #666;
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: #f6f6f6;
+        font-size: 12px;
+        line-height: 1.8;
+      }
+      .ctx-card b {
+        display: block;
+        font-size: 13px;
+      }
+      .ctx-card .acts {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .toastok {
+        background: #333;
+        color: #fff;
+        border-radius: 12px;
+        padding: 9px 12px;
+        font-size: 12px;
+        text-align: center;
+      }
+      .pull {
+        text-align: center;
+        color: #888;
+        font-size: 11px;
+        padding: 8px;
+      }
+      .pull i {
+        display: block;
+        width: 22px;
+        height: 22px;
+        margin: 0 auto 4px;
+        border: 2px solid #888;
+        border-top-color: transparent;
+        border-radius: 50%;
+      }
+      .notch {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 24px;
+        background: #222;
+        border-radius: 0 0 14px 14px;
+      }
+      .safe {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        border: 1px dashed #d33;
+        pointer-events: none;
+      }
+      .focusring {
+        outline: 3px solid #1d4ed8;
+        outline-offset: 2px;
+        border-radius: 8px;
+      }
+      .skip {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: #222;
+        color: #fff;
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 6px;
+      }
+      .hap {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        padding: 6px 0;
+        border-top: 1px dashed #ddd;
+      }
+      .hap span:last-child {
+        color: #777;
+      }
+      .phone {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>وایرفریم round 5: کشف زمینه‌ای · پالیش بومی · کیبورد و دسترس‌پذیری · پشتیبان کامل</h1>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs"><button class="on">کشف زمینه‌ای — لحظه مناسب</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>ثبت جدید</span><span class="icon">☰</span>
+          </div>
+          <div class="content">
+            <div class="toastok">در شیت «هزینه» ذخیره شد</div>
+            <div class="ctx-card">
+              <b>این هزینه خودرو بود؟</b>
+              اگر در «سرویس خودرو» ثبتش کنی، موعد سرویس بعدی و کارکرد ماشینت حساب می‌شود.
+              <div class="acts">
+                <button class="btn-sm">وصل کن به خودرو</button><button class="linkbtn">نه</button
+                ><button class="linkbtn">دیگر نپرس</button>
+              </div>
+            </div>
+            <div class="card" style="opacity: 0.6">
+              <h3>فرم ثبت (خالی برای ثبت بعدی)</h3>
+              <div class="f-row"><div class="f-input">مبلغ</div></div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs">
+          <button class="on">پالیش بومی — pull-to-refresh، safe-area</button>
+        </div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="app-header" style="padding-top: 28px">
+            <span class="icon">☰</span><span>چک‌ها</span><span class="icon">⌕</span>
+          </div>
+          <div class="content">
+            <div class="pull"><i></i>برای بروزرسانی بکش پایین</div>
+            <div class="card">
+              <div class="tx-row"><span>چک ۱۲۳۴۵۲ · علی</span><span>۲٬۰۰۰٬۰۰۰</span></div>
+            </div>
+            <div class="card">
+              <div class="tx-row"><span>چک ۱۲۳۴۵۳ · علی</span><span>۴٬۰۰۰٬۰۰۰</span></div>
+            </div>
+            <div class="card">
+              <h3>لرزش (haptic) — کجا و چقدر</h3>
+              <div class="hap"><span>لمس دکمه گرد / ثبت موفق</span><span>Light</span></div>
+              <div class="hap"><span>حذف (شروع ۵ ثانیه undo)</span><span>Medium</span></div>
+              <div class="hap"><span>سوییچ‌ها و تیک پرداخت</span><span>Selection</span></div>
+              <div class="hap"><span>خطا</span><span>Error</span></div>
+              <div class="hap"><span>بازگردانی</span><span>Success</span></div>
+            </div>
+          </div>
+          <div class="bottom-nav" style="padding-bottom: 22px">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+          <div class="safe" style="top: 24px; height: 1px"></div>
+          <div class="safe" style="bottom: 20px; height: 1px"></div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">کیبورد و دسترس‌پذیری</button></div>
+        <div class="phone" style="width: 375px">
+          <span class="skip">پرش به محتوا</span>
+          <div class="app-header">
+            <span class="icon">☰</span><span>داشبورد</span><span class="icon">👤</span>
+          </div>
+          <div class="content">
+            <div class="card hero">
+              <h3>دارایی قابل اتکا</h3>
+              <div class="num">۲۹٬۷۷۰٬۰۰۰</div>
+            </div>
+            <div class="stats">
+              <div class="stat focusring">درآمد دوره <b>۱۸٬۰۰۰٬۰۰۰</b></div>
+              <div class="stat">هزینه دوره <b>۷۳۰٬۰۰۰</b></div>
+            </div>
+            <div class="card">
+              <h3>انتخاب تاریخ با کیبورد</h3>
+              <p class="e-purpose" style="text-align: right; max-width: none; margin: 4px 0">
+                ↑↓ تغییر مقدار · ←→ رفتن بین روز/ماه/سال · Enter تأیید · Esc فقط همین picker را
+                می‌بندد، نه فرم را
+              </p>
+              <div class="f-select">
+                <span>۱۴۰۵</span><span class="on focusring">مهر</span><span>۲۰</span>
+              </div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">پشتیبان کامل</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>حساب و داده</span><span class="icon">☰</span>
+          </div>
+          <div class="content">
+            <div class="card">
+              <h3>پشتیبان کامل</h3>
+              <p class="e-purpose" style="text-align: right; max-width: none; margin: 4px 0 8px">
+                همه بخش‌ها (تراکنش‌ها، حساب‌ها، چک‌ها، اقساط، …) در یک فایل. برای جابه‌جایی به گوشی
+                جدید یا خیال راحت.
+              </p>
+              <button class="btn-primary" style="width: 100%">دانلود پشتیبان کامل (.zip)</button>
+              <div class="f-row" style="margin-top: 10px">
+                <div class="f-input" style="color: #555">بازیابی از پشتیبان…</div>
+              </div>
+              <p class="e-purpose" style="text-align: right; max-width: none; margin: 8px 0 0">
+                آخرین پشتیبان: ۳ مهر ۱۴۰۵ · یادآوری ماهانه: روشن
+              </p>
+            </div>
+            <div class="resume-card card">
+              <div class="rtext">
+                <b>۴۰ روز از آخرین پشتیبان گذشته</b><small>یک دقیقه وقت می‌گیرد</small>
+              </div>
+              <button class="btn-sm">بگیر</button>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>کشف زمینه‌ای</b> — به‌جای کارت عمومی «می‌دانستی؟»، پیشنهاد در لحظه‌ی مناسب و با داده‌ی
+          خود کاربر: هزینه با دسته «خودرو» ← پیشنهاد سرویس خودرو؛ ثبت چک ← «یادآوری سررسید روشن
+          شود؟»؛ سومین ثبت از یک طرف حساب ← «این شخص را به طرف حساب‌ها اضافه کنم؟». هر پیشنهاد
+          حداکثر یک بار، «دیگر نپرس» دائمی. کارت «می‌دانستی؟» برای فیچرهایی می‌ماند که trigger
+          داده‌ای ندارند.
+        </div>
+        <div class="note">
+          <b>پالیش بومی</b> — pull-to-refresh روی همه لیست‌ها و داشبورد (همان refresh دکمه ↻)؛
+          haptic فقط در APK با `@capacitor/haptics`؛ safe-area بالا (notch) و پایین (نوار ژست) با
+          `env(safe-area-inset-*)` — هدر و نوار پایین باید زیرشان نروند؛ الان فقط پایین دارد، بالا
+          باید چک شود.
+        </div>
+        <div class="note">
+          <b>کیبورد</b> — حلقه فوکوس ۳px پررنگ (≥ ۳:۱)؛ لینک «پرش به محتوا» اول Tab؛ Esc فقط
+          بالاترین overlay را می‌بندد (پشته round 3)؛ کلیدهای جهت در picker تاریخ، دسته و Select؛
+          باز شدن کشو فوکوس را می‌برد داخل و با بستن برمی‌گرداند؛ فوکوس اولیه مودال روی اولین فیلد.
+        </div>
+        <div class="note">
+          <b>پشتیبان کامل</b> — یک فایل zip از همه تب‌ها (CSV هر تب + manifest نسخه)؛ بازیابی با
+          پیش‌نمایش («۱۲ تب، ۸۴۰ ردیف») و انتخاب «جایگزین» یا «ادغام»؛ یادآوری ماهانه اگر ۳۰ روز
+          گذشته (روی داشبورد، همان الگوی کارت ادامه راه‌اندازی).
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
