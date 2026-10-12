@@ -3,6 +3,7 @@ import { PRIMARY_NAV_ICONS } from './navIcons'
 import TabNavLink from './TabNavLink'
 import { BOTTOM_NAV_END_TABS, BOTTOM_NAV_START_TABS, TAB_TITLES, type Tab } from './types'
 import { cn } from '../../utils/cn'
+import { haptic } from '../../utils/haptics'
 import {
   bottomNavCenterClass,
   bottomNavClass,
@@ -76,7 +77,10 @@ export default function LayoutBottomNav({ showSettings, tab, onTabChange }: Layo
           active={dashboardActive}
           className={cn(bottomNavDashboardClass(dashboardActive), bottomNavLinkPressClass)}
           aria-label={TAB_TITLES.dashboard}
-          onNavigate={() => onTabChange('dashboard')}
+          onNavigate={() => {
+            haptic('light')
+            onTabChange('dashboard')
+          }}
         >
           <span className={bottomNavDashboardIconClass}>
             <AppIcon name="dashboard" />

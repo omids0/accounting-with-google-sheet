@@ -2,7 +2,7 @@ import { cn } from '../../utils/cn'
 
 export const onboardingPageClass = cn(
   'mx-auto flex min-h-dvh w-full max-w-[560px] flex-col bg-bg',
-  'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]'
+  'pt-[var(--safe-top)] pb-[var(--safe-bottom)]'
 )
 
 export const onboardingHeaderClass =

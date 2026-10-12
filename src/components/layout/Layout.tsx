@@ -1,15 +1,17 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { HeaderSlotsContext } from './headerSlots'
 import LayoutBottomNav from './LayoutBottomNav'
 import LayoutHeader from './LayoutHeader'
 import LayoutMenu from './LayoutMenu'
 import LayoutPageOutlet from './LayoutPageOutlet'
+import PullToRefresh from './PullToRefresh'
 import PageSpeedDial from '../PageSpeedDial'
 import UpdateBanner from '../UpdateBanner'
 import { useLayoutNavigation } from './useLayoutNavigation'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
+import { installSelectionHaptics } from '../../utils/haptics'
 import {
   appContentColumnClass,
   appLayoutClass,
@@ -46,12 +48,16 @@ export default function Layout() {
   } = useLayoutNavigation()
 
   useBankSmsSync()
+  useEffect(installSelectionHaptics, [])
 
   const isDesktop = useIsDesktop()
   const isTablet = useIsTablet()
   const [toolbar, setToolbar] = useState<HTMLElement | null>(null)
   const [actions, setActions] = useState<HTMLElement | null>(null)
   const headerSlots = useMemo(() => ({ toolbar, actions }), [toolbar, actions])
+  // Pull-to-refresh runs the same «بروزرسانی» action the speed dial shows.
+  const canPullToRefresh =
+    showPageSpeedDial && !!pageSpeedDialConfig?.actions.some(action => action.id === 'refresh')
 
   return (
     <div className={appLayoutClass}>
@@ -95,6 +101,7 @@ export default function Layout() {
             <UpdateBanner />
 
             <main className={appMainClass}>
+              <PullToRefresh enabled={canPullToRefresh} />
               <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
             </main>
 

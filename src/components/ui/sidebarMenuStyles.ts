@@ -27,7 +27,7 @@ export function appMenuDrawerClass(variant: AppMenuVariant) {
 export function appMenuUserRowClass(variant: AppMenuVariant) {
   return cn(
     'flex min-h-[3.25rem] shrink-0 items-center gap-2.5 border-b border-border px-3.5',
-    variant === 'drawer' ? 'pb-1.5 pt-[max(0.375rem,env(safe-area-inset-top))]' : 'py-1.5'
+    variant === 'drawer' ? 'pb-1.5 pt-[max(0.375rem,var(--safe-top))]' : 'py-1.5'
   )
 }
 
@@ -68,7 +68,7 @@ export const appMenuGroupClass = 'app-menu-group flex flex-col'
 
 export const appMenuFooterClass = cn(
   'app-menu-footer m-0 shrink-0 truncate border-t border-border px-3.5 pt-2 text-center',
-  'pb-[max(0.5rem,env(safe-area-inset-bottom))] text-[0.7rem] leading-4 text-muted'
+  'pb-[max(0.5rem,var(--safe-bottom))] text-[0.7rem] leading-4 text-muted'
 )
 
 export function appMenuItemClass(active?: boolean, variant?: 'default' | 'parent' | 'sub') {

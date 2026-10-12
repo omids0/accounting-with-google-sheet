@@ -55,6 +55,18 @@ export function getPageSpeedDialConfig() {
   return activeConfig
 }
 
+/**
+ * Runs the active page's «بروزرسانی» action, read at call time so a page's latest
+ * loader is used. Returns what the loader returned (a promise for async loaders).
+ */
+export function runPageRefresh(): unknown {
+  const action = activeConfig?.actions.find(item => item.id === 'refresh')
+
+  if (!action || action.disabled) return undefined
+
+  return action.onClick() as unknown
+}
+
 export function usePageSpeedDialConfig() {
   const [, setVersion] = useState(0)
 

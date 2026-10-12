@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
 
 import { dismissUndoToast, showUndoToast } from '../components/UndoToast'
+import { haptic } from '../utils/haptics'
 import { handleSheetError } from '../utils/sheetError'
 
 export const UNDO_WINDOW_MS = 5000
@@ -62,6 +63,7 @@ export function useUndoableDelete() {
     dismissUndoToast(pending.toastId)
     setPendingId(null)
     pending.restore?.()
+    haptic('success')
   }, [])
 
   const schedule = useCallback(
@@ -69,6 +71,7 @@ export function useUndoableDelete() {
       // One pending delete per list: a second delete writes the first one now.
       await flush()
       entry.optimisticRemove?.()
+      haptic('medium')
       pendingRef.current = {
         ...entry,
         timer: setTimeout(() => void flush(), UNDO_WINDOW_MS),

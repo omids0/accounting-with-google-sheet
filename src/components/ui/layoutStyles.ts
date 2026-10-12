@@ -79,7 +79,7 @@ export const appMainClass = cn(
 
 /** Shared shell header bar metrics — main header + desktop sidebar profile. */
 export const appShellHeaderBarClass = cn(
-  'py-[0.65rem] pt-[max(0.65rem,env(safe-area-inset-top))]',
+  'py-[0.65rem] pt-[max(0.65rem,var(--safe-top))]',
   'border-b border-[var(--header-border)] shadow-[var(--header-shadow)]',
   // Static gradient: an infinite background-position loop + backdrop blur on an
   // always-visible sticky bar repainted it every frame. The gradient is opaque.
