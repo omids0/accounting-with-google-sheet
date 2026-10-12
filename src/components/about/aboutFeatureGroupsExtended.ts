@@ -153,7 +153,8 @@ export const ABOUT_FEATURE_GROUPS_EXTENDED: AboutFeatureGroup[] = [
     id: 'bank-sms',
     title: 'پیامک‌های بانکی',
     icon: 'empty-inbox',
-    summary: 'ثبت هزینه و درآمد و به‌روزرسانی موجودی از روی پیامک بانک (فقط اندروید).',
+    summary:
+      'ثبت هزینه و درآمد و به‌روزرسانی موجودی از روی پیامک بانک (صف خودکار فقط در اندروید؛ در وب با اشتراک‌گذاری متن پیامک).',
     features: [
       {
         title: 'فعال‌سازی',

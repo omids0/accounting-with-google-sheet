@@ -26,7 +26,13 @@ export default function BankSmsQueueItem({
   }
 
   return item.entry.result.kind === 'unknown' ? (
-    <BankSmsUnknownCard item={item} review={review} />
+    <BankSmsUnknownCard
+      entry={item.entry}
+      accounts={review.accounts}
+      templatesApi={review.templatesApi}
+      busy={review.busyKey === item.key}
+      onDismiss={() => review.dismiss(item.key, [item.entry.sms.id])}
+    />
   ) : (
     <BankSmsEntryCard item={item} review={review} />
   )

@@ -15,8 +15,7 @@ import {
   type SmsRecordInput
 } from '../../services/bankSmsApply'
 import { buildBankSmsEntryState, type BankSmsEntryOptions } from '../../services/bankSmsEntry'
-import { guessTemplate } from '../../services/bankSmsGuess'
-import { matchSms, sampleRefDigits } from '../../services/bankSmsMatch'
+import { matchSms } from '../../services/bankSmsMatch'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { buildReviewItems, reviewSms } from '../../services/bankSmsQueue'
 import {
@@ -213,21 +212,7 @@ export function useBankSmsReview(sinceMs: number) {
           await refresh()
         }
       }),
-    splitTransfer: (ids: string[]) => setNoPair(prev => new Set([...prev, ...ids])),
-    /** Unknown SMS: the tapped number is the amount; the queue re-matches once it is saved. */
-    teachAmount: async (body: string, tokenIndex: number, accountId: string) => {
-      const guess = guessTemplate(body, templates, tokenIndex)
-      const saved = await templatesApi.add({
-        ...guess,
-        accountId,
-        sampleRef: sampleRefDigits(guess.parts, body)
-      })
-
-      if (saved) {
-        haptic('light')
-        showSuccess('قالب ساخته شد؛ پیامک‌های هم‌شکل شناخته شدند')
-      }
-    }
+    splitTransfer: (ids: string[]) => setNoPair(prev => new Set([...prev, ...ids]))
   }
 }
 

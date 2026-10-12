@@ -3,11 +3,11 @@ import { useMemo, useState } from 'react'
 import BankSmsCardHead from './BankSmsCardHead'
 import BankSmsMoreSheet from './BankSmsMoreSheet'
 import BankSmsTemplateSheet from './BankSmsTemplateSheet'
-import type { BankSmsReview } from './useBankSmsReview'
+import type { useSmsTemplates } from './useSmsTemplates'
 import { guessTemplate } from '../../services/bankSmsGuess'
 import { guessSampleAccount } from '../../services/bankSmsMatch'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
-import type { BankSmsReviewItem } from '../../services/bankSmsQueue'
+import type { ReviewedSms } from '../../services/bankSmsQueue'
 import { normalizeSmsText, tokenizeSms, type SmsToken } from '../../services/bankSmsText'
 import { cn } from '../../utils/cn'
 import { Select } from '../form'
@@ -22,11 +22,16 @@ import {
 } from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
+import type { WalletAccountWithRow } from '../wallet/types'
 import { resolveAccountKind } from '../wallet/walletCardUtils'
 
 type BankSmsUnknownCardProps = {
-  item: Extract<BankSmsReviewItem, { kind: 'single' }>
-  review: BankSmsReview
+  entry: ReviewedSms
+  accounts: WalletAccountWithRow[]
+  templatesApi: ReturnType<typeof useSmsTemplates>
+  busy: boolean
+  /** «نادیده»: the queue's undoable dismiss, or leaving a shared text. */
+  onDismiss: () => void
 }
 
 /** A number that can be money (not a date, time or card number). */
@@ -39,17 +44,22 @@ const isMoney = (token: SmsToken) =>
  * Looks like a bank SMS but fits no template. Tapping the amount in the text builds
  * the template right here; the full editor stays behind ⋯ «ویرایش قالب».
  */
-export default function BankSmsUnknownCard({ item, review }: BankSmsUnknownCardProps) {
-  const { entry, key } = item
+export default function BankSmsUnknownCard({
+  entry,
+  accounts,
+  templatesApi,
+  busy: cardBusy,
+  onDismiss: dismiss
+}: BankSmsUnknownCardProps) {
   const body = entry.sms.body
-  const { templates, saving } = review.templatesApi
+  const { templates, saving } = templatesApi
   const [picked, setPicked] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [templateText, setTemplateText] = useState<string | null>(null)
   const tokens = useMemo(() => tokenizeSms(normalizeSmsText(body)), [body])
   const bankAccounts = useMemo(
-    () => review.accounts.filter(account => resolveAccountKind(account) !== 'cash'),
-    [review.accounts]
+    () => accounts.filter(account => resolveAccountKind(account) !== 'cash'),
+    [accounts]
   )
   const guessed = useMemo(
     () =>
@@ -62,8 +72,7 @@ export default function BankSmsUnknownCard({ item, review }: BankSmsUnknownCardP
     [body, templates, bankAccounts]
   )
   const accountId = picked || guessed
-  const busy = review.busyKey === key || saving
-  const dismiss = () => review.dismiss(key, [entry.sms.id])
+  const busy = cardBusy || saving
 
   return (
     <>
@@ -82,7 +91,7 @@ export default function BankSmsUnknownCard({ item, review }: BankSmsUnknownCardP
                   type="button"
                   className={smsAmountTokenClass}
                   disabled={!accountId || busy}
-                  onClick={() => void review.teachAmount(body, index, accountId)}
+                  onClick={() => void templatesApi.teachAmount(body, index, accountId)}
                   aria-label={`${token.value} مبلغ است — ساخت قالب`}
                 >
                   {token.value}
@@ -139,8 +148,8 @@ export default function BankSmsUnknownCard({ item, review }: BankSmsUnknownCardP
       <BankSmsTemplateSheet
         text={templateText}
         accountId={accountId}
-        accounts={review.accounts}
-        templatesApi={review.templatesApi}
+        accounts={accounts}
+        templatesApi={templatesApi}
         onClose={() => setTemplateText(null)}
       />
     </>

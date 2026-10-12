@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Static app shortcuts (long-press on the launcher icon), same three as the PWA manifest.
+  Each opens MainActivity with a VIEW intent whose data URI Capacitor's App plugin hands
+  to the web view (getLaunchUrl / appUrlOpen); useLaunchAction routes it. The intent is
+  explicit, like the bank SMS notification's, so no intent-filter is needed.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="add_expense"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_expense"
+        android:shortcutShortLabel="@string/shortcut_expense">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.omids0.accounting"
+            android:targetClass="com.omids0.accounting.MainActivity"
+            android:data="com.omids0.accounting://entry?action=expense" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="add_income"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_income"
+        android:shortcutShortLabel="@string/shortcut_income">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.omids0.accounting"
+            android:targetClass="com.omids0.accounting.MainActivity"
+            android:data="com.omids0.accounting://entry?action=income" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="bank_sms"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_sms"
+        android:shortcutShortLabel="@string/shortcut_bank_sms">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.omids0.accounting"
+            android:targetClass="com.omids0.accounting.MainActivity"
+            android:data="com.omids0.accounting://bank-sms" />
+    </shortcut>
+</shortcuts>

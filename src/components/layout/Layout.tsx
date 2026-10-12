@@ -11,6 +11,7 @@ import UpdateBanner from '../UpdateBanner'
 import { useLayoutNavigation } from './useLayoutNavigation'
 import { useMainFocus } from './useMainFocus'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
+import { useLaunchAction } from '../../hooks/useLaunchAction'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
 import { installSelectionHaptics } from '../../utils/haptics'
 import {
@@ -50,6 +51,7 @@ export default function Layout() {
   } = useLayoutNavigation()
 
   useBankSmsSync()
+  useLaunchAction()
   const { mainRef, focusMain } = useMainFocus()
   useEffect(installSelectionHaptics, [])
 

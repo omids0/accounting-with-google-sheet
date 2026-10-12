@@ -67,7 +67,31 @@ export default defineConfig(({ command }) => ({
             type: 'image/png',
             purpose: 'maskable'
           }
-        ]
+        ],
+        // Long-press on the home-screen icon; App reads `?action=` (useLaunchAction).
+        shortcuts: [
+          {
+            name: 'ثبت هزینه',
+            url: `${basePath}?action=expense`,
+            icons: [{ src: 'shortcut-expense.png', sizes: '96x96', type: 'image/png' }]
+          },
+          {
+            name: 'ثبت درآمد',
+            url: `${basePath}?action=income`,
+            icons: [{ src: 'shortcut-income.png', sizes: '96x96', type: 'image/png' }]
+          },
+          {
+            name: 'پیامک‌های بانکی',
+            url: `${basePath}?action=sms`,
+            icons: [{ src: 'shortcut-sms.png', sizes: '96x96', type: 'image/png' }]
+          }
+        ],
+        // A bank SMS shared from the messages app runs through the bank SMS parser.
+        share_target: {
+          action: `${basePath}?share=1`,
+          method: 'GET',
+          params: { text: 'text' }
+        }
       },
       workbox: {
         globPatterns: command === 'serve' ? [] : ['**/*.{js,css,html,ico,png,svg,woff2}'],

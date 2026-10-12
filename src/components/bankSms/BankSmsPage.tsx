@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocation } from 'react-router'
 
 import BankSmsBulkBar from './BankSmsBulkBar'
 import BankSmsHelp from './BankSmsHelp'
@@ -7,6 +8,7 @@ import BankSmsQueueItem from './BankSmsQueueItem'
 import BankSmsQueueTable from './BankSmsQueueTable'
 import BankSmsSettingsCard from './BankSmsSettingsCard'
 import BankSmsSettingsSheet from './BankSmsSettingsSheet'
+import BankSmsSharedText from './BankSmsSharedText'
 import BankSmsStatusRow from './BankSmsStatusRow'
 import { useBankSmsReview } from './useBankSmsReview'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
@@ -14,6 +16,7 @@ import { isBankSmsAvailable } from '../../services/bankSmsNative'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { smsRangeStart } from '../../services/bankSmsRange'
 import { applyBankSmsViewDays } from '../../services/bankSmsViewRange'
+import { readSharedSmsText } from '../../services/launchAction'
 import { isConfigured } from '../../services/settings'
 import AppIcon from '../AppIcon'
 import EmptyState from '../EmptyState'
@@ -130,13 +133,18 @@ function BankSmsReview() {
 
 /** «پیامک‌های بانکی»: review queue for income/expense captured from bank SMS. */
 export default function BankSmsPage() {
+  const sharedText = readSharedSmsText(useLocation().state)
+
   if (!isConfigured()) return <EmptyState icon="empty-inbox" message="ابتدا با گوگل وارد شوید" />
+
+  // Shared from another app (web share target): works without SMS capture, so on iOS too.
+  if (sharedText) return <BankSmsSharedText key={sharedText} text={sharedText} />
 
   if (!isBankSmsAvailable()) {
     return (
       <EmptyState
         icon="empty-inbox"
-        message="ثبت از پیامک بانکی فقط در نسخه اندروید اپ کار می‌کند. قالب پیامک‌ها را می‌توانید همین‌جا در کیف پول بسازید."
+        message="صف خودکار پیامک بانکی فقط در اپ اندروید است. در وب‌اپ نصب‌شده متن پیامک بانک را از اپ پیامک با «حساب کتاب» به اشتراک بگذارید تا فرم ثبت پر شود. قالب پیامک‌ها را در کیف پول بسازید."
       />
     )
   }
