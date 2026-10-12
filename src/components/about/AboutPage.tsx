@@ -39,7 +39,7 @@ export default function AboutPage() {
         <div className={aboutHeroIconClass} aria-hidden="true">
           <AppIcon name="dashboard" size={36} />
         </div>
-        <h1 className={aboutHeroTitleClass}>حسابداری شخصی</h1>
+        <h1 className={aboutHeroTitleClass}>حساب کتاب</h1>
         <p className={aboutHeroTaglineClass}>
           اپ حسابداری با ذخیره‌سازی در Google Sheets — روی موبایل و دسکتاپ با چیدمان واکنش‌گرا؛
           داده‌های شما همیشه در اختیار خودتان است.

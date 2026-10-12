@@ -20,7 +20,7 @@ export default function NotificationHowTo({ native }: NotificationHowToProps) {
     return (
       <div className="mt-3 grid gap-3">
         <ol className={listClass}>
-          <li>تنظیمات گوشی ← برنامه‌ها ← «حسابداری شخصی» را باز کنید.</li>
+          <li>تنظیمات گوشی ← برنامه‌ها ← «حساب کتاب» را باز کنید.</li>
           <li>بخش «اعلان‌ها» را روشن کنید.</li>
           <li>به همین صفحه برگردید؛ وضعیت خودش به‌روز می‌شود.</li>
         </ol>

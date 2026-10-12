@@ -237,7 +237,7 @@ export default function LayoutMenu({
           </div>
         </div>
         <div className={appMenuFooterClass}>
-          <p className={appMenuFooterTextClass}>حسابداری شخصی</p>
+          <p className={appMenuFooterTextClass}>حساب کتاب</p>
           <LayoutMenuSheetName />
         </div>
       </nav>

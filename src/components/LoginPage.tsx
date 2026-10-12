@@ -202,7 +202,7 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
           <span className={loginLogoIconClass}>
             <AppIcon name="dashboard" />
           </span>
-          <h1 className={loginLogoTitleClass}>حسابداری شخصی</h1>
+          <h1 className={loginLogoTitleClass}>حساب کتاب</h1>
           {!expired && (
             <p className={loginLogoSubtitleClass}>
               مدیریت مالی روزانه با ذخیره‌سازی امن در Google Sheets

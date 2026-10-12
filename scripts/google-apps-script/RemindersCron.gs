@@ -197,7 +197,7 @@ function findDailyEngagementReminders_(ss) {
   var reference = 'daily_' + yesterday;
   return [{
     reference: reference,
-    title: 'حسابداری شخصی',
+    title: 'حساب کتاب',
     body:
       'دیروز به اپ سر نزدید و ثبت مالی هم نداشتید. اگر چیزی از قلم افتاده، همین الان بیایید ' +
       'حساب\u200cوکتابتان را به\u200cروز کنید — دیر نشده!',
@@ -211,7 +211,7 @@ function findNightlyDigestReminders_(ss) {
 
   return [{
     reference: 'nightly_' + today,
-    title: 'حسابداری شخصی',
+    title: 'حساب کتاب',
     body: 'امروز هنوز چیزی ثبت نکردی. اگر خرج یا درآمدی داشتی، همین حالا ثبتش کن.',
   }];
 }

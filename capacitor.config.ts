@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'com.omids0.accounting',
-  appName: 'حسابداری شخصی',
+  appName: 'حساب کتاب',
   webDir: 'dist',
   android: {
     // Release APKs must not expose the WebView (and its stored tokens) to chrome://inspect.

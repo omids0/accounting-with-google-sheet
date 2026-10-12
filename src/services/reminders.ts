@@ -177,7 +177,7 @@ export async function fetchReminderRules(spreadsheetId: string): Promise<Reminde
 
 export function formatDailyEngagementMessage(): { title: string; body: string } {
   return {
-    title: 'حسابداری شخصی',
+    title: 'حساب کتاب',
     body:
       'دیروز به اپ سر نزدید و ثبت مالی هم نداشتید. اگر چیزی از قلم افتاده، همین الان بیایید ' +
       'حساب\u200cوکتابتان را به\u200cروز کنید — دیر نشده!'

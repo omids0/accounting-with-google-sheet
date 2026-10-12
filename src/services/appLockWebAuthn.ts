@@ -39,7 +39,7 @@ export async function registerWebAuthnCredential(prfSalt?: Uint8Array): Promise<
   const credential = (await navigator.credentials.create({
     publicKey: {
       challenge: crypto.getRandomValues(new Uint8Array(32)),
-      rp: { name: 'حسابداری شخصی', id: window.location.hostname },
+      rp: { name: 'حساب کتاب', id: window.location.hostname },
       user: {
         id: crypto.getRandomValues(new Uint8Array(16)),
         name: email,
