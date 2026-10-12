@@ -5,6 +5,7 @@ import DashboardGuideCard from './DashboardGuideCard'
 import DashboardHero from './DashboardHero'
 import DashboardPeriodRow from './DashboardPeriodRow'
 import DashboardRecentBlock from './DashboardRecentBlock'
+import DashboardRecurringCard from './DashboardRecurringCard'
 import DashboardUpcomingBlock from './DashboardUpcomingBlock'
 import type { DashboardReminderItem } from '../../services/dashboardReminders'
 import type { DashboardData } from '../../types'
@@ -65,6 +66,7 @@ export default function DashboardContent({
     <div className={dashboardCalmPageClass}>
       <BankSmsPendingBanner />
       <DashboardGoalCongratsCard />
+      <DashboardRecurringCard />
       <DashboardGuideCard />
       <DashboardPeriodRow label={period.label} onOpen={nav.onOpenFilter} />
 

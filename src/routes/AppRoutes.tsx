@@ -36,6 +36,7 @@ import {
   LazyVehiclesPage,
   LazyWalletPage
 } from './lazyPages'
+import { RECORD_FOCUS_PARAM } from './paths'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
 import WalletAccountDetailRoute from './WalletAccountDetailRoute'
@@ -54,7 +55,12 @@ function parseFormType(value: string | null): 'income' | 'expense' | undefined {
 function RecordsRoute() {
   const [searchParams] = useSearchParams()
 
-  return <LazyRecordsPage initialFormType={parseFormType(searchParams.get('type'))} />
+  return (
+    <LazyRecordsPage
+      initialFormType={parseFormType(searchParams.get('type'))}
+      focusRecordId={searchParams.get(RECORD_FOCUS_PARAM) ?? undefined}
+    />
+  )
 }
 
 function EntryRoute() {
@@ -73,6 +79,7 @@ function EntryRoute() {
       prefill={draft?.prefill}
       bankSms={smsDraft?.bankSms}
       onSaved={draft ? back : undefined}
+      hideTemplates={!!draft}
     />
   )
 }

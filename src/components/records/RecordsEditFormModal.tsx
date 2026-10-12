@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import type { StoredRecord } from './recordsUtils'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
+import type { RecurringChoice } from '../../services/recurring'
 import { getSettings } from '../../services/settings'
 import { metaToFormValues } from '../../services/vehicleExpenseActions'
 import { findVehicleExpenseMetaByRecordId } from '../../services/vehicleExpenseRecords'
@@ -19,6 +20,7 @@ import {
 import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
 import FormModal from '../FormModal'
+import RecurringModeOptions from '../recurring/RecurringModeOptions'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
 
 type RecordsEditFormModalProps = {
@@ -31,6 +33,9 @@ type RecordsEditFormModalProps = {
     values: Record<string, string | number>,
     vehicleExpense?: ReturnType<typeof useVehicleExpenseEntry>['vehicleValues']
   ) => void | Promise<void>
+  /** «تکرار ماهانه» of an income/expense record; omitted for other forms. */
+  recurringChoice?: RecurringChoice
+  onRecurringChoiceChange?: (choice: RecurringChoice) => void
 }
 
 function buildInitialValues(
@@ -58,7 +63,9 @@ export default function RecordsEditFormModal({
   editingRecord,
   saving,
   onClose,
-  onSubmit
+  onSubmit,
+  recurringChoice,
+  onRecurringChoiceChange
 }: RecordsEditFormModalProps) {
   const initialValues = useMemo(
     () => buildInitialValues(editingForm, editingRecord),
@@ -182,6 +189,10 @@ export default function RecordsEditFormModal({
           disabled={saving}
           errors={vehicleExpense.fieldErrors}
         />
+      ) : null}
+
+      {recurringChoice && onRecurringChoiceChange ? (
+        <RecurringModeOptions value={recurringChoice} onChange={onRecurringChoiceChange} />
       ) : null}
     </FormModal>
   )

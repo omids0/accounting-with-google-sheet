@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import type { useForm } from 'react-hook-form'
 
 import type { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
@@ -64,7 +64,8 @@ export default function StandardEntryFormFields({
   showVehicleFields,
   vehicleExpense,
   clearFieldError,
-  walletApplyHint
+  walletApplyHint,
+  afterAmount
 }: {
   activeForm: CustomForm
   values: Record<string, string | number>
@@ -76,6 +77,8 @@ export default function StandardEntryFormFields({
   clearFieldError?: (fieldId: string) => void
   /** Why the balance switch starts unchecked (record opened from an SMS). */
   walletApplyHint?: string
+  /** Rendered right under the date + amount row (the duplicate warning). */
+  afterAmount?: ReactNode
 }) {
   const fieldById = useMemo(
     () => new Map(activeForm.fields.map(field => [field.id, field])),
@@ -133,6 +136,7 @@ export default function StandardEntryFormFields({
         {renderField('date', { controlWidth: 'full' })}
         {renderField('amount', { controlWidth: 'full' })}
       </FormRow>
+      {afterAmount}
       {renderField('title', { controlWidth: 'full' })}
       {renderField('category')}
       {!showVehicleFields && hasSubcategories ? renderField(SUBCATEGORY_FIELD_ID) : null}

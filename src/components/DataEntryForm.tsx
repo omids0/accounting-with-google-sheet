@@ -2,22 +2,20 @@ import { useEffect, useMemo, useRef, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
 import ConfirmActionModal from './ConfirmActionModal'
+import CustomEntryFormFields from './dataEntry/CustomEntryFormFields'
+import EntryDuplicateWarning from './dataEntry/EntryDuplicateWarning'
 import EntryFormActions from './dataEntry/EntryFormActions'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
-import { focusEntryAmount, type DataEntryFormProps } from './dataEntry/types'
+import { focusEntryAmount, templateFormValues, type DataEntryFormProps } from './dataEntry/types'
 import {
   buildFormInitialValues,
-  FieldInput,
-  isFieldHidden,
   isStandardEntryForm,
-  sortFormFields,
   SUBCATEGORY_FIELD_ID,
   withAutoTitle
 } from './form'
 import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import { showSavedForEntry } from './nudges/saveNudges'
-import VehicleExpenseFields from './vehicleExpenses/VehicleExpenseFields'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
 import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
@@ -27,7 +25,7 @@ import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
 import { createManualVehicleExpense } from '../services/vehicleExpenseActions'
 import { requireAuth } from '../utils/authGuard'
-import { formFieldError, validatePositiveAmount } from '../utils/formValidation'
+import { validatePositiveAmount } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
 import { showError } from '../utils/toast'
 import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
@@ -42,7 +40,8 @@ export default function DataEntryForm({
   onCategoriesRefresh,
   prefill,
   bankSms,
-  onSaved
+  onSaved,
+  template
 }: DataEntryFormProps) {
   const initialValues = useMemo(
     () => buildFormInitialValues(activeForm, prefill),
@@ -70,8 +69,22 @@ export default function DataEntryForm({
     vehicleExpense.resetVehicleValues()
   }, [activeForm.id, vehicleExpense.resetVehicleValues])
 
+  // A «پرتکرار» chip: fill the form, then the amount, selected so typing replaces it.
+  useEffect(() => {
+    if (!template) return
+
+    const fieldIds = new Set(activeForm.fields.map(field => field.id))
+
+    Object.entries(templateFormValues(template.value)).forEach(([id, value]) => {
+      if (fieldIds.has(id)) setValue(id, value)
+    })
+    clearErrors()
+    focusEntryAmount(formRef.current, true)
+  }, [template, activeForm.fields, setValue, clearErrors])
+
   const retroactiveWarning = useRetroactiveEntryWarning()
   const values = watch()
+  const duplicateWarning = <EntryDuplicateWarning form={activeForm} values={values} />
   const selectedCategory = String(values.category ?? '')
   const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(selectedCategory)
 
@@ -234,57 +247,30 @@ export default function DataEntryForm({
             showVehicleFields={showVehicleFields}
             vehicleExpense={vehicleExpense}
             walletApplyHint={smsBalanceHint(bankSms, String(values.walletAccount ?? ''))}
+            afterAmount={duplicateWarning}
             clearFieldError={fieldId => {
               vehicleExpense.clearFieldError(fieldId as keyof typeof vehicleExpense.fieldErrors)
               clearErrors(fieldId)
             }}
           />
         ) : (
-          sortFormFields(activeForm.fields).map(field => {
-            if (isFieldHidden(field, values)) return null
-            if (showVehicleFields && field.id === 'title') return null
-            if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {
-              return null
-            }
-
-            const fieldError =
-              showVehicleFields && field.id === 'amount'
-                ? vehicleExpense.fieldErrors.amount || formFieldError(errors, field.id)
-                : formFieldError(errors, field.id)
-
-            return (
-              <FieldInput
-                key={field.id}
-                field={field}
-                value={values[field.id] ?? ''}
-                onChange={next => {
-                  if (showVehicleFields && field.id === 'amount') {
-                    vehicleExpense.clearFieldError('amount')
-                    clearErrors('amount')
-                  }
-                  setValue(field.id, next)
-                  if (field.id === 'category') setValue(SUBCATEGORY_FIELD_ID, '')
-                }}
-                formId={activeForm.id}
-                error={fieldError}
-                parentCategory={selectedCategory}
-                onCategoriesChange={handleCategoriesChange}
-              />
-            )
-          })
-        )}
-
-        {!useStandardLayout && showVehicleFields ? (
-          <VehicleExpenseFields
-            values={vehicleExpense.vehicleValues}
-            amount={values.amount ?? ''}
-            onChange={vehicleExpense.patchVehicleValues}
-            vehicles={vehicleExpense.vehicles}
-            expenseTypes={vehicleExpense.expenseTypes}
-            onExpenseTypesChange={vehicleExpense.setExpenseTypes}
-            errors={vehicleExpense.fieldErrors}
+          <CustomEntryFormFields
+            activeForm={activeForm}
+            values={values}
+            errors={errors}
+            setValue={(id, value) => setValue(id, value)}
+            clearAmountError={() => {
+              vehicleExpense.clearFieldError('amount')
+              clearErrors('amount')
+            }}
+            showVehicleFields={showVehicleFields}
+            hasSubcategories={hasSubcategories}
+            vehicleExpense={vehicleExpense}
+            selectedCategory={selectedCategory}
+            onCategoriesChange={handleCategoriesChange}
+            afterAmount={duplicateWarning}
           />
-        ) : null}
+        )}
 
         <EntryFormActions
           formType={activeForm.type}

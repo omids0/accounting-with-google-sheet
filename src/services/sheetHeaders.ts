@@ -187,6 +187,22 @@ export const TREASURY_GOALS_HEADERS = [
   'وضعیت'
 ]
 
+/** Monthly recurring income/expense items (round 6, Task A2). */
+export const RECURRING_HEADERS = [
+  'شناسه',
+  'زمان ثبت',
+  'نوع',
+  'دسته',
+  'زیردسته',
+  'حساب',
+  'مبلغ',
+  'عنوان',
+  'روز ماه',
+  'حالت',
+  'آخرین ثبت',
+  'فعال'
+]
+
 /** One monthly budget per expense category. */
 export const BUDGETS_HEADERS = ['دسته', 'مبلغ ماهانه', 'زمان ویرایش']
 

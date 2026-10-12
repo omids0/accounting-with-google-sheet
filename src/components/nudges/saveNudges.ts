@@ -1,4 +1,7 @@
+import { createElement } from 'react'
+
 import { showSavedWithNudge, type NudgeOffer } from './NudgeToast'
+import { getDateFieldId } from '../../services/dashboardAggregation'
 import type * as Actions from '../../services/nudgeActions'
 import { setNudgeHandoff, trackNoAccountStreak } from '../../services/nudges'
 import {
@@ -12,9 +15,11 @@ import { getSettings } from '../../services/settings'
 import type { VehicleExpenseInput } from '../../services/vehicleExpenseActions'
 import { useNavigationStore } from '../../stores/navigationStore'
 import type { CustomForm } from '../../types'
+import { normalizeSheetDate } from '../../utils/sheetValues'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 import { WALLET_ACCOUNT_FIELD_ID } from '../form/fieldUtils'
+import RecurringToastAction from '../recurring/RecurringToastAction'
 
 /** The positive answer's work lives in a lazy chunk; only a tap loads it. */
 function run(task: (actions: typeof Actions) => Promise<void>, done: string) {
@@ -65,7 +70,19 @@ export function showSavedForCheck(message: string, name: string) {
   ])
 }
 
-/** After an income/expense from the entry form: vehicle link or wallet account. */
+/** «تکرار ماهانه» inside the saved toast of an income/expense record. */
+function recurringOption(form: CustomForm, values: Record<string, string | number>) {
+  const dateIso = normalizeSheetDate(values[getDateFieldId(form)] ?? '')
+
+  if ((form.type !== 'income' && form.type !== 'expense') || !dateIso) return undefined
+
+  return createElement(RecurringToastAction, { draft: { type: form.type, values, dateIso } })
+}
+
+/**
+ * After an income/expense from the entry form: vehicle link or wallet account, and
+ * the «تکرار ماهانه» option on the saved toast.
+ */
 export function showSavedForEntry(
   form: CustomForm,
   recordId: string,
@@ -82,27 +99,31 @@ export function showSavedForEntry(
   const account = detectMissingAccounts(spreadsheetId, streak)
   const link: VehicleExpenseLink | null = vehicleInput && { recordId, input: vehicleInput }
 
-  showSavedWithNudge(message, [
-    vehicle && {
-      ...vehicle,
-      title: 'این هزینه خودرو بود؟',
-      text: 'با تعریف خودرو، سرویس بعدی و کارکرد حساب می‌شود.',
-      actionLabel: 'وصل کن به خودرو',
-      // The vehicles page opens its add form and moves this expense onto the new vehicle.
-      accept: () => {
-        setNudgeHandoff(vehicle.id, link)
-        useNavigationStore.getState().onTabChange('vehicle-service')
+  showSavedWithNudge(
+    message,
+    [
+      vehicle && {
+        ...vehicle,
+        title: 'این هزینه خودرو بود؟',
+        text: 'با تعریف خودرو، سرویس بعدی و کارکرد حساب می‌شود.',
+        actionLabel: 'وصل کن به خودرو',
+        // The vehicles page opens its add form and moves this expense onto the new vehicle.
+        accept: () => {
+          setNudgeHandoff(vehicle.id, link)
+          useNavigationStore.getState().onTabChange('vehicle-service')
+        }
+      },
+      account && {
+        ...account,
+        title: 'حساب کیف پول برای تراکنش‌ها انتخاب می‌کنی تا موجودی خودکار به‌روز شود؟',
+        actionLabel: 'انتخاب حساب',
+        pickAccount: accountId =>
+          run(
+            actions => actions.assignRecordAccount(spreadsheetId, form, recordId, accountId),
+            'حساب تراکنش ثبت شد'
+          )
       }
-    },
-    account && {
-      ...account,
-      title: 'حساب کیف پول برای تراکنش‌ها انتخاب می‌کنی تا موجودی خودکار به‌روز شود؟',
-      actionLabel: 'انتخاب حساب',
-      pickAccount: accountId =>
-        run(
-          actions => actions.assignRecordAccount(spreadsheetId, form, recordId, accountId),
-          'حساب تراکنش ثبت شد'
-        )
-    }
-  ])
+    ],
+    recurringOption(form, values)
+  )
 }

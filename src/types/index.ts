@@ -55,6 +55,8 @@ export type {
   MonthComparison,
   MonthTrend,
   PreviousMonthSummary,
+  RecurringItem,
+  RecurringMode,
   SavingsGoal,
   SavingsGoalStatus,
   SavingsGoalView

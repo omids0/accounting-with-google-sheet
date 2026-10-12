@@ -11,6 +11,7 @@ import SettingsCategoriesCard from './SettingsCategoriesCard'
 import SettingsGeneralCard from './SettingsGeneralCard'
 import SettingsGoogleAccountCard from './SettingsGoogleAccountCard'
 import SettingsPwaInstallCard from './SettingsPwaInstallCard'
+import SettingsRecurringCard from './SettingsRecurringCard'
 import SettingsRemindersCard from './SettingsRemindersCard'
 import SettingsSection from './SettingsSection'
 import SettingsSpreadsheetCard from './SettingsSpreadsheetCard'
@@ -110,6 +111,13 @@ export default function SettingsPage() {
             icon: 'chart' as const,
             description: 'بودجه ماهانه دسته‌های هزینه',
             content: <SettingsBudgetsCard />
+          },
+          {
+            id: 'recurring',
+            title: 'تکرارها',
+            icon: 'refresh' as const,
+            description: 'تراکنش‌های ماهانه: یادآوری یا ثبت خودکار',
+            content: <SettingsRecurringCard />
           }
         ]
       : []),

@@ -1,7 +1,11 @@
 import { toAppCurrency } from './bankSmsAmount'
 import { matchSms, type LearnedSmsRefs } from './bankSmsMatch'
 import type { BankSmsItem } from './bankSmsNative'
+import { matchesDuplicate, type LedgerEntry } from './recordDuplicates'
 import type { CurrencyUnit, SmsMatchResult, SmsTemplate, WalletAccount } from '../types'
+import { toIsoDate } from '../utils/jalaliDate'
+
+export type { LedgerEntry } from './recordDuplicates'
 
 export type MatchedSms = Extract<SmsMatchResult, { kind: 'matched' }>
 
@@ -32,20 +36,8 @@ export type BankSmsReviewItem =
       credit: ConfirmableSms
     }
 
-/** An existing income/expense record, reduced to what duplicate detection needs. */
-export interface LedgerEntry {
-  type: 'income' | 'expense'
-  amount: number
-  /** `YYYY-MM-DD` */
-  date: string
-  /** Wallet account the record names ('' when none). */
-  accountId: string
-}
-
 /** Debit and credit SMS of one own-account transfer arrive within this window. */
 export const TRANSFER_WINDOW_MS = 10 * 60 * 1000
-
-const DAY_MS = 24 * 60 * 60 * 1000
 
 type MatchAccount = Pick<WalletAccount, 'id' | 'cardNumber' | 'accountNumber' | 'iban'>
 
@@ -80,30 +72,17 @@ export function isConfirmable(entry: ReviewedSms): entry is ConfirmableSms {
   return entry.result.kind === 'matched' && entry.amount !== null
 }
 
-function smsDay(receivedAt: number): number {
-  const date = new Date(receivedAt)
-
-  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-}
-
-function ledgerDay(iso: string): number {
-  const [year, month, day] = iso.split('-').map(Number)
-
-  return Date.UTC(year, (month ?? 1) - 1, day ?? 1)
-}
-
+/** Same direction and amount within a day of the SMS (shared rule, `recordDuplicates`). */
 function findDuplicates(entry: ReviewedSms, ledger: LedgerEntry[]): LedgerEntry[] {
   if (!isConfirmable(entry)) return []
 
-  const type = entry.result.direction === 'debit' ? 'expense' : 'income'
-  const day = smsDay(entry.sms.receivedAt)
+  const candidate = {
+    type: entry.result.direction === 'debit' ? ('expense' as const) : ('income' as const),
+    amount: entry.amount,
+    date: toIsoDate(new Date(entry.sms.receivedAt))
+  }
 
-  return ledger.filter(
-    record =>
-      record.type === type &&
-      record.amount === entry.amount &&
-      Math.abs(ledgerDay(record.date) - day) <= DAY_MS
-  )
+  return ledger.filter(record => matchesDuplicate(candidate, record, { dayTolerance: 1 }))
 }
 
 export function isProbableDuplicate(entry: ReviewedSms, ledger: LedgerEntry[]): boolean {

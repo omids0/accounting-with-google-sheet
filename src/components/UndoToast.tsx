@@ -29,12 +29,20 @@ function UndoToast({ message, durationMs, onUndo }: UndoToastProps) {
   )
 }
 
-/** «… حذف شد — بازگردانی» at the bottom; the caller owns the timer and dismisses it. */
-export function showUndoToast(label: string, durationMs: number, onUndo: () => void): string {
-  return toast.custom(
-    <UndoToast message={`${label} حذف شد`} durationMs={durationMs} onUndo={onUndo} />,
-    { position: 'bottom-center', duration: Infinity }
-  )
+/**
+ * «… حذف شد — بازگردانی» at the bottom; the caller owns the timer and dismisses it.
+ * `message` replaces the whole text (e.g. «اجاره ثبت شد (تکراری)» after an auto post).
+ */
+export function showUndoToast(
+  label: string,
+  durationMs: number,
+  onUndo: () => void,
+  message = `${label} حذف شد`
+): string {
+  return toast.custom(<UndoToast message={message} durationMs={durationMs} onUndo={onUndo} />, {
+    position: 'bottom-center',
+    duration: Infinity
+  })
 }
 
 export function dismissUndoToast(id: string): void {

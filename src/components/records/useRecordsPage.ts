@@ -18,7 +18,9 @@ import { requireAuth } from '../../utils/authGuard'
 import { isDateInRange } from '../../utils/dateRange'
 import { handleSheetError } from '../../utils/sheetError'
 
-export function useRecordsPage(initialFormType?: 'income' | 'expense') {
+/** `focusRecordId`: show only that record (the entry form's duplicate warning links here). */
+export function useRecordsPage(initialFormType?: 'income' | 'expense', focusRecordId?: string) {
+  const [focusId, setFocusId] = useState(focusRecordId ?? '')
   const [forms, setForms] = useState<CustomForm[]>([])
   const [activeFormId, setActiveFormId] = useState('')
   const [rawRecords, setRecords] = useState<StoredRecord[]>([])
@@ -133,7 +135,11 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
 
   const { matches: matchesSubcategory, subCategoryFilter } = subcategory
 
+  useEffect(() => setFocusId(focusRecordId ?? ''), [focusRecordId])
+
   const filteredRecords = useMemo(() => {
+    if (focusId) return records.filter(record => record.id === focusId)
+
     return records.filter(record => {
       const form = forms.find(f => f.id === record.formId)
 
@@ -155,7 +161,7 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
 
       return true
     })
-  }, [records, dateRange, categoryFilter, forms, matchesSubcategory])
+  }, [records, dateRange, categoryFilter, forms, matchesSubcategory, focusId])
 
   const showFilteredSummary = useMemo(
     () =>
@@ -186,6 +192,16 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense') {
     showFilteredSummary,
     handleFormChange,
     ...filters,
+    filterChips: focusId
+      ? [
+          { id: 'record', label: 'فقط یک رکورد', onRemove: () => setFocusId('') },
+          ...filters.filterChips
+        ]
+      : filters.filterChips,
+    clearAllFilters: () => {
+      setFocusId('')
+      filters.clearAllFilters()
+    },
     requestDelete,
     ...formActions
   }

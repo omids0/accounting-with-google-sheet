@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 
 import AppIcon from './AppIcon'
-import type { DataEntryFormProps } from './dataEntry/types'
+import EntryTemplateChips from './dataEntry/EntryTemplateChips'
+import type { AppliedTemplate, DataEntryFormProps } from './dataEntry/types'
+import { useEntryTemplates } from './dataEntry/useEntryTemplates'
 import DataEntryForm from './DataEntryForm'
 import { FormSkeleton } from './skeleton'
 import TransactionTypeSegment, { transactionTypeOptionsFromForms } from './TransactionTypeSegment'
@@ -19,9 +21,12 @@ export default function DataEntryPage({
   initialFormType,
   prefill,
   bankSms,
-  onSaved
+  onSaved,
+  hideTemplates = false
 }: Pick<DataEntryFormProps, 'onCancel' | 'prefill' | 'bankSms' | 'onSaved'> & {
   initialFormType?: 'income' | 'expense'
+  /** Opened already filled (bank SMS, share target, recurring item): no «پرتکرار» chips. */
+  hideTemplates?: boolean
 }) {
   const [forms, setForms] = useState<CustomForm[]>([])
 
@@ -32,6 +37,10 @@ export default function DataEntryPage({
   const [ready, setReady] = useState(false)
 
   const activeForm = forms.find(f => f.id === activeFormId)
+
+  const templates = useEntryTemplates(activeForm, !hideTemplates && !bankSms)
+
+  const [template, setTemplate] = useState<AppliedTemplate | null>(null)
 
   useEffect(() => {
     const settings = getSettings()
@@ -86,9 +95,20 @@ export default function DataEntryPage({
         className={dataEntryTypeSegmentClass}
         options={transactionTypeOptionsFromForms(forms)}
         value={activeFormId}
-        onChange={formId => setActiveFormId(formId)}
+        onChange={formId => {
+          setTemplate(null)
+          setActiveFormId(formId)
+        }}
         ariaLabel="نوع ثبت"
       />
+
+      {activeForm && (
+        <EntryTemplateChips
+          key={activeForm.id}
+          templates={templates}
+          onPick={value => setTemplate({ value, nonce: Date.now() })}
+        />
+      )}
 
       {activeForm && (
         <div className={dataEntryFormCardClass(activeTone)}>
@@ -102,6 +122,7 @@ export default function DataEntryPage({
             prefill={prefill}
             bankSms={bankSms}
             onSaved={onSaved}
+            template={template}
           />
         </div>
       )}

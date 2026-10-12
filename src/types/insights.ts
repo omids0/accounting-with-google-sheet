@@ -49,3 +49,25 @@ export interface MonthComparison {
   /** Whole percent of the change, always ≥ 0. */
   percent: number
 }
+
+/** «یادآوری + یک لمس» (a dashboard card) or «خودکار» (posted on app open). */
+export type RecurringMode = 'reminder' | 'auto'
+
+/** One row of «تکرارها»: a monthly income/expense posted from a template. */
+export interface RecurringItem {
+  id: string
+  createdAt: string
+  type: 'income' | 'expense'
+  category: string
+  subCategory: string
+  /** Wallet account id ('' when none). */
+  accountId: string
+  amount: number
+  title: string
+  /** 1–31; clamped to the last day of shorter Jalali months. */
+  dayOfMonth: number
+  mode: RecurringMode
+  /** Jalali `YYYY-MM` of the last month handled (posted or skipped); '' never. */
+  lastPosted: string
+  active: boolean
+}

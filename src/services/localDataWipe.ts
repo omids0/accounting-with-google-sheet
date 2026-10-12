@@ -50,7 +50,11 @@ const ACCOUNT_KEYS = [
   // Budget alert gate (budgetDigest.ts), named here to keep that module out of this chunk.
   'accounting_budget_alerts_v1',
   // «دسته‌های پیشنهادی» offer dismissal (categoryDefaults.ts), named here for the same reason.
-  'accounting_category_defaults_offer_v1'
+  'accounting_category_defaults_offer_v1',
+  // «پرتکرار» pins/hides (entryTemplates.ts), named here to keep that module out of this chunk.
+  'accounting_entry_templates_v1',
+  // Once-a-month digest line «N تکرار ثبت‌نشده» (recurringDigest.ts).
+  'accounting_recurring_digest_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

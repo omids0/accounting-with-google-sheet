@@ -2,6 +2,7 @@ import { setDigestNotesNative } from './bankSmsNative'
 import { pickBudgetAlerts, type BudgetAlertLog } from './budgets'
 import { fetchBudgets } from './budgetsSheet'
 import { filterByDateRange, getDateFieldId, sumByCategory } from './dashboardAggregation'
+import { recurringDigestLines } from './recurringDigest'
 import { getSettings } from './settings'
 import { fetchRecords } from './sheets'
 import { getItem, setItem } from './storage'
@@ -26,7 +27,8 @@ function writeLog(spreadsheetId: string, log: BudgetAlertLog): void {
 }
 
 /**
- * Budget lines for tonight's digest («خوراک به ۸۰٪ بودجه رسید», «… از بودجه گذشت»).
+ * Budget lines for tonight's digest («خوراک به ۸۰٪ بودجه رسید», «… از بودجه گذشت»),
+ * plus «N تکرار ثبت‌نشده» once a month.
  * Alerts live only in the native nightly digest: no toast, no banner.
  */
 export async function syncBudgetDigest(spreadsheetId: string): Promise<void> {
@@ -57,6 +59,9 @@ export async function syncBudgetDigest(spreadsheetId: string): Promise<void> {
     writeLog(spreadsheetId, pick.log)
     lines = pick.lines
   }
+
+  // Reminder-mode recurring items not posted yet: one line, once a month.
+  lines = [...lines, ...(await recurringDigestLines(spreadsheetId, today).catch(() => []))]
 
   await setDigestNotesNative(today, lines)
 }

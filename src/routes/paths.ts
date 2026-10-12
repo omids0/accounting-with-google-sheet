@@ -143,6 +143,14 @@ export function getReportTabFromKind(kind: ModuleReportKind): Tab {
   return REPORT_TAB_BY_KIND[kind]
 }
 
+/** Query key of the records page that shows one record only (round 6, duplicate warning). */
+export const RECORD_FOCUS_PARAM = 'record'
+
+/** The records page showing only `recordId`. */
+export function recordFocusPath(type: 'income' | 'expense', recordId: string): string {
+  return `/records?type=${type}&${RECORD_FOCUS_PARAM}=${encodeURIComponent(recordId)}`
+}
+
 export const SETTINGS_PATH = '/settings'
 export const SETTINGS_REMINDERS_PATH = '/settings/reminders'
 

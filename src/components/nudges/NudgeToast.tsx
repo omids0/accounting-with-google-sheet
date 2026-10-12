@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
 
 import { claimNudge, neverAskNudge } from '../../services/nudges'
@@ -6,6 +6,7 @@ import type { NudgeSignal } from '../../services/nudgeSignals'
 import { getSettings } from '../../services/settings'
 import { fetchWalletAccounts } from '../../services/wallet'
 import type { WalletAccount } from '../../types'
+import { haptic } from '../../utils/haptics'
 import { showSuccess } from '../../utils/toast'
 import Select from '../form/Select'
 import Button from '../ui/Button'
@@ -26,11 +27,21 @@ export interface NudgeOffer extends NudgeSignal {
   pickAccount?: (accountId: string) => void
 }
 
-const NUDGE_TOAST_ID = 'nudge'
+export const NUDGE_TOAST_ID = 'nudge'
 
 const NUDGE_MS = 8000
 
-type CardProps = { message: string; offer: NudgeOffer; spreadsheetId: string; picking: boolean }
+/** A plain «ذخیره شد» with an option stays long enough to reach it. */
+const SAVED_MS = 5000
+
+type CardProps = {
+  message: string
+  offer: NudgeOffer
+  spreadsheetId: string
+  picking: boolean
+  /** Under «ذخیره شد», e.g. the «تکرار ماهانه» option. */
+  extra?: ReactNode
+}
 
 /** The saved record's account field, right on the card. */
 function AccountField(props: { spreadsheetId: string; onPick: (accountId: string) => void }) {
@@ -55,18 +66,21 @@ function AccountField(props: { spreadsheetId: string; onPick: (accountId: string
   )
 }
 
-function NudgeCard({ message, offer, spreadsheetId, picking }: CardProps) {
+function NudgeCard({ message, offer, spreadsheetId, picking, extra }: CardProps) {
   const close = () => toast.dismiss(NUDGE_TOAST_ID)
 
   const accept = () => {
-    if (offer.pickAccount) return present({ message, offer, spreadsheetId, picking: true })
+    if (offer.pickAccount) return present({ message, offer, spreadsheetId, picking: true, extra })
     close()
     offer.accept?.()
   }
 
   return (
     <div className={nudgeStackClass} role="status" aria-live="polite">
-      <div className={nudgeSavedClass}>{message}</div>
+      <div className={nudgeSavedClass}>
+        {message}
+        {extra}
+      </div>
       <div className={nudgeCardClass}>
         <b>{offer.title}</b>
         {offer.text}
@@ -112,17 +126,35 @@ function present(props: CardProps) {
   })
 }
 
+/** The green «ذخیره شد» with an option inside, without a suggestion card. */
+function showSavedOnly(message: string, extra: ReactNode) {
+  haptic('light')
+  toast.custom(
+    <div className={nudgeStackClass} role="status" aria-live="polite">
+      <div className={nudgeSavedClass}>
+        {message}
+        {extra}
+      </div>
+    </div>,
+    { id: NUDGE_TOAST_ID, duration: SAVED_MS }
+  )
+}
+
 /**
  * The «ذخیره شد» toast, with the first suggestion that passes the gate under it
  * (never a modal). Without one it is the plain success toast.
  */
-export function showSavedWithNudge(message: string, offers: (NudgeOffer | null | false)[]) {
+export function showSavedWithNudge(
+  message: string,
+  offers: (NudgeOffer | null | false)[],
+  extra?: ReactNode
+) {
   const spreadsheetId = getSettings()?.spreadsheetId
   const offer =
     spreadsheetId &&
     offers.find(item => item && claimNudge(spreadsheetId, item.id, item.targetHasData))
 
-  if (!spreadsheetId || !offer) return showSuccess(message)
+  if (!spreadsheetId || !offer) return extra ? showSavedOnly(message, extra) : showSuccess(message)
 
-  present({ message, offer, spreadsheetId, picking: false })
+  present({ message, offer, spreadsheetId, picking: false, extra })
 }

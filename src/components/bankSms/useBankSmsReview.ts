@@ -14,36 +14,15 @@ import {
 import { matchSms } from '../../services/bankSmsMatch'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { buildReviewItems, reviewSms, type LedgerEntry } from '../../services/bankSmsQueue'
+import { loadRecordLedger } from '../../services/recordLedger'
 import { getSettings } from '../../services/settings'
-import { fetchRecords } from '../../services/sheets'
 import { fetchWalletAccounts } from '../../services/wallet'
 import { useBankSmsStore } from '../../stores/bankSmsStore'
-import type { AppSettings } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { getCurrency } from '../../utils/formatMoney'
-import { parseNumeric } from '../../utils/parseNumeric'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
-import { WALLET_ACCOUNT_FIELD_ID } from '../form/fieldUtils'
 import type { WalletAccountWithRow } from '../wallet/types'
-
-async function loadLedger(settings: AppSettings): Promise<LedgerEntry[]> {
-  const forms = settings.forms.filter(form => form.type === 'income' || form.type === 'expense')
-  const perForm = await Promise.all(
-    forms.map(async form =>
-      (
-        await fetchRecords(settings.spreadsheetId, form)
-      ).map(record => ({
-        type: form.type as LedgerEntry['type'],
-        amount: parseNumeric(record.values.amount),
-        date: record.values.date ?? '',
-        accountId: record.values[WALLET_ACCOUNT_FIELD_ID] ?? ''
-      }))
-    )
-  )
-
-  return perForm.flat()
-}
 
 /** Everything the «پیامک‌های بانکی» page shows and does. */
 /** `sinceMs`: only SMS received from this moment on are listed (older ones stay queued). */
@@ -66,7 +45,7 @@ export function useBankSmsReview(sinceMs: number) {
     try {
       const [walletAccounts, entries] = await Promise.all([
         fetchWalletAccounts(settings.spreadsheetId),
-        loadLedger(settings)
+        loadRecordLedger(settings)
       ])
 
       setAccounts(walletAccounts)
