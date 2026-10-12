@@ -1,0 +1,199 @@
+/* Calm mobile wireframe (round 5) */
+.hero2 {
+  border: 0;
+  background: #e9e9e9;
+  text-align: center;
+  padding: 18px 12px 14px;
+}
+.hero2 .lbl {
+  font-size: 12px;
+  color: #666;
+}
+.hero2 .num {
+  font-size: 28px;
+  font-weight: 800;
+  color: #333;
+  margin: 4px 0 6px;
+}
+.strip {
+  display: flex;
+  justify-content: space-around;
+  font-size: 12px;
+  color: #555;
+  border-top: 1px dashed #bbb;
+  padding-top: 8px;
+  margin-top: 6px;
+}
+.strip b {
+  display: block;
+  font-size: 13px;
+  color: #333;
+}
+.sec-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  font-weight: 800;
+  color: #333;
+  margin: 6px 2px 2px;
+}
+.sec-h a {
+  font-size: 11px;
+  color: #777;
+  font-weight: 400;
+}
+.r {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  border-top: 1px solid #eee;
+  font-size: 13px;
+}
+.r:first-of-type {
+  border-top: 0;
+}
+.r .d {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #555;
+  flex: none;
+}
+.r .t {
+  flex: 1;
+  min-width: 0;
+}
+.r .t small {
+  display: block;
+  color: #888;
+  font-size: 11px;
+}
+.r .a {
+  font-weight: 800;
+  color: #333;
+  white-space: nowrap;
+}
+.r .a.neg {
+  color: #a33;
+}
+.r .a.pos {
+  color: #2a7;
+}
+.r .cb {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #999;
+  border-radius: 6px;
+  flex: none;
+}
+.r .bar {
+  height: 4px;
+  background: #e4e4e4;
+  border-radius: 2px;
+  margin-top: 5px;
+}
+.r .bar i {
+  display: block;
+  height: 4px;
+  width: 25%;
+  background: #777;
+  border-radius: 2px;
+}
+.flat {
+  border: 0;
+  background: transparent;
+  padding: 0 2px;
+}
+.seg {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #666;
+}
+.seg span {
+  border: 1px solid #bbb;
+  border-radius: 99px;
+  padding: 3px 10px;
+}
+.m-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px;
+  border-bottom: 1px solid #e4e4e4;
+  font-size: 13px;
+}
+.m-user .av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ccc;
+  flex: none;
+}
+.m-user .sp {
+  flex: 1;
+}
+.m-user .tg {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  border: 1px solid #999;
+}
+.m-g {
+  font-size: 10px;
+  color: #999;
+  padding: 10px 14px 2px;
+  letter-spacing: 0.02em;
+}
+.m-i {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #333;
+}
+.m-i i {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #777;
+  border-radius: 4px;
+  flex: none;
+}
+.m-i.on {
+  background: #efefef;
+  font-weight: 800;
+}
+.m-f {
+  margin-top: auto;
+  padding: 10px 14px;
+  font-size: 11px;
+  color: #888;
+  border-top: 1px solid #e4e4e4;
+}
+.shot {
+  width: 375px;
+  border: 2px solid #444;
+  border-radius: 24px;
+  overflow: hidden;
+  max-height: 740px;
+}
+.shot img {
+  width: 100%;
+  display: block;
+}
+.cap {
+  font-size: 11px;
+  color: #777;
+  text-align: center;
+  margin: 6px 0 0;
+  width: 375px;
+}
