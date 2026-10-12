@@ -15,8 +15,14 @@ import { useTokenRefresh } from './hooks/useTokenRefresh'
 import { AppAuthenticatedRoutes } from './routes/AppRoutes'
 import { isAppLockEnabled } from './services/appLock'
 import { scrubPinHashFromSheetOnce } from './services/appLockSheetScrub'
-import { hasStoredSession, isAuthError, isTokenValid } from './services/auth'
+import {
+  hasStoredSession,
+  isAuthError,
+  isTokenValid,
+  sessionNeedsScopeUpgrade
+} from './services/auth'
 import { isNativePlatform } from './services/googleAuthNative'
+import { resolveLoginReason } from './services/loginReason'
 import { isConfigured, getSettings } from './services/settings'
 import { initializeSheetSync } from './services/sheetSync'
 import {
@@ -247,6 +253,11 @@ export default function App() {
     return (
       <LazyLoginPage
         initialError={sheetError}
+        reason={resolveLoginReason({
+          hasStoredSession: hasStoredSession(),
+          hasSpreadsheet: isConfigured(),
+          needsScopeUpgrade: sessionNeedsScopeUpgrade()
+        })}
         onSuccess={() => {
           setLoggedIn(true)
           setNeedsReauth(false)

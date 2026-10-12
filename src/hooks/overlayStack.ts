@@ -1,6 +1,6 @@
 /**
  * Open overlays (modals, sheets, drawer, speed dial) in the order they opened.
- * The Android back button closes the top one before it navigates anywhere.
+ * The Android back button and Escape close the top one before anything else.
  */
 interface OverlayEntry {
   id: number
@@ -11,18 +11,6 @@ interface OverlayEntry {
 const stack: OverlayEntry[] = []
 
 let nextId = 1
-
-export function pushOverlay(close: () => boolean): () => void {
-  const entry = { id: nextId++, close }
-
-  stack.push(entry)
-
-  return () => {
-    const index = stack.findIndex(item => item.id === entry.id)
-
-    if (index >= 0) stack.splice(index, 1)
-  }
-}
 
 export function getOverlayCount(): number {
   return stack.length
@@ -39,6 +27,41 @@ export function closeTopOverlay(): boolean {
   top.close()
 
   return true
+}
+
+/**
+ * The single Escape handler: closes only the top overlay. A field that handles
+ * Escape itself (e.g. cancelling an inline edit) calls preventDefault to keep it.
+ */
+export function closeTopOverlayOnEscape(event: KeyboardEvent): boolean {
+  if (event.key !== 'Escape' || event.defaultPrevented || event.isComposing) return false
+  if (!closeTopOverlay()) return false
+  event.preventDefault()
+
+  return true
+}
+
+// Listening only while something is open keeps every screen, including login
+// and unlock, covered without mounting a hook in each app shell.
+function setEscapeListener(active: boolean) {
+  if (typeof document === 'undefined') return
+  if (active) document.addEventListener('keydown', closeTopOverlayOnEscape)
+  else document.removeEventListener('keydown', closeTopOverlayOnEscape)
+}
+
+export function pushOverlay(close: () => boolean): () => void {
+  const entry = { id: nextId++, close }
+
+  if (stack.length === 0) setEscapeListener(true)
+  stack.push(entry)
+
+  return () => {
+    const index = stack.findIndex(item => item.id === entry.id)
+
+    if (index < 0) return
+    stack.splice(index, 1)
+    if (stack.length === 0) setEscapeListener(false)
+  }
 }
 
 export type BackAction = 'overlay' | 'back' | 'home' | 'confirm-exit' | 'exit'

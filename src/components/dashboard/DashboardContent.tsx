@@ -1,9 +1,9 @@
 import DashboardBreakdownSection from './DashboardBreakdownSection'
+import DashboardEmptyRecords from './DashboardEmptyRecords'
 import DashboardGuideCard from './DashboardGuideCard'
 import { RecordAmount } from './DashboardParts'
 import DashboardRemindersSection from './DashboardRemindersSection'
 import type { DashboardReminderItem } from '../../services/dashboardReminders'
-import { useNavigationStore } from '../../stores/navigationStore'
 import type { DashboardData, DashboardNavTarget } from '../../types'
 import { cn } from '../../utils/cn'
 import type { RecordsDatePreset } from '../../utils/dateRange'
@@ -15,7 +15,6 @@ import BankSmsPendingBanner from '../bankSms/BankSmsPendingBanner'
 import CardEditButton from '../CardEditButton'
 import DashboardChartsSection from '../charts/DashboardChartsSection'
 import DateRangeFilter, { createDefaultDateRangeFilter } from '../DateRangeFilter'
-import EmptyState from '../EmptyState'
 import FilterModal from '../FilterModal'
 import HelpHint from '../HelpHint'
 import { HELP_HINTS } from '../helpHints'
@@ -54,6 +53,7 @@ interface DashboardContentProps {
   setDraftCustomRange: (range: { start: string; end: string }) => void
   setDatePreset: (preset: RecordsDatePreset) => void
   setCustomRange: (range: { start: string; end: string }) => void
+  onShowPreviousMonth: () => void
   onConfigureNetAvailable?: () => void
   financial?: DashboardData['financial']
   incomeSparkline: number[]
@@ -87,6 +87,7 @@ export default function DashboardContent({
   setDraftCustomRange,
   setDatePreset,
   setCustomRange,
+  onShowPreviousMonth,
   onConfigureNetAvailable,
   financial,
   incomeSparkline,
@@ -257,14 +258,7 @@ export default function DashboardContent({
         />
 
         {!data?.recentRecords.length ? (
-          <EmptyState
-            icon="records"
-            message="هنوز تراکنشی در این دوره ثبت نشده"
-            action={{
-              label: 'ثبت اولین تراکنش',
-              onClick: () => useNavigationStore.getState().onOpenEntry()
-            }}
-          />
+          <DashboardEmptyRecords onShowPreviousMonth={onShowPreviousMonth} />
         ) : !filteredRecords.length ? (
           <p className={emptyTextClass}>تراکنشی با این فیلتر یافت نشد</p>
         ) : (

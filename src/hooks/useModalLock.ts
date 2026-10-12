@@ -5,27 +5,41 @@ import { useRegisterOverlay } from './useRegisterOverlay'
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+const FIELD_SELECTOR = 'input, select, textarea'
+
 function getFocusableElements(container: HTMLElement) {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
     element => element.tabIndex !== -1 && element.offsetParent !== null
   )
 }
 
+/** First field, else the first control that is not ✕, else the panel itself. */
+function getInitialFocus(panel: HTMLElement): HTMLElement {
+  const explicit = panel.querySelector<HTMLElement>('[data-modal-initial-focus]')
+  if (explicit) return explicit
+
+  const focusable = getFocusableElements(panel)
+  const target =
+    focusable.find(element => element.matches(FIELD_SELECTOR)) ??
+    focusable.find(element => !element.hasAttribute('data-modal-close'))
+  if (target) return target
+
+  if (!panel.hasAttribute('tabindex')) panel.tabIndex = -1
+
+  return panel
+}
+
 interface UseModalLockOptions {
   open: boolean
   onClose: () => void
-  /** When true, Escape and backdrop dismiss are blocked (e.g. while saving). */
+  /** When true, Escape and back are ignored (e.g. while saving). */
   blocked?: boolean
 }
 
+/** Escape goes through the overlay stack, so only the top modal closes. */
 export function useModalLock({ open, onClose, blocked = false }: UseModalLockOptions) {
   const panelRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
-  const onCloseRef = useRef(onClose)
-  const blockedRef = useRef(blocked)
-
-  onCloseRef.current = onClose
-  blockedRef.current = blocked
 
   useRegisterOverlay(open, onClose, blocked)
 
@@ -38,21 +52,9 @@ export function useModalLock({ open, onClose, blocked = false }: UseModalLockOpt
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
-    const panel = panelRef.current
-    if (panel) {
-      const closeButton = panel.querySelector<HTMLElement>('[data-modal-close]')
-      const focusable = getFocusableElements(panel)
-      ;(closeButton ?? focusable[0])?.focus()
-    }
+    if (panelRef.current) getInitialFocus(panelRef.current).focus()
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !blockedRef.current) {
-        event.preventDefault()
-        onCloseRef.current()
-
-        return
-      }
-
       if (event.key !== 'Tab' || !panelRef.current) return
 
       const focusable = getFocusableElements(panelRef.current)

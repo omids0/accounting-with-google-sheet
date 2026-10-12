@@ -73,7 +73,7 @@ export default function HelpHint({ title, text, actions, className }: HelpHintPr
     if (restoreFocus) triggerRef.current?.focus()
   }, [])
 
-  useRegisterOverlay(open, close)
+  useRegisterOverlay(open, () => close(true))
 
   useEffect(() => {
     if (!open) return
@@ -90,7 +90,6 @@ export default function HelpHint({ title, text, actions, className }: HelpHintPr
       setOpen(false)
     }
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close(true)
       if (event.key === 'Tab' && tabLeavesPopover(event, popoverRef.current)) {
         event.preventDefault()
         close(true)

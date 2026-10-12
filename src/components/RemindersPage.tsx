@@ -1,10 +1,13 @@
+import { Fragment } from 'react'
 import { useNavigate } from 'react-router'
 
 import CronSetupSection from './reminders/CronSetupSection'
 import DueDateReminderSection from './reminders/DueDateReminderSection'
 import NativeNotificationSection from './reminders/NativeNotificationSection'
+import NativePermissionPrompt from './reminders/NativePermissionPrompt'
 import PersonalRemindersPushSection from './reminders/PersonalRemindersPushSection'
 import PushStatusSection from './reminders/PushStatusSection'
+import type { ReminderSaveKind } from './reminders/useNativeReminderPermission'
 import { useRemindersPage } from './reminders/useRemindersPage'
 import { isNativePlatform } from '../services/googleAuthNative'
 import {
@@ -20,6 +23,16 @@ const DUE_DATE_KINDS = ['installments', 'checks', 'dang'] as const
 export default function RemindersPage() {
   const page = useRemindersPage()
   const navigate = useNavigate()
+
+  const permissionPrompt = (kind: ReminderSaveKind) =>
+    page.nativePermission.blockedKind === kind && (
+      <NativePermissionPrompt
+        denied={page.nativePermission.denied}
+        requesting={page.nativePermission.requesting}
+        onGrant={page.handleGrantNotificationPermission}
+        onDismiss={page.nativePermission.dismiss}
+      />
+    )
 
   return (
     <div className={remindersPageClass}>
@@ -53,15 +66,17 @@ export default function RemindersPage() {
           )}
 
           {DUE_DATE_KINDS.map(kind => (
-            <DueDateReminderSection
-              key={kind}
-              kind={kind}
-              rule={page.rules[kind]}
-              previewLines={page.previewLinesByKind[kind]}
-              saving={page.savingKind === kind}
-              onUpdateRule={patch => page.updateRule(kind, patch)}
-              onSave={() => page.handleSaveRule(kind)}
-            />
+            <Fragment key={kind}>
+              <DueDateReminderSection
+                kind={kind}
+                rule={page.rules[kind]}
+                previewLines={page.previewLinesByKind[kind]}
+                saving={page.savingKind === kind}
+                onUpdateRule={patch => page.updateRule(kind, patch)}
+                onSave={() => page.handleSaveRule(kind)}
+              />
+              {permissionPrompt(kind)}
+            </Fragment>
           ))}
 
           <PersonalRemindersPushSection
@@ -71,6 +86,7 @@ export default function RemindersPage() {
             onSave={() => page.handleSaveRule('personal')}
             onManage={() => navigate('/reminders')}
           />
+          {permissionPrompt('personal')}
 
           <VehicleMileageReminderSection
             rule={page.vehicleMileageRule}
@@ -78,6 +94,7 @@ export default function RemindersPage() {
             onUpdateRule={page.updateVehicleMileageRule}
             onSave={() => page.handleSaveRule('vehicle-mileage')}
           />
+          {permissionPrompt('vehicle-mileage')}
 
           <VehicleDeadlineReminderSection
             rule={page.vehicleDeadlineRule}
@@ -85,6 +102,7 @@ export default function RemindersPage() {
             onUpdateRule={page.updateVehicleDeadlineRule}
             onSave={() => page.handleSaveRule('vehicle-deadline')}
           />
+          {permissionPrompt('vehicle-deadline')}
 
           <VehiclePeriodicReminderSection
             rule={page.vehiclePeriodicRule}
@@ -92,6 +110,7 @@ export default function RemindersPage() {
             onUpdateRule={page.updateVehiclePeriodicRule}
             onSave={() => page.handleSaveRule('vehicle-periodic-service')}
           />
+          {permissionPrompt('vehicle-periodic-service')}
 
           <CronSetupSection
             showSetup={page.showSetup}

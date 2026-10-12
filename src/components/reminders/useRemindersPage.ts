@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import { type ReminderSaveKind, useNativeReminderPermission } from './useNativeReminderPermission'
 import { createRemindersPushHandlers } from './useRemindersPushHandlers'
 import { resolveVehicleReminderRule, useVehicleReminderRules } from './useVehicleReminderRules'
 import { usePwaInstall } from '../../hooks/usePwaInstall'
@@ -61,6 +62,7 @@ export function useRemindersPage() {
   const pushStatus = getPushSupportStatus()
   const { canInstall, isInstalled, showIosHint, isIos, install, dismissIosHint } = usePwaInstall()
   const spreadsheetId = getSettings()?.spreadsheetId ?? ''
+  const nativePermission = useNativeReminderPermission(spreadsheetId)
 
   const refreshPreview = async (kind: DueDateKind, nextRule: ReminderRule) => {
     if (!spreadsheetId) return
@@ -170,14 +172,7 @@ export function useRemindersPage() {
     [spreadsheetId]
   )
 
-  const handleSaveRule = async (
-    kind:
-      | DueDateKind
-      | 'personal'
-      | 'vehicle-mileage'
-      | 'vehicle-deadline'
-      | 'vehicle-periodic-service'
-  ) => {
+  const handleSaveRule = async (kind: ReminderSaveKind) => {
     if (!spreadsheetId) {
       showError('ابتدا یک شیت فعال انتخاب کنید')
 
@@ -198,7 +193,9 @@ export function useRemindersPage() {
           )
         : rules[kind]
 
-    if (rule.enabled && !hasSubscription) {
+    if (rule.enabled && nativePermission.native) {
+      if (!(await nativePermission.ensurePermission(kind))) return
+    } else if (rule.enabled && !hasSubscription) {
       showError('برای فعال‌کردن یادآوری، ابتدا نوتیف را روشن کنید')
 
       return
@@ -207,6 +204,8 @@ export function useRemindersPage() {
     setSavingKind(kind)
     try {
       await saveReminderRules(spreadsheetId, [rule])
+
+      if (nativePermission.native) await nativePermission.reschedule()
 
       if (
         kind !== 'personal' &&
@@ -225,6 +224,12 @@ export function useRemindersPage() {
     } finally {
       setSavingKind(null)
     }
+  }
+
+  const handleGrantNotificationPermission = async () => {
+    const kind = await nativePermission.requestPermission()
+
+    if (kind) await handleSaveRule(kind)
   }
 
   const updateRule = (kind: DueDateKind, patch: Partial<ReminderRule>) => {
@@ -267,6 +272,8 @@ export function useRemindersPage() {
     handleDisablePush,
     handleSaveRule,
     handleTestNotification,
+    nativePermission,
+    handleGrantNotificationPermission,
     updateRule,
     updatePersonalRule,
     updateVehicleMileageRule: vehicleRules.updateVehicleMileageRule,

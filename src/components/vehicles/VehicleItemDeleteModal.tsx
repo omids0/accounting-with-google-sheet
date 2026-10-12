@@ -86,7 +86,7 @@ export default function VehicleItemDeleteModal({
           <Button type="button" variant="danger" onClick={onConfirm}>
             بله
           </Button>
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose} data-modal-initial-focus>
             خیر
           </Button>
         </div>

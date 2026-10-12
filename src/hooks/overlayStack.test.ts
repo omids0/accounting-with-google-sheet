@@ -34,6 +34,62 @@ describe('overlay stack', () => {
   })
 })
 
+describe('Escape through the overlay stack', () => {
+  const pressEscape = () => {
+    const event = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+
+    document.dispatchEvent(event)
+
+    return event
+  }
+
+  it('closes only the top overlay on one press', () => {
+    const lower = vi.fn(() => true)
+    const upper = vi.fn(() => true)
+    const removeLower = pushOverlay(lower)
+    const removeUpper = pushOverlay(upper)
+
+    expect(pressEscape().defaultPrevented).toBe(true)
+    expect(upper).toHaveBeenCalledOnce()
+    expect(lower).not.toHaveBeenCalled()
+
+    removeUpper()
+    pressEscape()
+    expect(lower).toHaveBeenCalledOnce()
+    removeLower()
+  })
+
+  it('keeps a blocked overlay open and does not reach the one below', () => {
+    const lower = vi.fn(() => true)
+    const blocked = vi.fn(() => false)
+    const removeLower = pushOverlay(lower)
+    const removeBlocked = pushOverlay(blocked)
+
+    expect(pressEscape().defaultPrevented).toBe(true)
+    expect(blocked).toHaveBeenCalledOnce()
+    expect(lower).not.toHaveBeenCalled()
+    expect(getOverlayCount()).toBe(2)
+
+    removeBlocked()
+    removeLower()
+  })
+
+  it('ignores other keys, handled Escapes and an empty stack', () => {
+    const close = vi.fn(() => true)
+    const remove = pushOverlay(close)
+    const handled = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+
+    handled.preventDefault()
+    document.dispatchEvent(handled)
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+    expect(close).not.toHaveBeenCalled()
+
+    remove()
+    expect(pressEscape().defaultPrevented).toBe(false)
+    expect(close).not.toHaveBeenCalled()
+  })
+})
+
 describe('decideBackAction', () => {
   const base = {
     overlayOpen: false,

@@ -103,6 +103,7 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
       setDraftCustomRange={dashboard.setDraftCustomRange}
       setDatePreset={dashboard.setDatePreset}
       setCustomRange={dashboard.setCustomRange}
+      onShowPreviousMonth={dashboard.showPreviousMonth}
       onConfigureNetAvailable={() =>
         useNavigationStore.getState().onTabChange('net-available-settings')
       }

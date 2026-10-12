@@ -3,7 +3,9 @@ import {
   daysInJalaliMonth,
   findGregorianForJalali,
   getJalaliParts,
+  isoToJalali,
   JALALI_MONTHS,
+  jalaliToIso,
   toIsoDate
 } from './jalaliDate'
 import { normalizeSheetDate } from './sheetValues'
@@ -121,6 +123,20 @@ export function getInstallmentDueRange(preset: DateRangePreset): DateRange {
 
       return { start: toIsoDate(start), end: toIsoDate(end) }
     }
+  }
+}
+
+/** The whole Jalali month before the one `range` starts in. */
+export function getPreviousJalaliMonthRange(range: DateRange): DateRange {
+  const { year, month } = isoToJalali(range.start)
+
+  const prevMonth = month === 1 ? 12 : month - 1
+
+  const prevYear = month === 1 ? year - 1 : year
+
+  return {
+    start: jalaliToIso(prevYear, prevMonth, 1),
+    end: jalaliToIso(prevYear, prevMonth, daysInJalaliMonth(prevYear, prevMonth))
   }
 }
 

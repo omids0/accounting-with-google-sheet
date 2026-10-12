@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useModalLock } from '../../hooks/useModalLock'
@@ -33,6 +33,7 @@ export default function PickerSheet({
   subtitle
 }: PickerSheetProps) {
   const { panelRef } = useModalLock({ open, onClose })
+  const titleId = useId()
 
   if (!open) return null
 
@@ -41,7 +42,7 @@ export default function PickerSheet({
       className={cn(formModalRootClass, 'picker-sheet')}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="picker-sheet-title"
+      aria-labelledby={titleId}
     >
       <button
         type="button"
@@ -53,7 +54,7 @@ export default function PickerSheet({
       <div ref={panelRef} className={cn(formModalPanelClass, pickerSheetPanelClass)}>
         <div className={formModalHeaderClass}>
           <div className="col-start-1 row-start-2 min-w-0">
-            <h2 id="picker-sheet-title" className={formModalTitleClass}>
+            <h2 id={titleId} className={formModalTitleClass}>
               {title}
             </h2>
             {subtitle}

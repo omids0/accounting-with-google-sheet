@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
@@ -41,6 +41,7 @@ export default function FilterModal({
   children
 }: FilterModalProps) {
   const { panelRef } = useModalLock({ open, onClose })
+  const titleId = useId()
 
   if (!open) return null
 
@@ -49,7 +50,7 @@ export default function FilterModal({
       className={cn(formModalRootClass, 'filter-modal')}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="filter-modal-title"
+      aria-labelledby={titleId}
     >
       <button
         type="button"
@@ -60,7 +61,7 @@ export default function FilterModal({
 
       <div ref={panelRef} className={cn(formModalPanelClass, filterModalPanelClass)}>
         <div className={formModalHeaderClass}>
-          <h2 id="filter-modal-title" className={formModalTitleClass}>
+          <h2 id={titleId} className={formModalTitleClass}>
             {title}
           </h2>
           <button

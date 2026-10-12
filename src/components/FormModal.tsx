@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode } from 'react'
+import { type FormEvent, type ReactNode, useId } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
@@ -43,6 +43,7 @@ export default function FormModal({
   children
 }: FormModalProps) {
   const { panelRef } = useModalLock({ open, onClose, blocked: saving })
+  const titleId = useId()
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.stopPropagation()
@@ -52,12 +53,7 @@ export default function FormModal({
   if (!open) return null
 
   return createPortal(
-    <div
-      className={formModalRootClass}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="form-modal-title"
-    >
+    <div className={formModalRootClass} role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <button
         type="button"
         className={formModalBackdropClass}
@@ -72,7 +68,7 @@ export default function FormModal({
         className={cn(formModalPanelClass, size === 'wide' && formModalPanelWideClass)}
       >
         <div className={formModalHeaderClass}>
-          <h2 id="form-modal-title" className={formModalTitleClass}>
+          <h2 id={titleId} className={formModalTitleClass}>
             {title}
           </h2>
           <button

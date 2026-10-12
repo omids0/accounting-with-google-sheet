@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
@@ -39,6 +40,7 @@ export default function ConfirmActionModal({
   cancelLabel = 'خیر'
 }: ConfirmActionModalProps) {
   const { panelRef } = useModalLock({ open, onClose, blocked: confirming })
+  const titleId = useId()
 
   if (!open) return null
 
@@ -47,7 +49,7 @@ export default function ConfirmActionModal({
       className={cn(formModalRootClass, 'confirm-action-modal')}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="confirm-action-title"
+      aria-labelledby={titleId}
     >
       <button
         type="button"
@@ -60,7 +62,7 @@ export default function ConfirmActionModal({
 
       <div ref={panelRef} className={formModalPanelClass}>
         <div className={formModalHeaderClass}>
-          <h2 id="confirm-action-title" className={formModalTitleClass}>
+          <h2 id={titleId} className={formModalTitleClass}>
             {title}
           </h2>
           <button

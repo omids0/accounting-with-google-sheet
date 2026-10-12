@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 
 import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
+import SessionExpiredNotice from './login/SessionExpiredNotice'
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel'
 import Alert from './ui/Alert'
 import Button from './ui/Button'
@@ -31,6 +32,7 @@ import {
   sessionNeedsScopeUpgrade
 } from '../services/auth'
 import { isNativePlatform, signInNative, signOutNative } from '../services/googleAuthNative'
+import type { LoginReason } from '../services/loginReason'
 import {
   getDefaultFirstSheetLabel,
   prepareUserSpreadsheet,
@@ -46,9 +48,13 @@ type Step = 'login' | 'setup'
 interface LoginPageProps {
   onSuccess: () => void
   initialError?: string
+  reason?: LoginReason
 }
 
-export default function LoginPage({ onSuccess, initialError = '' }: LoginPageProps) {
+export default function LoginPage({ onSuccess, initialError = '', reason }: LoginPageProps) {
+  // A returning user whose session ran out gets a short note, not the sign-in pitch.
+  const expired = reason === 'expired'
+
   const [loading, setLoading] = useState(false)
 
   const [step, setStep] = useState<Step>('login')
@@ -199,10 +205,14 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
             <AppIcon name="dashboard" />
           </span>
           <h1 className={loginLogoTitleClass}>حسابداری شخصی</h1>
-          <p className={loginLogoSubtitleClass}>
-            مدیریت مالی روزانه با ذخیره‌سازی امن در Google Sheets
-          </p>
+          {!expired && (
+            <p className={loginLogoSubtitleClass}>
+              مدیریت مالی روزانه با ذخیره‌سازی امن در Google Sheets
+            </p>
+          )}
         </div>
+
+        {expired && <SessionExpiredNotice />}
 
         {scopeUpgrade && (
           <Alert variant="info">
@@ -211,26 +221,28 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           </Alert>
         )}
 
-        <ul className={loginFeaturesClass} aria-label="ویژگی‌های اصلی">
-          <li className={loginFeatureClass}>
-            <span className={loginFeatureIconClass} aria-hidden="true">
-              <AppIcon name="chart" size={16} />
-            </span>
-            داشبورد مالی با نمودار درآمد و هزینه
-          </li>
-          <li className={loginFeatureClass}>
-            <span className={loginFeatureIconClass} aria-hidden="true">
-              <AppIcon name="folder" size={16} />
-            </span>
-            همگام‌سازی خودکار بین دستگاه‌ها
-          </li>
-          <li className={loginFeatureClass}>
-            <span className={loginFeatureIconClass} aria-hidden="true">
-              <AppIcon name="wallet" size={16} />
-            </span>
-            اقساط، چک، طلب و صندوقچه در یک جا
-          </li>
-        </ul>
+        {!expired && (
+          <ul className={loginFeaturesClass} aria-label="ویژگی‌های اصلی">
+            <li className={loginFeatureClass}>
+              <span className={loginFeatureIconClass} aria-hidden="true">
+                <AppIcon name="chart" size={16} />
+              </span>
+              داشبورد مالی با نمودار درآمد و هزینه
+            </li>
+            <li className={loginFeatureClass}>
+              <span className={loginFeatureIconClass} aria-hidden="true">
+                <AppIcon name="folder" size={16} />
+              </span>
+              همگام‌سازی خودکار بین دستگاه‌ها
+            </li>
+            <li className={loginFeatureClass}>
+              <span className={loginFeatureIconClass} aria-hidden="true">
+                <AppIcon name="wallet" size={16} />
+              </span>
+              اقساط، چک، طلب و صندوقچه در یک جا
+            </li>
+          </ul>
+        )}
 
         <Button
           variant="primary"
@@ -260,14 +272,18 @@ export default function LoginPage({ onSuccess, initialError = '' }: LoginPagePro
           ورود با Google
         </Button>
 
-        <p className={loginFooterNoteClass}>
-          شیت‌ها با فرمت «حسابداری · سال» ساخته می‌شوند و روی Drive همگام هستند
-        </p>
+        {!expired && (
+          <>
+            <p className={loginFooterNoteClass}>
+              شیت‌ها با فرمت «حسابداری · سال» ساخته می‌شوند و روی Drive همگام هستند
+            </p>
 
-        <div className={loginTrustBadgeClass}>
-          <AppIcon name="check" size={14} />
-          <span>داده‌ها فقط در Google Drive شما ذخیره می‌شوند</span>
-        </div>
+            <div className={loginTrustBadgeClass}>
+              <AppIcon name="check" size={14} />
+              <span>داده‌ها فقط در Google Drive شما ذخیره می‌شوند</span>
+            </div>
+          </>
+        )}
       </div>
       <ConfirmActionModal {...switchModalProps} />
     </div>

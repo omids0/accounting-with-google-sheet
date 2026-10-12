@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 
 import SpeedDialIcon from './SpeedDialIcon'
 import { useHideOnScroll } from '../hooks/useHideOnScroll'
@@ -36,18 +36,6 @@ export default function PageSpeedDial({
   const handleOpen = () => setOpen(true)
 
   useRegisterOverlay(open, handleClose)
-
-  useEffect(() => {
-    if (!open) return
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') handleClose()
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [open])
 
   return (
     <>

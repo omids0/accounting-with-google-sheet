@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
@@ -35,6 +36,7 @@ export default function ConfirmDeleteModal({
   deleting = false
 }: ConfirmDeleteModalProps) {
   const { panelRef } = useModalLock({ open, onClose, blocked: deleting })
+  const titleId = useId()
 
   if (!open) return null
 
@@ -43,7 +45,7 @@ export default function ConfirmDeleteModal({
       className={cn(formModalRootClass, 'confirm-delete-modal')}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="confirm-delete-title"
+      aria-labelledby={titleId}
     >
       <button
         type="button"
@@ -56,7 +58,7 @@ export default function ConfirmDeleteModal({
 
       <div ref={panelRef} className={formModalPanelClass}>
         <div className={formModalHeaderClass}>
-          <h2 id="confirm-delete-title" className={formModalTitleClass}>
+          <h2 id={titleId} className={formModalTitleClass}>
             {title}
           </h2>
           <button
@@ -85,7 +87,13 @@ export default function ConfirmDeleteModal({
           >
             بله
           </Button>
-          <Button type="button" variant="secondary" disabled={deleting} onClick={onClose}>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={deleting}
+            onClick={onClose}
+            data-modal-initial-focus
+          >
             خیر
           </Button>
         </div>
