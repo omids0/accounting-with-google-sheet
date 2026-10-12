@@ -240,7 +240,7 @@ export const amountFieldInputWrapClass = cn(
 export const amountFieldInputWrapCompactClass = 'min-h-touch-min'
 
 export const amountFieldInputClass = cn(
-  'h-full min-h-0 min-w-0 flex-1 border-none! bg-transparent! px-3.5 py-0 text-[0.95rem] font-bold leading-[1.4] tracking-[0.02em] shadow-none! outline-none lg:px-3'
+  'h-full min-h-0 min-w-0 flex-1 border-none! bg-transparent! px-3.5 py-0 text-[0.95rem] font-bold leading-[1.4] tracking-[0.02em] shadow-none! outline-none md:px-3'
 )
 
 export const amountFieldInputCompactClass = cn(
@@ -249,7 +249,7 @@ export const amountFieldInputCompactClass = cn(
 )
 
 export const amountFieldCurrencyClass =
-  'inline-flex h-full items-center whitespace-nowrap border-s border-border bg-accent-soft px-3 text-[0.78rem] font-bold text-primary-dark lg:px-2.5'
+  'inline-flex h-full items-center whitespace-nowrap border-s border-border bg-accent-soft px-3 text-[0.78rem] font-bold text-primary-dark md:px-2.5'
 
 export const amountFieldCurrencyCompactClass = 'px-[0.55rem] text-[0.68rem] font-bold'
 

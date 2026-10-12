@@ -1,3 +1,6 @@
+import { useMemo } from 'react'
+
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { unpaidDangTotal } from '../../services/dang'
 import { distributionSparkline } from '../../utils/sparklineData'
 import EmptyState from '../EmptyState'
@@ -6,6 +9,9 @@ import { DangCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import DangCard from './DangCard'
 import type { DangWithRow } from './types'
+import DataTable, { type DataTableColumn } from '../table/DataTable'
+import { checkboxColumn, dateColumn, moneyColumn, textColumn } from '../table/tableColumns'
+import TableRowActions from '../table/TableRowActions'
 import { dangTotalFooterClass, listCardsContainerClass } from '../ui/featureCardStyles'
 
 export type DangListProps = {
@@ -42,6 +48,25 @@ export default function DangList({
   onDelete,
   onAdd
 }: DangListProps) {
+  const isDesktop = useIsDesktop()
+  const columns = useMemo<DataTableColumn<DangWithRow>[]>(
+    () => [
+      checkboxColumn({
+        header: 'پرداخت شد',
+        checked: item => item.paid,
+        disabled: item => togglingId === item.id,
+        label: item => `پرداخت شد: ${item.title}`,
+        onChange: onTogglePaid
+      }),
+      textColumn('title', 'عنوان', item => item.title, true),
+      textColumn('category', 'دسته', item => item.category),
+      textColumn('counterparty', 'طرف حساب', item => item.counterparty),
+      dateColumn('date', 'تاریخ', item => item.date),
+      moneyColumn('amount', 'مبلغ', item => item.amount)
+    ],
+    [togglingId, onTogglePaid]
+  )
+
   if (loading && items.length === 0) {
     return (
       <DangCardListSkeleton
@@ -49,6 +74,7 @@ export default function DangList({
         metaLines={1}
         footerStats={1}
         footerClassName={dangTotalFooterClass}
+        table
       />
     )
   }
@@ -72,24 +98,37 @@ export default function DangList({
 
   return (
     <>
-      <div className={listCardsContainerClass}>
-        {filteredItems.map(item => (
-          <DangCard
-            key={item.id}
-            item={item}
-            expanded={expandedId === item.id}
-            togglingId={togglingId}
-            savingAmountId={savingAmountId}
-            amountEdits={amountEdits}
-            onTogglePaid={onTogglePaid}
-            onExpand={onExpand}
-            onAmountChange={onAmountChange}
-            onAmountBlur={onAmountBlur}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        ))}
-      </div>
+      {isDesktop ? (
+        <DataTable
+          label="بدهی‌ها"
+          rows={filteredItems}
+          columns={columns}
+          rowKey={item => item.id}
+          isMuted={item => item.paid}
+          actions={item => (
+            <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+          )}
+        />
+      ) : (
+        <div className={listCardsContainerClass}>
+          {filteredItems.map(item => (
+            <DangCard
+              key={item.id}
+              item={item}
+              expanded={expandedId === item.id}
+              togglingId={togglingId}
+              savingAmountId={savingAmountId}
+              amountEdits={amountEdits}
+              onTogglePaid={onTogglePaid}
+              onExpand={onExpand}
+              onAmountChange={onAmountChange}
+              onAmountBlur={onAmountBlur}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
 
       {totalUnpaid > 0 && (
         <StatCard

@@ -54,6 +54,8 @@ export type InstallmentPlanCardProps = {
   onDelete: (plan: PlanWithRow) => void
   onTogglePayment: (plan: PlanWithRow, paymentIndex: number, paid: boolean) => void
   onPaymentAmountSave: (plan: PlanWithRow, paymentIndex: number, amount: number) => Promise<void>
+  /** Only the details (desktop table detail row); the row itself shows the summary. */
+  bodyOnly?: boolean
 }
 
 function InstallmentPlanCard({
@@ -69,7 +71,8 @@ function InstallmentPlanCard({
   onEdit,
   onDelete,
   onTogglePayment,
-  onPaymentAmountSave
+  onPaymentAmountSave,
+  bodyOnly = false
 }: InstallmentPlanCardProps) {
   const [expandedPaymentIndex, setExpandedPaymentIndex] = useState<number | null>(null)
 
@@ -149,69 +152,78 @@ function InstallmentPlanCard({
   )
 
   return (
-    <div className={installmentCardClass({ expanded, complete, settledForRange })}>
-      <div className={cardHeaderWithEditClass}>
-        <button
-          type="button"
-          className={cn('installment-header', installmentHeaderClass(expanded))}
-          onClick={handleToggleExpand}
-        >
-          <div>
-            <div className={listCardTitleClass}>{plan.title}</div>
-            <div className={listCardSubtitleClass}>
-              {complete
-                ? 'تکمیل شده'
-                : `${done.toLocaleString('fa-IR')}/${total.toLocaleString('fa-IR')} قسط پرداخت شده`}
+    <div
+      className={
+        bodyOnly ? undefined : installmentCardClass({ expanded, complete, settledForRange })
+      }
+    >
+      {!bodyOnly && (
+        <div className={cardHeaderWithEditClass}>
+          <button
+            type="button"
+            className={cn('installment-header', installmentHeaderClass(expanded))}
+            onClick={handleToggleExpand}
+          >
+            <div>
+              <div className={listCardTitleClass}>{plan.title}</div>
+              <div className={listCardSubtitleClass}>
+                {complete
+                  ? 'تکمیل شده'
+                  : `${done.toLocaleString('fa-IR')}/${total.toLocaleString(
+                      'fa-IR'
+                    )} قسط پرداخت شده`}
+              </div>
+              {dueDate ? (
+                <div className={installmentDueLineClass}>
+                  <span className={installmentDueClass}>
+                    موعد پرداخت: {formatIsoDatePersian(dueDate)}
+                  </span>
+                  {dueAmount !== null ? (
+                    <MoneyDisplay amount={dueAmount} size="record" tone="primary" />
+                  ) : null}
+                </div>
+              ) : null}
+              {firstDueDate && endDate ? (
+                <div className={cn(listCardSubtitleClass, installmentRangeLineClass)}>
+                  <span className={installmentDueClass}>
+                    بازه قسط: {formatIsoDatePersian(firstDueDate)} تا{' '}
+                    {formatIsoDatePersian(endDate)}
+                  </span>
+                </div>
+              ) : null}
+              <ProgressBar
+                value={progress}
+                variant={complete ? 'complete' : progress >= 100 ? 'success' : 'default'}
+                animated={false}
+                shimmer={!complete}
+                aria-label={`پیشرفت پرداخت ${plan.title}`}
+              />
             </div>
-            {dueDate ? (
-              <div className={installmentDueLineClass}>
-                <span className={installmentDueClass}>
-                  موعد پرداخت: {formatIsoDatePersian(dueDate)}
-                </span>
-                {dueAmount !== null ? (
-                  <MoneyDisplay amount={dueAmount} size="record" tone="primary" />
-                ) : null}
-              </div>
-            ) : null}
-            {firstDueDate && endDate ? (
-              <div className={cn(listCardSubtitleClass, installmentRangeLineClass)}>
-                <span className={installmentDueClass}>
-                  بازه قسط: {formatIsoDatePersian(firstDueDate)} تا {formatIsoDatePersian(endDate)}
-                </span>
-              </div>
-            ) : null}
-            <ProgressBar
-              value={progress}
-              variant={complete ? 'complete' : progress >= 100 ? 'success' : 'default'}
-              animated={false}
-              shimmer={!complete}
-              aria-label={`پیشرفت پرداخت ${plan.title}`}
+          </button>
+          <div className={cardActionButtonsClass}>
+            <CardEditButton
+              onClick={event => {
+                event.stopPropagation()
+                onEdit(plan)
+              }}
+            />
+            <CardDeleteButton
+              onClick={event => {
+                event.stopPropagation()
+                onDelete(plan)
+              }}
+            />
+            <CardExpandButton
+              expanded={expanded}
+              onClick={event => {
+                event.stopPropagation()
+                handleToggleExpand()
+              }}
+              ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات اقساط'}
             />
           </div>
-        </button>
-        <div className={cardActionButtonsClass}>
-          <CardEditButton
-            onClick={event => {
-              event.stopPropagation()
-              onEdit(plan)
-            }}
-          />
-          <CardDeleteButton
-            onClick={event => {
-              event.stopPropagation()
-              onDelete(plan)
-            }}
-          />
-          <CardExpandButton
-            expanded={expanded}
-            onClick={event => {
-              event.stopPropagation()
-              handleToggleExpand()
-            }}
-            ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات اقساط'}
-          />
         </div>
-      </div>
+      )}
 
       <AccordionCollapse open={expanded}>
         <div className={installmentPaymentsClass}>

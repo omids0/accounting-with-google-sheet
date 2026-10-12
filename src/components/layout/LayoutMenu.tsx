@@ -1,5 +1,6 @@
 import LayoutMenuFooter from './LayoutMenuFooter'
 import LayoutMenuNav, { type LayoutMenuNavProps } from './LayoutMenuNav'
+import LayoutMenuRail from './LayoutMenuRail'
 import LayoutMenuUserRow from './LayoutMenuUserRow'
 import { useActiveSpreadsheetName } from '../../hooks/useActiveSpreadsheetName'
 import { cn } from '../../utils/cn'
@@ -11,23 +12,31 @@ import {
 } from '../ui/layoutStyles'
 
 interface LayoutMenuProps extends LayoutMenuNavProps {
-  /** `drawer` overlays the page while open; `sidebar` stays open beside it. */
+  /**
+   * `drawer` overlays the page while open; `rail` (tablet) is an icon column that
+   * opens the drawer for labels and groups; `sidebar` (desktop) stays open.
+   */
   variant: AppMenuVariant
   menuOpen: boolean
+  onOpenMenu: () => void
   onCloseMenu: () => void
   userName: string | null
   userPicture: string | null
 }
 
-export default function LayoutMenu({
-  variant,
-  menuOpen,
-  onCloseMenu,
-  userName,
-  userPicture,
-  ...navProps
-}: LayoutMenuProps) {
+export default function LayoutMenu(props: LayoutMenuProps) {
+  const { variant, menuOpen, onOpenMenu, onCloseMenu, userName, userPicture, ...navProps } = props
   const sheetName = useActiveSpreadsheetName()
+
+  if (variant === 'rail') {
+    return (
+      <>
+        <LayoutMenuRail {...navProps} menuOpen={menuOpen} onOpenMenu={onOpenMenu} />
+        {menuOpen && <LayoutMenu {...props} variant="drawer" />}
+      </>
+    )
+  }
+
   const isDrawer = variant === 'drawer'
   const isVisible = !isDrawer || menuOpen
 

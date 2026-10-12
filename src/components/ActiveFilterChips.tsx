@@ -1,5 +1,6 @@
 import AppIcon from './AppIcon'
 import type { AppIconName } from './appIcon/types'
+import DesktopHeaderPortal from './layout/DesktopHeaderPortal'
 import {
   activeFilterBarClass,
   activeFilterChipClass,
@@ -38,6 +39,8 @@ interface ActiveFilterChipsProps {
   onChipClick?: () => void
   onClearAll?: () => void
   filterLabel?: string
+  /** List pages: the bar moves into the desktop header row (≥ 1280px). */
+  inHeader?: boolean
 }
 
 export default function ActiveFilterChips({
@@ -45,13 +48,14 @@ export default function ActiveFilterChips({
   onOpenFilters,
   onChipClick,
   onClearAll,
-  filterLabel = 'فیلتر'
+  filterLabel = 'فیلتر',
+  inHeader = false
 }: ActiveFilterChipsProps) {
   const handleChipClick = onChipClick ?? onOpenFilters
   const hasChips = chips.length > 0
   const showClearAll = hasChips && chips.length >= 2 && Boolean(onClearAll)
 
-  return (
+  const bar = (
     <div className={activeFilterBarClass} role="region" aria-label="فیلترهای فعال">
       <button
         type="button"
@@ -110,4 +114,6 @@ export default function ActiveFilterChips({
       )}
     </div>
   )
+
+  return inHeader ? <DesktopHeaderPortal>{bar}</DesktopHeaderPortal> : bar
 }

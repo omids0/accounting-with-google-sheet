@@ -27,6 +27,8 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
               label: dashboard.incomeFormName,
 
+              headerLabel: `+ ${dashboard.incomeFormName}`,
+
               icon: <span className={speedDialTypeIconIncomeClass}>+</span>,
 
               className: speedDialActionIncomeClass,
@@ -38,6 +40,8 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
               id: 'expense',
 
               label: dashboard.expenseFormName,
+
+              headerLabel: `− ${dashboard.expenseFormName}`,
 
               icon: <span className={speedDialTypeIconExpenseClass}>−</span>,
 

@@ -37,6 +37,7 @@ export function useTreasuryFilters(
       ariaLabel: 'عملیات صندوقچه',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
+        addLabel: 'ثبت خرید',
         onFilter: openFilterModal,
         onRefresh: refreshTreasury,
         refreshDisabled: loading || priceLoading,

@@ -1,7 +1,10 @@
 import { useState, type CSSProperties } from 'react'
 
+import DesktopHeaderPortal from './layout/DesktopHeaderPortal'
+import PageHeaderActions from './layout/PageHeaderActions'
 import SpeedDialIcon from './SpeedDialIcon'
 import { useHideOnScroll } from '../hooks/useHideOnScroll'
+import { useIsDesktop } from '../hooks/useMediaQuery'
 import { useRegisterOverlay } from '../hooks/useRegisterOverlay'
 import { cn } from '../utils/cn'
 import {
@@ -19,13 +22,28 @@ import {
 } from './ui/speedDialStyles'
 import { getPageSpeedDialConfig, type PageSpeedDialAction } from '../hooks/usePageSpeedDial'
 
-export default function PageSpeedDial({
-  actions,
-  ariaLabel
-}: {
+interface PageSpeedDialProps {
   actions: PageSpeedDialAction[]
   ariaLabel: string
-}) {
+}
+
+/**
+ * One source of page actions: a floating speed dial on phones and tablets, header
+ * buttons on desktop (≥ 1280px).
+ */
+export default function PageSpeedDial(props: PageSpeedDialProps) {
+  const isDesktop = useIsDesktop()
+
+  if (!isDesktop) return <FloatingSpeedDial {...props} />
+
+  return (
+    <DesktopHeaderPortal slot="actions">
+      <PageHeaderActions {...props} />
+    </DesktopHeaderPortal>
+  )
+}
+
+function FloatingSpeedDial({ actions, ariaLabel }: PageSpeedDialProps) {
   const [open, setOpen] = useState(false)
 
   // Slides away while the page scrolls down so it never sits on card content.

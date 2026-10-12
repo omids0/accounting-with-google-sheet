@@ -1,3 +1,6 @@
+import { useMemo, useState } from 'react'
+
+import { HeaderSlotsContext } from './headerSlots'
 import LayoutBottomNav from './LayoutBottomNav'
 import LayoutHeader from './LayoutHeader'
 import LayoutMenu from './LayoutMenu'
@@ -6,7 +9,7 @@ import PageSpeedDial from '../PageSpeedDial'
 import UpdateBanner from '../UpdateBanner'
 import { useLayoutNavigation } from './useLayoutNavigation'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
-import { useIsDesktop } from '../../hooks/useMediaQuery'
+import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
 import {
   appContentColumnClass,
   appLayoutClass,
@@ -45,13 +48,18 @@ export default function Layout() {
   useBankSmsSync()
 
   const isDesktop = useIsDesktop()
+  const isTablet = useIsTablet()
+  const [toolbar, setToolbar] = useState<HTMLElement | null>(null)
+  const [actions, setActions] = useState<HTMLElement | null>(null)
+  const headerSlots = useMemo(() => ({ toolbar, actions }), [toolbar, actions])
 
   return (
     <div className={appLayoutClass}>
       <div className={appShellClass}>
         <LayoutMenu
-          variant={isDesktop ? 'sidebar' : 'drawer'}
+          variant={isDesktop ? 'sidebar' : isTablet ? 'rail' : 'drawer'}
           menuOpen={menuOpen}
+          onOpenMenu={() => setMenuOpen(true)}
           onCloseMenu={() => setMenuOpen(false)}
           userName={userName}
           userPicture={userPicture}
@@ -71,31 +79,35 @@ export default function Layout() {
           onOpenTimesheetsList={openTimesheetsList}
         />
 
-        <div className={appContentColumnClass}>
-          <LayoutHeader
-            menuOpen={menuOpen}
-            onToggleMenu={() => setMenuOpen(value => !value)}
-            showHeaderBack={showHeaderBack}
-            headerTitle={headerTitle}
-            showSettings={showSettings}
-            onHeaderBack={onHeaderBack}
-          />
-
-          <UpdateBanner />
-
-          <main className={appMainClass}>
-            <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
-          </main>
-
-          <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />
-
-          {showPageSpeedDial && pageSpeedDialConfig && (
-            <PageSpeedDial
-              actions={pageSpeedDialConfig.actions}
-              ariaLabel={pageSpeedDialConfig.ariaLabel}
+        <HeaderSlotsContext.Provider value={headerSlots}>
+          <div className={appContentColumnClass}>
+            <LayoutHeader
+              menuOpen={menuOpen}
+              onToggleMenu={() => setMenuOpen(value => !value)}
+              showHeaderBack={showHeaderBack}
+              headerTitle={headerTitle}
+              showSettings={showSettings}
+              onHeaderBack={onHeaderBack}
+              toolbarRef={setToolbar}
+              actionsRef={setActions}
             />
-          )}
-        </div>
+
+            <UpdateBanner />
+
+            <main className={appMainClass}>
+              <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
+            </main>
+
+            <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />
+
+            {showPageSpeedDial && pageSpeedDialConfig && (
+              <PageSpeedDial
+                actions={pageSpeedDialConfig.actions}
+                ariaLabel={pageSpeedDialConfig.ariaLabel}
+              />
+            )}
+          </div>
+        </HeaderSlotsContext.Provider>
       </div>
     </div>
   )

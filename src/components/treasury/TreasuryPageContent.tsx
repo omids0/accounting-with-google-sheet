@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { isConfigured } from '../../services/settings'
 import { cn } from '../../utils/cn'
 import { distributionSparkline } from '../../utils/sparklineData'
@@ -14,6 +15,7 @@ import { TreasurySkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TreasuryBuyFormModal from './TreasuryBuyFormModal'
 import TreasuryHoldingCard from './TreasuryHoldingCard'
+import TreasuryHoldingTable from './TreasuryHoldingTable'
 import TreasuryPriceCard from './TreasuryPriceCard'
 import { useTreasuryData } from './useTreasuryData'
 import { useTreasuryFilters } from './useTreasuryFilters'
@@ -24,6 +26,7 @@ import { receivableTotalCardClass, treasuryTotalCardClass } from '../ui/treasury
 
 export default function TreasuryPageContent({ active = true }: { active?: boolean }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const isDesktop = useIsDesktop()
 
   const data = useTreasuryData(active, searchQuery)
 
@@ -46,6 +49,23 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
     forms.closeSellForm()
   }
 
+  const renderHolding = (holding: (typeof data.holdings)[number], bodyOnly = false) => (
+    <TreasuryHoldingCard
+      key={holding.assetType}
+      holding={holding}
+      expanded={bodyOnly || data.expandedAsset === holding.assetType}
+      bodyOnly={bodyOnly}
+      activeSellAsset={forms.activeSellAsset}
+      sellingAsset={forms.sellingAsset}
+      onToggle={() => handleToggleHolding(holding.assetType)}
+      onEdit={forms.openEditForm}
+      onDelete={forms.requestDelete}
+      onOpenSellForm={forms.openSellForm}
+      onCloseSellForm={forms.closeSellForm}
+      onSell={forms.handleSell}
+    />
+  )
+
   if (!isConfigured()) {
     return (
       <div className={emptyStateClass}>
@@ -63,6 +83,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}
         onClearAll={filters.clearAllFilters}
+        inHeader
       />
 
       <FilterModal
@@ -100,23 +121,16 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
         />
       ) : data.filteredHoldings.length === 0 ? (
         <SearchEmptyState />
+      ) : isDesktop ? (
+        <TreasuryHoldingTable
+          holdings={data.filteredHoldings}
+          expandedAsset={data.expandedAsset}
+          onToggle={holding => handleToggleHolding(holding.assetType)}
+          renderDetail={holding => renderHolding(holding, true)}
+        />
       ) : (
         <div className={listCardsContainerClass}>
-          {data.filteredHoldings.map(holding => (
-            <TreasuryHoldingCard
-              key={holding.assetType}
-              holding={holding}
-              expanded={data.expandedAsset === holding.assetType}
-              activeSellAsset={forms.activeSellAsset}
-              sellingAsset={forms.sellingAsset}
-              onToggle={() => handleToggleHolding(holding.assetType)}
-              onEdit={forms.openEditForm}
-              onDelete={forms.requestDelete}
-              onOpenSellForm={forms.openSellForm}
-              onCloseSellForm={forms.closeSellForm}
-              onSell={forms.handleSell}
-            />
-          ))}
+          {data.filteredHoldings.map(holding => renderHolding(holding))}
         </div>
       )}
 

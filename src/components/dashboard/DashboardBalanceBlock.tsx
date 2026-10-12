@@ -38,8 +38,10 @@ export function selectedPartLabels(config: NetAvailableConfig): {
 export default function DashboardBalanceBlock({
   financial,
   onDetails,
-  config = getNetAvailableConfig()
+  config = getNetAvailableConfig(),
+  className
 }: {
+  className?: string
   financial: FinancialSummary
   onDetails: () => void
   config?: NetAvailableConfig
@@ -62,7 +64,11 @@ export default function DashboardBalanceBlock({
   ]
 
   return (
-    <CalmBlock title="دارایی و بدهی" action={{ label: 'جزئیات ←', onClick: onDetails }}>
+    <CalmBlock
+      className={className}
+      title="دارایی و بدهی"
+      action={{ label: 'جزئیات ←', onClick: onDetails }}
+    >
       <ul className={calmListClass}>
         {rows.map(row => (
           <li key={row.title} className={calmRowClass}>

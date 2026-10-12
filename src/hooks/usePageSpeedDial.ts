@@ -7,6 +7,8 @@ export interface PageSpeedDialAction {
   onClick: () => void
   disabled?: boolean
   className?: string
+  /** Desktop header: label of the primary pill («+ ثبت چک»); defaults to `label`. */
+  headerLabel?: string
 }
 
 export interface PageSpeedDialConfig {
@@ -25,9 +27,10 @@ function buildSignature(config: PageSpeedDialConfig | null): string {
 
   return JSON.stringify({
     ariaLabel: config.ariaLabel,
-    actions: config.actions.map(({ id, label, disabled, className }) => ({
+    actions: config.actions.map(({ id, label, headerLabel, disabled, className }) => ({
       id,
       label,
+      headerLabel,
       disabled: !!disabled,
       className: className ?? ''
     }))

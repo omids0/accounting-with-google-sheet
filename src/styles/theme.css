@@ -60,8 +60,12 @@
   --space-page-desktop: 1.25rem;
   --space-card: 0.7rem;
   --space-stack: 0.45rem;
-  --sidebar-width: 17.5rem;
-  --content-max-width: 72rem;
+  /* Desktop (≥ 1280px) sidebar and header row; tablet (768–1279px) icon rail. */
+  --sidebar-width: 13.75rem;
+  --rail-width: 4rem;
+  --nav-width: 0px;
+  --desktop-header-height: 3rem;
+  --content-max-width: 75rem;
   --header-bg: linear-gradient(
     135deg,
     var(--color-primary) 0%,
@@ -106,9 +110,16 @@
   --page-glow: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   :root {
     --space-page: var(--space-page-desktop);
+    --nav-width: var(--rail-width);
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --nav-width: var(--sidebar-width);
   }
 }
 

@@ -96,6 +96,7 @@ export default function DangFormModal({
 
   return (
     <FormModal
+      variant="panel"
       open={open}
       title={editingItem ? 'ویرایش بدهی' : 'ثبت بدهی جدید'}
       onClose={onClose}

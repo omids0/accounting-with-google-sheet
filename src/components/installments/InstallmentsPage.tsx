@@ -51,6 +51,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
       ariaLabel: 'عملیات اقساط',
       actions: createPageSpeedDialActions({
         onAdd: mutations.openCreateForm,
+        addLabel: 'ثبت قسط',
         onFilter: filters.openFilterModal,
         onRefresh: loadPlans,
         refreshDisabled: loading,
@@ -89,6 +90,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}
         onClearAll={filters.clearAllFilters}
+        inHeader
       />
 
       <FilterModal

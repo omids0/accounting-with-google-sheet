@@ -47,6 +47,7 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
       ariaLabel: 'عملیات یادآوری',
       actions: createPageSpeedDialActions({
         onAdd: () => form.openCreateForm(),
+        addLabel: 'افزودن یادآوری',
         onFilter: openFilterModal,
         onRefresh: data.loadItems,
         refreshDisabled: data.loading,
@@ -85,6 +86,7 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
         chips={filterChips}
         onOpenFilters={openFilterModal}
         onClearAll={clearAllFilters}
+        inHeader
       />
 
       <FilterModal

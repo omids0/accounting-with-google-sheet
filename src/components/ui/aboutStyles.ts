@@ -8,7 +8,7 @@ import {
 } from './accordionCardStyles'
 import { cn } from '../../utils/cn'
 
-export const aboutPageClass = cn('flex flex-col gap-2 pb-4', 'lg:max-w-4xl lg:mx-auto lg:w-full')
+export const aboutPageClass = cn('flex flex-col gap-2 pb-4', 'md:max-w-4xl md:mx-auto md:w-full')
 
 export const aboutHeroClass = 'px-4 py-5 text-center'
 

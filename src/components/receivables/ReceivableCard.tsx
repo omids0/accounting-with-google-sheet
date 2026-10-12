@@ -58,6 +58,8 @@ type ReceivableCardProps = {
   onAddPayment: (values: { amount: number | ''; note: string }) => void
   onSettle: (values: { title: string; note: string }) => void
   onRemovePayment: (paymentId: string) => void
+  /** Only the details (desktop table detail row); the row itself shows the summary. */
+  bodyOnly?: boolean
 }
 
 export default function ReceivableCard({
@@ -78,7 +80,8 @@ export default function ReceivableCard({
   onCloseSettlementForm,
   onAddPayment,
   onSettle,
-  onRemovePayment
+  onRemovePayment,
+  bodyOnly = false
 }: ReceivableCardProps) {
   const paid = paidAmount(item)
 
@@ -96,52 +99,54 @@ export default function ReceivableCard({
   const showDebtorInSubtitle = Boolean(item.title.trim())
 
   return (
-    <div className={installmentCardClass({ expanded, complete })}>
-      <div className={cardHeaderWithEditClass}>
-        <button
-          type="button"
-          className={cn('installment-header', installmentHeaderClass(expanded))}
-          onClick={() => onToggleExpand(expanded)}
-        >
-          <div>
-            <div className={listCardTitleClass}>{displayTitle}</div>
-            <div className={listCardSubtitleClass}>
-              {showDebtorInSubtitle && <span>{item.debtor} · </span>}
-              {item.category && <span>{item.category} · </span>}
-              <span className={listCardAmountPillClass}>{formatMoney(item.amount)}</span>
-              {complete ? ' · تسویه شده' : ` · مانده: ${formatMoney(remaining)}`}
+    <div className={bodyOnly ? undefined : installmentCardClass({ expanded, complete })}>
+      {!bodyOnly && (
+        <div className={cardHeaderWithEditClass}>
+          <button
+            type="button"
+            className={cn('installment-header', installmentHeaderClass(expanded))}
+            onClick={() => onToggleExpand(expanded)}
+          >
+            <div>
+              <div className={listCardTitleClass}>{displayTitle}</div>
+              <div className={listCardSubtitleClass}>
+                {showDebtorInSubtitle && <span>{item.debtor} · </span>}
+                {item.category && <span>{item.category} · </span>}
+                <span className={listCardAmountPillClass}>{formatMoney(item.amount)}</span>
+                {complete ? ' · تسویه شده' : ` · مانده: ${formatMoney(remaining)}`}
+              </div>
+              <ProgressBar
+                value={progress}
+                variant={complete ? 'complete' : progress >= 100 ? 'success' : 'default'}
+                animateIndex={index}
+                aria-label={`پیشرفت تسویه ${displayTitle}`}
+              />
             </div>
-            <ProgressBar
-              value={progress}
-              variant={complete ? 'complete' : progress >= 100 ? 'success' : 'default'}
-              animateIndex={index}
-              aria-label={`پیشرفت تسویه ${displayTitle}`}
+          </button>
+          <div className={cardActionButtonsClass}>
+            <CardEditButton
+              onClick={event => {
+                event.stopPropagation()
+                onEdit()
+              }}
+            />
+            <CardDeleteButton
+              onClick={event => {
+                event.stopPropagation()
+                onDelete()
+              }}
+            />
+            <CardExpandButton
+              expanded={expanded}
+              onClick={event => {
+                event.stopPropagation()
+                onToggleExpand(expanded)
+              }}
+              ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات طلب'}
             />
           </div>
-        </button>
-        <div className={cardActionButtonsClass}>
-          <CardEditButton
-            onClick={event => {
-              event.stopPropagation()
-              onEdit()
-            }}
-          />
-          <CardDeleteButton
-            onClick={event => {
-              event.stopPropagation()
-              onDelete()
-            }}
-          />
-          <CardExpandButton
-            expanded={expanded}
-            onClick={event => {
-              event.stopPropagation()
-              onToggleExpand(expanded)
-            }}
-            ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات طلب'}
-          />
         </div>
-      </div>
+      )}
 
       <AccordionCollapse open={expanded}>
         <div className={installmentPaymentsClass}>

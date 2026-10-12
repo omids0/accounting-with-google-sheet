@@ -15,10 +15,10 @@ export const formFieldsLayoutClass = cn(
 export const formFieldClass = cn('form-field min-w-0', 'mb-[var(--form-gap)] last:mb-0')
 
 /** Short inputs (amount, date, count) — natural width on desktop, full width on mobile. */
-export const formControlWidthCompactClass = 'w-full lg:max-w-[13.5rem]'
+export const formControlWidthCompactClass = 'w-full md:max-w-[13.5rem]'
 
 /** Typical text inputs — comfortable reading width without stretching across the page. */
-export const formControlWidthStandardClass = 'w-full lg:max-w-[26rem]'
+export const formControlWidthStandardClass = 'w-full md:max-w-[26rem]'
 
 /** Selects, textareas, maps — use available form width. */
 export const formControlWidthFullClass = 'w-full'
@@ -36,7 +36,7 @@ export const formControlInvalidClass = cn(
 )
 
 /** Fixed single-line control height so inputs, pickers, and selects align in form rows. */
-export const formControlSizeClass = 'h-touch-min px-3.5 text-[0.95rem] leading-[1.4] lg:px-3'
+export const formControlSizeClass = 'h-touch-min px-3.5 text-[0.95rem] leading-[1.4] md:px-3'
 
 export function formControlClassName(className?: string) {
   return cn(
@@ -47,7 +47,7 @@ export function formControlClassName(className?: string) {
 }
 
 export function formActionsClassName(className?: string) {
-  return cn('mt-2 flex flex-wrap gap-2 lg:justify-end', className)
+  return cn('mt-2 flex flex-wrap gap-2 md:justify-end', className)
 }
 
 export function appFormClassName(className?: string) {

@@ -23,7 +23,7 @@ export const unlockCardClass = cn(
   'border-[color-mix(in_srgb,var(--color-primary)_16%,var(--color-border))]',
   'bg-[color-mix(in_srgb,var(--color-surface)_92%,transparent)] p-0 shadow-[0_24px_60px_color-mix(in_srgb,var(--color-primary)_14%,transparent),0_2px_8px_color-mix(in_srgb,var(--color-text)_6%,transparent)]',
   'backdrop-blur-[18px]',
-  'lg:max-w-[440px]'
+  'md:max-w-[440px]'
 )
 
 export const unlockCardHeroClass = cn(

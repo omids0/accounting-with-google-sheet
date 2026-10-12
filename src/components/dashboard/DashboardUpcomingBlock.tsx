@@ -23,15 +23,18 @@ import {
 /** «پیش رو»: the next three due items (installments, checks, dang, personal, vehicle), overdue first. */
 export default function DashboardUpcomingBlock({
   items,
-  onViewAll
+  onViewAll,
+  className
 }: {
   items: DashboardReminderItem[]
   onViewAll: () => void
+  className?: string
 }) {
   const { rows, overdueCount } = useMemo(() => summarizeUpcoming(items), [items])
 
   return (
     <CalmBlock
+      className={className}
       title="پیش رو"
       badge={overdueCount > 0 ? `· ${formatPersianNumber(overdueCount)} معوق` : undefined}
       action={{ label: 'همه ←', onClick: onViewAll }}

@@ -62,6 +62,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
       ariaLabel: 'عملیات چک‌ها',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
+        addLabel: 'ثبت چک',
         onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
@@ -100,6 +101,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
         chips={filterChips}
         onOpenFilters={openFilterModal}
         onClearAll={clearAllFilters}
+        inHeader
       />
 
       <FilterModal

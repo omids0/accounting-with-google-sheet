@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { DESKTOP_MEDIA_QUERY } from './useMediaQuery'
+import { TABLET_MEDIA_QUERY } from './useMediaQuery'
 import { prefetchBottomNavPages } from '../routes/prefetchPages'
 
 const IDLE_TIMEOUT_MS = 3_000
@@ -28,7 +28,7 @@ export function usePrefetchAppPages(): void {
 
     const run = () => {
       fired = true
-      if (!window.matchMedia(DESKTOP_MEDIA_QUERY).matches) prefetchBottomNavPages()
+      if (!window.matchMedia(TABLET_MEDIA_QUERY).matches) prefetchBottomNavPages()
     }
 
     const scheduleIdle = () => {

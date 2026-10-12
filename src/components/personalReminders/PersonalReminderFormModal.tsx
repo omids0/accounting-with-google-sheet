@@ -86,6 +86,7 @@ export default function PersonalReminderFormModal({
 
   return (
     <FormModal
+      variant="panel"
       open={open}
       title={editingItem ? 'ویرایش یادآوری' : 'یادآوری جدید'}
       onClose={onClose}

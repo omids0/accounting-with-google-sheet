@@ -14,3 +14,10 @@ export type DataEntryFormProps = {
   /** Called after a successful save instead of resetting for the next entry. */
   onSaved?: () => void
 }
+
+/** After «ذخیره و بعدی»: the amount is the first numeric input of the form. */
+export function focusEntryAmount(form: HTMLFormElement | null) {
+  requestAnimationFrame(() =>
+    form?.querySelector<HTMLInputElement>('input[inputmode="numeric"]')?.focus()
+  )
+}

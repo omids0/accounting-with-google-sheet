@@ -77,7 +77,7 @@ export const walletBankCardExtraInfoItemClass =
 
 export const walletCardsListClass = cn(
   'flex flex-col gap-2',
-  'lg:grid lg:grid-cols-2 lg:gap-2 xl:grid-cols-3 [&_.list-card]:mb-0'
+  'md:grid md:grid-cols-2 md:gap-2 xl:grid-cols-3 [&_.list-card]:mb-0'
 )
 
 export const walletAccountCardShellClass = cn(

@@ -81,6 +81,7 @@ export default function CounterpartyFormModal({
 
   return (
     <FormModal
+      variant="panel"
       open={open}
       title={editingItem ? 'ویرایش طرف حساب' : 'ثبت طرف حساب جدید'}
       onClose={onClose}

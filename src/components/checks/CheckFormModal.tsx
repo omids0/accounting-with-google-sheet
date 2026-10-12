@@ -81,6 +81,7 @@ export default function CheckFormModal({
 
   return (
     <FormModal
+      variant="panel"
       open={open}
       title={editingItem ? 'ویرایش چک' : 'ثبت چک جدید'}
       onClose={onClose}

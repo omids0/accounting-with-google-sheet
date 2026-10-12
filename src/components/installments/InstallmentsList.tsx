@@ -1,3 +1,5 @@
+import InstallmentTable from './InstallmentTable'
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import EmptyState from '../EmptyState'
 import InstallmentPlanCard from '../InstallmentPlanCard'
 import SearchEmptyState from '../SearchEmptyState'
@@ -43,8 +45,10 @@ export default function InstallmentsList({
   onPaymentAmountSave,
   onAdd
 }: InstallmentsListProps) {
+  const isDesktop = useIsDesktop()
+
   if (loading && plans.length === 0) {
-    return <InstallmentCardListSkeleton footerStats={2} />
+    return <InstallmentCardListSkeleton footerStats={2} table />
   }
 
   if (plans.length === 0) {
@@ -72,30 +76,41 @@ export default function InstallmentsList({
     return <SearchEmptyState />
   }
 
-  return (
-    <div className={listCardsContainerClass}>
-      {displayPlans.map(({ plan, done, complete, settledForRange, progress, dueDate }) => {
-        const togglingPaymentIndex = togglingByPlan[plan.id] ?? null
-
-        return (
-          <InstallmentPlanCard
-            key={plan.id}
-            plan={plan}
-            expanded={expandedId === plan.id}
-            done={done}
-            complete={complete}
-            settledForRange={settledForRange}
-            progress={progress}
-            dueDate={dueDate}
-            togglingPaymentIndex={togglingPaymentIndex}
-            onToggleExpand={onToggleExpand}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onTogglePayment={onTogglePayment}
-            onPaymentAmountSave={onPaymentAmountSave}
-          />
-        )
-      })}
-    </div>
+  const renderCard = (
+    { plan, done, complete, settledForRange, progress, dueDate }: DisplayPlanItem,
+    bodyOnly = false
+  ) => (
+    <InstallmentPlanCard
+      key={plan.id}
+      plan={plan}
+      expanded={bodyOnly || expandedId === plan.id}
+      bodyOnly={bodyOnly}
+      done={done}
+      complete={complete}
+      settledForRange={settledForRange}
+      progress={progress}
+      dueDate={dueDate}
+      togglingPaymentIndex={togglingByPlan[plan.id] ?? null}
+      onToggleExpand={onToggleExpand}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onTogglePayment={onTogglePayment}
+      onPaymentAmountSave={onPaymentAmountSave}
+    />
   )
+
+  if (isDesktop) {
+    return (
+      <InstallmentTable
+        items={displayPlans}
+        expandedId={expandedId}
+        onToggleExpand={onToggleExpand}
+        onEdit={item => onEdit(item.plan)}
+        onDelete={item => onDelete(item.plan)}
+        renderDetail={item => renderCard(item, true)}
+      />
+    )
+  }
+
+  return <div className={listCardsContainerClass}>{displayPlans.map(item => renderCard(item))}</div>
 }

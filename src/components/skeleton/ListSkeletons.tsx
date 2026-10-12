@@ -11,6 +11,7 @@ import {
   WalletAccountCardSkeleton
 } from './CardSkeletons'
 import { Skeleton } from './Skeleton'
+import { TableSkeleton } from './TableSkeleton'
 import { cn } from '../../utils/cn'
 import { cardClassName } from '../ui/Card'
 import { dashboardOpeningCardClass, dashboardStatGridClass } from '../ui/chartStyles'
@@ -43,6 +44,16 @@ function ListSkeletonFrame({ filterBar, children }: { filterBar?: boolean; child
   )
 }
 
+/** Cards below 1280px; with `table`, the desktop table placeholder above that. */
+function CardsOrTable({ table, children }: { table?: boolean; children: ReactNode }) {
+  return (
+    <>
+      <div className={cn(listCardsContainerClass, table && 'xl:hidden')}>{children}</div>
+      {table && <TableSkeleton />}
+    </>
+  )
+}
+
 function FooterStats({ count, className }: { count: number; className?: string }) {
   if (count === 1) return <StatCardSkeleton wide className={className} />
   if (count !== 2) return null
@@ -60,24 +71,27 @@ export function InstallmentCardListSkeleton({
   filterBar = false,
   footerStats = 0,
   footerClassName,
-  variant = 'installment'
+  variant = 'installment',
+  table
 }: {
   count?: number
   filterBar?: boolean
   footerStats?: number
   footerClassName?: string
   variant?: 'installment' | 'treasury'
+  /** List pages that show a table on desktop. */
+  table?: boolean
 }) {
   const CardSkeleton =
     variant === 'treasury' ? TreasuryHoldingCardSkeleton : InstallmentCardSkeleton
 
   return (
     <ListSkeletonFrame filterBar={filterBar}>
-      <div className={listCardsContainerClass}>
+      <CardsOrTable table={table}>
         {Array.from({ length: count }, (_, index) => (
           <CardSkeleton key={index} />
         ))}
-      </div>
+      </CardsOrTable>
       <FooterStats count={footerStats} className={footerClassName} />
     </ListSkeletonFrame>
   )
@@ -88,20 +102,23 @@ export function DangCardListSkeleton({
   filterBar = false,
   footerStats = 0,
   footerClassName,
+  table,
   ...shape
 }: DangCardSkeletonShape & {
   count?: number
   filterBar?: boolean
   footerStats?: number
   footerClassName?: string
+  /** List pages that show a table on desktop. */
+  table?: boolean
 }) {
   return (
     <ListSkeletonFrame filterBar={filterBar}>
-      <div className={listCardsContainerClass}>
+      <CardsOrTable table={table}>
         {Array.from({ length: count }, (_, index) => (
           <DangCardSkeleton key={index} {...shape} />
         ))}
-      </div>
+      </CardsOrTable>
       <FooterStats count={footerStats} className={footerClassName} />
     </ListSkeletonFrame>
   )

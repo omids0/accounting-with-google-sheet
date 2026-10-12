@@ -32,6 +32,8 @@ import {
 } from '../ui/chartStyles'
 import {
   dashboardCalmPageClass,
+  dashboardCellClass,
+  dashboardGridClass,
   dashboardHeroStripClass,
   dashboardHeroStripItemClass,
   dashboardHeroStripValueClass,
@@ -94,60 +96,64 @@ function CalmDashboardSkeleton() {
       aria-busy="true"
       aria-label="در حال بارگذاری داشبورد"
     >
-      <div className={dashboardPeriodRowClass}>
+      {/* On desktop the real period row lives in the header. */}
+      <div className={cn(dashboardPeriodRowClass, 'xl:hidden')}>
         <span className={dashboardPeriodChipClass}>
           <Skeleton width="4.5rem" height="0.8rem" />
         </span>
         <SkeletonText className={dashboardPeriodTodayClass} width="6rem" />
       </div>
 
-      <div className={cn(dashboardHeroCardClass, skeletonCardClass)}>
-        <div className={dashboardHeroHeaderClass}>
-          <SkeletonText className={cn(dashboardHeroLabelClass, 'justify-center')} width="7rem" />
-          <SkeletonActionButton />
-        </div>
-        <MoneySkeleton size="hero" width="9rem" />
-        <div className={dashboardHeroStripClass}>
-          {Array.from({ length: 3 }, (_, index) => (
-            <div key={index} className={dashboardHeroStripItemClass}>
-              <SkeletonText className="text-[0.7rem]" width="3.5rem" />
-              <SkeletonText className={dashboardHeroStripValueClass} width="4rem" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <CalmBlock title="پیش رو">
-        <CalmRowsSkeleton count={3} badge />
-      </CalmBlock>
-
-      <CalmBlock title="تراکنش‌های اخیر">
-        <CalmRowsSkeleton count={5} badge />
-      </CalmBlock>
-
-      <CalmBlock
-        title="تحلیل این ماه"
-        toolbar={
-          <div
-            className={cn(recordsTypeSegmentClass, calmSegmentClass, 'mb-1 self-start')}
-            aria-hidden="true"
-          >
-            <button type="button" className="active" disabled tabIndex={-1}>
-              هزینه
-            </button>
-            <button type="button" disabled tabIndex={-1}>
-              درآمد
-            </button>
+      <div className={dashboardGridClass}>
+        <div className={cn(dashboardHeroCardClass, skeletonCardClass, dashboardCellClass.hero)}>
+          <div className={dashboardHeroHeaderClass}>
+            <SkeletonText className={cn(dashboardHeroLabelClass, 'justify-center')} width="7rem" />
+            <SkeletonActionButton />
           </div>
-        }
-      >
-        <CalmRowsSkeleton count={3} bar />
-      </CalmBlock>
+          <MoneySkeleton size="hero" width="9rem" />
+          <div className={dashboardHeroStripClass}>
+            {Array.from({ length: 3 }, (_, index) => (
+              <div key={index} className={dashboardHeroStripItemClass}>
+                <SkeletonText className="text-[0.7rem]" width="3.5rem" />
+                <SkeletonText className={dashboardHeroStripValueClass} width="4rem" />
+              </div>
+            ))}
+          </div>
+        </div>
 
-      <CalmBlock title="دارایی و بدهی">
-        <CalmRowsSkeleton count={2} />
-        <SkeletonText className={calmNoteClass} width="45%" />
-      </CalmBlock>
+        <CalmBlock title="پیش رو" className={dashboardCellClass.upcoming}>
+          <CalmRowsSkeleton count={3} badge />
+        </CalmBlock>
+
+        <CalmBlock title="تراکنش‌های اخیر" className={dashboardCellClass.recent}>
+          <CalmRowsSkeleton count={5} badge />
+        </CalmBlock>
+
+        <CalmBlock
+          title="تحلیل این ماه"
+          className={dashboardCellClass.analysis}
+          toolbar={
+            <div
+              className={cn(recordsTypeSegmentClass, calmSegmentClass, 'mb-1 self-start')}
+              aria-hidden="true"
+            >
+              <button type="button" className="active" disabled tabIndex={-1}>
+                هزینه
+              </button>
+              <button type="button" disabled tabIndex={-1}>
+                درآمد
+              </button>
+            </div>
+          }
+        >
+          <CalmRowsSkeleton count={3} bar />
+        </CalmBlock>
+
+        <CalmBlock title="دارایی و بدهی" className={dashboardCellClass.balance}>
+          <CalmRowsSkeleton count={2} />
+          <SkeletonText className={calmNoteClass} width="45%" />
+        </CalmBlock>
+      </div>
     </div>
   )
 }

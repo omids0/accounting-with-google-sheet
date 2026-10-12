@@ -14,8 +14,10 @@ export default function DashboardAnalysisBlock({
   expenseByCategory,
   incomeByCategory,
   onOpenCharts,
-  periodNoun = 'ماه'
+  periodNoun = 'ماه',
+  className
 }: {
+  className?: string
   expenseByCategory: CategorySummary[]
   incomeByCategory: CategorySummary[]
   onOpenCharts: () => void
@@ -30,6 +32,7 @@ export default function DashboardAnalysisBlock({
 
   return (
     <CalmBlock
+      className={className}
       title={`تحلیل این ${periodNoun}`}
       action={{ label: 'نمودارها ←', onClick: onOpenCharts }}
       toolbar={

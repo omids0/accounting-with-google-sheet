@@ -9,7 +9,7 @@ export const bottomNavClass = cn(
   'shadow-[0_-8px_32px_color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
   'before:pointer-events-none before:absolute before:inset-x-4 before:top-0 before:h-px before:content-[""]',
   'before:bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--color-primary)_40%,transparent),transparent)]',
-  'lg:hidden'
+  'md:hidden'
 )
 
 export const bottomNavSideClass = 'flex min-w-0 items-stretch justify-around gap-0'

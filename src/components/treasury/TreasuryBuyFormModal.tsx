@@ -62,6 +62,7 @@ export default function TreasuryBuyFormModal({
 
   return (
     <FormModal
+      variant="panel"
       open={open}
       title={editingTx ? 'ویرایش خرید' : 'ثبت خرید'}
       onClose={onClose}

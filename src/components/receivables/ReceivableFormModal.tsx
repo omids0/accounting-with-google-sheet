@@ -96,6 +96,7 @@ export default function ReceivableFormModal({
 
   return (
     <FormModal
+      variant="panel"
       open={open}
       title={editingItem ? 'ویرایش طلب' : 'ثبت طلب جدید'}
       onClose={onClose}

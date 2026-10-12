@@ -36,3 +36,24 @@ export const discoveryRowCloseClass = cn(
   'inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-muted',
   'hover:bg-[color-mix(in_srgb,var(--color-text)_7%,transparent)] hover:text-text'
 )
+
+/**
+ * The five blocks. Phones: part of the page column (`contents`). Tablets: two
+ * columns in DOM order. Desktop: 12 columns — hero, «پیش رو», «تحلیل» (c4 each),
+ * then «تراکنش‌های اخیر» (c8) and «دارایی و بدهی» (c4). From tablet up the flat
+ * blocks sit on a surface so the grid reads as cells.
+ */
+export const dashboardGridClass = cn(
+  'contents md:grid md:grid-cols-2 md:items-start md:gap-4 xl:grid-cols-12 xl:gap-5',
+  '[&>.calm-block]:md:rounded-[var(--radius)] [&>.calm-block]:md:border [&>.calm-block]:md:border-border',
+  '[&>.calm-block]:md:bg-surface [&>.calm-block]:md:px-3.5 [&>.calm-block]:md:py-2.5'
+)
+
+export const dashboardCellClass = {
+  hero: 'xl:col-span-4',
+  upcoming: 'xl:col-span-4',
+  analysis: 'xl:col-span-4',
+  /** Moves after «تحلیل» on desktop (order 1 vs. the default 0). */
+  recent: 'xl:order-1 xl:col-span-8',
+  balance: 'xl:order-1 xl:col-span-4'
+}

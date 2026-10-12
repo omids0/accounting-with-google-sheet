@@ -3,6 +3,7 @@ import SpeedDialIcon from '../components/SpeedDialIcon'
 
 export function createPageSpeedDialActions({
   onAdd,
+  addLabel = 'افزودن',
   onFilter,
   onRefresh,
   refreshDisabled,
@@ -11,6 +12,8 @@ export function createPageSpeedDialActions({
   onExportPdf
 }: {
   onAdd: () => void
+  /** Desktop header pill, e.g. «ثبت چک» (shown as «+ ثبت چک»). */
+  addLabel?: string
   onFilter?: () => void
   onRefresh: () => void
   refreshDisabled?: boolean
@@ -23,7 +26,8 @@ export function createPageSpeedDialActions({
       id: 'add',
       label: 'افزودن',
       icon: <SpeedDialIcon name="add" />,
-      onClick: onAdd
+      onClick: onAdd,
+      headerLabel: `+ ${addLabel}`
     },
     {
       id: 'filter',

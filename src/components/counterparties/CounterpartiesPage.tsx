@@ -46,6 +46,7 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
       ariaLabel: 'عملیات طرف حساب‌ها',
       actions: createPageSpeedDialActions({
         onAdd: () => form.openCreateForm(),
+        addLabel: 'افزودن طرف حساب',
         onFilter: openFilterModal,
         onRefresh: data.loadItems,
         refreshDisabled: data.loading,
@@ -102,13 +103,14 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
       </FilterModal>
 
       {isInitialLoading ? (
-        <DangCardListSkeleton filterBar />
+        <DangCardListSkeleton filterBar table />
       ) : (
         <>
           <ActiveFilterChips
             chips={filterChips}
             onOpenFilters={openFilterModal}
             onClearAll={clearAllFilters}
+            inHeader
           />
 
           <CounterpartyList

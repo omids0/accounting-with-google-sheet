@@ -12,7 +12,11 @@ import type { PeriodDescription } from '../../utils/periodLabel'
 import BankSmsPendingBanner from '../bankSms/BankSmsPendingBanner'
 import DateRangeFilter, { createDefaultDateRangeFilter } from '../DateRangeFilter'
 import FilterModal from '../FilterModal'
-import { dashboardCalmPageClass } from '../ui/dashboardCalmStyles'
+import {
+  dashboardCalmPageClass,
+  dashboardCellClass,
+  dashboardGridClass
+} from '../ui/dashboardCalmStyles'
 
 export interface DashboardFilterControls {
   open: boolean
@@ -45,7 +49,8 @@ interface DashboardContentProps {
 
 /**
  * Round 5 dashboard, top to bottom: guide/discovery row, period row, hero, then
- * four flat blocks. Each block is self-contained so a wider layout can grid them.
+ * four flat blocks — one column on phones, a grid from tablet up (the period row
+ * moves into the header on desktop).
  */
 export default function DashboardContent({
   data,
@@ -84,30 +89,43 @@ export default function DashboardContent({
         />
       </FilterModal>
 
-      <DashboardHero
-        netAvailable={data.financial.netAvailable}
-        totalIncome={data.totalIncome}
-        totalExpense={data.totalExpense}
-        periodNoun={period.noun}
-        onConfigure={nav.onConfigureNetAvailable}
-      />
+      <div className={dashboardGridClass}>
+        <DashboardHero
+          className={dashboardCellClass.hero}
+          netAvailable={data.financial.netAvailable}
+          totalIncome={data.totalIncome}
+          totalExpense={data.totalExpense}
+          periodNoun={period.noun}
+          onConfigure={nav.onConfigureNetAvailable}
+        />
 
-      <DashboardUpcomingBlock items={upcomingReminders} onViewAll={nav.onViewDueDates} />
+        <DashboardUpcomingBlock
+          className={dashboardCellClass.upcoming}
+          items={upcomingReminders}
+          onViewAll={nav.onViewDueDates}
+        />
 
-      <DashboardRecentBlock
-        records={data.recentRecords}
-        onViewAll={nav.onViewRecords}
-        onShowPreviousMonth={nav.onShowPreviousMonth}
-      />
+        <DashboardRecentBlock
+          className={dashboardCellClass.recent}
+          records={data.recentRecords}
+          onViewAll={nav.onViewRecords}
+          onShowPreviousMonth={nav.onShowPreviousMonth}
+        />
 
-      <DashboardAnalysisBlock
-        expenseByCategory={data.expenseByCategory}
-        incomeByCategory={data.incomeByCategory}
-        onOpenCharts={nav.onOpenCharts}
-        periodNoun={period.noun}
-      />
+        <DashboardAnalysisBlock
+          className={dashboardCellClass.analysis}
+          expenseByCategory={data.expenseByCategory}
+          incomeByCategory={data.incomeByCategory}
+          onOpenCharts={nav.onOpenCharts}
+          periodNoun={period.noun}
+        />
 
-      <DashboardBalanceBlock financial={data.financial} onDetails={nav.onViewBreakdown} />
+        <DashboardBalanceBlock
+          className={dashboardCellClass.balance}
+          financial={data.financial}
+          onDetails={nav.onViewBreakdown}
+        />
+      </div>
     </div>
   )
 }

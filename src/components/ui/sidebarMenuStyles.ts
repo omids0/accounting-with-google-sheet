@@ -1,8 +1,8 @@
 import { scrollbarHiddenClass } from './scrollbarStyles'
 import { cn } from '../../utils/cn'
 
-/** `drawer` slides over the page on small screens; `sidebar` is always open beside it. */
-export type AppMenuVariant = 'drawer' | 'sidebar'
+/** `drawer` slides over the page on phones; `rail` is the tablet icon column; `sidebar` is always open on desktop. */
+export type AppMenuVariant = 'drawer' | 'sidebar' | 'rail'
 
 export const appMenuBackdropClass = cn(
   'fixed inset-0 z-40 cursor-default border-none bg-[var(--color-overlay-light)]',
@@ -145,3 +145,27 @@ export const appMenuUpdateDotClass = cn(
   'shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-warning)_22%,transparent)]',
   'animate-[syncPulse_1.6s_ease-in-out_infinite]'
 )
+
+/** Tablet icon rail (64px): icons only, the label shows as a tooltip on hover, focus or press. */
+export const appMenuRailClass = cn(
+  'sticky top-0 z-30 flex h-dvh w-[var(--rail-width)] shrink-0 flex-col items-center gap-0.5 self-start',
+  'border-e border-[color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))] bg-surface py-2'
+)
+
+export function appRailItemClass(active?: boolean) {
+  return cn(
+    'group relative flex h-10 w-11 shrink-0 items-center justify-center rounded-xl text-primary-dark',
+    'transition-[background,color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+    active
+      ? 'bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary'
+      : 'hover:bg-accent-soft'
+  )
+}
+
+export const appRailTooltipClass = cn(
+  'pointer-events-none absolute start-[calc(100%+0.4rem)] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-md',
+  'bg-text px-2 py-1 text-[0.74rem] font-semibold text-surface opacity-0 shadow-md transition-opacity',
+  'group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100'
+)
+
+export const appRailDividerClass = 'my-1 h-px w-6 shrink-0 bg-border'

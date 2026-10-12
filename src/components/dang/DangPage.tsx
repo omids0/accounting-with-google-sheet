@@ -74,6 +74,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
       ariaLabel: 'عملیات بدهی',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
+        addLabel: 'ثبت بدهی',
         onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
@@ -112,6 +113,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
         chips={filterChips}
         onOpenFilters={openFilterModal}
         onClearAll={clearAllFilters}
+        inHeader
       />
 
       <FilterModal

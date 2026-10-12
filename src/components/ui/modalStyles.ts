@@ -21,11 +21,11 @@ export const formModalPanelClass = cn(
   'shadow-[0_12px_40px_rgba(15,23,42,0.14),inset_0_1px_0_rgba(255,255,255,0.55)]',
   'animate-[form-modal-in_var(--duration-normal)_var(--ease-out)] motion-reduce:animate-none',
   'min-[520px]:rounded-[calc(var(--radius)+4px)]',
-  'lg:max-w-[30rem]',
+  'md:max-w-[30rem]',
   '[&_form]:flex [&_form]:min-h-0 [&_form]:flex-1 [&_form]:flex-col'
 )
 
-export const formModalPanelWideClass = 'lg:max-w-[40rem]'
+export const formModalPanelWideClass = 'md:max-w-[40rem]'
 
 export const formModalHeaderClass = cn(
   'grid flex-shrink-0 grid-cols-[1fr_auto] grid-rows-[auto_auto] items-center gap-x-3',
@@ -63,6 +63,21 @@ export const formModalActionsClass = cn(
   'mt-0 flex-shrink-0 items-center border-t border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] px-[1.15rem] pb-[calc(1.1rem+var(--safe-bottom))] pt-[0.9rem]',
   '[background:linear-gradient(0deg,color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)_0%,transparent_100%)]',
   '[&>button]:min-w-[6.5rem] [&>button]:flex-1',
-  'lg:justify-end lg:[&>button]:flex-none',
+  'md:justify-end md:[&>button]:flex-none',
   '[&>button]:focus-visible:outline-none [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] [&>button]:focus-visible:ring-offset-2 [&>button]:focus-visible:ring-offset-[var(--color-surface)]'
+)
+
+/**
+ * `FormModal variant="panel"`: on desktop (≥ 1280px) a 380px side panel on the
+ * left edge, with the list still visible beside it. Below that, the usual sheet.
+ */
+export const formModalRootPanelClass = 'xl:items-stretch xl:justify-end xl:p-0'
+
+export const formModalBackdropPanelClass = 'xl:bg-transparent xl:backdrop-blur-none'
+
+export const formModalPanelSideClass = cn(
+  'xl:h-full xl:max-h-none xl:w-[23.75rem] xl:max-w-[23.75rem] xl:rounded-none xl:border-0 xl:border-s',
+  'xl:shadow-[0_0_40px_rgba(15,23,42,0.22)] xl:animate-[fadeIn_var(--duration-normal)_var(--ease-out)]',
+  // 380px is phone width: paired fields stack again, full width.
+  'xl:[&_.form-control-shell]:max-w-none xl:[&_.form-row]:flex'
 )

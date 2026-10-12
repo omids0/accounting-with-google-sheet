@@ -9,16 +9,19 @@ import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
 import { listCardsContainerClass } from './ui/featureCardStyles'
 import { timesheetsPageClass } from './ui/toolsPageStyles'
+import { useIsDesktop } from '../hooks/useMediaQuery'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
 import type { Timesheet } from '../types'
 import TimesheetFormModal from './timesheets/TimesheetFormModal'
 import TimesheetListCard from './timesheets/TimesheetListCard'
+import TimesheetTable from './timesheets/TimesheetTable'
 import { useTimesheetsPage } from './timesheets/useTimesheetsPage'
 
 export default function TimesheetsPage({ active = true }: { active?: boolean }) {
   const page = useTimesheetsPage()
+  const isDesktop = useIsDesktop()
 
   useRegisterPageSpeedDial(isConfigured() ? page.pageSpeedDialConfig : null, active)
 
@@ -26,12 +29,19 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
     return <EmptyState icon="clock" message="ابتدا با گوگل وارد شوید" />
   }
 
+  const openTimesheet = (timesheet: Timesheet) =>
+    useNavigationStore.getState().onTabChange('timesheet-detail', {
+      timesheetId: timesheet.id,
+      timesheetTitle: timesheet.title
+    })
+
   return (
     <div className={timesheetsPageClass}>
       <ActiveFilterChips
         chips={page.filterChips}
         onOpenFilters={page.openFilterModal}
         onClearAll={page.clearAllFilters}
+        inHeader
       />
 
       <FilterModal
@@ -56,7 +66,7 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
       </FilterModal>
 
       {page.loading && page.items.length === 0 ? (
-        <InstallmentCardListSkeleton footerStats={0} />
+        <InstallmentCardListSkeleton footerStats={0} table />
       ) : page.items.length === 0 ? (
         <EmptyState
           icon="clock"
@@ -66,19 +76,20 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
         />
       ) : page.filteredItems.length === 0 ? (
         <SearchEmptyState />
+      ) : isDesktop ? (
+        <TimesheetTable
+          items={page.filteredItems}
+          onOpen={openTimesheet}
+          onEdit={page.openEditForm}
+          onDelete={page.setDeletingItem}
+        />
       ) : (
         <div className={listCardsContainerClass}>
           {page.filteredItems.map(item => (
             <TimesheetListCard
               key={item.id}
               item={item}
-              onOpen={(timesheet: Timesheet) =>
-                useNavigationStore.getState().onTabChange('timesheet-detail', {
-                  timesheetId: timesheet.id,
-
-                  timesheetTitle: timesheet.title
-                })
-              }
+              onOpen={openTimesheet}
               onEdit={page.openEditForm}
               onDelete={page.setDeletingItem}
             />

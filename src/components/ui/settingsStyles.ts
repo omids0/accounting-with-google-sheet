@@ -35,3 +35,30 @@ export const settingsGoogleAccountEmailClass = 'text-[0.85rem] font-semibold tex
 export const settingsActiveSheetClass = 'm-0 truncate px-1 text-[0.82rem] text-muted'
 
 export const settingsActiveSheetNameClass = 'font-bold text-text'
+
+/** Desktop (≥ 1280px): section list on the right, the selected section on the left. */
+export const settingsTwoPaneClass = 'grid grid-cols-[15rem_minmax(0,1fr)] items-start gap-5'
+
+export const settingsPaneNavClass = 'sticky top-0 flex flex-col gap-1'
+
+export function settingsPaneNavItemClass(active?: boolean) {
+  return cn(
+    'flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl border-none bg-transparent px-2.5 py-1.5',
+    'text-start font-[inherit] text-[0.9rem] font-semibold text-text transition-[background] duration-[var(--duration-fast)]',
+    '[&>span]:h-8 [&>span]:w-8',
+    active
+      ? 'bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary-dark'
+      : 'hover:bg-accent-soft'
+  )
+}
+
+export const settingsPaneContentClass = 'm-0 flex min-w-0 flex-col gap-3'
+
+export const settingsPaneTitleClass = cn(
+  'm-0 flex items-baseline gap-2 text-[1.02rem] font-extrabold text-text',
+  '[&>small]:text-[0.78rem] [&>small]:font-medium [&>small]:text-muted'
+)
+
+/** The section's cards side by side when the pane is wide enough; one alone spans it. */
+export const settingsPaneItemsClass =
+  'grid grid-cols-[repeat(auto-fit,minmax(20rem,1fr))] items-start gap-3 [&>*]:mb-0!'

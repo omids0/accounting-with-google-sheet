@@ -33,6 +33,8 @@ type TreasuryHoldingCardProps = {
   onOpenSellForm: (assetType: VaultAssetType) => void
   onCloseSellForm: () => void
   onSell: (assetType: VaultAssetType, available: number, values: VaultFormState) => void
+  /** Only the details (desktop table detail row); the row itself shows the summary. */
+  bodyOnly?: boolean
 }
 
 export default function TreasuryHoldingCard({
@@ -45,36 +47,43 @@ export default function TreasuryHoldingCard({
   onDelete,
   onOpenSellForm,
   onCloseSellForm,
-  onSell
+  onSell,
+  bodyOnly = false
 }: TreasuryHoldingCardProps) {
   const showSellForm = activeSellAsset === holding.assetType
 
   return (
-    <div className={cn(installmentCardClass({ expanded }), treasuryHoldingCardClass)}>
-      <button type="button" className={installmentHeaderClass(expanded)} onClick={onToggle}>
-        <div>
-          <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>
-            {getAssetLabel(holding.assetType)}
+    <div
+      className={
+        bodyOnly ? undefined : cn(installmentCardClass({ expanded }), treasuryHoldingCardClass)
+      }
+    >
+      {!bodyOnly && (
+        <button type="button" className={installmentHeaderClass(expanded)} onClick={onToggle}>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+              {getAssetLabel(holding.assetType)}
+            </div>
+            <div
+              style={{
+                fontSize: '0.75rem',
+                color: 'var(--color-text-muted)',
+                marginTop: '0.25rem'
+              }}
+            >
+              {formatQuantity(holding.netQuantity, holding.assetType)}
+              {' · '}
+              قیمت روز: {formatMoney(holding.currentUnitPrice)}
+            </div>
+            <div className={treasuryHoldingValueClass}>
+              ارزش کل: {formatMoney(holding.totalValue)}
+            </div>
           </div>
-          <div
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--color-text-muted)',
-              marginTop: '0.25rem'
-            }}
-          >
-            {formatQuantity(holding.netQuantity, holding.assetType)}
-            {' · '}
-            قیمت روز: {formatMoney(holding.currentUnitPrice)}
-          </div>
-          <div className={treasuryHoldingValueClass}>
-            ارزش کل: {formatMoney(holding.totalValue)}
-          </div>
-        </div>
-        <span className={installmentChevronClass} aria-hidden>
-          <AppIcon name="chevron-down" size={14} />
-        </span>
-      </button>
+          <span className={installmentChevronClass} aria-hidden>
+            <AppIcon name="chevron-down" size={14} />
+          </span>
+        </button>
+      )}
 
       <AccordionCollapse open={expanded}>
         <div className={installmentPaymentsClass}>

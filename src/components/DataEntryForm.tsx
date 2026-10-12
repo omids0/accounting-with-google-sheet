@@ -1,9 +1,10 @@
-import { useEffect, useMemo, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
 import ConfirmActionModal from './ConfirmActionModal'
+import EntryFormActions from './dataEntry/EntryFormActions'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
-import type { DataEntryFormProps } from './dataEntry/types'
+import { focusEntryAmount, type DataEntryFormProps } from './dataEntry/types'
 import {
   buildFormInitialValues,
   FieldInput,
@@ -25,14 +26,12 @@ import { getSettings, isConfigured } from '../services/settings'
 import { appendRecord } from '../services/sheets'
 import { createManualVehicleExpense } from '../services/vehicleExpenseActions'
 import { requireAuth } from '../utils/authGuard'
-import { cn } from '../utils/cn'
 import { formFieldError, validatePositiveAmount } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
 import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
-import Button from './ui/Button'
-import { appFormClassName, formActionsClassName } from './ui/formStyles'
-import { dataEntryFormActionsClass } from './ui/recordsStyles'
+import { appFormClassName } from './ui/formStyles'
+import { entryFormGridClass } from './ui/recordsStyles'
 
 export default function DataEntryForm({
   activeForm,
@@ -49,6 +48,7 @@ export default function DataEntryForm({
     [activeForm, prefill]
   )
   const useStandardLayout = isStandardEntryForm(activeForm)
+  const formRef = useRef<HTMLFormElement>(null)
   const isExpenseForm = activeForm.type === 'expense'
   const vehicleExpense = useVehicleExpenseEntry(isExpenseForm)
 
@@ -133,7 +133,7 @@ export default function DataEntryForm({
     return !hasError
   }
 
-  const saveRecord = async (entered: Record<string, string | number>) => {
+  const saveRecord = async (entered: Record<string, string | number>, keepOpen = false) => {
     onLoadingChange(true)
     const settings = getSettings()!
     const formValues = prepareEntryValues(activeForm.type, withAutoTitle(entered), bankSms)
@@ -168,15 +168,17 @@ export default function DataEntryForm({
     showSuccess(`در شیت «${activeForm.sheetName}» ذخیره شد`)
     refreshOpeningBalancesInBackground()
     onLoadingChange(false)
-    if (onSaved) return onSaved()
+    if (onSaved && !keepOpen) return onSaved()
     reset(buildFormInitialValues(activeForm))
     vehicleExpense.resetVehicleValues()
+    if (keepOpen) focusEntryAmount(formRef.current)
   }
 
   const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     clearErrors()
-
+    // «ذخیره و بعدی» submits too; it keeps the form open for the next entry.
+    const keepOpen = !!(event.nativeEvent as SubmitEvent).submitter?.hasAttribute('data-save-next')
     const formValues = getValues()
 
     if (!validateRequiredFields(formValues)) return
@@ -185,9 +187,9 @@ export default function DataEntryForm({
     const dateFieldId = activeForm.fields.find(field => field.type === 'date')?.id
     const dateValue = dateFieldId ? String(formValues[dateFieldId] ?? '') : ''
 
-    if (retroactiveWarning.guard(dateValue, () => saveRecord(formValues))) return
+    if (retroactiveWarning.guard(dateValue, () => saveRecord(formValues, keepOpen))) return
 
-    await saveRecord(formValues)
+    await saveRecord(formValues, keepOpen)
   }
 
   useEffect(() => {
@@ -210,7 +212,12 @@ export default function DataEntryForm({
         onClose={retroactiveWarning.cancel}
         onConfirm={retroactiveWarning.confirm}
       />
-      <form onSubmit={onFormSubmit} noValidate>
+      <form
+        ref={formRef}
+        onSubmit={onFormSubmit}
+        noValidate
+        className={useStandardLayout ? entryFormGridClass : undefined}
+      >
         {useStandardLayout ? (
           <StandardEntryFormFields
             activeForm={activeForm}
@@ -273,25 +280,13 @@ export default function DataEntryForm({
           />
         ) : null}
 
-        <div className={cn(formActionsClassName(), dataEntryFormActionsClass)}>
-          <Button
-            type="submit"
-            variant={
-              activeForm.type === 'expense'
-                ? 'outflow'
-                : activeForm.type === 'income'
-                ? 'inflow'
-                : 'primary'
-            }
-            disabled={loading || vehicleExpense.loading}
-            loading={loading}
-          >
-            ذخیره
-          </Button>
-          <Button type="button" variant="secondary" disabled={loading} onClick={() => onCancel?.()}>
-            انصراف
-          </Button>
-        </div>
+        <EntryFormActions
+          formType={activeForm.type}
+          loading={loading}
+          saveDisabled={loading || vehicleExpense.loading}
+          onCancel={onCancel}
+          showSaveNext={!bankSms}
+        />
       </form>
     </div>
   )

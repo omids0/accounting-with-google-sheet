@@ -4,7 +4,7 @@ import { cn } from '../../utils/cn'
 export const dashboardPageClass = cn(
   'dashboard-page flex flex-col gap-2',
   '[&_.mb-stack]:mb-0 [&_.dashboard-flow-section]:mb-0 [&_.chart-card--animated]:mb-0',
-  'lg:gap-4'
+  'md:gap-4'
 )
 
 export const dashboardHeroCardClass = cn(
@@ -35,9 +35,9 @@ export const dashboardHeroHintClass = 'mt-2 px-1 text-[0.72rem] leading-[1.55] o
 
 export const dashboardFlowSectionClass = cn(
   'dashboard-flow-section grid grid-cols-2 gap-2',
-  'lg:grid-cols-4 lg:gap-4',
-  'lg:[&>.stat-card:not(.stat-card-wide)]:col-span-2',
-  '[&>.stat-card-wide]:col-span-2 lg:[&>.stat-card-wide]:col-span-4',
+  'md:grid-cols-4 md:gap-4',
+  'md:[&>.stat-card:not(.stat-card-wide)]:col-span-2',
+  '[&>.stat-card-wide]:col-span-2 md:[&>.stat-card-wide]:col-span-4',
   '[&>.stat-card:not(.stat-card-wide)]:flex [&>.stat-card:not(.stat-card-wide)]:min-h-[4.25rem] [&>.stat-card:not(.stat-card-wide)]:flex-col [&>.stat-card:not(.stat-card-wide)]:justify-center [&>.stat-card:not(.stat-card-wide)]:gap-1 [&>.stat-card:not(.stat-card-wide)]:px-[0.4rem] [&>.stat-card:not(.stat-card-wide)]:py-[0.6rem]',
   '[&>.stat-card:not(.stat-card-wide)_.stat-label]:mb-0 [&>.stat-card:not(.stat-card-wide)_.stat-label]:text-[0.72rem]',
   '[&>.stat-card:not(.stat-card-wide)_.stat-card-value-row]:items-stretch [&>.stat-card:not(.stat-card-wide)_.sparkline]:self-center',
@@ -84,7 +84,7 @@ export const assetExcludedTagClass = 'ms-1 text-[0.62rem] font-normal text-muted
 export const assetSettingsHintClass =
   'mt-1 cursor-pointer border-none bg-transparent p-0 text-start text-[0.64rem] text-muted underline decoration-dotted underline-offset-2 hover:text-primary'
 
-export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem] lg:gap-3'
+export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem] md:gap-3'
 
 export const statGrid2Class = 'grid-cols-2'
 

@@ -24,6 +24,7 @@ export interface DashboardHeroProps {
   /** «ماه», «سال» or «دوره» — names the period in the strip labels. */
   periodNoun: string
   onConfigure?: () => void
+  className?: string
 }
 
 /** The one tinted block: «دارایی قابل اتکا» with this period's income / expense / net inside it. */
@@ -32,7 +33,8 @@ export default function DashboardHero({
   totalIncome,
   totalExpense,
   periodNoun,
-  onConfigure
+  onConfigure,
+  className
 }: DashboardHeroProps) {
   const strip = [
     { label: `درآمد ${periodNoun}`, value: formatSignedNumber(totalIncome, { showPlus: true }) },
@@ -44,7 +46,7 @@ export default function DashboardHero({
   ]
 
   return (
-    <Card className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass)}>
+    <Card className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass, className)}>
       <div className={dashboardHeroHeaderClass}>
         <div className={dashboardHeroLabelClass}>
           دارایی قابل اتکا

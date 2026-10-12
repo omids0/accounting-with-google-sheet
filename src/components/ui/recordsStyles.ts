@@ -2,11 +2,11 @@ import { cardClassName } from './Card'
 import { recordsPageDesktopClass } from './responsiveStyles'
 import { cn } from '../../utils/cn'
 
-export const recordsPageClass = cn('records-page flex flex-col gap-3 lg:gap-4')
+export const recordsPageClass = cn('records-page flex flex-col gap-3 md:gap-4')
 
-export const recordsPageBodyClass = cn('flex flex-col gap-3 lg:gap-4', recordsPageDesktopClass)
+export const recordsPageBodyClass = cn('flex flex-col gap-3 md:gap-4', recordsPageDesktopClass)
 
-export const recordsPageSidebarClass = 'lg:sticky lg:top-4 lg:self-start'
+export const recordsPageSidebarClass = 'xl:sticky xl:top-4 xl:self-start'
 
 export const recordsPageMainClass = 'min-w-0'
 
@@ -153,12 +153,23 @@ export const receivablesFiltersRangeClass = 'mt-[0.35rem]'
 
 export const dataEntryTypeSegmentClass = 'mb-4'
 
-export const dataEntryPageClass = 'mx-auto w-full max-w-[32rem]'
+/** One column; a 760px two-column card on desktop. */
+export const dataEntryPageClass = 'mx-auto w-full max-w-[32rem] xl:max-w-[47.5rem]'
+
+/**
+ * Desktop entry form: fields two per row (the date + amount row joins the grid),
+ * the note and the actions span both columns.
+ */
+export const entryFormGridClass = cn(
+  'xl:grid xl:grid-cols-2 xl:items-start xl:gap-x-5',
+  'xl:[&>.form-row]:contents xl:[&>.form-row>.form-field]:mb-[var(--form-gap)]',
+  'xl:[&>:last-child]:col-span-2 xl:[&>:nth-last-child(2)]:col-span-2'
+)
 
 export function dataEntryFormCardClass(type?: 'income' | 'expense' | 'custom') {
   return cn(
     'rounded-[var(--radius)] border bg-surface p-4 shadow-[var(--shadow)]',
-    'lg:p-5',
+    'md:p-5',
     type === 'income' && 'border-[color-mix(in_srgb,var(--color-income)_22%,var(--color-border))]',
     type === 'expense' &&
       'border-[color-mix(in_srgb,var(--color-expense)_22%,var(--color-border))]',
