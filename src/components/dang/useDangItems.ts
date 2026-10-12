@@ -67,12 +67,13 @@ export function useDangItems() {
   }, [loadItems, dataRevision])
 
   const paidActions = usePaidItemActions({
+    items,
     setItems,
     loadItems,
     togglePaid: toggleDangPaid,
     deleteItem: deleteDang,
     sortItems: sortDangs,
-    deleteSuccessMessage: 'بدهی حذف شد',
+    deleteLabel: item => `بدهی «${item.title}»`,
     deleteErrorMessage: 'خطا در حذف بدهی',
     onBeforeDelete: item => {
       if (expandedId === item.id) setExpandedId(null)
@@ -130,7 +131,7 @@ export function useDangItems() {
   }
 
   return {
-    items,
+    items: paidActions.visibleItems,
     loading,
     categories,
     setCategories,

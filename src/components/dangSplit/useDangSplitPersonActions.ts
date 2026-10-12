@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import type { DangSplitPersonFormState, DangSplitPersonWithRow } from './types'
+import type { UndoableDelete } from '../../hooks/useUndoableDelete'
 import { deleteDangSplitPersonCascade } from '../../services/dangSplitBundle'
 import {
   addDangSplitPersonDeposit,
@@ -13,16 +14,20 @@ import { toUserMessage } from '../../utils/userMessage'
 
 export function useDangSplitPersonActions({
   groupId,
+  items,
+  scheduleDelete,
   onSaved
 }: {
   groupId: string
+  /** Unfiltered people, so a delayed delete always sees the latest copy of its row. */
+  items: DangSplitPersonWithRow[]
+  scheduleDelete: (entry: UndoableDelete) => Promise<void>
   onSaved: () => Promise<void> | void
 }) {
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState<DangSplitPersonWithRow | null>(null)
   const [saving, setSaving] = useState(false)
-  const [deletingItem, setDeletingItem] = useState<DangSplitPersonWithRow | null>(null)
-  const [deleting, setDeleting] = useState(false)
+  const itemsRef = useRef(items)
   const [assigningItem, setAssigningItem] = useState<DangSplitPersonWithRow | null>(null)
   const [leavingItem, setLeavingItem] = useState<DangSplitPersonWithRow | null>(null)
   const [savingCategory, setSavingCategory] = useState(false)
@@ -107,27 +112,24 @@ export function useDangSplitPersonActions({
     }
   }
 
-  const closeDeleteConfirm = () => {
-    if (deleting) return
-    setDeletingItem(null)
-  }
+  itemsRef.current = items
 
-  const handleDelete = async () => {
+  const requestDelete = (item: DangSplitPersonWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
-    if (!spreadsheetId || !deletingItem) return
+    if (!spreadsheetId) return
 
-    setDeleting(true)
-    try {
-      await deleteDangSplitPersonCascade(spreadsheetId, deletingItem)
-      setDeletingItem(null)
-      showSuccess('فرد حذف شد')
-      await onSaved()
-    } catch (err) {
-      showError(toUserMessage(err, 'حذف ناموفق بود'))
-    } finally {
-      setDeleting(false)
-    }
+    void scheduleDelete({
+      id: item.id,
+      label: item.name ? `«${item.name}»` : 'فرد',
+      errorMessage: 'حذف ناموفق بود',
+      commit: async () => {
+        const current = itemsRef.current.find(entry => entry.id === item.id) ?? item
+
+        await deleteDangSplitPersonCascade(spreadsheetId, current)
+        await onSaved()
+      }
+    })
   }
 
   /** تغییر دسته یک فرد؛ شناسه خالی یعنی از دسته خارج شود */
@@ -180,15 +182,11 @@ export function useDangSplitPersonActions({
     showForm,
     editingItem,
     saving,
-    deletingItem,
-    deleting,
     openCreateForm,
     openEditForm,
     closeForm,
     handleSubmit,
-    setDeletingItem,
-    closeDeleteConfirm,
-    handleDelete,
+    requestDelete,
     assigningItem,
     leavingItem,
     savingCategory,

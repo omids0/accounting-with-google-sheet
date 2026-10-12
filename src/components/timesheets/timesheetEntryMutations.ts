@@ -1,10 +1,6 @@
 import type { TimesheetEntryWithRow } from './useTimesheetDetailPage'
 import { getSettings, isConfigured } from '../../services/settings'
-import {
-  createTimesheetEntry,
-  deleteTimesheetEntry,
-  updateTimesheetEntry
-} from '../../services/timesheet'
+import { createTimesheetEntry, updateTimesheetEntry } from '../../services/timesheet'
 import type { Timesheet } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
@@ -96,30 +92,6 @@ export async function submitTimesheetEntry({
     return true
   } catch (err) {
     showError(toUserMessage(err, 'خطا در ذخیره'))
-
-    return false
-  }
-}
-
-export async function deleteTimesheetEntryItem({
-  deletingItem,
-  onSuccess
-}: {
-  deletingItem: TimesheetEntryWithRow
-  onSuccess: () => Promise<void>
-}): Promise<boolean> {
-  if (!isConfigured() || !requireAuth()) return false
-
-  const settings = getSettings()!
-
-  try {
-    await deleteTimesheetEntry(settings.spreadsheetId, deletingItem.rowNumber)
-    showSuccess('رکورد حذف شد')
-    await onSuccess()
-
-    return true
-  } catch (err) {
-    showError(toUserMessage(err, 'خطا در حذف'))
 
     return false
   }

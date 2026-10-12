@@ -23,7 +23,6 @@ type VehicleItemDeleteModalProps = {
   target: VehicleDeleteTarget | null
   deleteLinkedExpense: boolean
   onDeleteLinkedExpenseChange: (value: boolean) => void
-  deleting: boolean
   onClose: () => void
   onConfirm: () => void
 }
@@ -33,11 +32,10 @@ export default function VehicleItemDeleteModal({
   target,
   deleteLinkedExpense,
   onDeleteLinkedExpenseChange,
-  deleting,
   onClose,
   onConfirm
 }: VehicleItemDeleteModalProps) {
-  const { panelRef } = useModalLock({ open, onClose, blocked: deleting })
+  const { panelRef } = useModalLock({ open, onClose })
 
   if (!open || !target) return null
 
@@ -52,9 +50,7 @@ export default function VehicleItemDeleteModal({
       <button
         type="button"
         className={formModalBackdropClass}
-        onClick={() => {
-          if (!deleting) onClose()
-        }}
+        onClick={onClose}
         aria-label="بستن"
       />
 
@@ -65,7 +61,6 @@ export default function VehicleItemDeleteModal({
             type="button"
             className={formModalCloseClass}
             onClick={onClose}
-            disabled={deleting}
             aria-label="بستن"
             data-modal-close
           >
@@ -81,7 +76,6 @@ export default function VehicleItemDeleteModal({
                 type="checkbox"
                 checked={deleteLinkedExpense}
                 onChange={event => onDeleteLinkedExpenseChange(event.target.checked)}
-                disabled={deleting}
               />
               <span>حذف هزینه مرتبط در رکوردها</span>
             </label>
@@ -89,16 +83,10 @@ export default function VehicleItemDeleteModal({
         </div>
 
         <div className={cn(formModalActionsClass, formActionsClassName())}>
-          <Button
-            type="button"
-            variant="danger"
-            disabled={deleting}
-            loading={deleting}
-            onClick={onConfirm}
-          >
+          <Button type="button" variant="danger" onClick={onConfirm}>
             بله
           </Button>
-          <Button type="button" variant="secondary" disabled={deleting} onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose}>
             خیر
           </Button>
         </div>

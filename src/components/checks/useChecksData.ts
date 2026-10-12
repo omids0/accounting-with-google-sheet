@@ -58,12 +58,13 @@ export function useChecksData() {
   }, [loadItems, dataRevision])
 
   const paidActions = usePaidItemActions({
+    items,
     setItems,
     loadItems,
     togglePaid: toggleCheckPaid,
     deleteItem: deleteCheck,
     sortItems: sortChecks,
-    deleteSuccessMessage: 'چک حذف شد',
+    deleteLabel: item => `چک ${item.checkNumber}`,
     deleteErrorMessage: 'خطا در حذف چک',
     importExport: {
       exportFn: exportChecksCsv,
@@ -73,7 +74,7 @@ export function useChecksData() {
   })
 
   return {
-    items,
+    items: paidActions.visibleItems,
     counterparties,
     setCounterparties,
     loading,

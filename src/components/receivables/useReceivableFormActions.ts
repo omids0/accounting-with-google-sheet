@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import type { ReceivableFormState, ReceivableWithRow } from './types'
+import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import {
   createReceivable,
   deleteReceivable,
@@ -13,15 +14,15 @@ import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
 type UseReceivableFormActionsParams = {
+  items: ReceivableWithRow[]
   loadItems: () => Promise<void>
-  expandedId: string | null
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
   clearPaymentForms: () => void
 }
 
 export function useReceivableFormActions({
+  items,
   loadItems,
-  expandedId,
   setExpandedId,
   clearPaymentForms
 }: UseReceivableFormActionsParams) {
@@ -29,11 +30,7 @@ export function useReceivableFormActions({
 
   const [editingItem, setEditingItem] = useState<ReceivableWithRow | null>(null)
 
-  const [deletingItem, setDeletingItem] = useState<ReceivableWithRow | null>(null)
-
   const [saving, setSaving] = useState(false)
-
-  const [deleting, setDeleting] = useState(false)
 
   const openCreateForm = () => {
     setEditingItem(null)
@@ -49,15 +46,6 @@ export function useReceivableFormActions({
     if (saving) return
     setShowForm(false)
     setEditingItem(null)
-  }
-
-  const openDeleteConfirm = (item: ReceivableWithRow) => {
-    setDeletingItem(item)
-  }
-
-  const closeDeleteConfirm = () => {
-    if (deleting) return
-    setDeletingItem(null)
   }
 
   const handleSubmit = async (form: ReceivableFormState) => {
@@ -115,40 +103,44 @@ export function useReceivableFormActions({
     }
   }
 
-  const handleDelete = async () => {
-    if (!deletingItem) return
+  const undoableDelete = useUndoableDelete()
+  // Rows shift after every delete; the write looks its row up again by id.
+  const itemsRef = useRef(items)
 
+  itemsRef.current = items
+
+  const requestDelete = (item: ReceivableWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
-    setDeleting(true)
-    try {
-      await deleteReceivable(spreadsheetId, deletingItem.rowNumber, deletingItem)
-      if (expandedId === deletingItem.id) setExpandedId(null)
-      clearPaymentForms()
-      setDeletingItem(null)
-      showSuccess('طلب حذف شد')
-      await loadItems()
-    } catch (err) {
-      if (handleSheetError(err, { fallbackMessage: 'خطا در حذف طلب' })) return
-    } finally {
-      setDeleting(false)
-    }
+    const title = item.title.trim()
+
+    setExpandedId(current => (current === item.id ? null : current))
+    clearPaymentForms()
+    void undoableDelete.schedule({
+      id: item.id,
+      label: title ? `طلب «${title}»` : 'طلب',
+      errorMessage: 'خطا در حذف طلب',
+      commit: async () => {
+        const current = itemsRef.current.find(entry => entry.id === item.id) ?? item
+
+        await deleteReceivable(spreadsheetId, current.rowNumber, current)
+        await loadItems()
+      }
+    })
   }
 
   return {
     showForm,
     editingItem,
-    deletingItem,
+    /** The list minus the row waiting in the undo window. */
+    visibleItems: undoableDelete.visible(items),
     saving,
-    deleting,
     openCreateForm,
     openEditForm,
     closeForm,
-    openDeleteConfirm,
-    closeDeleteConfirm,
     handleSubmit,
-    handleDelete
+    requestDelete
   }
 }

@@ -6,7 +6,6 @@ import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import PersonalReminderFormModal from './PersonalReminderFormModal'
@@ -121,7 +120,7 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
         completingId={data.completingId}
         onComplete={data.openCompleteConfirm}
         onEdit={form.openEditForm}
-        onDelete={data.openDeleteConfirm}
+        onDelete={data.requestDelete}
         onAdd={form.openCreateForm}
       />
 
@@ -146,14 +145,6 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
       />
 
       <ConfirmActionModal {...data.importExportConfirmModal} />
-
-      <ConfirmDeleteModal
-        open={data.deletingItem !== null}
-        message="از حذف این یادآوری مطمئن هستید؟"
-        onClose={data.closeDeleteConfirm}
-        onConfirm={data.handleDelete}
-        deleting={data.deleting}
-      />
     </div>
   )
 }

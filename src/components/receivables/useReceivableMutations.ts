@@ -3,23 +3,23 @@ import { useReceivableFormActions } from './useReceivableFormActions'
 import { useReceivablePaymentActions } from './useReceivablePaymentActions'
 
 type UseReceivableMutationsParams = {
+  items: ReceivableWithRow[]
   setItems: React.Dispatch<React.SetStateAction<ReceivableWithRow[]>>
   loadItems: () => Promise<void>
-  expandedId: string | null
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
 }
 
 export function useReceivableMutations({
+  items,
   setItems,
   loadItems,
-  expandedId,
   setExpandedId
 }: UseReceivableMutationsParams) {
   const payments = useReceivablePaymentActions({ setItems })
 
   const formActions = useReceivableFormActions({
+    items,
     loadItems,
-    expandedId,
     setExpandedId,
     clearPaymentForms: payments.clearPaymentForms
   })

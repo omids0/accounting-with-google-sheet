@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 
 import type { TransactionWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
+import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { fetchTgjuPrices, getCachedTgjuPrices, getAssetLabel } from '../../services/tgju'
@@ -36,6 +37,10 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
   const [priceLoading, setPriceLoading] = useState(false)
 
   const dataRevision = useDataRefresh()
+
+  const undoableDelete = useUndoableDelete()
+
+  const { visible } = undoableDelete
 
   const loadPrices = useCallback(async () => {
     setPriceLoading(true)
@@ -85,9 +90,12 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
 
   const summablePrices = useMemo(() => getSummableTgjuPrices(prices), [prices])
 
+  // Holdings and totals leave out the transaction waiting in the undo window.
+  const visibleTransactions = useMemo(() => visible(transactions), [visible, transactions])
+
   const holdings = useMemo(
-    () => (summablePrices ? computeHoldings(transactions, summablePrices) : []),
-    [summablePrices, transactions]
+    () => (summablePrices ? computeHoldings(visibleTransactions, summablePrices) : []),
+    [summablePrices, visibleTransactions]
   )
 
   const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0)
@@ -117,6 +125,7 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
     loadPrices,
     loadItems,
     refreshTreasury,
+    undoableDelete,
     holdings,
     filteredHoldings,
     totalValue

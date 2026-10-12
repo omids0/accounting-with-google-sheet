@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { CounterpartyWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
+import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import {
   deleteCounterparty,
   ensureCounterpartiesSheet,
+  getCounterpartyFullName,
   fetchCounterparties
 } from '../../services/counterparties'
 import {
@@ -17,8 +19,6 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
-import { showError, showSuccess } from '../../utils/toast'
-import { toUserMessage } from '../../utils/userMessage'
 
 export function useCounterpartiesData() {
   const [items, setItems] = useState<CounterpartyWithRow[]>([])
@@ -27,10 +27,14 @@ export function useCounterpartiesData() {
 
     return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
   })
-  const [deletingItem, setDeletingItem] = useState<CounterpartyWithRow | null>(null)
-  const [deleting, setDeleting] = useState(false)
 
   const dataRevision = useDataRefresh()
+
+  const undoableDelete = useUndoableDelete()
+  // Rows shift after every delete; the write looks its row up again by id.
+  const itemsRef = useRef(items)
+
+  itemsRef.current = items
 
   const loadItems = useCallback(async () => {
     const spreadsheetId = requireSpreadsheetId()
@@ -57,31 +61,24 @@ export function useCounterpartiesData() {
     void loadItems()
   }, [loadItems, dataRevision])
 
-  const openDeleteConfirm = (item: CounterpartyWithRow) => {
-    setDeletingItem(item)
-  }
-
-  const closeDeleteConfirm = () => {
-    if (deleting) return
-    setDeletingItem(null)
-  }
-
-  const handleDelete = async () => {
+  const requestDelete = (item: CounterpartyWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
-    if (!spreadsheetId || !deletingItem) return
+    if (!spreadsheetId) return
 
-    setDeleting(true)
-    try {
-      await deleteCounterparty(spreadsheetId, deletingItem.rowNumber)
-      setItems(current => current.filter(item => item.id !== deletingItem.id))
-      setDeletingItem(null)
-      showSuccess('طرف حساب حذف شد')
-    } catch (err) {
-      showError(toUserMessage(err, 'حذف ناموفق بود'))
-    } finally {
-      setDeleting(false)
-    }
+    const fullName = getCounterpartyFullName(item)
+
+    void undoableDelete.schedule({
+      id: item.id,
+      label: fullName ? `طرف حساب «${fullName}»` : 'طرف حساب',
+      errorMessage: 'حذف ناموفق بود',
+      commit: async () => {
+        const current = itemsRef.current.find(entry => entry.id === item.id) ?? item
+
+        await deleteCounterparty(spreadsheetId, current.rowNumber)
+        await loadItems()
+      }
+    })
   }
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
@@ -93,14 +90,11 @@ export function useCounterpartiesData() {
     })
 
   return {
-    items,
+    /** The list minus the row waiting in the undo window. */
+    items: undoableDelete.visible(items),
     loading,
-    deletingItem,
-    deleting,
     loadItems,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
+    requestDelete,
     handleExport,
     handleExportPdf,
     handleImport,

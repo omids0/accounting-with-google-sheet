@@ -4,12 +4,10 @@ import type {
   VehicleMechanicFormState,
   VehicleMileageFormState,
   VehiclePeriodicFormState,
-  VehicleProfileWithRow,
-  VehicleDeleteTarget
+  VehicleProfileWithRow
 } from './types'
 import { validateMileageIncrease, validateVehicleMileageEntry } from './utils'
 import {
-  deleteVehicleDetailItem,
   submitCompleteForm,
   submitDeadlineForm,
   submitMechanicForm,
@@ -30,11 +28,7 @@ type HandlerContext = {
   completingPeriodic: PeriodicWithRow | null
   editingDeadline: DeadlineWithRow | null
   renewingDeadline: boolean
-  deletingTarget: VehicleDeleteTarget | null
-  deleteLinkedExpense: boolean
   setSaving: (value: boolean) => void
-  setDeleting: (value: boolean) => void
-  setDeletingTarget: (value: VehicleDeleteTarget | null) => void
   loadDetail: () => Promise<void>
   onPeriodicSaved: () => void
   onDeadlineSaved: () => void
@@ -210,28 +204,6 @@ export function createVehicleDetailHandlers(context: HandlerContext) {
         'کارکرد به‌روزرسانی شد',
         context.onMileageSaved
       )
-    },
-
-    handleDelete: async () => {
-      const spreadsheetId = requireSpreadsheetId()
-
-      if (!spreadsheetId || !context.deletingTarget) return
-
-      context.setDeleting(true)
-      try {
-        await deleteVehicleDetailItem({
-          spreadsheetId,
-          target: context.deletingTarget,
-          deleteLinkedExpense: context.deleteLinkedExpense
-        })
-        context.setDeletingTarget(null)
-        showSuccess('حذف شد')
-        await context.loadDetail()
-      } catch (err) {
-        showError(toUserMessage(err, 'حذف ناموفق بود'))
-      } finally {
-        context.setDeleting(false)
-      }
     }
   }
 }

@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 
-import type { VehicleDeleteTarget } from './types'
 import type { DeadlineWithRow, PeriodicWithRow } from './vehicleDetailMutations'
 import type { PageSpeedDialAction } from '../../hooks/usePageSpeedDial'
 import type { VehicleActiveListItem } from '../../types/vehicles'
@@ -11,7 +10,6 @@ type VehicleDetailModalActionsOptions = {
   vehicleTitle: string
   loading: boolean
   saving: boolean
-  deleting: boolean
   loadDetail: () => Promise<void>
   setShowPeriodicForm: (open: boolean) => void
   setEditingPeriodic: (item: PeriodicWithRow | null) => void
@@ -22,8 +20,6 @@ type VehicleDetailModalActionsOptions = {
   setCompletingPeriodic: (item: PeriodicWithRow | null) => void
   setShowMechanicForm: (open: boolean) => void
   setShowMileageModal: (open: boolean) => void
-  setDeletingTarget: (target: VehicleDeleteTarget | null) => void
-  setDeleteLinkedExpense: (value: boolean) => void
 }
 
 export function useVehicleDetailModalActions(options: VehicleDetailModalActionsOptions) {
@@ -31,7 +27,6 @@ export function useVehicleDetailModalActions(options: VehicleDetailModalActionsO
     vehicleTitle,
     loading,
     saving,
-    deleting,
     loadDetail,
     setShowPeriodicForm,
     setEditingPeriodic,
@@ -41,9 +36,7 @@ export function useVehicleDetailModalActions(options: VehicleDetailModalActionsO
     setShowCompleteModal,
     setCompletingPeriodic,
     setShowMechanicForm,
-    setShowMileageModal,
-    setDeletingTarget,
-    setDeleteLinkedExpense
+    setShowMileageModal
   } = options
 
   const pageSpeedDialConfig = useMemo(
@@ -116,14 +109,6 @@ export function useVehicleDetailModalActions(options: VehicleDetailModalActionsO
       setShowDeadlineForm(false)
       setEditingDeadline(null)
       setRenewingDeadline(false)
-    },
-    openDeleteTarget: (target: VehicleDeleteTarget) => {
-      setDeletingTarget(target)
-      setDeleteLinkedExpense(Boolean(target.item.expenseRecordId))
-    },
-    closeDeleteTarget: () => {
-      if (deleting) return
-      setDeletingTarget(null)
     },
     openComplete: (item: VehicleActiveListItem) => {
       if (!item.periodic) return

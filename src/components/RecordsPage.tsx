@@ -1,6 +1,5 @@
 import ActiveFilterChips from './ActiveFilterChips'
 import ConfirmActionModal from './ConfirmActionModal'
-import ConfirmDeleteModal from './ConfirmDeleteModal'
 import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
 import PageFilterPanel from './PageFilterPanel'
@@ -109,7 +108,7 @@ export default function RecordsPage({
                 isAllForms={page.isAllForms}
                 filteredRecords={page.filteredRecords}
                 onEdit={page.openEditForm}
-                onDelete={page.openDeleteConfirm}
+                onDelete={page.requestDelete}
               />
               <RecordsSummary
                 filteredRecords={page.filteredRecords}
@@ -133,14 +132,6 @@ export default function RecordsPage({
           onSubmit={page.handleSubmit}
         />
       )}
-
-      <ConfirmDeleteModal
-        open={page.deletingRecord !== null}
-        message={page.deleteMessage}
-        onClose={page.closeDeleteConfirm}
-        onConfirm={page.handleDelete}
-        deleting={page.deleting}
-      />
 
       <ConfirmActionModal
         open={page.retroactiveWarning.open}

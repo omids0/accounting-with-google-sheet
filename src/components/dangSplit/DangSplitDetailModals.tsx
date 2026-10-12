@@ -43,17 +43,6 @@ export default function DangSplitDetailModals({
         onSubmit={personActions.handleSubmit}
       />
 
-      <ConfirmDeleteModal
-        open={personActions.deletingItem !== null}
-        title="حذف فرد"
-        message={`با حذف «${
-          personActions.deletingItem?.name ?? ''
-        }» تخصیص‌های او هم حذف می‌شوند. مطمئن هستید؟`}
-        deleting={personActions.deleting}
-        onClose={personActions.closeDeleteConfirm}
-        onConfirm={personActions.handleDelete}
-      />
-
       <DangSplitAssignCategoryModal
         open={personActions.assigningItem !== null}
         person={personActions.assigningItem}
@@ -117,17 +106,6 @@ export default function DangSplitDetailModals({
         saving={expenseActions.saving}
         onClose={expenseActions.closeForm}
         onSubmit={expenseActions.handleSubmit}
-      />
-
-      <ConfirmDeleteModal
-        open={expenseActions.deletingItem !== null}
-        title="حذف هزینه"
-        message={`با حذف «${
-          expenseActions.deletingItem?.title ?? ''
-        }» تخصیص‌های آن هم حذف می‌شوند. مطمئن هستید؟`}
-        deleting={expenseActions.deleting}
-        onClose={expenseActions.closeDeleteConfirm}
-        onConfirm={expenseActions.handleDelete}
       />
 
       <DangSplitAllocationModal

@@ -3,16 +3,21 @@ import { useInstallmentFormActions } from './useInstallmentFormActions'
 import { useInstallmentPaymentActions } from './useInstallmentPaymentActions'
 
 type UseInstallmentMutationsParams = {
+  plans: PlanWithRow[]
   setPlans: React.Dispatch<React.SetStateAction<PlanWithRow[]>>
   loadPlans: () => Promise<void>
 }
 
-export function useInstallmentMutations({ setPlans, loadPlans }: UseInstallmentMutationsParams) {
+export function useInstallmentMutations({
+  plans,
+  setPlans,
+  loadPlans
+}: UseInstallmentMutationsParams) {
   const payments = useInstallmentPaymentActions({ setPlans })
 
   const formActions = useInstallmentFormActions({
+    plans,
     loadPlans,
-    expandedId: payments.expandedId,
     setExpandedId: payments.setExpandedId
   })
 

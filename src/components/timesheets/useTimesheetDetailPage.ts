@@ -1,18 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { TimesheetEntryFormValues } from './TimesheetEntryFormModal'
-import {
-  deleteTimesheetEntryItem,
-  submitTimesheetEntry,
-  toggleTimesheetEntryChecked
-} from './timesheetEntryMutations'
+import { submitTimesheetEntry, toggleTimesheetEntryChecked } from './timesheetEntryMutations'
 import { useTimesheetEntryFilters } from './useTimesheetEntryFilters'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
+import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import {
+  deleteTimesheetEntry,
   ensureTimesheetEntriesSheet,
   exportTimesheetEntriesCsv,
   exportTimesheetEntriesPdf,
@@ -21,7 +19,7 @@ import {
   totalDurationMinutes
 } from '../../services/timesheet'
 import type { Timesheet, TimesheetEntry } from '../../types'
-import { requireAuth } from '../../utils/authGuard'
+import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 
 export type TimesheetEntryWithRow = TimesheetEntry & { rowNumber: number }
@@ -33,8 +31,6 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
 
   const [editingItem, setEditingItem] = useState<TimesheetEntryWithRow | null>(null)
 
-  const [deletingItem, setDeletingItem] = useState<TimesheetEntryWithRow | null>(null)
-
   const [loading, setLoading] = useState(() => {
     const settings = getSettings()
 
@@ -43,13 +39,19 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
 
   const [saving, setSaving] = useState(false)
 
-  const [deleting, setDeleting] = useState(false)
-
   const [togglingCheckId, setTogglingCheckId] = useState('')
 
   const dataRevision = useDataRefresh()
 
-  const filters = useTimesheetEntryFilters(items)
+  const undoableDelete = useUndoableDelete()
+  // Rows shift after every delete; the write looks its row up again by id.
+  const itemsRef = useRef(items)
+
+  itemsRef.current = items
+
+  const visibleItems = undoableDelete.visible(items)
+
+  const filters = useTimesheetEntryFilters(visibleItems)
 
   const totalMinutes = useMemo(
     () => totalDurationMinutes(filters.filteredItems),
@@ -142,21 +144,22 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
     }
   }
 
-  const handleDelete = async () => {
-    if (!deletingItem) return
+  const requestDelete = (item: TimesheetEntryWithRow) => {
+    const spreadsheetId = requireSpreadsheetId()
 
-    setDeleting(true)
-    try {
-      await deleteTimesheetEntryItem({
-        deletingItem,
-        onSuccess: async () => {
-          setDeletingItem(null)
-          await loadItems()
-        }
-      })
-    } finally {
-      setDeleting(false)
-    }
+    if (!spreadsheetId) return
+
+    void undoableDelete.schedule({
+      id: item.id,
+      label: item.title ? `رکورد «${item.title}»` : 'رکورد',
+      errorMessage: 'خطا در حذف',
+      commit: async () => {
+        const current = itemsRef.current.find(entry => entry.id === item.id) ?? item
+
+        await deleteTimesheetEntry(spreadsheetId, current.rowNumber)
+        await loadItems()
+      }
+    })
   }
 
   const pageSpeedDialConfig = useMemo(
@@ -185,14 +188,11 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
   )
 
   return {
-    items,
+    items: visibleItems,
     showForm,
     editingItem,
-    deletingItem,
-    setDeletingItem,
     loading,
     saving,
-    deleting,
     togglingCheckId,
     loadItems,
     openCreateForm,
@@ -201,7 +201,7 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
     totalMinutes,
     handleToggleChecked,
     handleSubmit,
-    handleDelete,
+    requestDelete,
     pageSpeedDialConfig,
     importExportConfirmModal,
     ...filters
