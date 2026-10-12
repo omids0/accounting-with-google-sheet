@@ -52,7 +52,7 @@ export default function DangSplitDetailRoute() {
   }, [groupId])
 
   if (loading) {
-    return <DangCardListSkeleton filterChips={0} />
+    return <DangCardListSkeleton />
   }
 
   if (!group) {

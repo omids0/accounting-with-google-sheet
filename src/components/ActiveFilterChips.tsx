@@ -74,7 +74,7 @@ export default function ActiveFilterChips({
         const icon = FILTER_CHIP_ICONS[kind]
 
         return (
-          <span key={chip.id} className={activeFilterChipClass(kind)} role="listitem">
+          <span key={chip.id} className={activeFilterChipClass(kind)}>
             <button
               type="button"
               className={activeFilterChipMainClass(Boolean(handleChipClick))}

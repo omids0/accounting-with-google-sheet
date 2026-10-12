@@ -1,10 +1,11 @@
 import { GoogleOAuthProvider } from '@react-oauth/google'
-import React from 'react'
+import React, { Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 
 import App from './App'
 import AppToaster from './components/AppToaster'
+import { AppLoadingSkeleton } from './components/skeleton'
 import { initializeNativeGoogleAuth, isNativePlatform } from './services/googleAuthNative'
 import { initTheme } from './utils/theme'
 import './styles/fonts.css'
@@ -21,7 +22,9 @@ const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '')
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <GoogleRouter clientId={clientId}>
-      <App />
+      <Suspense fallback={<AppLoadingSkeleton />}>
+        <App />
+      </Suspense>
       <AppToaster />
     </GoogleRouter>
   </React.StrictMode>

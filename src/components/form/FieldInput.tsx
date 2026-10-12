@@ -38,6 +38,7 @@ interface FieldInputProps {
 function fieldPlaceholder(field: FieldConfig): string | undefined {
   if (field.id === 'note') return 'توضیحات اضافه...'
   if (field.id === 'amount') return '۰'
+  if (field.id === 'title' && !field.required) return 'اختیاری؛ خالی بماند، نام دسته می‌نشیند'
   if (field.type === 'text') return `مثلاً: ${field.label}`
 
   return undefined

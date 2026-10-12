@@ -19,5 +19,6 @@ export {
   sortFormFields,
   SUBCATEGORY_FIELD_ID,
   WALLET_ACCOUNT_FIELD_ID,
-  WALLET_APPLY_FIELD_ID
+  WALLET_APPLY_FIELD_ID,
+  withAutoTitle
 } from './fieldUtils'

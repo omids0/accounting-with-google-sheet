@@ -19,6 +19,7 @@ import { getSettings } from '../../services/settings'
 import type { ReminderKind, ReminderRule } from '../../types'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 const DUE_DATE_KINDS = ['installments', 'checks', 'dang'] as const
 
@@ -118,7 +119,7 @@ export function useRemindersPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          showError(err instanceof Error ? err.message : 'خطا در بارگذاری یادآوری‌ها')
+          showError(toUserMessage(err, 'خطا در بارگذاری یادآوری‌ها'))
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -220,7 +221,7 @@ export function useRemindersPage() {
 
       showSuccess('تنظیمات یادآوری ذخیره شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
+      showError(toUserMessage(err, 'ذخیره ناموفق بود'))
     } finally {
       setSavingKind(null)
     }

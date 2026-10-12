@@ -22,6 +22,7 @@ import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function usePersonalRemindersData() {
   const [items, setItems] = useState<PersonalReminderWithRow[]>([])
@@ -86,7 +87,7 @@ export function usePersonalRemindersData() {
       setDeletingItem(null)
       showSuccess('یادآوری حذف شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'حذف ناموفق بود')
+      showError(toUserMessage(err, 'حذف ناموفق بود'))
     } finally {
       setDeleting(false)
     }
@@ -125,7 +126,7 @@ export function usePersonalRemindersData() {
         showSuccess('یادآوری انجام‌شده علامت خورد')
       }
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ثبت انجام ناموفق بود')
+      showError(toUserMessage(err, 'ثبت انجام ناموفق بود'))
     } finally {
       setCompletingId('')
     }

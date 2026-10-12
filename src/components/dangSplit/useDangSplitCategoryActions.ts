@@ -5,6 +5,7 @@ import { deleteDangSplitCategoryCascade } from '../../services/dangSplitBundle'
 import { createDangSplitCategory, updateDangSplitCategory } from '../../services/dangSplitPeople'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function useDangSplitCategoryActions({
   groupId,
@@ -65,7 +66,7 @@ export function useDangSplitCategoryActions({
       setEditingItem(null)
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
+      showError(toUserMessage(err, 'ذخیره ناموفق بود'))
     } finally {
       setSaving(false)
     }
@@ -88,7 +89,7 @@ export function useDangSplitCategoryActions({
       showSuccess('دسته حذف شد')
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'حذف ناموفق بود')
+      showError(toUserMessage(err, 'حذف ناموفق بود'))
     } finally {
       setDeleting(false)
     }

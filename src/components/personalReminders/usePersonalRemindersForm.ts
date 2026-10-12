@@ -4,6 +4,7 @@ import type { PersonalReminderFormState, PersonalReminderWithRow } from './types
 import { createPersonalReminder, updatePersonalReminder } from '../../services/personalReminders'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 type UsePersonalRemindersFormOptions = {
   onSaved: () => Promise<void> | void
@@ -74,7 +75,7 @@ export function usePersonalRemindersForm({ onSaved }: UsePersonalRemindersFormOp
       setEditingItem(null)
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
+      showError(toUserMessage(err, 'ذخیره ناموفق بود'))
     } finally {
       setSaving(false)
     }

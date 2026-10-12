@@ -7,7 +7,7 @@ export const emptyStateClass =
   'px-[0.65rem] py-6 text-center text-muted animate-[fadeInUp_0.45s_var(--ease-page)_both]'
 
 export const emptyStateDescriptionClass =
-  'mx-auto mb-2 max-w-[320px] text-[0.8rem] leading-[1.9] text-muted opacity-80'
+  'mx-auto mb-2 max-w-[320px] text-[0.8rem] leading-[1.9] text-muted'
 
 export const emptyStateIconClass = cn(
   'mb-4 inline-flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-[20px] text-primary',
@@ -62,7 +62,7 @@ const moneyDisplaySizeClass: Record<MoneyDisplaySize, string> = {
   stat: cn(
     'flex max-w-full min-w-0 flex-col items-center gap-[0.12rem]',
     '[&_.money-display-value]:max-w-full [&_.money-display-value]:text-[clamp(0.88rem,3.2vw,1.05rem)] [&_.money-display-value]:font-extrabold [&_.money-display-value]:leading-[1.15] [&_.money-display-value]:tracking-[0.015em]',
-    '[&_.money-display-unit]:text-[0.62rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:leading-none [&_.money-display-unit]:opacity-75'
+    '[&_.money-display-unit]:text-[0.62rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:leading-none [&_.money-display-unit]:text-muted'
   ),
   'stat-wide': cn(
     'inline-flex flex-shrink-0 items-baseline gap-1 whitespace-nowrap',

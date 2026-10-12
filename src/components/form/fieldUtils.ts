@@ -43,31 +43,47 @@ export function createSubCategoryField(): FieldConfig {
     id: SUBCATEGORY_FIELD_ID,
     label: SUBCATEGORY_FIELD_LABEL,
     type: 'select',
-    required: true,
+    required: false,
     options: []
   }
 }
 
+/** A quick entry needs only category and amount; the title is filled in on save. */
+const OPTIONAL_ENTRY_FIELD_IDS = ['title', SUBCATEGORY_FIELD_ID]
+
+/** Adds the subcategory field and relaxes title/subcategory on forms stored when they were required. */
 export function withSubCategoryField(forms: CustomForm[]): CustomForm[] {
   return forms.map(form => {
     if (form.type !== 'income' && form.type !== 'expense') return form
 
-    const existing = form.fields.find(field => field.id === SUBCATEGORY_FIELD_ID)
-
-    if (!existing) {
-      return { ...form, fields: [...form.fields, createSubCategoryField()] }
-    }
-
-    // Forms stored before the subcategory became mandatory keep required: false.
-    if (existing.required) return form
+    const fields = form.fields.some(field => field.id === SUBCATEGORY_FIELD_ID)
+      ? form.fields
+      : [...form.fields, createSubCategoryField()]
 
     return {
       ...form,
-      fields: form.fields.map(field =>
-        field.id === SUBCATEGORY_FIELD_ID ? { ...field, required: true } : field
+      fields: fields.map(field =>
+        OPTIONAL_ENTRY_FIELD_IDS.includes(field.id) && field.required
+          ? { ...field, required: false }
+          : field
       )
     }
   })
+}
+
+/** An empty title becomes «دسته · زیردسته» so lists and reports stay readable. */
+export function withAutoTitle(
+  values: Record<string, string | number>
+): Record<string, string | number> {
+  if (String(values.title ?? '').trim()) return values
+
+  const category = String(values.category ?? '').trim()
+
+  if (!category) return values
+
+  const subCategory = String(values[SUBCATEGORY_FIELD_ID] ?? '').trim()
+
+  return { ...values, title: subCategory ? `${category} · ${subCategory}` : category }
 }
 
 function createWalletAccountField(): FieldConfig {

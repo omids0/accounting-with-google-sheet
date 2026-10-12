@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 
+import { useRegisterOverlay } from './useRegisterOverlay'
+
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
@@ -24,6 +26,8 @@ export function useModalLock({ open, onClose, blocked = false }: UseModalLockOpt
 
   onCloseRef.current = onClose
   blockedRef.current = blocked
+
+  useRegisterOverlay(open, onClose, blocked)
 
   useEffect(() => {
     if (!open) return

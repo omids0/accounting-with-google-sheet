@@ -10,6 +10,7 @@ import {
 import type { DangSplitWeight } from '../../services/dangSplitMath'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function useDangSplitExpenseActions({
   groupId,
@@ -104,7 +105,7 @@ export function useDangSplitExpenseActions({
       setEditingItem(null)
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
+      showError(toUserMessage(err, 'ذخیره ناموفق بود'))
     } finally {
       setSaving(false)
     }
@@ -127,7 +128,7 @@ export function useDangSplitExpenseActions({
       showSuccess('هزینه حذف شد')
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'حذف ناموفق بود')
+      showError(toUserMessage(err, 'حذف ناموفق بود'))
     } finally {
       setDeleting(false)
     }
@@ -154,7 +155,7 @@ export function useDangSplitExpenseActions({
       showSuccess('تخصیص افراد ذخیره شد')
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ذخیره تخصیص ناموفق بود')
+      showError(toUserMessage(err, 'ذخیره تخصیص ناموفق بود'))
     } finally {
       setSavingAllocation(false)
     }

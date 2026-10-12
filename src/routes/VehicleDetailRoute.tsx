@@ -50,7 +50,7 @@ export default function VehicleDetailRoute() {
   }, [vehicleId])
 
   if (loading) {
-    return <DangCardListSkeleton filterChips={0} />
+    return <DangCardListSkeleton filterBar />
   }
 
   if (!vehicle) {

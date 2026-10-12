@@ -28,6 +28,7 @@ import {
 } from './ui/loginStyles'
 import { cn } from '../utils/cn'
 import { showError } from '../utils/toast'
+import { toUserMessage } from '../utils/userMessage'
 
 interface SpreadsheetSetupPanelProps {
   mode: 'pick' | 'create'
@@ -65,7 +66,7 @@ export default function SpreadsheetSetupPanel({
       await activateSpreadsheet(selectedId)
       onComplete()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در اتصال به شیت')
+      showError(toUserMessage(err, 'خطا در اتصال به شیت'))
     } finally {
       setLoading(false)
     }
@@ -83,7 +84,7 @@ export default function SpreadsheetSetupPanel({
       await createNamedSpreadsheet(newLabel.trim())
       onComplete()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در ساخت شیت')
+      showError(toUserMessage(err, 'خطا در ساخت شیت'))
     } finally {
       setLoading(false)
     }

@@ -1,4 +1,5 @@
 import { showError } from './toast'
+import { toUserMessage } from './userMessage'
 import { isAuthError } from '../services/auth'
 import { requestReauth } from '../stores/appStore'
 
@@ -16,9 +17,7 @@ export function handleSheetError(err: unknown, options: HandleSheetErrorOptions 
     return true
   }
 
-  const msg = err instanceof Error ? err.message : fallbackMessage
-
-  showError(msg)
+  showError(toUserMessage(err, fallbackMessage))
 
   return false
 }

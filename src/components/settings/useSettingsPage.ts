@@ -15,6 +15,7 @@ import {
 import { bumpSpreadsheetKey } from '../../stores/appStore'
 import type { CurrencyUnit, SpreadsheetEntry } from '../../types'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function useSettingsPage() {
   const [spreadsheetId, setSpreadsheetId] = useState('')
@@ -83,7 +84,7 @@ export function useSettingsPage() {
       setSpreadsheetId(getSettings()?.spreadsheetId ?? '')
       showSuccess('لیست شیت‌ها از Google Drive بروز شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در دریافت لیست از Drive')
+      showError(toUserMessage(err, 'خطا در دریافت لیست از Drive'))
     } finally {
       setLoading(false)
     }
@@ -115,7 +116,7 @@ export function useSettingsPage() {
       showSuccess(`شیت «${formatSpreadsheetTitle(trimmedName)}» ساخته و فعال شد`)
       bumpSpreadsheetKey()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در ساخت شیت')
+      showError(toUserMessage(err, 'خطا در ساخت شیت'))
     } finally {
       setLoading(false)
     }
@@ -141,7 +142,7 @@ export function useSettingsPage() {
       showSuccess(`شیت فعال: ${selected ? getSpreadsheetLabel(selected.name) : 'انتخاب‌شده'}`)
       bumpSpreadsheetKey()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در تغییر شیت')
+      showError(toUserMessage(err, 'خطا در تغییر شیت'))
     } finally {
       setLoading(false)
     }

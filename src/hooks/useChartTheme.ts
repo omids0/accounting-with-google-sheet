@@ -65,7 +65,7 @@ function buildPalette(base: string, surface: string, steps: number[]): string[] 
 }
 
 function readTheme(): ChartTheme {
-  const income = readCssVar('--color-income', '#16a34a')
+  const income = readCssVar('--color-income', '#15803d')
 
   const expense = readCssVar('--color-expense', '#dc2626')
 

@@ -51,7 +51,7 @@ export default function CheckList({
   )
 
   if (loading && items.length === 0) {
-    return <DangCardListSkeleton />
+    return <DangCardListSkeleton footerStats={2} />
   }
 
   if (items.length === 0) {

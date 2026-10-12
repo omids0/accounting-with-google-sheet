@@ -24,7 +24,7 @@ const variantClass: Record<ButtonVariant, string> = {
   outflow:
     'bg-danger text-white shadow-[0_3px_12px_color-mix(in_srgb,var(--color-danger)_28%,transparent)] hover:enabled:bg-[#b91c1c] disabled:opacity-60',
   inflow:
-    'bg-success text-white shadow-[0_3px_12px_color-mix(in_srgb,var(--color-success)_28%,transparent)] hover:enabled:bg-[#15803d] disabled:opacity-60'
+    'bg-success text-white shadow-[0_3px_12px_color-mix(in_srgb,var(--color-success)_28%,transparent)] hover:enabled:bg-[#166534] disabled:opacity-60'
 }
 
 function loadingDotsTone(variant: ButtonVariant): LoadingDotsTone {

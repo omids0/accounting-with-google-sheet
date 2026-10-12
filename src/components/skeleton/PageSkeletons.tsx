@@ -1,18 +1,34 @@
-import { FilterChipsSkeleton, ReportToolbarSkeleton, StatCardSkeleton } from './CardSkeletons'
+import AppSplash from './AppSplash'
+import {
+  FilterChipsSkeleton,
+  MoneySkeleton,
+  ReportToolbarSkeleton,
+  SkeletonActionButton,
+  SkeletonText,
+  StatCardSkeleton
+} from './CardSkeletons'
 import { InstallmentCardListSkeleton } from './ListSkeletons'
 import { Skeleton } from './Skeleton'
 import { cn } from '../../utils/cn'
 import { dashboardRemindersCardClass } from '../dashboard/dashboardReminderStyles'
+import {
+  accordionCardChevronClass,
+  accordionCardSummaryClass,
+  accordionCardTextClass,
+  accordionCardTitleClass,
+  accordionCardTriggerClass
+} from '../ui/accordionCardStyles'
 import { cardClassName } from '../ui/Card'
 import {
   dashboardAssetsCardClass,
   dashboardFlowSectionClass,
   dashboardHeroCardClass,
-  dashboardPageClass,
-  dashboardStatGridClass
+  dashboardHeroHeaderClass,
+  dashboardHeroHintClass,
+  dashboardHeroLabelClass,
+  dashboardPageClass
 } from '../ui/chartStyles'
 import {
-  appLoadingClass,
   appLoadingDotClass,
   appLoadingDotDelayClasses,
   appLoadingDotsClass,
@@ -20,19 +36,19 @@ import {
 } from '../ui/loginStyles'
 import { recordsTypeSegmentClass, dataEntryTypeSegmentClass } from '../ui/recordsStyles'
 import {
+  settingsPageClass,
+  settingsSectionCardClass,
+  settingsSectionClass,
+  settingsSectionIconClass
+} from '../ui/settingsStyles'
+import {
   skeletonBreakdownClass,
   skeletonBreakdownRowClass,
   skeletonCardClass,
   skeletonFormClass,
-  skeletonFormRowClass,
-  skeletonSettingsClass
+  skeletonFormRowClass
 } from '../ui/skeletonStyles'
-import {
-  treasuryPriceCardClass,
-  treasuryPriceGridClass,
-  treasuryPriceHeaderClass,
-  treasuryPriceItemClass
-} from '../ui/treasuryReceivableStyles'
+import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export {
   FilterChipsSkeleton,
@@ -42,7 +58,8 @@ export {
   TreasuryHoldingCardSkeleton,
   WalletAccountCardSkeleton,
   DangCardSkeleton,
-  RecordItemSkeleton
+  RecordItemSkeleton,
+  SkeletonText
 } from './CardSkeletons'
 
 export {
@@ -62,17 +79,18 @@ export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashbo
     >
       {variant === 'dashboard' ? <FilterChipsSkeleton count={1} /> : <ReportToolbarSkeleton />}
 
-      <div className={cardClassName(cn(dashboardHeroCardClass, skeletonCardClass))}>
-        <Skeleton width="35%" height="0.8rem" />
-        <Skeleton width="55%" height="2rem" style={{ marginTop: '0.75rem' }} />
-        <Skeleton width="70%" height="0.75rem" style={{ marginTop: '0.65rem' }} />
+      <div className={cn(dashboardHeroCardClass, skeletonCardClass)}>
+        <div className={dashboardHeroHeaderClass}>
+          <SkeletonText className={cn(dashboardHeroLabelClass, 'justify-center')} width="7rem" />
+          <SkeletonActionButton />
+        </div>
+        <MoneySkeleton size="hero" width="9rem" />
+        <SkeletonText className={cn(dashboardHeroHintClass, 'justify-center')} width="80%" />
       </div>
 
       <div className={dashboardFlowSectionClass}>
-        <div className={dashboardStatGridClass}>
-          <StatCardSkeleton />
-          <StatCardSkeleton />
-        </div>
+        <StatCardSkeleton />
+        <StatCardSkeleton />
         <StatCardSkeleton wide />
         <StatCardSkeleton wide />
       </div>
@@ -117,31 +135,15 @@ export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashbo
   )
 }
 
+/** Holdings only: the treasury page keeps its own filter bar and price card on screen. */
 export function TreasurySkeleton() {
   return (
-    <div aria-busy="true" aria-label="در حال بارگذاری">
-      <FilterChipsSkeleton count={0} />
-      <div className={cardClassName(cn(treasuryPriceCardClass, skeletonCardClass))}>
-        <div className={treasuryPriceHeaderClass}>
-          <Skeleton width="45%" height="0.85rem" />
-          <Skeleton
-            variant="rect"
-            width="4.5rem"
-            height="1.75rem"
-            style={{ borderRadius: 'var(--radius-sm)' }}
-          />
-        </div>
-        <div className={treasuryPriceGridClass}>
-          {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className={treasuryPriceItemClass}>
-              <Skeleton width="60%" height="0.8rem" />
-              <Skeleton width="40%" height="0.8rem" />
-            </div>
-          ))}
-        </div>
-      </div>
-      <InstallmentCardListSkeleton count={2} variant="treasury" />
-    </div>
+    <InstallmentCardListSkeleton
+      count={2}
+      variant="treasury"
+      footerStats={1}
+      footerClassName={receivableTotalCardClass}
+    />
   )
 }
 
@@ -176,26 +178,28 @@ export function FormSkeleton({ fields = 4 }: { fields?: number }) {
   )
 }
 
+/** The four collapsed sections of the settings page, built from SettingsSection's classes. */
 export function SettingsSkeleton() {
   return (
-    <div className={skeletonSettingsClass} aria-busy="true" aria-label="در حال بارگذاری تنظیمات">
-      <div className={cardClassName(skeletonCardClass)}>
-        <Skeleton width="30%" height="1rem" style={{ marginBottom: '1rem' }} />
-        <Skeleton width="100%" height="2.5rem" style={{ marginBottom: '0.75rem' }} />
-        <Skeleton width="100%" height="2.5rem" />
-      </div>
-      <div className={cardClassName(skeletonCardClass)}>
-        <Skeleton width="25%" height="1rem" style={{ marginBottom: '1rem' }} />
-        {Array.from({ length: 3 }, (_, index) => (
-          <div key={index} className={skeletonFormRowClass}>
-            <Skeleton width="100%" height="2.25rem" />
+    <div className={settingsPageClass} aria-busy="true" aria-label="در حال بارگذاری تنظیمات">
+      {Array.from({ length: 4 }, (_, index) => (
+        <section key={index} className={settingsSectionClass} aria-hidden="true">
+          <div className={cn(cardClassName(settingsSectionCardClass(false)), skeletonCardClass)}>
+            <div className={accordionCardTriggerClass}>
+              <span className={settingsSectionIconClass(false)}>
+                <Skeleton variant="rect" width="1.25rem" height="1.25rem" />
+              </span>
+              <span className={accordionCardTextClass}>
+                <SkeletonText className={accordionCardTitleClass} width="5rem" />
+                <SkeletonText className={accordionCardSummaryClass} width="10rem" />
+              </span>
+              <span className={accordionCardChevronClass(false)}>
+                <Skeleton width="1rem" height="1rem" />
+              </span>
+            </div>
           </div>
-        ))}
-      </div>
-      <div className={cardClassName(skeletonCardClass)}>
-        <Skeleton width="35%" height="1rem" style={{ marginBottom: '1rem' }} />
-        <Skeleton width="100%" height="5rem" />
-      </div>
+        </section>
+      ))}
     </div>
   )
 }
@@ -205,10 +209,10 @@ export function AppLoadingSkeleton({
 }: {
   variant?: 'fullscreen' | 'inline'
 }) {
-  const containerClass = variant === 'inline' ? appLoadingInlineClass : appLoadingClass
+  if (variant === 'fullscreen') return <AppSplash />
 
   return (
-    <div className={containerClass} aria-busy="true" aria-label="در حال بارگذاری">
+    <div className={appLoadingInlineClass} aria-busy="true" aria-label="در حال بارگذاری">
       <div className={appLoadingDotsClass} role="status" aria-live="polite">
         {appLoadingDotDelayClasses.map(delayClass => (
           <span key={delayClass} className={cn(appLoadingDotClass, delayClass)} />

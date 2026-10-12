@@ -30,6 +30,7 @@ import { requireSpreadsheetId } from '../../utils/authGuard'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function useVehiclesData() {
   const [items, setItems] = useState<VehicleProfileWithRow[]>([])
@@ -160,7 +161,7 @@ export function useVehiclesData() {
       setEditingItem(null)
       await loadItems()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
+      showError(toUserMessage(err, 'ذخیره ناموفق بود'))
     } finally {
       setSaving(false)
     }
@@ -187,7 +188,7 @@ export function useVehiclesData() {
       showSuccess('خودرو حذف شد')
       await loadItems()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'حذف ناموفق بود')
+      showError(toUserMessage(err, 'حذف ناموفق بود'))
     } finally {
       setDeleting(false)
     }

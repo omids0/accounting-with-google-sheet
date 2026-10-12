@@ -16,6 +16,7 @@ import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import { clearStore, getStoreLastSyncedAt, hasStoreData, hydrateStore } from './spreadsheetStore'
 import { getOutboxSheetNames, hasPendingOutbox, clearOutbox, getOutboxCount } from './syncOutbox'
 import { getSyncStatus, setLastSyncedAt, setSyncState, setPendingWrites } from './syncStatus'
+import { toUserMessage } from '../utils/userMessage'
 
 /**
  * A poll is two tiny metadata reads unless a tab really changed, so changes
@@ -138,7 +139,7 @@ export async function fullSyncFromRemote(
         return
       }
 
-      const message = err instanceof Error ? err.message : 'خطا در دریافت داده'
+      const message = toUserMessage(err, 'خطا در دریافت داده')
 
       setSyncState('error', message)
       throw err

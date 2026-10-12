@@ -43,6 +43,7 @@ import { getCurrency } from '../utils/formatMoney'
 import { normalizeDigits } from '../utils/normalizeDigits'
 import { numberToPersianWords } from '../utils/numberToWords'
 import { showError } from '../utils/toast'
+import { toUserMessage } from '../utils/userMessage'
 
 const CURRENCY_SELECT_OPTIONS = EXCHANGE_CURRENCY_OPTIONS.map(option => ({
   value: option.code,
@@ -90,7 +91,7 @@ export default function CurrencyConverterPage() {
 
       setLastUpdated(timestamps[0] ?? null)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در دریافت نرخ ارز'
+      const msg = toUserMessage(err, 'خطا در دریافت نرخ ارز')
 
       showError(msg)
     } finally {

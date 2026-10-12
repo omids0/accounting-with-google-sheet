@@ -2,22 +2,14 @@ import { useGoogleOAuth } from '@react-oauth/google'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { registerSW } from 'virtual:pwa-register'
 
-import AppIcon from './components/AppIcon'
-import AppLockPrompts from './components/appLock/AppLockPrompts'
-import LoginPage from './components/LoginPage'
-import { AppLoadingSkeleton } from './components/skeleton'
-import SpreadsheetSetupPanel from './components/SpreadsheetSetupPanel'
-import Alert from './components/ui/Alert'
-import { animateInClass } from './components/ui/layoutStyles'
 import {
-  loginCardClass,
-  loginLogoClass,
-  loginLogoIconClass,
-  loginLogoSubtitleClass,
-  loginLogoTitleClass,
-  loginPageClass
-} from './components/ui/loginStyles'
-import UnlockScreen from './components/UnlockScreen'
+  LazyConfigNotice,
+  LazyLoginPage,
+  LazySpreadsheetSetupPanel,
+  LazyUnlockScreen
+} from './components/appGates/lazyGates'
+import AppLockPrompts from './components/appLock/AppLockPrompts'
+import { AppLoadingSkeleton } from './components/skeleton'
 import { useAppLock } from './hooks/useAppLock'
 import { useTokenRefresh } from './hooks/useTokenRefresh'
 import { AppAuthenticatedRoutes } from './routes/AppRoutes'
@@ -36,29 +28,7 @@ import { hasStoreData, hydrateStore } from './services/spreadsheetStore'
 import { refreshAccessTokenSilently } from './services/tokenRefresh'
 import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
-import { cn } from './utils/cn'
-
-function ConfigNotice() {
-  return (
-    <div className={loginPageClass}>
-      <div className={cn(loginCardClass, animateInClass)}>
-        <div className={loginLogoClass}>
-          <span className={loginLogoIconClass}>
-            <AppIcon name="warning" />
-          </span>
-          <h1 className={loginLogoTitleClass}>تنظیمات Google OAuth</h1>
-          <p className={loginLogoSubtitleClass}>
-            <code dir="ltr">VITE_GOOGLE_CLIENT_ID</code> در فایل <code dir="ltr">.env</code> تنظیم
-            نشده.
-          </p>
-        </div>
-        <Alert variant="info" dir="ltr" style={{ textAlign: 'left', fontSize: '0.75rem' }}>
-          VITE_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
-        </Alert>
-      </div>
-    </div>
-  )
-}
+import { toUserMessage } from './utils/userMessage'
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -215,7 +185,7 @@ export default function App() {
         }
       } catch (err) {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'خطا در اتصال به گوگل شیت'
+          const message = toUserMessage(err, 'خطا در اتصال به گوگل شیت')
 
           if (isAuthError(err)) {
             setLoggedIn(false)
@@ -257,14 +227,14 @@ export default function App() {
     setSheetError('')
   }
 
-  if (!isOAuthConfigured) return <ConfigNotice />
+  if (!isOAuthConfigured) return <LazyConfigNotice />
   // The PIN comes before anything else, including the cached data.
-  if (locked && hasStoredSession()) return <UnlockScreen onUnlock={handleUnlock} />
+  if (locked && hasStoredSession()) return <LazyUnlockScreen onUnlock={handleUnlock} />
   if (!ready) return <AppLoadingSkeleton />
 
   if (needsSheetSetup && isTokenValid()) {
     return (
-      <SpreadsheetSetupPanel
+      <LazySpreadsheetSetupPanel
         mode={sheetSetupMode}
         options={sheetOptions}
         defaultLabel={getDefaultFirstSheetLabel()}
@@ -275,7 +245,7 @@ export default function App() {
 
   if (!loggedIn || needsReauth) {
     return (
-      <LoginPage
+      <LazyLoginPage
         initialError={sheetError}
         onSuccess={() => {
           setLoggedIn(true)
@@ -287,7 +257,7 @@ export default function App() {
     )
   }
 
-  if (locked) return <UnlockScreen onUnlock={handleUnlock} />
+  if (locked) return <LazyUnlockScreen onUnlock={handleUnlock} />
 
   return (
     <>

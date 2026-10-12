@@ -9,6 +9,7 @@ import {
 import { removePushSubscription, upsertPushSubscription } from '../../services/reminders'
 import type { ReminderKind } from '../../types'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function createRemindersPushHandlers(options: {
   spreadsheetId: string
@@ -40,7 +41,7 @@ export function createRemindersPushHandlers(options: {
       setHasSubscription(true)
       showSuccess('نوتیف فعال شد و این دستگاه ثبت گردید')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'فعال‌سازی نوتیف ناموفق بود')
+      showError(toUserMessage(err, 'فعال‌سازی نوتیف ناموفق بود'))
     } finally {
       setSavingKind(null)
     }
@@ -59,7 +60,7 @@ export function createRemindersPushHandlers(options: {
       setPermission(getNotificationPermission())
       showSuccess('نوتیف این دستگاه غیرفعال شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'غیرفعال‌سازی ناموفق بود')
+      showError(toUserMessage(err, 'غیرفعال‌سازی ناموفق بود'))
     } finally {
       setSavingKind(null)
     }
@@ -71,7 +72,7 @@ export function createRemindersPushHandlers(options: {
       await showLocalTestNotification()
       showSuccess('نوتیف تست ارسال شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ارسال تست ناموفق بود')
+      showError(toUserMessage(err, 'ارسال تست ناموفق بود'))
     } finally {
       setSavingKind(null)
     }

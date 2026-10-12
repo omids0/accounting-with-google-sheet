@@ -9,6 +9,7 @@ import {
 } from '../../services/dangSplitPeople'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export function useDangSplitPersonActions({
   groupId,
@@ -100,7 +101,7 @@ export function useDangSplitPersonActions({
       setEditingItem(null)
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ذخیره ناموفق بود')
+      showError(toUserMessage(err, 'ذخیره ناموفق بود'))
     } finally {
       setSaving(false)
     }
@@ -123,7 +124,7 @@ export function useDangSplitPersonActions({
       showSuccess('فرد حذف شد')
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'حذف ناموفق بود')
+      showError(toUserMessage(err, 'حذف ناموفق بود'))
     } finally {
       setDeleting(false)
     }
@@ -143,7 +144,7 @@ export function useDangSplitPersonActions({
       showSuccess(categoryId ? 'فرد به دسته اضافه شد' : 'فرد از دسته خارج شد')
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'تغییر دسته ناموفق بود')
+      showError(toUserMessage(err, 'تغییر دسته ناموفق بود'))
     } finally {
       setSavingCategory(false)
     }
@@ -169,7 +170,7 @@ export function useDangSplitPersonActions({
       showSuccess('صندوق شارژ شد')
       await onSaved()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'ثبت شارژ ناموفق بود')
+      showError(toUserMessage(err, 'ثبت شارژ ناموفق بود'))
     } finally {
       setSavingDepositId(null)
     }

@@ -28,8 +28,6 @@ export function skeletonClass(variant: 'text' | 'rect' | 'circle' = 'text', clas
   )
 }
 
-export const skeletonListClass = 'skeleton-list flex flex-col gap-stack'
-
 export const skeletonCardClass = cn(
   'pointer-events-none',
   '[&_.installment-header]:cursor-default [&_.installment-header:hover]:bg-transparent',
@@ -54,28 +52,16 @@ export const skeletonRecordActionsClass = 'flex flex-shrink-0 items-center gap-2
 
 export const skeletonRecordsCardClass = 'skeleton-records-card pointer-events-none'
 
-export const skeletonFilterChipsClass = 'pointer-events-none'
-
 export const skeletonFilterChipClass = cn(
   'inline-flex min-h-touch-min items-center rounded-full border px-[0.75rem] py-[0.4rem]',
   'border-[color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))]',
   '[background:color-mix(in_srgb,var(--color-primary)_5%,var(--color-surface))]'
 )
 
-export const skeletonStatCardClass = cn(
-  'pointer-events-none rounded-[calc(var(--radius-sm)+2px)] border border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))]',
-  '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_4%,var(--color-surface))_0%,var(--color-surface)_55%)]',
-  'shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_14px_color-mix(in_srgb,var(--color-primary)_6%,transparent)]'
-)
-
 export const skeletonBreakdownClass = 'mt-[0.85rem] flex flex-col gap-[0.65rem]'
 
 export const skeletonBreakdownRowClass = 'flex items-center justify-between gap-4'
 
-export const skeletonSettingsClass = 'skeleton-settings flex flex-col gap-3'
-
 export const skeletonFormRowClass = '[&+&]:mt-[0.65rem]'
 
 export const skeletonFormClass = 'skeleton-form flex flex-col'
-
-export const skeletonActionBtnSizeClass = 'h-touch-min w-touch-min rounded-md'

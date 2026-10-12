@@ -1,5 +1,8 @@
+import type { ReactNode } from 'react'
+
 import {
   DangCardSkeleton,
+  type DangCardSkeletonShape,
   FilterChipsSkeleton,
   InstallmentCardSkeleton,
   RecordItemSkeleton,
@@ -15,77 +18,98 @@ import {
   installmentCardClass,
   installmentHeaderClass,
   listCardsContainerClass,
+  listModulePageClass,
   walletItemCardClass,
   walletItemInfoClass,
   walletItemTitleRowClass
 } from '../ui/featureCardStyles'
 import { recordsListHeaderClass } from '../ui/recordsStyles'
-import {
-  skeletonCardClass,
-  skeletonListClass,
-  skeletonRecordsCardClass
-} from '../ui/skeletonStyles'
+import { skeletonCardClass, skeletonRecordsCardClass } from '../ui/skeletonStyles'
 import { timesheetDetailStatsClass } from '../ui/toolsPageStyles'
+import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
+import { walletCardsListClass } from '../wallet/walletCardStyles'
+
+/**
+ * Same vertical rhythm as a list page. `filterBar` is only for skeletons that
+ * replace a whole page with filters; inside a page the real filter bar is
+ * already on screen above the skeleton.
+ */
+function ListSkeletonFrame({ filterBar, children }: { filterBar?: boolean; children: ReactNode }) {
+  return (
+    <div className={listModulePageClass} aria-busy="true" aria-label="در حال بارگذاری">
+      {filterBar && <FilterChipsSkeleton count={0} />}
+      {children}
+    </div>
+  )
+}
+
+function FooterStats({ count, className }: { count: number; className?: string }) {
+  if (count === 1) return <StatCardSkeleton wide className={className} />
+  if (count !== 2) return null
+
+  return (
+    <div className={dashboardStatGridClass}>
+      <StatCardSkeleton />
+      <StatCardSkeleton />
+    </div>
+  )
+}
 
 export function InstallmentCardListSkeleton({
   count = 3,
-  filterChips = 0,
+  filterBar = false,
   footerStats = 0,
+  footerClassName,
   variant = 'installment'
 }: {
   count?: number
-  filterChips?: number
+  filterBar?: boolean
   footerStats?: number
+  footerClassName?: string
   variant?: 'installment' | 'treasury'
 }) {
   const CardSkeleton =
     variant === 'treasury' ? TreasuryHoldingCardSkeleton : InstallmentCardSkeleton
 
   return (
-    <div aria-busy="true" aria-label="در حال بارگذاری">
-      <FilterChipsSkeleton count={filterChips} />
+    <ListSkeletonFrame filterBar={filterBar}>
       <div className={listCardsContainerClass}>
         {Array.from({ length: count }, (_, index) => (
           <CardSkeleton key={index} />
         ))}
       </div>
-      {footerStats === 1 && <StatCardSkeleton wide />}
-      {footerStats === 2 && (
-        <div className={dashboardStatGridClass}>
-          <StatCardSkeleton />
-          <StatCardSkeleton />
-        </div>
-      )}
-    </div>
+      <FooterStats count={footerStats} className={footerClassName} />
+    </ListSkeletonFrame>
   )
 }
 
 export function DangCardListSkeleton({
-  count = 4,
-  filterChips = 0,
-  footerStat = false
-}: {
+  count = 3,
+  filterBar = false,
+  footerStats = 0,
+  footerClassName,
+  ...shape
+}: DangCardSkeletonShape & {
   count?: number
-  filterChips?: number
-  footerStat?: boolean
+  filterBar?: boolean
+  footerStats?: number
+  footerClassName?: string
 }) {
   return (
-    <div aria-busy="true" aria-label="در حال بارگذاری">
-      <FilterChipsSkeleton count={filterChips} />
-      <div className={skeletonListClass}>
+    <ListSkeletonFrame filterBar={filterBar}>
+      <div className={listCardsContainerClass}>
         {Array.from({ length: count }, (_, index) => (
-          <DangCardSkeleton key={index} />
+          <DangCardSkeleton key={index} {...shape} />
         ))}
       </div>
-      {footerStat && <StatCardSkeleton wide />}
-    </div>
+      <FooterStats count={footerStats} className={footerClassName} />
+    </ListSkeletonFrame>
   )
 }
 
-export function WalletPageSkeleton({ count = 3 }: { count?: number }) {
+export function WalletPageSkeleton({ count = 2 }: { count?: number }) {
   return (
-    <div aria-busy="true" aria-label="در حال بارگذاری">
-      <FilterChipsSkeleton count={0} />
+    <ListSkeletonFrame>
       <div
         className={cardClassName(
           cn(
@@ -109,27 +133,21 @@ export function WalletPageSkeleton({ count = 3 }: { count?: number }) {
             </div>
             <Skeleton width="36%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
           </div>
-          <Skeleton
-            variant="rect"
-            width="0.85rem"
-            height="0.85rem"
-            style={{ borderRadius: '4px', flexShrink: 0 }}
-          />
         </div>
       </div>
-      <div className={skeletonListClass}>
+      <div className={walletCardsListClass}>
         {Array.from({ length: count }, (_, index) => (
           <WalletAccountCardSkeleton key={index} />
         ))}
       </div>
-      <StatCardSkeleton wide />
-    </div>
+      <StatCardSkeleton wide className={receivableTotalCardClass} />
+    </ListSkeletonFrame>
   )
 }
 
 export function TimesheetDetailListSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <div aria-busy="true" aria-label="در حال بارگذاری">
+    <ListSkeletonFrame>
       <div className={cn(dashboardStatGridClass, timesheetDetailStatsClass)}>
         <StatCardSkeleton />
         <StatCardSkeleton />
@@ -139,7 +157,7 @@ export function TimesheetDetailListSkeleton({ count = 3 }: { count?: number }) {
           <InstallmentCardSkeleton key={index} />
         ))}
       </div>
-    </div>
+    </ListSkeletonFrame>
   )
 }
 

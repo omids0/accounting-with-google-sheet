@@ -55,7 +55,7 @@ export default function DangSplitPage({ active = true }: { active?: boolean }) {
   }
 
   if (loading && items.length === 0) {
-    return <DangCardListSkeleton filterChips={0} />
+    return <DangCardListSkeleton />
   }
 
   return (

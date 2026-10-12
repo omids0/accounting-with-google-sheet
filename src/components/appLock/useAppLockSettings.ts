@@ -20,6 +20,7 @@ import {
 } from '../../services/appLockPolicy'
 import type { AppLockPolicy } from '../../types'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 
 export type SetupStep = 'idle' | 'setup' | 'disable' | 'change-pin' | 'disable-biometric'
 
@@ -94,7 +95,7 @@ export function useAppLockSettings() {
       showSuccess('قفل اپ فعال شد')
       resetForm()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در فعال‌سازی قفل')
+      showError(toUserMessage(err, 'خطا در فعال‌سازی قفل'))
     } finally {
       setLoading(false)
     }
@@ -110,7 +111,7 @@ export function useAppLockSettings() {
       showSuccess('قفل اپ غیرفعال شد')
       resetForm()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در غیرفعال‌سازی')
+      showError(toUserMessage(err, 'خطا در غیرفعال‌سازی'))
     } finally {
       setLoading(false)
     }
@@ -138,7 +139,7 @@ export function useAppLockSettings() {
       showSuccess('رمز جدید ذخیره شد')
       resetForm()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در تغییر رمز')
+      showError(toUserMessage(err, 'خطا در تغییر رمز'))
     } finally {
       setLoading(false)
     }
@@ -152,7 +153,7 @@ export function useAppLockSettings() {
       setBiometricOn(true)
       showSuccess('اثر انگشت فعال شد')
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'خطا در فعال‌سازی اثر انگشت'
+      const message = toUserMessage(err, 'خطا در فعال‌سازی اثر انگشت')
 
       // Kept on screen as well as in the toast; a prompt that fails instantly is
       // otherwise indistinguishable from a button that did nothing.
@@ -172,7 +173,7 @@ export function useAppLockSettings() {
       showSuccess('اثر انگشت غیرفعال شد')
       resetForm()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در غیرفعال‌سازی اثر انگشت')
+      showError(toUserMessage(err, 'خطا در غیرفعال‌سازی اثر انگشت'))
     } finally {
       setLoading(false)
     }

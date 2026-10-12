@@ -10,6 +10,7 @@ import type { RecordsDatePreset } from '../../utils/dateRange'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import ActiveFilterChips, { type FilterChip } from '../ActiveFilterChips'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
+import AppIcon from '../AppIcon'
 import BankSmsPendingBanner from '../bankSms/BankSmsPendingBanner'
 import CardEditButton from '../CardEditButton'
 import DashboardChartsSection from '../charts/DashboardChartsSection'
@@ -217,7 +218,7 @@ export default function DashboardContent({
       <Card>
         <div className={cardHeaderRowClass}>
           <h3 className={chartTitleClass}>تراکنش‌های دوره</h3>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="flex gap-2">
             {!!data?.recentRecords.length && (
               <Button
                 type="button"
@@ -228,8 +229,15 @@ export default function DashboardContent({
                 جزئیات بیشتر
               </Button>
             )}
-            <Button variant="secondary" size="sm" onClick={load} disabled={loading}>
-              ↻
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={load}
+              disabled={loading}
+              aria-label="بروزرسانی"
+              title="بروزرسانی"
+            >
+              <AppIcon name="refresh" size={16} />
             </Button>
           </div>
         </div>

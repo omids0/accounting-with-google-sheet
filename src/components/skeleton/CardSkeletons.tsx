@@ -1,13 +1,33 @@
 import { Skeleton, SkeletonProgressFill } from './Skeleton'
+import {
+  MoneySkeleton,
+  SkeletonActionButton,
+  SkeletonText,
+  type DangCardSkeletonShape
+} from './SkeletonPrimitives'
 import { cn } from '../../utils/cn'
 import { cardClassName } from '../ui/Card'
 import {
+  sparklineClass,
+  sparklineWideClass,
+  statCardClass,
+  statCardValueRowClass,
+  statCardValueRowWideClass,
+  statLabelClass
+} from '../ui/chartStyles'
+import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
+  dangCardAmountClass,
   dangCardBodyClass,
+  dangCardClass,
   dangCardContentRowClass,
   dangCardHeaderClass,
+  dangCardMetaClass,
+  dangCardTitleClass,
+  dangCheckboxClass,
   installmentCardClass,
+  installmentChevronClass,
   installmentHeaderClass
 } from '../ui/featureCardStyles'
 import { activeFilterBarClass, activeFilterTriggerClass } from '../ui/filterControlStyles'
@@ -19,14 +39,17 @@ import {
   recordsToolbarHeadingClass
 } from '../ui/recordsStyles'
 import {
-  skeletonActionBtnSizeClass,
   skeletonCardClass,
   skeletonFilterChipClass,
   skeletonRecordActionsClass,
-  skeletonRecordItemClass,
-  skeletonStatCardClass
+  skeletonRecordItemClass
 } from '../ui/skeletonStyles'
-import { treasuryHoldingCardClass } from '../ui/treasuryReceivableStyles'
+import { treasuryHoldingCardClass, treasuryHoldingValueClass } from '../ui/treasuryReceivableStyles'
+import {
+  walletAccountCardShellClass,
+  walletAccountCardVisualHostClass,
+  walletCardActionOverlayClass
+} from '../wallet/walletCardStyles'
 
 export function FilterChipsSkeleton({ count = 1 }: { count?: number }) {
   return (
@@ -83,14 +106,45 @@ export function ReportToolbarSkeleton() {
   )
 }
 
-export function StatCardSkeleton({ wide = false }: { wide?: boolean }) {
+/** `className` is the one the page passes to its real StatCard (e.g. a total footer). */
+export function StatCardSkeleton({
+  wide = false,
+  className
+}: {
+  wide?: boolean
+  className?: string
+}) {
   return (
     <div
-      className={cn('stat-card', skeletonStatCardClass, wide && 'stat-card-wide')}
+      className={cn(
+        'stat-card',
+        wide && 'card stat-card-wide',
+        statCardClass({ variant: 'default', wide, animated: false }),
+        skeletonCardClass,
+        className
+      )}
       aria-hidden="true"
     >
-      <Skeleton width="45%" height="0.75rem" />
-      <Skeleton width="62%" height="1.25rem" style={{ marginTop: '0.5rem' }} />
+      <SkeletonText
+        className={cn('stat-label', statLabelClass, !wide && 'justify-center')}
+        width={wide ? '6rem' : '4rem'}
+      />
+      <div
+        className={cn(
+          'stat-card-value-row',
+          statCardValueRowClass,
+          wide && 'stat-card-value-row--wide',
+          wide && statCardValueRowWideClass
+        )}
+      >
+        <MoneySkeleton size={wide ? 'stat-wide' : 'stat'} width="4.5rem" />
+        <Skeleton
+          variant="rect"
+          className={cn(sparklineClass, wide && sparklineWideClass)}
+          width={wide ? '4.5rem' : undefined}
+          height="28px"
+        />
+      </div>
     </div>
   )
 }
@@ -112,9 +166,9 @@ export function InstallmentCardSkeleton() {
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <SkeletonActionButton />
+          <SkeletonActionButton />
+          <SkeletonActionButton />
         </div>
       </div>
     </div>
@@ -128,12 +182,14 @@ export function TreasuryHoldingCardSkeleton() {
       aria-hidden="true"
     >
       <div className={installmentHeaderClass()}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Skeleton width="42%" height="0.95rem" />
-          <Skeleton width="72%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
-          <Skeleton width="48%" height="0.8rem" style={{ marginTop: '0.35rem' }} />
+        <div className="min-w-0 flex-1">
+          <SkeletonText className="text-[0.95rem] font-semibold" width="40%" />
+          <SkeletonText className="mt-1 text-[0.75rem]" width="72%" />
+          <SkeletonText className={treasuryHoldingValueClass} width="45%" />
         </div>
-        <Skeleton variant="rect" className={skeletonActionBtnSizeClass} style={{ flexShrink: 0 }} />
+        <span className={installmentChevronClass}>
+          <Skeleton width="0.6rem" height="0.6rem" />
+        </span>
       </div>
     </div>
   )
@@ -141,50 +197,51 @@ export function TreasuryHoldingCardSkeleton() {
 
 export function WalletAccountCardSkeleton() {
   return (
-    <div className={cn('wallet-item-card list-card p-0', skeletonCardClass)} aria-hidden="true">
-      <div className="p-0">
-        <div className="relative">
-          <Skeleton
-            variant="rect"
-            style={{ width: '100%', height: '6.35rem', borderRadius: '12px' }}
-          />
-          <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
-            <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-            <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-            <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-          </div>
+    <div className={cn(walletAccountCardShellClass, skeletonCardClass)} aria-hidden="true">
+      <div className={walletAccountCardVisualHostClass}>
+        <Skeleton
+          variant="rect"
+          style={{ width: '100%', height: '6.35rem', borderRadius: '12px' }}
+        />
+        <div
+          className={cn(
+            walletCardActionOverlayClass,
+            'border-transparent bg-transparent shadow-none'
+          )}
+        >
+          <SkeletonActionButton />
+          <SkeletonActionButton />
+          <SkeletonActionButton />
         </div>
       </div>
     </div>
   )
 }
 
-export function DangCardSkeleton() {
+export function DangCardSkeleton({ actions = 2, metaLines = 2 }: DangCardSkeletonShape) {
   return (
-    <div className={cardClassName(cn('dang-card', skeletonCardClass))} aria-hidden="true">
+    <div className={dangCardClass({ className: skeletonCardClass })} aria-hidden="true">
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
-          <Skeleton
-            variant="circle"
-            width="1.35rem"
-            height="1.35rem"
-            style={{ marginTop: '0.1rem', flexShrink: 0 }}
-          />
+          <Skeleton variant="rect" className={dangCheckboxClass} />
           <div className={dangCardBodyClass}>
             <div className={dangCardHeaderClass}>
-              <Skeleton width="45%" height="0.95rem" />
-              <Skeleton
-                width="5.5rem"
-                height="1.75rem"
-                style={{ borderRadius: '8px', flexShrink: 0 }}
-              />
+              <SkeletonText className={dangCardTitleClass} width="6rem" />
+              <SkeletonText className={dangCardAmountClass} width="5rem" />
             </div>
-            <Skeleton width="68%" height="0.75rem" style={{ marginTop: '0.35rem' }} />
+            {Array.from({ length: metaLines }, (_, index) => (
+              <SkeletonText
+                key={index}
+                className={dangCardMetaClass}
+                width={index ? '45%' : '70%'}
+              />
+            ))}
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          {Array.from({ length: actions }, (_, index) => (
+            <SkeletonActionButton key={index} />
+          ))}
         </div>
       </div>
     </div>
@@ -201,10 +258,17 @@ export function RecordItemSkeleton() {
       <div className={skeletonRecordActionsClass}>
         <Skeleton width="4.5rem" height="1rem" />
         <div className={cardActionButtonsClass}>
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
-          <Skeleton variant="rect" className={skeletonActionBtnSizeClass} />
+          <SkeletonActionButton />
+          <SkeletonActionButton />
         </div>
       </div>
     </div>
   )
 }
+
+export {
+  MoneySkeleton,
+  SkeletonActionButton,
+  SkeletonText,
+  type DangCardSkeletonShape
+} from './SkeletonPrimitives'

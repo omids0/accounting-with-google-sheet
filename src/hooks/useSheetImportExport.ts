@@ -4,6 +4,7 @@ import type { ImportResult } from '../services/importExport'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { pickTextFile } from '../utils/csv'
 import { showError, showSuccess } from '../utils/toast'
+import { toUserMessage } from '../utils/userMessage'
 
 type PendingAction = 'export' | 'exportPdf' | 'import'
 
@@ -48,7 +49,7 @@ export function useSheetImportExport({
       await exportFn(spreadsheetId)
       showSuccess('فایل اکسپورت شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در اکسپورت')
+      showError(toUserMessage(err, 'خطا در اکسپورت'))
     }
   }, [exportFn, ensureAuth])
 
@@ -63,7 +64,7 @@ export function useSheetImportExport({
       await exportPdfFn(spreadsheetId)
       showSuccess('فایل PDF ذخیره شد')
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در خروجی PDF')
+      showError(toUserMessage(err, 'خطا در خروجی PDF'))
     }
   }, [exportPdfFn, ensureAuth])
 
@@ -84,7 +85,7 @@ export function useSheetImportExport({
       showSuccess(`${result.imported.toLocaleString('fa-IR')} مورد وارد شد${skipped}`)
       await onComplete()
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'خطا در ایمپورت')
+      showError(toUserMessage(err, 'خطا در ایمپورت'))
     }
   }, [importFn, onComplete, ensureAuth])
 

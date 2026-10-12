@@ -45,9 +45,88 @@
         } catch (e) {}
       })()
     </script>
+    <style>
+      .boot-splash {
+        display: flex;
+        min-height: 100dvh;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.9rem;
+        background: linear-gradient(160deg, #f0fdfa 0%, #ccfbf1 50%, #99f6e4 100%);
+        font-family: Vazirmatn, Tahoma, sans-serif;
+      }
+      [data-theme='dark'] .boot-splash {
+        background: linear-gradient(160deg, #0c1a19 0%, #1a3532 50%, #234a45 100%);
+      }
+      .boot-logo {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 1rem;
+        box-shadow: 0 10px 28px rgba(15, 118, 110, 0.25);
+      }
+      .boot-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #0d5d57;
+      }
+      [data-theme='dark'] .boot-title {
+        color: #2dd4bf;
+      }
+      .boot-dots {
+        display: flex;
+        gap: 0.375rem;
+      }
+      .boot-dots span {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background: #0f766e;
+        animation: boot-blink 1.2s ease-in-out infinite;
+      }
+      [data-theme='dark'] .boot-dots span {
+        background: #2dd4bf;
+      }
+      .boot-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .boot-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes boot-blink {
+        0%,
+        80%,
+        100% {
+          opacity: 0.25;
+        }
+        40% {
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-dots span {
+          animation: none;
+          opacity: 0.6;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Painted before any JS; React's first render replaces it with the same markup (AppLoadingSkeleton). -->
+      <div class="boot-splash" aria-busy="true" aria-label="در حال بارگذاری">
+        <svg class="boot-logo" viewBox="0 0 100 100" aria-hidden="true">
+          <rect width="100" height="100" rx="22" fill="#0f766e" />
+          <path d="M22 72V28M22 72h56" stroke="#fff" stroke-width="3.5" stroke-linecap="round" />
+          <rect x="30" y="48" width="8" height="24" rx="2" fill="#fff" />
+          <rect x="42" y="36" width="8" height="36" rx="2" fill="#fff" />
+          <rect x="54" y="52" width="8" height="20" rx="2" fill="#fff" />
+        </svg>
+        <p class="boot-title">حسابداری شخصی</p>
+        <div class="boot-dots" role="status"><span></span><span></span><span></span></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
