@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 
-import { prefetchBottomNavPages, prefetchSecondaryAppPages } from '../routes/prefetchPages'
+import { DESKTOP_MEDIA_QUERY } from './useMediaQuery'
+import { prefetchBottomNavPages } from '../routes/prefetchPages'
 
 const IDLE_TIMEOUT_MS = 3_000
 
@@ -8,21 +9,12 @@ const NO_IDLE_FALLBACK_MS = 1_500
 
 let prefetchScheduled = false
 
-function saveDataEnabled(): boolean {
-  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
-
-  return connection?.saveData === true
-}
-
-function prefetchAllPages(): void {
-  prefetchBottomNavPages()
-  if (!saveDataEnabled()) prefetchSecondaryAppPages()
-}
-
 /**
- * Warms every page chunk once per app session so first visits don't flash a
- * skeleton. Waits for the first paint and then for an idle slot, so it never
- * competes with the page the user actually opened.
+ * Warms the bottom-nav page chunks once per app session so first visits don't
+ * flash a skeleton. Waits for the first paint and then for an idle slot, so it
+ * never competes with the page the user actually opened. Menu-only pages load
+ * when the drawer opens or a menu item is hovered/touched (see prefetchPages);
+ * on desktop the bottom bar is hidden, so the sidebar's hover does all of it.
  */
 export function usePrefetchAppPages(): void {
   useEffect(() => {
@@ -36,7 +28,7 @@ export function usePrefetchAppPages(): void {
 
     const run = () => {
       fired = true
-      prefetchAllPages()
+      if (!window.matchMedia(DESKTOP_MEDIA_QUERY).matches) prefetchBottomNavPages()
     }
 
     const scheduleIdle = () => {

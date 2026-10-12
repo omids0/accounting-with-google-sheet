@@ -40,7 +40,7 @@ import WalletAccountDetailRoute from './WalletAccountDetailRoute'
 import Layout from '../components/Layout'
 import OnboardingGate from '../components/onboarding/OnboardingGate'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
-import { readBankSmsEntryDraft } from '../services/bankSmsEntry'
+import { readBankSmsEntryDraft } from '../services/bankSmsEntryDraft'
 import { readEntryDraft } from '../services/entryDraft'
 
 function parseFormType(value: string | null): 'income' | 'expense' | undefined {

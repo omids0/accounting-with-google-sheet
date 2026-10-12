@@ -1,13 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-import { getLastOperationDate, syncAppOpen } from '../services/activityTracking'
 import { isTokenValid } from '../services/auth'
-import { setLastOperationDateNative } from '../services/bankSmsNative'
-import { isNativePlatform } from '../services/googleAuthNative'
-import { refreshScheduledReminders } from '../services/localNotifications'
-import { getCurrentPushSubscription, getDeviceLabel } from '../services/pushNotifications'
-import { migrateReminderDefaults } from '../services/reminderDefaultsMigration'
-import { upsertPushSubscription } from '../services/reminders'
 import { getSettings } from '../services/settings'
 
 const TOKEN_WAIT_MS = 60_000
@@ -25,21 +18,6 @@ async function waitForValidToken(): Promise<boolean> {
   return true
 }
 
-/** Keeps an existing subscription fresh; permission is only asked from the reminders page. */
-async function refreshPushSubscription(spreadsheetId: string): Promise<void> {
-  const existing = await getCurrentPushSubscription()
-
-  if (!existing?.endpoint) return
-
-  await upsertPushSubscription(spreadsheetId, {
-    endpoint: existing.endpoint,
-    p256dh: existing.keys!.p256dh!,
-    auth: existing.keys!.auth!,
-    deviceLabel: getDeviceLabel(),
-    updatedAt: new Date().toISOString()
-  })
-}
-
 export function useEngagementReminders(): void {
   const started = useRef(false)
 
@@ -55,16 +33,9 @@ export function useEngagementReminders(): void {
       try {
         // Cached data now shows before the token is renewed; wait for it.
         if (!(await waitForValidToken())) return
-        await migrateReminderDefaults(spreadsheetId)
-        await syncAppOpen(spreadsheetId)
-
-        // The APK has no service worker, so its reminders are scheduled on the device.
-        if (isNativePlatform()) {
-          await setLastOperationDateNative(getLastOperationDate())
-          await refreshScheduledReminders(spreadsheetId)
-        } else {
-          await refreshPushSubscription(spreadsheetId)
-        }
+        // Loaded on demand so reminder and push code stays out of the main chunk.
+        const { runEngagementStartup } = await import('../services/engagementStartup')
+        await runEngagementStartup(spreadsheetId)
       } catch {
         /* non-blocking background setup */
       }

@@ -1,53 +1,22 @@
-import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
 import { LazyTimesheetDetailPage } from './lazyPages'
 import { TimesheetDetailListSkeleton } from '../components/skeleton'
 import Button from '../components/ui/Button'
 import { emptyStateClass } from '../components/ui/displayStyles'
-import { getSettings } from '../services/settings'
-import { fetchTimesheets } from '../services/timesheet'
+import { useRouteRecord } from '../hooks/useRouteRecord'
 import type { Timesheet } from '../types'
-import { handleSheetError } from '../utils/sheetError'
+
+async function fetchAllTimesheets(spreadsheetId: string): Promise<Timesheet[]> {
+  const { fetchTimesheets } = await import('../services/timesheet')
+
+  return fetchTimesheets(spreadsheetId)
+}
 
 export default function TimesheetDetailRoute() {
   const { timesheetId } = useParams<{ timesheetId: string }>()
   const navigate = useNavigate()
-  const [timesheet, setTimesheet] = useState<Timesheet | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      const settings = getSettings()
-
-      if (!settings?.spreadsheetId || !timesheetId) {
-        if (!cancelled) setLoading(false)
-
-        return
-      }
-
-      try {
-        const items = await fetchTimesheets(settings.spreadsheetId)
-
-        if (!cancelled) {
-          setTimesheet(items.find(item => item.id === timesheetId) ?? null)
-          setLoading(false)
-        }
-      } catch (error) {
-        handleSheetError(error)
-
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    void load()
-
-    return () => {
-      cancelled = true
-    }
-  }, [timesheetId])
+  const { record: timesheet, loading } = useRouteRecord(timesheetId, fetchAllTimesheets)
 
   if (loading) {
     return <TimesheetDetailListSkeleton />

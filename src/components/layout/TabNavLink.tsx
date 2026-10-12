@@ -3,10 +3,10 @@ import { Link } from 'react-router'
 
 import type { Tab } from './types'
 import { getPathForTab } from '../../routes/paths'
-import { prefetchTabPage } from '../../routes/prefetchPages'
+import { prefetchTabPageOnIntent } from '../../routes/prefetchPages'
 
 type TabNavLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'onClick'> & {
-  /** Route tab; resolves `to` and warms the page chunk on pointer down. */
+  /** Route tab; resolves `to` and warms the page chunk when the pointer or a finger lands on it. */
   tab?: Tab
   /** Explicit path for destinations that are not tabs (e.g. settings). */
   to?: string
@@ -36,7 +36,7 @@ export default function TabNavLink({
   to,
   active = false,
   onNavigate,
-  onPointerDown,
+  onPointerEnter,
   children,
   ...rest
 }: TabNavLinkProps) {
@@ -44,9 +44,10 @@ export default function TabNavLink({
     <Link
       to={to ?? (tab ? getPathForTab(tab) : '/')}
       aria-current={active ? 'page' : undefined}
-      onPointerDown={event => {
-        if (tab) prefetchTabPage(tab)
-        onPointerDown?.(event)
+      // Pointer enter fires on mouse hover and on touch contact, ahead of pointerdown.
+      onPointerEnter={event => {
+        if (tab) prefetchTabPageOnIntent(tab)
+        onPointerEnter?.(event)
       }}
       onClick={event => {
         if (!isPlainLeftClick(event)) return

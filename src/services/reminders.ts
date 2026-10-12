@@ -6,6 +6,8 @@ import {
   deleteSheetRow
 } from './sheets'
 import type { PushSubscriptionRecord, ReminderKind, ReminderRule } from '../types'
+import { REMINDERS_HEADERS, PUSH_SUBS_HEADERS, REMINDER_LOG_HEADERS } from './sheetHeaders'
+import { REMINDERS_SHEET, PUSH_SUBS_SHEET, REMINDER_LOG_SHEET } from './sheetNames'
 import { parseNumeric } from '../utils/parseNumeric'
 
 export {
@@ -16,13 +18,14 @@ export {
   type UpcomingInstallmentReminder
 } from './reminderDueDates'
 
-export const REMINDERS_SHEET = 'یادآوری'
-export const PUSH_SUBS_SHEET = 'ناتیف'
-export const REMINDER_LOG_SHEET = 'یادآوری_ثبت'
-
-export const REMINDERS_HEADERS = ['نوع', 'فعال', 'روز_قبل', 'ساعت', 'دقیقه']
-export const PUSH_SUBS_HEADERS = ['endpoint', 'p256dh', 'auth', 'دستگاه', 'زمان_ثبت']
-export const REMINDER_LOG_HEADERS = ['تاریخ', 'نوع', 'مرجع', 'زمان_ارسال']
+export {
+  REMINDERS_SHEET,
+  PUSH_SUBS_SHEET,
+  REMINDER_LOG_SHEET,
+  REMINDERS_HEADERS,
+  PUSH_SUBS_HEADERS,
+  REMINDER_LOG_HEADERS
+}
 
 const VALID_KINDS: ReminderKind[] = [
   'installments',

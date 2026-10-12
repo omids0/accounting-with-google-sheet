@@ -1,6 +1,8 @@
 import type { Check } from '../types'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
+import { CHECKS_HEADERS } from './sheetHeaders'
+import { CHECKS_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
@@ -15,24 +17,10 @@ import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
 
-export const CHECKS_SHEET = 'چک‌ها'
+export { CHECKS_SHEET, CHECKS_HEADERS }
 
 /** Expense category of the record a paid check creates. */
 export const CHECK_EXPENSE_CATEGORY = 'چک'
-
-export const CHECKS_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'شماره چک',
-  'طرف حساب',
-  'مبلغ',
-  'تاریخ صدور',
-  'تاریخ سررسید',
-  'پرداخت شده',
-  'زمان پرداخت',
-  'شناسه تراکنش',
-  'زیردسته'
-]
 
 function parsePaid(raw: string): boolean {
   const v = String(raw ?? '')

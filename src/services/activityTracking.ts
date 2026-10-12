@@ -1,11 +1,12 @@
 import { setLastOperationDateNative } from './bankSmsNative'
 import { getSettings } from './settings'
+import { ACTIVITY_HEADERS } from './sheetHeaders'
+import { ACTIVITY_SHEET } from './sheetNames'
 import { ensureSheetWithHeaders, fetchSheetRows, updateSheetRow, appendSheetRow } from './sheets'
 import { getItem, setItem } from './storage'
 import { getTodayIso } from '../utils/jalaliDate'
 
-export const ACTIVITY_SHEET = 'فعالیت'
-export const ACTIVITY_HEADERS = ['آخرین_بازدید', 'آخرین_عملیات']
+export { ACTIVITY_SHEET, ACTIVITY_HEADERS }
 
 const ACTIVITY_KEY = 'accounting_activity'
 

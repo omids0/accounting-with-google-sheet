@@ -1,4 +1,3 @@
-import { useGoogleLogin } from '@react-oauth/google'
 import { useState, useEffect } from 'react'
 
 import AppIcon from './AppIcon'
@@ -22,11 +21,11 @@ import {
   loginPageClass,
   loginTrustBadgeClass
 } from './ui/loginStyles'
+import { useGoogleTokenLogin } from '../hooks/useGoogleTokenLogin'
 import { useAccountSwitchGuard } from '../hooks/useLocalDataWipe'
 import {
   createSession,
   fetchUserProfile,
-  GOOGLE_OAUTH_SCOPE,
   hasRequiredGoogleScopes,
   saveSession,
   sessionNeedsScopeUpgrade
@@ -122,10 +121,9 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
     await continueAfterAuth(profile.name)
   }
 
-  const login = useGoogleLogin({
-    scope: GOOGLE_OAUTH_SCOPE,
+  const { login } = useGoogleTokenLogin({
     // Ask for drive.file only; older broad grants must not ride along in the token.
-    include_granted_scopes: false,
+    includeGrantedScopes: false,
     onSuccess: async tokenResponse => {
       setLoading(true)
       try {

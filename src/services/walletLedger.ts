@@ -1,3 +1,5 @@
+import { WALLET_LEDGER_HEADERS } from './sheetHeaders'
+import { WALLET_LEDGER_SHEET } from './sheetNames'
 import { appendSheetRow, fetchSheetRows } from './sheets'
 import { getSheetAllRows, setSheetAllRows } from './spreadsheetStore'
 import { getTodayIso } from '../utils/jalaliDate'
@@ -5,20 +7,7 @@ import { parseNumeric } from '../utils/parseNumeric'
 import { showError } from '../utils/toast'
 
 /** One row per wallet balance change, with the balance right after it. */
-export const WALLET_LEDGER_SHEET = 'گردش حساب'
-
-export const WALLET_LEDGER_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'شناسه حساب',
-  'تاریخ',
-  'مبلغ',
-  'موجودی بعد',
-  'عنوان',
-  'منبع',
-  'شناسه رکورد',
-  'اثر'
-]
+export { WALLET_LEDGER_SHEET, WALLET_LEDGER_HEADERS }
 
 export type LedgerSource = 'ثبت' | 'ویرایش' | 'حذف' | 'پیامک' | 'اصلاح دستی' | 'موجودی اولیه'
 

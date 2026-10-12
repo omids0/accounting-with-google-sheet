@@ -1,4 +1,3 @@
-import { useGoogleOAuth } from '@react-oauth/google'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { registerSW } from 'virtual:pwa-register'
 
@@ -11,6 +10,7 @@ import {
 import AppLockPrompts from './components/appLock/AppLockPrompts'
 import { AppLoadingSkeleton } from './components/skeleton'
 import { useAppLock } from './hooks/useAppLock'
+import { useGoogleIdentityScript } from './hooks/useGoogleIdentityScript'
 import { useTokenRefresh } from './hooks/useTokenRefresh'
 import { AppAuthenticatedRoutes } from './routes/AppRoutes'
 import { isAppLockEnabled } from './services/appLock'
@@ -59,18 +59,20 @@ export default function App() {
 
   const isOAuthConfigured = !!clientId && !clientId.startsWith('xxx')
 
-  const { scriptLoadedSuccessfully } = useGoogleOAuth()
-
-  // The APK renews its token through the native plugin, so Google's web script
-  // never loading there must not block a refresh.
-  const canRefreshSilently = isNativePlatform() || scriptLoadedSuccessfully
-
   const { locked, unlock } = useAppLock()
 
   // With the app lock on, this device's data is encrypted: nothing is read from
   // it, synced or persisted until the first unlock of this page puts the key in
   // memory. Without a lock (or without a session to unlock) start-up is as before.
   const [dataUnlocked, setDataUnlocked] = useState(() => !isAppLockEnabled() || !hasStoredSession())
+
+  // On the web, start-up renewal of an expired token waits for Google's script,
+  // which is fetched only then; a valid token starts without it. The APK renews
+  // through the native plugin.
+  const needsStartupRefresh =
+    !isNativePlatform() && dataUnlocked && hasStoredSession() && !isTokenValid()
+
+  const canRefreshSilently = useGoogleIdentityScript(needsStartupRefresh) || isNativePlatform()
 
   const handleUnlock = useCallback(() => {
     unlock()
@@ -87,7 +89,8 @@ export default function App() {
 
   const handleReauth = useCallback(async () => {
     if (!startupDoneRef.current) return
-    if (canRefreshSilently && hasStoredSession()) {
+    // The refresh fetches Google's script itself if it is not loaded yet.
+    if (hasStoredSession()) {
       const refreshed = await refreshAccessTokenSilently(clientId)
 
       if (refreshed && isTokenValid()) {
@@ -97,7 +100,7 @@ export default function App() {
       }
     }
     setNeedsReauth(true)
-  }, [clientId, canRefreshSilently])
+  }, [clientId])
 
   useEffect(() => {
     registerHandlers({ onReauth: handleReauth, onLogout: handleLogout })

@@ -1,16 +1,18 @@
-import { CHECKS_SHEET } from './checks'
-import { DANG_SPLIT_GROUPS_SHEET } from './dangSplit'
 import {
   countRecordRows,
   getOnboardingState,
   isOnboardingClosed,
   type OnboardingStepId
 } from './onboarding'
-import { PERSONAL_REMINDERS_SHEET } from './personalReminders'
+import {
+  CHECKS_SHEET,
+  DANG_SPLIT_GROUPS_SHEET,
+  PERSONAL_REMINDERS_SHEET,
+  TIMESHEETS_SHEET,
+  VEHICLES_SHEET
+} from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
 import { getItem, setItem } from './storage'
-import { TIMESHEETS_SHEET } from './timesheetRow'
-import { VEHICLES_SHEET } from './vehicleProfiles'
 import type { Tab } from '../components/layout/types'
 
 export const DISCOVERY_STORAGE_KEY = 'accounting_discovery_v1'

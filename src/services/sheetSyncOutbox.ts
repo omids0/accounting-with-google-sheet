@@ -1,4 +1,4 @@
-import { invalidateInstallmentsCache } from './installments'
+import { invalidateInstallmentsCache } from './installmentsConstants'
 import { isQuotaExceededError } from './sheets'
 import { isPermanentApiError } from './sheetsApi'
 import { normalizeSheetTitle } from './sheetsMeta'

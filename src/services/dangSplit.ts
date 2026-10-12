@@ -1,3 +1,5 @@
+import { DANG_SPLIT_SHEET_SPECS } from './moduleSheetSpecs'
+import { DANG_SPLIT_GROUPS_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   deleteSheetRow,
@@ -5,59 +7,25 @@ import {
   fetchSheetRangeFromApi,
   fetchSheetRows,
   replaceSheetDataRows,
-  updateSheetRow,
-  type SheetSpec
+  updateSheetRow
 } from './sheets'
 import type { DangSplitGroup } from '../types/dangSplit'
 
-export const DANG_SPLIT_GROUPS_SHEET = 'گروه_دنگ'
-export const DANG_SPLIT_CATEGORIES_SHEET = 'دسته_افراد_دنگ'
-export const DANG_SPLIT_PEOPLE_SHEET = 'افراد_دنگ'
-export const DANG_SPLIT_EXPENSES_SHEET = 'اقلام_دنگ'
-export const DANG_SPLIT_ALLOCATIONS_SHEET = 'تخصیص_دنگ'
-
-export const DANG_SPLIT_GROUPS_HEADERS = ['شناسه', 'زمان ثبت', 'عنوان', 'توضیحات']
-
-export const DANG_SPLIT_CATEGORIES_HEADERS = ['شناسه', 'شناسه گروه', 'عنوان', 'زمان ثبت']
-
-export const DANG_SPLIT_PEOPLE_HEADERS = [
-  'شناسه',
-  'شناسه گروه',
-  'نام',
-  'شناسه دسته',
-  'ضریب پیش‌فرض',
-  'مبلغ پرداخت‌شده',
-  'زمان تسویه',
-  'یادداشت',
-  'واریز به صندوق'
-]
-
-export const DANG_SPLIT_EXPENSES_HEADERS = [
-  'شناسه',
-  'شناسه گروه',
-  'عنوان',
-  'تاریخ',
-  'مبلغ',
-  'توضیحات',
-  'زمان ثبت',
-  'پرداخت‌کننده'
-]
-
-export const DANG_SPLIT_ALLOCATIONS_HEADERS = [
-  'شناسه',
-  'شناسه گروه',
-  'شناسه قلم',
-  'شناسه فرد',
-  'وزن'
-]
-
-export const DANG_SPLIT_SHEET_SPECS: SheetSpec[] = [
-  { sheetName: DANG_SPLIT_GROUPS_SHEET, headers: DANG_SPLIT_GROUPS_HEADERS },
-  { sheetName: DANG_SPLIT_CATEGORIES_SHEET, headers: DANG_SPLIT_CATEGORIES_HEADERS },
-  { sheetName: DANG_SPLIT_PEOPLE_SHEET, headers: DANG_SPLIT_PEOPLE_HEADERS },
-  { sheetName: DANG_SPLIT_EXPENSES_SHEET, headers: DANG_SPLIT_EXPENSES_HEADERS },
-  { sheetName: DANG_SPLIT_ALLOCATIONS_SHEET, headers: DANG_SPLIT_ALLOCATIONS_HEADERS }
-]
+export { DANG_SPLIT_SHEET_SPECS }
+export {
+  DANG_SPLIT_ALLOCATIONS_SHEET,
+  DANG_SPLIT_CATEGORIES_SHEET,
+  DANG_SPLIT_EXPENSES_SHEET,
+  DANG_SPLIT_GROUPS_SHEET,
+  DANG_SPLIT_PEOPLE_SHEET
+} from './sheetNames'
+export {
+  DANG_SPLIT_ALLOCATIONS_HEADERS,
+  DANG_SPLIT_CATEGORIES_HEADERS,
+  DANG_SPLIT_EXPENSES_HEADERS,
+  DANG_SPLIT_GROUPS_HEADERS,
+  DANG_SPLIT_PEOPLE_HEADERS
+} from './sheetHeaders'
 
 export type DangSplitGroupWithRow = DangSplitGroup & { rowNumber: number }
 

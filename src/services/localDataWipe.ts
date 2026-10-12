@@ -9,6 +9,7 @@ import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
 import { invalidateDashboardCache } from './dashboardCache'
 import { DISCOVERY_STORAGE_KEY } from './featureDiscovery'
 import { isNativePlatform, signOutNative } from './googleAuthNative'
+import { loadGoogleIdentityScript } from './googleIdentityScript'
 import { ONBOARDING_STORAGE_KEY } from './onboarding'
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
 import { stopSheetSync } from './sheetSyncLifecycle'
@@ -90,18 +91,27 @@ async function revokeGoogleAccess(accessToken: string | null): Promise<void> {
     return
   }
 
-  const oauth2 = window.google?.accounts?.oauth2
+  if (!accessToken) return
 
-  if (!accessToken || !oauth2?.revoke) return
-
+  // Google's script is no longer loaded at start-up, so fetch it for the revoke.
   await withTimeout(
-    new Promise<void>(resolve => {
-      try {
-        oauth2.revoke?.(accessToken, () => resolve())
-      } catch {
-        resolve()
-      }
-    })
+    loadGoogleIdentityScript().then(
+      () =>
+        new Promise<void>(resolve => {
+          const oauth2 = window.google?.accounts?.oauth2
+
+          if (!oauth2?.revoke) {
+            resolve()
+
+            return
+          }
+          try {
+            oauth2.revoke(accessToken, () => resolve())
+          } catch {
+            resolve()
+          }
+        })
+    )
   )
 }
 

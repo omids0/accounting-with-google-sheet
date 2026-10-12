@@ -1,5 +1,7 @@
 import type { VaultAction, VaultAssetType, VaultHolding, VaultTransaction } from '../types'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
+import { TREASURY_HEADERS } from './sheetHeaders'
+import { TREASURY_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
@@ -13,18 +15,7 @@ import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPersianDate, formatVaultAction } from '../utils/pdfFormat'
 
-export const TREASURY_SHEET = 'صندوقچه'
-
-export const TREASURY_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'نوع دارایی',
-  'عملیات',
-  'مقدار',
-  'قیمت واحد',
-  'تاریخ',
-  'توضیحات'
-]
+export { TREASURY_SHEET, TREASURY_HEADERS }
 
 function rowToTransaction(
   row: string[],

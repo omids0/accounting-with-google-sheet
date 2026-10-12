@@ -1,3 +1,5 @@
+import { VEHICLES_HEADERS } from './sheetHeaders'
+import { VEHICLES_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   deleteSheetRow,
@@ -9,21 +11,7 @@ import type { VehicleMileageReminderInterval, VehicleProfile } from '../types/ve
 import { getTodayIso } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
 
-export const VEHICLES_SHEET = 'خودرو'
-
-export const VEHICLES_HEADERS = [
-  'شناسه',
-  'زمان_ثبت',
-  'عنوان',
-  'کارکرد',
-  'VIN',
-  'سال_ساخت',
-  'ظرفیت',
-  'پلاک',
-  'یادآوری_کارکرد',
-  'آخرین_بروز_کارکرد',
-  'فعال'
-]
+export { VEHICLES_SHEET, VEHICLES_HEADERS }
 
 const VALID_INTERVALS = new Set<VehicleMileageReminderInterval>([
   'first-of-month',

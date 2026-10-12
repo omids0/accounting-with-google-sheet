@@ -2,20 +2,8 @@ import type { Receivable, ReceivablePayment } from '../types'
 import { parseNumeric } from '../utils/parseNumeric'
 import { isJsonArrayCell, isNumericCell, isPlainNumberCell } from '../utils/sheetValues'
 
-export const RECEIVABLES_SHEET = 'طلب‌ها'
-
-export const RECEIVABLES_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'عنوان',
-  'طرف حساب',
-  'دسته‌بندی',
-  'مبلغ',
-  'تاریخ قرض',
-  'توضیحات',
-  'پرداخت‌ها',
-  'زیردسته'
-]
+export { RECEIVABLES_SHEET } from './sheetNames'
+export { RECEIVABLES_HEADERS } from './sheetHeaders'
 
 export function parsePayments(raw: string): ReceivablePayment[] {
   if (!raw) return []

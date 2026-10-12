@@ -1,6 +1,8 @@
 import type { Dang } from '../types'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
+import { DANG_HEADERS } from './sheetHeaders'
+import { DANG_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
@@ -14,22 +16,7 @@ import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
 import { isNumericCell, isPlainNumberCell } from '../utils/sheetValues'
 
-export const DANG_SHEET = 'دنگ'
-
-export const DANG_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'عنوان',
-  'دسته‌بندی',
-  'طرف حساب',
-  'مبلغ',
-  'تاریخ',
-  'توضیحات',
-  'پرداخت شده',
-  'زمان پرداخت',
-  'شناسه تراکنش',
-  'زیردسته'
-]
+export { DANG_SHEET, DANG_HEADERS }
 
 function parsePaid(raw: string): boolean {
   const v = String(raw ?? '')

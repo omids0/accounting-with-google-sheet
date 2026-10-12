@@ -1,3 +1,5 @@
+import { COUNTERPARTIES_HEADERS } from './sheetHeaders'
+import { COUNTERPARTIES_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   deleteSheetRow,
@@ -13,20 +15,7 @@ import type {
   CounterpartyPhone
 } from '../types/counterparties'
 
-export const COUNTERPARTIES_SHEET = 'طرف_حساب‌ها'
-
-export const COUNTERPARTIES_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'نام',
-  'نام خانوادگی',
-  'تاریخ تولد',
-  'آدرس',
-  'لوکیشن',
-  'شماره تماس',
-  'حساب‌ها',
-  'توضیحات'
-]
+export { COUNTERPARTIES_SHEET, COUNTERPARTIES_HEADERS }
 
 export function parseCounterpartyAccounts(raw: string): CounterpartyAccount[] {
   if (!raw) return []

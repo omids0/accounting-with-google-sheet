@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
 import { LazyVehicleDetailPage } from './lazyPages'
@@ -6,48 +5,18 @@ import { DangCardListSkeleton } from '../components/skeleton'
 import Button from '../components/ui/Button'
 import { emptyStateClass } from '../components/ui/displayStyles'
 import type { VehicleProfileWithRow } from '../components/vehicles/types'
-import { getSettings } from '../services/settings'
-import { fetchVehicles } from '../services/vehicleProfiles'
-import { handleSheetError } from '../utils/sheetError'
+import { useRouteRecord } from '../hooks/useRouteRecord'
+
+async function fetchAllVehicles(spreadsheetId: string): Promise<VehicleProfileWithRow[]> {
+  const { fetchVehicles } = await import('../services/vehicleProfiles')
+
+  return fetchVehicles(spreadsheetId)
+}
 
 export default function VehicleDetailRoute() {
   const { vehicleId } = useParams<{ vehicleId: string }>()
   const navigate = useNavigate()
-  const [vehicle, setVehicle] = useState<VehicleProfileWithRow | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      const settings = getSettings()
-
-      if (!settings?.spreadsheetId || !vehicleId) {
-        if (!cancelled) setLoading(false)
-
-        return
-      }
-
-      try {
-        const items = await fetchVehicles(settings.spreadsheetId)
-
-        if (!cancelled) {
-          setVehicle(items.find(item => item.id === vehicleId) ?? null)
-          setLoading(false)
-        }
-      } catch (error) {
-        handleSheetError(error)
-
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    void load()
-
-    return () => {
-      cancelled = true
-    }
-  }, [vehicleId])
+  const { record: vehicle, loading } = useRouteRecord(vehicleId, fetchAllVehicles)
 
   if (loading) {
     return <DangCardListSkeleton filterBar />

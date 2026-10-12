@@ -2,22 +2,8 @@ import type { Timesheet, TimesheetEntry } from '../types'
 import { calcDurationMinutes, normalizeDateTimeIso } from '../utils/datetime'
 import { parseNumeric } from '../utils/parseNumeric'
 
-export const TIMESHEETS_SHEET = 'تایم‌شیت‌ها'
-export const TIMESHEET_ENTRIES_SHEET = 'رکوردهای تایم‌شیت'
-
-export const TIMESHEETS_HEADERS = ['شناسه', 'زمان ثبت', 'عنوان', 'توضیحات']
-
-export const TIMESHEET_ENTRIES_HEADERS = [
-  'شناسه',
-  'شناسه تایم‌شیت',
-  'زمان ثبت',
-  'عنوان',
-  'شروع',
-  'پایان',
-  'مدت (دقیقه)',
-  'توضیحات',
-  'تایید شده'
-]
+export { TIMESHEETS_SHEET, TIMESHEET_ENTRIES_SHEET } from './sheetNames'
+export { TIMESHEETS_HEADERS, TIMESHEET_ENTRIES_HEADERS } from './sheetHeaders'
 
 function parseChecked(raw: string): boolean {
   const value = String(raw ?? '')

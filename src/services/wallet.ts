@@ -1,6 +1,8 @@
 import type { AppSettings, CustomForm, WalletAccount } from '../types'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { resolveOpeningBalanceContext, syncDerivedOpeningBalances } from './openingBalanceService'
+import { WALLET_HEADERS } from './sheetHeaders'
+import { WALLET_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   ensureSheetWithHeaders,
@@ -19,24 +21,7 @@ import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 
-export const WALLET_SHEET = 'کیف پول'
-
-export const WALLET_HEADERS = [
-  'شناسه',
-  'زمان ثبت',
-  'عنوان',
-  'موجودی',
-  'توضیحات',
-  'نوع حساب',
-  'بانک',
-  'شماره کارت',
-  'نام دارنده',
-  'رنگ کارت',
-  'رنگ اصلی',
-  'رنگ ثانویه',
-  'شماره حساب',
-  'شماره شبا'
-]
+export { WALLET_SHEET, WALLET_HEADERS }
 
 function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNumber: number } {
   return {

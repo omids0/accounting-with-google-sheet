@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 
 import { formatRelativeTime, getSyncBadgeState } from './syncBadgeState'
-import SyncDetailsModal from './SyncDetailsModal'
 import { useSyncStatus } from '../hooks/useSyncStatus'
 import { getActiveSpreadsheetId } from '../services/sheetSync'
 import { syncStatusBadgeClass, syncStatusDotClass, syncStatusLabelClass } from './ui/layoutStyles'
+
+// Only shown after a sync problem, so its failed-write code stays out of the main chunk.
+const LazySyncDetailsModal = lazy(() => import('./SyncDetailsModal'))
 
 export default function SyncStatusBadge() {
   const status = useSyncStatus()
@@ -34,14 +36,16 @@ export default function SyncStatusBadge() {
         >
           {badgeContent}
         </button>
-        <SyncDetailsModal
-          open={detailsOpen}
-          onClose={() => setDetailsOpen(false)}
-          spreadsheetId={getActiveSpreadsheetId()}
-          cause={cause}
-          pendingWrites={status.pendingWrites}
-          failedWrites={status.failedWrites}
-        />
+        <Suspense fallback={null}>
+          <LazySyncDetailsModal
+            open={detailsOpen}
+            onClose={() => setDetailsOpen(false)}
+            spreadsheetId={getActiveSpreadsheetId()}
+            cause={cause}
+            pendingWrites={status.pendingWrites}
+            failedWrites={status.failedWrites}
+          />
+        </Suspense>
       </>
     )
   }

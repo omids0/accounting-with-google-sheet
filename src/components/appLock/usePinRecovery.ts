@@ -1,9 +1,9 @@
-import { useGoogleLogin, useGoogleOAuth } from '@react-oauth/google'
 import { useCallback, useState } from 'react'
 
+import { useGoogleTokenLogin } from '../../hooks/useGoogleTokenLogin'
 import { unsyncedLossWarning, type WipeConfirmModalProps } from '../../hooks/useLocalDataWipe'
 import { recoverPinWithGoogleToken } from '../../services/appLockRecovery'
-import { GOOGLE_OAUTH_SCOPE, getUserEmail } from '../../services/auth'
+import { getUserEmail } from '../../services/auth'
 import { isNativePlatform, signInNative } from '../../services/googleAuthNative'
 import { getPendingSyncCount } from '../../services/localDataWipe'
 import { toUserMessage } from '../../utils/userMessage'
@@ -32,7 +32,9 @@ export function usePinRecovery() {
 
   const email = getUserEmail() ?? ''
 
-  const { scriptLoadedSuccessfully } = useGoogleOAuth()
+  // Google's script loads once the user asks to recover, while they read the
+  // confirmation; the lock screen itself never fetches it.
+  const [recoveryRequested, setRecoveryRequested] = useState(false)
 
   const fail = useCallback((message: string) => {
     setError(message)
@@ -58,16 +60,16 @@ export function usePinRecovery() {
     [email, fail]
   )
 
-  const webSignIn = useGoogleLogin({
-    scope: GOOGLE_OAUTH_SCOPE,
+  const { login: webSignIn, ready: googleReady } = useGoogleTokenLogin({
     prompt: 'select_account',
     hint: email,
+    load: recoveryRequested,
     onSuccess: response => void finish(response.access_token, response.expires_in),
-    onError: () => fail(CANCELLED_MESSAGE),
-    onNonOAuthError: () => fail(CANCELLED_MESSAGE)
+    onError: () => fail(CANCELLED_MESSAGE)
   })
 
   const start = useCallback(() => {
+    setRecoveryRequested(true)
     setError('')
     setPendingCount(getPendingSyncCount())
     setOpen(true)
@@ -81,7 +83,7 @@ export function usePinRecovery() {
 
     if (!isNativePlatform()) {
       // Without Google's script the popup never opens; say so instead of waiting.
-      if (!scriptLoadedSuccessfully) {
+      if (!googleReady) {
         fail('ورود با گوگل در دسترس نیست؛ اتصال اینترنت را بررسی کنید.')
 
         return

@@ -1,3 +1,5 @@
+import { VEHICLE_DEADLINE_HEADERS } from './sheetHeaders'
+import { VEHICLE_DEADLINE_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   deleteSheetRow,
@@ -8,22 +10,7 @@ import {
 import type { VehicleDeadline } from '../types/vehicles'
 import { parseNumeric } from '../utils/parseNumeric'
 
-export const VEHICLE_DEADLINE_SHEET = 'موعد_خودرو'
-
-export const VEHICLE_DEADLINE_HEADERS = [
-  'شناسه',
-  'خودرو_id',
-  'زمان_ثبت',
-  'دسته',
-  'تاریخ_شروع',
-  'تاریخ_پایان',
-  'مبلغ',
-  'توضیحات',
-  'expense_id',
-  'فعال',
-  'یادآوری_فعال',
-  'روز_قبل'
-]
+export { VEHICLE_DEADLINE_SHEET, VEHICLE_DEADLINE_HEADERS }
 
 function parseBool(value: string | undefined): boolean {
   const v = String(value ?? '')

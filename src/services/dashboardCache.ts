@@ -1,5 +1,5 @@
 import type { AppSettings, DashboardData, NetAvailableConfig } from '../types'
-import { invalidateInstallmentsCache } from './installments'
+import { invalidateInstallmentsCache } from './installmentsConstants'
 import type { DateRange } from '../utils/dateRange'
 
 export const DASHBOARD_CACHE_TTL_MS = 30_000

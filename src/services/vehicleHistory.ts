@@ -1,22 +1,10 @@
+import { VEHICLE_HISTORY_HEADERS } from './sheetHeaders'
+import { VEHICLE_HISTORY_SHEET } from './sheetNames'
 import { appendSheetRow, deleteSheetRow, ensureSheetWithHeaders, fetchSheetRows } from './sheets'
 import type { VehicleHistoryEntry, VehicleRecordKind } from '../types/vehicles'
 import { parseNumeric } from '../utils/parseNumeric'
 
-export const VEHICLE_HISTORY_SHEET = 'تاریخچه_خودرو'
-
-export const VEHICLE_HISTORY_HEADERS = [
-  'شناسه',
-  'خودرو_id',
-  'زمان_ثبت',
-  'نوع_رکورد',
-  'مرجع_id',
-  'تاریخ',
-  'کارکرد',
-  'km_بعدی',
-  'جزئیات',
-  'مبلغ',
-  'expense_id'
-]
+export { VEHICLE_HISTORY_SHEET, VEHICLE_HISTORY_HEADERS }
 
 const VALID_KINDS = new Set<VehicleRecordKind>(['periodic', 'deadline', 'mechanic', 'mileage'])
 

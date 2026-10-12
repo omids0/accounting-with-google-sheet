@@ -1,9 +1,9 @@
 import { appendSheetRow, deleteSheetRow, ensureSheetWithHeaders, fetchSheetRows } from './sheets'
 import type { SmsTemplate, SmsTemplatePart } from '../types'
+import { SMS_TEMPLATES_HEADERS } from './sheetHeaders'
+import { SMS_TEMPLATES_SHEET } from './sheetNames'
 
-export const SMS_TEMPLATES_SHEET = 'قالب_پیامک'
-
-export const SMS_TEMPLATES_HEADERS = ['شناسه', 'زمان ثبت', 'شناسه حساب', 'نوع', 'واحد', 'الگو']
+export { SMS_TEMPLATES_SHEET, SMS_TEMPLATES_HEADERS }
 
 export type SmsTemplateWithRow = SmsTemplate & { rowNumber: number }
 

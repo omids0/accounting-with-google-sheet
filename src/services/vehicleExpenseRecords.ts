@@ -1,3 +1,5 @@
+import { VEHICLE_EXPENSE_META_HEADERS } from './sheetHeaders'
+import { VEHICLE_EXPENSE_META_SHEET } from './sheetNames'
 import {
   appendSheetRow,
   deleteSheetRow,
@@ -8,18 +10,7 @@ import {
 import type { VehicleExpenseMeta } from '../types/vehicles'
 import { parseNumeric } from '../utils/parseNumeric'
 
-export const VEHICLE_EXPENSE_META_SHEET = 'هزینه_خودرو'
-
-export const VEHICLE_EXPENSE_META_HEADERS = [
-  'شناسه',
-  'شناسه_هزینه',
-  'شناسه_خودرو',
-  'نوع_هزینه',
-  'نرخ_لیتر',
-  'لیتر',
-  'کارکرد',
-  'زمان_ثبت'
-]
+export { VEHICLE_EXPENSE_META_SHEET, VEHICLE_EXPENSE_META_HEADERS }
 
 export type VehicleExpenseMetaWithRow = VehicleExpenseMeta & { rowNumber: number }
 

@@ -1,10 +1,10 @@
+import { MONTHLY_BALANCE_HEADERS } from './sheetHeaders'
+import { MONTHLY_BALANCE_SHEET } from './sheetNames'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
 import type { SheetWriteOptions } from './sheetsRows'
 import { parseNumeric } from '../utils/parseNumeric'
 
-export const MONTHLY_BALANCE_SHEET = 'موجودی ماهانه'
-
-export const MONTHLY_BALANCE_HEADERS = ['کلید ماه', 'موجودی اول', 'زمان ثبت', 'توضیحات']
+export { MONTHLY_BALANCE_SHEET, MONTHLY_BALANCE_HEADERS }
 
 export interface MonthlyOpeningBalance {
   monthKey: string

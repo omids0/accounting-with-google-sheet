@@ -1,7 +1,7 @@
 import { getSettings } from './settings'
+import { WALLET_SHEET } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
 import { getItem, setItem } from './storage'
-import { WALLET_SHEET } from './wallet'
 
 export const ONBOARDING_STORAGE_KEY = 'accounting_onboarding_v1'
 
