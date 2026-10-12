@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — اعلان‌ها و قفل اپ</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+    <style>
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 11px 4px;
+        border-top: 1px dashed #e4e4e4;
+        font-size: 13px;
+      }
+      .row:first-child {
+        border-top: 0;
+      }
+      .row small {
+        display: block;
+        color: #888;
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      .sw {
+        width: 38px;
+        height: 22px;
+        border-radius: 11px;
+        background: #555;
+        position: relative;
+        flex: none;
+      }
+      .sw::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+      }
+      .sw.off {
+        background: #ccc;
+      }
+      .sw.off::after {
+        left: auto;
+        right: 3px;
+      }
+      .time {
+        border: 1px solid #bbb;
+        border-radius: 8px;
+        padding: 3px 8px;
+        font-size: 12px;
+        color: #555;
+        flex: none;
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #555;
+      }
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #555;
+      }
+      .opt {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1.5px solid #bbb;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+      .opt.on {
+        border-color: #555;
+        background: #f1f1f1;
+      }
+      .opt .radio {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid #888;
+        flex: none;
+      }
+      .opt.on .radio {
+        border-width: 6px;
+        border-color: #555;
+      }
+      .opt b {
+        display: block;
+      }
+      .opt small {
+        color: #888;
+        font-size: 11px;
+      }
+      .adv {
+        font-size: 12px;
+        color: #777;
+        text-decoration: underline;
+        text-align: center;
+        margin: 6px 0;
+      }
+      .blur {
+        filter: blur(6px);
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(240, 253, 250, 0.35);
+      }
+      .overlay .logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: #0f766e;
+      }
+      .phone {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>وایرفریم: اعلان‌ها (پیش‌فرض روشن + جمع‌بندی شبانه) و قفل اپ (بدون نق زدن)</h1>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs"><button class="on">یادآوری‌ها</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>یادآوری‌ها</span><span class="icon">☰</span>
+          </div>
+          <div class="content">
+            <div class="card">
+              <div class="status">
+                <span class="dot"></span>اعلان‌ها روشن است · ساعت‌ها به وقت گوشی
+              </div>
+            </div>
+            <div class="card">
+              <div class="row">
+                <div>اقساط<small>۱ روز قبل از سررسید</small></div>
+                <span class="time">۹:۰۰</span><span class="sw"></span>
+              </div>
+              <div class="row">
+                <div>چک‌ها<small>۱ روز قبل از سررسید</small></div>
+                <span class="time">۹:۰۰</span><span class="sw"></span>
+              </div>
+              <div class="row">
+                <div>بدهی‌ها<small>۱ روز قبل از سررسید</small></div>
+                <span class="time">۹:۰۰</span><span class="sw"></span>
+              </div>
+              <div class="row">
+                <div>مواعد شخصی<small>همان روز</small></div>
+                <span class="time">۹:۰۰</span><span class="sw"></span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="row">
+                <div>
+                  <b>جمع‌بندی شبانه</b
+                  ><small>«امروز ۳ پیامک بانکی ثبت نشده» · «امروز چیزی ثبت نکردی»</small>
+                </div>
+                <span class="time">۲۱:۰۰</span><span class="sw"></span>
+              </div>
+              <div class="row">
+                <div>یادآوری سر زدن<small>اگر دیروز اپ را باز نکردی</small></div>
+                <span class="time">۹:۰۰</span><span class="sw off"></span>
+              </div>
+            </div>
+            <div class="adv">تنظیمات پیشرفته (توسعه‌دهنده) ▾</div>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span>
+            <span class="center"><i></i>داشبورد</span>
+            <span><i></i>طلب‌ها</span><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">قفل اپ — انتخاب رفتار</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>قفل اپ</span><span class="icon">☰</span>
+          </div>
+          <div class="content">
+            <div class="wiz-title">کی دوباره قفل شود؟</div>
+            <div class="wiz-sub">یک لحظه رفتن به پیامک‌ها و برگشتن نباید رمز بخواهد.</div>
+            <div class="opt on">
+              <span class="radio"></span>
+              <div>
+                <b>بعد از ۵ دقیقه بی‌فعالیت</b
+                ><small>پیشنهادی · رفت‌وبرگشت کوتاه رمز نمی‌خواهد</small>
+              </div>
+            </div>
+            <div class="opt">
+              <span class="radio"></span>
+              <div>
+                <b>هر بار خروج از اپ</b><small>با هر جابه‌جایی به اپ دیگر قفل می‌شود</small>
+              </div>
+            </div>
+            <div class="opt">
+              <span class="radio"></span>
+              <div><b>فقط هنگام باز شدن اپ</b><small>تا وقتی اپ باز است رمز نمی‌خواهد</small></div>
+            </div>
+            <div class="adv">گزینه‌های بیشتر (همیشه، فقط دستی، مدت بی‌فعالیت) ▾</div>
+            <div class="card">
+              <div class="row">
+                <div>
+                  <b>محو کردن اپ در پس‌زمینه</b
+                  ><small
+                    >در لیست برنامه‌های اخیر محتوا دیده نمی‌شود؛ اسکرین‌شات هم بسته می‌شود</small
+                  >
+                </div>
+                <span class="sw"></span>
+              </div>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: 0">
+              چون اطلاعات روی دستگاه رمزگذاری شده، هر بار که اپ از نو باز یا رفرش شود رمز یا اثر
+              انگشت لازم است.
+            </p>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span>
+            <span class="center"><i></i>داشبورد</span>
+            <span><i></i>طلب‌ها</span><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">پس‌زمینه — محو شده</button></div>
+        <div class="phone">
+          <div class="blur">
+            <div class="app-header">
+              <span class="icon">☰</span><span>داشبورد</span><span class="icon">👤</span>
+            </div>
+            <div class="content">
+              <div class="card hero">
+                <h3>دارایی قابل اتکا</h3>
+                <div class="num">۲۹٬۷۷۰٬۰۰۰ تومان</div>
+              </div>
+              <div class="stats">
+                <div class="stat">درآمد دوره <b>۱۸٬۰۰۰٬۰۰۰</b></div>
+                <div class="stat">هزینه دوره <b>۷۳۰٬۰۰۰</b></div>
+              </div>
+              <div class="card">
+                <div class="tx-row"><span>خرید سوپرمارکت</span><span>−۲۵۰٬۰۰۰</span></div>
+                <div class="tx-row"><span>حقوق مهر</span><span>+۱۸٬۰۰۰٬۰۰۰</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="overlay"><div class="logo"></div></div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>اعلان‌ها</b> — همه یادآوری‌های سررسید پیش‌فرض <b>روشن</b>؛ کاربر اگر اذیت شد خاموش
+          می‌کند. ردیف جدید «جمع‌بندی شبانه» ساعت ۲۱: فقط وقتی چیزی مانده پیام می‌دهد (پیامک
+          ثبت‌نشده / امروز ثبت نداشتی). مجوز اعلان فقط وقتی پرسیده می‌شود که کاربر چیزی را روشن کند،
+          با یک جمله توضیح. Service Worker/VAPID/cron می‌رود زیر «تنظیمات پیشرفته» و در اندروید
+          اصلاً نیست.
+        </div>
+        <div class="note">
+          <b>قفل اپ</b> — پیش‌فرض جدید: ۵ دقیقه بی‌فعالیت (الان: هر بار خروج). انتخاب رفتار داخل خود
+          مراحل فعال‌سازی قفل است، نه دفن‌شده در تنظیمات. کاربرانی که خودشان رفتاری انتخاب کرده‌اند
+          دست نمی‌خورند.
+        </div>
+        <div class="note">
+          <b>محو در پس‌زمینه</b> — اندروید: FLAG_SECURE (thumbnail خالی در برنامه‌های اخیر +
+          اسکرین‌شات بسته)؛ وب: لایه blur با لوگو وقتی تب/اپ پنهان است.
+        </div>
+        <div class="note">
+          <b>حد صداقت</b> — کلید رمزگذاری فقط در حافظه است؛ اگر اندروید اپ را واقعاً بکشد (cold
+          start)، رمز لازم است. اگر این‌طور «هر بار» می‌خواهد، باید روی گوشی بررسی شود که اپ کشته
+          می‌شود یا policy.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
