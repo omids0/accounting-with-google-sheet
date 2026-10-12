@@ -11,13 +11,15 @@ import TabNavLink from './TabNavLink'
 import { TAB_TITLES } from './types'
 import { SETTINGS_PATH } from '../../routes/paths'
 import { isBankSmsAvailable } from '../../services/bankSmsNative'
+import { useAppUpdateStore } from '../../stores/appUpdateStore'
 import AppIcon from '../AppIcon'
 import type { AppIconName } from '../appIcon/types'
 import {
   appMenuRailClass,
   appRailDividerClass,
   appRailItemClass,
-  appRailTooltipClass
+  appRailTooltipClass,
+  appRailUpdateDotClass
 } from '../ui/layoutStyles'
 
 interface LayoutMenuRailProps extends LayoutMenuNavProps {
@@ -43,6 +45,7 @@ function RailLabel({ icon, label }: { icon: AppIconName; label: string }) {
 export default function LayoutMenuRail(props: LayoutMenuRailProps) {
   const { tab, showSettings, onTabChange, onOpenMenu } = props
   const currentTab = showSettings ? null : tab
+  const updateAvailable = useAppUpdateStore(state => !!state.update)
 
   const link = (entry: MenuLinkEntry) => {
     const active = currentTab !== null && (entry.activeTabs ?? [entry.tab]).includes(currentTab)
@@ -88,10 +91,11 @@ export default function LayoutMenuRail(props: LayoutMenuRailProps) {
         type="button"
         className={appRailItemClass(props.menuOpen)}
         onClick={onOpenMenu}
-        aria-label="باز کردن منو"
+        aria-label={updateAvailable ? 'باز کردن منو — به‌روزرسانی موجود' : 'باز کردن منو'}
         aria-expanded={props.menuOpen}
       >
         <RailLabel icon="menu" label="منو" />
+        {updateAvailable && <span className={appRailUpdateDotClass} aria-hidden="true" />}
       </button>
       <span className={appRailDividerClass} />
       {MENU_MONEY_LINKS.map(link)}

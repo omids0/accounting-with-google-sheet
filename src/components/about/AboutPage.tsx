@@ -1,8 +1,10 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useLocation } from 'react-router'
 
 // The APK release workflow names builds from the same field, so the two never drift.
 import { version as APP_VERSION } from '../../../package.json'
 import AppIcon from '../AppIcon'
+import { ABOUT_CHANGELOG_GROUP, ABOUT_CHANGELOG_ID } from './aboutChangelogGroup'
 import { ABOUT_FEATURE_GROUPS } from './aboutFeatures'
 import AboutFeatureSection from './AboutFeatureSection'
 import {
@@ -18,7 +20,17 @@ import {
 import { cardClassName } from '../ui/Card'
 
 export default function AboutPage() {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set())
+  const { hash } = useLocation()
+  // «همه تغییرات» in «چه خبر؟» lands here with the changelog open.
+  const fromWhatsNew = hash === `#${ABOUT_CHANGELOG_ID}`
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    () => new Set(fromWhatsNew ? [ABOUT_CHANGELOG_ID] : [])
+  )
+
+  useEffect(() => {
+    if (!fromWhatsNew) return
+    document.getElementById(`about-${ABOUT_CHANGELOG_ID}`)?.scrollIntoView({ block: 'center' })
+  }, [fromWhatsNew])
 
   const toggleSection = useCallback((id: string) => {
     setExpandedSections(prev => {
@@ -51,7 +63,7 @@ export default function AboutPage() {
         روی هر بخش بزنید تا باز شود؛ سپس هر قابلیت را جداگانه برای خواندن جزئیات باز کنید.
       </p>
 
-      {ABOUT_FEATURE_GROUPS.map(group => (
+      {[...ABOUT_FEATURE_GROUPS, ABOUT_CHANGELOG_GROUP].map(group => (
         <AboutFeatureSection
           key={group.id}
           group={group}

@@ -1,34 +1,42 @@
-import Alert from './ui/Alert'
 import Button from './ui/Button'
+import { nudgeLinkClass } from './ui/nudgeStyles'
+import {
+  updateBannerActionsClass,
+  updateBannerClass,
+  updateBannerNoteClass,
+  updateBannerTextClass
+} from './ui/updateStyles'
 import { useAppUpdateCheck } from '../hooks/useAppUpdateCheck'
 
+/**
+ * «نسخه X آماده است» for the web build (already downloaded, applies on tap) and the
+ * APK (downloads the installer on tap). Nothing reloads or installs by itself.
+ */
 export default function UpdateBanner() {
-  const { update, dismiss } = useAppUpdateCheck()
+  const { update, apply, dismiss } = useAppUpdateCheck()
 
   if (!update) return null
 
+  const title = update.versionName ? `نسخه ${update.versionName} آماده است` : 'نسخه جدید آماده است'
+
+  const note = update.apkUrl
+    ? 'هر وقت خواستی دانلود و نصبش کن.'
+    : 'دانلود شده؛ هر وقت خواستی به‌روز کن.'
+
   return (
-    <Alert
-      variant="info"
-      style={{ margin: 'var(--space-page)', marginBottom: 0 }}
-      aria-live="polite"
-    >
-      <p style={{ marginBottom: '0.5rem' }}>
-        نسخهٔ {update.versionName} آمادهٔ نصب است. پس از دانلود، روی فایل بزنید تا به‌روزرسانی شود.
+    <div className={updateBannerClass} role="status" aria-live="polite" data-update-banner>
+      <p className={updateBannerTextClass}>
+        <b>{title}</b>
+        <span className={updateBannerNoteClass}>{note}</span>
       </p>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <Button
-          variant="primary"
-          size="sm"
-          type="button"
-          onClick={() => window.open(update.apkUrl, '_blank')}
-        >
-          دانلود نسخهٔ جدید
+      <div className={updateBannerActionsClass}>
+        <Button variant="primary" size="sm" type="button" onClick={apply}>
+          به‌روزرسانی
         </Button>
-        <Button variant="secondary" size="sm" type="button" onClick={dismiss}>
+        <button type="button" className={nudgeLinkClass} onClick={dismiss}>
           بعداً
-        </Button>
+        </button>
       </div>
-    </Alert>
+    </div>
   )
 }

@@ -33,6 +33,9 @@ type FormModalProps = {
   size?: 'default' | 'wide'
   /** `panel`: a side panel on desktop (list pages); the same sheet below 1280px. */
   variant?: 'modal' | 'panel'
+  /** The second button; with `onCancel` it is a second answer, not a close. */
+  cancelLabel?: string
+  onCancel?: () => void
   children: ReactNode
 }
 
@@ -46,6 +49,8 @@ export default function FormModal({
   saveButtonVariant = 'primary',
   size = 'default',
   variant = 'modal',
+  cancelLabel = 'انصراف',
+  onCancel,
   children
 }: FormModalProps) {
   const isPanel = variant === 'panel'
@@ -106,8 +111,13 @@ export default function FormModal({
             <Button type="submit" variant={saveButtonVariant} disabled={saving} loading={saving}>
               {saveLabel}
             </Button>
-            <Button type="button" variant="secondary" disabled={saving} onClick={onClose}>
-              انصراف
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={saving}
+              onClick={onCancel ?? onClose}
+            >
+              {cancelLabel}
             </Button>
           </div>
         </form>

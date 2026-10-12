@@ -6,14 +6,13 @@ import LayoutHeader from './LayoutHeader'
 import LayoutMenu from './LayoutMenu'
 import LayoutPageOutlet from './LayoutPageOutlet'
 import PullToRefresh from './PullToRefresh'
-import PageSpeedDial from '../PageSpeedDial'
-import UpdateBanner from '../UpdateBanner'
 import { useLayoutNavigation } from './useLayoutNavigation'
 import { useMainFocus } from './useMainFocus'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
 import { useLaunchAction } from '../../hooks/useLaunchAction'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
 import { installSelectionHaptics } from '../../utils/haptics'
+import PageSpeedDial from '../PageSpeedDial'
 import {
   appContentColumnClass,
   appLayoutClass,
@@ -21,6 +20,8 @@ import {
   appShellClass,
   skipLinkClass
 } from '../ui/layoutStyles'
+import UpdateBanner from '../UpdateBanner'
+import WhatsNewGate from '../whatsNew/WhatsNewGate'
 
 export default function Layout() {
   const {
@@ -116,6 +117,7 @@ export default function Layout() {
             />
 
             <UpdateBanner />
+            <WhatsNewGate />
 
             <main id="main-content" ref={mainRef} tabIndex={-1} className={appMainClass}>
               <PullToRefresh enabled={canPullToRefresh} />

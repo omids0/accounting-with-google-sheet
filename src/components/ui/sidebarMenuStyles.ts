@@ -168,3 +168,9 @@ export const appRailTooltipClass = cx(
 )
 
 export const appRailDividerClass = 'my-1 h-px w-6 shrink-0 bg-border'
+
+/** Orange «update ready» dot on the rail's menu button (like the mobile header's). */
+export const appRailUpdateDotClass = cx(
+  'pointer-events-none absolute end-1 top-1 h-2 w-2 rounded-full bg-[var(--color-warning)] ring-2 ring-[var(--color-surface)]',
+  'animate-[syncPulse_1.6s_ease-in-out_infinite] motion-reduce:animate-none'
+)

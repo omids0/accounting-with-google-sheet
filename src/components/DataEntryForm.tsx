@@ -18,6 +18,7 @@ import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import { showSavedForEntry } from './nudges/saveNudges'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
+import { useUnsavedWork } from '../hooks/useUserBusy'
 import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
 import { prepareEntryValues, settleEntryWallet, smsBalanceHint } from '../services/entryWallet'
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
@@ -87,6 +88,8 @@ export default function DataEntryForm({
   const duplicateWarning = <EntryDuplicateWarning form={activeForm} values={values} />
   const selectedCategory = String(values.category ?? '')
   const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(selectedCategory)
+  // An amount on screen is work in progress: the update banner waits for it.
+  useUnsavedWork(String(values.amount ?? '').trim() !== '')
 
   const hasSubcategories =
     readSubcategories(resolveCategoryType(undefined, activeForm.id), selectedCategory).length > 0
