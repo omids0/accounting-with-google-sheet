@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 import type { MoneyDisplaySize, MoneyDisplayTone } from '../MoneyDisplay'
 
 export const emptyTextClass = 'py-4 text-center text-[0.85rem] text-muted'
@@ -9,7 +9,7 @@ export const emptyStateClass =
 export const emptyStateDescriptionClass =
   'mx-auto mb-2 max-w-[320px] text-[0.8rem] leading-[1.9] text-muted'
 
-export const emptyStateIconClass = cn(
+export const emptyStateIconClass = cx(
   'mb-4 inline-flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-[20px] text-primary',
   '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_14%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_90%,var(--color-surface)))]',
   'shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_10px_28px_color-mix(in_srgb,var(--color-primary)_14%,transparent)]',
@@ -17,11 +17,11 @@ export const emptyStateIconClass = cn(
   '[&_svg]:h-8 [&_svg]:w-8'
 )
 
-export const spinnerClass = cn(
+export const spinnerClass = cx(
   'inline-block h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-[spin_0.6s_linear_infinite]'
 )
 
-export const spinnerLgClass = cn(
+export const spinnerLgClass = cx(
   'h-8 w-8 rounded-full border-[3px] border-[color-mix(in_srgb,var(--color-primary)_15%,transparent)] border-t-primary animate-[spin_0.6s_linear_infinite]'
 )
 
@@ -106,13 +106,13 @@ export function moneyDisplayClass({
   )
 }
 
-export const moneyDisplaySignClass = cn('money-display-sign font-numeric')
+export const moneyDisplaySignClass = cx('money-display-sign font-numeric')
 
-export const moneyDisplayValueClassName = cn(
+export const moneyDisplayValueClassName = cx(
   'money-display-value stat-value font-numeric tabular-nums tracking-[-0.02em]'
 )
 
-export const moneyDisplayUnitClassName = cn('money-display-unit font-sans')
+export const moneyDisplayUnitClassName = cx('money-display-unit font-sans')
 
 export const recordItemClass =
   'flex items-center justify-between gap-3 border-b border-border py-[0.85rem] last:border-b-0'

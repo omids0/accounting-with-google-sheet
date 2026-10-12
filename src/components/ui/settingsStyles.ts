@@ -1,7 +1,7 @@
 import { accordionCardIconClass } from './accordionCardStyles'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const settingsPageClass = cn('flex w-full flex-col gap-3', '[&_.settings-section]:w-full')
+export const settingsPageClass = cx('flex w-full flex-col gap-3', '[&_.settings-section]:w-full')
 export const settingsSectionClass = 'settings-section flex w-full flex-col'
 
 /** Extra classes for the section header card (pass to `cardClassName`). */
@@ -54,7 +54,7 @@ export function settingsPaneNavItemClass(active?: boolean) {
 
 export const settingsPaneContentClass = 'm-0 flex min-w-0 flex-col gap-3'
 
-export const settingsPaneTitleClass = cn(
+export const settingsPaneTitleClass = cx(
   'm-0 flex items-baseline gap-2 text-[1.02rem] font-extrabold text-text',
   '[&>small]:text-[0.78rem] [&>small]:font-medium [&>small]:text-muted'
 )

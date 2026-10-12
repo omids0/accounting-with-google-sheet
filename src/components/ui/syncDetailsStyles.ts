@@ -1,8 +1,8 @@
-import { cn } from '../../utils/cn'
+import { cx } from '../../utils/cn'
 
 export const syncDetailsListClass = 'm-0 mt-3 flex list-none flex-col gap-2 p-0'
 
-export const syncDetailsItemClass = cn(
+export const syncDetailsItemClass = cx(
   'rounded-[var(--radius-sm)] border border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] bg-bg px-3 py-2.5'
 )
 

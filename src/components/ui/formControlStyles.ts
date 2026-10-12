@@ -1,6 +1,6 @@
 import { formControlClassName, formControlInvalidClass, formControlSizeClass } from './formStyles'
 import { appScrollbarClass } from './scrollbarStyles'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 export const formTriggerBase = cn(
   formControlClassName(),
@@ -42,7 +42,7 @@ export function customSelectChevronClass(open?: boolean) {
   )
 }
 
-export const customSelectMenuClass = cn(
+export const customSelectMenuClass = cx(
   appScrollbarClass,
   'absolute inset-x-0 top-[calc(100%+4px)] z-50 m-0 max-h-60 list-none overflow-y-auto rounded-sm border-[1.5px] border-border bg-surface p-[0.35rem] shadow-[var(--shadow)]',
   'animate-[slideDown_var(--duration-normal)_var(--ease-out)]'
@@ -95,7 +95,7 @@ export const categorySelectSheetPanelClass = 'max-h-[min(88vh,640px)]'
 
 export const categorySelectPanelClass = 'flex min-h-0 flex-1 flex-col overflow-hidden'
 
-export const categorySelectHeaderClass = cn(
+export const categorySelectHeaderClass = cx(
   'flex items-center justify-between gap-2 border-b border-border px-3 py-[0.65rem]',
   '[background:linear-gradient(180deg,var(--color-accent-soft)_0%,var(--color-surface)_100%)]'
 )
@@ -132,12 +132,12 @@ export const categorySelectAddInputClass = cn(
   formControlClassName()
 )
 
-export const categorySelectAddBtnClass = cn(
+export const categorySelectAddBtnClass = cx(
   'inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-primary p-0 text-on-primary transition-[background,transform] duration-[var(--duration-fast)]',
   'hover:enabled:bg-primary-dark active:enabled:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45'
 )
 
-export const categorySelectListClass = cn(
+export const categorySelectListClass = cx(
   appScrollbarClass,
   'm-0 min-h-0 flex-1 list-none overflow-y-auto overscroll-contain p-1 [-webkit-overflow-scrolling:touch]'
 )
@@ -167,7 +167,7 @@ export function categorySelectItemClass({
   )
 }
 
-export const categorySelectDragHandleClass = cn(
+export const categorySelectDragHandleClass = cx(
   'inline-flex h-touch-min w-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-sm border-none bg-transparent p-0 text-muted transition-[color,background] duration-[var(--duration-fast)]',
   'hover:enabled:bg-bg hover:enabled:text-primary-dark active:cursor-grabbing',
   'disabled:cursor-not-allowed disabled:opacity-45'
@@ -176,7 +176,7 @@ export const categorySelectDragHandleClass = cn(
 /** Same footprint as the drag handle, for a row that can't be reordered, so every row stays aligned. */
 export const categorySelectDragHandleSpacerClass = 'inline-block h-touch-min w-8 shrink-0'
 
-export const categorySelectOptionBtnClass = cn(
+export const categorySelectOptionBtnClass = cx(
   'flex min-h-touch-min min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-3 py-2 text-right font-[inherit] text-[0.92rem] text-text transition-[color,background-color] duration-[var(--duration-fast)]',
   'hover:enabled:bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] disabled:cursor-default'
 )
@@ -236,14 +236,14 @@ export const amountFieldClass = 'flex flex-col gap-[0.45rem]'
 
 export const amountFieldCompactClass = 'w-full'
 
-export const amountFieldInputWrapClass = cn(
+export const amountFieldInputWrapClass = cx(
   'flex h-touch-min items-stretch overflow-hidden rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   'focus-ring-within focus-within:border-primary focus-within:shadow-[var(--form-input-focus-shadow)]'
 )
 
 export const amountFieldInputWrapCompactClass = 'min-h-touch-min'
 
-export const amountFieldInputClass = cn(
+export const amountFieldInputClass = cx(
   'h-full min-h-0 min-w-0 flex-1 border-none! bg-transparent! px-3.5 py-0 text-[0.95rem] font-bold leading-[1.4] tracking-[0.02em] shadow-none! outline-none md:px-3'
 )
 
@@ -259,7 +259,7 @@ export const amountFieldCurrencyCompactClass = 'px-[0.55rem] text-[0.68rem] font
 
 export const amountFieldInputWrapInvalidClass = formControlInvalidClass
 
-export const amountFieldSubmitBtnClass = cn(
+export const amountFieldSubmitBtnClass = cx(
   'amount-field-submit inline-flex min-h-touch-min shrink-0 cursor-pointer items-center justify-center border-none px-[0.7rem] py-0',
   'border-s border-[color-mix(in_srgb,var(--color-primary-dark)_35%,rgba(255,255,255,0.35))]',
   'text-[0.72rem] font-extrabold tracking-[0.01em] text-on-primary',
@@ -284,7 +284,7 @@ export const formFieldLabelClass =
 
 export const formFieldLabelTextClass = 'leading-[1.3]'
 
-export const formReadonlyValueClass = cn(
+export const formReadonlyValueClass = cx(
   'flex items-center rounded-form border border-[var(--form-input-border)] bg-[var(--surface-muted,var(--form-input-bg))] font-semibold text-text',
   formControlSizeClass
 )

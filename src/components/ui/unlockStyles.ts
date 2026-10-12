@@ -1,24 +1,24 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const unlockPageClass = cn(
+export const unlockPageClass = cx(
   'relative flex min-h-dvh items-center justify-center overflow-hidden p-4 min-[380px]:p-5',
   '[background:radial-gradient(ellipse_120%_80%_at_50%_-20%,color-mix(in_srgb,var(--color-primary)_18%,transparent),transparent_55%),linear-gradient(165deg,var(--color-bg)_0%,color-mix(in_srgb,var(--color-accent-soft)_70%,var(--color-bg))_45%,color-mix(in_srgb,var(--color-accent-mid)_55%,var(--color-bg))_100%)]'
 )
 
-export const unlockBackdropOrbPrimaryClass = cn(
+export const unlockBackdropOrbPrimaryClass = cx(
   // Kept faint: the card's backdrop blur pulls it into the hero as a grey smudge.
   'pointer-events-none absolute -top-24 end-[-4rem] h-56 w-56 rounded-full opacity-30 blur-3xl',
   '[background:radial-gradient(circle,color-mix(in_srgb,var(--color-primary-light)_35%,transparent)_0%,transparent_70%)]',
   'animate-[float_8s_ease-in-out_infinite]'
 )
 
-export const unlockBackdropOrbAccentClass = cn(
+export const unlockBackdropOrbAccentClass = cx(
   'pointer-events-none absolute -bottom-20 start-[-3rem] h-48 w-48 rounded-full opacity-60 blur-3xl',
   '[background:radial-gradient(circle,color-mix(in_srgb,var(--color-accent-mid)_45%,transparent)_0%,transparent_70%)]',
   'animate-[float_10s_ease-in-out_infinite_reverse]'
 )
 
-export const unlockCardClass = cn(
+export const unlockCardClass = cx(
   'relative z-[1] w-full max-w-[420px] overflow-hidden rounded-[24px] border',
   'border-[color-mix(in_srgb,var(--color-primary)_16%,var(--color-border))]',
   'bg-[color-mix(in_srgb,var(--color-surface)_92%,transparent)] p-0 shadow-[0_24px_60px_color-mix(in_srgb,var(--color-primary)_14%,transparent),0_2px_8px_color-mix(in_srgb,var(--color-text)_6%,transparent)]',
@@ -26,14 +26,14 @@ export const unlockCardClass = cn(
   'md:max-w-[440px]'
 )
 
-export const unlockCardHeroClass = cn(
+export const unlockCardHeroClass = cx(
   'relative overflow-hidden px-5 pb-6 pt-7 text-center min-[380px]:px-6',
   'border-b border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))]',
   '[background:linear-gradient(155deg,color-mix(in_srgb,var(--color-primary)_11%,var(--color-surface))_0%,color-mix(in_srgb,var(--color-accent-soft)_65%,var(--color-surface))_100%)]',
   'after:pointer-events-none after:absolute after:-bottom-8 after:start-[-1.5rem] after:h-24 after:w-24 after:rounded-full after:bg-[color-mix(in_srgb,var(--color-accent-mid)_30%,transparent)] after:blur-2xl after:content-[""]'
 )
 
-export const unlockIconWrapClass = cn(
+export const unlockIconWrapClass = cx(
   'relative z-[1] mx-auto mb-4 inline-flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-[18px] text-primary',
   'animate-[float_4s_ease-in-out_infinite]',
   '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_18%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_85%,var(--color-surface)))]',
@@ -82,7 +82,7 @@ export function unlockPinCellClass({
   )
 }
 
-export const unlockPinDotClass = cn(
+export const unlockPinDotClass = cx(
   'h-2.5 w-2.5 rounded-full bg-primary',
   'animate-[slideDown_var(--duration-fast)_var(--ease-out)]'
 )
@@ -103,7 +103,7 @@ export function unlockPrimaryBtnClass(incomplete?: boolean) {
   )
 }
 
-export const unlockBiometricBtnClass = cn(
+export const unlockBiometricBtnClass = cx(
   '!rounded-[14px] !border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))] !bg-[color-mix(in_srgb,var(--color-primary)_5%,var(--color-surface))] !py-[0.8rem]',
   'hover:enabled:!border-primary hover:enabled:!bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--color-surface))]'
 )
@@ -115,14 +115,14 @@ export const unlockDividerLineClass =
 
 export const unlockFooterClass = 'mt-1 text-center'
 
-export const unlockTrustBadgeClass = cn(
+export const unlockTrustBadgeClass = cx(
   'inline-flex items-center justify-center gap-[0.4rem] rounded-full px-3 py-[0.4rem]',
   'text-[0.7rem] font-semibold text-[var(--color-primary-dark)]',
   '[background:color-mix(in_srgb,var(--color-primary)_7%,transparent)]',
   'border border-[color-mix(in_srgb,var(--color-primary)_16%,transparent)]'
 )
 
-export const unlockForgotLinkClass = cn(
+export const unlockForgotLinkClass = cx(
   'mt-3 block w-full text-center text-[0.78rem] font-semibold text-primary',
   'underline underline-offset-4 hover:text-[var(--color-primary-dark)]',
   'disabled:cursor-not-allowed disabled:opacity-60'

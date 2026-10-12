@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 export type FormControlWidth = 'auto' | 'compact' | 'standard' | 'full'
 
@@ -7,12 +7,12 @@ export type FormControlWidth = 'auto' | 'compact' | 'standard' | 'full'
  * is the only spacing here: direct fields and rows drop their own bottom margin,
  * otherwise standalone fields got gap + margin while paired ones got gap only.
  */
-export const formFieldsLayoutClass = cn(
+export const formFieldsLayoutClass = cx(
   'flex flex-col gap-[var(--form-gap)]',
   '[&>.form-field]:mb-0 [&>.form-row]:mb-0'
 )
 
-export const formFieldClass = cn('form-field min-w-0', 'mb-[var(--form-gap)] last:mb-0')
+export const formFieldClass = cx('form-field min-w-0', 'mb-[var(--form-gap)] last:mb-0')
 
 /** Short inputs (amount, date, count) — natural width on desktop, full width on mobile. */
 export const formControlWidthCompactClass = 'w-full md:max-w-[13.5rem]'
@@ -30,7 +30,7 @@ export const formHintClass = 'my-1.5 text-[0.78rem] leading-[1.5] text-muted'
 
 export const formErrorClass = 'mt-1.5 text-[0.76rem] font-semibold leading-[1.45] text-danger'
 
-export const formControlInvalidClass = cn(
+export const formControlInvalidClass = cx(
   '!border-danger hover:enabled:!border-danger focus-visible:!border-danger',
   'focus-within:!border-danger shadow-[0_0_0_3px_var(--color-danger-bg)]'
 )

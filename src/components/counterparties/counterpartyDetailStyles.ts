@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cx } from '../../utils/cn'
 
 export const counterpartyDetailFieldClass =
   'grid gap-1 border-b border-[color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] py-3 last:border-b-0 last:pb-0 first:pt-0'
@@ -10,7 +10,7 @@ export const counterpartyDetailValueClass = 'text-[0.88rem] leading-[1.55] text-
 
 export const counterpartyDetailListClass = 'grid gap-1.5'
 
-export const counterpartyDetailAccountClass = cn(
+export const counterpartyDetailAccountClass = cx(
   'rounded-[var(--radius-sm)] border border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] bg-[color-mix(in_srgb,var(--color-accent-soft)_40%,var(--color-surface))] px-3 py-2'
 )
 

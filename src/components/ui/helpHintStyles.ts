@@ -1,6 +1,6 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const helpHintTriggerClass = cn(
+export const helpHintTriggerClass = cx(
   'help-hint relative ms-1.5 inline-flex h-[1.3rem] w-[1.3rem] shrink-0 items-center justify-center rounded-full align-middle',
   'border-[1.5px] border-current bg-transparent p-0 text-[0.72rem] font-bold leading-none text-inherit',
   'cursor-pointer transition-[background,transform] duration-[var(--duration-fast)] hover:bg-[color-mix(in_srgb,currentColor_12%,transparent)]',
@@ -24,7 +24,7 @@ export const helpHintTextClass = 'm-0 text-muted'
 
 export const helpHintActionsClass = 'mt-1.5 flex flex-wrap items-center gap-x-4'
 
-export const helpHintActionClass = cn(
+export const helpHintActionClass = cx(
   'inline-flex min-h-[2.25rem] items-center border-none bg-transparent p-0 text-[0.78rem] font-bold text-primary-dark',
   'cursor-pointer underline-offset-4 hover:underline focus-visible:underline'
 )

@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 export const backupCardTextClass = 'm-0 mb-3 text-[0.85rem] leading-[1.8] text-muted'
 
@@ -6,7 +6,7 @@ export const backupCardActionsClass = 'flex flex-col gap-2 [&>button]:w-full'
 
 export const backupCardMetaClass = 'm-0 mt-3 text-[0.8rem] leading-[1.8] text-muted'
 
-export const backupLinkButtonClass = cn(
+export const backupLinkButtonClass = cx(
   'cursor-pointer border-none bg-transparent p-0 font-bold text-primary underline-offset-4',
   'hover:underline'
 )

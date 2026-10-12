@@ -1,19 +1,19 @@
-import { cn } from '../../utils/cn'
+import { cx } from '../../utils/cn'
 
-export const loginPageClass = cn(
+export const loginPageClass = cx(
   'login-page flex min-h-dvh items-center justify-center p-6',
   // Static: looping background-position repainted the whole screen every frame.
   '[background:linear-gradient(160deg,var(--color-bg)_0%,var(--color-accent-soft)_50%,var(--color-accent-mid)_100%)]'
 )
 
-export const loginCardClass = cn(
+export const loginCardClass = cx(
   'w-full max-w-[400px] rounded-[20px] border border-border bg-surface p-8 px-6 shadow-lg',
   'md:max-w-[440px] md:p-10'
 )
 
 export const loginLogoClass = 'mb-6 text-center'
 
-export const loginLogoIconClass = cn(
+export const loginLogoIconClass = cx(
   'mx-auto mb-[0.85rem] inline-flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-2xl text-primary',
   'animate-[float_3s_ease-in-out_infinite]',
   '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_14%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_90%,var(--color-surface)))]',
@@ -28,32 +28,32 @@ export const loginLogoSubtitleClass = 'text-[0.85rem] leading-[1.6] text-muted'
 
 export const loginFeaturesClass = 'mb-5 flex list-none flex-col gap-[0.55rem] p-0'
 
-export const loginFeatureClass = cn(
+export const loginFeatureClass = cx(
   'flex items-center gap-[0.65rem] rounded-sm border border-border bg-bg p-[0.55rem] px-3',
   'text-[0.82rem] font-bold leading-[1.45] text-text'
 )
 
-export const loginFeatureIconClass = cn(
+export const loginFeatureIconClass = cx(
   'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-primary-dark',
   '[background:color-mix(in_srgb,var(--color-primary)_12%,transparent)]'
 )
 
 export const loginFooterNoteClass = 'mt-4 text-center text-xs leading-[1.55] text-muted'
 
-export const loginTrustBadgeClass = cn(
+export const loginTrustBadgeClass = cx(
   'mt-[0.85rem] inline-flex items-center justify-center gap-[0.35rem] rounded-full px-3 py-[0.35rem]',
   'text-[0.7rem] font-semibold text-[var(--color-primary-dark)]',
   '[background:color-mix(in_srgb,var(--color-primary)_8%,transparent)]',
   'border border-[color-mix(in_srgb,var(--color-primary)_18%,transparent)]'
 )
 
-export const googleSignInBtnClass = cn(
+export const googleSignInBtnClass = cx(
   // bg-none drops the primary variant's gradient image, which painted over the surface color.
   '!min-h-touch-min !border-[1.5px] !border-border !bg-surface !bg-none !text-text',
   'hover:enabled:!-translate-y-px hover:enabled:!border-[var(--color-primary-light)] hover:enabled:!bg-bg'
 )
 
-export const appLoadingInlineClass = cn(
+export const appLoadingInlineClass = cx(
   'flex items-center justify-center py-16',
   'min-h-[min(14rem,calc(100dvh-11rem))]'
 )

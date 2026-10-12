@@ -1,7 +1,7 @@
 import { cardClassName } from './Card'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const dashboardPageClass = cn(
+export const dashboardPageClass = cx(
   'dashboard-page flex flex-col gap-2',
   '[&_.mb-stack]:mb-0 [&_.dashboard-flow-section]:mb-0 [&_.chart-card--animated]:mb-0',
   'md:gap-4'
@@ -18,7 +18,7 @@ export const dashboardHeroCardClass = cn(
 export const dashboardHeroCardAnimatedClass =
   'after:pointer-events-none after:absolute after:inset-[-40%_-20%] after:animate-[heroShimmer_5s_ease-in-out_2] after:content-[""] after:[background:radial-gradient(circle,rgba(255,255,255,0.18),transparent_60%)]'
 
-export const dashboardHeroHeaderClass = cn(
+export const dashboardHeroHeaderClass = cx(
   'dashboard-hero-header relative z-[1] mb-2 grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-1',
   '[&_.dashboard-hero-label]:col-start-2 [&_.dashboard-hero-label]:row-start-1 [&_.dashboard-hero-label]:mb-0 [&_.dashboard-hero-label]:text-center',
   '[&_.card-action-btn]:col-start-3 [&_.card-action-btn]:row-start-1 [&_.card-action-btn]:justify-self-center',
@@ -32,7 +32,7 @@ export const dashboardHeroLabelClass =
 
 export const dashboardHeroHintClass = 'mt-2 px-1 text-[0.72rem] leading-[1.55] opacity-90'
 
-export const dashboardFlowSectionClass = cn(
+export const dashboardFlowSectionClass = cx(
   'dashboard-flow-section grid grid-cols-2 gap-2',
   'md:grid-cols-4 md:gap-4',
   'md:[&>.stat-card:not(.stat-card-wide)]:col-span-2',
@@ -43,35 +43,35 @@ export const dashboardFlowSectionClass = cn(
   '[&>.stat-card-wide]:mt-0'
 )
 
-export const dashboardAssetsCardClass = cn(
+export const dashboardAssetsCardClass = cx(
   'dashboard-assets-card',
   '[&_.asset-value]:text-success [&_.asset-row-total_.asset-value]:text-success'
 )
 
-export const dashboardLiabilitiesCardClass = cn(
+export const dashboardLiabilitiesCardClass = cx(
   'dashboard-liabilities-card',
   '[&_.asset-value]:text-[#b91c1c] [&_.asset-row-total_.asset-value]:text-[#991b1b]'
 )
 
 export const assetBreakdownClass = 'asset-breakdown flex flex-col gap-2'
 
-export const assetRowClass = cn(
+export const assetRowClass = cx(
   'asset-row flex items-center justify-between gap-3 border-b border-dashed border-border py-[0.28rem] last:border-b-0',
   '[&_.asset-label]:min-w-0 [&_.asset-label]:truncate [&_.asset-value]:shrink-0'
 )
 
-export const assetRowTotalClass = cn(
+export const assetRowTotalClass = cx(
   'asset-row-total mt-1 border-t-2 border-b-0 border-border pt-1.5',
   '[&_.asset-label]:text-[0.72rem] [&_.asset-label]:font-semibold [&_.asset-value]:text-[0.8rem] [&_.asset-value]:font-bold'
 )
 
 export const assetLabelClass = 'asset-label text-[0.72rem] font-medium leading-[1.35] text-muted'
 
-export const assetLabelLinkClass = cn(
+export const assetLabelLinkClass = cx(
   'asset-label-link cursor-pointer border-none bg-transparent p-0 text-right text-[0.72rem] font-medium leading-[1.35] text-muted hover:text-text active:opacity-75'
 )
 
-export const assetValueClass = cn(
+export const assetValueClass = cx(
   'asset-value text-[0.76rem] font-semibold tracking-[0.01em] text-primary-dark font-numeric tabular-nums'
 )
 
@@ -163,7 +163,7 @@ export const chartCardClass = cn(
 export const chartTitleClass =
   'mb-[0.45rem] text-[0.82rem] font-semibold text-primary-dark [.card-header-row_&]:mb-0'
 
-export const chartBarWrapClass = cn(
+export const chartBarWrapClass = cx(
   'relative z-[1] m-0 w-full',
   '[&_.recharts-cartesian-axis-tick-value]:font-numeric [&_.recharts-cartesian-axis-tick-value]:[font-feature-settings:"tnum"_1]',
   '[&_.recharts-bar-rectangle]:transition-[filter] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
@@ -184,7 +184,7 @@ export const chartMonthlyLegendDotIncomeClass = 'bg-[var(--color-income)]'
 
 export const chartMonthlyLegendDotExpenseClass = 'bg-[var(--color-expense)]'
 
-export const chartTooltipClass = cn(
+export const chartTooltipClass = cx(
   'min-w-[9.5rem] animate-[chartTooltipIn_0.18s_var(--ease-out)] rounded-xl border border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] p-[0.65rem_0.75rem] shadow-[0_12px_28px_rgba(15,23,42,0.14),0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-xl',
   '[background:color-mix(in_srgb,var(--color-surface)_92%,transparent)]'
 )
@@ -240,7 +240,7 @@ export const categoryDonutLegendDotClass = 'h-[0.55rem] w-[0.55rem] shrink-0 rou
 export const categoryDonutLegendNameClass =
   'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-text'
 
-export const categoryDonutLegendPctClass = cn(
+export const categoryDonutLegendPctClass = cx(
   'min-w-[2.6rem] rounded-full px-1.5 py-px text-center text-[0.68rem] font-bold tabular-nums text-muted [font-feature-settings:"tnum"_1]',
   'bg-[color-mix(in_srgb,var(--color-accent-soft)_75%,transparent)]'
 )
@@ -256,7 +256,7 @@ export const netAvailablePreviewCardClass = 'mb-0'
 
 export const netAvailableSectionHintClass = 'mb-3 text-[0.78rem] text-muted'
 
-export const dashboardOpeningCardClass = cn(
+export const dashboardOpeningCardClass = cx(
   'mb-[var(--space-stack)] border-[color-mix(in_srgb,var(--color-primary)_22%,var(--color-border))] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-accent-soft)_80%,var(--color-surface))_0%,var(--color-surface)_100%)] p-0',
   '[&_.installment-header:hover]:bg-[color-mix(in_srgb,var(--color-accent-soft)_65%,transparent)]',
   '[&_.installment-payments]:[background:linear-gradient(180deg,color-mix(in_srgb,var(--color-accent-soft)_55%,transparent)_0%,transparent_100%)]'

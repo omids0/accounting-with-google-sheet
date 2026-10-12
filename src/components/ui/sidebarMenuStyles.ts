@@ -1,10 +1,10 @@
 import { scrollbarHiddenClass } from './scrollbarStyles'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 /** `drawer` slides over the page on phones; `rail` is the tablet icon column; `sidebar` is always open on desktop. */
 export type AppMenuVariant = 'drawer' | 'sidebar' | 'rail'
 
-export const appMenuBackdropClass = cn(
+export const appMenuBackdropClass = cx(
   'fixed inset-0 z-40 cursor-default border-none bg-[var(--color-overlay-light)]',
   'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[5px]'
 )
@@ -33,7 +33,7 @@ export function appMenuUserRowClass(variant: AppMenuVariant) {
 
 export const appMenuAvatarClass = 'h-8 w-8 flex-shrink-0 rounded-full object-cover'
 
-export const appMenuAvatarPlaceholderClass = cn(
+export const appMenuAvatarPlaceholderClass = cx(
   appMenuAvatarClass,
   'flex items-center justify-center bg-accent-soft text-primary-dark'
 )
@@ -44,13 +44,13 @@ export const appMenuNameClass = 'truncate text-[0.88rem] font-bold leading-tight
 
 export const appMenuSheetLineClass = 'truncate text-[0.72rem] leading-tight text-muted'
 
-export const appMenuScrollBodyClass = cn(
+export const appMenuScrollBodyClass = cx(
   scrollbarHiddenClass,
   'flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain',
   '[-webkit-overflow-scrolling:touch]'
 )
 
-export const appMenuItemsClass = cn(
+export const appMenuItemsClass = cx(
   'flex flex-col px-2 py-1',
   '[&>.app-menu-section]:animate-[menuItemIn_0.38s_var(--ease-page)_both]',
   '[&>.app-menu-section:nth-child(2)]:[animation-delay:0.04s]',
@@ -66,7 +66,7 @@ export const appMenuSectionLabelClass =
 
 export const appMenuGroupClass = 'app-menu-group flex flex-col'
 
-export const appMenuFooterClass = cn(
+export const appMenuFooterClass = cx(
   'app-menu-footer m-0 shrink-0 truncate border-t border-border px-3.5 pt-2 text-center',
   'pb-[max(0.5rem,var(--safe-bottom))] text-[0.7rem] leading-4 text-muted'
 )
@@ -107,17 +107,17 @@ export function appMenuChevronClass(expanded?: boolean) {
   )
 }
 
-export const appMenuSubmenuClass = cn(
+export const appMenuSubmenuClass = cx(
   'flex flex-col gap-[0.12rem] border-s-2 border-[color-mix(in_srgb,var(--color-primary)_22%,var(--color-border))] ps-[1.1rem]',
   'animate-[submenuReveal_0.28s_var(--ease-out)_both]'
 )
 
-export const appMenuSubmenuLabelClass = cn(
+export const appMenuSubmenuLabelClass = cx(
   'px-[0.85rem] pb-[0.15rem] pt-[0.55rem] text-[0.7rem] font-extrabold tracking-[0.04em] text-muted',
   'before:me-1.5 before:inline-block before:h-1 before:w-1 before:rounded-full before:bg-[color-mix(in_srgb,var(--color-primary)_45%,transparent)] before:content-[""]'
 )
 
-export const appMenuThemeClass = cn(
+export const appMenuThemeClass = cx(
   'relative grid h-[1.85rem] w-[3.55rem] flex-shrink-0 grid-cols-2 items-center rounded-full p-[0.14rem]',
   'bg-[color-mix(in_srgb,var(--color-text)_7%,transparent)] ring-1 ring-border'
 )
@@ -139,14 +139,14 @@ export function appMenuThemeThumbClass(isDark?: boolean) {
   )
 }
 
-export const appMenuUpdateDotClass = cn(
+export const appMenuUpdateDotClass = cx(
   'h-[0.5rem] w-[0.5rem] flex-shrink-0 rounded-full bg-[var(--color-warning)]',
   'shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-warning)_22%,transparent)]',
   'animate-[syncPulse_1.6s_ease-in-out_infinite]'
 )
 
 /** Tablet icon rail (64px): icons only, the label shows as a tooltip on hover, focus or press. */
-export const appMenuRailClass = cn(
+export const appMenuRailClass = cx(
   'sticky top-0 z-30 flex h-dvh w-[var(--rail-width)] shrink-0 flex-col items-center gap-0.5 self-start',
   'border-e border-[color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))] bg-surface py-2'
 )
@@ -161,7 +161,7 @@ export function appRailItemClass(active?: boolean) {
   )
 }
 
-export const appRailTooltipClass = cn(
+export const appRailTooltipClass = cx(
   'pointer-events-none absolute start-[calc(100%+0.4rem)] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-md',
   'bg-text px-2 py-1 text-[0.74rem] font-semibold text-surface opacity-0 shadow-md transition-opacity',
   'group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100'

@@ -1,10 +1,10 @@
 import type { MouseEvent } from 'react'
 
 import { counterpartyDetailListClass } from './counterpartyDetailStyles'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 import { buildPhoneTelHref } from '../../utils/phoneLink'
 
-export const phoneNumberLinkClass = cn(
+export const phoneNumberLinkClass = cx(
   'font-[inherit] text-primary underline-offset-2 transition-[color,text-decoration-color] duration-[var(--duration-fast)]',
   'hover:text-primary-dark hover:underline',
   'focus-visible:rounded-sm'

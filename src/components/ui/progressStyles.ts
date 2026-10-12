@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 export type ProgressBarVariant = 'default' | 'complete' | 'success'
 
@@ -26,7 +26,7 @@ export function progressBarClass({
 
 export const progressBarMetaClass = 'progress-bar__meta flex items-center gap-[0.55rem]'
 
-export const progressBarTrackClass = cn(
+export const progressBarTrackClass = cx(
   'progress-bar-track relative h-[7px] min-w-0 flex-1 overflow-hidden rounded-full',
   '[background:color-mix(in_srgb,var(--color-border)_62%,transparent)] shadow-[inset_0_1px_2px_rgba(15,23,42,0.07)]',
   'animate-[progressTrackIn_0.45s_var(--ease-page)_both] [animation-delay:var(--progress-delay,0s)]'
@@ -56,13 +56,13 @@ export const progressBarSweepClass =
   'progress-bar-sweep pointer-events-none absolute inset-y-0 left-0 motion-reduce:hidden'
 
 /** Two sweeps after mount, then rest — no infinite compositor work per bar. */
-export const progressBarShineClass = cn(
+export const progressBarShineClass = cx(
   'progress-bar__shine absolute inset-0 opacity-0',
   '[background:linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.05)_35%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.05)_65%,transparent_100%)]',
   'animate-[progressShine_4.8s_ease-in-out_2] [animation-delay:calc(var(--progress-delay,0s)+0.8s)]'
 )
 
-export const progressBarGlowClass = cn(
+export const progressBarGlowClass = cx(
   'progress-bar__glow absolute inset-0 opacity-0',
   '[background:radial-gradient(circle_at_0_50%,rgba(255,255,255,0.4)_0,rgba(255,255,255,0.22)_2px,transparent_4.5px)]',
   'animate-[progressGlowTravel_4.8s_ease-in-out_2] [animation-delay:calc(var(--progress-delay,0s)+0.8s)]'

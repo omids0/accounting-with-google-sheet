@@ -1,6 +1,6 @@
 import { currentChartsPeriod } from './useChartsPage'
 import type { ChartsPeriod } from '../../services/chartsData'
-import { cn } from '../../utils/cn'
+import { cx } from '../../utils/cn'
 import {
   formatJalaliYear,
   nextJalaliMonthKey,
@@ -16,7 +16,7 @@ const MODE_OPTIONS = [
   { id: 'year', label: 'سال' }
 ]
 
-const stepButtonClass = cn(
+const stepButtonClass = cx(
   'inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-[1rem] text-text',
   'disabled:cursor-default disabled:opacity-40'
 )

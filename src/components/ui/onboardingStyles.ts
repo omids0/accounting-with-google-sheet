@@ -1,6 +1,6 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const onboardingPageClass = cn(
+export const onboardingPageClass = cx(
   'mx-auto flex min-h-dvh w-full max-w-[560px] flex-col bg-bg',
   'pt-[var(--safe-top)] pb-[var(--safe-bottom)]'
 )
@@ -58,7 +58,7 @@ export function onboardingSummaryStatusClass(done: boolean) {
   return done ? 'font-bold text-success' : 'text-muted'
 }
 
-export const guideCardClass = cn(
+export const guideCardClass = cx(
   'flex items-center gap-3 border-[1.5px] border-[color-mix(in_srgb,var(--color-primary)_35%,var(--color-border))]',
   'bg-[color-mix(in_srgb,var(--color-accent-soft)_55%,var(--color-surface))]'
 )

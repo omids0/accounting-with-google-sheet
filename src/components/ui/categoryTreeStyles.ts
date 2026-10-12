@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 export type CategoryTreeTone = 'income' | 'expense'
 
@@ -16,7 +16,7 @@ export function categoryTreeToneStyle(tone: CategoryTreeTone): CSSProperties {
 export const categoryTreeToolbarClass =
   'mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-[color-mix(in_srgb,var(--color-border)_60%,transparent)] pb-3'
 
-export const categoryTreeToggleAllClass = cn(
+export const categoryTreeToggleAllClass = cx(
   'inline-flex min-h-touch-min items-center gap-1.5 rounded-full px-3.5 py-1.5',
   'border border-[color-mix(in_srgb,var(--color-primary)_22%,var(--color-border))]',
   'bg-[color-mix(in_srgb,var(--color-accent-soft)_55%,var(--color-surface))]',
@@ -58,7 +58,7 @@ export const categoryTreeNodeClass = (open: boolean) =>
       : 'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_35%,transparent)]'
   )
 
-export const categoryTreeRowClass = cn(
+export const categoryTreeRowClass = cx(
   'focus-ring-inset relative flex w-full items-center gap-2 px-2 py-2.5 text-right',
   'before:absolute before:inset-y-1.5 before:right-0 before:w-[3px] before:rounded-full',
   'before:bg-[var(--tree-tone)] before:opacity-0 before:transition-opacity before:content-[""]',
@@ -74,7 +74,7 @@ export const categoryTreeChevronClass = (open: boolean) =>
   )
 
 /** Leaf rows keep the chevron column so every name starts on the same line. */
-export const categoryTreeLeafDotClass = cn(
+export const categoryTreeLeafDotClass = cx(
   'flex h-7 w-7 items-center justify-center',
   'before:h-1.5 before:w-1.5 before:rounded-full before:bg-[var(--tree-tone)] before:opacity-45 before:content-[""]'
 )
@@ -83,7 +83,7 @@ export const categoryTreeHeadingRowClass = 'flex min-w-0 flex-1 items-center gap
 
 export const categoryTreeNameClass = 'min-w-0 truncate text-[16px] font-semibold'
 
-export const categoryTreeCountClass = cn(
+export const categoryTreeCountClass = cx(
   'numeric shrink-0 rounded-full px-1.5 py-px text-[11px] font-semibold text-muted',
   'bg-[color-mix(in_srgb,var(--color-border)_45%,transparent)]'
 )
@@ -98,27 +98,27 @@ export const categoryTreeShareLabelClass = (subtle = false) =>
       : 'rounded-full bg-[color-mix(in_srgb,var(--tree-tone)_12%,transparent)] px-2 py-px text-center text-[12px] text-[var(--tree-tone)]'
   )
 
-export const categoryTreeAmountClass = cn(
+export const categoryTreeAmountClass = cx(
   'shrink-0',
   String.raw`[&_.money-display\_\_value]:!text-[16px] [&_.money-display\_\_value]:!font-normal`,
   String.raw`[&_.money-display\_\_unit]:!text-[10px] [&_.money-display\_\_unit]:opacity-55`
 )
 
 /** Subcategory amounts sit a step below their parent. */
-export const categoryTreeChildAmountClass = cn(
+export const categoryTreeChildAmountClass = cx(
   'shrink-0 opacity-85',
   String.raw`[&_.money-display\_\_value]:!text-[15px] [&_.money-display\_\_value]:!font-normal`,
   String.raw`[&_.money-display\_\_unit]:!text-[9px] [&_.money-display\_\_unit]:opacity-50`
 )
 
 /** Children hang off a rail on the start side, which is the right in RTL. */
-export const categoryTreeChildListClass = cn(
+export const categoryTreeChildListClass = cx(
   'relative mb-1.5 me-2.5 ms-2 pe-[1.15rem] ps-1',
   'before:absolute before:inset-y-1 before:right-[0.4rem] before:w-px before:content-[""]',
   'before:bg-[color-mix(in_srgb,var(--tree-tone)_28%,transparent)]'
 )
 
-export const categoryTreeChildRowClass = cn(
+export const categoryTreeChildRowClass = cx(
   'relative flex items-center gap-2 rounded-[var(--radius-sm)] px-2 py-1.5',
   'before:absolute before:right-[-0.75rem] before:top-1/2 before:h-px before:w-[0.55rem] before:content-[""]',
   'before:bg-[color-mix(in_srgb,var(--tree-tone)_28%,transparent)]',
@@ -131,7 +131,7 @@ export const categoryTreeChildNameClass =
 export const categoryTreeEmptyClass =
   'flex flex-col items-center gap-2 py-10 text-center text-[0.85rem] text-muted'
 
-export const categoryTreeEmptyIconClass = cn(
+export const categoryTreeEmptyIconClass = cx(
   'flex h-12 w-12 items-center justify-center rounded-full',
   'bg-[color-mix(in_srgb,var(--color-accent-soft)_70%,transparent)] text-[var(--color-primary)]'
 )

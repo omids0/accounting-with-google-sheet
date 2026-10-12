@@ -1,14 +1,14 @@
 import { listModulePageClass } from './featureCardStyles'
 import { reportPageDesktopClass } from './responsiveStyles'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const reportPageClass = cn('flex flex-col gap-4 md:gap-5')
+export const reportPageClass = cx('flex flex-col gap-4 md:gap-5')
 
 /** Pair chart/table or twin summary cards side-by-side on desktop. */
-export const reportPageSplitClass = cn('flex flex-col gap-4', reportPageDesktopClass)
+export const reportPageSplitClass = cx('flex flex-col gap-4', reportPageDesktopClass)
 
 /** Desktop grid for report chart cards (donut/bar pairs). */
-export const reportChartsGridClass = cn(
+export const reportChartsGridClass = cx(
   'grid grid-cols-1 gap-4',
   'md:grid-cols-2 md:gap-5 md:items-start'
 )
@@ -22,12 +22,12 @@ export const reportMetaSubtitleClass = 'text-[0.78rem] leading-[1.45] text-muted
 
 export const reportDataTableClass = 'report-data-table overflow-x-auto'
 
-export const reportDataTableHeaderClass = cn(
+export const reportDataTableHeaderClass = cx(
   'grid grid-cols-[minmax(5.5rem,1.15fr)_repeat(3,minmax(4.75rem,1fr))] items-center gap-2 border-b border-border px-1 pb-2',
   'text-[0.72rem] font-bold text-muted [&_span]:tabular-nums [&_span:not(:first-child)]:text-start'
 )
 
-export const reportDataTableRowClass = cn(
+export const reportDataTableRowClass = cx(
   'grid grid-cols-[minmax(5.5rem,1.15fr)_repeat(3,minmax(4.75rem,1fr))] items-center gap-2 border-b border-border px-1 py-[0.65rem] last:border-b-0',
   '[&_span:first-child]:text-[0.88rem] [&_span:first-child]:font-semibold',
   '[&_span:not(:first-child)]:text-start [&_span:not(:first-child)]:text-[0.78rem] [&_span:not(:first-child)]:font-semibold [&_span:not(:first-child)]:tabular-nums'

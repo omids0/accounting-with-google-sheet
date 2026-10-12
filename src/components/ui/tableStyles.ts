@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 /** Desktop table views (list pages, dashboard «تراکنش‌های اخیر»). */
 export function dataTableWrapClass(bare?: boolean) {
@@ -10,11 +10,11 @@ export function dataTableWrapClass(bare?: boolean) {
 
 export const dataTableClass = 'w-full border-collapse text-[0.82rem] text-text'
 
-export const dataTableHeadCellClass = cn(
+export const dataTableHeadCellClass = cx(
   'whitespace-nowrap border-b border-border px-3 py-2.5 text-start text-[0.72rem] font-bold text-muted'
 )
 
-export const dataTableSortBtnClass = cn(
+export const dataTableSortBtnClass = cx(
   'inline-flex cursor-pointer items-center gap-1 rounded-md border-none bg-transparent p-0 font-[inherit] text-[inherit]',
   'hover:text-text'
 )
@@ -44,7 +44,7 @@ export const dataTableActionsCellClass = 'w-px whitespace-nowrap px-2 py-1.5 ali
 
 export const dataTableActionsClass = 'flex items-center justify-end gap-1'
 
-export const dataTableDetailCellClass = cn(
+export const dataTableDetailCellClass = cx(
   'border-b border-border px-3 pb-3 pt-1',
   'bg-[color-mix(in_srgb,var(--color-text)_3%,transparent)]'
 )

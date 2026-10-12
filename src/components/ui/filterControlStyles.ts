@@ -1,11 +1,11 @@
 import { appScrollbarClass } from './scrollbarStyles'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 export const pageFilterPanelClass = 'flex flex-col gap-[0.7rem]'
 
 export const pageFilterPanelSearchClass = 'm-0 [&_.page-search]:max-w-none'
 
-export const pageFilterPanelSectionsClass = cn(
+export const pageFilterPanelSectionsClass = cx(
   'flex flex-col gap-[0.65rem]',
   '[&_.records-filter-section]:m-0 [&_.records-filter-section]:border-0 [&_.records-filter-section]:p-0',
   '[&_.records-filter-section+_.records-filter-section]:mt-0 [&_.records-filter-section+_.records-filter-section]:border-t [&_.records-filter-section+_.records-filter-section]:border-[color-mix(in_srgb,var(--color-primary)_10%,var(--color-border))] [&_.records-filter-section+_.records-filter-section]:pt-[0.65rem]',
@@ -18,7 +18,7 @@ export const pageFilterPanelSearchInputClass =
 
 export const filterModalPanelClass = 'max-h-[min(88vh,720px)]'
 
-export const filterModalBodyClass = cn(
+export const filterModalBodyClass = cx(
   appScrollbarClass,
   'overflow-y-auto [&_.page-filter-panel]:gap-3'
 )
@@ -27,7 +27,7 @@ export const filterModalActionsClass = 'justify-end gap-2'
 
 export const filterModalClearClass = 'me-auto'
 
-export const activeFilterBarClass = cn(
+export const activeFilterBarClass = cx(
   'active-filter-chips mb-[0.7rem] flex flex-wrap items-center gap-2',
   '[&_[role=listitem]]:list-none'
 )
@@ -42,7 +42,7 @@ export const activeFilterTriggerClass = (active?: boolean) =>
 
 export const activeFilterTriggerLabelClass = 'leading-none'
 
-export const activeFilterTriggerDotClass = cn(
+export const activeFilterTriggerDotClass = cx(
   'inline-flex h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-primary px-[0.3rem] text-[0.62rem] font-extrabold leading-none text-on-primary'
 )
 
@@ -84,7 +84,7 @@ export function activeFilterChipMainClass(clickable?: boolean) {
   )
 }
 
-export const activeFilterChipRemoveClass = cn(
+export const activeFilterChipRemoveClass = cx(
   'active-filter-chip__remove flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   'hover:bg-[color-mix(in_srgb,var(--color-primary)_22%,transparent)]'
 )
@@ -94,19 +94,19 @@ export const pageSearchClass = 'page-search relative min-w-0 max-w-[220px] flex-
 export const pageSearchIconClass =
   'pointer-events-none absolute left-[0.7rem] top-1/2 flex -translate-y-1/2 items-center justify-center text-muted opacity-70'
 
-export const pageSearchClearClass = cn(
+export const pageSearchClearClass = cx(
   'absolute left-[0.7rem] top-1/2 z-[1] flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 leading-none text-muted',
   'transition-[color,opacity] duration-[var(--duration-fast)] hover:text-text active:opacity-70'
 )
 
-export const pageSearchInputClass = cn(
+export const pageSearchInputClass = cx(
   'page-search-input w-full rounded-full border-[1.5px] border-border bg-[var(--form-input-bg)] py-2 pl-[2.1rem] pr-[0.85rem] font-[inherit] text-[0.82rem] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background] duration-[var(--duration-normal)]',
   'placeholder:text-muted placeholder:opacity-75',
   'focus:border-primary-light focus:bg-surface focus:shadow-[var(--form-input-focus-shadow)]',
   '[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden'
 )
 
-export const pageFilterBarClass = cn(
+export const pageFilterBarClass = cx(
   'relative mb-[0.65rem] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--color-primary)_14%,var(--color-border))] transition-[border-color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_4%,var(--color-surface))_0%,var(--color-surface)_55%)] shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_18px_color-mix(in_srgb,var(--color-primary)_7%,transparent)]'
 )

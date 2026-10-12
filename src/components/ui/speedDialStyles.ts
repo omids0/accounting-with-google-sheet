@@ -1,6 +1,6 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const fabContainerClass = cn(
+export const fabContainerClass = cx(
   'pointer-events-none fixed bottom-[calc(5.75rem+var(--safe-bottom)+6px)] left-1/2 z-[25] flex w-full max-w-[480px] -translate-x-1/2 justify-start px-4',
   'min-[380px]:px-5',
   'md:bottom-[calc(1rem+var(--safe-bottom))] md:left-auto md:right-[calc(var(--nav-width)+1rem)] md:max-w-none md:translate-x-0 md:justify-start md:px-0'
@@ -8,7 +8,7 @@ export const fabContainerClass = cn(
 
 export const speedDialContainerClass = 'z-[25]'
 
-export const speedDialBackdropClass = cn(
+export const speedDialBackdropClass = cx(
   'fixed inset-0 z-[24] cursor-default border-none bg-[var(--color-overlay-light)]',
   'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[4px]'
 )
@@ -34,7 +34,7 @@ export function speedDialActionWrapClass(open?: boolean) {
   )
 }
 
-const speedDialActionBaseClass = cn(
+const speedDialActionBaseClass = cx(
   'flex h-touch-min w-touch-min shrink-0 items-center justify-center rounded-full',
   'bg-surface text-primary-dark',
   'ring-1 ring-[color-mix(in_srgb,var(--color-border)_72%,var(--color-primary)_10%)]',
@@ -62,13 +62,13 @@ export const speedDialActionExpenseClass = cn(
 export const speedDialActionIconClass =
   'flex h-[1.125rem] w-[1.125rem] items-center justify-center leading-none [&_svg]:h-full [&_svg]:w-full'
 
-export const speedDialActionLabelClass = cn(
+export const speedDialActionLabelClass = cx(
   'max-w-[9.5rem] truncate rounded-full px-2.5 py-1 text-[0.72rem] font-semibold leading-tight text-text',
   'bg-[color-mix(in_srgb,var(--color-surface)_92%,transparent)] shadow-[0_1px_6px_rgba(15,23,42,0.08)]',
   'ring-1 ring-[color-mix(in_srgb,var(--color-border)_80%,transparent)] backdrop-blur-[6px]'
 )
 
-export const fabClass = cn(
+export const fabClass = cx(
   'pointer-events-auto relative flex h-touch-min w-touch-min items-center justify-center rounded-full leading-none opacity-[0.85]',
   'bg-surface text-primary-dark',
   'ring-1 ring-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))]',

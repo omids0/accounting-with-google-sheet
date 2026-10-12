@@ -1,6 +1,6 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const dangSplitStatsRowClass = cn(
+export const dangSplitStatsRowClass = cx(
   'mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.78rem] text-muted'
 )
 
@@ -21,15 +21,15 @@ export const dangSplitSectionTitleClass =
 
 export const dangSplitGroupClass = 'flex flex-col gap-2'
 
-export const dangSplitGroupHeaderClass = cn(
+export const dangSplitGroupHeaderClass = cx(
   'flex items-center justify-between gap-2 border-b border-border pb-1.5'
 )
 
-export const dangSplitGroupHeaderTitleClass = cn(
+export const dangSplitGroupHeaderTitleClass = cx(
   'flex items-center gap-2 text-[0.85rem] font-bold text-[var(--color-primary-dark)]'
 )
 
-export const dangSplitCountBadgeClass = cn(
+export const dangSplitCountBadgeClass = cx(
   'inline-flex items-center rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5',
   'text-[0.7rem] font-bold text-[var(--color-primary-dark)]'
 )
@@ -64,12 +64,12 @@ export const dangSplitAssignBadgeClass = (mode: 'assign' | 'leave') =>
 
 export const dangSplitChipsRowClass = 'mt-2 flex flex-wrap gap-1.5'
 
-export const dangSplitChipClass = cn(
+export const dangSplitChipClass = cx(
   'inline-flex items-center gap-1 rounded-full border border-border bg-bg',
   'px-2 py-0.5 text-[0.72rem] text-muted'
 )
 
-export const dangSplitBreakdownClass = cn(
+export const dangSplitBreakdownClass = cx(
   'mt-2 flex flex-col gap-1.5 border-t border-border pt-2 text-[0.78rem]'
 )
 
@@ -89,7 +89,7 @@ export const dangSplitStatusClass = (
 
 export const dangSplitAllocationListClass = 'flex flex-col gap-2'
 
-export const dangSplitAllocationRowClass = cn(
+export const dangSplitAllocationRowClass = cx(
   'flex items-center justify-between gap-2 rounded-sm border border-border p-2'
 )
 

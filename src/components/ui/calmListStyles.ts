@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 /**
  * Flat list blocks (round 5 «calm» dashboard and the charts page): no card, no
@@ -13,7 +13,7 @@ export const calmBlockTitleClass = 'm-0 text-[0.86rem] font-bold text-text'
 
 export const calmBlockBadgeClass = 'ms-1 text-[0.72rem] font-medium text-danger'
 
-export const calmBlockLinkClass = cn(
+export const calmBlockLinkClass = cx(
   'inline-flex min-h-8 shrink-0 cursor-pointer items-center rounded-md border-none bg-transparent px-1.5',
   'text-[0.74rem] font-semibold text-primary-dark hover:underline'
 )

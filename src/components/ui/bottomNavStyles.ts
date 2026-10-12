@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 export const bottomNavClass = cn(
   'bottom-nav relative fixed bottom-0 left-1/2 z-20 grid w-full max-w-[480px] -translate-x-1/2 grid-cols-[1fr_auto_1fr] items-stretch',
@@ -61,13 +61,13 @@ export function bottomNavDashboardClass(active?: boolean) {
   )
 }
 
-export const bottomNavDashboardIconClass = cn(
+export const bottomNavDashboardIconClass = cx(
   'inline-flex items-center justify-center leading-none',
   '[&_svg]:h-[1.35rem] [&_svg]:w-[1.35rem] min-[380px]:[&_svg]:h-[1.625rem] min-[380px]:[&_svg]:w-[1.625rem]',
   '[&_svg]:drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]'
 )
 
-export const bottomNavDashboardLabelClass = cn(
+export const bottomNavDashboardLabelClass = cx(
   'text-[0.68rem] font-bold tracking-[-0.01em] text-on-primary [text-shadow:0_1px_2px_rgba(15,23,42,0.25)]',
   'min-[380px]:text-[0.72rem]'
 )

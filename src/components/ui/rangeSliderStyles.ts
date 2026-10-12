@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cx } from '../../utils/cn'
 
 export const rangeSliderRootClass = 'range-slider flex flex-col gap-[0.55rem] px-[0.15rem]'
 
@@ -19,7 +19,7 @@ export const rangeSliderTickClass =
 export const rangeSliderFillClass =
   'absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-primary'
 
-export const rangeSliderInputClass = cn(
+export const rangeSliderInputClass = cx(
   'range-slider__input pointer-events-none absolute inset-x-0 top-0 m-0 h-9 w-full appearance-none bg-transparent',
   '[&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:bg-transparent',
   '[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:-mt-[0.45rem] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-[0_1px_4px_color-mix(in_srgb,var(--color-primary)_35%,transparent)] [&::-webkit-slider-thumb]:active:cursor-grabbing',
