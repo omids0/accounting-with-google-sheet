@@ -9,6 +9,8 @@ export type LaunchAction =
   | { kind: 'entry'; formType?: 'income' | 'expense' }
   | { kind: 'sms' }
   | { kind: 'share'; text: string }
+  /** The home-screen widget's body (`…://dashboard`). */
+  | { kind: 'dashboard' }
 
 const QUERY_ACTIONS = new Map<string, LaunchAction>([
   ['expense', { kind: 'entry', formType: 'expense' }],
@@ -34,6 +36,7 @@ export function parseLaunchUrl(url: string | null | undefined): LaunchAction | n
   if (action) return action
   if (base.includes('://bank-sms')) return { kind: 'sms' }
   if (base.includes('://entry')) return { kind: 'entry' }
+  if (base.includes('://dashboard')) return { kind: 'dashboard' }
 
   return null
 }

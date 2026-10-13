@@ -1,5 +1,8 @@
 import { upsertPushSubscription } from './reminders'
 import type { StoredPushSubscription } from '../types'
+import { getDeviceLabel } from '../utils/deviceLabel'
+
+export { getDeviceLabel }
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -199,17 +202,6 @@ export async function showLocalTestNotification(): Promise<void> {
     lang: 'fa',
     tag: 'reminder-test'
   })
-}
-
-export function getDeviceLabel(): string {
-  const ua = navigator.userAgent
-
-  if (/iphone|ipad|ipod/i.test(ua)) return 'iOS'
-  if (/android/i.test(ua)) return 'Android'
-  if (/windows/i.test(ua)) return 'Windows'
-  if (/mac/i.test(ua)) return 'macOS'
-
-  return 'مرورگر'
 }
 
 /** Asks the browser for permission (if needed) and registers this device in the sheet. */

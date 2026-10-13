@@ -1,6 +1,8 @@
 import type { Receivable, ReceivablePayment } from '../types'
+import { RECEIVABLE_WRITER_COLUMN } from './writerColumn'
 import { parseNumeric } from '../utils/parseNumeric'
 import { isJsonArrayCell, isNumericCell, isPlainNumberCell } from '../utils/sheetValues'
+import { parseWriter } from '../utils/writerColumn'
 
 export { RECEIVABLES_SHEET } from './sheetNames'
 export { RECEIVABLES_HEADERS } from './sheetHeaders'
@@ -67,7 +69,8 @@ export function rowToReceivable(
       borrowDate: row[6] ?? '',
       note: row[7] ?? '',
       subCategory: row[9] ?? '',
-      payments: parsePayments(row[8] ?? '')
+      payments: parsePayments(row[8] ?? ''),
+      writer: parseWriter(row[RECEIVABLE_WRITER_COLUMN])
     }
   }
 

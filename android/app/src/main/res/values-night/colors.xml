@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark widget: the app's graphite surface and gold accent. -->
+<resources>
+    <color name="widget_surface">#1C1B19</color>
+    <color name="widget_border">#33302A</color>
+    <color name="widget_text">#EFECE6</color>
+    <color name="widget_muted">#A9A396</color>
+    <color name="widget_accent">#C99A3F</color>
+    <color name="widget_on_accent">#1C1B19</color>
+</resources>

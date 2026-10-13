@@ -45,6 +45,7 @@ export type Tab =
   | 'timesheets'
   | 'timesheet-detail'
   | 'about'
+  | 'activity'
 
 export const CALCULATION_TABS: Tab[] = [
   'loan-calculator',
@@ -124,7 +125,8 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'timesheets',
   'timesheet-detail',
   'dang-split',
-  'dang-split-detail'
+  'dang-split-detail',
+  'activity'
 ]
 
 export const TAB_TITLES: Record<Tab, string> = {
@@ -173,5 +175,6 @@ export const TAB_TITLES: Record<Tab, string> = {
   'report-years': 'سال در یک نگاه',
   timesheets: 'تایم‌شیت',
   'timesheet-detail': 'جزئیات تایم‌شیت',
-  about: 'درباره'
+  about: 'درباره',
+  activity: 'فعالیت'
 }

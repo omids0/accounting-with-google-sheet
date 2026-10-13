@@ -7,8 +7,10 @@ import { fetchSheetRangeFromApi, deleteSheetRow, updateSheetRow } from './sheets
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import { appendSheetDataRow, getSheetAllRows, setSheetAllRows } from './spreadsheetStore'
 import type { OutboxWriteOptions } from './syncOutbox'
+import { ensureWriterColumn, stampWriter } from './writerColumn'
 import { parseAttachmentIds } from '../utils/attachmentIds'
 import { cellToString, isSheetHeaderRow } from '../utils/sheetValues'
+import { headerWriterColumn, parseWriter } from '../utils/writerColumn'
 
 export type SheetWriteOptions = OutboxWriteOptions
 
@@ -21,6 +23,8 @@ export type SheetRecord = {
   values: Record<string, string>
   /** Drive ids of its receipts («پیوست»); [] for rows from before round 7. */
   attachments: string[]
+  /** Email of whoever last saved it («ثبت‌کننده»); '' for rows from before round 8. */
+  writer: string
 }
 
 function parseSheetRecords(rows: unknown[][], form: CustomForm, sheetName: string): SheetRecord[] {
@@ -36,6 +40,8 @@ function parseSheetRecords(rows: unknown[][], form: CustomForm, sheetName: strin
 
   const attachmentColumn = headerAttachmentColumn(headers)
 
+  const writerColumn = headerWriterColumn(headers)
+
   return dataRows
     .map((row, index) => ({ row, rowNumber: hasHeader ? index + 2 : index + 1 }))
     .filter(({ row }) => cellToString(row[0]).trim())
@@ -45,7 +51,8 @@ function parseSheetRecords(rows: unknown[][], form: CustomForm, sheetName: strin
       rowNumber,
       sheetName,
       values: mapRowToValues(row, form.fields, columnMap),
-      attachments: attachmentColumn < 0 ? [] : parseAttachmentIds(row[attachmentColumn])
+      attachments: attachmentColumn < 0 ? [] : parseAttachmentIds(row[attachmentColumn]),
+      writer: writerColumn < 0 ? '' : parseWriter(row[writerColumn])
     }))
 }
 
@@ -70,9 +77,15 @@ export async function appendRecord(
   createdAt: string,
   values: Record<string, string | number>
 ): Promise<void> {
+  ensureWriterColumn(spreadsheetId, form.sheetName)
+
   const headers = getSheetHeaderRowFromStore(spreadsheetId, form.sheetName, form)
 
-  const row = buildRecordRow(headers, form.fields, recordId, createdAt, values)
+  const row = stampWriter(
+    spreadsheetId,
+    form.sheetName,
+    buildRecordRow(headers, form.fields, recordId, createdAt, values)
+  )
 
   appendSheetDataRow(spreadsheetId, form.sheetName, row)
   notifySpreadsheetDataChanged(spreadsheetId)
@@ -135,6 +148,7 @@ export async function updateRecord(
   values: Record<string, string | number>,
   sheetName: string = form.sheetName
 ): Promise<void> {
+  ensureWriterColumn(spreadsheetId, sheetName)
   await updateSheetRow(spreadsheetId, sheetName, rowNumber, () => {
     const headers = getSheetHeaderRowFromStore(spreadsheetId, sheetName, form)
 

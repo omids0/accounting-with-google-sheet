@@ -20,6 +20,8 @@ export interface InstallmentPlan {
   payments: InstallmentPayment[]
   /** Drive ids of its receipts (column «پیوست»). */
   attachments?: string[]
+  /** Email of whoever last saved it (column «ثبت‌کننده»); '' for older rows. */
+  writer?: string
 }
 
 export interface Dang {
@@ -35,6 +37,8 @@ export interface Dang {
   paid: boolean
   paidAt: string
   transactionRecordId?: string
+  /** Email of whoever last saved it (column «ثبت‌کننده»); '' for older rows. */
+  writer?: string
 }
 
 export interface Check {
@@ -51,6 +55,8 @@ export interface Check {
   transactionRecordId?: string
   /** Drive ids of its receipts (column «پیوست»). */
   attachments?: string[]
+  /** Email of whoever last saved it (column «ثبت‌کننده»); '' for older rows. */
+  writer?: string
 }
 
 export interface ReceivablePayment {
@@ -72,6 +78,8 @@ export interface Receivable {
   borrowDate: string
   note: string
   payments: ReceivablePayment[]
+  /** Email of whoever last saved it (column «ثبت‌کننده»); '' for older rows. */
+  writer?: string
 }
 
 /** The seven assets the vault knew before the catalog; their ids are still valid catalog ids. */

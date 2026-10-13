@@ -7,6 +7,7 @@ import AppLockSettings from '../AppLockSettings'
 import ConfirmActionModal from '../ConfirmActionModal'
 import { SettingsSkeleton } from '../skeleton'
 import SettingsDisplayCard from './display/SettingsDisplayCard'
+import SettingsActivityCard from './SettingsActivityCard'
 import SettingsBudgetsCard from './SettingsBudgetsCard'
 import SettingsCategoriesCard from './SettingsCategoriesCard'
 import SettingsCloseYearCard from './SettingsCloseYearCard'
@@ -117,6 +118,13 @@ export default function SettingsPage() {
             icon: 'records' as const,
             description: 'ترتیب، زیردسته، ادغام و دسته‌های پیشنهادی',
             content: <SettingsCategoriesCard />
+          },
+          {
+            id: 'activity',
+            title: 'فعالیت',
+            icon: 'clock' as const,
+            description: 'چه کسی چه چیزی را کی و از کدام دستگاه عوض کرد',
+            content: <SettingsActivityCard />
           },
           {
             id: 'budgets',

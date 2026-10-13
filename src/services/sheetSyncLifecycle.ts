@@ -6,12 +6,13 @@ import {
   flushOutbox,
   invalidateDerivedCaches,
   isQuotaBlocked,
-  refreshFailedCount
+  refreshFailedCount,
+  refreshPendingCount
 } from './sheetSyncOutbox'
 import { pullRemoteSheets } from './sheetSyncPull'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import { clearStore, getStoreLastSyncedAt, hasStoreData, hydrateStore } from './spreadsheetStore'
-import { getOutboxSheetNames, hasPendingOutbox, clearOutbox, getOutboxCount } from './syncOutbox'
+import { getOutboxSheetNames, hasPendingOutbox, clearOutbox } from './syncOutbox'
 import { getSyncStatus, setLastSyncedAt, setSyncState, setPendingWrites } from './syncStatus'
 import { toUserMessage } from '../utils/userMessage'
 
@@ -181,7 +182,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   void import('./spreadsheetPrepare')
     .then(prepare => prepare.runBackgroundMigrations(spreadsheetId))
     .catch(() => undefined)
-  setPendingWrites(getOutboxCount(spreadsheetId))
+  refreshPendingCount(spreadsheetId)
   refreshFailedCount(spreadsheetId)
 
   const lastSyncedAt = getStoreLastSyncedAt(spreadsheetId)
@@ -201,6 +202,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   } else {
     await fullSyncFromRemote(spreadsheetId, { background: false, force: true })
   }
+  void import('./sharing').then(sharing => sharing.refreshSharingInfoIfStale(spreadsheetId))
 
   bindVisibilitySync()
 

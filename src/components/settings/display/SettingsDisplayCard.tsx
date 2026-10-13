@@ -14,6 +14,7 @@ import {
   displaySettingsRowStackClass,
   displaySettingsRowTitleClass
 } from '../../ui/displaySettingsStyles'
+import { formHintClass } from '../../ui/formStyles'
 
 const THEME_OPTIONS: SegmentedRadioOption<ThemeMode>[] = [
   { value: 'light', label: 'روشن' },
@@ -87,6 +88,9 @@ export default function SettingsDisplayCard() {
         checked={prefs.haptics}
         onChange={prefs.setHaptics}
       />
+      {Capacitor.getPlatform() === 'android' ? (
+        <p className={formHintClass}>ویجت را از منوی لانچر اضافه کن.</p>
+      ) : null}
     </Card>
   )
 }

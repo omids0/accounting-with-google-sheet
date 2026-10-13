@@ -1,4 +1,5 @@
 import type { Dang } from '../types'
+import { logItemActivity } from './activityLog'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
 import { DANG_HEADERS } from './sheetHeaders'
@@ -10,11 +11,13 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
+import { DANG_WRITER_COLUMN } from './writerColumn'
 import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
 import { isNumericCell, isPlainNumberCell } from '../utils/sheetValues'
+import { parseWriter } from '../utils/writerColumn'
 
 export { DANG_SHEET, DANG_HEADERS }
 
@@ -69,7 +72,8 @@ export function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber:
     paid: parsePaid(row[8] ?? ''),
     paidAt: row[9] ?? '',
     transactionRecordId: row[10] ?? '',
-    subCategory: row[11] ?? ''
+    subCategory: row[11] ?? '',
+    writer: parseWriter(row[DANG_WRITER_COLUMN])
   }
 }
 
@@ -140,6 +144,7 @@ export async function createDang(
   }
 
   await appendSheetRow(spreadsheetId, DANG_SHEET, dangToRow(dang))
+  logItemActivity(spreadsheetId, 'create', 'dang', dang.id, dang.title)
 
   return dang
 }
@@ -147,9 +152,12 @@ export async function createDang(
 export async function updateDang(
   spreadsheetId: string,
   rowNumber: number,
-  dang: Dang
+  dang: Dang,
+  /** False for bulk rewrites (a category rename logs once itself). */
+  log = true
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, DANG_SHEET, rowNumber, dangToRow(dang))
+  if (log) logItemActivity(spreadsheetId, 'update', 'dang', dang.id, dang.title)
 }
 
 export async function deleteDang(
@@ -161,6 +169,7 @@ export async function deleteDang(
     await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId)
   }
   await deleteSheetRow(spreadsheetId, DANG_SHEET, rowNumber)
+  if (dang) logItemActivity(spreadsheetId, 'delete', 'dang', dang.id, dang.title)
 }
 
 export async function toggleDangPaid(
@@ -184,7 +193,8 @@ export async function toggleDangPaid(
       transactionRecordId
     }
 
-    await updateDang(spreadsheetId, dang.rowNumber, updated)
+    await updateSheetRow(spreadsheetId, DANG_SHEET, dang.rowNumber, dangToRow(updated))
+    logItemActivity(spreadsheetId, 'pay', 'dang', dang.id, `بدهی «${dang.title}»`)
 
     return updated
   }
@@ -201,7 +211,8 @@ export async function toggleDangPaid(
       transactionRecordId: ''
     }
 
-    await updateDang(spreadsheetId, dang.rowNumber, updated)
+    await updateSheetRow(spreadsheetId, DANG_SHEET, dang.rowNumber, dangToRow(updated))
+    logItemActivity(spreadsheetId, 'unpay', 'dang', dang.id, `بدهی «${dang.title}»`)
 
     return updated
   }

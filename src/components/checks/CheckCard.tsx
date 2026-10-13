@@ -19,6 +19,7 @@ import {
   dangCheckboxClass,
   dangPaidAtClass
 } from '../ui/featureCardStyles'
+import WriterAvatar from '../WriterAvatar'
 
 export type CheckCardProps = {
   item: CheckWithRow
@@ -62,7 +63,10 @@ export default function CheckCard({
                 <MoneyText amount={item.amount} />
               </span>
             </div>
-            <div className={dangCardMetaClass}>طرف حساب: {item.counterparty}</div>
+            <div className={dangCardMetaClass}>
+              <WriterAvatar email={item.writer} withName />
+              طرف حساب: {item.counterparty}
+            </div>
             <div className={dangCardMetaClass}>
               {item.creationDate ? (
                 <span>صدور: {formatIsoDatePersian(item.creationDate)}</span>

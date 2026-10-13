@@ -67,6 +67,10 @@ export function buildCounterpartyChip(counterparty: string, onRemove: () => void
   return buildLabeledFilterChip('counterparty', 'counterparty', 'طرف', counterparty, onRemove)
 }
 
+export function buildMineChip(onRemove: () => void): FilterChip {
+  return withKind('other', { id: 'mine', label: 'فقط من', onRemove })
+}
+
 export function buildWithItemsChip(onRemove: () => void): FilterChip {
   return withKind('other', { id: 'with-items', label: 'با اقلام', onRemove })
 }

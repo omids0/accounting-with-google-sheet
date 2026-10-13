@@ -59,5 +59,7 @@ export const dashboardCellClass = {
   analysis: 'xl:col-span-4',
   /** Moves after «تحلیل» on desktop (order 1 vs. the default 0). */
   recent: 'xl:order-1 xl:col-span-8',
+  /** «فعالیت اخیر» (shared spreadsheets) right under «تراکنش‌های اخیر». */
+  activity: 'xl:order-1 xl:col-span-8',
   balance: 'xl:order-1 xl:col-span-4'
 }

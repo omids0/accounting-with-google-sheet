@@ -2,7 +2,7 @@ import { WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import type { DashboardRecord, WalletAccount } from '../types'
 import { parseNumeric } from '../utils/parseNumeric'
 
-type SheetRecord = { values: Record<string, string>; createdAt?: string }
+type SheetRecord = { values: Record<string, string>; createdAt?: string; writer?: string }
 
 interface RecentSide {
   records: SheetRecord[]
@@ -30,6 +30,7 @@ export function buildRecentRecords(
       category: r.values.category || 'سایر',
       date: r.values[side.dateField] ?? '',
       account: accountOf(r.values),
+      writer: r.writer || undefined,
       createdAt: r.createdAt
     }))
 

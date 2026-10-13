@@ -20,6 +20,7 @@ import {
   recordItemsSummaryClass
 } from '../ui/lineItemStyles'
 import { amountExpenseClass, amountIncomeClass } from '../ui/recordsStyles'
+import WriterAvatar from '../WriterAvatar'
 
 interface RecordsListRowProps {
   record: StoredRecord
@@ -90,6 +91,7 @@ function RecordsListRow({
       }
       meta={
         <>
+          <WriterAvatar email={record.writer} withName />
           {isAllForms && `${record.formName} · `}
           {date ? formatIsoDatePersian(date) : record.createdAt}
           {category && ` · ${category}`}

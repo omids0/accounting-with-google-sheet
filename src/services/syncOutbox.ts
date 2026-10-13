@@ -50,6 +50,13 @@ export interface AttachmentUploadOperation {
   attachmentId: string
 }
 
+/** Their version of a row this device also edited (round 8); kept until the user picks one. */
+export interface OutboxConflict {
+  theirs: string[]
+  theirEmail: string
+  theirAt: string
+}
+
 export interface OutboxEntry {
   id: string
   spreadsheetId: string
@@ -59,6 +66,8 @@ export interface OutboxEntry {
   lastError?: string
   /** Parked write whose change was taken back out of the local mirror. */
   reverted?: boolean
+  /** Set: the flush skips this update until the conflict sheet resolves it. */
+  conflict?: OutboxConflict
 }
 
 function outboxKey(spreadsheetId: string): string {
@@ -82,14 +91,51 @@ export function getOutboxEntries(spreadsheetId: string): OutboxEntry[] {
   return readOutbox(spreadsheetId)
 }
 
+/** Entries the flush may send: every one except updates waiting on a conflict answer. */
+function sendable(spreadsheetId: string): OutboxEntry[] {
+  return readOutbox(spreadsheetId).filter(entry => !entry.conflict)
+}
+
 export function getOutboxCount(spreadsheetId: string): number {
-  return readOutbox(spreadsheetId).length
+  return sendable(spreadsheetId).length
+}
+
+export function getConflictEntries(spreadsheetId: string): OutboxEntry[] {
+  return readOutbox(spreadsheetId).filter(entry => entry.conflict)
+}
+
+function patchEntry(
+  spreadsheetId: string,
+  entryId: string,
+  patch: (entry: OutboxEntry) => OutboxEntry
+) {
+  writeOutbox(
+    spreadsheetId,
+    readOutbox(spreadsheetId).map(entry => (entry.id === entryId ? patch(entry) : entry))
+  )
+}
+
+export function markOutboxEntryConflict(
+  spreadsheetId: string,
+  entryId: string,
+  conflict: OutboxConflict
+): void {
+  patchEntry(spreadsheetId, entryId, entry => ({ ...entry, conflict }))
+}
+
+/** «نسخهٔ من»: send it again over their row (now the expected one). */
+export function keepMineForConflict(spreadsheetId: string, entryId: string): void {
+  patchEntry(spreadsheetId, entryId, ({ conflict, ...entry }) =>
+    entry.operation.type === 'update' && conflict
+      ? { ...entry, operation: { ...entry.operation, expectedRow: conflict.theirs } }
+      : entry
+  )
 }
 
 export function getOutboxSheetNames(spreadsheetId: string): Set<string> {
   const names = new Set<string>()
 
-  for (const entry of readOutbox(spreadsheetId)) {
+  for (const entry of sendable(spreadsheetId)) {
     names.add(entry.operation.sheetName)
   }
 

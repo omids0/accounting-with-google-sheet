@@ -92,6 +92,7 @@ export default function RecordsPage({
           counterparty={page.extra.showCounterparty ? page.extra.draftCounterparty : undefined}
           onCounterpartyChange={page.extra.setDraftCounterparty}
           counterpartyOptions={page.extra.showCounterparty ? page.extra.options : undefined}
+          {...page.extra.minePanelProps}
         >
           <div className={recordsDateGridClass}>
             <button

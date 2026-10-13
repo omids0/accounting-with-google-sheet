@@ -74,7 +74,9 @@ export function useLayoutNavigation() {
   usePrefetchAppPages()
 
   const showPageSpeedDial =
-    !showSettings && SPEED_DIAL_TABS.includes(tab) && pageSpeedDialConfig != null
+    (!showSettings || tab === 'activity') &&
+    SPEED_DIAL_TABS.includes(tab) &&
+    pageSpeedDialConfig != null
 
   const handleTabChange = useCallback(
     (newTab: Tab, options?: TabNavigationOptions) => {

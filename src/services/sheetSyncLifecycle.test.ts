@@ -16,7 +16,8 @@ vi.mock('./sheetSyncOutbox', () => ({
   flushOutbox: async () => true,
   invalidateDerivedCaches: vi.fn(),
   isQuotaBlocked: () => false,
-  refreshFailedCount: vi.fn()
+  refreshFailedCount: vi.fn(),
+  refreshPendingCount: vi.fn()
 }))
 vi.mock('./spreadsheetStore', () => ({
   clearStore: vi.fn(),

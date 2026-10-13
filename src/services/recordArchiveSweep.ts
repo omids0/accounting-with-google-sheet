@@ -1,4 +1,5 @@
 import type { CustomForm } from '../types'
+import { ACTIVITY_LOG_FORM, ACTIVITY_LOG_KEEP, planActivitySweepYears } from './activityLogSweep'
 import { addArchiveTab } from './archiveRegistry'
 import { prepareArchiveTab, readTabs } from './archiveTabs'
 import { archiveSheetName, planYearSweep, type YearSweepOptions } from './recordArchive'
@@ -116,6 +117,19 @@ export async function sweepFormArchives(
   return true
 }
 
+/** «فعالیت_ها» over its 2000 rows: the past years holding the oldest rows move out. */
+export async function sweepActivityLogArchives(
+  spreadsheetId: string,
+  currentYear = isoToJalali(getTodayIso()).year
+): Promise<void> {
+  const mirror = getSheetAllRows(spreadsheetId, ACTIVITY_LOG_FORM.sheetName) ?? []
+
+  for (const year of planActivitySweepYears(mirror, currentYear, ACTIVITY_LOG_KEEP)) {
+    if (hasPendingOutbox(spreadsheetId)) return
+    await sweepFormArchives(spreadsheetId, ACTIVITY_LOG_FORM, currentYear, { year, minRows: 0 })
+  }
+}
+
 let sweeping = false
 
 /**
@@ -138,7 +152,14 @@ export async function sweepArchivesAfterPull(
     return mirror !== null && planYearSweep(mirror, form, currentYear) !== null
   })
 
-  if (!due.length) return
+  const activityDue =
+    planActivitySweepYears(
+      getSheetAllRows(spreadsheetId, ACTIVITY_LOG_FORM.sheetName) ?? [],
+      currentYear,
+      ACTIVITY_LOG_KEEP
+    ).length > 0
+
+  if (!due.length && !activityDue) return
 
   sweeping = true
   try {
@@ -147,6 +168,7 @@ export async function sweepArchivesAfterPull(
         if (hasPendingOutbox(spreadsheetId)) return
         await sweepFormArchives(spreadsheetId, form, currentYear)
       }
+      if (activityDue) await sweepActivityLogArchives(spreadsheetId, currentYear)
     })
   } finally {
     sweeping = false

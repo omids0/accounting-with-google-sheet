@@ -1,4 +1,5 @@
 import type { Receivable } from '../types'
+import { logActivity, logItemActivity } from './activityLog'
 import { createLinkedIncomeRecord, deleteLinkedIncomeRecord } from './paymentTransactions'
 import {
   RECEIVABLES_HEADERS,
@@ -15,7 +16,10 @@ import {
   fetchSheetRows,
   updateSheetRow
 } from './sheets'
+import { formatAmountWords } from '../utils/insightText'
 import { getTodayIso } from '../utils/jalaliDate'
+
+const titleOf = (item: Receivable) => getReceivableDisplayTitle(item)
 
 export async function ensureReceivablesSheet(spreadsheetId: string): Promise<void> {
   await ensureSheetWithHeaders(spreadsheetId, RECEIVABLES_SHEET, RECEIVABLES_HEADERS)
@@ -60,6 +64,7 @@ export async function createReceivable(
   }
 
   await appendSheetRow(spreadsheetId, RECEIVABLES_SHEET, receivableToRow(receivable))
+  logItemActivity(spreadsheetId, 'create', 'receivables', receivable.id, titleOf(receivable))
 
   return receivable
 }
@@ -99,6 +104,12 @@ export async function addReceivablePayment(
     receivable.rowNumber,
     receivableToRow(updated)
   )
+  logActivity(spreadsheetId, {
+    action: 'pay',
+    module: 'receivables',
+    itemId: receivable.id,
+    summary: `${formatAmountWords(payment.amount)} از طلب «${titleOf(receivable)}» را دریافت کرد`
+  })
 
   return updated
 }
@@ -127,6 +138,14 @@ export async function removeReceivablePayment(
     receivable.rowNumber,
     receivableToRow(updated)
   )
+  logActivity(spreadsheetId, {
+    action: 'unpay',
+    module: 'receivables',
+    itemId: receivable.id,
+    summary: `دریافت ${formatAmountWords(payment.amount)} از طلب «${titleOf(
+      receivable
+    )}» را حذف کرد`
+  })
 
   return updated
 }
@@ -134,9 +153,13 @@ export async function removeReceivablePayment(
 export async function updateReceivable(
   spreadsheetId: string,
   rowNumber: number,
-  receivable: Receivable
+  receivable: Receivable,
+  /** False for bulk rewrites (a category rename logs once itself). */
+  log = true
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber, receivableToRow(receivable))
+  if (log)
+    logItemActivity(spreadsheetId, 'update', 'receivables', receivable.id, titleOf(receivable))
 }
 
 export async function deleteReceivable(
@@ -152,4 +175,7 @@ export async function deleteReceivable(
     }
   }
   await deleteSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber)
+  if (receivable) {
+    logItemActivity(spreadsheetId, 'delete', 'receivables', receivable.id, titleOf(receivable))
+  }
 }

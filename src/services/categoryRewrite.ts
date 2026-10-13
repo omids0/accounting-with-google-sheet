@@ -165,7 +165,7 @@ export async function collectCategoryRewrites(
     const { fetchDangs, updateDang } = await import('./dang')
 
     return itemRewrites(await fetchDangs(spreadsheetId), from, to, (row, item) =>
-      updateDang(spreadsheetId, row, item)
+      updateDang(spreadsheetId, row, item, false)
     )
   }
 
@@ -173,7 +173,7 @@ export async function collectCategoryRewrites(
     const { fetchReceivables, updateReceivable } = await import('./receivablesCrud')
 
     return itemRewrites(await fetchReceivables(spreadsheetId), from, to, (row, item) =>
-      updateReceivable(spreadsheetId, row, item)
+      updateReceivable(spreadsheetId, row, item, false)
     )
   }
 

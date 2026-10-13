@@ -1,4 +1,5 @@
 import { searchText, type SearchEntry } from './globalSearch'
+import { withWriterNames } from './globalSearchWriter'
 import { getAssetClassLabel } from './treasuryCatalog'
 import { formatQuantityValue } from './treasuryQuantity'
 import type {
@@ -25,6 +26,7 @@ export interface SearchRecordInput {
   values: Record<string, string>
   /** The form's date field id. */
   dateField: string
+  writer?: string
 }
 
 /** Everything the global search reads, straight from the local mirror. */
@@ -40,6 +42,8 @@ export interface SearchSources {
   goals: SavingsGoal[]
   reminders: PersonalReminder[]
   vehicles: VehicleProfile[]
+  /** Display name of a «ثبت‌کننده» email; only set on a shared spreadsheet. */
+  writerName?: (email: string) => string
 }
 
 /**
@@ -101,7 +105,8 @@ function recordEntries(sources: SearchSources): SearchEntry[] {
           accounts.get(values.walletAccount ?? ''),
           month
         ),
-        amounts: [amount]
+        amounts: [amount],
+        writer: record.writer
       }
     })
     .sort((a, b) => b.date.localeCompare(a.date))
@@ -166,7 +171,8 @@ function moduleEntries(sources: SearchSources): SearchEntry[] {
     amount: item.amount,
     date: item.dueDate,
     text: searchText('چک', item.checkNumber, item.counterparty, item.subCategory),
-    amounts: [item.amount]
+    amounts: [item.amount],
+    writer: item.writer
   }))
   const dangs = sources.dangs.map(item => ({
     group: 'dang' as const,
@@ -176,7 +182,8 @@ function moduleEntries(sources: SearchSources): SearchEntry[] {
     amount: item.amount,
     date: item.date,
     text: searchText(item.title, item.counterparty, item.category, item.subCategory, item.note),
-    amounts: [item.amount]
+    amounts: [item.amount],
+    writer: item.writer
   }))
   const receivables = sources.receivables.map(item => ({
     group: 'receivables' as const,
@@ -186,7 +193,8 @@ function moduleEntries(sources: SearchSources): SearchEntry[] {
     amount: item.amount,
     date: item.borrowDate,
     text: searchText(item.title, item.debtor, item.category, item.subCategory, item.note),
-    amounts: [item.amount, ...item.payments.map(payment => payment.amount)]
+    amounts: [item.amount, ...item.payments.map(payment => payment.amount)],
+    writer: item.writer
   }))
   const installments = sources.installments.map(item => ({
     group: 'installments' as const,
@@ -196,7 +204,8 @@ function moduleEntries(sources: SearchSources): SearchEntry[] {
     amount: item.amount,
     date: '',
     text: searchText(item.title, item.subCategory, item.note),
-    amounts: [item.amount, ...item.payments.map(payment => payment.amount ?? 0)]
+    amounts: [item.amount, ...item.payments.map(payment => payment.amount ?? 0)],
+    writer: item.writer
   }))
 
   return [...checks, ...receivables, ...dangs, ...installments]
@@ -254,12 +263,15 @@ function otherEntries(sources: SearchSources): SearchEntry[] {
 
 /** Every searchable item of every module, normalized once per data load. */
 export function buildSearchEntries(sources: SearchSources): SearchEntry[] {
-  return [
-    ...counterpartyEntries(sources),
-    ...recordEntries(sources),
-    ...moduleEntries(sources),
-    ...otherEntries(sources)
-  ]
+  return withWriterNames(
+    [
+      ...counterpartyEntries(sources),
+      ...recordEntries(sources),
+      ...moduleEntries(sources),
+      ...otherEntries(sources)
+    ],
+    sources.writerName
+  )
 }
 
 /** Distinct months of the records, newest first — the empty-input suggestions. */

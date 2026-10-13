@@ -16,6 +16,7 @@ import {
   calmRowSubClass,
   calmRowTitleClass
 } from '../ui/calmListStyles'
+import WriterAvatar from '../WriterAvatar'
 
 export const DASHBOARD_RECENT_LIMIT = 5
 
@@ -33,7 +34,17 @@ const RECENT_COLUMNS: DataTableColumn<DashboardRecord>[] = [
     cell: record => formatIsoDatePersian(normalizeSheetDate(record.date) || record.date),
     className: 'whitespace-nowrap text-muted'
   },
-  { id: 'title', header: 'عنوان', cell: record => record.title, className: 'font-semibold' },
+  {
+    id: 'title',
+    header: 'عنوان',
+    cell: record => (
+      <>
+        <WriterAvatar email={record.writer} />
+        {record.title}
+      </>
+    ),
+    className: 'font-semibold'
+  },
   { id: 'category', header: 'دسته', cell: record => record.category || '—' },
   { id: 'account', header: 'حساب', cell: record => record.account || '—' },
   {
@@ -85,7 +96,10 @@ export default function DashboardRecentBlock({
             <li key={`${record.date}-${index}`} className={calmRowClass}>
               <DayBadge date={record.date} />
               <span className={calmRowMainClass}>
-                <span className={calmRowTitleClass}>{record.title}</span>
+                <span className={calmRowTitleClass}>
+                  <WriterAvatar email={record.writer} />
+                  {record.title}
+                </span>
                 <span className={calmRowSubClass}>
                   {[record.category, record.account].filter(Boolean).join(' · ')}
                 </span>

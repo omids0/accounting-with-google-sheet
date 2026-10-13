@@ -35,7 +35,7 @@ import {
 import { skeletonCardClass, skeletonFormClass, skeletonFormRowClass } from '../ui/skeletonStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
-export { DashboardSkeleton } from './DashboardSkeletons'
+export { CalmRowsSkeleton, DashboardSkeleton } from './DashboardSkeletons'
 
 export {
   FilterChipsSkeleton,

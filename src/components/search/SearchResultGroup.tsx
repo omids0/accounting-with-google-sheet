@@ -19,6 +19,7 @@ import {
   searchRowButtonClass,
   searchRowTagClass
 } from '../ui/searchStyles'
+import WriterAvatar from '../WriterAvatar'
 
 function SearchResultRow({ entry, onOpen }: { entry: SearchEntry; onOpen: () => void }) {
   return (
@@ -32,7 +33,10 @@ function SearchResultRow({ entry, onOpen }: { entry: SearchEntry; onOpen: () => 
           </span>
         )}
         <span className={calmRowMainClass}>
-          <span className={calmRowTitleClass}>{entry.title}</span>
+          <span className={calmRowTitleClass}>
+            <WriterAvatar email={entry.writer} />
+            {entry.title}
+          </span>
           {entry.subtitle ? <span className={calmRowSubClass}>{entry.subtitle}</span> : null}
         </span>
         {entry.amount != null ? (

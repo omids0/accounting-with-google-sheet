@@ -1,3 +1,4 @@
+import { logItemActivity } from './activityLog'
 import { queueGoalCongrats } from './goalCongrats'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import {
@@ -118,6 +119,7 @@ export async function moveGoalMoney(
     )
   ])
   if (account) await updateWalletAccount(spreadsheetId, { ...account, balance: balanceAfter })
+  logItemActivity(spreadsheetId, 'goal', 'goals', goal.id, goal.title, { amount })
 
   const balance = goal.balance + amount
   const status = nextGoalStatus(goal, balance)

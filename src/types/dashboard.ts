@@ -35,6 +35,8 @@ export interface DashboardRecord {
   date: string
   /** Title of the wallet account the record names, if any. */
   account?: string
+  /** Email in «ثبت‌کننده» (shared spreadsheets show an avatar). */
+  writer?: string
 }
 
 export interface FinancialSummary {

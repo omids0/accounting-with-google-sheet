@@ -1,6 +1,7 @@
 import type { AppSettings } from '../types'
 import { getSettings } from './settings'
 import {
+  ACTIVITY_LOG_SHEET,
   BUDGETS_SHEET,
   CATEGORIES_SHEET,
   CHECKS_SHEET,
@@ -70,7 +71,8 @@ const STATIC_SHEETS = [
   VEHICLE_DEADLINE_SHEET,
   VEHICLE_HISTORY_SHEET,
   VEHICLE_MECHANIC_SHEET,
-  VEHICLE_EXPENSE_META_SHEET
+  VEHICLE_EXPENSE_META_SHEET,
+  ACTIVITY_LOG_SHEET
 ]
 
 export function getKnownSheetNames(settings: AppSettings = getSettings()!): string[] {

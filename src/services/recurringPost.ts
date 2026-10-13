@@ -1,3 +1,4 @@
+import { logItemActivity } from './activityLog'
 import { getDateFieldId } from './dashboardAggregation'
 import { settleEntryWallet } from './entryWallet'
 import { refreshOpeningBalancesInBackground } from './openingBalanceRefresh'
@@ -20,6 +21,21 @@ import {
 import { appendRecord } from './sheets'
 import type { AppSettings, CustomForm, RecurringItem } from '../types'
 import { getJalaliMonthKey } from '../utils/dateRange'
+
+/** One feed line per run: the item's title, or «N تکرار ماهانه» for several. */
+function logRecurringPosts(spreadsheetId: string, items: RecurringItem[]): void {
+  const [first] = items
+
+  if (!first) return
+  logItemActivity(
+    spreadsheetId,
+    'recurring',
+    'recurring',
+    items.length === 1 ? first.id : '',
+    first.title || first.category,
+    { count: items.length }
+  )
+}
 
 export function recurringFormOf(
   settings: AppSettings,
@@ -65,7 +81,7 @@ export async function postReminderItems(
     await saveRecurringItem(settings.spreadsheetId, { ...item, lastPosted: monthKey })
   }
 
-  let written = 0
+  const written: RecurringItem[] = []
 
   for (const item of post) {
     const form = recurringFormOf(settings, item.type)
@@ -79,12 +95,13 @@ export async function postReminderItems(
       reminderPostDate(item, todayIso),
       RECURRING_NOTE
     )
-    written += 1
+    written.push(item)
   }
 
-  if (written) refreshOpeningBalancesInBackground()
+  if (written.length) refreshOpeningBalancesInBackground()
+  logRecurringPosts(settings.spreadsheetId, written)
 
-  return written
+  return written.length
 }
 
 export interface AutoPosted {
@@ -133,6 +150,10 @@ export async function runAutoPost(settings: AppSettings, todayIso: string): Prom
   }
 
   if (posted.length) refreshOpeningBalancesInBackground()
+  logRecurringPosts(
+    settings.spreadsheetId,
+    posted.map(entry => entry.item)
+  )
 
   return posted
 }

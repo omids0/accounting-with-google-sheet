@@ -31,6 +31,7 @@ export function useDangFilters({ items, categories, counterparties }: UseDangFil
     getCategory: item => item.category,
     categorySeed: categories,
     getCounterparty: item => item.counterparty,
+    getWriter: item => item.writer,
     counterpartySeed
   })
 }

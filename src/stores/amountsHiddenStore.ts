@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
 import { getItem, removeItem, setItem } from '../services/storage'
+import { pushWidgetSnapshot } from '../services/widgetNative'
 
 /**
  * Per device on purpose (privacy in company, like the screen of this phone):
@@ -33,6 +34,7 @@ export const useAmountsHiddenStore = create<AmountsHiddenStore>((set, get) => ({
   setHidden: hidden => {
     writeAmountsHidden(hidden)
     set({ hidden })
+    pushWidgetSnapshot()
   },
   toggle: () => get().setHidden(!get().hidden)
 }))

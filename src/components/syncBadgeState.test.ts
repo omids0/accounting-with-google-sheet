@@ -12,12 +12,20 @@ function status(patch: Partial<SyncStatusSnapshot>): SyncStatusSnapshot {
     lastSyncedAt: NOW,
     pendingWrites: 0,
     failedWrites: 0,
+    conflicts: 0,
     lastError: null,
     ...patch
   }
 }
 
 describe('getSyncBadgeState', () => {
+  it('names waiting edit conflicts and opens the details', () => {
+    const state = getSyncBadgeState(status({ conflicts: 2 }), NOW)
+
+    expect(state.label).toBe('۲ تعارض')
+    expect(state.showDetails).toBe(true)
+  })
+
   it('says the queue stopped, with the cause, instead of «در حال ذخیره»', () => {
     const state = getSyncBadgeState(
       status({ syncState: 'error', pendingWrites: 3, lastError: 'backend error 503' }),

@@ -1,3 +1,4 @@
+import DashboardActivityBlock from './DashboardActivityBlock'
 import DashboardAnalysisBlock from './DashboardAnalysisBlock'
 import DashboardBalanceBlock from './DashboardBalanceBlock'
 import DashboardGoalCongratsCard from './DashboardGoalCongratsCard'
@@ -118,6 +119,8 @@ export default function DashboardContent({
           onViewAll={nav.onViewRecords}
           onShowPreviousMonth={nav.onShowPreviousMonth}
         />
+
+        <DashboardActivityBlock className={dashboardCellClass.activity} />
 
         <DashboardAnalysisBlock
           className={dashboardCellClass.analysis}

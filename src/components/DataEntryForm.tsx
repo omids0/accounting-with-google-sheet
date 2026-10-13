@@ -9,6 +9,7 @@ import EntryDuplicateWarning from './dataEntry/EntryDuplicateWarning'
 import EntryFormActions from './dataEntry/EntryFormActions'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
 import { focusEntryAmount, templateFormValues, type DataEntryFormProps } from './dataEntry/types'
+import { writeEntryRecord } from './dataEntry/writeEntryRecord'
 import {
   buildFormInitialValues,
   isStandardEntryForm,
@@ -25,8 +26,6 @@ import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
 import { prepareEntryValues, settleEntryWallet, smsBalanceHint } from '../services/entryWallet'
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
-import { appendRecord } from '../services/sheets'
-import { createManualVehicleExpense } from '../services/vehicleExpenseActions'
 import { requireAuth } from '../utils/authGuard'
 import { validatePositiveAmount } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
@@ -159,19 +158,18 @@ export default function DataEntryForm({
     onLoadingChange(true)
     const settings = getSettings()!
     const formValues = prepareEntryValues(activeForm.type, withAutoTitle(entered), bankSms)
-    let recordId: string = crypto.randomUUID()
+    const vehicleInput = showVehicleFields
+      ? vehicleExpense.buildVehicleExpenseInput(formValues)
+      : null
+    let recordId: string
 
     try {
-      if (showVehicleFields) {
-        recordId = await createManualVehicleExpense(
-          settings.spreadsheetId,
-          vehicleExpense.buildVehicleExpenseInput(formValues)
-        )
-      } else {
-        const createdAt = new Date().toLocaleString('fa-IR')
-
-        await appendRecord(settings.spreadsheetId, activeForm, recordId, createdAt, formValues)
-      }
+      recordId = await writeEntryRecord(
+        settings.spreadsheetId,
+        activeForm,
+        formValues,
+        vehicleInput
+      )
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })
       onLoadingChange(false)
@@ -188,12 +186,7 @@ export default function DataEntryForm({
       bankSms,
       recordId
     ).catch(() => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد'))
-    showSavedForEntry(
-      activeForm,
-      recordId,
-      formValues,
-      showVehicleFields ? vehicleExpense.buildVehicleExpenseInput(formValues) : null
-    )
+    showSavedForEntry(activeForm, recordId, formValues, vehicleInput)
     refreshOpeningBalancesInBackground()
     onLoadingChange(false)
     if (onSaved && !keepOpen) return onSaved()

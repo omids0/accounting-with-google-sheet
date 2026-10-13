@@ -4,6 +4,8 @@
  */
 
 export const ACTIVITY_SHEET = 'فعالیت'
+/** Round 8 feed: one row per change, who and from which device (not the status row above). */
+export const ACTIVITY_LOG_SHEET = 'فعالیت_ها'
 export const APP_LOCK_SHEET = 'قفل_اپ'
 export const BUDGETS_SHEET = 'بودجه'
 export const CATEGORIES_SHEET = 'دسته‌بندی‌ها'

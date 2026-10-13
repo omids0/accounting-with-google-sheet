@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { useIsDesktop } from '../../hooks/useMediaQuery'
+import { useSharing } from '../../hooks/useSharing'
 import { unpaidDangTotal } from '../../services/dang'
 import { distributionSparkline } from '../../utils/sparklineData'
 import EmptyState from '../EmptyState'
@@ -10,7 +11,13 @@ import StatCard from '../StatCard'
 import DangCard from './DangCard'
 import type { DangWithRow } from './types'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
-import { checkboxColumn, dateColumn, moneyColumn, textColumn } from '../table/tableColumns'
+import {
+  checkboxColumn,
+  dateColumn,
+  moneyColumn,
+  textColumn,
+  writerColumn
+} from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
 import { dangTotalFooterClass, listCardsContainerClass } from '../ui/featureCardStyles'
 
@@ -49,6 +56,7 @@ export default function DangList({
   onAdd
 }: DangListProps) {
   const isDesktop = useIsDesktop()
+  const { shared } = useSharing()
   const columns = useMemo<DataTableColumn<DangWithRow>[]>(
     () => [
       checkboxColumn({
@@ -61,10 +69,11 @@ export default function DangList({
       textColumn('title', 'عنوان', item => item.title, true),
       textColumn('category', 'دسته', item => item.category),
       textColumn('counterparty', 'طرف حساب', item => item.counterparty),
+      ...(shared ? [writerColumn<DangWithRow>(item => item.writer)] : []),
       dateColumn('date', 'تاریخ', item => item.date),
       moneyColumn('amount', 'مبلغ', item => item.amount)
     ],
-    [togglingId, onTogglePaid]
+    [togglingId, onTogglePaid, shared]
   )
 
   if (loading && items.length === 0) {

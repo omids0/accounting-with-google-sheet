@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { logItemActivity } from '../../services/activityLog'
 import {
   fetchBudgets,
   deleteBudget,
@@ -63,7 +64,12 @@ export default function BudgetSheet({
     }
   }, [category])
 
-  const run = async (action: (spreadsheetId: string) => Promise<void>, done: string) => {
+  /** `logged`: the new limit for the feed; 0 when the budget is removed. */
+  const run = async (
+    action: (spreadsheetId: string) => Promise<void>,
+    done: string,
+    logged: number
+  ) => {
     const spreadsheetId = getSettings()?.spreadsheetId
 
     if (!spreadsheetId || !requireAuth()) return
@@ -71,6 +77,9 @@ export default function BudgetSheet({
     setSaving(true)
     try {
       await action(spreadsheetId)
+      if (category) {
+        logItemActivity(spreadsheetId, 'budget', 'budgets', category, category, { amount: logged })
+      }
       showSuccess(done)
       onClose()
     } catch (err) {
@@ -88,7 +97,7 @@ export default function BudgetSheet({
 
       return
     }
-    void run(id => saveBudget(id, category, Number(amount)), 'بودجه ذخیره شد')
+    void run(id => saveBudget(id, category, Number(amount)), 'بودجه ذخیره شد', Number(amount))
   }
 
   const hint = [
@@ -118,7 +127,7 @@ export default function BudgetSheet({
           size="sm"
           className="self-start"
           disabled={saving}
-          onClick={() => void run(id => deleteBudget(id, category), 'بودجه حذف شد')}
+          onClick={() => void run(id => deleteBudget(id, category), 'بودجه حذف شد', 0)}
         >
           حذف بودجه
         </Button>

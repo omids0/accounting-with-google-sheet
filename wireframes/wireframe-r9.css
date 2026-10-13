@@ -1,0 +1,134 @@
+/* round 9: detail sheet, opaque modals, treasury P/L, settle sheet, line items with unit price */
+.detail-kv {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #ddd;
+}
+.detail-kv span:first-child {
+  color: #777;
+}
+.detail-kv span:last-child {
+  font-weight: 700;
+  text-align: left;
+}
+.gallery {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+.gallery .thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  border: 1px solid #bbb;
+  background: repeating-linear-gradient(45deg, #ddd, #ddd 4px, #eee 4px, #eee 8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #666;
+}
+.sheet.solid {
+  background: #fff;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25);
+}
+/* the phone frame is the positioning context, so the overlay never leaves it */
+.phone:has(.dim) {
+  position: relative;
+}
+.dim {
+  background: rgba(0, 0, 0, 0.45);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.phone .sheet.solid {
+  position: relative;
+  z-index: 1;
+}
+.sheet.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(6px);
+}
+.pl {
+  font-size: 11px;
+  font-weight: 800;
+}
+.pl.up {
+  color: #262;
+}
+.pl.dn {
+  color: #a33;
+}
+.pl small {
+  font-weight: 400;
+  color: #888;
+  margin-right: 4px;
+}
+.stat2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.stat2 .card {
+  margin: 0;
+  padding: 8px 10px;
+}
+.stat2 .card .lbl {
+  font-size: 10px;
+}
+.stat2 .card .num {
+  font-size: 15px;
+}
+.warn-dup {
+  border: 1.5px dashed #b58a2b;
+  background: #fff8e6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #5a4a1a;
+  margin: 8px 0;
+}
+.items .it .fee {
+  font-size: 10px;
+  color: #888;
+}
+.sum.info {
+  color: #777;
+}
+.drop {
+  border: 1.5px solid #555;
+  border-radius: 10px;
+  background: #fff;
+  margin-top: 4px;
+  font-size: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+.drop div {
+  padding: 7px 10px;
+  border-bottom: 1px solid #eee;
+}
+.drop div.on {
+  background: #f1f1f1;
+  font-weight: 800;
+}
+.clip {
+  overflow: hidden;
+  border: 1.5px dashed #a33;
+  border-radius: 10px;
+  padding: 8px;
+  height: 92px;
+  position: relative;
+}
+.clip::after {
+  content: 'بریده می‌شود ↓';
+  position: absolute;
+  bottom: 2px;
+  left: 8px;
+  font-size: 10px;
+  color: #a33;
+}

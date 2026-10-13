@@ -8,6 +8,8 @@ export interface SyncStatusSnapshot {
   pendingWrites: number
   /** Writes Google refused for good; kept until the user dismisses them. */
   failedWrites: number
+  /** Updates waiting for «کدام بماند؟» (round 8 edit conflicts). */
+  conflicts: number
   lastError: string | null
 }
 
@@ -17,6 +19,7 @@ let status: SyncStatusSnapshot = {
   lastSyncedAt: null,
   pendingWrites: 0,
   failedWrites: 0,
+  conflicts: 0,
   lastError: null
 }
 
@@ -69,6 +72,11 @@ export function setPendingWrites(pendingWrites: number): void {
 export function setFailedWrites(failedWrites: number): void {
   if (status.failedWrites === failedWrites) return
   patchStatus({ failedWrites })
+}
+
+export function setConflictCount(conflicts: number): void {
+  if (status.conflicts === conflicts) return
+  patchStatus({ conflicts })
 }
 
 export function initSyncStatusListeners(): () => void {

@@ -155,6 +155,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
           dateIncludeAll
           dateLabel="بازه زمانی (تاریخ قرض)"
           dateLoading={loading}
+          {...filters.minePanelProps}
         />
       </FilterModal>
 

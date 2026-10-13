@@ -5,10 +5,13 @@ import { useLocation, useNavigate, type NavigateFunction } from 'react-router'
 import { getPathForTab } from '../routes/paths'
 import { isNativePlatform } from '../services/googleAuthNative'
 import { buildSharedSmsState, parseLaunchUrl, type LaunchAction } from '../services/launchAction'
+import { pushWidgetSnapshot } from '../services/widgetNative'
 
 function openAction(navigate: NavigateFunction, action: LaunchAction): void {
   if (action.kind === 'entry') {
     navigate(getPathForTab('entry', { formType: action.formType }))
+  } else if (action.kind === 'dashboard') {
+    navigate(getPathForTab('dashboard'))
   } else if (action.kind === 'sms') {
     navigate(getPathForTab('bank-sms'))
   } else {
@@ -65,9 +68,14 @@ export function useLaunchAction(): void {
     }
 
     const urlOpen = App.addListener('appUrlOpen', event => follow(event.url))
+    // The widget may show numbers from before the app was last closed.
+    const resume = App.addListener('resume', () => pushWidgetSnapshot())
+
+    pushWidgetSnapshot()
 
     return () => {
       void urlOpen.then(handle => handle.remove())
+      void resume.then(handle => handle.remove())
     }
   }, [])
 }

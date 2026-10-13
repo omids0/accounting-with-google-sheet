@@ -1,3 +1,4 @@
+import { logItemActivity } from './activityLog'
 import { correctionRecord, type AccountReconcile } from './bankSmsReconcile'
 import { saveReconcileSuccess } from './bankSmsReconcileStore'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
@@ -28,6 +29,13 @@ export async function createReconcileCorrection(
     { accountId, delta: type === 'expense' ? -record.amount : record.amount },
     recordLedgerContext(params, 'اصلاح دستی', recordId)
   )
+
+  const { fetchWalletAccounts } = await import('./wallet')
+  const account = (await fetchWalletAccounts(spreadsheetId).catch(() => [])).find(
+    item => item.id === accountId
+  )
+
+  logItemActivity(spreadsheetId, 'reconcile', 'wallet', accountId, account?.title ?? 'حساب')
   saveReconcileSuccess(spreadsheetId, accountId, {
     balance: result.smsBalance,
     smsAt: result.smsAt

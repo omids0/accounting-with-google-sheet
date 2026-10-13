@@ -94,6 +94,8 @@ export const loadCloseYearPage: PageLoader = () => import('../components/closeYe
 
 export const loadBackupPage: PageLoader = () => import('../components/settings/backup/BackupPage')
 
+export const loadActivityPage: PageLoader = () => import('../components/activity/ActivityPage')
+
 export const loadSettingsPage: PageLoader = () => import('../components/SettingsPage')
 
 export const loadTimesheetDetailPage: PageLoader = () => import('../components/TimesheetDetailPage')

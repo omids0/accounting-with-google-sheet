@@ -12,6 +12,7 @@ import {
   updateSheetDataRow
 } from './spreadsheetStore'
 import type { OutboxWriteOptions } from './syncOutbox'
+import { stampWriter } from './writerColumn'
 import { keepAttachmentCell } from '../utils/attachmentIds'
 import { cellToString } from '../utils/sheetValues'
 
@@ -131,6 +132,7 @@ export async function appendSheetRow(
   row: string[],
   options?: SheetWriteOptions
 ): Promise<void> {
+  row = stampWriter(spreadsheetId, sheetName, row)
   appendSheetDataRow(spreadsheetId, sheetName, row)
   if (!options?.skipRevision) {
     notifySpreadsheetDataChanged(spreadsheetId)
@@ -174,7 +176,8 @@ export function currentRowNumberFor(
 /**
  * Rewrites one row. The «پیوست» cell survives a rebuilt row that leaves it
  * empty (entity writers never fill it); `exact` writes the row as given, for
- * the attachment service that sets or clears it on purpose.
+ * the attachment service that sets or clears it on purpose. Data rows get the
+ * signed-in email in «ثبت‌کننده» where the tab has that column.
  */
 export async function updateSheetRow(
   spreadsheetId: string,
@@ -190,9 +193,10 @@ export async function updateSheetRow(
 
   const expectedRow = getSheetRow(spreadsheetId, sheetName, rowNumber) ?? undefined
 
-  const row = exact
+  const kept = exact
     ? built
     : keepAttachmentCell(built, expectedRow, findAttachmentColumn(spreadsheetId, sheetName))
+  const row = rowNumber > 1 ? stampWriter(spreadsheetId, sheetName, kept) : kept
 
   updateSheetDataRow(spreadsheetId, sheetName, rowNumber, row)
   if (!options?.skipRevision) {

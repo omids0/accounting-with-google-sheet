@@ -37,6 +37,7 @@ import {
   LazyCategoriesPage,
   LazyCloseYearPage,
   LazyBackupPage,
+  LazyActivityPage,
   LazySettingsPage,
   LazyTimesheetsPage,
   LazyTreasuryPage,
@@ -141,6 +142,7 @@ export function AppAuthenticatedRoutes() {
           <Route path="settings/categories" element={<LazyCategoriesPage />} />
           <Route path="settings/close-year/:year?" element={<LazyCloseYearPage />} />
           <Route path="settings/backup" element={<LazyBackupPage />} />
+          <Route path="settings/activity" element={<LazyActivityPage />} />
           <Route path="settings" element={<LazySettingsPage />} />
           <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
           <Route path="reports/income-expense" element={<LazyIncomeExpenseReportPage />} />
