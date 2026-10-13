@@ -46,7 +46,9 @@ export function useEngagementReminders(): void {
             m.watchNetWorthSnapshot(spreadsheetId)
 
             return m.runNetWorthSnapshot(spreadsheetId)
-          })
+          }),
+          // Round 7, Task I: the weekly zip to Drive, then the 14-day notice.
+          import('../services/driveBackupRun').then(m => m.runAutoBackup(spreadsheetId))
         ])
       } catch {
         /* non-blocking background setup */

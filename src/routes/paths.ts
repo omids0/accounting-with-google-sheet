@@ -193,6 +193,9 @@ export function isSettingsPath(pathname: string): boolean {
 
 export const SETTINGS_CATEGORIES_PATH = '/settings/categories'
 
+/** Task I: «پشتیبان» — automatic backups, Drive versions, restore. */
+export const SETTINGS_BACKUP_PATH = '/settings/backup'
+
 /** Task E: «بستن سال» wizard, `/settings/close-year/:year`. */
 export const SETTINGS_CLOSE_YEAR_PATH = '/settings/close-year'
 
@@ -218,7 +221,8 @@ export function monthlyReportPath(monthKey?: string): string {
 
 const SETTINGS_SUBPAGE_TITLES: Record<string, string> = {
   [SETTINGS_REMINDERS_PATH]: 'یادآوری‌ها',
-  [SETTINGS_CATEGORIES_PATH]: 'دسته‌ها'
+  [SETTINGS_CATEGORIES_PATH]: 'دسته‌ها',
+  [SETTINGS_BACKUP_PATH]: 'پشتیبان'
 }
 
 /** Header title of a settings sub-page, whose back button returns to Settings; null elsewhere. */

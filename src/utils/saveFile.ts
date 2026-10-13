@@ -95,13 +95,14 @@ function downloadInBrowser(name: string, blob: Blob): void {
  * sheet on Android so the user chooses where the file goes. Resolves the saved
  * name, or `null` when the user closed the share sheet without choosing.
  * `share: false` («ذخیره») writes the file to Documents on Android instead.
+ * `dated: false` keeps a name that already carries its date (a backup from Drive).
  */
 export async function saveExportFile(
   filename: string,
   blob: Blob,
-  { share = true }: { share?: boolean } = {}
+  { share = true, dated = true }: { share?: boolean; dated?: boolean } = {}
 ): Promise<string | null> {
-  const name = exportFileName(filename)
+  const name = dated ? exportFileName(filename) : filename.replace(UNSAFE_FILENAME_CHARS, '-')
 
   if (Capacitor.isNativePlatform()) {
     return share ? shareFromCache(name, blob) : saveToDocuments(name, blob)

@@ -43,6 +43,7 @@ describe('settings sub-pages', () => {
   it('titles the reminders and category pages and nothing else', () => {
     expect(getSettingsSubpageTitle('/settings/categories/')).toBe('دسته‌ها')
     expect(getSettingsSubpageTitle('/settings/reminders')).toBe('یادآوری‌ها')
+    expect(getSettingsSubpageTitle('/settings/backup')).toBe('پشتیبان')
     expect(getSettingsSubpageTitle('/settings')).toBeNull()
   })
 

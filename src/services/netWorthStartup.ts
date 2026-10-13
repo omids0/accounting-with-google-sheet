@@ -2,17 +2,14 @@ import { monthsToRebuild, snapshotMonthToWrite, type NetWorthGate } from './netW
 import { earliestNetMonth, rebuildSnapshots } from './netWorthRebuild'
 import { appendNetWorthSnapshots, fetchNetWorthSnapshots, netWorthTimestamp } from './netWorthSheet'
 import { loadNetWorthRecords, loadRebuildInput, loadTodayNetWorth } from './netWorthSources'
+import { sessionStart, waitForSessionSync } from './sessionSync'
 import { getNetAvailableConfig, getSettings } from './settings'
 import { getItem, setItem } from './storage'
-import { getSyncStatus, subscribeSyncStatus } from './syncStatus'
 import { getJalaliMonthKey } from '../utils/dateRange'
 import { getTodayIso } from '../utils/jalaliDate'
 
 /** Per spreadsheet: `NetWorthGate` (month whose first open ran, one-time rebuild). */
 export const NET_WORTH_STORAGE_KEY = 'accounting_net_worth_v1'
-
-/** Give up for this open when no sync succeeds in time; the next open tries again. */
-const SYNC_WAIT_MS = 3 * 60_000
 
 export function readNetWorthGate(spreadsheetId: string): NetWorthGate {
   return getItem<Record<string, NetWorthGate>>(NET_WORTH_STORAGE_KEY)?.[spreadsheetId] ?? {}
@@ -26,33 +23,6 @@ function writeNetWorthGate(spreadsheetId: string, gate: NetWorthGate): void {
   } catch {
     // Private mode: the sheet check simply runs again next open.
   }
-}
-
-function sessionStart(): number {
-  return typeof performance !== 'undefined' ? performance.timeOrigin : Date.now()
-}
-
-/** Resolves true once a sync has succeeded since the page loaded (false on timeout). */
-function waitForSessionSync(since: number, timeoutMs = SYNC_WAIT_MS): Promise<boolean> {
-  const synced = () => {
-    const { lastSyncedAt, syncState } = getSyncStatus()
-
-    return lastSyncedAt != null && lastSyncedAt >= since && syncState !== 'syncing'
-  }
-
-  if (synced()) return Promise.resolve(true)
-
-  return new Promise(resolve => {
-    const finish = (value: boolean) => {
-      clearTimeout(timer)
-      unsubscribe()
-      resolve(value)
-    }
-    const timer = setTimeout(() => finish(false), timeoutMs)
-    const unsubscribe = subscribeSyncStatus(() => {
-      if (synced()) finish(true)
-    })
-  })
 }
 
 async function snapshotAndRebuild(spreadsheetId: string, monthKey: string): Promise<void> {

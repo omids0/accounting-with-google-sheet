@@ -70,5 +70,12 @@ export async function syncBudgetDigest(spreadsheetId: string): Promise<void> {
 
   lines = [...lines, ...reconcile]
 
+  // No backup for 14+ days (round 7, Task I): one line while it lasts.
+  const backup = await import('./backupOverdueNotice')
+    .then(module => module.backupDigestLines(spreadsheetId))
+    .catch((): string[] => [])
+
+  lines = [...lines, ...backup]
+
   await setDigestNotesNative(today, lines)
 }

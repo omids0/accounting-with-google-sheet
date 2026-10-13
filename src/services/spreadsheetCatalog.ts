@@ -44,3 +44,12 @@ export function parseSpreadsheetIdFromUrl(input: string): string | null {
 export function mentionsAccounting(title: string): boolean {
   return title.includes('حسابداری')
 }
+
+/** Label of the active spreadsheet in `settings` («» when it is not in the list). */
+export function activeSpreadsheetLabel(
+  settings: { spreadsheetId?: string; spreadsheets?: { id: string; name: string }[] } | null
+): string {
+  const entry = settings?.spreadsheets?.find(sheet => sheet.id === settings.spreadsheetId)
+
+  return entry ? getSpreadsheetLabel(entry.name) : ''
+}

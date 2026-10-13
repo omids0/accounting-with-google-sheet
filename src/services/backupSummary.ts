@@ -18,6 +18,17 @@ export function formatBackupDate(at: number | string): string {
   return Number.isNaN(date.getTime()) ? '—' : formatIsoDatePersian(toIsoDate(date))
 }
 
+/** «۷ مهر ۱۴۰۵، ساعت ۰۳:۱۰» */
+export function formatBackupDateTime(at: number): string {
+  const date = new Date(at)
+
+  if (Number.isNaN(date.getTime())) return '—'
+
+  const time = date.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })
+
+  return `${formatBackupDate(at)}، ساعت ${time}`
+}
+
 /**
  * «۱۲ تب، ۸۴۰ ردیف؛ نسخه ۱٫۲۲؛ ۳ مهر ۱۴۰۵» — only tabs that hold rows are counted. The spec's «·»
  * reads as a Persian zero next to Persian digits, hence «؛» (as in the round-4 import preview).

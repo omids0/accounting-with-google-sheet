@@ -5,7 +5,7 @@ import { apiRequest, SheetsApiError } from './sheetsApi'
  * Receipt files on Drive with the existing `drive.file` scope: the app sees
  * only what it created, so folders are found by name under a known parent.
  */
-const FILES_API = 'https://www.googleapis.com/drive/v3/files'
+export const FILES_API = 'https://www.googleapis.com/drive/v3/files'
 
 const UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3/files'
 
@@ -45,7 +45,7 @@ export function buildMultipartBody(
   return { body, contentType: `multipart/related; boundary=${boundary}` }
 }
 
-function quoteQuery(value: string): string {
+export function quoteQuery(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
 }
 
@@ -90,19 +90,27 @@ async function spreadsheetParent(spreadsheetId: string): Promise<string> {
 
 const folderCache = new Map<string, Promise<string>>()
 
-async function resolveYearFolder(spreadsheetId: string, year: number): Promise<string> {
+/** The app folder `name` next to the spreadsheet, and the folder it ended up in. */
+export async function ensureSpreadsheetSiblingFolder(
+  spreadsheetId: string,
+  name: string
+): Promise<{ id: string; parentId: string }> {
   const parent = await spreadsheetParent(spreadsheetId)
-  let root: string
 
   try {
-    root = await ensureFolder(ATTACHMENTS_FOLDER_NAME, parent)
+    return { id: await ensureFolder(name, parent), parentId: parent }
   } catch (err) {
     // drive.file may not write into a folder the app never opened: use My Drive.
     if (parent === 'root') throw err
-    root = await ensureFolder(ATTACHMENTS_FOLDER_NAME, 'root')
-  }
 
-  return ensureFolder(yearFolderName(year), root)
+    return { id: await ensureFolder(name, 'root'), parentId: 'root' }
+  }
+}
+
+async function resolveYearFolder(spreadsheetId: string, year: number): Promise<string> {
+  const root = await ensureSpreadsheetSiblingFolder(spreadsheetId, ATTACHMENTS_FOLDER_NAME)
+
+  return ensureFolder(yearFolderName(year), root.id)
 }
 
 /** «پیوست‌ها/<year>» next to the spreadsheet, created on first use and cached. */
@@ -122,10 +130,15 @@ export function getAttachmentFolder(spreadsheetId: string, year: number): Promis
 
 export async function uploadDriveFile(
   file: Blob,
-  { name, mimeType, folderId }: { name: string; mimeType: string; folderId: string }
+  {
+    name,
+    mimeType,
+    folderId,
+    appProperties
+  }: { name: string; mimeType: string; folderId: string; appProperties?: Record<string, string> }
 ): Promise<string> {
   const { body, contentType } = buildMultipartBody(
-    { name, mimeType, parents: [folderId] },
+    { name, mimeType, parents: [folderId], ...(appProperties ? { appProperties } : {}) },
     file,
     mimeType,
     `acct-${crypto.randomUUID()}`
