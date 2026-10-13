@@ -5,12 +5,14 @@ import type { WalletPageProps } from './types'
 import { useWalletData } from './useWalletData'
 import { useWalletFilters } from './useWalletFilters'
 import { useWalletMutations } from './useWalletMutations'
+import { useWalletReconcile } from './useWalletReconcile'
 import { computeReconciliation, computeTotalBalance } from './utils'
 import WalletAccountCard from './WalletAccountCard'
 import { walletCardsListClass } from './walletCardStyles'
 import WalletFormModal from './WalletFormModal'
 import WalletOpeningBalanceCard from './WalletOpeningBalanceCard'
 import WalletReconciliationAlert from './WalletReconciliationAlert'
+import WalletSmsReconcileStatus from './WalletSmsReconcileStatus'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
@@ -54,6 +56,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
   const data = useWalletData()
 
   const filters = useWalletFilters(data.items)
+
+  const reconcile = useWalletReconcile(data.items)
 
   const mutations = useWalletMutations({
     items: data.items,
@@ -159,26 +163,49 @@ export default function WalletPage({ active = true }: WalletPageProps) {
         <SearchEmptyState />
       ) : (
         <div className={walletCardsListClass}>
-          {filters.filteredItems.map(account => (
-            <WalletAccountCard
-              key={account.id}
-              account={account}
-              expanded={expandedId === account.id}
-              balance={data.balances[account.id] ?? account.balance}
-              saving={mutations.savingId === account.id}
-              onToggleExpand={() => setExpandedId(expandedId === account.id ? null : account.id)}
-              onOpen={() =>
-                navigate(getPathForTab('wallet-account-detail', { walletAccountId: account.id }), {
-                  state: { title: account.title }
-                })
-              }
-              onEdit={() => mutations.openEditForm(account)}
-              onDelete={() => mutations.openDeleteConfirm(account)}
-              onBalanceChange={val => data.setBalances(prev => ({ ...prev, [account.id]: val }))}
-              onBalanceSave={() => mutations.handleBalanceSave(account)}
-              onClose={() => setExpandedId(null)}
-            />
-          ))}
+          {filters.filteredItems.map(account => {
+            const sms = reconcile.viewFor(account.id)
+
+            return (
+              <WalletAccountCard
+                key={account.id}
+                account={account}
+                expanded={expandedId === account.id}
+                balance={data.balances[account.id] ?? account.balance}
+                saving={mutations.savingId === account.id}
+                onToggleExpand={() => setExpandedId(expandedId === account.id ? null : account.id)}
+                onOpen={() =>
+                  navigate(
+                    getPathForTab('wallet-account-detail', { walletAccountId: account.id }),
+                    {
+                      state: { title: account.title }
+                    }
+                  )
+                }
+                onEdit={() => mutations.openEditForm(account)}
+                onDelete={() => mutations.openDeleteConfirm(account)}
+                onBalanceChange={val => data.setBalances(prev => ({ ...prev, [account.id]: val }))}
+                onBalanceSave={() => mutations.handleBalanceSave(account)}
+                onClose={() => setExpandedId(null)}
+                footer={
+                  sms && (
+                    <WalletSmsReconcileStatus
+                      {...sms}
+                      onFind={() =>
+                        navigate(
+                          getPathForTab('wallet-reconcile', { walletAccountId: account.id }),
+                          {
+                            state: { title: `تطبیق ${account.title}` }
+                          }
+                        )
+                      }
+                      onIgnore={() => reconcile.ignore(account.id)}
+                    />
+                  )
+                }
+              />
+            )
+          })}
         </div>
       )}
 

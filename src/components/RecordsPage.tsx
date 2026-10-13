@@ -22,12 +22,15 @@ import {
 
 export default function RecordsPage({
   initialFormType,
-  focusRecordId
+  focusRecordId,
+  openEdit
 }: {
   initialFormType?: 'income' | 'expense'
   focusRecordId?: string
+  /** Also open the focused record's edit form once it loads. */
+  openEdit?: boolean
 }) {
-  const page = useRecordsPage(initialFormType, focusRecordId)
+  const page = useRecordsPage(initialFormType, focusRecordId, openEdit)
 
   useRecordsSpeedDial({
     forms: page.forms,

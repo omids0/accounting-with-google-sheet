@@ -19,6 +19,7 @@ import { matchSms } from '../../services/bankSmsMatch'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { buildReviewItems, reviewSms } from '../../services/bankSmsQueue'
 import {
+  smsSuggestInput,
   suggestSmsCategory,
   type SmsCategoryChoice,
   type SmsCategorySuggestion
@@ -102,17 +103,7 @@ export function useBankSmsReview(sinceMs: number) {
 
   const choiceFor = useCallback(
     (entry: ConfirmableSms): SmsChoice | null =>
-      picked[entry.sms.id] ??
-      suggestSmsCategory(
-        {
-          type: smsRecordType(entry),
-          amount: entry.amount,
-          accountId: entry.result.accountId,
-          sender: entry.sms.sender,
-          templateId: entry.result.templateId
-        },
-        suggestContext
-      ),
+      picked[entry.sms.id] ?? suggestSmsCategory(smsSuggestInput(entry), suggestContext),
     [picked, suggestContext]
   )
 

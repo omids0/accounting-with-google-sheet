@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { cn } from '../../utils/cn'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
@@ -28,6 +30,8 @@ type WalletAccountCardProps = {
   onBalanceChange: (value: number | '') => void
   onBalanceSave: () => void
   onClose: () => void
+  /** Under the card: the bank SMS reconciliation line or block. */
+  footer?: ReactNode
 }
 
 export default function WalletAccountCard({
@@ -41,7 +45,8 @@ export default function WalletAccountCard({
   onDelete,
   onBalanceChange,
   onBalanceSave,
-  onClose
+  onClose,
+  footer
 }: WalletAccountCardProps) {
   const displayBalance = balance === '' ? account.balance : Number(balance)
 
@@ -86,6 +91,8 @@ export default function WalletAccountCard({
           />
         </div>
       </div>
+
+      {footer}
 
       <AccordionCollapse open={expanded}>
         <div className={cn(installmentPaymentsClass, walletItemEditClass)}>

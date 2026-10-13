@@ -35,9 +35,10 @@ import {
   LazyTimesheetsPage,
   LazyTreasuryPage,
   LazyVehiclesPage,
-  LazyWalletPage
+  LazyWalletPage,
+  LazyWalletReconcilePage
 } from './lazyPages'
-import { RECORD_FOCUS_PARAM } from './paths'
+import { RECORD_EDIT_PARAM, RECORD_FOCUS_PARAM } from './paths'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
 import WalletAccountDetailRoute from './WalletAccountDetailRoute'
@@ -60,6 +61,7 @@ function RecordsRoute() {
     <LazyRecordsPage
       initialFormType={parseFormType(searchParams.get('type'))}
       focusRecordId={searchParams.get(RECORD_FOCUS_PARAM) ?? undefined}
+      openEdit={searchParams.get(RECORD_EDIT_PARAM) === '1'}
     />
   )
 }
@@ -108,6 +110,7 @@ export function AppAuthenticatedRoutes() {
           <Route path="search" element={<LazySearchPage />} />
           <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
           <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
+          <Route path="wallet/reconcile/:accountId" element={<LazyWalletReconcilePage />} />
           <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />
           <Route path="entry" element={<EntryRoute />} />
           <Route path="records" element={<RecordsRoute />} />

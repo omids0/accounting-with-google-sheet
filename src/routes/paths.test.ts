@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { getCategoriesPath, getPathForTab, getSettingsSubpageTitle, getTabFromPath } from './paths'
+import {
+  getCategoriesPath,
+  getPathForTab,
+  getSettingsSubpageTitle,
+  getTabFromPath,
+  recordFocusPath
+} from './paths'
 
 describe('wallet account detail path', () => {
   it('opens the account history for /wallet/<id>', () => {
@@ -15,6 +21,20 @@ describe('wallet account detail path', () => {
   it('builds the path from the account id', () => {
     expect(getPathForTab('wallet-account-detail', { walletAccountId: 'a b' })).toBe('/wallet/a%20b')
     expect(getPathForTab('wallet-account-detail')).toBe('/wallet')
+  })
+})
+
+describe('wallet reconciliation wizard path', () => {
+  it('opens /wallet/reconcile/<id> and builds it from the account id', () => {
+    expect(getTabFromPath('/wallet/reconcile/abc')).toBe('wallet-reconcile')
+    expect(getPathForTab('wallet-reconcile', { walletAccountId: 'a b' })).toBe(
+      '/wallet/reconcile/a%20b'
+    )
+  })
+
+  it('links a record with its edit form open', () => {
+    expect(recordFocusPath('expense', 'r1', true)).toBe('/records?type=expense&record=r1&edit=1')
+    expect(recordFocusPath('expense', 'r1')).toBe('/records?type=expense&record=r1')
   })
 })
 

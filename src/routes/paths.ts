@@ -89,6 +89,10 @@ export function getTabFromPath(pathname: string): Tab {
     return 'dang-split-detail'
   }
 
+  if (/^\/wallet\/reconcile\/[^/]+$/.test(path)) {
+    return 'wallet-reconcile'
+  }
+
   // `/wallet/opening-balances` is an exact path, not an account id.
   if (!PATH_TO_TAB[path] && /^\/wallet\/[^/]+$/.test(path)) {
     return 'wallet-account-detail'
@@ -122,6 +126,12 @@ export function getPathForTab(tab: Tab, options?: TabNavigationOptions): string 
     return `/wallet/${encodeURIComponent(options.walletAccountId)}`
   }
 
+  if (tab === 'wallet-reconcile') {
+    if (!options?.walletAccountId) return EXACT_TAB_PATHS.wallet ?? '/wallet'
+
+    return `/wallet/reconcile/${encodeURIComponent(options.walletAccountId)}`
+  }
+
   const basePath = EXACT_TAB_PATHS[tab]
 
   if (!basePath) return '/'
@@ -147,9 +157,18 @@ export function getReportTabFromKind(kind: ModuleReportKind): Tab {
 /** Query key of the records page that shows one record only (round 6, duplicate warning). */
 export const RECORD_FOCUS_PARAM = 'record'
 
-/** The records page showing only `recordId`. */
-export function recordFocusPath(type: 'income' | 'expense', recordId: string): string {
-  return `/records?type=${type}&${RECORD_FOCUS_PARAM}=${encodeURIComponent(recordId)}`
+/** With `edit=1` the records page also opens that record's edit form (reconciliation wizard). */
+export const RECORD_EDIT_PARAM = 'edit'
+
+/** The records page showing only `recordId`, optionally with its edit form open. */
+export function recordFocusPath(
+  type: 'income' | 'expense',
+  recordId: string,
+  edit = false
+): string {
+  const path = `/records?type=${type}&${RECORD_FOCUS_PARAM}=${encodeURIComponent(recordId)}`
+
+  return edit ? `${path}&${RECORD_EDIT_PARAM}=1` : path
 }
 
 /** Query key a module page reads to scroll to and flash one item (`useHighlightParam`). */

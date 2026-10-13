@@ -56,7 +56,10 @@ const ACCOUNT_KEYS = [
   // Once-a-month digest line «N تکرار ثبت‌نشده» (recurringDigest.ts).
   'accounting_recurring_digest_v1',
   // Last global searches (searchRecent.ts), named here to keep that module out of this chunk.
-  'accounting_search_recent_v1'
+  'accounting_search_recent_v1',
+  // SMS reconciliation: last success, «نادیده», today's digest lines (bankSmsReconcileStore.ts).
+  'accounting_reconcile_v1',
+  'accounting_reconcile_digest_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

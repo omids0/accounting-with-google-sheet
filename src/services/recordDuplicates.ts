@@ -22,6 +22,8 @@ export interface LedgerEntry {
   title?: string
   /** «زمان ثبت» as epoch ms; `null` when the cell cannot be read. */
   createdAtMs?: number | null
+  /** false when «اثر بر موجودی» = خیر: the record left the account balance alone. */
+  moved?: boolean
 }
 
 export interface DuplicateCandidate {

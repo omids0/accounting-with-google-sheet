@@ -9,7 +9,13 @@ import { INSTALLMENT_EXPENSE_CATEGORY } from '../services/installmentsConstants'
 /** Category of the record that closes a wallet reconciliation gap. */
 export const RECONCILIATION_CATEGORY = 'اصلاح موجودی'
 
-export const LOCKED_INCOME_CATEGORIES = new Set<string>([RECONCILIATION_CATEGORY])
+/** Category of the correction record that closes a gap with the bank SMS balance. */
+export const SMS_RECONCILE_CATEGORY = 'تطبیق'
+
+export const LOCKED_INCOME_CATEGORIES = new Set<string>([
+  RECONCILIATION_CATEGORY,
+  SMS_RECONCILE_CATEGORY
+])
 
 // Installments and checks write their linked expense record under these exact
 // category names (see installmentsCrud.ts and checks.ts). Renaming or deleting
@@ -19,6 +25,7 @@ export const LOCKED_INCOME_CATEGORIES = new Set<string>([RECONCILIATION_CATEGORY
 export const LOCKED_EXPENSE_CATEGORIES = new Set<string>([
   VEHICLE_EXPENSE_CATEGORY,
   RECONCILIATION_CATEGORY,
+  SMS_RECONCILE_CATEGORY,
   INSTALLMENT_EXPENSE_CATEGORY,
   CHECK_EXPENSE_CATEGORY
 ])
