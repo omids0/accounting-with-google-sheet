@@ -66,7 +66,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     clearAllFilters,
     handleDraftDateFilterChange,
     clearDraftFilters,
-    applyFilters
+    applyFilters,
+    minePanelProps
   } = useChecksFilters({ items, counterparties })
 
   const pageSpeedDialConfig = useMemo(
@@ -137,6 +138,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
           dateIncludeAll
           dateLabel="بازه زمانی (سررسید)"
           dateLoading={loading}
+          {...minePanelProps}
         />
       </FilterModal>
 

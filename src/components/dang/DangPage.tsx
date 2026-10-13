@@ -69,7 +69,8 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     clearAllFilters,
     handleDraftDateFilterChange,
     clearDraftFilters,
-    applyFilters
+    applyFilters,
+    minePanelProps
   } = useDangFilters({ items, categories, counterparties })
 
   const pageSpeedDialConfig = useMemo(
@@ -142,6 +143,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
           onDateFilterChange={handleDraftDateFilterChange}
           dateIncludeAll
           dateLoading={loading}
+          {...minePanelProps}
         />
       </FilterModal>
 

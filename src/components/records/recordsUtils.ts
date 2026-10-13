@@ -10,6 +10,8 @@ export interface RecordItem {
   values: Record<string, string>
   /** Drive ids of its receipts (column «پیوست»). */
   attachments?: string[]
+  /** Email in «ثبت‌کننده»; '' or unset for rows from before round 8. */
+  writer?: string
 }
 
 export interface StoredRecord extends RecordItem {

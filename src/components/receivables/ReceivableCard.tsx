@@ -38,6 +38,7 @@ import {
   receivableSummaryClass,
   receivableSummaryLabelClass
 } from '../ui/treasuryReceivableStyles'
+import WriterAvatar from '../WriterAvatar'
 
 type ReceivableCardProps = {
   item: ReceivableWithRow
@@ -113,6 +114,7 @@ export default function ReceivableCard({
             <div>
               <div className={listCardTitleClass}>{displayTitle}</div>
               <div className={listCardSubtitleClass}>
+                <WriterAvatar email={item.writer} withName />
                 {showDebtorInSubtitle && <span>{item.debtor} · </span>}
                 {item.category && <span>{item.category} · </span>}
                 <span className={listCardAmountPillClass}>

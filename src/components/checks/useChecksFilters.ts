@@ -27,6 +27,7 @@ export function useChecksFilters({ items, counterparties }: UseChecksFiltersOpti
     ],
     getDate: item => item.dueDate,
     getCounterparty: item => item.counterparty,
+    getWriter: item => item.writer,
     counterpartySeed
   })
 }

@@ -19,6 +19,7 @@ import CardEditButton from './CardEditButton'
 import CardExpandButton from './CardExpandButton'
 import MoneyDisplay from './MoneyDisplay'
 import ProgressBar from './ProgressBar'
+import WriterAvatar from './WriterAvatar'
 import { formatIsoDatePersian } from '../utils/jalaliDate'
 import { showError } from '../utils/toast'
 import InstallmentPaymentItem from './installmentPlan/InstallmentPaymentItem'
@@ -170,6 +171,7 @@ function InstallmentPlanCard({
             <div>
               <div className={listCardTitleClass}>{plan.title}</div>
               <div className={listCardSubtitleClass}>
+                <WriterAvatar email={plan.writer} withName />
                 {complete
                   ? 'تکمیل شده'
                   : `${done.toLocaleString('fa-IR')}/${total.toLocaleString(

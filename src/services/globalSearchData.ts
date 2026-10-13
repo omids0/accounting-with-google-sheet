@@ -7,6 +7,7 @@ import { fetchInstallmentPlans } from './installments'
 import { fetchPersonalReminders } from './personalReminders'
 import { fetchReceivables } from './receivables'
 import { loadSavingsGoals } from './savingsGoalsSheet'
+import { getSharingInfo, writerLabel } from './sharing'
 import { fetchRecords } from './sheets'
 import { fetchVaultTransactions } from './treasury'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
@@ -23,7 +24,13 @@ async function loadRecords(settings: AppSettings): Promise<SearchRecordInput[]> 
       const dateField = getDateFieldId(form)
       const type = form.type === 'income' ? ('income' as const) : ('expense' as const)
 
-      return records.map(record => ({ id: record.id, type, values: record.values, dateField }))
+      return records.map(record => ({
+        id: record.id,
+        type,
+        values: record.values,
+        dateField,
+        writer: record.writer
+      }))
     })
   )
 
@@ -38,6 +45,7 @@ async function loadRecords(settings: AppSettings): Promise<SearchRecordInput[]> 
  */
 export async function loadSearchSources(settings: AppSettings): Promise<SearchSources> {
   const id = settings.spreadsheetId
+  const sharing = getSharingInfo(id)
   const [
     records,
     accounts,
@@ -75,6 +83,13 @@ export async function loadSearchSources(settings: AppSettings): Promise<SearchSo
     holdings: vault ? computeHoldings(vault[0], {}, vault[1]) : [],
     goals,
     reminders,
-    vehicles: vehicles.filter(vehicle => vehicle.active)
+    vehicles: vehicles.filter(vehicle => vehicle.active),
+    writerName: sharing?.shared
+      ? email => {
+          const label = writerLabel(email, sharing)
+
+          return label.isMe ? 'من' : label.name
+        }
+      : undefined
   }
 }

@@ -19,10 +19,14 @@ interface SharingStore {
 
 const initialId = getSettings()?.spreadsheetId ?? ''
 
-const useSharingStore = create<SharingStore>(set => ({
+const useSharingStore = create<SharingStore>((set, get) => ({
   spreadsheetId: initialId,
   info: getSharingInfo(initialId),
-  load: spreadsheetId => set({ spreadsheetId, info: getSharingInfo(spreadsheetId) })
+  load: spreadsheetId => {
+    // Every list row mounts this hook: only a sheet switch reads storage again.
+    if (get().spreadsheetId === spreadsheetId) return
+    set({ spreadsheetId, info: getSharingInfo(spreadsheetId) })
+  }
 }))
 
 onSharingChange((spreadsheetId, info) => {

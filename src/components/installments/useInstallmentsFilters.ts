@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 
 import type { DisplayPlanItem, PlanWithRow } from './types'
+import { useMineFilter } from '../../hooks/useMineFilter'
 import {
   getInstallmentDueDateInRange,
   installmentAmountInRange,
@@ -49,6 +50,9 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
 
   const [customRange, setCustomRange] = useState(() => createDefaultDateRangeFilter().customRange)
 
+  const mine = useMineFilter(getPlanWriter)
+  const { matches: matchesMine, startDraft: startMineDraft, clearAll: clearMine } = mine
+
   const effectiveRange = useMemo(() => {
     if (datePreset === 'custom') {
       return resolveDateRange('custom', customRange)
@@ -96,10 +100,12 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
 
   const filteredPlans = useMemo(
     () =>
-      monthPlans.filter(plan =>
-        matchSearch(searchQuery, plan.title, plan.note, plan.amount, plan.count)
+      monthPlans.filter(
+        plan =>
+          matchesMine(plan) &&
+          matchSearch(searchQuery, plan.title, plan.note, plan.amount, plan.count)
       ),
-    [monthPlans, searchQuery]
+    [monthPlans, searchQuery, matchesMine]
   )
 
   const monthTotals = useMemo(
@@ -161,8 +167,9 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     setDraftSearch(searchQuery)
     setDraftDatePreset(datePreset)
     setDraftCustomRange(customRange)
+    startMineDraft()
     setFilterModalOpen(true)
-  }, [searchQuery, datePreset, customRange])
+  }, [searchQuery, datePreset, customRange, startMineDraft])
 
   const resetDateFilter = useCallback(() => {
     const defaults = createDefaultDateRangeFilter()
@@ -178,15 +185,17 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
           formatDateRangeLabel(effectiveRange),
           datePreset !== 'month-to-date' ? resetDateFilter : undefined
         ),
-        buildSearchChip(searchQuery, () => setSearchQuery(''))
+        buildSearchChip(searchQuery, () => setSearchQuery('')),
+        mine.chip
       ]),
-    [effectiveRange, datePreset, resetDateFilter, searchQuery]
+    [effectiveRange, datePreset, resetDateFilter, searchQuery, mine.chip]
   )
 
   const applyDraftFilters = () => {
     setSearchQuery(draftSearch)
     setDatePreset(draftDatePreset)
     setCustomRange(draftCustomRange)
+    mine.applyDraft()
     setFilterModalOpen(false)
   }
 
@@ -196,6 +205,7 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     setDraftSearch('')
     setDraftDatePreset(defaults.preset as RecordsDatePreset)
     setDraftCustomRange(defaults.customRange)
+    mine.clearDraft()
   }
 
   const clearAllFilters = useCallback(() => {
@@ -204,7 +214,8 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     setSearchQuery('')
     setDatePreset(defaults.preset as RecordsDatePreset)
     setCustomRange(defaults.customRange)
-  }, [])
+    clearMine()
+  }, [clearMine])
 
   return {
     filterModalOpen,
@@ -226,6 +237,11 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     openFilterModal,
     applyDraftFilters,
     clearDraftFilters,
-    clearAllFilters
+    clearAllFilters,
+    minePanelProps: mine.panelProps
   }
+}
+
+function getPlanWriter(plan: PlanWithRow): string | undefined {
+  return plan.writer
 }

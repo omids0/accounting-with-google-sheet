@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 
+import { useMineFilter } from './useMineFilter'
 import {
   createAllDateRangeFilter,
   type AppliedDateRangeFilter,
@@ -27,6 +28,8 @@ export type UseListFiltersOptions<T> = {
   categorySeed?: string[]
   getCounterparty?: (item: T) => string
   counterpartySeed?: string[]
+  /** Email in «ثبت‌کننده»; enables «فقط من» on a shared spreadsheet. */
+  getWriter?: (item: T) => string | undefined
   isSettled?: (item: T) => boolean
   paymentStatusLabels?: PaymentStatusLabels
   defaultDateFilter?: AppliedDateRangeFilter
@@ -41,6 +44,7 @@ export function useListFilters<T>({
   categorySeed = [],
   getCounterparty,
   counterpartySeed = [],
+  getWriter,
   isSettled,
   paymentStatusLabels,
   defaultDateFilter,
@@ -48,6 +52,8 @@ export function useListFilters<T>({
 }: UseListFiltersOptions<T>) {
   const hasCategory = Boolean(getCategory)
   const hasCounterparty = Boolean(getCounterparty)
+  const mine = useMineFilter(getWriter)
+  const { startDraft: startMineDraft, clearAll: clearMine, matches: matchesMine } = mine
 
   const initialDateFilter = useMemo(
     () => defaultDateFilter ?? createAllDateRangeFilter(),
@@ -119,6 +125,7 @@ export function useListFilters<T>({
         }
 
         if (getDate && dateRange && !isDateInRange(getDate(item), dateRange)) return false
+        if (!matchesMine(item)) return false
 
         const settled = isSettled ? isSettled(item) : Boolean((item as { paid?: boolean }).paid)
 
@@ -140,7 +147,8 @@ export function useListFilters<T>({
       getDate,
       dateRange,
       paymentStatusFilter,
-      isSettled
+      isSettled,
+      matchesMine
     ]
   )
 
@@ -151,8 +159,10 @@ export function useListFilters<T>({
     setDraftCounterparty(counterpartyFilter)
     setDraftDatePreset(datePreset)
     setDraftCustomRange(customRange)
+    startMineDraft()
     setFilterModalOpen(true)
   }, [
+    startMineDraft,
     searchQuery,
     paymentStatusFilter,
     categoryFilter,
@@ -187,7 +197,8 @@ export function useListFilters<T>({
           buildDateRangeChip(
             formatDateRangeLabel(dateRange),
             dateChipLockedPresets.includes(datePreset) ? undefined : resetDateFilter
-          )
+          ),
+        mine.chip
       ]),
     [
       searchQuery,
@@ -200,7 +211,8 @@ export function useListFilters<T>({
       datePreset,
       dateRange,
       dateChipLockedPresets,
-      resetDateFilter
+      resetDateFilter,
+      mine.chip
     ]
   )
 
@@ -216,6 +228,7 @@ export function useListFilters<T>({
     setDraftCounterparty('all')
     setDraftDatePreset(initialDateFilter.preset)
     setDraftCustomRange(initialDateFilter.customRange)
+    mine.clearDraft()
   }
 
   const applyFilters = () => {
@@ -225,6 +238,7 @@ export function useListFilters<T>({
     setCounterpartyFilter(draftCounterparty)
     setDatePreset(draftDatePreset)
     setCustomRange(draftCustomRange)
+    mine.applyDraft()
     setFilterModalOpen(false)
   }
 
@@ -233,14 +247,16 @@ export function useListFilters<T>({
     setPaymentStatusFilter('all')
     setCategoryFilter('all')
     setCounterpartyFilter('all')
+    clearMine()
     resetDateFilter()
-  }, [resetDateFilter])
+  }, [clearMine, resetDateFilter])
 
   const hasActiveFilters =
     datePreset !== 'all' ||
     paymentStatusFilter !== 'all' ||
     categoryFilter !== 'all' ||
     counterpartyFilter !== 'all' ||
+    mine.active ||
     searchQuery.trim() !== ''
 
   return {
@@ -267,6 +283,8 @@ export function useListFilters<T>({
     counterpartyOptions,
     filteredItems,
     hasActiveFilters,
+    /** Spread into `PageFilterPanel` for the «فقط من» toggle. */
+    minePanelProps: mine.panelProps,
     openFilterModal,
     filterChips,
     clearAllFilters,

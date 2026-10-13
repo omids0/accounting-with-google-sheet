@@ -2,6 +2,7 @@ import type { DataTableColumn } from './DataTable'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import MoneyText from '../MoneyText'
 import { dangCheckboxClass } from '../ui/featureCardStyles'
+import WriterAvatar from '../WriterAvatar'
 
 /** Column builders shared by the desktop table views; pages compose them into a config. */
 
@@ -84,5 +85,16 @@ export function checkboxColumn<T>({
         onChange={event => onChange(row, event.target.checked)}
       />
     )
+  }
+}
+
+/** «ثبت‌کننده» on a shared spreadsheet: avatar and name; pages add it only while shared. */
+export function writerColumn<T>(get: (row: T) => string | undefined): DataTableColumn<T> {
+  return {
+    id: 'writer',
+    header: 'ثبت‌کننده',
+    sortValue: get,
+    className: 'whitespace-nowrap',
+    cell: row => <WriterAvatar email={get(row)} withName="plain" />
   }
 }

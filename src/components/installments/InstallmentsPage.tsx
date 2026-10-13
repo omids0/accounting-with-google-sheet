@@ -114,6 +114,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
           }}
           dateLabel="بازه زمانی (سررسید)"
           dateLoading={loading}
+          {...filters.minePanelProps}
         />
       </FilterModal>
 

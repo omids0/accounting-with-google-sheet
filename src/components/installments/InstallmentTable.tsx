@@ -1,6 +1,7 @@
 import { type ReactNode, useMemo } from 'react'
 
 import type { DisplayPlanItem } from './types'
+import { useSharing } from '../../hooks/useSharing'
 import {
   getInstallmentDuePaymentAmount,
   remainingInstallmentAmount
@@ -8,7 +9,7 @@ import {
 import { INSTALLMENTS_SHEET } from '../../services/installmentsConstants'
 import AttachmentBadge from '../attachments/AttachmentBadge'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
-import { dateColumn, moneyColumn, textColumn } from '../table/tableColumns'
+import { dateColumn, moneyColumn, textColumn, writerColumn } from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
 
 /** Desktop view of the plans; each plan's payments open in its detail line. */
@@ -27,9 +28,11 @@ export default function InstallmentTable({
   onDelete: (item: DisplayPlanItem) => void
   renderDetail: (item: DisplayPlanItem) => ReactNode
 }) {
+  const { shared } = useSharing()
   const columns = useMemo<DataTableColumn<DisplayPlanItem>[]>(
     () => [
       textColumn('title', 'عنوان', item => item.plan.title, true),
+      ...(shared ? [writerColumn<DisplayPlanItem>(item => item.plan.writer)] : []),
       dateColumn('due', 'موعد پرداخت', item => item.dueDate),
       moneyColumn('dueAmount', 'مبلغ قسط', item =>
         item.dueDate ? getInstallmentDuePaymentAmount(item.plan, item.dueDate) ?? 0 : 0
@@ -46,7 +49,7 @@ export default function InstallmentTable({
       },
       moneyColumn('remaining', 'مانده', item => remainingInstallmentAmount(item.plan))
     ],
-    []
+    [shared]
   )
 
   return (

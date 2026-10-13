@@ -30,6 +30,7 @@ export function useReceivablesFilters(
     getCategory: item => item.category,
     categorySeed: categories,
     getCounterparty: item => item.debtor,
+    getWriter: item => item.writer,
     counterpartySeed,
     isSettled: isReceivableComplete,
     paymentStatusLabels: { paid: 'تسویه شده', unpaid: 'پرداخت نشده' }

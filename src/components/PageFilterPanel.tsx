@@ -55,6 +55,9 @@ interface PageFilterPanelProps {
   paymentStatusLabel?: string
   paymentStatusPaidLabel?: string
   paymentStatusUnpaidLabel?: string
+  /** «فقط من» on a shared spreadsheet (`useMineFilter`); hidden when unset. */
+  mineOnly?: boolean
+  onMineOnlyChange?: (next: boolean) => void
   children?: React.ReactNode
 }
 
@@ -86,6 +89,8 @@ export default function PageFilterPanel({
   paymentStatusLabel = 'وضعیت پرداخت',
   paymentStatusPaidLabel,
   paymentStatusUnpaidLabel,
+  mineOnly,
+  onMineOnlyChange,
   children
 }: PageFilterPanelProps) {
   const paymentOptions = PAYMENT_STATUS_OPTIONS.map(option => {
@@ -177,6 +182,19 @@ export default function PageFilterPanel({
             includeAll={dateIncludeAll}
             label={dateLabel}
           />
+        )}
+
+        {mineOnly !== undefined && onMineOnlyChange && (
+          <div className={recordsDateGridClass}>
+            <button
+              type="button"
+              className={recordsDateGridBtnClass(mineOnly)}
+              aria-pressed={mineOnly}
+              onClick={() => onMineOnlyChange(!mineOnly)}
+            >
+              فقط من
+            </button>
+          </div>
         )}
 
         {children}

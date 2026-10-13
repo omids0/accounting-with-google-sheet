@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { useIsDesktop } from '../../hooks/useMediaQuery'
+import { useSharing } from '../../hooks/useSharing'
 import { CHECKS_SHEET, totalChecksInRange, totalUnpaidChecksInRange } from '../../services/checks'
 import {
   formatJalaliMonthLabel,
@@ -17,7 +18,13 @@ import StatCard from '../StatCard'
 import CheckCard from './CheckCard'
 import type { CheckWithRow } from './types'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
-import { checkboxColumn, dateColumn, moneyColumn, textColumn } from '../table/tableColumns'
+import {
+  checkboxColumn,
+  dateColumn,
+  moneyColumn,
+  textColumn,
+  writerColumn
+} from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
 import { dashboardStatGridClass } from '../ui/chartStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
@@ -56,6 +63,7 @@ export default function CheckList({
     [filteredItems, monthRange]
   )
 
+  const { shared } = useSharing()
   const columns = useMemo<DataTableColumn<CheckWithRow>[]>(
     () => [
       checkboxColumn({
@@ -67,11 +75,12 @@ export default function CheckList({
       }),
       textColumn('number', 'شماره', item => item.checkNumber, true),
       textColumn('counterparty', 'طرف حساب', item => item.counterparty),
+      ...(shared ? [writerColumn<CheckWithRow>(item => item.writer)] : []),
       dateColumn('created', 'صدور', item => item.creationDate),
       dateColumn('due', 'سررسید', item => item.dueDate),
       moneyColumn('amount', 'مبلغ', item => item.amount)
     ],
-    [togglingId, onTogglePaid]
+    [togglingId, onTogglePaid, shared]
   )
 
   if (loading && items.length === 0) {

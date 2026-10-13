@@ -35,6 +35,8 @@ export interface SearchEntry {
   text: string
   /** Absolute amounts a numeric query matches exactly. */
   amounts: number[]
+  /** Email in «ثبت‌کننده» (shared spreadsheets show an avatar). */
+  writer?: string
 }
 
 export interface SearchGroupResult {

@@ -23,6 +23,7 @@ import {
   dangCheckboxClass,
   dangPaidAtClass
 } from '../ui/featureCardStyles'
+import WriterAvatar from '../WriterAvatar'
 
 export type DangCardProps = {
   item: DangWithRow
@@ -79,6 +80,7 @@ export default function DangCard({
                 </span>
               </div>
               <div className={dangCardMetaClass}>
+                <WriterAvatar email={item.writer} withName />
                 {item.category && `${item.category} · `}
                 طرف حساب: {item.counterparty}
                 {item.date ? (
