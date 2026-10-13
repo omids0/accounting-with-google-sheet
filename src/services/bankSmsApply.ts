@@ -2,6 +2,7 @@ import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
 import { nextAccountBalance, type ConfirmableSms } from './bankSmsQueue'
+import { smsSenderKey, type SmsCategoryChoice } from './bankSmsSuggest'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
 import {
   applyWalletChanges,
@@ -12,7 +13,6 @@ import {
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
 import { ledgerEntry, logLedger, type LedgerContext } from './walletLedger'
 import { WALLET_APPLY_NO } from '../components/form/fieldUtils'
-import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
 
@@ -122,15 +122,7 @@ export async function confirmSmsEntry(
     // Leave the queue right after the record exists, so a failure below can
     // never lead to the same record being written twice.
     await markBankSmsHandled([entry.sms.id])
-
-    const prefs = getBankSmsPrefs()
-
-    updateBankSmsPrefs({
-      lastCategory: {
-        ...prefs.lastCategory,
-        [entry.result.templateId]: { category: record.category, subCategory: record.subCategory }
-      }
-    })
+    rememberSmsCategory(entry, type, record)
     await logUnappliedRecord(
       spreadsheetId,
       type,
@@ -160,15 +152,34 @@ export async function dismissSms(ids: string[]): Promise<void> {
   await markBankSmsHandled(ids)
 }
 
-/** Title and category used when confirming without opening the card («ثبت همه»). */
-export function defaultSmsRecord(entry: ConfirmableSms, accountTitle: string): SmsRecordInput {
-  const remembered = getBankSmsPrefs().lastCategory[entry.result.templateId]
-
+/** The record saved straight from a card or «ثبت همه»: its category and, when known, title. */
+export function suggestedSmsRecord(
+  choice: SmsCategoryChoice & { title?: string },
+  accountTitle: string
+): SmsRecordInput {
   return {
-    title: `${accountTitle} — پیامک`,
-    category: remembered?.category || OTHER_CATEGORY,
-    subCategory: remembered?.subCategory ?? ''
+    title: choice.title || `${accountTitle} — پیامک`,
+    category: choice.category,
+    subCategory: choice.subCategory
   }
+}
+
+/** The next SMS from this template and sender suggests the same category. */
+function rememberSmsCategory(
+  entry: ConfirmableSms,
+  type: 'income' | 'expense',
+  record: SmsCategoryChoice
+): void {
+  const prefs = getBankSmsPrefs()
+  const choice = { category: record.category, subCategory: record.subCategory }
+  const senderKey = smsSenderKey(entry.sms.sender, type)
+
+  updateBankSmsPrefs({
+    lastCategory: { ...prefs.lastCategory, [entry.result.templateId]: choice },
+    lastCategoryBySender: senderKey
+      ? { ...prefs.lastCategoryBySender, [senderKey]: choice }
+      : prefs.lastCategoryBySender
+  })
 }
 
 /**
@@ -185,11 +196,9 @@ export async function settleSmsFromEntry(
 ): Promise<void> {
   await markBankSmsHandled([entry.sms.id])
 
-  const prefs = getBankSmsPrefs()
+  const smsType = entry.result.direction === 'debit' ? 'expense' : 'income'
 
-  updateBankSmsPrefs({
-    lastCategory: { ...prefs.lastCategory, [entry.result.templateId]: record }
-  })
+  rememberSmsCategory(entry, effect ? (effect.delta < 0 ? 'expense' : 'income') : smsType, record)
 
   // Same account and same direction as the SMS: follow its «مانده». Otherwise (another
   // account, or the user switched income/expense) the record's own effect applies.

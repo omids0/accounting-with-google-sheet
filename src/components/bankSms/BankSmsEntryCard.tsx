@@ -1,142 +1,192 @@
 import { useMemo, useState } from 'react'
 
 import BankSmsCardHead from './BankSmsCardHead'
-import type { ConfirmableSms } from '../../services/bankSmsApply'
-import type { ReviewedSms } from '../../services/bankSmsQueue'
+import BankSmsCategorySheet from './BankSmsCategorySheet'
+import BankSmsChoiceRow from './BankSmsChoiceRow'
+import BankSmsMoreSheet from './BankSmsMoreSheet'
+import BankSmsTemplateSheet from './BankSmsTemplateSheet'
+import { smsDuplicateLabel } from './smsLabels'
+import { smsRecordType, type BankSmsReview } from './useBankSmsReview'
+import {
+  initialSmsAccount,
+  resolveSmsAccount,
+  type BankSmsReviewItem
+} from '../../services/bankSmsQueue'
+import AppIcon from '../AppIcon'
+import SwipeableRow from '../SwipeableRow'
 import ToggleChipGroup from '../ToggleChipGroup'
 import Alert from '../ui/Alert'
-import { smsActionsRowClass, smsBadgeClass, smsCardClass, smsHintClass } from '../ui/bankSmsStyles'
+import {
+  smsActionsRowClass,
+  smsBadgeClass,
+  smsHintClass,
+  smsQueueCardClass
+} from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
-import type { WalletAccountWithRow } from '../wallet/types'
 
 type BankSmsEntryCardProps = {
-  entry: ReviewedSms
-  probableDuplicate: boolean
-  /** A matching record already moved this account's balance: «balance only» would count it twice. */
-  duplicateMovedBalance: boolean
-  accounts: WalletAccountWithRow[]
-  busy: boolean
-  /** Opens the normal income/expense form pre-filled from this SMS. */
-  onOpenEntry: (entry: ConfirmableSms) => void
-  /** Record already exists: only move the balance. */
-  onBalanceOnly: (entry: ConfirmableSms) => void
-  onDismiss: () => void
-  /** Already entered by hand (record and balance): just drop it from the list. */
-  onAlreadyRecorded: () => void
+  item: Extract<BankSmsReviewItem, { kind: 'single' }>
+  review: BankSmsReview
 }
 
-/** Pin an SMS that fits several accounts to one of them. */
-function resolveEntry(entry: ReviewedSms, accountId: string): ConfirmableSms | null {
-  const { result, amount } = entry
+const ACTION_LABEL = { expense: 'ثبت هزینه', income: 'ثبت درآمد' } as const
 
-  if (amount === null) return null
-  if (result.kind === 'matched') return { ...entry, result, amount }
-  if (result.kind !== 'ambiguous') return null
-
-  const candidate = result.candidates.find(item => item.accountId === accountId)
-
-  if (!candidate) return null
-
-  const { direction, unit, balance, ref } = result
-
-  return {
-    ...entry,
-    amount,
-    result: { kind: 'matched', ...candidate, direction, unit, amount: result.amount, balance, ref }
-  }
-}
-
-/** A recognised SMS waiting to be recorded. The detected account is preselected. */
-export default function BankSmsEntryCard({
-  entry,
-  probableDuplicate,
-  duplicateMovedBalance,
-  accounts,
-  busy,
-  onOpenEntry,
-  onBalanceOnly,
-  onDismiss,
-  onAlreadyRecorded
-}: BankSmsEntryCardProps) {
+/**
+ * A recognised SMS: amount, account, suggested category and one main action matching
+ * its direction. Swipe right = that action, left = «نادیده» (touch only).
+ */
+export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps) {
+  const { entry, probableDuplicate, duplicateMovedBalance, duplicateOf, key } = item
   const { result } = entry
   const candidates = result.kind === 'ambiguous' ? result.candidates : []
-  const [accountId, setAccountId] = useState(
-    result.kind === 'matched' ? result.accountId : candidates[0]?.accountId ?? ''
-  )
-  const resolved = useMemo(() => resolveEntry(entry, accountId), [entry, accountId])
-  const direction = resolved?.result.direction ?? 'debit'
-  const titleOf = (id: string) => accounts.find(item => item.id === id)?.title ?? 'حساب'
-  const accountTitle = titleOf(accountId)
+  const [accountId, setAccountId] = useState(() => initialSmsAccount(entry))
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [picking, setPicking] = useState(false)
+  const [rawOpen, setRawOpen] = useState(false)
+  const [templateText, setTemplateText] = useState<string | null>(null)
+  const resolved = useMemo(() => resolveSmsAccount(entry, accountId), [entry, accountId])
+  const choice = resolved ? review.choiceFor(resolved) : null
+  const type = resolved ? smsRecordType(resolved) : 'expense'
+  const opposite = type === 'expense' ? 'income' : 'expense'
+  const busy = review.busyKey === key
+  const titleOf = (id: string) =>
+    review.accounts.find(account => account.id === id)?.title ?? 'حساب'
+  const dismiss = () => review.dismiss(key, [entry.sms.id])
+  const primary = () => resolved && review.primary(resolved, probableDuplicate)
 
   return (
-    <Card className={smsCardClass}>
-      <BankSmsCardHead entry={entry} accountTitle={accountTitle} />
+    <>
+      <SwipeableRow
+        rightLabel={`✓ ${ACTION_LABEL[type]}`}
+        rightTone={type}
+        leftLabel="نادیده"
+        onSwipeRight={resolved && !busy ? primary : undefined}
+        onSwipeLeft={busy ? undefined : dismiss}
+      >
+        <Card className={smsQueueCardClass}>
+          <BankSmsCardHead
+            entry={entry}
+            accountTitle={titleOf(accountId)}
+            rawOpen={rawOpen}
+            badge={
+              probableDuplicate && (
+                <span className={smsBadgeClass}>{smsDuplicateLabel(duplicateOf?.createdAtMs)}</span>
+              )
+            }
+          />
 
-      {entry.amount === null && (
-        <Alert variant="warning">واحد پول اپ ریال یا تومان نیست؛ این پیامک قابل ثبت نیست.</Alert>
-      )}
+          {entry.amount === null && (
+            <Alert variant="warning">
+              واحد پول اپ ریال یا تومان نیست؛ این پیامک قابل ثبت نیست.
+            </Alert>
+          )}
+          {duplicateMovedBalance && (
+            <p className={smsHintClass}>
+              رکورد مشابه موجودی همین حساب را هم تغییر داده؛ اگر همان است «⋯ ← قبلاً ثبت شده».
+            </p>
+          )}
 
-      {probableDuplicate && (
-        <span className={smsBadgeClass}>
-          {duplicateMovedBalance
-            ? 'احتمالاً قبلاً ثبت شده و موجودی حساب هم به‌روز شده — «قبلاً ثبت شده» را بزنید'
-            : 'احتمالاً تکراری — رکوردی با همین مبلغ و تاریخ هست'}
-        </span>
-      )}
+          {candidates.length > 1 && (
+            <>
+              <ToggleChipGroup
+                ariaLabel="حساب این پیامک"
+                options={candidates.map(candidate => ({
+                  id: candidate.accountId,
+                  label: titleOf(candidate.accountId)
+                }))}
+                selected={{ [accountId]: true }}
+                onToggle={setAccountId}
+              />
+              <p className={smsHintClass}>
+                حساب را از روی پیامک حدس زدیم؛ اگر درست نیست عوضش کنید.
+              </p>
+            </>
+          )}
 
-      {candidates.length > 1 && (
-        <ToggleChipGroup
-          ariaLabel="حساب این پیامک"
-          options={candidates.map(candidate => ({
-            id: candidate.accountId,
-            label: titleOf(candidate.accountId)
-          }))}
-          selected={{ [accountId]: true }}
-          onToggle={setAccountId}
-        />
-      )}
-      {result.kind === 'ambiguous' && (
-        <p className={smsHintClass}>
-          حساب را از روی پیامک حدس زدیم؛ اگر درست نیست، در فرم ثبت عوضش کنید.
-        </p>
-      )}
+          {resolved && (
+            <BankSmsChoiceRow choice={choice} busy={busy} onOpen={() => setPicking(true)} />
+          )}
 
-      <div className={smsActionsRowClass}>
-        <Button
-          type="button"
-          size="sm"
-          variant={direction === 'debit' ? 'outflow' : 'inflow'}
-          disabled={!resolved || busy}
-          onClick={() => resolved && onOpenEntry(resolved)}
-        >
-          {direction === 'debit' ? 'ثبت هزینه' : 'ثبت درآمد'}
-        </Button>
-        {resolved && !duplicateMovedBalance && (
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            disabled={busy}
-            loading={busy}
-            onClick={() => onBalanceOnly(resolved)}
-          >
-            فقط به‌روزرسانی موجودی
-          </Button>
-        )}
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          disabled={busy}
-          onClick={onAlreadyRecorded}
-        >
-          قبلاً ثبت شده
-        </Button>
-        <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={onDismiss}>
-          نادیده
-        </Button>
-      </div>
-    </Card>
+          <div className={smsActionsRowClass}>
+            <Button
+              type="button"
+              size="sm"
+              variant={type === 'expense' ? 'outflow' : 'inflow'}
+              disabled={!resolved || busy}
+              loading={busy}
+              onClick={primary}
+            >
+              <AppIcon name="check" size={16} />
+              {ACTION_LABEL[type]}
+            </Button>
+            {resolved && !duplicateMovedBalance && (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={busy}
+                onClick={() => void review.balanceOnly(resolved)}
+              >
+                فقط موجودی
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setMenuOpen(true)}
+              aria-label="گزینه‌های بیشتر"
+            >
+              ⋯
+            </Button>
+          </div>
+        </Card>
+      </SwipeableRow>
+
+      <BankSmsMoreSheet
+        open={menuOpen}
+        title="پیامک بانکی"
+        onClose={() => setMenuOpen(false)}
+        actions={[
+          {
+            id: 'opposite',
+            label: ACTION_LABEL[opposite],
+            disabled: !resolved,
+            onSelect: () => resolved && review.openEntry(resolved, { formType: opposite })
+          },
+          {
+            id: 'recorded',
+            label: 'قبلاً ثبت شده',
+            onSelect: () => void review.alreadyRecorded(key, [entry.sms.id])
+          },
+          { id: 'dismiss', label: 'نادیده', onSelect: dismiss },
+          {
+            id: 'raw',
+            label: rawOpen ? 'بستن متن کامل' : 'متن کامل',
+            onSelect: () => setRawOpen(open => !open)
+          },
+          { id: 'template', label: 'ویرایش قالب', onSelect: () => setTemplateText(entry.sms.body) }
+        ]}
+      />
+
+      <BankSmsCategorySheet
+        open={picking}
+        type={type}
+        current={choice}
+        onClose={() => setPicking(false)}
+        onPick={next => review.pick(entry.sms.id, next)}
+      />
+
+      <BankSmsTemplateSheet
+        text={templateText}
+        accountId={accountId}
+        accounts={review.accounts}
+        templatesApi={review.templatesApi}
+        replaceTemplateId={resolved?.result.templateId}
+        onClose={() => setTemplateText(null)}
+      />
+    </>
   )
 }

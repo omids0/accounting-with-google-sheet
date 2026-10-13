@@ -1,14 +1,14 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const fabContainerClass = cn(
+export const fabContainerClass = cx(
   'pointer-events-none fixed bottom-[calc(5.75rem+var(--safe-bottom)+6px)] left-1/2 z-[25] flex w-full max-w-[480px] -translate-x-1/2 justify-start px-4',
   'min-[380px]:px-5',
-  'lg:bottom-[calc(1rem+var(--safe-bottom))] lg:left-auto lg:right-[calc(var(--sidebar-width)+1rem)] lg:max-w-none lg:translate-x-0 lg:justify-start lg:px-0'
+  'md:bottom-[calc(1rem+var(--safe-bottom))] md:left-auto md:right-[calc(var(--nav-width)+1rem)] md:max-w-none md:translate-x-0 md:justify-start md:px-0'
 )
 
 export const speedDialContainerClass = 'z-[25]'
 
-export const speedDialBackdropClass = cn(
+export const speedDialBackdropClass = cx(
   'fixed inset-0 z-[24] cursor-default border-none bg-[var(--color-overlay-light)]',
   'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[4px]'
 )
@@ -34,7 +34,7 @@ export function speedDialActionWrapClass(open?: boolean) {
   )
 }
 
-const speedDialActionBaseClass = cn(
+const speedDialActionBaseClass = cx(
   'flex h-touch-min w-touch-min shrink-0 items-center justify-center rounded-full',
   'bg-surface text-primary-dark',
   'ring-1 ring-[color-mix(in_srgb,var(--color-border)_72%,var(--color-primary)_10%)]',
@@ -42,8 +42,7 @@ const speedDialActionBaseClass = cn(
   'transition-[transform,box-shadow,background,color] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
   'touch-manipulation hover:enabled:bg-[color-mix(in_srgb,var(--color-primary)_5%,var(--color-surface))]',
   'hover:enabled:shadow-[0_4px_14px_color-mix(in_srgb,var(--color-primary)_10%,rgba(15,23,42,0.12))]',
-  'active:enabled:scale-[0.94] disabled:cursor-not-allowed disabled:opacity-55',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]'
+  'active:enabled:scale-[0.94] disabled:cursor-not-allowed disabled:opacity-55'
 )
 
 export const speedDialActionClass = speedDialActionBaseClass
@@ -63,13 +62,13 @@ export const speedDialActionExpenseClass = cn(
 export const speedDialActionIconClass =
   'flex h-[1.125rem] w-[1.125rem] items-center justify-center leading-none [&_svg]:h-full [&_svg]:w-full'
 
-export const speedDialActionLabelClass = cn(
+export const speedDialActionLabelClass = cx(
   'max-w-[9.5rem] truncate rounded-full px-2.5 py-1 text-[0.72rem] font-semibold leading-tight text-text',
   'bg-[color-mix(in_srgb,var(--color-surface)_92%,transparent)] shadow-[0_1px_6px_rgba(15,23,42,0.08)]',
   'ring-1 ring-[color-mix(in_srgb,var(--color-border)_80%,transparent)] backdrop-blur-[6px]'
 )
 
-export const fabClass = cn(
+export const fabClass = cx(
   'pointer-events-auto relative flex h-touch-min w-touch-min items-center justify-center rounded-full leading-none opacity-[0.85]',
   'bg-surface text-primary-dark',
   'ring-1 ring-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))]',
@@ -77,8 +76,7 @@ export const fabClass = cn(
   'transition-[transform,box-shadow,background,color] duration-[var(--duration-fast)] ease-[var(--ease-spring)]',
   'touch-manipulation hover:opacity-100 hover:bg-[color-mix(in_srgb,var(--color-primary)_6%,var(--color-surface))]',
   'hover:shadow-[0_6px_20px_color-mix(in_srgb,var(--color-primary)_16%,rgba(15,23,42,0.14))]',
-  'active:scale-[0.94]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]'
+  'active:scale-[0.94]'
 )
 
 export function speedDialTriggerClass(open?: boolean, hidden?: boolean) {

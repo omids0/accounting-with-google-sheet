@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { formatPersianNumber } from '../../utils/formatMoney'
 import ConfirmActionModal from '../ConfirmActionModal'
-import { smsActionsRowClass, smsCardClass, smsHintClass } from '../ui/bankSmsStyles'
+import { smsBulkBarClass, smsBulkBarSpacerClass, smsHintClass } from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 
@@ -12,7 +12,10 @@ type BankSmsBulkBarProps = {
   onConfirmAll: () => void
 }
 
-/** «ثبت همه»: confirm every recognised SMS with its suggested title and category. */
+/**
+ * Bottom bar «ثبت همه شناخته‌شده‌ها (N)»: every recognised SMS that has a suggested
+ * category is saved with it; «تکراری؟», «کدام حساب؟» and cards without a category stay.
+ */
 export default function BankSmsBulkBar({ count, busy, onConfirmAll }: BankSmsBulkBarProps) {
   const [asking, setAsking] = useState(false)
 
@@ -21,28 +24,26 @@ export default function BankSmsBulkBar({ count, busy, onConfirmAll }: BankSmsBul
   const countLabel = formatPersianNumber(count)
 
   return (
-    <Card className={smsCardClass}>
-      <p className={smsHintClass}>
-        {countLabel} پیامک شناخته شد. هر کارت را جدا با دکمه «ثبت هزینه/درآمد» ثبت کنید، یا همه را
-        یک‌جا با دسته پیشنهادی ثبت کنید. موارد «احتمالاً تکراری» و «کدام حساب؟» ثبت نمی‌شوند.
-      </p>
-      <div className={smsActionsRowClass}>
+    <>
+      <div className={smsBulkBarSpacerClass} aria-hidden />
+      <Card className={smsBulkBarClass}>
+        <p className={smsHintClass}>{countLabel} پیامک شناخته‌شده با دسته پیشنهادی</p>
         <Button type="button" size="sm" loading={busy} onClick={() => setAsking(true)}>
-          ثبت همه ({countLabel})
+          ثبت همه شناخته‌شده‌ها ({countLabel})
         </Button>
-      </div>
-      <ConfirmActionModal
-        open={asking}
-        title="ثبت همه پیامک‌ها"
-        message={`${countLabel} تراکنش با دسته پیشنهادی در درآمد/هزینه ثبت و موجودی حساب‌ها به‌روز می‌شود. ادامه می‌دهید؟`}
-        confirmLabel="ثبت همه"
-        confirming={busy}
-        onClose={() => setAsking(false)}
-        onConfirm={() => {
-          setAsking(false)
-          onConfirmAll()
-        }}
-      />
-    </Card>
+        <ConfirmActionModal
+          open={asking}
+          title="ثبت همه شناخته‌شده‌ها"
+          message={`${countLabel} تراکنش هرکدام با دسته پیشنهادی همان کارت در درآمد/هزینه ثبت و موجودی حساب‌ها به‌روز می‌شود. کارت‌های «تکراری؟» و بدون دسته می‌مانند. ادامه می‌دهید؟`}
+          confirmLabel="ثبت همه"
+          confirming={busy}
+          onClose={() => setAsking(false)}
+          onConfirm={() => {
+            setAsking(false)
+            onConfirmAll()
+          }}
+        />
+      </Card>
+    </>
   )
 }

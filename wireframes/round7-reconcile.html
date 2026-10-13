@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — تطبیق موجودی و روند دارایی (round 7)</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+    <link rel="stylesheet" href="wireframe-r6.css" />
+    <link rel="stylesheet" href="wireframe-r6-2.css" />
+    <style>
+      .bank {
+        border: 1.5px solid #555;
+        border-radius: 14px;
+        padding: 12px;
+        background: #f7f7f7;
+      }
+      .bank .nm {
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .bank .bal {
+        font-size: 20px;
+        font-weight: 800;
+        margin: 4px 0;
+      }
+      .diff {
+        border: 1.5px dashed #a33;
+        background: #fdf2f2;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 11px;
+        color: #633;
+        margin-top: 8px;
+        line-height: 1.8;
+      }
+      .ln {
+        height: 110px;
+        border-bottom: 1px solid #bbb;
+        border-right: 1px solid #bbb;
+        position: relative;
+        margin: 8px 4px;
+      }
+      .ln svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .ax {
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        color: #999;
+        padding: 0 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="back"><a href="index.html">← فهرست وایرفریم‌ها</a></p>
+    <h1>وایرفریم round 7: تطبیق موجودی با پیامک بانک، روند دارایی خالص</h1>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs"><button class="on">۱ · کیف پول — اختلاف پیدا شد</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>کیف پول</span><span class="icon">⌕</span>
+          </div>
+          <div class="content">
+            <div class="bank">
+              <div class="nm">ملت · ۶۱۰۴…۳۲۱۰</div>
+              <div class="bal">۴٬۲۵۰٬۰۰۰</div>
+              <small style="color: #777">موجودی اپ</small>
+              <div class="diff">
+                <b>با پیامک بانک نمی‌خواند</b><br />آخرین پیامک (۸ مهر ۱۴:۰۲): موجودی ۳٬۹۰۰٬۰۰۰ ·
+                اختلاف ۳۵۰٬۰۰۰ بیشتر در اپ
+                <div class="disco-actions" style="margin-top: 6px">
+                  <button class="btn-sm">پیدا کردن اختلاف</button
+                  ><button class="linkbtn">نادیده</button>
+                </div>
+              </div>
+            </div>
+            <div class="bank" style="border-style: solid; border-color: #bbb">
+              <div class="nm">نقدی</div>
+              <div class="bal">۸۰۰٬۰۰۰</div>
+              <small style="color: #777">پیامک ندارد</small>
+            </div>
+            <div class="bank" style="border-color: #8c8">
+              <div class="nm">سامان · ۶۲۱۹…۱۱۰۰</div>
+              <div class="bal">۱۲٬۰۰۰٬۰۰۰</div>
+              <small style="color: #262">✓ با پیامک ۱۰ مهر یکی است</small>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۲ · ویزارد تطبیق</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>تطبیق ملت</span
+            ><span class="icon" style="border: 0"></span>
+          </div>
+          <div class="content">
+            <div class="card">
+              <div class="lbl">از آخرین تطبیق (۱ مهر) تا الان</div>
+              <div class="r"><span class="t">پیامک‌های بانک</span><span class="a">۱۴</span></div>
+              <div class="r">
+                <span class="t">تراکنش‌های اپ روی این حساب</span><span class="a">۱۲</span>
+              </div>
+              <div class="r">
+                <span class="t" style="color: #a33">اختلاف</span
+                ><span class="a" style="color: #a33">۳۵۰٬۰۰۰</span>
+              </div>
+            </div>
+            <div class="sec-h">پیامک‌هایی که در اپ نیستند</div>
+            <div class="flat">
+              <div class="r">
+                <span class="d">۶</span
+                ><span class="t">برداشت ۲۰۰٬۰۰۰<small>۶ مهر ۰۹:۱۵ · خرید</small></span
+                ><button class="btn-sm">ثبت</button>
+              </div>
+              <div class="r">
+                <span class="d">۷</span
+                ><span class="t">برداشت ۱۵۰٬۰۰۰<small>۷ مهر ۱۸:۴۰ · کارمزد</small></span
+                ><button class="btn-sm">ثبت</button>
+              </div>
+            </div>
+            <div class="sec-h">تراکنش‌های اپ بدون پیامک</div>
+            <div class="flat">
+              <div class="r">
+                <span class="d">۳</span
+                ><span class="t">قهوه ۴۵٬۰۰۰<small>نقدی بوده؟ حساب را عوض کن</small></span
+                ><span class="a" style="font-weight: 400; color: #999">⋯</span>
+              </div>
+            </div>
+            <div class="warn" style="margin-top: auto">
+              <b>هنوز ۰ اختلاف</b>بعد از ثبت دو مورد بالا، موجودی اپ و بانک یکی می‌شود. اگر نشد:
+              «تنظیم دستی موجودی» (رکورد اصلاحی با دستهٔ «تطبیق»).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۳ · نمودارها — روند دارایی خالص</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>نمودارها</span
+            ><span class="icon" style="border: 0"></span>
+          </div>
+          <div class="content">
+            <div class="chips">
+              <span>دسته‌ها</span><span>درآمد و هزینه</span><span class="on">دارایی خالص</span>
+            </div>
+            <div class="card hero2">
+              <div class="lbl">دارایی قابل اتکا · امروز</div>
+              <div class="num">۲۹٬۷۷۰٬۰۰۰</div>
+              <small class="cmp dn">↑ ۴٬۲۰۰٬۰۰۰ از ابتدای سال · ↓ ۸۰۰٬۰۰۰ از ماه قبل</small>
+            </div>
+            <div class="flat">
+              <div class="sec-h">۱۲ ماه اخیر</div>
+              <div class="ln">
+                <svg viewBox="0 0 300 110" preserveAspectRatio="none">
+                  <polyline
+                    fill="none"
+                    stroke="#555"
+                    stroke-width="2"
+                    points="0,80 25,78 50,70 75,72 100,60 125,55 150,58 175,45 200,40 225,42 250,30 275,34 300,28"
+                  />
+                  <polyline
+                    fill="none"
+                    stroke="#a33"
+                    stroke-width="1.5"
+                    stroke-dasharray="4 3"
+                    points="0,95 50,92 100,90 150,85 200,88 250,80 300,82"
+                  />
+                </svg>
+              </div>
+              <div class="ax"><span>مهر ۱۴۰۴</span><span>فروردین</span><span>مهر ۱۴۰۵</span></div>
+              <div class="r">
+                <span class="d" style="background: #555"></span><span class="t">دارایی خالص</span
+                ><span class="a">۲۹٬۷۷۰٬۰۰۰</span>
+              </div>
+              <div class="r">
+                <span class="d" style="background: #fdd"></span><span class="t">بدهی‌های منتخب</span
+                ><span class="a">۱۱٬۰۰۰٬۰۰۰</span>
+              </div>
+              <div class="sec-h">بیشترین رشد</div>
+              <div class="r">
+                <span class="d">۲</span><span class="t">اردیبهشت<small>عیدی + فروش طلا</small></span
+                ><span class="a" style="color: #262">+۳٬۱۰۰٬۰۰۰</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>۱ · تطبیق</b> — هر پیامک بانکی «موجودی بعد از تراکنش» دارد (الان parse می‌شود و در
+          <code>nextAccountBalance</code> استفاده می‌شود). قانون: آخرین پیامک هر حساب بانکی با
+          موجودی اپ همان لحظه مقایسه می‌شود؛ اختلاف غیر صفر = کارت قرمز روی حساب. فقط حساب‌هایی که
+          پیامک دارند؛ نقدی هیچ‌وقت. بدون توست، بدون مودال؛ همان کارت حساب. در جمع‌بندی شبانه یک خط:
+          «ملت ۳۵۰ هزار اختلاف دارد».
+        </div>
+        <div class="note">
+          <b>۲ · ویزارد</b> — بازه از آخرین تطبیق موفق (ذخیره در حساب: تاریخ + موجودی تأییدشده). دو
+          لیست: پیامک‌هایی که رکورد همتا ندارند (همان صف پیامک، فیلترشده روی این حساب) و رکوردهای اپ
+          که پیامک ندارند (احتمالاً حساب اشتباه). با هر ثبت، عدد اختلاف زنده کم می‌شود. اگر به صفر
+          نرسید: «تنظیم دستی» = رکورد اصلاحی با دستهٔ سیستمی «تطبیق»، نه دست‌کاری موجودی. تطبیق
+          موفق، تاریخ را جلو می‌برد.
+        </div>
+        <div class="note">
+          <b>۳ · روند دارایی خالص</b> — تب سوم در صفحهٔ نمودارهای round 5. منبع: اسنپ‌شات خودکار آخر
+          هر ماه از «دارایی قابل اتکا» و بدهی‌های منتخب در تب «موجودی ماهانه» (تب هست؛ اسنپ‌شات
+          خودکار نیست). گذشته‌ای که اسنپ‌شات ندارد از رکوردها بازسازی می‌شود (یک‌بار). خط پیوسته
+          دارایی خالص، خط‌چین بدهی؛ لمس نقطه = مقدار آن ماه. «بیشترین رشد/افت» سه ماه با بزرگ‌ترین
+          تغییر و دلیل از دسته‌های همان ماه.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

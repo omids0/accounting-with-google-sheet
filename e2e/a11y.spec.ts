@@ -8,6 +8,7 @@ const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 /** Screens behind sign-in, opened with the mocked Google backend. */
 const SIGNED_IN_SCREENS = [
   { name: 'dashboard', path: '/' },
+  { name: 'charts', path: '/charts' },
   { name: 'entry form', path: '/entry' },
   { name: 'wallet', path: '/wallet' },
   { name: 'checks', path: '/checks' },

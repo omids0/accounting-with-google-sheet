@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
@@ -40,6 +41,8 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     importExportConfirmModal
   } = useDangItems()
 
+  useHighlightParam(setExpandedId)
+
   const { showForm, editingItem, saving, openCreateForm, openEditForm, closeForm, handleSubmit } =
     useDangForm({
       onSaved: loadItems
@@ -74,6 +77,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
       ariaLabel: 'عملیات بدهی',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
+        addLabel: 'ثبت بدهی',
         onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
@@ -112,6 +116,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
         chips={filterChips}
         onOpenFilters={openFilterModal}
         onClearAll={clearAllFilters}
+        inHeader
       />
 
       <FilterModal

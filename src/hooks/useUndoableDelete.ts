@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
 
 import { dismissUndoToast, showUndoToast } from '../components/UndoToast'
+import { haptic } from '../utils/haptics'
 import { handleSheetError } from '../utils/sheetError'
 
 export const UNDO_WINDOW_MS = 5000
@@ -18,6 +19,8 @@ export interface UndoableDelete {
   /** Undoes `optimisticRemove`; also runs when `commit` fails. */
   restore?: () => void
   errorMessage?: string
+  /** Whole toast text instead of «label حذف شد» (e.g. «پیامک نادیده گرفته شد»). */
+  message?: string
 }
 
 type Pending = UndoableDelete & { timer: ReturnType<typeof setTimeout>; toastId: string }
@@ -62,6 +65,7 @@ export function useUndoableDelete() {
     dismissUndoToast(pending.toastId)
     setPendingId(null)
     pending.restore?.()
+    haptic('success')
   }, [])
 
   const schedule = useCallback(
@@ -69,10 +73,11 @@ export function useUndoableDelete() {
       // One pending delete per list: a second delete writes the first one now.
       await flush()
       entry.optimisticRemove?.()
+      haptic('medium')
       pendingRef.current = {
         ...entry,
         timer: setTimeout(() => void flush(), UNDO_WINDOW_MS),
-        toastId: showUndoToast(entry.label, UNDO_WINDOW_MS, undo)
+        toastId: showUndoToast(entry.label, UNDO_WINDOW_MS, undo, entry.message)
       }
       setPendingId(entry.id)
     },

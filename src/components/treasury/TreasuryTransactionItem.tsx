@@ -1,6 +1,6 @@
 import type { TransactionWithRow } from './types'
 import { formatQuantity } from './utils'
-import { getAssetUnit } from '../../services/tgju'
+import { getAssetUnit } from '../../services/treasuryCatalog'
 import type { VaultTransaction } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'

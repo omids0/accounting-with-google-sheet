@@ -1,5 +1,7 @@
 import { getLastOperationDate, syncAppOpen } from './activityTracking'
 import { setLastOperationDateNative } from './bankSmsNative'
+import { syncBudgetDigest } from './budgetDigest'
+import { subscribeDataRevision } from './dataRevision'
 import { isNativePlatform } from './googleAuthNative'
 import { refreshScheduledReminders } from './localNotifications'
 import { getCurrentPushSubscription, getDeviceLabel } from './pushNotifications'
@@ -21,6 +23,24 @@ async function refreshPushSubscription(spreadsheetId: string): Promise<void> {
   })
 }
 
+/** Budget lines follow edits through the day; a burst of writes syncs once. */
+const BUDGET_DIGEST_DELAY_MS = 5_000
+
+let budgetDigestWatch: (() => void) | null = null
+
+function watchBudgetDigest(spreadsheetId: string): void {
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  budgetDigestWatch?.()
+  budgetDigestWatch = subscribeDataRevision(() => {
+    clearTimeout(timer)
+    timer = setTimeout(
+      () => void syncBudgetDigest(spreadsheetId).catch(() => undefined),
+      BUDGET_DIGEST_DELAY_MS
+    )
+  })
+}
+
 /** Background setup after sign-in: reminder defaults, activity ping, reminder delivery. */
 export async function runEngagementStartup(spreadsheetId: string): Promise<void> {
   await migrateReminderDefaults(spreadsheetId)
@@ -30,6 +50,8 @@ export async function runEngagementStartup(spreadsheetId: string): Promise<void>
   if (isNativePlatform()) {
     await setLastOperationDateNative(getLastOperationDate())
     await refreshScheduledReminders(spreadsheetId)
+    await syncBudgetDigest(spreadsheetId).catch(() => undefined)
+    watchBudgetDigest(spreadsheetId)
   } else {
     await refreshPushSubscription(spreadsheetId)
   }

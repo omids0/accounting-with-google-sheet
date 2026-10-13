@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { convertTgjuPrices, getSummableTgjuPrices, type TgjuPriceTable } from './tgjuCurrency'
-import { computeHoldings } from './treasury'
+import { computeHoldings } from './treasuryHoldings'
 import type { VaultTransaction } from '../types'
 
 const toman: TgjuPriceTable = {

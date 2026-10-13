@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 
-import type { TransactionWithRow, VaultFormState } from './types'
+import { NEW_ASSET_OPTION, type TransactionWithRow, type VaultFormState } from './types'
 import { formatQuantity } from './utils'
 import type { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { getSettings, isConfigured } from '../../services/settings'
@@ -9,26 +9,28 @@ import {
   deleteVaultTransaction,
   updateVaultTransaction
 } from '../../services/treasury'
+import { newManualAsset, resolveVaultAsset } from '../../services/treasuryCatalog'
+import { saveVaultAsset } from '../../services/treasuryCatalogSheet'
+import { quantityError } from '../../services/treasuryQuantity'
 import type { VaultAssetType } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
-import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
-function createEmptyBuyForm(): VaultFormState {
-  return {
-    assetType: 'sekeb',
-    quantity: '',
-    unitPrice: '',
-    transactionDate: getTodayIso(),
-    note: ''
-  }
+function newAssetError(form: VaultFormState): string | null {
+  if (form.assetType !== NEW_ASSET_OPTION) return null
+  if (!form.newAsset.name.trim()) return 'نام دارایی جدید را وارد کنید'
+  if (!(form.newAsset.price > 0)) return 'قیمت فعلی دارایی جدید را وارد کنید'
+
+  return null
 }
 
 export function useTreasuryForms(
   loadItems: () => Promise<void>,
   transactions: TransactionWithRow[],
-  undoableDelete: ReturnType<typeof useUndoableDelete>
+  undoableDelete: ReturnType<typeof useUndoableDelete>,
+  /** A purchase added an asset to the catalog. */
+  onCatalogChange: () => void
 ) {
   const [showForm, setShowForm] = useState(false)
   const [editingTx, setEditingTx] = useState<TransactionWithRow | null>(null)
@@ -68,9 +70,12 @@ export function useTreasuryForms(
     if (!isConfigured() || !requireAuth()) return
 
     const qty = Number(form.quantity)
+    const isNew = form.assetType === NEW_ASSET_OPTION
+    const decimals = isNew ? form.newAsset.decimals : resolveVaultAsset(form.assetType).decimals
+    const invalid = newAssetError(form) ?? quantityError(qty, decimals)
 
-    if (!qty || qty <= 0) {
-      showError('مقدار را وارد کنید')
+    if (invalid) {
+      showError(invalid)
 
       return
     }
@@ -89,12 +94,22 @@ export function useTreasuryForms(
 
     setSaving(true)
     try {
+      let assetType = form.assetType
+
+      if (isNew) {
+        const asset = newManualAsset({ ...form.newAsset, assetClass: form.assetClass })
+
+        await saveVaultAsset(settings.spreadsheetId, asset)
+        assetType = asset.id
+        onCatalogChange()
+      }
+
       if (editingTx) {
         const current = transactionsRef.current.find(tx => tx.id === editingTx.id) ?? editingTx
 
         await updateVaultTransaction(settings.spreadsheetId, current.rowNumber, {
           ...editingTx,
-          assetType: form.assetType,
+          assetType,
           quantity: qty,
           unitPrice: Number(form.unitPrice),
           transactionDate: form.transactionDate,
@@ -103,7 +118,7 @@ export function useTreasuryForms(
         showSuccess('خرید ویرایش شد')
       } else {
         await createVaultTransaction(settings.spreadsheetId, {
-          assetType: form.assetType,
+          assetType,
           action: 'buy',
           quantity: qty,
           unitPrice: Number(form.unitPrice),
@@ -134,9 +149,10 @@ export function useTreasuryForms(
     if (!isConfigured() || !requireAuth()) return
 
     const qty = Number(sellForm.quantity)
+    const invalidQty = quantityError(qty, resolveVaultAsset(assetType).decimals)
 
-    if (!qty || qty <= 0) {
-      showError('مقدار فروش را وارد کنید')
+    if (invalidQty) {
+      showError(qty > 0 ? invalidQty : 'مقدار فروش را وارد کنید')
 
       return
     }
@@ -212,5 +228,3 @@ export function useTreasuryForms(
     requestDelete
   }
 }
-
-export { createEmptyBuyForm }

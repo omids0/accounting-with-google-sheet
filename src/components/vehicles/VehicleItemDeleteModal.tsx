@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { createPortal } from 'react-dom'
 
 import type { VehicleDeleteTarget } from './types'
@@ -36,6 +37,7 @@ export default function VehicleItemDeleteModal({
   onConfirm
 }: VehicleItemDeleteModalProps) {
   const { panelRef } = useModalLock({ open, onClose })
+  const titleId = useId()
 
   if (!open || !target) return null
 
@@ -46,6 +48,7 @@ export default function VehicleItemDeleteModal({
       className={cn(formModalRootClass, 'vehicle-item-delete-modal')}
       role="dialog"
       aria-modal="true"
+      aria-labelledby={titleId}
     >
       <button
         type="button"
@@ -56,7 +59,9 @@ export default function VehicleItemDeleteModal({
 
       <div ref={panelRef} className={formModalPanelClass}>
         <div className={formModalHeaderClass}>
-          <h2 className={formModalTitleClass}>تأیید حذف</h2>
+          <h2 id={titleId} className={formModalTitleClass}>
+            تأیید حذف
+          </h2>
           <button
             type="button"
             className={formModalCloseClass}

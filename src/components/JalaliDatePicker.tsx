@@ -157,6 +157,7 @@ export default function JalaliDatePicker({
           iso={pendingIso}
           onIsoChange={setPendingIso}
           minIso={minIso}
+          onEnter={hasPendingChanges ? handleConfirm : handleClose}
         />
       </PickerSheet>
     </div>

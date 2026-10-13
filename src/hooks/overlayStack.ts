@@ -12,6 +12,17 @@ const stack: OverlayEntry[] = []
 
 let nextId = 1
 
+const listeners = new Set<() => void>()
+
+/** Called whenever an overlay opens or closes (e.g. to hold back the update banner). */
+export function subscribeOverlays(listener: () => void): () => void {
+  listeners.add(listener)
+
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
 export function getOverlayCount(): number {
   return stack.length
 }
@@ -54,6 +65,7 @@ export function pushOverlay(close: () => boolean): () => void {
 
   if (stack.length === 0) setEscapeListener(true)
   stack.push(entry)
+  listeners.forEach(listener => listener())
 
   return () => {
     const index = stack.findIndex(item => item.id === entry.id)
@@ -61,6 +73,7 @@ export function pushOverlay(close: () => boolean): () => void {
     if (index < 0) return
     stack.splice(index, 1)
     if (stack.length === 0) setEscapeListener(false)
+    listeners.forEach(listener => listener())
   }
 }
 

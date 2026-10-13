@@ -33,8 +33,30 @@ export function isLockedVehicleExpenseType(expenseType: string): boolean {
   return LOCKED_VEHICLE_EXPENSE_TYPES.has(expenseType.trim())
 }
 
+/** Transfers between accounts and into savings goals (round 6 default list). */
+export const TRANSFER_EXPENSE_CATEGORY = 'انتقال'
+
+/** Income of a received payment on a receivable (see receivables/utils.ts). */
+export const RECEIVABLE_INCOME_CATEGORY = 'طلب'
+
+// «سیستمی» on the category page: no rename, no delete. Unlike the locked sets these
+// are not forced into a list that lacks them — older spreadsheets stay as they are.
+const SYSTEM_ONLY_CATEGORIES = {
+  expense: [TRANSFER_EXPENSE_CATEGORY],
+  income: [RECEIVABLE_INCOME_CATEGORY]
+}
+
+/** Categories of the form type that cannot be renamed or deleted. */
 export function lockedCategoriesFor(formType: 'income' | 'expense'): string[] {
-  return formType === 'expense' ? [...LOCKED_EXPENSE_CATEGORIES] : [...LOCKED_INCOME_CATEGORIES]
+  const locked = formType === 'expense' ? LOCKED_EXPENSE_CATEGORIES : LOCKED_INCOME_CATEGORIES
+
+  return [...locked, ...SYSTEM_ONLY_CATEGORIES[formType]]
+}
+
+export function isSystemCategory(formType: string, category: string): boolean {
+  if (formType !== 'income' && formType !== 'expense') return false
+
+  return lockedCategoriesFor(formType).includes(category.trim())
 }
 
 function withLocked(categories: string[], locked: Iterable<string>): string[] {

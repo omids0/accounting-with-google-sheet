@@ -5,6 +5,7 @@ import {
   loadAssetsLiabilitiesReportPage,
   loadCashFlowReportPage,
   loadCategoryTreeReportPage,
+  loadChartsPage,
   loadChecksPage,
   loadCounterpartiesPage,
   loadCurrencyConverterPage,
@@ -28,6 +29,7 @@ import {
   loadReceivablesPage,
   loadRecordsPage,
   loadRemindersPage,
+  loadCategoriesPage,
   loadSettingsPage,
   loadTimesheetDetailPage,
   loadTimesheetsPage,
@@ -36,11 +38,13 @@ import {
   loadTreasuryPage,
   loadWalletPage,
   loadWalletAccountDetailPage,
-  loadBankSmsPage
+  loadBankSmsPage,
+  loadSearchPage
 } from './pageChunks'
 
 export const LazyAboutPage = lazy(loadAboutPage)
 export const LazyBankSmsPage = lazy(loadBankSmsPage)
+export const LazyChartsPage = lazy(loadChartsPage)
 export const LazyChecksPage = lazy(loadChecksPage)
 export const LazyCounterpartiesPage = lazy(loadCounterpartiesPage)
 export const LazyCurrencyConverterPage = lazy(loadCurrencyConverterPage)
@@ -67,6 +71,7 @@ export const LazyModuleReportPage = lazy(loadModuleReportPage)
 export const LazyOpeningBalanceReportPage = lazy(loadOpeningBalanceReportPage)
 export const LazyPersonalRemindersPage = lazy(loadPersonalRemindersPage)
 export const LazyRemindersPage = lazy(loadRemindersPage)
+export const LazyCategoriesPage = lazy(loadCategoriesPage)
 export const LazySettingsPage = lazy(loadSettingsPage)
 export const LazyTimesheetDetailPage = lazy(loadTimesheetDetailPage)
 export const LazyTimesheetsPage = lazy(loadTimesheetsPage)
@@ -75,3 +80,4 @@ export const LazyVehiclesPage = lazy(loadVehiclesPage)
 export const LazyTreasuryPage = lazy(loadTreasuryPage)
 export const LazyWalletPage = lazy(loadWalletPage)
 export const LazyWalletAccountDetailPage = lazy(loadWalletAccountDetailPage)
+export const LazySearchPage = lazy(loadSearchPage)

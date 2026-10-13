@@ -1,10 +1,11 @@
 import AppIcon from '../AppIcon'
+import TreasuryManualPrice from './TreasuryManualPrice'
 import TreasurySellForm from './TreasurySellForm'
 import TreasuryTransactionItem from './TreasuryTransactionItem'
 import type { TransactionWithRow, VaultFormState } from './types'
 import { formatQuantity } from './utils'
-import { getAssetLabel } from '../../services/tgju'
-import type { VaultAssetType, VaultHolding } from '../../types'
+import { getAssetClassLabel } from '../../services/treasuryCatalog'
+import type { VaultAsset, VaultAssetType, VaultHolding } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
@@ -18,8 +19,10 @@ import {
 import {
   receivableAddPaymentClass,
   receivablePaymentListTitleClass,
+  treasuryClassTagClass,
   treasuryHoldingCardClass,
-  treasuryHoldingValueClass
+  treasuryHoldingValueClass,
+  treasuryManualRowClass
 } from '../ui/treasuryReceivableStyles'
 
 type TreasuryHoldingCardProps = {
@@ -33,6 +36,10 @@ type TreasuryHoldingCardProps = {
   onOpenSellForm: (assetType: VaultAssetType) => void
   onCloseSellForm: () => void
   onSell: (assetType: VaultAssetType, available: number, values: VaultFormState) => void
+  /** ✎ on a manual price: edit the catalog asset. */
+  onEditAsset: (asset: VaultAsset) => void
+  /** Only the details (desktop table detail row); the row itself shows the summary. */
+  bodyOnly?: boolean
 }
 
 export default function TreasuryHoldingCard({
@@ -45,36 +52,53 @@ export default function TreasuryHoldingCard({
   onDelete,
   onOpenSellForm,
   onCloseSellForm,
-  onSell
+  onSell,
+  onEditAsset,
+  bodyOnly = false
 }: TreasuryHoldingCardProps) {
   const showSellForm = activeSellAsset === holding.assetType
+  const { asset } = holding
+  const classTag = [getAssetClassLabel(asset.assetClass), asset.symbol].filter(Boolean).join(' · ')
 
   return (
-    <div className={cn(installmentCardClass({ expanded }), treasuryHoldingCardClass)}>
-      <button type="button" className={installmentHeaderClass(expanded)} onClick={onToggle}>
-        <div>
-          <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>
-            {getAssetLabel(holding.assetType)}
+    <div
+      className={
+        bodyOnly ? undefined : cn(installmentCardClass({ expanded }), treasuryHoldingCardClass)
+      }
+      data-highlight-id={bodyOnly ? undefined : holding.assetType}
+    >
+      {!bodyOnly && (
+        <button type="button" className={installmentHeaderClass(expanded)} onClick={onToggle}>
+          <div>
+            <div className={treasuryClassTagClass}>{classTag}</div>
+            <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{asset.name}</div>
+            <div
+              style={{
+                fontSize: '0.75rem',
+                color: 'var(--color-text-muted)',
+                marginTop: '0.25rem'
+              }}
+            >
+              {formatQuantity(holding.netQuantity, holding.assetType)}
+              {' · '}
+              {asset.priceSource === 'manual' ? 'قیمت' : 'قیمت روز'}:{' '}
+              {formatMoney(holding.currentUnitPrice)}
+            </div>
+            <div className={treasuryHoldingValueClass}>
+              ارزش کل: {formatMoney(holding.totalValue)}
+            </div>
           </div>
-          <div
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--color-text-muted)',
-              marginTop: '0.25rem'
-            }}
-          >
-            {formatQuantity(holding.netQuantity, holding.assetType)}
-            {' · '}
-            قیمت روز: {formatMoney(holding.currentUnitPrice)}
-          </div>
-          <div className={treasuryHoldingValueClass}>
-            ارزش کل: {formatMoney(holding.totalValue)}
-          </div>
+          <span className={installmentChevronClass} aria-hidden>
+            <AppIcon name="chevron-down" size={14} />
+          </span>
+        </button>
+      )}
+
+      {asset.priceSource === 'manual' && (
+        <div className={bodyOnly ? undefined : treasuryManualRowClass}>
+          <TreasuryManualPrice asset={asset} onEdit={onEditAsset} />
         </div>
-        <span className={installmentChevronClass} aria-hidden>
-          <AppIcon name="chevron-down" size={14} />
-        </span>
-      </button>
+      )}
 
       <AccordionCollapse open={expanded}>
         <div className={installmentPaymentsClass}>

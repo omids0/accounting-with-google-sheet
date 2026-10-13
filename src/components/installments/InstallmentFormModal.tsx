@@ -128,6 +128,7 @@ export default function InstallmentFormModal({
 
   return (
     <FormModal
+      variant="panel"
       open={open}
       title={editingPlan ? 'ویرایش قسط' : 'ثبت قسط جدید'}
       onClose={onClose}

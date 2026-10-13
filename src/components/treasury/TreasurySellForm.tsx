@@ -1,15 +1,16 @@
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
+import { emptyNewAsset } from './TreasuryAssetPicker'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { getAssetUnit } from '../../services/tgju'
+import { resolveVaultAsset } from '../../services/treasuryCatalog'
 import type { VaultAssetType } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
 import JalaliDatePicker from '../JalaliDatePicker'
+import QuantityInput from './QuantityInput'
 import type { VaultFormState } from './types'
-import { parseQuantityInput } from './utils'
 import Button from '../ui/Button'
 import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
@@ -21,8 +22,12 @@ type TreasurySellFormProps = {
 }
 
 export function createEmptySellForm(assetType: VaultAssetType): VaultFormState {
+  const { assetClass } = resolveVaultAsset(assetType)
+
   return {
+    assetClass,
     assetType,
+    newAsset: emptyNewAsset(assetClass),
     quantity: '',
     unitPrice: '',
     transactionDate: getTodayIso(),
@@ -44,28 +49,22 @@ export default function TreasurySellForm({
 
   useModalFormReset(reset, initialValues, { resetKey: assetType })
 
-  const quantity = watch('quantity')
-  const allowDecimal = assetType === 'geram18'
+  const { decimals, unit } = resolveVaultAsset(assetType)
 
   return (
     <div className={receivablePaymentFormClass}>
       <FormField
-        label={`مقدار فروش (${getAssetUnit(assetType)})`}
+        label={`مقدار فروش (${unit})`}
         style={{ marginBottom: '0.75rem' }}
+        controlWidth="standard"
       >
-        <input
-          type="text"
-          inputMode={allowDecimal ? 'decimal' : 'numeric'}
-          dir="ltr"
-          value={quantity === '' ? '' : String(quantity)}
-          onChange={e => setValue('quantity', parseQuantityInput(e.target.value, allowDecimal))}
-          placeholder={allowDecimal ? 'مثلاً ۱' : 'مثلاً ۱'}
+        <QuantityInput
+          value={watch('quantity')}
+          decimals={decimals}
+          onChange={value => setValue('quantity', value)}
         />
       </FormField>
-      <FormField
-        label={`قیمت هر ${getAssetUnit(assetType)} (تومان)`}
-        style={{ marginBottom: '0.75rem' }}
-      >
+      <FormField label={`قیمت هر ${unit} (تومان)`} style={{ marginBottom: '0.75rem' }}>
         <AmountInput value={watch('unitPrice')} onChange={val => setValue('unitPrice', val)} />
       </FormField>
       <FormField label="تاریخ فروش" style={{ marginBottom: '0.75rem' }}>

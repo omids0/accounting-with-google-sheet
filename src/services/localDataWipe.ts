@@ -4,10 +4,12 @@ import { clearDataKey } from './appLockDataKey'
 import { clearAppLockSessionState } from './appLockPolicy'
 import { LOCK_SETUP_OFFER_KEY } from './appLockPrompts'
 import { getSession } from './auth'
+import { BACKUP_STORAGE_KEY } from './backupReminder'
 import { setBankSmsCaptureEnabled } from './bankSmsNative'
 import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
 import { invalidateDashboardCache } from './dashboardCache'
 import { DISCOVERY_STORAGE_KEY } from './featureDiscovery'
+import { GOAL_CONGRATS_STORAGE_KEY } from './goalCongrats'
 import { isNativePlatform, signOutNative } from './googleAuthNative'
 import { loadGoogleIdentityScript } from './googleIdentityScript'
 import { ONBOARDING_STORAGE_KEY } from './onboarding'
@@ -18,6 +20,7 @@ import { clearStore } from './spreadsheetStore'
 import { deletePersistedDatabase } from './spreadsheetStorePersist'
 import { removeItem, STORAGE_KEYS } from './storage'
 import { getOutboxCount } from './syncOutbox'
+import { TREASURY_CLASS_STORAGE_KEY } from './treasuryClassPref'
 
 /** Per-spreadsheet keys: unsynced writes, legacy mirrors and sync timestamps. */
 const ACCOUNT_KEY_PREFIXES = [
@@ -39,7 +42,21 @@ const ACCOUNT_KEYS = [
   'accounting_sheets_ready',
   BANK_SMS_PREFS_KEY,
   ONBOARDING_STORAGE_KEY,
-  DISCOVERY_STORAGE_KEY
+  DISCOVERY_STORAGE_KEY,
+  'accounting_nudges_v1',
+  BACKUP_STORAGE_KEY,
+  TREASURY_CLASS_STORAGE_KEY,
+  GOAL_CONGRATS_STORAGE_KEY,
+  // Budget alert gate (budgetDigest.ts), named here to keep that module out of this chunk.
+  'accounting_budget_alerts_v1',
+  // «دسته‌های پیشنهادی» offer dismissal (categoryDefaults.ts), named here for the same reason.
+  'accounting_category_defaults_offer_v1',
+  // «پرتکرار» pins/hides (entryTemplates.ts), named here to keep that module out of this chunk.
+  'accounting_entry_templates_v1',
+  // Once-a-month digest line «N تکرار ثبت‌نشده» (recurringDigest.ts).
+  'accounting_recurring_digest_v1',
+  // Last global searches (searchRecent.ts), named here to keep that module out of this chunk.
+  'accounting_search_recent_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

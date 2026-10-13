@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
@@ -25,6 +26,8 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
   const form = useCounterpartiesForm({ onSaved: data.loadItems })
   const detail = useCounterpartyDetail()
 
+  useHighlightParam()
+
   const {
     filterModalOpen,
     setFilterModalOpen,
@@ -46,6 +49,7 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
       ariaLabel: 'عملیات طرف حساب‌ها',
       actions: createPageSpeedDialActions({
         onAdd: () => form.openCreateForm(),
+        addLabel: 'افزودن طرف حساب',
         onFilter: openFilterModal,
         onRefresh: data.loadItems,
         refreshDisabled: data.loading,
@@ -102,13 +106,14 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
       </FilterModal>
 
       {isInitialLoading ? (
-        <DangCardListSkeleton filterBar />
+        <DangCardListSkeleton filterBar table />
       ) : (
         <>
           <ActiveFilterChips
             chips={filterChips}
             onOpenFilters={openFilterModal}
             onClearAll={clearAllFilters}
+            inHeader
           />
 
           <CounterpartyList

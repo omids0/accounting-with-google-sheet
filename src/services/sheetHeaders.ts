@@ -1,5 +1,7 @@
 /** Column headers of the fixed module tabs; dependency-free for the same reason as sheetNames.ts. */
 
+export * from './sheetHeadersVehicle'
+
 export const ACTIVITY_HEADERS = ['آخرین_بازدید', 'آخرین_عملیات']
 
 export const APP_LOCK_HEADERS = ['فعال', 'رمز_هش', 'نمک', 'زمان_بروزرسانی']
@@ -158,90 +160,51 @@ export const TREASURY_HEADERS = [
   'توضیحات'
 ]
 
-export const VEHICLE_DEADLINE_HEADERS = [
+/** Vault asset catalog; built-in rows keep the legacy «نوع دارایی» ids. */
+export const TREASURY_ASSETS_HEADERS = [
   'شناسه',
-  'خودرو_id',
-  'زمان_ثبت',
-  'دسته',
-  'تاریخ_شروع',
-  'تاریخ_پایان',
-  'مبلغ',
-  'توضیحات',
-  'expense_id',
-  'فعال',
-  'یادآوری_فعال',
-  'روز_قبل'
-]
-
-export const VEHICLE_EXPENSE_META_HEADERS = [
-  'شناسه',
-  'شناسه_هزینه',
-  'شناسه_خودرو',
-  'نوع_هزینه',
-  'نرخ_لیتر',
-  'لیتر',
-  'کارکرد',
-  'زمان_ثبت'
-]
-
-export const VEHICLE_HISTORY_HEADERS = [
-  'شناسه',
-  'خودرو_id',
-  'زمان_ثبت',
-  'نوع_رکورد',
-  'مرجع_id',
-  'تاریخ',
-  'کارکرد',
-  'km_بعدی',
-  'جزئیات',
-  'مبلغ',
-  'expense_id'
-]
-
-export const VEHICLE_MECHANIC_HEADERS = [
-  'شناسه',
-  'خودرو_id',
-  'زمان_ثبت',
-  'تاریخ',
-  'کارکرد',
-  'مکان',
-  'مبلغ_کل',
-  'اقلام_json',
-  'توضیحات',
-  'expense_id'
-]
-
-export const VEHICLE_PERIODIC_HEADERS = [
-  'شناسه',
-  'خودرو_id',
-  'زمان_ثبت',
-  'نوع_سرویس',
-  'کارکرد_فعلی',
-  'فاصله_km',
-  'km_بعدی',
-  'برند',
-  'محل',
-  'مبلغ',
-  'توضیحات',
-  'expense_id',
-  'فعال',
-  'یادآوری_فعال',
-  'آستانه_کیلومتر'
-]
-
-export const VEHICLES_HEADERS = [
-  'شناسه',
-  'زمان_ثبت',
-  'عنوان',
-  'کارکرد',
-  'VIN',
-  'سال_ساخت',
-  'ظرفیت',
-  'پلاک',
-  'یادآوری_کارکرد',
-  'آخرین_بروز_کارکرد',
+  'کلاس',
+  'نماد',
+  'نام',
+  'واحد',
+  'اعشار',
+  'منبع قیمت',
+  'کلید tgju',
+  'قیمت دستی',
+  'زمان قیمت دستی',
   'فعال'
 ]
+
+/** Savings goals; deposits and withdrawals live in «گردش حساب» (kind `goal-deposit`). */
+export const TREASURY_GOALS_HEADERS = [
+  'شناسه',
+  'زمان ثبت',
+  'عنوان',
+  'مبلغ هدف',
+  'تاریخ هدف',
+  'حساب مبدا پیش‌فرض',
+  'یادداشت',
+  'وضعیت'
+]
+
+/** Monthly recurring income/expense items (round 6, Task A2). */
+export const RECURRING_HEADERS = [
+  'شناسه',
+  'زمان ثبت',
+  'نوع',
+  'دسته',
+  'زیردسته',
+  'حساب',
+  'مبلغ',
+  'عنوان',
+  'روز ماه',
+  'حالت',
+  'آخرین ثبت',
+  'فعال'
+]
+
+/** One monthly budget per expense category. */
+export const BUDGETS_HEADERS = ['دسته', 'مبلغ ماهانه', 'زمان ویرایش']
 
 export const WALLET_HEADERS = [
   'شناسه',

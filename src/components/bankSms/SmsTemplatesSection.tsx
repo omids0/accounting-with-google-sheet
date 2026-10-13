@@ -21,6 +21,11 @@ type SmsTemplatesSectionProps = {
   accountId: string | null
   drafts: SmsTemplateDraft[]
   onDraftsChange: (next: SmsTemplateDraft[]) => void
+  /**
+   * Bank SMS settings sheet: list the templates of every account (id → title) instead of
+   * one; new ones come from an SMS card or the account form.
+   */
+  overview?: Record<string, string>
 }
 
 type ListedTemplate = { key: string; template: SmsTemplate; onRemove: () => void }
@@ -33,7 +38,8 @@ function asTemplate(draft: SmsTemplateDraft, key: string): SmsTemplate {
 export default function SmsTemplatesSection({
   accountId,
   drafts,
-  onDraftsChange
+  onDraftsChange,
+  overview
 }: SmsTemplatesSectionProps) {
   const { templates, saving, add, remove } = useSmsTemplates()
   const [editing, setEditing] = useState(false)
@@ -45,7 +51,7 @@ export default function SmsTemplatesSection({
 
   const listed: ListedTemplate[] = [
     ...templates
-      .filter(template => accountId && template.accountId === accountId)
+      .filter(template => overview || (accountId && template.accountId === accountId))
       .map(template => ({ key: template.id, template, onRemove: () => void remove(template) })),
     ...drafts.map((draft, index) => ({
       key: `draft-${index}`,
@@ -68,7 +74,7 @@ export default function SmsTemplatesSection({
     <section className={smsSectionClass} aria-label="پیامک‌های نمونه">
       <div className={smsSectionHeaderClass}>
         <h3 className={smsSectionTitleClass}>پیامک‌های نمونه</h3>
-        {!editing && (
+        {!editing && !overview && (
           <Button type="button" variant="secondary" size="sm" onClick={() => setEditing(true)}>
             <AppIcon name="add" size={14} />
             افزودن پیامک نمونه
@@ -77,15 +83,22 @@ export default function SmsTemplatesSection({
       </div>
 
       <p className={smsHintClass}>
-        برای هر نوع پیامک این حساب (برداشت، واریز) یک نمونه ثبت کنید تا اپ پیامک‌های بعدی را خودکار
-        بشناسد. مبلغ و شماره کارتِ نمونه ذخیره نمی‌شود.
+        {overview
+          ? 'قالب‌های همه حساب‌ها. قالب تازه را با لمس مبلغ روی کارت پیامک ناشناخته بسازید، یا در کیف پول ← ویرایش حساب.'
+          : 'برای هر نوع پیامک این حساب (برداشت، واریز) یک نمونه ثبت کنید تا اپ پیامک‌های بعدی را خودکار بشناسد. مبلغ و شماره کارتِ نمونه ذخیره نمی‌شود.'}
       </p>
 
       {listed.length > 0 && (
         <ul className={smsTemplateListClass}>
           {listed.map(item => (
             <li key={item.key} className={smsTemplateItemClass}>
-              <span className={smsTemplateTextClass}>{describeSmsTemplate(item.template)}</span>
+              <span className={smsTemplateTextClass}>
+                {overview
+                  ? `${overview[item.template.accountId] ?? 'حساب حذف‌شده'} · ${describeSmsTemplate(
+                      item.template
+                    )}`
+                  : describeSmsTemplate(item.template)}
+              </span>
               <Button
                 type="button"
                 variant="danger"

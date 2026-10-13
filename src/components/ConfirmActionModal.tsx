@@ -27,6 +27,8 @@ type ConfirmActionModalProps = {
   confirming?: boolean
   confirmLabel?: string
   cancelLabel?: string
+  /** The cancel button is a second answer, not a close (✕ and the backdrop still close). */
+  onCancel?: () => void
 }
 
 export default function ConfirmActionModal({
@@ -37,7 +39,8 @@ export default function ConfirmActionModal({
   onConfirm,
   confirming = false,
   confirmLabel = 'بله',
-  cancelLabel = 'خیر'
+  cancelLabel = 'خیر',
+  onCancel
 }: ConfirmActionModalProps) {
   const { panelRef } = useModalLock({ open, onClose, blocked: confirming })
   const titleId = useId()
@@ -91,7 +94,12 @@ export default function ConfirmActionModal({
           >
             {confirmLabel}
           </Button>
-          <Button type="button" variant="secondary" disabled={confirming} onClick={onClose}>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={confirming}
+            onClick={onCancel ?? onClose}
+          >
             {cancelLabel}
           </Button>
         </div>

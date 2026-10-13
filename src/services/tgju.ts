@@ -1,4 +1,3 @@
-import type { VaultAssetType } from '../types'
 import { parseNumericStrict } from '../utils/parseNumeric'
 
 const TGJU_API = 'https://call5.tgju.org/ajax.json'
@@ -6,39 +5,6 @@ const TGJU_API = 'https://call5.tgju.org/ajax.json'
 const TGJU_FETCH_TIMEOUT_MS = 4_000
 
 const TGJU_CACHE_TTL_MS = 5 * 60 * 1000
-
-const ASSET_TGJU_KEYS: Record<VaultAssetType, string> = {
-  sekeb: 'sekeb',
-  sekee: 'sekee',
-  nim: 'nim',
-  rob: 'rob',
-  gerami: 'gerami',
-  geram18: 'geram18',
-  usd: 'price_dollar_rl'
-}
-
-export const VAULT_ASSET_OPTIONS: {
-  value: VaultAssetType
-  label: string
-  unit: string
-  hint?: string
-}[] = [
-  { value: 'sekeb', label: 'سکه بهار آزادی', unit: 'عدد' },
-  { value: 'sekee', label: 'سکه امامی', unit: 'عدد' },
-  { value: 'nim', label: 'نیم سکه', unit: 'عدد' },
-  { value: 'rob', label: 'ربع سکه', unit: 'عدد' },
-  { value: 'gerami', label: 'سکه گرمی', unit: 'عدد', hint: 'هر سکه حدود ۱ گرم طلا' },
-  { value: 'geram18', label: 'طلای ۱۸ عیار', unit: 'گرم', hint: 'مقدار را به گرم وارد کنید' },
-  { value: 'usd', label: 'دلار', unit: 'دلار' }
-]
-
-export function getAssetLabel(assetType: VaultAssetType): string {
-  return VAULT_ASSET_OPTIONS.find(a => a.value === assetType)?.label ?? assetType
-}
-
-export function getAssetUnit(assetType: VaultAssetType): string {
-  return VAULT_ASSET_OPTIONS.find(a => a.value === assetType)?.unit ?? ''
-}
 
 /** tgju quotes rial; non-numeric or non-positive values read as 0 (unavailable), never NaN. */
 function parseTgjuRialRate(raw: string | undefined): number {
@@ -104,15 +70,16 @@ export interface ExchangeRateQuote {
   updatedAt?: string
 }
 
-let pricesCache: Record<VaultAssetType, number> | null = null
+/** tgju's raw `current` map from the last asset-price fetch. */
+let quotesCache: TgjuCurrent | null = null
 
-let pricesCacheAt = 0
+let quotesCacheAt = 0
 
 let exchangeRatesCache: Record<ExchangeCurrencyCode, ExchangeRateQuote> | null = null
 
 let exchangeRatesCacheAt = 0
 
-let pricesFetchInFlight: Promise<Record<VaultAssetType, number>> | null = null
+let quotesFetchInFlight: Promise<TgjuCurrent> | null = null
 
 let exchangeRatesFetchInFlight: Promise<Record<ExchangeCurrencyCode, ExchangeRateQuote>> | null =
   null
@@ -121,9 +88,9 @@ function isCacheFresh(cacheAt: number): boolean {
   return cacheAt > 0 && Date.now() - cacheAt < TGJU_CACHE_TTL_MS
 }
 
-async function fetchTgjuCurrent(): Promise<
-  Record<string, { p?: string; ts?: string; t?: string }>
-> {
+type TgjuCurrent = Record<string, { p?: string; ts?: string; t?: string }>
+
+async function fetchTgjuCurrent(): Promise<TgjuCurrent> {
   const controller = new AbortController()
 
   const timeoutId = setTimeout(() => controller.abort(), TGJU_FETCH_TIMEOUT_MS)
@@ -133,9 +100,7 @@ async function fetchTgjuCurrent(): Promise<
 
     if (!res.ok) throw new Error('خطا در دریافت قیمت از tgju.org')
 
-    const data = (await res.json()) as {
-      current?: Record<string, { p?: string; ts?: string; t?: string }>
-    }
+    const data = (await res.json()) as { current?: TgjuCurrent }
 
     return data.current ?? {}
   } catch (error) {
@@ -148,9 +113,23 @@ async function fetchTgjuCurrent(): Promise<
   }
 }
 
-/** Raw tgju asset prices, always in toman. */
-export function getCachedTgjuPrices(): Record<VaultAssetType, number> | null {
-  return pricesCache
+/** asset id → toman price for each tgju key (0 when tgju has no usable quote). */
+function pricesFromQuotes(
+  current: TgjuCurrent,
+  keys: Record<string, string>
+): Record<string, number> {
+  const prices: Record<string, number> = {}
+
+  for (const [asset, key] of Object.entries(keys)) {
+    prices[asset] = parseTgjuPrice(current[key]?.p)
+  }
+
+  return prices
+}
+
+/** Cached tgju asset prices (toman) for the given asset → tgju key map, or null. */
+export function getCachedTgjuPrices(keys: Record<string, string>): Record<string, number> | null {
+  return quotesCache ? pricesFromQuotes(quotesCache, keys) : null
 }
 
 /** Toman per euro from the last tgju fetch (0 when unknown). */
@@ -163,11 +142,6 @@ export function getCachedTgjuExchangeRates(): Record<
   ExchangeRateQuote
 > | null {
   return exchangeRatesCache
-}
-
-/** Refresh tgju prices in the background without blocking callers. */
-export function prefetchTgjuPrices(): void {
-  void fetchTgjuPrices().catch(() => undefined)
 }
 
 export function getExchangeCurrencyOption(
@@ -227,35 +201,31 @@ export async function fetchTgjuExchangeRates(): Promise<
   }
 }
 
-export async function fetchTgjuPrices(): Promise<Record<VaultAssetType, number>> {
-  if (isCacheFresh(pricesCacheAt) && pricesCache) {
-    return pricesCache
-  }
+async function fetchTgjuQuotes(): Promise<TgjuCurrent> {
+  if (isCacheFresh(quotesCacheAt) && quotesCache) return quotesCache
 
-  if (pricesFetchInFlight) {
-    return pricesFetchInFlight
-  }
+  if (quotesFetchInFlight) return quotesFetchInFlight
 
-  pricesFetchInFlight = (async () => {
+  quotesFetchInFlight = (async () => {
     const current = await fetchTgjuCurrent()
 
-    const prices = {} as Record<VaultAssetType, number>
-
-    for (const [asset, key] of Object.entries(ASSET_TGJU_KEYS) as [VaultAssetType, string][]) {
-      prices[asset] = parseTgjuPrice(current[key]?.p)
-    }
-
     eurTomanCache = parseTgjuPrice(current[TGJU_EUR_KEY]?.p)
+    quotesCache = current
+    quotesCacheAt = Date.now()
 
-    pricesCache = prices
-    pricesCacheAt = Date.now()
-
-    return prices
+    return current
   })()
 
   try {
-    return await pricesFetchInFlight
+    return await quotesFetchInFlight
   } finally {
-    pricesFetchInFlight = null
+    quotesFetchInFlight = null
   }
+}
+
+/** Toman prices for every catalog asset priced by tgju (`keys`: asset id → tgju key). */
+export async function fetchTgjuPrices(
+  keys: Record<string, string>
+): Promise<Record<string, number>> {
+  return pricesFromQuotes(await fetchTgjuQuotes(), keys)
 }

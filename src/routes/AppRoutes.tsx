@@ -4,6 +4,7 @@ import DangSplitDetailRoute from './DangSplitDetailRoute'
 import {
   LazyAboutPage,
   LazyBankSmsPage,
+  LazyChartsPage,
   LazyChecksPage,
   LazyCounterpartiesPage,
   LazyCurrencyConverterPage,
@@ -17,6 +18,7 @@ import {
   LazyNetAvailableSettingsPage,
   LazyOpeningBalancePage,
   LazyReceivablesPage,
+  LazySearchPage,
   LazyRecordsPage,
   LazyAssetsLiabilitiesReportPage,
   LazyCashFlowReportPage,
@@ -28,12 +30,14 @@ import {
   LazyOpeningBalanceReportPage,
   LazyPersonalRemindersPage,
   LazyRemindersPage,
+  LazyCategoriesPage,
   LazySettingsPage,
   LazyTimesheetsPage,
   LazyTreasuryPage,
   LazyVehiclesPage,
   LazyWalletPage
 } from './lazyPages'
+import { RECORD_FOCUS_PARAM } from './paths'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
 import WalletAccountDetailRoute from './WalletAccountDetailRoute'
@@ -52,7 +56,12 @@ function parseFormType(value: string | null): 'income' | 'expense' | undefined {
 function RecordsRoute() {
   const [searchParams] = useSearchParams()
 
-  return <LazyRecordsPage initialFormType={parseFormType(searchParams.get('type'))} />
+  return (
+    <LazyRecordsPage
+      initialFormType={parseFormType(searchParams.get('type'))}
+      focusRecordId={searchParams.get(RECORD_FOCUS_PARAM) ?? undefined}
+    />
+  )
 }
 
 function EntryRoute() {
@@ -71,6 +80,7 @@ function EntryRoute() {
       prefill={draft?.prefill}
       bankSms={smsDraft?.bankSms}
       onSaved={draft ? back : undefined}
+      hideTemplates={!!draft}
     />
   )
 }
@@ -85,6 +95,7 @@ export function AppAuthenticatedRoutes() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<LazyDashboardPage />} />
+          <Route path="charts" element={<LazyChartsPage />} />
           <Route path="installments" element={<LazyInstallmentsPage />} />
           <Route path="dang" element={<LazyDangPage />} />
           <Route path="checks" element={<LazyChecksPage />} />
@@ -94,6 +105,7 @@ export function AppAuthenticatedRoutes() {
           <Route path="treasury" element={<LazyTreasuryPage />} />
           <Route path="wallet" element={<LazyWalletPage />} />
           <Route path="bank-sms" element={<LazyBankSmsPage />} />
+          <Route path="search" element={<LazySearchPage />} />
           <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
           <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
           <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />
@@ -104,6 +116,7 @@ export function AppAuthenticatedRoutes() {
           <Route path="calculators/date" element={<LazyDateCalculatorPage />} />
           <Route path="about" element={<LazyAboutPage />} />
           <Route path="settings/reminders" element={<LazyRemindersPage />} />
+          <Route path="settings/categories" element={<LazyCategoriesPage />} />
           <Route path="settings" element={<LazySettingsPage />} />
           <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
           <Route path="reports/income-expense" element={<LazyIncomeExpenseReportPage />} />

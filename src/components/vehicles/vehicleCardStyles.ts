@@ -1,4 +1,4 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 import {
   cardActionButtonsClass,
   installmentCardClass,
@@ -31,7 +31,7 @@ export const fuelReportSectionAccentClass = 'h-4 w-1 shrink-0 rounded-full bg-ex
 
 export const fuelPriceCardsGridClass = 'mb-4 grid gap-2.5 sm:grid-cols-2'
 
-export const fuelPriceCardClass = cn(
+export const fuelPriceCardClass = cx(
   'relative overflow-hidden rounded-2xl border border-expense/25 bg-gradient-to-br from-expense/10 via-card to-card px-4 py-3',
   'shadow-[0_1px_0_color-mix(in_srgb,var(--color-expense)_18%,transparent)]'
 )
@@ -43,7 +43,7 @@ export const fuelPriceCardMetaRowClass =
 
 export const fuelEntryListClass = 'flex flex-col gap-2.5'
 
-export const fuelEntryCardClass = cn(
+export const fuelEntryCardClass = cx(
   'rounded-2xl border border-border/70 bg-muted/15 px-4 py-3',
   'shadow-[inset_0_1px_0_color-mix(in_srgb,var(--color-foreground)_4%,transparent)]'
 )

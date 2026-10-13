@@ -1,5 +1,3 @@
-import { useNavigate } from 'react-router'
-
 import EmptyState from './EmptyState'
 import { DashboardSkeleton } from './skeleton'
 import SpeedDialIcon from './SpeedDialIcon'
@@ -10,7 +8,6 @@ import {
   speedDialTypeIconIncomeClass
 } from './ui/speedDialStyles'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
-import { SETTINGS_REMINDERS_PATH } from '../routes/paths'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
 import DashboardContent from './dashboard/DashboardContent'
@@ -18,7 +15,6 @@ import { useDashboardPage } from './dashboard/useDashboardPage'
 
 export default function DashboardPage({ active = true }: { active?: boolean }) {
   const dashboard = useDashboardPage()
-  const navigate = useNavigate()
 
   useRegisterPageSpeedDial(
     isConfigured()
@@ -31,6 +27,8 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
               label: dashboard.incomeFormName,
 
+              headerLabel: `+ ${dashboard.incomeFormName}`,
+
               icon: <span className={speedDialTypeIconIncomeClass}>+</span>,
 
               className: speedDialActionIncomeClass,
@@ -42,6 +40,8 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
               id: 'expense',
 
               label: dashboard.expenseFormName,
+
+              headerLabel: `− ${dashboard.expenseFormName}`,
 
               icon: <span className={speedDialTypeIconExpenseClass}>−</span>,
 
@@ -88,41 +88,24 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
   if (!dashboard.data) return null
 
+  const nav = () => useNavigationStore.getState()
+
   return (
     <DashboardContent
       data={dashboard.data}
       loading={dashboard.loading}
-      filterChips={dashboard.filterChips}
-      openFilterModal={dashboard.openFilterModal}
-      clearAllFilters={dashboard.clearAllFilters}
-      filterModalOpen={dashboard.filterModalOpen}
-      setFilterModalOpen={dashboard.setFilterModalOpen}
-      draftDatePreset={dashboard.draftDatePreset}
-      setDraftDatePreset={dashboard.setDraftDatePreset}
-      draftCustomRange={dashboard.draftCustomRange}
-      setDraftCustomRange={dashboard.setDraftCustomRange}
-      setDatePreset={dashboard.setDatePreset}
-      setCustomRange={dashboard.setCustomRange}
-      onShowPreviousMonth={dashboard.showPreviousMonth}
-      onConfigureNetAvailable={() =>
-        useNavigationStore.getState().onTabChange('net-available-settings')
-      }
-      financial={dashboard.financial}
-      incomeSparkline={dashboard.incomeSparkline}
-      expenseSparkline={dashboard.expenseSparkline}
-      netSparkline={dashboard.netSparkline}
-      categoryYAxisWidth={dashboard.categoryYAxisWidth}
-      monthlyFlowYear={dashboard.monthlyFlowYear}
-      setMonthlyFlowYear={dashboard.setMonthlyFlowYear}
-      typeFilter={dashboard.typeFilter}
-      setTypeFilter={dashboard.setTypeFilter}
-      transactionTypeOptions={dashboard.transactionTypeOptions}
-      filteredRecords={dashboard.filteredRecords}
+      period={dashboard.period}
       upcomingReminders={dashboard.upcomingReminders}
-      onViewRecords={formType => useNavigationStore.getState().onOpenRecords(formType)}
-      onViewReminders={() => navigate(SETTINGS_REMINDERS_PATH)}
-      onNavigate={target => useNavigationStore.getState().onNavigateDashboard(target)}
-      load={dashboard.load}
+      filter={dashboard.filter}
+      nav={{
+        onOpenFilter: dashboard.openFilterModal,
+        onConfigureNetAvailable: () => nav().onTabChange('net-available-settings'),
+        onViewDueDates: () => nav().onTabChange('report-due-dates'),
+        onViewRecords: () => nav().onOpenRecords(),
+        onOpenCharts: () => nav().onTabChange('charts'),
+        onViewBreakdown: () => nav().onTabChange('report-assets-liabilities'),
+        onShowPreviousMonth: dashboard.showPreviousMonth
+      }}
     />
   )
 }

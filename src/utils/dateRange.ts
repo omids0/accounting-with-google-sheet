@@ -182,6 +182,39 @@ export function nextJalaliMonthKey(monthKey: string): string {
     : buildJalaliMonthKey(parts.year, parts.month + 1)
 }
 
+export function previousJalaliMonthKey(monthKey: string): string {
+  const parts = parseJalaliMonthKey(monthKey)
+
+  if (!parts) return monthKey
+
+  return parts.month === 1
+    ? buildJalaliMonthKey(parts.year - 1, 12)
+    : buildJalaliMonthKey(parts.year, parts.month - 1)
+}
+
+/** The `count` month keys ending at `endKey`, oldest first. */
+export function listRecentJalaliMonthKeys(endKey: string, count: number): string[] {
+  if (!parseJalaliMonthKey(endKey) || count < 1) return []
+
+  const keys = [endKey]
+
+  while (keys.length < count) keys.unshift(previousJalaliMonthKey(keys[0]))
+
+  return keys
+}
+
+/** The whole Jalali month of `monthKey` as an ISO range. */
+export function getJalaliMonthRange(monthKey: string): DateRange | null {
+  const parts = parseJalaliMonthKey(monthKey)
+
+  if (!parts) return null
+
+  return {
+    start: jalaliToIso(parts.year, parts.month, 1),
+    end: jalaliToIso(parts.year, parts.month, daysInJalaliMonth(parts.year, parts.month))
+  }
+}
+
 /** Inclusive list of month keys from `startKey` to `endKey`, empty when reversed. */
 export function listJalaliMonthKeys(startKey: string, endKey: string): string[] {
   if (!parseJalaliMonthKey(startKey) || !parseJalaliMonthKey(endKey)) return []

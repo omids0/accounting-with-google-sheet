@@ -2,10 +2,15 @@ import { useAppUpdateStore } from '../../stores/appUpdateStore'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
 import SyncStatusBadge from '../SyncStatusBadge'
+import { HeaderSearchButton, HeaderSearchChip } from './HeaderSearch'
 import {
+  appHeaderActionsClass,
   appHeaderCenterClass,
   appHeaderClass,
+  appHeaderEndClass,
+  appHeaderPageEndClass,
   appHeaderTitleClass,
+  appHeaderToolbarClass,
   headerGridCenterClass,
   headerGridMenuClass,
   headerBackBtnClass,
@@ -21,11 +26,17 @@ interface LayoutHeaderProps {
   headerTitle: string
   showSettings: boolean
   onHeaderBack: () => void
+  /** Desktop-only containers filled through `DesktopHeaderPortal`. */
+  toolbarRef: (element: HTMLDivElement | null) => void
+  actionsRef: (element: HTMLDivElement | null) => void
+  /** Every width: `HeaderSlots.pageEnd`. */
+  pageEndRef: (element: HTMLDivElement | null) => void
 }
 
 /**
  * One header for every page: the title is start-aligned (right in RTL) and the
  * back button, when a page has one, sits on the far end (left in RTL) pointing left.
+ * On desktop the row also carries the page's controls and actions (header slots).
  */
 export default function LayoutHeader({
   menuOpen,
@@ -33,7 +44,10 @@ export default function LayoutHeader({
   showHeaderBack,
   headerTitle,
   showSettings,
-  onHeaderBack
+  onHeaderBack,
+  toolbarRef,
+  actionsRef,
+  pageEndRef
 }: LayoutHeaderProps) {
   const updateAvailable = useAppUpdateStore(state => !!state.update)
 
@@ -70,6 +84,16 @@ export default function LayoutHeader({
           </div>
         )}
       </div>
+      <div ref={toolbarRef} className={appHeaderToolbarClass} />
+      <HeaderSearchChip />
+      <div ref={actionsRef} className={appHeaderActionsClass} />
+      {/* Shares the end cell with «بازگشت»; pages with a back button do not use it. */}
+      {!showHeaderBack && (
+        <div className={appHeaderEndClass}>
+          <div ref={pageEndRef} className={appHeaderPageEndClass} />
+          <HeaderSearchButton />
+        </div>
+      )}
       {showHeaderBack && (
         <button
           type="button"

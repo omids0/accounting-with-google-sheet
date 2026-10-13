@@ -60,15 +60,18 @@ function transformOrReason(
 /**
  * Id is column 0 on every importable sheet. A row whose id is already in the
  * sheet, or earlier in the same file, is skipped and never overwrites data.
+ * `rowKey` identifies a row on a tab keyed otherwise; an empty key never collides.
  */
 export function planImport({
   dataRows,
   firstLine,
   existingIds,
-  transformRow
+  transformRow,
+  rowKey = row => row[0] ?? ''
 }: ParsedImportCsv & {
   existingIds: Iterable<string>
   transformRow: ImportRowTransform
+  rowKey?: (row: string[]) => string
 }): ImportPlan {
   const seenIds = new Set(Array.from(existingIds, id => id.trim()).filter(Boolean))
 
@@ -87,7 +90,7 @@ export function planImport({
       return
     }
 
-    const id = (row[0] ?? '').trim()
+    const id = rowKey(row).trim()
 
     if (id && seenIds.has(id)) {
       plan.duplicates++

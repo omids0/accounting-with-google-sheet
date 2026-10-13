@@ -11,7 +11,7 @@ export default function LayoutApkDownloadItem() {
       onClick={() => window.open(APK_DOWNLOAD_URL, '_blank')}
     >
       <span className={appMenuItemIconClass(false)}>
-        <AppIcon name="import" size={22} />
+        <AppIcon name="import" size={20} />
       </span>
       <span className={appMenuItemLabelClass}>دانلود اپ اندروید</span>
     </button>

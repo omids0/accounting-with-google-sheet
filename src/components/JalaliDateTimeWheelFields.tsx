@@ -37,6 +37,8 @@ interface DateTimeWheelFieldsProps {
   onChange: (iso: string) => void
   minDateTime?: string
   layout?: 'inline' | 'sheet'
+  /** Enter on a wheel confirms (the date-time sheet). */
+  onEnter?: () => void
 }
 
 export default function DateTimeWheelFields({
@@ -44,7 +46,8 @@ export default function DateTimeWheelFields({
   value,
   onChange,
   minDateTime,
-  layout = 'inline'
+  layout = 'inline',
+  onEnter
 }: DateTimeWheelFieldsProps) {
   const { dateIso, hour, minute } = fromDateTimeIso(value)
   const { year, month, day } = getCalendarParts(dateIso, calendar)
@@ -134,6 +137,7 @@ export default function DateTimeWheelFields({
         jalaliDateTimePickerClass,
         layout === 'sheet' && jalaliDateTimePickerSheetClass
       )}
+      data-wheel-group
     >
       <div className={jalaliDateTimePickerTimeGroupClass} dir="ltr">
         <div className={jalaliDateTimePickerTimeLabelsClass}>
@@ -147,6 +151,7 @@ export default function DateTimeWheelFields({
               value={String(safeHour)}
               onChange={next => applyChange(year, month, safeDay, Number(next), safeMinute)}
               aria-label="ساعت"
+              onEnter={onEnter}
               items={hourItems}
             />
           </div>
@@ -158,6 +163,7 @@ export default function DateTimeWheelFields({
               value={String(safeMinute)}
               onChange={next => applyChange(year, month, safeDay, safeHour, Number(next))}
               aria-label="دقیقه"
+              onEnter={onEnter}
               items={minuteItems}
             />
           </div>
@@ -169,6 +175,7 @@ export default function DateTimeWheelFields({
           value={String(safeDay)}
           onChange={next => applyChange(year, month, Number(next), safeHour, safeMinute)}
           aria-label="روز"
+          onEnter={onEnter}
           items={dayItems}
         />
       </div>
@@ -178,6 +185,7 @@ export default function DateTimeWheelFields({
           value={String(month)}
           onChange={next => applyChange(year, Number(next), safeDay, safeHour, safeMinute)}
           aria-label="ماه"
+          onEnter={onEnter}
           items={filteredMonthItems}
         />
       </div>
@@ -187,6 +195,7 @@ export default function DateTimeWheelFields({
           value={String(year)}
           onChange={next => applyChange(Number(next), month, safeDay, safeHour, safeMinute)}
           aria-label="سال"
+          onEnter={onEnter}
           items={yearItems}
         />
       </div>

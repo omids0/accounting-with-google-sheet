@@ -50,3 +50,11 @@ export function getCategoryLabelAxisWidth(names: string[]): number {
 export function getCategoryBarYAxisWidth(datasets: { name: string }[][]): number {
   return getCategoryLabelAxisWidth(datasets.flat().map(item => item.name))
 }
+
+/**
+ * Palette slot of the `index`-th category when a donut of `maxSlices` shows
+ * `count` categories: past the last slot they all share the «سایر» slice color.
+ */
+export function donutSliceColorIndex(index: number, count: number, maxSlices: number): number {
+  return count <= maxSlices ? index : Math.min(index, maxSlices - 1)
+}

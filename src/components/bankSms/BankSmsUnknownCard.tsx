@@ -1,11 +1,25 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import BankSmsCardHead from './BankSmsCardHead'
-import SmsSampleEditor, { type SmsTemplateDraft } from './SmsSampleEditor'
+import BankSmsMoreSheet from './BankSmsMoreSheet'
+import BankSmsTemplateSheet from './BankSmsTemplateSheet'
+import type { useSmsTemplates } from './useSmsTemplates'
+import { guessTemplate } from '../../services/bankSmsGuess'
+import { guessSampleAccount } from '../../services/bankSmsMatch'
+import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import type { ReviewedSms } from '../../services/bankSmsQueue'
-import type { SmsTemplate } from '../../types'
-import { FormField, Select } from '../form'
-import { smsActionsRowClass, smsCardClass, smsHintClass } from '../ui/bankSmsStyles'
+import { normalizeSmsText, tokenizeSms, type SmsToken } from '../../services/bankSmsText'
+import { cn } from '../../utils/cn'
+import { Select } from '../form'
+import SwipeableRow from '../SwipeableRow'
+import {
+  smsActionsRowClass,
+  smsAmountTokenClass,
+  smsBadgeClass,
+  smsHintClass,
+  smsQueueCardClass,
+  smsTokensClass
+} from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import type { WalletAccountWithRow } from '../wallet/types'
@@ -14,70 +28,130 @@ import { resolveAccountKind } from '../wallet/walletCardUtils'
 type BankSmsUnknownCardProps = {
   entry: ReviewedSms
   accounts: WalletAccountWithRow[]
-  templates: SmsTemplate[]
-  savingTemplate: boolean
+  templatesApi: ReturnType<typeof useSmsTemplates>
   busy: boolean
-  onCreateTemplate: (accountId: string, draft: SmsTemplateDraft) => Promise<boolean>
+  /** «نادیده»: the queue's undoable dismiss, or leaving a shared text. */
   onDismiss: () => void
 }
 
-/** Looks like a bank SMS but fits no template: teach the app, or ignore it. */
+/** A number that can be money (not a date, time or card number). */
+const isMoney = (token: SmsToken) =>
+  token.kind === 'number' &&
+  token.numberKind === 'amount' &&
+  token.value.replace(/\D/g, '').length >= 3
+
+/**
+ * Looks like a bank SMS but fits no template. Tapping the amount in the text builds
+ * the template right here; the full editor stays behind ⋯ «ویرایش قالب».
+ */
 export default function BankSmsUnknownCard({
   entry,
   accounts,
-  templates,
-  savingTemplate,
-  busy,
-  onCreateTemplate,
-  onDismiss
+  templatesApi,
+  busy: cardBusy,
+  onDismiss: dismiss
 }: BankSmsUnknownCardProps) {
-  const [teaching, setTeaching] = useState(false)
-  const [accountId, setAccountId] = useState('')
-  const options = accounts.filter(account => resolveAccountKind(account) !== 'cash')
+  const body = entry.sms.body
+  const { templates, saving } = templatesApi
+  const [picked, setPicked] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [templateText, setTemplateText] = useState<string | null>(null)
+  const tokens = useMemo(() => tokenizeSms(normalizeSmsText(body)), [body])
+  const bankAccounts = useMemo(
+    () => accounts.filter(account => resolveAccountKind(account) !== 'cash'),
+    [accounts]
+  )
+  const guessed = useMemo(
+    () =>
+      guessSampleAccount(
+        guessTemplate(body, templates).parts,
+        body,
+        bankAccounts,
+        getBankSmsPrefs().refAccounts
+      ),
+    [body, templates, bankAccounts]
+  )
+  const accountId = picked || guessed
+  const busy = cardBusy || saving
 
   return (
-    <Card className={smsCardClass}>
-      <BankSmsCardHead entry={entry} accountTitle="پیامک ناشناخته" />
-      <p className={smsHintClass}>
-        این پیامک شبیه پیامک بانکی است ولی با هیچ قالبی جور نشد. اگر قالب بانک عوض شده یا حسابش هنوز
-        قالب ندارد، از همین پیامک قالب بسازید.
-      </p>
-
-      {teaching ? (
-        <>
-          <FormField label="این پیامک مال کدام حساب است؟" required controlWidth="full">
+    <>
+      <SwipeableRow leftLabel="نادیده" onSwipeLeft={busy ? undefined : dismiss}>
+        <Card className={cn(smsQueueCardClass, 'border-dashed')}>
+          <BankSmsCardHead
+            entry={entry}
+            rawOpen={false}
+            badge={<span className={smsBadgeClass}>ناشناخته</span>}
+          />
+          <p className={smsTokensClass} aria-label="متن پیامک">
+            {tokens.map((token, index) =>
+              isMoney(token) ? (
+                <button
+                  key={index}
+                  type="button"
+                  className={smsAmountTokenClass}
+                  disabled={!accountId || busy}
+                  onClick={() => void templatesApi.teachAmount(body, index, accountId)}
+                  aria-label={`${token.value} مبلغ است — ساخت قالب`}
+                >
+                  {token.value}
+                </button>
+              ) : (
+                <span key={index}>{token.value}</span>
+              )
+            )}
+          </p>
+          <p className={smsHintClass}>
+            {bankAccounts.length
+              ? 'مبلغ را در متن لمس کن تا قالب این بانک ساخته شود — یک بار.'
+              : 'اول در کیف پول یک حساب بانکی بسازید.'}
+          </p>
+          {bankAccounts.length > 1 && (
             <Select
               value={accountId}
-              onChange={setAccountId}
+              onChange={setPicked}
               aria-label="حساب این پیامک"
               options={[
-                { value: '', label: 'انتخاب حساب', disabled: true },
-                ...options.map(account => ({ value: account.id, label: account.title }))
+                { value: '', label: 'این پیامک مال کدام حساب است؟', disabled: true },
+                ...bankAccounts.map(account => ({ value: account.id, label: account.title }))
               ]}
             />
-          </FormField>
-          {accountId && (
-            <SmsSampleEditor
-              learned={templates}
-              initialText={entry.sms.body}
-              saving={savingTemplate}
-              onSave={async draft => {
-                if (await onCreateTemplate(accountId, draft)) setTeaching(false)
-              }}
-              onCancel={() => setTeaching(false)}
-            />
           )}
-        </>
-      ) : (
-        <div className={smsActionsRowClass}>
-          <Button type="button" size="sm" disabled={busy} onClick={() => setTeaching(true)}>
-            ساخت قالب
-          </Button>
-          <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={onDismiss}>
-            نادیده
-          </Button>
-        </div>
-      )}
-    </Card>
+          <div className={smsActionsRowClass}>
+            <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={dismiss}>
+              نادیده
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setMenuOpen(true)}
+              aria-label="گزینه‌های بیشتر"
+            >
+              ⋯
+            </Button>
+          </div>
+        </Card>
+      </SwipeableRow>
+
+      <BankSmsMoreSheet
+        open={menuOpen}
+        title="پیامک ناشناخته"
+        onClose={() => setMenuOpen(false)}
+        actions={[
+          { id: 'template', label: 'ویرایش قالب', onSelect: () => setTemplateText(body) },
+          { id: 'dismiss', label: 'نادیده', onSelect: dismiss }
+        ]}
+      />
+
+      <BankSmsTemplateSheet
+        text={templateText}
+        accountId={accountId}
+        accounts={accounts}
+        templatesApi={templatesApi}
+        onClose={() => setTemplateText(null)}
+      />
+    </>
   )
 }

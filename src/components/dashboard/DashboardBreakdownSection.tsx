@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import { BreakdownRow } from './DashboardParts'
 import { getNetAvailableConfig } from '../../services/settings'
 import type { DashboardData, DashboardNavTarget, NetAvailableConfig } from '../../types'
@@ -17,6 +19,8 @@ type BreakdownItem = {
   value: number
   included: boolean
   target: DashboardNavTarget
+  /** Parts of this row (the vault per asset class). */
+  parts?: { label: string; value: number }[]
 }
 
 type DashboardBreakdownSectionProps = {
@@ -51,13 +55,17 @@ function BreakdownCard({
       <h3 className={chartTitleClass}>{title}</h3>
       <div className={assetBreakdownClass}>
         {items.map(item => (
-          <BreakdownRow
-            key={item.target}
-            label={item.label}
-            value={item.value}
-            excluded={!item.included}
-            onNavigate={onNavigate ? () => onNavigate(item.target) : undefined}
-          />
+          <Fragment key={item.label}>
+            <BreakdownRow
+              label={item.label}
+              value={item.value}
+              excluded={!item.included}
+              onNavigate={onNavigate ? () => onNavigate(item.target) : undefined}
+            />
+            {item.parts?.map(part => (
+              <BreakdownRow key={part.label} label={part.label} value={part.value} sub />
+            ))}
+          </Fragment>
         ))}
         <BreakdownRow label={totalLabel} value={total} total />
         {hasExcluded && onConfigure && (
@@ -76,6 +84,8 @@ export default function DashboardBreakdownSection({
   onConfigure,
   config = getNetAvailableConfig()
 }: DashboardBreakdownSectionProps) {
+  const goalsTotal = financial?.goalsTotal ?? 0
+
   const assets: BreakdownItem[] = [
     {
       label: 'کیف پول',
@@ -85,10 +95,26 @@ export default function DashboardBreakdownSection({
     },
     {
       label: 'صندوقچه',
-      value: financial?.treasuryTotal ?? 0,
+      value: (financial?.treasuryTotal ?? 0) - goalsTotal,
       included: config.assets.treasury,
-      target: 'treasury'
+      target: 'treasury',
+      // One class only says nothing the row does not already say.
+      parts:
+        (financial?.treasuryByClass?.length ?? 0) > 1
+          ? financial?.treasuryByClass?.map(({ label, total }) => ({ label, value: total }))
+          : undefined
     },
+    // Inside the vault total, but counted by its own net-available switch.
+    ...(goalsTotal > 0
+      ? [
+          {
+            label: 'هدف‌های پس‌انداز',
+            value: goalsTotal,
+            included: config.assets.goals,
+            target: 'treasury' as const
+          }
+        ]
+      : []),
     {
       label: 'طلب‌ها',
       value: financial?.receivablesTotal ?? 0,

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 
 import { submitRecordEdit } from './recordsMutations'
 import { getFormField, type StoredRecord } from './recordsUtils'
+import { useRecordRecurring } from './useRecordRecurring'
 import { useRetroactiveEntryWarning } from '../../hooks/useRetroactiveEntryWarning'
 import type { CustomForm } from '../../types'
 
@@ -16,10 +17,13 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
   const [editingRecord, setEditingRecord] = useState<StoredRecord | null>(null)
 
   const retroactiveWarning = useRetroactiveEntryWarning()
+  const [amountQuestion, setAmountQuestion] = useState<(() => void)[] | null>(null)
 
   const editingForm = editingRecord
     ? forms.find(form => form.id === editingRecord.formId)
     : undefined
+
+  const recurring = useRecordRecurring(editingRecord, editingForm)
 
   const recordDate = (record: StoredRecord): string => {
     const form = forms.find(item => item.id === record.formId)
@@ -48,9 +52,10 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     setEditingRecord(null)
   }
 
-  const runSubmit = async (
+  const saveEdit = async (
     formValues: Record<string, string | number>,
-    vehicleExpense?: Parameters<typeof submitRecordEdit>[0]['vehicleExpense']
+    vehicleExpense: Parameters<typeof submitRecordEdit>[0]['vehicleExpense'],
+    alsoAmount: boolean
   ) => {
     if (!editingRecord || !editingForm) return
 
@@ -62,6 +67,7 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
         formValues,
         vehicleExpense,
         onSuccess: async () => {
+          await recurring.apply(formValues, alsoAmount).catch(() => undefined)
           closeForm()
           await loadRecords()
         }
@@ -70,6 +76,36 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
       if (!ok) return
     } finally {
       setSaving(false)
+    }
+  }
+
+  // A recurring-born record whose amount changed asks once: this month only, or from now on.
+  const runSubmit = async (
+    formValues: Record<string, string | number>,
+    vehicleExpense?: Parameters<typeof submitRecordEdit>[0]['vehicleExpense']
+  ) => {
+    if (!recurring.asksAmount(formValues)) return saveEdit(formValues, vehicleExpense, false)
+
+    setAmountQuestion([
+      () => void saveEdit(formValues, vehicleExpense, true),
+      () => void saveEdit(formValues, vehicleExpense, false)
+    ])
+  }
+
+  const amountQuestionModal = {
+    open: !!amountQuestion,
+    title: 'تراکنش تکراری',
+    message: 'از این به بعد هم همین مبلغ؟',
+    confirmLabel: 'از این به بعد هم',
+    cancelLabel: 'فقط این ماه',
+    onClose: () => setAmountQuestion(null),
+    onConfirm: () => {
+      amountQuestion?.[0]()
+      setAmountQuestion(null)
+    },
+    onCancel: () => {
+      amountQuestion?.[1]()
+      setAmountQuestion(null)
     }
   }
 
@@ -102,6 +138,8 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     editingRecord,
     editingForm,
     retroactiveWarning,
+    recurring,
+    amountQuestionModal,
     openEditForm,
     closeForm,
     handleSubmit

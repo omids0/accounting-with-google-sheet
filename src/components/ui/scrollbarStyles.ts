@@ -1,7 +1,7 @@
-import { cn } from '../../utils/cn'
+import { cx } from '../../utils/cn'
 
 /** Fully hide native scrollbars while keeping scroll behavior. */
-export const scrollbarHiddenClass = cn(
+export const scrollbarHiddenClass = cx(
   '[-ms-overflow-style:none] [scrollbar-width:none]',
   '[&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:h-0',
   '[&::-webkit-scrollbar-button]:hidden [&::-webkit-scrollbar-button]:size-0',

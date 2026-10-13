@@ -52,6 +52,7 @@ export default function TimesheetFormModal({
 
   return (
     <FormModal
+      variant="panel"
       open={open}
       title={editingItem ? 'ویرایش تایم‌شیت' : 'تایم‌شیت جدید'}
       onClose={onClose}

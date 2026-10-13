@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
@@ -33,6 +34,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     importExportConfirmModal
   } = useChecksData()
 
+  useHighlightParam()
+
   const { showForm, editingItem, saving, openCreateForm, openEditForm, closeForm, handleSubmit } =
     useChecksForm({ onSaved: loadItems })
 
@@ -62,6 +65,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
       ariaLabel: 'عملیات چک‌ها',
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
+        addLabel: 'ثبت چک',
         onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
@@ -100,6 +104,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
         chips={filterChips}
         onOpenFilters={openFilterModal}
         onClearAll={clearAllFilters}
+        inHeader
       />
 
       <FilterModal

@@ -18,8 +18,8 @@ import type { TabNavigationOptions } from '../../routes/paths'
 import {
   getPathForTab,
   getTabFromPath,
+  getSettingsSubpageTitle,
   isSettingsPath,
-  isSettingsRemindersPath,
   SETTINGS_PATH
 } from '../../routes/paths'
 import { prefetchTabPage, prefetchSecondaryAppPages } from '../../routes/prefetchPages'
@@ -182,6 +182,7 @@ export function useLayoutNavigation() {
 
   const showHeaderBack =
     showSettings ||
+    tab === 'charts' ||
     tab === 'records' ||
     tab === 'entry' ||
     tab === 'opening-balances' ||
@@ -191,13 +192,14 @@ export function useLayoutNavigation() {
     tab === 'vehicle-detail' ||
     tab === 'wallet-account-detail' ||
     tab === 'about' ||
+    tab === 'search' ||
     TIMESHEET_TABS.includes(tab) ||
     VEHICLE_TABS.includes(tab) ||
     CALCULATION_TABS.includes(tab) ||
     REPORT_TABS.includes(tab)
 
   const onHeaderBack = useCallback(() => {
-    if (isSettingsRemindersPath(location.pathname)) {
+    if (getSettingsSubpageTitle(location.pathname)) {
       navigate(SETTINGS_PATH)
 
       return
@@ -205,6 +207,13 @@ export function useLayoutNavigation() {
 
     if (showSettings) {
       navigate('/')
+
+      return
+    }
+
+    // Search returns to the page it was opened from.
+    if (tab === 'search' && location.key !== 'default') {
+      navigate(-1)
 
       return
     }
@@ -230,15 +239,17 @@ export function useLayoutNavigation() {
     const backToWallet = tab === 'opening-balances' || tab === 'wallet-account-detail'
 
     handleTabChange(backToWallet ? 'wallet' : 'dashboard')
-  }, [handleTabChange, location.pathname, navigate, showSettings, tab])
+  }, [handleTabChange, location.key, location.pathname, navigate, showSettings, tab])
 
   const isCalculationTab = CALCULATION_TABS.includes(tab)
   const isReportTab = REPORT_TABS.includes(tab)
   const isTimesheetTab = TIMESHEET_TABS.includes(tab)
   const isVehicleTab = VEHICLE_TABS.includes(tab)
 
-  const headerTitle = isSettingsRemindersPath(location.pathname)
-    ? 'یادآوری‌ها'
+  const settingsSubpageTitle = getSettingsSubpageTitle(location.pathname)
+
+  const headerTitle = settingsSubpageTitle
+    ? settingsSubpageTitle
     : showSettings
     ? 'تنظیمات'
     : tab === 'timesheet-detail' && timesheetTitle

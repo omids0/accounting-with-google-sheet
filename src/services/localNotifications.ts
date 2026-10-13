@@ -257,3 +257,21 @@ export async function showTestNotification(): Promise<void> {
     ]
   })
 }
+
+/** «به هدف «سفر عید» رسیدی»: once, when a deposit fills a savings goal. */
+export async function showGoalReachedNotification(goalId: string, title: string): Promise<void> {
+  if (!isNativePlatform() || (await getNotificationPermission()) !== 'granted') return
+
+  await ensureReminderChannel()
+  await LocalNotifications.schedule({
+    notifications: [
+      {
+        id: notificationId(`goal_${goalId}`),
+        title: 'تبریک! به هدف رسیدی',
+        body: `پس‌انداز «${title}» کامل شد.`,
+        channelId: REMINDER_CHANNEL_ID,
+        schedule: { at: new Date(Date.now() + 1000) }
+      }
+    ]
+  })
+}

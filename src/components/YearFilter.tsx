@@ -86,6 +86,7 @@ export default function YearFilter({
           aria-label="انتخاب سال"
           value={pendingYear}
           onChange={setPendingYear}
+          onEnter={hasPendingChanges ? handleConfirm : () => setEditing(false)}
           items={wheelYears.map(nextYear => ({
             value: String(nextYear),
             label: formatJalaliYear(nextYear)

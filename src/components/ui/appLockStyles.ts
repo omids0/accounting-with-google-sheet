@@ -1,11 +1,11 @@
 import { cardClassName } from './Card'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 export const appLockCardClass = cardClassName(
   'overflow-hidden border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] p-0 shadow-[var(--shadow),0_10px_30px_color-mix(in_srgb,var(--color-primary)_8%,transparent)]'
 )
 
-export const appLockHeroClass = cn(
+export const appLockHeroClass = cx(
   'relative overflow-hidden px-card pb-[0.85rem] pt-card',
   '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_10%,var(--color-surface))_0%,color-mix(in_srgb,var(--color-accent-soft)_55%,var(--color-surface))_100%)]',
   'before:pointer-events-none before:absolute before:-top-8 before:end-[-1.5rem] before:h-24 before:w-24 before:rounded-full before:bg-[color-mix(in_srgb,var(--color-primary-light)_18%,transparent)] before:blur-2xl before:content-[""]',
@@ -14,7 +14,7 @@ export const appLockHeroClass = cn(
 
 export const appLockHeroContentClass = 'relative z-[1] flex items-start gap-3'
 
-export const appLockHeroIconClass = cn(
+export const appLockHeroIconClass = cx(
   'flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] text-primary',
   '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_16%,var(--color-surface)),color-mix(in_srgb,var(--color-accent-soft)_90%,var(--color-surface)))]',
   'shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_8px_20px_color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
@@ -91,7 +91,7 @@ export const appLockPolicyOptionDescriptionClass =
 export const appLockPolicyIdleClass = 'pt-[0.1rem]'
 
 export const appLockPolicyMoreToggleClass =
-  'inline-flex items-center gap-1 self-start rounded-sm py-1 text-[0.78rem] font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
+  'inline-flex items-center gap-1 self-start rounded-sm py-1 text-[0.78rem] font-semibold text-primary'
 
 export const appLockPolicyNoteClass = 'text-[0.73rem] leading-[1.45] text-muted'
 

@@ -11,6 +11,8 @@
     font-size: 16px;
     font-family: var(--font);
     -webkit-text-size-adjust: 100%;
+    /* The app has its own pull-to-refresh; stop Chrome's pull-to-reload racing it. */
+    overscroll-behavior-y: contain;
   }
 
   body {

@@ -1,8 +1,17 @@
+import { useMemo } from 'react'
+
 import CounterpartyCard from './CounterpartyCard'
+import PhoneNumberLinks from './PhoneNumberLinks'
 import type { CounterpartyWithRow } from './types'
+import { useIsDesktop } from '../../hooks/useMediaQuery'
+import { getCounterpartyFullName } from '../../services/counterparties'
 import EmptyState from '../EmptyState'
 import SearchEmptyState from '../SearchEmptyState'
+import DataTable, { type DataTableColumn } from '../table/DataTable'
+import { dateColumn, textColumn } from '../table/tableColumns'
+import TableRowActions from '../table/TableRowActions'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
+import { dataTableLinkClass } from '../ui/tableStyles'
 
 type CounterpartyListProps = {
   items: CounterpartyWithRow[]
@@ -22,6 +31,37 @@ export default function CounterpartyList({
   onDelete,
   onAdd
 }: CounterpartyListProps) {
+  const isDesktop = useIsDesktop()
+  const columns = useMemo<DataTableColumn<CounterpartyWithRow>[]>(
+    () => [
+      {
+        id: 'name',
+        header: 'نام',
+        sortValue: getCounterpartyFullName,
+        cell: item => (
+          <button type="button" className={dataTableLinkClass} onClick={() => onView(item)}>
+            {getCounterpartyFullName(item) || '—'}
+          </button>
+        )
+      },
+      {
+        id: 'phones',
+        header: 'تلفن',
+        cell: item => (item.phones.length ? <PhoneNumberLinks phones={item.phones} inline /> : '—')
+      },
+      textColumn('address', 'آدرس', item => item.address),
+      dateColumn('birth', 'تولد', item => item.birthDate),
+      {
+        id: 'accounts',
+        header: 'حساب‌ها',
+        numeric: true,
+        sortValue: item => item.accounts.length,
+        cell: item => item.accounts.length.toLocaleString('fa-IR')
+      }
+    ],
+    [onView]
+  )
+
   if (items.length === 0) {
     return (
       <EmptyState
@@ -35,6 +75,20 @@ export default function CounterpartyList({
 
   if (filteredItems.length === 0) {
     return <SearchEmptyState />
+  }
+
+  if (isDesktop) {
+    return (
+      <DataTable
+        label="طرف حساب‌ها"
+        rows={filteredItems}
+        columns={columns}
+        rowKey={item => item.id}
+        actions={item => (
+          <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+        )}
+      />
+    )
   }
 
   return (

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { registerSW } from 'virtual:pwa-register'
 
 import {
   LazyConfigNotice,
@@ -32,6 +31,7 @@ import {
 } from './services/spreadsheetSetup'
 import { hasStoreData, hydrateStore } from './services/spreadsheetStore'
 import { refreshAccessTokenSilently } from './services/tokenRefresh'
+import { registerWebUpdates } from './services/webUpdate'
 import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
 import { toUserMessage } from './utils/userMessage'
@@ -218,7 +218,8 @@ export default function App() {
     }
 
     init()
-    if (!isNativePlatform()) registerSW()
+    // Once per page load; a new version waits for the user's «به‌روزرسانی».
+    if (!isNativePlatform()) registerWebUpdates()
 
     return () => {
       cancelled = true

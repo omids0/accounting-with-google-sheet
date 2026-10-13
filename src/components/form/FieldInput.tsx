@@ -1,5 +1,4 @@
-import { getSettings } from '../../services/settings'
-import type { FieldConfig } from '../../types'
+import { getCategoriesPath } from '../../routes/paths'
 import { lockedCategoriesFor } from '../../utils/protectedCategories'
 import AmountInput from '../AmountInput'
 import JalaliDatePicker from '../JalaliDatePicker'
@@ -18,6 +17,8 @@ import Select from './Select'
 import SubCategorySelect from './SubCategorySelect'
 import WalletAccountSelect from './WalletAccountSelect'
 import { getAccountingStartDate } from '../../services/accountingStartDate'
+import { getSettings } from '../../services/settings'
+import type { FieldConfig } from '../../types'
 import type { FormControlWidth } from '../ui/formStyles'
 import { formFieldNoteClass } from '../ui/recordsStyles'
 
@@ -143,6 +144,11 @@ export default function FieldInput({
           onCategoriesChange={onCategoriesChange}
           lockedCategories={lockedCategories}
           allowSubcategories
+          fullManagePath={
+            formType === 'income' || formType === 'expense'
+              ? getCategoriesPath(formType)
+              : undefined
+          }
           aria-label={field.label}
           invalid={Boolean(error)}
         />

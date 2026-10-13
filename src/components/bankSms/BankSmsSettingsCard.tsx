@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import BankSmsHelp from './BankSmsHelp'
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import { BANK_SMS_ENABLE_MESSAGES, enableBankSmsCapture } from '../../services/bankSmsEnable'
 import { getBankSmsPermission, setBankSmsCaptureEnabled } from '../../services/bankSmsNative'
@@ -72,14 +73,7 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
   return (
     <Card className={smsCardClass}>
       <h2 className={smsCardTitleClass}>ثبت خودکار از پیامک بانکی</h2>
-      <p className={smsHintClass}>
-        ۱) برای هر بانک یک‌بار قالب بسازید: روی «ساخت قالب» یک پیامک بزنید (یا از کیف پول ← ویرایش
-        حساب). بقیه پیامک‌های همان شکل خودکار شناخته می‌شوند. ۲) روی هر کارت شناخته‌شده «ثبت هزینه»
-        یا «ثبت درآمد» را بزنید (یا «ثبت همه»)؛ همان لحظه در درآمد/هزینه ثبت و موجودی حساب به‌روز
-        می‌شود. اگر تراکنش را قبلاً دستی ثبت کرده‌اید: «فقط به‌روزرسانی موجودی» فقط موجودی حساب را
-        درست می‌کند و «قبلاً ثبت شده» پیامک را بدون هیچ تغییری از لیست خارج می‌کند. مبلغ ریالی پیامک
-        خودکار به واحد اپ تبدیل می‌شود. متن پیامک‌ها فقط روی همین گوشی می‌ماند.
-      </p>
+      <BankSmsHelp />
 
       {enabled && !granted && (
         <p className={smsHintClass}>اجازه دسترسی به پیامک‌ها لغو شده است؛ دوباره اجازه دهید.</p>

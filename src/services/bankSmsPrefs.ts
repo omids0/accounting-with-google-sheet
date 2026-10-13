@@ -19,6 +19,8 @@ export interface BankSmsPrefs {
   viewDays: number
   /** Per template: the category last chosen for it, offered as the next default. */
   lastCategory: Record<string, { category: string; subCategory: string }>
+  /** Per sender and type (`smsSenderKey`): the category last chosen for its SMS. */
+  lastCategoryBySender: Record<string, { category: string; subCategory: string }>
 }
 
 export const BANK_SMS_PREFS_KEY = 'accounting_bank_sms'
@@ -29,7 +31,8 @@ const DEFAULT_PREFS: BankSmsPrefs = {
   balanceStates: {},
   refAccounts: {},
   viewDays: DEFAULT_SMS_RANGE_DAYS,
-  lastCategory: {}
+  lastCategory: {},
+  lastCategoryBySender: {}
 }
 
 export function getBankSmsPrefs(): BankSmsPrefs {

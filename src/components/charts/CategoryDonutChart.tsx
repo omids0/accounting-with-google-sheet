@@ -35,11 +35,16 @@ type ChartTooltipEntry = {
 }
 
 interface CategoryDonutChartProps {
-  title: string
+  /** Omitted when the page's own section header names the chart. */
+  title?: string
   data: { name: string; total: number }[]
   tone: 'income' | 'expense'
   className?: string
   maxSlices?: number
+  /** Off when the page lists the categories itself (charts page). */
+  showLegend?: boolean
+  /** Label under the center total; defaults to «مجموع». */
+  centerLabel?: string
 }
 
 /** Inner ring is 100px across; keep the number inside it with some breathing room. */
@@ -71,7 +76,9 @@ function CategoryDonutChart({
   data,
   tone,
   className = '',
-  maxSlices = 6
+  maxSlices = 6,
+  showLegend = true,
+  centerLabel = 'مجموع'
 }: CategoryDonutChartProps) {
   const theme = useChartTheme()
 
@@ -87,8 +94,11 @@ function CategoryDonutChart({
 
   return (
     <div className={cn(chartCardClass, 'chart-card--animated', className)}>
-      <h3 className={chartTitleClass}>{title}</h3>
-      <div className={categoryDonutLayoutClass} dir="ltr">
+      {title ? <h3 className={chartTitleClass}>{title}</h3> : null}
+      <div
+        className={cn(categoryDonutLayoutClass, !showLegend && 'min-[520px]:grid-cols-1')}
+        dir="ltr"
+      >
         <div className={categoryDonutChartWrapClass}>
           <ResponsiveContainer width="100%" height={168}>
             <PieChart>
@@ -126,7 +136,7 @@ function CategoryDonutChart({
             </PieChart>
           </ResponsiveContainer>
           <div className={categoryDonutCenterClass} dir="rtl">
-            <span className={categoryDonutCenterLabelClass}>مجموع</span>
+            <span className={categoryDonutCenterLabelClass}>{centerLabel}</span>
             <span className={cn(categoryDonutCenterValueClass, donutCenterValueFitClass)}>
               {formatDonutCenterNumber(total)}
             </span>
@@ -134,23 +144,25 @@ function CategoryDonutChart({
           </div>
         </div>
 
-        <ul className={categoryDonutLegendClass} dir="rtl">
-          {slices.map((slice, index) => {
-            const pct = total > 0 ? Math.round((slice.total / total) * 100) : 0
+        {showLegend ? (
+          <ul className={categoryDonutLegendClass} dir="rtl">
+            {slices.map((slice, index) => {
+              const pct = total > 0 ? Math.round((slice.total / total) * 100) : 0
 
-            return (
-              <li key={slice.name} className={categoryDonutLegendItemClass}>
-                <span
-                  className={categoryDonutLegendDotClass}
-                  style={{ background: palette[index % palette.length] }}
-                />
-                <span className={categoryDonutLegendNameClass}>{slice.name}</span>
-                <span className={categoryDonutLegendPctClass}>{formatPersianPercent(pct)}</span>
-                <span className={categoryDonutLegendValueClass}>{formatMoney(slice.total)}</span>
-              </li>
-            )
-          })}
-        </ul>
+              return (
+                <li key={slice.name} className={categoryDonutLegendItemClass}>
+                  <span
+                    className={categoryDonutLegendDotClass}
+                    style={{ background: palette[index % palette.length] }}
+                  />
+                  <span className={categoryDonutLegendNameClass}>{slice.name}</span>
+                  <span className={categoryDonutLegendPctClass}>{formatPersianPercent(pct)}</span>
+                  <span className={categoryDonutLegendValueClass}>{formatMoney(slice.total)}</span>
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
       </div>
     </div>
   )

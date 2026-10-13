@@ -1,5 +1,5 @@
 import { cardClassName } from './Card'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 /** Inner padding for list cards (installments, wallet, receivables, dang, checks). Tailwind p-2 = 0.5rem. */
 export const listCardInsetClass = 'p-2'
@@ -7,15 +7,15 @@ export const listCardInsetClass = 'p-2'
 export const listPageStackClass = 'flex flex-col gap-3 [&_.list-card]:mb-0'
 
 /** List module pages — filters, card grid, footer stats with consistent vertical rhythm. */
-export const listModulePageClass = cn('flex flex-col gap-4 lg:gap-5 [&_.list-card]:mb-0')
+export const listModulePageClass = cx('flex flex-col gap-4 md:gap-5 [&_.list-card]:mb-0')
 
 /** Wraps mapped list cards — responsive multi-column grid on desktop. */
-export const listCardsContainerClass = cn(
+export const listCardsContainerClass = cx(
   'flex flex-col gap-3',
-  'lg:grid lg:grid-cols-2 lg:gap-4 xl:grid-cols-3 [&_.list-card]:mb-0'
+  'md:grid md:grid-cols-2 md:gap-4 xl:grid-cols-3 [&_.list-card]:mb-0'
 )
 
-export const interactiveCardClass = cn(
+export const interactiveCardClass = cx(
   'transition-[box-shadow,border-color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
   'hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] hover:shadow-[var(--shadow),0_6px_20px_color-mix(in_srgb,var(--color-primary)_12%,transparent)] active:translate-y-0'
 )
@@ -75,17 +75,17 @@ export const listCardTitleClass =
 export const listCardSubtitleClass =
   'list-card-subtitle mt-[0.12rem] text-[0.72rem] leading-[1.35] text-muted'
 
-export const listCardAmountPillClass = cn(
+export const listCardAmountPillClass = cx(
   'list-card-amount-pill inline-flex items-center rounded-full border border-[color-mix(in_srgb,var(--color-primary)_14%,var(--color-accent-mid))] bg-[linear-gradient(145deg,color-mix(in_srgb,var(--color-accent-soft)_90%,var(--color-surface)),var(--color-accent-soft))] px-[0.48rem] py-[0.14rem] text-[0.78rem] font-extrabold tracking-[0.01em] text-primary-dark tabular-nums font-numeric shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]'
 )
 
-export const cardHeaderWithEditClass = cn(
+export const cardHeaderWithEditClass = cx(
   'card-header-with-edit flex items-start',
   '[&_.installment-header]:min-w-0 [&_.installment-header]:flex-1',
   '[&_.dang-card-content]:min-w-0 [&_.dang-card-content]:flex-1'
 )
 
-export const cardActionButtonsClass = cn(
+export const cardActionButtonsClass = cx(
   'card-action-buttons flex shrink-0 flex-col items-center justify-center gap-[0.2rem]',
   'rounded-[calc(var(--radius-sm)-2px)] border border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)] p-[0.2rem]',
   '[&_.card-action-btn]:h-touch-min [&_.card-action-btn]:w-touch-min [&_.card-action-btn]:rounded-md',
@@ -93,7 +93,7 @@ export const cardActionButtonsClass = cn(
   '[.wallet-item-card_&]:m-2 [.wallet-item-card_&]:ms-0 [.wallet-item-card_&]:mt-2 [.wallet-item-card_&]:self-start'
 )
 
-export const cardActionBtnClass = cn(
+export const cardActionBtnClass = cx(
   'inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 text-muted transition-[background,color] duration-[var(--duration-fast)]',
   'hover:enabled:bg-bg disabled:cursor-not-allowed disabled:opacity-45'
 )
@@ -122,7 +122,7 @@ export const cardInlineEditLabelClass =
 
 export const cardInlineEditSpinnerClass = 'mb-[0.55rem] shrink-0'
 
-export const installmentPaymentsClass = cn(
+export const installmentPaymentsClass = cx(
   'border-t border-dashed border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] px-2 pb-2 pt-1.5',
   '[background:linear-gradient(180deg,color-mix(in_srgb,var(--color-accent-soft)_70%,transparent)_0%,transparent_100%)]',
   '[&>.installment-amount-summary]:mb-[0.65rem] [&>.installment-amount-summary]:mt-0'
@@ -147,7 +147,7 @@ export function installmentPaymentItemClass({
   )
 }
 
-export const installmentPaymentRowClass = cn(
+export const installmentPaymentRowClass = cx(
   'flex items-center gap-2 rounded-sm px-[0.2rem] py-[0.45rem] transition-[background,padding-inline] duration-[var(--duration-fast)]',
   'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)] hover:px-[0.55rem]',
   '[.installment-payment-item--expanded_&]:bg-transparent [.installment-payment-item--expanded_&]:px-[0.55rem]',
@@ -177,7 +177,7 @@ export function installmentPaymentChevronClass(expanded?: boolean) {
 
 export const installmentPaymentEditClass = 'px-[0.45rem] pb-[0.55rem] pt-[0.3rem]'
 
-export const installmentAmountSummaryClass = cn(
+export const installmentAmountSummaryClass = cx(
   'mt-[0.4rem] flex flex-col gap-[0.32rem] rounded-[calc(var(--radius-sm)+2px)] border border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] bg-[color-mix(in_srgb,var(--color-bg)_88%,var(--color-accent-soft))] px-[0.55rem] py-[0.48rem]'
 )
 
@@ -194,10 +194,10 @@ export const installmentDueLineClass = cn(
 
 export const installmentRangeLineClass = 'mb-[0.3rem] mt-[0.25rem]'
 
-const listCardCheckboxShellBase = cn(interactiveCardClass, 'list-card relative overflow-hidden p-0')
+const listCardCheckboxShellBase = cx(interactiveCardClass, 'list-card relative overflow-hidden p-0')
 
 /** Checkbox + body row inside list cards (dang, checks, timesheet). */
-export const dangCardContentRowClass = cn(
+export const dangCardContentRowClass = cx(
   'dang-card-content flex min-w-0 flex-1 items-start gap-2',
   listCardInsetClass
 )
@@ -261,7 +261,7 @@ export const dangPaidAtClass = 'm-[0.5rem_0_0] text-[0.75rem] font-medium text-p
 
 export const dangCardAmountEditClass = 'pt-[0.35rem] pb-[0.15rem]'
 
-export const dangTotalFooterClass = cn(
+export const dangTotalFooterClass = cx(
   'mt-1 flex items-center justify-between bg-bg px-5 py-[0.85rem] text-center',
   '[&.stat-card_.stat-card-value-row--wide]:justify-center'
 )
@@ -284,7 +284,7 @@ export const walletItemTitleClass =
 
 export const walletItemNoteClass = 'mt-[0.28rem] text-[0.75rem] leading-[1.5] text-muted'
 
-export const walletItemAmountPillClass = cn(
+export const walletItemAmountPillClass = cx(
   'wallet-item-amount list-card-amount-pill',
   listCardAmountPillClass
 )

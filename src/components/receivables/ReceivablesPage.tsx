@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import {
@@ -21,7 +23,8 @@ import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import ReceivableCard from './ReceivableCard'
 import ReceivableFormModal from './ReceivableFormModal'
-import type { ReceivablesPageProps } from './types'
+import ReceivableTable from './ReceivableTable'
+import type { ReceivableWithRow, ReceivablesPageProps } from './types'
 import { useReceivableMutations } from './useReceivableMutations'
 import { useReceivablesData } from './useReceivablesData'
 import { useReceivablesFilters } from './useReceivablesFilters'
@@ -30,6 +33,9 @@ import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function ReceivablesPage({ active = true }: ReceivablesPageProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const isDesktop = useIsDesktop()
+
+  useHighlightParam(setExpandedId)
 
   const {
     items: allItems,
@@ -65,6 +71,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       ariaLabel: 'عملیات طلب‌ها',
       actions: createPageSpeedDialActions({
         onAdd: () => mutations.openCreateForm(),
+        addLabel: 'ثبت طلب',
         onFilter: filters.openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
@@ -90,12 +97,34 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
     return <EmptyState icon="receivables" message="ابتدا با گوگل وارد شوید" />
   }
 
+  const cardProps = (item: ReceivableWithRow) => ({
+    item,
+    expanded: expandedId === item.id,
+    payingId: mutations.payingId,
+    settlingId: mutations.settlingId,
+    togglingPaymentId: mutations.togglingPaymentId,
+    paymentReceivableId: mutations.paymentReceivableId,
+    settlementReceivableId: mutations.settlementReceivableId,
+    onToggleExpand: (expanded: boolean) => mutations.toggleExpanded(item.id, expanded),
+    onEdit: () => mutations.openEditForm(item),
+    onDelete: () => mutations.requestDelete(item),
+    onOpenPaymentForm: mutations.setPaymentReceivableId,
+    onClosePaymentForm: () => mutations.setPaymentReceivableId(null),
+    onOpenSettlementForm: mutations.setSettlementReceivableId,
+    onCloseSettlementForm: () => mutations.setSettlementReceivableId(null),
+    onAddPayment: (values: { amount: number | ''; note: string }) =>
+      mutations.handleAddPayment(item, values),
+    onSettle: (values: { title: string; note: string }) => mutations.handleSettle(item, values),
+    onRemovePayment: (paymentId: string) => mutations.handleRemovePayment(item, paymentId)
+  })
+
   return (
     <div className={listModulePageClass}>
       <ActiveFilterChips
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}
         onClearAll={filters.clearAllFilters}
+        inHeader
       />
 
       <FilterModal
@@ -130,7 +159,11 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       </FilterModal>
 
       {loading && items.length === 0 ? (
-        <InstallmentCardListSkeleton footerStats={1} footerClassName={receivableTotalCardClass} />
+        <InstallmentCardListSkeleton
+          footerStats={1}
+          footerClassName={receivableTotalCardClass}
+          table
+        />
       ) : items.length === 0 ? (
         <EmptyState
           icon="receivables"
@@ -140,30 +173,19 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
         />
       ) : filters.filteredItems.length === 0 ? (
         <SearchEmptyState />
+      ) : isDesktop ? (
+        <ReceivableTable
+          items={filters.filteredItems}
+          expandedId={expandedId}
+          onToggleExpand={(item, expanded) => mutations.toggleExpanded(item.id, expanded)}
+          onEdit={mutations.openEditForm}
+          onDelete={mutations.requestDelete}
+          renderDetail={item => <ReceivableCard index={0} {...cardProps(item)} bodyOnly />}
+        />
       ) : (
         <div className={listCardsContainerClass}>
           {filters.filteredItems.map((item, index) => (
-            <ReceivableCard
-              key={item.id}
-              item={item}
-              index={index}
-              expanded={expandedId === item.id}
-              payingId={mutations.payingId}
-              settlingId={mutations.settlingId}
-              togglingPaymentId={mutations.togglingPaymentId}
-              paymentReceivableId={mutations.paymentReceivableId}
-              settlementReceivableId={mutations.settlementReceivableId}
-              onToggleExpand={expanded => mutations.toggleExpanded(item.id, expanded)}
-              onEdit={() => mutations.openEditForm(item)}
-              onDelete={() => mutations.requestDelete(item)}
-              onOpenPaymentForm={mutations.setPaymentReceivableId}
-              onClosePaymentForm={() => mutations.setPaymentReceivableId(null)}
-              onOpenSettlementForm={mutations.setSettlementReceivableId}
-              onCloseSettlementForm={() => mutations.setSettlementReceivableId(null)}
-              onAddPayment={values => mutations.handleAddPayment(item, values)}
-              onSettle={values => mutations.handleSettle(item, values)}
-              onRemovePayment={paymentId => mutations.handleRemovePayment(item, paymentId)}
-            />
+            <ReceivableCard key={item.id} index={index} {...cardProps(item)} />
           ))}
         </div>
       )}

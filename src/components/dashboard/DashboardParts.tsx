@@ -7,6 +7,7 @@ import {
   assetLabelLinkClass,
   assetRowClass,
   assetRowExcludedClass,
+  assetRowSubClass,
   assetRowTotalClass,
   assetValueClass
 } from '../ui/chartStyles'
@@ -29,6 +30,7 @@ export function BreakdownRow({
   value,
   total,
   excluded,
+  sub,
   onNavigate
 }: {
   label: string
@@ -36,13 +38,20 @@ export function BreakdownRow({
   total?: boolean
   /** Not counted in the total (per «دارایی قابل اتکا» settings). */
   excluded?: boolean
+  /** A part of the row above it (per-class vault subtotal). */
+  sub?: boolean
   onNavigate?: () => void
 }) {
   const tag = excluded ? <span className={assetExcludedTagClass}>(لحاظ نشده)</span> : null
 
   return (
     <div
-      className={cn(assetRowClass, total && assetRowTotalClass, excluded && assetRowExcludedClass)}
+      className={cn(
+        assetRowClass,
+        total && assetRowTotalClass,
+        sub && assetRowSubClass,
+        excluded && assetRowExcludedClass
+      )}
     >
       {onNavigate ? (
         <button

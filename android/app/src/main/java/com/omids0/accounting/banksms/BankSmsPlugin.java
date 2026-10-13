@@ -82,6 +82,13 @@ public class BankSmsPlugin extends Plugin {
         call.resolve();
     }
 
+    /** Budget alerts from the web app; shown in the digest of that date only. */
+    @PluginMethod
+    public void setDigestNotes(PluginCall call) {
+        NightlyDigest.setNotes(getContext(), call.getString("date", ""), call.getString("lines", ""));
+        call.resolve();
+    }
+
     @PluginMethod
     public void openNotificationSettings(PluginCall call) {
         String packageName = getContext().getPackageName();

@@ -24,8 +24,15 @@ export function useMediaQuery(query: string): boolean {
   return matches
 }
 
-/** Tailwind `lg` breakpoint — primary desktop layout switch. */
-export const DESKTOP_MEDIA_QUERY = '(min-width: 1024px)'
+/** Tailwind `md`: tablet and up — icon rail, no bottom nav, two-column grids. */
+export const TABLET_MEDIA_QUERY = '(min-width: 768px)'
+
+/** Tailwind `xl`: desktop — sidebar, header actions, table views, side panels. */
+export const DESKTOP_MEDIA_QUERY = '(min-width: 1280px)'
+
+export function useIsTablet(): boolean {
+  return useMediaQuery(TABLET_MEDIA_QUERY)
+}
 
 export function useIsDesktop(): boolean {
   return useMediaQuery(DESKTOP_MEDIA_QUERY)

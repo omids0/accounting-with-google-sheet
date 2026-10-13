@@ -1,7 +1,11 @@
 import { toAppCurrency } from './bankSmsAmount'
 import { matchSms, type LearnedSmsRefs } from './bankSmsMatch'
 import type { BankSmsItem } from './bankSmsNative'
+import { matchesDuplicate, type LedgerEntry } from './recordDuplicates'
 import type { CurrencyUnit, SmsMatchResult, SmsTemplate, WalletAccount } from '../types'
+import { toIsoDate } from '../utils/jalaliDate'
+
+export type { LedgerEntry } from './recordDuplicates'
 
 export type MatchedSms = Extract<SmsMatchResult, { kind: 'matched' }>
 
@@ -24,6 +28,8 @@ export type BankSmsReviewItem =
       probableDuplicate: boolean
       /** The matching record names this SMS's account, so it already moved the balance. */
       duplicateMovedBalance: boolean
+      /** The newest matching record, for «تکراری؟ · رکورد ۱۲ دقیقه پیش». */
+      duplicateOf: LedgerEntry | null
     }
   | {
       kind: 'transfer'
@@ -32,20 +38,8 @@ export type BankSmsReviewItem =
       credit: ConfirmableSms
     }
 
-/** An existing income/expense record, reduced to what duplicate detection needs. */
-export interface LedgerEntry {
-  type: 'income' | 'expense'
-  amount: number
-  /** `YYYY-MM-DD` */
-  date: string
-  /** Wallet account the record names ('' when none). */
-  accountId: string
-}
-
 /** Debit and credit SMS of one own-account transfer arrive within this window. */
 export const TRANSFER_WINDOW_MS = 10 * 60 * 1000
-
-const DAY_MS = 24 * 60 * 60 * 1000
 
 type MatchAccount = Pick<WalletAccount, 'id' | 'cardNumber' | 'accountNumber' | 'iban'>
 
@@ -80,29 +74,29 @@ export function isConfirmable(entry: ReviewedSms): entry is ConfirmableSms {
   return entry.result.kind === 'matched' && entry.amount !== null
 }
 
-function smsDay(receivedAt: number): number {
-  const date = new Date(receivedAt)
-
-  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-}
-
-function ledgerDay(iso: string): number {
-  const [year, month, day] = iso.split('-').map(Number)
-
-  return Date.UTC(year, (month ?? 1) - 1, day ?? 1)
-}
-
+/** Same direction and amount within a day of the SMS (shared rule, `recordDuplicates`). */
 function findDuplicates(entry: ReviewedSms, ledger: LedgerEntry[]): LedgerEntry[] {
   if (!isConfirmable(entry)) return []
 
-  const type = entry.result.direction === 'debit' ? 'expense' : 'income'
-  const day = smsDay(entry.sms.receivedAt)
+  const candidate = {
+    type: entry.result.direction === 'debit' ? ('expense' as const) : ('income' as const),
+    amount: entry.amount,
+    date: toIsoDate(new Date(entry.sms.receivedAt))
+  }
 
-  return ledger.filter(
-    record =>
-      record.type === type &&
-      record.amount === entry.amount &&
-      Math.abs(ledgerDay(record.date) - day) <= DAY_MS
+  return ledger.filter(record => matchesDuplicate(candidate, record, { dayTolerance: 1 }))
+}
+
+/** Latest by date, then by «زمان ثبت»; `null` for an empty list. */
+export function newestRecord(records: LedgerEntry[]): LedgerEntry | null {
+  return records.reduce<LedgerEntry | null>(
+    (best, record) =>
+      !best ||
+      record.date > best.date ||
+      (record.date === best.date && (record.createdAtMs ?? 0) > (best.createdAtMs ?? 0))
+        ? record
+        : best,
+    null
   )
 }
 
@@ -150,14 +144,17 @@ export function buildReviewItems(
       continue
     }
 
+    const duplicates = findDuplicates(entry, ledger)
+
     items.push({
       kind: 'single',
       key: entry.sms.id,
       entry,
-      probableDuplicate: isProbableDuplicate(entry, ledger),
+      probableDuplicate: duplicates.length > 0,
       duplicateMovedBalance:
         isConfirmable(entry) &&
-        findDuplicates(entry, ledger).some(record => record.accountId === entry.result.accountId)
+        duplicates.some(record => record.accountId === entry.result.accountId),
+      duplicateOf: newestRecord(duplicates)
     })
   }
 
@@ -198,4 +195,34 @@ export function nextAccountBalance(
   const delta = change.direction === 'debit' ? -change.amount : change.amount
 
   return { balance: current + delta, state: { anchor, lastAppliedAt: lastApplied } }
+}
+
+/** Pin an SMS that fits several accounts to one of them; `null` when it cannot be written. */
+export function resolveSmsAccount(entry: ReviewedSms, accountId: string): ConfirmableSms | null {
+  const { result, amount } = entry
+
+  if (amount === null) return null
+  if (result.kind === 'matched') return { ...entry, result, amount }
+  if (result.kind !== 'ambiguous') return null
+
+  const candidate = result.candidates.find(item => item.accountId === accountId)
+
+  if (!candidate) return null
+
+  const { direction, unit, balance, ref } = result
+
+  return {
+    ...entry,
+    amount,
+    result: { kind: 'matched', ...candidate, direction, unit, amount: result.amount, balance, ref }
+  }
+}
+
+/** The account a card starts with: the matched one, else the first candidate. */
+export function initialSmsAccount(entry: ReviewedSms): string {
+  const { result } = entry
+
+  if (result.kind === 'matched') return result.accountId
+
+  return result.kind === 'ambiguous' ? result.candidates[0]?.accountId ?? '' : ''
 }

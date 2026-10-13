@@ -1,10 +1,31 @@
 /// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { readFileSync } from 'node:fs'
+import { defineConfig, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const basePath = process.env.VITE_BASE_PATH ?? '/'
+
+/** The app reads the same field (`import { version } from 'package.json'`). */
+const appVersion = (JSON.parse(readFileSync('./package.json', 'utf8')) as { version: string })
+  .version
+
+/**
+ * `version.json` beside the build: the update banner fetches it to name the waiting
+ * service worker's version, and it is precached with the version as its revision.
+ */
+const versionFile: Plugin = {
+  name: 'app-version-file',
+  apply: 'build',
+  generateBundle() {
+    this.emitFile({
+      type: 'asset',
+      fileName: 'version.json',
+      source: JSON.stringify({ version: appVersion })
+    })
+  }
+}
 
 /** Name prefixes of the hashed chunks only PDF export loads (checked against dist/assets). */
 const pdfExportChunks = ['jspdf', 'html2canvas', 'purify.es', 'index.es']
@@ -22,8 +43,10 @@ export default defineConfig(({ command }) => ({
   plugins: [
     tailwindcss(),
     react(),
+    versionFile,
     VitePWA({
-      registerType: 'autoUpdate',
+      // A new version waits for the user's «به‌روزرسانی» (src/services/webUpdate.ts).
+      registerType: 'prompt',
       devOptions: {
         enabled: true,
         type: 'module'
@@ -67,7 +90,31 @@ export default defineConfig(({ command }) => ({
             type: 'image/png',
             purpose: 'maskable'
           }
-        ]
+        ],
+        // Long-press on the home-screen icon; App reads `?action=` (useLaunchAction).
+        shortcuts: [
+          {
+            name: 'ثبت هزینه',
+            url: `${basePath}?action=expense`,
+            icons: [{ src: 'shortcut-expense.png', sizes: '96x96', type: 'image/png' }]
+          },
+          {
+            name: 'ثبت درآمد',
+            url: `${basePath}?action=income`,
+            icons: [{ src: 'shortcut-income.png', sizes: '96x96', type: 'image/png' }]
+          },
+          {
+            name: 'پیامک‌های بانکی',
+            url: `${basePath}?action=sms`,
+            icons: [{ src: 'shortcut-sms.png', sizes: '96x96', type: 'image/png' }]
+          }
+        ],
+        // A bank SMS shared from the messages app runs through the bank SMS parser.
+        share_target: {
+          action: `${basePath}?share=1`,
+          method: 'GET',
+          params: { text: 'text' }
+        }
       },
       workbox: {
         globPatterns: command === 'serve' ? [] : ['**/*.{js,css,html,ico,png,svg,woff2}'],
@@ -75,6 +122,8 @@ export default defineConfig(({ command }) => ({
         // canvg as `index.es`). Most sessions never load them, so they are cached
         // on first use (rule below) instead of on install.
         globIgnores: ['**/node_modules/**/*', ...pdfExportChunks.map(name => `**/${name}*.js`)],
+        additionalManifestEntries:
+          command === 'serve' ? [] : [{ url: 'version.json', revision: appVersion }],
         importScripts: ['push-handler.js'],
         runtimeCaching: [
           {

@@ -27,6 +27,7 @@ const REPORT_TAB_BY_KIND = Object.fromEntries(
 
 const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   dashboard: '/',
+  charts: '/charts',
   installments: '/installments',
   dang: '/dang',
   checks: '/checks',
@@ -37,6 +38,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   treasury: '/treasury',
   wallet: '/wallet',
   'bank-sms': '/bank-sms',
+  search: '/search',
   entry: '/entry',
   records: '/records',
   'opening-balances': '/wallet/opening-balances',
@@ -142,6 +144,22 @@ export function getReportTabFromKind(kind: ModuleReportKind): Tab {
   return REPORT_TAB_BY_KIND[kind]
 }
 
+/** Query key of the records page that shows one record only (round 6, duplicate warning). */
+export const RECORD_FOCUS_PARAM = 'record'
+
+/** The records page showing only `recordId`. */
+export function recordFocusPath(type: 'income' | 'expense', recordId: string): string {
+  return `/records?type=${type}&${RECORD_FOCUS_PARAM}=${encodeURIComponent(recordId)}`
+}
+
+/** Query key a module page reads to scroll to and flash one item (`useHighlightParam`). */
+export const HIGHLIGHT_PARAM = 'highlight'
+
+/** `basePath` with the item `id` highlighted. */
+export function highlightPath(basePath: string, id: string): string {
+  return `${basePath}?${HIGHLIGHT_PARAM}=${encodeURIComponent(id)}`
+}
+
 export const SETTINGS_PATH = '/settings'
 export const SETTINGS_REMINDERS_PATH = '/settings/reminders'
 
@@ -151,6 +169,19 @@ export function isSettingsPath(pathname: string): boolean {
   return path === SETTINGS_PATH || path.startsWith(`${SETTINGS_PATH}/`)
 }
 
-export function isSettingsRemindersPath(pathname: string): boolean {
-  return normalizePath(pathname) === SETTINGS_REMINDERS_PATH
+export const SETTINGS_CATEGORIES_PATH = '/settings/categories'
+
+const SETTINGS_SUBPAGE_TITLES: Record<string, string> = {
+  [SETTINGS_REMINDERS_PATH]: 'یادآوری‌ها',
+  [SETTINGS_CATEGORIES_PATH]: 'دسته‌ها'
+}
+
+/** Header title of a settings sub-page, whose back button returns to Settings; null elsewhere. */
+export function getSettingsSubpageTitle(pathname: string): string | null {
+  return SETTINGS_SUBPAGE_TITLES[normalizePath(pathname)] ?? null
+}
+
+/** The category page, opened on the income or expense list. */
+export function getCategoriesPath(type?: 'income' | 'expense'): string {
+  return type ? `${SETTINGS_CATEGORIES_PATH}?type=${type}` : SETTINGS_CATEGORIES_PATH
 }

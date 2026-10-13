@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App shortcut icon (xml/shortcuts.xml): Phosphor «plus-circle» (bold) on the brand circle. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+    <path
+        android:fillColor="#FF0F766E"
+        android:pathData="M128,0A128,128 0,1 1,128,256A128,128 0,1 1,128,0Z" />
+    <group
+        android:scaleX="0.5625"
+        android:scaleY="0.5625"
+        android:translateX="56"
+        android:translateY="56">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm52-84a12,12,0,0,1-12,12H140v28a12,12,0,0,1-24,0V140H88a12,12,0,0,1,0-24h28V88a12,12,0,0,1,24,0v28h28A12,12,0,0,1,180,128Z" />
+    </group>
+</vector>

@@ -1,17 +1,27 @@
+import { useEffect, useMemo, useState } from 'react'
+
+import { HeaderSlotsContext } from './headerSlots'
 import LayoutBottomNav from './LayoutBottomNav'
 import LayoutHeader from './LayoutHeader'
 import LayoutMenu from './LayoutMenu'
 import LayoutPageOutlet from './LayoutPageOutlet'
-import PageSpeedDial from '../PageSpeedDial'
-import UpdateBanner from '../UpdateBanner'
+import PullToRefresh from './PullToRefresh'
 import { useLayoutNavigation } from './useLayoutNavigation'
+import { useMainFocus } from './useMainFocus'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
+import { useLaunchAction } from '../../hooks/useLaunchAction'
+import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
+import { installSelectionHaptics } from '../../utils/haptics'
+import PageSpeedDial from '../PageSpeedDial'
 import {
   appContentColumnClass,
   appLayoutClass,
   appMainClass,
-  appShellClass
+  appShellClass,
+  skipLinkClass
 } from '../ui/layoutStyles'
+import UpdateBanner from '../UpdateBanner'
+import WhatsNewGate from '../whatsNew/WhatsNewGate'
 
 export default function Layout() {
   const {
@@ -42,12 +52,37 @@ export default function Layout() {
   } = useLayoutNavigation()
 
   useBankSmsSync()
+  useLaunchAction()
+  const { mainRef, focusMain } = useMainFocus()
+  useEffect(installSelectionHaptics, [])
+
+  const isDesktop = useIsDesktop()
+  const isTablet = useIsTablet()
+  const [toolbar, setToolbar] = useState<HTMLElement | null>(null)
+  const [actions, setActions] = useState<HTMLElement | null>(null)
+  const [pageEnd, setPageEnd] = useState<HTMLElement | null>(null)
+  const headerSlots = useMemo(() => ({ toolbar, actions, pageEnd }), [toolbar, actions, pageEnd])
+  // Pull-to-refresh runs the same «بروزرسانی» action the speed dial shows.
+  const canPullToRefresh =
+    showPageSpeedDial && !!pageSpeedDialConfig?.actions.some(action => action.id === 'refresh')
 
   return (
     <div className={appLayoutClass}>
+      <a
+        href="#main-content"
+        className={skipLinkClass}
+        onClick={event => {
+          event.preventDefault()
+          focusMain()
+        }}
+      >
+        پرش به محتوا
+      </a>
       <div className={appShellClass}>
         <LayoutMenu
+          variant={isDesktop ? 'sidebar' : isTablet ? 'rail' : 'drawer'}
           menuOpen={menuOpen}
+          onOpenMenu={() => setMenuOpen(true)}
           onCloseMenu={() => setMenuOpen(false)}
           userName={userName}
           userPicture={userPicture}
@@ -67,31 +102,38 @@ export default function Layout() {
           onOpenTimesheetsList={openTimesheetsList}
         />
 
-        <div className={appContentColumnClass}>
-          <LayoutHeader
-            menuOpen={menuOpen}
-            onToggleMenu={() => setMenuOpen(value => !value)}
-            showHeaderBack={showHeaderBack}
-            headerTitle={headerTitle}
-            showSettings={showSettings}
-            onHeaderBack={onHeaderBack}
-          />
-
-          <UpdateBanner />
-
-          <main className={appMainClass}>
-            <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
-          </main>
-
-          <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />
-
-          {showPageSpeedDial && pageSpeedDialConfig && (
-            <PageSpeedDial
-              actions={pageSpeedDialConfig.actions}
-              ariaLabel={pageSpeedDialConfig.ariaLabel}
+        <HeaderSlotsContext.Provider value={headerSlots}>
+          <div className={appContentColumnClass}>
+            <LayoutHeader
+              menuOpen={menuOpen}
+              onToggleMenu={() => setMenuOpen(value => !value)}
+              showHeaderBack={showHeaderBack}
+              headerTitle={headerTitle}
+              showSettings={showSettings}
+              onHeaderBack={onHeaderBack}
+              toolbarRef={setToolbar}
+              actionsRef={setActions}
+              pageEndRef={setPageEnd}
             />
-          )}
-        </div>
+
+            <UpdateBanner />
+            <WhatsNewGate />
+
+            <main id="main-content" ref={mainRef} tabIndex={-1} className={appMainClass}>
+              <PullToRefresh enabled={canPullToRefresh} />
+              <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
+            </main>
+
+            <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />
+
+            {showPageSpeedDial && pageSpeedDialConfig && (
+              <PageSpeedDial
+                actions={pageSpeedDialConfig.actions}
+                ariaLabel={pageSpeedDialConfig.ariaLabel}
+              />
+            )}
+          </div>
+        </HeaderSlotsContext.Provider>
       </div>
     </div>
   )

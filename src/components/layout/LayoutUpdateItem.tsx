@@ -12,8 +12,9 @@ import {
 } from '../ui/layoutStyles'
 
 /**
- * Only the APK installs updates by hand; the web build refreshes itself.
- * An Android browser gets the APK download in the same slot instead.
+ * «بررسی به‌روزرسانی» on both platforms; once a version is ready it becomes
+ * «به‌روزرسانی به X» with the orange dot, also after «بعداً» on the banner.
+ * An Android browser also gets the APK download right under it.
  */
 export default function LayoutUpdateItem() {
   const update = useAppUpdateStore(state => state.update)
@@ -22,17 +23,17 @@ export default function LayoutUpdateItem() {
 
   const check = useAppUpdateStore(state => state.check)
 
-  if (!isNativePlatform()) return isAndroidDevice() ? <LayoutApkDownloadItem /> : null
+  const apply = useAppUpdateStore(state => state.apply)
 
   const label = update
-    ? `نسخهٔ ${update.versionName} آماده نصب است`
+    ? `به‌روزرسانی به ${update.versionName || 'نسخه جدید'}`
     : checking
     ? 'در حال بررسی…'
     : 'بررسی به‌روزرسانی'
 
   const handleClick = async () => {
     if (update) {
-      window.open(update.apkUrl, '_blank')
+      apply()
 
       return
     }
@@ -41,7 +42,7 @@ export default function LayoutUpdateItem() {
       const latest = await check({ force: true })
 
       if (latest) {
-        showSuccess(`نسخهٔ ${latest.versionName} موجود است`)
+        showSuccess(`نسخه ${latest.versionName || 'جدید'} آماده است`)
 
         return
       }
@@ -53,18 +54,21 @@ export default function LayoutUpdateItem() {
   }
 
   return (
-    <button
-      type="button"
-      className={appMenuItemClass(!!update)}
-      onClick={() => void handleClick()}
-      disabled={checking}
-      aria-busy={checking}
-    >
-      <span className={appMenuItemIconClass(!!update)}>
-        <AppIcon name={update ? 'import' : 'refresh'} size={22} />
-      </span>
-      <span className={appMenuItemLabelClass}>{label}</span>
-      {update && <span className={appMenuUpdateDotClass} aria-hidden="true" />}
-    </button>
+    <>
+      <button
+        type="button"
+        className={appMenuItemClass(!!update)}
+        onClick={() => void handleClick()}
+        disabled={checking}
+        aria-busy={checking}
+      >
+        <span className={appMenuItemIconClass(!!update)}>
+          <AppIcon name={update ? 'import' : 'refresh'} size={20} />
+        </span>
+        <span className={appMenuItemLabelClass}>{label}</span>
+        {update && <span className={appMenuUpdateDotClass} aria-hidden="true" />}
+      </button>
+      {!isNativePlatform() && isAndroidDevice() && <LayoutApkDownloadItem />}
+    </>
   )
 }

@@ -12,6 +12,7 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
+import { showSavedForCounterparty } from '../nudges/saveNudges'
 
 type UseReceivableFormActionsParams = {
   items: ReceivableWithRow[]
@@ -87,7 +88,7 @@ export function useReceivableFormActions({
           borrowDate: form.borrowDate,
           note: form.note.trim()
         })
-        showSuccess('طلب جدید ثبت شد')
+        showSavedForCounterparty('طلب جدید ثبت شد', form.debtor)
       }
       closeForm()
       await loadItems()

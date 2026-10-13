@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { useDataRefresh } from '../../hooks/useDataRefresh'
+import { guessTemplate } from '../../services/bankSmsGuess'
+import { sampleRefDigits } from '../../services/bankSmsMatch'
 import { learnSmsRef } from '../../services/bankSmsPrefs'
 import {
   createSmsTemplate,
@@ -11,7 +13,9 @@ import {
 import { getSettings } from '../../services/settings'
 import type { SmsTemplate } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { haptic } from '../../utils/haptics'
 import { handleSheetError } from '../../utils/sheetError'
+import { showSuccess } from '../../utils/toast'
 
 /** All saved SMS templates of the current spreadsheet, with add/remove. */
 export function useSmsTemplates() {
@@ -81,5 +85,16 @@ export function useSmsTemplates() {
     }
   }
 
-  return { templates, loading, saving, reload, add, remove }
+  /** Unknown SMS: the tapped number is the amount; SMS of the same shape are recognised once it is saved. */
+  const teachAmount = async (body: string, tokenIndex: number, accountId: string) => {
+    const guess = guessTemplate(body, templates, tokenIndex)
+    const saved = await add({ ...guess, accountId, sampleRef: sampleRefDigits(guess.parts, body) })
+
+    if (saved) {
+      haptic('light')
+      showSuccess('قالب ساخته شد؛ پیامک‌های هم‌شکل شناخته شدند')
+    }
+  }
+
+  return { templates, loading, saving, reload, add, remove, teachAmount }
 }

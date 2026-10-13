@@ -1,7 +1,7 @@
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 /** Reminders settings — single full-width column on all breakpoints. */
-export const remindersPageClass = cn(
+export const remindersPageClass = cx(
   'flex w-full flex-col gap-2',
   '[&>.mb-stack]:mb-0 [&>div]:w-full'
 )
@@ -22,13 +22,13 @@ export function reminderStatusDotClass(status: string) {
 export const reminderStatusHintClass = 'mt-2 mb-0 text-[0.8rem] leading-relaxed text-muted'
 
 /** Link-styled inline action, e.g. «چطور فعال کنم؟». */
-export const reminderTextButtonClass = cn(
+export const reminderTextButtonClass = cx(
   'cursor-pointer border-0 bg-transparent p-0 text-[0.82rem] font-semibold text-primary underline',
-  'underline-offset-2 focus-visible:outline-2 focus-visible:outline-primary'
+  'underline-offset-2'
 )
 
 /** One reminder: text, time and switch on a line, dashed separator like the wireframe. */
-export const reminderRowClass = cn(
+export const reminderRowClass = cx(
   'border-t border-dashed border-border py-3 first:border-t-0 first:pt-0 last:pb-0'
 )
 

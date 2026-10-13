@@ -1,7 +1,6 @@
 import { App } from '@capacitor/app'
 import { useCallback, useEffect, useState } from 'react'
 
-import { subscribeThisDevice } from './useRemindersPushHandlers'
 import { isNativePlatform } from '../../services/googleAuthNative'
 import {
   getNotificationPermission as getNativePermission,
@@ -10,7 +9,8 @@ import {
 import {
   getCurrentPushSubscription,
   getNotificationPermission as getWebPermission,
-  getPushSupportStatus
+  getPushSupportStatus,
+  subscribeThisDevice
 } from '../../services/pushNotifications'
 import type { ReminderKind } from '../../types'
 import { showError } from '../../utils/toast'

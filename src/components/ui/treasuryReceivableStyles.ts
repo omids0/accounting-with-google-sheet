@@ -1,5 +1,5 @@
 import { interactiveCardClass } from './featureCardStyles'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 export const receivableSummaryClass =
   'my-3 grid grid-cols-3 gap-2 rounded-lg bg-bg p-3 text-[0.8rem] [&>div]:flex [&>div]:flex-col [&>div]:gap-[0.2rem]'
@@ -16,7 +16,7 @@ export const receivablePaymentListClass = 'mt-2'
 
 export const receivablePaymentListTitleClass = 'mb-2 text-[0.75rem] text-muted'
 
-export const receivablePaymentItemClass = cn(
+export const receivablePaymentItemClass = cx(
   'flex items-start gap-3 border-b border-border py-2 text-[0.85rem] last:border-b-0',
   '[&_input[type=checkbox]]:mt-[0.15rem] [&_input[type=checkbox]]:h-[1.1rem] [&_input[type=checkbox]]:w-[1.1rem] [&_input[type=checkbox]]:shrink-0 [&_input[type=checkbox]]:accent-primary',
   '[&>div]:flex [&>div]:flex-col [&>div]:gap-[0.15rem]'
@@ -29,7 +29,7 @@ export const receivableAddPaymentActionsClass = 'flex flex-wrap gap-2'
 export const receivablePaymentFormClass =
   'rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] p-3 shadow-[var(--form-input-shadow)]'
 
-export const receivableTotalCardClass = cn(
+export const receivableTotalCardClass = cx(
   'p-4 text-center transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:shadow-[var(--shadow)]',
   '[&.stat-card_.stat-card-value-row--wide]:justify-center'
 )
@@ -77,7 +77,32 @@ export const treasuryTxDetailsClass = 'mt-1 flex flex-col gap-[0.15rem] text-[0.
 export const treasuryTotalCardClass =
   '[background:linear-gradient(135deg,var(--color-bg)_0%,var(--color-accent-soft)_100%)]'
 
-export const treasuryTxInteractiveClass = cn(
+export const treasuryTxInteractiveClass = cx(
   interactiveCardClass,
   'relative -mx-3 rounded-sm px-3 py-[0.65rem] hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_55%,transparent)]'
 )
+
+/** «قیمت دستی · ۱۲ مهر ✎» line on a manually priced holding. */
+export const treasuryManualPriceClass =
+  'mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.75rem] text-muted [&_.card-action-btn]:h-7 [&_.card-action-btn]:w-7'
+
+export const treasuryStaleHintClass =
+  'rounded-full border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-2 py-0.5 text-[0.7rem] font-semibold text-warning'
+
+/** Class and symbol above a holding's name. */
+export const treasuryClassTagClass = 'mb-0.5 text-[0.7rem] font-semibold text-muted'
+
+export const treasuryManualRowClass = 'px-4 pb-3 -mt-1'
+
+/** Slim section header over each class's cards in «همه», with the class subtotal. */
+export const treasuryGroupHeaderClass =
+  'mb-2 mt-1 flex items-baseline justify-between gap-3 border-b border-border px-1 pb-1 text-[0.78rem] font-bold text-muted first:mt-0'
+
+export const treasuryGroupTotalClass =
+  'text-[0.78rem] font-semibold text-primary-dark font-numeric tabular-nums'
+
+export const treasuryClassChipsClass =
+  'mb-3 -mx-1 overflow-x-auto px-1 [&>div]:flex-nowrap [&_button]:shrink-0'
+
+/** Class filter inside the desktop table's «کلاس» header. */
+export const treasuryTableFilterClass = 'ms-2 inline-block w-28 align-middle font-normal'

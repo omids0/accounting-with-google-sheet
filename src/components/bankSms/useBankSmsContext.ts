@@ -1,0 +1,48 @@
+import { useCallback, useEffect, useState } from 'react'
+
+import { useDataRefresh } from '../../hooks/useDataRefresh'
+import type { LedgerEntry } from '../../services/bankSmsQueue'
+import { loadRecordLedger } from '../../services/recordLedger'
+import { fetchRecurringItems, stripRow } from '../../services/recurringSheet'
+import { getSettings } from '../../services/settings'
+import { fetchWalletAccounts } from '../../services/wallet'
+import type { RecurringItem } from '../../types'
+import { handleSheetError } from '../../utils/sheetError'
+import type { WalletAccountWithRow } from '../wallet/types'
+
+/** Accounts, records and recurring items the queue matches SMS against. */
+export function useBankSmsContext() {
+  const [accounts, setAccounts] = useState<WalletAccountWithRow[]>([])
+  const [ledger, setLedger] = useState<LedgerEntry[]>([])
+  const [recurring, setRecurring] = useState<RecurringItem[]>([])
+
+  const reload = useCallback(async () => {
+    const settings = getSettings()
+
+    if (!settings?.spreadsheetId) return
+
+    try {
+      const [walletAccounts, entries, items] = await Promise.all([
+        fetchWalletAccounts(settings.spreadsheetId),
+        loadRecordLedger(settings),
+        // Suggestions only: a missing «تکرارها» tab must not break the queue.
+        fetchRecurringItems(settings.spreadsheetId).catch(() => [])
+      ])
+
+      setAccounts(walletAccounts)
+      setLedger(entries)
+      setRecurring(items.map(stripRow))
+    } catch (err) {
+      handleSheetError(err, { fallbackMessage: 'خطا در خواندن حساب‌ها' })
+    }
+  }, [])
+
+  // Accounts and records also change on sync, not only through this page.
+  const dataRevision = useDataRefresh()
+
+  useEffect(() => {
+    void reload()
+  }, [reload, dataRevision])
+
+  return { accounts, ledger, recurring, reload }
+}

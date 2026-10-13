@@ -15,14 +15,19 @@ import {
   dashboardBundleInFlight
 } from './dashboardCache'
 import { applyNetAvailableConfig } from './dashboardNetAvailable'
+import { buildRecentRecords } from './dashboardRecent'
 import { fetchInstallmentPlans, totalUnpaidInstallments } from './installments'
+import { summarizePreviousMonth } from './monthComparison'
 import { fetchOpeningBalance } from './monthlyBalance'
 import { resolveOpeningBalanceContext, syncDerivedOpeningBalances } from './openingBalanceService'
 import { fetchReceivables, remainingAmount } from './receivables'
+import { loadSavingsGoals, sumGoalBalances } from './savingsGoalsSheet'
 import { getDefaultNetAvailableConfig } from './settings'
 import { fetchRecords } from './sheets'
 import { getSummableTgjuPrices } from './tgjuCurrency'
-import { computeHoldings, fetchVaultTransactions } from './treasury'
+import { fetchVaultTransactions } from './treasury'
+import { loadVaultCatalog } from './treasuryCatalogSheet'
+import { computeHoldings, totalsByClass } from './treasuryHoldings'
 import { fetchWalletAccounts } from './wallet'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import type { DateRange } from '../utils/dateRange'
@@ -40,9 +45,7 @@ async function fetchDashboardBundleUncached(
 
   const monthKey = getJalaliMonthKey(range.start)
 
-  const tgjuPrices = getSummableTgjuPrices()
-
-  const shouldFetchVault = netAvailableConfig.assets.treasury && tgjuPrices != null
+  const shouldFetchVault = netAvailableConfig.assets.treasury && getSummableTgjuPrices() != null
 
   const [
     incomeRecords,
@@ -53,13 +56,20 @@ async function fetchDashboardBundleUncached(
     installmentPlans,
     checks,
     dangs,
-    storedOpeningBalance
+    storedOpeningBalance,
+    goals
   ] = await Promise.all([
     incomeForm ? fetchRecords(settings.spreadsheetId, incomeForm) : Promise.resolve([]),
     expenseForm ? fetchRecords(settings.spreadsheetId, expenseForm) : Promise.resolve([]),
     fetchWalletAccounts(settings.spreadsheetId).catch(() => []),
     shouldFetchVault
-      ? fetchVaultTransactions(settings.spreadsheetId).catch(() => [])
+      ? Promise.all([
+          fetchVaultTransactions(settings.spreadsheetId),
+          loadVaultCatalog(settings.spreadsheetId)
+        ]).then(
+          ([transactions]) => transactions,
+          () => []
+        )
       : Promise.resolve([]),
     fetchReceivables(settings.spreadsheetId).catch(() => []),
     fetchInstallmentPlans(settings.spreadsheetId).catch(() => []),
@@ -70,7 +80,8 @@ async function fetchDashboardBundleUncached(
       amount: 0,
       updatedAt: '',
       note: ''
-    }))
+    })),
+    loadSavingsGoals(settings.spreadsheetId).catch(() => [])
   ])
 
   const incomeDateField = getDateFieldId(incomeForm)
@@ -105,9 +116,21 @@ async function fetchDashboardBundleUncached(
 
   const walletTotal = walletAccounts.reduce((s, a) => s + a.balance, 0)
 
+  // After the catalog loads, so user-added tgju keys and manual prices count.
+  const tgjuPrices = getSummableTgjuPrices()
+
   const holdings = tgjuPrices ? computeHoldings(vaultTransactions, tgjuPrices) : []
 
-  const treasuryTotal = holdings.reduce((s, h) => s + h.totalValue, 0)
+  const goalsTotal = sumGoalBalances(goals)
+
+  // Goal balances are vault assets too; the net-available switch for them is separate.
+  const treasuryTotal = holdings.reduce((s, h) => s + h.totalValue, 0) + goalsTotal
+
+  const treasuryByClass = totalsByClass(holdings).map(({ assetClass, label, total }) => ({
+    assetClass,
+    label,
+    total
+  }))
 
   const receivablesTotal = receivables.reduce((s, r) => s + remainingAmount(r), 0)
 
@@ -120,6 +143,8 @@ async function fetchDashboardBundleUncached(
   const rawFinancial = {
     walletTotal,
     treasuryTotal,
+    treasuryByClass,
+    goalsTotal,
     receivablesTotal,
     installmentsDue,
     dangsTotal,
@@ -139,34 +164,15 @@ async function fetchDashboardBundleUncached(
 
   const reconciliationDiff = walletTotal - periodBalance
 
-  const recent = [
-    ...filteredIncome.map(r => ({
-      formName: incomeForm?.name ?? 'درآمد',
-      title: r.values.title || '—',
-      amount: parseNumeric(r.values.amount),
-      type: 'income' as const,
-      category: r.values.category || 'سایر',
-      date: r.values[incomeDateField] ?? '',
-      createdAt: r.createdAt
-    })),
-    ...filteredExpense.map(r => ({
+  const recent = buildRecentRecords(
+    { records: filteredIncome, formName: incomeForm?.name ?? 'درآمد', dateField: incomeDateField },
+    {
+      records: filteredExpense,
       formName: expenseForm?.name ?? 'هزینه',
-      title: r.values.title || '—',
-      amount: parseNumeric(r.values.amount),
-      type: 'expense' as const,
-      category: r.values.category || 'سایر',
-      date: r.values[expenseDateField] ?? '',
-      createdAt: r.createdAt
-    }))
-  ]
-    .sort((a, b) => {
-      const byDate = (b.date || '').localeCompare(a.date || '')
-
-      if (byDate !== 0) return byDate
-
-      return (b.createdAt || '').localeCompare(a.createdAt || '')
-    })
-    .map(({ createdAt: _, ...record }) => record)
+      dateField: expenseDateField
+    },
+    walletAccounts
+  )
 
   return {
     expiresAt: Date.now() + DASHBOARD_CACHE_TTL_MS,
@@ -191,6 +197,10 @@ async function fetchDashboardBundleUncached(
       },
       incomeByCategory: sumByCategory(filteredIncome),
       expenseByCategory: sumByCategory(filteredExpense),
+      previousMonth: summarizePreviousMonth(
+        { incomeRecords, expenseRecords, incomeDateField, expenseDateField },
+        monthKey
+      ),
       recentRecords: recent
     }
   }

@@ -5,14 +5,16 @@ import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
-import { fetchTgjuPrices, getCachedTgjuPrices, getAssetLabel } from '../../services/tgju'
-import { getDisplayTgjuPrices, getSummableTgjuPrices } from '../../services/tgjuCurrency'
+import { fetchTgjuPrices, getCachedTgjuPrices } from '../../services/tgju'
 import {
-  computeHoldings,
-  ensureTreasurySheet,
-  fetchVaultTransactions
-} from '../../services/treasury'
-import type { VaultAssetType } from '../../types'
+  getDisplayTgjuPrices,
+  getSummableTgjuPrices,
+  vaultPriceKeys
+} from '../../services/tgjuCurrency'
+import { ensureTreasurySheet, fetchVaultTransactions } from '../../services/treasury'
+import { getAssetClassLabel, getVaultCatalog } from '../../services/treasuryCatalog'
+import { seedVaultCatalog } from '../../services/treasuryCatalogSheet'
+import { computeHoldings } from '../../services/treasuryHoldings'
 import { requireAuth } from '../../utils/authGuard'
 import { matchSearch } from '../../utils/search'
 import { handleSheetError } from '../../utils/sheetError'
@@ -22,11 +24,12 @@ import { toUserMessage } from '../../utils/userMessage'
 export function useTreasuryData(active: boolean, searchQuery: string) {
   const [transactions, setTransactions] = useState<TransactionWithRow[]>([])
 
-  const [prices, setPrices] = useState<Record<VaultAssetType, number> | null>(() =>
-    getCachedTgjuPrices()
-  )
+  const [catalog, setCatalog] = useState(getVaultCatalog)
 
-  const [expandedAsset, setExpandedAsset] = useState<VaultAssetType | null>(null)
+  /** Bumped after each tgju fetch; prices are derived from tgju's cached quotes. */
+  const [quotesVersion, setQuotesVersion] = useState(0)
+
+  const [expandedAsset, setExpandedAsset] = useState<string | null>(null)
 
   const [loading, setLoading] = useState(() => {
     const settings = getSettings()
@@ -45,9 +48,8 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
   const loadPrices = useCallback(async () => {
     setPriceLoading(true)
     try {
-      const data = await fetchTgjuPrices()
-
-      setPrices(data)
+      await fetchTgjuPrices(vaultPriceKeys())
+      setQuotesVersion(version => version + 1)
     } catch (err) {
       showError(toUserMessage(err, 'خطا در دریافت قیمت‌ها'))
     } finally {
@@ -65,9 +67,13 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
     try {
       await ensureTreasurySheet(settings.spreadsheetId)
 
-      const data = await fetchVaultTransactions(settings.spreadsheetId)
+      const [data, nextCatalog] = await Promise.all([
+        fetchVaultTransactions(settings.spreadsheetId),
+        seedVaultCatalog(settings.spreadsheetId)
+      ])
 
       setTransactions(data)
+      setCatalog(nextCatalog)
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری صندوقچه' })) return
     } finally {
@@ -77,14 +83,24 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
 
   useEffect(() => {
     if (!isConfigured() || !active) return
-    loadItems()
-    loadPrices()
+    void loadItems()
+    void loadPrices()
   }, [active, loadItems, loadPrices, dataRevision])
 
   const refreshTreasury = useCallback(() => {
-    loadItems()
-    loadPrices()
+    void loadItems()
+    void loadPrices()
   }, [loadItems, loadPrices])
+
+  /** After a catalog edit (new asset, manual price, rename). */
+  const reloadCatalog = useCallback(() => setCatalog(getVaultCatalog()), [])
+
+  // Re-derived when the catalog changes too: a user-added tgju key reads the cached quotes.
+  const prices = useMemo(
+    () => getCachedTgjuPrices(vaultPriceKeys()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [catalog, quotesVersion]
+  )
 
   const displayPrices = useMemo(() => getDisplayTgjuPrices(prices), [prices])
 
@@ -94,18 +110,18 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
   const visibleTransactions = useMemo(() => visible(transactions), [visible, transactions])
 
   const holdings = useMemo(
-    () => (summablePrices ? computeHoldings(visibleTransactions, summablePrices) : []),
-    [summablePrices, visibleTransactions]
+    () => (summablePrices ? computeHoldings(visibleTransactions, summablePrices, catalog) : []),
+    [summablePrices, visibleTransactions, catalog]
   )
 
-  const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0)
-
-  const filteredHoldings = useMemo(
+  const searchedHoldings = useMemo(
     () =>
       holdings.filter(holding =>
         matchSearch(
           searchQuery,
-          getAssetLabel(holding.assetType),
+          holding.asset.name,
+          holding.asset.symbol,
+          getAssetClassLabel(holding.asset.assetClass),
           holding.netQuantity,
           holding.currentUnitPrice,
           holding.totalValue,
@@ -117,6 +133,7 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
 
   return {
     transactions,
+    catalog,
     prices: displayPrices,
     loading,
     priceLoading,
@@ -125,9 +142,9 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
     loadPrices,
     loadItems,
     refreshTreasury,
+    reloadCatalog,
     undoableDelete,
     holdings,
-    filteredHoldings,
-    totalValue
+    searchedHoldings
   }
 }

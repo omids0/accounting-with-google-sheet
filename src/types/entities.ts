@@ -70,7 +70,34 @@ export interface Receivable {
   payments: ReceivablePayment[]
 }
 
-export type VaultAssetType = 'sekeb' | 'sekee' | 'nim' | 'rob' | 'gerami' | 'geram18' | 'usd'
+/** The seven assets the vault knew before the catalog; their ids are still valid catalog ids. */
+export type LegacyVaultAssetId = 'sekeb' | 'sekee' | 'nim' | 'rob' | 'gerami' | 'geram18' | 'usd'
+
+/** Id of a row in the vault asset catalog (a legacy id for the built-in assets). */
+export type VaultAssetType = string
+
+export type VaultAssetClass = 'gold' | 'currency' | 'stock' | 'crypto' | 'other'
+
+export type VaultPriceSource = 'tgju' | 'manual'
+
+/** One row of the «دارایی_صندوقچه» catalog. */
+export interface VaultAsset {
+  id: string
+  assetClass: VaultAssetClass
+  symbol: string
+  name: string
+  unit: string
+  /** Fraction digits allowed in quantities (0 = whole units). */
+  decimals: number
+  priceSource: VaultPriceSource
+  tgjuKey: string
+  /** In the display currency; used when `priceSource` is manual. */
+  manualPrice: number
+  /** ISO date of the last manual price. */
+  manualPriceAt: string
+  /** Inactive assets are hidden from the add form; holdings still show. */
+  active: boolean
+}
 
 export type VaultAction = 'buy' | 'sell'
 
@@ -87,6 +114,7 @@ export interface VaultTransaction {
 
 export interface VaultHolding {
   assetType: VaultAssetType
+  asset: VaultAsset
   netQuantity: number
   currentUnitPrice: number
   totalValue: number

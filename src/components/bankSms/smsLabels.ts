@@ -1,3 +1,5 @@
+import type { SmsSuggestionSource } from '../../services/bankSmsSuggest'
+import { createdAgoLabel } from '../../services/recordDuplicates'
 import type { SmsDirection, SmsSlotRole, SmsTemplate, SmsTemplateIssue } from '../../types'
 
 export const SMS_ROLE_LABELS: Record<SmsSlotRole, string> = {
@@ -49,4 +51,57 @@ export function describeSmsTemplate(template: SmsTemplate): string {
 /** «۱۴۰۵/۷/۱۵، ۱۴:۳۲» */
 export function formatSmsTime(ms: number): string {
   return new Date(ms).toLocaleString('fa-IR', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+const timeOfDay = (date: Date) =>
+  date.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })
+
+/** Calendar days between two moments, in local time (0 = same day). */
+function daysBetween(ms: number, nowMs: number): number {
+  const start = (value: number) => new Date(value).setHours(0, 0, 0, 0)
+
+  return Math.round((start(nowMs) - start(ms)) / 86_400_000)
+}
+
+/** «امروز ۱۴:۰۲» / «دیروز ۰۹:۱۵» / «۱۴۰۵/۷/۱۵، ۱۴:۳۲» */
+export function formatSmsWhen(ms: number, nowMs = Date.now()): string {
+  const days = daysBetween(ms, nowMs)
+
+  if (days === 0) return `امروز ${timeOfDay(new Date(ms))}`
+  if (days === 1) return `دیروز ${timeOfDay(new Date(ms))}`
+
+  return formatSmsTime(ms)
+}
+
+/** «تکراری؟ · رکورد ۱۲ دقیقه پیش», or the record's time / date when older. */
+export function smsDuplicateLabel(createdAtMs: number | null | undefined, nowMs = Date.now()) {
+  if (!createdAtMs) return 'تکراری؟ · رکورد مشابه هست'
+  if (nowMs - createdAtMs < 60 * 60 * 1000) {
+    return `تکراری؟ · رکورد ${createdAgoLabel(createdAtMs, nowMs)}`
+  }
+
+  return `تکراری؟ · رکورد ${formatSmsWhen(createdAtMs, nowMs)}`
+}
+
+/** Why the card suggests its category (small line under «دسته: …»). */
+export function smsChoiceReason(choice: {
+  category: string
+  title?: string
+  source?: SmsSuggestionSource
+  count?: number
+}): string {
+  switch (choice.source) {
+    case 'recurring':
+      return `تکرار ماهانه «${choice.title || choice.category}» با همین مبلغ`
+    case 'amount':
+      return (choice.count ?? 0) > 1
+        ? `چون ${(choice.count ?? 0).toLocaleString('fa-IR')} بار قبل همین مبلغ را «${
+            choice.category
+          }» زدی`
+        : `قبلاً همین مبلغ از همین حساب را «${choice.category}» زدی`
+    case 'sender':
+      return 'آخرین دسته‌ای که برای پیامک‌های همین بانک زدی'
+    default:
+      return 'انتخاب خودت'
+  }
 }

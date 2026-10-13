@@ -22,6 +22,8 @@ export type {
 
 export type {
   CategorySummary,
+  CategoryShare,
+  MonthlyPoint,
   MonthlyFlow,
   DashboardRecord,
   FinancialSummary,
@@ -37,12 +39,28 @@ export type {
   ReceivablePayment,
   Receivable,
   VaultAssetType,
+  LegacyVaultAssetId,
+  VaultAssetClass,
+  VaultPriceSource,
+  VaultAsset,
   VaultAction,
   VaultTransaction,
   VaultHolding,
   WalletAccount,
   WalletAccountKind
 } from './entities'
+
+export type {
+  CategoryBudget,
+  MonthComparison,
+  MonthTrend,
+  PreviousMonthSummary,
+  RecurringItem,
+  RecurringMode,
+  SavingsGoal,
+  SavingsGoalStatus,
+  SavingsGoalView
+} from './insights'
 
 export type {
   ReminderKind,

@@ -38,7 +38,7 @@ export default function PersonalReminderCard({
   const isDone = !item.enabled
 
   return (
-    <div className={dangCardClass({ paid: isDone })}>
+    <div className={dangCardClass({ paid: isDone })} data-highlight-id={item.id}>
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
           <input

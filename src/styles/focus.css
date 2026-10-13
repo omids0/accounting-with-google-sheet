@@ -1,0 +1,83 @@
+/*
+ * The one keyboard focus ring (round 5, F1): a solid ring in `--focus-ring`,
+ * at least 3:1 against the page in both themes.
+ *
+ * Unlayered on purpose: it outranks every Tailwind utility (all layered), so no
+ * component can drop it with `outline-none`. Components tune it through variables:
+ * - `--focus-ring`: the color; brand surfaces (header, hero) use `--focus-ring-on-brand`.
+ * - `--focus-ring-offset`: rows inside clipped lists draw it inside (`.focus-ring-inset`).
+ */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+/* Options and rows sit in scrolling or rounded containers that clip an outer ring. */
+[role='option'],
+[role='menuitemradio'],
+.focus-ring-inset {
+  --focus-ring-offset: calc(-1 * var(--focus-ring-width));
+}
+
+/* A composite field (input + unit) shows one ring on the whole control. */
+.focus-ring-within:has(:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.focus-ring-within :focus-visible {
+  outline: none;
+}
+
+/* Targets focused by script (the page after a route change), not controls. */
+main[tabindex='-1']:focus {
+  outline: none;
+}
+
+/*
+ * An item opened from the global search (`?highlight=<id>`, `useHighlightParam`):
+ * a brand ring and tint that fade out, and room above it under the sticky header.
+ */
+[data-highlight-id] {
+  scroll-margin-block: 5.5rem;
+}
+
+[data-highlighted] {
+  animation: searchHighlight 2.4s ease-out both;
+}
+
+tr[data-highlighted] > td {
+  animation: searchHighlightRow 2.4s ease-out both;
+}
+
+@keyframes searchHighlight {
+  0%,
+  55% {
+    outline: var(--focus-ring-width) solid var(--color-primary);
+    outline-offset: 2px;
+    background-color: color-mix(
+      in srgb,
+      var(--color-primary) 10%,
+      var(--color-surface, transparent)
+    );
+  }
+  100% {
+    outline: var(--focus-ring-width) solid transparent;
+    outline-offset: 2px;
+  }
+}
+
+@keyframes searchHighlightRow {
+  0%,
+  55% {
+    background-color: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-highlighted],
+  tr[data-highlighted] > td {
+    animation-duration: 0.01ms;
+    animation-delay: 2s;
+  }
+}

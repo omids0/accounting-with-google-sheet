@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { type KeyboardEvent, useCallback, useEffect, useId, useLayoutEffect, useRef } from 'react'
 
 import { cn } from '../../utils/cn'
+import { moveFocusWithArrows, nextIndexForKey } from '../../utils/keyboardNav'
 import {
   wheelPickerClass,
   wheelPickerFadeBottomClass,
@@ -20,6 +21,8 @@ interface WheelPickerProps {
   value: string
   onChange: (value: string) => void
   'aria-label'?: string
+  /** Enter on the focused wheel (e.g. confirm the date sheet). */
+  onEnter?: () => void
 }
 
 const ITEM_HEIGHT = 44
@@ -56,8 +59,11 @@ export default function WheelPicker({
   items,
   value,
   onChange,
-  'aria-label': ariaLabel
+  'aria-label': ariaLabel,
+  onEnter
 }: WheelPickerProps) {
+  const optionIdPrefix = useId()
+
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
@@ -185,6 +191,35 @@ export default function WheelPicker({
     emitSelection()
   }
 
+  // Keyboard (round 5, F4): ↑↓ Home/End change the value, ←→ move to the wheel on
+  // that side of the screen (day ↔ month ↔ year), Enter confirms.
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' && onEnter) {
+      event.preventDefault()
+      onEnter()
+
+      return
+    }
+
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      const group = event.currentTarget.closest('[data-wheel-group]')
+      const wheels = group ? Array.from(group.querySelectorAll<HTMLElement>('[data-wheel]')) : []
+
+      moveFocusWithArrows(event, wheels, { axis: 'horizontal', wrap: false })
+
+      return
+    }
+
+    const next = nextIndexForKey(event.key, safeIndex, items.length, 'vertical', false)
+
+    if (next === null) return
+    event.preventDefault()
+    clearTimeout(scrollTimeoutRef.current)
+    isUserScrollingRef.current = false
+    if (next !== safeIndex) onChange(items[next].value)
+    scrollToIndex(next)
+  }
+
   itemRefs.current.length = items.length
 
   return (
@@ -196,6 +231,10 @@ export default function WheelPicker({
       }}
       aria-label={ariaLabel}
       role="listbox"
+      tabIndex={0}
+      aria-activedescendant={items.length > 0 ? `${optionIdPrefix}-${safeIndex}` : undefined}
+      data-wheel
+      onKeyDown={handleKeyDown}
     >
       <div className={wheelPickerFadeTopClass} aria-hidden="true" />
       <div className={wheelPickerFadeBottomClass} aria-hidden="true" />
@@ -204,6 +243,8 @@ export default function WheelPicker({
         className={wheelPickerScrollClass}
         style={{ scrollPaddingBlock: padding }}
         role="presentation"
+        // One Tab stop per wheel: the listbox, not the scroller or its options.
+        tabIndex={-1}
         onScroll={handleScroll}
         onTouchEnd={handleScrollEnd}
         onPointerUp={handleScrollEnd}
@@ -215,8 +256,10 @@ export default function WheelPicker({
             ref={el => {
               itemRefs.current[index] = el
             }}
+            id={`${optionIdPrefix}-${index}`}
             type="button"
             role="option"
+            tabIndex={-1}
             aria-selected={item.value === value}
             className={cn(wheelPickerItemClass, wheelPickerItemSelectedClass(item.value === value))}
             style={{ height: ITEM_HEIGHT }}

@@ -36,21 +36,34 @@ export async function appendSheetRowApi(
   row: string[],
   options?: SheetWriteOptions
 ): Promise<void> {
+  await appendSheetRowsApi(spreadsheetId, sheetName, [row])
+  if (shouldRecordActivity(sheetName, options)) {
+    recordOperation()
+  }
+}
+
+/** Appends rows below the last one in one request (a backup restore sends a whole tab). */
+export async function appendSheetRowsApi(
+  spreadsheetId: string,
+  sheetName: string,
+  rows: string[][]
+): Promise<void> {
+  if (!rows.length) return
+
   const range = encodeURIComponent(quoteSheetName(sheetName))
 
+  const width = Math.max(1, ...rows.map(row => row.length))
+
   // INSERT_ROWS adds rows, not columns: a row wider than a trimmed grid grows it first.
-  await withGridGrowth(spreadsheetId, sheetName, 1, Math.max(row.length, 1), () =>
+  await withGridGrowth(spreadsheetId, sheetName, rows.length, width, () =>
     apiRequest(
       `${SHEETS_API}/${spreadsheetId}/values/${range}:append?${VALUE_INPUT}&insertDataOption=INSERT_ROWS`,
       {
         method: 'POST',
-        body: JSON.stringify({ values: [toSheetRowValues(row)] })
+        body: JSON.stringify({ values: rows.map(toSheetRowValues) })
       }
     )
   )
-  if (shouldRecordActivity(sheetName, options)) {
-    recordOperation()
-  }
 }
 
 export async function updateSheetRowApi(
@@ -109,7 +122,7 @@ export async function deleteSheetRowApi(
  * Writes the new rows first and only then clears what is left below them, so a
  * failure half-way leaves stale extra rows instead of an empty sheet.
  */
-async function replaceSheetDataRowsApi(
+export async function replaceSheetDataRowsApi(
   spreadsheetId: string,
   sheetName: string,
   rows: string[][],

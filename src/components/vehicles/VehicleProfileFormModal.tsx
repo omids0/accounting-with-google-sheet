@@ -74,6 +74,7 @@ export default function VehicleProfileFormModal({
 
   return (
     <FormModal
+      variant="panel"
       open={open}
       title={editingItem ? 'ویرایش خودرو' : 'خودرو جدید'}
       onClose={onClose}

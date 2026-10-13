@@ -5,6 +5,8 @@ type PageLoader = () => Promise<{ default: ComponentType<any> }>
 
 export const loadAboutPage: PageLoader = () => import('../components/about/AboutPage')
 
+export const loadChartsPage: PageLoader = () => import('../components/chartsPage/ChartsPage')
+
 export const loadChecksPage: PageLoader = () => import('../components/ChecksPage')
 
 export const loadCounterpartiesPage: PageLoader = () => import('../components/CounterpartiesPage')
@@ -71,6 +73,9 @@ export const loadPersonalRemindersPage: PageLoader = () =>
 
 export const loadRemindersPage: PageLoader = () => import('../components/RemindersPage')
 
+export const loadCategoriesPage: PageLoader = () =>
+  import('../components/categories/CategoriesPage')
+
 export const loadSettingsPage: PageLoader = () => import('../components/SettingsPage')
 
 export const loadTimesheetDetailPage: PageLoader = () => import('../components/TimesheetDetailPage')
@@ -91,8 +96,11 @@ export const loadWalletAccountDetailPage: PageLoader = () =>
 
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
+export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')
+
 export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   dashboard: loadDashboardPage,
+  charts: loadChartsPage,
   installments: loadInstallmentsPage,
   dang: loadDangPage,
   checks: loadChecksPage,
@@ -103,6 +111,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   wallet: loadWalletPage,
   'wallet-account-detail': loadWalletAccountDetailPage,
   'bank-sms': loadBankSmsPage,
+  search: loadSearchPage,
   records: loadRecordsPage,
   entry: loadDataEntryPage,
   'opening-balances': loadOpeningBalancePage,

@@ -7,7 +7,9 @@ import MileageRangeFilter from '../MileageRangeFilter'
 import { vehicleHorizontalCardsContainerClass } from './vehicleCardStyles'
 import VehicleProfileCard from './VehicleProfileCard'
 import VehicleProfileFormModal from './VehicleProfileFormModal'
+import VehicleTable from './VehicleTable'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { getPathForTab } from '../../routes/paths'
 import { isConfigured } from '../../services/settings'
@@ -24,6 +26,7 @@ import { listModulePageClass } from '../ui/featureCardStyles'
 export default function VehicleListPage({ active = true }: { active?: boolean }) {
   const data = useVehiclesData()
   const navigate = useNavigate()
+  const isDesktop = useIsDesktop()
 
   const {
     filterModalOpen,
@@ -51,6 +54,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
       ariaLabel: 'عملیات سرویس خودرو',
       actions: createPageSpeedDialActions({
         onAdd: data.openCreateForm,
+        addLabel: 'افزودن خودرو',
         onFilter: openFilterModal,
         onRefresh: data.loadItems,
         refreshDisabled: data.loading,
@@ -77,6 +81,10 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
   }
 
   const isInitialLoading = data.loading && data.items.length === 0
+  const openVehicle = (vehicle: (typeof filteredItems)[number]) =>
+    navigate(getPathForTab('vehicle-detail', { vehicleId: vehicle.id }), {
+      state: { title: vehicle.title }
+    })
 
   return (
     <div className={listModulePageClass}>
@@ -84,6 +92,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
         chips={filterChips}
         onOpenFilters={openFilterModal}
         onClearAll={clearAllFilters}
+        inHeader
       />
 
       <FilterModal
@@ -111,7 +120,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
       </FilterModal>
 
       {isInitialLoading ? (
-        <DangCardListSkeleton />
+        <DangCardListSkeleton table />
       ) : data.items.length === 0 ? (
         <EmptyState
           icon="car"
@@ -121,6 +130,14 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
         />
       ) : filteredItems.length === 0 ? (
         <SearchEmptyState />
+      ) : isDesktop ? (
+        <VehicleTable
+          items={filteredItems}
+          actionCountById={data.actionCountById}
+          onOpen={openVehicle}
+          onEdit={data.openEditForm}
+          onDelete={data.openDeleteConfirm}
+        />
       ) : (
         <div className={vehicleHorizontalCardsContainerClass}>
           {filteredItems.map(item => (
@@ -128,11 +145,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
               key={item.id}
               item={item}
               actionNeededCount={data.actionCountById[item.id] ?? 0}
-              onOpen={vehicle =>
-                navigate(getPathForTab('vehicle-detail', { vehicleId: vehicle.id }), {
-                  state: { title: vehicle.title }
-                })
-              }
+              onOpen={openVehicle}
               onEdit={data.openEditForm}
               onDelete={data.openDeleteConfirm}
             />

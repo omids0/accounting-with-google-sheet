@@ -14,13 +14,23 @@ export const APK_DOWNLOAD_URL =
 
 const DISMISSED_KEY = 'accounting_update_dismissed'
 
+/**
+ * A newer version, from the APK release manifest or a waiting web service worker.
+ * `webUpdate.ts` exposes the same `checkForUpdate` / `applyUpdate` / `status` as
+ * this file, so the banner and the menu entry serve both platforms.
+ */
 export interface AvailableUpdate {
-  versionCode: number
+  /** «نسخه X»; empty when the web build could not read the new version. */
   versionName: string
-  apkUrl: string
+  /** Identifies this update for «بعداً». */
+  key: string
+  /** APK only: the installer to download. */
+  apkUrl?: string
 }
 
-function parseManifest(data: unknown): AvailableUpdate | null {
+let latest: AvailableUpdate | null = null
+
+function parseManifest(data: unknown): (AvailableUpdate & { versionCode: number }) | null {
   const raw = typeof data === 'string' ? (JSON.parse(data) as unknown) : data
 
   if (!raw || typeof raw !== 'object') return null
@@ -32,6 +42,7 @@ function parseManifest(data: unknown): AvailableUpdate | null {
   return {
     versionCode,
     versionName: typeof versionName === 'string' ? versionName : String(versionCode),
+    key: String(versionCode),
     apkUrl
   }
 }
@@ -51,9 +62,13 @@ export async function checkForUpdate(): Promise<AvailableUpdate | null> {
 
     if (response.status !== 200) return null
 
-    const latest = parseManifest(response.data)
+    const manifest = parseManifest(response.data)
 
-    if (!latest || !Number.isFinite(installed) || latest.versionCode <= installed) return null
+    if (!manifest || !Number.isFinite(installed) || manifest.versionCode <= installed) {
+      latest = null
+    } else {
+      latest = { versionName: manifest.versionName, key: manifest.key, apkUrl: manifest.apkUrl }
+    }
 
     return latest
   } catch {
@@ -61,11 +76,22 @@ export async function checkForUpdate(): Promise<AvailableUpdate | null> {
   }
 }
 
-export function dismissUpdate(versionCode: number): void {
-  setItem(DISMISSED_KEY, versionCode)
+/** The installer downloads; Android then asks to install it over this version. */
+export function applyUpdate(update: AvailableUpdate): void {
+  if (update.apkUrl) window.open(update.apkUrl, '_blank')
+}
+
+export function status(): AvailableUpdate | null {
+  return latest
+}
+
+export function dismissUpdate(key: string): void {
+  setItem(DISMISSED_KEY, Number(key))
 }
 
 /** Null until the user postpones an update, so the menu can still surface it later. */
-export function getDismissedVersionCode(): number | null {
-  return getItem<number>(DISMISSED_KEY)
+export function getDismissedKey(): string | null {
+  const code = getItem<number>(DISMISSED_KEY)
+
+  return code === null ? null : String(code)
 }

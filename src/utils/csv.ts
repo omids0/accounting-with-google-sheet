@@ -118,7 +118,12 @@ export const PICKER_CANCEL_GRACE_MS = 1000
 
 /** Resolves `null` when the picker is dismissed, so callers never hang on a cancelled pick. */
 export function pickTextFile(accept = '.csv,text/csv'): Promise<string | null> {
-  return new Promise((resolve, reject) => {
+  return pickFile(accept).then(file => (file ? file.text() : null))
+}
+
+/** Opens the system file picker; `null` when it is dismissed. */
+export function pickFile(accept: string): Promise<File | null> {
+  return new Promise(resolve => {
     const input = document.createElement('input')
 
     let settled = false
@@ -157,7 +162,7 @@ export function pickTextFile(accept = '.csv,text/csv'): Promise<string | null> {
 
         return
       }
-      if (settle()) file.text().then(resolve, reject)
+      if (settle()) resolve(file)
     })
     input.click()
     window.addEventListener('focus', handleFocus)

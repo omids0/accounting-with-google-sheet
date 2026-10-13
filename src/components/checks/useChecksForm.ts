@@ -7,6 +7,7 @@ import type { Check } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
+import { showSavedForCheck } from '../nudges/saveNudges'
 
 type UseChecksFormOptions = {
   onSaved: () => Promise<void>
@@ -62,7 +63,7 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
           creationDate: form.creationDate,
           dueDate: form.dueDate
         })
-        showSuccess('چک جدید ثبت شد')
+        showSavedForCheck('چک جدید ثبت شد', form.counterparty)
       }
       closeForm()
       await onSaved()

@@ -34,7 +34,7 @@ export default function CheckCard({
   onDelete
 }: CheckCardProps) {
   return (
-    <div className={dangCardClass({ paid: item.paid })}>
+    <div className={dangCardClass({ paid: item.paid })} data-highlight-id={item.id}>
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
           <input

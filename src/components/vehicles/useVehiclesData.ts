@@ -10,9 +10,12 @@ import {
 } from './utils'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
+import { clearNudgeHandoff, peekNudgeHandoff } from '../../services/nudges'
+import type { VehicleExpenseLink } from '../../services/nudgeSignals'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { fetchAllVehicleDeadlines } from '../../services/vehicleDeadlines'
+import { upsertManualVehicleExpenseMeta } from '../../services/vehicleExpenseActions'
 import { fetchAllVehiclePeriodicServices } from '../../services/vehiclePeriodicServices'
 import {
   createVehicle,
@@ -40,7 +43,11 @@ export function useVehiclesData() {
 
     return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
   })
-  const [showForm, setShowForm] = useState(false)
+  // «وصل کن به خودرو» after a «سایر» expense: open the add form and move that expense over.
+  const [expenseLink, setExpenseLink] = useState(() =>
+    peekNudgeHandoff<VehicleExpenseLink>('vehicle-expense')
+  )
+  const [showForm, setShowForm] = useState(expenseLink !== null)
   const [editingItem, setEditingItem] = useState<VehicleProfileWithRow | null>(null)
   const [saving, setSaving] = useState(false)
   const [deletingItem, setDeletingItem] = useState<VehicleProfileWithRow | null>(null)
@@ -95,6 +102,8 @@ export function useVehiclesData() {
     void loadItems()
   }, [loadItems, dataRevision])
 
+  useEffect(() => clearNudgeHandoff('vehicle-expense'), [])
+
   const openCreateForm = () => {
     setEditingItem(null)
     setShowForm(true)
@@ -109,6 +118,7 @@ export function useVehiclesData() {
     if (saving) return
     setShowForm(false)
     setEditingItem(null)
+    setExpenseLink(null)
   }
 
   const handleSubmit = async (values: VehicleProfileFormState) => {
@@ -153,12 +163,23 @@ export function useVehiclesData() {
         await updateVehicle(spreadsheetId, editingItem.rowNumber, payload)
         showSuccess('خودرو به‌روزرسانی شد')
       } else {
-        await createVehicle(spreadsheetId, payload)
-        showSuccess('خودرو ثبت شد')
+        const created = await createVehicle(spreadsheetId, payload)
+
+        if (expenseLink) {
+          // Keep the record's account as it is now.
+          await upsertManualVehicleExpenseMeta(spreadsheetId, expenseLink.recordId, {
+            ...expenseLink.input,
+            vehicleId: created.id,
+            walletAccount: undefined,
+            walletApply: undefined
+          })
+        }
+        showSuccess(expenseLink ? 'خودرو ثبت شد و هزینه به آن وصل شد' : 'خودرو ثبت شد')
       }
 
       setShowForm(false)
       setEditingItem(null)
+      setExpenseLink(null)
       await loadItems()
     } catch (err) {
       showError(toUserMessage(err, 'ذخیره ناموفق بود'))

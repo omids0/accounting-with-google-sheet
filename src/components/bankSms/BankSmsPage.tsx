@@ -1,30 +1,40 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { createPortal } from 'react-dom'
+import { useLocation } from 'react-router'
 
 import BankSmsBulkBar from './BankSmsBulkBar'
-import BankSmsEntryCard from './BankSmsEntryCard'
-import BankSmsRangeBar from './BankSmsRangeBar'
+import BankSmsHelp from './BankSmsHelp'
+import BankSmsQueueItem from './BankSmsQueueItem'
+import BankSmsQueueTable from './BankSmsQueueTable'
 import BankSmsSettingsCard from './BankSmsSettingsCard'
-import BankSmsTransferCard from './BankSmsTransferCard'
-import BankSmsUnknownCard from './BankSmsUnknownCard'
+import BankSmsSettingsSheet from './BankSmsSettingsSheet'
+import BankSmsSharedText from './BankSmsSharedText'
+import BankSmsStatusRow from './BankSmsStatusRow'
 import { useBankSmsReview } from './useBankSmsReview'
-import { getPathForTab } from '../../routes/paths'
-import { buildBankSmsEntryState } from '../../services/bankSmsEntry'
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { isBankSmsAvailable } from '../../services/bankSmsNative'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { smsRangeStart } from '../../services/bankSmsRange'
 import { applyBankSmsViewDays } from '../../services/bankSmsViewRange'
+import { readSharedSmsText } from '../../services/launchAction'
 import { isConfigured } from '../../services/settings'
+import AppIcon from '../AppIcon'
 import EmptyState from '../EmptyState'
-import { smsPageClass } from '../ui/bankSmsStyles'
+import { useHeaderSlots } from '../layout/headerSlots'
+import { smsHintClass, smsPageClass, smsQueueListClass } from '../ui/bankSmsStyles'
+import Card from '../ui/Card'
+import { headerActionBtnClass } from '../ui/layoutStyles'
 
+/** Page order: pending line → queue → bottom bar; help, range and templates behind ⚙. */
 function BankSmsReview() {
   const [days, setDays] = useState(() => getBankSmsPrefs().viewDays)
   const sinceMs = useMemo(() => smsRangeStart(days), [days])
   const review = useBankSmsReview(sinceMs)
-  const navigate = useNavigate()
   const [enabled, setEnabled] = useState(() => getBankSmsPrefs().enabled)
-  const { templates, saving, add } = review.templatesApi
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const isDesktop = useIsDesktop()
+  const headerEnd = useHeaderSlots().pageEnd
+  const { templates, loading: templatesLoading, reload: reloadTemplates } = review.templatesApi
   const { scanFrom } = review
 
   // Read the chosen range from the inbox (already handled SMS never come back).
@@ -32,113 +42,109 @@ function BankSmsReview() {
     if (enabled) void scanFrom(sinceMs).catch(() => undefined)
   }, [enabled, sinceMs, scanFrom])
 
+  const settingsButton = (
+    <button
+      type="button"
+      className={headerActionBtnClass}
+      onClick={() => setSettingsOpen(true)}
+      aria-label="تنظیمات پیامک بانکی"
+      title="تنظیمات پیامک بانکی"
+    >
+      <AppIcon name="settings" size={18} />
+    </button>
+  )
+
   return (
     <div className={smsPageClass}>
-      <BankSmsSettingsCard
-        onChanged={() => {
+      {headerEnd && createPortal(settingsButton, headerEnd)}
+
+      {!enabled ? (
+        <BankSmsSettingsCard
+          onChanged={() => {
+            setEnabled(getBankSmsPrefs().enabled)
+            void review.refresh()
+          }}
+        />
+      ) : (
+        <>
+          <BankSmsStatusRow
+            count={review.items.length}
+            days={days}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
+
+          {!templatesLoading && templates.length === 0 && (
+            <Card className="mb-0">
+              <BankSmsHelp />
+            </Card>
+          )}
+
+          {review.items.length === 0 ? (
+            <EmptyState
+              icon="empty-inbox"
+              message={
+                review.loading ? 'در حال خواندن پیامک‌ها…' : 'پیامک بانکی در انتظار بررسی نیست'
+              }
+            />
+          ) : isDesktop ? (
+            <BankSmsQueueTable review={review} />
+          ) : (
+            <div className={smsQueueListClass}>
+              {review.items.map(item => (
+                <BankSmsQueueItem key={item.key} item={item} review={review} />
+              ))}
+              <p className={smsHintClass}>
+                کشیدن کارت به راست = ثبت با دسته پیشنهادی · به چپ = نادیده. «⋯» = قبلاً ثبت شده،
+                دیدن متن کامل، ویرایش قالب.
+              </p>
+            </div>
+          )}
+
+          <BankSmsBulkBar
+            count={review.bulkCount}
+            busy={review.busyKey === 'all'}
+            onConfirmAll={() => void review.confirmAll()}
+          />
+        </>
+      )}
+
+      <BankSmsSettingsSheet
+        open={settingsOpen}
+        enabled={enabled}
+        days={days}
+        accounts={review.accounts}
+        onDaysChange={next => {
+          setDays(next)
+          void applyBankSmsViewDays(next)
+        }}
+        onEnabledChange={() => {
           setEnabled(getBankSmsPrefs().enabled)
           void review.refresh()
         }}
+        onClose={() => {
+          setSettingsOpen(false)
+          // A template removed in the sheet changes what the queue recognises.
+          void reloadTemplates()
+        }}
       />
-
-      {enabled && (
-        <BankSmsRangeBar
-          days={days}
-          onChange={next => {
-            setDays(next)
-            void applyBankSmsViewDays(next)
-          }}
-        />
-      )}
-
-      {enabled && review.items.length === 0 && (
-        <EmptyState
-          icon="empty-inbox"
-          message={review.loading ? 'در حال خواندن پیامک‌ها…' : 'پیامک بانکی در انتظار بررسی نیست'}
-        />
-      )}
-
-      {enabled && (
-        <BankSmsBulkBar
-          count={review.bulkCount}
-          busy={review.busyKey === 'all'}
-          onConfirmAll={() => void review.confirmAll()}
-        />
-      )}
-
-      {enabled &&
-        review.items.map(item => {
-          const busy = review.busyKey === item.key
-
-          if (item.kind === 'transfer') {
-            return (
-              <BankSmsTransferCard
-                key={item.key}
-                debit={item.debit}
-                credit={item.credit}
-                accounts={review.accounts}
-                busy={busy}
-                onConfirm={() => void review.confirmTransfer(item.key, item.debit, item.credit)}
-                onSplit={() => review.splitTransfer([item.debit.sms.id, item.credit.sms.id])}
-              />
-            )
-          }
-
-          const { entry } = item
-          const dismiss = () => void review.dismiss(item.key, [entry.sms.id])
-
-          if (entry.result.kind === 'unknown') {
-            return (
-              <BankSmsUnknownCard
-                key={item.key}
-                entry={entry}
-                accounts={review.accounts}
-                templates={templates}
-                savingTemplate={saving}
-                busy={busy}
-                onCreateTemplate={async (accountId, draft) =>
-                  Boolean(await add({ ...draft, accountId }))
-                }
-                onDismiss={dismiss}
-              />
-            )
-          }
-
-          return (
-            <BankSmsEntryCard
-              key={item.key}
-              entry={entry}
-              probableDuplicate={item.probableDuplicate}
-              duplicateMovedBalance={item.duplicateMovedBalance}
-              accounts={review.accounts}
-              busy={busy}
-              onOpenEntry={resolved => {
-                const state = buildBankSmsEntryState(resolved)
-                const formType = state.bankSmsEntry.formType
-
-                navigate(getPathForTab('entry', { formType }), { state })
-              }}
-              onBalanceOnly={resolved => void review.confirm(resolved, null)}
-              onDismiss={dismiss}
-              onAlreadyRecorded={() =>
-                void review.dismiss(item.key, [entry.sms.id], 'از لیست خارج شد')
-              }
-            />
-          )
-        })}
     </div>
   )
 }
 
 /** «پیامک‌های بانکی»: review queue for income/expense captured from bank SMS. */
 export default function BankSmsPage() {
+  const sharedText = readSharedSmsText(useLocation().state)
+
   if (!isConfigured()) return <EmptyState icon="empty-inbox" message="ابتدا با گوگل وارد شوید" />
+
+  // Shared from another app (web share target): works without SMS capture, so on iOS too.
+  if (sharedText) return <BankSmsSharedText key={sharedText} text={sharedText} />
 
   if (!isBankSmsAvailable()) {
     return (
       <EmptyState
         icon="empty-inbox"
-        message="ثبت از پیامک بانکی فقط در نسخه اندروید اپ کار می‌کند. قالب پیامک‌ها را می‌توانید همین‌جا در کیف پول بسازید."
+        message="صف خودکار پیامک بانکی فقط در اپ اندروید است. در وب‌اپ نصب‌شده متن پیامک بانک را از اپ پیامک با «حساب کتاب» به اشتراک بگذارید تا فرم ثبت پر شود. قالب پیامک‌ها را در کیف پول بسازید."
       />
     )
   }

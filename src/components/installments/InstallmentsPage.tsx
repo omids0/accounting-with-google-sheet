@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import {
@@ -36,7 +37,8 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
   })
   const plans = mutations.visiblePlans
 
-  const filters = useInstallmentsFilters(plans)
+  const highlightId = useHighlightParam(mutations.expandPlan)
+  const filters = useInstallmentsFilters(plans, highlightId)
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
@@ -51,6 +53,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
       ariaLabel: 'عملیات اقساط',
       actions: createPageSpeedDialActions({
         onAdd: mutations.openCreateForm,
+        addLabel: 'ثبت قسط',
         onFilter: filters.openFilterModal,
         onRefresh: loadPlans,
         refreshDisabled: loading,
@@ -89,6 +92,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}
         onClearAll={filters.clearAllFilters}
+        inHeader
       />
 
       <FilterModal

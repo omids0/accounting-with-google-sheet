@@ -88,12 +88,27 @@ function guessDirection(tokens: SmsToken[], amountIndex: number, text: string): 
   return firstIndexOf(text, CREDIT_WORDS) < firstIndexOf(text, DEBIT_WORDS) ? 'credit' : 'debit'
 }
 
+/** Slot `index` becomes the only «مبلغ»; any other amount slot is ignored. */
+function withAmountAt(parts: SmsTemplatePart[], index: number): SmsTemplatePart[] {
+  return parts.map((part, at): SmsTemplatePart => {
+    if (part.kind !== 'slot') return { ...part }
+    if (at === index) return { kind: 'slot', role: 'amount' }
+
+    return part.role === 'amount' ? { kind: 'slot', role: 'ignore' } : { ...part }
+  })
+}
+
 /**
  * First guess at a template from one sample SMS; the user corrects it in the editor.
  * `learned` = templates already saved: a sample with the same text skeleton reuses
  * one of them outright, and their labels extend the keyword lists.
  */
-export function guessTemplate(raw: string, learned: SmsTemplate[] = []): SmsTemplateGuess {
+export function guessTemplate(
+  raw: string,
+  learned: SmsTemplate[] = [],
+  /** Token index the user tapped as «مبلغ» (unknown-SMS card); overrides the guess. */
+  amountAt?: number
+): SmsTemplateGuess {
   const keywords = learnedKeywords(learned)
   const text = normalizeSmsText(raw)
   const tokens = tokenizeSms(text)
@@ -126,22 +141,20 @@ export function guessTemplate(raw: string, learned: SmsTemplate[] = []): SmsTemp
     if (fallback >= 0) roles[fallback] = 'amount'
   }
 
-  const parts: SmsTemplatePart[] = tokens.map((token, index) =>
+  const guessed: SmsTemplatePart[] = tokens.map((token, index) =>
     token.kind === 'text'
       ? { kind: 'text', value: token.value }
       : { kind: 'slot', role: roles[index] ?? 'ignore' }
   )
+  const pin = (list: SmsTemplatePart[]) =>
+    amountAt === undefined ? list.map(part => ({ ...part })) : withAmountAt(list, amountAt)
+  const parts = pin(guessed)
 
   const known = findSameShapeTemplate(parts, learned)
 
-  if (known)
-    return {
-      parts: known.parts.map(part => ({ ...part })),
-      direction: known.direction,
-      unit: known.unit
-    }
+  if (known) return { parts: pin(known.parts), direction: known.direction, unit: known.unit }
 
-  const amountIndex = roles.indexOf('amount')
+  const amountIndex = amountAt ?? roles.indexOf('amount')
 
   return {
     parts,

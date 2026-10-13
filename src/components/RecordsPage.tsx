@@ -21,11 +21,13 @@ import {
 } from './ui/recordsStyles'
 
 export default function RecordsPage({
-  initialFormType
+  initialFormType,
+  focusRecordId
 }: {
   initialFormType?: 'income' | 'expense'
+  focusRecordId?: string
 }) {
-  const page = useRecordsPage(initialFormType)
+  const page = useRecordsPage(initialFormType, focusRecordId)
 
   useRecordsSpeedDial({
     forms: page.forms,
@@ -130,8 +132,12 @@ export default function RecordsPage({
           saving={page.saving}
           onClose={page.closeForm}
           onSubmit={page.handleSubmit}
+          recurringChoice={page.recurring.enabled ? page.recurring.choice : undefined}
+          onRecurringChoiceChange={page.recurring.setChoice}
         />
       )}
+
+      <ConfirmActionModal {...page.amountQuestionModal} />
 
       <ConfirmActionModal
         open={page.retroactiveWarning.open}

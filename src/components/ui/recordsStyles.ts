@@ -1,16 +1,16 @@
 import { cardClassName } from './Card'
 import { recordsPageDesktopClass } from './responsiveStyles'
-import { cn } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
-export const recordsPageClass = cn('records-page flex flex-col gap-3 lg:gap-4')
+export const recordsPageClass = cx('records-page flex flex-col gap-3 md:gap-4')
 
-export const recordsPageBodyClass = cn('flex flex-col gap-3 lg:gap-4', recordsPageDesktopClass)
+export const recordsPageBodyClass = cx('flex flex-col gap-3 md:gap-4', recordsPageDesktopClass)
 
-export const recordsPageSidebarClass = 'lg:sticky lg:top-4 lg:self-start'
+export const recordsPageSidebarClass = 'xl:sticky xl:top-4 xl:self-start'
 
 export const recordsPageMainClass = 'min-w-0'
 
-export const recordsToolbarClass = cn(
+export const recordsToolbarClass = cx(
   'relative z-[2] mb-0 overflow-hidden rounded-[var(--radius)] border border-[color-mix(in_srgb,var(--color-primary)_12%,var(--color-border))] p-4',
   '[background:linear-gradient(165deg,var(--color-surface)_0%,color-mix(in_srgb,var(--color-accent-soft)_35%,var(--color-surface))_100%)] shadow-[var(--shadow)] [.records-page_&]:mb-0'
 )
@@ -28,7 +28,7 @@ export const recordsToolbarRangeClass = 'm-0 text-[0.72rem] leading-[1.4] text-m
 
 export const recordsRefreshBtnClass = 'min-w-[2.25rem] shrink-0'
 
-export const recordsTypeSegmentClass = cn(
+export const recordsTypeSegmentClass = cx(
   'mb-[0.85rem] flex gap-[3px] rounded-[var(--radius)] bg-bg p-[3px]',
   '[&_button]:flex-1 [&_button]:rounded-[calc(var(--radius)-2px)] [&_button]:px-2 [&_button]:py-[0.55rem] [&_button]:text-[0.82rem] [&_button]:font-semibold [&_button]:text-muted [&_button]:bg-transparent [&_button]:transition-[background,color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   '[&_button.active]:bg-surface [&_button.active]:shadow-[0_1px_4px_rgba(0,0,0,0.08)] [&_button.active.income]:text-success [&_button.active.expense]:text-danger'
@@ -38,7 +38,7 @@ export const recordsTypeSegmentClass = cn(
  * Many tabs (e.g. vehicle detail, six of them) cannot share one phone-width row:
  * they scroll sideways instead of wrapping or getting cut at the edge.
  */
-export const recordsTypeSegmentScrollClass = cn(
+export const recordsTypeSegmentScrollClass = cx(
   'overflow-x-auto overscroll-x-contain scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
   '[&_button]:flex-none [&_button]:whitespace-nowrap [&_button]:px-3.5',
   // Faded edges hint that more tabs sit off-screen.
@@ -49,7 +49,7 @@ export const recordsFilterSectionClass = 'flex flex-col gap-[0.45rem]'
 
 export const recordsFilterSectionInlineClass = 'flex-row items-center gap-[0.65rem]'
 
-export const recordsFilterSectionDividerClass = cn(
+export const recordsFilterSectionDividerClass = cx(
   'mt-3 border-t border-border pt-3',
   '[.records-filter-section+&]:mt-3 [.records-filter-section+&]:border-t [.records-filter-section+&]:border-border [.records-filter-section+&]:pt-3',
   '[.records-custom-range+&]:mt-3 [.records-custom-range+&]:border-t [.records-custom-range+&]:border-border [.records-custom-range+&]:pt-3'
@@ -63,12 +63,12 @@ export const recordsFilterLabelClass = 'shrink-0 text-[0.75rem] font-semibold te
 
 export const recordsFilterLabelInlineClass = 'min-w-[4.25rem]'
 
-export const recordsFilterActionsClass = cn(
+export const recordsFilterActionsClass = cx(
   'flex w-full flex-col gap-2',
   '[&_button]:!w-full [&_button]:min-h-[2.65rem] [&_button]:px-4 [&_button]:text-[0.88rem]'
 )
 
-export const recordsDateGridClass = cn(
+export const recordsDateGridClass = cx(
   'grid grid-cols-2 gap-[0.4rem]',
   '[&_button]:rounded-[var(--radius)] [&_button]:border [&_button]:border-border [&_button]:bg-bg [&_button]:px-[0.35rem] [&_button]:py-[0.48rem] [&_button]:text-[0.76rem] [&_button]:font-semibold [&_button]:text-muted [&_button]:transition-[background,color,border-color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   '[&_button.active]:border-primary [&_button.active]:bg-primary [&_button.active]:text-on-primary'
@@ -93,7 +93,7 @@ export const recordsSummarySectionClass = 'mt-3 flex flex-col gap-2'
 
 export const recordsSummaryHintClass = 'm-0 text-center text-[0.72rem] font-medium text-muted'
 
-export const recordsSummaryTotalCardClass = cn(
+export const recordsSummaryTotalCardClass = cx(
   'p-4 text-center transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:shadow-[var(--shadow)]',
   '[&.stat-card_.stat-card-value-row--wide]:justify-center'
 )
@@ -113,7 +113,7 @@ export const recordItemTitleClass =
 
 export const recordItemMetaClass = 'text-[0.75rem] text-muted'
 
-export const recordItemInteractiveClass = cn(
+export const recordItemInteractiveClass = cx(
   'relative -mx-[0.65rem] animate-[recordItemIn_0.4s_var(--ease-page)_both] rounded-sm border-b-transparent px-[0.65rem] py-[0.85rem] transition-[background,transform,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   '[&+&]:border-t [&+&]:border-border',
   'hover:-translate-x-[3px] hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_65%,transparent)] hover:shadow-[inset_3px_0_0_color-mix(in_srgb,var(--color-primary)_35%,transparent)]',
@@ -121,7 +121,7 @@ export const recordItemInteractiveClass = cn(
   'motion-reduce:animate-none motion-reduce:transition-none motion-reduce:hover:translate-x-0'
 )
 
-export const recordItemAccentClass = cn(
+export const recordItemAccentClass = cx(
   'pointer-events-none absolute top-1/2 right-0 h-0 w-[3px] -translate-y-1/2 rounded-full opacity-0 transition-[height,opacity] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
   '[.record-item--interactive:hover_&]:h-[60%] [.record-item--interactive:hover_&]:opacity-100',
   '[.record-item--income_&]:bg-[var(--color-income)]',
@@ -153,12 +153,23 @@ export const receivablesFiltersRangeClass = 'mt-[0.35rem]'
 
 export const dataEntryTypeSegmentClass = 'mb-4'
 
-export const dataEntryPageClass = 'mx-auto w-full max-w-[32rem]'
+/** One column; a 760px two-column card on desktop. */
+export const dataEntryPageClass = 'mx-auto w-full max-w-[32rem] xl:max-w-[47.5rem]'
+
+/**
+ * Desktop entry form: fields two per row (the date + amount row joins the grid),
+ * the note and the actions span both columns.
+ */
+export const entryFormGridClass = cx(
+  'xl:grid xl:grid-cols-2 xl:items-start xl:gap-x-5',
+  'xl:[&>.form-row]:contents xl:[&>.form-row>.form-field]:mb-[var(--form-gap)]',
+  'xl:[&>:last-child]:col-span-2 xl:[&>:nth-last-child(2)]:col-span-2'
+)
 
 export function dataEntryFormCardClass(type?: 'income' | 'expense' | 'custom') {
   return cn(
     'rounded-[var(--radius)] border bg-surface p-4 shadow-[var(--shadow)]',
-    'lg:p-5',
+    'md:p-5',
     type === 'income' && 'border-[color-mix(in_srgb,var(--color-income)_22%,var(--color-border))]',
     type === 'expense' &&
       'border-[color-mix(in_srgb,var(--color-expense)_22%,var(--color-border))]',
@@ -167,13 +178,13 @@ export function dataEntryFormCardClass(type?: 'income' | 'expense' | 'custom') {
   )
 }
 
-export const dataEntryFormActionsClass = cn(
+export const dataEntryFormActionsClass = cx(
   'mt-1 border-t border-[color-mix(in_srgb,var(--color-border)_80%,transparent)] pt-4'
 )
 
 export const formFieldNoteClass = 'mb-[1.15rem]'
 
-export const fieldRowClass = cn(
+export const fieldRowClass = cx(
   'mb-3 flex items-start gap-2 rounded-lg bg-bg p-3',
   '[&_.form-group]:mb-0 [&_.form-group]:flex-1 [&_.remove-btn]:mt-6 [&_.remove-btn]:p-2 [&_.remove-btn]:text-[1.1rem] [&_.remove-btn]:text-danger'
 )
@@ -196,7 +207,7 @@ export const dashboardReconcileFormulaClass = 'text-[0.72rem] opacity-85'
 
 export const reconcileDiffClass = 'font-bold'
 
-export const toggleChipGridClass = cn(
+export const toggleChipGridClass = cx(
   'flex flex-wrap gap-[0.45rem]',
   '[&_button]:rounded-full [&_button]:border [&_button]:border-border [&_button]:bg-bg [&_button]:px-[0.85rem] [&_button]:py-[0.45rem] [&_button]:text-[0.78rem] [&_button]:font-semibold [&_button]:text-muted [&_button]:transition-[background,color,border-color] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   '[&_button.active]:border-primary [&_button.active]:bg-primary [&_button.active]:text-on-primary'

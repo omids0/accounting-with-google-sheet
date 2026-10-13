@@ -30,6 +30,8 @@ interface CalendarWheelFieldsProps {
   className?: string
   /** Earliest selectable date; wheels hide anything before it. */
   minIso?: string
+  /** Enter on a wheel confirms (the date sheet). */
+  onEnter?: () => void
 }
 
 export default function CalendarWheelFields({
@@ -37,7 +39,8 @@ export default function CalendarWheelFields({
   iso,
   onIsoChange,
   className,
-  minIso
+  minIso,
+  onEnter
 }: CalendarWheelFieldsProps) {
   const effectiveIso = minIso && iso && iso < minIso ? minIso : iso
 
@@ -108,13 +111,14 @@ export default function CalendarWheelFields({
   }
 
   return (
-    <div className={cn(jalaliDatePickerClass, className)}>
+    <div className={cn(jalaliDatePickerClass, className)} data-wheel-group>
       <div className={jalaliDatePickerColumnClass}>
         <span className={jalaliDatePickerLabelClass}>روز</span>
         <WheelPicker
           value={String(safeDay)}
           onChange={next => update(year, month, Number(next))}
           aria-label="روز"
+          onEnter={onEnter}
           items={dayItems}
         />
       </div>
@@ -124,6 +128,7 @@ export default function CalendarWheelFields({
           value={String(month)}
           onChange={next => update(year, Number(next), safeDay)}
           aria-label="ماه"
+          onEnter={onEnter}
           items={monthItems}
         />
       </div>
@@ -133,6 +138,7 @@ export default function CalendarWheelFields({
           value={String(year)}
           onChange={next => update(Number(next), month, safeDay)}
           aria-label="سال"
+          onEnter={onEnter}
           items={yearItems}
         />
       </div>

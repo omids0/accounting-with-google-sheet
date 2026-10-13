@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
+import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
@@ -20,6 +21,8 @@ import { listModulePageClass } from '../ui/featureCardStyles'
 export default function PersonalRemindersPage({ active = true }: PersonalRemindersPageProps) {
   const data = usePersonalRemindersData()
   const form = usePersonalRemindersForm({ onSaved: data.loadItems })
+
+  useHighlightParam()
 
   const {
     filterModalOpen,
@@ -47,6 +50,7 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
       ariaLabel: 'عملیات یادآوری',
       actions: createPageSpeedDialActions({
         onAdd: () => form.openCreateForm(),
+        addLabel: 'افزودن یادآوری',
         onFilter: openFilterModal,
         onRefresh: data.loadItems,
         refreshDisabled: data.loading,
@@ -85,6 +89,7 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
         chips={filterChips}
         onOpenFilters={openFilterModal}
         onClearAll={clearAllFilters}
+        inHeader
       />
 
       <FilterModal

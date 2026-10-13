@@ -1,3 +1,4 @@
+import { wasNudgeShownToday } from './nudges'
 import {
   countRecordRows,
   getOnboardingState,
@@ -8,8 +9,7 @@ import {
   CHECKS_SHEET,
   DANG_SPLIT_GROUPS_SHEET,
   PERSONAL_REMINDERS_SHEET,
-  TIMESHEETS_SHEET,
-  VEHICLES_SHEET
+  TIMESHEETS_SHEET
 } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
 import { getItem, setItem } from './storage'
@@ -29,14 +29,8 @@ export interface DiscoveryFeature {
   sheets: string[]
 }
 
+/** Features without a data signal; vehicles are suggested after a «خودرو» expense instead. */
 export const DISCOVERY_FEATURES: DiscoveryFeature[] = [
-  {
-    id: 'vehicle',
-    tab: 'vehicle-service',
-    title: 'سرویس خودرو',
-    pitch: 'موعد تعویض روغن، بیمه و معاینه فنی ماشینت را ثبت کن تا یادت نرود.',
-    sheets: [VEHICLES_SHEET]
-  },
   {
     id: 'reminders',
     tab: 'personal-reminders',
@@ -106,6 +100,8 @@ export function isDiscoveryEligible(
   now = Date.now()
 ): boolean {
   if (readState(spreadsheetId).dismissed) return false
+  // A contextual suggestion already spoke today.
+  if (wasNudgeShownToday(spreadsheetId, new Date(now))) return false
 
   const onboarding = getOnboardingState(spreadsheetId)
 

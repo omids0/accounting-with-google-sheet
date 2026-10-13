@@ -170,6 +170,7 @@ export function useTimesheetsPage() {
       ariaLabel: 'عملیات تایم‌شیت‌ها',
       actions: createPageSpeedDialActions({
         onAdd: openCreateForm,
+        addLabel: 'افزودن تایم‌شیت',
         onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,

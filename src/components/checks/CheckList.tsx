@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { totalChecksInRange, totalUnpaidChecksInRange } from '../../services/checks'
 import {
   formatJalaliMonthLabel,
@@ -14,6 +15,9 @@ import { DangCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import CheckCard from './CheckCard'
 import type { CheckWithRow } from './types'
+import DataTable, { type DataTableColumn } from '../table/DataTable'
+import { checkboxColumn, dateColumn, moneyColumn, textColumn } from '../table/tableColumns'
+import TableRowActions from '../table/TableRowActions'
 import { dashboardStatGridClass } from '../ui/chartStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 
@@ -39,6 +43,7 @@ export default function CheckList({
   onDelete,
   onAdd
 }: CheckListProps) {
+  const isDesktop = useIsDesktop()
   const monthRange = useMemo(() => getInstallmentDueRange('month-to-date'), [])
   const monthLabel = useMemo(() => formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso())), [])
 
@@ -50,8 +55,26 @@ export default function CheckList({
     [filteredItems, monthRange]
   )
 
+  const columns = useMemo<DataTableColumn<CheckWithRow>[]>(
+    () => [
+      checkboxColumn({
+        header: 'پرداخت شد',
+        checked: item => item.paid,
+        disabled: item => togglingId === item.id,
+        label: item => `پرداخت شد: چک ${item.checkNumber}`,
+        onChange: onTogglePaid
+      }),
+      textColumn('number', 'شماره', item => item.checkNumber, true),
+      textColumn('counterparty', 'طرف حساب', item => item.counterparty),
+      dateColumn('created', 'صدور', item => item.creationDate),
+      dateColumn('due', 'سررسید', item => item.dueDate),
+      moneyColumn('amount', 'مبلغ', item => item.amount)
+    ],
+    [togglingId, onTogglePaid]
+  )
+
   if (loading && items.length === 0) {
-    return <DangCardListSkeleton footerStats={2} />
+    return <DangCardListSkeleton footerStats={2} table />
   }
 
   if (items.length === 0) {
@@ -71,18 +94,31 @@ export default function CheckList({
 
   return (
     <>
-      <div className={listCardsContainerClass}>
-        {filteredItems.map(item => (
-          <CheckCard
-            key={item.id}
-            item={item}
-            togglingId={togglingId}
-            onTogglePaid={onTogglePaid}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        ))}
-      </div>
+      {isDesktop ? (
+        <DataTable
+          label="چک‌ها"
+          rows={filteredItems}
+          columns={columns}
+          rowKey={item => item.id}
+          isMuted={item => item.paid}
+          actions={item => (
+            <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+          )}
+        />
+      ) : (
+        <div className={listCardsContainerClass}>
+          {filteredItems.map(item => (
+            <CheckCard
+              key={item.id}
+              item={item}
+              togglingId={togglingId}
+              onTogglePaid={onTogglePaid}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
 
       <div className={dashboardStatGridClass}>
         <StatCard

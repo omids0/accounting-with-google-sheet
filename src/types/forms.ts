@@ -31,6 +31,8 @@ export interface SpreadsheetEntry {
 export interface NetAvailableAssetConfig {
   wallet: boolean
   treasury: boolean
+  /** Savings goals; their balance is part of `treasuryTotal` but toggled on its own. */
+  goals: boolean
   receivables: boolean
 }
 

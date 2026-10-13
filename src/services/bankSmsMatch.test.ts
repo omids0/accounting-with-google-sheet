@@ -5,6 +5,7 @@ import { guessTemplate } from './bankSmsGuess'
 import {
   accountMatchesRef,
   compileTemplate,
+  guessSampleAccount,
   matchSms,
   refDigits,
   sampleRefDigits
@@ -158,5 +159,29 @@ describe('account references', () => {
     expect(accountMatchesRef(account, '0101234567001')).toBe(true)
     expect(accountMatchesRef(account, '***9999')).toBe(false)
     expect(accountMatchesRef(account, null)).toBe(null)
+  })
+})
+
+describe('guessSampleAccount', () => {
+  const [MELLAT_DEBIT] = BANK_SMS_FIXTURES
+  const parts = guessTemplate(MELLAT_DEBIT.sample).parts
+  const mellat = fixtureAccount('mellat', { accountNumber: '45670001234' })
+  const other = fixtureAccount('other', { cardNumber: '6037990000009999' })
+
+  it('picks the account whose number fits the SMS digits', () => {
+    expect(guessSampleAccount(parts, MELLAT_DEBIT.sample, [other, mellat])).toBe('mellat')
+  })
+
+  it('prefers digits the user tied to an account', () => {
+    expect(
+      guessSampleAccount(parts, MELLAT_DEBIT.sample, [other, mellat], { '1234': 'other' })
+    ).toBe('other')
+  })
+
+  it('falls back to the only account, else leaves the choice to the user', () => {
+    const blank = fixtureAccount('blank')
+
+    expect(guessSampleAccount(parts, MELLAT_DEBIT.sample, [blank])).toBe('blank')
+    expect(guessSampleAccount(parts, MELLAT_DEBIT.sample, [blank, other])).toBe('')
   })
 })

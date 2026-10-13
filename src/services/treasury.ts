@@ -1,5 +1,5 @@
-import type { VaultAction, VaultAssetType, VaultHolding, VaultTransaction } from '../types'
-import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
+import type { VaultAction, VaultAssetType, VaultTransaction } from '../types'
+import { importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { TREASURY_HEADERS } from './sheetHeaders'
 import { TREASURY_SHEET } from './sheetNames'
 import {
@@ -9,7 +9,10 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
-import { getAssetLabel, getAssetUnit } from './tgju'
+import { getAssetClassLabel, normalizeAssetId, resolveVaultAsset } from './treasuryCatalog'
+import { loadVaultCatalog } from './treasuryCatalogSheet'
+import { formatQuantityValue } from './treasuryQuantity'
+import { downloadTextFile, rowsToCsv } from '../utils/csv'
 import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
@@ -25,7 +28,7 @@ function rowToTransaction(
     rowNumber,
     id: row[0] ?? '',
     createdAt: row[1] ?? '',
-    assetType: (row[2] ?? 'sekeb') as VaultAssetType,
+    assetType: normalizeAssetId(row[2]) || 'sekeb',
     action: (row[3] ?? 'buy') as VaultAction,
     quantity: parseNumeric(row[4]),
     unitPrice: parseNumeric(row[5]),
@@ -45,53 +48,6 @@ function transactionToRow(tx: VaultTransaction): string[] {
     tx.transactionDate,
     tx.note
   ]
-}
-
-export function netQuantity(transactions: VaultTransaction[], assetType: VaultAssetType): number {
-  return transactions
-    .filter(tx => tx.assetType === assetType)
-    .reduce((sum, tx) => sum + (tx.action === 'buy' ? tx.quantity : -tx.quantity), 0)
-}
-
-export function computeHoldings(
-  transactions: VaultTransaction[],
-  prices: Record<VaultAssetType, number>
-): VaultHolding[] {
-  const byAsset = new Map<VaultAssetType, VaultTransaction[]>()
-
-  for (const tx of transactions) {
-    const list = byAsset.get(tx.assetType) ?? []
-
-    list.push(tx)
-    byAsset.set(tx.assetType, list)
-  }
-
-  const holdings: VaultHolding[] = []
-
-  for (const [assetType, txs] of byAsset) {
-    const qty = netQuantity(txs, assetType)
-
-    if (qty <= 0) continue
-
-    const sorted = [...txs].sort((a, b) =>
-      (b.transactionDate || '').localeCompare(a.transactionDate || '')
-    )
-
-    const rawPrice = prices[assetType]
-
-    // Never let a NaN quote poison the holding value or the dashboard total.
-    const unitPrice = rawPrice != null && Number.isFinite(rawPrice) && rawPrice > 0 ? rawPrice : 0
-
-    holdings.push({
-      assetType,
-      netQuantity: qty,
-      currentUnitPrice: unitPrice,
-      totalValue: qty * unitPrice,
-      transactions: sorted
-    })
-  }
-
-  return holdings.sort((a, b) => a.assetType.localeCompare(b.assetType))
 }
 
 export async function ensureTreasurySheet(spreadsheetId: string): Promise<void> {
@@ -152,38 +108,70 @@ export async function deleteVaultTransaction(
   await deleteSheetRow(spreadsheetId, TREASURY_SHEET, rowNumber)
 }
 
-const VALID_ASSET_TYPES = new Set<VaultAssetType>([
-  'sekeb',
-  'sekee',
-  'nim',
-  'rob',
-  'gerami',
-  'geram18',
-  'usd'
-])
-
 const VALID_ACTIONS = new Set<VaultAction>(['buy', 'sell'])
 
+const EXPORT_ASSET_HEADERS = ['کلاس', 'نماد', 'واحد']
+
+/** Asset class, symbol and unit for an export row (the sheet itself stores only the id). */
+function assetColumns(assetType: string): [string, string, string] {
+  const asset = resolveVaultAsset(assetType)
+
+  return [getAssetClassLabel(asset.assetClass), asset.symbol, asset.unit]
+}
+
+/** The sheet's columns plus class, symbol and unit; import reads the first eight. */
 export async function exportTreasuryCsv(spreadsheetId: string): Promise<string | null> {
-  return exportSheetCsv(spreadsheetId, TREASURY_SHEET, TREASURY_HEADERS, 'صندوقچه.csv')
+  await loadVaultCatalog(spreadsheetId)
+
+  const rows = await fetchSheetRows(spreadsheetId, TREASURY_SHEET)
+
+  return downloadTextFile(
+    'صندوقچه.csv',
+    rowsToCsv(
+      [...TREASURY_HEADERS, ...EXPORT_ASSET_HEADERS],
+      rows.map(row => [
+        ...TREASURY_HEADERS.map((_, index) => row[index] ?? ''),
+        ...assetColumns(normalizeAssetId(row[2]))
+      ])
+    )
+  )
 }
 
 export async function exportTreasuryPdf(spreadsheetId: string): Promise<string | null> {
+  await loadVaultCatalog(spreadsheetId)
+
   const transactions = await fetchVaultTransactions(spreadsheetId)
 
-  const headers = ['نوع دارایی', 'عملیات', 'مقدار', 'قیمت واحد', 'جمع', 'تاریخ', 'توضیحات']
+  const headers = [
+    'دارایی',
+    ...EXPORT_ASSET_HEADERS,
+    'عملیات',
+    'مقدار',
+    'قیمت واحد',
+    'جمع',
+    'تاریخ',
+    'توضیحات'
+  ]
 
-  const rows = transactions.map(tx => [
-    getAssetLabel(tx.assetType),
-    formatVaultAction(tx.action),
-    `${tx.quantity.toLocaleString('fa-IR')} ${getAssetUnit(tx.assetType)}`,
-    formatMoney(tx.unitPrice),
-    formatMoney(tx.quantity * tx.unitPrice),
-    formatPersianDate(tx.transactionDate),
-    tx.note
-  ])
+  const rows = transactions.map(tx => {
+    const asset = resolveVaultAsset(tx.assetType)
+
+    return [
+      asset.name,
+      ...assetColumns(tx.assetType),
+      formatVaultAction(tx.action),
+      formatQuantityValue(tx.quantity, asset.decimals),
+      formatMoney(tx.unitPrice),
+      formatMoney(tx.quantity * tx.unitPrice),
+      formatPersianDate(tx.transactionDate),
+      tx.note
+    ]
+  })
 
   const cellClasses = transactions.map(() => [
+    '',
+    '',
+    '',
     '',
     '',
     '',
@@ -202,13 +190,16 @@ export async function exportTreasuryPdf(spreadsheetId: string): Promise<string |
   })
 }
 
+/** Rows must name an asset of the catalog (by id, or a legacy id or name). */
 export async function importTreasuryCsv(spreadsheetId: string, csvContent: string) {
+  const knownIds = new Set((await loadVaultCatalog(spreadsheetId)).map(asset => asset.id))
+
   return importSheetCsv(spreadsheetId, TREASURY_SHEET, TREASURY_HEADERS, csvContent, cells => {
-    const assetType = (cells[2] ?? '').trim() as VaultAssetType
+    const assetType = normalizeAssetId(cells[2])
 
     const action = (cells[3] ?? '').trim() as VaultAction
 
-    if (!VALID_ASSET_TYPES.has(assetType) || !VALID_ACTIONS.has(action)) {
+    if (!knownIds.has(assetType) || !VALID_ACTIONS.has(action)) {
       return null
     }
 
