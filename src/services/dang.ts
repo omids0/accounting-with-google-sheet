@@ -1,7 +1,9 @@
 import type { Dang } from '../types'
 import { logItemActivity } from './activityLog'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
-import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
+import { deleteLinkedExpenseRecord } from './paymentTransactions'
+import type { SettleOptions, UnlinkChoice } from './settleOptions'
+import { createLinkedRecordWithWallet, deleteLinkedRecordWithWallet } from './settleRecords'
 import { DANG_HEADERS } from './sheetHeaders'
 import { DANG_SHEET } from './sheetNames'
 import {
@@ -175,16 +177,23 @@ export async function deleteDang(
 export async function toggleDangPaid(
   spreadsheetId: string,
   dang: Dang & { rowNumber: number },
-  paid: boolean
+  paid: boolean,
+  options?: SettleOptions,
+  unlink?: UnlinkChoice
 ): Promise<Dang> {
   if (paid && !dang.paid) {
-    const transactionRecordId = await createLinkedExpenseRecord(spreadsheetId, {
-      title: `بدهی: ${dang.title}`,
-      amount: dang.amount,
-      category: dang.category,
-      subCategory: dang.subCategory,
-      note: dang.note
-    })
+    const transactionRecordId = await createLinkedRecordWithWallet(
+      spreadsheetId,
+      'expense',
+      {
+        title: `بدهی: ${dang.title}`,
+        amount: dang.amount,
+        category: dang.category,
+        subCategory: dang.subCategory,
+        note: dang.note
+      },
+      options
+    )
 
     const updated: Dang = {
       ...dang,
@@ -200,9 +209,13 @@ export async function toggleDangPaid(
   }
 
   if (!paid && dang.paid) {
-    if (dang.transactionRecordId) {
-      await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId)
-    }
+    await deleteLinkedRecordWithWallet(
+      spreadsheetId,
+      'expense',
+      dang.transactionRecordId ?? '',
+      'بدهی: ',
+      unlink
+    )
 
     const updated: Dang = {
       ...dang,

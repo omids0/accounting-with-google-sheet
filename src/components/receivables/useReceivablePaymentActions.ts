@@ -8,10 +8,13 @@ import {
   removeReceivablePayment,
   sortReceivables
 } from '../../services/receivables'
+import type { SettleOptions, UnlinkChoice } from '../../services/settleOptions'
+import { isLinkedForeignRecord } from '../../services/settleRecords'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
+import { useSettleFlow } from '../settle/useSettleFlow'
 
 type UseReceivablePaymentActionsParams = {
   setItems: React.Dispatch<React.SetStateAction<ReceivableWithRow[]>>
@@ -19,6 +22,8 @@ type UseReceivablePaymentActionsParams = {
 
 export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentActionsParams) {
   const [payingId, setPayingId] = useState('')
+
+  const settleFlow = useSettleFlow()
 
   const [settlingId, setSettlingId] = useState('')
 
@@ -35,7 +40,8 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
 
   const handleAddPayment = async (
     receivable: ReceivableWithRow,
-    values: { amount: number | ''; note: string }
+    values: { amount: number | ''; note: string },
+    options?: SettleOptions
   ) => {
     const spreadsheetId = requireSpreadsheetId()
 
@@ -59,10 +65,15 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
 
     setPayingId(receivable.id)
     try {
-      const updated = await addReceivablePayment(spreadsheetId, receivable, {
-        amount: payAmount,
-        note: values.note.trim()
-      })
+      const updated = await addReceivablePayment(
+        spreadsheetId,
+        receivable,
+        {
+          amount: payAmount,
+          note: values.note.trim()
+        },
+        options
+      )
 
       setItems(prev =>
         sortReceivables(
@@ -82,7 +93,8 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
 
   const handleSettle = async (
     receivable: ReceivableWithRow,
-    values: { title: string; note: string }
+    values: { title: string; note: string },
+    options?: SettleOptions
   ) => {
     const spreadsheetId = requireSpreadsheetId()
 
@@ -106,12 +118,17 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
 
     setSettlingId(receivable.id)
     try {
-      const updated = await addReceivablePayment(spreadsheetId, receivable, {
-        amount: remaining,
-        title,
-        category: getDefaultSettlementIncomeCategory(),
-        note: values.note.trim()
-      })
+      const updated = await addReceivablePayment(
+        spreadsheetId,
+        receivable,
+        {
+          amount: remaining,
+          title,
+          category: getDefaultSettlementIncomeCategory(),
+          note: values.note.trim()
+        },
+        options
+      )
 
       setItems(prev =>
         sortReceivables(
@@ -134,9 +151,23 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
 
     if (!spreadsheetId) return
 
+    // A payment linked to a record the user already had: ask before deleting that record too.
+    const recordId = receivable.payments.find(p => p.id === paymentId)?.transactionRecordId ?? ''
+    let unlink: UnlinkChoice | null | undefined
+
+    if (await isLinkedForeignRecord(spreadsheetId, 'income', recordId, 'طلب: ')) {
+      unlink = await settleFlow.askUnlink()
+      if (!unlink) return
+    }
+
     setTogglingPaymentId(paymentId)
     try {
-      const updated = await removeReceivablePayment(spreadsheetId, receivable, paymentId)
+      const updated = await removeReceivablePayment(
+        spreadsheetId,
+        receivable,
+        paymentId,
+        unlink ?? undefined
+      )
 
       setItems(prev =>
         sortReceivables(
@@ -154,6 +185,7 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
   }
 
   return {
+    settleFlow,
     payingId,
     settlingId,
     togglingPaymentId,

@@ -26,6 +26,7 @@ export function useReceivableMutations({
 
   return {
     ...formActions,
+    settleFlow: payments.settleFlow,
     payingId: payments.payingId,
     settlingId: payments.settlingId,
     togglingPaymentId: payments.togglingPaymentId,

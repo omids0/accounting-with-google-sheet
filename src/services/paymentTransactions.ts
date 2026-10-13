@@ -38,6 +38,20 @@ export interface LinkedRecordParams {
   walletApply?: string
 }
 
+/** The cells of the record a settlement writes (also what moves the wallet balance). */
+export function linkedRecordValues(params: LinkedRecordParams): Record<string, string | number> {
+  return {
+    date: params.date ?? getTodayIso(),
+    title: params.title,
+    category: resolveCategory(params.category),
+    [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
+    amount: params.amount,
+    note: params.note ?? '',
+    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? '',
+    [WALLET_APPLY_FIELD_ID]: params.walletApply ?? ''
+  }
+}
+
 export async function createLinkedExpenseRecord(
   spreadsheetId: string,
   params: LinkedRecordParams
@@ -52,18 +66,7 @@ export async function createLinkedExpenseRecord(
 
   const createdAt = new Date().toLocaleString('fa-IR')
 
-  const date = params.date ?? getTodayIso()
-
-  await appendRecord(spreadsheetId, expenseForm, recordId, createdAt, {
-    date,
-    title: params.title,
-    category: resolveCategory(params.category),
-    [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
-    amount: params.amount,
-    note: params.note ?? '',
-    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? '',
-    [WALLET_APPLY_FIELD_ID]: params.walletApply ?? ''
-  })
+  await appendRecord(spreadsheetId, expenseForm, recordId, createdAt, linkedRecordValues(params))
 
   return recordId
 }
@@ -82,18 +85,7 @@ export async function createLinkedIncomeRecord(
 
   const createdAt = new Date().toLocaleString('fa-IR')
 
-  const date = params.date ?? getTodayIso()
-
-  await appendRecord(spreadsheetId, incomeForm, recordId, createdAt, {
-    date,
-    title: params.title,
-    category: resolveCategory(params.category),
-    [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
-    amount: params.amount,
-    note: params.note ?? '',
-    [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? '',
-    [WALLET_APPLY_FIELD_ID]: params.walletApply ?? ''
-  })
+  await appendRecord(spreadsheetId, incomeForm, recordId, createdAt, linkedRecordValues(params))
 
   return recordId
 }

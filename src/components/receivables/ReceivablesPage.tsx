@@ -12,6 +12,7 @@ import {
   remainingAmount
 } from '../../services/receivables'
 import { isConfigured } from '../../services/settings'
+import type { SettleOptions } from '../../services/settleOptions'
 import { distributionSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
 import ConfirmActionModal from '../ConfirmActionModal'
@@ -19,11 +20,12 @@ import EmptyState from '../EmptyState'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
+import ReceivableTable from './ReceivableTable'
+import SettleFlowModals from '../settle/SettleFlowModals'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import ReceivableCard from './ReceivableCard'
 import ReceivableFormModal from './ReceivableFormModal'
-import ReceivableTable from './ReceivableTable'
 import type { ReceivableWithRow, ReceivablesPageProps } from './types'
 import { useReceivableMutations } from './useReceivableMutations'
 import { useReceivablesData } from './useReceivablesData'
@@ -97,6 +99,12 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
     return <EmptyState icon="receivables" message="ابتدا با گوگل وارد شوید" />
   }
 
+  const linkedIds = allItems.flatMap(item =>
+    item.payments.flatMap(payment =>
+      payment.transactionRecordId ? [payment.transactionRecordId] : []
+    )
+  )
+
   const cardProps = (item: ReceivableWithRow) => ({
     item,
     expanded: expandedId === item.id,
@@ -112,9 +120,11 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
     onClosePaymentForm: () => mutations.setPaymentReceivableId(null),
     onOpenSettlementForm: mutations.setSettlementReceivableId,
     onCloseSettlementForm: () => mutations.setSettlementReceivableId(null),
-    onAddPayment: (values: { amount: number | ''; note: string }) =>
-      mutations.handleAddPayment(item, values),
-    onSettle: (values: { title: string; note: string }) => mutations.handleSettle(item, values),
+    linkedIds,
+    onAddPayment: (values: { amount: number | ''; note: string }, options: SettleOptions) =>
+      mutations.handleAddPayment(item, values, options),
+    onSettle: (values: { title: string; note: string }, options: SettleOptions) =>
+      mutations.handleSettle(item, values, options),
     onRemovePayment: (paymentId: string) => mutations.handleRemovePayment(item, paymentId)
   })
 
@@ -221,6 +231,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
+      <SettleFlowModals flow={mutations.settleFlow} />
     </div>
   )
 }

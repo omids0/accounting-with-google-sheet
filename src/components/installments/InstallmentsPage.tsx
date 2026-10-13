@@ -16,6 +16,7 @@ import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
+import SettleFlowModals from '../settle/SettleFlowModals'
 import StatCard from '../StatCard'
 import InstallmentFormModal from './InstallmentFormModal'
 import InstallmentsList from './InstallmentsList'
@@ -134,6 +135,8 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
         onPaymentAmountSave={mutations.handlePaymentAmountSave}
         onAdd={mutations.openCreateForm}
       />
+
+      <SettleFlowModals flow={mutations.settleFlow} />
 
       {plans.length > 0 && (
         <div className={dashboardStatGridClass}>

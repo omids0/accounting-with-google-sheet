@@ -20,6 +20,7 @@ export function recordToLedgerEntry(form: CustomForm, record: SheetRecord): Ledg
     category: record.values.category ?? '',
     subCategory: record.values[SUBCATEGORY_FIELD_ID] ?? '',
     title: record.values.title ?? '',
+    note: record.values.note ?? '',
     createdAtMs: parseCreatedAtMs(record.createdAt),
     moved: isWalletApplied(record.values)
   }

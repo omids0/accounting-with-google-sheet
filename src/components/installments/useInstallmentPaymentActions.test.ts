@@ -12,6 +12,15 @@ vi.mock('../../services/installments', () => ({
   updateInstallmentPaymentAmount: vi.fn()
 }))
 
+vi.mock('../settle/useSettleFlow', () => ({
+  useSettleFlow: () => ({
+    askSettle: () => Promise.resolve({ date: '2026-01-01', walletAccount: '', walletApply: 'خیر' }),
+    askUnlink: () => Promise.resolve('keep')
+  })
+}))
+
+vi.mock('../../services/settleRecords', () => ({ isLinkedForeignRecord: () => false }))
+
 vi.mock('../../utils/authGuard', () => ({ requireSpreadsheetId: () => 'sheet-1' }))
 
 vi.mock('../../utils/sheetError', () => ({ handleSheetError: () => true }))
@@ -110,6 +119,8 @@ describe('useInstallmentPaymentActions toggle locking', () => {
     await act(async () => {
       const again = hook.handleTogglePayment(plan, 1, true)
 
+      // The settle question comes first: the toggle starts once it is answered.
+      await vi.waitFor(() => expect(toggleInstallmentPayment).toHaveBeenCalledTimes(3))
       release()
       await again
     })

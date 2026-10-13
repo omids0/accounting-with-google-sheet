@@ -20,6 +20,8 @@ export interface LedgerEntry {
   category?: string
   subCategory?: string
   title?: string
+  /** «توضیحات»: a record from a bank SMS carries «ثبت از پیامک». */
+  note?: string
   /** «زمان ثبت» as epoch ms; `null` when the cell cannot be read. */
   createdAtMs?: number | null
   /** false when «اثر بر موجودی» = خیر: the record left the account balance alone. */

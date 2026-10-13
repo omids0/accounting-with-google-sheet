@@ -4,6 +4,7 @@ import type { ReceivableWithRow } from './types'
 import { buildSettlementTitle } from './utils'
 import { isReceivableComplete, paidAmount, remainingAmount } from '../../services/receivables'
 import { getReceivableDisplayTitle } from '../../services/receivablesRow'
+import type { SettleOptions } from '../../services/settleOptions'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { progressPercent } from '../../utils/progress'
@@ -56,8 +57,9 @@ type ReceivableCardProps = {
   onClosePaymentForm: () => void
   onOpenSettlementForm: (receivableId: string) => void
   onCloseSettlementForm: () => void
-  onAddPayment: (values: { amount: number | ''; note: string }) => void
-  onSettle: (values: { title: string; note: string }) => void
+  linkedIds: readonly string[]
+  onAddPayment: (values: { amount: number | ''; note: string }, options: SettleOptions) => void
+  onSettle: (values: { title: string; note: string }, options: SettleOptions) => void
   onRemovePayment: (paymentId: string) => void
   /** Only the details (desktop table detail row); the row itself shows the summary. */
   bodyOnly?: boolean
@@ -79,6 +81,7 @@ export default function ReceivableCard({
   onClosePaymentForm,
   onOpenSettlementForm,
   onCloseSettlementForm,
+  linkedIds,
   onAddPayment,
   onSettle,
   onRemovePayment,
@@ -217,6 +220,7 @@ export default function ReceivableCard({
                 <ReceivablePaymentForm
                   receivableId={item.id}
                   paying={payingId === item.id}
+                  linkedIds={linkedIds}
                   onSubmit={onAddPayment}
                   onCancel={onClosePaymentForm}
                 />
@@ -227,6 +231,7 @@ export default function ReceivableCard({
                   defaultTitle={buildSettlementTitle(item)}
                   defaultNote={item.note ?? ''}
                   settling={settlingId === item.id}
+                  linkedIds={linkedIds}
                   onSubmit={onSettle}
                   onCancel={onCloseSettlementForm}
                 />

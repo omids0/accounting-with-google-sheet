@@ -2,7 +2,9 @@ import type { Check } from '../types'
 import { logItemActivity } from './activityLog'
 import { CHECK_ATTACHMENT_COLUMN } from './attachmentColumn'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
-import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
+import { deleteLinkedExpenseRecord } from './paymentTransactions'
+import type { SettleOptions, UnlinkChoice } from './settleOptions'
+import { createLinkedRecordWithWallet, deleteLinkedRecordWithWallet } from './settleRecords'
 import { CHECKS_HEADERS } from './sheetHeaders'
 import { CHECKS_SHEET } from './sheetNames'
 import {
@@ -157,16 +159,23 @@ export async function deleteCheck(
 export async function toggleCheckPaid(
   spreadsheetId: string,
   check: Check & { rowNumber: number },
-  paid: boolean
+  paid: boolean,
+  options?: SettleOptions,
+  unlink?: UnlinkChoice
 ): Promise<Check> {
   if (paid && !check.paid) {
-    const transactionRecordId = await createLinkedExpenseRecord(spreadsheetId, {
-      title: `چک: ${check.checkNumber} — ${check.counterparty}`,
-      amount: check.amount,
-      category: CHECK_EXPENSE_CATEGORY,
-      subCategory: check.subCategory,
-      note: `سررسید: ${check.dueDate}`
-    })
+    const transactionRecordId = await createLinkedRecordWithWallet(
+      spreadsheetId,
+      'expense',
+      {
+        title: `چک: ${check.checkNumber} — ${check.counterparty}`,
+        amount: check.amount,
+        category: CHECK_EXPENSE_CATEGORY,
+        subCategory: check.subCategory,
+        note: `سررسید: ${check.dueDate}`
+      },
+      options
+    )
 
     const updated: Check = {
       ...check,
@@ -182,9 +191,13 @@ export async function toggleCheckPaid(
   }
 
   if (!paid && check.paid) {
-    if (check.transactionRecordId) {
-      await deleteLinkedExpenseRecord(spreadsheetId, check.transactionRecordId)
-    }
+    await deleteLinkedRecordWithWallet(
+      spreadsheetId,
+      'expense',
+      check.transactionRecordId ?? '',
+      'چک: ',
+      unlink
+    )
 
     const updated: Check = {
       ...check,
