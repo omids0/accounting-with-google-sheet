@@ -1,3 +1,6 @@
+import { createPortal } from 'react-dom'
+
+import { useAnchoredPosition } from './useAnchoredPosition'
 import { useSelectListbox } from './useSelectListbox'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
@@ -41,6 +44,8 @@ export default function Select({
   const listbox = useSelectListbox(options, value, option => onChange(option.value))
   const { open, activeIndex } = listbox
 
+  const menuStyle = useAnchoredPosition(listbox.triggerRef, open, () => listbox.close(false))
+
   const selected = options.find(option => option.value === value)
 
   const displayLabel = selected?.label ?? value
@@ -81,45 +86,48 @@ export default function Select({
         />
       </button>
 
-      {open && (
-        <div
-          ref={listbox.listboxRef}
-          id={listbox.listboxId}
-          className={customSelectMenuClass}
-          role="listbox"
-          aria-label={ariaLabel}
-          tabIndex={-1}
-          aria-activedescendant={activeIndex >= 0 ? listbox.optionId(activeIndex) : undefined}
-          onKeyDown={listbox.onListKeyDown}
-        >
-          {options.map((option, index) => {
-            const isSelected = option.value === value
+      {open &&
+        createPortal(
+          <div
+            ref={listbox.listboxRef}
+            id={listbox.listboxId}
+            className={customSelectMenuClass}
+            role="listbox"
+            style={menuStyle}
+            aria-label={ariaLabel}
+            tabIndex={-1}
+            aria-activedescendant={activeIndex >= 0 ? listbox.optionId(activeIndex) : undefined}
+            onKeyDown={listbox.onListKeyDown}
+          >
+            {options.map((option, index) => {
+              const isSelected = option.value === value
 
-            return (
-              <button
-                key={option.value}
-                id={listbox.optionId(index)}
-                type="button"
-                role="option"
-                tabIndex={-1}
-                aria-selected={isSelected}
-                className={customSelectOptionClass({
-                  selected: isSelected,
-                  disabled: option.disabled,
-                  active: index === activeIndex
-                })}
-                // Keeps focus on the listbox, which owns the keyboard.
-                onMouseDown={event => event.preventDefault()}
-                onMouseEnter={() => !option.disabled && listbox.setActiveIndex(index)}
-                onClick={() => handleSelect(option)}
-                disabled={option.disabled}
-              >
-                {option.label}
-              </button>
-            )
-          })}
-        </div>
-      )}
+              return (
+                <button
+                  key={option.value}
+                  id={listbox.optionId(index)}
+                  type="button"
+                  role="option"
+                  tabIndex={-1}
+                  aria-selected={isSelected}
+                  className={customSelectOptionClass({
+                    selected: isSelected,
+                    disabled: option.disabled,
+                    active: index === activeIndex
+                  })}
+                  // Keeps focus on the listbox, which owns the keyboard.
+                  onMouseDown={event => event.preventDefault()}
+                  onMouseEnter={() => !option.disabled && listbox.setActiveIndex(index)}
+                  onClick={() => handleSelect(option)}
+                  disabled={option.disabled}
+                >
+                  {option.label}
+                </button>
+              )
+            })}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }
