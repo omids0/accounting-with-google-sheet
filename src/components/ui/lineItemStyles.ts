@@ -1,4 +1,4 @@
-import { cx } from '../../utils/cn'
+import { cn, cx } from '../../utils/cn'
 
 /** «ریز اقلام» in the entry form: the dashed add row, the item list and the sum line. */
 export const lineItemsAddRowClass = cx(
@@ -40,17 +40,10 @@ export const lineItemsAddMoreClass = cx(
 const sumBase =
   'flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 px-3 py-2 text-[0.8rem] font-semibold'
 
-export const lineItemsSumOkClass = cx(
-  sumBase,
-  'border-t border-[var(--color-success-border)] bg-[var(--color-success-bg)] text-success'
-)
+/** Informational and muted: the items total never blocks saving. */
+export const lineItemsSumClass = cn(sumBase, 'border-t border-border font-normal text-muted')
 
-export const lineItemsSumBadClass = cx(
-  sumBase,
-  'border-t border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] text-danger'
-)
-
-export const lineItemsFixActionsClass = 'mt-2 flex flex-wrap items-center gap-2'
+export const lineItemSheetPairClass = 'grid grid-cols-2 gap-3 [&>*]:min-w-0'
 
 export const lineItemsBlockedHintClass = 'text-center text-[0.78rem] font-semibold text-danger'
 

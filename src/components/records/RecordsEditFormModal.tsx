@@ -22,7 +22,6 @@ import {
 } from '../form'
 import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
-import { LINE_ITEMS_BLOCKED_HINT, lineItemsMismatch } from '../form/entryFieldRules'
 import FormModal from '../FormModal'
 import RecurringModeOptions from '../recurring/RecurringModeOptions'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
@@ -131,9 +130,6 @@ export default function RecordsEditFormModal({
   const hasSubcategories =
     readSubcategories(resolveCategoryType(undefined, editingForm.id), selectedCategory).length > 0
 
-  // Items that do not add up to the amount keep the record from being saved.
-  const itemsMismatch = !showVehicleFields && lineItemsMismatch(values) !== null
-
   const handleCategoriesChange = (categories: string[]) => {
     setFields(current =>
       current.map(field => (field.id === 'category' ? { ...field, options: categories } : field))
@@ -156,8 +152,6 @@ export default function RecordsEditFormModal({
       onClose={onClose}
       onSubmit={onFormSubmit}
       saving={saving}
-      saveDisabled={itemsMismatch}
-      saveHint={itemsMismatch ? LINE_ITEMS_BLOCKED_HINT : undefined}
       saveLabel="ذخیره تغییرات"
       saveButtonVariant={
         editingForm.type === 'expense'

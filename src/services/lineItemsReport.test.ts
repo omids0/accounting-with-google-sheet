@@ -47,6 +47,43 @@ const records = [
   })
 ]
 
+describe('explicit unit price', () => {
+  it('wins over amount ÷ quantity for the item stat', () => {
+    const result = aggregateLineItems(
+      [
+        fakeRecord({
+          date: '2026-10-05',
+          category: 'خوراک',
+          amount: 700000,
+          // amount ÷ quantity would say 350 000; the user typed فی 300 000.
+          items: [{ name: 'موز', amount: 700000, note: '۲ کیلو', unitPrice: 300000, quantity: 2 }]
+        })
+      ],
+      RANGE,
+      'expense'
+    )
+
+    expect(result.items[0].unitPrice).toEqual({ value: 300000, unit: 'کیلو' })
+  })
+
+  it('feeds priceChanges with the typed prices', () => {
+    const stat = (value: number): ItemStat => ({
+      key: 'موز',
+      name: 'موز',
+      count: 1,
+      total: value,
+      average: value,
+      topCategory: '',
+      unitPrice: { value, unit: 'کیلو' }
+    })
+
+    expect(priceChanges([stat(330000)], [stat(300000)])[0]).toMatchObject({
+      from: 300000,
+      to: 330000
+    })
+  })
+})
+
 describe('aggregateLineItems', () => {
   it('groups spellings and totals the expense items of the range', () => {
     const result = aggregateLineItems(records, RANGE, 'expense')

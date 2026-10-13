@@ -2,9 +2,9 @@ import { useId, useState } from 'react'
 
 import LineItemSheet from './LineItemSheet'
 import { useLineItemsEditor } from './useLineItemsEditor'
-import { formatMoney, formatPersianNumber } from '../../utils/formatMoney'
+import { formatPersianNumber } from '../../utils/formatMoney'
+import { itemDetailLine } from '../../utils/lineItems'
 import AppIcon from '../AppIcon'
-import Button from '../ui/Button'
 import { formFieldClass, formLabelClass } from '../ui/formStyles'
 import {
   lineItemAmountClass,
@@ -15,11 +15,9 @@ import {
   lineItemRowClass,
   lineItemsAddMoreClass,
   lineItemsAddRowClass,
-  lineItemsFixActionsClass,
   lineItemsHintClass,
   lineItemsListClass,
-  lineItemsSumBadClass,
-  lineItemsSumOkClass
+  lineItemsSumClass
 } from '../ui/lineItemStyles'
 
 interface EntryLineItemsFieldProps {
@@ -102,7 +100,9 @@ export default function EntryLineItemsField({
               aria-label={`ویرایش قلم ${item.name}`}
             >
               <span className={lineItemNameClass}>{item.name}</span>
-              {item.note ? <span className={lineItemNoteClass}>{item.note}</span> : null}
+              {itemDetailLine(item) ? (
+                <span className={lineItemNoteClass}>{itemDetailLine(item)}</span>
+              ) : null}
             </button>
             <span className={lineItemAmountClass}>{formatPersianNumber(item.amount)}</span>
             <button
@@ -125,27 +125,17 @@ export default function EntryLineItemsField({
           <AppIcon name="add" size={16} />
           قلم جدید
         </button>
-        <div className={mismatch ? lineItemsSumBadClass : lineItemsSumOkClass} role="status">
+        <div className={lineItemsSumClass} role="status">
           <span>{`جمع اقلام ${formatPersianNumber(editor.sum)}`}</span>
           <span>
-            {mismatch
-              ? `${formatMoney(Math.abs(difference))} ${difference < 0 ? 'کمتر' : 'بیشتر'} از مبلغ`
-              : '✓ با مبلغ یکی است'}
+            {!mismatch
+              ? '✓ با مبلغ یکی است'
+              : difference < 0
+              ? `${formatPersianNumber(-difference)} از مبلغ ریز نشده`
+              : `${formatPersianNumber(difference)} بیشتر از مبلغ`}
           </span>
         </div>
       </div>
-      {mismatch && !disabled ? (
-        <div className={lineItemsFixActionsClass}>
-          <Button type="button" size="sm" variant="secondary" onClick={editor.setAmountToSum}>
-            {`مبلغ را ${formatPersianNumber(editor.sum)} کن`}
-          </Button>
-          {difference < 0 ? (
-            <Button type="button" size="sm" variant="secondary" onClick={editor.addOtherItem}>
-              {`قلم «سایر» ${formatPersianNumber(-difference)} اضافه کن`}
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
       {sheet}
     </div>
   )

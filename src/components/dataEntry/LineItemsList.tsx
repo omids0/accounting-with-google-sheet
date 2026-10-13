@@ -1,5 +1,5 @@
 import { formatPersianNumber } from '../../utils/formatMoney'
-import type { LineItem } from '../../utils/lineItems'
+import { itemDetailLine, type LineItem } from '../../utils/lineItems'
 import {
   lineItemAmountClass,
   lineItemNameClass,
@@ -16,7 +16,9 @@ export default function LineItemsList({ items, label }: { items: LineItem[]; lab
         <div key={`${index}-${item.name}`} className={`${lineItemRowClass} pe-3`} role="listitem">
           <span className="flex min-w-0 flex-1 flex-col">
             <span className={lineItemNameClass}>{item.name}</span>
-            {item.note ? <span className={lineItemNoteClass}>{item.note}</span> : null}
+            {itemDetailLine(item) ? (
+              <span className={lineItemNoteClass}>{itemDetailLine(item)}</span>
+            ) : null}
           </span>
           <span className={lineItemAmountClass}>{formatPersianNumber(item.amount)}</span>
         </div>

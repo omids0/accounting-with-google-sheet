@@ -8,9 +8,6 @@ import {
 } from '../../utils/lineItems'
 import { parseNumeric } from '../../utils/parseNumeric'
 
-/** The item the «سایر» shortcut adds for the part of the amount no item covers. */
-export const OTHER_ITEM_NAME = 'سایر'
-
 interface UseLineItemsEditorArgs {
   /** The form value `lineItems` (compact JSON). It is the only copy of the items. */
   value: string
@@ -66,13 +63,6 @@ export function useLineItemsEditor({
     addItem: (item: LineItem) => commit([...items, item]),
     updateItem: (index: number, item: LineItem) =>
       commit(items.map((entry, i) => (i === index ? item : entry))),
-    removeItem: (index: number) => commit(items.filter((_, i) => i !== index)),
-    /** «مبلغ را X کن»: the amount takes the sum of the items. */
-    setAmountToSum: () => onAmountChange(sum),
-    /** «قلم سایر D اضافه کن»: one item for what the others leave of the amount. */
-    addOtherItem: () => {
-      if (amountNumber > sum)
-        commit([...items, { name: OTHER_ITEM_NAME, amount: amountNumber - sum }])
-    }
+    removeItem: (index: number) => commit(items.filter((_, i) => i !== index))
   }
 }
