@@ -1,11 +1,11 @@
 import type { MonthlyOpeningBalance } from '../../services/monthlyBalance'
 import { cn } from '../../utils/cn'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
-import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AmountInput from '../AmountInput'
 import AppIcon from '../AppIcon'
 import { FormField } from '../form'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import { dashboardOpeningBodyClass, dashboardOpeningCardClass } from '../ui/chartStyles'
 import {
@@ -72,7 +72,7 @@ export default function OpeningBalanceCard({
           <div className={walletItemTitleRowClass}>
             <div className={walletItemTitleClass}>{formatJalaliMonthLabel(item.monthKey)}</div>
             <div className={cn(walletItemAmountClass, listCardAmountPillClass)}>
-              {formatMoney(displayAmount)}
+              <MoneyText amount={displayAmount} />
             </div>
           </div>
           <div className={walletItemNoteClass}>

@@ -5,13 +5,13 @@ import { buildSettlementTitle } from './utils'
 import { isReceivableComplete, paidAmount, remainingAmount } from '../../services/receivables'
 import { getReceivableDisplayTitle } from '../../services/receivablesRow'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { progressPercent } from '../../utils/progress'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
+import MoneyText from '../MoneyText'
 import ProgressBar from '../ProgressBar'
 import Button from '../ui/Button'
 import {
@@ -115,8 +115,17 @@ export default function ReceivableCard({
               <div className={listCardSubtitleClass}>
                 {showDebtorInSubtitle && <span>{item.debtor} · </span>}
                 {item.category && <span>{item.category} · </span>}
-                <span className={listCardAmountPillClass}>{formatMoney(item.amount)}</span>
-                {complete ? ' · تسویه شده' : ` · مانده: ${formatMoney(remaining)}`}
+                <span className={listCardAmountPillClass}>
+                  <MoneyText amount={item.amount} />
+                </span>
+                {complete ? (
+                  ' · تسویه شده'
+                ) : (
+                  <>
+                    {' · مانده: '}
+                    <MoneyText amount={remaining} />
+                  </>
+                )}
               </div>
               <ProgressBar
                 value={progress}
@@ -162,12 +171,14 @@ export default function ReceivableCard({
             </div>
             <div>
               <span className={receivableSummaryLabelClass}>پرداخت شده</span>
-              <span className={receivablePaidClass}>{formatMoney(paid)}</span>
+              <span className={receivablePaidClass}>
+                <MoneyText amount={paid} />
+              </span>
             </div>
             <div>
               <span className={receivableSummaryLabelClass}>مانده</span>
               <span className={complete ? receivableSettledClass : receivableRemainingClass}>
-                {formatMoney(remaining)}
+                <MoneyText amount={remaining} />
               </span>
             </div>
           </div>
@@ -185,7 +196,9 @@ export default function ReceivableCard({
                     onClick={e => e.stopPropagation()}
                   />
                   <div>
-                    <span>{formatMoney(payment.amount)}</span>
+                    <span>
+                      <MoneyText amount={payment.amount} />
+                    </span>
                     <span className={installmentDueClass}>
                       {formatIsoDatePersian(payment.paidAt)}
                     </span>

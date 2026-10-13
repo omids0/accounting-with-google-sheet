@@ -17,6 +17,7 @@ export type AppIconName =
   | 'contact'
   | 'warning'
   | 'back'
+  | 'back-start'
   | 'menu'
   | 'grip'
   | 'settings'
@@ -32,6 +33,8 @@ export type AppIconName =
   | 'calculator'
   | 'chart'
   | 'chevron-down'
+  | 'chevron-left'
+  | 'chevron-right'
   | 'swap'
   | 'lock'
   | 'fingerprint'
@@ -44,6 +47,11 @@ export type AppIconName =
   | 'eye'
   | 'eye-off'
   | 'map-pin'
+  | 'camera'
+  | 'image'
+  | 'paperclip'
+  | 'share'
+  | 'external'
 
 export interface AppIconProps {
   name: AppIconName

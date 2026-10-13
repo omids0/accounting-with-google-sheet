@@ -1,6 +1,8 @@
+import { numberLocale } from './digitStyle'
 import { jalaliToDate, jdnToGregorian } from './jalaliConvert'
 import { daysInJalaliMonth, getTodayIso, isoToJalali, JALALI_MONTHS, toIsoDate } from './jalaliDate'
 import { memoizeByKey } from './memoize'
+import { toPersianDigits as displayDigits } from './normalizeDigits'
 import { numberToPersianWords } from './numberToWords'
 
 export type CalendarSystem = 'shamsi' | 'miladi' | 'hijri'
@@ -166,12 +168,13 @@ function formatFa(
   calendar: CalendarSystem,
   options: Intl.DateTimeFormatOptions
 ): string {
-  const key = `${calendar}|${Object.keys(options).join(',')}`
+  const locale = numberLocale()
+  const key = `${locale}|${calendar}|${Object.keys(options).join(',')}`
 
   let formatter = displayFormatters.get(key)
 
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat('fa-IR', { calendar: CALENDAR_IDS[calendar], ...options })
+    formatter = new Intl.DateTimeFormat(locale, { calendar: CALENDAR_IDS[calendar], ...options })
     displayFormatters.set(key, formatter)
   }
 
@@ -205,7 +208,7 @@ export function getCalendarMonthWheelItems(
   return getCalendarMonthNames(calendar).map((name, index) => {
     const monthNumber = index + 1
 
-    const monthLabel = monthNumber.toLocaleString('fa-IR', { useGrouping: false })
+    const monthLabel = monthNumber.toLocaleString(numberLocale(), { useGrouping: false })
 
     return {
       value: String(monthNumber),
@@ -240,7 +243,7 @@ export function formatCalendarDateCompact(iso: string, calendar: CalendarSystem)
 function toPersianDigits(value: string | number, pad = 0): string {
   const raw = pad > 0 ? String(value).padStart(pad, '0') : String(value)
 
-  return raw.replace(/\d/g, digit => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)])
+  return displayDigits(raw)
 }
 
 function getCalendarMonthName(calendar: CalendarSystem, month: number): string {

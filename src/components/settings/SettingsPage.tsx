@@ -6,13 +6,16 @@ import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
 import ConfirmActionModal from '../ConfirmActionModal'
 import { SettingsSkeleton } from '../skeleton'
+import SettingsDisplayCard from './display/SettingsDisplayCard'
 import SettingsBudgetsCard from './SettingsBudgetsCard'
 import SettingsCategoriesCard from './SettingsCategoriesCard'
+import SettingsCloseYearCard from './SettingsCloseYearCard'
 import SettingsGeneralCard from './SettingsGeneralCard'
 import SettingsGoogleAccountCard from './SettingsGoogleAccountCard'
 import SettingsPwaInstallCard from './SettingsPwaInstallCard'
 import SettingsRecurringCard from './SettingsRecurringCard'
 import SettingsRemindersCard from './SettingsRemindersCard'
+import SettingsReportsCard from './SettingsReportsCard'
 import SettingsSection from './SettingsSection'
 import SettingsSpreadsheetCard from './SettingsSpreadsheetCard'
 import SettingsTwoPane, { type SettingsSectionConfig } from './SettingsTwoPane'
@@ -59,10 +62,17 @@ export default function SettingsPage() {
       )
     },
     {
+      id: 'display',
+      title: 'نمایش',
+      icon: 'sun',
+      description: 'اندازهٔ متن، تم، انیمیشن، کنتراست، ارقام و لرزش',
+      content: <SettingsDisplayCard />
+    },
+    {
       id: 'account',
       title: 'حساب و داده',
       icon: 'folder',
-      description: 'حساب گوگل، شیت داده‌ها و پشتیبان',
+      description: 'حساب گوگل، شیت داده‌ها، پشتیبان و بستن سال',
       content: (
         <>
           <SettingsGoogleAccountCard onLogout={settings.handleLogout} />
@@ -84,7 +94,10 @@ export default function SettingsPage() {
             />
           )}
           {settings.spreadsheetId ? (
-            <SettingsBackupCard spreadsheetId={settings.spreadsheetId} />
+            <>
+              <SettingsBackupCard spreadsheetId={settings.spreadsheetId} />
+              <SettingsCloseYearCard />
+            </>
           ) : null}
         </>
       )
@@ -118,6 +131,13 @@ export default function SettingsPage() {
             icon: 'refresh' as const,
             description: 'تراکنش‌های ماهانه: یادآوری یا ثبت خودکار',
             content: <SettingsRecurringCard />
+          },
+          {
+            id: 'reports',
+            title: 'گزارش‌ها',
+            icon: 'pdf' as const,
+            description: 'گزارش ماهانه اول هر ماه',
+            content: <SettingsReportsCard spreadsheetId={settings.spreadsheetId} />
           }
         ]
       : []),

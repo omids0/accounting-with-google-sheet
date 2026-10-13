@@ -1,7 +1,7 @@
 import type { CustomForm } from '../types'
 import { addArchiveTab } from './archiveRegistry'
 import { prepareArchiveTab, readTabs } from './archiveTabs'
-import { archiveSheetName, planYearSweep } from './recordArchive'
+import { archiveSheetName, planYearSweep, type YearSweepOptions } from './recordArchive'
 import { copyRowsToArchive, deleteArchivedRows, idOf } from './recordArchiveMove'
 import { forgetSeenSheets, stampSheetRevisions } from './sheetRevisions'
 import { normalizeSheetTitle } from './sheetsMeta'
@@ -19,18 +19,20 @@ import { cellToString } from '../utils/sheetValues'
  * archives: server-side copy, verify by id, then delete only rows whose content
  * equals their archived copy. Returns true when rows moved. An unconfirmed copy
  * stops the sweep before anything is deleted; a tab with the archive name that
- * this app did not create, or with another header, is left alone.
+ * this app did not create, or with another header, is left alone. `options`
+ * narrow the sweep to one year and lift the threshold (close-year wizard).
  */
 export async function sweepFormArchives(
   spreadsheetId: string,
   form: CustomForm,
-  currentYear = isoToJalali(getTodayIso()).year
+  currentYear = isoToJalali(getTodayIso()).year,
+  options: YearSweepOptions = {}
 ): Promise<boolean> {
   const versionBefore = getSheetWriteVersion(spreadsheetId, form.sheetName)
 
   const baseRows = await fetchSheetRangeFromApi(spreadsheetId, form.sheetName)
 
-  const plan = planYearSweep(baseRows, form, currentYear)
+  const plan = planYearSweep(baseRows, form, currentYear, options)
 
   if (!plan) return false
 
@@ -86,7 +88,8 @@ export async function sweepFormArchives(
     form,
     base,
     [...archives.values()],
-    currentYear
+    currentYear,
+    options
   )
 
   const stale: string[] = []

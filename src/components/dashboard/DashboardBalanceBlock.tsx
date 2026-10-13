@@ -1,7 +1,7 @@
 import { getNetAvailableConfig } from '../../services/settings'
 import type { FinancialSummary, NetAvailableConfig } from '../../types'
-import { formatMoney, formatSignedMoney } from '../../utils/formatMoney'
 import CalmBlock from '../CalmBlock'
+import MoneyText from '../MoneyText'
 import {
   calmListClass,
   calmNoteClass,
@@ -56,13 +56,13 @@ export default function DashboardBalanceBlock({
     {
       title: 'دارایی‌های منتخب',
       sub: parts.assets.join(' · ') || 'هیچ موردی انتخاب نشده',
-      value: formatMoney(financial.totalAssets),
+      value: <MoneyText amount={financial.totalAssets} />,
       tone: 'text-success'
     },
     {
       title: 'بدهی‌های منتخب',
       sub: parts.liabilities.join(' · ') || 'هیچ موردی انتخاب نشده',
-      value: formatSignedMoney(-financial.totalLiabilities),
+      value: <MoneyText amount={-financial.totalLiabilities} signed />,
       tone: 'text-danger'
     }
   ]

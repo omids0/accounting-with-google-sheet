@@ -7,6 +7,7 @@ import DashboardPeriodRow from './DashboardPeriodRow'
 import DashboardRecentBlock from './DashboardRecentBlock'
 import DashboardRecurringCard from './DashboardRecurringCard'
 import DashboardUpcomingBlock from './DashboardUpcomingBlock'
+import DashboardYearReviewCard from './DashboardYearReviewCard'
 import type { DashboardReminderItem } from '../../services/dashboardReminders'
 import type { DashboardData } from '../../types'
 import type { RecordsDatePreset } from '../../utils/dateRange'
@@ -64,6 +65,7 @@ export default function DashboardContent({
 }: DashboardContentProps) {
   return (
     <div className={dashboardCalmPageClass}>
+      <DashboardYearReviewCard />
       <BankSmsPendingBanner />
       <DashboardGoalCongratsCard />
       <DashboardRecurringCard />

@@ -1,3 +1,4 @@
+import { ATTACHMENTS_HEADER } from '../utils/attachmentIds'
 import { parseCsv, restoreCsvFormula } from '../utils/csv'
 
 export const INVALID_IMPORT_ROW_REASON = 'ستون‌های اصلی خالی یا نامعتبر است'
@@ -28,7 +29,11 @@ export interface ParsedImportCsv {
   firstLine: number
 }
 
-function hasHeaderRow(firstRow: string[], headers: string[]): boolean {
+function hasHeaderRow(firstRow: string[], allHeaders: string[]): boolean {
+  // A file exported before «پیوست» existed lacks that trailing column only.
+  const headers =
+    allHeaders[allHeaders.length - 1] === ATTACHMENTS_HEADER ? allHeaders.slice(0, -1) : allHeaders
+
   if (firstRow.length < headers.length) return false
 
   return headers.every((header, index) => firstRow[index]?.trim() === header)

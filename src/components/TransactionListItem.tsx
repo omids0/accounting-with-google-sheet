@@ -13,6 +13,8 @@ type TransactionTone = 'income' | 'expense' | 'neutral'
 
 interface TransactionListItemProps {
   title: string
+  /** After the title, e.g. the «📎 N» attachment badge. */
+  titleAddon?: ReactNode
   meta?: ReactNode
   children?: ReactNode
   tone?: TransactionTone
@@ -22,6 +24,7 @@ interface TransactionListItemProps {
 
 function TransactionListItem({
   title,
+  titleAddon,
   meta,
   children,
   tone = 'neutral',
@@ -45,7 +48,10 @@ function TransactionListItem({
     >
       <span className={recordItemAccentClass} aria-hidden="true" />
       <div className={recordItemMainClass}>
-        <div className={recordItemTitleClass}>{title}</div>
+        <div className={recordItemTitleClass}>
+          {title}
+          {titleAddon ? <> {titleAddon}</> : null}
+        </div>
         {meta ? <div className={recordItemMetaClass}>{meta}</div> : null}
       </div>
       {children}

@@ -10,8 +10,10 @@ import {
   sortInstallmentPayments,
   totalInstallmentAmount
 } from '../services/installments'
+import { INSTALLMENTS_SHEET } from '../services/installmentsConstants'
 import type { InstallmentPlan } from '../types'
 import { AccordionCollapse } from './AccordionCollapse'
+import AttachmentBadge from './attachments/AttachmentBadge'
 import CardDeleteButton from './CardDeleteButton'
 import CardEditButton from './CardEditButton'
 import CardExpandButton from './CardExpandButton'
@@ -202,6 +204,12 @@ function InstallmentPlanCard({
             </div>
           </button>
           <div className={cardActionButtonsClass}>
+            <AttachmentBadge
+              sheetName={INSTALLMENTS_SHEET}
+              entityId={plan.id}
+              fileIds={plan.attachments}
+              title={plan.title}
+            />
             <CardEditButton
               onClick={event => {
                 event.stopPropagation()

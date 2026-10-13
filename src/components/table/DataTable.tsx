@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, type ReactNode, useId } from 'react'
 
 import { type SortableColumn, useTableSort } from '../../hooks/useTableSort'
 import { cn } from '../../utils/cn'
@@ -63,6 +63,13 @@ export default function DataTable<T>({
 }: DataTableProps<T>) {
   const { sortedRows, sort, toggleSort } = useTableSort(rows, columns)
   const span = columns.length + (actions ? 1 : 0)
+  const tableId = useId()
+  // The row's name cell labels its action buttons («ویرایش», group «چک ۱۲۳…»).
+  const nameColumnId = (
+    columns.find(column => column.id === 'title' || column.id === 'name') ??
+    columns.find(column => !column.hideHeader && !column.numeric)
+  )?.id
+  const nameCellId = (key: string) => `${tableId}-${key.replace(/\s/g, '_')}`
 
   return (
     <div className={dataTableWrapClass(bare)}>
@@ -118,6 +125,7 @@ export default function DataTable<T>({
                   {columns.map(column => (
                     <td
                       key={column.id}
+                      id={actions && column.id === nameColumnId ? nameCellId(key) : undefined}
                       className={cn(
                         dataTableCellClass,
                         column.numeric && dataTableNumericClass,
@@ -129,7 +137,13 @@ export default function DataTable<T>({
                   ))}
                   {actions && (
                     <td className={dataTableActionsCellClass}>
-                      <div className={dataTableActionsClass}>{actions(row)}</div>
+                      <div
+                        className={dataTableActionsClass}
+                        role="group"
+                        aria-labelledby={nameColumnId ? nameCellId(key) : undefined}
+                      >
+                        {actions(row)}
+                      </div>
                     </td>
                   )}
                 </tr>

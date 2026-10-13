@@ -1,8 +1,10 @@
-import { formatMoney } from '../../utils/formatMoney'
+import { CHECKS_SHEET } from '../../services/checks'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import AttachmentBadge from '../attachments/AttachmentBadge'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { CheckWithRow } from './types'
+import MoneyText from '../MoneyText'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
@@ -47,8 +49,18 @@ export default function CheckCard({
           />
           <div className={dangCardBodyClass}>
             <div className={dangCardHeaderClass}>
-              <span className={dangCardTitleClass}>چک {item.checkNumber}</span>
-              <span className={dangCardAmountClass}>{formatMoney(item.amount)}</span>
+              <span className={dangCardTitleClass}>
+                چک {item.checkNumber}{' '}
+                <AttachmentBadge
+                  sheetName={CHECKS_SHEET}
+                  entityId={item.id}
+                  fileIds={item.attachments}
+                  title={`چک ${item.checkNumber}`}
+                />
+              </span>
+              <span className={dangCardAmountClass}>
+                <MoneyText amount={item.amount} />
+              </span>
             </div>
             <div className={dangCardMetaClass}>طرف حساب: {item.counterparty}</div>
             <div className={dangCardMetaClass}>

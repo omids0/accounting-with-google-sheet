@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 
 import { formatSmsWhen } from './smsLabels'
 import type { ReviewedSms } from '../../services/bankSmsQueue'
-import { formatMoney, formatMoneyParts } from '../../utils/formatMoney'
+import { formatMoneyParts } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import {
   smsAccountLineClass,
   smsAmountRowClass,
@@ -63,7 +64,9 @@ export default function BankSmsCardHead({
         accountTitle && <span className={smsAccountLineClass}>{accountTitle}</span>
       )}
       {entry.balance !== null && (
-        <p className={smsMetaClass}>مانده: {formatMoney(entry.balance)}</p>
+        <p className={smsMetaClass}>
+          مانده: <MoneyText amount={entry.balance} />
+        </p>
       )}
       {rawOpen === undefined ? (
         <details className={smsRawClass}>

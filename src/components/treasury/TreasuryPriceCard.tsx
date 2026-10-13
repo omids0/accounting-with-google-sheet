@@ -1,6 +1,7 @@
 import type { TgjuDisplayPrices } from '../../services/tgjuCurrency'
 import type { VaultAsset } from '../../types'
-import { formatMoney, getCurrency } from '../../utils/formatMoney'
+import { getCurrency } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import { formHintClass } from '../ui/formStyles'
@@ -56,7 +57,9 @@ export default function TreasuryPriceCard({
               {asset.name}
               {asset.unit === 'گرم' && ` (${asset.unit})`}
             </span>
-            <span>{formatMoney(prices.prices[asset.id], prices.currency)}</span>
+            <span>
+              <MoneyText amount={prices.prices[asset.id]} currency={prices.currency} />
+            </span>
           </div>
         ))}
       </div>

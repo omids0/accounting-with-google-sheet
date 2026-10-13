@@ -164,9 +164,11 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
         saving={mutations.saving}
         onClose={mutations.closeForm}
         onSubmit={mutations.handleSubmit}
+        attachments={mutations.attachments}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
+      <ConfirmActionModal {...mutations.attachmentQuestionModal} />
     </div>
   )
 }

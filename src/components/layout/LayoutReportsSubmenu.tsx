@@ -14,6 +14,7 @@ const REPORT_MENU_GROUPS: { label: string; items: { tab: Tab; label: string }[] 
     label: 'خلاصه',
     items: [
       { tab: 'report-financial-summary', label: 'خلاصه مالی' },
+      { tab: 'report-monthly', label: 'گزارش ماهانه' },
       { tab: 'report-income-expense', label: 'درآمد و هزینه' },
       { tab: 'report-cash-flow', label: 'جریان نقدی' },
       { tab: 'report-category-tree', label: 'درختواره درآمد/هزینه' }
@@ -37,6 +38,10 @@ const REPORT_MENU_GROUPS: { label: string; items: { tab: Tab; label: string }[] 
       { tab: 'report-installments', label: 'اقساط' },
       { tab: 'report-checks', label: 'چک‌ها' }
     ]
+  },
+  {
+    label: 'سال‌ها',
+    items: [{ tab: 'report-years', label: 'سال در یک نگاه' }]
   }
 ]
 

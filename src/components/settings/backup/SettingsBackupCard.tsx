@@ -1,70 +1,39 @@
-import RestoreBackupModal from './RestoreBackupModal'
-import { useBackupRestore } from './useBackupRestore'
-import { useBackupDownload } from '../../../hooks/useBackupDownload'
+import { useNavigate } from 'react-router'
+
 import { useBackupState } from '../../../hooks/useBackupState'
-import { setBackupReminderOn } from '../../../services/backupReminder'
+import { SETTINGS_BACKUP_PATH } from '../../../routes/paths'
+import { lastSuccessfulBackup } from '../../../services/autoBackupPlan'
 import { formatBackupDate } from '../../../services/backupSummary'
-import {
-  backupCardActionsClass,
-  backupCardMetaClass,
-  backupCardTextClass,
-  backupLinkButtonClass
-} from '../../ui/backupStyles'
+import { backupCardMetaClass, backupCardTextClass } from '../../ui/backupStyles'
 import Button from '../../ui/Button'
 import Card, { CardTitle } from '../../ui/Card'
 
-/** Settings → «حساب و داده» → «پشتیبان کامل»: download every tab as one zip, or restore one. */
+/** Settings → «حساب و داده» → «پشتیبان»: the summary; everything else is on `/settings/backup`. */
 export default function SettingsBackupCard({ spreadsheetId }: { spreadsheetId: string }) {
-  const backup = useBackupDownload()
-  const restore = useBackupRestore()
+  const navigate = useNavigate()
   const state = useBackupState(spreadsheetId)
-  const reminderOn = !state.reminderOff
+  const last = lastSuccessfulBackup(state)
 
   return (
     <Card>
-      <CardTitle>پشتیبان کامل</CardTitle>
+      <CardTitle>پشتیبان</CardTitle>
       <p className={backupCardTextClass}>
-        همه بخش‌ها (تراکنش‌ها، حساب‌ها، چک‌ها، اقساط، …) در یک فایل. برای جابه‌جایی به گوشی جدید یا
-        خیال راحت.
+        همه بخش‌ها در یک فایل زیپ؛ هر هفته خودکار در Drive، یا هر وقت خواستی روی همین دستگاه.
+        بازگردانی هم از همین‌جاست.
       </p>
-      <div className={backupCardActionsClass}>
-        <Button
-          type="button"
-          variant="primary"
-          loading={backup.busy}
-          disabled={backup.busy}
-          onClick={() => void backup.download()}
-        >
-          <span>
-            دانلود پشتیبان کامل (<bdi>.zip</bdi>)
-          </span>
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          loading={restore.loading}
-          disabled={restore.loading}
-          onClick={() => void restore.start()}
-        >
-          بازیابی از پشتیبان…
-        </Button>
-      </div>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="self-start"
+        onClick={() => navigate(SETTINGS_BACKUP_PATH)}
+      >
+        پشتیبان و بازگردانی
+      </Button>
       <p className={backupCardMetaClass}>
-        آخرین پشتیبان:{' '}
-        {state.lastBackupAt ? formatBackupDate(state.lastBackupAt) : 'هنوز گرفته نشده'}
-        <br />
-        یادآوری ماهانه:{' '}
-        <button
-          type="button"
-          className={backupLinkButtonClass}
-          aria-pressed={reminderOn}
-          title="روشن یا خاموش کردن یادآوری ماهانه پشتیبان"
-          onClick={() => setBackupReminderOn(spreadsheetId, !reminderOn)}
-        >
-          {reminderOn ? 'روشن' : 'خاموش'}
-        </button>
+        آخرین پشتیبان: {last ? formatBackupDate(last) : 'هنوز گرفته نشده'}
+        {state.autoOff ? '؛ پشتیبان خودکار خاموش است' : ''}
       </p>
-      <RestoreBackupModal {...restore.modal} />
     </Card>
   )
 }

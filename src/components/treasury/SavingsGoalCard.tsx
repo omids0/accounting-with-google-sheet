@@ -4,6 +4,7 @@ import type { SavingsGoalView } from '../../types'
 import { cn } from '../../utils/cn'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { progressPercent } from '../../utils/progress'
+import MaskedAmount from '../MaskedAmount'
 import ProgressBar from '../ProgressBar'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
@@ -48,8 +49,14 @@ export default function SavingsGoalCard({
         shimmer={false}
         aria-label={`پیشرفت ${goal.title}`}
       />
-      <p className={goalCardLineClass}>{goalAmountLine(goal)}</p>
-      {plan ? <p className={goalCardPlanClass}>{plan}</p> : null}
+      <p className={goalCardLineClass}>
+        <MaskedAmount>{goalAmountLine(goal)}</MaskedAmount>
+      </p>
+      {plan ? (
+        <p className={goalCardPlanClass}>
+          <MaskedAmount>{plan}</MaskedAmount>
+        </p>
+      ) : null}
       <div className={goalCardActionsClass}>
         {goal.status !== 'archived' ? (
           <Button type="button" size="sm" onClick={() => onDeposit(goal)}>

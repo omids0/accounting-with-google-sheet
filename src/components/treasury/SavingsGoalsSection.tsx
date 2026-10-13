@@ -2,8 +2,8 @@ import SavingsGoalCard from './SavingsGoalCard'
 import SavingsGoalFormModal from './SavingsGoalFormModal'
 import SavingsGoalMoveModal from './SavingsGoalMoveModal'
 import type { useSavingsGoals } from './useSavingsGoals'
-import { formatMoney } from '../../utils/formatMoney'
 import ConfirmActionModal from '../ConfirmActionModal'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import { goalSectionClass, goalSectionFooterClass } from '../ui/treasuryGoalStyles'
 import { treasuryGroupHeaderClass, treasuryGroupTotalClass } from '../ui/treasuryReceivableStyles'
@@ -31,7 +31,9 @@ export default function SavingsGoalsSection({
           {!goalsOnly ? (
             <h2 className={treasuryGroupHeaderClass}>
               <span>هدف‌ها</span>
-              <span className={treasuryGroupTotalClass}>{formatMoney(goals.total)}</span>
+              <span className={treasuryGroupTotalClass}>
+                <MoneyText amount={goals.total} />
+              </span>
             </h2>
           ) : null}
           {list.map(goal => (

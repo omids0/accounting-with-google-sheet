@@ -18,6 +18,8 @@ import {
 } from '../../utils/formValidation'
 import { formatIsoDatePersian, getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
+import AttachmentField from '../attachments/AttachmentField'
+import type { AttachmentDraftsState } from '../attachments/useAttachmentDrafts'
 import { FormField, FormRow, PaymentSubCategoryField } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
@@ -30,6 +32,8 @@ type InstallmentFormModalProps = {
   saving: boolean
   onClose: () => void
   onSubmit: (values: InstallmentFormState, computedEndDate: string) => void | Promise<void>
+  /** «پیوست»: the plan's contract or receipts. */
+  attachments?: AttachmentDraftsState
 }
 
 export default function InstallmentFormModal({
@@ -37,7 +41,8 @@ export default function InstallmentFormModal({
   editingPlan,
   saving,
   onClose,
-  onSubmit
+  onSubmit,
+  attachments
 }: InstallmentFormModalProps) {
   const initialValues = useMemo<InstallmentFormState>(() => {
     if (editingPlan) {
@@ -246,6 +251,8 @@ export default function InstallmentFormModal({
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" />
       </FormField>
+
+      {attachments ? <AttachmentField state={attachments} disabled={saving} /> : null}
     </FormModal>
   )
 }

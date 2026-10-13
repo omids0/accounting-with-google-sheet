@@ -66,6 +66,7 @@ export function useChecksData() {
     sortItems: sortChecks,
     deleteLabel: item => `چک ${item.checkNumber}`,
     deleteErrorMessage: 'خطا در حذف چک',
+    attachmentIds: item => item.attachments,
     importExport: {
       exportFn: exportChecksCsv,
       exportPdfFn: exportChecksPdf,

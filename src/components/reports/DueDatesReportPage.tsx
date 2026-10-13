@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { ReportStaticMetaBar } from './ReportDateFilterBar'
 import {
@@ -17,6 +17,8 @@ import MoneyDisplay from '../MoneyDisplay'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
+import TransactionTypeSegment from '../TransactionTypeSegment'
+import { calmSegmentClass } from '../ui/calmListStyles'
 import Card from '../ui/Card'
 import { chartTitleClass, dashboardPageClass, dashboardStatGridClass } from '../ui/chartStyles'
 import { emptyStateClass, emptyTextClass } from '../ui/displayStyles'
@@ -35,11 +37,22 @@ const STATUS_LABELS: Record<DueDateStatus, string> = {
 
 const STATUS_ORDER: DueDateStatus[] = ['overdue', 'today', 'upcoming']
 
+const LazyDueCalendarView = lazy(() => import('./dueCalendar/DueCalendarView'))
+
+type DueDatesView = 'list' | 'calendar'
+
+const VIEW_OPTIONS: { id: DueDatesView; label: string }[] = [
+  { id: 'list', label: 'فهرست' },
+  { id: 'calendar', label: 'تقویم' }
+]
+
 function DueDateBadge({ status }: { status: DueDateStatus }) {
   return <span className={reportDueBadgeClass(status)}>{STATUS_LABELS[status]}</span>
 }
 
 export default function DueDatesReportPage() {
+  const [view, setView] = useState<DueDatesView>('list')
+
   const [items, setItems] = useState<DueDateItem[]>([])
 
   const [loading, setLoading] = useState(false)
@@ -111,12 +124,34 @@ export default function DueDatesReportPage() {
     )
   }
 
+  const viewSegment = (
+    <TransactionTypeSegment
+      className={calmSegmentClass}
+      options={VIEW_OPTIONS}
+      value={view}
+      onChange={id => setView(id as DueDatesView)}
+      ariaLabel="نمای سررسیدها"
+    />
+  )
+
+  if (view === 'calendar') {
+    return (
+      <div className={cn(dashboardPageClass, reportPageClass)}>
+        {viewSegment}
+        <Suspense fallback={<InstallmentCardListSkeleton count={4} />}>
+          <LazyDueCalendarView />
+        </Suspense>
+      </div>
+    )
+  }
+
   if (loading && !items.length) {
     return <InstallmentCardListSkeleton count={4} />
   }
 
   return (
     <div className={cn(dashboardPageClass, reportPageClass)}>
+      {viewSegment}
       <ReportStaticMetaBar
         subtitle="۳۰ روز آینده و موارد معوق"
         onRefresh={load}

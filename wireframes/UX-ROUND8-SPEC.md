@@ -1,84 +1,197 @@
-# UX Round 8 — Implementation Spec
+# UX Round 8 — Implementation Spec (shared spreadsheets, conflicts, Android widget)
 
-Audience: the Claude agent that will implement this. Decisions were approved by the product owner over the wireframes in this folder; do not re-litigate them. Ask only about technical blockers or where this document says "ask first".
+Audience: the Claude agent that will implement this. Decisions were approved by the product owner over the wireframes in this folder; do not re-litigate them. Ask only about technical blockers.
 
-Rounds 1–7 precede this (`IMPLEMENTATION-SPEC.md`, `UX-ROUND2-SPEC.md` … `UX-ROUND7-SPEC.md`). Round 7 must be merged first: Task C here reads the round-7 hidden mode, and Task A reuses the round-7 activity model only if it exists (it does not — see A2). Still out of scope by decision: bottom navigation (never), module on/off switches, light-theme colors, any mobile redesign of the list pages, iOS widgets.
+Rounds 1–7.5 precede this and must be **merged** first (this round reads the round-7 hidden mode, the round-7.5 record columns, and the round-6 shortcut deep links). Still out of scope by decision: bottom navigation (never), module on/off switches, light-theme colors, any mobile redesign of the list pages, iOS widgets, any invitation/sharing UI (sharing is done in Google Drive).
 
-Wireframes: `round8-shared-widget.html` phones 1–2 (A, B), phone 3 (C). Index: `index.html`.
+Wireframe: `round8-shared-widget.html` — phone 1 (who recorded what, activity feed), phone 2 (conflict sheet), phone 3 (widget). Index: `index.html`.
+
+The spec is written step by step with exact names on purpose. Follow the steps in order; each step ends with a check and a commit. Do not start the next step while the current one fails a check.
 
 ## Project rules (mandatory)
 
-- 300-line hard limit per staged file; extract rather than grow.
-- Reuse before create (`DataTable`, `FormModal`, `useListFilters`, `handleSheetError`, `sheetRevisions.ts`, `syncOutbox.ts`, `launchAction.ts`, `useAmountsHidden`, …).
-- No tooling/config changes without permission. **This spec approves:** the Android widget sources under `android/app/src/main/` (Java, `RemoteViews`; no Kotlin, no Compose/Glance — the project has no Kotlin toolchain), the widget `AppWidgetProvider` entry in `AndroidManifest.xml`, and one new `BankSmsPlugin`-style Capacitor method for writing the widget JSON. Nothing in `vite.config.ts`, `scripts/`, `tools/` or the hooks.
-- `npm run types`, `npm run lint`, `npm test`, `npm run build`, `npm run size-limit` (900 KB) and the a11y suite (light + dark) must pass; Prettier only on touched files.
-- New sheet columns go at the **end** of the row; new tabs follow the round-6 rules (`sheetNames.ts`, `sheetHeaders.ts`, `moduleSheetSpecs.ts`, CSV, backup).
-- Every new localStorage key: per spreadsheet and in `ACCOUNT_KEYS`, unless the spec says "per device".
-- Update About and `aboutChangelog.ts` for every user-visible change; bump the version (this round ships as **2.4.0**).
-- Commit format `<type>/ACCT-0/ACCT-0/<description>`; one commit per task group; branch off `main`; no `gh` CLI; after push give the compare link.
-- Android is built by GitHub Actions only; the owner tests the APK on their phone. The widget cannot be run locally — expect review rounds; keep the Java small and defensive (never crash the launcher: every read is null-safe, every failure renders the «باز کن» fallback).
-- Verify web changes with the Playwright recipe in `reference_playwright_sw_mocks.md` (mobile 390×844, desktop 1440×900), light and dark.
+- 300-line hard limit per staged file (`npm run lines`); when a file you touch would pass 300, move a piece into a new file next to it.
+- Reuse before create. Everything you need exists; each step says what to reuse.
+- No tooling/config changes (`vite.config.ts`, `scripts/`, `tools/`, hooks, ESLint, Prettier, tsconfig, `package.json` scripts, size-limit). **No new npm dependencies.** Android: Java only (`android/app/src/main/java/com/omids0/accounting/…`), `RemoteViews` for the widget — no Kotlin, no Compose/Glance, no new Gradle dependencies.
+- Commands that must pass before every commit: `npm run types`, `npm run lint`, `npm test`, `npm run build`, `npm run lines`, `npx size-limit`. Prettier only on the files you changed, never on folders.
+- New sheet tabs: constant in `src/services/sheetNames.ts`, headers in `sheetHeaders.ts`, entry in `moduleSheetSpecs.ts`, listed in `sheetSyncSheetNames.ts`, CSV via `useSheetImportExport` where the step says, included in the full backup automatically. New columns go at the **end** of the row.
+- New localStorage keys: per spreadsheet and in `ACCOUNT_KEYS` in `src/services/localDataWipe.ts`, unless the step says "per device".
+- Update About (`src/components/about/aboutFeatureGroups*.ts`) and `aboutChangelog.ts` (max 3 items). Bump `version` in `package.json` and the two root lines in `package-lock.json` (this round ships as **2.5.0**).
+- Commit format `<type>/ACCT-0/ACCT-0/<description>`; one commit per step; branch `feature/ACCT-0/ACCT-0/ux-round-8` off `main`; no `gh` CLI; after push give `https://github.com/omids0/accounting-with-google-sheet/compare/main...feature/ACCT-0/ACCT-0/ux-round-8?expand=1`.
+- Commit messages end with a blank line and `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+- Android is built by GitHub Actions only; you cannot compile Java here. Write small, null-safe Java; mirror the style of `banksms/BankSmsPlugin.java`. The owner tests the APK on a phone; list every Android file you add or change in the final report.
+- Verify web changes with the Playwright recipe in the agent memory file `reference_playwright_sw_mocks.md` (mobile 390×844, desktop 1440×900), light and dark; screenshots in the scratchpad `shots/r8/`.
 
-## Task A — Several people on one spreadsheet
+## What the user gets (summary)
 
-**Why.** Sharing is already possible: the owner shares the Google Sheet from Drive and both sign in. The app just cannot say *who* recorded or changed what. Wireframe `round8-shared-widget.html` phone 1. Sharing itself stays in Google Drive; the app adds no invitation flow.
+1. On a spreadsheet that several Google accounts edit, every record/check/installment/dang/receivable shows **who** recorded it (avatar + name), and lists get a «فقط من» filter. On a private spreadsheet nothing changes.
+2. An **activity feed** («فعالیت»): who did what, when, on which device — in Settings always, and on the dashboard when the sheet is shared.
+3. When two people edit the **same row** before the app synced, the app asks which version to keep instead of silently overwriting.
+4. An **Android home-screen widget** with the net-available amount, this month's expense, pending SMS, next due item, and «+ هزینه / + درآمد / پیامک‌ها» buttons; it respects the hidden-amounts mode.
 
-### A1 — Who recorded it
+## Facts about the code you will touch (read first)
 
-- New last column «ثبت‌کننده» on the record tabs (income/expense and their custom forms), checks, installments, dang, receivables: the Google account email of the writer, set on create and on every update of that row (the updater replaces it). Old rows stay empty.
-- **Shared detection:** `isSharedSpreadsheet` = the spreadsheet's Drive file has more than one permission of role `writer`/`owner` (Drive API `files.get?fields=permissions` under the existing `drive.file` scope; cache in `accounting_sharing_v1` per spreadsheet for 24 h; fall back to "not shared" on error). The user's own display name and avatar come from the existing sign-in profile; other editors are shown by the local part of their email until they open the app once — then their profile name/avatar are read from the Task A2 feed rows they wrote.
-- **UI, only when shared:** a 22 px avatar (initial letter, two fixed tints: me = grey, others = gold) plus the name before the category in list rows («سارا · خانه · ملت»), on the dashboard's recent rows and in the search results. Filter chip «فقط من» in `useListFilters` for the five modules. Not shared → nothing changes anywhere.
+- The signed-in user: `getUserEmail()`, `getUserName()`, `getUserPicture()` in `src/services/auth.ts`.
+- Drive access uses the `drive.file` scope; `src/services/drive.ts` has a private `driveRequest<T>(url)` and `DRIVE_API`. Export `driveRequest` (or add a sibling) for `files/{id}?fields=permissions(emailAddress,role,displayName)`.
+- Every sheet write goes through the outbox: `src/services/syncOutbox.ts` (`OutboxOperation`: `append | update | delete | replace | attachment-upload`, each with `sheetName`; `update`/`delete` carry `rowNumber` and `expectedRow`), executed in `src/services/sheetsOutboxApi.ts` → `executeOutboxOperation`, driven by `flushPass` in `src/services/sheetSyncOutbox.ts`. `resolveRowAnywhere` (`sheetsRowLocate.ts`, using `resolveTargetRow` from `sheetsRowGuard.ts`) finds the row by id and throws `RowConflictError` only when the row is **gone**. Today a changed-but-present row is overwritten silently — Step 5 changes that.
+- Row write helpers take `OutboxWriteOptions { skipActivity?, skipRevision? }`; `skipActivity` today means "do not bump the «فعالیت» status row". Keep that meaning.
+- The existing «فعالیت» tab (`ACTIVITY_SHEET`, headers `['آخرین_بازدید', 'آخرین_عملیات']`, `src/services/activityTracking.ts`) is a two-cell status row for the nightly digest. **Leave it alone.** The feed is a new tab.
+- Records are read by header label (`buildFieldColumnMap` in `sheetsHeaders.ts`); the «پیوست» column is appended at the end and located by label (`src/services/attachmentColumn.ts`, `src/utils/attachmentIds.ts`). Copy that pattern for «ثبت‌کننده».
+- Fixed-layout tabs (`CHECKS_HEADERS`, `INSTALLMENTS_HEADERS`, `DANG_HEADERS`, `RECEIVABLES_HEADERS`) are read by position; appending a header at the end is safe.
+- Yearly archive tabs: `archiveSheetName(base, year)` in `recordArchive.ts`, `copyRowsToArchive` / `deleteArchivedRows` in `recordArchiveMove.ts`.
+- Dashboard data: `loadDashboardData` / `peekCachedDashboardData` in `src/services/dashboard.ts`; `DashboardData` (`src/types/dashboard.ts`) has `totalExpense`, `monthLabel`, `financial.netAvailable`, `recentRecords`. Upcoming items: `fetchDashboardReminderItems` in `dashboardReminders.ts`. Pending SMS: `getPendingBankSms()` in `bankSmsNative.ts` (Android only). Hidden mode: `readAmountsHidden()` in `src/stores/amountsHiddenStore.ts`.
+- Native bridge pattern: `src/services/bankSmsNative.ts` (`registerPlugin<BankSmsPlugin>('BankSms')`, guarded by `Capacitor.isNativePlatform()`), Java `banksms/BankSmsPlugin.java` (`@PluginMethod`, `call.getString`, `call.resolve()`), registered in `MainActivity.java` with `registerPlugin(...)`. SharedPreferences example: `BankSmsStore.prefs(context)`.
+- Deep links the widget buttons reuse: `com.omids0.accounting://entry?action=expense`, `…://entry?action=income`, `…://bank-sms` (see `android/app/src/main/res/xml/shortcuts.xml`; routed by `src/hooks/useLaunchAction.ts`).
+- Busy state (no sheet while a form is open): `isUserBusy()` / `useUserBusy()` in `src/hooks/useUserBusy.ts`.
+- Lists: `useListFilters` (`src/hooks/useListFilters.ts`) already has `getCounterparty`; add an optional `getWriter` the same way. Records use `useRecordsFilters.ts` (round 7.5 added «طرف حساب» and «با اقلام» there — follow that code).
+- Settings sections: the `sections` array in `src/components/settings/SettingsPage.tsx` (ids `general`, `display`, `account`, …). Add new sections there.
 
-### A2 — Activity feed
+## Step 1 — Writer column and shared detection (A1)
 
-- The existing `ACTIVITY_SHEET` («فعالیت», headers «آخرین_بازدید», «آخرین_عملیات») is a two-cell status row used by the nightly digest — **keep it**. The feed is a new tab `ACTIVITY_LOG_SHEET = 'فعالیت_ها'`: `شناسه, زمان, کاربر (email), نام, عمل (create|update|delete|pay|budget|category|reconcile|settings), ماژول, شناسه مورد, خلاصه, دستگاه`. Written through the outbox after every write the app makes on behalf of the user, one row per operation, batched with the operation itself; capped: the sweep keeps the newest 2 000 rows (archive the rest into «فعالیت_ها_<year>» with the round-4 archive helper).
-- Summary text is built in the app from the operation (Persian): «سارا «تعمیر یخچال» را ثبت کرد», «من قسط مهر وام مسکن را پرداخت‌شده زدم», «سارا بودجهٔ «خوراک» را به ۹۰۰ هزار تغییر داد».
-- **Where:** Settings → «فعالیت» (full list, newest first, 50 per page, filter by person and module; desktop `DataTable`); and, **only when shared**, a «فعالیت اخیر» block under «تراکنش‌های اخیر» on the dashboard (three rows + «همه ←»).
-- Not shared: the tab is still written (it is the audit trail for the future backend), only the dashboard block is hidden.
-- Budgets, categories, recurring items and goals are shared data (they live in the sheet); the app lock, hidden mode, text size and nudge state stay per device — About says so.
+Files: `src/utils/writerColumn.ts` (new, pure), `src/services/writerColumn.ts` (new, mirrors `attachmentColumn.ts`), `src/services/sheetHeaders.ts` (append `'ثبت‌کننده'` to `CHECKS_HEADERS`, `INSTALLMENTS_HEADERS`, `DANG_HEADERS`, `RECEIVABLES_HEADERS`), `src/services/sheetsRecords.ts` (+ `writer: string` on `SheetRecord`, filled like `attachments`), the create/update paths of records (`appendRecord`, `updateRecord`), checks (`checks.ts`), installments (`installmentsCrud.ts`), dang (`dang.ts`), receivables (the service the page uses), `src/services/sharing.ts` (new), `src/hooks/useSharing.ts` (new), `localDataWipe.ts`.
 
-### A3 — Tests
+- `WRITER_HEADER = 'ثبت‌کننده'`. On every **create and update** the app makes, set the cell to `getUserEmail() ?? ''`. Record tabs: append the header once at the end if missing (same code path that appends «پیوست»); fixed tabs: the new last column.
+- Reading: `SheetRecord.writer`; the check/installment/dang/receivable entity types get `writer?: string` (parse from the last column; `''` for old rows).
+- `src/services/sharing.ts`:
+  ```ts
+  export interface SharingInfo { shared: boolean; editors: { email: string; name: string }[]; checkedAt: number }
+  export const SHARING_KEY = 'accounting_sharing_v1'            // per spreadsheet → ACCOUNT_KEYS
+  export async function refreshSharingInfo(spreadsheetId: string): Promise<SharingInfo>
+  // Drive files.get?fields=permissions(emailAddress,role,displayName); shared = count(role in owner|writer) > 1;
+  // on any error keep the cached value, or { shared: false } when none
+  export function getSharingInfo(spreadsheetId: string): SharingInfo | null
+  export function isSharedSpreadsheet(spreadsheetId: string): boolean
+  export function writerLabel(email: string, info: SharingInfo | null): { initial: string; name: string; isMe: boolean }
+  // name: editor displayName from Drive if known, else the part before '@'; isMe = email === getUserEmail()
+  ```
+  Refresh at most once per 24 h, on app start after the first sync (`initializeSheetSync` in `sheetSyncLifecycle.ts` is the place; fire-and-forget).
+- `useSharing()` hook returns `{ shared, label(email) }` from a small Zustand store updated by `refreshSharingInfo`.
+- Tests (`sharing.test.ts`, `writerColumn.test.ts`): shared detection from a permissions fixture (one owner → false; owner + writer → true; reader only → false; error → cached), `writerLabel` cases, header append once, writer parse on old rows.
 
-Column append/update of «ثبت‌کننده», shared detection from a permissions fixture, summary text per action, feed batching, the 2 000-row cap.
+**Check:** all commands; a saved record on your test sheet has the email in the new last column. **Commit:** `feature/ACCT-0/ACCT-0/Record who wrote each row and detect shared spreadsheets`.
 
-## Task B — Edit conflicts
+## Step 2 — Avatars and the «فقط من» filter (A1 UI)
 
-Wireframe `round8-shared-widget.html` phone 2.
+Wireframe phone 1 (list rows). Files: new `src/components/WriterAvatar.tsx` (22 px circle, initial letter; tint `me` = muted grey, others = the gold accent used by goal cards; `aria-label` = name), `src/components/records/RecordsListRow.tsx`, the card components of checks/installments/dang/receivables (find the exact names under `src/components/<module>/`), `DashboardRecentBlock.tsx`, `src/services/globalSearchEntries.ts` (writer name in `text` and subtitle), `useListFilters.ts` (+ `getWriter`), `useRecordsFilters.ts`, filter modals of the five modules, desktop `DataTable` columns.
 
-**Today** the outbox lets the last writer win silently. **Rule:** only an *update* can conflict, and only when the row this device read was changed by someone else between the read and the write. Inserts and deletes never conflict (a delete of a row the other person just edited still deletes; it shows in the feed).
+- Only when `useSharing().shared` is true: show `<WriterAvatar>` + name before the category in the row meta («سارا · خانه · ملت»); old rows without a writer show nothing extra.
+- Filter chip «فقط من» (toggle) in the five list pages' filter modals and `ActiveFilterChips`; predicate `writer === getUserEmail()`. Hidden when not shared.
+- Dashboard recent rows and search results: the avatar only (no name) when shared.
 
-- Mechanism: the outbox update operation carries the sheet revision (`sheetRevisions.ts`) and the row's «زمان ویرایش»/writer it was based on. Before writing, `flushOutbox` re-reads that row (one `values.get`); if the row's «ثبت‌کننده» is another user **and** its timestamp is newer than the base, the operation is parked (`status: 'conflict'`, kept in the outbox, not retried) and the UI opens the sheet below once the page is visible.
-- Sheet «این رکورد هم‌زمان عوض شده»: ««<title>» را تو و <name> هر دو ویرایش کردید. کدام بماند؟» with two radio options «نسخهٔ <name> · <time>» (theirs — their amount, category and account on one line) and «نسخهٔ من · <time>» (mine); buttons «نگه دار» and «هر دو را ببین» (opens a side-by-side diff of every differing field; from there the same two choices). Keeping theirs = drop my operation; keeping mine = rewrite my operation against the new revision and flush. The losing version is written to the Task A2 feed as «نسخهٔ … کنار گذاشته شد» so nothing is lost silently.
-- Several conflicts queue; the sheet handles them one at a time. Never auto-resolve; never show while a `FormModal` is open (round-6 `useUserBusy`).
-- This is the mechanism the future backend needs (see the agent memory `project_backend_readiness.md`): keep the detection in `src/services` behind a small interface (`detectRowConflict(base, current)`), not in components.
-- **Tests.** Conflict detection matrix (same user / other user × older / newer timestamp), park-and-resume of the outbox, both resolutions, feed row on resolve.
+**Check:** screenshots of records and checks with sharing mocked on (mock the Drive permissions call in the Playwright script with two writers) and off. **Commit:** `feature/ACCT-0/ACCT-0/Show who recorded each row on shared spreadsheets and filter to my rows`.
 
-## Task C — Android home-screen widget
+## Step 3 — Activity feed tab (A2)
 
-Wireframe `round8-shared-widget.html` phone 3. Android only (no iOS widget; owner decision).
+Wireframe phone 1 (lower half). Files: `sheetNames.ts` (`ACTIVITY_LOG_SHEET = 'فعالیت_ها'`), `sheetHeaders.ts` (`ACTIVITY_LOG_HEADERS = ['شناسه', 'زمان', 'کاربر', 'نام', 'عمل', 'ماژول', 'شناسه مورد', 'خلاصه', 'دستگاه']`), `moduleSheetSpecs.ts`, `sheetSyncSheetNames.ts`, new `src/services/activityLog.ts` (+ `activityLogText.ts` for the Persian summaries, + tests), the write paths touched in Step 1 plus budgets (`useCategoryBudgets` save/delete), category actions (`categoryManage.ts`), reconciliation (the round-7 wallet reconcile service), recurring posts, goal deposits, paid toggles (`usePaidItemActions`).
 
-- **Data:** after every successful sync (and after every local write that changes the dashboard), the app writes a small JSON to the native side through a new plugin method `WidgetBridge.setSnapshot(json)` (Java, same style as `BankSmsPlugin`): `{ netAvailable, monthExpense, pendingSms, nextDue: { title, day, amount } | null, updatedAt, hidden, sheetLabel, accountsLabel }`, stored in `SharedPreferences`, and triggers `AppWidgetManager.notifyAppWidgetViewDataChanged` / an update broadcast. The widget **only reads**; no network, no Google calls.
-- **Sizes** (`RemoteViews`, XML layouts; theme follows the system day/night):
-  1. **4×2 full:** title «حساب کتاب · <accountsLabel>» + time, the big net-available amount, one line «هزینهٔ مهر ۱۹٫۴ میلیون · ۳ پیامک ثبت‌نشده · قسط ۵ مهر», three buttons «+ هزینه» (primary), «+ درآمد», «پیامک‌ها N».
-  2. **2×2 small:** label «دارایی قابل اتکا», the amount in short form («۲۹٫۸ م»), one «+ هزینه» button.
-  3. **Hidden state:** when the round-7 hidden mode is on, both sizes render «••••••» instead of amounts (the JSON carries `hidden`).
-- **Buttons** = the round-6 shortcut deep links (`com.omids0.accounting://entry?action=expense|income`, `…://bank-sms`) through `PendingIntent` to `MainActivity`; the app's `useLaunchAction` already handles them.
-- **Number formatting** in Java: Persian digits and thousands separators like the app (`٬`), short form «م» for millions / «هزار» for thousands; the month name comes in the JSON (built in the app), not computed natively.
-- Empty state (no snapshot yet, or signed out): the widget shows the app name and «باز کن».
-- **Staleness:** the widget shows the `updatedAt` time; the app refreshes the snapshot on resume, so no periodic native refresh is needed (`updatePeriodMillis = 0`).
-- **Settings:** a line in «پلتفرم» explaining how to add the widget; About entry.
-- **Tests.** The snapshot builder in TypeScript (hidden flag, short formats, next due pick) is unit-tested; Java is reviewed by reading and tested by the owner on the phone.
+- `activityLog.ts`:
+  ```ts
+  export type ActivityAction = 'create' | 'update' | 'delete' | 'pay' | 'unpay' | 'budget' | 'category' | 'reconcile' | 'recurring' | 'goal'
+  export interface ActivityEntry { id: string; at: string; email: string; name: string; action: ActivityAction; module: string; itemId: string; summary: string; device: string }
+  export function logActivity(spreadsheetId: string, entry: Omit<ActivityEntry, 'id' | 'at' | 'email' | 'name' | 'device'>): void
+  // builds the row and queues ONE outbox append on ACTIVITY_LOG_SHEET with writeOptions { skipActivity: true, skipRevision: true }
+  // right after the operation it describes; never throws; no-op when signed out
+  export function deviceLabel(): string   // 'Android' | 'Web · Chrome' …; reuse the device-label helper the push subscriptions use
+  export async function fetchActivityLog(spreadsheetId: string, limit: number, offset: number): Promise<ActivityEntry[]>  // newest first, from the local mirror
+  export const ACTIVITY_LOG_KEEP = 2000
+  export async function sweepActivityLog(spreadsheetId: string): Promise<void>
+  // when the tab has > 2000 rows: move the oldest into `فعالیت_ها_<Jalali year>` with archiveSheetName/copyRowsToArchive/deleteArchivedRows;
+  // run from the existing archive sweep after a pull
+  ```
+- `activityLogText.ts` → `summaryFor(action, module, title, extra)` returns the Persian line the wireframe shows: ««تعمیر یخچال» را ثبت کرد», «قسط مهر وام مسکن را پرداخت‌شده زد», «بودجهٔ «خوراک» را به ۹۰۰ هزار تغییر داد». The UI prefixes the name («سارا …» / «من …»).
+- Call `logActivity` from every user-initiated write listed above (one call per operation; bulk actions one call with the count). Sync pulls, archive sweeps, seeding and backups do **not** log.
+- Tests: summary text per action, row shape, the 2000-row sweep plan (pure part), no-op when signed out.
 
-## Task D — About and version
+**Check:** after a save, the «فعالیت_ها» tab has one row. **Commit:** `feature/ACCT-0/ACCT-0/Write an activity log row for every change`.
 
-Update About: a new group «با هم» (shared spreadsheets: who recorded what, activity, conflicts, what stays per device) and the platform group (widget). Add the 2.4.0 entries to `aboutChangelog.ts` (shared mode, conflict sheet, widget). Bump to 2.4.0.
+## Step 4 — Activity UI (A2)
 
-## Suggested order and commits
+Files: new `src/components/activity/ActivityPage.tsx` (+ `ActivityList.tsx`, `ActivityRow.tsx`, `useActivityPage.ts`), tab `activity` («فعالیت»), path `/settings/activity`, lazy route (`lazyPages.ts`, `AppRoutes.tsx`), Settings section «فعالیت» (link card, like «دسته‌ها»), new `src/components/dashboard/DashboardActivityBlock.tsx`, `DashboardPage` block order.
 
-1. `feature` — A1 (writer column + shared detection + avatars/filter).
-2. `feature` — A2 (activity feed tab, settings page, dashboard block).
-3. `feature` — B (conflicts) with tests.
-4. `feature` — C (widget: TypeScript snapshot + Java widget + manifest).
-5. `docs` — D.
+- Page: newest first, 50 per page with «بیشتر»; filter chips: person (from the editors list + «من») and module; desktop as a `DataTable` (time, person, action, summary, device). Rows: `WriterAvatar`, «<name> <summary>», meta «<relative time> · <device>» (reuse the relative-time helper the SMS duplicate badge uses).
+- Dashboard: `DashboardActivityBlock` («فعالیت اخیر», three rows + «همه ←» to the page) placed right under «تراکنش‌های اخیر»; rendered **only when shared**. Skeleton parity: add the block to the dashboard skeleton behind the same condition.
+- CSV export of the tab from the activity page speed dial (`useSheetImportExport`, export only).
+- About: new group «با هم» (`aboutFeatureGroupsShared.ts`, new file): who recorded what, «فقط من», activity, and the sentence that the app lock, hidden mode, text size and nudges stay per device while budgets, categories, recurring items and goals are shared.
 
-Stop after commit 2 and report with screenshots of a shared list page and the activity page (mobile light/dark, desktop); then continue. Final report: screenshots of every changed web screen, the Java/XML files added for the widget listed for the owner's review, test counts, size-limit numbers, anything skipped with the reason.
+**Check:** screenshots (mobile light/dark, desktop) with sharing mocked on. **Commit:** `feature/ACCT-0/ACCT-0/Add the activity page and the dashboard activity block`.
+
+## Step 5 — Edit conflicts (B)
+
+Wireframe phone 2. Files: `src/services/syncOutbox.ts` (`OutboxEntry.conflict?`), new `src/services/rowConflict.ts` (pure detection), `src/services/sheetsOutboxApi.ts` (`case 'update'`), `src/services/sheetSyncOutbox.ts` (`flushPass`), new `src/stores/conflictStore.ts`, new `src/components/sync/ConflictSheet.tsx` (+ `ConflictDiff.tsx`), mounted in `Layout.tsx` next to the update banner, tests.
+
+**Rule.** Only an `update` can conflict, and only when the row the device read (`expectedRow`) was changed by **another user** before this write lands. Inserts and deletes never conflict.
+
+- `rowConflict.ts`:
+  ```ts
+  export interface RowConflict { entryId: string; sheetName: string; rowNumber: number; mine: string[]; theirs: string[]; base: string[]; theirEmail: string; theirAt: string }
+  export function detectRowConflict(base: string[] | undefined, current: string[], mine: string[], myEmail: string, writerColumn: number): 'none' | 'conflict'
+  // 'none' when: no base; current equals base (rowsMatchForCompare); current equals mine; writerColumn < 0;
+  // current[writerColumn] is '' or myEmail. Otherwise 'conflict'.
+  export function diffCells(headers: string[], mine: string[], theirs: string[]): { label: string; mine: string; theirs: string }[]
+  ```
+- In `executeOutboxOperation` `case 'update'`: after `resolveRowAnywhere`, read the current row from the guard session snapshot (`loadSnapshot` already caches the tab); call `detectRowConflict` with the tab's writer column (`findWriterColumn` from Step 1). On `'conflict'` throw a new `RowEditConflictError` carrying `theirs`, `theirEmail`, and the row's «زمان ویرایش»/`createdAt` cell if the tab has one (else `''`).
+- In `flushPass`: catch `RowEditConflictError` → mark the entry `conflict: { theirs, theirEmail, theirAt }` (keep it in the outbox, **do not** revert, **do not** retry: `flushPass` skips entries with `conflict` set), push it into `conflictStore`, `continue`.
+- `ConflictSheet` (`FormModal`, bottom sheet / panel at xl): title «این رکورد هم‌زمان عوض شده», text ««<title>» را تو و <name> هر دو ویرایش کردید. کدام بماند؟», two radio options «نسخهٔ <name> · <time>» (first, preselected) and «نسخهٔ من · <time>» each with a one-line summary (amount · category · account from `diffCells`), buttons «نگه دار» and «هر دو را ببین» (expands the full `diffCells` table in place). Shown only when `!isUserBusy()`; one conflict at a time; never auto-resolved.
+  - Keep theirs: remove the outbox entry, apply `theirs` to the local mirror row (`setSheetAllRows` on that tab, or `forgetSeenSheets` + `refreshInBackground` to re-pull it), log activity «نسخهٔ من کنار گذاشته شد» with the record title.
+  - Keep mine: set the entry's `expectedRow = theirs`, clear `conflict`, flush; log «نسخهٔ <name> کنار گذاشته شد».
+- Sync badge / `SyncDetailsModal`: show «N تعارض» with a button that opens the sheet, so a dismissed sheet can be reopened.
+- Keep detection in services behind `detectRowConflict` — the future backend reuses it (see the memory file `project_backend_readiness.md`).
+- Tests: the detection matrix (no base / same as base / same as mine / writer empty / writer me / writer other), `flushPass` parking an entry and skipping it on the next pass, both resolutions (outbox state + activity row), `diffCells`.
+
+**Check:** a Playwright flow with the mocked API returning a row whose writer is another email → sheet appears after the open form closes; both buttons work. **Commit:** `feature/ACCT-0/ACCT-0/Ask which version to keep when two people edit the same row`.
+
+## Step 6 — Widget snapshot (C, web side)
+
+Files: new `src/services/widgetSnapshot.ts` (+ test), new `src/services/widgetNative.ts`, call sites: after `fullSyncFromRemote` / `refreshInBackground` finish and after every successful local write (the same hook that invalidates the dashboard cache), and on app resume (`App.addListener('resume')` where the launch hook lives).
+
+- ```ts
+  export interface WidgetSnapshot { netAvailable: number; monthExpense: number; monthLabel: string; pendingSms: number; nextDue: { title: string; day: string; amount: number } | null; updatedAt: string; hidden: boolean; sheetLabel: string; accountsLabel: string }
+  export async function buildWidgetSnapshot(spreadsheetId: string): Promise<WidgetSnapshot | null>
+  // dashboard data via loadDashboardData (cached); nextDue via fetchDashboardReminderItems (first upcoming, overdue first);
+  // pendingSms via getPendingBankSms().length; hidden via readAmountsHidden();
+  // accountsLabel = bank account titles joined by « و » (max 2, then «و N دیگر»); monthLabel from DashboardData
+  export function formatWidgetAmount(amount: number): string  // «۲۹٬۷۷۰٬۰۰۰» (formatMoney)
+  export function formatWidgetShort(amount: number): string   // «۲۹٫۸ م» / «۸۵۰ هزار» / «۱۲٬۰۰۰»
+  ```
+- `widgetNative.ts`: `registerPlugin<WidgetBridgePlugin>('WidgetBridge')` with one method `setSnapshot({ json: string })`; `pushWidgetSnapshot(spreadsheetId)` = build → `JSON.stringify` → call; no-op on web (`Capacitor.isNativePlatform()` false). Debounce 2 s so bursts of writes send once. Also send when the hidden-mode toggle changes.
+- Signed out / no spreadsheet → send `{ "empty": true }`.
+- Tests: snapshot building from fixtures (hidden flag, nextDue pick, labels), both formatters with Persian digits, no call on web.
+
+**Check:** unit tests. **Commit:** `feature/ACCT-0/ACCT-0/Build and push the home-screen widget snapshot`.
+
+## Step 7 — Android widget (C, native side)
+
+Files (all new unless noted): `android/app/src/main/java/com/omids0/accounting/widget/WidgetBridgePlugin.java`, `widget/WidgetStore.java`, `widget/AccountingWidgetProvider.java` (+ `LargeWidgetProvider.java`, `SmallWidgetProvider.java`), `widget/WidgetText.java`, `android/app/src/main/res/layout/widget_large.xml`, `res/layout/widget_small.xml`, `res/layout/widget_empty.xml`, `res/xml/widget_large_info.xml`, `res/xml/widget_small_info.xml`, `res/drawable/widget_bg.xml` + `res/drawable-night/widget_bg.xml` (rounded rect), `res/values/strings.xml` (+ widget strings), `AndroidManifest.xml` (two `<receiver>` entries with `android.appwidget.action.APPWIDGET_UPDATE` and `meta-data android.appwidget.provider`), `MainActivity.java` (`registerPlugin(WidgetBridgePlugin.class)`).
+
+- `WidgetBridgePlugin.setSnapshot(call)`: `WidgetStore.save(context, call.getString("json", ""))` then `AccountingWidgetProvider.refreshAll(context)` (`AppWidgetManager.getInstance` → `getAppWidgetIds` for both providers → `updateAppWidget`). `call.resolve()`.
+- `WidgetStore`: SharedPreferences `"accounting_widget"`, key `"snapshot"`; `load(context)` returns the JSON string or `""`.
+- `AccountingWidgetProvider extends AppWidgetProvider`; the two subclasses only choose the layout. `onUpdate` → for each id `buildViews(context, large)` → `RemoteViews`. Parse the JSON with `org.json.JSONObject` inside `try/catch`; any failure or `"empty": true` → `widget_empty.xml` (app name + «باز کن»). `hidden == true` → amounts replaced by `"••••••"`.
+  - Large (4×2, `minWidth 250dp`, `minHeight 110dp`): title «حساب کتاب · <accountsLabel>» + `updatedAt` time (HH:mm, Persian digits), the big amount, the line «هزینهٔ <monthLabel> <short expense> · <pendingSms> پیامک ثبت‌نشده · <nextDue.title> <nextDue.day>» (skip empty parts), three buttons.
+  - Small (2×2, `minWidth 110dp`, `minHeight 110dp`): «دارایی قابل اتکا», short amount, one «+ هزینه» button.
+  - `updatePeriodMillis="0"`; `resizeMode="horizontal|vertical"`; `widgetCategory="home_screen"`; preview = the launcher icon.
+- Buttons: `PendingIntent.getActivity` with an explicit `Intent(Intent.ACTION_VIEW, Uri.parse("com.omids0.accounting://entry?action=expense"))` targeting `MainActivity` (`setClass`), flags `FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE`, distinct request codes per button. The widget body opens the app (`…://dashboard` — add that URI to `useLaunchAction` as "open the dashboard").
+- `WidgetText`: Persian digits + thousands separator «٬» and the short-form rules of `formatWidgetShort`; the month label arrives in the JSON, never computed natively. Layouts use `android:textDirection="rtl"`, `android:layoutDirection="rtl"`, and day/night colors through `drawable-night` and a `values-night/colors.xml`.
+- Nothing in the widget touches the network or Google.
+- About: platform group gets «ویجت صفحهٔ اصلی» (how to add it, what it shows, hidden mode). Settings «نمایش»: a one-line hint «ویجت را از منوی لانچر اضافه کن».
+
+**Check:** `npm run types/lint/test/build/lines` (web code unchanged besides About); every XML well-formed (`xmllint --noout` if available, otherwise check each file's tags by eye); every Java file: imports present, no Kotlin syntax, braces balanced. **Commit:** `feature/ACCT-0/ACCT-0/Add the Android home-screen widget`. In the report list the files for the owner's review and the two things to test on the phone: adding both sizes, and the buttons opening the right screen.
+
+## Step 8 — About, changelog, version
+
+- About: Step 4 added «با هم»; Step 7 added the widget. Re-read both for accuracy against what you built.
+- `aboutChangelog.ts`: version `2.5.0`, items: «نمایش ثبت‌کننده و فعالیت روی شیت‌های مشترک», «پرسش هنگام ویرایش هم‌زمان یک رکورد», «ویجت صفحهٔ اصلی اندروید».
+- Bump to 2.5.0.
+
+**Commit:** `docs/ACCT-0/ACCT-0/Describe shared spreadsheets and the widget in About and bump to 2.5.0`. Run `npm run build` once more, push, give the compare link.
+
+## Acceptance (the owner checks these)
+
+- Private sheet: no avatars, no «فقط من», no dashboard activity block; the activity page still lists changes.
+- Shared sheet (two Google accounts): rows show the other person's avatar and name; «فقط من» hides theirs; the dashboard shows «فعالیت اخیر».
+- Both people edit the same record before a sync: the second one sees the conflict sheet (after closing any open form); «نگه دار» on either option leaves one version in the sheet and one line in «فعالیت_ها».
+- Widget: both sizes add to the home screen; numbers match the dashboard after a sync; hidden mode shows dots; the three buttons open the entry form (expense/income) and the SMS page; signed out shows «باز کن».
+- All checks pass; size-limit under the limit; a11y suite light + dark passes.
+
+## Out of scope (do not build)
+
+Invitations or permission management inside the app, real-time presence, per-user budgets, conflict handling for inserts/deletes, merging field by field, iOS widgets, widget configuration screens, periodic native refresh.

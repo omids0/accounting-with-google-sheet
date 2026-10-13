@@ -1,4 +1,5 @@
 import type { Check } from '../types'
+import { CHECK_ATTACHMENT_COLUMN } from './attachmentColumn'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
 import { CHECKS_HEADERS } from './sheetHeaders'
@@ -10,6 +11,11 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
+import {
+  parseAttachmentIds,
+  serializeAttachmentIds,
+  withAttachmentCell
+} from '../utils/attachmentIds'
 import type { DateRange } from '../utils/dateRange'
 import { isDateInRange } from '../utils/dateRange'
 import { formatMoney } from '../utils/formatMoney'
@@ -43,7 +49,8 @@ function rowToCheck(row: string[], rowNumber: number): Check & { rowNumber: numb
     paid: parsePaid(row[7] ?? ''),
     paidAt: row[8] ?? '',
     transactionRecordId: row[9] ?? '',
-    subCategory: row[10] ?? ''
+    subCategory: row[10] ?? '',
+    attachments: parseAttachmentIds(row[CHECK_ATTACHMENT_COLUMN])
   }
 }
 
@@ -238,7 +245,7 @@ export async function importChecksCsv(spreadsheetId: string, csvContent: string)
 
     if (!checkNumber && !counterparty) return null
 
-    return checkToRow({
+    const row = checkToRow({
       id: newImportId(cells[0] ?? ''),
       createdAt: newImportTimestamp(cells[1] ?? ''),
       checkNumber,
@@ -251,5 +258,11 @@ export async function importChecksCsv(spreadsheetId: string, csvContent: string)
       transactionRecordId: cells[9] ?? '',
       subCategory: cells[10] ?? ''
     })
+
+    return withAttachmentCell(
+      row,
+      CHECK_ATTACHMENT_COLUMN,
+      serializeAttachmentIds(parseAttachmentIds(cells[CHECK_ATTACHMENT_COLUMN]))
+    )
   })
 }

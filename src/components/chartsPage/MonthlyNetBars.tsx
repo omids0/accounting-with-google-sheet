@@ -1,4 +1,6 @@
+import { useIsAmountsHidden } from '../../hooks/useAmountsHidden'
 import type { MonthlyFlow } from '../../types'
+import { maskedText } from '../../utils/amountMask'
 import { formatCompactNumber, formatSignedMoney } from '../../utils/formatMoney'
 import { calmEmptyClass } from '../ui/calmListStyles'
 
@@ -22,6 +24,8 @@ export function netBarHeights(
 
 /** «خالص ماهانه»: one bar per month, green above zero, red below. */
 export default function MonthlyNetBars({ flow }: { flow: MonthlyFlow[] }) {
+  const hidden = useIsAmountsHidden()
+
   if (!flow.some(item => item.income || item.expense)) {
     return <p className={calmEmptyClass}>تراکنشی در این بازه نیست</p>
   }
@@ -34,21 +38,21 @@ export default function MonthlyNetBars({ flow }: { flow: MonthlyFlow[] }) {
       {flow.map((item, index) => {
         const { up, down } = heights[index]
         const month = item.label.split(' ')[0] ?? item.label
+        const netText = maskedText(hidden, formatSignedMoney(item.net, { showPlus: true }))
 
         return (
           <li
             key={item.monthKey}
             className="flex min-w-0 flex-1 flex-col items-center"
-            title={`${month}: ${formatSignedMoney(item.net, { showPlus: true })}`}
+            title={`${month}: ${netText}`}
           >
-            <span className="sr-only">{`${month}: ${formatSignedMoney(item.net, {
-              showPlus: true
-            })}`}</span>
+            <span className="sr-only">{`${month}: ${netText}`}</span>
             <span
               className="font-numeric text-[0.6rem] leading-4 text-muted tabular-nums"
               aria-hidden="true"
             >
-              {item.net ? formatCompactNumber(item.net) : '—'}
+              {/* Hidden mode: bars only; the empty label keeps the row height. */}
+              {hidden ? '\u00a0' : item.net ? formatCompactNumber(item.net) : '—'}
             </span>
             <span
               className="relative w-full max-w-7 border-b border-border"

@@ -1,4 +1,4 @@
-import { newestRecord } from './bankSmsQueue'
+import { newestRecord, type ConfirmableSms } from './bankSmsQueue'
 import type { LedgerEntry } from './recordDuplicates'
 import { findRecurringMatch } from './recurring'
 import type { RecurringItem } from '../types'
@@ -42,6 +42,17 @@ export interface SmsSuggestContext {
   bySender: Record<string, SmsCategoryChoice>
   /** Device-local memory, keyed by template id (the older per-template default). */
   byTemplate: Record<string, SmsCategoryChoice>
+}
+
+/** What the suggestion reads from a recognised SMS (queue cards and the reconciliation wizard). */
+export function smsSuggestInput(entry: ConfirmableSms): SmsSuggestInput {
+  return {
+    type: entry.result.direction === 'debit' ? 'expense' : 'income',
+    amount: entry.amount,
+    accountId: entry.result.accountId,
+    sender: entry.sms.sender,
+    templateId: entry.result.templateId
+  }
 }
 
 /** One memory slot per sender and record type. */

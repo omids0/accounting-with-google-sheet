@@ -1,3 +1,4 @@
+import MaskedAmount from './MaskedAmount'
 import {
   dashboardHeroMoneyDisplayClass,
   moneyDisplayClass,
@@ -5,6 +6,7 @@ import {
   moneyDisplayUnitClassName,
   moneyDisplayValueClassName
 } from './ui/displayStyles'
+import { maskDots } from '../utils/amountMask'
 import { cn } from '../utils/cn'
 import { MINUS_SIGN, formatMoney, formatMoneyParts } from '../utils/formatMoney'
 
@@ -36,25 +38,38 @@ export default function MoneyDisplay({
 
   const sign = signed && amount > 0 ? '+' : signed && amount < 0 ? MINUS_SIGN : null
 
-  return (
-    <span
-      className={cn(
-        moneyDisplayClass({ size, tone }),
-        size === 'hero' && tone === 'hero' && dashboardHeroMoneyDisplayClass,
-        className
-      )}
-      dir="rtl"
-      aria-label={formatMoney(amount)}
-    >
-      {/*
-        Only the digits (with their sign) are left-to-right; the block itself stays
-        right-to-left so the unit follows the number as Persian is read.
-      */}
-      <span className={moneyDisplayValueClassName} dir="ltr">
-        {sign ? <span className={moneyDisplaySignClass}>{sign}</span> : null}
-        {number}
+  const rootClass = cn(
+    moneyDisplayClass({ size, tone }),
+    size === 'hero' && tone === 'hero' && dashboardHeroMoneyDisplayClass,
+    className
+  )
+
+  // Hidden mode keeps the value/unit structure (and the unit's space) so the
+  // card does not change size; only the digits turn into dots.
+  const mask = (
+    <>
+      <span className={moneyDisplayValueClassName} dir="ltr" aria-hidden="true">
+        {maskDots(size)}
       </span>
-      <span className={moneyDisplayUnitClassName}>{symbol}</span>
-    </span>
+      <span className={cn(moneyDisplayUnitClassName, 'invisible')} aria-hidden="true">
+        {symbol}
+      </span>
+    </>
+  )
+
+  return (
+    <MaskedAmount size={size} className={rootClass} mask={mask}>
+      <span className={rootClass} dir="rtl" aria-label={formatMoney(amount)}>
+        {/*
+          Only the digits (with their sign) are left-to-right; the block itself stays
+          right-to-left so the unit follows the number as Persian is read.
+        */}
+        <span className={moneyDisplayValueClassName} dir="ltr">
+          {sign ? <span className={moneyDisplaySignClass}>{sign}</span> : null}
+          {number}
+        </span>
+        <span className={moneyDisplayUnitClassName}>{symbol}</span>
+      </span>
+    </MaskedAmount>
   )
 }

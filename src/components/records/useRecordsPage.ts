@@ -18,9 +18,17 @@ import { requireAuth } from '../../utils/authGuard'
 import { isDateInRange } from '../../utils/dateRange'
 import { handleSheetError } from '../../utils/sheetError'
 
-/** `focusRecordId`: show only that record (the entry form's duplicate warning links here). */
-export function useRecordsPage(initialFormType?: 'income' | 'expense', focusRecordId?: string) {
+/**
+ * `focusRecordId`: show only that record (the entry form's duplicate warning links here);
+ * `openEdit`: also open its edit form once loaded (the reconciliation wizard's ⋯).
+ */
+export function useRecordsPage(
+  initialFormType?: 'income' | 'expense',
+  focusRecordId?: string,
+  openEdit = false
+) {
   const [focusId, setFocusId] = useState(focusRecordId ?? '')
+  const [editPending, setEditPending] = useState(openEdit)
   const [forms, setForms] = useState<CustomForm[]>([])
   const [activeFormId, setActiveFormId] = useState('')
   const [rawRecords, setRecords] = useState<StoredRecord[]>([])
@@ -67,11 +75,12 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense', focusReco
   }, [activeFormId])
 
   const formActions = useRecordsFormActions({ forms, loadRecords })
-  const { requestDelete, flushPendingDelete, visibleRecords } = useRecordsDelete({
-    forms,
-    records: rawRecords,
-    loadRecords
-  })
+  const { requestDelete, flushPendingDelete, visibleRecords, attachmentQuestionModal } =
+    useRecordsDelete({
+      forms,
+      records: rawRecords,
+      loadRecords
+    })
 
   // Everything below (filters, totals, counts) sees the list without the row in its undo window.
   const records = visibleRecords
@@ -136,6 +145,16 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense', focusReco
   const { matches: matchesSubcategory, subCategoryFilter } = subcategory
 
   useEffect(() => setFocusId(focusRecordId ?? ''), [focusRecordId])
+
+  const { openEditForm } = formActions
+
+  useEffect(() => {
+    const record = editPending && focusId ? records.find(item => item.id === focusId) : undefined
+
+    if (!record) return
+    setEditPending(false)
+    openEditForm(record)
+  }, [editPending, focusId, records, openEditForm])
 
   const filteredRecords = useMemo(() => {
     if (focusId) return records.filter(record => record.id === focusId)
@@ -203,6 +222,7 @@ export function useRecordsPage(initialFormType?: 'income' | 'expense', focusReco
       filters.clearAllFilters()
     },
     requestDelete,
+    attachmentQuestionModal,
     ...formActions
   }
 }

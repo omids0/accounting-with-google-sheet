@@ -1,12 +1,12 @@
 import type { WalletPeriodFlow } from '../../services/wallet'
 import { cn } from '../../utils/cn'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
-import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AppIcon from '../AppIcon'
 import HelpHint from '../HelpHint'
 import { HELP_HINTS } from '../helpHints'
 import { walletOpeningHintClass, walletOpeningToggleClass } from './walletCardStyles'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import {
   dashboardOpeningBodyClass,
@@ -66,7 +66,7 @@ export default function WalletOpeningBalanceCard({
               <HelpHint {...HELP_HINTS.openingBalance} className={walletOpeningHintClass} />
             </div>
             <div className={listCardAmountPillClass}>
-              {formatMoney(periodFlow.openingBalance ?? 0)}
+              <MoneyText amount={periodFlow.openingBalance ?? 0} />
             </div>
           </div>
           <div className={listCardSubtitleClass}>ابتدای {periodFlow.monthLabel}</div>

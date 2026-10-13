@@ -1,8 +1,8 @@
 import type { VehicleHistoryEntry } from '../../types/vehicles'
-import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
 import { vehicleHorizontalCardClass } from './vehicleCardStyles'
+import MoneyText from '../MoneyText'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
@@ -36,7 +36,7 @@ export default function VehicleHistoryCard({ item, onDelete }: VehicleHistoryCar
               <span className={listCardTitleClass}>{KIND_LABELS[item.recordKind]}</span>
               {item.amount > 0 ? (
                 <span className="text-[0.82rem] font-bold text-expense">
-                  {formatMoney(item.amount)}
+                  <MoneyText amount={item.amount} />
                 </span>
               ) : null}
             </div>

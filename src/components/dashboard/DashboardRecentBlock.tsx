@@ -2,11 +2,11 @@ import DashboardEmptyRecords from './DashboardEmptyRecords'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import type { DashboardRecord } from '../../types'
 import { cn } from '../../utils/cn'
-import { formatSignedMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { normalizeSheetDate } from '../../utils/sheetValues'
 import CalmBlock from '../CalmBlock'
 import DayBadge from '../DayBadge'
+import MoneyText from '../MoneyText'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
 import {
   calmListClass,
@@ -42,7 +42,7 @@ const RECENT_COLUMNS: DataTableColumn<DashboardRecord>[] = [
     numeric: true,
     cell: record => (
       <span className={amountToneClass(record)}>
-        {formatSignedMoney(signedAmount(record), { showPlus: true })}
+        <MoneyText amount={signedAmount(record)} signed="plus" />
       </span>
     )
   }
@@ -91,7 +91,7 @@ export default function DashboardRecentBlock({
                 </span>
               </span>
               <span className={cn(calmRowEndClass, amountToneClass(record))}>
-                {formatSignedMoney(signedAmount(record), { showPlus: true })}
+                <MoneyText amount={signedAmount(record)} signed="plus" />
               </span>
             </li>
           ))}

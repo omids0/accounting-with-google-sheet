@@ -1,6 +1,6 @@
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
 import MoneyDisplay from '../MoneyDisplay'
+import MoneyText from '../MoneyText'
 import {
   assetExcludedTagClass,
   assetLabelClass,
@@ -68,7 +68,9 @@ export function BreakdownRow({
           {tag}
         </span>
       )}
-      <span className={assetValueClass}>{formatMoney(value)}</span>
+      <span className={assetValueClass}>
+        <MoneyText amount={value} />
+      </span>
     </div>
   )
 }

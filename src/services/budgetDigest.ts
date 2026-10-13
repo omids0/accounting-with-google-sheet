@@ -28,7 +28,7 @@ function writeLog(spreadsheetId: string, log: BudgetAlertLog): void {
 
 /**
  * Budget lines for tonight's digest («خوراک به ۸۰٪ بودجه رسید», «… از بودجه گذشت»),
- * plus «N تکرار ثبت‌نشده» once a month.
+ * plus «N تکرار ثبت‌نشده» once a month and «ملت ۳۵۰ هزار اختلاف دارد» per account.
  * Alerts live only in the native nightly digest: no toast, no banner.
  */
 export async function syncBudgetDigest(spreadsheetId: string): Promise<void> {
@@ -62,6 +62,20 @@ export async function syncBudgetDigest(spreadsheetId: string): Promise<void> {
 
   // Reminder-mode recurring items not posted yet: one line, once a month.
   lines = [...lines, ...(await recurringDigestLines(spreadsheetId, today).catch(() => []))]
+
+  // Balance differences with the bank SMS (round 7): one line per account, built once a day.
+  const reconcile = await import('./bankSmsReconcileDigest')
+    .then(module => module.reconcileDigestLines(spreadsheetId, today))
+    .catch((): string[] => [])
+
+  lines = [...lines, ...reconcile]
+
+  // No backup for 14+ days (round 7, Task I): one line while it lasts.
+  const backup = await import('./backupOverdueNotice')
+    .then(module => module.backupDigestLines(spreadsheetId))
+    .catch((): string[] => [])
+
+  lines = [...lines, ...backup]
 
   await setDigestNotesNative(today, lines)
 }

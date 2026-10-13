@@ -21,6 +21,8 @@ import {
   loadInstallmentsPage,
   loadLoanRequestCalculatorPage,
   loadModuleReportPage,
+  loadMonthlyReportPage,
+  loadYearsReportPage,
   loadNetAvailableSettingsPage,
   loadOnboardingWizard,
   loadOpeningBalancePage,
@@ -30,6 +32,8 @@ import {
   loadRecordsPage,
   loadRemindersPage,
   loadCategoriesPage,
+  loadCloseYearPage,
+  loadBackupPage,
   loadSettingsPage,
   loadTimesheetDetailPage,
   loadTimesheetsPage,
@@ -38,6 +42,7 @@ import {
   loadTreasuryPage,
   loadWalletPage,
   loadWalletAccountDetailPage,
+  loadWalletReconcilePage,
   loadBankSmsPage,
   loadSearchPage
 } from './pageChunks'
@@ -68,10 +73,14 @@ export const LazyDueDatesReportPage = lazy(loadDueDatesReportPage)
 export const LazyFinancialSummaryReportPage = lazy(loadFinancialSummaryReportPage)
 export const LazyIncomeExpenseReportPage = lazy(loadIncomeExpenseReportPage)
 export const LazyModuleReportPage = lazy(loadModuleReportPage)
+export const LazyMonthlyReportPage = lazy(loadMonthlyReportPage)
+export const LazyYearsReportPage = lazy(loadYearsReportPage)
 export const LazyOpeningBalanceReportPage = lazy(loadOpeningBalanceReportPage)
 export const LazyPersonalRemindersPage = lazy(loadPersonalRemindersPage)
 export const LazyRemindersPage = lazy(loadRemindersPage)
 export const LazyCategoriesPage = lazy(loadCategoriesPage)
+export const LazyCloseYearPage = lazy(loadCloseYearPage)
+export const LazyBackupPage = lazy(loadBackupPage)
 export const LazySettingsPage = lazy(loadSettingsPage)
 export const LazyTimesheetDetailPage = lazy(loadTimesheetDetailPage)
 export const LazyTimesheetsPage = lazy(loadTimesheetsPage)
@@ -80,4 +89,5 @@ export const LazyVehiclesPage = lazy(loadVehiclesPage)
 export const LazyTreasuryPage = lazy(loadTreasuryPage)
 export const LazyWalletPage = lazy(loadWalletPage)
 export const LazyWalletAccountDetailPage = lazy(loadWalletAccountDetailPage)
+export const LazyWalletReconcilePage = lazy(loadWalletReconcilePage)
 export const LazySearchPage = lazy(loadSearchPage)

@@ -1,6 +1,6 @@
 import type { AboutFeature } from './types'
 
-/** Web/APK updates and «چه خبر؟», in the platform group (aboutFeatureGroupsTools.ts). */
+/** Web/APK updates and «چه خبر؟», in the platform group (aboutFeatureGroupsPlatform.ts). */
 export const ABOUT_UPDATE_FEATURES: AboutFeature[] = [
   {
     title: 'به‌روزرسانی به انتخاب خودتان',

@@ -4,7 +4,9 @@ import { submitRecordEdit } from './recordsMutations'
 import { getFormField, type StoredRecord } from './recordsUtils'
 import { useRecordRecurring } from './useRecordRecurring'
 import { useRetroactiveEntryWarning } from '../../hooks/useRetroactiveEntryWarning'
+import { getSettings } from '../../services/settings'
 import type { CustomForm } from '../../types'
+import { useAttachmentDrafts } from '../attachments/useAttachmentDrafts'
 
 type UseRecordsFormActionsOptions = {
   forms: CustomForm[]
@@ -24,6 +26,13 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     : undefined
 
   const recurring = useRecordRecurring(editingRecord, editingForm)
+
+  const attachments = useAttachmentDrafts({
+    open: showForm,
+    resetKey: editingRecord?.id ?? '',
+    fileIds: editingRecord?.attachments,
+    entityId: editingRecord?.id
+  })
 
   const recordDate = (record: StoredRecord): string => {
     const form = forms.find(item => item.id === record.formId)
@@ -68,6 +77,11 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
         vehicleExpense,
         onSuccess: async () => {
           await recurring.apply(formValues, alsoAmount).catch(() => undefined)
+          await attachments.commit(
+            getSettings()?.spreadsheetId ?? '',
+            editingRecord.sheetName ?? editingForm.sheetName,
+            editingRecord.id
+          )
           closeForm()
           await loadRecords()
         }
@@ -140,6 +154,7 @@ export function useRecordsFormActions({ forms, loadRecords }: UseRecordsFormActi
     retroactiveWarning,
     recurring,
     amountQuestionModal,
+    attachments,
     openEditForm,
     closeForm,
     handleSubmit

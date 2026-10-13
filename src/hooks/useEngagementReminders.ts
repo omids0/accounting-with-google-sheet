@@ -40,7 +40,15 @@ export function useEngagementReminders(): void {
           import('../services/engagementStartup').then(m => m.runEngagementStartup(spreadsheetId)),
           import('../components/recurring/recurringAutoPost').then(m =>
             m.runRecurringAutoPost(spreadsheetId)
-          )
+          ),
+          // Round 7, Task B: last month's «دارایی ماهانه» row after the first sync.
+          import('../services/netWorthStartup').then(m => {
+            m.watchNetWorthSnapshot(spreadsheetId)
+
+            return m.runNetWorthSnapshot(spreadsheetId)
+          }),
+          // Round 7, Task I: the weekly zip to Drive, then the 14-day notice.
+          import('../services/driveBackupRun').then(m => m.runAutoBackup(spreadsheetId))
         ])
       } catch {
         /* non-blocking background setup */

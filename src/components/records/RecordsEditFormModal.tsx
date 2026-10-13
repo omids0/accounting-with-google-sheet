@@ -10,6 +10,8 @@ import { metaToFormValues } from '../../services/vehicleExpenseActions'
 import { findVehicleExpenseMetaByRecordId } from '../../services/vehicleExpenseRecords'
 import type { CustomForm, FieldConfig } from '../../types'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
+import AttachmentField from '../attachments/AttachmentField'
+import type { AttachmentDraftsState } from '../attachments/useAttachmentDrafts'
 import {
   FieldInput,
   isFieldHidden,
@@ -36,6 +38,8 @@ type RecordsEditFormModalProps = {
   /** «تکرار ماهانه» of an income/expense record; omitted for other forms. */
   recurringChoice?: RecurringChoice
   onRecurringChoiceChange?: (choice: RecurringChoice) => void
+  /** «پیوست»: receipts of the record (and of a vehicle expense). */
+  attachments?: AttachmentDraftsState
 }
 
 function buildInitialValues(
@@ -65,7 +69,8 @@ export default function RecordsEditFormModal({
   onClose,
   onSubmit,
   recurringChoice,
-  onRecurringChoiceChange
+  onRecurringChoiceChange,
+  attachments
 }: RecordsEditFormModalProps) {
   const initialValues = useMemo(
     () => buildInitialValues(editingForm, editingRecord),
@@ -190,6 +195,8 @@ export default function RecordsEditFormModal({
           errors={vehicleExpense.fieldErrors}
         />
       ) : null}
+
+      {attachments ? <AttachmentField state={attachments} disabled={saving} /> : null}
 
       {recurringChoice && onRecurringChoiceChange ? (
         <RecurringModeOptions value={recurringChoice} onChange={onRecurringChoiceChange} />

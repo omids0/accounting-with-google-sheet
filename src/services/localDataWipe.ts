@@ -3,6 +3,7 @@ import { deleteBiometricKeyDatabase } from './appLockBiometricKey'
 import { clearDataKey } from './appLockDataKey'
 import { clearAppLockSessionState } from './appLockPolicy'
 import { LOCK_SETUP_OFFER_KEY } from './appLockPrompts'
+import { deleteAttachmentDatabase } from './attachmentBlobs'
 import { getSession } from './auth'
 import { BACKUP_STORAGE_KEY } from './backupReminder'
 import { setBankSmsCaptureEnabled } from './bankSmsNative'
@@ -56,7 +57,18 @@ const ACCOUNT_KEYS = [
   // Once-a-month digest line «N تکرار ثبت‌نشده» (recurringDigest.ts).
   'accounting_recurring_digest_v1',
   // Last global searches (searchRecent.ts), named here to keep that module out of this chunk.
-  'accounting_search_recent_v1'
+  'accounting_search_recent_v1',
+  // SMS reconciliation: last success, «نادیده», today's digest lines (bankSmsReconcileStore.ts).
+  'accounting_reconcile_v1',
+  'accounting_reconcile_digest_v1',
+  // Net-worth snapshot gate: month checked and one-time rebuild (netWorthStartup.ts).
+  'accounting_net_worth_v1',
+  // First-of-month report row: month handled and the «گزارش ماهانه» switch (monthlyReportGate.ts).
+  'accounting_monthly_report_v1',
+  // «سال در یک نگاه» years closed with ✕ (yearReviewGate.ts).
+  'accounting_year_review_v1',
+  // «بستن سال»: cash confirmed and archive time per year (closeYearStore.ts).
+  'accounting_close_year_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000
@@ -162,6 +174,8 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
 
   await deletePersistedDatabase()
   await deleteBiometricKeyDatabase()
+  // Receipts still waiting for Drive (Task F): files of the old account.
+  await deleteAttachmentDatabase()
   // Stop capturing bank SMS and drop the native queue: it belongs to the old account.
   await setBankSmsCaptureEnabled(false).catch(() => undefined)
 

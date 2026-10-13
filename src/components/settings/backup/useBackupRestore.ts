@@ -28,29 +28,38 @@ export function useBackupRestore() {
   const [progress, setProgress] = useState<RestoreProgress | null>(null)
   const [result, setResult] = useState('')
 
+  /** Opens the preview for a zip from any source: a picked file or a Drive version. */
+  const startFrom = useCallback(
+    async (read: () => Promise<ArrayBuffer>) => {
+      if (loading || !requireSpreadsheetId()) return
+
+      setLoading(true)
+      try {
+        const [{ previewBackup }, bytes] = await Promise.all([
+          import('../../../services/backupRestore'),
+          read()
+        ])
+
+        setPreview(previewBackup(new Uint8Array(bytes)))
+        setMode('merge')
+        setStage('preview')
+      } catch (err) {
+        if (isAuthError(err)) handleSheetError(err)
+        else showError(toUserMessage(err, 'فایل پشتیبان خوانده نشد'))
+      } finally {
+        setLoading(false)
+      }
+    },
+    [loading]
+  )
+
   const start = useCallback(async () => {
     if (loading || !requireSpreadsheetId()) return
 
     const file = await pickFile(ZIP_ACCEPT)
 
-    if (!file) return
-
-    setLoading(true)
-    try {
-      const [{ previewBackup }, bytes] = await Promise.all([
-        import('../../../services/backupRestore'),
-        file.arrayBuffer()
-      ])
-
-      setPreview(previewBackup(new Uint8Array(bytes)))
-      setMode('merge')
-      setStage('preview')
-    } catch (err) {
-      showError(toUserMessage(err, 'فایل پشتیبان خوانده نشد'))
-    } finally {
-      setLoading(false)
-    }
-  }, [loading])
+    if (file) await startFrom(() => file.arrayBuffer())
+  }, [loading, startFrom])
 
   const run = useCallback(async () => {
     const spreadsheetId = requireSpreadsheetId()
@@ -86,6 +95,7 @@ export function useBackupRestore() {
 
   return {
     start,
+    startFrom,
     loading,
     modal: {
       stage,

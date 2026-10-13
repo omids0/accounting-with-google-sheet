@@ -7,11 +7,11 @@ import {
   getWalletBankCategories
 } from '../../services/walletCategories'
 import type { WalletAccount } from '../../types'
-import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
 import AppIcon from '../AppIcon'
 import type { SmsTemplateDraft } from '../bankSms/SmsSampleEditor'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import {
   onboardingListClass,
@@ -107,7 +107,9 @@ export default function OnboardingAccountsStep({
                 <AppIcon name="check" size={16} />
                 {account.title}
               </span>
-              <span dir="ltr">{formatMoney(account.balance)}</span>
+              <span dir="ltr">
+                <MoneyText amount={account.balance} />
+              </span>
             </li>
           ))}
         </ul>

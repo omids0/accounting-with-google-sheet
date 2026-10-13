@@ -258,20 +258,35 @@ export async function showTestNotification(): Promise<void> {
   })
 }
 
-/** «به هدف «سفر عید» رسیدی»: once, when a deposit fills a savings goal. */
-export async function showGoalReachedNotification(goalId: string, title: string): Promise<void> {
-  if (!isNativePlatform() || (await getNotificationPermission()) !== 'granted') return
+/** A one-off notification now; false where none can be shown (web, or no permission). */
+export async function showInstantNotification(
+  reference: string,
+  title: string,
+  body: string
+): Promise<boolean> {
+  if (!isNativePlatform() || (await getNotificationPermission()) !== 'granted') return false
 
   await ensureReminderChannel()
   await LocalNotifications.schedule({
     notifications: [
       {
-        id: notificationId(`goal_${goalId}`),
-        title: 'تبریک! به هدف رسیدی',
-        body: `پس‌انداز «${title}» کامل شد.`,
+        id: notificationId(reference),
+        title,
+        body,
         channelId: REMINDER_CHANNEL_ID,
         schedule: { at: new Date(Date.now() + 1000) }
       }
     ]
   })
+
+  return true
+}
+
+/** «به هدف «سفر عید» رسیدی»: once, when a deposit fills a savings goal. */
+export async function showGoalReachedNotification(goalId: string, title: string): Promise<void> {
+  await showInstantNotification(
+    `goal_${goalId}`,
+    'تبریک! به هدف رسیدی',
+    `پس‌انداز «${title}» کامل شد.`
+  )
 }

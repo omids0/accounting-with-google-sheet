@@ -8,6 +8,7 @@ import {
   TAB_TITLES,
   TIMESHEET_TABS,
   VEHICLE_TABS,
+  WALLET_SUB_TABS,
   type Tab
 } from './types'
 import { useEngagementReminders } from '../../hooks/useEngagementReminders'
@@ -19,6 +20,7 @@ import {
   getPathForTab,
   getTabFromPath,
   getSettingsSubpageTitle,
+  isCloseYearPath,
   isSettingsPath,
   SETTINGS_PATH
 } from '../../routes/paths'
@@ -185,12 +187,11 @@ export function useLayoutNavigation() {
     tab === 'charts' ||
     tab === 'records' ||
     tab === 'entry' ||
-    tab === 'opening-balances' ||
     tab === 'net-available-settings' ||
     tab === 'personal-reminders' ||
     tab === 'vehicle-service' ||
     tab === 'vehicle-detail' ||
-    tab === 'wallet-account-detail' ||
+    WALLET_SUB_TABS.includes(tab) ||
     tab === 'about' ||
     tab === 'search' ||
     TIMESHEET_TABS.includes(tab) ||
@@ -200,7 +201,9 @@ export function useLayoutNavigation() {
 
   const onHeaderBack = useCallback(() => {
     if (getSettingsSubpageTitle(location.pathname)) {
-      navigate(SETTINGS_PATH)
+      // «بستن سال» returns to the year card or Settings, wherever it was opened from.
+      if (isCloseYearPath(location.pathname) && location.key !== 'default') navigate(-1)
+      else navigate(SETTINGS_PATH)
 
       return
     }
@@ -236,7 +239,7 @@ export function useLayoutNavigation() {
       return
     }
 
-    const backToWallet = tab === 'opening-balances' || tab === 'wallet-account-detail'
+    const backToWallet = WALLET_SUB_TABS.includes(tab)
 
     handleTabChange(backToWallet ? 'wallet' : 'dashboard')
   }, [handleTabChange, location.key, location.pathname, navigate, showSettings, tab])
@@ -258,7 +261,7 @@ export function useLayoutNavigation() {
     ? vehicleTitle
     : tab === 'dang-split-detail' && dangSplitTitle
     ? dangSplitTitle
-    : tab === 'wallet-account-detail' && walletAccountTitle
+    : (tab === 'wallet-account-detail' || tab === 'wallet-reconcile') && walletAccountTitle
     ? walletAccountTitle
     : TAB_TITLES[tab]
 

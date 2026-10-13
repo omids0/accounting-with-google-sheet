@@ -1,12 +1,13 @@
 import { useState } from 'react'
 
 import type { CheckFormState, CheckWithRow } from './types'
-import { createCheck, updateCheck } from '../../services/checks'
+import { CHECKS_SHEET, createCheck, updateCheck } from '../../services/checks'
 import { getSettings, isConfigured } from '../../services/settings'
 import type { Check } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
+import { useAttachmentDrafts } from '../attachments/useAttachmentDrafts'
 import { showSavedForCheck } from '../nudges/saveNudges'
 
 type UseChecksFormOptions = {
@@ -17,6 +18,13 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState<CheckWithRow | null>(null)
   const [saving, setSaving] = useState(false)
+
+  const attachments = useAttachmentDrafts({
+    open: showForm,
+    resetKey: editingItem?.id ?? 'new',
+    fileIds: editingItem?.attachments,
+    entityId: editingItem?.id
+  })
 
   const openCreateForm = () => {
     setEditingItem(null)
@@ -53,9 +61,10 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
         }
 
         await updateCheck(settings.spreadsheetId, editingItem.rowNumber, updated)
+        await attachments.commit(settings.spreadsheetId, CHECKS_SHEET, editingItem.id)
         showSuccess('چک ویرایش شد')
       } else {
-        await createCheck(settings.spreadsheetId, {
+        const created = await createCheck(settings.spreadsheetId, {
           checkNumber: form.checkNumber.trim(),
           subCategory: form.subCategory.trim(),
           counterparty: form.counterparty.trim(),
@@ -63,6 +72,8 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
           creationDate: form.creationDate,
           dueDate: form.dueDate
         })
+
+        await attachments.commit(settings.spreadsheetId, CHECKS_SHEET, created.id)
         showSavedForCheck('چک جدید ثبت شد', form.counterparty)
       }
       closeForm()
@@ -86,6 +97,7 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
     openCreateForm,
     openEditForm,
     closeForm,
-    handleSubmit
+    handleSubmit,
+    attachments
   }
 }

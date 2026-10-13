@@ -3,7 +3,7 @@ import { memo, useEffect, useState } from 'react'
 import { formatPersianPercent } from './chartUtils'
 import { prefersReducedMotion } from '../../hooks/useChartTheme'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import { chartCardClass, chartTitleClass } from '../ui/chartStyles'
 
 interface CategoryBarChartProps {
@@ -70,7 +70,7 @@ function CategoryBarChart({ title, data, tone, className = '' }: CategoryBarChar
                   {item.name}
                 </span>
                 <span className={amountClass}>
-                  {formatMoney(item.total)}
+                  <MoneyText amount={item.total} />
                   <span className={shareClass}>
                     {formatPersianPercent((item.total / sum) * 100)}
                   </span>

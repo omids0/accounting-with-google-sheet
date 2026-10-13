@@ -10,11 +10,11 @@ import {
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitPersonSummary } from '../../types/dangSplit'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
+import MoneyText from '../MoneyText'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
@@ -101,12 +101,15 @@ export default function DangSplitCategorySection({
                   totals.balance === 0 ? 'settled' : totals.balance < 0 ? 'credit' : 'debt'
                 )}
               >
-                {formatMoney(Math.abs(totals.balance))}
+                <MoneyText amount={Math.abs(totals.balance)} />
               </span>
             </div>
 
             <div className={listCardSubtitleClass}>
-              جمع سهم: <span className={listCardAmountPillClass}>{formatMoney(totals.share)}</span>
+              جمع سهم:{' '}
+              <span className={listCardAmountPillClass}>
+                <MoneyText amount={totals.share} />
+              </span>
             </div>
           </div>
         </button>

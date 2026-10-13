@@ -239,6 +239,12 @@ export async function executeOutboxOperation(
 
       return operation.sheetName
 
+    case 'attachment-upload': {
+      const { executeAttachmentUpload } = await import('./attachmentUpload')
+
+      return executeAttachmentUpload(spreadsheetId, operation)
+    }
+
     default:
       throw new Error('عملیات ناشناخته در صف همگام‌سازی')
   }

@@ -133,6 +133,18 @@
     }
   }
 
+  /* Same rule for the manual «کاهش انیمیشن» switch (utils/displayPrefs.ts). */
+  :root[data-reduced-motion] *,
+  :root[data-reduced-motion] *::before,
+  :root[data-reduced-motion] *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+
   /*
    * The Android WebView repaints gradients, blur and staggered mount animations
    * much more expensively than a desktop browser, which reads as lag on every

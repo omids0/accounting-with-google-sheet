@@ -1,0 +1,83 @@
+/*
+ * Settings › «نمایش». utils/displayPrefs.ts (and the pre-paint script in
+ * index.html) mirror the per-device prefs onto <html> as attributes; this file
+ * turns them into tokens. Unlayered, so it beats the @layer base defaults.
+ */
+
+/* Text size: steps on the root size (base.css sets 16px); everything else is rem. */
+html[data-text-size='sm'] {
+  font-size: calc(16px * 0.875);
+}
+
+html[data-text-size='lg'] {
+  font-size: calc(16px * 1.125);
+}
+
+html[data-text-size='xl'] {
+  font-size: calc(16px * 1.25);
+}
+
+/* The seven-tab bottom bar is as wide as the phone: it keeps the «عادی» size so
+   its labels never run into each other at «بزرگ» / «خیلی بزرگ». */
+html[data-text-size='lg'] .bottom-nav {
+  zoom: calc(1 / 1.125);
+}
+
+html[data-text-size='xl'] .bottom-nav {
+  zoom: calc(1 / 1.25);
+}
+
+/*
+ * Reduced motion: `data-reduced-motion` is set when the manual switch is on or
+ * the OS asks for less motion. The media query still covers the moment before
+ * the script runs. Tailwind's motion-* variants follow both.
+ */
+@custom-variant motion-reduce {
+  @media (prefers-reduced-motion: reduce) {
+    @slot;
+  }
+
+  &:where([data-reduced-motion] *) {
+    @slot;
+  }
+}
+
+@custom-variant motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    &:where(:root:not([data-reduced-motion]) *) {
+      @slot;
+    }
+  }
+}
+
+/* High contrast: stronger text and visible borders, both themes, tokens only. */
+:root[data-contrast='high'] {
+  --color-text: #08312e;
+  --color-text-muted: #1d544e;
+  --color-border: #6f7a78;
+  --form-input-border: #6f7a78;
+  --form-input-border-hover: #4f5957;
+  --form-label-color: #1d544e;
+}
+
+:root[data-contrast='high'][data-theme='dark'] {
+  --color-text: #ffffff;
+  --color-text-muted: #d6d0c5;
+  --color-border: rgba(255, 255, 255, 0.36);
+  --form-input-border: rgba(255, 255, 255, 0.42);
+  --form-input-border-hover: rgba(255, 255, 255, 0.6);
+  --form-label-color: #e0dbd1;
+}
+
+/*
+ * «ارقام فارسی» off: the formatters emit Latin digits, but both faces would
+ * still draw them as ۰–۹ (the Farsi-digit face for amounts, and Vazirmatn's
+ * `ss01` set that base.css turns on for body text). Drop both.
+ */
+:root[data-digits='latn'] {
+  --font-numeric: var(--font-text);
+}
+
+:root[data-digits='latn'] body {
+  font-feature-settings: normal;
+}

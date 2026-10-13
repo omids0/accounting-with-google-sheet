@@ -20,7 +20,8 @@ export interface CustomForm {
 
 export type CurrencyUnit = 'toman' | 'rial' | 'usd' | 'eur'
 
-export type ThemeMode = 'light' | 'dark'
+/** `system` follows the OS (`prefers-color-scheme`); `data-theme` always holds the resolved one. */
+export type ThemeMode = 'light' | 'dark' | 'system'
 
 export interface SpreadsheetEntry {
   id: string

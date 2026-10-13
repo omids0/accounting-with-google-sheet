@@ -61,6 +61,24 @@ async function shareFromCache(name: string, blob: Blob): Promise<string | null> 
   return name
 }
 
+/** «ذخیره» on Android: the app's own file in Documents; the share sheet when that fails (Android ≤ 10). */
+async function saveToDocuments(name: string, blob: Blob): Promise<string | null> {
+  const { Directory, Filesystem } = await import('@capacitor/filesystem')
+
+  try {
+    await Filesystem.writeFile({
+      path: name,
+      data: await blobToBase64(blob),
+      directory: Directory.Documents,
+      recursive: true
+    })
+
+    return name
+  } catch {
+    return shareFromCache(name, blob)
+  }
+}
+
 function downloadInBrowser(name: string, blob: Blob): void {
   const url = URL.createObjectURL(blob)
 
@@ -76,11 +94,19 @@ function downloadInBrowser(name: string, blob: Blob): void {
  * Saves an export under a Jalali-dated name: a download on the web, the share
  * sheet on Android so the user chooses where the file goes. Resolves the saved
  * name, or `null` when the user closed the share sheet without choosing.
+ * `share: false` («ذخیره») writes the file to Documents on Android instead.
+ * `dated: false` keeps a name that already carries its date (a backup from Drive).
  */
-export async function saveExportFile(filename: string, blob: Blob): Promise<string | null> {
-  const name = exportFileName(filename)
+export async function saveExportFile(
+  filename: string,
+  blob: Blob,
+  { share = true, dated = true }: { share?: boolean; dated?: boolean } = {}
+): Promise<string | null> {
+  const name = dated ? exportFileName(filename) : filename.replace(UNSAFE_FILENAME_CHARS, '-')
 
-  if (Capacitor.isNativePlatform()) return shareFromCache(name, blob)
+  if (Capacitor.isNativePlatform()) {
+    return share ? shareFromCache(name, blob) : saveToDocuments(name, blob)
+  }
 
   downloadInBrowser(name, blob)
 

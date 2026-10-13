@@ -20,7 +20,11 @@ export const MENU_APP_LABEL = 'اپ'
 
 export const MENU_MONEY_LINKS: MenuLinkEntry[] = [
   { tab: 'dashboard', icon: 'dashboard' },
-  { tab: 'wallet', icon: 'wallet', activeTabs: ['wallet', 'wallet-account-detail'] },
+  {
+    tab: 'wallet',
+    icon: 'wallet',
+    activeTabs: ['wallet', 'wallet-account-detail', 'wallet-reconcile']
+  },
   { tab: 'records', icon: 'records' }
 ]
 

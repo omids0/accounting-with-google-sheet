@@ -7,9 +7,9 @@ import {
   dangSplitStatsRowClass
 } from './dangSplitStyles'
 import type { DangSplitGroupListItem } from './types'
-import { formatMoney } from '../../utils/formatMoney'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
+import MoneyText from '../MoneyText'
 import ProgressBar from '../ProgressBar'
 import {
   cardActionButtonsClass,
@@ -58,7 +58,9 @@ export default function DangSplitGroupCard({
             >
               <div className={dangCardHeaderClass}>
                 <span className={dangCardTitleClass}>{item.title || '—'}</span>
-                <span className={dangSplitStatValueClass}>{formatMoney(summary.total)}</span>
+                <span className={dangSplitStatValueClass}>
+                  <MoneyText amount={summary.total} />
+                </span>
               </div>
 
               {item.description ? <p className={dangCardNoteClass}>{item.description}</p> : null}
@@ -73,13 +75,13 @@ export default function DangSplitGroupCard({
                 <span>
                   <span className={dangSplitStatLabelClass}>پرداخت‌شده: </span>
                   <span className={dangSplitStatValueSuccessClass}>
-                    {formatMoney(summary.covered)}
+                    <MoneyText amount={summary.covered} />
                   </span>
                 </span>
                 <span>
                   <span className={dangSplitStatLabelClass}>مانده بدهکاران: </span>
                   <span className={dangSplitStatValueDangerClass}>
-                    {formatMoney(summary.debtTotal)}
+                    <MoneyText amount={summary.debtTotal} />
                   </span>
                 </span>
               </div>

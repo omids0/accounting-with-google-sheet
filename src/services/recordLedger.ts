@@ -1,7 +1,11 @@
 import { getDateFieldId } from './dashboardAggregation'
 import { parseCreatedAtMs, type LedgerEntry } from './recordDuplicates'
 import { fetchRecords, type SheetRecord } from './sheets'
-import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
+import {
+  isWalletApplied,
+  SUBCATEGORY_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_ID
+} from '../components/form/fieldUtils'
 import type { AppSettings, CustomForm } from '../types'
 import { parseNumeric } from '../utils/parseNumeric'
 import { normalizeSheetDate } from '../utils/sheetValues'
@@ -16,7 +20,8 @@ export function recordToLedgerEntry(form: CustomForm, record: SheetRecord): Ledg
     category: record.values.category ?? '',
     subCategory: record.values[SUBCATEGORY_FIELD_ID] ?? '',
     title: record.values.title ?? '',
-    createdAtMs: parseCreatedAtMs(record.createdAt)
+    createdAtMs: parseCreatedAtMs(record.createdAt),
+    moved: isWalletApplied(record.values)
   }
 }
 

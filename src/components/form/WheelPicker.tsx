@@ -1,5 +1,6 @@
 import { type KeyboardEvent, useCallback, useEffect, useId, useLayoutEffect, useRef } from 'react'
 
+import { useRemPx } from '../../hooks/useRemPx'
 import { cn } from '../../utils/cn'
 import { moveFocusWithArrows, nextIndexForKey } from '../../utils/keyboardNav'
 import {
@@ -25,7 +26,8 @@ interface WheelPickerProps {
   onEnter?: () => void
 }
 
-const ITEM_HEIGHT = 44
+/** 44px at «عادی»; in rem so rows grow with «اندازهٔ متن» (Settings › نمایش). */
+const ITEM_HEIGHT_REM = 2.75
 
 const VISIBLE_PADDING = 2
 
@@ -64,6 +66,8 @@ export default function WheelPicker({
 }: WheelPickerProps) {
   const optionIdPrefix = useId()
 
+  const itemHeight = useRemPx(ITEM_HEIGHT_REM)
+
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
@@ -80,9 +84,9 @@ export default function WheelPicker({
 
   const itemsSignature = items.map(item => item.value).join('\0')
 
-  const padding = VISIBLE_PADDING * ITEM_HEIGHT
+  const padding = VISIBLE_PADDING * itemHeight
 
-  const containerHeight = (VISIBLE_PADDING * 2 + 1) * ITEM_HEIGHT
+  const containerHeight = (VISIBLE_PADDING * 2 + 1) * itemHeight
 
   const updateVisuals = useCallback(() => {
     const el = scrollRef.current
@@ -94,13 +98,13 @@ export default function WheelPicker({
     itemRefs.current.forEach((itemEl, index) => {
       if (!itemEl) return
 
-      const itemCenterY = padding + index * ITEM_HEIGHT + ITEM_HEIGHT / 2
+      const itemCenterY = padding + index * itemHeight + itemHeight / 2
 
-      const offset = (itemCenterY - centerY) / ITEM_HEIGHT
+      const offset = (itemCenterY - centerY) / itemHeight
 
       applyWheelItemVisuals(itemEl, offset)
     })
-  }, [containerHeight, padding])
+  }, [itemHeight, containerHeight, padding])
 
   const scheduleVisualUpdate = useCallback(() => {
     if (rafRef.current !== undefined) {
@@ -115,12 +119,12 @@ export default function WheelPicker({
 
       if (!el) return
       el.scrollTo({
-        top: index * ITEM_HEIGHT,
+        top: index * itemHeight,
         behavior: smooth ? 'smooth' : 'auto'
       })
       scheduleVisualUpdate()
     },
-    [scheduleVisualUpdate]
+    [itemHeight, scheduleVisualUpdate]
   )
 
   const emitSelection = useCallback(() => {
@@ -128,7 +132,7 @@ export default function WheelPicker({
 
     if (!el || items.length === 0) return
 
-    const index = Math.round(el.scrollTop / ITEM_HEIGHT)
+    const index = Math.round(el.scrollTop / itemHeight)
 
     const clamped = Math.max(0, Math.min(items.length - 1, index))
 
@@ -138,7 +142,7 @@ export default function WheelPicker({
 
     scrollToIndex(clamped, true)
     isUserScrollingRef.current = false
-  }, [items, onChange, safeIndex, scrollToIndex])
+  }, [itemHeight, items, onChange, safeIndex, scrollToIndex])
 
   useLayoutEffect(() => {
     if (isUserScrollingRef.current) return
@@ -146,9 +150,9 @@ export default function WheelPicker({
     const el = scrollRef.current
 
     if (!el) return
-    el.scrollTop = safeIndex * ITEM_HEIGHT
+    el.scrollTop = safeIndex * itemHeight
     scheduleVisualUpdate()
-  }, [safeIndex, itemsSignature, scheduleVisualUpdate])
+  }, [itemHeight, safeIndex, itemsSignature, scheduleVisualUpdate])
 
   useLayoutEffect(() => {
     scheduleVisualUpdate()
@@ -227,7 +231,7 @@ export default function WheelPicker({
       className={wheelPickerClass}
       style={{
         height: containerHeight,
-        ['--wheel-item-height' as string]: `${ITEM_HEIGHT}px`
+        ['--wheel-item-height' as string]: `${itemHeight}px`
       }}
       aria-label={ariaLabel}
       role="listbox"
@@ -262,7 +266,7 @@ export default function WheelPicker({
             tabIndex={-1}
             aria-selected={item.value === value}
             className={cn(wheelPickerItemClass, wheelPickerItemSelectedClass(item.value === value))}
-            style={{ height: ITEM_HEIGHT }}
+            style={{ height: itemHeight }}
             onClick={() => {
               onChange(item.value)
               scrollToIndex(index, true)

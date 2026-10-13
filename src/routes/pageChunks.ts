@@ -65,6 +65,12 @@ export const loadCategoryTreeReportPage: PageLoader = () =>
 export const loadModuleReportPage: PageLoader = () =>
   import('../components/reports/ModuleReportPage')
 
+export const loadMonthlyReportPage: PageLoader = () =>
+  import('../components/reports/monthly/MonthlyReportPage')
+
+export const loadYearsReportPage: PageLoader = () =>
+  import('../components/reports/years/YearsReportPage')
+
 export const loadOpeningBalanceReportPage: PageLoader = () =>
   import('../components/reports/OpeningBalanceReportPage')
 
@@ -75,6 +81,10 @@ export const loadRemindersPage: PageLoader = () => import('../components/Reminde
 
 export const loadCategoriesPage: PageLoader = () =>
   import('../components/categories/CategoriesPage')
+
+export const loadCloseYearPage: PageLoader = () => import('../components/closeYear/CloseYearPage')
+
+export const loadBackupPage: PageLoader = () => import('../components/settings/backup/BackupPage')
 
 export const loadSettingsPage: PageLoader = () => import('../components/SettingsPage')
 
@@ -94,6 +104,9 @@ export const loadWalletPage: PageLoader = () => import('../components/WalletPage
 export const loadWalletAccountDetailPage: PageLoader = () =>
   import('../components/wallet/WalletAccountDetailPage')
 
+export const loadWalletReconcilePage: PageLoader = () =>
+  import('../components/wallet/reconcile/WalletReconcilePage')
+
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
 export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')
@@ -110,6 +123,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   treasury: loadTreasuryPage,
   wallet: loadWalletPage,
   'wallet-account-detail': loadWalletAccountDetailPage,
+  'wallet-reconcile': loadWalletReconcilePage,
   'bank-sms': loadBankSmsPage,
   search: loadSearchPage,
   records: loadRecordsPage,
@@ -133,6 +147,8 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'report-dang': loadModuleReportPage,
   'report-installments': loadModuleReportPage,
   'report-checks': loadModuleReportPage,
+  'report-monthly': loadMonthlyReportPage,
+  'report-years': loadYearsReportPage,
   timesheets: loadTimesheetsPage,
   'timesheet-detail': loadTimesheetDetailPage,
   'vehicle-service': loadVehiclesPage,

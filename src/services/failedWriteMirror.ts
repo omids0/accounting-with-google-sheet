@@ -65,6 +65,9 @@ export function revertWriteRows(rows: string[][], operation: OutboxOperation): s
 
 /** Applies a write to a tab's rows again, as the app did when it was first made. */
 export function applyWriteRows(rows: string[][], operation: OutboxOperation): string[][] | null {
+  // An upload changes no row by itself; the row update it queues is its own entry.
+  if (operation.type === 'attachment-upload') return null
+
   const next = rows.map(row => [...row])
 
   if (operation.type === 'append') return [...next, [...operation.row]]

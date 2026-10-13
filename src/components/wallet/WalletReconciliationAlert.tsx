@@ -1,6 +1,6 @@
-import { formatMoney, formatSignedMoney } from '../../utils/formatMoney'
 import HelpHint from '../HelpHint'
 import { HELP_HINTS } from '../helpHints'
+import MoneyText from '../MoneyText'
 import Alert from '../ui/Alert'
 import Button from '../ui/Button'
 import {
@@ -33,11 +33,11 @@ export default function WalletReconciliationAlert({
         <HelpHint {...HELP_HINTS.reconciliation} />
       </strong>
       <p>
-        کیف پول فعلی ({formatMoney(totalBalance)}) با مانده محاسبه‌شده ({formatMoney(periodBalance)}
-        ) {reconciliationDiff > 0 ? 'بیشتر' : 'کمتر'} است.
+        کیف پول فعلی (<MoneyText amount={totalBalance} />) با مانده محاسبه‌شده (
+        <MoneyText amount={periodBalance} />) {reconciliationDiff > 0 ? 'بیشتر' : 'کمتر'} است.
       </p>
       <p className={reconcileDiffClass}>
-        اختلاف: {formatSignedMoney(reconciliationDiff, { showPlus: true })}
+        اختلاف: <MoneyText amount={reconciliationDiff} signed="plus" />
       </p>
       <p className={dashboardReconcileFormulaClass}>
         موجودی اول + درآمد − هزینه = مانده محاسبه‌شده

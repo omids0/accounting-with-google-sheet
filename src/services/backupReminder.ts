@@ -16,6 +16,18 @@ export interface BackupState {
   snoozedUntil?: number
   /** «یادآوری ماهانه» turned off in settings. */
   reminderOff?: boolean
+  /** Round 7 (Task I): «پشتیبان خودکار هفتگی» turned off (on by default). */
+  autoOff?: boolean
+  /** «اگر دو هفته پشتیبان نشد، خبر بده» turned off (on by default). */
+  overdueNoticeOff?: boolean
+  /** Last automatic backup saved to Drive (from this device or adopted from another). */
+  lastAutoBackupAt?: number
+  /** «Drive › … › پشتیبان»: where the last Drive backup went. */
+  driveFolderLabel?: string
+  /** Last «دو هفته پشتیبان نشد» notice: once per fortnight. */
+  overdueNoticeAt?: number
+  /** Lease against two tabs running the automatic backup at once. */
+  autoLock?: { token: string; until: number }
 }
 
 type BackupStore = Record<string, BackupState>
@@ -34,7 +46,7 @@ export function getBackupState(spreadsheetId: string): BackupState {
   return (getItem<BackupStore>(BACKUP_STORAGE_KEY) ?? {})[spreadsheetId] ?? {}
 }
 
-function patchBackupState(spreadsheetId: string, patch: BackupState): void {
+export function patchBackupState(spreadsheetId: string, patch: BackupState): void {
   const store = getItem<BackupStore>(BACKUP_STORAGE_KEY) ?? {}
 
   setItem(BACKUP_STORAGE_KEY, { ...store, [spreadsheetId]: { ...store[spreadsheetId], ...patch } })
@@ -51,6 +63,14 @@ export function snoozeBackupReminder(spreadsheetId: string, now = Date.now()): v
 
 export function setBackupReminderOn(spreadsheetId: string, on: boolean): void {
   patchBackupState(spreadsheetId, { reminderOff: !on })
+}
+
+export function setAutoBackupOn(spreadsheetId: string, on: boolean): void {
+  patchBackupState(spreadsheetId, { autoOff: !on })
+}
+
+export function setOverdueNoticeOn(spreadsheetId: string, on: boolean): void {
+  patchBackupState(spreadsheetId, { overdueNoticeOff: !on })
 }
 
 /** Starts the clock for a spreadsheet that has never been backed up on this device. */

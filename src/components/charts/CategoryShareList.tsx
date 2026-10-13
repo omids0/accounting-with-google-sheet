@@ -6,7 +6,7 @@ import { prefersReducedMotion } from '../../hooks/useChartTheme'
 import { budgetUsage } from '../../services/budgets'
 import type { CategoryShare } from '../../types'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import {
   calmBarClass,
   calmBarTrackClass,
@@ -133,7 +133,7 @@ export default function CategoryShareList({
               {variant === 'dot'
                 ? `${formatPersianPercent(Math.round(item.share * 100))} · `
                 : null}
-              {formatMoney(item.total)}
+              <MoneyText amount={item.total} />
               {variant === 'bar' ? (
                 <span className="sr-only">{` · ${formatPersianPercent(
                   Math.round(item.share * 100)

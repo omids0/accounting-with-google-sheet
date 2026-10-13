@@ -230,7 +230,8 @@
   --shadow-DEFAULT: var(--shadow);
   --shadow-lg: var(--shadow-lg);
   --font-sans: var(--font-text);
-  --font-numeric: 'Vazirmatn FD', 'Vazirmatn', system-ui, sans-serif;
+  /* Through the variable so «ارقام فارسی» off (styles/display.css) reaches the utility. */
+  --font-numeric: var(--font-numeric);
   --spacing-touch-min: var(--touch-min);
   --spacing-page: var(--space-page);
   --spacing-page-desktop: var(--space-page-desktop);

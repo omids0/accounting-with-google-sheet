@@ -1,6 +1,6 @@
 import type { CustomForm } from '../types'
 import type { TabInfo } from './archiveTabs'
-import { planYearSweep } from './recordArchive'
+import { planYearSweep, type YearSweepOptions } from './recordArchive'
 import { withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { normalizeCellForCompare, rowsMatchForCompare, toSheetRowValues } from './sheetsCellValues'
@@ -189,7 +189,8 @@ export async function deleteArchivedRows(
   form: CustomForm,
   base: TabInfo,
   archives: string[][][],
-  currentYear: number
+  currentYear: number,
+  options: YearSweepOptions = {}
 ): Promise<string[][]> {
   const fresh = await fetchSheetRangeFromApi(spreadsheetId, base.title)
 
@@ -202,7 +203,7 @@ export async function deleteArchivedRows(
 
   const used = new Set<string>()
 
-  const indexes = [...(planYearSweep(fresh, form, currentYear)?.values() ?? [])]
+  const indexes = [...(planYearSweep(fresh, form, currentYear, options)?.values() ?? [])]
     .flat()
     .filter(index => {
       const id = idOf(fresh[index])

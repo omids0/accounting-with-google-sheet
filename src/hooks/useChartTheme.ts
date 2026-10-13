@@ -86,10 +86,14 @@ function readTheme(): ChartTheme {
   }
 }
 
+/** The OS setting or the manual «کاهش انیمیشن» switch (both end up on `<html>`). */
 export function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false
 
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  return (
+    document.documentElement.hasAttribute('data-reduced-motion') ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
 }
 
 export function useChartTheme(): ChartTheme {

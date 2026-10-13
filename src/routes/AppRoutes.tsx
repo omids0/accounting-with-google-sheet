@@ -27,17 +27,22 @@ import {
   LazyCategoryTreeReportPage,
   LazyIncomeExpenseReportPage,
   LazyModuleReportPage,
+  LazyMonthlyReportPage,
+  LazyYearsReportPage,
   LazyOpeningBalanceReportPage,
   LazyPersonalRemindersPage,
   LazyRemindersPage,
   LazyCategoriesPage,
+  LazyCloseYearPage,
+  LazyBackupPage,
   LazySettingsPage,
   LazyTimesheetsPage,
   LazyTreasuryPage,
   LazyVehiclesPage,
-  LazyWalletPage
+  LazyWalletPage,
+  LazyWalletReconcilePage
 } from './lazyPages'
-import { RECORD_FOCUS_PARAM } from './paths'
+import { RECORD_EDIT_PARAM, RECORD_FOCUS_PARAM } from './paths'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
 import WalletAccountDetailRoute from './WalletAccountDetailRoute'
@@ -60,6 +65,7 @@ function RecordsRoute() {
     <LazyRecordsPage
       initialFormType={parseFormType(searchParams.get('type'))}
       focusRecordId={searchParams.get(RECORD_FOCUS_PARAM) ?? undefined}
+      openEdit={searchParams.get(RECORD_EDIT_PARAM) === '1'}
     />
   )
 }
@@ -108,6 +114,7 @@ export function AppAuthenticatedRoutes() {
           <Route path="search" element={<LazySearchPage />} />
           <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
           <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
+          <Route path="wallet/reconcile/:accountId" element={<LazyWalletReconcilePage />} />
           <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />
           <Route path="entry" element={<EntryRoute />} />
           <Route path="records" element={<RecordsRoute />} />
@@ -117,6 +124,8 @@ export function AppAuthenticatedRoutes() {
           <Route path="about" element={<LazyAboutPage />} />
           <Route path="settings/reminders" element={<LazyRemindersPage />} />
           <Route path="settings/categories" element={<LazyCategoriesPage />} />
+          <Route path="settings/close-year/:year?" element={<LazyCloseYearPage />} />
+          <Route path="settings/backup" element={<LazyBackupPage />} />
           <Route path="settings" element={<LazySettingsPage />} />
           <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
           <Route path="reports/income-expense" element={<LazyIncomeExpenseReportPage />} />
@@ -131,6 +140,8 @@ export function AppAuthenticatedRoutes() {
           <Route path="reports/dang" element={<ModuleReportRoute kind="dang" />} />
           <Route path="reports/installments" element={<ModuleReportRoute kind="installments" />} />
           <Route path="reports/checks" element={<ModuleReportRoute kind="checks" />} />
+          <Route path="reports/monthly" element={<LazyMonthlyReportPage />} />
+          <Route path="reports/years" element={<LazyYearsReportPage />} />
           <Route path="timesheets" element={<LazyTimesheetsPage />} />
           <Route path="timesheets/:timesheetId" element={<TimesheetDetailRoute />} />
           <Route path="vehicles" element={<LazyVehiclesPage />} />

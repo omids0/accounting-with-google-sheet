@@ -8,7 +8,7 @@ import { flushOutbox } from './sheetSyncOutbox'
 import { getAllSheetSpecs } from './spreadsheetSetup'
 import { hasPendingOutbox } from './syncOutbox'
 import { version as APP_VERSION } from '../../package.json'
-import { saveExportFile } from '../utils/saveFile'
+import { exportFileName, saveExportFile } from '../utils/saveFile'
 
 /** `saveExportFile` appends the Jalali date: «حساب کتاب · پشتیبان · ۱۴۰۵-۰۷-۲۰.zip». */
 const BACKUP_FILE_NAME = 'حساب کتاب · پشتیبان ·.zip'
@@ -60,11 +60,18 @@ export async function fetchTabsByTitle(
   return new Map([...fetched].map(([name, rows]) => [normalizeSheetTitle(name), rows]))
 }
 
-/** Zips every tab as CSV plus `manifest.json` and saves it; null when the share sheet was closed. */
-export async function createFullBackup(
+export interface FullBackup {
+  blob: Blob
+  /** «حساب کتاب · پشتیبان · ۱۴۰۵-۰۷-۲۰.zip» */
+  name: string
+  exportedAt: Date
+}
+
+/** Every tab as CSV plus `manifest.json`, zipped; nothing saved yet. */
+export async function buildFullBackup(
   spreadsheetId: string,
   spreadsheetLabel: string
-): Promise<string | null> {
+): Promise<FullBackup> {
   await sendPendingWrites(spreadsheetId)
 
   const tabs = listBackupTabs(spreadsheetId)
@@ -87,12 +94,26 @@ export async function createFullBackup(
     exportedAt
   })
 
-  const saved = await saveExportFile(
-    BACKUP_FILE_NAME,
-    new Blob([packBackup(manifest, files)], { type: 'application/zip' })
-  )
+  return {
+    blob: new Blob([packBackup(manifest, files)], { type: 'application/zip' }),
+    name: exportFileName(BACKUP_FILE_NAME, exportedAt),
+    exportedAt
+  }
+}
 
-  if (saved) markBackupDone(spreadsheetId, exportedAt.getTime())
+/** Saves a built backup on this device; null when the share sheet was closed. */
+export async function saveFullBackup(spreadsheetId: string, backup: FullBackup) {
+  const saved = await saveExportFile(BACKUP_FILE_NAME, backup.blob)
+
+  if (saved) markBackupDone(spreadsheetId, backup.exportedAt.getTime())
 
   return saved
+}
+
+/** Zips every tab and saves it; null when the share sheet was closed. */
+export async function createFullBackup(
+  spreadsheetId: string,
+  spreadsheetLabel: string
+): Promise<string | null> {
+  return saveFullBackup(spreadsheetId, await buildFullBackup(spreadsheetId, spreadsheetLabel))
 }

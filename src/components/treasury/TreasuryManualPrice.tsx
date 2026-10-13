@@ -1,8 +1,8 @@
 import { isManualPriceStale } from '../../services/treasuryCatalog'
 import type { VaultAsset } from '../../types'
-import { formatMoney } from '../../utils/formatMoney'
 import { formatDayBadge } from '../../utils/periodLabel'
 import CardEditButton from '../CardEditButton'
+import MoneyText from '../MoneyText'
 import { treasuryManualPriceClass, treasuryStaleHintClass } from '../ui/treasuryReceivableStyles'
 
 /** «قیمت دستی · ۱۲ مهر ✎», with an amber nudge once the price is over 30 days old. */
@@ -21,7 +21,12 @@ export default function TreasuryManualPrice({
     <div className={treasuryManualPriceClass}>
       <span>
         قیمت دستی{badge ? ` · ${badge.day} ${badge.month}` : ''}
-        {asset.manualPrice > 0 ? ` · ${formatMoney(asset.manualPrice)}` : ''}
+        {asset.manualPrice > 0 ? (
+          <>
+            {' · '}
+            <MoneyText amount={asset.manualPrice} />
+          </>
+        ) : null}
       </span>
       <CardEditButton onClick={() => onEdit(asset)} ariaLabel={`به‌روزرسانی قیمت ${asset.name}`} />
       {isManualPriceStale(asset) && (
