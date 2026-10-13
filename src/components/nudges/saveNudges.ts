@@ -18,7 +18,7 @@ import type { CustomForm } from '../../types'
 import { normalizeSheetDate } from '../../utils/sheetValues'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
-import { WALLET_ACCOUNT_FIELD_ID } from '../form/fieldUtils'
+import { COUNTERPARTY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../form/fieldUtils'
 import RecurringToastAction from '../recurring/RecurringToastAction'
 
 /** The positive answer's work lives in a lazy chunk; only a tap loads it. */
@@ -80,8 +80,8 @@ function recurringOption(form: CustomForm, values: Record<string, string | numbe
 }
 
 /**
- * After an income/expense from the entry form: vehicle link or wallet account, and
- * the «تکرار ماهانه» option on the saved toast.
+ * After an income/expense from the entry form: vehicle link, wallet account or a
+ * repeated counterparty, and the «تکرار ماهانه» option on the saved toast.
  */
 export function showSavedForEntry(
   form: CustomForm,
@@ -122,7 +122,8 @@ export function showSavedForEntry(
             actions => actions.assignRecordAccount(spreadsheetId, form, recordId, accountId),
             'حساب تراکنش ثبت شد'
           )
-      }
+      },
+      counterpartyOffer(spreadsheetId, String(values[COUNTERPARTY_FIELD_ID] ?? ''))
     ],
     recurringOption(form, values)
   )

@@ -67,6 +67,10 @@ export function buildCounterpartyChip(counterparty: string, onRemove: () => void
   return buildLabeledFilterChip('counterparty', 'counterparty', 'طرف', counterparty, onRemove)
 }
 
+export function buildWithItemsChip(onRemove: () => void): FilterChip {
+  return withKind('other', { id: 'with-items', label: 'با اقلام', onRemove })
+}
+
 export function buildSortChip(label: string, onRemove: () => void): FilterChip {
   return withKind('sort', {
     id: 'sort',

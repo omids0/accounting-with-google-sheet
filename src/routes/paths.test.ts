@@ -6,7 +6,8 @@ import {
   getSettingsSubpageTitle,
   getTabFromPath,
   isCloseYearPath,
-  recordFocusPath
+  recordFocusPath,
+  recordsCounterpartyPath
 } from './paths'
 
 describe('wallet account detail path', () => {
@@ -56,5 +57,47 @@ describe('settings sub-pages', () => {
   it('opens the category page on a form type', () => {
     expect(getCategoriesPath('income')).toBe('/settings/categories?type=income')
     expect(getCategoriesPath()).toBe('/settings/categories')
+  })
+})
+
+describe('line items report paths', () => {
+  it('opens the report and an item page by key', () => {
+    expect(getTabFromPath('/reports/line-items')).toBe('report-line-items')
+    expect(getTabFromPath('/reports/line-items/%D9%85%D9%88%D8%B2')).toBe('report-line-item')
+  })
+
+  it('builds the item path from its key, with the type when it is not an expense', () => {
+    const key = 'نان سنگک'
+
+    expect(getPathForTab('report-line-item', { lineItemKey: key })).toBe(
+      `/reports/line-items/${encodeURIComponent(key)}`
+    )
+    expect(getPathForTab('report-line-item', { lineItemKey: key, lineItemType: 'income' })).toBe(
+      `/reports/line-items/${encodeURIComponent(key)}?type=income`
+    )
+    expect(getPathForTab('report-line-item')).toBe('/reports/line-items')
+  })
+})
+
+describe('records counterparty link', () => {
+  it('filters the records page to a counterparty over a range', () => {
+    const path = recordsCounterpartyPath('رضا', 'expense', {
+      start: '2026-10-01',
+      end: '2026-10-31'
+    })
+
+    const params = new URLSearchParams(path.split('?')[1])
+
+    expect(path.startsWith('/records?')).toBe(true)
+    expect(params.get('type')).toBe('expense')
+    expect(params.get('counterparty')).toBe('رضا')
+    expect(params.get('from')).toBe('2026-10-01')
+    expect(params.get('to')).toBe('2026-10-31')
+  })
+
+  it('leaves the type out for both forms', () => {
+    const path = recordsCounterpartyPath('رضا', 'all', { start: 'a', end: 'b' })
+
+    expect(new URLSearchParams(path.split('?')[1]).has('type')).toBe(false)
   })
 })

@@ -1,14 +1,16 @@
+import { recordCounterparty, recordLineItems } from './recordsFilterPredicates'
 import { getFormField, type StoredRecord } from './recordsUtils'
 import type { CustomForm } from '../../types'
 import { ATTACHMENTS_HEADER, serializeAttachmentIds } from '../../utils/attachmentIds'
 import { downloadTextFile, rowsToCsv } from '../../utils/csv'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { describeLineItems } from '../../utils/lineItems'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { downloadTablePdf } from '../../utils/pdf'
 import { SUBCATEGORY_FIELD_ID } from '../form'
 
-const HEADERS = ['فرم', 'تاریخ', 'عنوان', 'دسته', 'زیردسته', 'مبلغ', 'توضیحات']
+const HEADERS = ['فرم', 'تاریخ', 'عنوان', 'دسته', 'زیردسته', 'مبلغ', 'توضیحات', 'طرف حساب', 'اقلام']
 
 export function recordsExportRows(records: StoredRecord[], forms: CustomForm[]): string[][] {
   return records.map(record => {
@@ -25,7 +27,9 @@ export function recordsExportRows(records: StoredRecord[], forms: CustomForm[]):
       record.values.category ?? '',
       record.values[SUBCATEGORY_FIELD_ID] ?? '',
       formatMoney(parseNumeric(record.values.amount)),
-      record.values.note ?? ''
+      record.values.note ?? '',
+      recordCounterparty(record),
+      describeLineItems(recordLineItems(record))
     ]
   })
 }
@@ -54,6 +58,6 @@ export async function exportRecordsPdf(
     headers: HEADERS,
     rows,
     filename: 'تراکنش‌ها.pdf',
-    cellClasses: rows.map(() => ['', '', '', '', '', 'pdf-cell-amount', ''])
+    cellClasses: rows.map(() => ['', '', '', '', '', 'pdf-cell-amount', '', '', ''])
   })
 }

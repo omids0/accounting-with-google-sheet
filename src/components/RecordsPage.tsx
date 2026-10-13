@@ -14,6 +14,8 @@ import { useRecordsPage } from './records/useRecordsPage'
 import { useRecordsSpeedDial } from './records/useRecordsSpeedDial'
 import { RecordListSkeleton } from './skeleton'
 import {
+  recordsDateGridBtnClass,
+  recordsDateGridClass,
   recordsPageBodyClass,
   recordsPageClass,
   recordsPageMainClass,
@@ -23,14 +25,25 @@ import {
 export default function RecordsPage({
   initialFormType,
   focusRecordId,
-  openEdit
+  openEdit,
+  initialCounterparty,
+  initialRange
 }: {
   initialFormType?: 'income' | 'expense'
   focusRecordId?: string
   /** Also open the focused record's edit form once it loads. */
   openEdit?: boolean
+  /** From a report link: start filtered to one counterparty, over a date range. */
+  initialCounterparty?: string
+  initialRange?: { start: string; end: string }
 }) {
-  const page = useRecordsPage(initialFormType, focusRecordId, openEdit)
+  const page = useRecordsPage(
+    initialFormType,
+    focusRecordId,
+    openEdit,
+    initialCounterparty,
+    initialRange
+  )
 
   useRecordsSpeedDial({
     forms: page.forms,
@@ -76,7 +89,21 @@ export default function RecordsPage({
           subCategoryOptions={
             page.subcategory.showDraft ? page.subcategory.draftOptions : undefined
           }
-        />
+          counterparty={page.extra.showCounterparty ? page.extra.draftCounterparty : undefined}
+          onCounterpartyChange={page.extra.setDraftCounterparty}
+          counterpartyOptions={page.extra.showCounterparty ? page.extra.options : undefined}
+        >
+          <div className={recordsDateGridClass}>
+            <button
+              type="button"
+              className={recordsDateGridBtnClass(page.extra.draftWithItems)}
+              aria-pressed={page.extra.draftWithItems}
+              onClick={() => page.extra.setDraftWithItems(!page.extra.draftWithItems)}
+            >
+              ☰ فقط رکوردهای با اقلام
+            </button>
+          </div>
+        </PageFilterPanel>
       </FilterModal>
 
       <div className={recordsPageBodyClass}>

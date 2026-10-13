@@ -62,6 +62,14 @@ export const loadIncomeExpenseReportPage: PageLoader = () =>
 export const loadCategoryTreeReportPage: PageLoader = () =>
   import('../components/reports/CategoryTreeReportPage')
 
+export const loadLineItemsReportPage: PageLoader = () =>
+  import('../components/reports/LineItemsReportPage')
+
+export const loadCounterpartiesReportPage: PageLoader = () =>
+  import('../components/reports/CounterpartiesReportPage')
+
+export const loadLineItemPage: PageLoader = () => import('../components/reports/LineItemPage')
+
 export const loadModuleReportPage: PageLoader = () =>
   import('../components/reports/ModuleReportPage')
 
@@ -137,6 +145,9 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'report-financial-summary': loadFinancialSummaryReportPage,
   'report-income-expense': loadIncomeExpenseReportPage,
   'report-category-tree': loadCategoryTreeReportPage,
+  'report-line-items': loadLineItemsReportPage,
+  'report-line-item': loadLineItemPage,
+  'report-counterparties': loadCounterpartiesReportPage,
   'report-cash-flow': loadCashFlowReportPage,
   'report-due-dates': loadDueDatesReportPage,
   'report-assets-liabilities': loadAssetsLiabilitiesReportPage,

@@ -45,6 +45,21 @@ function budgetRow(row: MonthlyReportData['budgets'][number]): string {
   )}<div class="mr-track"><div class="mr-fill" style="width:${width}%"></div></div></div>`
 }
 
+/**
+ * «بیشترین خرید از: … · پرتکرارترین قلم: …» under the budget bars; '' when the month
+ * names neither a counterparty nor an item.
+ */
+export function monthlyReportHighlightLine(report: MonthlyReportData): string {
+  const { counterparties, item } = report.highlights
+
+  return [
+    counterparties.length ? `بیشترین خرید از: ${counterparties.join('، ')}` : '',
+    item ? `پرتکرارترین قلم: ${item}` : ''
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
 /** The footer facts, also shown under the on-screen preview. */
 export function monthlyReportFacts(report: MonthlyReportData): string[] {
   const facts = [
@@ -70,6 +85,8 @@ export function monthlyReportFacts(report: MonthlyReportData): string[] {
 }
 
 export function monthlyReportHtml(report: MonthlyReportData, userName: string | null): string {
+  const highlightLine = monthlyReportHighlightLine(report)
+
   const budgets = report.budgets.length
     ? `<h2 class="mr-section">بودجه</h2>${report.budgets.map(budgetRow).join('')}`
     : ''
@@ -85,6 +102,7 @@ export function monthlyReportHtml(report: MonthlyReportData, userName: string | 
       ${stat('خالص', signedMoneyHtml(report.net))}
     </div>
     ${budgets}
+    ${highlightLine ? `<div class="mr-budget">${escapeHtml(highlightLine)}</div>` : ''}
     <div class="mr-facts">${monthlyReportFacts(report).map(escapeHtml).join(' · ')}</div>
   `
 }

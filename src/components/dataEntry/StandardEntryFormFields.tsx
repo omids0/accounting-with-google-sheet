@@ -1,13 +1,16 @@
 import { useMemo, type ReactNode } from 'react'
 import type { useForm } from 'react-hook-form'
 
+import EntryRecordExtraField from './EntryRecordExtraField'
 import type { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
 import type { CustomForm, FieldConfig } from '../../types'
 import { formFieldError } from '../../utils/formValidation'
 import {
+  COUNTERPARTY_FIELD_ID,
   FieldInput,
   FormRow,
   isFieldHidden,
+  LINE_ITEMS_FIELD_ID,
   SUBCATEGORY_FIELD_ID,
   WALLET_ACCOUNT_FIELD_ID,
   WALLET_APPLY_FIELD_ID
@@ -130,6 +133,20 @@ export default function StandardEntryFormFields({
     )
   }
 
+  // «طرف حساب» and «ریز اقلام» have their own editors; vehicle expenses keep neither.
+  const renderExtraField = (id: string) =>
+    fieldById.has(id) && !showVehicleFields ? (
+      <EntryRecordExtraField
+        key={id}
+        fieldId={id}
+        values={values}
+        setValue={(fieldId, next) => {
+          clearFieldError?.(fieldId)
+          setValue(fieldId, next)
+        }}
+      />
+    ) : null
+
   return (
     <>
       <FormRow>
@@ -153,6 +170,8 @@ export default function StandardEntryFormFields({
       ) : null}
       {renderField(WALLET_ACCOUNT_FIELD_ID)}
       {renderField(WALLET_APPLY_FIELD_ID)}
+      {renderExtraField(COUNTERPARTY_FIELD_ID)}
+      {renderExtraField(LINE_ITEMS_FIELD_ID)}
       {renderField('note')}
     </>
   )

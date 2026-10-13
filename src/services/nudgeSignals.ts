@@ -1,5 +1,6 @@
 import { countWalletAccounts } from './onboarding'
 import { DEFAULT_RULES, parseReminderRows } from './reminders'
+import { getSettings } from './settings'
 import {
   CHECKS_SHEET,
   COUNTERPARTIES_SHEET,
@@ -8,8 +9,9 @@ import {
   REMINDERS_SHEET,
   VEHICLES_SHEET
 } from './sheetNames'
-import { getSheetDataRows } from './spreadsheetStore'
+import { getSheetAllRows, getSheetDataRows } from './spreadsheetStore'
 import type { VehicleExpenseInput } from './vehicleExpenseActions'
+import { COUNTERPARTY_FIELD_LABEL } from '../components/form/fieldUtils'
 import { VEHICLE_OTHER_OPTION } from '../components/vehicles/constants'
 
 /**
@@ -41,6 +43,26 @@ const clean = (value: unknown) =>
 
 const dataRows = (spreadsheetId: string, sheet: string) =>
   (getSheetDataRows(spreadsheetId, sheet) ?? []).filter(row => row.some(cell => clean(cell)))
+
+/**
+ * The income/expense record tabs, each with the column its header calls «طرف حساب»;
+ * a tab without that column (an older sheet) is left out.
+ */
+function recordCounterpartySources(spreadsheetId: string): [string[][], number][] {
+  const forms = getSettings()?.forms ?? []
+
+  return forms
+    .filter(form => form.type === 'income' || form.type === 'expense')
+    .flatMap((form): [string[][], number][] => {
+      const rows = getSheetAllRows(spreadsheetId, form.sheetName) ?? []
+
+      const column = (rows[0] ?? []).findIndex(cell => clean(cell) === COUNTERPARTY_FIELD_LABEL)
+
+      return column < 0
+        ? []
+        : [[rows.slice(1).filter(row => row.some(cell => clean(cell))), column]]
+    })
+}
 
 export function countNameUses(name: string, sources: [string[][], number][]): number {
   const target = clean(name)
@@ -80,17 +102,20 @@ export function detectFirstCheck(spreadsheetId: string): NudgeSignal | null {
   return { id: 'check-reminder', targetHasData: !rules || isChecksReminderOn(rules) }
 }
 
-/** A name typed for the third time in checks, dang or receivables. */
+/** A name typed for the third time in checks, dang, receivables or the «طرف حساب» of a record. */
 export function detectRepeatedCounterparty(
   spreadsheetId: string,
   name: string
 ): NudgeSignal | null {
   if (!clean(name)) return null
 
-  const sources = COUNTERPARTY_COLUMNS.map(([sheet, column]): [string[][], number] => [
-    dataRows(spreadsheetId, sheet),
-    column
-  ])
+  const sources = [
+    ...COUNTERPARTY_COLUMNS.map(([sheet, column]): [string[][], number] => [
+      dataRows(spreadsheetId, sheet),
+      column
+    ]),
+    ...recordCounterpartySources(spreadsheetId)
+  ]
 
   if (countNameUses(name, sources) < COUNTERPARTY_REPEAT) return null
 

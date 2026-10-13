@@ -1,9 +1,11 @@
 import { memo } from 'react'
 
+import { recordCounterparty, recordLineItems } from './recordsFilterPredicates'
 import { getFormField, type StoredRecord } from './recordsUtils'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { describeLineItems } from '../../utils/lineItems'
 import { parseNumeric } from '../../utils/parseNumeric'
 import AttachmentBadge from '../attachments/AttachmentBadge'
 import CardDeleteButton from '../CardDeleteButton'
@@ -12,6 +14,11 @@ import { SUBCATEGORY_FIELD_ID } from '../form/fieldUtils'
 import MoneyText from '../MoneyText'
 import TransactionListItem from '../TransactionListItem'
 import { cardActionButtonsClass } from '../ui/featureCardStyles'
+import {
+  lineItemsBadgeClass,
+  recordCounterpartyChipClass,
+  recordItemsSummaryClass
+} from '../ui/lineItemStyles'
 import { amountExpenseClass, amountIncomeClass } from '../ui/recordsStyles'
 
 interface RecordsListRowProps {
@@ -55,6 +62,10 @@ function RecordsListRow({
 
   const subCategory = record.values[SUBCATEGORY_FIELD_ID] ?? ''
 
+  const counterparty = recordCounterparty(record)
+
+  const items = recordLineItems(record)
+
   const isIncome = form.type === 'income'
 
   const isExpense = form.type === 'expense'
@@ -63,12 +74,19 @@ function RecordsListRow({
     <TransactionListItem
       title={String(title)}
       titleAddon={
-        <AttachmentBadge
-          sheetName={record.sheetName ?? form.sheetName}
-          entityId={record.id}
-          fileIds={record.attachments}
-          title={String(title)}
-        />
+        <>
+          <AttachmentBadge
+            sheetName={record.sheetName ?? form.sheetName}
+            entityId={record.id}
+            fileIds={record.attachments}
+            title={String(title)}
+          />
+          {items.length ? (
+            <span className={lineItemsBadgeClass} aria-label={`${items.length} قلم`}>
+              {`☰ ${items.length.toLocaleString('fa-IR')}`}
+            </span>
+          ) : null}
+        </>
       }
       meta={
         <>
@@ -76,7 +94,18 @@ function RecordsListRow({
           {date ? formatIsoDatePersian(date) : record.createdAt}
           {category && ` · ${category}`}
           {subCategory && ` › ${subCategory}`}
+          {counterparty ? (
+            <>
+              {' '}
+              <span className={recordCounterpartyChipClass}>{counterparty}</span>
+            </>
+          ) : null}
         </>
+      }
+      detail={
+        items.length ? (
+          <div className={recordItemsSummaryClass}>{describeLineItems(items)}</div>
+        ) : null
       }
       tone={isIncome ? 'income' : isExpense ? 'expense' : 'neutral'}
       index={index}

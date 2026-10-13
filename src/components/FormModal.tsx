@@ -6,6 +6,7 @@ import { useModalLock } from '../hooks/useModalLock'
 import { cn } from '../utils/cn'
 import Button, { type ButtonVariant } from './ui/Button'
 import { formActionsClassName } from './ui/formStyles'
+import { lineItemsBlockedHintClass } from './ui/lineItemStyles'
 import {
   formModalActionsClass,
   formModalBackdropClass,
@@ -28,6 +29,10 @@ type FormModalProps = {
   onClose: () => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   saving?: boolean
+  /** Locks the save button without the busy state (e.g. line items that do not add up). */
+  saveDisabled?: boolean
+  /** Why saving is locked; shown under the buttons. */
+  saveHint?: string
   saveLabel: string
   saveButtonVariant?: ButtonVariant
   size?: 'default' | 'wide'
@@ -45,6 +50,8 @@ export default function FormModal({
   onClose,
   onSubmit,
   saving = false,
+  saveDisabled = false,
+  saveHint,
   saveLabel,
   saveButtonVariant = 'primary',
   size = 'default',
@@ -108,7 +115,12 @@ export default function FormModal({
           <div className={cn(formModalBodyClass, formModalFieldsLayoutClass)}>{children}</div>
 
           <div className={cn(formModalActionsClass, formActionsClassName())}>
-            <Button type="submit" variant={saveButtonVariant} disabled={saving} loading={saving}>
+            <Button
+              type="submit"
+              variant={saveButtonVariant}
+              disabled={saving || saveDisabled}
+              loading={saving}
+            >
               {saveLabel}
             </Button>
             <Button
@@ -120,6 +132,11 @@ export default function FormModal({
               {cancelLabel}
             </Button>
           </div>
+          {saveHint ? (
+            <p className={lineItemsBlockedHintClass} role="status">
+              {saveHint}
+            </p>
+          ) : null}
         </form>
       </div>
     </div>,

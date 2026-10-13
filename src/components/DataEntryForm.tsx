@@ -32,6 +32,7 @@ import { validatePositiveAmount } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
 import { showError } from '../utils/toast'
 import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
+import { LINE_ITEMS_BLOCKED_HINT, lineItemsMismatch } from './form/entryFieldRules'
 import { appFormClassName } from './ui/formStyles'
 import { entryFormGridClass } from './ui/recordsStyles'
 
@@ -96,6 +97,7 @@ export default function DataEntryForm({
 
   const hasSubcategories =
     readSubcategories(resolveCategoryType(undefined, activeForm.id), selectedCategory).length > 0
+  const itemsMismatch = !showVehicleFields && lineItemsMismatch(values) !== null
 
   const handleCategoriesChange = (categories: string[]) => {
     onCategoriesRefresh()
@@ -208,6 +210,7 @@ export default function DataEntryForm({
     const keepOpen = !!(event.nativeEvent as SubmitEvent).submitter?.hasAttribute('data-save-next')
     const formValues = getValues()
 
+    if (itemsMismatch) return
     if (!validateRequiredFields(formValues)) return
     if (!isConfigured() || !requireAuth()) return
 
@@ -284,7 +287,8 @@ export default function DataEntryForm({
         <EntryFormActions
           formType={activeForm.type}
           loading={loading}
-          saveDisabled={loading || vehicleExpense.loading}
+          saveDisabled={loading || vehicleExpense.loading || itemsMismatch}
+          blockedHint={itemsMismatch ? LINE_ITEMS_BLOCKED_HINT : undefined}
           onCancel={onCancel}
           showSaveNext={!bankSms}
         />

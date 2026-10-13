@@ -15,7 +15,7 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { fetchRecords } from '../../services/sheets'
 import type { CustomForm } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
-import { isDateInRange } from '../../utils/dateRange'
+import { isDateInRange, type DateRange } from '../../utils/dateRange'
 import { handleSheetError } from '../../utils/sheetError'
 
 /**
@@ -25,7 +25,9 @@ import { handleSheetError } from '../../utils/sheetError'
 export function useRecordsPage(
   initialFormType?: 'income' | 'expense',
   focusRecordId?: string,
-  openEdit = false
+  openEdit = false,
+  initialCounterparty?: string,
+  initialRange?: DateRange
 ) {
   const [focusId, setFocusId] = useState(focusRecordId ?? '')
   const [editPending, setEditPending] = useState(openEdit)
@@ -137,10 +139,14 @@ export function useRecordsPage(
     records,
     activeForm,
     showCategoryFilter: Boolean(showCategoryFilter),
+    initialCounterparty,
+    initialRange,
     onFormsRefresh: setForms
   })
 
-  const { categoryFilter, dateRange, datePreset, subcategory, setCategoryFilter } = filters
+  const { categoryFilter, dateRange, datePreset, subcategory, setCategoryFilter, extra } = filters
+
+  const matchesExtra = extra.matches
 
   const { matches: matchesSubcategory, subCategoryFilter } = subcategory
 
@@ -177,18 +183,27 @@ export function useRecordsPage(
         if (category !== categoryFilter) return false
       }
       if (!matchesSubcategory(record)) return false
+      if (!matchesExtra(record)) return false
 
       return true
     })
-  }, [records, dateRange, categoryFilter, forms, matchesSubcategory, focusId])
+  }, [records, dateRange, categoryFilter, forms, matchesSubcategory, matchesExtra, focusId])
 
   const showFilteredSummary = useMemo(
     () =>
       categoryFilter !== 'all' ||
       subCategoryFilter !== 'all' ||
+      extra.active ||
       datePreset !== 'month-to-date' ||
       filteredRecords.length !== records.length,
-    [categoryFilter, datePreset, filteredRecords.length, records.length, subCategoryFilter]
+    [
+      categoryFilter,
+      datePreset,
+      extra.active,
+      filteredRecords.length,
+      records.length,
+      subCategoryFilter
+    ]
   )
 
   const handleFormChange = (formId: string) => {

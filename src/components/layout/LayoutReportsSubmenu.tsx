@@ -17,7 +17,9 @@ const REPORT_MENU_GROUPS: { label: string; items: { tab: Tab; label: string }[] 
       { tab: 'report-monthly', label: 'گزارش ماهانه' },
       { tab: 'report-income-expense', label: 'درآمد و هزینه' },
       { tab: 'report-cash-flow', label: 'جریان نقدی' },
-      { tab: 'report-category-tree', label: 'درختواره درآمد/هزینه' }
+      { tab: 'report-category-tree', label: 'درختواره درآمد/هزینه' },
+      { tab: 'report-line-items', label: 'اقلام' },
+      { tab: 'report-counterparties', label: 'طرف حساب‌ها' }
     ]
   },
   {

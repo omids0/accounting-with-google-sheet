@@ -11,6 +11,11 @@ export interface TabNavigationOptions {
   dangSplitGroupTitle?: string
   formType?: 'income' | 'expense'
   walletAccountId?: string
+  /** The grouping key of an item (normalizeItemName) and its display name. */
+  lineItemKey?: string
+  lineItemTitle?: string
+  /** Which records the item page reads; expenses when unset. */
+  lineItemType?: 'income' | 'expense' | 'all'
 }
 
 const REPORT_KIND_BY_TAB: Partial<Record<Tab, ModuleReportKind>> = {
@@ -52,6 +57,8 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'report-financial-summary': '/reports/financial-summary',
   'report-income-expense': '/reports/income-expense',
   'report-category-tree': '/reports/category-tree',
+  'report-line-items': '/reports/line-items',
+  'report-counterparties': '/reports/counterparties',
   'report-cash-flow': '/reports/cash-flow',
   'report-due-dates': '/reports/due-dates',
   'report-assets-liabilities': '/reports/assets-liabilities',
@@ -92,6 +99,10 @@ export function getTabFromPath(pathname: string): Tab {
     return 'dang-split-detail'
   }
 
+  if (/^\/reports\/line-items\/[^/]+$/.test(path)) {
+    return 'report-line-item'
+  }
+
   if (/^\/wallet\/reconcile\/[^/]+$/.test(path)) {
     return 'wallet-reconcile'
   }
@@ -121,6 +132,17 @@ export function getPathForTab(tab: Tab, options?: TabNavigationOptions): string 
     if (!options?.dangSplitGroupId) return EXACT_TAB_PATHS['dang-split'] ?? '/dang-split'
 
     return `/dang-split/${encodeURIComponent(options.dangSplitGroupId)}`
+  }
+
+  if (tab === 'report-line-item') {
+    if (!options?.lineItemKey) return EXACT_TAB_PATHS['report-line-items'] ?? '/reports/line-items'
+
+    const type =
+      options.lineItemType && options.lineItemType !== 'expense'
+        ? '?type=' + options.lineItemType
+        : ''
+
+    return '/reports/line-items/' + encodeURIComponent(options.lineItemKey) + type
   }
 
   if (tab === 'wallet-account-detail') {
@@ -162,6 +184,27 @@ export const RECORD_FOCUS_PARAM = 'record'
 
 /** With `edit=1` the records page also opens that record's edit form (reconciliation wizard). */
 export const RECORD_EDIT_PARAM = 'edit'
+
+/** Query keys of the records page filters that a report link sets (round 7.5). */
+export const RECORD_COUNTERPARTY_PARAM = 'counterparty'
+export const RECORD_FROM_PARAM = 'from'
+export const RECORD_TO_PARAM = 'to'
+
+/** The records page filtered to one counterparty over `range`; `type` 'all' shows both forms. */
+export function recordsCounterpartyPath(
+  name: string,
+  type: 'income' | 'expense' | 'all',
+  range: { start: string; end: string }
+): string {
+  const params = new URLSearchParams()
+
+  if (type !== 'all') params.set('type', type)
+  params.set(RECORD_COUNTERPARTY_PARAM, name)
+  params.set(RECORD_FROM_PARAM, range.start)
+  params.set(RECORD_TO_PARAM, range.end)
+
+  return `/records?${params.toString()}`
+}
 
 /** The records page showing only `recordId`, optionally with its edit form open. */
 export function recordFocusPath(

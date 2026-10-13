@@ -192,6 +192,37 @@ describe('buildSearchEntries', () => {
   })
 })
 
+describe('records with line items and a counterparty', () => {
+  const withItems = buildSearchEntries({
+    ...empty,
+    records: [
+      record('r3', 'expense', {
+        date: '2026-10-12',
+        title: 'میوه',
+        category: 'خوراک',
+        amount: '550000',
+        counterparty: 'میوه‌فروشی رضا',
+        lineItems: JSON.stringify([
+          { n: 'کیوی', a: 320000 },
+          { n: 'خیار', a: 230000 }
+        ])
+      })
+    ]
+  })
+
+  it('finds a record by an item name or its counterparty', () => {
+    expect(searchEntries(withItems, 'کیوی').groups[0].items.map(item => item.id)).toEqual(['r3'])
+    expect(searchEntries(withItems, 'كيوي').total).toBe(1)
+    expect(searchEntries(withItems, 'رضا').total).toBe(1)
+  })
+
+  it('marks the result with its item count and keeps the raw JSON out of the words', () => {
+    expect(withItems[0].subtitle).toContain('☰ ۲')
+    expect(searchEntries(withItems, '"n"').total).toBe(0)
+    expect(searchEntries(withItems, '320000').total).toBe(0)
+  })
+})
+
 describe('parseAmountQuery', () => {
   it('reads plain or grouped digits only', () => {
     expect(parseAmountQuery('۱٬۲۵۰')).toBe(1250)
