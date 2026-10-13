@@ -65,7 +65,7 @@ export default function CategorySelectSheet({
                 aria-label="بازگشت به انتخاب دسته"
                 disabled={blocked}
               >
-                <AppIcon name="back" size={18} />
+                <AppIcon name="back-start" size={18} />
               </button>
             )}
             <h2 id={titleId} className={cn(formModalTitleClass, 'min-w-0')}>

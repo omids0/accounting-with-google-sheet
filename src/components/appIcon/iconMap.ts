@@ -1,4 +1,5 @@
 import addressBook from '@phosphor-icons/core/regular/address-book.svg?raw'
+import arrowLeft from '@phosphor-icons/core/regular/arrow-left.svg?raw'
 import arrowRight from '@phosphor-icons/core/regular/arrow-right.svg?raw'
 import arrowsClockwise from '@phosphor-icons/core/regular/arrows-clockwise.svg?raw'
 import arrowsLeftRight from '@phosphor-icons/core/regular/arrows-left-right.svg?raw'
@@ -7,6 +8,8 @@ import calculator from '@phosphor-icons/core/regular/calculator.svg?raw'
 import calendarCheck from '@phosphor-icons/core/regular/calendar-check.svg?raw'
 import car from '@phosphor-icons/core/regular/car.svg?raw'
 import caretDown from '@phosphor-icons/core/regular/caret-down.svg?raw'
+import caretLeft from '@phosphor-icons/core/regular/caret-left.svg?raw'
+import caretRight from '@phosphor-icons/core/regular/caret-right.svg?raw'
 import chartBar from '@phosphor-icons/core/regular/chart-bar.svg?raw'
 import check from '@phosphor-icons/core/regular/check.svg?raw'
 import clock from '@phosphor-icons/core/regular/clock.svg?raw'
@@ -89,7 +92,12 @@ export const APP_ICON_SVGS: Record<AppIconName, string> = {
   close: x,
   'x-mark': x,
   check,
-  back: arrowRight,
+  // Arrows point toward the screen edge their button sits on: the header «بازگشت»
+  // is at the left end (RTL), a sheet's back button at the right start.
+  back: arrowLeft,
+  'back-start': arrowRight,
   'chevron-down': caretDown,
+  'chevron-left': caretLeft,
+  'chevron-right': caretRight,
   grip: dotsSixVertical
 }

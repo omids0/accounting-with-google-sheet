@@ -8,6 +8,7 @@ import {
   previousJalaliMonthKey
 } from '../../utils/dateRange'
 import { formatJalaliMonthName } from '../../utils/periodLabel'
+import AppIcon from '../AppIcon'
 import TransactionTypeSegment from '../TransactionTypeSegment'
 import { calmSegmentClass } from '../ui/calmListStyles'
 
@@ -67,7 +68,7 @@ export default function ChartsPeriodBar({
           onClick={() => onPeriodChange(stepPeriod(period, -1))}
           aria-label={period.mode === 'year' ? 'سال قبل' : 'ماه قبل'}
         >
-          ›
+          <AppIcon name="chevron-right" size={16} />
         </button>
         <span
           className="min-w-[5.5rem] text-center text-[0.82rem] font-semibold text-text"
@@ -82,7 +83,7 @@ export default function ChartsPeriodBar({
           disabled={atLatest}
           aria-label={period.mode === 'year' ? 'سال بعد' : 'ماه بعد'}
         >
-          ‹
+          <AppIcon name="chevron-left" size={16} />
         </button>
       </div>
     </div>
