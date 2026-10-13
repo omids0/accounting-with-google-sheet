@@ -1,4 +1,5 @@
 import { monthlyReportTitle, type MonthlyReportData } from '../../../services/monthlyReport'
+import { monthlyReportHighlightLine } from '../../../services/monthlyReportPdf'
 import { formatPersianNumber } from '../../../utils/formatMoney'
 import MoneyText from '../../MoneyText'
 import Card from '../../ui/Card'
@@ -38,6 +39,8 @@ export default function MonthlyReportPreview({
 }) {
   const change = report.netWorthChange
 
+  const highlightLine = monthlyReportHighlightLine(report)
+
   return (
     <Card className={periodReportSheetClass}>
       <div className={periodReportHeadClass}>
@@ -69,6 +72,8 @@ export default function MonthlyReportPreview({
           ))}
         </>
       ) : null}
+
+      {highlightLine ? <p className={periodReportFactsClass}>{highlightLine}</p> : null}
 
       <p className={periodReportFactsClass}>
         {`اقساط پرداخت‌شده ${formatPersianNumber(

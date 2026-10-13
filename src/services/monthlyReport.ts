@@ -1,6 +1,7 @@
 import { budgetUsage } from './budgets'
 import type { ChartsRecords } from './chartsData'
 import { filterByDateRange, sumByCategory } from './dashboardAggregation'
+import { monthHighlights, type MonthHighlights } from './monthlyReportHighlights'
 import type { NetWorthSnapshot } from './netWorth'
 import { isRecurringBorn } from './recurring'
 import type { CategoryBudget, Check, InstallmentPlan } from '../types'
@@ -38,6 +39,8 @@ export interface MonthlyReportData {
   /** Change from the previous month's snapshot; null without both values. */
   netWorthChange: number | null
   recurringPosted: number
+  /** Where the month's spending went by counterparty and item; both empty when unknown. */
+  highlights: MonthHighlights
 }
 
 export interface MonthlyReportInput {
@@ -139,7 +142,9 @@ export function buildMonthlyReport(monthKey: string, input: MonthlyReportInput):
     checksCleared: checksClearedIn(input.checks, range),
     netWorth,
     netWorthChange: netWorth != null && previous != null ? netWorth - previous : null,
-    recurringPosted: [...income, ...expense].filter(record => isRecurringBorn(record.values)).length
+    recurringPosted: [...income, ...expense].filter(record => isRecurringBorn(record.values))
+      .length,
+    highlights: monthHighlights(expense)
   }
 }
 

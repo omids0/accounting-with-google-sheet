@@ -14,6 +14,7 @@ import type {
 } from '../types'
 import { formatJalaliMonthLabel } from '../utils/dateRange'
 import { formatIsoDatePersian, isoToJalali } from '../utils/jalaliDate'
+import { parseLineItems } from '../utils/lineItems'
 import { toPersianDigits } from '../utils/normalizeDigits'
 import { parseNumeric } from '../utils/parseNumeric'
 import { normalizeSheetDate } from '../utils/sheetValues'
@@ -41,8 +42,11 @@ export interface SearchSources {
   vehicles: VehicleProfile[]
 }
 
-/** Record fields that are ids or flags, not words a user would type. */
-const RECORD_SKIP_FIELDS = new Set(['amount', 'walletAccount', 'walletApply'])
+/**
+ * Record fields that are ids, flags or raw JSON, not words a user would type. The
+ * counterparty stays searchable; the item names are indexed from `lineItems` below.
+ */
+const RECORD_SKIP_FIELDS = new Set(['amount', 'walletAccount', 'walletApply', 'lineItems'])
 
 /** «مهر ۱۴۰۵» of an ISO date; empty when there is no date. */
 export function monthLabelOf(iso: string): string {
@@ -72,6 +76,7 @@ function recordEntries(sources: SearchSources): SearchEntry[] {
       const typeLabel = record.type === 'income' ? 'درآمد' : 'هزینه'
       const category = [values.category, values.subCategory].filter(Boolean).join(' / ')
       const month = monthLabelOf(date)
+      const itemNames = parseLineItems(values.lineItems).map(item => item.name)
       const words = Object.entries(values)
         .filter(([key]) => key !== record.dateField && !RECORD_SKIP_FIELDS.has(key))
         .map(([, value]) => value)
@@ -81,10 +86,21 @@ function recordEntries(sources: SearchSources): SearchEntry[] {
         id: record.id,
         recordType: record.type,
         title: values.title || values.category || '—',
-        subtitle: joinParts(typeLabel, category, month),
+        subtitle: joinParts(
+          typeLabel,
+          category,
+          month,
+          itemNames.length ? `☰ ${toPersianDigits(String(itemNames.length))}` : ''
+        ),
         amount: record.type === 'expense' ? -amount : amount,
         date,
-        text: searchText(...words, typeLabel, accounts.get(values.walletAccount ?? ''), month),
+        text: searchText(
+          ...words,
+          ...itemNames,
+          typeLabel,
+          accounts.get(values.walletAccount ?? ''),
+          month
+        ),
         amounts: [amount]
       }
     })
