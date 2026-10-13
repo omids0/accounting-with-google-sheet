@@ -11,6 +11,7 @@ import {
   type FailedWriteSummary
 } from '../services/failedWrites'
 import { retryPendingWrites } from '../services/sheetSync'
+import { useConflictStore } from '../stores/conflictStore'
 import Alert from './ui/Alert'
 import Button from './ui/Button'
 import { confirmDeleteMessageClass, listCardTitleClass } from './ui/featureCardStyles'
@@ -32,6 +33,8 @@ type SyncDetailsModalProps = {
   pendingWrites: number
   /** Changes when the parked list changes, so the list is read again. */
   failedWrites: number
+  /** Edits waiting for «کدام بماند؟»; the button reopens that sheet. */
+  conflicts?: number
 }
 
 function FailedWriteItem({
@@ -81,7 +84,8 @@ export default function SyncDetailsModal({
   spreadsheetId,
   cause,
   pendingWrites,
-  failedWrites
+  failedWrites,
+  conflicts = 0
 }: SyncDetailsModalProps) {
   const { copy } = useCopyToClipboard()
 
@@ -120,6 +124,26 @@ export default function SyncDetailsModal({
     >
       <div>
         {cause && <Alert variant="error">{cause}</Alert>}
+        {conflicts > 0 && (
+          <div className={syncDetailsActionsClass}>
+            <p className={confirmDeleteMessageClass}>
+              {`${conflicts.toLocaleString(
+                'fa-IR'
+              )} تعارض: یک رکورد را تو و نفر دیگری هم‌زمان عوض کرده‌اید.`}
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                useConflictStore.getState().reopen()
+                onClose()
+              }}
+            >
+              انتخاب نسخه
+            </Button>
+          </div>
+        )}
         {pendingWrites > 0 && (
           <p className={confirmDeleteMessageClass}>
             {pendingWrites} تغییر هنوز در صف ارسال به شیت است.

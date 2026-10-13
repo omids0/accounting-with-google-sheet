@@ -42,6 +42,7 @@ export function formatRelativeTime(timestamp: number | null, now = Date.now()): 
  */
 export function getSyncBadgeState(status: SyncStatusSnapshot, now = Date.now()): SyncBadgeState {
   const { connection, syncState, lastSyncedAt, pendingWrites, failedWrites, lastError } = status
+  const conflicts = status.conflicts ?? 0
 
   if (connection === 'offline') {
     return {
@@ -49,6 +50,15 @@ export function getSyncBadgeState(status: SyncStatusSnapshot, now = Date.now()):
       tone: 'offline',
       cause: null,
       showDetails: failedWrites > 0
+    }
+  }
+
+  if (conflicts > 0 && !lastError) {
+    return {
+      label: `${conflicts.toLocaleString('fa-IR')} تعارض`,
+      tone: 'error',
+      cause: null,
+      showDetails: true
     }
   }
 

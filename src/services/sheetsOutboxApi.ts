@@ -1,4 +1,5 @@
 import { recordOperation, ACTIVITY_SHEET } from './activityTracking'
+import { assertNoEditConflict } from './rowConflictCheck'
 import { isGridLimitError, withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { columnLetter, toSheetRowValues } from './sheetsCellValues'
@@ -195,6 +196,8 @@ export async function executeOutboxOperation(
         operation.expectedRow
       )
 
+      // Another account changed this row since this device read it: ask, never overwrite.
+      assertNoEditConflict(session, target, row, operation.expectedRow)
       await updateSheetRowApi(
         spreadsheetId,
         target.sheetName,

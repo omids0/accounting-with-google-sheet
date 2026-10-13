@@ -13,6 +13,7 @@ import { useLaunchAction } from '../../hooks/useLaunchAction'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
 import { installSelectionHaptics } from '../../utils/haptics'
 import PageSpeedDial from '../PageSpeedDial'
+import ConflictGate from '../sync/ConflictGate'
 import {
   appContentColumnClass,
   appLayoutClass,
@@ -117,6 +118,7 @@ export default function Layout() {
             />
 
             <UpdateBanner />
+            <ConflictGate />
             <WhatsNewGate />
 
             <main id="main-content" ref={mainRef} tabIndex={-1} className={appMainClass}>

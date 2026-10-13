@@ -1,4 +1,5 @@
 import { invalidateInstallmentsCache } from './installmentsConstants'
+import { RowEditConflictError } from './rowConflict'
 import { isQuotaExceededError } from './sheets'
 import { isPermanentApiError } from './sheetsApi'
 import { normalizeSheetTitle } from './sheetsMeta'
@@ -7,16 +8,18 @@ import {
   addOutboxEntry,
   clearFailedOutboxEntries,
   getFailedOutboxEntries,
+  getConflictEntries,
   getOutboxCount,
   getOutboxEntries,
   hasPendingOutbox,
+  markOutboxEntryConflict,
   markOutboxEntryFailed,
   moveOutboxEntryToFailed,
   removeOutboxEntry,
   requeueMissingTabAppends
 } from './syncOutbox'
 import type { OutboxOperation } from './syncOutbox'
-import { setFailedWrites, setPendingWrites, setSyncState } from './syncStatus'
+import { setConflictCount, setFailedWrites, setPendingWrites, setSyncState } from './syncStatus'
 import { toUserMessage } from '../utils/userMessage'
 
 const QUOTA_BACKOFF_MS = 90_000
@@ -40,8 +43,9 @@ export function isQuotaBlocked(): boolean {
   return Date.now() < quotaBlockedUntil
 }
 
-function refreshPendingCount(spreadsheetId: string): void {
+export function refreshPendingCount(spreadsheetId: string): void {
   setPendingWrites(getOutboxCount(spreadsheetId))
+  setConflictCount(getConflictEntries(spreadsheetId).length)
 }
 
 export function refreshFailedCount(spreadsheetId: string): void {
@@ -125,6 +129,8 @@ async function flushPass(
 
   for (const entry of getOutboxEntries(spreadsheetId)) {
     if (isQuotaBlocked() || isOffline()) return 'blocked'
+    // Waits for «کدام بماند؟»; never retried or reverted on its own.
+    if (entry.conflict) continue
 
     try {
       const written = await executeOutboxOperation(spreadsheetId, entry.operation, {
@@ -138,6 +144,14 @@ async function flushPass(
       touched.add(written || entry.operation.sheetName)
       if (written && written !== entry.operation.sheetName) redirected.add(written)
     } catch (err) {
+      if (err instanceof RowEditConflictError) {
+        const { theirs, theirEmail, theirAt } = err
+
+        markOutboxEntryConflict(spreadsheetId, entry.id, { theirs, theirEmail, theirAt })
+        refreshPendingCount(spreadsheetId)
+        continue
+      }
+
       const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی'
 
       if (err instanceof RowConflictError || isPermanentApiError(err)) {

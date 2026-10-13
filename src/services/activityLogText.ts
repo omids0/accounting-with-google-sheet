@@ -132,5 +132,5 @@ export function recordActivityTitle(values: Record<string, unknown>): string {
 
 /** «من … زدم»: the signed-in person's own lines read in first person. */
 export function firstPersonSummary(summary: string): string {
-  return /(کرد|زد|داد|برداشت)$/.test(summary) ? `${summary}م` : summary
+  return /(کرد|زد|داد|برداشت|گذاشت)$/.test(summary) ? `${summary}م` : summary
 }

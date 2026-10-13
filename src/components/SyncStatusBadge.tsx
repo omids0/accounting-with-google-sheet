@@ -43,6 +43,7 @@ export default function SyncStatusBadge() {
             spreadsheetId={getActiveSpreadsheetId()}
             cause={cause}
             pendingWrites={status.pendingWrites}
+            conflicts={status.conflicts}
             failedWrites={status.failedWrites}
           />
         </Suspense>
