@@ -6,10 +6,12 @@ import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
+import RecordDetailSheet from './records/RecordDetailSheet'
 import RecordsEditFormModal from './records/RecordsEditFormModal'
 import RecordsList from './records/RecordsList'
 import RecordsSummary from './records/RecordsSummary'
 import RecordsToolbar from './records/RecordsToolbar'
+import { useRecordDetail } from './records/useRecordDetail'
 import { useRecordsPage } from './records/useRecordsPage'
 import { useRecordsSpeedDial } from './records/useRecordsSpeedDial'
 import { RecordListSkeleton } from './skeleton'
@@ -26,6 +28,7 @@ export default function RecordsPage({
   initialFormType,
   focusRecordId,
   openEdit,
+  openDetail,
   initialCounterparty,
   initialRange
 }: {
@@ -33,6 +36,8 @@ export default function RecordsPage({
   focusRecordId?: string
   /** Also open the focused record's edit form once it loads. */
   openEdit?: boolean
+  /** Also open the focused record's detail sheet once it loads. */
+  openDetail?: boolean
   /** From a report link: start filtered to one counterparty, over a date range. */
   initialCounterparty?: string
   initialRange?: { start: string; end: string }
@@ -44,6 +49,11 @@ export default function RecordsPage({
     initialCounterparty,
     initialRange
   )
+
+  const detail = useRecordDetail(page.records, openDetail ? focusRecordId : undefined)
+  const detailForm = detail.record
+    ? page.forms.find(form => form.id === detail.record?.formId)
+    : undefined
 
   useRecordsSpeedDial({
     forms: page.forms,
@@ -142,6 +152,7 @@ export default function RecordsPage({
                 filteredRecords={page.filteredRecords}
                 onEdit={page.openEditForm}
                 onDelete={page.requestDelete}
+                onOpen={detail.open}
               />
               <RecordsSummary
                 filteredRecords={page.filteredRecords}
@@ -154,6 +165,22 @@ export default function RecordsPage({
           )}
         </div>
       </div>
+
+      {detail.record && detailForm && (
+        <RecordDetailSheet
+          record={detail.record}
+          form={detailForm}
+          onClose={detail.close}
+          onEdit={record => {
+            detail.close()
+            page.openEditForm(record)
+          }}
+          onDelete={record => {
+            detail.close()
+            page.requestDelete(record)
+          }}
+        />
+      )}
 
       {page.editingForm && page.editingRecord && (
         <RecordsEditFormModal

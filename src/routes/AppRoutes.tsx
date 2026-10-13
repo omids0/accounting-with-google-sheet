@@ -50,6 +50,7 @@ import {
   RECORD_COUNTERPARTY_PARAM,
   RECORD_EDIT_PARAM,
   RECORD_FOCUS_PARAM,
+  RECORD_OPEN_PARAM,
   RECORD_FROM_PARAM,
   RECORD_TO_PARAM
 } from './paths'
@@ -80,6 +81,7 @@ function RecordsRoute() {
       initialFormType={parseFormType(searchParams.get('type'))}
       focusRecordId={searchParams.get(RECORD_FOCUS_PARAM) ?? undefined}
       openEdit={searchParams.get(RECORD_EDIT_PARAM) === '1'}
+      openDetail={searchParams.get(RECORD_OPEN_PARAM) === '1'}
       initialCounterparty={searchParams.get(RECORD_COUNTERPARTY_PARAM) ?? undefined}
       initialRange={from && to ? { start: from, end: to } : undefined}
     />

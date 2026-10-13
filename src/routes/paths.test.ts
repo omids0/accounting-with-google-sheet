@@ -7,6 +7,7 @@ import {
   getTabFromPath,
   isCloseYearPath,
   recordFocusPath,
+  recordOpenPath,
   recordsCounterpartyPath
 } from './paths'
 
@@ -37,6 +38,7 @@ describe('wallet reconciliation wizard path', () => {
   it('links a record with its edit form open', () => {
     expect(recordFocusPath('expense', 'r1', true)).toBe('/records?type=expense&record=r1&edit=1')
     expect(recordFocusPath('expense', 'r1')).toBe('/records?type=expense&record=r1')
+    expect(recordOpenPath('income', 'r1')).toBe('/records?type=income&record=r1&open=1')
   })
 })
 

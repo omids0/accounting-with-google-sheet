@@ -2,7 +2,12 @@ import { WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import type { DashboardRecord, WalletAccount } from '../types'
 import { parseNumeric } from '../utils/parseNumeric'
 
-type SheetRecord = { values: Record<string, string>; createdAt?: string; writer?: string }
+type SheetRecord = {
+  id?: string
+  values: Record<string, string>
+  createdAt?: string
+  writer?: string
+}
 
 interface RecentSide {
   records: SheetRecord[]
@@ -23,6 +28,7 @@ export function buildRecentRecords(
 
   const toRecent = (side: RecentSide, type: 'income' | 'expense') =>
     side.records.map(r => ({
+      id: r.id,
       formName: side.formName,
       title: r.values.title || '—',
       amount: parseNumeric(r.values.amount),
