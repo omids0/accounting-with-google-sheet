@@ -16,6 +16,8 @@ import {
 } from './settingsCategoryLists'
 import { getItem, setItem, STORAGE_KEYS } from './storage'
 import {
+  withCounterpartyField,
+  withLineItemsField,
   withSubCategoryField,
   withWalletAccountField,
   withWalletApplyField
@@ -74,7 +76,9 @@ function expenseForm(): CustomForm {
 }
 
 function withStandardFields(forms: CustomForm[]): CustomForm[] {
-  return withWalletApplyField(withWalletAccountField(withSubCategoryField(forms)))
+  return withLineItemsField(
+    withCounterpartyField(withWalletApplyField(withWalletAccountField(withSubCategoryField(forms))))
+  )
 }
 
 export function getDefaultForms(): CustomForm[] {

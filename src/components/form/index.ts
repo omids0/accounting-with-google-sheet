@@ -13,9 +13,13 @@ export { default as FieldInput } from './FieldInput'
 export { default as CheckboxField } from './CheckboxField'
 export {
   buildFormInitialValues,
+  COUNTERPARTY_FIELD_ID,
+  COUNTERPARTY_FIELD_LABEL,
   getInitialFieldValue,
   isFieldHidden,
   isStandardEntryForm,
+  LINE_ITEMS_FIELD_ID,
+  LINE_ITEMS_FIELD_LABEL,
   sortFormFields,
   SUBCATEGORY_FIELD_ID,
   WALLET_ACCOUNT_FIELD_ID,

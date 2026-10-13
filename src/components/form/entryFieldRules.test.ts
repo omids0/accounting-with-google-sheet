@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest'
 
-import { SUBCATEGORY_FIELD_ID, withAutoTitle, withSubCategoryField } from './fieldUtils'
+import {
+  COUNTERPARTY_FIELD_ID,
+  isStandardEntryForm,
+  LINE_ITEMS_FIELD_ID,
+  sortFormFields,
+  SUBCATEGORY_FIELD_ID,
+  withAutoTitle,
+  withCounterpartyField,
+  withLineItemsField,
+  withSubCategoryField
+} from './fieldUtils'
+import { getDefaultForms } from '../../services/settings'
 import type { CustomForm } from '../../types'
 
 function expenseForm(fields: CustomForm['fields']): CustomForm {
@@ -28,6 +39,46 @@ describe('withSubCategoryField', () => {
     expect(form.fields).toEqual([
       expect.objectContaining({ id: SUBCATEGORY_FIELD_ID, required: false })
     ])
+  })
+})
+
+describe('counterparty and line-item fields', () => {
+  it('adds each optional field once to income and expense forms only', () => {
+    const other: CustomForm = { ...expenseForm([]), id: 'o', type: 'custom' }
+
+    const forms = withLineItemsField(
+      withCounterpartyField(withLineItemsField(withCounterpartyField([expenseForm([]), other])))
+    )
+
+    expect(forms[0].fields).toEqual([
+      expect.objectContaining({ id: COUNTERPARTY_FIELD_ID, type: 'select', required: false }),
+      expect.objectContaining({ id: LINE_ITEMS_FIELD_ID, type: 'text', required: false })
+    ])
+    expect(forms[1].fields).toEqual([])
+  })
+
+  it('relaxes the fields when a stored form marks them required', () => {
+    const [form] = withSubCategoryField([
+      expenseForm([
+        { id: COUNTERPARTY_FIELD_ID, label: 'طرف حساب', type: 'select', required: true },
+        { id: LINE_ITEMS_FIELD_ID, label: 'اقلام', type: 'text', required: true }
+      ])
+    ])
+
+    expect(form.fields.filter(field => field.required)).toEqual([])
+  })
+
+  it('sorts them after the wallet fields and before the note', () => {
+    const [form] = getDefaultForms()
+
+    const ids = sortFormFields(form.fields).map(field => field.id)
+
+    expect(ids.slice(-3)).toEqual([COUNTERPARTY_FIELD_ID, LINE_ITEMS_FIELD_ID, 'note'])
+    expect(ids.indexOf('walletApply')).toBeLessThan(ids.indexOf(COUNTERPARTY_FIELD_ID))
+  })
+
+  it('keeps the default forms standard', () => {
+    getDefaultForms().forEach(form => expect(isStandardEntryForm(form)).toBe(true))
   })
 })
 

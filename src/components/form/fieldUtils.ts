@@ -14,6 +14,14 @@ export const WALLET_APPLY_FIELD_LABEL = 'اثر بر موجودی'
 export const WALLET_APPLY_YES = 'بله'
 export const WALLET_APPLY_NO = 'خیر'
 
+/** Optional counterparty (name) of an income/expense record; same list as checks and dang. */
+export const COUNTERPARTY_FIELD_ID = 'counterparty'
+export const COUNTERPARTY_FIELD_LABEL = 'طرف حساب'
+
+/** Optional invoice line items of a record, stored as compact JSON (see `utils/lineItems`). */
+export const LINE_ITEMS_FIELD_ID = 'lineItems'
+export const LINE_ITEMS_FIELD_LABEL = 'اقلام'
+
 const STANDARD_FIELD_ORDER = [
   'date',
   'title',
@@ -22,6 +30,8 @@ const STANDARD_FIELD_ORDER = [
   'amount',
   WALLET_ACCOUNT_FIELD_ID,
   WALLET_APPLY_FIELD_ID,
+  COUNTERPARTY_FIELD_ID,
+  LINE_ITEMS_FIELD_ID,
   'note'
 ]
 
@@ -49,7 +59,12 @@ export function createSubCategoryField(): FieldConfig {
 }
 
 /** A quick entry needs only category and amount; the title is filled in on save. */
-const OPTIONAL_ENTRY_FIELD_IDS = ['title', SUBCATEGORY_FIELD_ID]
+const OPTIONAL_ENTRY_FIELD_IDS = [
+  'title',
+  SUBCATEGORY_FIELD_ID,
+  COUNTERPARTY_FIELD_ID,
+  LINE_ITEMS_FIELD_ID
+]
 
 /** Adds the subcategory field and relaxes title/subcategory on forms stored when they were required. */
 export function withSubCategoryField(forms: CustomForm[]): CustomForm[] {
@@ -122,6 +137,40 @@ export function withWalletApplyField(forms: CustomForm[]): CustomForm[] {
     (form.type === 'income' || form.type === 'expense') &&
     !form.fields.some(field => field.id === WALLET_APPLY_FIELD_ID)
       ? { ...form, fields: [...form.fields, createWalletApplyField()] }
+      : form
+  )
+}
+
+function createCounterpartyField(): FieldConfig {
+  return {
+    id: COUNTERPARTY_FIELD_ID,
+    label: COUNTERPARTY_FIELD_LABEL,
+    type: 'select',
+    required: false,
+    options: []
+  }
+}
+
+/** Adds the optional «طرف حساب» field to income/expense forms that lack it. */
+export function withCounterpartyField(forms: CustomForm[]): CustomForm[] {
+  return forms.map(form =>
+    (form.type === 'income' || form.type === 'expense') &&
+    !form.fields.some(field => field.id === COUNTERPARTY_FIELD_ID)
+      ? { ...form, fields: [...form.fields, createCounterpartyField()] }
+      : form
+  )
+}
+
+function createLineItemsField(): FieldConfig {
+  return { id: LINE_ITEMS_FIELD_ID, label: LINE_ITEMS_FIELD_LABEL, type: 'text', required: false }
+}
+
+/** Adds the optional «اقلام» (invoice line items) field to income/expense forms that lack it. */
+export function withLineItemsField(forms: CustomForm[]): CustomForm[] {
+  return forms.map(form =>
+    (form.type === 'income' || form.type === 'expense') &&
+    !form.fields.some(field => field.id === LINE_ITEMS_FIELD_ID)
+      ? { ...form, fields: [...form.fields, createLineItemsField()] }
       : form
   )
 }
