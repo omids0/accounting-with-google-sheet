@@ -7,13 +7,19 @@ interface WriterAvatarProps {
   email?: string
   /** Also print the name: with a « · » separator for list row meta, `plain` for a table cell. */
   withName?: boolean | 'plain'
+  /** Also on a private spreadsheet (the activity feed always names its people). */
+  always?: boolean
 }
 
 /** Who recorded a row; renders only on a spreadsheet more than one account edits. */
-export default function WriterAvatar({ email, withName = false }: WriterAvatarProps) {
+export default function WriterAvatar({
+  email,
+  withName = false,
+  always = false
+}: WriterAvatarProps) {
   const { shared, label } = useSharing()
 
-  if (!shared || !email?.trim()) return null
+  if ((!shared && !always) || !email?.trim()) return null
 
   const writer = label(email)
   const name = writer.isMe ? 'من' : writer.name

@@ -17,3 +17,12 @@ export function writerAvatarClass(isMe: boolean): string {
 }
 
 export const writerTagClass = 'me-1 inline-flex items-center gap-1 align-middle'
+
+/** Feed lines wrap instead of truncating: the summary is the content. */
+export const activityRowTextClass = 'block text-[0.82rem] font-semibold leading-relaxed text-text'
+
+export const activityPageClass = 'mx-auto flex w-full max-w-3xl flex-col gap-3 pb-6 xl:max-w-5xl'
+
+export const activityFiltersClass = 'flex flex-col gap-2'
+
+export const activityMoreClass = 'self-center'

@@ -71,7 +71,8 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'report-checks': '/reports/checks',
   'report-monthly': '/reports/monthly',
   'report-years': '/reports/years',
-  timesheets: '/timesheets'
+  timesheets: '/timesheets',
+  activity: '/settings/activity'
 }
 
 const PATH_TO_TAB = Object.fromEntries(
@@ -236,6 +237,9 @@ export function isSettingsPath(pathname: string): boolean {
 
 export const SETTINGS_CATEGORIES_PATH = '/settings/categories'
 
+/** Round 8: «فعالیت», who changed what (also a tab, so it gets the page speed dial). */
+export const SETTINGS_ACTIVITY_PATH = '/settings/activity'
+
 /** Task I: «پشتیبان» — automatic backups, Drive versions, restore. */
 export const SETTINGS_BACKUP_PATH = '/settings/backup'
 
@@ -265,7 +269,8 @@ export function monthlyReportPath(monthKey?: string): string {
 const SETTINGS_SUBPAGE_TITLES: Record<string, string> = {
   [SETTINGS_REMINDERS_PATH]: 'یادآوری‌ها',
   [SETTINGS_CATEGORIES_PATH]: 'دسته‌ها',
-  [SETTINGS_BACKUP_PATH]: 'پشتیبان'
+  [SETTINGS_BACKUP_PATH]: 'پشتیبان',
+  [SETTINGS_ACTIVITY_PATH]: 'فعالیت'
 }
 
 /** Header title of a settings sub-page, whose back button returns to Settings; null elsewhere. */

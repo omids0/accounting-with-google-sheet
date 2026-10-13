@@ -6,6 +6,7 @@ import {
   StatCardSkeleton
 } from './CardSkeletons'
 import { Skeleton } from './Skeleton'
+import { useSharing } from '../../hooks/useSharing'
 import { cn } from '../../utils/cn'
 import CalmBlock from '../CalmBlock'
 import {
@@ -70,7 +71,7 @@ function CalmRowSkeleton({ badge, bar }: { badge?: boolean; bar?: boolean }) {
   )
 }
 
-function CalmRowsSkeleton({
+export function CalmRowsSkeleton({
   count,
   badge,
   bar
@@ -90,6 +91,8 @@ function CalmRowsSkeleton({
 
 /** The round 5 dashboard with placeholders: period row, hero, then the four flat blocks. */
 function CalmDashboardSkeleton() {
+  const { shared } = useSharing()
+
   return (
     <div
       className={cn('skeleton-dashboard pointer-events-none', dashboardCalmPageClass)}
@@ -128,6 +131,12 @@ function CalmDashboardSkeleton() {
         <CalmBlock title="تراکنش‌های اخیر" className={dashboardCellClass.recent}>
           <CalmRowsSkeleton count={5} badge />
         </CalmBlock>
+
+        {shared ? (
+          <CalmBlock title="فعالیت اخیر" className={dashboardCellClass.activity}>
+            <CalmRowsSkeleton count={3} badge />
+          </CalmBlock>
+        ) : null}
 
         <CalmBlock
           title="تحلیل این ماه"

@@ -26,6 +26,20 @@ export type ActivityModule =
   | 'goals'
   | 'sync'
 
+/** The «عمل» column of the desktop feed table. */
+export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
+  create: 'ثبت',
+  update: 'ویرایش',
+  delete: 'حذف',
+  pay: 'پرداخت',
+  unpay: 'لغو پرداخت',
+  budget: 'بودجه',
+  category: 'دسته',
+  reconcile: 'تطبیق',
+  recurring: 'تکرار',
+  goal: 'هدف'
+}
+
 /** Filter chips and the desktop table name the module in Persian. */
 export const ACTIVITY_MODULE_LABELS: Record<ActivityModule, string> = {
   records: 'تراکنش‌ها',
