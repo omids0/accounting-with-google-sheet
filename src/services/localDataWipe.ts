@@ -22,6 +22,7 @@ import { deletePersistedDatabase } from './spreadsheetStorePersist'
 import { removeItem, STORAGE_KEYS } from './storage'
 import { getOutboxCount } from './syncOutbox'
 import { TREASURY_CLASS_STORAGE_KEY } from './treasuryClassPref'
+import { sendWidgetSnapshot } from './widgetNative'
 
 /** Per-spreadsheet keys: unsynced writes, legacy mirrors and sync timestamps. */
 const ACCOUNT_KEY_PREFIXES = [
@@ -170,6 +171,8 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
 
   resetAccountSettings()
   invalidateDashboardCache()
+  // Signed out: the home-screen widget falls back to «باز کن».
+  void sendWidgetSnapshot()
   clearSpreadsheetPrepareSession()
   clearAppLockSessionState()
   clearDataKey()
