@@ -20,6 +20,7 @@ import { getDangCategories, getSettings, isConfigured } from '../../services/set
 import { hasStoreData } from '../../services/spreadsheetStore'
 import type { Dang } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError } from '../../utils/toast'
 import type { CounterpartyWithRow } from '../counterparties/types'
@@ -71,6 +72,14 @@ export function useDangItems() {
     setItems,
     loadItems,
     togglePaid: toggleDangPaid,
+    settle: {
+      type: 'expense',
+      titleFor: item => `تسویهٔ «${item.title}» · ${formatMoney(item.amount)}`,
+      amountFor: item => item.amount,
+      recordIdOf: item => item.transactionRecordId,
+      prefix: 'بدهی: ',
+      linkedIds: items.flatMap(item => (item.transactionRecordId ? [item.transactionRecordId] : []))
+    },
     deleteItem: deleteDang,
     sortItems: sortDangs,
     deleteLabel: item => `بدهی «${item.title}»`,

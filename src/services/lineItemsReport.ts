@@ -1,3 +1,4 @@
+import { addUnitPrice, bestUnitPrice, type UnitTotals } from './lineItemsUnitPrice'
 import type { RecordInput } from './recordInputs'
 import {
   getJalaliMonthKey,
@@ -6,7 +7,7 @@ import {
   type DateRange
 } from '../utils/dateRange'
 import { getTodayIso } from '../utils/jalaliDate'
-import { normalizeItemName, parseItemQuantity } from '../utils/lineItems'
+import { normalizeItemName } from '../utils/lineItems'
 
 export type LineItemsReportType = 'income' | 'expense' | 'all'
 
@@ -71,8 +72,7 @@ interface ItemAccumulator {
   total: number
   spellings: Map<string, number>
   categories: Map<string, number>
-  /** Per unit: money and quantity of the lines whose note parsed with that unit. */
-  units: Map<string, { count: number; amount: number; quantity: number }>
+  units: UnitTotals
 }
 
 function toStat(key: string, acc: ItemAccumulator): ItemStat {
@@ -85,15 +85,9 @@ function toStat(key: string, acc: ItemAccumulator): ItemStat {
     topCategory: mostFrequent(acc.categories)
   }
 
-  let bestUnit: { unit: string; count: number; amount: number; quantity: number } | null = null
+  const unitPrice = bestUnitPrice(acc.units)
 
-  for (const [unit, data] of acc.units) {
-    if (!bestUnit || data.count > bestUnit.count) bestUnit = { unit, ...data }
-  }
-
-  if (bestUnit && bestUnit.quantity > 0) {
-    stat.unitPrice = { value: bestUnit.amount / bestUnit.quantity, unit: bestUnit.unit }
-  }
+  if (unitPrice) stat.unitPrice = unitPrice
 
   return stat
 }
@@ -144,16 +138,7 @@ export function aggregateLineItems(
       bump(acc.spellings, item.name.trim())
       if (record.category) bump(acc.categories, record.category)
 
-      const quantity = parseItemQuantity(item.note)
-
-      if (quantity && quantity.value > 0) {
-        const entry = acc.units.get(quantity.unit) ?? { count: 0, amount: 0, quantity: 0 }
-
-        entry.count += 1
-        entry.amount += item.amount
-        entry.quantity += quantity.value
-        acc.units.set(quantity.unit, entry)
-      }
+      addUnitPrice(acc.units, item)
 
       groups.set(key, acc)
     }

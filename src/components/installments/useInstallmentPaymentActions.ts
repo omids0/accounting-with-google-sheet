@@ -6,16 +6,26 @@ import {
   toggleInstallmentPayment,
   updateInstallmentPaymentAmount
 } from '../../services/installments'
+import type { SettleOptions, UnlinkChoice } from '../../services/settleOptions'
+import { isLinkedForeignRecord } from '../../services/settleRecords'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
+import { useSettleFlow } from '../settle/useSettleFlow'
 
 type UseInstallmentPaymentActionsParams = {
   setPlans: React.Dispatch<React.SetStateAction<PlanWithRow[]>>
+  /** Every plan: their payments' records are settlements already (the duplicate check skips them). */
+  plans?: PlanWithRow[]
 }
 
-export function useInstallmentPaymentActions({ setPlans }: UseInstallmentPaymentActionsParams) {
+export function useInstallmentPaymentActions({
+  setPlans,
+  plans = []
+}: UseInstallmentPaymentActionsParams) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const settleFlow = useSettleFlow()
 
   /** planId → index of the payment whose toggle is in flight (one per plan at a time). */
   const [togglingByPlan, setTogglingByPlan] = useState<Record<string, number>>({})
@@ -31,10 +41,47 @@ export function useInstallmentPaymentActions({ setPlans }: UseInstallmentPayment
 
       if (!spreadsheetId) return
 
+      const payment = plan.payments[paymentIndex]
+      let options: SettleOptions | null | undefined
+      let unlink: UnlinkChoice | null | undefined
+
+      // Locked while the sheet or question is open too: a second tap must not ask again.
       togglingPlanIds.current.add(plan.id)
-      setTogglingByPlan(prev => ({ ...prev, [plan.id]: paymentIndex }))
       try {
-        const updated = await toggleInstallmentPayment(spreadsheetId, plan, paymentIndex, paid)
+        if (payment && paid) {
+          const amount = getInstallmentPaymentAmount(payment, plan)
+
+          options = await settleFlow.askSettle({
+            type: 'expense',
+            title: `پرداخت قسط ${payment.n} از ${plan.count} · ${plan.title} · ${formatMoney(
+              amount
+            )}`,
+            amount,
+            linkedIds: plans.flatMap(item =>
+              item.payments.flatMap(entry =>
+                entry.transactionRecordId ? [entry.transactionRecordId] : []
+              )
+            )
+          })
+          if (!options) return
+        } else if (payment) {
+          const recordId = payment.transactionRecordId ?? ''
+
+          if (await isLinkedForeignRecord(spreadsheetId, 'expense', recordId, 'قسط: ')) {
+            unlink = await settleFlow.askUnlink()
+            if (!unlink) return
+          }
+        }
+
+        setTogglingByPlan(prev => ({ ...prev, [plan.id]: paymentIndex }))
+        const updated = await toggleInstallmentPayment(
+          spreadsheetId,
+          plan,
+          paymentIndex,
+          paid,
+          options ?? undefined,
+          unlink ?? undefined
+        )
 
         setPlans(prev => prev.map(p => (p.id === plan.id ? updated : p)))
       } catch (err) {
@@ -50,7 +97,7 @@ export function useInstallmentPaymentActions({ setPlans }: UseInstallmentPayment
         })
       }
     },
-    [setPlans]
+    [setPlans, plans, settleFlow]
   )
 
   const handlePaymentAmountSave = useCallback(
@@ -93,6 +140,7 @@ export function useInstallmentPaymentActions({ setPlans }: UseInstallmentPayment
     expandedId,
     setExpandedId,
     togglingByPlan,
+    settleFlow,
     handleTogglePayment,
     handlePaymentAmountSave,
     handleToggleExpand

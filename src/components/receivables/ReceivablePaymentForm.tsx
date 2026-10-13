@@ -1,8 +1,11 @@
 import { useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import type { SettleOptions } from '../../services/settleOptions'
 import AmountInput from '../AmountInput'
 import { FormField } from '../form'
+import SettleFields from '../settle/SettleFields'
+import { useSettleFields } from '../settle/useSettleFields'
 import Button from '../ui/Button'
 import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
@@ -14,13 +17,16 @@ type PaymentFormValues = {
 type ReceivablePaymentFormProps = {
   receivableId: string
   paying: boolean
-  onSubmit: (values: PaymentFormValues) => void
+  /** `transactionRecordId` of every receivable payment (the duplicate check skips them). */
+  linkedIds: readonly string[]
+  onSubmit: (values: PaymentFormValues, options: SettleOptions) => void
   onCancel: () => void
 }
 
 export default function ReceivablePaymentForm({
   receivableId,
   paying,
+  linkedIds,
   onSubmit,
   onCancel
 }: ReceivablePaymentFormProps) {
@@ -31,6 +37,12 @@ export default function ReceivablePaymentForm({
   })
 
   useModalFormReset(reset, initialValues, { resetKey: receivableId })
+
+  const settle = useSettleFields({
+    type: 'income',
+    amount: Number(watch('amount')) || 0,
+    linkedIds
+  })
 
   return (
     <div className={receivablePaymentFormClass}>
@@ -45,6 +57,7 @@ export default function ReceivablePaymentForm({
           placeholder="اختیاری"
         />
       </FormField>
+      <SettleFields state={settle} type="income" />
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <Button
           type="button"
@@ -52,7 +65,7 @@ export default function ReceivablePaymentForm({
           size="sm"
           disabled={paying}
           loading={paying}
-          onClick={() => void handleSubmit(values => onSubmit(values))()}
+          onClick={() => void handleSubmit(values => onSubmit(values, settle.commit()))()}
         >
           ثبت بخشی از پرداخت
         </Button>

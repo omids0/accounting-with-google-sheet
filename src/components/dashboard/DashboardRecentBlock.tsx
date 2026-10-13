@@ -1,5 +1,8 @@
+import { useNavigate } from 'react-router'
+
 import DashboardEmptyRecords from './DashboardEmptyRecords'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
+import { recordOpenPath } from '../../routes/paths'
 import type { DashboardRecord } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -26,8 +29,13 @@ const signedAmount = (record: DashboardRecord) =>
 const amountToneClass = (record: DashboardRecord) =>
   record.type === 'income' ? 'text-success' : 'text-danger'
 
+const openButtonClass =
+  'flex w-full min-w-0 cursor-pointer items-center gap-2.5 border-none bg-transparent p-0 text-start'
+
 /** Desktop: the same five rows as a table (تاریخ · عنوان · دسته · حساب · مبلغ). */
-const RECENT_COLUMNS: DataTableColumn<DashboardRecord>[] = [
+const recentColumns = (
+  open: (record: DashboardRecord) => void
+): DataTableColumn<DashboardRecord>[] => [
   {
     id: 'date',
     header: 'تاریخ',
@@ -40,7 +48,17 @@ const RECENT_COLUMNS: DataTableColumn<DashboardRecord>[] = [
     cell: record => (
       <>
         <WriterAvatar email={record.writer} />
-        {record.title}
+        {record.id ? (
+          <button
+            type="button"
+            className="cursor-pointer border-none bg-transparent p-0 font-semibold text-text hover:underline"
+            onClick={() => open(record)}
+          >
+            {record.title}
+          </button>
+        ) : (
+          record.title
+        )}
       </>
     ),
     className: 'font-semibold'
@@ -72,6 +90,10 @@ export default function DashboardRecentBlock({
   className?: string
 }) {
   const isDesktop = useIsDesktop()
+  const navigate = useNavigate()
+  const open = (record: DashboardRecord) => {
+    if (record.id) navigate(recordOpenPath(record.type, record.id))
+  }
   const rows = records.slice(0, DASHBOARD_RECENT_LIMIT)
 
   return (
@@ -86,7 +108,7 @@ export default function DashboardRecentBlock({
         <DataTable
           label="تراکنش‌های اخیر"
           rows={rows}
-          columns={RECENT_COLUMNS}
+          columns={recentColumns(open)}
           rowKey={record => `${record.date}-${rows.indexOf(record)}`}
           bare
         />
@@ -94,19 +116,26 @@ export default function DashboardRecentBlock({
         <ul className={calmListClass}>
           {rows.map((record, index) => (
             <li key={`${record.date}-${index}`} className={calmRowClass}>
-              <DayBadge date={record.date} />
-              <span className={calmRowMainClass}>
-                <span className={calmRowTitleClass}>
-                  <WriterAvatar email={record.writer} />
-                  {record.title}
+              <button
+                type="button"
+                className={openButtonClass}
+                onClick={() => open(record)}
+                disabled={!record.id}
+              >
+                <DayBadge date={record.date} />
+                <span className={calmRowMainClass}>
+                  <span className={calmRowTitleClass}>
+                    <WriterAvatar email={record.writer} />
+                    {record.title}
+                  </span>
+                  <span className={calmRowSubClass}>
+                    {[record.category, record.account].filter(Boolean).join(' · ')}
+                  </span>
                 </span>
-                <span className={calmRowSubClass}>
-                  {[record.category, record.account].filter(Boolean).join(' · ')}
+                <span className={cn(calmRowEndClass, amountToneClass(record))}>
+                  <MoneyText amount={signedAmount(record)} signed="plus" />
                 </span>
-              </span>
-              <span className={cn(calmRowEndClass, amountToneClass(record))}>
-                <MoneyText amount={signedAmount(record)} signed="plus" />
-              </span>
+              </button>
             </li>
           ))}
         </ul>

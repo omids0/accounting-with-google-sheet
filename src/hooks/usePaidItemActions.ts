@@ -3,7 +3,10 @@ import { useCallback, useRef, useState, type Dispatch, type SetStateAction } fro
 import { removeParentAttachments, useAttachmentDeleteQuestion } from './useAttachmentDeleteQuestion'
 import { useSheetImportExport } from './useSheetImportExport'
 import { useUndoableDelete } from './useUndoableDelete'
+import { useSettleFlow } from '../components/settle/useSettleFlow'
 import type { ImportPreview } from '../services/importExport'
+import type { SettleOptions, UnlinkChoice } from '../services/settleOptions'
+import { isLinkedForeignRecord } from '../services/settleRecords'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 
@@ -13,11 +16,33 @@ type ImportExportFns = {
   importFn: (spreadsheetId: string, csvContent: string) => Promise<ImportPreview>
 }
 
+/** How marking an item paid asks for the account and catches a payment recorded already. */
+export type SettleConfig<T> = {
+  type: 'expense' | 'income'
+  titleFor: (item: T) => string
+  amountFor: (item: T) => number
+  dateFor?: (item: T) => string
+  /** The record the item's payment is linked to, if any. */
+  recordIdOf: (item: T) => string | undefined
+  /** Title prefix of the records this app creates for the module («بدهی: »). */
+  prefix: string
+  /** `transactionRecordId` of every item: those records are settlements already. */
+  linkedIds: readonly string[]
+}
+
 type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {
   items: T[]
   setItems: Dispatch<SetStateAction<T[]>>
   loadItems: () => Promise<void>
-  togglePaid: (spreadsheetId: string, item: T, paid: boolean) => Promise<Omit<T, 'rowNumber'>>
+  togglePaid: (
+    spreadsheetId: string,
+    item: T,
+    paid: boolean,
+    options?: SettleOptions,
+    unlink?: UnlinkChoice
+  ) => Promise<Omit<T, 'rowNumber'>>
+  /** Without it paying records the expense silently, as before. */
+  settle?: SettleConfig<T>
   deleteItem: (spreadsheetId: string, rowNumber: number, item: T) => Promise<void>
   sortItems: (items: T[]) => T[]
   /** Names the row in the undo toast, e.g. «چک ۱۲۳۴۵۶». */
@@ -34,6 +59,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   setItems,
   loadItems,
   togglePaid,
+  settle,
   deleteItem,
   sortItems,
   deleteLabel,
@@ -43,6 +69,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   importExport
 }: UsePaidItemActionsOptions<T>) {
   const [togglingId, setTogglingId] = useState('')
+  const settleFlow = useSettleFlow()
 
   const getSpreadsheetId = useCallback(() => requireSpreadsheetId(), [])
 
@@ -51,9 +78,36 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
 
     if (!spreadsheetId) return
 
+    let options: SettleOptions | null | undefined
+    let unlink: UnlinkChoice | null | undefined
+
+    if (settle && paid) {
+      options = await settleFlow.askSettle({
+        type: settle.type,
+        title: settle.titleFor(item),
+        amount: settle.amountFor(item),
+        date: settle.dateFor?.(item),
+        linkedIds: settle.linkedIds
+      })
+      if (!options) return
+    } else if (settle) {
+      const recordId = settle.recordIdOf(item) ?? ''
+
+      if (await isLinkedForeignRecord(spreadsheetId, settle.type, recordId, settle.prefix)) {
+        unlink = await settleFlow.askUnlink()
+        if (!unlink) return
+      }
+    }
+
     setTogglingId(item.id)
     try {
-      const updated = await togglePaid(spreadsheetId, item, paid)
+      const updated = await togglePaid(
+        spreadsheetId,
+        item,
+        paid,
+        options ?? undefined,
+        unlink ?? undefined
+      )
 
       setItems(prev =>
         sortItems(
@@ -117,6 +171,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
     handleExportPdf,
     handleImport,
     importExportConfirmModal,
-    attachmentQuestionModal: attachmentQuestion.modalProps
+    attachmentQuestionModal: attachmentQuestion.modalProps,
+    settleFlow
   }
 }

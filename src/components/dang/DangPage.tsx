@@ -14,6 +14,7 @@ import DangList from './DangList'
 import { useDangFilters } from './useDangFilters'
 import { useDangForm } from './useDangForm'
 import { useDangItems } from './useDangItems'
+import SettleFlowModals from '../settle/SettleFlowModals'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
@@ -38,7 +39,8 @@ export default function DangPage({ active = true }: { active?: boolean }) {
     handleExport,
     handleExportPdf,
     handleImport,
-    importExportConfirmModal
+    importExportConfirmModal,
+    settleFlow
   } = useDangItems()
 
   useHighlightParam(setExpandedId)
@@ -177,6 +179,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
+      <SettleFlowModals flow={settleFlow} />
     </div>
   )
 }

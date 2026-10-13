@@ -27,6 +27,8 @@ export interface MonthlyFlow {
 }
 
 export interface DashboardRecord {
+  /** Row id, to open the record's detail sheet. */
+  id?: string
   formName: string
   title: string
   amount: number

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 
+import { PnlAmount } from './TreasuryHoldingPnl'
 import type { VaultClassTotal } from '../../services/treasuryHoldings'
 import type { VaultHolding } from '../../types'
 import MoneyText from '../MoneyText'
@@ -32,6 +33,12 @@ export default function TreasuryHoldingList({
             <span>{group.label}</span>
             <span className={treasuryGroupTotalClass}>
               <MoneyText amount={group.total} />
+              {group.cost > 0 ? (
+                <>
+                  {' · '}
+                  <PnlAmount amount={group.unrealized} />
+                </>
+              ) : null}
             </span>
           </h2>
           <div className={listCardsContainerClass}>{group.holdings.map(renderHolding)}</div>

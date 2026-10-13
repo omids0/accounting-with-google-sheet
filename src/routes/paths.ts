@@ -186,6 +186,9 @@ export const RECORD_FOCUS_PARAM = 'record'
 /** With `edit=1` the records page also opens that record's edit form (reconciliation wizard). */
 export const RECORD_EDIT_PARAM = 'edit'
 
+/** With `open=1` the records page opens that record's detail sheet (round 9). */
+export const RECORD_OPEN_PARAM = 'open'
+
 /** Query keys of the records page filters that a report link sets (round 7.5). */
 export const RECORD_COUNTERPARTY_PARAM = 'counterparty'
 export const RECORD_FROM_PARAM = 'from'
@@ -216,6 +219,11 @@ export function recordFocusPath(
   const path = `/records?type=${type}&${RECORD_FOCUS_PARAM}=${encodeURIComponent(recordId)}`
 
   return edit ? `${path}&${RECORD_EDIT_PARAM}=1` : path
+}
+
+/** The records page showing only `recordId`, with its detail sheet open. */
+export function recordOpenPath(type: 'income' | 'expense', recordId: string): string {
+  return `${recordFocusPath(type, recordId)}&${RECORD_OPEN_PARAM}=1`
 }
 
 /** Query key a module page reads to scroll to and flash one item (`useHighlightParam`). */

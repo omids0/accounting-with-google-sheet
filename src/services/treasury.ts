@@ -11,6 +11,7 @@ import {
 } from './sheets'
 import { getAssetClassLabel, normalizeAssetId, resolveVaultAsset } from './treasuryCatalog'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
+import { transactionPnl } from './treasuryPnl'
 import { formatQuantityValue } from './treasuryQuantity'
 import { downloadTextFile, rowsToCsv } from '../utils/csv'
 import { formatMoney } from '../utils/formatMoney'
@@ -112,6 +113,20 @@ const VALID_ACTIONS = new Set<VaultAction>(['buy', 'sell'])
 
 const EXPORT_ASSET_HEADERS = ['کلاس', 'نماد', 'واحد']
 
+const EXPORT_PNL_HEADERS = ['خرید میانگین', 'سود قطعی']
+
+type TransactionPnl = ReturnType<typeof transactionPnl>
+
+/** Average cost after the row, and the gain of a sell (empty for a buy). */
+function pnlColumns(pnl: TransactionPnl, id: string): [string, string] {
+  const step = pnl.get(id)
+
+  return [
+    step ? formatMoney(step.avgUnitCost) : '',
+    step?.gain != null ? formatMoney(step.gain) : ''
+  ]
+}
+
 /** Asset class, symbol and unit for an export row (the sheet itself stores only the id). */
 function assetColumns(assetType: string): [string, string, string] {
   const asset = resolveVaultAsset(assetType)
@@ -124,14 +139,16 @@ export async function exportTreasuryCsv(spreadsheetId: string): Promise<string |
   await loadVaultCatalog(spreadsheetId)
 
   const rows = await fetchSheetRows(spreadsheetId, TREASURY_SHEET)
+  const pnl = transactionPnl(rows.map((row, index) => rowToTransaction(row, index + 2)))
 
   return downloadTextFile(
     'صندوقچه.csv',
     rowsToCsv(
-      [...TREASURY_HEADERS, ...EXPORT_ASSET_HEADERS],
+      [...TREASURY_HEADERS, ...EXPORT_ASSET_HEADERS, ...EXPORT_PNL_HEADERS],
       rows.map(row => [
         ...TREASURY_HEADERS.map((_, index) => row[index] ?? ''),
-        ...assetColumns(normalizeAssetId(row[2]))
+        ...assetColumns(normalizeAssetId(row[2])),
+        ...pnlColumns(pnl, row[0] ?? '')
       ])
     )
   )
@@ -150,8 +167,10 @@ export async function exportTreasuryPdf(spreadsheetId: string): Promise<string |
     'قیمت واحد',
     'جمع',
     'تاریخ',
-    'توضیحات'
+    'توضیحات',
+    ...EXPORT_PNL_HEADERS
   ]
+  const pnl = transactionPnl(transactions)
 
   const rows = transactions.map(tx => {
     const asset = resolveVaultAsset(tx.assetType)
@@ -164,7 +183,8 @@ export async function exportTreasuryPdf(spreadsheetId: string): Promise<string |
       formatMoney(tx.unitPrice),
       formatMoney(tx.quantity * tx.unitPrice),
       formatPersianDate(tx.transactionDate),
-      tx.note
+      tx.note,
+      ...pnlColumns(pnl, tx.id)
     ]
   })
 
@@ -178,7 +198,9 @@ export async function exportTreasuryPdf(spreadsheetId: string): Promise<string |
     'pdf-cell-amount',
     'pdf-cell-amount',
     '',
-    ''
+    '',
+    'pdf-cell-amount',
+    'pdf-cell-amount'
   ])
 
   return downloadTablePdf({

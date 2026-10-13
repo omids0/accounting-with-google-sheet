@@ -5,6 +5,7 @@ import {
   recordItemAccentClass,
   recordItemInteractiveClass,
   recordItemMetaClass,
+  recordItemOpenClass,
   recordItemTitleClass
 } from './ui/recordsStyles'
 import { cn } from '../utils/cn'
@@ -22,6 +23,9 @@ interface TransactionListItemProps {
   tone?: TransactionTone
   index?: number
   className?: string
+  /** Makes the whole row open something; the buttons inside keep their own taps. */
+  onOpen?: () => void
+  openLabel?: string
 }
 
 function TransactionListItem({
@@ -32,7 +36,9 @@ function TransactionListItem({
   children,
   tone = 'neutral',
   index = 0,
-  className
+  className,
+  onOpen,
+  openLabel
 }: TransactionListItemProps) {
   const style: CSSProperties = {
     animationDelay: `${Math.min(index, 12) * 0.04}s`
@@ -50,6 +56,14 @@ function TransactionListItem({
       style={style}
     >
       <span className={recordItemAccentClass} aria-hidden="true" />
+      {onOpen ? (
+        <button
+          type="button"
+          className={recordItemOpenClass}
+          onClick={onOpen}
+          aria-label={openLabel ?? title}
+        />
+      ) : null}
       <div className={recordItemMainClass}>
         <div className={recordItemTitleClass}>
           {title}

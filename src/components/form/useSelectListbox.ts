@@ -1,5 +1,6 @@
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from 'react'
 
+import { registerTrapPortal, unregisterTrapPortal } from '../../hooks/useFocusTrap'
 import { useRegisterOverlay } from '../../hooks/useRegisterOverlay'
 import {
   createTypeahead,
@@ -60,7 +61,13 @@ export function useSelectListbox(
   }
 
   useEffect(() => {
-    if (open) listboxRef.current?.focus({ preventScroll: true })
+    const list = listboxRef.current
+
+    if (!open || !list) return
+    list.focus({ preventScroll: true })
+    registerTrapPortal(list)
+
+    return () => unregisterTrapPortal(list)
   }, [open])
 
   useEffect(() => {
@@ -72,7 +79,10 @@ export function useSelectListbox(
     if (!open) return
 
     const onPointerDown = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false)
+      const target = event.target as Node
+
+      if (rootRef.current?.contains(target) || listboxRef.current?.contains(target)) return
+      setOpen(false)
     }
 
     document.addEventListener('mousedown', onPointerDown)
@@ -96,6 +106,8 @@ export function useSelectListbox(
     }
 
     if (event.key === 'Tab') {
+      // Focus the trigger first so the browser's Tab continues from it, not from the page top.
+      triggerRef.current?.focus({ preventScroll: true })
       close(false)
 
       return

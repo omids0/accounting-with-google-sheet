@@ -121,6 +121,12 @@ export const recordItemInteractiveClass = cx(
   'motion-reduce:animate-none motion-reduce:transition-none motion-reduce:hover:translate-x-0'
 )
 
+/** A transparent button over the whole row; buttons inside it sit above with `relative z-[1]`. */
+export const recordItemOpenClass = cx(
+  'absolute inset-0 z-0 cursor-pointer rounded-sm border-none bg-transparent p-0',
+  'focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary'
+)
+
 export const recordItemAccentClass = cx(
   'pointer-events-none absolute top-1/2 right-0 h-0 w-[3px] -translate-y-1/2 rounded-full opacity-0 transition-[height,opacity] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
   '[.record-item--interactive:hover_&]:h-[60%] [.record-item--interactive:hover_&]:opacity-100',

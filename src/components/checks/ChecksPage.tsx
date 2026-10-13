@@ -15,6 +15,7 @@ import type { ChecksPageProps } from './types'
 import { useChecksData } from './useChecksData'
 import { useChecksFilters } from './useChecksFilters'
 import { useChecksForm } from './useChecksForm'
+import SettleFlowModals from '../settle/SettleFlowModals'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
@@ -32,7 +33,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     handleExportPdf,
     handleImport,
     importExportConfirmModal,
-    attachmentQuestionModal
+    attachmentQuestionModal,
+    settleFlow
   } = useChecksData()
 
   useHighlightParam()
@@ -166,6 +168,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
 
       <ConfirmActionModal {...importExportConfirmModal} />
       <ConfirmActionModal {...attachmentQuestionModal} />
+      <SettleFlowModals flow={settleFlow} />
     </div>
   )
 }

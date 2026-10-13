@@ -9,8 +9,8 @@ export const fabContainerClass = cx(
 export const speedDialContainerClass = 'z-[25]'
 
 export const speedDialBackdropClass = cx(
-  'fixed inset-0 z-[24] cursor-default border-none bg-[var(--color-overlay-light)]',
-  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[4px]'
+  'fixed inset-0 z-[24] cursor-default border-none bg-[var(--color-overlay)]',
+  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)]'
 )
 
 /** Slides down behind the bottom nav while hidden on scroll (transform/opacity only). */
@@ -64,8 +64,8 @@ export const speedDialActionIconClass =
 
 export const speedDialActionLabelClass = cx(
   'max-w-[9.5rem] truncate rounded-full px-2.5 py-1 text-[0.72rem] font-semibold leading-tight text-text',
-  'bg-[color-mix(in_srgb,var(--color-surface)_92%,transparent)] shadow-[0_1px_6px_rgba(15,23,42,0.08)]',
-  'ring-1 ring-[color-mix(in_srgb,var(--color-border)_80%,transparent)] backdrop-blur-[6px]'
+  'bg-surface shadow-[0_1px_6px_rgba(15,23,42,0.08)]',
+  'ring-1 ring-[color-mix(in_srgb,var(--color-border)_80%,transparent)]'
 )
 
 export const fabClass = cx(

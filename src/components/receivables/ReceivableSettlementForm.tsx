@@ -2,9 +2,12 @@ import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import type { SettleOptions } from '../../services/settleOptions'
 import { formatMoney } from '../../utils/formatMoney'
 import { FormField } from '../form'
 import type { SettlementFormState } from './types'
+import SettleFields from '../settle/SettleFields'
+import { useSettleFields } from '../settle/useSettleFields'
 import Button from '../ui/Button'
 import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
@@ -14,7 +17,9 @@ type ReceivableSettlementFormProps = {
   defaultTitle: string
   defaultNote: string
   settling: boolean
-  onSubmit: (values: Omit<SettlementFormState, 'receivableId'>) => void
+  /** `transactionRecordId` of every receivable payment (the duplicate check skips them). */
+  linkedIds: readonly string[]
+  onSubmit: (values: Omit<SettlementFormState, 'receivableId'>, options: SettleOptions) => void
   onCancel: () => void
 }
 
@@ -29,6 +34,7 @@ export default function ReceivableSettlementForm({
   defaultTitle,
   defaultNote,
   settling,
+  linkedIds,
   onSubmit,
   onCancel
 }: ReceivableSettlementFormProps) {
@@ -43,6 +49,8 @@ export default function ReceivableSettlementForm({
 
   useModalFormReset(reset, initialValues, { resetKey: receivableId })
 
+  const settle = useSettleFields({ type: 'income', amount: remaining, linkedIds })
+
   return (
     <div className={receivablePaymentFormClass}>
       <FormField label="عنوان درآمد" required style={{ marginBottom: '0.75rem' }}>
@@ -54,6 +62,7 @@ export default function ReceivableSettlementForm({
       <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
         <input type="text" {...register('note')} placeholder="اختیاری" />
       </FormField>
+      <SettleFields state={settle} type="income" />
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <Button
           type="button"
@@ -61,7 +70,7 @@ export default function ReceivableSettlementForm({
           size="sm"
           disabled={settling}
           loading={settling}
-          onClick={() => void handleSubmit(values => onSubmit(values))()}
+          onClick={() => void handleSubmit(values => onSubmit(values, settle.commit()))()}
         >
           تسویه
         </Button>

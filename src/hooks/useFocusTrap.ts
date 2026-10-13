@@ -32,6 +32,19 @@ function getInitialFocus(container: HTMLElement, preferred: string): HTMLElement
 /** Open traps, newest last: only the top one handles Tab (a picker over a form). */
 const openTraps: RefObject<HTMLElement>[] = []
 
+/** Popups portalled out of a trap (an open dropdown list) still count as inside it. */
+const trapPortals: HTMLElement[] = []
+
+export function registerTrapPortal(element: HTMLElement) {
+  trapPortals.push(element)
+}
+
+export function unregisterTrapPortal(element: HTMLElement) {
+  const index = trapPortals.indexOf(element)
+
+  if (index >= 0) trapPortals.splice(index, 1)
+}
+
 /**
  * While `open`: focus moves into the container (first field), Tab cycles inside
  * it, and on close focus returns to whatever opened it (the trigger, ☰ …).
@@ -63,7 +76,8 @@ export function useFocusTrap(
       const first = focusable[0]
       const last = focusable[focusable.length - 1]
       const active = document.activeElement
-      const outside = !container.contains(active)
+      const outside =
+        !container.contains(active) && !trapPortals.some(portal => portal.contains(active))
 
       if (event.shiftKey ? active === first || outside : active === last || outside) {
         event.preventDefault()

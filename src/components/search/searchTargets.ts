@@ -1,4 +1,4 @@
-import { getPathForTab, highlightPath, recordFocusPath } from '../../routes/paths'
+import { getPathForTab, highlightPath, recordOpenPath } from '../../routes/paths'
 import type { SearchEntry, SearchGroupId } from '../../services/globalSearch'
 import type { AppIconName } from '../appIcon/types'
 import type { Tab } from '../layout/types'
@@ -28,7 +28,7 @@ export const SEARCH_GROUP_ICONS: Record<SearchGroupId, AppIconName> = {
 
 /** Where a result opens: its module page with the item highlighted (records: shown alone). */
 export function searchEntryPath(entry: SearchEntry): string {
-  if (entry.group === 'records') return recordFocusPath(entry.recordType ?? 'expense', entry.id)
+  if (entry.group === 'records') return recordOpenPath(entry.recordType ?? 'expense', entry.id)
   if (entry.group === 'vehicles') return getPathForTab('vehicle-detail', { vehicleId: entry.id })
 
   return highlightPath(getPathForTab(GROUP_TABS[entry.group]), entry.id)

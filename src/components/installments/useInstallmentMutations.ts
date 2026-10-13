@@ -13,7 +13,7 @@ export function useInstallmentMutations({
   setPlans,
   loadPlans
 }: UseInstallmentMutationsParams) {
-  const payments = useInstallmentPaymentActions({ setPlans })
+  const payments = useInstallmentPaymentActions({ setPlans, plans })
 
   const formActions = useInstallmentFormActions({
     plans,
@@ -25,6 +25,7 @@ export function useInstallmentMutations({
     ...formActions,
     expandedId: payments.expandedId,
     togglingByPlan: payments.togglingByPlan,
+    settleFlow: payments.settleFlow,
     handleTogglePayment: payments.handleTogglePayment,
     handlePaymentAmountSave: payments.handlePaymentAmountSave,
     handleToggleExpand: payments.handleToggleExpand,

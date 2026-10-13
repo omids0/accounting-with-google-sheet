@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { isConfigured } from '../../services/settings'
 import { isBuiltinAsset } from '../../services/treasuryCatalog'
+import { formatPct } from '../../services/treasuryPnl'
 import type { VaultAsset } from '../../types'
 import { cn } from '../../utils/cn'
 import { distributionSparkline } from '../../utils/sparklineData'
@@ -141,6 +142,14 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
         parts: classFilter.classHoldings.map(holding => holding.totalValue)
       }
 
+  // Open profit/loss of the selected class (all classes in «همه»); goals are left out.
+  const pnlHoldings = classFilter.classHoldings.filter(holding => holding.avgUnitCost > 0)
+  const pnlAmount = pnlHoldings.reduce((sum, holding) => sum + holding.unrealized, 0)
+  const pnlCost = pnlHoldings.reduce(
+    (sum, holding) => sum + holding.avgUnitCost * holding.netQuantity,
+    0
+  )
+
   return (
     <div className={listModulePageClass}>
       <ActiveFilterChips
@@ -224,6 +233,18 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
           variant="balance"
           wide
           sparklineData={distributionSparkline(total.parts)}
+          className={cn(receivableTotalCardClass, treasuryTotalCardClass)}
+        />
+      )}
+
+      {!goalsOnly && pnlHoldings.length > 0 && (
+        <StatCard
+          label="سود/زیان باز"
+          amount={pnlAmount}
+          variant="flow"
+          flowDirection={pnlAmount < 0 ? 'negative' : pnlAmount > 0 ? 'positive' : 'neutral'}
+          wide
+          footer={pnlCost > 0 ? formatPct((pnlAmount / pnlCost) * 100) : undefined}
           className={cn(receivableTotalCardClass, treasuryTotalCardClass)}
         />
       )}

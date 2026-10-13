@@ -71,7 +71,9 @@ const ACCOUNT_KEYS = [
   // «بستن سال»: cash confirmed and archive time per year (closeYearStore.ts).
   'accounting_close_year_v1',
   // Who can edit each spreadsheet, from Drive (sharing.ts).
-  'accounting_sharing_v1'
+  'accounting_sharing_v1',
+  // Last account chosen when settling a payment, per spreadsheet (settleOptions.ts).
+  'accounting_settle_account_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

@@ -91,6 +91,11 @@ const gold = {
   netQuantity: 2,
   currentUnitPrice: 0,
   totalValue: 0,
+  avgUnitCost: 0,
+  unrealized: 0,
+  unrealizedPct: 0,
+  realized: 0,
+  sellCount: 0,
   transactions: []
 } as VaultHolding
 

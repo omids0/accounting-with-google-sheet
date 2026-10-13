@@ -62,6 +62,14 @@ export function useChecksData() {
     setItems,
     loadItems,
     togglePaid: toggleCheckPaid,
+    settle: {
+      type: 'expense',
+      titleFor: item => `پاس شدن چک ${item.checkNumber}`,
+      amountFor: item => item.amount,
+      recordIdOf: item => item.transactionRecordId,
+      prefix: 'چک: ',
+      linkedIds: items.flatMap(item => (item.transactionRecordId ? [item.transactionRecordId] : []))
+    },
     deleteItem: deleteCheck,
     sortItems: sortChecks,
     deleteLabel: item => `چک ${item.checkNumber}`,

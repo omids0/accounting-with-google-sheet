@@ -42,6 +42,8 @@ export interface AttachmentViewerProps {
   sheetName: string
   entityId: string
   fileIds: readonly string[]
+  /** The tile shown first (`saved:<id>`); the first one when unset. */
+  initialKey?: string
 }
 
 /** Bottom sheet behind «📎 N»: preview, «باز کردن در Drive», «اشتراک», «حذف». */
@@ -51,11 +53,12 @@ export default function AttachmentViewerSheet({
   title,
   sheetName,
   entityId,
-  fileIds
+  fileIds,
+  initialKey
 }: AttachmentViewerProps) {
   const pending = usePendingAttachments(entityId)
   const items = useMemo(() => initialDrafts(fileIds, pending), [fileIds, pending])
-  const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  const [selectedKey, setSelectedKey] = useState<string | null>(initialKey ?? null)
   const [busy, setBusy] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const { panelRef } = useModalLock({ open, onClose, blocked: busy })

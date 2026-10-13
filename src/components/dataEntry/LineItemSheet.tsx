@@ -4,10 +4,11 @@ import { useRecordInputs } from '../../hooks/useRecordInputs'
 import { suggestItemNames } from '../../services/recordLineItems'
 import { formatMoney, formatPersianNumber } from '../../utils/formatMoney'
 import { haptic } from '../../utils/haptics'
-import { type LineItem } from '../../utils/lineItems'
+import { lineItemAmount, parseItemQuantity, type LineItem } from '../../utils/lineItems'
 import { normalizeSearchText } from '../../utils/search'
 import AmountInput from '../AmountInput'
 import FormField from '../form/FormField'
+import FormRow from '../form/FormRow'
 import FormModal from '../FormModal'
 import {
   lineItemSheetRemainderButtonClass,
@@ -43,6 +44,9 @@ export default function LineItemSheet({
   const [name, setName] = useState('')
   const [amount, setAmount] = useState<number | ''>('')
   const [note, setNote] = useState('')
+  const [unitPrice, setUnitPrice] = useState<number | ''>('')
+  /** Set once the amount was typed (or came from a saved item): «مقدار × فی» stops filling it. */
+  const [amountTouched, setAmountTouched] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
 
   const nameRef = useRef<HTMLInputElement>(null)
@@ -55,6 +59,8 @@ export default function LineItemSheet({
     setName(item?.name ?? '')
     setAmount(item ? item.amount : '')
     setNote(item?.note ?? '')
+    setUnitPrice(item?.unitPrice ?? '')
+    setAmountTouched(item ? item.amount !== lineItemAmount(item.quantity, item.unitPrice) : false)
     setShowErrors(false)
   }
 
@@ -73,6 +79,22 @@ export default function LineItemSheet({
       )
     : []
 
+  const quantity = parseItemQuantity(note)?.value
+  const computed = lineItemAmount(quantity, unitPrice === '' ? undefined : unitPrice)
+
+  /** Quantity or «فی» changed: the amount follows them until it is edited by hand. */
+  const applyComputed = (nextNote: string, nextPrice: number | '') => {
+    setNote(nextNote)
+    setUnitPrice(nextPrice)
+
+    const next = lineItemAmount(
+      parseItemQuantity(nextNote)?.value,
+      nextPrice === '' ? undefined : nextPrice
+    )
+
+    if (!amountTouched && next > 0) setAmount(next)
+  }
+
   const isValid = name.trim() !== '' && amount !== '' && amount > 0
 
   const save = (keepOpen: boolean) => {
@@ -85,7 +107,9 @@ export default function LineItemSheet({
     onSave({
       name: name.trim(),
       amount: Number(amount),
-      ...(note.trim() ? { note: note.trim() } : {})
+      ...(note.trim() ? { note: note.trim() } : {}),
+      ...(unitPrice !== '' && unitPrice > 0 ? { unitPrice } : {}),
+      ...(quantity && quantity > 0 ? { quantity } : {})
     })
     haptic('light')
 
@@ -136,7 +160,10 @@ export default function LineItemSheet({
               <button
                 type="button"
                 className={lineItemSheetRemainderButtonClass}
-                onClick={() => setAmount(remainder)}
+                onClick={() => {
+                  setAmount(remainder)
+                  setAmountTouched(true)
+                }}
                 aria-label={`پر کردن مبلغ با مانده ${formatMoney(remainder)}`}
               >
                 {`${formatPersianNumber(remainder)} مانده`}
@@ -179,22 +206,40 @@ export default function LineItemSheet({
         </div>
       ) : null}
 
-      <FormField label="مبلغ" required controlWidth="full" error={amountError}>
+      <FormRow>
+        <FormField label="مقدار" hint="اختیاری؛ مثلاً ۵ کیلو" controlWidth="full">
+          <input
+            type="text"
+            value={note}
+            autoComplete="off"
+            placeholder="۵ کیلو"
+            onChange={event => applyComputed(event.target.value, unitPrice)}
+          />
+        </FormField>
+        <FormField label="فی" hint="قیمت یک واحد" controlWidth="full">
+          <AmountInput value={unitPrice} onChange={next => applyComputed(note, next)} />
+        </FormField>
+      </FormRow>
+
+      <FormField
+        label="مبلغ"
+        required
+        controlWidth="full"
+        error={amountError}
+        hint={
+          computed > 0 && quantity && unitPrice !== ''
+            ? `= ${formatPersianNumber(quantity)} × ${formatPersianNumber(unitPrice)}`
+            : undefined
+        }
+      >
         <AmountInput
           id={amountId}
           value={amount}
-          onChange={setAmount}
+          onChange={next => {
+            setAmount(next)
+            setAmountTouched(true)
+          }}
           invalid={Boolean(amountError)}
-        />
-      </FormField>
-
-      <FormField label="مقدار / توضیح" hint="اختیاری؛ مثلاً ۲ کیلو" controlWidth="full">
-        <input
-          type="text"
-          value={note}
-          autoComplete="off"
-          placeholder="۲ کیلو"
-          onChange={event => setNote(event.target.value)}
         />
       </FormField>
     </FormModal>

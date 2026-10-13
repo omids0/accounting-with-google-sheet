@@ -28,7 +28,7 @@ export const attachmentAddButtonClass = cx(
 
 /** «📎 N» next to a row's title; opens the viewer. */
 export const attachmentBadgeClass = cx(
-  'inline-flex min-h-6 shrink-0 cursor-pointer items-center gap-0.5 rounded-full border border-border',
+  'relative z-[1] inline-flex min-h-6 shrink-0 cursor-pointer items-center gap-0.5 rounded-full border border-border',
   'bg-bg px-1.5 align-middle text-[0.72rem] font-semibold text-muted hover:border-primary hover:text-primary'
 )
 

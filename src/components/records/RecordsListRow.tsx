@@ -29,6 +29,7 @@ interface RecordsListRowProps {
   index: number
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
+  onOpen: (record: StoredRecord) => void
 }
 
 /**
@@ -41,7 +42,8 @@ function RecordsListRow({
   isAllForms,
   index,
   onEdit,
-  onDelete
+  onDelete,
+  onOpen
 }: RecordsListRowProps) {
   const recordAmountField = getFormField(form, 'amount')
 
@@ -111,6 +113,8 @@ function RecordsListRow({
       }
       tone={isIncome ? 'income' : isExpense ? 'expense' : 'neutral'}
       index={index}
+      onOpen={() => onOpen(record)}
+      openLabel={`جزئیات ${String(title)}`}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         {amount && (
@@ -121,7 +125,7 @@ function RecordsListRow({
             />
           </div>
         )}
-        <div className={cardActionButtonsClass}>
+        <div className={cn(cardActionButtonsClass, 'relative z-[1]')}>
           <CardEditButton onClick={() => onEdit(record)} />
           <CardDeleteButton onClick={() => onDelete(record)} />
         </div>

@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { formatPersianNumber } from './formatMoney'
 import {
   describeLineItems,
+  itemDetailLine,
+  lineItemAmount,
   normalizeItemName,
   parseItemQuantity,
   parseLineItems,
@@ -90,6 +92,56 @@ describe('parseItemQuantity', () => {
     expect(parseItemQuantity('تازه')).toBeNull()
     expect(parseItemQuantity('')).toBeNull()
     expect(parseItemQuantity(undefined)).toBeNull()
+  })
+})
+
+describe('unit price and quantity', () => {
+  it('round-trips فی and the numeric quantity as p and c', () => {
+    const items = [{ name: 'موز', amount: 600000, note: '۲ کیلو', unitPrice: 300000, quantity: 2 }]
+    const raw = serializeLineItems(items)
+
+    expect(raw).toBe('[{"n":"موز","a":600000,"q":"۲ کیلو","p":300000,"c":2}]')
+    expect(parseLineItems(raw)).toEqual(items)
+  })
+
+  it('ignores a zero or broken p and c, and reads rows from before round 9', () => {
+    expect(parseLineItems('[{"n":"موز","a":5,"p":0,"c":"x"}]')).toEqual([
+      { name: 'موز', amount: 5 }
+    ])
+    expect(serializeLineItems([{ name: 'موز', amount: 5, unitPrice: 0 }])).toBe(
+      '[{"n":"موز","a":5}]'
+    )
+  })
+
+  it('multiplies quantity by فی, rounded, and is 0 when either is missing', () => {
+    expect(lineItemAmount(5, 280000)).toBe(1400000)
+    expect(lineItemAmount(1.5, 333)).toBe(500)
+    expect(lineItemAmount(undefined, 280000)).toBe(0)
+    expect(lineItemAmount(5, undefined)).toBe(0)
+  })
+
+  it('describes an item with a quantity note and فی as a multiplication', () => {
+    const text = describeLineItems([
+      { name: 'موز', amount: 600000, note: '۲ کیلو', unitPrice: 300000, quantity: 2 },
+      { name: 'سیب', amount: 250000, note: '۱ کیلو' }
+    ])
+
+    expect(text).toBe(
+      `موز ۲ کیلو × ${formatPersianNumber(300000)} = ${formatPersianNumber(
+        600000
+      )} · سیب ۱ کیلو ${formatPersianNumber(250000)}`
+    )
+  })
+
+  it('shows the note and فی under an item name', () => {
+    expect(itemDetailLine({ name: 'x', amount: 1, note: '۲ کیلو', unitPrice: 5 })).toBe(
+      `۲ کیلو × ${formatPersianNumber(5)}`
+    )
+    expect(itemDetailLine({ name: 'x', amount: 1, unitPrice: 5 })).toBe(
+      `× ${formatPersianNumber(5)}`
+    )
+    expect(itemDetailLine({ name: 'x', amount: 1, note: '۲ کیلو' })).toBe('۲ کیلو')
+    expect(itemDetailLine({ name: 'x', amount: 1 })).toBe('')
   })
 })
 

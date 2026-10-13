@@ -11,7 +11,10 @@ import {
   invalidateInstallmentsCache
 } from './installmentsConstants'
 import { buildPayments, parsePayments } from './installmentsSchedule'
-import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
+import { installmentTitle } from './installmentTitle'
+import { deleteLinkedExpenseRecord } from './paymentTransactions'
+import type { SettleOptions, UnlinkChoice } from './settleOptions'
+import { createLinkedRecordWithWallet, deleteLinkedRecordWithWallet } from './settleRecords'
 import {
   appendSheetRow,
   deleteSheetRow,
@@ -22,19 +25,11 @@ import {
 import { getSheetDataRows } from './spreadsheetStore'
 import { INSTALLMENT_WRITER_COLUMN } from './writerColumn'
 import { parseAttachmentIds } from '../utils/attachmentIds'
-import { getTodayIso, isoToJalali, JALALI_MONTHS } from '../utils/jalaliDate'
+import { getTodayIso } from '../utils/jalaliDate'
 import { normalizeSheetDate } from '../utils/sheetValues'
 import { parseWriter } from '../utils/writerColumn'
 
 type PlanWithRowNumber = InstallmentPlan & { rowNumber: number }
-
-/** «قسط مهر وام مسکن» for the activity feed. */
-function installmentTitle(plan: InstallmentPlan, payment: InstallmentPayment): string {
-  const due = normalizeSheetDate(payment.dueDate)
-  const month = due ? JALALI_MONTHS[isoToJalali(due).month - 1] : ''
-
-  return ['قسط', month, plan.title].filter(Boolean).join(' ')
-}
 
 function rowToPlan(row: string[], rowNumber: number, spreadsheetId: string): PlanWithRowNumber {
   const count = Number(row[4]) || 0
@@ -229,7 +224,9 @@ export async function toggleInstallmentPayment(
   spreadsheetId: string,
   plan: PlanWithRowNumber,
   paymentIndex: number,
-  paid: boolean
+  paid: boolean,
+  options?: SettleOptions,
+  unlink?: UnlinkChoice
 ): Promise<PlanWithRowNumber> {
   const current = readLatestPlan(spreadsheetId, plan)
 
@@ -237,42 +234,41 @@ export async function toggleInstallmentPayment(
 
   if (!payment) return current
 
-  if (paid && !payment.paid) {
-    const transactionRecordId = await createLinkedExpenseRecord(spreadsheetId, {
-      title: `قسط: ${current.title} (#${payment.n})`,
-      amount: getInstallmentPaymentAmount(payment, current),
-      category: INSTALLMENT_EXPENSE_CATEGORY,
-      subCategory: current.subCategory,
-      note: current.note
-    })
+  const title = installmentTitle(current, payment)
 
-    logItemActivity(
+  if (paid && !payment.paid) {
+    const transactionRecordId = await createLinkedRecordWithWallet(
       spreadsheetId,
-      'pay',
-      'installments',
-      current.id,
-      installmentTitle(current, payment)
+      'expense',
+      {
+        title: `قسط: ${current.title} (#${payment.n})`,
+        amount: getInstallmentPaymentAmount(payment, current),
+        category: INSTALLMENT_EXPENSE_CATEGORY,
+        subCategory: current.subCategory,
+        note: current.note
+      },
+      options
     )
+
+    logItemActivity(spreadsheetId, 'pay', 'installments', current.id, title)
 
     return savePaymentPatch(spreadsheetId, current, paymentIndex, {
       paid: true,
-      paidAt: getTodayIso(),
+      paidAt: options?.date || getTodayIso(),
       transactionRecordId
     })
   }
 
   if (!paid && payment.paid) {
-    if (payment.transactionRecordId) {
-      await deleteLinkedExpenseRecord(spreadsheetId, payment.transactionRecordId)
-    }
-
-    logItemActivity(
+    await deleteLinkedRecordWithWallet(
       spreadsheetId,
-      'unpay',
-      'installments',
-      current.id,
-      installmentTitle(current, payment)
+      'expense',
+      payment.transactionRecordId ?? '',
+      'قسط: ',
+      unlink
     )
+
+    logItemActivity(spreadsheetId, 'unpay', 'installments', current.id, title)
 
     return savePaymentPatch(spreadsheetId, current, paymentIndex, {
       paid: false,

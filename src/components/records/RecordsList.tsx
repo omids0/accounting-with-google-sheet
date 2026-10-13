@@ -23,6 +23,7 @@ interface RecordsListProps {
   filteredRecords: StoredRecord[]
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
+  onOpen: (record: StoredRecord) => void
 }
 
 export default function RecordsList({
@@ -31,7 +32,8 @@ export default function RecordsList({
   isAllForms,
   filteredRecords,
   onEdit,
-  onDelete
+  onDelete,
+  onOpen
 }: RecordsListProps) {
   const [visibleCount, setVisibleCount] = useState(RECORDS_PAGE_SIZE)
 
@@ -70,6 +72,7 @@ export default function RecordsList({
             index={index}
             onEdit={onEdit}
             onDelete={onDelete}
+            onOpen={onOpen}
           />
         )
       })}

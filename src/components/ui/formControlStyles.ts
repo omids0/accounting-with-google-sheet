@@ -44,7 +44,7 @@ export function customSelectChevronClass(open?: boolean) {
 
 export const customSelectMenuClass = cx(
   appScrollbarClass,
-  'absolute inset-x-0 top-[calc(100%+4px)] z-50 m-0 max-h-60 list-none overflow-y-auto rounded-sm border-[1.5px] border-border bg-surface p-[0.35rem] shadow-[var(--shadow)]',
+  'fixed z-[110] m-0 list-none overflow-y-auto rounded-sm border-[1.5px] border-border bg-surface p-[0.35rem] shadow-[var(--shadow)]',
   'animate-[slideDown_var(--duration-normal)_var(--ease-out)]'
 )
 
