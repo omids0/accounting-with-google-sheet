@@ -2,7 +2,7 @@
 
 Audience: the Claude agent that will implement this. Decisions were approved by the product owner over the wireframes in this folder; do not re-litigate them. Ask only about technical blockers or where this document says "ask first".
 
-Rounds 1–7 precede this (`IMPLEMENTATION-SPEC.md`, `UX-ROUND2-SPEC.md` … `UX-ROUND7-SPEC.md`). Round 7 must be merged first: Task C here reads the round-7 hidden mode, and Task A reuses the round-7 activity model only if it exists (it does not — see A2). Still out of scope by decision: bottom navigation (never), module on/off switches, light-theme colors, any mobile redesign of the list pages, iOS widgets.
+Rounds 1–7.5 precede this (`IMPLEMENTATION-SPEC.md`, `UX-ROUND2-SPEC.md` … `UX-ROUND7-SPEC.md`, `UX-ROUND7.5-SPEC.md`). Round 7 must be merged first: Task C here reads the round-7 hidden mode, and Task A reuses the round-7 activity model only if it exists (it does not — see A2). Still out of scope by decision: bottom navigation (never), module on/off switches, light-theme colors, any mobile redesign of the list pages, iOS widgets.
 
 Wireframes: `round8-shared-widget.html` phones 1–2 (A, B), phone 3 (C). Index: `index.html`.
 
@@ -14,7 +14,7 @@ Wireframes: `round8-shared-widget.html` phones 1–2 (A, B), phone 3 (C). Index:
 - `npm run types`, `npm run lint`, `npm test`, `npm run build`, `npm run size-limit` (900 KB) and the a11y suite (light + dark) must pass; Prettier only on touched files.
 - New sheet columns go at the **end** of the row; new tabs follow the round-6 rules (`sheetNames.ts`, `sheetHeaders.ts`, `moduleSheetSpecs.ts`, CSV, backup).
 - Every new localStorage key: per spreadsheet and in `ACCOUNT_KEYS`, unless the spec says "per device".
-- Update About and `aboutChangelog.ts` for every user-visible change; bump the version (this round ships as **2.4.0**).
+- Update About and `aboutChangelog.ts` for every user-visible change; bump the version (this round ships as **2.5.0** (round 7.5 took 2.4.0)).
 - Commit format `<type>/ACCT-0/ACCT-0/<description>`; one commit per task group; branch off `main`; no `gh` CLI; after push give the compare link.
 - Android is built by GitHub Actions only; the owner tests the APK on their phone. The widget cannot be run locally — expect review rounds; keep the Java small and defensive (never crash the launcher: every read is null-safe, every failure renders the «باز کن» fallback).
 - Verify web changes with the Playwright recipe in `reference_playwright_sw_mocks.md` (mobile 390×844, desktop 1440×900), light and dark.
@@ -71,7 +71,7 @@ Wireframe `round8-shared-widget.html` phone 3. Android only (no iOS widget; owne
 
 ## Task D — About and version
 
-Update About: a new group «با هم» (shared spreadsheets: who recorded what, activity, conflicts, what stays per device) and the platform group (widget). Add the 2.4.0 entries to `aboutChangelog.ts` (shared mode, conflict sheet, widget). Bump to 2.4.0.
+Update About: a new group «با هم» (shared spreadsheets: who recorded what, activity, conflicts, what stays per device) and the platform group (widget). Add the 2.5.0 entries to `aboutChangelog.ts` (shared mode, conflict sheet, widget). Bump to 2.5.0.
 
 ## Suggested order and commits
 
