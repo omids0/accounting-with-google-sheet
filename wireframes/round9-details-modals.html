@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>وایرفریم — جزئیات تراکنش، مودال‌های مات، دراپ‌داون قالب پیامک (round 9)</title>
+    <title>وایرفریم — جزئیات تراکنش، دراپ‌داون قالب پیامک (round 9)</title>
     <link rel="stylesheet" href="wireframe.css" />
     <link rel="stylesheet" href="wireframe-wizard.css" />
     <link rel="stylesheet" href="wireframe-extras.css" />
@@ -14,7 +14,7 @@
   </head>
   <body>
     <p class="back"><a href="index.html">← فهرست وایرفریم‌ها</a></p>
-    <h1>وایرفریم round 9: جزئیات تراکنش، مودال‌های مات، دراپ‌داون قالب پیامک</h1>
+    <h1>وایرفریم round 9: جزئیات تراکنش، دراپ‌داون قالب پیامک</h1>
     <p class="e-purpose" style="max-width: none; text-align: right">
       صندوقچه، تسویه و ریز اقلام در <a href="round9-treasury-settle.html">صفحهٔ دوم</a>.
     </p>
@@ -71,47 +71,7 @@
       </div>
 
       <div class="col">
-        <div class="state-tabs">
-          <button class="on">۲ · مودال: الان (شیشه‌ای) → بعد (مات)</button>
-        </div>
-        <div class="phone">
-          <div class="app-header" style="filter: blur(1px)">
-            <span class="icon">☰</span><span>چک‌ها</span><span class="icon">⌕</span>
-          </div>
-          <div class="content" style="opacity: 0.6">
-            <div class="card">
-              <div class="r"><span class="t">چک ۱۲۳۴۵۲</span><span class="a">۲٬۰۰۰٬۰۰۰</span></div>
-              <div class="r"><span class="t">چک ۹۹۸۸۷۷</span><span class="a">۵٬۰۰۰٬۰۰۰</span></div>
-              <div class="r"><span class="t">چک ۴۴۵۵۶۶</span><span class="a">۱٬۲۰۰٬۰۰۰</span></div>
-            </div>
-            <div class="sheet glass" style="position: static; margin-top: -40px">
-              <div class="grab"></div>
-              <h3>الان: پس‌زمینه از پشت شیت دیده می‌شود ✗</h3>
-              <div class="f-row">
-                <label>مبلغ</label>
-                <div class="f-input" style="color: #333">۲٬۰۰۰٬۰۰۰</div>
-              </div>
-            </div>
-          </div>
-          <div class="dim" style="top: 55%"></div>
-          <div class="sheet solid">
-            <div class="grab"></div>
-            <h3>بعد: شیت مات، پشتش فقط تیره ✓</h3>
-            <div class="f-row">
-              <label>مبلغ</label>
-              <div class="f-input" style="color: #333">۲٬۰۰۰٬۰۰۰</div>
-            </div>
-            <div class="f-row">
-              <label>طرف حساب</label>
-              <div class="f-input" style="color: #333">علی رضایی</div>
-            </div>
-            <button class="btn-primary" style="width: 100%; margin-top: 8px">ذخیره</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="col">
-        <div class="state-tabs"><button class="on">۳ · قالب پیامک — دراپ‌داون حساب</button></div>
+        <div class="state-tabs"><button class="on">۲ · قالب پیامک — دراپ‌داون حساب</button></div>
         <div class="phone">
           <div class="app-header" style="filter: blur(2px)">
             <span class="icon">☰</span><span>پیامک‌های بانکی</span><span class="icon">⚙</span>
@@ -162,13 +122,13 @@
           (فیلدهای خودشان). ✎ و 🗑 روی کارت می‌مانند.
         </div>
         <div class="note">
-          <b>۲ · مودال مات</b> — همهٔ شیت‌ها و مودال‌ها (FormModal، تأیید حذف، تأیید عملیات، نمایشگر
-          پیوست، جزئیات sync، منوی ⋯) پس‌زمینهٔ کاملاً مات (<code>--color-surface</code>) و بدون
-          blur/شفافیت؛ پشت‌شان فقط یک لایهٔ تیرهٔ یکدست (overlay ۴۵٪، تاریک ۶۰٪). پنل کناری دسکتاپ
-          هم مات. انیمیشن ورود همان قبلی.
+          <b>مودال مات (بدون وایرفریم، فقط کد)</b> — همهٔ شیت‌ها و مودال‌ها (FormModal، تأیید حذف،
+          تأیید عملیات، نمایشگر پیوست، جزئیات sync، منوی ⋯) پس‌زمینهٔ کاملاً مات
+          (<code>--color-surface</code>) و بدون blur/شفافیت؛ پشت‌شان فقط یک لایهٔ تیرهٔ یکدست
+          (overlay ۴۵٪، تاریک ۶۰٪). پنل کناری دسکتاپ هم مات. انیمیشن ورود همان قبلی.
         </div>
         <div class="note">
-          <b>۳ · دراپ‌داون</b> — لیست <code>Select</code> داخل شیت/کارت با
+          <b>۲ · دراپ‌داون</b> — لیست <code>Select</code> داخل شیت/کارت با
           <code>overflow: hidden</code> بریده می‌شود. لیست با portal روی <code>body</code> و موقعیت
           از <code>getBoundingClientRect</code> رندر شود؛ اگر جا نبود، بالای فیلد باز شود. همین باگ
           را در هر Select داخل FormModal می‌گیرد (حساب در تکرارها، هدف پس‌انداز، فرم چک).
