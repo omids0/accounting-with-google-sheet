@@ -9,15 +9,14 @@ export const formModalRootClass = cx(
 )
 
 export const formModalBackdropClass = cx(
-  'absolute inset-0 cursor-default border-none bg-[var(--color-overlay-light)]',
-  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[4px]'
+  'absolute inset-0 cursor-default border-none bg-[var(--color-overlay)]',
+  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)]'
 )
 
 export const formModalPanelClass = cx(
   'form-modal-panel relative flex max-h-full min-h-0 w-full max-w-[420px] flex-col overflow-hidden',
   'rounded-[calc(var(--radius)+4px)_calc(var(--radius)+4px)_var(--radius)_var(--radius)]',
-  'border border-[color-mix(in_srgb,var(--color-border)_72%,transparent)] backdrop-blur-xl backdrop-saturate-150',
-  '[background:linear-gradient(165deg,color-mix(in_srgb,var(--color-surface)_92%,transparent)_0%,color-mix(in_srgb,var(--color-surface)_80%,transparent)_100%)]',
+  'border border-border bg-surface',
   'shadow-[0_12px_40px_rgba(15,23,42,0.14),inset_0_1px_0_rgba(255,255,255,0.55)]',
   'animate-[form-modal-in_var(--duration-normal)_var(--ease-out)] motion-reduce:animate-none',
   'min-[520px]:rounded-[calc(var(--radius)+4px)]',
@@ -29,8 +28,8 @@ export const formModalPanelWideClass = 'md:max-w-[40rem]'
 
 export const formModalHeaderClass = cx(
   'grid flex-shrink-0 grid-cols-[1fr_auto] grid-rows-[auto_auto] items-center gap-x-3',
-  'border-b border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] px-[1.15rem] pb-[0.85rem] pt-[0.45rem]',
-  '[background:linear-gradient(180deg,color-mix(in_srgb,var(--color-accent-soft)_55%,transparent)_0%,transparent_100%)]',
+  'border-b border-border px-[1.15rem] pb-[0.85rem] pt-[0.45rem]',
+  'bg-[color-mix(in_srgb,var(--color-accent-soft)_40%,var(--color-surface))]',
   'before:col-span-full before:mb-[0.6rem] before:h-[0.28rem] before:w-10 before:justify-self-center',
   'before:rounded-full before:content-[""]',
   'before:[background:color-mix(in_srgb,var(--color-primary)_22%,var(--color-border))]',
@@ -59,8 +58,8 @@ export const formModalBodyClass = cx(
 export const formModalFieldsLayoutClass = formFieldsLayoutClass
 
 export const formModalActionsClass = cx(
-  'mt-0 flex-shrink-0 items-center border-t border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] px-[1.15rem] pb-[calc(1.1rem+var(--safe-bottom))] pt-[0.9rem]',
-  '[background:linear-gradient(0deg,color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)_0%,transparent_100%)]',
+  'mt-0 flex-shrink-0 items-center border-t border-border px-[1.15rem] pb-[calc(1.1rem+var(--safe-bottom))] pt-[0.9rem]',
+  'bg-[color-mix(in_srgb,var(--color-accent-soft)_40%,var(--color-surface))]',
   '[&>button]:min-w-[6.5rem] [&>button]:flex-1',
   'md:justify-end md:[&>button]:flex-none'
 )
@@ -71,7 +70,7 @@ export const formModalActionsClass = cx(
  */
 export const formModalRootPanelClass = 'xl:items-stretch xl:justify-end xl:p-0'
 
-export const formModalBackdropPanelClass = 'xl:bg-transparent xl:backdrop-blur-none'
+export const formModalBackdropPanelClass = 'xl:bg-transparent'
 
 export const formModalPanelSideClass = cx(
   'xl:h-full xl:max-h-none xl:w-[23.75rem] xl:max-w-[23.75rem] xl:rounded-none xl:border-0 xl:border-s',

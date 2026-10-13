@@ -5,8 +5,8 @@ import { cn, cx } from '../../utils/cn'
 export type AppMenuVariant = 'drawer' | 'sidebar' | 'rail'
 
 export const appMenuBackdropClass = cx(
-  'fixed inset-0 z-40 cursor-default border-none bg-[var(--color-overlay-light)]',
-  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)] backdrop-blur-[5px]'
+  'fixed inset-0 z-40 cursor-default border-none bg-[var(--color-overlay)]',
+  'animate-[speed-dial-fade-in_var(--duration-fast)_var(--ease-out)]'
 )
 
 export function appMenuDrawerClass(variant: AppMenuVariant) {

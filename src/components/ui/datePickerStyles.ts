@@ -77,7 +77,7 @@ export const jalaliDatePickerActionsClass = pickerConfirmActionsClass
 
 export const jalaliDatePickerPanelClass = cx(
   'mt-2 overflow-hidden rounded-[calc(var(--radius)+2px)] border border-[color-mix(in_srgb,var(--color-primary)_20%,var(--color-border))] p-2.5',
-  'bg-[color-mix(in_srgb,var(--color-surface)_78%,transparent)] backdrop-blur-xl',
+  'bg-surface',
   'shadow-[0_12px_34px_color-mix(in_srgb,var(--color-primary)_11%,transparent),inset_0_1px_0_rgba(255,255,255,0.28)]'
 )
 
@@ -87,7 +87,7 @@ export const jalaliDatePickerClass =
 export const jalaliDatePickerColumnClass = cx(
   'flex min-w-0 flex-col items-center rounded-[calc(var(--radius-sm)+1px)] px-[0.25rem] pb-[0.2rem] pt-[0.4rem]',
   'border border-[color-mix(in_srgb,var(--color-border)_55%,transparent)]',
-  'bg-[color-mix(in_srgb,var(--color-surface)_52%,transparent)] backdrop-blur-md',
+  'bg-[color-mix(in_srgb,var(--color-primary)_3%,var(--color-surface))]',
   'shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
 )
 
@@ -110,7 +110,7 @@ export const jalaliDateTimePickerSheetClass = cx(
 export const jalaliDateTimePickerTimeGroupClass = cx(
   'jalali-datetime-time-group flex shrink-0 flex-col gap-[0.35rem] rounded-[calc(var(--radius-sm)+1px)] p-[0.45rem]',
   'border border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))]',
-  'bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))] backdrop-blur-md',
+  'bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))]',
   'shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]'
 )
 
@@ -120,7 +120,7 @@ export const jalaliDateTimePickerTimeLabelsClass =
 export const jalaliDateTimePickerTimeWheelsClass = 'flex items-center justify-center gap-[0.2rem]'
 
 export const jalaliDateTimePickerTimeColumnClass = cx(
-  'w-[3.25rem] min-w-[3.25rem] border-none bg-transparent p-0 shadow-none backdrop-blur-none'
+  'w-[3.25rem] min-w-[3.25rem] border-none bg-transparent p-0 shadow-none'
 )
 
 export const jalaliDateTimePickerColonSpacerClass = 'w-[0.55rem] shrink-0'
