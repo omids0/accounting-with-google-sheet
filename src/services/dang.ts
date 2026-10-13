@@ -1,4 +1,5 @@
 import type { Dang } from '../types'
+import { logItemActivity } from './activityLog'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
 import { DANG_HEADERS } from './sheetHeaders'
@@ -143,6 +144,7 @@ export async function createDang(
   }
 
   await appendSheetRow(spreadsheetId, DANG_SHEET, dangToRow(dang))
+  logItemActivity(spreadsheetId, 'create', 'dang', dang.id, dang.title)
 
   return dang
 }
@@ -150,9 +152,12 @@ export async function createDang(
 export async function updateDang(
   spreadsheetId: string,
   rowNumber: number,
-  dang: Dang
+  dang: Dang,
+  /** False for bulk rewrites (a category rename logs once itself). */
+  log = true
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, DANG_SHEET, rowNumber, dangToRow(dang))
+  if (log) logItemActivity(spreadsheetId, 'update', 'dang', dang.id, dang.title)
 }
 
 export async function deleteDang(
@@ -164,6 +169,7 @@ export async function deleteDang(
     await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId)
   }
   await deleteSheetRow(spreadsheetId, DANG_SHEET, rowNumber)
+  if (dang) logItemActivity(spreadsheetId, 'delete', 'dang', dang.id, dang.title)
 }
 
 export async function toggleDangPaid(
@@ -187,7 +193,8 @@ export async function toggleDangPaid(
       transactionRecordId
     }
 
-    await updateDang(spreadsheetId, dang.rowNumber, updated)
+    await updateSheetRow(spreadsheetId, DANG_SHEET, dang.rowNumber, dangToRow(updated))
+    logItemActivity(spreadsheetId, 'pay', 'dang', dang.id, `بدهی «${dang.title}»`)
 
     return updated
   }
@@ -204,7 +211,8 @@ export async function toggleDangPaid(
       transactionRecordId: ''
     }
 
-    await updateDang(spreadsheetId, dang.rowNumber, updated)
+    await updateSheetRow(spreadsheetId, DANG_SHEET, dang.rowNumber, dangToRow(updated))
+    logItemActivity(spreadsheetId, 'unpay', 'dang', dang.id, `بدهی «${dang.title}»`)
 
     return updated
   }

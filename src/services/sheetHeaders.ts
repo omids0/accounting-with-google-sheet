@@ -4,6 +4,18 @@ export * from './sheetHeadersVehicle'
 
 export const ACTIVITY_HEADERS = ['آخرین_بازدید', 'آخرین_عملیات']
 
+export const ACTIVITY_LOG_HEADERS = [
+  'شناسه',
+  'زمان',
+  'کاربر',
+  'نام',
+  'عمل',
+  'ماژول',
+  'شناسه مورد',
+  'خلاصه',
+  'دستگاه'
+]
+
 export const APP_LOCK_HEADERS = ['فعال', 'رمز_هش', 'نمک', 'زمان_بروزرسانی']
 
 export const SMS_TEMPLATES_HEADERS = ['شناسه', 'زمان ثبت', 'شناسه حساب', 'نوع', 'واحد', 'الگو']

@@ -1,3 +1,4 @@
+import { logItemActivity } from './activityLog'
 import { budgetMap } from './budgets'
 import { deleteBudget, fetchBudgets, saveBudget } from './budgetsSheet'
 import {
@@ -57,6 +58,14 @@ async function applyBudgetChange(spreadsheetId: string, change: BudgetChange): P
   }
 }
 
+function logCategory(
+  spreadsheetId: string,
+  category: string,
+  extra: { kind: 'add' | 'rename' | 'merge' | 'delete'; to?: string }
+): void {
+  logItemActivity(spreadsheetId, 'category', 'categories', category, category, extra)
+}
+
 async function budgetsOf(spreadsheetId: string, type: ManagedCategoryType) {
   return type === 'expense'
     ? budgetMap(await fetchBudgets(spreadsheetId))
@@ -111,6 +120,7 @@ export async function renameCategory(
     planCategoryRename(type, readCategoryList(type), getCategorySubcategories(), from, to)
   )
   await applyBudgetChange(spreadsheetId, planBudgetChange('rename', budgets, from, to.trim()))
+  logCategory(spreadsheetId, from, { kind: 'rename', to: to.trim() })
 }
 
 export async function mergeCategory(
@@ -131,6 +141,7 @@ export async function mergeCategory(
     planCategoryMerge(type, readCategoryList(type), getCategorySubcategories(), from, to)
   )
   await applyBudgetChange(spreadsheetId, planBudgetChange('merge', budgets, from, to))
+  logCategory(spreadsheetId, from, { kind: 'merge', to })
 }
 
 /** Only an unused category is deleted outright; one with rows goes through a merge. */
@@ -152,6 +163,7 @@ export async function deleteCategory(
     planCategoryDelete(type, readCategoryList(type), getCategorySubcategories(), category)
   )
   await applyBudgetChange(spreadsheetId, planBudgetChange('delete', budgets, category))
+  logCategory(spreadsheetId, category, { kind: 'delete' })
 }
 
 export async function addCategory(
@@ -164,6 +176,7 @@ export async function addCategory(
     type,
     withOtherLast([...readCategoryList(type), name])
   )
+  logCategory(spreadsheetId, name, { kind: 'add' })
 }
 
 export async function saveCategoryOrder(

@@ -1,4 +1,5 @@
 import type { InstallmentPayment, InstallmentPlan } from '../types'
+import { logItemActivity } from './activityLog'
 import { INSTALLMENT_ATTACHMENT_COLUMN } from './attachmentColumn'
 import {
   INSTALLMENTS_CACHE_TTL_MS,
@@ -21,11 +22,19 @@ import {
 import { getSheetDataRows } from './spreadsheetStore'
 import { INSTALLMENT_WRITER_COLUMN } from './writerColumn'
 import { parseAttachmentIds } from '../utils/attachmentIds'
-import { getTodayIso } from '../utils/jalaliDate'
+import { getTodayIso, isoToJalali, JALALI_MONTHS } from '../utils/jalaliDate'
 import { normalizeSheetDate } from '../utils/sheetValues'
 import { parseWriter } from '../utils/writerColumn'
 
 type PlanWithRowNumber = InstallmentPlan & { rowNumber: number }
+
+/** «قسط مهر وام مسکن» for the activity feed. */
+function installmentTitle(plan: InstallmentPlan, payment: InstallmentPayment): string {
+  const due = normalizeSheetDate(payment.dueDate)
+  const month = due ? JALALI_MONTHS[isoToJalali(due).month - 1] : ''
+
+  return ['قسط', month, plan.title].filter(Boolean).join(' ')
+}
 
 function rowToPlan(row: string[], rowNumber: number, spreadsheetId: string): PlanWithRowNumber {
   const count = Number(row[4]) || 0
@@ -158,6 +167,7 @@ export async function createInstallmentPlan(
 
   await appendSheetRow(spreadsheetId, INSTALLMENTS_SHEET, planToRow(plan))
   invalidateInstallmentsCache(spreadsheetId)
+  logItemActivity(spreadsheetId, 'create', 'installments', plan.id, plan.title)
 
   return plan
 }
@@ -165,10 +175,13 @@ export async function createInstallmentPlan(
 export async function updateInstallmentPlan(
   spreadsheetId: string,
   rowNumber: number,
-  plan: InstallmentPlan
+  plan: InstallmentPlan,
+  /** False when a payment change saves the plan (it logs as pay/unpay). */
+  log = true
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, INSTALLMENTS_SHEET, rowNumber, planToRow(plan))
   invalidateInstallmentsCache(spreadsheetId)
+  if (log) logItemActivity(spreadsheetId, 'update', 'installments', plan.id, plan.title)
 }
 
 export async function deleteInstallmentPlan(
@@ -185,6 +198,7 @@ export async function deleteInstallmentPlan(
   }
   await deleteSheetRow(spreadsheetId, INSTALLMENTS_SHEET, rowNumber)
   invalidateInstallmentsCache(spreadsheetId)
+  if (plan) logItemActivity(spreadsheetId, 'delete', 'installments', plan.id, plan.title)
 }
 
 /**
@@ -206,7 +220,7 @@ async function savePaymentPatch(
 
   const updated: PlanWithRowNumber = { ...latest, payments }
 
-  await updateInstallmentPlan(spreadsheetId, latest.rowNumber, updated)
+  await updateInstallmentPlan(spreadsheetId, latest.rowNumber, updated, false)
 
   return updated
 }
@@ -232,6 +246,14 @@ export async function toggleInstallmentPayment(
       note: current.note
     })
 
+    logItemActivity(
+      spreadsheetId,
+      'pay',
+      'installments',
+      current.id,
+      installmentTitle(current, payment)
+    )
+
     return savePaymentPatch(spreadsheetId, current, paymentIndex, {
       paid: true,
       paidAt: getTodayIso(),
@@ -243,6 +265,14 @@ export async function toggleInstallmentPayment(
     if (payment.transactionRecordId) {
       await deleteLinkedExpenseRecord(spreadsheetId, payment.transactionRecordId)
     }
+
+    logItemActivity(
+      spreadsheetId,
+      'unpay',
+      'installments',
+      current.id,
+      installmentTitle(current, payment)
+    )
 
     return savePaymentPatch(spreadsheetId, current, paymentIndex, {
       paid: false,

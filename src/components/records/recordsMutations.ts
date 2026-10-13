@@ -1,4 +1,5 @@
 import type { StoredRecord } from './recordsUtils'
+import { logRecordActivity } from '../../services/activityLog'
 import { refreshOpeningBalancesInBackground } from '../../services/openingBalanceRefresh'
 import {
   applyWalletChanges,
@@ -100,6 +101,7 @@ export async function submitRecordEdit({
       walletEffectOf(editingForm.type, formValues),
       recordLedgerContext(formValues, 'ویرایش', editingRecord.id)
     )
+    logRecordActivity(settings.spreadsheetId, 'update', editingRecord.id, formValues)
     showSuccess('تراکنش ویرایش شد')
     refreshOpeningBalancesInBackground()
     await onSuccess()
@@ -132,6 +134,7 @@ export async function deleteStoredRecord({
   }
 
   await deleteRecord(spreadsheetId, form, record.rowNumber, record.sheetName)
+  logRecordActivity(spreadsheetId, 'delete', record.id, record.values)
   await applyWalletChanges(
     spreadsheetId,
     walletEffectOf(form.type, record.values),

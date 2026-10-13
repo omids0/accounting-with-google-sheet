@@ -1,4 +1,5 @@
 import type { Check } from '../types'
+import { logItemActivity } from './activityLog'
 import { CHECK_ATTACHMENT_COLUMN } from './attachmentColumn'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
@@ -123,8 +124,13 @@ export async function createCheck(
   }
 
   await appendSheetRow(spreadsheetId, CHECKS_SHEET, checkToRow(check))
+  logItemActivity(spreadsheetId, 'create', 'checks', check.id, checkTitle(check))
 
   return check
+}
+
+function checkTitle(check: Pick<Check, 'checkNumber'>): string {
+  return `چک ${check.checkNumber}`
 }
 
 export async function updateCheck(
@@ -133,6 +139,7 @@ export async function updateCheck(
   check: Check
 ): Promise<void> {
   await updateSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber, checkToRow(check))
+  logItemActivity(spreadsheetId, 'update', 'checks', check.id, checkTitle(check))
 }
 
 export async function deleteCheck(
@@ -144,6 +151,7 @@ export async function deleteCheck(
     await deleteLinkedExpenseRecord(spreadsheetId, check.transactionRecordId)
   }
   await deleteSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber)
+  if (check) logItemActivity(spreadsheetId, 'delete', 'checks', check.id, checkTitle(check))
 }
 
 export async function toggleCheckPaid(
@@ -167,7 +175,8 @@ export async function toggleCheckPaid(
       transactionRecordId
     }
 
-    await updateCheck(spreadsheetId, check.rowNumber, updated)
+    await updateSheetRow(spreadsheetId, CHECKS_SHEET, check.rowNumber, checkToRow(updated))
+    logItemActivity(spreadsheetId, 'pay', 'checks', check.id, checkTitle(check))
 
     return updated
   }
@@ -184,7 +193,8 @@ export async function toggleCheckPaid(
       transactionRecordId: ''
     }
 
-    await updateCheck(spreadsheetId, check.rowNumber, updated)
+    await updateSheetRow(spreadsheetId, CHECKS_SHEET, check.rowNumber, checkToRow(updated))
+    logItemActivity(spreadsheetId, 'unpay', 'checks', check.id, checkTitle(check))
 
     return updated
   }
