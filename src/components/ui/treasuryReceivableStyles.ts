@@ -58,6 +58,10 @@ export const treasuryHintClass = 'mt-[0.35rem] text-[0.75rem] text-muted'
 export const treasuryHoldingValueClass =
   'mt-[0.35rem] text-[0.85rem] font-semibold text-primary-dark'
 
+export const treasuryPnlClass = 'mt-[0.2rem] text-[0.82rem] font-bold'
+
+export const treasuryPnlMutedClass = 'mt-[0.2rem] text-[0.74rem] font-normal text-muted'
+
 export const treasuryHoldingCardClass = '[&_.installment-header]:items-start'
 
 export const treasuryTxItemClass = 'border-b border-border py-[0.6rem] last:border-b-0'

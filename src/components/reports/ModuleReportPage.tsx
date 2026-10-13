@@ -139,6 +139,18 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
         />
       )}
 
+      {data?.stats?.map((stat, index) => (
+        <StatCard
+          key={stat.id}
+          label={stat.label}
+          amount={stat.amount}
+          variant="flow"
+          flowDirection={stat.amount < 0 ? 'negative' : stat.amount > 0 ? 'positive' : 'neutral'}
+          wide
+          animateIndex={index + 2}
+        />
+      ))}
+
       {data?.groups && data.groups.length > 1 && (
         <Card>
           <CardTitle>جمع هر کلاس</CardTitle>

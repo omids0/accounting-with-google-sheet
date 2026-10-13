@@ -130,6 +130,14 @@ export interface VaultHolding {
   netQuantity: number
   currentUnitPrice: number
   totalValue: number
+  /** Weighted-average cost per unit of what is held (0 when no buy had a price). */
+  avgUnitCost: number
+  /** Open profit/loss at today's price, in money and percent of cost; 0 without a quote. */
+  unrealized: number
+  unrealizedPct: number
+  /** Profit/loss the past sells already locked in. */
+  realized: number
+  sellCount: number
   transactions: VaultTransaction[]
 }
 

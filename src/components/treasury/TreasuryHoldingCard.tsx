@@ -1,4 +1,5 @@
 import AppIcon from '../AppIcon'
+import TreasuryHoldingPnl from './TreasuryHoldingPnl'
 import TreasuryManualPrice from './TreasuryManualPrice'
 import TreasurySellForm from './TreasurySellForm'
 import TreasuryTransactionItem from './TreasuryTransactionItem'
@@ -81,12 +82,21 @@ export default function TreasuryHoldingCard({
             >
               {formatQuantity(holding.netQuantity, holding.assetType)}
               {' · '}
-              {asset.priceSource === 'manual' ? 'قیمت' : 'قیمت روز'}:{' '}
-              <MoneyText amount={holding.currentUnitPrice} />
+              {holding.avgUnitCost > 0 ? (
+                <>
+                  خرید میانگین: <MoneyText amount={holding.avgUnitCost} />
+                </>
+              ) : (
+                <>
+                  {asset.priceSource === 'manual' ? 'قیمت' : 'قیمت روز'}:{' '}
+                  <MoneyText amount={holding.currentUnitPrice} />
+                </>
+              )}
             </div>
             <div className={treasuryHoldingValueClass}>
               ارزش کل: <MoneyText amount={holding.totalValue} />
             </div>
+            <TreasuryHoldingPnl holding={holding} />
           </div>
           <span className={installmentChevronClass} aria-hidden>
             <AppIcon name="chevron-down" size={14} />

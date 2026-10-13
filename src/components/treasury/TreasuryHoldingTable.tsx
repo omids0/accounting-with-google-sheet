@@ -1,9 +1,11 @@
 import { type ReactNode, useMemo } from 'react'
 
+import { PnlAmount } from './TreasuryHoldingPnl'
 import { formatQuantity } from './utils'
 import { getAssetClassLabel, VAULT_ASSET_CLASSES } from '../../services/treasuryCatalog'
 import type { TreasuryClassFilter } from '../../services/treasuryClassPref'
 import type { VaultClassCounts } from '../../services/treasuryHoldings'
+import { formatPct } from '../../services/treasuryPnl'
 import type { VaultHolding } from '../../types'
 import { Select } from '../form'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
@@ -64,7 +66,22 @@ export default function TreasuryHoldingTable({
         cell: holding => formatQuantity(holding.netQuantity, holding.assetType)
       },
       moneyColumn('price', 'قیمت روز', holding => holding.currentUnitPrice),
-      moneyColumn('value', 'ارزش کل', holding => holding.totalValue)
+      moneyColumn('avg', 'خرید میانگین', holding => holding.avgUnitCost),
+      moneyColumn('value', 'ارزش کل', holding => holding.totalValue),
+      {
+        id: 'unrealized',
+        header: 'سود/زیان باز',
+        numeric: true,
+        sortValue: holding => holding.unrealized,
+        cell: holding => <PnlAmount amount={holding.unrealized} />
+      },
+      {
+        id: 'unrealizedPct',
+        header: '٪',
+        numeric: true,
+        sortValue: holding => holding.unrealizedPct,
+        cell: holding => formatPct(holding.unrealizedPct)
+      }
     ],
     [classFilter, counts, onClassFilterChange]
   )

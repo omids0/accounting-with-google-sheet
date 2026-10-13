@@ -18,9 +18,11 @@ import { exportTreasuryPdf, fetchVaultTransactions } from '../../services/treasu
 import { getAssetClassLabel } from '../../services/treasuryCatalog'
 import { loadVaultCatalog } from '../../services/treasuryCatalogSheet'
 import { computeHoldings, totalsByClass } from '../../services/treasuryHoldings'
+import { formatPct, realizedInRange } from '../../services/treasuryPnl'
 import { formatQuantityValue } from '../../services/treasuryQuantity'
 import { exportWalletAccountsPdf, fetchWalletAccounts } from '../../services/wallet'
 import { getDateRange } from '../../utils/dateRange'
+import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import type { AppIconName } from '../AppIcon'
 
@@ -66,6 +68,8 @@ export interface ModuleReportData {
   groups?: ReportGroup[]
   secondaryTotal?: number
   secondaryLabel?: string
+  /** Extra signed lines (the vault's profit and loss): tinted by their sign. */
+  stats?: { id: string; label: string; amount: number }[]
   rows: ReportRow[]
 }
 
@@ -105,24 +109,50 @@ export async function loadModuleReport(
 
       const total = holdings.reduce((sum, holding) => sum + holding.totalValue, 0)
 
+      const year = getDateRange('year-to-date')
+
       return {
         total,
+        stats: [
+          {
+            id: 'unrealized',
+            label: 'سود/زیان باز',
+            amount: holdings.reduce((sum, holding) => sum + holding.unrealized, 0)
+          },
+          {
+            id: 'realized-year',
+            label: 'سود قطعی امسال',
+            amount: realizedInRange(transactions, { from: year.start, to: year.end })
+          },
+          {
+            id: 'realized-all',
+            label: 'سود قطعی کل',
+            amount: realizedInRange(transactions, { from: '0000-01-01', to: '9999-12-31' })
+          }
+        ],
         groups: totalsByClass(holdings).map(group => ({
           id: group.assetClass,
           label: group.label,
           total: group.total
         })),
-        rows: holdings.map(({ asset, assetType, netQuantity, totalValue }) => ({
-          id: assetType,
-          title: asset.name,
+        rows: holdings.map(holding => ({
+          id: holding.assetType,
+          title: holding.asset.name,
           subtitle: [
-            getAssetClassLabel(asset.assetClass),
-            asset.symbol,
-            `موجودی: ${formatQuantityValue(netQuantity, asset.decimals)} ${asset.unit}`
+            getAssetClassLabel(holding.asset.assetClass),
+            holding.asset.symbol,
+            `موجودی: ${formatQuantityValue(holding.netQuantity, holding.asset.decimals)} ${
+              holding.asset.unit
+            }`,
+            holding.avgUnitCost > 0 ? `خرید میانگین: ${formatMoney(holding.avgUnitCost)}` : '',
+            holding.avgUnitCost > 0
+              ? `سود باز: ${formatMoney(holding.unrealized)} (${formatPct(holding.unrealizedPct)})`
+              : '',
+            holding.sellCount > 0 ? `سود قطعی: ${formatMoney(holding.realized)}` : ''
           ]
             .filter(Boolean)
             .join(' · '),
-          amount: totalValue
+          amount: holding.totalValue
         }))
       }
     }

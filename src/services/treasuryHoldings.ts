@@ -1,4 +1,5 @@
 import { getVaultCatalog, resolveVaultAsset, VAULT_ASSET_CLASSES } from './treasuryCatalog'
+import { costBasis, unrealized } from './treasuryPnl'
 import type { VaultAsset, VaultAssetClass, VaultHolding, VaultTransaction } from '../types'
 
 export function netQuantity(transactions: VaultTransaction[], assetType: string): number {
@@ -47,6 +48,8 @@ export function computeHoldings(
 
     const asset = resolveVaultAsset(assetType, catalog)
     const unitPrice = assetUnitPrice(asset, prices)
+    const basis = costBasis(txs)
+    const open = unitPrice > 0 ? unrealized({ ...basis, quantity: qty }, unitPrice) : null
 
     holdings.push({
       assetType,
@@ -54,6 +57,11 @@ export function computeHoldings(
       netQuantity: qty,
       currentUnitPrice: unitPrice,
       totalValue: qty * unitPrice,
+      avgUnitCost: basis.avgUnitCost,
+      unrealized: open?.amount ?? 0,
+      unrealizedPct: open?.pct ?? 0,
+      realized: basis.realized,
+      sellCount: basis.sells,
       transactions: sorted
     })
   }
@@ -82,6 +90,10 @@ export interface VaultClassTotal {
   assetClass: VaultAssetClass
   label: string
   total: number
+  /** What the held units cost (Σ average cost × quantity). */
+  cost: number
+  unrealized: number
+  realized: number
   holdings: VaultHolding[]
 }
 
@@ -94,6 +106,9 @@ export function totalsByClass(holdings: VaultHolding[]): VaultClassTotal[] {
       assetClass: id,
       label,
       total: inClass.reduce((sum, holding) => sum + holding.totalValue, 0),
+      cost: inClass.reduce((sum, holding) => sum + holding.avgUnitCost * holding.netQuantity, 0),
+      unrealized: inClass.reduce((sum, holding) => sum + holding.unrealized, 0),
+      realized: inClass.reduce((sum, holding) => sum + holding.realized, 0),
       holdings: inClass
     }
   }).filter(group => group.holdings.length > 0)
