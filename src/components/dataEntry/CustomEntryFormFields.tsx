@@ -5,6 +5,7 @@ import type { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
 import type { CustomForm } from '../../types'
 import { formFieldError } from '../../utils/formValidation'
 import { FieldInput, isFieldHidden, sortFormFields, SUBCATEGORY_FIELD_ID } from '../form'
+import EntryRecordExtraField, { isRecordExtraField } from './EntryRecordExtraField'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
 
 /** Fields of a form that is not the standard income/expense layout, in their own order. */
@@ -41,6 +42,17 @@ export default function CustomEntryFormFields({
         if (showVehicleFields && field.id === 'title') return null
         if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {
           return null
+        }
+
+        if (isRecordExtraField(field.id)) {
+          return showVehicleFields ? null : (
+            <EntryRecordExtraField
+              key={field.id}
+              fieldId={field.id}
+              values={values}
+              setValue={setValue}
+            />
+          )
         }
 
         const fieldError =

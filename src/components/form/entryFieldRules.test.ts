@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { lineItemsMismatch } from './entryFieldRules'
 import {
   COUNTERPARTY_FIELD_ID,
   isStandardEntryForm,
@@ -13,6 +14,7 @@ import {
 } from './fieldUtils'
 import { getDefaultForms } from '../../services/settings'
 import type { CustomForm } from '../../types'
+import { serializeLineItems } from '../../utils/lineItems'
 
 function expenseForm(fields: CustomForm['fields']): CustomForm {
   return { id: 'e', name: 'هزینه', sheetName: 'هزینه', type: 'expense', fields }
@@ -79,6 +81,29 @@ describe('counterparty and line-item fields', () => {
 
   it('keeps the default forms standard', () => {
     getDefaultForms().forEach(form => expect(isStandardEntryForm(form)).toBe(true))
+  })
+})
+
+describe('lineItemsMismatch', () => {
+  const items = serializeLineItems([
+    { name: 'کیوی', amount: 320000 },
+    { name: 'موز', amount: 450000 }
+  ])
+
+  it('is null without items, whatever the amount', () => {
+    expect(lineItemsMismatch({ amount: 100 })).toBeNull()
+    expect(lineItemsMismatch({ amount: 100, [LINE_ITEMS_FIELD_ID]: '' })).toBeNull()
+  })
+
+  it('is null when the items add up to the amount', () => {
+    expect(lineItemsMismatch({ amount: 770000, [LINE_ITEMS_FIELD_ID]: items })).toBeNull()
+    expect(lineItemsMismatch({ amount: '۷۷۰٬۰۰۰', [LINE_ITEMS_FIELD_ID]: items })).toBeNull()
+  })
+
+  it('returns items minus amount otherwise', () => {
+    expect(lineItemsMismatch({ amount: 1000000, [LINE_ITEMS_FIELD_ID]: items })).toBe(-230000)
+    expect(lineItemsMismatch({ amount: 700000, [LINE_ITEMS_FIELD_ID]: items })).toBe(70000)
+    expect(lineItemsMismatch({ amount: '', [LINE_ITEMS_FIELD_ID]: items })).toBe(770000)
   })
 })
 
