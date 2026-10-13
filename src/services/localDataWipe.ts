@@ -61,7 +61,11 @@ const ACCOUNT_KEYS = [
   'accounting_reconcile_v1',
   'accounting_reconcile_digest_v1',
   // Net-worth snapshot gate: month checked and one-time rebuild (netWorthStartup.ts).
-  'accounting_net_worth_v1'
+  'accounting_net_worth_v1',
+  // First-of-month report row: month handled and the «گزارش ماهانه» switch (monthlyReportGate.ts).
+  'accounting_monthly_report_v1',
+  // «سال در یک نگاه» years closed with ✕ (yearReviewGate.ts).
+  'accounting_year_review_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

@@ -14,6 +14,7 @@ import SettingsGoogleAccountCard from './SettingsGoogleAccountCard'
 import SettingsPwaInstallCard from './SettingsPwaInstallCard'
 import SettingsRecurringCard from './SettingsRecurringCard'
 import SettingsRemindersCard from './SettingsRemindersCard'
+import SettingsReportsCard from './SettingsReportsCard'
 import SettingsSection from './SettingsSection'
 import SettingsSpreadsheetCard from './SettingsSpreadsheetCard'
 import SettingsTwoPane, { type SettingsSectionConfig } from './SettingsTwoPane'
@@ -126,6 +127,13 @@ export default function SettingsPage() {
             icon: 'refresh' as const,
             description: 'تراکنش‌های ماهانه: یادآوری یا ثبت خودکار',
             content: <SettingsRecurringCard />
+          },
+          {
+            id: 'reports',
+            title: 'گزارش‌ها',
+            icon: 'pdf' as const,
+            description: 'گزارش ماهانه اول هر ماه',
+            content: <SettingsReportsCard spreadsheetId={settings.spreadsheetId} />
           }
         ]
       : []),

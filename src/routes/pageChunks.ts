@@ -65,6 +65,12 @@ export const loadCategoryTreeReportPage: PageLoader = () =>
 export const loadModuleReportPage: PageLoader = () =>
   import('../components/reports/ModuleReportPage')
 
+export const loadMonthlyReportPage: PageLoader = () =>
+  import('../components/reports/monthly/MonthlyReportPage')
+
+export const loadYearsReportPage: PageLoader = () =>
+  import('../components/reports/years/YearsReportPage')
+
 export const loadOpeningBalanceReportPage: PageLoader = () =>
   import('../components/reports/OpeningBalanceReportPage')
 
@@ -137,6 +143,8 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'report-dang': loadModuleReportPage,
   'report-installments': loadModuleReportPage,
   'report-checks': loadModuleReportPage,
+  'report-monthly': loadMonthlyReportPage,
+  'report-years': loadYearsReportPage,
   timesheets: loadTimesheetsPage,
   'timesheet-detail': loadTimesheetDetailPage,
   'vehicle-service': loadVehiclesPage,

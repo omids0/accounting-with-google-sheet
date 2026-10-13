@@ -61,6 +61,8 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'report-dang': '/reports/dang',
   'report-installments': '/reports/installments',
   'report-checks': '/reports/checks',
+  'report-monthly': '/reports/monthly',
+  'report-years': '/reports/years',
   timesheets: '/timesheets'
 }
 
@@ -189,6 +191,22 @@ export function isSettingsPath(pathname: string): boolean {
 }
 
 export const SETTINGS_CATEGORIES_PATH = '/settings/categories'
+
+/** Task E: «بستن سال» wizard, `/settings/close-year/:year`. */
+export const SETTINGS_CLOSE_YEAR_PATH = '/settings/close-year'
+
+export function closeYearPath(year: number): string {
+  return `${SETTINGS_CLOSE_YEAR_PATH}/${year}`
+}
+
+/** Query key of the monthly report page: the Jalali `YYYY-MM` to build. */
+export const REPORT_MONTH_PARAM = 'month'
+
+export function monthlyReportPath(monthKey?: string): string {
+  const base = EXACT_TAB_PATHS['report-monthly'] ?? '/reports/monthly'
+
+  return monthKey ? `${base}?${REPORT_MONTH_PARAM}=${encodeURIComponent(monthKey)}` : base
+}
 
 const SETTINGS_SUBPAGE_TITLES: Record<string, string> = {
   [SETTINGS_REMINDERS_PATH]: 'یادآوری‌ها',

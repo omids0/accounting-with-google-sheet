@@ -37,6 +37,8 @@ export type Tab =
   | 'report-dang'
   | 'report-installments'
   | 'report-checks'
+  | 'report-monthly'
+  | 'report-years'
   | 'timesheets'
   | 'timesheet-detail'
   | 'about'
@@ -75,7 +77,9 @@ export const REPORT_TABS: Tab[] = [
   'report-receivables',
   'report-dang',
   'report-installments',
-  'report-checks'
+  'report-checks',
+  'report-monthly',
+  'report-years'
 ]
 
 /** Main modules in menu order: dashboard first, then money on hand, then obligations. */
@@ -154,6 +158,8 @@ export const TAB_TITLES: Record<Tab, string> = {
   'report-dang': 'گزارش بدهی‌ها',
   'report-installments': 'گزارش اقساط',
   'report-checks': 'گزارش چک‌ها',
+  'report-monthly': 'گزارش ماهانه',
+  'report-years': 'سال در یک نگاه',
   timesheets: 'تایم‌شیت',
   'timesheet-detail': 'جزئیات تایم‌شیت',
   about: 'درباره'

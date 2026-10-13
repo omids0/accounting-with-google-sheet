@@ -27,6 +27,8 @@ import {
   LazyCategoryTreeReportPage,
   LazyIncomeExpenseReportPage,
   LazyModuleReportPage,
+  LazyMonthlyReportPage,
+  LazyYearsReportPage,
   LazyOpeningBalanceReportPage,
   LazyPersonalRemindersPage,
   LazyRemindersPage,
@@ -134,6 +136,8 @@ export function AppAuthenticatedRoutes() {
           <Route path="reports/dang" element={<ModuleReportRoute kind="dang" />} />
           <Route path="reports/installments" element={<ModuleReportRoute kind="installments" />} />
           <Route path="reports/checks" element={<ModuleReportRoute kind="checks" />} />
+          <Route path="reports/monthly" element={<LazyMonthlyReportPage />} />
+          <Route path="reports/years" element={<LazyYearsReportPage />} />
           <Route path="timesheets" element={<LazyTimesheetsPage />} />
           <Route path="timesheets/:timesheetId" element={<TimesheetDetailRoute />} />
           <Route path="vehicles" element={<LazyVehiclesPage />} />

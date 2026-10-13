@@ -21,6 +21,8 @@ import {
   loadInstallmentsPage,
   loadLoanRequestCalculatorPage,
   loadModuleReportPage,
+  loadMonthlyReportPage,
+  loadYearsReportPage,
   loadNetAvailableSettingsPage,
   loadOnboardingWizard,
   loadOpeningBalancePage,
@@ -69,6 +71,8 @@ export const LazyDueDatesReportPage = lazy(loadDueDatesReportPage)
 export const LazyFinancialSummaryReportPage = lazy(loadFinancialSummaryReportPage)
 export const LazyIncomeExpenseReportPage = lazy(loadIncomeExpenseReportPage)
 export const LazyModuleReportPage = lazy(loadModuleReportPage)
+export const LazyMonthlyReportPage = lazy(loadMonthlyReportPage)
+export const LazyYearsReportPage = lazy(loadYearsReportPage)
 export const LazyOpeningBalanceReportPage = lazy(loadOpeningBalanceReportPage)
 export const LazyPersonalRemindersPage = lazy(loadPersonalRemindersPage)
 export const LazyRemindersPage = lazy(loadRemindersPage)
