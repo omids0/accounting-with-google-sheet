@@ -17,6 +17,8 @@ export const DANG_SPLIT_EXPENSES_SHEET = 'اقلام_دنگ'
 export const DANG_SPLIT_ALLOCATIONS_SHEET = 'تخصیص_دنگ'
 export const INSTALLMENTS_SHEET = 'اقساط'
 export const MONTHLY_BALANCE_SHEET = 'موجودی ماهانه'
+/** Month-end «دارایی قابل اتکا» snapshots (round 7); not the opening-balance tab above. */
+export const NET_WORTH_SHEET = 'دارایی ماهانه'
 export const PERIOD_SETTINGS_SHEET = 'تنظیمات دوره'
 export const PERSONAL_REMINDERS_SHEET = 'مواعد_شخصی'
 export const RECEIVABLES_SHEET = 'طلب‌ها'

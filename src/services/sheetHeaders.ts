@@ -102,6 +102,16 @@ export const INSTALLMENTS_HEADERS = [
 
 export const MONTHLY_BALANCE_HEADERS = ['کلید ماه', 'موجودی اول', 'زمان ثبت', 'توضیحات']
 
+/** One row per Jalali month: net worth at its end and where the value came from. */
+export const NET_WORTH_HEADERS = [
+  'کلید ماه',
+  'دارایی خالص',
+  'دارایی‌های منتخب',
+  'بدهی‌های منتخب',
+  'زمان ثبت',
+  'منبع'
+]
+
 export const PERIOD_SETTINGS_HEADERS = ['کلید', 'مقدار', 'زمان ثبت']
 
 export const PERSONAL_REMINDERS_HEADERS = [

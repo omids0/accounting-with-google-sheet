@@ -59,7 +59,9 @@ const ACCOUNT_KEYS = [
   'accounting_search_recent_v1',
   // SMS reconciliation: last success, «نادیده», today's digest lines (bankSmsReconcileStore.ts).
   'accounting_reconcile_v1',
-  'accounting_reconcile_digest_v1'
+  'accounting_reconcile_digest_v1',
+  // Net-worth snapshot gate: month checked and one-time rebuild (netWorthStartup.ts).
+  'accounting_net_worth_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000
