@@ -5,6 +5,7 @@ import {
   getPathForTab,
   getSettingsSubpageTitle,
   getTabFromPath,
+  isCloseYearPath,
   recordFocusPath
 } from './paths'
 
@@ -43,6 +44,12 @@ describe('settings sub-pages', () => {
     expect(getSettingsSubpageTitle('/settings/categories/')).toBe('دسته‌ها')
     expect(getSettingsSubpageTitle('/settings/reminders')).toBe('یادآوری‌ها')
     expect(getSettingsSubpageTitle('/settings')).toBeNull()
+  })
+
+  it('titles the close-year wizard with its year', () => {
+    expect(getSettingsSubpageTitle('/settings/close-year/1404')).toBe('بستن سال ۱۴۰۴')
+    expect(isCloseYearPath('/settings/close-year/1404/')).toBe(true)
+    expect(isCloseYearPath('/settings/categories')).toBe(false)
   })
 
   it('opens the category page on a form type', () => {

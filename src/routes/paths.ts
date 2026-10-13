@@ -1,5 +1,6 @@
 import type { Tab } from '../components/layout/types'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
+import { toPersianDigits } from '../utils/normalizeDigits'
 
 export interface TabNavigationOptions {
   timesheetId?: string
@@ -199,6 +200,13 @@ export function closeYearPath(year: number): string {
   return `${SETTINGS_CLOSE_YEAR_PATH}/${year}`
 }
 
+const CLOSE_YEAR_PATTERN = /^\/settings\/close-year\/([^/]+)$/
+
+/** The wizard is opened from the year card or Settings; its back button returns there. */
+export function isCloseYearPath(pathname: string): boolean {
+  return CLOSE_YEAR_PATTERN.test(normalizePath(pathname))
+}
+
 /** Query key of the monthly report page: the Jalali `YYYY-MM` to build. */
 export const REPORT_MONTH_PARAM = 'month'
 
@@ -215,7 +223,12 @@ const SETTINGS_SUBPAGE_TITLES: Record<string, string> = {
 
 /** Header title of a settings sub-page, whose back button returns to Settings; null elsewhere. */
 export function getSettingsSubpageTitle(pathname: string): string | null {
-  return SETTINGS_SUBPAGE_TITLES[normalizePath(pathname)] ?? null
+  const path = normalizePath(pathname)
+  const closeYear = CLOSE_YEAR_PATTERN.exec(path)
+
+  if (closeYear) return `بستن سال ${toPersianDigits(closeYear[1])}`
+
+  return SETTINGS_SUBPAGE_TITLES[path] ?? null
 }
 
 /** The category page, opened on the income or expense list. */

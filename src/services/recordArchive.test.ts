@@ -103,3 +103,22 @@ describe('planYearSweep without a header row', () => {
     expect(planYearSweep(rows, EXPENSE, 1404)).toBeNull()
   })
 })
+
+describe('planYearSweep for one year (close-year wizard)', () => {
+  it('moves only that year, whatever the tab size', () => {
+    const rows = [
+      HEADER,
+      row('a', '2020-05-01'), // 1399
+      row('c', '2021-03-21'), // 1400
+      row('n', '2026-04-01') // 1405
+    ]
+
+    expect(planYearSweep(rows, EXPENSE, 1404)).toBeNull()
+
+    const plan = planYearSweep(rows, EXPENSE, 1401, { minRows: 0, year: 1400 })!
+
+    expect([...plan.keys()]).toEqual([1400])
+    expect(plan.get(1400)!.map(i => rows[i][0])).toEqual(['c'])
+    expect(planYearSweep([HEADER], EXPENSE, 1401, { minRows: 0, year: 1400 })).toBeNull()
+  })
+})

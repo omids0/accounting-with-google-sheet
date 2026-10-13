@@ -9,6 +9,7 @@ import { SettingsSkeleton } from '../skeleton'
 import SettingsDisplayCard from './display/SettingsDisplayCard'
 import SettingsBudgetsCard from './SettingsBudgetsCard'
 import SettingsCategoriesCard from './SettingsCategoriesCard'
+import SettingsCloseYearCard from './SettingsCloseYearCard'
 import SettingsGeneralCard from './SettingsGeneralCard'
 import SettingsGoogleAccountCard from './SettingsGoogleAccountCard'
 import SettingsPwaInstallCard from './SettingsPwaInstallCard'
@@ -71,7 +72,7 @@ export default function SettingsPage() {
       id: 'account',
       title: 'حساب و داده',
       icon: 'folder',
-      description: 'حساب گوگل، شیت داده‌ها و پشتیبان',
+      description: 'حساب گوگل، شیت داده‌ها، پشتیبان و بستن سال',
       content: (
         <>
           <SettingsGoogleAccountCard onLogout={settings.handleLogout} />
@@ -93,7 +94,10 @@ export default function SettingsPage() {
             />
           )}
           {settings.spreadsheetId ? (
-            <SettingsBackupCard spreadsheetId={settings.spreadsheetId} />
+            <>
+              <SettingsBackupCard spreadsheetId={settings.spreadsheetId} />
+              <SettingsCloseYearCard />
+            </>
           ) : null}
         </>
       )

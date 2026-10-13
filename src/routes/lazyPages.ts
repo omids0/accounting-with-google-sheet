@@ -32,6 +32,7 @@ import {
   loadRecordsPage,
   loadRemindersPage,
   loadCategoriesPage,
+  loadCloseYearPage,
   loadSettingsPage,
   loadTimesheetDetailPage,
   loadTimesheetsPage,
@@ -77,6 +78,7 @@ export const LazyOpeningBalanceReportPage = lazy(loadOpeningBalanceReportPage)
 export const LazyPersonalRemindersPage = lazy(loadPersonalRemindersPage)
 export const LazyRemindersPage = lazy(loadRemindersPage)
 export const LazyCategoriesPage = lazy(loadCategoriesPage)
+export const LazyCloseYearPage = lazy(loadCloseYearPage)
 export const LazySettingsPage = lazy(loadSettingsPage)
 export const LazyTimesheetDetailPage = lazy(loadTimesheetDetailPage)
 export const LazyTimesheetsPage = lazy(loadTimesheetsPage)

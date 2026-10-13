@@ -20,6 +20,7 @@ import {
   getPathForTab,
   getTabFromPath,
   getSettingsSubpageTitle,
+  isCloseYearPath,
   isSettingsPath,
   SETTINGS_PATH
 } from '../../routes/paths'
@@ -200,7 +201,9 @@ export function useLayoutNavigation() {
 
   const onHeaderBack = useCallback(() => {
     if (getSettingsSubpageTitle(location.pathname)) {
-      navigate(SETTINGS_PATH)
+      // «بستن سال» returns to the year card or Settings, wherever it was opened from.
+      if (isCloseYearPath(location.pathname) && location.key !== 'default') navigate(-1)
+      else navigate(SETTINGS_PATH)
 
       return
     }

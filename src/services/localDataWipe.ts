@@ -65,7 +65,9 @@ const ACCOUNT_KEYS = [
   // First-of-month report row: month handled and the «گزارش ماهانه» switch (monthlyReportGate.ts).
   'accounting_monthly_report_v1',
   // «سال در یک نگاه» years closed with ✕ (yearReviewGate.ts).
-  'accounting_year_review_v1'
+  'accounting_year_review_v1',
+  // «بستن سال»: cash confirmed and archive time per year (closeYearStore.ts).
+  'accounting_close_year_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

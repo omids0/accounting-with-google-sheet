@@ -51,6 +51,14 @@ function rowJalaliYear(row: unknown[], column: number): number | null {
   return iso ? isoToJalali(iso).year : null
 }
 
+/** The close-year wizard (round 7, Task E) moves one year on request, whatever the tab size. */
+export interface YearSweepOptions {
+  /** Data rows the tab must exceed; defaults to `ARCHIVE_THRESHOLD_ROWS`. */
+  minRows?: number
+  /** Only rows of this Jalali year move. */
+  year?: number
+}
+
 /**
  * Indexes (into `allRows`, header at 0) of past-year rows grouped by Jalali
  * year, or null when the tab has no header row, is not over the threshold, or
@@ -60,7 +68,8 @@ function rowJalaliYear(row: unknown[], column: number): number | null {
 export function planYearSweep(
   allRows: string[][],
   form: CustomForm,
-  currentYear: number
+  currentYear: number,
+  options: YearSweepOptions = {}
 ): Map<number, number[]> | null {
   if (!allRows.length || !isSheetHeaderRow(allRows[0])) return null
 
@@ -70,7 +79,7 @@ export function planYearSweep(
     .map((row, index) => (index > 0 && cellToString(row[0]).trim() ? index : -1))
     .filter(index => index > 0)
 
-  if (dataIndexes.length <= ARCHIVE_THRESHOLD_ROWS) return null
+  if (dataIndexes.length <= (options.minRows ?? ARCHIVE_THRESHOLD_ROWS)) return null
 
   const column = dateColumn(form, header)
 
@@ -82,6 +91,7 @@ export function planYearSweep(
     const year = rowJalaliYear(allRows[index], column)
 
     if (year === null || year >= currentYear) continue
+    if (options.year !== undefined && year !== options.year) continue
 
     const bucket = byYear.get(year)
 
