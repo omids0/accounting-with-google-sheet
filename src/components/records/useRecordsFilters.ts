@@ -8,6 +8,7 @@ import type { CustomForm } from '../../types'
 import {
   formatDateRangeLabel,
   resolveDateRange,
+  type DateRange,
   type RecordsDatePreset
 } from '../../utils/dateRange'
 import {
@@ -23,6 +24,7 @@ export function useRecordsFilters({
   activeForm,
   showCategoryFilter,
   initialCounterparty,
+  initialRange,
   onFormsRefresh
 }: {
   records: StoredRecord[]
@@ -30,16 +32,20 @@ export function useRecordsFilters({
   showCategoryFilter: boolean
   /** From `/records?counterparty=`. */
   initialCounterparty?: string
+  /** From `/records?from=&to=`. */
+  initialRange?: DateRange
   onFormsRefresh: (forms: CustomForm[]) => void
 }) {
-  const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date')
-  const [customRange, setCustomRange] = useState(() => createDefaultDateRangeFilter().customRange)
+  const [datePreset, setDatePreset] = useState<RecordsDatePreset>(
+    initialRange ? 'custom' : 'month-to-date'
+  )
+  const [customRange, setCustomRange] = useState(
+    () => initialRange ?? createDefaultDateRangeFilter().customRange
+  )
   const [categoryFilter, setCategoryFilterValue] = useState('all')
   const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [draftDatePreset, setDraftDatePreset] = useState<RecordsDatePreset>('month-to-date')
-  const [draftCustomRange, setDraftCustomRange] = useState(
-    () => createDefaultDateRangeFilter().customRange
-  )
+  const [draftDatePreset, setDraftDatePreset] = useState<RecordsDatePreset>(datePreset)
+  const [draftCustomRange, setDraftCustomRange] = useState(customRange)
   const [draftCategory, setDraftCategoryValue] = useState('all')
 
   // Stable identity: filteredRecords / filterChips memoize on dateRange.

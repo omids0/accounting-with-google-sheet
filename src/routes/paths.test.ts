@@ -6,7 +6,8 @@ import {
   getSettingsSubpageTitle,
   getTabFromPath,
   isCloseYearPath,
-  recordFocusPath
+  recordFocusPath,
+  recordsCounterpartyPath
 } from './paths'
 
 describe('wallet account detail path', () => {
@@ -75,5 +76,28 @@ describe('line items report paths', () => {
       `/reports/line-items/${encodeURIComponent(key)}?type=income`
     )
     expect(getPathForTab('report-line-item')).toBe('/reports/line-items')
+  })
+})
+
+describe('records counterparty link', () => {
+  it('filters the records page to a counterparty over a range', () => {
+    const path = recordsCounterpartyPath('رضا', 'expense', {
+      start: '2026-10-01',
+      end: '2026-10-31'
+    })
+
+    const params = new URLSearchParams(path.split('?')[1])
+
+    expect(path.startsWith('/records?')).toBe(true)
+    expect(params.get('type')).toBe('expense')
+    expect(params.get('counterparty')).toBe('رضا')
+    expect(params.get('from')).toBe('2026-10-01')
+    expect(params.get('to')).toBe('2026-10-31')
+  })
+
+  it('leaves the type out for both forms', () => {
+    const path = recordsCounterpartyPath('رضا', 'all', { start: 'a', end: 'b' })
+
+    expect(new URLSearchParams(path.split('?')[1]).has('type')).toBe(false)
   })
 })

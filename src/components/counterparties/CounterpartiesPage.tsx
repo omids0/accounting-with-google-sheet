@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
+import { useRecordInputs } from '../../hooks/useRecordInputs'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
@@ -25,6 +26,18 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
   const data = useCounterpartiesData()
   const form = useCounterpartiesForm({ onSaved: data.loadItems })
   const detail = useCounterpartyDetail()
+  const records = useRecordInputs(active)
+
+  const recordCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+
+    for (const record of records) {
+      if (record.counterparty)
+        counts.set(record.counterparty, (counts.get(record.counterparty) ?? 0) + 1)
+    }
+
+    return counts
+  }, [records])
 
   useHighlightParam()
 
@@ -119,6 +132,7 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
           <CounterpartyList
             items={data.items}
             filteredItems={filteredItems}
+            recordCounts={recordCounts}
             onView={detail.openDetail}
             onEdit={form.openEditForm}
             onDelete={data.requestDelete}

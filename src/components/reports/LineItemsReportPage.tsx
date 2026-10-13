@@ -1,11 +1,11 @@
 import { useCallback, useMemo } from 'react'
 
-import LineItemRows from './lineItems/LineItemRows'
 import LineItemsSummary from './lineItems/LineItemsSummary'
 import LineItemsTable from './lineItems/LineItemsTable'
 import PricierSection from './lineItems/PricierSection'
 import { useLineItemsReport, type LineItemSort } from './lineItems/useLineItemsReport'
 import { ReportDateFilterBar } from './ReportDateFilterBar'
+import ShareBarRows from './ShareBarRows'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import type { ItemStat, LineItemsReportType } from '../../services/lineItemsReport'
@@ -13,6 +13,7 @@ import { isConfigured } from '../../services/settings'
 import { useNavigationStore } from '../../stores/navigationStore'
 import { cn } from '../../utils/cn'
 import { formatDateRangeLabel } from '../../utils/dateRange'
+import { formatPersianNumber } from '../../utils/formatMoney'
 import EmptyState from '../EmptyState'
 import PageSearchInput from '../PageSearchInput'
 import { InstallmentCardListSkeleton } from '../skeleton'
@@ -54,6 +55,29 @@ export default function LineItemsReportPage() {
         lineItemType: type
       }),
     [type]
+  )
+
+  const rows = useMemo(
+    () =>
+      items.map(item => ({
+        key: item.key,
+        name: item.name,
+        sub: `${formatPersianNumber(item.count)} بار · میانگین ${formatPersianNumber(
+          Math.round(item.average)
+        )}`,
+        total: item.total,
+        ariaLabel: `گزارش قلم ${item.name}`
+      })),
+    [items]
+  )
+
+  const openByKey = useCallback(
+    (key: string) => {
+      const item = items.find(entry => entry.key === key)
+
+      if (item) openItem(item)
+    },
+    [items, openItem]
   )
 
   const speedDial = useMemo(
@@ -146,11 +170,11 @@ export default function LineItemsReportPage() {
             ) : isDesktop ? (
               <LineItemsTable items={items} onOpen={openItem} />
             ) : (
-              <LineItemRows
-                items={items}
+              <ShareBarRows
+                rows={rows}
                 grandTotal={aggregate.withItemsTotal}
                 tone={tone}
-                onOpen={openItem}
+                onOpen={openByKey}
               />
             )}
           </Card>

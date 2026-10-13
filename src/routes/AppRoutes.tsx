@@ -26,6 +26,7 @@ import {
   LazyFinancialSummaryReportPage,
   LazyCategoryTreeReportPage,
   LazyLineItemsReportPage,
+  LazyCounterpartiesReportPage,
   LazyIncomeExpenseReportPage,
   LazyModuleReportPage,
   LazyMonthlyReportPage,
@@ -44,7 +45,13 @@ import {
   LazyWalletReconcilePage
 } from './lazyPages'
 import LineItemRoute from './LineItemRoute'
-import { RECORD_EDIT_PARAM, RECORD_FOCUS_PARAM } from './paths'
+import {
+  RECORD_COUNTERPARTY_PARAM,
+  RECORD_EDIT_PARAM,
+  RECORD_FOCUS_PARAM,
+  RECORD_FROM_PARAM,
+  RECORD_TO_PARAM
+} from './paths'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
 import WalletAccountDetailRoute from './WalletAccountDetailRoute'
@@ -63,11 +70,17 @@ function parseFormType(value: string | null): 'income' | 'expense' | undefined {
 function RecordsRoute() {
   const [searchParams] = useSearchParams()
 
+  const from = searchParams.get(RECORD_FROM_PARAM)
+
+  const to = searchParams.get(RECORD_TO_PARAM)
+
   return (
     <LazyRecordsPage
       initialFormType={parseFormType(searchParams.get('type'))}
       focusRecordId={searchParams.get(RECORD_FOCUS_PARAM) ?? undefined}
       openEdit={searchParams.get(RECORD_EDIT_PARAM) === '1'}
+      initialCounterparty={searchParams.get(RECORD_COUNTERPARTY_PARAM) ?? undefined}
+      initialRange={from && to ? { start: from, end: to } : undefined}
     />
   )
 }
@@ -134,6 +147,7 @@ export function AppAuthenticatedRoutes() {
           <Route path="reports/category-tree" element={<LazyCategoryTreeReportPage />} />
           <Route path="reports/line-items" element={<LazyLineItemsReportPage />} />
           <Route path="reports/line-items/:itemKey" element={<LineItemRoute />} />
+          <Route path="reports/counterparties" element={<LazyCounterpartiesReportPage />} />
           <Route path="reports/cash-flow" element={<LazyCashFlowReportPage />} />
           <Route path="reports/due-dates" element={<LazyDueDatesReportPage />} />
           <Route path="reports/assets-liabilities" element={<LazyAssetsLiabilitiesReportPage />} />

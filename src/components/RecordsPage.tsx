@@ -25,14 +25,25 @@ import {
 export default function RecordsPage({
   initialFormType,
   focusRecordId,
-  openEdit
+  openEdit,
+  initialCounterparty,
+  initialRange
 }: {
   initialFormType?: 'income' | 'expense'
   focusRecordId?: string
   /** Also open the focused record's edit form once it loads. */
   openEdit?: boolean
+  /** From a report link: start filtered to one counterparty, over a date range. */
+  initialCounterparty?: string
+  initialRange?: { start: string; end: string }
 }) {
-  const page = useRecordsPage(initialFormType, focusRecordId, openEdit)
+  const page = useRecordsPage(
+    initialFormType,
+    focusRecordId,
+    openEdit,
+    initialCounterparty,
+    initialRange
+  )
 
   useRecordsSpeedDial({
     forms: page.forms,

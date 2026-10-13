@@ -22,6 +22,8 @@ import {
 
 type CounterpartyCardProps = {
   item: CounterpartyWithRow
+  /** Records that name this counterparty; shown only when above zero. */
+  recordCount?: number
   onView: (item: CounterpartyWithRow) => void
   onEdit: (item: CounterpartyWithRow) => void
   onDelete: (item: CounterpartyWithRow) => void
@@ -29,6 +31,7 @@ type CounterpartyCardProps = {
 
 export default function CounterpartyCard({
   item,
+  recordCount = 0,
   onView,
   onEdit,
   onDelete
@@ -75,6 +78,12 @@ export default function CounterpartyCard({
                   <span>
                     {item.birthDate ? ' · ' : ''}
                     {accountCount.toLocaleString('fa-IR')} حساب
+                  </span>
+                ) : null}
+                {recordCount > 0 ? (
+                  <span>
+                    {item.birthDate || accountCount > 0 ? ' · ' : ''}
+                    {recordCount.toLocaleString('fa-IR')} تراکنش
                   </span>
                 ) : null}
               </div>

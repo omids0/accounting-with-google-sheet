@@ -29,6 +29,7 @@ export type Tab =
   | 'report-category-tree'
   | 'report-line-items'
   | 'report-line-item'
+  | 'report-counterparties'
   | 'report-cash-flow'
   | 'report-due-dates'
   | 'report-assets-liabilities'
@@ -72,6 +73,7 @@ export const REPORT_TABS: Tab[] = [
   'report-category-tree',
   'report-line-items',
   'report-line-item',
+  'report-counterparties',
   'report-cash-flow',
   'report-due-dates',
   'report-assets-liabilities',
@@ -107,6 +109,7 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'records',
   'report-category-tree',
   'report-line-items',
+  'report-counterparties',
   'installments',
   'dang',
   'checks',
@@ -155,6 +158,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   'report-category-tree': 'درختواره درآمد/هزینه',
   'report-line-items': 'گزارش اقلام',
   'report-line-item': 'قلم',
+  'report-counterparties': 'گزارش طرف حساب‌ها',
   'report-cash-flow': 'جریان نقدی',
   'report-due-dates': 'سررسیدها',
   'report-assets-liabilities': 'دارایی و بدهی',

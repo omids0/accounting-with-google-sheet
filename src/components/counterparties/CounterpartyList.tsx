@@ -16,6 +16,8 @@ import { dataTableLinkClass } from '../ui/tableStyles'
 type CounterpartyListProps = {
   items: CounterpartyWithRow[]
   filteredItems: CounterpartyWithRow[]
+  /** Records per counterparty name («N تراکنش»); a name with none is simply absent. */
+  recordCounts?: ReadonlyMap<string, number>
   onView: (item: CounterpartyWithRow) => void
   onEdit: (item: CounterpartyWithRow) => void
   onDelete: (item: CounterpartyWithRow) => void
@@ -26,6 +28,7 @@ type CounterpartyListProps = {
 export default function CounterpartyList({
   items,
   filteredItems,
+  recordCounts,
   onView,
   onEdit,
   onDelete,
@@ -57,9 +60,18 @@ export default function CounterpartyList({
         numeric: true,
         sortValue: item => item.accounts.length,
         cell: item => item.accounts.length.toLocaleString('fa-IR')
+      },
+      {
+        id: 'records',
+        header: 'تراکنش',
+        numeric: true,
+        sortFirst: 'desc',
+        sortValue: item => recordCounts?.get(getCounterpartyFullName(item)) ?? 0,
+        cell: item =>
+          (recordCounts?.get(getCounterpartyFullName(item)) ?? 0).toLocaleString('fa-IR')
       }
     ],
-    [onView]
+    [onView, recordCounts]
   )
 
   if (items.length === 0) {
@@ -97,6 +109,7 @@ export default function CounterpartyList({
         <CounterpartyCard
           key={item.id}
           item={item}
+          recordCount={recordCounts?.get(getCounterpartyFullName(item))}
           onView={onView}
           onEdit={onEdit}
           onDelete={onDelete}

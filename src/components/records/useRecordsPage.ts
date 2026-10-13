@@ -15,7 +15,7 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { fetchRecords } from '../../services/sheets'
 import type { CustomForm } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
-import { isDateInRange } from '../../utils/dateRange'
+import { isDateInRange, type DateRange } from '../../utils/dateRange'
 import { handleSheetError } from '../../utils/sheetError'
 
 /**
@@ -26,7 +26,8 @@ export function useRecordsPage(
   initialFormType?: 'income' | 'expense',
   focusRecordId?: string,
   openEdit = false,
-  initialCounterparty?: string
+  initialCounterparty?: string,
+  initialRange?: DateRange
 ) {
   const [focusId, setFocusId] = useState(focusRecordId ?? '')
   const [editPending, setEditPending] = useState(openEdit)
@@ -139,6 +140,7 @@ export function useRecordsPage(
     activeForm,
     showCategoryFilter: Boolean(showCategoryFilter),
     initialCounterparty,
+    initialRange,
     onFormsRefresh: setForms
   })
 

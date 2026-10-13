@@ -2,9 +2,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const sheets: Record<string, string[][] | null> = {}
 
+const forms = [
+  { type: 'income', sheetName: 'درآمد' },
+  { type: 'expense', sheetName: 'هزینه' }
+]
+
 vi.mock('./spreadsheetStore', () => ({
-  getSheetDataRows: (_id: string, name: string) => sheets[name] ?? null
+  getSheetDataRows: (_id: string, name: string) => sheets[name] ?? null,
+  getSheetAllRows: (_id: string, name: string) => sheets[name] ?? null
 }))
+
+vi.mock('./settings', () => ({ getSettings: () => ({ forms }) }))
 
 const signals = await import('./nudgeSignals')
 
@@ -56,6 +64,26 @@ describe('nudge signals', () => {
     sheets['طرف_حساب‌ها'] = [['p', 't', 'علی', 'رضایی']]
     expect(signals.detectRepeatedCounterparty(ID, 'علی رضایی')?.targetHasData).toBe(true)
     expect(signals.detectRepeatedCounterparty(ID, '  ')).toBeNull()
+  })
+
+  it('counterparty: a name typed on records counts too, found by the header', () => {
+    const header = ['شناسه', 'زمان ثبت', 'تاریخ', 'عنوان', 'طرف حساب']
+
+    const record = (name: string) => ['r', 't', '2026-10-01', 'میوه', name]
+
+    setSheets({
+      هزینه: [header, record('رضا'), record(' رضا ')],
+      درآمد: [header, record('رضا'), record('علی')]
+    })
+    expect(signals.detectRepeatedCounterparty(ID, 'رضا')).toEqual({
+      id: 'counterparty',
+      targetHasData: false
+    })
+    expect(signals.detectRepeatedCounterparty(ID, 'علی')).toBeNull()
+
+    // A sheet whose header has no «طرف حساب» column adds nothing.
+    setSheets({ هزینه: [['شناسه', 'زمان ثبت', 'تاریخ', 'عنوان'], record('رضا'), record('رضا')] })
+    expect(signals.detectRepeatedCounterparty(ID, 'رضا')).toBeNull()
   })
 
   it('missing accounts: ten in a row and at least one wallet account', () => {

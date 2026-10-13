@@ -1,5 +1,6 @@
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router'
 
 import {
   counterpartyDetailAccountBankClass,
@@ -12,14 +13,17 @@ import {
   counterpartyDetailLocationRowClass,
   counterpartyDetailValueClass
 } from './counterpartyDetailStyles'
+import CounterpartyRecordsTab from './CounterpartyRecordsTab'
 import PhoneNumberLinks from './PhoneNumberLinks'
 import type { CounterpartyWithRow } from './types'
 import { useModalLock } from '../../hooks/useModalLock'
+import { recordFocusPath } from '../../routes/paths'
 import { formatLocationLabel, getCounterpartyFullName } from '../../services/counterparties'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { openMapDirections } from '../../utils/mapNavigation'
 import AppIcon from '../AppIcon'
+import TransactionTypeSegment from '../TransactionTypeSegment'
 import Button from '../ui/Button'
 import { formActionsClassName } from '../ui/formStyles'
 import {
@@ -32,6 +36,11 @@ import {
   formModalRootClass,
   formModalTitleClass
 } from '../ui/modalStyles'
+
+const DETAIL_TABS = [
+  { id: 'info', label: 'اطلاعات' },
+  { id: 'records', label: 'تراکنش‌ها' }
+]
 
 type CounterpartyDetailModalProps = {
   open: boolean
@@ -64,6 +73,10 @@ export default function CounterpartyDetailModal({
 }: CounterpartyDetailModalProps) {
   const { panelRef } = useModalLock({ open, onClose })
   const titleId = useId()
+  const navigate = useNavigate()
+  const [tab, setTab] = useState('info')
+
+  useEffect(() => setTab('info'), [item?.id, open])
 
   if (!open || !item) return null
 
@@ -100,60 +113,79 @@ export default function CounterpartyDetailModal({
           </button>
         </div>
 
+        <TransactionTypeSegment
+          options={DETAIL_TABS}
+          value={tab}
+          onChange={setTab}
+          ariaLabel="بخش‌های طرف حساب"
+        />
+
         <div className={formModalBodyClass}>
-          <DetailField label="نام">{item.firstName || '—'}</DetailField>
-          <DetailField label="نام خانوادگی">{item.lastName || '—'}</DetailField>
-          <DetailField label="تاریخ تولد">
-            {item.birthDate ? formatIsoDatePersian(item.birthDate) : null}
-          </DetailField>
-          <DetailField label="شماره تماس">
-            {item.phones.length > 0 ? <PhoneNumberLinks phones={item.phones} /> : null}
-          </DetailField>
-          <DetailField label="آدرس">{item.address || null}</DetailField>
-          <DetailField label="موقعیت">
-            {locationLabel ? (
-              <div className={counterpartyDetailLocationRowClass}>
-                <span className={counterpartyDetailCoordsClass} dir="ltr">
-                  {locationLabel}
-                </span>
-                {item.location ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => openMapDirections(item.location!)}
-                  >
-                    مسیر‌یابی
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
-          </DetailField>
-          <DetailField label="حساب‌های بانکی">
-            {item.accounts.length > 0 ? (
-              <div className={counterpartyDetailListClass}>
-                {item.accounts.map((account, index) => (
-                  <div
-                    key={`${account.bankName}-${account.accountNumber}-${index}`}
-                    className={counterpartyDetailAccountClass}
-                  >
-                    <div className={counterpartyDetailAccountBankClass}>
-                      {account.bankName || '—'}
-                    </div>
-                    {account.accountNumber ? (
-                      <div className={counterpartyDetailAccountNumberClass} dir="ltr">
-                        {account.accountNumber}
-                      </div>
+          {tab === 'records' ? (
+            <CounterpartyRecordsTab
+              name={fullName}
+              onOpenRecord={record => {
+                onClose()
+                navigate(recordFocusPath(record.type, record.id))
+              }}
+            />
+          ) : (
+            <>
+              <DetailField label="نام">{item.firstName || '—'}</DetailField>
+              <DetailField label="نام خانوادگی">{item.lastName || '—'}</DetailField>
+              <DetailField label="تاریخ تولد">
+                {item.birthDate ? formatIsoDatePersian(item.birthDate) : null}
+              </DetailField>
+              <DetailField label="شماره تماس">
+                {item.phones.length > 0 ? <PhoneNumberLinks phones={item.phones} /> : null}
+              </DetailField>
+              <DetailField label="آدرس">{item.address || null}</DetailField>
+              <DetailField label="موقعیت">
+                {locationLabel ? (
+                  <div className={counterpartyDetailLocationRowClass}>
+                    <span className={counterpartyDetailCoordsClass} dir="ltr">
+                      {locationLabel}
+                    </span>
+                    {item.location ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => openMapDirections(item.location!)}
+                      >
+                        مسیر‌یابی
+                      </Button>
                     ) : null}
                   </div>
-                ))}
-              </div>
-            ) : null}
-          </DetailField>
-          <DetailField label="توضیحات">{item.note || null}</DetailField>
-          <DetailField label="تاریخ ثبت">
-            {item.createdAt ? formatIsoDatePersian(item.createdAt) : null}
-          </DetailField>
+                ) : null}
+              </DetailField>
+              <DetailField label="حساب‌های بانکی">
+                {item.accounts.length > 0 ? (
+                  <div className={counterpartyDetailListClass}>
+                    {item.accounts.map((account, index) => (
+                      <div
+                        key={`${account.bankName}-${account.accountNumber}-${index}`}
+                        className={counterpartyDetailAccountClass}
+                      >
+                        <div className={counterpartyDetailAccountBankClass}>
+                          {account.bankName || '—'}
+                        </div>
+                        {account.accountNumber ? (
+                          <div className={counterpartyDetailAccountNumberClass} dir="ltr">
+                            {account.accountNumber}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </DetailField>
+              <DetailField label="توضیحات">{item.note || null}</DetailField>
+              <DetailField label="تاریخ ثبت">
+                {item.createdAt ? formatIsoDatePersian(item.createdAt) : null}
+              </DetailField>
+            </>
+          )}
         </div>
 
         <div className={cn(formModalActionsClass, formActionsClassName())}>
