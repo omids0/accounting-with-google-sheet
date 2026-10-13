@@ -28,15 +28,15 @@ describe('attachment column', () => {
       ['r1', 't', '100', 'f1,f2']
     ])
     setSheetAllRows(SHEET_ID, CHECKS_SHEET, [
-      CHECKS_HEADERS.slice(0, -1),
+      CHECKS_HEADERS.slice(0, -2),
       ['c1', 't', '12', 'x', '5', '', '', 'خیر', '', '', '', 'g1']
     ])
   })
 
-  it('is the last header of the fixed tabs', () => {
+  it('sits just before «ثبت‌کننده» on the fixed tabs', () => {
     expect(CHECKS_HEADERS[CHECK_ATTACHMENT_COLUMN]).toBe('پیوست')
-    expect(CHECK_ATTACHMENT_COLUMN).toBe(CHECKS_HEADERS.length - 1)
-    expect(INSTALLMENT_ATTACHMENT_COLUMN).toBe(INSTALLMENTS_HEADERS.length - 1)
+    expect(CHECK_ATTACHMENT_COLUMN).toBe(CHECKS_HEADERS.length - 2)
+    expect(INSTALLMENT_ATTACHMENT_COLUMN).toBe(INSTALLMENTS_HEADERS.length - 2)
   })
 
   it('follows the header on record tabs and the fixed index on checks', () => {

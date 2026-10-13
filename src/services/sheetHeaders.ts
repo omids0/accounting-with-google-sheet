@@ -22,8 +22,10 @@ export const CHECKS_HEADERS = [
   'زمان پرداخت',
   'شناسه تراکنش',
   'زیردسته',
-  // Round 7: Drive ids of the receipts (utils/attachmentIds.ts); always last.
-  'پیوست'
+  // Round 7: Drive ids of the receipts (utils/attachmentIds.ts).
+  'پیوست',
+  // Round 8: email of whoever last saved the row (utils/writerColumn.ts); always last.
+  'ثبت‌کننده'
 ]
 
 export const COUNTERPARTIES_HEADERS = [
@@ -51,7 +53,8 @@ export const DANG_HEADERS = [
   'پرداخت شده',
   'زمان پرداخت',
   'شناسه تراکنش',
-  'زیردسته'
+  'زیردسته',
+  'ثبت‌کننده'
 ]
 
 export const DANG_SPLIT_GROUPS_HEADERS = ['شناسه', 'زمان ثبت', 'عنوان', 'توضیحات']
@@ -100,7 +103,8 @@ export const INSTALLMENTS_HEADERS = [
   'توضیحات',
   'وضعیت پرداخت',
   'زیردسته',
-  'پیوست'
+  'پیوست',
+  'ثبت‌کننده'
 ]
 
 export const MONTHLY_BALANCE_HEADERS = ['کلید ماه', 'موجودی اول', 'زمان ثبت', 'توضیحات']
@@ -139,7 +143,8 @@ export const RECEIVABLES_HEADERS = [
   'تاریخ قرض',
   'توضیحات',
   'پرداخت‌ها',
-  'زیردسته'
+  'زیردسته',
+  'ثبت‌کننده'
 ]
 
 export const REMINDERS_HEADERS = ['نوع', 'فعال', 'روز_قبل', 'ساعت', 'دقیقه']

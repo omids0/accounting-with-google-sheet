@@ -1,7 +1,7 @@
 import { getAccessToken } from './auth'
 import { isAccountingSpreadsheetTitle } from './spreadsheetCatalog'
 
-const DRIVE_API = 'https://www.googleapis.com/drive/v3/files'
+export const DRIVE_API = 'https://www.googleapis.com/drive/v3/files'
 
 export interface DriveSpreadsheetFile {
   id: string
@@ -9,7 +9,7 @@ export interface DriveSpreadsheetFile {
   modifiedTime: string
 }
 
-async function driveRequest<T>(url: string): Promise<T> {
+export async function driveRequest<T>(url: string): Promise<T> {
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${getAccessToken()}` }
   })

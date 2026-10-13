@@ -10,11 +10,13 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
+import { DANG_WRITER_COLUMN } from './writerColumn'
 import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
 import { isNumericCell, isPlainNumberCell } from '../utils/sheetValues'
+import { parseWriter } from '../utils/writerColumn'
 
 export { DANG_SHEET, DANG_HEADERS }
 
@@ -69,7 +71,8 @@ export function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber:
     paid: parsePaid(row[8] ?? ''),
     paidAt: row[9] ?? '',
     transactionRecordId: row[10] ?? '',
-    subCategory: row[11] ?? ''
+    subCategory: row[11] ?? '',
+    writer: parseWriter(row[DANG_WRITER_COLUMN])
   }
 }
 

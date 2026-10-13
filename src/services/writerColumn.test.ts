@@ -1,0 +1,122 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { CustomForm, FieldConfig } from '../types'
+import { headerWriterColumn, parseWriter, withWriterCell } from '../utils/writerColumn'
+
+const writeSheetHeaders = vi.fn(async () => undefined)
+let email: string | null = 'Me@Example.com'
+
+vi.mock('./sheetSync', () => ({ enqueueSheetWrite: vi.fn() }))
+vi.mock('./auth', () => ({ getUserEmail: () => email }))
+vi.mock('./sheetsEnsure', () => ({ writeSheetHeaders }))
+vi.mock('./sheetGrid', () => ({
+  withGridGrowth: (_id: string, _tab: string, _r: number, _c: number, write: () => unknown) =>
+    write()
+}))
+vi.mock('./settings', () => ({ getSettings: () => ({ forms: [] }) }))
+
+const { CHECK_WRITER_COLUMN, DANG_WRITER_COLUMN, ensureWriterColumn, RECEIVABLE_WRITER_COLUMN } =
+  await import('./writerColumn')
+const { CHECKS_HEADERS, DANG_HEADERS, RECEIVABLES_HEADERS } = await import('./sheetHeaders')
+const { CHECKS_SHEET } = await import('./sheetNames')
+const { buildFieldColumnMap } = await import('./sheetsHeaders')
+const { appendRecord, fetchRecords } = await import('./sheetsRecords')
+const { updateSheetRow } = await import('./sheetsRows')
+const { clearStore, getSheetRow, initStore, setSheetAllRows } = await import('./spreadsheetStore')
+
+const SHEET_ID = 'sheet-writer-column'
+
+const FORM = {
+  id: 'expense',
+  name: 'هزینه',
+  sheetName: 'هزینه',
+  fields: [{ id: 'amount', label: 'مبلغ', type: 'number', order: 1 }]
+} as unknown as CustomForm
+
+describe('writer cell helpers', () => {
+  it('reads old rows as empty and normalizes emails', () => {
+    expect(parseWriter(undefined)).toBe('')
+    expect(parseWriter(' Sara@Example.com ')).toBe('sara@example.com')
+  })
+
+  it('pads the row up to the column', () => {
+    expect(withWriterCell(['a'], 3, 'x@y.z')).toEqual(['a', '', '', 'x@y.z'])
+    expect(withWriterCell(['a'], -1, 'x@y.z')).toEqual(['a'])
+  })
+
+  it('is the last column of the four fixed tabs', () => {
+    expect(CHECK_WRITER_COLUMN).toBe(CHECKS_HEADERS.length - 1)
+    expect(DANG_WRITER_COLUMN).toBe(DANG_HEADERS.length - 1)
+    expect(RECEIVABLE_WRITER_COLUMN).toBe(RECEIVABLES_HEADERS.length - 1)
+    expect(headerWriterColumn(CHECKS_HEADERS)).toBe(CHECK_WRITER_COLUMN)
+  })
+
+  it('never maps a form field without a header onto «ثبت‌کننده»', () => {
+    const fields = [
+      { id: 'amount', label: 'مبلغ' },
+      { id: 'note', label: 'توضیحات' }
+    ] as FieldConfig[]
+    const map = buildFieldColumnMap(['شناسه', 'زمان ثبت', 'مبلغ', 'ثبت‌کننده'], fields)
+
+    expect(map.get('note')).toBe(4)
+  })
+})
+
+describe('writer column on save', () => {
+  beforeEach(() => {
+    email = 'Me@Example.com'
+    writeSheetHeaders.mockClear()
+    clearStore(SHEET_ID)
+    initStore(SHEET_ID)
+    setSheetAllRows(SHEET_ID, FORM.sheetName, [
+      ['شناسه', 'زمان ثبت', 'مبلغ'],
+      ['old', 't', '100']
+    ])
+  })
+
+  it('appends the header once and stamps every new record', async () => {
+    await appendRecord(SHEET_ID, FORM, 'r1', 't', { amount: 5 })
+    await appendRecord(SHEET_ID, FORM, 'r2', 't', { amount: 6 })
+    await Promise.resolve()
+
+    expect(getSheetRow(SHEET_ID, FORM.sheetName, 1)).toEqual([
+      'شناسه',
+      'زمان ثبت',
+      'مبلغ',
+      'ثبت‌کننده'
+    ])
+    expect(getSheetRow(SHEET_ID, FORM.sheetName, 3)).toEqual(['r1', 't', '5', 'me@example.com'])
+    expect(ensureWriterColumn(SHEET_ID, FORM.sheetName)).toBe(3)
+    await vi.waitFor(() => expect(writeSheetHeaders).toHaveBeenCalledTimes(1))
+  })
+
+  it('reads old rows without a writer as empty', async () => {
+    await appendRecord(SHEET_ID, FORM, 'r1', 't', { amount: 5 })
+
+    const records = await fetchRecords(SHEET_ID, FORM)
+
+    expect(records.map(record => [record.id, record.writer])).toEqual([
+      ['old', ''],
+      ['r1', 'me@example.com']
+    ])
+  })
+
+  it('stamps an update of a fixed tab at its fixed index', async () => {
+    setSheetAllRows(SHEET_ID, CHECKS_SHEET, [
+      CHECKS_HEADERS.slice(0, -1),
+      ['c1', 't', '12', 'x', '5', '', '', 'خیر', '', '', '', '']
+    ])
+    await updateSheetRow(SHEET_ID, CHECKS_SHEET, 2, ['c1', 't', '12', 'y'])
+
+    expect(getSheetRow(SHEET_ID, CHECKS_SHEET, 2)?.[CHECK_WRITER_COLUMN]).toBe('me@example.com')
+    expect(getSheetRow(SHEET_ID, CHECKS_SHEET, 1)?.[CHECK_WRITER_COLUMN]).toBe('ثبت‌کننده')
+  })
+
+  it('leaves rows alone when signed out', async () => {
+    email = null
+    await appendRecord(SHEET_ID, FORM, 'r1', 't', { amount: 5 })
+
+    expect(getSheetRow(SHEET_ID, FORM.sheetName, 1)).toHaveLength(3)
+    expect(getSheetRow(SHEET_ID, FORM.sheetName, 3)).toEqual(['r1', 't', '5'])
+  })
+})

@@ -1,5 +1,6 @@
 import { ATTACHMENTS_HEADER } from '../utils/attachmentIds'
 import { parseCsv, restoreCsvFormula } from '../utils/csv'
+import { WRITER_HEADER } from '../utils/writerColumn'
 
 export const INVALID_IMPORT_ROW_REASON = 'ستون‌های اصلی خالی یا نامعتبر است'
 
@@ -30,9 +31,11 @@ export interface ParsedImportCsv {
 }
 
 function hasHeaderRow(firstRow: string[], allHeaders: string[]): boolean {
-  // A file exported before «پیوست» existed lacks that trailing column only.
-  const headers =
-    allHeaders[allHeaders.length - 1] === ATTACHMENTS_HEADER ? allHeaders.slice(0, -1) : allHeaders
+  // A file exported before «پیوست» or «ثبت‌کننده» existed lacks those trailing columns only.
+  const headers = [...allHeaders]
+  const optional = [WRITER_HEADER, ATTACHMENTS_HEADER]
+
+  while (headers.length && optional.includes(headers[headers.length - 1])) headers.pop()
 
   if (firstRow.length < headers.length) return false
 

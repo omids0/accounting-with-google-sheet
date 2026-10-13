@@ -2,6 +2,7 @@ import { sortFormFields } from '../components/form/fieldUtils'
 import type { FieldConfig } from '../types'
 import { ATTACHMENTS_HEADER } from '../utils/attachmentIds'
 import { cellToString, normalizeSheetDate } from '../utils/sheetValues'
+import { WRITER_HEADER } from '../utils/writerColumn'
 
 export function normalizeHeaderLabel(label: string): string {
   return label.normalize('NFC').trim()
@@ -19,10 +20,12 @@ export function buildFieldColumnMap(headers: string[], fields: FieldConfig[]): M
     normalizedHeaders.findIndex(header => header === normalizeHeaderLabel(field.label))
   )
   const claimed = new Set(byLabel.filter(column => column >= 0))
-  // «پیوست» belongs to no field: a field without its own header must not land there.
-  const attachments = normalizedHeaders.indexOf(ATTACHMENTS_HEADER)
+  // «پیوست» and «ثبت‌کننده» belong to no field: a field without its own header must not land there.
+  for (const label of [ATTACHMENTS_HEADER, WRITER_HEADER]) {
+    const column = normalizedHeaders.indexOf(label)
 
-  if (attachments >= 0) claimed.add(attachments)
+    if (column >= 0) claimed.add(column)
+  }
   // Same column the header migration appends to (end of the header row).
   let nextFree = normalizedHeaders.length
 

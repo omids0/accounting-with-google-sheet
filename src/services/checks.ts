@@ -11,6 +11,7 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
+import { CHECK_WRITER_COLUMN } from './writerColumn'
 import {
   parseAttachmentIds,
   serializeAttachmentIds,
@@ -22,6 +23,7 @@ import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
+import { parseWriter } from '../utils/writerColumn'
 
 export { CHECKS_SHEET, CHECKS_HEADERS }
 
@@ -50,7 +52,8 @@ function rowToCheck(row: string[], rowNumber: number): Check & { rowNumber: numb
     paidAt: row[8] ?? '',
     transactionRecordId: row[9] ?? '',
     subCategory: row[10] ?? '',
-    attachments: parseAttachmentIds(row[CHECK_ATTACHMENT_COLUMN])
+    attachments: parseAttachmentIds(row[CHECK_ATTACHMENT_COLUMN]),
+    writer: parseWriter(row[CHECK_WRITER_COLUMN])
   }
 }
 

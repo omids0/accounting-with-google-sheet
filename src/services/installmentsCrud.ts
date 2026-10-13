@@ -19,9 +19,11 @@ import {
   updateSheetRow
 } from './sheets'
 import { getSheetDataRows } from './spreadsheetStore'
+import { INSTALLMENT_WRITER_COLUMN } from './writerColumn'
 import { parseAttachmentIds } from '../utils/attachmentIds'
 import { getTodayIso } from '../utils/jalaliDate'
 import { normalizeSheetDate } from '../utils/sheetValues'
+import { parseWriter } from '../utils/writerColumn'
 
 type PlanWithRowNumber = InstallmentPlan & { rowNumber: number }
 
@@ -46,6 +48,7 @@ function rowToPlan(row: string[], rowNumber: number, spreadsheetId: string): Pla
     note: row[7] ?? '',
     subCategory: row[9] ?? '',
     attachments: parseAttachmentIds(row[INSTALLMENT_ATTACHMENT_COLUMN]),
+    writer: parseWriter(row[INSTALLMENT_WRITER_COLUMN]),
     payments: parsePayments(
       planId,
       row[8] ?? '',

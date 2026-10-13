@@ -68,7 +68,9 @@ const ACCOUNT_KEYS = [
   // «سال در یک نگاه» years closed with ✕ (yearReviewGate.ts).
   'accounting_year_review_v1',
   // «بستن سال»: cash confirmed and archive time per year (closeYearStore.ts).
-  'accounting_close_year_v1'
+  'accounting_close_year_v1',
+  // Who can edit each spreadsheet, from Drive (sharing.ts).
+  'accounting_sharing_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

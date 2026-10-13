@@ -201,6 +201,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
   } else {
     await fullSyncFromRemote(spreadsheetId, { background: false, force: true })
   }
+  void import('./sharing').then(sharing => sharing.refreshSharingInfoIfStale(spreadsheetId))
 
   bindVisibilitySync()
 
