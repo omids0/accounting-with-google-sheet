@@ -8,4 +8,12 @@
     <string name="shortcut_expense">ثبت هزینه</string>
     <string name="shortcut_income">ثبت درآمد</string>
     <string name="shortcut_bank_sms">پیامک‌های بانکی</string>
+    <!-- Home-screen widget (widget/AccountingWidgetProvider.java) -->
+    <string name="widget_large_description">دارایی قابل اتکا، هزینهٔ ماه، پیامک‌ها و سررسید بعدی</string>
+    <string name="widget_small_description">دارایی قابل اتکا و ثبت سریع هزینه</string>
+    <string name="widget_net_title">دارایی قابل اتکا</string>
+    <string name="widget_expense">+ هزینه</string>
+    <string name="widget_income">+ درآمد</string>
+    <string name="widget_sms">پیامک‌ها</string>
+    <string name="widget_open">باز کن</string>
 </resources>

@@ -10,6 +10,8 @@ import { pushWidgetSnapshot } from '../services/widgetNative'
 function openAction(navigate: NavigateFunction, action: LaunchAction): void {
   if (action.kind === 'entry') {
     navigate(getPathForTab('entry', { formType: action.formType }))
+  } else if (action.kind === 'dashboard') {
+    navigate(getPathForTab('dashboard'))
   } else if (action.kind === 'sms') {
     navigate(getPathForTab('bank-sms'))
   } else {

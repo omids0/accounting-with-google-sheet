@@ -18,6 +18,10 @@ describe('parseLaunchUrl', () => {
     expect(parseLaunchUrl('com.omids0.accounting://bank-sms')).toEqual({ kind: 'sms' })
   })
 
+  it('reads the home-screen widget body as «open the dashboard»', () => {
+    expect(parseLaunchUrl('com.omids0.accounting://dashboard')).toEqual({ kind: 'dashboard' })
+  })
+
   it('reads the share target text, with or without its own marker', () => {
     const text = 'بانک ملت\nبرداشت:90,000'
     const query = new URLSearchParams({ text }).toString()

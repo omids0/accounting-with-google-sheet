@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home-screen widget colors; values-night/colors.xml holds the dark ones. -->
+<resources>
+    <color name="widget_surface">#FFFFFF</color>
+    <color name="widget_border">#D7EFEA</color>
+    <color name="widget_text">#134E4A</color>
+    <color name="widget_muted">#4B6F6A</color>
+    <color name="widget_accent">#0F766E</color>
+    <color name="widget_on_accent">#FFFFFF</color>
+</resources>

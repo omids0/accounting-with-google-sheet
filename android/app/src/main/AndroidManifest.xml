@@ -54,6 +54,31 @@
             android:name=".banksms.BankSmsDailyCheck"
             android:exported="false" />
 
+        <!-- Home-screen widgets: drawn from the snapshot the app stores (WidgetBridgePlugin). -->
+        <receiver
+            android:name=".widget.LargeWidgetProvider"
+            android:exported="false"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_large_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.SmallWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_net_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_small_info" />
+        </receiver>
+
         <!-- Nightly digest; also re-arms both daily alarms after a reboot or an update. -->
         <receiver
             android:name=".banksms.NightlyDigest"
