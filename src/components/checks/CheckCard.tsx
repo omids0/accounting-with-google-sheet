@@ -1,4 +1,6 @@
+import { CHECKS_SHEET } from '../../services/checks'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import AttachmentBadge from '../attachments/AttachmentBadge'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { CheckWithRow } from './types'
@@ -47,7 +49,15 @@ export default function CheckCard({
           />
           <div className={dangCardBodyClass}>
             <div className={dangCardHeaderClass}>
-              <span className={dangCardTitleClass}>چک {item.checkNumber}</span>
+              <span className={dangCardTitleClass}>
+                چک {item.checkNumber}{' '}
+                <AttachmentBadge
+                  sheetName={CHECKS_SHEET}
+                  entityId={item.id}
+                  fileIds={item.attachments}
+                  title={`چک ${item.checkNumber}`}
+                />
+              </span>
               <span className={dangCardAmountClass}>
                 <MoneyText amount={item.amount} />
               </span>

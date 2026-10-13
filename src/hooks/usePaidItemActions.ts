@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 
+import { removeParentAttachments, useAttachmentDeleteQuestion } from './useAttachmentDeleteQuestion'
 import { useSheetImportExport } from './useSheetImportExport'
 import { useUndoableDelete } from './useUndoableDelete'
 import type { ImportPreview } from '../services/importExport'
@@ -23,6 +24,8 @@ type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {
   deleteLabel: (item: T) => string
   deleteErrorMessage: string
   onBeforeDelete?: (item: T) => void
+  /** Drive ids of an item's receipts: deleting it then asks «پیوست هم پاک شود؟». */
+  attachmentIds?: (item: T) => readonly string[] | undefined
   importExport: ImportExportFns
 }
 
@@ -36,6 +39,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   deleteLabel,
   deleteErrorMessage,
   onBeforeDelete,
+  attachmentIds,
   importExport
 }: UsePaidItemActionsOptions<T>) {
   const [togglingId, setTogglingId] = useState('')
@@ -71,10 +75,16 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
 
   itemsRef.current = items
 
-  const requestDelete = (item: T) => {
+  const attachmentQuestion = useAttachmentDeleteQuestion()
+
+  const requestDelete = async (item: T) => {
     const spreadsheetId = getSpreadsheetId()
 
     if (!spreadsheetId) return
+
+    const answer = await attachmentQuestion.ask(attachmentIds?.(item) ?? [])
+
+    if (!answer) return
 
     void undoableDelete.schedule({
       id: item.id,
@@ -85,6 +95,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
 
         await deleteItem(spreadsheetId, current.rowNumber, current)
         onBeforeDelete?.(current)
+        void removeParentAttachments(attachmentIds?.(current), answer)
         await loadItems()
       }
     })
@@ -105,6 +116,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
     handleExport,
     handleExportPdf,
     handleImport,
-    importExportConfirmModal
+    importExportConfirmModal,
+    attachmentQuestionModal: attachmentQuestion.modalProps
   }
 }

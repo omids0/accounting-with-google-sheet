@@ -1,5 +1,6 @@
 import { getFormField, type StoredRecord } from './recordsUtils'
 import type { CustomForm } from '../../types'
+import { ATTACHMENTS_HEADER, serializeAttachmentIds } from '../../utils/attachmentIds'
 import { downloadTextFile, rowsToCsv } from '../../utils/csv'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -33,7 +34,13 @@ export function exportRecordsCsv(
   records: StoredRecord[],
   forms: CustomForm[]
 ): Promise<string | null> {
-  return downloadTextFile('تراکنش‌ها.csv', rowsToCsv(HEADERS, recordsExportRows(records, forms)))
+  // CSV carries the receipts' Drive ids as a last column; the PDF does not.
+  const rows = recordsExportRows(records, forms).map((row, index) => [
+    ...row,
+    serializeAttachmentIds(records[index].attachments ?? [])
+  ])
+
+  return downloadTextFile('تراکنش‌ها.csv', rowsToCsv([...HEADERS, ATTACHMENTS_HEADER], rows))
 }
 
 export async function exportRecordsPdf(

@@ -5,6 +5,7 @@ import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { parseNumeric } from '../../utils/parseNumeric'
+import AttachmentBadge from '../attachments/AttachmentBadge'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import { SUBCATEGORY_FIELD_ID } from '../form/fieldUtils'
@@ -61,6 +62,14 @@ function RecordsListRow({
   return (
     <TransactionListItem
       title={String(title)}
+      titleAddon={
+        <AttachmentBadge
+          sheetName={record.sheetName ?? form.sheetName}
+          entityId={record.id}
+          fileIds={record.attachments}
+          title={String(title)}
+        />
+      }
       meta={
         <>
           {isAllForms && `${record.formName} · `}

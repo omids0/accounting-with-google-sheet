@@ -1,11 +1,13 @@
 import type { CustomForm } from '../types'
 import { archiveTabsOfForm } from './archiveRegistry'
+import { headerAttachmentColumn } from './attachmentColumn'
 import { getSettings } from './settings'
 import { buildFieldColumnMap, buildHeaders, buildRecordRow, mapRowToValues } from './sheetsHeaders'
 import { fetchSheetRangeFromApi, deleteSheetRow, updateSheetRow } from './sheetsRows'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import { appendSheetDataRow, getSheetAllRows, setSheetAllRows } from './spreadsheetStore'
 import type { OutboxWriteOptions } from './syncOutbox'
+import { parseAttachmentIds } from '../utils/attachmentIds'
 import { cellToString, isSheetHeaderRow } from '../utils/sheetValues'
 
 export type SheetWriteOptions = OutboxWriteOptions
@@ -17,6 +19,8 @@ export type SheetRecord = {
   /** The tab holding the row: the form tab, or one of its yearly archives. */
   sheetName: string
   values: Record<string, string>
+  /** Drive ids of its receipts («پیوست»); [] for rows from before round 7. */
+  attachments: string[]
 }
 
 function parseSheetRecords(rows: unknown[][], form: CustomForm, sheetName: string): SheetRecord[] {
@@ -30,6 +34,8 @@ function parseSheetRecords(rows: unknown[][], form: CustomForm, sheetName: strin
 
   const columnMap = buildFieldColumnMap(headers, form.fields)
 
+  const attachmentColumn = headerAttachmentColumn(headers)
+
   return dataRows
     .map((row, index) => ({ row, rowNumber: hasHeader ? index + 2 : index + 1 }))
     .filter(({ row }) => cellToString(row[0]).trim())
@@ -38,7 +44,8 @@ function parseSheetRecords(rows: unknown[][], form: CustomForm, sheetName: strin
       createdAt: cellToString(row[1]),
       rowNumber,
       sheetName,
-      values: mapRowToValues(row, form.fields, columnMap)
+      values: mapRowToValues(row, form.fields, columnMap),
+      attachments: attachmentColumn < 0 ? [] : parseAttachmentIds(row[attachmentColumn])
     }))
 }
 

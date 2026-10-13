@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
 import { useIsDesktop } from '../../hooks/useMediaQuery'
-import { totalChecksInRange, totalUnpaidChecksInRange } from '../../services/checks'
+import { CHECKS_SHEET, totalChecksInRange, totalUnpaidChecksInRange } from '../../services/checks'
 import {
   formatJalaliMonthLabel,
   getInstallmentDueRange,
@@ -9,6 +9,7 @@ import {
 } from '../../utils/dateRange'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { distributionSparkline } from '../../utils/sparklineData'
+import AttachmentBadge from '../attachments/AttachmentBadge'
 import EmptyState from '../EmptyState'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
@@ -102,7 +103,15 @@ export default function CheckList({
           rowKey={item => item.id}
           isMuted={item => item.paid}
           actions={item => (
-            <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+            <>
+              <AttachmentBadge
+                sheetName={CHECKS_SHEET}
+                entityId={item.id}
+                fileIds={item.attachments}
+                title={`چک ${item.checkNumber}`}
+              />
+              <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+            </>
           )}
         />
       ) : (

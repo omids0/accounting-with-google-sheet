@@ -1,3 +1,4 @@
+import { findAttachmentColumn } from './attachmentColumn'
 import { apiRequest, SHEETS_API, SheetsApiError } from './sheetsApi'
 import { normalizeSheetTitle, parseSheetNameFromRange, quoteSheetName } from './sheetsMeta'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
@@ -11,6 +12,7 @@ import {
   updateSheetDataRow
 } from './spreadsheetStore'
 import type { OutboxWriteOptions } from './syncOutbox'
+import { keepAttachmentCell } from '../utils/attachmentIds'
 import { cellToString } from '../utils/sheetValues'
 
 export type SheetWriteOptions = OutboxWriteOptions
@@ -169,18 +171,28 @@ export function currentRowNumberFor(
   return matches.length === 1 ? matches[0] : rowNumber
 }
 
+/**
+ * Rewrites one row. The «پیوست» cell survives a rebuilt row that leaves it
+ * empty (entity writers never fill it); `exact` writes the row as given, for
+ * the attachment service that sets or clears it on purpose.
+ */
 export async function updateSheetRow(
   spreadsheetId: string,
   sheetName: string,
   rowNumber: number,
   rowOrBuilder: string[] | (() => string[]),
-  options?: SheetWriteOptions
+  options?: SheetWriteOptions,
+  exact = false
 ): Promise<void> {
-  const row = typeof rowOrBuilder === 'function' ? rowOrBuilder() : rowOrBuilder
+  const built = typeof rowOrBuilder === 'function' ? rowOrBuilder() : rowOrBuilder
 
-  rowNumber = currentRowNumberFor(spreadsheetId, sheetName, rowNumber, row)
+  rowNumber = currentRowNumberFor(spreadsheetId, sheetName, rowNumber, built)
 
   const expectedRow = getSheetRow(spreadsheetId, sheetName, rowNumber) ?? undefined
+
+  const row = exact
+    ? built
+    : keepAttachmentCell(built, expectedRow, findAttachmentColumn(spreadsheetId, sheetName))
 
   updateSheetDataRow(spreadsheetId, sheetName, rowNumber, row)
   if (!options?.skipRevision) {

@@ -75,11 +75,12 @@ export function useRecordsPage(
   }, [activeFormId])
 
   const formActions = useRecordsFormActions({ forms, loadRecords })
-  const { requestDelete, flushPendingDelete, visibleRecords } = useRecordsDelete({
-    forms,
-    records: rawRecords,
-    loadRecords
-  })
+  const { requestDelete, flushPendingDelete, visibleRecords, attachmentQuestionModal } =
+    useRecordsDelete({
+      forms,
+      records: rawRecords,
+      loadRecords
+    })
 
   // Everything below (filters, totals, counts) sees the list without the row in its undo window.
   const records = visibleRecords
@@ -221,6 +222,7 @@ export function useRecordsPage(
       filters.clearAllFilters()
     },
     requestDelete,
+    attachmentQuestionModal,
     ...formActions
   }
 }

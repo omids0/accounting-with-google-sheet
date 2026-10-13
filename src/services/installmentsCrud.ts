@@ -1,4 +1,5 @@
 import type { InstallmentPayment, InstallmentPlan } from '../types'
+import { INSTALLMENT_ATTACHMENT_COLUMN } from './attachmentColumn'
 import {
   INSTALLMENTS_CACHE_TTL_MS,
   INSTALLMENT_EXPENSE_CATEGORY,
@@ -18,6 +19,7 @@ import {
   updateSheetRow
 } from './sheets'
 import { getSheetDataRows } from './spreadsheetStore'
+import { parseAttachmentIds } from '../utils/attachmentIds'
 import { getTodayIso } from '../utils/jalaliDate'
 import { normalizeSheetDate } from '../utils/sheetValues'
 
@@ -43,6 +45,7 @@ function rowToPlan(row: string[], rowNumber: number, spreadsheetId: string): Pla
     startDate,
     note: row[7] ?? '',
     subCategory: row[9] ?? '',
+    attachments: parseAttachmentIds(row[INSTALLMENT_ATTACHMENT_COLUMN]),
     payments: parsePayments(
       planId,
       row[8] ?? '',

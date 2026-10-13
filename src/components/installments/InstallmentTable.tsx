@@ -5,6 +5,8 @@ import {
   getInstallmentDuePaymentAmount,
   remainingInstallmentAmount
 } from '../../services/installments'
+import { INSTALLMENTS_SHEET } from '../../services/installmentsConstants'
+import AttachmentBadge from '../attachments/AttachmentBadge'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
 import { dateColumn, moneyColumn, textColumn } from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
@@ -60,13 +62,21 @@ export default function InstallmentTable({
         const expanded = expandedId === item.plan.id
 
         return (
-          <TableRowActions
-            onEdit={() => onEdit(item)}
-            onDelete={() => onDelete(item)}
-            expanded={expanded}
-            onToggleExpand={() => onToggleExpand(item.plan.id)}
-            expandLabel="نمایش جزئیات اقساط"
-          />
+          <>
+            <AttachmentBadge
+              sheetName={INSTALLMENTS_SHEET}
+              entityId={item.plan.id}
+              fileIds={item.plan.attachments}
+              title={item.plan.title}
+            />
+            <TableRowActions
+              onEdit={() => onEdit(item)}
+              onDelete={() => onDelete(item)}
+              expanded={expanded}
+              onToggleExpand={() => onToggleExpand(item.plan.id)}
+              expandLabel="نمایش جزئیات اقساط"
+            />
+          </>
         )
       }}
     />

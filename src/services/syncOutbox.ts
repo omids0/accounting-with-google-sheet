@@ -36,6 +36,19 @@ export type OutboxOperation =
       rows: string[][]
       columnCount: number
     }
+  | AttachmentUploadOperation
+
+/**
+ * A receipt waiting for Drive. The file itself lives in IndexedDB under
+ * `attachmentId` (localStorage only holds this small entry); once uploaded,
+ * the row whose id is `entityId` gets the Drive id in its «پیوست» cell.
+ */
+export interface AttachmentUploadOperation {
+  type: 'attachment-upload'
+  sheetName: string
+  entityId: string
+  attachmentId: string
+}
 
 export interface OutboxEntry {
   id: string

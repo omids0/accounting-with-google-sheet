@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
+import AttachmentField from './attachments/AttachmentField'
+import { useAttachmentDrafts } from './attachments/useAttachmentDrafts'
 import ConfirmActionModal from './ConfirmActionModal'
 import CustomEntryFormFields from './dataEntry/CustomEntryFormFields'
 import EntryDuplicateWarning from './dataEntry/EntryDuplicateWarning'
@@ -52,6 +54,7 @@ export default function DataEntryForm({
   const formRef = useRef<HTMLFormElement>(null)
   const isExpenseForm = activeForm.type === 'expense'
   const vehicleExpense = useVehicleExpenseEntry(isExpenseForm)
+  const attachments = useAttachmentDrafts({ open: true, resetKey: activeForm.id })
 
   const { reset, setValue, watch, setError, clearErrors, getValues, formState } = useForm<
     Record<string, string | number>
@@ -175,6 +178,7 @@ export default function DataEntryForm({
     }
 
     // The record exists now: a wallet/SMS failure must not invite a second save.
+    await attachments.commit(settings.spreadsheetId, activeForm.sheetName, recordId)
     await settleEntryWallet(
       settings.spreadsheetId,
       activeForm.type,
@@ -193,6 +197,7 @@ export default function DataEntryForm({
     if (onSaved && !keepOpen) return onSaved()
     reset(buildFormInitialValues(activeForm))
     vehicleExpense.resetVehicleValues()
+    attachments.reset()
     if (keepOpen) focusEntryAmount(formRef.current)
   }
 
@@ -275,6 +280,7 @@ export default function DataEntryForm({
           />
         )}
 
+        <AttachmentField state={attachments} disabled={loading} />
         <EntryFormActions
           formType={activeForm.type}
           loading={loading}

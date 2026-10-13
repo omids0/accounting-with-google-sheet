@@ -1,9 +1,15 @@
 import type { InstallmentPlan } from '../types'
+import { INSTALLMENT_ATTACHMENT_COLUMN } from './attachmentColumn'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { sortInstallmentPlans } from './installmentsCalculations'
 import { INSTALLMENTS_HEADERS, INSTALLMENTS_SHEET } from './installmentsConstants'
 import { fetchInstallmentPlans, planToRow } from './installmentsCrud'
 import { parsePayments } from './installmentsSchedule'
+import {
+  parseAttachmentIds,
+  serializeAttachmentIds,
+  withAttachmentCell
+} from '../utils/attachmentIds'
 import { formatMoney } from '../utils/formatMoney'
 import { getTodayIso } from '../utils/jalaliDate'
 import { downloadTablePdf } from '../utils/pdf'
@@ -103,7 +109,11 @@ export async function importInstallmentsCsv(spreadsheetId: string, csvContent: s
 
       if (!plan.count || !plan.amount) return null
 
-      return planToRow(plan)
+      return withAttachmentCell(
+        planToRow(plan),
+        INSTALLMENT_ATTACHMENT_COLUMN,
+        serializeAttachmentIds(parseAttachmentIds(cells[INSTALLMENT_ATTACHMENT_COLUMN]))
+      )
     }
   )
 }

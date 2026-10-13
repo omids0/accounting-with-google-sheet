@@ -31,13 +31,22 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     handleExport,
     handleExportPdf,
     handleImport,
-    importExportConfirmModal
+    importExportConfirmModal,
+    attachmentQuestionModal
   } = useChecksData()
 
   useHighlightParam()
 
-  const { showForm, editingItem, saving, openCreateForm, openEditForm, closeForm, handleSubmit } =
-    useChecksForm({ onSaved: loadItems })
+  const {
+    showForm,
+    editingItem,
+    saving,
+    openCreateForm,
+    openEditForm,
+    closeForm,
+    handleSubmit,
+    attachments
+  } = useChecksForm({ onSaved: loadItems })
 
   const {
     filterModalOpen,
@@ -150,9 +159,11 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
         onClose={closeForm}
         onSubmit={handleSubmit}
         onCounterpartiesChange={setCounterparties}
+        attachments={attachments}
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
+      <ConfirmActionModal {...attachmentQuestionModal} />
     </div>
   )
 }

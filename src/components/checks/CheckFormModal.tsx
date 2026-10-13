@@ -13,6 +13,8 @@ import {
 } from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
+import AttachmentField from '../attachments/AttachmentField'
+import type { AttachmentDraftsState } from '../attachments/useAttachmentDrafts'
 import type { CounterpartyWithRow } from '../counterparties/types'
 import { CounterpartySelect, FormField, FormRow, PaymentSubCategoryField } from '../form'
 import FormModal from '../FormModal'
@@ -26,6 +28,8 @@ export type CheckFormModalProps = {
   onClose: () => void
   onSubmit: (values: CheckFormState) => void | Promise<void>
   onCounterpartiesChange: (counterparties: CounterpartyWithRow[]) => void
+  /** «پیوست»: a photo of the check. */
+  attachments?: AttachmentDraftsState
 }
 
 export default function CheckFormModal({
@@ -35,7 +39,8 @@ export default function CheckFormModal({
   counterparties,
   onClose,
   onSubmit,
-  onCounterpartiesChange
+  onCounterpartiesChange,
+  attachments
 }: CheckFormModalProps) {
   const initialValues = useMemo<CheckFormState>(
     () =>
@@ -183,6 +188,8 @@ export default function CheckFormModal({
           )}
         />
       </FormRow>
+
+      {attachments ? <AttachmentField state={attachments} disabled={saving} /> : null}
     </FormModal>
   )
 }

@@ -18,7 +18,8 @@ const ACTION_LABELS: Record<OutboxEntry['operation']['type'], string> = {
   append: 'افزودن',
   update: 'ویرایش',
   delete: 'حذف',
-  replace: 'بازنویسی برگه'
+  replace: 'بازنویسی برگه',
+  'attachment-upload': 'آپلود پیوست'
 }
 
 const TITLE_HEADER = /^(عنوان|نام|شرح|توضیحات)/
@@ -51,7 +52,7 @@ export function describeFailedWrite(
   const row =
     operation.type === 'delete'
       ? operation.expectedRow ?? []
-      : operation.type === 'replace'
+      : operation.type === 'replace' || operation.type === 'attachment-upload'
       ? []
       : operation.row
 

@@ -1,11 +1,13 @@
 import addressBook from '@phosphor-icons/core/regular/address-book.svg?raw'
 import arrowLeft from '@phosphor-icons/core/regular/arrow-left.svg?raw'
 import arrowRight from '@phosphor-icons/core/regular/arrow-right.svg?raw'
+import arrowSquareOut from '@phosphor-icons/core/regular/arrow-square-out.svg?raw'
 import arrowsClockwise from '@phosphor-icons/core/regular/arrows-clockwise.svg?raw'
 import arrowsLeftRight from '@phosphor-icons/core/regular/arrows-left-right.svg?raw'
 import bell from '@phosphor-icons/core/regular/bell.svg?raw'
 import calculator from '@phosphor-icons/core/regular/calculator.svg?raw'
 import calendarCheck from '@phosphor-icons/core/regular/calendar-check.svg?raw'
+import camera from '@phosphor-icons/core/regular/camera.svg?raw'
 import car from '@phosphor-icons/core/regular/car.svg?raw'
 import caretDown from '@phosphor-icons/core/regular/caret-down.svg?raw'
 import caretLeft from '@phosphor-icons/core/regular/caret-left.svg?raw'
@@ -25,6 +27,7 @@ import funnel from '@phosphor-icons/core/regular/funnel.svg?raw'
 import gear from '@phosphor-icons/core/regular/gear.svg?raw'
 import handArrowUp from '@phosphor-icons/core/regular/hand-arrow-up.svg?raw'
 import handCoins from '@phosphor-icons/core/regular/hand-coins.svg?raw'
+import image from '@phosphor-icons/core/regular/image.svg?raw'
 import info from '@phosphor-icons/core/regular/info.svg?raw'
 import listBullets from '@phosphor-icons/core/regular/list-bullets.svg?raw'
 import list from '@phosphor-icons/core/regular/list.svg?raw'
@@ -32,9 +35,11 @@ import lock from '@phosphor-icons/core/regular/lock.svg?raw'
 import magnifyingGlass from '@phosphor-icons/core/regular/magnifying-glass.svg?raw'
 import mapPin from '@phosphor-icons/core/regular/map-pin.svg?raw'
 import moon from '@phosphor-icons/core/regular/moon.svg?raw'
+import paperclip from '@phosphor-icons/core/regular/paperclip.svg?raw'
 import pencilSimple from '@phosphor-icons/core/regular/pencil-simple.svg?raw'
 import plus from '@phosphor-icons/core/regular/plus.svg?raw'
 import receipt from '@phosphor-icons/core/regular/receipt.svg?raw'
+import shareNetwork from '@phosphor-icons/core/regular/share-network.svg?raw'
 import squaresFour from '@phosphor-icons/core/regular/squares-four.svg?raw'
 import sun from '@phosphor-icons/core/regular/sun.svg?raw'
 import trash from '@phosphor-icons/core/regular/trash.svg?raw'
@@ -99,5 +104,10 @@ export const APP_ICON_SVGS: Record<AppIconName, string> = {
   'chevron-down': caretDown,
   'chevron-left': caretLeft,
   'chevron-right': caretRight,
-  grip: dotsSixVertical
+  grip: dotsSixVertical,
+  camera,
+  image,
+  paperclip,
+  share: shareNetwork,
+  external: arrowSquareOut
 }

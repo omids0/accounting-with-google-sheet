@@ -18,6 +18,8 @@ export interface InstallmentPlan {
   startDate: string
   note: string
   payments: InstallmentPayment[]
+  /** Drive ids of its receipts (column «پیوست»). */
+  attachments?: string[]
 }
 
 export interface Dang {
@@ -47,6 +49,8 @@ export interface Check {
   paid: boolean
   paidAt: string
   transactionRecordId?: string
+  /** Drive ids of its receipts (column «پیوست»). */
+  attachments?: string[]
 }
 
 export interface ReceivablePayment {

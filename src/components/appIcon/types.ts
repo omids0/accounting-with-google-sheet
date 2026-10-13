@@ -47,6 +47,11 @@ export type AppIconName =
   | 'eye'
   | 'eye-off'
   | 'map-pin'
+  | 'camera'
+  | 'image'
+  | 'paperclip'
+  | 'share'
+  | 'external'
 
 export interface AppIconProps {
   name: AppIconName

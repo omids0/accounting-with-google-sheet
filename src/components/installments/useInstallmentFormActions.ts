@@ -1,6 +1,10 @@
 import { useCallback, useRef, useState } from 'react'
 
 import type { InstallmentFormState, PlanWithRow } from './types'
+import {
+  removeParentAttachments,
+  useAttachmentDeleteQuestion
+} from '../../hooks/useAttachmentDeleteQuestion'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import {
   createInstallmentPlan,
@@ -9,11 +13,13 @@ import {
   reconcilePaymentsOnEdit,
   updateInstallmentPlan
 } from '../../services/installments'
+import { INSTALLMENTS_SHEET } from '../../services/installmentsConstants'
 import { deleteLinkedExpenseRecord } from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
+import { useAttachmentDrafts } from '../attachments/useAttachmentDrafts'
 
 type UseInstallmentFormActionsParams = {
   plans: PlanWithRow[]
@@ -31,6 +37,13 @@ export function useInstallmentFormActions({
   const [editingPlan, setEditingPlan] = useState<PlanWithRow | null>(null)
 
   const [saving, setSaving] = useState(false)
+
+  const attachments = useAttachmentDrafts({
+    open: showForm,
+    resetKey: editingPlan?.id ?? 'new',
+    fileIds: editingPlan?.attachments,
+    entityId: editingPlan?.id
+  })
 
   const closeForm = useCallback(() => {
     if (saving) return
@@ -94,9 +107,10 @@ export function useInstallmentFormActions({
           await deleteLinkedExpenseRecord(settings.spreadsheetId, transactionRecordId)
         }
         await updateInstallmentPlan(settings.spreadsheetId, editingPlan.rowNumber, reconciled)
+        await attachments.commit(settings.spreadsheetId, INSTALLMENTS_SHEET, editingPlan.id)
         showSuccess('قسط ویرایش شد')
       } else {
-        await createInstallmentPlan(settings.spreadsheetId, {
+        const created = await createInstallmentPlan(settings.spreadsheetId, {
           title: form.title.trim(),
           subCategory: form.subCategory.trim(),
           amount: Number(form.amount),
@@ -106,6 +120,8 @@ export function useInstallmentFormActions({
           paidUntil: form.paidUntil,
           note: form.note.trim()
         })
+
+        await attachments.commit(settings.spreadsheetId, INSTALLMENTS_SHEET, created.id)
         showSuccess('قسط جدید ثبت شد')
       }
       closeForm()
@@ -128,10 +144,16 @@ export function useInstallmentFormActions({
 
   plansRef.current = plans
 
-  const requestDelete = (plan: PlanWithRow) => {
+  const attachmentQuestion = useAttachmentDeleteQuestion()
+
+  const requestDelete = async (plan: PlanWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
+
+    const answer = await attachmentQuestion.ask(plan.attachments ?? [])
+
+    if (!answer) return
 
     const title = plan.title.trim()
 
@@ -144,6 +166,7 @@ export function useInstallmentFormActions({
         const current = plansRef.current.find(entry => entry.id === plan.id) ?? plan
 
         await deleteInstallmentPlan(spreadsheetId, current.rowNumber, current)
+        void removeParentAttachments(current.attachments, answer)
         await loadPlans()
       }
     })
@@ -159,6 +182,8 @@ export function useInstallmentFormActions({
     openEditForm,
     closeForm,
     handleSubmit,
-    requestDelete
+    requestDelete,
+    attachments,
+    attachmentQuestionModal: attachmentQuestion.modalProps
   }
 }

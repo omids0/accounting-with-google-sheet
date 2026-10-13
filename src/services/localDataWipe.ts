@@ -3,6 +3,7 @@ import { deleteBiometricKeyDatabase } from './appLockBiometricKey'
 import { clearDataKey } from './appLockDataKey'
 import { clearAppLockSessionState } from './appLockPolicy'
 import { LOCK_SETUP_OFFER_KEY } from './appLockPrompts'
+import { deleteAttachmentDatabase } from './attachmentBlobs'
 import { getSession } from './auth'
 import { BACKUP_STORAGE_KEY } from './backupReminder'
 import { setBankSmsCaptureEnabled } from './bankSmsNative'
@@ -173,6 +174,8 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
 
   await deletePersistedDatabase()
   await deleteBiometricKeyDatabase()
+  // Receipts still waiting for Drive (Task F): files of the old account.
+  await deleteAttachmentDatabase()
   // Stop capturing bank SMS and drop the native queue: it belongs to the old account.
   await setBankSmsCaptureEnabled(false).catch(() => undefined)
 

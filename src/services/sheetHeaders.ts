@@ -21,7 +21,9 @@ export const CHECKS_HEADERS = [
   'پرداخت شده',
   'زمان پرداخت',
   'شناسه تراکنش',
-  'زیردسته'
+  'زیردسته',
+  // Round 7: Drive ids of the receipts (utils/attachmentIds.ts); always last.
+  'پیوست'
 ]
 
 export const COUNTERPARTIES_HEADERS = [
@@ -97,7 +99,8 @@ export const INSTALLMENTS_HEADERS = [
   'تاریخ شروع',
   'توضیحات',
   'وضعیت پرداخت',
-  'زیردسته'
+  'زیردسته',
+  'پیوست'
 ]
 
 export const MONTHLY_BALANCE_HEADERS = ['کلید ماه', 'موجودی اول', 'زمان ثبت', 'توضیحات']

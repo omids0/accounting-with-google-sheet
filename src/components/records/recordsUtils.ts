@@ -8,6 +8,8 @@ export interface RecordItem {
   /** The tab holding the row (form tab or yearly archive); the form tab when unset. */
   sheetName?: string
   values: Record<string, string>
+  /** Drive ids of its receipts (column «پیوست»). */
+  attachments?: string[]
 }
 
 export interface StoredRecord extends RecordItem {

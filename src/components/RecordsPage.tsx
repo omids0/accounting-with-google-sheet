@@ -137,10 +137,12 @@ export default function RecordsPage({
           onSubmit={page.handleSubmit}
           recurringChoice={page.recurring.enabled ? page.recurring.choice : undefined}
           onRecurringChoiceChange={page.recurring.setChoice}
+          attachments={page.attachments}
         />
       )}
 
       <ConfirmActionModal {...page.amountQuestionModal} />
+      <ConfirmActionModal {...page.attachmentQuestionModal} />
 
       <ConfirmActionModal
         open={page.retroactiveWarning.open}
