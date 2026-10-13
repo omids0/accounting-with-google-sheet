@@ -1,4 +1,4 @@
-import { formatMoney } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import {
   chartTooltipClass,
   chartTooltipDotClass,
@@ -47,7 +47,7 @@ export default function ChartTooltip({ active, payload, label }: ChartTooltipPro
               <span className={chartTooltipDotClass(tone)} />
               <span className={chartTooltipNameClass}>{displayName}</span>
               <span className={chartTooltipValueClass}>
-                {formatMoney(Number(entry.value) || 0)}
+                <MoneyText amount={Number(entry.value) || 0} revealable={false} />
               </span>
             </div>
           )

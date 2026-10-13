@@ -5,10 +5,10 @@ import {
 } from './dangSplitStyles'
 import type { DangSplitExpenseWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitAllocationWithRow } from '../../services/dangSplitExpenses'
-import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import {
   cardActionButtonsClass,
@@ -49,7 +49,9 @@ export default function DangSplitExpenseCard({
           <div className={dangCardBodyClass}>
             <div className={dangCardHeaderClass}>
               <span className={dangCardTitleClass}>{item.title || '—'}</span>
-              <span className={dangSplitStatValueClass}>{formatMoney(item.amount)}</span>
+              <span className={dangSplitStatValueClass}>
+                <MoneyText amount={item.amount} />
+              </span>
             </div>
 
             <div className={dangCardMetaClass}>

@@ -3,10 +3,10 @@ import { formatQuantity } from './utils'
 import { getAssetUnit } from '../../services/treasuryCatalog'
 import type { VaultTransaction } from '../../types'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
+import MoneyText from '../MoneyText'
 import {
   treasuryTxEditClass,
   treasuryTxItemClass as treasuryTxPositionClass
@@ -51,7 +51,7 @@ export default function TreasuryTransactionItem({
       </div>
       <div className={treasuryTxDetailsClass}>
         <span>
-          {formatMoney(tx.unitPrice)} / {getAssetUnit(tx.assetType)}
+          <MoneyText amount={tx.unitPrice} /> / {getAssetUnit(tx.assetType)}
         </span>
         <span className={installmentDueClass}>{formatIsoDatePersian(tx.transactionDate)}</span>
         {tx.note && <span className={installmentDueClass}>{tx.note}</span>}

@@ -13,7 +13,7 @@ import {
 } from './walletCardStyles'
 import { resolveCardTheme } from './walletCardUtils'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 
 type WalletGenericCardVisualProps = {
   account: Pick<
@@ -76,7 +76,9 @@ export default function WalletGenericCardVisual({
         <div className="min-w-0 flex-1 text-right">
           {note ? <div className={walletGenericCardNoteClass}>{note}</div> : null}
         </div>
-        <div className={walletGenericCardBalanceClass}>{formatMoney(balance)}</div>
+        <div className={walletGenericCardBalanceClass}>
+          <MoneyText amount={balance} />
+        </div>
       </div>
     </div>
   )

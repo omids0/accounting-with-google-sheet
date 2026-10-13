@@ -7,10 +7,11 @@ import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
 import { cn } from '../../utils/cn'
 import {
   formatCompactNumber,
-  formatMoney,
   formatPersianNumber,
   getCurrencySymbol
 } from '../../utils/formatMoney'
+import MaskedAmount from '../MaskedAmount'
+import MoneyText from '../MoneyText'
 import {
   categoryDonutCenterClass,
   categoryDonutCenterLabelClass,
@@ -138,7 +139,7 @@ function CategoryDonutChart({
           <div className={categoryDonutCenterClass} dir="rtl">
             <span className={categoryDonutCenterLabelClass}>{centerLabel}</span>
             <span className={cn(categoryDonutCenterValueClass, donutCenterValueFitClass)}>
-              {formatDonutCenterNumber(total)}
+              <MaskedAmount size="stat">{formatDonutCenterNumber(total)}</MaskedAmount>
             </span>
             <span className={categoryDonutCenterLabelClass}>{getCurrencySymbol()}</span>
           </div>
@@ -157,7 +158,9 @@ function CategoryDonutChart({
                   />
                   <span className={categoryDonutLegendNameClass}>{slice.name}</span>
                   <span className={categoryDonutLegendPctClass}>{formatPersianPercent(pct)}</span>
-                  <span className={categoryDonutLegendValueClass}>{formatMoney(slice.total)}</span>
+                  <span className={categoryDonutLegendValueClass}>
+                    <MoneyText amount={slice.total} />
+                  </span>
                 </li>
               )
             })}

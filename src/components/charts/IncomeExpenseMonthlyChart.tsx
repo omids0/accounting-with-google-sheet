@@ -4,7 +4,7 @@ import { memo, useEffect, useMemo, useState } from 'react'
 import { prefersReducedMotion } from '../../hooks/useChartTheme'
 import type { MonthlyFlow } from '../../types'
 import { cn } from '../../utils/cn'
-import { formatMoney, formatSignedMoney } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import {
   chartCardClass,
   chartMonthlyLegendClass,
@@ -95,17 +95,21 @@ function IncomeExpenseMonthlyChart({
                       className={cn(netClass, net >= 0 ? 'text-success' : 'text-danger')}
                       title="خالص ماه"
                     >
-                      {formatSignedMoney(net, { showPlus: true })}
+                      <MoneyText amount={net} signed="plus" />
                     </span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className={barRowClass}>
                       {bar(item.income, 'var(--color-income)')}
-                      <span className={valueClass}>{formatMoney(item.income)}</span>
+                      <span className={valueClass}>
+                        <MoneyText amount={item.income} />
+                      </span>
                     </div>
                     <div className={barRowClass}>
                       {bar(item.expense, 'var(--color-expense)')}
-                      <span className={valueClass}>{formatMoney(item.expense)}</span>
+                      <span className={valueClass}>
+                        <MoneyText amount={item.expense} />
+                      </span>
                     </div>
                   </div>
                 </li>

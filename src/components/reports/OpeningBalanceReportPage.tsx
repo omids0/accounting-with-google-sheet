@@ -7,9 +7,9 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
-import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { cumulativeSparkline } from '../../utils/sparklineData'
+import MoneyText from '../MoneyText'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
@@ -88,7 +88,9 @@ export default function OpeningBalanceReportPage() {
               meta={item.note || undefined}
               index={index}
             >
-              <span className="asset-value">{formatMoney(item.amount)}</span>
+              <span className="asset-value">
+                <MoneyText amount={item.amount} />
+              </span>
             </TransactionListItem>
           ))
         )}

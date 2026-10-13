@@ -7,8 +7,8 @@ import { formatQuantity } from './utils'
 import { getAssetClassLabel } from '../../services/treasuryCatalog'
 import type { VaultAsset, VaultAssetType, VaultHolding } from '../../types'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import {
   installmentChevronClass,
@@ -82,10 +82,10 @@ export default function TreasuryHoldingCard({
               {formatQuantity(holding.netQuantity, holding.assetType)}
               {' · '}
               {asset.priceSource === 'manual' ? 'قیمت' : 'قیمت روز'}:{' '}
-              {formatMoney(holding.currentUnitPrice)}
+              <MoneyText amount={holding.currentUnitPrice} />
             </div>
             <div className={treasuryHoldingValueClass}>
-              ارزش کل: {formatMoney(holding.totalValue)}
+              ارزش کل: <MoneyText amount={holding.totalValue} />
             </div>
           </div>
           <span className={installmentChevronClass} aria-hidden>

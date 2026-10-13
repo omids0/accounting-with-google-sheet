@@ -15,8 +15,8 @@ import {
 } from './vehicleCardStyles'
 import type { MonthlyFuelStats } from '../../types/vehicles'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
-import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import MoneyText from '../MoneyText'
 import Card from '../ui/Card'
 import { emptyStateClass } from '../ui/displayStyles'
 
@@ -49,7 +49,9 @@ function FuelPriceBreakdown({ month }: { month: MonthlyFuelStats }) {
             </div>
             <div className={fuelPriceCardMetaRowClass}>
               <span className="text-muted">مبلغ</span>
-              <span className="font-bold text-expense">{formatMoney(row.amount)}</span>
+              <span className="font-bold text-expense">
+                <MoneyText amount={row.amount} />
+              </span>
             </div>
           </div>
         ))}
@@ -99,7 +101,7 @@ function FuelEntryList({ month }: { month: MonthlyFuelStats }) {
               <div className={fuelEntryStatBoxClass}>
                 <div className={fuelEntryStatLabelClass}>مبلغ</div>
                 <div className={`${fuelEntryStatValueClass} text-expense`}>
-                  {formatMoney(entry.amount)}
+                  <MoneyText amount={entry.amount} />
                 </div>
               </div>
             </div>
@@ -147,7 +149,9 @@ export default function VehicleFuelReportSection({ stats }: VehicleFuelReportSec
             </div>
             <div className="rounded-xl bg-muted/20 px-3 py-2">
               <div className="text-muted">مجموع مبلغ</div>
-              <div className="font-bold text-expense">{formatMoney(month.totalAmount)}</div>
+              <div className="font-bold text-expense">
+                <MoneyText amount={month.totalAmount} />
+              </div>
             </div>
           </div>
 

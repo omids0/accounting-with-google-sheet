@@ -1,5 +1,8 @@
+import { useIsAmountsHidden } from '../../hooks/useAmountsHidden'
 import type { MonthlyPoint } from '../../types'
-import { formatCompactNumber, formatSignedMoney } from '../../utils/formatMoney'
+import { maskedText } from '../../utils/amountMask'
+import { formatCompactNumber } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import { calmEmptyClass } from '../ui/calmListStyles'
 
 const WIDTH = 320
@@ -34,15 +37,18 @@ export function lineChartLayout(points: MonthlyPoint[]): {
 
 /** A thin line of a month-by-month series with a zero line and the latest value. */
 export default function CumulativeNetChart({ points }: { points: MonthlyPoint[] }) {
+  const hidden = useIsAmountsHidden()
+
   if (!points.length || points.every(point => point.value === 0)) {
     return <p className={calmEmptyClass}>تراکنشی در این بازه نیست</p>
   }
 
   const { coords, zeroY } = lineChartLayout(points)
+  // Hidden mode: the line stays, its values are not read out.
+  const label = (point: MonthlyPoint) =>
+    `${monthName(point.label)}: ${maskedText(hidden, formatCompactNumber(point.value))}`
   const last = points[points.length - 1]
-  const summary = points.map(
-    point => `${monthName(point.label)}: ${formatCompactNumber(point.value)}`
-  )
+  const summary = points.map(label)
 
   return (
     <figure className="m-0">
@@ -80,7 +86,7 @@ export default function CumulativeNetChart({ points }: { points: MonthlyPoint[] 
       <figcaption className="mt-1.5 text-[0.74rem] text-muted">
         {`تا پایان ${monthName(last.label)}: `}
         <span className="font-numeric font-bold text-text">
-          {formatSignedMoney(last.value, { showPlus: true })}
+          <MoneyText amount={last.value} signed="plus" />
         </span>
       </figcaption>
     </figure>

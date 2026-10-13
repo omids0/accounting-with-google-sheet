@@ -1,6 +1,7 @@
 import CategoryTreeNodeRow from './CategoryTreeNodeRow'
 import type { CategoryTreeNode, CategoryTreeType } from '../../../services/categoryTreeReport'
-import { formatMoney, formatPersianNumber } from '../../../utils/formatMoney'
+import { formatPersianNumber } from '../../../utils/formatMoney'
+import MoneyText from '../../MoneyText'
 import {
   categoryTreeListClass,
   categoryTreeSectionClass,
@@ -48,7 +49,9 @@ export default function CategoryTreeSection({
             {formatPersianNumber(nodes.length, { useGrouping: false })} دسته
           </span>
           <span className={categoryTreeSectionRuleClass} aria-hidden="true" />
-          <span className={categoryTreeSectionTotalClass}>{formatMoney(total)}</span>
+          <span className={categoryTreeSectionTotalClass}>
+            <MoneyText amount={total} />
+          </span>
         </header>
       )}
 

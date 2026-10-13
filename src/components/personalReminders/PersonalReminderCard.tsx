@@ -1,9 +1,9 @@
 import { getPersonalReminderRecurrenceLabel } from '../../services/personalReminders'
-import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { PersonalReminderWithRow } from './types'
+import MoneyText from '../MoneyText'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
@@ -57,7 +57,9 @@ export default function PersonalReminderCard({
             <div className={dangCardHeaderClass}>
               <span className={dangCardTitleClass}>{item.title || '—'}</span>
               {item.amount > 0 ? (
-                <span className={dangCardAmountClass}>{formatMoney(item.amount)}</span>
+                <span className={dangCardAmountClass}>
+                  <MoneyText amount={item.amount} />
+                </span>
               ) : null}
             </div>
             <div className={dangCardMetaClass}>

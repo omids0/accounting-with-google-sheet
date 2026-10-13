@@ -1,4 +1,3 @@
-import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
@@ -6,6 +5,7 @@ import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
 import type { DangWithRow } from './types'
+import MoneyText from '../MoneyText'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
@@ -74,7 +74,9 @@ export default function DangCard({
             >
               <div className={dangCardHeaderClass}>
                 <span className={dangCardTitleClass}>{item.title}</span>
-                <span className={dangCardAmountClass}>{formatMoney(displayAmount)}</span>
+                <span className={dangCardAmountClass}>
+                  <MoneyText amount={displayAmount} />
+                </span>
               </div>
               <div className={dangCardMetaClass}>
                 {item.category && `${item.category} · `}

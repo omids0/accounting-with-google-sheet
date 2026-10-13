@@ -1,10 +1,10 @@
 import { useCategoryBudgets } from '../../hooks/useCategoryBudgets'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import { exportBudgetsCsv, importBudgetsCsv } from '../../services/budgetsSheet'
-import { formatMoney } from '../../utils/formatMoney'
 import BudgetSheet from '../budgets/BudgetSheet'
 import CardEditButton from '../CardEditButton'
 import ConfirmActionModal from '../ConfirmActionModal'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import { formHintClass } from '../ui/formStyles'
@@ -29,7 +29,9 @@ export default function SettingsBudgetsCard() {
         <div key={category} className={settingsVaultAssetRowClass(true)}>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[0.85rem] font-semibold">{category}</div>
-            <div className={settingsVaultAssetMetaClass}>{`ماهانه ${formatMoney(amount)}`}</div>
+            <div className={settingsVaultAssetMetaClass}>
+              ماهانه <MoneyText amount={amount} />
+            </div>
           </div>
           <CardEditButton onClick={() => openBudget(category)} ariaLabel={`بودجه ${category}`} />
         </div>

@@ -2,6 +2,7 @@ import { useAppUpdateStore } from '../../stores/appUpdateStore'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
 import SyncStatusBadge from '../SyncStatusBadge'
+import HeaderAmountsToggle from './HeaderAmountsToggle'
 import { HeaderSearchButton, HeaderSearchChip } from './HeaderSearch'
 import {
   appHeaderActionsClass,
@@ -86,11 +87,13 @@ export default function LayoutHeader({
       </div>
       <div ref={toolbarRef} className={appHeaderToolbarClass} />
       <HeaderSearchChip />
+      <HeaderAmountsToggle variant="desktop" />
       <div ref={actionsRef} className={appHeaderActionsClass} />
       {/* Shares the end cell with «بازگشت»; pages with a back button do not use it. */}
       {!showHeaderBack && (
         <div className={appHeaderEndClass}>
           <div ref={pageEndRef} className={appHeaderPageEndClass} />
+          <HeaderAmountsToggle variant="mobile" />
           <HeaderSearchButton />
         </div>
       )}

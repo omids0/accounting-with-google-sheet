@@ -7,11 +7,11 @@ import { getSettings } from '../../services/settings'
 import { fetchWalletAccounts } from '../../services/wallet'
 import type { RecurringItem } from '../../types'
 import { getJalaliMonthKey } from '../../utils/dateRange'
-import { formatMoney } from '../../utils/formatMoney'
 import { isoToJalali, JALALI_MONTHS, getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
 import AppIcon from '../AppIcon'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import {
@@ -136,7 +136,9 @@ export default function DashboardRecurringCard() {
                   {[TYPE_LABEL[item.type], account].filter(Boolean).join(' · ')}
                 </span>
               </span>
-              <span className={recurringRowAmountClass}>{formatMoney(item.amount)}</span>
+              <span className={recurringRowAmountClass}>
+                <MoneyText amount={item.amount} />
+              </span>
               <input
                 type="checkbox"
                 className={recurringCheckboxClass}

@@ -12,8 +12,8 @@ import {
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import { useDangSplitPayments } from './useDangSplitPayments'
 import type { DangSplitGroupSummary, DangSplitPersonSummary } from '../../types/dangSplit'
-import { formatMoney } from '../../utils/formatMoney'
 import EmptyState from '../EmptyState'
+import MoneyText from '../MoneyText'
 import ProgressBar from '../ProgressBar'
 import StatCard from '../StatCard'
 import { dashboardStatGridClass } from '../ui/chartStyles'
@@ -139,7 +139,7 @@ export default function DangSplitSummaryTab({
                   </span>
                 </span>
                 <span className={dangSplitBalanceValueClass(sectionTone(section.balance))}>
-                  {sectionLabel(section.balance)}: {formatMoney(Math.abs(section.balance))}
+                  {sectionLabel(section.balance)}: <MoneyText amount={Math.abs(section.balance)} />
                 </span>
               </div>
             ) : null}

@@ -13,6 +13,7 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { progressPercent } from '../../utils/progress'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardExpandButton from '../CardExpandButton'
+import MoneyText from '../MoneyText'
 import ProgressBar from '../ProgressBar'
 import Button from '../ui/Button'
 import {
@@ -101,16 +102,16 @@ export default function DangSplitPersonSummaryCard({
                   complete || !hasActivity ? 'settled' : isCreditor ? 'credit' : 'debt'
                 )}
               >
-                {formatMoney(Math.abs(item.balance))}
+                <MoneyText amount={Math.abs(item.balance)} />
               </span>
             </div>
 
             <div className={dangSplitMetaLineClass}>
               <span className={dangSplitBalanceLabelClass}>بستانکاری: </span>
-              {formatMoney(item.credit)}
+              <MoneyText amount={item.credit} />
               {' · '}
               <span className={dangSplitBalanceLabelClass}>سهم: </span>
-              {formatMoney(item.share)}
+              <MoneyText amount={item.share} />
             </div>
 
             <div className={listCardSubtitleClass}>
@@ -144,28 +145,36 @@ export default function DangSplitPersonSummaryCard({
           <div className={receivableSummaryClass}>
             <div>
               <span className={receivableSummaryLabelClass}>سهم</span>
-              <span>{formatMoney(item.share)}</span>
+              <span>
+                <MoneyText amount={item.share} />
+              </span>
             </div>
             <div>
               <span className={receivableSummaryLabelClass}>واریز به صندوق</span>
-              <span className={receivablePaidClass}>{formatMoney(item.deposit)}</span>
+              <span className={receivablePaidClass}>
+                <MoneyText amount={item.deposit} />
+              </span>
             </div>
             <div>
               <span className={receivableSummaryLabelClass}>پرداختی اقلام</span>
-              <span className={receivablePaidClass}>{formatMoney(item.expensePaid)}</span>
+              <span className={receivablePaidClass}>
+                <MoneyText amount={item.expensePaid} />
+              </span>
             </div>
             <div>
               <span className={receivableSummaryLabelClass}>
                 {item.paid < 0 ? 'دریافت نقدی' : 'تسویه نقدی'}
               </span>
-              <span className={receivablePaidClass}>{formatMoney(Math.abs(item.paid))}</span>
+              <span className={receivablePaidClass}>
+                <MoneyText amount={Math.abs(item.paid)} />
+              </span>
             </div>
             <div>
               <span className={receivableSummaryLabelClass}>
                 {complete ? 'مانده' : balanceLabel}
               </span>
               <span className={complete ? receivableSettledClass : receivableRemainingClass}>
-                {formatMoney(Math.abs(item.balance))}
+                <MoneyText amount={Math.abs(item.balance)} />
               </span>
             </div>
           </div>
@@ -179,11 +188,13 @@ export default function DangSplitPersonSummaryCard({
                     <span>{entry.expenseTitle}</span>
                     <span className={installmentDueClass}>
                       {entry.expenseDate ? formatIsoDatePersian(entry.expenseDate) : '—'} · کل:{' '}
-                      {formatMoney(entry.expenseAmount)} · پرداخت‌کننده:{' '}
+                      <MoneyText amount={entry.expenseAmount} /> · پرداخت‌کننده:{' '}
                       {entry.payerName || 'ثبت نشده'}
                     </span>
                   </div>
-                  <span className={listCardAmountPillClass}>{formatMoney(entry.share)}</span>
+                  <span className={listCardAmountPillClass}>
+                    <MoneyText amount={entry.share} />
+                  </span>
                 </div>
               ))}
             </div>

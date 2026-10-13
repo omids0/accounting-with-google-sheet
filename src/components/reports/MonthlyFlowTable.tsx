@@ -1,5 +1,5 @@
 import type { MonthlyFlow } from '../../types'
-import { formatMoney } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import Card from '../ui/Card'
 import { chartTitleClass } from '../ui/chartStyles'
 import { emptyTextClass } from '../ui/displayStyles'
@@ -30,8 +30,12 @@ export default function MonthlyFlowTable({ items }: { items: MonthlyFlow[] }) {
           {items.map(item => (
             <div key={item.monthKey} className={reportDataTableRowClass}>
               <span>{item.label}</span>
-              <span className={reportValueIncomeClass}>{formatMoney(item.income)}</span>
-              <span className={reportValueExpenseClass}>{formatMoney(item.expense)}</span>
+              <span className={reportValueIncomeClass}>
+                <MoneyText amount={item.income} />
+              </span>
+              <span className={reportValueExpenseClass}>
+                <MoneyText amount={item.expense} />
+              </span>
               <span
                 className={
                   item.net < 0
@@ -41,7 +45,7 @@ export default function MonthlyFlowTable({ items }: { items: MonthlyFlow[] }) {
                     : 'font-numeric tabular-nums'
                 }
               >
-                {formatMoney(item.net)}
+                <MoneyText amount={item.net} />
               </span>
             </div>
           ))}

@@ -15,7 +15,6 @@ import {
 import { getSettings } from '../../services/settings'
 import type { RecurringItem } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
-import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
 import CardDeleteButton from '../CardDeleteButton'
@@ -23,6 +22,7 @@ import CardEditButton from '../CardEditButton'
 import ConfirmActionModal from '../ConfirmActionModal'
 import ConfirmDeleteModal from '../ConfirmDeleteModal'
 import { ToggleSwitch } from '../form'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import { formHintClass } from '../ui/formStyles'
@@ -98,7 +98,10 @@ export default function SettingsRecurringCard() {
               {item.title || item.category}
             </div>
             <div className={settingsVaultAssetMetaClass}>
-              <span>{`${TYPE_LABEL[item.type]} · ${formatMoney(item.amount)}`}</span>
+              <span>
+                {`${TYPE_LABEL[item.type]} · `}
+                <MoneyText amount={item.amount} />
+              </span>
               <span>{`روز ${item.dayOfMonth.toLocaleString('fa-IR')} · ${modeTitle(item)}`}</span>
             </div>
           </div>

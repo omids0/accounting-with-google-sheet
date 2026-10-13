@@ -7,6 +7,7 @@ import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import CardEditButton from '../CardEditButton'
 import HelpHint from '../HelpHint'
 import { HELP_HINTS } from '../helpHints'
+import MaskedAmount from '../MaskedAmount'
 import Card from '../ui/Card'
 import {
   dashboardHeroCardAnimatedClass,
@@ -70,7 +71,9 @@ export default function DashboardHero({
         {strip.map(item => (
           <div key={item.label} className={dashboardHeroStripItemClass}>
             <dt>{item.label}</dt>
-            <dd className={dashboardHeroStripValueClass}>{item.value}</dd>
+            <dd className={dashboardHeroStripValueClass}>
+              <MaskedAmount>{item.value}</MaskedAmount>
+            </dd>
           </div>
         ))}
       </dl>

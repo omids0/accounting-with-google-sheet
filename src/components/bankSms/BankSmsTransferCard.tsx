@@ -1,6 +1,6 @@
 import BankSmsCardHead from './BankSmsCardHead'
 import type { ConfirmableSms } from '../../services/bankSmsApply'
-import { formatMoney } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import {
   smsActionsRowClass,
   smsBadgeClass,
@@ -37,8 +37,8 @@ export default function BankSmsTransferCard({
     <Card className={smsQueueCardClass}>
       <BankSmsCardHead entry={debit} badge={<span className={smsBadgeClass}>انتقال داخلی</span>} />
       <p className={smsHintClass}>
-        {formatMoney(debit.amount)} از «{from}» برداشت و به «{to}» واریز شده است. با تأیید، فقط
-        موجودی هر دو حساب به‌روز می‌شود و درآمد یا هزینه‌ای ثبت نمی‌شود.
+        <MoneyText amount={debit.amount} /> از «{from}» برداشت و به «{to}» واریز شده است. با تأیید،
+        فقط موجودی هر دو حساب به‌روز می‌شود و درآمد یا هزینه‌ای ثبت نمی‌شود.
       </p>
       <div className={smsActionsRowClass}>
         <Button type="button" size="sm" disabled={busy} loading={busy} onClick={onConfirm}>

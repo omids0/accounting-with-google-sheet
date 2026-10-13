@@ -8,10 +8,10 @@ import type { DashboardData } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
-import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
+import MoneyText from '../MoneyText'
 import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import Card from '../ui/Card'
@@ -41,7 +41,9 @@ function BreakdownRow({ label, value, total }: { label: string; value: number; t
   return (
     <div className={cn(assetRowClass, reportTableRowClass, total && assetRowTotalClass)}>
       <span className={assetLabelClass}>{label}</span>
-      <span className={assetValueClass}>{formatMoney(value)}</span>
+      <span className={assetValueClass}>
+        <MoneyText amount={value} />
+      </span>
     </div>
   )
 }
@@ -167,7 +169,7 @@ export default function FinancialSummaryReportPage() {
         </div>
         {hasReconciliationGap ? (
           <p className={cn(reportHintClass, reportHintWarningClass)}>
-            تفاوت بین مانده محاسبه‌شده و موجودی کیف پول: {formatMoney(reconciliationDiff)}
+            تفاوت بین مانده محاسبه‌شده و موجودی کیف پول: <MoneyText amount={reconciliationDiff} />
           </p>
         ) : (
           <p className={reportHintClass}>مانده محاسبه‌شده با موجودی کیف پول مطابقت دارد.</p>

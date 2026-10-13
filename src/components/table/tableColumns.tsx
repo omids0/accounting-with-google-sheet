@@ -1,6 +1,6 @@
 import type { DataTableColumn } from './DataTable'
-import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import MoneyText from '../MoneyText'
 import { dangCheckboxClass } from '../ui/featureCardStyles'
 
 /** Column builders shared by the desktop table views; pages compose them into a config. */
@@ -51,7 +51,7 @@ export function moneyColumn<T>(
     numeric: true,
     sortFirst: 'desc',
     sortValue: get,
-    cell: row => formatMoney(get(row))
+    cell: row => <MoneyText amount={get(row)} />
   }
 }
 

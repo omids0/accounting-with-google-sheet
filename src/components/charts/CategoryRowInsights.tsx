@@ -2,6 +2,7 @@ import type { MonthComparison } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import { budgetLineText, categoryComparisonText, comparisonSentence } from '../../utils/insightText'
+import MaskedAmount from '../MaskedAmount'
 import {
   calmBudgetLinkClass,
   calmCompareClass,
@@ -50,14 +51,15 @@ export function BudgetLine({ spent, budget }: { spent: number; budget: number | 
   if (budget) {
     return (
       <span className={cn(calmRowSubClass, spent > budget && calmRowSubDangerClass)}>
-        {budgetLineText(spent, budget)}
+        <MaskedAmount>{budgetLineText(spent, budget)}</MaskedAmount>
       </span>
     )
   }
 
   return (
     <span className={calmRowSubClass}>
-      {`${formatPersianNumber(spent)} · بدون بودجه · `}
+      <MaskedAmount>{formatPersianNumber(spent)}</MaskedAmount>
+      {' · بدون بودجه · '}
       <span className={calmBudgetLinkClass}>تعیین بودجه</span>
     </span>
   )

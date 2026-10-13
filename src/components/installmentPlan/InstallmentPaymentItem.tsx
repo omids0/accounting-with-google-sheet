@@ -1,12 +1,12 @@
 import { getInstallmentPaymentAmount } from '../../services/installments'
 import type { InstallmentPlan } from '../../types'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AppIcon from '../AppIcon'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
 import type { PlanWithRow } from '../InstallmentPlanCard'
+import MoneyText from '../MoneyText'
 import {
   installmentDueClass,
   installmentPaidAtClass,
@@ -87,7 +87,9 @@ export default function InstallmentPaymentItem({
               </span>
             ) : null}
           </div>
-          <div className={installmentPaymentAmountDisplayClass}>{formatMoney(displayAmount)}</div>
+          <div className={installmentPaymentAmountDisplayClass}>
+            <MoneyText amount={displayAmount} />
+          </div>
           <AppIcon
             name="chevron-down"
             size={14}

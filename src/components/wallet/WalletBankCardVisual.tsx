@@ -27,8 +27,8 @@ import {
 } from './walletCardUtils'
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard'
 import { cn } from '../../utils/cn'
-import { formatMoney } from '../../utils/formatMoney'
 import AppIcon from '../AppIcon'
+import MoneyText from '../MoneyText'
 
 type WalletBankCardVisualProps = {
   account: Pick<
@@ -208,7 +208,9 @@ export default function WalletBankCardVisual({
           <div className={walletBankCardHolderClass}>{holderLabel}</div>
           {subtitle && <div className={walletBankCardTitleClass}>{subtitle}</div>}
         </div>
-        <div className={walletBankCardBalanceClass}>{formatMoney(balance)}</div>
+        <div className={walletBankCardBalanceClass}>
+          <MoneyText amount={balance} />
+        </div>
       </div>
     </div>
   )

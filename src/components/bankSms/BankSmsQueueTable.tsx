@@ -10,6 +10,7 @@ import {
 } from '../../services/bankSmsQueue'
 import { formatPersianNumber, getCurrencySymbol } from '../../utils/formatMoney'
 import FormModal from '../FormModal'
+import MaskedAmount from '../MaskedAmount'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
 import { smsBadgeClass } from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
@@ -82,13 +83,13 @@ export default function BankSmsQueueTable({ review }: { review: BankSmsReview })
       sortValue: row => row.amount,
       cell: row =>
         row.amount ? (
-          <>
+          <MaskedAmount>
             <bdi dir="ltr">
               {row.amount < 0 ? '−' : '+'}
               {formatPersianNumber(Math.abs(row.amount))}
             </bdi>{' '}
             {getCurrencySymbol()}
-          </>
+          </MaskedAmount>
         ) : (
           '—'
         )

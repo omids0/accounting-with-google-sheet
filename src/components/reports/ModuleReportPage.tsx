@@ -11,10 +11,10 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
 import { runExport } from '../../utils/exportFeedback'
-import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { distributionSparkline } from '../../utils/sparklineData'
 import AppIcon from '../AppIcon'
+import MoneyText from '../MoneyText'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import TransactionListItem from '../TransactionListItem'
@@ -144,7 +144,9 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
           <CardTitle>جمع هر کلاس</CardTitle>
           {data.groups.map((group, index) => (
             <TransactionListItem key={group.id} title={group.label} index={index}>
-              <span className="asset-value">{formatMoney(group.total)}</span>
+              <span className="asset-value">
+                <MoneyText amount={group.total} />
+              </span>
             </TransactionListItem>
           ))}
         </Card>
@@ -156,7 +158,9 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
         ) : (
           data.rows.map((row, index) => (
             <TransactionListItem key={row.id} title={row.title} meta={row.subtitle} index={index}>
-              <span className="asset-value">{formatMoney(row.amount)}</span>
+              <span className="asset-value">
+                <MoneyText amount={row.amount} />
+              </span>
             </TransactionListItem>
           ))
         )}

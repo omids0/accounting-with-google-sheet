@@ -6,9 +6,10 @@ import {
   type DashboardReminderItem
 } from '../../services/dashboardReminders'
 import { cn } from '../../utils/cn'
-import { formatMoney, formatPersianNumber } from '../../utils/formatMoney'
+import { formatPersianNumber } from '../../utils/formatMoney'
 import CalmBlock from '../CalmBlock'
 import DayBadge from '../DayBadge'
+import MoneyText from '../MoneyText'
 import {
   calmEmptyClass,
   calmListClass,
@@ -60,7 +61,9 @@ export default function DashboardUpcomingBlock({
                   </span>
                 </span>
                 {item.amount > 0 ? (
-                  <span className={calmRowEndClass}>{formatMoney(item.amount)}</span>
+                  <span className={calmRowEndClass}>
+                    <MoneyText amount={item.amount} />
+                  </span>
                 ) : null}
               </li>
             )

@@ -11,6 +11,7 @@ import type { DangSplitPersonSummary } from '../../types/dangSplit'
 import { formatMoney } from '../../utils/formatMoney'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
+import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
 import {
   cardActionButtonsClass,
@@ -72,17 +73,17 @@ export default function DangSplitPersonCard({
               <span className={dangCardTitleClass}>{item.name || '—'}</span>
               <span className={dangSplitStatValueClass}>
                 <span className={dangSplitStatLabelClass}>{balanceLabel}: </span>
-                {formatMoney(Math.abs(balance))}
+                <MoneyText amount={Math.abs(balance)} />
               </span>
             </div>
             <div className={dangCardMetaClass}>
               <span className={dangSplitStatusClass(status)}>{STATUS_LABELS[status]}</span>
               {' · '}
               <span className={dangSplitStatLabelClass}>سهم: </span>
-              {formatMoney(share)}
+              <MoneyText amount={share} />
               {' · '}
               <span className={dangSplitStatLabelClass}>بستانکاری: </span>
-              {formatMoney(credit)}
+              <MoneyText amount={credit} />
             </div>
             <div className={dangCardMetaClass}>
               <span className={dangSplitStatLabelClass}>ضریب: </span>
@@ -91,7 +92,7 @@ export default function DangSplitPersonCard({
                 <>
                   {' · '}
                   <span className={dangSplitStatLabelClass}>واریز به صندوق: </span>
-                  {formatMoney(item.deposit)}
+                  <MoneyText amount={item.deposit} />
                 </>
               ) : null}
             </div>

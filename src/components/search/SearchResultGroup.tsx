@@ -5,6 +5,7 @@ import { formatPersianNumber, formatSignedNumber } from '../../utils/formatMoney
 import AppIcon from '../AppIcon'
 import CalmBlock from '../CalmBlock'
 import DayBadge from '../DayBadge'
+import MaskedAmount from '../MaskedAmount'
 import {
   calmBlockLinkClass,
   calmListClass,
@@ -36,7 +37,7 @@ function SearchResultRow({ entry, onOpen }: { entry: SearchEntry; onOpen: () => 
         </span>
         {entry.amount != null ? (
           <span className={cn(calmRowEndClass, entry.amount < 0 && searchAmountNegativeClass)}>
-            {formatSignedNumber(entry.amount)}
+            <MaskedAmount>{formatSignedNumber(entry.amount)}</MaskedAmount>
           </span>
         ) : null}
       </button>

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 import type { VaultClassTotal } from '../../services/treasuryHoldings'
 import type { VaultHolding } from '../../types'
-import { formatMoney } from '../../utils/formatMoney'
+import MoneyText from '../MoneyText'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 import { treasuryGroupHeaderClass, treasuryGroupTotalClass } from '../ui/treasuryReceivableStyles'
 
@@ -30,7 +30,9 @@ export default function TreasuryHoldingList({
         <section key={group.assetClass} aria-label={group.label} className="mb-4 last:mb-0">
           <h2 className={treasuryGroupHeaderClass}>
             <span>{group.label}</span>
-            <span className={treasuryGroupTotalClass}>{formatMoney(group.total)}</span>
+            <span className={treasuryGroupTotalClass}>
+              <MoneyText amount={group.total} />
+            </span>
           </h2>
           <div className={listCardsContainerClass}>{group.holdings.map(renderHolding)}</div>
         </section>

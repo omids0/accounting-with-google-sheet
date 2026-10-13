@@ -12,6 +12,7 @@ import type { CategoryInsights } from '../charts/CategoryRowInsights'
 import CategoryShareList from '../charts/CategoryShareList'
 import { CATEGORY_TONE_OPTIONS, type CategoryTone } from '../charts/categoryTone'
 import { donutSliceColorIndex } from '../charts/chartUtils'
+import MaskedAmount from '../MaskedAmount'
 import TransactionTypeSegment from '../TransactionTypeSegment'
 import { calmChartFlatClass, calmEmptyClass, calmSegmentClass } from '../ui/calmListStyles'
 
@@ -62,7 +63,11 @@ export default function ChartsCategoriesBlock({ data }: { data: ChartsData }) {
             ariaLabel="نوع دسته‌ها"
           />
           <span className="truncate font-numeric text-[0.72rem] text-muted" title="هزینه / درآمد">
-            {`${formatPersianNumber(data.totalExpense)} / ${formatPersianNumber(data.totalIncome)}`}
+            <MaskedAmount>
+              {`${formatPersianNumber(data.totalExpense)} / ${formatPersianNumber(
+                data.totalIncome
+              )}`}
+            </MaskedAmount>
           </span>
         </div>
       }
