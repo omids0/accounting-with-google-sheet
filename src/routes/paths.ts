@@ -11,6 +11,11 @@ export interface TabNavigationOptions {
   dangSplitGroupTitle?: string
   formType?: 'income' | 'expense'
   walletAccountId?: string
+  /** The grouping key of an item (normalizeItemName) and its display name. */
+  lineItemKey?: string
+  lineItemTitle?: string
+  /** Which records the item page reads; expenses when unset. */
+  lineItemType?: 'income' | 'expense' | 'all'
 }
 
 const REPORT_KIND_BY_TAB: Partial<Record<Tab, ModuleReportKind>> = {
@@ -52,6 +57,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'report-financial-summary': '/reports/financial-summary',
   'report-income-expense': '/reports/income-expense',
   'report-category-tree': '/reports/category-tree',
+  'report-line-items': '/reports/line-items',
   'report-cash-flow': '/reports/cash-flow',
   'report-due-dates': '/reports/due-dates',
   'report-assets-liabilities': '/reports/assets-liabilities',
@@ -92,6 +98,10 @@ export function getTabFromPath(pathname: string): Tab {
     return 'dang-split-detail'
   }
 
+  if (/^\/reports\/line-items\/[^/]+$/.test(path)) {
+    return 'report-line-item'
+  }
+
   if (/^\/wallet\/reconcile\/[^/]+$/.test(path)) {
     return 'wallet-reconcile'
   }
@@ -121,6 +131,17 @@ export function getPathForTab(tab: Tab, options?: TabNavigationOptions): string 
     if (!options?.dangSplitGroupId) return EXACT_TAB_PATHS['dang-split'] ?? '/dang-split'
 
     return `/dang-split/${encodeURIComponent(options.dangSplitGroupId)}`
+  }
+
+  if (tab === 'report-line-item') {
+    if (!options?.lineItemKey) return EXACT_TAB_PATHS['report-line-items'] ?? '/reports/line-items'
+
+    const type =
+      options.lineItemType && options.lineItemType !== 'expense'
+        ? '?type=' + options.lineItemType
+        : ''
+
+    return '/reports/line-items/' + encodeURIComponent(options.lineItemKey) + type
   }
 
   if (tab === 'wallet-account-detail') {

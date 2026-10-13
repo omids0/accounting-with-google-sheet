@@ -30,21 +30,19 @@ import { useAppStore } from '../../stores/appStore'
 import { useNavigationStore } from '../../stores/navigationStore'
 import type { DashboardNavTarget } from '../../types'
 
-interface TimesheetRouteState {
+/** Detail pages carry their header title in the navigation state. */
+interface RouteTitleState {
   title?: string
 }
 
-interface VehicleRouteState {
-  title?: string
-}
-
-interface DangSplitRouteState {
-  title?: string
-}
-
-interface WalletAccountRouteState {
-  title?: string
-}
+const DETAIL_TITLE_TABS: Tab[] = [
+  'timesheet-detail',
+  'vehicle-detail',
+  'dang-split-detail',
+  'wallet-account-detail',
+  'wallet-reconcile',
+  'report-line-item'
+]
 
 export function useLayoutNavigation() {
   const navigate = useNavigate()
@@ -66,10 +64,7 @@ export function useLayoutNavigation() {
   // away so the tap still feels instant.
   const tab = pendingTab ?? routeTab
   const showSettings = isSettingsPath(location.pathname)
-  const timesheetTitle = (location.state as TimesheetRouteState | null)?.title
-  const vehicleTitle = (location.state as VehicleRouteState | null)?.title
-  const dangSplitTitle = (location.state as DangSplitRouteState | null)?.title
-  const walletAccountTitle = (location.state as WalletAccountRouteState | null)?.title
+  const routeTitle = (location.state as RouteTitleState | null)?.title
 
   const userName = getUserName()
   const userPicture = getUserPicture()
@@ -104,26 +99,19 @@ export function useLayoutNavigation() {
 
       setPendingTab(newTab)
 
+      const title =
+        newTab === 'timesheet-detail'
+          ? options?.timesheetTitle
+          : newTab === 'vehicle-detail'
+          ? options?.vehicleTitle
+          : newTab === 'dang-split-detail'
+          ? options?.dangSplitGroupTitle
+          : newTab === 'report-line-item'
+          ? options?.lineItemTitle
+          : undefined
+
       startNavigationTransition(() => {
-        if (newTab === 'timesheet-detail' && options?.timesheetTitle) {
-          navigate(nextPath, { state: { title: options.timesheetTitle } })
-
-          return
-        }
-
-        if (newTab === 'vehicle-detail' && options?.vehicleTitle) {
-          navigate(nextPath, { state: { title: options.vehicleTitle } })
-
-          return
-        }
-
-        if (newTab === 'dang-split-detail' && options?.dangSplitGroupTitle) {
-          navigate(nextPath, { state: { title: options.dangSplitGroupTitle } })
-
-          return
-        }
-
-        navigate(nextPath)
+        navigate(nextPath, title ? { state: { title } } : undefined)
       })
     },
     [navigate]
@@ -239,6 +227,12 @@ export function useLayoutNavigation() {
       return
     }
 
+    if (tab === 'report-line-item') {
+      handleTabChange('report-line-items')
+
+      return
+    }
+
     const backToWallet = WALLET_SUB_TABS.includes(tab)
 
     handleTabChange(backToWallet ? 'wallet' : 'dashboard')
@@ -255,14 +249,8 @@ export function useLayoutNavigation() {
     ? settingsSubpageTitle
     : showSettings
     ? 'تنظیمات'
-    : tab === 'timesheet-detail' && timesheetTitle
-    ? timesheetTitle
-    : tab === 'vehicle-detail' && vehicleTitle
-    ? vehicleTitle
-    : tab === 'dang-split-detail' && dangSplitTitle
-    ? dangSplitTitle
-    : (tab === 'wallet-account-detail' || tab === 'wallet-reconcile') && walletAccountTitle
-    ? walletAccountTitle
+    : DETAIL_TITLE_TABS.includes(tab) && routeTitle
+    ? routeTitle
     : TAB_TITLES[tab]
 
   return {

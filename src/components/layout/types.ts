@@ -27,6 +27,8 @@ export type Tab =
   | 'report-financial-summary'
   | 'report-income-expense'
   | 'report-category-tree'
+  | 'report-line-items'
+  | 'report-line-item'
   | 'report-cash-flow'
   | 'report-due-dates'
   | 'report-assets-liabilities'
@@ -68,6 +70,8 @@ export const REPORT_TABS: Tab[] = [
   'report-financial-summary',
   'report-income-expense',
   'report-category-tree',
+  'report-line-items',
+  'report-line-item',
   'report-cash-flow',
   'report-due-dates',
   'report-assets-liabilities',
@@ -102,6 +106,7 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'dashboard',
   'records',
   'report-category-tree',
+  'report-line-items',
   'installments',
   'dang',
   'checks',
@@ -148,6 +153,8 @@ export const TAB_TITLES: Record<Tab, string> = {
   'report-financial-summary': 'خلاصه مالی',
   'report-income-expense': 'درآمد و هزینه',
   'report-category-tree': 'درختواره درآمد/هزینه',
+  'report-line-items': 'گزارش اقلام',
+  'report-line-item': 'قلم',
   'report-cash-flow': 'جریان نقدی',
   'report-due-dates': 'سررسیدها',
   'report-assets-liabilities': 'دارایی و بدهی',

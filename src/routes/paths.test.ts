@@ -58,3 +58,22 @@ describe('settings sub-pages', () => {
     expect(getCategoriesPath()).toBe('/settings/categories')
   })
 })
+
+describe('line items report paths', () => {
+  it('opens the report and an item page by key', () => {
+    expect(getTabFromPath('/reports/line-items')).toBe('report-line-items')
+    expect(getTabFromPath('/reports/line-items/%D9%85%D9%88%D8%B2')).toBe('report-line-item')
+  })
+
+  it('builds the item path from its key, with the type when it is not an expense', () => {
+    const key = 'نان سنگک'
+
+    expect(getPathForTab('report-line-item', { lineItemKey: key })).toBe(
+      `/reports/line-items/${encodeURIComponent(key)}`
+    )
+    expect(getPathForTab('report-line-item', { lineItemKey: key, lineItemType: 'income' })).toBe(
+      `/reports/line-items/${encodeURIComponent(key)}?type=income`
+    )
+    expect(getPathForTab('report-line-item')).toBe('/reports/line-items')
+  })
+})

@@ -25,6 +25,7 @@ import {
   LazyDueDatesReportPage,
   LazyFinancialSummaryReportPage,
   LazyCategoryTreeReportPage,
+  LazyLineItemsReportPage,
   LazyIncomeExpenseReportPage,
   LazyModuleReportPage,
   LazyMonthlyReportPage,
@@ -42,6 +43,7 @@ import {
   LazyWalletPage,
   LazyWalletReconcilePage
 } from './lazyPages'
+import LineItemRoute from './LineItemRoute'
 import { RECORD_EDIT_PARAM, RECORD_FOCUS_PARAM } from './paths'
 import TimesheetDetailRoute from './TimesheetDetailRoute'
 import VehicleDetailRoute from './VehicleDetailRoute'
@@ -130,6 +132,8 @@ export function AppAuthenticatedRoutes() {
           <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
           <Route path="reports/income-expense" element={<LazyIncomeExpenseReportPage />} />
           <Route path="reports/category-tree" element={<LazyCategoryTreeReportPage />} />
+          <Route path="reports/line-items" element={<LazyLineItemsReportPage />} />
+          <Route path="reports/line-items/:itemKey" element={<LineItemRoute />} />
           <Route path="reports/cash-flow" element={<LazyCashFlowReportPage />} />
           <Route path="reports/due-dates" element={<LazyDueDatesReportPage />} />
           <Route path="reports/assets-liabilities" element={<LazyAssetsLiabilitiesReportPage />} />
