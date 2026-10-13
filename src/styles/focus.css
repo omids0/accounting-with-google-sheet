@@ -81,3 +81,9 @@ tr[data-highlighted] > td {
     animation-delay: 2s;
   }
 }
+
+:root[data-reduced-motion] [data-highlighted],
+:root[data-reduced-motion] tr[data-highlighted] > td {
+  animation-duration: 0.01ms;
+  animation-delay: 2s;
+}

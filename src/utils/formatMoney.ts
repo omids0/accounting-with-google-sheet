@@ -1,3 +1,4 @@
+import { numberLocale } from './digitStyle'
 import { getSettings, getDefaultSettings } from '../services/settings'
 import { getStorageVersion } from '../services/storage'
 import type { CurrencyUnit } from '../types'
@@ -59,13 +60,14 @@ const numberFormatters = new Map<string, Intl.NumberFormat>()
  * call, which is ~20x slower than reusing one. Keep one formatter per option set.
  */
 function getNumberFormatter(options?: Intl.NumberFormatOptions): Intl.NumberFormat {
-  const key = options ? JSON.stringify(options) : ''
+  const locale = numberLocale()
+  const key = `${locale}|${options ? JSON.stringify(options) : ''}`
 
   const cached = numberFormatters.get(key)
 
   if (cached) return cached
 
-  const formatter = new Intl.NumberFormat('fa-IR', options)
+  const formatter = new Intl.NumberFormat(locale, options)
 
   numberFormatters.set(key, formatter)
 

@@ -1,5 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 
+import { hapticsEnabled } from './displayPrefs'
+
 /**
  * - `light`: the raised dashboard button, a successful save
  * - `medium`: a delete starts (undo window opens)
@@ -33,9 +35,12 @@ async function play(kind: HapticKind) {
   }
 }
 
-/** Fire-and-forget device feedback in the APK; a no-op on the web (plugin never loaded). */
+/**
+ * Fire-and-forget device feedback in the APK; a no-op on the web (plugin never
+ * loaded) and when «صدای ثبت و لرزش» is off in Settings › نمایش.
+ */
 export function haptic(kind: HapticKind): void {
-  if (!Capacitor.isNativePlatform()) return
+  if (!Capacitor.isNativePlatform() || !hapticsEnabled()) return
   play(kind).catch(() => undefined)
 }
 

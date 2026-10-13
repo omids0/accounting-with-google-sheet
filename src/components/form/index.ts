@@ -23,3 +23,5 @@ export {
   withAutoTitle
 } from './fieldUtils'
 export { default as ToggleSwitch } from './ToggleSwitch'
+export { default as SegmentedRadio } from './SegmentedRadio'
+export type { SegmentedRadioOption } from './SegmentedRadio'

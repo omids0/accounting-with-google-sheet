@@ -6,6 +6,7 @@ import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
 import ConfirmActionModal from '../ConfirmActionModal'
 import { SettingsSkeleton } from '../skeleton'
+import SettingsDisplayCard from './display/SettingsDisplayCard'
 import SettingsBudgetsCard from './SettingsBudgetsCard'
 import SettingsCategoriesCard from './SettingsCategoriesCard'
 import SettingsGeneralCard from './SettingsGeneralCard'
@@ -57,6 +58,13 @@ export default function SettingsPage() {
           />
         </>
       )
+    },
+    {
+      id: 'display',
+      title: 'نمایش',
+      icon: 'sun',
+      description: 'اندازهٔ متن، تم، انیمیشن، کنتراست، ارقام و لرزش',
+      content: <SettingsDisplayCard />
     },
     {
       id: 'account',

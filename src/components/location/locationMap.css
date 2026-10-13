@@ -80,3 +80,8 @@
     opacity: 0.35;
   }
 }
+
+:root[data-reduced-motion] .location-map-marker__pulse {
+  animation: none;
+  opacity: 0.35;
+}

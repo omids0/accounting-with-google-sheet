@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <!--
-      Content Security Policy. script-src hashes cover, in order: the theme
+      Content Security Policy. script-src hashes cover, in order: the theme and display
       script below (LF line endings, as built in CI), the same script with CRLF
       endings (local Windows builds), and vite-plugin-pwa's dev-only SW register
       script. Editing the theme script changes its hash: recompute both
@@ -13,7 +13,7 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'sha256-hBnJUCQYdTeCltSX8mFZhxPxYwzCvl9flehjmg/D+eg=' 'sha256-+ojSL6M8TYUhhVh3VY2v6S9dCk/OobJ+Zc4Fix4tlAE=' 'sha256-/AO8vAagk08SqUGxY96ci/dGyTDsuoetPOJYMn7sc+E=' https://accounts.google.com/gsi/client https://apis.google.com; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; font-src 'self' data:; img-src 'self' data: blob: https://*.googleusercontent.com https://tile.openstreetmap.org; connect-src 'self' https://sheets.googleapis.com https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com/gsi/ https://call5.tgju.org https://nominatim.openstreetmap.org; frame-src https://accounts.google.com/gsi/ https://docs.google.com https://drive.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; script-src 'self' 'sha256-KVQe2+VP/IoD3BT+bDtrDcN5MdejWwy8YKzUsOD2fak=' 'sha256-uGcX2Ayw//PjYxg6jj0ZCYORF0CS/VswjZiT1ZQmP1U=' 'sha256-/AO8vAagk08SqUGxY96ci/dGyTDsuoetPOJYMn7sc+E=' https://accounts.google.com/gsi/client https://apis.google.com; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; font-src 'self' data:; img-src 'self' data: blob: https://*.googleusercontent.com https://tile.openstreetmap.org; connect-src 'self' https://sheets.googleapis.com https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com/gsi/ https://call5.tgju.org https://nominatim.openstreetmap.org; frame-src https://accounts.google.com/gsi/ https://docs.google.com https://drive.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <!-- Self-hosted Vazirmatn text face (src/styles/fonts.css); Vite rewrites the hashed URL. -->
     <link
@@ -35,13 +35,30 @@
     <script>
       ;(function () {
         try {
-          var raw = localStorage.getItem('accounting_settings')
-          if (!raw) return
-          var settings = JSON.parse(raw)
-          if (settings.theme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark')
-            document.documentElement.style.colorScheme = 'dark'
+          var root = document.documentElement
+          var store = window.localStorage
+          var raw = store.getItem('accounting_settings')
+          var theme = raw ? JSON.parse(raw).theme : null
+          var media = function (query) {
+            return !!window.matchMedia && window.matchMedia(query).matches
           }
+          if (theme === 'dark' || (theme === 'system' && media('(prefers-color-scheme: dark)'))) {
+            root.setAttribute('data-theme', 'dark')
+            root.style.colorScheme = 'dark'
+          }
+          var size = store.getItem('accounting_text_size')
+          if (size === 'sm' || size === 'lg' || size === 'xl')
+            root.setAttribute('data-text-size', size)
+          if (
+            store.getItem('accounting_reduced_motion') === '1' ||
+            media('(prefers-reduced-motion: reduce)')
+          ) {
+            root.setAttribute('data-reduced-motion', 'reduce')
+          }
+          if (store.getItem('accounting_high_contrast') === '1')
+            root.setAttribute('data-contrast', 'high')
+          if (store.getItem('accounting_latin_digits') === '1')
+            root.setAttribute('data-digits', 'latn')
         } catch (e) {}
       })()
     </script>

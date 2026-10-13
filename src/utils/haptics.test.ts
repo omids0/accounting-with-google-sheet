@@ -60,6 +60,15 @@ describe('haptic', () => {
     expect(plugin.selectionChanged).toHaveBeenCalled()
   })
 
+  it('stays silent in the APK when «صدای ثبت و لرزش» is off', async () => {
+    native.value = true
+    localStorage.setItem('accounting_haptics_off', '1')
+    haptic('light')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(load).not.toHaveBeenCalled()
+    localStorage.removeItem('accounting_haptics_off')
+  })
+
   it('ticks on checkbox changes once installed in the APK', async () => {
     native.value = true
 

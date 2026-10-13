@@ -1,3 +1,4 @@
+import { numberLocale } from './digitStyle'
 import { dateToJalali, jalaliMonthLength, jalaliToDate, type JalaliParts } from './jalaliConvert'
 import { memoizeByKey } from './memoize'
 
@@ -100,7 +101,7 @@ export function diffIsoDays(fromIso: string, toIso: string): number {
  * Reused across every list row; constructing `Intl.DateTimeFormat` per call was
  * measurably the most expensive thing in list rendering.
  */
-const persianDateFormatter = new Intl.DateTimeFormat('fa-IR', {
+const persianDateFormatter = new Intl.DateTimeFormat(numberLocale(), {
   calendar: 'persian',
   year: 'numeric',
   month: 'short',

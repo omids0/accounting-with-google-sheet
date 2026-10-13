@@ -52,6 +52,14 @@ async function useDarkTheme(page: Page) {
   })
 }
 
+async function openSignedInScreen(page: Page, path: string) {
+  await page.goto(path, { waitUntil: 'domcontentloaded' })
+  await page.locator('main').waitFor({ state: 'visible' })
+  // Cold preview builds can keep a list loading past the default 5 s.
+  await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0, { timeout: 15_000 })
+  await waitForSettledAnimations(page)
+}
+
 for (const theme of ['light', 'dark'] as const) {
   const suffix = theme === 'dark' ? ' (dark)' : ''
 
@@ -67,12 +75,8 @@ for (const theme of ['light', 'dark'] as const) {
 
     for (const screen of SIGNED_IN_SCREENS) {
       test(`${screen.name} has no axe violations`, async ({ page }) => {
-        await page.goto(screen.path, { waitUntil: 'domcontentloaded' })
-        await page.locator('main').waitFor({ state: 'visible' })
+        await openSignedInScreen(page, screen.path)
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
-        // Cold preview builds can keep a list loading past the default 5 s.
-        await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0, { timeout: 15_000 })
-        await waitForSettledAnimations(page)
         await expectNoViolations(page)
       })
     }
@@ -96,6 +100,41 @@ for (const theme of ['light', 'dark'] as const) {
       await waitForSettledAnimations(page)
       await expectNoViolations(page)
     })
+  })
+}
+
+/** «اندازهٔ متن» (Settings › نمایش) is per device: seeded as its raw localStorage value. */
+async function useTextSize(page: Page, size: 'lg' | 'xl') {
+  await page.addInitScript(value => localStorage.setItem('accounting_text_size', value), size)
+}
+
+const LARGE_TEXT_SCREENS = SIGNED_IN_SCREENS.filter(
+  screen => screen.name === 'dashboard' || screen.name === 'entry form'
+)
+
+// The page set again at «بزرگ» (112.5 %), and the busiest two at «خیلی بزرگ» (125 %).
+const TEXT_SIZE_RUNS = [
+  { size: 'lg', label: 'large', screens: SIGNED_IN_SCREENS },
+  { size: 'xl', label: 'extra large', screens: LARGE_TEXT_SCREENS }
+] as const
+
+for (const run of TEXT_SIZE_RUNS) {
+  test.describe(`signed-in screens accessibility (${run.label} text)`, () => {
+    test.use({ serviceWorkers: 'block' })
+
+    test.beforeEach(async ({ page }) => {
+      await mockGoogleApis(page)
+      await seedMockAppState(page)
+      await useTextSize(page, run.size)
+    })
+
+    for (const screen of run.screens) {
+      test(`${screen.name} has no axe violations`, async ({ page }) => {
+        await openSignedInScreen(page, screen.path)
+        await expect(page.locator('html')).toHaveAttribute('data-text-size', run.size)
+        await expectNoViolations(page)
+      })
+    }
   })
 }
 

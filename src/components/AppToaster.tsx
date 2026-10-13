@@ -9,6 +9,8 @@ export default function AppToaster() {
       containerClassName={appToasterClass}
       toastOptions={{
         duration: 3500,
+        // Screen readers announce «ذخیره شد» politely; a failed save interrupts.
+        ariaProps: { role: 'status', 'aria-live': 'polite' },
         style: {
           fontFamily: 'var(--font)',
           direction: 'rtl',
@@ -25,6 +27,7 @@ export default function AppToaster() {
           }
         },
         error: {
+          ariaProps: { role: 'alert', 'aria-live': 'assertive' },
           style: {
             background: '#fef2f2',
             color: 'var(--color-danger)',
