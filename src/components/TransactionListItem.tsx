@@ -16,6 +16,8 @@ interface TransactionListItemProps {
   /** After the title, e.g. the «📎 N» attachment badge. */
   titleAddon?: ReactNode
   meta?: ReactNode
+  /** A muted line under the meta (e.g. the invoice items of a record). */
+  detail?: ReactNode
   children?: ReactNode
   tone?: TransactionTone
   index?: number
@@ -26,6 +28,7 @@ function TransactionListItem({
   title,
   titleAddon,
   meta,
+  detail,
   children,
   tone = 'neutral',
   index = 0,
@@ -53,6 +56,7 @@ function TransactionListItem({
           {titleAddon ? <> {titleAddon}</> : null}
         </div>
         {meta ? <div className={recordItemMetaClass}>{meta}</div> : null}
+        {detail}
       </div>
       {children}
     </div>

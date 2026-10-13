@@ -14,6 +14,8 @@ import { useRecordsPage } from './records/useRecordsPage'
 import { useRecordsSpeedDial } from './records/useRecordsSpeedDial'
 import { RecordListSkeleton } from './skeleton'
 import {
+  recordsDateGridBtnClass,
+  recordsDateGridClass,
   recordsPageBodyClass,
   recordsPageClass,
   recordsPageMainClass,
@@ -76,7 +78,21 @@ export default function RecordsPage({
           subCategoryOptions={
             page.subcategory.showDraft ? page.subcategory.draftOptions : undefined
           }
-        />
+          counterparty={page.extra.showCounterparty ? page.extra.draftCounterparty : undefined}
+          onCounterpartyChange={page.extra.setDraftCounterparty}
+          counterpartyOptions={page.extra.showCounterparty ? page.extra.options : undefined}
+        >
+          <div className={recordsDateGridClass}>
+            <button
+              type="button"
+              className={recordsDateGridBtnClass(page.extra.draftWithItems)}
+              aria-pressed={page.extra.draftWithItems}
+              onClick={() => page.extra.setDraftWithItems(!page.extra.draftWithItems)}
+            >
+              ☰ فقط رکوردهای با اقلام
+            </button>
+          </div>
+        </PageFilterPanel>
       </FilterModal>
 
       <div className={recordsPageBodyClass}>

@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import type { StoredRecord } from './recordsUtils'
+import { useRecordsExtraFilters } from './useRecordsExtraFilters'
 import { useRecordsSubcategoryFilter } from './useRecordsSubcategoryFilter'
 import { getSettings } from '../../services/settings'
 import type { CustomForm } from '../../types'
@@ -21,11 +22,14 @@ export function useRecordsFilters({
   records,
   activeForm,
   showCategoryFilter,
+  initialCounterparty,
   onFormsRefresh
 }: {
   records: StoredRecord[]
   activeForm?: CustomForm
   showCategoryFilter: boolean
+  /** From `/records?counterparty=`. */
+  initialCounterparty?: string
   onFormsRefresh: (forms: CustomForm[]) => void
 }) {
   const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date')
@@ -52,6 +56,9 @@ export function useRecordsFilters({
   )
 
   const { setSubCategoryFilter, setDraftSubCategory } = subcategory
+
+  const extra = useRecordsExtraFilters(records, initialCounterparty)
+  const { startDraft, applyDraft, clearDraft, clearAll: clearExtra } = extra
 
   const setCategoryFilter = useCallback(
     (next: string) => {
@@ -87,9 +94,11 @@ export function useRecordsFilters({
           categoryFilter !== 'all' &&
           buildCategoryChip(categoryFilter, () => setCategoryFilter('all')),
         subcategory.subCategoryFilter !== 'all' &&
-          buildSubCategoryChip(subcategory.subCategoryFilter, () => setSubCategoryFilter('all'))
+          buildSubCategoryChip(subcategory.subCategoryFilter, () => setSubCategoryFilter('all')),
+        ...extra.chips
       ]),
     [
+      extra.chips,
       categoryFilter,
       datePreset,
       dateRange,
@@ -110,6 +119,7 @@ export function useRecordsFilters({
     setDraftCustomRange(customRange)
     setDraftCategoryValue(categoryFilter)
     setDraftSubCategory(subcategory.subCategoryFilter)
+    startDraft()
     setFilterModalOpen(true)
   }, [
     categoryFilter,
@@ -117,6 +127,7 @@ export function useRecordsFilters({
     datePreset,
     onFormsRefresh,
     setDraftSubCategory,
+    startDraft,
     subcategory.subCategoryFilter
   ])
 
@@ -132,15 +143,18 @@ export function useRecordsFilters({
     setDraftDatePreset('month-to-date')
     setDraftCustomRange(defaults.customRange)
     setDraftCategory('all')
-  }, [setDraftCategory])
+    clearDraft()
+  }, [clearDraft, setDraftCategory])
 
   const applyFilters = useCallback(() => {
     setDatePreset(draftDatePreset)
     setCustomRange(draftCustomRange)
     setCategoryFilterValue(draftCategory)
     setSubCategoryFilter(subcategory.draftSubCategory)
+    applyDraft()
     setFilterModalOpen(false)
   }, [
+    applyDraft,
     draftCategory,
     draftCustomRange,
     draftDatePreset,
@@ -151,7 +165,8 @@ export function useRecordsFilters({
   const clearAllFilters = useCallback(() => {
     resetDateFilter()
     setCategoryFilter('all')
-  }, [resetDateFilter, setCategoryFilter])
+    clearExtra()
+  }, [clearExtra, resetDateFilter, setCategoryFilter])
 
   return {
     datePreset,
@@ -160,6 +175,7 @@ export function useRecordsFilters({
     categoryFilter,
     setCategoryFilter,
     subcategory,
+    extra,
     filterModalOpen,
     setFilterModalOpen,
     draftDatePreset,

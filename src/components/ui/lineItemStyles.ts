@@ -77,3 +77,16 @@ export const lineItemSuggestionClass = cx(
   'min-h-8 cursor-pointer rounded-full border border-border bg-bg px-3 text-[0.8rem] font-semibold text-text',
   'hover:border-primary hover:text-primary'
 )
+
+/** Records list: «☰ N» after the title, the counterparty chip in the meta line, the item summary. */
+export const lineItemsBadgeClass = cx(
+  'inline-flex min-h-6 shrink-0 items-center gap-0.5 rounded-full border border-border',
+  'bg-bg px-1.5 align-middle text-[0.72rem] font-semibold text-muted'
+)
+
+export const recordCounterpartyChipClass = cx(
+  'inline-block max-w-[10rem] truncate rounded-full border border-border bg-bg px-2 align-middle',
+  'text-[0.7rem] font-semibold leading-5 text-muted'
+)
+
+export const recordItemsSummaryClass = 'mt-0.5 line-clamp-1 text-[0.74rem] leading-[1.5] text-muted'
