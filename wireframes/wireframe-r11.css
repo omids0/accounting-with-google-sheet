@@ -1,0 +1,69 @@
+/* round 11 flow: shared bits for the 24-screen walkthrough */
+.flow-h {
+  font-size: 11px;
+  color: #777;
+  margin: -4px 0 8px;
+}
+.drawer {
+  width: 78%;
+  background: #fff;
+  border-left: 1px solid #ccc;
+  padding: 10px;
+  font-size: 12px;
+  height: 100%;
+}
+.drawer .r {
+  padding: 7px 0;
+}
+.drawer .r.on .t {
+  font-weight: 800;
+  color: #000;
+}
+.drawer .r.on {
+  background: #f1f1f1;
+  border-radius: 8px;
+  padding-right: 6px;
+}
+.empty {
+  text-align: center;
+  color: #777;
+  font-size: 12px;
+  padding: 30px 10px;
+  border: 1.5px dashed #bbb;
+  border-radius: 14px;
+  margin: 20px 0;
+}
+.empty b {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+}
+.acc {
+  border: 1.5px solid #555;
+  border-radius: 12px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.acc small {
+  display: block;
+  color: #888;
+  font-size: 10px;
+}
+.acc b {
+  float: left;
+}
+.nextbtn {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+}
+.nextbtn .btn-primary {
+  flex: 1;
+}
+.mini-h {
+  font-size: 10px;
+  color: #999;
+  margin: 8px 0 2px;
+}
