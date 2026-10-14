@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>مدیر ساختمان — فلو ۳: واحدها، ساکنان، شارژ، هزینه‌ها (round 11)</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+    <link rel="stylesheet" href="wireframe-r6.css" />
+    <link rel="stylesheet" href="wireframe-r6-2.css" />
+    <link rel="stylesheet" href="wireframe-r7-5.css" />
+    <link rel="stylesheet" href="wireframe-r9.css" />
+    <link rel="stylesheet" href="wireframe-r10.css" />
+    <link rel="stylesheet" href="wireframe-r11.css" />
+  </head>
+  <body>
+    <p class="back"><a href="index.html">← فهرست وایرفریم‌ها</a></p>
+    <h1>مدیر ساختمان — فلو ۳ از ۶: چهار فهرست اصلی</h1>
+    <p class="flow-h">
+      قبلی: <a href="round11-flow-2.html">فلو ۲</a> · قدم‌های ۹ تا ۱۲ · بعدی:
+      <a href="round11-flow-4.html">فلو ۴ (صندوق، بدهی، چک‌ها، طرف حساب‌ها)</a>
+    </p>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs"><button class="on">۹ · واحدها</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>واحدها</span><span class="icon">⌕</span>
+          </div>
+          <div class="content">
+            <div class="chips">
+              <span class="on">همه ۱۲</span><span>بدهکار ۳</span><span>خالی ۱</span
+              ><span>طبقه ▾</span>
+            </div>
+            <div class="flat">
+              <div class="unit">
+                <span class="no">۱</span
+                ><span>موسوی · مالک<small>ط۱ · ۱۱۰ متر · ۴ نفر · شارژ ۱٬۲۰۰٬۰۰۰</small></span
+                ><span class="amt">✓</span>
+              </div>
+              <div class="unit">
+                <span class="no">۲</span
+                ><span>کاظمی · مستأجر<small>ط۱ · ۹۵ متر · ۲ نفر · شارژ ۱٬۰۰۰٬۰۰۰</small></span
+                ><span class="amt">✓</span>
+              </div>
+              <div class="unit">
+                <span class="no debt">۳</span
+                ><span>احمدی · مالک<small>ط۱ · ۱۱۰ متر · ۳ نفر · ۳ ماه بدهکار</small></span
+                ><span class="amt debt">−۳٬۶۰۰٬۰۰۰</span>
+              </div>
+              <div class="unit">
+                <span class="no">۴</span
+                ><span>رضایی · مستأجر<small>ط۲ · ۹۵ متر · پرداخت ۵ مهر از پیامک</small></span
+                ><span class="amt">✓</span>
+              </div>
+              <div class="unit">
+                <span class="no debt">۷</span
+                ><span>خالی<small>ط۳ · ۸۰ متر · مالک: نیکو · شارژ نصف ۴۰۰٬۰۰۰</small></span
+                ><span class="amt debt">−۴۰۰٬۰۰۰</span>
+              </div>
+              <div class="unit">
+                <span class="no debt">۹</span
+                ><span>صادقی · مستأجر<small>ط۳ · ۹۵ متر · سهم عمرانی (به نام مالک)</small></span
+                ><span class="amt debt">−۴۵۰٬۰۰۰</span>
+              </div>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: auto 0 0">
+              لمس ردیف = صفحهٔ واحد (فلو ۵، قدم ۱۷). شناور: «+ واحد». ⋯ روی ردیف: ویرایش، تغییر
+              ساکن، بایگانی.
+            </p>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>بدهی</span><span><i></i>چک‌ها</span><span><i></i>شارژ</span
+            ><span class="center"><i></i>داشبورد</span><span class="on"><i></i>واحدها</span
+            ><span><i></i>هزینه‌ها</span><span><i></i>صندوق</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۱۰ · ساکنان</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>ساکنان</span><span class="icon">⌕</span>
+          </div>
+          <div class="content">
+            <div class="chips">
+              <span class="on">همه ۱۴</span><span>مالک ۸</span><span>مستأجر ۶</span
+              ><span>قبلی‌ها</span>
+            </div>
+            <div class="flat">
+              <div class="unit">
+                <span class="no">۱</span
+                ><span>موسوی<small>مالک و ساکن · ۰۹۱۲… · از ۱۴۰۱</small></span
+                ><span class="amt" style="font-weight: 400; color: #999">📞 ⋯</span>
+              </div>
+              <div class="unit">
+                <span class="no">۲</span
+                ><span>کاظمی<small>مستأجر · ۰۹۳۵… · از مهر ۱۴۰۴ · مالک: فرهادی</small></span
+                ><span class="amt" style="font-weight: 400; color: #999">📞 ⋯</span>
+              </div>
+              <div class="unit">
+                <span class="no">۲</span><span>فرهادی<small>مالک (غیرساکن) · ۰۹۱۹…</small></span
+                ><span class="amt" style="font-weight: 400; color: #999">📞 ⋯</span>
+              </div>
+              <div class="unit">
+                <span class="no">۴</span
+                ><span>رضایی<small>مستأجر · کارت ۶۲۱۹…۱۱۰۰ · از آبان ۱۴۰۳</small></span
+                ><span class="amt" style="font-weight: 400; color: #999">📞 ⋯</span>
+              </div>
+              <div class="unit">
+                <span class="no">۷</span><span>نیکو<small>مالک · واحد خالی · ۰۹۱۲…</small></span
+                ><span class="amt" style="font-weight: 400; color: #999">📞 ⋯</span>
+              </div>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: auto 0 0">
+              هر نفر = طرف حساب همین ساختمان + نقش + واحد + ورود/خروج. ⋯: تماس، پیامک، صفحهٔ طرف
+              حساب، تغییر ساکن، خروج. شناور: «+ ساکن». «قبلی‌ها» = خروج‌کرده‌ها با تاریخ.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۱۱ · شارژ — ماه‌ها</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>شارژ</span><span class="icon">⌕</span>
+          </div>
+          <div class="content">
+            <div class="resume-card card">
+              <div class="rtext">
+                <b>شارژ آبان آمادهٔ صدور</b><small>۱۲ واحد · ۱۳٬۶۰۰٬۰۰۰ · روز صدور ۱ آبان</small>
+              </div>
+              <button class="btn-sm">صدور</button>
+            </div>
+            <div class="card" style="padding: 10px">
+              <div class="r" style="border: 0; padding: 0">
+                <span class="t">مهر ۱۴۰۵<small>صادر شده ۱ مهر · سررسید ۱۰ مهر</small></span
+                ><span class="a">۱۴٬۴۰۰٬۰۰۰</span>
+              </div>
+              <div class="bar3"><i style="width: 75%"></i></div>
+              <small style="color: #888">وصول ۱۰٬۸۰۰٬۰۰۰ · ۳ واحد مانده · ۱ ناقص</small>
+            </div>
+            <div class="card" style="padding: 10px">
+              <div class="r" style="border: 0; padding: 0">
+                <span class="t">شهریور ۱۴۰۵</span><span class="a">۱۴٬۴۰۰٬۰۰۰</span>
+              </div>
+              <div class="bar3"><i style="width: 92%"></i></div>
+              <small style="color: #888">وصول ۱۳٬۲۰۰٬۰۰۰ · ۱ واحد مانده</small>
+            </div>
+            <div class="card" style="padding: 10px">
+              <div class="r" style="border: 0; padding: 0">
+                <span class="t">مرداد ۱۴۰۵</span><span class="a">۱۴٬۴۰۰٬۰۰۰</span>
+              </div>
+              <div class="bar3"><i style="width: 100%"></i></div>
+              <small style="color: #262">✓ کامل</small>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: auto 0 0">
+              لمس ماه = واحدهای آن ماه با وضعیت (پرداخت / ناقص / باز) و «ثبت پرداخت» روی هر ردیف.
+            </p>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>بدهی</span><span><i></i>چک‌ها</span><span class="on"><i></i>شارژ</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>واحدها</span
+            ><span><i></i>هزینه‌ها</span><span><i></i>صندوق</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۱۲ · هزینه‌ها</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>هزینه‌ها</span><span class="icon">⌕</span>
+          </div>
+          <div class="content">
+            <div class="chips">
+              <span class="on">مهر ۱۴۰۵</span><span>جاری</span><span>عمرانی</span
+              ><span>از جیب مدیر</span><span>دسته ▾</span>
+            </div>
+            <div class="card hero2" style="padding: 8px 12px">
+              <div class="lbl">هزینهٔ مهر</div>
+              <div class="num" style="font-size: 18px">۴٬۹۰۰٬۰۰۰</div>
+              <small class="cmp"
+                >جاری ۴٬۹۰۰٬۰۰۰ · عمرانی ۰ · از صندوق ۲٬۵۰۰٬۰۰۰ · از جیب مدیر ۲٬۴۰۰٬۰۰۰</small
+              >
+            </div>
+            <div class="flat">
+              <div class="r">
+                <span class="d">۸</span
+                ><span class="t"
+                  >سرویس آسانسور <span class="badge">📎 ۱</span
+                  ><small
+                    >آسانسور › سرویس · جاری · از جیب مدیر ·
+                    <span class="cp">آسانسور پارس</span></small
+                  ></span
+                ><span class="a">−۲٬۴۰۰٬۰۰۰</span>
+              </div>
+              <div class="r">
+                <span class="d">۳</span
+                ><span class="t"
+                  >برق مشاعات <span class="badge">📎 ۱</span
+                  ><small>قبوض مشاعات › برق · جاری · از صندوق</small></span
+                ><span class="a">−۱٬۱۰۰٬۰۰۰</span>
+              </div>
+              <div class="r">
+                <span class="d">۲</span
+                ><span class="t"
+                  >نظافت ماهانه<small>نظافت · جاری · از صندوق · تکرار ماهانه</small></span
+                ><span class="a">−۱٬۴۰۰٬۰۰۰</span>
+              </div>
+            </div>
+            <div class="sec-h">شهریور</div>
+            <div class="flat">
+              <div class="r">
+                <span class="d">۲۸</span
+                ><span class="t"
+                  >تعمیر پمپ آب <span class="badge">☰ ۲</span> <span class="badge">📎 ۱</span
+                  ><small>تعمیرات › تأسیسات · عمرانی · از واحدها (۱۲ سهم)</small></span
+                ><span class="a">−۵٬۴۰۰٬۰۰۰</span>
+              </div>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: auto 0 0">
+              همان فهرست رکوردهای اپ (فیلتر هزینه) با چیپ‌های ساختمانی. لمس = شیت جزئیات رکورد
+              (round 9). شناور: «+ هزینه» (فلو ۶، قدم ۲۱).
+            </p>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>بدهی</span><span><i></i>چک‌ها</span><span><i></i>شارژ</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>واحدها</span
+            ><span class="on"><i></i>هزینه‌ها</span><span><i></i>صندوق</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>فلو ۳</b> — چهار فهرست همیشه از نوار پایین و منو در دسترس‌اند. «واحدها» و «ساکنان» دو
+          صفحهٔ جدا (نه دو نمای یک صفحه) چون فیلترها و اکشن‌هایشان فرق دارد. «شارژ» ماه‌محور است؛
+          «هزینه‌ها» همان صفحهٔ رکوردهای اپ با فیلترهای جاری/عمرانی/از جیب مدیر.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>مدیر ساختمان — فلو ۲: واحدسازی، فهرست، داشبورد خلوت، منوی ساختمان (round 11)</title>
+    <link rel="stylesheet" href="wireframe.css" />
+    <link rel="stylesheet" href="wireframe-wizard.css" />
+    <link rel="stylesheet" href="wireframe-extras.css" />
+    <link rel="stylesheet" href="wireframe-r6.css" />
+    <link rel="stylesheet" href="wireframe-r6-2.css" />
+    <link rel="stylesheet" href="wireframe-r7-5.css" />
+    <link rel="stylesheet" href="wireframe-r9.css" />
+    <link rel="stylesheet" href="wireframe-r10.css" />
+    <link rel="stylesheet" href="wireframe-r11.css" />
+  </head>
+  <body>
+    <p class="back"><a href="index.html">← فهرست وایرفریم‌ها</a></p>
+    <h1>
+      مدیر ساختمان — فلو ۲ از ۶: واحدسازی سریع، فهرست ساختمان‌ها، داشبورد خلوت، منوی داخل ساختمان
+    </h1>
+    <p class="flow-h">
+      قبلی: <a href="round11-flow-1.html">فلو ۱</a> · قدم‌های ۵ تا ۸ · بعدی:
+      <a href="round11-flow-3.html">فلو ۳ (واحدها، ساکنان، شارژ، هزینه‌ها)</a>
+    </p>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs"><button class="on">۵ · بعد از ساخت: واحدسازی سریع</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon" style="border: 0"></span><span>ساختمان نرگس</span
+            ><span class="icon">رد</span>
+          </div>
+          <div class="content">
+            <div class="card hero2" style="text-align: center">
+              <div class="lbl">ساختمان ساخته شد ✓</div>
+              <div class="num" style="font-size: 16px">حالا ۱۲ واحدش را بساز</div>
+            </div>
+            <div class="card">
+              <div class="f-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px">
+                <div>
+                  <label>از شمارهٔ</label>
+                  <div class="f-input" style="color: #333">۱</div>
+                </div>
+                <div>
+                  <label>تا شمارهٔ</label>
+                  <div class="f-input" style="color: #333">۱۲</div>
+                </div>
+              </div>
+              <div class="f-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px">
+                <div>
+                  <label>واحد در هر طبقه</label>
+                  <div class="f-input" style="color: #333">۳ (۱–۳ ط۱، ۴–۶ ط۲ …)</div>
+                </div>
+                <div>
+                  <label>متراژ پیش‌فرض</label>
+                  <div class="f-input" style="color: #333">۱۰۰</div>
+                </div>
+              </div>
+            </div>
+            <div class="sec-h">پیش‌نمایش</div>
+            <div class="split">
+              <span class="h">واحد</span><span class="h">طبقه</span><span class="h">شارژ</span>
+              <span>۱</span><span>۱</span><span>۱٬۲۰۰٬۰۰۰</span> <span>۲</span><span>۱</span
+              ><span>۱٬۲۰۰٬۰۰۰</span> <span style="color: #888">… تا ۱۲</span><span></span
+              ><span></span>
+            </div>
+            <div class="nextbtn">
+              <button class="btn-primary">ساخت ۱۲ واحد</button
+              ><button class="linkbtn">بعداً، دستی</button>
+            </div>
+            <p style="font-size: 11px; color: #888; margin: 8px 0 0">
+              متراژ، نفرات و ساکن هر واحد بعداً در تب «واحدها» ویرایش می‌شود.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۶ · فهرست «مدیر ساختمان» — با کارت</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>مدیر ساختمان</span
+            ><span class="icon" style="border: 0"></span>
+          </div>
+          <div class="content">
+            <div class="card" style="padding: 10px">
+              <div class="r" style="border: 0; padding: 0">
+                <span class="t">ساختمان نرگس<small>۱۲ واحد · ۵ طبقه · فقط شما</small></span
+                ><button class="btn-sm">ورود</button>
+              </div>
+              <div class="due2">
+                <span>بدهکار<b>۰ واحد</b>—</span>
+                <span class="soon">شارژ مهر<b>صادر نشده</b>روز ۱</span>
+                <span>صندوق<b>۰</b>ملت</span>
+              </div>
+            </div>
+            <div class="flat">
+              <div class="r">
+                <span class="t">+ ساختمان جدید</span
+                ><span class="a" style="font-weight: 400; color: #999">›</span>
+              </div>
+              <div class="r">
+                <span class="t">اتصال به شیت موجود</span
+                ><span class="a" style="font-weight: 400; color: #999">›</span>
+              </div>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: auto 0 0">
+              «ورود» = سوئیچ به شیت ساختمان. از اینجا به بعد همهٔ صفحه‌ها داخل فضای ساختمان‌اند تا
+              «برگشت به حساب شخصی».
+            </p>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۷ · داشبورد ساختمان — خلوت</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>ساختمان نرگس</span><span class="icon">⌕</span>
+          </div>
+          <div class="content">
+            <div class="card hero2">
+              <div class="lbl">صندوق ساختمان</div>
+              <div class="num" style="font-size: 22px">۱۸٬۴۰۰٬۰۰۰</div>
+              <small class="cmp">ملت ۱۷٬۲۰۰٬۰۰۰ · نقدی سرایدار ۱٬۲۰۰٬۰۰۰</small>
+            </div>
+            <div class="flat">
+              <div class="r">
+                <span class="t">شارژ مهر<small>۹ از ۱۲ واحد پرداخت کرده‌اند</small></span>
+                <span class="a" style="color: #a33">۳ واحد · ۳٬۶۰۰٬۰۰۰ مانده</span>
+              </div>
+              <div class="bar3" style="margin: 0 0 8px"><i style="width: 75%"></i></div>
+            </div>
+            <div class="sec-h">پیش رو <a>همه ←</a></div>
+            <div class="flat">
+              <div class="r">
+                <span class="d">۱</span
+                ><span class="t">صدور شارژ آبان<small>۱۲ واحد · خودکار</small></span
+                ><span class="a">۱۴٬۴۰۰٬۰۰۰</span>
+              </div>
+              <div class="r">
+                <span class="d">۱۰</span
+                ><span class="t">نظافت ماهانه<small>تکرار ماهانه</small></span
+                ><span class="a">۱٬۵۰۰٬۰۰۰</span>
+              </div>
+              <div class="r">
+                <span class="d">۲۰</span><span class="t">چک پیمانکار آسانسور</span
+                ><span class="a">۶٬۰۰۰٬۰۰۰</span>
+              </div>
+            </div>
+            <div class="sec-h">این ماه</div>
+            <div class="flat">
+              <div class="r">
+                <span class="t">هزینه‌ها · ۲ مورد</span><span class="a">۴٬۹۰۰٬۰۰۰ ←</span>
+              </div>
+              <div class="r">
+                <span class="t">بدهی ساختمان به مدیر</span><span class="a">۲٬۴۰۰٬۰۰۰ ←</span>
+              </div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>بدهی</span><span><i></i>چک‌ها</span><span><i></i>شارژ</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>واحدها</span
+            ><span><i></i>هزینه‌ها</span><span><i></i>صندوق</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۸ · سایدبار داخل ساختمان</button></div>
+        <div class="phone">
+          <div class="app-header" style="filter: blur(2px)">
+            <span class="icon">☰</span><span>ساختمان نرگس</span><span class="icon">⌕</span>
+          </div>
+          <div class="content" style="padding: 0; display: flex">
+            <div class="drawer">
+              <div class="r" style="border-bottom: 1px solid #ddd">
+                <span class="av b">ن</span
+                ><span class="t">ساختمان نرگس<small>فضای ساختمان · شما: مدیر</small></span>
+              </div>
+              <div class="sec-h">ساختمان</div>
+              <div class="r on"><span class="t">داشبورد</span></div>
+              <div class="r"><span class="t">واحدها</span></div>
+              <div class="r"><span class="t">ساکنان</span></div>
+              <div class="r"><span class="t">شارژ</span></div>
+              <div class="r"><span class="t">هزینه‌ها</span></div>
+              <div class="r"><span class="t">صندوق</span></div>
+              <div class="sec-h">تعهدات</div>
+              <div class="r"><span class="t">بدهی ساختمان</span></div>
+              <div class="r"><span class="t">چک‌ها</span></div>
+              <div class="sec-h">بیشتر</div>
+              <div class="r"><span class="t">طرف حساب‌ها</span></div>
+              <div class="r"><span class="t">پیامک بانکی</span></div>
+              <div class="r"><span class="t">گزارش‌ها و مجمع</span></div>
+              <div class="r"><span class="t">تنظیمات ساختمان</span></div>
+              <div class="r" style="border-top: 1.5px solid #555; margin-top: 6px">
+                <span class="t"><b>↩ برگشت به حساب شخصی</b></span>
+              </div>
+            </div>
+            <div class="dim" style="right: 78%; left: 0"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>فلو ۲</b> — واحدسازی سریع یک‌بار بعد از ساخت (قابل رد). داشبورد ساختمان عمداً خلوت: یک
+          هیرو (صندوق)، یک خط شارژ ماه با نوار، «پیش رو» سه ردیف، «این ماه» دو لینک. بدون کارت رنگی
+          اضافه. منوی ساختمان: ۱۳ ردیف، بدون ماژول‌های شخصی، آخرین ردیف همیشه «برگشت».
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

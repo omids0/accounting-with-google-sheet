@@ -14,7 +14,7 @@ The spec is written step by step with exact names on purpose. Follow the steps i
 - Commands that must pass before every commit: `npm run types`, `npm run lint`, `npm test`, `npm run build`, `npm run lines`, `npx size-limit`. Prettier only on the files you changed, never on folders.
 - New sheet tabs/columns follow the round-6 rules (`sheetNames.ts`, `sheetHeaders*.ts`, `moduleSheetSpecs.ts`, `sheetSyncSheetNames.ts`, CSV, backup). New columns go at the **end** of the row.
 - New localStorage keys: per spreadsheet and in `ACCOUNT_KEYS` in `src/services/localDataWipe.ts`.
-- Update About (`src/components/about/aboutFeatureGroups*.ts`) and `aboutChangelog.ts` (max 3 items). Bump `version` in `package.json` and the two root lines in `package-lock.json` (this round ships as **2.7.0**).
+- Update About (`src/components/about/aboutFeatureGroups*.ts`) and `aboutChangelog.ts` (max 3 items). Bump `version` in `package.json` and the two root lines in `package-lock.json` (this round ships as **2.8.0**; round 11 ships first as 2.7.0).
 - Commit format `<type>/ACCT-0/ACCT-0/<description>`; one commit per step; branch `feature/ACCT-0/ACCT-0/ux-round-10` off `main`; no `gh` CLI; after push give `https://github.com/omids0/accounting-with-google-sheet/compare/main...feature/ACCT-0/ACCT-0/ux-round-10?expand=1`.
 - Commit messages end with a blank line and `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
 - Android is built by GitHub Actions only; Java/XML changes are reviewed by reading. List every Android file you touch in the final report.
@@ -190,10 +190,10 @@ Wireframe `round10-vehicle.html` phone 1. Files: `VehicleActiveItemCard.tsx` (+ 
 
 ## Step D — About, changelog, version
 
-- `aboutChangelog.ts`: version `2.7.0`, items: «سرویس خودرو با موعد زمانی و کیلومتری و فاکتور مکانیک روی رکورد», «هشدار بودجه در وب و قیمت رمزارز», «ویزارد شروع کامل‌تر و جستجو در راهنما».
-- Bump to 2.7.0.
+- `aboutChangelog.ts`: version `2.8.0`, items: «سرویس خودرو با موعد زمانی و کیلومتری و فاکتور مکانیک روی رکورد», «هشدار بودجه در وب و قیمت رمزارز», «ویزارد شروع کامل‌تر و جستجو در راهنما».
+- Bump to 2.8.0.
 
-**Commit:** `docs/ACCT-0/ACCT-0/Describe round 10 in About and bump to 2.7.0`. Run `npm run build` once more, push, give the compare link.
+**Commit:** `docs/ACCT-0/ACCT-0/Describe round 10 in About and bump to 2.8.0`. Run `npm run build` once more, push, give the compare link.
 
 ## Acceptance (the owner checks these)
 
