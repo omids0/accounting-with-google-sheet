@@ -1,3 +1,6 @@
+import { useState } from 'react'
+
+import ReconcileCorrectionModal from './ReconcileCorrectionModal'
 import type { ReconcileWizard } from './useReconcileWizard'
 import { FIRST_RECONCILE_DAYS, smsDayLabel } from '../../../services/bankSmsReconcile'
 import { cn } from '../../../utils/cn'
@@ -49,6 +52,7 @@ export function ReconcileSummary({ wizard }: { wizard: ReconcileWizard }) {
 
 /** Part 4: «هنوز N اختلاف» with the correction record, or «✓ … یکی شد». */
 export function ReconcileFooter({ wizard }: { wizard: ReconcileWizard }) {
+  const [correcting, setCorrecting] = useState(false)
   const result = wizard.view?.result
 
   if (!result) {
@@ -75,19 +79,29 @@ export function ReconcileFooter({ wizard }: { wizard: ReconcileWizard }) {
       </strong>
       <p className="m-0 leading-[1.7] text-muted">
         پیامک‌های بالا را ثبت کن یا حساب تراکنش‌های بدون پیامک را درست کن. اگر باز هم ماند، یک رکورد
-        اصلاحی با دستهٔ «تطبیق» ثبت می‌شود؛ موجودی حساب مستقیم عوض نمی‌شود.
+        اصلاحی با دستهٔ دلخواهت (مثلاً «کارمزد») ثبت می‌شود؛ موجودی حساب مستقیم عوض نمی‌شود.
       </p>
       <Button
         type="button"
         variant="secondary"
         size="sm"
         className="self-start"
-        loading={wizard.busyKey === 'correct'}
         disabled={wizard.busyKey !== null}
-        onClick={wizard.correct}
+        onClick={() => setCorrecting(true)}
       >
         تنظیم دستی موجودی
       </Button>
+      {correcting ? (
+        <ReconcileCorrectionModal
+          open
+          difference={result.difference}
+          saving={wizard.busyKey === 'correct'}
+          onClose={() => setCorrecting(false)}
+          onSubmit={options => {
+            void wizard.correct(options).then(done => done && setCorrecting(false))
+          }}
+        />
+      ) : null}
     </Card>
   )
 }

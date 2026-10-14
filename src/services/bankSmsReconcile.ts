@@ -47,6 +47,20 @@ export interface AccountReconcile {
   match: SmsRecordMatch
 }
 
+/** Every correction note starts with this, whatever category the user picked. */
+export const RECONCILE_NOTE_PREFIX = 'تطبیق با پیامک'
+
+/**
+ * A record written by «تنظیم دستی موجودی». Besides the system category «تطبیق», a
+ * correction can sit in a category the user picked (e.g. «کارمزد»), so the note marks it.
+ */
+export function isReconcileCorrection(record: Pick<LedgerEntry, 'category' | 'note'>): boolean {
+  return (
+    record.category === SMS_RECONCILE_CATEGORY ||
+    (record.note ?? '').startsWith(RECONCILE_NOTE_PREFIX)
+  )
+}
+
 const smsRecordType = (entry: ConfirmableSms) =>
   entry.result.direction === 'debit' ? ('expense' as const) : ('income' as const)
 
@@ -89,7 +103,7 @@ export function matchSmsToRecords(
     smsTimeOf,
     missingSms,
     unmatchedRecords: pool.filter(
-      record => !smsTimeOf.has(record) && record.category !== SMS_RECONCILE_CATEGORY
+      record => !smsTimeOf.has(record) && !isReconcileCorrection(record)
     )
   }
 }
@@ -100,7 +114,7 @@ export function matchSmsToRecords(
  * SMS's own day its «زمان ثبت» (when entered that day).
  */
 export function isAfterSms(record: LedgerEntry, smsAt: number, matchedAt?: number): boolean {
-  if (record.category === SMS_RECONCILE_CATEGORY) return false
+  if (isReconcileCorrection(record)) return false
   if (matchedAt !== undefined) return matchedAt > smsAt
   if (!record.date) return false
 
@@ -190,17 +204,32 @@ export function smsMomentLabel(ms: number): string {
   return `${smsDayLabel(ms)} ${time}`
 }
 
+export interface CorrectionOptions {
+  /** The category the user picked (e.g. «کارمزد»); empty = the system «تطبیق». */
+  category?: string
+  /** Free text appended to the note («کارمزد جابجایی»). */
+  note?: string
+}
+
 /**
  * The record that closes the difference (never a direct balance edit): more in the
  * app → an expense, less → an income, dated on the SMS day.
  */
-export function correctionRecord(difference: number, smsAt: number) {
+export function correctionRecord(
+  difference: number,
+  smsAt: number,
+  { category, note }: CorrectionOptions = {}
+) {
+  const chosen = category?.trim() || SMS_RECONCILE_CATEGORY
+  const extra = note?.trim()
+  const base = `${RECONCILE_NOTE_PREFIX} ${smsDayLabel(smsAt)}`
+
   return {
     type: difference > 0 ? ('expense' as const) : ('income' as const),
-    title: SMS_RECONCILE_CATEGORY,
+    title: chosen,
     amount: Math.abs(difference),
-    category: SMS_RECONCILE_CATEGORY,
-    note: `تطبیق با پیامک ${smsDayLabel(smsAt)}`,
+    category: chosen,
+    note: extra ? `${base} · ${extra}` : base,
     date: toIsoDate(new Date(smsAt))
   }
 }

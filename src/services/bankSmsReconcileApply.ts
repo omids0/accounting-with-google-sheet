@@ -1,22 +1,23 @@
 import { logItemActivity } from './activityLog'
-import { correctionRecord, type AccountReconcile } from './bankSmsReconcile'
+import { correctionRecord, type AccountReconcile, type CorrectionOptions } from './bankSmsReconcile'
 import { saveReconcileSuccess } from './bankSmsReconcileStore'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
 import { applyWalletChanges, recordLedgerContext } from './recordWallet'
 
 /**
- * «تنظیم دستی موجودی»: an income/expense record of category «تطبیق» on the account, which
- * moves its balance through the normal record path (never a direct balance edit). The
- * account then agrees with the SMS, so the reconciliation is stored.
+ * «تنظیم دستی موجودی»: an income/expense record on the account (category «تطبیق», or the
+ * one the user picked), which moves its balance through the normal record path (never a
+ * direct balance edit). The account then agrees with the SMS, so the reconciliation is stored.
  */
 export async function createReconcileCorrection(
   spreadsheetId: string,
   accountId: string,
-  result: Pick<AccountReconcile, 'difference' | 'smsAt' | 'smsBalance'>
+  result: Pick<AccountReconcile, 'difference' | 'smsAt' | 'smsBalance'>,
+  options?: CorrectionOptions
 ): Promise<void> {
   if (!result.difference) return
 
-  const { type, ...record } = correctionRecord(result.difference, result.smsAt)
+  const { type, ...record } = correctionRecord(result.difference, result.smsAt, options)
   const params = { ...record, walletAccount: accountId }
   const recordId =
     type === 'expense'
