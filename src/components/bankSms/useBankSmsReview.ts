@@ -48,7 +48,7 @@ export function useBankSmsReview(sinceMs: number) {
   const { accounts, ledger, recurring, reload: loadContext } = useBankSmsContext()
   const [noPair, setNoPair] = useState<ReadonlySet<string>>(new Set())
   const [busyKey, setBusyKey] = useState<string | null>(null)
-  const [picked, setPicked] = useState<Record<string, SmsCategoryChoice>>({})
+  const [picked, setPicked] = useState<Record<string, SmsChoice>>({})
   const undoable = useUndoableDelete()
   const navigate = useNavigate()
 
@@ -162,8 +162,7 @@ export function useBankSmsReview(sinceMs: number) {
     refresh,
     scanFrom,
     choiceFor,
-    pick: (smsId: string, choice: SmsCategoryChoice) =>
-      setPicked(prev => ({ ...prev, [smsId]: choice })),
+    pick: (smsId: string, choice: SmsChoice) => setPicked(prev => ({ ...prev, [smsId]: choice })),
     openEntry,
     /** The card's main button: save with its category, or open the form when unsure. */
     primary: (entry: ConfirmableSms, probableDuplicate: boolean) => {
