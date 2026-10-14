@@ -6,6 +6,7 @@ import {
   buildDigestLines,
   correctionRecord,
   isDifferenceIgnored,
+  isReconcileCorrection,
   matchSmsToRecords,
   reconcileAccount,
   reconcileRangeStart,
@@ -157,6 +158,26 @@ describe('correctionRecord', () => {
     })
     expect(correctionRecord(-120_000, at(8, 14))).toMatchObject({ type: 'income', amount: 120_000 })
     expect(correctionRecord(1, at(8, 14)).note).toMatch(/^تطبیق با پیامک /)
+  })
+
+  it('takes the category and note the user picked, e.g. «کارمزد»', () => {
+    const fix = correctionRecord(1_100, at(8, 14), { category: ' کارمزد ', note: 'کارمزد جابجایی' })
+
+    expect(fix).toMatchObject({ type: 'expense', category: 'کارمزد', title: 'کارمزد' })
+    expect(fix.note).toMatch(/^تطبیق با پیامک .+ · کارمزد جابجایی$/)
+    expect(correctionRecord(1_100, at(8, 14), { category: '  ' }).category).toBe(
+      SMS_RECONCILE_CATEGORY
+    )
+  })
+
+  it('still counts as a correction in a category other than «تطبیق»', () => {
+    const fee = record('fee', correctionRecord(1_100, at(8)))
+    const picked = record('picked', correctionRecord(1_100, at(8), { category: 'کارمزد' }))
+
+    expect(isReconcileCorrection(fee)).toBe(true)
+    expect(isReconcileCorrection(picked)).toBe(true)
+    expect(isReconcileCorrection(record('plain', { date: dayIso(8), note: 'قهوه' }))).toBe(false)
+    expect(matchSmsToRecords([], [picked], 'mellat').unmatchedRecords).toEqual([])
   })
 
   it('closes the difference once saved, although it is created after the SMS', () => {

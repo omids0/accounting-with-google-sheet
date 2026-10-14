@@ -14,7 +14,8 @@ import {
   accountSms,
   matchSmsToRecords,
   reconcileAccount,
-  reconcileRangeStart
+  reconcileRangeStart,
+  type CorrectionOptions
 } from '../../../services/bankSmsReconcile'
 import { createReconcileCorrection } from '../../../services/bankSmsReconcileApply'
 import { loadReconcileSms, refreshReconcileDigest } from '../../../services/bankSmsReconcileData'
@@ -87,18 +88,27 @@ export function useReconcileWizard(accountId: string) {
     if (sms && spreadsheetId) refreshReconcileDigest(spreadsheetId, accounts, sms, ledger)
   }, [sms, spreadsheetId, accounts, ledger, entry])
 
-  const run = async (key: string, message: string, task: (id: string) => Promise<void>) => {
+  /** Resolves `true` when the task went through. */
+  const run = async (
+    key: string,
+    message: string,
+    task: (id: string) => Promise<void>
+  ): Promise<boolean> => {
     const id = requireSpreadsheetId()
 
-    if (!id) return
+    if (!id) return false
     setBusyKey(key)
     try {
       await task(id)
       showSuccess(message)
       haptic('light')
+
+      return true
     } catch (err) {
       haptic('error')
       handleSheetError(err, { fallbackMessage: 'خطا در ثبت تطبیق' })
+
+      return false
     } finally {
       // Also after a failure: part of the task may have been written already.
       await Promise.all([reload(), loadSms(), useBankSmsStore.getState().refresh()])
@@ -146,10 +156,12 @@ export function useReconcileWizard(accountId: string) {
     edit: (record: LedgerEntry) => {
       if (record.id) navigate(recordFocusPath(record.type, record.id, true))
     },
-    correct: () => {
-      if (!result?.difference) return
-      void run('correct', 'رکورد «تطبیق» ثبت شد', id =>
-        createReconcileCorrection(id, accountId, result)
+    /** «تنظیم دستی موجودی»: the correction record, in the category the user picked. */
+    correct: async (options?: CorrectionOptions): Promise<boolean> => {
+      if (!result?.difference) return false
+
+      return run('correct', 'رکورد اصلاحی ثبت شد', id =>
+        createReconcileCorrection(id, accountId, result, options)
       )
     }
   }
