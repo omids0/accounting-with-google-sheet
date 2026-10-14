@@ -103,7 +103,7 @@ export default function BankSmsUnknownCard({
           </p>
           <p className={smsHintClass}>
             {bankAccounts.length
-              ? 'مبلغ را در متن لمس کن تا قالب این بانک ساخته شود — یک بار.'
+              ? 'برای ساخت قالب این بانک (یک بار)، مبلغ را در متن لمس کن یا «ساخت قالب» را بزن.'
               : 'اول در کیف پول یک حساب بانکی بسازید.'}
           </p>
           {bankAccounts.length > 1 && (
@@ -118,6 +118,14 @@ export default function BankSmsUnknownCard({
             />
           )}
           <div className={smsActionsRowClass}>
+            <Button
+              type="button"
+              size="sm"
+              disabled={busy || !bankAccounts.length}
+              onClick={() => setTemplateText(body)}
+            >
+              ساخت قالب
+            </Button>
             <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={dismiss}>
               نادیده
             </Button>

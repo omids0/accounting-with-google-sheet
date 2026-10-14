@@ -175,6 +175,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
         open={picking}
         type={type}
         current={choice}
+        defaultTitle={`${titleOf(accountId)} — پیامک`}
         onClose={() => setPicking(false)}
         onPick={next => review.pick(entry.sms.id, next)}
       />

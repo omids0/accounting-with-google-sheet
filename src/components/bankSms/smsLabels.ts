@@ -102,6 +102,6 @@ export function smsChoiceReason(choice: {
     case 'sender':
       return 'آخرین دسته‌ای که برای پیامک‌های همین بانک زدی'
     default:
-      return 'انتخاب خودت'
+      return choice.title ? `انتخاب خودت · عنوان «${choice.title}»` : 'انتخاب خودت'
   }
 }
