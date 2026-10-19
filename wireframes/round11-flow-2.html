@@ -25,52 +25,59 @@
     </p>
     <div class="wrap">
       <div class="col">
-        <div class="state-tabs"><button class="on">۵ · بعد از ساخت: واحدسازی سریع</button></div>
+        <div class="state-tabs">
+          <button class="on">۵ · سفر راه‌اندازی — قدم ۳ از ۸: واحدها (سه مرحله)</button>
+        </div>
         <div class="phone">
           <div class="app-header">
-            <span class="icon" style="border: 0"></span><span>ساختمان نرگس</span
+            <span class="icon">←</span><span>راه‌اندازی · قدم ۳ از ۸</span
             ><span class="icon">رد</span>
           </div>
           <div class="content">
-            <div class="card hero2" style="text-align: center">
-              <div class="lbl">ساختمان ساخته شد ✓</div>
-              <div class="num" style="font-size: 16px">حالا ۱۲ واحدش را بساز</div>
+            <div class="steps">
+              <i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i
+              ><i></i>
             </div>
+            <div class="mini-h">مرحلهٔ ۱ · تعداد</div>
             <div class="card">
-              <div class="f-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px">
+              <div
+                class="f-row"
+                style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px"
+              >
                 <div>
-                  <label>از شمارهٔ</label>
-                  <div class="f-input" style="color: #333">۱</div>
-                </div>
-                <div>
-                  <label>تا شمارهٔ</label>
+                  <label>تعداد واحد</label>
                   <div class="f-input" style="color: #333">۱۲</div>
                 </div>
-              </div>
-              <div class="f-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px">
                 <div>
-                  <label>واحد در هر طبقه</label>
-                  <div class="f-input" style="color: #333">۳ (۱–۳ ط۱، ۴–۶ ط۲ …)</div>
+                  <label>تعداد طبقه</label>
+                  <div class="f-input" style="color: #333">۴</div>
                 </div>
                 <div>
-                  <label>متراژ پیش‌فرض</label>
+                  <label>متراژ مرجع</label>
                   <div class="f-input" style="color: #333">۱۰۰</div>
                 </div>
               </div>
             </div>
-            <div class="sec-h">پیش‌نمایش</div>
+            <div class="mini-h">مرحلهٔ ۲ · واحدهای هر طبقه</div>
             <div class="split">
-              <span class="h">واحد</span><span class="h">طبقه</span><span class="h">شارژ</span>
-              <span>۱</span><span>۱</span><span>۱٬۲۰۰٬۰۰۰</span> <span>۲</span><span>۱</span
-              ><span>۱٬۲۰۰٬۰۰۰</span> <span style="color: #888">… تا ۱۲</span><span></span
+              <span class="h">طبقه</span><span class="h">از</span><span class="h">تا واحد…</span>
+              <span>۱</span><span>۱</span><span>۳ ▾</span> <span>۲</span><span>۴</span
+              ><span>۶ ▾</span> <span>۳</span><span>۷</span><span>۹ ▾</span> <span>۴</span
+              ><span>۱۰</span><span>۱۲ (آخر)</span>
+            </div>
+            <div class="mini-h">مرحلهٔ ۳ · متراژ هر واحد (پیش‌فرض ۱۰۰)</div>
+            <div class="split">
+              <span>۱</span><span>۱۰۰</span><span></span> <span>۳</span><span><b>۱۱۰</b></span
+              ><span>ویژه</span> <span style="color: #888">… بقیه ۱۰۰</span><span></span
               ><span></span>
             </div>
             <div class="nextbtn">
-              <button class="btn-primary">ساخت ۱۲ واحد</button
-              ><button class="linkbtn">بعداً، دستی</button>
+              <button class="btn-primary">ساخت ۱۲ واحد و بعدی</button
+              ><button class="linkbtn">رد کردن</button>
             </div>
             <p style="font-size: 11px; color: #888; margin: 8px 0 0">
-              متراژ، نفرات و ساکن هر واحد بعداً در تب «واحدها» ویرایش می‌شود.
+              تغییر «تا واحد» یک طبقه، باقی را روی طبقه‌های بعد پخش می‌کند؛ آخرین طبقه همیشه به ۱۲
+              ختم می‌شود. مالک‌ها فعلاً placeholder؛ قدم ۴ (فلو ۷) تکمیلشان می‌کند.
             </p>
           </div>
         </div>
@@ -163,11 +170,11 @@
                 <span class="t">بدهی ساختمان به مدیر</span><span class="a">۲٬۴۰۰٬۰۰۰ ←</span>
               </div>
             </div>
-          </div>
-          <div class="bottom-nav">
-            <span><i></i>بدهی</span><span><i></i>چک‌ها</span><span><i></i>شارژ</span
-            ><span class="center"><i></i>داشبورد</span><span><i></i>واحدها</span
-            ><span><i></i>هزینه‌ها</span><span><i></i>صندوق</span>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: auto 0 0">
+              بدون نوار پایین؛ همه‌چیز در منو. دکمهٔ شناور «+» دو کار: «ثبت هزینه» و «ثبت واریزی
+              شارژ» (انتخاب واحد، بدهکارها اول). اگر سفر راه‌اندازی نیمه‌کاره مانده باشد، کارت
+              چک‌لیست با «ادامه» بالای هیرو می‌نشیند.
+            </p>
           </div>
         </div>
       </div>
