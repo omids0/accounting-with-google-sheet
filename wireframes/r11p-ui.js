@@ -221,7 +221,7 @@ function parseRoute() {
   }
   return R
 }
-const curR = null
+let curR = null
 const curB = () => (curR && curR.zone === 'b' ? S.buildings.find(x => x.id === curR.bid) : null)
 
 /* ---------- drawer ---------- */
