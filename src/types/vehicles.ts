@@ -25,6 +25,8 @@ export interface VehicleProfile {
   mileageReminderInterval: VehicleMileageReminderInterval
   lastMileageUpdate: string
   active: boolean
+  /** Expense types that cannot be saved without a mileage; the others ask for it as optional. */
+  mileageRequiredTypes: string[]
 }
 
 export interface VehiclePeriodicService {

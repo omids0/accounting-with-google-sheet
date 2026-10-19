@@ -4,9 +4,12 @@ import { useForm } from 'react-hook-form'
 import { VEHICLE_MILEAGE_REMINDER_OPTIONS } from './constants'
 import type { VehicleProfileFormState, VehicleProfileWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import { getVehicleExpenseCategories } from '../../services/vehicleExpenseCategories'
 import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
+import { DEFAULT_MILEAGE_REQUIRED_TYPES } from '../../utils/vehicleExpenseUtils'
 import { FormField, FormRow, FormSelect } from '../form'
 import FormModal from '../FormModal'
+import ToggleChipGroup from '../ToggleChipGroup'
 import IranPlateInput from './IranPlateInput'
 import MileageInput from './MileageInput'
 
@@ -27,7 +30,8 @@ function buildInitialValues(editingItem: VehicleProfileWithRow | null): VehicleP
       buildYear: editingItem.buildYear,
       capacity: editingItem.capacity,
       plate: editingItem.plate,
-      mileageReminderInterval: editingItem.mileageReminderInterval
+      mileageReminderInterval: editingItem.mileageReminderInterval,
+      mileageRequiredTypes: editingItem.mileageRequiredTypes
     }
   }
 
@@ -38,7 +42,8 @@ function buildInitialValues(editingItem: VehicleProfileWithRow | null): VehicleP
     buildYear: '',
     capacity: '',
     plate: '',
-    mileageReminderInterval: 'first-of-month'
+    mileageReminderInterval: 'first-of-month',
+    mileageRequiredTypes: [...DEFAULT_MILEAGE_REQUIRED_TYPES]
   }
 }
 
@@ -71,6 +76,13 @@ export default function VehicleProfileFormModal({
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
+
+  const requiredTypes = watch('mileageRequiredTypes')
+  // Types already required stay listed even if later removed from the category list.
+  const expenseTypes = useMemo(
+    () => [...new Set([...getVehicleExpenseCategories(), ...requiredTypes])],
+    [requiredTypes]
+  )
 
   return (
     <FormModal
@@ -142,6 +154,26 @@ export default function VehicleProfileFormModal({
           label: option.label
         }))}
       />
+
+      <FormField
+        label="کارکرد اجباری در هزینه‌ها"
+        controlWidth="full"
+        hint="برای نوع هزینه‌های انتخاب‌شده، ثبت هزینه بدون کارکرد ممکن نیست. برای بقیه، کارکرد اختیاری است."
+      >
+        <ToggleChipGroup
+          ariaLabel="نوع هزینه‌هایی که کارکرد اجباری دارند"
+          options={expenseTypes.map(name => ({ id: name, label: name }))}
+          selected={Object.fromEntries(requiredTypes.map(name => [name, true]))}
+          onToggle={name =>
+            setValue(
+              'mileageRequiredTypes',
+              requiredTypes.includes(name)
+                ? requiredTypes.filter(item => item !== name)
+                : [...requiredTypes, name]
+            )
+          }
+        />
+      </FormField>
     </FormModal>
   )
 }

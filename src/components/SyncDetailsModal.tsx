@@ -11,6 +11,7 @@ import {
   type FailedWriteSummary
 } from '../services/failedWrites'
 import { retryPendingWrites } from '../services/sheetSync'
+import { buildSyncReport } from '../services/syncReport'
 import { useConflictStore } from '../stores/conflictStore'
 import Alert from './ui/Alert'
 import Button from './ui/Button'
@@ -168,6 +169,19 @@ export default function SyncDetailsModal({
             </ul>
           </>
         )}
+        <p className={confirmDeleteMessageClass}>
+          اگر همگام‌سازی گیر کرد یا خطا داد، گزارش را کپی کنید و بفرستید.
+        </p>
+        <div className={syncDetailsActionsClass}>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => void copy(buildSyncReport(spreadsheetId), 'گزارش همگام‌سازی کپی شد')}
+          >
+            کپی گزارش همگام‌سازی
+          </Button>
+        </div>
       </div>
     </FormModal>
   )

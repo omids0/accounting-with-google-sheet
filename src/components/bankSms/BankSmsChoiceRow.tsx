@@ -1,35 +1,84 @@
+import { useState } from 'react'
+
 import { smsChoiceReason } from './smsLabels'
 import type { SmsChoice } from './useBankSmsReview'
-import AppIcon from '../AppIcon'
-import { smsChoiceButtonClass, smsChoiceReasonClass, smsChoiceRowClass } from '../ui/bankSmsStyles'
+import { getCategoriesPath } from '../../routes/paths'
+import { readCategoryList } from '../../services/categoryManage'
+import { getSettings } from '../../services/settings'
+import { lockedCategoriesFor } from '../../utils/protectedCategories'
+import CategorySelect from '../form/CategorySelect'
+import FormField from '../form/FormField'
+import SubCategorySelect from '../form/SubCategorySelect'
+import { smsChoiceReasonClass, smsChoiceRowClass } from '../ui/bankSmsStyles'
 
 type BankSmsChoiceRowProps = {
+  type: 'income' | 'expense'
   choice: SmsChoice | null
+  /** Shown in the «عنوان» field while it is empty: what is saved when left blank. */
+  defaultTitle: string
   busy: boolean
-  onOpen: () => void
+  onPick: (choice: SmsChoice) => void
 }
 
-/** «دسته پیشنهادی» line: why it was suggested, and «دسته: خوراک ▾» to change it. */
-export default function BankSmsChoiceRow({ choice, busy, onOpen }: BankSmsChoiceRowProps) {
-  const label = choice
-    ? `دسته: ${choice.subCategory ? `${choice.category} › ${choice.subCategory}` : choice.category}`
-    : 'انتخاب دسته'
+/**
+ * «دسته پیشنهادی» block: why it was suggested, then the entry form's own category and
+ * subcategory pickers (so categories can be added or managed right here) and the title.
+ */
+export default function BankSmsChoiceRow({
+  type,
+  choice,
+  defaultTitle,
+  busy,
+  onPick
+}: BankSmsChoiceRowProps) {
+  const [categories, setCategories] = useState(() => readCategoryList(type))
+  const formId = getSettings()?.forms.find(form => form.type === type)?.id
+  const category = choice?.category ?? ''
+  const subCategory = choice?.subCategory ?? ''
+  const title = choice?.title ?? ''
 
   return (
     <div className={smsChoiceRowClass}>
       <p className={smsChoiceReasonClass}>
-        {choice ? smsChoiceReason(choice) : 'دسته‌ای پیشنهاد نشد؛ با ثبت، فرم باز می‌شود.'}
+        {choice ? smsChoiceReason(choice) : 'دسته‌ای پیشنهاد نشد؛ یکی را انتخاب کنید.'}
       </p>
-      <button
-        type="button"
-        className={smsChoiceButtonClass}
+      <CategorySelect
+        value={category}
+        onChange={next => onPick({ category: next, subCategory: '', title })}
+        categories={categories}
+        onCategoriesChange={setCategories}
+        formId={formId}
+        categoryScope={type}
+        lockedCategories={lockedCategoriesFor(type)}
+        allowSubcategories
+        fullManagePath={getCategoriesPath(type)}
         disabled={busy}
-        onClick={onOpen}
-        aria-haspopup="dialog"
+        aria-label={type === 'expense' ? 'دسته هزینه' : 'دسته درآمد'}
+      />
+      {category ? (
+        <SubCategorySelect
+          value={subCategory}
+          onChange={next => onPick({ category, subCategory: next, title })}
+          categoryType={type}
+          category={category}
+          disabled={busy}
+        />
+      ) : null}
+      {/* Always shown, so it is clear the title can be typed; it needs a category to attach to. */}
+      <FormField
+        label="عنوان (اختیاری)"
+        hint={
+          category ? 'خالی بگذارید، همان عنوان پیش‌فرض ثبت می‌شود.' : 'اول دسته را انتخاب کنید.'
+        }
       >
-        {label}
-        <AppIcon name="chevron-down" size={14} />
-      </button>
+        <input
+          type="text"
+          value={title}
+          onChange={event => onPick({ category, subCategory, title: event.target.value })}
+          placeholder={defaultTitle}
+          disabled={busy || !category}
+        />
+      </FormField>
     </div>
   )
 }

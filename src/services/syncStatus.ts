@@ -1,3 +1,5 @@
+import { logSync } from './syncLog'
+
 export type ConnectionState = 'online' | 'offline'
 export type SyncState = 'idle' | 'syncing' | 'error'
 
@@ -50,10 +52,14 @@ export function subscribeSyncStatus(listener: () => void): () => void {
 
 export function setConnectionState(connection: ConnectionState): void {
   if (status.connection === connection) return
+  logSync('connection', connection)
   patchStatus({ connection })
 }
 
 export function setSyncState(syncState: SyncState, lastError: string | null = null): void {
+  if (syncState !== status.syncState || (syncState === 'error' && lastError !== status.lastError)) {
+    logSync(`state:${syncState}`, syncState === 'error' ? lastError ?? undefined : undefined)
+  }
   patchStatus({
     syncState,
     lastError: syncState === 'error' ? lastError : null
@@ -71,11 +77,13 @@ export function setPendingWrites(pendingWrites: number): void {
 
 export function setFailedWrites(failedWrites: number): void {
   if (status.failedWrites === failedWrites) return
+  logSync('failed-writes', String(failedWrites))
   patchStatus({ failedWrites })
 }
 
 export function setConflictCount(conflicts: number): void {
   if (status.conflicts === conflicts) return
+  logSync('conflicts', String(conflicts))
   patchStatus({ conflicts })
 }
 

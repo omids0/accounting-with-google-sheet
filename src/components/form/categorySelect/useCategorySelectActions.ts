@@ -134,12 +134,19 @@ export function useCategorySelectActions({
       } else if (categoryScope === 'walletAccountKind') {
         await saveWalletAccountKindCategoriesToSheet(settings.spreadsheetId, next)
       } else {
-        if (!formId) {
+        // A bare «درآمد»/«هزینه» scope (no form at hand) saves to that type's own form.
+        const targetFormId =
+          formId ??
+          (categoryScope === 'income' || categoryScope === 'expense'
+            ? settings.forms.find(form => form.type === categoryScope)?.id
+            : undefined)
+
+        if (!targetFormId) {
           showError('فرم دسته‌بندی معتبر نیست')
 
           return false
         }
-        await saveFormCategoriesToSheet(settings.spreadsheetId, formId, next)
+        await saveFormCategoriesToSheet(settings.spreadsheetId, targetFormId, next)
       }
       onCategoriesChange?.(next)
       if (!options?.silent) {

@@ -62,6 +62,32 @@ export function isPermanentApiError(err: unknown): boolean {
   return status >= 400 && status < 500 && ![401, 403, 408, 409, 429].includes(status)
 }
 
+/**
+ * A mobile connection can drop mid-request and leave `fetch` waiting forever, which froze
+ * the whole save queue on «در حال ذخیره». After this long the request is cut and retried.
+ */
+export const API_TIMEOUT_MS = 60_000
+
+export async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  if (init.signal) return fetch(url, init)
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
+
+  try {
+    return await fetch(url, { ...init, signal: controller.signal })
+  } catch (err) {
+    if (controller.signal.aborted) {
+      throw new Error(
+        'پاسخی از Google Sheets نرسید و زمان انتظار تمام شد. اتصال را بررسی کنید؛ دوباره تلاش می‌شود.'
+      )
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export async function apiRequest<T>(
   url: string,
   options: RequestInit = {},
@@ -73,7 +99,7 @@ export async function apiRequest<T>(
     await ensureFreshAccessToken()
   }
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     ...options,
     headers: {
       Authorization: `Bearer ${token()}`,

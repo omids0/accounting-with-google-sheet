@@ -12,6 +12,7 @@ import {
 import { pullRemoteSheets } from './sheetSyncPull'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import { clearStore, getStoreLastSyncedAt, hasStoreData, hydrateStore } from './spreadsheetStore'
+import { logSync } from './syncLog'
 import { getOutboxSheetNames, hasPendingOutbox, clearOutbox } from './syncOutbox'
 import { getSyncStatus, setLastSyncedAt, setSyncState, setPendingWrites } from './syncStatus'
 import { toUserMessage } from '../utils/userMessage'
@@ -104,6 +105,9 @@ export async function fullSyncFromRemote(
         const flushed = await flushOutbox(spreadsheetId)
 
         if (!flushed) {
+          // The pull is skipped until the queue empties; say so, or it looks like a silent hang.
+          logSync('pull:skipped', 'صف ارسال خالی نشد')
+
           return
         }
       }
@@ -114,10 +118,14 @@ export async function fullSyncFromRemote(
         return
       }
 
+      const pullStartedAt = Date.now()
+
+      logSync('pull:start', options.skipIfUnchanged ? 'فقط اگر تغییر کرده' : 'کامل')
       await pullRemoteSheets(spreadsheetId, settings, {
         skipIfUnchanged: options.skipIfUnchanged,
         hadData
       })
+      logSync('pull:end', `${Date.now() - pullStartedAt}ms`)
       // Runs once per spreadsheet, right after a pull while the local mirror is fresh.
       void import('./migrateCompactGrids')
         .then(({ migrateCompactGrids }) => migrateCompactGrids(spreadsheetId))
@@ -139,6 +147,7 @@ export async function fullSyncFromRemote(
 
       const message = toUserMessage(err, 'خطا در دریافت داده')
 
+      logSync('pull:failed', err instanceof Error ? err.message : message)
       setSyncState('error', message)
       throw err
     }

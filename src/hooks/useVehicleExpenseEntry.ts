@@ -10,6 +10,7 @@ import { requireAuth } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 import {
   isFuelExpenseType,
+  isMileageRequired,
   isVehicleExpenseCategory,
   parseNumericField,
   type VehicleExpenseFormValues
@@ -57,7 +58,9 @@ export function useVehicleExpenseEntry(active: boolean) {
           : activeVehicles[0]?.id ?? VEHICLE_OTHER_OPTION
         const vehicle = activeVehicles.find(item => item.id === vehicleId)
         const shouldSeedMileage =
-          isFuelExpenseType(current.expenseType) && vehicleId !== VEHICLE_OTHER_OPTION && vehicle
+          isMileageRequired(vehicle, current.expenseType) &&
+          vehicleId !== VEHICLE_OTHER_OPTION &&
+          vehicle
 
         return {
           ...current,
@@ -114,24 +117,21 @@ export function useVehicleExpenseEntry(active: boolean) {
         const next = { ...current, ...patch }
 
         if ('expenseType' in patch && !isFuelExpenseType(next.expenseType)) {
-          next.mileage = ''
           next.fuelPricePerLiter = ''
         }
 
-        const shouldSyncMileage =
-          isFuelExpenseType(next.expenseType) &&
-          ('vehicleId' in patch ||
-            'expenseType' in patch ||
-            // Typing the first digits for «سایر» must not be wiped by the sync.
-            (current.mileage === '' && !('mileage' in patch)))
+        if ('vehicleId' in patch || 'expenseType' in patch) {
+          const vehicle = vehicles.find(item => item.id === next.vehicleId)
+          const previous = vehicles.find(item => item.id === current.vehicleId)
+          const typedByUser =
+            current.mileage !== '' && String(current.mileage) !== String(previous?.mileage ?? '')
 
-        if (shouldSyncMileage) {
-          if (!next.vehicleId || next.vehicleId === VEHICLE_OTHER_OPTION) {
+          // The vehicle's current mileage only seeds a required field; an optional one stays
+          // empty unless the user typed a value.
+          if (vehicle && isMileageRequired(vehicle, next.expenseType)) {
+            next.mileage = vehicle.mileage
+          } else if (!typedByUser) {
             next.mileage = ''
-          } else {
-            const vehicle = vehicles.find(item => item.id === next.vehicleId)
-
-            if (vehicle) next.mileage = vehicle.mileage
           }
         }
 
@@ -154,19 +154,25 @@ export function useVehicleExpenseEntry(active: boolean) {
       if (!vehicleValues.expenseType.trim()) {
         errors.expenseType = 'نوع هزینه الزامی است'
       }
-      if (isFuelExpenseType(vehicleValues.expenseType)) {
-        if (parseNumericField(vehicleValues.fuelPricePerLiter) <= 0) {
-          errors.fuelPricePerLiter = 'نرخ هر لیتر الزامی است'
-        }
-        if (parseNumericField(vehicleValues.mileage) <= 0) {
-          errors.mileage = 'کارکرد الزامی است'
-        } else if (vehicleValues.vehicleId && vehicleValues.vehicleId !== VEHICLE_OTHER_OPTION) {
-          const vehicle = vehicles.find(item => item.id === vehicleValues.vehicleId)
+      if (
+        isFuelExpenseType(vehicleValues.expenseType) &&
+        parseNumericField(vehicleValues.fuelPricePerLiter) <= 0
+      ) {
+        errors.fuelPricePerLiter = 'نرخ هر لیتر الزامی است'
+      }
 
-          if (vehicle && parseNumericField(vehicleValues.mileage) < vehicle.mileage) {
-            errors.mileage = 'کارکرد نمی‌تواند کمتر از کارکرد فعلی خودرو باشد'
-          }
+      const vehicle =
+        vehicleValues.vehicleId && vehicleValues.vehicleId !== VEHICLE_OTHER_OPTION
+          ? vehicles.find(item => item.id === vehicleValues.vehicleId)
+          : undefined
+      const mileage = parseNumericField(vehicleValues.mileage)
+
+      if (mileage <= 0) {
+        if (isMileageRequired(vehicle, vehicleValues.expenseType)) {
+          errors.mileage = 'کارکرد الزامی است'
         }
+      } else if (vehicle && mileage < vehicle.mileage) {
+        errors.mileage = 'کارکرد نمی‌تواند کمتر از کارکرد فعلی خودرو باشد'
       }
       if (parseNumericField(amount) <= 0) {
         errors.amount = 'مبلغ الزامی است'

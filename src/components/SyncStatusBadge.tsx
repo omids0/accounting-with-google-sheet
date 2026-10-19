@@ -5,7 +5,7 @@ import { useSyncStatus } from '../hooks/useSyncStatus'
 import { getActiveSpreadsheetId } from '../services/sheetSync'
 import { syncStatusBadgeClass, syncStatusDotClass, syncStatusLabelClass } from './ui/layoutStyles'
 
-// Only shown after a sync problem, so its failed-write code stays out of the main chunk.
+// Mounted only after a sync problem or a tap, so its code stays out of the main chunk.
 const LazySyncDetailsModal = lazy(() => import('./SyncDetailsModal'))
 
 export default function SyncStatusBadge() {
@@ -22,20 +22,24 @@ export default function SyncStatusBadge() {
     </>
   )
 
-  // Stays mounted while open so retrying the last entry does not yank the modal away.
-  if (showDetails || detailsOpen) {
-    return (
-      <>
-        <button
-          type="button"
-          data-sync-badge
-          className={syncStatusBadgeClass}
-          aria-label={cause ? `${label}: ${cause}` : label}
-          aria-haspopup="dialog"
-          onClick={() => setDetailsOpen(true)}
-        >
-          {badgeContent}
-        </button>
+  // The badge is always tappable: while a sync hangs it still shows «در حال ذخیره» with no
+  // error, and the report behind it is what shows where it stopped. The modal (and its
+  // chunk) is only mounted after a problem or a tap, and stays mounted while open so
+  // retrying the last entry does not yank it away.
+  return (
+    <>
+      <button
+        type="button"
+        data-sync-badge
+        className={syncStatusBadgeClass}
+        aria-label={cause ? `${label}: ${cause}` : `${label}؛ جزئیات همگام‌سازی`}
+        aria-haspopup="dialog"
+        title={`آخرین بروزرسانی: ${formatRelativeTime(status.lastSyncedAt)}`}
+        onClick={() => setDetailsOpen(true)}
+      >
+        {badgeContent}
+      </button>
+      {showDetails || detailsOpen ? (
         <Suspense fallback={null}>
           <LazySyncDetailsModal
             open={detailsOpen}
@@ -47,19 +51,7 @@ export default function SyncStatusBadge() {
             failedWrites={status.failedWrites}
           />
         </Suspense>
-      </>
-    )
-  }
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      data-sync-badge
-      className={syncStatusBadgeClass}
-      title={`آخرین بروزرسانی: ${formatRelativeTime(status.lastSyncedAt)}`}
-    >
-      {badgeContent}
-    </div>
+      ) : null}
+    </>
   )
 }

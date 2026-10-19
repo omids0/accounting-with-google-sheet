@@ -11,6 +11,7 @@ import { CategorySelect, FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import MileageInput from './MileageInput'
+import UpdateMileageToggle from './UpdateMileageToggle'
 import Button from '../ui/Button'
 
 type VehicleMechanicFormModalProps = {
@@ -104,22 +105,11 @@ export default function VehicleMechanicFormModal({
         </FormField>
       </FormRow>
 
-      <label className="flex cursor-pointer items-start gap-2 text-[0.85rem] text-primary">
-        <input type="checkbox" className="mt-1" {...register('isHistorical')} />
-        <span>
-          ثبت سابقه
-          <span className="mt-0.5 block text-[0.78rem] font-normal text-muted">
-            برای مراجعات قبلی؛ کارکرد فعلی خودرو ({defaultMileage.toLocaleString('fa-IR')} km) تغییر
-            نمی‌کند.
-          </span>
-        </span>
-      </label>
-
-      {isHistorical ? (
-        <p className="text-[0.78rem] text-muted">
-          در حالت ثبت سابقه می‌توانید کارکرد کمتر از کارکرد فعلی وارد کنید.
-        </p>
-      ) : null}
+      <UpdateMileageToggle
+        checked={!isHistorical}
+        onChange={update => setValue('isHistorical', !update)}
+        currentMileage={defaultMileage}
+      />
 
       <FormField label="مکان">
         <input type="text" {...register('location')} placeholder="نام تعمیرگاه" />

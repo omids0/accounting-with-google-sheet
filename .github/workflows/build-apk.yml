@@ -112,19 +112,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION_NAME=$(node -p "require('./package.json').version")
+          TAG="android-v${{ github.run_number }}"
+          # The in-app update downloads the versioned file, so the saved name carries the
+          # version. The unversioned copy keeps the web build's fixed «latest» link working.
+          VERSIONED="hesab_ketab_v${VERSION_NAME}.apk"
           cat > version.json <<EOF
           {
             "versionCode": ${{ github.run_number }},
             "versionName": "$VERSION_NAME",
-            "apkUrl": "https://github.com/${{ github.repository }}/releases/latest/download/hesab-ketab.apk"
+            "apkUrl": "https://github.com/${{ github.repository }}/releases/download/$TAG/$VERSIONED"
           }
           EOF
+          cp android/app/build/outputs/apk/debug/hesab-ketab.apk "$VERSIONED"
           APK=android/app/build/outputs/apk/debug/hesab-ketab.apk
-          TAG="android-v${{ github.run_number }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" version.json --clobber
+            gh release upload "$TAG" "$APK" "$VERSIONED" version.json --clobber
           else
-            gh release create "$TAG" "$APK" version.json \
+            gh release create "$TAG" "$APK" "$VERSIONED" version.json \
               --title "$VERSION_NAME (build ${{ github.run_number }})" \
               --notes "Android build ${{ github.run_number }} from ${{ github.sha }}"
           fi

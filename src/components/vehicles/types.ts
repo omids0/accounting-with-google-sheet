@@ -16,6 +16,8 @@ export type VehicleProfileFormState = {
   capacity: string
   plate: string
   mileageReminderInterval: VehicleMileageReminderInterval
+  /** Expense types that cannot be saved for this vehicle without a mileage. */
+  mileageRequiredTypes: string[]
 }
 
 export type VehiclePeriodicFormState = {
@@ -27,7 +29,7 @@ export type VehiclePeriodicFormState = {
   amount: number | ''
   notes: string
   date: string
-  /** ثبت سابقه: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
+  /** تیک «کارکرد خودرو هم به‌روز شود» برداشته شده: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
   isHistorical: boolean
   reminderEnabled: boolean
   reminderThresholdKm: number
@@ -51,7 +53,7 @@ export type VehicleCompleteFormState = {
   amount: number | ''
   notes: string
   date: string
-  /** ثبت سابقه: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
+  /** تیک «کارکرد خودرو هم به‌روز شود» برداشته شده: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
   isHistorical: boolean
 }
 
@@ -67,7 +69,7 @@ export type VehicleMechanicFormState = {
   totalAmount: number | ''
   notes: string
   items: VehicleMechanicItemFormState[]
-  /** ثبت سابقه: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
+  /** تیک «کارکرد خودرو هم به‌روز شود» برداشته شده: کارکرد خودرو به‌روز نمی‌شود و کیلومتر کمتر از فعلی مجاز است */
   isHistorical: boolean
 }
 
