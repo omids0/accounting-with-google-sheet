@@ -97,10 +97,7 @@ export const smsAmountRowClass = 'flex flex-wrap items-baseline justify-between 
 export const smsAccountLineClass = 'text-[0.8rem] text-muted'
 
 export const smsChoiceRowClass =
-  'flex items-center justify-between gap-2 rounded-[var(--radius-sm)] bg-[var(--color-accent-soft)] px-3 py-2'
-
-export const smsChoiceButtonClass =
-  'inline-flex min-h-touch-min shrink-0 items-center gap-1 rounded-full border border-border bg-surface px-3 text-[0.82rem] font-bold text-primary-dark hover:border-primary disabled:opacity-50'
+  'flex flex-col gap-2 rounded-[var(--radius-sm)] bg-[var(--color-accent-soft)] px-3 py-2'
 
 export const smsChoiceReasonClass = 'm-0 min-w-0 text-[0.72rem] leading-[1.6] text-muted'
 

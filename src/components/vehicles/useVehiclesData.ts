@@ -156,7 +156,8 @@ export function useVehiclesData() {
         buildYear: values.buildYear.trim(),
         capacity: values.capacity.trim(),
         plate: values.plate.trim(),
-        mileageReminderInterval: values.mileageReminderInterval
+        mileageReminderInterval: values.mileageReminderInterval,
+        mileageRequiredTypes: values.mileageRequiredTypes
       }
 
       if (editingItem) {

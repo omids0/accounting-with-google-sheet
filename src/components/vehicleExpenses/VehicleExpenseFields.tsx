@@ -7,6 +7,7 @@ import { LOCKED_VEHICLE_EXPENSE_TYPES } from '../../utils/protectedCategories'
 import {
   calculateFuelLiters,
   isFuelExpenseType,
+  isMileageRequired,
   type VehicleExpenseFormValues
 } from '../../utils/vehicleExpenseUtils'
 import AmountInput from '../AmountInput'
@@ -38,6 +39,8 @@ export default function VehicleExpenseFields({
 }: VehicleExpenseFieldsProps) {
   const categories = expenseTypes ?? getVehicleExpenseCategories()
   const isFuel = isFuelExpenseType(values.expenseType)
+  const vehicle = vehicles.find(item => item.id === values.vehicleId)
+  const mileageRequired = isMileageRequired(vehicle, values.expenseType)
   const fuelLiters = useMemo(() => {
     if (!isFuel) return 0
 
@@ -87,14 +90,6 @@ export default function VehicleExpenseFields({
             />
           </FormField>
 
-          <FormField label="کارکرد فعلی" required controlWidth="full" error={errors.mileage}>
-            <MileageInput
-              value={values.mileage}
-              onChange={mileage => onChange({ mileage })}
-              invalid={Boolean(errors.mileage)}
-            />
-          </FormField>
-
           {fuelLiters > 0 ? (
             <p className="text-[0.82rem] text-muted">
               معادل{' '}
@@ -106,6 +101,26 @@ export default function VehicleExpenseFields({
           ) : null}
         </>
       ) : null}
+
+      <FormField
+        label={mileageRequired ? 'کارکرد فعلی' : 'کارکرد فعلی (اختیاری)'}
+        required={mileageRequired}
+        controlWidth="full"
+        error={errors.mileage}
+        hint={
+          vehicle && !mileageRequired
+            ? `کارکرد فعلی خودرو ${vehicle.mileage.toLocaleString(
+                'fa-IR'
+              )} km است؛ اگر وارد کنید، کارکرد خودرو هم به‌روز می‌شود.`
+            : undefined
+        }
+      >
+        <MileageInput
+          value={values.mileage}
+          onChange={mileage => onChange({ mileage })}
+          invalid={Boolean(errors.mileage)}
+        />
+      </FormField>
     </>
   )
 }

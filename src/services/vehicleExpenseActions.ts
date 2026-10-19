@@ -40,7 +40,6 @@ function resolveVehicleTitle(vehicleId: string, vehicles: { id: string; title: s
 }
 
 function validateVehicleExpenseInput(input: VehicleExpenseInput): {
-  isFuel: boolean
   fuelPricePerLiter: number
   mileage: number
   fuelLiters: number
@@ -51,17 +50,16 @@ function validateVehicleExpenseInput(input: VehicleExpenseInput): {
   const expenseType = input.expenseType.trim()
   const isFuel = isFuelExpenseType(expenseType)
   const fuelPricePerLiter = isFuel ? parseNumericField(input.fuelPricePerLiter) : 0
-  const mileage = isFuel ? parseNumericField(input.mileage) : 0
+  // Any expense type may carry a mileage; whether it is mandatory is the form's call, made
+  // from the vehicle's profile (see isMileageRequired).
+  const mileage = Math.max(0, parseNumericField(input.mileage))
   const fuelLiters = isFuel ? calculateFuelLiters(amount, fuelPricePerLiter) : 0
 
   if (isFuel && fuelPricePerLiter <= 0) {
     throw new Error('نرخ هر لیتر بنزین باید بیشتر از صفر باشد')
   }
-  if (isFuel && mileage <= 0) {
-    throw new Error('کارکرد خودرو الزامی است')
-  }
 
-  return { isFuel, fuelPricePerLiter, mileage, fuelLiters, amount, expenseType }
+  return { fuelPricePerLiter, mileage, fuelLiters, amount, expenseType }
 }
 
 export async function resolveMileageAfterFuelDelete(
@@ -69,16 +67,16 @@ export async function resolveMileageAfterFuelDelete(
   vehicleId: string,
   deletedMeta: VehicleExpenseMeta
 ): Promise<number | null> {
-  if (!vehicleId || !isFuelExpenseType(deletedMeta.expenseType)) return null
+  if (!vehicleId || deletedMeta.mileage <= 0) return null
 
-  const fuelItems = (await fetchVehicleExpenseMetaByVehicle(spreadsheetId, vehicleId))
-    .filter(item => isFuelExpenseType(item.expenseType) && item.id !== deletedMeta.id)
+  const items = (await fetchVehicleExpenseMetaByVehicle(spreadsheetId, vehicleId))
+    .filter(item => item.mileage > 0 && item.id !== deletedMeta.id)
     .sort((a, b) => b.mileage - a.mileage)
 
-  return fuelItems[0]?.mileage ?? null
+  return items[0]?.mileage ?? null
 }
 
-async function syncVehicleMileageAfterFuel(
+async function syncVehicleMileageFromExpense(
   spreadsheetId: string,
   vehicleId: string,
   mileage: number,
@@ -101,7 +99,7 @@ async function deleteVehicleExpenseMetadataOnly(
   meta: VehicleExpenseMetaWithRow
 ): Promise<void> {
   const rollbackMileage =
-    meta.vehicleId && isFuelExpenseType(meta.expenseType)
+    meta.vehicleId && meta.mileage > 0
       ? await resolveMileageAfterFuelDelete(spreadsheetId, meta.vehicleId, meta)
       : null
 
@@ -126,7 +124,7 @@ export async function createManualVehicleExpense(
   const vehicles = await fetchVehicles(spreadsheetId)
   const isOther = !input.vehicleId || input.vehicleId === VEHICLE_OTHER_OPTION
   const vehicleTitle = isOther ? '' : resolveVehicleTitle(input.vehicleId, vehicles)
-  const { isFuel, fuelPricePerLiter, mileage, fuelLiters, amount, expenseType } =
+  const { fuelPricePerLiter, mileage, fuelLiters, amount, expenseType } =
     validateVehicleExpenseInput(input)
 
   const title = buildVehicleExpenseTitle(expenseType, vehicleTitle, isOther)
@@ -151,8 +149,8 @@ export async function createManualVehicleExpense(
     mileage
   })
 
-  if (isFuel && !isOther) {
-    await syncVehicleMileageAfterFuel(spreadsheetId, input.vehicleId, mileage, input.date)
+  if (!isOther && mileage > 0) {
+    await syncVehicleMileageFromExpense(spreadsheetId, input.vehicleId, mileage, input.date)
   }
 
   return expenseRecordId
@@ -166,7 +164,7 @@ export async function upsertManualVehicleExpenseMeta(
   const vehicles = await fetchVehicles(spreadsheetId)
   const isOther = !input.vehicleId || input.vehicleId === VEHICLE_OTHER_OPTION
   const vehicleTitle = isOther ? '' : resolveVehicleTitle(input.vehicleId, vehicles)
-  const { isFuel, fuelPricePerLiter, mileage, fuelLiters, amount, expenseType } =
+  const { fuelPricePerLiter, mileage, fuelLiters, amount, expenseType } =
     validateVehicleExpenseInput(input)
 
   const title = buildVehicleExpenseTitle(expenseType, vehicleTitle, isOther)
@@ -217,9 +215,9 @@ export async function upsertManualVehicleExpenseMeta(
     })
   }
 
-  if (isFuel && !isOther) {
-    await syncVehicleMileageAfterFuel(spreadsheetId, input.vehicleId, mileage, input.date)
-  } else if (existing?.vehicleId && isFuelExpenseType(existing.expenseType) && !isFuel) {
+  if (!isOther && mileage > 0) {
+    await syncVehicleMileageFromExpense(spreadsheetId, input.vehicleId, mileage, input.date)
+  } else if (existing?.vehicleId && existing.mileage > 0) {
     const rollbackMileage = await resolveMileageAfterFuelDelete(
       spreadsheetId,
       existing.vehicleId,

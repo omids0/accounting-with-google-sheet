@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 
 import BankSmsCardHead from './BankSmsCardHead'
-import BankSmsCategorySheet from './BankSmsCategorySheet'
 import BankSmsChoiceRow from './BankSmsChoiceRow'
 import BankSmsMoreSheet from './BankSmsMoreSheet'
 import BankSmsTemplateSheet from './BankSmsTemplateSheet'
@@ -42,7 +41,6 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
   const candidates = result.kind === 'ambiguous' ? result.candidates : []
   const [accountId, setAccountId] = useState(() => initialSmsAccount(entry))
   const [menuOpen, setMenuOpen] = useState(false)
-  const [picking, setPicking] = useState(false)
   const [rawOpen, setRawOpen] = useState(false)
   const [templateText, setTemplateText] = useState<string | null>(null)
   const resolved = useMemo(() => resolveSmsAccount(entry, accountId), [entry, accountId])
@@ -105,7 +103,13 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
           )}
 
           {resolved && (
-            <BankSmsChoiceRow choice={choice} busy={busy} onOpen={() => setPicking(true)} />
+            <BankSmsChoiceRow
+              type={type}
+              choice={choice}
+              defaultTitle={`${titleOf(accountId)} — پیامک`}
+              busy={busy}
+              onPick={next => review.pick(entry.sms.id, next)}
+            />
           )}
 
           <div className={smsActionsRowClass}>
@@ -169,15 +173,6 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
           },
           { id: 'template', label: 'ویرایش قالب', onSelect: () => setTemplateText(entry.sms.body) }
         ]}
-      />
-
-      <BankSmsCategorySheet
-        open={picking}
-        type={type}
-        current={choice}
-        defaultTitle={`${titleOf(accountId)} — پیامک`}
-        onClose={() => setPicking(false)}
-        onPick={next => review.pick(entry.sms.id, next)}
       />
 
       <BankSmsTemplateSheet

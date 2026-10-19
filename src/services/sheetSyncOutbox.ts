@@ -1,9 +1,11 @@
 import { invalidateInstallmentsCache } from './installmentsConstants'
 import { RowEditConflictError } from './rowConflict'
 import { isQuotaExceededError } from './sheets'
-import { isPermanentApiError } from './sheetsApi'
+import { isPermanentApiError, SheetsApiError } from './sheetsApi'
 import { normalizeSheetTitle } from './sheetsMeta'
 import { createRowGuardSession, RowConflictError } from './sheetsRowGuard'
+import { announceWrites, readDriveTime } from './sheetSyncAnnounce'
+import { logSync } from './syncLog'
 import {
   addOutboxEntry,
   clearFailedOutboxEntries,
@@ -18,7 +20,7 @@ import {
   removeOutboxEntry,
   requeueMissingTabAppends
 } from './syncOutbox'
-import type { OutboxOperation } from './syncOutbox'
+import type { OutboxEntry, OutboxOperation } from './syncOutbox'
 import { setConflictCount, setFailedWrites, setPendingWrites, setSyncState } from './syncStatus'
 import { toUserMessage } from '../utils/userMessage'
 
@@ -29,7 +31,16 @@ const MAX_FLUSH_PASSES = 5
 
 let quotaBlockedUntil = 0
 
+/** A single flush running this long is reported in the sync log as stuck. */
+const STALL_WARNING_MS = 45_000
+
+/** The write being sent right now, for the stall report. */
+let currentWrite: string | null = null
+
 const flushesInFlight = new Map<string, Promise<boolean>>()
+
+const describeWrite = (entry: OutboxEntry): string =>
+  `${entry.operation.type} «${entry.operation.sheetName}» تلاش ${entry.attempts + 1}`
 
 export function markQuotaExceeded(): void {
   quotaBlockedUntil = Date.now() + QUOTA_BACKOFF_MS
@@ -70,54 +81,11 @@ function isOffline(): boolean {
 
 type PassResult = 'done' | 'blocked'
 
-/** Drive's modifiedTime right before this device writes; null when unreadable. */
-async function readDriveTime(spreadsheetId: string): Promise<string | null> {
-  try {
-    const { fetchRemoteModifiedTime } = await import('./sheetRemoteVersion')
-
-    return await fetchRemoteModifiedTime(spreadsheetId)
-  } catch {
-    return null
-  }
-}
-
 /**
- * Tells other devices which tabs changed (change tokens). The new Drive
- * modifiedTime is taken as this device's own only when Drive still matched the
- * mirror right before the flush: otherwise it would also cover a hand edit made
- * since the last check, and that edit would never be downloaded.
- * Best effort: on failure others still see the change through modifiedTime.
+ * Sends every entry queued right now. Permanent failures are parked, not retried forever.
+ * A write that fails for a passing reason holds back only the later writes to the same tab
+ * (their order matters); other tabs keep going, so one bad write cannot freeze the queue.
  */
-async function announceWrites(
-  spreadsheetId: string,
-  touched: Set<string>,
-  driveBefore: string | null,
-  redirected: Set<string> = new Set()
-): Promise<void> {
-  if (!touched.size) return
-
-  try {
-    const { forgetSeenSheets, stampSheetRevisions } = await import('./sheetRevisions')
-    const { fetchRemoteModifiedTime, rememberRemoteVersion } = await import('./sheetRemoteVersion')
-    const { getSyncMeta } = await import('./spreadsheetSyncMeta')
-
-    try {
-      await stampSheetRevisions(spreadsheetId, touched)
-    } finally {
-      // A write that followed its row into an archive changed that tab only
-      // remotely: download it again rather than trust the local copy.
-      if (redirected.size) forgetSeenSheets(spreadsheetId, redirected)
-    }
-
-    if (driveBefore && driveBefore === getSyncMeta(spreadsheetId)?.modifiedTime) {
-      rememberRemoteVersion(spreadsheetId, await fetchRemoteModifiedTime(spreadsheetId))
-    }
-  } catch {
-    /* change detection falls back to a full download */
-  }
-}
-
-/** Sends every entry queued right now. Permanent failures are parked, not retried forever. */
 async function flushPass(
   spreadsheetId: string,
   touched: Set<string>,
@@ -126,12 +94,21 @@ async function flushPass(
   const { executeOutboxOperation } = await import('./sheets')
 
   const session = createRowGuardSession()
+  const heldBack = new Set<string>()
 
   for (const entry of getOutboxEntries(spreadsheetId)) {
-    if (isQuotaBlocked() || isOffline()) return 'blocked'
+    if (isQuotaBlocked() || isOffline()) {
+      logSync('flush:blocked', isOffline() ? 'آفلاین' : 'محدودیت درخواست')
+
+      return 'blocked'
+    }
     // Waits for «کدام بماند؟»; never retried or reverted on its own.
     if (entry.conflict) continue
+    if (heldBack.has(normalizeSheetTitle(entry.operation.sheetName))) continue
 
+    const startedAt = Date.now()
+
+    currentWrite = describeWrite(entry)
     try {
       const written = await executeOutboxOperation(spreadsheetId, entry.operation, {
         session,
@@ -139,6 +116,7 @@ async function flushPass(
       })
 
       removeOutboxEntry(spreadsheetId, entry.id)
+      logSync('write:ok', `${describeWrite(entry)} · ${Date.now() - startedAt}ms`)
       refreshPendingCount(spreadsheetId)
       // An edit may have followed its row into a yearly archive: stamp that tab.
       touched.add(written || entry.operation.sheetName)
@@ -147,14 +125,22 @@ async function flushPass(
       if (err instanceof RowEditConflictError) {
         const { theirs, theirEmail, theirAt } = err
 
+        logSync('write:conflict', describeWrite(entry))
+
         markOutboxEntryConflict(spreadsheetId, entry.id, { theirs, theirEmail, theirAt })
         refreshPendingCount(spreadsheetId)
         continue
       }
 
       const message = err instanceof Error ? err.message : 'خطا در همگام‌سازی'
+      const permanent = err instanceof RowConflictError || isPermanentApiError(err)
 
-      if (err instanceof RowConflictError || isPermanentApiError(err)) {
+      logSync(
+        permanent ? 'write:rejected' : 'write:failed',
+        `${describeWrite(entry)} · ${Date.now() - startedAt}ms · ${message}`
+      )
+
+      if (permanent) {
         // Otherwise the app keeps showing a change the sheet never got.
         const { revertFailedWrite } = await import('./failedWriteMirror')
         const reverted = revertFailedWrite(spreadsheetId, entry.operation)
@@ -178,11 +164,16 @@ async function flushPass(
       setSyncState('error', message)
       refreshPendingCount(spreadsheetId)
 
-      return 'blocked'
+      // No HTTP answer at all (timeout, dropped connection): every tab would fail the same way.
+      if (!(err instanceof SheetsApiError)) return 'blocked'
+
+      heldBack.add(normalizeSheetTitle(entry.operation.sheetName))
+    } finally {
+      currentWrite = null
     }
   }
 
-  return 'done'
+  return heldBack.size ? 'blocked' : 'done'
 }
 
 async function runFlush(spreadsheetId: string): Promise<boolean> {
@@ -193,6 +184,13 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
   }
 
   setSyncState('syncing')
+  logSync('flush:start', `${getOutboxCount(spreadsheetId)} تغییر در صف`)
+
+  const startedAt = Date.now()
+  const stallTimer = setTimeout(
+    () => logSync('flush:stalled', currentWrite ?? 'درخواستی در جریان نیست'),
+    STALL_WARNING_MS
+  )
 
   // Writes queued while a pass was running are picked up by the next pass
   // instead of waiting for the next sync trigger.
@@ -207,7 +205,12 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
       if ((await flushPass(spreadsheetId, touched, redirected)) === 'blocked') return false
     }
   } finally {
+    clearTimeout(stallTimer)
     await announceWrites(spreadsheetId, touched, driveBefore, redirected)
+    logSync(
+      'flush:end',
+      `${Date.now() - startedAt}ms · ${getOutboxCount(spreadsheetId)} باقی‌مانده`
+    )
   }
 
   refreshPendingCount(spreadsheetId)

@@ -23,6 +23,40 @@ export function isFuelExpenseType(expenseType: string): boolean {
   return expenseType.trim() === VEHICLE_FUEL_EXPENSE_TYPE
 }
 
+/** Sheet cell value meaning «no expense type needs a mileage» (an empty cell means the default). */
+const MILEAGE_REQUIRED_NONE = '-'
+
+/** Expense types whose mileage is mandatory until the vehicle's profile says otherwise. */
+export const DEFAULT_MILEAGE_REQUIRED_TYPES: readonly string[] = [VEHICLE_FUEL_EXPENSE_TYPE]
+
+export function parseMileageRequiredTypes(cell: string | undefined): string[] {
+  const text = String(cell ?? '').trim()
+
+  if (!text) return [...DEFAULT_MILEAGE_REQUIRED_TYPES]
+  if (text === MILEAGE_REQUIRED_NONE) return []
+
+  return text
+    .split('|')
+    .map(item => item.trim())
+    .filter(Boolean)
+}
+
+export function serializeMileageRequiredTypes(types: readonly string[]): string {
+  const list = types.map(item => item.trim()).filter(Boolean)
+
+  return list.length ? list.join('|') : MILEAGE_REQUIRED_NONE
+}
+
+/** Whether the vehicle's profile makes the mileage mandatory for this expense type. */
+export function isMileageRequired(
+  vehicle: { mileageRequiredTypes: readonly string[] } | undefined,
+  expenseType: string
+): boolean {
+  const types = vehicle?.mileageRequiredTypes ?? DEFAULT_MILEAGE_REQUIRED_TYPES
+
+  return types.includes(expenseType.trim())
+}
+
 export function calculateFuelLiters(amount: number, pricePerLiter: number): number {
   if (amount <= 0 || pricePerLiter <= 0) return 0
 

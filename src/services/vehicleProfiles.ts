@@ -10,6 +10,10 @@ import {
 import type { VehicleMileageReminderInterval, VehicleProfile } from '../types/vehicles'
 import { getTodayIso } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
+import {
+  parseMileageRequiredTypes,
+  serializeMileageRequiredTypes
+} from '../utils/vehicleExpenseUtils'
 
 export { VEHICLES_SHEET, VEHICLES_HEADERS }
 
@@ -61,7 +65,8 @@ function rowToVehicle(
     plate: row[7] ?? '',
     mileageReminderInterval: parseInterval(row[8] ?? ''),
     lastMileageUpdate: row[9] ?? '',
-    active: parseBool(row[10] ?? 'true')
+    active: parseBool(row[10] ?? 'true'),
+    mileageRequiredTypes: parseMileageRequiredTypes(row[11])
   }
 }
 
@@ -77,7 +82,8 @@ function vehicleToRow(item: VehicleProfile): string[] {
     item.plate,
     item.mileageReminderInterval,
     item.lastMileageUpdate,
-    item.active ? 'TRUE' : 'FALSE'
+    item.active ? 'TRUE' : 'FALSE',
+    serializeMileageRequiredTypes(item.mileageRequiredTypes)
   ]
 }
 
@@ -97,7 +103,8 @@ export function vehicleRowFromImportCells(cells: (string | undefined)[]): string
     plate: String(cells[7] ?? '').trim(),
     mileageReminderInterval: parseInterval(cells[8] ?? ''),
     lastMileageUpdate: String(cells[9] ?? '').trim(),
-    active: parseBool(cells[10] ?? 'true')
+    active: parseBool(cells[10] ?? 'true'),
+    mileageRequiredTypes: parseMileageRequiredTypes(cells[11])
   })
 }
 
@@ -138,7 +145,8 @@ export async function createVehicle(
     plate: input.plate.trim(),
     mileageReminderInterval: input.mileageReminderInterval,
     lastMileageUpdate: input.lastMileageUpdate ?? today,
-    active: input.active ?? true
+    active: input.active ?? true,
+    mileageRequiredTypes: input.mileageRequiredTypes
   }
 
   await appendSheetRow(spreadsheetId, VEHICLES_SHEET, vehicleToRow(item))
