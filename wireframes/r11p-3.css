@@ -1,0 +1,283 @@
+.fabmenu .btn {
+  box-shadow: var(--shadow);
+}
+
+/* chips */
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  align-items: center;
+}
+.chip {
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chip.on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.seg {
+  display: flex;
+  background: var(--color-accent-soft);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 2px;
+}
+.seg button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  padding: 7px 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+.seg button.on {
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  box-shadow: var(--shadow);
+}
+
+/* ---------- forms ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+.field > label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--form-label-color);
+}
+.field .hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.input {
+  width: 100%;
+  border: 1.5px solid var(--form-input-border);
+  background: var(--form-input-bg);
+  border-radius: var(--form-radius);
+  padding: 10px 12px;
+  min-height: 44px;
+  outline: none;
+  text-align: right;
+}
+.input:hover {
+  border-color: var(--form-input-border-hover);
+}
+.input:focus,
+.sel.open > .selbtn {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.12);
+}
+.sel {
+  position: relative;
+}
+.selbtn {
+  width: 100%;
+  border: 1.5px solid var(--form-input-border);
+  background: var(--form-input-bg);
+  border-radius: var(--form-radius);
+  padding: 10px 12px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: right;
+}
+.selbtn:hover {
+  border-color: var(--form-input-border-hover);
+}
+.selbtn .ico {
+  width: 12px;
+  height: 12px;
+  color: var(--color-primary);
+  transition: transform 0.25s;
+}
+.sel.open .selbtn .ico {
+  transform: rotate(180deg);
+}
+.selbtn .ph {
+  color: var(--color-text-muted);
+}
+.menu {
+  position: absolute;
+  z-index: 60;
+  right: 0;
+  left: 0;
+  top: calc(100% + 4px);
+  max-height: 230px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 5px;
+  box-shadow: var(--shadow-lg);
+}
+.sel.up .menu {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+.opt {
+  display: block;
+  width: 100%;
+  text-align: right;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 14px;
+}
+.opt small {
+  display: block;
+  font-size: 11px;
+  opacity: 0.75;
+}
+.opt:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+.opt.on {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.opt.manage {
+  color: var(--color-primary);
+  font-weight: 700;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0 0 8px 8px;
+  margin-top: 4px;
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+}
+.toggle .tx {
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.sw {
+  width: 46px;
+  height: 26px;
+  border-radius: 99px;
+  border: 0;
+  background: var(--form-input-border);
+  position: relative;
+  flex: 0 0 auto;
+  transition: background 0.2s;
+}
+.sw::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+.sw.on {
+  background: var(--color-primary);
+}
+.sw.on::after {
+  transform: translateX(-20px);
+}
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+}
+.check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+.steps {
+  display: flex;
+  gap: 6px;
+}
+.steps i {
+  flex: 1;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--color-accent-soft);
+}
+.steps i.on {
+  background: var(--color-primary);
+}
+
+/* ---------- drawer & sheets ---------- */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--color-overlay);
+  z-index: 40;
+  animation: none;
+}
+.drawer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 82%;
+  max-width: 330px;
+  background: var(--color-surface);
+  z-index: 41;
+  overflow-y: auto;
+  animation: none;
+  display: flex;
+  flex-direction: column;
+}
+.drawer .prof {
+  background: var(--hero-bg);
+  color: #fff;
+  padding: 16px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+[data-theme='dark'] .drawer .prof {
+  color: var(--color-text);
+}
+.av {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+.drawer .prof small {
+  display: block;
+  opacity: 0.85;
+  font-size: 11.5px;
+}
+.dg {
+  padding: 8px 8px 0;
+}
