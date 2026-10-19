@@ -15,21 +15,13 @@ ACT.wiz2 = () => {
           charge: v.charge,
           opening: 0
         })
-        b.accounts = [
-          {
-            id: uid('a'),
-            name: v.accName || 'صندوق',
-            card: v.accCard || '',
-            balance: Number(v.accBal) || 0
-          }
-        ]
-        if (v.extra)
-          b.accounts.push({
-            id: uid('a'),
-            name: v.extra,
-            card: '',
-            balance: Number(v.extraBal) || 0
-          })
+        b.accounts = v.accounts.map(a => ({
+          id: uid('a'),
+          name: a.name,
+          type: a.type,
+          card: a.type === 'cash' ? '' : a.card || '',
+          balance: Number(a.bal) || 0
+        }))
         Object.assign(b.profile, {
           defaultCharge: Number(v.charge) || 0,
           method: v.method,
