@@ -1,6 +1,11 @@
 import { memo } from 'react'
 
-import { recordCounterparty, recordLineItems, recordWalletState } from './recordsFilterPredicates'
+import {
+  recordCounterparty,
+  recordLineItems,
+  recordWalletState,
+  type RecordWalletState
+} from './recordsFilterPredicates'
 import { getFormField, type StoredRecord } from './recordsUtils'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
@@ -22,6 +27,12 @@ import {
 } from '../ui/lineItemStyles'
 import { amountExpenseClass, amountIncomeClass } from '../ui/recordsStyles'
 import WriterAvatar from '../WriterAvatar'
+
+const WALLET_STATE_LABEL: Record<RecordWalletState, string> = {
+  applied: 'روی موجودی حساب اثر گذاشت',
+  skipped: 'حساب دارد ولی روی موجودی اثر نگذاشت',
+  none: 'بدون حساب؛ روی موجودی اثر ندارد'
+}
 
 interface RecordsListRowProps {
   record: StoredRecord
@@ -87,22 +98,20 @@ function RecordsListRow({
             fileIds={record.attachments}
             title={String(title)}
           />
-          {walletState === 'none' ? null : (
+          {isIncome || isExpense ? (
             <span
               className={cn(
                 lineItemsBadgeClass,
                 walletState === 'applied' ? 'text-primary' : 'opacity-60'
               )}
               role="img"
-              aria-label={
-                walletState === 'applied' ? 'موجودی حساب به‌روز شد' : 'روی موجودی حساب اثر نداشت'
-              }
-              title={walletState === 'applied' ? 'موجودی حساب به‌روز شد' : 'روی موجودی اثر نداشت'}
+              aria-label={WALLET_STATE_LABEL[walletState]}
+              title={WALLET_STATE_LABEL[walletState]}
             >
               <AppIcon name="wallet" size={13} />
               {walletState === 'applied' ? <AppIcon name="check" size={13} /> : '—'}
             </span>
-          )}
+          ) : null}
           {items.length ? (
             <span className={lineItemsBadgeClass} aria-label={`${items.length} قلم`}>
               {`☰ ${items.length.toLocaleString('fa-IR')}`}
