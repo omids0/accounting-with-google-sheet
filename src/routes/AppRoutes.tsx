@@ -12,7 +12,10 @@ import {
   LazyBuildingCounterpartiesPage,
   LazyBuildingDangPage,
   LazyBuildingFundPage,
+  LazyBuildingListsPage,
+  LazyBuildingMembersPage,
   LazyBuildingPlaceholderPage,
+  LazyBuildingSettingsPage,
   LazyBuildingResidentsPage,
   LazyBuildingsHomePage,
   LazyBuildingUnitPage,
@@ -124,12 +127,7 @@ function EntryRoute() {
 }
 
 /** Building pages still waiting for their step of round 11 (each step swaps its element out). */
-const BUILDING_ROUTE_PATHS = [
-  'building/reports',
-  'building/settings',
-  'building/settings/members',
-  'building/settings/lists'
-]
+const BUILDING_ROUTE_PATHS = ['building/reports']
 
 function ModuleReportRoute({ kind }: { kind: ModuleReportKind }) {
   return <LazyModuleReportPage kind={kind} />
@@ -212,6 +210,9 @@ export function AppAuthenticatedRoutes() {
             <Route path="building/checks" element={<LazyBuildingChecksPage />} />
             <Route path="building/counterparties" element={<LazyBuildingCounterpartiesPage />} />
             <Route path="building/sms" element={<LazyBankSmsPage />} />
+            <Route path="building/settings" element={<LazyBuildingSettingsPage />} />
+            <Route path="building/settings/members" element={<LazyBuildingMembersPage />} />
+            <Route path="building/settings/lists" element={<LazyBuildingListsPage />} />
             {BUILDING_ROUTE_PATHS.map(path => (
               <Route key={path} path={path} element={<LazyBuildingPlaceholderPage />} />
             ))}

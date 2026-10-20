@@ -27,6 +27,8 @@ interface InviteMembersSheetProps {
   open: boolean
   buildingName: string
   header?: ReactNode
+  /** The primary button: «بعدی» in the journey, «تمام» on the members page. */
+  saveLabel?: string
   onClose: () => void
   /** «بعدی» of the journey; the members were added (or none was needed). */
   onSaved: () => void
@@ -40,6 +42,7 @@ export default function InviteMembersSheet({
   open,
   buildingName,
   header,
+  saveLabel = 'بعدی',
   onClose,
   onSaved
 }: InviteMembersSheetProps) {
@@ -99,7 +102,7 @@ export default function InviteMembersSheet({
         event.preventDefault()
         onSaved()
       }}
-      saveLabel="بعدی"
+      saveLabel={saveLabel}
       cancelLabel="بستن"
     >
       <FormField label="ایمیل گوگل">

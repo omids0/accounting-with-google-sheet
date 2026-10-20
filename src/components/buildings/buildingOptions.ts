@@ -1,3 +1,4 @@
+import type { ChargeTo } from '../../services/buildingLists'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 
 /**
@@ -75,6 +76,12 @@ export const BUILDING_ROLES: BuildingOption<BuildingRole>[] = [
   { value: 'manager', label: 'مدیر', hint: 'همه‌چیز؛ ویرایش در گوگل‌درایو' },
   { value: 'accountant', label: 'حسابدار', hint: 'ثبت و صدور شارژ؛ ویرایش در گوگل‌درایو' },
   { value: 'board', label: 'عضو هیئت مدیره', hint: 'فقط مشاهده؛ فقط‌خواندنی در گوگل‌درایو' }
+]
+
+/** «سهم هر واحد به نام» of an expense kind (the managed list stores the key). */
+export const CHARGE_TO_OPTIONS: BuildingOption<ChargeTo>[] = [
+  { value: 'resident', label: 'ساکن' },
+  { value: 'owner', label: 'مالک' }
 ]
 
 export const DAYS_1_28: BuildingOption[] = Array.from({ length: 28 }, (_, index) => ({

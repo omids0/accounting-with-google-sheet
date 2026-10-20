@@ -1,4 +1,4 @@
-import { useMemo, useSyncExternalStore } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 
 import BuildingFundHero from './BuildingFundHero'
@@ -10,17 +10,13 @@ import FundReconcileSheet from './FundReconcileSheet'
 import { fundAccountDraft } from './fundRows'
 import { useBuildingFund } from './useBuildingFund'
 import { useFundActions } from './useFundActions'
+import { useRoutedCards } from './useRoutedCards'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useBuildingAccess } from '../../hooks/useBuildingAccess'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { getPathForTab } from '../../routes/paths'
-import {
-  getWorkspaceCardsVersion,
-  routedCardLabels,
-  subscribeWorkspaceCards
-} from '../../services/bankSmsRouting'
 import { monthName } from '../../services/buildingMonths'
-import { isConfigured, getSettings } from '../../services/settings'
+import { isConfigured } from '../../services/settings'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import CalmBlock from '../CalmBlock'
 import MonthlyFlowChartSection from '../charts/MonthlyFlowChartSection'
@@ -30,13 +26,6 @@ import { chartTitleClass } from '../ui/chartStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 import { useWalletReconcile } from '../wallet/useWalletReconcile'
 import WalletSmsReconcileStatus from '../wallet/WalletSmsReconcileStatus'
-
-/** The cards of the fund as the building settings list them: `۶۱۰۴…۳۲۱۰ · ۵۰۲۲…۱۱۰۰`. */
-function useRoutedCards(): string[] {
-  useSyncExternalStore(subscribeWorkspaceCards, getWorkspaceCardsVersion)
-
-  return routedCardLabels(getSettings()?.spreadsheetId ?? '')
-}
 
 /**
  * «صندوق»: the wallet of the building. The sum of its accounts is the hero, with what came in

@@ -120,6 +120,15 @@ export const loadWalletReconcilePage: PageLoader = () =>
 export const loadBuildingPlaceholderPage: PageLoader = () =>
   import('../components/buildings/BuildingPlaceholderPage')
 
+export const loadBuildingSettingsPage: PageLoader = () =>
+  import('../components/buildings/BuildingSettingsPage')
+
+export const loadBuildingMembersPage: PageLoader = () =>
+  import('../components/buildings/BuildingMembersPage')
+
+export const loadBuildingListsPage: PageLoader = () =>
+  import('../components/buildings/BuildingListsPage')
+
 export const loadBuildingFundPage: PageLoader = () =>
   import('../components/buildings/BuildingFundPage')
 

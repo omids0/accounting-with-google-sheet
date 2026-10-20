@@ -1,4 +1,5 @@
 import { anyCardMatches, savedCardDigits, smsCardTokens } from './bankSmsCards'
+import { isArchivedEntry } from './buildingArchive'
 import { getSettings } from './settings'
 import { WALLET_SHEET } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
@@ -139,8 +140,11 @@ export interface RoutingWorkspace {
 export function routingWorkspaces(): RoutingWorkspace[] {
   const settings = getSettings()
   const store = readWorkspaceCards()
+  // An archived building no longer owns a card: its SMS stay in the personal queue.
   const ids = new Set([
-    ...(settings?.spreadsheets ?? []).map(entry => entry.id),
+    ...(settings?.spreadsheets ?? [])
+      .filter(entry => !isArchivedEntry(entry))
+      .map(entry => entry.id),
     ...(settings?.spreadsheetId ? [settings.spreadsheetId] : [])
   ])
 

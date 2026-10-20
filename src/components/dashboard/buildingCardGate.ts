@@ -1,3 +1,4 @@
+import { isArchivedEntry } from '../../services/buildingArchive'
 import { getSpreadsheets } from '../../services/settings'
 import { getActiveWorkspaceType, isBuildingEntry } from '../../services/workspace'
 import type { SpreadsheetEntry } from '../../types'
@@ -15,5 +16,5 @@ export function buildingCardCandidates(date = new Date()): SpreadsheetEntry[] {
   if (getActiveWorkspaceType() !== 'personal') return []
   if (getJalaliParts(date).day < BUILDING_CARD_FROM_DAY) return []
 
-  return getSpreadsheets().filter(isBuildingEntry)
+  return getSpreadsheets().filter(entry => isBuildingEntry(entry) && !isArchivedEntry(entry))
 }

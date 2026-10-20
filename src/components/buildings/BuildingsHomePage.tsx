@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 
 import EmptyState from '../EmptyState'
+import ArchivedBuildings from './ArchivedBuildings'
 import BuildingCreateJourney from './BuildingCreateJourney'
 import BuildingWorkspaceCard from './BuildingWorkspaceCard'
 import ConnectBuildingSheet from './ConnectBuildingSheet'
@@ -62,6 +63,8 @@ export default function BuildingsHomePage() {
           </div>
         </>
       )}
+
+      <ArchivedBuildings entries={home.archived} onRestore={home.restore} />
 
       <ConnectBuildingSheet
         open={connecting}

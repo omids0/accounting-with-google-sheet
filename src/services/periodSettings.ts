@@ -1,6 +1,12 @@
 import { PERIOD_SETTINGS_HEADERS } from './sheetHeaders'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
-import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
+import {
+  appendSheetRow,
+  deleteSheetRow,
+  ensureSheetWithHeaders,
+  fetchSheetRows,
+  updateSheetRow
+} from './sheets'
 import { getTodayIso } from '../utils/jalaliDate'
 
 export { PERIOD_SETTINGS_SHEET, PERIOD_SETTINGS_HEADERS }
@@ -80,6 +86,23 @@ export async function setPeriodSetting(
   }
 
   await appendSheetRow(spreadsheetId, PERIOD_SETTINGS_SHEET, row, WRITE_OPTIONS)
+}
+
+/** Removes the rows of these keys (a member's role, overrides and invite): bottom row first. */
+export async function deletePeriodSettings(spreadsheetId: string, keys: string[]): Promise<void> {
+  const rows = await fetchPeriodSettingRows(spreadsheetId)
+
+  // E-mails are case-insensitive: a hand-typed «نقش:Sara@x.com» goes with «نقش:sara@x.com».
+  const wanted = new Set(keys.map(key => key.toLowerCase()))
+
+  const numbers = [...rows]
+    .filter(([key]) => wanted.has(key.toLowerCase()))
+    .map(([, row]) => row.rowNumber)
+    .sort((a, b) => b - a)
+
+  for (const rowNumber of numbers) {
+    await deleteSheetRow(spreadsheetId, PERIOD_SETTINGS_SHEET, rowNumber)
+  }
 }
 
 /**

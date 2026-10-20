@@ -56,8 +56,11 @@ import {
   loadBuildingDashboardPage,
   loadBuildingExpensesPage,
   loadBuildingJourneyPage,
+  loadBuildingListsPage,
+  loadBuildingMembersPage,
   loadBuildingPlaceholderPage,
   loadBuildingResidentsPage,
+  loadBuildingSettingsPage,
   loadBuildingsHomePage,
   loadBuildingUnitPage,
   loadBuildingUnitsPage,
@@ -113,6 +116,9 @@ export const LazyWalletAccountDetailPage = lazy(loadWalletAccountDetailPage)
 export const LazyWalletReconcilePage = lazy(loadWalletReconcilePage)
 export const LazySearchPage = lazy(loadSearchPage)
 export const LazyBuildingPlaceholderPage = lazy(loadBuildingPlaceholderPage)
+export const LazyBuildingSettingsPage = lazy(loadBuildingSettingsPage)
+export const LazyBuildingMembersPage = lazy(loadBuildingMembersPage)
+export const LazyBuildingListsPage = lazy(loadBuildingListsPage)
 export const LazyBuildingFundPage = lazy(loadBuildingFundPage)
 export const LazyBuildingDangPage = lazy(loadBuildingDangPage)
 export const LazyBuildingChecksPage = lazy(loadBuildingChecksPage)

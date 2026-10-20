@@ -197,7 +197,8 @@ export function useLayoutNavigation() {
     if (getSettingsSubpageTitle(location.pathname)) {
       // «بستن سال» returns to the year card or Settings, wherever it was opened from.
       if (isCloseYearPath(location.pathname) && location.key !== 'default') navigate(-1)
-      else navigate(SETTINGS_PATH)
+      // A building opens these tools from its own settings and goes back there.
+      else navigate(isBuilding ? getPathForTab('building-settings') : SETTINGS_PATH)
 
       return
     }

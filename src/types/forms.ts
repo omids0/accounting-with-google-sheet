@@ -32,6 +32,8 @@ export interface SpreadsheetEntry {
   createdAt: string
   /** Missing means `personal`. */
   kind?: WorkspaceKind
+  /** False = an archived building (hidden from the home list); missing means active. */
+  active?: boolean
 }
 
 export interface NetAvailableAssetConfig {
