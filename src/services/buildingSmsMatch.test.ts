@@ -38,7 +38,6 @@ const units = [
   unit('8', { open: 2_400_000, month: '1405-06' }),
   unit('9', { open: 0, charge: 900_000 })
 ]
-
 const rezaei = smsCardTokens('از کارت 6219***1100')
 
 describe('amountFit', () => {
