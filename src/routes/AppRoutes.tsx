@@ -14,7 +14,7 @@ import {
   LazyBuildingFundPage,
   LazyBuildingListsPage,
   LazyBuildingMembersPage,
-  LazyBuildingPlaceholderPage,
+  LazyBuildingReportsPage,
   LazyBuildingSettingsPage,
   LazyBuildingResidentsPage,
   LazyBuildingsHomePage,
@@ -126,9 +126,6 @@ function EntryRoute() {
   )
 }
 
-/** Building pages still waiting for their step of round 11 (each step swaps its element out). */
-const BUILDING_ROUTE_PATHS = ['building/reports']
-
 function ModuleReportRoute({ kind }: { kind: ModuleReportKind }) {
   return <LazyModuleReportPage kind={kind} />
 }
@@ -213,9 +210,7 @@ export function AppAuthenticatedRoutes() {
             <Route path="building/settings" element={<LazyBuildingSettingsPage />} />
             <Route path="building/settings/members" element={<LazyBuildingMembersPage />} />
             <Route path="building/settings/lists" element={<LazyBuildingListsPage />} />
-            {BUILDING_ROUTE_PATHS.map(path => (
-              <Route key={path} path={path} element={<LazyBuildingPlaceholderPage />} />
-            ))}
+            <Route path="building/reports" element={<LazyBuildingReportsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Route>

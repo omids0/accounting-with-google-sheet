@@ -10,7 +10,9 @@ export const SEARCH_GROUPS = [
   { id: 'installments', label: 'قسط', title: 'اقساط' },
   { id: 'treasury', label: 'صندوقچه', title: 'صندوقچه' },
   { id: 'reminders', label: 'یادآوری', title: 'یادآوری‌ها' },
-  { id: 'vehicles', label: 'خودرو', title: 'خودروها' }
+  { id: 'vehicles', label: 'خودرو', title: 'خودروها' },
+  { id: 'units', label: 'واحد', title: 'واحدها' },
+  { id: 'residents', label: 'ساکن', title: 'ساکنان' }
 ] as const
 
 export type SearchGroupId = (typeof SEARCH_GROUPS)[number]['id']
@@ -37,6 +39,8 @@ export interface SearchEntry {
   amounts: number[]
   /** Email in «ثبت‌کننده» (shared spreadsheets show an avatar). */
   writer?: string
+  /** Units and residents of a building open this unit's page. */
+  unitId?: string
 }
 
 export interface SearchGroupResult {

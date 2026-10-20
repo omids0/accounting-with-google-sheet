@@ -1,3 +1,5 @@
+import { reportWords } from './reportWording'
+import { getActiveWorkspaceType } from './workspace'
 import type { YearReview } from './yearReview'
 import { formatJalaliYear } from '../utils/dateRange'
 import { formatPersianNumber, formatSignedNumber } from '../utils/formatMoney'
@@ -48,8 +50,9 @@ export function yearCountFacts(review: YearReview): string[] {
   return facts
 }
 
-/** «دارایی خالص از ۱۸ به ۲۹٫۸ میلیون رسید», or null without both ends. */
+/** «دارایی خالص از ۱۸ به ۲۹٫۸ میلیون رسید», or null without both ends (and in a building). */
 export function netWorthSpanText(review: YearReview): string | null {
+  if (getActiveWorkspaceType() === 'building') return null
   if (review.netWorthFrom == null || review.netWorthTo == null) return null
 
   return `دارایی خالص از ${headlineAmount(review.netWorthFrom)} به ${headlineAmount(
@@ -64,14 +67,16 @@ export function yearKicker(year: number, ended = true): string {
 
 /** The six headline cells, in card order (amounts already in headline form). */
 export function yearHeadlineStats(review: YearReview): { label: string; value: string }[] {
+  const words = reportWords()
+
   return [
-    { label: 'درآمد', value: headlineAmount(review.income) },
-    { label: 'هزینه', value: headlineAmount(review.expense) },
-    { label: 'پس‌انداز', value: headlineAmount(review.savings, { showPlus: true }) },
+    { label: words.income, value: headlineAmount(review.income) },
+    { label: words.expense, value: headlineAmount(review.expense) },
+    { label: words.savings, value: headlineAmount(review.savings, { showPlus: true }) },
     { label: 'بزرگ‌ترین هزینه', value: review.topExpenseCategory ?? '—' },
     { label: 'گران‌ترین ماه', value: monthName(review.topExpenseMonth) ?? '—' },
     {
-      label: 'نرخ پس‌انداز',
+      label: words.savingsRate,
       value: review.savingsRate == null ? '—' : percentText(review.savingsRate)
     }
   ]

@@ -58,7 +58,7 @@ import {
   loadBuildingJourneyPage,
   loadBuildingListsPage,
   loadBuildingMembersPage,
-  loadBuildingPlaceholderPage,
+  loadBuildingReportsPage,
   loadBuildingResidentsPage,
   loadBuildingSettingsPage,
   loadBuildingsHomePage,
@@ -115,7 +115,7 @@ export const LazyWalletPage = lazy(loadWalletPage)
 export const LazyWalletAccountDetailPage = lazy(loadWalletAccountDetailPage)
 export const LazyWalletReconcilePage = lazy(loadWalletReconcilePage)
 export const LazySearchPage = lazy(loadSearchPage)
-export const LazyBuildingPlaceholderPage = lazy(loadBuildingPlaceholderPage)
+export const LazyBuildingReportsPage = lazy(loadBuildingReportsPage)
 export const LazyBuildingSettingsPage = lazy(loadBuildingSettingsPage)
 export const LazyBuildingMembersPage = lazy(loadBuildingMembersPage)
 export const LazyBuildingListsPage = lazy(loadBuildingListsPage)

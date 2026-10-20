@@ -1,5 +1,7 @@
+import { useIsBuildingWorkspace } from '../../../hooks/useWorkspaceType'
 import { monthlyReportTitle, type MonthlyReportData } from '../../../services/monthlyReport'
 import { monthlyReportHighlightLine } from '../../../services/monthlyReportPdf'
+import { reportWords } from '../../../services/reportWording'
 import { formatPersianNumber } from '../../../utils/formatMoney'
 import MoneyText from '../../MoneyText'
 import Card from '../../ui/Card'
@@ -37,6 +39,8 @@ export default function MonthlyReportPreview({
   report: MonthlyReportData
   owner: string | null
 }) {
+  const building = useIsBuildingWorkspace()
+  const words = reportWords(building)
   const change = report.netWorthChange
 
   const highlightLine = monthlyReportHighlightLine(report)
@@ -49,9 +53,9 @@ export default function MonthlyReportPreview({
       </div>
 
       <div className={periodReportStatsClass}>
-        <Stat label="درآمد" amount={report.income} />
-        <Stat label="هزینه" amount={report.expense} />
-        <Stat label="خالص" amount={report.net} signed />
+        <Stat label={words.income} amount={report.income} />
+        <Stat label={words.expense} amount={report.expense} />
+        <Stat label={words.net} amount={report.net} signed />
       </div>
 
       {report.budgets.length ? (
@@ -76,12 +80,13 @@ export default function MonthlyReportPreview({
       {highlightLine ? <p className={periodReportFactsClass}>{highlightLine}</p> : null}
 
       <p className={periodReportFactsClass}>
-        {`اقساط پرداخت‌شده ${formatPersianNumber(
-          report.installments.paid
-        )} از ${formatPersianNumber(report.installments.due)} · چک پاس‌شده ${formatPersianNumber(
-          report.checksCleared
-        )}`}
-        {report.netWorth != null ? (
+        {building
+          ? ''
+          : `اقساط پرداخت‌شده ${formatPersianNumber(
+              report.installments.paid
+            )} از ${formatPersianNumber(report.installments.due)} · `}
+        {`چک پاس‌شده ${formatPersianNumber(report.checksCleared)}`}
+        {!building && report.netWorth != null ? (
           <>
             {' · دارایی خالص '}
             <MoneyText amount={report.netWorth} />

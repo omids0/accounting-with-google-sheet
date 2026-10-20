@@ -1,3 +1,5 @@
+import { fetchStays } from './buildingResidents'
+import { fetchUnits } from './buildingUnits'
 import { fetchChecks } from './checks'
 import { fetchCounterparties } from './counterparties'
 import { fetchDangs } from './dang'
@@ -14,6 +16,7 @@ import { loadVaultCatalog } from './treasuryCatalogSheet'
 import { computeHoldings } from './treasuryHoldings'
 import { fetchVehicles } from './vehicleProfiles'
 import { fetchWalletAccounts } from './wallet'
+import { getActiveWorkspaceType } from './workspace'
 import type { AppSettings } from '../types'
 
 async function loadRecords(settings: AppSettings): Promise<SearchRecordInput[]> {
@@ -37,10 +40,21 @@ async function loadRecords(settings: AppSettings): Promise<SearchRecordInput[]> 
   return lists.flat()
 }
 
+/** A building's units and stays; either tab failing to load leaves that side empty. */
+async function loadBuilding(id: string): Promise<NonNullable<SearchSources['building']>> {
+  const [units, stays] = await Promise.all([
+    fetchUnits(id).catch(() => []),
+    fetchStays(id).catch(() => [])
+  ])
+
+  return { units, stays }
+}
+
 /**
  * Everything the global search covers, read from the local mirror the module
  * pages already use: records (with loaded yearly archives), checks, dang,
- * receivables, installments, counterparties, treasury, reminders and vehicles.
+ * receivables, installments, counterparties, treasury, reminders and vehicles (a building adds
+ * its units and residents).
  * A module that fails to load is simply left out.
  */
 export async function loadSearchSources(settings: AppSettings): Promise<SearchSources> {
@@ -57,7 +71,8 @@ export async function loadSearchSources(settings: AppSettings): Promise<SearchSo
     vault,
     goals,
     reminders,
-    vehicles
+    vehicles,
+    building
   ] = await Promise.all([
     loadRecords(settings),
     fetchWalletAccounts(id).catch(() => []),
@@ -69,7 +84,8 @@ export async function loadSearchSources(settings: AppSettings): Promise<SearchSo
     Promise.all([fetchVaultTransactions(id), loadVaultCatalog(id)]).catch(() => null),
     loadSavingsGoals(id).catch(() => []),
     fetchPersonalReminders(id).catch(() => []),
-    fetchVehicles(id).catch(() => [])
+    fetchVehicles(id).catch(() => []),
+    getActiveWorkspaceType() === 'building' ? loadBuilding(id) : Promise.resolve(undefined)
   ])
 
   return {
@@ -84,6 +100,7 @@ export async function loadSearchSources(settings: AppSettings): Promise<SearchSo
     goals,
     reminders,
     vehicles: vehicles.filter(vehicle => vehicle.active),
+    building,
     writerName: sharing?.shared
       ? email => {
           const label = writerLabel(email, sharing)

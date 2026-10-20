@@ -1,3 +1,4 @@
+import type { ChartsRecords } from './chartsData'
 import { getCounterpartyFullName } from './counterparties'
 import { fetchRecords } from './sheets'
 import type { AppSettings, Counterparty, CustomForm, Dang, RecordRow } from '../types'
@@ -22,6 +23,16 @@ const NOT_FLOW = new Set([
 export const isNonFlowCategory = (category: string | undefined) =>
   NOT_FLOW.has((category ?? '').trim())
 
+/**
+ * The records the app-wide reports (monthly report, year review) read, without the transfers and
+ * fund corrections a building writes: they move money between accounts, they are not income.
+ */
+export const withoutNonFlow = (records: ChartsRecords): ChartsRecords => ({
+  ...records,
+  incomeRecords: records.incomeRecords.filter(item => !isNonFlowCategory(item.values.category)),
+  expenseRecords: records.expenseRecords.filter(item => !isNonFlowCategory(item.values.category))
+})
+
 export interface MonthFlow {
   income: number
   expense: number
@@ -38,6 +49,12 @@ function inRange(records: RecordRow[], dateField: string, range: DateRange): Rec
     .filter(record => !isNonFlowCategory(record.values.category))
 }
 
+/** The records of one side that fall in `range`, transfers and corrections left out. */
+export const flowRecordsIn = (
+  side: { form?: CustomForm; records: RecordRow[] },
+  range: DateRange
+) => inRange(side.records, dateFieldOf(side.form), range)
+
 const total = (records: RecordRow[]) =>
   records.reduce((sum, record) => sum + parseNumeric(record.values.amount), 0)
 
@@ -47,10 +64,10 @@ export function monthFlowOf(
   expense: { form?: CustomForm; records: RecordRow[] },
   range: DateRange
 ): MonthFlow {
-  const spent = inRange(expense.records, dateFieldOf(expense.form), range)
+  const spent = flowRecordsIn(expense, range)
 
   return {
-    income: total(inRange(income.records, dateFieldOf(income.form), range)),
+    income: total(flowRecordsIn(income, range)),
     expense: total(spent),
     expenseCount: spent.length
   }

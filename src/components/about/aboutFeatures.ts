@@ -1,3 +1,4 @@
+import { ABOUT_BUILDING_FEATURE_GROUP } from './aboutFeatureGroupsBuilding'
 import { ABOUT_FEATURE_GROUPS_CORE } from './aboutFeatureGroupsCore'
 import { ABOUT_FEATURE_GROUPS_EXTENDED } from './aboutFeatureGroupsExtended'
 import { ABOUT_PLATFORM_GROUP } from './aboutFeatureGroupsPlatform'
@@ -9,6 +10,7 @@ import type { AboutFeatureGroup } from './types'
 export const ABOUT_FEATURE_GROUPS: AboutFeatureGroup[] = [
   ...ABOUT_FEATURE_GROUPS_CORE,
   ...ABOUT_FEATURE_GROUPS_EXTENDED,
+  ABOUT_BUILDING_FEATURE_GROUP,
   ...ABOUT_FEATURE_GROUPS_TOOLS,
   ABOUT_SHARED_GROUP,
   ABOUT_PLATFORM_GROUP,

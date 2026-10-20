@@ -1,4 +1,5 @@
 import { fetchBudgets } from './budgetsSheet'
+import { withoutNonFlow } from './buildingDashboard'
 import type { ChartsRecords } from './chartsData'
 import { fetchChecks } from './checks'
 import { fetchInstallmentPlans } from './installments'
@@ -10,6 +11,7 @@ import { loadSavingsGoals } from './savingsGoalsSheet'
 import { WALLET_LEDGER_SHEET } from './sheetNames'
 import { fetchSheetRows } from './sheets'
 import { rowToLedgerEntry } from './walletLedger'
+import { getActiveWorkspaceType } from './workspace'
 import { buildYearReview, hasYearActivity, type YearReview } from './yearReview'
 import { reviewableYears } from './yearReviewGate'
 import type { AppSettings } from '../types'
@@ -35,7 +37,14 @@ async function loadCommon(settings: AppSettings) {
     todayNetWorth(settings)
   ])
 
-  return { records, installmentPlans, checks, snapshots, todayNetWorth: today }
+  return {
+    // A building's transfers and fund corrections are not income or spending.
+    records: getActiveWorkspaceType() === 'building' ? withoutNonFlow(records) : records,
+    installmentPlans,
+    checks,
+    snapshots,
+    todayNetWorth: today
+  }
 }
 
 /** First Jalali month with a record, else null (the month picker starts there). */
