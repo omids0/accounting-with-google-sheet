@@ -1,4 +1,5 @@
 import { findAttachmentColumn } from './attachmentColumn'
+import { ACTIVITY_SHEET } from './sheetNames'
 import { apiRequest, SHEETS_API, SheetsApiError } from './sheetsApi'
 import { normalizeSheetTitle, parseSheetNameFromRange, quoteSheetName } from './sheetsMeta'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
@@ -193,6 +194,9 @@ export async function updateSheetRow(
 
   const expectedRow = getSheetRow(spreadsheetId, sheetName, rowNumber) ?? undefined
 
+  // «فعالیت» holds two dates that every device overwrites; last write wins, so no row guard.
+  const guardRow = sheetName === ACTIVITY_SHEET ? undefined : expectedRow
+
   const kept = exact
     ? built
     : keepAttachmentCell(built, expectedRow, findAttachmentColumn(spreadsheetId, sheetName))
@@ -210,7 +214,7 @@ export async function updateSheetRow(
     sheetName,
     rowNumber,
     row,
-    expectedRow,
+    expectedRow: guardRow,
     writeOptions: options
   })
 }

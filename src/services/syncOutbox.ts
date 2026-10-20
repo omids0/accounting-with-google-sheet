@@ -1,3 +1,4 @@
+import { ACTIVITY_SHEET } from './sheetNames'
 import { normalizeSheetTitle } from './sheetsMeta'
 import { getItem, removeItem, setItem } from './storage'
 
@@ -193,7 +194,10 @@ function failedKey(spreadsheetId: string): string {
  * They are parked here instead of blocking every later write forever.
  */
 export function getFailedOutboxEntries(spreadsheetId: string): OutboxEntry[] {
-  return getItem<OutboxEntry[]>(failedKey(spreadsheetId)) ?? []
+  const parked = getItem<OutboxEntry[]>(failedKey(spreadsheetId)) ?? []
+
+  // «فعالیت» holds best-effort dates; a rejected write there is not worth showing.
+  return parked.filter(entry => entry.operation.sheetName !== ACTIVITY_SHEET)
 }
 
 function writeFailed(spreadsheetId: string, entries: OutboxEntry[]): void {
