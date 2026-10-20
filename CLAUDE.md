@@ -43,6 +43,7 @@ These are ported from `.cursor/rules/` and apply to every task in this repo.
 @.claude/rules/pre-commit-quality-gates.md
 @.claude/rules/no-config-changes-without-permission.md
 @.claude/rules/no-local-git-cli.md
+@.claude/rules/branch-from-develop.md
 @.claude/rules/keep-about-page-updated.md
 
 ## Skills

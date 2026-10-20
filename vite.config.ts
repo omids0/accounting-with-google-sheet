@@ -7,6 +7,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 const basePath = process.env.VITE_BASE_PATH ?? '/'
 
+/** Develop builds (`VITE_APP_ENV=dev`) say «dev» in the installed app's name. */
+const appName = process.env.VITE_APP_ENV === 'dev' ? 'حساب کتاب (dev)' : 'حساب کتاب'
+
 /** The app reads the same field (`import { version } from 'package.json'`). */
 const appVersion = (JSON.parse(readFileSync('./package.json', 'utf8')) as { version: string })
   .version
@@ -60,8 +63,8 @@ export default defineConfig(({ command }) => ({
       ],
       manifest: {
         id: basePath,
-        name: 'حساب کتاب',
-        short_name: 'حساب کتاب',
+        name: appName,
+        short_name: appName,
         description: 'حساب کتاب: حسابداری شخصی با ذخیره‌سازی در گوگل شیت',
         theme_color: '#0f766e',
         background_color: '#f0fdfa',
@@ -125,6 +128,9 @@ export default defineConfig(({ command }) => ({
         additionalManifestEntries:
           command === 'serve' ? [] : [{ url: 'version.json', revision: appVersion }],
         importScripts: ['push-handler.js'],
+        // The develop build is served under `<base>dev/`, inside this worker's scope. Its
+        // pages must come from the network, not from this build's index.html.
+        navigateFallbackDenylist: [new RegExp(`^${basePath}dev/`)],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/sheets\.googleapis\.com\/.*/i,

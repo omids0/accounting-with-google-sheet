@@ -4,12 +4,16 @@ apply plugin: 'com.android.application'
 // versionCode increases, so it tracks the CI run number.
 def apkVersionCode = (project.findProperty("appVersionCode") ?: "1").toString().toInteger()
 def apkVersionName = (project.findProperty("appVersionName") ?: "0.0.0").toString()
+// Develop builds pass ".dev" and a "-dev" file name so they install beside production.
+def apkIdSuffix = (project.findProperty("appIdSuffix") ?: "").toString()
+def apkFileName = (project.findProperty("apkFileName") ?: "hesab-ketab.apk").toString()
 
 android {
     namespace "com.omids0.accounting"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.omids0.accounting"
+        applicationIdSuffix apkIdSuffix
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode apkVersionCode
@@ -43,7 +47,7 @@ android {
     }
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-            outputFileName = "hesab-ketab.apk"
+            outputFileName = apkFileName
         }
     }
 }

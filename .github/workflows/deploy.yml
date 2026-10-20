@@ -1,8 +1,11 @@
 name: Deploy to GitHub Pages
 
+# One Pages site holds both builds: main at the root (production) and develop under
+# /dev/. Either push rebuilds both, so a develop push never loses the production
+# pages. The dev build is labelled «dev» (VITE_APP_ENV).
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   workflow_dispatch:
 
 permissions:
@@ -18,29 +21,63 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main (production)
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: prod
+
+      - name: Checkout develop (dev site)
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: dev
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: |
+            prod/package-lock.json
+            dev/package-lock.json
 
-      - name: Install dependencies
+      - name: Install dependencies (production)
+        working-directory: prod
         run: npm ci
 
-      - name: Build
+      - name: Install dependencies (dev)
+        working-directory: dev
+        run: npm ci
+
+      - name: Build production
+        working-directory: prod
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
           VITE_BASE_PATH: /accounting-with-google-sheet/
         run: npm run build
 
+      - name: Build dev
+        working-directory: dev
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          VITE_BASE_PATH: /accounting-with-google-sheet/dev/
+          VITE_APP_ENV: dev
+        run: npm run build
+
+      - name: Assemble the site
+        run: |
+          mkdir site
+          cp -r prod/dist/. site/
+          mkdir site/dev
+          cp -r dev/dist/. site/dev/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: site
 
   deploy:
     needs: build
