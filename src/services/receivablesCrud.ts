@@ -50,6 +50,9 @@ export async function createReceivable(
     amount: number
     borrowDate: string
     note: string
+    /** Round 11: the building charge key and the debtor's counterparty id. */
+    reference?: string
+    debtorId?: string
   }
 ): Promise<Receivable> {
   const receivable: Receivable = {
@@ -62,7 +65,9 @@ export async function createReceivable(
     amount: data.amount,
     borrowDate: data.borrowDate,
     note: data.note,
-    payments: []
+    payments: [],
+    ...(data.reference ? { reference: data.reference } : {}),
+    ...(data.debtorId ? { debtorId: data.debtorId } : {})
   }
 
   await appendSheetRow(spreadsheetId, RECEIVABLES_SHEET, receivableToRow(receivable))

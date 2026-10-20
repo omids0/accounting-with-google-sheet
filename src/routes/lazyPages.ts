@@ -48,7 +48,9 @@ import {
   loadWalletAccountDetailPage,
   loadWalletReconcilePage,
   loadBankSmsPage,
+  loadBuildingJourneyPage,
   loadBuildingPlaceholderPage,
+  loadBuildingsHomePage,
   loadSearchPage
 } from './pageChunks'
 
@@ -101,3 +103,5 @@ export const LazyWalletAccountDetailPage = lazy(loadWalletAccountDetailPage)
 export const LazyWalletReconcilePage = lazy(loadWalletReconcilePage)
 export const LazySearchPage = lazy(loadSearchPage)
 export const LazyBuildingPlaceholderPage = lazy(loadBuildingPlaceholderPage)
+export const LazyBuildingsHomePage = lazy(loadBuildingsHomePage)
+export const LazyBuildingJourneyPage = lazy(loadBuildingJourneyPage)

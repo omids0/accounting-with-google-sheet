@@ -5,7 +5,9 @@ import {
   getActiveWorkspaceType,
   getWorkspaceType,
   hasWorkspaceType,
+  isBuildingEntry,
   personalSpreadsheet,
+  rememberPersonalSheet,
   setWorkspaceType,
   subscribeWorkspace,
   syncWorkspaceTypeFromSheet,
@@ -86,6 +88,38 @@ describe('workspace type', () => {
       personalSpreadsheet([entry('b', 'building'), entry('known-building'), entry('p')])?.id
     ).toBe('p')
     expect(personalSpreadsheet([entry('b', 'building')])).toBeUndefined()
+  })
+
+  it('prefers the personal spreadsheet remembered on this device', () => {
+    rememberPersonalSheet('p2')
+
+    expect(personalSpreadsheet([entry('p1'), entry('p2')])?.id).toBe('p2')
+  })
+
+  it('ignores a remembered sheet that has become a building or left the list', () => {
+    rememberPersonalSheet('p2')
+    setWorkspaceType('p2', 'building')
+    expect(personalSpreadsheet([entry('p1'), entry('p2')])?.id).toBe('p1')
+
+    rememberPersonalSheet('gone')
+    expect(personalSpreadsheet([entry('p1')])?.id).toBe('p1')
+  })
+
+  it('never takes a Drive sheet named like a building for the personal one', () => {
+    const named = (id: string, name: string) => ({ ...entry(id), name })
+
+    expect(
+      personalSpreadsheet([named('b', 'حسابداری · ساختمان نرگس'), named('p', 'حسابداری · اصلی')])
+        ?.id
+    ).toBe('p')
+  })
+
+  it('knows a registered building from its entry or its cached type', () => {
+    setWorkspaceType('known', 'building')
+
+    expect(isBuildingEntry(entry('b', 'building'))).toBe(true)
+    expect(isBuildingEntry(entry('known'))).toBe(true)
+    expect(isBuildingEntry(entry('p'))).toBe(false)
   })
 })
 

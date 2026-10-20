@@ -4,6 +4,7 @@ import type { Tab } from '../components/layout/types'
 export const BUILDING_TAB_PATHS: Partial<Record<Tab, string>> = {
   'buildings-home': '/buildings',
   'building-dashboard': '/building',
+  'building-setup': '/building/setup',
   'building-units': '/building/units',
   'building-residents': '/building/residents',
   'building-charges': '/building/charges',

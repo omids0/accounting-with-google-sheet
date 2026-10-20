@@ -48,6 +48,7 @@ export type Tab =
   | 'activity'
   | 'buildings-home'
   | 'building-dashboard'
+  | 'building-setup'
   | 'building-units'
   | 'building-residents'
   | 'building-unit'
@@ -195,6 +196,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   activity: 'فعالیت',
   'buildings-home': 'مدیر ساختمان',
   'building-dashboard': 'داشبورد',
+  'building-setup': 'راه‌اندازی ساختمان',
   'building-units': 'واحدها',
   'building-residents': 'ساکنان',
   'building-unit': 'واحد',
@@ -214,6 +216,7 @@ export const TAB_TITLES: Record<Tab, string> = {
 /** Pages of a building workspace; the personal workspace redirects them to its dashboard. */
 export const BUILDING_TABS: Tab[] = [
   'building-dashboard',
+  'building-setup',
   'building-units',
   'building-residents',
   'building-unit',

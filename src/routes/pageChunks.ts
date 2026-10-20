@@ -120,6 +120,12 @@ export const loadWalletReconcilePage: PageLoader = () =>
 export const loadBuildingPlaceholderPage: PageLoader = () =>
   import('../components/buildings/BuildingPlaceholderPage')
 
+export const loadBuildingsHomePage: PageLoader = () =>
+  import('../components/buildings/BuildingsHomePage')
+
+export const loadBuildingJourneyPage: PageLoader = () =>
+  import('../components/buildings/BuildingJourneyPage')
+
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
 export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')

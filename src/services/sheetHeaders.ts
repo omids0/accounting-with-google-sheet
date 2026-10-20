@@ -51,7 +51,10 @@ export const COUNTERPARTIES_HEADERS = [
   'لوکیشن',
   'شماره تماس',
   'حساب‌ها',
-  'توضیحات'
+  'توضیحات',
+  // Round 11: building people; new columns go at the end of the row.
+  'موقت',
+  'من'
 ]
 
 export const DANG_HEADERS = [

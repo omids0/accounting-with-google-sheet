@@ -76,7 +76,9 @@ const ACCOUNT_KEYS = [
   // Last account chosen when settling a payment, per spreadsheet (settleOptions.ts).
   'accounting_settle_account_v1',
   // Which spreadsheets are buildings (workspace.ts).
-  WORKSPACE_STORAGE_KEY
+  WORKSPACE_STORAGE_KEY,
+  // Card numbers of the «مدیر ساختمان» home, 10 minutes each (buildingSummary.ts).
+  'accounting_building_summary_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

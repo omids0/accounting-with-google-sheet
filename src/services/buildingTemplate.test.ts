@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { initialJourneyState, JOURNEY_ROW } from './buildingJourney'
 import {
   buildingForms,
   buildingProfileRow,
@@ -177,6 +178,27 @@ describe('createBuildingSpreadsheet', () => {
     expect((forms as ReturnType<typeof buildingForms>)[1].fields.some(f => f.id === 'payer')).toBe(
       true
     )
+  })
+
+  it('writes the setup journey row beside the type and role rows when given one', async () => {
+    const journey = initialJourneyState({ unitCount: 12 })
+
+    await createBuildingSpreadsheet(PROFILE, ACCOUNTS, journey)
+
+    const periodCall = api.appendSheetRowsApi.mock.calls.find(call => call[1] === 'تنظیمات دوره')
+
+    const rows = periodCall?.[2] as string[][]
+
+    expect(rows.map(row => row[0])).toContain(JOURNEY_ROW)
+    expect(JSON.parse(rows.find(row => row[0] === JOURNEY_ROW)![1])).toEqual(journey)
+  })
+
+  it('writes no journey row without one', async () => {
+    await createBuildingSpreadsheet(PROFILE, ACCOUNTS)
+
+    const periodCall = api.appendSheetRowsApi.mock.calls.find(call => call[1] === 'تنظیمات دوره')
+
+    expect((periodCall?.[2] as string[][]).map(row => row[0])).not.toContain(JOURNEY_ROW)
   })
 
   it('creates the tabs it writes, then writes the rows of each', async () => {

@@ -5,6 +5,7 @@ import {
   formatSpreadsheetTitle,
   getSpreadsheetLabel
 } from '../../services/spreadsheetCatalog'
+import { isBuildingEntry } from '../../services/workspace'
 import type { SpreadsheetEntry } from '../../types'
 import { FormField, FormSelect } from '../form'
 import Button from '../ui/Button'
@@ -53,7 +54,7 @@ export default function SettingsSpreadsheetCard({
             disabled={loading || !spreadsheetId}
             options={spreadsheets.map(sheet => ({
               value: sheet.id,
-              label: getSpreadsheetLabel(sheet.name)
+              label: getSpreadsheetLabel(sheet.name) + (isBuildingEntry(sheet) ? ' · ساختمان' : '')
             }))}
             hint={
               <p

@@ -1,4 +1,5 @@
 import { getUserEmail } from './auth'
+import { JOURNEY_ROW, type JourneyState } from './buildingJourney'
 import { ROLE_ROW_PREFIX } from './buildingRoles'
 import { buildingCategoryGroups, buildingSubcategories } from './buildingTemplateData'
 import { groupsToRows } from './categoryGroups'
@@ -166,11 +167,16 @@ export function registerBuildingSpreadsheet(id: string, name: string): void {
  */
 export async function createBuildingSpreadsheet(
   profile: BuildingProfile,
-  accounts: FundAccountInput[]
+  accounts: FundAccountInput[],
+  /** Where the setup journey stands; the row stays until the summary is confirmed. */
+  journey?: JourneyState
 ): Promise<string> {
   const title = formatSpreadsheetTitle(`ساختمان ${profile.name.trim()}`)
 
   const rows = buildTemplateRows(profile, accounts, getUserEmail() ?? '')
+
+  if (journey)
+    rows.period.push([JOURNEY_ROW, JSON.stringify(journey), new Date().toLocaleString('fa-IR')])
 
   const spreadsheetId = await createSpreadsheet(title, buildingForms())
 

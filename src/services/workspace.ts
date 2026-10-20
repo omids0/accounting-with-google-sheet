@@ -1,4 +1,5 @@
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
+import { SPREADSHEET_TITLE_PREFIX } from './spreadsheetCatalog'
 import { getItem, getStorageVersion, setItem, STORAGE_KEYS } from './storage'
 import type { WorkspaceKind } from '../types'
 
@@ -56,12 +57,39 @@ export function getActiveWorkspaceType(): WorkspaceType {
   return getWorkspaceType(read().activeId)
 }
 
-/** The manager's own spreadsheet: the first one that is not a building. */
-export function personalSpreadsheet<T extends { id: string; kind?: WorkspaceKind }>(
+/** A registered building, or a sheet this device already read the type of. */
+export function isBuildingEntry(entry: { id: string; kind?: WorkspaceKind }): boolean {
+  return entry.kind === 'building' || getWorkspaceType(entry.id) === 'building'
+}
+
+/** The manager's own spreadsheet, remembered per device when a building is entered. */
+export const PERSONAL_SHEET_KEY = 'accounting_personal_sheet'
+
+export function rememberPersonalSheet(spreadsheetId: string): void {
+  try {
+    if (spreadsheetId) setItem(PERSONAL_SHEET_KEY, spreadsheetId)
+  } catch {
+    // Private mode: the first non-building sheet is used instead.
+  }
+}
+
+/**
+ * The manager's own spreadsheet: the one remembered when a building was entered, else the first
+ * that is not a building. A Drive-listed «ساختمان …» sheet this device never registered counts as
+ * a building too, so it can never be taken for the personal one.
+ */
+export function personalSpreadsheet<T extends { id: string; name?: string; kind?: WorkspaceKind }>(
   entries: T[]
 ): T | undefined {
-  return entries.find(
-    entry => entry.kind !== 'building' && getWorkspaceType(entry.id) !== 'building'
+  const isPersonal = (entry: T) =>
+    entry.kind !== 'building' &&
+    getWorkspaceType(entry.id) !== 'building' &&
+    !(entry.name ?? '').replace(SPREADSHEET_TITLE_PREFIX, '').startsWith('ساختمان ')
+
+  const remembered = getItem<string>(PERSONAL_SHEET_KEY)
+
+  return (
+    entries.find(entry => entry.id === remembered && isPersonal(entry)) ?? entries.find(isPersonal)
   )
 }
 

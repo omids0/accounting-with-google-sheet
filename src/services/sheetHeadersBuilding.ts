@@ -23,7 +23,9 @@ export const BUILDING_UNITS_HEADERS = [
   'انباری',
   'شارژ ماهانه',
   'فعال',
-  'یادداشت'
+  'یادداشت',
+  // Who lives there (an OCCUPANCY key); the stays say who, this says whether anyone does.
+  'سکونت'
 ]
 
 export const BUILDING_RESIDENTS_HEADERS = [
