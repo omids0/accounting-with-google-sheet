@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation } from 'react-router'
 
-// The APK release workflow names builds from the same field, so the two never drift.
-import { version as APP_VERSION } from '../../../package.json'
+import { APP_NAME, APP_VERSION_LABEL } from '../../utils/appEnv'
 import AppIcon from '../AppIcon'
 import { ABOUT_CHANGELOG_GROUP, ABOUT_CHANGELOG_ID } from './aboutChangelogGroup'
 import { ABOUT_FEATURE_GROUPS } from './aboutFeatures'
@@ -51,12 +50,12 @@ export default function AboutPage() {
         <div className={aboutHeroIconClass} aria-hidden="true">
           <AppIcon name="dashboard" size={36} />
         </div>
-        <h1 className={aboutHeroTitleClass}>حساب کتاب</h1>
+        <h1 className={aboutHeroTitleClass}>{APP_NAME}</h1>
         <p className={aboutHeroTaglineClass}>
           اپ حسابداری با ذخیره‌سازی در Google Sheets — روی موبایل و دسکتاپ با چیدمان واکنش‌گرا؛
           داده‌های شما همیشه در اختیار خودتان است.
         </p>
-        <p className={aboutHeroVersionClass}>نسخه {APP_VERSION}</p>
+        <p className={aboutHeroVersionClass}>نسخه {APP_VERSION_LABEL}</p>
       </header>
 
       <p className={aboutIntroClass}>

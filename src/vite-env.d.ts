@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   /** Google Cloud project number, passed to Picker.setAppId so picks grant drive.file. */
   readonly VITE_GOOGLE_APP_ID?: string
   readonly VITE_BASE_PATH?: string
+  /** `dev` on builds from the develop branch; unset in production. */
+  readonly VITE_APP_ENV?: string
 }
 
 interface ImportMeta {

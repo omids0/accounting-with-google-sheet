@@ -1,8 +1,11 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
+// Develop builds install beside production: another application id and app name.
+const isDevBuild = process.env.VITE_APP_ENV === 'dev'
+
 const config: CapacitorConfig = {
-  appId: 'com.omids0.accounting',
-  appName: 'حساب کتاب',
+  appId: isDevBuild ? 'com.omids0.accounting.dev' : 'com.omids0.accounting',
+  appName: isDevBuild ? 'حساب کتاب (dev)' : 'حساب کتاب',
   webDir: 'dist',
   android: {
     // Release APKs must not expose the WebView (and its stored tokens) to chrome://inspect.
