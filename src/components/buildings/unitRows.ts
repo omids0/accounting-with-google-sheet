@@ -99,7 +99,11 @@ export function unitStatus(balance: UnitBalance): { text: string; credit: number
   if (balance.credit > 0) return { text: 'اعتبار', credit: balance.credit }
 
   return {
-    text: balance.lastPaidAt ? `پرداخت ${formatIsoDatePersian(balance.lastPaidAt)}` : '',
+    text: balance.lastPaidAt
+      ? `پرداخت ${formatIsoDatePersian(balance.lastPaidAt)}${
+          balance.lastPaidViaSms ? ' از پیامک' : ''
+        }`
+      : '',
     credit: 0
   }
 }

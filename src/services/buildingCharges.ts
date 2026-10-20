@@ -62,6 +62,9 @@ export function unitCharge(
   return Math.round(charge * rule)
 }
 
+/** The note a payment made from a bank SMS carries (Step 6), so the unit card can say so. */
+export const UNIT_SMS_PAYMENT_NOTE = 'پرداخت از پیامک'
+
 /** A credit a unit holds (an overpayment kept as `credit:<unitId>`); Step 4 writes and applies it. */
 export interface UnitCredit {
   unitId: string
@@ -104,6 +107,8 @@ export interface UnitBalance {
   /** A capital-expense share is among the open items. */
   hasShare: boolean
   lastPaidAt: string | null
+  /** The newest payment came from a bank SMS («پرداخت ۱۰ مهر از پیامک»). */
+  lastPaidViaSms?: boolean
 }
 
 /** What a unit owes (or holds in credit) from the receivables addressed to it. */
@@ -116,7 +121,9 @@ export function unitBalance(
 
   const open = unitOpenReceivables(unitId, own)
 
-  const paidDates = own.flatMap(item => item.payments.map(payment => payment.paidAt)).sort()
+  const payments = own
+    .flatMap(item => item.payments)
+    .sort((a, b) => a.paidAt.localeCompare(b.paidAt))
 
   return {
     open: open.reduce((sum, item) => sum + remainingAmount(item), 0),
@@ -132,7 +139,8 @@ export function unitBalance(
     ].filter(Boolean),
     partial: open.some(item => paidAmount(item) > 0),
     hasShare: open.some(item => item.reference?.startsWith('share:')),
-    lastPaidAt: paidDates.at(-1) ?? null
+    lastPaidAt: payments.at(-1)?.paidAt ?? null,
+    lastPaidViaSms: payments.at(-1)?.note === UNIT_SMS_PAYMENT_NOTE
   }
 }
 

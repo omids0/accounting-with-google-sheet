@@ -11,6 +11,8 @@ export function workspaceRedirect(pathname: string, isBuilding: boolean): string
 
   const tab = getTabFromPath(pathname)
 
+  // A notification or shortcut opens «bank-sms»; a building has its own queue.
+  if (isBuilding && tab === 'bank-sms') return getPathForTab('building-sms')
   if (isBuilding && PERSONAL_ONLY_TABS.includes(tab)) return getPathForTab('building-dashboard')
 
   return !isBuilding && BUILDING_TABS.includes(tab) ? '/' : null

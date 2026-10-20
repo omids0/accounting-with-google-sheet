@@ -19,11 +19,11 @@ function PermissionGate({ permission }: { permission: BuildingPermission }) {
  * role may not use renders «دسترسی ندارید».
  */
 export default function WorkspaceRouteGuard() {
-  const { pathname } = useLocation()
+  const { pathname, state } = useLocation()
   const isBuilding = useIsBuildingWorkspace()
   const redirect = workspaceRedirect(pathname, isBuilding)
 
-  if (redirect) return <Navigate to={redirect} replace />
+  if (redirect) return <Navigate to={redirect} replace state={state} />
 
   const permission = TAB_PERMISSIONS[getTabFromPath(pathname)]
 

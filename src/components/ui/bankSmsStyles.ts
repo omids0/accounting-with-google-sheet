@@ -130,3 +130,8 @@ export const smsMenuListClass = 'm-0 flex list-none flex-col gap-1 p-0'
 
 export const smsMenuItemClass =
   'flex min-h-touch-min w-full items-center gap-2 rounded-[var(--radius-sm)] px-3 text-start text-[0.9rem] text-text hover:bg-[var(--color-accent-soft)] disabled:opacity-50'
+
+export const smsStatusNoteClass = 'block text-[0.72rem] font-normal text-muted'
+
+/** Round 11: a building workspace has no bottom nav, so the bulk bar sits at the bottom edge. */
+export const smsBulkBarBuildingClass = 'bottom-[calc(1rem+var(--safe-bottom))]'

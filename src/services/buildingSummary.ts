@@ -1,3 +1,4 @@
+import { rememberWorkspaceCards, walletRowsToCardSources } from './bankSmsRouting'
 import { parseJourneyState, JOURNEY_ROW, type JourneyState } from './buildingJourney'
 import { parseBuildingProfile } from './buildingProfile'
 import { ROLE_ROW_PREFIX } from './buildingRoles'
@@ -174,7 +175,11 @@ export async function loadBuildingSummary(
       WALLET_SHEET
     ])
 
-    const summary = summarizeBuilding(id, Object.fromEntries(fetched))
+    const tabs = Object.fromEntries(fetched)
+    const summary = summarizeBuilding(id, tabs)
+
+    // The fund cards were just read: they route captured bank SMS (bankSmsRouting.ts).
+    rememberWorkspaceCards(id, walletRowsToCardSources(dataRows(tabs, WALLET_SHEET)))
 
     writeCache(id, summary)
 

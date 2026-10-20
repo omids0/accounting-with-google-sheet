@@ -4,6 +4,7 @@ import {
   baseChargeFor,
   isMonthIssued,
   latestChargeMonth,
+  UNIT_SMS_PAYMENT_NOTE,
   unitBalance,
   unitCharge,
   unitOpenReceivables
@@ -117,6 +118,22 @@ describe('unitBalance', () => {
   it('knows the last payment and ignores other units', () => {
     expect(unitBalance('u1', items).lastPaidAt).toBe('2026-10-05')
     expect(unitBalance('u3', items)).toMatchObject({ open: 0, months: [], lastPaidAt: null })
+  })
+
+  it('knows when the newest payment came from a bank SMS', () => {
+    const viaSms = receivable('charge:u1:1405-08', 1_200_000, [1_200_000], '2026-10-18')
+
+    viaSms.payments[0].note = UNIT_SMS_PAYMENT_NOTE
+
+    expect(unitBalance('u1', items).lastPaidViaSms).toBe(false)
+    expect(unitBalance('u1', [...items, viaSms])).toMatchObject({
+      lastPaidAt: '2026-10-18',
+      lastPaidViaSms: true
+    })
+    // A later payment by hand takes the label away again.
+    const later = receivable('charge:u1:1405-09', 1_200_000, [1_000], '2026-10-19')
+
+    expect(unitBalance('u1', [...items, viaSms, later]).lastPaidViaSms).toBe(false)
   })
 
   it('is settled when everything is paid, and carries the unit credit', () => {

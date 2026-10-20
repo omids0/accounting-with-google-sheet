@@ -18,6 +18,11 @@ describe('workspace redirect', () => {
     expect(workspaceRedirect('/buildings', true)).toBe('/building')
   })
 
+  it('sends the bank SMS page of a building to its own queue', () => {
+    expect(workspaceRedirect('/bank-sms', true)).toBe('/building/sms')
+    expect(workspaceRedirect('/building/sms', true)).toBeNull()
+  })
+
   it('lets the shared pages through inside a building', () => {
     for (const path of [
       '/entry',

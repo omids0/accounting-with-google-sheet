@@ -125,7 +125,6 @@ const BUILDING_ROUTE_PATHS = [
   'building/dang',
   'building/checks',
   'building/counterparties',
-  'building/sms',
   'building/reports',
   'building/settings',
   'building/settings/members',
@@ -208,6 +207,7 @@ export function AppAuthenticatedRoutes() {
             <Route path="building/residents" element={<LazyBuildingResidentsPage />} />
             <Route path="building/charges" element={<LazyBuildingChargesPage />} />
             <Route path="building/expenses" element={<LazyBuildingExpensesPage />} />
+            <Route path="building/sms" element={<LazyBankSmsPage />} />
             {BUILDING_ROUTE_PATHS.map(path => (
               <Route key={path} path={path} element={<LazyBuildingPlaceholderPage />} />
             ))}

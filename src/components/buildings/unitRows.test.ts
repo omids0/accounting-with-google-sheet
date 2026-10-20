@@ -136,6 +136,12 @@ describe('unit texts', () => {
     expect(unitStatus({ ...base, open: 5 }).text).toBe('بدهی قبلی')
     expect(unitStatus({ ...base, credit: 300 })).toEqual({ text: 'اعتبار', credit: 300 })
     expect(unitStatus(base).text).toBe('')
+    expect(unitStatus({ ...base, lastPaidAt: '2026-10-02' }).text).toMatch(
+      /^پرداخت [^ ]+ [^ ]+( [^ ]+)?$/
+    )
+    expect(unitStatus({ ...base, lastPaidAt: '2026-10-02', lastPaidViaSms: true }).text).toMatch(
+      / از پیامک$/
+    )
   })
 })
 

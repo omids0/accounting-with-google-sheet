@@ -86,6 +86,8 @@ export interface UnitPaymentInput {
   /** The settle sheet's answers: date, fund account, balance switch, or a linked record. */
   options: SettleOptions
   accountTitle: string
+  /** Kept on each payment of a receivable (an SMS payment says so). */
+  note?: string
 }
 
 /**
@@ -131,7 +133,7 @@ export async function payUnit(
     await addReceivablePayment(
       spreadsheetId,
       part.receivable,
-      { amount: part.use },
+      { amount: part.use, note: input.note },
       { ...options, linkRecordId: recordId }
     )
   }

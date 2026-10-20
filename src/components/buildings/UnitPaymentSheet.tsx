@@ -39,6 +39,8 @@ export interface UnitPaymentSheetProps {
   unitId: string | null
   /** What the building page already loaded (units, stays, people, receivables, accounts). */
   data: BuildingSetupData
+  /** The amount to start with instead of the open balance (a bank SMS deposit). */
+  initialAmount?: number
   onClose: () => void
   /** Called once the payment is saved and its receipt closed, so the page can read again. */
   onSaved: () => void
@@ -47,6 +49,7 @@ export interface UnitPaymentSheetProps {
 function UnitPaymentForm({
   unitId,
   data,
+  initialAmount,
   onClose,
   onSaved
 }: Omit<UnitPaymentSheetProps, 'open' | 'unitId'> & { unitId: string }) {
@@ -73,7 +76,7 @@ function UnitPaymentForm({
       )
     : 0
 
-  const [amount, setAmount] = useState<number | ''>(balance.open || monthly || '')
+  const [amount, setAmount] = useState<number | ''>(initialAmount || balance.open || monthly || '')
   const [keepCredit, setKeepCredit] = useState(true)
   const [saving, setSaving] = useState(false)
   const [result, setResult] = useState<PaymentResult | null>(null)
