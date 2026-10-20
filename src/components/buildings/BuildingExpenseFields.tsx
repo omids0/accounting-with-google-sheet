@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import BridgeTick from './BridgeTick'
 import { SPLIT_MODES, type SplitMode } from './buildingOptions'
 import ExpenseSplitPreviewSheet from './ExpenseSplitPreviewSheet'
 import { useBuildingSetupData } from './useBuildingSetupData'
+import { activeBuildingName, personalBridgeId } from '../../services/bridgeTarget'
 import { splitExpense } from '../../services/buildingExpenses'
 import { serializeSplit, parseSplit } from '../../services/buildingExpenseSplit'
-import { getManagedList, labelOfItem, visibleItems } from '../../services/buildingLists'
+import {
+  getManagedList,
+  labelOfItem,
+  MANAGER_PAYER,
+  visibleItems
+} from '../../services/buildingLists'
 import { chargeResidents } from '../../services/buildingResidents'
 import { formatMoney } from '../../utils/formatMoney'
 import { toPersianDigits } from '../../utils/normalizeDigits'
@@ -85,6 +92,9 @@ function WhoFields({ values, setValue, disabled }: Omit<BuildingExpenseFieldsPro
         <p className={journeyNoteClass}>
           پول از صندوق خارج نمی‌شود؛ یک بدهی به «{labelOfItem(payers, payerValue)}» ساخته می‌شود.
         </p>
+      ) : null}
+      {payerValue === MANAGER_PAYER && personalBridgeId() ? (
+        <BridgeTick pref="pocket" text={`طلب از «${activeBuildingName()}»`} disabled={disabled} />
       ) : null}
     </>
   )

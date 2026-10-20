@@ -9,6 +9,7 @@ import PullToRefresh from './PullToRefresh'
 import { useLayoutNavigation } from './useLayoutNavigation'
 import { useMainFocus } from './useMainFocus'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
+import { useBridgeDrain } from '../../hooks/useBridgeDrain'
 import { useLaunchAction } from '../../hooks/useLaunchAction'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
 import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
@@ -55,6 +56,7 @@ export default function Layout() {
   } = useLayoutNavigation()
 
   useBankSmsSync()
+  useBridgeDrain()
   useLaunchAction()
   const { mainRef, focusMain } = useMainFocus()
   useEffect(installSelectionHaptics, [])

@@ -1,11 +1,12 @@
 import { lazy, Suspense, type ComponentProps } from 'react'
 
+import { readBridgePrefs } from '../../services/bridgePrefs'
 import {
   buildingExpenseError,
   prepareBuildingExpenseValues
 } from '../../services/buildingExpenseSplit'
 import type { CustomForm } from '../../types'
-import { PAYER_FIELD_ID } from '../form/buildingFields'
+import { isNonFundPayer, PAYER_FIELD_ID } from '../form/buildingFields'
 
 /** Building-only form blocks load on demand, so personal pages never pay for them. */
 const BuildingExpenseFields = lazy(() => import('../buildings/BuildingExpenseFields'))
@@ -46,10 +47,15 @@ export async function settleBuildingEntry(
 
   const { syncBuildingExpense } = await import('../../services/buildingExpenseActions')
 
-  await syncBuildingExpense(
-    spreadsheetId,
-    recordId,
-    values,
-    form.fields.find(field => field.type === 'date')?.id
-  )
+  const dateFieldId = form.fields.find(field => field.type === 'date')?.id
+
+  await syncBuildingExpense(spreadsheetId, recordId, values, dateFieldId)
+
+  // Bridge A: a manager's pocket expense (ticked) also becomes a receivable in the personal sheet.
+  // It never fails the save: whatever cannot be sent stays queued there.
+  if (readBridgePrefs().pocket && isNonFundPayer(values[PAYER_FIELD_ID])) {
+    const { bridgePocketExpense } = await import('../../services/buildingBridge')
+
+    await bridgePocketExpense(recordId, values, dateFieldId).catch(() => false)
+  }
 }

@@ -25,6 +25,8 @@ export type SettleConfig<T> = {
   dateFor?: (item: T) => string
   /** What saving does, when it is not obvious (shown under the sheet title). */
   noteFor?: (item: T) => string | undefined
+  /** True for an item bridged to the personal spreadsheet (the settle sheet asks for its account). */
+  bridgeFor?: (item: T) => boolean
   /** The record the item's payment is linked to, if any. */
   recordIdOf: (item: T) => string | undefined
   /** Title prefix of the records this app creates for the module («بدهی: »). */
@@ -94,6 +96,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
         amount: settle.amountFor(item),
         date: settle.dateFor?.(item),
         note: settle.noteFor?.(item),
+        bridge: settle.bridgeFor?.(item),
         linkedIds: settle.linkedIds
       })
       if (!options) return

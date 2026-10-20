@@ -4,6 +4,7 @@ import type { DangWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { usePaidItemActions } from '../../hooks/usePaidItemActions'
 import { dangOriginRecordIds, repaymentSubCategory } from '../../services/buildingDang'
+import { isBridgedDang, toggleBuildingDangPaid } from '../../services/buildingDangBridge'
 import { syncCategoriesFromSheet } from '../../services/categories'
 import { ensureCounterpartiesSheet, fetchCounterparties } from '../../services/counterparties'
 import {
@@ -75,7 +76,7 @@ export function useDangItems() {
     items,
     setItems,
     loadItems,
-    togglePaid: toggleDangPaid,
+    togglePaid: building ? toggleBuildingDangPaid : toggleDangPaid,
     settle: {
       type: 'expense',
       titleFor: item => `تسویهٔ «${item.title}» · ${formatMoney(item.amount)}`,
@@ -92,7 +93,8 @@ export function useDangItems() {
             `«${repaymentSubCategory(
               item.counterparty
             )}» از حساب صندوق به‌صورت انتقال ثبت می‌شود؛ هزینهٔ تازه‌ای ثبت نمی‌شود.`
-        : undefined
+        : undefined,
+      bridgeFor: building ? isBridgedDang : undefined
     },
     deleteItem: deleteDang,
     sortItems: sortDangs,

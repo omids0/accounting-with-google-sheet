@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import BridgeTick from './BridgeTick'
 import PaymentReceiptCard from './PaymentReceiptCard'
 import type { BuildingSetupData } from './useBuildingSetupData'
 import { useBuildingAccess } from '../../hooks/useBuildingAccess'
+import { readBridgePrefs } from '../../services/bridgePrefs'
+import { isManagerDebtor, personalBridgeId } from '../../services/bridgeTarget'
 import {
   chargeDebtor,
   creditsOf,
@@ -68,6 +71,9 @@ function UnitPaymentForm({
     [unit, stays, persons]
   )
 
+  // Bridge B is offered for the manager's own unit (their person carries the «من» flag).
+  const bridgeOwn = isManagerDebtor(debtor, persons) && personalBridgeId() !== null
+
   const monthly = profile
     ? unitCharge(
         profile,
@@ -121,16 +127,26 @@ function UnitPaymentForm({
 
     setSaving(true)
     try {
-      setResult(
-        await payUnit(spreadsheetId, {
-          unit,
-          debtor,
-          amount: paying,
-          keepCredit,
-          options,
-          accountTitle: accounts.find(item => item.id === options.walletAccount)?.title ?? ''
-        })
-      )
+      const paid = await payUnit(spreadsheetId, {
+        unit,
+        debtor,
+        amount: paying,
+        keepCredit,
+        options,
+        accountTitle: accounts.find(item => item.id === options.walletAccount)?.title ?? ''
+      })
+
+      setResult(paid)
+      if (bridgeOwn && readBridgePrefs().ownUnit) {
+        // The payment is saved: the personal expense is best effort and queues itself if it fails.
+        void import('../../services/buildingBridge').then(({ bridgeOwnCharge }) =>
+          bridgeOwnCharge({
+            unitNumber: toPersianDigits(unit.number),
+            amount: paid.amount,
+            date: options.date
+          }).catch(() => false)
+        )
+      }
       await data.reload()
     } catch (err) {
       showError(toUserMessage(err, 'ثبت پرداخت ناموفق بود'))
@@ -202,6 +218,7 @@ function UnitPaymentForm({
         ) : null}
       </div>
       <SettleFields state={settle} type="income" />
+      {bridgeOwn ? <BridgeTick pref="ownUnit" text="هزینهٔ «خانه › شارژ»" /> : null}
       {allocation.parts.length ? (
         <p className={journeyNoteClass}>{allocationText(allocation.parts)}</p>
       ) : null}

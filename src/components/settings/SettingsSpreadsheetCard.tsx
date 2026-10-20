@@ -1,4 +1,5 @@
 import type { OpenSheetWithGoogle } from '../../hooks/useOpenSheetWithGoogle'
+import { pendingBridgeChanges } from '../../services/bridgePrefs'
 import { getSpreadsheetUrl } from '../../services/sheets'
 import {
   SPREADSHEET_TITLE_PREFIX,
@@ -7,6 +8,7 @@ import {
 } from '../../services/spreadsheetCatalog'
 import { isBuildingEntry } from '../../services/workspace'
 import type { SpreadsheetEntry } from '../../types'
+import { toPersianDigits } from '../../utils/normalizeDigits'
 import { FormField, FormSelect } from '../form'
 import Button from '../ui/Button'
 import Card, { CardTitle } from '../ui/Card'
@@ -25,6 +27,17 @@ type SettingsSpreadsheetCardProps = {
   onSwitchSpreadsheet: (nextId: string) => void
   /** Google Picker: grants the app access to a sheet it did not create. */
   sheetPicker: OpenSheetWithGoogle
+}
+
+/** A sheet that is not open can still hold writes a bridge sent it: «۲ تغییر در انتظار». */
+function sheetOptionLabel(sheet: SpreadsheetEntry, activeId: string): string {
+  const pending = sheet.id === activeId ? 0 : pendingBridgeChanges(sheet.id)
+
+  return (
+    getSpreadsheetLabel(sheet.name) +
+    (isBuildingEntry(sheet) ? ' · ساختمان' : '') +
+    (pending ? ` · ${toPersianDigits(String(pending))} تغییر در انتظار` : '')
+  )
 }
 
 export default function SettingsSpreadsheetCard({
@@ -54,7 +67,7 @@ export default function SettingsSpreadsheetCard({
             disabled={loading || !spreadsheetId}
             options={spreadsheets.map(sheet => ({
               value: sheet.id,
-              label: getSpreadsheetLabel(sheet.name) + (isBuildingEntry(sheet) ? ' · ساختمان' : '')
+              label: sheetOptionLabel(sheet, spreadsheetId)
             }))}
             hint={
               <p
