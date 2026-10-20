@@ -117,6 +117,9 @@ export const loadWalletAccountDetailPage: PageLoader = () =>
 export const loadWalletReconcilePage: PageLoader = () =>
   import('../components/wallet/reconcile/WalletReconcilePage')
 
+export const loadBuildingPlaceholderPage: PageLoader = () =>
+  import('../components/buildings/BuildingPlaceholderPage')
+
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
 export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')

@@ -168,7 +168,7 @@ async function finalizeSpreadsheetActivation(
     markAllKnownSheetsPrepared(spreadsheetId)
     // Headers are known good; categories may have changed on another device.
     void import('./spreadsheetPrepare')
-      .then(prepare => prepare.syncCategoriesFromSheet(spreadsheetId))
+      .then(prepare => prepare.refreshSpreadsheetContents(spreadsheetId))
       .catch(() => undefined)
 
     return spreadsheetId

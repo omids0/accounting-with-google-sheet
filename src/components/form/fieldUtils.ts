@@ -1,3 +1,4 @@
+import { BUILDING_FIELD_IDS, withBuildingFields, withoutBuildingFields } from './buildingFields'
 import type { CustomForm, FieldConfig } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
 
@@ -32,7 +33,9 @@ const STANDARD_FIELD_ORDER = [
   WALLET_APPLY_FIELD_ID,
   COUNTERPARTY_FIELD_ID,
   LINE_ITEMS_FIELD_ID,
-  'note'
+  'note',
+  // Building workspaces only (buildingFields.ts); last, so the columns go at the end of the row.
+  ...BUILDING_FIELD_IDS
 ]
 
 const REQUIRED_ENTRY_FIELD_IDS = ['date', 'title', 'category', 'amount', 'note']
@@ -173,6 +176,15 @@ export function withLineItemsField(forms: CustomForm[]): CustomForm[] {
       ? { ...form, fields: [...form.fields, createLineItemsField()] }
       : form
   )
+}
+
+/** The standard record fields; the building ones are added in a building workspace and only there. */
+export function withStandardFields(forms: CustomForm[], building = false): CustomForm[] {
+  const standard = withLineItemsField(
+    withCounterpartyField(withWalletApplyField(withWalletAccountField(withSubCategoryField(forms))))
+  )
+
+  return building ? withBuildingFields(standard) : withoutBuildingFields(standard)
 }
 
 export function isWalletApplied(values: Record<string, string | number | undefined>): boolean {

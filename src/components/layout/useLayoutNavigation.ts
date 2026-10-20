@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, useTransition } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 import {
+  BUILDING_PARENT_TAB,
   CALCULATION_TABS,
   REPORT_TABS,
   SPEED_DIAL_TABS,
@@ -15,6 +16,7 @@ import { useEngagementReminders } from '../../hooks/useEngagementReminders'
 import { usePageSpeedDialConfig } from '../../hooks/usePageSpeedDial'
 import { usePrefetchAppPages } from '../../hooks/usePrefetchAppPages'
 import { useRegisterOverlay } from '../../hooks/useRegisterOverlay'
+import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import type { TabNavigationOptions } from '../../routes/paths'
 import {
   getPathForTab,
@@ -47,6 +49,7 @@ const DETAIL_TITLE_TABS: Tab[] = [
 export function useLayoutNavigation() {
   const navigate = useNavigate()
   const location = useLocation()
+  const isBuilding = useIsBuildingWorkspace()
   const spreadsheetKey = useAppStore(state => state.spreadsheetKey)
   const [menuOpen, setMenuOpen] = useState(false)
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false)
@@ -184,6 +187,7 @@ export function useLayoutNavigation() {
     WALLET_SUB_TABS.includes(tab) ||
     tab === 'about' ||
     tab === 'search' ||
+    tab in BUILDING_PARENT_TAB ||
     TIMESHEET_TABS.includes(tab) ||
     VEHICLE_TABS.includes(tab) ||
     CALCULATION_TABS.includes(tab) ||
@@ -235,10 +239,12 @@ export function useLayoutNavigation() {
       return
     }
 
-    const backToWallet = WALLET_SUB_TABS.includes(tab)
+    const [home, wallet]: Tab[] = isBuilding
+      ? ['building-dashboard', 'building-fund']
+      : ['dashboard', 'wallet']
 
-    handleTabChange(backToWallet ? 'wallet' : 'dashboard')
-  }, [handleTabChange, location.key, location.pathname, navigate, showSettings, tab])
+    handleTabChange(BUILDING_PARENT_TAB[tab] ?? (WALLET_SUB_TABS.includes(tab) ? wallet : home))
+  }, [handleTabChange, isBuilding, location.key, location.pathname, navigate, showSettings, tab])
 
   const isCalculationTab = CALCULATION_TABS.includes(tab)
   const isReportTab = REPORT_TABS.includes(tab)

@@ -23,6 +23,7 @@ import { removeItem, STORAGE_KEYS } from './storage'
 import { getOutboxCount } from './syncOutbox'
 import { TREASURY_CLASS_STORAGE_KEY } from './treasuryClassPref'
 import { sendWidgetSnapshot } from './widgetNative'
+import { WORKSPACE_STORAGE_KEY } from './workspace'
 
 /** Per-spreadsheet keys: unsynced writes, legacy mirrors and sync timestamps. */
 const ACCOUNT_KEY_PREFIXES = [
@@ -73,7 +74,9 @@ const ACCOUNT_KEYS = [
   // Who can edit each spreadsheet, from Drive (sharing.ts).
   'accounting_sharing_v1',
   // Last account chosen when settling a payment, per spreadsheet (settleOptions.ts).
-  'accounting_settle_account_v1'
+  'accounting_settle_account_v1',
+  // Which spreadsheets are buildings (workspace.ts).
+  WORKSPACE_STORAGE_KEY
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

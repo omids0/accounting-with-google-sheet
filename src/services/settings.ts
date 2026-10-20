@@ -15,13 +15,8 @@ import {
   normalizeCategoryLists
 } from './settingsCategoryLists'
 import { getItem, setItem, STORAGE_KEYS } from './storage'
-import {
-  withCounterpartyField,
-  withLineItemsField,
-  withSubCategoryField,
-  withWalletAccountField,
-  withWalletApplyField
-} from '../components/form/fieldUtils'
+import { getWorkspaceType } from './workspace'
+import { withStandardFields } from '../components/form/fieldUtils'
 
 export {
   DEFAULT_DANG_CATEGORIES,
@@ -75,12 +70,6 @@ function expenseForm(): CustomForm {
   }
 }
 
-function withStandardFields(forms: CustomForm[]): CustomForm[] {
-  return withLineItemsField(
-    withCounterpartyField(withWalletApplyField(withWalletAccountField(withSubCategoryField(forms))))
-  )
-}
-
 export function getDefaultForms(): CustomForm[] {
   return withStandardFields([incomeForm(), expenseForm()])
 }
@@ -88,7 +77,8 @@ export function getDefaultForms(): CustomForm[] {
 export function normalizeSettings(input: AppSettings): AppSettings {
   const settings: AppSettings = normalizeCategoryLists({
     ...input,
-    forms: withStandardFields(input.forms)
+    // The building fields exist only while a building is the active spreadsheet.
+    forms: withStandardFields(input.forms, getWorkspaceType(input.spreadsheetId) === 'building')
   })
 
   if (settings.spreadsheets?.length) {

@@ -1,5 +1,6 @@
 /** Column headers of the fixed module tabs; dependency-free for the same reason as sheetNames.ts. */
 
+export * from './sheetHeadersBuilding'
 export * from './sheetHeadersVehicle'
 
 export const ACTIVITY_HEADERS = ['آخرین_بازدید', 'آخرین_عملیات']
@@ -156,7 +157,9 @@ export const RECEIVABLES_HEADERS = [
   'توضیحات',
   'پرداخت‌ها',
   'زیردسته',
-  'ثبت‌کننده'
+  'ثبت‌کننده',
+  'مرجع',
+  'شناسهٔ بدهکار'
 ]
 
 export const REMINDERS_HEADERS = ['نوع', 'فعال', 'روز_قبل', 'ساعت', 'دقیقه']

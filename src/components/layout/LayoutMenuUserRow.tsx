@@ -1,5 +1,7 @@
 import LayoutThemeToggle from './LayoutThemeToggle'
+import { useBuildingAccess } from '../../hooks/useBuildingAccess'
 import AppIcon from '../AppIcon'
+import { optionLabel, BUILDING_ROLES } from '../buildings/buildingOptions'
 import LazyImage from '../LazyImage'
 import {
   appMenuAvatarClass,
@@ -25,6 +27,9 @@ export default function LayoutMenuUserRow({
   userPicture,
   sheetName
 }: LayoutMenuUserRowProps) {
+  // Inside a building the line reads «<building> · <role>».
+  const { role } = useBuildingAccess()
+
   return (
     <div className={appMenuUserRowClass(variant)}>
       {userPicture ? (
@@ -36,7 +41,11 @@ export default function LayoutMenuUserRow({
       )}
       <div className={appMenuUserTextClass}>
         {userName && <span className={appMenuNameClass}>{userName}</span>}
-        {sheetName && <span className={appMenuSheetLineClass}>شیت: {sheetName}</span>}
+        {sheetName && (
+          <span className={appMenuSheetLineClass}>
+            {role ? `${sheetName} · ${optionLabel(BUILDING_ROLES, role)}` : `شیت: ${sheetName}`}
+          </span>
+        )}
       </div>
       <LayoutThemeToggle />
     </div>

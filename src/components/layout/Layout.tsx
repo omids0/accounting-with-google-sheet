@@ -11,6 +11,7 @@ import { useMainFocus } from './useMainFocus'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
 import { useLaunchAction } from '../../hooks/useLaunchAction'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
+import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { installSelectionHaptics } from '../../utils/haptics'
 import PageSpeedDial from '../PageSpeedDial'
 import ConflictGate from '../sync/ConflictGate'
@@ -57,6 +58,7 @@ export default function Layout() {
   const { mainRef, focusMain } = useMainFocus()
   useEffect(installSelectionHaptics, [])
 
+  const isBuilding = useIsBuildingWorkspace()
   const isDesktop = useIsDesktop()
   const isTablet = useIsTablet()
   const [toolbar, setToolbar] = useState<HTMLElement | null>(null)
@@ -68,7 +70,7 @@ export default function Layout() {
     showPageSpeedDial && !!pageSpeedDialConfig?.actions.some(action => action.id === 'refresh')
 
   return (
-    <div className={appLayoutClass}>
+    <div className={appLayoutClass} data-workspace={isBuilding ? 'building' : undefined}>
       <a
         href="#main-content"
         className={skipLinkClass}
@@ -126,7 +128,14 @@ export default function Layout() {
               <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
             </main>
 
-            <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />
+            {/* A building is navigated from the drawer alone. */}
+            {!isBuilding && (
+              <LayoutBottomNav
+                showSettings={showSettings}
+                tab={tab}
+                onTabChange={handleTabChange}
+              />
+            )}
 
             {showPageSpeedDial && pageSpeedDialConfig && (
               <PageSpeedDial

@@ -26,6 +26,7 @@ export {
   WALLET_APPLY_FIELD_ID,
   withAutoTitle
 } from './fieldUtils'
+export { withBuildingFields, withoutBuildingFields } from './buildingFields'
 export { default as ToggleSwitch } from './ToggleSwitch'
 export { default as SegmentedRadio } from './SegmentedRadio'
 export type { SegmentedRadioOption } from './SegmentedRadio'

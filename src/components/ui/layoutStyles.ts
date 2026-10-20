@@ -53,7 +53,8 @@ export const pageContentTransitioningClass = cx(
 export const animateInClass = 'animate-[scaleIn_0.65s_var(--ease-page)]'
 
 export const appLayoutClass = cx(
-  'mx-auto flex min-h-dvh w-full flex-col overflow-x-clip bg-bg',
+  // `data-workspace="building"` on this element removes the bottom-nav room below.
+  'group/layout mx-auto flex min-h-dvh w-full flex-col overflow-x-clip bg-bg',
   'max-w-[480px] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-border)_40%,transparent),0_8px_40px_color-mix(in_srgb,var(--color-primary)_8%,transparent)]',
   'md:max-w-none md:shadow-none'
 )
@@ -73,6 +74,8 @@ export const appMainClass = cx(
   // Bottom room = bottom nav (5.75rem) + speed-dial button and its gap (4rem),
   // so the last card scrolls fully clear of both.
   'min-h-0 flex-1 overflow-y-auto p-[var(--space-page)] pb-[calc(9.75rem+var(--safe-bottom))]',
+  // A building has no bottom nav: only the speed-dial button's room is left.
+  'max-md:group-data-[workspace=building]/layout:pb-[calc(5.5rem+var(--safe-bottom))]',
   // Tablet keeps the floating speed dial (4rem); desktop moves it into the header.
   'md:mx-auto md:w-full md:max-w-[var(--content-max-width)] md:pb-[calc(var(--space-page)+4rem)] xl:pb-[calc(var(--space-page)+1rem)]'
 )

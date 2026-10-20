@@ -23,10 +23,15 @@ export type CurrencyUnit = 'toman' | 'rial' | 'usd' | 'eur'
 /** `system` follows the OS (`prefers-color-scheme`); `data-theme` always holds the resolved one. */
 export type ThemeMode = 'light' | 'dark' | 'system'
 
+/** What a spreadsheet is for: the manager's own books or one building (round 11). */
+export type WorkspaceKind = 'personal' | 'building'
+
 export interface SpreadsheetEntry {
   id: string
   name: string
   createdAt: string
+  /** Missing means `personal`. */
+  kind?: WorkspaceKind
 }
 
 export interface NetAvailableAssetConfig {
