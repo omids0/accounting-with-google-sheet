@@ -1,0 +1,108 @@
+import { useMemo } from 'react'
+
+import type { BuildingSetupData } from './useBuildingSetupData'
+import { useBuildingAccess } from '../../hooks/useBuildingAccess'
+import { monthChargeRows, type ChargeStatus } from '../../services/buildingChargeMonths'
+import { monthLabel } from '../../services/buildingMonths'
+import { unitOfReference } from '../../services/buildingSummary'
+import { paidAmount, remainingAmount } from '../../services/receivablesRow'
+import { toPersianDigits } from '../../utils/normalizeDigits'
+import FormModal from '../FormModal'
+import MoneyText from '../MoneyText'
+import Button from '../ui/Button'
+import {
+  calmDayBadgeClass,
+  calmDayBadgeDangerClass,
+  calmListClass,
+  calmRowClass,
+  calmRowMainClass,
+  calmRowSubClass,
+  calmRowTitleClass
+} from '../ui/calmListStyles'
+
+const STATUS_TEXT: Record<ChargeStatus, { label: string; tone: string }> = {
+  paid: { label: 'پرداخت شد', tone: 'text-success' },
+  partial: { label: 'ناقص', tone: 'text-warning' },
+  open: { label: 'باز', tone: 'text-danger' }
+}
+
+interface ChargeMonthUnitsSheetProps {
+  /** The month to list; null = closed. */
+  monthKey: string | null
+  data: BuildingSetupData
+  onClose: () => void
+  /** «ثبت پرداخت» of a row: the page opens the unit payment sheet. */
+  onPay: (unitId: string) => void
+}
+
+/** A month's units with their status (paid / partial / open) and a «ثبت پرداخت» for each debtor. */
+export default function ChargeMonthUnitsSheet({
+  monthKey,
+  data,
+  onClose,
+  onPay
+}: ChargeMonthUnitsSheetProps) {
+  const { can } = useBuildingAccess()
+
+  const rows = useMemo(() => {
+    const numbers = new Map(data.units.map(unit => [unit.id, unit.number]))
+
+    return monthKey
+      ? monthChargeRows(data.receivables, monthKey).map(row => ({
+          ...row,
+          number: numbers.get(unitOfReference(row.receivable.reference ?? '')) ?? '؟'
+        }))
+      : []
+  }, [data.receivables, data.units, monthKey])
+
+  return (
+    <FormModal
+      open={monthKey !== null}
+      title={monthKey ? `شارژ ${monthLabel(monthKey)}` : ''}
+      onClose={onClose}
+      onSubmit={event => {
+        event.preventDefault()
+        onClose()
+      }}
+      saveLabel="بستن"
+      cancelLabel="انصراف"
+    >
+      <ul className={calmListClass}>
+        {rows.map(({ receivable, status, number }) => (
+          <li key={receivable.id} className={calmRowClass}>
+            <span
+              className={`${calmDayBadgeClass} ${status === 'paid' ? '' : calmDayBadgeDangerClass}`}
+            >
+              {toPersianDigits(number)}
+            </span>
+            <span className={calmRowMainClass}>
+              <span className={calmRowTitleClass}>{receivable.debtor}</span>
+              <span className={calmRowSubClass}>
+                <MoneyText amount={receivable.amount} />
+                {paidAmount(receivable) > 0 ? (
+                  <>
+                    {' '}
+                    · پرداخت <MoneyText amount={paidAmount(receivable)} />
+                  </>
+                ) : null}
+              </span>
+            </span>
+            <span className={`text-[0.72rem] font-bold ${STATUS_TEXT[status].tone}`}>
+              {STATUS_TEXT[status].label}
+            </span>
+            {remainingAmount(receivable) > 0 && can('record') ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => onPay(unitOfReference(receivable.reference ?? ''))}
+              >
+                ثبت پرداخت
+              </Button>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </FormModal>
+  )
+}

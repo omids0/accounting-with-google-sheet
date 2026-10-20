@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { dangToManager, monthFlowOf, monthToIssue } from './buildingDashboard'
+import { dangToManager, monthFlowOf } from './buildingDashboard'
 import { buildingUpcoming, nextIssueDate } from './buildingUpcoming'
-import type { Dang, Receivable, RecordRow, RecurringItem } from '../types'
+import type { Dang, RecordRow, RecurringItem } from '../types'
 import { findGregorianForJalali, toIsoDate } from '../utils/jalaliDate'
 
 const range = { start: '2026-10-01', end: '2026-10-31' }
@@ -59,35 +59,6 @@ describe('dangToManager', () => {
 
     expect(dangToManager(dangs, ['مدیر', 'علی رضایی'])).toBe(2_500_000)
     expect(dangToManager(dangs, [''])).toBe(0)
-  })
-})
-
-describe('monthToIssue', () => {
-  const issued = (monthKey: string): Receivable => ({
-    id: monthKey,
-    createdAt: '',
-    title: '',
-    debtor: '',
-    category: '',
-    amount: 1,
-    borrowDate: '',
-    note: '',
-    payments: [],
-    reference: `charge:u1:${monthKey}`
-  })
-
-  // 1405-08-05 (Jalali).
-  const now = findGregorianForJalali(1405, 8, 5)
-
-  it('asks for the current month once its issue day came and nobody was billed', () => {
-    expect(monthToIssue({ issueDay: 1 }, [], now)).toBe('1405-08')
-    expect(monthToIssue({ issueDay: 5 }, [], now)).toBe('1405-08')
-  })
-
-  it('waits for the issue day, and stops once the month is issued', () => {
-    expect(monthToIssue({ issueDay: 6 }, [], now)).toBeNull()
-    expect(monthToIssue({ issueDay: 1 }, [issued('1405-08')], now)).toBeNull()
-    expect(monthToIssue({ issueDay: 1 }, [issued('1405-07')], now)).toBe('1405-08')
   })
 })
 

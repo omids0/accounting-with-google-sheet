@@ -146,7 +146,8 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'activity',
   'building-dashboard',
   'building-units',
-  'building-residents'
+  'building-residents',
+  'building-charges'
 ]
 
 export const TAB_TITLES: Record<Tab, string> = {

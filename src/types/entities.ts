@@ -65,6 +65,8 @@ export interface ReceivablePayment {
   paidAt: string
   note: string
   transactionRecordId?: string
+  /** Round 11: paid from the unit's credit, so no income record exists. */
+  fromCredit?: boolean
 }
 
 export interface Receivable {

@@ -48,11 +48,13 @@ import {
   loadWalletAccountDetailPage,
   loadWalletReconcilePage,
   loadBankSmsPage,
+  loadBuildingChargesPage,
   loadBuildingDashboardPage,
   loadBuildingJourneyPage,
   loadBuildingPlaceholderPage,
   loadBuildingResidentsPage,
   loadBuildingsHomePage,
+  loadBuildingUnitPage,
   loadBuildingUnitsPage,
   loadSearchPage
 } from './pageChunks'
@@ -110,4 +112,6 @@ export const LazyBuildingsHomePage = lazy(loadBuildingsHomePage)
 export const LazyBuildingJourneyPage = lazy(loadBuildingJourneyPage)
 export const LazyBuildingDashboardPage = lazy(loadBuildingDashboardPage)
 export const LazyBuildingUnitsPage = lazy(loadBuildingUnitsPage)
+export const LazyBuildingUnitPage = lazy(loadBuildingUnitPage)
+export const LazyBuildingChargesPage = lazy(loadBuildingChargesPage)
 export const LazyBuildingResidentsPage = lazy(loadBuildingResidentsPage)

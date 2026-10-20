@@ -2,12 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { useBuildingSetupData, type BuildingSetupData } from './useBuildingSetupData'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
-import {
-  dangToManager,
-  loadMonthFlow,
-  monthToIssue,
-  type MonthFlow
-} from '../../services/buildingDashboard'
+import { missingIssueMonths } from '../../services/buildingCharges'
+import { dangToManager, loadMonthFlow, type MonthFlow } from '../../services/buildingDashboard'
 import { getManagedList, MANAGER_PAYER } from '../../services/buildingLists'
 import { buildingUpcoming } from '../../services/buildingUpcoming'
 import { fetchChecks } from '../../services/checks'
@@ -42,7 +38,7 @@ export interface BuildingDashboardData extends BuildingSetupData {
   /** Unpaid debt of the building to the manager (payer «مدیر» or a `me` person). */
   owedToManager: number
   upcoming: DashboardReminderItem[]
-  /** The month the «صدور نشده» card asks to issue, if any. */
+  /** The oldest month the «صدور نشده» card asks to issue, if any. */
   monthToIssue: string | null
 }
 
@@ -116,6 +112,8 @@ export function useBuildingDashboard(): BuildingDashboardData {
     flow: extras.flow,
     owedToManager: dangToManager(extras.dangs, managerNames),
     upcoming,
-    monthToIssue: profile ? monthToIssue(profile, receivables) : null
+    monthToIssue: profile
+      ? missingIssueMonths(profile, receivables, getTodayIso())[0] ?? null
+      : null
   }
 }

@@ -1,5 +1,6 @@
 import { optionLabel, RESIDENT_ROLES, type ResidentRole } from './buildingOptions'
 import {
+  creditsOf,
   unitBalance,
   unitCharge,
   type UnitBalance,
@@ -35,7 +36,9 @@ export function buildUnitRows(input: {
   profile: BuildingProfile | null
   credits?: UnitCredit[]
 }): UnitRowData[] {
-  const { units, stays, persons, receivables, profile, credits } = input
+  const { units, stays, persons, receivables, profile } = input
+
+  const credits = input.credits ?? creditsOf(receivables)
 
   const nameOf = (id: string | undefined) => {
     const person = persons.find(item => item.id === id)

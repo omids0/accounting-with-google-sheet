@@ -1,9 +1,6 @@
-import { isMonthIssued } from './buildingCharges'
-import { monthKeyOf } from './buildingSummary'
 import { fetchRecords } from './sheets'
-import type { AppSettings, CustomForm, Dang, Receivable, RecordRow } from '../types'
+import type { AppSettings, CustomForm, Dang, RecordRow } from '../types'
 import { getDateRange, isDateInRange, type DateRange } from '../utils/dateRange'
-import { getJalaliParts } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
 import { RECONCILIATION_CATEGORY, TRANSFER_EXPENSE_CATEGORY } from '../utils/protectedCategories'
 
@@ -67,20 +64,4 @@ export function dangToManager(dangs: Dang[], managerNames: string[]): number {
   return dangs
     .filter(item => !item.paid && names.has(item.counterparty.trim()))
     .reduce((sum, item) => sum + item.amount, 0)
-}
-
-/**
- * The month whose charge the dashboard asks to issue: the current one, once its issue day has
- * come and nobody was billed for it yet. Null otherwise.
- */
-export function monthToIssue(
-  profile: { issueDay: number },
-  receivables: Receivable[],
-  now = new Date()
-): string | null {
-  const key = monthKeyOf(now)
-
-  return getJalaliParts(now).day >= profile.issueDay && !isMonthIssued(receivables, key)
-    ? key
-    : null
 }

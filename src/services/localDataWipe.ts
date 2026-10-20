@@ -78,7 +78,9 @@ const ACCOUNT_KEYS = [
   // Which spreadsheets are buildings (workspace.ts).
   WORKSPACE_STORAGE_KEY,
   // Card numbers of the «مدیر ساختمان» home, 10 minutes each (buildingSummary.ts).
-  'accounting_building_summary_v1'
+  'accounting_building_summary_v1',
+  // The day each building's automatic charge issue last ran (buildingIssueGuard.ts).
+  'accounting_building_auto_issue_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

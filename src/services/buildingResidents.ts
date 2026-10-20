@@ -1,7 +1,10 @@
+import type { ChargeResident } from './buildingCharges'
+import { getCounterpartyFullName } from './counterparties'
 import { BUILDING_RESIDENTS_HEADERS } from './sheetHeaders'
 import { BUILDING_RESIDENTS_SHEET } from './sheetNames'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
 import { RESIDENT_ROLES, type ResidentRole } from '../components/buildings/buildingOptions'
+import type { Counterparty } from '../types'
 import { getTodayIso } from '../utils/jalaliDate'
 
 /**
@@ -107,4 +110,25 @@ export const currentOwner = <T extends UnitStay>(unitId: string, stays: T[]) =>
 /** Who lives there: the tenant if there is one, else the owner (null when the unit has neither). */
 export function currentResident<T extends UnitStay>(unitId: string, stays: T[]): T | null {
   return openStay(stays, unitId, 'tenant') ?? openStay(stays, unitId, 'owner')
+}
+
+/** The stays with the names to bill, for `chargeDebtor`; a stay whose person is gone is left out. */
+export function chargeResidents(stays: UnitStay[], persons: Counterparty[]): ChargeResident[] {
+  const byId = new Map(persons.map(person => [person.id, person]))
+
+  return stays.flatMap(stay => {
+    const person = byId.get(stay.personId)
+
+    return person
+      ? [
+          {
+            unitId: stay.unitId,
+            personId: stay.personId,
+            name: getCounterpartyFullName(person),
+            role: stay.role,
+            current: stay.active && !stay.to
+          }
+        ]
+      : []
+  })
 }
