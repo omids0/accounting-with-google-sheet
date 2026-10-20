@@ -68,9 +68,14 @@ export default function DataEntryForm({
     resetKey: `${activeForm.id}:${bankSms?.sms.id ?? ''}`
   })
 
+  // A bank SMS filed under «خودرو» arrives with its expense type already chosen.
+  const prefilledType = isVehicleExpenseCategory(String(prefill?.category ?? ''))
+    ? String(prefill?.[SUBCATEGORY_FIELD_ID] ?? '')
+    : ''
+
   useEffect(() => {
-    vehicleExpense.resetVehicleValues()
-  }, [activeForm.id, vehicleExpense.resetVehicleValues])
+    vehicleExpense.resetVehicleValues(prefilledType ? { expenseType: prefilledType } : undefined)
+  }, [activeForm.id, prefilledType, vehicleExpense.resetVehicleValues])
 
   // A «پرتکرار» chip: fill the form, then the amount, selected so typing replaces it.
   useEffect(() => {

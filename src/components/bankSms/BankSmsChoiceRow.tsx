@@ -5,7 +5,9 @@ import type { SmsChoice } from './useBankSmsReview'
 import { getCategoriesPath } from '../../routes/paths'
 import { readCategoryList } from '../../services/categoryManage'
 import { getSettings } from '../../services/settings'
-import { lockedCategoriesFor } from '../../utils/protectedCategories'
+import { getVehicleExpenseCategories } from '../../services/vehicleExpenseCategories'
+import { LOCKED_VEHICLE_EXPENSE_TYPES, lockedCategoriesFor } from '../../utils/protectedCategories'
+import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
 import CategorySelect from '../form/CategorySelect'
 import FormField from '../form/FormField'
 import SubCategorySelect from '../form/SubCategorySelect'
@@ -32,6 +34,7 @@ export default function BankSmsChoiceRow({
   onPick
 }: BankSmsChoiceRowProps) {
   const [categories, setCategories] = useState(() => readCategoryList(type))
+  const [vehicleTypes, setVehicleTypes] = useState(() => getVehicleExpenseCategories())
   const formId = getSettings()?.forms.find(form => form.type === type)?.id
   const category = choice?.category ?? ''
   const subCategory = choice?.subCategory ?? ''
@@ -55,7 +58,20 @@ export default function BankSmsChoiceRow({
         disabled={busy}
         aria-label={type === 'expense' ? 'دسته هزینه' : 'دسته درآمد'}
       />
-      {category ? (
+      {category && type === 'expense' && isVehicleExpenseCategory(category) ? (
+        // Same list as the entry form's «نوع هزینه»; the form opens with it already chosen.
+        <CategorySelect
+          value={subCategory}
+          onChange={next => onPick({ category, subCategory: next, title })}
+          categories={vehicleTypes}
+          categoryScope="vehicleExpense"
+          onCategoriesChange={setVehicleTypes}
+          lockedCategories={[...LOCKED_VEHICLE_EXPENSE_TYPES]}
+          disabled={busy}
+          aria-label="نوع هزینه خودرو"
+          placeholder="انتخاب نوع هزینه"
+        />
+      ) : category ? (
         <SubCategorySelect
           value={subCategory}
           onChange={next => onPick({ category, subCategory: next, title })}
