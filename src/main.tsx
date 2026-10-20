@@ -1,3 +1,4 @@
+import './devStorage'
 import React, { Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
