@@ -1,6 +1,12 @@
 import type { StoredRecord } from './recordsUtils'
 import { parseLineItems, type LineItem } from '../../utils/lineItems'
-import { COUNTERPARTY_FIELD_ID, LINE_ITEMS_FIELD_ID } from '../form/fieldUtils'
+import {
+  COUNTERPARTY_FIELD_ID,
+  LINE_ITEMS_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_ID,
+  WALLET_APPLY_FIELD_ID,
+  WALLET_APPLY_NO
+} from '../form/fieldUtils'
 
 export const ALL_COUNTERPARTIES = 'all'
 
@@ -35,4 +41,13 @@ export function distinctCounterparties(records: RecordValues[]): string[] {
   }
 
   return [...names].sort((a, b) => a.localeCompare(b, 'fa'))
+}
+
+export type RecordWalletState = 'applied' | 'skipped' | 'none'
+
+/** Whether a record moved an account balance: 'none' without an account, 'skipped' when «اثر بر موجودی» is خیر. */
+export function recordWalletState(record: RecordValues): RecordWalletState {
+  if (!(record.values[WALLET_ACCOUNT_FIELD_ID] ?? '').trim()) return 'none'
+
+  return record.values[WALLET_APPLY_FIELD_ID] === WALLET_APPLY_NO ? 'skipped' : 'applied'
 }

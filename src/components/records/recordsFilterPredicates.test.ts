@@ -6,7 +6,8 @@ import {
   matchesCounterpartyFilter,
   matchesWithItemsFilter,
   recordCounterparty,
-  recordLineItems
+  recordLineItems,
+  recordWalletState
 } from './recordsFilterPredicates'
 import { serializeLineItems } from '../../utils/lineItems'
 
@@ -50,5 +51,19 @@ describe('recordsFilterPredicates', () => {
         plain
       ])
     ).toEqual(['الف', 'ب'])
+  })
+})
+
+describe('recordWalletState', () => {
+  it('tells which records moved an account balance', () => {
+    expect(recordWalletState({ values: { walletAccount: 'a1' } })).toBe('applied')
+    expect(recordWalletState({ values: { walletAccount: 'a1', walletApply: 'بله' } })).toBe(
+      'applied'
+    )
+    expect(recordWalletState({ values: { walletAccount: 'a1', walletApply: 'خیر' } })).toBe(
+      'skipped'
+    )
+    expect(recordWalletState({ values: { walletApply: 'خیر' } })).toBe('none')
+    expect(recordWalletState(plain)).toBe('none')
   })
 })

@@ -1,12 +1,13 @@
 import { memo } from 'react'
 
-import { recordCounterparty, recordLineItems } from './recordsFilterPredicates'
+import { recordCounterparty, recordLineItems, recordWalletState } from './recordsFilterPredicates'
 import { getFormField, type StoredRecord } from './recordsUtils'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { describeLineItems } from '../../utils/lineItems'
 import { parseNumeric } from '../../utils/parseNumeric'
+import AppIcon from '../AppIcon'
 import AttachmentBadge from '../attachments/AttachmentBadge'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
@@ -69,6 +70,8 @@ function RecordsListRow({
 
   const items = recordLineItems(record)
 
+  const walletState = recordWalletState(record)
+
   const isIncome = form.type === 'income'
 
   const isExpense = form.type === 'expense'
@@ -84,6 +87,22 @@ function RecordsListRow({
             fileIds={record.attachments}
             title={String(title)}
           />
+          {walletState === 'none' ? null : (
+            <span
+              className={cn(
+                lineItemsBadgeClass,
+                walletState === 'applied' ? 'text-primary' : 'opacity-60'
+              )}
+              role="img"
+              aria-label={
+                walletState === 'applied' ? 'موجودی حساب به‌روز شد' : 'روی موجودی حساب اثر نداشت'
+              }
+              title={walletState === 'applied' ? 'موجودی حساب به‌روز شد' : 'روی موجودی اثر نداشت'}
+            >
+              <AppIcon name="wallet" size={13} />
+              {walletState === 'applied' ? <AppIcon name="check" size={13} /> : '—'}
+            </span>
+          )}
           {items.length ? (
             <span className={lineItemsBadgeClass} aria-label={`${items.length} قلم`}>
               {`☰ ${items.length.toLocaleString('fa-IR')}`}
