@@ -11,6 +11,8 @@ export type VehicleExpenseFormValues = {
   expenseType: string
   fuelPricePerLiter: string | number
   mileage: string | number
+  /** New entry only: the expense also renews the vehicle's periodic service of this type. */
+  renewPeriodic?: boolean
 }
 
 export function isVehicleExpenseCategory(category: string): boolean {

@@ -10,7 +10,9 @@ import type {
 import { calculateNextKm, validateVehicleMileageEntry } from './utils'
 import {
   completePeriodicService,
+  correctVehicleMileage,
   renewVehicleDeadline,
+  rollbackMileageAfterLogDelete,
   saveMechanicVisit,
   syncVehicleMileage
 } from '../../services/vehicleActions'
@@ -26,7 +28,6 @@ import {
   deleteVehiclePeriodicService,
   updateVehiclePeriodicService
 } from '../../services/vehiclePeriodicServices'
-import { updateVehicleMileage } from '../../services/vehicleProfiles'
 import type {
   VehicleDeadline,
   VehicleHistoryEntry,
@@ -65,8 +66,14 @@ export async function submitPeriodicForm(params: {
       reminderThresholdKm: values.reminderThresholdKm
     })
 
-    if (!values.isHistorical && mileage > vehicle.mileage) {
-      await updateVehicleMileage(spreadsheetId, vehicle.rowNumber, mileage, values.date)
+    if (!values.isHistorical) {
+      await syncVehicleMileage(
+        spreadsheetId,
+        vehicle,
+        mileage,
+        values.date,
+        `سرویس دوره‌ای · ${values.serviceType.trim()}`
+      )
     }
 
     return
@@ -114,8 +121,14 @@ export async function submitPeriodicForm(params: {
     })
   }
 
-  if (!values.isHistorical && mileage > vehicle.mileage) {
-    await updateVehicleMileage(spreadsheetId, vehicle.rowNumber, mileage, values.date)
+  if (!values.isHistorical) {
+    await syncVehicleMileage(
+      spreadsheetId,
+      vehicle,
+      mileage,
+      values.date,
+      `سرویس دوره‌ای · ${values.serviceType.trim()}`
+    )
   }
 }
 
@@ -231,21 +244,16 @@ export async function submitMileageForm(params: {
   const { spreadsheetId, vehicle, values } = params
   const mileage = parseNumeric(values.mileage)
 
-  await syncVehicleMileage(spreadsheetId, vehicle, mileage)
+  // A lower number is a correction of a wrong reading, not a new one.
+  if (mileage < vehicle.mileage) {
+    await correctVehicleMileage(spreadsheetId, vehicle, mileage)
+
+    return
+  }
 
   const time = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })
 
-  await createVehicleHistoryEntry(spreadsheetId, {
-    vehicleId: vehicle.id,
-    recordKind: 'mileage',
-    referenceId: '',
-    date: getTodayIso(),
-    mileage,
-    nextKm: 0,
-    details: `ساعت ${time}`,
-    amount: 0,
-    expenseRecordId: ''
-  })
+  await syncVehicleMileage(spreadsheetId, vehicle, mileage, getTodayIso(), `ساعت ${time}`)
 }
 
 export async function deleteVehicleDetailItem(params: {
@@ -266,6 +274,9 @@ export async function deleteVehicleDetailItem(params: {
     await deleteVehicleDeadline(spreadsheetId, target.item.rowNumber)
   } else {
     await deleteVehicleHistoryEntry(spreadsheetId, target.item.rowNumber)
+    if (target.item.recordKind === 'mileage') {
+      await rollbackMileageAfterLogDelete(spreadsheetId, target.item.vehicleId, target.item.mileage)
+    }
   }
 }
 

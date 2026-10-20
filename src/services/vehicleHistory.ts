@@ -109,3 +109,44 @@ export async function deleteVehicleHistoryEntry(
 ): Promise<void> {
   await deleteSheetRow(spreadsheetId, VEHICLE_HISTORY_SHEET, rowNumber)
 }
+
+/**
+ * One «ثبت کارکرد» line, so the mileage log lists every reading whichever form raised it.
+ * `referenceId` ties a reading to the expense that carried it.
+ */
+export async function logMileageReading(
+  spreadsheetId: string,
+  vehicleId: string,
+  mileage: number,
+  date: string,
+  details: string,
+  referenceId = ''
+): Promise<void> {
+  await createVehicleHistoryEntry(spreadsheetId, {
+    vehicleId,
+    recordKind: 'mileage',
+    referenceId,
+    date,
+    mileage,
+    nextKm: 0,
+    details,
+    amount: 0,
+    expenseRecordId: ''
+  })
+}
+
+/** An expense that carried a reading is gone: its «ثبت کارکرد» line goes with it. */
+export async function deleteMileageLogsByReference(
+  spreadsheetId: string,
+  vehicleId: string,
+  referenceId: string
+): Promise<void> {
+  if (!vehicleId || !referenceId) return
+
+  const lines = (await fetchVehicleHistory(spreadsheetId, vehicleId))
+    .filter(item => item.recordKind === 'mileage' && item.referenceId === referenceId)
+    .sort((a, b) => b.rowNumber - a.rowNumber)
+
+  // Highest row first, so the rows still to delete keep their numbers.
+  for (const line of lines) await deleteVehicleHistoryEntry(spreadsheetId, line.rowNumber)
+}

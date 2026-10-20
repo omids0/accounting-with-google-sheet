@@ -6,7 +6,7 @@ import {
   buildPeriodicListItem,
   countActionNeeded,
   sortActiveItems,
-  validateMileageIncrease
+  validateVehicleMileageEntry
 } from './utils'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
@@ -135,11 +135,10 @@ export function useVehiclesData() {
     }
 
     const mileage = parseNumeric(values.mileage)
-    const mileageError = validateMileageIncrease(
-      mileage,
-      editingItem?.mileage ?? 0,
-      editingItem ? editingItem.mileage : 0
-    )
+    const mileageError = validateVehicleMileageEntry(mileage, editingItem?.mileage ?? 0, {
+      // A lower number on edit corrects a wrong reading.
+      isHistorical: true
+    })
 
     if (mileageError) {
       showError(mileageError)

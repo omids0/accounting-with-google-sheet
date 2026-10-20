@@ -96,6 +96,14 @@ export default function CustomEntryFormFields({
           expenseTypes={vehicleExpense.expenseTypes}
           onExpenseTypesChange={vehicleExpense.setExpenseTypes}
           errors={vehicleExpense.fieldErrors}
+          renew={
+            vehicleExpense.renewableService
+              ? {
+                  serviceType: vehicleExpense.renewableService.serviceType,
+                  on: vehicleExpense.renewing
+                }
+              : undefined
+          }
         />
       ) : null}
     </>

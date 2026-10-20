@@ -25,6 +25,8 @@ type VehicleExpenseFieldsProps = {
   onExpenseTypesChange?: (categories: string[]) => void
   disabled?: boolean
   errors?: Partial<Record<keyof VehicleExpenseFormValues | 'amount', string>>
+  /** New entry: the periodic service this expense can renew, and whether it will. */
+  renew?: { serviceType: string; on: boolean }
 }
 
 export default function VehicleExpenseFields({
@@ -35,7 +37,8 @@ export default function VehicleExpenseFields({
   expenseTypes,
   onExpenseTypesChange,
   disabled = false,
-  errors = {}
+  errors = {},
+  renew
 }: VehicleExpenseFieldsProps) {
   const categories = expenseTypes ?? getVehicleExpenseCategories()
   const isFuel = isFuelExpenseType(values.expenseType)
@@ -100,6 +103,25 @@ export default function VehicleExpenseFields({
             </p>
           ) : null}
         </>
+      ) : null}
+
+      {renew ? (
+        <label className="flex cursor-pointer items-start gap-2 text-[0.88rem]">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={renew.on}
+            disabled={disabled}
+            onChange={event => onChange({ renewPeriodic: event.target.checked })}
+          />
+          <span>
+            این هزینه تمدید سرویس دوره‌ای «{renew.serviceType}» است
+            <span className="block text-[0.76rem] text-muted">
+              سررسید بعدی سرویس از کارکرد همین هزینه حساب می‌شود و در تاریخچه ثبت می‌شود؛ هزینه
+              دوباره ساخته نمی‌شود.
+            </span>
+          </span>
+        </label>
       ) : null}
 
       <FormField

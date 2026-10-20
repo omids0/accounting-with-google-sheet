@@ -166,6 +166,14 @@ export default function StandardEntryFormFields({
           expenseTypes={vehicleExpense.expenseTypes}
           onExpenseTypesChange={vehicleExpense.setExpenseTypes}
           errors={vehicleExpense.fieldErrors}
+          renew={
+            vehicleExpense.renewableService
+              ? {
+                  serviceType: vehicleExpense.renewableService.serviceType,
+                  on: vehicleExpense.renewing
+                }
+              : undefined
+          }
         />
       ) : null}
       {renderField(WALLET_ACCOUNT_FIELD_ID)}

@@ -1,6 +1,7 @@
 import { createLinkedExpenseRecord, deleteLinkedRecord } from './paymentTransactions'
 import { getSettings } from './settings'
 import { fetchRecords, updateRecord } from './sheets'
+import { syncMileageFromExpense } from './vehicleActions'
 import {
   createVehicleExpenseMeta,
   deleteVehicleExpenseMeta,
@@ -10,6 +11,8 @@ import {
   type VehicleExpenseMetaWithRow
 } from './vehicleExpenseRecords'
 import { ensureVehicleExpenseCategory } from './vehicleExpenses'
+import { deleteMileageLogsByReference } from './vehicleHistory'
+import { renewPeriodicFromExpense } from './vehiclePeriodicRenewal'
 import { fetchVehicles, updateVehicleMileage } from './vehicleProfiles'
 import {
   SUBCATEGORY_FIELD_ID,
@@ -33,6 +36,8 @@ export type VehicleExpenseInput = VehicleExpenseFormValues & {
   note?: string
   walletAccount?: string
   walletApply?: string
+  /** The periodic service this new expense renews (see renewPeriodicFromExpense). */
+  renewServiceId?: string
 }
 
 function resolveVehicleTitle(vehicleId: string, vehicles: { id: string; title: string }[]): string {
@@ -76,24 +81,6 @@ export async function resolveMileageAfterFuelDelete(
   return items[0]?.mileage ?? null
 }
 
-async function syncVehicleMileageFromExpense(
-  spreadsheetId: string,
-  vehicleId: string,
-  mileage: number,
-  date: string
-): Promise<void> {
-  if (!vehicleId || mileage <= 0) return
-
-  const vehicles = await fetchVehicles(spreadsheetId)
-  const vehicle = vehicles.find(item => item.id === vehicleId)
-
-  if (!vehicle) return
-
-  if (mileage >= vehicle.mileage) {
-    await updateVehicleMileage(spreadsheetId, vehicle.rowNumber, mileage, date)
-  }
-}
-
 async function deleteVehicleExpenseMetadataOnly(
   spreadsheetId: string,
   meta: VehicleExpenseMetaWithRow
@@ -104,6 +91,7 @@ async function deleteVehicleExpenseMetadataOnly(
       : null
 
   await deleteVehicleExpenseMeta(spreadsheetId, meta.rowNumber)
+  await deleteMileageLogsByReference(spreadsheetId, meta.vehicleId, meta.expenseRecordId)
 
   if (rollbackMileage !== null && meta.vehicleId) {
     const vehicles = await fetchVehicles(spreadsheetId)
@@ -150,7 +138,21 @@ export async function createManualVehicleExpense(
   })
 
   if (!isOther && mileage > 0) {
-    await syncVehicleMileageFromExpense(spreadsheetId, input.vehicleId, mileage, input.date)
+    await syncMileageFromExpense(spreadsheetId, input.vehicleId, mileage, input.date, {
+      recordId: expenseRecordId,
+      expenseType
+    })
+  }
+
+  if (!isOther && input.renewServiceId) {
+    await renewPeriodicFromExpense(spreadsheetId, {
+      vehicleId: input.vehicleId,
+      serviceId: input.renewServiceId,
+      expenseRecordId,
+      amount,
+      mileage,
+      date: input.date
+    })
   }
 
   return expenseRecordId
@@ -216,7 +218,10 @@ export async function upsertManualVehicleExpenseMeta(
   }
 
   if (!isOther && mileage > 0) {
-    await syncVehicleMileageFromExpense(spreadsheetId, input.vehicleId, mileage, input.date)
+    await syncMileageFromExpense(spreadsheetId, input.vehicleId, mileage, input.date, {
+      recordId: expenseRecordId,
+      expenseType
+    })
   } else if (existing?.vehicleId && existing.mileage > 0) {
     const rollbackMileage = await resolveMileageAfterFuelDelete(
       spreadsheetId,
