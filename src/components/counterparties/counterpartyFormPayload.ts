@@ -23,6 +23,7 @@ export function buildCounterpartyPayload(values: CounterpartyFormState) {
         accountNumber: account.accountNumber.trim()
       }))
       .filter(account => account.bankName || account.accountNumber),
-    note: values.note.trim()
+    note: values.note.trim(),
+    ...(values.me === undefined ? {} : { me: values.me })
   }
 }

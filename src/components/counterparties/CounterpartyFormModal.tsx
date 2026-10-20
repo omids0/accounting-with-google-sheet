@@ -2,8 +2,10 @@ import { lazy, Suspense, useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import { getActiveWorkspaceType } from '../../services/workspace'
 import FormField from '../form/FormField'
 import FormRow from '../form/FormRow'
+import ToggleSwitch from '../form/ToggleSwitch'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import CounterpartyAccountsField from './CounterpartyAccountsField'
@@ -31,6 +33,9 @@ const EMPTY_PHONE: CounterpartyPhoneFormState = { number: '' }
 const EMPTY_ACCOUNT: CounterpartyAccountFormState = { bankName: '', accountNumber: '' }
 
 function buildInitialValues(editingItem: CounterpartyWithRow | null): CounterpartyFormState {
+  // Only a building has the «من» flag; a personal list never gets the field.
+  const me = getActiveWorkspaceType() === 'building' ? { me: editingItem?.me ?? false } : {}
+
   if (editingItem) {
     return {
       firstName: editingItem.firstName,
@@ -40,7 +45,8 @@ function buildInitialValues(editingItem: CounterpartyWithRow | null): Counterpar
       location: editingItem.location,
       phones: editingItem.phones.length > 0 ? editingItem.phones : [{ ...EMPTY_PHONE }],
       accounts: editingItem.accounts.length > 0 ? editingItem.accounts : [{ ...EMPTY_ACCOUNT }],
-      note: editingItem.note
+      note: editingItem.note,
+      ...me
     }
   }
 
@@ -52,7 +58,8 @@ function buildInitialValues(editingItem: CounterpartyWithRow | null): Counterpar
     location: null,
     phones: [{ ...EMPTY_PHONE }],
     accounts: [{ ...EMPTY_ACCOUNT }],
-    note: ''
+    note: '',
+    ...me
   }
 }
 
@@ -134,6 +141,21 @@ export default function CounterpartyFormModal({
 
       <CounterpartyPhonesField control={control} register={register} />
       <CounterpartyAccountsField control={control} register={register} />
+
+      {initialValues.me === undefined ? null : (
+        <FormField
+          label="من"
+          hint="خودِ مدیر ساختمان است؛ بدهی ساختمان به او «به مدیر» حساب می‌شود."
+        >
+          <Controller
+            control={control}
+            name="me"
+            render={({ field }) => (
+              <ToggleSwitch checked={!!field.value} onChange={field.onChange} label="من" />
+            )}
+          />
+        </FormField>
+      )}
 
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" rows={2} />

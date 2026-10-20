@@ -20,6 +20,7 @@ import {
 } from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
 import { dangTotalFooterClass, listCardsContainerClass } from '../ui/featureCardStyles'
+import { useReadOnly } from '../ui/readOnly'
 
 export type DangListProps = {
   items: DangWithRow[]
@@ -57,12 +58,13 @@ export default function DangList({
 }: DangListProps) {
   const isDesktop = useIsDesktop()
   const { shared } = useSharing()
+  const readOnly = useReadOnly()
   const columns = useMemo<DataTableColumn<DangWithRow>[]>(
     () => [
       checkboxColumn({
         header: 'پرداخت شد',
         checked: item => item.paid,
-        disabled: item => togglingId === item.id,
+        disabled: item => togglingId === item.id || readOnly,
         label: item => `پرداخت شد: ${item.title}`,
         onChange: onTogglePaid
       }),
@@ -73,7 +75,7 @@ export default function DangList({
       dateColumn('date', 'تاریخ', item => item.date),
       moneyColumn('amount', 'مبلغ', item => item.amount)
     ],
-    [togglingId, onTogglePaid, shared]
+    [togglingId, onTogglePaid, shared, readOnly]
   )
 
   if (loading && items.length === 0) {

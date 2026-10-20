@@ -83,7 +83,8 @@ export function buildingProfileRow(profile: BuildingProfile, editedAt: string): 
   ]
 }
 
-function fundAccount(input: FundAccountInput, createdAt: string): WalletAccount {
+/** The wallet account a fund account becomes. */
+export function fundAccount(input: FundAccountInput, createdAt: string): WalletAccount {
   const bank = input.type === 'bank'
 
   return {

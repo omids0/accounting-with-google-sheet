@@ -6,6 +6,7 @@ import { createCounterparty, updateCounterparty } from '../../services/counterpa
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
+import { useReadOnly } from '../ui/readOnly'
 
 type UseCounterpartiesFormOptions = {
   onSaved: () => Promise<void> | void
@@ -16,12 +17,16 @@ export function useCounterpartiesForm({ onSaved }: UseCounterpartiesFormOptions)
   const [editingItem, setEditingItem] = useState<CounterpartyWithRow | null>(null)
   const [saving, setSaving] = useState(false)
 
+  const readOnly = useReadOnly()
+
   const openCreateForm = () => {
+    if (readOnly) return
     setEditingItem(null)
     setShowForm(true)
   }
 
   const openEditForm = (item: CounterpartyWithRow) => {
+    if (readOnly) return
     setEditingItem(item)
     setShowForm(true)
   }

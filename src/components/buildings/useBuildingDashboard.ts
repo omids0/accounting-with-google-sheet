@@ -3,11 +3,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { useBuildingSetupData, type BuildingSetupData } from './useBuildingSetupData'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { missingIssueMonths } from '../../services/buildingCharges'
-import { dangToManager, loadMonthFlow, type MonthFlow } from '../../services/buildingDashboard'
+import {
+  dangToManager,
+  loadMonthFlow,
+  managerCreditorNames,
+  type MonthFlow
+} from '../../services/buildingDashboard'
 import { getManagedList, MANAGER_PAYER } from '../../services/buildingLists'
 import { buildingUpcoming } from '../../services/buildingUpcoming'
 import { fetchChecks } from '../../services/checks'
-import { getCounterpartyFullName } from '../../services/counterparties'
 import { fetchDangs } from '../../services/dang'
 import type { DashboardReminderItem } from '../../services/dashboardReminders'
 import { fetchRecurringItems } from '../../services/recurringSheet'
@@ -86,10 +90,11 @@ export function useBuildingDashboard(): BuildingDashboardData {
   const { profile, units, persons, receivables } = data
 
   const managerNames = useMemo(
-    () => [
-      getManagedList('EXPENSE_PAYERS').find(item => item.value === MANAGER_PAYER)?.label ?? '',
-      ...persons.filter(person => person.me).map(getCounterpartyFullName)
-    ],
+    () =>
+      managerCreditorNames(
+        getManagedList('EXPENSE_PAYERS').find(item => item.value === MANAGER_PAYER)?.label ?? '',
+        persons
+      ),
     [persons]
   )
 

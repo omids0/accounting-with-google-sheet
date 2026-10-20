@@ -9,6 +9,7 @@ import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
 import { useAttachmentDrafts } from '../attachments/useAttachmentDrafts'
 import { showSavedForCheck } from '../nudges/saveNudges'
+import { useReadOnly } from '../ui/readOnly'
 
 type UseChecksFormOptions = {
   onSaved: () => Promise<void>
@@ -26,12 +27,16 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
     entityId: editingItem?.id
   })
 
+  const readOnly = useReadOnly()
+
   const openCreateForm = () => {
+    if (readOnly) return
     setEditingItem(null)
     setShowForm(true)
   }
 
   const openEditForm = (item: CheckWithRow) => {
+    if (readOnly) return
     setEditingItem(item)
     setShowForm(true)
   }

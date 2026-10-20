@@ -1,11 +1,26 @@
+import { getCounterpartyFullName } from './counterparties'
 import { fetchRecords } from './sheets'
-import type { AppSettings, CustomForm, Dang, RecordRow } from '../types'
+import type { AppSettings, Counterparty, CustomForm, Dang, RecordRow } from '../types'
 import { getDateRange, isDateInRange, type DateRange } from '../utils/dateRange'
 import { parseNumeric } from '../utils/parseNumeric'
-import { RECONCILIATION_CATEGORY, TRANSFER_EXPENSE_CATEGORY } from '../utils/protectedCategories'
+import {
+  RECONCILIATION_CATEGORY,
+  SMS_RECONCILE_CATEGORY,
+  TRANSFER_EXPENSE_CATEGORY
+} from '../utils/protectedCategories'
 
-/** Money moved between accounts or written by a fund reconcile is not income or spending. */
-const NOT_FLOW = new Set([TRANSFER_EXPENSE_CATEGORY, RECONCILIATION_CATEGORY])
+/**
+ * Money moved between accounts or written by a reconcile (the fund's «اصلاح موجودی», the SMS
+ * «تطبیق») is not income or spending: one place for the dashboard, the fund and the reports.
+ */
+const NOT_FLOW = new Set([
+  TRANSFER_EXPENSE_CATEGORY,
+  RECONCILIATION_CATEGORY,
+  SMS_RECONCILE_CATEGORY
+])
+
+export const isNonFlowCategory = (category: string | undefined) =>
+  NOT_FLOW.has((category ?? '').trim())
 
 export interface MonthFlow {
   income: number
@@ -20,7 +35,7 @@ const dateFieldOf = (form: CustomForm | undefined) =>
 function inRange(records: RecordRow[], dateField: string, range: DateRange): RecordRow[] {
   return records
     .filter(record => isDateInRange(record.values[dateField] ?? '', range))
-    .filter(record => !NOT_FLOW.has((record.values.category ?? '').trim()))
+    .filter(record => !isNonFlowCategory(record.values.category))
 }
 
 const total = (records: RecordRow[]) =>
@@ -41,11 +56,12 @@ export function monthFlowOf(
   }
 }
 
-/** «↑ X در مهر · وصول − هزینه»: this Jalali month so far. */
-export async function loadMonthFlow(
-  settings: AppSettings,
-  range = getDateRange('month-to-date')
-): Promise<MonthFlow> {
+export type FlowSide = { form?: CustomForm; records: RecordRow[] }
+
+/** The income and expense records of the active building, with the forms that date them. */
+export async function loadFlowRecords(
+  settings: AppSettings
+): Promise<{ income: FlowSide; expense: FlowSide }> {
   const load = async (type: 'income' | 'expense') => {
     const form = settings.forms.find(item => item.type === type)
 
@@ -54,7 +70,28 @@ export async function loadMonthFlow(
 
   const [income, expense] = await Promise.all([load('income'), load('expense')])
 
+  return { income, expense }
+}
+
+/** «↑ X در مهر · وصول − هزینه»: this Jalali month so far. */
+export async function loadMonthFlow(
+  settings: AppSettings,
+  range = getDateRange('month-to-date')
+): Promise<MonthFlow> {
+  const { income, expense } = await loadFlowRecords(settings)
+
   return monthFlowOf(income, expense, range)
+}
+
+/**
+ * The names a debt to the manager can carry: the payer «مدیر» and every person flagged `me`
+ * (a dang stores its creditor as text).
+ */
+export function managerCreditorNames(
+  payerLabel: string,
+  persons: Pick<Counterparty, 'firstName' | 'lastName' | 'me'>[]
+): string[] {
+  return [payerLabel, ...persons.filter(person => person.me).map(getCounterpartyFullName)]
 }
 
 /** Unpaid dang whose creditor is the manager: the payer «مدیر» or a person flagged `me`. */

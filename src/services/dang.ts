@@ -1,5 +1,6 @@
 import type { Dang } from '../types'
 import { logItemActivity } from './activityLog'
+import { dangSettlementCategory } from './buildingDang'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { deleteLinkedExpenseRecord } from './paymentTransactions'
 import type { SettleOptions, UnlinkChoice } from './settleOptions'
@@ -13,6 +14,7 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
+import { getActiveWorkspaceType } from './workspace'
 import { DANG_WRITER_COLUMN } from './writerColumn'
 import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
@@ -190,8 +192,7 @@ export async function toggleDangPaid(
       {
         title: `بدهی: ${dang.title}`,
         amount: dang.amount,
-        category: dang.category,
-        subCategory: dang.subCategory,
+        ...dangSettlementCategory(dang, getActiveWorkspaceType() === 'building'),
         note: dang.note
       },
       options

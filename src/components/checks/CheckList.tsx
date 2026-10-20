@@ -28,6 +28,7 @@ import {
 import TableRowActions from '../table/TableRowActions'
 import { dashboardStatGridClass } from '../ui/chartStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
+import { useReadOnly } from '../ui/readOnly'
 
 export type CheckListProps = {
   items: CheckWithRow[]
@@ -64,12 +65,13 @@ export default function CheckList({
   )
 
   const { shared } = useSharing()
+  const readOnly = useReadOnly()
   const columns = useMemo<DataTableColumn<CheckWithRow>[]>(
     () => [
       checkboxColumn({
         header: 'پرداخت شد',
         checked: item => item.paid,
-        disabled: item => togglingId === item.id,
+        disabled: item => togglingId === item.id || readOnly,
         label: item => `پرداخت شد: چک ${item.checkNumber}`,
         onChange: onTogglePaid
       }),
@@ -80,7 +82,7 @@ export default function CheckList({
       dateColumn('due', 'سررسید', item => item.dueDate),
       moneyColumn('amount', 'مبلغ', item => item.amount)
     ],
-    [togglingId, onTogglePaid, shared]
+    [togglingId, onTogglePaid, shared, readOnly]
   )
 
   if (loading && items.length === 0) {

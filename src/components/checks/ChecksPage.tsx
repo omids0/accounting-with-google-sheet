@@ -18,8 +18,10 @@ import { useChecksForm } from './useChecksForm'
 import SettleFlowModals from '../settle/SettleFlowModals'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
+import { useReadOnly } from '../ui/readOnly'
 
 export default function ChecksPage({ active = true }: ChecksPageProps) {
+  const readOnly = useReadOnly()
   const {
     items,
     counterparties,
@@ -78,6 +80,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
         addLabel: 'ثبت چک',
+        readOnly,
         onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
@@ -93,7 +96,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
       handleImport,
       handleExport,
       handleExportPdf,
-      openCreateForm
+      openCreateForm,
+      readOnly
     ]
   )
 

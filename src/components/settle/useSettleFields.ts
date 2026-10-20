@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { LedgerEntry } from '../../services/recordDuplicates'
 import { loadRecordLedger } from '../../services/recordLedger'
@@ -10,6 +10,7 @@ import {
   type SettleOptions
 } from '../../services/settleOptions'
 import { fetchWalletAccounts } from '../../services/wallet'
+import { getActiveWorkspaceType } from '../../services/workspace'
 import type { WalletAccount } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { WALLET_APPLY_NO, WALLET_APPLY_YES } from '../form/fieldUtils'
@@ -44,6 +45,7 @@ export function useSettleFields({
   const [accounts, setAccounts] = useState<WalletAccount[]>([])
   const [linkId, setLinkId] = useState('')
   const [dismissed, setDismissed] = useState(false)
+  const defaulted = useRef(false)
 
   useEffect(() => {
     const settings = getSettings()
@@ -57,6 +59,7 @@ export function useSettleFields({
     setApply(WALLET_APPLY_YES)
     setLinkId('')
     setDismissed(false)
+    defaulted.current = false
     void loadRecordLedger(settings, type)
       .then(entries => live && setLedger(entries))
       .catch(() => undefined)
@@ -68,6 +71,13 @@ export function useSettleFields({
       live = false
     }
   }, [active, type, defaultDate])
+
+  // A building pays out of its fund: without a remembered account the first one is picked.
+  useEffect(() => {
+    if (!active || defaulted.current || !accounts.length) return
+    defaulted.current = true
+    if (getActiveWorkspaceType() === 'building') setAccount(current => current || accounts[0].id)
+  }, [active, accounts])
 
   const linkedKey = linkedIds.join('|')
   const duplicate = useMemo(

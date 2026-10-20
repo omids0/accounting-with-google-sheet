@@ -12,6 +12,8 @@ export interface SettleRequest {
   linkedIds: readonly string[]
   /** Starting payment date; today when unset. */
   date?: string
+  /** A line under the title that says what saving does (a building repays a debt as a transfer). */
+  note?: string
 }
 
 type Resolver<T> = (answer: T | null) => void

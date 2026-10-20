@@ -8,6 +8,7 @@ import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
 import { showSavedForCounterparty } from '../nudges/saveNudges'
+import { useReadOnly } from '../ui/readOnly'
 
 type UseDangFormOptions = {
   onSaved: () => Promise<void>
@@ -18,12 +19,16 @@ export function useDangForm({ onSaved }: UseDangFormOptions) {
   const [editingItem, setEditingItem] = useState<DangWithRow | null>(null)
   const [saving, setSaving] = useState(false)
 
+  const readOnly = useReadOnly()
+
   const openCreateForm = () => {
+    if (readOnly) return
     setEditingItem(null)
     setShowForm(true)
   }
 
   const openEditForm = (item: DangWithRow) => {
+    if (readOnly) return
     setEditingItem(item)
     setShowForm(true)
   }

@@ -1,5 +1,6 @@
 import AppIcon from './AppIcon'
 import { cardActionBtnClass, cardEditBtnClass } from './ui/featureCardStyles'
+import { useReadOnly } from './ui/readOnly'
 import { cn } from '../utils/cn'
 
 type CardEditButtonProps = {
@@ -13,6 +14,8 @@ export default function CardEditButton({
   disabled = false,
   ariaLabel = 'ویرایش'
 }: CardEditButtonProps) {
+  if (useReadOnly()) return null
+
   return (
     <button
       type="button"

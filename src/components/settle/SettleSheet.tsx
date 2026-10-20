@@ -3,6 +3,7 @@ import { useSettleFields } from './useSettleFields'
 import type { SettleRequest } from './useSettleFlow'
 import type { SettleOptions } from '../../services/settleOptions'
 import FormModal from '../FormModal'
+import { formHintClass } from '../ui/formStyles'
 
 /** «تسویه»: date, account and balance effect of a payment, with a catch for one already recorded. */
 export default function SettleSheet({
@@ -34,6 +35,7 @@ export default function SettleSheet({
       saveLabel={state.linked ? 'وصل کن' : 'ثبت تسویه'}
       saveButtonVariant={request.type === 'expense' ? 'outflow' : 'inflow'}
     >
+      {request.note ? <p className={formHintClass}>{request.note}</p> : null}
       <SettleFields state={state} type={request.type} />
     </FormModal>
   )

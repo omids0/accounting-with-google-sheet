@@ -59,7 +59,13 @@ export const shareReference = (unitId: string, recordId: string) =>
   `${EXPENSE_SHARE_PREFIX}${unitId}:${recordId}`
 
 /** The debt a non-fund payer leaves has a fixed id, so saving the record again finds it. */
-export const dangIdForExpense = (recordId: string) => `exp-${recordId}`
+const EXPENSE_DANG_PREFIX = 'exp-'
+
+export const dangIdForExpense = (recordId: string) => `${EXPENSE_DANG_PREFIX}${recordId}`
+
+/** The expense record a debt was made from ('' for a debt entered by hand). */
+export const expenseIdOfDang = (dangId: string) =>
+  dangId.startsWith(EXPENSE_DANG_PREFIX) ? dangId.slice(EXPENSE_DANG_PREFIX.length) : ''
 
 /** Amount minus the sum of the shares: 0 when the split is complete. */
 export function splitDifference(amount: number, shares: Record<string, number>): number {

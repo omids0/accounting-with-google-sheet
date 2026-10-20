@@ -1,4 +1,10 @@
-import { isoToJalali, JALALI_MONTHS, jalaliToIso } from '../utils/jalaliDate'
+import {
+  daysInJalaliMonth,
+  isoToJalali,
+  JALALI_MONTHS,
+  jalaliToIso,
+  type DateRange
+} from '../utils/jalaliDate'
 import { toPersianDigits } from '../utils/normalizeDigits'
 
 /** Jalali month keys (`YYYY-MM`) of the charge months: the unit of «شارژ مهر ۱۴۰۵». */
@@ -46,4 +52,23 @@ export function dueDateOf(monthKey: string, day: number): string {
   const { year, month } = partsOf(monthKey)
 
   return jalaliToIso(year, month, Math.min(Math.max(day, 1), 28))
+}
+
+/** First to last day of a Jalali month, as ISO dates. */
+export function monthRangeOf(monthKey: string): DateRange {
+  const { year, month } = partsOf(monthKey)
+
+  return {
+    start: jalaliToIso(year, month, 1),
+    end: jalaliToIso(year, month, daysInJalaliMonth(year, month))
+  }
+}
+
+/** `count` month keys ending at `monthKey`, oldest first. */
+export function recentMonthKeys(monthKey: string, count: number): string[] {
+  const keys = [monthKey]
+
+  while (keys.length < count) keys.unshift(previousMonthKey(keys[0]))
+
+  return keys
 }

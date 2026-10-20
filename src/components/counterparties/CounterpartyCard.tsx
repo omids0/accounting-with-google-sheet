@@ -24,6 +24,8 @@ type CounterpartyCardProps = {
   item: CounterpartyWithRow
   /** Records that name this counterparty; shown only when above zero. */
   recordCount?: number
+  /** A building's role line: «پیمانکار», «ساکن · واحد ۳ · مالک», «من». */
+  label?: string
   onView: (item: CounterpartyWithRow) => void
   onEdit: (item: CounterpartyWithRow) => void
   onDelete: (item: CounterpartyWithRow) => void
@@ -32,6 +34,7 @@ type CounterpartyCardProps = {
 export default function CounterpartyCard({
   item,
   recordCount = 0,
+  label,
   onView,
   onEdit,
   onDelete
@@ -61,6 +64,7 @@ export default function CounterpartyCard({
               <div className={dangCardHeaderClass}>
                 <span className={dangCardTitleClass}>{fullName || '—'}</span>
               </div>
+              {label ? <div className={dangCardMetaClass}>{label}</div> : null}
               {item.phones.length > 0 ? (
                 <div className={dangCardMetaClass}>
                   <PhoneNumberLinks phones={item.phones} inline />

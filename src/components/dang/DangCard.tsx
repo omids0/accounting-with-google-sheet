@@ -23,6 +23,7 @@ import {
   dangCheckboxClass,
   dangPaidAtClass
 } from '../ui/featureCardStyles'
+import { useReadOnly } from '../ui/readOnly'
 import WriterAvatar from '../WriterAvatar'
 
 export type DangCardProps = {
@@ -52,18 +53,22 @@ export default function DangCard({
   onEdit,
   onDelete
 }: DangCardProps) {
+  const readOnly = useReadOnly()
   const rawAmount = amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount
   const displayAmount = rawAmount === '' ? item.amount : Number(rawAmount)
 
   return (
-    <div className={dangCardClass({ paid: item.paid, expanded })} data-highlight-id={item.id}>
+    <div
+      className={dangCardClass({ paid: item.paid, expanded: expanded && !readOnly })}
+      data-highlight-id={item.id}
+    >
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
           <input
             type="checkbox"
             className={dangCheckboxClass}
             checked={item.paid}
-            disabled={togglingId === item.id}
+            disabled={togglingId === item.id || readOnly}
             aria-label={`پرداخت شد: ${item.title}`}
             onChange={e => onTogglePaid(item, e.target.checked)}
           />
@@ -93,7 +98,7 @@ export default function DangCard({
               ) : null}
             </button>
 
-            <AccordionCollapse open={expanded}>
+            <AccordionCollapse open={expanded && !readOnly}>
               <div className={dangCardAmountEditClass}>
                 <CardInlineAmountEdit
                   label="مبلغ"
@@ -120,14 +125,16 @@ export default function DangCard({
               onDelete(item)
             }}
           />
-          <CardExpandButton
-            expanded={expanded}
-            onClick={event => {
-              event.stopPropagation()
-              onExpand(expanded ? null : item.id)
-            }}
-            ariaLabel={expanded ? 'بستن جزئیات' : 'ویرایش مبلغ بدهی'}
-          />
+          {readOnly ? null : (
+            <CardExpandButton
+              expanded={expanded}
+              onClick={event => {
+                event.stopPropagation()
+                onExpand(expanded ? null : item.id)
+              }}
+              ariaLabel={expanded ? 'بستن جزئیات' : 'ویرایش مبلغ بدهی'}
+            />
+          )}
         </div>
       </div>
     </div>

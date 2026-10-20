@@ -6,7 +6,7 @@ import FormModal from '../FormModal'
 import { ACCOUNT_TYPES, type FundAccountType } from './buildingOptions'
 import { accountError, type FundAccountDraft } from './journeyDraft'
 import Button from '../ui/Button'
-import { formErrorClass } from '../ui/formStyles'
+import { formErrorClass, formHintClass } from '../ui/formStyles'
 import WalletCardNumberInput from '../wallet/WalletCardNumberInput'
 
 interface FundAccountSheetProps {
@@ -15,6 +15,11 @@ interface FundAccountSheetProps {
   account: FundAccountDraft | null
   /** Deleting is offered only while another account remains. */
   canDelete: boolean
+  /**
+   * The building exists: an account being edited changes its name and card only. Its type and
+   * balance are fixed; the balance moves by records and by «تطبیق موجودی با بانک».
+   */
+  fixedBalance?: boolean
   onSave: (account: FundAccountDraft) => void
   onDelete: () => void
   onClose: () => void
@@ -36,6 +41,7 @@ export default function FundAccountSheet({
   open,
   account,
   canDelete,
+  fixedBalance = false,
   onSave,
   onDelete,
   onClose
@@ -51,6 +57,8 @@ export default function FundAccountSheet({
   }, [open, account])
 
   const bank = draft.type === 'bank'
+
+  const fixed = fixedBalance && account !== null
 
   return (
     <FormModal
@@ -75,12 +83,14 @@ export default function FundAccountSheet({
           autoComplete="off"
         />
       </FormField>
-      <FormSelect
-        label="نوع حساب"
-        value={draft.type}
-        onChange={value => setDraft({ ...draft, type: value as FundAccountType })}
-        options={ACCOUNT_TYPES}
-      />
+      {fixed ? null : (
+        <FormSelect
+          label="نوع حساب"
+          value={draft.type}
+          onChange={value => setDraft({ ...draft, type: value as FundAccountType })}
+          options={ACCOUNT_TYPES}
+        />
+      )}
       {bank ? (
         <FormField label="شمارهٔ کارت" hint="پیامک‌های بانکیِ این کارت به همین ساختمان می‌آیند.">
           <WalletCardNumberInput
@@ -89,13 +99,19 @@ export default function FundAccountSheet({
           />
         </FormField>
       ) : null}
-      <FormField label="موجودی فعلی">
-        <AmountField
-          label="موجودی فعلی"
-          value={draft.balance}
-          onChange={value => setDraft({ ...draft, balance: Number(value) || 0 })}
-        />
-      </FormField>
+      {fixed ? (
+        <p className={formHintClass}>
+          برای تغییر موجودی از «تطبیق موجودی با بانک» استفاده کن تا تاریخچه حفظ شود.
+        </p>
+      ) : (
+        <FormField label="موجودی فعلی">
+          <AmountField
+            label="موجودی فعلی"
+            value={draft.balance}
+            onChange={value => setDraft({ ...draft, balance: Number(value) || 0 })}
+          />
+        </FormField>
+      )}
       {error ? (
         <p className={formErrorClass} role="alert">
           {error}

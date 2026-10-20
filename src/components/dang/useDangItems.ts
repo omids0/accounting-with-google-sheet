@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import type { DangWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { usePaidItemActions } from '../../hooks/usePaidItemActions'
+import { dangOriginRecordIds, repaymentSubCategory } from '../../services/buildingDang'
 import { syncCategoriesFromSheet } from '../../services/categories'
 import { ensureCounterpartiesSheet, fetchCounterparties } from '../../services/counterparties'
 import {
@@ -18,6 +19,7 @@ import {
 } from '../../services/dang'
 import { getDangCategories, getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
+import { getActiveWorkspaceType } from '../../services/workspace'
 import type { Dang } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { formatMoney } from '../../utils/formatMoney'
@@ -67,6 +69,8 @@ export function useDangItems() {
     if (isConfigured()) loadItems()
   }, [loadItems, dataRevision])
 
+  const building = getActiveWorkspaceType() === 'building'
+
   const paidActions = usePaidItemActions({
     items,
     setItems,
@@ -78,7 +82,17 @@ export function useDangItems() {
       amountFor: item => item.amount,
       recordIdOf: item => item.transactionRecordId,
       prefix: 'بدهی: ',
-      linkedIds: items.flatMap(item => (item.transactionRecordId ? [item.transactionRecordId] : []))
+      // A building's debt came from an expense: that record is the cost, not the repayment.
+      linkedIds: [
+        ...items.flatMap(item => (item.transactionRecordId ? [item.transactionRecordId] : [])),
+        ...(building ? dangOriginRecordIds(items) : [])
+      ],
+      noteFor: building
+        ? item =>
+            `«${repaymentSubCategory(
+              item.counterparty
+            )}» از حساب صندوق به‌صورت انتقال ثبت می‌شود؛ هزینهٔ تازه‌ای ثبت نمی‌شود.`
+        : undefined
     },
     deleteItem: deleteDang,
     sortItems: sortDangs,
