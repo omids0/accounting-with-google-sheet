@@ -52,7 +52,7 @@ export default function DataEntryForm({
   const useStandardLayout = isStandardEntryForm(activeForm)
   const formRef = useRef<HTMLFormElement>(null)
   const isExpenseForm = activeForm.type === 'expense'
-  const vehicleExpense = useVehicleExpenseEntry(isExpenseForm)
+  const vehicleExpense = useVehicleExpenseEntry(isExpenseForm, true)
   const attachments = useAttachmentDrafts({ open: true, resetKey: activeForm.id })
 
   const { reset, setValue, watch, setError, clearErrors, getValues, formState } = useForm<

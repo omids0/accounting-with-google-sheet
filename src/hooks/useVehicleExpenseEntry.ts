@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { VEHICLE_FUEL_EXPENSE_TYPE, VEHICLE_OTHER_OPTION } from '../components/vehicles/constants'
 import { syncCategoriesFromSheet } from '../services/categories'
 import { getSettings, isConfigured } from '../services/settings'
 import { getVehicleExpenseCategories } from '../services/vehicleExpenseCategories'
+import { fetchVehiclePeriodicServices } from '../services/vehiclePeriodicServices'
 import { fetchVehicles } from '../services/vehicleProfiles'
-import type { VehicleProfile } from '../types/vehicles'
+import type { VehiclePeriodicService, VehicleProfile } from '../types/vehicles'
 import { requireAuth } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 import {
@@ -29,8 +30,10 @@ function createDefaultValues(vehicles: VehicleProfile[]): VehicleExpenseFormValu
   }
 }
 
-export function useVehicleExpenseEntry(active: boolean) {
+/** `allowRenew`: a new entry may also renew the vehicle's periodic service of the same type. */
+export function useVehicleExpenseEntry(active: boolean, allowRenew = false) {
   const [vehicles, setVehicles] = useState<VehicleProfile[]>([])
+  const [periodics, setPeriodics] = useState<VehiclePeriodicService[]>([])
   const [expenseTypes, setExpenseTypes] = useState<string[]>(() => getVehicleExpenseCategories())
   const [vehicleValues, setVehicleValues] = useState<VehicleExpenseFormValues>(() =>
     createDefaultValues([])
@@ -51,6 +54,7 @@ export function useVehicleExpenseEntry(active: boolean) {
       const activeVehicles = items.filter(item => item.active)
 
       setVehicles(activeVehicles)
+      if (allowRenew) setPeriodics(await fetchVehiclePeriodicServices(settings.spreadsheetId))
       setVehicleValues(current => {
         const hasValidVehicle = activeVehicles.some(item => item.id === current.vehicleId)
         const vehicleId = hasValidVehicle
@@ -73,13 +77,27 @@ export function useVehicleExpenseEntry(active: boolean) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [allowRenew])
 
   useEffect(() => {
     if (!active) return
 
     void loadData()
   }, [active, loadData])
+
+  const renewableService = useMemo(
+    () =>
+      allowRenew
+        ? periodics.find(
+            item =>
+              item.vehicleId === vehicleValues.vehicleId &&
+              item.serviceType.trim() === vehicleValues.expenseType.trim()
+          )
+        : undefined,
+    [allowRenew, periodics, vehicleValues.vehicleId, vehicleValues.expenseType]
+  )
+
+  const renewing = Boolean(renewableService) && vehicleValues.renewPeriodic !== false
 
   const resetVehicleValues = useCallback(
     (seed?: Partial<VehicleExpenseFormValues>) => {
@@ -168,7 +186,9 @@ export function useVehicleExpenseEntry(active: boolean) {
       const mileage = parseNumericField(vehicleValues.mileage)
 
       if (mileage <= 0) {
-        if (isMileageRequired(vehicle, vehicleValues.expenseType)) {
+        if (renewing) {
+          errors.mileage = 'برای تمدید سرویس، کارکرد لازم است'
+        } else if (isMileageRequired(vehicle, vehicleValues.expenseType)) {
           errors.mileage = 'کارکرد الزامی است'
         }
       } else if (vehicle && mileage < vehicle.mileage) {
@@ -182,7 +202,7 @@ export function useVehicleExpenseEntry(active: boolean) {
 
       return Object.keys(errors).length ? errors : null
     },
-    [vehicleValues, vehicles]
+    [vehicleValues, vehicles, renewing]
   )
 
   const buildVehicleExpenseInput = useCallback(
@@ -192,14 +212,17 @@ export function useVehicleExpenseEntry(active: boolean) {
       amount: parseNumericField(formValues.amount),
       note: String(formValues.note ?? ''),
       walletAccount: String(formValues.walletAccount ?? ''),
-      walletApply: String(formValues.walletApply ?? '')
+      walletApply: String(formValues.walletApply ?? ''),
+      renewServiceId: renewing ? renewableService?.id : undefined
     }),
-    [vehicleValues]
+    [vehicleValues, renewing, renewableService]
   )
 
   return {
     vehicles,
     expenseTypes,
+    renewableService,
+    renewing,
     vehicleValues,
     fieldErrors,
     loading,

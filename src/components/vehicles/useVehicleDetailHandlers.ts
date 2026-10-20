@@ -6,7 +6,7 @@ import type {
   VehiclePeriodicFormState,
   VehicleProfileWithRow
 } from './types'
-import { validateMileageIncrease, validateVehicleMileageEntry } from './utils'
+import { validateVehicleMileageEntry } from './utils'
 import {
   submitCompleteForm,
   submitDeadlineForm,
@@ -186,10 +186,10 @@ export function createVehicleDetailHandlers(context: HandlerContext) {
 
       if (!spreadsheetId) return
 
-      const mileageError = validateMileageIncrease(
+      const mileageError = validateVehicleMileageEntry(
         parseNumeric(values.mileage),
         context.currentVehicle.mileage,
-        context.currentVehicle.mileage
+        { isHistorical: true }
       )
 
       if (mileageError) {

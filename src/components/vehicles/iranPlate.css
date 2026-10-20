@@ -174,7 +174,16 @@
   font-size: 1rem;
 }
 
+/* Scaled from the text-start edge, so a plate in a table cell lines up with its column header. */
 .iran-plate__badge-scale {
   transform: scale(0.82);
   transform-origin: center;
+}
+
+.iran-plate__badge-scale:dir(rtl) {
+  transform-origin: right center;
+}
+
+.iran-plate__badge-scale:dir(ltr) {
+  transform-origin: left center;
 }

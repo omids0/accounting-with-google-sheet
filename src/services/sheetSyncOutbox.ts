@@ -1,5 +1,6 @@
 import { invalidateInstallmentsCache } from './installmentsConstants'
 import { RowEditConflictError } from './rowConflict'
+import { ACTIVITY_SHEET } from './sheetNames'
 import { isQuotaExceededError } from './sheets'
 import { isPermanentApiError, SheetsApiError } from './sheetsApi'
 import { normalizeSheetTitle } from './sheetsMeta'
@@ -139,6 +140,13 @@ async function flushPass(
         permanent ? 'write:rejected' : 'write:failed',
         `${describeWrite(entry)} · ${Date.now() - startedAt}ms · ${message}`
       )
+
+      if (permanent && entry.operation.sheetName === ACTIVITY_SHEET) {
+        // Two best-effort dates; the next app open rewrites them. Nothing to tell the user.
+        removeOutboxEntry(spreadsheetId, entry.id)
+        refreshPendingCount(spreadsheetId)
+        continue
+      }
 
       if (permanent) {
         // Otherwise the app keeps showing a change the sheet never got.
