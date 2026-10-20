@@ -86,6 +86,10 @@ jobs:
             -e '/name="title_activity_main"/s|حساب کتاب|حساب کتاب (dev)|' \
             android/app/src/main/res/values/strings.xml
           grep -E 'app_name|title_activity_main' android/app/src/main/res/values/strings.xml
+          # Long-press shortcuts name the package they open; it must be the dev app.
+          sed -i 's|targetPackage="com.omids0.accounting"|targetPackage="com.omids0.accounting.dev"|' \
+            android/app/src/main/res/xml/shortcuts.xml
+          grep -c 'targetPackage="com.omids0.accounting.dev"' android/app/src/main/res/xml/shortcuts.xml
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew

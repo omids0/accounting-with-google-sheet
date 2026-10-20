@@ -17,7 +17,7 @@ alwaysApply: true
 
 ## What `develop` builds
 
-A push to `develop` publishes the dev site under `/accounting-with-google-sheet/dev/` and builds a dev APK (`com.omids0.accounting.dev`, artifact only, no release). Dev builds say «dev» next to the version and in the app name, through `VITE_APP_ENV=dev` (`src/utils/appEnv.ts`). Never write «dev» into `package.json`: that version merges to `main`.
+A push to `develop` publishes the dev site under `/accounting-with-google-sheet/dev/` and builds a dev APK (`com.omids0.accounting.dev`, artifact only, no release). Dev builds say «dev» next to the version and in the app name, through `VITE_APP_ENV=dev` (`src/utils/appEnv.ts`). Never write «dev» into `package.json`: that version merges to `main`. The dev site shares production's origin, so dev builds prefix localStorage, sessionStorage and IndexedDB with `dev:` (`src/utils/devStorageIsolation.ts`, imported first in `main.tsx`); never read storage before that import runs.
 
 ## Do not
 
