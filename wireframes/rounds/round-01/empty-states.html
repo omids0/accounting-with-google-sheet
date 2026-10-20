@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — EmptyState یکدست صفحات</title>
+    <link rel="stylesheet" href="../../shared/css/wireframe.css" />
+    <link rel="stylesheet" href="../../shared/css/wireframe-wizard.css" />
+    <link rel="stylesheet" href="../../shared/css/wireframe-extras.css" />
+    <style>
+      .back { di
+      <p class="back"><a href="../../index.html">← فهرست وایرفریم‌ها</a></p>splay: block; text-align: center; margin: 0 0 14px; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>وایرفریم: الگوی یکدست EmptyState — توضیح صفحه + پیام + دکمه افزودن</h1>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs">
+          <button class="on" data-p="checks">چک‌ها</button>
+          <button data-p="treasury">صندوقچه</button>
+          <button data-p="installments">اقساط</button>
+          <button data-p="vehicle">سرویس خودرو</button>
+        </div>
+
+        <!-- ===== phone ===== -->
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span>
+            <span id="pageTitle">چک‌ها</span>
+            <span class="icon">☰</span>
+          </div>
+
+          <div class="content">
+            <div
+              class="card"
+              style="flex: 1; display: flex; align-items: center; justify-content: center"
+            >
+              <div class="empty">
+                <span class="badge">۱</span>
+                <div class="eicon" id="eIcon">▦</div>
+                <p class="e-purpose" id="ePurpose"></p>
+                <p class="e-msg" id="eMsg"></p>
+                <button class="btn-primary" id="eCta"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span>
+            <span><i></i>بدهی</span>
+            <span><i></i>چک‌ها</span>
+            <span class="center"><i></i>داشبورد</span>
+            <span><i></i>طلب‌ها</span>
+            <span><i></i>صندوقچه</span>
+            <span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== notes ===== -->
+      <div class="notes">
+        <div class="note">
+          <b class="n">۱</b><b>الگوی واحد، سه سطر</b><br />
+          ۱) <b>توضیح صفحه</b> (خاکستری کم‌رنگ): یک جمله «این صفحه برای چیست» — فقط در حالت خالی،
+          لیست که پر شد توضیح هم می‌رود.<br />
+          ۲) <b>پیام خالی بودن</b>: همان متن‌های فعلی.<br />
+          ۳) <b>دکمه افزودن</b>: همان فرمی که speed dial صفحه باز می‌کند.
+        </div>
+        <div class="note">
+          <b>پیاده‌سازی</b> — کامپوننت موجود <code>EmptyState</code> یک prop اختیاری
+          <code>description</code> می‌گیرد (توضیح صفحه). صفحاتی که الان EmptyState دارند فقط
+          description می‌گیرند؛ صفحاتی که div دستی دارند به EmptyState مهاجرت می‌کنند.
+        </div>
+        <div class="note">
+          <b>صفحات نیازمند اصلاح</b> (از بررسی کد):<br />
+          • <code>OpeningBalancePage</code> — div دستی<br />
+          • <code>VehicleDetailTabContent</code> — div دستی، آیکون generic<br />
+          • <code>TimesheetDetailPage</code> — markup تکراری دستی<br />
+          • <code>DangSplitExpensesTab / PeopleTab / SummaryTab</code> — دستی<br />
+          • <code>RecordsPage</code> حالت فیلتر — باید <code>SearchEmptyState</code> شود<br />
+          • <code>WalletAccountDetailPage</code> — EmptyState بدون دکمه<br />
+          • <code>DashboardPage</code> حالت not-configured — div دستی<br />
+          بقیه (چک‌ها، طلب‌ها، بدهی، اقساط، صندوقچه، …) EmptyState + دکمه دارند، فقط description
+          اضافه می‌شود.
+        </div>
+        <div class="note"><i>دمو: تب‌ها = نمونه متن ۴ صفحه.</i></div>
+      </div>
+    </div>
+
+    <script>
+      const pages = {
+        checks: [
+          'چک‌ها',
+          '▦',
+          'چک‌های پرداختی و دریافتی‌ات را با تاریخ سررسید اینجا مدیریت کن تا هیچ چکی برگشت نخورد.',
+          'هنوز چکی ثبت نشده',
+          '+ ثبت چک'
+        ],
+        treasury: [
+          'صندوقچه',
+          '◈',
+          'پس‌انداز هدف‌دار: طلا، ارز یا پولی که کنار گذاشته‌ای را جدا از حساب‌های روزمره دنبال کن.',
+          'صندوقچه‌ات خالی است',
+          '+ افزودن دارایی'
+        ],
+        installments: [
+          'اقساط',
+          '≡',
+          'وام و خریدهای قسطی‌ات را ثبت کن تا سررسید هر قسط و مانده بدهی را یک‌جا ببینی.',
+          'هنوز قسطی ثبت نشده',
+          '+ ثبت قسط'
+        ],
+        vehicle: [
+          'سرویس خودرو',
+          '⛭',
+          'تعویض روغن، بیمه و معاینه فنی هر خودرو را ثبت کن تا موعد بعدی یادآوری شود.',
+          'هنوز خودرویی تعریف نشده',
+          '+ افزودن خودرو'
+        ]
+      }
+      const tabs = [...document.querySelectorAll('.state-tabs button')]
+      function setPage(p) {
+        const [title, icon, purpose, msg, cta] = pages[p]
+        document.getElementById('pageTitle').textContent = title
+        document.getElementById('eIcon').textContent = icon
+        document.getElementById('ePurpose').textContent = purpose
+        document.getElementById('eMsg').textContent = msg
+        document.getElementById('eCta').textContent = cta
+        tabs.forEach(t => t.classList.toggle('on', t.dataset.p === p))
+      }
+      tabs.forEach(t => (t.onclick = () => setPage(t.dataset.p)))
+      setPage('checks')
+    </script>
+  </body>
+</html>

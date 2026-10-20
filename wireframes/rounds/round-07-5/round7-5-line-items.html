@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — ریز اقلام و طرف حساب در فرم ثبت (round 7.5)</title>
+    <link rel="stylesheet" href="../../shared/css/wireframe.css" />
+    <link rel="stylesheet" href="../../shared/css/wireframe-wizard.css" />
+    <link rel="stylesheet" href="../../shared/css/wireframe-extras.css" />
+    <link rel="stylesheet" href="../../shared/css/wireframe-r6.css" />
+    <link rel="stylesheet" href="../../shared/css/wireframe-r6-2.css" />
+    <link rel="stylesheet" href="../../shared/css/wireframe-r7-5.css" />
+  </head>
+  <body>
+    <p class="back"><a href="../../index.html">← فهرست وایرفریم‌ها</a></p>
+    <h1>وایرفریم round 7.5: فرم ثبت — خام، افزودن قلم، با اقلام، جمع ناهمخوان</h1>
+    <p class="e-purpose" style="max-width: none; text-align: right">
+      گزارش‌ها و لیست رکوردها در <a href="round7-5-reports.html">صفحهٔ دوم</a>.
+    </p>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs">
+          <button class="on">۱ · فرم خام — بدون قلم، بدون طرف حساب</button>
+        </div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>ثبت جدید</span><span class="icon">☰</span>
+          </div>
+          <div class="content">
+            <div class="seg">
+              <span style="background: #555; color: #fff; border-color: #555">هزینه</span
+              ><span>درآمد</span>
+            </div>
+            <div class="card">
+              <div class="f-row">
+                <label>مبلغ</label>
+                <div class="f-input" style="color: #333">۱٬۰۰۰٬۰۰۰</div>
+              </div>
+              <div class="f-row">
+                <label>دسته‌بندی</label>
+                <div class="f-input" style="color: #333">خوراک › میوه</div>
+              </div>
+              <div class="f-row">
+                <label>حساب</label>
+                <div class="f-input" style="color: #333">ملت</div>
+              </div>
+              <div class="f-row">
+                <label>تاریخ</label>
+                <div class="f-input" style="color: #333">امروز</div>
+              </div>
+              <div class="f-row">
+                <label>عنوان</label>
+                <div class="f-input">میوه</div>
+              </div>
+              <div class="f-row">
+                <label>طرف حساب</label>
+                <div class="f-input">انتخاب کن… <small style="color: #999">اختیاری</small></div>
+              </div>
+              <div class="link-row"><span>+ ریز اقلام فاکتور</span><small>اختیاری</small></div>
+              <button class="btn-primary" style="width: 100%; margin-top: 12px">ذخیره</button>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: 8px 0 0">
+              همان فرم امروز + دو خط: «طرف حساب» (خالی = مثل امروز) و یک ردیف خط‌چین «+ ریز اقلام».
+              تا روی ردیف نزده، هیچ قلمی وجود ندارد و ذخیره مثل همیشه است.
+            </p>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span
+            ><span class="center"><i></i>داشبورد</span><span><i></i>طلب‌ها</span
+            ><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs">
+          <button class="on">۲ · لمس «+ ریز اقلام» — شیت افزودن قلم</button>
+        </div>
+        <div class="phone">
+          <div class="app-header" style="filter: blur(2px)">
+            <span class="icon">←</span><span>ثبت جدید</span><span class="icon">☰</span>
+          </div>
+          <div class="content" style="filter: blur(2px); opacity: 0.5">
+            <div class="card">
+              <div class="f-row">
+                <label>مبلغ</label>
+                <div class="f-input">۱٬۰۰۰٬۰۰۰</div>
+              </div>
+            </div>
+          </div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <h3>
+              قلم ۱
+              <small style="color: #999; font-weight: 400"
+                >از مبلغ ۱٬۰۰۰٬۰۰۰ · ۱٬۰۰۰٬۰۰۰ مانده</small
+              >
+            </h3>
+            <div class="f-row">
+              <label>نام قلم</label>
+              <div class="f-input" style="color: #333">کیو|</div>
+              <div class="chips" style="margin-top: 4px">
+                <span>کیوی</span><span>موز</span><span>خیار</span><span>سیب</span>
+              </div>
+            </div>
+            <div class="f-row">
+              <label>مبلغ</label>
+              <div class="f-input" style="color: #333">۳۲۰٬۰۰۰</div>
+            </div>
+            <div class="f-row">
+              <label>مقدار / توضیح <small style="color: #999">اختیاری</small></label>
+              <div class="f-input">۲ کیلو</div>
+            </div>
+            <div class="disco-actions" style="margin-top: 8px">
+              <button class="btn-sm">افزودن و قلم بعدی</button
+              ><button class="linkbtn">افزودن و بستن</button>
+            </div>
+            <p style="font-size: 11px; color: #888; margin: 8px 0 0">
+              پیشنهاد نام‌ها از اقلام قبلیِ همین دسته. Enter روی مبلغ = «قلم بعدی». «مانده» بعد از
+              هر قلم کم می‌شود؛ قلم آخر با یک لمس روی «مانده» پر می‌شود.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۳ · فرم با سه قلم — جمع یکی است</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>ثبت جدید</span><span class="icon">☰</span>
+          </div>
+          <div class="content">
+            <div class="card">
+              <div class="f-row">
+                <label>مبلغ</label>
+                <div class="f-input" style="color: #333">۱٬۰۰۰٬۰۰۰</div>
+              </div>
+              <div class="f-row">
+                <label>دسته‌بندی</label>
+                <div class="f-input" style="color: #333">خوراک › میوه</div>
+              </div>
+              <div class="f-row">
+                <label>طرف حساب</label>
+                <div class="f-input" style="color: #333">
+                  میوه‌فروشی رضا <small style="color: #999">✕</small>
+                </div>
+              </div>
+              <div class="f-row">
+                <label>ریز اقلام <small style="color: #999">۳ قلم</small></label>
+                <div class="items">
+                  <div class="it">
+                    <span class="nm">کیوی<small>۲ کیلو</small></span
+                    ><span class="am">۳۲۰٬۰۰۰</span><span class="x">✕</span>
+                  </div>
+                  <div class="it">
+                    <span class="nm">موز<small>۱٫۵ کیلو</small></span
+                    ><span class="am">۴۵۰٬۰۰۰</span><span class="x">✕</span>
+                  </div>
+                  <div class="it">
+                    <span class="nm">خیار</span><span class="am">۲۳۰٬۰۰۰</span
+                    ><span class="x">✕</span>
+                  </div>
+                  <div class="add">+ قلم جدید</div>
+                  <div class="sum ok">
+                    <span>جمع اقلام ۱٬۰۰۰٬۰۰۰</span><span>✓ با مبلغ یکی است</span>
+                  </div>
+                </div>
+              </div>
+              <div class="f-row">
+                <label>تاریخ</label>
+                <div class="f-input" style="color: #333">امروز</div>
+              </div>
+              <button class="btn-primary" style="width: 100%; margin-top: 12px">ذخیره</button>
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: 8px 0 0">
+              لمس هر قلم = همان شیت برای ویرایش. ✕ حذف. وقتی همهٔ قلم‌ها حذف شوند، ردیف خط‌چین
+              برمی‌گردد و رکورد «بدون اقلام» است.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">۴ · جمع نمی‌خواند</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">←</span><span>ثبت جدید</span><span class="icon">☰</span>
+          </div>
+          <div class="content">
+            <div class="card">
+              <div class="f-row">
+                <label>مبلغ</label>
+                <div class="f-input" style="color: #333">۱٬۰۰۰٬۰۰۰</div>
+              </div>
+              <div class="f-row">
+                <label>ریز اقلام <small style="color: #999">۲ قلم</small></label>
+                <div class="items">
+                  <div class="it">
+                    <span class="nm">کیوی</span><span class="am">۳۲۰٬۰۰۰</span
+                    ><span class="x">✕</span>
+                  </div>
+                  <div class="it">
+                    <span class="nm">موز</span><span class="am">۴۵۰٬۰۰۰</span
+                    ><span class="x">✕</span>
+                  </div>
+                  <div class="add">+ قلم جدید</div>
+                  <div class="sum bad">
+                    <span>جمع اقلام ۷۷۰٬۰۰۰</span><span>۲۳۰٬۰۰۰ کمتر از مبلغ</span>
+                  </div>
+                </div>
+                <div class="disco-actions" style="margin-top: 6px">
+                  <button class="btn-sm">مبلغ را ۷۷۰٬۰۰۰ کن</button
+                  ><button class="linkbtn">قلم «سایر» ۲۳۰٬۰۰۰ اضافه کن</button>
+                </div>
+              </div>
+              <button class="btn-primary" style="width: 100%; margin-top: 12px; opacity: 0.5">
+                ذخیره
+              </button>
+              <small style="color: #a33; display: block; text-align: center; margin-top: 4px"
+                >تا جمع اقلام با مبلغ یکی نشود ذخیره نمی‌شود</small
+              >
+            </div>
+            <p class="e-purpose" style="text-align: right; max-width: none; margin: 8px 0 0">
+              اگر مبلغ اصلی خالی باشد و قلم وارد شود، مبلغ خودش از جمع اقلام پر می‌شود (حالت «فاکتور
+              را قلم‌به‌قلم بزن»).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>دارد یا ندارد؟</b> — هیچ کلید روشن/خاموشی نیست. رکورد «اقلام دارد» یعنی حداقل یک قلم
+          ثبت شده؛ در غیر این صورت ستون «اقلام» خالی است و همه‌چیز عین امروز. فرم خام فقط یک ردیف
+          خط‌چین «+ ریز اقلام» اضافه دارد. برای درآمد هم همین (مثلاً فاکتور فروش با چند قلم).
+        </div>
+        <div class="note">
+          <b>ورود قلم</b> — شیت پایین با سه فیلد: نام (با پیشنهاد از اقلام قبلیِ همین دسته)، مبلغ،
+          مقدار/توضیح اختیاری. «افزودن و قلم بعدی» شیت را خالی می‌کند و «مانده» را نشان می‌دهد؛ قلم
+          آخر با لمس «مانده» پر می‌شود. روی دسکتاپ همان سه فیلد به شکل ردیف جدول زیر مبلغ، Tab بین
+          ستون‌ها، Enter = ردیف بعدی.
+        </div>
+        <div class="note">
+          <b>قانون جمع</b> — قلم دارد ⇒ جمع اقلام = مبلغ، وگرنه ذخیره قفل با دو میان‌بر. مبلغ خالی +
+          قلم ⇒ مبلغ از جمع پر می‌شود. قلم ندارد ⇒ هیچ قانونی. طرف حساب همیشه اختیاری و مستقل از
+          اقلام.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

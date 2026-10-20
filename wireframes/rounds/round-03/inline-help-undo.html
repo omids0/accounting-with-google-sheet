@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>وایرفریم — راهنمای درجا و بازگردانی حذف</title>
+    <link rel="stylesheet" href="../../shared/css/wireframe.css" />
+    <link rel="stylesheet" href="../../shared/css/wireframe-wizard.css" />
+    <link rel="stylesheet" href="../../shared/css/wireframe-extras.css" />
+    <style>
+      .helpbtn {
+        display: inline-flex;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1.5px solid #888;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #666;
+        margin-right: 6px;
+        cursor: pointer;
+        vertical-align: middle;
+        background: #fff;
+      }
+      .pop {
+        position: relative;
+        border: 1.5px solid #666;
+        background: #fff;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.9;
+        margin-top: 8px;
+        color: #444;
+      }
+      .pop::before {
+        content: '';
+        position: absolute;
+        top: -7px;
+        right: 24px;
+        width: 12px;
+        height: 12px;
+        background: #fff;
+        border-left: 1.5px solid #666;
+        border-top: 1.5px solid #666;
+        transform: rotate(45deg);
+      }
+      .pop b {
+        display: block;
+        margin-bottom: 2px;
+        color: #222;
+      }
+      .pop a {
+        color: #333;
+        font-size: 11px;
+      }
+      .toast {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 86px;
+        background: #333;
+        color: #fff;
+        border-radius: 12px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+      .toast button {
+        background: none;
+        border: 0;
+        color: #9be7d8;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .toast .bar {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 3px;
+        background: #9be7d8;
+        border-radius: 0 0 12px 12px;
+        animation: shrink 5s linear forwards;
+      }
+      @keyframes shrink {
+        from {
+          width: 100%;
+        }
+        to {
+          width: 0;
+        }
+      }
+      .phone {
+        position: relative;
+      }
+      .gone {
+        opacity: 0.35;
+        text-decoration: line-through;
+      }
+    </style>
+    <style>
+      .back { di
+      <p class="back"><a href="../../index.html">← فهرست وایرفریم‌ها</a></p>splay: block; text-align: center; margin: 0 0 14px; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>وایرفریم: راهنمای درجا «؟» و بازگردانی حذف</h1>
+    <div class="wrap">
+      <div class="col">
+        <div class="state-tabs"><button class="on">راهنمای درجا</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>داشبورد</span><span class="icon">👤</span>
+          </div>
+          <div class="content">
+            <div class="card hero" style="text-align: right">
+              <h3 style="display: flex; align-items: center; justify-content: center; gap: 4px">
+                دارایی قابل اتکا <span class="helpbtn" id="h1">؟</span>
+              </h3>
+              <div class="num" style="text-align: center">۲۹٬۷۷۰٬۰۰۰ تومان</div>
+              <div class="pop" id="p1">
+                <b>دارایی قابل اتکا چیست؟</b>
+                جمع حساب‌ها و دارایی‌هایی که خودت انتخاب کرده‌ای، منهای بدهی‌های فعال. یعنی پولی که
+                واقعاً می‌توانی رویش حساب کنی.
+                <br /><a href="#">کدام‌ها حساب شوند؟ ← تنظیم</a> · <a href="#">بیشتر در «درباره»</a>
+              </div>
+            </div>
+            <div class="stats">
+              <div class="stat">درآمد دوره <b>۱۸٬۰۰۰٬۰۰۰</b></div>
+              <div class="stat">هزینه دوره <b>۷۳۰٬۰۰۰</b></div>
+              <div class="stat">خالص دوره <b>۱۷٬۲۷۰٬۰۰۰</b></div>
+              <div class="stat">
+                مانده محاسبه‌شده <span class="helpbtn">؟</span><b>۲۹٬۷۷۰٬۰۰۰</b>
+              </div>
+            </div>
+            <div class="card">
+              <h3>موجودی اول دوره <span class="helpbtn">؟</span></h3>
+              <p class="e-purpose" style="margin: 6px 0 0; text-align: right; max-width: none">
+                ابتدای مهر ۱۴۰۵ · ۰ تومان
+              </p>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span>
+            <span class="center"><i></i>داشبورد</span>
+            <span><i></i>طلب‌ها</span><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="state-tabs"><button class="on">بازگردانی حذف</button></div>
+        <div class="phone">
+          <div class="app-header">
+            <span class="icon">☰</span><span>چک‌ها</span><span class="icon">☰</span>
+          </div>
+          <div class="content">
+            <div class="card">
+              <div class="tx-row"><span>چک ۱۲۳۴۵۲ · علی</span><span>۲٬۰۰۰٬۰۰۰</span></div>
+            </div>
+            <div class="card gone" id="row2">
+              <div class="tx-row"><span>چک ۱۲۳۴۵۳ · علی</span><span>۲٬۰۰۰٬۰۰۰</span></div>
+            </div>
+            <div class="card">
+              <div class="tx-row"><span>چک ۱۲۳۴۵۴ · رضا</span><span>۱٬۵۰۰٬۰۰۰</span></div>
+            </div>
+          </div>
+          <div class="toast" id="toast">
+            <span>چک ۱۲۳۴۵۳ حذف شد</span>
+            <button id="undo">بازگردانی</button>
+            <span class="bar"></span>
+          </div>
+          <div class="bottom-nav">
+            <span><i></i>اقساط</span><span><i></i>بدهی</span><span><i></i>چک‌ها</span>
+            <span class="center"><i></i>داشبورد</span>
+            <span><i></i>طلب‌ها</span><span><i></i>صندوقچه</span><span><i></i>کیف پول</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <b>راهنمای درجا</b> — یک دکمه «؟» کنار عنوان‌های سنگین: «دارایی قابل اتکا»، «مانده
+          محاسبه‌شده»، «موجودی اول دوره»، «خالص دوره»، و در کیف پول «تطبیق». لمس = پاپ‌اور دو تا سه
+          خطی به زبان ساده + لینک به تنظیم مربوطه و به «درباره». متن‌ها از همان کپی «درباره» کوتاه
+          می‌شوند تا دو منبع متفاوت نداشته باشیم. بیرون پاپ‌اور لمس شود یا back زده شود، بسته می‌شود
+          (در پشته overlay ثبت می‌شود).
+        </div>
+        <div class="note">
+          <b>بازگردانی حذف</b> — به‌جای مودال «مطمئنی؟»: حذف فوری از لیست، toast پایین با
+          «بازگردانی» و نوار ۵ ثانیه‌ای. در این ۵ ثانیه چیزی به شیت نمی‌رود؛ «بازگردانی» = ردیف
+          برمی‌گردد. بعد از ۵ ثانیه (یا ترک صفحه) حذف واقعی ارسال می‌شود. مودال تأیید فقط برای
+          حذف‌های سنگین می‌ماند: حساب کیف پول، گروه دنگ، خودرو (چون وابسته دارند).
+        </div>
+        <div class="note">
+          <i>دمو: «بازگردانی» ردیف را برمی‌گرداند؛ «؟» بالا پاپ‌اور را باز/بسته می‌کند.</i>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById('h1').onclick = () =>
+        document.getElementById('p1').classList.toggle('hidden')
+      document.getElementById('undo').onclick = () => {
+        document.getElementById('row2').classList.remove('gone')
+        document.getElementById('toast').classList.add('hidden')
+      }
+    </script>
+  </body>
+</html>
