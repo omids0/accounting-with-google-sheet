@@ -126,6 +126,15 @@ export const loadBuildingsHomePage: PageLoader = () =>
 export const loadBuildingJourneyPage: PageLoader = () =>
   import('../components/buildings/BuildingJourneyPage')
 
+export const loadBuildingDashboardPage: PageLoader = () =>
+  import('../components/buildings/BuildingDashboardPage')
+
+export const loadBuildingUnitsPage: PageLoader = () =>
+  import('../components/buildings/BuildingUnitsPage')
+
+export const loadBuildingResidentsPage: PageLoader = () =>
+  import('../components/buildings/BuildingResidentsPage')
+
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
 export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')

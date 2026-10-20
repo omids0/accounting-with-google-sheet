@@ -88,7 +88,7 @@ export function applyPersonInput<T extends PersonFields>(person: T, input: Perso
  */
 export async function createUnitsWithOwners(
   spreadsheetId: string,
-  drafts: QuickUnitDraft[]
+  drafts: (QuickUnitDraft & Partial<BuildingUnit>)[]
 ): Promise<BuildingUnit[]> {
   const units = drafts.map(draft => newUnit(draft))
   const stays = []

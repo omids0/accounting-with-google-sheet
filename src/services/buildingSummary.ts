@@ -13,6 +13,7 @@ import {
 import { batchFetchSheetRangesFromApi } from './sheetsRows'
 import { getItem, setItem } from './storage'
 import { WORKSPACE_BUILDING_VALUE, WORKSPACE_TYPE_ROW } from './workspace'
+import type { Receivable } from '../types'
 import { getJalaliParts } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
 
@@ -64,6 +65,27 @@ export function unitOfReference(reference: string): string {
   return kind === 'charge' || kind === 'share' || kind === 'opening' ? unitId ?? '' : ''
 }
 
+/** Pure: how one month's charges stand (issued, fully paid, billed, collected). */
+export function chargeMonthSummary(
+  receivables: Receivable[],
+  monthKey: string
+): ChargeMonthSummary {
+  const month: ChargeMonthSummary = { monthKey, issued: 0, paid: 0, billed: 0, collected: 0 }
+
+  for (const item of receivables) {
+    if (!item.reference?.startsWith('charge:') || !item.reference.endsWith(`:${monthKey}`)) continue
+
+    const open = remainingAmount(item)
+
+    month.issued += 1
+    month.paid += open === 0 ? 1 : 0
+    month.billed += item.amount
+    month.collected += item.amount - open
+  }
+
+  return month
+}
+
 const dataRows = (tabs: Record<string, string[][]>, name: string) => (tabs[name] ?? []).slice(1)
 
 /** Pure: the card numbers from the raw tabs of a building spreadsheet. */
@@ -83,23 +105,12 @@ export function summarizeBuilding(
 
   const openByUnit = new Map<string, number>()
 
-  const month: ChargeMonthSummary = { monthKey, issued: 0, paid: 0, billed: 0, collected: 0 }
+  const month = chargeMonthSummary(receivables, monthKey)
 
   for (const item of receivables) {
     const unitId = unitOfReference(item.reference ?? '')
 
-    if (!unitId) continue
-
-    const open = remainingAmount(item)
-
-    openByUnit.set(unitId, (openByUnit.get(unitId) ?? 0) + open)
-
-    if (item.reference?.startsWith('charge:') && item.reference.endsWith(`:${monthKey}`)) {
-      month.issued += 1
-      month.paid += open === 0 ? 1 : 0
-      month.billed += item.amount
-      month.collected += item.amount - open
-    }
+    if (unitId) openByUnit.set(unitId, (openByUnit.get(unitId) ?? 0) + remainingAmount(item))
   }
 
   const debts = [...openByUnit.values()].filter(amount => amount > 0)

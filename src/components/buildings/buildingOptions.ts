@@ -19,6 +19,15 @@ export const RESIDENT_ROLES: BuildingOption<ResidentRole>[] = [
   { value: 'tenant', label: 'مستأجر' }
 ]
 
+/** What happens to a unit's open receivables when its resident changes (round 11, Step 3). */
+export type DebtMode = 'keep' | 'to-owner' | 'forgive'
+
+export const DEBT_MODES: BuildingOption<DebtMode>[] = [
+  { value: 'keep', label: 'بماند' },
+  { value: 'to-owner', label: 'به مالک' },
+  { value: 'forgive', label: 'بخشیده شود' }
+]
+
 export type Occupancy = 'owner-resident' | 'tenant' | 'vacant'
 
 export const OCCUPANCY: BuildingOption<Occupancy>[] = [

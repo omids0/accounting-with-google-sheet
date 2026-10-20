@@ -143,7 +143,10 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'timesheet-detail',
   'dang-split',
   'dang-split-detail',
-  'activity'
+  'activity',
+  'building-dashboard',
+  'building-units',
+  'building-residents'
 ]
 
 export const TAB_TITLES: Record<Tab, string> = {

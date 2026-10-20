@@ -4,9 +4,12 @@ import DangSplitDetailRoute from './DangSplitDetailRoute'
 import {
   LazyAboutPage,
   LazyBankSmsPage,
+  LazyBuildingDashboardPage,
   LazyBuildingJourneyPage,
   LazyBuildingPlaceholderPage,
+  LazyBuildingResidentsPage,
   LazyBuildingsHomePage,
+  LazyBuildingUnitsPage,
   LazyChartsPage,
   LazyChecksPage,
   LazyCounterpartiesPage,
@@ -115,10 +118,7 @@ function EntryRoute() {
 
 /** Building pages still waiting for their step of round 11 (each step swaps its element out). */
 const BUILDING_ROUTE_PATHS = [
-  'building',
-  'building/units',
   'building/units/:unitId',
-  'building/residents',
   'building/charges',
   'building/expenses',
   'building/fund',
@@ -202,6 +202,9 @@ export function AppAuthenticatedRoutes() {
             <Route path="dang-split/:groupId" element={<DangSplitDetailRoute />} />
             <Route path="buildings" element={<LazyBuildingsHomePage />} />
             <Route path="building/setup" element={<LazyBuildingJourneyPage />} />
+            <Route path="building" element={<LazyBuildingDashboardPage />} />
+            <Route path="building/units" element={<LazyBuildingUnitsPage />} />
+            <Route path="building/residents" element={<LazyBuildingResidentsPage />} />
             {BUILDING_ROUTE_PATHS.map(path => (
               <Route key={path} path={path} element={<LazyBuildingPlaceholderPage />} />
             ))}
