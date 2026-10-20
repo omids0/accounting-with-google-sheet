@@ -236,7 +236,10 @@ export const RECURRING_HEADERS = [
   'روز ماه',
   'حالت',
   'آخرین ثبت',
-  'فعال'
+  'فعال',
+  // Round 11, building expenses (empty elsewhere).
+  'نوع هزینه',
+  'پرداخت‌کننده'
 ]
 
 /** One monthly budget per expense category. */

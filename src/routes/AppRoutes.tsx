@@ -6,6 +6,7 @@ import {
   LazyBankSmsPage,
   LazyBuildingChargesPage,
   LazyBuildingDashboardPage,
+  LazyBuildingExpensesPage,
   LazyBuildingJourneyPage,
   LazyBuildingPlaceholderPage,
   LazyBuildingResidentsPage,
@@ -120,7 +121,6 @@ function EntryRoute() {
 
 /** Building pages still waiting for their step of round 11 (each step swaps its element out). */
 const BUILDING_ROUTE_PATHS = [
-  'building/expenses',
   'building/fund',
   'building/dang',
   'building/checks',
@@ -207,6 +207,7 @@ export function AppAuthenticatedRoutes() {
             <Route path="building/units/:unitId" element={<LazyBuildingUnitPage />} />
             <Route path="building/residents" element={<LazyBuildingResidentsPage />} />
             <Route path="building/charges" element={<LazyBuildingChargesPage />} />
+            <Route path="building/expenses" element={<LazyBuildingExpensesPage />} />
             {BUILDING_ROUTE_PATHS.map(path => (
               <Route key={path} path={path} element={<LazyBuildingPlaceholderPage />} />
             ))}

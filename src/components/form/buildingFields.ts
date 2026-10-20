@@ -10,6 +10,16 @@ export const SPLIT_FIELD_LABEL = 'تقسیم'
 export const PAYER_FIELD_ID = 'payer'
 export const PAYER_FIELD_LABEL = 'پرداخت‌کننده'
 
+/** The payer key of the fund: its wallet account moves; any other payer leaves a debt instead. */
+export const FUND_PAYER_KEY = 'fund'
+
+/** True when a building expense is paid by someone other than the fund (no account, no balance). */
+export const isNonFundPayer = (payer: unknown): boolean => {
+  const key = String(payer ?? '').trim()
+
+  return key !== '' && key !== FUND_PAYER_KEY
+}
+
 /** In sheet order: the three columns follow the standard ones, at the end of the row. */
 export const BUILDING_FIELD_IDS = [EXPENSE_KIND_FIELD_ID, SPLIT_FIELD_ID, PAYER_FIELD_ID]
 

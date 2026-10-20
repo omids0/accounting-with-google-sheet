@@ -50,6 +50,7 @@ import {
   loadBankSmsPage,
   loadBuildingChargesPage,
   loadBuildingDashboardPage,
+  loadBuildingExpensesPage,
   loadBuildingJourneyPage,
   loadBuildingPlaceholderPage,
   loadBuildingResidentsPage,
@@ -114,4 +115,5 @@ export const LazyBuildingDashboardPage = lazy(loadBuildingDashboardPage)
 export const LazyBuildingUnitsPage = lazy(loadBuildingUnitsPage)
 export const LazyBuildingUnitPage = lazy(loadBuildingUnitPage)
 export const LazyBuildingChargesPage = lazy(loadBuildingChargesPage)
+export const LazyBuildingExpensesPage = lazy(loadBuildingExpensesPage)
 export const LazyBuildingResidentsPage = lazy(loadBuildingResidentsPage)

@@ -4,19 +4,20 @@ import { useForm } from 'react-hook-form'
 import AttachmentField from './attachments/AttachmentField'
 import { useAttachmentDrafts } from './attachments/useAttachmentDrafts'
 import ConfirmActionModal from './ConfirmActionModal'
+import {
+  hasBuildingExpenseFields,
+  LazyBuildingExpenseFields,
+  prepareBuildingEntry,
+  settleBuildingEntry
+} from './dataEntry/buildingExpenseEntry'
 import CustomEntryFormFields from './dataEntry/CustomEntryFormFields'
 import EntryDuplicateWarning from './dataEntry/EntryDuplicateWarning'
 import EntryFormActions from './dataEntry/EntryFormActions'
+import { entryValidationErrors } from './dataEntry/entryValidationErrors'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
 import { focusEntryAmount, templateFormValues, type DataEntryFormProps } from './dataEntry/types'
 import { writeEntryRecord } from './dataEntry/writeEntryRecord'
-import {
-  buildFormInitialValues,
-  isStandardEntryForm,
-  SUBCATEGORY_FIELD_ID,
-  withAutoTitle
-} from './form'
-import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
+import { buildFormInitialValues, isStandardEntryForm, withAutoTitle } from './form'
 import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import { showSavedForEntry } from './nudges/saveNudges'
 import { useModalFormReset } from '../hooks/useModalFormReset'
@@ -27,10 +28,10 @@ import { prepareEntryValues, settleEntryWallet, smsBalanceHint } from '../servic
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth } from '../utils/authGuard'
-import { validatePositiveAmount } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
 import { showError } from '../utils/toast'
 import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
+import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
 import { appFormClassName } from './ui/formStyles'
 import { entryFormGridClass } from './ui/recordsStyles'
 
@@ -105,35 +106,17 @@ export default function DataEntryForm({
 
   const validateRequiredFields = (formValues: Record<string, string | number>) => {
     clearErrors()
-    let hasError = false
-    let firstMessage: string | undefined
 
-    for (const field of activeForm.fields) {
-      if (!field.required) continue
-      if (showVehicleFields && (field.id === 'title' || field.id === 'amount')) continue
+    const found = entryValidationErrors(activeForm, formValues, {
+      showVehicleFields,
+      selectedCategory,
+      hasSubcategories
+    })
 
-      // The subcategory picker only exists once a category is chosen, and the
-      // vehicle branch replaces it with its own fields.
-      if (
-        field.id === SUBCATEGORY_FIELD_ID &&
-        (showVehicleFields || !selectedCategory || !hasSubcategories)
-      ) {
-        continue
-      }
+    found.forEach(error => error.id && setError(error.id, { message: error.message }))
 
-      const val = formValues[field.id]
-
-      const isEmpty = val === '' || val === undefined || val === null
-
-      const amountCheck = !isEmpty && field.id === 'amount' ? validatePositiveAmount(val) : true
-
-      if (isEmpty || amountCheck !== true) {
-        const message = amountCheck === true ? `«${field.label}» الزامی است` : amountCheck
-        setError(field.id, { message })
-        firstMessage ??= message
-        hasError = true
-      }
-    }
+    let hasError = found.length > 0
+    let firstMessage: string | undefined = found[0]?.message
 
     if (showVehicleFields) {
       const vehicleErrors = vehicleExpense.validateVehicleExpense(
@@ -155,7 +138,10 @@ export default function DataEntryForm({
   const saveRecord = async (entered: Record<string, string | number>, keepOpen = false) => {
     onLoadingChange(true)
     const settings = getSettings()!
-    const formValues = prepareEntryValues(activeForm.type, withAutoTitle(entered), bankSms)
+    const formValues = prepareBuildingEntry(
+      activeForm,
+      prepareEntryValues(activeForm.type, withAutoTitle(entered), bankSms)
+    )
     const vehicleInput = showVehicleFields
       ? vehicleExpense.buildVehicleExpenseInput(formValues)
       : null
@@ -184,6 +170,9 @@ export default function DataEntryForm({
       bankSms,
       recordId
     ).catch(() => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد'))
+    await settleBuildingEntry(settings.spreadsheetId, activeForm, recordId, formValues).catch(() =>
+      showError('هزینه ذخیره شد ولی سهم واحدها یا بدهی ثبت نشد؛ آن را دوباره ذخیره کن')
+    )
     showSavedForEntry(activeForm, recordId, formValues, vehicleInput)
     refreshOpeningBalancesInBackground()
     onLoadingChange(false)
@@ -248,6 +237,16 @@ export default function DataEntryForm({
             showVehicleFields={showVehicleFields}
             vehicleExpense={vehicleExpense}
             walletApplyHint={smsBalanceHint(bankSms, String(values.walletAccount ?? ''))}
+            beforeAccount={
+              hasBuildingExpenseFields(activeForm) ? (
+                <LazyBuildingExpenseFields
+                  part="who"
+                  values={values}
+                  setValue={(id, value) => setValue(id, value)}
+                  disabled={loading}
+                />
+              ) : null
+            }
             afterAmount={duplicateWarning}
             clearFieldError={fieldId => {
               vehicleExpense.clearFieldError(fieldId as keyof typeof vehicleExpense.fieldErrors)
@@ -274,6 +273,14 @@ export default function DataEntryForm({
         )}
 
         <AttachmentField state={attachments} disabled={loading} />
+        {hasBuildingExpenseFields(activeForm) && useStandardLayout ? (
+          <LazyBuildingExpenseFields
+            part="split"
+            values={values}
+            setValue={(id, value) => setValue(id, value)}
+            disabled={loading}
+          />
+        ) : null}
         <EntryFormActions
           formType={activeForm.type}
           loading={loading}

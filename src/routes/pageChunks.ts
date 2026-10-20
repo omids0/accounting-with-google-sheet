@@ -141,6 +141,9 @@ export const loadBuildingChargesPage: PageLoader = () =>
 export const loadBuildingUnitPage: PageLoader = () =>
   import('../components/buildings/BuildingUnitPage')
 
+export const loadBuildingExpensesPage: PageLoader = () =>
+  import('../components/buildings/BuildingExpensesPage')
+
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
 export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')

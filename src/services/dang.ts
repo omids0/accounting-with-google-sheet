@@ -129,10 +129,12 @@ export async function createDang(
     amount: number
     date: string
     note: string
+    /** A fixed id, for a debt another record owns (a building expense paid out of pocket). */
+    id?: string
   }
 ): Promise<Dang> {
   const dang: Dang = {
-    id: crypto.randomUUID(),
+    id: data.id ?? crypto.randomUUID(),
     createdAt: new Date().toLocaleString('fa-IR'),
     title: data.title,
     category: data.category,

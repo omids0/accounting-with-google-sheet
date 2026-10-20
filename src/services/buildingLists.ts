@@ -2,6 +2,7 @@ import { setPeriodSetting } from './periodSettings'
 import { getSettings } from './settings'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
+import { FUND_PAYER_KEY } from '../components/form/buildingFields'
 
 /**
  * The two lists a building manager edits: expense kinds and payers. Rows `فهرست:<id>` of
@@ -24,7 +25,7 @@ export interface ManagedItem {
 export const MANAGED_LIST_ROW_PREFIX = 'فهرست:'
 
 /** The payer key of the fund; every other payer creates a dang to that person. */
-export const FUND_PAYER = 'fund'
+export const FUND_PAYER = FUND_PAYER_KEY
 
 export const MANAGER_PAYER = 'manager'
 

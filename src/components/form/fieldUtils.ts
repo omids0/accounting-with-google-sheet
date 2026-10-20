@@ -1,4 +1,10 @@
-import { BUILDING_FIELD_IDS, withBuildingFields, withoutBuildingFields } from './buildingFields'
+import {
+  BUILDING_FIELD_IDS,
+  isNonFundPayer,
+  PAYER_FIELD_ID,
+  withBuildingFields,
+  withoutBuildingFields
+} from './buildingFields'
 import type { CustomForm, FieldConfig } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
 
@@ -191,11 +197,18 @@ export function isWalletApplied(values: Record<string, string | number | undefin
   return String(values[WALLET_APPLY_FIELD_ID] ?? '').trim() !== WALLET_APPLY_NO
 }
 
-/** The balance switch only means something once the record names an account. */
+/**
+ * The balance switch only means something once the record names an account; a building expense
+ * paid by someone other than the fund has no account at all (it is a debt, not a withdrawal).
+ */
 export function isFieldHidden(
   field: FieldConfig,
   values: Record<string, string | number | undefined>
 ): boolean {
+  if (field.id === WALLET_ACCOUNT_FIELD_ID || field.id === WALLET_APPLY_FIELD_ID) {
+    if (isNonFundPayer(values[PAYER_FIELD_ID])) return true
+  }
+
   return field.id === WALLET_APPLY_FIELD_ID && !String(values[WALLET_ACCOUNT_FIELD_ID] ?? '').trim()
 }
 

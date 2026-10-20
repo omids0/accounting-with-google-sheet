@@ -1,14 +1,12 @@
 import ActiveFilterChips from './ActiveFilterChips'
-import ConfirmActionModal from './ConfirmActionModal'
 import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
-import RecordDetailSheet from './records/RecordDetailSheet'
-import RecordsEditFormModal from './records/RecordsEditFormModal'
 import RecordsList from './records/RecordsList'
+import RecordsPageOverlays from './records/RecordsPageOverlays'
 import RecordsSummary from './records/RecordsSummary'
 import RecordsToolbar from './records/RecordsToolbar'
 import { useRecordDetail } from './records/useRecordDetail'
@@ -51,9 +49,6 @@ export default function RecordsPage({
   )
 
   const detail = useRecordDetail(page.records, openDetail ? focusRecordId : undefined)
-  const detailForm = detail.record
-    ? page.forms.find(form => form.id === detail.record?.formId)
-    : undefined
 
   useRecordsSpeedDial({
     forms: page.forms,
@@ -166,48 +161,7 @@ export default function RecordsPage({
         </div>
       </div>
 
-      {detail.record && detailForm && (
-        <RecordDetailSheet
-          record={detail.record}
-          form={detailForm}
-          onClose={detail.close}
-          onEdit={record => {
-            detail.close()
-            page.openEditForm(record)
-          }}
-          onDelete={record => {
-            detail.close()
-            page.requestDelete(record)
-          }}
-        />
-      )}
-
-      {page.editingForm && page.editingRecord && (
-        <RecordsEditFormModal
-          open={page.showForm}
-          editingForm={page.editingForm}
-          editingRecord={page.editingRecord}
-          saving={page.saving}
-          onClose={page.closeForm}
-          onSubmit={page.handleSubmit}
-          recurringChoice={page.recurring.enabled ? page.recurring.choice : undefined}
-          onRecurringChoiceChange={page.recurring.setChoice}
-          attachments={page.attachments}
-        />
-      )}
-
-      <ConfirmActionModal {...page.amountQuestionModal} />
-      <ConfirmActionModal {...page.attachmentQuestionModal} />
-
-      <ConfirmActionModal
-        open={page.retroactiveWarning.open}
-        title={page.retroactiveWarning.title}
-        message={page.retroactiveWarning.message}
-        confirming={page.retroactiveWarning.confirming}
-        confirmLabel={page.retroactiveWarning.confirmLabel}
-        onClose={page.retroactiveWarning.cancel}
-        onConfirm={page.retroactiveWarning.confirm}
-      />
+      <RecordsPageOverlays page={page} detail={detail} />
     </div>
   )
 }
