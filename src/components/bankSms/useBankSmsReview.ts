@@ -30,6 +30,7 @@ import { getCurrency } from '../../utils/formatMoney'
 import { haptic } from '../../utils/haptics'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
+import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
 
 /** The card's category: the suggestion, or what the user picked instead (no `source`). */
 export type SmsChoice = SmsCategoryChoice & Partial<Omit<SmsCategorySuggestion, 'category'>>
@@ -143,7 +144,10 @@ export function useBankSmsReview(sinceMs: number) {
 
     const choice = choiceFor(item.entry)
 
-    return choice ? [{ entry: item.entry, choice }] : []
+    // A vehicle expense needs its vehicle, type and mileage, which only the form asks for.
+    return choice && !isVehicleExpenseCategory(choice.category)
+      ? [{ entry: item.entry, choice }]
+      : []
   })
 
   const openEntry = (entry: ConfirmableSms, options: BankSmsEntryOptions = {}) => {
@@ -168,7 +172,7 @@ export function useBankSmsReview(sinceMs: number) {
     primary: (entry: ConfirmableSms, probableDuplicate: boolean) => {
       const choice = choiceFor(entry)
 
-      if (probableDuplicate || !choice) {
+      if (probableDuplicate || !choice || isVehicleExpenseCategory(choice.category)) {
         openEntry(entry, { choice })
 
         return
