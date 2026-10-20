@@ -3,6 +3,7 @@ import { CapacitorHttp } from '@capacitor/core'
 
 import { isNativePlatform } from './googleAuthNative'
 import { getItem, setItem } from './storage'
+import { IS_DEV_BUILD } from '../utils/appEnv'
 
 /** Published by the APK build workflow as a GitHub release asset. */
 const VERSION_MANIFEST_URL =
@@ -47,9 +48,12 @@ function parseManifest(data: unknown): (AvailableUpdate & { versionCode: number 
   }
 }
 
-/** Resolves to null when up to date, offline, or running outside the APK. */
+/**
+ * Resolves to null when up to date, offline, or running outside the APK. A dev build
+ * never checks: the release manifest describes the production APK, not this one.
+ */
 export async function checkForUpdate(): Promise<AvailableUpdate | null> {
-  if (!isNativePlatform()) return null
+  if (IS_DEV_BUILD || !isNativePlatform()) return null
 
   try {
     const installed = Number((await App.getInfo()).build)
