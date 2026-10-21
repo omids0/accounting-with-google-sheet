@@ -8,6 +8,7 @@ import { fetchVehiclePeriodicServices } from '../services/vehiclePeriodicService
 import { fetchVehicles } from '../services/vehicleProfiles'
 import type { VehiclePeriodicService, VehicleProfile } from '../types/vehicles'
 import { requireAuth } from '../utils/authGuard'
+import { shareInFlight } from '../utils/shareInFlight'
 import { handleSheetError } from '../utils/sheetError'
 import {
   isFuelExpenseType,
@@ -48,13 +49,19 @@ export function useVehicleExpenseEntry(active: boolean, allowRenew = false) {
 
     setLoading(true)
     try {
-      await syncCategoriesFromSheet(settings.spreadsheetId)
+      const id = settings.spreadsheetId
+
+      // Several cards (bank SMS) may load at once: they share each request.
+      await shareInFlight(`categories:${id}`, () => syncCategoriesFromSheet(id))
       setExpenseTypes(getVehicleExpenseCategories())
-      const items = await fetchVehicles(settings.spreadsheetId)
+      const [items, periodicItems] = await Promise.all([
+        shareInFlight(`vehicles:${id}`, () => fetchVehicles(id)),
+        allowRenew ? shareInFlight(`periodics:${id}`, () => fetchVehiclePeriodicServices(id)) : null
+      ])
       const activeVehicles = items.filter(item => item.active)
 
       setVehicles(activeVehicles)
-      if (allowRenew) setPeriodics(await fetchVehiclePeriodicServices(settings.spreadsheetId))
+      if (periodicItems) setPeriodics(periodicItems)
       setVehicleValues(current => {
         const hasValidVehicle = activeVehicles.some(item => item.id === current.vehicleId)
         const vehicleId = hasValidVehicle

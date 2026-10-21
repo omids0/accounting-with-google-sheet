@@ -7,6 +7,7 @@ import BankSmsTemplateSheet from './BankSmsTemplateSheet'
 import BankSmsUnitLine from './BankSmsUnitLine'
 import { smsDuplicateLabel } from './smsLabels'
 import { smsRecordType, type BankSmsReview } from './useBankSmsReview'
+import { useBankSmsVehicleCard } from './useBankSmsVehicleCard'
 import {
   initialSmsAccount,
   resolveSmsAccount,
@@ -66,15 +67,24 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
       ? offer.candidate.unit
       : offer?.candidates.find(item => item.unit.id === pickedUnit)?.unit ?? null
 
+  const vehicleCard = useBankSmsVehicleCard({
+    entry: resolved,
+    choice,
+    type,
+    skip: !!offer || probableDuplicate,
+    review
+  })
+
   const primary = () => {
     if (!resolved) return
+    if (vehicleCard.active) return vehicleCard.save()
     if (!offer) return review.primary(resolved, probableDuplicate)
     if (!unit) return
 
     // A probable duplicate goes through the payment sheet, which offers to link the record.
     return probableDuplicate ? setPayOpen(true) : void review.payUnit(resolved, unit)
   }
-  const canAct = !!resolved && (!offer || !!unit)
+  const canAct = !!resolved && (!offer || !!unit) && vehicleCard.ready
   // The wireframe's buttons: a card match keeps «فقط موجودی» (other income is in ⋯), a pick shows
   // «درآمد دیگر» (the balance-only action is in ⋯).
   const pickOffer = offer?.kind === 'pick'
@@ -152,6 +162,9 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
               defaultTitle={`${titleOf(accountId)} — پیامک`}
               busy={busy}
               onPick={next => review.pick(entry.sms.id, next)}
+              amount={resolved.amount}
+              vehicle={vehicleCard.active ? vehicleCard.vehicle : undefined}
+              rootRef={vehicleCard.rootRef}
             />
           )}
 
