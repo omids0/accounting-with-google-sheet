@@ -1,3 +1,4 @@
+import { cn } from '../../utils/cn'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import { toggleChipBtnClass, toggleChipGridClass } from '../ui/recordsStyles'
 
@@ -26,7 +27,7 @@ export default function FilterChipBar<V extends string>({
         <button
           key={option.value}
           type="button"
-          className={toggleChipBtnClass(option.value === value)}
+          className={cn(toggleChipBtnClass(option.value === value), 'min-h-11')}
           aria-pressed={option.value === value}
           onClick={() => onChange(option.value)}
         >

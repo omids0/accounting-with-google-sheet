@@ -25,10 +25,15 @@ export default function BuildingSettingsRow({ row }: { row: BuildingSettingsRowD
     <li className={categoryRowClass()}>
       <button type="button" className={categoryRowButtonClass} onClick={row.onClick}>
         <span className={categoryRowMainClass}>
-          <span className={cn(categoryRowTitleClass, row.danger && 'text-danger')}>
+          <span className={cn(categoryRowTitleClass, 'text-base', row.danger && 'text-danger')}>
             {row.title}
           </span>
-          {row.meta ? <span className={categoryRowMetaClass}>{row.meta}</span> : null}
+          {/* What is set now can be long («شارژ ماهانه … صدور … سررسید …»): it wraps, 14px. */}
+          {row.meta ? (
+            <span className={cn(categoryRowMetaClass, 'whitespace-normal text-sm')}>
+              {row.meta}
+            </span>
+          ) : null}
         </span>
         <AppIcon name="chevron-down" size={16} className={categoryChevronClass} />
       </button>

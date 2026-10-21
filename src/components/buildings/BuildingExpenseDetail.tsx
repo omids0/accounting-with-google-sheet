@@ -32,7 +32,7 @@ import {
 const STATUS_TEXT: Record<ShareStatus, string> = {
   paid: 'پرداخت شد',
   partial: 'ناقص',
-  open: 'باز'
+  open: 'پرداخت‌نشده'
 }
 
 /**

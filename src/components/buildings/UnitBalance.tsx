@@ -8,14 +8,19 @@ import MoneyText from '../MoneyText'
 export default function UnitBalance({
   owed,
   credit,
+  stacked = false,
   className
 }: {
   /** Open debt, a positive amount. */
   owed: number
   credit: number
+  /** The word above the amount (narrow list rows) instead of before it. */
+  stacked?: boolean
   className?: string
 }) {
   const owes = owed > 0
+
+  const lineClass = stacked ? 'flex flex-col items-end leading-snug' : ''
 
   if (!owes && !(credit > 0)) {
     return (
@@ -28,13 +33,13 @@ export default function UnitBalance({
   return (
     <span className={cn('flex flex-col items-end', className)}>
       {owes ? (
-        <span className="text-danger">
-          بدهکار <MoneyText amount={owed} />
+        <span className={cn('text-danger', lineClass)}>
+          <span>بدهکار</span> <MoneyText amount={owed} />
         </span>
       ) : null}
       {credit > 0 ? (
-        <span className="text-success">
-          اعتبار <MoneyText amount={credit} />
+        <span className={cn('text-success', lineClass)}>
+          <span>اعتبار</span> <MoneyText amount={credit} />
         </span>
       ) : null}
     </span>

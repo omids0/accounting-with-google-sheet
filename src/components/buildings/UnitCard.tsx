@@ -46,13 +46,14 @@ export default function UnitCard({ row, onOpen, onMore }: UnitCardProps) {
         </span>
         <span className={calmRowMainClass}>
           <span className={buildingRowTitleClass}>{unitWho(row)}</span>
+          <span className={buildingRowSubClass}>{unitPlace(unit)}</span>
           <span className={buildingRowSubClass}>
-            {unitPlace(unit)} · شارژ <MoneyText amount={charge} />
+            شارژ <MoneyText amount={charge} />
             {status.text && !status.credit ? ` · ${status.text}` : ''}
           </span>
         </span>
         <span className={buildingRowEndClass}>
-          <UnitBalance owed={balance.open} credit={balance.credit} />
+          <UnitBalance owed={balance.open} credit={balance.credit} stacked />
         </span>
       </button>
       {onMore ? <UnitMoreButton row={row} onMore={onMore} /> : null}

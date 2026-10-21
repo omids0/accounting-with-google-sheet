@@ -6,7 +6,7 @@ import { TRANSFER_EXPENSE_CATEGORY } from '../utils/protectedCategories'
 export type DangChip = 'open' | 'settled' | 'manager' | 'contractor'
 
 export const DANG_CHIPS: { value: DangChip; label: string }[] = [
-  { value: 'open', label: 'باز' },
+  { value: 'open', label: 'پرداخت‌نشده' },
   { value: 'settled', label: 'تسویه‌شده' },
   { value: 'manager', label: 'به مدیر' },
   { value: 'contractor', label: 'پیمانکار' }

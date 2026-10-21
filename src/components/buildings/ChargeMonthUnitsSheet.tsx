@@ -25,7 +25,7 @@ import {
 const STATUS_TEXT: Record<ChargeStatus, { label: string; tone: string }> = {
   paid: { label: 'پرداخت شد', tone: 'text-success' },
   partial: { label: 'ناقص', tone: 'text-warning' },
-  open: { label: 'باز', tone: 'text-danger' }
+  open: { label: 'پرداخت‌نشده', tone: 'text-danger' }
 }
 
 interface ChargeMonthUnitsSheetProps {

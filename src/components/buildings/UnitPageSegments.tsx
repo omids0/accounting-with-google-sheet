@@ -60,7 +60,7 @@ export function UnitHistory({
                   ? 'تسویه شد'
                   : paidAmount(item) > 0
                   ? 'ناقص'
-                  : 'باز'}
+                  : 'پرداخت‌نشده'}
                 {' · '}
                 {formatIsoDatePersian(item.borrowDate)}
               </span>
