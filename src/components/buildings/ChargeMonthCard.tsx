@@ -30,7 +30,7 @@ export default function ChargeMonthCard({
       >
         <b className="text-[0.95rem]">{label}</b>
         <span className="text-[0.74rem] text-muted">
-          {month.issuedAt ? `صادر شده ${month.issuedAt} · ` : ''}
+          {month.issuedAt ? `صادر شده ${formatIsoDatePersian(month.issuedAt)} · ` : ''}
           {fa(month.units)} واحد · سررسید {formatIsoDatePersian(month.due)}
         </span>
         <span className="mt-1 flex items-center justify-between text-[0.82rem]">

@@ -4,6 +4,7 @@ import {
   chargeMonthCard,
   chargeMonthKeys,
   chargeStatus,
+  createdDay,
   monthChargeRows
 } from './buildingChargeMonths'
 import {
@@ -58,12 +59,19 @@ describe('charge months', () => {
       monthKey: '1405-07',
       units: 3,
       due: '2026-10-02',
-      issuedAt: '۱۴۰۵/۷/۱',
+      issuedAt: '2026-09-23',
       billed: 300,
       collected: 140,
       openUnits: 2,
       partialUnits: 1
     })
+  })
+
+  it('reads the issue day of a stamp with either comma and without the time', () => {
+    expect(createdDay('۱۴۰۵/۷/۲۹، ۱۰:۰۷:۰۶')).toBe('2026-10-21')
+    expect(createdDay('۱۴۰۵/۷/۲۹, ۱۰:۰۷:۰۶')).toBe('2026-10-21')
+    expect(createdDay('1405/7/1')).toBe('2026-09-23')
+    expect(createdDay('')).toBe('')
   })
 
   it('lists the units of a month with the open ones first', () => {

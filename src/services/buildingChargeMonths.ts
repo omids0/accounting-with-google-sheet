@@ -1,5 +1,7 @@
 import { paidAmount, remainingAmount } from './receivablesRow'
 import type { Receivable } from '../types'
+import { jalaliToIso } from '../utils/jalaliDate'
+import { normalizeDigits } from '../utils/normalizeDigits'
 
 const monthOf = (item: Receivable): string =>
   item.reference?.startsWith('charge:') ? item.reference.split(':')[2] ?? '' : ''
@@ -23,7 +25,7 @@ export interface ChargeMonthCardData {
   units: number
   /** ISO due date of the month's charges. */
   due: string
-  /** «۱۴۰۵/۷/۱» (the day the first charge was written). */
+  /** ISO day the first charge was written; '' when its `createdAt` cannot be read. */
   issuedAt: string
   billed: number
   collected: number
@@ -31,6 +33,16 @@ export interface ChargeMonthCardData {
   openUnits: number
   /** Of those, the ones that paid part of it. */
   partialUnits: number
+}
+
+/**
+ * The ISO day of a `createdAt` stamp written by `toLocaleString('fa-IR')`: «۱۴۰۵/۷/۲۹، ۱۰:۰۷:۰۶»
+ * (the separator is an Arabic or a Latin comma depending on the engine).
+ */
+export function createdDay(createdAt: string): string {
+  const match = /(\d{4})\/(\d{1,2})\/(\d{1,2})/.exec(normalizeDigits(createdAt))
+
+  return match ? jalaliToIso(Number(match[1]), Number(match[2]), Number(match[3])) : ''
 }
 
 export function chargeMonthCard(receivables: Receivable[], monthKey: string): ChargeMonthCardData {
@@ -42,7 +54,7 @@ export function chargeMonthCard(receivables: Receivable[], monthKey: string): Ch
     monthKey,
     units: rows.length,
     due: rows[0]?.borrowDate ?? '',
-    issuedAt: (rows[0]?.createdAt ?? '').split('،')[0] ?? '',
+    issuedAt: createdDay(rows[0]?.createdAt ?? ''),
     billed: rows.reduce((sum, item) => sum + item.amount, 0),
     collected: rows.reduce((sum, item) => sum + paidAmount(item), 0),
     openUnits: owing.length,
