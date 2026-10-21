@@ -3,16 +3,14 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import MoneyText from '../MoneyText'
 import {
-  calmListClass,
-  calmNoteClass,
-  calmRowClass,
-  calmRowEndClass,
-  calmRowMainClass,
-  calmRowSubClass,
-  calmRowTitleClass
-} from '../ui/calmListStyles'
+  buildingRowTitleClass,
+  buildingRowSubClass,
+  buildingRowEndClass,
+  buildingNoteClass
+} from '../ui/buildingStyles'
+import { calmListClass, calmRowClass, calmRowMainClass } from '../ui/calmListStyles'
 
-const sectionTitleClass = 'm-0 px-0.5 text-[0.86rem] font-bold text-text'
+const sectionTitleClass = 'm-0 px-0.5 text-sm font-bold text-text'
 
 /**
  * «صورت‌حساب» (screen 17): what the unit owes, oldest first (a capital share says «به نام مالک»
@@ -27,8 +25,8 @@ export default function UnitStatement({ data, card }: { data: UnitStatementData;
           data.items.map(item => (
             <li key={item.id} className={calmRowClass}>
               <span className={calmRowMainClass}>
-                <span className={calmRowTitleClass}>{item.label}</span>
-                <span className={calmRowSubClass}>
+                <span className={buildingRowTitleClass}>{item.label}</span>
+                <span className={buildingRowSubClass}>
                   {item.kind === 'share'
                     ? item.ownerNamed
                       ? 'به نام مالک'
@@ -42,26 +40,26 @@ export default function UnitStatement({ data, card }: { data: UnitStatementData;
                   ) : null}
                 </span>
               </span>
-              <span className={`${calmRowEndClass} text-danger`}>
+              <span className={`${buildingRowEndClass} text-danger`}>
                 <MoneyText amount={item.open} />
               </span>
             </li>
           ))
         ) : (
           <li className={calmRowClass}>
-            <span className={`${calmRowTitleClass} text-success`}>بدهی ندارد ✓</span>
+            <span className={`${buildingRowTitleClass} text-success`}>بدهی ندارد ✓</span>
           </li>
         )}
         <li className={calmRowClass}>
-          <span className={calmRowTitleClass}>جمع بدهی</span>
-          <span className={calmRowEndClass}>
+          <span className={buildingRowTitleClass}>جمع بدهی</span>
+          <span className={buildingRowEndClass}>
             <MoneyText amount={data.totalOpen} />
           </span>
         </li>
         {data.credit > 0 ? (
           <li className={calmRowClass}>
-            <span className={calmRowTitleClass}>اعتبار</span>
-            <span className={`${calmRowEndClass} text-success`}>
+            <span className={buildingRowTitleClass}>اعتبار</span>
+            <span className={`${buildingRowEndClass} text-success`}>
               <MoneyText amount={data.credit} />
             </span>
           </li>
@@ -75,13 +73,13 @@ export default function UnitStatement({ data, card }: { data: UnitStatementData;
             {data.paid.map(item => (
               <li key={item.id} className={calmRowClass}>
                 <span className={calmRowMainClass}>
-                  <span className={calmRowTitleClass}>{item.label}</span>
-                  <span className={calmRowSubClass}>
+                  <span className={buildingRowTitleClass}>{item.label}</span>
+                  <span className={buildingRowSubClass}>
                     {formatIsoDatePersian(item.paidAt)}
                     {item.fromCredit ? ' · از اعتبار' : ''}
                   </span>
                 </span>
-                <span className={`${calmRowEndClass} text-success`}>
+                <span className={`${buildingRowEndClass} text-success`}>
                   <MoneyText amount={item.amount} />
                 </span>
               </li>
@@ -90,7 +88,9 @@ export default function UnitStatement({ data, card }: { data: UnitStatementData;
         </>
       ) : null}
 
-      <p className={calmNoteClass}>کارت صندوق برای واریز: {card ? toPersianDigits(card) : '—'}</p>
+      <p className={buildingNoteClass}>
+        کارت صندوق برای واریز: {card ? toPersianDigits(card) : '—'}
+      </p>
     </>
   )
 }

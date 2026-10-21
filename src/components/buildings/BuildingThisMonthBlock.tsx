@@ -3,15 +3,11 @@ import { useNavigate } from 'react-router'
 import { getPathForTab } from '../../routes/paths'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import AppIcon from '../AppIcon'
-import CalmBlock from '../CalmBlock'
+import BuildingBlock from './BuildingBlock'
 import type { Tab } from '../layout/types'
 import MoneyText from '../MoneyText'
-import {
-  calmRowClass,
-  calmRowEndClass,
-  calmRowMainClass,
-  calmRowTitleClass
-} from '../ui/calmListStyles'
+import { buildingRowTitleClass, buildingRowEndClass } from '../ui/buildingStyles'
+import { calmRowClass, calmRowMainClass } from '../ui/calmListStyles'
 
 interface BuildingThisMonthBlockProps {
   expenseCount: number
@@ -39,7 +35,7 @@ export default function BuildingThisMonthBlock({
   ]
 
   return (
-    <CalmBlock className={className} title="این ماه">
+    <BuildingBlock className={className} title="این ماه">
       {rows.map(row => (
         <button
           key={row.tab}
@@ -48,14 +44,14 @@ export default function BuildingThisMonthBlock({
           onClick={() => navigate(getPathForTab(row.tab))}
         >
           <span className={calmRowMainClass}>
-            <span className={calmRowTitleClass}>{row.title}</span>
+            <span className={buildingRowTitleClass}>{row.title}</span>
           </span>
-          <span className={calmRowEndClass}>
+          <span className={buildingRowEndClass}>
             <MoneyText amount={row.amount} />
           </span>
           <AppIcon name="chevron-left" size={14} />
         </button>
       ))}
-    </CalmBlock>
+    </BuildingBlock>
   )
 }

@@ -178,7 +178,13 @@ export default function UnitFormModal({
                 <span className={journeyNoteClass}>{unitRoleText(stay, unit, data.stays)}</span>
               </div>
             ))}
-            <Button type="button" variant="secondary" size="sm" onClick={() => onAddPerson(unit)}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="min-h-11 text-sm"
+              onClick={() => onAddPerson(unit)}
+            >
               + افزودن نفر
             </Button>
           </div>

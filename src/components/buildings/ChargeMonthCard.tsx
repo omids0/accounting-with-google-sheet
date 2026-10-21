@@ -29,11 +29,11 @@ export default function ChargeMonthCard({
         aria-label={`شارژ ${label}`}
       >
         <b className="text-[0.95rem]">{label}</b>
-        <span className="text-[0.74rem] text-muted">
+        <span className="text-sm text-muted">
           {month.issuedAt ? `صادر شده ${formatIsoDatePersian(month.issuedAt)} · ` : ''}
           {fa(month.units)} واحد · سررسید {formatIsoDatePersian(month.due)}
         </span>
-        <span className="mt-1 flex items-center justify-between text-[0.82rem]">
+        <span className="mt-1 flex items-center justify-between text-sm">
           <span>صادر شده</span>
           <b>
             <MoneyText amount={month.billed} />
@@ -46,7 +46,7 @@ export default function ChargeMonthCard({
           variant={month.openUnits ? 'default' : 'complete'}
           aria-label={`وصول شارژ ${label}`}
         />
-        <span className="text-[0.74rem] text-muted">
+        <span className="text-sm text-muted">
           وصول <MoneyText amount={month.collected} /> ·{' '}
           {month.openUnits ? `${fa(month.openUnits)} واحد مانده` : 'همه پرداخت کرده‌اند ✓'}
           {month.partialUnits ? ` · ${fa(month.partialUnits)} ناقص` : ''}

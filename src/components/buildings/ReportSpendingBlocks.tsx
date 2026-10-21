@@ -1,20 +1,22 @@
 import { lazy, Suspense } from 'react'
 
+import BuildingBlock from './BuildingBlock'
 import type { PeriodFlow } from '../../services/buildingReports'
 import { formatPersianNumber } from '../../utils/formatMoney'
-import CalmBlock from '../CalmBlock'
 import DeferredMount from '../DeferredMount'
 import MoneyText from '../MoneyText'
 import {
+  buildingRowTitleClass,
+  buildingRowSubClass,
+  buildingRowEndClass,
+  buildingEmptyClass
+} from '../ui/buildingStyles'
+import {
   calmBarClass,
   calmBarTrackClass,
-  calmEmptyClass,
   calmListClass,
   calmRowClass,
-  calmRowEndClass,
-  calmRowMainClass,
-  calmRowSubClass,
-  calmRowTitleClass
+  calmRowMainClass
 } from '../ui/calmListStyles'
 
 const LazyCategoryDonutChart = lazy(() => import('../charts/CategoryDonutChart'))
@@ -24,7 +26,7 @@ const share = (amount: number, total: number) => (total ? Math.round((amount / t
 /** «هزینه‌ها به تفکیک دسته»: the donut of the period's spending (transfers and corrections left out). */
 export function SpendingByCategory({ flow }: { flow: PeriodFlow }) {
   return (
-    <CalmBlock title="هزینه‌ها به تفکیک دسته">
+    <BuildingBlock title="هزینه‌ها به تفکیک دسته">
       {flow.byCategory.length ? (
         <DeferredMount>
           <Suspense fallback={null}>
@@ -32,16 +34,16 @@ export function SpendingByCategory({ flow }: { flow: PeriodFlow }) {
           </Suspense>
         </DeferredMount>
       ) : (
-        <p className={calmEmptyClass}>در این بازه هزینه‌ای ثبت نشده</p>
+        <p className={buildingEmptyClass}>در این بازه هزینه‌ای ثبت نشده</p>
       )}
-    </CalmBlock>
+    </BuildingBlock>
   )
 }
 
 /** «جاری در برابر عمرانی»: each expense kind's amount and share of the period's spending. */
 export function SpendingByKind({ flow }: { flow: PeriodFlow }) {
   return (
-    <CalmBlock title="هزینه به تفکیک نوع">
+    <BuildingBlock title="هزینه به تفکیک نوع">
       {flow.byKind.length ? (
         <ul className={calmListClass}>
           {flow.byKind.map(item => {
@@ -50,8 +52,8 @@ export function SpendingByKind({ flow }: { flow: PeriodFlow }) {
             return (
               <li key={item.value || 'none'} className={calmRowClass}>
                 <div className={calmRowMainClass}>
-                  <span className={calmRowTitleClass}>{item.label}</span>
-                  <span className={calmRowSubClass}>
+                  <span className={buildingRowTitleClass}>{item.label}</span>
+                  <span className={buildingRowSubClass}>
                     {formatPersianNumber(percent)}٪ از هزینه‌ها
                   </span>
                   <div className={calmBarTrackClass} aria-hidden="true">
@@ -61,7 +63,7 @@ export function SpendingByKind({ flow }: { flow: PeriodFlow }) {
                     />
                   </div>
                 </div>
-                <span className={calmRowEndClass}>
+                <span className={buildingRowEndClass}>
                   <MoneyText amount={item.amount} />
                 </span>
               </li>
@@ -69,8 +71,8 @@ export function SpendingByKind({ flow }: { flow: PeriodFlow }) {
           })}
         </ul>
       ) : (
-        <p className={calmEmptyClass}>در این بازه هزینه‌ای ثبت نشده</p>
+        <p className={buildingEmptyClass}>در این بازه هزینه‌ای ثبت نشده</p>
       )}
-    </CalmBlock>
+    </BuildingBlock>
   )
 }

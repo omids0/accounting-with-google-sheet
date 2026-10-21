@@ -1,6 +1,7 @@
 import { useDragReorder } from '../../hooks/useDragReorder'
 import type { ManagedItem, ManagedListId } from '../../services/buildingLists'
 import { listRowMeta } from '../../services/buildingListUsage'
+import { buildingMoreButtonClass } from '../ui/buildingStyles'
 import {
   categoryListClass,
   categoryRowClass,
@@ -62,7 +63,7 @@ export default function ManagedListRows({
             </span>
             <button
               type="button"
-              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border-0 bg-transparent text-muted"
+              className={buildingMoreButtonClass}
               onClick={() => onMore(item)}
               aria-label={`گزینه‌های ${item.label}`}
             >

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import BuildingBlock from './BuildingBlock'
 import FilterChipBar from './FilterChipBar'
 import ReportAssemblyCard from './ReportAssemblyCard'
 import { ReportDebts, ReportDebtors, ReportFundTrend } from './ReportDebtBlocks'
@@ -17,12 +18,12 @@ import {
 import { isConfigured } from '../../services/settings'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import { getTodayIso, isoToJalali } from '../../utils/jalaliDate'
-import CalmBlock from '../CalmBlock'
 import MonthlyFlowChartSection from '../charts/MonthlyFlowChartSection'
 import EmptyState from '../EmptyState'
 import Select from '../form/Select'
 import MoneyText from '../MoneyText'
-import { calmListClass, calmRowClass, calmRowTitleClass } from '../ui/calmListStyles'
+import { buildingRowTitleClass } from '../ui/buildingStyles'
+import { calmListClass, calmRowClass } from '../ui/calmListStyles'
 import Card from '../ui/Card'
 import { chartTitleClass } from '../ui/chartStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
@@ -141,13 +142,13 @@ export default function BuildingReportsPage() {
         <EmptyState icon="chart" message="در حال آماده‌سازی گزارش…" />
       )}
 
-      <CalmBlock title="گزارش‌های دیگر">
+      <BuildingBlock title="گزارش‌های دیگر">
         <ul className={calmListClass}>
           {OTHER_REPORTS.map(item => (
             <li key={item.tab} className={calmRowClass}>
               <button
                 type="button"
-                className={`${calmRowTitleClass} min-h-9 flex-1 cursor-pointer border-none bg-transparent p-0 text-start`}
+                className={`${buildingRowTitleClass} min-h-11 flex-1 cursor-pointer border-none bg-transparent p-0 text-start`}
                 onClick={() => navigate(getPathForTab(item.tab))}
               >
                 {item.label}
@@ -155,7 +156,7 @@ export default function BuildingReportsPage() {
             </li>
           ))}
         </ul>
-      </CalmBlock>
+      </BuildingBlock>
     </div>
   )
 }

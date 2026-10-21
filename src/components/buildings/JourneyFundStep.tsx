@@ -106,6 +106,7 @@ export default function JourneyFundStep({
           type="button"
           variant="secondary"
           size="sm"
+          className="min-h-11 text-sm"
           onClick={() => setSheet({ account: null })}
           disabled={building}
         >

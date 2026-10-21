@@ -36,7 +36,7 @@ export default function PaymentReceiptCard({
   return (
     <>
       <div
-        className="flex flex-col gap-1 rounded-[12px] border border-dashed border-primary bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))] p-4 text-[0.85rem] leading-[1.9] text-text"
+        className="flex flex-col gap-1 rounded-[12px] border border-dashed border-primary bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))] p-4 text-sm leading-[1.9] text-text"
         role="region"
         aria-label="رسید پرداخت"
       >

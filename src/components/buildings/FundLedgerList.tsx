@@ -1,5 +1,5 @@
 import type { LedgerEntry } from '../../services/walletLedger'
-import { calmEmptyClass } from '../ui/calmListStyles'
+import { buildingEmptyClass } from '../ui/buildingStyles'
 import WalletLedgerItem from '../wallet/WalletLedgerItem'
 
 /** Balance changes, newest first: the app's account history, with the account named on each line. */
@@ -11,7 +11,7 @@ export default function FundLedgerList({
   /** Account id to its name; omit when every entry is of one account. */
   accountTitles?: ReadonlyMap<string, string>
 }) {
-  if (!entries.length) return <p className={calmEmptyClass}>هنوز گردشی ثبت نشده</p>
+  if (!entries.length) return <p className={buildingEmptyClass}>هنوز گردشی ثبت نشده</p>
 
   return (
     <div className="flex flex-col gap-2">

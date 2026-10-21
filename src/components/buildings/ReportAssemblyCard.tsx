@@ -42,6 +42,7 @@ export default function ReportAssemblyCard({ report }: { report: BuildingReport 
         <Button
           type="button"
           size="sm"
+          className="min-h-11 text-sm"
           loading={busy === 'pdf'}
           disabled={busy !== null}
           onClick={() => void run('pdf')}

@@ -57,11 +57,11 @@ export default function FundReconcileSheet({
     >
       {account ? (
         <>
-          <p className="m-0 text-[0.82rem] leading-[1.7] text-muted">
+          <p className="m-0 text-sm leading-[1.7] text-muted">
             موجودی واقعی حساب را از اپ بانک یا دفتر نقدی ببین و اینجا وارد کن. اپ فقط اختلاف را ثبت
             می‌کند و هیچ‌چیز از قبل تغییر نمی‌کند.
           </p>
-          <p className="m-0 flex items-center justify-between gap-2 text-[0.88rem] font-bold">
+          <p className="m-0 flex items-center justify-between gap-2 text-sm font-bold">
             <span>موجودی در اپ</span>
             <MoneyText amount={account.balance} />
           </p>

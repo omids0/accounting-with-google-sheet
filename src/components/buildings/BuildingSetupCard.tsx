@@ -74,6 +74,7 @@ export default function BuildingSetupCard() {
       <Button
         type="button"
         size="sm"
+        className="min-h-11 text-sm"
         onClick={() =>
           unfinished ? navigate(getPathForTab('building-setup')) : setCompleting(true)
         }

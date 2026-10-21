@@ -1,20 +1,18 @@
 import { useNavigate } from 'react-router'
 
+import BuildingBlock from './BuildingBlock'
 import { getPathForTab } from '../../routes/paths'
 import { chargeMonthSummary } from '../../services/buildingSummary'
 import type { Receivable } from '../../types'
 import { toPersianDigits } from '../../utils/normalizeDigits'
-import CalmBlock from '../CalmBlock'
 import MoneyText from '../MoneyText'
 import ProgressBar from '../ProgressBar'
 import {
-  calmRowClass,
-  calmRowEndClass,
-  calmRowMainClass,
-  calmRowSubClass,
-  calmRowSubDangerClass,
-  calmRowTitleClass
-} from '../ui/calmListStyles'
+  buildingRowTitleClass,
+  buildingRowSubClass,
+  buildingRowEndClass
+} from '../ui/buildingStyles'
+import { calmRowClass, calmRowMainClass, calmRowSubDangerClass } from '../ui/calmListStyles'
 
 const fa = (value: number) => toPersianDigits(String(value))
 
@@ -40,24 +38,24 @@ export default function BuildingChargeBlock({
   const percent = month.billed > 0 ? Math.round((month.collected / month.billed) * 100) : 0
 
   return (
-    <CalmBlock className={className} title="شارژ ماهانه">
+    <BuildingBlock className={className} title="شارژ ماهانه">
       <button
         type="button"
         className={`${calmRowClass} w-full cursor-pointer flex-wrap bg-transparent text-start`}
         onClick={() => navigate(`${getPathForTab('building-units')}?f=debt`)}
       >
         <span className={calmRowMainClass}>
-          <span className={calmRowTitleClass}>شارژ {monthName}</span>
-          <span className={calmRowSubClass}>
+          <span className={buildingRowTitleClass}>شارژ {monthName}</span>
+          <span className={buildingRowSubClass}>
             {fa(month.paid)} از {fa(month.issued)} واحد پرداخت کرده‌اند
           </span>
         </span>
         {left > 0 ? (
-          <span className={`${calmRowEndClass} ${calmRowSubDangerClass}`}>
+          <span className={`${buildingRowEndClass} ${calmRowSubDangerClass}`}>
             {fa(month.issued - month.paid)} واحد · <MoneyText amount={left} /> مانده
           </span>
         ) : (
-          <span className={calmRowEndClass}>همه پرداخت کرده‌اند ✓</span>
+          <span className={buildingRowEndClass}>همه پرداخت کرده‌اند ✓</span>
         )}
         <span className="basis-full">
           <ProgressBar
@@ -69,6 +67,6 @@ export default function BuildingChargeBlock({
           />
         </span>
       </button>
-    </CalmBlock>
+    </BuildingBlock>
   )
 }

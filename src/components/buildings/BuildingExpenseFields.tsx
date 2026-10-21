@@ -188,7 +188,13 @@ function SplitFields({ values, setValue, disabled }: Omit<BuildingExpenseFieldsP
             )} واحد · جمع ${formatMoney(total)}`}
           </p>
           <div>
-            <Button type="button" variant="secondary" size="sm" onClick={() => setPreviewing(true)}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="min-h-11 text-sm"
+              onClick={() => setPreviewing(true)}
+            >
               دیدن سهم هر واحد ›
             </Button>
           </div>

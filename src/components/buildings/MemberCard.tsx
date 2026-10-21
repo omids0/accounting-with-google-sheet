@@ -16,9 +16,13 @@ import {
   type BuildingPermission
 } from '../../services/buildingRoles'
 import { FormSelect, ToggleSwitch } from '../form'
-import { journeyNoteClass, journeyRowMetaClass, journeyRowTitleClass } from '../ui/buildingStyles'
+import {
+  journeyNoteClass,
+  journeyRowMetaClass,
+  journeyRowTitleClass,
+  buildingDayBadgeClass
+} from '../ui/buildingStyles'
 import Button from '../ui/Button'
-import { calmDayBadgeClass } from '../ui/calmListStyles'
 import Card from '../ui/Card'
 import {
   displaySettingsRowClass,
@@ -68,7 +72,7 @@ export default function MemberCard({
   return (
     <Card>
       <div className="flex items-center gap-2.5">
-        <span className={calmDayBadgeClass} aria-hidden="true">
+        <span className={buildingDayBadgeClass} aria-hidden="true">
           {member.email[0]?.toUpperCase() ?? '؟'}
         </span>
         <span className="min-w-0 flex-1">
@@ -108,7 +112,7 @@ export default function MemberCard({
         type="button"
         variant="secondary"
         size="sm"
-        className="self-start"
+        className="self-start min-h-11 text-sm"
         aria-expanded={open}
         onClick={() => setOpen(value => !value)}
       >
@@ -136,7 +140,14 @@ export default function MemberCard({
             </div>
           ))}
           {custom && !isMe ? (
-            <Button type="button" variant="secondary" size="sm" onClick={onReset} disabled={busy}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="min-h-11 text-sm"
+              onClick={onReset}
+              disabled={busy}
+            >
               برگرداندن به حالت معمول این نقش
             </Button>
           ) : null}
@@ -154,7 +165,7 @@ export default function MemberCard({
           type="button"
           variant="secondary"
           size="sm"
-          className="self-start"
+          className="self-start min-h-11 text-sm"
           onClick={onMarkActive}
           disabled={busy}
         >
@@ -167,7 +178,7 @@ export default function MemberCard({
           type="button"
           variant="danger"
           size="sm"
-          className="self-start"
+          className="self-start min-h-11 text-sm"
           onClick={onRemove}
           disabled={busy}
         >

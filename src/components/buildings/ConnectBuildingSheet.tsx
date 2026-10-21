@@ -156,6 +156,7 @@ export default function ConnectBuildingSheet({
           type="button"
           variant="secondary"
           size="sm"
+          className="min-h-11 text-sm"
           loading={picker.opening}
           onClick={openPicker}
         >

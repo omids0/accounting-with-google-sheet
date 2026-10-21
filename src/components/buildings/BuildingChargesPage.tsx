@@ -20,14 +20,12 @@ import MoneyText from '../MoneyText'
 import { DangCardListSkeleton } from '../skeleton'
 import SpeedDialIcon from '../SpeedDialIcon'
 import {
-  calmListClass,
-  calmNoteClass,
-  calmRowClass,
-  calmRowEndClass,
-  calmRowMainClass,
-  calmRowSubClass,
-  calmRowTitleClass
-} from '../ui/calmListStyles'
+  buildingRowTitleClass,
+  buildingRowSubClass,
+  buildingRowEndClass,
+  buildingNoteClass
+} from '../ui/buildingStyles'
+import { calmListClass, calmRowClass, calmRowMainClass } from '../ui/calmListStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
 // The payment sheet loads only when a payment is started.
@@ -117,15 +115,15 @@ export default function BuildingChargesPage({ active = true }: { active?: boolea
 
       {credits.length ? (
         <>
-          <h2 className="m-0 text-[0.86rem] font-bold text-text">اعتبار واحدها</h2>
+          <h2 className="m-0 text-sm font-bold text-text">اعتبار واحدها</h2>
           <ul className={calmListClass}>
             {credits.map(item => (
               <li key={`${item.unitId}-${item.amount}`} className={calmRowClass}>
                 <span className={calmRowMainClass}>
-                  <span className={calmRowTitleClass}>واحد {toPersianDigits(item.number)}</span>
-                  <span className={calmRowSubClass}>در صدور بعدی خودکار کسر می‌شود</span>
+                  <span className={buildingRowTitleClass}>واحد {toPersianDigits(item.number)}</span>
+                  <span className={buildingRowSubClass}>در صدور بعدی خودکار کسر می‌شود</span>
                 </span>
-                <span className={`${calmRowEndClass} text-success`}>
+                <span className={`${buildingRowEndClass} text-success`}>
                   <MoneyText amount={item.amount} />
                 </span>
               </li>
@@ -135,7 +133,7 @@ export default function BuildingChargesPage({ active = true }: { active?: boolea
       ) : null}
 
       {months.length ? (
-        <p className={calmNoteClass}>
+        <p className={buildingNoteClass}>
           لمس هر ماه: وضعیت واحدها و ثبت پرداخت. امروز {formatIsoDatePersian(getTodayIso())} · صدور
           خودکار ماه‌های بعد با ورود مدیر به ساختمان انجام می‌شود.
         </p>

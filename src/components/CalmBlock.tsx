@@ -14,7 +14,7 @@ export interface CalmBlockAction {
   onClick: () => void
 }
 
-interface CalmBlockProps {
+export interface CalmBlockProps {
   title: string
   /** Short note after the title, e.g. «· ۱ معوق». */
   badge?: ReactNode

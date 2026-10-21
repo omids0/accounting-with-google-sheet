@@ -28,7 +28,7 @@ function amountCell(row: IssueRow) {
     <>
       <MoneyText amount={row.amount} />
       {row.fromCredit > 0 ? (
-        <small className="block text-[0.68rem] text-success">
+        <small className="block text-sm text-success">
           از اعتبار <MoneyText amount={row.fromCredit} />
         </small>
       ) : null}

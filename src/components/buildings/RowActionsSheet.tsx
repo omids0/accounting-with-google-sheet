@@ -1,6 +1,7 @@
 import { cn } from '../../utils/cn'
 import PickerSheet from '../form/PickerSheet'
-import { calmListClass, calmRowClass, calmRowTitleClass } from '../ui/calmListStyles'
+import { buildingRowTitleClass } from '../ui/buildingStyles'
+import { calmListClass, calmRowClass } from '../ui/calmListStyles'
 
 export interface RowAction {
   id: string
@@ -30,7 +31,7 @@ export default function RowActionsSheet({
       <ul className={calmListClass}>
         {actions.map(action => {
           const label = (
-            <span className={cn(calmRowTitleClass, action.danger && 'text-danger')}>
+            <span className={cn(buildingRowTitleClass, action.danger && 'text-danger')}>
               {action.label}
             </span>
           )

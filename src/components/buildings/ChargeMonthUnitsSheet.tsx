@@ -9,15 +9,17 @@ import { paidAmount, remainingAmount } from '../../services/receivablesRow'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import FormModal from '../FormModal'
 import MoneyText from '../MoneyText'
+import {
+  buildingRowTitleClass,
+  buildingRowSubClass,
+  buildingDayBadgeClass
+} from '../ui/buildingStyles'
 import Button from '../ui/Button'
 import {
-  calmDayBadgeClass,
   calmDayBadgeDangerClass,
   calmListClass,
   calmRowClass,
-  calmRowMainClass,
-  calmRowSubClass,
-  calmRowTitleClass
+  calmRowMainClass
 } from '../ui/calmListStyles'
 
 const STATUS_TEXT: Record<ChargeStatus, { label: string; tone: string }> = {
@@ -71,13 +73,15 @@ export default function ChargeMonthUnitsSheet({
         {rows.map(({ receivable, status, number }) => (
           <li key={receivable.id} className={calmRowClass}>
             <span
-              className={`${calmDayBadgeClass} ${status === 'paid' ? '' : calmDayBadgeDangerClass}`}
+              className={`${buildingDayBadgeClass} ${
+                status === 'paid' ? '' : calmDayBadgeDangerClass
+              }`}
             >
               {toPersianDigits(number)}
             </span>
             <span className={calmRowMainClass}>
-              <span className={calmRowTitleClass}>{receivable.debtor}</span>
-              <span className={calmRowSubClass}>
+              <span className={buildingRowTitleClass}>{receivable.debtor}</span>
+              <span className={buildingRowSubClass}>
                 <MoneyText amount={receivable.amount} />
                 {paidAmount(receivable) > 0 ? (
                   <>
@@ -87,13 +91,14 @@ export default function ChargeMonthUnitsSheet({
                 ) : null}
               </span>
             </span>
-            <span className={`text-[0.72rem] font-bold ${STATUS_TEXT[status].tone}`}>
+            <span className={`text-sm font-bold ${STATUS_TEXT[status].tone}`}>
               {STATUS_TEXT[status].label}
             </span>
             {remainingAmount(receivable) > 0 && can('record') ? (
               <Button
                 type="button"
                 size="sm"
+                className="min-h-11 text-sm"
                 variant="secondary"
                 onClick={() => onPay(unitOfReference(receivable.reference ?? ''))}
               >

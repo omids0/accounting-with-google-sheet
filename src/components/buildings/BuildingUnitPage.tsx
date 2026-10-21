@@ -25,8 +25,9 @@ import { shareText } from '../../utils/shareText'
 import EmptyState from '../EmptyState'
 import { SegmentedRadio } from '../form'
 import { DangCardListSkeleton } from '../skeleton'
+import { buildingDayBadgeClass } from '../ui/buildingStyles'
 import Button from '../ui/Button'
-import { calmDayBadgeClass, calmDayBadgeDangerClass } from '../ui/calmListStyles'
+import { calmDayBadgeDangerClass } from '../ui/calmListStyles'
 import Card from '../ui/Card'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
@@ -104,7 +105,7 @@ export default function BuildingUnitPage() {
     <div className={listModulePageClass}>
       <Card>
         <div className="flex items-center gap-3">
-          <span className={cn(calmDayBadgeClass, owes && calmDayBadgeDangerClass)}>
+          <span className={cn(buildingDayBadgeClass, owes && calmDayBadgeDangerClass)}>
             {toPersianDigits(unit.number)}
           </span>
           <div className="min-w-0 flex-1">
@@ -120,12 +121,13 @@ export default function BuildingUnitPage() {
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {can('record') && !archived ? (
-            <Button size="sm" onClick={() => setPaying(true)}>
+            <Button size="sm" className="min-h-11 text-sm" onClick={() => setPaying(true)}>
               ثبت پرداخت
             </Button>
           ) : null}
           <Button
             size="sm"
+            className="min-h-11 text-sm"
             variant="secondary"
             onClick={() => void shareText(statementText(header, statement), 'صورت‌حساب')}
           >
@@ -134,6 +136,7 @@ export default function BuildingUnitPage() {
           {owes ? (
             <Button
               size="sm"
+              className="min-h-11 text-sm"
               variant="secondary"
               onClick={() => void shareText(reminderText(header, balance.open), 'یادآوری شارژ')}
             >

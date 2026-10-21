@@ -13,14 +13,12 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import MoneyText from '../MoneyText'
 import {
-  calmDayBadgeClass,
-  calmListClass,
-  calmRowClass,
-  calmRowEndClass,
-  calmRowMainClass,
-  calmRowSubClass,
-  calmRowTitleClass
-} from '../ui/calmListStyles'
+  buildingRowTitleClass,
+  buildingRowSubClass,
+  buildingRowEndClass,
+  buildingDayBadgeClass
+} from '../ui/buildingStyles'
+import { calmListClass, calmRowClass, calmRowMainClass } from '../ui/calmListStyles'
 
 const fa = (value: number) => toPersianDigits(String(value))
 
@@ -41,7 +39,7 @@ export function UnitHistory({
     .sort((a, b) => b.borrowDate.localeCompare(a.borrowDate))
 
   if (!rows.length) {
-    return <p className="m-0 py-3 text-center text-[0.76rem] text-muted">سابقه‌ای نیست</p>
+    return <p className="m-0 py-3 text-center text-sm text-muted">سابقه‌ای نیست</p>
   }
 
   return (
@@ -54,8 +52,8 @@ export function UnitHistory({
         return (
           <li key={item.id} className={calmRowClass}>
             <span className={calmRowMainClass}>
-              <span className={calmRowTitleClass}>{credit ? item.title : itemLabel(item)}</span>
-              <span className={calmRowSubClass}>
+              <span className={buildingRowTitleClass}>{credit ? item.title : itemLabel(item)}</span>
+              <span className={buildingRowSubClass}>
                 {credit
                   ? `اعتبار مانده ${open ? '' : '· مصرف شد'}`
                   : open <= 0
@@ -68,7 +66,7 @@ export function UnitHistory({
               </span>
             </span>
             <span
-              className={`${calmRowEndClass} ${
+              className={`${buildingRowEndClass} ${
                 credit || open <= 0 ? 'text-success' : 'text-danger'
               }`}
             >
@@ -84,7 +82,7 @@ export function UnitHistory({
 /** «ساکنان»: the unit's stays with their dates, current first. */
 export function UnitStays({ stays, persons }: { stays: StayWithRow[]; persons: Counterparty[] }) {
   if (!stays.length) {
-    return <p className="m-0 py-3 text-center text-[0.76rem] text-muted">ساکنی ثبت نشده</p>
+    return <p className="m-0 py-3 text-center text-sm text-muted">ساکنی ثبت نشده</p>
   }
 
   return (
@@ -98,12 +96,12 @@ export function UnitStays({ stays, persons }: { stays: StayWithRow[]; persons: C
 
           return (
             <li key={stay.id} className={calmRowClass}>
-              <span className={calmDayBadgeClass} aria-hidden="true">
+              <span className={buildingDayBadgeClass} aria-hidden="true">
                 {name[0] ?? '؟'}
               </span>
               <span className={calmRowMainClass}>
-                <span className={calmRowTitleClass}>{name}</span>
-                <span className={calmRowSubClass}>
+                <span className={buildingRowTitleClass}>{name}</span>
+                <span className={buildingRowSubClass}>
                   {optionLabel(RESIDENT_ROLES, stay.role)} · از {formatIsoDatePersian(stay.from)}
                   {stay.to ? ` تا ${formatIsoDatePersian(stay.to)}` : ' · فعلی'}
                 </span>
@@ -134,8 +132,8 @@ export function UnitSpecs({ row }: { row: UnitRowData }) {
     <ul className={calmListClass}>
       {specs.map(([label, value]) => (
         <li key={label} className={calmRowClass}>
-          <span className={`${calmRowTitleClass} text-muted`}>{label}</span>
-          <span className={calmRowEndClass}>{value}</span>
+          <span className={`${buildingRowTitleClass} text-muted`}>{label}</span>
+          <span className={buildingRowEndClass}>{value}</span>
         </li>
       ))}
     </ul>

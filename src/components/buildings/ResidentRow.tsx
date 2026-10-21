@@ -1,12 +1,12 @@
 import { residentMeta, type ResidentRowData } from './residentRows'
 import { cn } from '../../utils/cn'
 import {
-  calmDayBadgeClass,
-  calmRowClass,
-  calmRowMainClass,
-  calmRowSubClass,
-  calmRowTitleClass
-} from '../ui/calmListStyles'
+  buildingRowTitleClass,
+  buildingRowSubClass,
+  buildingDayBadgeClass,
+  buildingMoreButtonClass
+} from '../ui/buildingStyles'
+import { calmRowClass, calmRowMainClass } from '../ui/calmListStyles'
 
 interface ResidentRowProps {
   row: ResidentRowData
@@ -18,16 +18,16 @@ interface ResidentRowProps {
 export default function ResidentRow({ row, onMore }: ResidentRowProps) {
   return (
     <li className={cn(calmRowClass, !row.current && 'opacity-80')} data-highlight-id={row.stay.id}>
-      <span className={calmDayBadgeClass} aria-hidden="true">
+      <span className={buildingDayBadgeClass} aria-hidden="true">
         {row.name.trim()[0] ?? '؟'}
       </span>
       <span className={calmRowMainClass}>
-        <span className={calmRowTitleClass}>{row.name}</span>
-        <span className={calmRowSubClass}>{residentMeta(row)}</span>
+        <span className={buildingRowTitleClass}>{row.name}</span>
+        <span className={buildingRowSubClass}>{residentMeta(row)}</span>
       </span>
       <button
         type="button"
-        className="h-9 w-9 shrink-0 cursor-pointer rounded-md border-0 bg-transparent text-muted"
+        className={buildingMoreButtonClass}
         onClick={() => onMore(row)}
         aria-label={`گزینه‌های ${row.name}`}
       >

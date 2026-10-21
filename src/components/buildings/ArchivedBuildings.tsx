@@ -3,13 +3,8 @@ import { useState } from 'react'
 import { getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
 import type { SpreadsheetEntry } from '../../types'
 import { toPersianDigits } from '../../utils/normalizeDigits'
-import {
-  calmBlockLinkClass,
-  calmListClass,
-  calmRowClass,
-  calmRowMainClass,
-  calmRowTitleClass
-} from '../ui/calmListStyles'
+import { buildingRowTitleClass, buildingLinkClass } from '../ui/buildingStyles'
+import { calmListClass, calmRowClass, calmRowMainClass } from '../ui/calmListStyles'
 
 /**
  * «بایگانی‌شده» on the «مدیر ساختمان» home: the buildings archived from their settings. The sheet
@@ -30,7 +25,7 @@ export default function ArchivedBuildings({
     <section aria-label="بایگانی‌شده">
       <button
         type="button"
-        className={calmBlockLinkClass}
+        className={buildingLinkClass}
         aria-expanded={open}
         onClick={() => setOpen(value => !value)}
       >
@@ -41,11 +36,11 @@ export default function ArchivedBuildings({
           {entries.map(entry => (
             <li key={entry.id} className={calmRowClass}>
               <span className={calmRowMainClass}>
-                <span className={calmRowTitleClass}>{getSpreadsheetLabel(entry.name)}</span>
+                <span className={buildingRowTitleClass}>{getSpreadsheetLabel(entry.name)}</span>
               </span>
               <button
                 type="button"
-                className={calmBlockLinkClass}
+                className={buildingLinkClass}
                 onClick={() => onRestore(entry.id)}
               >
                 بازگردانی

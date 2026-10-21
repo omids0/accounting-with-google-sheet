@@ -147,7 +147,7 @@ function IssueChargesForm({
         <>
           <IssuePreviewTable rows={plan.rows} />
           {skipped.length ? (
-            <p className="m-0 text-[0.78rem] leading-[1.8] text-danger">
+            <p className="m-0 text-sm leading-[1.8] text-danger">
               بدون ساکن و مالک (صادر نمی‌شود):{' '}
               {skipped.map(row => toPersianDigits(row.unit.number)).join('، ')}
             </p>
@@ -157,7 +157,7 @@ function IssueChargesForm({
             <MoneyText amount={plan.total} />
           </div>
           {credit > 0 ? (
-            <p className="m-0 text-[0.78rem] leading-[1.8] text-success">
+            <p className="m-0 text-sm leading-[1.8] text-success">
               اعتبار واحدها (<MoneyText amount={credit} />) خودکار از این شارژ کسر می‌شود.
             </p>
           ) : null}

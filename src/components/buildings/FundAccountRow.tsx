@@ -5,13 +5,12 @@ import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
 import MoneyText from '../MoneyText'
 import {
-  calmDayBadgeClass,
-  calmRowClass,
-  calmRowEndClass,
-  calmRowMainClass,
-  calmRowSubClass,
-  calmRowTitleClass
-} from '../ui/calmListStyles'
+  buildingRowTitleClass,
+  buildingRowSubClass,
+  buildingRowEndClass,
+  buildingDayBadgeClass
+} from '../ui/buildingStyles'
+import { calmRowClass, calmRowMainClass } from '../ui/calmListStyles'
 import type { WalletAccountWithRow } from '../wallet/types'
 
 /**
@@ -39,14 +38,14 @@ export default function FundAccountRow({
         aria-label={`حساب ${account.title}`}
         onClick={onOpen}
       >
-        <span className={calmDayBadgeClass}>
+        <span className={buildingDayBadgeClass}>
           <AppIcon name="wallet" size={16} />
         </span>
         <span className={calmRowMainClass}>
-          <span className={calmRowTitleClass}>{account.title}</span>
-          <span className={calmRowSubClass}>{fundAccountMeta(account)}</span>
+          <span className={buildingRowTitleClass}>{account.title}</span>
+          <span className={buildingRowSubClass}>{fundAccountMeta(account)}</span>
         </span>
-        <span className={calmRowEndClass}>
+        <span className={buildingRowEndClass}>
           <MoneyText amount={account.balance} />
         </span>
       </button>

@@ -205,6 +205,7 @@ function UnitPaymentForm({
           <Button
             type="button"
             size="sm"
+            className="min-h-11 text-sm"
             variant="secondary"
             onClick={() => setAmount(balance.open)}
           >
@@ -212,7 +213,13 @@ function UnitPaymentForm({
           </Button>
         ) : null}
         {monthly > 0 ? (
-          <Button type="button" size="sm" variant="secondary" onClick={() => setAmount(monthly)}>
+          <Button
+            type="button"
+            size="sm"
+            className="min-h-11 text-sm"
+            variant="secondary"
+            onClick={() => setAmount(monthly)}
+          >
             یک ماه {formatMoney(monthly)}
           </Button>
         ) : null}
@@ -234,7 +241,7 @@ function UnitPaymentForm({
             />
           </div>
           {keepCredit ? null : (
-            <span className="mt-1 block text-[0.78rem]">
+            <span className="mt-1 block text-sm">
               فقط {formatMoney(paying - allocation.overflow)} ثبت می‌شود؛ یا مبلغ را کم کن.
             </span>
           )}

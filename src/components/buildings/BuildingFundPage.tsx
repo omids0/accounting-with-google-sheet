@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 
+import BuildingBlock from './BuildingBlock'
 import BuildingFundHero from './BuildingFundHero'
 import FundAccountDetailSheet from './FundAccountDetailSheet'
 import FundAccountRow from './FundAccountRow'
@@ -18,10 +19,10 @@ import { getPathForTab } from '../../routes/paths'
 import { monthName } from '../../services/buildingMonths'
 import { isConfigured } from '../../services/settings'
 import { toPersianDigits } from '../../utils/normalizeDigits'
-import CalmBlock from '../CalmBlock'
 import MonthlyFlowChartSection from '../charts/MonthlyFlowChartSection'
 import EmptyState from '../EmptyState'
-import { calmListClass, calmNoteClass } from '../ui/calmListStyles'
+import { buildingNoteClass } from '../ui/buildingStyles'
+import { calmListClass } from '../ui/calmListStyles'
 import { chartTitleClass } from '../ui/chartStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 import { useWalletReconcile } from '../wallet/useWalletReconcile'
@@ -83,7 +84,7 @@ export default function BuildingFundPage({ active = true }: { active?: boolean }
         />
       ) : null}
 
-      <CalmBlock
+      <BuildingBlock
         title="حساب‌ها"
         action={
           can('settings')
@@ -133,17 +134,17 @@ export default function BuildingFundPage({ active = true }: { active?: boolean }
             }
           />
         )}
-        <p className={calmNoteClass}>
+        <p className={buildingNoteClass}>
           لمس حساب: تطبیق موجودی با بانک، ویرایش نام و کارت، رکوردهای همان حساب.
           {cards.length
             ? ` پیامک‌های کارت ${cards.map(toPersianDigits).join(' و ')} به این ساختمان می‌آید.`
             : ''}
         </p>
-      </CalmBlock>
+      </BuildingBlock>
 
-      <CalmBlock title="گردش حساب‌ها">
+      <BuildingBlock title="گردش حساب‌ها">
         <FundLedgerList entries={fund.ledger} accountTitles={titles} />
-      </CalmBlock>
+      </BuildingBlock>
 
       <FundAccountDetailSheet
         account={sheet?.kind === 'detail' ? accountOf : null}

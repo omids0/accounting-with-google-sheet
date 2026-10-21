@@ -46,7 +46,7 @@ export default function BuildingIssueCard({
         </span>
       </div>
       {can('issue') ? (
-        <Button type="button" size="sm" onClick={() => setOpen(true)}>
+        <Button type="button" size="sm" className="min-h-11 text-sm" onClick={() => setOpen(true)}>
           بررسی و صدور
         </Button>
       ) : null}

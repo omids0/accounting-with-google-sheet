@@ -4,16 +4,13 @@ import { cn } from '../../utils/cn'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import MoneyText from '../MoneyText'
 import {
-  calmDayBadgeClass,
-  calmDayBadgeDangerClass,
-  calmRowClass,
-  calmRowEndClass,
-  calmRowMainClass,
-  calmRowTitleClass
-} from '../ui/calmListStyles'
-
-/** The meta line wraps (it is long), unlike the one-line subtitle of the dashboard rows. */
-const unitSubClass = 'mt-0.5 block text-sm leading-relaxed text-muted'
+  buildingRowTitleClass,
+  buildingRowEndClass,
+  buildingRowSubClass,
+  buildingDayBadgeClass,
+  buildingMoreButtonClass
+} from '../ui/buildingStyles'
+import { calmDayBadgeDangerClass, calmRowClass, calmRowMainClass } from '../ui/calmListStyles'
 
 interface UnitCardProps {
   row: UnitRowData
@@ -44,17 +41,17 @@ export default function UnitCard({ row, onOpen, onMore }: UnitCardProps) {
         onClick={() => onOpen(row)}
         aria-label={`واحد ${toPersianDigits(unit.number)}`}
       >
-        <span className={cn(calmDayBadgeClass, owes && calmDayBadgeDangerClass)}>
+        <span className={cn(buildingDayBadgeClass, owes && calmDayBadgeDangerClass)}>
           {toPersianDigits(unit.number)}
         </span>
         <span className={calmRowMainClass}>
-          <span className={calmRowTitleClass}>{unitWho(row)}</span>
-          <span className={unitSubClass}>
+          <span className={buildingRowTitleClass}>{unitWho(row)}</span>
+          <span className={buildingRowSubClass}>
             {unitPlace(unit)} · شارژ <MoneyText amount={charge} />
             {status.text && !status.credit ? ` · ${status.text}` : ''}
           </span>
         </span>
-        <span className={cn(calmRowEndClass, 'text-sm')}>
+        <span className={buildingRowEndClass}>
           <UnitBalance owed={balance.open} credit={balance.credit} />
         </span>
       </button>
@@ -74,7 +71,7 @@ export function UnitMoreButton({
   return (
     <button
       type="button"
-      className="h-11 w-11 shrink-0 cursor-pointer rounded-md border-0 bg-transparent text-muted"
+      className={buildingMoreButtonClass}
       onClick={() => onMore(row)}
       aria-label={`گزینه‌های واحد ${toPersianDigits(row.unit.number)}`}
     >

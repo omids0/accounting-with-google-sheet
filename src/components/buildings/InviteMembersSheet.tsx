@@ -134,6 +134,7 @@ export default function InviteMembersSheet({
         type="button"
         variant="secondary"
         size="sm"
+        className="min-h-11 text-sm"
         onClick={() => void add()}
         loading={saving}
       >
@@ -156,7 +157,13 @@ export default function InviteMembersSheet({
           </div>
         ))}
       </div>
-      <Button type="button" variant="secondary" size="sm" onClick={copyInvite}>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="min-h-11 text-sm"
+        onClick={copyInvite}
+      >
         کپی متن دعوت
       </Button>
       <p className={journeyNoteClass}>

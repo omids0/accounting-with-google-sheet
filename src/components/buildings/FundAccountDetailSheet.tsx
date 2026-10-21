@@ -50,11 +50,11 @@ export default function FundAccountDetailSheet({
       {account ? (
         <>
           <div>
-            <span className="block text-[0.78rem] text-muted">موجودی فعلی در اپ</span>
+            <span className="block text-sm text-muted">موجودی فعلی در اپ</span>
             <b className="text-[1.4rem]">
               <MoneyText amount={account.balance} />
             </b>
-            <span className="block text-[0.78rem] text-muted">{fundAccountMeta(account)}</span>
+            <span className="block text-sm text-muted">{fundAccountMeta(account)}</span>
           </div>
           {can('record') || can('settings') ? (
             <div className="flex flex-wrap gap-2">
