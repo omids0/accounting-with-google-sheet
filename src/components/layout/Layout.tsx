@@ -15,6 +15,7 @@ import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
 import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { installSelectionHaptics } from '../../utils/haptics'
 import { useBuildingChargeMaintenance } from '../buildings/useBuildingChargeMaintenance'
+import { useClaimInvite } from '../buildings/useClaimInvite'
 import PageSpeedDial from '../PageSpeedDial'
 import ConflictGate from '../sync/ConflictGate'
 import {
@@ -63,6 +64,7 @@ export default function Layout() {
 
   const isBuilding = useIsBuildingWorkspace()
   useBuildingChargeMaintenance(isBuilding)
+  useClaimInvite(isBuilding)
   const isDesktop = useIsDesktop()
   const isTablet = useIsTablet()
   const [toolbar, setToolbar] = useState<HTMLElement | null>(null)

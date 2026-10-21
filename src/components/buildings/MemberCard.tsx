@@ -5,8 +5,10 @@ import {
   DRIVE_ACCESS,
   effectivePermission,
   isCustom,
+  MEMBER_STATUS_LABELS,
   PERMISSION_LABELS,
-  viewerCanWrite
+  viewerCanWrite,
+  type MemberStatus
 } from '../../services/buildingMembers'
 import {
   BUILDING_PERMISSIONS,
@@ -28,13 +30,15 @@ import {
 interface MemberCardProps {
   member: BuildingMember
   isMe: boolean
-  invited: boolean
+  status: MemberStatus
   /** The only manager: neither demoted nor removed. */
   lastManager: boolean
   busy: boolean
   onRole: (role: BuildingRole) => void
   onToggle: (permission: BuildingPermission, value: boolean) => void
   onReset: () => void
+  /** «علامت‌گذاری به‌عنوان فعال»: the manager clears a member who is still «دعوت‌شده». */
+  onMarkActive: () => void
   onRemove: () => void
 }
 
@@ -46,12 +50,13 @@ interface MemberCardProps {
 export default function MemberCard({
   member,
   isMe,
-  invited,
+  status,
   lastManager,
   busy,
   onRole,
   onToggle,
   onReset,
+  onMarkActive,
   onRemove
 }: MemberCardProps) {
   const [open, setOpen] = useState(false)
@@ -74,7 +79,7 @@ export default function MemberCard({
           <br />
           <span className={journeyRowMetaClass}>
             {`${optionLabel(BUILDING_ROLES, member.role)}${custom ? ' · سفارشی' : ''} · ${
-              invited ? 'دعوت‌شده' : 'فعال'
+              MEMBER_STATUS_LABELS[status]
             } · درایو: ${DRIVE_ACCESS[member.role]}`}
           </span>
         </span>
@@ -137,6 +142,19 @@ export default function MemberCard({
             </p>
           ) : null}
         </div>
+      ) : null}
+
+      {status === 'invited' && !isMe ? (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="self-start"
+          onClick={onMarkActive}
+          disabled={busy}
+        >
+          علامت‌گذاری به‌عنوان فعال
+        </Button>
       ) : null}
 
       {!isMe && !lastManager ? (

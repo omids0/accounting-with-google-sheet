@@ -46,12 +46,13 @@ export default function BuildingMembersPage() {
             key={member.email}
             member={member}
             isMe={member.email === page.me}
-            invited={page.isInvited(member.email)}
+            status={page.statusOf(member.email)}
             lastManager={member.role === 'manager' && managers <= 1}
             busy={page.busy}
             onRole={role => void page.setRole(member.email, role)}
             onToggle={(permission, value) => void page.togglePermission(member, permission, value)}
             onReset={() => void page.resetPermissions(member.email)}
+            onMarkActive={() => void page.markActive(member.email)}
             onRemove={() => setRemoving(member.email)}
           />
         ))

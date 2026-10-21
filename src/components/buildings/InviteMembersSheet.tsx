@@ -4,6 +4,7 @@ import { BUILDING_ROLES, optionLabel, type BuildingRole } from './buildingOption
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard'
 import { getUserEmail } from '../../services/auth'
 import { addInvite, inviteText, invitedEmails, isValidEmail } from '../../services/buildingInvites'
+import { MEMBER_STATUS_LABELS, memberStatusReader } from '../../services/buildingMembers'
 import { members } from '../../services/buildingRoles'
 import { getSettings } from '../../services/settings'
 import { PERIOD_SETTINGS_SHEET } from '../../services/sheetNames'
@@ -61,6 +62,8 @@ export default function InviteMembersSheet({
   )
 
   const me = (getUserEmail() ?? '').toLowerCase()
+
+  const statusOf = memberStatusReader(spreadsheetId, me)
 
   const add = async () => {
     if (!isValidEmail(email)) {
@@ -147,7 +150,7 @@ export default function InviteMembersSheet({
               <br />
               <span className={journeyRowMetaClass}>
                 {optionLabel(BUILDING_ROLES, member.role)} ·{' '}
-                {member.email === me ? 'شما' : invited.has(member.email) ? 'دعوت‌شده' : 'فعال'}
+                {member.email === me ? 'شما' : MEMBER_STATUS_LABELS[statusOf(member.email)]}
               </span>
             </span>
           </div>

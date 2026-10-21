@@ -3,10 +3,11 @@ import { useCallback, useState } from 'react'
 import type { BuildingRole } from './buildingOptions'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { getUserEmail } from '../../services/auth'
-import { invitedEmails } from '../../services/buildingInvites'
 import {
   changeMemberRole,
+  markMemberActive,
   MEMBER_BLOCK_MESSAGES,
+  memberStatusReader,
   removeMember,
   setMemberOverrides,
   withOverride,
@@ -14,14 +15,12 @@ import {
 } from '../../services/buildingMembers'
 import { members, type BuildingMember, type BuildingPermission } from '../../services/buildingRoles'
 import { getSettings } from '../../services/settings'
-import { PERIOD_SETTINGS_SHEET } from '../../services/sheetNames'
-import { getSheetDataRows } from '../../services/spreadsheetStore'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 
 /**
  * Members of the open building for «اعضا و دسترسی‌ها»: the list (with who is still only
- * invited and who you are) and the writers, each reporting a refused change as a toast. The
+ * invited — see `memberStatus` — and who you are) and the writers, each reporting a refused change as a toast. The
  * period tab does not announce its own writes, so `version` re-reads it after every change.
  */
 export function useBuildingMembers() {
@@ -37,9 +36,7 @@ export function useBuildingMembers() {
   // Read on every render: `revision` (a sync) and `version` (our own write) re-render the page.
   const list: BuildingMember[] = members(spreadsheetId)
 
-  const invited = new Set(
-    invitedEmails(getSheetDataRows(spreadsheetId, PERIOD_SETTINGS_SHEET) ?? [])
-  )
+  const statusOf = memberStatusReader(spreadsheetId, me)
 
   const run = async (task: () => Promise<MemberBlock | null>, done: string) => {
     setBusy(true)
@@ -62,7 +59,7 @@ export function useBuildingMembers() {
     me,
     busy,
     reload,
-    isInvited: (email: string) => invited.has(email) && email !== me,
+    statusOf,
     setRole: (email: string, role: BuildingRole) =>
       run(() => changeMemberRole(spreadsheetId, email, role), 'نقش عوض شد'),
     togglePermission: (member: BuildingMember, permission: BuildingPermission, value: boolean) =>
@@ -73,6 +70,7 @@ export function useBuildingMembers() {
       ),
     resetPermissions: (email: string) =>
       run(() => setMemberOverrides(spreadsheetId, email, {}), 'به پیش‌فرض نقش برگشت'),
+    markActive: (email: string) => run(() => markMemberActive(spreadsheetId, email), 'عضو فعال شد'),
     remove: (email: string) => run(() => removeMember(spreadsheetId, email), 'دسترسی قطع شد')
   }
 }
