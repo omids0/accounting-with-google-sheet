@@ -1,3 +1,4 @@
+import { buildingLabel } from './buildingLabel'
 import type { PaymentResult } from './buildingPayment'
 import { formatMoney } from '../utils/formatMoney'
 import { formatIsoDatePersian } from '../utils/jalaliDate'
@@ -11,7 +12,7 @@ const forWhat = (result: PaymentResult) =>
 export function receiptText(building: string, result: PaymentResult): string {
   return [
     `رسید پرداخت · ${formatIsoDatePersian(result.date)}`,
-    `ساختمان ${building} — واحد ${toPersianDigits(result.unitNumber)}${
+    `${buildingLabel(building)} — واحد ${toPersianDigits(result.unitNumber)}${
       result.debtor ? ` · ${result.debtor}` : ''
     }`,
     `${formatMoney(result.amount)} بابت ${forWhat(result)}`,
@@ -41,7 +42,7 @@ export function receiptImage(building: string, result: PaymentResult): StatCardI
       ...(result.credit ? [{ label: 'اعتبار واحد', value: formatMoney(result.credit) }] : [])
     ],
     footer: [
-      `ساختمان ${building}`,
+      buildingLabel(building),
       `بابت ${forWhat(result)}`,
       result.accountTitle ? `واریز به ${result.accountTitle}` : ''
     ]

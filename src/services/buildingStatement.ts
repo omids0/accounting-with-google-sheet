@@ -1,4 +1,5 @@
 import { unitOpenReceivables, type UnitCredit } from './buildingCharges'
+import { buildingLabel } from './buildingLabel'
 import { monthName } from './buildingMonths'
 import { unitOfReference } from './buildingSummary'
 import { paidAmount, remainingAmount } from './receivablesRow'
@@ -120,7 +121,7 @@ export function statementText(header: StatementHeader, data: UnitStatementData):
   )
 
   return [
-    `صورت‌حساب ساختمان ${header.building}`,
+    `صورت‌حساب ${buildingLabel(header.building)}`,
     unitLine(header),
     ...(lines.length ? lines : ['بدهی باز ندارید ✓']),
     '—',
@@ -135,9 +136,9 @@ export function statementText(header: StatementHeader, data: UnitStatementData):
 /** The text «یادآوری» shares: a polite one-liner with the amount and the card. */
 export function reminderText(header: StatementHeader, open: number): string {
   return [
-    `سلام${header.debtor ? ` ${header.debtor}` : ''} عزیز، یادآوری شارژ ساختمان ${
+    `سلام${header.debtor ? ` ${header.debtor}` : ''} عزیز، یادآوری شارژ ${buildingLabel(
       header.building
-    }:`,
+    )}:`,
     `بدهی واحد ${toPersianDigits(header.unitNumber)} مبلغ ${formatMoney(open)} است.`,
     header.card ? `شماره کارت: ${toPersianDigits(header.card)}` : ''
   ]

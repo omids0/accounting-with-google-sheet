@@ -1,3 +1,4 @@
+import { buildingLabel } from './buildingLabel'
 import { loadBuildingSummary } from './buildingSummary'
 import { registerBuildingSpreadsheet } from './buildingTemplate'
 import { formatSpreadsheetTitle } from './spreadsheetCatalog'
@@ -20,7 +21,7 @@ export async function connectBuilding(spreadsheetId: string, title?: string): Pr
   setWorkspaceType(spreadsheetId, 'building')
   registerBuildingSpreadsheet(
     spreadsheetId,
-    title || formatSpreadsheetTitle(`ساختمان ${summary.name}`)
+    title || formatSpreadsheetTitle(buildingLabel(summary.name))
   )
 
   return true

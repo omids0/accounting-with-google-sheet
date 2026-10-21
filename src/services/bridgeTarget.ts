@@ -1,3 +1,4 @@
+import { buildingLabel } from './buildingLabel'
 import { getBuildingProfile } from './buildingProfile'
 import { getSettings, getSpreadsheets } from './settings'
 import { getSpreadsheetLabel } from './spreadsheetCatalog'
@@ -21,7 +22,7 @@ export function activeBuildingName(): string {
 
   const name = getBuildingProfile()?.name
 
-  return name ? `ساختمان ${name}` : ''
+  return name ? buildingLabel(name) : ''
 }
 
 /**
