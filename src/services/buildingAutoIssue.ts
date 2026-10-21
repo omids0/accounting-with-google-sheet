@@ -11,7 +11,7 @@ import {
   parseIssueMarker
 } from './buildingIssueGuard'
 import { isJourneyUnfinished, readJourney } from './buildingJourney'
-import { dueDateOf, monthName } from './buildingMonths'
+import { issueDueDate, monthName } from './buildingMonths'
 import { getBuildingProfile } from './buildingProfile'
 import { chargeResidents, fetchStays } from './buildingResidents'
 import { can } from './buildingRoles'
@@ -116,7 +116,7 @@ export async function runAutoIssue(spreadsheetId: string): Promise<number> {
     const written = await issueCharges(
       spreadsheetId,
       planIssueFrom(profile, data.units, residents, receivables, month),
-      dueDateOf(month, profile.dueDay),
+      issueDueDate(month, profile.dueDay, today),
       ''
     )
 

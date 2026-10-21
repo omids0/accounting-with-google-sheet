@@ -54,6 +54,16 @@ export function dueDateOf(monthKey: string, day: number): string {
   return jalaliToIso(year, month, Math.min(Math.max(day, 1), 28))
 }
 
+/**
+ * The due date a charge is written with: the month's due day, but never earlier than the day it is
+ * issued, so a charge issued late is not overdue the moment it exists.
+ */
+export function issueDueDate(monthKey: string, day: number, todayIso: string): string {
+  const due = dueDateOf(monthKey, day)
+
+  return due < todayIso ? todayIso : due
+}
+
 /** First to last day of a Jalali month, as ISO dates. */
 export function monthRangeOf(monthKey: string): DateRange {
   const { year, month } = partsOf(monthKey)

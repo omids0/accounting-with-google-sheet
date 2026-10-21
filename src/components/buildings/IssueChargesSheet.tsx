@@ -7,7 +7,7 @@ import { useBuildingAccess } from '../../hooks/useBuildingAccess'
 import { issueCharges } from '../../services/buildingChargeActions'
 import { planIssueFrom } from '../../services/buildingChargePlan'
 import { latestChargeMonth, missingIssueMonths } from '../../services/buildingCharges'
-import { dueDateOf, monthLabel, monthName, nextMonthKey } from '../../services/buildingMonths'
+import { issueDueDate, monthLabel, monthName, nextMonthKey } from '../../services/buildingMonths'
 import { chargeResidents } from '../../services/buildingResidents'
 import { getSettings } from '../../services/settings'
 import { getTodayIso } from '../../utils/jalaliDate'
@@ -83,7 +83,7 @@ function IssueChargesForm({
       const count = await issueCharges(
         spreadsheetId,
         plan,
-        dueDateOf(month, Number(day)),
+        issueDueDate(month, Number(day), getTodayIso()),
         note.trim()
       )
 
@@ -133,7 +133,13 @@ function IssueChargesForm({
         onChange={setMonth}
         options={months.map(value => ({ value, label: monthLabel(value) }))}
       />
-      <FormSelect label="سررسید (روز ماه)" value={day} onChange={setDueDay} options={DAYS_1_28} />
+      <FormSelect
+        label="سررسید پرداخت (روز ماه)"
+        value={day}
+        onChange={setDueDay}
+        options={DAYS_1_28}
+        hint="اگر این روز گذشته باشد، سررسید امروز می‌شود."
+      />
       <FormField label="یادداشت (اختیاری)">
         <input value={note} onChange={event => setNote(event.target.value)} />
       </FormField>

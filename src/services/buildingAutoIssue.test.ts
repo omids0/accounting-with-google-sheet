@@ -124,12 +124,12 @@ beforeEach(() => {
 })
 
 describe('runAutoIssue', () => {
-  it('catches up every missing month with the due day, after writing the marker and syncing', async () => {
+  it('catches up every missing month, due today since the due day has passed, after writing the marker and syncing', async () => {
     expect(await runAutoIssue('b1')).toBe(2)
 
     expect(state.issued).toEqual([
-      { month: '1405-06', due: expect.any(String) },
-      { month: '1405-07', due: expect.any(String) }
+      { month: '1405-06', due: '2026-10-20' },
+      { month: '1405-07', due: '2026-10-20' }
     ])
     expect(state.markerWrites).toHaveLength(1)
     expect(state.markerWrites[0]).toMatch(/^1405-07@.+@\d{4}-/)

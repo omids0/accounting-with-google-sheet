@@ -9,6 +9,7 @@ import {
 } from './buildingChargeMonths'
 import {
   dueDateOf,
+  issueDueDate,
   monthKeyOfIso,
   monthLabel,
   monthName,
@@ -101,5 +102,15 @@ describe('month keys', () => {
     expect(monthKeyOfIso('2026-10-20')).toBe('1405-07')
     expect(dueDateOf('1405-07', 10)).toBe('2026-10-02')
     expect(monthKeyOfIso(dueDateOf('1405-12', 28))).toBe('1405-12')
+  })
+
+  it('never writes a due date earlier than the day of issue', () => {
+    // Issued on 29 Mehr: the 10th of Mehr is behind us, so the charge is due today.
+    expect(issueDueDate('1405-07', 10, '2026-10-21')).toBe('2026-10-21')
+    // Issued early enough, the due day stands (also on the day itself).
+    expect(issueDueDate('1405-07', 10, '2026-10-01')).toBe('2026-10-02')
+    expect(issueDueDate('1405-07', 10, '2026-10-02')).toBe('2026-10-02')
+    // A month issued ahead of time keeps its own due day.
+    expect(issueDueDate('1405-08', 10, '2026-10-21')).toBe('2026-11-01')
   })
 })
