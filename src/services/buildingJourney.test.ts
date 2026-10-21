@@ -177,7 +177,17 @@ describe('persisted state', () => {
     expect(isJourneyUnfinished(readJourney('fresh'))).toBe(true)
     expect(readJourney('fresh')?.unitCount).toBe(6)
 
+    // A mirror that is loaded but has no row yet (it syncs later) does not hide it either.
     rows.period = [['نوع فضا', 'ساختمان', 't']]
-    expect(readJourney('fresh')).toBeNull()
+    expect(readJourney('fresh')?.step).toBe('units')
+
+    // The row of the mirror wins once it is there.
+    rows.period = [[JOURNEY_ROW, JSON.stringify({ ...initialJourneyState(), step: 'people' }), 't']]
+    expect(readJourney('fresh')?.step).toBe('people')
+  })
+
+  it('knows nothing of a building that was not created on this device and has no row', () => {
+    rows.period = [['نوع فضا', 'ساختمان', 't']]
+    expect(readJourney('connected')).toBeNull()
   })
 })

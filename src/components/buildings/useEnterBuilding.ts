@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom'
 import { useNavigate } from 'react-router'
 
 import { getPathForTab } from '../../routes/paths'
@@ -39,8 +40,10 @@ export function useEnterBuilding() {
       if (currentId && getWorkspaceType(currentId) !== 'building') rememberPersonalSheet(currentId)
       await switchActiveSpreadsheet(buildingId)
       await moveSyncToSpreadsheet(currentId, buildingId)
+      // The route guard sends a building away from «/buildings» as soon as the workspace flips. Let
+      // that settle first, so the page we want is the last navigation instead of being overridden.
+      flushSync(() => bumpSpreadsheetKey())
       navigate(getPathForTab(enterDestination(tab, buildingId)))
-      bumpSpreadsheetKey()
     } catch (err) {
       showError(toUserMessage(err, 'ورود به ساختمان ناموفق بود'))
     }

@@ -127,18 +127,21 @@ export function rememberCreatedJourney(spreadsheetId: string, state: JourneyStat
 
 /**
  * The journey of the active (or given) building; null = no row = nothing to set up. While the
- * building's mirror is not loaded, the state it was created with stands in.
+ * mirror of a building created on this device has no row yet, the state it was created with
+ * stands in.
  */
 export function readJourney(
   spreadsheetId = getSettings()?.spreadsheetId ?? ''
 ): JourneyState | null {
-  const rows = getSheetDataRows(spreadsheetId, PERIOD_SETTINGS_SHEET)
+  const row = (getSheetDataRows(spreadsheetId, PERIOD_SETTINGS_SHEET) ?? []).find(
+    cells => String(cells[0] ?? '').trim() === JOURNEY_ROW
+  )
 
-  if (!rows) return createdJourneys.get(spreadsheetId) ?? null
+  // The row is never deleted (a finished journey is saved as finished), so a mirror without it
+  // has not caught up with the building yet.
+  if (!row) return createdJourneys.get(spreadsheetId) ?? null
 
-  const row = rows.find(cells => String(cells[0] ?? '').trim() === JOURNEY_ROW)
-
-  return row ? parseJourneyState(String(row[1] ?? '')) : null
+  return parseJourneyState(String(row[1] ?? ''))
 }
 
 export function isJourneyUnfinished(state: JourneyState | null): boolean {
