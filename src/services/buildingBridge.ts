@@ -69,6 +69,11 @@ export interface OwnChargeBridge {
   unitNumber: string
   amount: number
   date: string
+  /**
+   * Identifies the payment (the income record of a bank-SMS deposit): the same payment is bridged
+   * once, however often it is offered. Without it every call writes.
+   */
+  paymentKey?: string
 }
 
 /**
@@ -80,12 +85,19 @@ export async function bridgeOwnCharge(input: OwnChargeBridge): Promise<boolean> 
 
   const form = personalForm('expense')
 
-  if (!personalId || !form || !(input.amount > 0)) return false
+  const key = input.paymentKey ? `own:${input.paymentKey}` : null
 
-  await writeToWorkspace(
+  if (!personalId || !form || !(input.amount > 0)) return false
+  if (key && readBridgePrefs().sent[key]) return false
+
+  // The write is persisted in the personal outbox before anything is awaited; mark it sent now.
+  const sending = writeToWorkspace(
     personalId,
     ownChargeOperation(form, { ...input, building: activeBuildingName() })
-  ).catch(() => false)
+  )
+
+  if (key) updateBridgePrefs({ sent: { ...readBridgePrefs().sent, [key]: personalId } })
+  await sending.catch(() => false)
 
   return true
 }

@@ -27,6 +27,8 @@ import {
   type SmsCategoryChoice,
   type SmsCategorySuggestion
 } from '../../services/bankSmsSuggest'
+import { readBridgePrefs } from '../../services/bridgePrefs'
+import { personalBridgeId } from '../../services/bridgeTarget'
 import { unitSuggestionTitle, type SmsUnitInput } from '../../services/buildingSmsMatch'
 import { payUnitFromSms } from '../../services/buildingSmsPayment'
 import { useBankSmsStore } from '../../stores/bankSmsStore'
@@ -178,7 +180,9 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     return payUnitFromSms(spreadsheetId, entry, {
       unit: { id: unit.id, number: unit.number },
       debtor: unit.debtorId ? { id: unit.debtorId, name: unit.name } : null,
-      accountTitle: titleOf(entry.result.accountId)
+      accountTitle: titleOf(entry.result.accountId),
+      // Bridge B: the manager's own unit, with the remembered tick on (single pay and bulk alike).
+      bridgeOwn: unit.me === true && personalBridgeId() !== null && readBridgePrefs().ownUnit
     })
   }
 

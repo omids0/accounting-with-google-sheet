@@ -1,9 +1,11 @@
+import { personalBridgeId } from '../../services/bridgeTarget'
 import {
   unitPickLabel,
   unitReason,
   unitSuggestionTitle,
   type SmsUnitOffer
 } from '../../services/buildingSmsMatch'
+import BridgeTick from '../buildings/BridgeTick'
 import Select from '../form/Select'
 import ToggleChipGroup from '../ToggleChipGroup'
 import { smsChoiceReasonClass, smsChoiceRowClass } from '../ui/bankSmsStyles'
@@ -22,7 +24,8 @@ type BankSmsUnitLineProps = {
 /**
  * Round 11, Step 6: which unit paid, on a deposit card of a building queue. A card match is one
  * suggestion line («شارژ مهر · واحد ۴ · رضایی»); an amount-only match is a question with the
- * candidate units to pick from, and nothing is saved until one is picked.
+ * candidate units to pick from, and nothing is saved until one is picked. When the paying unit is
+ * the manager's own, the Bridge B tick «در حساب شخصی من: هزینهٔ «خانه › شارژ»» is offered too.
  */
 export default function BankSmsUnitLine({
   offer,
@@ -30,6 +33,16 @@ export default function BankSmsUnitLine({
   onPick,
   disabled
 }: BankSmsUnitLineProps) {
+  const unit =
+    offer.kind === 'card'
+      ? offer.candidate.unit
+      : offer.candidates.find(item => item.unit.id === pickedId)?.unit
+
+  const tick =
+    unit?.me && personalBridgeId() !== null ? (
+      <BridgeTick pref="ownUnit" text="هزینهٔ «خانه › شارژ»" disabled={disabled} />
+    ) : null
+
   if (offer.kind === 'card') {
     const reason = unitReason(offer.candidate)
 
@@ -39,6 +52,7 @@ export default function BankSmsUnitLine({
           <b>پیشنهاد: {unitSuggestionTitle(offer.candidate)}</b>
           {reason ? ` (${reason})` : ''}
         </p>
+        {tick}
       </div>
     )
   }
@@ -70,6 +84,7 @@ export default function BankSmsUnitLine({
           ]}
         />
       )}
+      {tick}
     </div>
   )
 }

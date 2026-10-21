@@ -19,12 +19,15 @@ vi.mock('./bankSmsApply', () => ({
   })
 }))
 
+const bridge = vi.hoisted(() => ({ ownCharge: vi.fn(async (_input: unknown) => true) }))
+
+vi.mock('./buildingBridge', () => ({ bridgeOwnCharge: bridge.ownCharge }))
 vi.mock('./buildingPayment', () => ({
   payUnit: vi.fn(async (...args: unknown[]) => {
     calls.order.push('pay')
     calls.pay.push(args)
 
-    return { amount: 1_200_000 }
+    return { amount: 1_200_000, date: '2025-10-02' }
   })
 }))
 
@@ -50,6 +53,8 @@ beforeEach(() => {
   calls.order = []
   calls.confirm = []
   calls.pay = []
+  bridge.ownCharge.mockClear()
+  bridge.ownCharge.mockResolvedValue(true)
 })
 
 describe('payUnitFromSms', () => {
@@ -104,5 +109,46 @@ describe('payUnitFromSms', () => {
       })
     ).rejects.toThrow('offline')
     expect(calls.pay).toHaveLength(0)
+  })
+
+  describe('Bridge B', () => {
+    const own = {
+      unit: { id: 'u4', number: '4' },
+      debtor: { id: 'p4', name: 'من' },
+      accountTitle: ''
+    }
+
+    it('bridges the own unit of the manager once per deposit, keyed by its record', async () => {
+      await payUnitFromSms('sheet', entry, { ...own, bridgeOwn: true })
+
+      expect(calls.order).toEqual(['confirm', 'pay'])
+      expect(bridge.ownCharge).toHaveBeenCalledWith({
+        unitNumber: '۴',
+        amount: 1_200_000,
+        date: '2025-10-02',
+        paymentKey: 'rec-1'
+      })
+    })
+
+    it('does not bridge without the tick, or when the deposit could not be recorded', async () => {
+      await payUnitFromSms('sheet', entry, own)
+
+      expect(bridge.ownCharge).not.toHaveBeenCalled()
+
+      const apply = await import('./bankSmsApply')
+
+      vi.mocked(apply.confirmSmsEntryWithId).mockRejectedValueOnce(new Error('offline'))
+      await payUnitFromSms('sheet', entry, { ...own, bridgeOwn: true }).catch(() => undefined)
+
+      expect(bridge.ownCharge).not.toHaveBeenCalled()
+    })
+
+    it('never fails the payment when the bridge fails', async () => {
+      bridge.ownCharge.mockRejectedValueOnce(new Error('offline'))
+
+      await expect(
+        payUnitFromSms('sheet', entry, { ...own, bridgeOwn: true })
+      ).resolves.toMatchObject({ amount: 1_200_000 })
+    })
   })
 })

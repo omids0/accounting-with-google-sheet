@@ -11,6 +11,11 @@ export interface SmsUnitPaymentInput {
   debtor: { id: string; name: string } | null
   /** Title of the fund account the SMS names. */
   accountTitle: string
+  /**
+   * The manager's own unit with the «در حساب شخصی من» tick on: the payment is also a personal
+   * expense «خانه › شارژ». Written once per deposit and never fails the payment.
+   */
+  bridgeOwn?: boolean
 }
 
 /**
@@ -40,7 +45,7 @@ export async function payUnitFromSms(
     { remember: false }
   )
 
-  return payUnit(spreadsheetId, {
+  const paid = await payUnit(spreadsheetId, {
     unit,
     debtor,
     amount: entry.amount,
@@ -55,4 +60,18 @@ export async function payUnitFromSms(
       linkRecordId: recordId
     }
   })
+
+  if (input.bridgeOwn) {
+    // The deposit is saved: the personal expense is best effort and queues itself if it fails.
+    const { bridgeOwnCharge } = await import('./buildingBridge')
+
+    await bridgeOwnCharge({
+      unitNumber: toPersianDigits(unit.number),
+      amount: paid.amount,
+      date: paid.date,
+      paymentKey: recordId
+    }).catch(() => false)
+  }
+
+  return paid
 }

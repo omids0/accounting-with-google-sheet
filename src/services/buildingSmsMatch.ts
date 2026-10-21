@@ -31,6 +31,8 @@ export interface SmsUnitInput {
   /** The current debtor ('' when the unit has neither a resident nor an owner). */
   debtorId: string
   name: string
+  /** The debtor is the manager's own person (the «من» flag): Bridge B can be offered. */
+  me?: boolean
   /** Digits of the bank accounts saved on the debtor's counterparty. */
   cards: string[]
   open: number
@@ -140,6 +142,7 @@ export function buildSmsUnitInputs(data: {
       number: unit.number,
       debtorId: debtor?.id ?? '',
       name: debtor?.name ?? '',
+      me: Boolean(persons.find(person => person.id === debtor?.id)?.me),
       cards: personCards(persons.find(person => person.id === debtor?.id)),
       open: balance.open,
       charge: profile ? unitCharge(profile, unit, active) : unit.monthlyCharge,

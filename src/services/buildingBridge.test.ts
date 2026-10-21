@@ -153,6 +153,17 @@ describe('bridgeOwnCharge (Bridge B)', () => {
     ).resolves.toBe(true)
   })
 
+  it('bridges one payment once when it is identified, however often it is offered', async () => {
+    const input = { unitNumber: '۳', amount: 1_200_000, date: '2025-10-02', paymentKey: 'rec-9' }
+
+    await expect(bridgeOwnCharge(input)).resolves.toBe(true)
+    await expect(bridgeOwnCharge(input)).resolves.toBe(false)
+    await expect(bridgeOwnCharge({ ...input, paymentKey: 'rec-10' })).resolves.toBe(true)
+
+    expect(writeToWorkspace).toHaveBeenCalledTimes(2)
+    expect(Object.keys(readBridgePrefs().sent)).toEqual(['own:rec-9', 'own:rec-10'])
+  })
+
   it('writes nothing for an amount of zero', async () => {
     await expect(bridgeOwnCharge({ unitNumber: '۳', amount: 0, date: '2025-10-02' })).resolves.toBe(
       false
