@@ -9,6 +9,7 @@ import { fetchCounterparties } from '../../services/counterparties'
 import { fetchReceivables } from '../../services/receivablesCrud'
 import { getSettings } from '../../services/settings'
 import { fetchWalletAccounts } from '../../services/wallet'
+import { getWorkspaceType } from '../../services/workspace'
 import type { Counterparty, Receivable, WalletAccount } from '../../types'
 import { handleSheetError } from '../../utils/sheetError'
 
@@ -52,7 +53,8 @@ export function useBuildingSetupData(): BuildingSetupData {
   const reload = useCallback(async () => {
     const spreadsheetId = getSettings()?.spreadsheetId
 
-    if (!spreadsheetId) return
+    // The sheet flips to the personal one a moment before this page unmounts.
+    if (!spreadsheetId || getWorkspaceType(spreadsheetId) !== 'building') return
 
     try {
       const [allUnits, stays, persons, receivables, accounts] = await Promise.all([
