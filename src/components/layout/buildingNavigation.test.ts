@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildingMenuGroups } from './navMenuGroups'
+import { MENU_MORE_LINKS, buildingMenuGroups } from './navMenuGroups'
 import {
   BUILDING_PARENT_TAB,
   BUILDING_TABS,
@@ -101,5 +101,11 @@ describe('building routes', () => {
       expect(PERSONAL_ONLY_TABS).not.toContain(tab)
     }
     expect(BUILDING_TABS.some(tab => PERSONAL_ONLY_TABS.includes(tab))).toBe(false)
+  })
+})
+
+describe('personal drawer', () => {
+  it('links the building manager home from the more group', () => {
+    expect(MENU_MORE_LINKS.map(link => link.tab)).toContain('buildings-home')
   })
 })
