@@ -9,6 +9,7 @@ import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import DangCard from './DangCard'
+import DangSettleAction from './DangSettleAction'
 import type { DangWithRow } from './types'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
 import {
@@ -33,9 +34,11 @@ export type DangListProps = {
   onExpand: (id: string | null) => void
   onTogglePaid: (item: DangWithRow, paid: boolean) => void
   onAmountChange: (item: DangWithRow, value: number | '') => void
-  onAmountBlur: (item: DangWithRow) => void
+  onAmountBlur: (item: DangWithRow, value?: number | '') => void
   onEdit: (item: DangWithRow) => void
   onDelete: (item: DangWithRow) => void
+  /** A building's debts: the «پرداخت به …» button and the dial pad. */
+  building?: boolean
   /** Opens the same create form as the page speed dial. */
   onAdd?: () => void
   /** Wording of the empty list, for a scope that talks about someone else's debts. */
@@ -70,6 +73,7 @@ export default function DangList({
   onEdit,
   onDelete,
   onAdd,
+  building = false,
   emptyCopy = PERSONAL_EMPTY_COPY
 }: DangListProps) {
   const isDesktop = useIsDesktop()
@@ -77,13 +81,17 @@ export default function DangList({
   const readOnly = useReadOnly()
   const columns = useMemo<DataTableColumn<DangWithRow>[]>(
     () => [
-      checkboxColumn({
-        header: 'پرداخت شد',
-        checked: item => item.paid,
-        disabled: item => togglingId === item.id || readOnly,
-        label: item => `پرداخت شد: ${item.title}`,
-        onChange: onTogglePaid
-      }),
+      ...(building
+        ? []
+        : [
+            checkboxColumn({
+              header: 'پرداخت شد',
+              checked: (item: DangWithRow) => item.paid,
+              disabled: (item: DangWithRow) => togglingId === item.id || readOnly,
+              label: (item: DangWithRow) => `پرداخت شد: ${item.title}`,
+              onChange: onTogglePaid
+            })
+          ]),
       textColumn('title', 'عنوان', item => item.title, true),
       textColumn('category', 'دسته', item => item.category),
       textColumn('counterparty', 'طرف حساب', item => item.counterparty),
@@ -91,7 +99,7 @@ export default function DangList({
       dateColumn('date', 'تاریخ', item => item.date),
       moneyColumn('amount', 'مبلغ', item => item.amount)
     ],
-    [togglingId, onTogglePaid, shared, readOnly]
+    [togglingId, onTogglePaid, shared, readOnly, building]
   )
 
   if (loading && items.length === 0) {
@@ -133,7 +141,16 @@ export default function DangList({
           rowKey={item => item.id}
           isMuted={item => item.paid}
           actions={item => (
-            <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+            <>
+              {building && !readOnly ? (
+                <DangSettleAction
+                  item={item}
+                  busy={togglingId === item.id}
+                  onToggle={onTogglePaid}
+                />
+              ) : null}
+              <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+            </>
           )}
         />
       ) : (
@@ -152,6 +169,7 @@ export default function DangList({
               onAmountBlur={onAmountBlur}
               onEdit={onEdit}
               onDelete={onDelete}
+              building={building}
             />
           ))}
         </div>

@@ -45,12 +45,18 @@ export async function createLinkedRecordWithWallet(
   return recordId
 }
 
+/** The title prefix(es) of the records this app creates for a module. */
+export type SettlePrefix = string | readonly string[]
+
+const hasPrefix = (title: string, prefix: SettlePrefix) =>
+  (typeof prefix === 'string' ? [prefix] : prefix).some(item => title.startsWith(item))
+
 /** The linked record when it was not created by this app (its title lacks the module prefix). */
 async function findForeignRecord(
   spreadsheetId: string,
   type: SettleType,
   recordId: string,
-  prefix: string
+  prefix: SettlePrefix
 ) {
   const form = getSettings()?.forms.find(item => item.type === type)
 
@@ -58,7 +64,7 @@ async function findForeignRecord(
 
   const match = (await fetchRecords(spreadsheetId, form)).find(record => record.id === recordId)
 
-  return match && !(match.values.title ?? '').startsWith(prefix) ? match : null
+  return match && !hasPrefix(match.values.title ?? '', prefix) ? match : null
 }
 
 /** True when `recordId` is a record the user linked (so unpaying must ask before deleting it). */
@@ -66,7 +72,7 @@ export async function isLinkedForeignRecord(
   spreadsheetId: string,
   type: SettleType,
   recordId: string,
-  prefix: string
+  prefix: SettlePrefix
 ): Promise<boolean> {
   return (await findForeignRecord(spreadsheetId, type, recordId, prefix)) !== null
 }
@@ -79,7 +85,7 @@ export async function deleteLinkedRecordWithWallet(
   spreadsheetId: string,
   type: SettleType,
   recordId: string,
-  prefix: string,
+  prefix: SettlePrefix,
   unlink: UnlinkChoice = 'keep'
 ): Promise<void> {
   if (!recordId) return

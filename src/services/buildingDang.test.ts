@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   dangChipCounts,
   dangOriginRecordIds,
+  dangPayLabel,
   dangSettlementCategory,
   filterDangs,
   repaymentSubCategory
@@ -95,6 +96,14 @@ describe('filterDangs', () => {
   })
 })
 
+describe('the settle button', () => {
+  it('names who is paid, or just settles when nobody is named', () => {
+    expect(dangPayLabel('مدیر')).toBe('پرداخت به مدیر')
+    expect(dangPayLabel(' امید رضایی ')).toBe('پرداخت به امید رضایی')
+    expect(dangPayLabel('  ')).toBe('تسویه')
+  })
+})
+
 describe('repayment shape', () => {
   it('is a transfer «انتقال › بازپرداخت به <payer>» in a building, the debt category otherwise', () => {
     expect(dangSettlementCategory(dang({}), true)).toEqual({
@@ -136,7 +145,7 @@ describe('settling a building debt', () => {
     expect(state.linked[0]).toMatchObject({
       type: 'expense',
       params: {
-        title: 'بدهی: سرویس آسانسور',
+        title: 'بازپرداخت به مدیر · سرویس آسانسور',
         amount: 2_400_000,
         category: 'انتقال',
         subCategory: 'بازپرداخت به مدیر'

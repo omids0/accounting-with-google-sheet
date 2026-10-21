@@ -1,4 +1,5 @@
 import { SMS_RECORD_NOTE } from './bankSmsApply'
+import { DANG_BUILDING_PREFIXES } from './dangTitles'
 import { matchesDuplicate, type DuplicateCandidate, type LedgerEntry } from './recordDuplicates'
 import type { WalletAccount } from '../types'
 import { formatPersianNumber } from '../utils/formatMoney'
@@ -8,7 +9,7 @@ import { formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate'
 export const SETTLE_DUPLICATE_DAYS = 3
 
 /** Titles of the records this app creates for a settlement: they belong to another payment. */
-const SETTLEMENT_PREFIXES = ['بدهی: ', 'چک: ', 'قسط: ', 'طلب: ']
+const SETTLEMENT_PREFIXES = [...DANG_BUILDING_PREFIXES, 'چک: ', 'قسط: ', 'طلب: ']
 
 /**
  * The record that probably already is this payment: same direction and exact amount within

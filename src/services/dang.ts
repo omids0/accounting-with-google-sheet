@@ -1,6 +1,7 @@
 import type { Dang } from '../types'
 import { logItemActivity } from './activityLog'
 import { dangSettlementCategory } from './buildingDang'
+import { dangPrefixes, dangSettlementTitle } from './dangTitles'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { deleteLinkedExpenseRecord } from './paymentTransactions'
 import type { SettleOptions, UnlinkChoice } from './settleOptions'
@@ -185,14 +186,16 @@ export async function toggleDangPaid(
   options?: SettleOptions,
   unlink?: UnlinkChoice
 ): Promise<Dang> {
+  const building = getActiveWorkspaceType() === 'building'
+
   if (paid && !dang.paid) {
     const transactionRecordId = await createLinkedRecordWithWallet(
       spreadsheetId,
       'expense',
       {
-        title: `بدهی: ${dang.title}`,
+        title: dangSettlementTitle(dang, building),
         amount: dang.amount,
-        ...dangSettlementCategory(dang, getActiveWorkspaceType() === 'building'),
+        ...dangSettlementCategory(dang, building),
         note: dang.note
       },
       options
@@ -216,7 +219,7 @@ export async function toggleDangPaid(
       spreadsheetId,
       'expense',
       dang.transactionRecordId ?? '',
-      'بدهی: ',
+      dangPrefixes(building),
       unlink
     )
 

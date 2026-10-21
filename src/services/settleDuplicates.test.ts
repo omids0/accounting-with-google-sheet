@@ -49,7 +49,13 @@ describe('findSettleDuplicate', () => {
   })
 
   it('skips records this app created for another settlement', () => {
-    for (const title of ['بدهی: علی', 'چک: ۱۲۳ — رضا', 'قسط: وام (#2)', 'طلب: سارا']) {
+    for (const title of [
+      'بدهی: علی',
+      'بازپرداخت به مدیر · لامپ',
+      'چک: ۱۲۳ — رضا',
+      'قسط: وام (#2)',
+      'طلب: سارا'
+    ]) {
       expect(findSettleDuplicate(candidate, [entry({ title })], new Set())).toBeNull()
     }
   })

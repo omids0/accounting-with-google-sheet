@@ -1,9 +1,11 @@
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { AccordionCollapse } from '../AccordionCollapse'
+import AmountField from '../AmountField'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
+import DangSettleAction from './DangSettleAction'
 import type { DangWithRow } from './types'
 import MoneyText from '../MoneyText'
 import {
@@ -35,9 +37,15 @@ export type DangCardProps = {
   onTogglePaid: (item: DangWithRow, paid: boolean) => void
   onExpand: (id: string | null) => void
   onAmountChange: (item: DangWithRow, value: number | '') => void
-  onAmountBlur: (item: DangWithRow) => void
+  /** `value` is passed by the dial pad, which has the new amount in hand already. */
+  onAmountBlur: (item: DangWithRow, value?: number | '') => void
   onEdit: (item: DangWithRow) => void
   onDelete: (item: DangWithRow) => void
+  /**
+   * A building's debt: settled with the button «پرداخت به …» instead of the small checkbox, and
+   * the amount is typed on the dial pad.
+   */
+  building?: boolean
 }
 
 export default function DangCard({
@@ -51,7 +59,8 @@ export default function DangCard({
   onAmountChange,
   onAmountBlur,
   onEdit,
-  onDelete
+  onDelete,
+  building = false
 }: DangCardProps) {
   const readOnly = useReadOnly()
   const rawAmount = amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount
@@ -64,14 +73,16 @@ export default function DangCard({
     >
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
-          <input
-            type="checkbox"
-            className={dangCheckboxClass}
-            checked={item.paid}
-            disabled={togglingId === item.id || readOnly}
-            aria-label={`پرداخت شد: ${item.title}`}
-            onChange={e => onTogglePaid(item, e.target.checked)}
-          />
+          {building ? null : (
+            <input
+              type="checkbox"
+              className={dangCheckboxClass}
+              checked={item.paid}
+              disabled={togglingId === item.id || readOnly}
+              aria-label={`پرداخت شد: ${item.title}`}
+              onChange={e => onTogglePaid(item, e.target.checked)}
+            />
+          )}
           <div className={dangCardBodyClass}>
             <button
               type="button"
@@ -98,16 +109,32 @@ export default function DangCard({
               ) : null}
             </button>
 
+            {building && !readOnly ? (
+              <DangSettleAction item={item} busy={togglingId === item.id} onToggle={onTogglePaid} />
+            ) : null}
+
             <AccordionCollapse open={expanded && !readOnly}>
               <div className={dangCardAmountEditClass}>
-                <CardInlineAmountEdit
-                  label="مبلغ"
-                  value={amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount}
-                  onChange={val => onAmountChange(item, val)}
-                  onBlur={() => onAmountBlur(item)}
-                  onClose={() => onExpand(null)}
-                  saving={savingAmountId === item.id}
-                />
+                {building ? (
+                  <AmountField
+                    label="مبلغ بدهی"
+                    value={item.amount}
+                    onChange={value => {
+                      onAmountChange(item, value)
+                      onAmountBlur(item, value)
+                      onExpand(null)
+                    }}
+                  />
+                ) : (
+                  <CardInlineAmountEdit
+                    label="مبلغ"
+                    value={amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount}
+                    onChange={val => onAmountChange(item, val)}
+                    onBlur={() => onAmountBlur(item)}
+                    onClose={() => onExpand(null)}
+                    saving={savingAmountId === item.id}
+                  />
+                )}
               </div>
             </AccordionCollapse>
           </div>

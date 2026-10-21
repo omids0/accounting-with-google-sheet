@@ -3,6 +3,7 @@ import { useMemo, type ReactNode } from 'react'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
+import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
@@ -36,6 +37,7 @@ export default function DangPage({
   scope?: DangPageScope
 }) {
   const readOnly = useReadOnly()
+  const building = useIsBuildingWorkspace()
   const {
     items,
     loading,
@@ -185,6 +187,7 @@ export default function DangPage({
         onEdit={openEditForm}
         onDelete={requestDelete}
         onAdd={openCreateForm}
+        building={building}
         emptyCopy={scope?.emptyCopy}
       />
 

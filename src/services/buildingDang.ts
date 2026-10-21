@@ -1,4 +1,5 @@
 import { expenseIdOfDang } from './buildingExpenseSplit'
+import { DANG_REPAYMENT_PREFIX } from './dangTitles'
 import type { Dang } from '../types'
 import { TRANSFER_EXPENSE_CATEGORY } from '../utils/protectedCategories'
 
@@ -56,7 +57,8 @@ export function dangChipCounts<T extends DangLike>(
 }
 
 /** The subcategory of the transfer that repays a debt: «انتقال › بازپرداخت به مدیر». */
-export const repaymentSubCategory = (creditor: string) => `بازپرداخت به ${creditor.trim()}`
+export const repaymentSubCategory = (creditor: string) =>
+  `${DANG_REPAYMENT_PREFIX}${creditor.trim()}`
 
 /**
  * The category of the record a settlement writes. A personal debt is an expense of its category;
@@ -78,4 +80,11 @@ export function dangSettlementCategory(
  */
 export function dangOriginRecordIds(dangs: Pick<Dang, 'id'>[]): string[] {
   return dangs.map(item => expenseIdOfDang(item.id)).filter(Boolean)
+}
+
+/** The settle button of an open building debt: «پرداخت به مدیر», or «تسویه» without a creditor. */
+export function dangPayLabel(creditor: string): string {
+  const name = creditor.trim()
+
+  return name ? `پرداخت به ${name}` : 'تسویه'
 }

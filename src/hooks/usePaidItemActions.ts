@@ -7,7 +7,7 @@ import { useSettleFlow } from '../components/settle/useSettleFlow'
 import { useReadOnly } from '../components/ui/readOnly'
 import type { ImportPreview } from '../services/importExport'
 import type { SettleOptions, UnlinkChoice } from '../services/settleOptions'
-import { isLinkedForeignRecord } from '../services/settleRecords'
+import { isLinkedForeignRecord, type SettlePrefix } from '../services/settleRecords'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 
@@ -29,8 +29,8 @@ export type SettleConfig<T> = {
   bridgeFor?: (item: T) => boolean
   /** The record the item's payment is linked to, if any. */
   recordIdOf: (item: T) => string | undefined
-  /** Title prefix of the records this app creates for the module («بدهی: »). */
-  prefix: string
+  /** Title prefix(es) of the records this app creates for the module («بدهی: »). */
+  prefix: SettlePrefix
   /** `transactionRecordId` of every item: those records are settlements already. */
   linkedIds: readonly string[]
 }

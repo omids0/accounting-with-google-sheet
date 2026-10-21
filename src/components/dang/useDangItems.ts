@@ -18,6 +18,7 @@ import {
   toggleDangPaid,
   updateDang
 } from '../../services/dang'
+import { dangPrefixes } from '../../services/dangTitles'
 import { getDangCategories, getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { getActiveWorkspaceType } from '../../services/workspace'
@@ -82,7 +83,8 @@ export function useDangItems() {
       titleFor: item => `تسویهٔ «${item.title}» · ${formatMoney(item.amount)}`,
       amountFor: item => item.amount,
       recordIdOf: item => item.transactionRecordId,
-      prefix: 'بدهی: ',
+      // A building's repayment records are titled «بازپرداخت به …»; older ones kept «بدهی: ».
+      prefix: dangPrefixes(building),
       // A building's debt came from an expense: that record is the cost, not the repayment.
       linkedIds: [
         ...items.flatMap(item => (item.transactionRecordId ? [item.transactionRecordId] : [])),
@@ -114,8 +116,9 @@ export function useDangItems() {
     setAmountEdits(prev => ({ ...prev, [item.id]: value }))
   }
 
-  const handleAmountBlur = async (item: DangWithRow) => {
-    const pending = amountEdits[item.id]
+  const handleAmountBlur = async (item: DangWithRow, value?: number | '') => {
+    // The dial pad passes the amount it just confirmed; the typed field leaves it in `amountEdits`.
+    const pending = value !== undefined ? value : amountEdits[item.id]
 
     if (pending === undefined) return
 
