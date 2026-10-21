@@ -8,6 +8,13 @@ import { getManagedList, MANAGER_PAYER } from '../../services/buildingLists'
 import { useCounterpartyList } from '../counterparties/useCounterpartyList'
 import DangPage, { type DangPageScope } from '../dang/DangPage'
 
+const BUILDING_DANG_EMPTY = {
+  message: 'هنوز بدهی‌ای برای ساختمان ثبت نشده',
+  description:
+    'بدهی‌های ساختمان به مدیر، پیمانکار و دیگران را اینجا ثبت کن و هر پرداخت را علامت بزن تا مانده‌اش معلوم باشد.',
+  actionLabel: 'ثبت بدهی ساختمان'
+}
+
 /**
  * «بدهی ساختمان»: the app's debt page with chips «باز | تسویه‌شده | به مدیر | پیمانکار». The
  * rows to the manager come from expenses the manager paid out of pocket; «تسویه» opens the settle
@@ -41,7 +48,8 @@ export default function BuildingDangPage({ active = true }: { active?: boolean }
           />
         )
       },
-      filter: items => filterDangs(items, chip, managerNames)
+      filter: items => filterDangs(items, chip, managerNames),
+      emptyCopy: BUILDING_DANG_EMPTY
     }),
     [chip, managerNames]
   )

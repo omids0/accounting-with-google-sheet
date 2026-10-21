@@ -141,7 +141,7 @@ export default function BuildingFundPage({ active = true }: { active?: boolean }
         </p>
       </CalmBlock>
 
-      <CalmBlock title="دفتر">
+      <CalmBlock title="گردش حساب‌ها">
         <FundLedgerList entries={fund.ledger} accountTitles={titles} />
       </CalmBlock>
 

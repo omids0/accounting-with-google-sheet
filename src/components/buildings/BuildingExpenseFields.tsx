@@ -164,7 +164,7 @@ function SplitFields({ values, setValue, disabled }: Omit<BuildingExpenseFieldsP
     <>
       <FormField label="تقسیم بین واحدها" controlWidth="full">
         <div className="flex items-center justify-between gap-3">
-          <span className={journeyNoteClass}>برای هر واحد یک سهم (بدهی) صادر می‌شود</span>
+          <span className={journeyNoteClass}>هر واحد سهم خودش را به‌عنوان بدهی می‌گیرد</span>
           <ToggleSwitch
             checked={on}
             onChange={toggle}
@@ -183,13 +183,13 @@ function SplitFields({ values, setValue, disabled }: Omit<BuildingExpenseFieldsP
             disabled={disabled}
           />
           <p className={journeyNoteClass}>
-            {`${kind?.label ?? ''} ⇒ سهم به نام ${rule} هر واحد · ${toPersianDigits(
+            {`سهم هر واحد به نام ${rule} ثبت می‌شود · ${toPersianDigits(
               String(units.length)
             )} واحد · جمع ${formatMoney(total)}`}
           </p>
           <div>
             <Button type="button" variant="secondary" size="sm" onClick={() => setPreviewing(true)}>
-              پیش‌نمایش ›
+              دیدن سهم هر واحد ›
             </Button>
           </div>
         </>

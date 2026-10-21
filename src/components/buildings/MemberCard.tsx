@@ -78,9 +78,13 @@ export default function MemberCard({
           {isMe ? <span className={journeyRowMetaClass}> (شما)</span> : null}
           <br />
           <span className={journeyRowMetaClass}>
-            {`${optionLabel(BUILDING_ROLES, member.role)}${custom ? ' · سفارشی' : ''} · ${
-              MEMBER_STATUS_LABELS[status]
-            } · درایو: ${DRIVE_ACCESS[member.role]}`}
+            {`${optionLabel(BUILDING_ROLES, member.role)}${
+              custom ? ' · دسترسی تغییر داده‌شده' : ''
+            } · ${MEMBER_STATUS_LABELS[status]} · ${
+              DRIVE_ACCESS[member.role] === 'ویرایش'
+                ? 'دسترسی ویرایش در گوگل‌درایو'
+                : 'فقط مشاهده در گوگل‌درایو'
+            }`}
           </span>
         </span>
       </div>
@@ -108,7 +112,7 @@ export default function MemberCard({
         aria-expanded={open}
         onClick={() => setOpen(value => !value)}
       >
-        {open ? 'بستن دسترسی‌های دقیق' : 'دسترسی‌های دقیق ▾'}
+        {open ? 'بستن تنظیم دقیق دسترسی‌ها' : 'تنظیم دقیق دسترسی‌ها ▾'}
       </Button>
 
       {open ? (
@@ -120,7 +124,7 @@ export default function MemberCard({
                   {PERMISSION_LABELS[permission]}
                 </span>
                 {permission in member.overrides ? (
-                  <span className={displaySettingsRowHintClass}>سفارشی</span>
+                  <span className={displaySettingsRowHintClass}>تغییر داده‌شده</span>
                 ) : null}
               </span>
               <ToggleSwitch
@@ -133,12 +137,13 @@ export default function MemberCard({
           ))}
           {custom && !isMe ? (
             <Button type="button" variant="secondary" size="sm" onClick={onReset} disabled={busy}>
-              بازگشت به پیش‌فرض نقش
+              برگرداندن به حالت معمول این نقش
             </Button>
           ) : null}
           {viewerCanWrite(member) ? (
             <p className={journeyNoteClass}>
-              این عضو در درایو فقط «مشاهده» دارد؛ برای ثبت باید دسترسی «ویرایش» هم به او داده شود.
+              این عضو در گوگل‌درایو فقط می‌تواند ببیند؛ برای ثبت کار باید در گوگل‌درایو دسترسی
+              «ویرایش» هم به او بدهی.
             </p>
           ) : null}
         </div>
@@ -153,7 +158,7 @@ export default function MemberCard({
           onClick={onMarkActive}
           disabled={busy}
         >
-          علامت‌گذاری به‌عنوان فعال
+          این عضو وارد شده است
         </Button>
       ) : null}
 

@@ -71,8 +71,8 @@ export default function JourneyProfileStep({
         />
       </FormField>
       <p className={journeyNoteClass}>
-        سازنده همیشه «مدیر» است؛ نقش پرسیده نمی‌شود. با «بعدی» هنوز چیزی ساخته نمی‌شود؛ شیت در پایان
-        قدم ۲ ساخته می‌شود.
+        تو مدیر این ساختمان می‌شوی. با «بعدی» هنوز چیزی ساخته نمی‌شود؛ ساختمان در پایان قدم ۲ ساخته
+        می‌شود.
       </p>
       {error ? (
         <p className={formErrorClass} role="alert">

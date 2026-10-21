@@ -16,15 +16,15 @@ export default function BridgePrefsSheet({
   onClose: () => void
 }) {
   return (
-    <PickerSheet open={open} title="پل با حساب شخصی" onClose={onClose}>
+    <PickerSheet open={open} title="هماهنگی با حساب شخصی" onClose={onClose}>
       <div className="flex flex-col gap-3">
         <p className={journeyNoteClass}>
-          فقط این دو کار بین ساختمان و حساب شخصی‌ات می‌گذرد و هر کدام را در فرم خودش هم می‌توانی
-          خاموش کنی. چیز دیگری از ساختمان به حساب شخصی نمی‌رود.
+          فقط این دو مورد از ساختمان به حساب شخصی‌ات هم ثبت می‌شود و هر کدام را موقع ثبت می‌توانی
+          خاموش کنی. هیچ چیز دیگری از ساختمان به حساب شخصی نمی‌رود.
         </p>
         <BridgeTick
           pref="pocket"
-          text={`طلب از «${buildingName}» برای هزینه‌ای که از جیب می‌دهی`}
+          text={`طلب از «${buildingName}» برای هزینه‌ای که خودت از جیبت می‌دهی`}
         />
         <BridgeTick pref="ownUnit" text="هزینهٔ «خانه › شارژ» برای شارژ واحد خودت" />
       </div>

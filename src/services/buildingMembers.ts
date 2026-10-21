@@ -39,7 +39,7 @@ export const PERMISSION_LABELS: Record<BuildingPermission, string> = {
   issue: 'صدور دستی شارژ',
   autoIssue: 'صدور خودکار شارژ',
   people: 'ویرایش واحدها، ساکنان و طرف حساب‌ها',
-  settings: 'تنظیمات، فهرست‌ها، اعضا و حذف اتصال'
+  settings: 'تنظیمات، فهرست‌ها، اعضا و جدا کردن ساختمان'
 }
 
 /** The permissions that let someone change data: a viewer holding one needs Drive «ویرایش» too. */

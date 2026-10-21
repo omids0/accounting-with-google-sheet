@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import BridgePrefsSheet from './BridgePrefsSheet'
-import { BUILDING_ROLES, CHARGE_METHODS, optionLabel, VACANCY_RULES } from './buildingOptions'
+import { BUILDING_ROLES, optionLabel } from './buildingOptions'
 import BuildingProfileSheet, { type ProfilePart } from './BuildingProfileSheet'
 import BuildingSettingsRow, { type BuildingSettingsRowData } from './BuildingSettingsRow'
+import { chargeSummary } from './chargeSummary'
 import RowActionsSheet from './RowActionsSheet'
 import { useReturnToPersonal } from './useReturnToPersonal'
 import { useRoutedCards } from './useRoutedCards'
@@ -27,7 +28,6 @@ import { closeYearDefaultYear } from '../../services/closeYear'
 import { getSettings } from '../../services/settings'
 import { getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
 import { formatJalaliYear } from '../../utils/dateRange'
-import { formatPersianNumber } from '../../utils/formatMoney'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import ConfirmActionModal from '../ConfirmActionModal'
@@ -95,20 +95,14 @@ export default function BuildingSettingsPage() {
     {
       id: 'charge',
       title: 'شارژ',
-      meta: [
-        `پیش‌فرض ${formatPersianNumber(profile.defaultCharge)}`,
-        optionLabel(CHARGE_METHODS, profile.chargeMethod),
-        `صدور ${fa(profile.issueDay)}`,
-        `سررسید ${fa(profile.dueDay)}`,
-        `خالی: ${optionLabel(VACANCY_RULES, profile.vacancyRule)}`
-      ].join(' · '),
+      meta: chargeSummary(profile),
       onClick: () => setPart('charge')
     },
     {
       id: 'cards',
       title: 'کارت‌های صندوق',
       meta: cards.length
-        ? `${cards.join(' · ')} ← این ساختمان؛ پیامک‌ها اینجا می‌آیند`
+        ? `${cards.join(' · ')} · پیامک این کارت‌ها برای این ساختمان ثبت می‌شود`
         : 'کارتی ثبت نشده؛ کارت را در حساب بانکی صندوق بگذار',
       onClick: () => navigate(getPathForTab('building-fund'))
     },
@@ -138,8 +132,8 @@ export default function BuildingSettingsPage() {
     },
     {
       id: 'bridge',
-      title: 'پل با حساب شخصی',
-      meta: `جیب مدیر: ${onOff(prefs.pocket)} · شارژ واحد من: ${onOff(prefs.ownUnit)}`,
+      title: 'هماهنگی با حساب شخصی',
+      meta: `ثبت طلب مدیر: ${onOff(prefs.pocket)} · ثبت شارژ واحد من: ${onOff(prefs.ownUnit)}`,
       onClick: () => setBridging(true)
     },
     {
@@ -151,13 +145,13 @@ export default function BuildingSettingsPage() {
     {
       id: 'tools',
       title: 'پشتیبان و بستن سال',
-      meta: 'همان ابزار اپ، روی این شیت',
+      meta: 'نسخهٔ پشتیبان از اطلاعات این ساختمان',
       onClick: () => setToolsOpen(true)
     },
     {
       id: 'archive',
       title: 'بایگانی ساختمان',
-      meta: 'از فهرست مدیر ساختمان کنار می‌رود؛ شیت دست‌نخورده می‌ماند',
+      meta: 'از فهرست ساختمان‌ها کنار می‌رود؛ اطلاعاتش پاک نمی‌شود',
       danger: true,
       onClick: () => setArchiving(true)
     }
@@ -207,7 +201,7 @@ export default function BuildingSettingsPage() {
       <ConfirmActionModal
         open={archiving}
         title="بایگانی ساختمان"
-        message={`«${profile.name}» از فهرست مدیر ساختمان کنار می‌رود و به حساب شخصی برمی‌گردی. شیت و دفتر ساختمان دست‌نخورده می‌ماند و هر وقت خواستی از «بایگانی‌شده» بازش می‌گردانی.`}
+        message={`«${profile.name}» از فهرست ساختمان‌ها کنار می‌رود و به حساب شخصی برمی‌گردی. اطلاعات ساختمان پاک نمی‌شود و هر وقت خواستی از «بایگانی‌شده» بازش می‌گردانی.`}
         confirmLabel="بایگانی"
         cancelLabel="انصراف"
         onClose={() => setArchiving(false)}

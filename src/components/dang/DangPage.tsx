@@ -10,7 +10,7 @@ import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import DangFormModal from './DangFormModal'
-import DangList from './DangList'
+import DangList, { type DangEmptyCopy } from './DangList'
 import type { DangWithRow } from './types'
 import { useDangFilters } from './useDangFilters'
 import { useDangForm } from './useDangForm'
@@ -24,6 +24,8 @@ import { useReadOnly } from '../ui/readOnly'
 export interface DangPageScope {
   header: (items: DangWithRow[]) => ReactNode
   filter: (items: DangWithRow[]) => DangWithRow[]
+  /** Replaces the personal wording of the empty list. */
+  emptyCopy?: DangEmptyCopy
 }
 
 export default function DangPage({
@@ -183,6 +185,7 @@ export default function DangPage({
         onEdit={openEditForm}
         onDelete={requestDelete}
         onAdd={openCreateForm}
+        emptyCopy={scope?.emptyCopy}
       />
 
       <DangFormModal

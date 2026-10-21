@@ -73,9 +73,13 @@ export const ACCOUNT_TYPES: BuildingOption<FundAccountType>[] = [
 export type BuildingRole = 'manager' | 'accountant' | 'board'
 
 export const BUILDING_ROLES: BuildingOption<BuildingRole>[] = [
-  { value: 'manager', label: 'مدیر', hint: 'همه‌چیز؛ ویرایش در گوگل‌درایو' },
-  { value: 'accountant', label: 'حسابدار', hint: 'ثبت و صدور شارژ؛ ویرایش در گوگل‌درایو' },
-  { value: 'board', label: 'عضو هیئت مدیره', hint: 'فقط مشاهده؛ فقط‌خواندنی در گوگل‌درایو' }
+  { value: 'manager', label: 'مدیر', hint: 'همه‌کاره؛ می‌تواند در گوگل‌درایو ویرایش کند' },
+  {
+    value: 'accountant',
+    label: 'حسابدار',
+    hint: 'ثبت و صدور شارژ؛ می‌تواند در گوگل‌درایو ویرایش کند'
+  },
+  { value: 'board', label: 'عضو هیئت مدیره', hint: 'فقط می‌بیند؛ در گوگل‌درایو هم فقط مشاهده دارد' }
 ]
 
 /** «سهم هر واحد به نام» of an expense kind (the managed list stores the key). */

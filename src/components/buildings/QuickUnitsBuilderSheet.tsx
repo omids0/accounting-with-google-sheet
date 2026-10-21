@@ -121,7 +121,7 @@ export default function QuickUnitsBuilderSheet({
   return (
     <FormModal
       open={open}
-      title="واحدسازی سریع"
+      title="ساخت سریع واحدها"
       header={header}
       onClose={onClose}
       onSubmit={event => {
@@ -135,7 +135,7 @@ export default function QuickUnitsBuilderSheet({
     >
       {stage === 1 ? (
         <>
-          <p className={journeyNoteClass}>مرحلهٔ ۱ · تعداد</p>
+          <p className={journeyNoteClass}>بخش ۱ از ۳ · تعداد</p>
           <FormRow>
             <FormField label="تعداد واحد" required>
               <input
@@ -153,8 +153,8 @@ export default function QuickUnitsBuilderSheet({
             </FormField>
           </FormRow>
           <FormField
-            label="متراژ مرجع"
-            hint="متراژ پیش‌فرض هر واحد؛ در مرحلهٔ ۳ برای هر واحد قابل تغییر است."
+            label="متراژ هر واحد"
+            hint="متراژ معمول واحدها؛ در بخش ۳ برای هر واحد جدا قابل تغییر است."
           >
             <input
               value={reference}
@@ -168,7 +168,7 @@ export default function QuickUnitsBuilderSheet({
       {stage === 2 ? (
         <>
           <p className={journeyNoteClass}>
-            مرحلهٔ ۲ · واحدهای هر طبقه. تغییر «تا واحد» یک طبقه، باقی را روی طبقه‌های بعد پخش
+            بخش ۲ از ۳ · واحدهای هر طبقه. تغییر «تا واحد» یک طبقه، باقی را روی طبقه‌های بعد پخش
             می‌کند؛ آخرین طبقه همیشه به {fa(count)} ختم می‌شود.
           </p>
           {ranges.map((range, index) => {
@@ -211,7 +211,7 @@ export default function QuickUnitsBuilderSheet({
       {stage === 3 ? (
         <>
           <p className={journeyNoteClass}>
-            مرحلهٔ ۳ · متراژ هر واحد (پیش‌فرض {fa(referenceArea)}). مالک‌ها فعلاً موقت‌اند؛ قدم ۴
+            بخش ۳ از ۳ · متراژ هر واحد (معمول: {fa(referenceArea)}). مالک‌ها فعلاً موقت‌اند؛ قدم ۴
             تکمیلشان می‌کند.
           </p>
           {drafts.map(draft => (

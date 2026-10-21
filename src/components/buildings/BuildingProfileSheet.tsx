@@ -110,20 +110,20 @@ export default function BuildingProfileSheet({
             />
           </FormField>
           <p className={journeyNoteClass}>
-            نام ساختمان فقط در همین دفتر عوض می‌شود؛ نام شیت در گوگل‌درایو همان می‌ماند.
+            نام ساختمان فقط داخل اپ عوض می‌شود؛ نام فایل در گوگل‌درایو همان می‌ماند.
           </p>
         </>
       ) : (
         <>
-          <FormField label="شارژ پیش‌فرض (ماهانه برای هر واحد)">
+          <FormField label="شارژ ماهانه برای هر واحد">
             <AmountField
-              label="شارژ پیش‌فرض"
+              label="شارژ ماهانه"
               value={draft.defaultCharge}
               onChange={value => set({ defaultCharge: Number(value) || 0 })}
             />
           </FormField>
           <FormSelect
-            label="روش"
+            label="روش محاسبه شارژ"
             value={draft.chargeMethod}
             onChange={value => set({ chargeMethod: value as ChargeMethod })}
             options={CHARGE_METHODS}
@@ -131,13 +131,13 @@ export default function BuildingProfileSheet({
           />
           <FormRow>
             <FormSelect
-              label="روز صدور (هر ماه)"
+              label="روز صدور شارژ (هر ماه)"
               value={String(draft.issueDay)}
               onChange={value => set({ issueDay: Number(value) })}
               options={DAYS_1_28}
             />
             <FormSelect
-              label="سررسید (روز، هر ماه)"
+              label="سررسید پرداخت (روز، هر ماه)"
               value={String(draft.dueDay)}
               onChange={value => set({ dueDay: Number(value) })}
               options={DAYS_1_28}

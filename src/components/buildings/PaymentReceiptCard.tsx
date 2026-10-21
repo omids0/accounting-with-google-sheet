@@ -60,7 +60,7 @@ export default function PaymentReceiptCard({
           اشتراک رسید
         </Button>
         <Button type="button" variant="secondary" loading={saving} onClick={() => void savePng()}>
-          تصویر (PNG)
+          ذخیرهٔ عکس رسید
         </Button>
       </div>
     </>

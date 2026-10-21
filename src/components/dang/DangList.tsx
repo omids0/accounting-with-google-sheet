@@ -38,6 +38,21 @@ export type DangListProps = {
   onDelete: (item: DangWithRow) => void
   /** Opens the same create form as the page speed dial. */
   onAdd?: () => void
+  /** Wording of the empty list, for a scope that talks about someone else's debts. */
+  emptyCopy?: DangEmptyCopy
+}
+
+export interface DangEmptyCopy {
+  message: string
+  description: string
+  actionLabel: string
+}
+
+const PERSONAL_EMPTY_COPY: DangEmptyCopy = {
+  message: 'هنوز بدهی ثبت نشده',
+  description:
+    'بدهی‌هایت به دیگران را این‌جا ثبت کن و هر پرداخت را علامت بزن تا مانده‌اش معلوم باشد.',
+  actionLabel: 'افزودن بدهی'
 }
 
 export default function DangList({
@@ -54,7 +69,8 @@ export default function DangList({
   onAmountBlur,
   onEdit,
   onDelete,
-  onAdd
+  onAdd,
+  emptyCopy = PERSONAL_EMPTY_COPY
 }: DangListProps) {
   const isDesktop = useIsDesktop()
   const { shared } = useSharing()
@@ -94,9 +110,9 @@ export default function DangList({
     return (
       <EmptyState
         icon="debt"
-        description="بدهی‌هایت به دیگران را این‌جا ثبت کن و هر پرداخت را علامت بزن تا مانده‌اش معلوم باشد."
-        message="هنوز بدهی ثبت نشده"
-        action={onAdd ? { label: 'افزودن بدهی', onClick: onAdd } : undefined}
+        description={emptyCopy.description}
+        message={emptyCopy.message}
+        action={onAdd ? { label: emptyCopy.actionLabel, onClick: onAdd } : undefined}
       />
     )
   }

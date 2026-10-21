@@ -48,7 +48,7 @@ function accountMeta(account: FundAccountDraft): string {
 
 /**
  * Journey step 2: the fund accounts with their balances, then the charge settings. «ساخت ساختمان»
- * creates the spreadsheet; a progress bar shows the two to five seconds it takes.
+ * creates the spreadsheet; a progress bar shows the wait.
  */
 export default function JourneyFundStep({
   draft,
@@ -114,7 +114,7 @@ export default function JourneyFundStep({
       </div>
 
       <h3 className={journeyRowTitleClass}>شارژ</h3>
-      <FormField label="شارژ پیش‌فرض (ماهانه برای هر واحد)">
+      <FormField label="شارژ ماهانه برای هر واحد">
         <AmountField
           label="شارژ پیش‌فرض"
           value={draft.defaultCharge}
@@ -123,7 +123,7 @@ export default function JourneyFundStep({
         />
       </FormField>
       <FormSelect
-        label="روش"
+        label="روش محاسبه شارژ"
         value={draft.chargeMethod}
         onChange={value => set({ chargeMethod: value as ChargeMethod })}
         options={CHARGE_METHODS}
@@ -132,14 +132,14 @@ export default function JourneyFundStep({
       />
       <FormRow>
         <FormSelect
-          label="روز صدور (هر ماه)"
+          label="روز صدور شارژ (هر ماه)"
           value={draft.issueDay}
           onChange={issueDay => set({ issueDay })}
           options={DAYS_1_28}
           disabled={building}
         />
         <FormSelect
-          label="سررسید (روز، هر ماه)"
+          label="سررسید پرداخت (روز، هر ماه)"
           value={draft.dueDay}
           onChange={dueDay => set({ dueDay })}
           options={DAYS_1_28}
@@ -154,11 +154,13 @@ export default function JourneyFundStep({
         disabled={building}
       />
 
-      <p className={journeyNoteClass}>
-        ساخت = شیت جدید «حسابداری · ساختمان …» با تب‌ها، دسته‌های ساختمان، حساب‌های صندوق و این
-        تنظیمات. چند ثانیه طول می‌کشد.
-      </p>
-      {building ? <ProgressBar value={progress} aria-label="ساخت ساختمان" /> : null}
+      <p className={journeyNoteClass}>ساختمان ساخته می‌شود؛ ممکن است کمی طول بکشد.</p>
+      {building ? (
+        <div role="status">
+          <p className={journeyNoteClass}>در حال ساخت ساختمان…</p>
+          <ProgressBar value={progress} showLabel={false} aria-label="در حال ساخت ساختمان" />
+        </div>
+      ) : null}
       {error ? (
         <p className={formErrorClass} role="alert">
           {error}

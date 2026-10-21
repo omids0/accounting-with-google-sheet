@@ -51,7 +51,8 @@ export default function BuildingFundHero({
         </p>
       ) : null}
       <p className={dashboardHeroCompareClass}>
-        {delta < 0 ? '↓' : '↑'} <MoneyText amount={Math.abs(delta)} /> در {monthName} · وصول − هزینه
+        {delta < 0 ? '↓' : '↑'} <MoneyText amount={Math.abs(delta)} /> در {monthName} · وصول منهای
+        هزینه
       </p>
     </Card>
   )

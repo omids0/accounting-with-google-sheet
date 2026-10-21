@@ -49,7 +49,7 @@ export default function IssuePreviewTable({ rows }: { rows: IssueRow[] }) {
           <tr>
             <th className={dataTableHeadCellClass}>واحد</th>
             <th className={dataTableHeadCellClass}>بدهکار</th>
-            <th className={dataTableHeadCellClass}>مبنا</th>
+            <th className={dataTableHeadCellClass}>محاسبه</th>
             <th className={dataTableHeadCellClass}>مبلغ</th>
           </tr>
         </thead>

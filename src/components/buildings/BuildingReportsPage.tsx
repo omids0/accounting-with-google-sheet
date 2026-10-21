@@ -35,7 +35,7 @@ import {
 const COLLECTED_VS_BILLED = {
   first: 'وصول',
   second: 'صدور',
-  net: 'وصول − صدور',
+  net: 'وصول منهای صدور',
   secondColor: 'var(--color-muted)'
 }
 

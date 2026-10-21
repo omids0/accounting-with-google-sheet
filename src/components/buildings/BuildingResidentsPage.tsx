@@ -156,7 +156,7 @@ export default function BuildingResidentsPage({ active = true }: { active?: bool
           <EmptyState
             icon="counterparties"
             message="هنوز ساکنی ثبت نشده"
-            description="مالک و مستأجر هر واحد از صفحهٔ واحدها یا مرحلهٔ «مالک و ساکنان» ثبت می‌شود."
+            description="مالک و مستأجر هر واحد از صفحهٔ واحدها یا قدم «مالک و ساکنان» راه‌اندازی ثبت می‌شود."
           />
         ) : (
           <SearchEmptyState />
