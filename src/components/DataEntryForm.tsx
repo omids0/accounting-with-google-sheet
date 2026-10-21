@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 
 import AttachmentField from './attachments/AttachmentField'
 import { useAttachmentDrafts } from './attachments/useAttachmentDrafts'
+import { useBuildingEntryAccount } from './buildings/useEntryFundAccount'
 import ConfirmActionModal from './ConfirmActionModal'
 import {
   hasBuildingExpenseFields,
@@ -86,6 +87,7 @@ export default function DataEntryForm({
     focusEntryAmount(formRef.current, true)
   }, [template, activeForm.fields, setValue, clearErrors])
 
+  const nextEntryPrefill = useBuildingEntryAccount(activeForm, getValues, setValue)
   const retroactiveWarning = useRetroactiveEntryWarning()
   const values = watch()
   const duplicateWarning = <EntryDuplicateWarning form={activeForm} values={values} />
@@ -173,11 +175,13 @@ export default function DataEntryForm({
     await settleBuildingEntry(settings.spreadsheetId, activeForm, recordId, formValues).catch(() =>
       showError('هزینه ذخیره شد ولی سهم واحدها یا بدهی ثبت نشد؛ آن را دوباره ذخیره کن')
     )
+    const keepAccount = nextEntryPrefill(entered)
+
     showSavedForEntry(activeForm, recordId, formValues, vehicleInput)
     refreshOpeningBalancesInBackground()
     onLoadingChange(false)
     if (onSaved && !keepOpen) return onSaved()
-    reset(buildFormInitialValues(activeForm))
+    reset(buildFormInitialValues(activeForm, keepAccount))
     vehicleExpense.resetVehicleValues()
     attachments.reset()
     if (keepOpen) focusEntryAmount(formRef.current)

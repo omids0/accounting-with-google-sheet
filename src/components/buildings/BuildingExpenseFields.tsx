@@ -128,6 +128,11 @@ function SplitFields({ values, setValue, disabled }: Omit<BuildingExpenseFieldsP
 
   const mode: SplitMode = current?.mode ?? 'equal'
 
+  // A form that starts over (after a save) must not keep the manual shares of the last entry.
+  useEffect(() => {
+    if (!on) setManual({})
+  }, [on])
+
   const shares = useMemo(
     () => (units.length ? splitExpense(amount, units, mode, manual) : {}),
     [amount, units, mode, manual]
