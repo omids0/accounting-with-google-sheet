@@ -2,11 +2,13 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
 import ChangeResidentSheet from './ChangeResidentSheet'
+import UnitBalance from './UnitBalance'
 import UnitFormModal from './UnitFormModal'
 import { UnitHistory, UnitSpecs, UnitStays } from './UnitPageSegments'
 import { buildUnitRows, unitPlace, unitWho } from './unitRows'
 import UnitStatement from './UnitStatement'
 import { useBuildingSetupData } from './useBuildingSetupData'
+import { useUnitPageTitle } from './useUnitPageTitle'
 import { useBuildingAccess } from '../../hooks/useBuildingAccess'
 import { creditsOf } from '../../services/buildingCharges'
 import { currentOwner } from '../../services/buildingResidents'
@@ -22,7 +24,6 @@ import { toPersianDigits } from '../../utils/normalizeDigits'
 import { shareText } from '../../utils/shareText'
 import EmptyState from '../EmptyState'
 import { SegmentedRadio } from '../form'
-import MoneyText from '../MoneyText'
 import { DangCardListSkeleton } from '../skeleton'
 import Button from '../ui/Button'
 import { calmDayBadgeClass, calmDayBadgeDangerClass } from '../ui/calmListStyles'
@@ -80,6 +81,8 @@ export default function BuildingUnitPage() {
     [unitId, receivables, stays]
   )
 
+  useUnitPageTitle(row?.unit.number)
+
   if (!data.loaded) return <DangCardListSkeleton table />
 
   if (!row) return <EmptyState icon="building" message="واحد پیدا نشد" />
@@ -106,25 +109,14 @@ export default function BuildingUnitPage() {
           </span>
           <div className="min-w-0 flex-1">
             <b className="block text-[0.95rem]">{unitWho(row)}</b>
-            {archived ? (
-              <span className="block text-[0.74rem] text-warning">بایگانی‌شده</span>
-            ) : null}
-            <span className="block text-[0.74rem] text-muted">{unitPlace(unit)}</span>
+            {archived ? <span className="block text-sm text-warning">بایگانی‌شده</span> : null}
+            <span className="block text-sm text-muted">{unitPlace(unit)}</span>
           </div>
-          <div className="text-end text-[0.9rem] font-bold">
-            {owes ? (
-              <span className="text-danger">
-                <MoneyText amount={-balance.open} signed />
-              </span>
-            ) : (
-              <span className="text-success">✓</span>
-            )}
-            {balance.credit > 0 ? (
-              <small className="block text-[0.72rem] text-success">
-                اعتبار <MoneyText amount={balance.credit} />
-              </small>
-            ) : null}
-          </div>
+          <UnitBalance
+            owed={balance.open}
+            credit={balance.credit}
+            className="text-end text-[0.95rem] font-bold"
+          />
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {can('record') && !archived ? (

@@ -4,6 +4,7 @@ import type { BuildingSetupData } from './useBuildingSetupData'
 import { archiveUnit, restoreUnit } from '../../services/buildingUnitActions'
 import type { UnitWithRow } from '../../services/buildingUnits'
 import { getSettings } from '../../services/settings'
+import { toPersianDigits } from '../../utils/normalizeDigits'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 
@@ -43,9 +44,12 @@ export function useUnitArchive(data: Pick<BuildingSetupData, 'allUnits' | 'reloa
     cancel: () => setArchiving(null),
     confirmArchive: () =>
       archiving
-        ? run(id => archiveUnit(id, archiving), `واحد ${archiving.number} بایگانی شد`)
+        ? run(
+            id => archiveUnit(id, archiving),
+            `واحد ${toPersianDigits(archiving.number)} بایگانی شد`
+          )
         : Promise.resolve(),
     restore: (unit: UnitWithRow) =>
-      run(id => restoreUnit(id, unit, data.allUnits), `واحد ${unit.number} برگشت`)
+      run(id => restoreUnit(id, unit, data.allUnits), `واحد ${toPersianDigits(unit.number)} برگشت`)
   }
 }

@@ -21,7 +21,7 @@ import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { getPathForTab, HIGHLIGHT_PARAM } from '../../routes/paths'
 import { exitResident } from '../../services/buildingResidentActions'
 import { getSettings, isConfigured } from '../../services/settings'
-import { normalizeDigits } from '../../utils/normalizeDigits'
+import { normalizeDigits, toPersianDigits } from '../../utils/normalizeDigits'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 import ConfirmActionModal from '../ConfirmActionModal'
@@ -103,7 +103,7 @@ export default function BuildingResidentsPage({ active = true }: { active?: bool
     return [
       ...(phone
         ? [
-            { id: 'call', label: `تماس · ${row.phone}`, href: `tel:${phone}` },
+            { id: 'call', label: `تماس · ${toPersianDigits(row.phone)}`, href: `tel:${phone}` },
             { id: 'sms', label: 'پیامک', href: `sms:${phone}` }
           ]
         : []),
@@ -173,7 +173,7 @@ export default function BuildingResidentsPage({ active = true }: { active?: bool
 
       <RowActionsSheet
         open={menu !== null}
-        title={menu ? `${menu.name} · واحد ${menu.unit.number}` : ''}
+        title={menu ? `${menu.name} · واحد ${toPersianDigits(menu.unit.number)}` : ''}
         actions={menu ? actionsOf(menu) : []}
         onClose={() => setMenu(null)}
       />
@@ -187,9 +187,9 @@ export default function BuildingResidentsPage({ active = true }: { active?: bool
       <ConfirmActionModal
         open={leaving !== null}
         title="ثبت خروج"
-        message={`خروج ${leaving?.name ?? ''} از واحد ${
+        message={`خروج ${leaving?.name ?? ''} از واحد ${toPersianDigits(
           leaving?.unit.number ?? ''
-        } ثبت شود؟ واحد خالی می‌شود.`}
+        )} ثبت شود؟ واحد خالی می‌شود.`}
         confirmLabel="ثبت خروج"
         cancelLabel="انصراف"
         onClose={() => setLeaving(null)}

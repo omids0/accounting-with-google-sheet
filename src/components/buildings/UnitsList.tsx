@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import UnitBalance from './UnitBalance'
 import UnitCard, { UnitMoreButton } from './UnitCard'
 import { unitPlace, unitWho, type UnitRowData } from './unitRows'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
@@ -55,7 +56,7 @@ export default function UnitsList({ rows, onOpen, onEdit, onMore }: UnitsListPro
         numeric: true,
         sortFirst: 'desc',
         sortValue: row => row.balance.open,
-        cell: row => (row.balance.open > 0 ? <MoneyText amount={-row.balance.open} signed /> : '✓')
+        cell: row => <UnitBalance owed={row.balance.open} credit={row.balance.credit} />
       }
     ],
     [onOpen]

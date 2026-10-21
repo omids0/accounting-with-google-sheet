@@ -222,7 +222,7 @@ export default function QuickUnitsBuilderSheet({
                 <span className={journeyRowMetaClass}>طبقه {fa(draft.floor)}</span>
               </span>
               <input
-                aria-label={`متراژ واحد ${draft.number}`}
+                aria-label={`متراژ واحد ${fa(Number(draft.number))}`}
                 className={formControlClassName('w-24 text-center')}
                 value={areas[draft.number] ?? String(draft.area)}
                 onChange={event =>

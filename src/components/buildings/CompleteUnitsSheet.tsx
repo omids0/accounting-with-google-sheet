@@ -155,7 +155,7 @@ export default function CompleteUnitsSheet({
             aria-label="پیشرفت تکمیل واحدها"
           />
           <p className={journeyNoteClass}>
-            واحد {unit.number}
+            واحد {toPersianDigits(unit.number)}
             {unit.floor ? ` · طبقه ${fa(unit.floor)}` : ''}
           </p>
           <CompleteUnitFields form={form} baseCharge={baseCharge} onChange={setForm} />

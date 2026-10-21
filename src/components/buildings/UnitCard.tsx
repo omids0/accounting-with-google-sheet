@@ -1,3 +1,4 @@
+import UnitBalance from './UnitBalance'
 import { unitPlace, unitStatus, unitWho, type UnitRowData } from './unitRows'
 import { cn } from '../../utils/cn'
 import { toPersianDigits } from '../../utils/normalizeDigits'
@@ -12,7 +13,7 @@ import {
 } from '../ui/calmListStyles'
 
 /** The meta line wraps (it is long), unlike the one-line subtitle of the dashboard rows. */
-const unitSubClass = 'mt-0.5 block text-[0.7rem] leading-relaxed text-muted'
+const unitSubClass = 'mt-0.5 block text-sm leading-relaxed text-muted'
 
 interface UnitCardProps {
   row: UnitRowData
@@ -50,17 +51,11 @@ export default function UnitCard({ row, onOpen, onMore }: UnitCardProps) {
           <span className={calmRowTitleClass}>{unitWho(row)}</span>
           <span className={unitSubClass}>
             {unitPlace(unit)} · شارژ <MoneyText amount={charge} />
-            {status.text ? ` · ${status.text}` : ''}
-            {status.credit ? (
-              <>
-                {' '}
-                <MoneyText amount={status.credit} />
-              </>
-            ) : null}
+            {status.text && !status.credit ? ` · ${status.text}` : ''}
           </span>
         </span>
-        <span className={cn(calmRowEndClass, owes && 'text-danger')}>
-          {owes ? <MoneyText amount={-balance.open} signed /> : '✓'}
+        <span className={cn(calmRowEndClass, 'text-sm')}>
+          <UnitBalance owed={balance.open} credit={balance.credit} />
         </span>
       </button>
       {onMore ? <UnitMoreButton row={row} onMore={onMore} /> : null}
@@ -79,7 +74,7 @@ export function UnitMoreButton({
   return (
     <button
       type="button"
-      className="h-9 w-9 shrink-0 cursor-pointer rounded-md border-0 bg-transparent text-muted"
+      className="h-11 w-11 shrink-0 cursor-pointer rounded-md border-0 bg-transparent text-muted"
       onClick={() => onMore(row)}
       aria-label={`گزینه‌های واحد ${toPersianDigits(row.unit.number)}`}
     >

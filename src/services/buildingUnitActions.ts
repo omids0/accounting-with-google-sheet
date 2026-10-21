@@ -3,7 +3,7 @@ import { createUnitsWithOwners } from './buildingSetupActions'
 import { updateUnit, type BuildingUnit, type UnitWithRow } from './buildingUnits'
 import { fetchReceivables } from './receivablesCrud'
 import type { Receivable } from '../types'
-import { normalizeDigits } from '../utils/normalizeDigits'
+import { normalizeDigits, toPersianDigits } from '../utils/normalizeDigits'
 
 /** The numbers and the note of the unit form (screen 18); `monthlyCharge` 0 = follows the method. */
 export type UnitFormValues = Pick<
@@ -23,7 +23,7 @@ export function validateUnitForm(
 
   const taken = units.some(unit => unit.active && unit.id !== editingId && unit.number === number)
 
-  return taken ? `واحد ${values.number} قبلاً ثبت شده` : null
+  return taken ? `واحد ${toPersianDigits(number)} قبلاً ثبت شده` : null
 }
 
 /**

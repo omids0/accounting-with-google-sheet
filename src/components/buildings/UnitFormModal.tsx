@@ -7,7 +7,7 @@ import { saveUnit, validateUnitForm, type UnitFormValues } from '../../services/
 import type { UnitWithRow } from '../../services/buildingUnits'
 import { getCounterpartyFullName } from '../../services/counterparties'
 import { getSettings } from '../../services/settings'
-import { normalizeDigits } from '../../utils/normalizeDigits'
+import { normalizeDigits, toPersianDigits } from '../../utils/normalizeDigits'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
@@ -134,7 +134,7 @@ export default function UnitFormModal({
     <FormModal
       open={open}
       variant="panel"
-      title={unit ? `واحد ${draft.number || unit.number}` : 'واحد جدید'}
+      title={unit ? `واحد ${toPersianDigits(draft.number || unit.number)}` : 'واحد جدید'}
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()

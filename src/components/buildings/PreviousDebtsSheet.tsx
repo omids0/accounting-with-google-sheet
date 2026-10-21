@@ -129,7 +129,7 @@ export default function PreviousDebtsSheet({
             </span>
             <span className="w-36 shrink-0">
               <AmountField
-                label={`بدهی قبلی واحد ${unit.number}`}
+                label={`بدهی قبلی واحد ${toPersianDigits(unit.number)}`}
                 value={amounts[unit.id] ?? ''}
                 placeholder="—"
                 hideWords

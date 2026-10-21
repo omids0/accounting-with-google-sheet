@@ -43,7 +43,8 @@ const DETAIL_TITLE_TABS: Tab[] = [
   'dang-split-detail',
   'wallet-account-detail',
   'wallet-reconcile',
-  'report-line-item'
+  'report-line-item',
+  'building-unit'
 ]
 
 export function useLayoutNavigation() {
