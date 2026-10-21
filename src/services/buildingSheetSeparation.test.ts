@@ -7,7 +7,23 @@ import { deleteBuildingSettings, setBuildingSetting } from './buildingSettings'
 import { fetchUnits, createUnits } from './buildingUnits'
 import { BUILDING_SHEET_SPECS, MODULE_SHEET_SPECS } from './moduleSheetSpecs'
 import { getDefaultSettings, saveSettings } from './settings'
-import { BUILDING_RESIDENTS_SHEET, BUILDING_SHEET, BUILDING_UNITS_SHEET } from './sheetNames'
+import {
+  ACTIVITY_LOG_SHEET,
+  BUILDING_RESIDENTS_SHEET,
+  BUILDING_SHEET,
+  BUILDING_UNITS_SHEET,
+  CATEGORIES_SHEET,
+  CHECKS_SHEET,
+  COUNTERPARTIES_SHEET,
+  DANG_SHEET,
+  PERIOD_SETTINGS_SHEET,
+  PERSONAL_ONLY_SHEETS,
+  RECEIVABLES_SHEET,
+  RECURRING_SHEET,
+  SMS_TEMPLATES_SHEET,
+  WALLET_LEDGER_SHEET,
+  WALLET_SHEET
+} from './sheetNames'
 import { getKnownSheetNames } from './sheetSyncSheetNames'
 import { getAllSheetSpecs } from './spreadsheetSetup'
 import { NOT_BUILDING_FILE_MESSAGE, setWorkspaceType } from './workspace'
@@ -78,10 +94,44 @@ describe('a building is its own spreadsheet', () => {
       expect(names(getAllSheetSpecs('personal-1'))).not.toContain(BUILDING_UNITS_SHEET)
     })
 
-    it('gives a building the same personal tabs plus its own', () => {
+    it('gives a building the shared tabs plus its own, without the personal-only ones', () => {
       const personal = names(getAllSheetSpecs('personal-1'))
 
-      expect(names(getAllSheetSpecs('building-1'))).toEqual([...personal, ...BUILDING_TABS])
+      const shared = personal.filter(name => !PERSONAL_ONLY_SHEETS.includes(name))
+
+      expect(names(getAllSheetSpecs('building-1'))).toEqual([...shared, ...BUILDING_TABS])
+      expect(shared.length).toBeLessThan(personal.length)
+    })
+
+    it('keeps every tab a building page reads in its list', () => {
+      const building = names(getAllSheetSpecs('building-1'))
+
+      for (const tab of [
+        WALLET_SHEET,
+        WALLET_LEDGER_SHEET,
+        RECEIVABLES_SHEET,
+        DANG_SHEET,
+        CHECKS_SHEET,
+        COUNTERPARTIES_SHEET,
+        CATEGORIES_SHEET,
+        PERIOD_SETTINGS_SHEET,
+        SMS_TEMPLATES_SHEET,
+        RECURRING_SHEET,
+        ACTIVITY_LOG_SHEET
+      ]) {
+        expect(building).toContain(tab)
+      }
+    })
+
+    it('leaves the personal-only tabs out of a building and keeps them in a personal file', () => {
+      const building = names(getAllSheetSpecs('building-1'))
+
+      const personal = names(getAllSheetSpecs('personal-1'))
+
+      for (const tab of PERSONAL_ONLY_SHEETS) {
+        expect(building).not.toContain(tab)
+        expect(personal).toContain(tab)
+      }
     })
   })
 
@@ -100,6 +150,18 @@ describe('a building is its own spreadsheet', () => {
       expect(getKnownSheetNames(settings, 'building-1')).toEqual(
         expect.arrayContaining(BUILDING_TABS)
       )
+    })
+
+    it('does not pull the personal-only tabs of a building, but still pulls them for a personal file', () => {
+      const building = getKnownSheetNames(settings, 'building-1')
+
+      const personal = getKnownSheetNames(settings, 'personal-1')
+
+      for (const tab of PERSONAL_ONLY_SHEETS) {
+        expect(building).not.toContain(tab)
+        expect(personal).toContain(tab)
+      }
+      expect(building.length).toBeLessThan(personal.length)
     })
 
     it('follows the active spreadsheet when none is given', () => {

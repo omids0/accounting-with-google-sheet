@@ -19,6 +19,7 @@ import {
   MONTHLY_BALANCE_SHEET,
   NET_WORTH_SHEET,
   PERIOD_SETTINGS_SHEET,
+  PERSONAL_ONLY_SHEETS,
   PERSONAL_REMINDERS_SHEET,
   PUSH_SUBS_SHEET,
   RECEIVABLES_SHEET,
@@ -84,7 +85,7 @@ const BUILDING_SHEETS = [BUILDING_SHEET, BUILDING_UNITS_SHEET, BUILDING_RESIDENT
 
 /**
  * The tabs a sync downloads for `spreadsheetId` (default: the active one): the account forms, the
- * static tabs and, for a building only, the building tabs.
+ * static tabs and, for a building only, the building tabs instead of the personal-only ones.
  */
 export function getKnownSheetNames(
   settings: AppSettings = getSettings()!,
@@ -92,7 +93,7 @@ export function getKnownSheetNames(
 ): string[] {
   const statics =
     workspaceTypeOf(spreadsheetId) === 'building'
-      ? [...STATIC_SHEETS, ...BUILDING_SHEETS]
+      ? [...STATIC_SHEETS.filter(name => !PERSONAL_ONLY_SHEETS.includes(name)), ...BUILDING_SHEETS]
       : STATIC_SHEETS
 
   if (!settings) return [...statics]

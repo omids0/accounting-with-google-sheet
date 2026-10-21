@@ -35,6 +35,11 @@ function markMigrated(spreadsheetId: string): void {
   setItem(MIGRATION_STORAGE_KEY, { ...state, [spreadsheetId]: true })
 }
 
+/** A spreadsheet created with exact grids has nothing to shrink: its first pull skips the probe. */
+export function markCompactGridsMigrated(spreadsheetId: string): void {
+  markMigrated(spreadsheetId)
+}
+
 export function sheetExtent(rows: unknown[][]): { lastDataRow: number; lastDataColumn: number } {
   let lastDataRow = 0
 

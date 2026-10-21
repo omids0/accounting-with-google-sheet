@@ -63,6 +63,7 @@ import {
   NET_WORTH_SHEET,
   PERIOD_SETTINGS_SHEET,
   PERSONAL_REMINDERS_SHEET,
+  PERSONAL_ONLY_SHEETS,
   PUSH_SUBS_SHEET,
   RECEIVABLES_SHEET,
   REMINDERS_SHEET,
@@ -138,3 +139,8 @@ export const BUILDING_SHEET_SPECS: SheetSpec[] = [
   { sheetName: BUILDING_UNITS_SHEET, headers: BUILDING_UNITS_HEADERS },
   { sheetName: BUILDING_RESIDENTS_SHEET, headers: BUILDING_RESIDENTS_HEADERS }
 ]
+
+/** The module tabs a building file has: everything except the personal-only ones. */
+export const BUILDING_MODULE_SHEET_SPECS: SheetSpec[] = MODULE_SHEET_SPECS.filter(
+  spec => !PERSONAL_ONLY_SHEETS.includes(spec.sheetName)
+)

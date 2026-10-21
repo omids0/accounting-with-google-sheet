@@ -34,6 +34,8 @@ interface JourneyFundStepProps {
   /** True while the spreadsheet is being created; `progress` is 0..100. */
   building: boolean
   progress: number
+  /** What the wait is doing right now («ساخت فایل و جدول‌ها…», «ورود به ساختمان…»). */
+  progressLabel: string
   onChange: (next: FundDraft) => void
   onBuild: () => void
   onBack: () => void
@@ -56,6 +58,7 @@ export default function JourneyFundStep({
   error,
   building,
   progress,
+  progressLabel,
   onChange,
   onBuild,
   onBack
@@ -159,8 +162,8 @@ export default function JourneyFundStep({
       <p className={journeyNoteClass}>{OWN_FILE_CREATE_NOTE}</p>
       {building ? (
         <div role="status">
-          <p className={journeyNoteClass}>در حال ساخت ساختمان…</p>
-          <ProgressBar value={progress} showLabel={false} aria-label="در حال ساخت ساختمان" />
+          <p className={journeyNoteClass}>{progressLabel}</p>
+          <ProgressBar value={progress} showLabel={false} aria-label={progressLabel} />
         </div>
       ) : null}
       {error ? (

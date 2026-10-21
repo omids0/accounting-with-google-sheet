@@ -10,15 +10,26 @@ import {
   type FundAccountInput
 } from './buildingTemplate'
 import { BUILDING_EXPENSE_CATEGORIES, BUILDING_INCOME_CATEGORIES } from './buildingTemplateData'
-import { rowsToGroups, rowsToSubcategories } from './categoryGroups'
+import { rowsToGroups, rowsToSubcategories, withDefaults } from './categoryGroups'
+import { MEMBERSHIP_DATE_KEY } from './periodSettings'
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
 import { WALLET_HEADERS } from './sheetHeaders'
+import {
+  BUILDING_RESIDENTS_SHEET,
+  BUILDING_SHEET,
+  BUILDING_UNITS_SHEET,
+  CHECKS_SHEET,
+  DANG_SHEET,
+  PERSONAL_ONLY_SHEETS,
+  RECEIVABLES_SHEET,
+  WALLET_SHEET
+} from './sheetNames'
+import type { NewSheetTab } from './sheetsCreate'
+import { takeFreshlyCreated } from './spreadsheetPreparedSession'
 import { getWorkspaceType } from './workspace'
 
 const api = vi.hoisted(() => ({
   createSpreadsheet: vi.fn(),
-  ensureManySheetsWithHeaders: vi.fn(),
-  appendSheetRowsApi: vi.fn(),
   calls: [] as string[]
 }))
 
@@ -27,22 +38,6 @@ vi.mock('./sheetsCreate', () => ({
     api.calls.push('create')
 
     return api.createSpreadsheet(...args)
-  }
-}))
-
-vi.mock('./sheetsEnsure', () => ({
-  ensureManySheetsWithHeaders: (...args: unknown[]) => {
-    api.calls.push('ensure')
-
-    return api.ensureManySheetsWithHeaders(...args)
-  }
-}))
-
-vi.mock('./sheetsOutboxApi', () => ({
-  appendSheetRowsApi: (...args: unknown[]) => {
-    api.calls.push(`append:${String(args[1])}`)
-
-    return api.appendSheetRowsApi(...args)
   }
 }))
 
@@ -75,12 +70,13 @@ describe('building template rows', () => {
 
     expect(period.map(row => row.slice(0, 2))).toEqual([
       ['نوع فضا', 'ساختمان'],
+      [MEMBERSHIP_DATE_KEY, expect.any(String)],
       ['نقش:manager@example.com', 'manager']
     ])
   })
 
   it('skip the role row when nobody is signed in', () => {
-    expect(buildTemplateRows(PROFILE, ACCOUNTS, '', NOW).period).toHaveLength(1)
+    expect(buildTemplateRows(PROFILE, ACCOUNTS, '', NOW).period).toHaveLength(2)
   })
 
   it('hold the building profile in one row', () => {
@@ -117,8 +113,10 @@ describe('building template rows', () => {
     expect(groups.receivable).toContain('شارژ ساختمان')
     expect(subcategories.expense['قبوض مشاعات']).toEqual(['برق', 'آب', 'گاز'])
     expect(subcategories.income['اجارهٔ مشاعات']).toEqual(['پشت‌بام', 'آنتن', 'انباری'])
-    // Lists the building does not replace stay empty: the usual defaults are seeded on first use.
-    expect(groups.dang).toEqual([])
+    // The lists the building does not replace carry the usual defaults from the start, so the
+    // first open finds nothing empty to seed and writes nothing back.
+    expect(groups.dang).toEqual(withDefaults(rowsToGroups([])).dang)
+    expect(Object.values(groups).every(list => list.length > 0)).toBe(true)
   })
 
   it('create every fund account, bank cards only on bank accounts', () => {
@@ -160,14 +158,16 @@ describe('createBuildingSpreadsheet', () => {
     localStorage.clear()
     api.calls.length = 0
     api.createSpreadsheet.mockReset().mockResolvedValue('new-building')
-    api.ensureManySheetsWithHeaders.mockReset().mockResolvedValue(undefined)
-    api.appendSheetRowsApi.mockReset().mockResolvedValue(undefined)
     saveSettings({
       ...getDefaultSettings(),
       spreadsheetId: 'personal-1',
       spreadsheets: [{ id: 'personal-1', name: 'حسابداری · ۱۴۰۵', createdAt: '' }]
     })
   })
+
+  const tabsOf = () => api.createSpreadsheet.mock.calls[0][2] as NewSheetTab[]
+
+  const rowsOf = (sheetName: string) => tabsOf().find(tab => tab.sheetName === sheetName)?.rows
 
   it('creates «حسابداری · ساختمان <name>» with the building forms', async () => {
     await createBuildingSpreadsheet(PROFILE, ACCOUNTS)
@@ -180,14 +180,18 @@ describe('createBuildingSpreadsheet', () => {
     )
   })
 
+  it('does not put «ساختمان» in front of a name that already starts with it', async () => {
+    await createBuildingSpreadsheet({ ...PROFILE, name: 'ساختمان تست' }, ACCOUNTS)
+
+    expect(api.createSpreadsheet.mock.calls[0][0]).toBe('حسابداری · ساختمان تست')
+  })
+
   it('writes the setup journey row beside the type and role rows when given one', async () => {
     const journey = initialJourneyState({ unitCount: 12 })
 
     await createBuildingSpreadsheet(PROFILE, ACCOUNTS, journey)
 
-    const periodCall = api.appendSheetRowsApi.mock.calls.find(call => call[1] === 'تنظیمات دوره')
-
-    const rows = periodCall?.[2] as string[][]
+    const rows = rowsOf('تنظیمات دوره') as string[][]
 
     expect(rows.map(row => row[0])).toContain(JOURNEY_ROW)
     expect(JSON.parse(rows.find(row => row[0] === JOURNEY_ROW)![1])).toEqual(journey)
@@ -196,29 +200,55 @@ describe('createBuildingSpreadsheet', () => {
   it('writes no journey row without one', async () => {
     await createBuildingSpreadsheet(PROFILE, ACCOUNTS)
 
-    const periodCall = api.appendSheetRowsApi.mock.calls.find(call => call[1] === 'تنظیمات دوره')
-
-    expect((periodCall?.[2] as string[][]).map(row => row[0])).not.toContain(JOURNEY_ROW)
+    expect((rowsOf('تنظیمات دوره') as string[][]).map(row => row[0])).not.toContain(JOURNEY_ROW)
   })
 
-  it('creates the tabs it writes, then writes the rows of each', async () => {
+  it('sends the file, every tab and the first rows in one create call', async () => {
     await createBuildingSpreadsheet(PROFILE, ACCOUNTS)
 
-    expect(api.calls).toEqual([
-      'create',
-      'ensure',
-      'append:تنظیمات دوره',
-      'append:دسته‌بندی‌ها',
-      'append:ساختمان',
-      'append:کیف پول',
-      'append:گردش حساب'
-    ])
+    expect(api.calls).toEqual(['create'])
+    expect(api.createSpreadsheet).toHaveBeenCalledTimes(1)
 
-    const specs = api.ensureManySheetsWithHeaders.mock.calls[0][1] as { sheetName: string }[]
+    const withRows = tabsOf()
+      .filter(tab => tab.rows?.length)
+      .map(tab => tab.sheetName)
 
-    expect(specs.map(spec => spec.sheetName).sort()).toEqual(
+    expect(withRows.sort()).toEqual(
       ['تنظیمات دوره', 'دسته‌بندی‌ها', 'ساختمان', 'کیف پول', 'گردش حساب'].sort()
     )
+  })
+
+  it('creates the tabs a building uses and none of the personal-only ones', async () => {
+    await createBuildingSpreadsheet(PROFILE, ACCOUNTS)
+
+    const names = tabsOf().map(tab => tab.sheetName)
+
+    expect(names).toEqual(
+      expect.arrayContaining([
+        BUILDING_SHEET,
+        BUILDING_UNITS_SHEET,
+        BUILDING_RESIDENTS_SHEET,
+        WALLET_SHEET,
+        RECEIVABLES_SHEET,
+        DANG_SHEET,
+        CHECKS_SHEET
+      ])
+    )
+    for (const personal of PERSONAL_ONLY_SHEETS) expect(names).not.toContain(personal)
+    expect(tabsOf().every(tab => tab.headers.length > 0)).toBe(true)
+  })
+
+  it('records the membership date so the first open has nothing to add', async () => {
+    await createBuildingSpreadsheet(PROFILE, ACCOUNTS)
+
+    expect((rowsOf('تنظیمات دوره') as string[][]).map(row => row[0])).toContain(MEMBERSHIP_DATE_KEY)
+  })
+
+  it('marks the new file as freshly created so its first open skips the tab check', async () => {
+    const id = await createBuildingSpreadsheet(PROFILE, ACCOUNTS)
+
+    expect(takeFreshlyCreated(id)).toBe(true)
+    expect(takeFreshlyCreated(id)).toBe(false)
   })
 
   it('lists it as a building without activating it, and remembers the type', async () => {
@@ -243,6 +273,5 @@ describe('createBuildingSpreadsheet', () => {
     const expense = getSettings()?.forms.find(form => form.type === 'expense')
 
     expect(expense?.fields.some(field => field.id === 'payer')).toBe(false)
-    expect(api.appendSheetRowsApi.mock.calls.every(call => call[0] === 'new-building')).toBe(true)
   })
 })

@@ -1,7 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
+import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
+import { migrateWalletColumns } from './migrateWalletApplyColumn'
 import { BUILDING_SHEET_SPECS } from './moduleSheetSpecs'
-import { refreshSpreadsheetContents } from './spreadsheetPrepare'
+import { ensureMembershipDate } from './periodSettings'
+import {
+  prepareSpreadsheetContents,
+  refreshSpreadsheetContents,
+  runBackgroundMigrations
+} from './spreadsheetPrepare'
 
 const mocks = vi.hoisted(() => ({
   type: 'personal' as 'personal' | 'building',
@@ -10,6 +18,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('./workspace', () => ({
+  getWorkspaceType: () => mocks.type,
   hasWorkspaceType: () => true,
   syncWorkspaceTypeFromSheet: async () => mocks.type
 }))
@@ -20,11 +29,15 @@ vi.mock('./categories', () => ({
   syncCategoriesFromSheet: (...args: unknown[]) => mocks.categories(...args)
 }))
 vi.mock('./migrateLegacyMachineExpenseCategory', () => ({
-  migrateLegacyMachineExpenseCategory: vi.fn()
+  migrateLegacyMachineExpenseCategory: vi.fn(async () => ({ migratedRecords: 0 }))
 }))
-vi.mock('./migrateSubCategoryColumn', () => ({ migrateSubCategoryColumn: vi.fn() }))
-vi.mock('./migrateWalletApplyColumn', () => ({ migrateWalletColumns: vi.fn() }))
-vi.mock('./periodSettings', () => ({ ensureMembershipDate: vi.fn() }))
+vi.mock('./migrateSubCategoryColumn', () => ({
+  migrateSubCategoryColumn: vi.fn(async () => undefined)
+}))
+vi.mock('./migrateWalletApplyColumn', () => ({
+  migrateWalletColumns: vi.fn(async () => undefined)
+}))
+vi.mock('./periodSettings', () => ({ ensureMembershipDate: vi.fn(async () => '') }))
 
 describe('refreshSpreadsheetContents', () => {
   beforeEach(() => {
@@ -53,5 +66,42 @@ describe('refreshSpreadsheetContents', () => {
 
     await expect(refreshSpreadsheetContents('building-1')).resolves.toBeUndefined()
     expect(mocks.categories).toHaveBeenCalled()
+  })
+})
+
+describe('the personal one-off migrations', () => {
+  beforeEach(() => {
+    vi.mocked(migrateLegacyMachineExpenseCategory).mockClear()
+    vi.mocked(migrateSubCategoryColumn).mockClear()
+    vi.mocked(migrateWalletColumns).mockClear()
+    vi.mocked(ensureMembershipDate).mockClear()
+  })
+
+  it('run for a personal spreadsheet', async () => {
+    mocks.type = 'personal'
+    await prepareSpreadsheetContents('personal-1')
+
+    expect(migrateLegacyMachineExpenseCategory).toHaveBeenCalledWith('personal-1')
+    expect(migrateSubCategoryColumn).toHaveBeenCalledWith('personal-1')
+    expect(migrateWalletColumns).toHaveBeenCalledWith('personal-1')
+    expect(ensureMembershipDate).toHaveBeenCalledWith('personal-1')
+  })
+
+  it('are skipped for a building, which only gets its membership date', async () => {
+    mocks.type = 'building'
+    await prepareSpreadsheetContents('building-1')
+
+    expect(migrateLegacyMachineExpenseCategory).not.toHaveBeenCalled()
+    expect(migrateSubCategoryColumn).not.toHaveBeenCalled()
+    expect(migrateWalletColumns).not.toHaveBeenCalled()
+    expect(ensureMembershipDate).toHaveBeenCalledWith('building-1')
+  })
+
+  it('do not run in the background for a building either', () => {
+    mocks.type = 'building'
+    runBackgroundMigrations('building-1')
+
+    expect(migrateLegacyMachineExpenseCategory).not.toHaveBeenCalled()
+    expect(migrateSubCategoryColumn).not.toHaveBeenCalled()
   })
 })

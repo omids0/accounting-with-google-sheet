@@ -5,7 +5,7 @@ import { migrateWalletColumns } from './migrateWalletApplyColumn'
 import { BUILDING_SHEET_SPECS } from './moduleSheetSpecs'
 import { ensureMembershipDate } from './periodSettings'
 import { ensureManySheetsWithHeaders } from './sheetsEnsure'
-import { hasWorkspaceType, syncWorkspaceTypeFromSheet } from './workspace'
+import { getWorkspaceType, hasWorkspaceType, syncWorkspaceTypeFromSheet } from './workspace'
 
 export { syncCategoriesFromSheet }
 
@@ -27,6 +27,13 @@ export async function refreshSpreadsheetContents(spreadsheetId: string): Promise
 /** First-time work on a spreadsheet after its tabs exist: categories, one-off migrations. */
 export async function prepareSpreadsheetContents(spreadsheetId: string): Promise<void> {
   await refreshSpreadsheetContents(spreadsheetId)
+  // A building file is born in round 11 with current headers and no vehicles: the personal
+  // spreadsheet's one-off migrations have nothing to fix there and would read ten tabs for it.
+  if (getWorkspaceType(spreadsheetId) === 'building') {
+    await ensureMembershipDate(spreadsheetId).catch(() => '')
+
+    return
+  }
   await migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   await migrateSubCategoryColumn(spreadsheetId).catch(() => undefined)
   await migrateWalletColumns(spreadsheetId).catch(() => undefined)
@@ -37,6 +44,7 @@ export async function prepareSpreadsheetContents(spreadsheetId: string): Promise
 export function runBackgroundMigrations(spreadsheetId: string): void {
   // A sheet first seen on this device (shared with the board, say): learn its workspace type.
   if (!hasWorkspaceType(spreadsheetId)) void syncWorkspaceTypeFromSheet(spreadsheetId)
+  if (getWorkspaceType(spreadsheetId) === 'building') return
   void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   void migrateSubCategoryColumn(spreadsheetId)
     .catch(() => undefined)

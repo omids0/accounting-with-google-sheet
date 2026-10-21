@@ -1,9 +1,12 @@
 import { getUserEmail } from './auth'
 import { JOURNEY_ROW, type JourneyState } from './buildingJourney'
+import { buildingLabel } from './buildingLabel'
 import { ROLE_ROW_PREFIX } from './buildingRoles'
 import { buildingCategoryGroups, buildingSubcategories } from './buildingTemplateData'
-import { groupsToRows } from './categoryGroups'
-import { BUILDING_SHEET_SPECS, MODULE_SHEET_SPECS } from './moduleSheetSpecs'
+import { groupsToRows, withDefaults } from './categoryGroups'
+import { markCompactGridsMigrated } from './migrateCompactGrids'
+import { BUILDING_MODULE_SHEET_SPECS, BUILDING_SHEET_SPECS } from './moduleSheetSpecs'
+import { MEMBERSHIP_DATE_KEY } from './periodSettings'
 import { getDefaultSettings, getDefaultForms, getSettings, saveSettings } from './settings'
 import {
   BUILDING_SHEET,
@@ -12,10 +15,9 @@ import {
   WALLET_LEDGER_SHEET,
   WALLET_SHEET
 } from './sheetNames'
-import { createSpreadsheet } from './sheetsCreate'
-import { ensureManySheetsWithHeaders } from './sheetsEnsure'
-import { appendSheetRowsApi } from './sheetsOutboxApi'
+import { createSpreadsheet, type NewSheetTab } from './sheetsCreate'
 import { formatSpreadsheetTitle } from './spreadsheetCatalog'
+import { markFreshlyCreated } from './spreadsheetPreparedSession'
 import { accountToRow } from './wallet'
 import { WALLET_ACCOUNT_KIND_BANK, WALLET_ACCOUNT_KIND_CASH } from './walletCategories'
 import { ledgerEntry, ledgerRow } from './walletLedger'
@@ -51,15 +53,6 @@ export interface FundAccountInput {
   cardNumber: string
   balance: number
 }
-
-/** Tabs written at creation; the rest are created when the building is first opened. */
-const TEMPLATE_SHEETS = [
-  PERIOD_SETTINGS_SHEET,
-  CATEGORIES_SHEET,
-  BUILDING_SHEET,
-  WALLET_SHEET,
-  WALLET_LEDGER_SHEET
-]
 
 export interface BuildingTemplateRows {
   period: string[][]
@@ -119,11 +112,15 @@ export function buildTemplateRows(
   return {
     period: [
       [WORKSPACE_TYPE_ROW, WORKSPACE_BUILDING_VALUE, stamp],
+      // Written now, so the first open has no «تاریخ عضویت» row left to add.
+      [MEMBERSHIP_DATE_KEY, getTodayIso(), stamp],
       ...(creatorEmail
         ? [[`${ROLE_ROW_PREFIX}${creatorEmail.trim().toLowerCase()}`, 'manager', stamp]]
         : [])
     ],
-    categories: groupsToRows(buildingCategoryGroups(), buildingSubcategories()),
+    // The usual lists a building does not replace are filled in now, exactly as the first open
+    // would: nothing is left to seed, so opening the new file writes nothing back to it.
+    categories: groupsToRows(withDefaults(buildingCategoryGroups()), buildingSubcategories()),
     building: [buildingProfileRow(profile, stamp)],
     wallet: wallets.map(accountToRow),
     // The balance each account starts with, like a hand-made account does (round 7 ledger).
@@ -163,8 +160,10 @@ export function registerBuildingSpreadsheet(id: string, name: string): void {
 /**
  * Creates the spreadsheet «حسابداری · ساختمان <name>» with the building forms, categories,
  * profile row, fund accounts (with their opening balances) and the creator as «مدیر», and lists it
- * in the settings as a building. Written straight to Sheets: the new spreadsheet is not active, so
- * nothing of it touches the manager's own books.
+ * in the settings as a building. The file, all of its tabs, every header and the first rows go out
+ * in TWO requests (create, then one batch write); a building has only the tabs it uses, never the
+ * personal-only ones. The new spreadsheet is not active, so nothing of it touches the manager's own
+ * books.
  */
 export async function createBuildingSpreadsheet(
   profile: BuildingProfile,
@@ -172,37 +171,38 @@ export async function createBuildingSpreadsheet(
   /** Where the setup journey stands; the row stays until the summary is confirmed. */
   journey?: JourneyState
 ): Promise<string> {
-  const title = formatSpreadsheetTitle(`ساختمان ${profile.name.trim()}`)
+  const title = formatSpreadsheetTitle(buildingLabel(profile.name))
 
   const rows = buildTemplateRows(profile, accounts, getUserEmail() ?? '')
 
   if (journey)
     rows.period.push([JOURNEY_ROW, JSON.stringify(journey), new Date().toLocaleString('fa-IR')])
 
-  const spreadsheetId = await createSpreadsheet(title, buildingForms())
+  const spreadsheetId = await createSpreadsheet(title, buildingForms(), buildingTabs(rows))
 
-  await ensureManySheetsWithHeaders(
-    spreadsheetId,
-    [...MODULE_SHEET_SPECS, ...BUILDING_SHEET_SPECS].filter(spec =>
-      TEMPLATE_SHEETS.includes(spec.sheetName)
-    )
-  )
-
-  const writes: [string, string[][]][] = [
-    [PERIOD_SETTINGS_SHEET, rows.period],
-    [CATEGORIES_SHEET, rows.categories],
-    [BUILDING_SHEET, rows.building],
-    [WALLET_SHEET, rows.wallet],
-    [WALLET_LEDGER_SHEET, rows.ledger]
-  ]
-
-  for (const [sheetName, sheetRows] of writes) {
-    await appendSheetRowsApi(spreadsheetId, sheetName, sheetRows)
-  }
-
+  // Every tab and header is in place: the first activation goes straight to opening it.
+  markFreshlyCreated(spreadsheetId)
+  // Its tabs were created with exact grids, so the first download has nothing to shrink either.
+  markCompactGridsMigrated(spreadsheetId)
   // Known before the first activation, so its forms and category locks are the building's.
   setWorkspaceType(spreadsheetId, 'building')
   registerBuildingSpreadsheet(spreadsheetId, title)
 
   return spreadsheetId
+}
+
+/** The tabs of a new building: the template ones with their rows, the rest with headers only. */
+export function buildingTabs(rows: BuildingTemplateRows): NewSheetTab[] {
+  const withRows: Record<string, string[][]> = {
+    [PERIOD_SETTINGS_SHEET]: rows.period,
+    [CATEGORIES_SHEET]: rows.categories,
+    [BUILDING_SHEET]: rows.building,
+    [WALLET_SHEET]: rows.wallet,
+    [WALLET_LEDGER_SHEET]: rows.ledger
+  }
+
+  return [...BUILDING_MODULE_SHEET_SPECS, ...BUILDING_SHEET_SPECS].map(spec => ({
+    ...spec,
+    rows: withRows[spec.sheetName]
+  }))
 }

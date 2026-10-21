@@ -1,5 +1,6 @@
 import type { SpreadsheetEntry } from '../types'
 import { getAllSheetSpecs } from './allSheetSpecs'
+import { waitForSessionSync } from './sessionSync'
 import { getDefaultSettings, getSettings, registerSpreadsheet } from './settings'
 import {
   createSpreadsheet,
@@ -16,11 +17,19 @@ import {
 } from './spreadsheetAccess'
 import { formatSpreadsheetTitle } from './spreadsheetCatalog'
 import { syncSpreadsheetsFromDrive } from './spreadsheetDriveSync'
+import {
+  clearPreparedRecords,
+  isPreparedRecently,
+  markPreparedRecently,
+  takeFreshlyCreated
+} from './spreadsheetPreparedSession'
+import { resolveWorkspaceType } from './workspace'
 import { getJalaliParts } from '../utils/jalaliDate'
 
 export { getAllSheetSpecs, syncSpreadsheetsFromDrive }
 
-const SESSION_PREPARED_KEY = 'accounting_sheets_ready'
+/** The longest the contents refresh waits for the first download before it just goes ahead. */
+const REFRESH_WAIT_MS = 15_000
 
 let activeSpreadsheetSetup: Promise<string> | null = null
 
@@ -48,14 +57,7 @@ function markAllKnownSheetsPrepared(spreadsheetId: string): void {
   )
 }
 
-/** Re-check headers at least daily even when nothing in the app changed. */
-const PREPARED_MAX_AGE_MS = 24 * 60 * 60_000
-
-/**
- * Kept in localStorage (sessionStorage is wiped every time the PWA closes, which
- * made every cold start re-check all headers). The signature changes whenever an
- * app update adds a sheet or a column, which forces a fresh check.
- */
+/** The signature changes whenever an app update adds a sheet or a column: a fresh check follows. */
 function preparedSignature(spreadsheetId: string): string {
   const specs = getAllSheetSpecs(spreadsheetId).map(
     sheet => `${sheet.sheetName}:${sheet.headers.length}`
@@ -65,39 +67,15 @@ function preparedSignature(spreadsheetId: string): string {
 }
 
 function isSessionPrepared(spreadsheetId: string): boolean {
-  try {
-    const stored = JSON.parse(localStorage.getItem(SESSION_PREPARED_KEY) ?? 'null') as {
-      signature?: string
-      at?: number
-    } | null
-
-    return (
-      stored?.signature === preparedSignature(spreadsheetId) &&
-      Date.now() - (stored.at ?? 0) < PREPARED_MAX_AGE_MS
-    )
-  } catch {
-    return false
-  }
+  return isPreparedRecently(spreadsheetId, preparedSignature(spreadsheetId))
 }
 
 function markSessionPrepared(spreadsheetId: string): void {
-  try {
-    localStorage.setItem(
-      SESSION_PREPARED_KEY,
-      JSON.stringify({ signature: preparedSignature(spreadsheetId), at: Date.now() })
-    )
-  } catch {
-    // Ignore storage failures in private mode.
-  }
+  markPreparedRecently(spreadsheetId, preparedSignature(spreadsheetId))
 }
 
 export function clearSpreadsheetPrepareSession(spreadsheetId?: string): void {
-  try {
-    localStorage.removeItem(SESSION_PREPARED_KEY)
-    sessionStorage.removeItem(SESSION_PREPARED_KEY)
-  } catch {
-    // Ignore storage failures in private mode.
-  }
+  clearPreparedRecords()
   if (spreadsheetId) {
     invalidateSpreadsheetCache(spreadsheetId)
   }
@@ -138,21 +116,22 @@ export async function resolveSpreadsheetSession(): Promise<SpreadsheetSessionSta
   return { status: 'need_first_sheet' }
 }
 
-async function finalizeSpreadsheetActivation(
-  spreadsheetId: string,
-  name: string,
-  previousId?: string
-): Promise<string> {
+async function finalizeSpreadsheetActivation(spreadsheetId: string, name: string): Promise<string> {
   registerSpreadsheet(spreadsheetId, name)
   clearInaccessibleSpreadsheet()
-  if (previousId && previousId !== spreadsheetId) {
-    clearSpreadsheetPrepareSession(previousId)
-  }
 
-  if (isSessionPrepared(spreadsheetId)) {
+  // A spreadsheet this app just created has every tab and header already. The records are kept
+  // for each spreadsheet, so going back to one opened earlier does not check it all again.
+  const fresh = takeFreshlyCreated(spreadsheetId)
+
+  if (fresh || isSessionPrepared(spreadsheetId)) {
     markAllKnownSheetsPrepared(spreadsheetId)
-    // Headers are known good; categories may have changed on another device.
-    void import('./spreadsheetPrepare')
+    if (fresh) markSessionPrepared(spreadsheetId)
+    // Headers are known good; categories may have changed on another device. The refresh waits
+    // for the first download of the switch, so it reads the tabs that download just brought
+    // instead of asking Google for them a second time.
+    void waitForSessionSync(Date.now(), REFRESH_WAIT_MS)
+      .then(() => import('./spreadsheetPrepare'))
       .then(prepare => prepare.refreshSpreadsheetContents(spreadsheetId))
       .catch(() => undefined)
 
@@ -171,18 +150,19 @@ async function finalizeSpreadsheetActivation(
 
 export async function activateSpreadsheet(
   spreadsheetId: string,
-  previousId?: string,
+  _previousId?: string,
   /** Name from Google Picker, for a sheet Drive's name filter or list does not show yet. */
   pickedName?: string
 ): Promise<string> {
   return runExclusiveSpreadsheetSetup(async () => {
     const settings = getSettings() ?? getDefaultSettings()
 
-    const options = await syncSpreadsheetsFromDrive()
+    // A sheet this device already lists needs no Drive round trip to be opened.
+    const listed = settings.spreadsheets?.find(sheet => sheet.id === spreadsheetId)
 
     const entry =
-      options.find(sheet => sheet.id === spreadsheetId) ??
-      settings.spreadsheets?.find(sheet => sheet.id === spreadsheetId) ??
+      listed ??
+      (await syncSpreadsheetsFromDrive()).find(sheet => sheet.id === spreadsheetId) ??
       (pickedName ? { name: pickedName } : undefined)
 
     if (!entry) {
@@ -192,13 +172,10 @@ export async function activateSpreadsheet(
       throw new Error(SPREADSHEET_NO_ACCESS_MESSAGE)
     }
 
-    const prev = previousId ?? settings.spreadsheetId
+    // Known before the switch, so the first frame of the new sheet has its own menu and pages.
+    await resolveWorkspaceType(spreadsheetId)
 
-    return finalizeSpreadsheetActivation(
-      spreadsheetId,
-      entry.name,
-      prev !== spreadsheetId ? prev : undefined
-    )
+    return finalizeSpreadsheetActivation(spreadsheetId, entry.name)
   })
 }
 
@@ -219,8 +196,7 @@ export async function prepareUserSpreadsheet(_userName?: string | null): Promise
 
     return finalizeSpreadsheetActivation(
       session.spreadsheetId,
-      entry?.name ?? session.spreadsheetId,
-      settings.spreadsheetId
+      entry?.name ?? session.spreadsheetId
     )
   })
 }
@@ -231,11 +207,9 @@ export async function createNamedSpreadsheet(label: string): Promise<string> {
 
     const title = formatSpreadsheetTitle(label)
 
-    const previousId = settings.spreadsheetId
-
     const spreadsheetId = await createSpreadsheet(title, settings.forms)
 
-    return finalizeSpreadsheetActivation(spreadsheetId, title, previousId)
+    return finalizeSpreadsheetActivation(spreadsheetId, title)
   })
 }
 

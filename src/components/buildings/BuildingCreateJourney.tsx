@@ -22,8 +22,13 @@ import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 import { journeyPageClass } from '../ui/buildingStyles'
 import Card from '../ui/Card'
 
-/** The simulated progress creeps toward this and never reaches it until Sheets answers. */
-const PROGRESS_CEILING = 96
+/** What the wait says, and how far the simulated bar may creep before Sheets answers. */
+const CREATE_STEPS = {
+  file: { label: 'ساخت فایل و جدول‌ها…', ceiling: 60 },
+  enter: { label: 'ورود به ساختمان…', ceiling: 96 }
+} as const
+
+type CreateStep = keyof typeof CREATE_STEPS
 
 /**
  * «+ ساختمان جدید», steps 1 and 2 of the journey. They run in the manager's own workspace and
@@ -37,18 +42,21 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
   const [error, setError] = useState<string | null>(null)
   const [building, setBuilding] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [step, setStep] = useState<CreateStep>('file')
   const { enter, modalProps } = useEnterBuilding()
 
   useEffect(() => {
     if (!building) return
 
+    const { ceiling } = CREATE_STEPS[step]
+
     const timer = window.setInterval(
-      () => setProgress(value => value + (PROGRESS_CEILING - value) * 0.07),
+      () => setProgress(value => value + (ceiling - value) * 0.12),
       350
     )
 
     return () => window.clearInterval(timer)
-  }, [building])
+  }, [building, step])
 
   const next = () => {
     const problem = profileError(profile)
@@ -64,6 +72,7 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
     if (problem) return
 
     setBuilding(true)
+    setStep('file')
     setProgress(4)
     try {
       const journey = initialJourneyState({
@@ -80,8 +89,10 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
       // The new sheet is not mirrored yet, so its journey row cannot be read: hand it over and
       // go straight to step 3 instead of the dashboard.
       rememberCreatedJourney(id, journey)
-      setProgress(100)
+      setStep('enter')
+      setProgress(value => Math.max(value, 62))
       await enter(id, 'building-setup')
+      setProgress(100)
     } catch (err) {
       showError(toUserMessage(err, 'ساخت ساختمان ناموفق بود'))
     } finally {
@@ -107,6 +118,7 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
             error={error}
             building={building}
             progress={progress}
+            progressLabel={CREATE_STEPS[step].label}
             onChange={setFund}
             onBuild={() => void build()}
             onBack={() => {
