@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { smsBulkItems } from './smsBulkItems'
+import { knownSubCategory } from './smsSubCategory'
 import { useBankSmsContext } from './useBankSmsContext'
 import { useBuildingSmsUnits } from './useBuildingSmsUnits'
 import { useSmsTemplates } from './useSmsTemplates'
@@ -27,6 +28,7 @@ import {
   type SmsCategoryChoice,
   type SmsCategorySuggestion
 } from '../../services/bankSmsSuggest'
+import { confirmSmsVehicleExpense, type SmsVehicleInput } from '../../services/bankSmsVehicle'
 import { readBridgePrefs } from '../../services/bridgePrefs'
 import { personalBridgeId } from '../../services/bridgeTarget'
 import { unitSuggestionTitle, type SmsUnitInput } from '../../services/buildingSmsMatch'
@@ -41,6 +43,7 @@ import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
 import type { BuildingSetupData } from '../buildings/useBuildingSetupData'
+import { VEHICLE_EXPENSE_CATEGORY } from '../vehicles/constants'
 
 /** The card's category: the suggestion, or what the user picked instead (no `source`). */
 export type SmsChoice = SmsCategoryChoice & Partial<Omit<SmsCategorySuggestion, 'category'>>
@@ -116,8 +119,14 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
 
   /** The category of a deposit/withdrawal as the round-6 rules give it (what «درآمد دیگر» saves). */
   const plainChoiceFor = useCallback(
-    (entry: ConfirmableSms): SmsChoice | null =>
-      picked[entry.sms.id] ?? suggestSmsCategory(smsSuggestInput(entry), suggestContext),
+    (entry: ConfirmableSms): SmsChoice | null => {
+      const own = picked[entry.sms.id]
+
+      // A pick emptied by deleting its category counts as no choice, never as a blank category.
+      if (own) return own.category ? own : null
+
+      return suggestSmsCategory(smsSuggestInput(entry), suggestContext)
+    },
     [picked, suggestContext]
   )
 
@@ -167,7 +176,10 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
   }
 
   const record = (entry: ConfirmableSms, choice: SmsChoice): SmsRecordInput =>
-    suggestedSmsRecord(choice, titleOf(entry.result.accountId))
+    suggestedSmsRecord(
+      { ...choice, subCategory: knownSubCategory(smsRecordType(entry), choice) },
+      titleOf(entry.result.accountId)
+    )
 
   /** A building deposit paid for a unit: `payUnitFromSms` writes the record and the payment. */
   const payForUnit = (spreadsheetId: string, entry: ConfirmableSms, unit: SmsUnitInput) => {
@@ -255,6 +267,11 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
           }
         }
       }),
+    /** «خودرو» saved from the card, with the vehicle fields asked on it. */
+    saveVehicle: (entry: ConfirmableSms, vehicle: SmsVehicleInput) =>
+      run(entry.sms.id, `ثبت شد · ${VEHICLE_EXPENSE_CATEGORY}`, id =>
+        confirmSmsVehicleExpense(id, entry, vehicle)
+      ),
     balanceOnly: (entry: ConfirmableSms) =>
       run(entry.sms.id, 'موجودی به‌روز شد', id => confirmSmsEntry(id, entry, null)),
     confirmTransfer: (key: string, debit: ConfirmableSms, credit: ConfirmableSms) =>

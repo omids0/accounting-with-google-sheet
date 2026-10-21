@@ -45,9 +45,12 @@ These are ported from `.cursor/rules/` and apply to every task in this repo.
 @.claude/rules/no-local-git-cli.md
 @.claude/rules/branch-from-develop.md
 @.claude/rules/keep-about-page-updated.md
+@.claude/rules/qa.md
 
 ## Skills
 
-`.claude/skills/` holds the skills ported from `.cursor/skills/`: `banner-design`, `brand`, `design`, `design-system`, `slides`, `ui-styling`, `ui-ux-pro-max`. Invoke them with the Skill tool when a task matches their description.
+`.claude/skills/` holds the skills ported from `.cursor/skills/`: `banner-design`, `brand`, `design`, `design-system`, `qa`, `slides`, `ui-styling`, `ui-ux-pro-max`. Invoke them with the Skill tool when a task matches their description. The `qa` skill is mandatory for every UI or behavior task (see rule `qa`).
+
+`.claude/agents/` holds the QA reviewers (`qa-side-effects`, `qa-parity`, `qa-visual-verifier`, `qa-ux-reviewer`). Cursor has no agents; its copy of the checklists is the `qa` skill itself.
 
 `.cursor/rules/` and `.cursor/skills/` remain in place for Cursor. Every rule and skill must exist in both trees — see `sync-agent-rules-and-skills`.
