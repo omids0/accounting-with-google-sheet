@@ -2,12 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
 import {
+  getActiveWorkspaceResolution,
   getActiveWorkspaceType,
   getWorkspaceType,
   hasWorkspaceType,
   isBuildingEntry,
+  isWorkspaceTypeKnown,
   personalSpreadsheet,
   rememberPersonalSheet,
+  resolveWorkspaceType,
   setWorkspaceType,
   subscribeWorkspace,
   syncWorkspaceTypeFromSheet,
@@ -123,6 +126,69 @@ describe('workspace type', () => {
   })
 })
 
+describe('the registry kind comes first', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    fetchSheetRows.mockReset()
+  })
+
+  it('takes a listed building for a building before its marker row was ever read', () => {
+    activate('building-1')
+
+    expect(hasWorkspaceType('building-1')).toBe(false)
+    expect(getWorkspaceType('building-1')).toBe('building')
+    expect(getActiveWorkspaceType()).toBe('building')
+    expect(getWorkspaceType('personal-1')).toBe('personal')
+  })
+
+  it('lets what the sheet said win over the registry', () => {
+    activate('building-1')
+    setWorkspaceType('building-1', 'personal')
+
+    expect(getWorkspaceType('building-1')).toBe('personal')
+  })
+
+  it('is unknown only for a sheet with neither a cached type nor a registered kind', () => {
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: 'drive-1',
+      spreadsheets: [
+        entry('personal-1', 'personal'),
+        entry('building-1', 'building'),
+        entry('drive-1')
+      ]
+    })
+
+    expect(isWorkspaceTypeKnown('personal-1')).toBe(true)
+    expect(isWorkspaceTypeKnown('building-1')).toBe(true)
+    expect(isWorkspaceTypeKnown('drive-1')).toBe(false)
+    expect(getActiveWorkspaceResolution()).toBe('unknown')
+
+    setWorkspaceType('drive-1', 'personal')
+    expect(getActiveWorkspaceResolution()).toBe('personal')
+  })
+
+  it('reads the marker row of an unknown sheet before it is switched to, and only then', async () => {
+    fetchSheetRows.mockResolvedValue([['نوع فضا', 'ساختمان', 't']])
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: 'personal-1',
+      spreadsheets: [entry('personal-1', 'personal'), entry('drive-1')]
+    })
+
+    expect(await resolveWorkspaceType('drive-1')).toBe('building')
+    expect(fetchSheetRows).toHaveBeenCalledTimes(1)
+    // The registry now carries the kind too, so a later start needs no read.
+    expect(getSettings()?.spreadsheets?.find(sheet => sheet.id === 'drive-1')?.kind).toBe(
+      'building'
+    )
+
+    expect(await resolveWorkspaceType('drive-1')).toBe('building')
+    expect(await resolveWorkspaceType('personal-1')).toBe('personal')
+    expect(fetchSheetRows).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('reading the type from the sheet', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -157,7 +223,11 @@ describe('reading the type from the sheet', () => {
   })
 
   it('stores the forms again with the building fields once the type changes', async () => {
-    activate('building-1')
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: 'building-1',
+      spreadsheets: [entry('personal-1'), entry('building-1')]
+    })
     expect(getSettings()?.forms.some(form => form.fields.some(f => f.id === 'payer'))).toBe(false)
 
     fetchSheetRows.mockResolvedValue([['نوع فضا', 'ساختمان', 't']])

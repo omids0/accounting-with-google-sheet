@@ -24,6 +24,8 @@ interface LayoutBuildingSwitcherProps {
   currentTab: Tab | null
   onTabChange: (tab: Tab) => void
   onPick: (buildingId: string) => void
+  /** The building being opened right now: its row says so and the others wait. */
+  pendingId?: string | null
 }
 
 /**
@@ -35,7 +37,8 @@ export default function LayoutBuildingSwitcher({
   rows,
   currentTab,
   onTabChange,
-  onPick
+  onPick,
+  pendingId = null
 }: LayoutBuildingSwitcherProps) {
   const [expanded, setExpanded] = useState(false)
   const collapsible = isSwitcherCollapsible(rows)
@@ -49,13 +52,18 @@ export default function LayoutBuildingSwitcher({
           type="button"
           className={appMenuTallItemClass(row.current)}
           aria-current={row.current ? 'true' : undefined}
+          aria-busy={row.id === pendingId ? 'true' : undefined}
+          disabled={pendingId !== null}
           onClick={() => onPick(row.id)}
         >
           <span className={appMenuItemIconClass(row.current)}>
             <AppIcon name={row.current ? 'check' : 'building'} size={20} />
           </span>
-          <span className={appMenuItemLabelClass}>{row.label}</span>
-          {row.current && <span className="sr-only">، ساختمان فعلی</span>}
+          <span className={appMenuItemLabelClass}>
+            {row.label}
+            {row.id === pendingId ? ' · ورود به ساختمان…' : ''}
+          </span>
+          {row.current && pendingId === null && <span className="sr-only">، ساختمان فعلی</span>}
         </button>
       ))}
       {collapsible && (

@@ -38,7 +38,7 @@ export default function LayoutBuildingMenuNav({
 }: LayoutBuildingMenuNavProps) {
   const groups = useBuildingMenuGroups()
   const { returnToPersonal, modalProps } = useReturnToPersonal(onCloseMenu)
-  const { enter, modalProps: enterModalProps } = useEnterBuilding(onCloseMenu)
+  const { enter, entering, modalProps: enterModalProps } = useEnterBuilding(onCloseMenu)
   // Bumped on every sheet switch; the registry itself is read again on each render of the drawer.
   useAppStore(state => state.spreadsheetKey)
   const rows = buildingSwitchRows(getSpreadsheets(), getSettings()?.spreadsheetId ?? '')
@@ -57,6 +57,7 @@ export default function LayoutBuildingMenuNav({
         currentTab={currentTab}
         onTabChange={onTabChange}
         onPick={id => void enter(id)}
+        pendingId={entering}
       />
       {groups.map((group, index) => (
         <LayoutMenuSection key={group.label} label={group.label}>

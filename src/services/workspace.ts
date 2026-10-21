@@ -19,16 +19,32 @@ export const WORKSPACE_BUILDING_VALUE = 'ساختمان'
 
 type Store = Record<string, WorkspaceType>
 
-let cached: { version: number; store: Store; activeId: string } | null = null
+interface Snapshot {
+  version: number
+  store: Store
+  /** `kind` of the spreadsheets this device registered: known the moment a sheet is listed. */
+  kinds: Record<string, WorkspaceKind | undefined>
+  activeId: string
+}
 
-function read(): { store: Store; activeId: string } {
+let cached: Snapshot | null = null
+
+function read(): Snapshot {
   const version = getStorageVersion()
 
   if (cached?.version !== version) {
+    const settings = getItem<{
+      spreadsheetId?: string
+      spreadsheets?: { id: string; kind?: WorkspaceKind }[]
+    }>(STORAGE_KEYS.SETTINGS)
+
     cached = {
       version,
       store: getItem<Store>(WORKSPACE_STORAGE_KEY) ?? {},
-      activeId: getItem<{ spreadsheetId?: string }>(STORAGE_KEYS.SETTINGS)?.spreadsheetId ?? ''
+      kinds: Object.fromEntries(
+        (settings?.spreadsheets ?? []).map(sheet => [sheet.id, sheet.kind])
+      ),
+      activeId: settings?.spreadsheetId ?? ''
     }
   }
 
@@ -49,8 +65,28 @@ export function hasWorkspaceType(spreadsheetId: string): boolean {
   return spreadsheetId in read().store
 }
 
+/**
+ * What the sheet itself said wins; before that, the `kind` the registry holds, so a building
+ * listed on this device is never taken for a personal sheet while its type is still unread.
+ */
 export function getWorkspaceType(spreadsheetId: string): WorkspaceType {
-  return read().store[spreadsheetId] === 'building' ? 'building' : 'personal'
+  const { store, kinds } = read()
+
+  return (store[spreadsheetId] ?? kinds[spreadsheetId]) === 'building' ? 'building' : 'personal'
+}
+
+/** False only for a sheet this device has neither read the marker row of nor registered a kind for. */
+export function isWorkspaceTypeKnown(spreadsheetId: string): boolean {
+  const { store, kinds } = read()
+
+  return spreadsheetId in store || Boolean(kinds[spreadsheetId])
+}
+
+/** `unknown` while the active sheet's type is unresolved: pages must not guess `personal` then. */
+export function getActiveWorkspaceResolution(): WorkspaceType | 'unknown' {
+  const { activeId } = read()
+
+  return !activeId || isWorkspaceTypeKnown(activeId) ? getWorkspaceType(activeId) : 'unknown'
 }
 
 export function getActiveWorkspaceType(): WorkspaceType {
@@ -135,15 +171,36 @@ export async function syncWorkspaceTypeFromSheet(spreadsheetId: string): Promise
 
     if (!hasWorkspaceType(spreadsheetId) || getWorkspaceType(spreadsheetId) !== type) {
       setWorkspaceType(spreadsheetId, type)
-      // Saving normalizes the stored forms again, now with (or without) the building fields.
+      // Saving normalizes the stored forms again, now with (or without) the building fields, and
+      // keeps the registry's `kind` in step with what the sheet says.
       const { getSettings, saveSettings } = await import('./settings')
       const settings = getSettings()
 
-      if (settings) saveSettings(settings)
+      if (settings) {
+        saveSettings({
+          ...settings,
+          spreadsheets: settings.spreadsheets?.map(sheet =>
+            sheet.id === spreadsheetId && (sheet.kind === 'building') !== (type === 'building')
+              ? { ...sheet, kind: type }
+              : sheet
+          )
+        })
+      }
     }
 
     return type
   } catch {
     return getWorkspaceType(spreadsheetId)
   }
+}
+
+/**
+ * Reads the marker row of a sheet that is about to become the active one, when nothing says what
+ * it is yet. Called before the switch, so the first frame of the new sheet already has its own
+ * menu and pages instead of the personal ones.
+ */
+export async function resolveWorkspaceType(spreadsheetId: string): Promise<WorkspaceType> {
+  if (isWorkspaceTypeKnown(spreadsheetId)) return getWorkspaceType(spreadsheetId)
+
+  return syncWorkspaceTypeFromSheet(spreadsheetId)
 }

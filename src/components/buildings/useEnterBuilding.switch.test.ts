@@ -81,6 +81,30 @@ describe('useEnterBuilding (switching between buildings)', () => {
     expect(done).toHaveBeenCalledTimes(1)
   })
 
+  it('leaves the old building page for the dashboard before the data of the new one arrives', async () => {
+    const order: string[] = []
+
+    mocks.navigate.mockImplementation((path: string) => order.push(`go:${path}`))
+    mocks.switchActive.mockImplementationOnce(async () => {
+      order.push('switch')
+
+      return 'ok'
+    })
+    await act(() => enter('b2'))
+
+    expect(order).toEqual(['go:/building', 'switch', 'go:/building'])
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, '/building', { replace: true })
+    mocks.navigate.mockReset()
+  })
+
+  it('does not step through the dashboard when entering from the personal workspace', async () => {
+    mocks.activeId = 'p1'
+    act(() => root.render(createElement(Probe)))
+    await act(() => enter('b2'))
+
+    expect(mocks.navigate).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the remembered personal sheet when leaving a building', async () => {
     await act(() => enter('b2'))
 

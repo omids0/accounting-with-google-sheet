@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
 import {
+  getActiveWorkspaceResolution,
   getActiveWorkspaceType,
   subscribeWorkspace,
   type WorkspaceType
@@ -17,4 +18,11 @@ export function useWorkspaceType(): WorkspaceType {
 
 export function useIsBuildingWorkspace(): boolean {
   return useWorkspaceType() === 'building'
+}
+
+/** Like `useWorkspaceType`, but `unknown` while the active sheet's type is still being read. */
+export function useWorkspaceResolution(): WorkspaceType | 'unknown' {
+  useAppStore(state => state.spreadsheetKey)
+
+  return useSyncExternalStore(subscribeWorkspace, getActiveWorkspaceResolution)
 }
