@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { isArchivedEntry, setBuildingArchived } from '../../services/buildingArchive'
+import {
+  activeBuildingEntries,
+  isArchivedEntry,
+  setBuildingArchived
+} from '../../services/buildingArchive'
 import {
   cachedBuildingSummary,
   loadBuildingSummary,
@@ -27,7 +31,7 @@ export function useBuildingsHome() {
 
   const registered = useMemo(() => entries.filter(isBuildingEntry), [entries])
 
-  const buildings = useMemo(() => registered.filter(entry => !isArchivedEntry(entry)), [registered])
+  const buildings = useMemo(() => activeBuildingEntries(entries), [entries])
 
   /** «بایگانی‌شده»: still registered, out of the list until «بازگردانی». */
   const archived = useMemo(() => registered.filter(isArchivedEntry), [registered])

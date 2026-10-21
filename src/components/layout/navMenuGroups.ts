@@ -60,7 +60,8 @@ export interface BuildingMenuGroup {
 
 /**
  * The drawer of a building workspace (round 11). Rows whose page needs a permission
- * (`TAB_PERMISSIONS`) are dropped for roles without it; «برگشت به حساب شخصی» is added last.
+ * (`TAB_PERMISSIONS`) are dropped for roles without it. «برگشت به حساب شخصی» and the building
+ * switcher sit above these groups (`LayoutBuildingMenuNav`).
  */
 export const buildingMenuGroups: BuildingMenuGroup[] = [
   {

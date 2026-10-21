@@ -23,6 +23,8 @@ interface BuildingWorkspaceCardProps {
   /** Null while the first read is under way (or Sheets could not be reached). */
   summary: BuildingSummary | null
   onEnter: () => void
+  /** The building that is open right now (the page was opened from inside a building). */
+  current?: boolean
 }
 
 const fa = (value: number) => toPersianDigits(String(value))
@@ -37,7 +39,8 @@ const monthName = (monthKey: string) => JALALI_MONTHS[Number(monthKey.split('-')
 export default function BuildingWorkspaceCard({
   entry,
   summary,
-  onEnter
+  onEnter,
+  current = false
 }: BuildingWorkspaceCardProps) {
   const unfinished = !!summary && isJourneyUnfinished(summary.journey)
 
@@ -62,7 +65,10 @@ export default function BuildingWorkspaceCard({
           </p>
           <p className="text-xs leading-[1.6] text-muted">فایل: {entry.name}</p>
         </div>
-        {unfinished ? <span className={buildingChipClass}>راه‌اندازی نیمه‌کاره</span> : null}
+        <div className="flex flex-col items-end gap-1">
+          {current ? <span className={buildingChipClass}>ساختمان فعلی</span> : null}
+          {unfinished ? <span className={buildingChipClass}>راه‌اندازی نیمه‌کاره</span> : null}
+        </div>
       </div>
 
       {summary ? (
@@ -96,7 +102,7 @@ export default function BuildingWorkspaceCard({
       ) : null}
 
       <Button type="button" onClick={onEnter}>
-        {unfinished ? 'ادامه راه‌اندازی' : 'ورود'}
+        {unfinished ? 'ادامه راه‌اندازی' : current ? 'باز کردن داشبورد' : 'ورود'}
       </Button>
     </Card>
   )

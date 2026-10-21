@@ -15,12 +15,16 @@ describe('workspace redirect', () => {
       expect(workspaceRedirect(path, true)).toBe('/building')
     }
     expect(workspaceRedirect('/wallet', true)).toBe('/building')
-    expect(workspaceRedirect('/buildings', true)).toBe('/building')
   })
 
   it('sends the bank SMS page of a building to its own queue', () => {
     expect(workspaceRedirect('/bank-sms', true)).toBe('/building/sms')
     expect(workspaceRedirect('/building/sms', true)).toBeNull()
+  })
+
+  it('lets the buildings home through inside a building (the drawer switcher opens it)', () => {
+    expect(workspaceRedirect('/buildings', true)).toBeNull()
+    expect(workspaceRedirect('/buildings', false)).toBeNull()
   })
 
   it('lets the shared pages through inside a building', () => {

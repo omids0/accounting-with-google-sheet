@@ -4,10 +4,13 @@ import { useSearchParams } from 'react-router'
 import EmptyState from '../EmptyState'
 import ArchivedBuildings from './ArchivedBuildings'
 import BuildingCreateJourney from './BuildingCreateJourney'
+import BuildingsHomeCurrent from './BuildingsHomeCurrent'
 import BuildingWorkspaceCard from './BuildingWorkspaceCard'
 import ConnectBuildingSheet from './ConnectBuildingSheet'
 import { useBuildingsHome } from './useBuildingsHome'
 import { useEnterBuilding } from './useEnterBuilding'
+import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
+import { getSettings } from '../../services/settings'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 import Button from '../ui/Button'
 import { listModulePageClass } from '../ui/featureCardStyles'
@@ -16,14 +19,17 @@ import { listModulePageClass } from '../ui/featureCardStyles'
 const NEW_PARAM = 'new'
 
 /**
- * «مدیر ساختمان» in the personal workspace: one card per building (each its own spreadsheet),
- * «+ ساختمان جدید» for the setup journey and «اتصال به شیت موجود» for a sheet someone shared.
+ * «مدیر ساختمان»: one card per building (each its own spreadsheet), «+ ساختمان جدید» for the setup
+ * journey and «اتصال به شیت موجود» for a sheet someone shared. It opens from the personal
+ * workspace and, through the drawer's «همهٔ ساختمان‌ها…», from inside a building.
  */
 export default function BuildingsHomePage() {
   const [params, setParams] = useSearchParams()
   const home = useBuildingsHome()
   const { enter, modalProps } = useEnterBuilding()
   const [connecting, setConnecting] = useState(false)
+  const inBuilding = useIsBuildingWorkspace()
+  const activeId = getSettings()?.spreadsheetId ?? ''
 
   if (params.get(NEW_PARAM) === '1') {
     return <BuildingCreateJourney onCancel={() => setParams({}, { replace: true })} />
@@ -35,6 +41,7 @@ export default function BuildingsHomePage() {
 
   return (
     <div className={listModulePageClass}>
+      {inBuilding ? <BuildingsHomeCurrent /> : null}
       {empty ? (
         <EmptyState
           icon="building"
@@ -51,6 +58,7 @@ export default function BuildingsHomePage() {
               entry={entry}
               summary={home.summaries[entry.id] ?? null}
               onEnter={() => void enter(entry.id)}
+              current={inBuilding && entry.id === activeId}
             />
           ))}
           <div className="flex flex-col gap-2 sm:flex-row">

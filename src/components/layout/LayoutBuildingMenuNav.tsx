@@ -1,17 +1,22 @@
+import { buildingSwitchRows } from './buildingSwitcher'
+import LayoutBuildingSwitcher from './LayoutBuildingSwitcher'
 import LayoutMenuLink from './LayoutMenuLink'
 import LayoutMenuSection from './LayoutMenuSection'
 import LayoutUpdateItem from './LayoutUpdateItem'
 import { BUILDING_RETURN_LABEL } from './navMenuGroups'
 import type { Tab } from './types'
 import { useBuildingMenuGroups } from './useBuildingMenuGroups'
+import { getSettings, getSpreadsheets } from '../../services/settings'
+import { useAppStore } from '../../stores/appStore'
 import AppIcon from '../AppIcon'
+import { useEnterBuilding } from '../buildings/useEnterBuilding'
 import { useReturnToPersonal } from '../buildings/useReturnToPersonal'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 import {
-  appMenuItemClass,
   appMenuItemIconClass,
   appMenuItemLabelClass,
-  appMenuItemsClass
+  appMenuItemsClass,
+  appMenuReturnClass
 } from '../ui/layoutStyles'
 
 interface LayoutBuildingMenuNavProps {
@@ -21,7 +26,10 @@ interface LayoutBuildingMenuNavProps {
   onCloseMenu: () => void
 }
 
-/** The drawer inside a building workspace: its own groups, then the way back to the personal books. */
+/**
+ * The drawer inside a building workspace: the way back to the personal books first, then the
+ * switcher between the manager's buildings, then the building's own groups.
+ */
 export default function LayoutBuildingMenuNav({
   tab,
   showSettings,
@@ -30,25 +38,41 @@ export default function LayoutBuildingMenuNav({
 }: LayoutBuildingMenuNavProps) {
   const groups = useBuildingMenuGroups()
   const { returnToPersonal, modalProps } = useReturnToPersonal(onCloseMenu)
-  const linkProps = { currentTab: showSettings ? null : tab, onTabChange }
+  const { enter, modalProps: enterModalProps } = useEnterBuilding(onCloseMenu)
+  // Bumped on every sheet switch; the registry itself is read again on each render of the drawer.
+  useAppStore(state => state.spreadsheetKey)
+  const rows = buildingSwitchRows(getSpreadsheets(), getSettings()?.spreadsheetId ?? '')
+  const currentTab = showSettings ? null : tab
 
   return (
     <div className={appMenuItemsClass}>
-      {groups.map((group, index) => (
-        <LayoutMenuSection key={group.label} label={group.label}>
-          {group.links.map(entry => (
-            <LayoutMenuLink key={entry.tab} entry={entry} {...linkProps} />
-          ))}
-          {index === groups.length - 1 && <LayoutUpdateItem />}
-        </LayoutMenuSection>
-      ))}
-      <button type="button" className={appMenuItemClass(false)} onClick={returnToPersonal}>
+      <button type="button" className={appMenuReturnClass} onClick={returnToPersonal}>
         <span className={appMenuItemIconClass(false)}>
           <AppIcon name="return" size={20} />
         </span>
         <span className={appMenuItemLabelClass}>{BUILDING_RETURN_LABEL}</span>
       </button>
+      <LayoutBuildingSwitcher
+        rows={rows}
+        currentTab={currentTab}
+        onTabChange={onTabChange}
+        onPick={id => void enter(id)}
+      />
+      {groups.map((group, index) => (
+        <LayoutMenuSection key={group.label} label={group.label}>
+          {group.links.map(entry => (
+            <LayoutMenuLink
+              key={entry.tab}
+              entry={entry}
+              currentTab={currentTab}
+              onTabChange={onTabChange}
+            />
+          ))}
+          {index === groups.length - 1 && <LayoutUpdateItem />}
+        </LayoutMenuSection>
+      ))}
       <SheetSwitchConfirmModal {...modalProps} />
+      <SheetSwitchConfirmModal {...enterModalProps} />
     </div>
   )
 }

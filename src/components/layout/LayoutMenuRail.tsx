@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from 'react'
 
+import { BUILDING_SWITCHER_LABEL } from './buildingSwitcher'
 import type { LayoutMenuNavProps } from './LayoutMenuNav'
 import {
   BUILDING_RETURN_LABEL,
@@ -45,20 +46,22 @@ function RailLabel({ icon, label }: { icon: AppIconName; label: string }) {
   )
 }
 
-/** The rail inside a building: its groups, then the way back to the personal books. */
-function BuildingRailItems({ link }: { link: (entry: MenuLinkEntry) => ReactNode }) {
+/**
+ * The rail inside a building: the way back to the personal books first, the building switcher
+ * (it opens the drawer, which lists the buildings), then its groups.
+ */
+function BuildingRailItems({
+  link,
+  onOpenMenu
+}: {
+  link: (entry: MenuLinkEntry) => ReactNode
+  onOpenMenu: () => void
+}) {
   const groups = useBuildingMenuGroups()
   const { returnToPersonal, modalProps } = useReturnToPersonal()
 
   return (
     <>
-      {groups.map(({ label, links }) => (
-        <Fragment key={label}>
-          <span className={appRailDividerClass} />
-          {links.map(entry => link(entry))}
-        </Fragment>
-      ))}
-      <span className="flex-1" />
       <button
         type="button"
         className={appRailItemClass(false)}
@@ -67,6 +70,20 @@ function BuildingRailItems({ link }: { link: (entry: MenuLinkEntry) => ReactNode
       >
         <RailLabel icon="return" label={BUILDING_RETURN_LABEL} />
       </button>
+      <button
+        type="button"
+        className={appRailItemClass(false)}
+        aria-label={BUILDING_SWITCHER_LABEL}
+        onClick={onOpenMenu}
+      >
+        <RailLabel icon="building" label={BUILDING_SWITCHER_LABEL} />
+      </button>
+      {groups.map(({ label, links }) => (
+        <Fragment key={label}>
+          <span className={appRailDividerClass} />
+          {links.map(entry => link(entry))}
+        </Fragment>
+      ))}
       <SheetSwitchConfirmModal {...modalProps} />
     </>
   )
@@ -133,7 +150,7 @@ export default function LayoutMenuRail(props: LayoutMenuRailProps) {
         {updateAvailable && <span className={appRailUpdateDotClass} aria-hidden="true" />}
       </button>
       {isBuilding ? (
-        <BuildingRailItems link={link} />
+        <BuildingRailItems link={link} onOpenMenu={onOpenMenu} />
       ) : (
         <>
           <span className={appRailDividerClass} />

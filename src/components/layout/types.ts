@@ -262,7 +262,8 @@ export const BUILDING_SETTINGS_TABS: Tab[] = [
 /**
  * Personal pages a building does not have (installments, treasury, vehicles, timesheets, …) or
  * replaces with its own (dashboard, wallet → fund, dang, checks, counterparties, SMS); a building
- * workspace redirects them to its dashboard. Shared pages (entry, records, reports, about,
+ * workspace redirects them to its dashboard. «buildings-home» is not listed: a building reaches
+ * it from the drawer's building switcher. Shared pages (entry, records, reports, about,
  * search, activity, calculators) are not listed.
  */
 export const PERSONAL_ONLY_TABS: Tab[] = [
@@ -280,6 +281,5 @@ export const PERSONAL_ONLY_TABS: Tab[] = [
   'wallet',
   'bank-sms',
   'timesheets',
-  'timesheet-detail',
-  'buildings-home'
+  'timesheet-detail'
 ]
