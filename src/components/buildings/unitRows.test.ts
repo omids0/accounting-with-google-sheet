@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildUnitRows,
   debtorsFirst,
+  pickUnitLabel,
   unitPlace,
   unitStatus,
   unitWho,
@@ -177,5 +178,23 @@ describe('debtorsFirst', () => {
     ])
 
     expect(sorted.map(row => row.unit.number)).toEqual(['4', '2', '1', '3'])
+  })
+})
+
+describe('pickUnitLabel', () => {
+  it('names the debt in words, with no minus sign', () => {
+    const label = pickUnitLabel(rows[2])
+
+    expect(label).toBe('واحد ۳ · خالی')
+
+    const owing = pickUnitLabel(rows[1])
+
+    expect(owing).toContain('واحد ۲ · کاظمی · بدهکار ')
+    expect(owing).toContain('تومان')
+    expect(owing).not.toMatch(/[−-]/)
+  })
+
+  it('shows no debt part for a settled unit', () => {
+    expect(pickUnitLabel(rows[0])).toBe('واحد ۱ · موسوی')
   })
 })

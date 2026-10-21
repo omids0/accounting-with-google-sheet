@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { buildUnitRows, debtorsFirst } from './unitRows'
+import { buildUnitRows, debtorsFirst, pickUnitLabel } from './unitRows'
 import type { BuildingSetupData } from './useBuildingSetupData'
-import { formatSignedMoney } from '../../utils/formatMoney'
-import { toPersianDigits } from '../../utils/normalizeDigits'
 import { FormSelect } from '../form'
 import FormModal from '../FormModal'
 
@@ -30,13 +28,7 @@ export default function PickUnitSheet({ open, data, onClose, onPick }: PickUnitS
 
   const options = rows.map(row => ({
     value: row.unit.id,
-    label: [
-      `واحد ${toPersianDigits(row.unit.number)}`,
-      row.resident?.name || 'خالی',
-      row.balance.open > 0 ? formatSignedMoney(-row.balance.open) : ''
-    ]
-      .filter(Boolean)
-      .join(' · ')
+    label: pickUnitLabel(row)
   }))
 
   return (

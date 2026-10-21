@@ -11,6 +11,7 @@ import type { BuildingProfile } from '../../services/buildingTemplate'
 import { activeUnits, type UnitWithRow } from '../../services/buildingUnits'
 import { getCounterpartyFullName } from '../../services/counterparties'
 import type { Counterparty, Receivable } from '../../types'
+import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 
@@ -113,6 +114,17 @@ export function unitStatus(balance: UnitBalance): { text: string; credit: number
       : '',
     credit: 0
   }
+}
+
+/** «واحد ۳ · خالی · بدهکار ۵٬۵۰۰٬۰۰۰ تومان»: the debt in words, never with a minus sign. */
+export function pickUnitLabel(row: UnitRowData): string {
+  return [
+    `واحد ${toPersianDigits(row.unit.number)}`,
+    row.resident?.name || 'خالی',
+    row.balance.open > 0 ? `بدهکار ${formatMoney(row.balance.open)}` : ''
+  ]
+    .filter(Boolean)
+    .join(' · ')
 }
 
 /** Debtors first, the largest debt on top, then the rest by door number. */
