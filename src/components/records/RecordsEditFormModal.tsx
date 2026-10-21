@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Fragment, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
 import type { StoredRecord } from './recordsUtils'
@@ -12,14 +12,20 @@ import type { CustomForm, FieldConfig } from '../../types'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
 import AttachmentField from '../attachments/AttachmentField'
 import type { AttachmentDraftsState } from '../attachments/useAttachmentDrafts'
+import {
+  hasBuildingExpenseFields,
+  LazyBuildingExpenseFields
+} from '../dataEntry/buildingExpenseEntry'
 import EntryRecordExtraField, { isRecordExtraField } from '../dataEntry/EntryRecordExtraField'
 import {
   FieldInput,
   isFieldHidden,
   sortFormFields,
   SUBCATEGORY_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_ID,
   withAutoTitle
 } from '../form'
+import { BUILDING_FIELD_IDS } from '../form/buildingFields'
 import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
 import FormModal from '../FormModal'
@@ -124,6 +130,7 @@ export default function RecordsEditFormModal({
   ])
 
   const values = watch()
+  const building = hasBuildingExpenseFields(editingForm)
   const selectedCategory = String(values.category ?? '')
   const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(selectedCategory)
 
@@ -162,7 +169,13 @@ export default function RecordsEditFormModal({
       }
     >
       {sortFormFields(fields).map(field => {
-        if (isFieldHidden(field, values)) return null
+        const hidden = isFieldHidden(field, values)
+        const isAccount = building && field.id === WALLET_ACCOUNT_FIELD_ID
+
+        // A building keeps the spot of the account field for its kind and payer.
+        if (hidden && !isAccount) return null
+        // A building's kind, payer and split are drawn by their own block below.
+        if (BUILDING_FIELD_IDS.includes(field.id)) return null
         if (showVehicleFields && field.id === 'title') return null
         if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {
           return null
@@ -181,7 +194,7 @@ export default function RecordsEditFormModal({
           )
         }
 
-        return (
+        const input = hidden ? null : (
           <FieldInput
             key={field.id}
             field={field}
@@ -194,6 +207,20 @@ export default function RecordsEditFormModal({
             parentCategory={selectedCategory}
             onCategoriesChange={handleCategoriesChange}
           />
+        )
+
+        return isAccount ? (
+          <Fragment key={field.id}>
+            <LazyBuildingExpenseFields
+              part="who"
+              values={values}
+              setValue={setValue}
+              disabled={saving}
+            />
+            {input}
+          </Fragment>
+        ) : (
+          input
         )
       })}
 
@@ -211,6 +238,15 @@ export default function RecordsEditFormModal({
       ) : null}
 
       {attachments ? <AttachmentField state={attachments} disabled={saving} /> : null}
+
+      {building ? (
+        <LazyBuildingExpenseFields
+          part="split"
+          values={values}
+          setValue={setValue}
+          disabled={saving}
+        />
+      ) : null}
 
       {recurringChoice && onRecurringChoiceChange ? (
         <RecurringModeOptions value={recurringChoice} onChange={onRecurringChoiceChange} />

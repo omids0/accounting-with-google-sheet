@@ -3,6 +3,9 @@ import {
   ACTIVITY_LOG_HEADERS,
   APP_LOCK_HEADERS,
   BUDGETS_HEADERS,
+  BUILDING_HEADERS,
+  BUILDING_RESIDENTS_HEADERS,
+  BUILDING_UNITS_HEADERS,
   RECURRING_HEADERS,
   CATEGORIES_HEADERS,
   CHECKS_HEADERS,
@@ -42,6 +45,9 @@ import {
   ACTIVITY_SHEET,
   APP_LOCK_SHEET,
   BUDGETS_SHEET,
+  BUILDING_RESIDENTS_SHEET,
+  BUILDING_SHEET,
+  BUILDING_UNITS_SHEET,
   RECURRING_SHEET,
   CATEGORIES_SHEET,
   CHECKS_SHEET,
@@ -57,6 +63,7 @@ import {
   NET_WORTH_SHEET,
   PERIOD_SETTINGS_SHEET,
   PERSONAL_REMINDERS_SHEET,
+  PERSONAL_ONLY_SHEETS,
   PUSH_SUBS_SHEET,
   RECEIVABLES_SHEET,
   REMINDERS_SHEET,
@@ -121,3 +128,19 @@ export const MODULE_SHEET_SPECS: SheetSpec[] = [
   { sheetName: REMINDER_LOG_SHEET, headers: REMINDER_LOG_HEADERS },
   { sheetName: APP_LOCK_SHEET, headers: APP_LOCK_HEADERS }
 ]
+
+/**
+ * The tabs of a building spreadsheet (round 11). Kept apart from `MODULE_SHEET_SPECS` on purpose:
+ * a building is its own Google Sheets file, so these tabs are ensured, pulled and backed up only
+ * for a spreadsheet whose workspace type is `building` and never for a personal one.
+ */
+export const BUILDING_SHEET_SPECS: SheetSpec[] = [
+  { sheetName: BUILDING_SHEET, headers: BUILDING_HEADERS },
+  { sheetName: BUILDING_UNITS_SHEET, headers: BUILDING_UNITS_HEADERS },
+  { sheetName: BUILDING_RESIDENTS_SHEET, headers: BUILDING_RESIDENTS_HEADERS }
+]
+
+/** The module tabs a building file has: everything except the personal-only ones. */
+export const BUILDING_MODULE_SHEET_SPECS: SheetSpec[] = MODULE_SHEET_SPECS.filter(
+  spec => !PERSONAL_ONLY_SHEETS.includes(spec.sheetName)
+)

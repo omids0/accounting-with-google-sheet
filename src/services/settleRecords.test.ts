@@ -130,6 +130,26 @@ describe('unpaying a settlement', () => {
     expect(deleteLinkedRecord).toHaveBeenCalledWith('s', 'expense', 'sms-1')
   })
 
+  it('matches a building repayment by its new title and by the old one', async () => {
+    const prefixes = ['بازپرداخت به ', 'بدهی: ']
+
+    for (const title of ['بازپرداخت به مدیر · لامپ', 'بدهی: لامپ']) {
+      stored('r1', title)
+      expect(await isLinkedForeignRecord('s', 'expense', 'r1', prefixes)).toBe(false)
+    }
+
+    await deleteLinkedRecordWithWallet('s', 'expense', 'r1', prefixes)
+    expect(deleteLinkedRecord).toHaveBeenCalledWith('s', 'expense', 'r1')
+  })
+
+  it('still treats a record outside every prefix as a linked one', async () => {
+    stored('sms-1', 'برداشت از کارت')
+
+    expect(await isLinkedForeignRecord('s', 'expense', 'sms-1', ['بازپرداخت به ', 'بدهی: '])).toBe(
+      true
+    )
+  })
+
   it('does nothing without a linked record id', async () => {
     await deleteLinkedRecordWithWallet('s', 'expense', '', 'بدهی: ')
 

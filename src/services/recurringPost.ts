@@ -19,6 +19,7 @@ import {
   stripRow
 } from './recurringSheet'
 import { appendRecord } from './sheets'
+import { isNonFundPayer } from '../components/form/buildingFields'
 import type { AppSettings, CustomForm, RecurringItem } from '../types'
 import { getJalaliMonthKey } from '../utils/dateRange'
 
@@ -59,6 +60,15 @@ async function appendRecurringRecord(
   await settleEntryWallet(spreadsheetId, form.type, values, undefined, recordId).catch(
     () => undefined
   )
+
+  // A building item paid by someone other than the fund leaves a debt to that person.
+  if (form.type === 'expense' && isNonFundPayer(item.payer)) {
+    await import('./buildingExpenseActions')
+      .then(actions =>
+        actions.syncBuildingExpense(spreadsheetId, recordId, values, getDateFieldId(form))
+      )
+      .catch(() => undefined)
+  }
 
   return recordId
 }

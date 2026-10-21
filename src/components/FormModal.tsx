@@ -41,6 +41,8 @@ type FormModalProps = {
   /** The second button; with `onCancel` it is a second answer, not a close. */
   cancelLabel?: string
   onCancel?: () => void
+  /** Shown under the title bar, above the fields (the setup journey's step bar). */
+  header?: ReactNode
   children: ReactNode
 }
 
@@ -58,6 +60,7 @@ export default function FormModal({
   variant = 'modal',
   cancelLabel = 'انصراف',
   onCancel,
+  header,
   children
 }: FormModalProps) {
   const isPanel = variant === 'panel'
@@ -110,6 +113,8 @@ export default function FormModal({
             <AppIcon name="close" size={18} />
           </button>
         </div>
+
+        {header}
 
         <form onSubmit={handleSubmit} aria-busy={saving}>
           <div className={cn(formModalBodyClass, formModalFieldsLayoutClass)}>{children}</div>

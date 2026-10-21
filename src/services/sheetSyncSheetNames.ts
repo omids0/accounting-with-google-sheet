@@ -3,6 +3,9 @@ import { getSettings } from './settings'
 import {
   ACTIVITY_LOG_SHEET,
   BUDGETS_SHEET,
+  BUILDING_RESIDENTS_SHEET,
+  BUILDING_SHEET,
+  BUILDING_UNITS_SHEET,
   CATEGORIES_SHEET,
   CHECKS_SHEET,
   COUNTERPARTIES_SHEET,
@@ -16,6 +19,7 @@ import {
   MONTHLY_BALANCE_SHEET,
   NET_WORTH_SHEET,
   PERIOD_SETTINGS_SHEET,
+  PERSONAL_ONLY_SHEETS,
   PERSONAL_REMINDERS_SHEET,
   PUSH_SUBS_SHEET,
   RECEIVABLES_SHEET,
@@ -36,6 +40,7 @@ import {
   WALLET_LEDGER_SHEET,
   WALLET_SHEET
 } from './sheetNames'
+import { workspaceTypeOf } from './workspace'
 
 /** Sheets every account has, regardless of which custom forms it defines. */
 const STATIC_SHEETS = [
@@ -75,10 +80,25 @@ const STATIC_SHEETS = [
   ACTIVITY_LOG_SHEET
 ]
 
-export function getKnownSheetNames(settings: AppSettings = getSettings()!): string[] {
-  if (!settings) return [...STATIC_SHEETS]
+/** Only a building spreadsheet has these; a personal one is never asked for them. */
+const BUILDING_SHEETS = [BUILDING_SHEET, BUILDING_UNITS_SHEET, BUILDING_RESIDENTS_SHEET]
+
+/**
+ * The tabs a sync downloads for `spreadsheetId` (default: the active one): the account forms, the
+ * static tabs and, for a building only, the building tabs instead of the personal-only ones.
+ */
+export function getKnownSheetNames(
+  settings: AppSettings = getSettings()!,
+  spreadsheetId?: string
+): string[] {
+  const statics =
+    workspaceTypeOf(spreadsheetId) === 'building'
+      ? [...STATIC_SHEETS.filter(name => !PERSONAL_ONLY_SHEETS.includes(name)), ...BUILDING_SHEETS]
+      : STATIC_SHEETS
+
+  if (!settings) return [...statics]
 
   const formSheets = settings.forms.map(form => form.sheetName)
 
-  return [...new Set([...formSheets, ...STATIC_SHEETS])]
+  return [...new Set([...formSheets, ...statics])]
 }

@@ -97,15 +97,17 @@
 
       <div class="col">
         <div class="state-tabs">
-          <button class="on">۳ · تعریف ساختمان — قدم ۱ از ۲: مشخصات</button>
+          <button class="on">۳ · سفر راه‌اندازی — قدم ۱ از ۸: مشخصات</button>
         </div>
         <div class="phone">
           <div class="app-header">
-            <span class="icon">←</span><span>ساختمان جدید</span
+            <span class="icon">←</span><span>راه‌اندازی · قدم ۱ از ۸</span
             ><span class="icon" style="border: 0"></span>
           </div>
           <div class="content">
-            <div class="steps"><i class="on"></i><i></i></div>
+            <div class="steps">
+              <i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
             <div class="card">
               <div class="f-row">
                 <label>نام ساختمان</label>
@@ -126,18 +128,14 @@
                 </div>
               </div>
               <div class="f-row">
-                <label>نقش شما</label>
-                <div class="mode">
-                  <span class="on">مدیر</span><span>عضو هیئت مدیره</span><span>حسابدار</span>
-                </div>
-              </div>
-              <div class="f-row">
                 <label>یادداشت <small style="color: #999">اختیاری</small></label>
                 <div class="f-input">—</div>
               </div>
             </div>
             <p class="e-purpose" style="text-align: right; max-width: none; margin: 8px 0 0">
-              با «بعدی» هنوز چیزی ساخته نمی‌شود؛ شیت در پایان قدم ۲ ساخته می‌شود.
+              سازنده همیشه «مدیر» است؛ نقش پرسیده نمی‌شود. با «بعدی» هنوز چیزی ساخته نمی‌شود؛ شیت در
+              پایان قدم ۲ ساخته می‌شود. هشت قدم: مشخصات · صندوق و شارژ · واحدها · مالک و ساکنان ·
+              بدهی قبلی · شارژ اول · دعوت اعضا · جمع‌بندی.
             </p>
             <div class="nextbtn"><button class="btn-primary">بعدی</button></div>
           </div>
@@ -146,25 +144,34 @@
 
       <div class="col">
         <div class="state-tabs">
-          <button class="on">۴ · تعریف ساختمان — قدم ۲ از ۲: صندوق و شارژ</button>
+          <button class="on">۴ · سفر راه‌اندازی — قدم ۲ از ۸: صندوق و شارژ</button>
         </div>
         <div class="phone">
           <div class="app-header">
-            <span class="icon">←</span><span>ساختمان جدید</span
+            <span class="icon">←</span><span>راه‌اندازی · قدم ۲ از ۸</span
             ><span class="icon" style="border: 0"></span>
           </div>
           <div class="content">
-            <div class="steps"><i class="on"></i><i class="on"></i></div>
-            <div class="sec-h">صندوق ساختمان · حساب‌ها</div>
+            <div class="steps">
+              <i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="sec-h">
+              حساب‌های صندوق <span style="float: left; color: #333">جمع ۱۸٬۴۰۰٬۰۰۰</span>
+            </div>
             <div class="acc">
-              حساب بانکی صندوق<b>ملت</b
+              ملت<b>۱۷٬۲۰۰٬۰۰۰</b
               ><small
-                >کارت ۶۱۰۴…۳۲۱۰ · شبا اختیاری · پیامک‌های این کارت به این ساختمان می‌آیند</small
+                >حساب بانکی · کارت ۶۱۰۴…۳۲۱۰ · پیامک‌های این کارت به این ساختمان می‌آیند</small
               >
             </div>
-            <div class="acc" style="border-style: dashed; color: #777">
-              + حساب دیگر (نقدی سرایدار، حساب دوم)
+            <div class="acc">نقدی سرایدار<b>۱٬۲۰۰٬۰۰۰</b><small>نقدی · بدون کارت</small></div>
+            <div class="disco-actions" style="margin: 0 0 8px">
+              <button class="btn-sm">+ حساب جدید</button>
             </div>
+            <p style="font-size: 11px; color: #888; margin: 0 0 8px">
+              مودال حساب: نام، نوع (حساب بانکی | نقدی ▾)، شمارهٔ کارت فقط برای بانکی، موجودی فعلی با
+              صفحه‌کلید مبلغ. لمس ردیف = ویرایش؛ حداقل یک حساب لازم است.
+            </p>
             <div class="sec-h">شارژ</div>
             <div class="card">
               <div class="f-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px">
@@ -174,24 +181,22 @@
                 </div>
                 <div>
                   <label>روش</label>
-                  <div class="mode">
-                    <span class="on">ثابت</span><span>متراژ</span><span>نفر</span>
-                  </div>
+                  <div class="f-input" style="color: #333">ثابت ▾</div>
                 </div>
               </div>
               <div class="f-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px">
                 <div>
                   <label>روز صدور</label>
-                  <div class="f-input" style="color: #333">۱ هر ماه</div>
+                  <div class="f-input" style="color: #333">۱ هر ماه ▾</div>
                 </div>
                 <div>
                   <label>سررسید</label>
-                  <div class="f-input" style="color: #333">۱۰ هر ماه</div>
+                  <div class="f-input" style="color: #333">۱۰ هر ماه ▾</div>
                 </div>
               </div>
               <div class="f-row">
                 <label>واحد خالی</label>
-                <div class="mode"><span>کامل</span><span class="on">نصف</span><span>صفر</span></div>
+                <div class="f-input" style="color: #333">نصف ▾</div>
               </div>
             </div>
             <div class="nextbtn"><button class="btn-primary">ساخت ساختمان</button></div>

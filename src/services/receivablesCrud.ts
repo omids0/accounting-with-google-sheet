@@ -1,4 +1,4 @@
-import type { Receivable } from '../types'
+import type { Receivable, ReceivablePayment } from '../types'
 import { logActivity, logItemActivity } from './activityLog'
 import { deleteLinkedIncomeRecord } from './paymentTransactions'
 import {
@@ -50,7 +50,14 @@ export async function createReceivable(
     amount: number
     borrowDate: string
     note: string
-  }
+    /** Round 11: the building charge key and the debtor's counterparty id. */
+    reference?: string
+    debtorId?: string
+    /** A receivable can be born part-paid (a charge the unit's credit paid at issue). */
+    payments?: ReceivablePayment[]
+  },
+  /** False for bulk writes that log once themselves (a monthly charge issue). */
+  log = true
 ): Promise<Receivable> {
   const receivable: Receivable = {
     id: crypto.randomUUID(),
@@ -62,11 +69,15 @@ export async function createReceivable(
     amount: data.amount,
     borrowDate: data.borrowDate,
     note: data.note,
-    payments: []
+    payments: data.payments ?? [],
+    ...(data.reference ? { reference: data.reference } : {}),
+    ...(data.debtorId ? { debtorId: data.debtorId } : {})
   }
 
   await appendSheetRow(spreadsheetId, RECEIVABLES_SHEET, receivableToRow(receivable))
-  logItemActivity(spreadsheetId, 'create', 'receivables', receivable.id, titleOf(receivable))
+  if (log) {
+    logItemActivity(spreadsheetId, 'create', 'receivables', receivable.id, titleOf(receivable))
+  }
 
   return receivable
 }

@@ -23,4 +23,8 @@ export type Counterparty = {
   phones: CounterpartyPhone[]
   accounts: CounterpartyAccount[]
   note: string
+  /** Round 11: a building owner or resident known only by a unit number until completed. */
+  placeholder?: boolean
+  /** Round 11: the manager's own person inside a building workspace (bridge B, Step 8). */
+  me?: boolean
 }

@@ -1,5 +1,6 @@
 import { getUserEmail } from './auth'
 import { getPendingBankSms } from './bankSmsNative'
+import { smsForActiveWorkspace } from './bankSmsRouting'
 import { loadDashboardData } from './dashboard'
 import { fetchDashboardReminderItems, type DashboardReminderItem } from './dashboardReminders'
 import { getNetAvailableConfig, getSettings } from './settings'
@@ -92,7 +93,9 @@ export async function buildWidgetSnapshot(spreadsheetId: string): Promise<Widget
       getNetAvailableConfig()
     ),
     fetchDashboardReminderItems(spreadsheetId, { limit: 1 }).catch(() => []),
-    getPendingBankSms().catch(() => []),
+    getPendingBankSms()
+      .then(smsForActiveWorkspace)
+      .catch(() => []),
     fetchWalletAccounts(spreadsheetId).catch(() => [])
   ])
 

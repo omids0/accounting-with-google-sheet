@@ -1,5 +1,6 @@
 import AppIcon from './AppIcon'
 import { cardActionBtnClass, cardDeleteBtnClass } from './ui/featureCardStyles'
+import { useReadOnly } from './ui/readOnly'
 import { cn } from '../utils/cn'
 
 type CardDeleteButtonProps = {
@@ -13,6 +14,8 @@ export default function CardDeleteButton({
   disabled = false,
   ariaLabel = 'حذف'
 }: CardDeleteButtonProps) {
+  if (useReadOnly()) return null
+
   return (
     <button
       type="button"

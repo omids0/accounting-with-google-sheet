@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 
+import { buildingCardCandidates } from './buildingCardGate'
 import DashboardBackupCard from './DashboardBackupCard'
 import DashboardDiscoveryCard from './DashboardDiscoveryCard'
 import DashboardMonthlyReportCard from './DashboardMonthlyReportCard'
@@ -24,10 +25,13 @@ import {
   guideCardTitleClass
 } from '../ui/onboardingStyles'
 
+/** Round 11: «ساختمان نرگس: …», read from the building's own spreadsheet; building-only code. */
+const DashboardBuildingCard = lazy(() => import('./DashboardBuildingCard'))
+
 /**
  * Top-of-dashboard guidance, one card at most: resume a paused setup, else the
  * first-of-month report, else suggest an unused feature, else remind about a
- * full backup (lowest priority).
+ * full backup, else a building that needs the manager (lowest priority).
  */
 export default function DashboardGuideCard() {
   const { spreadsheetId, steps, state } = useOnboarding()
@@ -74,5 +78,16 @@ export default function DashboardGuideCard() {
     return <DashboardDiscoveryCard spreadsheetId={spreadsheetId} />
   }
 
-  return <DashboardBackupCard spreadsheetId={spreadsheetId} />
+  return (
+    <DashboardBackupCard
+      spreadsheetId={spreadsheetId}
+      fallback={
+        buildingCardCandidates().length ? (
+          <Suspense fallback={null}>
+            <DashboardBuildingCard />
+          </Suspense>
+        ) : null
+      }
+    />
+  )
 }

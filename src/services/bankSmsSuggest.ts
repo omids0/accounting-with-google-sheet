@@ -5,6 +5,7 @@ import type { RecurringItem } from '../types'
 
 /**
  * «دسته پیشنهادی» of a bank SMS card (round 6, Task E). Rule order:
+ * 0. a deposit whose payer is a unit of the open building (round 11): «شارژ ساختمان»,
  * 1. an active monthly recurring item with the same amount and account,
  * 2. the last record with the same amount and account,
  * 3. the category last chosen for SMS from the same sender (then the same template),
@@ -16,7 +17,7 @@ export interface SmsCategoryChoice {
   subCategory: string
 }
 
-export type SmsSuggestionSource = 'recurring' | 'amount' | 'sender'
+export type SmsSuggestionSource = 'unit' | 'recurring' | 'amount' | 'sender'
 
 export interface SmsCategorySuggestion extends SmsCategoryChoice {
   source: SmsSuggestionSource
@@ -33,6 +34,12 @@ export interface SmsSuggestInput {
   accountId: string
   sender: string
   templateId: string
+  /**
+   * A building deposit matched to a unit by the payer's card: its title («شارژ مهر · واحد ۴ ·
+   * رضایی») and the building's charge category (named by the caller, which keeps this module
+   * out of the protectedCategories import cycle).
+   */
+  unit?: { title: string; category: string } | null
 }
 
 export interface SmsSuggestContext {
@@ -45,13 +52,17 @@ export interface SmsSuggestContext {
 }
 
 /** What the suggestion reads from a recognised SMS (queue cards and the reconciliation wizard). */
-export function smsSuggestInput(entry: ConfirmableSms): SmsSuggestInput {
+export function smsSuggestInput(
+  entry: ConfirmableSms,
+  unit: SmsSuggestInput['unit'] = null
+): SmsSuggestInput {
   return {
     type: entry.result.direction === 'debit' ? 'expense' : 'income',
     amount: entry.amount,
     accountId: entry.result.accountId,
     sender: entry.sms.sender,
-    templateId: entry.result.templateId
+    templateId: entry.result.templateId,
+    unit
   }
 }
 
@@ -66,6 +77,16 @@ export function suggestSmsCategory(
   input: SmsSuggestInput,
   context: SmsSuggestContext
 ): SmsCategorySuggestion | null {
+  if (input.type === 'income' && input.unit) {
+    return {
+      category: input.unit.category,
+      subCategory: '',
+      source: 'unit',
+      title: input.unit.title,
+      count: 0
+    }
+  }
+
   const sameType = context.recurring.filter(item => item.type === input.type)
   const recurring = findRecurringMatch(input.amount, input.accountId, sameType)
 

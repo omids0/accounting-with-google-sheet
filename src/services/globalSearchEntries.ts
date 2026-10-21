@@ -1,4 +1,5 @@
 import { searchText, type SearchEntry } from './globalSearch'
+import { buildingSearchEntries, type BuildingSearchSources } from './globalSearchBuilding'
 import { withWriterNames } from './globalSearchWriter'
 import { getAssetClassLabel } from './treasuryCatalog'
 import { formatQuantityValue } from './treasuryQuantity'
@@ -42,6 +43,8 @@ export interface SearchSources {
   goals: SavingsGoal[]
   reminders: PersonalReminder[]
   vehicles: VehicleProfile[]
+  /** A building workspace only: its units and their stays (residents). */
+  building?: Pick<BuildingSearchSources, 'units' | 'stays'>
   /** Display name of a «ثبت‌کننده» email; only set on a shared spreadsheet. */
   writerName?: (email: string) => string
 }
@@ -268,7 +271,10 @@ export function buildSearchEntries(sources: SearchSources): SearchEntry[] {
       ...counterpartyEntries(sources),
       ...recordEntries(sources),
       ...moduleEntries(sources),
-      ...otherEntries(sources)
+      ...otherEntries(sources),
+      ...(sources.building
+        ? buildingSearchEntries({ ...sources.building, counterparties: sources.counterparties })
+        : [])
     ],
     sources.writerName
   )

@@ -7,6 +7,7 @@ import {
 } from './nudgeGate'
 import { getOnboardingState } from './onboarding'
 import { getItem, setItem } from './storage'
+import { getWorkspaceType } from './workspace'
 import { getJalaliMonthKey } from '../utils/dateRange'
 import { toIsoDate } from '../utils/jalaliDate'
 
@@ -42,6 +43,9 @@ export function claimNudge(
   targetHasData: boolean,
   now = new Date()
 ): boolean {
+  // The personal nudges are for the manager's own books, not a building's.
+  if (getWorkspaceType(spreadsheetId) === 'building') return false
+
   const today = toIsoDate(now)
   let state = readState(spreadsheetId)
 

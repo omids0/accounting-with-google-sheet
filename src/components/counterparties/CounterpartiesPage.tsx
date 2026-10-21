@@ -21,8 +21,10 @@ import { useCounterpartiesForm } from './useCounterpartiesForm'
 import { useCounterpartyDetail } from './useCounterpartyDetail'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
+import { useReadOnly } from '../ui/readOnly'
 
-export default function CounterpartiesPage({ active = true }: CounterpartiesPageProps) {
+export default function CounterpartiesPage({ active = true, scope }: CounterpartiesPageProps) {
+  const readOnly = useReadOnly()
   const data = useCounterpartiesData()
   const form = useCounterpartiesForm({ onSaved: data.loadItems })
   const detail = useCounterpartyDetail()
@@ -63,6 +65,7 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
       actions: createPageSpeedDialActions({
         onAdd: () => form.openCreateForm(),
         addLabel: 'افزودن طرف حساب',
+        readOnly,
         onFilter: openFilterModal,
         onRefresh: data.loadItems,
         refreshDisabled: data.loading,
@@ -78,7 +81,8 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
       data.loadItems,
       data.loading,
       form.openCreateForm,
-      openFilterModal
+      openFilterModal,
+      readOnly
     ]
   )
 
@@ -129,9 +133,12 @@ export default function CounterpartiesPage({ active = true }: CounterpartiesPage
             inHeader
           />
 
+          {scope?.header(data.items)}
+
           <CounterpartyList
             items={data.items}
-            filteredItems={filteredItems}
+            filteredItems={scope ? scope.filter(filteredItems) : filteredItems}
+            labels={scope?.labels}
             recordCounts={recordCounts}
             onView={detail.openDetail}
             onEdit={form.openEditForm}

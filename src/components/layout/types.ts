@@ -46,6 +46,23 @@ export type Tab =
   | 'timesheet-detail'
   | 'about'
   | 'activity'
+  | 'buildings-home'
+  | 'building-dashboard'
+  | 'building-setup'
+  | 'building-units'
+  | 'building-residents'
+  | 'building-unit'
+  | 'building-charges'
+  | 'building-expenses'
+  | 'building-fund'
+  | 'building-dang'
+  | 'building-checks'
+  | 'building-counterparties'
+  | 'building-sms'
+  | 'building-reports'
+  | 'building-settings'
+  | 'building-members'
+  | 'building-lists'
 
 export const CALCULATION_TABS: Tab[] = [
   'loan-calculator',
@@ -126,7 +143,16 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'timesheet-detail',
   'dang-split',
   'dang-split-detail',
-  'activity'
+  'activity',
+  'building-dashboard',
+  'building-units',
+  'building-residents',
+  'building-charges',
+  'building-expenses',
+  'building-fund',
+  'building-dang',
+  'building-checks',
+  'building-counterparties'
 ]
 
 export const TAB_TITLES: Record<Tab, string> = {
@@ -176,5 +202,84 @@ export const TAB_TITLES: Record<Tab, string> = {
   timesheets: 'تایم‌شیت',
   'timesheet-detail': 'جزئیات تایم‌شیت',
   about: 'درباره',
-  activity: 'فعالیت'
+  activity: 'فعالیت',
+  'buildings-home': 'مدیر ساختمان',
+  'building-dashboard': 'داشبورد',
+  'building-setup': 'راه‌اندازی ساختمان',
+  'building-units': 'واحدها',
+  'building-residents': 'ساکنان',
+  'building-unit': 'واحد',
+  'building-charges': 'شارژ',
+  'building-expenses': 'هزینه‌ها',
+  'building-fund': 'صندوق',
+  'building-dang': 'بدهی ساختمان',
+  'building-checks': 'چک‌ها',
+  'building-counterparties': 'طرف حساب‌ها',
+  'building-sms': 'پیامک بانکی',
+  'building-reports': 'گزارش‌ها و مجمع',
+  'building-settings': 'تنظیمات ساختمان',
+  'building-members': 'اعضا و دسترسی‌ها',
+  'building-lists': 'فهرست‌ها'
 }
+
+/** Pages of a building workspace; the personal workspace redirects them to its dashboard. */
+export const BUILDING_TABS: Tab[] = [
+  'building-dashboard',
+  'building-setup',
+  'building-units',
+  'building-residents',
+  'building-unit',
+  'building-charges',
+  'building-expenses',
+  'building-fund',
+  'building-dang',
+  'building-checks',
+  'building-counterparties',
+  'building-sms',
+  'building-reports',
+  'building-settings',
+  'building-members',
+  'building-lists'
+]
+
+/** Unit pages: the units row stays current on a single unit. */
+export const BUILDING_UNIT_TABS: Tab[] = ['building-units', 'building-unit']
+
+/** Sub-pages of a building: the header back button returns to the page they hang under. */
+export const BUILDING_PARENT_TAB: Partial<Record<Tab, Tab>> = {
+  'building-unit': 'building-units',
+  'building-members': 'building-settings',
+  'building-lists': 'building-settings'
+}
+
+/** Settings pages: the settings row stays current on members and lists. */
+export const BUILDING_SETTINGS_TABS: Tab[] = [
+  'building-settings',
+  'building-members',
+  'building-lists'
+]
+
+/**
+ * Personal pages a building does not have (installments, treasury, vehicles, timesheets, …) or
+ * replaces with its own (dashboard, wallet → fund, dang, checks, counterparties, SMS); a building
+ * workspace redirects them to its dashboard. «buildings-home» is not listed: a building reaches
+ * it from the drawer's building switcher. Shared pages (entry, records, reports, about,
+ * search, activity, calculators) are not listed.
+ */
+export const PERSONAL_ONLY_TABS: Tab[] = [
+  'dashboard',
+  'charts',
+  'installments',
+  'dang',
+  'checks',
+  'personal-reminders',
+  'vehicle-service',
+  'vehicle-detail',
+  'counterparties',
+  'receivables',
+  'treasury',
+  'wallet',
+  'bank-sms',
+  'timesheets',
+  'timesheet-detail'
+]

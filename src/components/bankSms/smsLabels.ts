@@ -91,6 +91,8 @@ export function smsChoiceReason(choice: {
   count?: number
 }): string {
   switch (choice.source) {
+    case 'unit':
+      return `کارت پرداخت‌کننده با کارت ثبت‌شدهٔ ساکن می‌خواند: ${choice.title}`
     case 'recurring':
       return `تکرار ماهانه «${choice.title || choice.category}» با همین مبلغ`
     case 'amount':

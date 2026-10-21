@@ -8,6 +8,10 @@ export const ACTIVITY_SHEET = 'فعالیت'
 export const ACTIVITY_LOG_SHEET = 'فعالیت_ها'
 export const APP_LOCK_SHEET = 'قفل_اپ'
 export const BUDGETS_SHEET = 'بودجه'
+/** Round 11 (building workspace): one profile row, the units, and who lives in or owns each. */
+export const BUILDING_SHEET = 'ساختمان'
+export const BUILDING_UNITS_SHEET = 'واحدها'
+export const BUILDING_RESIDENTS_SHEET = 'ساکنان'
 export const CATEGORIES_SHEET = 'دسته‌بندی‌ها'
 export const CHECKS_SHEET = 'چک‌ها'
 export const COUNTERPARTIES_SHEET = 'طرف_حساب‌ها'
@@ -42,3 +46,31 @@ export const VEHICLE_MECHANIC_SHEET = 'مکانیک_خودرو'
 export const VEHICLE_PERIODIC_SHEET = 'سرویس_خودرو'
 export const WALLET_SHEET = 'کیف پول'
 export const WALLET_LEDGER_SHEET = 'گردش حساب'
+
+/**
+ * Tabs only the manager's personal books use (round 11): installments, the treasury, timesheets,
+ * vehicles, personal reminders, the dang-split family and the net-worth snapshots. A building
+ * spreadsheet is created without them and never downloads them; the personal spreadsheet keeps
+ * every tab. Nothing a building page opens reads these (see `buildingSheetSeparation.test.ts`).
+ */
+export const PERSONAL_ONLY_SHEETS: readonly string[] = [
+  INSTALLMENTS_SHEET,
+  TREASURY_SHEET,
+  TREASURY_ASSETS_SHEET,
+  TREASURY_GOALS_SHEET,
+  TIMESHEETS_SHEET,
+  TIMESHEET_ENTRIES_SHEET,
+  VEHICLES_SHEET,
+  VEHICLE_PERIODIC_SHEET,
+  VEHICLE_DEADLINE_SHEET,
+  VEHICLE_HISTORY_SHEET,
+  VEHICLE_MECHANIC_SHEET,
+  VEHICLE_EXPENSE_META_SHEET,
+  PERSONAL_REMINDERS_SHEET,
+  DANG_SPLIT_GROUPS_SHEET,
+  DANG_SPLIT_CATEGORIES_SHEET,
+  DANG_SPLIT_PEOPLE_SHEET,
+  DANG_SPLIT_EXPENSES_SHEET,
+  DANG_SPLIT_ALLOCATIONS_SHEET,
+  NET_WORTH_SHEET
+]

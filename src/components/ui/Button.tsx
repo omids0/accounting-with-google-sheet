@@ -1,6 +1,7 @@
 import { type ButtonHTMLAttributes } from 'react'
 
 import LoadingDots, { type LoadingDotsTone } from './LoadingDots'
+import Spinner from './Spinner'
 import { cn } from '../../utils/cn'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'outflow' | 'inflow'
@@ -37,6 +38,8 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant
   size?: ButtonSize
   loading?: boolean
+  /** While `loading`, show a turning ring instead of the three dots (a network write). */
+  spinner?: boolean
 }
 
 export function buttonClassName({
@@ -57,6 +60,7 @@ export default function Button({
   className,
   type = 'button',
   loading = false,
+  spinner = false,
   disabled,
   children,
   'aria-label': ariaLabel,
@@ -75,7 +79,11 @@ export default function Button({
     >
       {loading ? (
         <span className="pointer-events-none absolute inset-0 inline-flex items-center justify-center">
-          <LoadingDots tone={loadingDotsTone(variant)} />
+          {spinner ? (
+            <Spinner size="sm" decorative />
+          ) : (
+            <LoadingDots tone={loadingDotsTone(variant)} />
+          )}
         </span>
       ) : null}
       <span

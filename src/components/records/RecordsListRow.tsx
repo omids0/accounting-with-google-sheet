@@ -7,6 +7,8 @@ import {
   type RecordWalletState
 } from './recordsFilterPredicates'
 import { getFormField, type StoredRecord } from './recordsUtils'
+import { describeBuildingExpense } from '../../services/buildingExpenseMeta'
+import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -39,6 +41,8 @@ interface RecordsListRowProps {
   form: CustomForm
   isAllForms: boolean
   index: number
+  /** No edit and delete buttons (a building member without the `record` permission). */
+  readOnly?: boolean
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
   onOpen: (record: StoredRecord) => void
@@ -53,6 +57,7 @@ function RecordsListRow({
   form,
   isAllForms,
   index,
+  readOnly = false,
   onEdit,
   onDelete,
   onOpen
@@ -126,6 +131,9 @@ function RecordsListRow({
           {date ? formatIsoDatePersian(date) : record.createdAt}
           {category && ` · ${category}`}
           {subCategory && ` › ${subCategory}`}
+          {isExpense && isBuildingExpenseValues(record.values)
+            ? ` · ${describeBuildingExpense(record.values)}`
+            : null}
           {counterparty ? (
             <>
               {' '}
@@ -153,10 +161,12 @@ function RecordsListRow({
             />
           </div>
         )}
-        <div className={cn(cardActionButtonsClass, 'relative z-[1]')}>
-          <CardEditButton onClick={() => onEdit(record)} />
-          <CardDeleteButton onClick={() => onDelete(record)} />
-        </div>
+        {readOnly ? null : (
+          <div className={cn(cardActionButtonsClass, 'relative z-[1]')}>
+            <CardEditButton onClick={() => onEdit(record)} />
+            <CardDeleteButton onClick={() => onDelete(record)} />
+          </div>
+        )}
       </div>
     </TransactionListItem>
   )

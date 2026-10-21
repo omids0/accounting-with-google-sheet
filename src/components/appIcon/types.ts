@@ -52,6 +52,10 @@ export type AppIconName =
   | 'paperclip'
   | 'share'
   | 'external'
+  | 'building'
+  | 'door'
+  | 'coins'
+  | 'return'
 
 export interface AppIconProps {
   name: AppIconName

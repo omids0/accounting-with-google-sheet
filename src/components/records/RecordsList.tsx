@@ -21,6 +21,7 @@ interface RecordsListProps {
   activeForm?: CustomForm
   isAllForms: boolean
   filteredRecords: StoredRecord[]
+  readOnly?: boolean
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
   onOpen: (record: StoredRecord) => void
@@ -31,6 +32,7 @@ export default function RecordsList({
   activeForm,
   isAllForms,
   filteredRecords,
+  readOnly,
   onEdit,
   onDelete,
   onOpen
@@ -70,6 +72,7 @@ export default function RecordsList({
             form={form}
             isAllForms={isAllForms}
             index={index}
+            readOnly={readOnly}
             onEdit={onEdit}
             onDelete={onDelete}
             onOpen={onOpen}

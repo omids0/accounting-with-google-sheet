@@ -70,4 +70,8 @@ export interface RecurringItem {
   /** Jalali `YYYY-MM` of the last month handled (posted or skipped); '' never. */
   lastPosted: string
   active: boolean
+  /** Round 11, building expenses: a key of the managed kind list. */
+  expenseKind?: string
+  /** Round 11, building expenses: a key of the managed payer list ('' = the fund). */
+  payer?: string
 }

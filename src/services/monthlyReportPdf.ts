@@ -1,4 +1,6 @@
 import { monthlyReportFileName, monthlyReportTitle, type MonthlyReportData } from './monthlyReport'
+import { reportWords } from './reportWording'
+import { getActiveWorkspaceType } from './workspace'
 import { formatMoney, formatMoneyParts, formatPersianNumber } from '../utils/formatMoney'
 import { escapeHtml, PDF_THEME, renderHtmlPdf } from '../utils/pdfRender'
 import { saveExportFile } from '../utils/saveFile'
@@ -60,16 +62,25 @@ export function monthlyReportHighlightLine(report: MonthlyReportData): string {
     .join(' · ')
 }
 
-/** The footer facts, also shown under the on-screen preview. */
-export function monthlyReportFacts(report: MonthlyReportData): string[] {
-  const facts = [
-    `اقساط پرداخت‌شده ${formatPersianNumber(report.installments.paid)} از ${formatPersianNumber(
-      report.installments.due
-    )}`,
-    `چک پاس‌شده ${formatPersianNumber(report.checksCleared)}`
-  ]
+/**
+ * The footer facts, also shown under the on-screen preview. A building has no installments, and
+ * its «دارایی خالص» would count unit credit as a receivable, so both are left out there.
+ */
+export function monthlyReportFacts(
+  report: MonthlyReportData,
+  building = getActiveWorkspaceType() === 'building'
+): string[] {
+  const facts = [`چک پاس‌شده ${formatPersianNumber(report.checksCleared)}`]
 
-  if (report.netWorth != null) {
+  if (!building) {
+    facts.unshift(
+      `اقساط پرداخت‌شده ${formatPersianNumber(report.installments.paid)} از ${formatPersianNumber(
+        report.installments.due
+      )}`
+    )
+  }
+
+  if (!building && report.netWorth != null) {
     const change =
       report.netWorthChange != null
         ? ` (${report.netWorthChange >= 0 ? '↑' : '↓'} ${formatMoney(
@@ -85,6 +96,8 @@ export function monthlyReportFacts(report: MonthlyReportData): string[] {
 }
 
 export function monthlyReportHtml(report: MonthlyReportData, userName: string | null): string {
+  const words = reportWords()
+
   const highlightLine = monthlyReportHighlightLine(report)
 
   const budgets = report.budgets.length
@@ -97,9 +110,9 @@ export function monthlyReportHtml(report: MonthlyReportData, userName: string | 
       ${userName ? `<span>${escapeHtml(userName)}</span>` : ''}
     </header>
     <div class="mr-stats">
-      ${stat('درآمد', escapeHtml(formatMoney(report.income)))}
-      ${stat('هزینه', escapeHtml(formatMoney(report.expense)))}
-      ${stat('خالص', signedMoneyHtml(report.net))}
+      ${stat(words.income, escapeHtml(formatMoney(report.income)))}
+      ${stat(words.expense, escapeHtml(formatMoney(report.expense)))}
+      ${stat(words.net, signedMoneyHtml(report.net))}
     </div>
     ${budgets}
     ${highlightLine ? `<div class="mr-budget">${escapeHtml(highlightLine)}</div>` : ''}

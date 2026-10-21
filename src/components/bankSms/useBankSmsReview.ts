@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import { smsBulkItems } from './smsBulkItems'
 import { useBankSmsContext } from './useBankSmsContext'
+import { useBuildingSmsUnits } from './useBuildingSmsUnits'
 import { useSmsTemplates } from './useSmsTemplates'
+import { useBuildingAccess } from '../../hooks/useBuildingAccess'
+import { useRoutedPendingSms } from '../../hooks/useRoutedPendingSms'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { getPathForTab } from '../../routes/paths'
 import {
   confirmSmsEntry,
   confirmSmsTransfer,
   dismissSms,
-  isConfirmable,
   suggestedSmsRecord,
   type ConfirmableSms,
   type SmsRecordInput
@@ -24,13 +27,20 @@ import {
   type SmsCategoryChoice,
   type SmsCategorySuggestion
 } from '../../services/bankSmsSuggest'
+import { readBridgePrefs } from '../../services/bridgePrefs'
+import { personalBridgeId } from '../../services/bridgeTarget'
+import { unitSuggestionTitle, type SmsUnitInput } from '../../services/buildingSmsMatch'
+import { payUnitFromSms } from '../../services/buildingSmsPayment'
 import { useBankSmsStore } from '../../stores/bankSmsStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { getCurrency } from '../../utils/formatMoney'
 import { haptic } from '../../utils/haptics'
+import { toPersianDigits } from '../../utils/normalizeDigits'
+import { BUILDING_CHARGE_CATEGORY } from '../../utils/protectedCategories'
 import { handleSheetError } from '../../utils/sheetError'
-import { showSuccess } from '../../utils/toast'
+import { showError, showSuccess } from '../../utils/toast'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
+import type { BuildingSetupData } from '../buildings/useBuildingSetupData'
 
 /** The card's category: the suggestion, or what the user picked instead (no `source`). */
 export type SmsChoice = SmsCategoryChoice & Partial<Omit<SmsCategorySuggestion, 'category'>>
@@ -40,8 +50,8 @@ export const smsRecordType = (entry: ConfirmableSms) =>
 
 /** Everything the «پیامک‌های بانکی» page shows and does. */
 /** `sinceMs`: only SMS received from this moment on are listed (older ones stay queued). */
-export function useBankSmsReview(sinceMs: number) {
-  const pending = useBankSmsStore(state => state.pending)
+export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | null = null) {
+  const pending = useRoutedPendingSms()
   const queueLoading = useBankSmsStore(state => state.loading)
   const refresh = useBankSmsStore(state => state.refresh)
   const scanFrom = useBankSmsStore(state => state.scanFrom)
@@ -52,6 +62,8 @@ export function useBankSmsReview(sinceMs: number) {
   const [picked, setPicked] = useState<Record<string, SmsChoice>>({})
   const undoable = useUndoableDelete()
   const navigate = useNavigate()
+  const { can } = useBuildingAccess()
+  const units = useBuildingSmsUnits(building, accounts)
 
   useEffect(() => {
     void refresh()
@@ -102,10 +114,29 @@ export function useBankSmsReview(sinceMs: number) {
     // `pending` changes after every confirm, which is when the remembered categories change.
   }, [recurring, ledger, pending]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const choiceFor = useCallback(
+  /** The category of a deposit/withdrawal as the round-6 rules give it (what «درآمد دیگر» saves). */
+  const plainChoiceFor = useCallback(
     (entry: ConfirmableSms): SmsChoice | null =>
       picked[entry.sms.id] ?? suggestSmsCategory(smsSuggestInput(entry), suggestContext),
     [picked, suggestContext]
+  )
+
+  /** Same, but a deposit whose payer's card is a unit's says «شارژ ساختمان» (table, form fallback). */
+  const choiceFor = useCallback(
+    (entry: ConfirmableSms): SmsChoice | null => {
+      const offer = units.offerFor(entry)
+
+      return offer?.kind === 'card' && !picked[entry.sms.id]
+        ? suggestSmsCategory(
+            smsSuggestInput(entry, {
+              title: unitSuggestionTitle(offer.candidate),
+              category: BUILDING_CHARGE_CATEGORY
+            }),
+            suggestContext
+          )
+        : plainChoiceFor(entry)
+    },
+    [units, picked, suggestContext, plainChoiceFor]
   )
 
   const titleOf = (accountId: string) =>
@@ -114,7 +145,7 @@ export function useBankSmsReview(sinceMs: number) {
   const run = async (
     key: string,
     message: string,
-    task: (spreadsheetId: string) => Promise<void>
+    task: (spreadsheetId: string) => Promise<unknown>
   ) => {
     const spreadsheetId = requireSpreadsheetId()
 
@@ -138,17 +169,24 @@ export function useBankSmsReview(sinceMs: number) {
   const record = (entry: ConfirmableSms, choice: SmsChoice): SmsRecordInput =>
     suggestedSmsRecord(choice, titleOf(entry.result.accountId))
 
-  /** Recognised, single-account, not a probable duplicate, with a category: «ثبت همه». */
-  const bulk = items.flatMap(item => {
-    if (item.kind !== 'single' || item.probableDuplicate || !isConfirmable(item.entry)) return []
+  /** A building deposit paid for a unit: `payUnitFromSms` writes the record and the payment. */
+  const payForUnit = (spreadsheetId: string, entry: ConfirmableSms, unit: SmsUnitInput) => {
+    if (!can('record')) {
+      showError('دسترسی ندارید')
 
-    const choice = choiceFor(item.entry)
+      return Promise.resolve()
+    }
 
-    // A vehicle expense needs its vehicle, type and mileage, which only the form asks for.
-    return choice && !isVehicleExpenseCategory(choice.category)
-      ? [{ entry: item.entry, choice }]
-      : []
-  })
+    return payUnitFromSms(spreadsheetId, entry, {
+      unit: { id: unit.id, number: unit.number },
+      debtor: unit.debtorId ? { id: unit.debtorId, name: unit.name } : null,
+      accountTitle: titleOf(entry.result.accountId),
+      // Bridge B: the manager's own unit, with the remembered tick on (single pay and bulk alike).
+      bridgeOwn: unit.me === true && personalBridgeId() !== null && readBridgePrefs().ownUnit
+    })
+  }
+
+  const bulk = smsBulkItems(items, units.matchFor, plainChoiceFor)
 
   const openEntry = (entry: ConfirmableSms, options: BankSmsEntryOptions = {}) => {
     const state = buildBankSmsEntryState(entry, options)
@@ -156,9 +194,31 @@ export function useBankSmsReview(sinceMs: number) {
     navigate(getPathForTab('entry', { formType: state.bankSmsEntry.formType }), { state })
   }
 
+  /** Saves a deposit/withdrawal with its round-6 category, or opens the form when unsure. */
+  const incomeFlow = (entry: ConfirmableSms, probableDuplicate: boolean) => {
+    const choice = plainChoiceFor(entry)
+
+    if (probableDuplicate || !choice || isVehicleExpenseCategory(choice.category)) {
+      openEntry(entry, { choice })
+
+      return
+    }
+    void run(entry.sms.id, `ثبت شد · ${choice.category}`, id =>
+      confirmSmsEntry(id, entry, record(entry, choice))
+    )
+  }
+
+  const payUnit = (entry: ConfirmableSms, unit: SmsUnitInput) =>
+    run(entry.sms.id, `پرداخت واحد ${toPersianDigits(unit.number)} ثبت شد`, id =>
+      payForUnit(id, entry, unit)
+    )
+
   return {
     items,
     bulkCount: bulk.length,
+    bulkUnitCount: bulk.filter(item => item.kind === 'unit').length,
+    /** The building whose units deposits are matched to; null in a personal workspace. */
+    building,
     accounts,
     busyKey,
     loading: queueLoading,
@@ -168,23 +228,31 @@ export function useBankSmsReview(sinceMs: number) {
     choiceFor,
     pick: (smsId: string, choice: SmsChoice) => setPicked(prev => ({ ...prev, [smsId]: choice })),
     openEntry,
-    /** The card's main button: save with its category, or open the form when unsure. */
+    offerFor: units.offerFor,
+    /**
+     * Swipe / table button. A deposit that is a unit's payment (card matched) pays the unit; one
+     * with only an amount match opens the form (a unit has to be picked on the card).
+     */
     primary: (entry: ConfirmableSms, probableDuplicate: boolean) => {
-      const choice = choiceFor(entry)
+      const offer = units.offerFor(entry)
 
-      if (probableDuplicate || !choice || isVehicleExpenseCategory(choice.category)) {
-        openEntry(entry, { choice })
+      if (!offer) return incomeFlow(entry, probableDuplicate)
+      if (offer.kind === 'card' && !probableDuplicate)
+        return void payUnit(entry, offer.candidate.unit)
 
-        return
-      }
-      void run(entry.sms.id, `ثبت شد · ${choice.category}`, id =>
-        confirmSmsEntry(id, entry, record(entry, choice))
-      )
+      openEntry(entry, { choice: choiceFor(entry) })
     },
+    /** The category a deposit would be saved with as plain income («درآمد دیگر» opens the form). */
+    plainChoiceFor,
+    payUnit,
     confirmAll: () =>
       run('all', `${bulk.length} تراکنش ثبت شد`, async spreadsheetId => {
-        for (const { entry, choice } of bulk) {
-          await confirmSmsEntry(spreadsheetId, entry, record(entry, choice))
+        for (const item of bulk) {
+          if (item.kind === 'unit') {
+            await payForUnit(spreadsheetId, item.entry, item.unit)
+          } else {
+            await confirmSmsEntry(spreadsheetId, item.entry, record(item.entry, item.choice))
+          }
         }
       }),
     balanceOnly: (entry: ConfirmableSms) =>

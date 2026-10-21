@@ -1,5 +1,7 @@
 import type { Dang } from '../types'
 import { logItemActivity } from './activityLog'
+import { dangSettlementCategory } from './buildingDang'
+import { dangPrefixes, dangSettlementTitle } from './dangTitles'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { deleteLinkedExpenseRecord } from './paymentTransactions'
 import type { SettleOptions, UnlinkChoice } from './settleOptions'
@@ -13,6 +15,7 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
+import { getActiveWorkspaceType } from './workspace'
 import { DANG_WRITER_COLUMN } from './writerColumn'
 import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
@@ -129,10 +132,12 @@ export async function createDang(
     amount: number
     date: string
     note: string
+    /** A fixed id, for a debt another record owns (a building expense paid out of pocket). */
+    id?: string
   }
 ): Promise<Dang> {
   const dang: Dang = {
-    id: crypto.randomUUID(),
+    id: data.id ?? crypto.randomUUID(),
     createdAt: new Date().toLocaleString('fa-IR'),
     title: data.title,
     category: data.category,
@@ -181,15 +186,16 @@ export async function toggleDangPaid(
   options?: SettleOptions,
   unlink?: UnlinkChoice
 ): Promise<Dang> {
+  const building = getActiveWorkspaceType() === 'building'
+
   if (paid && !dang.paid) {
     const transactionRecordId = await createLinkedRecordWithWallet(
       spreadsheetId,
       'expense',
       {
-        title: `بدهی: ${dang.title}`,
+        title: dangSettlementTitle(dang, building),
         amount: dang.amount,
-        category: dang.category,
-        subCategory: dang.subCategory,
+        ...dangSettlementCategory(dang, building),
         note: dang.note
       },
       options
@@ -213,7 +219,7 @@ export async function toggleDangPaid(
       spreadsheetId,
       'expense',
       dang.transactionRecordId ?? '',
-      'بدهی: ',
+      dangPrefixes(building),
       unlink
     )
 

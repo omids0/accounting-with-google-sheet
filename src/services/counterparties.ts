@@ -98,7 +98,18 @@ export function formatLocationLabel(location: CounterpartyLocation | null): stri
   return `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}`
 }
 
-function rowToCounterparty(
+/** «بله» / «خیر» like the other yes-no columns; blank (older rows) = no. */
+function parseFlag(raw: string | undefined): boolean {
+  const value = String(raw ?? '')
+    .trim()
+    .toLowerCase()
+
+  return value === 'بله' || value === 'true' || value === '1' || value === 'yes'
+}
+
+const formatFlag = (on: boolean | undefined) => (on ? 'بله' : 'خیر')
+
+export function rowToCounterparty(
   row: string[],
   rowNumber: number
 ): (Counterparty & { rowNumber: number }) | null {
@@ -117,7 +128,9 @@ function rowToCounterparty(
     location: parseCounterpartyLocation(row[6] ?? ''),
     phones: parseCounterpartyPhones(row[7] ?? ''),
     accounts: parseCounterpartyAccounts(row[8] ?? ''),
-    note: row[9] ?? ''
+    note: row[9] ?? '',
+    placeholder: parseFlag(row[10]),
+    me: parseFlag(row[11])
   }
 }
 
@@ -132,7 +145,9 @@ function counterpartyToRow(item: Counterparty): string[] {
     formatCounterpartyLocation(item.location),
     formatCounterpartyPhones(item.phones),
     JSON.stringify(item.accounts),
-    item.note
+    item.note,
+    formatFlag(item.placeholder),
+    formatFlag(item.me)
   ]
 }
 
@@ -152,7 +167,9 @@ export function counterpartyRowFromImportCells(cells: (string | undefined)[]): s
     location: parseCounterpartyLocation(cells[6] ?? ''),
     phones: parseCounterpartyPhones(cells[7] ?? ''),
     accounts: parseCounterpartyAccounts(cells[8] ?? ''),
-    note: cells[9] ?? ''
+    note: cells[9] ?? '',
+    placeholder: parseFlag(cells[10]),
+    me: parseFlag(cells[11])
   })
 }
 

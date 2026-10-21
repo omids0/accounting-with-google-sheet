@@ -25,7 +25,15 @@ export async function syncSpreadsheetsFromDrive(): Promise<SpreadsheetEntry[]> {
     merged.set(sheet.id, sheet)
   }
   for (const file of fromDrive) {
-    merged.set(file.id, driveFileToEntry(file))
+    // Drive knows nothing about the workspace kind or an archived building: keep what this
+    // device registered.
+    const known = merged.get(file.id)
+
+    merged.set(file.id, {
+      ...driveFileToEntry(file),
+      ...(known?.kind ? { kind: known.kind } : {}),
+      ...(known?.active === false ? { active: false } : {})
+    })
   }
 
   const spreadsheets = Array.from(merged.values()).sort(

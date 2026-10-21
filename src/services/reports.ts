@@ -68,7 +68,11 @@ function collectInstallmentDueItems(
   return items
 }
 
-function collectCheckDueItems(checks: Check[], today: string, horizonEnd: string): DueDateItem[] {
+export function collectCheckDueItems(
+  checks: Check[],
+  today: string,
+  horizonEnd: string
+): DueDateItem[] {
   return checks
     .filter(check => !check.paid)
     .filter(check => check.dueDate.slice(0, 10) <= horizonEnd)

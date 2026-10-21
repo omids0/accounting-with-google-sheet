@@ -11,6 +11,7 @@ import { formatPersianNumber } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { JALALI_WEEKDAYS, saturdayFirstColumn } from '../../utils/jalaliMonthGrid'
 import { parseNumeric } from '../../utils/parseNumeric'
+import { BUILDING_FIELD_IDS } from '../form/buildingFields'
 import {
   COUNTERPARTY_FIELD_ID,
   LINE_ITEMS_FIELD_ID,
@@ -40,7 +41,9 @@ const COVERED_FIELD_IDS = new Set([
   COUNTERPARTY_FIELD_ID,
   LINE_ITEMS_FIELD_ID,
   'attachments',
-  'note'
+  'note',
+  // A building expense's kind, payer and split are shown by `BuildingExpenseDetail`.
+  ...BUILDING_FIELD_IDS
 ])
 
 function Row({ label, children }: { label: string; children: ReactNode }) {

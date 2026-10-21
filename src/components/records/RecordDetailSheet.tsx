@@ -1,7 +1,10 @@
+import { lazy, Suspense } from 'react'
+
 import RecordDetailAttachments from './RecordDetailAttachments'
 import RecordDetailFields from './RecordDetailFields'
 import { recordLineItems } from './recordsFilterPredicates'
 import { getFormField, type StoredRecord } from './recordsUtils'
+import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatPersianNumber } from '../../utils/formatMoney'
@@ -19,9 +22,14 @@ import {
 } from '../ui/recordDetailStyles'
 import { amountExpenseClass, amountIncomeClass } from '../ui/recordsStyles'
 
+// Building-only: the kind, payer and unit shares of an expense load when such a record opens.
+const BuildingExpenseDetail = lazy(() => import('../buildings/BuildingExpenseDetail'))
+
 interface RecordDetailSheetProps {
   record: StoredRecord
   form: CustomForm
+  /** Only looking: no edit, repeat or delete. */
+  readOnly?: boolean
   onClose: () => void
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
@@ -31,6 +39,7 @@ interface RecordDetailSheetProps {
 export default function RecordDetailSheet({
   record,
   form,
+  readOnly = false,
   onClose,
   onEdit,
   onDelete
@@ -59,6 +68,7 @@ export default function RecordDetailSheet({
         edit()
       }}
       saveLabel="ویرایش"
+      saveDisabled={readOnly}
       cancelLabel="بستن"
     >
       {rawAmount ? (
@@ -77,12 +87,18 @@ export default function RecordDetailSheet({
 
       <RecordDetailFields record={record} form={form} />
 
+      {isExpense && isBuildingExpenseValues(values) ? (
+        <Suspense fallback={null}>
+          <BuildingExpenseDetail record={record} />
+        </Suspense>
+      ) : null}
+
       <RecordDetailAttachments
         sheetName={record.sheetName ?? form.sheetName}
         entityId={record.id}
         fileIds={record.attachments}
         title={title}
-        onAdd={edit}
+        onAdd={readOnly ? undefined : edit}
       />
 
       {items.length ? (
@@ -95,14 +111,16 @@ export default function RecordDetailSheet({
       ) : null}
 
       <div className={recordDetailActionsClass}>
-        {isIncome || isExpense ? (
+        {readOnly ? null : isIncome || isExpense ? (
           <Button type="button" variant="secondary" size="sm" onClick={edit}>
             تکرار ماهانه
           </Button>
         ) : null}
-        <Button type="button" variant="secondary" size="sm" onClick={() => onDelete(record)}>
-          حذف
-        </Button>
+        {readOnly ? null : (
+          <Button type="button" variant="secondary" size="sm" onClick={() => onDelete(record)}>
+            حذف
+          </Button>
+        )}
       </div>
     </FormModal>
   )

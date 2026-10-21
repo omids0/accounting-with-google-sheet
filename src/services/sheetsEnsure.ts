@@ -162,6 +162,20 @@ async function writeSheetHeaders(
   })
 }
 
+/** Header rows of several tabs in ONE values:batchUpdate (a new file or a repair needs many). */
+async function writeManySheetHeaders(spreadsheetId: string, sheets: SheetSpec[]): Promise<void> {
+  await apiRequest(`${SHEETS_API}/${spreadsheetId}/values:batchUpdate`, {
+    method: 'POST',
+    body: JSON.stringify({
+      valueInputOption: 'RAW',
+      data: sheets.map(sheet => ({
+        range: `${quoteSheetName(sheet.sheetName)}!A1:${columnLetter(sheet.headers.length)}1`,
+        values: [sheet.headers]
+      }))
+    })
+  })
+}
+
 export async function ensureManySheetsWithHeaders(
   spreadsheetId: string,
   sheets: SheetSpec[]
@@ -206,16 +220,22 @@ async function ensureManySheetsWithHeadersInner(
     pending.map(sheet => sheet.sheetName)
   )
 
-  for (const sheet of pending) {
-    const existing = headerRows.get(normalizeSheetTitle(sheet.sheetName)) ?? []
+  const headerless = pending.filter(
+    sheet =>
+      !(headerRows.get(normalizeSheetTitle(sheet.sheetName)) ?? []).some(cell =>
+        String(cell ?? '').trim()
+      )
+  )
 
-    const hasHeaders = existing.some(cell => String(cell ?? '').trim())
-
-    if (!hasHeaders) {
-      await writeSheetHeaders(spreadsheetId, sheet.sheetName, sheet.headers)
-    }
-    markSheetsPrepared(spreadsheetId, [sheet.sheetName])
+  if (headerless.length === 1) {
+    await writeSheetHeaders(spreadsheetId, headerless[0].sheetName, headerless[0].headers)
+  } else if (headerless.length > 1) {
+    await writeManySheetHeaders(spreadsheetId, headerless)
   }
+  markSheetsPrepared(
+    spreadsheetId,
+    pending.map(sheet => sheet.sheetName)
+  )
 }
 
 export async function ensureSheetWithHeaders(

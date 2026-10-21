@@ -14,4 +14,13 @@ describe('isFieldHidden', () => {
   it('never hides other fields', () => {
     expect(isFieldHidden(field('walletAccount'), { walletAccount: '' })).toBe(false)
   })
+
+  it('hides the account and the balance switch for a building payer other than the fund', () => {
+    const paidBy = { payer: 'manager', walletAccount: 'acc' }
+
+    expect(isFieldHidden(field('walletAccount'), paidBy)).toBe(true)
+    expect(isFieldHidden(field('walletApply'), paidBy)).toBe(true)
+    expect(isFieldHidden(field('walletAccount'), { ...paidBy, payer: 'fund' })).toBe(false)
+    expect(isFieldHidden(field('walletAccount'), { ...paidBy, payer: '' })).toBe(false)
+  })
 })

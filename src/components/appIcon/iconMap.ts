@@ -2,9 +2,11 @@ import addressBook from '@phosphor-icons/core/regular/address-book.svg?raw'
 import arrowLeft from '@phosphor-icons/core/regular/arrow-left.svg?raw'
 import arrowRight from '@phosphor-icons/core/regular/arrow-right.svg?raw'
 import arrowSquareOut from '@phosphor-icons/core/regular/arrow-square-out.svg?raw'
+import arrowUUpLeft from '@phosphor-icons/core/regular/arrow-u-up-left.svg?raw'
 import arrowsClockwise from '@phosphor-icons/core/regular/arrows-clockwise.svg?raw'
 import arrowsLeftRight from '@phosphor-icons/core/regular/arrows-left-right.svg?raw'
 import bell from '@phosphor-icons/core/regular/bell.svg?raw'
+import buildings from '@phosphor-icons/core/regular/buildings.svg?raw'
 import calculator from '@phosphor-icons/core/regular/calculator.svg?raw'
 import calendarCheck from '@phosphor-icons/core/regular/calendar-check.svg?raw'
 import camera from '@phosphor-icons/core/regular/camera.svg?raw'
@@ -15,7 +17,9 @@ import caretRight from '@phosphor-icons/core/regular/caret-right.svg?raw'
 import chartBar from '@phosphor-icons/core/regular/chart-bar.svg?raw'
 import check from '@phosphor-icons/core/regular/check.svg?raw'
 import clock from '@phosphor-icons/core/regular/clock.svg?raw'
+import coins from '@phosphor-icons/core/regular/coins.svg?raw'
 import copy from '@phosphor-icons/core/regular/copy.svg?raw'
+import door from '@phosphor-icons/core/regular/door.svg?raw'
 import dotsSixVertical from '@phosphor-icons/core/regular/dots-six-vertical.svg?raw'
 import downloadSimple from '@phosphor-icons/core/regular/download-simple.svg?raw'
 import eyeSlash from '@phosphor-icons/core/regular/eye-slash.svg?raw'
@@ -109,5 +113,9 @@ export const APP_ICON_SVGS: Record<AppIconName, string> = {
   image,
   paperclip,
   share: shareNetwork,
-  external: arrowSquareOut
+  external: arrowSquareOut,
+  building: buildings,
+  door,
+  coins,
+  return: arrowUUpLeft
 }

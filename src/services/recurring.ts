@@ -1,3 +1,4 @@
+import { EXPENSE_KIND_FIELD_ID, PAYER_FIELD_ID } from '../components/form/buildingFields'
 import { SUBCATEGORY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import type { RecurringItem, RecurringMode } from '../types'
 import { buildJalaliMonthKey, getJalaliMonthKey, parseJalaliMonthKey } from '../utils/dateRange'
@@ -37,6 +38,21 @@ export function normalizeMonthKey(raw: string): string {
   return month ? buildJalaliMonthKey(month.year, month.month) : ''
 }
 
+/** The two building columns, only when set (a personal item has none). */
+function buildingColumns(
+  kind: unknown,
+  payer: unknown
+): Pick<RecurringItem, 'expenseKind' | 'payer'> {
+  const expenseKind = String(kind ?? '').trim()
+
+  const payerKey = String(payer ?? '').trim()
+
+  return {
+    ...(expenseKind ? { expenseKind } : {}),
+    ...(payerKey ? { payer: payerKey } : {})
+  }
+}
+
 export function rowToRecurring(row: string[]): RecurringItem | null {
   const id = String(row[0] ?? '').trim()
   const type = String(row[2] ?? '').trim()
@@ -60,7 +76,8 @@ export function rowToRecurring(row: string[]): RecurringItem | null {
       String(row[11] ?? '')
         .trim()
         .toLowerCase()
-    )
+    ),
+    ...buildingColumns(row[12], row[13])
   }
 }
 
@@ -77,7 +94,8 @@ export function recurringToRow(item: RecurringItem): string[] {
     String(item.dayOfMonth),
     item.mode,
     item.lastPosted,
-    item.active ? 'بله' : 'خیر'
+    item.active ? 'بله' : 'خیر',
+    ...(item.expenseKind || item.payer ? [item.expenseKind ?? '', item.payer ?? ''] : [])
   ]
 }
 
@@ -221,7 +239,8 @@ export function recurringFromRecord(
     dayOfMonth: isoToJalali(dateIso).day,
     mode,
     lastPosted: getJalaliMonthKey(dateIso),
-    active: true
+    active: true,
+    ...buildingColumns(values[EXPENSE_KIND_FIELD_ID], values[PAYER_FIELD_ID])
   }
 }
 
@@ -239,6 +258,8 @@ export function recurringRecordValues(
     category: item.category,
     [SUBCATEGORY_FIELD_ID]: item.subCategory,
     [WALLET_ACCOUNT_FIELD_ID]: item.accountId,
-    note
+    note,
+    ...(item.expenseKind ? { [EXPENSE_KIND_FIELD_ID]: item.expenseKind } : {}),
+    ...(item.payer ? { [PAYER_FIELD_ID]: item.payer } : {})
   }
 }

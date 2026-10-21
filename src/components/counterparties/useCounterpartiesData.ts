@@ -19,8 +19,10 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
+import { useReadOnly } from '../ui/readOnly'
 
 export function useCounterpartiesData() {
+  const readOnly = useReadOnly()
   const [items, setItems] = useState<CounterpartyWithRow[]>([])
   const [loading, setLoading] = useState(() => {
     const settings = getSettings()
@@ -62,6 +64,8 @@ export function useCounterpartiesData() {
   }, [loadItems, dataRevision])
 
   const requestDelete = (item: CounterpartyWithRow) => {
+    if (readOnly) return
+
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return

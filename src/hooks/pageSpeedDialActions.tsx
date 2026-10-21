@@ -9,7 +9,8 @@ export function createPageSpeedDialActions({
   refreshDisabled,
   onImport,
   onExport,
-  onExportPdf
+  onExportPdf,
+  readOnly = false
 }: {
   onAdd: () => void
   /** Desktop header pill, e.g. «ثبت چک» (shown as «+ ثبت چک»). */
@@ -20,8 +21,10 @@ export function createPageSpeedDialActions({
   onImport?: () => void
   onExport?: () => void
   onExportPdf?: () => void
+  /** A role that may only read (round 11): no add, no import. */
+  readOnly?: boolean
 }): PageSpeedDialAction[] {
-  return [
+  const actions: PageSpeedDialAction[] = [
     {
       id: 'add',
       label: 'افزودن',
@@ -65,4 +68,8 @@ export function createPageSpeedDialActions({
       disabled: !onImport
     }
   ]
+
+  return readOnly
+    ? actions.filter(action => action.id !== 'add' && action.id !== 'import')
+    : actions
 }

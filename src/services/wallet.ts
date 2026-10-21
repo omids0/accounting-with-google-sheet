@@ -43,7 +43,7 @@ function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNu
   }
 }
 
-function accountToRow(account: WalletAccount): string[] {
+export function accountToRow(account: WalletAccount): string[] {
   return [
     account.id,
     account.createdAt,

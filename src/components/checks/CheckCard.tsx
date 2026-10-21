@@ -19,6 +19,7 @@ import {
   dangCheckboxClass,
   dangPaidAtClass
 } from '../ui/featureCardStyles'
+import { useReadOnly } from '../ui/readOnly'
 import WriterAvatar from '../WriterAvatar'
 
 export type CheckCardProps = {
@@ -36,6 +37,8 @@ export default function CheckCard({
   onEdit,
   onDelete
 }: CheckCardProps) {
+  const readOnly = useReadOnly()
+
   return (
     <div className={dangCardClass({ paid: item.paid })} data-highlight-id={item.id}>
       <div className={cardHeaderWithEditClass}>
@@ -44,7 +47,7 @@ export default function CheckCard({
             type="checkbox"
             className={dangCheckboxClass}
             checked={item.paid}
-            disabled={togglingId === item.id}
+            disabled={togglingId === item.id || readOnly}
             aria-label={`پرداخت شد: چک ${item.checkNumber}`}
             onChange={e => onTogglePaid(item, e.target.checked)}
           />

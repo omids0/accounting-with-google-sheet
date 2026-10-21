@@ -7,6 +7,7 @@ import {
   speedDialTypeIconExpenseClass,
   speedDialTypeIconIncomeClass
 } from './ui/speedDialStyles'
+import { useBusyOverlayRelease } from '../hooks/useBusyOverlayRelease'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
@@ -77,6 +78,8 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
 
     active
   )
+
+  useBusyOverlayRelease(!dashboard.loading || !!dashboard.data)
 
   if (!isConfigured()) {
     return <EmptyState icon="dashboard" message="ابتدا با گوگل وارد شوید" />

@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
+import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
@@ -10,15 +11,33 @@ import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
 import PageFilterPanel from '../PageFilterPanel'
 import DangFormModal from './DangFormModal'
-import DangList from './DangList'
+import DangList, { type DangEmptyCopy } from './DangList'
+import type { DangWithRow } from './types'
 import { useDangFilters } from './useDangFilters'
 import { useDangForm } from './useDangForm'
 import { useDangItems } from './useDangItems'
 import SettleFlowModals from '../settle/SettleFlowModals'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
+import { useReadOnly } from '../ui/readOnly'
 
-export default function DangPage({ active = true }: { active?: boolean }) {
+/** Narrows the list and adds a header above it («بدهی ساختمان» chips, counted over all debts). */
+export interface DangPageScope {
+  header: (items: DangWithRow[]) => ReactNode
+  filter: (items: DangWithRow[]) => DangWithRow[]
+  /** Replaces the personal wording of the empty list. */
+  emptyCopy?: DangEmptyCopy
+}
+
+export default function DangPage({
+  active = true,
+  scope
+}: {
+  active?: boolean
+  scope?: DangPageScope
+}) {
+  const readOnly = useReadOnly()
+  const building = useIsBuildingWorkspace()
   const {
     items,
     loading,
@@ -81,6 +100,7 @@ export default function DangPage({ active = true }: { active?: boolean }) {
       actions: createPageSpeedDialActions({
         onAdd: () => openCreateForm(),
         addLabel: 'ثبت بدهی',
+        readOnly,
         onFilter: openFilterModal,
         onRefresh: loadItems,
         refreshDisabled: loading,
@@ -96,7 +116,8 @@ export default function DangPage({ active = true }: { active?: boolean }) {
       handleImport,
       handleExport,
       handleExportPdf,
-      openCreateForm
+      openCreateForm,
+      readOnly
     ]
   )
 
@@ -149,9 +170,11 @@ export default function DangPage({ active = true }: { active?: boolean }) {
         />
       </FilterModal>
 
+      {scope?.header(items)}
+
       <DangList
         items={items}
-        filteredItems={filteredItems}
+        filteredItems={scope ? scope.filter(filteredItems) : filteredItems}
         loading={loading}
         expandedId={expandedId}
         togglingId={togglingId}
@@ -164,6 +187,8 @@ export default function DangPage({ active = true }: { active?: boolean }) {
         onEdit={openEditForm}
         onDelete={requestDelete}
         onAdd={openCreateForm}
+        building={building}
+        emptyCopy={scope?.emptyCopy}
       />
 
       <DangFormModal

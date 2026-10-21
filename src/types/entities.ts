@@ -65,6 +65,8 @@ export interface ReceivablePayment {
   paidAt: string
   note: string
   transactionRecordId?: string
+  /** Round 11: paid from the unit's credit, so no income record exists. */
+  fromCredit?: boolean
 }
 
 export interface Receivable {
@@ -80,6 +82,10 @@ export interface Receivable {
   payments: ReceivablePayment[]
   /** Email of whoever last saved it (column «ثبت‌کننده»); '' for older rows. */
   writer?: string
+  /** Round 11 building charge key («charge:<unitId>:<YYYY-MM>», «share:…», «opening:…», «credit:…»). */
+  reference?: string
+  /** Round 11: counterparty id of the debtor; display resolves the name from it. */
+  debtorId?: string
 }
 
 /** The seven assets the vault knew before the catalog; their ids are still valid catalog ids. */

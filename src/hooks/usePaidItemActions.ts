@@ -4,9 +4,10 @@ import { removeParentAttachments, useAttachmentDeleteQuestion } from './useAttac
 import { useSheetImportExport } from './useSheetImportExport'
 import { useUndoableDelete } from './useUndoableDelete'
 import { useSettleFlow } from '../components/settle/useSettleFlow'
+import { useReadOnly } from '../components/ui/readOnly'
 import type { ImportPreview } from '../services/importExport'
 import type { SettleOptions, UnlinkChoice } from '../services/settleOptions'
-import { isLinkedForeignRecord } from '../services/settleRecords'
+import { isLinkedForeignRecord, type SettlePrefix } from '../services/settleRecords'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 
@@ -22,10 +23,14 @@ export type SettleConfig<T> = {
   titleFor: (item: T) => string
   amountFor: (item: T) => number
   dateFor?: (item: T) => string
+  /** What saving does, when it is not obvious (shown under the sheet title). */
+  noteFor?: (item: T) => string | undefined
+  /** True for an item bridged to the personal spreadsheet (the settle sheet asks for its account). */
+  bridgeFor?: (item: T) => boolean
   /** The record the item's payment is linked to, if any. */
   recordIdOf: (item: T) => string | undefined
-  /** Title prefix of the records this app creates for the module («بدهی: »). */
-  prefix: string
+  /** Title prefix(es) of the records this app creates for the module («بدهی: »). */
+  prefix: SettlePrefix
   /** `transactionRecordId` of every item: those records are settlements already. */
   linkedIds: readonly string[]
 }
@@ -69,11 +74,14 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   importExport
 }: UsePaidItemActionsOptions<T>) {
   const [togglingId, setTogglingId] = useState('')
+  const readOnly = useReadOnly()
   const settleFlow = useSettleFlow()
 
   const getSpreadsheetId = useCallback(() => requireSpreadsheetId(), [])
 
   const handleTogglePaid = async (item: T, paid: boolean) => {
+    if (readOnly) return
+
     const spreadsheetId = getSpreadsheetId()
 
     if (!spreadsheetId) return
@@ -87,6 +95,8 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
         title: settle.titleFor(item),
         amount: settle.amountFor(item),
         date: settle.dateFor?.(item),
+        note: settle.noteFor?.(item),
+        bridge: settle.bridgeFor?.(item),
         linkedIds: settle.linkedIds
       })
       if (!options) return
@@ -132,6 +142,8 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   const attachmentQuestion = useAttachmentDeleteQuestion()
 
   const requestDelete = async (item: T) => {
+    if (readOnly) return
+
     const spreadsheetId = getSpreadsheetId()
 
     if (!spreadsheetId) return
