@@ -5,7 +5,7 @@
 //   npm run build
 //   node .claude/skills/qa/scripts/qa-shoot.mjs --steps steps.json [--out dir]
 //        [--base http://127.0.0.1:4180] [--port 4180] [--viewport 375x812]
-//        [--dark] [--reduced-motion] [--data sheets.json] [--headed]
+//        [--dark] [--reduced-motion] [--data sheets.json] [--sms sms.json] [--init init.js] [--log-requests] [--headed]
 //
 // Run from the repo root. Without --base it starts `vite preview` on --port
 // (never 4173 — the e2e suite owns it). See references/visual-verify.md.
@@ -53,6 +53,15 @@ try {
   const page = await context.newPage()
   page.setDefaultTimeout(8000)
   page.on('console', m => m.type() === 'error' && report.consoleErrors.push(m.text()))
+  if (args['log-requests']) {
+    report.requests = []
+    page.on(
+      'request',
+      r =>
+        /googleapis.com/.test(r.url()) &&
+        report.requests.push(`${r.method()} ${decodeURIComponent(r.url()).slice(0, 160)}`)
+    )
+  }
   page.on('pageerror', e => report.pageErrors.push(String(e)))
   await page.addInitScript(() => {
     window.__cls = 0
@@ -62,7 +71,19 @@ try {
   })
   await mockGoogleApis(page)
   if (data) await mockSheetData(page, data)
+  if (args.sms) await installAndroidSmsBridge(page, JSON.parse(readFileSync(args.sms, 'utf8')))
   await seedMockAppState(page)
+  if (data) await seedSheetStore(page, data)
+  // The app picks its theme from the saved settings, not from the browser's colour scheme.
+  if (args.dark) {
+    await page.addInitScript(() => {
+      const settings = JSON.parse(localStorage.getItem('accounting_settings') ?? '{}')
+
+      localStorage.setItem('accounting_settings', JSON.stringify({ ...settings, theme: 'dark' }))
+    })
+  }
+  // Runs in the page before the app, after the seed: tweak localStorage (settings, prefs) here.
+  if (args.init) await page.addInitScript({ path: resolve(args.init) })
 
   let shotIndex = 0
   for (const step of steps) {
@@ -169,13 +190,28 @@ function analyzeMotion(frames, clsDelta) {
   }
 }
 
-/** Answers Sheets batchGet with rows from `data` ({ "SheetTitle": [[row], ...] }). */
+/** Answers Sheets reads (single range and batchGet) with rows from `data` ({ "SheetTitle": [[row], ...] }). */
 async function mockSheetData(page, sheets) {
+  const titleOf = range => decodeURIComponent(range).split('!')[0].replace(/^'|'$/g, '')
+
+  await page.route('**/spreadsheets/*/values/**', async route => {
+    if (route.request().method() !== 'GET') return route.fallback()
+    const range = new URL(route.request().url()).pathname.split('/values/')[1] ?? ''
+
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        range,
+        majorDimension: 'ROWS',
+        values: sheets[titleOf(range)] ?? []
+      })
+    })
+  })
   await page.route('**/values:batchGet**', async route => {
     const ranges = new URL(route.request().url()).searchParams.getAll('ranges')
     const valueRanges = ranges.map(range => {
-      const title = decodeURIComponent(range).split('!')[0].replace(/^'|'$/g, '')
-      return { range, majorDimension: 'ROWS', values: sheets[title] ?? [] }
+      return { range, majorDimension: 'ROWS', values: sheets[titleOf(range)] ?? [] }
     })
     await route.fulfill({
       status: 200,
@@ -231,4 +267,72 @@ function fail(message) {
 /** First VISIBLE match: the sidebar and bottom nav both render the same labels. */
 function visible(page, selector) {
   return page.locator(`${selector} >> visible=true`).first()
+}
+
+/**
+ * Makes the app believe it runs in the Android app with these pending bank SMS (a JSON array of
+ * { id, sender, body, receivedAt, source }). Only the BankSms plugin answers; other native
+ * plugins resolve with {}. `window.__qaHandled` collects the ids the app marked handled.
+ */
+async function installAndroidSmsBridge(page, items) {
+  await page.addInitScript(pending => {
+    window.__qaSms = pending
+    window.__qaHandled = []
+    window.androidBridge = { postMessage() {} }
+    // Capacitor only builds a plugin proxy for names listed in PluginHeaders.
+    const methods = [
+      'checkPermissions',
+      'requestPermissions',
+      'getPending',
+      'markHandled',
+      'scanInbox',
+      'listInbox',
+      'clear',
+      'setEnabled',
+      'setViewDays',
+      'setNightlyDigest',
+      'setLastOperationDate',
+      'setDigestNotes',
+      'openNotificationSettings'
+    ].map(name => ({ name, rtype: 'promise' }))
+
+    window.Capacitor = {
+      PluginHeaders: [{ name: 'BankSms', methods }],
+      nativePromise: async (plugin, method, options) => {
+        if (plugin !== 'BankSms') return {}
+        if (method === 'checkPermissions' || method === 'requestPermissions')
+          return { sms: 'granted' }
+        if (method === 'getPending') return { items: window.__qaSms }
+        if (method === 'scanInbox') return { added: 0, scannedAt: Date.now() }
+        if (method === 'listInbox') return { items: [] }
+        if (method === 'markHandled') {
+          window.__qaHandled.push(...options.ids)
+          window.__qaSms = window.__qaSms.filter(item => !options.ids.includes(item.id))
+        }
+        return {}
+      }
+    }
+    localStorage.setItem(
+      'accounting_bank_sms',
+      JSON.stringify({ enabled: true, lastScanAt: Date.now() })
+    )
+  }, items)
+}
+
+/** The app reads tabs from its local sheet store first, so `data` is seeded there as well. */
+async function seedSheetStore(page, sheets) {
+  const { spreadsheetId } = JSON.parse(
+    readFileSync(resolve(root, 'e2e/helpers/mockAppSeed.json'), 'utf8')
+  )
+
+  await page.addInitScript(
+    ({ id, tabs }) => {
+      const key = `accounting_sheet_store_${id}`
+      const store = JSON.parse(localStorage.getItem(key) ?? '{}')
+
+      store.sheets = { ...store.sheets, ...tabs }
+      localStorage.setItem(key, JSON.stringify(store))
+    },
+    { id: spreadsheetId, tabs: sheets }
+  )
 }

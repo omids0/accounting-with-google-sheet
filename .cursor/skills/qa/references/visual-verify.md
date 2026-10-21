@@ -13,7 +13,7 @@ node .cursor/skills/qa/scripts/qa-shoot.mjs --steps steps.json
 
 In a new worktree `node_modules` must be copied from the main checkout first (not `npm install`).
 
-Options: `--viewport 375x812` (default), `--dark`, `--reduced-motion`, `--out <dir>`, `--port 4180`, `--base <url>` (use an already running server), `--data sheets.json`, `--headed`.
+Options: `--viewport 375x812` (default), `--dark` (sets the app's own theme in the saved settings), `--reduced-motion`, `--out <dir>`, `--port 4180`, `--base <url>` (use an already running server, for example a build of develop for a BEFORE shot), `--data sheets.json`, `--sms sms.json`, `--init init.js`, `--log-requests`, `--headed`.
 
 The runner starts `vite preview` on port 4180 (4173 belongs to e2e), blocks the service worker, mocks Google APIs, seeds a signed-in state, prints a JSON report and saves PNGs plus `report.json`. Exit code 1 means a step failed (`fatal`), so a failure is never a pass.
 
@@ -37,7 +37,11 @@ An array; each item has exactly one key:
 
 Locators are Playwright selectors (`text=…`, `role=button[name="…"]`, CSS). Find real labels and routes in `src/components/layout/types.ts` and the feature folder; the app uses path routes (`/`, deep links `/?action=expense`).
 
-`--data sheets.json` maps sheet tab title to rows (`{ "Expenses": [["id","..."]] }`) so lists are not empty; read the service in `src/services/` for the column order. The helper already marks onboarding finished; to see the first-run wizard, add an `eval` step that removes the `accounting_onboarding_v1` key and reload.
+`--data sheets.json` maps sheet tab title to rows INCLUDING the header row (`{ "کیف پول": [["شناسه","..."],["acc1","..."]] }`) so lists are not empty. It is served to the Sheets reads and seeded into the local sheet store. A tab the flow writes to must be present (header row at least), or the app cannot find its own appended row. Use the real tab names from `src/services/sheetNames.ts` and the column order from the service.
+
+`--sms sms.json` makes the app believe it runs in the Android app with these pending bank SMS (`[{ "id", "sender", "body", "receivedAt", "source": "live" }]`). Only the BankSms plugin is simulated; `window.__qaHandled` and `window.__qaSms` (read them with an `eval` step) show which SMS the app marked handled and what is still queued. For the SMS to be recognised the data needs a wallet account (`کیف پول`) and a template row (`قالب_پیامک`) whose parts come from the app's own `guessTemplate` (see `src/services/bankSmsGuess.ts`; `npx vite-node` can print it). Expect `pageErrors` about unimplemented Android plugins (`App`, `GoogleAuth`): they come from the simulation.
+
+`--init init.js` runs your script in the page before the app (after the seed), for example to add a category to `accounting_settings`. `--log-requests` lists the Google API calls in `report.requests` so you can see what the flow wrote. The helper already marks onboarding finished; to see the first-run wizard, add an `eval` step that removes the `accounting_onboarding_v1` key and reload.
 
 ## What to capture (minimum)
 
