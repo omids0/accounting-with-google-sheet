@@ -18,6 +18,7 @@ import { useBuildingChargeMaintenance } from '../buildings/useBuildingChargeMain
 import { useClaimInvite } from '../buildings/useClaimInvite'
 import PageSpeedDial from '../PageSpeedDial'
 import ConflictGate from '../sync/ConflictGate'
+import BusyOverlay from '../ui/BusyOverlay'
 import {
   appContentColumnClass,
   appLayoutClass,
@@ -152,6 +153,7 @@ export default function Layout() {
           </div>
         </HeaderSlotsContext.Provider>
       </div>
+      <BusyOverlay />
     </div>
   )
 }

@@ -17,6 +17,7 @@ import {
   appMenuItemLabelClass,
   appMenuTallItemClass
 } from '../ui/layoutStyles'
+import Spinner from '../ui/Spinner'
 
 interface LayoutBuildingSwitcherProps {
   rows: BuildingSwitchRow[]
@@ -24,7 +25,7 @@ interface LayoutBuildingSwitcherProps {
   currentTab: Tab | null
   onTabChange: (tab: Tab) => void
   onPick: (buildingId: string) => void
-  /** The building being opened right now: its row says so and the others wait. */
+  /** The building being opened right now: its row shows a spinner and the others wait. */
   pendingId?: string | null
 }
 
@@ -59,10 +60,8 @@ export default function LayoutBuildingSwitcher({
           <span className={appMenuItemIconClass(row.current)}>
             <AppIcon name={row.current ? 'check' : 'building'} size={20} />
           </span>
-          <span className={appMenuItemLabelClass}>
-            {row.label}
-            {row.id === pendingId ? ' · ورود به ساختمان…' : ''}
-          </span>
+          <span className={appMenuItemLabelClass}>{row.label}</span>
+          {row.id === pendingId && <Spinner size="sm" decorative className="ms-auto" />}
           {row.current && pendingId === null && <span className="sr-only">، ساختمان فعلی</span>}
         </button>
       ))}

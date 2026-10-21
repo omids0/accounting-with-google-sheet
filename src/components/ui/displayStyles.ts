@@ -36,7 +36,8 @@ export const loadingDotDelayClasses = [
   '[animation-delay:0.4s]'
 ] as const
 
-export function loadingDotsToneClass(tone: 'light' | 'primary' | 'danger') {
+export function loadingDotsToneClass(tone: 'light' | 'primary' | 'danger' | 'current') {
+  if (tone === 'current') return 'bg-current'
   if (tone === 'light') return 'bg-white'
   if (tone === 'danger') return 'bg-danger'
   return 'bg-primary'

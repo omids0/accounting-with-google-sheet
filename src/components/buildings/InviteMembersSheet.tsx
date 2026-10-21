@@ -137,6 +137,7 @@ export default function InviteMembersSheet({
         className="min-h-11 text-sm"
         onClick={() => void add()}
         loading={saving}
+        spinner
       >
         + افزودن
       </Button>

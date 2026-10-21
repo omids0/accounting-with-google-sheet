@@ -6,7 +6,7 @@ import {
 } from './displayStyles'
 import { cn } from '../../utils/cn'
 
-export type LoadingDotsTone = 'light' | 'primary' | 'danger'
+export type LoadingDotsTone = 'light' | 'primary' | 'danger' | 'current'
 
 type LoadingDotsProps = {
   tone?: LoadingDotsTone

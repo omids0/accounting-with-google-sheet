@@ -31,6 +31,7 @@ export default function DangSettleAction({
       size="sm"
       className="mt-2 min-h-11 w-full"
       loading={busy}
+      spinner
       disabled={busy}
       onClick={() => onToggle(item, true)}
     >

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useNavigate } from 'react-router'
 
+import { enteringMessage } from './buildingBusyText'
 import { getPathForTab } from '../../routes/paths'
 import { isJourneyUnfinished, readJourney } from '../../services/buildingJourney'
 import { getSettings } from '../../services/settings'
@@ -9,6 +10,7 @@ import { switchActiveSpreadsheet } from '../../services/spreadsheetSetup'
 import { moveSyncToSpreadsheet } from '../../services/spreadsheetSwitch'
 import { getWorkspaceType, rememberPersonalSheet } from '../../services/workspace'
 import { bumpSpreadsheetKey } from '../../stores/appStore'
+import { hideBusy, releaseBusyWhenReady, showBusy } from '../../stores/busyOverlayStore'
 import { showError } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 import type { Tab } from '../layout/types'
@@ -33,11 +35,15 @@ export function enterDestination(requested: Tab | undefined, buildingId: string)
  * from one building to another keeps it. Entering the building that is already open just opens
  * its dashboard. `onDone` runs once the page is open (the drawer closes with it). `entering` is the
  * building being opened right now, so the caller can say so while the first download runs.
+ *
+ * The wait shows the busy overlay («در حال ورود به …») from the moment the question about unsent
+ * changes (if any) is answered until the page that opens is ready. `enter` resolves to whether
+ * the building was opened; `message` replaces the overlay's text (the creation journey's own).
  */
 export function useEnterBuilding(onDone?: () => void) {
   const navigate = useNavigate()
   const currentId = getSettings()?.spreadsheetId ?? ''
-  const { guard, modalProps } = useSheetSwitchGuard(currentId)
+  const { guard, modalProps } = useSheetSwitchGuard(currentId, hideBusy)
   const [entering, setEntering] = useState<string | null>(null)
 
   const open = (buildingId: string, tab?: Tab) => {
@@ -45,8 +51,9 @@ export function useEnterBuilding(onDone?: () => void) {
     onDone?.()
   }
 
-  const run = async (buildingId: string, tab?: Tab) => {
+  const run = async (buildingId: string, tab?: Tab, message?: string): Promise<boolean> => {
     setEntering(buildingId)
+    showBusy(message ?? enteringMessage(buildingId))
     try {
       if (currentId && getWorkspaceType(currentId) !== 'building') rememberPersonalSheet(currentId)
       // From one building to another the open page belongs to the building being left (a unit of
@@ -58,18 +65,35 @@ export function useEnterBuilding(onDone?: () => void) {
       // that settle first, so the page we want is the last navigation instead of being overridden.
       flushSync(() => bumpSpreadsheetKey())
       open(buildingId, tab)
+      releaseBusyWhenReady()
+
+      return true
     } catch (err) {
+      hideBusy()
       showError(toUserMessage(err, 'ورود به ساختمان ناموفق بود'))
+
+      return false
     } finally {
       setEntering(null)
     }
   }
 
   return {
-    enter: async (buildingId: string, tab?: Tab) => {
-      if (entering) return
-      if (buildingId === currentId) open(buildingId, tab)
-      else await guard(() => run(buildingId, tab))
+    enter: async (buildingId: string, tab?: Tab, message?: string): Promise<boolean> => {
+      if (entering) return false
+      if (buildingId === currentId) {
+        open(buildingId, tab)
+
+        return true
+      }
+
+      let opened = false
+
+      await guard(async () => {
+        opened = await run(buildingId, tab, message)
+      })
+
+      return opened
     },
     entering,
     modalProps

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { CREATE_ENTER_MESSAGE, CREATE_FILE_MESSAGE } from './buildingBusyText'
 import {
   countOf,
   EMPTY_FUND,
@@ -16,16 +17,19 @@ import JourneyStepper from './JourneyStepper'
 import { useEnterBuilding } from './useEnterBuilding'
 import { initialJourneyState, rememberCreatedJourney } from '../../services/buildingJourney'
 import { createBuildingSpreadsheet } from '../../services/buildingTemplate'
+import { hideBusy, showBusy, updateBusy } from '../../stores/busyOverlayStore'
 import { showError } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 import { journeyPageClass } from '../ui/buildingStyles'
 import Card from '../ui/Card'
 
-/** What the wait says, and how far the simulated bar may creep before Sheets answers. */
+/**
+ * What the busy overlay says, and how far its simulated bar may creep before Sheets answers.
+ */
 const CREATE_STEPS = {
-  file: { label: 'ساخت فایل و جدول‌ها…', ceiling: 60 },
-  enter: { label: 'ورود به ساختمان…', ceiling: 96 }
+  file: { label: CREATE_FILE_MESSAGE, ceiling: 60 },
+  enter: { label: CREATE_ENTER_MESSAGE, ceiling: 96 }
 } as const
 
 type CreateStep = keyof typeof CREATE_STEPS
@@ -58,6 +62,11 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
     return () => window.clearInterval(timer)
   }, [building, step])
 
+  // The overlay (not this page) shows the wait: its text and bar follow the step and the creep.
+  useEffect(() => {
+    if (building) updateBusy({ message: CREATE_STEPS[step].label, progress })
+  }, [building, step, progress])
+
   const next = () => {
     const problem = profileError(profile)
 
@@ -74,6 +83,7 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
     setBuilding(true)
     setStep('file')
     setProgress(4)
+    showBusy(CREATE_STEPS.file.label, 4)
     try {
       const journey = initialJourneyState({
         unitCount: countOf(profile.units),
@@ -91,9 +101,10 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
       rememberCreatedJourney(id, journey)
       setStep('enter')
       setProgress(value => Math.max(value, 62))
-      await enter(id, 'building-setup')
+      await enter(id, 'building-setup', CREATE_STEPS.enter.label)
       setProgress(100)
     } catch (err) {
+      hideBusy()
       showError(toUserMessage(err, 'ساخت ساختمان ناموفق بود'))
     } finally {
       setBuilding(false)
@@ -117,8 +128,6 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
             draft={fund}
             error={error}
             building={building}
-            progress={progress}
-            progressLabel={CREATE_STEPS[step].label}
             onChange={setFund}
             onBuild={() => void build()}
             onBack={() => {

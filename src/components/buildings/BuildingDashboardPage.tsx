@@ -10,6 +10,7 @@ import PickUnitSheet from './PickUnitSheet'
 import QuickUnitsBuilderSheet from './QuickUnitsBuilderSheet'
 import { useBuildingDashboard } from './useBuildingDashboard'
 import { useBuildingAccess } from '../../hooks/useBuildingAccess'
+import { useBusyOverlayRelease } from '../../hooks/useBusyOverlayRelease'
 import { useRegisterPageSpeedDial, type PageSpeedDialAction } from '../../hooks/usePageSpeedDial'
 import { latestChargeMonth } from '../../services/buildingCharges'
 import { isJourneyUnfinished, readJourney } from '../../services/buildingJourney'
@@ -79,6 +80,8 @@ export default function BuildingDashboardPage({ active = true }: { active?: bool
     isConfigured() && actions.length ? { ariaLabel: 'عملیات ساختمان', actions } : null,
     active
   )
+
+  useBusyOverlayRelease(data.loaded && !!data.profile)
 
   if (!data.loaded || !data.profile) return <DashboardSkeleton variant="building" />
 

@@ -16,7 +16,6 @@ import { toPersianDigits } from '../../utils/normalizeDigits'
 import AmountField from '../AmountField'
 import { FormField, FormRow, FormSelect } from '../form'
 import MoneyText from '../MoneyText'
-import ProgressBar from '../ProgressBar'
 import {
   journeyListClass,
   journeyNoteClass,
@@ -31,11 +30,8 @@ import { formErrorClass } from '../ui/formStyles'
 interface JourneyFundStepProps {
   draft: FundDraft
   error: string | null
-  /** True while the spreadsheet is being created; `progress` is 0..100. */
+  /** True while the spreadsheet is being created (the busy overlay shows the wait). */
   building: boolean
-  progress: number
-  /** What the wait is doing right now («ساخت فایل و جدول‌ها…», «ورود به ساختمان…»). */
-  progressLabel: string
   onChange: (next: FundDraft) => void
   onBuild: () => void
   onBack: () => void
@@ -51,14 +47,12 @@ function accountMeta(account: FundAccountDraft): string {
 
 /**
  * Journey step 2: the fund accounts with their balances, then the charge settings. «ساخت ساختمان»
- * creates the spreadsheet; a progress bar shows the wait.
+ * creates the spreadsheet; the busy overlay with a progress bar shows the wait.
  */
 export default function JourneyFundStep({
   draft,
   error,
   building,
-  progress,
-  progressLabel,
   onChange,
   onBuild,
   onBack
@@ -160,19 +154,13 @@ export default function JourneyFundStep({
       />
 
       <p className={journeyNoteClass}>{OWN_FILE_CREATE_NOTE}</p>
-      {building ? (
-        <div role="status">
-          <p className={journeyNoteClass}>{progressLabel}</p>
-          <ProgressBar value={progress} showLabel={false} aria-label={progressLabel} />
-        </div>
-      ) : null}
       {error ? (
         <p className={formErrorClass} role="alert">
           {error}
         </p>
       ) : null}
       <div className="mt-4 flex flex-col gap-2">
-        <Button type="submit" loading={building} disabled={building}>
+        <Button type="submit" loading={building} spinner disabled={building}>
           ساخت ساختمان
         </Button>
         <Button type="button" variant="secondary" onClick={onBack} disabled={building}>
