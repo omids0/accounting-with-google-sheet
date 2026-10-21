@@ -11,6 +11,8 @@ import { cn } from '../../utils/cn'
 import CalmBlock from '../CalmBlock'
 import {
   calmBarTrackClass,
+  calmBlockClass,
+  calmBlockHeadClass,
   calmDayBadgeClass,
   calmListClass,
   calmNoteClass,
@@ -167,6 +169,44 @@ function CalmDashboardSkeleton() {
   )
 }
 
+/** One block of the building dashboard: a bar where the title goes, then a few rows. */
+function BuildingBlockSkeleton({ rows, className }: { rows: number; className?: string }) {
+  return (
+    <section className={cn(calmBlockClass, className)}>
+      <div className={calmBlockHeadClass}>
+        <SkeletonText width="5rem" />
+      </div>
+      <CalmRowsSkeleton count={rows} />
+    </section>
+  )
+}
+
+/**
+ * The building dashboard with placeholders: the fund hero, then its blocks. It names none of the
+ * personal dashboard's blocks («تراکنش‌های اخیر», «دارایی و بدهی»…), which a building does not have.
+ */
+function BuildingDashboardSkeleton() {
+  return (
+    <div
+      className={cn('skeleton-dashboard pointer-events-none', dashboardCalmPageClass)}
+      aria-busy="true"
+      aria-label="در حال بارگذاری داشبورد ساختمان"
+    >
+      <div className={dashboardGridClass}>
+        <div className={cn(dashboardHeroCardClass, skeletonCardClass, dashboardCellClass.hero)}>
+          <div className={dashboardHeroHeaderClass}>
+            <SkeletonText className={cn(dashboardHeroLabelClass, 'justify-center')} width="7rem" />
+          </div>
+          <MoneySkeleton size="hero" width="9rem" />
+          <SkeletonText className={cn(dashboardHeroHintClass, 'justify-center')} width="70%" />
+        </div>
+        <BuildingBlockSkeleton rows={3} className={dashboardCellClass.analysis} />
+        <BuildingBlockSkeleton rows={2} className={dashboardCellClass.balance} />
+      </div>
+    </div>
+  )
+}
+
 /** Report pages that open with a toolbar, the hero and stat/breakdown cards. */
 function ReportDashboardSkeleton() {
   return (
@@ -210,6 +250,12 @@ function ReportDashboardSkeleton() {
   )
 }
 
-export function DashboardSkeleton({ variant = 'dashboard' }: { variant?: 'dashboard' | 'report' }) {
-  return variant === 'report' ? <ReportDashboardSkeleton /> : <CalmDashboardSkeleton />
+export function DashboardSkeleton({
+  variant = 'dashboard'
+}: {
+  variant?: 'dashboard' | 'report' | 'building'
+}) {
+  if (variant === 'report') return <ReportDashboardSkeleton />
+
+  return variant === 'building' ? <BuildingDashboardSkeleton /> : <CalmDashboardSkeleton />
 }

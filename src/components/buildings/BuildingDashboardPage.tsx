@@ -80,7 +80,7 @@ export default function BuildingDashboardPage({ active = true }: { active?: bool
     active
   )
 
-  if (!data.loaded || !data.profile) return <DashboardSkeleton />
+  if (!data.loaded || !data.profile) return <DashboardSkeleton variant="building" />
 
   const { profile, units, receivables } = data
 
