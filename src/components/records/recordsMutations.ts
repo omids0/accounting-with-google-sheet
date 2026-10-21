@@ -1,5 +1,6 @@
 import type { StoredRecord } from './recordsUtils'
 import { logRecordActivity } from '../../services/activityLog'
+import { readBridgePrefs } from '../../services/bridgePrefs'
 import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import { refreshOpeningBalancesInBackground } from '../../services/openingBalanceRefresh'
 import {
@@ -24,7 +25,8 @@ import {
 import {
   buildingEntryError,
   prepareBuildingEntry,
-  settleBuildingEntry
+  settleBuildingEntry,
+  syncBridgedEdit
 } from '../dataEntry/buildingExpenseEntry'
 
 export async function submitRecordEdit({
@@ -124,6 +126,7 @@ export async function submitRecordEdit({
       editingRecord.id,
       formValues
     ).catch(() => showError('تغییر ذخیره شد ولی سهم واحدها یا بدهی به‌روز نشد'))
+    await syncBridgedEdit(editingForm, editingRecord.id, formValues)
     logRecordActivity(settings.spreadsheetId, 'update', editingRecord.id, formValues)
     showSuccess('تراکنش ویرایش شد')
     refreshOpeningBalancesInBackground()
@@ -170,6 +173,12 @@ export async function deleteStoredRecord({
     await removeBuildingExpenseShares(spreadsheetId, record.id, record.values).catch(() =>
       showError('هزینه حذف شد ولی سهم‌های پرداخت‌نشده حذف نشدند')
     )
+    // Bridge A: the manager's personal receivable for this expense goes (or is marked) with it.
+    if (readBridgePrefs().sent[record.id]) {
+      const { syncBridgedExpenseDelete } = await import('../../services/bridgeSync')
+
+      await syncBridgedExpenseDelete(record.id).catch(() => undefined)
+    }
   }
   refreshOpeningBalancesInBackground()
 }

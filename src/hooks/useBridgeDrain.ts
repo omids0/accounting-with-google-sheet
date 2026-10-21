@@ -11,6 +11,7 @@ function hasBridgeWork(): boolean {
 
   return (
     readBridgePrefs().payments.length > 0 ||
+    readBridgePrefs().syncs.length > 0 ||
     getSpreadsheets().some(entry => entry.id !== active && hasPendingOutbox(entry.id))
   )
 }

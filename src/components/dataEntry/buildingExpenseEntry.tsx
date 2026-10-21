@@ -34,6 +34,26 @@ export const buildingEntryError = (form: CustomForm, values: Values): string | n
   hasBuildingExpenseFields(form) ? buildingExpenseError(values) : null
 
 /**
+ * After a building expense is edited: its bridged personal receivable (when it has one) follows
+ * the new title, amount and date. Never fails the edit: whatever cannot be sent stays queued.
+ */
+export async function syncBridgedEdit(
+  form: CustomForm,
+  recordId: string,
+  values: Values
+): Promise<void> {
+  if (!hasBuildingExpenseFields(form) || !readBridgePrefs().sent[recordId]) return
+
+  const { syncBridgedExpenseEdit } = await import('../../services/bridgeSync')
+
+  await syncBridgedExpenseEdit(
+    recordId,
+    values,
+    form.fields.find(field => field.type === 'date')?.id
+  ).catch(() => undefined)
+}
+
+/**
  * After the record is written: the unit shares and the debt to a payer other than the fund.
  * Nothing for personal forms. The record exists already, so a failure is reported, not retried.
  */

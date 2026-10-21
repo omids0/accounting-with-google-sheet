@@ -2,17 +2,16 @@ import { getUserEmail } from './auth'
 import { readBridgePrefs, updateBridgePrefs, type PendingBridgePayment } from './bridgePrefs'
 import {
   bridgePaymentOperations,
-  bridgeReference,
   ownChargeOperation,
   pocketReceivableOperation
 } from './bridgeRows'
+import { isReceivableQueued, runBridgeSyncs } from './bridgeSync'
 import { activeBuildingName, personalBridgeId } from './bridgeTarget'
 import { expenseRecordInput } from './buildingExpenseActions'
 import { MANAGER_PAYER } from './buildingLists'
 import { getSettings } from './settings'
 import { RECEIVABLES_SHEET, WALLET_SHEET } from './sheetNames'
 import { batchFetchSheetRangesFromApi } from './sheetsRows'
-import { getOutboxEntries } from './syncOutbox'
 import { drainBridgeWorkspaces, drainWorkspace, writeToWorkspace } from './workspaceBridge'
 import { PAYER_FIELD_ID, withoutBuildingFields } from '../components/form/buildingFields'
 import type { CustomForm, FormType } from '../types'
@@ -90,15 +89,6 @@ export async function bridgeOwnCharge(input: OwnChargeBridge): Promise<boolean> 
 
   return true
 }
-
-/** The bridged receivable's own append must have reached the sheet before a payment can find it. */
-const isReceivableQueued = (personalId: string, recordId: string) =>
-  getOutboxEntries(personalId).some(
-    entry =>
-      entry.operation.type === 'append' &&
-      entry.operation.sheetName === RECEIVABLES_SHEET &&
-      entry.operation.row[11] === bridgeReference(recordId)
-  )
 
 /** Reads the personal sheet directly and queues the payment writes. True: done, drop the task. */
 async function applyPayment(task: PendingBridgePayment): Promise<boolean> {
@@ -202,4 +192,5 @@ export async function loadPersonalAccounts(): Promise<{ id: string; title: strin
 export async function drainAllBridges(): Promise<void> {
   await drainBridgeWorkspaces()
   await runBridgePayments()
+  await runBridgeSyncs()
 }

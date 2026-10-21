@@ -18,6 +18,22 @@ export interface PendingBridgePayment {
   account: string
 }
 
+/**
+ * An edit or delete of a building expense that has a bridged personal receivable, still to be
+ * written (needs a read of the personal sheet first). One per expense: the newest edit replaces the
+ * older one, and a delete replaces an edit.
+ */
+export interface PendingBridgeSync {
+  id: string
+  personalId: string
+  recordId: string
+  kind: 'edit' | 'delete'
+  title: string
+  amount: number
+  /** ISO date of the edited expense. */
+  date: string
+}
+
 /** The two bridges to the manager's personal spreadsheet (round 11, Step 8), remembered per device. */
 export interface BridgePrefs {
   /** Tick «در حساب شخصی من: طلب از «<building>»» on an expense the manager paid. */
@@ -29,6 +45,7 @@ export interface BridgePrefs {
   /** Building expense record id → personal spreadsheet that got its receivable (written once). */
   sent: Record<string, string>
   payments: PendingBridgePayment[]
+  syncs: PendingBridgeSync[]
   /** Building id → `YYYY-MM` of the dashboard card dismissed for that month. */
   dismissed: Record<string, string>
 }
@@ -39,6 +56,7 @@ const DEFAULTS: BridgePrefs = {
   account: '',
   sent: {},
   payments: [],
+  syncs: [],
   dismissed: {}
 }
 
@@ -62,6 +80,7 @@ export function updateBridgePrefs(patch: Partial<BridgePrefs>): BridgePrefs {
 export function pendingBridgeChanges(spreadsheetId: string): number {
   return (
     getOutboxCount(spreadsheetId) +
-    readBridgePrefs().payments.filter(item => item.personalId === spreadsheetId).length
+    readBridgePrefs().payments.filter(item => item.personalId === spreadsheetId).length +
+    readBridgePrefs().syncs.filter(item => item.personalId === spreadsheetId).length
   )
 }
