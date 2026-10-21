@@ -11,13 +11,14 @@ import {
   OPTIONAL_STEPS,
   parseJourneyState,
   readJourney,
+  rememberCreatedJourney,
   stepNumber,
   type JourneyState,
   type JourneyStepKey
 } from './buildingJourney'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 
-const rows = vi.hoisted(() => ({ period: [] as string[][] }))
+const rows = vi.hoisted(() => ({ period: [] as string[][] | null }))
 
 vi.mock('./spreadsheetStore', () => ({
   getSheetDataRows: (_id: string, sheet: string) =>
@@ -166,5 +167,17 @@ describe('persisted state', () => {
 
     expect(readJourney('b1')).toBeNull()
     expect(isJourneyUnfinished(null)).toBe(false)
+  })
+
+  it('falls back to the state a just-created building was made with until its mirror loads', () => {
+    rows.period = null
+    expect(readJourney('fresh')).toBeNull()
+
+    rememberCreatedJourney('fresh', initialJourneyState({ unitCount: 6 }))
+    expect(isJourneyUnfinished(readJourney('fresh'))).toBe(true)
+    expect(readJourney('fresh')?.unitCount).toBe(6)
+
+    rows.period = [['نوع فضا', 'ساختمان', 't']]
+    expect(readJourney('fresh')).toBeNull()
   })
 })

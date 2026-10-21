@@ -115,13 +115,28 @@ export function parseJourneyState(raw: string): JourneyState | null {
   }
 }
 
-/** The journey of the active (or given) building; null = no row = nothing to set up. */
+/**
+ * Journeys of buildings created on this device. Right after «ساخت ساختمان» the new spreadsheet is
+ * not mirrored yet, so its journey row cannot be read; this keeps the known state until it is.
+ */
+const createdJourneys = new Map<string, JourneyState>()
+
+export function rememberCreatedJourney(spreadsheetId: string, state: JourneyState): void {
+  createdJourneys.set(spreadsheetId, state)
+}
+
+/**
+ * The journey of the active (or given) building; null = no row = nothing to set up. While the
+ * building's mirror is not loaded, the state it was created with stands in.
+ */
 export function readJourney(
   spreadsheetId = getSettings()?.spreadsheetId ?? ''
 ): JourneyState | null {
-  const row = (getSheetDataRows(spreadsheetId, PERIOD_SETTINGS_SHEET) ?? []).find(
-    cells => String(cells[0] ?? '').trim() === JOURNEY_ROW
-  )
+  const rows = getSheetDataRows(spreadsheetId, PERIOD_SETTINGS_SHEET)
+
+  if (!rows) return createdJourneys.get(spreadsheetId) ?? null
+
+  const row = rows.find(cells => String(cells[0] ?? '').trim() === JOURNEY_ROW)
 
   return row ? parseJourneyState(String(row[1] ?? '')) : null
 }
@@ -131,5 +146,6 @@ export function isJourneyUnfinished(state: JourneyState | null): boolean {
 }
 
 export async function saveJourney(spreadsheetId: string, state: JourneyState): Promise<void> {
+  if (createdJourneys.has(spreadsheetId)) createdJourneys.set(spreadsheetId, state)
   await setPeriodSetting(spreadsheetId, JOURNEY_ROW, JSON.stringify(state))
 }

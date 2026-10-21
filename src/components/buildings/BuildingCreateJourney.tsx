@@ -14,7 +14,7 @@ import JourneyFundStep from './JourneyFundStep'
 import JourneyProfileStep from './JourneyProfileStep'
 import JourneyStepper from './JourneyStepper'
 import { useEnterBuilding } from './useEnterBuilding'
-import { initialJourneyState } from '../../services/buildingJourney'
+import { initialJourneyState, rememberCreatedJourney } from '../../services/buildingJourney'
 import { createBuildingSpreadsheet } from '../../services/buildingTemplate'
 import { showError } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
@@ -22,8 +22,8 @@ import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 import { journeyPageClass } from '../ui/buildingStyles'
 import Card from '../ui/Card'
 
-/** The simulated progress stops here until Sheets answers. */
-const PROGRESS_CEILING = 90
+/** The simulated progress creeps toward this and never reaches it until Sheets answers. */
+const PROGRESS_CEILING = 96
 
 /**
  * «+ ساختمان جدید», steps 1 and 2 of the journey. They run in the manager's own workspace and
@@ -43,7 +43,7 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
     if (!building) return
 
     const timer = window.setInterval(
-      () => setProgress(value => Math.min(PROGRESS_CEILING, value + 6)),
+      () => setProgress(value => value + (PROGRESS_CEILING - value) * 0.07),
       350
     )
 
@@ -77,8 +77,11 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
         journey
       )
 
+      // The new sheet is not mirrored yet, so its journey row cannot be read: hand it over and
+      // go straight to step 3 instead of the dashboard.
+      rememberCreatedJourney(id, journey)
       setProgress(100)
-      await enter(id)
+      await enter(id, 'building-setup')
     } catch (err) {
       showError(toUserMessage(err, 'ساخت ساختمان ناموفق بود'))
     } finally {
