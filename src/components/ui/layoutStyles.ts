@@ -203,3 +203,9 @@ export const appHeaderEndClass = 'col-start-3 row-start-1 flex items-center gap-
 
 /** Header slot for a page's own button, on every width. */
 export const appHeaderPageEndClass = 'flex items-center gap-1.5 empty:hidden'
+
+/** The «dev» pill of the header: the warning chip of the building cards, one size smaller. */
+export const devEnvBadgeClass =
+  'shrink-0 rounded-full border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-1.5 py-0.5 text-xs font-bold leading-none text-[var(--color-warning)]'
+
+export const devEnvTitleRowClass = 'flex w-full min-w-0 items-center gap-1.5 xl:w-auto'
