@@ -67,18 +67,18 @@ export default function BuildingChargesPage({ active = true }: { active?: boolea
 
   useRegisterPageSpeedDial(isConfigured() && speedDial.actions.length ? speedDial : null, active)
 
-  const { profile, units, receivables } = data
+  const { profile, units, allUnits, receivables } = data
 
   const months = useMemo(() => chargeMonthKeys(receivables), [receivables])
 
   const credits = useMemo(() => {
-    const numbers = new Map(units.map(unit => [unit.id, unit.number]))
+    const numbers = new Map(allUnits.map(unit => [unit.id, unit.number]))
 
     return creditsOf(receivables).map(item => ({
       ...item,
       number: numbers.get(item.unitId) ?? '؟'
     }))
-  }, [receivables, units])
+  }, [receivables, allUnits])
 
   if (!data.loaded || !profile) return <DangCardListSkeleton filterBar />
 

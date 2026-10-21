@@ -45,7 +45,7 @@ export default function ChargeMonthUnitsSheet({
   const { can } = useBuildingAccess()
 
   const rows = useMemo(() => {
-    const numbers = new Map(data.units.map(unit => [unit.id, unit.number]))
+    const numbers = new Map(data.allUnits.map(unit => [unit.id, unit.number]))
 
     return monthKey
       ? monthChargeRows(data.receivables, monthKey).map(row => ({
@@ -53,7 +53,7 @@ export default function ChargeMonthUnitsSheet({
           number: numbers.get(unitOfReference(row.receivable.reference ?? '')) ?? '؟'
         }))
       : []
-  }, [data.receivables, data.units, monthKey])
+  }, [data.receivables, data.allUnits, monthKey])
 
   return (
     <FormModal

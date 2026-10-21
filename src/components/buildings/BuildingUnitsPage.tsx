@@ -11,6 +11,7 @@ import UnitFormModal from './UnitFormModal'
 import { buildUnitRows, type UnitRowData } from './unitRows'
 import UnitsList from './UnitsList'
 import { useBuildingSetupData } from './useBuildingSetupData'
+import { useUnitArchive } from './useUnitArchive'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useBuildingAccess } from '../../hooks/useBuildingAccess'
 import { useListFilters } from '../../hooks/useListFilters'
@@ -19,13 +20,14 @@ import { buildingUnitPath } from '../../routes/buildingPaths'
 import type { UnitWithRow } from '../../services/buildingUnits'
 import { isConfigured } from '../../services/settings'
 import { toPersianDigits } from '../../utils/normalizeDigits'
+import ConfirmActionModal from '../ConfirmActionModal'
 import EmptyState from '../EmptyState'
 import { Select } from '../form'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
-type UnitView = 'all' | 'debt' | 'vacant'
+type UnitView = 'all' | 'debt' | 'vacant' | 'archived'
 
 const searchParts = (row: UnitRowData) => [
   row.unit.number,
@@ -46,7 +48,7 @@ export default function BuildingUnitsPage({ active = true }: { active?: boolean 
   const [params] = useSearchParams()
   const data = useBuildingSetupData()
   const { can } = useBuildingAccess()
-  const [view, setView] = useState<UnitView>(params.get('f') === 'debt' ? 'debt' : 'all')
+  const [picked, setView] = useState<UnitView>(params.get('f') === 'debt' ? 'debt' : 'all')
   const [floor, setFloor] = useState('all')
   /** `undefined` = closed, `null` = a new unit. */
   const [editing, setEditing] = useState<UnitWithRow | null | undefined>(undefined)
@@ -56,9 +58,24 @@ export default function BuildingUnitsPage({ active = true }: { active?: boolean 
 
   const canEdit = can('people')
 
+  const archive = useUnitArchive(data)
+
   const rows = useMemo(() => buildUnitRows(data), [data])
 
-  const filters = useListFilters({ items: rows, getSearchParts: searchParts })
+  const archivedRows = useMemo(
+    () => buildUnitRows({ ...data, units: data.allUnits, scope: 'archived' }),
+    [data]
+  )
+
+  // The chip goes away with the last archived unit; the list falls back to «همه».
+  const view = picked === 'archived' && !archivedRows.length ? 'all' : picked
+
+  const isArchive = view === 'archived'
+
+  const filters = useListFilters({
+    items: view === 'archived' ? archivedRows : rows,
+    getSearchParts: searchParts
+  })
 
   const floors = useMemo(
     () => [...new Set(rows.map(row => row.unit.floor))].sort((a, b) => a - b),
@@ -68,7 +85,7 @@ export default function BuildingUnitsPage({ active = true }: { active?: boolean 
   const shown = filters.filteredItems
     .filter(row => view !== 'debt' || row.balance.open > 0)
     .filter(row => view !== 'vacant' || !row.resident)
-    .filter(row => floor === 'all' || String(row.unit.floor) === floor)
+    .filter(row => isArchive || floor === 'all' || String(row.unit.floor) === floor)
 
   const speedDial = useMemo(
     () => ({
@@ -92,7 +109,7 @@ export default function BuildingUnitsPage({ active = true }: { active?: boolean 
       <BuildingSetupCard />
       <BuildingListFilters filters={filters} placeholder="جستجوی شماره یا نام..." />
 
-      {!rows.length ? (
+      {!rows.length && !archivedRows.length ? (
         <EmptyState
           icon="building"
           message="هنوز واحدی ثبت نشده"
@@ -115,10 +132,19 @@ export default function BuildingUnitsPage({ active = true }: { active?: boolean 
                   label: 'بدهکار',
                   count: rows.filter(r => r.balance.open > 0).length
                 },
-                { value: 'vacant', label: 'خالی', count: rows.filter(r => !r.resident).length }
+                { value: 'vacant', label: 'خالی', count: rows.filter(r => !r.resident).length },
+                ...(archivedRows.length
+                  ? [
+                      {
+                        value: 'archived' as const,
+                        label: 'بایگانی‌شده',
+                        count: archivedRows.length
+                      }
+                    ]
+                  : [])
               ]}
             />
-            {floors.length > 1 ? (
+            {floors.length > 1 && !isArchive ? (
               <Select
                 compact
                 className="w-auto min-w-[8.5rem]"
@@ -136,7 +162,7 @@ export default function BuildingUnitsPage({ active = true }: { active?: boolean 
             <UnitsList
               rows={shown}
               onOpen={row => navigate(buildingUnitPath(row.unit.id))}
-              onEdit={canEdit ? row => setEditing(row.unit) : undefined}
+              onEdit={canEdit && !isArchive ? row => setEditing(row.unit) : undefined}
               onMore={canEdit ? setMenu : undefined}
             />
           ) : (
@@ -149,10 +175,42 @@ export default function BuildingUnitsPage({ active = true }: { active?: boolean 
         open={menu !== null}
         title={menu ? `واحد ${toPersianDigits(menu.unit.number)}` : ''}
         onClose={() => setMenu(null)}
-        actions={[
-          { id: 'edit', label: 'ویرایش', onClick: () => menu && setEditing(menu.unit) },
-          { id: 'change', label: 'تغییر ساکن', onClick: () => menu && setChanging(menu.unit.id) }
-        ]}
+        actions={
+          menu?.unit.active === false
+            ? [
+                {
+                  id: 'restore',
+                  label: 'بازگردانی',
+                  onClick: () => menu && archive.restore(menu.unit)
+                }
+              ]
+            : [
+                { id: 'edit', label: 'ویرایش', onClick: () => menu && setEditing(menu.unit) },
+                {
+                  id: 'change',
+                  label: 'تغییر ساکن',
+                  onClick: () => menu && setChanging(menu.unit.id)
+                },
+                {
+                  id: 'archive',
+                  label: 'بایگانی',
+                  danger: true,
+                  onClick: () => menu && archive.askArchive(menu.unit)
+                }
+              ]
+        }
+      />
+      <ConfirmActionModal
+        open={archive.archiving !== null}
+        title="بایگانی واحد"
+        message={`واحد ${toPersianDigits(
+          archive.archiving?.number ?? ''
+        )} بایگانی شود؟ از صدور شارژ، تقسیم هزینه و شمارش‌ها بیرون می‌رود و تاریخچه‌اش می‌ماند؛ هر وقت خواستی بازش می‌گردانی.`}
+        confirmLabel="بایگانی"
+        cancelLabel="انصراف"
+        confirming={archive.busy}
+        onClose={archive.cancel}
+        onConfirm={() => void archive.confirmArchive()}
       />
       <UnitFormModal
         open={editing !== undefined}

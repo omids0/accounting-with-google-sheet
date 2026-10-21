@@ -93,12 +93,28 @@ describe('buildUnitRows', () => {
     expect(rows.map(row => row.balance.open)).toEqual([0, 1_200_000, 0])
   })
 
-  it('leaves archived units out', () => {
+  it('leaves archived units out, or lists only them, or both', () => {
     const archived = { ...unit('9'), active: false }
 
+    const input = { units: [...units, archived], stays, persons, receivables: [], profile }
+
+    expect(buildUnitRows(input)).toHaveLength(3)
+    expect(buildUnitRows({ ...input, scope: 'archived' }).map(row => row.unit.number)).toEqual([
+      '9'
+    ])
+    expect(buildUnitRows({ ...input, scope: 'all' })).toHaveLength(4)
+  })
+
+  it('prices a unit against the active units only, whichever are listed', () => {
+    const archived = { ...unit('9', { area: 5000 }), active: false }
+
+    const input = { units: [...units, archived], stays, persons, receivables: [], profile }
+
     expect(
-      buildUnitRows({ units: [...units, archived], stays, persons, receivables: [], profile })
-    ).toHaveLength(3)
+      buildUnitRows({ ...input, scope: 'all' })
+        .slice(0, 3)
+        .map(row => row.charge)
+    ).toEqual(buildUnitRows(input).map(row => row.charge))
   })
 })
 

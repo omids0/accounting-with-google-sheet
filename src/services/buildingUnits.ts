@@ -95,6 +95,11 @@ export function sortUnits<T extends Pick<BuildingUnit, 'number'>>(units: T[]): T
   )
 }
 
+/** The units that take part in charges, splits, SMS matching and counts; archived ones do not. */
+export function activeUnits<T extends Pick<BuildingUnit, 'active'>>(units: T[]): T[] {
+  return units.filter(unit => unit.active)
+}
+
 export function parseUnits(rows: string[][]): UnitWithRow[] {
   return rows
     .map((row, index) => rowToUnit(row, index + 2))

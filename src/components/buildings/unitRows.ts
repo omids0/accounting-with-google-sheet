@@ -8,7 +8,7 @@ import {
 } from '../../services/buildingCharges'
 import { currentOwner, currentResident, type StayWithRow } from '../../services/buildingResidents'
 import type { BuildingProfile } from '../../services/buildingTemplate'
-import type { UnitWithRow } from '../../services/buildingUnits'
+import { activeUnits, type UnitWithRow } from '../../services/buildingUnits'
 import { getCounterpartyFullName } from '../../services/counterparties'
 import type { Counterparty, Receivable } from '../../types'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -35,6 +35,8 @@ export function buildUnitRows(input: {
   receivables: Receivable[]
   profile: BuildingProfile | null
   credits?: UnitCredit[]
+  /** Which units get a row: the active ones (default), the archived ones, or both. */
+  scope?: 'active' | 'archived' | 'all'
 }): UnitRowData[] {
   const { units, stays, persons, receivables, profile } = input
 
@@ -46,9 +48,14 @@ export function buildUnitRows(input: {
     return person ? getCounterpartyFullName(person) : ''
   }
 
-  const active = units.filter(unit => unit.active)
+  const scope = input.scope ?? 'active'
 
-  return active.map(unit => {
+  // A unit's charge is always worked out against the active units, archived ones included or not.
+  const active = activeUnits(units)
+
+  const listed = units.filter(unit => scope === 'all' || unit.active === (scope === 'active'))
+
+  return listed.map(unit => {
     const stay = unit.occupancy === 'vacant' ? null : currentResident(unit.id, stays)
 
     return {

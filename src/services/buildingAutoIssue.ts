@@ -15,7 +15,7 @@ import { dueDateOf, monthName } from './buildingMonths'
 import { getBuildingProfile } from './buildingProfile'
 import { chargeResidents, fetchStays } from './buildingResidents'
 import { can } from './buildingRoles'
-import { fetchUnits } from './buildingUnits'
+import { activeUnits, fetchUnits } from './buildingUnits'
 import { fetchCounterparties } from './counterparties'
 import { getPeriodSetting, setPeriodSetting } from './periodSettings'
 import { fetchReceivables } from './receivablesCrud'
@@ -34,7 +34,7 @@ async function readMarker(spreadsheetId: string) {
 /** Everything `planIssue` needs, read from the mirror right now. */
 async function loadIssueData(spreadsheetId: string) {
   const [units, stays, persons, receivables] = await Promise.all([
-    fetchUnits(spreadsheetId),
+    fetchUnits(spreadsheetId).then(activeUnits),
     fetchStays(spreadsheetId),
     fetchCounterparties(spreadsheetId),
     fetchReceivables(spreadsheetId)

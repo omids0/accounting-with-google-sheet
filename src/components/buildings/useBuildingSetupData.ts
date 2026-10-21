@@ -4,7 +4,7 @@ import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { getBuildingProfile } from '../../services/buildingProfile'
 import { fetchStays, type StayWithRow } from '../../services/buildingResidents'
 import type { BuildingProfile } from '../../services/buildingTemplate'
-import { fetchUnits, type UnitWithRow } from '../../services/buildingUnits'
+import { activeUnits, fetchUnits, type UnitWithRow } from '../../services/buildingUnits'
 import { fetchCounterparties } from '../../services/counterparties'
 import { fetchReceivables } from '../../services/receivablesCrud'
 import { getSettings } from '../../services/settings'
@@ -15,7 +15,12 @@ import { handleSheetError } from '../../utils/sheetError'
 export interface BuildingSetupData {
   loaded: boolean
   profile: BuildingProfile | null
+  /** The active units: what charges, splits, counts and SMS matching work on. */
   units: UnitWithRow[]
+  /** Archived units: out of every count, their history stays readable. */
+  archivedUnits: UnitWithRow[]
+  /** Active and archived (number lookups, the unit page). */
+  allUnits: UnitWithRow[]
   stays: StayWithRow[]
   persons: (Counterparty & { rowNumber: number })[]
   receivables: (Receivable & { rowNumber: number })[]
@@ -28,6 +33,8 @@ const EMPTY: Omit<BuildingSetupData, 'reload'> = {
   loaded: false,
   profile: null,
   units: [],
+  archivedUnits: [],
+  allUnits: [],
   stays: [],
   persons: [],
   receivables: [],
@@ -48,7 +55,7 @@ export function useBuildingSetupData(): BuildingSetupData {
     if (!spreadsheetId) return
 
     try {
-      const [units, stays, persons, receivables, accounts] = await Promise.all([
+      const [allUnits, stays, persons, receivables, accounts] = await Promise.all([
         fetchUnits(spreadsheetId),
         fetchStays(spreadsheetId),
         fetchCounterparties(spreadsheetId),
@@ -59,7 +66,9 @@ export function useBuildingSetupData(): BuildingSetupData {
       setData({
         loaded: true,
         profile: getBuildingProfile(spreadsheetId),
-        units,
+        units: activeUnits(allUnits),
+        archivedUnits: allUnits.filter(unit => !unit.active),
+        allUnits,
         stays,
         persons,
         receivables,

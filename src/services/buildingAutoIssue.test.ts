@@ -14,7 +14,10 @@ const state = vi.hoisted(() => ({
   marker: '',
   issued: [] as { month: string; due: string }[],
   markerWrites: [] as string[],
-  calls: [] as string[]
+  calls: [] as string[],
+  extraUnits: [] as unknown[],
+  unitsSeenByPlaceholders: 0,
+  rowsPlanned: [] as number[]
 }))
 
 vi.mock('./workspace', () => ({ getActiveWorkspaceType: () => 'building' }))
@@ -38,7 +41,10 @@ vi.mock('./buildingProfile', () => ({
 }))
 vi.mock('./buildingUnits', async () => ({
   ...(await vi.importActual<Record<string, unknown>>('./buildingUnits')),
-  fetchUnits: async () => [{ ...newUnit({ number: '1' }, ''), rowNumber: 2, id: 'u1' }]
+  fetchUnits: async () => [
+    { ...newUnit({ number: '1' }, ''), rowNumber: 2, id: 'u1' },
+    ...state.extraUnits
+  ]
 }))
 vi.mock('./buildingResidents', async () => ({
   ...(await vi.importActual<Record<string, unknown>>('./buildingResidents')),
@@ -66,14 +72,19 @@ vi.mock('./sheetSync', () => ({
 }))
 vi.mock('./buildingChargeActions', () => ({
   removeDuplicateCharges: async () => 0,
-  issueCharges: async (_id: string, plan: { monthKey: string }, due: string) => {
+  issueCharges: async (_id: string, plan: { monthKey: string; rows: unknown[] }, due: string) => {
+    state.rowsPlanned.push(plan.rows.length)
     state.issued.push({ month: plan.monthKey, due })
 
     return 1
   }
 }))
 vi.mock('../components/buildings/buildingSetup', () => ({
-  placeholderOwnerCount: () => state.placeholders
+  placeholderOwnerCount: (units: unknown[]) => {
+    state.unitsSeenByPlaceholders = units.length
+
+    return state.placeholders
+  }
 }))
 vi.mock('../utils/jalaliDate', async () => ({
   ...(await vi.importActual<Record<string, unknown>>('../utils/jalaliDate')),
@@ -105,7 +116,10 @@ beforeEach(() => {
     marker: '',
     issued: [],
     markerWrites: [],
-    calls: []
+    calls: [],
+    extraUnits: [],
+    unitsSeenByPlaceholders: 0,
+    rowsPlanned: []
   })
 })
 
@@ -169,6 +183,14 @@ describe('runAutoIssue', () => {
 
     expect(state.issued).toEqual([])
     expect(state.markerWrites).toEqual([])
+  })
+
+  it('leaves archived units out of the placeholder check and the plan', async () => {
+    state.extraUnits = [{ ...newUnit({ number: '2', active: false }, ''), rowNumber: 3, id: 'u2' }]
+
+    expect(await runAutoIssue('b1')).toBe(2)
+    expect(state.unitsSeenByPlaceholders).toBe(1)
+    expect(state.rowsPlanned).toEqual([1, 1])
   })
 
   it('does nothing when every month is already issued', async () => {

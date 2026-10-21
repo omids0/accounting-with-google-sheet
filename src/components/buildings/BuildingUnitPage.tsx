@@ -55,13 +55,17 @@ export default function BuildingUnitPage() {
   const [editing, setEditing] = useState(false)
   const [changing, setChanging] = useState(false)
 
-  const { units, stays, persons, receivables, accounts, profile } = data
+  const { allUnits, stays, persons, receivables, accounts, profile } = data
 
   const row = useMemo(
-    () => buildUnitRows(data).find(item => item.unit.id === unitId),
+    // An archived unit's page stays readable: its statement and history are still here.
+    () =>
+      buildUnitRows({ ...data, units: allUnits, scope: 'all' }).find(
+        item => item.unit.id === unitId
+      ),
     // `data` is a fresh object per render; its contents are what matters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [units, stays, persons, receivables, profile, unitId]
+    [allUnits, stays, persons, receivables, profile, unitId]
   )
 
   const statement = useMemo(
@@ -91,6 +95,8 @@ export default function BuildingUnitPage() {
 
   const owes = balance.open > 0
 
+  const archived = !unit.active
+
   return (
     <div className={listModulePageClass}>
       <Card>
@@ -100,6 +106,9 @@ export default function BuildingUnitPage() {
           </span>
           <div className="min-w-0 flex-1">
             <b className="block text-[0.95rem]">{unitWho(row)}</b>
+            {archived ? (
+              <span className="block text-[0.74rem] text-warning">بایگانی‌شده</span>
+            ) : null}
             <span className="block text-[0.74rem] text-muted">{unitPlace(unit)}</span>
           </div>
           <div className="text-end text-[0.9rem] font-bold">
@@ -118,7 +127,7 @@ export default function BuildingUnitPage() {
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {can('record') ? (
+          {can('record') && !archived ? (
             <Button size="sm" onClick={() => setPaying(true)}>
               ثبت پرداخت
             </Button>
@@ -154,7 +163,7 @@ export default function BuildingUnitPage() {
       {segment === 'residents' ? (
         <>
           <UnitStays stays={stays.filter(stay => stay.unitId === unitId)} persons={persons} />
-          {can('people') ? (
+          {can('people') && !archived ? (
             <Button variant="secondary" onClick={() => setChanging(true)}>
               تغییر ساکن
             </Button>
@@ -164,7 +173,7 @@ export default function BuildingUnitPage() {
       {segment === 'specs' ? (
         <>
           <UnitSpecs row={row} />
-          {can('people') ? (
+          {can('people') && !archived ? (
             <Button variant="secondary" onClick={() => setEditing(true)}>
               ویرایش مشخصات
             </Button>

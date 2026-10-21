@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { saveUnit, validateUnitForm, type UnitFormValues } from './buildingUnitActions'
+import {
+  archiveBlocker,
+  archiveUnit,
+  restoreUnit,
+  saveUnit,
+  validateUnitForm,
+  type UnitFormValues
+} from './buildingUnitActions'
 import { newUnit, rowToUnit } from './buildingUnits'
 import { BUILDING_RESIDENTS_SHEET, BUILDING_UNITS_SHEET, COUNTERPARTIES_SHEET } from './sheetNames'
 
@@ -21,6 +28,9 @@ vi.mock('./sheets', () => ({
   deleteSheetRow: async () => undefined
 }))
 
+const debts = vi.hoisted(() => ({ receivables: [] as unknown[] }))
+
+vi.mock('./receivablesCrud', () => ({ fetchReceivables: async () => debts.receivables }))
 vi.mock('./activityLog', () => ({ logActivity: vi.fn(), logItemActivity: vi.fn() }))
 
 const values: UnitFormValues = {
@@ -94,5 +104,66 @@ describe('saveUnit', () => {
       area: 95
     })
     expect(log.appended).toHaveLength(0)
+  })
+})
+
+describe('archiving a unit', () => {
+  const unit = { ...newUnit({ number: '3' }), rowNumber: 6 }
+
+  const receivable = (reference: string, amount: number, paid = 0) => ({
+    id: reference,
+    createdAt: '',
+    title: '',
+    debtor: '',
+    category: '',
+    amount,
+    borrowDate: '',
+    note: '',
+    payments: paid ? [{ id: 'p', amount: paid, paidAt: '2026-10-01', note: '' }] : [],
+    reference
+  })
+
+  beforeEach(() => {
+    debts.receivables = []
+  })
+
+  it('names why a unit with an open balance or credit cannot be archived', () => {
+    expect(archiveBlocker(unit.id, [receivable(`charge:${unit.id}:1405-07`, 100)])).toContain(
+      'بدهی'
+    )
+    expect(archiveBlocker(unit.id, [receivable(`credit:${unit.id}`, 50)])).toContain('اعتبار')
+    expect(archiveBlocker(unit.id, [receivable(`charge:${unit.id}:1405-07`, 100, 100)])).toBeNull()
+    expect(archiveBlocker(unit.id, [receivable('charge:other:1405-07', 100)])).toBeNull()
+  })
+
+  it('writes the «فعال» cell as no for a settled unit and keeps the rest of the row', async () => {
+    expect(await archiveUnit('b1', unit)).toBeNull()
+
+    expect(log.updated).toHaveLength(1)
+    expect(log.updated[0].rowNumber).toBe(6)
+    expect(rowToUnit(log.updated[0].row, 6)).toMatchObject({
+      id: unit.id,
+      number: '3',
+      active: false
+    })
+  })
+
+  it('refuses without writing when the unit still owes', async () => {
+    debts.receivables = [receivable(`charge:${unit.id}:1405-07`, 100)]
+
+    expect(await archiveUnit('b1', unit)).toContain('بدهی')
+    expect(log.updated).toHaveLength(0)
+  })
+
+  it('restores a unit, unless another active unit took its door number', async () => {
+    const archived = { ...unit, active: false }
+
+    const clash = { id: 'x', number: '3', active: true }
+
+    expect(await restoreUnit('b1', archived, [archived, clash])).toContain('قبلاً ثبت شده')
+    expect(log.updated).toHaveLength(0)
+
+    expect(await restoreUnit('b1', archived, [archived])).toBeNull()
+    expect(rowToUnit(log.updated[0].row, 6)?.active).toBe(true)
   })
 })

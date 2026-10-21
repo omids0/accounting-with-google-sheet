@@ -63,16 +63,27 @@ export default function UnitCard({ row, onOpen, onMore }: UnitCardProps) {
           {owes ? <MoneyText amount={-balance.open} signed /> : '✓'}
         </span>
       </button>
-      {onMore ? (
-        <button
-          type="button"
-          className="h-9 w-9 shrink-0 cursor-pointer rounded-md border-0 bg-transparent text-muted"
-          onClick={() => onMore(row)}
-          aria-label={`گزینه‌های واحد ${toPersianDigits(unit.number)}`}
-        >
-          ⋯
-        </button>
-      ) : null}
+      {onMore ? <UnitMoreButton row={row} onMore={onMore} /> : null}
     </li>
+  )
+}
+
+/** The «⋯» button of a unit row (phone card and desktop table). */
+export function UnitMoreButton({
+  row,
+  onMore
+}: {
+  row: UnitRowData
+  onMore: (row: UnitRowData) => void
+}) {
+  return (
+    <button
+      type="button"
+      className="h-9 w-9 shrink-0 cursor-pointer rounded-md border-0 bg-transparent text-muted"
+      onClick={() => onMore(row)}
+      aria-label={`گزینه‌های واحد ${toPersianDigits(row.unit.number)}`}
+    >
+      ⋯
+    </button>
   )
 }

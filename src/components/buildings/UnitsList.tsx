@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import UnitCard from './UnitCard'
+import UnitCard, { UnitMoreButton } from './UnitCard'
 import { unitPlace, unitWho, type UnitRowData } from './unitRows'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { toPersianDigits } from '../../utils/normalizeDigits'
@@ -13,9 +13,9 @@ import { dataTableLinkClass } from '../ui/tableStyles'
 interface UnitsListProps {
   rows: UnitRowData[]
   onOpen: (row: UnitRowData) => void
-  /** Desktop row button: edit. Absent for a role without `people`. */
+  /** Desktop row button: edit. Absent for a role without `people` and on archived units. */
   onEdit?: (row: UnitRowData) => void
-  /** Phone «⋯»: the sheet with edit and change-resident. */
+  /** «⋯»: the sheet with edit, change-resident and archive (restore, for an archived unit). */
   onMore?: (row: UnitRowData) => void
 }
 
@@ -68,7 +68,16 @@ export default function UnitsList({ rows, onOpen, onEdit, onMore }: UnitsListPro
         rows={rows}
         columns={columns}
         rowKey={row => row.unit.id}
-        actions={onEdit ? row => <TableRowActions onEdit={() => onEdit(row)} /> : undefined}
+        actions={
+          onEdit || onMore
+            ? row => (
+                <>
+                  {onEdit ? <TableRowActions onEdit={() => onEdit(row)} /> : null}
+                  {onMore ? <UnitMoreButton row={row} onMore={onMore} /> : null}
+                </>
+              )
+            : undefined
+        }
       />
     )
   }
