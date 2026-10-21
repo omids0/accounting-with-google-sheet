@@ -44,11 +44,24 @@ describe('journey drafts', () => {
     expect(fundError({ ...fund, defaultCharge: '' })).toBeTruthy()
   })
 
-  it('asks a bank account for its 16-digit card but not a cash one', () => {
+  it('takes a bank account without a card, but a started card must be 16 digits', () => {
     expect(accountError(account())).toBeNull()
+    expect(accountError(account({ cardNumber: '' }))).toBeNull()
+    expect(accountError(account({ cardNumber: '   ' }))).toBeNull()
     expect(accountError(account({ cardNumber: '6104' }))).toBeTruthy()
+    expect(accountError(account({ cardNumber: '6104 3378 1234 5678' }))).toBeNull()
     expect(accountError(account({ type: 'cash', cardNumber: '' }))).toBeNull()
     expect(accountError(account({ title: '' }))).toBeTruthy()
+  })
+
+  it('lets the whole fund through when a bank account has no card', () => {
+    const fund = {
+      ...EMPTY_FUND,
+      accounts: [account({ cardNumber: '' })],
+      defaultCharge: 1_200_000
+    }
+
+    expect(fundError(fund)).toBeNull()
   })
 
   it('totals the opening balances', () => {

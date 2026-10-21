@@ -92,7 +92,10 @@ export default function FundAccountSheet({
         />
       )}
       {bank ? (
-        <FormField label="شمارهٔ کارت" hint="پیامک‌های بانکیِ این کارت به همین ساختمان می‌آیند.">
+        <FormField
+          label="شمارهٔ کارت (اختیاری)"
+          hint="با کارت، پیامک‌های بانکیِ این حساب خودکار به ساختمان وصل می‌شود؛ بدونِ کارت، پیامک بانک را نمی‌شود تطبیق داد."
+        >
           <WalletCardNumberInput
             value={draft.cardNumber}
             onChange={cardNumber => setDraft({ ...draft, cardNumber })}

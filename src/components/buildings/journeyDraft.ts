@@ -59,11 +59,17 @@ export function profileError(draft: ProfileDraft): string | null {
   return null
 }
 
-/** Bank accounts need their 16-digit card (the SMS routing of round 11 matches on it). */
+/**
+ * The card is optional: without it the account is simply not matched with bank SMS. A card that
+ * was started must be whole (16 digits), or the SMS routing could never match it.
+ */
 export function accountError(account: Pick<FundAccountDraft, 'title' | 'type' | 'cardNumber'>) {
   if (!account.title.trim()) return 'نام حساب را وارد کنید'
-  if (account.type === 'bank' && account.cardNumber.replace(/\D/g, '').length !== 16) {
-    return 'شمارهٔ کارت ۱۶ رقم است'
+
+  const digits = account.cardNumber.replace(/\D/g, '')
+
+  if (account.type === 'bank' && digits.length > 0 && digits.length !== 16) {
+    return 'شمارهٔ کارت ۱۶ رقم است؛ یا کامل بنویس یا خالی بگذار'
   }
 
   return null
