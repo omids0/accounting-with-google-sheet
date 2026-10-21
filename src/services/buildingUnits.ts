@@ -1,6 +1,7 @@
 import { BUILDING_UNITS_HEADERS } from './sheetHeaders'
 import { BUILDING_UNITS_SHEET } from './sheetNames'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
+import { assertBuildingSpreadsheet } from './workspace'
 import { OCCUPANCY, type Occupancy } from '../components/buildings/buildingOptions'
 import { normalizeDigits } from '../utils/normalizeDigits'
 import { parseNumeric } from '../utils/parseNumeric'
@@ -107,6 +108,7 @@ export function parseUnits(rows: string[][]): UnitWithRow[] {
 }
 
 export async function fetchUnits(spreadsheetId: string): Promise<UnitWithRow[]> {
+  assertBuildingSpreadsheet(spreadsheetId)
   await ensureSheetWithHeaders(spreadsheetId, BUILDING_UNITS_SHEET, BUILDING_UNITS_HEADERS)
 
   return sortUnits(parseUnits(await fetchSheetRows(spreadsheetId, BUILDING_UNITS_SHEET)))
@@ -114,6 +116,7 @@ export async function fetchUnits(spreadsheetId: string): Promise<UnitWithRow[]> 
 
 /** Appends the units one after another; the outbox sends consecutive appends as one batch. */
 export async function createUnits(spreadsheetId: string, units: BuildingUnit[]): Promise<void> {
+  assertBuildingSpreadsheet(spreadsheetId)
   await ensureSheetWithHeaders(spreadsheetId, BUILDING_UNITS_SHEET, BUILDING_UNITS_HEADERS)
 
   for (const unit of units) {

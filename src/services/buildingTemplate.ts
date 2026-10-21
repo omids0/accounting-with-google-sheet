@@ -3,7 +3,7 @@ import { JOURNEY_ROW, type JourneyState } from './buildingJourney'
 import { ROLE_ROW_PREFIX } from './buildingRoles'
 import { buildingCategoryGroups, buildingSubcategories } from './buildingTemplateData'
 import { groupsToRows } from './categoryGroups'
-import { MODULE_SHEET_SPECS } from './moduleSheetSpecs'
+import { BUILDING_SHEET_SPECS, MODULE_SHEET_SPECS } from './moduleSheetSpecs'
 import { getDefaultSettings, getDefaultForms, getSettings, saveSettings } from './settings'
 import {
   BUILDING_SHEET,
@@ -183,7 +183,9 @@ export async function createBuildingSpreadsheet(
 
   await ensureManySheetsWithHeaders(
     spreadsheetId,
-    MODULE_SHEET_SPECS.filter(spec => TEMPLATE_SHEETS.includes(spec.sheetName))
+    [...MODULE_SHEET_SPECS, ...BUILDING_SHEET_SPECS].filter(spec =>
+      TEMPLATE_SHEETS.includes(spec.sheetName)
+    )
   )
 
   const writes: [string, string[][]][] = [

@@ -12,7 +12,7 @@ import {
   type BuildingPermission,
   type PermissionOverrides
 } from './buildingRoles'
-import { deletePeriodSettings, setPeriodSetting } from './periodSettings'
+import { deleteBuildingSettings, setBuildingSetting } from './buildingSettings'
 import { PERIOD_SETTINGS_SHEET, ACTIVITY_LOG_SHEET } from './sheetNames'
 import { getSheetAllRows, getSheetDataRows } from './spreadsheetStore'
 import type { BuildingRole } from '../components/buildings/buildingOptions'
@@ -131,9 +131,9 @@ export async function changeMemberRole(
   const member = members(spreadsheetId).find(item => item.email === key)
 
   if (member?.role === role) return null
-  await setPeriodSetting(spreadsheetId, ROLE_ROW_PREFIX + key, role)
+  await setBuildingSetting(spreadsheetId, ROLE_ROW_PREFIX + key, role)
   if (member && isCustom(member))
-    await setPeriodSetting(spreadsheetId, ACCESS_ROW_PREFIX + key, '{}')
+    await setBuildingSetting(spreadsheetId, ACCESS_ROW_PREFIX + key, '{}')
 
   return null
 }
@@ -155,7 +155,7 @@ export async function setMemberOverrides(
     ])
   )
 
-  await setPeriodSetting(
+  await setBuildingSetting(
     spreadsheetId,
     ACCESS_ROW_PREFIX + normalizeEmail(email),
     JSON.stringify(clean)
@@ -175,7 +175,7 @@ export async function removeMember(
 
   const key = normalizeEmail(email)
 
-  await deletePeriodSettings(spreadsheetId, [
+  await deleteBuildingSettings(spreadsheetId, [
     ROLE_ROW_PREFIX + key,
     ACCESS_ROW_PREFIX + key,
     INVITE_ROW_PREFIX + key
@@ -242,7 +242,7 @@ export async function markMemberActive(
   if (!can('settings', spreadsheetId)) return 'forbidden'
   if (!members(spreadsheetId).some(item => item.email === normalizeEmail(email))) return 'unknown'
 
-  await deletePeriodSettings(spreadsheetId, [INVITE_ROW_PREFIX + normalizeEmail(email)])
+  await deleteBuildingSettings(spreadsheetId, [INVITE_ROW_PREFIX + normalizeEmail(email)])
 
   return null
 }
@@ -272,7 +272,7 @@ export async function claimOwnInvite(spreadsheetId: string): Promise<boolean> {
 
   claimTried.add(mark)
   try {
-    await deletePeriodSettings(spreadsheetId, [INVITE_ROW_PREFIX + email])
+    await deleteBuildingSettings(spreadsheetId, [INVITE_ROW_PREFIX + email])
   } catch {
     claimTried.delete(mark)
 

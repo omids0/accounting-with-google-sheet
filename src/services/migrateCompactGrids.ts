@@ -169,7 +169,7 @@ export async function migrateCompactGrids(spreadsheetId: string): Promise<void> 
   try {
     const { getAllSheetSpecs } = await import('./spreadsheetSetup')
 
-    const trims = await planCompaction(spreadsheetId, getAllSheetSpecs())
+    const trims = await planCompaction(spreadsheetId, getAllSheetSpecs(spreadsheetId))
 
     // A local write queued while probing could land inside a region: try again later.
     if (hasPendingOutbox(spreadsheetId)) return

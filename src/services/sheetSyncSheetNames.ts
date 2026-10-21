@@ -39,6 +39,7 @@ import {
   WALLET_LEDGER_SHEET,
   WALLET_SHEET
 } from './sheetNames'
+import { workspaceTypeOf } from './workspace'
 
 /** Sheets every account has, regardless of which custom forms it defines. */
 const STATIC_SHEETS = [
@@ -75,16 +76,28 @@ const STATIC_SHEETS = [
   VEHICLE_HISTORY_SHEET,
   VEHICLE_MECHANIC_SHEET,
   VEHICLE_EXPENSE_META_SHEET,
-  ACTIVITY_LOG_SHEET,
-  BUILDING_SHEET,
-  BUILDING_UNITS_SHEET,
-  BUILDING_RESIDENTS_SHEET
+  ACTIVITY_LOG_SHEET
 ]
 
-export function getKnownSheetNames(settings: AppSettings = getSettings()!): string[] {
-  if (!settings) return [...STATIC_SHEETS]
+/** Only a building spreadsheet has these; a personal one is never asked for them. */
+const BUILDING_SHEETS = [BUILDING_SHEET, BUILDING_UNITS_SHEET, BUILDING_RESIDENTS_SHEET]
+
+/**
+ * The tabs a sync downloads for `spreadsheetId` (default: the active one): the account forms, the
+ * static tabs and, for a building only, the building tabs.
+ */
+export function getKnownSheetNames(
+  settings: AppSettings = getSettings()!,
+  spreadsheetId?: string
+): string[] {
+  const statics =
+    workspaceTypeOf(spreadsheetId) === 'building'
+      ? [...STATIC_SHEETS, ...BUILDING_SHEETS]
+      : STATIC_SHEETS
+
+  if (!settings) return [...statics]
 
   const formSheets = settings.forms.map(form => form.sheetName)
 
-  return [...new Set([...formSheets, ...STATIC_SHEETS])]
+  return [...new Set([...formSheets, ...statics])]
 }

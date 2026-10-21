@@ -1,4 +1,4 @@
-import { setPeriodSetting } from './periodSettings'
+import { setBuildingSetting } from './buildingSettings'
 import { getSettings } from './settings'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
@@ -81,7 +81,7 @@ export async function saveManagedList(
   id: ManagedListId,
   items: ManagedItem[]
 ): Promise<void> {
-  await setPeriodSetting(spreadsheetId, MANAGED_LIST_ROW_PREFIX + id, JSON.stringify(items))
+  await setBuildingSetting(spreadsheetId, MANAGED_LIST_ROW_PREFIX + id, JSON.stringify(items))
 }
 
 /** What the pickers offer: hidden values stay on old records but cannot be chosen again. */

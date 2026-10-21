@@ -13,6 +13,7 @@ import {
 import { newUnit, rowToUnit, unitToRow } from './buildingUnits'
 import { rowToCounterparty } from './counterparties'
 import { BUILDING_RESIDENTS_SHEET, BUILDING_UNITS_SHEET, COUNTERPARTIES_SHEET } from './sheetNames'
+import { setWorkspaceType } from './workspace'
 
 const log = vi.hoisted(() => ({
   appended: [] as { sheet: string; row: string[] }[],
@@ -40,6 +41,7 @@ const rowsOf = (sheet: string) =>
 const ID = 'b1'
 
 beforeEach(() => {
+  setWorkspaceType('b1', 'building')
   log.appended.length = 0
   log.updated.length = 0
 })

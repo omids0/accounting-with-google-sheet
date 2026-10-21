@@ -72,7 +72,7 @@ export async function pullRemoteSheets(
     fetchSheetRevisions(spreadsheetId).catch(() => null)
   ])
 
-  const allSheets = getKnownSheetNames(settings)
+  const allSheets = getKnownSheetNames(settings, spreadsheetId)
 
   // Archives are tabs carrying the app marker, as listed by the token read; the
   // last known list covers a failed read. A tab merely named like one is ignored.

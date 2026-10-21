@@ -1,14 +1,12 @@
-import { sortFormFields } from '../components/form/fieldUtils'
-import type { FieldConfig, SpreadsheetEntry } from '../types'
-import { MODULE_SHEET_SPECS } from './moduleSheetSpecs'
+import type { SpreadsheetEntry } from '../types'
+import { getAllSheetSpecs } from './allSheetSpecs'
 import { getDefaultSettings, getSettings, registerSpreadsheet } from './settings'
 import {
   createSpreadsheet,
   ensureManySheetsWithHeaders,
   invalidateSpreadsheetCache,
   markSheetsPrepared,
-  verifySpreadsheetExists,
-  type SheetSpec
+  verifySpreadsheetExists
 } from './sheets'
 import { invalidateSheetTitlesCache, unmarkSheetsPrepared } from './sheetsMeta'
 import {
@@ -20,7 +18,7 @@ import { formatSpreadsheetTitle } from './spreadsheetCatalog'
 import { syncSpreadsheetsFromDrive } from './spreadsheetDriveSync'
 import { getJalaliParts } from '../utils/jalaliDate'
 
-export { syncSpreadsheetsFromDrive }
+export { getAllSheetSpecs, syncSpreadsheetsFromDrive }
 
 const SESSION_PREPARED_KEY = 'accounting_sheets_ready'
 
@@ -43,25 +41,10 @@ function runExclusiveSpreadsheetSetup(task: () => Promise<string>): Promise<stri
   return activeSpreadsheetSetup
 }
 
-function buildHeaders(form: { fields: FieldConfig[] }): string[] {
-  return ['شناسه', 'زمان ثبت', ...sortFormFields(form.fields).map(field => field.label)]
-}
-
-export function getAllSheetSpecs(): SheetSpec[] {
-  const settings = getSettings() ?? getDefaultSettings()
-
-  const formSheets = settings.forms.map(form => ({
-    sheetName: form.sheetName,
-    headers: buildHeaders(form)
-  }))
-
-  return [...formSheets, ...MODULE_SHEET_SPECS]
-}
-
 function markAllKnownSheetsPrepared(spreadsheetId: string): void {
   markSheetsPrepared(
     spreadsheetId,
-    getAllSheetSpecs().map(sheet => sheet.sheetName)
+    getAllSheetSpecs(spreadsheetId).map(sheet => sheet.sheetName)
   )
 }
 
@@ -74,7 +57,9 @@ const PREPARED_MAX_AGE_MS = 24 * 60 * 60_000
  * app update adds a sheet or a column, which forces a fresh check.
  */
 function preparedSignature(spreadsheetId: string): string {
-  const specs = getAllSheetSpecs().map(sheet => `${sheet.sheetName}:${sheet.headers.length}`)
+  const specs = getAllSheetSpecs(spreadsheetId).map(
+    sheet => `${sheet.sheetName}:${sheet.headers.length}`
+  )
 
   return `${spreadsheetId}|${specs.join(',')}`
 }
@@ -119,7 +104,7 @@ export function clearSpreadsheetPrepareSession(spreadsheetId?: string): void {
 }
 
 async function ensureAllSheets(spreadsheetId: string): Promise<void> {
-  await ensureManySheetsWithHeaders(spreadsheetId, getAllSheetSpecs())
+  await ensureManySheetsWithHeaders(spreadsheetId, getAllSheetSpecs(spreadsheetId))
 }
 
 export async function resolveSpreadsheetSession(): Promise<SpreadsheetSessionStatus> {
@@ -281,7 +266,7 @@ export async function repairMissingSheets(
   spreadsheetId: string,
   sheetNames: string[]
 ): Promise<void> {
-  const specs = getAllSheetSpecs().filter(spec => sheetNames.includes(spec.sheetName))
+  const specs = getAllSheetSpecs(spreadsheetId).filter(spec => sheetNames.includes(spec.sheetName))
 
   if (!specs.length) return
 

@@ -15,9 +15,10 @@ import { issueDueDate, monthName } from './buildingMonths'
 import { getBuildingProfile } from './buildingProfile'
 import { chargeResidents, fetchStays } from './buildingResidents'
 import { can } from './buildingRoles'
+import { setBuildingSetting } from './buildingSettings'
 import { activeUnits, fetchUnits } from './buildingUnits'
 import { fetchCounterparties } from './counterparties'
-import { getPeriodSetting, setPeriodSetting } from './periodSettings'
+import { getPeriodSetting } from './periodSettings'
 import { fetchReceivables } from './receivablesCrud'
 import { flushOutbox, fullSyncFromRemote } from './sheetSync'
 import { getActiveWorkspaceType } from './workspace'
@@ -78,7 +79,7 @@ export async function runAutoIssue(spreadsheetId: string): Promise<number> {
 
   if (isIssueBlocked(await readMarker(spreadsheetId), newest, deviceId, Date.now())) return 0
 
-  await setPeriodSetting(
+  await setBuildingSetting(
     spreadsheetId,
     ISSUE_MARKER_ROW,
     formatIssueMarker({ monthKey: newest, deviceId, at: new Date().toISOString() })

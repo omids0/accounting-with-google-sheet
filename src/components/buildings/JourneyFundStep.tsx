@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { OWN_FILE_CREATE_NOTE } from './buildingFileText'
 import { optionLabel } from './buildingOptions'
 import {
   ACCOUNT_TYPES,
@@ -155,7 +156,7 @@ export default function JourneyFundStep({
         disabled={building}
       />
 
-      <p className={journeyNoteClass}>ساختمان ساخته می‌شود؛ ممکن است کمی طول بکشد.</p>
+      <p className={journeyNoteClass}>{OWN_FILE_CREATE_NOTE}</p>
       {building ? (
         <div role="status">
           <p className={journeyNoteClass}>در حال ساخت ساختمان…</p>

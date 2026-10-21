@@ -3,6 +3,7 @@ import { buildingProfileRow, type BuildingProfile } from './buildingTemplate'
 import { BUILDING_SHEET } from './sheetNames'
 import { appendSheetRow, updateSheetRow } from './sheets'
 import { getSheetDataRows } from './spreadsheetStore'
+import { assertBuildingSpreadsheet } from './workspace'
 
 /** The profile row sits right under the header of «ساختمان». */
 const PROFILE_ROW_NUMBER = 2
@@ -24,6 +25,7 @@ export async function saveBuildingProfile(
   spreadsheetId: string,
   profile: BuildingProfile
 ): Promise<void> {
+  assertBuildingSpreadsheet(spreadsheetId)
   if (!can('settings', spreadsheetId)) throw new Error('ویرایش مشخصات ساختمان مجاز نیست')
 
   const error = profileError(profile)

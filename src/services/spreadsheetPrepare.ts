@@ -2,7 +2,9 @@ import { syncCategoriesFromSheet } from './categories'
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
 import { migrateWalletColumns } from './migrateWalletApplyColumn'
+import { BUILDING_SHEET_SPECS } from './moduleSheetSpecs'
 import { ensureMembershipDate } from './periodSettings'
+import { ensureManySheetsWithHeaders } from './sheetsEnsure'
 import { hasWorkspaceType, syncWorkspaceTypeFromSheet } from './workspace'
 
 export { syncCategoriesFromSheet }
@@ -12,7 +14,13 @@ export { syncCategoriesFromSheet }
  * building differ from a personal spreadsheet's, and both are applied by the category sync.
  */
 export async function refreshSpreadsheetContents(spreadsheetId: string): Promise<void> {
-  await syncWorkspaceTypeFromSheet(spreadsheetId)
+  const type = await syncWorkspaceTypeFromSheet(spreadsheetId)
+
+  // A building opened before its type was known on this device (shared with the board, say)
+  // missed its tabs when the spreadsheet was set up; a personal spreadsheet never gets them.
+  if (type === 'building') {
+    await ensureManySheetsWithHeaders(spreadsheetId, BUILDING_SHEET_SPECS).catch(() => undefined)
+  }
   await syncCategoriesFromSheet(spreadsheetId)
 }
 

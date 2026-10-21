@@ -57,6 +57,21 @@ export function getActiveWorkspaceType(): WorkspaceType {
   return getWorkspaceType(read().activeId)
 }
 
+/** The type of `spreadsheetId`, or of the active spreadsheet when none is given. */
+export function workspaceTypeOf(spreadsheetId?: string): WorkspaceType {
+  return spreadsheetId ? getWorkspaceType(spreadsheetId) : getActiveWorkspaceType()
+}
+
+export const NOT_BUILDING_FILE_MESSAGE = 'این کار فقط در فایل ساختمان انجام می‌شود'
+
+/**
+ * Building data (tabs, marker rows) belongs to the building's own spreadsheet only. Every building
+ * writer calls this first, so a personal spreadsheet can never receive any of it.
+ */
+export function assertBuildingSpreadsheet(spreadsheetId: string): void {
+  if (getWorkspaceType(spreadsheetId) !== 'building') throw new Error(NOT_BUILDING_FILE_MESSAGE)
+}
+
 /** A registered building, or a sheet this device already read the type of. */
 export function isBuildingEntry(entry: { id: string; kind?: WorkspaceKind }): boolean {
   return entry.kind === 'building' || getWorkspaceType(entry.id) === 'building'

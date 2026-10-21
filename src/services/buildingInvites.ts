@@ -1,5 +1,5 @@
 import { ROLE_ROW_PREFIX } from './buildingRoles'
-import { setPeriodSetting } from './periodSettings'
+import { setBuildingSetting } from './buildingSettings'
 import {
   BUILDING_ROLES,
   optionLabel,
@@ -35,8 +35,8 @@ export async function addInvite(
 ): Promise<void> {
   const normalized = email.trim().toLowerCase()
 
-  await setPeriodSetting(spreadsheetId, `${ROLE_ROW_PREFIX}${normalized}`, role)
-  await setPeriodSetting(spreadsheetId, `${INVITE_ROW_PREFIX}${normalized}`, getTodayIso())
+  await setBuildingSetting(spreadsheetId, `${ROLE_ROW_PREFIX}${normalized}`, role)
+  await setBuildingSetting(spreadsheetId, `${INVITE_ROW_PREFIX}${normalized}`, getTodayIso())
 }
 
 /** The ready-made message the manager sends along with the Drive share. */

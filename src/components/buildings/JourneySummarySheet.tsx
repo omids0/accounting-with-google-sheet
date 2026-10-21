@@ -2,7 +2,9 @@ import { useMemo, type ReactNode } from 'react'
 
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard'
 import { members } from '../../services/buildingRoles'
+import { getSettings } from '../../services/settings'
 import FormModal from '../FormModal'
+import { ownFileSummary, spreadsheetFileName } from './buildingFileText'
 import { buildJourneySummary } from './journeySummary'
 import type { BuildingSetupData } from './useBuildingSetupData'
 import {
@@ -80,6 +82,9 @@ export default function JourneySummarySheet({
             </section>
           ))
         : null}
+      <p className={journeyRowMetaClass}>
+        {ownFileSummary(spreadsheetFileName(getSettings()?.spreadsheetId ?? ''))}
+      </p>
       <p className={journeyRowMetaClass}>
         بعدش چی؟ پیامک‌های کارت صندوق به همین ساختمان می‌آیند؛ هزینه‌ها را با «+» داشبورد ثبت کن.
         صدور خودکار شارژ از ماه بعد از اولین صدور شروع می‌شود.

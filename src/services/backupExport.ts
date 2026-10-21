@@ -28,7 +28,10 @@ export interface BackupTab {
  */
 export function listBackupTabs(spreadsheetId: string): BackupTab[] {
   const tabs: BackupTab[] = [
-    ...getAllSheetSpecs().map(spec => ({ name: spec.sheetName, headers: spec.headers })),
+    ...getAllSheetSpecs(spreadsheetId).map(spec => ({
+      name: spec.sheetName,
+      headers: spec.headers
+    })),
     ...getArchiveTabs(spreadsheetId).map(name => ({ name, headers: [] }))
   ]
 

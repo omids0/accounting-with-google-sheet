@@ -125,7 +125,15 @@ export const MODULE_SHEET_SPECS: SheetSpec[] = [
   { sheetName: VEHICLE_EXPENSE_META_SHEET, headers: VEHICLE_EXPENSE_META_HEADERS },
   { sheetName: PUSH_SUBS_SHEET, headers: PUSH_SUBS_HEADERS },
   { sheetName: REMINDER_LOG_SHEET, headers: REMINDER_LOG_HEADERS },
-  { sheetName: APP_LOCK_SHEET, headers: APP_LOCK_HEADERS },
+  { sheetName: APP_LOCK_SHEET, headers: APP_LOCK_HEADERS }
+]
+
+/**
+ * The tabs of a building spreadsheet (round 11). Kept apart from `MODULE_SHEET_SPECS` on purpose:
+ * a building is its own Google Sheets file, so these tabs are ensured, pulled and backed up only
+ * for a spreadsheet whose workspace type is `building` and never for a personal one.
+ */
+export const BUILDING_SHEET_SPECS: SheetSpec[] = [
   { sheetName: BUILDING_SHEET, headers: BUILDING_HEADERS },
   { sheetName: BUILDING_UNITS_SHEET, headers: BUILDING_UNITS_HEADERS },
   { sheetName: BUILDING_RESIDENTS_SHEET, headers: BUILDING_RESIDENTS_HEADERS }

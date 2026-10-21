@@ -10,6 +10,7 @@ import {
 } from './buildingUnitActions'
 import { newUnit, rowToUnit } from './buildingUnits'
 import { BUILDING_RESIDENTS_SHEET, BUILDING_UNITS_SHEET, COUNTERPARTIES_SHEET } from './sheetNames'
+import { setWorkspaceType } from './workspace'
 
 const log = vi.hoisted(() => ({
   appended: [] as { sheet: string; row: string[] }[],
@@ -50,6 +51,7 @@ const existing = [
 ]
 
 beforeEach(() => {
+  setWorkspaceType('b1', 'building')
   log.appended.length = 0
   log.updated.length = 0
 })

@@ -1,4 +1,4 @@
-import { setPeriodSetting } from './periodSettings'
+import { setBuildingSetting } from './buildingSettings'
 import { getSettings } from './settings'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
@@ -150,5 +150,5 @@ export function isJourneyUnfinished(state: JourneyState | null): boolean {
 
 export async function saveJourney(spreadsheetId: string, state: JourneyState): Promise<void> {
   if (createdJourneys.has(spreadsheetId)) createdJourneys.set(spreadsheetId, state)
-  await setPeriodSetting(spreadsheetId, JOURNEY_ROW, JSON.stringify(state))
+  await setBuildingSetting(spreadsheetId, JOURNEY_ROW, JSON.stringify(state))
 }

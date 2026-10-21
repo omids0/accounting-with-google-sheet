@@ -60,6 +60,7 @@ export default function BuildingWorkspaceCard({
               ? `${fa(summary.units)} واحد · ${others ? `شما + ${fa(others)} عضو` : 'فقط شما'}`
               : 'در حال خواندن…'}
           </p>
+          <p className="text-xs leading-[1.6] text-muted">فایل: {entry.name}</p>
         </div>
         {unfinished ? <span className={buildingChipClass}>راه‌اندازی نیمه‌کاره</span> : null}
       </div>

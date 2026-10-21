@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import BridgePrefsSheet from './BridgePrefsSheet'
+import { FILE_ROW_TITLE, OPEN_FILE_LABEL } from './buildingFileText'
 import { BUILDING_ROLES, optionLabel } from './buildingOptions'
 import BuildingProfileSheet, { type ProfilePart } from './BuildingProfileSheet'
 import BuildingSettingsRow, { type BuildingSettingsRowData } from './BuildingSettingsRow'
@@ -26,6 +27,7 @@ import type { BuildingProfile } from '../../services/buildingTemplate'
 import { readCategoryList } from '../../services/categoryManage'
 import { closeYearDefaultYear } from '../../services/closeYear'
 import { getSettings } from '../../services/settings'
+import { getSpreadsheetUrl } from '../../services/sheetsCreate'
 import { getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
 import { formatJalaliYear } from '../../utils/dateRange'
 import { getTodayIso } from '../../utils/jalaliDate'
@@ -44,10 +46,10 @@ const joined = (id: 'EXPENSE_KINDS' | 'EXPENSE_PAYERS') =>
     .join('، ')
 
 /**
- * «تنظیمات ساختمان» (screen 24): ten rows and the way back to the personal workspace. The page
- * needs the `settings` permission (the route gate); backup, close-the-year, categories and the
- * reminders are the app's own tools, run on this spreadsheet. «بایگانی ساختمان» only flags the
- * registration on this device: the sheet stays as it is.
+ * «تنظیمات ساختمان» (screen 24): the building's own Drive file, ten rows and the way back to the
+ * personal workspace. The page needs the `settings` permission (the route gate); backup,
+ * close-the-year, categories and the reminders are the app's own tools, run on this spreadsheet.
+ * «بایگانی ساختمان» only flags the registration on this device: the sheet stays as it is.
  */
 export default function BuildingSettingsPage() {
   const navigate = useNavigate()
@@ -84,6 +86,13 @@ export default function BuildingSettingsPage() {
   const list = members(spreadsheetId)
 
   const rows: BuildingSettingsRowData[] = [
+    {
+      id: 'file',
+      title: FILE_ROW_TITLE,
+      meta: entryName ?? profile.name,
+      href: getSpreadsheetUrl(spreadsheetId),
+      linkLabel: OPEN_FILE_LABEL
+    },
     {
       id: 'profile',
       title: 'مشخصات',

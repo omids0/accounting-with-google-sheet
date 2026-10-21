@@ -3,6 +3,7 @@ import { getCounterpartyFullName } from './counterparties'
 import { BUILDING_RESIDENTS_HEADERS } from './sheetHeaders'
 import { BUILDING_RESIDENTS_SHEET } from './sheetNames'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
+import { assertBuildingSpreadsheet } from './workspace'
 import { RESIDENT_ROLES, type ResidentRole } from '../components/buildings/buildingOptions'
 import type { Counterparty } from '../types'
 import { getTodayIso } from '../utils/jalaliDate'
@@ -78,12 +79,14 @@ export function parseStays(rows: string[][]): StayWithRow[] {
 }
 
 export async function fetchStays(spreadsheetId: string): Promise<StayWithRow[]> {
+  assertBuildingSpreadsheet(spreadsheetId)
   await ensureSheetWithHeaders(spreadsheetId, BUILDING_RESIDENTS_SHEET, BUILDING_RESIDENTS_HEADERS)
 
   return parseStays(await fetchSheetRows(spreadsheetId, BUILDING_RESIDENTS_SHEET))
 }
 
 export async function createStays(spreadsheetId: string, stays: UnitStay[]): Promise<void> {
+  assertBuildingSpreadsheet(spreadsheetId)
   await ensureSheetWithHeaders(spreadsheetId, BUILDING_RESIDENTS_SHEET, BUILDING_RESIDENTS_HEADERS)
 
   for (const stay of stays) {

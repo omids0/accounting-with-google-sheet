@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { addInvite, invitedEmails, inviteText, isValidEmail } from './buildingInvites'
 import { parseMembers } from './buildingRoles'
+import { setWorkspaceType } from './workspace'
 
 const written = vi.hoisted(() => ({ rows: [] as [string, string][] }))
 
@@ -12,6 +13,7 @@ vi.mock('./periodSettings', () => ({
 }))
 
 beforeEach(() => {
+  setWorkspaceType('b1', 'building')
   written.rows.length = 0
 })
 

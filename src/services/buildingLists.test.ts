@@ -15,6 +15,7 @@ import {
 } from './buildingLists'
 import { getDefaultSettings, saveSettings } from './settings'
 import { setSheetAllRows } from './spreadsheetStore'
+import { setWorkspaceType } from './workspace'
 
 const setPeriodSetting = vi.fn()
 
@@ -98,6 +99,7 @@ describe('managed lists', () => {
 describe('managed lists in «تنظیمات دوره»', () => {
   beforeEach(() => {
     localStorage.clear()
+    setWorkspaceType('b1', 'building')
     setPeriodSetting.mockReset()
     saveSettings({
       ...getDefaultSettings(),

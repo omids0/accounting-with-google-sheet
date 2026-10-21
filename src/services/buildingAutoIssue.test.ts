@@ -20,7 +20,10 @@ const state = vi.hoisted(() => ({
   rowsPlanned: [] as number[]
 }))
 
-vi.mock('./workspace', () => ({ getActiveWorkspaceType: () => 'building' }))
+vi.mock('./workspace', () => ({
+  getActiveWorkspaceType: () => 'building',
+  assertBuildingSpreadsheet: () => undefined
+}))
 vi.mock('./buildingRoles', () => ({ can: () => state.role }))
 vi.mock('./buildingJourney', () => ({
   readJourney: () => state.journey,

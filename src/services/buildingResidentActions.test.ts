@@ -5,6 +5,7 @@ import { newStay, rowToStay } from './buildingResidents'
 import { newUnit, rowToUnit } from './buildingUnits'
 import { rowToReceivable } from './receivablesRow'
 import { BUILDING_RESIDENTS_SHEET, BUILDING_UNITS_SHEET, RECEIVABLES_SHEET } from './sheetNames'
+import { setWorkspaceType } from './workspace'
 import type { Counterparty, Receivable } from '../types'
 
 const log = vi.hoisted(() => ({
@@ -92,6 +93,7 @@ function context(receivables: (Receivable & { rowNumber: number })[] = []): Resi
 const incoming = { id: newTenant.id, name: 'رضایی' }
 
 beforeEach(() => {
+  setWorkspaceType('b1', 'building')
   log.appended.length = 0
   log.updated.length = 0
   activity.logActivity.mockClear()
