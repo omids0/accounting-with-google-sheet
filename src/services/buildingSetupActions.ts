@@ -15,26 +15,19 @@ import {
   type UnitWithRow
 } from './buildingUnits'
 import { createCounterparty, getCounterpartyFullName, updateCounterparty } from './counterparties'
+import { blankPerson, applyPersonInput, type PersonFields, type PersonInput } from './personInput'
 import { createReceivable, updateReceivable } from './receivablesCrud'
 import { paidAmount } from './receivablesRow'
 import type { Occupancy } from '../components/buildings/buildingOptions'
 import type { Counterparty, Receivable } from '../types'
 import { getTodayIso } from '../utils/jalaliDate'
-import { normalizeDigits, toPersianDigits } from '../utils/normalizeDigits'
+import { toPersianDigits } from '../utils/normalizeDigits'
 import { BUILDING_CHARGE_CATEGORY } from '../utils/protectedCategories'
 
 type Person = Counterparty & { rowNumber: number }
 
-type PersonFields = Omit<Counterparty, 'id' | 'createdAt'>
-
-/** Name, phone and card of a person as the completion form collects them. */
-export interface PersonInput {
-  name: string
-  phone: string
-  card: string
-}
-
-export const EMPTY_PERSON: PersonInput = { name: '', phone: '', card: '' }
+export { applyPersonInput, blankPerson, EMPTY_PERSON, splitName } from './personInput'
+export type { PersonInput } from './personInput'
 
 /** «مالک واحد ۳» until the owner's real name is entered; flagged so the app keeps asking. */
 export function placeholderOwner(unitNumber: string): PersonFields {
@@ -43,42 +36,6 @@ export function placeholderOwner(unitNumber: string): PersonFields {
     firstName: 'مالک',
     lastName: `واحد ${toPersianDigits(unitNumber)}`,
     placeholder: true
-  }
-}
-
-function blankPerson(): PersonFields {
-  return {
-    firstName: '',
-    lastName: '',
-    birthDate: '',
-    address: '',
-    location: null,
-    phones: [],
-    accounts: [],
-    note: ''
-  }
-}
-
-/** «احمدی» = last name only; «علی احمدی» = first name «علی». */
-export function splitName(name: string): { firstName: string; lastName: string } {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-
-  return { firstName: parts.slice(0, -1).join(' '), lastName: parts.at(-1) ?? '' }
-}
-
-/** The person with the entered name, phone and card laid over what they already had. */
-export function applyPersonInput<T extends PersonFields>(person: T, input: PersonInput): T {
-  const name = input.name.trim()
-  const phone = normalizeDigits(input.phone).trim()
-  const card = normalizeDigits(input.card).replace(/\D/g, '')
-
-  return {
-    ...person,
-    ...(name ? { ...splitName(name), placeholder: false } : {}),
-    phones: phone ? [{ number: phone }] : person.phones,
-    accounts: card
-      ? [{ bankName: '', accountNumber: card }, ...person.accounts.filter(a => a.bankName)]
-      : person.accounts
   }
 }
 

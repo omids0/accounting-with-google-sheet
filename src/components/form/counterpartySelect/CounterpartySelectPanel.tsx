@@ -45,9 +45,12 @@ interface CounterpartySelectPanelProps {
   onDelete: (item: CounterpartyWithRow) => void
   onOpenManageMode: () => void
   onReorder: (fromIndex: number, toIndex: number) => void
+  /** The «new person» button; a building says «شخص جدید» (its light form). */
+  createLabel?: string
 }
 
 export default function CounterpartySelectPanel({
+  createLabel = 'ثبت طرف حساب جدید',
   ariaLabel,
   items,
   filteredItems,
@@ -121,7 +124,7 @@ export default function CounterpartySelectPanel({
               disabled={saving}
             >
               <AppIcon name="add" size={18} />
-              ثبت طرف حساب جدید
+              {createLabel}
             </button>
           </div>
         </div>
@@ -184,7 +187,7 @@ export default function CounterpartySelectPanel({
             disabled={saving}
           >
             <AppIcon name="add" size={15} />
-            ثبت طرف حساب جدید
+            {createLabel}
           </button>
           <button
             type="button"

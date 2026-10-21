@@ -138,6 +138,7 @@ export default function ChangeResidentSheet({
             void data.reload()
           }}
           aria-label="ساکن جدید"
+          quickAddCard={role === 'owner'}
         />
       </FormField>
       <FormSelect

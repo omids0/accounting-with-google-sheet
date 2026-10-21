@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 
+import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { getCounterpartyFullName } from '../../services/counterparties'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
@@ -18,6 +19,7 @@ import {
 } from '../ui/formControlStyles'
 import CategorySelectSheet from './categorySelect/CategorySelectSheet'
 import CounterpartySelectPanel from './counterpartySelect/CounterpartySelectPanel'
+import QuickPersonSheet from './counterpartySelect/QuickPersonSheet'
 import {
   useCounterpartySelectActions,
   type CounterpartySelectProps
@@ -38,7 +40,8 @@ export default function CounterpartySelect({
   placeholder = 'انتخاب طرف حساب',
   allOption,
   allowManage = allOption == null,
-  showSearchAlways = false
+  showSearchAlways = false,
+  quickAddCard = false
 }: CounterpartySelectProps) {
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -46,6 +49,9 @@ export default function CounterpartySelect({
   const [searchQuery, setSearchQuery] = useState('')
   const [confirmDelete, setConfirmDelete] = useState<CounterpartyWithRow | null>(null)
   const [formOpen, setFormOpen] = useState(false)
+  const [quickOpen, setQuickOpen] = useState(false)
+  // A building manager adds a person by name; the full form stays on the counterparties page.
+  const inBuilding = useIsBuildingWorkspace()
   const [formEditingItem, setFormEditingItem] = useState<CounterpartyWithRow | null>(null)
 
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -68,13 +74,14 @@ export default function CounterpartySelect({
     )
   }, [counterparties, searchQuery])
 
-  const { handleSubmitForm, handleDelete, handleReorder } = useCounterpartySelectActions({
-    counterparties,
-    onCounterpartiesChange,
-    onChange,
-    value,
-    setSaving
-  })
+  const { handleSubmitForm, handleQuickAdd, handleDelete, handleReorder } =
+    useCounterpartySelectActions({
+      counterparties,
+      onCounterpartiesChange,
+      onChange,
+      value,
+      setSaving
+    })
 
   const resetTransientState = useCallback(() => {
     setManageMode(false)
@@ -83,7 +90,7 @@ export default function CounterpartySelect({
   }, [])
 
   const handleClose = useCallback(() => {
-    if (saving || formOpen) return
+    if (saving || formOpen || quickOpen) return
 
     if (confirmDelete) {
       setConfirmDelete(null)
@@ -99,9 +106,14 @@ export default function CounterpartySelect({
 
     setOpen(false)
     resetTransientState()
-  }, [confirmDelete, formOpen, manageMode, resetTransientState, saving])
+  }, [confirmDelete, formOpen, manageMode, quickOpen, resetTransientState, saving])
 
   const openCreateForm = () => {
+    if (inBuilding) {
+      setQuickOpen(true)
+
+      return
+    }
     setFormEditingItem(null)
     setFormOpen(true)
   }
@@ -172,7 +184,7 @@ export default function CounterpartySelect({
         open={open}
         title={sheetTitle}
         manageMode={manageMode}
-        blocked={saving || formOpen}
+        blocked={saving || formOpen || quickOpen}
         onClose={handleClose}
         onBackFromManage={() => {
           setManageMode(false)
@@ -204,8 +216,29 @@ export default function CounterpartySelect({
           onDelete={item => handleDelete(item, setConfirmDelete)}
           onOpenManageMode={() => setManageMode(true)}
           onReorder={handleReorder}
+          createLabel={inBuilding ? 'شخص جدید' : undefined}
         />
       </CategorySelectSheet>
+
+      {allowManage && inBuilding && (
+        <QuickPersonSheet
+          open={quickOpen}
+          saving={saving}
+          askCard={quickAddCard}
+          onClose={() => !saving && setQuickOpen(false)}
+          onSubmit={async values => {
+            const saved = await handleQuickAdd(values)
+
+            if (saved) {
+              setQuickOpen(false)
+              setOpen(false)
+              resetTransientState()
+            }
+
+            return saved
+          }}
+        />
+      )}
 
       {allowManage && (
         <CounterpartyFormModal
