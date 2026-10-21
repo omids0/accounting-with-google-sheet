@@ -49,7 +49,7 @@ export default function UnitStatement({ data, card }: { data: UnitStatementData;
           ))
         ) : (
           <li className={calmRowClass}>
-            <span className={`${calmRowTitleClass} text-success`}>بدهی بازی ندارد ✓</span>
+            <span className={`${calmRowTitleClass} text-success`}>بدهی ندارد ✓</span>
           </li>
         )}
         <li className={calmRowClass}>

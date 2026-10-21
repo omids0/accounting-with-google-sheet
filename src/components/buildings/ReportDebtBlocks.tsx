@@ -154,7 +154,7 @@ export function ReportDebts({ debts }: { debts: BuildingReport['debts'] }) {
           </p>
         </>
       ) : (
-        <p className={calmEmptyClass}>ساختمان بدهی بازی ندارد</p>
+        <p className={calmEmptyClass}>ساختمان بدهی ندارد</p>
       )}
     </CalmBlock>
   )
