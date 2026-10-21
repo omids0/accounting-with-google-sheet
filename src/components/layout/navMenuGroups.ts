@@ -40,7 +40,8 @@ export const MENU_COMMITMENT_LINKS: MenuLinkEntry[] = [
 export const MENU_MORE_LINKS: MenuLinkEntry[] = [
   { tab: 'personal-reminders', icon: 'bell' },
   { tab: 'vehicle-service', icon: 'car', activeTabs: VEHICLE_TABS },
-  { tab: 'counterparties', icon: 'counterparties' }
+  { tab: 'counterparties', icon: 'counterparties' },
+  { tab: 'buildings-home', icon: 'building' }
 ]
 
 /** Android only; closes the «بیشتر» group. */
