@@ -20,6 +20,7 @@ export {
   isStandardEntryForm,
   LINE_ITEMS_FIELD_ID,
   LINE_ITEMS_FIELD_LABEL,
+  sortEntryFormFields,
   sortFormFields,
   SUBCATEGORY_FIELD_ID,
   WALLET_ACCOUNT_FIELD_ID,

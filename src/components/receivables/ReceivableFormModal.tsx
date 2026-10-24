@@ -200,9 +200,9 @@ export default function ReceivableFormModal({
         <Controller
           name="borrowDate"
           control={control}
-          rules={requiredDate('تاریخ قرض')}
+          rules={requiredDate('تاریخ قرض دادن')}
           render={({ field, fieldState }) => (
-            <FormField label="تاریخ قرض گرفتن" required error={fieldState.error?.message}>
+            <FormField label="تاریخ قرض دادن" required error={fieldState.error?.message}>
               <JalaliDatePicker
                 value={field.value}
                 onChange={field.onChange}

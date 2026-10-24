@@ -90,7 +90,7 @@ describe('protected rules', () => {
   it('rejects empty and duplicate names', () => {
     const list = ['خوراک', 'خانه']
 
-    expect(categoryNameError(list, 'خوراک', '  ')).toBeTruthy()
+    expect(categoryNameError(list, 'خوراک', '  ')).toBe('نام دسته را بنویس')
     expect(categoryNameError(list, 'خوراک', 'خانه')).toBeTruthy()
     expect(categoryNameError(list, 'خوراک', 'خوراک')).toBeNull()
     expect(categoryNameError(list, 'خوراک', 'غذا')).toBeNull()

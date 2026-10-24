@@ -57,7 +57,7 @@ export default function VehicleProfileCard({
               {showPlate ? <IranPlateBadge value={item.plate} /> : null}
 
               <div className={listCardSubtitleClass}>
-                کارکرد: {item.mileage.toLocaleString('fa-IR')} km
+                کارکرد: {item.mileage.toLocaleString('fa-IR')} کیلومتر
               </div>
             </div>
           </div>

@@ -5,6 +5,7 @@ import AppIcon from './AppIcon'
 import { useModalLock } from '../hooks/useModalLock'
 import { useSubmitLock } from '../hooks/useSubmitLock'
 import { cn } from '../utils/cn'
+import { focusFirstInvalidField } from '../utils/focusInvalidField'
 import Button, { type ButtonVariant } from './ui/Button'
 import { formActionsClassName } from './ui/formStyles'
 import { lineItemsBlockedHintClass } from './ui/lineItemStyles'
@@ -73,8 +74,12 @@ export default function FormModal({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.stopPropagation()
+    const form = event.currentTarget
+
     // Rapid repeated clicks must save once: the lock holds until the save settles.
     void submitLock(() => onSubmit(event))
+    // A failed submit paints inline errors; the first invalid field takes the focus.
+    focusFirstInvalidField(form)
   }
 
   if (!open) return null
@@ -121,7 +126,7 @@ export default function FormModal({
 
         {header}
 
-        <form onSubmit={handleSubmit} aria-busy={saving}>
+        <form onSubmit={handleSubmit} aria-busy={saving} noValidate>
           <div className={cn(formModalBodyClass, formModalFieldsLayoutClass)}>{children}</div>
 
           <div className={cn(formModalActionsClass, formActionsClassName())}>

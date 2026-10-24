@@ -251,3 +251,15 @@ export function buildGroupSummary({
     people: summaries
   }
 }
+
+/**
+ * What explains creditors owing more than debtors: money put into the fund and not spent yet.
+ * 0 when the two totals agree or the gap is not a deposit.
+ */
+export function unspentFundDeposit(
+  summary: Pick<DangSplitGroupSummary, 'creditTotal' | 'debtTotal' | 'depositTotal'>
+): number {
+  const gap = Math.round(summary.creditTotal - summary.debtTotal)
+
+  return gap > 0 && summary.depositTotal > 0 ? Math.min(gap, Math.round(summary.depositTotal)) : 0
+}

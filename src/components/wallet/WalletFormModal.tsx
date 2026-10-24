@@ -21,7 +21,7 @@ import WalletAccountCardVisual from './WalletAccountCardVisual'
 import WalletCardColorSection from './WalletCardColorSection'
 import WalletCardNumberInput from './WalletCardNumberInput'
 import { walletCardPreviewClass } from './walletCardStyles'
-import { isValidCardNumber, resolveAccountKind } from './walletCardUtils'
+import { cardNumberError, resolveAccountKind, shebaError } from './walletCardUtils'
 import { buildWalletFormInitialValues, buildWalletPreviewAccount } from './walletFormDefaults'
 import { WALLET_ACCOUNT_KIND_BANK, WALLET_ACCOUNT_KIND_CASH } from '../../services/walletCategories'
 
@@ -98,7 +98,12 @@ export default function WalletFormModal({
       saving={saving}
       saveLabel={editingAccount ? 'ذخیره تغییرات' : 'ذخیره حساب'}
     >
-      <FormField label="نوع حساب" required controlWidth="full">
+      <FormField
+        label="نوع حساب"
+        required
+        controlWidth="full"
+        error={formFieldError(errors, 'accountKind')}
+      >
         <Controller
           name="accountKind"
           control={control}
@@ -142,7 +147,7 @@ export default function WalletFormModal({
           <Controller
             name="bankId"
             control={control}
-            rules={requiredField('بانک را انتخاب کنید')}
+            rules={requiredField('انتخاب بانک')}
             render={({ field, fieldState }) => (
               <CategorySelect
                 value={field.value}
@@ -236,7 +241,7 @@ export default function WalletFormModal({
             control={control}
             rules={{
               required: 'شماره کارت ۱۶ رقمی را وارد کنید',
-              validate: value => isValidCardNumber(value) || 'شماره کارت باید ۱۶ رقم باشد'
+              validate: value => cardNumberError(value, initialValues.cardNumber)
             }}
             render={({ field, fieldState }) => (
               <FormField label="شماره کارت" required error={fieldState.error?.message}>
@@ -261,8 +266,16 @@ export default function WalletFormModal({
             <input {...register('accountNumber')} dir="ltr" placeholder="مثلاً: 0123456789" />
           </FormField>
 
-          <FormField label="شماره شبا" hint="اختیاری — روی کارت نمایش داده می‌شود">
-            <input {...register('iban')} dir="ltr" placeholder="مثلاً: IR12 3456 7890..." />
+          <FormField
+            label="شماره شبا"
+            hint="اختیاری — روی کارت نمایش داده می‌شود"
+            error={formFieldError(errors, 'iban')}
+          >
+            <input
+              {...register('iban', { validate: value => shebaError(value, initialValues.iban) })}
+              dir="ltr"
+              placeholder="مثلاً: IR12 3456 7890..."
+            />
           </FormField>
         </FormRow>
       )}

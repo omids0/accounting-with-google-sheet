@@ -108,7 +108,7 @@ export default function VehicleProfileFormModal({
         />
       </FormField>
 
-      <FormField label="کارکرد (km)" required error={formFieldError(errors, 'mileage')}>
+      <FormField label="کارکرد (کیلومتر)" required error={formFieldError(errors, 'mileage')}>
         <MileageInput
           value={watch('mileage')}
           onChange={value => setValue('mileage', value === '' ? '' : String(value))}

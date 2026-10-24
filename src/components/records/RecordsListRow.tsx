@@ -43,6 +43,8 @@ interface RecordsListRowProps {
   index: number
   /** No edit and delete buttons (a building member without the `record` permission). */
   readOnly?: boolean
+  /** A small tag next to the title (the building's «حساب نمی‌شود» on transfers). */
+  badge?: string
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
   onOpen: (record: StoredRecord) => void
@@ -58,6 +60,7 @@ function RecordsListRow({
   isAllForms,
   index,
   readOnly = false,
+  badge,
   onEdit,
   onDelete,
   onOpen
@@ -106,6 +109,7 @@ function RecordsListRow({
             fileIds={record.attachments}
             title={String(title)}
           />
+          {badge ? <span className={lineItemsBadgeClass}>{badge}</span> : null}
           {isIncome || isExpense ? (
             <span
               className={cn(

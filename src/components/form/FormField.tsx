@@ -3,7 +3,9 @@ import {
   Children,
   cloneElement,
   isValidElement,
+  useEffect,
   useId,
+  useRef,
   type ReactElement,
   type ReactNode
 } from 'react'
@@ -151,6 +153,12 @@ function resolveControlWidthClass(
   return formControlWidthFullClass
 }
 
+/** The control a screen reader lands on: the first real input, textarea, select or button. */
+const TEXT_CONTROL_SELECTOR =
+  'input:not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,select'
+
+const CONTROL_SELECTOR = `${TEXT_CONTROL_SELECTOR},button`
+
 export default function FormField({
   label,
   required = false,
@@ -170,6 +178,36 @@ export default function FormField({
   const controlChild = resolveControlChild(children)
   const control = enhanceControl(controlChild, controlId, invalid, describedBy)
   const controlShellClass = resolveControlWidthClass(controlChild, controlWidth)
+  const shellRef = useRef<HTMLDivElement>(null)
+
+  // Custom pickers do not take aria props, so mark their first control from here. A text
+  // control gets `aria-invalid`; a button (picker trigger, date field, dial pad) is not a
+  // role that supports it, so it gets `data-field-invalid` instead, which is all the focus
+  // after a failed submit needs. Both point at the error text.
+  useEffect(() => {
+    const target = shellRef.current?.querySelector<HTMLElement>(CONTROL_SELECTOR)
+
+    if (!invalid || !target) return undefined
+
+    const isText = target.matches(TEXT_CONTROL_SELECTOR)
+    const markedByProps = target.getAttribute('aria-invalid') === 'true'
+
+    if (isText && !markedByProps) target.setAttribute('aria-invalid', 'true')
+    if (!isText) target.setAttribute('data-field-invalid', 'true')
+    if (!target.hasAttribute('aria-describedby')) {
+      target.setAttribute('aria-describedby', errorId)
+      target.setAttribute('data-field-described', '')
+    }
+
+    return () => {
+      if (isText && !markedByProps) target.removeAttribute('aria-invalid')
+      target.removeAttribute('data-field-invalid')
+      if (target.hasAttribute('data-field-described')) {
+        target.removeAttribute('aria-describedby')
+        target.removeAttribute('data-field-described')
+      }
+    }
+  }, [invalid, errorId])
 
   return (
     <div className={cn(formFieldClass, className)} style={style}>
@@ -184,7 +222,9 @@ export default function FormField({
           )}
         </label>
       )}
-      <div className={cn('form-control-shell', controlShellClass)}>{control}</div>
+      <div ref={shellRef} className={cn('form-control-shell', controlShellClass)}>
+        {control}
+      </div>
       {error ? (
         <p id={errorId} className={formErrorClass} role="alert">
           {error}

@@ -62,7 +62,9 @@ export default function PersonalReminderCard({
             </div>
             <div className={dangCardMetaClass}>
               {categoryLabel} · {recurrenceLabel}
-              {item.daysBefore > 0 ? ` · ${item.daysBefore.toLocaleString('fa-IR')} روز قبل` : ''}
+              {item.daysBefore > 0
+                ? ` · یادآوری ${item.daysBefore.toLocaleString('fa-IR')} روز قبل از موعد`
+                : ''}
             </div>
             {item.dueDate ? (
               <div className={dangCardMetaClass}>

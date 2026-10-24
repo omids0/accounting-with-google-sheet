@@ -67,7 +67,7 @@ export default function ReceivablePaymentForm({
           loading={paying}
           onClick={() => void handleSubmit(values => onSubmit(values, settle.commit()))()}
         >
-          ثبت بخشی از پرداخت
+          ثبت پرداخت
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
           انصراف

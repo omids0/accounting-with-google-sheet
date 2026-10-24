@@ -42,12 +42,28 @@ export default function SavingsGoalFormModal({
     setDraft(goal === 'new' ? EMPTY : { ...goal })
   }, [goal])
 
-  const set = (patch: Partial<Draft>) => setDraft(current => ({ ...current, ...patch }))
+  const [errors, setErrors] = useState<{ title?: string; target?: string }>({})
+
+  useEffect(() => setErrors({}), [goal])
+
+  const set = (patch: Partial<Draft>) => {
+    setDraft(current => ({ ...current, ...patch }))
+    setErrors(current => ({
+      ...current,
+      ...(patch.title !== undefined && { title: undefined }),
+      ...(patch.target !== undefined && { target: undefined })
+    }))
+  }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!draft.title.trim()) return showError('عنوان هدف را وارد کنید')
-    if (!(Number(draft.target) > 0)) return showError('مبلغ هدف را وارد کنید')
+    const found = {
+      title: draft.title.trim() ? undefined : 'عنوان هدف را وارد کنید',
+      target: Number(draft.target) > 0 ? undefined : 'مبلغ هدف را وارد کنید'
+    }
+
+    setErrors(found)
+    if (found.title ?? found.target) return showError((found.title ?? found.target) as string)
 
     onSave(
       {
@@ -74,7 +90,7 @@ export default function SavingsGoalFormModal({
       saving={saving}
       saveLabel="ذخیره"
     >
-      <FormField label="عنوان" required>
+      <FormField label="عنوان" required error={errors.title}>
         <input
           type="text"
           value={draft.title}
@@ -82,7 +98,7 @@ export default function SavingsGoalFormModal({
           onChange={event => set({ title: event.target.value })}
         />
       </FormField>
-      <FormField label="مبلغ هدف" required>
+      <FormField label="مبلغ هدف" required error={errors.target}>
         <AmountInput value={draft.target} onChange={target => set({ target })} />
       </FormField>
       <FormField label="تاریخ هدف" hint="اختیاری؛ برای «ماهی چقدر لازم است»">

@@ -75,6 +75,9 @@ export function requiredPositiveInteger(label: string, min = 1, max?: number) {
         return `${label} را وارد کنید`
       }
 
+      // A form without native validation lets «2.5» through; a count is whole.
+      if (!Number.isInteger(parsed)) return `${label} باید عدد صحیح باشد`
+
       if (max !== undefined && parsed > max) {
         return `${label} باید بین ${min} تا ${max} باشد`
       }

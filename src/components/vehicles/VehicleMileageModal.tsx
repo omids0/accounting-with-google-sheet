@@ -57,11 +57,11 @@ export default function VehicleMileageModal({
       saveLabel="ذخیره کارکرد"
     >
       <FormField
-        label="کارکرد فعلی (km)"
+        label="کارکرد فعلی (کیلومتر)"
         required
         hint={`کارکرد قبلی: ${currentMileage.toLocaleString(
           'fa-IR'
-        )} km. اگر قبلاً اشتباه ثبت شده، عدد درست (حتی کمتر) را بزن؛ به‌عنوان اصلاح ثبت می‌شود.`}
+        )} کیلومتر. اگر قبلاً اشتباه ثبت شده، عدد درست (حتی کمتر) را بزن؛ به‌عنوان اصلاح ثبت می‌شود.`}
         controlWidth="full"
         error={formFieldError(errors, 'mileage')}
       >

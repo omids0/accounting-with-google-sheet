@@ -133,7 +133,7 @@ export default function VehicleExpenseFields({
           vehicle && !mileageRequired
             ? `کارکرد فعلی خودرو ${vehicle.mileage.toLocaleString(
                 'fa-IR'
-              )} km است؛ اگر وارد کنید، کارکرد خودرو هم به‌روز می‌شود.`
+              )} کیلومتر است؛ اگر وارد کنید، کارکرد خودرو هم به‌روز می‌شود.`
             : undefined
         }
       >

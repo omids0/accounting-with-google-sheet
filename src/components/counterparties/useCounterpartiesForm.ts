@@ -42,7 +42,10 @@ export function useCounterpartiesForm({ onSaved }: UseCounterpartiesFormOptions)
 
     if (!spreadsheetId) return
 
-    const validationError = validateCounterpartyForm(values)
+    const validationError = validateCounterpartyForm(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
 
     if (validationError) {
       showError(validationError)
@@ -50,7 +53,10 @@ export function useCounterpartiesForm({ onSaved }: UseCounterpartiesFormOptions)
       return
     }
 
-    const payload = buildCounterpartyPayload(values)
+    const payload = buildCounterpartyPayload(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
 
     setSaving(true)
     try {
