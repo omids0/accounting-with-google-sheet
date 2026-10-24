@@ -85,6 +85,7 @@ export default function DashboardBreakdownSection({
   config = getNetAvailableConfig()
 }: DashboardBreakdownSectionProps) {
   const goalsTotal = financial?.goalsTotal ?? 0
+  const checksReceivable = financial?.checksReceivable ?? 0
 
   const assets: BreakdownItem[] = [
     {
@@ -120,7 +121,18 @@ export default function DashboardBreakdownSection({
       value: financial?.receivablesTotal ?? 0,
       included: config.assets.receivables,
       target: 'receivables'
-    }
+    },
+    // Only once there is one: most people never receive a check.
+    ...(checksReceivable > 0
+      ? [
+          {
+            label: 'چک‌های دریافتی این دوره',
+            value: checksReceivable,
+            included: config.assets.checksReceived,
+            target: 'checks' as const
+          }
+        ]
+      : [])
   ]
 
   const liabilities: BreakdownItem[] = [
@@ -137,7 +149,7 @@ export default function DashboardBreakdownSection({
       target: 'dang'
     },
     {
-      label: 'چک‌های این دوره',
+      label: 'چک‌های پرداختی این دوره',
       value: financial?.checksDue ?? 0,
       included: config.liabilities.checks,
       target: 'checks'

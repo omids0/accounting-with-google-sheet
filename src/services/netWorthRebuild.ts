@@ -1,3 +1,4 @@
+import { checksOfDirection } from './checkDirection'
 import { applyNetAvailableConfig } from './dashboardNetAvailable'
 import { totalInstallmentsInRange } from './installmentsCalculations'
 import type { NetWorthSnapshot } from './netWorth'
@@ -5,6 +6,7 @@ import type { MonthlyNetTotals } from './openingBalanceDerive'
 import { computeHoldings } from './treasuryHoldings'
 import type {
   Check,
+  CheckDirection,
   Dang,
   InstallmentPlan,
   NetAvailableConfig,
@@ -12,7 +14,7 @@ import type {
   VaultAsset,
   VaultTransaction
 } from '../types'
-import { getJalaliMonthRange, isDateInRange } from '../utils/dateRange'
+import { getJalaliMonthRange, isDateInRange, type DateRange } from '../utils/dateRange'
 import { normalizeSheetDate } from '../utils/sheetValues'
 
 /** Everything the rebuild reads; today's balances plus the dated history behind them. */
@@ -75,6 +77,13 @@ function receivablesAt(receivables: Receivable[], endIso: string): number {
     }, 0)
 }
 
+/** Checks of one type due inside the month: what was due then, whatever they are today. */
+function checksDueIn(checks: Check[], range: DateRange, direction: CheckDirection): number {
+  return checksOfDirection(checks, direction)
+    .filter(check => isDateInRange(check.dueDate, range))
+    .reduce((sum, check) => sum + check.amount, 0)
+}
+
 /**
  * Month-end values of a past month, approximated as round 5 documented: wallet
  * from today's balance and the monthly net flow, vault holdings of that time at
@@ -98,9 +107,8 @@ export function rebuildMonthValues(
       goalsTotal: input.goalsTotal,
       receivablesTotal: receivablesAt(input.receivables, range.end),
       installmentsDue: totalInstallmentsInRange(input.installmentPlans, range),
-      checksDue: input.checks
-        .filter(check => isDateInRange(check.dueDate, range))
-        .reduce((sum, check) => sum + check.amount, 0),
+      checksDue: checksDueIn(input.checks, range, 'paid'),
+      checksReceivable: checksDueIn(input.checks, range, 'received'),
       dangsTotal: input.dangs
         .filter(item => !item.paid && isOnOrBefore(item.date, range.end))
         .reduce((sum, item) => sum + item.amount, 0)

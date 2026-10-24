@@ -39,7 +39,7 @@ function mapDueDateItem(item: DueDateItem): DashboardReminderItem {
   return {
     id: `${item.type}_${item.id}`,
     kind,
-    kindLabel: getReminderKindLabel(kind),
+    kindLabel: item.label ?? getReminderKindLabel(kind),
     title: item.title,
     subtitle: item.subtitle,
     dueDate: item.dueDate,

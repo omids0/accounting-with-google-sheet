@@ -82,7 +82,9 @@ const SUMMARY_PREFIX: Partial<Record<DashboardReminderItem['kind'], string>> = {
 /** «قسط وام مسکن · ۳٬۰۰۰٬۰۰۰»: kind word (unless the title already starts with it) and amount. */
 export function dueItemIcsSummary(item: DashboardReminderItem): string {
   const title = item.title.trim()
-  const prefix = SUMMARY_PREFIX[item.kind]
+  // A check names its type («چک دریافتی علی»), the other kinds one word.
+  const typed = item.kind === 'checks' && item.kindLabel.startsWith('چک ')
+  const prefix = typed ? item.kindLabel : SUMMARY_PREFIX[item.kind]
   const named = prefix && !title.startsWith(prefix) ? `${prefix} ${title}` : title
 
   return item.amount > 0 ? `${named} · ${formatPersianNumber(item.amount)}` : named

@@ -121,6 +121,27 @@ describe('rebuildMonthValues', () => {
     })
   })
 
+  it('counts a received check due that month as an asset, never as a debt', () => {
+    const withReceived: NetWorthRebuildInput = {
+      ...input,
+      checks: [
+        ...input.checks,
+        { ...input.checks[0], id: 'c2', direction: 'received', amount: 150_000, paid: false }
+      ]
+    }
+    const off: NetAvailableConfig = {
+      ...ALL_ON,
+      assets: { ...ALL_ON.assets, checksReceived: false }
+    }
+
+    expect(rebuildMonthValues(withReceived, '1405-05', ALL_ON)).toEqual({
+      assets: 9_650_000,
+      liabilities: 300_000,
+      netWorth: 9_350_000
+    })
+    expect(rebuildMonthValues(withReceived, '1405-05', off)?.assets).toBe(9_500_000)
+  })
+
   it('follows the net-available switches', () => {
     const walletOnly: NetAvailableConfig = {
       assets: {

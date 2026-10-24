@@ -30,13 +30,14 @@ const ASSET_OPTIONS = [
   { id: 'wallet', label: 'کیف پول' },
   { id: 'treasury', label: 'صندوقچه' },
   { id: 'goals', label: 'هدف‌های پس‌انداز' },
-  { id: 'receivables', label: 'طلب‌ها' }
+  { id: 'receivables', label: 'طلب‌ها' },
+  { id: 'checksReceived', label: 'چک‌های دریافتی' }
 ] as const
 
 const LIABILITY_OPTIONS = [
   { id: 'installments', label: 'اقساط' },
   { id: 'dangs', label: 'بدهی‌ها' },
-  { id: 'checks', label: 'چک‌ها' }
+  { id: 'checks', label: 'چک‌های پرداختی' }
 ] as const
 
 function toAssetSelected(config: NetAvailableConfig): Record<string, boolean> {
@@ -137,7 +138,10 @@ export default function NetAvailableSettingsPage() {
 
       <Card>
         <h3 className={chartTitleClass}>دارایی‌ها</h3>
-        <p className={netAvailableSectionHintClass}>مواردی که در مجموع دارایی‌ها لحاظ شوند</p>
+        <p className={netAvailableSectionHintClass}>
+          مواردی که در مجموع دارایی‌ها لحاظ شوند؛ چک‌های دریافتی فقط تا پایان این ماه و تا وقتی پاس
+          نشده‌اند
+        </p>
         <ToggleChipGroup
           options={[...ASSET_OPTIONS]}
           selected={toAssetSelected(config)}
@@ -148,7 +152,10 @@ export default function NetAvailableSettingsPage() {
 
       <Card>
         <h3 className={chartTitleClass}>بدهی‌ها</h3>
-        <p className={netAvailableSectionHintClass}>مواردی که از دارایی قابل اتکا کسر شوند</p>
+        <p className={netAvailableSectionHintClass}>
+          مواردی که از دارایی قابل اتکا کسر شوند؛ چک‌های پرداختی فقط تا پایان این ماه و تا وقتی پاس
+          نشده‌اند
+        </p>
         <ToggleChipGroup
           options={[...LIABILITY_OPTIONS]}
           selected={toLiabilitySelected(config)}

@@ -32,8 +32,8 @@ export default function DueItemRow({
       <DayBadge date={item.dueDate} showMonth={showMonth} danger={overdue} />
       <span className={calmRowMainClass}>
         <span className={calmRowTitleClass}>
-          {item.subtitle && item.kind === 'checks'
-            ? `${item.title} · ${item.subtitle}`
+          {item.kind === 'checks'
+            ? [item.title, item.kindLabel, item.subtitle].filter(Boolean).join(' · ')
             : item.title}
         </span>
         <span className={cn(calmRowSubClass, overdue && calmRowSubDangerClass)}>

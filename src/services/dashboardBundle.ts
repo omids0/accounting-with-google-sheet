@@ -143,7 +143,10 @@ async function fetchDashboardBundleUncached(
 
   const installmentsDue = totalUnpaidInstallments(installmentPlans, installmentRange)
 
-  const checksDue = totalUnpaidChecksInRange(checks, installmentRange)
+  // A payable check is a debt of this period; a received one is money coming in.
+  const checksDue = totalUnpaidChecksInRange(checks, installmentRange, 'paid')
+
+  const checksReceivable = totalUnpaidChecksInRange(checks, installmentRange, 'received')
 
   const dangsTotal = unpaidDangTotal(dangs)
 
@@ -155,7 +158,8 @@ async function fetchDashboardBundleUncached(
     receivablesTotal,
     installmentsDue,
     dangsTotal,
-    checksDue
+    checksDue,
+    checksReceivable
   }
 
   const { totalAssets, totalLiabilities, netAvailable } = applyNetAvailableConfig(

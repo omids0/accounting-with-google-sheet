@@ -1,5 +1,6 @@
 import { CHECKS_HEADERS } from './sheetHeaders'
 import type { Check, CheckDirection } from '../types'
+import { toPersianDigits } from '../utils/normalizeDigits'
 
 /** Header of the checks column that says whether a check is given or received. */
 export const CHECK_DIRECTION_HEADER = 'نوع چک'
@@ -38,4 +39,9 @@ export function checkRecordType(check: WithDirection): 'expense' | 'income' {
 /** «چک پرداختی» / «چک دریافتی». */
 export function checkTypeLabel(check: WithDirection): string {
   return `چک ${CHECK_DIRECTION_LABELS[check.direction]}`
+}
+
+/** «چک دریافتی ۱۲۳»: the type and the number in Persian digits (search results). */
+export function checkListTitle(check: WithDirection & Pick<Check, 'checkNumber'>): string {
+  return `${checkTypeLabel(check)} ${toPersianDigits(check.checkNumber)}`.trim()
 }
