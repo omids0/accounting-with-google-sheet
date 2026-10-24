@@ -79,6 +79,10 @@ export async function saveSavingsGoal(
   if (rowNumber)
     await updateSheetRow(spreadsheetId, TREASURY_GOALS_SHEET, rowNumber, goalToRow(goal))
   else await appendSheetRow(spreadsheetId, TREASURY_GOALS_SHEET, goalToRow(goal))
+
+  // A goal that is no longer "reached" (target raised, archived, money taken out) forgets its
+  // congratulation; reaching the target again earns a new one.
+  if (goal.status !== 'reached') resetGoalCongrats(spreadsheetId, goal.id)
 }
 
 export interface GoalMoveInput {
@@ -124,8 +128,6 @@ export async function moveGoalMoney(
   const balance = goal.balance + amount
   const status = nextGoalStatus(goal, balance)
 
-  // Falling back under the target takes the congratulation away; reaching it again earns a new one.
-  if (goal.status === 'reached' && status === 'active') resetGoalCongrats(spreadsheetId, goal.id)
   if (status === goal.status) return false
 
   await saveSavingsGoal(spreadsheetId, { ...stripView(goal), status }, goal.rowNumber)

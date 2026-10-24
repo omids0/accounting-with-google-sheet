@@ -37,8 +37,13 @@ export default function DashboardGoalCongratsCard() {
 
   // The stored congratulation is only a queue: the card shows while the goal still holds its
   // target, and a goal that fell back under it is forgotten so reaching it again earns a new card.
+  // A new array every refresh: key the effect by the ids so a refresh reads the sheet once.
+  const pendingKey = pending.map(item => item.id).join(',')
+
   useEffect(() => {
-    if (!spreadsheetId || pending.length === 0) return
+    const pendingIds = pendingKey ? pendingKey.split(',') : []
+
+    if (!spreadsheetId || pendingIds.length === 0) return
 
     let cancelled = false
 
@@ -53,17 +58,19 @@ export default function DashboardGoalCongratsCard() {
             .map(item => item.id)
         )
 
-        pending
-          .filter(item => !reached.has(item.id))
-          .forEach(item => resetGoalCongrats(spreadsheetId, item.id))
+        pendingIds
+          .filter(id => !reached.has(id))
+          .forEach(id => resetGoalCongrats(spreadsheetId, id))
         setReachedIds(reached)
       })
-      .catch(() => setReachedIds(null))
+      .catch(() => {
+        if (!cancelled) setReachedIds(null)
+      })
 
     return () => {
       cancelled = true
     }
-  }, [spreadsheetId, pending, revision])
+  }, [spreadsheetId, pendingKey, revision])
 
   const goal = pending.find(item => reachedIds?.has(item.id))
 
