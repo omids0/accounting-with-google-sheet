@@ -1,9 +1,11 @@
-import { act, createElement, type ComponentProps } from 'react'
+import { act, createElement, type ComponentProps, type FormEvent } from 'react'
 import { createRoot } from 'react-dom/client'
+import { useForm } from 'react-hook-form'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 
 import FormModal from './FormModal'
+import { submitValidatedForm } from '../utils/formValidation'
 
 describe('FormModal submit lock', () => {
   it('runs onSubmit once for three submits in the same tick', async () => {
@@ -50,6 +52,51 @@ describe('FormModal submit lock', () => {
       form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
     })
     expect(onSubmit).toHaveBeenCalledTimes(2)
+    act(() => root.unmount())
+  })
+})
+
+describe('FormModal submit lock with the real form helper', () => {
+  it('saves once when the user taps three times in different ticks while the save is pending', async () => {
+    ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+    let finish: () => void = () => undefined
+    const save = vi.fn(() => new Promise<void>(resolve => (finish = resolve)))
+
+    function Harness() {
+      const { handleSubmit } = useForm<{ title: string }>()
+
+      return createElement(
+        FormModal,
+        {
+          open: true,
+          title: 'x',
+          onClose: vi.fn(),
+          saveLabel: 'ذخیره',
+          onSubmit: (event: FormEvent<HTMLFormElement>) =>
+            submitValidatedForm(handleSubmit, () => save(), event)
+        } as unknown as ComponentProps<typeof FormModal>,
+        createElement('input')
+      )
+    }
+
+    const root = createRoot(document.createElement('div'))
+
+    act(() => root.render(createElement(MemoryRouter, null, createElement(Harness))))
+
+    const form = document.body.querySelector('form') as HTMLFormElement
+    const tap = () =>
+      act(async () => {
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+      })
+
+    await tap()
+    await tap()
+    await tap()
+    expect(save).toHaveBeenCalledTimes(1)
+
+    await act(async () => finish())
+    await tap()
+    expect(save).toHaveBeenCalledTimes(2)
     act(() => root.unmount())
   })
 })

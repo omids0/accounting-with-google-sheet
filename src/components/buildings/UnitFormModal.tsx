@@ -138,7 +138,7 @@ export default function UnitFormModal({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
-        void submit()
+        return submit()
       }}
       saving={saving}
       saveLabel="ذخیره"

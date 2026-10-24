@@ -144,7 +144,7 @@ export default function RecordsEditFormModal({
   }
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(formValues =>
+    return handleSubmit(formValues =>
       onSubmit(
         withAutoTitle(formValues),
         showVehicleFields ? vehicleExpense.vehicleValues : undefined

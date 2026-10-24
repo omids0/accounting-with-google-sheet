@@ -125,8 +125,9 @@ export default function CompleteUnitsSheet({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
-        if (summary || empty) onDone()
-        else void save()
+        if (summary || empty) return onDone()
+
+        return save()
       }}
       saving={saving}
       saveLabel={summary || empty ? 'بعدی' : 'ذخیره و بعدی'}

@@ -47,7 +47,7 @@ export default function ManagedItemSheet({
       saveLabel={item ? 'ذخیره' : 'افزودن'}
       onSubmit={event => {
         event.preventDefault()
-        void onSave(label, chargeTo).then(done => done && onClose())
+        return onSave(label, chargeTo).then(done => done && onClose())
       }}
     >
       <FormField label="نام" required>

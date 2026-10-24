@@ -76,7 +76,7 @@ export default function TreasuryAssetFormModal({
       open={asset != null}
       title={draft ? `${draft.name} · ${getAssetClassLabel(draft.assetClass)}` : 'دارایی'}
       onClose={() => !saving && onClose()}
-      onSubmit={event => void handleSubmit(event)}
+      onSubmit={handleSubmit}
       saving={saving}
       saveLabel="ذخیره"
     >

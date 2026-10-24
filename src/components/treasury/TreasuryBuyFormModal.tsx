@@ -84,7 +84,7 @@ export default function TreasuryBuyFormModal({
   const unit = (asset ? asset.unit : newAsset.unit) || 'واحد'
 
   const onFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    return handleSubmit(values => onSubmit(values))(event)
   }
 
   return (

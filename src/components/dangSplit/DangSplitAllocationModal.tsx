@@ -45,7 +45,7 @@ export default function DangSplitAllocationModal({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
-        void onSave(draft.weights)
+        return onSave(draft.weights)
       }}
       saving={saving}
       saveLabel="ذخیره تخصیص"

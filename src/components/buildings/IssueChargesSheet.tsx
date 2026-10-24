@@ -113,7 +113,7 @@ function IssueChargesForm({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
-        void submit()
+        return submit()
       }}
       saving={saving}
       saveDisabled={!plan?.count || !can('issue')}

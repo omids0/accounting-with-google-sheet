@@ -135,6 +135,7 @@ export function submitValidatedForm<TFieldValues extends FieldValues>(
   handleSubmit: UseFormHandleSubmit<TFieldValues>,
   onValid: (data: TFieldValues) => void | Promise<void>,
   event?: BaseSyntheticEvent
-) {
-  void handleSubmit(onValid, errors => showFormValidationToast(errors))(event)
+): Promise<void> {
+  // Returned so FormModal can hold its submit lock until the save settles.
+  return handleSubmit(onValid, errors => showFormValidationToast(errors))(event)
 }

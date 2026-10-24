@@ -108,7 +108,7 @@ export default function PreviousDebtsSheet({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
-        void submit()
+        return submit()
       }}
       saving={saving}
       saveLabel="ثبت و بعدی"

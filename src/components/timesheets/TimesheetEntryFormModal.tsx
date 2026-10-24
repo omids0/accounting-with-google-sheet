@@ -84,7 +84,7 @@ export default function TimesheetEntryFormModal({
   }
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values, durationMinutes))(event)
+    return handleSubmit(values => onSubmit(values, durationMinutes))(event)
   }
 
   return (

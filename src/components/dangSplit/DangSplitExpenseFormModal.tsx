@@ -91,7 +91,7 @@ export default function DangSplitExpenseFormModal({
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    submitValidatedForm(handleSubmit, values => onSubmit(values, draft.weights), event)
+    return submitValidatedForm(handleSubmit, values => onSubmit(values, draft.weights), event)
   }
 
   return (

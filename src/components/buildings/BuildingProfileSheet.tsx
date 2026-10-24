@@ -82,7 +82,7 @@ export default function BuildingProfileSheet({
       saveLabel="ذخیره"
       onSubmit={event => {
         event.preventDefault()
-        void save()
+        return save()
       }}
     >
       {part === 'details' ? (
