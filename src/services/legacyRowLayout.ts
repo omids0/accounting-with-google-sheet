@@ -27,6 +27,8 @@ const columnOf = (fieldId: string): number =>
 
 const LEGACY_AMOUNT_COLUMN = columnOf('amount')
 
+const LEGACY_CATEGORY_COLUMN = columnOf('category')
+
 /** Slots after the balance switch: the writer email sits in the first one the row actually had. */
 const LEGACY_COUNTERPARTY_COLUMN = columnOf('counterparty')
 
@@ -45,14 +47,21 @@ export interface LegacyLayoutPlan {
   writerColumn: number
   /** Cells a rebuilt row has at least. */
   width: number
+  /** The form's category names: a number in the category column is told from an amount by them. */
+  knownCategories: Set<string>
 }
+
+const norm = (cell: unknown): string =>
+  String(cell ?? '')
+    .normalize('NFC')
+    .trim()
 
 /**
  * Whether the header is the one that can hide legacy rows (category at column 4, amount elsewhere)
  * and, if so, how to move a legacy row. Null for every other tab: nothing to detect.
  */
 export function legacyLayoutPlan(
-  form: Pick<CustomForm, 'type'>,
+  form: Pick<CustomForm, 'type' | 'fields'>,
   columnMap: Map<string, number>,
   writerColumn: number,
   headerWidth: number
@@ -76,16 +85,62 @@ export function legacyLayoutPlan(
     amountColumn,
     moves,
     writerColumn,
-    width: Math.max(headerWidth, LEGACY_WRITER_COLUMN + 1)
+    width: Math.max(headerWidth, LEGACY_WRITER_COLUMN + 1),
+    knownCategories: new Set(
+      (form.fields.find(field => field.id === 'category')?.options ?? []).map(norm)
+    )
   }
 }
 
+export type LegacyRowKind = 'legacy' | 'current' | 'ambiguous'
+
 /**
- * A legacy row keeps its amount where the header says «دسته‌بندی» and has no number where the
- * header says «مبلغ». The reverse (a number in the amount column) is always taken as a current row.
+ * A legacy row keeps its amount where the header says «دسته‌بندی». It is told from a current row by
+ * the cell under «مبلغ»: no number there means legacy. A number there is a current row, unless the
+ * cell in column 4 is no category of the form while the next one is (a legacy row whose note is a
+ * number). A number in column 4 that IS a category of the form with no amount beside it could be
+ * a current row with a numeric category name: 'ambiguous', never rewritten.
  */
-export function isLegacyRow(row: readonly unknown[], plan: LegacyLayoutPlan): boolean {
-  return isNumericCell(row[LEGACY_AMOUNT_COLUMN]) && !isNumericCell(row[plan.amountColumn])
+export function classifyRow(row: readonly unknown[], plan: LegacyLayoutPlan): LegacyRowKind {
+  if (!isNumericCell(row[LEGACY_AMOUNT_COLUMN])) return 'current'
+
+  const categoryHere = plan.knownCategories.has(norm(row[LEGACY_AMOUNT_COLUMN]))
+
+  if (!isNumericCell(row[plan.amountColumn])) return categoryHere ? 'ambiguous' : 'legacy'
+
+  const categoryNext = plan.knownCategories.has(norm(row[LEGACY_CATEGORY_COLUMN]))
+
+  return !categoryHere && categoryNext ? 'legacy' : 'current'
+}
+
+export const isLegacyRow = (row: readonly unknown[], plan: LegacyLayoutPlan): boolean =>
+  classifyRow(row, plan) === 'legacy'
+
+/**
+ * True when rebuilding `row` as `next` would drop a non-empty cell of the legacy part (a column
+ * the header has no field for, an e-mail without a «ثبت‌کننده» column …): such a row is read, but a
+ * repair must not rewrite it.
+ */
+export function losesCells(row: readonly unknown[], next: readonly unknown[]): boolean {
+  const left = new Map<string, number>()
+
+  for (const cell of next.slice(LEGACY_FIRST_COLUMN)) {
+    const key = norm(cell)
+
+    if (key) left.set(key, (left.get(key) ?? 0) + 1)
+  }
+  for (const cell of row.slice(LEGACY_FIRST_COLUMN)) {
+    const key = norm(cell)
+
+    if (!key) continue
+
+    const count = left.get(key) ?? 0
+
+    if (!count) return true
+    left.set(key, count - 1)
+  }
+
+  return false
 }
 
 /** The row's cells under today's header; the row itself when it is not a legacy one. */

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 
+import { useActiveSpreadsheetName } from '../../hooks/useActiveSpreadsheetName'
 import {
-  findLegacyRows,
+  describeFix,
   legacyRepairBlocker,
   repairLegacyRows,
-  type LegacyRowFix
+  scanLegacyRows,
+  type LegacyScan
 } from '../../services/legacyRowRepair'
 import { getSettings } from '../../services/settings'
 import { formatPersianNumber } from '../../utils/formatMoney'
@@ -14,13 +16,48 @@ import Button from '../ui/Button'
 import Card, { CardTitle } from '../ui/Card'
 import { formHintClass } from '../ui/formStyles'
 
+const SAMPLE_ROWS = 3
+
+const show = (value: string) => `«${value || 'خالی'}»`
+
+/** The dialog text: counts, rows that need a manual look, and before/after of the first rows. */
+function previewMessage({ fixes, review }: LegacyScan): string {
+  const lines = [
+    `${formatPersianNumber(
+      fixes.length
+    )} ردیف با چیدمان ستون قدیمی پیدا شد و بعد از تأیید جابه‌جا می‌شود. بقیهٔ ردیف‌ها دست نمی‌خورد.`
+  ]
+
+  for (const fix of fixes.slice(0, SAMPLE_ROWS).map(describeFix)) {
+    lines.push(
+      `ردیف ${formatPersianNumber(fix.rowNumber)} ${show(fix.title)}: الان دسته ${show(
+        fix.before.category
+      )} و مبلغ ${show(fix.before.amount)} ← بعد از ترمیم دسته ${show(
+        fix.after.category
+      )} و مبلغ ${show(fix.after.amount)}`
+    )
+  }
+  if (review.length) {
+    lines.push(
+      `${formatPersianNumber(
+        review.length
+      )} ردیف مشکوک است (احتمال اشتباه یا ستونی که جایی ندارد) و ترمیم نمی‌شود؛ خودت در شیت نگاهشان کن.`
+    )
+  }
+  lines.push('پیش از نوشتن، یک پشتیبان کامل گرفته می‌شود.')
+
+  return lines.join('\n')
+}
+
 /**
  * Settings → «حساب و داده» → «ترمیم ستون‌ها»: rows an older version wrote in a different column
- * order are scanned in the local copy and, only after the user confirms, rewritten in today's order.
+ * order are scanned in the local copy and, only after the user confirms (a backup is taken first),
+ * rewritten in today's order.
  */
 export default function SettingsColumnRepairCard({ spreadsheetId }: { spreadsheetId: string }) {
-  const [found, setFound] = useState<LegacyRowFix[] | null>(null)
+  const [found, setFound] = useState<LegacyScan | null>(null)
   const [repairing, setRepairing] = useState(false)
+  const spreadsheetLabel = useActiveSpreadsheetName()
 
   const scan = () => {
     const blocker = legacyRepairBlocker(spreadsheetId)
@@ -31,24 +68,41 @@ export default function SettingsColumnRepairCard({ spreadsheetId }: { spreadshee
       return
     }
 
-    const fixes = findLegacyRows(spreadsheetId, getSettings()?.forms ?? [])
+    const result = scanLegacyRows(spreadsheetId, getSettings()?.forms ?? [])
 
-    if (!fixes.length) {
+    if (!result.fixes.length && !result.review.length) {
       showInfo('همهٔ ردیف‌های درآمد و هزینه در ستون درست هستند.')
 
       return
     }
-    setFound(fixes)
+    if (!result.fixes.length) {
+      showInfo(
+        `${formatPersianNumber(
+          result.review.length
+        )} ردیف مشکوک پیدا شد که خودکار ترمیم نمی‌شود؛ در شیت نگاهشان کن.`
+      )
+
+      return
+    }
+    setFound(result)
   }
 
   const confirm = async () => {
     if (!found) return
     setRepairing(true)
     try {
+      const { createFullBackup } = await import('../../services/backupExport')
+
+      if (!(await createFullBackup(spreadsheetId, spreadsheetLabel))) {
+        showError('پشتیبان گرفته نشد، پس چیزی نوشته نشد.')
+
+        return
+      }
+
       // Scan again: the list shown may be older than the data (a sync can have fixed rows meanwhile).
       const result = await repairLegacyRows(
         spreadsheetId,
-        findLegacyRows(spreadsheetId, getSettings()?.forms ?? [])
+        scanLegacyRows(spreadsheetId, getSettings()?.forms ?? []).fixes
       )
 
       if (result.aborted) {
@@ -75,7 +129,8 @@ export default function SettingsColumnRepairCard({ spreadsheetId }: { spreadshee
       <CardTitle>ترمیم ستون‌ها</CardTitle>
       <p className={formHintClass}>
         اگر در درآمد یا هزینه رکوردهای قدیمی مبلغ صفر یا دسته‌بندی عددی نشان می‌دهند، اینجا ردیف‌های
-        قدیمی پیدا و بعد از تأیید تو به ستون درست منتقل می‌شوند. شناسه و زمان ثبت همان می‌ماند.
+        قدیمی پیدا و بعد از تأیید تو (و گرفتن پشتیبان) به ستون درست منتقل می‌شوند. شناسه و زمان ثبت
+        همان می‌ماند.
       </p>
       <Button type="button" variant="secondary" size="sm" className="self-start" onClick={scan}>
         بررسی ردیف‌ها
@@ -83,10 +138,8 @@ export default function SettingsColumnRepairCard({ spreadsheetId }: { spreadshee
       <ConfirmActionModal
         open={found !== null}
         title="ترمیم ستون‌ها"
-        message={`${formatPersianNumber(
-          found?.length ?? 0
-        )} ردیف با چیدمان ستون قدیمی پیدا شد. مبلغ و دسته‌بندی آن‌ها در شیت جابه‌جا می‌شود و بقیهٔ ردیف‌ها دست نمی‌خورد. ادامه بدهیم؟`}
-        confirmLabel="ترمیم کن"
+        message={found ? previewMessage(found) : ''}
+        confirmLabel="پشتیبان بگیر و ترمیم کن"
         cancelLabel="انصراف"
         confirming={repairing}
         onClose={() => setFound(null)}

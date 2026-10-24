@@ -1,5 +1,5 @@
 import { archiveTabsOfForm } from './archiveRegistry'
-import { legacyLayoutPlan, remapLegacyRow } from './legacyRowLayout'
+import { classifyRow, legacyLayoutPlan, losesCells, remapLegacyRow } from './legacyRowLayout'
 import { withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { columnLetter, rowsMatchForCompare, toSheetRowValues } from './sheetsCellValues'
@@ -29,11 +29,27 @@ export interface LegacyRowFix {
 /** Rows per values:batchUpdate request; 273 rows are 3 requests, not 273. */
 export const REPAIR_CHUNK_ROWS = 100
 
+/** A row that looks legacy but is left alone: the user checks it by hand. */
+export interface LegacyRowReview {
+  sheetName: string
+  rowNumber: number
+  id: string
+  /** `ambiguous`: a current row could look like this; `unmapped`: a cell has no column to go to. */
+  reason: 'ambiguous' | 'unmapped'
+}
+
+export interface LegacyScan {
+  fixes: LegacyRowFix[]
+  review: LegacyRowReview[]
+}
+
 /** Rows of `tab` written in the old column order, with the row they become. Reads the local mirror only. */
-function legacyRowsOfTab(spreadsheetId: string, form: CustomForm, tab: string): LegacyRowFix[] {
+function scanTab(spreadsheetId: string, form: CustomForm, tab: string): LegacyScan {
+  const scan: LegacyScan = { fixes: [], review: [] }
+
   const rows = getSheetAllRows(spreadsheetId, tab)
 
-  if (!rows?.length || !isSheetHeaderRow(rows[0])) return []
+  if (!rows?.length || !isSheetHeaderRow(rows[0])) return scan
 
   const headers = rows[0].map(cell => cellToString(cell))
 
@@ -44,17 +60,30 @@ function legacyRowsOfTab(spreadsheetId: string, form: CustomForm, tab: string): 
     headers.length
   )
 
-  if (!plan) return []
-
-  const fixes: LegacyRowFix[] = []
+  if (!plan) return scan
 
   rows.forEach((row, index) => {
-    if (index === 0 || !cellToString(row[0]).trim()) return
+    const id = cellToString(row[0]).trim()
+
+    if (index === 0 || !id) return
+
+    const kind = classifyRow(row, plan)
+
+    if (kind === 'current') return
 
     const next = remapLegacyRow(row, plan)
 
-    if (next === row) return
-    fixes.push({
+    if (kind === 'ambiguous' || losesCells(row, next)) {
+      scan.review.push({
+        sheetName: tab,
+        rowNumber: index + 1,
+        id,
+        reason: kind === 'ambiguous' ? 'ambiguous' : 'unmapped'
+      })
+
+      return
+    }
+    scan.fixes.push({
       sheetName: tab,
       rowNumber: index + 1,
       before: [...row],
@@ -64,18 +93,43 @@ function legacyRowsOfTab(spreadsheetId: string, form: CustomForm, tab: string): 
     })
   })
 
-  return fixes
+  return scan
 }
 
 /** Every legacy-layout row of the income/expense tabs (and their yearly archives). */
-export function findLegacyRows(spreadsheetId: string, forms: CustomForm[]): LegacyRowFix[] {
-  return forms
+export function scanLegacyRows(spreadsheetId: string, forms: CustomForm[]): LegacyScan {
+  const scans = forms
     .filter(form => form.type === 'income' || form.type === 'expense')
     .flatMap(form =>
-      [form.sheetName, ...archiveTabsOfForm(spreadsheetId, form, forms)].flatMap(tab =>
-        legacyRowsOfTab(spreadsheetId, form, tab)
+      [form.sheetName, ...archiveTabsOfForm(spreadsheetId, form, forms)].map(tab =>
+        scanTab(spreadsheetId, form, tab)
       )
     )
+
+  return {
+    fixes: scans.flatMap(scan => scan.fixes),
+    review: scans.flatMap(scan => scan.review)
+  }
+}
+
+export const findLegacyRows = (spreadsheetId: string, forms: CustomForm[]): LegacyRowFix[] =>
+  scanLegacyRows(spreadsheetId, forms).fixes
+
+/** One repaired row in words: title, and category and amount as shown now and after the repair. */
+export function describeFix(fix: LegacyRowFix) {
+  const column = (label: string) =>
+    fix.header.findIndex(cell => cellToString(cell).trim() === label)
+
+  const [title, category, amount] = ['عنوان', 'دسته‌بندی', 'مبلغ'].map(column)
+
+  const at = (row: string[], index: number) => (index >= 0 ? cellToString(row[index]).trim() : '')
+
+  return {
+    rowNumber: fix.rowNumber,
+    title: at(fix.after, title),
+    before: { category: at(fix.before, category), amount: at(fix.before, amount) },
+    after: { category: at(fix.after, category), amount: at(fix.after, amount) }
+  }
 }
 
 /** Why a repair may not start right now, or null. Queued edits would be written over by it. */
