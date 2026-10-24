@@ -43,13 +43,13 @@ export const walletBankCardNumberCenterClass = cn(
 )
 
 export const walletBankCardBottomRowClass =
-  'relative z-[1] mt-auto flex items-end justify-between gap-1.5 pt-[0.1rem] pe-[0.1rem]'
+  'relative z-[1] mt-auto flex flex-wrap items-end justify-between gap-x-1.5 gap-y-1 pt-[0.1rem] pe-[0.1rem]'
 
 export const walletBankCardHolderClass =
   'min-w-0 truncate text-[0.6875rem] font-medium opacity-90 sm:text-[0.72rem]'
 
 export const walletBankCardBalanceClass = cx(
-  'shrink-0 text-[0.82rem] font-extrabold tabular-nums font-numeric leading-none sm:text-[0.88rem]'
+  'max-w-full shrink-0 text-[0.82rem] font-extrabold tabular-nums font-numeric leading-tight [overflow-wrap:anywhere] sm:text-[0.88rem]'
 )
 
 export const walletBankCardTitleClass =
@@ -129,12 +129,13 @@ const walletTileBadgeClass = cx(
 const walletTileTitleClass =
   'mt-[0.22rem] truncate text-[0.72rem] font-bold leading-tight opacity-95 sm:text-[0.76rem]'
 
-const walletTileBottomRowClass = 'relative z-[2] flex items-end justify-between gap-2.5'
+const walletTileBottomRowClass =
+  'relative z-[2] flex flex-wrap items-end justify-between gap-x-2.5 gap-y-1'
 
 const walletTileNoteClass = 'min-w-0 truncate text-[0.6875rem] font-medium leading-tight opacity-90'
 
 const walletTileBalanceClass = cx(
-  'shrink-0 text-[0.84rem] font-extrabold tabular-nums font-numeric leading-none sm:text-[0.88rem]'
+  'max-w-full shrink-0 text-[0.84rem] font-extrabold tabular-nums font-numeric leading-tight [overflow-wrap:anywhere] sm:text-[0.88rem]'
 )
 
 const walletTileWatermarkClass = cx(
