@@ -1,4 +1,5 @@
 import { archiveTabsOfForm } from './archiveRegistry'
+import { headerAttachmentColumn } from './attachmentColumn'
 import { classifyRow, legacyLayoutPlan, losesCells, remapLegacyRow } from './legacyRowLayout'
 import { withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
@@ -57,7 +58,8 @@ function scanTab(spreadsheetId: string, form: CustomForm, tab: string): LegacySc
     form,
     buildFieldColumnMap(headers, form.fields),
     headerWriterColumn(headers),
-    headers.length
+    headers.length,
+    headerAttachmentColumn(headers)
   )
 
   if (!plan) return scan

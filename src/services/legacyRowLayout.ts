@@ -38,9 +38,20 @@ const LEGACY_WRITER_COLUMN = LEGACY_ITEMS_COLUMN + 1
 
 const EMAIL_CELL = /^[\w.+-]+@[\w-]+(\.[\w-]+)+$/
 
+/** A Google Drive file id (a receipt photo); several are written separated by , ; or spaces. */
+const DRIVE_ID = /^[A-Za-z0-9_-]{25,60}$/
+
+const isDriveIds = (text: string): boolean => {
+  const parts = text.split(/[\s,;]+/).filter(Boolean)
+
+  return parts.length > 0 && parts.every(part => DRIVE_ID.test(part) && /\d|[A-Z]/.test(part))
+}
+
 export interface LegacyLayoutPlan {
   /** Column that holds the amount under the tab's header. */
   amountColumn: number
+  /** Column of «پیوست» in the header; -1 when the tab has none. */
+  attachmentColumn: number
   /** Legacy column → the column the header gives that field. */
   moves: [from: number, to: number][]
   /** Column of «ثبت‌کننده» in the header; -1 when the tab has none. */
@@ -64,7 +75,8 @@ export function legacyLayoutPlan(
   form: Pick<CustomForm, 'type' | 'fields'>,
   columnMap: Map<string, number>,
   writerColumn: number,
-  headerWidth: number
+  headerWidth: number,
+  attachmentColumn = -1
 ): LegacyLayoutPlan | null {
   if (form.type !== 'income' && form.type !== 'expense') return null
 
@@ -83,6 +95,7 @@ export function legacyLayoutPlan(
 
   return {
     amountColumn,
+    attachmentColumn,
     moves,
     writerColumn,
     width: Math.max(headerWidth, LEGACY_WRITER_COLUMN + 1),
@@ -151,19 +164,30 @@ export function remapLegacyRow(row: unknown[], plan: LegacyLayoutPlan | null): u
 
   next[0] = row[0] ?? ''
   next[1] = row[1] ?? ''
-  // Rows written before the later columns existed carry the writer in the first free slot after
-  // the balance switch (counterparty, items or the writer column itself): never a counterparty.
-  const isWriterSlot = (column: number) => EMAIL_CELL.test(String(row[column] ?? '').trim())
-
+  // The three cells after the balance switch were written in different orders over time
+  // (counterparty, items, writer — or receipt ids, writer, counterparty …): tell them by content.
   const slots = [LEGACY_COUNTERPARTY_COLUMN, LEGACY_ITEMS_COLUMN, LEGACY_WRITER_COLUMN]
 
-  const writerSlot = slots.filter(isWriterSlot).pop()
+  const target = (field: 'counterparty' | 'lineItems'): number | undefined =>
+    plan.moves.find(([from]) => from === columnOf(field))?.[1]
 
   for (const [from, to] of plan.moves) {
-    next[to] = slots.includes(from) && isWriterSlot(from) ? '' : row[from] ?? ''
+    if (!slots.includes(from)) next[to] = row[from] ?? ''
   }
-  if (plan.writerColumn >= 0 && writerSlot !== undefined) {
-    next[plan.writerColumn] = String(row[writerSlot]).trim()
+  for (const column of slots) {
+    const text = String(row[column] ?? '').trim()
+
+    if (!text) continue
+
+    const place = EMAIL_CELL.test(text)
+      ? plan.writerColumn
+      : isDriveIds(text)
+      ? plan.attachmentColumn
+      : text.startsWith('[')
+      ? target('lineItems') ?? -1
+      : target('counterparty') ?? -1
+
+    if (place >= 0 && String(next[place] ?? '') === '') next[place] = row[column] ?? ''
   }
 
   // Cells past the legacy part (receipts …) stay where they were.

@@ -45,7 +45,7 @@ function parseSheetRecords(rows: unknown[][], form: CustomForm, sheetName: strin
 
   // Rows an older build wrote in its own column order are read in today's (in memory only).
   const legacyPlan = hasHeader
-    ? legacyLayoutPlan(form, columnMap, writerColumn, headers.length)
+    ? legacyLayoutPlan(form, columnMap, writerColumn, headers.length, attachmentColumn)
     : null
 
   return dataRows
