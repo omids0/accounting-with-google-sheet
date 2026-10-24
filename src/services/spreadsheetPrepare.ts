@@ -1,4 +1,5 @@
 import { syncCategoriesFromSheet } from './categories'
+import { migrateCheckDirectionColumn } from './migrateCheckDirectionColumn'
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
 import { migrateWalletColumns } from './migrateWalletApplyColumn'
@@ -36,6 +37,7 @@ export async function prepareSpreadsheetContents(spreadsheetId: string): Promise
   }
   await migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   await migrateSubCategoryColumn(spreadsheetId).catch(() => undefined)
+  await migrateCheckDirectionColumn(spreadsheetId).catch(() => undefined)
   await migrateWalletColumns(spreadsheetId).catch(() => undefined)
   await ensureMembershipDate(spreadsheetId).catch(() => '')
 }
@@ -47,6 +49,8 @@ export function runBackgroundMigrations(spreadsheetId: string): void {
   if (getWorkspaceType(spreadsheetId) === 'building') return
   void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   void migrateSubCategoryColumn(spreadsheetId)
+    .catch(() => undefined)
+    .then(() => migrateCheckDirectionColumn(spreadsheetId))
     .catch(() => undefined)
     .then(() => migrateWalletColumns(spreadsheetId))
     .catch(() => undefined)

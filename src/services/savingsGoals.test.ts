@@ -113,7 +113,7 @@ describe('goals in net available', () => {
     checksDue: 0
   }
   const config = (treasury: boolean, goals: boolean) => ({
-    assets: { wallet: true, treasury, goals, receivables: true },
+    assets: { wallet: true, treasury, goals, receivables: true, checksReceived: true },
     liabilities: { installments: true, dangs: true, checks: true }
   })
 

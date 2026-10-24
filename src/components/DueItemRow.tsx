@@ -8,6 +8,7 @@ import {
   calmRowMainClass,
   calmRowSubClass,
   calmRowSubDangerClass,
+  calmRowSubWarningClass,
   calmRowTitleClass
 } from './ui/calmListStyles'
 
@@ -26,18 +27,26 @@ export default function DueItemRow({
   showMonth?: boolean
 }) {
   const overdue = item.status === 'overdue'
+  const lateIncoming = overdue && item.incoming === true
+  const when = formatDueRelative(item.status, days)
 
   return (
     <li className={calmRowClass}>
-      <DayBadge date={item.dueDate} showMonth={showMonth} danger={overdue} />
+      <DayBadge date={item.dueDate} showMonth={showMonth} danger={overdue && !lateIncoming} />
       <span className={calmRowMainClass}>
         <span className={calmRowTitleClass}>
-          {item.subtitle && item.kind === 'checks'
-            ? `${item.title} · ${item.subtitle}`
+          {item.kind === 'checks'
+            ? [item.title, item.kindLabel, item.subtitle].filter(Boolean).join(' · ')
             : item.title}
         </span>
-        <span className={cn(calmRowSubClass, overdue && calmRowSubDangerClass)}>
-          {formatDueRelative(item.status, days)}
+        <span
+          className={cn(
+            calmRowSubClass,
+            overdue && !lateIncoming && calmRowSubDangerClass,
+            lateIncoming && calmRowSubWarningClass
+          )}
+        >
+          {lateIncoming ? when.replace('معوق', 'معوق دریافتی') : when}
         </span>
       </span>
       {item.amount > 0 ? (

@@ -15,7 +15,8 @@ import {
 /** Names of the parts counted in each total, in the order the breakdown view lists them. */
 export function selectedPartLabels(
   config: NetAvailableConfig,
-  hasGoals = false
+  hasGoals = false,
+  hasReceivedChecks = false
 ): {
   assets: string[]
   liabilities: string[]
@@ -24,11 +25,12 @@ export function selectedPartLabels(
     config.assets.wallet && 'کیف پول',
     config.assets.treasury && 'صندوقچه',
     config.assets.goals && hasGoals && 'هدف‌ها',
-    config.assets.receivables && 'طلب‌ها'
+    config.assets.receivables && 'طلب‌ها',
+    config.assets.checksReceived && hasReceivedChecks && 'چک‌های دریافتی'
   ]
   const liabilities = [
     config.liabilities.installments && 'اقساط این دوره',
-    config.liabilities.checks && 'چک‌ها',
+    config.liabilities.checks && 'چک‌های پرداختی',
     config.liabilities.dangs && 'بدهی'
   ]
 
@@ -50,7 +52,11 @@ export default function DashboardBalanceBlock({
   onDetails: () => void
   config?: NetAvailableConfig
 }) {
-  const parts = selectedPartLabels(config, (financial.goalsTotal ?? 0) > 0)
+  const parts = selectedPartLabels(
+    config,
+    (financial.goalsTotal ?? 0) > 0,
+    (financial.checksReceivable ?? 0) > 0
+  )
 
   const rows = [
     {

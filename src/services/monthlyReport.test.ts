@@ -35,6 +35,7 @@ const check = (dueDate: string, paid: boolean, paidAt = ''): Check => ({
   id: dueDate + paid,
   createdAt: '',
   checkNumber: '1',
+  direction: 'paid',
   counterparty: '',
   amount: 1,
   creationDate: '',

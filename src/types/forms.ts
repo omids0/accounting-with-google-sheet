@@ -42,6 +42,8 @@ export interface NetAvailableAssetConfig {
   /** Savings goals; their balance is part of `treasuryTotal` but toggled on its own. */
   goals: boolean
   receivables: boolean
+  /** Unpaid received checks due within the period (a check I will get paid). */
+  checksReceived: boolean
 }
 
 export interface NetAvailableLiabilityConfig {
@@ -85,6 +87,12 @@ export interface GoogleSession {
   tokenExpiry: number
   /** Space-separated scopes Google granted; missing on sessions from before drive.file. */
   scope?: string
+  /**
+   * Id of the refresh-token session kept by workers/auth-refresh. Only the id lives
+   * here; the refresh token itself never reaches the browser. Absent on sessions made
+   * without the worker, which renew the old way.
+   */
+  authSessionId?: string
 }
 
 /** PIN-wrapped data key; see services/appLockVault. */

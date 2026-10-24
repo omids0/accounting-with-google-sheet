@@ -1,3 +1,4 @@
+import { checkTypeLabel } from './checkDirection'
 import { fetchChecks } from './checks'
 import { fetchDangs } from './dang'
 import { fetchInstallmentPlans, getInstallmentPaymentAmount } from './installments'
@@ -53,14 +54,17 @@ function collectCheckReminders(
     .filter(check => check.dueDate.slice(0, 10) === targetDueDate)
     .map(check => {
       const label = check.counterparty || check.checkNumber || 'چک'
+      const typeLabel = checkTypeLabel(check)
       const dueLabel = formatIsoDatePersian(check.dueDate)
       const numberPart = check.checkNumber ? ` — شماره ${check.checkNumber}` : ''
 
       return {
         kind: 'checks' as const,
         reference: `check_${check.id}_${targetDueDate}`,
-        title: 'یادآوری چک',
-        body: `${label}${numberPart} (${formatMoney(check.amount)}) — سررسید: ${dueLabel}`,
+        title: `یادآوری ${typeLabel}`,
+        body: `${typeLabel} ${label}${numberPart} (${formatMoney(
+          check.amount
+        )}) — سررسید: ${dueLabel}`,
         dueDate: check.dueDate,
         remindOn: todayIso
       }

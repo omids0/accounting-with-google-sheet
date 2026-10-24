@@ -33,9 +33,9 @@ describe('attachment column', () => {
     ])
   })
 
-  it('sits just before «ثبت‌کننده» on the fixed tabs', () => {
+  it('sits just before «ثبت‌کننده» on the fixed tabs (checks add «نوع چک» after it)', () => {
     expect(CHECKS_HEADERS[CHECK_ATTACHMENT_COLUMN]).toBe('پیوست')
-    expect(CHECK_ATTACHMENT_COLUMN).toBe(CHECKS_HEADERS.length - 2)
+    expect(CHECK_ATTACHMENT_COLUMN).toBe(CHECKS_HEADERS.length - 3)
     expect(INSTALLMENT_ATTACHMENT_COLUMN).toBe(INSTALLMENTS_HEADERS.length - 2)
   })
 

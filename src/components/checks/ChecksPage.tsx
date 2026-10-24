@@ -8,6 +8,7 @@ import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
+import { SegmentedRadio } from '../form'
 import PageFilterPanel from '../PageFilterPanel'
 import CheckFormModal from './CheckFormModal'
 import CheckList from './CheckList'
@@ -65,6 +66,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     draftCustomRange,
     counterpartyOptions,
     filteredItems,
+    direction,
     openFilterModal,
     filterChips,
     clearAllFilters,
@@ -144,9 +146,20 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
           dateIncludeAll
           dateLabel="بازه زمانی (سررسید)"
           dateLoading={loading}
+          {...direction.panelProps}
           {...minePanelProps}
         />
       </FilterModal>
+
+      {items.length > 0 ? (
+        <SegmentedRadio
+          label="نوع چک"
+          options={direction.options}
+          value={direction.kind}
+          onChange={direction.set}
+          className="[&_button]:min-h-11"
+        />
+      ) : null}
 
       <CheckList
         items={items}
@@ -157,6 +170,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
         onEdit={openEditForm}
         onDelete={requestDelete}
         onAdd={openCreateForm}
+        directionNote={direction.activeLabel}
+        onClearDirection={() => direction.set('all')}
       />
 
       <CheckFormModal

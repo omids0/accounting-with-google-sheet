@@ -10,7 +10,7 @@ import type { NetAvailableConfig } from '../types'
 import { jalaliToIso } from '../utils/jalaliDate'
 
 const ALL_ON: NetAvailableConfig = {
-  assets: { wallet: true, treasury: true, goals: true, receivables: true },
+  assets: { wallet: true, treasury: true, goals: true, receivables: true, checksReceived: true },
   liabilities: { installments: true, dangs: true, checks: true }
 }
 
@@ -68,6 +68,7 @@ const input: NetWorthRebuildInput = {
       id: 'c1',
       createdAt: '',
       checkNumber: '1',
+      direction: 'paid',
       counterparty: '',
       amount: 200_000,
       creationDate: day(4, 1),
@@ -120,9 +121,61 @@ describe('rebuildMonthValues', () => {
     })
   })
 
+  it('counts a received check due that month as an asset, never as a debt', () => {
+    const withReceived: NetWorthRebuildInput = {
+      ...input,
+      checks: [
+        ...input.checks,
+        { ...input.checks[0], id: 'c2', direction: 'received', amount: 150_000, paid: false }
+      ]
+    }
+    const off: NetAvailableConfig = {
+      ...ALL_ON,
+      assets: { ...ALL_ON.assets, checksReceived: false }
+    }
+
+    expect(rebuildMonthValues(withReceived, '1405-05', ALL_ON)).toEqual({
+      assets: 9_650_000,
+      liabilities: 300_000,
+      netWorth: 9_350_000
+    })
+    expect(rebuildMonthValues(withReceived, '1405-05', off)?.assets).toBe(9_500_000)
+  })
+
+  it('does not count a received check twice: once it is passed the money is in the wallet', () => {
+    const received = { ...input.checks[0], direction: 'received' as const, amount: 150_000 }
+    const withChecks = (...checks: NetWorthRebuildInput['checks']) => ({ ...input, checks })
+
+    // Due in month 5 and passed on the 20th of month 5: income already, not an asset any more.
+    const passedInMonth = { ...received, id: 'p', paid: true, paidAt: '۱۴۰۵/۵/۲۰، ۱۰:۴۰:۱۲' }
+    // Due in month 5 but passed in month 6: at the end of month 5 it was still an asset.
+    const passedLater = { ...received, id: 'l', paid: true, paidAt: '۱۴۰۵/۶/۳، ۱۰:۴۰:۱۲' }
+    // The pass date cannot be read: counted as passed, never twice.
+    const unreadable = { ...received, id: 'u', paid: true, paidAt: 'dunno' }
+
+    const assets = (checks: NetWorthRebuildInput['checks']) =>
+      rebuildMonthValues(withChecks(...checks), '1405-05', ALL_ON)?.assets
+
+    expect(assets([])).toBe(9_500_000)
+    expect(assets([passedInMonth])).toBe(9_500_000)
+    expect(assets([passedLater])).toBe(9_650_000)
+    expect(assets([unreadable])).toBe(9_500_000)
+    // The settle sheet's date is what the wallet uses: a pass backdated into the month counts as
+    // passed in it, however late the tap was; a pass dated after it does not.
+    expect(assets([{ ...received, id: 'b', paid: true, paidAt: day(5, 25) }])).toBe(9_500_000)
+    expect(assets([{ ...received, id: 'f', paid: true, paidAt: day(6, 3) }])).toBe(9_650_000)
+    expect(assets([{ ...received, id: 'o', paid: false, paidAt: '' }])).toBe(9_650_000)
+  })
+
   it('follows the net-available switches', () => {
     const walletOnly: NetAvailableConfig = {
-      assets: { wallet: true, treasury: false, goals: false, receivables: false },
+      assets: {
+        wallet: true,
+        treasury: false,
+        goals: false,
+        receivables: false,
+        checksReceived: false
+      },
       liabilities: { installments: true, dangs: false, checks: false }
     }
 

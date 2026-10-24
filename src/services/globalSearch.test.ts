@@ -27,6 +27,7 @@ const check = (id: string, counterparty: string, amount: number): Check => ({
   id,
   createdAt: '',
   checkNumber: `12345${id}`,
+  direction: 'paid',
   counterparty,
   amount,
   creationDate: '2026-10-01',

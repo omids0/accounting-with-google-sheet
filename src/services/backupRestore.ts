@@ -1,5 +1,6 @@
 import { addArchiveTab } from './archiveRegistry'
 import { prepareArchiveTab, readTabs, type TabInfo } from './archiveTabs'
+import { isChecksTab, prepareChecksRestore } from './backupChecksRemap'
 import { fetchTabsByTitle, sendPendingWrites } from './backupExport'
 import {
   BACKUP_EXCLUDED_SHEETS,
@@ -94,16 +95,28 @@ export function previewBackup(bytes: Uint8Array): RestorePreview {
   return preview
 }
 
+/**
+ * A replaced tab is rewritten row by row to `width` columns: a shorter row (a backup from before
+ * a column was added) is padded with empty cells, so no cell of the rows it replaces is left over.
+ */
+export function padRowsToWidth(rows: string[][], width: number): string[][] {
+  return rows.map(row =>
+    row.length >= width ? row : [...row, ...Array(width - row.length).fill('')]
+  )
+}
+
 async function writeTab(
   spreadsheetId: string,
   tab: RestoreTab,
   plan: TabRestorePlan,
-  mode: RestoreMode
+  mode: RestoreMode,
+  /** The tab's real width, when it is not the backup's or the registry's (the checks tab). */
+  tabWidth?: number
 ): Promise<void> {
   if (mode === 'replace') {
-    const width = Math.max(plan.header.length, tab.headers.length, 1)
+    const width = tabWidth ?? Math.max(plan.header.length, tab.headers.length, 1)
 
-    await replaceSheetDataRowsApi(spreadsheetId, tab.name, plan.rows, width)
+    await replaceSheetDataRowsApi(spreadsheetId, tab.name, padRowsToWidth(plan.rows, width), width)
 
     return
   }
@@ -191,12 +204,22 @@ export async function runRestore(
     for (const [index, tab] of preview.tabs.entries()) {
       onProgress({ done: index, total, tab: tab.name })
 
-      const plan = planTabRestore({
+      let plan = planTabRestore({
         sheetName: tab.name,
         csv: tab.csv,
         mode,
         existingRows: (existing.get(normalizeSheetTitle(tab.name)) ?? []).slice(1)
       })
+
+      // The checks tab keeps its type column wherever the target has it, not where the backup did.
+      let tabWidth: number | undefined
+
+      if (!tab.archive && isChecksTab(tab.name)) {
+        const prepared = await prepareChecksRestore(spreadsheetId, plan)
+
+        plan = { ...plan, rows: prepared.rows }
+        tabWidth = prepared.width
+      }
 
       if (tab.archive) {
         if (
@@ -210,7 +233,7 @@ export async function runRestore(
       }
 
       if (mode === 'replace' || plan.rows.length) {
-        await writeTab(spreadsheetId, tab, plan, mode)
+        await writeTab(spreadsheetId, tab, plan, mode, tabWidth)
         touched.push(tab.name)
       }
       report.tabs++

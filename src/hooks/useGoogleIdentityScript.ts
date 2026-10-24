@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 
 import { loadGoogleIdentityScript } from '../services/googleIdentityScript'
 
-/** True once Google's web sign-in script is ready; it is fetched only while `load` is true. */
-export function useGoogleIdentityScript(load: boolean): boolean {
+/**
+ * True once Google's web sign-in script is ready; it is fetched only while `load` is true.
+ * Changing `retryKey` tries the download again after a failure.
+ */
+export function useGoogleIdentityScript(load: boolean, retryKey = 0): boolean {
   const [ready, setReady] = useState(() => !!window.google?.accounts?.oauth2)
 
   useEffect(() => {
@@ -18,7 +21,7 @@ export function useGoogleIdentityScript(load: boolean): boolean {
     return () => {
       live = false
     }
-  }, [load, ready])
+  }, [load, ready, retryKey])
 
   return ready
 }

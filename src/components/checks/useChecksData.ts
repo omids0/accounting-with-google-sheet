@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import type { CheckWithRow } from './types'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { usePaidItemActions } from '../../hooks/usePaidItemActions'
+import { checkRecordType } from '../../services/checkDirection'
 import {
   deleteCheck,
   ensureChecksSheet,
@@ -63,7 +64,7 @@ export function useChecksData() {
     loadItems,
     togglePaid: toggleCheckPaid,
     settle: {
-      type: 'expense',
+      type: item => checkRecordType(item),
       titleFor: item => `پاس شدن چک ${item.checkNumber}`,
       amountFor: item => item.amount,
       recordIdOf: item => item.transactionRecordId,

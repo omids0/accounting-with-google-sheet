@@ -20,6 +20,8 @@ interface UseGoogleTokenLoginOptions {
   includeGrantedScopes?: boolean
   /** Fetch Google's script now; false defers it until the flow is about to be used. */
   load?: boolean
+  /** Change to fetch Google's script again after a failed download. */
+  retryKey?: number
 }
 
 /**
@@ -33,9 +35,10 @@ export function useGoogleTokenLogin({
   prompt,
   hint,
   includeGrantedScopes,
-  load = true
+  load = true,
+  retryKey = 0
 }: UseGoogleTokenLoginOptions) {
-  const ready = useGoogleIdentityScript(load && !isNativePlatform())
+  const ready = useGoogleIdentityScript(load && !isNativePlatform(), retryKey)
 
   const clientRef = useRef<GoogleTokenClient | null>(null)
 

@@ -42,6 +42,11 @@ export function buildPaymentStatusChip(
   })
 }
 
+/** A chip of the kind filter («نوع چک: دریافتی»). */
+export function buildKindChip(label: string, onRemove: () => void): FilterChip {
+  return withKind('category', { id: 'kind', label, onRemove })
+}
+
 function buildLabeledFilterChip(
   kind: FilterChipKind,
   id: string,
