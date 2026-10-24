@@ -3,7 +3,7 @@ import {
   VEHICLE_EXPENSE_CATEGORY,
   VEHICLE_FUEL_EXPENSE_TYPE
 } from '../components/vehicles/constants'
-import { CHECK_EXPENSE_CATEGORY } from '../services/checks'
+import { CHECK_EXPENSE_CATEGORY, CHECK_INCOME_CATEGORY } from '../services/checks'
 import { INSTALLMENT_EXPENSE_CATEGORY } from '../services/installmentsConstants'
 import { getActiveWorkspaceType } from '../services/workspace'
 
@@ -13,9 +13,11 @@ export const RECONCILIATION_CATEGORY = 'اصلاح موجودی'
 /** Category of the correction record that closes a gap with the bank SMS balance. */
 export const SMS_RECONCILE_CATEGORY = 'تطبیق'
 
+// A received check writes its income record under «چک» (see checks.ts), like a paid one.
 export const LOCKED_INCOME_CATEGORIES = new Set<string>([
   RECONCILIATION_CATEGORY,
-  SMS_RECONCILE_CATEGORY
+  SMS_RECONCILE_CATEGORY,
+  CHECK_INCOME_CATEGORY
 ])
 
 // Installments and checks write their linked expense record under these exact

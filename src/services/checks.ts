@@ -1,8 +1,15 @@
-import type { Check } from '../types'
+import type { Check, CheckDirection } from '../types'
 import { logItemActivity } from './activityLog'
 import { CHECK_ATTACHMENT_COLUMN } from './attachmentColumn'
+import {
+  CHECK_DIRECTION_COLUMN,
+  CHECK_DIRECTION_LABELS,
+  checkRecordType,
+  parseCheckDirection
+} from './checkDirection'
+import { checkToRow, parsePaid, rowToCheck } from './checkRows'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
-import { deleteLinkedExpenseRecord } from './paymentTransactions'
+import { deleteLinkedRecord } from './paymentTransactions'
 import type { SettleOptions, UnlinkChoice } from './settleOptions'
 import { createLinkedRecordWithWallet, deleteLinkedRecordWithWallet } from './settleRecords'
 import { CHECKS_HEADERS } from './sheetHeaders'
@@ -14,7 +21,6 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
-import { CHECK_WRITER_COLUMN } from './writerColumn'
 import {
   parseAttachmentIds,
   serializeAttachmentIds,
@@ -26,55 +32,12 @@ import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
-import { parseWriter } from '../utils/writerColumn'
 
 export { CHECKS_SHEET, CHECKS_HEADERS }
 
-/** Expense category of the record a paid check creates. */
+/** Category of the record a passed check creates: an expense when paid, income when received. */
 export const CHECK_EXPENSE_CATEGORY = 'چک'
-
-function parsePaid(raw: string): boolean {
-  const v = String(raw ?? '')
-    .trim()
-    .toLowerCase()
-
-  return v === 'true' || v === '1' || v === 'بله' || v === 'yes'
-}
-
-function rowToCheck(row: string[], rowNumber: number): Check & { rowNumber: number } {
-  return {
-    rowNumber,
-    id: row[0] ?? '',
-    createdAt: row[1] ?? '',
-    checkNumber: row[2] ?? '',
-    counterparty: row[3] ?? '',
-    amount: parseNumeric(row[4]),
-    creationDate: row[5] ?? '',
-    dueDate: row[6] ?? '',
-    paid: parsePaid(row[7] ?? ''),
-    paidAt: row[8] ?? '',
-    transactionRecordId: row[9] ?? '',
-    subCategory: row[10] ?? '',
-    attachments: parseAttachmentIds(row[CHECK_ATTACHMENT_COLUMN]),
-    writer: parseWriter(row[CHECK_WRITER_COLUMN])
-  }
-}
-
-function checkToRow(check: Check): string[] {
-  return [
-    check.id,
-    check.createdAt,
-    check.checkNumber,
-    check.counterparty,
-    String(check.amount),
-    check.creationDate,
-    check.dueDate,
-    check.paid ? 'بله' : 'خیر',
-    check.paidAt,
-    check.transactionRecordId ?? '',
-    check.subCategory ?? ''
-  ]
-}
+export const CHECK_INCOME_CATEGORY = 'چک'
 
 export function sortChecks<T extends Check>(items: T[]): T[] {
   return [...items].sort((a, b) => {
@@ -105,6 +68,7 @@ export async function createCheck(
   spreadsheetId: string,
   data: {
     checkNumber: string
+    direction: CheckDirection
     counterparty: string
     subCategory?: string
     amount: number
@@ -116,6 +80,7 @@ export async function createCheck(
     id: crypto.randomUUID(),
     createdAt: new Date().toLocaleString('fa-IR'),
     checkNumber: data.checkNumber,
+    direction: data.direction,
     counterparty: data.counterparty,
     subCategory: data.subCategory ?? '',
     amount: data.amount,
@@ -150,7 +115,7 @@ export async function deleteCheck(
   check?: Check
 ): Promise<void> {
   if (check?.transactionRecordId) {
-    await deleteLinkedExpenseRecord(spreadsheetId, check.transactionRecordId)
+    await deleteLinkedRecord(spreadsheetId, checkRecordType(check), check.transactionRecordId)
   }
   await deleteSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber)
   if (check) logItemActivity(spreadsheetId, 'delete', 'checks', check.id, checkTitle(check))
@@ -166,7 +131,7 @@ export async function toggleCheckPaid(
   if (paid && !check.paid) {
     const transactionRecordId = await createLinkedRecordWithWallet(
       spreadsheetId,
-      'expense',
+      checkRecordType(check),
       {
         title: `چک: ${check.checkNumber} — ${check.counterparty}`,
         amount: check.amount,
@@ -193,7 +158,7 @@ export async function toggleCheckPaid(
   if (!paid && check.paid) {
     await deleteLinkedRecordWithWallet(
       spreadsheetId,
-      'expense',
+      checkRecordType(check),
       check.transactionRecordId ?? '',
       'چک: ',
       unlink
@@ -215,14 +180,27 @@ export async function toggleCheckPaid(
   return check
 }
 
-export function totalChecksInRange(checks: Check[], range: DateRange): number {
-  return checks.filter(c => isDateInRange(c.dueDate, range)).reduce((sum, c) => sum + c.amount, 0)
+/** Sum of the checks due in `range`; `direction` narrows it to payables or received ones. */
+export function totalChecksInRange(
+  checks: Check[],
+  range: DateRange,
+  direction?: CheckDirection
+): number {
+  return checks
+    .filter(c => (!direction || c.direction === direction) && isDateInRange(c.dueDate, range))
+    .reduce((sum, c) => sum + c.amount, 0)
 }
 
-export function totalUnpaidChecksInRange(checks: Check[], range: DateRange): number {
-  return checks
-    .filter(c => !c.paid && isDateInRange(c.dueDate, range))
-    .reduce((sum, c) => sum + c.amount, 0)
+export function totalUnpaidChecksInRange(
+  checks: Check[],
+  range: DateRange,
+  direction?: CheckDirection
+): number {
+  return totalChecksInRange(
+    checks.filter(c => !c.paid),
+    range,
+    direction
+  )
 }
 
 export async function exportChecksCsv(spreadsheetId: string): Promise<string | null> {
@@ -234,6 +212,7 @@ export async function exportChecksPdf(spreadsheetId: string): Promise<string | n
 
   const headers = [
     'شماره چک',
+    'نوع',
     'طرف حساب',
     'مبلغ',
     'تاریخ صدور',
@@ -244,6 +223,7 @@ export async function exportChecksPdf(spreadsheetId: string): Promise<string | n
 
   const rows = checks.map(check => [
     check.checkNumber,
+    CHECK_DIRECTION_LABELS[check.direction],
     check.counterparty,
     formatMoney(check.amount),
     formatPersianDate(check.creationDate),
@@ -252,7 +232,7 @@ export async function exportChecksPdf(spreadsheetId: string): Promise<string | n
     check.paid ? formatPersianDate(check.paidAt) : '—'
   ])
 
-  const cellClasses = checks.map(() => ['', '', 'pdf-cell-amount', '', '', '', ''])
+  const cellClasses = checks.map(() => ['', '', '', 'pdf-cell-amount', '', '', '', ''])
 
   return downloadTablePdf({
     title: 'گزارش چک‌ها',
@@ -275,6 +255,7 @@ export async function importChecksCsv(spreadsheetId: string, csvContent: string)
       id: newImportId(cells[0] ?? ''),
       createdAt: newImportTimestamp(cells[1] ?? ''),
       checkNumber,
+      direction: parseCheckDirection(cells[CHECK_DIRECTION_COLUMN]),
       counterparty,
       amount: parseNumeric(cells[4]),
       creationDate: cells[5] ?? '',

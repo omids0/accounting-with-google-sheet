@@ -37,8 +37,10 @@ export const CHECKS_HEADERS = [
   'زیردسته',
   // Round 7: Drive ids of the receipts (utils/attachmentIds.ts).
   'پیوست',
-  // Round 8: email of whoever last saved the row (utils/writerColumn.ts); always last.
-  'ثبت‌کننده'
+  // Round 8: email of whoever last saved the row (utils/writerColumn.ts).
+  'ثبت‌کننده',
+  // «پرداختی» or «دریافتی» (services/checks.ts); a row without the cell is a payable.
+  'نوع چک'
 ]
 
 export const COUNTERPARTIES_HEADERS = [

@@ -42,6 +42,8 @@ export interface NetAvailableAssetConfig {
   /** Savings goals; their balance is part of `treasuryTotal` but toggled on its own. */
   goals: boolean
   receivables: boolean
+  /** Unpaid received checks due within the period (a check I will get paid). */
+  checksReceived: boolean
 }
 
 export interface NetAvailableLiabilityConfig {

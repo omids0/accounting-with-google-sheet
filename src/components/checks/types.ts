@@ -1,8 +1,9 @@
-import type { Check } from '../../types'
+import type { Check, CheckDirection } from '../../types'
 
 export type CheckWithRow = Check & { rowNumber: number }
 
 export type CheckFormState = {
+  direction: CheckDirection
   checkNumber: string
   counterparty: string
   subCategory: string

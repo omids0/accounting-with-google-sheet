@@ -52,7 +52,10 @@ export interface FinancialSummary {
   totalAssets: number
   installmentsDue: number
   dangsTotal: number
+  /** Unpaid payable checks due in the period. */
   checksDue: number
+  /** Unpaid received checks due in the period; older summaries lack it. */
+  checksReceivable?: number
   totalLiabilities: number
   netAvailable: number
 }

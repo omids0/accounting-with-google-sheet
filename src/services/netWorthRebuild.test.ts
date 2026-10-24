@@ -10,7 +10,7 @@ import type { NetAvailableConfig } from '../types'
 import { jalaliToIso } from '../utils/jalaliDate'
 
 const ALL_ON: NetAvailableConfig = {
-  assets: { wallet: true, treasury: true, goals: true, receivables: true },
+  assets: { wallet: true, treasury: true, goals: true, receivables: true, checksReceived: true },
   liabilities: { installments: true, dangs: true, checks: true }
 }
 
@@ -68,6 +68,7 @@ const input: NetWorthRebuildInput = {
       id: 'c1',
       createdAt: '',
       checkNumber: '1',
+      direction: 'paid',
       counterparty: '',
       amount: 200_000,
       creationDate: day(4, 1),
@@ -122,7 +123,13 @@ describe('rebuildMonthValues', () => {
 
   it('follows the net-available switches', () => {
     const walletOnly: NetAvailableConfig = {
-      assets: { wallet: true, treasury: false, goals: false, receivables: false },
+      assets: {
+        wallet: true,
+        treasury: false,
+        goals: false,
+        receivables: false,
+        checksReceived: false
+      },
       liabilities: { installments: true, dangs: false, checks: false }
     }
 

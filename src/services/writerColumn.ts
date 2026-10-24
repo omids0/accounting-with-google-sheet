@@ -12,7 +12,7 @@ import { headerWriterColumn, WRITER_HEADER, withWriterCell } from '../utils/writ
 
 /**
  * Fixed-layout tabs read «ثبت‌کننده» at the index their header list gives it
- * (the last one). Record tabs follow their own header row, where the label is
+ * (right after «پیوست»). Record tabs follow their own header row, where the label is
  * appended once at the end, like «پیوست».
  */
 const FIXED_COLUMNS: Record<string, number> = {
