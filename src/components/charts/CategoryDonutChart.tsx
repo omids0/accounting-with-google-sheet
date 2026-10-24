@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import ChartTooltip from './ChartTooltip'
-import { formatPersianPercent } from './chartUtils'
+import { buildDonutSlices, formatPersianPercent } from './chartUtils'
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
 import { cn } from '../../utils/cn'
 import {
@@ -57,21 +57,6 @@ function formatDonutCenterNumber(total: number): string {
   return Math.abs(total) < 1_000_000_000 ? formatPersianNumber(total) : formatCompactNumber(total)
 }
 
-function buildSlices(
-  data: { name: string; total: number }[],
-  maxSlices: number
-): { name: string; total: number }[] {
-  if (data.length <= maxSlices) return data
-
-  const sorted = [...data].sort((a, b) => b.total - a.total)
-
-  const top = sorted.slice(0, maxSlices - 1)
-
-  const restTotal = sorted.slice(maxSlices - 1).reduce((sum, item) => sum + item.total, 0)
-
-  return restTotal > 0 ? [...top, { name: 'سایر', total: restTotal }] : top
-}
-
 function CategoryDonutChart({
   title,
   data,
@@ -85,7 +70,7 @@ function CategoryDonutChart({
 
   const animate = !prefersReducedMotion()
 
-  const slices = useMemo(() => buildSlices(data, maxSlices), [data, maxSlices])
+  const slices = useMemo(() => buildDonutSlices(data, maxSlices), [data, maxSlices])
 
   const total = useMemo(() => slices.reduce((sum, item) => sum + item.total, 0), [slices])
 
