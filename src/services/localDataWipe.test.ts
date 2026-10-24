@@ -8,6 +8,10 @@ const stopSheetSync = vi.fn()
 
 const clearStore = vi.fn()
 
+const logoutViaWorker = vi.fn(async (_id: string) => undefined)
+
+vi.mock('./authWorker', () => ({ logoutViaWorker: (id: string) => logoutViaWorker(id) }))
+
 vi.mock('./googleAuthNative', () => ({
   isNativePlatform: () => native.value,
   signOutNative: () => signOutNative()
@@ -126,6 +130,34 @@ describe('clearAllLocalData', () => {
 
     expect(signOutNative).toHaveBeenCalled()
     expect(revoke).not.toHaveBeenCalled()
+  })
+
+  it('asks the refresh-token worker to forget the session, also when switching accounts', async () => {
+    const { clearAllLocalData } = await import('./localDataWipe')
+
+    seed()
+    localStorage.setItem(
+      'accounting_session',
+      JSON.stringify({
+        email: 'a@example.com',
+        accessToken: 'tok',
+        tokenExpiry: Date.now() + 1e6,
+        authSessionId: 'sess-1'
+      })
+    )
+    await clearAllLocalData({ revokeAccess: false })
+
+    expect(logoutViaWorker).toHaveBeenCalledWith('sess-1')
+    expect(localStorage.getItem('accounting_session')).toBeNull()
+  })
+
+  it('does not call the worker for a session that has no worker session', async () => {
+    const { clearAllLocalData } = await import('./localDataWipe')
+
+    seed()
+    await clearAllLocalData()
+
+    expect(logoutViaWorker).not.toHaveBeenCalled()
   })
 
   it('leaves the new sign-in alone when switching accounts', async () => {
