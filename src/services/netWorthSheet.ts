@@ -1,5 +1,6 @@
 import { exportSheetCsv, importSheetCsv } from './importExport'
 import { netWorthSnapshotToRow, rowToNetWorthSnapshot, type NetWorthSnapshot } from './netWorth'
+import { validateNetWorthCsvCells } from './netWorthCsvValidate'
 import { NET_WORTH_HEADERS } from './sheetHeaders'
 import { NET_WORTH_SHEET } from './sheetNames'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
@@ -80,7 +81,7 @@ export async function exportNetWorthCsv(spreadsheetId: string): Promise<string |
 /** Rows keyed by month: a month that already has a row is skipped. */
 export async function importNetWorthCsv(spreadsheetId: string, csvContent: string) {
   return importSheetCsv(spreadsheetId, NET_WORTH_SHEET, NET_WORTH_HEADERS, csvContent, cells => {
-    const snapshot = rowToNetWorthSnapshot(cells)
+    const snapshot = rowToNetWorthSnapshot(validateNetWorthCsvCells(cells))
 
     return snapshot
       ? netWorthSnapshotToRow({
