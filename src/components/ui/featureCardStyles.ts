@@ -118,7 +118,7 @@ export const cardInlineEditClass =
 export const cardInlineEditFieldClass = 'min-w-0 flex-1'
 
 export const cardInlineEditLabelClass =
-  'mb-[0.38rem] block text-[0.72rem] font-bold text-[var(--form-label-color)]'
+  'mb-[0.38rem] block text-[0.75rem] font-bold text-[var(--form-label-color)]'
 
 export const cardInlineEditSpinnerClass = 'mb-[0.55rem] shrink-0'
 

@@ -12,6 +12,7 @@ import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
+import TapCheckbox from '../form/TapCheckbox'
 import MoneyText from '../MoneyText'
 import ProgressBar from '../ProgressBar'
 import Button from '../ui/Button'
@@ -193,8 +194,7 @@ export default function ReceivableCard({
               <div className={receivablePaymentListTitleClass}>سوابق پرداخت</div>
               {item.payments.map(payment => (
                 <div key={payment.id} className={receivablePaymentItemClass}>
-                  <input
-                    type="checkbox"
+                  <TapCheckbox
                     checked
                     disabled={togglingPaymentId === payment.id}
                     onChange={() => onRemovePayment(payment.id)}

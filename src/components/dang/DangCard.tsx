@@ -7,6 +7,7 @@ import CardExpandButton from '../CardExpandButton'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
 import DangSettleAction from './DangSettleAction'
 import type { DangWithRow } from './types'
+import TapCheckbox from '../form/TapCheckbox'
 import MoneyText from '../MoneyText'
 import {
   cardActionButtonsClass,
@@ -22,7 +23,6 @@ import {
   dangCardNoteClass,
   dangCardTapAreaClass,
   dangCardTitleClass,
-  dangCheckboxClass,
   dangPaidAtClass
 } from '../ui/featureCardStyles'
 import { useReadOnly } from '../ui/readOnly'
@@ -74,9 +74,7 @@ export default function DangCard({
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
           {building ? null : (
-            <input
-              type="checkbox"
-              className={dangCheckboxClass}
+            <TapCheckbox
               checked={item.paid}
               disabled={togglingId === item.id || readOnly}
               aria-label={`پرداخت شد: ${item.title}`}

@@ -3,12 +3,12 @@ import { formatDateTimePersian, formatDurationFa } from '../../utils/datetime'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { TimesheetEntryWithRow } from './useTimesheetDetailPage'
+import TapCheckbox from '../form/TapCheckbox'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
   dangCardBodyClass,
   dangCardContentRowClass,
-  dangCheckboxClass,
   installmentNoteClass,
   listCardAmountPillClass,
   listCardCheckboxShellClass,
@@ -36,9 +36,7 @@ export default function TimesheetEntryCard({
     <div className={cn(listCardCheckboxShellClass(), item.checked && 'opacity-[0.78]')}>
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
-          <input
-            type="checkbox"
-            className={dangCheckboxClass}
+          <TapCheckbox
             checked={item.checked}
             disabled={togglingCheckId === item.id}
             onChange={event => onToggleChecked(item, event.target.checked)}

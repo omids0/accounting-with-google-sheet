@@ -1,4 +1,5 @@
 import { CASH_CARD_THEME, GENERIC_CARD_THEME, getBankById, type BankCardTheme } from './banks'
+import { withLegibleText } from './cardLegibility'
 import {
   buildCustomCardTheme,
   getCustomColorDefaults,
@@ -39,6 +40,15 @@ function resolveBaseCardTheme(
 }
 
 export function resolveCardTheme(
+  account: Pick<
+    WalletAccount,
+    'accountKind' | 'bankId' | 'cardColor' | 'cardColorPrimary' | 'cardColorSecondary'
+  >
+): BankCardTheme {
+  return withLegibleText(resolveRawCardTheme(account))
+}
+
+function resolveRawCardTheme(
   account: Pick<
     WalletAccount,
     'accountKind' | 'bankId' | 'cardColor' | 'cardColorPrimary' | 'cardColorSecondary'

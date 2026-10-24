@@ -5,6 +5,7 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { AccordionCollapse } from '../AccordionCollapse'
 import AppIcon from '../AppIcon'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
+import TapCheckbox from '../form/TapCheckbox'
 import type { PlanWithRow } from '../InstallmentPlanCard'
 import MoneyText from '../MoneyText'
 import {
@@ -63,8 +64,7 @@ export default function InstallmentPaymentItem({
       )}
     >
       <div className={installmentPaymentRowClass}>
-        <input
-          type="checkbox"
+        <TapCheckbox
           checked={payment.paid}
           // Lock every toggle of this plan while one is saving, so writes never overlap.
           disabled={togglingPaymentIndex !== null}

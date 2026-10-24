@@ -4,6 +4,7 @@ import AttachmentBadge from '../attachments/AttachmentBadge'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { CheckWithRow } from './types'
+import TapCheckbox from '../form/TapCheckbox'
 import MoneyText from '../MoneyText'
 import {
   cardActionButtonsClass,
@@ -16,7 +17,6 @@ import {
   dangCardHeaderClass,
   dangCardMetaClass,
   dangCardTitleClass,
-  dangCheckboxClass,
   dangPaidAtClass
 } from '../ui/featureCardStyles'
 import { useReadOnly } from '../ui/readOnly'
@@ -43,9 +43,7 @@ export default function CheckCard({
     <div className={dangCardClass({ paid: item.paid })} data-highlight-id={item.id}>
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
-          <input
-            type="checkbox"
-            className={dangCheckboxClass}
+          <TapCheckbox
             checked={item.paid}
             disabled={togglingId === item.id || readOnly}
             aria-label={`پرداخت شد: چک ${item.checkNumber}`}

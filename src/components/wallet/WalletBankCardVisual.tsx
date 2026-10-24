@@ -68,7 +68,7 @@ function CardRevealButton({ revealed, onToggle }: { revealed: boolean; onToggle:
         onToggle()
       }}
     >
-      <AppIcon name={revealed ? 'eye-off' : 'eye'} size={11} />
+      <AppIcon name={revealed ? 'eye-off' : 'eye'} size={14} />
     </button>
   )
 }
@@ -89,7 +89,7 @@ function CardCopyButton({ value, label }: { value: string; label: string }) {
         void copy(value, `${label} شد`)
       }}
     >
-      <AppIcon name="copy" size={11} />
+      <AppIcon name="copy" size={14} />
     </button>
   )
 }
@@ -149,7 +149,7 @@ export default function WalletBankCardVisual({
           <span>
             {theme.label}
             {showTitleBesideBank && (
-              <span className="font-medium opacity-85"> ({accountTitle})</span>
+              <span className="font-medium opacity-90"> ({accountTitle})</span>
             )}
           </span>
         </div>
