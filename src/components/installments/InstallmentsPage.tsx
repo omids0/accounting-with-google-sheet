@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useHighlightParam } from '../../hooks/useHighlightParam'
@@ -11,6 +11,7 @@ import {
 } from '../../services/installments'
 import { isConfigured } from '../../services/settings'
 import type { RecordsDatePreset } from '../../utils/dateRange'
+import type { DateRange } from '../../utils/jalaliDate'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
@@ -31,15 +32,20 @@ import { listModulePageClass } from '../ui/featureCardStyles'
 export default function InstallmentsPage({ active = true }: InstallmentsPageProps) {
   const { plans: allPlans, setPlans, loading, loadPlans } = useInstallmentsData()
 
+  const activeRangeRef = useRef<DateRange | null>(null)
+
   const mutations = useInstallmentMutations({
     plans: allPlans,
     setPlans,
-    loadPlans
+    loadPlans,
+    activeRangeRef
   })
   const plans = mutations.visiblePlans
 
   const highlightId = useHighlightParam(mutations.expandPlan)
   const filters = useInstallmentsFilters(plans, highlightId)
+
+  activeRangeRef.current = filters.effectiveRange
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
