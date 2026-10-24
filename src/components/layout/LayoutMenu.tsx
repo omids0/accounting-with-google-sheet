@@ -7,6 +7,7 @@ import LayoutMenuRail from './LayoutMenuRail'
 import LayoutMenuUserRow from './LayoutMenuUserRow'
 import { useActiveSpreadsheetName } from '../../hooks/useActiveSpreadsheetName'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
+import { useScrollActiveIntoView } from '../../hooks/useScrollActiveIntoView'
 import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { cn } from '../../utils/cn'
 import {
@@ -34,10 +35,18 @@ export default function LayoutMenu(props: LayoutMenuProps) {
   const sheetName = useActiveSpreadsheetName()
   const isBuilding = useIsBuildingWorkspace()
   const navRef = useRef<HTMLElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   // The open drawer focuses the current page's link and hands focus back to ☰
   // (or the tablet rail button) on close.
   useFocusTrap(variant === 'drawer' && menuOpen, navRef, '[aria-current="page"]')
+
+  // The last group (settings, about) can sit below the fold on a short window.
+  useScrollActiveIntoView(
+    scrollRef,
+    variant === 'sidebar' || (variant === 'drawer' && menuOpen),
+    `${navProps.tab}:${navProps.showSettings}`
+  )
 
   if (variant === 'rail') {
     return (
@@ -72,7 +81,7 @@ export default function LayoutMenu(props: LayoutMenuProps) {
           userPicture={userPicture}
           sheetName={sheetName}
         />
-        <div className={appMenuScrollBodyClass}>
+        <div ref={scrollRef} className={appMenuScrollBodyClass}>
           {isBuilding ? (
             <LayoutBuildingMenuNav
               tab={navProps.tab}

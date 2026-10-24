@@ -112,3 +112,30 @@
 .app-scrollbar::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/*
+ * Menu column that can outgrow a short window (a 1280x720 laptop): a thin scrollbar that stays
+ * visible plus a soft shadow on the edge that still has content behind it. The cover gradients
+ * (`local`) hide each shadow once that end is reached; the shadows themselves stay put (`scroll`).
+ */
+.app-menu-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-primary) 45%, transparent) transparent;
+  background-color: var(--color-surface);
+  background-image: linear-gradient(var(--color-surface) 30%, transparent),
+    linear-gradient(transparent, var(--color-surface) 70%),
+    radial-gradient(
+      farthest-side at 50% 0,
+      color-mix(in srgb, var(--color-primary) 34%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      farthest-side at 50% 100%,
+      color-mix(in srgb, var(--color-primary) 34%, transparent),
+      transparent
+    );
+  background-position: center top, center bottom, center top, center bottom;
+  background-repeat: no-repeat;
+  background-size: 100% 2rem, 100% 2rem, 100% 0.8rem, 100% 0.8rem;
+  background-attachment: local, local, scroll, scroll;
+}
