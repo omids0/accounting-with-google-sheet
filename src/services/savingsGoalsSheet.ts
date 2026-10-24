@@ -9,6 +9,7 @@ import {
   nextGoalStatus,
   rowToGoal
 } from './savingsGoals'
+import { validateSavingsGoalCsvCells } from './savingsGoalsCsvValidate'
 import { TREASURY_GOALS_HEADERS } from './sheetHeaders'
 import { TREASURY_GOALS_SHEET, WALLET_LEDGER_SHEET } from './sheetNames'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
@@ -162,7 +163,7 @@ export async function importSavingsGoalsCsv(spreadsheetId: string, csvContent: s
       const goal = rowToGoal([
         newImportId(cells[0] ?? ''),
         newImportTimestamp(cells[1] ?? ''),
-        ...cells.slice(2)
+        ...validateSavingsGoalCsvCells(cells).slice(2)
       ])
 
       return goal ? goalToRow(goal) : null
