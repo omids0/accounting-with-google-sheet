@@ -240,7 +240,7 @@ export function formatJalaliMonthLabel(monthKey: string): string {
 
   if (!month || month < 1 || month > 12) return monthKey
 
-  return `${JALALI_MONTHS[month - 1]} ${year}`
+  return `${JALALI_MONTHS[month - 1]} ${formatJalaliYear(year)}`
 }
 
 export function formatDateRangeLabel(range: DateRange): string {
