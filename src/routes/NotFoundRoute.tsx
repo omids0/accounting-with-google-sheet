@@ -9,8 +9,14 @@ export default function NotFoundRoute() {
   return (
     <EmptyState
       icon="search"
-      message="صفحه پیدا نشد"
-      description="نشانی این صفحه درست نیست یا دیگر وجود ندارد."
+      message={
+        <>
+          <b className="block text-text">صفحه پیدا نشد</b>
+          <span className="mt-1 block text-[0.8rem] text-muted">
+            نشانی این صفحه درست نیست یا دیگر وجود ندارد.
+          </span>
+        </>
+      }
       action={{
         label: 'بازگشت به داشبورد',
         icon: 'dashboard',

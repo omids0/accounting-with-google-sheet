@@ -94,7 +94,8 @@ function normalizePath(pathname: string): string {
 
 /** The tab a path belongs to, or null for a path no page lives at. */
 export function matchTabFromPath(pathname: string): Tab | null {
-  const path = normalizePath(pathname)
+  // The router matches case-insensitively, so the tab lookup does too.
+  const path = normalizePath(pathname).toLowerCase()
 
   if (isBuildingUnitPath(path)) return 'building-unit'
 
@@ -132,7 +133,7 @@ export function getTabFromPath(pathname: string): Tab {
 
 /** False for a URL no page answers to (the router shows «صفحه پیدا نشد» for it). */
 export function isKnownPath(pathname: string): boolean {
-  return isSettingsPath(pathname) || matchTabFromPath(pathname) !== null
+  return matchTabFromPath(pathname) !== null || isSettingsRoute(pathname)
 }
 
 export function getPathForTab(tab: Tab, options?: TabNavigationOptions): string {
@@ -211,6 +212,22 @@ export function isSettingsPath(pathname: string): boolean {
 }
 
 export const SETTINGS_CATEGORIES_PATH = '/settings/categories'
+
+const SETTINGS_ROUTES = new Set([
+  SETTINGS_PATH,
+  SETTINGS_REMINDERS_PATH,
+  SETTINGS_CATEGORIES_PATH,
+  '/settings/backup',
+  '/settings/activity',
+  '/settings/close-year'
+])
+
+/** The settings pages the router really has; `/settings/xyz` is not one of them. */
+function isSettingsRoute(pathname: string): boolean {
+  const path = normalizePath(pathname).toLowerCase()
+
+  return SETTINGS_ROUTES.has(path) || /^\/settings\/close-year\/[^/]+$/.test(path)
+}
 
 /** Round 8: «فعالیت», who changed what (also a tab, so it gets the page speed dial). */
 export const SETTINGS_ACTIVITY_PATH = '/settings/activity'

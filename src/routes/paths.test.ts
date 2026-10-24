@@ -128,3 +128,25 @@ describe('known paths', () => {
     }
   })
 })
+
+describe('known paths match the router', () => {
+  it('knows only the settings pages the router has', () => {
+    for (const path of [
+      '/settings',
+      '/settings/backup',
+      '/settings/close-year',
+      '/settings/close-year/1405'
+    ]) {
+      expect(isKnownPath(path), path).toBe(true)
+    }
+    for (const path of ['/settings/xyz', '/settings/backup/extra']) {
+      expect(isKnownPath(path), path).toBe(false)
+    }
+  })
+
+  it('ignores case like the router does', () => {
+    expect(isKnownPath('/Wallet')).toBe(true)
+    expect(getTabFromPath('/WALLET')).toBe('wallet')
+    expect(isKnownPath('/Nonexistent')).toBe(false)
+  })
+})
