@@ -49,6 +49,8 @@ export default function SyncStatusBadge() {
             pendingWrites={status.pendingWrites}
             conflicts={status.conflicts}
             failedWrites={status.failedWrites}
+            lastSyncedAt={status.lastSyncedAt}
+            offline={status.connection === 'offline'}
           />
         </Suspense>
       ) : null}

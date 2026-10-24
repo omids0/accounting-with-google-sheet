@@ -56,13 +56,19 @@ export function setConnectionState(connection: ConnectionState): void {
   patchStatus({ connection })
 }
 
-export function setSyncState(syncState: SyncState, lastError: string | null = null): void {
+/** `synced`: a write just reached the sheet, which counts as a sync for «آخرین بروزرسانی». */
+export function setSyncState(
+  syncState: SyncState,
+  lastError: string | null = null,
+  synced = false
+): void {
   if (syncState !== status.syncState || (syncState === 'error' && lastError !== status.lastError)) {
     logSync(`state:${syncState}`, syncState === 'error' ? lastError ?? undefined : undefined)
   }
   patchStatus({
     syncState,
-    lastError: syncState === 'error' ? lastError : null
+    lastError: syncState === 'error' ? lastError : null,
+    ...(synced ? { lastSyncedAt: Date.now() } : {})
   })
 }
 

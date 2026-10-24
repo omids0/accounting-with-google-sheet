@@ -56,7 +56,27 @@ describe('getSyncBadgeState', () => {
       showDetails: false
     })
     expect(getSyncBadgeState(status({ syncState: 'syncing' }), NOW).label).toBe('در حال بروزرسانی…')
-    expect(getSyncBadgeState(status({}), NOW)).toMatchObject({ label: 'همین الان', tone: 'online' })
+    expect(getSyncBadgeState(status({}), NOW)).toMatchObject({ label: 'همگام شد', tone: 'online' })
+  })
+
+  it('says «همگام · …» when the last sync was a while ago and never claims one that did not happen', () => {
+    expect(getSyncBadgeState(status({ lastSyncedAt: NOW - 5 * 60_000 }), NOW).label).toBe(
+      'همگام · 5 دقیقه پیش'
+    )
+    expect(getSyncBadgeState(status({ lastSyncedAt: null }), NOW)).toMatchObject({
+      label: 'هنوز همگام نشده',
+      tone: 'online'
+    })
+  })
+
+  it('shows a failed write distinctly from synced, also while offline', () => {
+    const failed = getSyncBadgeState(status({ failedWrites: 1 }), NOW)
+
+    expect(failed.tone).toBe('error')
+    expect(failed.label).not.toMatch(/^همگام/)
+    expect(getSyncBadgeState(status({ connection: 'offline', failedWrites: 2 }), NOW).label).toBe(
+      'آفلاین · 2 اعمال نشد'
+    )
   })
 
   it('keeps offline first', () => {

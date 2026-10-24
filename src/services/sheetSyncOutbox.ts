@@ -223,19 +223,17 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
 
   refreshPendingCount(spreadsheetId)
   if (!hasPendingOutbox(spreadsheetId)) {
-    setSyncState('idle')
+    // A queue that reached the sheet is a sync too; the badge read «هنوز همگام نشده» until a pull.
+    setSyncState('idle', null, touched.size > 0)
   }
 
   return !hasPendingOutbox(spreadsheetId)
 }
 
 /**
- * Two open tabs share one localStorage outbox; without a cross-tab lock both
- * would send the same append twice and the second delete would hit another row.
- */
-/**
- * Cross-tab lock shared by the outbox flush and the yearly archive sweep, so
- * no local write reaches the sheet while rows are being moved.
+ * Cross-tab lock shared by the outbox flush and the yearly archive sweep. Two open tabs share one
+ * localStorage outbox, and without it both would send the same append twice; the sweep needs it
+ * so no local write reaches the sheet while rows are being moved.
  */
 export function withOutboxLock<T>(spreadsheetId: string, task: () => Promise<T>): Promise<T> {
   const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined

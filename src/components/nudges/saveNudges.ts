@@ -11,6 +11,7 @@ import {
   detectVehicleExpense,
   type VehicleExpenseLink
 } from '../../services/nudgeSignals'
+import { savedInSheetMessage, waitForSheetConfirmation } from '../../services/saveConfirmation'
 import { getSettings } from '../../services/settings'
 import type { VehicleExpenseInput } from '../../services/vehicleExpenseActions'
 import { useNavigationStore } from '../../stores/navigationStore'
@@ -81,7 +82,8 @@ function recurringOption(form: CustomForm, values: Record<string, string | numbe
 
 /**
  * After an income/expense from the entry form: vehicle link, wallet account or a
- * repeated counterparty, and the «تکرار ماهانه» option on the saved toast.
+ * repeated counterparty, and the «تکرار ماهانه» option on the saved toast. The toast says
+ * «در شیت» only once the outbox has sent the row; offline or slow, it says the row is queued.
  */
 export function showSavedForEntry(
   form: CustomForm,
@@ -89,7 +91,24 @@ export function showSavedForEntry(
   values: Record<string, string | number>,
   vehicleInput: VehicleExpenseInput | null
 ) {
-  const message = `در شیت «${form.sheetName}» ذخیره شد`
+  void waitForSheetConfirmation(activeSpreadsheetId()).then(confirmed =>
+    presentSavedForEntry(
+      savedInSheetMessage(form.sheetName, confirmed),
+      form,
+      recordId,
+      values,
+      vehicleInput
+    )
+  )
+}
+
+function presentSavedForEntry(
+  message: string,
+  form: CustomForm,
+  recordId: string,
+  values: Record<string, string | number>,
+  vehicleInput: VehicleExpenseInput | null
+) {
   const spreadsheetId = activeSpreadsheetId()
 
   if (!spreadsheetId || form.type === 'custom') return showSuccess(message)
