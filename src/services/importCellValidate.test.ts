@@ -4,11 +4,13 @@ import {
   choiceCell,
   dateCell,
   intCell,
+  jsonArrayCell,
   moneyCell,
   optionalDateCell,
   optionalIntCell,
   optionalMoneyCell,
-  requiredTextCell
+  requiredTextCell,
+  withCells
 } from './importCellValidate'
 
 describe('requiredTextCell', () => {
@@ -83,5 +85,23 @@ describe('choiceCell', () => {
     expect(choiceCell('', 'نوع', ['a', 'b'] as const, 'a')).toBe('a')
     expect(choiceCell(' b ', 'نوع', ['a', 'b'] as const, 'a')).toBe('b')
     expect(() => choiceCell('c', 'نوع', ['a', 'b'] as const, 'a')).toThrow('نوع نامعتبر است')
+  })
+})
+
+describe('withCells', () => {
+  it('replaces columns in a copy', () => {
+    const cells = ['a', 'b', 'c']
+
+    expect(withCells(cells, { 1: 'x' })).toEqual(['a', 'x', 'c'])
+    expect(cells).toEqual(['a', 'b', 'c'])
+  })
+})
+
+describe('jsonArrayCell', () => {
+  it('accepts an empty cell or a list and refuses the rest', () => {
+    expect(() => jsonArrayCell('', 'حساب‌ها')).not.toThrow()
+    expect(() => jsonArrayCell('[1]', 'حساب‌ها')).not.toThrow()
+    expect(() => jsonArrayCell('{}', 'حساب‌ها')).toThrow('حساب‌ها معتبر نیست')
+    expect(() => jsonArrayCell('[', 'حساب‌ها')).toThrow('حساب‌ها معتبر نیست')
   })
 })

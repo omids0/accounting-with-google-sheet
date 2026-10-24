@@ -98,3 +98,29 @@ export function choiceCell<T extends string>(
 
   return text as T
 }
+
+/** A copy of `cells` with the given columns replaced (the row is never edited in place). */
+export function withCells(cells: string[], replacements: Record<number, string>): string[] {
+  const copy = [...cells]
+
+  Object.entries(replacements).forEach(([index, value]) => {
+    copy[Number(index)] = value
+  })
+
+  return copy
+}
+
+/** A JSON array cell (empty is fine); anything else would be dropped silently on read. */
+export function jsonArrayCell(cell: string | undefined, label: string): void {
+  const text = String(cell ?? '').trim()
+
+  if (!text) return
+
+  try {
+    if (Array.isArray(JSON.parse(text))) return
+  } catch {
+    // falls through to the reason below
+  }
+
+  throw new Error(`${label} معتبر نیست`)
+}
