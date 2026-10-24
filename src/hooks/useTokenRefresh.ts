@@ -5,6 +5,7 @@ import { isNativePlatform } from '../services/googleAuthNative'
 import {
   getTransientStreak,
   lastRefreshWasTransient,
+  noteBackoffAttempt,
   transientOnlineForMs
 } from '../services/refreshStatus'
 import { refreshAccessTokenSilently } from '../services/tokenRefresh'
@@ -54,7 +55,15 @@ export function useTokenRefresh({
 
     let timeoutId: number | undefined
 
-    const runRefresh = async (force = false) => {
+    /** Only the newest run continues after its request: one timer, one count per attempt. */
+    let runSeq = 0
+
+    const schedule = (delayMs: number) => {
+      window.clearTimeout(timeoutId)
+      timeoutId = window.setTimeout(() => void runRefresh(), delayMs)
+    }
+
+    const runRefresh = async () => {
       window.clearTimeout(timeoutId)
       if (cancelled) return
 
@@ -64,9 +73,13 @@ export function useTokenRefresh({
         return
       }
 
-      const ok = await refreshAccessTokenSilently(clientId, force)
+      const myRun = ++runSeq
 
-      if (cancelled) return
+      // This hook is the retry mechanism, so its attempts are not held back by the
+      // cool-down that spares other callers.
+      const ok = await refreshAccessTokenSilently(clientId, true)
+
+      if (cancelled || myRun !== runSeq) return
 
       if (ok) {
         onRefreshSuccessRef.current?.()
@@ -76,14 +89,16 @@ export function useTokenRefresh({
       }
 
       // No answer (offline, Google unreachable) is not an expired session: try again
-      // with growing pauses, and only give up after a long unbroken run while online.
-      if (lastRefreshWasTransient() && transientOnlineForMs() < TRANSIENT_GIVE_UP_MS) {
-        timeoutId = window.setTimeout(
-          () => void runRefresh(),
-          transientRetryDelayMs(getTransientStreak())
-        )
+      // with growing pauses, and only give up after ten awake minutes of silence while
+      // online. Only this timer's own attempts count towards the pauses and the give-up.
+      if (lastRefreshWasTransient()) {
+        noteBackoffAttempt()
 
-        return
+        if (transientOnlineForMs() < TRANSIENT_GIVE_UP_MS) {
+          schedule(transientRetryDelayMs(getTransientStreak()))
+
+          return
+        }
       }
 
       onRefreshFailedRef.current?.()
@@ -96,7 +111,7 @@ export function useTokenRefresh({
 
       if (delay === null) return
 
-      timeoutId = window.setTimeout(() => void runRefresh(), delay)
+      schedule(delay)
     }
 
     const handleVisibilityChange = () => {
@@ -107,7 +122,7 @@ export function useTokenRefresh({
 
     // The connection is back: ask at once instead of waiting out the pause.
     const handleOnline = () => {
-      if (!cancelled && shouldRefreshToken()) void runRefresh(true)
+      if (!cancelled && shouldRefreshToken()) void runRefresh()
     }
 
     scheduleNextRefresh()

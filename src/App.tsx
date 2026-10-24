@@ -10,6 +10,7 @@ import AppLockPrompts from './components/appLock/AppLockPrompts'
 import { AppLoadingSkeleton } from './components/skeleton'
 import { useAppLock } from './hooks/useAppLock'
 import { useGoogleIdentityScript } from './hooks/useGoogleIdentityScript'
+import { useOnlineRetryKey } from './hooks/useOnlineRetryKey'
 import { useSessionRenewal } from './hooks/useSessionRenewal'
 import { AppAuthenticatedRoutes } from './routes/AppRoutes'
 import { isAppLockEnabled } from './services/appLock'
@@ -22,6 +23,7 @@ import {
 } from './services/auth'
 import { isNativePlatform } from './services/googleAuthNative'
 import { resolveLoginReason } from './services/loginReason'
+import { startOfflineFromCache } from './services/offlineStart'
 import { isConfigured, getSettings } from './services/settings'
 import { initializeSheetSync } from './services/sheetSync'
 import {
@@ -78,7 +80,9 @@ export default function App() {
     !isNativePlatform() && !viaWorker && dataUnlocked && hasStoredSession() && !isTokenValid()
 
   const canRefreshSilently =
-    useGoogleIdentityScript(needsStartupRefresh) || isNativePlatform() || viaWorker
+    useGoogleIdentityScript(needsStartupRefresh, useOnlineRetryKey()) ||
+    isNativePlatform() ||
+    viaWorker
 
   const handleUnlock = useCallback(() => {
     unlock()
@@ -120,7 +124,14 @@ export default function App() {
 
     const canTryRefresh = hasStoredSession() && !isTokenValid()
 
-    if (!dataUnlocked || (canTryRefresh && !canRefreshSilently)) return
+    if (!dataUnlocked) return
+    if (canTryRefresh && !canRefreshSilently) {
+      // Google's script is missing (offline): the init below waits for it, but a 401 on
+      // the cached screens must still be able to ask for a sign-in meanwhile.
+      startupDoneRef.current = true
+
+      return
+    }
 
     async function init() {
       let tokenValid = isTokenValid()
@@ -134,12 +145,12 @@ export default function App() {
       if (!tokenValid) {
         startupDoneRef.current = true
         // Nothing answered (offline): the cached app stays, the session is not expired.
-        const cachedId = getSettings()?.spreadsheetId
-
-        if (lastRefreshWasTransient() && cachedId && hasStoreData(cachedId)) {
-          // Sync still starts, so the queue flushes as soon as a token comes back.
-          void initializeSheetSync(cachedId).catch(() => undefined)
-          if (!cancelled) setReady(true)
+        if (lastRefreshWasTransient() && (await startOfflineFromCache())) {
+          if (!cancelled) {
+            setLoggedIn(true)
+            setNeedsReauth(false)
+            setReady(true)
+          }
 
           return
         }

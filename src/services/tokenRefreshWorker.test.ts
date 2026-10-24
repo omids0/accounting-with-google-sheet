@@ -136,21 +136,37 @@ describe('refreshAccessTokenSilently (refresh-token worker)', () => {
     expect(usesAuthWorkerRefresh()).toBe(false)
   })
 
-  it('retries a network error with backoff and keeps the session when it never recovers', async () => {
+  it('retries a network error once, quickly, and keeps the session when it never recovers', async () => {
     seedSession(SESSION_ID)
     fetchMock.mockRejectedValue(new TypeError('Failed to fetch'))
 
     const pending = refreshAccessTokenSilently('client')
 
     await vi.advanceTimersByTimeAsync(WORKER_RETRY_DELAYS_MS[0])
-    expect(fetchMock).toHaveBeenCalledTimes(2)
-    await vi.advanceTimersByTimeAsync(WORKER_RETRY_DELAYS_MS[1])
 
     await expect(pending).resolves.toBe(false)
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(lastRefreshWasTransient()).toBe(true)
     expect(getSession()?.authSessionId).toBe(SESSION_ID)
     expect(getSession()?.accessToken).toBe('old-token')
+  })
+
+  it('does not retry a request that ran into its timeout, so one run stays near 12 seconds', async () => {
+    seedSession(SESSION_ID)
+    fetchMock.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) =>
+          setTimeout(() => reject(new DOMException('aborted', 'AbortError')), 8_000)
+        )
+    )
+
+    const pending = refreshAccessTokenSilently('client')
+
+    await vi.advanceTimersByTimeAsync(8_000)
+
+    await expect(pending).resolves.toBe(false)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(lastRefreshWasTransient()).toBe(true)
   })
 
   it('recovers when the network comes back during the backoff', async () => {
@@ -178,33 +194,16 @@ describe('refreshAccessTokenSilently (refresh-token worker)', () => {
     expect(getSession()?.authSessionId).toBe(SESSION_ID)
   })
 
-  it('treats a worker answer of "fatal" (Google refuses the client) as a dead session', async () => {
+  it('treats a server error like a network error: retried once, session kept', async () => {
     seedSession(SESSION_ID)
-    fetchMock.mockResolvedValue(reply({ error: 'fatal' }, 401))
-
-    await expect(refreshAccessTokenSilently('client')).resolves.toBe(false)
-    expect(lastRefreshWasTransient()).toBe(false)
-    expect(getSession()?.authSessionId).toBeUndefined()
-  })
-
-  it('treats a misconfigured worker as a dead session instead of retrying for ever', async () => {
-    seedSession(SESSION_ID)
-    fetchMock.mockResolvedValue(reply({ error: 'misconfigured' }, 500))
-
-    await expect(refreshAccessTokenSilently('client')).resolves.toBe(false)
-    expect(lastRefreshWasTransient()).toBe(false)
-    expect(getSession()?.authSessionId).toBeUndefined()
-  })
-
-  it('treats a server error like a network error: retried, session kept', async () => {
-    seedSession(SESSION_ID)
-    fetchMock.mockResolvedValue(reply({ error: 'upstream' }, 502))
+    fetchMock.mockImplementation(async () => reply({ error: 'upstream' }, 502))
 
     const pending = refreshAccessTokenSilently('client')
 
-    await vi.advanceTimersByTimeAsync(WORKER_RETRY_DELAYS_MS[0] + WORKER_RETRY_DELAYS_MS[1])
+    await vi.advanceTimersByTimeAsync(WORKER_RETRY_DELAYS_MS[0])
 
     await expect(pending).resolves.toBe(false)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(lastRefreshWasTransient()).toBe(true)
     expect(getSession()?.authSessionId).toBe(SESSION_ID)
   })

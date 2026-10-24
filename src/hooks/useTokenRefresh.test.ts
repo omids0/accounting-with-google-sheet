@@ -11,8 +11,10 @@ import {
 } from './useTokenRefresh'
 import { FULL_GOOGLE_OAUTH_SCOPE, saveSession } from '../services/auth'
 import {
+  getTransientStreak,
   recordRefreshOutcome,
   resetRefreshStatus,
+  transientOnlineForMs,
   type RefreshOutcome
 } from '../services/refreshStatus'
 
@@ -120,6 +122,50 @@ describe('useTokenRefresh when renewal gets no answer', () => {
 
     await advance(TRANSIENT_STEADY_MS * 3)
     expect(refresh).toHaveBeenCalledTimes(calls)
+  })
+
+  it('does not call the session expired just because the computer slept for hours', async () => {
+    renewalsEndWith('transient')
+
+    await advance(0)
+    await advance(TRANSIENT_BACKOFF_MS[0])
+    expect(refresh).toHaveBeenCalledTimes(2)
+
+    // The laptop lid is closed; the pending 30 s timer fires hours later.
+    vi.setSystemTime(Date.now() + 3 * 3_600_000)
+    await advance(TRANSIENT_BACKOFF_MS[1])
+    expect(refresh).toHaveBeenCalledTimes(3)
+    expect(onRefreshFailed).not.toHaveBeenCalled()
+    expect(transientOnlineForMs()).toBe(0)
+
+    // The pauses start again from 15 seconds.
+    await advance(TRANSIENT_BACKOFF_MS[0] - 1)
+    expect(refresh).toHaveBeenCalledTimes(3)
+    await advance(1)
+    expect(refresh).toHaveBeenCalledTimes(4)
+    expect(onRefreshFailed).not.toHaveBeenCalled()
+  })
+
+  it('counts one attempt and keeps one timer when two runs overlap on the same request', async () => {
+    let open: (ok: boolean) => void = () => undefined
+
+    const gate = new Promise<boolean>(resolve => (open = resolve))
+
+    refresh.mockImplementation(() => gate)
+
+    await advance(0)
+    await act(async () => void window.dispatchEvent(new Event('online')))
+    expect(refresh).toHaveBeenCalledTimes(2)
+
+    recordRefreshOutcome('transient')
+    open(false)
+    await advance(0)
+    expect(getTransientStreak()).toBe(1)
+
+    refresh.mockClear()
+    renewalsEndWith('transient')
+    await advance(TRANSIENT_BACKOFF_MS[0])
+    expect(refresh).toHaveBeenCalledTimes(1)
   })
 
   it('asks at once, and forced, when the connection comes back', async () => {

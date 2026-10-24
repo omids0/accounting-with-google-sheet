@@ -32,6 +32,8 @@ export type WorkerRefreshResult =
   | { status: 'ok'; accessToken: string; expiresIn: number; scope: string }
   /** The refresh token is gone or revoked: only a new sign-in helps. */
   | { status: 'invalid' }
+  /** The worker or its Google client is misconfigured (not the user's session): renew another way. */
+  | { status: 'broken' }
   /** No usable answer (offline, timeout, worker or Google down): try again later. */
   | { status: 'transient' }
 
@@ -110,10 +112,12 @@ export async function refreshViaWorker(sessionId: string): Promise<WorkerRefresh
     error: string
   }>(response)
 
-  // 401: the refresh token is gone (invalid_grant) or Google refuses the app's client
-  // for good (fatal). A misconfigured worker will not fix itself either. All three mean
-  // this session cannot be renewed this way.
-  if (response.status === 401 || data.error === 'misconfigured') return { status: 'invalid' }
+  // `fatal` / `misconfigured` are the owner's deployment mistakes (wrong client secret or
+  // encryption key), so every user would be signed out for it; the caller renews another way.
+  if (data.error === 'fatal' || data.error === 'misconfigured') return { status: 'broken' }
+
+  // Any other 401: the refresh token is gone or revoked, or the session is unknown.
+  if (response.status === 401) return { status: 'invalid' }
 
   if (!response.ok || !data.access_token) return { status: 'transient' }
 

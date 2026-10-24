@@ -51,6 +51,18 @@ interface StoredSession {
 
 const kvKey = (sessionId: string) => `s:${sessionId}`
 
+/**
+ * Google refusals that mean a deployment mistake (wrong client id or secret, wrong scope),
+ * not a dead session. Every other error string (temporarily_unavailable, server_error ...)
+ * is treated as temporary.
+ */
+export const FATAL_GOOGLE_ERRORS = [
+  'invalid_client',
+  'unauthorized_client',
+  'invalid_request',
+  'invalid_scope'
+] as const
+
 type Failure = Extract<GoogleResult, { ok: false }>
 
 const isUpstreamFailure = (result: Failure) =>
@@ -120,7 +132,9 @@ type LoadedToken =
   | { kind: 'ok'; token: string; stored: StoredSession }
   /** No entry (KV is eventually consistent, so this may be a read that is just too early). */
   | { kind: 'missing' }
-  /** An entry that cannot be opened: sealed with another key or damaged. */
+  /** The stored JSON is damaged: nothing will ever open it. */
+  | { kind: 'corrupt' }
+  /** Decryption failed, typically because TOKEN_ENC_KEY was replaced by another valid key. */
   | { kind: 'unreadable' }
 
 async function loadRefreshToken(env: Env, sessionId: string, key: CryptoKey): Promise<LoadedToken> {
@@ -128,15 +142,18 @@ async function loadRefreshToken(env: Env, sessionId: string, key: CryptoKey): Pr
 
   if (!raw) return { kind: 'missing' }
 
+  let stored: StoredSession
+
   try {
-    const stored = JSON.parse(raw) as StoredSession
-
-    const token = await openText(stored.rt, key, sessionId)
-
-    return token ? { kind: 'ok', token, stored } : { kind: 'unreadable' }
+    stored = JSON.parse(raw) as StoredSession
   } catch {
-    return { kind: 'unreadable' }
+    return { kind: 'corrupt' }
   }
+  if (typeof stored?.rt !== 'string') return { kind: 'corrupt' }
+
+  const token = await openText(stored.rt, key, sessionId)
+
+  return token ? { kind: 'ok', token, stored } : { kind: 'unreadable' }
 }
 
 export async function handleRefresh(
@@ -150,11 +167,16 @@ export async function handleRefresh(
 
   if (entry.kind === 'missing') return jsonResponse({ error: 'invalid_grant' }, 401, origin)
 
-  if (entry.kind === 'unreadable') {
+  if (entry.kind === 'corrupt') {
     await env.AUTH_KV.delete(kvKey(sessionId))
 
     return jsonResponse({ error: 'invalid_grant' }, 401, origin)
   }
+
+  // A replaced encryption key makes every entry unreadable. Deleting them would turn that
+  // mistake into everybody's sign-out; they stay (the TTL cleans up) and the app is told
+  // the worker is misconfigured, so it renews another way meanwhile.
+  if (entry.kind === 'unreadable') return jsonResponse({ error: 'misconfigured' }, 401, origin)
 
   const result = await refreshAccessToken(env, entry.token, fetchFn)
 
@@ -165,12 +187,12 @@ export async function handleRefresh(
       return jsonResponse({ error: 'invalid_grant' }, 401, origin)
     }
 
-    // Any other refusal (invalid_client, unauthorized_client, invalid_request ...) will
-    // not fix itself: tell the app to drop the session instead of retrying for ever.
-    // The entry stays, so fixing a wrong client secret revives nothing but loses nothing.
-    return isUpstreamFailure(result)
-      ? jsonResponse({ error: 'upstream' }, 502, origin)
-      : jsonResponse({ error: 'fatal' }, 401, origin)
+    // A refusal that points at the deployment (wrong client secret ...) is reported as
+    // `fatal`; the entry stays, so fixing the secret revives every session. The app then
+    // renews another way meanwhile. Anything else Google says is treated as temporary.
+    return (FATAL_GOOGLE_ERRORS as readonly string[]).includes(result.error)
+      ? jsonResponse({ error: 'fatal' }, 401, origin)
+      : jsonResponse({ error: 'upstream' }, 502, origin)
   }
 
   if (!result.data.access_token) return jsonResponse({ error: 'upstream' }, 502, origin)

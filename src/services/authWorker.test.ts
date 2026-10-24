@@ -135,11 +135,15 @@ describe('authWorker', () => {
     fetchMock.mockResolvedValue(reply({ error: 'upstream' }, 502))
     await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'transient' })
 
+    // A deployment mistake is not the user's session: the caller renews another way.
     fetchMock.mockResolvedValue(reply({ error: 'fatal' }, 401))
-    await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'invalid' })
+    await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'broken' })
 
     fetchMock.mockResolvedValue(reply({ error: 'misconfigured' }, 500))
-    await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'invalid' })
+    await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'broken' })
+
+    fetchMock.mockResolvedValue(reply({ error: 'misconfigured' }, 401))
+    await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'broken' })
 
     fetchMock.mockResolvedValue(reply({ error: 'forbidden' }, 403))
     await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'transient' })

@@ -11,15 +11,22 @@ import {
 import { isAuthWorkerEnabled, refreshViaWorker } from './authWorker'
 import { isNativePlatform, refreshNativeToken } from './googleAuthNative'
 import { loadGoogleIdentityScript } from './googleIdentityScript'
-import { recordRefreshOutcome, type RefreshOutcome } from './refreshStatus'
+import { lastRefreshWasTransient, recordRefreshOutcome, type RefreshOutcome } from './refreshStatus'
 
 export { lastRefreshWasTransient, type RefreshOutcome } from './refreshStatus'
 
 /** Pause before the single retry when Google's script could not be fetched. */
 export const RETRY_DELAY_MS = 800
 
-/** The worker is a plain fetch, so a network blip gets two more tries with growing pauses. */
-export const WORKER_RETRY_DELAYS_MS = [1_000, 3_000] as const
+/** The worker is a plain fetch: a network blip gets one quick retry. */
+export const WORKER_RETRY_DELAYS_MS = [1_000] as const
+
+/**
+ * Only an attempt that failed fast (a network error) is retried. One that ran into the 8 s
+ * request timeout is not, so a whole renewal run stays near 12 s instead of blocking the
+ * API call behind it for half a minute.
+ */
+export const RETRY_ONLY_IF_FAST_MS = 3_000
 
 /** After a transient failure, calls that are not forced wait this long before asking again. */
 export const TRANSIENT_COOLDOWN_MS = 10_000
@@ -27,6 +34,11 @@ export const TRANSIENT_COOLDOWN_MS = 10_000
 let refreshInFlight: Promise<boolean> | null = null
 
 let lastTransientAt = 0
+
+/** True right after a renewal got no answer: another attempt now would fail the same way. */
+function inTransientCooldown(): boolean {
+  return lastRefreshWasTransient() && Date.now() - lastTransientAt < TRANSIENT_COOLDOWN_MS
+}
 
 const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false
 
@@ -39,12 +51,17 @@ export async function attemptWithRetry(
   attempt: () => Promise<RefreshOutcome>,
   delaysMs: readonly number[]
 ): Promise<RefreshOutcome> {
+  let startedAt = Date.now()
+
   let outcome = await attempt()
 
   for (const delay of delaysMs) {
-    // Offline a retry cannot help; the caller reschedules when the browser is back.
+    // Offline a retry cannot help; the caller reschedules when the browser is back. A slow
+    // failure was a timeout, which a retry would only repeat.
     if (outcome !== 'transient' || isOffline()) break
+    if (Date.now() - startedAt > RETRY_ONLY_IF_FAST_MS) break
     await sleep(delay)
+    startedAt = Date.now()
     outcome = await attempt()
   }
 
@@ -111,20 +128,33 @@ export function usesAuthWorkerRefresh(): boolean {
   return !!getSession()?.authSessionId && isAuthWorkerEnabled()
 }
 
-async function renewThroughWorker(sessionId: string): Promise<RefreshOutcome> {
+async function renewThroughWorker(
+  sessionId: string,
+  popupFallback: () => Promise<RefreshOutcome>
+): Promise<RefreshOutcome> {
   if (isOffline()) return 'transient'
 
   const result = await refreshViaWorker(sessionId)
 
   if (result.status === 'transient') return 'transient'
 
+  // A sign-in made while this request was in flight owns the session now; this answer
+  // belongs to the old one and must neither renew nor clear the new one.
+  const stillCurrent = () => getSession()?.authSessionId === sessionId
+
   if (result.status === 'invalid') {
-    // Google or the worker dropped the refresh token: only a new sign-in helps.
+    // The refresh token is gone or revoked: only a new sign-in helps.
+    if (!stillCurrent()) return 'ok'
     clearAuthSessionId()
 
     return 'denied'
   }
 
+  // The worker itself is broken (wrong client secret or encryption key). That is the
+  // owner's mistake, not the user's session: keep the session and renew the old way.
+  if (result.status === 'broken') return popupFallback()
+
+  if (!stillCurrent()) return 'ok'
   if (!hasRequiredGoogleScopes(result.scope)) return 'denied'
   renewSessionToken(result.accessToken, result.expiresIn)
 
@@ -165,7 +195,7 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
 
   // Right after "nothing answered", other callers (each API call) do not queue up
   // behind another doomed attempt; the refresh timer and the `online` event retry.
-  if (!force && Date.now() - lastTransientAt < TRANSIENT_COOLDOWN_MS) {
+  if (!force && inTransientCooldown()) {
     return Promise.resolve(false)
   }
 
@@ -191,7 +221,12 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
   if (session.authSessionId && isAuthWorkerEnabled()) {
     const sessionId = session.authSessionId
 
-    return runRefresh(() => renewThroughWorker(sessionId), WORKER_RETRY_DELAYS_MS)
+    const email = session.email
+
+    return runRefresh(
+      () => renewThroughWorker(sessionId, () => renewThroughGoogleScript(clientId, email)),
+      WORKER_RETRY_DELAYS_MS
+    )
   }
 
   if (!clientId) {
@@ -211,6 +246,9 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
  * stored expiry.
  */
 export function forceRefreshAccessToken(): Promise<boolean> {
+  // A rejected API call right after "nothing answered" gets the same answer, not a new try.
+  if (inTransientCooldown()) return Promise.resolve(false)
+
   return refreshAccessTokenSilently(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '', true)
 }
 

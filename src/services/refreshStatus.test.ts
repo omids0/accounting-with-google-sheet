@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  SLEEP_GAP_MS,
   STALLED_AFTER_TRANSIENTS,
   getTransientStreak,
   isRefreshStalled,
   lastRefreshWasTransient,
+  noteBackoffAttempt,
   recordRefreshOutcome,
   resetRefreshStatus,
   subscribeRefreshStatus,
@@ -22,35 +24,64 @@ describe('refreshStatus', () => {
     vi.restoreAllMocks()
   })
 
-  it('becomes stalled after three transient results in a row and clears on success', () => {
-    for (let i = 1; i < STALLED_AFTER_TRANSIENTS; i++) recordRefreshOutcome('transient')
+  it('becomes stalled after three timer attempts in a row and clears on success', () => {
+    for (let i = 1; i < STALLED_AFTER_TRANSIENTS; i++) noteBackoffAttempt()
     expect(isRefreshStalled()).toBe(false)
 
-    recordRefreshOutcome('transient')
+    noteBackoffAttempt()
     expect(isRefreshStalled()).toBe(true)
-    expect(lastRefreshWasTransient()).toBe(true)
 
     recordRefreshOutcome('ok')
     expect(isRefreshStalled()).toBe(false)
     expect(getTransientStreak()).toBe(0)
   })
 
+  it('does not count a transient result that did not come from the refresh timer', () => {
+    for (let i = 0; i < 10; i++) recordRefreshOutcome('transient')
+
+    expect(lastRefreshWasTransient()).toBe(true)
+    expect(getTransientStreak()).toBe(0)
+    expect(isRefreshStalled()).toBe(false)
+  })
+
   it('a refusal ends the run: it is an expired session, not "offline"', () => {
-    recordRefreshOutcome('transient')
+    noteBackoffAttempt()
     recordRefreshOutcome('denied')
 
     expect(getTransientStreak()).toBe(0)
     expect(lastRefreshWasTransient()).toBe(false)
   })
 
-  it('measures an unbroken run of no-answer results while online only', () => {
-    recordRefreshOutcome('transient')
+  it('adds up awake online time between the timer attempts', () => {
+    noteBackoffAttempt()
+    vi.advanceTimersByTime(15_000)
+    noteBackoffAttempt()
     vi.advanceTimersByTime(5 * 60_000)
-    expect(transientOnlineForMs()).toBe(5 * 60_000)
+    noteBackoffAttempt()
 
+    expect(transientOnlineForMs()).toBe(15_000 + 5 * 60_000)
+    expect(getTransientStreak()).toBe(3)
+  })
+
+  it('does not count a sleep as silence: a long gap restarts the count and the pauses', () => {
+    noteBackoffAttempt()
+    vi.advanceTimersByTime(60_000)
+    noteBackoffAttempt()
+    noteBackoffAttempt()
+
+    vi.advanceTimersByTime(SLEEP_GAP_MS + 1)
+    noteBackoffAttempt()
+
+    expect(transientOnlineForMs()).toBe(0)
+    expect(getTransientStreak()).toBe(1)
+  })
+
+  it('does not count offline time towards giving up', () => {
+    noteBackoffAttempt()
+    vi.advanceTimersByTime(5 * 60_000)
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
-    recordRefreshOutcome('transient')
-    // Offline time cannot count towards giving up.
+    noteBackoffAttempt()
+
     expect(transientOnlineForMs()).toBe(0)
   })
 
@@ -59,10 +90,10 @@ describe('refreshStatus', () => {
 
     const unsubscribe = subscribeRefreshStatus(listener)
 
-    recordRefreshOutcome('transient')
+    noteBackoffAttempt()
     resetRefreshStatus()
     unsubscribe()
-    recordRefreshOutcome('transient')
+    noteBackoffAttempt()
 
     expect(listener).toHaveBeenCalledTimes(2)
   })

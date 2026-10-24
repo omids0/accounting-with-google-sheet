@@ -216,7 +216,7 @@ describe('worker endpoints', () => {
     expect(malformed.status).toBe(400)
   })
 
-  it('refuses a session sealed with a key that has since been replaced', async () => {
+  it('reports a replaced encryption key as misconfigured and keeps the entries', async () => {
     const env = makeEnv()
 
     const { body } = await exchange(
@@ -231,6 +231,9 @@ describe('worker endpoints', () => {
     )
 
     expect(response.status).toBe(401)
+    expect(await response.json()).toEqual({ error: 'misconfigured' })
+    // Deleting would turn one wrong key into everybody's sign-out.
+    expect(env.AUTH_KV.store.size).toBe(1)
   })
 
   it('revokes the refresh token and forgets the session on logout', async () => {

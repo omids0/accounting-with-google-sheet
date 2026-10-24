@@ -3,7 +3,11 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import SessionRenewNotice from './SessionRenewNotice'
-import { recordRefreshOutcome, resetRefreshStatus } from '../services/refreshStatus'
+import {
+  noteBackoffAttempt,
+  recordRefreshOutcome,
+  resetRefreshStatus
+} from '../services/refreshStatus'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 let root: Root
@@ -12,7 +16,7 @@ let host: HTMLElement
 
 const failThreeTimes = () =>
   act(() => {
-    for (let i = 0; i < 3; i++) recordRefreshOutcome('transient')
+    for (let i = 0; i < 3; i++) noteBackoffAttempt()
   })
 
 describe('SessionRenewNotice', () => {
@@ -32,8 +36,8 @@ describe('SessionRenewNotice', () => {
     expect(host.textContent).toBe('')
 
     act(() => {
-      recordRefreshOutcome('transient')
-      recordRefreshOutcome('transient')
+      noteBackoffAttempt()
+      noteBackoffAttempt()
     })
     expect(host.textContent).toBe('')
   })

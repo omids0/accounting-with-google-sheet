@@ -59,6 +59,37 @@ describe('worker: refresh', () => {
     }
   })
 
+  it('treats Google error strings outside the known list as temporary', async () => {
+    for (const error of ['temporarily_unavailable', 'server_error', 'something_new']) {
+      const { env, sessionId } = await signedIn()
+
+      const response = await handleRequest(
+        post('/refresh', { sessionId }),
+        env,
+        vi.fn(async () => googleReply({ error }, 400))
+      )
+
+      expect(response.status).toBe(502)
+      expect(env.AUTH_KV.store.size).toBe(1)
+    }
+  })
+
+  it('deletes an entry only when its stored JSON is structurally corrupt', async () => {
+    for (const raw of ['{not json', '{"t":1}', 'null']) {
+      const env = makeEnv()
+
+      const sessionId = newSessionId()
+
+      env.AUTH_KV.store.set(`s:${sessionId}`, raw)
+
+      const response = await handleRequest(post('/refresh', { sessionId }), env, vi.fn())
+
+      expect(response.status).toBe(401)
+      expect(await response.json()).toEqual({ error: 'invalid_grant' })
+      expect(env.AUTH_KV.store.size).toBe(0)
+    }
+  })
+
   it('treats Google rate limiting and server errors as temporary', async () => {
     for (const status of [429, 500, 503]) {
       const { env, sessionId } = await signedIn()

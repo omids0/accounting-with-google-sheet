@@ -5,34 +5,64 @@
  */
 export type RefreshOutcome = 'ok' | 'denied' | 'transient'
 
-/** This many transient results in a row make the «نشست تمدید نشد» notice appear. */
+/** This many backed-off attempts in a row without an answer make the «نشست تمدید نشد» notice appear. */
 export const STALLED_AFTER_TRANSIENTS = 3
+
+/**
+ * Backed-off attempts are at most five minutes apart (plus the time one takes). A longer
+ * gap between two of them means the computer slept or the page was frozen, not that
+ * Google has been silent all that time.
+ */
+export const SLEEP_GAP_MS = 6 * 60_000
 
 let lastOutcome: RefreshOutcome = 'ok'
 
-let transientStreak = 0
+/** Attempts the refresh timer made in a row that got no answer; drives the pauses and the notice. */
+let backoffStreak = 0
 
-/** When an unbroken run of transient results began while the browser was online. */
-let transientOnlineSince: number | null = null
+/** Awake time covered by that run of attempts while online. */
+let awakeTransientMs = 0
+
+let lastBackoffAt: number | null = null
 
 const listeners = new Set<() => void>()
+
+const notify = () => listeners.forEach(listener => listener())
 
 export function recordRefreshOutcome(outcome: RefreshOutcome): void {
   lastOutcome = outcome
 
-  if (outcome === 'transient') {
-    transientStreak += 1
-    // Offline time does not count towards giving up: nothing could have worked.
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      transientOnlineSince = null
-    } else {
-      transientOnlineSince ??= Date.now()
-    }
-  } else {
-    transientStreak = 0
-    transientOnlineSince = null
+  if (outcome !== 'transient') {
+    backoffStreak = 0
+    awakeTransientMs = 0
+    lastBackoffAt = null
   }
-  listeners.forEach(listener => listener())
+  notify()
+}
+
+/**
+ * Called by the refresh timer after one of its own attempts got no answer. Other callers
+ * (an API call, the `online` handler of a page) do not count, so a burst of requests
+ * cannot push the pauses to five minutes or raise the notice by itself.
+ */
+export function noteBackoffAttempt(): void {
+  const now = Date.now()
+
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    // Offline time says nothing about the session.
+    awakeTransientMs = 0
+    lastBackoffAt = null
+  } else if (lastBackoffAt !== null && now - lastBackoffAt > SLEEP_GAP_MS) {
+    // Woke up from sleep: start counting again, and start the pauses again too.
+    awakeTransientMs = 0
+    backoffStreak = 0
+    lastBackoffAt = now
+  } else {
+    awakeTransientMs += lastBackoffAt === null ? 0 : now - lastBackoffAt
+    lastBackoffAt = now
+  }
+  backoffStreak += 1
+  notify()
 }
 
 /** A fresh sign-in starts clean. */
@@ -46,16 +76,16 @@ export function lastRefreshWasTransient(): boolean {
 }
 
 export function getTransientStreak(): number {
-  return transientStreak
+  return backoffStreak
 }
 
-/** How long renewals have kept failing without an answer while the browser was online. */
+/** Awake, online time that renewals have kept getting no answer. */
 export function transientOnlineForMs(): number {
-  return transientOnlineSince === null ? 0 : Date.now() - transientOnlineSince
+  return awakeTransientMs
 }
 
 export function isRefreshStalled(): boolean {
-  return transientStreak >= STALLED_AFTER_TRANSIENTS
+  return backoffStreak >= STALLED_AFTER_TRANSIENTS
 }
 
 export function subscribeRefreshStatus(listener: () => void): () => void {

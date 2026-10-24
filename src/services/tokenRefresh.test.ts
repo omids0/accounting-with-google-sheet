@@ -166,7 +166,8 @@ describe('refreshAccessTokenSilently (Google script path)', () => {
 
     await expect(pending).resolves.toBe(false)
     expect(lastRefreshWasTransient()).toBe(true)
-    expect(getTransientStreak()).toBe(1)
+    // Only the refresh timer's own attempts count towards the backoff streak.
+    expect(getTransientStreak()).toBe(0)
     expect(getSession()?.accessToken).toBe('old-token')
   })
 
