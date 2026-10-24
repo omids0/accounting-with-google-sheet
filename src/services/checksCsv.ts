@@ -6,6 +6,7 @@ import {
   parseCheckDirection
 } from './checkDirection'
 import { checkToRow, parsePaid } from './checkRows'
+import { validateChecksCsvCells } from './checksCsvValidate'
 import { importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { parseImportCsv } from './importPlan'
 import {
@@ -22,7 +23,6 @@ import {
   withAttachmentCell
 } from '../utils/attachmentIds'
 import { downloadTextFile, rowsToCsv } from '../utils/csv'
-import { parseNumeric } from '../utils/parseNumeric'
 
 /** The file always has the app's column layout, whichever column the tab keeps the type in. */
 export async function exportChecksCsv(spreadsheetId: string): Promise<string | null> {
@@ -69,9 +69,7 @@ export async function importChecksCsv(spreadsheetId: string, csvContent: string)
     cells => {
       const checkNumber = (cells[2] ?? '').trim()
 
-      const counterparty = (cells[3] ?? '').trim()
-
-      if (!checkNumber && !counterparty) return null
+      const { counterparty, amount, creationDate, dueDate } = validateChecksCsvCells(cells)
 
       const row = checkToRow(
         {
@@ -80,9 +78,9 @@ export async function importChecksCsv(spreadsheetId: string, csvContent: string)
           checkNumber,
           direction: parseCheckDirection(cells[CHECK_DIRECTION_COLUMN]),
           counterparty,
-          amount: parseNumeric(cells[4]),
-          creationDate: cells[5] ?? '',
-          dueDate: cells[6] ?? '',
+          amount,
+          creationDate,
+          dueDate,
           paid: parsePaid(cells[7] ?? ''),
           paidAt: cells[8] ?? '',
           transactionRecordId: cells[9] ?? '',
