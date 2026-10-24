@@ -57,7 +57,13 @@ function activityColumns(
       cell: entry =>
         `${ACTIVITY_ACTION_LABELS[entry.action] ?? entry.action} · ${moduleLabel(entry.module)}`
     },
-    { id: 'summary', header: 'خلاصه', cell: entry => entry.summary },
+    {
+      id: 'summary',
+      header: 'خلاصه',
+      // A long unbroken name must wrap inside the cell, not stretch the whole table.
+      className: 'min-w-[12rem] [overflow-wrap:anywhere]',
+      cell: entry => entry.summary
+    },
     { id: 'device', header: 'دستگاه', className: 'whitespace-nowrap', cell: e => e.device }
   ]
 }
