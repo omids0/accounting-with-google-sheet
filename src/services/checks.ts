@@ -5,6 +5,7 @@ import {
   CHECK_DIRECTION_COLUMN,
   CHECK_DIRECTION_LABELS,
   checkRecordType,
+  checkTypeLabel,
   parseCheckDirection
 } from './checkDirection'
 import { checkToRow, parsePaid, rowToCheck } from './checkRows'
@@ -96,8 +97,8 @@ export async function createCheck(
   return check
 }
 
-function checkTitle(check: Pick<Check, 'checkNumber'>): string {
-  return `چک ${check.checkNumber}`
+function checkTitle(check: Pick<Check, 'checkNumber' | 'direction'>): string {
+  return `${checkTypeLabel(check)} ${check.checkNumber}`
 }
 
 export async function updateCheck(
