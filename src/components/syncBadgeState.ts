@@ -1,4 +1,4 @@
-import type { SyncStatusSnapshot } from '../services/syncStatus'
+import { latestSyncActivity, type SyncStatusSnapshot } from '../services/syncStatus'
 import { toUserMessage } from '../utils/userMessage'
 
 export type SyncBadgeTone = 'online' | 'syncing' | 'offline' | 'error'
@@ -36,17 +36,33 @@ export function formatRelativeTime(timestamp: number | null, now = Date.now()): 
   })
 }
 
+/** The calm state: «همگام شد» right after a sync, «همگام · N دقیقه پیش» later. */
+function syncedLabel(lastSyncedAt: number | null, now: number): string {
+  const relative = formatRelativeTime(lastSyncedAt, now)
+
+  if (!lastSyncedAt) return relative
+
+  return relative === 'همین الان' ? 'همگام شد' : `همگام · ${relative}`
+}
+
 /**
  * An error outranks pending and syncing: a blocked queue used to read
  * «در حال ذخیره» forever while nothing reached the sheet.
  */
 export function getSyncBadgeState(status: SyncStatusSnapshot, now = Date.now()): SyncBadgeState {
-  const { connection, syncState, lastSyncedAt, pendingWrites, failedWrites, lastError } = status
+  const { connection, syncState, pendingWrites, failedWrites, lastError } = status
+
+  const lastSyncedAt = latestSyncActivity(status)
   const conflicts = status.conflicts ?? 0
 
   if (connection === 'offline') {
     return {
-      label: pendingWrites > 0 ? `آفلاین (${pendingWrites} در انتظار)` : 'آفلاین',
+      label: [
+        pendingWrites > 0 ? `آفلاین (${pendingWrites} در انتظار)` : 'آفلاین',
+        failedWrites > 0 ? `${failedWrites} اعمال نشد` : ''
+      ]
+        .filter(Boolean)
+        .join(' · '),
       tone: 'offline',
       cause: null,
       showDetails: failedWrites > 0
@@ -84,5 +100,5 @@ export function getSyncBadgeState(status: SyncStatusSnapshot, now = Date.now()):
   if (pendingWrites > 0)
     return { ...idle, label: `در حال ذخیره (${pendingWrites})`, tone: 'syncing' }
 
-  return { ...idle, label: formatRelativeTime(lastSyncedAt, now), tone: 'online' }
+  return { ...idle, label: syncedLabel(lastSyncedAt, now), tone: 'online' }
 }

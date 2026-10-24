@@ -120,31 +120,45 @@ async function batchAddSheetTabs(spreadsheetId: string, sheets: SheetSpec[]): Pr
   invalidateSheetTitlesCache(spreadsheetId)
 }
 
-async function batchGetHeaderRows(
+/**
+ * Rows 1 and 2 of each tab. A tab missing from the map means its range was NOT returned: its
+ * content is unknown, which is never the same as empty.
+ */
+async function batchGetTopRows(
   spreadsheetId: string,
   sheetNames: string[]
-): Promise<Map<string, string[]>> {
+): Promise<Map<string, string[][]>> {
   if (!sheetNames.length) return new Map()
 
   const params = sheetNames
-    .map(name => `ranges=${encodeURIComponent(`${quoteSheetName(name)}!1:1`)}`)
+    .map(name => `ranges=${encodeURIComponent(`${quoteSheetName(name)}!1:2`)}`)
     .join('&')
 
   const data = await apiRequest<{
     valueRanges?: { range?: string; values?: string[][] }[]
   }>(`${SHEETS_API}/${spreadsheetId}/values:batchGet?${params}`)
 
-  const result = new Map<string, string[]>()
+  const result = new Map<string, string[][]>()
 
   for (const valueRange of data.valueRanges ?? []) {
     if (!valueRange.range) continue
 
     const sheetName = parseSheetNameFromRange(valueRange.range)
 
-    result.set(normalizeSheetTitle(sheetName), valueRange.values?.[0] ?? [])
+    result.set(normalizeSheetTitle(sheetName), valueRange.values ?? [])
   }
 
   return result
+}
+
+/**
+ * Whether a tab may receive a header row: only when its range was returned AND rows 1 and 2 are
+ * both empty. A header written over a tab that holds data re-labels every column of it.
+ */
+export function isVerifiablyEmptyTab(topRows: string[][] | undefined): boolean {
+  if (!topRows) return false
+
+  return !topRows.slice(0, 2).some(row => (row ?? []).some(cell => String(cell ?? '').trim()))
 }
 
 async function writeSheetHeaders(
@@ -215,16 +229,13 @@ async function ensureManySheetsWithHeadersInner(
     titles = await getSheetTitles(spreadsheetId, true)
   }
 
-  const headerRows = await batchGetHeaderRows(
+  const topRows = await batchGetTopRows(
     spreadsheetId,
     pending.map(sheet => sheet.sheetName)
   )
 
-  const headerless = pending.filter(
-    sheet =>
-      !(headerRows.get(normalizeSheetTitle(sheet.sheetName)) ?? []).some(cell =>
-        String(cell ?? '').trim()
-      )
+  const headerless = pending.filter(sheet =>
+    isVerifiablyEmptyTab(topRows.get(normalizeSheetTitle(sheet.sheetName)))
   )
 
   if (headerless.length === 1) {
@@ -232,9 +243,12 @@ async function ensureManySheetsWithHeadersInner(
   } else if (headerless.length > 1) {
     await writeManySheetHeaders(spreadsheetId, headerless)
   }
+  // A tab whose range never came back stays unprepared, so the next call looks at it again.
   markSheetsPrepared(
     spreadsheetId,
-    pending.map(sheet => sheet.sheetName)
+    pending
+      .filter(sheet => topRows.has(normalizeSheetTitle(sheet.sheetName)))
+      .map(sheet => sheet.sheetName)
   )
 }
 

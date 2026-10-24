@@ -11,12 +11,17 @@ import {
   detectVehicleExpense,
   type VehicleExpenseLink
 } from '../../services/nudgeSignals'
+import {
+  savedInSheetMessage,
+  waitForSheetConfirmation,
+  type SaveOutcome
+} from '../../services/saveConfirmation'
 import { getSettings } from '../../services/settings'
 import type { VehicleExpenseInput } from '../../services/vehicleExpenseActions'
 import { useNavigationStore } from '../../stores/navigationStore'
 import type { CustomForm } from '../../types'
 import { normalizeSheetDate } from '../../utils/sheetValues'
-import { showError, showSuccess } from '../../utils/toast'
+import { hideSaving, showError, showSaving, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 import { COUNTERPARTY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../form/fieldUtils'
 import RecurringToastAction from '../recurring/RecurringToastAction'
@@ -81,7 +86,8 @@ function recurringOption(form: CustomForm, values: Record<string, string | numbe
 
 /**
  * After an income/expense from the entry form: vehicle link, wallet account or a
- * repeated counterparty, and the «تکرار ماهانه» option on the saved toast.
+ * repeated counterparty, and the «تکرار ماهانه» option on the saved toast. The toast says
+ * «در شیت» only once the outbox has sent the row; offline or slow, it says the row is queued.
  */
 export function showSavedForEntry(
   form: CustomForm,
@@ -89,9 +95,39 @@ export function showSavedForEntry(
   values: Record<string, string | number>,
   vehicleInput: VehicleExpenseInput | null
 ) {
-  const message = `در شیت «${form.sheetName}» ذخیره شد`
   const spreadsheetId = activeSpreadsheetId()
 
+  // At once a neutral «در حال ذخیره…»; the real wording replaces it when the outbox has answered.
+  showSaving()
+  void waitForSheetConfirmation(spreadsheetId)
+    .catch((): SaveOutcome => 'queued')
+    .then(outcome => {
+      hideSaving()
+      if (outcome === 'refused') return showError(savedInSheetMessage(form.sheetName, outcome))
+
+      presentSavedForEntry(
+        savedInSheetMessage(form.sheetName, outcome),
+        spreadsheetId,
+        form,
+        recordId,
+        values,
+        vehicleInput
+      )
+    })
+    .catch(() => {
+      hideSaving()
+      showSuccess(savedInSheetMessage(form.sheetName, 'queued'))
+    })
+}
+
+function presentSavedForEntry(
+  message: string,
+  spreadsheetId: string,
+  form: CustomForm,
+  recordId: string,
+  values: Record<string, string | number>,
+  vehicleInput: VehicleExpenseInput | null
+) {
   if (!spreadsheetId || form.type === 'custom') return showSuccess(message)
 
   const streak = trackNoAccountStreak(spreadsheetId, !!values[WALLET_ACCOUNT_FIELD_ID])

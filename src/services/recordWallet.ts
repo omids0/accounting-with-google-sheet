@@ -13,6 +13,7 @@ import {
 } from '../components/form/fieldUtils'
 import type { FormType } from '../types'
 import { parseNumeric } from '../utils/parseNumeric'
+import { roundMoney } from '../utils/roundMoney'
 
 /** How one income/expense record moves the balance of the wallet account it names. */
 export interface RecordWalletEffect {
@@ -41,7 +42,7 @@ export function netWalletChanges(
 ): Map<string, number> {
   const changes = new Map<string, number>()
   const add = (accountId: string, delta: number) =>
-    changes.set(accountId, (changes.get(accountId) ?? 0) + delta)
+    changes.set(accountId, roundMoney((changes.get(accountId) ?? 0) + delta))
 
   if (before) add(before.accountId, -before.delta)
   if (after) add(after.accountId, after.delta)
@@ -85,7 +86,7 @@ export async function applyWalletChanges(
 
     if (!account) continue
 
-    const balance = account.balance + delta
+    const balance = roundMoney(account.balance + delta)
 
     await updateWalletAccount(spreadsheetId, { ...account, balance })
     entries.push(ledgerEntry(accountId, delta, balance, context))

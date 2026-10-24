@@ -57,11 +57,33 @@ export function normalizeCellForCompare(cell: unknown): string {
     .toLowerCase()
 }
 
+/** A decimal with a short integer part: whole numbers (ids, card numbers) stay exact text. */
+const DECIMAL_CELL = /^-?(0|[1-9]\d{0,14})\.\d+$/
+
+/**
+ * Same cell after normalizing, or the same decimal number: Sheets keeps 15 significant digits, so
+ * `52305378.29999998` written by the app comes back as `52305378.3`.
+ */
+export function cellsMatchForCompare(a: unknown, b: unknown): boolean {
+  const left = normalizeCellForCompare(a)
+  const right = normalizeCellForCompare(b)
+
+  if (left === right) return true
+  if (!DECIMAL_CELL.test(left) && !DECIMAL_CELL.test(right)) return false
+
+  const x = Number(left)
+  const y = Number(right)
+
+  if (!Number.isFinite(x) || !Number.isFinite(y) || left === '' || right === '') return false
+
+  return Math.abs(x - y) <= 1e-9 + 1e-12 * Math.max(Math.abs(x), Math.abs(y))
+}
+
 export function rowsMatchForCompare(a: readonly unknown[], b: readonly unknown[]): boolean {
   const length = Math.max(a.length, b.length)
 
   for (let index = 0; index < length; index += 1) {
-    if (normalizeCellForCompare(a[index]) !== normalizeCellForCompare(b[index])) return false
+    if (!cellsMatchForCompare(a[index], b[index])) return false
   }
 
   return true

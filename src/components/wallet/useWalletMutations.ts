@@ -17,6 +17,7 @@ import {
 import { logBalanceSet } from '../../services/walletLedger'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { RECONCILIATION_CATEGORY } from '../../utils/protectedCategories'
+import { roundMoney } from '../../utils/roundMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import type { SmsTemplateDraft } from '../bankSms/SmsSampleEditor'
@@ -175,7 +176,7 @@ export function useWalletMutations({
    * a real adjustment entry instead of silently rewriting the period anchor.
    */
   const handleReconcileBalance = async (difference: number) => {
-    if (!periodFlow || difference === 0) return
+    if (!periodFlow || roundMoney(difference) === 0) return
 
     const spreadsheetId = requireSpreadsheetId()
 
@@ -183,7 +184,7 @@ export function useWalletMutations({
 
     setSavingOpening(true)
     try {
-      const amount = Math.abs(difference)
+      const amount = roundMoney(Math.abs(difference))
 
       const params = {
         title: RECONCILIATION_CATEGORY,
