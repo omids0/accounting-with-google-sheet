@@ -1,4 +1,5 @@
 import type { CustomForm } from '../../types'
+import { collatedText, compareCollated } from '../../utils/collatedText'
 import { parseNumeric } from '../../utils/parseNumeric'
 
 export interface RecordItem {
@@ -45,21 +46,26 @@ export function getFormField(form: CustomForm, kind: 'date' | 'amount' | 'title'
   }
 }
 
+/** Newest first: by the form's date field, then by when the row was created. */
 export function sortRecords(records: StoredRecord[], forms: CustomForm[]): StoredRecord[] {
-  const dateFieldFor = (formId: string) =>
-    forms.find(f => f.id === formId)?.fields.find(field => field.type === 'date')?.id ?? 'date'
+  // The date field and the collation keys are worked out once per form/record, not per comparison.
+  const dateFieldByForm = new Map<string, string>()
 
-  return [...records].sort((a, b) => {
-    const aDate = a.values[dateFieldFor(a.formId)] ?? ''
+  for (const form of forms) {
+    if (!dateFieldByForm.has(form.id)) {
+      dateFieldByForm.set(form.id, form.fields.find(field => field.type === 'date')?.id ?? 'date')
+    }
+  }
 
-    const bDate = b.values[dateFieldFor(b.formId)] ?? ''
+  const keyed = records.map(record => ({
+    record,
+    date: collatedText(record.values[dateFieldByForm.get(record.formId) ?? 'date'] ?? ''),
+    created: collatedText(record.createdAt || '')
+  }))
 
-    const byDate = bDate.localeCompare(aDate)
+  keyed.sort((a, b) => compareCollated(b.date, a.date) || compareCollated(b.created, a.created))
 
-    if (byDate !== 0) return byDate
-
-    return (b.createdAt || '').localeCompare(a.createdAt || '')
-  })
+  return keyed.map(item => item.record)
 }
 
 export function getCategoryOptions(form: CustomForm | undefined, records: RecordItem[]): string[] {
