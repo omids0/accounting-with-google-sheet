@@ -11,13 +11,16 @@ import {
 } from './dangSplitStyles'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import { useDangSplitPayments } from './useDangSplitPayments'
+import { unspentFundDeposit } from '../../services/dangSplitMath'
 import type { DangSplitGroupSummary, DangSplitPersonSummary } from '../../types/dangSplit'
+import { formatMoney } from '../../utils/formatMoney'
 import EmptyState from '../EmptyState'
 import MoneyText from '../MoneyText'
 import ProgressBar from '../ProgressBar'
 import StatCard from '../StatCard'
 import { dashboardStatGridClass } from '../ui/chartStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
+import { formHintClass } from '../ui/formStyles'
 
 type SummarySection = {
   key: string
@@ -82,6 +85,8 @@ export default function DangSplitSummaryTab({
     return grouped
   }, [categories, summary.people])
 
+  const unspent = unspentFundDeposit(summary)
+
   const settledRatio =
     summary.peopleCount > 0 ? (summary.settledCount / summary.peopleCount) * 100 : 0
 
@@ -120,6 +125,13 @@ export default function DangSplitSummaryTab({
           }
         />
       </div>
+
+      {unspent > 0 ? (
+        <p className={formHintClass}>
+          {formatMoney(unspent)} به صندوق گروه واریز شده و هنوز خرج نشده؛ برای همین جمع طلبکارها از
+          جمع بدهکارها بیشتر است.
+        </p>
+      ) : null}
 
       {summary.people.length === 0 ? (
         <EmptyState

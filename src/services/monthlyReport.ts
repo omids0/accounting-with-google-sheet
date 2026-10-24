@@ -13,6 +13,7 @@ import {
   previousJalaliMonthKey,
   type DateRange
 } from '../utils/dateRange'
+import { normalizeDigits } from '../utils/normalizeDigits'
 import { parseNumeric } from '../utils/parseNumeric'
 
 /** One budgeted category in the month: spend against its monthly limit. */
@@ -151,7 +152,7 @@ export function buildMonthlyReport(monthKey: string, input: MonthlyReportInput):
 /** «حساب کتاب · مهر ۱۴۰۵» */
 export function monthlyReportTitle(monthKey: string): string {
   const [name, year] = formatJalaliMonthLabel(monthKey).split(' ')
-  return `حساب کتاب · ${name} ${formatJalaliYear(Number(year))}`
+  return `حساب کتاب · ${name} ${formatJalaliYear(Number(normalizeDigits(year)))}`
 }
 
 /** «گزارش مهر ۱۴۰۵.pdf» */

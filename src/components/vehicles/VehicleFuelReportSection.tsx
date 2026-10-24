@@ -81,7 +81,7 @@ function FuelEntryList({ month }: { month: MonthlyFuelStats }) {
               </span>
               {entry.mileage ? (
                 <span className="text-[0.72rem] text-muted" dir="ltr">
-                  کارکرد {entry.mileage.toLocaleString('fa-IR')} km
+                  کارکرد {entry.mileage.toLocaleString('fa-IR')} کیلومتر
                 </span>
               ) : null}
             </div>
@@ -133,7 +133,7 @@ export default function VehicleFuelReportSection({ stats }: VehicleFuelReportSec
                 <span className="font-semibold text-foreground" dir="ltr">
                   {month.efficiencyL100km.toLocaleString('fa-IR', { maximumFractionDigits: 2 })}
                 </span>{' '}
-                L/100km
+                لیتر در ۱۰۰ کیلومتر
               </span>
             ) : (
               <span className="text-[0.76rem] text-muted">حداقل ۲ بار بنزین برای محاسبه مصرف</span>

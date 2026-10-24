@@ -8,6 +8,7 @@ import {
   jalaliToIso,
   toIsoDate
 } from './jalaliDate'
+import { toPersianDigits } from './normalizeDigits'
 import { normalizeSheetDate } from './sheetValues'
 
 export type { DateRange } from './jalaliDate'
@@ -240,7 +241,7 @@ export function formatJalaliMonthLabel(monthKey: string): string {
 
   if (!month || month < 1 || month > 12) return monthKey
 
-  return `${JALALI_MONTHS[month - 1]} ${year}`
+  return `${JALALI_MONTHS[month - 1]} ${toPersianDigits(String(year))}`
 }
 
 export function formatDateRangeLabel(range: DateRange): string {

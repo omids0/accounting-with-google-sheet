@@ -26,6 +26,7 @@ import {
 } from '../../../utils/dateRange'
 import { runExport } from '../../../utils/exportFeedback'
 import { getTodayIso } from '../../../utils/jalaliDate'
+import { normalizeDigits } from '../../../utils/normalizeDigits'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showInfo } from '../../../utils/toast'
 import { Select } from '../../form'
@@ -44,7 +45,7 @@ import { reportPageClass } from '../../ui/toolsPageStyles'
 function monthOptionLabel(monthKey: string): string {
   const [name, year] = formatJalaliMonthLabel(monthKey).split(' ')
 
-  return `${name} ${formatJalaliYear(Number(year))}`
+  return `${name} ${formatJalaliYear(Number(normalizeDigits(year)))}`
 }
 
 /** «گزارش ماهانه»: any past month as the one-page PDF, shared or saved. */

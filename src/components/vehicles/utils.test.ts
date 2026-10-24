@@ -19,11 +19,13 @@ describe('vehicle urgency helpers', () => {
   })
 
   it('shows passed label instead of negative km remaining', () => {
-    expect(formatPeriodicRemainingSubtitle(-120, 85_000)).toBe('گذشته · بعدی: ۸۵٬۰۰۰ km')
+    expect(formatPeriodicRemainingSubtitle(-120, 85_000)).toBe('گذشته · بعدی: ۸۵٬۰۰۰ کیلومتر')
   })
 
   it('shows km remaining when service is still upcoming', () => {
-    expect(formatPeriodicRemainingSubtitle(500, 85_000)).toBe('۵۰۰ km مانده · بعدی: ۸۵٬۰۰۰ km')
+    expect(formatPeriodicRemainingSubtitle(500, 85_000)).toBe(
+      '۵۰۰ کیلومتر مانده · بعدی: ۸۵٬۰۰۰ کیلومتر'
+    )
   })
 
   it('shows passed label with persian end date instead of gregorian', () => {

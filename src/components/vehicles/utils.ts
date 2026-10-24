@@ -34,12 +34,12 @@ export function getUrgencyFromDays(remainingDays: number): VehicleUrgencyLevel {
 
 export function formatPeriodicRemainingSubtitle(remainingKm: number, nextKm: number): string {
   if (remainingKm < 0) {
-    return `گذشته · بعدی: ${nextKm.toLocaleString('fa-IR')} km`
+    return `گذشته · بعدی: ${nextKm.toLocaleString('fa-IR')} کیلومتر`
   }
 
-  return `${remainingKm.toLocaleString('fa-IR')} km مانده · بعدی: ${nextKm.toLocaleString(
+  return `${remainingKm.toLocaleString('fa-IR')} کیلومتر مانده · بعدی: ${nextKm.toLocaleString(
     'fa-IR'
-  )} km`
+  )} کیلومتر`
 }
 
 export function formatDeadlineRemainingSubtitle(remainingDays: number, endDate: string): string {
@@ -238,7 +238,7 @@ export function validateMileageIncrease(
   }
 
   if (nextMileage < minimumMileage) {
-    return `کارکرد نمی‌تواند کمتر از ${minimumMileage.toLocaleString('fa-IR')} km باشد`
+    return `کارکرد نمی‌تواند کمتر از ${minimumMileage.toLocaleString('fa-IR')} کیلومتر باشد`
   }
 
   if (nextMileage < currentMileage) {

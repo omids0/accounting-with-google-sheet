@@ -7,5 +7,7 @@ type MileageInputProps = {
 }
 
 export default function MileageInput({ value, onChange, invalid }: MileageInputProps) {
-  return <AmountInput value={value} onChange={onChange} unit="km" hideWords invalid={invalid} />
+  return (
+    <AmountInput value={value} onChange={onChange} unit="کیلومتر" hideWords invalid={invalid} />
+  )
 }

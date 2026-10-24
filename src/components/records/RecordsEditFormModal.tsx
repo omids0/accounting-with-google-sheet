@@ -23,7 +23,7 @@ import { entryValidationErrors } from '../dataEntry/entryValidationErrors'
 import {
   FieldInput,
   isFieldHidden,
-  sortFormFields,
+  sortEntryFormFields,
   SUBCATEGORY_FIELD_ID,
   WALLET_ACCOUNT_FIELD_ID,
   withAutoTitle
@@ -195,7 +195,7 @@ export default function RecordsEditFormModal({
           : 'primary'
       }
     >
-      {sortFormFields(fields).map(field => {
+      {sortEntryFormFields(fields).map(field => {
         const hidden = isFieldHidden(field, values)
         const isAccount = building && field.id === WALLET_ACCOUNT_FIELD_ID
 

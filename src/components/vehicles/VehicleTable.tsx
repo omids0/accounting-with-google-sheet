@@ -39,7 +39,7 @@ export default function VehicleTable({
       },
       {
         id: 'mileage',
-        header: 'کارکرد (km)',
+        header: 'کارکرد (کیلومتر)',
         numeric: true,
         sortFirst: 'desc',
         sortValue: item => item.mileage,

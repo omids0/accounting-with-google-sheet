@@ -39,11 +39,13 @@ export function isFullMileageRange(range: MileageRangeValue, maxKm: number): boo
 }
 
 export function formatMileageKm(value: number): string {
-  return `${value.toLocaleString('fa-IR')} km`
+  return `${value.toLocaleString('fa-IR')} کیلومتر`
 }
 
 export function formatMileageRangeChipLabel(range: MileageRangeValue, maxKm: number): string {
   if (isFullMileageRange(range, maxKm)) return ''
 
-  return `کارکرد: ${range.min.toLocaleString('fa-IR')} – ${range.max.toLocaleString('fa-IR')} km`
+  return `کارکرد: ${range.min.toLocaleString('fa-IR')} – ${range.max.toLocaleString(
+    'fa-IR'
+  )} کیلومتر`
 }
