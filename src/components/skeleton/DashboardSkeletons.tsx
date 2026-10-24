@@ -98,6 +98,7 @@ function CalmDashboardSkeleton() {
   return (
     <div
       className={cn('skeleton-dashboard pointer-events-none', dashboardCalmPageClass)}
+      role="status"
       aria-busy="true"
       aria-label="در حال بارگذاری داشبورد"
     >
@@ -189,6 +190,7 @@ function BuildingDashboardSkeleton() {
   return (
     <div
       className={cn('skeleton-dashboard pointer-events-none', dashboardCalmPageClass)}
+      role="status"
       aria-busy="true"
       aria-label="در حال بارگذاری داشبورد ساختمان"
     >
@@ -212,6 +214,7 @@ function ReportDashboardSkeleton() {
   return (
     <div
       className={cn('skeleton-dashboard', dashboardPageClass)}
+      role="status"
       aria-busy="true"
       aria-label="در حال بارگذاری گزارش"
     >

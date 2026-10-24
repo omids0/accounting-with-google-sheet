@@ -5,7 +5,7 @@
  */
 export default function AppSplash() {
   return (
-    <div className="boot-splash" aria-busy="true" aria-label="در حال بارگذاری">
+    <div className="boot-splash" aria-busy="true">
       <svg className="boot-logo" viewBox="0 0 100 100" aria-hidden="true">
         <rect width="100" height="100" rx="22" fill="#0f766e" />
         <path d="M22 72V28M22 72h56" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" />
