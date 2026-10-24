@@ -16,6 +16,7 @@ import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
+import ListSortSection from '../ListSortSection'
 import PageFilterPanel from '../PageFilterPanel'
 import SettleFlowModals from '../settle/SettleFlowModals'
 import StatCard from '../StatCard'
@@ -122,7 +123,9 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
           dateLabel="بازه زمانی (سررسید)"
           dateLoading={loading}
           {...filters.minePanelProps}
-        />
+        >
+          <ListSortSection {...filters.sortSectionProps} />
+        </PageFilterPanel>
       </FilterModal>
 
       <InstallmentsList
