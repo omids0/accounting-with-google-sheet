@@ -61,11 +61,23 @@ export const expensesOfMonth = <T extends Row>(
 ): T[] =>
   inMonth(records, dateFieldId, month).filter(record => !isNonFlowCategory(record.values.category))
 
-/** The month's transfers and corrections: not expenses, shown as a separate line under the total. */
-export const nonFlowTotalOfMonth = (records: Row[], dateFieldId: string, month: string): number =>
-  inMonth(records, dateFieldId, month)
-    .filter(record => isNonFlowCategory(record.values.category))
-    .reduce((sum, record) => sum + parseNumeric(record.values.amount), 0)
+/**
+ * The month's transfers, fund corrections and SMS reconciles of BOTH forms (a correction can go
+ * either way): not expenses, listed apart so a wrong one can still be edited or deleted.
+ */
+export const nonFlowOfMonth = <T extends Row & { formId: string }>(
+  records: T[],
+  dateFieldOf: (formId: string) => string,
+  month: string
+): T[] =>
+  records.filter(record => {
+    const date = record.values[dateFieldOf(record.formId)]
+
+    return isNonFlowCategory(record.values.category) && !!date && monthKeyOfIso(date) === month
+  })
+
+export const sumAmounts = (records: Row[]): number =>
+  records.reduce((sum, record) => sum + parseNumeric(record.values.amount), 0)
 
 export function filterExpenses<T extends Row>(
   records: T[],

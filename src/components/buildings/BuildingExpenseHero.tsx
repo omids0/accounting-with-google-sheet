@@ -27,12 +27,19 @@ function Parts({ parts }: { parts: ExpenseBreakdown['byKind'] }) {
 export default function BuildingExpenseHero({
   monthName,
   breakdown,
-  excluded = 0
+  excluded = 0,
+  open = false,
+  onToggle,
+  panelId
 }: {
   monthName: string
   breakdown: ExpenseBreakdown
-  /** The month's transfers and fund corrections: not counted in the total, shown apart. */
+  /** The month's transfers, corrections and reconciles: not counted in the total, shown apart. */
   excluded?: number
+  /** The line is the toggle of the section that lists them (`panelId`). */
+  open?: boolean
+  onToggle?: () => void
+  panelId?: string
 }) {
   return (
     <Card className={`${dashboardHeroCardClass} ${dashboardHeroCardAnimatedClass}`}>
@@ -51,9 +58,16 @@ export default function BuildingExpenseHero({
         </>
       ) : null}
       {excluded > 0 ? (
-        <p className={dashboardHeroCompareClass}>
-          انتقال و اصلاح: <MoneyText amount={excluded} /> (در هزینه حساب نمی‌شود)
-        </p>
+        <button
+          type="button"
+          className={`${dashboardHeroCompareClass} min-h-11 text-start underline`}
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={onToggle}
+        >
+          انتقال، اصلاح و تطبیق: <MoneyText amount={excluded} /> (در هزینه حساب نمی‌شود){' '}
+          {open ? '▴' : '▾'}
+        </button>
       ) : null}
     </Card>
   )

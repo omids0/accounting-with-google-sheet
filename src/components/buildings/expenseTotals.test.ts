@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { expensesOfMonth, filterExpenses, nonFlowTotalOfMonth } from './expenseRows'
+import { expensesOfMonth, filterExpenses, nonFlowOfMonth, sumAmounts } from './expenseRows'
 import { monthFlowOf } from '../../services/buildingDashboard'
 import { expenseBreakdown } from '../../services/buildingExpenseMeta'
 import { DEFAULT_MANAGED_LISTS } from '../../services/buildingLists'
@@ -55,9 +55,43 @@ describe('building expense totals share one rule', () => {
     ])
   })
 
-  it('shows the transfer and the correction apart', () => {
-    expect(nonFlowTotalOfMonth(expenseRecords, 'date', month)).toBe(6_050_000)
-    expect(nonFlowTotalOfMonth(expenseRecords, 'date', '1405-06')).toBe(0)
+  it('lists the transfer and the correction apart, with their total', () => {
+    const tagged = expenseRecords.map(record => ({ ...record, formId: 'expense' }))
+
+    const apart = nonFlowOfMonth(tagged, () => 'date', month)
+
+    expect(apart.map(record => record.id)).toEqual([
+      'اصلاح موجودی · ملت',
+      'بدهی: خرید لامپ راه‌پله'
+    ])
+    expect(sumAmounts(apart)).toBe(6_050_000)
+    expect(nonFlowOfMonth(tagged, () => 'date', '1405-06')).toEqual([])
+  })
+
+  it('also lists a correction written to the income form and a reconcile', () => {
+    const records = [
+      { ...row('اصلاح موجودی · ملت', 70_000, { category: 'اصلاح موجودی' }), formId: 'income' },
+      { ...row('تطبیق پیامک', 30_000, { category: 'تطبیق' }), formId: 'expense' },
+      { ...row('شارژ', 5_000_000, { category: 'شارژ ساختمان' }), formId: 'income' },
+      ...expenseRecords.map(record => ({ ...record, formId: 'expense' }))
+    ]
+
+    const apart = nonFlowOfMonth(records, () => 'date', month)
+
+    expect(apart).toHaveLength(4)
+    expect(sumAmounts(apart)).toBe(6_150_000)
+    // The expense list and its total do not change.
+    expect(
+      expenseBreakdown(
+        expensesOfMonth(
+          records.filter(record => record.formId === 'expense'),
+          'date',
+          month
+        ),
+        kinds,
+        payers
+      ).total
+    ).toBe(9_000_000)
   })
 
   it('agrees with the dashboard card (total and count) and the reports', () => {
