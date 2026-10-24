@@ -10,7 +10,12 @@ const clearStore = vi.fn()
 
 const logoutViaWorker = vi.fn(async (_id: string) => undefined)
 
-vi.mock('./authWorker', () => ({ logoutViaWorker: (id: string) => logoutViaWorker(id) }))
+const forgetWorkerSession = vi.fn(async (_id: string) => undefined)
+
+vi.mock('./authWorker', () => ({
+  logoutViaWorker: (id: string) => logoutViaWorker(id),
+  forgetWorkerSession: (id: string) => forgetWorkerSession(id)
+}))
 
 vi.mock('./googleAuthNative', () => ({
   isNativePlatform: () => native.value,
@@ -132,7 +137,27 @@ describe('clearAllLocalData', () => {
     expect(revoke).not.toHaveBeenCalled()
   })
 
-  it('asks the refresh-token worker to forget the session, also when switching accounts', async () => {
+  it('asks the refresh-token worker to revoke and forget the session on sign-out', async () => {
+    const { clearAllLocalData } = await import('./localDataWipe')
+
+    seed()
+    localStorage.setItem(
+      'accounting_session',
+      JSON.stringify({
+        email: 'a@example.com',
+        accessToken: 'tok',
+        tokenExpiry: Date.now() + 1e6,
+        authSessionId: 'sess-1'
+      })
+    )
+    await clearAllLocalData()
+
+    expect(logoutViaWorker).toHaveBeenCalledWith('sess-1')
+    expect(forgetWorkerSession).not.toHaveBeenCalled()
+    expect(localStorage.getItem('accounting_session')).toBeNull()
+  })
+
+  it('only forgets the worker copy, never revokes, when a fresh sign-in follows (PIN recovery)', async () => {
     const { clearAllLocalData } = await import('./localDataWipe')
 
     seed()
@@ -147,8 +172,8 @@ describe('clearAllLocalData', () => {
     )
     await clearAllLocalData({ revokeAccess: false })
 
-    expect(logoutViaWorker).toHaveBeenCalledWith('sess-1')
-    expect(localStorage.getItem('accounting_session')).toBeNull()
+    expect(forgetWorkerSession).toHaveBeenCalledWith('sess-1')
+    expect(logoutViaWorker).not.toHaveBeenCalled()
   })
 
   it('does not call the worker for a session that has no worker session', async () => {

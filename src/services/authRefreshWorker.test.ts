@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  DRIVE_SCOPE,
   ORIGIN,
   OTHER_KEY_B64,
   SECRET_REFRESH_TOKEN,
@@ -47,7 +48,7 @@ describe('worker endpoints', () => {
       googleReply({
         access_token: 'access-1',
         expires_in: 3599,
-        scope: 'openid email',
+        scope: DRIVE_SCOPE,
         refresh_token: SECRET_REFRESH_TOKEN,
         id_token: idToken('a@example.com')
       })
@@ -59,7 +60,7 @@ describe('worker endpoints', () => {
     expect(body).toMatchObject({
       access_token: 'access-1',
       expires_in: 3599,
-      scope: 'openid email',
+      scope: DRIVE_SCOPE,
       email: 'a@example.com'
     })
     expect(isValidSessionId(body.sessionId)).toBe(true)
@@ -97,7 +98,9 @@ describe('worker endpoints', () => {
     const fetchFn = vi
       .fn()
       .mockResolvedValueOnce(googleReply({ error: 'redirect_uri_mismatch' }, 400))
-      .mockResolvedValueOnce(googleReply({ access_token: 'a', refresh_token: 'r' }))
+      .mockResolvedValueOnce(
+        googleReply({ access_token: 'a', scope: DRIVE_SCOPE, refresh_token: 'r' })
+      )
 
     const { response } = await exchange(makeEnv(), fetchFn)
 
@@ -132,7 +135,9 @@ describe('worker endpoints', () => {
 
     const { body } = await exchange(
       env,
-      vi.fn(async () => googleReply({ access_token: 'a', refresh_token: SECRET_REFRESH_TOKEN }))
+      vi.fn(async () =>
+        googleReply({ access_token: 'a', scope: DRIVE_SCOPE, refresh_token: SECRET_REFRESH_TOKEN })
+      )
     )
 
     const fetchFn = vi.fn(async () =>
@@ -164,7 +169,7 @@ describe('worker endpoints', () => {
 
     const { body } = await exchange(
       env,
-      vi.fn(async () => googleReply({ access_token: 'a', refresh_token: 'r' }))
+      vi.fn(async () => googleReply({ access_token: 'a', scope: DRIVE_SCOPE, refresh_token: 'r' }))
     )
 
     const response = await handleRequest(
@@ -183,7 +188,7 @@ describe('worker endpoints', () => {
 
     const { body } = await exchange(
       env,
-      vi.fn(async () => googleReply({ access_token: 'a', refresh_token: 'r' }))
+      vi.fn(async () => googleReply({ access_token: 'a', scope: DRIVE_SCOPE, refresh_token: 'r' }))
     )
 
     const response = await handleRequest(
@@ -216,7 +221,7 @@ describe('worker endpoints', () => {
 
     const { body } = await exchange(
       env,
-      vi.fn(async () => googleReply({ access_token: 'a', refresh_token: 'r' }))
+      vi.fn(async () => googleReply({ access_token: 'a', scope: DRIVE_SCOPE, refresh_token: 'r' }))
     )
 
     const response = await handleRequest(
@@ -233,7 +238,9 @@ describe('worker endpoints', () => {
 
     const { body } = await exchange(
       env,
-      vi.fn(async () => googleReply({ access_token: 'a', refresh_token: SECRET_REFRESH_TOKEN }))
+      vi.fn(async () =>
+        googleReply({ access_token: 'a', scope: DRIVE_SCOPE, refresh_token: SECRET_REFRESH_TOKEN })
+      )
     )
 
     const fetchFn = vi.fn(async () => googleReply({}))
@@ -283,6 +290,6 @@ describe('worker endpoints', () => {
     )
 
     expect(response.status).toBe(500)
-    expect(await response.json()).toEqual({ error: 'server_error' })
+    expect(await response.json()).toEqual({ error: 'misconfigured' })
   })
 })

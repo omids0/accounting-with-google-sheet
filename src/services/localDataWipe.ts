@@ -5,7 +5,7 @@ import { clearAppLockSessionState } from './appLockPolicy'
 import { LOCK_SETUP_OFFER_KEY } from './appLockPrompts'
 import { deleteAttachmentDatabase } from './attachmentBlobs'
 import { getSession } from './auth'
-import { logoutViaWorker } from './authWorker'
+import { forgetWorkerSession, logoutViaWorker } from './authWorker'
 import { BACKUP_STORAGE_KEY } from './backupReminder'
 import { setBankSmsCaptureEnabled } from './bankSmsNative'
 import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
@@ -200,7 +200,13 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
   // Stop capturing bank SMS and drop the native queue: it belongs to the old account.
   await setBankSmsCaptureEnabled(false).catch(() => undefined)
 
-  // The worker forgets (and revokes) this device's refresh token, also when another account signs in.
-  if (authSessionId) await withTimeout(logoutViaWorker(authSessionId))
+  // The worker forgets this device's refresh token. It revokes it at Google only on a real
+  // sign-out: with `revokeAccess: false` a fresh sign-in of the same user follows (PIN
+  // recovery), and revoking the old token could end that new grant too.
+  if (authSessionId) {
+    await withTimeout(
+      revokeAccess ? logoutViaWorker(authSessionId) : forgetWorkerSession(authSessionId)
+    )
+  }
   if (revokeAccess) await revokeGoogleAccess(accessToken)
 }

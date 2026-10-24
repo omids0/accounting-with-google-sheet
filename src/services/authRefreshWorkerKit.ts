@@ -9,6 +9,8 @@ export const KEY_B64 = toBase64Url(new Uint8Array(32).fill(7))
 
 export const OTHER_KEY_B64 = toBase64Url(new Uint8Array(32).fill(9))
 
+export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
+
 export const SECRET_REFRESH_TOKEN = 'refresh-token-secret-value'
 
 function fakeKv(): KVLike & { store: Map<string, string> } {

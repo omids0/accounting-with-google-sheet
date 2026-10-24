@@ -5,6 +5,7 @@ import ConfirmActionModal from './ConfirmActionModal'
 import GoogleSignInButton from './login/GoogleSignInButton'
 import { LoginFeatures, LoginFooter } from './login/LoginPitch'
 import SessionExpiredNotice from './login/SessionExpiredNotice'
+import { useWebSignIn } from './login/useWebSignIn'
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel'
 import Alert from './ui/Alert'
 import { animateInClass } from './ui/layoutStyles'
@@ -16,19 +17,17 @@ import {
   loginLogoTitleClass,
   loginPageClass
 } from './ui/loginStyles'
-import { useGoogleCodeLogin } from '../hooks/useGoogleCodeLogin'
-import { useGoogleTokenLogin } from '../hooks/useGoogleTokenLogin'
 import { useAccountSwitchGuard } from '../hooks/useLocalDataWipe'
 import {
   createSession,
-  fetchUserProfile,
-  hasRequiredGoogleScopes,
+  getAuthSessionId,
   saveSession,
   sessionNeedsScopeUpgrade
 } from '../services/auth'
-import { exchangeAuthCode, isAuthWorkerEnabled, logoutViaWorker } from '../services/authWorker'
+import { forgetWorkerSession, logoutViaWorker } from '../services/authWorker'
 import { isNativePlatform, signInNative, signOutNative } from '../services/googleAuthNative'
 import type { LoginReason } from '../services/loginReason'
+import { resetRefreshStatus } from '../services/refreshStatus'
 import {
   getDefaultFirstSheetLabel,
   prepareUserSpreadsheet,
@@ -108,7 +107,14 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
       return
     }
 
+    // The same account signing in again replaces its worker session: forget the old copy
+    // (without revoking, which would end the fresh grant as well).
+    const previousId = getAuthSessionId()
+
+    if (previousId && previousId !== authSessionId) void forgetWorkerSession(previousId)
+
     saveSession(createSession(accessToken, profile, expiresIn, scope, authSessionId))
+    resetRefreshStatus()
 
     if (outcome === 'switched') {
       // Start clean so nothing cached in memory from the previous account survives.
@@ -120,76 +126,10 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
     await continueAfterAuth(profile.name)
   }
 
-  // Both web sign-in flows end here: check the grant, read the profile, save the session.
-  const finishWebSignIn = async (grant: {
-    access_token: string
-    expires_in?: number
-    scope: string
-    sessionId?: string
-  }) => {
-    setLoading(true)
-    try {
-      // Google's granular consent lets the user untick drive.file; saving such a
-      // session would only bounce them back here, so stop and say why.
-      if (!hasRequiredGoogleScopes(grant.scope)) {
-        showError(
-          'بدون اجازهٔ «فایل‌هایی که این اپ می‌سازد» اپ نمی‌تواند داده‌ها را ذخیره کند. دوباره وارد شوید و این گزینه را تیک بزنید.'
-        )
-
-        return
-      }
-
-      const profile = await fetchUserProfile(grant.access_token)
-
-      await completeSignIn(
-        grant.access_token,
-        profile,
-        grant.expires_in,
-        grant.scope,
-        grant.sessionId
-      )
-    } catch (err) {
-      showError(toUserMessage(err, 'خطا در ورود'))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSignInError = () => {
-    showError('ورود لغو شد یا با خطا مواجه شد')
-    setLoading(false)
-  }
-
-  // With the refresh-token worker configured the popup returns a code, so the app can
-  // renew its token later without any popup; otherwise it returns a token as before.
-  const viaWorker = isAuthWorkerEnabled()
-
-  const tokenLogin = useGoogleTokenLogin({
-    // Ask for drive.file only; older broad grants must not ride along in the token.
-    includeGrantedScopes: false,
-    load: !viaWorker,
-    onSuccess: grant => void finishWebSignIn(grant),
-    onError: handleSignInError
-  })
-
-  const codeLogin = useGoogleCodeLogin({
-    load: viaWorker,
-    onCode: async code => {
-      setLoading(true)
-      try {
-        await finishWebSignIn(await exchangeAuthCode(code))
-      } catch (err) {
-        showError(toUserMessage(err, 'خطا در ورود'))
-        setLoading(false)
-      }
-    },
-    onError: handleSignInError
-  })
-
-  const webLogin = viaWorker ? codeLogin : tokenLogin
+  const web = useWebSignIn(completeSignIn, setLoading)
 
   // The APK signs in through the native plugin and needs no Google script.
-  const signInReady = webLogin.ready || isNativePlatform()
+  const native = isNativePlatform()
 
   const handleNativeLogin = async () => {
     setLoading(true)
@@ -214,8 +154,14 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
 
       return
     }
+    // Google's script did not load: this click tries to fetch it again.
+    if (!web.ready) {
+      web.retryScript()
+
+      return
+    }
     setLoading(true)
-    webLogin.login()
+    web.login()
   }
 
   if (step === 'setup') {
@@ -255,7 +201,12 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
 
         {!expired && <LoginFeatures />}
 
-        <GoogleSignInButton onClick={handleLogin} ready={signInReady} loading={loading} />
+        <GoogleSignInButton
+          onClick={handleLogin}
+          ready={native || web.ready}
+          stalled={!native && web.stalled}
+          loading={loading}
+        />
 
         {!expired && <LoginFooter />}
       </div>

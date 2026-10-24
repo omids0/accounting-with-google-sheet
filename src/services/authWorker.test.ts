@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  AuthWorkerUnavailableError,
   authWorkerUrl,
   exchangeAuthCode,
+  forgetWorkerSession,
   isAuthWorkerEnabled,
   logoutViaWorker,
   refreshViaWorker
@@ -90,14 +92,27 @@ describe('authWorker', () => {
   })
 
   it('explains an expired code, a worker error and no connection in Persian', async () => {
-    fetchMock.mockResolvedValue(reply({ error: 'invalid_grant' }, 400))
+    fetchMock.mockImplementation(async () => reply({ error: 'invalid_grant' }, 400))
     await expect(exchangeAuthCode('c')).rejects.toThrow('کد ورود منقضی شد')
+    await expect(exchangeAuthCode('c')).rejects.not.toBeInstanceOf(AuthWorkerUnavailableError)
 
     fetchMock.mockResolvedValue(reply({ error: 'upstream' }, 502))
     await expect(exchangeAuthCode('c')).rejects.toThrow('سرور ورود پاسخ نداد')
 
     fetchMock.mockRejectedValue(new TypeError('Failed to fetch'))
     await expect(exchangeAuthCode('c')).rejects.toThrow('اتصال به سرور ورود برقرار نشد')
+  })
+
+  it('marks an unreachable or broken worker so sign-in can fall back to the token flow', async () => {
+    for (const make of [
+      () => Promise.reject(new TypeError('Failed to fetch')),
+      () => Promise.resolve(reply({ error: 'upstream' }, 502)),
+      () => Promise.resolve(reply({ error: 'misconfigured' }, 500)),
+      () => Promise.resolve(reply({ error: 'forbidden' }, 403))
+    ]) {
+      fetchMock.mockImplementation(make)
+      await expect(exchangeAuthCode('c')).rejects.toBeInstanceOf(AuthWorkerUnavailableError)
+    }
   })
 
   it('renews an access token', async () => {
@@ -120,6 +135,12 @@ describe('authWorker', () => {
     fetchMock.mockResolvedValue(reply({ error: 'upstream' }, 502))
     await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'transient' })
 
+    fetchMock.mockResolvedValue(reply({ error: 'fatal' }, 401))
+    await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'invalid' })
+
+    fetchMock.mockResolvedValue(reply({ error: 'misconfigured' }, 500))
+    await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'invalid' })
+
     fetchMock.mockResolvedValue(reply({ error: 'forbidden' }, 403))
     await expect(refreshViaWorker(SESSION_ID)).resolves.toEqual({ status: 'transient' })
 
@@ -139,5 +160,13 @@ describe('authWorker', () => {
 
     fetchMock.mockRejectedValue(new TypeError('Failed to fetch'))
     await expect(logoutViaWorker(SESSION_ID)).resolves.toBeUndefined()
+  })
+
+  it('can forget a session without revoking it at Google', async () => {
+    fetchMock.mockResolvedValue(reply({ ok: true }))
+    await forgetWorkerSession(SESSION_ID)
+
+    expect(lastCall().url).toBe('https://auth.example.workers.dev/logout')
+    expect(lastCall().body).toEqual({ sessionId: SESSION_ID, revoke: false })
   })
 })
