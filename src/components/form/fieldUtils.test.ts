@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { isFieldHidden } from './fieldUtils'
+import { isFieldHidden, sortEntryFormFields, sortFormFields } from './fieldUtils'
 
 const field = (id: string) => ({ id, label: id, type: 'select' as const, required: false })
 
@@ -22,5 +22,31 @@ describe('isFieldHidden', () => {
     expect(isFieldHidden(field('walletApply'), paidBy)).toBe(true)
     expect(isFieldHidden(field('walletAccount'), { ...paidBy, payer: 'fund' })).toBe(false)
     expect(isFieldHidden(field('walletAccount'), { ...paidBy, payer: '' })).toBe(false)
+  })
+})
+
+describe('field order', () => {
+  const fields = ['note', 'amount', 'walletAccount', 'category', 'title', 'date'].map(field)
+
+  it('keeps the sheet column order: the amount after the category', () => {
+    expect(sortFormFields(fields).map(item => item.id)).toEqual([
+      'date',
+      'title',
+      'category',
+      'amount',
+      'walletAccount',
+      'note'
+    ])
+  })
+
+  it('shows the amount right after the date, as the new entry form does', () => {
+    expect(sortEntryFormFields(fields).map(item => item.id)).toEqual([
+      'date',
+      'amount',
+      'title',
+      'category',
+      'walletAccount',
+      'note'
+    ])
   })
 })

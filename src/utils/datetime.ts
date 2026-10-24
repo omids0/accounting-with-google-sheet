@@ -1,5 +1,5 @@
 import { formatIsoDatePersian, jalaliToIso, toIsoDate } from './jalaliDate'
-import { normalizeDigits } from './normalizeDigits'
+import { normalizeDigits, toPersianDigits } from './normalizeDigits'
 
 function formatDateToDateTimeIso(date: Date): string {
   const y = date.getFullYear()
@@ -146,7 +146,7 @@ export function calcDurationMinutes(startAt: string, endAt: string): number {
 }
 
 export function formatDurationFa(minutes: number): string {
-  if (minutes <= 0) return '۰'
+  if (minutes <= 0) return toPersianDigits('0')
 
   const hours = Math.floor(minutes / 60)
 
@@ -154,17 +154,17 @@ export function formatDurationFa(minutes: number): string {
 
   const parts: string[] = []
 
-  if (hours > 0) parts.push(`${hours.toLocaleString('fa-IR')} ساعت`)
-  if (mins > 0) parts.push(`${mins.toLocaleString('fa-IR')} دقیقه`)
+  if (hours > 0) parts.push(`${toPersianDigits(String(hours))} ساعت`)
+  if (mins > 0) parts.push(`${toPersianDigits(String(mins))} دقیقه`)
 
-  return parts.join(' و ') || '۰'
+  return parts.join(' و ') || toPersianDigits('0')
 }
 
 /** Decimal hours as shown in Jira timesheets (e.g. 121.2 = 121h 12m). */
 export function formatJiraTimesheetHours(minutes: number): string {
-  if (minutes <= 0) return '0'
+  if (minutes <= 0) return toPersianDigits('0')
 
-  return (minutes / 60).toFixed(1)
+  return toPersianDigits((minutes / 60).toFixed(1))
 }
 
 export function formatDateTimePersian(iso: string): string {
@@ -174,9 +174,7 @@ export function formatDateTimePersian(iso: string): string {
 
   const dateLabel = formatIsoDatePersian(dateIso)
 
-  const timeLabel = `${hour.toLocaleString('fa-IR', { useGrouping: false })}:${String(
-    minute
-  ).padStart(2, '0')}`
+  const timeLabel = toPersianDigits(`${hour}:${String(minute).padStart(2, '0')}`)
 
   return `${dateLabel}، ${timeLabel}`
 }

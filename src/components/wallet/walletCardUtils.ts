@@ -7,6 +7,7 @@ import {
 } from './customCardTheme'
 import { WALLET_ACCOUNT_KIND_BANK, WALLET_ACCOUNT_KIND_CASH } from '../../services/walletCategories'
 import type { WalletAccount, WalletAccountKind } from '../../types'
+import { normalizeSheba, passesLuhn } from '../../utils/idValidators'
 import { normalizeDigits } from '../../utils/normalizeDigits'
 
 /** Recognizes both the current label-based storage and legacy 'bank'/'cash'/'other' codes. */
@@ -90,4 +91,22 @@ export function formatMaskedCardNumber(cardNumber: string): string {
 
 export function isValidCardNumber(cardNumber: string): boolean {
   return normalizeCardNumber(cardNumber).length === 16
+}
+
+/**
+ * Form check of «شماره کارت»: 16 digits that pass the Luhn check. A number already saved
+ * on the account stays accepted until the user changes it.
+ */
+export function cardNumberError(value: string, saved: string): string | true {
+  if (!isValidCardNumber(value)) return 'شماره کارت باید ۱۶ رقم باشد'
+  if (normalizeCardNumber(value) === normalizeCardNumber(saved)) return true
+
+  return passesLuhn(normalizeCardNumber(value)) || 'شماره کارت معتبر نیست'
+}
+
+/** Form check of «شماره شبا» (optional): IR + 24 digits with a valid checksum, unless unchanged. */
+export function shebaError(value: string, saved: string): string | true {
+  if (!value.trim() || value.trim() === saved.trim()) return true
+
+  return normalizeSheba(value) !== null || 'شماره شبا معتبر نیست'
 }

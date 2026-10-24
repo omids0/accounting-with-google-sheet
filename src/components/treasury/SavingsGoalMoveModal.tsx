@@ -41,16 +41,24 @@ export default function SavingsGoalMoveModal({
 
   const withdraw = move?.mode === 'withdraw'
 
+  const [error, setError] = useState('')
+
+  useEffect(() => setError(''), [move])
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!move) return
 
     const value = Number(amount)
 
-    if (!(value > 0)) return showError('مبلغ را وارد کنید')
-    if (withdraw && value > move.goal.balance) {
-      return showError('بیشتر از موجودی هدف نمی‌شود برداشت کرد')
-    }
+    const problem = !(value > 0)
+      ? 'مبلغ را وارد کنید'
+      : withdraw && value > move.goal.balance
+      ? 'بیشتر از موجودی هدف نمی‌شود برداشت کرد'
+      : ''
+
+    setError(problem)
+    if (problem) return showError(problem)
 
     onSubmit(move.goal, { amount: withdraw ? -value : value, accountId, date })
   }
@@ -66,8 +74,14 @@ export default function SavingsGoalMoveModal({
       saving={saving}
       saveLabel={withdraw ? 'برداشت' : 'واریز'}
     >
-      <FormField label="مبلغ" required>
-        <AmountInput value={amount} onChange={setAmount} />
+      <FormField label="مبلغ" required error={error}>
+        <AmountInput
+          value={amount}
+          onChange={value => {
+            setError('')
+            setAmount(value)
+          }}
+        />
       </FormField>
       <FormField label={withdraw ? 'به حساب' : 'از حساب'}>
         <WalletAccountSelect value={accountId} onChange={setAccountId} />

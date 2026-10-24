@@ -1,17 +1,19 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { resolveVaultAsset } from '../../services/treasuryCatalog'
 import type { VaultAsset, VaultAssetClass } from '../../types'
+import { getTodayIso } from '../../utils/jalaliDate'
+import { showError } from '../../utils/toast'
 import AmountInput from '../AmountInput'
 import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import QuantityInput from './QuantityInput'
+import { tradeFormErrors, type TradeFormErrors } from './tradeErrors'
 import TreasuryAssetPicker, { defaultAssetForClass, emptyNewAsset } from './TreasuryAssetPicker'
 import { NEW_ASSET_OPTION, type TransactionWithRow, type VaultFormState } from './types'
-import { getTodayIso } from '../../utils/jalaliDate'
 
 type TreasuryBuyFormModalProps = {
   open: boolean
@@ -83,8 +85,32 @@ export default function TreasuryBuyFormModal({
   const decimals = asset ? asset.decimals : newAsset.decimals
   const unit = (asset ? asset.unit : newAsset.unit) || 'واحد'
 
+  const [errors, setErrors] = useState<TradeFormErrors>({})
+
+  useEffect(() => setErrors({}), [open, editingTx])
+
+  const clearError = (field: keyof TradeFormErrors) =>
+    setErrors(c => ({ ...c, [field]: undefined }))
+
   const onFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    void handleSubmit(values => {
+      const found = tradeFormErrors(values, decimals, {
+        price: 'قیمت واحد را وارد کنید',
+        date: 'تاریخ الزامی است'
+      })
+
+      setErrors(found)
+
+      const first = found.quantity ?? found.unitPrice ?? found.transactionDate
+
+      if (first) {
+        showError(first)
+
+        return
+      }
+
+      return onSubmit(values)
+    })(event)
   }
 
   return (
@@ -111,23 +137,40 @@ export default function TreasuryBuyFormModal({
       />
 
       <FormRow>
-        <FormField label={`مقدار (${unit})`} required controlWidth="standard">
+        <FormField
+          label={`مقدار (${unit})`}
+          required
+          controlWidth="standard"
+          error={errors.quantity}
+        >
           <QuantityInput
             value={watch('quantity')}
             decimals={decimals}
-            onChange={value => setValue('quantity', value)}
+            onChange={value => {
+              clearError('quantity')
+              setValue('quantity', value)
+            }}
           />
         </FormField>
 
-        <FormField label={`قیمت هر ${unit} (تومان)`} required>
-          <AmountInput value={watch('unitPrice')} onChange={val => setValue('unitPrice', val)} />
+        <FormField label={`قیمت هر ${unit} (تومان)`} required error={errors.unitPrice}>
+          <AmountInput
+            value={watch('unitPrice')}
+            onChange={val => {
+              clearError('unitPrice')
+              setValue('unitPrice', val)
+            }}
+          />
         </FormField>
       </FormRow>
 
-      <FormField label="تاریخ خرید" required>
+      <FormField label="تاریخ خرید" required error={errors.transactionDate}>
         <JalaliDatePicker
           value={watch('transactionDate')}
-          onChange={iso => setValue('transactionDate', iso)}
+          onChange={iso => {
+            clearError('transactionDate')
+            setValue('transactionDate', iso)
+          }}
         />
       </FormField>
 

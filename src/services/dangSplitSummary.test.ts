@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildGroupSummary } from './dangSplitMath'
+import { buildGroupSummary, unspentFundDeposit } from './dangSplitMath'
 import type { DangSplitAllocation, DangSplitExpense, DangSplitPerson } from '../types/dangSplit'
 
 function person(id: string, overrides: Partial<DangSplitPerson> = {}): DangSplitPerson {
@@ -241,5 +241,30 @@ describe('buildGroupSummary with fund deposits', () => {
     expect(byId.get('ali')?.credit).toBe(1_400_000)
     expect(byId.get('ali')?.balance).toBe(200_000 - 1_400_000)
     expect(byId.get('reza')?.balance).toBe(200_000)
+  })
+})
+
+describe('unspentFundDeposit', () => {
+  it('is the deposit still sitting in the fund when creditors exceed debtors', () => {
+    const summary = buildGroupSummary({
+      people: [person('ali', { deposit: 500 }), person('reza'), person('sara')],
+      expenses: [expense('e1', 1500, 'ali')],
+      allocations: [allocation('e1', 'reza', 1), allocation('e1', 'sara', 1)]
+    })
+
+    expect(summary.debtTotal).toBe(1500)
+    expect(summary.creditTotal).toBe(2000)
+    expect(unspentFundDeposit(summary)).toBe(500)
+  })
+
+  it('is 0 when the totals agree or nothing was deposited', () => {
+    expect(unspentFundDeposit({ creditTotal: 100, debtTotal: 100, depositTotal: 50 })).toBe(0)
+    expect(unspentFundDeposit({ creditTotal: 200, debtTotal: 100, depositTotal: 0 })).toBe(0)
+    expect(unspentFundDeposit({ creditTotal: 100, debtTotal: 200, depositTotal: 50 })).toBe(0)
+  })
+
+  it('never claims more than was deposited', () => {
+    expect(unspentFundDeposit({ creditTotal: 900, debtTotal: 100, depositTotal: 500 })).toBe(500)
+    expect(unspentFundDeposit({ creditTotal: 2000, debtTotal: 1500, depositTotal: 500 })).toBe(500)
   })
 })

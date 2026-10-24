@@ -15,7 +15,7 @@ export default function UpdateMileageToggle({
   onChange,
   currentMileage
 }: UpdateMileageToggleProps) {
-  const current = `${currentMileage.toLocaleString('fa-IR')} km`
+  const current = `${currentMileage.toLocaleString('fa-IR')} کیلومتر`
 
   return (
     <label className="flex cursor-pointer items-start gap-2 text-[0.85rem] text-primary">

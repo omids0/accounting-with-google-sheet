@@ -45,7 +45,8 @@ export default function CategorySubcategoryEditor({
   const add = async () => {
     const name = newName.trim()
 
-    if (!name || !check('', name)) return
+    // An empty name is not skipped: the toast tells what is missing.
+    if (!check('', name)) return
     if (await onSave([...subcategories, name])) setNewName('')
   }
 
@@ -155,7 +156,7 @@ export default function CategorySubcategoryEditor({
           type="button"
           className={categorySelectAddBtnClass}
           onClick={() => void add()}
-          disabled={busy || !newName.trim()}
+          disabled={busy}
           aria-label="افزودن زیردسته"
         >
           <AppIcon name="add" size={18} />

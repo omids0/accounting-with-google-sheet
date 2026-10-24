@@ -33,7 +33,7 @@ export default function WalletReconciliationAlert({
         <HelpHint {...HELP_HINTS.reconciliation} />
       </strong>
       <p>
-        کیف پول فعلی (<MoneyText amount={totalBalance} />) با مانده محاسبه‌شده (
+        کیف پول فعلی (<MoneyText amount={totalBalance} />) از مانده محاسبه‌شده (
         <MoneyText amount={periodBalance} />) {reconciliationDiff > 0 ? 'بیشتر' : 'کمتر'} است.
       </p>
       <p className={reconcileDiffClass}>

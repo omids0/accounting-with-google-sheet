@@ -82,7 +82,10 @@ export function useCounterpartySelectActions({
     }
     if (!requireAuth()) return false
 
-    const validationError = validateCounterpartyForm(values)
+    const validationError = validateCounterpartyForm(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
 
     if (validationError) {
       showError(validationError)
@@ -90,7 +93,10 @@ export function useCounterpartySelectActions({
       return false
     }
 
-    const payload = buildCounterpartyPayload(values)
+    const payload = buildCounterpartyPayload(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
     const previousName = editingItem ? getCounterpartyFullName(editingItem) : ''
     const nextName = getCounterpartyFullName(payload)
 

@@ -7,6 +7,7 @@ import { learnSmsRef } from '../../services/bankSmsPrefs'
 import { createSmsTemplate } from '../../services/bankSmsTemplates'
 import { createWalletAccount, type WalletAccountInput } from '../../services/wallet'
 import { logBalanceSet } from '../../services/walletLedger'
+import { normalizeSheba } from '../../utils/idValidators'
 import type { SmsTemplateDraft } from '../bankSms/SmsSampleEditor'
 
 export function buildWalletAccountPayload(form: WalletFormState): WalletAccountInput {
@@ -23,7 +24,7 @@ export function buildWalletAccountPayload(form: WalletFormState): WalletAccountI
     cardNumber: isBankAccount ? form.cardNumber : '',
     cardHolder: isBankAccount ? form.cardHolder.trim() : '',
     accountNumber: isBankAccount ? form.accountNumber.trim() : '',
-    iban: isBankAccount ? form.iban.trim() : '',
+    iban: isBankAccount ? normalizeSheba(form.iban) ?? form.iban.trim() : '',
     cardColor: useCustomColor
       ? CUSTOM_CARD_COLOR_ID
       : isBankAccount && hasBankColorPalette(internalBankId)
