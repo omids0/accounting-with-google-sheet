@@ -1,9 +1,10 @@
 import { cn, cx } from '../../utils/cn'
 
-// The button is a full 44 px tap box; the visible ring is its ::before, and negative
-// margins keep the surrounding text layout as if it were the small ring.
+// The button is a full 44 px tap box; the visible ring is its ::before. Only the vertical
+// margins are negative (they keep the line height): sideways it occupies its own width, so
+// it never overlaps the text or a button next to it.
 export const helpHintTriggerClass = cx(
-  'help-hint relative m-[-0.72rem] ms-[-0.345rem] inline-flex size-touch-min shrink-0 items-center justify-center align-middle',
+  'help-hint relative -my-[0.72rem] ms-0.5 inline-flex size-touch-min shrink-0 items-center justify-center align-middle',
   'border-none bg-transparent p-0 text-[0.72rem] font-bold leading-none text-inherit cursor-pointer',
   'before:absolute before:size-[1.3rem] before:rounded-full before:border-[1.5px] before:border-current before:bg-transparent before:content-[""]',
   'before:transition-[background] before:duration-[var(--duration-fast)] hover:before:bg-[color-mix(in_srgb,currentColor_12%,transparent)]'

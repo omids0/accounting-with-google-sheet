@@ -20,7 +20,7 @@ export default function CardEditButton({
 }: CardEditButtonProps) {
   if (useReadOnly()) return null
 
-  const ariaLabel = `${label} ${itemLabel}`
+  const ariaLabel = `${label} ${itemLabel}`.trim()
 
   return (
     <button

@@ -80,6 +80,9 @@ function RecordsListRow({
 
   const date = recordDateField ? record.values[recordDateField.id] : ''
 
+  // A record without a title is still named for screen readers («ویرایش رکورد»).
+  const itemName = String(title ?? '').trim() || 'رکورد'
+
   const subCategory = record.values[SUBCATEGORY_FIELD_ID] ?? ''
 
   const counterparty = recordCounterparty(record)
@@ -163,8 +166,8 @@ function RecordsListRow({
         )}
         {readOnly ? null : (
           <div className={cn(cardActionButtonsClass, 'relative z-[1]')}>
-            <CardEditButton itemLabel={String(title)} onClick={() => onEdit(record)} />
-            <CardDeleteButton itemLabel={String(title)} onClick={() => onDelete(record)} />
+            <CardEditButton itemLabel={itemName} onClick={() => onEdit(record)} />
+            <CardDeleteButton itemLabel={itemName} onClick={() => onDelete(record)} />
           </div>
         )}
       </div>

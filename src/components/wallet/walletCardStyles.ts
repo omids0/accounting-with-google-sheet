@@ -1,16 +1,23 @@
 import { cn, cx } from '../../utils/cn'
 
 /** Room for the 2x2 grid of 44 px action buttons on the card's left edge. */
+/**
+ * Card height floor: the 2x2 action grid is 2*touch + 0.1rem gap + 0.2rem padding + 2px border
+ * tall (94 px at the 14 px root, 96 at 16, 118 at 20); 0.5rem of air on top of that keeps it
+ * inside the card at every text size, whatever the fixed 6.35rem would give.
+ */
+export const WALLET_CARD_MIN_HEIGHT = 'max(6.35rem,calc(var(--touch-min)*2+0.8rem+2px))'
+
 export const walletCardControllerGutterClass = 'pl-[calc(var(--touch-min)*2+1.6rem)]'
 
 const walletCardShadowClass =
   'shadow-[0_2px_8px_rgba(15,23,42,0.1),0_1px_2px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.06]'
 
 export const walletBankCardClass = cx(
-  'wallet-bank-card relative flex min-h-[6.35rem] w-full flex-col overflow-hidden rounded-[12px] p-[0.65rem_0.75rem]',
+  'wallet-bank-card relative flex min-h-[max(6.35rem,calc(var(--touch-min)*2+0.8rem+2px))] w-full flex-col overflow-hidden rounded-[12px] p-[0.65rem_0.75rem]',
   walletCardControllerGutterClass,
   walletCardShadowClass,
-  'text-right sm:min-h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[calc(var(--touch-min)*2+1.6rem)]',
+  'text-right sm:min-h-[max(6.75rem,calc(var(--touch-min)*2+0.8rem+2px))] sm:p-[0.7rem_0.85rem] sm:pl-[calc(var(--touch-min)*2+1.6rem)]',
   'transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]'
 )
 
@@ -63,8 +70,8 @@ export const walletBankCardContactlessClass = cx(
 export const walletCardPreviewClass = 'mx-auto max-w-[18rem]'
 
 export const walletBankCardCopyBtnClass = cx(
-  // 44 px hit box around the 16 px icon; negative margins keep the row height unchanged.
-  'copy-btn relative z-[1] -my-[0.9rem] inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center',
+  // A full 44 px box in the row (no negative margins): it never overlaps the next button.
+  'copy-btn relative z-[1] inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center',
   'rounded-[3px] border-none bg-transparent p-0 text-inherit opacity-90',
   'transition-opacity duration-[var(--duration-fast)] hover:opacity-100',
   // Bank cards carry white text, so a white ring matches its contrast.
@@ -113,10 +120,10 @@ export const walletCardActionOverlayExpandedClass = cx(
 )
 
 const walletTileBaseClass = cx(
-  'relative flex h-[6.35rem] w-full flex-col justify-between overflow-hidden rounded-[12px] p-[0.65rem_0.75rem] text-right',
+  'relative flex min-h-[max(6.35rem,calc(var(--touch-min)*2+0.8rem+2px))] w-full flex-col justify-between overflow-hidden rounded-[12px] p-[0.65rem_0.75rem] text-right',
   walletCardControllerGutterClass,
   walletCardShadowClass,
-  'sm:h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[calc(var(--touch-min)*2+1.6rem)]'
+  'sm:min-h-[max(6.75rem,calc(var(--touch-min)*2+0.8rem+2px))] sm:p-[0.7rem_0.85rem] sm:pl-[calc(var(--touch-min)*2+1.6rem)]'
 )
 
 const walletTileTopRowClass = 'relative z-[2] flex items-start justify-between gap-2'

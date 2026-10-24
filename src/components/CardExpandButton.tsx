@@ -21,7 +21,7 @@ export default function CardExpandButton({
   label = expanded ? 'بستن جزئیات' : 'نمایش جزئیات',
   className
 }: CardExpandButtonProps) {
-  const ariaLabel = `${label} ${itemLabel}`
+  const ariaLabel = `${label} ${itemLabel}`.trim()
 
   return (
     <button

@@ -48,3 +48,11 @@ describe('card action buttons name their item', () => {
     ).toEqual(['نمایش جزئیات بانک ملی', 'بستن جزئیات بانک ملی'])
   })
 })
+
+describe('empty item names', () => {
+  it('leaves no trailing space', () => {
+    expect(labelsOf(createElement(CardEditButton, { onClick: vi.fn(), itemLabel: '' }))).toEqual([
+      'ویرایش'
+    ])
+  })
+})
