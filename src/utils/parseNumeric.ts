@@ -20,7 +20,7 @@ const PLAIN_DECIMAL = /^[+-]?(\d+\.?\d*|\.\d+)$/
  * hand back unchanged. Sheet amounts almost always look like this, and a list of thousands of rows
  * parses them on every load, so they skip the replace chain.
  */
-const PLAIN_ASCII_DECIMAL = /^[+-]?d+(.d*)?$/
+const PLAIN_ASCII_DECIMAL = /^[+-]?\d+(\.\d*)?$/
 
 function normalizeNumericText(raw: string): string {
   let text = normalizeDigits(raw)
