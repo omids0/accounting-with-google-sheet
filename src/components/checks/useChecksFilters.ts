@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
+import type { CheckDirectionFilter } from './checkDirectionOptions'
 import type { CheckWithRow } from './types'
 import { useListFilters } from '../../hooks/useListFilters'
 import { getCounterpartyFullName } from '../../services/counterparties'
@@ -16,7 +17,10 @@ export function useChecksFilters({ items, counterparties }: UseChecksFiltersOpti
     [counterparties]
   )
 
-  return useListFilters({
+  // «همه / پرداختی / دریافتی» sits above the list, outside the filter sheet: one tap.
+  const [directionFilter, setDirectionFilter] = useState<CheckDirectionFilter>('all')
+
+  const filters = useListFilters({
     items,
     getSearchParts: item => [
       item.checkNumber,
@@ -30,4 +34,14 @@ export function useChecksFilters({ items, counterparties }: UseChecksFiltersOpti
     getWriter: item => item.writer,
     counterpartySeed
   })
+
+  const filteredItems = useMemo(
+    () =>
+      directionFilter === 'all'
+        ? filters.filteredItems
+        : filters.filteredItems.filter(item => item.direction === directionFilter),
+    [directionFilter, filters.filteredItems]
+  )
+
+  return { ...filters, filteredItems, directionFilter, setDirectionFilter }
 }

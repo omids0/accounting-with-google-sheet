@@ -8,7 +8,9 @@ import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
+import { SegmentedRadio } from '../form'
 import PageFilterPanel from '../PageFilterPanel'
+import { CHECK_DIRECTION_FILTER_OPTIONS } from './checkDirectionOptions'
 import CheckFormModal from './CheckFormModal'
 import CheckList from './CheckList'
 import type { ChecksPageProps } from './types'
@@ -65,6 +67,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     draftCustomRange,
     counterpartyOptions,
     filteredItems,
+    directionFilter,
+    setDirectionFilter,
     openFilterModal,
     filterChips,
     clearAllFilters,
@@ -147,6 +151,16 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
           {...minePanelProps}
         />
       </FilterModal>
+
+      {items.length > 0 ? (
+        <SegmentedRadio
+          label="نوع چک"
+          options={CHECK_DIRECTION_FILTER_OPTIONS}
+          value={directionFilter}
+          onChange={setDirectionFilter}
+          className="[&_button]:min-h-11"
+        />
+      ) : null}
 
       <CheckList
         items={items}
