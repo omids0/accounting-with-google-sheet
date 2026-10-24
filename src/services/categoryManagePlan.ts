@@ -89,7 +89,7 @@ export function isDormantCategory(
 export function categoryNameError(categories: string[], current: string, next: string) {
   const name = next.trim()
 
-  if (!name) return 'نام دسته خالی است'
+  if (!name) return 'نام دسته را بنویس'
   if (name !== current && categories.some(item => item.trim() === name)) {
     return 'این دسته قبلاً وجود دارد'
   }

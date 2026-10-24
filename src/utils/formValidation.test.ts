@@ -58,4 +58,14 @@ describe('react-hook-form rule builders', () => {
     expect(validate('0')).toBe('موعد قسط را وارد کنید')
     expect(validate('40')).toBe('موعد قسط باید بین 1 تا 31 باشد')
   })
+
+  it('requiredPositiveInteger rejects a decimal count', () => {
+    const { validate } = requiredPositiveInteger('تعداد بازپرداخت', 1, 120)
+
+    expect(validate('2.5')).toBe('تعداد بازپرداخت باید عدد صحیح باشد')
+    expect(validate(2.5)).toBe('تعداد بازپرداخت باید عدد صحیح باشد')
+    expect(validate('۱۲٫۵')).toBe('تعداد بازپرداخت باید عدد صحیح باشد')
+    expect(validate('12')).toBe(true)
+    expect(validate(12)).toBe(true)
+  })
 })

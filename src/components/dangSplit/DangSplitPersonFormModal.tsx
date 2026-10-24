@@ -13,6 +13,8 @@ import AmountInput from '../AmountInput'
 import { FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 
+const WEIGHT_ERROR = 'ضریب سهم باید بیشتر از صفر باشد'
+
 export default function DangSplitPersonFormModal({
   open,
   editingItem,
@@ -106,7 +108,10 @@ export default function DangSplitPersonFormModal({
             type="number"
             step="0.1"
             min="0.1"
-            {...register('defaultWeight', { valueAsNumber: true })}
+            {...register('defaultWeight', {
+              valueAsNumber: true,
+              validate: value => (Number(value) > 0 ? true : WEIGHT_ERROR)
+            })}
           />
         </FormField>
       </FormRow>

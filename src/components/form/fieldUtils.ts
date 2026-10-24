@@ -212,18 +212,26 @@ export function isFieldHidden(
   return field.id === WALLET_APPLY_FIELD_ID && !String(values[WALLET_ACCOUNT_FIELD_ID] ?? '').trim()
 }
 
+function sortByOrder(fields: FieldConfig[], orderIds: string[]): FieldConfig[] {
+  const order = new Map(orderIds.map((id, index) => [id, index]))
+
+  return [...fields].sort((a, b) => (order.get(a.id) ?? 1000) - (order.get(b.id) ?? 1000))
+}
+
+/** The sheet's column order. Not the order on screen: see `sortEntryFormFields`. */
 export function sortFormFields(fields: FieldConfig[]): FieldConfig[] {
-  const order = new Map(STANDARD_FIELD_ORDER.map((id, index) => [id, index]))
+  return sortByOrder(fields, STANDARD_FIELD_ORDER)
+}
 
-  return [...fields].sort((a, b) => {
-    const aIndex = order.get(a.id) ?? 1000
+/** Order on screen for a new entry and for editing a record: the amount follows the date. */
+const ENTRY_DISPLAY_ORDER = [
+  'date',
+  'amount',
+  ...STANDARD_FIELD_ORDER.filter(id => id !== 'date' && id !== 'amount')
+]
 
-    const bIndex = order.get(b.id) ?? 1000
-
-    if (aIndex !== bIndex) return aIndex - bIndex
-
-    return 0
-  })
+export function sortEntryFormFields(fields: FieldConfig[]): FieldConfig[] {
+  return sortByOrder(fields, ENTRY_DISPLAY_ORDER)
 }
 
 export function getInitialFieldValue(field: FieldConfig): string | number {

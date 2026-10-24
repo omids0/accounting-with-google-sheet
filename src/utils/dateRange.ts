@@ -8,6 +8,7 @@ import {
   jalaliToIso,
   toIsoDate
 } from './jalaliDate'
+import { toPersianDigits } from './normalizeDigits'
 import { normalizeSheetDate } from './sheetValues'
 
 export type { DateRange } from './jalaliDate'
@@ -56,7 +57,7 @@ export function getJalaliYearRange(year: number): DateRange {
 }
 
 export function formatJalaliYear(year: number): string {
-  return year.toLocaleString('fa-IR', { useGrouping: false })
+  return toPersianDigits(String(year))
 }
 
 export function getDateRange(preset: DateRangePreset): DateRange {

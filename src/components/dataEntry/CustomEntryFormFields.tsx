@@ -4,7 +4,7 @@ import type { useForm } from 'react-hook-form'
 import type { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
 import type { CustomForm } from '../../types'
 import { formFieldError } from '../../utils/formValidation'
-import { FieldInput, isFieldHidden, sortFormFields, SUBCATEGORY_FIELD_ID } from '../form'
+import { FieldInput, isFieldHidden, sortEntryFormFields, SUBCATEGORY_FIELD_ID } from '../form'
 import EntryRecordExtraField, { isRecordExtraField } from './EntryRecordExtraField'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
 
@@ -37,7 +37,7 @@ export default function CustomEntryFormFields({
 }) {
   return (
     <>
-      {sortFormFields(activeForm.fields).map(field => {
+      {sortEntryFormFields(activeForm.fields).map(field => {
         if (isFieldHidden(field, values)) return null
         if (showVehicleFields && field.id === 'title') return null
         if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {

@@ -187,7 +187,7 @@ export default function VehicleDetailPage({
         <p className={vehicleDetailMileageClass}>
           کارکرد فعلی:{' '}
           <span className={vehicleDetailMileageValueClass}>
-            {page.currentVehicle.mileage.toLocaleString('fa-IR')} km
+            {page.currentVehicle.mileage.toLocaleString('fa-IR')} کیلومتر
           </span>
         </p>
         <TransactionTypeSegment

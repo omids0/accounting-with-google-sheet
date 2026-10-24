@@ -6,6 +6,7 @@ import { dangSplitToolbarClass } from './dangSplitStyles'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitGroupSummary } from '../../types/dangSplit'
 import EmptyState from '../EmptyState'
+import Button from '../ui/Button'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 type PeopleSection = {
@@ -141,6 +142,10 @@ export default function DangSplitPeopleTab({
           ))}
         </div>
       ) : null}
+
+      <Button type="button" variant="secondary" onClick={onAddPerson}>
+        + افزودن فرد
+      </Button>
     </div>
   )
 }

@@ -66,6 +66,8 @@ test.describe('keyboard', () => {
     await page.keyboard.press('Tab')
     await expect(page.getByLabel('مبلغ')).toBeFocused()
     await page.keyboard.type('125000')
+    // Typed key by key, the field keeps every digit and adds the thousands separators.
+    await expect(page.getByLabel('مبلغ')).toHaveValue('۱۲۵٬۰۰۰')
 
     const save = page.getByRole('button', { name: 'ذخیره', exact: true })
     await tabTo(page, save, 12)

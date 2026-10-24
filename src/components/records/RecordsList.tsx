@@ -22,6 +22,8 @@ interface RecordsListProps {
   isAllForms: boolean
   filteredRecords: StoredRecord[]
   readOnly?: boolean
+  /** Tag shown on every row (see `RecordsListRow`). */
+  badge?: string
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
   onOpen: (record: StoredRecord) => void
@@ -33,6 +35,7 @@ export default function RecordsList({
   isAllForms,
   filteredRecords,
   readOnly,
+  badge,
   onEdit,
   onDelete,
   onOpen
@@ -73,6 +76,7 @@ export default function RecordsList({
             isAllForms={isAllForms}
             index={index}
             readOnly={readOnly}
+            badge={badge}
             onEdit={onEdit}
             onDelete={onDelete}
             onOpen={onOpen}

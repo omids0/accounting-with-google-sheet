@@ -1,4 +1,4 @@
-import { useMemo, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
 import { CHECK_DIRECTION_OPTIONS, checkCounterpartyLabel } from './checkDirectionOptions'
@@ -7,12 +7,12 @@ import type { CheckFormState, CheckWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { CHECK_EXPENSE_CATEGORY, CHECK_INCOME_CATEGORY } from '../../services/checks'
 import {
-  formFieldError,
   requiredDate,
   requiredField,
   requiredPositiveAmount,
   submitValidatedForm
 } from '../../utils/formValidation'
+import { digitsOnly } from '../../utils/idValidators'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
 import AttachmentField from '../attachments/AttachmentField'
@@ -27,6 +27,8 @@ import {
 } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
+
+const CHECK_NUMBER_DIGITS_ONLY = 'شماره چک فقط عدد است'
 
 export type CheckFormModalProps = {
   open: boolean
@@ -74,14 +76,7 @@ export default function CheckFormModal({
     [editingItem]
   )
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { errors }
-  } = useForm<CheckFormState>({
+  const { control, handleSubmit, reset, setValue } = useForm<CheckFormState>({
     defaultValues: initialValues,
     mode: 'onSubmit'
   })
@@ -103,6 +98,15 @@ export default function CheckFormModal({
     active: open,
     resetKey: editingItem?.id ?? 'create'
   })
+
+  // A number saved with letters or slashes («A123», «123/456») stays free text while this
+  // check is edited; only new and all-digit numbers are held to digits.
+  const legacyNumber = !/^\d*$/.test(String(initialValues.checkNumber))
+
+  // The last key dropped a non-digit: say so instead of silently eating it.
+  const [droppedChars, setDroppedChars] = useState(false)
+
+  useEffect(() => setDroppedChars(false), [open, editingItem])
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     submitValidatedForm(handleSubmit, values => onSubmit(values), event)
@@ -141,14 +145,45 @@ export default function CheckFormModal({
       />
 
       <FormRow>
-        <FormField label="شماره چک" required error={formFieldError(errors, 'checkNumber')}>
-          <input
-            type="text"
-            {...register('checkNumber', requiredField('شماره چک'))}
-            placeholder="شماره چک"
-            dir="ltr"
-          />
-        </FormField>
+        <Controller
+          name="checkNumber"
+          control={control}
+          rules={{
+            validate: value => {
+              const required = requiredField('شماره چک').validate(value)
+
+              if (required !== true) return required
+
+              return legacyNumber || /^\d+$/.test(value) || CHECK_NUMBER_DIGITS_ONLY
+            }
+          }}
+          render={({ field, fieldState }) => (
+            <FormField
+              label="شماره چک"
+              required
+              error={
+                fieldState.error?.message ?? (droppedChars ? CHECK_NUMBER_DIGITS_ONLY : undefined)
+              }
+            >
+              <input
+                type="text"
+                inputMode={legacyNumber ? 'text' : 'numeric'}
+                value={field.value}
+                onBlur={field.onBlur}
+                onChange={event => {
+                  if (legacyNumber) return field.onChange(event.target.value)
+
+                  const { value, changed } = digitsOnly(event.target.value)
+
+                  setDroppedChars(changed)
+                  field.onChange(value)
+                }}
+                placeholder="شماره چک"
+                dir="ltr"
+              />
+            </FormField>
+          )}
+        />
 
         <Controller
           name="amount"

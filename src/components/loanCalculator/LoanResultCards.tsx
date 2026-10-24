@@ -1,3 +1,4 @@
+import { LOAN_ANNUITY_NAME } from './LoanInputsCard'
 import { cn } from '../../utils/cn'
 import { getCurrencySymbol } from '../../utils/formatMoney'
 import type { LoanCalculationResult, LoanMethod } from '../../utils/loanCalculator'
@@ -20,13 +21,12 @@ import {
 } from '../ui/chartStyles'
 
 const METHOD_BADGE: Record<LoanMethod, string> = {
-  annuity: 'روش اقساطی (بانکی)',
+  annuity: LOAN_ANNUITY_NAME,
   flat: 'روش سود ساده'
 }
 
 const METHOD_FORMULA: Record<LoanMethod, string> = {
-  annuity:
-    'روش اقساطی (فروش اقساطی / مرابحه): قسط = P × r × (1+r)ⁿ ÷ ((1+r)ⁿ − 1)؛ r = نرخ سود سالانه ÷ ۱۲ و n = تعداد ماه. سود هر ماه روی مانده بدهی حساب می‌شود.',
+  annuity: `${LOAN_ANNUITY_NAME}: قسط = P × r × (1+r)ⁿ ÷ ((1+r)ⁿ − 1)؛ r = نرخ سود سالانه ÷ ۱۲ و n = تعداد ماه. سود هر ماه روی مانده بدهی حساب می‌شود؛ فروش اقساطی و مرابحه هم همین فرمول را دارند.`,
   flat: 'روش سود ساده: سود کل = مبلغ وام × نرخ سود × (تعداد ماه ÷ ۱۲)؛ سود روی کل مبلغ وام و برای تمام مدت حساب می‌شود.'
 }
 
