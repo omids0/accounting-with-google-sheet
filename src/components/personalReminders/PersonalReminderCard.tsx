@@ -44,7 +44,7 @@ export default function PersonalReminderCard({
           <TapCheckbox
             checked={isDone}
             disabled={isDone || completing}
-            aria-label={isDone ? 'انجام شده' : 'ثبت انجام یادآوری'}
+            aria-label={isDone ? `انجام شده: ${item.title}` : `ثبت انجام ${item.title}`}
             onChange={e => {
               if (item.enabled && e.target.checked) {
                 onComplete(item)
@@ -74,8 +74,8 @@ export default function PersonalReminderCard({
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <CardEditButton onClick={() => onEdit(item)} />
-          <CardDeleteButton onClick={() => onDelete(item)} />
+          <CardEditButton itemLabel={item.title} onClick={() => onEdit(item)} />
+          <CardDeleteButton itemLabel={item.title} onClick={() => onDelete(item)} />
         </div>
       </div>
     </div>

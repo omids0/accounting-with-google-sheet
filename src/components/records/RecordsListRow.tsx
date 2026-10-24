@@ -163,8 +163,8 @@ function RecordsListRow({
         )}
         {readOnly ? null : (
           <div className={cn(cardActionButtonsClass, 'relative z-[1]')}>
-            <CardEditButton onClick={() => onEdit(record)} />
-            <CardDeleteButton onClick={() => onDelete(record)} />
+            <CardEditButton itemLabel={String(title)} onClick={() => onEdit(record)} />
+            <CardDeleteButton itemLabel={String(title)} onClick={() => onDelete(record)} />
           </div>
         )}
       </div>

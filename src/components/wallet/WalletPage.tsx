@@ -6,7 +6,7 @@ import { useWalletData } from './useWalletData'
 import { useWalletFilters } from './useWalletFilters'
 import { useWalletMutations } from './useWalletMutations'
 import { useWalletReconcile } from './useWalletReconcile'
-import { computeReconciliation, computeTotalBalance } from './utils'
+import { computeReconciliation, computeTotalBalance, walletDeleteMessage } from './utils'
 import WalletAccountCard from './WalletAccountCard'
 import { walletCardsListClass } from './walletCardStyles'
 import WalletFormModal from './WalletFormModal'
@@ -256,7 +256,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
 
       <ConfirmDeleteModal
         open={mutations.deletingAccount !== null}
-        message="از حذف این مورد مطمئن هستید؟"
+        title="حذف حساب"
+        message={walletDeleteMessage(mutations.deletingAccount?.title)}
         onClose={mutations.closeDeleteConfirm}
         onConfirm={mutations.handleDelete}
         deleting={mutations.deleting}

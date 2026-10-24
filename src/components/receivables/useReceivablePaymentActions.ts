@@ -155,6 +155,8 @@ export function useReceivablePaymentActions({ setItems }: UseReceivablePaymentAc
     const recordId = receivable.payments.find(p => p.id === paymentId)?.transactionRecordId ?? ''
     let unlink: UnlinkChoice | null | undefined
 
+    if (!(await settleFlow.askUnpay(Boolean(recordId)))) return
+
     if (await isLinkedForeignRecord(spreadsheetId, 'income', recordId, 'طلب: ')) {
       unlink = await settleFlow.askUnlink()
       if (!unlink) return

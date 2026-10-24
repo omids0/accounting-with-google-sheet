@@ -143,24 +143,26 @@ export default function ReceivableCard({
           </button>
           <div className={cardActionButtonsClass}>
             <CardEditButton
+              itemLabel={item.title}
               onClick={event => {
                 event.stopPropagation()
                 onEdit()
               }}
             />
             <CardDeleteButton
+              itemLabel={item.title}
               onClick={event => {
                 event.stopPropagation()
                 onDelete()
               }}
             />
             <CardExpandButton
+              itemLabel={item.title}
               expanded={expanded}
               onClick={event => {
                 event.stopPropagation()
                 onToggleExpand(expanded)
               }}
-              ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات طلب'}
             />
           </div>
         </div>
@@ -196,6 +198,7 @@ export default function ReceivableCard({
                 <div key={payment.id} className={receivablePaymentItemClass}>
                   <TapCheckbox
                     checked
+                    aria-label={`برگرداندن پرداخت ${item.title}`}
                     disabled={togglingPaymentId === payment.id}
                     onChange={() => onRemovePayment(payment.id)}
                     onClick={e => e.stopPropagation()}

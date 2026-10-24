@@ -53,6 +53,7 @@ export default function ReceivableTable({
 
         return (
           <TableRowActions
+            itemLabel={item.title}
             onEdit={() => onEdit(item)}
             onDelete={() => onDelete(item)}
             expanded={expanded}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { computeReconciliation } from './utils'
+import { computeReconciliation, walletDeleteMessage } from './utils'
 import type { WalletPeriodFlow } from '../../services/wallet'
 
 const flow = (opening: number, income: number, expense: number): WalletPeriodFlow => ({
@@ -25,5 +25,18 @@ describe('wallet reconciliation', () => {
 
     expect(result.reconciliationDiff).toBe(10931882.3)
     expect(result.hasReconciliationGap).toBe(true)
+  })
+})
+
+describe('wallet delete confirmation', () => {
+  it('names the account and says what stays', () => {
+    const message = walletDeleteMessage('بانک ملی')
+
+    expect(message).toContain('«بانک ملی»')
+    expect(message).toContain('رکوردهای مالی آن می‌مانند')
+  })
+
+  it('still reads well without a title', () => {
+    expect(walletDeleteMessage(undefined).startsWith('حذف حساب؟')).toBe(true)
   })
 })

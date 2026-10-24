@@ -123,8 +123,8 @@ export default function DangSplitPersonCard({
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <CardEditButton onClick={() => onEdit(item)} />
-          <CardDeleteButton onClick={() => onDelete(item)} />
+          <CardEditButton itemLabel={item.name} onClick={() => onEdit(item)} />
+          <CardDeleteButton itemLabel={item.name} onClick={() => onDelete(item)} />
           <DangSplitCategoryAssignButton
             mode={item.categoryId ? 'leave' : 'assign'}
             ariaLabel={

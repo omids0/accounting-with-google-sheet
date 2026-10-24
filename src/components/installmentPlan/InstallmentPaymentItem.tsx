@@ -66,6 +66,7 @@ export default function InstallmentPaymentItem({
       <div className={installmentPaymentRowClass}>
         <TapCheckbox
           checked={payment.paid}
+          aria-label={`پرداخت شد: قسط ${payment.n.toLocaleString('fa-IR')} ${plan.title}`}
           // Lock every toggle of this plan while one is saving, so writes never overlap.
           disabled={togglingPaymentIndex !== null}
           onChange={e => onTogglePayment(plan, paymentIndex, e.target.checked)}

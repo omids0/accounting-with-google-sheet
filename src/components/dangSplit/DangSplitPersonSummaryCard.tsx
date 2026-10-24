@@ -130,12 +130,13 @@ export default function DangSplitPersonSummaryCard({
         </button>
         <div className={cardActionButtonsClass}>
           <CardExpandButton
+            itemLabel={item.name}
             expanded={expanded}
             onClick={event => {
               event.stopPropagation()
               onToggleExpand()
             }}
-            ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات سهم'}
+            label={expanded ? 'بستن جزئیات سهم' : 'نمایش جزئیات سهم'}
           />
         </div>
       </div>

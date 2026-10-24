@@ -43,7 +43,11 @@ export default function TimesheetTable({
       columns={columns}
       rowKey={item => item.id}
       actions={item => (
-        <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+        <TableRowActions
+          itemLabel={item.title}
+          onEdit={() => onEdit(item)}
+          onDelete={() => onDelete(item)}
+        />
       )}
     />
   )

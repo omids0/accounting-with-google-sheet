@@ -139,12 +139,14 @@ export default function DangCard({
         </div>
         <div className={cardActionButtonsClass}>
           <CardEditButton
+            itemLabel={item.title}
             onClick={event => {
               event.stopPropagation()
               onEdit(item)
             }}
           />
           <CardDeleteButton
+            itemLabel={item.title}
             onClick={event => {
               event.stopPropagation()
               onDelete(item)
@@ -152,12 +154,13 @@ export default function DangCard({
           />
           {readOnly ? null : (
             <CardExpandButton
+              itemLabel={item.title}
               expanded={expanded}
               onClick={event => {
                 event.stopPropagation()
                 onExpand(expanded ? null : item.id)
               }}
-              ariaLabel={expanded ? 'بستن جزئیات' : 'ویرایش مبلغ بدهی'}
+              label={expanded ? 'بستن جزئیات' : 'ویرایش مبلغ بدهی'}
             />
           )}
         </div>

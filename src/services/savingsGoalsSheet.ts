@@ -1,10 +1,10 @@
 import { logItemActivity } from './activityLog'
-import { queueGoalCongrats } from './goalCongrats'
+import { queueGoalCongrats, resetGoalCongrats } from './goalCongrats'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import {
   GOAL_LEDGER_SOURCE,
   goalBalances,
-  goalDepositsIn,
+  goalNetDepositsIn,
   goalToRow,
   nextGoalStatus,
   rowToGoal
@@ -55,7 +55,7 @@ export async function loadSavingsGoals(spreadsheetId: string): Promise<SavingsGo
 
   const ledger = await fetchLedgerEntries(spreadsheetId)
   const balances = goalBalances(ledger)
-  const deposits = goalDepositsIn(ledger, getDateRange('month-to-date'))
+  const deposits = goalNetDepositsIn(ledger, getDateRange('month-to-date'))
 
   return goals.map(goal => ({
     ...goal,
@@ -124,6 +124,8 @@ export async function moveGoalMoney(
   const balance = goal.balance + amount
   const status = nextGoalStatus(goal, balance)
 
+  // Falling back under the target takes the congratulation away; reaching it again earns a new one.
+  if (goal.status === 'reached' && status === 'active') resetGoalCongrats(spreadsheetId, goal.id)
   if (status === goal.status) return false
 
   await saveSavingsGoal(spreadsheetId, { ...stripView(goal), status }, goal.rowNumber)

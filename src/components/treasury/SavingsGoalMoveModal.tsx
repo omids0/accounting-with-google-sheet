@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 
 import type { GoalMoveMode } from './useSavingsGoals'
+import { exceedsGoalTarget } from '../../services/savingsGoals'
 import type { GoalMoveInput } from '../../services/savingsGoalsSheet'
 import type { SavingsGoalView } from '../../types'
+import { cn } from '../../utils/cn'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { showError } from '../../utils/toast'
@@ -40,6 +42,10 @@ export default function SavingsGoalMoveModal({
   }, [move])
 
   const withdraw = move?.mode === 'withdraw'
+  const overTarget =
+    move != null &&
+    !withdraw &&
+    exceedsGoalTarget(move.goal.balance, move.goal.target, Number(amount) || 0)
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -75,6 +81,11 @@ export default function SavingsGoalMoveModal({
       <FormField label="تاریخ">
         <JalaliDatePicker value={date} onChange={setDate} />
       </FormField>
+      {overTarget ? (
+        <p className={cn(formHintClass, 'text-[var(--color-warning)]')} role="status">
+          از مبلغ هدف بیشتر می‌شود؛ باز هم می‌توانی واریز کنی.
+        </p>
+      ) : null}
       {move ? (
         <p className={formHintClass}>
           {`موجودی هدف: ${formatPersianNumber(move.goal.balance)} از ${formatPersianNumber(

@@ -59,8 +59,8 @@ export default function TimesheetEntryCard({
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <CardEditButton onClick={() => onEdit(item)} />
-          <CardDeleteButton onClick={() => onDelete(item)} />
+          <CardEditButton itemLabel={item.title} onClick={() => onEdit(item)} />
+          <CardDeleteButton itemLabel={item.title} onClick={() => onDelete(item)} />
         </div>
       </div>
     </div>

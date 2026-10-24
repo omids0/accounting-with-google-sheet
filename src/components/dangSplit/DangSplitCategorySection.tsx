@@ -121,14 +121,14 @@ export default function DangSplitCategorySection({
                   event.stopPropagation()
                   onEditCategory(category)
                 }}
-                ariaLabel={`ویرایش دسته ${title}`}
+                itemLabel={`دسته ${title}`}
               />
               <CardDeleteButton
                 onClick={event => {
                   event.stopPropagation()
                   onDeleteCategory(category)
                 }}
-                ariaLabel={`حذف دسته ${title}`}
+                itemLabel={`دسته ${title}`}
               />
             </>
           ) : null}
@@ -138,7 +138,8 @@ export default function DangSplitCategorySection({
               event.stopPropagation()
               onToggleExpand()
             }}
-            ariaLabel={expanded ? `بستن افراد ${title}` : `نمایش افراد ${title}`}
+            label={expanded ? 'بستن افراد' : 'نمایش افراد'}
+            itemLabel={title}
           />
         </div>
       </div>

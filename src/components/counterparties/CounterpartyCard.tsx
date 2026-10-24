@@ -107,8 +107,8 @@ export default function CounterpartyCard({
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <CardEditButton onClick={() => onEdit(item)} />
-          <CardDeleteButton onClick={() => onDelete(item)} />
+          <CardEditButton itemLabel={fullName || 'طرف حساب'} onClick={() => onEdit(item)} />
+          <CardDeleteButton itemLabel={fullName || 'طرف حساب'} onClick={() => onDelete(item)} />
         </div>
       </div>
     </div>

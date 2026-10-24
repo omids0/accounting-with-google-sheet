@@ -111,8 +111,8 @@ export default function SettingsRecurringCard() {
             label={`فعال: ${item.title || item.category}`}
             onChange={active => void run(id => saveRecurringItem(id, { ...item, active }))}
           />
-          <CardEditButton onClick={() => setEditing(item)} ariaLabel={`ویرایش ${item.title}`} />
-          <CardDeleteButton onClick={() => setDeleting(item)} />
+          <CardEditButton itemLabel={item.title} onClick={() => setEditing(item)} />
+          <CardDeleteButton itemLabel={item.title} onClick={() => setDeleting(item)} />
         </div>
       ))}
       {!items.length ? <p className={formHintClass}>هنوز تکراری تعریف نشده.</p> : null}

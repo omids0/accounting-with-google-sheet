@@ -6,15 +6,21 @@ import { cn } from '../utils/cn'
 type CardEditButtonProps = {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
-  ariaLabel?: string
+  /** What is edited, e.g. «چک ۱۲۳»; screen readers hear «ویرایش چک ۱۲۳». */
+  itemLabel: string
+  /** Replaces the verb «ویرایش» when the button does something else (e.g. «تنظیم»). */
+  label?: string
 }
 
 export default function CardEditButton({
   onClick,
   disabled = false,
-  ariaLabel = 'ویرایش'
+  itemLabel,
+  label = 'ویرایش'
 }: CardEditButtonProps) {
   if (useReadOnly()) return null
+
+  const ariaLabel = `${label} ${itemLabel}`
 
   return (
     <button

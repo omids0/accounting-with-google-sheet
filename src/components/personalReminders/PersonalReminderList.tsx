@@ -85,7 +85,11 @@ export default function PersonalReminderList({
         rowKey={item => item.id}
         isMuted={item => !item.enabled}
         actions={item => (
-          <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+          <TableRowActions
+            itemLabel={item.title}
+            onEdit={() => onEdit(item)}
+            onDelete={() => onDelete(item)}
+          />
         )}
       />
     )

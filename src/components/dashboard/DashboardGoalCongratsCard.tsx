@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react'
 
 import { useDataRefresh } from '../../hooks/useDataRefresh'
-import { dismissGoalCongrats, getPendingGoalCongrats } from '../../services/goalCongrats'
+import {
+  dismissGoalCongrats,
+  getPendingGoalCongrats,
+  resetGoalCongrats
+} from '../../services/goalCongrats'
+import { isGoalReached } from '../../services/savingsGoals'
 import { getSettings } from '../../services/settings'
 import { setTreasuryClassFilter } from '../../services/treasuryClassPref'
 import { useNavigationStore } from '../../stores/navigationStore'
@@ -23,11 +28,44 @@ export default function DashboardGoalCongratsCard() {
   const revision = useDataRefresh()
   const [pending, setPending] = useState(() => getPendingGoalCongrats(spreadsheetId))
 
+  /** Ids of the goals whose balance is at or over the target right now; null until known. */
+  const [reachedIds, setReachedIds] = useState<Set<string> | null>(null)
+
   useEffect(() => {
     setPending(getPendingGoalCongrats(spreadsheetId))
   }, [spreadsheetId, revision])
 
-  const goal = pending[0]
+  // The stored congratulation is only a queue: the card shows while the goal still holds its
+  // target, and a goal that fell back under it is forgotten so reaching it again earns a new card.
+  useEffect(() => {
+    if (!spreadsheetId || pending.length === 0) return
+
+    let cancelled = false
+
+    void import('../../services/savingsGoalsSheet')
+      .then(({ loadSavingsGoals }) => loadSavingsGoals(spreadsheetId))
+      .then(goals => {
+        if (cancelled) return
+
+        const reached = new Set(
+          goals
+            .filter(item => item.status !== 'archived' && isGoalReached(item.balance, item.target))
+            .map(item => item.id)
+        )
+
+        pending
+          .filter(item => !reached.has(item.id))
+          .forEach(item => resetGoalCongrats(spreadsheetId, item.id))
+        setReachedIds(reached)
+      })
+      .catch(() => setReachedIds(null))
+
+    return () => {
+      cancelled = true
+    }
+  }, [spreadsheetId, pending, revision])
+
+  const goal = pending.find(item => reachedIds?.has(item.id))
 
   if (!goal || !spreadsheetId) return null
 

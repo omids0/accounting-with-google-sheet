@@ -25,6 +25,10 @@ type ConfirmDeleteModalProps = {
   onClose: () => void
   onConfirm: () => void
   deleting?: boolean
+  /** Defaults to «حذف». */
+  confirmLabel?: string
+  /** Defaults to «انصراف». */
+  cancelLabel?: string
 }
 
 export default function ConfirmDeleteModal({
@@ -33,7 +37,9 @@ export default function ConfirmDeleteModal({
   message,
   onClose,
   onConfirm,
-  deleting = false
+  deleting = false,
+  confirmLabel = 'حذف',
+  cancelLabel = 'انصراف'
 }: ConfirmDeleteModalProps) {
   const { panelRef } = useModalLock({ open, onClose, blocked: deleting })
   const titleId = useId()
@@ -85,7 +91,7 @@ export default function ConfirmDeleteModal({
             loading={deleting}
             onClick={onConfirm}
           >
-            بله
+            {confirmLabel}
           </Button>
           <Button
             type="button"
@@ -94,7 +100,7 @@ export default function ConfirmDeleteModal({
             onClick={onClose}
             data-modal-initial-focus
           >
-            خیر
+            {cancelLabel}
           </Button>
         </div>
       </div>
