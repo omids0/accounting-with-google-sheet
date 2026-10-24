@@ -9,6 +9,7 @@ import {
 import type { CustomForm } from '../types'
 import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 import { getTodayIso } from '../utils/jalaliDate'
+import { roundMoney } from '../utils/roundMoney'
 
 function getFormByType(type: 'income' | 'expense'): CustomForm | undefined {
   return getSettings()?.forms.find(f => f.type === type)
@@ -45,7 +46,7 @@ export function linkedRecordValues(params: LinkedRecordParams): Record<string, s
     title: params.title,
     category: resolveCategory(params.category),
     [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
-    amount: params.amount,
+    amount: roundMoney(params.amount),
     note: params.note ?? '',
     [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? '',
     [WALLET_APPLY_FIELD_ID]: params.walletApply ?? ''

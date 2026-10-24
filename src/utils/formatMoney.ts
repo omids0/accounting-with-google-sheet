@@ -2,6 +2,7 @@ import { numberLocale } from './digitStyle'
 import { getSettings, getDefaultSettings } from '../services/settings'
 import { getStorageVersion } from '../services/storage'
 import type { CurrencyUnit } from '../types'
+import { roundMoney } from './roundMoney'
 
 export const CURRENCY_OPTIONS: { value: CurrencyUnit; label: string; symbol: string }[] = [
   { value: 'toman', label: 'تومان', symbol: 'تومان' },
@@ -48,7 +49,7 @@ export function formatMoneyParts(
   currency?: CurrencyUnit
 ): { number: string; symbol: string } {
   return {
-    number: formatPersianNumber(n),
+    number: formatPersianNumber(roundMoney(n)),
     symbol: getCurrencySymbol(currency)
   }
 }
@@ -94,10 +95,12 @@ const PDI = '\u2069'
  * to the digits with no space. `showPlus` adds `+` for positive values.
  */
 export function formatSignedNumber(n: number, options?: { showPlus?: boolean }): string {
-  const number = formatPersianNumber(Math.abs(n))
+  const rounded = roundMoney(n)
 
-  if (n < 0) return `${LRI}${MINUS_SIGN}${number}${PDI}`
-  if (n > 0 && options?.showPlus) return `${LRI}+${number}${PDI}`
+  const number = formatPersianNumber(Math.abs(rounded))
+
+  if (rounded < 0) return `${LRI}${MINUS_SIGN}${number}${PDI}`
+  if (rounded > 0 && options?.showPlus) return `${LRI}+${number}${PDI}`
 
   return number
 }

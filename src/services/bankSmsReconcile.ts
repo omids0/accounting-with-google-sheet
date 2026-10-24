@@ -5,6 +5,7 @@ import { numberLocale } from '../utils/digitStyle'
 import { formatAmountWords } from '../utils/insightText'
 import { getJalaliParts, JALALI_MONTHS, toIsoDate } from '../utils/jalaliDate'
 import { SMS_RECONCILE_CATEGORY } from '../utils/protectedCategories'
+import { roundMoney } from '../utils/roundMoney'
 
 /**
  * Balance reconciliation with bank SMS (round 7, Task A). Pure rules only:
@@ -139,7 +140,7 @@ export function appBalanceAt(
     if (record.accountId !== accountId || record.moved === false) return total
     if (!isAfterSms(record, smsAt, smsTimeOf.get(record))) return total
 
-    return total - (record.type === 'expense' ? -record.amount : record.amount)
+    return roundMoney(total - (record.type === 'expense' ? -record.amount : record.amount))
   }, balance)
 }
 
@@ -162,7 +163,7 @@ export function reconcileAccount(
   const match = matchSmsToRecords(sms, records, accountId)
   const smsAt = newest.sms.receivedAt
   const appBalance = appBalanceAt(balance, records, accountId, smsAt, match.smsTimeOf)
-  const raw = appBalance - newest.balance
+  const raw = roundMoney(appBalance - newest.balance)
 
   // Rial SMS in a toman app can leave half units behind.
   return {
@@ -227,7 +228,7 @@ export function correctionRecord(
   return {
     type: difference > 0 ? ('expense' as const) : ('income' as const),
     title: chosen,
-    amount: Math.abs(difference),
+    amount: roundMoney(Math.abs(difference)),
     category: chosen,
     note: extra ? `${base} · ${extra}` : base,
     date: toIsoDate(new Date(smsAt))

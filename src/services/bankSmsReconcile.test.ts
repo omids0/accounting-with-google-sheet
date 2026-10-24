@@ -248,3 +248,10 @@ describe('digest line once per day', () => {
     expect(withoutDigestLine(gate, 'none')).toBe(gate)
   })
 })
+
+describe('reconcile amounts carry no floating-point noise', () => {
+  it('writes the correction record with at most two decimals', () => {
+    expect(correctionRecord(10931882.299999997, at(8, 14)).amount).toBe(10931882.3)
+    expect(correctionRecord(-0.10000000894069672, at(8, 14)).amount).toBe(0.1)
+  })
+})

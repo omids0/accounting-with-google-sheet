@@ -1,5 +1,6 @@
 import { getJalaliMonthKey, listJalaliMonthKeys, parseJalaliMonthKey } from '../utils/dateRange'
 import { parseNumeric } from '../utils/parseNumeric'
+import { roundMoney } from '../utils/roundMoney'
 import { normalizeSheetDate } from '../utils/sheetValues'
 
 export interface MonthlyNetTotals {
@@ -41,7 +42,7 @@ export function aggregateMonthlyNet(
 
       const entry = totals.get(monthKey) ?? { income: 0, expense: 0 }
 
-      entry[bucket] += parseNumeric(record.values.amount)
+      entry[bucket] = roundMoney(entry[bucket] + parseNumeric(record.values.amount))
       totals.set(monthKey, entry)
     }
   }
@@ -83,7 +84,7 @@ export function deriveOpeningBalances(
 
     const totals = monthlyNet.get(monthKey)
 
-    running += (totals?.income ?? 0) - (totals?.expense ?? 0)
+    running = roundMoney(running + (totals?.income ?? 0) - (totals?.expense ?? 0))
   }
 
   return openings
@@ -98,7 +99,7 @@ export function closingBalanceOf(
 
   const totals = monthlyNet.get(monthKey)
 
-  return opening + (totals?.income ?? 0) - (totals?.expense ?? 0)
+  return roundMoney(opening + (totals?.income ?? 0) - (totals?.expense ?? 0))
 }
 
 export interface StartAmountReseedInput {
