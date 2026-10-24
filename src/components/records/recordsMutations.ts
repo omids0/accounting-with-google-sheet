@@ -1,5 +1,7 @@
 import type { StoredRecord } from './recordsUtils'
 import { logRecordActivity } from '../../services/activityLog'
+import { readBridgePrefs } from '../../services/bridgePrefs'
+import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import { refreshOpeningBalancesInBackground } from '../../services/openingBalanceRefresh'
 import {
   applyWalletChanges,
@@ -20,11 +22,17 @@ import {
   isVehicleExpenseCategory,
   type VehicleExpenseFormValues
 } from '../../utils/vehicleExpenseUtils'
+import {
+  buildingEntryError,
+  prepareBuildingEntry,
+  settleBuildingEntry,
+  syncBridgedEdit
+} from '../dataEntry/buildingExpenseEntry'
 
 export async function submitRecordEdit({
   editingRecord,
   editingForm,
-  formValues,
+  formValues: entered,
   vehicleExpense,
   onSuccess
 }: {
@@ -36,11 +44,25 @@ export async function submitRecordEdit({
 }): Promise<boolean> {
   if (!isConfigured() || !requireAuth()) return false
 
+  const buildingError = buildingEntryError(editingForm, entered)
+
+  if (buildingError) {
+    showError(buildingError)
+
+    return false
+  }
+
+  // A building expense paid by someone other than the fund keeps no account.
+  const formValues = prepareBuildingEntry(editingForm, entered)
+
   for (const field of editingForm.fields) {
     if (!field.required) continue
 
     const category = String(formValues.category ?? '')
     if (isVehicleExpenseCategory(category) && field.id === 'title') continue
+
+    // An old record saved without this field is not blocked for it.
+    if (!(editingRecord.values[field.id] ?? '').trim()) continue
 
     const val = formValues[field.id]
 
@@ -101,6 +123,13 @@ export async function submitRecordEdit({
       walletEffectOf(editingForm.type, formValues),
       recordLedgerContext(formValues, 'ویرایش', editingRecord.id)
     )
+    await settleBuildingEntry(
+      settings.spreadsheetId,
+      editingForm,
+      editingRecord.id,
+      formValues
+    ).catch(() => showError('تغییر ذخیره شد ولی سهم واحدها یا بدهی به‌روز نشد'))
+    await syncBridgedEdit(editingForm, editingRecord.id, formValues)
     logRecordActivity(settings.spreadsheetId, 'update', editingRecord.id, formValues)
     showSuccess('تراکنش ویرایش شد')
     refreshOpeningBalancesInBackground()
@@ -141,5 +170,18 @@ export async function deleteStoredRecord({
     null,
     recordLedgerContext(record.values, 'حذف', record.id)
   )
+  if (form.type === 'expense' && isBuildingExpenseValues(record.values)) {
+    const { removeBuildingExpenseShares } = await import('../../services/buildingExpenseActions')
+
+    await removeBuildingExpenseShares(spreadsheetId, record.id, record.values).catch(() =>
+      showError('هزینه حذف شد ولی سهم‌های پرداخت‌نشده حذف نشدند')
+    )
+    // Bridge A: the manager's personal receivable for this expense goes (or is marked) with it.
+    if (readBridgePrefs().sent[record.id]) {
+      const { syncBridgedExpenseDelete } = await import('../../services/bridgeSync')
+
+      await syncBridgedExpenseDelete(record.id).catch(() => undefined)
+    }
+  }
   refreshOpeningBalancesInBackground()
 }

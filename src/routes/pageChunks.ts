@@ -117,6 +117,54 @@ export const loadWalletAccountDetailPage: PageLoader = () =>
 export const loadWalletReconcilePage: PageLoader = () =>
   import('../components/wallet/reconcile/WalletReconcilePage')
 
+export const loadBuildingReportsPage: PageLoader = () =>
+  import('../components/buildings/BuildingReportsPage')
+
+export const loadBuildingSettingsPage: PageLoader = () =>
+  import('../components/buildings/BuildingSettingsPage')
+
+export const loadBuildingMembersPage: PageLoader = () =>
+  import('../components/buildings/BuildingMembersPage')
+
+export const loadBuildingListsPage: PageLoader = () =>
+  import('../components/buildings/BuildingListsPage')
+
+export const loadBuildingFundPage: PageLoader = () =>
+  import('../components/buildings/BuildingFundPage')
+
+export const loadBuildingDangPage: PageLoader = () =>
+  import('../components/buildings/BuildingDangPage')
+
+export const loadBuildingChecksPage: PageLoader = () =>
+  import('../components/buildings/BuildingChecksPage')
+
+export const loadBuildingCounterpartiesPage: PageLoader = () =>
+  import('../components/buildings/BuildingCounterpartiesPage')
+
+export const loadBuildingsHomePage: PageLoader = () =>
+  import('../components/buildings/BuildingsHomePage')
+
+export const loadBuildingJourneyPage: PageLoader = () =>
+  import('../components/buildings/BuildingJourneyPage')
+
+export const loadBuildingDashboardPage: PageLoader = () =>
+  import('../components/buildings/BuildingDashboardPage')
+
+export const loadBuildingUnitsPage: PageLoader = () =>
+  import('../components/buildings/BuildingUnitsPage')
+
+export const loadBuildingResidentsPage: PageLoader = () =>
+  import('../components/buildings/BuildingResidentsPage')
+
+export const loadBuildingChargesPage: PageLoader = () =>
+  import('../components/buildings/BuildingChargesPage')
+
+export const loadBuildingUnitPage: PageLoader = () =>
+  import('../components/buildings/BuildingUnitPage')
+
+export const loadBuildingExpensesPage: PageLoader = () =>
+  import('../components/buildings/BuildingExpensesPage')
+
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
 export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')

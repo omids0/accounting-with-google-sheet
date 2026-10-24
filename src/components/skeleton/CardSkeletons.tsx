@@ -48,6 +48,7 @@ import { treasuryHoldingCardClass, treasuryHoldingValueClass } from '../ui/treas
 import {
   walletAccountCardShellClass,
   walletAccountCardVisualHostClass,
+  WALLET_CARD_MIN_HEIGHT,
   walletCardActionOverlayClass
 } from '../wallet/walletCardStyles'
 
@@ -201,7 +202,7 @@ export function WalletAccountCardSkeleton() {
       <div className={walletAccountCardVisualHostClass}>
         <Skeleton
           variant="rect"
-          style={{ width: '100%', height: '6.35rem', borderRadius: '12px' }}
+          style={{ width: '100%', height: WALLET_CARD_MIN_HEIGHT, borderRadius: '12px' }}
         />
         <div
           className={cn(

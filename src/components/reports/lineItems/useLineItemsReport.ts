@@ -59,13 +59,17 @@ export function useLineItemsReport() {
   }, [aggregate.items, search, sort])
 
   const exportCsv = useCallback(() => {
-    void runExport(() => exportLineItemsCsv(items), 'خطا در ساخت خروجی CSV')
+    void runExport(() => exportLineItemsCsv(items), 'خطا در ساخت خروجی CSV', {
+      empty: !items.length
+    })
   }, [items])
 
   const exportPdf = useCallback(async () => {
     setExporting(true)
     try {
-      await runExport(() => exportLineItemsPdf(items), 'خطا در ساخت خروجی PDF')
+      await runExport(() => exportLineItemsPdf(items), 'خطا در ساخت خروجی PDF', {
+        empty: !items.length
+      })
     } finally {
       setExporting(false)
     }

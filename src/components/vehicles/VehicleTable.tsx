@@ -39,7 +39,7 @@ export default function VehicleTable({
       },
       {
         id: 'mileage',
-        header: 'کارکرد (km)',
+        header: 'کارکرد (کیلومتر)',
         numeric: true,
         sortFirst: 'desc',
         sortValue: item => item.mileage,
@@ -72,7 +72,11 @@ export default function VehicleTable({
       columns={columns}
       rowKey={item => item.id}
       actions={item => (
-        <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+        <TableRowActions
+          itemLabel={item.title}
+          onEdit={() => onEdit(item)}
+          onDelete={() => onDelete(item)}
+        />
       )}
     />
   )

@@ -1,11 +1,26 @@
-import { showError, showSuccess } from './toast'
+import { showError, showInfo, showSuccess } from './toast'
 import { toExportErrorMessage } from './userMessage'
 
 /** Resolves the saved file name, or `null` when the user dismissed the share sheet. */
 export type ExportTask = () => Promise<string | null>
 
-/** Runs an export and tells the user which file was saved, or why it was not. */
-export async function runExport(task: ExportTask, fallbackMessage: string): Promise<void> {
+export const NOTHING_TO_EXPORT_MESSAGE = 'چیزی برای خروجی نیست'
+
+/**
+ * Runs an export and tells the user which file was saved, or why it was not.
+ * `empty` (the list being exported has no rows) says so instead of exporting an empty file.
+ */
+export async function runExport(
+  task: ExportTask,
+  fallbackMessage: string,
+  { empty = false }: { empty?: boolean } = {}
+): Promise<void> {
+  if (empty) {
+    showInfo(NOTHING_TO_EXPORT_MESSAGE)
+
+    return
+  }
+
   try {
     const name = await task()
 

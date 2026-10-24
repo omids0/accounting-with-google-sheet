@@ -2,6 +2,7 @@ import { useAppUpdateStore } from '../../stores/appUpdateStore'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
 import SyncStatusBadge from '../SyncStatusBadge'
+import DevEnvBadge from './DevEnvBadge'
 import HeaderAmountsToggle from './HeaderAmountsToggle'
 import { HeaderSearchButton, HeaderSearchChip } from './HeaderSearch'
 import {
@@ -76,9 +77,11 @@ export default function LayoutHeader({
         </button>
       </div>
       <div className={cn(appHeaderCenterClass, headerGridCenterClass)} data-header-center>
-        <h1 className={appHeaderTitleClass} data-header-title>
-          {headerTitle}
-        </h1>
+        <DevEnvBadge>
+          <h1 className={appHeaderTitleClass} data-header-title>
+            {headerTitle}
+          </h1>
+        </DevEnvBadge>
         {!showSettings && (
           <div className="flex min-w-0 max-w-full items-center">
             <SyncStatusBadge />

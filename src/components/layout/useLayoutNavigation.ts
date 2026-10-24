@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, useTransition } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 import {
+  BUILDING_PARENT_TAB,
   CALCULATION_TABS,
   REPORT_TABS,
   SPEED_DIAL_TABS,
@@ -15,12 +16,14 @@ import { useEngagementReminders } from '../../hooks/useEngagementReminders'
 import { usePageSpeedDialConfig } from '../../hooks/usePageSpeedDial'
 import { usePrefetchAppPages } from '../../hooks/usePrefetchAppPages'
 import { useRegisterOverlay } from '../../hooks/useRegisterOverlay'
+import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import type { TabNavigationOptions } from '../../routes/paths'
 import {
   getPathForTab,
   getTabFromPath,
   getSettingsSubpageTitle,
   isCloseYearPath,
+  isKnownPath,
   isSettingsPath,
   SETTINGS_PATH
 } from '../../routes/paths'
@@ -41,12 +44,14 @@ const DETAIL_TITLE_TABS: Tab[] = [
   'dang-split-detail',
   'wallet-account-detail',
   'wallet-reconcile',
-  'report-line-item'
+  'report-line-item',
+  'building-unit'
 ]
 
 export function useLayoutNavigation() {
   const navigate = useNavigate()
   const location = useLocation()
+  const isBuilding = useIsBuildingWorkspace()
   const spreadsheetKey = useAppStore(state => state.spreadsheetKey)
   const [menuOpen, setMenuOpen] = useState(false)
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false)
@@ -57,13 +62,14 @@ export function useLayoutNavigation() {
 
   useRegisterOverlay(menuOpen, () => setMenuOpen(false))
 
-  const routeTab = getTabFromPath(location.pathname)
+  const knownPath = isKnownPath(location.pathname)
+  const routeTab: Tab = knownPath ? getTabFromPath(location.pathname) : 'not-found'
 
   // The route change runs in a transition so the current page stays painted
   // instead of flashing the loading skeleton. Highlight the tapped tab right
   // away so the tap still feels instant.
   const tab = pendingTab ?? routeTab
-  const showSettings = isSettingsPath(location.pathname)
+  const showSettings = knownPath && isSettingsPath(location.pathname)
   const routeTitle = (location.state as RouteTitleState | null)?.title
 
   const userName = getUserName()
@@ -184,6 +190,7 @@ export function useLayoutNavigation() {
     WALLET_SUB_TABS.includes(tab) ||
     tab === 'about' ||
     tab === 'search' ||
+    tab in BUILDING_PARENT_TAB ||
     TIMESHEET_TABS.includes(tab) ||
     VEHICLE_TABS.includes(tab) ||
     CALCULATION_TABS.includes(tab) ||
@@ -193,7 +200,8 @@ export function useLayoutNavigation() {
     if (getSettingsSubpageTitle(location.pathname)) {
       // «بستن سال» returns to the year card or Settings, wherever it was opened from.
       if (isCloseYearPath(location.pathname) && location.key !== 'default') navigate(-1)
-      else navigate(SETTINGS_PATH)
+      // A building opens these tools from its own settings and goes back there.
+      else navigate(isBuilding ? getPathForTab('building-settings') : SETTINGS_PATH)
 
       return
     }
@@ -235,10 +243,12 @@ export function useLayoutNavigation() {
       return
     }
 
-    const backToWallet = WALLET_SUB_TABS.includes(tab)
+    const [home, wallet]: Tab[] = isBuilding
+      ? ['building-dashboard', 'building-fund']
+      : ['dashboard', 'wallet']
 
-    handleTabChange(backToWallet ? 'wallet' : 'dashboard')
-  }, [handleTabChange, location.key, location.pathname, navigate, showSettings, tab])
+    handleTabChange(BUILDING_PARENT_TAB[tab] ?? (WALLET_SUB_TABS.includes(tab) ? wallet : home))
+  }, [handleTabChange, isBuilding, location.key, location.pathname, navigate, showSettings, tab])
 
   const isCalculationTab = CALCULATION_TABS.includes(tab)
   const isReportTab = REPORT_TABS.includes(tab)

@@ -8,7 +8,11 @@ import { getSettings, isConfigured } from '../../services/settings'
 import type { MonthlyFlow } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
-import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
+import {
+  formatJalaliYear,
+  getInstallmentDueRange,
+  type DateRangePreset
+} from '../../utils/dateRange'
 import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
 import MonthlyFlowChartSection from '../charts/MonthlyFlowChartSection'
@@ -71,7 +75,7 @@ export default function CashFlowReportPage() {
 
   const netSparkline = monthlySparkline(monthlyFlow, 'net')
 
-  const yearChipLabel = `سال: ${monthlyFlowYear.toLocaleString('fa-IR')}`
+  const yearChipLabel = `سال: ${formatJalaliYear(monthlyFlowYear)}`
 
   if (!isConfigured()) {
     return (

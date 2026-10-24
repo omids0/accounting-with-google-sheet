@@ -1,6 +1,10 @@
+import { BUILDING_TAB_PATHS, buildingUnitPath, isBuildingUnitPath } from './buildingPaths'
 import type { Tab } from '../components/layout/types'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 import { toPersianDigits } from '../utils/normalizeDigits'
+
+// The records-page links moved out to keep this file short; callers still import them from here.
+export * from './recordPaths'
 
 export interface TabNavigationOptions {
   timesheetId?: string
@@ -16,6 +20,8 @@ export interface TabNavigationOptions {
   lineItemTitle?: string
   /** Which records the item page reads; expenses when unset. */
   lineItemType?: 'income' | 'expense' | 'all'
+  /** The unit page of a building workspace. */
+  unitId?: string
 }
 
 const REPORT_KIND_BY_TAB: Partial<Record<Tab, ModuleReportKind>> = {
@@ -72,7 +78,8 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'report-monthly': '/reports/monthly',
   'report-years': '/reports/years',
   timesheets: '/timesheets',
-  activity: '/settings/activity'
+  activity: '/settings/activity',
+  ...BUILDING_TAB_PATHS
 }
 
 const PATH_TO_TAB = Object.fromEntries(
@@ -85,8 +92,12 @@ function normalizePath(pathname: string): string {
   return trimmed === '' ? '/' : trimmed
 }
 
-export function getTabFromPath(pathname: string): Tab {
-  const path = normalizePath(pathname)
+/** The tab a path belongs to, or null for a path no page lives at. */
+export function matchTabFromPath(pathname: string): Tab | null {
+  // The router matches case-insensitively, so the tab lookup does too.
+  const path = normalizePath(pathname).toLowerCase()
+
+  if (isBuildingUnitPath(path)) return 'building-unit'
 
   if (/^\/timesheets\/[^/]+$/.test(path)) {
     return 'timesheet-detail'
@@ -113,10 +124,21 @@ export function getTabFromPath(pathname: string): Tab {
     return 'wallet-account-detail'
   }
 
-  return PATH_TO_TAB[path] ?? 'dashboard'
+  return PATH_TO_TAB[path] ?? null
+}
+
+export function getTabFromPath(pathname: string): Tab {
+  return matchTabFromPath(pathname) ?? 'dashboard'
+}
+
+/** False for a URL no page answers to (the router shows «صفحه پیدا نشد» for it). */
+export function isKnownPath(pathname: string): boolean {
+  return matchTabFromPath(pathname) !== null || isSettingsRoute(pathname)
 }
 
 export function getPathForTab(tab: Tab, options?: TabNavigationOptions): string {
+  if (tab === 'building-unit') return buildingUnitPath(options?.unitId)
+
   if (tab === 'timesheet-detail') {
     if (!options?.timesheetId) return EXACT_TAB_PATHS.timesheets ?? '/timesheets'
 
@@ -180,60 +202,6 @@ export function getReportTabFromKind(kind: ModuleReportKind): Tab {
   return REPORT_TAB_BY_KIND[kind]
 }
 
-/** Query key of the records page that shows one record only (round 6, duplicate warning). */
-export const RECORD_FOCUS_PARAM = 'record'
-
-/** With `edit=1` the records page also opens that record's edit form (reconciliation wizard). */
-export const RECORD_EDIT_PARAM = 'edit'
-
-/** With `open=1` the records page opens that record's detail sheet (round 9). */
-export const RECORD_OPEN_PARAM = 'open'
-
-/** Query keys of the records page filters that a report link sets (round 7.5). */
-export const RECORD_COUNTERPARTY_PARAM = 'counterparty'
-export const RECORD_FROM_PARAM = 'from'
-export const RECORD_TO_PARAM = 'to'
-
-/** The records page filtered to one counterparty over `range`; `type` 'all' shows both forms. */
-export function recordsCounterpartyPath(
-  name: string,
-  type: 'income' | 'expense' | 'all',
-  range: { start: string; end: string }
-): string {
-  const params = new URLSearchParams()
-
-  if (type !== 'all') params.set('type', type)
-  params.set(RECORD_COUNTERPARTY_PARAM, name)
-  params.set(RECORD_FROM_PARAM, range.start)
-  params.set(RECORD_TO_PARAM, range.end)
-
-  return `/records?${params.toString()}`
-}
-
-/** The records page showing only `recordId`, optionally with its edit form open. */
-export function recordFocusPath(
-  type: 'income' | 'expense',
-  recordId: string,
-  edit = false
-): string {
-  const path = `/records?type=${type}&${RECORD_FOCUS_PARAM}=${encodeURIComponent(recordId)}`
-
-  return edit ? `${path}&${RECORD_EDIT_PARAM}=1` : path
-}
-
-/** The records page showing only `recordId`, with its detail sheet open. */
-export function recordOpenPath(type: 'income' | 'expense', recordId: string): string {
-  return `${recordFocusPath(type, recordId)}&${RECORD_OPEN_PARAM}=1`
-}
-
-/** Query key a module page reads to scroll to and flash one item (`useHighlightParam`). */
-export const HIGHLIGHT_PARAM = 'highlight'
-
-/** `basePath` with the item `id` highlighted. */
-export function highlightPath(basePath: string, id: string): string {
-  return `${basePath}?${HIGHLIGHT_PARAM}=${encodeURIComponent(id)}`
-}
-
 export const SETTINGS_PATH = '/settings'
 export const SETTINGS_REMINDERS_PATH = '/settings/reminders'
 
@@ -244,6 +212,22 @@ export function isSettingsPath(pathname: string): boolean {
 }
 
 export const SETTINGS_CATEGORIES_PATH = '/settings/categories'
+
+const SETTINGS_ROUTES = new Set([
+  SETTINGS_PATH,
+  SETTINGS_REMINDERS_PATH,
+  SETTINGS_CATEGORIES_PATH,
+  '/settings/backup',
+  '/settings/activity',
+  '/settings/close-year'
+])
+
+/** The settings pages the router really has; `/settings/xyz` is not one of them. */
+function isSettingsRoute(pathname: string): boolean {
+  const path = normalizePath(pathname).toLowerCase()
+
+  return SETTINGS_ROUTES.has(path) || /^\/settings\/close-year\/[^/]+$/.test(path)
+}
 
 /** Round 8: «فعالیت», who changed what (also a tab, so it gets the page speed dial). */
 export const SETTINGS_ACTIVITY_PATH = '/settings/activity'

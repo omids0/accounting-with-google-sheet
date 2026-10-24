@@ -2,36 +2,32 @@ import { useState, useEffect } from 'react'
 
 import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
+import GoogleSignInButton from './login/GoogleSignInButton'
+import { LoginFeatures, LoginFooter } from './login/LoginPitch'
 import SessionExpiredNotice from './login/SessionExpiredNotice'
+import { useWebSignIn } from './login/useWebSignIn'
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel'
 import Alert from './ui/Alert'
-import Button from './ui/Button'
 import { animateInClass } from './ui/layoutStyles'
 import {
-  googleSignInBtnClass,
   loginCardClass,
-  loginFeatureClass,
-  loginFeatureIconClass,
-  loginFeaturesClass,
-  loginFooterNoteClass,
   loginLogoClass,
   loginLogoIconClass,
   loginLogoSubtitleClass,
   loginLogoTitleClass,
-  loginPageClass,
-  loginTrustBadgeClass
+  loginPageClass
 } from './ui/loginStyles'
-import { useGoogleTokenLogin } from '../hooks/useGoogleTokenLogin'
 import { useAccountSwitchGuard } from '../hooks/useLocalDataWipe'
 import {
   createSession,
-  fetchUserProfile,
-  hasRequiredGoogleScopes,
+  getAuthSessionId,
   saveSession,
   sessionNeedsScopeUpgrade
 } from '../services/auth'
+import { forgetWorkerSession, logoutViaWorker } from '../services/authWorker'
 import { isNativePlatform, signInNative, signOutNative } from '../services/googleAuthNative'
 import type { LoginReason } from '../services/loginReason'
+import { resetRefreshStatus } from '../services/refreshStatus'
 import {
   getDefaultFirstSheetLabel,
   prepareUserSpreadsheet,
@@ -98,18 +94,27 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
     accessToken: string,
     profile: { email: string; name: string; picture?: string },
     expiresIn: number | undefined,
-    scope: string
+    scope: string,
+    authSessionId?: string
   ) => {
     const outcome = await guardAccountSwitch(profile.email)
 
     if (outcome === 'cancelled') {
       await signOutNative()
+      if (authSessionId) void logoutViaWorker(authSessionId)
       showError('ورود لغو شد؛ اطلاعات حساب قبلی روی این دستگاه باقی ماند')
 
       return
     }
 
-    saveSession(createSession(accessToken, profile, expiresIn, scope))
+    // The same account signing in again replaces its worker session: forget the old copy
+    // (without revoking, which would end the fresh grant as well).
+    const previousId = getAuthSessionId()
+
+    if (previousId && previousId !== authSessionId) void forgetWorkerSession(previousId)
+
+    saveSession(createSession(accessToken, profile, expiresIn, scope, authSessionId))
+    resetRefreshStatus()
 
     if (outcome === 'switched') {
       // Start clean so nothing cached in memory from the previous account survives.
@@ -121,41 +126,10 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
     await continueAfterAuth(profile.name)
   }
 
-  const { login } = useGoogleTokenLogin({
-    // Ask for drive.file only; older broad grants must not ride along in the token.
-    includeGrantedScopes: false,
-    onSuccess: async tokenResponse => {
-      setLoading(true)
-      try {
-        // Google's granular consent lets the user untick drive.file; saving such a
-        // session would only bounce them back here, so stop and say why.
-        if (!hasRequiredGoogleScopes(tokenResponse.scope)) {
-          showError(
-            'بدون اجازهٔ «فایل‌هایی که این اپ می‌سازد» اپ نمی‌تواند داده‌ها را ذخیره کند. دوباره وارد شوید و این گزینه را تیک بزنید.'
-          )
+  const web = useWebSignIn(completeSignIn, setLoading)
 
-          return
-        }
-
-        const profile = await fetchUserProfile(tokenResponse.access_token)
-
-        await completeSignIn(
-          tokenResponse.access_token,
-          profile,
-          tokenResponse.expires_in,
-          tokenResponse.scope
-        )
-      } catch (err) {
-        showError(toUserMessage(err, 'خطا در ورود'))
-      } finally {
-        setLoading(false)
-      }
-    },
-    onError: () => {
-      showError('ورود لغو شد یا با خطا مواجه شد')
-      setLoading(false)
-    }
-  })
+  // The APK signs in through the native plugin and needs no Google script.
+  const native = isNativePlatform()
 
   const handleNativeLogin = async () => {
     setLoading(true)
@@ -180,8 +154,14 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
 
       return
     }
+    // Google's script did not load: this click tries to fetch it again.
+    if (!web.ready) {
+      web.retryScript()
+
+      return
+    }
     setLoading(true)
-    login()
+    web.login()
   }
 
   if (step === 'setup') {
@@ -219,69 +199,16 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
           </Alert>
         )}
 
-        {!expired && (
-          <ul className={loginFeaturesClass} aria-label="ویژگی‌های اصلی">
-            <li className={loginFeatureClass}>
-              <span className={loginFeatureIconClass} aria-hidden="true">
-                <AppIcon name="chart" size={16} />
-              </span>
-              داشبورد مالی با نمودار درآمد و هزینه
-            </li>
-            <li className={loginFeatureClass}>
-              <span className={loginFeatureIconClass} aria-hidden="true">
-                <AppIcon name="folder" size={16} />
-              </span>
-              همگام‌سازی خودکار بین دستگاه‌ها
-            </li>
-            <li className={loginFeatureClass}>
-              <span className={loginFeatureIconClass} aria-hidden="true">
-                <AppIcon name="wallet" size={16} />
-              </span>
-              اقساط، چک، طلب و صندوقچه در یک جا
-            </li>
-          </ul>
-        )}
+        {!expired && <LoginFeatures />}
 
-        <Button
-          variant="primary"
-          className={googleSignInBtnClass}
+        <GoogleSignInButton
           onClick={handleLogin}
-          disabled={loading}
+          ready={native || web.ready}
+          stalled={!native && web.stalled}
           loading={loading}
-        >
-          <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
-            <path
-              fill="#FFC107"
-              d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 29.223 36 24 36c-5.522 0-10-4.478-10-10s4.478-10 10-10c2.837 0 5.402 1.191 7.207 3.093l5.657-5.657C33.64 10.053 29.082 8 24 8 12.955 8 4 16.955 4 28s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
-            />
-            <path
-              fill="#FF3D00"
-              d="M6.306 14.691l6.571 4.819C14.655 16.108 18.961 13 24 13c2.837 0 5.402 1.191 7.207 3.093l5.657-5.657C33.64 10.053 29.082 8 24 8 16.318 8 9.656 13.337 6.306 14.691z"
-            />
-            <path
-              fill="#4CAF50"
-              d="M24 48c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 39.091 26.715 40 24 40c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 43.556 16.227 48 24 48z"
-            />
-            <path
-              fill="#1976D2"
-              d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C42.022 35.026 44 30.638 44 28c0-1.341-.138-2.65-.389-3.917z"
-            />
-          </svg>
-          ورود با Google
-        </Button>
+        />
 
-        {!expired && (
-          <>
-            <p className={loginFooterNoteClass}>
-              شیت‌ها با فرمت «حسابداری · سال» ساخته می‌شوند و روی Drive همگام هستند
-            </p>
-
-            <div className={loginTrustBadgeClass}>
-              <AppIcon name="check" size={14} />
-              <span>داده‌ها فقط در Google Drive شما ذخیره می‌شوند</span>
-            </div>
-          </>
-        )}
+        {!expired && <LoginFooter />}
       </div>
       <ConfirmActionModal {...switchModalProps} />
     </div>

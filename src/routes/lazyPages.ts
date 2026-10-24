@@ -48,6 +48,22 @@ import {
   loadWalletAccountDetailPage,
   loadWalletReconcilePage,
   loadBankSmsPage,
+  loadBuildingChargesPage,
+  loadBuildingChecksPage,
+  loadBuildingCounterpartiesPage,
+  loadBuildingDangPage,
+  loadBuildingFundPage,
+  loadBuildingDashboardPage,
+  loadBuildingExpensesPage,
+  loadBuildingJourneyPage,
+  loadBuildingListsPage,
+  loadBuildingMembersPage,
+  loadBuildingReportsPage,
+  loadBuildingResidentsPage,
+  loadBuildingSettingsPage,
+  loadBuildingsHomePage,
+  loadBuildingUnitPage,
+  loadBuildingUnitsPage,
   loadSearchPage
 } from './pageChunks'
 
@@ -99,3 +115,19 @@ export const LazyWalletPage = lazy(loadWalletPage)
 export const LazyWalletAccountDetailPage = lazy(loadWalletAccountDetailPage)
 export const LazyWalletReconcilePage = lazy(loadWalletReconcilePage)
 export const LazySearchPage = lazy(loadSearchPage)
+export const LazyBuildingReportsPage = lazy(loadBuildingReportsPage)
+export const LazyBuildingSettingsPage = lazy(loadBuildingSettingsPage)
+export const LazyBuildingMembersPage = lazy(loadBuildingMembersPage)
+export const LazyBuildingListsPage = lazy(loadBuildingListsPage)
+export const LazyBuildingFundPage = lazy(loadBuildingFundPage)
+export const LazyBuildingDangPage = lazy(loadBuildingDangPage)
+export const LazyBuildingChecksPage = lazy(loadBuildingChecksPage)
+export const LazyBuildingCounterpartiesPage = lazy(loadBuildingCounterpartiesPage)
+export const LazyBuildingsHomePage = lazy(loadBuildingsHomePage)
+export const LazyBuildingJourneyPage = lazy(loadBuildingJourneyPage)
+export const LazyBuildingDashboardPage = lazy(loadBuildingDashboardPage)
+export const LazyBuildingUnitsPage = lazy(loadBuildingUnitsPage)
+export const LazyBuildingUnitPage = lazy(loadBuildingUnitPage)
+export const LazyBuildingChargesPage = lazy(loadBuildingChargesPage)
+export const LazyBuildingExpensesPage = lazy(loadBuildingExpensesPage)
+export const LazyBuildingResidentsPage = lazy(loadBuildingResidentsPage)

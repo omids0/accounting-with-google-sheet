@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import RecordsListRow from './RecordsListRow'
 import type { StoredRecord } from './recordsUtils'
+import { useIncrementalList } from '../../hooks/useIncrementalList'
 import type { CustomForm } from '../../types'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import Button from '../ui/Button'
@@ -13,14 +14,14 @@ import {
   recordsListTypeClass
 } from '../ui/recordsStyles'
 
-/** Rows rendered per step; long histories grow with «نمایش بیشتر» instead of all at once. */
-const RECORDS_PAGE_SIZE = 100
-
 interface RecordsListProps {
   forms: CustomForm[]
   activeForm?: CustomForm
   isAllForms: boolean
   filteredRecords: StoredRecord[]
+  readOnly?: boolean
+  /** Tag shown on every row (see `RecordsListRow`). */
+  badge?: string
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
   onOpen: (record: StoredRecord) => void
@@ -31,26 +32,31 @@ export default function RecordsList({
   activeForm,
   isAllForms,
   filteredRecords,
+  readOnly,
+  badge,
   onEdit,
   onDelete,
   onOpen
 }: RecordsListProps) {
-  const [visibleCount, setVisibleCount] = useState(RECORDS_PAGE_SIZE)
+  // The page keys this list by its filters, so a new filter shows the first 50 again.
+  const {
+    visible: visibleRecords,
+    remaining,
+    nextStep,
+    showMore
+  } = useIncrementalList(filteredRecords)
 
   const formsById = useMemo(() => new Map(forms.map(form => [form.id, form])), [forms])
-
-  const visibleRecords = useMemo(
-    () => filteredRecords.slice(0, visibleCount),
-    [filteredRecords, visibleCount]
-  )
-
-  const remaining = filteredRecords.length - visibleRecords.length
 
   return (
     <Card className={recordsListCardClass}>
       <div className={recordsListHeaderClass}>
         <span className={recordsListCountClass}>
-          {filteredRecords.length.toLocaleString('fa-IR')} مورد
+          {remaining > 0
+            ? `${visibleRecords.length.toLocaleString(
+                'fa-IR'
+              )} از ${filteredRecords.length.toLocaleString('fa-IR')} مورد`
+            : `${filteredRecords.length.toLocaleString('fa-IR')} مورد`}
         </span>
         {forms.length === 1 && activeForm && (
           <span className={recordsListTypeClass(activeForm.type as 'income' | 'expense')}>
@@ -70,6 +76,8 @@ export default function RecordsList({
             form={form}
             isAllForms={isAllForms}
             index={index}
+            readOnly={readOnly}
+            badge={badge}
             onEdit={onEdit}
             onDelete={onDelete}
             onOpen={onOpen}
@@ -78,13 +86,8 @@ export default function RecordsList({
       })}
       {remaining > 0 ? (
         <div className="flex justify-center py-3">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setVisibleCount(count => count + RECORDS_PAGE_SIZE)}
-          >
-            نمایش بیشتر ({formatPersianNumber(remaining)} مورد دیگر)
+          <Button type="button" variant="secondary" size="sm" onClick={showMore}>
+            نمایش بیشتر ({formatPersianNumber(nextStep)} مورد دیگر)
           </Button>
         </div>
       ) : null}

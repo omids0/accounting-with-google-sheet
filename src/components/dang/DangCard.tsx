@@ -1,10 +1,13 @@
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { AccordionCollapse } from '../AccordionCollapse'
+import AmountField from '../AmountField'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
 import CardInlineAmountEdit from '../CardInlineAmountEdit'
+import DangSettleAction from './DangSettleAction'
 import type { DangWithRow } from './types'
+import TapCheckbox from '../form/TapCheckbox'
 import MoneyText from '../MoneyText'
 import {
   cardActionButtonsClass,
@@ -20,9 +23,9 @@ import {
   dangCardNoteClass,
   dangCardTapAreaClass,
   dangCardTitleClass,
-  dangCheckboxClass,
   dangPaidAtClass
 } from '../ui/featureCardStyles'
+import { useReadOnly } from '../ui/readOnly'
 import WriterAvatar from '../WriterAvatar'
 
 export type DangCardProps = {
@@ -34,9 +37,15 @@ export type DangCardProps = {
   onTogglePaid: (item: DangWithRow, paid: boolean) => void
   onExpand: (id: string | null) => void
   onAmountChange: (item: DangWithRow, value: number | '') => void
-  onAmountBlur: (item: DangWithRow) => void
+  /** `value` is passed by the dial pad, which has the new amount in hand already. */
+  onAmountBlur: (item: DangWithRow, value?: number | '') => void
   onEdit: (item: DangWithRow) => void
   onDelete: (item: DangWithRow) => void
+  /**
+   * A building's debt: settled with the button «پرداخت به …» instead of the small checkbox, and
+   * the amount is typed on the dial pad.
+   */
+  building?: boolean
 }
 
 export default function DangCard({
@@ -50,23 +59,28 @@ export default function DangCard({
   onAmountChange,
   onAmountBlur,
   onEdit,
-  onDelete
+  onDelete,
+  building = false
 }: DangCardProps) {
+  const readOnly = useReadOnly()
   const rawAmount = amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount
   const displayAmount = rawAmount === '' ? item.amount : Number(rawAmount)
 
   return (
-    <div className={dangCardClass({ paid: item.paid, expanded })} data-highlight-id={item.id}>
+    <div
+      className={dangCardClass({ paid: item.paid, expanded: expanded && !readOnly })}
+      data-highlight-id={item.id}
+    >
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
-          <input
-            type="checkbox"
-            className={dangCheckboxClass}
-            checked={item.paid}
-            disabled={togglingId === item.id}
-            aria-label={`پرداخت شد: ${item.title}`}
-            onChange={e => onTogglePaid(item, e.target.checked)}
-          />
+          {building ? null : (
+            <TapCheckbox
+              checked={item.paid}
+              disabled={togglingId === item.id || readOnly}
+              aria-label={`پرداخت شد: ${item.title}`}
+              onChange={e => onTogglePaid(item, e.target.checked)}
+            />
+          )}
           <div className={dangCardBodyClass}>
             <button
               type="button"
@@ -93,41 +107,62 @@ export default function DangCard({
               ) : null}
             </button>
 
-            <AccordionCollapse open={expanded}>
+            {building && !readOnly ? (
+              <DangSettleAction item={item} busy={togglingId === item.id} onToggle={onTogglePaid} />
+            ) : null}
+
+            <AccordionCollapse open={expanded && !readOnly}>
               <div className={dangCardAmountEditClass}>
-                <CardInlineAmountEdit
-                  label="مبلغ"
-                  value={amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount}
-                  onChange={val => onAmountChange(item, val)}
-                  onBlur={() => onAmountBlur(item)}
-                  onClose={() => onExpand(null)}
-                  saving={savingAmountId === item.id}
-                />
+                {building ? (
+                  <AmountField
+                    label="مبلغ بدهی"
+                    value={item.amount}
+                    onChange={value => {
+                      onAmountChange(item, value)
+                      onAmountBlur(item, value)
+                      onExpand(null)
+                    }}
+                  />
+                ) : (
+                  <CardInlineAmountEdit
+                    label="مبلغ"
+                    value={amountEdits[item.id] !== undefined ? amountEdits[item.id] : item.amount}
+                    onChange={val => onAmountChange(item, val)}
+                    onBlur={() => onAmountBlur(item)}
+                    onClose={() => onExpand(null)}
+                    saving={savingAmountId === item.id}
+                  />
+                )}
               </div>
             </AccordionCollapse>
           </div>
         </div>
         <div className={cardActionButtonsClass}>
           <CardEditButton
+            itemLabel={item.title}
             onClick={event => {
               event.stopPropagation()
               onEdit(item)
             }}
           />
           <CardDeleteButton
+            itemLabel={item.title}
             onClick={event => {
               event.stopPropagation()
               onDelete(item)
             }}
           />
-          <CardExpandButton
-            expanded={expanded}
-            onClick={event => {
-              event.stopPropagation()
-              onExpand(expanded ? null : item.id)
-            }}
-            ariaLabel={expanded ? 'بستن جزئیات' : 'ویرایش مبلغ بدهی'}
-          />
+          {readOnly ? null : (
+            <CardExpandButton
+              itemLabel={item.title}
+              expanded={expanded}
+              onClick={event => {
+                event.stopPropagation()
+                onExpand(expanded ? null : item.id)
+              }}
+              label={expanded ? 'بستن جزئیات' : 'ویرایش مبلغ بدهی'}
+            />
+          )}
         </div>
       </div>
     </div>

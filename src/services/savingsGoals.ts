@@ -62,12 +62,12 @@ export function goalBalances(ledger: LedgerEntry[]): Map<string, number> {
   return balances
 }
 
-/** Goal id → deposits (withdrawals left out) dated inside `range`. */
-export function goalDepositsIn(ledger: LedgerEntry[], range: DateRange): Map<string, number> {
+/** Goal id → deposits minus withdrawals dated inside `range` (negative when more was taken out). */
+export function goalNetDepositsIn(ledger: LedgerEntry[], range: DateRange): Map<string, number> {
   const deposits = new Map<string, number>()
 
   for (const entry of goalEntries(ledger)) {
-    if (entry.delta >= 0 || !isDateInRange(entry.date, range)) continue
+    if (!isDateInRange(entry.date, range)) continue
 
     const id = entry.recordId!
 
@@ -79,6 +79,11 @@ export function goalDepositsIn(ledger: LedgerEntry[], range: DateRange): Map<str
 
 export function isGoalReached(balance: number, target: number): boolean {
   return target > 0 && balance >= target
+}
+
+/** True when depositing `amount` would take the goal past its target (still allowed). */
+export function exceedsGoalTarget(balance: number, target: number, amount: number): boolean {
+  return target > 0 && amount > 0 && balance + amount > target
 }
 
 /**

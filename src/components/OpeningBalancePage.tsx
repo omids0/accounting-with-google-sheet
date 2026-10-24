@@ -16,8 +16,9 @@ import {
   setOpeningBalance,
   type MonthlyOpeningBalance
 } from '../services/monthlyBalance'
-import { isBeforeAnchor } from '../services/openingBalanceDerive'
-import { ensureAnchorMonthKey, refreshOpeningBalances } from '../services/openingBalanceRefresh'
+import { isEditableMonth } from '../services/openingBalanceDerive'
+import { refreshOpeningBalances } from '../services/openingBalanceRefresh'
+import { getAnchorMonthKey } from '../services/periodSettings'
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../utils/authGuard'
 import { formatJalaliMonthLabel } from '../utils/dateRange'
@@ -25,18 +26,6 @@ import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
 
 type OpeningBalanceWithRow = MonthlyOpeningBalance & { rowNumber: number }
-
-/**
- * Editable months are the historical ones plus the start month itself, whose
- * amount is a given rather than a computed value. Without a known start month
- * nothing is derived yet, so everything stays editable rather than silently
- * locking the whole history behind a failed lookup.
- */
-function isEditableMonth(monthKey: string, anchorMonthKey: string): boolean {
-  if (!anchorMonthKey) return true
-
-  return monthKey === anchorMonthKey || isBeforeAnchor(monthKey, anchorMonthKey)
-}
 
 export default function OpeningBalancePage() {
   const [items, setItems] = useState<OpeningBalanceWithRow[]>([])
@@ -73,7 +62,7 @@ export default function OpeningBalancePage() {
     try {
       const [data, anchor] = await Promise.all([
         fetchAllOpeningBalances(settings.spreadsheetId),
-        ensureAnchorMonthKey().catch(() => '')
+        getAnchorMonthKey(settings.spreadsheetId).catch(() => '')
       ])
 
       setAnchorMonthKey(anchor)
@@ -168,7 +157,7 @@ export default function OpeningBalancePage() {
           ? `محاسبه خودکار از ${formatJalaliMonthLabel(
               anchorMonthKey
             )} شروع می‌شود: موجودی اول همان ماه را خودت تعیین می‌کنی و ماه‌های بعد از مانده پایان ماه قبل حساب می‌شوند.`
-          : 'موجودی کیف پول در ابتدای هر ماه.'}
+          : 'ماه شروع محاسبه هنوز مشخص نشده؛ یک بار داشبورد یا کیف پول را باز کن تا مشخص شود. تا آن موقع این فهرست فقط خواندنی است.'}
       </p>
 
       {loading && items.length === 0 ? (

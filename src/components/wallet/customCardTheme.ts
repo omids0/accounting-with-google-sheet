@@ -1,4 +1,5 @@
 import type { BankCardTheme } from './bankCardTypes'
+import { relativeLuminance } from '../../utils/contrast'
 
 export const CUSTOM_CARD_COLOR_ID = 'custom'
 
@@ -58,22 +59,14 @@ export function mixHexWithWhite(hex: string, amount: number): string {
   return rgbToHex(mix(rgb[0]), mix(rgb[1]), mix(rgb[2]))
 }
 
-function relativeLuminance(hex: string): number {
+function hexLuminance(hex: string): number {
   const rgb = parseHexRgb(hex)
 
-  if (!rgb) return 0
-
-  const channels = rgb.map(channel => {
-    const normalized = channel / 255
-
-    return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4
-  })
-
-  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+  return rgb ? relativeLuminance(rgb) : 0
 }
 
 function pickReadableTextColor(primary: string, secondary: string): string {
-  const average = (relativeLuminance(primary) + relativeLuminance(secondary)) / 2
+  const average = (hexLuminance(primary) + hexLuminance(secondary)) / 2
 
   return average > 0.45 ? '#1a1a2e' : '#ffffff'
 }

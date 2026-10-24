@@ -33,7 +33,7 @@ export default function SettingsBudgetsCard() {
               ماهانه <MoneyText amount={amount} />
             </div>
           </div>
-          <CardEditButton onClick={() => openBudget(category)} ariaLabel={`بودجه ${category}`} />
+          <CardEditButton onClick={() => openBudget(category)} label="بودجه" itemLabel={category} />
         </div>
       ))}
       {!budgets.size ? <p className={formHintClass}>هنوز بودجه‌ای تعیین نشده.</p> : null}

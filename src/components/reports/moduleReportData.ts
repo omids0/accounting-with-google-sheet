@@ -1,3 +1,4 @@
+import { checkTypeLabel } from '../../services/checkDirection'
 import { exportChecksPdf, fetchChecks, totalUnpaidChecksInRange } from '../../services/checks'
 import { exportDangsPdf, fetchDangs, unpaidDangTotal } from '../../services/dang'
 import {
@@ -65,6 +66,8 @@ export interface ReportGroup {
 
 export interface ModuleReportData {
   total: number
+  /** Names `total` where «مجموع» is not enough (checks: only the payable ones). */
+  totalLabel?: string
   groups?: ReportGroup[]
   secondaryTotal?: number
   secondaryLabel?: string
@@ -222,16 +225,18 @@ export async function loadModuleReport(
 
       const range = getDateRange('year-to-date')
 
-      const total = totalUnpaidChecksInRange(items, range)
-
+      // The checks I give and the ones I get never share a sum.
       return {
-        total,
+        total: totalUnpaidChecksInRange(items, range, 'paid'),
+        totalLabel: 'پرداختی‌های پاس‌نشده',
+        secondaryTotal: totalUnpaidChecksInRange(items, range, 'received'),
+        secondaryLabel: 'دریافتی‌های پاس‌نشده',
         rows: items
           .filter(item => !item.paid)
           .map(item => ({
             id: item.id,
             title: item.counterparty || item.checkNumber,
-            subtitle: `سررسید ${formatIsoDatePersian(item.dueDate)}`,
+            subtitle: `${checkTypeLabel(item)} · سررسید ${formatIsoDatePersian(item.dueDate)}`,
             amount: item.amount
           }))
       }

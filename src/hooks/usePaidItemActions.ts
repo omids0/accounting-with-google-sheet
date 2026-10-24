@@ -4,11 +4,13 @@ import { removeParentAttachments, useAttachmentDeleteQuestion } from './useAttac
 import { useSheetImportExport } from './useSheetImportExport'
 import { useUndoableDelete } from './useUndoableDelete'
 import { useSettleFlow } from '../components/settle/useSettleFlow'
+import { useReadOnly } from '../components/ui/readOnly'
 import type { ImportPreview } from '../services/importExport'
 import type { SettleOptions, UnlinkChoice } from '../services/settleOptions'
-import { isLinkedForeignRecord } from '../services/settleRecords'
+import { isLinkedForeignRecord, type SettlePrefix } from '../services/settleRecords'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
+import { showSuccess } from '../utils/toast'
 
 type ImportExportFns = {
   exportFn: (spreadsheetId: string) => Promise<string | null>
@@ -18,14 +20,19 @@ type ImportExportFns = {
 
 /** How marking an item paid asks for the account and catches a payment recorded already. */
 export type SettleConfig<T> = {
-  type: 'expense' | 'income'
+  /** A function when each item decides (a check is paid or received). */
+  type: 'expense' | 'income' | ((item: T) => 'expense' | 'income')
   titleFor: (item: T) => string
   amountFor: (item: T) => number
   dateFor?: (item: T) => string
+  /** What saving does, when it is not obvious (shown under the sheet title). */
+  noteFor?: (item: T) => string | undefined
+  /** True for an item bridged to the personal spreadsheet (the settle sheet asks for its account). */
+  bridgeFor?: (item: T) => boolean
   /** The record the item's payment is linked to, if any. */
   recordIdOf: (item: T) => string | undefined
-  /** Title prefix of the records this app creates for the module («بدهی: »). */
-  prefix: string
+  /** Title prefix(es) of the records this app creates for the module («بدهی: »). */
+  prefix: SettlePrefix
   /** `transactionRecordId` of every item: those records are settlements already. */
   linkedIds: readonly string[]
 }
@@ -69,11 +76,14 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   importExport
 }: UsePaidItemActionsOptions<T>) {
   const [togglingId, setTogglingId] = useState('')
+  const readOnly = useReadOnly()
   const settleFlow = useSettleFlow()
 
   const getSpreadsheetId = useCallback(() => requireSpreadsheetId(), [])
 
   const handleTogglePaid = async (item: T, paid: boolean) => {
+    if (readOnly) return
+
     const spreadsheetId = getSpreadsheetId()
 
     if (!spreadsheetId) return
@@ -81,19 +91,30 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
     let options: SettleOptions | null | undefined
     let unlink: UnlinkChoice | null | undefined
 
-    if (settle && paid) {
+    const settleType = typeof settle?.type === 'function' ? settle.type(item) : settle?.type
+
+    if (settle && settleType && paid) {
       options = await settleFlow.askSettle({
-        type: settle.type,
+        type: settleType,
         title: settle.titleFor(item),
         amount: settle.amountFor(item),
         date: settle.dateFor?.(item),
+        note: settle.noteFor?.(item),
+        bridge: settle.bridgeFor?.(item),
         linkedIds: settle.linkedIds
       })
       if (!options) return
-    } else if (settle) {
-      const recordId = settle.recordIdOf(item) ?? ''
+    } else if (!paid) {
+      const recordId = settle?.recordIdOf(item) ?? ''
 
-      if (await isLinkedForeignRecord(spreadsheetId, settle.type, recordId, settle.prefix)) {
+      // Un-ticking deletes the linked expense/income and undoes the wallet balance: confirm first.
+      if (!(await settleFlow.askUnpay(Boolean(recordId)))) return
+
+      if (
+        settle &&
+        settleType &&
+        (await isLinkedForeignRecord(spreadsheetId, settleType, recordId, settle.prefix))
+      ) {
         unlink = await settleFlow.askUnlink()
         if (!unlink) return
       }
@@ -116,6 +137,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
           )
         )
       )
+      showSuccess(paid ? 'پرداخت ثبت شد' : 'پرداخت برگردانده شد')
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در به‌روزرسانی' })
     } finally {
@@ -132,6 +154,8 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   const attachmentQuestion = useAttachmentDeleteQuestion()
 
   const requestDelete = async (item: T) => {
+    if (readOnly) return
+
     const spreadsheetId = getSpreadsheetId()
 
     if (!spreadsheetId) return

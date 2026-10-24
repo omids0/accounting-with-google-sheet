@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { detectReceivableRowLayout, rowToReceivable } from './receivablesRow'
+import { detectReceivableRowLayout, receivableToRow, rowToReceivable } from './receivablesRow'
 
 const PAYMENTS = '[{"id":"p1","amount":500,"date":"1403/01/01"}]'
 
@@ -70,5 +70,50 @@ describe('rowToReceivable', () => {
     expect(titled.amount).toBe(2000000)
     expect(titled.title).toBe('قرض')
     expect(titled.subCategory).toBe('زیر')
+  })
+})
+
+describe('building charge columns', () => {
+  const charge = {
+    id: 'r9',
+    createdAt: 't',
+    title: 'شارژ مهر · واحد ۳',
+    debtor: 'علی',
+    category: 'شارژ ساختمان',
+    amount: 1500000,
+    borrowDate: '1405/07/10',
+    note: '',
+    payments: [],
+    reference: 'charge:u3:1405-07',
+    debtorId: 'cp-1'
+  }
+
+  it('write the reference and the debtor id after the writer column', () => {
+    const row = receivableToRow(charge)
+
+    expect(row).toHaveLength(13)
+    expect(row[10]).toBe('')
+    expect(row.slice(11)).toEqual(['charge:u3:1405-07', 'cp-1'])
+  })
+
+  it('read them back, and keep a plain receivable free of them', () => {
+    const row = receivableToRow(charge)
+
+    expect(rowToReceivable(row, 2)).toMatchObject({
+      reference: 'charge:u3:1405-07',
+      debtorId: 'cp-1',
+      debtor: 'علی'
+    })
+    expect(rowToReceivable(withTitleRow('1500000'), 2)).toMatchObject({
+      reference: '',
+      debtorId: ''
+    })
+    expect(
+      receivableToRow({ ...charge, reference: undefined, debtorId: undefined }).slice(11)
+    ).toEqual(['', ''])
+  })
+
+  it('carry the writer in its own column', () => {
+    expect(receivableToRow({ ...charge, writer: 'a@b.c' })[10]).toBe('a@b.c')
   })
 })

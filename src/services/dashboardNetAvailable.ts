@@ -13,7 +13,8 @@ export function applyNetAvailableConfig(
     (config.assets.wallet ? financial.walletTotal : 0) +
     (config.assets.treasury ? vaultAssets : 0) +
     (config.assets.goals ? goalsTotal : 0) +
-    (config.assets.receivables ? financial.receivablesTotal : 0)
+    (config.assets.receivables ? financial.receivablesTotal : 0) +
+    (config.assets.checksReceived ? financial.checksReceivable ?? 0 : 0)
 
   const totalLiabilities =
     (config.liabilities.installments ? financial.installmentsDue : 0) +

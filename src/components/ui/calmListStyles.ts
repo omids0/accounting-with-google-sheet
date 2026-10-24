@@ -29,7 +29,14 @@ export const calmRowTitleClass = 'block truncate text-[0.82rem] font-semibold te
 
 export const calmRowSubClass = 'mt-0.5 block truncate text-[0.7rem] text-muted'
 
+/** A sub line that carries amounts (budget line): wraps instead of ellipsizing. */
+export const calmRowSubAmountClass =
+  'mt-0.5 block text-[0.7rem] text-muted [overflow-wrap:anywhere]'
+
 export const calmRowSubDangerClass = 'text-danger'
+
+/** Late, but money owed to me: amber, not the red of a debt. */
+export const calmRowSubWarningClass = 'text-warning'
 
 export const calmRowEndClass =
   'shrink-0 whitespace-nowrap font-numeric text-[0.8rem] font-bold tabular-nums text-text'

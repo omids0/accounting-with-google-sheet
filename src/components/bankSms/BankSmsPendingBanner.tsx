@@ -1,7 +1,7 @@
+import { useRoutedPendingSms } from '../../hooks/useRoutedPendingSms'
 import { isBankSmsAvailable } from '../../services/bankSmsNative'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { smsRangeStart } from '../../services/bankSmsRange'
-import { useBankSmsStore } from '../../stores/bankSmsStore'
 import { useNavigationStore } from '../../stores/navigationStore'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import Alert from '../ui/Alert'
@@ -12,9 +12,8 @@ import Button from '../ui/Button'
 export default function BankSmsPendingBanner() {
   // Same range as the «پیامک‌های بانکی» page; older SMS stay queued but are not listed there.
   const sinceMs = smsRangeStart(getBankSmsPrefs().viewDays)
-  const count = useBankSmsStore(
-    state => state.pending.filter(sms => sms.receivedAt >= sinceMs).length
-  )
+  // Only the SMS that belong to this workspace's cards (round 11).
+  const count = useRoutedPendingSms().filter(sms => sms.receivedAt >= sinceMs).length
   const onTabChange = useNavigationStore(state => state.onTabChange)
 
   if (!count || !isBankSmsAvailable() || !getBankSmsPrefs().enabled) return null

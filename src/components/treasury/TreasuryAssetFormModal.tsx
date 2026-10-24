@@ -76,7 +76,7 @@ export default function TreasuryAssetFormModal({
       open={asset != null}
       title={draft ? `${draft.name} · ${getAssetClassLabel(draft.assetClass)}` : 'دارایی'}
       onClose={() => !saving && onClose()}
-      onSubmit={event => void handleSubmit(event)}
+      onSubmit={handleSubmit}
       saving={saving}
       saveLabel="ذخیره"
     >
@@ -113,7 +113,14 @@ export default function TreasuryAssetFormModal({
                 max={MAX_QUANTITY_DECIMALS}
                 step={1}
                 value={draft.decimals}
-                onChange={event => set({ decimals: Number(event.target.value) })}
+                onChange={event =>
+                  set({
+                    decimals: Math.min(
+                      MAX_QUANTITY_DECIMALS,
+                      Math.max(0, Math.trunc(Number(event.target.value) || 0))
+                    )
+                  })
+                }
               />
             </FormField>
           </FormRow>

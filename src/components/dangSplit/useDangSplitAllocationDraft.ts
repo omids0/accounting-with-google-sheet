@@ -104,7 +104,10 @@ export function useDangSplitAllocationDraft({
   }
 
   const setPercent = (personId: string, value: number | '') => {
-    setManualPercents(current => ({ ...current, [personId]: value }))
+    // The browser no longer stops a percent outside 0–100; keep it inside here.
+    const next = value === '' ? '' : Math.min(100, Math.max(0, value))
+
+    setManualPercents(current => ({ ...current, [personId]: next }))
   }
 
   return {

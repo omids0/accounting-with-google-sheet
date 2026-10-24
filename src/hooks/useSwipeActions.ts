@@ -35,6 +35,8 @@ export function useSwipeActions({ onSwipeRight, onSwipeLeft, disabled }: SwipeAc
 
   const onTouchStart = (event: TouchEvent<HTMLElement>) => {
     if (disabled || event.touches.length !== 1) return
+    // Dragging a caret or a selection in a field must not arm the swipe action.
+    if ((event.target as HTMLElement).closest('input, textarea, select')) return
 
     const touch = event.touches[0]
 

@@ -93,7 +93,7 @@ export default function VehiclePeriodicFormModal({
   const nextKmPreview = mileage > 0 && intervalKm > 0 ? calculateNextKm(mileage, intervalKm) : null
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
+    return submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (
@@ -139,7 +139,7 @@ export default function VehiclePeriodicFormModal({
       />
 
       <FormRow>
-        <FormField label="کارکرد (km)" required error={formFieldError(errors, 'mileage')}>
+        <FormField label="کارکرد (کیلومتر)" required error={formFieldError(errors, 'mileage')}>
           <MileageInput
             value={watch('mileage')}
             onChange={value => setValue('mileage', value === '' ? '' : String(value))}
@@ -147,7 +147,7 @@ export default function VehiclePeriodicFormModal({
           />
         </FormField>
 
-        <FormField label="فاصله (km)" required error={formFieldError(errors, 'intervalKm')}>
+        <FormField label="فاصله (کیلومتر)" required error={formFieldError(errors, 'intervalKm')}>
           <MileageInput
             value={watch('intervalKm')}
             onChange={value => setValue('intervalKm', value === '' ? '' : String(value))}
@@ -164,7 +164,7 @@ export default function VehiclePeriodicFormModal({
 
       {nextKmPreview != null ? (
         <p className="text-[0.82rem] text-muted">
-          km بعدی: <strong>{nextKmPreview.toLocaleString('fa-IR')}</strong>
+          کیلومتر بعدی: <strong>{nextKmPreview.toLocaleString('fa-IR')}</strong>
         </p>
       ) : null}
 

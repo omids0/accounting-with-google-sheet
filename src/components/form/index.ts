@@ -20,12 +20,14 @@ export {
   isStandardEntryForm,
   LINE_ITEMS_FIELD_ID,
   LINE_ITEMS_FIELD_LABEL,
+  sortEntryFormFields,
   sortFormFields,
   SUBCATEGORY_FIELD_ID,
   WALLET_ACCOUNT_FIELD_ID,
   WALLET_APPLY_FIELD_ID,
   withAutoTitle
 } from './fieldUtils'
+export { withBuildingFields, withoutBuildingFields } from './buildingFields'
 export { default as ToggleSwitch } from './ToggleSwitch'
 export { default as SegmentedRadio } from './SegmentedRadio'
 export type { SegmentedRadioOption } from './SegmentedRadio'

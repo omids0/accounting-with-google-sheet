@@ -42,8 +42,8 @@ export default function VehicleHistoryCard({ item, onDelete }: VehicleHistoryCar
             </div>
             <div className={dangCardMetaClass}>
               {item.date ? formatIsoDatePersian(item.date) : '—'}
-              {item.mileage > 0 ? ` · ${item.mileage.toLocaleString('fa-IR')} km` : ''}
-              {item.nextKm > 0 ? ` · بعدی: ${item.nextKm.toLocaleString('fa-IR')} km` : ''}
+              {item.mileage > 0 ? ` · ${item.mileage.toLocaleString('fa-IR')} کیلومتر` : ''}
+              {item.nextKm > 0 ? ` · بعدی: ${item.nextKm.toLocaleString('fa-IR')} کیلومتر` : ''}
             </div>
             {item.details ? (
               <div className="mt-1 text-[0.76rem] leading-[1.4] text-muted">{item.details}</div>
@@ -52,7 +52,10 @@ export default function VehicleHistoryCard({ item, onDelete }: VehicleHistoryCar
         </div>
 
         <div className={cardActionButtonsClass} role="group">
-          <CardDeleteButton onClick={() => onDelete(item)} />
+          <CardDeleteButton
+            itemLabel={KIND_LABELS[item.recordKind]}
+            onClick={() => onDelete(item)}
+          />
         </div>
       </div>
     </div>

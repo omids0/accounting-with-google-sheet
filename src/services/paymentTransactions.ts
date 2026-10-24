@@ -9,6 +9,7 @@ import {
 import type { CustomForm } from '../types'
 import { OTHER_CATEGORY } from '../utils/categoryOrdering'
 import { getTodayIso } from '../utils/jalaliDate'
+import { roundMoney } from '../utils/roundMoney'
 
 function getFormByType(type: 'income' | 'expense'): CustomForm | undefined {
   return getSettings()?.forms.find(f => f.type === type)
@@ -23,6 +24,8 @@ function resolveCategory(category?: string): string {
 export interface LinkedRecordWallet {
   walletAccount: string
   walletApply: string
+  /** False when no record had that id in the form (so nothing was deleted). */
+  found?: boolean
 }
 
 export interface LinkedRecordParams {
@@ -45,7 +48,7 @@ export function linkedRecordValues(params: LinkedRecordParams): Record<string, s
     title: params.title,
     category: resolveCategory(params.category),
     [SUBCATEGORY_FIELD_ID]: resolveCategory(params.subCategory),
-    amount: params.amount,
+    amount: roundMoney(params.amount),
     note: params.note ?? '',
     [WALLET_ACCOUNT_FIELD_ID]: params.walletAccount ?? '',
     [WALLET_APPLY_FIELD_ID]: params.walletApply ?? ''
@@ -99,7 +102,7 @@ export async function deleteLinkedRecord(
   formType: 'income' | 'expense',
   recordId: string
 ): Promise<LinkedRecordWallet> {
-  const none = { walletAccount: '', walletApply: '' }
+  const none = { walletAccount: '', walletApply: '', found: false }
 
   if (!recordId) return none
 
@@ -123,7 +126,8 @@ export async function deleteLinkedRecord(
 
   return {
     walletAccount: match.values[WALLET_ACCOUNT_FIELD_ID] ?? '',
-    walletApply: match.values[WALLET_APPLY_FIELD_ID] ?? ''
+    walletApply: match.values[WALLET_APPLY_FIELD_ID] ?? '',
+    found: true
   }
 }
 

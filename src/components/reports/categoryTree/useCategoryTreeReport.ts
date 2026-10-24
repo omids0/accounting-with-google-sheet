@@ -96,13 +96,17 @@ export function useCategoryTreeReport() {
   }, [allExpanded, expandableNodes])
 
   const exportCsv = useCallback(() => {
-    void runExport(() => exportCategoryTreeCsv(visibleNodes), 'خطا در ساخت خروجی CSV')
+    void runExport(() => exportCategoryTreeCsv(visibleNodes), 'خطا در ساخت خروجی CSV', {
+      empty: !visibleNodes.length
+    })
   }, [visibleNodes])
 
   const exportPdf = useCallback(async () => {
     setExporting(true)
     try {
-      await runExport(() => exportCategoryTreePdf(visibleNodes), 'خطا در ساخت خروجی PDF')
+      await runExport(() => exportCategoryTreePdf(visibleNodes), 'خطا در ساخت خروجی PDF', {
+        empty: !visibleNodes.length
+      })
     } finally {
       setExporting(false)
     }

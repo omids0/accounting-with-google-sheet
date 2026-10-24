@@ -8,8 +8,11 @@ export default function TableRowActions({
   onDelete,
   expanded,
   onToggleExpand,
-  expandLabel = 'نمایش جزئیات'
+  expandLabel = 'نمایش جزئیات',
+  itemLabel
 }: {
+  /** The row's name, e.g. «چک ۱۲۳»; the buttons read «ویرایش چک ۱۲۳». */
+  itemLabel: string
   onEdit?: () => void
   onDelete?: () => void
   expanded?: boolean
@@ -18,13 +21,14 @@ export default function TableRowActions({
 }) {
   return (
     <>
-      {onEdit && <CardEditButton onClick={onEdit} />}
-      {onDelete && <CardDeleteButton onClick={onDelete} />}
+      {onEdit && <CardEditButton itemLabel={itemLabel} onClick={onEdit} />}
+      {onDelete && <CardDeleteButton itemLabel={itemLabel} onClick={onDelete} />}
       {onToggleExpand && (
         <CardExpandButton
+          itemLabel={itemLabel}
           expanded={!!expanded}
           onClick={onToggleExpand}
-          ariaLabel={expanded ? 'بستن جزئیات' : expandLabel}
+          label={expanded ? 'بستن جزئیات' : expandLabel}
         />
       )}
     </>

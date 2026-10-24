@@ -29,6 +29,7 @@ import { haptic } from '../../../utils/haptics'
 import { toIsoDate } from '../../../utils/jalaliDate'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showSuccess } from '../../../utils/toast'
+import { isVehicleExpenseCategory } from '../../../utils/vehicleExpenseUtils'
 import { useBankSmsContext } from '../../bankSms/useBankSmsContext'
 
 /** The «تطبیق <حساب>» wizard: live difference, SMS without records, records without SMS. */
@@ -141,7 +142,12 @@ export function useReconcileWizard(accountId: string) {
     save: (item: ConfirmableSms) => {
       const choice = choiceFor(item)
 
-      if (!choice || isProbableDuplicate(item, ledger)) {
+      // A vehicle expense needs its vehicle and mileage: the form asks them, a silent save cannot.
+      if (
+        !choice ||
+        isProbableDuplicate(item, ledger) ||
+        isVehicleExpenseCategory(choice.category)
+      ) {
         const state = buildBankSmsEntryState(item, { choice })
 
         navigate(getPathForTab('entry', { formType: state.bankSmsEntry.formType }), { state })

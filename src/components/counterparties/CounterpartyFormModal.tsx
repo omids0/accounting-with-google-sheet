@@ -2,8 +2,11 @@ import { lazy, Suspense, useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import { getActiveWorkspaceType } from '../../services/workspace'
+import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
 import FormField from '../form/FormField'
 import FormRow from '../form/FormRow'
+import ToggleSwitch from '../form/ToggleSwitch'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import CounterpartyAccountsField from './CounterpartyAccountsField'
@@ -31,6 +34,9 @@ const EMPTY_PHONE: CounterpartyPhoneFormState = { number: '' }
 const EMPTY_ACCOUNT: CounterpartyAccountFormState = { bankName: '', accountNumber: '' }
 
 function buildInitialValues(editingItem: CounterpartyWithRow | null): CounterpartyFormState {
+  // Only a building has the «من» flag; a personal list never gets the field.
+  const me = getActiveWorkspaceType() === 'building' ? { me: editingItem?.me ?? false } : {}
+
   if (editingItem) {
     return {
       firstName: editingItem.firstName,
@@ -40,7 +46,8 @@ function buildInitialValues(editingItem: CounterpartyWithRow | null): Counterpar
       location: editingItem.location,
       phones: editingItem.phones.length > 0 ? editingItem.phones : [{ ...EMPTY_PHONE }],
       accounts: editingItem.accounts.length > 0 ? editingItem.accounts : [{ ...EMPTY_ACCOUNT }],
-      note: editingItem.note
+      note: editingItem.note,
+      ...me
     }
   }
 
@@ -52,7 +59,8 @@ function buildInitialValues(editingItem: CounterpartyWithRow | null): Counterpar
     location: null,
     phones: [{ ...EMPTY_PHONE }],
     accounts: [{ ...EMPTY_ACCOUNT }],
-    note: ''
+    note: '',
+    ...me
   }
 }
 
@@ -65,10 +73,17 @@ export default function CounterpartyFormModal({
 }: CounterpartyFormModalProps) {
   const initialValues = useMemo(() => buildInitialValues(editingItem), [editingItem])
 
-  const { register, control, handleSubmit, reset, setValue, watch } =
-    useForm<CounterpartyFormState>({
-      defaultValues: initialValues
-    })
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm<CounterpartyFormState>({
+    defaultValues: initialValues
+  })
 
   useModalFormReset(reset, initialValues, {
     active: open,
@@ -76,7 +91,7 @@ export default function CounterpartyFormModal({
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    return submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (
@@ -91,12 +106,16 @@ export default function CounterpartyFormModal({
       size="wide"
     >
       <FormRow>
-        <FormField label="نام" required>
-          <input type="text" {...register('firstName')} placeholder="نام" required />
+        <FormField label="نام" required error={formFieldError(errors, 'firstName')}>
+          <input type="text" {...register('firstName', requiredField('نام'))} placeholder="نام" />
         </FormField>
 
-        <FormField label="نام خانوادگی" required>
-          <input type="text" {...register('lastName')} placeholder="نام خانوادگی" required />
+        <FormField label="نام خانوادگی" required error={formFieldError(errors, 'lastName')}>
+          <input
+            type="text"
+            {...register('lastName', requiredField('نام خانوادگی'))}
+            placeholder="نام خانوادگی"
+          />
         </FormField>
       </FormRow>
 
@@ -132,8 +151,27 @@ export default function CounterpartyFormModal({
         <textarea {...register('address')} placeholder="آدرس" rows={2} />
       </FormField>
 
-      <CounterpartyPhonesField control={control} register={register} />
+      <CounterpartyPhonesField
+        control={control}
+        register={register}
+        savedNumbers={editingItem?.phones.map(phone => phone.number)}
+      />
       <CounterpartyAccountsField control={control} register={register} />
+
+      {initialValues.me === undefined ? null : (
+        <FormField
+          label="من"
+          hint="خودِ مدیر ساختمان است؛ بدهی ساختمان به او «به مدیر» حساب می‌شود."
+        >
+          <Controller
+            control={control}
+            name="me"
+            render={({ field }) => (
+              <ToggleSwitch checked={!!field.value} onChange={field.onChange} label="من" />
+            )}
+          />
+        </FormField>
+      )}
 
       <FormField label="توضیحات" controlWidth="full">
         <textarea {...register('note')} placeholder="توضیحات اختیاری" rows={2} />

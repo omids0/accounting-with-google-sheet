@@ -56,3 +56,12 @@ describe('netWalletChanges', () => {
     ])
   })
 })
+
+describe('wallet changes carry no floating-point noise', () => {
+  it('nets fractional edits to two decimals', () => {
+    const effect = (amount: number) => ({ accountId: 'a', delta: amount })
+
+    expect([...netWalletChanges(effect(0.1), effect(0.30000000000000004))]).toEqual([['a', 0.2]])
+    expect([...netWalletChanges(effect(10931882.3), effect(10931882.3))]).toEqual([])
+  })
+})

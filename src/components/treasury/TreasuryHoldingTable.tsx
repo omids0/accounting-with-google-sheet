@@ -96,6 +96,7 @@ export default function TreasuryHoldingTable({
       renderDetail={renderDetail}
       actions={holding => (
         <TableRowActions
+          itemLabel={holding.asset.name}
           expanded={expandedAsset === holding.assetType}
           onToggleExpand={() => onToggle(holding)}
           expandLabel="سوابق خرید و فروش"

@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import {
   ALL_COUNTERPARTIES,
+  ALL_WALLET_ACCOUNTS,
+  distinctWalletAccounts,
+  matchesAmountRangeFilter,
+  matchesWalletAccountFilter,
+  orderedRange,
   distinctCounterparties,
   matchesCounterpartyFilter,
   matchesWithItemsFilter,
@@ -65,5 +70,36 @@ describe('recordWalletState', () => {
     )
     expect(recordWalletState({ values: { walletApply: 'خیر' } })).toBe('none')
     expect(recordWalletState(plain)).toBe('none')
+  })
+})
+
+describe('wallet account and amount filters', () => {
+  const rows: { values: Record<string, string> }[] = [
+    { values: { amount: '1000', walletAccount: 'a1' } },
+    { values: { amount: '5000', walletAccount: 'a2' } },
+    { values: { amount: '9000' } }
+  ]
+
+  it('keeps the records of one account', () => {
+    expect(rows.filter(row => matchesWalletAccountFilter(row, 'a1'))).toEqual([rows[0]])
+    expect(rows.filter(row => matchesWalletAccountFilter(row, ALL_WALLET_ACCOUNTS))).toHaveLength(3)
+    expect(distinctWalletAccounts(rows)).toEqual(['a1', 'a2'])
+  })
+
+  it('keeps amounts between min and max, either end open, bounds included', () => {
+    const amounts = (min: number | '', max: number | '') =>
+      rows.filter(row => matchesAmountRangeFilter(row, min, max)).map(row => row.values.amount)
+
+    expect(amounts('', '')).toEqual(['1000', '5000', '9000'])
+    expect(amounts(5000, '')).toEqual(['5000', '9000'])
+    expect(amounts('', 5000)).toEqual(['1000', '5000'])
+    expect(amounts(1000, 5000)).toEqual(['1000', '5000'])
+    expect(amounts(6000, 8000)).toEqual([])
+  })
+
+  it('swaps a reversed range', () => {
+    expect(orderedRange(9000, 1000)).toEqual([1000, 9000])
+    expect(orderedRange('', 1000)).toEqual(['', 1000])
+    expect(orderedRange(1000, 9000)).toEqual([1000, 9000])
   })
 })

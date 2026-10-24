@@ -74,6 +74,7 @@ export function FormSkeleton({ fields = 4 }: { fields?: number }) {
   return (
     <div
       className={cn(skeletonFormClass, dataEntryPageClass)}
+      role="status"
       aria-busy="true"
       aria-label="در حال بارگذاری"
     >
@@ -114,7 +115,12 @@ export function FormSkeleton({ fields = 4 }: { fields?: number }) {
  */
 export function SettingsSkeleton() {
   return (
-    <div className={settingsPageClass} aria-busy="true" aria-label="در حال بارگذاری تنظیمات">
+    <div
+      className={settingsPageClass}
+      role="status"
+      aria-busy="true"
+      aria-label="در حال بارگذاری تنظیمات"
+    >
       <div className={cn(settingsTwoPaneClass, 'hidden xl:grid')} aria-hidden="true">
         <div className={settingsPaneNavClass}>
           {Array.from({ length: 4 }, (_, index) => (
@@ -158,7 +164,7 @@ export function AppLoadingSkeleton({
   if (variant === 'fullscreen') return <AppSplash />
 
   return (
-    <div className={appLoadingInlineClass} aria-busy="true" aria-label="در حال بارگذاری">
+    <div className={appLoadingInlineClass} aria-busy="true">
       <div className={appLoadingDotsClass} role="status" aria-live="polite">
         {appLoadingDotDelayClasses.map(delayClass => (
           <span key={delayClass} className={cn(appLoadingDotClass, delayClass)} />

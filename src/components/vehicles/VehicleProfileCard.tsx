@@ -57,7 +57,7 @@ export default function VehicleProfileCard({
               {showPlate ? <IranPlateBadge value={item.plate} /> : null}
 
               <div className={listCardSubtitleClass}>
-                کارکرد: {item.mileage.toLocaleString('fa-IR')} km
+                کارکرد: {item.mileage.toLocaleString('fa-IR')} کیلومتر
               </div>
             </div>
           </div>
@@ -69,12 +69,14 @@ export default function VehicleProfileCard({
           onPointerDown={event => event.stopPropagation()}
         >
           <CardEditButton
+            itemLabel={item.title}
             onClick={event => {
               event.stopPropagation()
               onEdit(item)
             }}
           />
           <CardDeleteButton
+            itemLabel={item.title}
             onClick={event => {
               event.stopPropagation()
               onDelete(item)

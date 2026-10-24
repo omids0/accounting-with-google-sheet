@@ -127,7 +127,7 @@ export default function CategoriesPage() {
               type="button"
               className={categorySelectAddBtnClass}
               onClick={() => void add()}
-              disabled={actions.busy || !newName.trim()}
+              disabled={actions.busy}
               aria-label="افزودن دسته"
             >
               <AppIcon name="add" size={18} />

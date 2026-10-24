@@ -15,10 +15,23 @@ import {
 } from '../ui/chartStyles'
 import { emptyTextClass } from '../ui/displayStyles'
 
+/** Other words and a neutral second bar for two series that are not income and expense. */
+export interface MonthlyChartLabels {
+  first: string
+  second: string
+  /** Names the month's difference (first − second). */
+  net: string
+  /** CSS color of the second bar and its legend dot. */
+  secondColor?: string
+}
+
+const DEFAULT_LABELS: MonthlyChartLabels = { first: 'درآمد', second: 'هزینه', net: 'خالص ماه' }
+
 interface IncomeExpenseMonthlyChartProps {
   data: MonthlyFlow[]
   header?: ReactNode
   className?: string
+  labels?: MonthlyChartLabels
 }
 
 const listClass = 'relative z-[1] m-0 flex list-none flex-col gap-4 p-0'
@@ -48,7 +61,8 @@ const valueClass =
 function IncomeExpenseMonthlyChart({
   data,
   header,
-  className = ''
+  className = '',
+  labels = DEFAULT_LABELS
 }: IncomeExpenseMonthlyChartProps) {
   const [grown, setGrown] = useState(() => prefersReducedMotion())
 
@@ -93,7 +107,7 @@ function IncomeExpenseMonthlyChart({
                     <span className={monthNameClass}>{item.label.split(' ')[0] ?? item.label}</span>
                     <span
                       className={cn(netClass, net >= 0 ? 'text-success' : 'text-danger')}
-                      title="خالص ماه"
+                      title={labels.net}
                     >
                       <MoneyText amount={net} signed="plus" />
                     </span>
@@ -106,7 +120,7 @@ function IncomeExpenseMonthlyChart({
                       </span>
                     </div>
                     <div className={barRowClass}>
-                      {bar(item.expense, 'var(--color-expense)')}
+                      {bar(item.expense, labels.secondColor ?? 'var(--color-expense)')}
                       <span className={valueClass}>
                         <MoneyText amount={item.expense} />
                       </span>
@@ -119,11 +133,17 @@ function IncomeExpenseMonthlyChart({
           <div className={chartMonthlyLegendClass}>
             <span className={chartMonthlyLegendItemClass}>
               <span className={cn(chartMonthlyLegendDotClass, chartMonthlyLegendDotIncomeClass)} />
-              درآمد
+              {labels.first}
             </span>
             <span className={chartMonthlyLegendItemClass}>
-              <span className={cn(chartMonthlyLegendDotClass, chartMonthlyLegendDotExpenseClass)} />
-              هزینه
+              <span
+                className={cn(
+                  chartMonthlyLegendDotClass,
+                  !labels.secondColor && chartMonthlyLegendDotExpenseClass
+                )}
+                style={labels.secondColor ? { background: labels.secondColor } : undefined}
+              />
+              {labels.second}
             </span>
           </div>
         </>

@@ -23,10 +23,17 @@ export type CurrencyUnit = 'toman' | 'rial' | 'usd' | 'eur'
 /** `system` follows the OS (`prefers-color-scheme`); `data-theme` always holds the resolved one. */
 export type ThemeMode = 'light' | 'dark' | 'system'
 
+/** What a spreadsheet is for: the manager's own books or one building (round 11). */
+export type WorkspaceKind = 'personal' | 'building'
+
 export interface SpreadsheetEntry {
   id: string
   name: string
   createdAt: string
+  /** Missing means `personal`. */
+  kind?: WorkspaceKind
+  /** False = an archived building (hidden from the home list); missing means active. */
+  active?: boolean
 }
 
 export interface NetAvailableAssetConfig {
@@ -35,6 +42,8 @@ export interface NetAvailableAssetConfig {
   /** Savings goals; their balance is part of `treasuryTotal` but toggled on its own. */
   goals: boolean
   receivables: boolean
+  /** Unpaid received checks due within the period (a check I will get paid). */
+  checksReceived: boolean
 }
 
 export interface NetAvailableLiabilityConfig {
@@ -78,6 +87,12 @@ export interface GoogleSession {
   tokenExpiry: number
   /** Space-separated scopes Google granted; missing on sessions from before drive.file. */
   scope?: string
+  /**
+   * Id of the refresh-token session kept by workers/auth-refresh. Only the id lives
+   * here; the refresh token itself never reaches the browser. Absent on sessions made
+   * without the worker, which renew the old way.
+   */
+  authSessionId?: string
 }
 
 /** PIN-wrapped data key; see services/appLockVault. */

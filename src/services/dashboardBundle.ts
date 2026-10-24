@@ -32,6 +32,7 @@ import { fetchWalletAccounts } from './wallet'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import type { DateRange } from '../utils/dateRange'
 import { parseNumeric } from '../utils/parseNumeric'
+import { roundMoney } from '../utils/roundMoney'
 
 async function fetchDashboardBundleUncached(
   settings: AppSettings,
@@ -96,7 +97,7 @@ async function fetchDashboardBundleUncached(
     expenseRecords,
     incomeDateField,
     expenseDateField,
-    walletTotal: walletAccounts.reduce((s, a) => s + a.balance, 0),
+    walletTotal: roundMoney(walletAccounts.reduce((s, a) => s + a.balance, 0)),
     currentMonthKey
   }).catch(() => null)
 
@@ -110,11 +111,17 @@ async function fetchDashboardBundleUncached(
 
   const filteredExpense = filterByDateRange(expenseRecords, range, expenseDateField)
 
-  const totalIncome = filteredIncome.reduce((s, r) => s + parseNumeric(r.values.amount), 0)
+  const totalIncome = filteredIncome.reduce(
+    (s, r) => roundMoney(s + parseNumeric(r.values.amount)),
+    0
+  )
 
-  const totalExpense = filteredExpense.reduce((s, r) => s + parseNumeric(r.values.amount), 0)
+  const totalExpense = filteredExpense.reduce(
+    (s, r) => roundMoney(s + parseNumeric(r.values.amount)),
+    0
+  )
 
-  const walletTotal = walletAccounts.reduce((s, a) => s + a.balance, 0)
+  const walletTotal = roundMoney(walletAccounts.reduce((s, a) => s + a.balance, 0))
 
   // After the catalog loads, so user-added tgju keys and manual prices count.
   const tgjuPrices = getSummableTgjuPrices()
@@ -136,7 +143,10 @@ async function fetchDashboardBundleUncached(
 
   const installmentsDue = totalUnpaidInstallments(installmentPlans, installmentRange)
 
-  const checksDue = totalUnpaidChecksInRange(checks, installmentRange)
+  // A payable check is a debt of this period; a received one is money coming in.
+  const checksDue = totalUnpaidChecksInRange(checks, installmentRange, 'paid')
+
+  const checksReceivable = totalUnpaidChecksInRange(checks, installmentRange, 'received')
 
   const dangsTotal = unpaidDangTotal(dangs)
 
@@ -148,7 +158,8 @@ async function fetchDashboardBundleUncached(
     receivablesTotal,
     installmentsDue,
     dangsTotal,
-    checksDue
+    checksDue,
+    checksReceivable
   }
 
   const { totalAssets, totalLiabilities, netAvailable } = applyNetAvailableConfig(
@@ -160,9 +171,9 @@ async function fetchDashboardBundleUncached(
   // historical value stored in «موجودی ماهانه».
   const openingBalance = openingContext?.openings.get(monthKey) ?? storedOpeningBalance.amount
 
-  const periodBalance = openingBalance + totalIncome - totalExpense
+  const periodBalance = roundMoney(openingBalance + totalIncome - totalExpense)
 
-  const reconciliationDiff = walletTotal - periodBalance
+  const reconciliationDiff = roundMoney(walletTotal - periodBalance)
 
   const recent = buildRecentRecords(
     { records: filteredIncome, formName: incomeForm?.name ?? 'درآمد', dateField: incomeDateField },
@@ -183,7 +194,7 @@ async function fetchDashboardBundleUncached(
     data: {
       totalIncome,
       totalExpense,
-      balance: totalIncome - totalExpense,
+      balance: roundMoney(totalIncome - totalExpense),
       openingBalance,
       periodBalance,
       reconciliationDiff,

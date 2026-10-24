@@ -1,4 +1,5 @@
 import type { Check, Dang, InstallmentPlan } from '../types'
+import { checkTypeLabel, isReceivedCheck } from './checkDirection'
 import { fetchChecks } from './checks'
 import { fetchDangs } from './dang'
 import { fetchInstallmentPlans, getInstallmentPaymentAmount } from './installments'
@@ -17,6 +18,10 @@ export interface DueDateItem {
   dueDate: string
   status: DueDateStatus
   subtitle: string
+  /** Names the item when its type is not enough: «چک پرداختی» / «چک دریافتی». */
+  label?: string
+  /** Money coming in (a received check), not something to pay. */
+  incoming?: boolean
 }
 
 const DUE_DATE_TYPE_LABELS: Record<DueDateItemType, string> = {
@@ -27,6 +32,10 @@ const DUE_DATE_TYPE_LABELS: Record<DueDateItemType, string> = {
 
 export function getDueDateTypeLabel(type: DueDateItemType): string {
   return DUE_DATE_TYPE_LABELS[type]
+}
+
+export function getDueDateItemLabel(item: Pick<DueDateItem, 'type' | 'label'>): string {
+  return item.label ?? DUE_DATE_TYPE_LABELS[item.type]
 }
 
 function classifyDueDate(dueDate: string, today: string): DueDateStatus {
@@ -68,7 +77,11 @@ function collectInstallmentDueItems(
   return items
 }
 
-function collectCheckDueItems(checks: Check[], today: string, horizonEnd: string): DueDateItem[] {
+export function collectCheckDueItems(
+  checks: Check[],
+  today: string,
+  horizonEnd: string
+): DueDateItem[] {
   return checks
     .filter(check => !check.paid)
     .filter(check => check.dueDate.slice(0, 10) <= horizonEnd)
@@ -82,7 +95,9 @@ function collectCheckDueItems(checks: Check[], today: string, horizonEnd: string
         amount: check.amount,
         dueDate,
         status: classifyDueDate(dueDate, today),
-        subtitle: check.checkNumber ? `شماره ${check.checkNumber}` : 'چک'
+        subtitle: check.checkNumber ? `شماره ${check.checkNumber}` : '',
+        label: checkTypeLabel(check),
+        incoming: isReceivedCheck(check)
       }
     })
 }

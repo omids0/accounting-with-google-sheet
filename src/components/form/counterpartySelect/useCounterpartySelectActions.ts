@@ -1,3 +1,4 @@
+import { createQuickPerson, type QuickPersonInput } from '../../../services/buildingQuickPerson'
 import {
   createCounterparty,
   deleteCounterparty,
@@ -36,6 +37,11 @@ export interface CounterpartySelectProps {
   allOption?: CounterpartySelectAllOption
   allowManage?: boolean
   showSearchAlways?: boolean
+  /**
+   * In a building «ثبت طرف حساب جدید» opens the light form (name, phone) instead of the full one.
+   * `quickAddCard` also asks for the card, for an owner.
+   */
+  quickAddCard?: boolean
 }
 
 export function useCounterpartySelectActions({
@@ -76,7 +82,10 @@ export function useCounterpartySelectActions({
     }
     if (!requireAuth()) return false
 
-    const validationError = validateCounterpartyForm(values)
+    const validationError = validateCounterpartyForm(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
 
     if (validationError) {
       showError(validationError)
@@ -84,7 +93,10 @@ export function useCounterpartySelectActions({
       return false
     }
 
-    const payload = buildCounterpartyPayload(values)
+    const payload = buildCounterpartyPayload(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
     const previousName = editingItem ? getCounterpartyFullName(editingItem) : ''
     const nextName = getCounterpartyFullName(payload)
 
@@ -110,6 +122,35 @@ export function useCounterpartySelectActions({
       return true
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در ذخیره طرف حساب' })
+
+      return false
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  /** The building's light add: a name (required) and, optionally, a phone and a card. */
+  const handleQuickAdd = async (input: QuickPersonInput): Promise<boolean> => {
+    const settings = getSettings()
+
+    if (!settings?.spreadsheetId) {
+      showError('ابتدا شیت فعال را انتخاب کنید')
+
+      return false
+    }
+    if (!requireAuth()) return false
+
+    setSaving(true)
+    try {
+      const created = await createQuickPerson(settings.spreadsheetId, input)
+
+      showSuccess('شخص جدید ثبت شد')
+      await refreshList()
+      onChange(getCounterpartyFullName(created))
+
+      return true
+    } catch (err) {
+      handleSheetError(err, { fallbackMessage: 'خطا در ذخیره شخص' })
 
       return false
     } finally {
@@ -176,5 +217,5 @@ export function useCounterpartySelectActions({
     }
   }
 
-  return { handleSubmitForm, handleDelete, handleReorder }
+  return { handleSubmitForm, handleQuickAdd, handleDelete, handleReorder }
 }

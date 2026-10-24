@@ -75,6 +75,9 @@ export function requiredPositiveInteger(label: string, min = 1, max?: number) {
         return `${label} را وارد کنید`
       }
 
+      // A form without native validation lets «2.5» through; a count is whole.
+      if (!Number.isInteger(parsed)) return `${label} باید عدد صحیح باشد`
+
       if (max !== undefined && parsed > max) {
         return `${label} باید بین ${min} تا ${max} باشد`
       }
@@ -135,6 +138,7 @@ export function submitValidatedForm<TFieldValues extends FieldValues>(
   handleSubmit: UseFormHandleSubmit<TFieldValues>,
   onValid: (data: TFieldValues) => void | Promise<void>,
   event?: BaseSyntheticEvent
-) {
-  void handleSubmit(onValid, errors => showFormValidationToast(errors))(event)
+): Promise<void> {
+  // Returned so FormModal can hold its submit lock until the save settles.
+  return handleSubmit(onValid, errors => showFormValidationToast(errors))(event)
 }

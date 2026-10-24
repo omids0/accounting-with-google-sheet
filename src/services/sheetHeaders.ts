@@ -1,5 +1,6 @@
 /** Column headers of the fixed module tabs; dependency-free for the same reason as sheetNames.ts. */
 
+export * from './sheetHeadersBuilding'
 export * from './sheetHeadersVehicle'
 
 export const ACTIVITY_HEADERS = ['آخرین_بازدید', 'آخرین_عملیات']
@@ -36,8 +37,10 @@ export const CHECKS_HEADERS = [
   'زیردسته',
   // Round 7: Drive ids of the receipts (utils/attachmentIds.ts).
   'پیوست',
-  // Round 8: email of whoever last saved the row (utils/writerColumn.ts); always last.
-  'ثبت‌کننده'
+  // Round 8: email of whoever last saved the row (utils/writerColumn.ts).
+  'ثبت‌کننده',
+  // «پرداختی» or «دریافتی» (services/checks.ts); a row without the cell is a payable.
+  'نوع چک'
 ]
 
 export const COUNTERPARTIES_HEADERS = [
@@ -50,7 +53,10 @@ export const COUNTERPARTIES_HEADERS = [
   'لوکیشن',
   'شماره تماس',
   'حساب‌ها',
-  'توضیحات'
+  'توضیحات',
+  // Round 11: building people; new columns go at the end of the row.
+  'موقت',
+  'من'
 ]
 
 export const DANG_HEADERS = [
@@ -156,7 +162,9 @@ export const RECEIVABLES_HEADERS = [
   'توضیحات',
   'پرداخت‌ها',
   'زیردسته',
-  'ثبت‌کننده'
+  'ثبت‌کننده',
+  'مرجع',
+  'شناسهٔ بدهکار'
 ]
 
 export const REMINDERS_HEADERS = ['نوع', 'فعال', 'روز_قبل', 'ساعت', 'دقیقه']
@@ -230,7 +238,10 @@ export const RECURRING_HEADERS = [
   'روز ماه',
   'حالت',
   'آخرین ثبت',
-  'فعال'
+  'فعال',
+  // Round 11, building expenses (empty elsewhere).
+  'نوع هزینه',
+  'پرداخت‌کننده'
 ]
 
 /** One monthly budget per expense category. */

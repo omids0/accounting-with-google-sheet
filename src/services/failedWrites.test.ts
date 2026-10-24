@@ -102,3 +102,131 @@ describe('failed sync writes', () => {
     expect(formatFailedWriteDetails(summary)).toContain('The caller does not have permission')
   })
 })
+
+describe('the failed queue clears itself and can be cleared by the user', () => {
+  const GRID_ERROR =
+    "Range ('دسته‌بندی‌ها'!A107:C) exceeds grid limits. Max rows: 106, max columns: 3"
+
+  /** A refused replace of the categories tab, parked as an older build left it. */
+  const parkReplace = async (error: string) => {
+    const { moveOutboxEntryToFailed } = await import('./syncOutbox')
+
+    const entry = addOutboxEntry(SHEET_ID, {
+      type: 'replace',
+      sheetName: 'دسته‌بندی‌ها',
+      rows: [['a', 'b', '']],
+      columnCount: 3
+    })
+
+    moveOutboxEntryToFailed(SHEET_ID, entry.id, error)
+  }
+
+  beforeEach(() => {
+    localStorage.clear()
+    executeOutboxOperation.mockReset()
+  })
+
+  it('retries a write parked by «exceeds grid limits» when the app starts', async () => {
+    await parkReplace(GRID_ERROR)
+    executeOutboxOperation.mockResolvedValue('دسته‌بندی‌ها')
+
+    const { reviveGridLimitFailures } = await import('./failedWrites')
+    const { flushOutbox } = await import('./sheetSyncOutbox')
+
+    expect(reviveGridLimitFailures(SHEET_ID)).toBe(1)
+    await flushOutbox(SHEET_ID)
+
+    expect(executeOutboxOperation).toHaveBeenCalledTimes(1)
+    expect(getFailedOutboxEntries(SHEET_ID)).toHaveLength(0)
+    expect(getOutboxEntries(SHEET_ID)).toHaveLength(0)
+  })
+
+  it('revives a grid-limit write once, never an update or delete, never a second time', async () => {
+    const { moveOutboxEntryToFailed } = await import('./syncOutbox')
+    const { reviveGridLimitFailures } = await import('./failedWrites')
+
+    const update = addOutboxEntry(SHEET_ID, {
+      type: 'update',
+      sheetName: 'دسته‌بندی‌ها',
+      rowNumber: 4,
+      row: ['a']
+    })
+
+    moveOutboxEntryToFailed(SHEET_ID, update.id, GRID_ERROR)
+    await parkReplace(GRID_ERROR)
+    // The same replace failed again after its one revival: two attempts, stays parked.
+    moveOutboxEntryToFailed(
+      SHEET_ID,
+      addOutboxEntry(SHEET_ID, {
+        type: 'replace',
+        sheetName: 'دسته‌بندی‌ها',
+        rows: [],
+        columnCount: 3
+      }).id,
+      GRID_ERROR
+    )
+    executeOutboxOperation.mockResolvedValue('دسته‌بندی‌ها')
+
+    const parked = getFailedOutboxEntries(SHEET_ID)
+
+    parked[2].attempts = 2
+    localStorage.setItem(`accounting_sync_failed_${SHEET_ID}`, JSON.stringify(parked))
+
+    expect(reviveGridLimitFailures(SHEET_ID)).toBe(1)
+    expect(getFailedOutboxEntries(SHEET_ID).map(entry => entry.operation.type)).toEqual([
+      'update',
+      'replace'
+    ])
+  })
+
+  it('leaves other parked writes alone at start', async () => {
+    await parkReplace('Unable to parse range: Foo!A1')
+
+    const { reviveGridLimitFailures } = await import('./failedWrites')
+
+    expect(reviveGridLimitFailures(SHEET_ID)).toBe(0)
+    expect(getFailedOutboxEntries(SHEET_ID)).toHaveLength(1)
+  })
+
+  it('«دوباره بفرست» waits for the send and reports what is left', async () => {
+    await parkReplace(GRID_ERROR)
+    executeOutboxOperation.mockResolvedValue('دسته‌بندی‌ها')
+
+    const { retryAllAndWait } = await import('./failedWrites')
+
+    await expect(retryAllAndWait(SHEET_ID)).resolves.toEqual({ retried: 1, pending: 0, failed: 0 })
+    expect(getFailedOutboxEntries(SHEET_ID)).toHaveLength(0)
+  })
+
+  it('keeps counting a write that is refused again as failed', async () => {
+    await parkReplace(GRID_ERROR)
+    executeOutboxOperation.mockRejectedValue(new RowConflictError('x'))
+
+    const { retryAllAndWait } = await import('./failedWrites')
+
+    expect(await retryAllAndWait(SHEET_ID)).toEqual({ retried: 1, pending: 0, failed: 1 })
+    expect(getFailedOutboxEntries(SHEET_ID)[0].attempts).toBeGreaterThan(1)
+  })
+
+  it('«حذف عملیات ناموفق» forgets every parked write', async () => {
+    await parkReplace(GRID_ERROR)
+    await parkReplace('another error')
+
+    const { dismissAllFailedWrites } = await import('./failedWrites')
+
+    expect(dismissAllFailedWrites(SHEET_ID)).toBe(2)
+    expect(getFailedOutboxEntries(SHEET_ID)).toHaveLength(0)
+  })
+
+  it('describes the sheet, the action and the attempts of a parked write', async () => {
+    await parkReplace(GRID_ERROR)
+
+    const { getFailedWriteSummaries } = await import('./failedWrites')
+
+    expect(getFailedWriteSummaries(SHEET_ID)[0]).toMatchObject({
+      sheetName: 'دسته‌بندی‌ها',
+      action: 'بازنویسی برگه',
+      attempts: 1
+    })
+  })
+})

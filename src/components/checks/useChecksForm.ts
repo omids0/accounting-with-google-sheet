@@ -9,6 +9,7 @@ import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
 import { useAttachmentDrafts } from '../attachments/useAttachmentDrafts'
 import { showSavedForCheck } from '../nudges/saveNudges'
+import { useReadOnly } from '../ui/readOnly'
 
 type UseChecksFormOptions = {
   onSaved: () => Promise<void>
@@ -26,12 +27,16 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
     entityId: editingItem?.id
   })
 
+  const readOnly = useReadOnly()
+
   const openCreateForm = () => {
+    if (readOnly) return
     setEditingItem(null)
     setShowForm(true)
   }
 
   const openEditForm = (item: CheckWithRow) => {
+    if (readOnly) return
     setEditingItem(item)
     setShowForm(true)
   }
@@ -52,6 +57,8 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
       if (editingItem) {
         const updated: Check = {
           ...editingItem,
+          // A passed check keeps its type: the record it made is an expense or an income.
+          direction: editingItem.paid ? editingItem.direction : form.direction,
           checkNumber: form.checkNumber.trim(),
           subCategory: form.subCategory.trim(),
           counterparty: form.counterparty.trim(),
@@ -65,6 +72,7 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
         showSuccess('چک ویرایش شد')
       } else {
         const created = await createCheck(settings.spreadsheetId, {
+          direction: form.direction,
           checkNumber: form.checkNumber.trim(),
           subCategory: form.subCategory.trim(),
           counterparty: form.counterparty.trim(),

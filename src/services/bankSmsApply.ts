@@ -13,6 +13,7 @@ import {
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
 import { ledgerEntry, logLedger, type LedgerContext } from './walletLedger'
 import { WALLET_APPLY_NO } from '../components/form/fieldUtils'
+import { roundMoney } from '../utils/roundMoney'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
 
@@ -72,11 +73,13 @@ async function applyBalance(
 
   if (!next) return
 
-  if (next.balance !== account.balance) {
+  const changed = roundMoney(next.balance) !== roundMoney(account.balance)
+
+  if (changed) {
     await updateWalletAccount(spreadsheetId, { ...account, balance: next.balance })
   }
   updateBankSmsPrefs({ balanceStates: { ...prefs.balanceStates, [account.id]: next.state } })
-  if (next.balance === account.balance) return
+  if (!changed) return
 
   await logLedger(spreadsheetId, [
     ledgerEntry(account.id, next.balance - account.balance, next.balance, {
@@ -91,12 +94,16 @@ async function applyBalance(
 /**
  * Confirm one SMS: write the income/expense record (unless `record` is null,
  * i.e. «فقط به‌روزرسانی موجودی»), move the account balance, drop it from the queue.
+ * Resolves with the id of the record written ('' without one). `remember: false` keeps the
+ * category out of the per-sender memory (a building's charge category must not be suggested
+ * for the same bank in a personal workspace).
  */
-export async function confirmSmsEntry(
+export async function confirmSmsEntryWithId(
   spreadsheetId: string,
   entry: ConfirmableSms,
-  record: SmsRecordInput | null
-): Promise<void> {
+  record: SmsRecordInput | null,
+  { remember = true }: { remember?: boolean } = {}
+): Promise<string> {
   let recordId = ''
 
   if (record) {
@@ -122,7 +129,7 @@ export async function confirmSmsEntry(
     // Leave the queue right after the record exists, so a failure below can
     // never lead to the same record being written twice.
     await markBankSmsHandled([entry.sms.id])
-    rememberSmsCategory(entry, type, record)
+    if (remember) rememberSmsCategory(entry, type, record)
     await logUnappliedRecord(
       spreadsheetId,
       type,
@@ -133,6 +140,16 @@ export async function confirmSmsEntry(
 
   if (!record) await markBankSmsHandled([entry.sms.id])
   await applyBalance(spreadsheetId, entry, { title: record?.title, recordId })
+
+  return recordId
+}
+
+export async function confirmSmsEntry(
+  spreadsheetId: string,
+  entry: ConfirmableSms,
+  record: SmsRecordInput | null
+): Promise<void> {
+  await confirmSmsEntryWithId(spreadsheetId, entry, record)
 }
 
 /** Own-account transfer: both balances move, no income or expense is recorded. */

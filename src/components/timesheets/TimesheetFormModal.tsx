@@ -47,7 +47,7 @@ export default function TimesheetFormModal({
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    return handleSubmit(values => onSubmit(values))(event)
   }
 
   return (

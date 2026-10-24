@@ -7,6 +7,7 @@ import {
   calmBudgetLinkClass,
   calmCompareClass,
   calmCompareToneClass,
+  calmRowSubAmountClass,
   calmRowSubClass,
   calmRowSubDangerClass
 } from '../ui/calmListStyles'
@@ -50,7 +51,7 @@ export function ComparisonBadge({
 export function BudgetLine({ spent, budget }: { spent: number; budget: number | undefined }) {
   if (budget) {
     return (
-      <span className={cn(calmRowSubClass, spent > budget && calmRowSubDangerClass)}>
+      <span className={cn(calmRowSubAmountClass, spent > budget && calmRowSubDangerClass)}>
         <MaskedAmount>{budgetLineText(spent, budget)}</MaskedAmount>
       </span>
     )

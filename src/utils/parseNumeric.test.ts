@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseNumeric, parseNumericStrict } from './parseNumeric'
+import { parseMoneyText, parseNumeric, parseNumericStrict } from './parseNumeric'
 
 describe('parseNumericStrict', () => {
   it.each([
@@ -100,5 +100,26 @@ describe('parseNumeric', () => {
     for (const cell of ['0', '1', '250000', '100000000', '-75000', '3.25', '0.1', '999999999999']) {
       expect(parseNumeric(cell)).toBe(Number(cell))
     }
+  })
+})
+
+describe('parseMoneyText', () => {
+  it.each([
+    ['۲٬۵۰۰ تومان', 2500],
+    ['2,500 ریال', 2500],
+    ['تومان ۱۰۰', 100],
+    ['۱٬۲۰۰٬۰۰۰', 1200000],
+    ['12.5$', 12.5]
+  ])('reads %j as %d', (input, expected) => {
+    expect(parseMoneyText(input)).toBe(expected)
+  })
+
+  it.each(['abc', '', 'تومان', '12 abc'])('rejects %j', input => {
+    expect(parseMoneyText(input)).toBeNull()
+  })
+
+  it('passes numbers and missing values through the strict parser', () => {
+    expect(parseMoneyText(5)).toBe(5)
+    expect(parseMoneyText(undefined)).toBeNull()
   })
 })

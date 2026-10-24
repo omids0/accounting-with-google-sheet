@@ -11,6 +11,7 @@ import {
   planReminderPost,
   recurringDueDate,
   recurringFromRecord,
+  recurringRecordValues,
   recurringToRow,
   reminderPostDate,
   rowToRecurring
@@ -48,6 +49,39 @@ describe('row codec', () => {
     expect(normalizeMonthKey('۱۴۰۵-۷')).toBe('1405-07')
     expect(rowToRecurring([...recurringToRow(item()).slice(0, 11), 'خیر'])?.active).toBe(false)
     expect(rowToRecurring(['', '', 'expense', 'x', '', '', '10'])).toBeNull()
+  })
+})
+
+describe('building columns', () => {
+  const building = item({ expenseKind: 'current', payer: 'manager', accountId: '' })
+
+  it('round-trips the kind and payer and leaves a personal row without the two cells', () => {
+    expect(rowToRecurring(recurringToRow(building))).toEqual(building)
+    expect(recurringToRow(item())).toHaveLength(12)
+    expect(recurringToRow(building).slice(12)).toEqual(['current', 'manager'])
+  })
+
+  it('carries them from a saved record into the item and from the item into the posted record', () => {
+    const created = recurringFromRecord(
+      'expense',
+      {
+        category: 'نظافت',
+        title: 'نظافت',
+        amount: 1_400_000,
+        expenseKind: 'current',
+        payer: 'manager'
+      },
+      MEHR_5,
+      'reminder',
+      { id: 'n', createdAt: '' }
+    )
+
+    expect(created).toMatchObject({ expenseKind: 'current', payer: 'manager' })
+    expect(recurringRecordValues(created, 'date', MEHR_5, 'تکراری')).toMatchObject({
+      expenseKind: 'current',
+      payer: 'manager'
+    })
+    expect(recurringRecordValues(item(), 'date', MEHR_5, 'x')).not.toHaveProperty('payer')
   })
 })
 

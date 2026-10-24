@@ -57,7 +57,7 @@ export default function CategoryMergeModal({
       open={request != null}
       title={request ? `ادغام «${request.source}»` : ''}
       onClose={() => !busy && onClose()}
-      onSubmit={event => void handleSubmit(event)}
+      onSubmit={handleSubmit}
       saving={busy}
       saveLabel="ادغام و انتقال"
       variant="panel"

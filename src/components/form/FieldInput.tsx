@@ -13,11 +13,14 @@ import {
   WALLET_APPLY_YES
 } from './fieldUtils'
 import FormField from './FormField'
+import LazyAmountField from './LazyAmountField'
 import Select from './Select'
 import SubCategorySelect from './SubCategorySelect'
+import { useTitleLimit } from './useTitleLimit'
 import WalletAccountSelect from './WalletAccountSelect'
 import { getAccountingStartDate } from '../../services/accountingStartDate'
 import { getSettings } from '../../services/settings'
+import { getActiveWorkspaceType } from '../../services/workspace'
 import type { FieldConfig } from '../../types'
 import type { FormControlWidth } from '../ui/formStyles'
 import { formFieldNoteClass } from '../ui/recordsStyles'
@@ -65,6 +68,8 @@ export default function FieldInput({
   parentCategory,
   hint
 }: FieldInputProps) {
+  const titleLimit = useTitleLimit(String(value ?? ''))
+  const isTitle = field.id === 'title'
   const placeholder = fieldPlaceholder(field)
   const resolvedWidth = controlWidth ?? defaultControlWidth(field)
 
@@ -98,11 +103,24 @@ export default function FieldInput({
           value={String(value ?? '')}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
+          {...(isTitle ? titleLimit.inputProps : null)}
         />
       )
     }
 
     if (field.type === 'number' && field.id === 'amount') {
+      // A building's money fields use the dial pad (round 11).
+      if (getActiveWorkspaceType() === 'building') {
+        return (
+          <LazyAmountField
+            value={value ?? ''}
+            onChange={onChange}
+            label={field.label}
+            invalid={Boolean(error)}
+          />
+        )
+      }
+
       return <AmountInput value={value ?? ''} onChange={onChange} invalid={Boolean(error)} />
     }
 
@@ -205,6 +223,7 @@ export default function FieldInput({
       label={field.label}
       required={field.required}
       error={error}
+      hint={isTitle ? titleLimit.hint : undefined}
       className={field.id === 'note' ? formFieldNoteClass : undefined}
       controlWidth={resolvedWidth}
     >

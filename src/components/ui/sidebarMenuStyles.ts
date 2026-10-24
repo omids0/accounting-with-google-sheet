@@ -89,6 +89,18 @@ export function appMenuItemClass(active?: boolean, variant?: 'default' | 'parent
   )
 }
 
+/** A 44px menu row (the building switcher's rows); the usual 40px rows are too small for a thumb here. */
+export function appMenuTallItemClass(active?: boolean) {
+  return cn(appMenuItemClass(active), 'min-h-[2.75rem] text-[0.92rem]')
+}
+
+/** «برگشت به حساب شخصی» at the top of a building drawer: a calm tinted row, not a bare link. */
+export const appMenuReturnClass = cn(
+  appMenuTallItemClass(false),
+  'mb-1 border border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))]',
+  'bg-[color-mix(in_srgb,var(--color-primary)_7%,transparent)]'
+)
+
 export function appMenuItemIconClass(active?: boolean) {
   // Bare icon, no box: the row's tint and inset line carry the active state.
   return cn(

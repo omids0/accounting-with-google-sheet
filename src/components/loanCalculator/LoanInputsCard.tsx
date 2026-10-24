@@ -14,8 +14,11 @@ import {
 } from '../ui/formControlStyles'
 import { formFieldClass, formHintClass, formLabelClass } from '../ui/formStyles'
 
+/** One name for the installment method everywhere: the choice, the badge and the formula. */
+export const LOAN_ANNUITY_NAME = 'اقساطی (روش بانکی)'
+
 export const LOAN_METHOD_OPTIONS: { id: LoanMethod; label: string }[] = [
-  { id: 'annuity', label: 'اقساطی (روش بانکی)' },
+  { id: 'annuity', label: LOAN_ANNUITY_NAME },
   { id: 'flat', label: 'سود ساده' }
 ]
 

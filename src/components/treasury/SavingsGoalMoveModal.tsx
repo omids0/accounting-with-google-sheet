@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 
 import type { GoalMoveMode } from './useSavingsGoals'
+import { exceedsGoalTarget } from '../../services/savingsGoals'
 import type { GoalMoveInput } from '../../services/savingsGoalsSheet'
 import type { SavingsGoalView } from '../../types'
+import { cn } from '../../utils/cn'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { showError } from '../../utils/toast'
@@ -40,6 +42,14 @@ export default function SavingsGoalMoveModal({
   }, [move])
 
   const withdraw = move?.mode === 'withdraw'
+  const overTarget =
+    move != null &&
+    !withdraw &&
+    exceedsGoalTarget(move.goal.balance, move.goal.target, Number(amount) || 0)
+
+  const [error, setError] = useState('')
+
+  useEffect(() => setError(''), [move])
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -47,10 +57,14 @@ export default function SavingsGoalMoveModal({
 
     const value = Number(amount)
 
-    if (!(value > 0)) return showError('مبلغ را وارد کنید')
-    if (withdraw && value > move.goal.balance) {
-      return showError('بیشتر از موجودی هدف نمی‌شود برداشت کرد')
-    }
+    const problem = !(value > 0)
+      ? 'مبلغ را وارد کنید'
+      : withdraw && value > move.goal.balance
+      ? 'بیشتر از موجودی هدف نمی‌شود برداشت کرد'
+      : ''
+
+    setError(problem)
+    if (problem) return showError(problem)
 
     onSubmit(move.goal, { amount: withdraw ? -value : value, accountId, date })
   }
@@ -66,8 +80,14 @@ export default function SavingsGoalMoveModal({
       saving={saving}
       saveLabel={withdraw ? 'برداشت' : 'واریز'}
     >
-      <FormField label="مبلغ" required>
-        <AmountInput value={amount} onChange={setAmount} />
+      <FormField label="مبلغ" required error={error}>
+        <AmountInput
+          value={amount}
+          onChange={value => {
+            setError('')
+            setAmount(value)
+          }}
+        />
       </FormField>
       <FormField label={withdraw ? 'به حساب' : 'از حساب'}>
         <WalletAccountSelect value={accountId} onChange={setAccountId} />
@@ -75,6 +95,11 @@ export default function SavingsGoalMoveModal({
       <FormField label="تاریخ">
         <JalaliDatePicker value={date} onChange={setDate} />
       </FormField>
+      {overTarget ? (
+        <p className={cn(formHintClass, 'text-[var(--color-warning)]')} role="status">
+          از مبلغ هدف بیشتر می‌شود؛ باز هم می‌توانی واریز کنی.
+        </p>
+      ) : null}
       {move ? (
         <p className={formHintClass}>
           {`موجودی هدف: ${formatPersianNumber(move.goal.balance)} از ${formatPersianNumber(

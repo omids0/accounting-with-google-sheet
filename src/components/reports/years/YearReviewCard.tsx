@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { closeYearPath } from '../../../routes/paths'
+import { reportWords } from '../../../services/reportWording'
 import type { YearReview } from '../../../services/yearReview'
 import {
   headlineAmount,
@@ -64,6 +65,7 @@ export default function YearReviewCard({ review, ended, onDismiss }: YearReviewC
   const navigate = useNavigate()
   const [sharing, setSharing] = useState(false)
   const span = netWorthSpanText(review)
+  const words = reportWords()
   const facts = yearCountFacts(review)
 
   const share = async () => {
@@ -79,13 +81,17 @@ export default function YearReviewCard({ review, ended, onDismiss }: YearReviewC
         <h2 className={yearCardTitleClass}>{yearTitle(review.year)}</h2>
       </div>
       <div className={yearCardGridClass}>
-        <Cell label="درآمد" value={headlineAmount(review.income)} amount />
-        <Cell label="هزینه" value={headlineAmount(review.expense)} amount />
-        <Cell label="پس‌انداز" value={headlineAmount(review.savings, { showPlus: true })} amount />
+        <Cell label={words.income} value={headlineAmount(review.income)} amount />
+        <Cell label={words.expense} value={headlineAmount(review.expense)} amount />
+        <Cell
+          label={words.savings}
+          value={headlineAmount(review.savings, { showPlus: true })}
+          amount
+        />
         <Cell label="بزرگ‌ترین هزینه" value={review.topExpenseCategory ?? '—'} />
         <Cell label="گران‌ترین ماه" value={monthName(review.topExpenseMonth) ?? '—'} />
         <Cell
-          label="نرخ پس‌انداز"
+          label={words.savingsRate}
           value={review.savingsRate == null ? '—' : percentText(review.savingsRate)}
         />
       </div>

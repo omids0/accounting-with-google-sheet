@@ -81,13 +81,14 @@ export default function WalletAccountCard({
             expanded && walletCardActionOverlayExpandedClass
           )}
         >
-          <CardEditButton onClick={() => onEdit()} />
-          <CardDeleteButton onClick={() => onDelete()} />
+          <CardEditButton itemLabel={account.title} onClick={() => onEdit()} />
+          <CardDeleteButton itemLabel={account.title} onClick={() => onDelete()} />
           <CardExpandButton
+            itemLabel={account.title}
             expanded={expanded}
             className={expanded ? 'card-action-btn--expanded' : undefined}
             onClick={() => onToggleExpand()}
-            ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات حساب'}
+            label={expanded ? 'بستن جزئیات' : 'نمایش جزئیات حساب'}
           />
         </div>
       </div>

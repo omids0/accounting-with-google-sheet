@@ -1,6 +1,7 @@
-import { useFieldArray, type Control, type UseFormRegister } from 'react-hook-form'
+import { useFieldArray, useFormState, type Control, type UseFormRegister } from 'react-hook-form'
 
 import AppIcon from '../AppIcon'
+import { phoneError } from './counterpartyFormPayload'
 import {
   counterpartyFieldArrayActionsClass,
   counterpartyFieldArrayItemClass,
@@ -13,12 +14,17 @@ import Button from '../ui/Button'
 type CounterpartyPhonesFieldProps = {
   control: Control<CounterpartyFormState>
   register: UseFormRegister<CounterpartyFormState>
+  /** Numbers already saved on the counterparty; they stay valid until edited. */
+  savedNumbers?: readonly string[]
 }
 
 export default function CounterpartyPhonesField({
   control,
-  register
+  register,
+  savedNumbers
 }: CounterpartyPhonesFieldProps) {
+  const { errors } = useFormState({ control, name: 'phones' })
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'phones'
@@ -29,10 +35,16 @@ export default function CounterpartyPhonesField({
       <div className={counterpartyFieldArrayListClass}>
         {fields.map((field, index) => (
           <div key={field.id} className={counterpartyFieldArrayItemClass}>
-            <FormField label={`شماره ${(index + 1).toLocaleString('fa-IR')}`}>
+            <FormField
+              label={`شماره ${(index + 1).toLocaleString('fa-IR')}`}
+              error={errors.phones?.[index]?.number?.message}
+            >
               <input
                 type="tel"
-                {...register(`phones.${index}.number`)}
+                inputMode="tel"
+                {...register(`phones.${index}.number`, {
+                  validate: value => phoneError(value, savedNumbers)
+                })}
                 placeholder="09..."
                 dir="ltr"
               />

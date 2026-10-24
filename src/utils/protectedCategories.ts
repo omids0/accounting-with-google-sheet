@@ -3,8 +3,9 @@ import {
   VEHICLE_EXPENSE_CATEGORY,
   VEHICLE_FUEL_EXPENSE_TYPE
 } from '../components/vehicles/constants'
-import { CHECK_EXPENSE_CATEGORY } from '../services/checks'
+import { CHECK_EXPENSE_CATEGORY, CHECK_INCOME_CATEGORY } from '../services/checks'
 import { INSTALLMENT_EXPENSE_CATEGORY } from '../services/installmentsConstants'
+import { getActiveWorkspaceType } from '../services/workspace'
 
 /** Category of the record that closes a wallet reconciliation gap. */
 export const RECONCILIATION_CATEGORY = 'اصلاح موجودی'
@@ -12,9 +13,11 @@ export const RECONCILIATION_CATEGORY = 'اصلاح موجودی'
 /** Category of the correction record that closes a gap with the bank SMS balance. */
 export const SMS_RECONCILE_CATEGORY = 'تطبیق'
 
+// A received check writes its income record under «چک» (see checks.ts), like a paid one.
 export const LOCKED_INCOME_CATEGORIES = new Set<string>([
   RECONCILIATION_CATEGORY,
-  SMS_RECONCILE_CATEGORY
+  SMS_RECONCILE_CATEGORY,
+  CHECK_INCOME_CATEGORY
 ])
 
 // Installments and checks write their linked expense record under these exact
@@ -32,8 +35,34 @@ export const LOCKED_EXPENSE_CATEGORIES = new Set<string>([
 
 export const LOCKED_VEHICLE_EXPENSE_TYPES = new Set<string>([VEHICLE_FUEL_EXPENSE_TYPE])
 
+/** Income category of a building's monthly charge (receivables and their payments). */
+export const BUILDING_CHARGE_CATEGORY = 'شارژ ساختمان'
+
+// A building has no vehicles or installments, but still passes checks and reconciles the fund.
+const BUILDING_LOCKED_EXPENSE_CATEGORIES = new Set<string>([
+  RECONCILIATION_CATEGORY,
+  SMS_RECONCILE_CATEGORY,
+  CHECK_EXPENSE_CATEGORY
+])
+
+const BUILDING_LOCKED_INCOME_CATEGORIES = new Set<string>([
+  ...LOCKED_INCOME_CATEGORIES,
+  BUILDING_CHARGE_CATEGORY
+])
+
+/** The categories forced into a form's list: another set while a building is the active sheet. */
+function lockedSetFor(formType: 'income' | 'expense'): Set<string> {
+  const building = getActiveWorkspaceType() === 'building'
+
+  if (formType === 'expense') {
+    return building ? BUILDING_LOCKED_EXPENSE_CATEGORIES : LOCKED_EXPENSE_CATEGORIES
+  }
+
+  return building ? BUILDING_LOCKED_INCOME_CATEGORIES : LOCKED_INCOME_CATEGORIES
+}
+
 export function isLockedExpenseCategory(category: string): boolean {
-  return LOCKED_EXPENSE_CATEGORIES.has(category.trim())
+  return lockedSetFor('expense').has(category.trim())
 }
 
 export function isLockedVehicleExpenseType(expenseType: string): boolean {
@@ -55,9 +84,7 @@ const SYSTEM_ONLY_CATEGORIES = {
 
 /** Categories of the form type that cannot be renamed or deleted. */
 export function lockedCategoriesFor(formType: 'income' | 'expense'): string[] {
-  const locked = formType === 'expense' ? LOCKED_EXPENSE_CATEGORIES : LOCKED_INCOME_CATEGORIES
-
-  return [...locked, ...SYSTEM_ONLY_CATEGORIES[formType]]
+  return [...lockedSetFor(formType), ...SYSTEM_ONLY_CATEGORIES[formType]]
 }
 
 export function isSystemCategory(formType: string, category: string): boolean {
@@ -77,11 +104,11 @@ function withLocked(categories: string[], locked: Iterable<string>): string[] {
 }
 
 export function withLockedExpenseCategories(categories: string[]): string[] {
-  return withLocked(categories, LOCKED_EXPENSE_CATEGORIES)
+  return withLocked(categories, lockedSetFor('expense'))
 }
 
 export function withLockedIncomeCategories(categories: string[]): string[] {
-  return withLocked(categories, LOCKED_INCOME_CATEGORIES)
+  return withLocked(categories, lockedSetFor('income'))
 }
 
 export function withLockedFormCategories(

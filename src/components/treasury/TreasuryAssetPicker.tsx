@@ -131,7 +131,14 @@ export default function TreasuryAssetPicker({
                 max={MAX_QUANTITY_DECIMALS}
                 step={1}
                 value={newAsset.decimals}
-                onChange={event => setNew({ decimals: Number(event.target.value) })}
+                onChange={event =>
+                  setNew({
+                    decimals: Math.min(
+                      MAX_QUANTITY_DECIMALS,
+                      Math.max(0, Math.trunc(Number(event.target.value) || 0))
+                    )
+                  })
+                }
               />
             </FormField>
           </FormRow>

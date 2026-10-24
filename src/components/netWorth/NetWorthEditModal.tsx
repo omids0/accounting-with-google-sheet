@@ -58,7 +58,7 @@ export default function NetWorthEditModal({
       open={point != null}
       title={`دارایی پایان ${point ? netWorthMonthTitle(point.monthKey) : ''}`}
       onClose={() => !saving && onClose()}
-      onSubmit={event => void handleSubmit(event)}
+      onSubmit={handleSubmit}
       saving={saving}
       saveLabel="ذخیره"
     >

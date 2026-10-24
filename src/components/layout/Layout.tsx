@@ -9,11 +9,17 @@ import PullToRefresh from './PullToRefresh'
 import { useLayoutNavigation } from './useLayoutNavigation'
 import { useMainFocus } from './useMainFocus'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
+import { useBridgeDrain } from '../../hooks/useBridgeDrain'
 import { useLaunchAction } from '../../hooks/useLaunchAction'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
+import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { installSelectionHaptics } from '../../utils/haptics'
+import { useBuildingChargeMaintenance } from '../buildings/useBuildingChargeMaintenance'
+import { useClaimInvite } from '../buildings/useClaimInvite'
 import PageSpeedDial from '../PageSpeedDial'
+import SessionRenewNotice from '../SessionRenewNotice'
 import ConflictGate from '../sync/ConflictGate'
+import BusyOverlay from '../ui/BusyOverlay'
 import {
   appContentColumnClass,
   appLayoutClass,
@@ -53,10 +59,14 @@ export default function Layout() {
   } = useLayoutNavigation()
 
   useBankSmsSync()
+  useBridgeDrain()
   useLaunchAction()
   const { mainRef, focusMain } = useMainFocus()
   useEffect(installSelectionHaptics, [])
 
+  const isBuilding = useIsBuildingWorkspace()
+  useBuildingChargeMaintenance(isBuilding)
+  useClaimInvite(isBuilding)
   const isDesktop = useIsDesktop()
   const isTablet = useIsTablet()
   const [toolbar, setToolbar] = useState<HTMLElement | null>(null)
@@ -68,7 +78,7 @@ export default function Layout() {
     showPageSpeedDial && !!pageSpeedDialConfig?.actions.some(action => action.id === 'refresh')
 
   return (
-    <div className={appLayoutClass}>
+    <div className={appLayoutClass} data-workspace={isBuilding ? 'building' : undefined}>
       <a
         href="#main-content"
         className={skipLinkClass}
@@ -118,6 +128,7 @@ export default function Layout() {
             />
 
             <UpdateBanner />
+            <SessionRenewNotice />
             <ConflictGate />
             <WhatsNewGate />
 
@@ -126,7 +137,14 @@ export default function Layout() {
               <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
             </main>
 
-            <LayoutBottomNav showSettings={showSettings} tab={tab} onTabChange={handleTabChange} />
+            {/* A building is navigated from the drawer alone. */}
+            {!isBuilding && (
+              <LayoutBottomNav
+                showSettings={showSettings}
+                tab={tab}
+                onTabChange={handleTabChange}
+              />
+            )}
 
             {showPageSpeedDial && pageSpeedDialConfig && (
               <PageSpeedDial
@@ -137,6 +155,7 @@ export default function Layout() {
           </div>
         </HeaderSlotsContext.Provider>
       </div>
+      <BusyOverlay />
     </div>
   )
 }

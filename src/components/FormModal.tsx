@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
 import { useModalLock } from '../hooks/useModalLock'
+import { useSubmitLock } from '../hooks/useSubmitLock'
 import { cn } from '../utils/cn'
+import { focusFirstInvalidField } from '../utils/focusInvalidField'
 import Button, { type ButtonVariant } from './ui/Button'
 import { formActionsClassName } from './ui/formStyles'
 import { lineItemsBlockedHintClass } from './ui/lineItemStyles'
@@ -27,7 +29,8 @@ type FormModalProps = {
   open: boolean
   title: string
   onClose: () => void
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  /** May return a promise: further submits are ignored until it settles. */
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<unknown>
   saving?: boolean
   /** Locks the save button without the busy state (e.g. line items that do not add up). */
   saveDisabled?: boolean
@@ -41,6 +44,8 @@ type FormModalProps = {
   /** The second button; with `onCancel` it is a second answer, not a close. */
   cancelLabel?: string
   onCancel?: () => void
+  /** Shown under the title bar, above the fields (the setup journey's step bar). */
+  header?: ReactNode
   children: ReactNode
 }
 
@@ -58,15 +63,23 @@ export default function FormModal({
   variant = 'modal',
   cancelLabel = 'انصراف',
   onCancel,
+  header,
   children
 }: FormModalProps) {
   const isPanel = variant === 'panel'
   const { panelRef } = useModalLock({ open, onClose, blocked: saving })
   const titleId = useId()
 
+  const submitLock = useSubmitLock()
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.stopPropagation()
-    onSubmit(event)
+    const form = event.currentTarget
+
+    // Rapid repeated clicks must save once: the lock holds until the save settles.
+    void submitLock(() => onSubmit(event))
+    // A failed submit paints inline errors; the first invalid field takes the focus.
+    focusFirstInvalidField(form)
   }
 
   if (!open) return null
@@ -111,7 +124,9 @@ export default function FormModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} aria-busy={saving}>
+        {header}
+
+        <form onSubmit={handleSubmit} aria-busy={saving} noValidate>
           <div className={cn(formModalBodyClass, formModalFieldsLayoutClass)}>{children}</div>
 
           <div className={cn(formModalActionsClass, formActionsClassName())}>

@@ -4,6 +4,7 @@ import { appendSheetRow, fetchSheetRows } from './sheets'
 import { getSheetAllRows, setSheetAllRows } from './spreadsheetStore'
 import { getTodayIso } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
+import { roundMoney } from '../utils/roundMoney'
 import { showError } from '../utils/toast'
 
 /** One row per wallet balance change, with the balance right after it. */
@@ -56,8 +57,8 @@ export function ledgerEntry(
     id: crypto.randomUUID(),
     createdAt: new Date().toLocaleString('fa-IR'),
     accountId,
-    delta,
-    balanceAfter,
+    delta: roundMoney(delta),
+    balanceAfter: roundMoney(balanceAfter),
     applied,
     title: context.title,
     date: context.date,

@@ -213,24 +213,26 @@ function InstallmentPlanCard({
               title={plan.title}
             />
             <CardEditButton
+              itemLabel={plan.title}
               onClick={event => {
                 event.stopPropagation()
                 onEdit(plan)
               }}
             />
             <CardDeleteButton
+              itemLabel={plan.title}
               onClick={event => {
                 event.stopPropagation()
                 onDelete(plan)
               }}
             />
             <CardExpandButton
+              itemLabel={plan.title}
               expanded={expanded}
               onClick={event => {
                 event.stopPropagation()
                 handleToggleExpand()
               }}
-              ariaLabel={expanded ? 'بستن جزئیات' : 'نمایش جزئیات اقساط'}
             />
           </div>
         </div>

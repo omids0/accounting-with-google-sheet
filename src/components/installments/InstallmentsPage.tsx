@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useHighlightParam } from '../../hooks/useHighlightParam'
@@ -11,10 +11,12 @@ import {
 } from '../../services/installments'
 import { isConfigured } from '../../services/settings'
 import type { RecordsDatePreset } from '../../utils/dateRange'
+import type { DateRange } from '../../utils/jalaliDate'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
+import ListSortSection from '../ListSortSection'
 import PageFilterPanel from '../PageFilterPanel'
 import SettleFlowModals from '../settle/SettleFlowModals'
 import StatCard from '../StatCard'
@@ -31,15 +33,20 @@ import { listModulePageClass } from '../ui/featureCardStyles'
 export default function InstallmentsPage({ active = true }: InstallmentsPageProps) {
   const { plans: allPlans, setPlans, loading, loadPlans } = useInstallmentsData()
 
+  const activeRangeRef = useRef<DateRange | null>(null)
+
   const mutations = useInstallmentMutations({
     plans: allPlans,
     setPlans,
-    loadPlans
+    loadPlans,
+    activeRangeRef
   })
   const plans = mutations.visiblePlans
 
   const highlightId = useHighlightParam(mutations.expandPlan)
   const filters = useInstallmentsFilters(plans, highlightId)
+
+  activeRangeRef.current = filters.effectiveRange
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
@@ -116,7 +123,9 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
           dateLabel="بازه زمانی (سررسید)"
           dateLoading={loading}
           {...filters.minePanelProps}
-        />
+        >
+          <ListSortSection {...filters.sortSectionProps} />
+        </PageFilterPanel>
       </FilterModal>
 
       <InstallmentsList

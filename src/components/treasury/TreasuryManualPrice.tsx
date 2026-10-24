@@ -28,7 +28,11 @@ export default function TreasuryManualPrice({
           </>
         ) : null}
       </span>
-      <CardEditButton onClick={() => onEdit(asset)} ariaLabel={`به‌روزرسانی قیمت ${asset.name}`} />
+      <CardEditButton
+        onClick={() => onEdit(asset)}
+        label="به‌روزرسانی قیمت"
+        itemLabel={asset.name}
+      />
       {isManualPriceStale(asset) && (
         <span className={treasuryStaleHintClass}>قیمت را به‌روز کن</span>
       )}

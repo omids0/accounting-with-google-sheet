@@ -13,7 +13,7 @@ const VEHICLE_KINDS = ['vehicle-mileage', 'vehicle-deadline', 'vehicle-periodic-
 
 const DUE_DATE_HINTS: Record<(typeof DUE_DATE_KINDS)[number], string> = {
   installments: 'قسط‌های پرداخت‌نشده',
-  checks: 'چک‌های پرداخت‌نشده',
+  checks: 'چک‌های پرداختی و دریافتی که پاس نشده‌اند',
   dang: 'بدهی‌های پرداخت‌نشده'
 }
 

@@ -41,10 +41,17 @@ export interface Dang {
   writer?: string
 }
 
+/** Which way a check goes: «پرداختی» I give it (a liability), «دریافتی» I receive it (an asset). */
+export type CheckDirection = 'paid' | 'received'
+
 export interface Check {
   id: string
   createdAt: string
   checkNumber: string
+  /** Column «نوع چک»; a row without the cell is a payable. */
+  direction: CheckDirection
+  /** What the type cell says when it is neither «پرداختی» nor «دریافتی» (read as paid). */
+  directionRaw?: string
   subCategory?: string
   counterparty: string
   amount: number
@@ -65,6 +72,8 @@ export interface ReceivablePayment {
   paidAt: string
   note: string
   transactionRecordId?: string
+  /** Round 11: paid from the unit's credit, so no income record exists. */
+  fromCredit?: boolean
 }
 
 export interface Receivable {
@@ -80,6 +89,10 @@ export interface Receivable {
   payments: ReceivablePayment[]
   /** Email of whoever last saved it (column «ثبت‌کننده»); '' for older rows. */
   writer?: string
+  /** Round 11 building charge key («charge:<unitId>:<YYYY-MM>», «share:…», «opening:…», «credit:…»). */
+  reference?: string
+  /** Round 11: counterparty id of the debtor; display resolves the name from it. */
+  debtorId?: string
 }
 
 /** The seven assets the vault knew before the catalog; their ids are still valid catalog ids. */

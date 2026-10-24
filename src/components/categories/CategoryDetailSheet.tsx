@@ -69,7 +69,7 @@ export default function CategoryDetailSheet({
       open={item != null}
       title={item?.name ?? ''}
       onClose={() => !busy && onClose()}
-      onSubmit={event => void handleSubmit(event)}
+      onSubmit={handleSubmit}
       saving={busy}
       saveLabel={item?.fixed ? 'بستن' : 'ذخیره'}
       variant="panel"

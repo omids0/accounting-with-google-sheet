@@ -47,7 +47,7 @@ export default function VehicleTransactionCard({ item, onDelete }: VehicleTransa
             </div>
             <div className={dangCardMetaClass}>
               {item.date ? formatIsoDatePersian(item.date) : '—'}
-              {item.mileage ? ` · ${item.mileage.toLocaleString('fa-IR')} km` : ''}
+              {item.mileage ? ` · ${item.mileage.toLocaleString('fa-IR')} کیلومتر` : ''}
               {isFuel && item.fuelLiters
                 ? ` · ${item.fuelLiters.toLocaleString('fa-IR', { maximumFractionDigits: 2 })} L`
                 : ''}
@@ -60,7 +60,7 @@ export default function VehicleTransactionCard({ item, onDelete }: VehicleTransa
 
         {onDelete && item.source === 'expense' ? (
           <div className={cardActionButtonsClass} role="group">
-            <CardDeleteButton onClick={() => onDelete(item)} />
+            <CardDeleteButton itemLabel={item.title} onClick={() => onDelete(item)} />
           </div>
         ) : null}
       </div>

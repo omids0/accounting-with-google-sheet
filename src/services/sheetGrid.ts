@@ -1,4 +1,4 @@
-import { apiRequest, SHEETS_API, SheetsApiError } from './sheetsApi'
+import { apiRequest, SHEETS_API } from './sheetsApi'
 import { normalizeSheetTitle } from './sheetsMeta'
 
 /**
@@ -115,10 +115,12 @@ export async function fetchGridInfo(spreadsheetId: string): Promise<Map<string, 
   return grids
 }
 
+/**
+ * Google's «Range (…) exceeds grid limits». Matched by its message alone: the status and the error
+ * class do not matter, because anything that carries this text is the same grid-edge refusal.
+ */
 export function isGridLimitError(err: unknown): boolean {
-  return (
-    err instanceof SheetsApiError && err.status === 400 && /exceeds grid limits/i.test(err.message)
-  )
+  return err instanceof Error && /exceeds grid limits/i.test(err.message)
 }
 
 async function growGrid(

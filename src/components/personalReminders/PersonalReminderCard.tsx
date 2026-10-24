@@ -3,6 +3,7 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import type { PersonalReminderWithRow } from './types'
+import TapCheckbox from '../form/TapCheckbox'
 import MoneyText from '../MoneyText'
 import {
   cardActionButtonsClass,
@@ -14,8 +15,7 @@ import {
   dangCardDateClass,
   dangCardHeaderClass,
   dangCardMetaClass,
-  dangCardTitleClass,
-  dangCheckboxClass
+  dangCardTitleClass
 } from '../ui/featureCardStyles'
 
 type PersonalReminderCardProps = {
@@ -41,12 +41,10 @@ export default function PersonalReminderCard({
     <div className={dangCardClass({ paid: isDone })} data-highlight-id={item.id}>
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
-          <input
-            type="checkbox"
-            className={dangCheckboxClass}
+          <TapCheckbox
             checked={isDone}
             disabled={isDone || completing}
-            aria-label={isDone ? 'انجام شده' : 'ثبت انجام یادآوری'}
+            aria-label={isDone ? `انجام شده: ${item.title}` : `ثبت انجام ${item.title}`}
             onChange={e => {
               if (item.enabled && e.target.checked) {
                 onComplete(item)
@@ -64,7 +62,9 @@ export default function PersonalReminderCard({
             </div>
             <div className={dangCardMetaClass}>
               {categoryLabel} · {recurrenceLabel}
-              {item.daysBefore > 0 ? ` · ${item.daysBefore.toLocaleString('fa-IR')} روز قبل` : ''}
+              {item.daysBefore > 0
+                ? ` · یادآوری ${item.daysBefore.toLocaleString('fa-IR')} روز قبل از موعد`
+                : ''}
             </div>
             {item.dueDate ? (
               <div className={dangCardMetaClass}>
@@ -76,8 +76,8 @@ export default function PersonalReminderCard({
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <CardEditButton onClick={() => onEdit(item)} />
-          <CardDeleteButton onClick={() => onDelete(item)} />
+          <CardEditButton itemLabel={item.title} onClick={() => onEdit(item)} />
+          <CardDeleteButton itemLabel={item.title} onClick={() => onDelete(item)} />
         </div>
       </div>
     </div>

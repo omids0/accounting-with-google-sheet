@@ -68,7 +68,8 @@ export default function StandardEntryFormFields({
   vehicleExpense,
   clearFieldError,
   walletApplyHint,
-  afterAmount
+  afterAmount,
+  beforeAccount
 }: {
   activeForm: CustomForm
   values: Record<string, string | number>
@@ -82,6 +83,8 @@ export default function StandardEntryFormFields({
   walletApplyHint?: string
   /** Rendered right under the date + amount row (the duplicate warning). */
   afterAmount?: ReactNode
+  /** Rendered right before the account field (a building's kind and payer). */
+  beforeAccount?: ReactNode
 }) {
   const fieldById = useMemo(
     () => new Map(activeForm.fields.map(field => [field.id, field])),
@@ -176,6 +179,7 @@ export default function StandardEntryFormFields({
           }
         />
       ) : null}
+      {beforeAccount}
       {renderField(WALLET_ACCOUNT_FIELD_ID)}
       {renderField(WALLET_APPLY_FIELD_ID)}
       {renderExtraField(COUNTERPARTY_FIELD_ID)}

@@ -130,9 +130,85 @@ describe('unpaying a settlement', () => {
     expect(deleteLinkedRecord).toHaveBeenCalledWith('s', 'expense', 'sms-1')
   })
 
+  it('matches a building repayment by its new title and by the old one', async () => {
+    const prefixes = ['بازپرداخت به ', 'بدهی: ']
+
+    for (const title of ['بازپرداخت به مدیر · لامپ', 'بدهی: لامپ']) {
+      stored('r1', title)
+      expect(await isLinkedForeignRecord('s', 'expense', 'r1', prefixes)).toBe(false)
+    }
+
+    await deleteLinkedRecordWithWallet('s', 'expense', 'r1', prefixes)
+    expect(deleteLinkedRecord).toHaveBeenCalledWith('s', 'expense', 'r1')
+  })
+
+  it('still treats a record outside every prefix as a linked one', async () => {
+    stored('sms-1', 'برداشت از کارت')
+
+    expect(await isLinkedForeignRecord('s', 'expense', 'sms-1', ['بازپرداخت به ', 'بدهی: '])).toBe(
+      true
+    )
+  })
+
   it('does nothing without a linked record id', async () => {
     await deleteLinkedRecordWithWallet('s', 'expense', '', 'بدهی: ')
 
     expect(deleteLinkedRecord).not.toHaveBeenCalled()
+  })
+})
+
+describe('unpaying a record that sits in the other form', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  /** `found` says which forms hold the record; deleting from any other form finds nothing. */
+  const holders = (found: ('expense' | 'income')[], title = 'چک: ۱ — علی') => {
+    vi.mocked(deleteLinkedRecord).mockImplementation(
+      async (_id: string, type: 'income' | 'expense') =>
+        ({ walletAccount: '', walletApply: '', found: found.includes(type) } as never)
+    )
+    vi.mocked(fetchRecords).mockImplementation(
+      async (_id: string, form: { type?: string }) =>
+        (found.includes(form.type as 'expense' | 'income')
+          ? [{ id: 'r1', values: { title } }]
+          : []) as never
+    )
+  }
+
+  it('reverses it there, with that form’s balance effect, when the expected form lacks it', async () => {
+    holders(['expense'])
+
+    expect(await deleteLinkedRecordWithWallet('s', 'income', 'r1', 'چک: ')).toBe(true)
+    expect(vi.mocked(deleteLinkedRecord).mock.calls.map(call => call[1])).toEqual([
+      'income',
+      'expense'
+    ])
+  })
+
+  it('does not look further when the expected form has it', async () => {
+    holders(['income'])
+
+    expect(await deleteLinkedRecordWithWallet('s', 'income', 'r1', 'چک: ')).toBe(true)
+    expect(deleteLinkedRecord).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports that nothing was found in either form', async () => {
+    holders([])
+
+    expect(await deleteLinkedRecordWithWallet('s', 'income', 'r1', 'چک: ')).toBe(false)
+    expect(deleteLinkedRecord).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not take a record the user linked in the other form unless asked to', async () => {
+    holders(['expense'], 'برداشت از کارت')
+
+    expect(await deleteLinkedRecordWithWallet('s', 'income', 'r1', 'چک: ')).toBe(true)
+    expect(vi.mocked(deleteLinkedRecord).mock.calls.map(call => call[1])).toEqual(['income'])
+
+    vi.mocked(deleteLinkedRecord).mockClear()
+    expect(await deleteLinkedRecordWithWallet('s', 'income', 'r1', 'چک: ', 'delete')).toBe(true)
+    expect(vi.mocked(deleteLinkedRecord).mock.calls.map(call => call[1])).toEqual([
+      'income',
+      'expense'
+    ])
   })
 })

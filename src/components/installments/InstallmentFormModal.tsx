@@ -4,6 +4,7 @@ import { Controller, useForm } from 'react-hook-form'
 import type { InstallmentFormState, PlanWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getInstallmentEndDate, getPaidUntilFromPlan } from '../../services/installments'
+import { installmentSchedulePreview } from '../../services/installmentSchedulePreview'
 import {
   INSTALLMENT_EXPENSE_CATEGORY,
   MAX_INSTALLMENT_COUNT
@@ -102,8 +103,14 @@ export default function InstallmentFormModal({
     return getInstallmentEndDate(startDate, countNumber, dueDayNumber)
   }, [startDate, count, dueDay])
 
+  // The first installment is not always in the start month; say where the schedule begins.
+  const schedulePreview = useMemo(
+    () => installmentSchedulePreview(startDate, count, dueDay),
+    [startDate, count, dueDay]
+  )
+
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    submitValidatedForm(handleSubmit, values => onSubmit(values, computedEndDate), event)
+    return submitValidatedForm(handleSubmit, values => onSubmit(values, computedEndDate), event)
   }
 
   const paidUntilField = (
@@ -219,6 +226,8 @@ export default function InstallmentFormModal({
           />
         </FormField>
       </FormRow>
+
+      {schedulePreview ? <p className="-mt-1 text-sm text-muted">{schedulePreview}</p> : null}
 
       {computedEndDate ? (
         <FormRow>

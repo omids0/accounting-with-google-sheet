@@ -1,4 +1,6 @@
+import { checkListTitle, checkTypeLabel } from './checkDirection'
 import { searchText, type SearchEntry } from './globalSearch'
+import { buildingSearchEntries, type BuildingSearchSources } from './globalSearchBuilding'
 import { withWriterNames } from './globalSearchWriter'
 import { getAssetClassLabel } from './treasuryCatalog'
 import { formatQuantityValue } from './treasuryQuantity'
@@ -42,6 +44,8 @@ export interface SearchSources {
   goals: SavingsGoal[]
   reminders: PersonalReminder[]
   vehicles: VehicleProfile[]
+  /** A building workspace only: its units and their stays (residents). */
+  building?: Pick<BuildingSearchSources, 'units' | 'stays'>
   /** Display name of a «ثبت‌کننده» email; only set on a shared spreadsheet. */
   writerName?: (email: string) => string
 }
@@ -166,11 +170,11 @@ function moduleEntries(sources: SearchSources): SearchEntry[] {
   const checks = sources.checks.map(item => ({
     group: 'checks' as const,
     id: item.id,
-    title: joinParts(`چک ${toPersianDigits(item.checkNumber)}`.trim(), item.counterparty),
+    title: joinParts(checkListTitle(item), item.counterparty),
     subtitle: joinParts(dated('سررسید', item.dueDate), item.paid ? 'پاس‌شده' : ''),
     amount: item.amount,
     date: item.dueDate,
-    text: searchText('چک', item.checkNumber, item.counterparty, item.subCategory),
+    text: searchText(checkTypeLabel(item), item.checkNumber, item.counterparty, item.subCategory),
     amounts: [item.amount],
     writer: item.writer
   }))
@@ -268,7 +272,10 @@ export function buildSearchEntries(sources: SearchSources): SearchEntry[] {
       ...counterpartyEntries(sources),
       ...recordEntries(sources),
       ...moduleEntries(sources),
-      ...otherEntries(sources)
+      ...otherEntries(sources),
+      ...(sources.building
+        ? buildingSearchEntries({ ...sources.building, counterparties: sources.counterparties })
+        : [])
     ],
     sources.writerName
   )

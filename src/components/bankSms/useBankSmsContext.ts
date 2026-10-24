@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import type { LedgerEntry } from '../../services/bankSmsQueue'
+import { rememberWorkspaceCards } from '../../services/bankSmsRouting'
 import { loadRecordLedger } from '../../services/recordLedger'
 import { fetchRecurringItems, stripRow } from '../../services/recurringSheet'
 import { getSettings } from '../../services/settings'
@@ -30,6 +31,7 @@ export function useBankSmsContext() {
       ])
 
       setAccounts(walletAccounts)
+      rememberWorkspaceCards(settings.spreadsheetId, walletAccounts)
       setLedger(entries)
       setRecurring(items.map(stripRow))
     } catch (err) {

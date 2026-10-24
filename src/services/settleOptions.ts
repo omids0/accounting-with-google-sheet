@@ -8,6 +8,8 @@ export interface SettleOptions {
   walletApply: typeof WALLET_APPLY_YES | typeof WALLET_APPLY_NO
   /** An existing record that already is this payment: nothing is created, no balance moves. */
   linkRecordId?: string
+  /** Round 11: personal account that receives the bridged receivable's payment ('' = none). */
+  bridgeAccount?: string
 }
 
 /** What unpaying does with a record the user linked instead of letting the app create one. */

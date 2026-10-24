@@ -8,6 +8,7 @@ import {
   jalaliToIso,
   toIsoDate
 } from './jalaliDate'
+import { toPersianDigits } from './normalizeDigits'
 import { normalizeSheetDate } from './sheetValues'
 
 export type { DateRange } from './jalaliDate'
@@ -23,7 +24,7 @@ export const DATE_RANGE_PRESETS: { id: DateRangePreset; label: string }[] = [
 
 export const RECORDS_DATE_RANGE_PRESETS: { id: RecordsDatePreset; label: string }[] = [
   ...DATE_RANGE_PRESETS,
-  { id: 'custom', label: 'بازه زمانی' }
+  { id: 'custom', label: 'بازه دلخواه' }
 ]
 
 export function resolveDateRange(preset: RecordsDatePreset, customRange?: DateRange): DateRange {
@@ -56,7 +57,7 @@ export function getJalaliYearRange(year: number): DateRange {
 }
 
 export function formatJalaliYear(year: number): string {
-  return year.toLocaleString('fa-IR', { useGrouping: false })
+  return toPersianDigits(String(year))
 }
 
 export function getDateRange(preset: DateRangePreset): DateRange {
@@ -240,7 +241,7 @@ export function formatJalaliMonthLabel(monthKey: string): string {
 
   if (!month || month < 1 || month > 12) return monthKey
 
-  return `${JALALI_MONTHS[month - 1]} ${year}`
+  return `${JALALI_MONTHS[month - 1]} ${formatJalaliYear(year)}`
 }
 
 export function formatDateRangeLabel(range: DateRange): string {

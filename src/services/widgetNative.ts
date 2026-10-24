@@ -1,5 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
 
+import { getWorkspaceType } from './workspace'
+
 /** Native `WidgetBridge` (widget/WidgetBridgePlugin.java): stores the JSON and redraws. */
 interface WidgetBridgePlugin {
   setSnapshot(options: { json: string }): Promise<void>
@@ -20,6 +22,10 @@ export async function sendWidgetSnapshot(spreadsheetId?: string): Promise<void> 
     const { getSettings } = await import('./settings')
     const { buildWidgetSnapshot } = await import('./widgetSnapshot')
     const id = spreadsheetId ?? getSettings()?.spreadsheetId ?? ''
+
+    // The widget shows the personal books only; a building leaves the last snapshot in place.
+    if (id && getWorkspaceType(id) === 'building') return
+
     const snapshot = id ? await buildWidgetSnapshot(id) : null
 
     await WidgetBridge.setSnapshot({ json: JSON.stringify(snapshot ?? { empty: true }) })

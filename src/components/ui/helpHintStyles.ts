@@ -1,11 +1,13 @@
 import { cn, cx } from '../../utils/cn'
 
+// The button is a full 44 px tap box; the visible ring is its ::before. Only the vertical
+// margins are negative (they keep the line height): sideways it occupies its own width, so
+// it never overlaps the text or a button next to it.
 export const helpHintTriggerClass = cx(
-  'help-hint relative ms-1.5 inline-flex h-[1.3rem] w-[1.3rem] shrink-0 items-center justify-center rounded-full align-middle',
-  'border-[1.5px] border-current bg-transparent p-0 text-[0.72rem] font-bold leading-none text-inherit',
-  'cursor-pointer transition-[background,transform] duration-[var(--duration-fast)] hover:bg-[color-mix(in_srgb,currentColor_12%,transparent)]',
-  // The visible ring stays small; the hit area reaches a comfortable tap size.
-  'after:absolute after:-inset-3 after:content-[""]'
+  'help-hint relative -my-[0.72rem] ms-0.5 inline-flex size-touch-min shrink-0 items-center justify-center align-middle',
+  'border-none bg-transparent p-0 text-[0.72rem] font-bold leading-none text-inherit cursor-pointer',
+  'before:absolute before:size-[1.3rem] before:rounded-full before:border-[1.5px] before:border-current before:bg-transparent before:content-[""]',
+  'before:transition-[background] before:duration-[var(--duration-fast)] hover:before:bg-[color-mix(in_srgb,currentColor_12%,transparent)]'
 )
 
 export function helpHintPopoverClass(placeAbove: boolean) {

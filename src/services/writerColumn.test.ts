@@ -44,10 +44,10 @@ describe('writer cell helpers', () => {
     expect(withWriterCell(['a'], -1, 'x@y.z')).toEqual(['a'])
   })
 
-  it('is the last column of the four fixed tabs', () => {
-    expect(CHECK_WRITER_COLUMN).toBe(CHECKS_HEADERS.length - 1)
+  it('is the last column of dang; checks add the type after it and receivables two building columns', () => {
+    expect(CHECK_WRITER_COLUMN).toBe(CHECKS_HEADERS.length - 2)
     expect(DANG_WRITER_COLUMN).toBe(DANG_HEADERS.length - 1)
-    expect(RECEIVABLE_WRITER_COLUMN).toBe(RECEIVABLES_HEADERS.length - 1)
+    expect(RECEIVABLE_WRITER_COLUMN).toBe(RECEIVABLES_HEADERS.length - 3)
     expect(headerWriterColumn(CHECKS_HEADERS)).toBe(CHECK_WRITER_COLUMN)
   })
 

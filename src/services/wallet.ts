@@ -20,6 +20,7 @@ import {
 import { formatMoney } from '../utils/formatMoney'
 import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
+import { roundMoney } from '../utils/roundMoney'
 
 export { WALLET_SHEET, WALLET_HEADERS }
 
@@ -29,7 +30,7 @@ function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNu
     id: row[0] ?? '',
     createdAt: row[1] ?? '',
     title: row[2] ?? '',
-    balance: parseNumeric(row[3]),
+    balance: roundMoney(parseNumeric(row[3])),
     note: row[4] ?? '',
     accountKind: row[5] ?? '',
     bankId: row[6] ?? '',
@@ -43,12 +44,12 @@ function rowToAccount(row: string[], rowNumber: number): WalletAccount & { rowNu
   }
 }
 
-function accountToRow(account: WalletAccount): string[] {
+export function accountToRow(account: WalletAccount): string[] {
   return [
     account.id,
     account.createdAt,
     account.title,
-    String(account.balance),
+    String(roundMoney(account.balance)),
     account.note,
     account.accountKind,
     account.bankId,
@@ -171,7 +172,7 @@ export async function loadWalletPeriodFlow(settings: AppSettings): Promise<Walle
     expenseRecords,
     incomeDateField,
     expenseDateField,
-    walletTotal: accounts.reduce((sum, account) => sum + account.balance, 0),
+    walletTotal: roundMoney(accounts.reduce((sum, account) => sum + account.balance, 0)),
     currentMonthKey: monthKey
   })
 
@@ -181,11 +182,11 @@ export async function loadWalletPeriodFlow(settings: AppSettings): Promise<Walle
 
   const totalIncome = incomeRecords
     .filter(r => isDateInRange(r.values[incomeDateField] ?? '', range))
-    .reduce((s, r) => s + parseNumeric(r.values.amount), 0)
+    .reduce((s, r) => roundMoney(s + parseNumeric(r.values.amount)), 0)
 
   const totalExpense = expenseRecords
     .filter(r => isDateInRange(r.values[expenseDateField] ?? '', range))
-    .reduce((s, r) => s + parseNumeric(r.values.amount), 0)
+    .reduce((s, r) => roundMoney(s + parseNumeric(r.values.amount)), 0)
 
   return {
     openingBalance: context.openings.get(monthKey) ?? context.anchorAmount,
@@ -236,7 +237,7 @@ export async function importWalletAccountsCsv(spreadsheetId: string, csvContent:
       id: newImportId(cells[0] ?? ''),
       createdAt: newImportTimestamp(cells[1] ?? ''),
       title,
-      balance: parseNumeric(cells[3]),
+      balance: roundMoney(parseNumeric(cells[3])),
       note: cells[4] ?? '',
       accountKind: cells[5] ?? '',
       bankId: cells[6] ?? '',

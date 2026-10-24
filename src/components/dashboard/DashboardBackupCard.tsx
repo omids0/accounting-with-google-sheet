@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { useBackupDownload } from '../../hooks/useBackupDownload'
 import { useBackupState } from '../../hooks/useBackupState'
 import { backupReminderDue, snoozeBackupReminder } from '../../services/backupReminder'
@@ -15,12 +17,19 @@ import {
 } from '../ui/onboardingStyles'
 
 /** «N روز از آخرین پشتیبان گذشته»: the last guide card, after 30 days without a full backup. */
-export default function DashboardBackupCard({ spreadsheetId }: { spreadsheetId: string }) {
+export default function DashboardBackupCard({
+  spreadsheetId,
+  fallback = null
+}: {
+  spreadsheetId: string
+  /** Shown when no backup is due: the next lowest-priority card. */
+  fallback?: ReactNode
+}) {
   const state = useBackupState(spreadsheetId)
   const backup = useBackupDownload()
   const due = backupReminderDue(state, (countRecordRows(spreadsheetId) ?? 0) > 0)
 
-  if (!due) return null
+  if (!due) return fallback
 
   const title =
     due.kind === 'since'

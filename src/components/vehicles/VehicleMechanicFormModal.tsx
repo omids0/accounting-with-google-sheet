@@ -79,7 +79,7 @@ export default function VehicleMechanicFormModal({
   }
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
+    return submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (

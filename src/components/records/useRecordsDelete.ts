@@ -6,7 +6,9 @@ import {
   removeParentAttachments,
   useAttachmentDeleteQuestion
 } from '../../hooks/useAttachmentDeleteQuestion'
+import { useShareDeleteQuestion } from '../../hooks/useShareDeleteQuestion'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
+import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import type { CustomForm } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 
@@ -33,6 +35,7 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
   const visibleRecords = useMemo(() => visible(records), [visible, records])
 
   const { ask, modalProps } = useAttachmentDeleteQuestion()
+  const { ask: askShares, modalProps: shareQuestionModal } = useShareDeleteQuestion()
 
   // Stable: each memoized records row receives it as a prop.
   const requestDelete = useCallback(
@@ -48,6 +51,15 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
       const answer = await ask(record.attachments ?? [])
 
       if (!answer) return
+
+      // A building expense with unit shares: the unpaid ones go with it, so ask first.
+      if (form.type === 'expense' && isBuildingExpenseValues(record.values)) {
+        const { countUnpaidExpenseShares } = await import('../../services/buildingExpenseActions')
+
+        const unpaid = await countUnpaidExpenseShares(spreadsheetId, record.id).catch(() => 0)
+
+        if (!(await askShares(unpaid))) return
+      }
 
       const titleFieldId = getFormField(form, 'title')?.id
       const title = titleFieldId ? String(record.values[titleFieldId] ?? '').trim() : ''
@@ -65,7 +77,7 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
         }
       })
     },
-    [schedule, ask]
+    [schedule, ask, askShares]
   )
 
   return {
@@ -73,6 +85,7 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
     /** Writes the pending delete now, e.g. before the list is swapped for another form. */
     flushPendingDelete: flush,
     visibleRecords,
-    attachmentQuestionModal: modalProps
+    attachmentQuestionModal: modalProps,
+    shareQuestionModal
   }
 }

@@ -3,6 +3,7 @@ import { cn, cx } from '../../utils/cn'
 export const fabContainerClass = cx(
   'pointer-events-none fixed bottom-[calc(5.75rem+var(--safe-bottom)+6px)] left-1/2 z-[25] flex w-full max-w-[480px] -translate-x-1/2 justify-start px-4',
   'min-[380px]:px-5',
+  'max-md:group-data-[workspace=building]/layout:bottom-[calc(1rem+var(--safe-bottom))]',
   'md:bottom-[calc(1rem+var(--safe-bottom))] md:left-auto md:right-[calc(var(--nav-width)+1rem)] md:max-w-none md:translate-x-0 md:justify-start md:px-0'
 )
 

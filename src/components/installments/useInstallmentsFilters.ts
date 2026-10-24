@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 
 import type { DisplayPlanItem, PlanWithRow } from './types'
+import { useListSort, type SortDirection } from '../../hooks/useListSort'
 import { useMineFilter } from '../../hooks/useMineFilter'
 import {
   getInstallmentDueDateInRange,
@@ -9,7 +10,6 @@ import {
   isInstallmentPlanVisible,
   isInstallmentSettledForRange,
   paidInstallmentAmount,
-  sortInstallmentPlans,
   totalInstallmentAmount,
   totalInstallmentsInRange,
   totalUnpaidInstallments,
@@ -24,6 +24,11 @@ import {
   type RecordsDatePreset
 } from '../../utils/dateRange'
 import { buildDateRangeChip, buildSearchChip, compactFilterChips } from '../../utils/filterChips'
+import {
+  compareInstallmentPlans,
+  INSTALLMENT_SORT_OPTIONS,
+  type InstallmentSortId
+} from '../../utils/installmentSort'
 import { matchSearch } from '../../utils/search'
 import { distributionSparkline } from '../../utils/sparklineData'
 import { createDefaultDateRangeFilter } from '../DateRangeFilter'
@@ -92,10 +97,23 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     setDraftCustomRange(range)
   }, [highlightId, plans, effectiveRange])
 
+  const compare = useCallback(
+    (a: PlanWithRow, b: PlanWithRow, sortId: InstallmentSortId, direction: SortDirection) =>
+      compareInstallmentPlans(a, b, sortId, direction, effectiveRange),
+    [effectiveRange]
+  )
+
+  const sort = useListSort<InstallmentSortId, PlanWithRow>({
+    options: INSTALLMENT_SORT_OPTIONS,
+    defaultSort: 'dueDate',
+    compare
+  })
+
+  const { sortItems, syncDraftFromApplied: syncDraftSort, resetSort } = sort
+
   const monthPlans = useMemo(
-    () =>
-      sortInstallmentPlans(plans.filter(plan => isInstallmentPlanVisible(plan, effectiveRange))),
-    [plans, effectiveRange]
+    () => sortItems(plans.filter(plan => isInstallmentPlanVisible(plan, effectiveRange))),
+    [plans, effectiveRange, sortItems]
   )
 
   const filteredPlans = useMemo(
@@ -168,8 +186,9 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     setDraftDatePreset(datePreset)
     setDraftCustomRange(customRange)
     startMineDraft()
+    syncDraftSort()
     setFilterModalOpen(true)
-  }, [searchQuery, datePreset, customRange, startMineDraft])
+  }, [searchQuery, datePreset, customRange, startMineDraft, syncDraftSort])
 
   const resetDateFilter = useCallback(() => {
     const defaults = createDefaultDateRangeFilter()
@@ -186,9 +205,10 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
           datePreset !== 'month-to-date' ? resetDateFilter : undefined
         ),
         buildSearchChip(searchQuery, () => setSearchQuery('')),
-        mine.chip
+        mine.chip,
+        ...sort.sortChips
       ]),
-    [effectiveRange, datePreset, resetDateFilter, searchQuery, mine.chip]
+    [effectiveRange, datePreset, resetDateFilter, searchQuery, mine.chip, sort.sortChips]
   )
 
   const applyDraftFilters = () => {
@@ -196,6 +216,7 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     setDatePreset(draftDatePreset)
     setCustomRange(draftCustomRange)
     mine.applyDraft()
+    sort.applyDraftSort()
     setFilterModalOpen(false)
   }
 
@@ -206,6 +227,7 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     setDraftDatePreset(defaults.preset as RecordsDatePreset)
     setDraftCustomRange(defaults.customRange)
     mine.clearDraft()
+    sort.clearDraftSort()
   }
 
   const clearAllFilters = useCallback(() => {
@@ -215,7 +237,8 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     setDatePreset(defaults.preset as RecordsDatePreset)
     setCustomRange(defaults.customRange)
     clearMine()
-  }, [clearMine])
+    resetSort()
+  }, [clearMine, resetSort])
 
   return {
     filterModalOpen,
@@ -227,6 +250,7 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     draftCustomRange,
     setDraftCustomRange,
     monthLabel,
+    effectiveRange,
     monthTotals,
     monthPlans,
     filteredPlans,
@@ -238,7 +262,14 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     applyDraftFilters,
     clearDraftFilters,
     clearAllFilters,
-    minePanelProps: mine.panelProps
+    minePanelProps: mine.panelProps,
+    sortSectionProps: {
+      options: sort.sortOptions,
+      sortId: sort.draftSortId,
+      onSortIdChange: sort.setDraftSortId,
+      sortDirection: sort.draftSortDirection,
+      onSortDirectionChange: sort.setDraftSortDirection
+    }
   }
 }
 

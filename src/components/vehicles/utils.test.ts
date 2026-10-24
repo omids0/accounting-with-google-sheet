@@ -6,6 +6,8 @@ import {
   formatPeriodicRemainingSubtitle,
   getUrgencyFromDays,
   getUrgencyFromKm,
+  isLargeMileageDrop,
+  largeMileageDropMessage,
   shouldShowVehicleDeadlineReminder,
   shouldShowVehiclePeriodicReminder,
   sortActiveItems
@@ -19,11 +21,13 @@ describe('vehicle urgency helpers', () => {
   })
 
   it('shows passed label instead of negative km remaining', () => {
-    expect(formatPeriodicRemainingSubtitle(-120, 85_000)).toBe('گذشته · بعدی: ۸۵٬۰۰۰ km')
+    expect(formatPeriodicRemainingSubtitle(-120, 85_000)).toBe('گذشته · بعدی: ۸۵٬۰۰۰ کیلومتر')
   })
 
   it('shows km remaining when service is still upcoming', () => {
-    expect(formatPeriodicRemainingSubtitle(500, 85_000)).toBe('۵۰۰ km مانده · بعدی: ۸۵٬۰۰۰ km')
+    expect(formatPeriodicRemainingSubtitle(500, 85_000)).toBe(
+      '۵۰۰ کیلومتر مانده · بعدی: ۸۵٬۰۰۰ کیلومتر'
+    )
   })
 
   it('shows passed label with persian end date instead of gregorian', () => {
@@ -156,5 +160,33 @@ describe('sortActiveItems', () => {
     ])
 
     expect(sorted.map(item => item.id)).toEqual(['near', 'far'])
+  })
+})
+
+describe('large mileage drop check', () => {
+  it('flags a fall of more than 30%', () => {
+    expect(isLargeMileageDrop(140_220, 100)).toBe(true)
+    expect(isLargeMileageDrop(1000, 699)).toBe(true)
+  })
+
+  it('accepts exactly 30% and smaller falls, equal values and increases', () => {
+    expect(isLargeMileageDrop(1000, 700)).toBe(false)
+    expect(isLargeMileageDrop(140_220, 139_000)).toBe(false)
+    expect(isLargeMileageDrop(5000, 5000)).toBe(false)
+    expect(isLargeMileageDrop(5000, 9000)).toBe(false)
+  })
+
+  it('never flags a vehicle without a previous reading or odd numbers', () => {
+    expect(isLargeMileageDrop(0, 0)).toBe(false)
+    expect(isLargeMileageDrop(5000, 0)).toBe(false)
+    expect(isLargeMileageDrop(0, 100)).toBe(false)
+    expect(isLargeMileageDrop(NaN, 100)).toBe(false)
+    expect(isLargeMileageDrop(1000, NaN)).toBe(false)
+  })
+
+  it('names both numbers in the question', () => {
+    expect(largeMileageDropMessage(140_220, 100)).toBe(
+      'کارکرد از ۱۴۰٬۲۲۰ به ۱۰۰ کیلومتر کم می‌شود. اشتباه تایپی نیست؟'
+    )
   })
 })

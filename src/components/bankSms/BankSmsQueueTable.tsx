@@ -115,6 +115,7 @@ export default function BankSmsQueueTable({ review }: { review: BankSmsReview })
             item.kind === 'single'
               ? resolveSmsAccount(item.entry, initialSmsAccount(item.entry))
               : null
+          const offer = resolved ? review.offerFor(resolved) : null
 
           return (
             <>
@@ -124,9 +125,14 @@ export default function BankSmsQueueTable({ review }: { review: BankSmsReview })
                   size="sm"
                   variant={row.amount < 0 ? 'outflow' : 'inflow'}
                   disabled={review.busyKey === item.key}
-                  onClick={() => review.primary(resolved, item.probableDuplicate)}
+                  onClick={() =>
+                    // Which unit paid has to be picked on the card, in the side panel.
+                    offer?.kind === 'pick'
+                      ? setOpenKey(item.key)
+                      : review.primary(resolved, item.probableDuplicate)
+                  }
                 >
-                  {row.amount < 0 ? 'ثبت هزینه' : 'ثبت درآمد'}
+                  {offer ? 'ثبت پرداخت' : row.amount < 0 ? 'ثبت هزینه' : 'ثبت درآمد'}
                 </Button>
               )}
               <Button

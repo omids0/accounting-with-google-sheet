@@ -119,6 +119,32 @@ describe('suggestSmsCategory', () => {
     expect(suggestSmsCategory({ ...input, type: 'income' }, { ...empty, bySender })).toBeNull()
   })
 
+  it('suggests «شارژ ساختمان» first for a deposit whose payer is a unit of the building', () => {
+    const deposit: SmsSuggestInput = {
+      ...input,
+      type: 'income',
+      unit: { title: 'شارژ مهر · واحد ۴ · رضایی', category: 'شارژ ساختمان' }
+    }
+
+    expect(
+      suggestSmsCategory(deposit, { ...empty, recurring: [recurring({ type: 'income' })] })
+    ).toMatchObject({
+      category: 'شارژ ساختمان',
+      source: 'unit',
+      title: 'شارژ مهر · واحد ۴ · رضایی'
+    })
+  })
+
+  it('does not use the unit rule for a withdrawal or without a unit', () => {
+    expect(
+      suggestSmsCategory(
+        { ...input, unit: { title: 'x', category: 'شارژ ساختمان' } },
+        { ...empty, recurring: [recurring()] }
+      )
+    ).toMatchObject({ source: 'recurring' })
+    expect(suggestSmsCategory({ ...input, type: 'income', unit: null }, empty)).toBeNull()
+  })
+
   it('suggests nothing without any history', () => {
     expect(suggestSmsCategory(input, empty)).toBeNull()
   })

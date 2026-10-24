@@ -70,7 +70,9 @@ export function rowToReceivable(
       note: row[7] ?? '',
       subCategory: row[9] ?? '',
       payments: parsePayments(row[8] ?? ''),
-      writer: parseWriter(row[RECEIVABLE_WRITER_COLUMN])
+      writer: parseWriter(row[RECEIVABLE_WRITER_COLUMN]),
+      reference: row[11] ?? '',
+      debtorId: row[12] ?? ''
     }
   }
 
@@ -99,7 +101,11 @@ export function receivableToRow(receivable: Receivable): string[] {
     receivable.borrowDate,
     receivable.note,
     JSON.stringify(receivable.payments),
-    receivable.subCategory ?? ''
+    receivable.subCategory ?? '',
+    // «ثبت‌کننده» is stamped on write; the building columns follow it.
+    receivable.writer ?? '',
+    receivable.reference ?? '',
+    receivable.debtorId ?? ''
   ]
 }
 

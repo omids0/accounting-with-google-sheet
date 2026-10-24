@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react
 
 import { ReportStaticMetaBar } from './ReportDateFilterBar'
 import {
-  getDueDateTypeLabel,
+  getDueDateItemLabel,
   loadDueDatesReport,
   type DueDateItem,
   type DueDateStatus
@@ -96,24 +96,29 @@ export default function DueDatesReportPage() {
     })).filter(group => group.items.length > 0)
   }, [items])
 
+  // What I have to pay, apart from the received checks that will bring money in.
+  const payable = useMemo(() => items.filter(item => !item.incoming), [items])
+  const incoming = useMemo(() => items.filter(item => item.incoming), [items])
+
   const totals = useMemo(
     () => ({
-      overdue: items
+      overdue: payable
         .filter(item => item.status === 'overdue')
         .reduce((sum, item) => sum + item.amount, 0),
-      upcoming: items
+      upcoming: payable
         .filter(item => item.status !== 'overdue')
-        .reduce((sum, item) => sum + item.amount, 0)
+        .reduce((sum, item) => sum + item.amount, 0),
+      incoming: incoming.reduce((sum, item) => sum + item.amount, 0)
     }),
-    [items]
+    [payable, incoming]
   )
 
   const overdueSparkline = distributionSparkline(
-    items.filter(item => item.status === 'overdue').map(item => item.amount)
+    payable.filter(item => item.status === 'overdue').map(item => item.amount)
   )
 
   const upcomingSparkline = distributionSparkline(
-    items.filter(item => item.status !== 'overdue').map(item => item.amount)
+    payable.filter(item => item.status !== 'overdue').map(item => item.amount)
   )
 
   if (!isConfigured()) {
@@ -160,7 +165,7 @@ export default function DueDatesReportPage() {
 
       <div className={dashboardStatGridClass}>
         <StatCard
-          label="معوق"
+          label="معوق (پرداختنی)"
           amount={totals.overdue}
           variant="expense"
           sparklineData={overdueSparkline}
@@ -168,7 +173,7 @@ export default function DueDatesReportPage() {
           lift
         />
         <StatCard
-          label="امروز و پیش‌رو"
+          label="امروز و پیش‌رو (پرداختنی)"
           amount={totals.upcoming}
           variant="default"
           tone="primary"
@@ -176,6 +181,16 @@ export default function DueDatesReportPage() {
           animateIndex={1}
           lift
         />
+        {incoming.length > 0 ? (
+          <StatCard
+            label="چک‌های دریافتی در راه"
+            amount={totals.incoming}
+            variant="income"
+            sparklineData={distributionSparkline(incoming.map(item => item.amount))}
+            animateIndex={2}
+            lift
+          />
+        ) : null}
       </div>
 
       {!grouped.length ? (
@@ -191,15 +206,23 @@ export default function DueDatesReportPage() {
                 <TransactionListItem
                   key={item.id}
                   title={item.title}
-                  meta={`${getDueDateTypeLabel(item.type)} · ${
-                    item.subtitle
-                  } · ${formatIsoDatePersian(item.dueDate)}`}
-                  tone="expense"
+                  meta={[
+                    getDueDateItemLabel(item),
+                    item.subtitle,
+                    formatIsoDatePersian(item.dueDate)
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                  tone={item.incoming ? 'income' : 'expense'}
                   index={index}
                 >
                   <div className={reportDueItemEndClass}>
                     <DueDateBadge status={item.status} />
-                    <MoneyDisplay amount={item.amount} size="record" tone="expense" />
+                    <MoneyDisplay
+                      amount={item.amount}
+                      size="record"
+                      tone={item.incoming ? 'income' : 'expense'}
+                    />
                   </div>
                 </TransactionListItem>
               ))}

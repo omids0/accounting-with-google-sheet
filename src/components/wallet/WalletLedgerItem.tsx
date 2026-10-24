@@ -4,10 +4,20 @@ import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import MoneyDisplay from '../MoneyDisplay'
 import TransactionListItem from '../TransactionListItem'
 
-export default function WalletLedgerItem({ entry, index }: { entry: LedgerEntry; index: number }) {
+export default function WalletLedgerItem({
+  entry,
+  index,
+  accountTitle
+}: {
+  entry: LedgerEntry
+  index: number
+  /** Names the account when the list mixes several (a building's fund). */
+  accountTitle?: string
+}) {
   const tone = !entry.applied ? 'neutral' : entry.delta < 0 ? 'expense' : 'income'
   const meta = [
     entry.date ? formatIsoDatePersian(entry.date) : '',
+    accountTitle,
     ledgerSourceLabel(entry.source),
     entry.applied ? '' : 'بدون اثر'
   ]

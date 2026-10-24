@@ -18,6 +18,8 @@ type CounterpartyListProps = {
   filteredItems: CounterpartyWithRow[]
   /** Records per counterparty name («N تراکنش»); a name with none is simply absent. */
   recordCounts?: ReadonlyMap<string, number>
+  /** Counterparty id to a short line under the name (a building's «پیمانکار», «ساکن · واحد ۳»). */
+  labels?: ReadonlyMap<string, string>
   onView: (item: CounterpartyWithRow) => void
   onEdit: (item: CounterpartyWithRow) => void
   onDelete: (item: CounterpartyWithRow) => void
@@ -29,6 +31,7 @@ export default function CounterpartyList({
   items,
   filteredItems,
   recordCounts,
+  labels,
   onView,
   onEdit,
   onDelete,
@@ -52,6 +55,9 @@ export default function CounterpartyList({
         header: 'تلفن',
         cell: item => (item.phones.length ? <PhoneNumberLinks phones={item.phones} inline /> : '—')
       },
+      ...(labels
+        ? [textColumn<CounterpartyWithRow>('label', 'نقش', item => labels.get(item.id) ?? '')]
+        : []),
       textColumn('address', 'آدرس', item => item.address),
       dateColumn('birth', 'تولد', item => item.birthDate),
       {
@@ -71,7 +77,7 @@ export default function CounterpartyList({
           (recordCounts?.get(getCounterpartyFullName(item)) ?? 0).toLocaleString('fa-IR')
       }
     ],
-    [onView, recordCounts]
+    [onView, recordCounts, labels]
   )
 
   if (items.length === 0) {
@@ -97,7 +103,11 @@ export default function CounterpartyList({
         columns={columns}
         rowKey={item => item.id}
         actions={item => (
-          <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+          <TableRowActions
+            itemLabel={getCounterpartyFullName(item) || 'طرف حساب'}
+            onEdit={() => onEdit(item)}
+            onDelete={() => onDelete(item)}
+          />
         )}
       />
     )
@@ -110,6 +120,7 @@ export default function CounterpartyList({
           key={item.id}
           item={item}
           recordCount={recordCounts?.get(getCounterpartyFullName(item))}
+          label={labels?.get(item.id)}
           onView={onView}
           onEdit={onEdit}
           onDelete={onDelete}

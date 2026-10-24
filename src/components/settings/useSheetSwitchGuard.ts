@@ -8,9 +8,10 @@ type PendingSwitch = { run: () => Promise<void>; count: number }
 
 /**
  * Leaving a sheet that still has unsent changes asks first: sync them, or
- * switch and leave them queued for the next time that sheet is opened.
+ * switch and leave them queued for the next time that sheet is opened. `onAsk` runs when the
+ * question appears (a busy overlay that is up must make room for it).
  */
-export function useSheetSwitchGuard(currentId: string) {
+export function useSheetSwitchGuard(currentId: string, onAsk?: () => void) {
   const [pending, setPending] = useState<PendingSwitch | null>(null)
 
   const [flushing, setFlushing] = useState(false)
@@ -18,8 +19,10 @@ export function useSheetSwitchGuard(currentId: string) {
   const guard = async (run: () => Promise<void>) => {
     const count = currentId ? getOutboxCount(currentId) : 0
 
-    if (count > 0) setPending({ run, count })
-    else await run()
+    if (count > 0) {
+      onAsk?.()
+      setPending({ run, count })
+    } else await run()
   }
 
   const onSyncFirst = async () => {

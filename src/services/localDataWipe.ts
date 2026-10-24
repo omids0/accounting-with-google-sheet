@@ -5,6 +5,7 @@ import { clearAppLockSessionState } from './appLockPolicy'
 import { LOCK_SETUP_OFFER_KEY } from './appLockPrompts'
 import { deleteAttachmentDatabase } from './attachmentBlobs'
 import { getSession } from './auth'
+import { forgetWorkerSession, logoutViaWorker } from './authWorker'
 import { BACKUP_STORAGE_KEY } from './backupReminder'
 import { setBankSmsCaptureEnabled } from './bankSmsNative'
 import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
@@ -23,6 +24,8 @@ import { removeItem, STORAGE_KEYS } from './storage'
 import { getOutboxCount } from './syncOutbox'
 import { TREASURY_CLASS_STORAGE_KEY } from './treasuryClassPref'
 import { sendWidgetSnapshot } from './widgetNative'
+import { WORKSPACE_STORAGE_KEY } from './workspace'
+import { clearAllEntryDrafts } from '../utils/entryDraft'
 
 /** Per-spreadsheet keys: unsynced writes, legacy mirrors and sync timestamps. */
 const ACCOUNT_KEY_PREFIXES = [
@@ -73,7 +76,17 @@ const ACCOUNT_KEYS = [
   // Who can edit each spreadsheet, from Drive (sharing.ts).
   'accounting_sharing_v1',
   // Last account chosen when settling a payment, per spreadsheet (settleOptions.ts).
-  'accounting_settle_account_v1'
+  'accounting_settle_account_v1',
+  // Which spreadsheets are buildings (workspace.ts).
+  WORKSPACE_STORAGE_KEY,
+  // Card numbers of the «مدیر ساختمان» home, 10 minutes each (buildingSummary.ts).
+  'accounting_building_summary_v1',
+  // The day each building's automatic charge issue last ran (buildingIssueGuard.ts).
+  'accounting_building_auto_issue_v1',
+  // Card digits of every workspace's wallet accounts, which route bank SMS (bankSmsRouting.ts).
+  'accounting_workspace_cards_v1',
+  // The two bridges to the personal spreadsheet: ticks, sent records, waiting payments (bridgePrefs.ts).
+  'accounting_bridge_prefs'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000
@@ -161,6 +174,8 @@ async function revokeGoogleAccess(accessToken: string | null): Promise<void> {
 export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<void> {
   const accessToken = getSession()?.accessToken ?? null
 
+  const authSessionId = getSession()?.authSessionId ?? null
+
   const spreadsheetId = getSettings()?.spreadsheetId
 
   stopSheetSync()
@@ -177,6 +192,7 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
   void sendWidgetSnapshot()
   clearSpreadsheetPrepareSession()
   clearAppLockSessionState()
+  clearAllEntryDrafts()
   clearDataKey()
 
   await deletePersistedDatabase()
@@ -186,5 +202,13 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
   // Stop capturing bank SMS and drop the native queue: it belongs to the old account.
   await setBankSmsCaptureEnabled(false).catch(() => undefined)
 
+  // The worker forgets this device's refresh token. It revokes it at Google only on a real
+  // sign-out: with `revokeAccess: false` a fresh sign-in of the same user follows (PIN
+  // recovery), and revoking the old token could end that new grant too.
+  if (authSessionId) {
+    await withTimeout(
+      revokeAccess ? logoutViaWorker(authSessionId) : forgetWorkerSession(authSessionId)
+    )
+  }
   if (revokeAccess) await revokeGoogleAccess(accessToken)
 }

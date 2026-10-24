@@ -3,34 +3,37 @@ import { useForm } from 'react-hook-form'
 
 import AttachmentField from './attachments/AttachmentField'
 import { useAttachmentDrafts } from './attachments/useAttachmentDrafts'
+import { useBuildingEntryAccount } from './buildings/useEntryFundAccount'
 import ConfirmActionModal from './ConfirmActionModal'
+import {
+  hasBuildingExpenseFields,
+  LazyBuildingExpenseFields,
+  prepareBuildingEntry
+} from './dataEntry/buildingExpenseEntry'
 import CustomEntryFormFields from './dataEntry/CustomEntryFormFields'
+import EntryDraftNote from './dataEntry/EntryDraftNote'
 import EntryDuplicateWarning from './dataEntry/EntryDuplicateWarning'
 import EntryFormActions from './dataEntry/EntryFormActions'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
 import { focusEntryAmount, templateFormValues, type DataEntryFormProps } from './dataEntry/types'
-import { writeEntryRecord } from './dataEntry/writeEntryRecord'
-import {
-  buildFormInitialValues,
-  isStandardEntryForm,
-  SUBCATEGORY_FIELD_ID,
-  withAutoTitle
-} from './form'
-import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
+import { useEntryDraft } from './dataEntry/useEntryDraft'
+import { useEntryValidation } from './dataEntry/useEntryValidation'
+import { settleSavedEntry, writeEntryRecord } from './dataEntry/writeEntryRecord'
+import { buildFormInitialValues, isStandardEntryForm, withAutoTitle } from './form'
+import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
 import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import { showSavedForEntry } from './nudges/saveNudges'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
+import { useSubmitLock } from '../hooks/useSubmitLock'
 import { useUnsavedWork } from '../hooks/useUserBusy'
 import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
-import { prepareEntryValues, settleEntryWallet, smsBalanceHint } from '../services/entryWallet'
+import { prepareEntryValues, smsBalanceHint } from '../services/entryWallet'
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth } from '../utils/authGuard'
-import { validatePositiveAmount } from '../utils/formValidation'
 import { handleSheetError } from '../utils/sheetError'
-import { showError } from '../utils/toast'
-import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
+import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
 import { appFormClassName } from './ui/formStyles'
 import { entryFormGridClass } from './ui/recordsStyles'
 
@@ -85,6 +88,7 @@ export default function DataEntryForm({
     focusEntryAmount(formRef.current, true)
   }, [template, activeForm.fields, setValue, clearErrors])
 
+  const nextEntryPrefill = useBuildingEntryAccount(activeForm, getValues, setValue)
   const retroactiveWarning = useRetroactiveEntryWarning()
   const values = watch()
   const duplicateWarning = <EntryDuplicateWarning form={activeForm} values={values} />
@@ -92,6 +96,17 @@ export default function DataEntryForm({
   const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(selectedCategory)
   // An amount on screen is work in progress: the update banner waits for it.
   useUnsavedWork(String(values.amount ?? '').trim() !== '')
+
+  // Only the plain /entry page keeps a draft; a pre-filled or onboarding form has its own start.
+  const draft = useEntryDraft({
+    formId: activeForm.id,
+    enabled: !prefill && !bankSms && !onSaved,
+    fieldIds: activeForm.fields.map(field => field.id),
+    initialValues,
+    values,
+    setValue,
+    reset
+  })
 
   const hasSubcategories =
     readSubcategories(resolveCategoryType(undefined, activeForm.id), selectedCategory).length > 0
@@ -103,59 +118,24 @@ export default function DataEntryForm({
     }
   }
 
-  const validateRequiredFields = (formValues: Record<string, string | number>) => {
-    clearErrors()
-    let hasError = false
-    let firstMessage: string | undefined
-
-    for (const field of activeForm.fields) {
-      if (!field.required) continue
-      if (showVehicleFields && (field.id === 'title' || field.id === 'amount')) continue
-
-      // The subcategory picker only exists once a category is chosen, and the
-      // vehicle branch replaces it with its own fields.
-      if (
-        field.id === SUBCATEGORY_FIELD_ID &&
-        (showVehicleFields || !selectedCategory || !hasSubcategories)
-      ) {
-        continue
-      }
-
-      const val = formValues[field.id]
-
-      const isEmpty = val === '' || val === undefined || val === null
-
-      const amountCheck = !isEmpty && field.id === 'amount' ? validatePositiveAmount(val) : true
-
-      if (isEmpty || amountCheck !== true) {
-        const message = amountCheck === true ? `«${field.label}» الزامی است` : amountCheck
-        setError(field.id, { message })
-        firstMessage ??= message
-        hasError = true
-      }
-    }
-
-    if (showVehicleFields) {
-      const vehicleErrors = vehicleExpense.validateVehicleExpense(
-        String(formValues.category ?? ''),
-        formValues.amount ?? ''
-      )
-
-      if (vehicleErrors) {
-        firstMessage ??= Object.values(vehicleErrors).find(Boolean)
-        hasError = true
-      }
-    }
-
-    if (firstMessage) showError(firstMessage)
-
-    return !hasError
-  }
+  const validateRequiredFields = useEntryValidation({
+    activeForm,
+    formRef,
+    vehicleExpense,
+    showVehicleFields,
+    selectedCategory,
+    hasSubcategories,
+    setError,
+    clearErrors
+  })
 
   const saveRecord = async (entered: Record<string, string | number>, keepOpen = false) => {
     onLoadingChange(true)
     const settings = getSettings()!
-    const formValues = prepareEntryValues(activeForm.type, withAutoTitle(entered), bankSms)
+    const formValues = prepareBuildingEntry(
+      activeForm,
+      prepareEntryValues(activeForm.type, withAutoTitle(entered), bankSms)
+    )
     const vehicleInput = showVehicleFields
       ? vehicleExpense.buildVehicleExpenseInput(formValues)
       : null
@@ -177,25 +157,29 @@ export default function DataEntryForm({
 
     // The record exists now: a wallet/SMS failure must not invite a second save.
     await attachments.commit(settings.spreadsheetId, activeForm.sheetName, recordId)
-    await settleEntryWallet(
-      settings.spreadsheetId,
-      activeForm.type,
-      formValues,
-      bankSms,
-      recordId
-    ).catch(() => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد'))
+    await settleSavedEntry(settings.spreadsheetId, activeForm, formValues, bankSms, recordId)
+    const keepAccount = nextEntryPrefill(entered)
+
     showSavedForEntry(activeForm, recordId, formValues, vehicleInput)
     refreshOpeningBalancesInBackground()
     onLoadingChange(false)
+    draft.clearDraft()
     if (onSaved && !keepOpen) return onSaved()
-    reset(buildFormInitialValues(activeForm))
+    reset(buildFormInitialValues(activeForm, keepAccount))
     vehicleExpense.resetVehicleValues()
     attachments.reset()
     if (keepOpen) focusEntryAmount(formRef.current)
   }
 
-  const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const submitLock = useSubmitLock()
+
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    // Three quick taps on «ذخیره» must create one record, not three.
+    void submitLock(() => submitEntry(event))
+  }
+
+  const submitEntry = async (event: FormEvent<HTMLFormElement>) => {
     clearErrors()
     // «ذخیره و بعدی» submits too; it keeps the form open for the next entry.
     const keepOpen = !!(event.nativeEvent as SubmitEvent).submitter?.hasAttribute('data-save-next')
@@ -232,6 +216,7 @@ export default function DataEntryForm({
         onClose={retroactiveWarning.cancel}
         onConfirm={retroactiveWarning.confirm}
       />
+      {draft.restored && <EntryDraftNote onDiscard={draft.discard} />}
       <form
         ref={formRef}
         onSubmit={onFormSubmit}
@@ -248,6 +233,16 @@ export default function DataEntryForm({
             showVehicleFields={showVehicleFields}
             vehicleExpense={vehicleExpense}
             walletApplyHint={smsBalanceHint(bankSms, String(values.walletAccount ?? ''))}
+            beforeAccount={
+              hasBuildingExpenseFields(activeForm) ? (
+                <LazyBuildingExpenseFields
+                  part="who"
+                  values={values}
+                  setValue={(id, value) => setValue(id, value)}
+                  disabled={loading}
+                />
+              ) : null
+            }
             afterAmount={duplicateWarning}
             clearFieldError={fieldId => {
               vehicleExpense.clearFieldError(fieldId as keyof typeof vehicleExpense.fieldErrors)
@@ -274,11 +269,22 @@ export default function DataEntryForm({
         )}
 
         <AttachmentField state={attachments} disabled={loading} />
+        {hasBuildingExpenseFields(activeForm) && useStandardLayout ? (
+          <LazyBuildingExpenseFields
+            part="split"
+            values={values}
+            setValue={(id, value) => setValue(id, value)}
+            disabled={loading}
+          />
+        ) : null}
         <EntryFormActions
           formType={activeForm.type}
           loading={loading}
           saveDisabled={loading || vehicleExpense.loading}
-          onCancel={onCancel}
+          onCancel={() => {
+            draft.clearDraft()
+            onCancel?.()
+          }}
           showSaveNext={!bankSms}
         />
       </form>

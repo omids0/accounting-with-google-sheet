@@ -7,6 +7,8 @@ import {
   type RecordWalletState
 } from './recordsFilterPredicates'
 import { getFormField, type StoredRecord } from './recordsUtils'
+import { describeBuildingExpense } from '../../services/buildingExpenseMeta'
+import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -39,6 +41,10 @@ interface RecordsListRowProps {
   form: CustomForm
   isAllForms: boolean
   index: number
+  /** No edit and delete buttons (a building member without the `record` permission). */
+  readOnly?: boolean
+  /** A small tag next to the title (the building's «حساب نمی‌شود» on transfers). */
+  badge?: string
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
   onOpen: (record: StoredRecord) => void
@@ -53,6 +59,8 @@ function RecordsListRow({
   form,
   isAllForms,
   index,
+  readOnly = false,
+  badge,
   onEdit,
   onDelete,
   onOpen
@@ -74,6 +82,9 @@ function RecordsListRow({
   const category = recordCategoryField ? record.values[recordCategoryField.id] : ''
 
   const date = recordDateField ? record.values[recordDateField.id] : ''
+
+  // A record without a title is still named for screen readers («ویرایش رکورد»).
+  const itemName = String(title ?? '').trim() || 'رکورد'
 
   const subCategory = record.values[SUBCATEGORY_FIELD_ID] ?? ''
 
@@ -98,6 +109,7 @@ function RecordsListRow({
             fileIds={record.attachments}
             title={String(title)}
           />
+          {badge ? <span className={lineItemsBadgeClass}>{badge}</span> : null}
           {isIncome || isExpense ? (
             <span
               className={cn(
@@ -126,6 +138,9 @@ function RecordsListRow({
           {date ? formatIsoDatePersian(date) : record.createdAt}
           {category && ` · ${category}`}
           {subCategory && ` › ${subCategory}`}
+          {isExpense && isBuildingExpenseValues(record.values)
+            ? ` · ${describeBuildingExpense(record.values)}`
+            : null}
           {counterparty ? (
             <>
               {' '}
@@ -153,10 +168,12 @@ function RecordsListRow({
             />
           </div>
         )}
-        <div className={cn(cardActionButtonsClass, 'relative z-[1]')}>
-          <CardEditButton onClick={() => onEdit(record)} />
-          <CardDeleteButton onClick={() => onDelete(record)} />
-        </div>
+        {readOnly ? null : (
+          <div className={cn(cardActionButtonsClass, 'relative z-[1]')}>
+            <CardEditButton itemLabel={itemName} onClick={() => onEdit(record)} />
+            <CardDeleteButton itemLabel={itemName} onClick={() => onDelete(record)} />
+          </div>
+        )}
       </div>
     </TransactionListItem>
   )
