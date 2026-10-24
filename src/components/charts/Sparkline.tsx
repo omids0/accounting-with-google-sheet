@@ -3,6 +3,7 @@ import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 
 import { useChartTheme, prefersReducedMotion } from '../../hooks/useChartTheme'
 import { cn } from '../../utils/cn'
+import { SPARKLINE_MAX_POINTS } from '../../utils/sparklineData'
 import { sparklineClass } from '../ui/chartStyles'
 
 type SparklineTone = 'income' | 'expense' | 'primary' | 'neutral'
@@ -38,7 +39,8 @@ export default function Sparkline({
 }: SparklineProps) {
   const theme = useChartTheme()
 
-  const animate = !prefersReducedMotion()
+  // A series longer than the thinned size (uncapped caller) draws without the 500 ms sweep.
+  const animate = !prefersReducedMotion() && data.length <= SPARKLINE_MAX_POINTS
 
   const color = toneColor(theme, tone)
 
