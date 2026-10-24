@@ -11,7 +11,11 @@ import {
   detectVehicleExpense,
   type VehicleExpenseLink
 } from '../../services/nudgeSignals'
-import { savedInSheetMessage, waitForSheetConfirmation } from '../../services/saveConfirmation'
+import {
+  savedInSheetMessage,
+  waitForSheetConfirmation,
+  type SaveOutcome
+} from '../../services/saveConfirmation'
 import { getSettings } from '../../services/settings'
 import type { VehicleExpenseInput } from '../../services/vehicleExpenseActions'
 import { useNavigationStore } from '../../stores/navigationStore'
@@ -96,11 +100,13 @@ export function showSavedForEntry(
   // At once a neutral «در حال ذخیره…»; the real wording replaces it when the outbox has answered.
   showSaving()
   void waitForSheetConfirmation(spreadsheetId)
-    .catch(() => false)
-    .then(confirmed => {
+    .catch((): SaveOutcome => 'queued')
+    .then(outcome => {
       hideSaving()
+      if (outcome === 'refused') return showError(savedInSheetMessage(form.sheetName, outcome))
+
       presentSavedForEntry(
-        savedInSheetMessage(form.sheetName, confirmed),
+        savedInSheetMessage(form.sheetName, outcome),
         spreadsheetId,
         form,
         recordId,
@@ -110,7 +116,7 @@ export function showSavedForEntry(
     })
     .catch(() => {
       hideSaving()
-      showSuccess(savedInSheetMessage(form.sheetName, false))
+      showSuccess(savedInSheetMessage(form.sheetName, 'queued'))
     })
 }
 

@@ -22,7 +22,8 @@ export function showSaving(message = 'در حال ذخیره…') {
 }
 
 export function hideSaving() {
-  toast.dismiss(SAVING_TOAST_ID)
+  // Removed at once, not faded: the final toast replaces it instead of stacking above it.
+  toast.remove(SAVING_TOAST_ID)
 }
 
 export function showInfo(message: string) {

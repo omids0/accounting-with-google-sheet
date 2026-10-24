@@ -14,9 +14,28 @@ vi.mock('./syncOutbox', () => ({
   getConflictEntries: () => stuck.conflicts
 }))
 
-const { QUEUED_SAVE_MESSAGE, savedInSheetMessage, waitForSheetConfirmation } = await import(
-  './saveConfirmation'
-)
+const {
+  QUEUED_SAVE_MESSAGE,
+  REFUSED_SAVE_MESSAGE,
+  SAVE_CONFIRM_WAIT_MS,
+  savedInSheetMessage,
+  waitForSheetConfirmation
+} = await import('./saveConfirmation')
+
+const setOnline = (value: boolean) =>
+  Object.defineProperty(navigator, 'onLine', { value, configurable: true })
+
+/** A flush that answers `result` after `ms` of (fake) time. */
+const flushTakes = (ms: number, result: boolean, after?: () => void) =>
+  flush.mockImplementation(
+    () =>
+      new Promise(resolve =>
+        setTimeout(() => {
+          after?.()
+          resolve(result)
+        }, ms)
+      )
+  )
 
 describe('the save toast only claims the sheet after the outbox confirmed', () => {
   beforeEach(() => {
@@ -25,77 +44,90 @@ describe('the save toast only claims the sheet after the outbox confirmed', () =
     pending.value = false
     stuck.failed = []
     stuck.conflicts = []
-    Object.defineProperty(navigator, 'onLine', { value: true, configurable: true })
+    setOnline(true)
   })
 
   afterEach(() => vi.useRealTimers())
 
-  it('confirms when the flush finishes in time', async () => {
+  it('online and fast: confirmed as soon as the flush ends', async () => {
     flush.mockResolvedValue(true)
 
-    await expect(waitForSheetConfirmation('s')).resolves.toBe(true)
+    await expect(waitForSheetConfirmation('s')).resolves.toBe('confirmed')
   })
 
-  it('does not confirm while a write is still queued', async () => {
-    flush.mockResolvedValue(true)
-    pending.value = true
+  it('online and slow (3 s): keeps waiting and then confirms, never the offline wording', async () => {
+    flushTakes(3000, true)
 
-    await expect(waitForSheetConfirmation('s')).resolves.toBe(false)
+    const result = waitForSheetConfirmation('s')
+
+    await vi.advanceTimersByTimeAsync(1500)
+    // Past the old 1.5 s cap the answer is still open.
+    await vi.advanceTimersByTimeAsync(1500)
+    await expect(result).resolves.toBe('confirmed')
   })
 
-  it('does not confirm a write the sheet refused for good (parked, queue empty)', async () => {
-    flush.mockImplementation(async () => {
+  it('online but silent for the whole cap: queued', async () => {
+    flush.mockReturnValue(new Promise(() => undefined))
+
+    const result = waitForSheetConfirmation('s')
+
+    await vi.advanceTimersByTimeAsync(SAVE_CONFIRM_WAIT_MS)
+    await expect(result).resolves.toBe('queued')
+    expect(SAVE_CONFIRM_WAIT_MS).toBe(10_000)
+  })
+
+  it('offline: queued at once, without trying', async () => {
+    setOnline(false)
+
+    await expect(waitForSheetConfirmation('s')).resolves.toBe('queued')
+    expect(flush).not.toHaveBeenCalled()
+  })
+
+  it('a write the sheet refused for good: refused, even though the queue is empty', async () => {
+    flushTakes(500, true, () => {
       stuck.failed = [{ id: 'refused' }]
-
-      return true
     })
 
-    await expect(waitForSheetConfirmation('s')).resolves.toBe(false)
+    const result = waitForSheetConfirmation('s')
+
+    await vi.advanceTimersByTimeAsync(500)
+    await expect(result).resolves.toBe('refused')
   })
 
-  it('does not confirm a write that landed in a conflict', async () => {
+  it('a write that landed in a conflict: refused', async () => {
     flush.mockImplementation(async () => {
       stuck.conflicts = [{ id: 'clash' }]
 
       return true
     })
 
-    await expect(waitForSheetConfirmation('s')).resolves.toBe(false)
+    await expect(waitForSheetConfirmation('s')).resolves.toBe('refused')
   })
 
-  it('is not held back by an old parked write that was already there', async () => {
+  it('an old parked write that was already there does not count', async () => {
     stuck.failed = [{ id: 'old' }]
     flush.mockResolvedValue(true)
 
-    await expect(waitForSheetConfirmation('s')).resolves.toBe(true)
+    await expect(waitForSheetConfirmation('s')).resolves.toBe('confirmed')
   })
 
-  it('does not confirm a flush that was blocked or refused', async () => {
+  it('a write still waiting, or a network failure, leaves the row queued', async () => {
+    flush.mockResolvedValue(true)
+    pending.value = true
+    await expect(waitForSheetConfirmation('s')).resolves.toBe('queued')
+
+    pending.value = false
     flush.mockResolvedValue(false)
-    await expect(waitForSheetConfirmation('s')).resolves.toBe(false)
+    await expect(waitForSheetConfirmation('s')).resolves.toBe('queued')
+
     flush.mockRejectedValue(new Error('network'))
-    await expect(waitForSheetConfirmation('s')).resolves.toBe(false)
-  })
-
-  it('gives up waiting when googleapis never answers', async () => {
-    flush.mockReturnValue(new Promise(() => undefined))
-
-    const result = waitForSheetConfirmation('s', 1500)
-
-    await vi.advanceTimersByTimeAsync(1500)
-    await expect(result).resolves.toBe(false)
-  })
-
-  it('does not even try offline', async () => {
-    Object.defineProperty(navigator, 'onLine', { value: false, configurable: true })
-
-    await expect(waitForSheetConfirmation('s')).resolves.toBe(false)
-    expect(flush).not.toHaveBeenCalled()
+    await expect(waitForSheetConfirmation('s')).resolves.toBe('queued')
   })
 
   it('words the toast by what is known', () => {
-    expect(savedInSheetMessage('هزینه', true)).toBe('در شیت «هزینه» ذخیره شد')
-    expect(savedInSheetMessage('هزینه', false)).toBe(QUEUED_SAVE_MESSAGE)
+    expect(savedInSheetMessage('هزینه', 'confirmed')).toBe('در شیت «هزینه» ذخیره شد')
+    expect(savedInSheetMessage('هزینه', 'queued')).toBe(QUEUED_SAVE_MESSAGE)
+    expect(savedInSheetMessage('هزینه', 'refused')).toBe(REFUSED_SAVE_MESSAGE)
     expect(QUEUED_SAVE_MESSAGE).not.toMatch(/^در شیت/)
   })
 })
