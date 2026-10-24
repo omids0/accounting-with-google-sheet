@@ -19,7 +19,8 @@ type ImportExportFns = {
 
 /** How marking an item paid asks for the account and catches a payment recorded already. */
 export type SettleConfig<T> = {
-  type: 'expense' | 'income'
+  /** A function when each item decides (a check is paid or received). */
+  type: 'expense' | 'income' | ((item: T) => 'expense' | 'income')
   titleFor: (item: T) => string
   amountFor: (item: T) => number
   dateFor?: (item: T) => string
@@ -89,9 +90,11 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
     let options: SettleOptions | null | undefined
     let unlink: UnlinkChoice | null | undefined
 
-    if (settle && paid) {
+    const settleType = typeof settle?.type === 'function' ? settle.type(item) : settle?.type
+
+    if (settle && settleType && paid) {
       options = await settleFlow.askSettle({
-        type: settle.type,
+        type: settleType,
         title: settle.titleFor(item),
         amount: settle.amountFor(item),
         date: settle.dateFor?.(item),
@@ -100,10 +103,10 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
         linkedIds: settle.linkedIds
       })
       if (!options) return
-    } else if (settle) {
+    } else if (settle && settleType) {
       const recordId = settle.recordIdOf(item) ?? ''
 
-      if (await isLinkedForeignRecord(spreadsheetId, settle.type, recordId, settle.prefix)) {
+      if (await isLinkedForeignRecord(spreadsheetId, settleType, recordId, settle.prefix)) {
         unlink = await settleFlow.askUnlink()
         if (!unlink) return
       }

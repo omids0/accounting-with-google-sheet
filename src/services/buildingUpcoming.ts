@@ -86,12 +86,13 @@ export function buildingUpcoming(input: {
     (item): DashboardReminderItem => ({
       id: `building_check_${item.id}`,
       kind: 'checks',
-      kindLabel: 'چک',
+      kindLabel: item.label ?? 'چک',
       title: item.title,
       subtitle: item.subtitle,
       dueDate: item.dueDate,
       amount: item.amount,
-      status: item.status
+      status: item.status,
+      incoming: item.incoming
     })
   )
 

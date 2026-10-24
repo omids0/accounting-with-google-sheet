@@ -118,7 +118,7 @@ export default function ModuleReportPage({ kind }: { kind: ModuleReportKind }) {
       </Card>
 
       <StatCard
-        label="مجموع"
+        label={data?.totalLabel ?? 'مجموع'}
         amount={data?.total ?? 0}
         variant="balance"
         wide

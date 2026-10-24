@@ -16,6 +16,8 @@ interface SegmentedRadioProps<T extends string> {
   /** Accessible name of the group (the visible heading's text). */
   label: string
   className?: string
+  /** Locks the choice (it stays visible, dimmed). */
+  disabled?: boolean
 }
 
 /**
@@ -27,7 +29,8 @@ export default function SegmentedRadio<T extends string>({
   value,
   onChange,
   label,
-  className
+  className,
+  disabled
 }: SegmentedRadioProps<T>) {
   const groupRef = useRef<HTMLDivElement>(null)
 
@@ -48,7 +51,8 @@ export default function SegmentedRadio<T extends string>({
       ref={groupRef}
       role="radiogroup"
       aria-label={label}
-      className={cn(recordsTypeSegmentClass, 'mb-0', className)}
+      aria-disabled={disabled || undefined}
+      className={cn(recordsTypeSegmentClass, 'mb-0', disabled && 'opacity-60', className)}
     >
       {options.map(option => {
         const checked = option.value === value
@@ -59,6 +63,7 @@ export default function SegmentedRadio<T extends string>({
             type="button"
             role="radio"
             aria-checked={checked}
+            disabled={disabled}
             tabIndex={checked ? 0 : -1}
             data-value={option.value}
             className={cn(checked && 'active')}

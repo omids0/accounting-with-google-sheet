@@ -57,6 +57,8 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
       if (editingItem) {
         const updated: Check = {
           ...editingItem,
+          // A passed check keeps its type: the record it made is an expense or an income.
+          direction: editingItem.paid ? editingItem.direction : form.direction,
           checkNumber: form.checkNumber.trim(),
           subCategory: form.subCategory.trim(),
           counterparty: form.counterparty.trim(),
@@ -70,6 +72,7 @@ export function useChecksForm({ onSaved }: UseChecksFormOptions) {
         showSuccess('چک ویرایش شد')
       } else {
         const created = await createCheck(settings.spreadsheetId, {
+          direction: form.direction,
           checkNumber: form.checkNumber.trim(),
           subCategory: form.subCategory.trim(),
           counterparty: form.counterparty.trim(),

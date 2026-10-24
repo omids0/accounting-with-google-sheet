@@ -1,3 +1,4 @@
+import { CHECK_DIRECTION_HEADER } from './checkDirection'
 import { ATTACHMENTS_HEADER } from '../utils/attachmentIds'
 import { parseCsv, restoreCsvFormula } from '../utils/csv'
 import { WRITER_HEADER } from '../utils/writerColumn'
@@ -31,9 +32,9 @@ export interface ParsedImportCsv {
 }
 
 function hasHeaderRow(firstRow: string[], allHeaders: string[]): boolean {
-  // A file exported before «پیوست» or «ثبت‌کننده» existed lacks those trailing columns only.
+  // A file exported before «پیوست», «ثبت‌کننده» or «نوع چک» existed lacks those trailing columns only.
   const headers = [...allHeaders]
-  const optional = [WRITER_HEADER, ATTACHMENTS_HEADER]
+  const optional = [WRITER_HEADER, ATTACHMENTS_HEADER, CHECK_DIRECTION_HEADER]
 
   while (headers.length && optional.includes(headers[headers.length - 1])) headers.pop()
 

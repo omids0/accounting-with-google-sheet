@@ -16,6 +16,8 @@ export interface DashboardReminderItem {
   dueDate: string
   amount: number
   status: DueDateStatus
+  /** Money coming in (a received check): late is not a debt, so it is not shown as danger. */
+  incoming?: boolean
 }
 
 export const DASHBOARD_REMINDERS_HORIZON_DAYS = 30
@@ -39,12 +41,13 @@ function mapDueDateItem(item: DueDateItem): DashboardReminderItem {
   return {
     id: `${item.type}_${item.id}`,
     kind,
-    kindLabel: getReminderKindLabel(kind),
+    kindLabel: item.label ?? getReminderKindLabel(kind),
     title: item.title,
     subtitle: item.subtitle,
     dueDate: item.dueDate,
     amount: item.amount,
-    status: item.status
+    status: item.status,
+    incoming: item.incoming
   }
 }
 

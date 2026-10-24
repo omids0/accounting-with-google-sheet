@@ -2,20 +2,14 @@ import { useMemo } from 'react'
 
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { useSharing } from '../../hooks/useSharing'
-import { CHECKS_SHEET, totalChecksInRange, totalUnpaidChecksInRange } from '../../services/checks'
-import {
-  formatJalaliMonthLabel,
-  getInstallmentDueRange,
-  getJalaliMonthKey
-} from '../../utils/dateRange'
-import { getTodayIso } from '../../utils/jalaliDate'
-import { distributionSparkline } from '../../utils/sparklineData'
+import { CHECK_DIRECTION_LABELS } from '../../services/checkDirection'
+import { CHECKS_SHEET } from '../../services/checks'
 import AttachmentBadge from '../attachments/AttachmentBadge'
 import EmptyState from '../EmptyState'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
-import StatCard from '../StatCard'
 import CheckCard from './CheckCard'
+import CheckTotals from './CheckTotals'
 import type { CheckWithRow } from './types'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
 import {
@@ -26,7 +20,6 @@ import {
   writerColumn
 } from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
-import { dashboardStatGridClass } from '../ui/chartStyles'
 import { listCardsContainerClass } from '../ui/featureCardStyles'
 import { useReadOnly } from '../ui/readOnly'
 
@@ -40,6 +33,9 @@ export type CheckListProps = {
   onDelete: (item: CheckWithRow) => void
   /** Opens the same create form as the page speed dial. */
   onAdd?: () => void
+  /** The active «نوع چک» filter's label ('' = none), named when it hides every row. */
+  directionNote?: string
+  onClearDirection?: () => void
 }
 
 export default function CheckList({
@@ -50,32 +46,24 @@ export default function CheckList({
   onTogglePaid,
   onEdit,
   onDelete,
-  onAdd
+  onAdd,
+  directionNote,
+  onClearDirection
 }: CheckListProps) {
   const isDesktop = useIsDesktop()
-  const monthRange = useMemo(() => getInstallmentDueRange('month-to-date'), [])
-  const monthLabel = useMemo(() => formatJalaliMonthLabel(getJalaliMonthKey(getTodayIso())), [])
-
-  const monthTotals = useMemo(
-    () => ({
-      total: totalChecksInRange(filteredItems, monthRange),
-      unpaid: totalUnpaidChecksInRange(filteredItems, monthRange)
-    }),
-    [filteredItems, monthRange]
-  )
-
   const { shared } = useSharing()
   const readOnly = useReadOnly()
   const columns = useMemo<DataTableColumn<CheckWithRow>[]>(
     () => [
       checkboxColumn({
-        header: 'پرداخت شد',
+        header: 'پاس شد',
         checked: item => item.paid,
         disabled: item => togglingId === item.id || readOnly,
-        label: item => `پرداخت شد: چک ${item.checkNumber}`,
+        label: item => `پاس شد: چک ${CHECK_DIRECTION_LABELS[item.direction]} ${item.checkNumber}`,
         onChange: onTogglePaid
       }),
       textColumn('number', 'شماره', item => item.checkNumber, true),
+      textColumn('direction', 'نوع', item => CHECK_DIRECTION_LABELS[item.direction]),
       textColumn('counterparty', 'طرف حساب', item => item.counterparty),
       ...(shared ? [writerColumn<CheckWithRow>(item => item.writer)] : []),
       dateColumn('created', 'صدور', item => item.creationDate),
@@ -101,7 +89,12 @@ export default function CheckList({
   }
 
   if (filteredItems.length === 0) {
-    return <SearchEmptyState />
+    return (
+      <SearchEmptyState
+        filterNote={directionNote ? `فیلتر «نوع چک: ${directionNote}» فعال است.` : undefined}
+        onClearFilter={onClearDirection}
+      />
+    )
   }
 
   return (
@@ -140,27 +133,7 @@ export default function CheckList({
         </div>
       )}
 
-      <div className={dashboardStatGridClass}>
-        <StatCard
-          label={`مجموع چک‌های ${monthLabel}`}
-          amount={monthTotals.total}
-          variant="default"
-          tone="primary"
-          sparklineData={distributionSparkline(filteredItems.map(item => item.amount))}
-          animateIndex={0}
-          lift
-        />
-        <StatCard
-          label="پرداخت‌نشده تا پایان ماه"
-          amount={monthTotals.unpaid}
-          variant="expense"
-          sparklineData={distributionSparkline(
-            filteredItems.filter(item => !item.paid).map(item => item.amount)
-          )}
-          animateIndex={1}
-          lift
-        />
-      </div>
+      <CheckTotals items={filteredItems} />
     </>
   )
 }

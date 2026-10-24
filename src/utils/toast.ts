@@ -26,6 +26,6 @@ export function hideSaving() {
   toast.remove(SAVING_TOAST_ID)
 }
 
-export function showInfo(message: string) {
-  toast(message)
+export function showInfo(message: string, duration?: number) {
+  toast(message, duration ? { duration } : undefined)
 }

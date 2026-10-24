@@ -1,3 +1,4 @@
+import { checksOfDirection } from './checkDirection'
 import { applyNetAvailableConfig } from './dashboardNetAvailable'
 import { totalInstallmentsInRange } from './installmentsCalculations'
 import type { NetWorthSnapshot } from './netWorth'
@@ -5,6 +6,7 @@ import type { MonthlyNetTotals } from './openingBalanceDerive'
 import { computeHoldings } from './treasuryHoldings'
 import type {
   Check,
+  CheckDirection,
   Dang,
   InstallmentPlan,
   NetAvailableConfig,
@@ -12,7 +14,7 @@ import type {
   VaultAsset,
   VaultTransaction
 } from '../types'
-import { getJalaliMonthRange, isDateInRange } from '../utils/dateRange'
+import { getJalaliMonthRange, isDateInRange, type DateRange } from '../utils/dateRange'
 import { normalizeSheetDate } from '../utils/sheetValues'
 
 /** Everything the rebuild reads; today's balances plus the dated history behind them. */
@@ -75,6 +77,28 @@ function receivablesAt(receivables: Receivable[], endIso: string): number {
     }, 0)
 }
 
+function openAt(check: Check, endIso: string): boolean {
+  if (!check.paid) return true
+
+  // «۱۴۰۵/۷/۲۳، ۱۰:۴۰:۱۲»: the day is what comes before the time.
+  const paidOn = normalizeSheetDate(check.paidAt.split(/[،,\s]/)[0])
+
+  return Boolean(paidOn) && paidOn > endIso
+}
+
+/**
+ * Checks of one type due inside the month. A payable is the debt of that month whatever it is
+ * today. A received check is an asset only while it is not cashed: one passed by the month's end
+ * is already in the wallet, and counting it too would count the money twice (a pass date that
+ * cannot be read counts as passed).
+ */
+function checksDueIn(checks: Check[], range: DateRange, direction: CheckDirection): number {
+  return checksOfDirection(checks, direction)
+    .filter(check => isDateInRange(check.dueDate, range))
+    .filter(check => direction === 'paid' || openAt(check, range.end))
+    .reduce((sum, check) => sum + check.amount, 0)
+}
+
 /**
  * Month-end values of a past month, approximated as round 5 documented: wallet
  * from today's balance and the monthly net flow, vault holdings of that time at
@@ -98,9 +122,8 @@ export function rebuildMonthValues(
       goalsTotal: input.goalsTotal,
       receivablesTotal: receivablesAt(input.receivables, range.end),
       installmentsDue: totalInstallmentsInRange(input.installmentPlans, range),
-      checksDue: input.checks
-        .filter(check => isDateInRange(check.dueDate, range))
-        .reduce((sum, check) => sum + check.amount, 0),
+      checksDue: checksDueIn(input.checks, range, 'paid'),
+      checksReceivable: checksDueIn(input.checks, range, 'received'),
       dangsTotal: input.dangs
         .filter(item => !item.paid && isOnOrBefore(item.date, range.end))
         .reduce((sum, item) => sum + item.amount, 0)

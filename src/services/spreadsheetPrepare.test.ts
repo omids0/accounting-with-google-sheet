@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { migrateCheckDirectionColumn } from './migrateCheckDirectionColumn'
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
 import { migrateWalletColumns } from './migrateWalletApplyColumn'
@@ -30,6 +31,9 @@ vi.mock('./categories', () => ({
 }))
 vi.mock('./migrateLegacyMachineExpenseCategory', () => ({
   migrateLegacyMachineExpenseCategory: vi.fn(async () => ({ migratedRecords: 0 }))
+}))
+vi.mock('./migrateCheckDirectionColumn', () => ({
+  migrateCheckDirectionColumn: vi.fn(async () => undefined)
 }))
 vi.mock('./migrateSubCategoryColumn', () => ({
   migrateSubCategoryColumn: vi.fn(async () => undefined)
@@ -73,6 +77,7 @@ describe('the personal one-off migrations', () => {
   beforeEach(() => {
     vi.mocked(migrateLegacyMachineExpenseCategory).mockClear()
     vi.mocked(migrateSubCategoryColumn).mockClear()
+    vi.mocked(migrateCheckDirectionColumn).mockClear()
     vi.mocked(migrateWalletColumns).mockClear()
     vi.mocked(ensureMembershipDate).mockClear()
   })
@@ -83,6 +88,7 @@ describe('the personal one-off migrations', () => {
 
     expect(migrateLegacyMachineExpenseCategory).toHaveBeenCalledWith('personal-1')
     expect(migrateSubCategoryColumn).toHaveBeenCalledWith('personal-1')
+    expect(migrateCheckDirectionColumn).toHaveBeenCalledWith('personal-1')
     expect(migrateWalletColumns).toHaveBeenCalledWith('personal-1')
     expect(ensureMembershipDate).toHaveBeenCalledWith('personal-1')
   })
@@ -93,6 +99,7 @@ describe('the personal one-off migrations', () => {
 
     expect(migrateLegacyMachineExpenseCategory).not.toHaveBeenCalled()
     expect(migrateSubCategoryColumn).not.toHaveBeenCalled()
+    expect(migrateCheckDirectionColumn).not.toHaveBeenCalled()
     expect(migrateWalletColumns).not.toHaveBeenCalled()
     expect(ensureMembershipDate).toHaveBeenCalledWith('building-1')
   })

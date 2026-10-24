@@ -41,10 +41,17 @@ export interface Dang {
   writer?: string
 }
 
+/** Which way a check goes: «پرداختی» I give it (a liability), «دریافتی» I receive it (an asset). */
+export type CheckDirection = 'paid' | 'received'
+
 export interface Check {
   id: string
   createdAt: string
   checkNumber: string
+  /** Column «نوع چک»; a row without the cell is a payable. */
+  direction: CheckDirection
+  /** What the type cell says when it is neither «پرداختی» nor «دریافتی» (read as paid). */
+  directionRaw?: string
   subCategory?: string
   counterparty: string
   amount: number

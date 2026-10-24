@@ -1,3 +1,4 @@
+import { checkListTitle, checkTypeLabel } from './checkDirection'
 import { searchText, type SearchEntry } from './globalSearch'
 import { buildingSearchEntries, type BuildingSearchSources } from './globalSearchBuilding'
 import { withWriterNames } from './globalSearchWriter'
@@ -169,11 +170,11 @@ function moduleEntries(sources: SearchSources): SearchEntry[] {
   const checks = sources.checks.map(item => ({
     group: 'checks' as const,
     id: item.id,
-    title: joinParts(`چک ${toPersianDigits(item.checkNumber)}`.trim(), item.counterparty),
+    title: joinParts(checkListTitle(item), item.counterparty),
     subtitle: joinParts(dated('سررسید', item.dueDate), item.paid ? 'پاس‌شده' : ''),
     amount: item.amount,
     date: item.dueDate,
-    text: searchText('چک', item.checkNumber, item.counterparty, item.subCategory),
+    text: searchText(checkTypeLabel(item), item.checkNumber, item.counterparty, item.subCategory),
     amounts: [item.amount],
     writer: item.writer
   }))

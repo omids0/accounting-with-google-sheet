@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 
+import { CHECK_DIRECTION_OPTIONS, checkCounterpartyLabel } from './checkDirectionOptions'
+import { showReceivedCheckHintOnce } from './receivedCheckHint'
 import type { CheckFormState, CheckWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
-import { CHECK_EXPENSE_CATEGORY } from '../../services/checks'
+import { CHECK_EXPENSE_CATEGORY, CHECK_INCOME_CATEGORY } from '../../services/checks'
 import {
   requiredDate,
   requiredField,
@@ -16,7 +18,13 @@ import AmountInput from '../AmountInput'
 import AttachmentField from '../attachments/AttachmentField'
 import type { AttachmentDraftsState } from '../attachments/useAttachmentDrafts'
 import type { CounterpartyWithRow } from '../counterparties/types'
-import { CounterpartySelect, FormField, FormRow, PaymentSubCategoryField } from '../form'
+import {
+  CounterpartySelect,
+  FormField,
+  FormRow,
+  PaymentSubCategoryField,
+  SegmentedRadio
+} from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 
@@ -48,6 +56,7 @@ export default function CheckFormModal({
     () =>
       editingItem
         ? {
+            direction: editingItem.direction,
             checkNumber: editingItem.checkNumber,
             counterparty: editingItem.counterparty,
             subCategory: editingItem.subCategory ?? '',
@@ -56,6 +65,7 @@ export default function CheckFormModal({
             dueDate: editingItem.dueDate
           }
         : {
+            direction: 'paid',
             checkNumber: '',
             counterparty: '',
             subCategory: '',
@@ -66,10 +76,23 @@ export default function CheckFormModal({
     [editingItem]
   )
 
-  const { control, handleSubmit, reset } = useForm<CheckFormState>({
+  const { control, handleSubmit, reset, setValue } = useForm<CheckFormState>({
     defaultValues: initialValues,
     mode: 'onSubmit'
   })
+
+  const direction = useWatch({ control, name: 'direction' })
+  const received = direction === 'received'
+  const counterpartyLabel = checkCounterpartyLabel(direction)
+  // The record a passed check made is an expense or an income: its type stays.
+  const directionLocked = Boolean(editingItem?.paid)
+  const raw = editingItem?.directionRaw
+
+  const directionHint = directionLocked
+    ? 'چک پاس شده است؛ نوعش دیگر قابل تغییر نیست.'
+    : raw
+    ? `در شیت «${raw}» نوشته شده بود و پرداختی حساب شد؛ نوع درست را انتخاب کنید.`
+    : undefined
 
   useModalFormReset(reset, initialValues, {
     active: open,
@@ -99,6 +122,28 @@ export default function CheckFormModal({
       saving={saving}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره چک'}
     >
+      <Controller
+        name="direction"
+        control={control}
+        render={({ field }) => (
+          <FormField controlWidth="full" hint={directionHint}>
+            <SegmentedRadio
+              label="نوع چک"
+              options={CHECK_DIRECTION_OPTIONS}
+              value={field.value}
+              onChange={value => {
+                field.onChange(value)
+                if (value === 'received') showReceivedCheckHintOnce()
+                // Its subcategories belong to the other record type.
+                setValue('subCategory', '')
+              }}
+              disabled={directionLocked}
+              className="[&_button]:min-h-11"
+            />
+          </FormField>
+        )}
+      />
+
       <FormRow>
         <Controller
           name="checkNumber"
@@ -159,10 +204,10 @@ export default function CheckFormModal({
       <Controller
         name="counterparty"
         control={control}
-        rules={requiredField('طرف حساب')}
+        rules={requiredField(received ? 'صادرکننده' : 'گیرنده')}
         render={({ field, fieldState }) => (
           <FormField
-            label="طرف حساب"
+            label={counterpartyLabel}
             required
             controlWidth="full"
             error={fieldState.error?.message}
@@ -172,7 +217,7 @@ export default function CheckFormModal({
               onChange={field.onChange}
               counterparties={counterparties}
               onCounterpartiesChange={onCounterpartiesChange}
-              aria-label="طرف حساب چک"
+              aria-label={`${counterpartyLabel} چک`}
               invalid={Boolean(fieldState.error)}
             />
           </FormField>
@@ -186,8 +231,8 @@ export default function CheckFormModal({
           <PaymentSubCategoryField
             value={field.value}
             onChange={field.onChange}
-            categoryType="expense"
-            category={CHECK_EXPENSE_CATEGORY}
+            categoryType={received ? 'income' : 'expense'}
+            category={received ? CHECK_INCOME_CATEGORY : CHECK_EXPENSE_CATEGORY}
             ariaLabel="زیردسته چک"
           />
         )}
