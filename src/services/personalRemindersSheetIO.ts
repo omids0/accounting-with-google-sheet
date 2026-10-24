@@ -6,6 +6,7 @@ import {
   getPersonalReminderRecurrenceLabel,
   personalReminderRowFromImportCells
 } from './personalReminders'
+import { validatePersonalReminderCsvCells } from './personalRemindersCsvValidate'
 import { formatMoney } from '../utils/formatMoney'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPersianDate } from '../utils/pdfFormat'
@@ -46,7 +47,7 @@ export async function importPersonalRemindersCsv(spreadsheetId: string, csvConte
     PERSONAL_REMINDERS_HEADERS,
     csvContent,
     cells => {
-      const row = personalReminderRowFromImportCells(cells)
+      const row = personalReminderRowFromImportCells(validatePersonalReminderCsvCells(cells))
 
       if (!row) return null
 
