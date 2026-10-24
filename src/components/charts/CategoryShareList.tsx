@@ -20,13 +20,14 @@ import {
   calmRowMainClass,
   calmRowTitleClass
 } from '../ui/calmListStyles'
+import { categoryDonutLegendPctClass } from '../ui/chartStyles'
 
 interface CategoryShareListProps {
   items: CategoryShare[]
   tone: 'income' | 'expense'
   /**
    * `bar`: a thin share-of-total bar under each name (dashboard «تحلیل این ماه»).
-   * `dot`: a color dot matching the donut slice and «۵۳٪ · مبلغ» (charts page).
+   * `dot`: a color dot matching the donut slice and a «۵۳٪» chip beside the amount (charts page).
    */
   variant?: 'bar' | 'dot'
   /** Dot color per row, same order as `items`. */
@@ -129,10 +130,19 @@ export default function CategoryShareList({
           {renderMain(item)}
           {/* The budget line already carries the amount on the dashboard rows. */}
           {variant === 'bar' && budgetMode ? null : (
-            <span className={cn(calmRowEndClass, variant === 'bar' && toneText)}>
-              {variant === 'dot'
-                ? `${formatPersianPercent(Math.round(item.share * 100))} · `
-                : null}
+            <span
+              className={cn(
+                calmRowEndClass,
+                variant === 'bar' && toneText,
+                variant === 'dot' && 'inline-flex items-center gap-2'
+              )}
+            >
+              {/* A separate chip (like the donut legend), not «٪ · مبلغ»: that dot read as a Persian ۰. */}
+              {variant === 'dot' ? (
+                <span className={categoryDonutLegendPctClass}>
+                  {formatPersianPercent(Math.round(item.share * 100))}
+                </span>
+              ) : null}
               <MoneyText amount={item.total} />
               {variant === 'bar' ? (
                 <span className="sr-only">{` · ${formatPersianPercent(
