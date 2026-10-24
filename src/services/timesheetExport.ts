@@ -1,6 +1,7 @@
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { fetchSheetRows } from './sheets'
 import { fetchTimesheetEntries, fetchTimesheets, totalDurationMinutes } from './timesheetCrud'
+import { validateTimesheetEntryCsvCells } from './timesheetEntryCsvValidate'
 import {
   TIMESHEET_ENTRIES_HEADERS,
   TIMESHEET_ENTRIES_SHEET,
@@ -103,14 +104,16 @@ export async function importTimesheetEntriesCsv(
     TIMESHEET_ENTRIES_HEADERS,
     csvContent,
     cells => {
+      const valid = validateTimesheetEntryCsvCells(cells)
+
       const entry = buildTimesheetEntryFromImport(
         [
           newImportId(cells[0] ?? ''),
           cells[1] ?? '',
           newImportTimestamp(cells[2] ?? ''),
-          cells[3] ?? '',
-          cells[4] ?? '',
-          cells[5] ?? '',
+          valid[3],
+          valid[4],
+          valid[5],
           cells[6] ?? '',
           cells[7] ?? '',
           cells[8] ?? ''
