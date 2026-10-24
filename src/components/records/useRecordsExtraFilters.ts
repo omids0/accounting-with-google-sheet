@@ -69,8 +69,12 @@ export function useRecordsExtraFilters(records: StoredRecord[], initialCounterpa
     () => [
       counterparty !== ALL_COUNTERPARTIES &&
         buildCounterpartyChip(counterparty, () => setCounterparty(ALL_COUNTERPARTIES)),
+      // No chip until the account title is known: never a wrong «حساب حذف‌شده».
       walletAccount !== ALL_WALLET_ACCOUNTS &&
-        buildWalletAccountChip(titleOf(walletAccount), () => setWalletAccount(ALL_WALLET_ACCOUNTS)),
+        titleOf(walletAccount) !== undefined &&
+        buildWalletAccountChip(titleOf(walletAccount) ?? '', () =>
+          setWalletAccount(ALL_WALLET_ACCOUNTS)
+        ),
       hasAmountRange &&
         buildAmountRangeChip(minAmount, maxAmount, () => {
           setMinAmount('')

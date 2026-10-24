@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { ALL_WALLET_ACCOUNTS, distinctWalletAccounts } from './recordsFilterPredicates'
 import type { StoredRecord } from './recordsUtils'
@@ -8,10 +8,14 @@ import type { SelectOption } from '../form/Select'
 
 const DELETED_ACCOUNT = 'حساب حذف‌شده'
 
-/** «همه حساب‌ها» plus the accounts the loaded records name, titled from the wallet sheet. */
+/**
+ * «همه حساب‌ها» plus the accounts the loaded records name, titled from the wallet sheet.
+ * Until the titles have loaded (or if the read fails) only «همه حساب‌ها» is offered and no
+ * account has a title; «حساب حذف‌شده» is used only once the read succeeded and the id is gone.
+ */
 export function useRecordsWalletOptions(records: StoredRecord[]) {
   const ids = useMemo(() => distinctWalletAccounts(records), [records])
-  const [titles, setTitles] = useState<Map<string, string>>(new Map())
+  const [titles, setTitles] = useState<Map<string, string> | null>(null)
   const hasIds = ids.length > 0
 
   useEffect(() => {
@@ -30,13 +34,18 @@ export function useRecordsWalletOptions(records: StoredRecord[]) {
     }
   }, [hasIds])
 
+  const titleOf = useCallback(
+    (id: string) => (titles ? titles.get(id) ?? DELETED_ACCOUNT : undefined),
+    [titles]
+  )
+
   const options = useMemo<SelectOption[]>(
     () => [
       { value: ALL_WALLET_ACCOUNTS, label: 'همه حساب‌ها' },
-      ...ids.map(id => ({ value: id, label: titles.get(id) ?? DELETED_ACCOUNT }))
+      ...(titles ? ids.map(id => ({ value: id, label: titleOf(id) ?? DELETED_ACCOUNT })) : [])
     ],
-    [ids, titles]
+    [ids, titles, titleOf]
   )
 
-  return { options, titleOf: (id: string) => titles.get(id) ?? DELETED_ACCOUNT }
+  return { options, titleOf }
 }
