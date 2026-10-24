@@ -11,15 +11,15 @@ import {
   prepareBuildingEntry
 } from './dataEntry/buildingExpenseEntry'
 import CustomEntryFormFields from './dataEntry/CustomEntryFormFields'
+import EntryDraftNote from './dataEntry/EntryDraftNote'
 import EntryDuplicateWarning from './dataEntry/EntryDuplicateWarning'
 import EntryFormActions from './dataEntry/EntryFormActions'
-import { entryValidationErrors } from './dataEntry/entryValidationErrors'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
 import { focusEntryAmount, templateFormValues, type DataEntryFormProps } from './dataEntry/types'
+import { useEntryDraft } from './dataEntry/useEntryDraft'
+import { useEntryValidation } from './dataEntry/useEntryValidation'
 import { settleSavedEntry, writeEntryRecord } from './dataEntry/writeEntryRecord'
 import { buildFormInitialValues, isStandardEntryForm, withAutoTitle } from './form'
-import { focusFirstInvalidField } from '../utils/focusInvalidField'
-import { showError } from '../utils/toast'
 import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
 import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import { showSavedForEntry } from './nudges/saveNudges'
@@ -97,6 +97,17 @@ export default function DataEntryForm({
   // An amount on screen is work in progress: the update banner waits for it.
   useUnsavedWork(String(values.amount ?? '').trim() !== '')
 
+  // Only the plain /entry page keeps a draft; a pre-filled or onboarding form has its own start.
+  const draft = useEntryDraft({
+    formId: activeForm.id,
+    enabled: !prefill && !bankSms && !onSaved,
+    fieldIds: activeForm.fields.map(field => field.id),
+    initialValues,
+    values,
+    setValue,
+    reset
+  })
+
   const hasSubcategories =
     readSubcategories(resolveCategoryType(undefined, activeForm.id), selectedCategory).length > 0
 
@@ -107,37 +118,16 @@ export default function DataEntryForm({
     }
   }
 
-  const validateRequiredFields = (formValues: Record<string, string | number>) => {
-    clearErrors()
-
-    const found = entryValidationErrors(activeForm, formValues, {
-      showVehicleFields,
-      selectedCategory,
-      hasSubcategories
-    })
-
-    found.forEach(error => error.id && setError(error.id, { message: error.message }))
-
-    let hasError = found.length > 0
-    let firstMessage: string | undefined = found[0]?.message
-
-    if (showVehicleFields) {
-      const vehicleErrors = vehicleExpense.validateVehicleExpense(
-        String(formValues.category ?? ''),
-        formValues.amount ?? ''
-      )
-
-      if (vehicleErrors) {
-        firstMessage ??= Object.values(vehicleErrors).find(Boolean)
-        hasError = true
-      }
-    }
-
-    if (firstMessage) showError(firstMessage)
-    if (hasError) focusFirstInvalidField(formRef.current)
-
-    return !hasError
-  }
+  const validateRequiredFields = useEntryValidation({
+    activeForm,
+    formRef,
+    vehicleExpense,
+    showVehicleFields,
+    selectedCategory,
+    hasSubcategories,
+    setError,
+    clearErrors
+  })
 
   const saveRecord = async (entered: Record<string, string | number>, keepOpen = false) => {
     onLoadingChange(true)
@@ -173,6 +163,7 @@ export default function DataEntryForm({
     showSavedForEntry(activeForm, recordId, formValues, vehicleInput)
     refreshOpeningBalancesInBackground()
     onLoadingChange(false)
+    draft.clearDraft()
     if (onSaved && !keepOpen) return onSaved()
     reset(buildFormInitialValues(activeForm, keepAccount))
     vehicleExpense.resetVehicleValues()
@@ -225,6 +216,7 @@ export default function DataEntryForm({
         onClose={retroactiveWarning.cancel}
         onConfirm={retroactiveWarning.confirm}
       />
+      {draft.restored && <EntryDraftNote onDiscard={draft.discard} />}
       <form
         ref={formRef}
         onSubmit={onFormSubmit}
@@ -289,7 +281,10 @@ export default function DataEntryForm({
           formType={activeForm.type}
           loading={loading}
           saveDisabled={loading || vehicleExpense.loading}
-          onCancel={onCancel}
+          onCancel={() => {
+            draft.clearDraft()
+            onCancel?.()
+          }}
           showSaveNext={!bankSms}
         />
       </form>
