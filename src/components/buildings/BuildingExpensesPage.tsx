@@ -8,6 +8,7 @@ import {
   expenseMonths,
   expensesOfMonth,
   filterExpenses,
+  nonFlowTotalOfMonth,
   type ExpenseChip
 } from './expenseRows'
 import FilterChipBar from './FilterChipBar'
@@ -81,6 +82,11 @@ export default function BuildingExpensesPage({ active = true }: { active?: boole
     [ofMonth, kinds, payers]
   )
 
+  const excluded = useMemo(
+    () => nonFlowTotalOfMonth(page.records, dateFieldId, month),
+    [page.records, dateFieldId, month]
+  )
+
   const categories = useMemo(
     () => [...new Set(ofMonth.map(record => record.values.category).filter(Boolean))],
     [ofMonth]
@@ -118,7 +124,7 @@ export default function BuildingExpensesPage({ active = true }: { active?: boole
   return (
     <div className={listModulePageClass}>
       <BuildingListFilters filters={filters} placeholder="جستجوی عنوان، دسته یا طرف حساب..." />
-      <BuildingExpenseHero monthName={monthName(month)} breakdown={breakdown} />
+      <BuildingExpenseHero monthName={monthName(month)} breakdown={breakdown} excluded={excluded} />
 
       <Select
         aria-label="ماه"

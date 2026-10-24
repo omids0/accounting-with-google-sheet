@@ -26,10 +26,13 @@ function Parts({ parts }: { parts: ExpenseBreakdown['byKind'] }) {
 /** The expenses page hero: the month's total, split by kind and by who paid. */
 export default function BuildingExpenseHero({
   monthName,
-  breakdown
+  breakdown,
+  excluded = 0
 }: {
   monthName: string
   breakdown: ExpenseBreakdown
+  /** The month's transfers and fund corrections: not counted in the total, shown apart. */
+  excluded?: number
 }) {
   return (
     <Card className={`${dashboardHeroCardClass} ${dashboardHeroCardAnimatedClass}`}>
@@ -46,6 +49,11 @@ export default function BuildingExpenseHero({
             <Parts parts={breakdown.byPayer} />
           </p>
         </>
+      ) : null}
+      {excluded > 0 ? (
+        <p className={dashboardHeroCompareClass}>
+          انتقال و اصلاح: <MoneyText amount={excluded} /> (در هزینه حساب نمی‌شود)
+        </p>
       ) : null}
     </Card>
   )
