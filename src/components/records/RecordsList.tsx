@@ -4,8 +4,8 @@ import RecordsListRow from './RecordsListRow'
 import type { StoredRecord } from './recordsUtils'
 import { useIncrementalList } from '../../hooks/useIncrementalList'
 import type { CustomForm } from '../../types'
-import { formatPersianNumber } from '../../utils/formatMoney'
-import Button from '../ui/Button'
+import { listCountLabel } from '../../utils/listCountLabel'
+import ShowMoreFooter from '../ShowMoreFooter'
 import Card from '../ui/Card'
 import {
   recordsListCardClass,
@@ -52,11 +52,7 @@ export default function RecordsList({
     <Card className={recordsListCardClass}>
       <div className={recordsListHeaderClass}>
         <span className={recordsListCountClass}>
-          {remaining > 0
-            ? `${visibleRecords.length.toLocaleString(
-                'fa-IR'
-              )} از ${filteredRecords.length.toLocaleString('fa-IR')} مورد`
-            : `${filteredRecords.length.toLocaleString('fa-IR')} مورد`}
+          {listCountLabel(visibleRecords.length, filteredRecords.length, 'مورد')}
         </span>
         {forms.length === 1 && activeForm && (
           <span className={recordsListTypeClass(activeForm.type as 'income' | 'expense')}>
@@ -84,13 +80,7 @@ export default function RecordsList({
           />
         )
       })}
-      {remaining > 0 ? (
-        <div className="flex justify-center py-3">
-          <Button type="button" variant="secondary" size="sm" onClick={showMore}>
-            نمایش بیشتر ({formatPersianNumber(nextStep)} مورد دیگر)
-          </Button>
-        </div>
-      ) : null}
+      <ShowMoreFooter remaining={remaining} nextStep={nextStep} onShowMore={showMore} />
     </Card>
   )
 }
