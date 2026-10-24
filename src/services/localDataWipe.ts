@@ -25,6 +25,7 @@ import { getOutboxCount } from './syncOutbox'
 import { TREASURY_CLASS_STORAGE_KEY } from './treasuryClassPref'
 import { sendWidgetSnapshot } from './widgetNative'
 import { WORKSPACE_STORAGE_KEY } from './workspace'
+import { clearAllEntryDrafts } from '../utils/entryDraft'
 
 /** Per-spreadsheet keys: unsynced writes, legacy mirrors and sync timestamps. */
 const ACCOUNT_KEY_PREFIXES = [
@@ -191,6 +192,7 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
   void sendWidgetSnapshot()
   clearSpreadsheetPrepareSession()
   clearAppLockSessionState()
+  clearAllEntryDrafts()
   clearDataKey()
 
   await deletePersistedDatabase()

@@ -263,3 +263,19 @@ export function validateVehicleMileageEntry(
 
   return validateMileageIncrease(mileage, currentMileage, minimumMileage ?? currentMileage)
 }
+
+/** A fall of more than 30% is more likely a typo («۱۰۰» for «۱۴۰۲۲۰») than a real correction. */
+export function isLargeMileageDrop(previous: number, next: number): boolean {
+  if (!Number.isFinite(previous) || !Number.isFinite(next)) return false
+  // No earlier reading, or an empty/zero field (the save path reports that one itself).
+  if (previous <= 0 || next <= 0) return false
+
+  // Whole kilometres, so compare with integers: exactly 30% is still accepted.
+  return next < previous && (previous - next) * 10 > previous * 3
+}
+
+export function largeMileageDropMessage(previous: number, next: number): string {
+  return `کارکرد از ${previous.toLocaleString('fa-IR')} به ${next.toLocaleString(
+    'fa-IR'
+  )} کیلومتر کم می‌شود. اشتباه تایپی نیست؟`
+}

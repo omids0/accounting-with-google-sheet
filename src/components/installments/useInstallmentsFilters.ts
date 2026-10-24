@@ -227,6 +227,7 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     draftCustomRange,
     setDraftCustomRange,
     monthLabel,
+    effectiveRange,
     monthTotals,
     monthPlans,
     filteredPlans,

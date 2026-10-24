@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState, type MutableRefObject } from 'react'
 
 import type { InstallmentFormState, PlanWithRow } from './types'
 import {
@@ -13,10 +13,12 @@ import {
   reconcilePaymentsOnEdit,
   updateInstallmentPlan
 } from '../../services/installments'
+import { installmentHiddenPlanMessage } from '../../services/installmentSchedulePreview'
 import { INSTALLMENTS_SHEET } from '../../services/installmentsConstants'
 import { deleteLinkedExpenseRecord } from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
+import type { DateRange } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { useAttachmentDrafts } from '../attachments/useAttachmentDrafts'
@@ -25,12 +27,15 @@ type UseInstallmentFormActionsParams = {
   plans: PlanWithRow[]
   loadPlans: () => Promise<void>
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
+  /** The list's active period, kept by the page (the filters are built after this hook). */
+  activeRangeRef?: MutableRefObject<DateRange | null>
 }
 
 export function useInstallmentFormActions({
   plans,
   loadPlans,
-  setExpandedId
+  setExpandedId,
+  activeRangeRef
 }: UseInstallmentFormActionsParams) {
   const [showForm, setShowForm] = useState(false)
 
@@ -122,7 +127,12 @@ export function useInstallmentFormActions({
         })
 
         await attachments.commit(settings.spreadsheetId, INSTALLMENTS_SHEET, created.id)
-        showSuccess('قسط جدید ثبت شد')
+        showSuccess(
+          installmentHiddenPlanMessage(
+            created.payments.map(payment => payment.dueDate),
+            activeRangeRef?.current
+          ) ?? 'قسط جدید ثبت شد'
+        )
       }
       closeForm()
       await loadPlans()

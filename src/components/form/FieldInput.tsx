@@ -16,6 +16,7 @@ import FormField from './FormField'
 import LazyAmountField from './LazyAmountField'
 import Select from './Select'
 import SubCategorySelect from './SubCategorySelect'
+import { useTitleLimit } from './useTitleLimit'
 import WalletAccountSelect from './WalletAccountSelect'
 import { getAccountingStartDate } from '../../services/accountingStartDate'
 import { getSettings } from '../../services/settings'
@@ -67,6 +68,8 @@ export default function FieldInput({
   parentCategory,
   hint
 }: FieldInputProps) {
+  const titleLimit = useTitleLimit(String(value ?? ''))
+  const isTitle = field.id === 'title'
   const placeholder = fieldPlaceholder(field)
   const resolvedWidth = controlWidth ?? defaultControlWidth(field)
 
@@ -100,6 +103,7 @@ export default function FieldInput({
           value={String(value ?? '')}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
+          {...(isTitle ? titleLimit.inputProps : null)}
         />
       )
     }
@@ -219,6 +223,7 @@ export default function FieldInput({
       label={field.label}
       required={field.required}
       error={error}
+      hint={isTitle ? titleLimit.hint : undefined}
       className={field.id === 'note' ? formFieldNoteClass : undefined}
       controlWidth={resolvedWidth}
     >
