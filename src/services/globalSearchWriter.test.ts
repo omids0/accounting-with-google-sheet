@@ -29,4 +29,28 @@ describe('withWriterNames', () => {
     expect(named.subtitle).toBe('هزینه')
     expect(old.text).toBe('تعمیر یخچال')
   })
+
+  it('looks a writer up once however many rows they wrote, and skips empty names', () => {
+    const asked: string[] = []
+    const entries = [
+      entry('sara@example.com'),
+      entry('sara@example.com'),
+      entry('nameless@example.com'),
+      entry('sara@example.com')
+    ]
+    const result = withWriterNames(entries, email => {
+      asked.push(email)
+
+      return email.startsWith('sara') ? 'سارا ي' : ''
+    })
+
+    expect(asked).toEqual(['sara@example.com', 'nameless@example.com'])
+    expect(result.map(item => item.text)).toEqual([
+      'تعمیر یخچال سارا ی',
+      'تعمیر یخچال سارا ی',
+      'تعمیر یخچال',
+      'تعمیر یخچال سارا ی'
+    ])
+    expect(result[2]).toBe(entries[2])
+  })
 })
