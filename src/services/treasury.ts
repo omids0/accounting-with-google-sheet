@@ -11,6 +11,7 @@ import {
 } from './sheets'
 import { getAssetClassLabel, normalizeAssetId, resolveVaultAsset } from './treasuryCatalog'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
+import { validateTreasuryCsvCells } from './treasuryCsvValidate'
 import { transactionPnl } from './treasuryPnl'
 import { formatQuantityValue } from './treasuryQuantity'
 import { downloadTextFile, rowsToCsv } from '../utils/csv'
@@ -108,8 +109,6 @@ export async function deleteVaultTransaction(
 ): Promise<void> {
   await deleteSheetRow(spreadsheetId, TREASURY_SHEET, rowNumber)
 }
-
-const VALID_ACTIONS = new Set<VaultAction>(['buy', 'sell'])
 
 const EXPORT_ASSET_HEADERS = ['کلاس', 'نماد', 'واحد']
 
@@ -217,17 +216,10 @@ export async function importTreasuryCsv(spreadsheetId: string, csvContent: strin
   const knownIds = new Set((await loadVaultCatalog(spreadsheetId)).map(asset => asset.id))
 
   return importSheetCsv(spreadsheetId, TREASURY_SHEET, TREASURY_HEADERS, csvContent, cells => {
-    const assetType = normalizeAssetId(cells[2])
-
-    const action = (cells[3] ?? '').trim() as VaultAction
-
-    if (!knownIds.has(assetType) || !VALID_ACTIONS.has(action)) {
-      return null
-    }
-
-    const quantity = parseNumeric(cells[4])
-
-    if (!quantity) return null
+    const { assetType, action, quantity, unitPrice, transactionDate } = validateTreasuryCsvCells(
+      cells,
+      knownIds
+    )
 
     return transactionToRow({
       id: newImportId(cells[0] ?? ''),
@@ -235,8 +227,8 @@ export async function importTreasuryCsv(spreadsheetId: string, csvContent: strin
       assetType,
       action,
       quantity,
-      unitPrice: parseNumeric(cells[5]),
-      transactionDate: cells[6] ?? '',
+      unitPrice,
+      transactionDate,
       note: cells[7] ?? ''
     })
   })
