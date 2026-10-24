@@ -150,7 +150,8 @@ export function createSession(
   accessToken: string,
   profile: { email: string; name: string; picture?: string },
   expiresIn = 3600,
-  scope?: string
+  scope?: string,
+  authSessionId?: string
 ): GoogleSession {
   return {
     email: profile.email,
@@ -158,6 +159,23 @@ export function createSession(
     picture: profile.picture,
     accessToken,
     tokenExpiry: Date.now() + expiresIn * 1000,
-    scope
+    scope,
+    ...(authSessionId ? { authSessionId } : {})
   }
+}
+
+/** The worker session the stored login renews through, if it has one. */
+export function getAuthSessionId(): string | null {
+  return getSession()?.authSessionId ?? null
+}
+
+/** The worker no longer knows this session; the login stays but renews the old way. */
+export function clearAuthSessionId(): void {
+  const session = getSession()
+
+  if (!session?.authSessionId) return
+
+  const { authSessionId: _gone, ...rest } = session
+
+  saveSession(rest)
 }

@@ -17,6 +17,7 @@ import { installSelectionHaptics } from '../../utils/haptics'
 import { useBuildingChargeMaintenance } from '../buildings/useBuildingChargeMaintenance'
 import { useClaimInvite } from '../buildings/useClaimInvite'
 import PageSpeedDial from '../PageSpeedDial'
+import SessionRenewNotice from '../SessionRenewNotice'
 import ConflictGate from '../sync/ConflictGate'
 import BusyOverlay from '../ui/BusyOverlay'
 import {
@@ -127,6 +128,7 @@ export default function Layout() {
             />
 
             <UpdateBanner />
+            <SessionRenewNotice />
             <ConflictGate />
             <WhatsNewGate />
 

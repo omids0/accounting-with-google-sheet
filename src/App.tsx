@@ -10,7 +10,8 @@ import AppLockPrompts from './components/appLock/AppLockPrompts'
 import { AppLoadingSkeleton } from './components/skeleton'
 import { useAppLock } from './hooks/useAppLock'
 import { useGoogleIdentityScript } from './hooks/useGoogleIdentityScript'
-import { useTokenRefresh } from './hooks/useTokenRefresh'
+import { useOnlineRetryKey } from './hooks/useOnlineRetryKey'
+import { useSessionRenewal } from './hooks/useSessionRenewal'
 import { AppAuthenticatedRoutes } from './routes/AppRoutes'
 import { isAppLockEnabled } from './services/appLock'
 import { scrubPinHashFromSheetOnce } from './services/appLockSheetScrub'
@@ -22,6 +23,7 @@ import {
 } from './services/auth'
 import { isNativePlatform } from './services/googleAuthNative'
 import { resolveLoginReason } from './services/loginReason'
+import { startOfflineFromCache } from './services/offlineStart'
 import { isConfigured, getSettings } from './services/settings'
 import { initializeSheetSync } from './services/sheetSync'
 import {
@@ -30,9 +32,12 @@ import {
   resolveSpreadsheetSession
 } from './services/spreadsheetSetup'
 import { hasStoreData, hydrateStore } from './services/spreadsheetStore'
-import { refreshAccessTokenSilently } from './services/tokenRefresh'
+import {
+  lastRefreshWasTransient,
+  refreshAccessTokenSilently,
+  usesAuthWorkerRefresh
+} from './services/tokenRefresh'
 import { registerWebUpdates } from './services/webUpdate'
-import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
 import { toUserMessage } from './utils/userMessage'
 
@@ -68,53 +73,29 @@ export default function App() {
 
   // On the web, start-up renewal of an expired token waits for Google's script,
   // which is fetched only then; a valid token starts without it. The APK renews
-  // through the native plugin.
-  const needsStartupRefresh =
-    !isNativePlatform() && dataUnlocked && hasStoredSession() && !isTokenValid()
+  // through the native plugin, a worker login through a plain request.
+  const viaWorker = usesAuthWorkerRefresh()
 
-  const canRefreshSilently = useGoogleIdentityScript(needsStartupRefresh) || isNativePlatform()
+  const needsStartupRefresh =
+    !isNativePlatform() && !viaWorker && dataUnlocked && hasStoredSession() && !isTokenValid()
+
+  const canRefreshSilently =
+    useGoogleIdentityScript(needsStartupRefresh, useOnlineRetryKey()) ||
+    isNativePlatform() ||
+    viaWorker
 
   const handleUnlock = useCallback(() => {
     unlock()
     setDataUnlocked(true)
   }, [unlock])
 
-  const registerHandlers = useAppStore(state => state.registerHandlers)
-
-  const handleLogout = useCallback(() => {
-    setLoggedIn(false)
-    setNeedsReauth(false)
-    setNeedsSheetSetup(false)
-  }, [])
-
-  const handleReauth = useCallback(async () => {
-    if (!startupDoneRef.current) return
-    // The refresh fetches Google's script itself if it is not loaded yet.
-    if (hasStoredSession()) {
-      const refreshed = await refreshAccessTokenSilently(clientId)
-
-      if (refreshed && isTokenValid()) {
-        setNeedsReauth(false)
-
-        return
-      }
-    }
-    setNeedsReauth(true)
-  }, [clientId])
-
-  useEffect(() => {
-    registerHandlers({ onReauth: handleReauth, onLogout: handleLogout })
-  }, [handleLogout, handleReauth, registerHandlers])
-
-  useTokenRefresh({
+  useSessionRenewal({
     clientId,
-    enabled: hasStoredSession(),
-    onRefreshFailed: () => {
-      if (loggedIn) setNeedsReauth(true)
-    },
-    onRefreshSuccess: () => {
-      if (isTokenValid()) setNeedsReauth(false)
-    }
+    loggedIn,
+    startupDoneRef,
+    setLoggedIn,
+    setNeedsReauth,
+    setNeedsSheetSetup
   })
 
   // Returning users see their cached data at once; token renewal, sheet checks
@@ -143,7 +124,14 @@ export default function App() {
 
     const canTryRefresh = hasStoredSession() && !isTokenValid()
 
-    if (!dataUnlocked || (canTryRefresh && !canRefreshSilently)) return
+    if (!dataUnlocked) return
+    if (canTryRefresh && !canRefreshSilently) {
+      // Google's script is missing (offline): the init below waits for it, but a 401 on
+      // the cached screens must still be able to ask for a sign-in meanwhile.
+      startupDoneRef.current = true
+
+      return
+    }
 
     async function init() {
       let tokenValid = isTokenValid()
@@ -156,6 +144,16 @@ export default function App() {
 
       if (!tokenValid) {
         startupDoneRef.current = true
+        // Nothing answered (offline): the cached app stays, the session is not expired.
+        if (lastRefreshWasTransient() && (await startOfflineFromCache())) {
+          if (!cancelled) {
+            setLoggedIn(true)
+            setNeedsReauth(false)
+            setReady(true)
+          }
+
+          return
+        }
         if (!cancelled) {
           setLoggedIn(false)
           setNeedsReauth(isConfigured())
