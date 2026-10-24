@@ -1,6 +1,6 @@
 import type { InstallmentPayment, InstallmentPlan, Receivable, ReceivablePayment } from '../types'
 import { formatMoney } from './formatMoney'
-import { formatIsoDatePersian } from './jalaliDate'
+import { formatIsoDatePersian, getTodayIso } from './jalaliDate'
 
 export function formatPaidStatus(paid: boolean): string {
   return paid ? 'پرداخت شده' : 'پرداخت نشده'
@@ -18,7 +18,8 @@ export function formatPersianDate(iso: string): string {
 
 export function formatInstallmentPayments(
   payments: InstallmentPayment[],
-  planAmount: number
+  planAmount: number,
+  today: string = getTodayIso()
 ): string {
   return payments
     .map(payment => {
@@ -26,7 +27,9 @@ export function formatInstallmentPayments(
 
       const status = payment.paid
         ? `پرداخت شده${payment.paidAt ? ` (${formatPersianDate(payment.paidAt)})` : ''}`
-        : 'معوق'
+        : payment.dueDate.slice(0, 10) < today
+        ? 'معوق'
+        : formatPaidStatus(false)
 
       return `قسط ${payment.n.toLocaleString(
         'fa-IR'
