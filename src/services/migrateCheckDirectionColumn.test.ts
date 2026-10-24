@@ -41,6 +41,7 @@ const {
   ensureCheckDirectionColumn,
   findFreeDirectionColumn,
   migrateCheckDirectionColumn,
+  predictCheckDirectionColumn,
   resetCheckDirectionMigrationSession
 } = await import('./migrateCheckDirectionColumn')
 const { CHECK_DIRECTION_COLUMN, CHECK_DIRECTION_HEADER } = await import('./checkDirection')
@@ -149,6 +150,14 @@ describe('ensureCheckDirectionColumn', () => {
     expect(mocks.rows[0][CHECK_DIRECTION_COLUMN]).toBe(CHECK_DIRECTION_HEADER)
   })
 
+  it('keeps the user’s columns to the right of the new label in the mirror’s header', async () => {
+    mocks.rows = [[...OWN, '', 'ستون من'], ROW]
+
+    expect(await ensureCheckDirectionColumn('s1')).toBe(CHECK_DIRECTION_COLUMN)
+    expect(mocks.written[0]).toEqual([...OWN, CHECK_DIRECTION_HEADER])
+    expect(mocks.rows[0]).toEqual([...OWN, CHECK_DIRECTION_HEADER, 'ستون من'])
+  })
+
   it('waits for a tab that has no header yet', async () => {
     mocks.rows = []
 
@@ -205,10 +214,33 @@ describe('checkDirectionColumnForWrite', () => {
     await expect(checkDirectionColumnForWrite('s1', 'received')).rejects.toThrow()
   })
 
+  it('says the first received check needs the network when the header cannot be written', async () => {
+    mocks.failWrites = true
+
+    await expect(checkDirectionColumnForWrite('s1', 'received')).rejects.toThrow('اینترنت')
+  })
+
   it('answers from the header it already has', async () => {
     mocks.rows = [CHECKS_HEADERS, ROW]
 
     expect(await checkDirectionColumnForWrite('s1', 'received')).toBe(CHECK_DIRECTION_COLUMN)
     expect(mocks.written).toEqual([])
+  })
+})
+
+describe('predictCheckDirectionColumn', () => {
+  it('names the column ensure would use, without writing anything', () => {
+    mocks.rows = [[...OWN, 'یادداشت من'], ROW]
+
+    expect(predictCheckDirectionColumn('s1')).toBe(CHECK_DIRECTION_COLUMN + 1)
+    expect(mocks.written).toEqual([])
+  })
+
+  it('names the labelled column when there is one, and -1 without a header', () => {
+    mocks.rows = [[...OWN, 'یادداشت من', CHECK_DIRECTION_HEADER], ROW]
+    expect(predictCheckDirectionColumn('s1')).toBe(CHECK_DIRECTION_COLUMN + 1)
+
+    mocks.rows = []
+    expect(predictCheckDirectionColumn('s1')).toBe(-1)
   })
 })

@@ -160,6 +160,10 @@ describe('rebuildMonthValues', () => {
     expect(assets([passedInMonth])).toBe(9_500_000)
     expect(assets([passedLater])).toBe(9_650_000)
     expect(assets([unreadable])).toBe(9_500_000)
+    // The settle sheet's date is what the wallet uses: a pass backdated into the month counts as
+    // passed in it, however late the tap was; a pass dated after it does not.
+    expect(assets([{ ...received, id: 'b', paid: true, paidAt: day(5, 25) }])).toBe(9_500_000)
+    expect(assets([{ ...received, id: 'f', paid: true, paidAt: day(6, 3) }])).toBe(9_650_000)
     expect(assets([{ ...received, id: 'o', paid: false, paidAt: '' }])).toBe(9_650_000)
   })
 

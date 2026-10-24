@@ -7,7 +7,11 @@ import {
 } from './checkDirection'
 import { checkToRow, parsePaid } from './checkRows'
 import { importSheetCsv, newImportId, newImportTimestamp } from './importExport'
-import { checkDirectionColumnForWrite } from './migrateCheckDirectionColumn'
+import { parseImportCsv } from './importPlan'
+import {
+  checkDirectionColumnForWrite,
+  predictCheckDirectionColumn
+} from './migrateCheckDirectionColumn'
 import { CHECKS_HEADERS } from './sheetHeaders'
 import { CHECKS_SHEET } from './sheetNames'
 import { ensureSheetWithHeaders, fetchSheetRows } from './sheets'
@@ -36,43 +40,76 @@ export async function exportChecksCsv(spreadsheetId: string): Promise<string | n
   return downloadTextFile('چک‌ها.csv', rowsToCsv(CHECKS_HEADERS, lines))
 }
 
+/** Whether the file has a received check, however its type cell is spelled. */
+function hasReceivedRow(csvContent: string): boolean {
+  try {
+    return parseImportCsv(csvContent, CHECKS_HEADERS).dataRows.some(
+      cells => parseCheckDirection(cells[CHECK_DIRECTION_COLUMN]) === 'received'
+    )
+  } catch {
+    return false // an empty or broken file: importSheetCsv reports it
+  }
+}
+
 export async function importChecksCsv(spreadsheetId: string, csvContent: string) {
   await ensureSheetWithHeaders(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS)
+  await fetchSheetRows(spreadsheetId, CHECKS_SHEET)
 
-  // The tab gets its «نوع چک» column only when the file brings a received check.
-  const column = /دریافت|received/i.test(csvContent)
-    ? await checkDirectionColumnForWrite(spreadsheetId, 'received')
-    : headerDirectionColumn(getSheetRow(spreadsheetId, CHECKS_SHEET, 1))
+  // Nothing is written before `apply`. A tab without the type column gets rows laid out for the
+  // column it WILL get, but only when the file has a received check; a payable needs none.
+  const needsType = hasReceivedRow(csvContent)
+  const known = headerDirectionColumn(getSheetRow(spreadsheetId, CHECKS_SHEET, 1))
+  const column = known >= 0 ? known : needsType ? predictCheckDirectionColumn(spreadsheetId) : -1
 
-  return importSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, csvContent, cells => {
-    const checkNumber = (cells[2] ?? '').trim()
+  const preview = await importSheetCsv(
+    spreadsheetId,
+    CHECKS_SHEET,
+    CHECKS_HEADERS,
+    csvContent,
+    cells => {
+      const checkNumber = (cells[2] ?? '').trim()
 
-    const counterparty = (cells[3] ?? '').trim()
+      const counterparty = (cells[3] ?? '').trim()
 
-    if (!checkNumber && !counterparty) return null
+      if (!checkNumber && !counterparty) return null
 
-    const row = checkToRow(
-      {
-        id: newImportId(cells[0] ?? ''),
-        createdAt: newImportTimestamp(cells[1] ?? ''),
-        checkNumber,
-        direction: parseCheckDirection(cells[CHECK_DIRECTION_COLUMN]),
-        counterparty,
-        amount: parseNumeric(cells[4]),
-        creationDate: cells[5] ?? '',
-        dueDate: cells[6] ?? '',
-        paid: parsePaid(cells[7] ?? ''),
-        paidAt: cells[8] ?? '',
-        transactionRecordId: cells[9] ?? '',
-        subCategory: cells[10] ?? ''
-      },
-      column
-    )
+      const row = checkToRow(
+        {
+          id: newImportId(cells[0] ?? ''),
+          createdAt: newImportTimestamp(cells[1] ?? ''),
+          checkNumber,
+          direction: parseCheckDirection(cells[CHECK_DIRECTION_COLUMN]),
+          counterparty,
+          amount: parseNumeric(cells[4]),
+          creationDate: cells[5] ?? '',
+          dueDate: cells[6] ?? '',
+          paid: parsePaid(cells[7] ?? ''),
+          paidAt: cells[8] ?? '',
+          transactionRecordId: cells[9] ?? '',
+          subCategory: cells[10] ?? ''
+        },
+        column
+      )
 
-    return withAttachmentCell(
-      row,
-      CHECK_ATTACHMENT_COLUMN,
-      serializeAttachmentIds(parseAttachmentIds(cells[CHECK_ATTACHMENT_COLUMN]))
-    )
-  })
+      return withAttachmentCell(
+        row,
+        CHECK_ATTACHMENT_COLUMN,
+        serializeAttachmentIds(parseAttachmentIds(cells[CHECK_ATTACHMENT_COLUMN]))
+      )
+    }
+  )
+
+  if (!needsType) return preview
+
+  // The column is made here, when the user confirms, and must be the one the rows were laid out for.
+  return {
+    ...preview,
+    apply: async () => {
+      const made = await checkDirectionColumnForWrite(spreadsheetId, 'received')
+
+      if (made !== column) throw new Error('ستون «نوع چک» عوض شد؛ فایل را دوباره انتخاب کنید.')
+
+      return preview.apply()
+    }
+  }
 }

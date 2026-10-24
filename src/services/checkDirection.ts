@@ -29,19 +29,32 @@ function normalizeCell(cell: unknown): string {
     .toLowerCase()
 }
 
-const RECEIVED_CELLS = new Set(['دریافتی', 'دریافت', 'received', 'receive'])
-const PAID_CELLS = new Set(['پرداختی', 'پرداخت', 'paid', 'pay'])
-
-/** A missing or unknown cell is a payable: that is what every check was before the column. */
-export function parseCheckDirection(cell: unknown): CheckDirection {
-  return RECEIVED_CELLS.has(normalizeCell(cell)) ? 'received' : 'paid'
-}
-
-/** The raw cell when it says neither type (someone typed there); '' otherwise. */
-export function unknownDirectionCell(cell: unknown): string {
+/**
+ * A hand-typed cell is read by its stem: «چک دریافتی» and «دریافتی (نقدی)» are received, «پرداخت
+ * شده» is paid. A cell with both stems, or neither, says nothing sure.
+ */
+function classifyCell(cell: unknown): 'received' | 'paid' | 'unknown' | 'empty' {
   const key = normalizeCell(cell)
 
-  return key && !RECEIVED_CELLS.has(key) && !PAID_CELLS.has(key) ? String(cell).trim() : ''
+  if (!key) return 'empty'
+
+  const received = /دریافت|receiv/.test(key)
+  const paid = /پرداخت|pay|paid/.test(key)
+
+  if (received && !paid) return 'received'
+  if (paid && !received) return 'paid'
+
+  return 'unknown'
+}
+
+/** A missing or unclear cell is a payable: that is what every check was before the column. */
+export function parseCheckDirection(cell: unknown): CheckDirection {
+  return classifyCell(cell) === 'received' ? 'received' : 'paid'
+}
+
+/** The raw cell when it says nothing sure (someone typed there); '' otherwise. */
+export function unknownDirectionCell(cell: unknown): string {
+  return classifyCell(cell) === 'unknown' ? String(cell).trim() : ''
 }
 
 /** Where a header row keeps «نوع چک»; -1 while the tab has no such label. */

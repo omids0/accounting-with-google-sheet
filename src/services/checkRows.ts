@@ -70,6 +70,11 @@ export function checkToRow(
     check.subCategory ?? ''
   ]
 
+  // A received check without its column would be written as a payable: never silently.
+  if (check.direction === 'received' && directionColumn < 0) {
+    throw new Error('برای ثبت چک دریافتی، ستون «نوع چک» لازم است.')
+  }
+
   let row = [...(stored ?? [])]
 
   cells.forEach((cell, index) => {

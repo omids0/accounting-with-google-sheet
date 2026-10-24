@@ -1,3 +1,4 @@
+import { isAuthError } from './auth'
 import {
   CHECK_DIRECTION_COLUMN,
   CHECK_DIRECTION_HEADER,
@@ -67,7 +68,11 @@ async function resolveColumn(spreadsheetId: string): Promise<number> {
     // Only the header row is replaced, on the mirror as it is now, not as it was before the write.
     const fresh = getSheetAllRows(spreadsheetId, CHECKS_SHEET) ?? allRows
 
-    setSheetAllRows(spreadsheetId, CHECKS_SHEET, [next, ...fresh.slice(1)])
+    // The columns to the right of the new label (the user's own) stay in the mirror's header.
+    setSheetAllRows(spreadsheetId, CHECKS_SHEET, [
+      [...next, ...header.slice(next.length)],
+      ...fresh.slice(1)
+    ])
   }
 
   const state = getItem<MigrationState>(MIGRATION_STORAGE_KEY) ?? {}
@@ -119,11 +124,32 @@ export async function checkDirectionColumnForWrite(
 
   if (known >= 0 || direction === 'paid') return known
 
-  const column = await ensureCheckDirectionColumn(spreadsheetId)
+  let column: number
+
+  try {
+    column = await ensureCheckDirectionColumn(spreadsheetId)
+  } catch (err) {
+    if (isAuthError(err)) throw err
+    // The header has to be written to the sheet at once, so this one save needs the network.
+    throw new Error('برای اولین چک دریافتی اینترنت لازم است؛ بعد از اتصال دوباره امتحان کنید.')
+  }
 
   if (column < 0) throw new Error('ستون «نوع چک» در برگهٔ چک‌ها ساخته نشد؛ دوباره امتحان کنید.')
 
   return column
+}
+
+/**
+ * The column that would hold the type, without writing anything: the labelled one, else the one
+ * the next `ensureCheckDirectionColumn` would add. -1 while the tab has no header or is not loaded.
+ */
+export function predictCheckDirectionColumn(spreadsheetId: string): number {
+  const rows = getSheetAllRows(spreadsheetId, CHECKS_SHEET) ?? []
+  const known = headerDirectionColumn(rows[0])
+
+  if (known >= 0) return known
+
+  return (rows[0] ?? []).some(cell => !blank(cell)) ? findFreeDirectionColumn(rows) : -1
 }
 
 /** Forgets the session's failures and running attempts (tests). */

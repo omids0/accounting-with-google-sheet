@@ -29,6 +29,23 @@ describe('check direction', () => {
     }
   })
 
+  it('reads a hand-typed cell by its stem', () => {
+    for (const cell of ['چک دریافتی', 'دریافتی (نقدی)', 'دريافتي', 'receive', 'Check received']) {
+      expect(parseCheckDirection(cell), cell).toBe('received')
+      expect(unknownDirectionCell(cell), cell).toBe('')
+    }
+    for (const cell of ['چک پرداختی', 'پرداخت‌شده', 'payable', 'paid (cash)']) {
+      expect(parseCheckDirection(cell), cell).toBe('paid')
+      expect(unknownDirectionCell(cell), cell).toBe('')
+    }
+  })
+
+  it('reads a cell with both stems or neither as paid, and shows what it says', () => {
+    expect(parseCheckDirection('دریافت و پرداخت')).toBe('paid')
+    expect(unknownDirectionCell('دریافت و پرداخت')).toBe('دریافت و پرداخت')
+    expect(unknownDirectionCell('نقدی')).toBe('نقدی')
+  })
+
   it('reads a missing cell and every payable spelling as paid, so old rows keep their meaning', () => {
     for (const cell of ['پرداختی', 'پرداخت', 'paid', 'Paid', '', '  ', undefined, null]) {
       expect(parseCheckDirection(cell)).toBe('paid')
@@ -93,6 +110,11 @@ describe('check rows', () => {
     expect(rowToCheck(row, 2).direction).toBe('paid')
   })
 
+  it('never drops the type of a received check for want of a column', () => {
+    expect(() => checkToRow(check, -1)).toThrow()
+    expect(() => checkToRow({ ...check, direction: 'paid' }, -1)).not.toThrow()
+  })
+
   it('writes onto the stored row: nothing the app does not own is touched', () => {
     const stored = ['c1', '', '', '', '', '', '', '', '', '', '', 'att', 'me@x.com', 'خصوصی']
     const row = checkToRow(check, 14, stored)
@@ -105,10 +127,10 @@ describe('check rows', () => {
   it('keeps the writer when nobody is signed in, since the stored cell is not blanked', () => {
     const stored = ['c1', '', '', '', '', '', '', '', '', '', '', '', 'me@x.com']
 
-    expect(checkToRow(check, -1, stored)[12]).toBe('me@x.com')
+    expect(checkToRow({ ...check, direction: 'paid' }, -1, stored)[12]).toBe('me@x.com')
   })
 
   it('does not write a type without a column', () => {
-    expect(checkToRow(check, -1)).toHaveLength(11)
+    expect(checkToRow({ ...check, direction: 'paid' }, -1)).toHaveLength(11)
   })
 })

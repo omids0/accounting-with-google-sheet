@@ -225,6 +225,14 @@ describe('passing a check', () => {
     expect(mocks.updated[0].row[9]).toBe('rec-1')
   })
 
+  it('remembers the day the money moved (the settle sheet’s date), not the tap', async () => {
+    const options = { date: '2026-10-05', walletAccount: '', walletApply: 'خیر' } as const
+    const updated = await toggleCheckPaid(SHEET, base, true, options)
+
+    expect(updated.paidAt).toBe('2026-10-05')
+    expect(mocks.updated[0].row[8]).toBe('2026-10-05')
+  })
+
   it('un-passing reverses the record of the same kind', async () => {
     const passed = { ...base, paid: true, transactionRecordId: 'rec-9' }
 

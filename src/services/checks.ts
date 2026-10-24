@@ -149,6 +149,9 @@ export async function toggleCheckPaid(
   options?: SettleOptions,
   unlink?: UnlinkChoice
 ): Promise<Check> {
+  // Before any record is created or deleted: a failure here must leave nothing half done.
+  if (paid !== check.paid) await checkDirectionColumnForWrite(spreadsheetId, check.direction)
+
   if (paid && !check.paid) {
     const transactionRecordId = await createLinkedRecordWithWallet(
       spreadsheetId,
@@ -166,7 +169,8 @@ export async function toggleCheckPaid(
     const updated: Check = {
       ...check,
       paid: true,
-      paidAt: new Date().toLocaleString('fa-IR'),
+      // The day the wallet got it (the settle sheet's date, backdating included), not the tap.
+      paidAt: options?.date || new Date().toLocaleString('fa-IR'),
       transactionRecordId
     }
 
