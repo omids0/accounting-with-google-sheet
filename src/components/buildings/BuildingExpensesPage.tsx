@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import BuildingExpenseHero from './BuildingExpenseHero'
 import BuildingListFilters from './BuildingListFilters'
@@ -8,13 +8,17 @@ import {
   expenseMonths,
   expensesOfMonth,
   filterExpenses,
+  nonFlowOfMonth,
+  sumAmounts,
   type ExpenseChip
 } from './expenseRows'
 import FilterChipBar from './FilterChipBar'
+import NonFlowRecords from './NonFlowRecords'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useBuildingAccess } from '../../hooks/useBuildingAccess'
 import { useListFilters } from '../../hooks/useListFilters'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
+import { isNonFlowCategory } from '../../services/buildingDashboard'
 import { expenseBreakdown } from '../../services/buildingExpenseMeta'
 import { getManagedList } from '../../services/buildingLists'
 import { monthKeyOfIso, monthLabel, monthName } from '../../services/buildingMonths'
@@ -47,7 +51,8 @@ const searchParts = (record: StoredRecord) => [
  * shares; the speed dial records a new expense in the full entry form.
  */
 export default function BuildingExpensesPage({ active = true }: { active?: boolean }) {
-  const page = useRecordsPage('expense')
+  // Both forms: a correction can be an income, and it must stay editable here.
+  const page = useRecordsPage()
   const detail = useRecordDetail(page.records)
   const { can } = useBuildingAccess()
   const canRecord = can('record')
@@ -57,28 +62,57 @@ export default function BuildingExpensesPage({ active = true }: { active?: boole
   const [month, setMonth] = useState(currentMonth)
   const [chip, setChip] = useState<ExpenseChip>('all')
   const [category, setCategory] = useState(ALL_CATEGORIES)
+  /** null = the default: open when the month has no expense at all, closed otherwise. */
+  const [nonFlowOpen, setNonFlowOpen] = useState<boolean | null>(null)
 
   const form = page.forms.find(item => item.type === 'expense')
 
   const dateFieldId = (form && getFormField(form, 'date')?.id) || 'date'
+
+  const dateFieldOf = useCallback(
+    (formId: string) => {
+      const own = page.forms.find(item => item.id === formId)
+
+      return (own && getFormField(own, 'date')?.id) || 'date'
+    },
+    [page.forms]
+  )
+
+  const expenseRecords = useMemo(
+    () => page.records.filter(record => record.formId === form?.id),
+    [page.records, form?.id]
+  )
 
   const kinds = getManagedList('EXPENSE_KINDS')
 
   const payers = getManagedList('EXPENSE_PAYERS')
 
   const months = useMemo(
-    () => expenseMonths(page.records, dateFieldId, currentMonth),
-    [page.records, dateFieldId, currentMonth]
+    () =>
+      // Expense months, plus the months that only have a transfer or correction (either form).
+      expenseMonths(
+        page.records.filter(
+          record => record.formId === form?.id || isNonFlowCategory(record.values.category)
+        ),
+        dateFieldId,
+        currentMonth
+      ),
+    [page.records, form?.id, dateFieldId, currentMonth]
   )
 
   const ofMonth = useMemo(
-    () => expensesOfMonth(page.records, dateFieldId, month),
-    [page.records, dateFieldId, month]
+    () => expensesOfMonth(expenseRecords, dateFieldId, month),
+    [expenseRecords, dateFieldId, month]
   )
 
   const breakdown = useMemo(
     () => expenseBreakdown(ofMonth, kinds, payers),
     [ofMonth, kinds, payers]
+  )
+
+  const nonFlow = useMemo(
+    () => nonFlowOfMonth(page.records, dateFieldOf, month),
+    [page.records, dateFieldOf, month]
   )
 
   const categories = useMemo(
@@ -87,8 +121,8 @@ export default function BuildingExpensesPage({ active = true }: { active?: boole
   )
 
   const rows = useMemo(
-    () => filterExpenses(page.records, { month, chip, category }, dateFieldId),
-    [page.records, month, chip, category, dateFieldId]
+    () => filterExpenses(expenseRecords, { month, chip, category }, dateFieldId),
+    [expenseRecords, month, chip, category, dateFieldId]
   )
 
   const filters = useListFilters({ items: rows, getSearchParts: searchParts })
@@ -115,10 +149,19 @@ export default function BuildingExpensesPage({ active = true }: { active?: boole
 
   const shown = filters.filteredItems
 
+  const nonFlowShown = nonFlowOpen ?? !ofMonth.length
+
   return (
     <div className={listModulePageClass}>
       <BuildingListFilters filters={filters} placeholder="جستجوی عنوان، دسته یا طرف حساب..." />
-      <BuildingExpenseHero monthName={monthName(month)} breakdown={breakdown} />
+      <BuildingExpenseHero
+        monthName={monthName(month)}
+        breakdown={breakdown}
+        excluded={sumAmounts(nonFlow)}
+        open={nonFlowShown}
+        onToggle={() => setNonFlowOpen(!nonFlowShown)}
+        panelId="building-non-flow"
+      />
 
       <Select
         aria-label="ماه"
@@ -126,6 +169,7 @@ export default function BuildingExpensesPage({ active = true }: { active?: boole
         onChange={next => {
           setMonth(next)
           setCategory(ALL_CATEGORIES)
+          setNonFlowOpen(null)
         }}
         options={months.map(key => ({ value: key, label: monthLabel(key) }))}
       />
@@ -147,7 +191,7 @@ export default function BuildingExpensesPage({ active = true }: { active?: boole
         />
       ) : null}
 
-      {!ofMonth.length ? (
+      {!ofMonth.length && !nonFlow.length ? (
         <EmptyState
           icon="empty-inbox"
           message="هزینه‌ای در این ماه نیست"
@@ -161,7 +205,7 @@ export default function BuildingExpensesPage({ active = true }: { active?: boole
               : undefined
           }
         />
-      ) : shown.length ? (
+      ) : !ofMonth.length ? null : shown.length ? (
         <RecordsList
           forms={page.forms}
           activeForm={page.activeForm}
@@ -175,6 +219,17 @@ export default function BuildingExpensesPage({ active = true }: { active?: boole
       ) : (
         <SearchEmptyState />
       )}
+
+      <NonFlowRecords
+        id="building-non-flow"
+        open={nonFlowShown}
+        records={nonFlow}
+        forms={page.forms}
+        readOnly={!canRecord}
+        onEdit={page.openEditForm}
+        onDelete={page.requestDelete}
+        onOpen={detail.open}
+      />
 
       <RecordsPageOverlays page={page} detail={detail} readOnly={!canRecord} />
     </div>
