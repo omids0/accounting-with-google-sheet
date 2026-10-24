@@ -17,7 +17,7 @@ const TEENS = [
 
 const HUNDREDS = ['', 'یکصد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد']
 
-const SCALES = ['', 'هزار', 'میلیون', 'میلیارد', 'تریلیون']
+const SCALES = ['', 'هزار', 'میلیون', 'میلیارد', 'تریلیون', 'کوادریلیون', 'کوینتیلیون', 'سکستیلیون']
 
 function threeDigitsToWords(n: number): string {
   const parts: string[] = []
@@ -48,6 +48,9 @@ export function numberToPersianWords(n: number): string {
   const groups: number[] = []
 
   let num = Math.floor(n)
+
+  // Past the last named scale there is no word to print; show nothing instead of «undefined».
+  if (num >= 1000 ** SCALES.length) return ''
 
   while (num > 0) {
     groups.push(num % 1000)
