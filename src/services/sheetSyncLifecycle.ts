@@ -231,17 +231,19 @@ export function stopSheetSync(): void {
 }
 
 /**
- * `keepOutbox`: leaving a sheet with unsent changes keeps them queued under its
- * id, so they go out the next time that sheet is opened.
+ * `keepOutbox`: unsent changes stay queued until the sheet is opened again. `keepMirror`: its
+ * saved copy and tokens stay, so coming back shows it at once and downloads only the changes.
  */
 export function resetSheetSync(
   spreadsheetId: string,
-  { keepOutbox = false }: { keepOutbox?: boolean } = {}
+  { keepOutbox = false, keepMirror = false }: { keepOutbox?: boolean; keepMirror?: boolean } = {}
 ): void {
   stopSheetSync()
-  forgetRemoteVersion(spreadsheetId)
-  forgetSheetRevisions(spreadsheetId)
-  clearStore(spreadsheetId)
+  if (!keepMirror) {
+    forgetRemoteVersion(spreadsheetId)
+    forgetSheetRevisions(spreadsheetId)
+  }
+  clearStore(spreadsheetId, { keepSaved: keepMirror })
   if (!keepOutbox) clearOutbox(spreadsheetId)
   setPendingWrites(0)
   setSyncState('idle')

@@ -1,22 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { getAllSheetSpecs } from './allSheetSpecs'
+import { ACCOUNTS, fakeFetch, google, PROFILE, summary } from './buildingEntryFake'
 import { createBuildingSpreadsheet } from './buildingTemplate'
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
 import { PERSONAL_ONLY_SHEETS } from './sheetNames'
 import { resetSheetSync } from './sheetSync'
+import { markFreshlyCreated } from './spreadsheetPreparedSession'
 import { switchActiveSpreadsheet } from './spreadsheetSetup'
+import { hasStoreData } from './spreadsheetStore'
 import { moveSyncToSpreadsheet } from './spreadsheetSwitch'
 import { getWorkspaceType } from './workspace'
-
-/**
- * A tiny fake of Google Sheets and Drive that counts every request, so the cost of creating and
- * entering a building is measured, not guessed. It is a counter: it checks no UI.
- */
-const google = vi.hoisted(() => ({
-  log: [] as string[],
-  files: new Map<string, Map<string, string[][]>>(),
-  counter: 0
-}))
 
 vi.mock('./auth', () => ({
   getAccessToken: () => 'token',
@@ -29,161 +23,21 @@ vi.mock('./pushNotifications', () => ({
   getDeviceLabel: () => 'test'
 }))
 vi.mock('./sharing', () => ({ refreshSharingInfoIfStale: async () => undefined }))
+// The browser's IndexedDB is not in jsdom: a Map stands in for the saved mirrors.
+vi.mock('./spreadsheetStoreDb', async importOriginal => {
+  const saved = new Map<unknown, unknown>()
 
-const json = (body: unknown) =>
-  ({ ok: true, status: 200, json: async () => body } as unknown as Response)
-
-function sheetOfRange(range: string): string {
-  const quoted = decodeURIComponent(range).match(/^'((?:[^']|'')*)'/)
-
-  return quoted ? quoted[1].replace(/''/g, "'") : decodeURIComponent(range).split('!')[0]
-}
-
-function fakeFetch(input: string, init?: RequestInit): Response {
-  const url = String(input)
-
-  const method = init?.method ?? 'GET'
-
-  const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {}
-
-  const idMatch = url.match(/spreadsheets\/([^/?:]+)/)
-
-  const file = idMatch ? google.files.get(idMatch[1]) : undefined
-
-  const tag = (kind: string) => google.log.push(`${method} ${kind}`)
-
-  if (url.includes('googleapis.com/drive')) {
-    tag(url.includes('modifiedTime') && !url.includes('?q=') ? 'drive:modifiedTime' : 'drive:list')
-
-    return json(
-      url.includes('?q=')
-        ? { files: [...google.files.keys()].map(id => ({ id, name: id, modifiedTime: 'now' })) }
-        : { modifiedTime: 'v1' }
-    )
-  }
-  if (url.endsWith('/spreadsheets') && method === 'POST') {
-    tag('create')
-
-    const id = `file-${++google.counter}`
-
-    google.files.set(
-      id,
-      new Map(
-        (body.sheets as { properties: { title: string } }[]).map(sheet => [
-          sheet.properties.title,
-          [] as string[][]
-        ])
-      )
-    )
-
-    return json({ spreadsheetId: id })
-  }
-  if (!file) return json({})
-  if (url.includes('values:batchGet')) {
-    tag('batchGet')
-
-    const ranges = [...url.matchAll(/ranges=([^&]+)/g)].map(match => match[1])
-
-    return json({
-      valueRanges: ranges.flatMap(range => {
-        const name = sheetOfRange(range)
-
-        return file.has(name) ? [{ range: `'${name}'!A1`, values: file.get(name) }] : []
-      })
-    })
-  }
-  if (url.includes('values:batchUpdate')) {
-    tag('values:batchUpdate')
-    for (const part of body.data as { range: string; values: string[][] }[]) {
-      const name = sheetOfRange(part.range)
-
-      const rows = [...(file.get(name) ?? [])]
-
-      part.values.forEach((row, index) => {
-        rows[index] = row.map(String)
-      })
-      file.set(name, rows)
+  return {
+    ...(await importOriginal<Record<string, unknown>>()),
+    snapshotDb: {
+      get: async (key: unknown) => saved.get(key) ?? null,
+      getAll: async () => [...saved.values()],
+      put: async (value: { spreadsheetId: string }) => !!saved.set(value.spreadsheetId, value),
+      delete: async (key: unknown) => void saved.delete(key),
+      deleteDatabase: async () => saved.clear()
     }
-
-    return json({})
   }
-  if (url.includes(':batchUpdate')) {
-    tag('batchUpdate')
-    for (const request of (body.requests ?? []) as {
-      addSheet?: { properties: { title: string } }
-    }[]) {
-      if (request.addSheet) file.set(request.addSheet.properties.title, [])
-    }
-
-    return json({ replies: [] })
-  }
-  if (url.includes(':append')) {
-    tag('append')
-
-    const name = sheetOfRange(url.split('/values/')[1])
-
-    file.set(name, [
-      ...(file.get(name) ?? []),
-      ...(body.values as string[][]).map(r => r.map(String))
-    ])
-
-    return json({})
-  }
-  if (url.includes('/values/')) {
-    tag(method === 'PUT' ? 'values:put' : 'values:get')
-
-    const name = sheetOfRange(url.split('/values/')[1])
-
-    if (method === 'PUT') {
-      const start = Number(decodeURIComponent(url.split('/values/')[1]).match(/!A(d+)/)?.[1] ?? 1)
-
-      const rows = [...(file.get(name) ?? [])]
-
-      ;(body.values as string[][]).forEach((row, index) => {
-        rows[start - 1 + index] = row.map(String)
-      })
-      file.set(name, rows)
-    }
-
-    return json({ values: file.get(name) ?? [] })
-  }
-  tag('meta')
-
-  return json({
-    sheets: [...file.keys()].map((title, index) => ({
-      properties: { title, sheetId: index + 1, gridProperties: { rowCount: 100, columnCount: 30 } },
-      developerMetadata: []
-    }))
-  })
-}
-
-const summary = () => {
-  const counts: Record<string, number> = {}
-
-  for (const entry of google.log) counts[entry] = (counts[entry] ?? 0) + 1
-
-  return { total: google.log.length, counts }
-}
-
-const PROFILE = {
-  name: 'نرگس',
-  address: 'خیابان گل‌ها',
-  floors: 4,
-  defaultCharge: 1_500_000,
-  chargeMethod: 'area' as const,
-  issueDay: 1,
-  dueDay: 10,
-  vacancyRule: 'half' as const
-}
-
-const ACCOUNTS = [
-  {
-    title: 'حساب ساختمان',
-    type: 'bank' as const,
-    cardNumber: '6037991234567890',
-    balance: 12_000_000
-  }
-]
+})
 
 describe('what creating and entering a building costs (request counts)', () => {
   beforeEach(() => {
@@ -251,10 +105,55 @@ describe('what creating and entering a building costs (request counts)', () => {
 
     // Measured before: 9 + 4 = 13 requests for the same switch.
     expect(activation.total).toBeLessThanOrEqual(1)
-    expect(pull.total).toBeLessThanOrEqual(3)
+    // The mirror of the building just left is kept: coming back downloads no tab again.
+    expect(pull.total).toBeLessThanOrEqual(2)
+    expect(pull.counts['GET batchGet']).toBeUndefined()
+    expect(hasStoreData(first)).toBe(true)
 
     expect(getSettings()?.spreadsheetId).toBe(first)
     expect(getWorkspaceType(first)).toBe('building')
     resetSheetSync(first)
+  })
+})
+
+describe('what going back to the personal sheet costs (request counts)', () => {
+  it('returns from a building to the personal sheet', async () => {
+    localStorage.clear()
+    google.log.length = 0
+    google.files.clear()
+    vi.stubGlobal('fetch', async (input: string, init?: RequestInit) => fakeFetch(input, init))
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: '',
+      spreadsheets: [{ id: 'personal-1', name: 'حسابداری · ۱۴۰۵', createdAt: '' }]
+    })
+    google.files.set(
+      'personal-1',
+      new Map(getAllSheetSpecs('personal-1').map(spec => [spec.sheetName, [spec.headers]]))
+    )
+    markFreshlyCreated('personal-1')
+    await switchActiveSpreadsheet('personal-1')
+    await moveSyncToSpreadsheet('', 'personal-1')
+
+    const building = await createBuildingSpreadsheet(PROFILE, ACCOUNTS)
+
+    await switchActiveSpreadsheet(building)
+    await moveSyncToSpreadsheet('personal-1', building)
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    google.log.length = 0
+    await switchActiveSpreadsheet('personal-1')
+    expect(summary().total).toBe(0)
+
+    google.log.length = 0
+    await moveSyncToSpreadsheet(building, 'personal-1')
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const pull = summary()
+
+    // Measured before keeping the mirror: 10 requests, two of them the full batchGet downloads.
+    expect(pull.counts['GET batchGet']).toBeUndefined()
+    expect(hasStoreData('personal-1')).toBe(true)
+    expect(getSettings()?.spreadsheetId).toBe('personal-1')
+    resetSheetSync('personal-1')
   })
 })
