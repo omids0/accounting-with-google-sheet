@@ -52,14 +52,11 @@ function WizardBody({ accountId }: { accountId: string }) {
 export default function WalletReconcilePage() {
   const { accountId = '' } = useParams<{ accountId: string }>()
   const navigate = useNavigate()
-  const { record, loading } = useWalletAccountRecord(accountId)
+  const available = isReconcileAvailable()
+  // Without bank SMS the page only explains itself: no sheet read for it.
+  const { record, loading, error, retry } = useWalletAccountRecord(accountId, available)
 
-  // An unknown account is named first: the Android-only note would hide that the link is wrong.
-  if (loading) return <RecordListSkeleton />
-
-  if (!record) return <AccountNotFound onBack={() => navigate('/wallet')} />
-
-  if (!isReconcileAvailable()) {
+  if (!available) {
     return (
       <EmptyState
         icon="wallet"
@@ -68,6 +65,20 @@ export default function WalletReconcilePage() {
       />
     )
   }
+
+  if (loading) return <RecordListSkeleton />
+
+  if (error) {
+    return (
+      <EmptyState
+        icon="wallet"
+        message="خواندن حساب انجام نشد"
+        action={{ label: 'تلاش دوباره', icon: 'refresh', onClick: retry }}
+      />
+    )
+  }
+
+  if (!record) return <AccountNotFound onBack={() => navigate('/wallet')} />
 
   return <WizardBody accountId={accountId} />
 }

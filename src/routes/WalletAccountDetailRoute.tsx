@@ -9,10 +9,21 @@ import { useWalletAccountRecord } from '../components/wallet/useWalletAccountRec
 export default function WalletAccountDetailRoute() {
   const { accountId } = useParams<{ accountId: string }>()
   const navigate = useNavigate()
-  const { record: account, loading } = useWalletAccountRecord(accountId)
+  const { record: account, loading, error, retry } = useWalletAccountRecord(accountId)
 
   if (loading) {
     return <RecordListSkeleton />
+  }
+
+  if (error) {
+    return (
+      <div className={emptyStateClass}>
+        <p>خواندن حساب انجام نشد</p>
+        <Button type="button" variant="primary" size="sm" onClick={retry}>
+          تلاش دوباره
+        </Button>
+      </div>
+    )
   }
 
   if (!account) {
