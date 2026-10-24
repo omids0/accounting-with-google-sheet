@@ -37,7 +37,12 @@ import { walletCardsListClass } from '../wallet/walletCardStyles'
  */
 function ListSkeletonFrame({ filterBar, children }: { filterBar?: boolean; children: ReactNode }) {
   return (
-    <div className={listModulePageClass} aria-busy="true" aria-label="در حال بارگذاری">
+    <div
+      className={listModulePageClass}
+      role="status"
+      aria-busy="true"
+      aria-label="در حال بارگذاری"
+    >
       {filterBar && <FilterChipsSkeleton count={0} />}
       {children}
     </div>
@@ -182,6 +187,7 @@ export function RecordListSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div
       className={cardClassName(cn('records-list-card', skeletonRecordsCardClass))}
+      role="status"
       aria-busy="true"
       aria-label="در حال بارگذاری"
     >
