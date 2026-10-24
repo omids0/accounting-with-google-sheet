@@ -27,7 +27,7 @@ export default function DashboardBackupCard({
 }) {
   const state = useBackupState(spreadsheetId)
   const backup = useBackupDownload()
-  const due = backupReminderDue(state, (countRecordRows(spreadsheetId) ?? 0) > 0)
+  const due = backupReminderDue(state, (countRecordRows(spreadsheetId, 1) ?? 0) > 0)
 
   if (!due) return fallback
 

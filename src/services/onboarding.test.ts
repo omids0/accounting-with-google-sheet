@@ -5,6 +5,21 @@ const sheets: Record<string, string[][] | null> = {}
 vi.mock('./spreadsheetStore', () => ({
   getSheetDataRows: (_id: string, name: string) => sheets[name] ?? null
 }))
+vi.mock('./spreadsheetStoreCount', () => ({
+  rowHasContent: (row: string[]) => row.some(cell => String(cell ?? '').trim()),
+  countSheetDataRows: (
+    _id: string,
+    name: string,
+    matches: (row: string[]) => boolean,
+    stopAt = Infinity
+  ) => {
+    const rows = sheets[name]
+
+    if (!rows) return null
+
+    return Math.min(stopAt, rows.filter(matches).length)
+  }
+}))
 vi.mock('./settings', () => ({
   getSettings: () => ({
     forms: [
@@ -100,5 +115,38 @@ describe('onboarding', () => {
   it('keeps state per spreadsheet', () => {
     onboarding.startOnboarding(ID)
     expect(onboarding.getOnboardingState('other')).toBeNull()
+  })
+})
+
+describe('countRecordRows', () => {
+  beforeEach(() => {
+    setSheets({
+      'کیف پول': [],
+      درآمد: [
+        ['i', '1'],
+        ['', ''],
+        ['j', '2']
+      ],
+      هزینه: [['x', '5']]
+    })
+  })
+
+  it('counts every non-blank row of every form when no threshold is given', () => {
+    expect(onboarding.countRecordRows(ID)).toBe(3)
+  })
+
+  it('stops counting at the threshold and still answers null for an uncached tab', () => {
+    expect(onboarding.countRecordRows(ID, 1)).toBe(1)
+    expect(onboarding.countRecordRows(ID, 2)).toBe(2)
+    expect(onboarding.countRecordRows(ID, 10)).toBe(3)
+    setSheets({ 'کیف پول': [], درآمد: [['i', '1']], هزینه: null })
+    expect(onboarding.countRecordRows(ID, 1)).toBeNull()
+    expect(onboarding.countRecordRows(ID)).toBeNull()
+  })
+
+  it('reads zero as zero under a threshold', () => {
+    setSheets({ 'کیف پول': [], درآمد: [['', '']], هزینه: [] })
+    expect(onboarding.countRecordRows(ID, 1)).toBe(0)
+    expect(onboarding.isSpreadsheetEmpty(ID)).toBe(true)
   })
 })

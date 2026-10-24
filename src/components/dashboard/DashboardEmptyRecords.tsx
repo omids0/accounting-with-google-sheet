@@ -14,7 +14,7 @@ export default function DashboardEmptyRecords({ onShowPreviousMonth }: Dashboard
   const openEntry = () => useNavigationStore.getState().onOpenEntry()
 
   // null means some tabs are not cached yet; assume a returning user rather than greet them as new.
-  if (spreadsheetId && countRecordRows(spreadsheetId) === 0) {
+  if (spreadsheetId && countRecordRows(spreadsheetId, 1) === 0) {
     return (
       <EmptyState
         icon="records"

@@ -108,7 +108,7 @@ export function isDiscoveryEligible(
   if (!isOnboardingClosed(onboarding, steps)) return false
   if (!getDiscoveryQueue(spreadsheetId).length) return false
 
-  const records = countRecordRows(spreadsheetId) ?? 0
+  const records = countRecordRows(spreadsheetId, DISCOVERY_MIN_RECORDS) ?? 0
 
   if (records >= DISCOVERY_MIN_RECORDS) return true
 
