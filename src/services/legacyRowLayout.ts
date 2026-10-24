@@ -27,7 +27,9 @@ const columnOf = (fieldId: string): number =>
 
 const LEGACY_AMOUNT_COLUMN = columnOf('amount')
 
-/** Where the writer email was in a legacy row: the line-items slot when that column did not exist yet. */
+/** Slots after the balance switch: the writer email sits in the first one the row actually had. */
+const LEGACY_COUNTERPARTY_COLUMN = columnOf('counterparty')
+
 const LEGACY_ITEMS_COLUMN = columnOf('lineItems')
 
 const LEGACY_WRITER_COLUMN = LEGACY_ITEMS_COLUMN + 1
@@ -94,16 +96,19 @@ export function remapLegacyRow(row: unknown[], plan: LegacyLayoutPlan | null): u
 
   next[0] = row[0] ?? ''
   next[1] = row[1] ?? ''
-  // A row written before the line-items column carries the writer in that slot.
-  const slot = String(row[LEGACY_ITEMS_COLUMN] ?? '').trim()
+  // Rows written before the later columns existed carry the writer in the first free slot after
+  // the balance switch (counterparty, items or the writer column itself): never a counterparty.
+  const isWriterSlot = (column: number) => EMAIL_CELL.test(String(row[column] ?? '').trim())
 
-  const writerInItemsSlot = EMAIL_CELL.test(slot)
+  const slots = [LEGACY_COUNTERPARTY_COLUMN, LEGACY_ITEMS_COLUMN, LEGACY_WRITER_COLUMN]
+
+  const writerSlot = slots.filter(isWriterSlot).pop()
 
   for (const [from, to] of plan.moves) {
-    next[to] = from === LEGACY_ITEMS_COLUMN && writerInItemsSlot ? '' : row[from] ?? ''
+    next[to] = slots.includes(from) && isWriterSlot(from) ? '' : row[from] ?? ''
   }
-  if (plan.writerColumn >= 0) {
-    next[plan.writerColumn] = writerInItemsSlot ? slot : row[LEGACY_WRITER_COLUMN] ?? ''
+  if (plan.writerColumn >= 0 && writerSlot !== undefined) {
+    next[plan.writerColumn] = String(row[writerSlot]).trim()
   }
 
   // Cells past the legacy part (receipts …) stay where they were.

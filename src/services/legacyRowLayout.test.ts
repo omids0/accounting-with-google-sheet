@@ -160,6 +160,39 @@ describe('legacy income/expense row layout', () => {
     expect(row[12]).toBe('me@example.com')
   })
 
+  it('takes an email in the counterparty slot (an 11-cell row) as the writer', () => {
+    const shortRow = [
+      'e18d6210',
+      '۱۴۰۵/۷/۲۶, ۹:۳۲:۲۷',
+      '2026-10-18',
+      'افزودن حساب بانکی پارسیان',
+      '801588',
+      'اصلاح موجودی',
+      '',
+      '',
+      '',
+      'بله',
+      'user@example.com'
+    ]
+
+    const row = remapLegacyRow(shortRow, plan())
+
+    expect(row[4]).toBe('اصلاح موجودی')
+    expect(row[6]).toBe('801588')
+    expect(row[8]).toBe('بله')
+    expect(row[9]).toBe('')
+    expect(row[10]).toBe('')
+    expect(row[12]).toBe('user@example.com')
+    expect(row.filter(cell => cell === 'user@example.com')).toHaveLength(1)
+  })
+
+  it('keeps a real counterparty name and reads the email after it as the writer', () => {
+    const row = remapLegacyRow([...LEGACY_ROWS[3].slice(0, 10), 'فروشگاه', '', 'me@x.com'], plan())
+
+    expect(row[9]).toBe('فروشگاه')
+    expect(row[12]).toBe('me@x.com')
+  })
+
   it('leaves a current row (and the same object) untouched', () => {
     expect(remapLegacyRow(NEW_ROW, plan())).toBe(NEW_ROW)
     expect(remapLegacyRow(LEGACY_ROWS[0], null)).toBe(LEGACY_ROWS[0])
@@ -193,6 +226,35 @@ describe('legacy income/expense row layout', () => {
 })
 
 describe('records read from a tab with legacy rows', () => {
+  it('never shows the writer of a short legacy row as counterparty or items', async () => {
+    const ID2 = 'legacy-sheet-2'
+
+    initStore(ID2)
+    setSheetAllRows(ID2, 'هزینه', [
+      HEADER,
+      [
+        'e18d',
+        't',
+        '2026-10-18',
+        'افزودن حساب',
+        '801588',
+        'اصلاح موجودی',
+        '',
+        '',
+        '',
+        'بله',
+        'user@example.com'
+      ]
+    ])
+
+    const [record] = await fetchRecords(ID2, EXPENSE)
+
+    expect(record.values.counterparty).toBe('')
+    expect(record.values.lineItems).toBe('')
+    expect(record.values.amount).toBe('801588')
+    expect(record.writer).toBe('user@example.com')
+  })
+
   const ID = 'legacy-sheet'
 
   beforeEach(() => {
