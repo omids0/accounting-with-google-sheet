@@ -46,12 +46,22 @@ export default function SettingsColumnRepairCard({ spreadsheetId }: { spreadshee
     setRepairing(true)
     try {
       // Scan again: the list shown may be older than the data (a sync can have fixed rows meanwhile).
-      const count = await repairLegacyRows(
+      const result = await repairLegacyRows(
         spreadsheetId,
         findLegacyRows(spreadsheetId, getSettings()?.forms ?? [])
       )
 
-      showSuccess(`${formatPersianNumber(count)} ردیف به ستون درست منتقل شد.`)
+      if (result.aborted) {
+        showError('ردیف‌های شیت از زمان بررسی عوض شده؛ چیزی نوشته نشد. دوباره بررسی کن.')
+      } else {
+        showSuccess(
+          `${formatPersianNumber(result.written)} ردیف به ستون درست منتقل شد${
+            result.skipped
+              ? `؛ ${formatPersianNumber(result.skipped)} ردیف که عوض شده بود دست نخورد`
+              : ''
+          }.`
+        )
+      }
       setFound(null)
     } catch {
       showError('ترمیم ستون‌ها انجام نشد؛ دوباره امتحان کن.')

@@ -1,6 +1,13 @@
 import { archiveTabsOfForm } from './archiveRegistry'
 import { legacyLayoutPlan, remapLegacyRow } from './legacyRowLayout'
+import { withGridGrowth } from './sheetGrid'
+import { apiRequest, SHEETS_API } from './sheetsApi'
+import { columnLetter, rowsMatchForCompare, toSheetRowValues } from './sheetsCellValues'
 import { buildFieldColumnMap } from './sheetsHeaders'
+import { quoteSheetName } from './sheetsMeta'
+import { fetchSheetRangeFromApi } from './sheetsRows'
+import { announceWrites, readDriveTime } from './sheetSyncAnnounce'
+import { withOutboxLock } from './sheetSyncOutbox'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import { getSheetAllRows, updateSheetDataRow } from './spreadsheetStore'
 import { hasPendingOutbox } from './syncOutbox'
@@ -14,9 +21,13 @@ export interface LegacyRowFix {
   rowNumber: number
   before: string[]
   after: string[]
+  /** The tab's header and number of rows when it was scanned, to notice that it changed since. */
+  header: string[]
+  tabRowCount: number
 }
 
-const QUIET = { skipActivity: true } as const
+/** Rows per values:batchUpdate request; 273 rows are 3 requests, not 273. */
+export const REPAIR_CHUNK_ROWS = 100
 
 /** Rows of `tab` written in the old column order, with the row they become. Reads the local mirror only. */
 function legacyRowsOfTab(spreadsheetId: string, form: CustomForm, tab: string): LegacyRowFix[] {
@@ -47,7 +58,9 @@ function legacyRowsOfTab(spreadsheetId: string, form: CustomForm, tab: string): 
       sheetName: tab,
       rowNumber: index + 1,
       before: [...row],
-      after: next.map(cell => cellToString(cell))
+      after: next.map(cell => cellToString(cell)),
+      header: headers,
+      tabRowCount: rows.length
     })
   })
 
@@ -72,31 +85,114 @@ export function legacyRepairBlocker(spreadsheetId: string): string | null {
     : null
 }
 
+export interface RepairResult {
+  /** Rows now in today's column order. */
+  written: number
+  /** Rows left alone because they changed since the scan (edited, or already repaired). */
+  skipped: number
+  /** True when the tab no longer matches the scan: nothing at all was written. */
+  aborted: boolean
+}
+
+const NOTHING: RepairResult = { written: 0, skipped: 0, aborted: false }
+
+/** The fixes of one tab as the sheet itself holds them now, or null when the tab moved on. */
+async function verifyAgainstSheet(
+  spreadsheetId: string,
+  tab: string,
+  fixes: LegacyRowFix[]
+): Promise<{ live: LegacyRowFix[]; skipped: number } | null> {
+  const fresh = await fetchSheetRangeFromApi(spreadsheetId, tab)
+
+  const [first] = fixes
+
+  // Rows added, removed or re-labelled since the scan: row numbers cannot be trusted any more.
+  if (fresh.length !== first.tabRowCount || !rowsMatchForCompare(fresh[0] ?? [], first.header)) {
+    return null
+  }
+  if (fixes.some(fix => cellToString(fresh[fix.rowNumber - 1]?.[0]) !== fix.before[0])) return null
+
+  const live = fixes.filter(fix => rowsMatchForCompare(fresh[fix.rowNumber - 1] ?? [], fix.before))
+
+  return { live, skipped: fixes.length - live.length }
+}
+
+async function writeChunk(spreadsheetId: string, tab: string, chunk: LegacyRowFix[]) {
+  const data = chunk.map(fix => ({
+    range: `${quoteSheetName(tab)}!A${fix.rowNumber}:${columnLetter(fix.after.length)}${
+      fix.rowNumber
+    }`,
+    values: [toSheetRowValues(fix.after)]
+  }))
+
+  const lastRow = Math.max(...chunk.map(fix => fix.rowNumber))
+
+  const width = Math.max(...chunk.map(fix => fix.after.length))
+
+  await withGridGrowth(spreadsheetId, tab, lastRow, width, () =>
+    apiRequest(`${SHEETS_API}/${spreadsheetId}/values:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({ valueInputOption: 'RAW', data })
+    })
+  )
+  for (const fix of chunk) updateSheetDataRow(spreadsheetId, tab, fix.rowNumber, fix.after)
+}
+
 /**
- * Rewrites the rows in today's column order through the outbox: ids, times and the writer stay,
- * `expectedRow` makes a row someone changed meanwhile surface as an ordinary edit conflict. A row
- * already in today's order is never in `fixes`, so running it twice changes nothing.
+ * Rewrites the scanned rows in today's column order with a few values:batchUpdate requests
+ * (`REPAIR_CHUNK_ROWS` rows each) instead of one outbox write per row. Under the outbox lock it
+ * first reads each tab again: if the row count, the header or an id moved since the scan nothing
+ * is written; a single row that is no longer exactly what was scanned is skipped, so an edit made
+ * meanwhile is never overwritten. Rows already in today's order are never in `fixes`, so a second
+ * run finds nothing.
  */
-export async function repairLegacyRows(
+export function repairLegacyRows(
   spreadsheetId: string,
   fixes: LegacyRowFix[]
-): Promise<number> {
-  if (!fixes.length) return 0
+): Promise<RepairResult> {
+  if (!fixes.length) return Promise.resolve(NOTHING)
 
-  const { enqueueSheetWrite } = await import('./sheetSync')
+  return withOutboxLock(spreadsheetId, async () => {
+    const byTab = new Map<string, LegacyRowFix[]>()
 
-  for (const fix of fixes) {
-    updateSheetDataRow(spreadsheetId, fix.sheetName, fix.rowNumber, fix.after)
-    enqueueSheetWrite(spreadsheetId, {
-      type: 'update',
-      sheetName: fix.sheetName,
-      rowNumber: fix.rowNumber,
-      row: fix.after,
-      expectedRow: fix.before,
-      writeOptions: QUIET
-    })
-  }
-  notifySpreadsheetDataChanged(spreadsheetId)
+    for (const fix of fixes) byTab.set(fix.sheetName, [...(byTab.get(fix.sheetName) ?? []), fix])
 
-  return fixes.length
+    // Verify every tab before the first write: a changed tab aborts the whole repair.
+    const verified = new Map<string, LegacyRowFix[]>()
+
+    let skipped = 0
+
+    for (const [tab, tabFixes] of byTab) {
+      const result = await verifyAgainstSheet(spreadsheetId, tab, tabFixes)
+
+      if (!result) return { written: 0, skipped: 0, aborted: true }
+      verified.set(tab, result.live)
+      skipped += result.skipped
+    }
+
+    const driveBefore = await readDriveTime(spreadsheetId)
+
+    const touched = new Set<string>()
+
+    let written = 0
+
+    try {
+      for (const [tab, live] of verified) {
+        for (let at = 0; at < live.length; at += REPAIR_CHUNK_ROWS) {
+          const chunk = live.slice(at, at + REPAIR_CHUNK_ROWS)
+
+          await writeChunk(spreadsheetId, tab, chunk)
+          touched.add(tab)
+          written += chunk.length
+        }
+      }
+    } finally {
+      if (touched.size) {
+        notifySpreadsheetDataChanged(spreadsheetId)
+        await announceWrites(spreadsheetId, touched, driveBefore)
+      }
+    }
+
+    return { written, skipped, aborted: false }
+  })
 }
