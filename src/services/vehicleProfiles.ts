@@ -17,7 +17,7 @@ import {
 
 export { VEHICLES_SHEET, VEHICLES_HEADERS }
 
-const VALID_INTERVALS = new Set<VehicleMileageReminderInterval>([
+export const VALID_INTERVALS = new Set<VehicleMileageReminderInterval>([
   'first-of-month',
   'every-2-months',
   'every-3-months',
