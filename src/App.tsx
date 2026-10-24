@@ -30,17 +30,15 @@ import {
   resolveSpreadsheetSession
 } from './services/spreadsheetSetup'
 import { hasStoreData, hydrateStore } from './services/spreadsheetStore'
-import { lastRefreshWasTransient, refreshAccessTokenSilently } from './services/tokenRefresh'
+import {
+  lastRefreshWasTransient,
+  refreshAccessTokenSilently,
+  usesAuthWorkerRefresh
+} from './services/tokenRefresh'
 import { registerWebUpdates } from './services/webUpdate'
 import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
 import { toUserMessage } from './utils/userMessage'
-
-function hasCachedData(): boolean {
-  const cachedId = getSettings()?.spreadsheetId
-
-  return !!cachedId && hasStoreData(cachedId)
-}
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -74,11 +72,14 @@ export default function App() {
 
   // On the web, start-up renewal of an expired token waits for Google's script,
   // which is fetched only then; a valid token starts without it. The APK renews
-  // through the native plugin.
-  const needsStartupRefresh =
-    !isNativePlatform() && dataUnlocked && hasStoredSession() && !isTokenValid()
+  // through the native plugin, a worker login through a plain request.
+  const viaWorker = usesAuthWorkerRefresh()
 
-  const canRefreshSilently = useGoogleIdentityScript(needsStartupRefresh) || isNativePlatform()
+  const needsStartupRefresh =
+    !isNativePlatform() && !viaWorker && dataUnlocked && hasStoredSession() && !isTokenValid()
+
+  const canRefreshSilently =
+    useGoogleIdentityScript(needsStartupRefresh) || isNativePlatform() || viaWorker
 
   const handleUnlock = useCallback(() => {
     unlock()
@@ -165,7 +166,9 @@ export default function App() {
       if (!tokenValid) {
         startupDoneRef.current = true
         // Nothing answered (offline): the cached app stays, the session is not expired.
-        if (lastRefreshWasTransient() && hasCachedData()) {
+        const cachedId = getSettings()?.spreadsheetId
+
+        if (lastRefreshWasTransient() && cachedId && hasStoreData(cachedId)) {
           if (!cancelled) setReady(true)
 
           return

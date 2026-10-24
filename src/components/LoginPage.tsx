@@ -3,23 +3,20 @@ import { useState, useEffect } from 'react'
 import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import GoogleSignInButton from './login/GoogleSignInButton'
+import { LoginFeatures, LoginFooter } from './login/LoginPitch'
 import SessionExpiredNotice from './login/SessionExpiredNotice'
 import SpreadsheetSetupPanel from './SpreadsheetSetupPanel'
 import Alert from './ui/Alert'
 import { animateInClass } from './ui/layoutStyles'
 import {
   loginCardClass,
-  loginFeatureClass,
-  loginFeatureIconClass,
-  loginFeaturesClass,
-  loginFooterNoteClass,
   loginLogoClass,
   loginLogoIconClass,
   loginLogoSubtitleClass,
   loginLogoTitleClass,
-  loginPageClass,
-  loginTrustBadgeClass
+  loginPageClass
 } from './ui/loginStyles'
+import { useGoogleCodeLogin } from '../hooks/useGoogleCodeLogin'
 import { useGoogleTokenLogin } from '../hooks/useGoogleTokenLogin'
 import { useAccountSwitchGuard } from '../hooks/useLocalDataWipe'
 import {
@@ -29,6 +26,7 @@ import {
   saveSession,
   sessionNeedsScopeUpgrade
 } from '../services/auth'
+import { exchangeAuthCode, isAuthWorkerEnabled, logoutViaWorker } from '../services/authWorker'
 import { isNativePlatform, signInNative, signOutNative } from '../services/googleAuthNative'
 import type { LoginReason } from '../services/loginReason'
 import {
@@ -97,18 +95,20 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
     accessToken: string,
     profile: { email: string; name: string; picture?: string },
     expiresIn: number | undefined,
-    scope: string
+    scope: string,
+    authSessionId?: string
   ) => {
     const outcome = await guardAccountSwitch(profile.email)
 
     if (outcome === 'cancelled') {
       await signOutNative()
+      if (authSessionId) void logoutViaWorker(authSessionId)
       showError('ورود لغو شد؛ اطلاعات حساب قبلی روی این دستگاه باقی ماند')
 
       return
     }
 
-    saveSession(createSession(accessToken, profile, expiresIn, scope))
+    saveSession(createSession(accessToken, profile, expiresIn, scope, authSessionId))
 
     if (outcome === 'switched') {
       // Start clean so nothing cached in memory from the previous account survives.
@@ -120,44 +120,76 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
     await continueAfterAuth(profile.name)
   }
 
-  const { login, ready } = useGoogleTokenLogin({
+  // Both web sign-in flows end here: check the grant, read the profile, save the session.
+  const finishWebSignIn = async (grant: {
+    access_token: string
+    expires_in?: number
+    scope: string
+    sessionId?: string
+  }) => {
+    setLoading(true)
+    try {
+      // Google's granular consent lets the user untick drive.file; saving such a
+      // session would only bounce them back here, so stop and say why.
+      if (!hasRequiredGoogleScopes(grant.scope)) {
+        showError(
+          'بدون اجازهٔ «فایل‌هایی که این اپ می‌سازد» اپ نمی‌تواند داده‌ها را ذخیره کند. دوباره وارد شوید و این گزینه را تیک بزنید.'
+        )
+
+        return
+      }
+
+      const profile = await fetchUserProfile(grant.access_token)
+
+      await completeSignIn(
+        grant.access_token,
+        profile,
+        grant.expires_in,
+        grant.scope,
+        grant.sessionId
+      )
+    } catch (err) {
+      showError(toUserMessage(err, 'خطا در ورود'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSignInError = () => {
+    showError('ورود لغو شد یا با خطا مواجه شد')
+    setLoading(false)
+  }
+
+  // With the refresh-token worker configured the popup returns a code, so the app can
+  // renew its token later without any popup; otherwise it returns a token as before.
+  const viaWorker = isAuthWorkerEnabled()
+
+  const tokenLogin = useGoogleTokenLogin({
     // Ask for drive.file only; older broad grants must not ride along in the token.
     includeGrantedScopes: false,
-    onSuccess: async tokenResponse => {
+    load: !viaWorker,
+    onSuccess: grant => void finishWebSignIn(grant),
+    onError: handleSignInError
+  })
+
+  const codeLogin = useGoogleCodeLogin({
+    load: viaWorker,
+    onCode: async code => {
       setLoading(true)
       try {
-        // Google's granular consent lets the user untick drive.file; saving such a
-        // session would only bounce them back here, so stop and say why.
-        if (!hasRequiredGoogleScopes(tokenResponse.scope)) {
-          showError(
-            'بدون اجازهٔ «فایل‌هایی که این اپ می‌سازد» اپ نمی‌تواند داده‌ها را ذخیره کند. دوباره وارد شوید و این گزینه را تیک بزنید.'
-          )
-
-          return
-        }
-
-        const profile = await fetchUserProfile(tokenResponse.access_token)
-
-        await completeSignIn(
-          tokenResponse.access_token,
-          profile,
-          tokenResponse.expires_in,
-          tokenResponse.scope
-        )
+        await finishWebSignIn(await exchangeAuthCode(code))
       } catch (err) {
         showError(toUserMessage(err, 'خطا در ورود'))
-      } finally {
         setLoading(false)
       }
     },
-    onError: () => {
-      showError('ورود لغو شد یا با خطا مواجه شد')
-      setLoading(false)
-    }
+    onError: handleSignInError
   })
 
+  const webLogin = viaWorker ? codeLogin : tokenLogin
+
   // The APK signs in through the native plugin and needs no Google script.
-  const signInReady = ready || isNativePlatform()
+  const signInReady = webLogin.ready || isNativePlatform()
 
   const handleNativeLogin = async () => {
     setLoading(true)
@@ -183,7 +215,7 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
       return
     }
     setLoading(true)
-    login()
+    webLogin.login()
   }
 
   if (step === 'setup') {
@@ -221,43 +253,11 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
           </Alert>
         )}
 
-        {!expired && (
-          <ul className={loginFeaturesClass} aria-label="ویژگی‌های اصلی">
-            <li className={loginFeatureClass}>
-              <span className={loginFeatureIconClass} aria-hidden="true">
-                <AppIcon name="chart" size={16} />
-              </span>
-              داشبورد مالی با نمودار درآمد و هزینه
-            </li>
-            <li className={loginFeatureClass}>
-              <span className={loginFeatureIconClass} aria-hidden="true">
-                <AppIcon name="folder" size={16} />
-              </span>
-              همگام‌سازی خودکار بین دستگاه‌ها
-            </li>
-            <li className={loginFeatureClass}>
-              <span className={loginFeatureIconClass} aria-hidden="true">
-                <AppIcon name="wallet" size={16} />
-              </span>
-              اقساط، چک، طلب و صندوقچه در یک جا
-            </li>
-          </ul>
-        )}
+        {!expired && <LoginFeatures />}
 
         <GoogleSignInButton onClick={handleLogin} ready={signInReady} loading={loading} />
 
-        {!expired && (
-          <>
-            <p className={loginFooterNoteClass}>
-              شیت‌ها با فرمت «حسابداری · سال» ساخته می‌شوند و روی Drive همگام هستند
-            </p>
-
-            <div className={loginTrustBadgeClass}>
-              <AppIcon name="check" size={14} />
-              <span>داده‌ها فقط در Google Drive شما ذخیره می‌شوند</span>
-            </div>
-          </>
-        )}
+        {!expired && <LoginFooter />}
       </div>
       <ConfirmActionModal {...switchModalProps} />
     </div>

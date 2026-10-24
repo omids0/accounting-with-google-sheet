@@ -1,5 +1,6 @@
 import {
   FULL_GOOGLE_OAUTH_SCOPE,
+  clearAuthSessionId,
   getSession,
   hasRequiredGoogleScopes,
   isTokenValid,
@@ -7,6 +8,7 @@ import {
   sessionNeedsScopeUpgrade,
   shouldRefreshToken
 } from './auth'
+import { isAuthWorkerEnabled, refreshViaWorker } from './authWorker'
 import { isNativePlatform, refreshNativeToken } from './googleAuthNative'
 import { loadGoogleIdentityScript } from './googleIdentityScript'
 
@@ -22,6 +24,9 @@ export const SILENT_REQUEST_DEADLINE_MS = 4_000
 
 /** Pause before the single retry of a transient web failure. */
 export const RETRY_DELAY_MS = 800
+
+/** The worker is a plain fetch, so a network blip gets two more tries with growing pauses. */
+export const WORKER_RETRY_DELAYS_MS = [1_000, 3_000] as const
 
 let refreshInFlight: Promise<boolean> | null = null
 
@@ -110,6 +115,29 @@ async function renewThroughGoogleScript(clientId: string, email: string): Promis
   return loaded ? requestTokenSilently(clientId, email) : 'transient'
 }
 
+/** True when this login renews through the refresh-token worker instead of Google's popup. */
+export function usesAuthWorkerRefresh(): boolean {
+  return !!getSession()?.authSessionId && isAuthWorkerEnabled()
+}
+
+async function renewThroughWorker(sessionId: string): Promise<RefreshOutcome> {
+  const result = await refreshViaWorker(sessionId)
+
+  if (result.status === 'transient') return 'transient'
+
+  if (result.status === 'invalid') {
+    // Google or the worker dropped the refresh token: only a new sign-in helps.
+    clearAuthSessionId()
+
+    return 'denied'
+  }
+
+  if (!hasRequiredGoogleScopes(result.scope)) return 'denied'
+  renewSessionToken(result.accessToken, result.expiresIn)
+
+  return 'ok'
+}
+
 function runRefresh(
   attempt: () => Promise<RefreshOutcome>,
   retryDelays: readonly number[]
@@ -157,6 +185,13 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
     })
 
     return refreshInFlight
+  }
+
+  // No popup and no Google script: a plain request the browser cannot block.
+  if (session.authSessionId && isAuthWorkerEnabled()) {
+    const sessionId = session.authSessionId
+
+    return runRefresh(() => renewThroughWorker(sessionId), WORKER_RETRY_DELAYS_MS)
   }
 
   if (!clientId) {

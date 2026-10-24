@@ -5,6 +5,7 @@ import { clearAppLockSessionState } from './appLockPolicy'
 import { LOCK_SETUP_OFFER_KEY } from './appLockPrompts'
 import { deleteAttachmentDatabase } from './attachmentBlobs'
 import { getSession } from './auth'
+import { logoutViaWorker } from './authWorker'
 import { BACKUP_STORAGE_KEY } from './backupReminder'
 import { setBankSmsCaptureEnabled } from './bankSmsNative'
 import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
@@ -172,6 +173,8 @@ async function revokeGoogleAccess(accessToken: string | null): Promise<void> {
 export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<void> {
   const accessToken = getSession()?.accessToken ?? null
 
+  const authSessionId = getSession()?.authSessionId ?? null
+
   const spreadsheetId = getSettings()?.spreadsheetId
 
   stopSheetSync()
@@ -197,5 +200,7 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
   // Stop capturing bank SMS and drop the native queue: it belongs to the old account.
   await setBankSmsCaptureEnabled(false).catch(() => undefined)
 
+  // The worker forgets (and revokes) this device's refresh token, also when another account signs in.
+  if (authSessionId) await withTimeout(logoutViaWorker(authSessionId))
   if (revokeAccess) await revokeGoogleAccess(accessToken)
 }
