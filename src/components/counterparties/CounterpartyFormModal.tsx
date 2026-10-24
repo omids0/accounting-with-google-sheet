@@ -3,6 +3,7 @@ import { Controller, useForm } from 'react-hook-form'
 
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { getActiveWorkspaceType } from '../../services/workspace'
+import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
 import FormField from '../form/FormField'
 import FormRow from '../form/FormRow'
 import ToggleSwitch from '../form/ToggleSwitch'
@@ -72,10 +73,17 @@ export default function CounterpartyFormModal({
 }: CounterpartyFormModalProps) {
   const initialValues = useMemo(() => buildInitialValues(editingItem), [editingItem])
 
-  const { register, control, handleSubmit, reset, setValue, watch } =
-    useForm<CounterpartyFormState>({
-      defaultValues: initialValues
-    })
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm<CounterpartyFormState>({
+    defaultValues: initialValues
+  })
 
   useModalFormReset(reset, initialValues, {
     active: open,
@@ -83,7 +91,7 @@ export default function CounterpartyFormModal({
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => onSubmit(values))(event)
+    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (
@@ -98,12 +106,16 @@ export default function CounterpartyFormModal({
       size="wide"
     >
       <FormRow>
-        <FormField label="نام" required>
-          <input type="text" {...register('firstName')} placeholder="نام" required />
+        <FormField label="نام" required error={formFieldError(errors, 'firstName')}>
+          <input type="text" {...register('firstName', requiredField('نام'))} placeholder="نام" />
         </FormField>
 
-        <FormField label="نام خانوادگی" required>
-          <input type="text" {...register('lastName')} placeholder="نام خانوادگی" required />
+        <FormField label="نام خانوادگی" required error={formFieldError(errors, 'lastName')}>
+          <input
+            type="text"
+            {...register('lastName', requiredField('نام خانوادگی'))}
+            placeholder="نام خانوادگی"
+          />
         </FormField>
       </FormRow>
 

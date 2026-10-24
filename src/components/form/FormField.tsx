@@ -3,7 +3,9 @@ import {
   Children,
   cloneElement,
   isValidElement,
+  useEffect,
   useId,
+  useRef,
   type ReactElement,
   type ReactNode
 } from 'react'
@@ -151,6 +153,10 @@ function resolveControlWidthClass(
   return formControlWidthFullClass
 }
 
+/** The control a screen reader lands on: the first real input, textarea, select or button. */
+const CONTROL_SELECTOR =
+  'input:not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,select,button'
+
 export default function FormField({
   label,
   required = false,
@@ -170,6 +176,37 @@ export default function FormField({
   const controlChild = resolveControlChild(children)
   const control = enhanceControl(controlChild, controlId, invalid, describedBy)
   const controlShellClass = resolveControlWidthClass(controlChild, controlWidth)
+  const shellRef = useRef<HTMLDivElement>(null)
+
+  // Custom pickers do not take aria props; mark their first control from here so every
+  // invalid field is announced and the first one can be focused after a failed submit.
+  useEffect(() => {
+    const target = shellRef.current?.querySelector<HTMLElement>(CONTROL_SELECTOR)
+
+    if (!target) return
+
+    if (invalid) {
+      if (target.getAttribute('aria-invalid') !== 'true') {
+        target.setAttribute('aria-invalid', 'true')
+        target.dataset.fieldMarked = ''
+      }
+      if (!target.getAttribute('aria-describedby')) {
+        target.setAttribute('aria-describedby', errorId)
+        target.dataset.fieldDescribed = ''
+      }
+
+      return
+    }
+
+    if (target.dataset.fieldMarked !== undefined) {
+      target.removeAttribute('aria-invalid')
+      delete target.dataset.fieldMarked
+    }
+    if (target.dataset.fieldDescribed !== undefined) {
+      target.removeAttribute('aria-describedby')
+      delete target.dataset.fieldDescribed
+    }
+  })
 
   return (
     <div className={cn(formFieldClass, className)} style={style}>
@@ -184,7 +221,9 @@ export default function FormField({
           )}
         </label>
       )}
-      <div className={cn('form-control-shell', controlShellClass)}>{control}</div>
+      <div ref={shellRef} className={cn('form-control-shell', controlShellClass)}>
+        {control}
+      </div>
       {error ? (
         <p id={errorId} className={formErrorClass} role="alert">
           {error}

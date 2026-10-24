@@ -98,7 +98,12 @@ export default function WalletFormModal({
       saving={saving}
       saveLabel={editingAccount ? 'ذخیره تغییرات' : 'ذخیره حساب'}
     >
-      <FormField label="نوع حساب" required controlWidth="full">
+      <FormField
+        label="نوع حساب"
+        required
+        controlWidth="full"
+        error={formFieldError(errors, 'accountKind')}
+      >
         <Controller
           name="accountKind"
           control={control}
@@ -142,7 +147,7 @@ export default function WalletFormModal({
           <Controller
             name="bankId"
             control={control}
-            rules={requiredField('بانک را انتخاب کنید')}
+            rules={requiredField('انتخاب بانک')}
             render={({ field, fieldState }) => (
               <CategorySelect
                 value={field.value}

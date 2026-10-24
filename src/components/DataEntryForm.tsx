@@ -19,6 +19,9 @@ import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
 import { focusEntryAmount, templateFormValues, type DataEntryFormProps } from './dataEntry/types'
 import { writeEntryRecord } from './dataEntry/writeEntryRecord'
 import { buildFormInitialValues, isStandardEntryForm, withAutoTitle } from './form'
+import { focusFirstInvalidField } from '../utils/focusInvalidField'
+import { showError } from '../utils/toast'
+import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
 import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import { showSavedForEntry } from './nudges/saveNudges'
 import { useModalFormReset } from '../hooks/useModalFormReset'
@@ -30,8 +33,6 @@ import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRe
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
-import { showError } from '../utils/toast'
-import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
 import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
 import { appFormClassName } from './ui/formStyles'
 import { entryFormGridClass } from './ui/recordsStyles'
@@ -133,6 +134,7 @@ export default function DataEntryForm({
     }
 
     if (firstMessage) showError(firstMessage)
+    if (hasError) focusFirstInvalidField(formRef.current)
 
     return !hasError
   }

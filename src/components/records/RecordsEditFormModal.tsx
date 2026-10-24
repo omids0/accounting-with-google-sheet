@@ -9,6 +9,8 @@ import { getSettings } from '../../services/settings'
 import { metaToFormValues } from '../../services/vehicleExpenseActions'
 import { findVehicleExpenseMetaByRecordId } from '../../services/vehicleExpenseRecords'
 import type { CustomForm, FieldConfig } from '../../types'
+import { formFieldError } from '../../utils/formValidation'
+import { showError } from '../../utils/toast'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
 import AttachmentField from '../attachments/AttachmentField'
 import type { AttachmentDraftsState } from '../attachments/useAttachmentDrafts'
@@ -17,6 +19,7 @@ import {
   LazyBuildingExpenseFields
 } from '../dataEntry/buildingExpenseEntry'
 import EntryRecordExtraField, { isRecordExtraField } from '../dataEntry/EntryRecordExtraField'
+import { entryValidationErrors } from '../dataEntry/entryValidationErrors'
 import {
   FieldInput,
   isFieldHidden,
@@ -88,7 +91,15 @@ export default function RecordsEditFormModal({
   const isExpenseForm = editingForm.type === 'expense'
   const vehicleExpense = useVehicleExpenseEntry(open && isExpenseForm)
 
-  const { handleSubmit, reset, setValue, watch } = useForm<Record<string, string | number>>({
+  const {
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    setError,
+    clearErrors,
+    formState: { errors }
+  } = useForm<Record<string, string | number>>({
     defaultValues: initialValues
   })
 
@@ -144,12 +155,28 @@ export default function RecordsEditFormModal({
   }
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(formValues =>
-      onSubmit(
+    void handleSubmit(formValues => {
+      clearErrors()
+
+      const found = entryValidationErrors(editingForm, formValues, {
+        showVehicleFields,
+        selectedCategory,
+        hasSubcategories,
+        strictAmount: false
+      })
+
+      if (found.length > 0) {
+        found.forEach(error => error.id && setError(error.id, { message: error.message }))
+        showError(found[0].message)
+
+        return
+      }
+
+      return onSubmit(
         withAutoTitle(formValues),
         showVehicleFields ? vehicleExpense.vehicleValues : undefined
       )
-    )(event)
+    })(event)
   }
 
   return (
@@ -199,7 +226,9 @@ export default function RecordsEditFormModal({
             key={field.id}
             field={field}
             value={values[field.id] ?? ''}
+            error={formFieldError(errors, field.id)}
             onChange={next => {
+              clearErrors(field.id)
               setValue(field.id, next)
               if (field.id === 'category') setValue(SUBCATEGORY_FIELD_ID, '')
             }}
