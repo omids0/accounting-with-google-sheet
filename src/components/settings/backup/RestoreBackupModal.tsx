@@ -168,9 +168,12 @@ function StageActions(props: RestoreBackupModalProps) {
     )
   }
 
+  // While the restore runs there is nothing to dismiss: say what is happening, not «متوجه شدم».
+  const running = stage === 'running'
+
   return (
-    <Button type="button" variant="primary" disabled={stage === 'running'} onClick={props.onClose}>
-      متوجه شدم
+    <Button type="button" variant="primary" disabled={running} onClick={props.onClose}>
+      {running ? 'در حال بازیابی…' : 'متوجه شدم'}
     </Button>
   )
 }
