@@ -30,11 +30,17 @@ import {
   resolveSpreadsheetSession
 } from './services/spreadsheetSetup'
 import { hasStoreData, hydrateStore } from './services/spreadsheetStore'
-import { refreshAccessTokenSilently } from './services/tokenRefresh'
+import { lastRefreshWasTransient, refreshAccessTokenSilently } from './services/tokenRefresh'
 import { registerWebUpdates } from './services/webUpdate'
 import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
 import { toUserMessage } from './utils/userMessage'
+
+function hasCachedData(): boolean {
+  const cachedId = getSettings()?.spreadsheetId
+
+  return !!cachedId && hasStoreData(cachedId)
+}
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -98,6 +104,8 @@ export default function App() {
 
         return
       }
+      // Offline is not an expired session: keep the screen the user is on.
+      if (lastRefreshWasTransient()) return
     }
     setNeedsReauth(true)
   }, [clientId])
@@ -110,7 +118,7 @@ export default function App() {
     clientId,
     enabled: hasStoredSession(),
     onRefreshFailed: () => {
-      if (loggedIn) setNeedsReauth(true)
+      if (loggedIn && !lastRefreshWasTransient()) setNeedsReauth(true)
     },
     onRefreshSuccess: () => {
       if (isTokenValid()) setNeedsReauth(false)
@@ -156,6 +164,12 @@ export default function App() {
 
       if (!tokenValid) {
         startupDoneRef.current = true
+        // Nothing answered (offline): the cached app stays, the session is not expired.
+        if (lastRefreshWasTransient() && hasCachedData()) {
+          if (!cancelled) setReady(true)
+
+          return
+        }
         if (!cancelled) {
           setLoggedIn(false)
           setNeedsReauth(isConfigured())

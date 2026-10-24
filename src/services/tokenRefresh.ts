@@ -10,24 +10,68 @@ import {
 import { isNativePlatform, refreshNativeToken } from './googleAuthNative'
 import { loadGoogleIdentityScript } from './googleIdentityScript'
 
+/**
+ * `ok`: a new token is stored. `denied`: Google (or the browser) refused, so only
+ * the user can fix it. `transient`: no answer (offline, script or network error),
+ * so the session may well be fine and must not be called expired.
+ */
+export type RefreshOutcome = 'ok' | 'denied' | 'transient'
+
+/** A silent request that has not answered by now is given up, so start-up never waits long. */
+export const SILENT_REQUEST_DEADLINE_MS = 4_000
+
+/** Pause before the single retry of a transient web failure. */
+export const RETRY_DELAY_MS = 800
+
 let refreshInFlight: Promise<boolean> | null = null
 
-function requestTokenSilently(clientId: string, email: string): Promise<boolean> {
+let lastOutcome: RefreshOutcome = 'ok'
+
+/** True when the last renewal failed only because nothing answered (offline). */
+export function lastRefreshWasTransient(): boolean {
+  return lastOutcome === 'transient'
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/** Runs `attempt`, retrying after each pause in `delaysMs` while the outcome is transient. */
+export async function attemptWithRetry(
+  attempt: () => Promise<RefreshOutcome>,
+  delaysMs: readonly number[]
+): Promise<RefreshOutcome> {
+  let outcome = await attempt()
+
+  for (const delay of delaysMs) {
+    if (outcome !== 'transient') break
+    await sleep(delay)
+    outcome = await attempt()
+  }
+
+  return outcome
+}
+
+function requestTokenSilently(clientId: string, email: string): Promise<RefreshOutcome> {
   return new Promise(resolve => {
     const google = window.google?.accounts?.oauth2
 
     if (!google) {
-      resolve(false)
+      resolve('transient')
 
       return
     }
 
     let settled = false
 
-    const finish = (ok: boolean) => {
+    // A popup that opened but never answers must not hold the splash screen.
+    const timer = setTimeout(() => finish('denied'), SILENT_REQUEST_DEADLINE_MS)
+
+    function finish(outcome: RefreshOutcome) {
       if (settled) return
       settled = true
-      resolve(ok)
+      clearTimeout(timer)
+      resolve(outcome)
     }
 
     const client = google.initTokenClient({
@@ -40,18 +84,44 @@ function requestTokenSilently(clientId: string, email: string): Promise<boolean>
         const scopeLost = !!response.scope && !hasRequiredGoogleScopes(response.scope)
 
         if (response.error || !response.access_token || scopeLost) {
-          finish(false)
+          finish('denied')
 
           return
         }
+        // Stored even when it arrives after the deadline: the next call finds it valid.
         renewSessionToken(response.access_token, response.expires_in ?? 3600)
-        finish(true)
+        finish('ok')
       },
-      error_callback: () => finish(false)
+      // A popup the browser blocks fails again at once, so only other errors are retried.
+      error_callback: error =>
+        finish(error?.type === 'popup_failed_to_open' ? 'denied' : 'transient')
     })
 
     client.requestAccessToken({ prompt: 'none' })
   })
+}
+
+async function renewThroughGoogleScript(clientId: string, email: string): Promise<RefreshOutcome> {
+  const loaded = await Promise.race([
+    loadGoogleIdentityScript(),
+    sleep(SILENT_REQUEST_DEADLINE_MS).then(() => false)
+  ])
+
+  return loaded ? requestTokenSilently(clientId, email) : 'transient'
+}
+
+function runRefresh(
+  attempt: () => Promise<RefreshOutcome>,
+  retryDelays: readonly number[]
+): Promise<boolean> {
+  refreshInFlight = attemptWithRetry(attempt, retryDelays).then(outcome => {
+    refreshInFlight = null
+    lastOutcome = outcome
+
+    return outcome === 'ok'
+  })
+
+  return refreshInFlight
 }
 
 export function refreshAccessTokenSilently(clientId: string, force = false): Promise<boolean> {
@@ -62,6 +132,8 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
   // Old-scope sessions never got drive.file; a silent request cannot add it, so
   // send them straight to the one-time sign-in instead of failing at Google.
   if (!session?.email || sessionNeedsScopeUpgrade()) {
+    lastOutcome = 'denied'
+
     return Promise.resolve(false)
   }
 
@@ -73,8 +145,13 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
     refreshInFlight = refreshNativeToken().then(accessToken => {
       refreshInFlight = null
 
-      if (!accessToken) return false
+      if (!accessToken) {
+        lastOutcome = 'denied'
+
+        return false
+      }
       renewSessionToken(accessToken)
+      lastOutcome = 'ok'
 
       return true
     })
@@ -83,20 +160,14 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
   }
 
   if (!clientId) {
+    lastOutcome = 'denied'
+
     return Promise.resolve(false)
   }
 
   const email = session.email
 
-  refreshInFlight = loadGoogleIdentityScript()
-    .then(loaded => (loaded ? requestTokenSilently(clientId, email) : false))
-    .then(ok => {
-      refreshInFlight = null
-
-      return ok
-    })
-
-  return refreshInFlight
+  return runRefresh(() => renewThroughGoogleScript(clientId, email), [RETRY_DELAY_MS])
 }
 
 /**
