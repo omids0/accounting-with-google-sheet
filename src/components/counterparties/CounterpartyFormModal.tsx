@@ -151,7 +151,11 @@ export default function CounterpartyFormModal({
         <textarea {...register('address')} placeholder="آدرس" rows={2} />
       </FormField>
 
-      <CounterpartyPhonesField control={control} register={register} />
+      <CounterpartyPhonesField
+        control={control}
+        register={register}
+        savedNumbers={editingItem?.phones.map(phone => phone.number)}
+      />
       <CounterpartyAccountsField control={control} register={register} />
 
       {initialValues.me === undefined ? null : (

@@ -82,7 +82,10 @@ export function useCounterpartySelectActions({
     }
     if (!requireAuth()) return false
 
-    const validationError = validateCounterpartyForm(values)
+    const validationError = validateCounterpartyForm(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
 
     if (validationError) {
       showError(validationError)

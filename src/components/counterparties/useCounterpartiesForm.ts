@@ -42,7 +42,10 @@ export function useCounterpartiesForm({ onSaved }: UseCounterpartiesFormOptions)
 
     if (!spreadsheetId) return
 
-    const validationError = validateCounterpartyForm(values)
+    const validationError = validateCounterpartyForm(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
 
     if (validationError) {
       showError(validationError)
