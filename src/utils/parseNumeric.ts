@@ -15,6 +15,13 @@ const MINUS_VARIANTS = /[−﹣－]/g
 /** Plain decimal only — no hex (0x10), exponent (1e9), Infinity, or stray characters. */
 const PLAIN_DECIMAL = /^[+-]?(\d+\.?\d*|\.\d+)$/
 
+/**
+ * Digits with an optional sign and point and nothing else: the text the normalization below would
+ * hand back unchanged. Sheet amounts almost always look like this, and a list of thousands of rows
+ * parses them on every load, so they skip the replace chain.
+ */
+const PLAIN_ASCII_DECIMAL = /^[+-]?d+(.d*)?$/
+
 function normalizeNumericText(raw: string): string {
   let text = normalizeDigits(raw)
     .replace(INVISIBLE_CHARS, '')
@@ -42,7 +49,8 @@ export function parseNumericStrict(value: string | number | undefined | null): n
   if (value == null) return null
   if (typeof value === 'number') return Number.isFinite(value) ? value : null
 
-  const normalized = normalizeNumericText(String(value))
+  const text = String(value)
+  const normalized = PLAIN_ASCII_DECIMAL.test(text) ? text : normalizeNumericText(text)
 
   if (!PLAIN_DECIMAL.test(normalized)) return null
 
