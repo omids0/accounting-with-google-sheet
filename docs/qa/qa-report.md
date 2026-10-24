@@ -133,19 +133,19 @@
 - ویرایش قسط، بدهی و طلب، و حذف طرف حسابی که به رکوردها وصل است.
 - دسکتاپ و تبلت (مرورگر در شبیه‌ساز iPhone بود).
 
-## وضعیت رفع (۲ آبان ۱۴۰۵)
+## وضعیت رفع (همه شاخه‌ها روی develop merge شده‌اند)
 
 هر مورد روی شاخه‌ای رفع شده است. «تأیید در Edge» یعنی در اپ واقعی و با شیت dev دیده شد؛ «فقط تست واحد» یعنی هنوز در مرورگر دیده نشده.
 
 | شاخه | وضعیت | موارد |
 |------|-------|-------|
 | `qa-data-integrity` | merge شده | ۱، ۲، ۴، ۸، ۲۹، ۳۰، ۳۲، ۳۵ |
-| `qa-forms-validation` | push شده، منتظر merge | ۶، ۱۱، ۱۲، ۱۳، ۱۶، ۱۷، ۱۸ (بخشی)، ۲۱ (بخشی)، ۲۲، ۳۶، ۳۸ (بخشی)، ۳۹، ۴۰ |
-| `qa-ui-a11y` | push شده، منتظر merge | ۳، ۷، ۱۰، ۱۴، ۱۵، ۲۰، ۲۳، ۲۴، ۲۵، ۲۶، ۲۷، ۳۳، ۳۴، ۳۷ |
-| `check-direction` | push شده، منتظر merge | ۱۹ |
-| `qa-building-report` | push شده، منتظر merge | ۳۱ |
-| `auth-token-refresh` | push شده، منتظر merge و deploy | ۹ |
-| `qa-small-fixes` | push شده، منتظر merge | ۵ |
+| `qa-forms-validation` | merge شده | ۶، ۱۱، ۱۲، ۱۳، ۱۶، ۱۷، ۱۸ (بخشی)، ۲۱ (بخشی)، ۲۲، ۳۶، ۳۸ (بخشی)، ۳۹، ۴۰ |
+| `qa-ui-a11y` | merge شده | ۳، ۷، ۱۰، ۱۴، ۱۵، ۲۰، ۲۳، ۲۴، ۲۵، ۲۶، ۲۷، ۳۳، ۳۴، ۳۷ |
+| `check-direction` | merge شده | ۱۹ |
+| `qa-building-report` | merge شده | ۳۱ |
+| `auth-token-refresh` | merge شده، منتظر deploy worker | ۹ |
+| `qa-small-fixes` | merge شده | ۵ |
 
 ### انجام نشد یا بخشی انجام شد
 
@@ -160,9 +160,9 @@
 - ۲۶: فیلتر دسته و طرف حساب از قبل بود؛ فیلتر حساب کیف پول و مبلغ از/تا اضافه شد.
 - ۲۳: برچسب متنی کنار آیتم‌های دکمه شناور از قبل بود؛ فقط اندازه و padding اصلاح شد.
 
-### تعارض‌های merge
+### کارهای باقی‌مانده برای مالک
 
-- `qa-ui-a11y` با `qa-forms-validation`: ۴ فایل (FormModal، CounterpartyFormModal، RecordsEditFormModal، TreasuryBuyFormModal).
-- `check-direction` با `qa-forms-validation`: ۱ فایل (CheckFormModal).
-- `qa-ui-a11y` با `check-direction`: ۲ فایل.
-- ترتیب پیشنهادی merge: forms، building، small-fixes، auth، سپس ui و checks (بعد از merge، تعارض‌ها را روی آن دو حل می‌کنم).
+1. در تنظیمات › حساب و داده «پشتیبان بگیر و ترمیم کن» را بزن تا ۲۷۳ ردیف قدیمی شیت واقعا به ستون درست منتقل شوند.
+2. تمدید توکن: `workers/auth-refresh` را طبق README آن پوشه روی Cloudflare deploy کن (KV، سه secret، `wrangler deploy`)، سپس secret مخزن `VITE_AUTH_WORKER_URL` را بساز و خط `VITE_AUTH_WORKER_URL: ${{ secrets.VITE_AUTH_WORKER_URL }}` را به env هر دو مرحله Build در `.github/workflows/deploy.yml` اضافه کن، و `https://*.workers.dev` در CSP (`index.html`) را به آدرس دقیق worker محدود کن.
+3. نام فایل «ساختمان ساختمان تست» را در Drive یک بار دستی عوض کن.
+4. مورد ۴۱ (سرعت جابه‌جایی ساختمان) نیاز به اندازه‌گیری روی گوشی دارد.
