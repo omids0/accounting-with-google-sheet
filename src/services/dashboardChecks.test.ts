@@ -53,8 +53,14 @@ describe('dashboard with checks of both types', () => {
     ])
   })
 
-  it('counts payable checks as debt (old rows too) and received ones as an asset', async () => {
-    const financial = await load()
+  const withReceived = () => {
+    const config = getDefaultNetAvailableConfig()
+
+    return { ...config, assets: { ...config.assets, checksReceived: true } }
+  }
+
+  it('counts payable checks as debt (old rows too) and received ones as an asset once opted in', async () => {
+    const financial = await load(withReceived())
 
     expect(financial.checksDue).toBe(300)
     expect(financial.checksReceivable).toBe(50)
@@ -63,10 +69,12 @@ describe('dashboard with checks of both types', () => {
     expect(financial.netAvailable).toBe(750)
   })
 
-  it('drops received checks from the assets when their switch is off', async () => {
-    const config = getDefaultNetAvailableConfig()
-    const financial = await load({ ...config, assets: { ...config.assets, checksReceived: false } })
+  it('leaves received checks out by default: they may be in «طلب‌ها» too', async () => {
+    expect(getDefaultNetAvailableConfig().assets.checksReceived).toBe(false)
 
+    const financial = await load()
+
+    expect(financial.checksReceivable).toBe(50)
     expect(financial.totalAssets).toBe(1_000)
     expect(financial.netAvailable).toBe(700)
   })

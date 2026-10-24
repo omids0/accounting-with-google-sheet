@@ -4,21 +4,51 @@ import {
   checkRecordType,
   checksOfDirection,
   checkTypeLabel,
-  parseCheckDirection
+  headerDirectionColumn,
+  parseCheckDirection,
+  unknownDirectionCell
 } from './checkDirection'
-import {
-  checkCounterpartyLabel,
-  CHECK_DIRECTION_FILTER_OPTIONS
-} from '../components/checks/checkDirectionOptions'
+import { checkToRow, rowToCheck } from './checkRows'
+import { checkCounterpartyLabel } from '../components/checks/checkDirectionOptions'
+import type { Check } from '../types'
 
 describe('check direction', () => {
-  it('reads anything but «دریافتی» as a payable, so old rows keep their meaning', () => {
-    expect(parseCheckDirection('دریافتی')).toBe('received')
-    expect(parseCheckDirection(' دریافتی ')).toBe('received')
-    expect(parseCheckDirection('پرداختی')).toBe('paid')
-    expect(parseCheckDirection('')).toBe('paid')
-    expect(parseCheckDirection(undefined)).toBe('paid')
-    expect(parseCheckDirection('received')).toBe('paid')
+  it('reads «دریافتی» and its variants as received', () => {
+    for (const cell of [
+      'دریافتی',
+      ' دریافتی ',
+      'دریافتـی',
+      'دريافتي',
+      'دری‌افتی',
+      'دریافت',
+      'received',
+      ' Received ',
+      'RECEIVED'
+    ]) {
+      expect(parseCheckDirection(cell), cell).toBe('received')
+    }
+  })
+
+  it('reads a missing cell and every payable spelling as paid, so old rows keep their meaning', () => {
+    for (const cell of ['پرداختی', 'پرداخت', 'paid', 'Paid', '', '  ', undefined, null]) {
+      expect(parseCheckDirection(cell)).toBe('paid')
+    }
+  })
+
+  it('reads an unknown word as paid but keeps it to show', () => {
+    expect(parseCheckDirection('نقدی')).toBe('paid')
+    expect(unknownDirectionCell(' نقدی ')).toBe('نقدی')
+    expect(unknownDirectionCell('دریافتی')).toBe('')
+    expect(unknownDirectionCell('پرداختی')).toBe('')
+    expect(unknownDirectionCell('')).toBe('')
+    expect(unknownDirectionCell(undefined)).toBe('')
+  })
+
+  it('finds the header label however it is spelled', () => {
+    expect(headerDirectionColumn(['الف', 'ب', 'نوع چک'])).toBe(2)
+    expect(headerDirectionColumn(['الف', ' نوع‌ چک '])).toBe(1)
+    expect(headerDirectionColumn(['الف'])).toBe(-1)
+    expect(headerDirectionColumn(null)).toBe(-1)
   })
 
   it('passes a payable as an expense and a received check as income', () => {
@@ -33,14 +63,52 @@ describe('check direction', () => {
     expect(checkCounterpartyLabel('received')).toBe('از طرف (صادرکننده)')
   })
 
-  it('filters by type, and offers «همه» first', () => {
+  it('filters by type', () => {
     const items = [{ direction: 'paid' as const }, { direction: 'received' as const }]
 
     expect(checksOfDirection(items, 'received')).toEqual([{ direction: 'received' }])
-    expect(CHECK_DIRECTION_FILTER_OPTIONS.map(option => option.label)).toEqual([
-      'همه',
-      'پرداختی',
-      'دریافتی'
-    ])
+  })
+})
+
+const check: Check = {
+  id: 'c1',
+  createdAt: '',
+  checkNumber: '1',
+  direction: 'received',
+  counterparty: 'علی',
+  amount: 5,
+  creationDate: '',
+  dueDate: '',
+  paid: false,
+  paidAt: ''
+}
+
+describe('check rows', () => {
+  it('reads the type from the given column only', () => {
+    const row = ['c1', '', '1', 'علی', '5', '', '', 'خیر', '', '', '', '', '', 'x', 'دریافتی']
+
+    expect(rowToCheck(row, 2, 14).direction).toBe('received')
+    expect(rowToCheck(row, 2, 13).direction).toBe('paid')
+    expect(rowToCheck(row, 2, 13).directionRaw).toBe('x')
+    expect(rowToCheck(row, 2).direction).toBe('paid')
+  })
+
+  it('writes onto the stored row: nothing the app does not own is touched', () => {
+    const stored = ['c1', '', '', '', '', '', '', '', '', '', '', 'att', 'me@x.com', 'خصوصی']
+    const row = checkToRow(check, 14, stored)
+
+    expect(row.slice(11, 14)).toEqual(['att', 'me@x.com', 'خصوصی'])
+    expect(row[14]).toBe('دریافتی')
+    expect(row[3]).toBe('علی')
+  })
+
+  it('keeps the writer when nobody is signed in, since the stored cell is not blanked', () => {
+    const stored = ['c1', '', '', '', '', '', '', '', '', '', '', '', 'me@x.com']
+
+    expect(checkToRow(check, -1, stored)[12]).toBe('me@x.com')
+  })
+
+  it('does not write a type without a column', () => {
+    expect(checkToRow(check, -1)).toHaveLength(11)
   })
 })

@@ -91,7 +91,8 @@ export function buildingUpcoming(input: {
       subtitle: item.subtitle,
       dueDate: item.dueDate,
       amount: item.amount,
-      status: item.status
+      status: item.status,
+      incoming: item.incoming
     })
   )
 

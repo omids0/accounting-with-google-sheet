@@ -55,6 +55,11 @@ interface PageFilterPanelProps {
   paymentStatusLabel?: string
   paymentStatusPaidLabel?: string
   paymentStatusUnpaidLabel?: string
+  /** One-of-N filter on a fixed property (`useKindFilter`); hidden when `kindOptions` is unset. */
+  kind?: string
+  onKindChange?: (value: string) => void
+  kindOptions?: { value: string; label: string }[]
+  kindLabel?: string
   /** «فقط من» on a shared spreadsheet (`useMineFilter`); hidden when unset. */
   mineOnly?: boolean
   onMineOnlyChange?: (next: boolean) => void
@@ -89,6 +94,10 @@ export default function PageFilterPanel({
   paymentStatusLabel = 'وضعیت پرداخت',
   paymentStatusPaidLabel,
   paymentStatusUnpaidLabel,
+  kind,
+  onKindChange,
+  kindOptions,
+  kindLabel = 'نوع',
   mineOnly,
   onMineOnlyChange,
   children
@@ -127,6 +136,24 @@ export default function PageFilterPanel({
                   type="button"
                   className={recordsDateGridBtnClass(paymentStatus === option.id)}
                   onClick={() => onPaymentStatusChange(option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {kind !== undefined && onKindChange && kindOptions && (
+          <div className={recordsFilterSectionClassName()}>
+            <span className={recordsFilterLabelClass}>{kindLabel}</span>
+            <div className={recordsDateGridClass}>
+              {kindOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={recordsDateGridBtnClass(kind === option.value)}
+                  onClick={() => onKindChange(option.value)}
                 >
                   {option.label}
                 </button>

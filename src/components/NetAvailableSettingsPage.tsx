@@ -140,7 +140,8 @@ export default function NetAvailableSettingsPage() {
         <h3 className={chartTitleClass}>دارایی‌ها</h3>
         <p className={netAvailableSectionHintClass}>
           مواردی که در مجموع دارایی‌ها لحاظ شوند؛ چک‌های دریافتی فقط تا پایان این ماه و تا وقتی پاس
-          نشده‌اند
+          نشده‌اند. «چک‌های دریافتی» پیش‌فرض خاموش است: اگر پول همان چک را در «طلب‌ها» هم ثبت
+          کرده‌ای روشنش نکن، چون دو بار حساب می‌شود.
         </p>
         <ToggleChipGroup
           options={[...ASSET_OPTIONS]}

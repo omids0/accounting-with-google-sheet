@@ -1,16 +1,13 @@
 import type { Check, CheckDirection } from '../types'
 import { logItemActivity } from './activityLog'
-import { CHECK_ATTACHMENT_COLUMN } from './attachmentColumn'
 import {
-  CHECK_DIRECTION_COLUMN,
   CHECK_DIRECTION_LABELS,
   checkRecordType,
   checkTypeLabel,
-  parseCheckDirection
+  headerDirectionColumn
 } from './checkDirection'
-import { checkToRow, parsePaid, rowToCheck } from './checkRows'
-import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
-import { deleteLinkedRecord } from './paymentTransactions'
+import { checkToRow, rowToCheck } from './checkRows'
+import { checkDirectionColumnForWrite } from './migrateCheckDirectionColumn'
 import type { SettleOptions, UnlinkChoice } from './settleOptions'
 import { createLinkedRecordWithWallet, deleteLinkedRecordWithWallet } from './settleRecords'
 import { CHECKS_HEADERS } from './sheetHeaders'
@@ -22,18 +19,15 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
-import {
-  parseAttachmentIds,
-  serializeAttachmentIds,
-  withAttachmentCell
-} from '../utils/attachmentIds'
+import { getSheetRow } from './spreadsheetStore'
 import type { DateRange } from '../utils/dateRange'
 import { isDateInRange } from '../utils/dateRange'
 import { formatMoney } from '../utils/formatMoney'
-import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
+import { showInfo } from '../utils/toast'
 
+export { exportChecksCsv, importChecksCsv } from './checksCsv'
 export { CHECKS_SHEET, CHECKS_HEADERS }
 
 /** Category of the record a passed check creates: an expense when paid, income when received. */
@@ -57,10 +51,13 @@ export async function fetchChecks(
 ): Promise<(Check & { rowNumber: number })[]> {
   const rows = await fetchSheetRows(spreadsheetId, CHECKS_SHEET)
 
+  // The type is read from the column labelled «نوع چک» (none yet: every check is a payable).
+  const column = headerDirectionColumn(getSheetRow(spreadsheetId, CHECKS_SHEET, 1))
+
   const items = rows
     .map((row, index) => ({ row, rowNumber: index + 2 }))
     .filter(({ row }) => String(row[0] ?? '').trim())
-    .map(({ row, rowNumber }) => rowToCheck(row, rowNumber))
+    .map(({ row, rowNumber }) => rowToCheck(row, rowNumber, column))
 
   return sortChecks(items)
 }
@@ -91,10 +88,25 @@ export async function createCheck(
     paidAt: ''
   }
 
-  await appendSheetRow(spreadsheetId, CHECKS_SHEET, checkToRow(check))
+  await appendSheetRow(spreadsheetId, CHECKS_SHEET, await buildCheckRow(spreadsheetId, check))
   logItemActivity(spreadsheetId, 'create', 'checks', check.id, checkTitle(check))
 
   return check
+}
+
+/**
+ * The row to write: built on the stored one, so cells the app does not own survive, with the type
+ * in the column labelled «نوع چک» only.
+ */
+async function buildCheckRow(
+  spreadsheetId: string,
+  check: Check,
+  rowNumber?: number
+): Promise<string[]> {
+  const column = await checkDirectionColumnForWrite(spreadsheetId, check.direction)
+  const stored = rowNumber ? getSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber) : null
+
+  return checkToRow(check, column, stored?.[0]?.trim() === check.id ? stored : undefined)
 }
 
 function checkTitle(check: Pick<Check, 'checkNumber' | 'direction'>): string {
@@ -106,7 +118,9 @@ export async function updateCheck(
   rowNumber: number,
   check: Check
 ): Promise<void> {
-  await updateSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber, checkToRow(check))
+  const row = await buildCheckRow(spreadsheetId, check, rowNumber)
+
+  await updateSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber, row)
   logItemActivity(spreadsheetId, 'update', 'checks', check.id, checkTitle(check))
 }
 
@@ -116,7 +130,13 @@ export async function deleteCheck(
   check?: Check
 ): Promise<void> {
   if (check?.transactionRecordId) {
-    await deleteLinkedRecord(spreadsheetId, checkRecordType(check), check.transactionRecordId)
+    await deleteLinkedRecordWithWallet(
+      spreadsheetId,
+      checkRecordType(check),
+      check.transactionRecordId,
+      'چک: ',
+      'delete'
+    )
   }
   await deleteSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber)
   if (check) logItemActivity(spreadsheetId, 'delete', 'checks', check.id, checkTitle(check))
@@ -150,20 +170,26 @@ export async function toggleCheckPaid(
       transactionRecordId
     }
 
-    await updateSheetRow(spreadsheetId, CHECKS_SHEET, check.rowNumber, checkToRow(updated))
+    const row = await buildCheckRow(spreadsheetId, updated, check.rowNumber)
+
+    await updateSheetRow(spreadsheetId, CHECKS_SHEET, check.rowNumber, row)
     logItemActivity(spreadsheetId, 'pay', 'checks', check.id, checkTitle(check))
 
     return updated
   }
 
   if (!paid && check.paid) {
-    await deleteLinkedRecordWithWallet(
+    const found = await deleteLinkedRecordWithWallet(
       spreadsheetId,
       checkRecordType(check),
       check.transactionRecordId ?? '',
       'چک: ',
       unlink
     )
+
+    if (!found && check.transactionRecordId) {
+      showInfo('رکورد وصل‌شده به این چک پیدا نشد؛ فقط وضعیت چک برگشت.')
+    }
 
     const updated: Check = {
       ...check,
@@ -172,7 +198,9 @@ export async function toggleCheckPaid(
       transactionRecordId: ''
     }
 
-    await updateSheetRow(spreadsheetId, CHECKS_SHEET, check.rowNumber, checkToRow(updated))
+    const row = await buildCheckRow(spreadsheetId, updated, check.rowNumber)
+
+    await updateSheetRow(spreadsheetId, CHECKS_SHEET, check.rowNumber, row)
     logItemActivity(spreadsheetId, 'unpay', 'checks', check.id, checkTitle(check))
 
     return updated
@@ -202,10 +230,6 @@ export function totalUnpaidChecksInRange(
     range,
     direction
   )
-}
-
-export async function exportChecksCsv(spreadsheetId: string): Promise<string | null> {
-  return exportSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, 'چک‌ها.csv')
 }
 
 export async function exportChecksPdf(spreadsheetId: string): Promise<string | null> {
@@ -241,36 +265,5 @@ export async function exportChecksPdf(spreadsheetId: string): Promise<string | n
     rows,
     filename: 'چک‌ها.pdf',
     cellClasses
-  })
-}
-
-export async function importChecksCsv(spreadsheetId: string, csvContent: string) {
-  return importSheetCsv(spreadsheetId, CHECKS_SHEET, CHECKS_HEADERS, csvContent, cells => {
-    const checkNumber = (cells[2] ?? '').trim()
-
-    const counterparty = (cells[3] ?? '').trim()
-
-    if (!checkNumber && !counterparty) return null
-
-    const row = checkToRow({
-      id: newImportId(cells[0] ?? ''),
-      createdAt: newImportTimestamp(cells[1] ?? ''),
-      checkNumber,
-      direction: parseCheckDirection(cells[CHECK_DIRECTION_COLUMN]),
-      counterparty,
-      amount: parseNumeric(cells[4]),
-      creationDate: cells[5] ?? '',
-      dueDate: cells[6] ?? '',
-      paid: parsePaid(cells[7] ?? ''),
-      paidAt: cells[8] ?? '',
-      transactionRecordId: cells[9] ?? '',
-      subCategory: cells[10] ?? ''
-    })
-
-    return withAttachmentCell(
-      row,
-      CHECK_ATTACHMENT_COLUMN,
-      serializeAttachmentIds(parseAttachmentIds(cells[CHECK_ATTACHMENT_COLUMN]))
-    )
   })
 }

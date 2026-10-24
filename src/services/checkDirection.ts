@@ -5,7 +5,11 @@ import { toPersianDigits } from '../utils/normalizeDigits'
 /** Header of the checks column that says whether a check is given or received. */
 export const CHECK_DIRECTION_HEADER = 'نوع چک'
 
-/** Fixed index of the column; rows from before it existed simply have no cell there. */
+/**
+ * Where the column goes when it is free. The tab is read by the header LABEL (the app's own
+ * columns, up to «ثبت‌کننده», stay positional), so a spreadsheet whose column here is taken has
+ * the type further right.
+ */
 export const CHECK_DIRECTION_COLUMN = CHECKS_HEADERS.indexOf(CHECK_DIRECTION_HEADER)
 
 export const CHECK_DIRECTION_LABELS: Record<CheckDirection, string> = {
@@ -15,9 +19,36 @@ export const CHECK_DIRECTION_LABELS: Record<CheckDirection, string> = {
 
 type WithDirection = Pick<Check, 'direction'>
 
+/** Arabic ye/kaf, ZWNJ/ZWJ, spaces and case folded away: «دریافتـی» and « Received » read alike. */
+function normalizeCell(cell: unknown): string {
+  return String(cell ?? '')
+    .normalize('NFC')
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[\u200c\u200d\u0640\s]/g, '')
+    .toLowerCase()
+}
+
+const RECEIVED_CELLS = new Set(['دریافتی', 'دریافت', 'received', 'receive'])
+const PAID_CELLS = new Set(['پرداختی', 'پرداخت', 'paid', 'pay'])
+
 /** A missing or unknown cell is a payable: that is what every check was before the column. */
 export function parseCheckDirection(cell: unknown): CheckDirection {
-  return String(cell ?? '').trim() === CHECK_DIRECTION_LABELS.received ? 'received' : 'paid'
+  return RECEIVED_CELLS.has(normalizeCell(cell)) ? 'received' : 'paid'
+}
+
+/** The raw cell when it says neither type (someone typed there); '' otherwise. */
+export function unknownDirectionCell(cell: unknown): string {
+  const key = normalizeCell(cell)
+
+  return key && !RECEIVED_CELLS.has(key) && !PAID_CELLS.has(key) ? String(cell).trim() : ''
+}
+
+/** Where a header row keeps «نوع چک»; -1 while the tab has no such label. */
+export function headerDirectionColumn(header: readonly unknown[] | null | undefined): number {
+  return header
+    ? header.findIndex(cell => normalizeCell(cell) === normalizeCell(CHECK_DIRECTION_HEADER))
+    : -1
 }
 
 export function isReceivedCheck(check: WithDirection): boolean {

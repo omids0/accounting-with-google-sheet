@@ -33,6 +33,9 @@ export type CheckListProps = {
   onDelete: (item: CheckWithRow) => void
   /** Opens the same create form as the page speed dial. */
   onAdd?: () => void
+  /** The active «نوع چک» filter's label ('' = none), named when it hides every row. */
+  directionNote?: string
+  onClearDirection?: () => void
 }
 
 export default function CheckList({
@@ -43,7 +46,9 @@ export default function CheckList({
   onTogglePaid,
   onEdit,
   onDelete,
-  onAdd
+  onAdd,
+  directionNote,
+  onClearDirection
 }: CheckListProps) {
   const isDesktop = useIsDesktop()
   const { shared } = useSharing()
@@ -84,7 +89,12 @@ export default function CheckList({
   }
 
   if (filteredItems.length === 0) {
-    return <SearchEmptyState />
+    return (
+      <SearchEmptyState
+        filterNote={directionNote ? `فیلتر «نوع چک: ${directionNote}» فعال است.` : undefined}
+        onClearFilter={onClearDirection}
+      />
+    )
   }
 
   return (

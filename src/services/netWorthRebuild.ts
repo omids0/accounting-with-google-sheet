@@ -77,10 +77,25 @@ function receivablesAt(receivables: Receivable[], endIso: string): number {
     }, 0)
 }
 
-/** Checks of one type due inside the month: what was due then, whatever they are today. */
+function openAt(check: Check, endIso: string): boolean {
+  if (!check.paid) return true
+
+  // «۱۴۰۵/۷/۲۳، ۱۰:۴۰:۱۲»: the day is what comes before the time.
+  const paidOn = normalizeSheetDate(check.paidAt.split(/[،,\s]/)[0])
+
+  return Boolean(paidOn) && paidOn > endIso
+}
+
+/**
+ * Checks of one type due inside the month. A payable is the debt of that month whatever it is
+ * today. A received check is an asset only while it is not cashed: one passed by the month's end
+ * is already in the wallet, and counting it too would count the money twice (a pass date that
+ * cannot be read counts as passed).
+ */
 function checksDueIn(checks: Check[], range: DateRange, direction: CheckDirection): number {
   return checksOfDirection(checks, direction)
     .filter(check => isDateInRange(check.dueDate, range))
+    .filter(check => direction === 'paid' || openAt(check, range.end))
     .reduce((sum, check) => sum + check.amount, 0)
 }
 

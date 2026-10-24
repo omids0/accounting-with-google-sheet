@@ -24,6 +24,8 @@ function resolveCategory(category?: string): string {
 export interface LinkedRecordWallet {
   walletAccount: string
   walletApply: string
+  /** False when no record had that id in the form (so nothing was deleted). */
+  found?: boolean
 }
 
 export interface LinkedRecordParams {
@@ -100,7 +102,7 @@ export async function deleteLinkedRecord(
   formType: 'income' | 'expense',
   recordId: string
 ): Promise<LinkedRecordWallet> {
-  const none = { walletAccount: '', walletApply: '' }
+  const none = { walletAccount: '', walletApply: '', found: false }
 
   if (!recordId) return none
 
@@ -124,7 +126,8 @@ export async function deleteLinkedRecord(
 
   return {
     walletAccount: match.values[WALLET_ACCOUNT_FIELD_ID] ?? '',
-    walletApply: match.values[WALLET_APPLY_FIELD_ID] ?? ''
+    walletApply: match.values[WALLET_APPLY_FIELD_ID] ?? '',
+    found: true
   }
 }
 

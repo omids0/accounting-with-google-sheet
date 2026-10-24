@@ -259,7 +259,7 @@ export function updatePersonalReminderCategories(categories: string[]): void {
 
 export function getDefaultNetAvailableConfig(): NetAvailableConfig {
   return {
-    assets: { wallet: true, treasury: true, goals: true, receivables: true, checksReceived: true },
+    assets: { wallet: true, treasury: true, goals: true, receivables: true, checksReceived: false },
     liabilities: { installments: true, dangs: true, checks: true }
   }
 }

@@ -94,6 +94,16 @@ export function previewBackup(bytes: Uint8Array): RestorePreview {
   return preview
 }
 
+/**
+ * A replaced tab is rewritten row by row to `width` columns: a shorter row (a backup from before
+ * a column was added) is padded with empty cells, so no cell of the rows it replaces is left over.
+ */
+export function padRowsToWidth(rows: string[][], width: number): string[][] {
+  return rows.map(row =>
+    row.length >= width ? row : [...row, ...Array(width - row.length).fill('')]
+  )
+}
+
 async function writeTab(
   spreadsheetId: string,
   tab: RestoreTab,
@@ -103,7 +113,7 @@ async function writeTab(
   if (mode === 'replace') {
     const width = Math.max(plan.header.length, tab.headers.length, 1)
 
-    await replaceSheetDataRowsApi(spreadsheetId, tab.name, plan.rows, width)
+    await replaceSheetDataRowsApi(spreadsheetId, tab.name, padRowsToWidth(plan.rows, width), width)
 
     return
   }

@@ -79,7 +79,9 @@ export async function isLinkedForeignRecord(
 
 /**
  * Unpay: a record this app created is deleted with its balance effect; a linked one stays
- * unless the user chose to delete it too.
+ * unless the user chose to delete it too. A record that is not in the expected form is looked
+ * for in the other one (an older app build wrote a received check as an expense) and reversed
+ * there with that form's balance effect. False when no record was found at all.
  */
 export async function deleteLinkedRecordWithWallet(
   spreadsheetId: string,
@@ -87,9 +89,19 @@ export async function deleteLinkedRecordWithWallet(
   recordId: string,
   prefix: SettlePrefix,
   unlink: UnlinkChoice = 'keep'
-): Promise<void> {
-  if (!recordId) return
-  if (unlink === 'keep' && (await findForeignRecord(spreadsheetId, type, recordId, prefix))) return
+): Promise<boolean> {
+  if (!recordId) return true
+  if (unlink === 'keep' && (await findForeignRecord(spreadsheetId, type, recordId, prefix))) {
+    return true
+  }
 
-  await deleteLinkedRecord(spreadsheetId, type, recordId)
+  if ((await deleteLinkedRecord(spreadsheetId, type, recordId))?.found !== false) return true
+
+  const other: SettleType = type === 'expense' ? 'income' : 'expense'
+
+  if (unlink === 'keep' && (await findForeignRecord(spreadsheetId, other, recordId, prefix))) {
+    return true
+  }
+
+  return (await deleteLinkedRecord(spreadsheetId, other, recordId))?.found !== false
 }

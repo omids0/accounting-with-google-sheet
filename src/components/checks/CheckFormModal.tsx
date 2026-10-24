@@ -2,6 +2,7 @@ import { useMemo, type FormEvent } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
 import { CHECK_DIRECTION_OPTIONS, checkCounterpartyLabel } from './checkDirectionOptions'
+import { showReceivedCheckHintOnce } from './receivedCheckHint'
 import type { CheckFormState, CheckWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { CHECK_EXPENSE_CATEGORY, CHECK_INCOME_CATEGORY } from '../../services/checks'
@@ -90,6 +91,13 @@ export default function CheckFormModal({
   const counterpartyLabel = checkCounterpartyLabel(direction)
   // The record a passed check made is an expense or an income: its type stays.
   const directionLocked = Boolean(editingItem?.paid)
+  const raw = editingItem?.directionRaw
+
+  const directionHint = directionLocked
+    ? 'چک پاس شده است؛ نوعش دیگر قابل تغییر نیست.'
+    : raw
+    ? `در شیت «${raw}» نوشته شده بود و پرداختی حساب شد؛ نوع درست را انتخاب کنید.`
+    : undefined
 
   useModalFormReset(reset, initialValues, {
     active: open,
@@ -114,16 +122,14 @@ export default function CheckFormModal({
         name="direction"
         control={control}
         render={({ field }) => (
-          <FormField
-            controlWidth="full"
-            hint={directionLocked ? 'چک پاس شده است؛ نوعش دیگر قابل تغییر نیست.' : undefined}
-          >
+          <FormField controlWidth="full" hint={directionHint}>
             <SegmentedRadio
               label="نوع چک"
               options={CHECK_DIRECTION_OPTIONS}
               value={field.value}
               onChange={value => {
                 field.onChange(value)
+                if (value === 'received') showReceivedCheckHintOnce()
                 // Its subcategories belong to the other record type.
                 setValue('subCategory', '')
               }}

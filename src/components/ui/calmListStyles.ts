@@ -31,6 +31,9 @@ export const calmRowSubClass = 'mt-0.5 block truncate text-[0.7rem] text-muted'
 
 export const calmRowSubDangerClass = 'text-danger'
 
+/** Late, but money owed to me: amber, not the red of a debt. */
+export const calmRowSubWarningClass = 'text-warning'
+
 export const calmRowEndClass =
   'shrink-0 whitespace-nowrap font-numeric text-[0.8rem] font-bold tabular-nums text-text'
 

@@ -1,9 +1,5 @@
 import { CHECK_ATTACHMENT_COLUMN } from './attachmentColumn'
-import {
-  CHECK_DIRECTION_COLUMN,
-  CHECK_DIRECTION_LABELS,
-  parseCheckDirection
-} from './checkDirection'
+import { CHECK_DIRECTION_LABELS, parseCheckDirection, unknownDirectionCell } from './checkDirection'
 import { CHECK_WRITER_COLUMN } from './writerColumn'
 import type { Check } from '../types'
 import { parseAttachmentIds, withAttachmentCell } from '../utils/attachmentIds'
@@ -18,13 +14,24 @@ export function parsePaid(raw: string): boolean {
   return v === 'true' || v === '1' || v === 'بله' || v === 'yes'
 }
 
-export function rowToCheck(row: string[], rowNumber: number): Check & { rowNumber: number } {
+/**
+ * `directionColumn` is where the tab's header keeps «نوع چک» (-1 while it has none: every
+ * check reads as a payable).
+ */
+export function rowToCheck(
+  row: string[],
+  rowNumber: number,
+  directionColumn = -1
+): Check & { rowNumber: number } {
+  const cell = directionColumn >= 0 ? row[directionColumn] : undefined
+
   return {
     rowNumber,
     id: row[0] ?? '',
     createdAt: row[1] ?? '',
     checkNumber: row[2] ?? '',
-    direction: parseCheckDirection(row[CHECK_DIRECTION_COLUMN]),
+    direction: parseCheckDirection(cell),
+    directionRaw: unknownDirectionCell(cell) || undefined,
     counterparty: row[3] ?? '',
     amount: parseNumeric(row[4]),
     creationDate: row[5] ?? '',
@@ -38,8 +45,18 @@ export function rowToCheck(row: string[], rowNumber: number): Check & { rowNumbe
   }
 }
 
-export function checkToRow(check: Check): string[] {
-  const row = [
+/**
+ * The row to write. Built on `stored` (the row as the tab has it) so every cell the app does
+ * not own survives: «پیوست», «ثبت‌کننده» (kept when nobody is signed in) and the user's own
+ * columns. A new row has none, so its gaps are empty. The type goes only into
+ * `directionColumn` (a column labelled «نوع چک»), never by position.
+ */
+export function checkToRow(
+  check: Check,
+  directionColumn = -1,
+  stored?: readonly string[]
+): string[] {
+  const cells = [
     check.id,
     check.createdAt,
     check.checkNumber,
@@ -53,6 +70,13 @@ export function checkToRow(check: Check): string[] {
     check.subCategory ?? ''
   ]
 
-  // «پیوست» and «ثبت‌کننده» sit in between: the writers of those cells fill them in.
-  return withAttachmentCell(row, CHECK_DIRECTION_COLUMN, CHECK_DIRECTION_LABELS[check.direction])
+  let row = [...(stored ?? [])]
+
+  cells.forEach((cell, index) => {
+    row = withAttachmentCell(row, index, cell)
+  })
+
+  return directionColumn < 0
+    ? row
+    : withAttachmentCell(row, directionColumn, CHECK_DIRECTION_LABELS[check.direction])
 }

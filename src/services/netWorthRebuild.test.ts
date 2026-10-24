@@ -142,6 +142,27 @@ describe('rebuildMonthValues', () => {
     expect(rebuildMonthValues(withReceived, '1405-05', off)?.assets).toBe(9_500_000)
   })
 
+  it('does not count a received check twice: once it is passed the money is in the wallet', () => {
+    const received = { ...input.checks[0], direction: 'received' as const, amount: 150_000 }
+    const withChecks = (...checks: NetWorthRebuildInput['checks']) => ({ ...input, checks })
+
+    // Due in month 5 and passed on the 20th of month 5: income already, not an asset any more.
+    const passedInMonth = { ...received, id: 'p', paid: true, paidAt: '۱۴۰۵/۵/۲۰، ۱۰:۴۰:۱۲' }
+    // Due in month 5 but passed in month 6: at the end of month 5 it was still an asset.
+    const passedLater = { ...received, id: 'l', paid: true, paidAt: '۱۴۰۵/۶/۳، ۱۰:۴۰:۱۲' }
+    // The pass date cannot be read: counted as passed, never twice.
+    const unreadable = { ...received, id: 'u', paid: true, paidAt: 'dunno' }
+
+    const assets = (checks: NetWorthRebuildInput['checks']) =>
+      rebuildMonthValues(withChecks(...checks), '1405-05', ALL_ON)?.assets
+
+    expect(assets([])).toBe(9_500_000)
+    expect(assets([passedInMonth])).toBe(9_500_000)
+    expect(assets([passedLater])).toBe(9_650_000)
+    expect(assets([unreadable])).toBe(9_500_000)
+    expect(assets([{ ...received, id: 'o', paid: false, paidAt: '' }])).toBe(9_650_000)
+  })
+
   it('follows the net-available switches', () => {
     const walletOnly: NetAvailableConfig = {
       assets: {
