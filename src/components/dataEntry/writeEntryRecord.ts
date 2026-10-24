@@ -1,7 +1,10 @@
+import { settleBuildingEntry } from './buildingExpenseEntry'
 import { logRecordActivity } from '../../services/activityLog'
+import { settleEntryWallet } from '../../services/entryWallet'
 import { appendRecord } from '../../services/sheets'
 import { createManualVehicleExpense } from '../../services/vehicleExpenseActions'
 import type { CustomForm } from '../../types'
+import { showError } from '../../utils/toast'
 
 type VehicleExpenseInput = Parameters<typeof createManualVehicleExpense>[1]
 
@@ -25,4 +28,23 @@ export async function writeEntryRecord(
   logRecordActivity(spreadsheetId, 'create', recordId, values)
 
   return recordId
+}
+
+/**
+ * After the record is written: applies it to the wallet and, for a building expense, to the
+ * units' shares. A failure here is reported but must not invite a second save of the record.
+ */
+export async function settleSavedEntry(
+  spreadsheetId: string,
+  form: CustomForm,
+  values: Record<string, string | number>,
+  bankSms: Parameters<typeof settleEntryWallet>[3],
+  recordId: string
+): Promise<void> {
+  await settleEntryWallet(spreadsheetId, form.type, values, bankSms, recordId).catch(() =>
+    showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد')
+  )
+  await settleBuildingEntry(spreadsheetId, form, recordId, values).catch(() =>
+    showError('هزینه ذخیره شد ولی سهم واحدها یا بدهی ثبت نشد؛ آن را دوباره ذخیره کن')
+  )
 }

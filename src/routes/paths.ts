@@ -92,7 +92,8 @@ function normalizePath(pathname: string): string {
   return trimmed === '' ? '/' : trimmed
 }
 
-export function getTabFromPath(pathname: string): Tab {
+/** The tab a path belongs to, or null for a path no page lives at. */
+export function matchTabFromPath(pathname: string): Tab | null {
   const path = normalizePath(pathname)
 
   if (isBuildingUnitPath(path)) return 'building-unit'
@@ -122,7 +123,16 @@ export function getTabFromPath(pathname: string): Tab {
     return 'wallet-account-detail'
   }
 
-  return PATH_TO_TAB[path] ?? 'dashboard'
+  return PATH_TO_TAB[path] ?? null
+}
+
+export function getTabFromPath(pathname: string): Tab {
+  return matchTabFromPath(pathname) ?? 'dashboard'
+}
+
+/** False for a URL no page answers to (the router shows «صفحه پیدا نشد» for it). */
+export function isKnownPath(pathname: string): boolean {
+  return isSettingsPath(pathname) || matchTabFromPath(pathname) !== null
 }
 
 export function getPathForTab(tab: Tab, options?: TabNavigationOptions): string {

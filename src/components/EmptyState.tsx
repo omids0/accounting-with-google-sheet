@@ -15,7 +15,7 @@ interface EmptyStateProps {
   /** What the page is for; shown only while it is empty, to orient new users. */
   description?: ReactNode
   /** Optional call to action, e.g. the same "add" form the page's speed dial opens. */
-  action?: { label: string; onClick: () => void }
+  action?: { label: string; onClick: () => void; icon?: AppIconName }
   /** Lighter alternative shown before the main action, e.g. widening a filter. */
   secondaryAction?: { label: string; onClick: () => void }
   className?: string
@@ -50,7 +50,7 @@ export default function EmptyState({
           ) : null}
           {action ? (
             <Button type="button" variant="primary" size="sm" onClick={() => action.onClick()}>
-              <AppIcon name="add" size={16} />
+              <AppIcon name={action.icon ?? 'add'} size={16} />
               {action.label}
             </Button>
           ) : null}

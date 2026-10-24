@@ -62,6 +62,7 @@ import {
   LazyWalletReconcilePage
 } from './lazyPages'
 import LineItemRoute from './LineItemRoute'
+import NotFoundRoute from './NotFoundRoute'
 import {
   RECORD_COUNTERPARTY_PARAM,
   RECORD_EDIT_PARAM,
@@ -211,7 +212,8 @@ export function AppAuthenticatedRoutes() {
             <Route path="building/settings/members" element={<LazyBuildingMembersPage />} />
             <Route path="building/settings/lists" element={<LazyBuildingListsPage />} />
             <Route path="building/reports" element={<LazyBuildingReportsPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="index.html" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFoundRoute />} />
           </Route>
         </Route>
       </Routes>

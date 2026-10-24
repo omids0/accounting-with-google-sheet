@@ -1,7 +1,7 @@
 import { cn, cx } from '../../utils/cn'
 
 /** Room for the 2x2 grid of 44 px action buttons on the card's left edge. */
-export const walletCardControllerGutterClass = 'pl-[6.6rem]'
+export const walletCardControllerGutterClass = 'pl-[calc(var(--touch-min)*2+1.6rem)]'
 
 const walletCardShadowClass =
   'shadow-[0_2px_8px_rgba(15,23,42,0.1),0_1px_2px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.06]'
@@ -10,7 +10,7 @@ export const walletBankCardClass = cx(
   'wallet-bank-card relative flex min-h-[6.35rem] w-full flex-col overflow-hidden rounded-[12px] p-[0.65rem_0.75rem]',
   walletCardControllerGutterClass,
   walletCardShadowClass,
-  'text-right sm:min-h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[6.6rem]',
+  'text-right sm:min-h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[calc(var(--touch-min)*2+1.6rem)]',
   'transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]'
 )
 
@@ -116,7 +116,7 @@ const walletTileBaseClass = cx(
   'relative flex h-[6.35rem] w-full flex-col justify-between overflow-hidden rounded-[12px] p-[0.65rem_0.75rem] text-right',
   walletCardControllerGutterClass,
   walletCardShadowClass,
-  'sm:h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[6.6rem]'
+  'sm:h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[calc(var(--touch-min)*2+1.6rem)]'
 )
 
 const walletTileTopRowClass = 'relative z-[2] flex items-start justify-between gap-2'

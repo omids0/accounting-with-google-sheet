@@ -6,6 +6,7 @@ import {
   getSettingsSubpageTitle,
   getTabFromPath,
   isCloseYearPath,
+  isKnownPath,
   recordFocusPath,
   recordOpenPath,
   recordsCounterpartyPath
@@ -101,5 +102,29 @@ describe('records counterparty link', () => {
     const path = recordsCounterpartyPath('رضا', 'all', { start: 'a', end: 'b' })
 
     expect(new URLSearchParams(path.split('?')[1]).has('type')).toBe(false)
+  })
+})
+
+describe('known paths', () => {
+  it('recognises every page and detail route', () => {
+    for (const path of [
+      '/',
+      '/records',
+      '/wallet/acc1',
+      '/wallet/reconcile/acc1',
+      '/vehicles/v1',
+      '/building/units/u1',
+      '/reports/line-items/x',
+      '/settings/backup',
+      '/settings/close-year/1405'
+    ]) {
+      expect(isKnownPath(path), path).toBe(true)
+    }
+  })
+
+  it('rejects URLs no page answers to', () => {
+    for (const path of ['/nonexistent-page', '/records/xyz', '/vehicles/a/b', '/wallet/a/b/c']) {
+      expect(isKnownPath(path), path).toBe(false)
+    }
   })
 })
