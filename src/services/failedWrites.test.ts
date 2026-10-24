@@ -141,6 +141,44 @@ describe('the failed queue clears itself and can be cleared by the user', () => 
     expect(getOutboxEntries(SHEET_ID)).toHaveLength(0)
   })
 
+  it('revives a grid-limit write once, never an update or delete, never a second time', async () => {
+    const { moveOutboxEntryToFailed } = await import('./syncOutbox')
+    const { reviveGridLimitFailures } = await import('./failedWrites')
+
+    const update = addOutboxEntry(SHEET_ID, {
+      type: 'update',
+      sheetName: 'دسته‌بندی‌ها',
+      rowNumber: 4,
+      row: ['a']
+    })
+
+    moveOutboxEntryToFailed(SHEET_ID, update.id, GRID_ERROR)
+    await parkReplace(GRID_ERROR)
+    // The same replace failed again after its one revival: two attempts, stays parked.
+    moveOutboxEntryToFailed(
+      SHEET_ID,
+      addOutboxEntry(SHEET_ID, {
+        type: 'replace',
+        sheetName: 'دسته‌بندی‌ها',
+        rows: [],
+        columnCount: 3
+      }).id,
+      GRID_ERROR
+    )
+    executeOutboxOperation.mockResolvedValue('دسته‌بندی‌ها')
+
+    const parked = getFailedOutboxEntries(SHEET_ID)
+
+    parked[2].attempts = 2
+    localStorage.setItem(`accounting_sync_failed_${SHEET_ID}`, JSON.stringify(parked))
+
+    expect(reviveGridLimitFailures(SHEET_ID)).toBe(1)
+    expect(getFailedOutboxEntries(SHEET_ID).map(entry => entry.operation.type)).toEqual([
+      'update',
+      'replace'
+    ])
+  })
+
   it('leaves other parked writes alone at start', async () => {
     await parkReplace('Unable to parse range: Foo!A1')
 

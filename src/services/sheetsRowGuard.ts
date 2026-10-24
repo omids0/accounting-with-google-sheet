@@ -66,7 +66,8 @@ function findRowIndexByContent(rows: string[][], expected: string[], hint: numbe
   for (let index = 1; index < rows.length; index += 1) {
     if (!rowsMatchForCompare(rows[index] ?? [], expected)) continue
     // Identical duplicates are interchangeable; prefer the one nearest the old position.
-    if (best === -1 || Math.abs(index - hint) < Math.abs(best - hint)) best = index
+    // On a tie the later row wins: deterministic, and the one the app lists for a repeated key.
+    if (best === -1 || Math.abs(index - hint) <= Math.abs(best - hint)) best = index
   }
 
   return best

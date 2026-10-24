@@ -1,4 +1,5 @@
 import { invalidateInstallmentsCache } from './installmentsConstants'
+import { withOutboxLock } from './outboxLock'
 import { RowEditConflictError } from './rowConflict'
 import { ACTIVITY_SHEET } from './sheetNames'
 import { isQuotaExceededError } from './sheets'
@@ -22,6 +23,7 @@ import {
   requeueMissingTabAppends
 } from './syncOutbox'
 import type { OutboxEntry, OutboxOperation } from './syncOutbox'
+import { clearInFlight, coalesceUpdate, markInFlight } from './syncOutboxCoalesce'
 import { setConflictCount, setFailedWrites, setPendingWrites, setSyncState } from './syncStatus'
 import { toUserMessage } from '../utils/userMessage'
 
@@ -42,6 +44,8 @@ const flushesInFlight = new Map<string, Promise<boolean>>()
 
 const describeWrite = (entry: OutboxEntry): string =>
   `${entry.operation.type} «${entry.operation.sheetName}» تلاش ${entry.attempts + 1}`
+
+export { withOutboxLock }
 
 export function markQuotaExceeded(): void {
   quotaBlockedUntil = Date.now() + QUOTA_BACKOFF_MS
@@ -71,8 +75,9 @@ export function dismissFailedWrites(spreadsheetId: string): void {
 }
 
 export function queueOutboxWrite(spreadsheetId: string, operation: OutboxOperation): void {
-  addOutboxEntry(spreadsheetId, operation)
+  addOutboxEntry(spreadsheetId, coalesceUpdate(spreadsheetId, operation))
   refreshPendingCount(spreadsheetId)
+  refreshFailedCount(spreadsheetId)
   void flushOutbox(spreadsheetId)
 }
 
@@ -110,6 +115,7 @@ async function flushPass(
     const startedAt = Date.now()
 
     currentWrite = describeWrite(entry)
+    markInFlight(entry.id)
     try {
       const written = await executeOutboxOperation(spreadsheetId, entry.operation, {
         session,
@@ -178,6 +184,7 @@ async function flushPass(
       heldBack.add(normalizeSheetTitle(entry.operation.sheetName))
     } finally {
       currentWrite = null
+      clearInFlight(entry.id)
     }
   }
 
@@ -228,19 +235,6 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
   }
 
   return !hasPendingOutbox(spreadsheetId)
-}
-
-/**
- * Cross-tab lock shared by the outbox flush and the yearly archive sweep. Two open tabs share one
- * localStorage outbox, and without it both would send the same append twice; the sweep needs it
- * so no local write reaches the sheet while rows are being moved.
- */
-export function withOutboxLock<T>(spreadsheetId: string, task: () => Promise<T>): Promise<T> {
-  const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined
-
-  if (!locks?.request) return task()
-
-  return locks.request(`accounting-outbox-${spreadsheetId}`, task).then(result => result)
 }
 
 export async function flushOutbox(spreadsheetId: string): Promise<boolean> {

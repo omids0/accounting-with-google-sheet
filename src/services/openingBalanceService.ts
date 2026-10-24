@@ -1,6 +1,7 @@
 import { setAccountingStartDate } from './accountingStartDate'
 import {
   DERIVED_OPENING_BALANCE_NOTE,
+  MONTHLY_BALANCE_SHEET,
   fetchAllOpeningBalances,
   fetchOpeningBalance,
   setOpeningBalance
@@ -14,8 +15,10 @@ import {
   type MonthlyNetTotals
 } from './openingBalanceDerive'
 import { getAnchorMonthKey, getMembershipDate, setAnchorMonthKey } from './periodSettings'
+import { queuedIdentities } from './syncOutboxCoalesce'
 import { parseJalaliMonthKey } from '../utils/dateRange'
 import { findGregorianForJalali, toIsoDate } from '../utils/jalaliDate'
+import { roundMoney } from '../utils/roundMoney'
 
 export const ANCHOR_NOTE = 'ماه شروع محاسبه خودکار'
 
@@ -222,14 +225,18 @@ async function writeDerivedOpeningBalances(
 
   const storedByMonth = new Map(stored.map(item => [item.monthKey, item]))
 
+  // A month whose earlier write is still waiting (or was refused) is not written a second time.
+  const queued = queuedIdentities(spreadsheetId, MONTHLY_BALANCE_SHEET)
+
   let written = 0
 
   for (const [monthKey, amount] of context.openings) {
-    if (monthKey === context.anchorMonthKey) continue
+    if (monthKey === context.anchorMonthKey || queued.has(monthKey)) continue
 
     const existing = storedByMonth.get(monthKey)
 
-    if (existing && existing.amount === amount) continue
+    // Only a different amount is worth a write, never a new timestamp or float noise.
+    if (existing && roundMoney(existing.amount) === roundMoney(amount)) continue
 
     await setOpeningBalance(spreadsheetId, monthKey, amount, DERIVED_OPENING_BALANCE_NOTE, {
       skipRevision: true

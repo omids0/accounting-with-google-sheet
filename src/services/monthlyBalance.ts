@@ -3,6 +3,7 @@ import { MONTHLY_BALANCE_SHEET } from './sheetNames'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
 import type { SheetWriteOptions } from './sheetsRows'
 import { parseNumeric } from '../utils/parseNumeric'
+import { roundMoney } from '../utils/roundMoney'
 
 export { MONTHLY_BALANCE_SHEET, MONTHLY_BALANCE_HEADERS }
 
@@ -21,14 +22,14 @@ function rowToBalance(
   return {
     rowNumber,
     monthKey: row[0] ?? '',
-    amount: parseNumeric(row[1]),
+    amount: roundMoney(parseNumeric(row[1])),
     updatedAt: row[2] ?? '',
     note: row[3] ?? ''
   }
 }
 
 function balanceToRow(balance: MonthlyOpeningBalance): string[] {
-  return [balance.monthKey, String(balance.amount), balance.updatedAt, balance.note]
+  return [balance.monthKey, String(roundMoney(balance.amount)), balance.updatedAt, balance.note]
 }
 
 export async function ensureMonthlyBalanceSheet(spreadsheetId: string): Promise<void> {
@@ -112,12 +113,14 @@ export function setOpeningBalance(
 
     const existing = await fetchOpeningBalance(spreadsheetId, monthKey)
 
+    const rounded = roundMoney(amount)
+
     // Same amount and note: nothing to write, and the stamp of the first calculation stays.
-    if (existing.rowNumber && existing.amount === amount && existing.note === note) return existing
+    if (existing.rowNumber && existing.amount === rounded && existing.note === note) return existing
 
     const balance: MonthlyOpeningBalance = {
       monthKey,
-      amount,
+      amount: rounded,
       updatedAt: new Date().toLocaleString('fa-IR'),
       note
     }

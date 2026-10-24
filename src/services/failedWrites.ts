@@ -14,6 +14,7 @@ import {
   takeFailedOutboxEntry,
   type OutboxEntry
 } from './syncOutbox'
+import { dropSupersededFailures } from './syncOutboxCoalesce'
 import { setPendingWrites } from './syncStatus'
 import { formatMoney } from '../utils/formatMoney'
 import { parseNumericStrict } from '../utils/parseNumeric'
@@ -181,8 +182,10 @@ export function dismissAllFailedWrites(spreadsheetId: string): number {
 }
 
 /**
- * Writes parked by Google's «exceeds grid limits» are retried once the grid grows on demand
- * (they were refused by an older build and would otherwise sit there for good).
+ * Writes parked by Google's «exceeds grid limits» are retried once the grid grows on demand (an
+ * older build refused them). Only appends and whole-tab replaces qualify: an update or delete
+ * parked by an old build points at a row number that may be stale. A write is revived once: when
+ * it fails again it carries a second attempt and stays parked.
  */
 const GRID_LIMIT_FAILURE = /exceeds grid limits/i
 
@@ -190,13 +193,17 @@ export function reviveGridLimitFailures(spreadsheetId: string): number {
   let revived = 0
 
   for (const entry of getFailedOutboxEntries(spreadsheetId)) {
-    if (
-      GRID_LIMIT_FAILURE.test(entry.lastError ?? '') &&
-      retryFailedWrite(spreadsheetId, entry.id)
-    ) {
-      revived += 1
-    }
+    const { type } = entry.operation
+
+    if (type !== 'append' && type !== 'replace') continue
+    if (entry.attempts > 1 || !GRID_LIMIT_FAILURE.test(entry.lastError ?? '')) continue
+    if (retryFailedWrite(spreadsheetId, entry.id)) revived += 1
   }
 
   return revived
+}
+
+/** At app start: parked writes that a newer one replaced are dropped, old grid failures retried. */
+export function tidyFailedWrites(spreadsheetId: string): number {
+  return dropSupersededFailures(spreadsheetId) + reviveGridLimitFailures(spreadsheetId)
 }
