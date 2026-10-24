@@ -32,9 +32,7 @@ export async function moveSyncToSpreadsheet(
   previousId: string | undefined,
   nextId: string
 ): Promise<void> {
-  if (previousId && previousId !== nextId) {
-    resetSheetSync(previousId, { keepOutbox: true, keepMirror: true })
-  }
+  if (previousId && previousId !== nextId) resetSheetSync(previousId, { keepOutbox: true })
   // A failed first download is already shown on the sync badge; the switch itself stands.
   await initializeSheetSync(nextId).catch(() => undefined)
   void refreshRemindersForSheet(nextId).catch(() => undefined)

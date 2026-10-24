@@ -3,7 +3,6 @@ import type { SyncMeta } from './spreadsheetStoreCodec'
 import {
   cancelScheduledPersist,
   deleteSnapshot,
-  flushStorePersist,
   loadPersistedSnapshot,
   readLastSyncedAt,
   registerSnapshotProvider,
@@ -279,15 +278,13 @@ export function getStoreLastSyncedAt(spreadsheetId: string): number | null {
   return getStore(spreadsheetId)?.lastSyncedAt ?? readLastSyncedAt(spreadsheetId)
 }
 
-/** `keepSaved`: only the memory copy goes (after its pending write), the saved mirror stays. */
-export function clearStore(spreadsheetId: string, { keepSaved = false } = {}): void {
-  if (keepSaved) flushStorePersist()
-  else cancelScheduledPersist()
+export function clearStore(spreadsheetId: string): void {
+  cancelScheduledPersist()
 
   if (memoryStore?.spreadsheetId === spreadsheetId) {
     memoryStore = null
   }
-  if (!keepSaved) void deleteSnapshot(spreadsheetId)
+  void deleteSnapshot(spreadsheetId)
   notifyListeners()
 }
 
