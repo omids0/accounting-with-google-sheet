@@ -73,19 +73,18 @@ export default function CounterpartiesReportPage() {
           id: 'export',
           label: 'خروجی CSV',
           icon: <SpeedDialIcon name="export" />,
-          onClick: exportCsv,
-          disabled: !rows.length
+          onClick: exportCsv
         },
         {
           id: 'export-pdf',
           label: 'خروجی PDF',
           icon: <SpeedDialIcon name="pdf" />,
           onClick: () => void exportPdf(),
-          disabled: !rows.length || exporting
+          disabled: exporting
         }
       ]
     }),
-    [exportCsv, exportPdf, exporting, rows.length]
+    [exportCsv, exportPdf, exporting]
   )
 
   useRegisterPageSpeedDial(isConfigured() ? speedDial : null)

@@ -38,21 +38,23 @@ export function useRecordsSpeedDial({
   const [exporting, setExporting] = useState(false)
 
   const exportCsv = useCallback(() => {
-    void runExport(() => exportRecordsCsv(filteredRecords, forms), 'خطا در ساخت خروجی CSV')
+    void runExport(() => exportRecordsCsv(filteredRecords, forms), 'خطا در ساخت خروجی CSV', {
+      empty: !filteredRecords.length
+    })
   }, [filteredRecords, forms])
 
   const exportPdf = useCallback(async () => {
     setExporting(true)
     try {
-      await runExport(() => exportRecordsPdf(filteredRecords, forms), 'خطا در ساخت خروجی PDF')
+      await runExport(() => exportRecordsPdf(filteredRecords, forms), 'خطا در ساخت خروجی PDF', {
+        empty: !filteredRecords.length
+      })
     } finally {
       setExporting(false)
     }
   }, [filteredRecords, forms])
 
   const config = useMemo(() => {
-    const hasRecords = filteredRecords.length > 0
-
     const actions: PageSpeedDialAction[] = [
       {
         id: 'income',
@@ -85,21 +87,19 @@ export function useRecordsSpeedDial({
         id: 'export',
         label: 'خروجی CSV',
         icon: <SpeedDialIcon name="export" />,
-        onClick: exportCsv,
-        disabled: !hasRecords
+        onClick: exportCsv
       },
       {
         id: 'export-pdf',
         label: 'خروجی PDF',
         icon: <SpeedDialIcon name="pdf" />,
         onClick: () => void exportPdf(),
-        disabled: !hasRecords || exporting
+        disabled: exporting
       }
     ]
 
     return { ariaLabel: 'عملیات تراکنش‌ها', actions }
   }, [
-    filteredRecords.length,
     incomeFormName,
     expenseFormName,
     onOpenFilters,

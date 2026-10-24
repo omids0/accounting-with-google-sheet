@@ -27,13 +27,17 @@ export function useCounterpartiesReport() {
   const { rows } = aggregate
 
   const exportCsv = useCallback(() => {
-    void runExport(() => exportCounterpartiesReportCsv(rows), 'خطا در ساخت خروجی CSV')
+    void runExport(() => exportCounterpartiesReportCsv(rows), 'خطا در ساخت خروجی CSV', {
+      empty: !rows.length
+    })
   }, [rows])
 
   const exportPdf = useCallback(async () => {
     setExporting(true)
     try {
-      await runExport(() => exportCounterpartiesReportPdf(rows), 'خطا در ساخت خروجی PDF')
+      await runExport(() => exportCounterpartiesReportPdf(rows), 'خطا در ساخت خروجی PDF', {
+        empty: !rows.length
+      })
     } finally {
       setExporting(false)
     }

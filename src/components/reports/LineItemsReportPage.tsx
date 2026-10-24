@@ -88,19 +88,18 @@ export default function LineItemsReportPage() {
           id: 'export',
           label: 'خروجی CSV',
           icon: <SpeedDialIcon name="export" />,
-          onClick: exportCsv,
-          disabled: !items.length
+          onClick: exportCsv
         },
         {
           id: 'export-pdf',
           label: 'خروجی PDF',
           icon: <SpeedDialIcon name="pdf" />,
           onClick: () => void exportPdf(),
-          disabled: !items.length || exporting
+          disabled: exporting
         }
       ]
     }),
-    [exportCsv, exportPdf, exporting, items.length]
+    [exportCsv, exportPdf, exporting]
   )
 
   useRegisterPageSpeedDial(isConfigured() ? speedDial : null)
