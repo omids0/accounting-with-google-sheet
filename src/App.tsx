@@ -24,6 +24,7 @@ import {
 import { isNativePlatform } from './services/googleAuthNative'
 import { resolveLoginReason } from './services/loginReason'
 import { startOfflineFromCache } from './services/offlineStart'
+import { requestPersistentStorage } from './services/persistentStorage'
 import { isConfigured, getSettings } from './services/settings'
 import { initializeSheetSync } from './services/sheetSync'
 import {
@@ -97,6 +98,12 @@ export default function App() {
     setNeedsReauth,
     setNeedsSheetSetup
   })
+
+  // Signed in (online or from the offline cache): keep the browser from clearing the local
+  // data, and the writes still waiting for the sheet, when space runs low.
+  useEffect(() => {
+    if (loggedIn) void requestPersistentStorage()
+  }, [loggedIn])
 
   // Returning users see their cached data at once; token renewal, sheet checks
   // and the first sync then run behind it instead of in front of it.
