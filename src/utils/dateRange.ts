@@ -23,7 +23,7 @@ export const DATE_RANGE_PRESETS: { id: DateRangePreset; label: string }[] = [
 
 export const RECORDS_DATE_RANGE_PRESETS: { id: RecordsDatePreset; label: string }[] = [
   ...DATE_RANGE_PRESETS,
-  { id: 'custom', label: 'بازه زمانی' }
+  { id: 'custom', label: 'بازه دلخواه' }
 ]
 
 export function resolveDateRange(preset: RecordsDatePreset, customRange?: DateRange): DateRange {
