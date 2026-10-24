@@ -1,27 +1,35 @@
 import { cn, cx } from '../../utils/cn'
 
-export const walletCardControllerGutterClass = 'pl-[3.35rem]'
+/** Room for the 2x2 grid of 44 px action buttons on the card's left edge. */
+/**
+ * Card height floor: the 2x2 action grid is 2*touch + 0.1rem gap + 0.2rem padding + 2px border
+ * tall (94 px at the 14 px root, 96 at 16, 118 at 20); 0.5rem of air on top of that keeps it
+ * inside the card at every text size, whatever the fixed 6.35rem would give.
+ */
+export const WALLET_CARD_MIN_HEIGHT = 'max(6.35rem,calc(var(--touch-min)*2+0.8rem+2px))'
+
+export const walletCardControllerGutterClass = 'pl-[calc(var(--touch-min)*2+1.6rem)]'
 
 const walletCardShadowClass =
   'shadow-[0_2px_8px_rgba(15,23,42,0.1),0_1px_2px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.06]'
 
 export const walletBankCardClass = cx(
-  'wallet-bank-card relative flex min-h-[6.35rem] w-full flex-col overflow-hidden rounded-[12px] p-[0.65rem_0.75rem]',
+  'wallet-bank-card relative flex min-h-[max(6.35rem,calc(var(--touch-min)*2+0.8rem+2px))] w-full flex-col overflow-hidden rounded-[12px] p-[0.65rem_0.75rem]',
   walletCardControllerGutterClass,
   walletCardShadowClass,
-  'text-right sm:min-h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[3.35rem]',
+  'text-right sm:min-h-[max(6.75rem,calc(var(--touch-min)*2+0.8rem+2px))] sm:p-[0.7rem_0.85rem] sm:pl-[calc(var(--touch-min)*2+1.6rem)]',
   'transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)]'
 )
 
 export const walletBankCardTopRowClass = 'relative z-[1] flex items-start justify-between gap-2'
 
 export const walletBankCardBrandClass = cx(
-  'inline-flex max-w-[62%] items-center gap-[0.35rem] text-[0.66rem] font-bold leading-tight tracking-[-0.01em] sm:text-[0.7rem]'
+  'inline-flex max-w-[62%] items-center gap-[0.35rem] text-[0.6875rem] font-bold leading-tight tracking-[-0.01em] sm:text-[0.72rem]'
 )
 
 export const walletBankCardLogoClass = cx(
   'inline-flex h-[1.35rem] min-w-[1.35rem] shrink-0 items-center justify-center rounded-full',
-  'border border-[rgba(255,255,255,0.28)] bg-[rgba(255,255,255,0.14)] px-[0.28rem] text-[0.52rem] font-extrabold'
+  'border border-[rgba(255,255,255,0.28)] bg-[rgba(255,255,255,0.14)] px-[0.28rem] text-[0.6875rem] font-extrabold'
 )
 
 export const walletBankCardChipClass = cx(
@@ -37,22 +45,22 @@ export const walletBankCardNumberWrapClass =
   'relative z-[1] flex min-h-0 flex-1 items-center justify-center px-0.5 py-0'
 
 export const walletBankCardNumberCenterClass = cn(
-  'w-full text-center font-mono text-[0.68rem] font-semibold tracking-[0.12em] tabular-nums sm:text-[0.74rem]',
+  'w-full text-center font-mono text-[0.75rem] font-semibold tracking-[0.12em] tabular-nums sm:text-[0.8rem]',
   'font-numeric [font-feature-settings:"tnum"_1] [word-spacing:0.14em]'
 )
 
 export const walletBankCardBottomRowClass =
-  'relative z-[1] mt-auto flex items-end justify-between gap-1.5 pt-[0.1rem] pe-[0.1rem]'
+  'relative z-[1] mt-auto flex flex-wrap items-end justify-between gap-x-1.5 gap-y-1 pt-[0.1rem] pe-[0.1rem]'
 
 export const walletBankCardHolderClass =
-  'min-w-0 truncate text-[0.6rem] font-medium opacity-90 sm:text-[0.64rem]'
+  'min-w-0 truncate text-[0.6875rem] font-medium opacity-90 sm:text-[0.72rem]'
 
 export const walletBankCardBalanceClass = cx(
-  'shrink-0 text-[0.82rem] font-extrabold tabular-nums font-numeric leading-none sm:text-[0.88rem]'
+  'max-w-full shrink-0 text-[0.82rem] font-extrabold tabular-nums font-numeric leading-tight [overflow-wrap:anywhere] sm:text-[0.88rem]'
 )
 
 export const walletBankCardTitleClass =
-  'mt-[0.1rem] truncate text-[0.56rem] font-medium opacity-75 sm:text-[0.6rem]'
+  'mt-[0.1rem] truncate text-[0.6875rem] font-medium opacity-90 sm:text-[0.72rem]'
 
 export const walletBankCardContactlessClass = cx(
   'relative z-[1] opacity-80',
@@ -62,19 +70,20 @@ export const walletBankCardContactlessClass = cx(
 export const walletCardPreviewClass = 'mx-auto max-w-[18rem]'
 
 export const walletBankCardCopyBtnClass = cx(
-  'copy-btn relative z-[1] inline-flex h-[1rem] w-[1rem] shrink-0 cursor-pointer items-center justify-center',
-  'rounded-[3px] border-none bg-transparent p-0 text-inherit opacity-70',
+  // A full 44 px box in the row (no negative margins): it never overlaps the next button.
+  'copy-btn relative z-[1] inline-flex h-touch-min w-touch-min shrink-0 cursor-pointer items-center justify-center',
+  'rounded-[3px] border-none bg-transparent p-0 text-inherit opacity-90',
   'transition-opacity duration-[var(--duration-fast)] hover:opacity-100',
   // Bank cards carry white text, so a white ring matches its contrast.
   'focus-visible:opacity-100 [--focus-ring:#fff]',
-  '[&_svg]:h-[0.7rem] [&_svg]:w-[0.7rem]'
+  '[&_svg]:h-[0.9rem] [&_svg]:w-[0.9rem]'
 )
 
 export const walletBankCardExtraInfoClass =
   'relative z-[1] flex flex-wrap items-center gap-x-[0.6rem] gap-y-[0.15rem] pb-[0.1rem]'
 
 export const walletBankCardExtraInfoItemClass =
-  'inline-flex min-w-0 items-center gap-[0.25rem] text-[0.56rem] font-medium opacity-85 sm:text-[0.6rem]'
+  'inline-flex min-w-0 items-center gap-[0.25rem] text-[0.6875rem] font-medium opacity-90 sm:text-[0.72rem]'
 
 export const walletCardsListClass = cx(
   'flex flex-col gap-2',
@@ -95,43 +104,45 @@ export const walletAccountCardBodyClass = cx(
 export const walletAccountCardVisualHostClass = 'relative min-w-0 p-0'
 
 export const walletCardActionOverlayClass = cx(
-  'wallet-card-action-overlay absolute top-1/2 left-2 z-20 flex -translate-y-1/2 flex-col gap-[0.1rem] rounded-[calc(var(--radius-sm)+1px)] p-[0.1rem]',
+  'wallet-card-action-overlay absolute top-1/2 left-2 z-20 grid -translate-y-1/2 grid-cols-2 gap-[0.1rem] rounded-[calc(var(--radius-sm)+1px)] p-[0.1rem]',
   // No per-card backdrop blur (one offscreen blur pass per wallet card); a
   // slightly denser tint keeps the buttons legible instead.
-  'border border-[rgba(255,255,255,0.32)] bg-[rgba(15,23,42,0.38)] shadow-[0_4px_14px_rgba(0,0,0,0.22)]',
-  '[&_.card-action-btn]:h-[1.65rem] [&_.card-action-btn]:w-[1.65rem] [&_.card-action-btn]:rounded-md',
+  // Dense enough that white icons keep 3:1 even on the yellow and rose cards.
+  'border border-[rgba(255,255,255,0.32)] bg-[rgba(15,23,42,0.72)] shadow-[0_4px_14px_rgba(0,0,0,0.22)]',
+  '[&_.card-action-btn]:rounded-md',
   '[&_.card-action-btn]:text-white/95 [&_.card-action-btn]:hover:enabled:bg-[rgba(255,255,255,0.16)]',
   '[&_.card-action-btn]:hover:enabled:text-white'
 )
 
 export const walletCardActionOverlayExpandedClass = cx(
-  'border-[rgba(255,255,255,0.42)] bg-[rgba(15,23,42,0.44)] shadow-[0_8px_22px_rgba(0,0,0,0.26)]',
+  'border-[rgba(255,255,255,0.42)] bg-[rgba(15,23,42,0.8)] shadow-[0_8px_22px_rgba(0,0,0,0.26)]',
   '[&_.card-action-btn--expanded]:bg-[rgba(255,255,255,0.18)] [&_.card-action-btn--expanded]:text-white'
 )
 
 const walletTileBaseClass = cx(
-  'relative flex h-[6.35rem] w-full flex-col justify-between overflow-hidden rounded-[12px] p-[0.65rem_0.75rem] text-right',
+  'relative flex min-h-[max(6.35rem,calc(var(--touch-min)*2+0.8rem+2px))] w-full flex-col justify-between overflow-hidden rounded-[12px] p-[0.65rem_0.75rem] text-right',
   walletCardControllerGutterClass,
   walletCardShadowClass,
-  'sm:h-[6.75rem] sm:p-[0.7rem_0.85rem] sm:pl-[3.35rem]'
+  'sm:min-h-[max(6.75rem,calc(var(--touch-min)*2+0.8rem+2px))] sm:p-[0.7rem_0.85rem] sm:pl-[calc(var(--touch-min)*2+1.6rem)]'
 )
 
 const walletTileTopRowClass = 'relative z-[2] flex items-start justify-between gap-2'
 
 const walletTileBadgeClass = cx(
   'inline-flex items-center rounded-full border border-[rgba(255,255,255,0.22)] bg-[rgba(255,255,255,0.14)]',
-  'px-[0.45rem] py-[0.1rem] text-[0.58rem] font-extrabold leading-none tracking-[0.02em]'
+  'px-[0.45rem] py-[0.1rem] text-[0.6875rem] font-extrabold leading-none tracking-[0.02em]'
 )
 
 const walletTileTitleClass =
   'mt-[0.22rem] truncate text-[0.72rem] font-bold leading-tight opacity-95 sm:text-[0.76rem]'
 
-const walletTileBottomRowClass = 'relative z-[2] flex items-end justify-between gap-2.5'
+const walletTileBottomRowClass =
+  'relative z-[2] flex flex-wrap items-end justify-between gap-x-2.5 gap-y-1'
 
-const walletTileNoteClass = 'min-w-0 truncate text-[0.58rem] font-medium leading-tight opacity-75'
+const walletTileNoteClass = 'min-w-0 truncate text-[0.6875rem] font-medium leading-tight opacity-90'
 
 const walletTileBalanceClass = cx(
-  'shrink-0 text-[0.84rem] font-extrabold tabular-nums font-numeric leading-none sm:text-[0.88rem]'
+  'max-w-full shrink-0 text-[0.84rem] font-extrabold tabular-nums font-numeric leading-tight [overflow-wrap:anywhere] sm:text-[0.88rem]'
 )
 
 const walletTileWatermarkClass = cx(

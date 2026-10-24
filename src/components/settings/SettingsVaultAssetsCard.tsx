@@ -93,10 +93,7 @@ export default function SettingsVaultAssetsCard({ spreadsheetId }: { spreadsheet
                     )}
                   </div>
                 </div>
-                <CardEditButton
-                  onClick={() => setEditing(asset)}
-                  ariaLabel={`ویرایش ${asset.name}`}
-                />
+                <CardEditButton onClick={() => setEditing(asset)} itemLabel={asset.name} />
                 <ToggleSwitch
                   checked={asset.active}
                   disabled={busyId === asset.id}

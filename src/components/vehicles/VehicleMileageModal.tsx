@@ -44,7 +44,7 @@ export default function VehicleMileageModal({
   useModalFormReset(reset, initialValues, { active: open, resetKey: String(currentMileage) })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
+    return submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (

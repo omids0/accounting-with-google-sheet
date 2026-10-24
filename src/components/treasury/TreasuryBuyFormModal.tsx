@@ -93,7 +93,7 @@ export default function TreasuryBuyFormModal({
     setErrors(c => ({ ...c, [field]: undefined }))
 
   const onFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    void handleSubmit(values => {
+    return handleSubmit(values => {
       const found = tradeFormErrors(values, decimals, {
         price: 'قیمت واحد را وارد کنید',
         date: 'تاریخ الزامی است'

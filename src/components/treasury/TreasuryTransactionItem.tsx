@@ -38,8 +38,18 @@ export default function TreasuryTransactionItem({
       {tx.action === 'buy' && 'rowNumber' in tx && (
         <div className={treasuryTxEditClass}>
           <div className={cardActionButtonsClass}>
-            <CardEditButton onClick={() => onEdit(txWithRow)} />
-            <CardDeleteButton onClick={() => onDelete(txWithRow)} />
+            <CardEditButton
+              itemLabel={`${tx.action === 'buy' ? 'خرید' : 'فروش'} ${formatIsoDatePersian(
+                tx.transactionDate
+              )}`}
+              onClick={() => onEdit(txWithRow)}
+            />
+            <CardDeleteButton
+              itemLabel={`${tx.action === 'buy' ? 'خرید' : 'فروش'} ${formatIsoDatePersian(
+                tx.transactionDate
+              )}`}
+              onClick={() => onDelete(txWithRow)}
+            />
           </div>
         </div>
       )}

@@ -8,8 +8,7 @@ import ConfirmActionModal from './ConfirmActionModal'
 import {
   hasBuildingExpenseFields,
   LazyBuildingExpenseFields,
-  prepareBuildingEntry,
-  settleBuildingEntry
+  prepareBuildingEntry
 } from './dataEntry/buildingExpenseEntry'
 import CustomEntryFormFields from './dataEntry/CustomEntryFormFields'
 import EntryDuplicateWarning from './dataEntry/EntryDuplicateWarning'
@@ -17,7 +16,7 @@ import EntryFormActions from './dataEntry/EntryFormActions'
 import { entryValidationErrors } from './dataEntry/entryValidationErrors'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
 import { focusEntryAmount, templateFormValues, type DataEntryFormProps } from './dataEntry/types'
-import { writeEntryRecord } from './dataEntry/writeEntryRecord'
+import { settleSavedEntry, writeEntryRecord } from './dataEntry/writeEntryRecord'
 import { buildFormInitialValues, isStandardEntryForm, withAutoTitle } from './form'
 import { focusFirstInvalidField } from '../utils/focusInvalidField'
 import { showError } from '../utils/toast'
@@ -26,9 +25,10 @@ import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import { showSavedForEntry } from './nudges/saveNudges'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
+import { useSubmitLock } from '../hooks/useSubmitLock'
 import { useUnsavedWork } from '../hooks/useUserBusy'
 import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
-import { prepareEntryValues, settleEntryWallet, smsBalanceHint } from '../services/entryWallet'
+import { prepareEntryValues, smsBalanceHint } from '../services/entryWallet'
 import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth } from '../utils/authGuard'
@@ -167,16 +167,7 @@ export default function DataEntryForm({
 
     // The record exists now: a wallet/SMS failure must not invite a second save.
     await attachments.commit(settings.spreadsheetId, activeForm.sheetName, recordId)
-    await settleEntryWallet(
-      settings.spreadsheetId,
-      activeForm.type,
-      formValues,
-      bankSms,
-      recordId
-    ).catch(() => showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد'))
-    await settleBuildingEntry(settings.spreadsheetId, activeForm, recordId, formValues).catch(() =>
-      showError('هزینه ذخیره شد ولی سهم واحدها یا بدهی ثبت نشد؛ آن را دوباره ذخیره کن')
-    )
+    await settleSavedEntry(settings.spreadsheetId, activeForm, formValues, bankSms, recordId)
     const keepAccount = nextEntryPrefill(entered)
 
     showSavedForEntry(activeForm, recordId, formValues, vehicleInput)
@@ -189,8 +180,15 @@ export default function DataEntryForm({
     if (keepOpen) focusEntryAmount(formRef.current)
   }
 
-  const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const submitLock = useSubmitLock()
+
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    // Three quick taps on «ذخیره» must create one record, not three.
+    void submitLock(() => submitEntry(event))
+  }
+
+  const submitEntry = async (event: FormEvent<HTMLFormElement>) => {
     clearErrors()
     // «ذخیره و بعدی» submits too; it keeps the form open for the next entry.
     const keepOpen = !!(event.nativeEvent as SubmitEvent).submitter?.hasAttribute('data-save-next')

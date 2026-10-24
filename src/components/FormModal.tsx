@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 
 import AppIcon from './AppIcon'
 import { useModalLock } from '../hooks/useModalLock'
+import { useSubmitLock } from '../hooks/useSubmitLock'
 import { cn } from '../utils/cn'
 import { focusFirstInvalidField } from '../utils/focusInvalidField'
 import Button, { type ButtonVariant } from './ui/Button'
@@ -28,7 +29,8 @@ type FormModalProps = {
   open: boolean
   title: string
   onClose: () => void
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  /** May return a promise: further submits are ignored until it settles. */
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<unknown>
   saving?: boolean
   /** Locks the save button without the busy state (e.g. line items that do not add up). */
   saveDisabled?: boolean
@@ -68,11 +70,14 @@ export default function FormModal({
   const { panelRef } = useModalLock({ open, onClose, blocked: saving })
   const titleId = useId()
 
+  const submitLock = useSubmitLock()
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.stopPropagation()
     const form = event.currentTarget
 
-    onSubmit(event)
+    // Rapid repeated clicks must save once: the lock holds until the save settles.
+    void submitLock(() => onSubmit(event))
     // A failed submit paints inline errors; the first invalid field takes the focus.
     focusFirstInvalidField(form)
   }

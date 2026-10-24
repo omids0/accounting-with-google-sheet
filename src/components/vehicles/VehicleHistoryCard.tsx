@@ -52,7 +52,10 @@ export default function VehicleHistoryCard({ item, onDelete }: VehicleHistoryCar
         </div>
 
         <div className={cardActionButtonsClass} role="group">
-          <CardDeleteButton onClick={() => onDelete(item)} />
+          <CardDeleteButton
+            itemLabel={KIND_LABELS[item.recordKind]}
+            onClick={() => onDelete(item)}
+          />
         </div>
       </div>
     </div>

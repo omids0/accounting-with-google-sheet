@@ -73,7 +73,7 @@ export const appMainClass = cx(
   appScrollbarClass,
   // Bottom room = bottom nav (5.75rem) + speed-dial button and its gap (4rem),
   // so the last card scrolls fully clear of both.
-  'min-h-0 flex-1 overflow-y-auto p-[var(--space-page)] pb-[calc(9.75rem+var(--safe-bottom))]',
+  'min-h-0 flex-1 overflow-y-auto p-[var(--space-page)] pb-[calc(10.5rem+var(--safe-bottom))]',
   // A building has no bottom nav: only the speed-dial button's room is left.
   'max-md:group-data-[workspace=building]/layout:pb-[calc(5.5rem+var(--safe-bottom))]',
   // Tablet keeps the floating speed dial (4rem); desktop moves it into the header.

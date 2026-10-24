@@ -1,4 +1,4 @@
-import { getPathForTab, getTabFromPath, isSettingsPath } from './paths'
+import { getPathForTab, getTabFromPath, isKnownPath, isSettingsPath } from './paths'
 import { BUILDING_TABS, PERSONAL_ONLY_TABS } from '../components/layout/types'
 
 /**
@@ -8,6 +8,8 @@ import { BUILDING_TABS, PERSONAL_ONLY_TABS } from '../components/layout/types'
  */
 export function workspaceRedirect(pathname: string, isBuilding: boolean): string | null {
   if (isSettingsPath(pathname)) return null
+  // An unknown URL is not a personal page in disguise: it gets «صفحه پیدا نشد» in either workspace.
+  if (!isKnownPath(pathname)) return null
 
   const tab = getTabFromPath(pathname)
 

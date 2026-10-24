@@ -67,7 +67,8 @@ export const yearCardGridClass = 'grid grid-cols-3 gap-x-2 gap-y-3'
 
 export const yearCardCellClass = 'flex min-w-0 flex-col gap-0.5 text-[0.72rem] text-muted'
 
-export const yearCardCellValueClass = 'truncate text-[0.95rem] font-extrabold text-text'
+export const yearCardCellValueClass =
+  'text-[0.95rem] font-extrabold text-text [overflow-wrap:anywhere]'
 
 export const yearCardFactsClass = 'text-[0.78rem] leading-[1.9] text-text'
 

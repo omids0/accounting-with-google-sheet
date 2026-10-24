@@ -6,6 +6,7 @@ import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import { checkCounterpartyLabel } from './checkDirectionOptions'
 import type { CheckWithRow } from './types'
+import TapCheckbox from '../form/TapCheckbox'
 import MoneyText from '../MoneyText'
 import { statusBadgeClass } from '../ui/displayStyles'
 import {
@@ -19,7 +20,6 @@ import {
   dangCardHeaderClass,
   dangCardMetaClass,
   dangCardTitleClass,
-  dangCheckboxClass,
   dangPaidAtClass
 } from '../ui/featureCardStyles'
 import { useReadOnly } from '../ui/readOnly'
@@ -46,9 +46,7 @@ export default function CheckCard({
     <div className={dangCardClass({ paid: item.paid })} data-highlight-id={item.id}>
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
-          <input
-            type="checkbox"
-            className={dangCheckboxClass}
+          <TapCheckbox
             checked={item.paid}
             disabled={togglingId === item.id || readOnly}
             aria-label={`پاس شد: ${checkTypeLabel(item)} ${item.checkNumber}`}
@@ -99,8 +97,8 @@ export default function CheckCard({
           </div>
         </div>
         <div className={cardActionButtonsClass}>
-          <CardEditButton onClick={() => onEdit(item)} />
-          <CardDeleteButton onClick={() => onDelete(item)} />
+          <CardEditButton itemLabel={`چک ${item.checkNumber}`} onClick={() => onEdit(item)} />
+          <CardDeleteButton itemLabel={`چک ${item.checkNumber}`} onClick={() => onDelete(item)} />
         </div>
       </div>
     </div>

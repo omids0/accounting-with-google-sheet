@@ -62,7 +62,10 @@ export default function ChartsCategoriesBlock({ data }: { data: ChartsData }) {
             onChange={id => setTone(id as CategoryTone)}
             ariaLabel="نوع دسته‌ها"
           />
-          <span className="truncate font-numeric text-[0.72rem] text-muted" title="هزینه / درآمد">
+          <span
+            className="min-w-0 font-numeric text-[0.72rem] text-muted [overflow-wrap:anywhere]"
+            title="هزینه / درآمد"
+          >
             <MaskedAmount>
               {`${formatPersianNumber(data.totalExpense)} / ${formatPersianNumber(
                 data.totalIncome

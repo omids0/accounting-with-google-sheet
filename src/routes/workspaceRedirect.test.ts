@@ -61,3 +61,11 @@ describe('workspace redirect', () => {
     }
   })
 })
+
+describe('workspace redirect and unknown URLs', () => {
+  it('leaves an unknown URL alone so it shows «صفحه پیدا نشد» in both workspaces', () => {
+    expect(workspaceRedirect('/nonexistent-page', true)).toBeNull()
+    expect(workspaceRedirect('/nonexistent-page', false)).toBeNull()
+    expect(workspaceRedirect('/records/xyz', true)).toBeNull()
+  })
+})

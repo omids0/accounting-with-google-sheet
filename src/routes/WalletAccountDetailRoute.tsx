@@ -4,22 +4,26 @@ import { LazyWalletAccountDetailPage } from './lazyPages'
 import { RecordListSkeleton } from '../components/skeleton'
 import Button from '../components/ui/Button'
 import { emptyStateClass } from '../components/ui/displayStyles'
-import type { WalletAccountWithRow } from '../components/wallet/types'
-import { useRouteRecord } from '../hooks/useRouteRecord'
-
-async function fetchAccounts(spreadsheetId: string): Promise<WalletAccountWithRow[]> {
-  const { fetchWalletAccounts } = await import('../services/wallet')
-
-  return fetchWalletAccounts(spreadsheetId)
-}
+import { useWalletAccountRecord } from '../components/wallet/useWalletAccountRecord'
 
 export default function WalletAccountDetailRoute() {
   const { accountId } = useParams<{ accountId: string }>()
   const navigate = useNavigate()
-  const { record: account, loading } = useRouteRecord(accountId, fetchAccounts)
+  const { record: account, loading, error, retry } = useWalletAccountRecord(accountId)
 
   if (loading) {
     return <RecordListSkeleton />
+  }
+
+  if (error) {
+    return (
+      <div className={emptyStateClass}>
+        <p>خواندن حساب انجام نشد</p>
+        <Button type="button" variant="primary" size="sm" onClick={retry}>
+          تلاش دوباره
+        </Button>
+      </div>
+    )
   }
 
   if (!account) {

@@ -5,6 +5,7 @@ import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { isConfigured } from '../services/settings'
 import { useNavigationStore } from '../stores/navigationStore'
+import RecordsExtraFilterFields from './records/RecordsExtraFilterFields'
 import RecordsList from './records/RecordsList'
 import RecordsPageOverlays from './records/RecordsPageOverlays'
 import RecordsSummary from './records/RecordsSummary'
@@ -14,8 +15,6 @@ import { useRecordsPage } from './records/useRecordsPage'
 import { useRecordsSpeedDial } from './records/useRecordsSpeedDial'
 import { RecordListSkeleton } from './skeleton'
 import {
-  recordsDateGridBtnClass,
-  recordsDateGridClass,
   recordsPageBodyClass,
   recordsPageClass,
   recordsPageMainClass,
@@ -99,16 +98,7 @@ export default function RecordsPage({
           counterpartyOptions={page.extra.showCounterparty ? page.extra.options : undefined}
           {...page.extra.minePanelProps}
         >
-          <div className={recordsDateGridClass}>
-            <button
-              type="button"
-              className={recordsDateGridBtnClass(page.extra.draftWithItems)}
-              aria-pressed={page.extra.draftWithItems}
-              onClick={() => page.extra.setDraftWithItems(!page.extra.draftWithItems)}
-            >
-              ☰ فقط رکوردهای با اقلام
-            </button>
-          </div>
+          <RecordsExtraFilterFields extra={page.extra} />
         </PageFilterPanel>
       </FilterModal>
 
@@ -141,6 +131,8 @@ export default function RecordsPage({
           ) : (
             <>
               <RecordsList
+                // A new filter or form starts the list over at its first page.
+                key={`${page.activeFormId}|${page.filterChips.map(chip => chip.label).join('|')}`}
                 forms={page.forms}
                 activeForm={page.activeForm}
                 isAllForms={page.isAllForms}

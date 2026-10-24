@@ -109,7 +109,7 @@ export default function ChangeResidentSheet({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
-        void submit()
+        return submit()
       }}
       saving={saving}
       saveDisabled={!name || !unit}

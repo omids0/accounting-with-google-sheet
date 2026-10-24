@@ -118,8 +118,11 @@ export default function ConnectBuildingSheet({
 
         const id = parseSpreadsheetIdFromUrl(link)
 
-        if (id) void connect(id)
-        else setError('لینک یا شناسهٔ شیت را درست وارد کنید')
+        if (id) return connect(id)
+
+        setError('لینک یا شناسهٔ شیت را درست وارد کنید')
+
+        return undefined
       }}
       saving={busy}
       saveLabel="اتصال"

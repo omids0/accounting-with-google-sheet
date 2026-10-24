@@ -74,7 +74,7 @@ export default function VehicleProfileFormModal({
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
+    return submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   const requiredTypes = watch('mileageRequiredTypes')

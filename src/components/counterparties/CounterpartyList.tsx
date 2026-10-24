@@ -103,7 +103,11 @@ export default function CounterpartyList({
         columns={columns}
         rowKey={item => item.id}
         actions={item => (
-          <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+          <TableRowActions
+            itemLabel={getCounterpartyFullName(item) || 'طرف حساب'}
+            onEdit={() => onEdit(item)}
+            onDelete={() => onDelete(item)}
+          />
         )}
       />
     )

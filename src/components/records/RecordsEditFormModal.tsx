@@ -155,7 +155,7 @@ export default function RecordsEditFormModal({
   }
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    void handleSubmit(formValues => {
+    return handleSubmit(formValues => {
       clearErrors()
 
       const found = entryValidationErrors(editingForm, formValues, {

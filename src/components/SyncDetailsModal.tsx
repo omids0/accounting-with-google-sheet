@@ -149,7 +149,7 @@ export default function SyncDetailsModal({
         onClose={onClose}
         onSubmit={event => {
           event.preventDefault()
-          void resend()
+          return resend()
         }}
         saving={sending}
         saveLabel="دوباره بفرست"

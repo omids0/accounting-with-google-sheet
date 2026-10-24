@@ -126,7 +126,7 @@ export default function QuickUnitsBuilderSheet({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
-        void submit()
+        return submit()
       }}
       saving={saving}
       saveLabel={stage === 3 ? `ساخت ${fa(drafts.length)} واحد و بعدی` : 'بعدی'}

@@ -23,6 +23,7 @@ import {
   getTabFromPath,
   getSettingsSubpageTitle,
   isCloseYearPath,
+  isKnownPath,
   isSettingsPath,
   SETTINGS_PATH
 } from '../../routes/paths'
@@ -61,13 +62,14 @@ export function useLayoutNavigation() {
 
   useRegisterOverlay(menuOpen, () => setMenuOpen(false))
 
-  const routeTab = getTabFromPath(location.pathname)
+  const knownPath = isKnownPath(location.pathname)
+  const routeTab: Tab = knownPath ? getTabFromPath(location.pathname) : 'not-found'
 
   // The route change runs in a transition so the current page stays painted
   // instead of flashing the loading skeleton. Highlight the tapped tab right
   // away so the tap still feels instant.
   const tab = pendingTab ?? routeTab
-  const showSettings = isSettingsPath(location.pathname)
+  const showSettings = knownPath && isSettingsPath(location.pathname)
   const routeTitle = (location.state as RouteTitleState | null)?.title
 
   const userName = getUserName()

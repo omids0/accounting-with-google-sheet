@@ -114,7 +114,11 @@ export default function CheckList({
                 fileIds={item.attachments}
                 title={`چک ${item.checkNumber}`}
               />
-              <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+              <TableRowActions
+                itemLabel={`چک ${item.checkNumber}`}
+                onEdit={() => onEdit(item)}
+                onDelete={() => onDelete(item)}
+              />
             </>
           )}
         />

@@ -103,7 +103,7 @@ export default function InstallmentFormModal({
   }, [startDate, count, dueDay])
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    submitValidatedForm(handleSubmit, values => onSubmit(values, computedEndDate), event)
+    return submitValidatedForm(handleSubmit, values => onSubmit(values, computedEndDate), event)
   }
 
   const paidUntilField = (

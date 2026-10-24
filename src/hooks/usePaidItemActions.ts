@@ -10,6 +10,7 @@ import type { SettleOptions, UnlinkChoice } from '../services/settleOptions'
 import { isLinkedForeignRecord, type SettlePrefix } from '../services/settleRecords'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
+import { showSuccess } from '../utils/toast'
 
 type ImportExportFns = {
   exportFn: (spreadsheetId: string) => Promise<string | null>
@@ -103,10 +104,17 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
         linkedIds: settle.linkedIds
       })
       if (!options) return
-    } else if (settle && settleType) {
-      const recordId = settle.recordIdOf(item) ?? ''
+    } else if (!paid) {
+      const recordId = settle?.recordIdOf(item) ?? ''
 
-      if (await isLinkedForeignRecord(spreadsheetId, settleType, recordId, settle.prefix)) {
+      // Un-ticking deletes the linked expense/income and undoes the wallet balance: confirm first.
+      if (!(await settleFlow.askUnpay(Boolean(recordId)))) return
+
+      if (
+        settle &&
+        settleType &&
+        (await isLinkedForeignRecord(spreadsheetId, settleType, recordId, settle.prefix))
+      ) {
         unlink = await settleFlow.askUnlink()
         if (!unlink) return
       }
@@ -129,6 +137,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
           )
         )
       )
+      showSuccess(paid ? 'پرداخت ثبت شد' : 'پرداخت برگردانده شد')
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در به‌روزرسانی' })
     } finally {

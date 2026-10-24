@@ -1,4 +1,6 @@
 export type Tab =
+  /** A URL no page answers to: no tab is highlighted and no speed dial shows. */
+  | 'not-found'
   | 'dashboard'
   | 'charts'
   | 'entry'
@@ -156,6 +158,7 @@ export const SPEED_DIAL_TABS: Tab[] = [
 ]
 
 export const TAB_TITLES: Record<Tab, string> = {
+  'not-found': 'صفحه پیدا نشد',
   dashboard: 'داشبورد',
   charts: 'نمودارها',
   entry: 'ثبت جدید',

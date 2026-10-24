@@ -15,14 +15,15 @@ export const dashboardPeriodTodayClass = 'truncate text-[0.74rem] text-muted'
 
 /** Income / expense / net inside the hero, under the amount (replaces the four stat cards). */
 export const dashboardHeroStripClass = cx(
-  'relative z-[1] mt-3 grid grid-cols-3 gap-1 border-t border-dashed border-white/30 pt-2.5'
+  // Columns drop to a second row when a big amount needs the width; amounts are never ellipsized.
+  'relative z-[1] mt-3 grid grid-cols-[repeat(auto-fit,minmax(6.25rem,1fr))] gap-x-1 gap-y-2 border-t border-dashed border-white/30 pt-2.5'
 )
 
 export const dashboardHeroStripItemClass =
   'flex min-w-0 flex-col items-center gap-0.5 text-[0.7rem] text-white/90'
 
 export const dashboardHeroStripValueClass =
-  'max-w-full truncate font-numeric text-[0.8rem] font-bold tabular-nums text-white'
+  'max-w-full text-center font-numeric text-[0.8rem] font-bold tabular-nums text-white [overflow-wrap:anywhere]'
 
 /** Under the strip: «هزینه ماه ۱۲٪ کمتر از شهریور». */
 export const dashboardHeroCompareClass =

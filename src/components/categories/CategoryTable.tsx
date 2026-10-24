@@ -120,7 +120,11 @@ export default function CategoryTable({
                 </button>
               </>
             ) : null}
-            <CardEditButton onClick={() => onOpen(item.name)} ariaLabel={`جزئیات ${item.name}`} />
+            <CardEditButton
+              onClick={() => onOpen(item.name)}
+              label="جزئیات"
+              itemLabel={item.name}
+            />
           </>
         )
       }}

@@ -56,13 +56,14 @@ const moneyDisplayRootBaseClass = 'money-display tabular-nums [font-feature-sett
 
 const moneyDisplaySizeClass: Record<MoneyDisplaySize, string> = {
   hero: cn(
-    'mb-[0.35rem] flex flex-col items-center gap-[0.2rem] text-inherit',
+    'mb-[0.35rem] flex max-w-full flex-col items-center gap-[0.2rem] text-inherit',
+    '[&_.money-display-value]:max-w-full [&_.money-display-value]:text-center [&_.money-display-value]:[overflow-wrap:anywhere]',
     '[&_.money-display-value]:text-[clamp(1.35rem,6vw,1.85rem)] [&_.money-display-value]:font-extrabold [&_.money-display-value]:leading-[1.05] [&_.money-display-value]:tracking-[0.02em]',
     '[&_.money-display-unit]:text-[0.74rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:opacity-90'
   ),
   stat: cn(
     'flex max-w-full min-w-0 flex-col items-center gap-[0.12rem]',
-    '[&_.money-display-value]:max-w-full [&_.money-display-value]:text-[clamp(0.88rem,3.2vw,1.05rem)] [&_.money-display-value]:font-extrabold [&_.money-display-value]:leading-[1.15] [&_.money-display-value]:tracking-[0.015em]',
+    '[&_.money-display-value]:max-w-full [&_.money-display-value]:text-center [&_.money-display-value]:[overflow-wrap:anywhere] [&_.money-display-value]:text-[clamp(0.88rem,3.2vw,1.05rem)] [&_.money-display-value]:font-extrabold [&_.money-display-value]:leading-[1.15] [&_.money-display-value]:tracking-[0.015em]',
     '[&_.money-display-unit]:text-[0.62rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:leading-none [&_.money-display-unit]:text-muted'
   ),
   'stat-wide': cn(

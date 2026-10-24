@@ -6,15 +6,20 @@ import { cn } from '../utils/cn'
 type CardDeleteButtonProps = {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
-  ariaLabel?: string
+  /** What is deleted, e.g. «چک ۱۲۳»; screen readers hear «حذف چک ۱۲۳». */
+  itemLabel: string
+  label?: string
 }
 
 export default function CardDeleteButton({
   onClick,
   disabled = false,
-  ariaLabel = 'حذف'
+  itemLabel,
+  label = 'حذف'
 }: CardDeleteButtonProps) {
   if (useReadOnly()) return null
+
+  const ariaLabel = `${label} ${itemLabel}`.trim()
 
   return (
     <button

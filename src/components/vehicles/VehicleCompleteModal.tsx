@@ -83,7 +83,7 @@ export default function VehicleCompleteModal({
   const nextKmPreview = mileage > 0 && intervalKm > 0 ? calculateNextKm(mileage, intervalKm) : null
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    submitValidatedForm(handleSubmit, values => onSubmit(values), event)
+    return submitValidatedForm(handleSubmit, values => onSubmit(values), event)
   }
 
   return (

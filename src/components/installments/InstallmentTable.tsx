@@ -73,6 +73,7 @@ export default function InstallmentTable({
               title={item.plan.title}
             />
             <TableRowActions
+              itemLabel={item.plan.title}
               onEdit={() => onEdit(item)}
               onDelete={() => onDelete(item)}
               expanded={expanded}

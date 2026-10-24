@@ -4,7 +4,8 @@ import { applyNetAvailableConfig } from './dashboardNetAvailable'
 import {
   GOAL_LEDGER_SOURCE,
   goalBalances,
-  goalDepositsIn,
+  exceedsGoalTarget,
+  goalNetDepositsIn,
   goalToRow,
   monthsUntil,
   neededPerMonth,
@@ -55,10 +56,11 @@ describe('goal balance', () => {
     expect(balances.get('g2')).toBe(1_000_000)
   })
 
-  it("counts only this month's deposits", () => {
+  it("nets this month's withdrawals off its deposits", () => {
     const month = getJalaliMonthRange('1405-07')!
 
-    expect(goalDepositsIn(ledger, month).get('g1')).toBe(2_000_000)
+    expect(goalNetDepositsIn(ledger, month).get('g1')).toBe(1_500_000)
+    expect(goalNetDepositsIn([move('g1', 800_000, today)], month).get('g1')).toBe(-800_000)
   })
 
   it('shows progress and the plan line from the wireframe', () => {
@@ -119,5 +121,14 @@ describe('goals in net available', () => {
     expect(applyNetAvailableConfig(financial, config(true, true)).totalAssets).toBe(180)
     expect(applyNetAvailableConfig(financial, config(true, false)).totalAssets).toBe(150)
     expect(applyNetAvailableConfig(financial, config(false, true)).totalAssets).toBe(130)
+  })
+})
+
+describe('goal target warning', () => {
+  it('warns only when a deposit goes past the target', () => {
+    expect(exceedsGoalTarget(9_000_000, 10_000_000, 1_000_000)).toBe(false)
+    expect(exceedsGoalTarget(9_000_000, 10_000_000, 1_000_001)).toBe(true)
+    expect(exceedsGoalTarget(9_000_000, 0, 5)).toBe(false)
+    expect(exceedsGoalTarget(9_000_000, 10_000_000, -5)).toBe(false)
   })
 })

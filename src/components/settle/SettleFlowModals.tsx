@@ -2,7 +2,7 @@ import SettleSheet from './SettleSheet'
 import type { SettleFlow } from './useSettleFlow'
 import ConfirmActionModal from '../ConfirmActionModal'
 
-/** The settle sheet and the «رکورد وصل‌شده هم حذف شود؟» question of a page. */
+/** The settle sheet, the «برگرداندن پرداخت» confirm and the «رکورد وصل‌شده هم حذف شود؟» question. */
 export default function SettleFlowModals({ flow }: { flow: SettleFlow }) {
   return (
     <>
@@ -13,6 +13,15 @@ export default function SettleFlowModals({ flow }: { flow: SettleFlow }) {
           onClose={() => flow.answerSettle(null)}
         />
       ) : null}
+      <ConfirmActionModal
+        open={Boolean(flow.unpay)}
+        title="برگرداندن پرداخت"
+        message={flow.unpay?.message ?? ''}
+        confirmLabel="برگردان"
+        cancelLabel="انصراف"
+        onClose={() => flow.answerUnpay(false)}
+        onConfirm={() => flow.answerUnpay(true)}
+      />
       <ConfirmActionModal
         open={Boolean(flow.unlink)}
         title="رکورد وصل‌شده"

@@ -64,7 +64,9 @@ export default function DashboardHero({
           دارایی قابل اتکا
           <HelpHint {...HELP_HINTS.netAvailable} />
         </div>
-        {onConfigure && <CardEditButton onClick={onConfigure} ariaLabel="تنظیم دارایی قابل اتکا" />}
+        {onConfigure && (
+          <CardEditButton onClick={onConfigure} label="تنظیم" itemLabel="دارایی قابل اتکا" />
+        )}
       </div>
       <AnimatedMoneyDisplay amount={netAvailable} size="hero" tone="hero" />
       <dl className={dashboardHeroStripClass}>

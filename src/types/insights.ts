@@ -21,7 +21,7 @@ export interface SavingsGoal {
 export interface SavingsGoalView extends SavingsGoal {
   rowNumber: number
   balance: number
-  /** Deposits (not withdrawals) dated in the current Jalali month. */
+  /** Deposits minus withdrawals dated in the current Jalali month (can be negative). */
   monthDeposits: number
 }
 

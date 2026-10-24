@@ -149,7 +149,11 @@ export default function DangList({
                   onToggle={onTogglePaid}
                 />
               ) : null}
-              <TableRowActions onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />
+              <TableRowActions
+                itemLabel={item.title}
+                onEdit={() => onEdit(item)}
+                onDelete={() => onDelete(item)}
+              />
             </>
           )}
         />

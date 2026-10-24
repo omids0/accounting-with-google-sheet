@@ -53,8 +53,16 @@ type WalletBankCardVisualProps = {
   maskCardNumber?: boolean
 }
 
-function CardRevealButton({ revealed, onToggle }: { revealed: boolean; onToggle: () => void }) {
-  const label = revealed ? 'پنهان کردن شماره کارت' : 'نمایش شماره کارت'
+function CardRevealButton({
+  revealed,
+  onToggle,
+  itemLabel
+}: {
+  revealed: boolean
+  onToggle: () => void
+  itemLabel: string
+}) {
+  const label = `${revealed ? 'پنهان کردن شماره کارت' : 'نمایش شماره کارت'} ${itemLabel}`
 
   return (
     <button
@@ -68,12 +76,21 @@ function CardRevealButton({ revealed, onToggle }: { revealed: boolean; onToggle:
         onToggle()
       }}
     >
-      <AppIcon name={revealed ? 'eye-off' : 'eye'} size={11} />
+      <AppIcon name={revealed ? 'eye-off' : 'eye'} size={14} />
     </button>
   )
 }
 
-function CardCopyButton({ value, label }: { value: string; label: string }) {
+function CardCopyButton({
+  value,
+  label,
+  itemLabel
+}: {
+  value: string
+  /** Names what is copied, e.g. «کپی شماره کارت»; the toast reads «… شد». */
+  label: string
+  itemLabel: string
+}) {
   const { copy } = useCopyToClipboard()
 
   if (!value) return null
@@ -82,14 +99,14 @@ function CardCopyButton({ value, label }: { value: string; label: string }) {
     <button
       type="button"
       className={walletBankCardCopyBtnClass}
-      aria-label={label}
-      title={label}
+      aria-label={`${label} ${itemLabel}`}
+      title={`${label} ${itemLabel}`}
       onClick={event => {
         event.stopPropagation()
         void copy(value, `${label} شد`)
       }}
     >
-      <AppIcon name="copy" size={11} />
+      <AppIcon name="copy" size={14} />
     </button>
   )
 }
@@ -117,6 +134,7 @@ export default function WalletBankCardVisual({
   const [revealed, setRevealed] = useState(false)
   const theme = resolveCardTheme(account)
   const balance = displayBalance ?? account.balance
+  const cardName = account.title.trim() || theme.label
   const showCardNumber = Boolean(account.cardNumber)
   const accountTitle = account.title.trim()
   const showTitleBesideBank = Boolean(accountTitle) && accountTitle !== theme.label
@@ -149,7 +167,7 @@ export default function WalletBankCardVisual({
           <span>
             {theme.label}
             {showTitleBesideBank && (
-              <span className="font-medium opacity-85"> ({accountTitle})</span>
+              <span className="font-medium opacity-90"> ({accountTitle})</span>
             )}
           </span>
         </div>
@@ -170,9 +188,14 @@ export default function WalletBankCardVisual({
                 : formatCardNumberDisplay(account.cardNumber)}
             </div>
             {maskCardNumber && (
-              <CardRevealButton revealed={revealed} onToggle={() => setRevealed(value => !value)} />
+              <CardRevealButton
+                revealed={revealed}
+                onToggle={() => setRevealed(value => !value)}
+                itemLabel={cardName}
+              />
             )}
             <CardCopyButton
+              itemLabel={cardName}
               value={normalizeCardNumber(account.cardNumber)}
               label="کپی شماره کارت"
             />
@@ -188,7 +211,7 @@ export default function WalletBankCardVisual({
               <span dir="ltr" lang="en" className="truncate">
                 {accountNumber}
               </span>
-              <CardCopyButton value={accountNumber} label="کپی شماره حساب" />
+              <CardCopyButton value={accountNumber} label="کپی شماره حساب" itemLabel={cardName} />
             </span>
           )}
           {iban && (
@@ -197,7 +220,7 @@ export default function WalletBankCardVisual({
               <span dir="ltr" lang="en" className="truncate">
                 {iban}
               </span>
-              <CardCopyButton value={iban} label="کپی شماره شبا" />
+              <CardCopyButton value={iban} label="کپی شماره شبا" itemLabel={cardName} />
             </span>
           )}
         </div>

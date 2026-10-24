@@ -1,3 +1,4 @@
+import { formatPersianNumber } from './formatMoney'
 import type { FilterChip, FilterChipKind } from '../components/ActiveFilterChips'
 import type { PaymentStatusFilter } from '../components/PageFilterPanel'
 
@@ -70,6 +71,24 @@ export function buildSubCategoryChip(subCategory: string, onRemove: () => void):
 
 export function buildCounterpartyChip(counterparty: string, onRemove: () => void): FilterChip {
   return buildLabeledFilterChip('counterparty', 'counterparty', 'طرف', counterparty, onRemove)
+}
+
+export function buildWalletAccountChip(title: string, onRemove: () => void): FilterChip {
+  return buildLabeledFilterChip('other', 'wallet-account', 'حساب', title, onRemove)
+}
+
+/** «مبلغ از ۱٬۰۰۰ تا ۵٬۰۰۰»; either end may be missing. */
+export function buildAmountRangeChip(
+  min: number | '',
+  max: number | '',
+  onRemove: () => void
+): FilterChip {
+  const parts = [
+    min !== '' && `از ${formatPersianNumber(min)}`,
+    max !== '' && `تا ${formatPersianNumber(max)}`
+  ].filter(Boolean)
+
+  return withKind('other', { id: 'amount-range', label: `مبلغ ${parts.join(' ')}`, onRemove })
 }
 
 export function buildMineChip(onRemove: () => void): FilterChip {

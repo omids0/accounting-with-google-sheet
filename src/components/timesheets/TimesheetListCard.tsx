@@ -65,12 +65,14 @@ export default function TimesheetListCard({
           onPointerDown={event => event.stopPropagation()}
         >
           <CardEditButton
+            itemLabel={item.title}
             onClick={event => {
               event.stopPropagation()
               onEdit(item)
             }}
           />
           <CardDeleteButton
+            itemLabel={item.title}
             onClick={event => {
               event.stopPropagation()
               onDelete(item)

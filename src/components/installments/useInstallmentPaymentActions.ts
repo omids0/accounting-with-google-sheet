@@ -67,6 +67,8 @@ export function useInstallmentPaymentActions({
         } else if (payment) {
           const recordId = payment.transactionRecordId ?? ''
 
+          if (!(await settleFlow.askUnpay(Boolean(recordId)))) return
+
           if (await isLinkedForeignRecord(spreadsheetId, 'expense', recordId, 'قسط: ')) {
             unlink = await settleFlow.askUnlink()
             if (!unlink) return
@@ -84,6 +86,7 @@ export function useInstallmentPaymentActions({
         )
 
         setPlans(prev => prev.map(p => (p.id === plan.id ? updated : p)))
+        showSuccess(paid ? 'پرداخت ثبت شد' : 'پرداخت برگردانده شد')
       } catch (err) {
         if (handleSheetError(err, { fallbackMessage: 'خطا در بروزرسانی پرداخت' })) return
       } finally {

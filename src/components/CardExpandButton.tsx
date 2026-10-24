@@ -6,7 +6,10 @@ type CardExpandButtonProps = {
   expanded: boolean
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
-  ariaLabel?: string
+  /** What opens, e.g. «حساب بانک ملی»; screen readers hear «نمایش جزئیات حساب بانک ملی». */
+  itemLabel: string
+  /** Replaces «نمایش جزئیات» / «بستن جزئیات» for both states. */
+  label?: string
   className?: string
 }
 
@@ -14,9 +17,12 @@ export default function CardExpandButton({
   expanded,
   onClick,
   disabled = false,
-  ariaLabel = 'نمایش جزئیات',
+  itemLabel,
+  label = expanded ? 'بستن جزئیات' : 'نمایش جزئیات',
   className
 }: CardExpandButtonProps) {
+  const ariaLabel = `${label} ${itemLabel}`.trim()
+
   return (
     <button
       type="button"

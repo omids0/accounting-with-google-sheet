@@ -73,7 +73,12 @@ export default function UnitsList({ rows, onOpen, onEdit, onMore }: UnitsListPro
           onEdit || onMore
             ? row => (
                 <>
-                  {onEdit ? <TableRowActions onEdit={() => onEdit(row)} /> : null}
+                  {onEdit ? (
+                    <TableRowActions
+                      itemLabel={`واحد ${toPersianDigits(row.unit.number)}`}
+                      onEdit={() => onEdit(row)}
+                    />
+                  ) : null}
                   {onMore ? <UnitMoreButton row={row} onMore={onMore} /> : null}
                 </>
               )
