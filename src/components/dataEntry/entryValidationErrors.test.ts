@@ -43,4 +43,25 @@ describe('entryValidationErrors', () => {
 
     expect(errors.map(error => error.id)).toEqual(['amount'])
   })
+
+  it('lets an old record keep a field that was empty before', () => {
+    const wasEmpty = (id: string) => id === 'title'
+    const errors = entryValidationErrors(
+      form,
+      { amount: 5, title: '' },
+      { ...context, strictAmount: false, wasEmpty }
+    )
+
+    expect(errors).toEqual([])
+  })
+
+  it('still flags a field the user emptied', () => {
+    const errors = entryValidationErrors(
+      form,
+      { amount: '', title: 'x' },
+      { ...context, strictAmount: false, wasEmpty: id => id === 'title' }
+    )
+
+    expect(errors.map(error => error.id)).toEqual(['amount'])
+  })
 })

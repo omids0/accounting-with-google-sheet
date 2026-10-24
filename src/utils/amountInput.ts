@@ -3,9 +3,19 @@ import { normalizeDigits } from './normalizeDigits'
 /** The most a money field takes: 10 trillion toman («۱۰ هزار میلیارد»). */
 export const MAX_AMOUNT = 10_000_000_000_000
 
-export const AMOUNT_INTEGER_ONLY_HINT = 'فقط عدد صحیح به تومان'
+/** «فقط عدد صحیح به تومان»; a plain number field (km) has no money unit: «فقط عدد صحیح». */
+export function amountIntegerHint(currency?: string): string {
+  return currency ? `فقط عدد صحیح به ${currency}` : 'فقط عدد صحیح'
+}
 
-export const AMOUNT_MAX_MESSAGE = 'حداکثر مبلغ ۱۰ هزار میلیارد تومان است'
+/** The max as money in the field's currency; a plain number field says it generically. */
+export function amountMaxMessage(currency?: string): string {
+  return currency ? `حداکثر مبلغ ۱۰ هزار میلیارد ${currency} است` : 'عدد خیلی بزرگ است'
+}
+
+export const AMOUNT_INTEGER_ONLY_HINT = amountIntegerHint('تومان')
+
+export const AMOUNT_MAX_MESSAGE = amountMaxMessage('تومان')
 
 export interface AmountInputResult {
   /** Plain ASCII digits that were accepted; empty when none. */
@@ -23,7 +33,7 @@ function isGrouping(text: string, index: number): boolean {
   return run.length === 3
 }
 
-const KEEP = /[^\d.,٫٬،]/g
+const KEEP = /[^\d.,٫٬،/]/g
 
 /**
  * Digits of typed or pasted amount text. Letters are ignored, grouping marks («1,234»,
@@ -60,10 +70,14 @@ export function parseAmountInput(
 
     seen[char] = (seen[char] ?? 0) + 1
 
-    const isDecimalMark = char === '.' || char === '٫'
-    const isFieldFormatting = !isDecimalMark && seen[char] <= (known[char] ?? 0)
+    // «٫» and «/» (the Persian keyboard's decimal mark) are always decimal points. A dot is
+    // grouping only in a chain like «1.234.567»; a comma-like mark in «1,234».
+    const isDecimalMark = char === '٫' || char === '/'
+    const isGroupingDot = char === '.' && text.split('.').length > 2 && isGrouping(text, i)
+    const isFieldFormatting = !isDecimalMark && char !== '.' && seen[char] <= (known[char] ?? 0)
+    const isGroupingMark = char !== '.' && !isDecimalMark && isGrouping(text, i)
 
-    if (isFieldFormatting || (!isDecimalMark && isGrouping(text, i))) continue
+    if (isFieldFormatting || isGroupingMark || isGroupingDot) continue
 
     cutDecimal = true
     break

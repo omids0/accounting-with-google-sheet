@@ -1,10 +1,11 @@
 import type { CounterpartyFormState } from './types'
-import { normalizeIranPhone } from '../../utils/idValidators'
+import { normalizePhone } from '../../utils/idValidators'
 
 export const PHONE_ERROR = 'شماره تماس معتبر نیست'
 
 /**
- * Form check of one phone (optional): an Iranian mobile or a landline with its area code.
+ * Form check of one phone (optional): an Iranian mobile, a landline with its area code, or an
+ * international number («+» and 7–15 digits).
  * A number already saved on the counterparty stays accepted until the user changes it.
  */
 export function phoneError(number: string, saved: readonly string[] = []): string | true {
@@ -12,7 +13,13 @@ export function phoneError(number: string, saved: readonly string[] = []): strin
 
   if (!text || saved.some(item => item.trim() === text)) return true
 
-  return normalizeIranPhone(text) !== null || PHONE_ERROR
+  return normalizePhone(text) !== null || PHONE_ERROR
+}
+
+function normalizeSavedPhone(number: string, saved: readonly string[]): string {
+  const text = number.trim()
+
+  return saved.some(item => item.trim() === text) ? text : normalizePhone(text) ?? text
 }
 
 export function validateCounterpartyForm(
@@ -27,7 +34,11 @@ export function validateCounterpartyForm(
   return badPhone ? PHONE_ERROR : null
 }
 
-export function buildCounterpartyPayload(values: CounterpartyFormState) {
+/** `savedPhones`: the numbers already stored; they are kept exactly as they are. */
+export function buildCounterpartyPayload(
+  values: CounterpartyFormState,
+  savedPhones: readonly string[] = []
+) {
   return {
     firstName: values.firstName.trim(),
     lastName: values.lastName.trim(),
@@ -35,7 +46,7 @@ export function buildCounterpartyPayload(values: CounterpartyFormState) {
     address: values.address.trim(),
     location: values.location,
     phones: values.phones
-      .map(phone => ({ number: normalizeIranPhone(phone.number) ?? phone.number.trim() }))
+      .map(phone => ({ number: normalizeSavedPhone(phone.number, savedPhones) }))
       .filter(phone => phone.number),
     accounts: values.accounts
       .map(account => ({

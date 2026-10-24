@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { digitsOnly, normalizeIranPhone, normalizeSheba, passesLuhn } from './idValidators'
+import {
+  digitsOnly,
+  normalizeIranPhone,
+  normalizePhone,
+  normalizeSheba,
+  passesLuhn
+} from './idValidators'
 
 describe('passesLuhn', () => {
   it('accepts a valid card and rejects a changed digit', () => {
@@ -73,5 +79,20 @@ describe('digitsOnly', () => {
 
   it('drops other characters and flags it', () => {
     expect(digitsOnly('12a-3')).toEqual({ value: '123', changed: true })
+  })
+})
+
+describe('normalizePhone', () => {
+  it('keeps Iranian numbers in their 0-prefixed form', () => {
+    expect(normalizePhone('+98 912 123 4567')).toBe('09121234567')
+  })
+
+  it('takes an international number as «+» and digits, without rewriting it', () => {
+    expect(normalizePhone('+1 202 555 0100')).toBe('+12025550100')
+    expect(normalizePhone('+44 (20) 7946-0958')).toBe('+442079460958')
+  })
+
+  it.each(['+123456', '+1234567890123456', '12025550100', '+1 20a', ''])('rejects %s', raw => {
+    expect(normalizePhone(raw)).toBeNull()
   })
 })

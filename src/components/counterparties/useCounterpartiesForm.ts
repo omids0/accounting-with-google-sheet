@@ -53,7 +53,10 @@ export function useCounterpartiesForm({ onSaved }: UseCounterpartiesFormOptions)
       return
     }
 
-    const payload = buildCounterpartyPayload(values)
+    const payload = buildCounterpartyPayload(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
 
     setSaving(true)
     try {

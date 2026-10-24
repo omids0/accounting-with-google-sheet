@@ -154,8 +154,8 @@ export function formatDurationFa(minutes: number): string {
 
   const parts: string[] = []
 
-  if (hours > 0) parts.push(`${hours.toLocaleString('fa-IR')} ساعت`)
-  if (mins > 0) parts.push(`${mins.toLocaleString('fa-IR')} دقیقه`)
+  if (hours > 0) parts.push(`${toPersianDigits(String(hours))} ساعت`)
+  if (mins > 0) parts.push(`${toPersianDigits(String(mins))} دقیقه`)
 
   return parts.join(' و ') || toPersianDigits('0')
 }

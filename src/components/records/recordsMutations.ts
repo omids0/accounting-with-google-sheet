@@ -61,6 +61,9 @@ export async function submitRecordEdit({
     const category = String(formValues.category ?? '')
     if (isVehicleExpenseCategory(category) && field.id === 'title') continue
 
+    // An old record saved without this field is not blocked for it.
+    if (!(editingRecord.values[field.id] ?? '').trim()) continue
+
     const val = formValues[field.id]
 
     if (val === '' || val === undefined || val === null) {

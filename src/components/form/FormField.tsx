@@ -154,8 +154,10 @@ function resolveControlWidthClass(
 }
 
 /** The control a screen reader lands on: the first real input, textarea, select or button. */
-const CONTROL_SELECTOR =
-  'input:not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,select,button'
+const TEXT_CONTROL_SELECTOR =
+  'input:not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,select'
+
+const CONTROL_SELECTOR = `${TEXT_CONTROL_SELECTOR},button`
 
 export default function FormField({
   label,
@@ -178,35 +180,34 @@ export default function FormField({
   const controlShellClass = resolveControlWidthClass(controlChild, controlWidth)
   const shellRef = useRef<HTMLDivElement>(null)
 
-  // Custom pickers do not take aria props; mark their first control from here so every
-  // invalid field is announced and the first one can be focused after a failed submit.
+  // Custom pickers do not take aria props, so mark their first control from here. A text
+  // control gets `aria-invalid`; a button (picker trigger, date field, dial pad) is not a
+  // role that supports it, so it gets `data-field-invalid` instead, which is all the focus
+  // after a failed submit needs. Both point at the error text.
   useEffect(() => {
     const target = shellRef.current?.querySelector<HTMLElement>(CONTROL_SELECTOR)
 
-    if (!target) return
+    if (!invalid || !target) return undefined
 
-    if (invalid) {
-      if (target.getAttribute('aria-invalid') !== 'true') {
-        target.setAttribute('aria-invalid', 'true')
-        target.dataset.fieldMarked = ''
+    const isText = target.matches(TEXT_CONTROL_SELECTOR)
+    const markedByProps = target.getAttribute('aria-invalid') === 'true'
+
+    if (isText && !markedByProps) target.setAttribute('aria-invalid', 'true')
+    if (!isText) target.setAttribute('data-field-invalid', 'true')
+    if (!target.hasAttribute('aria-describedby')) {
+      target.setAttribute('aria-describedby', errorId)
+      target.setAttribute('data-field-described', '')
+    }
+
+    return () => {
+      if (isText && !markedByProps) target.removeAttribute('aria-invalid')
+      target.removeAttribute('data-field-invalid')
+      if (target.hasAttribute('data-field-described')) {
+        target.removeAttribute('aria-describedby')
+        target.removeAttribute('data-field-described')
       }
-      if (!target.getAttribute('aria-describedby')) {
-        target.setAttribute('aria-describedby', errorId)
-        target.dataset.fieldDescribed = ''
-      }
-
-      return
     }
-
-    if (target.dataset.fieldMarked !== undefined) {
-      target.removeAttribute('aria-invalid')
-      delete target.dataset.fieldMarked
-    }
-    if (target.dataset.fieldDescribed !== undefined) {
-      target.removeAttribute('aria-describedby')
-      delete target.dataset.fieldDescribed
-    }
-  })
+  }, [invalid, errorId])
 
   return (
     <div className={cn(formFieldClass, className)} style={style}>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { MAX_AMOUNT, parseAmountInput } from './amountInput'
+import { amountIntegerHint, amountMaxMessage, MAX_AMOUNT, parseAmountInput } from './amountInput'
 
 describe('parseAmountInput', () => {
   it.each([
@@ -54,5 +54,41 @@ describe('parseAmountInput with the text the field showed before', () => {
       cutDecimal: true
     })
     expect(parseAmountInput('12٫', { previous: '۱۲' }).cutDecimal).toBe(true)
+  })
+})
+
+describe('parseAmountInput pasted forms', () => {
+  it.each([
+    ['1.234.567', '1234567'],
+    ['1,234,567', '1234567'],
+    ['۱٬۲۳۴٬۵۶۷', '1234567'],
+    ['۱.۲۳۴.۵۶۷', '1234567']
+  ])('reads %s as grouped thousands', (raw, digits) => {
+    expect(parseAmountInput(raw)).toEqual({ digits, cutDecimal: false, overMax: false })
+  })
+
+  it.each([
+    ['۱۲/۵', '12'],
+    ['12/5', '12'],
+    ['12.5', '12'],
+    ['12.50', '12'],
+    ['12.5000', '12'],
+    ['1.2345', '1'],
+    ['1.234', '1']
+  ])('reads %s as a decimal point', (raw, digits) => {
+    expect(parseAmountInput(raw)).toMatchObject({ digits, cutDecimal: true })
+  })
+})
+
+describe('notice texts follow the field unit', () => {
+  it('names the currency of a money field', () => {
+    expect(amountIntegerHint('تومان')).toBe('فقط عدد صحیح به تومان')
+    expect(amountIntegerHint('ریال')).toBe('فقط عدد صحیح به ریال')
+    expect(amountMaxMessage('دلار')).toBe('حداکثر مبلغ ۱۰ هزار میلیارد دلار است')
+  })
+
+  it('stays generic for a plain number field such as km', () => {
+    expect(amountIntegerHint()).toBe('فقط عدد صحیح')
+    expect(amountMaxMessage()).toBe('عدد خیلی بزرگ است')
   })
 })

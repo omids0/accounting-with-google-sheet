@@ -93,7 +93,10 @@ export function useCounterpartySelectActions({
       return false
     }
 
-    const payload = buildCounterpartyPayload(values)
+    const payload = buildCounterpartyPayload(
+      values,
+      editingItem?.phones.map(phone => phone.number)
+    )
     const previousName = editingItem ? getCounterpartyFullName(editingItem) : ''
     const nextName = getCounterpartyFullName(payload)
 

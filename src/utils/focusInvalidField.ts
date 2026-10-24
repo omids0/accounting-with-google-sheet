@@ -2,7 +2,7 @@
 const ERRORS_PAINT_DELAY_MS = 80
 
 /**
- * After a failed submit, move the focus to the first field marked `aria-invalid="true"` inside
+ * After a failed submit, move the focus to the first field marked `aria-invalid="true"` (or `data-field-invalid` on a picker button) inside
  * `root` and scroll it into view, so a field below the fold or behind the keyboard is not missed.
  * Does nothing when the submit went through (no field is marked invalid).
  */
@@ -10,7 +10,9 @@ export function focusFirstInvalidField(root: ParentNode | null | undefined): voi
   if (!root || typeof window === 'undefined') return
 
   window.setTimeout(() => {
-    const target = root.querySelector<HTMLElement>('[aria-invalid="true"]:not([disabled])')
+    const target = root.querySelector<HTMLElement>(
+      '[aria-invalid="true"]:not([disabled]), [data-field-invalid="true"]:not([disabled])'
+    )
 
     if (!target) return
 

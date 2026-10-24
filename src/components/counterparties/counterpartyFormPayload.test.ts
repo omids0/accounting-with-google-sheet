@@ -62,6 +62,17 @@ describe('validateCounterpartyForm', () => {
 })
 
 describe('buildCounterpartyPayload phones', () => {
+  it('accepts an international number and keeps a saved number exactly as stored', () => {
+    expect(phoneError('+1 202 555 0100')).toBe(true)
+
+    const payload = buildCounterpartyPayload(
+      { ...form, phones: [{ number: '+98 912 123 4567' }, { number: '0912 345' }] },
+      ['+98 912 123 4567']
+    )
+
+    expect(payload.phones).toEqual([{ number: '+98 912 123 4567' }, { number: '0912 345' }])
+  })
+
   it('saves a valid number in its plain 0-prefixed form', () => {
     const payload = buildCounterpartyPayload({
       ...form,

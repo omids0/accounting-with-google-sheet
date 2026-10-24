@@ -22,9 +22,17 @@ export function entryValidationErrors(
     hasSubcategories: boolean
     /** `false` (editing a saved record): only an empty amount blocks, a saved 0 stays editable. */
     strictAmount?: boolean
+    /** Editing: a field that was empty already may stay empty (an old record is not blocked for it). */
+    wasEmpty?: (fieldId: string) => boolean
   }
 ): EntryValidationError[] {
-  const { showVehicleFields, selectedCategory, hasSubcategories, strictAmount = true } = context
+  const {
+    showVehicleFields,
+    selectedCategory,
+    hasSubcategories,
+    strictAmount = true,
+    wasEmpty
+  } = context
   const errors: EntryValidationError[] = []
 
   for (const field of form.fields) {
@@ -46,6 +54,8 @@ export function entryValidationErrors(
 
     const amountCheck =
       strictAmount && !isEmpty && field.id === 'amount' ? validatePositiveAmount(val) : true
+
+    if (isEmpty && wasEmpty?.(field.id)) continue
 
     if (isEmpty || amountCheck !== true) {
       errors.push({

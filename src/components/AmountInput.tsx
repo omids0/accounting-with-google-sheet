@@ -15,11 +15,7 @@ import {
   amountWordsClass
 } from './ui/formControlStyles'
 import { formErrorClass, formHintClass } from './ui/formStyles'
-import {
-  AMOUNT_INTEGER_ONLY_HINT,
-  AMOUNT_MAX_MESSAGE,
-  parseAmountInput
-} from '../utils/amountInput'
+import { amountIntegerHint, amountMaxMessage, parseAmountInput } from '../utils/amountInput'
 import { cn } from '../utils/cn'
 import { formatPersianNumber, getCurrencySymbol } from '../utils/formatMoney'
 import { numberToPersianWords } from '../utils/numberToWords'
@@ -75,7 +71,9 @@ export default function AmountInput({
   const noticeId = useId()
 
   const noticeText =
-    notice === 'max' ? (unit ? 'عدد خیلی بزرگ است' : AMOUNT_MAX_MESSAGE) : AMOUNT_INTEGER_ONLY_HINT
+    notice === 'max'
+      ? amountMaxMessage(unit ? undefined : suffix)
+      : amountIntegerHint(unit ? undefined : suffix)
 
   const describedBy = notice ? `${noticeId} ${ariaDescribedBy ?? ''}`.trim() : ariaDescribedBy
 

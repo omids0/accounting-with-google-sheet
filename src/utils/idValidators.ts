@@ -56,6 +56,20 @@ export function normalizeIranPhone(raw: string): string | null {
 }
 
 /**
+ * Any phone the contacts list takes: an Iranian number in its plain 0-prefixed form, or an
+ * international one as «+» and 7–15 digits («+1 202 555 0100» is «+12025550100»). `null` otherwise.
+ */
+export function normalizePhone(raw: string): string | null {
+  const iranian = normalizeIranPhone(raw)
+
+  if (iranian) return iranian
+
+  const text = normalizeDigits(raw).replace(/[\s\-().]/g, '')
+
+  return /^\+\d{7,15}$/.test(text) ? text : null
+}
+
+/**
  * Latin digits only, for a field that holds a plain number («شماره چک»). `changed` is true
  * when other characters were dropped; Persian digits turn into Latin ones silently.
  */

@@ -162,7 +162,8 @@ export default function RecordsEditFormModal({
         showVehicleFields,
         selectedCategory,
         hasSubcategories,
-        strictAmount: false
+        strictAmount: false,
+        wasEmpty: id => String(initialValues[id] ?? '').trim() === ''
       })
 
       if (found.length > 0) {

@@ -76,6 +76,10 @@ export default function CheckFormModal({
     resetKey: editingItem?.id ?? 'create'
   })
 
+  // A number saved with letters or slashes («A123», «123/456») stays free text while this
+  // check is edited; only new and all-digit numbers are held to digits.
+  const legacyNumber = !/^\d*$/.test(String(initialValues.checkNumber))
+
   // The last key dropped a non-digit: say so instead of silently eating it.
   const [droppedChars, setDroppedChars] = useState(false)
 
@@ -105,12 +109,7 @@ export default function CheckFormModal({
 
               if (required !== true) return required
 
-              // A number saved before this rule stays valid until the user changes it.
-              return (
-                value === initialValues.checkNumber ||
-                /^\d+$/.test(value) ||
-                CHECK_NUMBER_DIGITS_ONLY
-              )
+              return legacyNumber || /^\d+$/.test(value) || CHECK_NUMBER_DIGITS_ONLY
             }
           }}
           render={({ field, fieldState }) => (
@@ -123,10 +122,12 @@ export default function CheckFormModal({
             >
               <input
                 type="text"
-                inputMode="numeric"
+                inputMode={legacyNumber ? 'text' : 'numeric'}
                 value={field.value}
                 onBlur={field.onBlur}
                 onChange={event => {
+                  if (legacyNumber) return field.onChange(event.target.value)
+
                   const { value, changed } = digitsOnly(event.target.value)
 
                   setDroppedChars(changed)

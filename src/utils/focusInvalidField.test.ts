@@ -29,6 +29,15 @@ describe('focusFirstInvalidField', () => {
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledOnce()
   })
 
+  it('also focuses a picker button marked data-field-invalid', () => {
+    document.body.innerHTML =
+      '<form id="f"><button id="ok"></button><button id="picker" data-field-invalid="true"></button></form>'
+    focusFirstInvalidField(document.getElementById('f'))
+    vi.runAllTimers()
+
+    expect(document.activeElement?.id).toBe('picker')
+  })
+
   it('does nothing when no field is invalid', () => {
     document.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'))
     focusFirstInvalidField(document.getElementById('f'))
