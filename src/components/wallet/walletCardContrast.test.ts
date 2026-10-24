@@ -61,3 +61,12 @@ describe('wallet card text contrast', () => {
     expect(cardTextContrast(theme, scrimOf(theme.pattern))).toBeGreaterThanOrEqual(4.5)
   })
 })
+
+describe('legibility cache', () => {
+  it('returns the same object for the same colours and a new one for different colours', () => {
+    const [first, second] = palette
+
+    expect(withLegibleText(first.theme)).toBe(withLegibleText({ ...first.theme }))
+    expect(withLegibleText(first.theme)).not.toBe(withLegibleText(second.theme))
+  })
+})

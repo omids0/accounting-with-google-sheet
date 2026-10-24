@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 
 import type { SettleOptions, UnlinkChoice } from '../../services/settleOptions'
+import { showInfo } from '../../utils/toast'
 
 /** One payment waiting for the settle sheet. */
 export interface SettleRequest {
@@ -57,7 +58,12 @@ export function useSettleFlow() {
   }, [])
 
   const askUnpay = useCallback((hasLinkedRecord: boolean) => {
-    if (open.current) return Promise.resolve(false)
+    if (open.current) {
+      // The checkbox is controlled, so it springs back; say why nothing else happened.
+      showInfo('اول به پرسش بازِ پیش‌رو پاسخ بده')
+
+      return Promise.resolve(false)
+    }
     open.current = true
 
     return new Promise<boolean>(resolve =>

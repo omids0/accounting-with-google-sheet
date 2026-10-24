@@ -1,8 +1,11 @@
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { unpayMessage, useSettleFlow, type SettleFlow } from './useSettleFlow'
+import { showInfo } from '../../utils/toast'
+
+vi.mock('../../utils/toast', () => ({ showInfo: vi.fn() }))
 
 function mountFlow() {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -52,5 +55,6 @@ describe('unpay question', () => {
       void holder.flow.askUnpay(true)
     })
     await expect(holder.flow.askUnpay(true)).resolves.toBe(false)
+    expect(showInfo).toHaveBeenCalledTimes(1)
   })
 })

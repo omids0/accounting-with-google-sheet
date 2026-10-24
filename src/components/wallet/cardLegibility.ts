@@ -51,7 +51,22 @@ function scrimFor(theme: BankCardTheme, text: string): number | null {
  * white / near-black when that reads better, and lays the lightest possible scrim
  * (dark under light text, light under dark text) over the gradient until contrast is met.
  */
+const legibleCache = new Map<string, BankCardTheme>()
+
+/** Cached per colour set (id alone is not enough: custom cards share one id). */
 export function withLegibleText(theme: BankCardTheme): BankCardTheme {
+  const key = `${theme.gradient}|${theme.text}|${theme.pattern}`
+  let legible = legibleCache.get(key)
+
+  if (!legible) {
+    legible = computeLegibleTheme(theme)
+    legibleCache.set(key, legible)
+  }
+
+  return legible
+}
+
+function computeLegibleTheme(theme: BankCardTheme): BankCardTheme {
   const candidates = [...new Set([theme.text, LIGHT_TEXT, DARK_TEXT])]
   let best: { text: string; scrim: number } | null = null
 
