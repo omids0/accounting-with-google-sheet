@@ -1,6 +1,7 @@
 import type { CustomForm } from '../types'
 import { archiveTabsOfForm } from './archiveRegistry'
 import { headerAttachmentColumn } from './attachmentColumn'
+import { legacyLayoutPlan, remapLegacyRow } from './legacyRowLayout'
 import { getSettings } from './settings'
 import { buildFieldColumnMap, buildHeaders, buildRecordRow, mapRowToValues } from './sheetsHeaders'
 import { fetchSheetRangeFromApi, deleteSheetRow, updateSheetRow } from './sheetsRows'
@@ -42,18 +43,27 @@ function parseSheetRecords(rows: unknown[][], form: CustomForm, sheetName: strin
 
   const writerColumn = headerWriterColumn(headers)
 
+  // Rows an older build wrote in its own column order are read in today's (in memory only).
+  const legacyPlan = hasHeader
+    ? legacyLayoutPlan(form, columnMap, writerColumn, headers.length)
+    : null
+
   return dataRows
     .map((row, index) => ({ row, rowNumber: hasHeader ? index + 2 : index + 1 }))
     .filter(({ row }) => cellToString(row[0]).trim())
-    .map(({ row, rowNumber }) => ({
-      id: cellToString(row[0]),
-      createdAt: cellToString(row[1]),
-      rowNumber,
-      sheetName,
-      values: mapRowToValues(row, form.fields, columnMap),
-      attachments: attachmentColumn < 0 ? [] : parseAttachmentIds(row[attachmentColumn]),
-      writer: writerColumn < 0 ? '' : parseWriter(row[writerColumn])
-    }))
+    .map(({ row: raw, rowNumber }) => {
+      const row = remapLegacyRow(raw, legacyPlan)
+
+      return {
+        id: cellToString(row[0]),
+        createdAt: cellToString(row[1]),
+        rowNumber,
+        sheetName,
+        values: mapRowToValues(row, form.fields, columnMap),
+        attachments: attachmentColumn < 0 ? [] : parseAttachmentIds(row[attachmentColumn]),
+        writer: writerColumn < 0 ? '' : parseWriter(row[writerColumn])
+      }
+    })
 }
 
 export function getSheetHeaderRowFromStore(

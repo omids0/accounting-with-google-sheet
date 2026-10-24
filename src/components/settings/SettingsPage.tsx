@@ -11,6 +11,7 @@ import SettingsActivityCard from './SettingsActivityCard'
 import SettingsBudgetsCard from './SettingsBudgetsCard'
 import SettingsCategoriesCard from './SettingsCategoriesCard'
 import SettingsCloseYearCard from './SettingsCloseYearCard'
+import SettingsColumnRepairCard from './SettingsColumnRepairCard'
 import SettingsGeneralCard from './SettingsGeneralCard'
 import SettingsGoogleAccountCard from './SettingsGoogleAccountCard'
 import SettingsPwaInstallCard from './SettingsPwaInstallCard'
@@ -98,6 +99,7 @@ export default function SettingsPage() {
             <>
               <SettingsBackupCard spreadsheetId={settings.spreadsheetId} />
               <SettingsCloseYearCard />
+              <SettingsColumnRepairCard spreadsheetId={settings.spreadsheetId} />
             </>
           ) : null}
         </>
