@@ -198,9 +198,7 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
 
   const lastSyncedAt = getStoreLastSyncedAt(spreadsheetId)
 
-  if (lastSyncedAt) {
-    setLastSyncedAt(lastSyncedAt)
-  }
+  if (lastSyncedAt) setLastSyncedAt(lastSyncedAt)
 
   if (hasStoreData(spreadsheetId)) {
     if (hasPendingOutbox(spreadsheetId)) {
