@@ -95,93 +95,97 @@ function CategoryDonutChart({
   return (
     <div className={cn(chartCardClass, 'chart-card--animated', className)}>
       {title ? <h3 className={chartTitleClass}>{title}</h3> : null}
-      <div
-        className={cn(categoryDonutLayoutClass, !showLegend && 'min-[520px]:grid-cols-1')}
-        dir="ltr"
-      >
-        <div className={categoryDonutChartWrapClass}>
-          <ResponsiveContainer width="100%" height={168}>
-            <PieChart>
-              <Pie
-                data={slices}
-                dataKey="total"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={72}
-                paddingAngle={2}
-                stroke="none"
-                isAnimationActive={animate}
-                animationDuration={700}
-                animationEasing="ease-out"
+      <div className="@container">
+        <div
+          className={cn(categoryDonutLayoutClass, !showLegend && '@min-[28rem]:grid-cols-1')}
+          dir="ltr"
+        >
+          <div className={categoryDonutChartWrapClass}>
+            <ResponsiveContainer width="100%" height={168}>
+              <PieChart>
+                <Pie
+                  data={slices}
+                  dataKey="total"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={72}
+                  paddingAngle={2}
+                  stroke="none"
+                  isAnimationActive={animate}
+                  animationDuration={700}
+                  animationEasing="ease-out"
+                >
+                  {slices.map((slice, index) => (
+                    <Cell
+                      key={slice.name}
+                      fill={palette[index % palette.length]}
+                      className={categoryDonutSliceClass}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={props => (
+                    <ChartTooltip
+                      active={props.active}
+                      payload={props.payload as unknown as ChartTooltipEntry[] | undefined}
+                      label={String(props.label ?? '')}
+                    />
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className={categoryDonutCenterClass} dir="rtl">
+              <span className={categoryDonutCenterLabelClass}>{centerLabel}</span>
+              <span
+                className={cn(
+                  categoryDonutCenterValueClass,
+                  donutCenterValueFitClass,
+                  center.small && donutCenterValueSmallClass,
+                  center.compact && 'pointer-events-auto'
+                )}
+                title={
+                  center.compact ? maskText(`${center.full} ${getCurrencySymbol()}`) : undefined
+                }
               >
-                {slices.map((slice, index) => (
-                  <Cell
-                    key={slice.name}
-                    fill={palette[index % palette.length]}
-                    className={categoryDonutSliceClass}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                content={props => (
-                  <ChartTooltip
-                    active={props.active}
-                    payload={props.payload as unknown as ChartTooltipEntry[] | undefined}
-                    label={String(props.label ?? '')}
-                  />
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className={categoryDonutCenterClass} dir="rtl">
-            <span className={categoryDonutCenterLabelClass}>{centerLabel}</span>
-            <span
-              className={cn(
-                categoryDonutCenterValueClass,
-                donutCenterValueFitClass,
-                center.small && donutCenterValueSmallClass,
-                center.compact && 'pointer-events-auto'
-              )}
-              title={center.compact ? maskText(`${center.full} ${getCurrencySymbol()}`) : undefined}
-            >
-              <MaskedAmount size="stat">
-                {center.compact ? (
-                  <>
-                    <span aria-hidden="true">{center.text}</span>
-                    <span className="sr-only">{center.full}</span>
-                  </>
-                ) : (
-                  center.text
-                )}
-              </MaskedAmount>
-            </span>
-            <span className={categoryDonutCenterLabelClass}>{getCurrencySymbol()}</span>
+                <MaskedAmount size="stat">
+                  {center.compact ? (
+                    <>
+                      <span aria-hidden="true">{center.text}</span>
+                      <span className="sr-only">{center.full}</span>
+                    </>
+                  ) : (
+                    center.text
+                  )}
+                </MaskedAmount>
+              </span>
+              <span className={categoryDonutCenterLabelClass}>{getCurrencySymbol()}</span>
+            </div>
           </div>
+
+          {showLegend ? (
+            <ul className={categoryDonutLegendClass} dir="rtl">
+              {slices.map((slice, index) => {
+                const pct = total > 0 ? Math.round((slice.total / total) * 100) : 0
+
+                return (
+                  <li key={slice.name} className={categoryDonutLegendItemClass}>
+                    <span
+                      className={categoryDonutLegendDotClass}
+                      style={{ background: palette[index % palette.length] }}
+                    />
+                    <span className={categoryDonutLegendNameClass}>{slice.name}</span>
+                    <span className={categoryDonutLegendPctClass}>{formatPersianPercent(pct)}</span>
+                    <span className={categoryDonutLegendValueClass}>
+                      <MoneyText amount={slice.total} />
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : null}
         </div>
-
-        {showLegend ? (
-          <ul className={categoryDonutLegendClass} dir="rtl">
-            {slices.map((slice, index) => {
-              const pct = total > 0 ? Math.round((slice.total / total) * 100) : 0
-
-              return (
-                <li key={slice.name} className={categoryDonutLegendItemClass}>
-                  <span
-                    className={categoryDonutLegendDotClass}
-                    style={{ background: palette[index % palette.length] }}
-                  />
-                  <span className={categoryDonutLegendNameClass}>{slice.name}</span>
-                  <span className={categoryDonutLegendPctClass}>{formatPersianPercent(pct)}</span>
-                  <span className={categoryDonutLegendValueClass}>
-                    <MoneyText amount={slice.total} />
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
-        ) : null}
       </div>
     </div>
   )
