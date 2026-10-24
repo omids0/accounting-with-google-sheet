@@ -11,6 +11,8 @@ interface UseGoogleCodeLoginOptions {
   onError: () => void
   /** Fetch Google's script now; false keeps the hook idle (the token flow is in use). */
   load?: boolean
+  /** Change to fetch Google's script again after a failed download. */
+  retryKey?: number
 }
 
 /**
@@ -18,8 +20,13 @@ interface UseGoogleCodeLoginOptions {
  * also yields a refresh token (kept by the worker), so the app can renew its access
  * token without opening any window later.
  */
-export function useGoogleCodeLogin({ onCode, onError, load = true }: UseGoogleCodeLoginOptions) {
-  const ready = useGoogleIdentityScript(load && !isNativePlatform())
+export function useGoogleCodeLogin({
+  onCode,
+  onError,
+  load = true,
+  retryKey = 0
+}: UseGoogleCodeLoginOptions) {
+  const ready = useGoogleIdentityScript(load && !isNativePlatform(), retryKey)
 
   const clientRef = useRef<GoogleCodeClient | null>(null)
 

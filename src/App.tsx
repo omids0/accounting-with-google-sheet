@@ -10,7 +10,7 @@ import AppLockPrompts from './components/appLock/AppLockPrompts'
 import { AppLoadingSkeleton } from './components/skeleton'
 import { useAppLock } from './hooks/useAppLock'
 import { useGoogleIdentityScript } from './hooks/useGoogleIdentityScript'
-import { useTokenRefresh } from './hooks/useTokenRefresh'
+import { useSessionRenewal } from './hooks/useSessionRenewal'
 import { AppAuthenticatedRoutes } from './routes/AppRoutes'
 import { isAppLockEnabled } from './services/appLock'
 import { scrubPinHashFromSheetOnce } from './services/appLockSheetScrub'
@@ -36,7 +36,6 @@ import {
   usesAuthWorkerRefresh
 } from './services/tokenRefresh'
 import { registerWebUpdates } from './services/webUpdate'
-import { useAppStore } from './stores/appStore'
 import type { SpreadsheetEntry } from './types'
 import { toUserMessage } from './utils/userMessage'
 
@@ -86,44 +85,13 @@ export default function App() {
     setDataUnlocked(true)
   }, [unlock])
 
-  const registerHandlers = useAppStore(state => state.registerHandlers)
-
-  const handleLogout = useCallback(() => {
-    setLoggedIn(false)
-    setNeedsReauth(false)
-    setNeedsSheetSetup(false)
-  }, [])
-
-  const handleReauth = useCallback(async () => {
-    if (!startupDoneRef.current) return
-    // The refresh fetches Google's script itself if it is not loaded yet.
-    if (hasStoredSession()) {
-      const refreshed = await refreshAccessTokenSilently(clientId)
-
-      if (refreshed && isTokenValid()) {
-        setNeedsReauth(false)
-
-        return
-      }
-      // Offline is not an expired session: keep the screen the user is on.
-      if (lastRefreshWasTransient()) return
-    }
-    setNeedsReauth(true)
-  }, [clientId])
-
-  useEffect(() => {
-    registerHandlers({ onReauth: handleReauth, onLogout: handleLogout })
-  }, [handleLogout, handleReauth, registerHandlers])
-
-  useTokenRefresh({
+  useSessionRenewal({
     clientId,
-    enabled: hasStoredSession(),
-    onRefreshFailed: () => {
-      if (loggedIn && !lastRefreshWasTransient()) setNeedsReauth(true)
-    },
-    onRefreshSuccess: () => {
-      if (isTokenValid()) setNeedsReauth(false)
-    }
+    loggedIn,
+    startupDoneRef,
+    setLoggedIn,
+    setNeedsReauth,
+    setNeedsSheetSetup
   })
 
   // Returning users see their cached data at once; token renewal, sheet checks
@@ -169,6 +137,8 @@ export default function App() {
         const cachedId = getSettings()?.spreadsheetId
 
         if (lastRefreshWasTransient() && cachedId && hasStoreData(cachedId)) {
+          // Sync still starts, so the queue flushes as soon as a token comes back.
+          void initializeSheetSync(cachedId).catch(() => undefined)
           if (!cancelled) setReady(true)
 
           return

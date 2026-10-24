@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { FULL_GOOGLE_OAUTH_SCOPE, createSession, getSession, saveSession } from './auth'
+import { resetRefreshStatus } from './refreshStatus'
 import {
+  TRANSIENT_COOLDOWN_MS,
   WORKER_RETRY_DELAYS_MS,
   lastRefreshWasTransient,
   refreshAccessTokenSilently,
@@ -42,13 +44,24 @@ function seedSession(authSessionId?: string): void {
   })
 }
 
+let clock = Date.now()
+
 describe('refreshAccessTokenSilently (refresh-token worker)', () => {
   beforeEach(() => {
     vi.useFakeTimers()
+    // The cool-down after a transient failure is module state; every test starts later.
+    clock += TRANSIENT_COOLDOWN_MS * 10
+    vi.setSystemTime(clock)
+    resetRefreshStatus()
     localStorage.clear()
     fetchMock.mockReset()
     initTokenClient.mockReset()
-    initTokenClient.mockReturnValue({ requestAccessToken: vi.fn() })
+    // Google's popup, if it were used, is closed at once.
+    initTokenClient.mockImplementation(
+      (config: { error_callback: (e: { type: string }) => void }) => ({
+        requestAccessToken: () => config.error_callback({ type: 'popup_closed' })
+      })
+    )
     vi.stubGlobal('fetch', fetchMock)
     vi.stubEnv('VITE_AUTH_WORKER_URL', WORKER)
     window.google = { accounts: { oauth2: { initTokenClient } } } as unknown as Window['google']
@@ -58,6 +71,7 @@ describe('refreshAccessTokenSilently (refresh-token worker)', () => {
     vi.useRealTimers()
     vi.unstubAllGlobals()
     vi.unstubAllEnvs()
+    vi.restoreAllMocks()
     delete window.google
   })
 
@@ -151,6 +165,35 @@ describe('refreshAccessTokenSilently (refresh-token worker)', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(getSession()?.accessToken).toBe('worker-token')
     expect(lastRefreshWasTransient()).toBe(false)
+  })
+
+  it('does not ask the worker while offline and does not wait: the session is kept', async () => {
+    seedSession(SESSION_ID)
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+
+    await expect(refreshAccessTokenSilently('client')).resolves.toBe(false)
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(lastRefreshWasTransient()).toBe(true)
+    expect(getSession()?.authSessionId).toBe(SESSION_ID)
+  })
+
+  it('treats a worker answer of "fatal" (Google refuses the client) as a dead session', async () => {
+    seedSession(SESSION_ID)
+    fetchMock.mockResolvedValue(reply({ error: 'fatal' }, 401))
+
+    await expect(refreshAccessTokenSilently('client')).resolves.toBe(false)
+    expect(lastRefreshWasTransient()).toBe(false)
+    expect(getSession()?.authSessionId).toBeUndefined()
+  })
+
+  it('treats a misconfigured worker as a dead session instead of retrying for ever', async () => {
+    seedSession(SESSION_ID)
+    fetchMock.mockResolvedValue(reply({ error: 'misconfigured' }, 500))
+
+    await expect(refreshAccessTokenSilently('client')).resolves.toBe(false)
+    expect(lastRefreshWasTransient()).toBe(false)
+    expect(getSession()?.authSessionId).toBeUndefined()
   })
 
   it('treats a server error like a network error: retried, session kept', async () => {

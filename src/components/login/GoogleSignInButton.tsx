@@ -1,11 +1,13 @@
 import Button from '../ui/Button'
-import { googleSignInBtnClass } from '../ui/loginStyles'
+import { googleSignInBtnClass, loginFooterNoteClass } from '../ui/loginStyles'
 import Spinner from '../ui/Spinner'
 
 interface GoogleSignInButtonProps {
   onClick: () => void
   /** Google's sign-in script is loaded, so a click can open its popup. */
   ready: boolean
+  /** The script has not loaded for a long time (or the browser is offline): a click retries. */
+  stalled?: boolean
   /** A sign-in is under way after the click. */
   loading: boolean
 }
@@ -36,20 +38,38 @@ function GoogleLogo() {
 /**
  * The label is always visible. While Google's script is still downloading the
  * button is disabled with a small spinner in place of the logo, so the screen
- * never shows an empty box; once a sign-in is under way it shows the busy dots.
+ * never shows an empty box; once a sign-in is under way it shows the busy dots. If the
+ * script never arrives the button turns clickable again and says so, because a button
+ * that stays disabled for ever would lock the user out.
  */
-export default function GoogleSignInButton({ onClick, ready, loading }: GoogleSignInButtonProps) {
+export default function GoogleSignInButton({
+  onClick,
+  ready,
+  stalled = false,
+  loading
+}: GoogleSignInButtonProps) {
+  const waiting = !ready && !stalled
+
   return (
-    <Button
-      variant="primary"
-      className={googleSignInBtnClass}
-      onClick={onClick}
-      disabled={!ready}
-      loading={loading}
-      aria-busy={!ready || undefined}
-    >
-      {ready ? <GoogleLogo /> : <Spinner size="sm" decorative />}
-      ورود با Google
-    </Button>
+    <>
+      <Button
+        variant="primary"
+        className={googleSignInBtnClass}
+        onClick={onClick}
+        disabled={waiting}
+        loading={loading}
+        aria-busy={waiting || undefined}
+      >
+        {waiting ? <Spinner size="sm" decorative /> : <GoogleLogo />}
+        ورود با Google
+      </Button>
+      {!ready && stalled && (
+        <p className={loginFooterNoteClass} role="status">
+          {typeof navigator !== 'undefined' && navigator.onLine === false
+            ? 'اینترنت قطع است؛ بعد از وصل شدن دوباره تلاش کنید'
+            : 'بارگذاری Google ناموفق بود؛ دوباره تلاش'}
+        </p>
+      )}
+    </>
   )
 }

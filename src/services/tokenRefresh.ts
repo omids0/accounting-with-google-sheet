@@ -11,31 +11,24 @@ import {
 import { isAuthWorkerEnabled, refreshViaWorker } from './authWorker'
 import { isNativePlatform, refreshNativeToken } from './googleAuthNative'
 import { loadGoogleIdentityScript } from './googleIdentityScript'
+import { recordRefreshOutcome, type RefreshOutcome } from './refreshStatus'
 
-/**
- * `ok`: a new token is stored. `denied`: Google (or the browser) refused, so only
- * the user can fix it. `transient`: no answer (offline, script or network error),
- * so the session may well be fine and must not be called expired.
- */
-export type RefreshOutcome = 'ok' | 'denied' | 'transient'
+export { lastRefreshWasTransient, type RefreshOutcome } from './refreshStatus'
 
-/** A silent request that has not answered by now is given up, so start-up never waits long. */
-export const SILENT_REQUEST_DEADLINE_MS = 4_000
-
-/** Pause before the single retry of a transient web failure. */
+/** Pause before the single retry when Google's script could not be fetched. */
 export const RETRY_DELAY_MS = 800
 
 /** The worker is a plain fetch, so a network blip gets two more tries with growing pauses. */
 export const WORKER_RETRY_DELAYS_MS = [1_000, 3_000] as const
 
+/** After a transient failure, calls that are not forced wait this long before asking again. */
+export const TRANSIENT_COOLDOWN_MS = 10_000
+
 let refreshInFlight: Promise<boolean> | null = null
 
-let lastOutcome: RefreshOutcome = 'ok'
+let lastTransientAt = 0
 
-/** True when the last renewal failed only because nothing answered (offline). */
-export function lastRefreshWasTransient(): boolean {
-  return lastOutcome === 'transient'
-}
+const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -49,7 +42,8 @@ export async function attemptWithRetry(
   let outcome = await attempt()
 
   for (const delay of delaysMs) {
-    if (outcome !== 'transient') break
+    // Offline a retry cannot help; the caller reschedules when the browser is back.
+    if (outcome !== 'transient' || isOffline()) break
     await sleep(delay)
     outcome = await attempt()
   }
@@ -57,6 +51,10 @@ export async function attemptWithRetry(
   return outcome
 }
 
+/**
+ * Google's silent popup request, as it always was: any answer from Google (an error
+ * type, a refusal, a closed popup) means the session needs the user, never "offline".
+ */
 function requestTokenSilently(clientId: string, email: string): Promise<RefreshOutcome> {
   return new Promise(resolve => {
     const google = window.google?.accounts?.oauth2
@@ -69,13 +67,9 @@ function requestTokenSilently(clientId: string, email: string): Promise<RefreshO
 
     let settled = false
 
-    // A popup that opened but never answers must not hold the splash screen.
-    const timer = setTimeout(() => finish('denied'), SILENT_REQUEST_DEADLINE_MS)
-
-    function finish(outcome: RefreshOutcome) {
+    const finish = (outcome: RefreshOutcome) => {
       if (settled) return
       settled = true
-      clearTimeout(timer)
       resolve(outcome)
     }
 
@@ -93,13 +87,10 @@ function requestTokenSilently(clientId: string, email: string): Promise<RefreshO
 
           return
         }
-        // Stored even when it arrives after the deadline: the next call finds it valid.
         renewSessionToken(response.access_token, response.expires_in ?? 3600)
         finish('ok')
       },
-      // A popup the browser blocks fails again at once, so only other errors are retried.
-      error_callback: error =>
-        finish(error?.type === 'popup_failed_to_open' ? 'denied' : 'transient')
+      error_callback: () => finish('denied')
     })
 
     client.requestAccessToken({ prompt: 'none' })
@@ -107,10 +98,10 @@ function requestTokenSilently(clientId: string, email: string): Promise<RefreshO
 }
 
 async function renewThroughGoogleScript(clientId: string, email: string): Promise<RefreshOutcome> {
-  const loaded = await Promise.race([
-    loadGoogleIdentityScript(),
-    sleep(SILENT_REQUEST_DEADLINE_MS).then(() => false)
-  ])
+  if (isOffline()) return 'transient'
+
+  // Only a script that cannot be fetched counts as a network failure.
+  const loaded = await loadGoogleIdentityScript()
 
   return loaded ? requestTokenSilently(clientId, email) : 'transient'
 }
@@ -121,6 +112,8 @@ export function usesAuthWorkerRefresh(): boolean {
 }
 
 async function renewThroughWorker(sessionId: string): Promise<RefreshOutcome> {
+  if (isOffline()) return 'transient'
+
   const result = await refreshViaWorker(sessionId)
 
   if (result.status === 'transient') return 'transient'
@@ -144,7 +137,8 @@ function runRefresh(
 ): Promise<boolean> {
   refreshInFlight = attemptWithRetry(attempt, retryDelays).then(outcome => {
     refreshInFlight = null
-    lastOutcome = outcome
+    if (outcome === 'transient') lastTransientAt = Date.now()
+    recordRefreshOutcome(outcome)
 
     return outcome === 'ok'
   })
@@ -160,7 +154,7 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
   // Old-scope sessions never got drive.file; a silent request cannot add it, so
   // send them straight to the one-time sign-in instead of failing at Google.
   if (!session?.email || sessionNeedsScopeUpgrade()) {
-    lastOutcome = 'denied'
+    recordRefreshOutcome('denied')
 
     return Promise.resolve(false)
   }
@@ -169,17 +163,23 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
     return Promise.resolve(true)
   }
 
+  // Right after "nothing answered", other callers (each API call) do not queue up
+  // behind another doomed attempt; the refresh timer and the `online` event retry.
+  if (!force && Date.now() - lastTransientAt < TRANSIENT_COOLDOWN_MS) {
+    return Promise.resolve(false)
+  }
+
   if (isNativePlatform()) {
     refreshInFlight = refreshNativeToken().then(accessToken => {
       refreshInFlight = null
 
       if (!accessToken) {
-        lastOutcome = 'denied'
+        recordRefreshOutcome('denied')
 
         return false
       }
       renewSessionToken(accessToken)
-      lastOutcome = 'ok'
+      recordRefreshOutcome('ok')
 
       return true
     })
@@ -195,7 +195,7 @@ export function refreshAccessTokenSilently(clientId: string, force = false): Pro
   }
 
   if (!clientId) {
-    lastOutcome = 'denied'
+    recordRefreshOutcome('denied')
 
     return Promise.resolve(false)
   }
