@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ensureManySheetsWithHeaders } from './sheetsEnsure'
+import { ensureManySheetsWithHeaders, isVerifiablyEmptyTab } from './sheetsEnsure'
 
 const api = vi.hoisted(() => ({
   titles: [] as string[],
   headers: {} as Record<string, string[]>,
+  row2: {} as Record<string, string[]>,
+  omit: [] as string[],
   calls: [] as { method: string; url: string; body: Record<string, unknown> }[]
 }))
 
@@ -19,10 +21,16 @@ vi.mock('./sheetsApi', () => ({
     })
     if (url.includes('values:batchGet')) {
       return {
-        valueRanges: Object.entries(api.headers).map(([name, row]) => ({
-          range: `'${name}'!A1:Z1`,
-          values: row.length ? [row] : undefined
-        }))
+        valueRanges: Object.entries(api.headers)
+          .filter(([name]) => !api.omit.includes(name))
+          .map(([name, row]) => {
+            const second = api.row2[name]
+
+            return {
+              range: `'${name}'!A1:Z2`,
+              values: row.length || second ? [row, ...(second ? [second] : [])] : undefined
+            }
+          })
       }
     }
     if (url.includes(':batchUpdate') && !url.includes('values:')) return {}
@@ -39,6 +47,8 @@ describe('ensuring many tabs with headers', () => {
     api.calls.length = 0
     api.titles = []
     api.headers = {}
+    api.row2 = {}
+    api.omit = []
   })
 
   it('writes the headers of every empty tab in ONE batch', async () => {
@@ -79,5 +89,65 @@ describe('ensuring many tabs with headers', () => {
 
     expect(api.calls.some(call => call.method === 'PUT')).toBe(false)
     expect(api.calls.some(call => call.url.includes('values:batchUpdate'))).toBe(false)
+  })
+})
+
+describe('never overwriting a header over data', () => {
+  beforeEach(() => {
+    api.calls.length = 0
+    api.titles = []
+    api.headers = {}
+    api.row2 = {}
+    api.omit = []
+  })
+
+  const headerWrites = () =>
+    api.calls.filter(
+      call =>
+        call.method === 'PUT' || (call.url.includes('values:batchUpdate') && call.method === 'POST')
+    )
+
+  it('writes nothing when the tab has data from row 2 but an empty row 1', async () => {
+    api.titles = ['w-a']
+    api.headers = { 'w-a': [] }
+    api.row2 = { 'w-a': ['78c3356f', '۱۴۰۵/۵/۲۶', '2026-08-17'] }
+
+    await ensureManySheetsWithHeaders('s4', [spec('w-a')])
+
+    expect(headerWrites()).toHaveLength(0)
+  })
+
+  it('writes nothing when the response has no valueRange for the tab', async () => {
+    api.titles = ['x-a']
+    api.headers = { 'x-a': [] }
+    api.omit = ['x-a']
+
+    await ensureManySheetsWithHeaders('s5', [spec('x-a')])
+
+    expect(headerWrites()).toHaveLength(0)
+  })
+
+  it('asks for rows 1 and 2, and tries an unreturned tab again on the next call', async () => {
+    api.titles = ['y-a']
+    api.headers = { 'y-a': [] }
+    api.omit = ['y-a']
+
+    await ensureManySheetsWithHeaders('s6', [spec('y-a')])
+    api.omit = []
+    await ensureManySheetsWithHeaders('s6', [spec('y-a')])
+
+    const reads = api.calls.filter(call => call.url.includes('values:batchGet'))
+
+    expect(reads).toHaveLength(2)
+    expect(reads[0].url).toContain('!1:2')
+    expect(headerWrites()).toHaveLength(1)
+  })
+
+  it('judges emptiness by rows 1 and 2 together', () => {
+    expect(isVerifiablyEmptyTab(undefined)).toBe(false)
+    expect(isVerifiablyEmptyTab([])).toBe(true)
+    expect(isVerifiablyEmptyTab([[], ['', ' ']])).toBe(true)
+    expect(isVerifiablyEmptyTab([[], ['x']])).toBe(false)
+    expect(isVerifiablyEmptyTab([['شناسه']])).toBe(false)
   })
 })

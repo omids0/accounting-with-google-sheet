@@ -13,6 +13,7 @@ import {
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
 import { ledgerEntry, logLedger, type LedgerContext } from './walletLedger'
 import { WALLET_APPLY_NO } from '../components/form/fieldUtils'
+import { roundMoney } from '../utils/roundMoney'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
 
@@ -72,11 +73,13 @@ async function applyBalance(
 
   if (!next) return
 
-  if (next.balance !== account.balance) {
+  const changed = roundMoney(next.balance) !== roundMoney(account.balance)
+
+  if (changed) {
     await updateWalletAccount(spreadsheetId, { ...account, balance: next.balance })
   }
   updateBankSmsPrefs({ balanceStates: { ...prefs.balanceStates, [account.id]: next.state } })
-  if (next.balance === account.balance) return
+  if (!changed) return
 
   await logLedger(spreadsheetId, [
     ledgerEntry(account.id, next.balance - account.balance, next.balance, {

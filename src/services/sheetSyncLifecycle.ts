@@ -1,3 +1,4 @@
+import { tidyFailedWrites } from './failedWrites'
 import { getSettings } from './settings'
 import { forgetRemoteVersion } from './sheetRemoteVersion'
 import { forgetSheetRevisions } from './sheetRevisions'
@@ -192,13 +193,12 @@ export async function initializeSheetSync(spreadsheetId: string): Promise<void> 
     .then(prepare => prepare.runBackgroundMigrations(spreadsheetId))
     .catch(() => undefined)
   refreshPendingCount(spreadsheetId)
+  tidyFailedWrites(spreadsheetId)
   refreshFailedCount(spreadsheetId)
 
   const lastSyncedAt = getStoreLastSyncedAt(spreadsheetId)
 
-  if (lastSyncedAt) {
-    setLastSyncedAt(lastSyncedAt)
-  }
+  if (lastSyncedAt) setLastSyncedAt(lastSyncedAt)
 
   if (hasStoreData(spreadsheetId)) {
     if (hasPendingOutbox(spreadsheetId)) {

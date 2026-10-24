@@ -6,7 +6,10 @@ export type SyncState = 'idle' | 'syncing' | 'error'
 export interface SyncStatusSnapshot {
   connection: ConnectionState
   syncState: SyncState
+  /** A pull completed. Other code (backups, snapshots) waits on this, so a push must not set it. */
   lastSyncedAt: number | null
+  /** The outbox last emptied into the sheet; only the badge text uses it. */
+  lastPushedAt: number | null
   pendingWrites: number
   /** Writes Google refused for good; kept until the user dismisses them. */
   failedWrites: number
@@ -19,6 +22,7 @@ let status: SyncStatusSnapshot = {
   connection: typeof navigator !== 'undefined' && navigator.onLine ? 'online' : 'offline',
   syncState: 'idle',
   lastSyncedAt: null,
+  lastPushedAt: null,
   pendingWrites: 0,
   failedWrites: 0,
   conflicts: 0,
@@ -36,6 +40,15 @@ function notify(): void {
 function patchStatus(patch: Partial<SyncStatusSnapshot>): void {
   status = { ...status, ...patch }
   notify()
+}
+
+/** The newest sign that the sheet and this device agree: a completed pull or an emptied outbox. */
+export function latestSyncActivity(snapshot: SyncStatusSnapshot): number | null {
+  const times = [snapshot.lastSyncedAt, snapshot.lastPushedAt].filter((time): time is number =>
+    Number.isFinite(time)
+  )
+
+  return times.length ? Math.max(...times) : null
 }
 
 export function getSyncStatus(): SyncStatusSnapshot {
@@ -56,13 +69,19 @@ export function setConnectionState(connection: ConnectionState): void {
   patchStatus({ connection })
 }
 
-export function setSyncState(syncState: SyncState, lastError: string | null = null): void {
+/** `synced`: a write just reached the sheet; it moves `lastPushedAt`, never `lastSyncedAt`. */
+export function setSyncState(
+  syncState: SyncState,
+  lastError: string | null = null,
+  synced = false
+): void {
   if (syncState !== status.syncState || (syncState === 'error' && lastError !== status.lastError)) {
     logSync(`state:${syncState}`, syncState === 'error' ? lastError ?? undefined : undefined)
   }
   patchStatus({
     syncState,
-    lastError: syncState === 'error' ? lastError : null
+    lastError: syncState === 'error' ? lastError : null,
+    ...(synced ? { lastPushedAt: Date.now() } : {})
   })
 }
 

@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from 'react'
 import { formatRelativeTime, getSyncBadgeState } from './syncBadgeState'
 import { useSyncStatus } from '../hooks/useSyncStatus'
 import { getActiveSpreadsheetId } from '../services/sheetSync'
+import { latestSyncActivity } from '../services/syncStatus'
 import { syncStatusBadgeClass, syncStatusDotClass, syncStatusLabelClass } from './ui/layoutStyles'
 
 // Mounted only after a sync problem or a tap, so its code stays out of the main chunk.
@@ -34,7 +35,7 @@ export default function SyncStatusBadge() {
         className={syncStatusBadgeClass}
         aria-label={cause ? `${label}: ${cause}` : `${label}؛ جزئیات همگام‌سازی`}
         aria-haspopup="dialog"
-        title={`آخرین بروزرسانی: ${formatRelativeTime(status.lastSyncedAt)}`}
+        title={`آخرین بروزرسانی: ${formatRelativeTime(latestSyncActivity(status))}`}
         onClick={() => setDetailsOpen(true)}
       >
         {badgeContent}
@@ -49,6 +50,8 @@ export default function SyncStatusBadge() {
             pendingWrites={status.pendingWrites}
             conflicts={status.conflicts}
             failedWrites={status.failedWrites}
+            lastSyncedAt={latestSyncActivity(status)}
+            offline={status.connection === 'offline'}
           />
         </Suspense>
       ) : null}

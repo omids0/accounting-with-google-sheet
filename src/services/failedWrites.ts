@@ -1,5 +1,10 @@
 import { reapplyFailedWrite } from './failedWriteMirror'
-import { flushOutbox, invalidateDerivedCaches, refreshFailedCount } from './sheetSyncOutbox'
+import {
+  dismissFailedWrites,
+  flushOutbox,
+  invalidateDerivedCaches,
+  refreshFailedCount
+} from './sheetSyncOutbox'
 import { getSheetRow } from './spreadsheetStore'
 import {
   clearFailedOutboxEntries,
@@ -9,6 +14,7 @@ import {
   takeFailedOutboxEntry,
   type OutboxEntry
 } from './syncOutbox'
+import { dropSupersededFailures } from './syncOutboxCoalesce'
 import { setPendingWrites } from './syncStatus'
 import { formatMoney } from '../utils/formatMoney'
 import { parseNumericStrict } from '../utils/parseNumeric'
@@ -36,6 +42,8 @@ export interface FailedWriteSummary {
   amount: string
   date: string
   cause: string
+  /** How many times it was sent and refused or failed. */
+  attempts: number
   /** The change was taken back out of the app, which now shows the sheet's version. */
   reverted: boolean
   /** Raw cells and Google's own message, for «کپی جزئیات». */
@@ -73,6 +81,7 @@ export function describeFailedWrite(
     amount: amount === null ? amountText : formatMoney(amount),
     date: cell(DATE_HEADER),
     cause: toUserMessage(entry.lastError, 'خطای نامشخص'),
+    attempts: entry.attempts,
     reverted: Boolean(entry.reverted),
     rawRow: row,
     rawError: entry.lastError ?? ''
@@ -99,7 +108,7 @@ export function formatFailedWriteDetails(summary: FailedWriteSummary): string {
     .join('\n')
 }
 
-function requeue(spreadsheetId: string, entries: OutboxEntry[]): void {
+function requeue(spreadsheetId: string, entries: OutboxEntry[]): Promise<boolean> {
   // Only writes taken back out of the mirror are shown again; the others are still there.
   for (const entry of entries) {
     if (entry.reverted) reapplyFailedWrite(spreadsheetId, entry.operation)
@@ -108,7 +117,8 @@ function requeue(spreadsheetId: string, entries: OutboxEntry[]): void {
   invalidateDerivedCaches(spreadsheetId)
   setPendingWrites(getOutboxCount(spreadsheetId))
   refreshFailedCount(spreadsheetId)
-  void flushOutbox(spreadsheetId)
+
+  return flushOutbox(spreadsheetId)
 }
 
 /** «تلاش دوباره»: the parked write goes back into the outbox and is sent again. */
@@ -116,7 +126,7 @@ export function retryFailedWrite(spreadsheetId: string, entryId: string): boolea
   const entry = takeFailedOutboxEntry(spreadsheetId, entryId)
 
   if (!entry) return false
-  requeue(spreadsheetId, [entry])
+  void requeue(spreadsheetId, [entry])
 
   return true
 }
@@ -125,7 +135,7 @@ export function retryAllFailedWrites(spreadsheetId: string): number {
   const entries = getFailedOutboxEntries(spreadsheetId)
 
   clearFailedOutboxEntries(spreadsheetId)
-  requeue(spreadsheetId, entries)
+  void requeue(spreadsheetId, entries)
 
   return entries.length
 }
@@ -134,4 +144,66 @@ export function retryAllFailedWrites(spreadsheetId: string): number {
 export function dismissFailedWrite(spreadsheetId: string, entryId: string): void {
   takeFailedOutboxEntry(spreadsheetId, entryId)
   refreshFailedCount(spreadsheetId)
+}
+
+/** What a «دوباره بفرست» left behind, once the queue was sent again. */
+export interface RetryOutcome {
+  /** Parked writes that went back into the queue. */
+  retried: number
+  /** Writes still waiting for a connection or a better moment. */
+  pending: number
+  /** Writes Google refused again; they stay parked. */
+  failed: number
+}
+
+/** Sends the parked and the queued writes again and reports what is left. */
+export async function retryAllAndWait(spreadsheetId: string): Promise<RetryOutcome> {
+  const parked = getFailedOutboxEntries(spreadsheetId)
+
+  clearFailedOutboxEntries(spreadsheetId)
+  await (parked.length ? requeue(spreadsheetId, parked) : flushOutbox(spreadsheetId)).catch(
+    () => false
+  )
+
+  return {
+    retried: parked.length,
+    pending: getOutboxCount(spreadsheetId),
+    failed: getFailedOutboxEntries(spreadsheetId).length
+  }
+}
+
+/** «حذف عملیات ناموفق»: forgets every parked write; the app keeps the sheet's version. */
+export function dismissAllFailedWrites(spreadsheetId: string): number {
+  const count = getFailedOutboxEntries(spreadsheetId).length
+
+  dismissFailedWrites(spreadsheetId)
+
+  return count
+}
+
+/**
+ * Writes parked by Google's «exceeds grid limits» are retried once the grid grows on demand (an
+ * older build refused them). Only appends and whole-tab replaces qualify: an update or delete
+ * parked by an old build points at a row number that may be stale. A write is revived once: when
+ * it fails again it carries a second attempt and stays parked.
+ */
+const GRID_LIMIT_FAILURE = /exceeds grid limits/i
+
+export function reviveGridLimitFailures(spreadsheetId: string): number {
+  let revived = 0
+
+  for (const entry of getFailedOutboxEntries(spreadsheetId)) {
+    const { type } = entry.operation
+
+    if (type !== 'append' && type !== 'replace') continue
+    if (entry.attempts > 1 || !GRID_LIMIT_FAILURE.test(entry.lastError ?? '')) continue
+    if (retryFailedWrite(spreadsheetId, entry.id)) revived += 1
+  }
+
+  return revived
+}
+
+/** At app start: parked writes that a newer one replaced are dropped, old grid failures retried. */
+export function tidyFailedWrites(spreadsheetId: string): number {
+  return dropSupersededFailures(spreadsheetId) + reviveGridLimitFailures(spreadsheetId)
 }

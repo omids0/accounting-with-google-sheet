@@ -18,7 +18,6 @@ import { getSettings, isConfigured } from '../../../services/settings'
 import { requireAuth } from '../../../utils/authGuard'
 import {
   formatJalaliMonthLabel,
-  formatJalaliYear,
   getJalaliMonthKey,
   listJalaliMonthKeys,
   parseJalaliMonthKey,
@@ -26,7 +25,6 @@ import {
 } from '../../../utils/dateRange'
 import { runExport } from '../../../utils/exportFeedback'
 import { getTodayIso } from '../../../utils/jalaliDate'
-import { normalizeDigits } from '../../../utils/normalizeDigits'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showInfo } from '../../../utils/toast'
 import { Select } from '../../form'
@@ -41,12 +39,6 @@ import {
   periodReportPickerLabelClass
 } from '../../ui/periodReportStyles'
 import { reportPageClass } from '../../ui/toolsPageStyles'
-
-function monthOptionLabel(monthKey: string): string {
-  const [name, year] = formatJalaliMonthLabel(monthKey).split(' ')
-
-  return `${name} ${formatJalaliYear(Number(normalizeDigits(year)))}`
-}
 
 /** «گزارش ماهانه»: any past month as the one-page PDF, shared or saved. */
 export default function MonthlyReportPage() {
@@ -95,7 +87,7 @@ export default function MonthlyReportPage() {
 
     return listJalaliMonthKeys(first, lastMonth)
       .reverse()
-      .map(key => ({ value: key, label: monthOptionLabel(key) }))
+      .map(key => ({ value: key, label: formatJalaliMonthLabel(key) }))
   }, [source, monthKey, lastMonth])
 
   if (!isConfigured()) {

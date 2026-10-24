@@ -2,6 +2,7 @@ import { numberLocale } from './digitStyle'
 import { getSettings, getDefaultSettings } from '../services/settings'
 import { getStorageVersion } from '../services/storage'
 import type { CurrencyUnit } from '../types'
+import { roundForDisplay } from './roundMoney'
 
 export const CURRENCY_OPTIONS: { value: CurrencyUnit; label: string; symbol: string }[] = [
   { value: 'toman', label: 'تومان', symbol: 'تومان' },
@@ -43,12 +44,19 @@ export function formatMoney(n: number, currency?: CurrencyUnit): string {
   return `${number} ${symbol}`
 }
 
+/** A money figure: noise swept away, and a dash for what is not a number (never a false «۰»). */
+function formatDisplayNumber(n: number): string {
+  const rounded = roundForDisplay(n)
+
+  return Number.isNaN(rounded) ? '—' : formatPersianNumber(rounded)
+}
+
 export function formatMoneyParts(
   n: number,
   currency?: CurrencyUnit
 ): { number: string; symbol: string } {
   return {
-    number: formatPersianNumber(n),
+    number: formatDisplayNumber(n),
     symbol: getCurrencySymbol(currency)
   }
 }
@@ -94,10 +102,12 @@ const PDI = '\u2069'
  * to the digits with no space. `showPlus` adds `+` for positive values.
  */
 export function formatSignedNumber(n: number, options?: { showPlus?: boolean }): string {
-  const number = formatPersianNumber(Math.abs(n))
+  const rounded = roundForDisplay(n)
 
-  if (n < 0) return `${LRI}${MINUS_SIGN}${number}${PDI}`
-  if (n > 0 && options?.showPlus) return `${LRI}+${number}${PDI}`
+  const number = formatDisplayNumber(Math.abs(rounded))
+
+  if (rounded < 0) return `${LRI}${MINUS_SIGN}${number}${PDI}`
+  if (rounded > 0 && options?.showPlus) return `${LRI}+${number}${PDI}`
 
   return number
 }
