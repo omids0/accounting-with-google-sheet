@@ -14,6 +14,17 @@ export function showError(message: string) {
   toast.error(message)
 }
 
+const SAVING_TOAST_ID = 'saving'
+
+/** A neutral «در حال ذخیره…» while the sheet has not answered; `hideSaving` takes it away. */
+export function showSaving(message = 'در حال ذخیره…') {
+  toast.loading(message, { id: SAVING_TOAST_ID, duration: 6000 })
+}
+
+export function hideSaving() {
+  toast.dismiss(SAVING_TOAST_ID)
+}
+
 export function showInfo(message: string) {
   toast(message)
 }

@@ -255,3 +255,15 @@ describe('reconcile amounts carry no floating-point noise', () => {
     expect(correctionRecord(-0.10000000894069672, at(8, 14)).amount).toBe(0.1)
   })
 })
+
+describe('an ignored difference survives float noise', () => {
+  it('compares the rounded amounts', async () => {
+    const { isDifferenceIgnored } = await import('./bankSmsReconcile')
+
+    const entry = { ignored: 10931882.3 } as Parameters<typeof isDifferenceIgnored>[0]
+
+    expect(isDifferenceIgnored(entry, 10931882.299999997)).toBe(true)
+    expect(isDifferenceIgnored(entry, 10931882.4)).toBe(false)
+    expect(isDifferenceIgnored(undefined, 5)).toBe(false)
+  })
+})

@@ -54,3 +54,17 @@ describe('money formatting hides floating-point noise', () => {
     expect(formatSignedNumber(-0.0000001, { showPlus: true })).toBe(formatPersianNumber(0))
   })
 })
+
+describe('money figures keep real small fractions and never invent a zero', () => {
+  it('keeps up to three decimals, like unit prices need', () => {
+    expect(formatMoneyParts(0.125).number).toBe(formatPersianNumber(0.125))
+    expect(formatMoneyParts(0.004).number).toBe(formatPersianNumber(0.004))
+    expect(formatMoneyParts(12.3456789).number).toBe(formatPersianNumber(12.346))
+  })
+
+  it('prints a dash for what is not a number', () => {
+    expect(formatMoneyParts(Number.NaN).number).toBe('—')
+    expect(formatMoneyParts(Number.POSITIVE_INFINITY).number).toBe('—')
+    expect(formatSignedNumber(Number.NaN)).toBe('—')
+  })
+})

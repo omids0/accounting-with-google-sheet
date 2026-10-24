@@ -12,6 +12,18 @@ export function roundMoney(value: number): number {
   return rounded === 0 ? 0 : rounded
 }
 
+/**
+ * What the screen shows: up to three decimals, like `Intl` always did (unit prices of the treasury
+ * carry them), which still sweeps away binary noise. Non-finite input is not a number: `NaN`.
+ */
+export function roundForDisplay(value: number): number {
+  if (!Number.isFinite(value)) return Number.NaN
+
+  const rounded = Math.sign(value) * (Math.round(Math.abs(value) * 1000 + Number.EPSILON) / 1000)
+
+  return rounded === 0 ? 0 : rounded
+}
+
 /** Sum of amounts without the noise of adding fractions one by one. */
 export function sumMoney(values: Iterable<number>): number {
   let total = 0

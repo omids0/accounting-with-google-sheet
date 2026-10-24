@@ -180,3 +180,15 @@ export function resolveAccountingStartDate(
 
   return valid.reduce((earliest, current) => (current < earliest ? current : earliest))
 }
+
+/**
+ * Editable months are the historical ones plus the start month itself, whose
+ * amount is a given rather than a computed value. Without a known start month
+ * nothing can be told apart yet (the page does not adopt one, so it never writes
+ * on open): the list is read-only until the dashboard or the wallet has set it.
+ */
+export function isEditableMonth(monthKey: string, anchorMonthKey: string): boolean {
+  if (!anchorMonthKey) return false
+
+  return monthKey === anchorMonthKey || isBeforeAnchor(monthKey, anchorMonthKey)
+}

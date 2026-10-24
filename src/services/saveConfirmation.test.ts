@@ -2,9 +2,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const flush = vi.hoisted(() => vi.fn())
 const pending = vi.hoisted(() => ({ value: false }))
+const stuck = vi.hoisted(() => ({
+  failed: [] as { id: string }[],
+  conflicts: [] as { id: string }[]
+}))
 
 vi.mock('./sheetSyncOutbox', () => ({ flushOutbox: flush }))
-vi.mock('./syncOutbox', () => ({ hasPendingOutbox: () => pending.value }))
+vi.mock('./syncOutbox', () => ({
+  hasPendingOutbox: () => pending.value,
+  getFailedOutboxEntries: () => stuck.failed,
+  getConflictEntries: () => stuck.conflicts
+}))
 
 const { QUEUED_SAVE_MESSAGE, savedInSheetMessage, waitForSheetConfirmation } = await import(
   './saveConfirmation'
@@ -15,6 +23,8 @@ describe('the save toast only claims the sheet after the outbox confirmed', () =
     vi.useFakeTimers()
     flush.mockReset()
     pending.value = false
+    stuck.failed = []
+    stuck.conflicts = []
     Object.defineProperty(navigator, 'onLine', { value: true, configurable: true })
   })
 
@@ -31,6 +41,33 @@ describe('the save toast only claims the sheet after the outbox confirmed', () =
     pending.value = true
 
     await expect(waitForSheetConfirmation('s')).resolves.toBe(false)
+  })
+
+  it('does not confirm a write the sheet refused for good (parked, queue empty)', async () => {
+    flush.mockImplementation(async () => {
+      stuck.failed = [{ id: 'refused' }]
+
+      return true
+    })
+
+    await expect(waitForSheetConfirmation('s')).resolves.toBe(false)
+  })
+
+  it('does not confirm a write that landed in a conflict', async () => {
+    flush.mockImplementation(async () => {
+      stuck.conflicts = [{ id: 'clash' }]
+
+      return true
+    })
+
+    await expect(waitForSheetConfirmation('s')).resolves.toBe(false)
+  })
+
+  it('is not held back by an old parked write that was already there', async () => {
+    stuck.failed = [{ id: 'old' }]
+    flush.mockResolvedValue(true)
+
+    await expect(waitForSheetConfirmation('s')).resolves.toBe(true)
   })
 
   it('does not confirm a flush that was blocked or refused', async () => {

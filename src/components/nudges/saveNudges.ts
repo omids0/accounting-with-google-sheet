@@ -17,7 +17,7 @@ import type { VehicleExpenseInput } from '../../services/vehicleExpenseActions'
 import { useNavigationStore } from '../../stores/navigationStore'
 import type { CustomForm } from '../../types'
 import { normalizeSheetDate } from '../../utils/sheetValues'
-import { showError, showSuccess } from '../../utils/toast'
+import { hideSaving, showError, showSaving, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 import { COUNTERPARTY_FIELD_ID, WALLET_ACCOUNT_FIELD_ID } from '../form/fieldUtils'
 import RecurringToastAction from '../recurring/RecurringToastAction'
@@ -91,26 +91,37 @@ export function showSavedForEntry(
   values: Record<string, string | number>,
   vehicleInput: VehicleExpenseInput | null
 ) {
-  void waitForSheetConfirmation(activeSpreadsheetId()).then(confirmed =>
-    presentSavedForEntry(
-      savedInSheetMessage(form.sheetName, confirmed),
-      form,
-      recordId,
-      values,
-      vehicleInput
-    )
-  )
+  const spreadsheetId = activeSpreadsheetId()
+
+  // At once a neutral «در حال ذخیره…»; the real wording replaces it when the outbox has answered.
+  showSaving()
+  void waitForSheetConfirmation(spreadsheetId)
+    .catch(() => false)
+    .then(confirmed => {
+      hideSaving()
+      presentSavedForEntry(
+        savedInSheetMessage(form.sheetName, confirmed),
+        spreadsheetId,
+        form,
+        recordId,
+        values,
+        vehicleInput
+      )
+    })
+    .catch(() => {
+      hideSaving()
+      showSuccess(savedInSheetMessage(form.sheetName, false))
+    })
 }
 
 function presentSavedForEntry(
   message: string,
+  spreadsheetId: string,
   form: CustomForm,
   recordId: string,
   values: Record<string, string | number>,
   vehicleInput: VehicleExpenseInput | null
 ) {
-  const spreadsheetId = activeSpreadsheetId()
-
   if (!spreadsheetId || form.type === 'custom') return showSuccess(message)
 
   const streak = trackNoAccountStreak(spreadsheetId, !!values[WALLET_ACCOUNT_FIELD_ID])

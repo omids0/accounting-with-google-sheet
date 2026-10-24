@@ -1,4 +1,4 @@
-import type { SyncStatusSnapshot } from '../services/syncStatus'
+import { latestSyncActivity, type SyncStatusSnapshot } from '../services/syncStatus'
 import { toUserMessage } from '../utils/userMessage'
 
 export type SyncBadgeTone = 'online' | 'syncing' | 'offline' | 'error'
@@ -50,7 +50,9 @@ function syncedLabel(lastSyncedAt: number | null, now: number): string {
  * «در حال ذخیره» forever while nothing reached the sheet.
  */
 export function getSyncBadgeState(status: SyncStatusSnapshot, now = Date.now()): SyncBadgeState {
-  const { connection, syncState, lastSyncedAt, pendingWrites, failedWrites, lastError } = status
+  const { connection, syncState, pendingWrites, failedWrites, lastError } = status
+
+  const lastSyncedAt = latestSyncActivity(status)
   const conflicts = status.conflicts ?? 0
 
   if (connection === 'offline') {

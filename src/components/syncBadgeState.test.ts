@@ -10,6 +10,7 @@ function status(patch: Partial<SyncStatusSnapshot>): SyncStatusSnapshot {
     connection: 'online',
     syncState: 'idle',
     lastSyncedAt: NOW,
+    lastPushedAt: null,
     pendingWrites: 0,
     failedWrites: 0,
     conflicts: 0,

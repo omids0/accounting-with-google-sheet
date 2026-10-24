@@ -196,3 +196,19 @@ describe('shouldReseedStartAmount', () => {
     expect(shouldReseedStartAmount({ ...base, walletTotal: 0 })).toBe(false)
   })
 })
+
+describe('which months the opening-balance page lets you edit', () => {
+  it('nothing is editable while no start month is known', async () => {
+    const { isEditableMonth } = await import('./openingBalanceDerive')
+
+    expect(isEditableMonth('1405-07', '')).toBe(false)
+  })
+
+  it('the start month and the months before it are editable, the later ones are derived', async () => {
+    const { isEditableMonth } = await import('./openingBalanceDerive')
+
+    expect(isEditableMonth('1405-07', '1405-07')).toBe(true)
+    expect(isEditableMonth('1405-05', '1405-07')).toBe(true)
+    expect(isEditableMonth('1405-08', '1405-07')).toBe(false)
+  })
+})

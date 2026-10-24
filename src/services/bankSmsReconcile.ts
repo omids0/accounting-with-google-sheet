@@ -176,7 +176,11 @@ export function reconcileAccount(
 }
 
 export function isDifferenceIgnored(entry: ReconcileEntry | undefined, difference: number) {
-  return difference !== 0 && entry?.ignored === difference
+  return (
+    difference !== 0 &&
+    entry?.ignored !== undefined &&
+    roundMoney(entry.ignored) === roundMoney(difference)
+  )
 }
 
 /** The red block shows only for a real, not-ignored difference. */
