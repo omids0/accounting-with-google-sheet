@@ -59,6 +59,9 @@ export default function AmountInput({
 
   const skipBlurRef = useRef(false)
 
+  // A decimal point was typed: later digits are ignored.
+  const afterDecimalRef = useRef(false)
+
   const raw = value === '' || value === undefined ? '' : String(Math.trunc(Number(value)))
 
   const display = raw ? formatPersianNumber(Number(raw)) : ''
@@ -77,8 +80,16 @@ export default function AmountInput({
   const describedBy = notice ? `${noticeId} ${ariaDescribedBy ?? ''}`.trim() : ariaDescribedBy
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { digits, cutDecimal, overMax } = parseAmountInput(e.target.value)
+    const { digits, cutDecimal, overMax } = parseAmountInput(e.target.value, { previous: display })
 
+    // After a decimal point every later digit is ignored until the user deletes something,
+    // clears the field or leaves it: each keystroke is its own change event.
+    if (afterDecimalRef.current && (digits.length > raw.length || digits === raw)) {
+      setNotice('integer')
+
+      return
+    }
+    afterDecimalRef.current = cutDecimal && !overMax
     setNotice(overMax ? 'max' : cutDecimal ? 'integer' : null)
     // Past the maximum the field keeps what it had; it stops taking digits.
     if (overMax) return
@@ -96,6 +107,7 @@ export default function AmountInput({
   ) : null
 
   const handleBlur = () => {
+    afterDecimalRef.current = false
     setNotice(null)
     if (skipBlurRef.current) {
       skipBlurRef.current = false

@@ -37,3 +37,22 @@ describe('parseAmountInput', () => {
     expect(parseAmountInput('1'.repeat(25)).overMax).toBe(true)
   })
 })
+
+describe('parseAmountInput with the text the field showed before', () => {
+  it('does not take the field’s own grouping mark for a decimal point', () => {
+    expect(parseAmountInput('۱٬۲۳۴۵', { previous: '۱٬۲۳۴' })).toEqual({
+      digits: '12345',
+      cutDecimal: false,
+      overMax: false
+    })
+    expect(parseAmountInput('1,2345', { previous: '1,234' }).digits).toBe('12345')
+  })
+
+  it('still reads a mark the user added as a decimal point', () => {
+    expect(parseAmountInput('۱٬۲۳۴,', { previous: '۱٬۲۳۴' })).toMatchObject({
+      digits: '1234',
+      cutDecimal: true
+    })
+    expect(parseAmountInput('12٫', { previous: '۱۲' }).cutDecimal).toBe(true)
+  })
+})

@@ -23,12 +23,29 @@ function isGrouping(text: string, index: number): boolean {
   return run.length === 3
 }
 
+const KEEP = /[^\d.,٫٬،]/g
+
 /**
  * Digits of typed or pasted amount text. Letters are ignored, grouping marks («1,234»,
  * «۱٬۲۳۴») are removed, and a decimal separator ends the number: «12.5» is 12, never 125.
+ *
+ * `previous` is the text the field showed before this change. Its grouping marks are the
+ * field's own formatting («۱٬۲۳۴» + a typed «۵» is «۱٬۲۳۴۵»), so they never count as a decimal
+ * point; only a mark the user added does.
  */
-export function parseAmountInput(raw: string, max = MAX_AMOUNT): AmountInputResult {
-  const text = normalizeDigits(raw).replace(/[^\d.,٫٬،]/g, '')
+export function parseAmountInput(
+  raw: string,
+  options: { previous?: string; max?: number } = {}
+): AmountInputResult {
+  const { previous = '', max = MAX_AMOUNT } = options
+  const text = normalizeDigits(raw).replace(KEEP, '')
+  const known: Record<string, number> = {}
+
+  for (const char of normalizeDigits(previous).replace(KEEP, '')) {
+    if (!/\d/.test(char)) known[char] = (known[char] ?? 0) + 1
+  }
+
+  const seen: Record<string, number> = {}
 
   let digits = ''
   let cutDecimal = false
@@ -38,10 +55,18 @@ export function parseAmountInput(raw: string, max = MAX_AMOUNT): AmountInputResu
 
     if (/\d/.test(char)) {
       digits += char
-    } else if (char === '.' || char === '٫' || !isGrouping(text, i)) {
-      cutDecimal = true
-      break
+      continue
     }
+
+    seen[char] = (seen[char] ?? 0) + 1
+
+    const isDecimalMark = char === '.' || char === '٫'
+    const isFieldFormatting = !isDecimalMark && seen[char] <= (known[char] ?? 0)
+
+    if (isFieldFormatting || (!isDecimalMark && isGrouping(text, i))) continue
+
+    cutDecimal = true
+    break
   }
 
   digits = digits.replace(/^0+(?=\d)/, '')
