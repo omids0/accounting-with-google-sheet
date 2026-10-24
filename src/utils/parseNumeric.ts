@@ -54,6 +54,19 @@ export function parseNumericStrict(value: string | number | undefined | null): n
   return parsed === 0 ? 0 : parsed
 }
 
+/** Currency words and symbols the app prints next to an amount («۲٬۵۰۰ تومان»). */
+const CURRENCY_TEXT = /تومان|ریال|دلار|یورو|[$€]/g
+
+/**
+ * Strict parse for an amount copied from a screen, PDF or CSV: the app's own display format
+ * («۲٬۵۰۰ تومان») reads as 2500. `null` when nothing numeric is left once the unit is dropped.
+ */
+export function parseMoneyText(value: string | number | undefined | null): number | null {
+  if (typeof value !== 'string') return parseNumericStrict(value)
+
+  return parseNumericStrict(value.replace(CURRENCY_TEXT, ''))
+}
+
 /** Lenient variant of {@link parseNumericStrict}: empty or invalid input reads as 0. */
 export function parseNumeric(value: string | number | undefined | null): number {
   return parseNumericStrict(value) ?? 0

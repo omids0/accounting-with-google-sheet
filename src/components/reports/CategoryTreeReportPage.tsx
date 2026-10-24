@@ -61,19 +61,18 @@ export default function CategoryTreeReportPage() {
           id: 'export',
           label: 'خروجی CSV',
           icon: <SpeedDialIcon name="export" />,
-          onClick: tree.exportCsv,
-          disabled: !tree.nodes.length
+          onClick: tree.exportCsv
         },
         {
           id: 'export-pdf',
           label: 'خروجی PDF',
           icon: <SpeedDialIcon name="pdf" />,
           onClick: () => void tree.exportPdf(),
-          disabled: !tree.nodes.length || tree.exporting
+          disabled: tree.exporting
         }
       ]
     }),
-    [tree.load, tree.loading, tree.exportCsv, tree.exportPdf, tree.nodes.length, tree.exporting]
+    [tree.load, tree.loading, tree.exportCsv, tree.exportPdf, tree.exporting]
   )
 
   useRegisterPageSpeedDial(isConfigured() ? speedDial : null)

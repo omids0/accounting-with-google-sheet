@@ -95,7 +95,7 @@ describe('formatImportSummary', () => {
 
     expect(summary).toBe(
       [
-        '۳ ردیف پیدا شد؛ ۱ تکراری (رد می‌شود)؛ ۱ نامعتبر (ردیف ۳)',
+        '۳ ردیف پیدا شد؛ ۱ قابل افزودن؛ ۱ تکراری (رد می‌شود)؛ ۱ نامعتبر (ردیف ۳)',
         '',
         `ردیف ۳: ${INVALID_IMPORT_ROW_REASON}`
       ].join('\n')

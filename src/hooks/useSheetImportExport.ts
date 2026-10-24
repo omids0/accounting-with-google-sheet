@@ -27,8 +27,10 @@ function importErrorMessage(err: unknown): string {
 function previewModalContent(preview: ImportPreview | null) {
   if (!preview) {
     return {
-      title: 'تأیید ایمپورت',
-      message: 'آیا از وارد کردن داده از فایل اطمینان دارید؟'
+      title: 'ورود از CSV',
+      message: 'فایل CSV را انتخاب کنید. پیش از افزودن، پیش‌نمایش ردیف‌ها را می‌بینید.',
+      confirmLabel: 'انتخاب فایل',
+      cancelLabel: 'انصراف'
     }
   }
 

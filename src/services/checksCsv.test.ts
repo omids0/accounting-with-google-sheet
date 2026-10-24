@@ -94,6 +94,32 @@ beforeEach(() => {
 })
 
 describe('CSV import', () => {
+  it('rejects rows with a bad amount, bad date or no counterparty instead of importing them', async () => {
+    await importChecksCsv(SHEET, file(''))
+
+    const bad = (index: number, value: string) => {
+      const row = cells([])
+
+      row[index] = value
+
+      return row
+    }
+
+    expect(() => mocks.transform?.(bad(4, 'abc'))).toThrow('مبلغ عدد نیست')
+    expect(() => mocks.transform?.(bad(6, 'not-a-date'))).toThrow('تاریخ سررسید معتبر نیست')
+    expect(() => mocks.transform?.(bad(3, ''))).toThrow('طرف حساب خالی است')
+  })
+
+  it('reads an amount written the way the app shows it', async () => {
+    await importChecksCsv(SHEET, file(''))
+
+    const row = cells([])
+
+    row[4] = '۲٬۵۰۰ تومان'
+
+    expect(mocks.transform?.(row)?.[4]).toBe('2500')
+  })
+
   it('takes the optional type column, and a file without it imports payables', async () => {
     await importChecksCsv(SHEET, file('دریافتی'))
 

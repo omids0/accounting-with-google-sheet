@@ -30,16 +30,21 @@ export function formatBackupDateTime(at: number): string {
 }
 
 /**
- * «۱۲ تب، ۸۴۰ ردیف؛ نسخه ۱٫۲۲؛ ۳ مهر ۱۴۰۵» — only tabs that hold rows are counted. The spec's «·»
- * reads as a Persian zero next to Persian digits, hence «؛» (as in the round-4 import preview).
+ * «۱۲ تب، ۸۴۰ ردیف؛ نسخه ۱٫۲۲؛ ۳ مهر ۱۴۰۵». The tab count is every tab the restore walks (the
+ * result's «N تب بازیابی شد» and the progress total count the same); «(M دارای ردیف)» names how
+ * many of them hold rows when some are header-only. The spec's «·» reads as a Persian zero next
+ * to Persian digits, hence «؛» (as in the round-4 import preview).
  */
 export function formatBackupSummary(preview: RestorePreview): string {
   const filled = preview.tabs.filter(tab => tab.rows > 0)
 
   const rows = filled.reduce((sum, tab) => sum + tab.rows, 0)
 
+  const withRows =
+    filled.length === preview.tabs.length ? '' : ` (${faCount(filled.length)} دارای ردیف)`
+
   return [
-    `${faCount(filled.length)} تب، ${faCount(rows)} ردیف`,
+    `${faCount(preview.tabs.length)} تب${withRows}، ${faCount(rows)} ردیف`,
     `نسخه ${formatBackupVersion(preview.manifest.appVersion)}`,
     formatBackupDate(preview.manifest.exportedAt)
   ].join('؛ ')

@@ -134,13 +134,14 @@ function invalidSummary(invalid: InvalidImportRow[]): string {
 }
 
 /**
- * «N ردیف پیدا شد؛ M تکراری (رد می‌شود)؛ K نامعتبر (ردیف‌های …)» plus the first reasons.
+ * «N ردیف پیدا شد؛ V قابل افزودن؛ M تکراری (رد می‌شود)؛ K نامعتبر (ردیف‌های …)» plus the first reasons.
  * The spec's «·» separator reads as a Persian zero next to Persian digits, hence «؛».
  */
 export function formatImportSummary(plan: ImportPlan): string {
   const lines = [
     [
       `${faCount(plan.found)} ردیف پیدا شد`,
+      `${faCount(plan.rows.length)} قابل افزودن`,
       `${faCount(plan.duplicates)} تکراری (رد می‌شود)`,
       invalidSummary(plan.invalid)
     ].join('؛ ')
