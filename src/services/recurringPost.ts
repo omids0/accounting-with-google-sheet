@@ -18,8 +18,8 @@ import {
   saveRecurringItem,
   stripRow
 } from './recurringSheet'
-import { assertSharedCan, sharedCan } from './sharedCan'
 import { appendRecord } from './sheets'
+import { isSharedWorkspace } from './workspace'
 import { isNonFundPayer } from '../components/form/buildingFields'
 import type { AppSettings, CustomForm, RecurringItem } from '../types'
 import { getJalaliMonthKey } from '../utils/dateRange'
@@ -85,7 +85,8 @@ export async function postReminderItems(
   checkedIds: ReadonlySet<string>,
   todayIso: string
 ): Promise<number> {
-  assertSharedCan('record', settings.spreadsheetId)
+  // Nothing is automatic in a shared account (spec non-goals): its records need a payer and split.
+  if (isSharedWorkspace(settings.spreadsheetId)) return 0
 
   const monthKey = getJalaliMonthKey(todayIso)
   const { post, skip } = planReminderPost(items, checkedIds)
@@ -132,8 +133,8 @@ export interface AutoPosted {
  * Throws only when the remote tab cannot be read (offline): nothing is posted then.
  */
 export async function runAutoPost(settings: AppSettings, todayIso: string): Promise<AutoPosted[]> {
-  // A shared account's viewer opens the app too: only whoever may record posts.
-  if (!sharedCan('record', settings.spreadsheetId)) return []
+  // No recurring posts in a shared account (spec non-goals): a post would have no payer or split.
+  if (isSharedWorkspace(settings.spreadsheetId)) return []
 
   const local = dueAutoItems(
     (await fetchRecurringItems(settings.spreadsheetId)).map(stripRow),

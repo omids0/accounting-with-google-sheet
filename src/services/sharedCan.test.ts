@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { launchTarget } from './launchAction'
+import { repairLegacyRows } from './legacyRowRepair'
 import { assertSharedCan, sharedCan, sharedCanFor } from './sharedCan'
 import { setItem, STORAGE_KEYS } from './storage'
 import { setWorkspaceType } from './workspace'
@@ -73,6 +74,14 @@ describe('sharedCan on the active sheet', () => {
     expect(sharedCan('record')).toBe(false)
     expect(() => assertSharedCan('budget')).toThrow('دسترسی ندارید')
     setWorkspaceType('S9', 'personal')
+  })
+
+  it('refuses the column repair (it rewrites everyone’s rows) without editOthers', async () => {
+    setWorkspaceType('S9', 'shared')
+
+    await expect(repairLegacyRows('S9', [])).rejects.toThrow('دسترسی ندارید')
+    setWorkspaceType('S9', 'personal')
+    await expect(repairLegacyRows('S9', [])).resolves.toBeTruthy()
   })
 })
 

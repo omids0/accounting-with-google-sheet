@@ -11,9 +11,17 @@ import {
   fetchSheetRows,
   updateSheetRow
 } from './sheets'
+import { isSharedWorkspace } from './workspace'
 import type { RecurringItem } from '../types'
 
 export type SheetRecurringItem = RecurringItem & { rowNumber: number }
+
+export const SHARED_NO_RECURRING_MESSAGE = 'تکرار ماهانه در حساب مشترک نیست'
+
+/** A shared account has no recurring items in v1 (spec non-goals); its tab stays untouched. */
+function refuseShared(spreadsheetId: string): void {
+  if (isSharedWorkspace(spreadsheetId)) throw new Error(SHARED_NO_RECURRING_MESSAGE)
+}
 
 function parseRows(rows: string[][]): SheetRecurringItem[] {
   return rows.flatMap((row, index) => {
@@ -54,6 +62,7 @@ async function findRowNumber(spreadsheetId: string, id: string): Promise<number 
 
 /** Updates the item's row (found by id), or appends a new one. */
 export async function saveRecurringItem(spreadsheetId: string, item: RecurringItem): Promise<void> {
+  refuseShared(spreadsheetId)
   await ensureSheetWithHeaders(spreadsheetId, RECURRING_SHEET, RECURRING_HEADERS)
 
   const rowNumber = await findRowNumber(spreadsheetId, item.id)
@@ -64,6 +73,8 @@ export async function saveRecurringItem(spreadsheetId: string, item: RecurringIt
 }
 
 export async function deleteRecurringItem(spreadsheetId: string, id: string): Promise<void> {
+  refuseShared(spreadsheetId)
+
   const rowNumber = await findRowNumber(spreadsheetId, id)
 
   if (rowNumber) await deleteSheetRow(spreadsheetId, RECURRING_SHEET, rowNumber)
@@ -74,6 +85,8 @@ export async function exportRecurringCsv(spreadsheetId: string): Promise<string 
 }
 
 export async function importRecurringCsv(spreadsheetId: string, csvContent: string) {
+  refuseShared(spreadsheetId)
+
   return importSheetCsv(spreadsheetId, RECURRING_SHEET, RECURRING_HEADERS, csvContent, cells => {
     const item = rowToRecurring([
       newImportId(cells[0] ?? ''),

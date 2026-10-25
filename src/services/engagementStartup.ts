@@ -7,7 +7,7 @@ import { refreshScheduledReminders } from './localNotifications'
 import { getCurrentPushSubscription, getDeviceLabel } from './pushNotifications'
 import { migrateReminderDefaults } from './reminderDefaultsMigration'
 import { upsertPushSubscription } from './reminders'
-import { isSharedWorkspace } from './workspace'
+import { resolveWorkspaceType } from './workspace'
 
 /** Keeps an existing subscription fresh; permission is only asked from the reminders page. */
 async function refreshPushSubscription(spreadsheetId: string): Promise<void> {
@@ -48,7 +48,8 @@ function watchBudgetDigest(spreadsheetId: string): void {
  * device keeps the reminders it scheduled from the personal sheet.
  */
 export async function runEngagementStartup(spreadsheetId: string): Promise<void> {
-  if (isSharedWorkspace(spreadsheetId)) return
+  // A fresh device may know neither a cached type nor a registry kind yet: read the marker first.
+  if ((await resolveWorkspaceType(spreadsheetId)) === 'shared') return
   await migrateReminderDefaults(spreadsheetId)
   await syncAppOpen(spreadsheetId)
 

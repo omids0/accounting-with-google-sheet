@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 /** Every tab a writer touched, in call order: `fn:tab`. */
-const io = vi.hoisted(() => ({ writes: [] as string[], native: false }))
+const io = vi.hoisted(() => ({
+  writes: [] as string[],
+  native: false,
+  /** Data rows of «تنظیمات دوره» (the workspace marker). */
+  marker: [] as string[][]
+}))
 
 const track = vi.hoisted(
   () => (fn: string) =>
@@ -15,7 +20,9 @@ vi.mock('./sheets', () => ({
   appendSheetRow: track('append'),
   updateSheetRow: track('update'),
   deleteSheetRow: track('delete'),
-  fetchSheetRows: vi.fn(async () => [])
+  fetchSheetRows: vi.fn(async (_id: string, sheet: string) =>
+    sheet === 'تنظیمات دوره' ? io.marker : []
+  )
 }))
 
 vi.mock('./googleAuthNative', () => ({ isNativePlatform: () => io.native }))
@@ -62,6 +69,7 @@ beforeEach(() => {
   localStorage.clear()
   io.writes = []
   io.native = false
+  io.marker = []
   vi.clearAllMocks()
 })
 
@@ -78,6 +86,19 @@ describe('a shared account never receives personal-only tabs', () => {
       expect(tabsWritten()).not.toContain(PUSH_SUBS_SHEET)
       expect(refreshScheduledReminders).not.toHaveBeenCalled()
       expect(syncBudgetDigest).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each([false, true])(
+    'reads the marker of a sheet this device knows nothing about first (native: %s)',
+    async native => {
+      io.native = native
+      io.marker = [['نوع فضا', 'حساب مشترک']]
+
+      await runEngagementStartup('FRESH-' + String(native))
+
+      expect(io.writes).toEqual([])
+      expect(refreshScheduledReminders).not.toHaveBeenCalled()
     }
   )
 

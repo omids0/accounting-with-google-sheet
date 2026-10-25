@@ -46,7 +46,8 @@ export default function SettingsPage() {
     'vault-assets': isShared,
     categories: !canBudget,
     budgets: !canBudget,
-    recurring: !canBudget,
+    // Nothing is automatic in a shared account (spec non-goals): no recurring items.
+    recurring: isShared || !canBudget,
     notifications: isShared
   }
 
@@ -88,7 +89,12 @@ export default function SettingsPage() {
       id: 'account',
       title: 'حساب و داده',
       icon: 'folder',
-      description: 'حساب گوگل، شیت داده‌ها، پشتیبان و بستن سال',
+      // A shared account has no «بستن سال», and backup only with «خروجی و پشتیبان».
+      description: !isShared
+        ? 'حساب گوگل، شیت داده‌ها، پشتیبان و بستن سال'
+        : canExport
+        ? 'حساب گوگل، شیت داده‌ها و پشتیبان'
+        : 'حساب گوگل و شیت داده‌ها',
       content: (
         <>
           <SettingsGoogleAccountCard onLogout={settings.handleLogout} />
