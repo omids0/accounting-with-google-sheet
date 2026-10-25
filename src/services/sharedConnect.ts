@@ -1,7 +1,10 @@
 import { registerConnectedSheet } from './buildingConnect'
 import { getSpreadsheets } from './settings'
-import { ONE_SHARED_ACCOUNT_MESSAGE } from './sharedTemplate'
-import { SHARED_NAME_PREFIX, WORKSPACE_SHARED_VALUE } from './sharedWorkspace'
+import {
+  ONE_SHARED_ACCOUNT_MESSAGE,
+  SHARED_NAME_PREFIX,
+  WORKSPACE_SHARED_VALUE
+} from './sharedWorkspace'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { batchFetchSheetRangesFromApi } from './sheetsRows'

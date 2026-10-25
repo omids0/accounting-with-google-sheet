@@ -49,6 +49,14 @@ describe('shared workspace type', () => {
     expect(getWorkspaceType('b1')).toBe('building')
   })
 
+  it('a failed marker read leaves a cached shared type unchanged', async () => {
+    setWorkspaceType('s1', 'shared')
+    fetchSheetRows.mockRejectedValue(new Error('offline'))
+
+    expect(await syncWorkspaceTypeFromSheet('s1')).toBe('shared')
+    expect(getWorkspaceType('s1')).toBe('shared')
+  })
+
   it('keeps the registry kind in step with the marker of a shared sheet', async () => {
     saveSettings({
       ...getDefaultSettings(),

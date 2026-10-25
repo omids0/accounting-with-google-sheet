@@ -8,7 +8,7 @@ import { markCompactGridsMigrated } from './migrateCompactGrids'
 import { SHARED_SHEET_SPECS } from './moduleSheetSpecs'
 import { MEMBERSHIP_DATE_KEY } from './periodSettings'
 import { getDefaultForms } from './settings'
-import { sharedLabel, WORKSPACE_SHARED_VALUE } from './sharedWorkspace'
+import { ONE_SHARED_ACCOUNT_MESSAGE, sharedLabel, WORKSPACE_SHARED_VALUE } from './sharedWorkspace'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { createSpreadsheet, type NewSheetTab } from './sheetsCreate'
 import { formatSpreadsheetTitle } from './spreadsheetCatalog'
@@ -17,10 +17,6 @@ import { hasSharedAccount, setWorkspaceType, WORKSPACE_TYPE_ROW } from './worksp
 import { withSharedFields } from '../components/form/sharedFields'
 import type { CustomForm } from '../types'
 import { getTodayIso } from '../utils/jalaliDate'
-
-/** v1 has one shared account per person (UX-FAMILY-SPEC «More calls»). */
-export const ONE_SHARED_ACCOUNT_MESSAGE =
-  'شما از قبل یک حساب مشترک دارید؛ اگر خاموشش کرده‌اید، از «فضاهای من» دوباره روشنش کنید'
 
 export type SharedPartnerRole = 'partner' | 'viewer'
 

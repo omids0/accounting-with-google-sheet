@@ -4,7 +4,6 @@ import { onSharedCopyChanged } from './sharedCopyChanged'
 import { enqueueSharedLink, runSharedLinks } from './sharedLink'
 import { buildCopyRow, sharedRecordForm, sharedRef } from './sharedLinkRows'
 import {
-  applyNotice,
   dismissNotice,
   raiseNotice,
   readNotices,
@@ -29,14 +28,12 @@ vi.mock('./sheetsEnsure', () => ({ getSheetTitles: async () => ['هزینه'] })
 vi.mock('./auth', () => ({ getUserEmail: () => 'me@x.com' }))
 vi.mock('./settings', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
-  getSettings: () => ({ spreadsheetId: SHARED, forms: [] })
+  getSettings: () => ({ spreadsheetId: SHARED, forms: [] }),
+  getSpreadsheets: () => [{ id: 'p1', name: 'شخصی', createdAt: '' }]
 }))
 
 const SHARED = 'shared-1'
 const REF = sharedRef('p1', 'r1')
-const PERSONAL_HEADER = ['شناسه', 'زمان ثبت', 'تاریخ', 'عنوان', 'دسته‌بندی', 'مبلغ', 'حساب مشترک']
-const personalRow = ['r1', 't', '2026-10-20', 'میوه', 'خوراک', '850000', SHARED]
-
 const notice = (patch: Partial<SharedNotice> = {}): SharedNotice => ({
   recordRef: REF,
   field: 'amount',
@@ -52,15 +49,6 @@ const noticeRow = (email: string, id: string, value: SharedNotice) => [
   `اعلان:${email}:${id}`,
   JSON.stringify(value)
 ]
-
-const personal = (categories: string[][] = [['نوع'], ['هزینه', 'خوراک']]) =>
-  batchFetch.mockResolvedValue(
-    new Map([
-      ['هزینه', [PERSONAL_HEADER, personalRow]],
-      ['درآمد', [PERSONAL_HEADER]],
-      [CATEGORIES_SHEET, categories]
-    ])
-  )
 
 const written = () =>
   writeToWorkspace.mock.calls.map(([id, op]) => [id, op]) as unknown as [
@@ -150,51 +138,6 @@ describe('onSharedCopyChanged', () => {
       kind: 'delete',
       title: 'میوه'
     })
-  })
-})
-
-describe('applyNotice', () => {
-  it('amount: changes only the amount of the personal record', async () => {
-    personal()
-
-    expect(await applyNotice(notice())).toBe('applied')
-
-    const [[target, operation]] = written() as [string, { type: string; row: string[] }][]
-
-    expect(target).toBe('p1')
-    expect(operation.type).toBe('update')
-    expect(operation.row).toEqual(['r1', 't', '2026-10-20', 'میوه', 'خوراک', '900000', SHARED])
-  })
-
-  it('category with no personal category of that name: changes nothing, skipped', async () => {
-    personal()
-
-    expect(await applyNotice(notice({ field: 'category', old: 'خوراک', new: 'رستوران' }))).toBe(
-      'skipped'
-    )
-    expect(writeToWorkspace).not.toHaveBeenCalled()
-  })
-
-  it('category of an existing personal category is applied', async () => {
-    personal([['نوع'], ['هزینه', 'خوراک'], ['هزینه', 'رستوران']])
-
-    expect(await applyNotice(notice({ field: 'category', old: 'خوراک', new: 'رستوران' }))).toBe(
-      'applied'
-    )
-
-    const [[, operation]] = written() as [string, { row: string[] }][]
-
-    expect(operation.row).toEqual(['r1', 't', '2026-10-20', 'میوه', 'رستوران', '850000', SHARED])
-  })
-
-  it('delete: clears only the shared marker', async () => {
-    personal()
-
-    await applyNotice(notice({ field: 'delete', kind: 'delete', new: '' }))
-
-    const [[, operation]] = written() as [string, { row: string[] }][]
-
-    expect(operation.row).toEqual(['r1', 't', '2026-10-20', 'میوه', 'خوراک', '850000', ''])
   })
 })
 

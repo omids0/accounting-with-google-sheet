@@ -10,10 +10,9 @@ import {
 import {
   buildSharedTemplateRows,
   createSharedSpreadsheet,
-  ONE_SHARED_ACCOUNT_MESSAGE,
   sharedSetupError
 } from './sharedTemplate'
-import { sharedLabel, WORKSPACE_SHARED_VALUE } from './sharedWorkspace'
+import { ONE_SHARED_ACCOUNT_MESSAGE, sharedLabel, WORKSPACE_SHARED_VALUE } from './sharedWorkspace'
 import { SHARED_ACCOUNT_SHEETS } from './sheetNames'
 import { SheetsApiError } from './sheetsApi'
 import type { NewSheetTab } from './sheetsCreate'

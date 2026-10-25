@@ -11,13 +11,15 @@ import { useEnterWorkspace } from '../../hooks/useEnterWorkspace'
 import { getUserEmail, isAuthError } from '../../services/auth'
 import { shareErrorMessage } from '../../services/driveShare'
 import { createSharedSpreadsheet, sharedSetupError } from '../../services/sharedTemplate'
-import { sharedSpreadsheetId } from '../../services/workspace'
+import { ONE_SHARED_ACCOUNT_MESSAGE } from '../../services/sharedWorkspace'
+import { hasSharedAccount, sharedSpreadsheetId } from '../../services/workspace'
 import { requestReauth } from '../../stores/appStore'
 import { hideBusy } from '../../stores/busyOverlayStore'
 import { toUserMessage } from '../../utils/userMessage'
 import { CREATE_ENTER_MESSAGE } from '../buildings/buildingBusyText'
 import JourneyStepper, { type StepperStep } from '../buildings/JourneyStepper'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
+import { alertClassName } from '../ui/Alert'
 import { journeyPageClass } from '../ui/buildingStyles'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
@@ -38,19 +40,25 @@ const CREATE_STEPS = {
   enter: { label: CREATE_ENTER_MESSAGE, ceiling: 96 }
 } as const
 
+const CREATED_NOTE = 'حساب مشترک ساخته شد و دعوت فرستاده شد'
+
 const NOT_INVITED_NOTE = 'فایل حساب مشترک ساخته شد ولی دعوت نرفت؛ از «اعضا» دوباره دعوت کنید.'
 
 /**
  * «راه‌اندازی حساب مشترک» in three steps (prototype `راه‌اندازی`): what is shared, the partner,
  * the default split. Nothing is written until «ساخت فضا و ارسال دعوت»: the file is created in the
  * owner's Drive, the partner invited (Drive first) and the account opened. When Drive refuses the
- * invitation the file stays, and the button opens the account's «اعضا» to invite again.
+ * invitation the file stays, and the button opens the account's «اعضا» to invite again; when the
+ * user cancels the switch confirmation the account is done and invited, and it opens on request.
+ * A device that already has a shared account (hidden or not) gets the one-account message.
  */
 export default function SharedSetupWizard({ onCancel }: { onCancel: () => void }) {
   const [step, setStep] = useState<Step>('intro')
   const [draft, setDraft] = useState<SharedSetupDraft>({ name: '', email: '', role: 'partner' })
   const [error, setError] = useState<string | null>(null)
   const [createdId, setCreatedId] = useState<string | null>(null)
+  const [invited, setInvited] = useState(false)
+  const [taken] = useState(hasSharedAccount)
   const busy = useCreepingBusy<keyof typeof CREATE_STEPS>(CREATE_STEPS, 'file')
   const { enter, modalProps } = useEnterWorkspace()
 
@@ -73,7 +81,7 @@ export default function SharedSetupWizard({ onCancel }: { onCancel: () => void }
 
   const create = async () => {
     if (createdId) {
-      await enter(createdId, 'shared-members')
+      await enter(createdId, invited ? 'shared-home' : 'shared-members')
 
       return
     }
@@ -89,7 +97,10 @@ export default function SharedSetupWizard({ onCancel }: { onCancel: () => void }
 
       busy.advance('enter', 82)
       if (await enter(id, 'shared-home', CREATE_STEPS.enter.label)) busy.complete()
-      else setCreatedId(id)
+      else {
+        setCreatedId(id)
+        setInvited(true)
+      }
     } catch (err) {
       hideBusy()
       if (isAuthError(err)) requestReauth()
@@ -110,6 +121,21 @@ export default function SharedSetupWizard({ onCancel }: { onCancel: () => void }
   }
 
   const last = step === 'split'
+
+  if (taken) {
+    return (
+      <div className={journeyPageClass}>
+        <Card className="flex flex-col gap-4">
+          <p className={alertClassName('info', 'mb-0')} role="status">
+            {ONE_SHARED_ACCOUNT_MESSAGE}
+          </p>
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            بازگشت به «فضاهای من»
+          </Button>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className={journeyPageClass}>
@@ -142,6 +168,11 @@ export default function SharedSetupWizard({ onCancel }: { onCancel: () => void }
             />
           ) : null}
           {last ? <SharedSplitStep /> : null}
+          {invited ? (
+            <p className={alertClassName('success', 'mb-0')} role="status">
+              {CREATED_NOTE}
+            </p>
+          ) : null}
           {error ? (
             <p className={formErrorClass} role="alert">
               {error}
@@ -149,7 +180,13 @@ export default function SharedSetupWizard({ onCancel }: { onCancel: () => void }
           ) : null}
           <div className="flex flex-col gap-2">
             <Button type="submit" loading={busy.active} disabled={busy.active}>
-              {!last ? 'ادامه' : createdId ? 'باز کردن «اعضا»' : 'ساخت فضا و ارسال دعوت'}
+              {!last
+                ? 'ادامه'
+                : invited
+                ? 'باز کردن حساب مشترک'
+                : createdId
+                ? 'باز کردن «اعضا»'
+                : 'ساخت فضا و ارسال دعوت'}
             </Button>
             {index === 0 ? (
               <Button type="button" variant="secondary" onClick={onCancel}>

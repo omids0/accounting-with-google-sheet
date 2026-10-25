@@ -15,6 +15,7 @@ import { switchActiveSpreadsheet } from '../../services/spreadsheetSetup'
 import { moveSyncToSpreadsheet } from '../../services/spreadsheetSwitch'
 import {
   getWorkspaceType,
+  hasSharedAccount,
   rememberPersonalSheet,
   syncWorkspaceTypeFromSheet
 } from '../../services/workspace'
@@ -104,8 +105,18 @@ export default function ConnectBuildingSheet({
   // The picker has already made the sheet active: keep it when it is the target, else go back.
   const picker = useOpenSheetWithGoogle(async pickedId => {
     const previousId = previousRef.current
+    let message = target.notMessage
+    let matches = (await syncWorkspaceTypeFromSheet(pickedId)) === target.type
 
-    if ((await syncWorkspaceTypeFromSheet(pickedId)) === target.type) {
+    // A shared account is listed through the one-account check, like a pasted link.
+    if (matches && target.type === 'shared' && hasSharedAccount()) {
+      matches = await target.connect(pickedId).catch(err => {
+        message = toUserMessage(err, 'اتصال به شیت ناموفق بود')
+
+        return false
+      })
+    }
+    if (matches) {
       const name = getSettings()?.spreadsheets?.find(sheet => sheet.id === pickedId)?.name
 
       registerConnectedSheet(pickedId, target.type, name ?? pickedId)
@@ -116,7 +127,7 @@ export default function ConnectBuildingSheet({
 
       return
     }
-    setError(target.notMessage)
+    setError(message)
     if (previousId) {
       await switchActiveSpreadsheet(previousId).catch(() => undefined)
       await moveSyncToSpreadsheet(pickedId, previousId)

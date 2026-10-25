@@ -11,10 +11,7 @@ export const SHARED_TAB_TITLES: Record<SharedTab, string> = {
   'shared-members': 'اعضا'
 }
 
-/**
- * Pages of a shared workspace in prototype order; a personal sheet or a building sends them to
- * its own home. Inside a shared account the personal-only and building pages go to `/shared`.
- */
+/** The pages of a shared workspace, in prototype order. */
 export const SHARED_TABS: Tab[] = [
   'shared-home',
   'shared-records',
@@ -42,7 +39,7 @@ export const SHARED_REPLACED_TABS: Partial<Record<Tab, SharedTab>> = {
 }
 
 /** The mobile bottom bar of a shared workspace: all four tabs, no raised centre button. */
-export const SHARED_BOTTOM_NAV_TABS: Tab[] = SHARED_TABS
+export const SHARED_BOTTOM_NAV_TABS: Tab[] = [...SHARED_TABS]
 
 /** The drawer and tablet-rail rows of a shared workspace, under «برگشت به حساب شخصی». */
 export const SHARED_NAV_LINKS: MenuLinkEntry[] = [
