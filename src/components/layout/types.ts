@@ -51,6 +51,7 @@ export type Tab =
   | 'timesheets'
   | 'timesheet-detail'
   | 'about'
+  | 'invite'
   | 'activity'
   | 'buildings-home'
   | 'building-dashboard'
@@ -212,6 +213,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   timesheets: 'تایم‌شیت',
   'timesheet-detail': 'جزئیات تایم‌شیت',
   about: 'درباره',
+  invite: 'دعوت دوستان',
   activity: 'فعالیت',
   'buildings-home': 'فضاهای من',
   'building-dashboard': 'داشبورد',

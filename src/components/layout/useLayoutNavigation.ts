@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useTransition } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
+import { showsHeaderBack } from './headerBack'
 import {
   BUILDING_PARENT_TAB,
   CALCULATION_TABS,
@@ -179,23 +180,7 @@ export function useLayoutNavigation() {
     prefetchSecondaryAppPages()
   }, [menuOpen])
 
-  const showHeaderBack =
-    showSettings ||
-    tab === 'charts' ||
-    tab === 'records' ||
-    tab === 'entry' ||
-    tab === 'net-available-settings' ||
-    tab === 'personal-reminders' ||
-    tab === 'vehicle-service' ||
-    tab === 'vehicle-detail' ||
-    WALLET_SUB_TABS.includes(tab) ||
-    tab === 'about' ||
-    tab === 'search' ||
-    tab in BUILDING_PARENT_TAB ||
-    TIMESHEET_TABS.includes(tab) ||
-    VEHICLE_TABS.includes(tab) ||
-    CALCULATION_TABS.includes(tab) ||
-    REPORT_TABS.includes(tab)
+  const showHeaderBack = showsHeaderBack(tab, showSettings)
 
   const onHeaderBack = useCallback(() => {
     if (getSettingsSubpageTitle(location.pathname)) {

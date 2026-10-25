@@ -13,6 +13,7 @@ import { importEncryptionKey, isValidSessionId } from './crypto'
 import type { FetchLike } from './google'
 import { handleExchange, handleLogout, handleRefresh, type Env } from './handlers'
 import { allowedOrigin, corsHeaders, jsonResponse, parseAllowedOrigins, readJsonBody } from './http'
+import { handleInvite, INVITE_ROUTES } from './invite'
 
 export type { Env, KVLike, RateLimiterLike } from './handlers'
 
@@ -31,7 +32,9 @@ export async function handleRequest(
 
   const route = new URL(request.url).pathname
 
-  if (!['/exchange', '/refresh', '/logout'].includes(route)) {
+  const isInvite = (INVITE_ROUTES as readonly string[]).includes(route)
+
+  if (!isInvite && !['/exchange', '/refresh', '/logout'].includes(route)) {
     return jsonResponse({ error: 'not_found' }, 404, origin)
   }
 
@@ -43,7 +46,8 @@ export async function handleRequest(
 
   const sessionId = body.value.sessionId
 
-  if (route !== '/exchange' && !isValidSessionId(sessionId)) {
+  // Invite routes prove who is calling with a Google access token, not with a session id.
+  if (route !== '/exchange' && !isInvite && !isValidSessionId(sessionId)) {
     return jsonResponse({ error: 'bad_request' }, 400, origin)
   }
 
@@ -67,6 +71,8 @@ export async function handleRequest(
   }
 
   try {
+    if (isInvite) return await handleInvite(route, body.value, env, origin, fetchFn)
+
     if (route === '/exchange') return await handleExchange(body.value, env, origin, fetchFn, key)
 
     if (route === '/refresh') {

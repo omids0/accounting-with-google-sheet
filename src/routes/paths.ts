@@ -62,6 +62,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'date-calculator': '/calculators/date',
   'dang-split': '/dang-split',
   about: '/about',
+  invite: '/invite-friends',
   'report-financial-summary': '/reports/financial-summary',
   'report-income-expense': '/reports/income-expense',
   'report-category-tree': '/reports/category-tree',

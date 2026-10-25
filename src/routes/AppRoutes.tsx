@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } fr
 import DangSplitDetailRoute from './DangSplitDetailRoute'
 import {
   LazyAboutPage,
+  LazyInvitePage,
   LazyBankSmsPage,
   LazyBuildingChargesPage,
   LazyBuildingDashboardPage,
@@ -166,6 +167,7 @@ export function AppAuthenticatedRoutes() {
             <Route path="calculators/currency" element={<LazyCurrencyConverterPage />} />
             <Route path="calculators/date" element={<LazyDateCalculatorPage />} />
             <Route path="about" element={<LazyAboutPage />} />
+            <Route path="invite-friends" element={<LazyInvitePage />} />
             <Route path="settings/reminders" element={<LazyRemindersPage />} />
             <Route
               path="settings/categories"

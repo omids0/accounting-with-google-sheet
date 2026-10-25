@@ -4,6 +4,7 @@ import type { ComponentType } from 'react'
 type PageLoader = () => Promise<{ default: ComponentType<any> }>
 
 export const loadAboutPage: PageLoader = () => import('../components/about/AboutPage')
+export const loadInvitePage: PageLoader = () => import('../components/invite/InvitePage')
 
 export const loadChartsPage: PageLoader = () => import('../components/chartsPage/ChartsPage')
 
@@ -204,6 +205,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'opening-balances': loadOpeningBalancePage,
   'net-available-settings': loadNetAvailableSettingsPage,
   about: loadAboutPage,
+  invite: loadInvitePage,
   'loan-calculator': loadLoanRequestCalculatorPage,
   'currency-converter': loadCurrencyConverterPage,
   'date-calculator': loadDateCalculatorPage,
