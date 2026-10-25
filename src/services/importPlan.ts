@@ -1,5 +1,5 @@
 import { CHECK_DIRECTION_HEADER } from './checkDirection'
-import { SHARED_FIELD_LABELS } from '../components/form/sharedFields'
+import { SHARED_FIELD_LABELS, SHARED_LINK_FIELD_LABEL } from '../components/form/sharedFields'
 import { ATTACHMENTS_HEADER } from '../utils/attachmentIds'
 import { parseCsv, restoreCsvFormula } from '../utils/csv'
 import { WRITER_HEADER } from '../utils/writerColumn'
@@ -40,7 +40,8 @@ function hasHeaderRow(firstRow: string[], allHeaders: string[]): boolean {
     WRITER_HEADER,
     ATTACHMENTS_HEADER,
     CHECK_DIRECTION_HEADER,
-    ...SHARED_FIELD_LABELS
+    ...SHARED_FIELD_LABELS,
+    SHARED_LINK_FIELD_LABEL
   ]
 
   while (headers.length && optional.includes(headers[headers.length - 1])) headers.pop()

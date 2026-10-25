@@ -92,7 +92,9 @@ const ACCOUNT_KEYS = [
   // The two bridges to the personal spreadsheet: ticks, sent records, waiting payments (bridgePrefs.ts).
   'accounting_bridge_prefs',
   // The shared account turned off on this device (sharedAccountSwitch.ts).
-  'accounting_shared_hidden_v1'
+  'accounting_shared_hidden_v1',
+  // Copies of personal records still to be sent to the shared account (sharedLinkPrefs.ts).
+  'accounting_shared_link_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

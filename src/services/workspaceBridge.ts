@@ -27,7 +27,9 @@ import {
   type OutboxEntry,
   type OutboxOperation
 } from './syncOutbox'
+import { getWorkspaceType } from './workspace'
 import { withoutBuildingFields } from '../components/form/buildingFields'
+import { withStandardFields } from '../components/form/fieldUtils'
 
 /**
  * The bridge between workspaces (round 11, Step 8). Only ONE spreadsheet mirror lives in memory, and
@@ -43,14 +45,20 @@ const isActive = (spreadsheetId: string) => getSettings()?.spreadsheetId === spr
 
 const isOffline = () => typeof navigator !== 'undefined' && !navigator.onLine
 
-/** The tab a bridged write may have to create first (only tabs the bridges themselves write to). */
-function tabSpecOf(sheetName: string): SheetSpec | null {
+/**
+ * The tab a bridged write may have to create first (only tabs the bridges themselves write to). A
+ * shared account's record tab gets the shared columns, never the personal ones of this device.
+ */
+function tabSpecOf(spreadsheetId: string, sheetName: string): SheetSpec | null {
   if (sheetName === RECEIVABLES_SHEET) return { sheetName, headers: RECEIVABLES_HEADERS }
   if (sheetName === WALLET_LEDGER_SHEET) return { sheetName, headers: WALLET_LEDGER_HEADERS }
 
-  const form = withoutBuildingFields(getSettings()?.forms ?? []).find(
-    item => normalizeSheetTitle(item.sheetName) === normalizeSheetTitle(sheetName)
-  )
+  const forms = getSettings()?.forms ?? []
+  const form = (
+    getWorkspaceType(spreadsheetId) === 'shared'
+      ? withStandardFields(forms, false, true)
+      : withoutBuildingFields(forms)
+  ).find(item => normalizeSheetTitle(item.sheetName) === normalizeSheetTitle(sheetName))
 
   return form ? { sheetName, headers: buildHeaders(form.fields) } : null
 }
@@ -59,7 +67,7 @@ async function ensureTabs(spreadsheetId: string, entries: OutboxEntry[]): Promis
   const specs = new Map<string, SheetSpec>()
 
   for (const { operation } of entries) {
-    const spec = operation.type === 'append' ? tabSpecOf(operation.sheetName) : null
+    const spec = operation.type === 'append' ? tabSpecOf(spreadsheetId, operation.sheetName) : null
 
     if (spec) specs.set(normalizeSheetTitle(spec.sheetName), spec)
   }

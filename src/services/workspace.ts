@@ -94,6 +94,17 @@ export function hasSharedAccount(): boolean {
   return sharedSpreadsheetId() !== null
 }
 
+/**
+ * «خاموش کردن» of the shared account on this device: `{ [spreadsheetId]: true }`, per device and
+ * listed in `ACCOUNT_KEYS` (localDataWipe.ts). The sheet, its registry entry and the partner's
+ * access stay; the account only leaves «فضاهای من» (and the personal forms' tick).
+ */
+export const SHARED_HIDDEN_KEY = 'accounting_shared_hidden_v1'
+
+export function isSharedAccountHidden(spreadsheetId: string): boolean {
+  return spreadsheetId in (getItem<Record<string, true>>(SHARED_HIDDEN_KEY) ?? {})
+}
+
 /** False only for a sheet this device has neither read the marker row of nor registered a kind for. */
 export function isWorkspaceTypeKnown(spreadsheetId: string): boolean {
   const { store, kinds } = read()

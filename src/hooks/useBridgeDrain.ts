@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 
+import { drainSharedLinks } from './useSharedLinkDrain'
 import { readBridgePrefs } from '../services/bridgePrefs'
 import { getSettings, getSpreadsheets } from '../services/settings'
 import { hasPendingOutbox } from '../services/syncOutbox'
@@ -26,7 +27,10 @@ export function useBridgeDrain(): void {
 
   useEffect(() => {
     const run = () => {
-      if (!hasBridgeWork() || (typeof navigator !== 'undefined' && !navigator.onLine)) return
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return
+      // The personal → shared copies (round «حساب مشترک») have their own per-device queue.
+      drainSharedLinks()
+      if (!hasBridgeWork()) return
 
       void import('../services/buildingBridge').then(({ drainAllBridges }) => drainAllBridges())
     }

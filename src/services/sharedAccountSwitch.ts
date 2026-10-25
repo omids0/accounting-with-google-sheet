@@ -7,24 +7,16 @@ import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { batchFetchSheetRangesFromApi } from './sheetsRows'
 import { getSheetDataRows } from './spreadsheetStore'
 import { getItem, setItem } from './storage'
-import { isSharedEntry } from './workspace'
+import { isSharedAccountHidden, isSharedEntry, SHARED_HIDDEN_KEY } from './workspace'
 import type { SpreadsheetEntry } from '../types'
 
-/**
- * «خاموش کردن» of the shared account on this device: `{ [spreadsheetId]: true }`, per device and
- * listed in `ACCOUNT_KEYS` (localDataWipe.ts). The sheet, its registry entry and the partner's
- * access stay; the account only leaves «فضاهای من».
- */
-export const SHARED_HIDDEN_KEY = 'accounting_shared_hidden_v1'
+// Read by the personal forms' tick too, so the key lives in the small workspace module.
+export { isSharedAccountHidden, SHARED_HIDDEN_KEY }
 
 type HiddenStore = Record<string, true>
 
 function readHidden(): HiddenStore {
   return getItem<HiddenStore>(SHARED_HIDDEN_KEY) ?? {}
-}
-
-export function isSharedAccountHidden(spreadsheetId: string): boolean {
-  return spreadsheetId in readHidden()
 }
 
 export function hideSharedAccount(spreadsheetId: string): void {

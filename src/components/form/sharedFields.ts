@@ -42,12 +42,28 @@ export const SHARED_FIELD_LABELS = [
   SHARED_REF_FIELD_LABEL
 ]
 
+/**
+ * On a PERSONAL record: the shared account's spreadsheet id its copy lives in ('' = not shared).
+ * The column exists only while this device has a shared account (`withSharedLinkField`).
+ */
+export const SHARED_LINK_FIELD_ID = 'sharedLink'
+export const SHARED_LINK_FIELD_LABEL = 'حساب مشترک'
+
+/** A column the record forms never draw as a raw input or detail row. */
+export const isSharedColumn = (id: string): boolean =>
+  id === SHARED_LINK_FIELD_ID || SHARED_FIELD_IDS.includes(id)
+
+/** Whether a personal record has a copy in the shared account. */
+export const isLinked = (values: Record<string, unknown>): boolean =>
+  !!String(values[SHARED_LINK_FIELD_ID] ?? '').trim()
+
 /** A shared record moves no wallet and carries no counterparty or line items (privacy-first). */
 const NOT_SHARED_FIELD_IDS = [
   WALLET_ACCOUNT_FIELD_ID,
   WALLET_APPLY_FIELD_ID,
   COUNTERPARTY_FIELD_ID,
   LINE_ITEMS_FIELD_ID,
+  SHARED_LINK_FIELD_ID,
   ...BUILDING_FIELD_IDS
 ]
 
@@ -96,6 +112,27 @@ export function withoutSharedFields(forms: CustomForm[]): CustomForm[] {
       ? { ...form, fields: form.fields.filter(field => !SHARED_FIELD_IDS.includes(field.id)) }
       : form
   )
+}
+
+/**
+ * The personal income / expense forms with the link column last, only when `on` (a personal sheet
+ * on a device with a shared account); otherwise without it, so nobody else gets a new header.
+ */
+export function withSharedLinkField(forms: CustomForm[], on: boolean): CustomForm[] {
+  return forms.map(form => {
+    const has = form.fields.some(field => field.id === SHARED_LINK_FIELD_ID)
+
+    if (on && !has && isRecordForm(form)) {
+      return {
+        ...form,
+        fields: [...form.fields, textField(SHARED_LINK_FIELD_ID, SHARED_LINK_FIELD_LABEL)]
+      }
+    }
+
+    return !on && has
+      ? { ...form, fields: form.fields.filter(field => field.id !== SHARED_LINK_FIELD_ID) }
+      : form
+  })
 }
 
 export type SharedSplit = 'equal' | `only:${string}`

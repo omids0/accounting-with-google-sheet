@@ -17,7 +17,12 @@ import {
   WALLET_APPLY_NO,
   WALLET_APPLY_YES
 } from './recordFieldIds'
-import { SHARED_FIELD_IDS, withoutSharedFields, withSharedFields } from './sharedFields'
+import {
+  SHARED_FIELD_IDS,
+  SHARED_LINK_FIELD_ID,
+  withoutSharedFields,
+  withSharedFields
+} from './sharedFields'
 import type { CustomForm, FieldConfig } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
 
@@ -40,7 +45,9 @@ const STANDARD_FIELD_ORDER = [
   // Building workspaces only (buildingFields.ts); last, so the columns go at the end of the row.
   ...BUILDING_FIELD_IDS,
   // Shared accounts only (sharedFields.ts); never together with the building ones.
-  ...SHARED_FIELD_IDS
+  ...SHARED_FIELD_IDS,
+  // A personal record's link to its shared copy, only on a device with a shared account.
+  SHARED_LINK_FIELD_ID
 ]
 
 const REQUIRED_ENTRY_FIELD_IDS = ['date', 'title', 'category', 'amount', 'note']
@@ -217,6 +224,8 @@ export function isFieldHidden(
   field: FieldConfig,
   values: Record<string, string | number | undefined>
 ): boolean {
+  // The link to a shared copy follows the tick «در «<name>» هم ثبت شود»; never typed in.
+  if (field.id === SHARED_LINK_FIELD_ID) return true
   if (field.id === WALLET_ACCOUNT_FIELD_ID || field.id === WALLET_APPLY_FIELD_ID) {
     if (isNonFundPayer(values[PAYER_FIELD_ID])) return true
   }
