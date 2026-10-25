@@ -10,7 +10,7 @@ import { hasPendingOutbox } from './syncOutbox'
 import { version as APP_VERSION } from '../../package.json'
 import { exportFileName, saveExportFile } from '../utils/saveFile'
 
-/** `saveExportFile` appends the Jalali date: «حساب کتاب · پشتیبان · ۱۴۰۵-۰۷-۲۰.zip». */
+/** The Jalali date and time are appended: «حساب کتاب · پشتیبان · ۱۴۰۵-۰۷-۲۰ ۱۸-۴۰.zip». */
 const BACKUP_FILE_NAME = 'حساب کتاب · پشتیبان ·.zip'
 
 export const PENDING_WRITES_MESSAGE =
@@ -99,14 +99,14 @@ export async function buildFullBackup(
 
   return {
     blob: new Blob([packBackup(manifest, files)], { type: 'application/zip' }),
-    name: exportFileName(BACKUP_FILE_NAME, exportedAt),
+    name: exportFileName(BACKUP_FILE_NAME, exportedAt, true),
     exportedAt
   }
 }
 
 /** Saves a built backup on this device; null when the share sheet was closed. */
 export async function saveFullBackup(spreadsheetId: string, backup: FullBackup) {
-  const saved = await saveExportFile(BACKUP_FILE_NAME, backup.blob)
+  const saved = await saveExportFile(BACKUP_FILE_NAME, backup.blob, { withTime: true })
 
   if (saved) markBackupDone(spreadsheetId, backup.exportedAt.getTime())
 
