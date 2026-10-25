@@ -1,4 +1,4 @@
-import { SHARED_TAB_TITLES, type SharedTab } from './sharedTabs'
+import { SHARED_SPEED_DIAL_TABS, SHARED_TAB_TITLES, type SharedTab } from './sharedTabs'
 
 export type Tab =
   /** A URL no page answers to: no tab is highlighted and no speed dial shows. */
@@ -159,7 +159,8 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'building-fund',
   'building-dang',
   'building-checks',
-  'building-counterparties'
+  'building-counterparties',
+  ...SHARED_SPEED_DIAL_TABS
 ]
 
 export const TAB_TITLES: Record<Tab, string> = {

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 
 import RecordDetailAttachments from './RecordDetailAttachments'
 import RecordDetailFields from './RecordDetailFields'
@@ -33,6 +33,13 @@ interface RecordDetailSheetProps {
   onClose: () => void
   onEdit: (record: StoredRecord) => void
   onDelete: (record: StoredRecord) => void
+  /** A workspace's own block after the fields (the shared account: payer, split, amount edit). */
+  extra?: ReactNode
+  /**
+   * Replaces «ویرایش» (the full edit form) and drops «تکرار ماهانه» and adding receipts: the shared
+   * account edits only a record's amount, inside `extra`.
+   */
+  save?: { label: string; onSave: () => void | Promise<unknown>; disabled?: boolean }
 }
 
 /** What a tap on a record row opens: its fields, receipts and items, with edit / repeat / delete. */
@@ -42,7 +49,9 @@ export default function RecordDetailSheet({
   readOnly = false,
   onClose,
   onEdit,
-  onDelete
+  onDelete,
+  extra,
+  save
 }: RecordDetailSheetProps) {
   const { values } = record
   const titleField = getFormField(form, 'title')
@@ -65,10 +74,11 @@ export default function RecordDetailSheet({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
-        edit()
+
+        return save ? save.onSave() : edit()
       }}
-      saveLabel="ویرایش"
-      saveDisabled={readOnly}
+      saveLabel={save?.label ?? 'ویرایش'}
+      saveDisabled={readOnly || !!save?.disabled}
       cancelLabel="بستن"
     >
       {rawAmount ? (
@@ -93,12 +103,14 @@ export default function RecordDetailSheet({
         </Suspense>
       ) : null}
 
+      {extra}
+
       <RecordDetailAttachments
         sheetName={record.sheetName ?? form.sheetName}
         entityId={record.id}
         fileIds={record.attachments}
         title={title}
-        onAdd={readOnly ? undefined : edit}
+        onAdd={readOnly || save ? undefined : edit}
       />
 
       {items.length ? (
@@ -111,7 +123,7 @@ export default function RecordDetailSheet({
       ) : null}
 
       <div className={recordDetailActionsClass}>
-        {readOnly ? null : isIncome || isExpense ? (
+        {readOnly || save ? null : isIncome || isExpense ? (
           <Button type="button" variant="secondary" size="sm" onClick={edit}>
             تکرار ماهانه
           </Button>

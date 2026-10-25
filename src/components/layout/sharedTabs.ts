@@ -22,6 +22,9 @@ export const SHARED_TABS: Tab[] = [
   'shared-members'
 ]
 
+/** The pages with the «+» (record an expense or income); a viewer's pages register none. */
+export const SHARED_SPEED_DIAL_TABS: Tab[] = ['shared-home', 'shared-records']
+
 /** The mobile bottom bar of a shared workspace: all four tabs, no raised centre button. */
 export const SHARED_BOTTOM_NAV_TABS: Tab[] = SHARED_TABS
 
