@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { padRowsToWidth } from './backupRestore'
 import { newImportId } from './importExport'
 import {
   formatImportSummary,
@@ -8,6 +9,9 @@ import {
   planImport,
   type ImportRowTransform
 } from './importPlan'
+import { getDefaultForms } from './settings'
+import { buildHeaders } from './sheetsHeaders'
+import { withSharedFields } from '../components/form/sharedFields'
 
 const HEADERS = ['شناسه', 'عنوان', 'مبلغ']
 
@@ -86,6 +90,26 @@ describe('planImport', () => {
 
     expect(result.found).toBe(2)
     expect(result.invalid).toEqual([])
+  })
+})
+
+describe('shared account record files', () => {
+  const sharedExpense = withSharedFields(getDefaultForms()).find(form => form.type === 'expense')!
+  const headers = buildHeaders(sharedExpense.fields)
+  const oldHeaders = headers.slice(0, -4)
+  const csvOf = (header: string[], row: string[]) => `${header.join(',')}\n${row.join(',')}`
+
+  it('recognises the header row with or without the shared tail columns', () => {
+    const row = ['a', 't', '2026-10-20', 'نان', 'خوراک', '', '10', '']
+
+    expect(parseImportCsv(csvOf(headers, row), headers).firstLine).toBe(2)
+    expect(parseImportCsv(csvOf(oldHeaders, row), headers).firstLine).toBe(2)
+  })
+
+  it('pads a row of the narrower file to the tab width on restore', () => {
+    const [row] = parseImportCsv(csvOf(oldHeaders, oldHeaders), headers).dataRows
+
+    expect(padRowsToWidth([row], headers.length)[0].slice(-4)).toEqual(['', '', '', ''])
   })
 })
 

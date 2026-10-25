@@ -75,10 +75,11 @@ export function getDefaultForms(): CustomForm[] {
 }
 
 export function normalizeSettings(input: AppSettings): AppSettings {
+  const type = getWorkspaceType(input.spreadsheetId)
   const settings: AppSettings = normalizeCategoryLists({
     ...input,
-    // The building fields exist only while a building is the active spreadsheet.
-    forms: withStandardFields(input.forms, getWorkspaceType(input.spreadsheetId) === 'building')
+    // The building or shared fields exist only while that workspace is the active spreadsheet.
+    forms: withStandardFields(input.forms, type === 'building', type === 'shared')
   })
 
   if (settings.spreadsheets?.length) {

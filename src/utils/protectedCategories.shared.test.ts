@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import {
   isLockedExpenseCategory,
+  isSystemCategory,
   lockedCategoriesFor,
   LOCKED_EXPENSE_CATEGORIES,
   LOCKED_INCOME_CATEGORIES,
@@ -45,5 +46,16 @@ describe('locked categories by workspace', () => {
     expect(isLockedExpenseCategory('خودرو')).toBe(false)
     expect(isLockedExpenseCategory('چک')).toBe(true)
     expect(lockedCategoriesFor('income')).toContain('شارژ ساختمان')
+  })
+
+  it('reserve «تسویه» as a system expense category inside a shared account only', () => {
+    open('shared-1')
+    expect(isSystemCategory('expense', 'تسویه')).toBe(true)
+    expect(isSystemCategory('income', 'تسویه')).toBe(false)
+    expect(withLockedExpenseCategories(['خوراک'])).not.toContain('تسویه')
+    open('personal-1')
+    expect(isSystemCategory('expense', 'تسویه')).toBe(false)
+    open('building-1')
+    expect(isSystemCategory('expense', 'تسویه')).toBe(false)
   })
 })

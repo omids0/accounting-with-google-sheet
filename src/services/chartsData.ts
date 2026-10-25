@@ -14,6 +14,7 @@ import {
   sumByCategory
 } from './dashboardAggregation'
 import { summarizePreviousMonth } from './monthComparison'
+import { withoutSettlements } from './sharedSettlement'
 import { fetchRecords } from './sheets'
 import { toCategoryShares } from '../utils/categoryShares'
 import {
@@ -127,12 +128,12 @@ export async function loadChartsData(
   ])
 
   return buildChartsData(
-    {
+    withoutSettlements({
       incomeRecords,
       expenseRecords,
       incomeDateField: getDateFieldId(incomeForm),
       expenseDateField: getDateFieldId(expenseForm)
-    },
+    }),
     period
   )
 }

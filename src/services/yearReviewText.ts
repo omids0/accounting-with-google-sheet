@@ -1,5 +1,5 @@
 import { reportWords } from './reportWording'
-import { getActiveWorkspaceType } from './workspace'
+import { isPersonalWorkspace } from './workspace'
 import type { YearReview } from './yearReview'
 import { formatJalaliYear } from '../utils/dateRange'
 import { formatPersianNumber, formatSignedNumber } from '../utils/formatMoney'
@@ -50,9 +50,12 @@ export function yearCountFacts(review: YearReview): string[] {
   return facts
 }
 
-/** «دارایی خالص از ۱۸ به ۲۹٫۸ میلیون رسید», or null without both ends (and in a building). */
+/**
+ * «دارایی خالص از ۱۸ به ۲۹٫۸ میلیون رسید», or null without both ends (and outside the personal
+ * books: a building or a shared account has no net worth of its own).
+ */
 export function netWorthSpanText(review: YearReview): string | null {
-  if (getActiveWorkspaceType() === 'building') return null
+  if (!isPersonalWorkspace()) return null
   if (review.netWorthFrom == null || review.netWorthTo == null) return null
 
   return `دارایی خالص از ${headlineAmount(review.netWorthFrom)} به ${headlineAmount(

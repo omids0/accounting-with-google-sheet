@@ -31,6 +31,7 @@ import {
 import { BUILDING_FIELD_IDS } from '../form/buildingFields'
 import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
+import { SHARED_FIELD_IDS } from '../form/sharedFields'
 import FormModal from '../FormModal'
 import RecurringModeOptions from '../recurring/RecurringModeOptions'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
@@ -202,8 +203,10 @@ export default function RecordsEditFormModal({
 
         // A building keeps the spot of the account field for its kind and payer.
         if (hidden && !isAccount) return null
-        // A building's kind, payer and split are drawn by their own block below.
-        if (BUILDING_FIELD_IDS.includes(field.id)) return null
+        // A building's kind, payer and split are drawn by their own block below; a shared
+        // account's columns by its own sheets (never as raw text here).
+        if (BUILDING_FIELD_IDS.includes(field.id) || SHARED_FIELD_IDS.includes(field.id))
+          return null
         if (showVehicleFields && field.id === 'title') return null
         if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {
           return null

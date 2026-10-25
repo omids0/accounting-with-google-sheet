@@ -4,6 +4,7 @@ import { fetchBudgets } from './budgetsSheet'
 import { filterByDateRange, getDateFieldId, sumByCategory } from './dashboardAggregation'
 import { recurringDigestLines } from './recurringDigest'
 import { getSettings } from './settings'
+import { withoutSettlementRows } from './sharedSettlement'
 import { fetchRecords } from './sheets'
 import { getItem, setItem } from './storage'
 import { getDateRange, getJalaliMonthKey } from '../utils/dateRange'
@@ -43,7 +44,7 @@ export async function syncBudgetDigest(spreadsheetId: string): Promise<void> {
 
   if (budgets.length) {
     const records = filterByDateRange(
-      await fetchRecords(spreadsheetId, form),
+      withoutSettlementRows(await fetchRecords(spreadsheetId, form)),
       getDateRange('month-to-date'),
       getDateFieldId(form)
     )

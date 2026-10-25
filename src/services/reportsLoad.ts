@@ -8,6 +8,7 @@ import { fetchNetWorthSnapshots } from './netWorthSheet'
 import { loadNetWorthRecords, loadTodayNetWorth } from './netWorthSources'
 import { findEarliestRecordDate } from './openingBalanceDerive'
 import { loadSavingsGoals } from './savingsGoalsSheet'
+import { withoutSettlements } from './sharedSettlement'
 import { WALLET_LEDGER_SHEET } from './sheetNames'
 import { fetchSheetRows } from './sheets'
 import { rowToLedgerEntry } from './walletLedger'
@@ -37,9 +38,11 @@ async function loadCommon(settings: AppSettings) {
     todayNetWorth(settings)
   ])
 
+  const type = getActiveWorkspaceType()
+
   return {
-    // A building's transfers and fund corrections are not income or spending.
-    records: getActiveWorkspaceType() === 'building' ? withoutNonFlow(records) : records,
+    // A building's transfers and fund corrections, a shared account's «تسویه», are not flow.
+    records: type === 'building' ? withoutNonFlow(records) : withoutSettlements(records, type),
     installmentPlans,
     checks,
     snapshots,

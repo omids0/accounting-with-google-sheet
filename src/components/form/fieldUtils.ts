@@ -5,29 +5,26 @@ import {
   withBuildingFields,
   withoutBuildingFields
 } from './buildingFields'
+import {
+  COUNTERPARTY_FIELD_ID,
+  COUNTERPARTY_FIELD_LABEL,
+  LINE_ITEMS_FIELD_ID,
+  LINE_ITEMS_FIELD_LABEL,
+  WALLET_ACCOUNT_FIELD_ID,
+  WALLET_ACCOUNT_FIELD_LABEL,
+  WALLET_APPLY_FIELD_ID,
+  WALLET_APPLY_FIELD_LABEL,
+  WALLET_APPLY_NO,
+  WALLET_APPLY_YES
+} from './recordFieldIds'
+import { SHARED_FIELD_IDS, withoutSharedFields, withSharedFields } from './sharedFields'
 import type { CustomForm, FieldConfig } from '../../types'
 import { getTodayIso } from '../../utils/jalaliDate'
 
+export * from './recordFieldIds'
+
 export const SUBCATEGORY_FIELD_ID = 'subCategory'
 export const SUBCATEGORY_FIELD_LABEL = 'زیردسته'
-
-/** Optional wallet account of an income/expense record; its balance follows the record. */
-export const WALLET_ACCOUNT_FIELD_ID = 'walletAccount'
-export const WALLET_ACCOUNT_FIELD_LABEL = 'حساب'
-
-/** Whether a record that names an account also moves its balance; '' (older rows) means yes. */
-export const WALLET_APPLY_FIELD_ID = 'walletApply'
-export const WALLET_APPLY_FIELD_LABEL = 'اثر بر موجودی'
-export const WALLET_APPLY_YES = 'بله'
-export const WALLET_APPLY_NO = 'خیر'
-
-/** Optional counterparty (name) of an income/expense record; same list as checks and dang. */
-export const COUNTERPARTY_FIELD_ID = 'counterparty'
-export const COUNTERPARTY_FIELD_LABEL = 'طرف حساب'
-
-/** Optional invoice line items of a record, stored as compact JSON (see `utils/lineItems`). */
-export const LINE_ITEMS_FIELD_ID = 'lineItems'
-export const LINE_ITEMS_FIELD_LABEL = 'اقلام'
 
 const STANDARD_FIELD_ORDER = [
   'date',
@@ -41,7 +38,9 @@ const STANDARD_FIELD_ORDER = [
   LINE_ITEMS_FIELD_ID,
   'note',
   // Building workspaces only (buildingFields.ts); last, so the columns go at the end of the row.
-  ...BUILDING_FIELD_IDS
+  ...BUILDING_FIELD_IDS,
+  // Shared accounts only (sharedFields.ts); never together with the building ones.
+  ...SHARED_FIELD_IDS
 ]
 
 const REQUIRED_ENTRY_FIELD_IDS = ['date', 'title', 'category', 'amount', 'note']
@@ -184,10 +183,23 @@ export function withLineItemsField(forms: CustomForm[]): CustomForm[] {
   )
 }
 
-/** The standard record fields; the building ones are added in a building workspace and only there. */
-export function withStandardFields(forms: CustomForm[], building = false): CustomForm[] {
-  const standard = withLineItemsField(
-    withCounterpartyField(withWalletApplyField(withWalletAccountField(withSubCategoryField(forms))))
+/**
+ * The standard record fields; the building ones are added in a building workspace and only there.
+ * A shared account keeps no wallet, counterparty or line items and adds its own columns instead.
+ */
+export function withStandardFields(
+  forms: CustomForm[],
+  building = false,
+  shared = false
+): CustomForm[] {
+  if (shared) return withSharedFields(withSubCategoryField(forms))
+
+  const standard = withoutSharedFields(
+    withLineItemsField(
+      withCounterpartyField(
+        withWalletApplyField(withWalletAccountField(withSubCategoryField(forms)))
+      )
+    )
   )
 
   return building ? withBuildingFields(standard) : withoutBuildingFields(standard)

@@ -50,8 +50,11 @@ const BUILDING_LOCKED_INCOME_CATEGORIES = new Set<string>([
   BUILDING_CHARGE_CATEGORY
 ])
 
+/** Expense category of a shared account's settlement, written only by the settle sheet. */
+export const SETTLEMENT_CATEGORY = 'تسویه'
+
 // A shared account has no vehicles, installments, checks or wallet reconciliation: nothing is
-// forced into its lists (its settlement category is added with the settle flow).
+// forced into its lists («تسویه» is a system name there, see SHARED_SYSTEM_CATEGORIES).
 const NO_LOCKED_CATEGORIES: ReadonlySet<string> = new Set<string>()
 
 const LOCKED_SETS: Record<WorkspaceType, Record<'income' | 'expense', ReadonlySet<string>>> = {
@@ -89,9 +92,14 @@ const SYSTEM_ONLY_CATEGORIES = {
   income: [RECEIVABLE_INCOME_CATEGORY]
 }
 
+// Reserved only inside a shared account: a personal category named «تسویه» stays the user's.
+const SHARED_SYSTEM_CATEGORIES = { expense: [SETTLEMENT_CATEGORY], income: [] }
+
 /** Categories of the form type that cannot be renamed or deleted. */
 export function lockedCategoriesFor(formType: 'income' | 'expense'): string[] {
-  return [...lockedSetFor(formType), ...SYSTEM_ONLY_CATEGORIES[formType]]
+  const shared = getActiveWorkspaceType() === 'shared' ? SHARED_SYSTEM_CATEGORIES[formType] : []
+
+  return [...lockedSetFor(formType), ...SYSTEM_ONLY_CATEGORIES[formType], ...shared]
 }
 
 export function isSystemCategory(formType: string, category: string): boolean {
