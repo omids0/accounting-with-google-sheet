@@ -22,7 +22,7 @@ describe('changelog', () => {
   it('shows the Jalali release day next to the version in About', () => {
     const [latest] = ABOUT_CHANGELOG_GROUP.features
 
-    expect(latest.title).toBe(`نسخه ${changelog[0].version} — ۲ آبان ۱۴۰۵`)
+    expect(latest.title).toBe(`نسخه ${changelog[0].version} — ۳ آبان ۱۴۰۵`)
   })
 
   it('keeps the title plain for an entry without a date', () => {
