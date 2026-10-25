@@ -53,6 +53,9 @@ export const MENU_ABOUT_LINK: MenuLinkEntry = {
   label: 'درباره و راهنما'
 }
 
+/** Opens the page with the invite link, code and the count of people who signed in with it. */
+export const MENU_INVITE_LINK: MenuLinkEntry = { tab: 'invite', icon: 'share' }
+
 export interface BuildingMenuGroup {
   label: string
   links: MenuLinkEntry[]
@@ -91,7 +94,7 @@ export const buildingMenuGroups: BuildingMenuGroup[] = [
       { tab: 'building-settings', icon: 'settings', activeTabs: BUILDING_SETTINGS_TABS }
     ]
   },
-  { label: MENU_APP_LABEL, links: [MENU_ABOUT_LINK] }
+  { label: MENU_APP_LABEL, links: [MENU_ABOUT_LINK, MENU_INVITE_LINK] }
 ]
 
 export const BUILDING_RETURN_LABEL = 'برگشت به حساب شخصی'

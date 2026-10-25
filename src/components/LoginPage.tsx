@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import AppIcon from './AppIcon'
 import ConfirmActionModal from './ConfirmActionModal'
 import GoogleSignInButton from './login/GoogleSignInButton'
+import InviteCodeField from './login/InviteCodeField'
 import { LoginFeatures, LoginFooter } from './login/LoginPitch'
 import SessionExpiredNotice from './login/SessionExpiredNotice'
 import { useWebSignIn } from './login/useWebSignIn'
@@ -26,6 +27,7 @@ import {
 } from '../services/auth'
 import { forgetWorkerSession, logoutViaWorker } from '../services/authWorker'
 import { isNativePlatform, signInNative, signOutNative } from '../services/googleAuthNative'
+import { claimPendingInvite } from '../services/inviteApi'
 import type { LoginReason } from '../services/loginReason'
 import { resetRefreshStatus } from '../services/refreshStatus'
 import {
@@ -115,6 +117,8 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
 
     saveSession(createSession(accessToken, profile, expiresIn, scope, authSessionId))
     resetRefreshStatus()
+    // Counts this sign-in for whoever invited the person; never waits and never fails the sign-in.
+    void claimPendingInvite(accessToken)
 
     if (outcome === 'switched') {
       // Start clean so nothing cached in memory from the previous account survives.
@@ -207,6 +211,8 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
           stalled={!native && web.stalled}
           loading={loading}
         />
+
+        {native && !expired && <InviteCodeField />}
 
         {!expired && <LoginFooter />}
       </div>

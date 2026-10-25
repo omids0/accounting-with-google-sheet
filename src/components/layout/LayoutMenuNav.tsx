@@ -6,6 +6,7 @@ import LayoutUpdateItem from './LayoutUpdateItem'
 import {
   CALC_MENU_ITEMS,
   MENU_ABOUT_LINK,
+  MENU_INVITE_LINK,
   MENU_APP_LABEL,
   MENU_BANK_SMS_LINK,
   MENU_COMMITMENT_LINKS,
@@ -131,6 +132,7 @@ export default function LayoutMenuNav(props: LayoutMenuNavProps) {
           <span className={appMenuItemLabelClass}>تنظیمات</span>
         </TabNavLink>
         <LayoutMenuLink entry={MENU_ABOUT_LINK} {...linkProps} />
+        <LayoutMenuLink entry={MENU_INVITE_LINK} {...linkProps} />
         <LayoutUpdateItem />
       </LayoutMenuSection>
     </div>

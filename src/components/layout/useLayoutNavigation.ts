@@ -189,6 +189,7 @@ export function useLayoutNavigation() {
     tab === 'vehicle-detail' ||
     WALLET_SUB_TABS.includes(tab) ||
     tab === 'about' ||
+    tab === 'invite' ||
     tab === 'search' ||
     tab in BUILDING_PARENT_TAB ||
     TIMESHEET_TABS.includes(tab) ||
