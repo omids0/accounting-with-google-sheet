@@ -40,11 +40,11 @@ export function amountHints(
     const ref = { record: { id: record.id, type: record.type }, date: record.date }
 
     if (same(record.amount, gap)) {
-      hints.push({ ...ref, text: `${text} دقیقاً به اندازهٔ همین مانده است.` })
+      hints.push({ ...ref, text: `${text} دقیقاً به اندازهٔ همین اختلافِ پیدا‌نشده است.` })
     } else if (same(record.amount * 2, gap)) {
       hints.push({
         ...ref,
-        text: `${text} نصف مانده است؛ اگر نوع آن (درآمد/هزینه) برعکس ثبت شده، اختلاف دو برابر مبلغش می‌شود.`
+        text: `${text} نصف اختلافِ پیدا‌نشده است؛ اگر نوع آن (درآمد/هزینه) برعکس ثبت شده، اختلاف دو برابر مبلغش می‌شود.`
       })
     } else if (same(record.amount * 0.9, gap)) {
       hints.push({

@@ -143,7 +143,7 @@ export function unlinkedFindings(ctx: TraceContext): TraceFinding[] {
         title: last.title || 'رکورد ناپیدا',
         detail: `گردش حساب برای رکوردی ثبت شده که دیگر پیدا نمی‌شود، ولی اثرش روی موجودی (${money(
           effect
-        )}) برنگشته؛ احتمالاً رکورد مستقیم در شیت پاک شده.`,
+        )}) برنگشته؛ احتمالاً رکورد مستقیم در فایل گوگل‌شیت پاک شده.`,
         date: normalizeSheetDate(last.date),
         accountId: last.accountId
       })
@@ -207,7 +207,7 @@ function accountGaps(ctx: TraceContext, accountId: string, balance: number): Tra
         index ? `بین «${entries[index - 1].title}» و «${entry.title}»` : 'قبل از «موجودی اولیه»'
       } موجودی «${title}» به اندازهٔ ${money(
         gap
-      )} بدون ثبت گردش عوض شده؛ مثلاً ویرایش مستقیم در شیت یا ثبت هم‌زمان از دو دستگاه.`,
+      )} بدون ثبت گردش عوض شده؛ مثلاً ویرایش مستقیم در فایل گوگل‌شیت یا ثبت هم‌زمان از دو دستگاه.`,
       true
     )
   })
@@ -222,7 +222,7 @@ function accountGaps(ctx: TraceContext, accountId: string, balance: number): Tra
       tail,
       `بعد از آخرین گردش («${last.title}») موجودی «${title}» به اندازهٔ ${money(
         tail
-      )} بدون ثبت گردش عوض شده؛ مثلاً ویرایش مستقیم در شیت یا ثبت هم‌زمان از دو دستگاه.`,
+      )} بدون ثبت گردش عوض شده؛ مثلاً ویرایش مستقیم در فایل گوگل‌شیت یا ثبت هم‌زمان از دو دستگاه.`,
       false
     )
   }

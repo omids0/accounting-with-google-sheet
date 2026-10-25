@@ -5,10 +5,12 @@ import type {
   TraceContext,
   TraceFinding,
   TraceInput,
+  TraceKind,
   TraceMonth,
   TraceReport
 } from './walletTraceTypes'
 import { getJalaliMonthKey, listJalaliMonthKeys } from '../utils/dateRange'
+import { formatMoney } from '../utils/formatMoney'
 import { roundMoney } from '../utils/roundMoney'
 
 function buildContext(input: TraceInput): TraceContext {
@@ -91,8 +93,11 @@ function buildTimeline(
   return { timeline: [...months.values()], undated }
 }
 
-function originMonth(findings: TraceFinding[]): string {
-  const dated = findings.filter(item => item.kind !== 'plug' && item.date)
+function originMonth(findings: TraceFinding[], timeline: TraceMonth[]): string {
+  const known = new Set(timeline.map(month => month.monthKey))
+  const dated = findings.filter(
+    item => item.kind !== 'plug' && item.date && known.has(getJalaliMonthKey(item.date))
+  )
 
   if (!dated.length) return ''
 
@@ -103,20 +108,62 @@ function originMonth(findings: TraceFinding[]): string {
   return getJalaliMonthKey(pool.map(item => item.date).sort()[0])
 }
 
+/** Kinds one careless habit can multiply into hundreds of rows. */
+const CROWDED_KINDS: TraceKind[] = ['no-account', 'unapplied', 'no-ledger']
+/** More rows than this in one kind: the biggest few stay, the rest become one row. */
+const CROWD_LIMIT = 8
+const CROWD_KEEP = 5
+
+/**
+ * A user who never picks an account gets one finding per record. The biggest stay on their own;
+ * the rest fold into one row so the list stays readable (the month-by-month view still counts
+ * every one of them).
+ */
+function foldCrowds(findings: TraceFinding[]): TraceFinding[] {
+  const folded: TraceFinding[] = []
+
+  for (const kind of CROWDED_KINDS) {
+    const same = findings.filter(item => item.kind === kind)
+
+    if (same.length <= CROWD_LIMIT) continue
+
+    const rest = same.slice(CROWD_KEEP)
+    const effect = roundMoney(rest.reduce((sum, item) => sum + item.effect, 0))
+
+    folded.push({
+      ...rest[0],
+      id: `${kind}:rest`,
+      effect,
+      date: '',
+      record: undefined,
+      accountId: undefined,
+      accountTitle: undefined,
+      title: `${rest.length.toLocaleString('fa-IR')} رکورد دیگر از همین نوع`,
+      detail: `رکوردهای کوچک‌تری هستند که همین مشکل را دارند و روی هم ${formatMoney(
+        Math.abs(effect)
+      )} به اختلاف اضافه یا از آن کم می‌کنند. در صفحهٔ «رکوردها» هر کدام را باز کن و حساب یا «اثر بر موجودی» را درست کن.`
+    })
+    for (const item of rest) findings.splice(findings.indexOf(item), 1)
+  }
+
+  return [...findings, ...folded].sort(byImportance)
+}
+
 /**
  * Explains `wallet − calculated`: every record and every history row that moves one side of
  * the formula without the other becomes a finding with its share of the difference.
  */
 export function traceDiscrepancy(input: TraceInput): TraceReport {
   const ctx = buildContext(input)
-  const findings = dropFailedLogs([
+  const all = dropFailedLogs([
     ...recordFindings(ctx),
     ...unlinkedFindings(ctx),
     ...accountFindings(ctx)
   ]).sort(byImportance)
-  const explained = roundMoney(findings.reduce((sum, item) => sum + item.effect, 0))
+  const explained = roundMoney(all.reduce((sum, item) => sum + item.effect, 0))
   const remainder = roundMoney(input.difference - explained)
-  const { timeline, undated } = buildTimeline(findings, input)
+  const { timeline, undated } = buildTimeline(all, input)
+  const findings = foldCrowds([...all])
 
   return {
     difference: input.difference,
@@ -125,14 +172,14 @@ export function traceDiscrepancy(input: TraceInput): TraceReport {
     remainder,
     timeline,
     undated,
-    originMonthKey: originMonth(findings),
+    originMonthKey: originMonth(all, timeline),
     impliedAnchor: isSignificant(remainder) ? roundMoney(input.anchorAmount + remainder) : null,
     hints: amountHints(
       remainder,
       input.records,
       input.anchorStart,
       input.today,
-      new Set(findings.flatMap(item => (item.record ? [item.record.id] : [])))
+      new Set(all.flatMap(item => (item.record ? [item.record.id] : [])))
     )
   }
 }

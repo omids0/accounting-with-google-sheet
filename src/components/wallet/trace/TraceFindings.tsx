@@ -1,11 +1,10 @@
-import { useState } from 'react'
-
 import TraceFindingRow from './TraceFindingRow'
 import { TRACE_SECTION_LIMIT } from './traceKinds'
+import { useIncrementalList } from '../../../hooks/useIncrementalList'
 import type { TraceFinding } from '../../../services/walletTraceTypes'
-import { formatPersianNumber } from '../../../utils/formatMoney'
+import { listCountLabel } from '../../../utils/listCountLabel'
 import CalmBlock from '../../CalmBlock'
-import MoneyText from '../../MoneyText'
+import ShowMoreFooter from '../../ShowMoreFooter'
 import { calmEmptyClass, calmListClass, calmNoteClass } from '../../ui/calmListStyles'
 
 interface SectionProps {
@@ -19,29 +18,19 @@ interface SectionProps {
 }
 
 function Section({ title, note, findings, acked, onToggleAck, emptyText }: SectionProps) {
-  const [all, setAll] = useState(false)
+  // A user who never picks accounts can have hundreds of rows: render them in steps.
+  const { visible, remaining, nextStep, showMore } = useIncrementalList(findings, {
+    pageSize: TRACE_SECTION_LIMIT,
+    getId: item => item.id
+  })
 
   if (!findings.length && !emptyText) return null
 
-  const shown = all ? findings : findings.slice(0, TRACE_SECTION_LIMIT)
-  const total = findings.reduce((sum, item) => sum + item.effect, 0)
-
   return (
-    <CalmBlock
-      title={title}
-      badge={findings.length ? <MoneyText amount={total} signed="plus" /> : undefined}
-      action={
-        findings.length > TRACE_SECTION_LIMIT
-          ? {
-              label: all ? 'کمتر' : `همه (${formatPersianNumber(findings.length)})`,
-              onClick: () => setAll(value => !value)
-            }
-          : undefined
-      }
-    >
+    <CalmBlock title={title}>
       {findings.length ? (
         <ul className={calmListClass}>
-          {shown.map(item => (
+          {visible.map(item => (
             <TraceFindingRow
               key={item.id}
               finding={item}
@@ -53,6 +42,13 @@ function Section({ title, note, findings, acked, onToggleAck, emptyText }: Secti
       ) : (
         <p className={calmEmptyClass}>{emptyText}</p>
       )}
+      <ShowMoreFooter
+        remaining={remaining}
+        nextStep={nextStep}
+        onShowMore={showMore}
+        unit="مورد"
+        countLabel={listCountLabel(visible.length, findings.length, 'مورد')}
+      />
       {findings.length ? <p className={calmNoteClass}>{note}</p> : null}
     </CalmBlock>
   )
@@ -74,19 +70,24 @@ export default function TraceFindings({ findings, acked, onToggleAck }: TraceFin
   return (
     <>
       <Section
-        title="مظنون‌ها"
-        note="اگر مورد درست است «تأیید کردم» را بزن؛ اختلاف عوض نمی‌شود ولی از فهرست مظنون‌ها بیرون می‌رود. اگر اشتباه است، رکورد را درست کن."
+        title="اول این‌ها را نگاه کن"
+        note="اگر اشتباه است، رکورد را درست کن. اگر درست است «تأیید کردم» را بزن؛ مقدار اختلاف عوض نمی‌شود، فقط این مورد به پایین صفحه می‌رود و روی همین دستگاه یادآوری می‌شود."
         findings={suspects}
-        emptyText={known.length || confirmed.length ? 'مورد مشکوکی نمانده' : undefined}
+        emptyText={known.length || confirmed.length ? 'موردی برای بررسی نمانده' : undefined}
         {...shared}
       />
       <Section
-        title="توضیح‌شده، بدون اشتباه"
-        note="این‌ها کار عمدی یا اصلاح قبلی‌اند که فرمول مانده نمی‌بیند؛ اشتباه نیستند ولی اختلاف را می‌سازند."
+        title="کار عمدی، اشتباه نیست"
+        note="مثل واریز به هدف پس‌انداز یا اصلاح‌های قبلی. فرمول مانده این‌ها را نمی‌بیند، برای همین به اختلاف اضافه می‌شوند."
         findings={known}
         {...shared}
       />
-      <Section title="تأییدشده" note="این‌ها را درست دانسته‌ای." findings={confirmed} {...shared} />
+      <Section
+        title="تأییدشده توسط تو"
+        note="این‌ها را درست دانسته‌ای."
+        findings={confirmed}
+        {...shared}
+      />
     </>
   )
 }

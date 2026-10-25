@@ -16,7 +16,8 @@ const headClass = 'flex items-baseline justify-between gap-3 text-[0.8rem]'
 export default function TraceTimeline({ report }: { report: TraceReport }) {
   const months = report.timeline.filter(month => month.count > 0)
 
-  if (!months.length && !report.undated) return null
+  // Three findings in one or two months: the list already says it all.
+  if (report.findings.length < 4 || months.length < 2) return null
 
   const largest = Math.max(1, ...months.map(month => Math.abs(month.effect)))
 

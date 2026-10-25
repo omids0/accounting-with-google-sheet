@@ -10,6 +10,7 @@ import { isConfigured } from '../../../services/settings'
 import EmptyState from '../../EmptyState'
 import { RecordListSkeleton } from '../../skeleton'
 import Alert from '../../ui/Alert'
+import Button from '../../ui/Button'
 import { listModulePageClass } from '../../ui/featureCardStyles'
 
 /** `/wallet/trace` — «ردیاب اختلاف»: why the wallet and the calculated balance disagree. */
@@ -55,17 +56,26 @@ export default function WalletTracePage() {
   return (
     <div className={listModulePageClass}>
       {result.ledgerFailed ? (
-        <Alert variant="warning" className="mb-0">
-          گردش حساب‌ها خوانده نشد، پس فهرست علت‌ها ناقص است. چند لحظه بعد دوباره امتحان کن.
+        <Alert variant="warning" className="mb-0 flex flex-col items-start gap-2">
+          <span>گردش حساب‌ها خوانده نشد، پس فهرست علت‌ها ناقص است و درصد بالا قابل اتکا نیست.</span>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="min-h-11"
+            onClick={trace.reload}
+          >
+            تلاش دوباره
+          </Button>
         </Alert>
       ) : null}
       <TraceSummary result={result} />
-      <TraceTimeline report={result.report} />
       <TraceFindings
         findings={result.report.findings}
         acked={trace.acked}
         onToggleAck={trace.toggleAck}
       />
+      <TraceTimeline report={result.report} />
       <TraceRemainder result={result} trace={trace} />
     </div>
   )

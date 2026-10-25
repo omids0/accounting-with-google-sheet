@@ -4,14 +4,14 @@ import type { TraceKind } from '../../../services/walletTraceTypes'
 export const TRACE_KIND_LABELS: Record<TraceKind, string> = {
   'no-account': 'بدون حساب',
   unapplied: 'بدون اثر بر موجودی',
-  'no-ledger': 'بدون ردّ در گردش',
+  'no-ledger': 'ثبت‌نشده در گردش',
   'amount-mismatch': 'مبلغ نمی‌خواند',
   'future-dated': 'تاریخ آینده',
   backdated: 'تاریخ قدیمی',
   'in-anchor': 'دوبار شمرده شده',
   'orphan-ledger': 'رکورد ناپیدا',
-  'unlinked-ledger': 'گردش بدون رکورد',
-  'outside-ledger': 'تغییر بدون گردش',
+  'unlinked-ledger': 'تغییر بدون رکورد',
+  'outside-ledger': 'تغییر ثبت‌نشده',
   'deleted-account': 'حساب حذف‌شده',
   'manual-balance': 'ویرایش دستی',
   'initial-balance': 'حساب جدید',
@@ -19,5 +19,5 @@ export const TRACE_KIND_LABELS: Record<TraceKind, string> = {
   plug: 'اصلاح قبلی'
 }
 
-/** Rows shown before «نمایش همه» in one section. */
-export const TRACE_SECTION_LIMIT = 6
+/** Rows one section shows at first, and adds per «نمایش بیشتر». */
+export const TRACE_SECTION_LIMIT = 20

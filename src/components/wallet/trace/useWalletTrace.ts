@@ -50,16 +50,15 @@ export function useWalletTrace() {
 
   const toggleAck = useCallback(
     (id: string) => {
-      setAcked(prev => {
-        const next = new Set(prev)
+      const next = new Set(acked)
+      const added = !next.delete(id)
 
-        if (!next.delete(id)) next.add(id)
-        writeTraceAcks(spreadsheetId, next)
-
-        return next
-      })
+      if (added) next.add(id)
+      writeTraceAcks(spreadsheetId, next)
+      setAcked(next)
+      showSuccess(added ? 'به «تأییدشده» رفت؛ مقدار اختلاف همان می‌ماند' : 'به فهرست اول برگشت')
     },
-    [spreadsheetId]
+    [acked, spreadsheetId]
   )
 
   /** «ثبت اصلاح»: the record the wallet page's button writes too. Resolves `true` when written. */

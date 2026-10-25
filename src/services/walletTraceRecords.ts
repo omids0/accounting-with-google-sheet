@@ -69,7 +69,7 @@ interface Draft {
 
 function finding(ctx: TraceContext, record: RecordEntry, draft: Draft): TraceFinding {
   return {
-    id: `${draft.kind}:${record.id}`,
+    id: `${draft.kind}:${record.id}:${draft.effect}`,
     kind: draft.kind,
     group: draft.suspect ? 'suspect' : 'known',
     certainty: draft.likely ? 'likely' : 'exact',
@@ -138,8 +138,8 @@ function inWindowDraft(
       ...base,
       likely: true,
       kind: 'no-ledger',
-      title: `${label} — بدون ردّ در گردش حساب`,
-      detail: `این رکورد به «${account}» وصل است ولی در گردش حساب ردی از آن نیست؛ احتمالاً موجودی هیچ‌وقت عوض نشده (رکورد قدیمی، ورود از فایل یا ثبت مستقیم در شیت).`
+      title: `${label} — ثبت‌نشده در گردش حساب`,
+      detail: `این رکورد به «${account}» وصل است ولی در گردش حساب ردی از آن نیست؛ احتمالاً موجودی هیچ‌وقت عوض نشده (رکورد قدیمی، ورود از فایل یا ثبت مستقیم در فایل گوگل‌شیت).`
     }
   }
 
@@ -162,7 +162,7 @@ function inWindowDraft(
     title: `${label} — مبلغ با حساب نمی‌خواند`,
     detail: `مبلغ رکورد ${money(signed)} است ولی اثر ثبت‌شده روی «${account}» ${money(moved)}${
       flipped ? ' و در جهت مخالف' : ''
-    } است؛ بعد از ثبت، مبلغ یا نوع رکورد جای دیگری (مثلاً مستقیم در شیت) عوض شده.`
+    } است؛ بعد از ثبت، مبلغ یا نوع رکورد جای دیگری (مثلاً مستقیم در فایل گوگل‌شیت) عوض شده.`
   }
 }
 

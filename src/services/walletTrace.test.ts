@@ -264,6 +264,21 @@ describe('traceDiscrepancy', () => {
     expect(report.hints).toEqual([])
   })
 
+  it('folds hundreds of records without an account into a few rows, and still counts them', () => {
+    const records = Array.from({ length: 30 }, (_, index) =>
+      record(`n${index}`, 10_000 * (index + 1), { accountId: '' })
+    )
+    const total = records.reduce((sum, item) => sum + item.amount, 0)
+    const report = traceDiscrepancy(input([account('a', 1_000_000)], [], records))
+    const rest = report.findings.find(item => item.id === 'no-account:rest')
+
+    expect(report.findings).toHaveLength(6)
+    expect(rest?.effect).toBe(total - [30, 29, 28, 27, 26].reduce((sum, n) => sum + n * 10_000, 0))
+    expect(report.explained).toBe(total)
+    expect(report.remainder).toBe(0)
+    expect(report.timeline.reduce((sum, month) => sum + month.effect, 0)).toBe(total)
+  })
+
   it('hints at a record with the exact remainder amount', () => {
     const records = [record('r1', 8_000_000)]
     const report = traceDiscrepancy({
