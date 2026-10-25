@@ -11,9 +11,10 @@ const manifest = (versionCode: number) => ({
   data: { versionCode, versionName: `v${versionCode}`, apkUrl: 'https://example.test/app.apk' }
 })
 
-async function loadFor(env: '' | 'dev') {
+async function loadFor(env: '' | 'dev', downloadUrl = '') {
   vi.resetModules()
   vi.stubEnv('VITE_APP_ENV', env)
+  vi.stubEnv('VITE_APP_DOWNLOAD_URL', downloadUrl)
 
   return import('./appUpdate')
 }
@@ -41,6 +42,12 @@ describe('update channel', () => {
     expect(get.mock.calls[0][0].url).toContain('/releases/download/dev-latest/version.json')
     expect(get.mock.calls[0][0].url).not.toContain('/latest/download/')
     expect(APK_DOWNLOAD_URL).toContain('/releases/download/dev-latest/hesab-ketab-dev.apk')
+  })
+
+  it('takes the download link from VITE_APP_DOWNLOAD_URL when the build sets it', async () => {
+    const { APK_DOWNLOAD_URL } = await loadFor('', ' https://example.test/my.apk ')
+
+    expect(APK_DOWNLOAD_URL).toBe('https://example.test/my.apk')
   })
 
   it('offers nothing when the installed build is the newest one', async () => {

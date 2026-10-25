@@ -77,7 +77,7 @@ export default function BuildingMembersPage() {
         title="قطع دسترسی"
         message={`دسترسی ${
           removing ?? ''
-        } قطع شود؟ او دیگر نقشی در این ساختمان ندارد. اشتراک فایل را هم خودت در گوگل‌درایو باید برداری.`}
+        } قطع شود؟ او دیگر نقشی در این ساختمان ندارد و اشتراک فایل او در گوگل‌درایو هم برداشته می‌شود.`}
         confirmLabel="قطع دسترسی"
         cancelLabel="انصراف"
         confirming={page.busy}

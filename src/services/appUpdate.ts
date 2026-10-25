@@ -4,6 +4,7 @@ import { CapacitorHttp } from '@capacitor/core'
 import { isNativePlatform } from './googleAuthNative'
 import { getItem, setItem } from './storage'
 import { IS_DEV_BUILD } from '../utils/appEnv'
+import { APP_DOWNLOAD_URL } from '../utils/appLinks'
 
 const RELEASES_URL = 'https://github.com/omids0/accounting-with-google-sheet/releases'
 
@@ -17,9 +18,11 @@ const VERSION_MANIFEST_URL = IS_DEV_BUILD
   : `${RELEASES_URL}/latest/download/version.json`
 
 /** Same asset the manifest points at; the web build links it for first installs. */
-export const APK_DOWNLOAD_URL = IS_DEV_BUILD
-  ? `${RELEASES_URL}/download/dev-latest/hesab-ketab-dev.apk`
-  : `${RELEASES_URL}/latest/download/hesab-ketab.apk`
+export const APK_DOWNLOAD_URL =
+  APP_DOWNLOAD_URL ||
+  (IS_DEV_BUILD
+    ? `${RELEASES_URL}/download/dev-latest/hesab-ketab-dev.apk`
+    : `${RELEASES_URL}/latest/download/hesab-ketab.apk`)
 
 const DISMISSED_KEY = 'accounting_update_dismissed'
 

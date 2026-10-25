@@ -14,9 +14,9 @@ import {
   type MemberBlock
 } from '../../services/buildingMembers'
 import { members, type BuildingMember, type BuildingPermission } from '../../services/buildingRoles'
+import { shareErrorMessage } from '../../services/driveShare'
 import { getSettings } from '../../services/settings'
 import { showError, showSuccess } from '../../utils/toast'
-import { toUserMessage } from '../../utils/userMessage'
 
 /**
  * Members of the open building for «اعضا و دسترسی‌ها»: the list (with who is still only
@@ -46,7 +46,7 @@ export function useBuildingMembers() {
       if (block) showError(MEMBER_BLOCK_MESSAGES[block])
       else showSuccess(done)
     } catch (err) {
-      showError(toUserMessage(err, 'ذخیره نشد'))
+      showError(shareErrorMessage(err, 'ذخیره نشد'))
     } finally {
       setBusy(false)
       reload()
