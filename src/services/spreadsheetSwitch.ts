@@ -3,9 +3,14 @@ import { refreshScheduledReminders } from './localNotifications'
 import { getCurrentPushSubscription, getDeviceLabel } from './pushNotifications'
 import { upsertPushSubscription } from './reminders'
 import { initializeSheetSync, resetSheetSync } from './sheetSync'
+import { isSharedWorkspace } from './workspace'
 
-/** Reminders are read from the active sheet: schedule (APK) or register push (web) for it. */
+/**
+ * Reminders are read from the active sheet: schedule (APK) or register push (web) for it. A shared
+ * account has none, and its partner must never read this device's push keys.
+ */
 async function refreshRemindersForSheet(spreadsheetId: string): Promise<void> {
+  if (isSharedWorkspace(spreadsheetId)) return
   if (isNativePlatform()) {
     await refreshScheduledReminders(spreadsheetId, { force: true })
 

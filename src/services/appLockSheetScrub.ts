@@ -2,6 +2,7 @@ import { getAccountConfig, getSpreadsheetId } from './appLockStorage'
 import { scrubAppLockSheetRow } from './appLockSync'
 import { getUserEmail } from './auth'
 import { getItem, setItem } from './storage'
+import { isSharedWorkspace } from './workspace'
 
 const SCRUBBED_KEY_PREFIX = 'accounting_app_lock_sheet_scrubbed_'
 
@@ -16,7 +17,10 @@ export function scrubPinHashFromSheetOnce(): Promise<void> {
 
   const spreadsheetId = getSpreadsheetId()
 
-  if (!spreadsheetId || !getUserEmail()) return Promise.resolve()
+  // A shared account never had the old row; scrubbing would only add the «قفل_اپ» tab to it.
+  if (!spreadsheetId || !getUserEmail() || isSharedWorkspace(spreadsheetId)) {
+    return Promise.resolve()
+  }
 
   const flagKey = `${SCRUBBED_KEY_PREFIX}${spreadsheetId}`
 

@@ -131,6 +131,14 @@ export function hasPersonalTabs(spreadsheetId?: string): boolean {
   return isPersonalWorkspace(spreadsheetId)
 }
 
+/**
+ * A shared account (default: the active sheet), also while only the registry knows it: partners
+ * and viewers read every tab, so personal-only writers (reminders, push keys, app opens) skip it.
+ */
+export function isSharedWorkspace(spreadsheetId?: string): boolean {
+  return workspaceTypeOf(spreadsheetId) === 'shared'
+}
+
 export const NOT_BUILDING_FILE_MESSAGE = 'این کار فقط در فایل ساختمان انجام می‌شود'
 
 export const NOT_MEMBER_FILE_MESSAGE = 'این کار فقط در فایل ساختمان یا حساب مشترک انجام می‌شود'
