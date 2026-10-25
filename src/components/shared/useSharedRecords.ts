@@ -25,12 +25,10 @@ import { fetchRecords } from '../../services/sheets'
 import type { CustomForm } from '../../types'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
-import { SHARED_CREATOR_FIELD_ID, SHARED_PAYER_FIELD_ID } from '../form/sharedFields'
+import { isRecordForm, SHARED_CREATOR_FIELD_ID, SHARED_PAYER_FIELD_ID } from '../form/sharedFields'
 import { enrichRecord, sortRecords, type StoredRecord } from '../records/recordsUtils'
 
 const NO_ACCESS = 'دسترسی ندارید'
-
-const isRecordForm = (form: CustomForm) => form.type === 'income' || form.type === 'expense'
 
 const refuse = () => {
   showError(NO_ACCESS)

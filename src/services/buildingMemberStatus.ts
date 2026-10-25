@@ -7,6 +7,7 @@ import type { MemberBlock } from './memberMessages'
 import { memberRulesOf, registryOf } from './memberRegistry'
 import { ACTIVITY_LOG_SHEET, PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { getSheetAllRows, getSheetDataRows } from './spreadsheetStore'
+import { normalizeEmail } from '../utils/email'
 
 /**
  * «دعوت‌شده / فعال» of the members of a building or a shared account: the invite row
@@ -19,8 +20,6 @@ export const MEMBER_STATUS_LABELS: Record<MemberStatus, string> = {
   invited: 'دعوت‌شده',
   active: 'فعال'
 }
-
-const normalizeEmail = (email: string) => email.trim().toLowerCase()
 
 /** E-mails with at least one entry in the activity log («کاربر» column): they have written here. */
 export function activityWriters(rows: readonly (readonly unknown[])[]): Set<string> {

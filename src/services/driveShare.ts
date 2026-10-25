@@ -1,5 +1,6 @@
 import { FILES_API } from './driveFiles'
 import { apiRequest, SheetsApiError } from './sheetsApi'
+import { normalizeEmail } from '../utils/email'
 import { toUserMessage } from '../utils/userMessage'
 
 /**
@@ -16,8 +17,6 @@ interface DrivePermissionRow {
 }
 
 const permissionsUrl = (fileId: string) => `${FILES_API}/${encodeURIComponent(fileId)}/permissions`
-
-const normalizeEmail = (email: string) => email.trim().toLowerCase()
 
 /** Gives `email` access; Drive sends them its sharing e-mail with `message` when one is given. */
 export async function shareFile(

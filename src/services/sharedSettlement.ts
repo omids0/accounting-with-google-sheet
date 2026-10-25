@@ -13,7 +13,7 @@ import {
   SHARED_SPLIT_FIELD_ID
 } from '../components/form/sharedFields'
 import { parseNumeric } from '../utils/parseNumeric'
-import { SETTLEMENT_CATEGORY } from '../utils/protectedCategories'
+import { isSettlement, SETTLEMENT_CATEGORY } from '../utils/protectedCategories'
 
 type Values = Record<string, string | number | undefined>
 
@@ -21,9 +21,6 @@ const email = (value: unknown) =>
   String(value ?? '')
     .trim()
     .toLowerCase()
-
-const isSettlement = (values: Values) =>
-  String(values.category ?? '').trim() === SETTLEMENT_CATEGORY
 
 /**
  * The expense row the settle sheet writes: `from` is its payer and `only:<to>` its split, so the

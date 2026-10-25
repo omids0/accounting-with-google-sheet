@@ -83,7 +83,8 @@ function sharedFields(): FieldConfig[] {
   ]
 }
 
-const isRecordForm = (form: CustomForm) => form.type === 'income' || form.type === 'expense'
+export const isRecordForm = (form: CustomForm): boolean =>
+  form.type === 'income' || form.type === 'expense'
 
 export const hasSharedFields = (form: CustomForm): boolean =>
   form.fields.some(field => field.id === SHARED_PAYER_FIELD_ID)
@@ -137,7 +138,7 @@ export function withSharedLinkField(forms: CustomForm[], on: boolean): CustomFor
 
 export type SharedSplit = 'equal' | `only:${string}`
 
-const ONLY_PREFIX = 'only:'
+export const ONLY_PREFIX = 'only:'
 
 const EMAIL_LIKE = /^[^\s@]+@[^\s@]+$/
 

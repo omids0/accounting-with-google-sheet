@@ -2,7 +2,7 @@ import { monthKeyOfIso } from '../../services/buildingMonths'
 import { suggestSettlement, type SharedRow } from '../../services/sharedSettlement'
 import { formatMoney } from '../../utils/formatMoney'
 import { parseNumeric } from '../../utils/parseNumeric'
-import { SETTLEMENT_CATEGORY } from '../../utils/protectedCategories'
+import { isSettlement } from '../../utils/protectedCategories'
 import {
   SHARED_CREATOR_FIELD_ID,
   SHARED_PAYER_FIELD_ID,
@@ -170,9 +170,6 @@ export function splitLabel(split: SharedSplit, me: string, names: PersonNames): 
 
   return `فقط برای ${personName(split.slice('only:'.length), me, names)}`
 }
-
-const isSettlement = (values: Values) =>
-  String(values.category ?? '').trim() === SETTLEMENT_CATEGORY
 
 /**
  * The month's spending (Jalali `YYYY-MM`): the total of its expenses and what each payer paid.

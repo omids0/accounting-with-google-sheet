@@ -53,6 +53,10 @@ const BUILDING_LOCKED_INCOME_CATEGORIES = new Set<string>([
 /** Expense category of a shared account's settlement, written only by the settle sheet. */
 export const SETTLEMENT_CATEGORY = 'تسویه'
 
+/** A «تسویه» row of a shared account, whatever its type. */
+export const isSettlement = (values: { category?: unknown }): boolean =>
+  String(values.category ?? '').trim() === SETTLEMENT_CATEGORY
+
 // A shared account has no vehicles, installments, checks or wallet reconciliation: nothing is
 // forced into its lists («تسویه» is a system name there, see SHARED_SYSTEM_CATEGORIES).
 const NO_LOCKED_CATEGORIES: ReadonlySet<string> = new Set<string>()

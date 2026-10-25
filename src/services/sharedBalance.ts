@@ -1,4 +1,4 @@
-import type { SharedSplit } from '../components/form/sharedFields'
+import { ONLY_PREFIX, type SharedSplit } from '../components/form/sharedFields'
 
 /** What the balance needs of a shared record; settlements («تسویه») are passed separately. */
 export interface SharedRecordLite {
@@ -33,8 +33,6 @@ const key = (email: string) =>
   String(email ?? '')
     .trim()
     .toLowerCase()
-
-const ONLY_PREFIX = 'only:'
 
 /**
  * The shared account's balance, computed and never stored. Every expense credits its payer the

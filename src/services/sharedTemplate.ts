@@ -16,11 +16,10 @@ import { markFreshlyCreated } from './spreadsheetPreparedSession'
 import { hasSharedAccount, setWorkspaceType, WORKSPACE_TYPE_ROW } from './workspace'
 import { withSharedFields } from '../components/form/sharedFields'
 import type { CustomForm } from '../types'
+import { normalizeEmail } from '../utils/email'
 import { getTodayIso } from '../utils/jalaliDate'
 
 export type SharedPartnerRole = 'partner' | 'viewer'
-
-const normalizeEmail = (email: string) => email.trim().toLowerCase()
 
 /** Step 2 of the setup wizard: what is wrong with the name and the partner's e-mail, or null. */
 export function sharedSetupError(
