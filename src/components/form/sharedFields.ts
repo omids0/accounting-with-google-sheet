@@ -102,13 +102,20 @@ export type SharedSplit = 'equal' | `only:${string}`
 
 const ONLY_PREFIX = 'only:'
 
-/** A cell → the split; anything but `only:<email>` (an empty cell, an older row) is `equal`. */
+const EMAIL_LIKE = /^[^\s@]+@[^\s@]+$/
+
+/**
+ * A cell → the split; anything but `only:<email>` (any case) is `equal`: an empty cell, an older
+ * row, or an `only:` without an e-mail-like name after it (never charge a half-typed name).
+ */
 export function parseSplit(value: string): SharedSplit {
-  const text = String(value ?? '').trim()
+  const text = String(value ?? '')
+    .trim()
+    .toLowerCase()
 
   if (!text.startsWith(ONLY_PREFIX)) return 'equal'
 
-  const email = text.slice(ONLY_PREFIX.length).trim().toLowerCase()
+  const email = text.slice(ONLY_PREFIX.length).trim()
 
-  return email ? `only:${email}` : 'equal'
+  return EMAIL_LIKE.test(email) ? `only:${email}` : 'equal'
 }

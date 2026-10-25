@@ -58,7 +58,43 @@ describe('computeBalance', () => {
     expect(computeBalance([], [], [A, B])).toEqual({
       net: { [A]: 0, [B]: 0 },
       paid: { [A]: 0, [B]: 0 },
-      share: { [A]: 0, [B]: 0 }
+      share: { [A]: 0, [B]: 0 },
+      skipped: 0
     })
+  })
+
+  it('splits an odd equal amount in whole toman: the payer bears the smaller half', () => {
+    const balance = computeBalance([expense(1_001, A), expense(7, B)], [], [A, B])
+
+    expect(balance.share).toEqual({ [A]: 500 + 4, [B]: 501 + 3 })
+    expect(balance.net).toEqual({ [A]: 501 - 4, [B]: -501 + 4 })
+    expect(Object.values(balance.net).every(Number.isInteger)).toBe(true)
+    expect(balance.net[A] + balance.net[B]).toBe(0)
+  })
+
+  it('keeps the nets summing to exactly zero over many odd amounts', () => {
+    const records = Array.from({ length: 40 }, (_, index) =>
+      expense(1_000 * index + 333, index % 3 ? A : B, index % 5 ? 'equal' : `only:${A}`)
+    )
+    const { net } = computeBalance(records, [{ from: B, to: A, amount: 12_345 }], [A, B])
+
+    expect(net[A] + net[B]).toBe(0)
+    expect(Number.isInteger(net[A])).toBe(true)
+  })
+
+  it('counts only the two people: a stranger payer, an `only:` stranger or no payer is skipped', () => {
+    const C = 'c@mail.com'
+    const balance = computeBalance(
+      [expense(900, C), expense(900, A, `only:${C}`), expense(900, '')],
+      [
+        { from: C, to: A, amount: 500 },
+        { from: A, to: A, amount: 500 }
+      ],
+      [A, B]
+    )
+
+    expect(balance.net).toEqual({ [A]: 0, [B]: 0 })
+    expect(Object.keys(balance.paid)).toEqual([A, B])
+    expect(balance.skipped).toBe(5)
   })
 })

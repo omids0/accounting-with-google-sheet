@@ -12,7 +12,7 @@ import { withoutSettlements } from './sharedSettlement'
 import { WALLET_LEDGER_SHEET } from './sheetNames'
 import { fetchSheetRows } from './sheets'
 import { rowToLedgerEntry } from './walletLedger'
-import { getActiveWorkspaceType } from './workspace'
+import { workspaceTypeOf } from './workspace'
 import { buildYearReview, hasYearActivity, type YearReview } from './yearReview'
 import { reviewableYears } from './yearReviewGate'
 import type { AppSettings } from '../types'
@@ -38,7 +38,7 @@ async function loadCommon(settings: AppSettings) {
     todayNetWorth(settings)
   ])
 
-  const type = getActiveWorkspaceType()
+  const type = workspaceTypeOf(id)
 
   return {
     // A building's transfers and fund corrections, a shared account's «تسویه», are not flow.

@@ -30,6 +30,7 @@ import { fetchVaultTransactions } from './treasury'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
 import { computeHoldings, totalsByClass } from './treasuryHoldings'
 import { fetchWalletAccounts } from './wallet'
+import { workspaceTypeOf } from './workspace'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import type { DateRange } from '../utils/dateRange'
 import { parseNumeric } from '../utils/parseNumeric'
@@ -37,7 +38,7 @@ import { roundMoney } from '../utils/roundMoney'
 
 /** A form's records without a shared account's «تسویه», which is not income or spending. */
 const fetchFlowRecords = async (spreadsheetId: string, form: CustomForm) =>
-  withoutSettlementRows(await fetchRecords(spreadsheetId, form))
+  withoutSettlementRows(await fetchRecords(spreadsheetId, form), workspaceTypeOf(spreadsheetId))
 
 async function fetchDashboardBundleUncached(
   settings: AppSettings,

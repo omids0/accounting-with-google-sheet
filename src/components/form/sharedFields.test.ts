@@ -144,5 +144,12 @@ describe('parseSplit', () => {
     expect(parseSplit('nonsense')).toBe('equal')
     expect(parseSplit('only:')).toBe('equal')
     expect(parseSplit(' only: B@Mail.com ')).toBe('only:b@mail.com')
+    expect(parseSplit('ONLY:b@mail.com')).toBe('only:b@mail.com')
+  })
+
+  it('treats an `only:` without an e-mail-like name as equal', () => {
+    expect(parseSplit('only:Ali')).toBe('equal')
+    expect(parseSplit('only:a b@mail.com')).toBe('equal')
+    expect(parseSplit('only:@mail.com')).toBe('equal')
   })
 })
