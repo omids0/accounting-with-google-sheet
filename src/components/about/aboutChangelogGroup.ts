@@ -1,5 +1,6 @@
 import { changelog } from './aboutChangelog'
 import type { AboutFeatureGroup } from './types'
+import { formatIsoDatePersian } from '../../utils/jalaliDate'
 
 /** «همه تغییرات» in «چه خبر؟» opens About at this section (`/about#changelog`). */
 export const ABOUT_CHANGELOG_ID = 'changelog'
@@ -11,7 +12,9 @@ export const ABOUT_CHANGELOG_GROUP: AboutFeatureGroup = {
   icon: 'clock',
   summary: 'مهم‌ترین تغییرهای هر نسخه؛ بعد از هر به‌روزرسانی هم یک بار نمایش داده می‌شود.',
   features: changelog.map(entry => ({
-    title: `نسخه ${entry.version}`,
+    title: entry.date
+      ? `نسخه ${entry.version} — ${formatIsoDatePersian(entry.date)}`
+      : `نسخه ${entry.version}`,
     description: entry.items.join('؛ ')
   }))
 }
