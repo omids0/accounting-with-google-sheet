@@ -25,6 +25,7 @@ import { getActiveWorkspaceType } from '../../services/workspace'
 import type { Dang } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { formatMoney } from '../../utils/formatMoney'
+import { dangLinkedCount } from '../../utils/linkedRecordsDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError } from '../../utils/toast'
 import type { CounterpartyWithRow } from '../counterparties/types'
@@ -102,6 +103,7 @@ export function useDangItems() {
     sortItems: sortDangs,
     deleteLabel: item => `بدهی «${item.title}»`,
     deleteErrorMessage: 'خطا در حذف بدهی',
+    linkedRecordCount: dangLinkedCount,
     onBeforeDelete: item => {
       if (expandedId === item.id) setExpandedId(null)
     },

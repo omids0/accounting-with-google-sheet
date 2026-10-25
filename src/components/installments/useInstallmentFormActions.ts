@@ -5,6 +5,7 @@ import {
   removeParentAttachments,
   useAttachmentDeleteQuestion
 } from '../../hooks/useAttachmentDeleteQuestion'
+import { useLinkedRecordsDeleteQuestion } from '../../hooks/useLinkedRecordsDeleteQuestion'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import {
   createInstallmentPlan,
@@ -19,6 +20,7 @@ import { deleteLinkedExpenseRecord } from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import type { DateRange } from '../../utils/jalaliDate'
+import { installmentPlanLinkedCount } from '../../utils/linkedRecordsDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { useAttachmentDrafts } from '../attachments/useAttachmentDrafts'
@@ -155,6 +157,7 @@ export function useInstallmentFormActions({
   plansRef.current = plans
 
   const attachmentQuestion = useAttachmentDeleteQuestion()
+  const linkedQuestion = useLinkedRecordsDeleteQuestion()
 
   const requestDelete = async (plan: PlanWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
@@ -164,6 +167,13 @@ export function useInstallmentFormActions({
     const answer = await attachmentQuestion.ask(plan.attachments ?? [])
 
     if (!answer) return
+
+    const linked = await linkedQuestion.ask(
+      installmentPlanLinkedCount(plan),
+      plan.title.trim() ? `طرح اقساط «${plan.title.trim()}»` : 'این طرح اقساط'
+    )
+
+    if (!linked) return
 
     const title = plan.title.trim()
 
@@ -175,7 +185,7 @@ export function useInstallmentFormActions({
       commit: async () => {
         const current = plansRef.current.find(entry => entry.id === plan.id) ?? plan
 
-        await deleteInstallmentPlan(spreadsheetId, current.rowNumber, current)
+        await deleteInstallmentPlan(spreadsheetId, current.rowNumber, current, linked === 'keep')
         void removeParentAttachments(current.attachments, answer)
         await loadPlans()
       }
@@ -194,6 +204,7 @@ export function useInstallmentFormActions({
     handleSubmit,
     requestDelete,
     attachments,
-    attachmentQuestionModal: attachmentQuestion.modalProps
+    attachmentQuestionModal: attachmentQuestion.modalProps,
+    linkedRecordsModal: linkedQuestion.modalProps
   }
 }

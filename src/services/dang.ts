@@ -171,9 +171,11 @@ export async function updateDang(
 export async function deleteDang(
   spreadsheetId: string,
   rowNumber: number,
-  dang?: Dang
+  dang?: Dang,
+  /** Keep the expense record its payment made (it stays as an ordinary expense). */
+  keepLinkedRecords = false
 ): Promise<void> {
-  if (dang?.transactionRecordId) {
+  if (dang?.transactionRecordId && !keepLinkedRecords) {
     await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId)
   }
   await deleteSheetRow(spreadsheetId, DANG_SHEET, rowNumber)

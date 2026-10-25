@@ -56,8 +56,12 @@ export default function WalletTracePage() {
   }
 
   const { story } = result.report
-  // With the cause named, the hundreds of small differences are detail, not the first thing to read.
-  const collapsed = !!story?.exact && !showAll && result.report.findings.length > 0
+  // No difference left, or its cause named: the small differences around it are detail (and when
+  // the difference is zero they cancel each other), not the first thing to read.
+  const settled = Math.abs(result.report.difference) < 1
+  const quiet = !!story?.exact || settled
+  const collapsed = quiet && !showAll && result.report.findings.length > 0
+  const count = result.report.findings.length.toLocaleString('fa-IR')
 
   return (
     <div className={listModulePageClass}>
@@ -80,7 +84,9 @@ export default function WalletTracePage() {
       {collapsed ? (
         <>
           <p className="m-0 text-[0.8rem] leading-[1.9] text-muted">
-            موردهای کوچک‌تر دیگری هم هست که به‌احتمال زیاد ربطی به این اختلاف ندارند.
+            {settled
+              ? 'موردهایی هم هست که همدیگر را خنثی می‌کنند؛ لازم نیست نگاهشان کنی.'
+              : 'موردهای کوچک‌تر دیگری هم هست که به‌احتمال زیاد ربطی به این اختلاف ندارند.'}
           </p>
           <Button
             type="button"
@@ -89,7 +95,7 @@ export default function WalletTracePage() {
             className="min-h-11 self-start"
             onClick={() => setShowAll(true)}
           >
-            دیدن موردهای کوچک‌تر ({result.report.findings.length.toLocaleString('fa-IR')})
+            {settled ? 'دیدن موردهایی که همدیگر را خنثی می‌کنند' : 'دیدن موردهای کوچک‌تر'} ({count})
           </Button>
         </>
       ) : (
@@ -98,10 +104,10 @@ export default function WalletTracePage() {
             findings={result.report.findings}
             acked={trace.acked}
             onToggleAck={trace.toggleAck}
-            minor={!!story?.exact}
+            minor={quiet}
           />
           <TraceTimeline report={result.report} />
-          {story?.exact ? (
+          {quiet ? (
             <Button
               type="button"
               variant="secondary"
@@ -109,7 +115,7 @@ export default function WalletTracePage() {
               className="min-h-11 self-start"
               onClick={() => setShowAll(false)}
             >
-              پنهان کردن موردهای کوچک‌تر
+              پنهان کردن این موردها
             </Button>
           ) : null}
         </>
