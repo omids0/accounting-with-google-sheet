@@ -212,7 +212,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   'timesheet-detail': 'جزئیات تایم‌شیت',
   about: 'درباره',
   activity: 'فعالیت',
-  'buildings-home': 'مدیر ساختمان',
+  'buildings-home': 'فضاهای من',
   'building-dashboard': 'داشبورد',
   'building-setup': 'راه‌اندازی ساختمان',
   'building-units': 'واحدها',

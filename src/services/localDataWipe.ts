@@ -90,7 +90,9 @@ const ACCOUNT_KEYS = [
   // Card digits of every workspace's wallet accounts, which route bank SMS (bankSmsRouting.ts).
   'accounting_workspace_cards_v1',
   // The two bridges to the personal spreadsheet: ticks, sent records, waiting payments (bridgePrefs.ts).
-  'accounting_bridge_prefs'
+  'accounting_bridge_prefs',
+  // The shared account turned off on this device (sharedAccountSwitch.ts).
+  'accounting_shared_hidden_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

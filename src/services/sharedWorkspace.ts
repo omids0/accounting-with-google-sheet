@@ -12,3 +12,8 @@ export const SHARED_NAME_PREFIX = 'مشترک '
 export function sharedLabel(name: string): string {
   return SHARED_NAME_PREFIX + name.trim()
 }
+
+/** The account's own name from its sheet label («مشترک <name>» → `<name>`). */
+export function sharedNameOf(label: string): string {
+  return label.startsWith(SHARED_NAME_PREFIX) ? label.slice(SHARED_NAME_PREFIX.length) : label
+}

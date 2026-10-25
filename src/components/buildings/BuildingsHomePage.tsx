@@ -12,6 +12,7 @@ import { useEnterBuilding } from './useEnterBuilding'
 import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { getSettings } from '../../services/settings'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
+import SharedSpaceSection from '../shared/SharedSpaceSection'
 import Button from '../ui/Button'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
@@ -19,9 +20,10 @@ import { listModulePageClass } from '../ui/featureCardStyles'
 const NEW_PARAM = 'new'
 
 /**
- * «مدیر ساختمان»: one card per building (each its own spreadsheet), «+ ساختمان جدید» for the setup
+ * «فضاهای من»: one card per building (each its own spreadsheet), «+ ساختمان جدید» for the setup
  * journey and «اتصال به شیت موجود» for a sheet someone shared. It opens from the personal
- * workspace and, through the drawer's «همهٔ ساختمان‌ها…», from inside a building.
+ * workspace and, through the drawer's «همهٔ ساختمان‌ها…», from inside a building. Below the
+ * buildings sits the opt-in «حساب مشترک» card.
  */
 export default function BuildingsHomePage() {
   const [params, setParams] = useSearchParams()
@@ -34,6 +36,9 @@ export default function BuildingsHomePage() {
   if (params.get(NEW_PARAM) === '1') {
     return <BuildingCreateJourney onCancel={() => setParams({}, { replace: true })} />
   }
+
+  // Task 6 connects the setup wizard here.
+  const startShared = () => undefined
 
   const startNew = () => setParams({ [NEW_PARAM]: '1' })
 
@@ -71,6 +76,8 @@ export default function BuildingsHomePage() {
           </div>
         </>
       )}
+
+      <SharedSpaceSection onStart={startShared} />
 
       <ArchivedBuildings entries={home.archived} onRestore={home.restore} />
 
