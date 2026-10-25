@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { appendSharedRecord, deleteSharedRecord, saveSharedAmount } from './sharedRecordWrites'
-import { canEditRecord, personName, sharedPair, type PersonNames } from './sharedViewModel'
+import {
+  canEditRecord,
+  latestRecord,
+  personName,
+  sharedPair,
+  type PersonNames
+} from './sharedViewModel'
 import { useSharing } from '../../hooks/useSharing'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { getUserEmail } from '../../services/auth'
@@ -199,8 +205,17 @@ export function useSharedRecords() {
 
     if (!form || !editable(record)) return refuse()
 
+    // The row as the latest read has it: a shifted row must not take the amount.
+    const latest = latestRecord(rawRef.current, record.id)
+
+    if (!latest) {
+      showError('این ثبت دیگر در حساب مشترک نیست')
+
+      return false
+    }
+
     return write(
-      () => saveSharedAmount(spreadsheetId, form, record, amount),
+      () => saveSharedAmount(spreadsheetId, form, latest, amount),
       'مبلغ به‌روز شد',
       'خطا در ویرایش مبلغ'
     )
@@ -221,12 +236,12 @@ export function useSharedRecords() {
       id: record.id,
       label: title ? `ثبت «${title}»` : 'ثبت',
       errorMessage: 'خطا در حذف ثبت',
-      commit: () =>
-        deleteSharedRecord(
-          spreadsheetId,
-          form,
-          rawRef.current.find(item => item.id === record.id) ?? record
-        )
+      commit: async () => {
+        const latest = latestRecord(rawRef.current, record.id)
+
+        // Already gone (deleted on another device): no stale row is deleted.
+        if (latest) await deleteSharedRecord(spreadsheetId, form, latest)
+      }
     })
   }
 

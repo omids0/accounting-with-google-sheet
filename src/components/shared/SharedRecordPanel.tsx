@@ -86,7 +86,8 @@ export default function SharedRecordPanel({ record, shared, edit }: SharedRecord
             <span>
               {recordLockNote({
                 canRecord: settlement ? shared.access.canSettle : shared.access.canRecord,
-                creatorName: creator ? shared.nameOf(creator) : ''
+                creatorName: creator ? shared.nameOf(creator) : '',
+                settlement: Boolean(settlement)
               })}
             </span>
           </span>

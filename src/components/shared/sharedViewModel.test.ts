@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   balanceHeadline,
   canEditRecord,
+  latestRecord,
   matchesPerson,
   monthTotals,
   personName,
@@ -85,6 +86,30 @@ describe('recordLockNote', () => {
     expect(recordLockNote({ canRecord: true, creatorName: 'نیما' })).toBe(
       'این ثبت را نیما انجام داده و شما دسترسی «ویرایش ثبت‌های دیگران» ندارید.'
     )
+  })
+
+  it('names the settle permission on a settlement, never the viewer', () => {
+    expect(recordLockNote({ canRecord: false, creatorName: 'نیما', settlement: true })).toBe(
+      'ثبت تسویه با دسترسی «ثبت تسویه» ممکن است.'
+    )
+    expect(recordLockNote({ canRecord: true, creatorName: 'نیما', settlement: true })).toBe(
+      'این ثبت را نیما انجام داده و شما دسترسی «ویرایش ثبت‌های دیگران» ندارید.'
+    )
+  })
+})
+
+describe('latestRecord', () => {
+  const rows = [
+    { id: 'a', rowNumber: 2 },
+    { id: 'b', rowNumber: 3 }
+  ]
+
+  it('finds the record by id in the latest rows (its row may have shifted)', () => {
+    expect(latestRecord(rows, 'b')).toEqual({ id: 'b', rowNumber: 3 })
+  })
+
+  it('is null once the record is gone, so nothing writes a stale row', () => {
+    expect(latestRecord(rows, 'gone')).toBeNull()
   })
 })
 

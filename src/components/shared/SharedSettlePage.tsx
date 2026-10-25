@@ -1,5 +1,5 @@
 import SharedViewerBanner from './SharedViewerBanner'
-import { balanceHeadline } from './sharedViewModel'
+import { balanceHeadline, SETTLE_PERMISSION_NOTE } from './sharedViewModel'
 import { useSharedRecords } from './useSharedRecords'
 import { useSharedSheets } from './useSharedSheets'
 import { isConfigured } from '../../services/settings'
@@ -65,7 +65,7 @@ export default function SharedSettlePage() {
                 ثبت تسویه
               </Button>
             ) : (
-              <p className={sharedMutedClass}>ثبت تسویه با دسترسی «ثبت تسویه» ممکن است.</p>
+              <p className={sharedMutedClass}>{SETTLE_PERMISSION_NOTE}</p>
             )}
           </>
         ) : (

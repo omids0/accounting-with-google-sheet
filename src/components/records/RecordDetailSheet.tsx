@@ -40,6 +40,8 @@ interface RecordDetailSheetProps {
    * account edits only a record's amount, inside `extra`.
    */
   save?: { label: string; onSave: () => void | Promise<unknown>; disabled?: boolean }
+  /** A settlement: the amount in the text colour, unsigned (it is not spending). */
+  neutralAmount?: boolean
 }
 
 /** What a tap on a record row opens: its fields, receipts and items, with edit / repeat / delete. */
@@ -51,7 +53,8 @@ export default function RecordDetailSheet({
   onEdit,
   onDelete,
   extra,
-  save
+  save,
+  neutralAmount = false
 }: RecordDetailSheetProps) {
   const { values } = record
   const titleField = getFormField(form, 'title')
@@ -79,9 +82,15 @@ export default function RecordDetailSheet({
       }}
       saveLabel={save?.label ?? 'ویرایش'}
       saveDisabled={readOnly || !!save?.disabled}
+      // A workspace block that explains the lock (`extra`) leaves no dead «ویرایش» beside «بستن».
+      hideSave={readOnly && extra !== undefined}
       cancelLabel="بستن"
     >
-      {rawAmount ? (
+      {rawAmount && neutralAmount ? (
+        <div className={cn(recordDetailAmountClass, 'text-text')}>
+          <MoneyText amount={Math.abs(parseNumeric(rawAmount))} />
+        </div>
+      ) : rawAmount ? (
         <div
           className={cn(
             recordDetailAmountClass,

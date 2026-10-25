@@ -76,19 +76,34 @@ export function canEditRecord({
   return !!key(creator) && key(creator) === key(me)
 }
 
-/** Why the record sheet shows no edit: a viewer, or another person's record without the right. */
+/** The settle page and a locked settlement say the same line (prototype). */
+export const SETTLE_PERMISSION_NOTE = 'ثبت تسویه با دسترسی «ثبت تسویه» ممکن است.'
+
+/**
+ * Why the record sheet shows no edit: a viewer, a settlement without `settle` (a partner may
+ * still hold `record`), or another person's record without the right.
+ */
 export function recordLockNote({
   canRecord,
-  creatorName
+  creatorName,
+  settlement = false
 }: {
+  /** `settle` for a settlement, else `record`. */
   canRecord: boolean
   creatorName: string
+  settlement?: boolean
 }): string {
-  if (!canRecord) return 'ناظر نمی‌تواند ثبت‌ها را تغییر بدهد.'
+  if (!canRecord)
+    return settlement ? SETTLE_PERMISSION_NOTE : 'ناظر نمی‌تواند ثبت‌ها را تغییر بدهد.'
 
   return `این ثبت را ${
     creatorName || 'شخص دیگری'
   } انجام داده و شما دسترسی «ویرایش ثبت‌های دیگران» ندارید.`
+}
+
+/** The record as the latest read has it (rows shift after a delete); null once it is gone. */
+export function latestRecord<T extends { id: string }>(rows: readonly T[], id: string): T | null {
+  return rows.find(item => item.id === id) ?? null
 }
 
 export interface SharePart {

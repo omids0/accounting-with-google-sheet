@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import SharedRecordPanel from './SharedRecordPanel'
 import type { SharedRecords } from './useSharedRecords'
+import { settlementOf } from '../../services/sharedSettlement'
 import { parseNumeric } from '../../utils/parseNumeric'
 import RecordDetailSheet from '../records/RecordDetailSheet'
 import type { StoredRecord } from '../records/recordsUtils'
@@ -32,6 +33,7 @@ export default function SharedRecordSheet({ record, shared, onClose }: SharedRec
       record={record}
       form={form}
       readOnly={!editable}
+      neutralAmount={record.formType === 'expense' && settlementOf(record.values) !== null}
       onClose={onClose}
       onEdit={() => undefined}
       onDelete={item => {
