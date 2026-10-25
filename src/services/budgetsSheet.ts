@@ -1,4 +1,5 @@
 import { budgetToRow, rowToBudget, threeMonthAverage } from './budgets'
+import { validateBudgetCsvCells } from './budgetsCsvValidate'
 import { getDateFieldId } from './dashboardAggregation'
 import { exportSheetCsv, importSheetCsv } from './importExport'
 import { BUDGETS_HEADERS } from './sheetHeaders'
@@ -83,7 +84,7 @@ export async function exportBudgetsCsv(spreadsheetId: string): Promise<string | 
 /** Rows keyed by category: a category that already has a budget is skipped. */
 export async function importBudgetsCsv(spreadsheetId: string, csvContent: string) {
   return importSheetCsv(spreadsheetId, BUDGETS_SHEET, BUDGETS_HEADERS, csvContent, cells => {
-    const budget = rowToBudget(cells)
+    const budget = rowToBudget(validateBudgetCsvCells(cells))
 
     return budget
       ? budgetToRow({

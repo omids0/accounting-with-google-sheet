@@ -1,5 +1,6 @@
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { fetchReceivables } from './receivablesCrud'
+import { validateReceivablesCsvCells } from './receivablesCsvValidate'
 import {
   RECEIVABLES_HEADERS,
   RECEIVABLES_SHEET,
@@ -8,7 +9,6 @@ import {
   sortReceivables
 } from './receivablesRow'
 import { formatMoney } from '../utils/formatMoney'
-import { parseNumeric } from '../utils/parseNumeric'
 import { downloadTablePdf } from '../utils/pdf'
 import {
   formatReceivablePayments,
@@ -79,18 +79,16 @@ export async function importReceivablesCsv(spreadsheetId: string, csvContent: st
     RECEIVABLES_HEADERS,
     csvContent,
     cells => {
-      const debtor = (cells[3] ?? '').trim()
-
-      if (!debtor) return null
+      const { title, debtor, category, amount, borrowDate } = validateReceivablesCsvCells(cells)
 
       return receivableToRow({
         id: newImportId(cells[0] ?? ''),
         createdAt: newImportTimestamp(cells[1] ?? ''),
-        title: cells[2] ?? '',
+        title,
         debtor,
-        category: cells[4] ?? 'سایر',
-        amount: parseNumeric(cells[5]),
-        borrowDate: cells[6] ?? '',
+        category,
+        amount,
+        borrowDate,
         note: cells[7] ?? '',
         payments: parsePayments(cells[8] ?? '')
       })

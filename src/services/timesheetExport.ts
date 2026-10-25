@@ -1,6 +1,8 @@
+import { requiredTextCell } from './importCellValidate'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { fetchSheetRows } from './sheets'
 import { fetchTimesheetEntries, fetchTimesheets, totalDurationMinutes } from './timesheetCrud'
+import { validateTimesheetEntryCsvCells } from './timesheetEntryCsvValidate'
 import {
   TIMESHEET_ENTRIES_HEADERS,
   TIMESHEET_ENTRIES_SHEET,
@@ -79,9 +81,7 @@ export async function exportTimesheetEntriesPdf(
 
 export async function importTimesheetsCsv(spreadsheetId: string, csvContent: string) {
   return importSheetCsv(spreadsheetId, TIMESHEETS_SHEET, TIMESHEETS_HEADERS, csvContent, cells => {
-    const title = (cells[2] ?? '').trim()
-
-    if (!title) return null
+    const title = requiredTextCell(cells[2], 'عنوان')
 
     return timesheetToRow({
       id: newImportId(cells[0] ?? ''),
@@ -103,14 +103,16 @@ export async function importTimesheetEntriesCsv(
     TIMESHEET_ENTRIES_HEADERS,
     csvContent,
     cells => {
+      const valid = validateTimesheetEntryCsvCells(cells)
+
       const entry = buildTimesheetEntryFromImport(
         [
           newImportId(cells[0] ?? ''),
           cells[1] ?? '',
           newImportTimestamp(cells[2] ?? ''),
-          cells[3] ?? '',
-          cells[4] ?? '',
-          cells[5] ?? '',
+          valid[3],
+          valid[4],
+          valid[5],
           cells[6] ?? '',
           cells[7] ?? '',
           cells[8] ?? ''

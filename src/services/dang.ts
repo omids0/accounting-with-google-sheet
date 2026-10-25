@@ -1,6 +1,7 @@
 import type { Dang } from '../types'
 import { logItemActivity } from './activityLog'
 import { dangSettlementCategory } from './buildingDang'
+import { validateDangCsvCells } from './dangCsvValidate'
 import { dangPrefixes, dangSettlementTitle } from './dangTitles'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { deleteLinkedExpenseRecord } from './paymentTransactions'
@@ -275,18 +276,16 @@ export async function exportDangsPdf(spreadsheetId: string): Promise<string | nu
 
 export async function importDangsCsv(spreadsheetId: string, csvContent: string) {
   return importSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, csvContent, cells => {
-    const title = (cells[2] ?? '').trim()
-
-    if (!title) return null
+    const { title, category, counterparty, amount, date } = validateDangCsvCells(cells)
 
     return dangToRow({
       id: newImportId(cells[0] ?? ''),
       createdAt: newImportTimestamp(cells[1] ?? ''),
       title,
-      category: cells[3] ?? 'سایر',
-      counterparty: cells[4] ?? '',
-      amount: parseNumeric(cells[5]),
-      date: cells[6] ?? '',
+      category,
+      counterparty,
+      amount,
+      date,
       note: cells[7] ?? '',
       paid: parsePaid(cells[8] ?? ''),
       paidAt: cells[9] ?? '',
