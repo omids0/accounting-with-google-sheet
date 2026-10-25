@@ -1,3 +1,4 @@
+import { SHARED_NAME_PREFIX, WORKSPACE_SHARED_VALUE } from './sharedWorkspace'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { SPREADSHEET_TITLE_PREFIX } from './spreadsheetCatalog'
 import { getItem, getStorageVersion, setItem, STORAGE_KEYS } from './storage'
@@ -10,7 +11,7 @@ import type { WorkspaceKind } from '../types'
  */
 export type WorkspaceType = WorkspaceKind
 
-/** `{ [spreadsheetId]: 'building' }`, absent = personal; listed in `ACCOUNT_KEYS`. */
+/** `{ [spreadsheetId]: 'building' | 'shared' }`, absent = personal; listed in `ACCOUNT_KEYS`. */
 export const WORKSPACE_STORAGE_KEY = 'accounting_workspace_v1'
 
 export const WORKSPACE_TYPE_ROW = 'نوع فضا'
@@ -72,7 +73,25 @@ export function hasWorkspaceType(spreadsheetId: string): boolean {
 export function getWorkspaceType(spreadsheetId: string): WorkspaceType {
   const { store, kinds } = read()
 
-  return (store[spreadsheetId] ?? kinds[spreadsheetId]) === 'building' ? 'building' : 'personal'
+  const type = store[spreadsheetId] ?? kinds[spreadsheetId]
+
+  return type === 'building' || type === 'shared' ? type : 'personal'
+}
+
+/** A registered shared account, or a sheet this device already read the marker of. */
+export function isSharedEntry(entry: { id: string; kind?: WorkspaceKind }): boolean {
+  return entry.kind === 'shared' || getWorkspaceType(entry.id) === 'shared'
+}
+
+/** The registered shared account's spreadsheet, or null when this device has none. */
+export function sharedSpreadsheetId(): string | null {
+  const { kinds } = read()
+
+  return Object.keys(kinds).find(id => kinds[id] === 'shared') ?? null
+}
+
+export function hasSharedAccount(): boolean {
+  return sharedSpreadsheetId() !== null
 }
 
 /** False only for a sheet this device has neither read the marker row of nor registered a kind for. */
@@ -100,12 +119,22 @@ export function workspaceTypeOf(spreadsheetId?: string): WorkspaceType {
 
 export const NOT_BUILDING_FILE_MESSAGE = 'این کار فقط در فایل ساختمان انجام می‌شود'
 
+export const NOT_MEMBER_FILE_MESSAGE = 'این کار فقط در فایل ساختمان یا حساب مشترک انجام می‌شود'
+
 /**
  * Building data (tabs, marker rows) belongs to the building's own spreadsheet only. Every building
  * writer calls this first, so a personal spreadsheet can never receive any of it.
  */
 export function assertBuildingSpreadsheet(spreadsheetId: string): void {
   if (getWorkspaceType(spreadsheetId) !== 'building') throw new Error(NOT_BUILDING_FILE_MESSAGE)
+}
+
+/**
+ * Member data (the member list, invitations, who-paid fields) belongs to a building's or a shared
+ * account's own spreadsheet only; a personal spreadsheet can never receive any of it.
+ */
+export function assertMemberWorkspace(spreadsheetId: string): void {
+  if (getWorkspaceType(spreadsheetId) === 'personal') throw new Error(NOT_MEMBER_FILE_MESSAGE)
 }
 
 /** A registered building, or a sheet this device already read the type of. */
@@ -132,10 +161,17 @@ export function rememberPersonalSheet(spreadsheetId: string): void {
 export function personalSpreadsheet<T extends { id: string; name?: string; kind?: WorkspaceKind }>(
   entries: T[]
 ): T | undefined {
-  const isPersonal = (entry: T) =>
-    entry.kind !== 'building' &&
-    getWorkspaceType(entry.id) !== 'building' &&
-    !(entry.name ?? '').replace(SPREADSHEET_TITLE_PREFIX, '').startsWith('ساختمان ')
+  const isPersonal = (entry: T) => {
+    const name = (entry.name ?? '').replace(SPREADSHEET_TITLE_PREFIX, '')
+
+    return (
+      entry.kind !== 'building' &&
+      entry.kind !== 'shared' &&
+      getWorkspaceType(entry.id) === 'personal' &&
+      !name.startsWith('ساختمان ') &&
+      !name.startsWith(SHARED_NAME_PREFIX)
+    )
+  }
 
   const remembered = getItem<string>(PERSONAL_SHEET_KEY)
 
@@ -166,8 +202,14 @@ export async function syncWorkspaceTypeFromSheet(spreadsheetId: string): Promise
 
     const marker = rows.find(row => String(row[0] ?? '').trim() === WORKSPACE_TYPE_ROW)
 
+    const value = String(marker?.[1] ?? '').trim()
+
     const type: WorkspaceType =
-      String(marker?.[1] ?? '').trim() === WORKSPACE_BUILDING_VALUE ? 'building' : 'personal'
+      value === WORKSPACE_BUILDING_VALUE
+        ? 'building'
+        : value === WORKSPACE_SHARED_VALUE
+        ? 'shared'
+        : 'personal'
 
     if (!hasWorkspaceType(spreadsheetId) || getWorkspaceType(spreadsheetId) !== type) {
       setWorkspaceType(spreadsheetId, type)
@@ -180,7 +222,7 @@ export async function syncWorkspaceTypeFromSheet(spreadsheetId: string): Promise
         saveSettings({
           ...settings,
           spreadsheets: settings.spreadsheets?.map(sheet =>
-            sheet.id === spreadsheetId && (sheet.kind === 'building') !== (type === 'building')
+            sheet.id === spreadsheetId && (sheet.kind ?? 'personal') !== type
               ? { ...sheet, kind: type }
               : sheet
           )

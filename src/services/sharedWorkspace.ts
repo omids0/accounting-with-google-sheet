@@ -1,0 +1,14 @@
+/**
+ * The shared account («حساب مشترک»): a third workspace type next to personal and building. Kept
+ * free of imports so `workspace.ts` can read the marker value without an import cycle.
+ */
+
+/** The value of the `نوع فضا` marker row in a shared account's own spreadsheet. */
+export const WORKSPACE_SHARED_VALUE = 'حساب مشترک'
+
+/** The name part (after the title prefix) of a shared account's spreadsheet. */
+export const SHARED_NAME_PREFIX = 'مشترک '
+
+export function sharedLabel(name: string): string {
+  return SHARED_NAME_PREFIX + name.trim()
+}

@@ -31,7 +31,8 @@ export default function WorkspaceRouteGuard() {
     return <AppLoadingSkeleton variant="inline" />
   }
 
-  const redirect = workspaceRedirect(pathname, isBuilding)
+  // While unresolved the personal pages stay as they were; only a building page waits above.
+  const redirect = workspaceRedirect(pathname, resolution === 'unknown' ? 'personal' : resolution)
 
   if (redirect) return <Navigate to={redirect} replace state={state} />
 
