@@ -4,6 +4,7 @@ import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from 
 import { sortInstallmentPlans } from './installmentsCalculations'
 import { INSTALLMENTS_HEADERS, INSTALLMENTS_SHEET } from './installmentsConstants'
 import { fetchInstallmentPlans, planToRow } from './installmentsCrud'
+import { validateInstallmentsCsvCells } from './installmentsCsvValidate'
 import { parsePayments } from './installmentsSchedule'
 import {
   parseAttachmentIds,
@@ -11,7 +12,6 @@ import {
   withAttachmentCell
 } from '../utils/attachmentIds'
 import { formatMoney } from '../utils/formatMoney'
-import { getTodayIso } from '../utils/jalaliDate'
 import { downloadTablePdf } from '../utils/pdf'
 import {
   formatInstallmentPayments,
@@ -75,15 +75,7 @@ export async function importInstallmentsCsv(spreadsheetId: string, csvContent: s
     INSTALLMENTS_HEADERS,
     csvContent,
     cells => {
-      const title = (cells[2] ?? '').trim()
-
-      if (!title) return null
-
-      const count = Number(cells[4]) || 0
-
-      const dueDay = Number(cells[5]) || 1
-
-      const startDate = (cells[6] ?? '').trim() || getTodayIso()
+      const { title, amount, count, dueDay, startDate } = validateInstallmentsCsvCells(cells)
 
       const planId = newImportId(cells[0] ?? '')
 
@@ -91,23 +83,14 @@ export async function importInstallmentsCsv(spreadsheetId: string, csvContent: s
         id: planId,
         createdAt: newImportTimestamp(cells[1] ?? ''),
         title,
-        amount: Number(cells[3]) || 0,
+        amount,
         count,
         dueDay,
         startDate,
         note: cells[7] ?? '',
         subCategory: cells[9] ?? '',
-        payments: parsePayments(
-          planId,
-          cells[8] ?? '',
-          count,
-          dueDay,
-          startDate,
-          Number(cells[3]) || 0
-        )
+        payments: parsePayments(planId, cells[8] ?? '', count, dueDay, startDate, amount)
       }
-
-      if (!plan.count || !plan.amount) return null
 
       return withAttachmentCell(
         planToRow(plan),

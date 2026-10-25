@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 
 import type { ReceivableFormState, ReceivableWithRow } from './types'
+import { useLinkedRecordsDeleteQuestion } from '../../hooks/useLinkedRecordsDeleteQuestion'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import {
   createReceivable,
@@ -10,6 +11,7 @@ import {
 } from '../../services/receivables'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
+import { receivableLinkedCount } from '../../utils/linkedRecordsDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { showSavedForCounterparty } from '../nudges/saveNudges'
@@ -105,15 +107,23 @@ export function useReceivableFormActions({
   }
 
   const undoableDelete = useUndoableDelete()
+  const linkedQuestion = useLinkedRecordsDeleteQuestion()
   // Rows shift after every delete; the write looks its row up again by id.
   const itemsRef = useRef(items)
 
   itemsRef.current = items
 
-  const requestDelete = (item: ReceivableWithRow) => {
+  const requestDelete = async (item: ReceivableWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
+
+    const linked = await linkedQuestion.ask(
+      receivableLinkedCount(item),
+      item.title.trim() ? `طلب «${item.title.trim()}»` : 'این طلب'
+    )
+
+    if (!linked) return
 
     const title = item.title.trim()
 
@@ -126,7 +136,7 @@ export function useReceivableFormActions({
       commit: async () => {
         const current = itemsRef.current.find(entry => entry.id === item.id) ?? item
 
-        await deleteReceivable(spreadsheetId, current.rowNumber, current)
+        await deleteReceivable(spreadsheetId, current.rowNumber, current, linked === 'keep')
         await loadItems()
       }
     })
@@ -142,6 +152,7 @@ export function useReceivableFormActions({
     openEditForm,
     closeForm,
     handleSubmit,
-    requestDelete
+    requestDelete,
+    linkedRecordsModal: linkedQuestion.modalProps
   }
 }

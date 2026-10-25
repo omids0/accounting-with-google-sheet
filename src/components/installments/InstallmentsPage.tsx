@@ -143,6 +143,8 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
         onTogglePayment={mutations.handleTogglePayment}
         onPaymentAmountSave={mutations.handlePaymentAmountSave}
         onAdd={mutations.openCreateForm}
+        resetKey={filters.filterChips.map(chip => chip.label).join('|')}
+        highlightId={highlightId}
       />
 
       <SettleFlowModals flow={mutations.settleFlow} />
@@ -182,6 +184,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
 
       <ConfirmActionModal {...importExportConfirmModal} />
       <ConfirmActionModal {...mutations.attachmentQuestionModal} />
+      <ConfirmActionModal {...mutations.linkedRecordsModal} />
     </div>
   )
 }

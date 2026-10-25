@@ -52,7 +52,10 @@ export const formModalCloseClass = cx(
 export const formModalBodyClass = cx(
   appScrollbarClass,
   'min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-[1.15rem] pb-1 pt-[1.1rem]',
-  '[-webkit-overflow-scrolling:touch] [&_.form-field:last-child]:mb-0 [&_.form-group:last-child]:mb-0'
+  '[-webkit-overflow-scrolling:touch] [&_.form-field:last-child]:mb-0 [&_.form-group:last-child]:mb-0',
+  // A modal is one narrow column: every control fills it. The compact/standard shell caps are for
+  // wide pages and left dates, counts and pickers at 90-215px next to full-width neighbours.
+  '[&_.form-control-shell]:max-w-none'
 )
 
 export const formModalFieldsLayoutClass = formFieldsLayoutClass
@@ -75,6 +78,7 @@ export const formModalBackdropPanelClass = 'xl:bg-transparent'
 export const formModalPanelSideClass = cx(
   'xl:h-full xl:max-h-none xl:w-[23.75rem] xl:max-w-[23.75rem] xl:rounded-none xl:border-0 xl:border-s',
   'xl:shadow-[0_0_40px_rgba(15,23,42,0.22)] xl:animate-[fadeIn_var(--duration-normal)_var(--ease-out)]',
-  // 380px is phone width: paired fields stack again, full width.
-  'xl:[&_.form-control-shell]:max-w-none xl:[&_.form-row]:flex'
+  // 380px is phone width: paired fields stack again, full width (the row's md:items-start
+  // shrank every stacked field to its content, hence items-stretch).
+  'xl:[&_.form-row]:flex xl:[&_.form-row]:items-stretch'
 )

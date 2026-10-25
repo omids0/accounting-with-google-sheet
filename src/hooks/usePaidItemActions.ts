@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 
 import { removeParentAttachments, useAttachmentDeleteQuestion } from './useAttachmentDeleteQuestion'
+import { useLinkedRecordsDeleteQuestion } from './useLinkedRecordsDeleteQuestion'
 import { useSheetImportExport } from './useSheetImportExport'
 import { useUndoableDelete } from './useUndoableDelete'
 import { useSettleFlow } from '../components/settle/useSettleFlow'
@@ -50,7 +51,13 @@ type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {
   ) => Promise<Omit<T, 'rowNumber'>>
   /** Without it paying records the expense silently, as before. */
   settle?: SettleConfig<T>
-  deleteItem: (spreadsheetId: string, rowNumber: number, item: T) => Promise<void>
+  deleteItem: (
+    spreadsheetId: string,
+    rowNumber: number,
+    item: T,
+    /** The answer to «رکوردهای مالی هم پاک شوند؟»: keep the records the item's payment made. */
+    keepLinkedRecords?: boolean
+  ) => Promise<void>
   sortItems: (items: T[]) => T[]
   /** Names the row in the undo toast, e.g. «چک ۱۲۳۴۵۶». */
   deleteLabel: (item: T) => string
@@ -58,6 +65,8 @@ type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {
   onBeforeDelete?: (item: T) => void
   /** Drive ids of an item's receipts: deleting it then asks «پیوست هم پاک شود؟». */
   attachmentIds?: (item: T) => readonly string[] | undefined
+  /** How many income/expense records the item made: deleting it then asks what to do with them. */
+  linkedRecordCount?: (item: T) => number
   importExport: ImportExportFns
 }
 
@@ -73,6 +82,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   deleteErrorMessage,
   onBeforeDelete,
   attachmentIds,
+  linkedRecordCount,
   importExport
 }: UsePaidItemActionsOptions<T>) {
   const [togglingId, setTogglingId] = useState('')
@@ -152,6 +162,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   itemsRef.current = items
 
   const attachmentQuestion = useAttachmentDeleteQuestion()
+  const linkedQuestion = useLinkedRecordsDeleteQuestion()
 
   const requestDelete = async (item: T) => {
     if (readOnly) return
@@ -164,6 +175,10 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
 
     if (!answer) return
 
+    const linked = await linkedQuestion.ask(linkedRecordCount?.(item) ?? 0, deleteLabel(item))
+
+    if (!linked) return
+
     void undoableDelete.schedule({
       id: item.id,
       label: deleteLabel(item),
@@ -171,7 +186,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
       commit: async () => {
         const current = itemsRef.current.find(entry => entry.id === item.id) ?? item
 
-        await deleteItem(spreadsheetId, current.rowNumber, current)
+        await deleteItem(spreadsheetId, current.rowNumber, current, linked === 'keep')
         onBeforeDelete?.(current)
         void removeParentAttachments(attachmentIds?.(current), answer)
         await loadItems()
@@ -196,6 +211,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
     handleImport,
     importExportConfirmModal,
     attachmentQuestionModal: attachmentQuestion.modalProps,
+    linkedRecordsModal: linkedQuestion.modalProps,
     settleFlow
   }
 }

@@ -1,6 +1,7 @@
 import { checkListTitle, checkTypeLabel } from './checkDirection'
-import { searchText, type SearchEntry } from './globalSearch'
+import { joinParts, searchText, type SearchEntry } from './globalSearch'
 import { buildingSearchEntries, type BuildingSearchSources } from './globalSearchBuilding'
+import { monthLabelOf, recordEntries } from './globalSearchRecords'
 import { withWriterNames } from './globalSearchWriter'
 import { getAssetClassLabel } from './treasuryCatalog'
 import { formatQuantityValue } from './treasuryQuantity'
@@ -15,12 +16,8 @@ import type {
   VaultHolding,
   VehicleProfile
 } from '../types'
-import { formatJalaliMonthLabel } from '../utils/dateRange'
-import { formatIsoDatePersian, isoToJalali } from '../utils/jalaliDate'
-import { parseLineItems } from '../utils/lineItems'
+import { formatIsoDatePersian } from '../utils/jalaliDate'
 import { toPersianDigits } from '../utils/normalizeDigits'
-import { parseNumeric } from '../utils/parseNumeric'
-import { normalizeSheetDate } from '../utils/sheetValues'
 
 export interface SearchRecordInput {
   id: string
@@ -50,70 +47,8 @@ export interface SearchSources {
   writerName?: (email: string) => string
 }
 
-/**
- * Record fields that are ids, flags or raw JSON, not words a user would type. The
- * counterparty stays searchable; the item names are indexed from `lineItems` below.
- */
-const RECORD_SKIP_FIELDS = new Set(['amount', 'walletAccount', 'walletApply', 'lineItems'])
-
-/** «مهر ۱۴۰۵» of an ISO date; empty when there is no date. */
-export function monthLabelOf(iso: string): string {
-  if (!iso) return ''
-
-  const { year, month } = isoToJalali(iso)
-
-  return toPersianDigits(formatJalaliMonthLabel(`${year}-${String(month).padStart(2, '0')}`))
-}
-
 function dated(prefix: string, iso: string): string {
   return iso ? `${prefix} ${formatIsoDatePersian(iso)}` : ''
-}
-
-function joinParts(...parts: string[]): string {
-  return parts.filter(Boolean).join(' · ')
-}
-
-function recordEntries(sources: SearchSources): SearchEntry[] {
-  const accounts = new Map(sources.accounts.map(account => [account.id, account.title]))
-
-  return sources.records
-    .map(record => {
-      const values = record.values
-      const date = normalizeSheetDate(values[record.dateField])
-      const amount = Math.abs(parseNumeric(values.amount))
-      const typeLabel = record.type === 'income' ? 'درآمد' : 'هزینه'
-      const category = [values.category, values.subCategory].filter(Boolean).join(' / ')
-      const month = monthLabelOf(date)
-      const itemNames = parseLineItems(values.lineItems).map(item => item.name)
-      const words = Object.entries(values)
-        .filter(([key]) => key !== record.dateField && !RECORD_SKIP_FIELDS.has(key))
-        .map(([, value]) => value)
-
-      return {
-        group: 'records' as const,
-        id: record.id,
-        recordType: record.type,
-        title: values.title || values.category || '—',
-        subtitle: joinParts(
-          typeLabel,
-          category,
-          month,
-          itemNames.length ? `☰ ${toPersianDigits(String(itemNames.length))}` : ''
-        ),
-        amount: record.type === 'expense' ? -amount : amount,
-        date,
-        text: searchText(
-          ...words,
-          ...itemNames,
-          typeLabel,
-          accounts.get(values.walletAccount ?? ''),
-          month
-        ),
-        amounts: [amount],
-        writer: record.writer
-      }
-    })
-    .sort((a, b) => b.date.localeCompare(a.date))
 }
 
 function counterpartyEntries(sources: SearchSources): SearchEntry[] {

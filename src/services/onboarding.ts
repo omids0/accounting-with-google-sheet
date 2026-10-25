@@ -1,6 +1,7 @@
 import { getSettings } from './settings'
 import { WALLET_SHEET } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
+import { countSheetDataRows, rowHasContent } from './spreadsheetStoreCount'
 import { getItem, setItem } from './storage'
 import { getWorkspaceType } from './workspace'
 
@@ -59,15 +60,25 @@ export function countWalletAccounts(spreadsheetId: string): number | null {
   return rows === null ? null : rows.filter(row => String(row[0] ?? '').trim()).length
 }
 
-/** Income/expense rows across every form; null while a form's tab is not cached yet. */
-export function countRecordRows(spreadsheetId: string): number | null {
+/**
+ * Income/expense rows across every form; null while a form's tab is not cached yet. Callers that
+ * only compare with a threshold pass it as `stopAt`: counting then stops there (the result is the
+ * count capped at `stopAt`) instead of walking every row of every tab on each render.
+ */
+export function countRecordRows(spreadsheetId: string, stopAt = Infinity): number | null {
   let total = 0
 
   for (const form of getSettings()?.forms ?? []) {
-    const rows = getSheetDataRows(spreadsheetId, form.sheetName)
+    // A tab that is not cached makes the answer unknown even when the threshold is already met.
+    const rows = countSheetDataRows(
+      spreadsheetId,
+      form.sheetName,
+      rowHasContent,
+      Math.max(0, stopAt - total)
+    )
 
     if (rows === null) return null
-    total += rows.filter(row => row.some(cell => String(cell ?? '').trim())).length
+    total += rows
   }
 
   return total
@@ -76,7 +87,7 @@ export function countRecordRows(spreadsheetId: string): number | null {
 /** True only when the cached mirror proves there are no accounts and no records. */
 export function isSpreadsheetEmpty(spreadsheetId: string): boolean | null {
   const wallet = hasDataRows(getSheetDataRows(spreadsheetId, WALLET_SHEET))
-  const records = countRecordRows(spreadsheetId)
+  const records = countRecordRows(spreadsheetId, 1)
 
   if (wallet === null || records === null) return null
 

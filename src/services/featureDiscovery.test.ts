@@ -5,6 +5,21 @@ const sheets: Record<string, string[][] | null> = {}
 vi.mock('./spreadsheetStore', () => ({
   getSheetDataRows: (_id: string, name: string) => sheets[name] ?? null
 }))
+vi.mock('./spreadsheetStoreCount', () => ({
+  rowHasContent: (row: string[]) => row.some(cell => String(cell ?? '').trim()),
+  countSheetDataRows: (
+    _id: string,
+    name: string,
+    matches: (row: string[]) => boolean,
+    stopAt = Infinity
+  ) => {
+    const rows = sheets[name]
+
+    if (!rows) return null
+
+    return Math.min(stopAt, rows.filter(matches).length)
+  }
+}))
 vi.mock('./settings', () => ({
   getSettings: () => ({ forms: [{ id: 'e', sheetName: 'هزینه', type: 'expense' }] })
 }))

@@ -37,10 +37,11 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     handleImport,
     importExportConfirmModal,
     attachmentQuestionModal,
+    linkedRecordsModal,
     settleFlow
   } = useChecksData()
 
-  useHighlightParam()
+  const highlightId = useHighlightParam()
 
   const {
     showForm,
@@ -172,6 +173,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
         onAdd={openCreateForm}
         directionNote={direction.activeLabel}
         onClearDirection={() => direction.set('all')}
+        resetKey={filterChips.map(chip => chip.label).join('|')}
+        highlightId={highlightId}
       />
 
       <CheckFormModal
@@ -187,6 +190,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
 
       <ConfirmActionModal {...importExportConfirmModal} />
       <ConfirmActionModal {...attachmentQuestionModal} />
+      <ConfirmActionModal {...linkedRecordsModal} />
       <SettleFlowModals flow={settleFlow} />
     </div>
   )

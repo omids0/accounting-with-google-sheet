@@ -1,5 +1,6 @@
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { recurringToRow, rowToRecurring } from './recurring'
+import { validateRecurringCsvCells } from './recurringCsvValidate'
 import { RECURRING_HEADERS } from './sheetHeaders'
 import { RECURRING_SHEET } from './sheetNames'
 import {
@@ -77,7 +78,7 @@ export async function importRecurringCsv(spreadsheetId: string, csvContent: stri
     const item = rowToRecurring([
       newImportId(cells[0] ?? ''),
       newImportTimestamp(cells[1] ?? ''),
-      ...cells.slice(2)
+      ...validateRecurringCsvCells(cells).slice(2)
     ])
 
     return item ? recurringToRow(item) : null

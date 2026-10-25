@@ -48,6 +48,15 @@ describe('validateChecksCsvCells', () => {
     expect(() => validateChecksCsvCells(row({ 6: '' }))).toThrow('تاریخ سررسید خالی است')
   })
 
+  it('reads Jalali dates in either form and refuses a day the month lacks', () => {
+    const jalali = validateChecksCsvCells(row({ 5: '۱۴۰۵-۸-۱', 6: '1405/08/02' }))
+
+    expect([jalali.creationDate, jalali.dueDate]).toEqual(['2026-10-23', '2026-10-24'])
+    expect(() => validateChecksCsvCells(row({ 6: '1405/07/31' }))).toThrow(
+      'تاریخ سررسید معتبر نیست'
+    )
+  })
+
   it('lets the issue date stay empty', () => {
     expect(validateChecksCsvCells(row({ 5: '' })).creationDate).toBe('')
   })

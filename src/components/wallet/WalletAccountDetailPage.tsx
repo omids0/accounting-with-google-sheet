@@ -3,8 +3,11 @@ import { useWalletLedger } from './useWalletLedger'
 import { useWalletLedgerSpeedDial } from './useWalletLedgerSpeedDial'
 import WalletAccountCardVisual from './WalletAccountCardVisual'
 import WalletLedgerItem from './WalletLedgerItem'
+import { useIncrementalList } from '../../hooks/useIncrementalList'
+import { listCountLabel } from '../../utils/listCountLabel'
 import ConfirmActionModal from '../ConfirmActionModal'
 import EmptyState from '../EmptyState'
+import ShowMoreFooter from '../ShowMoreFooter'
 import { RecordListSkeleton } from '../skeleton'
 import Card from '../ui/Card'
 import { listModulePageClass } from '../ui/featureCardStyles'
@@ -13,6 +16,8 @@ import { recordsListCountClass, recordsListHeaderClass } from '../ui/recordsStyl
 /** One account's balance history («گردش حساب»), opened by tapping its wallet card. */
 export default function WalletAccountDetailPage({ account }: { account: WalletAccountWithRow }) {
   const { entries, loading, reload } = useWalletLedger(account.id)
+  // Long histories (thousands of rows) show 50 at a time; the speed dial and balances keep all rows.
+  const { visible, remaining, nextStep, showMore } = useIncrementalList(entries)
   const { confirmModal, openEntry } = useWalletLedgerSpeedDial({
     account,
     entries,
@@ -37,11 +42,19 @@ export default function WalletAccountDetailPage({ account }: { account: WalletAc
         <Card className="records-list-card">
           <div className={recordsListHeaderClass}>
             <span>گردش حساب</span>
-            <span className={recordsListCountClass}>{entries.length} ردیف</span>
+            <span className={recordsListCountClass}>
+              {listCountLabel(visible.length, entries.length, 'ردیف')}
+            </span>
           </div>
-          {entries.map((entry, index) => (
+          {visible.map((entry, index) => (
             <WalletLedgerItem key={entry.id} entry={entry} index={index} />
           ))}
+          <ShowMoreFooter
+            remaining={remaining}
+            nextStep={nextStep}
+            onShowMore={showMore}
+            unit="ردیف"
+          />
         </Card>
       )}
 

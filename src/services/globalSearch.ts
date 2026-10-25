@@ -57,9 +57,46 @@ export interface SearchResults {
   groups: SearchGroupResult[]
 }
 
+/** Joins the non-empty parts of a result line: «هزینه · خوراک · مهر ۱۴۰۵». */
+export function joinParts(...parts: string[]): string {
+  return parts.filter(Boolean).join(' · ')
+}
+
 /** Normalized haystack of the given parts (empty ones skipped). */
 export function searchText(...parts: (string | number | null | undefined)[]): string {
   return normalizeSearchText(parts.filter(part => part != null && part !== '').join(' '))
+}
+
+/**
+ * `searchText` for building a whole index: every distinct part (a category, an account, a
+ * counterparty repeated on thousands of rows) is normalized once, then the parts are joined.
+ * The result equals `searchText(...parts)`: parts are joined by a space, so no normalization
+ * step (NFC, digit groups, whitespace, case) reaches across two of them.
+ */
+export function createSearchTextBuilder(): (
+  ...parts: (string | number | null | undefined)[]
+) => string {
+  const normalized = new Map<string, string>()
+
+  return (...parts) => {
+    const words: string[] = []
+
+    for (const part of parts) {
+      if (part == null || part === '') continue
+
+      const raw = typeof part === 'string' ? part : String(part)
+      let word = normalized.get(raw)
+
+      if (word === undefined) {
+        word = normalizeSearchText(raw)
+        normalized.set(raw, word)
+      }
+
+      if (word) words.push(word)
+    }
+
+    return words.join(' ')
+  }
 }
 
 /**

@@ -182,9 +182,11 @@ export async function updateInstallmentPlan(
 export async function deleteInstallmentPlan(
   spreadsheetId: string,
   rowNumber: number,
-  plan?: InstallmentPlan
+  plan?: InstallmentPlan,
+  /** Keep the expense records its paid instalments made (they stay as ordinary expenses). */
+  keepLinkedRecords = false
 ): Promise<void> {
-  if (plan) {
+  if (plan && !keepLinkedRecords) {
     for (const payment of plan.payments) {
       if (payment.transactionRecordId) {
         await deleteLinkedExpenseRecord(spreadsheetId, payment.transactionRecordId)

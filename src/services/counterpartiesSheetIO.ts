@@ -6,6 +6,7 @@ import {
   formatLocationLabel,
   getCounterpartyFullName
 } from './counterparties'
+import { validateCounterpartyCsvCells } from './counterpartiesCsvValidate'
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
 import { downloadTablePdf } from '../utils/pdf'
 import { formatPersianDate } from '../utils/pdfFormat'
@@ -44,7 +45,7 @@ export async function importCounterpartiesCsv(spreadsheetId: string, csvContent:
     COUNTERPARTIES_HEADERS,
     csvContent,
     cells => {
-      const row = counterpartyRowFromImportCells(cells)
+      const row = counterpartyRowFromImportCells(validateCounterpartyCsvCells(cells))
 
       if (!row) return null
 

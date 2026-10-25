@@ -6,6 +6,7 @@ import { CHECK_DIRECTION_LABELS } from '../../services/checkDirection'
 import { CHECKS_SHEET } from '../../services/checks'
 import AttachmentBadge from '../attachments/AttachmentBadge'
 import EmptyState from '../EmptyState'
+import IncrementalCardList from '../IncrementalCardList'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import CheckCard from './CheckCard'
@@ -20,7 +21,6 @@ import {
   writerColumn
 } from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
-import { listCardsContainerClass } from '../ui/featureCardStyles'
 import { useReadOnly } from '../ui/readOnly'
 
 export type CheckListProps = {
@@ -36,6 +36,10 @@ export type CheckListProps = {
   /** The active «نوع چک» filter's label ('' = none), named when it hides every row. */
   directionNote?: string
   onClearDirection?: () => void
+  /** The active filters; a change shows the first 50 rows again. */
+  resetKey: string
+  /** The `?highlight=` target: rendered even when it lies beyond the first 50. */
+  highlightId?: string | null
 }
 
 export default function CheckList({
@@ -48,7 +52,9 @@ export default function CheckList({
   onDelete,
   onAdd,
   directionNote,
-  onClearDirection
+  onClearDirection,
+  resetKey,
+  highlightId
 }: CheckListProps) {
   const isDesktop = useIsDesktop()
   const { shared } = useSharing()
@@ -105,6 +111,9 @@ export default function CheckList({
           rows={filteredItems}
           columns={columns}
           rowKey={item => item.id}
+          windowed
+          resetKey={resetKey}
+          mustInclude={[highlightId]}
           isMuted={item => item.paid}
           actions={item => (
             <>
@@ -123,8 +132,12 @@ export default function CheckList({
           )}
         />
       ) : (
-        <div className={listCardsContainerClass}>
-          {filteredItems.map(item => (
+        <IncrementalCardList
+          items={filteredItems}
+          getId={item => item.id}
+          resetKey={resetKey}
+          mustInclude={[highlightId]}
+          renderItem={item => (
             <CheckCard
               key={item.id}
               item={item}
@@ -133,8 +146,8 @@ export default function CheckList({
               onEdit={onEdit}
               onDelete={onDelete}
             />
-          ))}
-        </div>
+          )}
+        />
       )}
 
       <CheckTotals items={filteredItems} />

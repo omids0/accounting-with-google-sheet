@@ -14,8 +14,21 @@ const IGNORED_CHARS = /[‌‍ـ‎‏؜﻿]/g
 /** Digit-group separators: ASCII comma, Arabic comma «،», Arabic thousands separator «٬». */
 const THOUSANDS_BETWEEN_DIGITS = /(\d)[,،٬](?=\d)/g
 
+/**
+ * Text that needs no cleaning at all: no Arabic/Persian-Indic digits, Arabic letter variants,
+ * invisible marks or digit-group commas, and no whitespace other than single inner spaces.
+ * Most words of a long list are like this, so the seven passes below can be skipped for them.
+ */
+const NEEDS_CLEANING = new RegExp(
+  `[۰-۹٠-٩يىكة,،٬]|${IGNORED_CHARS.source}|[^\\S ]|\\s\\s|^\\s|\\s$`
+)
+
 export function normalizeSearchText(value: string): string {
-  return normalizeDigits(value.normalize('NFC'))
+  const composed = value.normalize('NFC')
+
+  if (!NEEDS_CLEANING.test(composed)) return composed.toLowerCase()
+
+  return normalizeDigits(composed)
     .replace(/[يىكة]/g, ch => ARABIC_TO_PERSIAN[ch] ?? ch)
     .replace(IGNORED_CHARS, '')
     .replace(THOUSANDS_BETWEEN_DIGITS, '$1')

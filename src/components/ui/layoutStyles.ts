@@ -172,6 +172,8 @@ export const headerActionBtnClass = cn(
 export const headerPrimaryActionClass = cx(
   'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-surface px-4 text-[0.84rem] font-bold text-primary-dark',
   'shadow-[0_2px_8px_rgba(15,23,42,0.18)] transition-[opacity,transform] duration-[var(--duration-fast)] hover:opacity-90 active:scale-95',
+  // Dark: the surface is as dark as the header, so the pill needs its own chrome.
+  '[[data-theme=dark]_&]:bg-white/10 [[data-theme=dark]_&]:ring-1 [[data-theme=dark]_&]:ring-primary/55 [[data-theme=dark]_&]:hover:bg-white/15',
   'disabled:pointer-events-none disabled:opacity-60'
 )
 

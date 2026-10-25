@@ -10,11 +10,23 @@ export function withWriterNames(
 ): SearchEntry[] {
   if (!writerName) return entries
 
+  // A shared sheet has a few writers and thousands of rows: look each one up and normalize once.
+  const nameTexts = new Map<string, string>()
+
   return entries.map(entry => {
-    const name = entry.writer ? writerName(entry.writer) : ''
+    if (!entry.writer) return entry
 
-    if (!name) return entry
+    let nameText = nameTexts.get(entry.writer)
 
-    return { ...entry, text: `${entry.text} ${searchText(name)}`.trim() }
+    if (nameText === undefined) {
+      const name = writerName(entry.writer)
+
+      nameText = name ? searchText(name) : ''
+      nameTexts.set(entry.writer, nameText)
+    }
+
+    if (!nameText) return entry
+
+    return { ...entry, text: `${entry.text} ${nameText}`.trim() }
   })
 }

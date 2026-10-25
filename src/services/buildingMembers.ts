@@ -1,6 +1,7 @@
 import { rowToActivity } from './activityLog'
 import { getUserEmail } from './auth'
 import { INVITE_ROW_PREFIX, invitedEmails } from './buildingInvites'
+import { DRIVE_ROLE, revokeMemberDrive, syncMemberDriveRole } from './buildingMemberDrive'
 import {
   ACCESS_ROW_PREFIX,
   BUILDING_PERMISSIONS,
@@ -21,7 +22,7 @@ import type { BuildingRole } from '../components/buildings/buildingOptions'
  * Member mutations of a building (round 11, Step 9), all rows of «تنظیمات دوره»: the role
  * (`نقش:<email>`), the per-permission overrides (`دسترسی:<email>`) and the invite marker.
  * Every writer re-checks `settings` and the guards, so a stale screen cannot lock the building
- * out of its last manager. This is interface enforcement: the real access is the Drive share.
+ * out of its last manager. A new role and a removal also change the Drive share, the real access.
  */
 
 /** Why a change was refused; null = allowed. */
@@ -77,10 +78,13 @@ export function viewerCanWrite(member: BuildingMember): boolean {
   )
 }
 
+const driveAccessLabel = (role: BuildingRole) =>
+  DRIVE_ROLE[role] === 'writer' ? 'ویرایش' : 'فقط مشاهده'
+
 export const DRIVE_ACCESS: Record<BuildingRole, string> = {
-  manager: 'ویرایش',
-  accountant: 'ویرایش',
-  board: 'فقط مشاهده'
+  manager: driveAccessLabel('manager'),
+  accountant: driveAccessLabel('accountant'),
+  board: driveAccessLabel('board')
 }
 
 const managerCount = (list: BuildingMember[]) => list.filter(item => item.role === 'manager').length
@@ -131,6 +135,7 @@ export async function changeMemberRole(
   const member = members(spreadsheetId).find(item => item.email === key)
 
   if (member?.role === role) return null
+  await syncMemberDriveRole(spreadsheetId, key, role)
   await setBuildingSetting(spreadsheetId, ROLE_ROW_PREFIX + key, role)
   if (member && isCustom(member))
     await setBuildingSetting(spreadsheetId, ACCESS_ROW_PREFIX + key, '{}')
@@ -164,7 +169,7 @@ export async function setMemberOverrides(
   return null
 }
 
-/** «قطع دسترسی»: drops the member's rows; the Drive share is the manager's to remove. */
+/** «قطع دسترسی»: takes the Drive share back first, then drops the member's rows. */
 export async function removeMember(
   spreadsheetId: string,
   email: string
@@ -175,6 +180,7 @@ export async function removeMember(
 
   const key = normalizeEmail(email)
 
+  await revokeMemberDrive(spreadsheetId, key)
   await deleteBuildingSettings(spreadsheetId, [
     ROLE_ROW_PREFIX + key,
     ACCESS_ROW_PREFIX + key,

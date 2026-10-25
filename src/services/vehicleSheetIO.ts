@@ -1,4 +1,5 @@
 import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
+import { validateVehicleCsvCells } from './vehicleCsvValidate'
 import {
   VEHICLES_HEADERS,
   VEHICLES_SHEET,
@@ -44,7 +45,7 @@ export async function exportVehiclesPdf(spreadsheetId: string): Promise<string |
 
 export async function importVehiclesCsv(spreadsheetId: string, csvContent: string) {
   return importSheetCsv(spreadsheetId, VEHICLES_SHEET, VEHICLES_HEADERS, csvContent, cells => {
-    const row = vehicleRowFromImportCells(cells)
+    const row = vehicleRowFromImportCells(validateVehicleCsvCells(cells))
 
     if (!row) return null
 

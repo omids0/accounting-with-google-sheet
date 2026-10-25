@@ -127,9 +127,11 @@ export async function updateCheck(
 export async function deleteCheck(
   spreadsheetId: string,
   rowNumber: number,
-  check?: Check
+  check?: Check,
+  /** Keep the record its payment made (it stays as an ordinary income or expense). */
+  keepLinkedRecords = false
 ): Promise<void> {
-  if (check?.transactionRecordId) {
+  if (check?.transactionRecordId && !keepLinkedRecords) {
     await deleteLinkedRecordWithWallet(
       spreadsheetId,
       checkRecordType(check),

@@ -14,7 +14,7 @@ export default function OnboardingEntryStep({ spreadsheetId, onReadyChange }: On
   const [savedCount, setSavedCount] = useState(0)
 
   useEffect(() => {
-    onReadyChange(savedCount > 0 || (countRecordRows(spreadsheetId) ?? 0) > 0)
+    onReadyChange(savedCount > 0 || (countRecordRows(spreadsheetId, 1) ?? 0) > 0)
   }, [savedCount, spreadsheetId, onReadyChange])
 
   return (

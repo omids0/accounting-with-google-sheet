@@ -18,6 +18,7 @@ import ActiveFilterChips from '../ActiveFilterChips'
 import ConfirmActionModal from '../ConfirmActionModal'
 import EmptyState from '../EmptyState'
 import FilterModal from '../FilterModal'
+import IncrementalCardList from '../IncrementalCardList'
 import PageFilterPanel from '../PageFilterPanel'
 import SearchEmptyState from '../SearchEmptyState'
 import ReceivableTable from './ReceivableTable'
@@ -30,14 +31,14 @@ import type { ReceivableWithRow, ReceivablesPageProps } from './types'
 import { useReceivableMutations } from './useReceivableMutations'
 import { useReceivablesData } from './useReceivablesData'
 import { useReceivablesFilters } from './useReceivablesFilters'
-import { listCardsContainerClass, listModulePageClass } from '../ui/featureCardStyles'
+import { listModulePageClass } from '../ui/featureCardStyles'
 import { receivableTotalCardClass } from '../ui/treasuryReceivableStyles'
 
 export default function ReceivablesPage({ active = true }: ReceivablesPageProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const isDesktop = useIsDesktop()
 
-  useHighlightParam(setExpandedId)
+  const highlightId = useHighlightParam(setExpandedId)
 
   const {
     items: allItems,
@@ -104,6 +105,9 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       payment.transactionRecordId ? [payment.transactionRecordId] : []
     )
   )
+
+  // A new filter shows the first 50 rows again.
+  const listResetKey = filters.filterChips.map(chip => chip.label).join('|')
 
   const cardProps = (item: ReceivableWithRow) => ({
     item,
@@ -192,13 +196,19 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
           onEdit={mutations.openEditForm}
           onDelete={mutations.requestDelete}
           renderDetail={item => <ReceivableCard index={0} {...cardProps(item)} bodyOnly />}
+          resetKey={listResetKey}
+          highlightId={highlightId}
         />
       ) : (
-        <div className={listCardsContainerClass}>
-          {filters.filteredItems.map((item, index) => (
+        <IncrementalCardList
+          items={filters.filteredItems}
+          getId={item => item.id}
+          resetKey={listResetKey}
+          mustInclude={[highlightId, expandedId]}
+          renderItem={(item, index) => (
             <ReceivableCard key={item.id} index={index} {...cardProps(item)} />
-          ))}
-        </div>
+          )}
+        />
       )}
 
       {items.length > 0 && (
@@ -231,6 +241,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
+      <ConfirmActionModal {...mutations.linkedRecordsModal} />
       <SettleFlowModals flow={mutations.settleFlow} />
     </div>
   )

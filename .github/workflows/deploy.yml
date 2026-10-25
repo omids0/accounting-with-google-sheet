@@ -57,6 +57,8 @@ jobs:
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
           VITE_AUTH_WORKER_URL: ${{ secrets.VITE_AUTH_WORKER_URL }}
           VITE_BASE_PATH: /accounting-with-google-sheet/
+          VITE_APP_URL: https://omids0.github.io/accounting-with-google-sheet/
+          VITE_APP_DOWNLOAD_URL: https://github.com/omids0/accounting-with-google-sheet/releases/latest/download/hesab-ketab.apk
         run: npm run build
 
       - name: Build dev
@@ -66,6 +68,8 @@ jobs:
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
           VITE_AUTH_WORKER_URL: ${{ secrets.VITE_AUTH_WORKER_URL }}
           VITE_BASE_PATH: /accounting-with-google-sheet/dev/
+          VITE_APP_URL: https://omids0.github.io/accounting-with-google-sheet/dev/
+          VITE_APP_DOWNLOAD_URL: https://github.com/omids0/accounting-with-google-sheet/releases/download/dev-latest/hesab-ketab-dev.apk
           VITE_APP_ENV: dev
         run: npm run build
 

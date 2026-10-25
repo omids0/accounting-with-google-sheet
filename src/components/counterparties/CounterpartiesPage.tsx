@@ -41,7 +41,7 @@ export default function CounterpartiesPage({ active = true, scope }: Counterpart
     return counts
   }, [records])
 
-  useHighlightParam()
+  const highlightId = useHighlightParam()
 
   const {
     filterModalOpen,
@@ -144,6 +144,8 @@ export default function CounterpartiesPage({ active = true, scope }: Counterpart
             onEdit={form.openEditForm}
             onDelete={data.requestDelete}
             onAdd={form.openCreateForm}
+            resetKey={filterChips.map(chip => chip.label).join('|')}
+            highlightId={highlightId}
           />
         </>
       )}

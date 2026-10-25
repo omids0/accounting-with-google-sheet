@@ -11,6 +11,7 @@ import {
   updateSheetRow,
   deleteSheetRow
 } from './sheets'
+import { validateWalletCsvCells } from './walletCsvValidate'
 import {
   formatJalaliMonthLabel,
   getDateRange,
@@ -229,15 +230,13 @@ export async function exportWalletAccountsPdf(spreadsheetId: string): Promise<st
 
 export async function importWalletAccountsCsv(spreadsheetId: string, csvContent: string) {
   return importSheetCsv(spreadsheetId, WALLET_SHEET, WALLET_HEADERS, csvContent, cells => {
-    const title = (cells[2] ?? '').trim()
-
-    if (!title) return null
+    const { title, balance } = validateWalletCsvCells(cells)
 
     return accountToRow({
       id: newImportId(cells[0] ?? ''),
       createdAt: newImportTimestamp(cells[1] ?? ''),
       title,
-      balance: roundMoney(parseNumeric(cells[3])),
+      balance: roundMoney(balance),
       note: cells[4] ?? '',
       accountKind: cells[5] ?? '',
       bankId: cells[6] ?? '',

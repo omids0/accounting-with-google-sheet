@@ -61,3 +61,71 @@ describe('matchSearch', () => {
     expect(matchSearch('xyz', 'abc', null, undefined, '')).toBe(false)
   })
 })
+
+/** The pass-by-pass version that ran on every string before the clean-text shortcut. */
+function legacyNormalizeSearchText(value: string): string {
+  return value
+    .normalize('NFC')
+    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[يىكة]/g, ch => ({ ي: 'ی', ى: 'ی', ك: 'ک', ة: 'ه' }[ch] ?? ch))
+    .replace(/[‌‍ـ‎‏؜﻿]/g, '')
+    .replace(/(\d)[,،٬](?=\d)/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
+describe('normalizeSearchText shortcut', () => {
+  it('gives what the full pass chain gives, for clean and unclean text alike', () => {
+    let state = 42
+    const next = () => {
+      state = (state * 1664525 + 1013904223) % 4294967296
+
+      return state / 4294967296
+    }
+    const alphabet = [
+      ...'abcAB09 ,.-/',
+      ...'علیرضا',
+      ...'۰۱۹٠٩',
+      ...'يىكة',
+      '،',
+      '٬',
+      '‌',
+      '‍',
+      'ـ',
+      '‎',
+      '‏',
+      '؜',
+      '﻿',
+      '\t',
+      '\n',
+      ' ',
+      ' ',
+      ' ',
+      ' ',
+      'İ',
+      'Σ',
+      'é',
+      '́'
+    ]
+
+    for (let run = 0; run < 30000; run += 1) {
+      const length = Math.floor(next() * 12)
+      const text = Array.from(
+        { length },
+        () => alphabet[Math.floor(next() * alphabet.length)]
+      ).join('')
+
+      expect(normalizeSearchText(text)).toBe(legacyNormalizeSearchText(text))
+    }
+  })
+
+  it('handles the edges of the shortcut', () => {
+    const edges = ['', ' ', 'a b', 'a  b', ' a', 'a ', 'a\tb', 'Ab', '12,34', '1,a', 'é']
+
+    for (const text of edges) {
+      expect(normalizeSearchText(text)).toBe(legacyNormalizeSearchText(text))
+    }
+  })
+})

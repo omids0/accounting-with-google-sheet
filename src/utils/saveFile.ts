@@ -9,11 +9,18 @@ function persianNumber(value: number, digits: number): string {
   return value.toLocaleString('fa-IR', { useGrouping: false, minimumIntegerDigits: digits })
 }
 
-/** «چک‌ها.csv» → «چک‌ها ۱۴۰۵-۰۷-۲۰.csv» */
-export function exportFileName(filename: string, date = new Date()): string {
+/**
+ * «چک‌ها.csv» → «چک‌ها ۱۴۰۵-۰۷-۲۰.csv». With `withTime` the time follows («… ۱۴۰۵-۰۷-۲۰ ۱۸-۴۰.csv»,
+ * a dash because a colon is not allowed in a file name) so two files of one day never share a name.
+ */
+export function exportFileName(filename: string, date = new Date(), withTime = false): string {
   const { year, month, day } = getJalaliParts(date)
 
-  const stamp = `${persianNumber(year, 4)}-${persianNumber(month, 2)}-${persianNumber(day, 2)}`
+  const day_ = `${persianNumber(year, 4)}-${persianNumber(month, 2)}-${persianNumber(day, 2)}`
+
+  const stamp = withTime
+    ? `${day_} ${persianNumber(date.getHours(), 2)}-${persianNumber(date.getMinutes(), 2)}`
+    : day_
 
   const safe = filename.replace(UNSAFE_FILENAME_CHARS, '-')
 
@@ -100,9 +107,15 @@ function downloadInBrowser(name: string, blob: Blob): void {
 export async function saveExportFile(
   filename: string,
   blob: Blob,
-  { share = true, dated = true }: { share?: boolean; dated?: boolean } = {}
+  {
+    share = true,
+    dated = true,
+    withTime = false
+  }: { share?: boolean; dated?: boolean; withTime?: boolean } = {}
 ): Promise<string | null> {
-  const name = dated ? exportFileName(filename) : filename.replace(UNSAFE_FILENAME_CHARS, '-')
+  const name = dated
+    ? exportFileName(filename, new Date(), withTime)
+    : filename.replace(UNSAFE_FILENAME_CHARS, '-')
 
   if (Capacitor.isNativePlatform()) {
     return share ? shareFromCache(name, blob) : saveToDocuments(name, blob)
