@@ -1,11 +1,11 @@
 import InstallmentTable from './InstallmentTable'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import EmptyState from '../EmptyState'
+import IncrementalCardList from '../IncrementalCardList'
 import InstallmentPlanCard from '../InstallmentPlanCard'
 import SearchEmptyState from '../SearchEmptyState'
 import { InstallmentCardListSkeleton } from '../skeleton'
 import type { DisplayPlanItem, PlanWithRow } from './types'
-import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 export type InstallmentsListProps = {
   plans: PlanWithRow[]
@@ -27,6 +27,10 @@ export type InstallmentsListProps = {
   ) => Promise<void>
   /** Opens the add form — the same action as the page speed dial. */
   onAdd?: () => void
+  /** The active filters; a change shows the first 50 plans again. */
+  resetKey: string
+  /** The `?highlight=` target: rendered even when it lies beyond the first 50. */
+  highlightId?: string | null
 }
 
 export default function InstallmentsList({
@@ -43,7 +47,9 @@ export default function InstallmentsList({
   onDelete,
   onTogglePayment,
   onPaymentAmountSave,
-  onAdd
+  onAdd,
+  resetKey,
+  highlightId
 }: InstallmentsListProps) {
   const isDesktop = useIsDesktop()
 
@@ -108,9 +114,19 @@ export default function InstallmentsList({
         onEdit={item => onEdit(item.plan)}
         onDelete={item => onDelete(item.plan)}
         renderDetail={item => renderCard(item, true)}
+        resetKey={resetKey}
+        highlightId={highlightId}
       />
     )
   }
 
-  return <div className={listCardsContainerClass}>{displayPlans.map(item => renderCard(item))}</div>
+  return (
+    <IncrementalCardList
+      items={displayPlans}
+      getId={item => item.plan.id}
+      resetKey={resetKey}
+      mustInclude={[highlightId, expandedId]}
+      renderItem={item => renderCard(item)}
+    />
+  )
 }

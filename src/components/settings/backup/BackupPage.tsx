@@ -56,11 +56,15 @@ function BackupPageContent({ spreadsheetId }: { spreadsheetId: string }) {
   return (
     <div className={backupPageClass}>
       <Card>
-        <p className={backupStatusLabelClass}>آخرین پشتیبان خودکار</p>
+        <p className={backupStatusLabelClass}>آخرین پشتیبان (دستی یا خودکار)</p>
+        <p className={backupStatusDateClass}>
+          {state.lastBackupAt ? formatBackupDateTime(state.lastBackupAt) : 'هنوز گرفته نشده'}
+        </p>
+        <p className={backupStatusLabelClass}>آخرین پشتیبان خودکار هفتگی</p>
         <p className={backupStatusDateClass}>
           {state.lastAutoBackupAt
             ? formatBackupDateTime(state.lastAutoBackupAt)
-            : 'هنوز گرفته نشده'}
+            : 'هنوز خودکار گرفته نشده'}
         </p>
         {state.lastAutoBackupAt && state.driveFolderLabel ? (
           <p className={backupStatusFolderClass}>
