@@ -11,7 +11,8 @@ export const headerSearchKbdClass =
 
 export const searchPageClass = 'mx-auto flex w-full max-w-3xl flex-col gap-3 pb-6'
 
-export const searchBarClass = 'pt-1 [&_input]:text-[0.92rem]'
+// The shared field caps at 220px for toolbars; here it is the page's main control.
+export const searchBarClass = 'flex pt-1 [&_.page-search]:max-w-none [&_input]:text-[0.92rem]'
 
 export const searchChipsClass =
   '-mx-1 overflow-x-auto px-1 pb-0.5 [&>div]:flex-nowrap [&_button]:shrink-0 [&_button]:whitespace-nowrap'

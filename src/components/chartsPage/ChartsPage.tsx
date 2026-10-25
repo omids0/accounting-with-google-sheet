@@ -6,6 +6,7 @@ import MonthlyNetBars from './MonthlyNetBars'
 import { useChartsPage } from './useChartsPage'
 import { CHARTS_TREND_MONTHS } from '../../services/chartsData'
 import { isConfigured } from '../../services/settings'
+import { cn } from '../../utils/cn'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import CalmBlock from '../CalmBlock'
 import EmptyState from '../EmptyState'
@@ -13,6 +14,7 @@ import { Skeleton } from '../skeleton'
 import TransactionTypeSegment from '../TransactionTypeSegment'
 import { calmChartFlatClass, calmSegmentClass } from '../ui/calmListStyles'
 import { dashboardCalmPageClass } from '../ui/dashboardCalmStyles'
+import { toolsPageDesktopClass } from '../ui/responsiveStyles'
 
 const LazyIncomeExpenseMonthlyChart = lazy(() => import('../charts/IncomeExpenseMonthlyChart'))
 
@@ -56,7 +58,10 @@ export default function ChartsPage() {
       : `${formatPersianNumber(CHARTS_TREND_MONTHS)} ماه`
 
   return (
-    <div className={dashboardCalmPageClass} aria-busy={section !== 'netWorth' && loading}>
+    <div
+      className={cn(dashboardCalmPageClass, toolsPageDesktopClass)}
+      aria-busy={section !== 'netWorth' && loading}
+    >
       <TransactionTypeSegment
         className={calmSegmentClass}
         options={SECTION_OPTIONS}
