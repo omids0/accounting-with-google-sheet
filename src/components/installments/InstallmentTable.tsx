@@ -19,8 +19,13 @@ export default function InstallmentTable({
   onToggleExpand,
   onEdit,
   onDelete,
-  renderDetail
+  renderDetail,
+  resetKey,
+  highlightId
 }: {
+  /** The active filters, and the `?highlight=` target, for the 50-row window. */
+  resetKey: string
+  highlightId?: string | null
   items: DisplayPlanItem[]
   expandedId: string | null
   onToggleExpand: (planId: string) => void
@@ -58,6 +63,9 @@ export default function InstallmentTable({
       rows={items}
       columns={columns}
       rowKey={item => item.plan.id}
+      windowed
+      resetKey={resetKey}
+      mustInclude={[highlightId]}
       isMuted={item => item.complete || item.settledForRange}
       expandedKey={expandedId}
       renderDetail={renderDetail}

@@ -6,11 +6,11 @@ import type { CounterpartyWithRow } from './types'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { getCounterpartyFullName } from '../../services/counterparties'
 import EmptyState from '../EmptyState'
+import IncrementalCardList from '../IncrementalCardList'
 import SearchEmptyState from '../SearchEmptyState'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
 import { dateColumn, textColumn } from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
-import { listCardsContainerClass } from '../ui/featureCardStyles'
 import { dataTableLinkClass } from '../ui/tableStyles'
 
 type CounterpartyListProps = {
@@ -25,6 +25,10 @@ type CounterpartyListProps = {
   onDelete: (item: CounterpartyWithRow) => void
   /** Opens the same create form as the page speed dial. */
   onAdd?: () => void
+  /** The active filters; a change shows the first 50 rows again. */
+  resetKey: string
+  /** The `?highlight=` target: rendered even when it lies beyond the first 50. */
+  highlightId?: string | null
 }
 
 export default function CounterpartyList({
@@ -35,7 +39,9 @@ export default function CounterpartyList({
   onView,
   onEdit,
   onDelete,
-  onAdd
+  onAdd,
+  resetKey,
+  highlightId
 }: CounterpartyListProps) {
   const isDesktop = useIsDesktop()
   const columns = useMemo<DataTableColumn<CounterpartyWithRow>[]>(
@@ -102,6 +108,9 @@ export default function CounterpartyList({
         rows={filteredItems}
         columns={columns}
         rowKey={item => item.id}
+        windowed
+        resetKey={resetKey}
+        mustInclude={[highlightId]}
         actions={item => (
           <TableRowActions
             itemLabel={getCounterpartyFullName(item) || 'طرف حساب'}
@@ -114,8 +123,12 @@ export default function CounterpartyList({
   }
 
   return (
-    <div className={listCardsContainerClass}>
-      {filteredItems.map(item => (
+    <IncrementalCardList
+      items={filteredItems}
+      getId={item => item.id}
+      resetKey={resetKey}
+      mustInclude={[highlightId]}
+      renderItem={item => (
         <CounterpartyCard
           key={item.id}
           item={item}
@@ -125,7 +138,7 @@ export default function CounterpartyList({
           onEdit={onEdit}
           onDelete={onDelete}
         />
-      ))}
-    </div>
+      )}
+    />
   )
 }
