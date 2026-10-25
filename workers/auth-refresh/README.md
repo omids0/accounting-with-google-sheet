@@ -61,7 +61,8 @@ npx wrangler secret put TOKEN_ENC_KEY
 ## ۴. ALLOWED_ORIGINS
 
 در `wrangler.toml` متغیر `ALLOWED_ORIGINS` فهرست originها با ویرگول است (بدون مسیر و بدون `/` پایانی).
-پیش‌فرض: `http://localhost:5173,https://omids0.github.io`. اگر اپ روی دامنهٔ دیگری هم سرو می‌شود،
+پیش‌فرض: `http://localhost:5173,https://omids0.github.io,https://localhost` (آخری اپ اندروید است که فقط
+مسیرهای `/invite` را صدا می‌زند). اگر اپ روی دامنهٔ دیگری هم سرو می‌شود،
 اینجا اضافه‌اش کنید.
 
 ## ۵. Deploy
@@ -158,3 +159,16 @@ rules یک قانون بسازید. آدرس `workers.dev` به zone شما تع
 گرفتید کار کند. بعد از deploy آن را با آدرس دقیق Worker جایگزین کنید، مثلاً
 `https://accounting-auth-refresh.<subdomain>.workers.dev`، تا مرورگر به Workerهای دیگران اجازهٔ
 ارتباط ندهد.
+
+## مسیرهای دعوت (`/invite/code`, `/invite/claim`, `/invite/stats`)
+
+این سه مسیر لینک دعوت اپ را پشتیبانی می‌کنند. بدنهٔ درخواست `accessToken` گوگل کاربر است، و Worker
+آن را با Google چک می‌کند، پس نیازی به `sessionId` نیست.
+
+- `code`: کد دعوت پایدار کاربر را می‌دهد (ده نویسه، HMAC از ایمیل با کلید `TOKEN_ENC_KEY`).
+- `claim` (`ref`): ورود یک فرد تازه را برای صاحب کد یک بار می‌شمارد. ایمیل جایی ذخیره نمی‌شود.
+  فقط هش کلیددار ایمیل فرد دعوت‌شده در KV می‌ماند تا دوباره شمرده نشود.
+- `stats`: تعداد دعوت‌های موفق کاربر.
+
+کلیدها در `AUTH_KV` با پیشوند `inv:` هستند. نسخهٔ dev اپ (`env: 'dev'`) با پیشوند `inv-dev:` می‌نویسد
+تا آمار واقعی تمیز بماند. ثبت‌ها بدون انقضا هستند. secret تازه‌ای لازم نیست.
