@@ -1,5 +1,9 @@
 import { clearSharedLinkFailures, readSharedLinks } from '../services/sharedLinkPrefs'
-import { isSharedWorkspace } from '../services/workspace'
+import {
+  isSharedAccountHidden,
+  isSharedWorkspace,
+  sharedSpreadsheetId
+} from '../services/workspace'
 
 /**
  * Sends the copies of personal records still waiting for the shared account. Called by
@@ -8,6 +12,12 @@ import { isSharedWorkspace } from '../services/workspace'
  * device reaches the file again: the shared account open here (or its tick panel read) proves it.
  */
 export function drainSharedLinks(): void {
+  const sharedId = sharedSpreadsheetId()
+
+  // The change notices too (throttled inside), so the banners have them when a page opens.
+  if (sharedId && !isSharedAccountHidden(sharedId)) {
+    void import('../services/sharedNotices').then(({ refreshNotices }) => refreshNotices(sharedId))
+  }
   if (isSharedWorkspace()) clearSharedLinkFailures()
   if (!readSharedLinks().some(task => !task.failed)) return
 

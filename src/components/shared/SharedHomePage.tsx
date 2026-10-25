@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router'
 
 import SharedBalanceCard from './SharedBalanceCard'
 import SharedMonthCard from './SharedMonthCard'
+import SharedNoticeSlot from './SharedNoticeSlot'
 import SharedRecordRow from './SharedRecordRow'
 import SharedViewerBanner from './SharedViewerBanner'
 import { balanceHeadline, monthTotals } from './sharedViewModel'
@@ -44,6 +45,7 @@ export default function SharedHomePage() {
   return (
     <div className={sharedPageClass}>
       {shared.role === 'viewer' ? <SharedViewerBanner /> : null}
+      <SharedNoticeSlot />
 
       {shared.pair && shared.balance ? (
         <SharedBalanceCard

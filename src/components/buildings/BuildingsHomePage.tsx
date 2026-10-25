@@ -12,6 +12,7 @@ import { useEnterBuilding } from './useEnterBuilding'
 import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { getSettings } from '../../services/settings'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
+import SharedNoticeSlot from '../shared/SharedNoticeSlot'
 import SharedSpaceSection from '../shared/SharedSpaceSection'
 import Button from '../ui/Button'
 import { listModulePageClass } from '../ui/featureCardStyles'
@@ -58,6 +59,7 @@ export default function BuildingsHomePage() {
 
   return (
     <div className={listModulePageClass}>
+      <SharedNoticeSlot />
       {inBuilding ? <BuildingsHomeCurrent /> : null}
       {empty ? (
         <EmptyState

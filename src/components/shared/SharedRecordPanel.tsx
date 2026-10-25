@@ -8,6 +8,7 @@ import {
   parseSplit,
   SHARED_CREATOR_FIELD_ID,
   SHARED_PAYER_FIELD_ID,
+  SHARED_REF_FIELD_ID,
   SHARED_SPLIT_FIELD_ID
 } from '../form/sharedFields'
 import type { StoredRecord } from '../records/recordsUtils'
@@ -48,6 +49,11 @@ export default function SharedRecordPanel({ record, shared, edit }: SharedRecord
   const creator = String(values[SHARED_CREATOR_FIELD_ID] ?? '')
   const payer = String(values[SHARED_PAYER_FIELD_ID] ?? '')
   const split = parseSplit(String(values[SHARED_SPLIT_FIELD_ID] ?? ''))
+  // A copy of someone else's personal record: an edit here sends them a notice.
+  const othersCopy =
+    !!creator &&
+    creator.trim().toLowerCase() !== shared.me &&
+    String(values[SHARED_REF_FIELD_ID] ?? '').startsWith('share:')
 
   return (
     <>
@@ -72,6 +78,14 @@ export default function SharedRecordPanel({ record, shared, edit }: SharedRecord
       {income ? (
         <p className={alertClassName('info', sharedAlertClass)}>
           درآمد فقط در گزارش‌ها می‌آید و روی تراز اثری ندارد.
+        </p>
+      ) : null}
+
+      {edit && othersCopy ? (
+        <p className={alertClassName('info', sharedAlertClass)}>
+          {`این ثبت از حساب شخصی ${shared.nameOf(
+            creator
+          )} آمده؛ تغییر شما به او خبر داده می‌شود و خودش تصمیم می‌گیرد.`}
         </p>
       ) : null}
 

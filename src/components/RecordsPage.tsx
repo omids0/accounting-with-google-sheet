@@ -13,6 +13,7 @@ import RecordsToolbar from './records/RecordsToolbar'
 import { useRecordDetail } from './records/useRecordDetail'
 import { useRecordsPage } from './records/useRecordsPage'
 import { useRecordsSpeedDial } from './records/useRecordsSpeedDial'
+import SharedNoticeSlot from './shared/SharedNoticeSlot'
 import { RecordListSkeleton } from './skeleton'
 import {
   recordsPageBodyClass,
@@ -65,6 +66,7 @@ export default function RecordsPage({
 
   return (
     <div className={recordsPageClass}>
+      <SharedNoticeSlot onApplied={page.loadRecords} />
       <ActiveFilterChips
         chips={page.filterChips}
         onOpenFilters={page.openFilterModal}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import SharedNoticeSlot from './SharedNoticeSlot'
 import SharedSplitFields from './SharedSplitFields'
 import { personName, sharedPair } from './sharedViewModel'
 import { getPathForTab } from '../../routes/paths'
@@ -229,6 +230,9 @@ export default function SharedTick({
             ? 'با ذخیره، نسخهٔ حساب مشترک حذف می‌شود'
             : `با ذخیره، یک نسخه در «${name}» ساخته می‌شود`}
         </p>
+      ) : null}
+      {editing && linked ? (
+        <SharedNoticeSlot recordRef={`share:${personalId}:${recordId}`} />
       ) : null}
       {failed && recordId ? (
         <div className={alertClassName('error', sharedAlertClass)} role="alert">
