@@ -17,6 +17,8 @@ export interface LastSeenVersion {
 
 export interface ChangelogEntry {
   version: string
+  /** ISO day (Gregorian) the version reached users: the day it was merged into `main`. */
+  date?: string
   items: string[]
 }
 
