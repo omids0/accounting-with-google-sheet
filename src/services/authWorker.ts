@@ -37,7 +37,12 @@ export type WorkerRefreshResult =
   /** No usable answer (offline, timeout, worker or Google down): try again later. */
   | { status: 'transient' }
 
-async function postJson(path: string, body: Record<string, string | boolean>): Promise<Response> {
+/** `keepalive` lets a request started just before a page reload still reach the worker. */
+export async function postJson(
+  path: string,
+  body: Record<string, string | boolean>,
+  keepalive = false
+): Promise<Response> {
   const controller = new AbortController()
 
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
@@ -48,6 +53,7 @@ async function postJson(path: string, body: Record<string, string | boolean>): P
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
       credentials: 'omit',
+      keepalive,
       signal: controller.signal
     })
   } finally {

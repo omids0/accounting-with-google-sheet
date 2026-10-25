@@ -2,6 +2,7 @@ import { lazy } from 'react'
 
 import {
   loadAboutPage,
+  loadInvitePage,
   loadAssetsLiabilitiesReportPage,
   loadCashFlowReportPage,
   loadCategoryTreeReportPage,
@@ -69,6 +70,7 @@ import {
 } from './pageChunks'
 
 export const LazyAboutPage = lazy(loadAboutPage)
+export const LazyInvitePage = lazy(loadInvitePage)
 export const LazyBankSmsPage = lazy(loadBankSmsPage)
 export const LazyChartsPage = lazy(loadChartsPage)
 export const LazyChecksPage = lazy(loadChecksPage)

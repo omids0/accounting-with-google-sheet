@@ -155,3 +155,12 @@ describe('known paths match the router', () => {
     expect(isKnownPath('/Nonexistent')).toBe(false)
   })
 })
+
+describe('invite page path', () => {
+  it('uses a path that no static file in public/ (invite.html) can answer for', () => {
+    expect(getPathForTab('invite')).toBe('/invite-friends')
+    expect(getTabFromPath('/invite-friends')).toBe('invite')
+    expect(isKnownPath('/invite-friends')).toBe(true)
+    expect(getTabFromPath('/invite')).not.toBe('invite')
+  })
+})
