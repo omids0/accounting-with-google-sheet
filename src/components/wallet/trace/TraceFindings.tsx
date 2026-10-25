@@ -58,10 +58,17 @@ interface TraceFindingsProps {
   findings: TraceFinding[]
   acked: Set<string>
   onToggleAck: (id: string) => void
+  /** A story already names the cause: these are the smaller things around it. */
+  minor?: boolean
 }
 
 /** Suspects first, then the deliberate moves the formula cannot see, then what was confirmed. */
-export default function TraceFindings({ findings, acked, onToggleAck }: TraceFindingsProps) {
+export default function TraceFindings({
+  findings,
+  acked,
+  onToggleAck,
+  minor = false
+}: TraceFindingsProps) {
   const suspects = findings.filter(item => item.group === 'suspect' && !acked.has(item.id))
   const known = findings.filter(item => item.group === 'known')
   const confirmed = findings.filter(item => item.group === 'suspect' && acked.has(item.id))
@@ -70,7 +77,7 @@ export default function TraceFindings({ findings, acked, onToggleAck }: TraceFin
   return (
     <>
       <Section
-        title="اول این‌ها را نگاه کن"
+        title={minor ? 'موردهای کوچک‌تر (احتمالاً بی‌ربط)' : 'اول این‌ها را نگاه کن'}
         note="اگر اشتباه است، رکورد را درست کن. اگر درست است «تأیید کردم» را بزن؛ مقدار اختلاف عوض نمی‌شود، فقط این مورد به پایین صفحه می‌رود و روی همین دستگاه یادآوری می‌شود."
         findings={suspects}
         emptyText={known.length || confirmed.length ? 'موردی برای بررسی نمانده' : undefined}

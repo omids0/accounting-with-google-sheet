@@ -65,6 +65,24 @@ async function readOpeningBalances(
   )
 }
 
+/**
+ * Every row of «موجودی ماهانه» in sheet order, duplicates included. A month listed twice keeps
+ * its earlier value there: the only record of what the opening of that month used to be.
+ */
+export async function fetchOpeningBalanceRows(
+  spreadsheetId: string
+): Promise<(MonthlyOpeningBalance & { rowNumber: number })[]> {
+  const rows = await fetchSheetRows(spreadsheetId, MONTHLY_BALANCE_SHEET).catch(() => [])
+
+  return rows
+    .map((row, index) => ({ row, rowNumber: index + 2 }))
+    .filter(({ row }) => String(row[0] ?? '').trim())
+    .map(({ row, rowNumber }) => ({
+      ...rowToBalance(row, rowNumber),
+      monthKey: String(row[0]).trim()
+    }))
+}
+
 export async function fetchOpeningBalance(
   spreadsheetId: string,
   monthKey: string

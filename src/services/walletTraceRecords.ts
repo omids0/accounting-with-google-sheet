@@ -51,6 +51,15 @@ function typeWord(record: RecordEntry): string {
 /** An amount without its sign, for sentences that already say which way it went. */
 export const money = (amount: number) => formatMoney(Math.abs(amount))
 
+/** The record was written before the first wallet-history row existed, so no account was possible. */
+function enteredBeforeAccounts(ctx: TraceContext, record: RecordEntry): boolean {
+  const { firstAccountAtMs } = ctx
+
+  return (
+    firstAccountAtMs != null && record.createdAtMs != null && record.createdAtMs < firstAccountAtMs
+  )
+}
+
 function isPlugRecord(record: RecordEntry): boolean {
   return (
     !record.accountId &&
@@ -108,6 +117,18 @@ function inWindowDraft(
       title: `اصلاح قبلی: ${label}`,
       detail:
         'این رکورد را قبلاً برای بستن یک اختلاف ثبت کرده‌ای و روی هیچ حسابی اثر ندارد. اگر علت اصلی را پیدا کردی، می‌توانی آن را پاک کنی.'
+    }
+  }
+
+  if (!record.accountId && enteredBeforeAccounts(ctx, record)) {
+    return {
+      ...base,
+      kind: 'pre-accounts',
+      suspect: false,
+      title: `${label} — قبل از شروع گردش حساب`,
+      detail: `این رکورد پیش از شروع «گردش حساب» ثبت شده؛ آن موقع اپ تغییر موجودی حساب‌ها را یادداشت نمی‌کرد، پس حسابی ندارد و بررسی‌اش ممکن نیست. ${money(
+        signed
+      )} در محاسبه آمده ولی روی هیچ حسابی ننشسته.`
     }
   }
 

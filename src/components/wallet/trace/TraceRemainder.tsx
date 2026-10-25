@@ -33,7 +33,9 @@ export default function TraceRemainder({
   const [confirming, setConfirming] = useState(false)
   const { report, monthLabel } = result
   const { difference, remainder, hints, impliedAnchor } = report
-  const overshoot = isOvershoot(difference, remainder)
+  // The story names the cause of the whole difference: the small leftovers are not news.
+  const named = !!report.story?.exact
+  const overshoot = !named && isOvershoot(difference, remainder)
   const direction = difference > 0 ? 'درآمد' : 'هزینه'
 
   if (!difference) return null
@@ -41,14 +43,14 @@ export default function TraceRemainder({
   return (
     <Card id="trace-remainder" className="mb-0 flex flex-col gap-2 text-[0.82rem]">
       <CardTitle className="mb-0">
-        {Math.abs(remainder) < 1 ? 'بستن اختلاف' : 'اختلافی که علتش پیدا نشد'}
+        {named || Math.abs(remainder) < 1 ? 'بستن اختلاف' : 'اختلافی که علتش پیدا نشد'}
       </CardTitle>
       {overshoot ? (
         <p className={textClass}>
           موردهای بالا روی هم از اختلاف بیشترند و بعضی‌شان همدیگر را خنثی می‌کنند؛ پس نمی‌شود گفت چه
           مقدارش بی‌علت مانده. اول موردهای بزرگ را درست کن و صفحه را دوباره باز کن.
         </p>
-      ) : Math.abs(remainder) >= 1 ? (
+      ) : !named && Math.abs(remainder) >= 1 ? (
         <>
           <p className={textClass}>
             <MoneyText amount={Math.abs(remainder)} /> از اختلاف را هیچ رکورد یا تغییری توضیح
