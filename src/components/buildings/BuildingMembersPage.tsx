@@ -11,7 +11,12 @@ import { SHARED_NAME_PREFIX } from '../../services/sharedWorkspace'
 import { getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
 import ConfirmActionModal from '../ConfirmActionModal'
 import EmptyState from '../EmptyState'
-import { inviteButtonLabel, membersIntro, removeMemberMessage } from '../shared/memberCopy'
+import {
+  inviteButtonLabel,
+  membersIntro,
+  removeMemberMessage,
+  withBalanceWarning
+} from '../shared/memberCopy'
 import { journeyNoteClass, journeyPageClass } from '../ui/buildingStyles'
 import Button from '../ui/Button'
 
@@ -22,6 +27,8 @@ interface BuildingMembersPageProps {
   header?: ReactNode
   /** Below the list: the shared account's data-safety card and «ترک این فضا». */
   footer?: ReactNode
+  /** The shared account's open balance, said first when that member is removed. */
+  removeWarning?: (email: string) => string | null
 }
 
 /**
@@ -33,7 +40,8 @@ interface BuildingMembersPageProps {
 export default function BuildingMembersPage({
   kind: kindProp,
   header,
-  footer
+  footer,
+  removeWarning
 }: BuildingMembersPageProps) {
   const kind = useMemberKind(kindProp)
 
@@ -113,7 +121,10 @@ export default function BuildingMembersPage({
       <ConfirmActionModal
         open={removing !== null}
         title="قطع دسترسی"
-        message={removeMemberMessage(kind, removing ?? '')}
+        message={withBalanceWarning(
+          removing ? removeWarning?.(removing) ?? null : null,
+          removeMemberMessage(kind, removing ?? '')
+        )}
         confirmLabel="قطع دسترسی"
         cancelLabel="انصراف"
         confirming={page.busy}

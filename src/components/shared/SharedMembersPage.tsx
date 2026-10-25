@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 
-import { memberRoleLabel } from './memberCopy'
+import { leaveConfirmMessage, memberRoleLabel } from './memberCopy'
 import { getUserEmail } from '../../services/auth'
 import { roleOf } from '../../services/buildingRoles'
 import { useDataRevision } from '../../services/dataRevision'
@@ -21,6 +21,10 @@ interface SharedMembersPageProps {
   safety?: ReactNode
   /** «ترک این فضا» confirmed by a partner or viewer; the leave flow itself lives outside. */
   onLeave?: () => void | Promise<void>
+  /** The open balance (`sharedBalanceWarning`), said first in the leave sheet; null = settled. */
+  leaveWarning?: string | null
+  /** The same for removing a member (only the partner shares the balance). */
+  removeWarning?: (email: string) => string | null
 }
 
 /**
@@ -29,10 +33,16 @@ interface SharedMembersPageProps {
  * card slot and «ترک این فضا» for everyone but the owner. A thin wrapper: the list, the invite
  * sheet and the guards are the building's, read through `kind="shared"`.
  */
-export default function SharedMembersPage({ safety, onLeave }: SharedMembersPageProps) {
+export default function SharedMembersPage({
+  safety,
+  onLeave,
+  leaveWarning = null,
+  removeWarning
+}: SharedMembersPageProps) {
   useDataRevision()
 
   const [leaving, setLeaving] = useState(false)
+  const [busy, setBusy] = useState(false)
 
   const spreadsheetId = getSettings()?.spreadsheetId ?? ''
 
@@ -76,17 +86,28 @@ export default function SharedMembersPage({ safety, onLeave }: SharedMembersPage
       <ConfirmActionModal
         open={leaving}
         title="ترک این فضا"
-        message="دسترسی شما به فایل حساب مشترک در درایو برداشته می‌شود. حساب شخصی شما دست‌نخورده می‌ماند و ثبت‌های شما برای بقیه می‌ماند."
+        message={leaveConfirmMessage(leaveWarning)}
         confirmLabel="ترک فضا"
         cancelLabel="انصراف"
+        confirming={busy}
         onClose={() => setLeaving(false)}
         onConfirm={() => {
-          setLeaving(false)
-          void onLeave?.()
+          setBusy(true)
+          void Promise.resolve(onLeave?.()).finally(() => {
+            setBusy(false)
+            setLeaving(false)
+          })
         }}
       />
     </>
   )
 
-  return <BuildingMembersPage kind="shared" header={ownRole} footer={footer} />
+  return (
+    <BuildingMembersPage
+      kind="shared"
+      header={ownRole}
+      footer={footer}
+      removeWarning={removeWarning}
+    />
+  )
 }

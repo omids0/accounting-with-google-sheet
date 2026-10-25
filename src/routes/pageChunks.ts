@@ -177,7 +177,7 @@ export const loadSharedSettlePage: PageLoader = () =>
   import('../components/shared/SharedSettlePage')
 
 export const loadSharedMembersPage: PageLoader = () =>
-  import('../components/shared/SharedMembersPage')
+  import('../components/shared/SharedMembersRoute')
 
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 

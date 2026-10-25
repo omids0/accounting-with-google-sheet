@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { sharedOffIntro } from './memberCopy'
 import { cn } from '../../utils/cn'
 import FormModal from '../FormModal'
 
@@ -8,6 +9,8 @@ export type SharedOffChoice = 'hide' | 'revoke'
 interface SharedOffSheetProps {
   open: boolean
   saving?: boolean
+  /** The open balance, said first (`sharedBalanceWarning`); null when settled or unknown. */
+  warning?: string | null
   onClose: () => void
   onConfirm: (choice: SharedOffChoice) => void | Promise<unknown>
 }
@@ -34,6 +37,7 @@ const CHOICES: { value: SharedOffChoice; title: string; body: string; action: st
 export default function SharedOffSheet({
   open,
   saving = false,
+  warning = null,
   onClose,
   onConfirm
 }: SharedOffSheetProps) {
@@ -55,8 +59,8 @@ export default function SharedOffSheet({
       saveLabel={picked.action}
       saveButtonVariant={choice === 'revoke' ? 'danger' : 'primary'}
     >
-      <p className="mb-3 text-sm leading-[1.8] text-text">
-        یکی را انتخاب کنید. حساب شخصی شما در هر دو حالت دست‌نخورده می‌ماند.
+      <p className="mb-3 whitespace-pre-line text-sm leading-[1.8] text-text">
+        {sharedOffIntro(warning)}
       </p>
       <div role="radiogroup" aria-label="روش خاموش کردن" className="flex flex-col gap-2">
         {CHOICES.map(item => (

@@ -98,7 +98,7 @@ function tabOf(type: SharedLinkTask['type'], titles: string[]): string {
 }
 
 /** One direct read of the shared sheet: members, categories, the record tab and its archives. */
-async function readTarget(sharedId: string, type: SharedLinkTask['type']) {
+export async function readTarget(sharedId: string, type: SharedLinkTask['type']) {
   const titles = await getSheetTitles(sharedId)
   const base = tabOf(type, titles)
   const form = { ...sharedRecordForm(type), sheetName: base }

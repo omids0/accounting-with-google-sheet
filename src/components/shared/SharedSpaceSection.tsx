@@ -3,12 +3,15 @@ import { useSearchParams } from 'react-router'
 
 import SharedOffSheet, { type SharedOffChoice } from './SharedOffSheet'
 import SharedSpaceCard from './SharedSpaceCard'
+import { sharedBalanceWarning } from './sharedViewModel'
 import { useEnterWorkspace } from '../../hooks/useEnterWorkspace'
+import { getUserEmail } from '../../services/auth'
 import { useDataRevision } from '../../services/dataRevision'
 import { shareErrorMessage } from '../../services/driveShare'
 import type { WorkspaceMember } from '../../services/memberRegistry'
 import {
   hideSharedAccount,
+  isSharedOwner,
   knownSharedMembers,
   loadSharedMembers,
   revokeAllSharedAccess,
@@ -16,6 +19,7 @@ import {
   showSharedAccount,
   visibleSharedAccount
 } from '../../services/sharedAccountSwitch'
+import { loadSharedNet } from '../../services/sharedLeave'
 import { showError, showSuccess } from '../../utils/toast'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 
@@ -49,6 +53,7 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
   const [members, setMembers] = useState<WorkspaceMember[] | null>(() =>
     accountId ? knownSharedMembers(accountId) : null
   )
+  const [warning, setWarning] = useState<string | null>(null)
 
   useEffect(() => {
     if (!accountId) return
@@ -58,7 +63,16 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
     setMembers(knownSharedMembers(accountId))
     // Offline: the card stays without avatars and role, «باز کردن» still works.
     void loadSharedMembers(accountId)
-      .then(list => !cancelled && setMembers(list))
+      .then(async list => {
+        if (cancelled) return
+        setMembers(list)
+        // The off sheet says the open balance first: read before the owner can open it.
+        if (!isSharedOwner(list)) return
+
+        const net = await loadSharedNet(accountId)
+
+        if (!cancelled) setWarning(net && sharedBalanceWarning(net, getUserEmail() ?? ''))
+      })
       .catch(() => undefined)
 
     return () => {
@@ -105,6 +119,7 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
       <SharedOffSheet
         open={offOpen}
         saving={turningOff}
+        warning={warning}
         onClose={() => setOffOpen(false)}
         onConfirm={turnOff}
       />

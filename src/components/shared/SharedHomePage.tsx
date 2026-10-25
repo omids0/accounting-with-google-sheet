@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 
 import SharedBalanceCard from './SharedBalanceCard'
@@ -10,7 +11,7 @@ import { useSharedRecords } from './useSharedRecords'
 import { useSharedSheets } from './useSharedSheets'
 import { getPathForTab } from '../../routes/paths'
 import { monthKeyOfIso, monthName } from '../../services/buildingMonths'
-import { isConfigured } from '../../services/settings'
+import { getSettings, isConfigured } from '../../services/settings'
 import { suggestSettlement } from '../../services/sharedSettlement'
 import { getTodayIso } from '../../utils/jalaliDate'
 import EmptyState from '../EmptyState'
@@ -33,6 +34,14 @@ export default function SharedHomePage() {
   const shared = useSharedRecords()
   const sheets = useSharedSheets(shared)
   const navigate = useNavigate()
+
+  // «ایمنی داده»: app start backs up only the sheet open then; entering the shared account runs
+  // the same weekly backup (cheap when not due: its `export`, due and lock checks come first).
+  useEffect(() => {
+    const id = getSettings()?.spreadsheetId
+
+    if (id) void import('../../services/driveBackupRun').then(m => m.runAutoBackup(id))
+  }, [])
 
   if (!isConfigured()) return <EmptyState icon="records" message="ابتدا با گوگل وارد شوید" />
 

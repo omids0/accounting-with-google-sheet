@@ -52,7 +52,7 @@ export function sharedCategory(category: unknown, list: readonly string[]): stri
 }
 
 /** Column of each whitelisted field in `headers`, by its label (never by position). */
-function columnsOf(form: CustomForm, headers: string[], ids: string[]): Map<string, number> {
+export function columnsOf(form: CustomForm, headers: string[], ids: string[]): Map<string, number> {
   const labels = headers.map(normalizeHeaderLabel)
   const columns = new Map<string, number>()
 

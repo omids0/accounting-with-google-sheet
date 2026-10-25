@@ -13,11 +13,11 @@ import { useSheetSwitchGuard } from '../settings/useSheetSwitchGuard'
 
 /**
  * «برگشت به حساب شخصی»: activates the user's own spreadsheet (never a building or the shared
- * account: `personalSpreadsheet`) and opens its dashboard. Leaving a building or the shared account
+ * account: `personalSpreadsheet`) and opens its dashboard (or `to`). Leaving a building or the shared account
  * with unsent changes asks first, like every sheet switch (`modalProps`). The wait shows the busy
  * overlay until the personal dashboard is ready.
  */
-export function useReturnToPersonal(onDone?: () => void) {
+export function useReturnToPersonal(onDone?: () => void, to = '/') {
   const navigate = useNavigate()
   const currentId = getSettings()?.spreadsheetId ?? ''
   const { guard, modalProps } = useSheetSwitchGuard(currentId, hideBusy)
@@ -33,7 +33,7 @@ export function useReturnToPersonal(onDone?: () => void) {
       }
       bumpSpreadsheetKey()
       onDone?.()
-      navigate('/')
+      navigate(to)
       releaseBusyWhenReady()
     } catch (err) {
       hideBusy()

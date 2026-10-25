@@ -93,6 +93,19 @@ export function removeMemberMessage(kind: MemberKind, email: string): string {
     : `دسترسی ${email} قطع شود؟ او دیگر نقشی در این ساختمان ندارد و اشتراک فایل او در گوگل‌درایو هم برداشته می‌شود.`
 }
 
+/** A leave / removal / turn-off confirmation: the open balance first (it never blocks). */
+export const withBalanceWarning = (warning: string | null, text: string): string =>
+  warning ? `${warning}\n\n${text}` : text
+
+export const leaveConfirmMessage = (warning: string | null): string =>
+  withBalanceWarning(
+    warning,
+    'دسترسی شما به فایل حساب مشترک در درایو برداشته می‌شود. حساب شخصی شما دست‌نخورده می‌ماند و ثبت‌های شما برای بقیه می‌ماند.'
+  )
+
+export const sharedOffIntro = (warning: string | null): string =>
+  withBalanceWarning(warning, 'یکی را انتخاب کنید. حساب شخصی شما در هر دو حالت دست‌نخورده می‌ماند.')
+
 export function inviteSheetNote(kind: MemberKind): string {
   const file = kind === 'shared' ? 'فایل حساب مشترک' : 'فایل ساختمان'
 

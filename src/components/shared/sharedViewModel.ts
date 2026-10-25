@@ -1,5 +1,6 @@
 import { monthKeyOfIso } from '../../services/buildingMonths'
 import { suggestSettlement, type SharedRow } from '../../services/sharedSettlement'
+import { formatMoney } from '../../utils/formatMoney'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { SETTLEMENT_CATEGORY } from '../../utils/protectedCategories'
 import {
@@ -53,6 +54,27 @@ export function balanceHeadline(
   if (owed.from === key(me)) return `شما به ${to} بدهکارید`
 
   return `${from} به ${to} بدهکار است`
+}
+
+/**
+ * Said first when someone leaves, is removed or turns the account off with an open balance
+ * («مینا ۳٬۱۴۰٬۰۰۰ تومان به شما بدهکار است.»); it never blocks. Null when the account is settled.
+ */
+export function sharedBalanceWarning(
+  net: Record<string, number>,
+  me: string,
+  names: PersonNames = {}
+): string | null {
+  const owed = suggestSettlement(net)
+
+  if (!owed) return null
+
+  const amount = formatMoney(owed.amount)
+  const to = personName(owed.to, me, names)
+
+  return owed.from === key(me)
+    ? `شما ${amount} به ${to} بدهکارید.`
+    : `${personName(owed.from, me, names)} ${amount} به ${to} بدهکار است.`
 }
 
 /**
