@@ -18,6 +18,7 @@ import { ensureCounterpartiesSheet, fetchCounterparties } from '../../services/c
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireAuth } from '../../utils/authGuard'
+import { checkLinkedCount } from '../../utils/linkedRecordsDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import type { CounterpartyWithRow } from '../counterparties/types'
 
@@ -76,6 +77,7 @@ export function useChecksData() {
     deleteLabel: item => `چک ${item.checkNumber}`,
     deleteErrorMessage: 'خطا در حذف چک',
     attachmentIds: item => item.attachments,
+    linkedRecordCount: checkLinkedCount,
     importExport: {
       exportFn: exportChecksCsv,
       exportPdfFn: exportChecksPdf,

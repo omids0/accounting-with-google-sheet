@@ -28,7 +28,7 @@ function verdictOf(report: TraceReport): string {
 
   if (Math.abs(difference) < 1) {
     return findings.length
-      ? 'کیف پول و مانده محاسبه‌شده یکی‌اند؛ ولی چند مورد زیر همدیگر را خنثی کرده‌اند.'
+      ? 'کیف پول و مانده محاسبه‌شده یکی‌اند؛ ولی چند مورد همدیگر را خنثی کرده‌اند.'
       : 'اختلافی نیست؛ کیف پول و مانده محاسبه‌شده یکی‌اند.'
   }
   if (report.story?.exact) {

@@ -241,6 +241,7 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
+      <ConfirmActionModal {...mutations.linkedRecordsModal} />
       <SettleFlowModals flow={mutations.settleFlow} />
     </div>
   )

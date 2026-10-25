@@ -189,9 +189,11 @@ export async function updateReceivable(
 export async function deleteReceivable(
   spreadsheetId: string,
   rowNumber: number,
-  receivable?: Receivable
+  receivable?: Receivable,
+  /** Keep the income records its payments made (they stay as ordinary income). */
+  keepLinkedRecords = false
 ): Promise<void> {
-  if (receivable) {
+  if (receivable && !keepLinkedRecords) {
     for (const payment of receivable.payments) {
       if (payment.transactionRecordId) {
         await deleteLinkedIncomeRecord(spreadsheetId, payment.transactionRecordId)

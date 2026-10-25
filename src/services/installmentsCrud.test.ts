@@ -9,12 +9,13 @@ import {
   paymentScheduleCache
 } from './installmentsConstants'
 import {
+  deleteInstallmentPlan,
   planToRow,
   toggleInstallmentPayment,
   updateInstallmentPaymentAmount
 } from './installmentsCrud'
 import { buildPayments, parsePayments } from './installmentsSchedule'
-import { createLinkedExpenseRecord } from './paymentTransactions'
+import { createLinkedExpenseRecord, deleteLinkedExpenseRecord } from './paymentTransactions'
 import { clearStore, getSheetDataRows, setSheetAllRows } from './spreadsheetStore'
 import { requiredPositiveInteger } from '../utils/formValidation'
 
@@ -112,6 +113,35 @@ describe('toggleInstallmentPayment concurrency', () => {
 
     expect(payments[0]).toMatchObject({ paid: true, transactionRecordId: 'tx-1' })
     expect(payments[2].amount).toBe(2_500)
+  })
+})
+
+describe('deleting a plan that made expense records', () => {
+  const paidPlan = () => {
+    const plan = makePlan()
+
+    plan.payments[0] = { ...plan.payments[0], paid: true, transactionRecordId: 'tx-1' }
+
+    return plan
+  }
+
+  beforeEach(() => {
+    localStorage.clear()
+    clearStore(SHEET_ID)
+    vi.mocked(deleteLinkedExpenseRecord).mockClear()
+    setSheetAllRows(SHEET_ID, INSTALLMENTS_SHEET, [INSTALLMENTS_HEADERS, planToRow(makePlan())])
+  })
+
+  it('deletes the records its payments made by default', async () => {
+    await deleteInstallmentPlan(SHEET_ID, 2, paidPlan())
+
+    expect(deleteLinkedExpenseRecord).toHaveBeenCalledWith(SHEET_ID, 'tx-1')
+  })
+
+  it('leaves them as ordinary expenses when asked to keep them', async () => {
+    await deleteInstallmentPlan(SHEET_ID, 2, paidPlan(), true)
+
+    expect(deleteLinkedExpenseRecord).not.toHaveBeenCalled()
   })
 })
 
