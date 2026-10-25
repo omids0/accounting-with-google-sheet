@@ -6,7 +6,9 @@ import {
   getActiveWorkspaceType,
   getWorkspaceType,
   hasWorkspaceType,
+  hasPersonalTabs,
   isBuildingEntry,
+  isPersonalWorkspace,
   isWorkspaceTypeKnown,
   personalSpreadsheet,
   rememberPersonalSheet,
@@ -238,5 +240,33 @@ describe('reading the type from the sheet', () => {
     expect(expense?.fields.map(field => field.id)).toEqual(
       expect.arrayContaining(['expenseKind', 'split', 'payer'])
     )
+  })
+})
+
+describe('isPersonalWorkspace / hasPersonalTabs', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('are true only for a personal sheet, never for a building or a shared account', () => {
+    setWorkspaceType('building-1', 'building')
+    setWorkspaceType('shared-1', 'shared')
+
+    for (const check of [isPersonalWorkspace, hasPersonalTabs]) {
+      expect(check('personal-1')).toBe(true)
+      expect(check('building-1')).toBe(false)
+      expect(check('shared-1')).toBe(false)
+    }
+  })
+
+  it('follow the active spreadsheet when no id is given', () => {
+    setWorkspaceType('shared-1', 'shared')
+    saveSettings({ ...getDefaultSettings(), spreadsheetId: 'shared-1' })
+    expect(isPersonalWorkspace()).toBe(false)
+    expect(hasPersonalTabs()).toBe(false)
+
+    saveSettings({ ...getDefaultSettings(), spreadsheetId: 'personal-1' })
+    expect(isPersonalWorkspace()).toBe(true)
+    expect(hasPersonalTabs()).toBe(true)
   })
 })

@@ -81,6 +81,15 @@ describe('filterSmsForWorkspace', () => {
   it('keeps every SMS in the personal queue while no building is registered', () => {
     expect(filterSmsForWorkspace(all, [personal], 'personal', false)).toEqual(all)
   })
+
+  it('lists nothing in a shared account: it has no SMS queue', () => {
+    const shared = { id: 'shared', cards: [] }
+
+    expect(filterSmsForWorkspace(all, [personal, shared], 'shared', false, true)).toEqual([])
+    expect(filterSmsForWorkspace(all, [personal, building, shared], 'shared', false, true)).toEqual(
+      []
+    )
+  })
 })
 
 describe('the card cache', () => {

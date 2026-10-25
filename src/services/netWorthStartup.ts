@@ -5,7 +5,7 @@ import { loadNetWorthRecords, loadRebuildInput, loadTodayNetWorth } from './netW
 import { sessionStart, waitForSessionSync } from './sessionSync'
 import { getNetAvailableConfig, getSettings } from './settings'
 import { getItem, setItem } from './storage'
-import { getWorkspaceType } from './workspace'
+import { hasPersonalTabs } from './workspace'
 import { getJalaliMonthKey } from '../utils/dateRange'
 import { getTodayIso } from '../utils/jalaliDate'
 
@@ -27,8 +27,8 @@ function writeNetWorthGate(spreadsheetId: string, gate: NetWorthGate): void {
 }
 
 async function snapshotAndRebuild(spreadsheetId: string, monthKey: string): Promise<void> {
-  // «دارایی قابل اتکا» is the manager's own: a building file has no such tab and never gets one.
-  if (getWorkspaceType(spreadsheetId) === 'building') return
+  // «دارایی قابل اتکا» is the user's own: a building or shared file has no such tab and never gets one.
+  if (!hasPersonalTabs(spreadsheetId)) return
 
   const gate = readNetWorthGate(spreadsheetId)
 

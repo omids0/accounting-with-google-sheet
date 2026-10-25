@@ -31,6 +31,7 @@ vi.mock('./settings', () => ({
 vi.mock('./wallet', () => ({ WALLET_SHEET: 'کیف پول' }))
 
 const onboarding = await import('./onboarding')
+const { setWorkspaceType } = await import('./workspace')
 
 const ID = 'sheet-1'
 const ALL = onboarding.getOnboardingSteps(true)
@@ -148,5 +149,21 @@ describe('countRecordRows', () => {
     setSheets({ 'کیف پول': [], درآمد: [['', '']], هزینه: [] })
     expect(onboarding.countRecordRows(ID, 1)).toBe(0)
     expect(onboarding.isSpreadsheetEmpty(ID)).toBe(true)
+  })
+})
+
+describe('onboarding outside a personal workspace', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    setSheets({ 'کیف پول': [], درآمد: [], هزینه: [] })
+  })
+
+  it('never starts the personal wizard on an empty building or shared sheet', () => {
+    setWorkspaceType('building-1', 'building')
+    setWorkspaceType('shared-1', 'shared')
+
+    expect(onboarding.shouldStartOnboarding('building-1')).toBe(false)
+    expect(onboarding.shouldStartOnboarding('shared-1')).toBe(false)
+    expect(onboarding.shouldStartOnboarding('personal-1')).toBe(true)
   })
 })

@@ -5,7 +5,7 @@ import {
 } from '../components/vehicles/constants'
 import { CHECK_EXPENSE_CATEGORY, CHECK_INCOME_CATEGORY } from '../services/checks'
 import { INSTALLMENT_EXPENSE_CATEGORY } from '../services/installmentsConstants'
-import { getActiveWorkspaceType } from '../services/workspace'
+import { getActiveWorkspaceType, type WorkspaceType } from '../services/workspace'
 
 /** Category of the record that closes a wallet reconciliation gap. */
 export const RECONCILIATION_CATEGORY = 'اصلاح موجودی'
@@ -50,15 +50,22 @@ const BUILDING_LOCKED_INCOME_CATEGORIES = new Set<string>([
   BUILDING_CHARGE_CATEGORY
 ])
 
-/** The categories forced into a form's list: another set while a building is the active sheet. */
-function lockedSetFor(formType: 'income' | 'expense'): Set<string> {
-  const building = getActiveWorkspaceType() === 'building'
+// A shared account has no vehicles, installments, checks or wallet reconciliation: nothing is
+// forced into its lists (its settlement category is added with the settle flow).
+const NO_LOCKED_CATEGORIES: ReadonlySet<string> = new Set<string>()
 
-  if (formType === 'expense') {
-    return building ? BUILDING_LOCKED_EXPENSE_CATEGORIES : LOCKED_EXPENSE_CATEGORIES
-  }
+const LOCKED_SETS: Record<WorkspaceType, Record<'income' | 'expense', ReadonlySet<string>>> = {
+  personal: { income: LOCKED_INCOME_CATEGORIES, expense: LOCKED_EXPENSE_CATEGORIES },
+  building: {
+    income: BUILDING_LOCKED_INCOME_CATEGORIES,
+    expense: BUILDING_LOCKED_EXPENSE_CATEGORIES
+  },
+  shared: { income: NO_LOCKED_CATEGORIES, expense: NO_LOCKED_CATEGORIES }
+}
 
-  return building ? BUILDING_LOCKED_INCOME_CATEGORIES : LOCKED_INCOME_CATEGORIES
+/** The categories forced into a form's list: another set in a building or a shared account. */
+function lockedSetFor(formType: 'income' | 'expense'): ReadonlySet<string> {
+  return LOCKED_SETS[getActiveWorkspaceType()][formType]
 }
 
 export function isLockedExpenseCategory(category: string): boolean {

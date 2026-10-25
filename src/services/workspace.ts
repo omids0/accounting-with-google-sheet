@@ -117,6 +117,20 @@ export function workspaceTypeOf(spreadsheetId?: string): WorkspaceType {
   return spreadsheetId ? getWorkspaceType(spreadsheetId) : getActiveWorkspaceType()
 }
 
+/**
+ * The user's own books: true only for a personal spreadsheet (default: the active one). A building
+ * and a shared account are never personal, so every personal-only feature asks this positive
+ * question instead of `!== 'building'`, which a new workspace type would silently pass.
+ */
+export function isPersonalWorkspace(spreadsheetId?: string): boolean {
+  return workspaceTypeOf(spreadsheetId) === 'personal'
+}
+
+/** Whether the spreadsheet carries the personal-only tab set (vehicles, treasury, net worth, …). */
+export function hasPersonalTabs(spreadsheetId?: string): boolean {
+  return isPersonalWorkspace(spreadsheetId)
+}
+
 export const NOT_BUILDING_FILE_MESSAGE = 'این کار فقط در فایل ساختمان انجام می‌شود'
 
 export const NOT_MEMBER_FILE_MESSAGE = 'این کار فقط در فایل ساختمان یا حساب مشترک انجام می‌شود'

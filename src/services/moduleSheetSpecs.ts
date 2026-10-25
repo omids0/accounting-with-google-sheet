@@ -68,6 +68,7 @@ import {
   RECEIVABLES_SHEET,
   REMINDERS_SHEET,
   REMINDER_LOG_SHEET,
+  SHARED_ACCOUNT_SHEETS,
   SMS_TEMPLATES_SHEET,
   TIMESHEETS_SHEET,
   TIMESHEET_ENTRIES_SHEET,
@@ -143,4 +144,13 @@ export const BUILDING_SHEET_SPECS: SheetSpec[] = [
 /** The module tabs a building file has: everything except the personal-only ones. */
 export const BUILDING_MODULE_SHEET_SPECS: SheetSpec[] = MODULE_SHEET_SPECS.filter(
   spec => !PERSONAL_ONLY_SHEETS.includes(spec.sheetName)
+)
+
+/**
+ * The module tabs of a shared account, besides its two record forms: the same spec objects the
+ * personal file uses, so the headers can never drift. A shared sheet never receives the
+ * personal-only tabs or the building ones.
+ */
+export const SHARED_SHEET_SPECS: SheetSpec[] = MODULE_SHEET_SPECS.filter(spec =>
+  SHARED_ACCOUNT_SHEETS.includes(spec.sheetName)
 )
