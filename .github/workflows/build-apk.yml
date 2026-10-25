@@ -24,6 +24,9 @@ jobs:
       VITE_APP_ENV: ${{ github.ref_name == 'develop' && 'dev' || '' }}
       APP_ID_SUFFIX: ${{ github.ref_name == 'develop' && '.dev' || '' }}
       APK_FILE: ${{ github.ref_name == 'develop' && 'hesab-ketab-dev.apk' || 'hesab-ketab.apk' }}
+      # Links of the invitation e-mail, the same as the web build of this branch (deploy.yml).
+      VITE_APP_URL: ${{ github.ref_name == 'develop' && 'https://omids0.github.io/accounting-with-google-sheet/dev/' || 'https://omids0.github.io/accounting-with-google-sheet/' }}
+      VITE_APP_DOWNLOAD_URL: ${{ github.ref_name == 'develop' && 'https://github.com/omids0/accounting-with-google-sheet/releases/download/dev-latest/hesab-ketab-dev.apk' || 'https://github.com/omids0/accounting-with-google-sheet/releases/latest/download/hesab-ketab.apk' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

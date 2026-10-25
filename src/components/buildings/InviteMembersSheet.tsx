@@ -2,16 +2,17 @@ import { useState, type ReactNode } from 'react'
 
 import { BUILDING_ROLES, optionLabel, type BuildingRole } from './buildingOptions'
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard'
-import { getUserEmail } from '../../services/auth'
-import { addInvite, inviteText, invitedEmails, isValidEmail } from '../../services/buildingInvites'
+import { getUserEmail, isAuthError } from '../../services/auth'
+import { inviteText, isValidEmail } from '../../services/buildingInvites'
+import { INVITE_BLOCK_MESSAGES, inviteMember } from '../../services/buildingMemberDrive'
 import { MEMBER_STATUS_LABELS, memberStatusReader } from '../../services/buildingMembers'
 import { members } from '../../services/buildingRoles'
+import { shareErrorMessage } from '../../services/driveShare'
 import { getSettings } from '../../services/settings'
-import { PERIOD_SETTINGS_SHEET } from '../../services/sheetNames'
 import { getSpreadsheetUrl } from '../../services/sheets'
-import { getSheetDataRows } from '../../services/spreadsheetStore'
-import { showError } from '../../utils/toast'
-import { toUserMessage } from '../../utils/userMessage'
+import { requestReauth } from '../../stores/appStore'
+import { APP_DOWNLOAD_URL, APP_URL } from '../../utils/appLinks'
+import { showSuccess } from '../../utils/toast'
 import { FormField, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import {
@@ -36,8 +37,9 @@ interface InviteMembersSheetProps {
 }
 
 /**
- * Journey step 7 (optional) and Step 9's «+ دعوت عضو»: e-mail and role. Adds the member row
- * (status «دعوت‌شده») and offers a ready-made text; the Drive share itself is the manager's.
+ * Journey step 7 (optional) and Step 9's «+ دعوت عضو»: e-mail and role. Shares the building file
+ * with them (Drive sends the invitation e-mail), then adds the member row (status «دعوت‌شده»).
+ * «کپی متن دعوت» stays for a manager who has to share by hand when Drive refuses.
  */
 export default function InviteMembersSheet({
   open,
@@ -57,10 +59,6 @@ export default function InviteMembersSheet({
 
   const spreadsheetId = getSettings()?.spreadsheetId ?? ''
 
-  const invited = new Set(
-    invitedEmails(getSheetDataRows(spreadsheetId, PERIOD_SETTINGS_SHEET) ?? [])
-  )
-
   const me = (getUserEmail() ?? '').toLowerCase()
 
   const statusOf = memberStatusReader(spreadsheetId, me)
@@ -74,26 +72,32 @@ export default function InviteMembersSheet({
     setError(null)
     setSaving(true)
     try {
-      await addInvite(spreadsheetId, email, role)
+      const block = await inviteMember(spreadsheetId, email, role, buildingName)
+
+      if (block) {
+        setError(INVITE_BLOCK_MESSAGES[block])
+
+        return
+      }
+      showSuccess(`دعوت‌نامه برای ${email.trim()} فرستاده شد`)
       setEmail('')
       setVersion(value => value + 1)
     } catch (err) {
-      showError(toUserMessage(err, 'افزودن عضو ناموفق بود'))
+      if (isAuthError(err)) requestReauth()
+      else setError(shareErrorMessage(err, 'افزودن عضو ناموفق بود'))
     } finally {
       setSaving(false)
     }
   }
 
-  const copyInvite = () => {
-    const latest = members(spreadsheetId)
-      .filter(member => invited.has(member.email))
-      .at(-1)
-
+  const copyInvite = () =>
     void copy(
-      inviteText(buildingName, latest?.role ?? role, getSpreadsheetUrl(spreadsheetId)),
+      inviteText(buildingName, role, getSpreadsheetUrl(spreadsheetId), {
+        appUrl: APP_URL,
+        downloadUrl: APP_DOWNLOAD_URL
+      }),
       'متن دعوت کپی شد'
     )
-  }
 
   return (
     <FormModal
@@ -107,6 +111,7 @@ export default function InviteMembersSheet({
       }}
       saveLabel={saveLabel}
       cancelLabel="بستن"
+      saving={saving}
     >
       <FormField label="ایمیل گوگل">
         <input
@@ -168,8 +173,9 @@ export default function InviteMembersSheet({
         کپی متن دعوت
       </Button>
       <p className={journeyNoteClass}>
-        بعد از افزودن، فایل ساختمان را در گوگل‌درایو با همین ایمیل به اشتراک بگذار تا او بتواند وارد
-        شود. «کپی متن دعوت» پیام آمادهٔ فرستادن برای اوست.
+        با «+ افزودن» گوگل برای او ایمیل دعوت می‌فرستد و فایل ساختمان با نقش انتخابی‌اش به اشتراک
+        گذاشته می‌شود. اگر ارسال نشد، فایل را خودت در گوگل‌درایو به اشتراک بگذار و «کپی متن دعوت» را
+        برایش بفرست.
       </p>
     </FormModal>
   )

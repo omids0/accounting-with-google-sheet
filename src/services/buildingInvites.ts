@@ -25,8 +25,8 @@ export function invitedEmails(rows: string[][]): string[] {
 }
 
 /**
- * Journey step 7: adds the member row (`نقش:<email>`) and marks it invited. The Drive share
- * itself is the manager's to give; this only makes the role known the moment they open the sheet.
+ * Journey step 7: adds the member row (`نقش:<email>`) and marks it invited. Only the rows: the
+ * Drive share goes first, in `inviteMember`, so a refused share leaves no half-invited member.
  */
 export async function addInvite(
   spreadsheetId: string,
@@ -39,14 +39,71 @@ export async function addInvite(
   await setBuildingSetting(spreadsheetId, `${INVITE_ROW_PREFIX}${normalized}`, getTodayIso())
 }
 
-/** The ready-made message the manager sends along with the Drive share. */
-export function inviteText(buildingName: string, role: BuildingRole, sheetUrl: string): string {
+export interface InviteLinks {
+  appUrl?: string
+  downloadUrl?: string
+}
+
+/** The way in for the invitee; every URL has its own line so a mail client keeps it in one piece. */
+function inviteSteps(buildingName: string, { appUrl, downloadUrl }: InviteLinks): string[] {
+  const name = buildingName.trim()
+
   return [
-    `دعوت به ساختمان «${buildingName}»`,
-    `نقش شما: ${optionLabel(BUILDING_ROLES, role)}`,
-    'شیت ساختمان را در گوگل‌درایو با ایمیل شما به اشتراک گذاشته‌ام. با همین حساب گوگل وارد اپ حسابداری شوید، از منوی «بیشتر › مدیر ساختمان» گزینهٔ «اتصال به شیت موجود» را بزنید و شیت را انتخاب کنید.',
-    sheetUrl
+    'برای شروع:',
+    `۱. اپ «حساب کتاب» را باز کنید و با همین ایمیل گوگل وارد شوید${appUrl ? ':' : '.'}`,
+    appUrl ?? '',
+    '۲. از منوی «بیشتر › مدیر ساختمان» گزینهٔ «اتصال به شیت موجود» را بزنید.',
+    `۳. با «باز کردن شیت با گوگل» فایل ${name ? `«${name}»` : 'ساختمان'} را انتخاب کنید.`,
+    downloadUrl ? '\nنسخهٔ اندروید اپ:' : '',
+    downloadUrl ?? '',
+    '\nبعد از ورود، گوگل ممکن است یک هشدار امنیتی بفرستد؛ گزینهٔ «بله، خودم بودم» را بزنید.'
   ]
-    .filter(Boolean)
+}
+
+export interface InviteMessageInput extends InviteLinks {
+  inviterName: string
+  buildingName: string
+  role: BuildingRole
+  /** A test build: the first line says so, so nobody takes it for the real app. */
+  testBuild?: boolean
+}
+
+/** The message Drive puts in its sharing e-mail (plain text), sent by the app on the manager's behalf. */
+export function inviteMessage(input: InviteMessageInput): string {
+  const name = input.buildingName.trim()
+
+  const who = input.inviterName.trim() || 'مدیر ساختمان'
+
+  return [
+    input.testBuild ? '(نسخهٔ آزمایشی اپ)\n' : '',
+    'سلام،',
+    `${who} شما را به ${name ? `ساختمان «${name}»` : 'یک ساختمان'} با نقش «${optionLabel(
+      BUILDING_ROLES,
+      input.role
+    )}» دعوت کرده است.\n`,
+    ...inviteSteps(input.buildingName, input),
+    '\nبا احترام'
+  ]
+    .filter(line => line !== '')
+    .join('\n')
+}
+
+/** The same invitation as a text to copy, for the manager who shares the file by hand instead. */
+export function inviteText(
+  buildingName: string,
+  role: BuildingRole,
+  sheetUrl: string,
+  links: InviteLinks = {}
+): string {
+  const name = buildingName.trim()
+
+  return [
+    `دعوت به ساختمان «${name}»`,
+    `نقش شما: ${optionLabel(BUILDING_ROLES, role)}`,
+    'فایل ساختمان را در گوگل‌درایو با ایمیل شما به اشتراک گذاشته‌ام:',
+    sheetUrl,
+    ...inviteSteps(buildingName, links)
+  ]
+    .filter(line => line !== '')
     .join('\n')
 }

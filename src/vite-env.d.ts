@@ -11,6 +11,10 @@ interface ImportMetaEnv {
   /** Address of workers/auth-refresh; unset keeps the popup-based silent token renewal. */
   readonly VITE_AUTH_WORKER_URL?: string
   readonly VITE_BASE_PATH?: string
+  /** Public address of this build; goes into the invitation e-mail. Unset drops that line. */
+  readonly VITE_APP_URL?: string
+  /** Direct APK link of this build's channel; goes into the invitation e-mail. */
+  readonly VITE_APP_DOWNLOAD_URL?: string
   /** `dev` on builds from the develop branch; unset in production. */
   readonly VITE_APP_ENV?: string
 }

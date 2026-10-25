@@ -20,13 +20,25 @@ const user = vi.hoisted(() => ({ email: 'boss@x.com' }))
 
 const written = vi.hoisted(() => ({
   set: [] as [string, string][],
-  removed: [] as string[][]
+  removed: [] as string[][],
+  drive: [] as string[]
 }))
 
 vi.mock('./auth', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   getUserEmail: () => user.email
 }))
+
+vi.mock('./driveShare', () => ({
+  setFileRole: async (_id: string, email: string, role: string) => {
+    written.drive.push(`role:${email}:${role}`)
+  },
+  unshareFile: async (_id: string, email: string) => {
+    written.drive.push(`unshare:${email}`)
+  }
+}))
+
+vi.mock('./sharing', () => ({ refreshSharingInfo: async () => undefined }))
 
 vi.mock('./periodSettings', () => ({
   setPeriodSetting: async (_id: string, key: string, value: string) => {
@@ -56,6 +68,7 @@ const ONE_MANAGER = TWO_MANAGERS.filter(row => row[0] !== 'نقش:co@x.com')
 beforeEach(() => {
   written.set.length = 0
   written.removed.length = 0
+  written.drive.length = 0
   user.email = 'boss@x.com'
   saveSettings({ ...getDefaultSettings(), spreadsheetId: 'b1' })
   setWorkspaceType('b1', 'building')
@@ -127,12 +140,14 @@ describe('changeMemberRole', () => {
       ['نقش:acc@x.com', 'board'],
       ['دسترسی:acc@x.com', '{}']
     ])
+    expect(written.drive).toEqual(['role:acc@x.com:reader'])
   })
 
   it('writes no overrides row for a member without overrides', async () => {
     await changeMemberRole('b1', 'board@x.com', 'accountant')
 
     expect(written.set).toEqual([['نقش:board@x.com', 'accountant']])
+    expect(written.drive).toEqual(['role:board@x.com:writer'])
   })
 
   it('writes nothing when the role stays', async () => {
@@ -185,10 +200,12 @@ describe('setMemberOverrides and removeMember', () => {
     expect(await removeMember('b1', 'Acc@x.com')).toBeNull()
 
     expect(written.removed).toEqual([['نقش:acc@x.com', 'دسترسی:acc@x.com', 'دعوت:acc@x.com']])
+    expect(written.drive).toEqual(['unshare:acc@x.com'])
   })
 
   it('keeps the last manager and yourself', async () => {
     expect(await removeMember('b1', 'boss@x.com')).toBe('last-manager')
+    expect(written.drive).toEqual([])
 
     sheetRows(TWO_MANAGERS)
     expect(await removeMember('b1', 'boss@x.com')).toBe('self')
