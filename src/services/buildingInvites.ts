@@ -1,10 +1,7 @@
 import { ROLE_ROW_PREFIX } from './buildingRoles'
-import { setBuildingSetting } from './buildingSettings'
-import {
-  BUILDING_ROLES,
-  optionLabel,
-  type BuildingRole
-} from '../components/buildings/buildingOptions'
+import { setMemberSetting } from './buildingSettings'
+import { registryOf, type MemberKind, type MemberRole } from './memberRegistry'
+import { optionLabel } from '../components/buildings/buildingOptions'
 import { getTodayIso } from '../utils/jalaliDate'
 
 /** `دعوت:<email>` rows of «تنظیمات دوره»: the member was invited and has not been seen yet. */
@@ -31,12 +28,12 @@ export function invitedEmails(rows: string[][]): string[] {
 export async function addInvite(
   spreadsheetId: string,
   email: string,
-  role: BuildingRole
+  role: MemberRole
 ): Promise<void> {
   const normalized = email.trim().toLowerCase()
 
-  await setBuildingSetting(spreadsheetId, `${ROLE_ROW_PREFIX}${normalized}`, role)
-  await setBuildingSetting(spreadsheetId, `${INVITE_ROW_PREFIX}${normalized}`, getTodayIso())
+  await setMemberSetting(spreadsheetId, `${ROLE_ROW_PREFIX}${normalized}`, role)
+  await setMemberSetting(spreadsheetId, `${INVITE_ROW_PREFIX}${normalized}`, getTodayIso())
 }
 
 export interface InviteLinks {
@@ -44,16 +41,31 @@ export interface InviteLinks {
   downloadUrl?: string
 }
 
+/** Step 2: where the invitee connects the existing sheet, in the words of the workspace kind. */
+function connectStep(kind: MemberKind): string {
+  const { connectPath, connectAction } = registryOf(kind)
+
+  return connectAction
+    ? `۲. از منوی «${connectPath}» گزینهٔ «${connectAction}» را بزنید.`
+    : `۲. در اپ «${connectPath}» را بزنید.`
+}
+
 /** The way in for the invitee; every URL has its own line so a mail client keeps it in one piece. */
-function inviteSteps(buildingName: string, { appUrl, downloadUrl }: InviteLinks): string[] {
-  const name = buildingName.trim()
+function inviteSteps(
+  name: string,
+  { appUrl, downloadUrl }: InviteLinks,
+  kind: MemberKind
+): string[] {
+  const trimmed = name.trim()
 
   return [
     'برای شروع:',
     `۱. اپ «حساب کتاب» را باز کنید و با همین ایمیل گوگل وارد شوید${appUrl ? ':' : '.'}`,
     appUrl ?? '',
-    '۲. از منوی «بیشتر › مدیر ساختمان» گزینهٔ «اتصال به شیت موجود» را بزنید.',
-    `۳. با «باز کردن شیت با گوگل» فایل ${name ? `«${name}»` : 'ساختمان'} را انتخاب کنید.`,
+    connectStep(kind),
+    `۳. با «باز کردن شیت با گوگل» فایل ${
+      trimmed ? `«${trimmed}»` : registryOf(kind).fileNoun
+    } را انتخاب کنید.`,
     downloadUrl ? '\nنسخهٔ اندروید اپ:' : '',
     downloadUrl ?? '',
     '\nبعد از ورود، گوگل ممکن است یک هشدار امنیتی بفرستد؛ گزینهٔ «بله، خودم بودم» را بزنید.'
@@ -62,47 +74,57 @@ function inviteSteps(buildingName: string, { appUrl, downloadUrl }: InviteLinks)
 
 export interface InviteMessageInput extends InviteLinks {
   inviterName: string
+  /** The name of the building or the shared account. */
   buildingName: string
-  role: BuildingRole
+  role: MemberRole
   /** A test build: the first line says so, so nobody takes it for the real app. */
   testBuild?: boolean
+  /** Default: a building. */
+  kind?: MemberKind
 }
 
-/** The message Drive puts in its sharing e-mail (plain text), sent by the app on the manager's behalf. */
+/** The message Drive puts in its sharing e-mail (plain text), sent by the app on the inviter's behalf. */
 export function inviteMessage(input: InviteMessageInput): string {
+  const kind = input.kind ?? 'building'
+
+  const { fileNoun, ownerRole, roles } = registryOf(kind)
+
   const name = input.buildingName.trim()
 
-  const who = input.inviterName.trim() || 'مدیر ساختمان'
+  const who = input.inviterName.trim() || `${optionLabel(roles, ownerRole)} ${fileNoun}`
 
   return [
     input.testBuild ? '(نسخهٔ آزمایشی اپ)\n' : '',
     'سلام،',
-    `${who} شما را به ${name ? `ساختمان «${name}»` : 'یک ساختمان'} با نقش «${optionLabel(
-      BUILDING_ROLES,
+    `${who} شما را به ${name ? `${fileNoun} «${name}»` : `یک ${fileNoun}`} با نقش «${optionLabel(
+      roles,
       input.role
     )}» دعوت کرده است.\n`,
-    ...inviteSteps(input.buildingName, input),
+    ...inviteSteps(input.buildingName, input, kind),
     '\nبا احترام'
   ]
     .filter(line => line !== '')
     .join('\n')
 }
 
-/** The same invitation as a text to copy, for the manager who shares the file by hand instead. */
+/** The same invitation as a text to copy, for the inviter who shares the file by hand instead. */
 export function inviteText(
   buildingName: string,
-  role: BuildingRole,
+  role: MemberRole,
   sheetUrl: string,
-  links: InviteLinks = {}
+  links: InviteLinks = {},
+  kind: MemberKind = 'building'
 ): string {
+  const { fileNoun, roles } = registryOf(kind)
+
   const name = buildingName.trim()
 
   return [
-    `دعوت به ساختمان «${name}»`,
-    `نقش شما: ${optionLabel(BUILDING_ROLES, role)}`,
-    'فایل ساختمان را در گوگل‌درایو با ایمیل شما به اشتراک گذاشته‌ام:',
+    `دعوت به ${fileNoun} «${name}»`,
+    `نقش شما: ${optionLabel(roles, role)}`,
+    `فایل ${fileNoun} را در گوگل‌درایو با ایمیل شما به اشتراک گذاشته‌ام:`,
     sheetUrl,
-    ...inviteSteps(buildingName, links)
+    ...inviteSteps(buildingName, links, kind)
   ]
     .filter(line => line !== '')
     .join('\n')

@@ -85,8 +85,15 @@ export async function unshareFile(fileId: string, email: string): Promise<void> 
   )
 }
 
-/** Plain words for a share that Drive refused; the generic mapper's «no access» would mislead. */
-export function shareErrorMessage(err: unknown, fallback = 'ارسال دعوت ناموفق بود'): string {
+/**
+ * Plain words for a share that Drive refused; the generic mapper's «no access» would mislead.
+ * `noun` names the file («ساختمان» / «حساب مشترک»).
+ */
+export function shareErrorMessage(
+  err: unknown,
+  fallback = 'ارسال دعوت ناموفق بود',
+  noun = 'ساختمان'
+): string {
   const status = err instanceof SheetsApiError ? err.status : 0
 
   if (
@@ -98,7 +105,7 @@ export function shareErrorMessage(err: unknown, fallback = 'ارسال دعوت 
   if (status === 403) {
     return 'گوگل اجازهٔ اشتراک این فایل را نداد. فقط مالک فایل یا ویرایشگری که اجازهٔ اشتراک دارد می‌تواند دسترسی بدهد'
   }
-  if (status === 404) return 'فایل ساختمان در حساب گوگل شما پیدا نشد'
+  if (status === 404) return `فایل ${noun} در حساب گوگل شما پیدا نشد`
   if (status === 400) return 'گوگل این ایمیل را نپذیرفت؛ ایمیل یک حساب گوگل را وارد کنید'
   if (status === 429) return 'گوگل درخواست‌ها را موقتاً محدود کرده؛ کمی بعد دوباره تلاش کنید'
 
