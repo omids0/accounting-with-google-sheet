@@ -1,6 +1,9 @@
 import { ROLE_ROW_PREFIX } from './buildingRoles'
 import { setMemberSetting } from './buildingSettings'
 import { registryOf, type MemberKind, type MemberRole } from './memberRegistry'
+import { PERIOD_SETTINGS_SHEET } from './sheetNames'
+import { appendSheetRowsApi } from './sheetsOutboxApi'
+import { assertMemberWorkspace } from './workspace'
 import { optionLabel } from '../components/buildings/buildingOptions'
 import { getTodayIso } from '../utils/jalaliDate'
 
@@ -34,6 +37,28 @@ export async function addInvite(
 
   await setMemberSetting(spreadsheetId, `${ROLE_ROW_PREFIX}${normalized}`, role)
   await setMemberSetting(spreadsheetId, `${INVITE_ROW_PREFIX}${normalized}`, getTodayIso())
+}
+
+/**
+ * `addInvite` for a sheet that is not the open one (a file created a moment ago): the in-memory
+ * mirror and the outbox belong to the open sheet only, so the two rows go straight to Sheets in
+ * one append. The sheet has no member row for this e-mail yet (the caller checked).
+ */
+export async function addInviteToClosedSheet(
+  spreadsheetId: string,
+  email: string,
+  role: MemberRole
+): Promise<void> {
+  assertMemberWorkspace(spreadsheetId)
+
+  const normalized = email.trim().toLowerCase()
+
+  const stamp = new Date().toLocaleString('fa-IR')
+
+  await appendSheetRowsApi(spreadsheetId, PERIOD_SETTINGS_SHEET, [
+    [`${ROLE_ROW_PREFIX}${normalized}`, role, stamp],
+    [`${INVITE_ROW_PREFIX}${normalized}`, getTodayIso(), stamp]
+  ])
 }
 
 export interface InviteLinks {

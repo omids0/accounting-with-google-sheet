@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 
 import SharedOffSheet, { type SharedOffChoice } from './SharedOffSheet'
 import SharedSpaceCard from './SharedSpaceCard'
@@ -18,9 +18,11 @@ import {
 import { showError, showSuccess } from '../../utils/toast'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 
+const SharedConnectSheet = lazy(() => import('./SharedConnectSheet'))
+
 /**
- * «حساب مشترک» below the building cards of «فضاهای من»: the card, its «باز کردن» and the off
- * sheet. `onStart` opens the setup wizard.
+ * «حساب مشترک» below the building cards of «فضاهای من»: the card, its «باز کردن», the off sheet
+ * and «اتصال به حساب مشترک» (lazy). `onStart` opens the setup wizard.
  */
 export default function SharedSpaceSection({ onStart }: { onStart: () => void }) {
   const revision = useDataRevision()
@@ -29,6 +31,7 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
   const [, setTick] = useState(0)
   const [offOpen, setOffOpen] = useState(false)
   const [turningOff, setTurningOff] = useState(false)
+  const [connect, setConnect] = useState<'open' | 'closed' | null>(null)
 
   const refresh = () => setTick(value => value + 1)
 
@@ -86,6 +89,7 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
         hidden={!account && registered !== null}
         opening={account !== null && entering === account.id}
         onStart={onStart}
+        onConnect={() => setConnect('open')}
         onOpen={() => account && void enter(account.id, 'shared-home')}
         onOff={() => setOffOpen(true)}
         onShowAgain={() => {
@@ -99,6 +103,19 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
         onClose={() => setOffOpen(false)}
         onConfirm={turnOff}
       />
+      {/* Loaded on the first tap, then kept mounted so the sheet closes with its animation. */}
+      {connect ? (
+        <Suspense fallback={null}>
+          <SharedConnectSheet
+            open={connect === 'open'}
+            onClose={() => setConnect('closed')}
+            onConnected={id => {
+              refresh()
+              void enter(id, 'shared-home')
+            }}
+          />
+        </Suspense>
+      ) : null}
       <SheetSwitchConfirmModal {...modalProps} />
     </>
   )

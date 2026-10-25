@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useSearchParams } from 'react-router'
 
 import EmptyState from '../EmptyState'
@@ -19,6 +19,11 @@ import { listModulePageClass } from '../ui/featureCardStyles'
 /** `?new=1` opens steps 1 and 2 of the setup journey in place of the list. */
 const NEW_PARAM = 'new'
 
+/** `?shared=setup` opens the shared account's setup wizard (its own lazy chunk). */
+const SHARED_PARAM = 'shared'
+
+const SharedSetupWizard = lazy(() => import('../shared/SharedSetupWizard'))
+
 /**
  * «فضاهای من»: one card per building (each its own spreadsheet), «+ ساختمان جدید» for the setup
  * journey and «اتصال به شیت موجود» for a sheet someone shared. It opens from the personal
@@ -37,8 +42,15 @@ export default function BuildingsHomePage() {
     return <BuildingCreateJourney onCancel={() => setParams({}, { replace: true })} />
   }
 
-  // Task 6 connects the setup wizard here.
-  const startShared = () => undefined
+  if (params.get(SHARED_PARAM) === 'setup') {
+    return (
+      <Suspense fallback={null}>
+        <SharedSetupWizard onCancel={() => setParams({}, { replace: true })} />
+      </Suspense>
+    )
+  }
+
+  const startShared = () => setParams({ [SHARED_PARAM]: 'setup' })
 
   const startNew = () => setParams({ [NEW_PARAM]: '1' })
 

@@ -1,7 +1,8 @@
 import { getUserEmail, getUserName } from './auth'
-import { addInvite, inviteMessage } from './buildingInvites'
-import { can, members } from './buildingRoles'
+import { addInvite, addInviteToClosedSheet, inviteMessage } from './buildingInvites'
+import { can, memberHasPermission, members } from './buildingRoles'
 import { setFileRole, shareFile, unshareFile, type DriveShareRole } from './driveShare'
+import { viewerCanWrite } from './memberAccess'
 import type { InviteBlock, MemberBlock } from './memberMessages'
 import {
   BUILDING_DRIVE_ROLE,
@@ -36,13 +37,17 @@ function driveRoleOf(spreadsheetId: string, role: MemberRole): DriveShareRole {
 /**
  * «+ افزودن»: shares the file with `email` (Drive sends them the invitation e-mail), then writes
  * the member and invite rows. Returns why it refused, or null when the invitation went out.
- * A shared account keeps one partner besides the owner: a second one is refused.
+ * A shared account keeps one partner besides the owner (a second one is refused) and never gets
+ * a second owner. `known` = the members of a sheet that is not the open one (a file created a
+ * moment ago): the guards read them and the rows go straight to Sheets, never through the open
+ * sheet's mirror.
  */
 export async function inviteMember(
   spreadsheetId: string,
   email: string,
   role: MemberRole,
-  name: string
+  name: string,
+  known?: readonly WorkspaceMember[]
 ): Promise<InviteBlock | null> {
   const kind = memberRulesOf(spreadsheetId)
 
@@ -50,11 +55,15 @@ export async function inviteMember(
 
   const key = normalizeEmail(email)
 
-  if (!can(registry.settingsPermission, spreadsheetId)) return 'forbidden'
+  const list = known ?? members<WorkspaceMember>(spreadsheetId)
+
+  const allowed = known
+    ? memberHasPermission(known, getUserEmail(), registry.settingsPermission, kind)
+    : can(registry.settingsPermission, spreadsheetId)
+
+  if (!allowed) return 'forbidden'
+  if (registry.ownerFixed && role === registry.ownerRole) return 'owner-fixed'
   if (key === normalizeEmail(getUserEmail() ?? '')) return 'self'
-
-  const list = members(spreadsheetId)
-
   if (list.some(member => member.email === key)) return 'exists'
   if (role === registry.singleRole && list.some(member => member.role === role))
     return 'partner-limit'
@@ -73,7 +82,7 @@ export async function inviteMember(
       kind
     })
   )
-  await addInvite(spreadsheetId, key, role)
+  await (known ? addInviteToClosedSheet : addInvite)(spreadsheetId, key, role)
   void refreshSharingInfo(spreadsheetId)
 
   return null
@@ -97,10 +106,11 @@ export async function resendInvite(
   const member = members<WorkspaceMember>(spreadsheetId).find(item => item.email === key)
 
   if (!member) return 'unknown'
+  // A viewer a writing switch raised keeps «ویرایش» (`setMemberOverrides` raised the share).
   await shareFile(
     spreadsheetId,
     key,
-    driveRoleOf(spreadsheetId, member.role as MemberRole),
+    viewerCanWrite(member, kind) ? 'writer' : driveRoleOf(spreadsheetId, member.role as MemberRole),
     inviteMessage({
       inviterName: getUserName() ?? '',
       buildingName: name,

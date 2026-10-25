@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { resendInvite } from './buildingMemberDrive'
-import { setMemberOverrides } from './buildingMembers'
+import { inviteMember, resendInvite } from './buildingMemberDrive'
+import { changeMemberRole, setMemberOverrides } from './buildingMembers'
 import { deleteMemberSettings, setMemberSetting } from './buildingSettings'
 import { getDefaultSettings, saveSettings } from './settings'
 import { setSheetAllRows } from './spreadsheetStore'
@@ -127,5 +127,32 @@ describe('«ارسال دوبارهٔ دعوت»', () => {
     user.email = 'partner@x.com'
     expect(await resendInvite('s1', 'viewer@x.com', 'خانه')).toBe('forbidden')
     expect(calls.log).toEqual([])
+  })
+
+  it('shares again with «ویرایش» a viewer a writing switch raised', async () => {
+    sheet('s1', [...SHARED_ROWS, ['دسترسی:viewer@x.com', '{"settle":true}', 't']])
+    expect(await resendInvite('s1', 'viewer@x.com', 'خانه')).toBeNull()
+    expect(calls.log).toEqual(['share:viewer@x.com:writer:mail'])
+  })
+})
+
+describe('the owner of a shared account is fixed', () => {
+  it('never invites anyone as owner', async () => {
+    expect(await inviteMember('s1', 'new@x.com', 'owner', 'خانه')).toBe('owner-fixed')
+    expect(calls.log).toEqual([])
+  })
+
+  it('never promotes a member to owner', async () => {
+    expect(await changeMemberRole('s1', 'viewer@x.com', 'owner')).toBe('owner-fixed')
+    expect(calls.log).toEqual([])
+  })
+
+  it('still lets a building give the manager role', async () => {
+    sheet('b1', [
+      ['نقش:owner@x.com', 'manager', 't'],
+      ['نقش:v@x.com', 'board', 't']
+    ])
+    expect(await changeMemberRole('b1', 'v@x.com', 'manager')).toBeNull()
+    expect(calls.log).toEqual(['role:v@x.com:writer', 'set:نقش:v@x.com=manager'])
   })
 })

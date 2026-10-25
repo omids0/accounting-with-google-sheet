@@ -205,6 +205,17 @@ export function setWorkspaceType(spreadsheetId: string, type: WorkspaceType): vo
   listeners.forEach(listener => listener())
 }
 
+/** The type the `نوع فضا` row of «تنظیمات دوره» data rows names; no row = personal. */
+export function workspaceTypeOfRows(rows: readonly (readonly unknown[])[]): WorkspaceType {
+  const marker = rows.find(row => String(row[0] ?? '').trim() === WORKSPACE_TYPE_ROW)
+
+  const value = String(marker?.[1] ?? '').trim()
+
+  if (value === WORKSPACE_BUILDING_VALUE) return 'building'
+
+  return value === WORKSPACE_SHARED_VALUE ? 'shared' : 'personal'
+}
+
 /**
  * Reads the marker row of the spreadsheet and caches it. A failed read changes nothing, so
  * going offline never turns a known building into a personal sheet.
@@ -212,18 +223,7 @@ export function setWorkspaceType(spreadsheetId: string, type: WorkspaceType): vo
 export async function syncWorkspaceTypeFromSheet(spreadsheetId: string): Promise<WorkspaceType> {
   try {
     const { fetchSheetRows } = await import('./sheets')
-    const rows = await fetchSheetRows(spreadsheetId, PERIOD_SETTINGS_SHEET)
-
-    const marker = rows.find(row => String(row[0] ?? '').trim() === WORKSPACE_TYPE_ROW)
-
-    const value = String(marker?.[1] ?? '').trim()
-
-    const type: WorkspaceType =
-      value === WORKSPACE_BUILDING_VALUE
-        ? 'building'
-        : value === WORKSPACE_SHARED_VALUE
-        ? 'shared'
-        : 'personal'
+    const type = workspaceTypeOfRows(await fetchSheetRows(spreadsheetId, PERIOD_SETTINGS_SHEET))
 
     if (!hasWorkspaceType(spreadsheetId) || getWorkspaceType(spreadsheetId) !== type) {
       setWorkspaceType(spreadsheetId, type)

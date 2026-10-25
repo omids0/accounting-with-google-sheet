@@ -11,7 +11,6 @@ import {
   buildingCardHeadClass,
   buildingCardTitleClass,
   buildingDayBadgeClass,
-  buildingLinkClass,
   journeyRowMetaClass
 } from '../ui/buildingStyles'
 import Button from '../ui/Button'
@@ -26,6 +25,8 @@ interface SharedSpaceCardProps {
   hidden?: boolean
   /** Opens the setup wizard. */
   onStart: () => void
+  /** «اتصال به حساب مشترک»: the partner connects the file they were invited to. */
+  onConnect: () => void
   onOpen: () => void
   onOff: () => void
   onShowAgain: () => void
@@ -56,6 +57,7 @@ export default function SharedSpaceCard({
   members,
   hidden = false,
   onStart,
+  onConnect,
   onOpen,
   onOff,
   onShowAgain,
@@ -74,17 +76,24 @@ export default function SharedSpaceCard({
               <li key={point}>{point}</li>
             ))}
           </ul>
-          <Button type="button" onClick={onStart}>
-            راه‌اندازی
-          </Button>
+          {/* One shared account per person: a hidden one is turned on again, never made twice. */}
+          {hidden ? (
+            <Button type="button" onClick={onShowAgain}>
+              روشن کردن دوباره
+            </Button>
+          ) : (
+            <>
+              <Button type="button" onClick={onStart}>
+                راه‌اندازی
+              </Button>
+              <Button type="button" variant="secondary" onClick={onConnect}>
+                اتصال به حساب مشترک
+              </Button>
+            </>
+          )}
         </Card>
         <p className="mb-stack text-sm leading-[1.8] text-muted">
           این قابلیت اختیاری است. تا روشنش نکنید، در شیت و منوی شما هیچ چیز اضافه نمی‌شود.
-          {hidden ? (
-            <button type="button" className={buildingLinkClass} onClick={onShowAgain}>
-              روشن کردن دوباره
-            </button>
-          ) : null}
         </p>
       </>
     )

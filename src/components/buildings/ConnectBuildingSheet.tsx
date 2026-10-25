@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router'
 
 import { useOpenSheetWithGoogle } from '../../hooks/useOpenSheetWithGoogle'
 import { getPathForTab } from '../../routes/paths'
-import { connectBuilding, NOT_A_BUILDING_MESSAGE } from '../../services/buildingConnect'
+import {
+  connectBuilding,
+  NOT_A_BUILDING_MESSAGE,
+  registerConnectedSheet
+} from '../../services/buildingConnect'
 import { isJourneyUnfinished, readJourney } from '../../services/buildingJourney'
-import { registerBuildingSpreadsheet } from '../../services/buildingTemplate'
 import { getSettings } from '../../services/settings'
 import { getSpreadsheetLabel, parseSpreadsheetIdFromUrl } from '../../services/spreadsheetCatalog'
 import { switchActiveSpreadsheet } from '../../services/spreadsheetSetup'
@@ -20,6 +23,7 @@ import type { SpreadsheetEntry } from '../../types'
 import { toUserMessage } from '../../utils/userMessage'
 import { FormField } from '../form'
 import FormModal from '../FormModal'
+import type { Tab } from '../layout/types'
 import {
   journeyListClass,
   journeyNoteClass,
@@ -29,25 +33,49 @@ import {
 import Button from '../ui/Button'
 import { formErrorClass } from '../ui/formStyles'
 
+/** What the sheet connects: a building (default) or the shared account. */
+export interface ConnectTarget {
+  type: 'building' | 'shared'
+  title: string
+  intro: string
+  notMessage: string
+  /** Reads the sheet's type row and lists it on this device; false for another kind of sheet. */
+  connect: (spreadsheetId: string, title?: string) => Promise<boolean>
+  /** The page the «باز کردن شیت با گوگل» path opens once the picked sheet is listed. */
+  landing: (spreadsheetId: string) => Tab
+}
+
+const BUILDING_TARGET: ConnectTarget = {
+  type: 'building',
+  title: 'اتصال به شیت موجود',
+  intro: 'اگر مدیر قبلی یا هیئت مدیره شیت ساختمان را با شما به اشتراک گذاشته، از اینجا وصلش کنید.',
+  notMessage: NOT_A_BUILDING_MESSAGE,
+  connect: connectBuilding,
+  landing: id => (isJourneyUnfinished(readJourney(id)) ? 'building-setup' : 'building-dashboard')
+}
+
 interface ConnectBuildingSheetProps {
   open: boolean
-  /** Drive sheets named like a building that this device has not registered. */
+  /** Drive sheets named like the target that this device has not registered. */
   candidates: SpreadsheetEntry[]
   onClose: () => void
-  /** Registers a building and enters it (the home's `useEnterBuilding`). */
+  /** Registers the sheet and enters it (the home's `useEnterBuilding` / `useEnterWorkspace`). */
   onConnected: (spreadsheetId: string) => void
+  /** Default: a building. */
+  target?: ConnectTarget
 }
 
 /**
- * «اتصال به شیت موجود»: pick a building from the Drive list, paste its link, or open it with
- * Google (the only way the app can reach a sheet someone else shared). A sheet without the type
- * row is refused with «این شیت ساختمان نیست».
+ * «اتصال به شیت موجود» (and, with the shared target, «اتصال به حساب مشترک»): pick a sheet from
+ * the Drive list, paste its link, or open it with Google (the only way the app can reach a sheet
+ * someone else shared). A sheet without the target's type row is refused («این شیت ساختمان نیست»).
  */
 export default function ConnectBuildingSheet({
   open,
   candidates,
   onClose,
-  onConnected
+  onConnected,
+  target = BUILDING_TARGET
 }: ConnectBuildingSheetProps) {
   const navigate = useNavigate()
   const [link, setLink] = useState('')
@@ -58,11 +86,11 @@ export default function ConnectBuildingSheet({
     setBusy(true)
     setError(null)
     try {
-      if (await connectBuilding(spreadsheetId, title)) {
+      if (await target.connect(spreadsheetId, title)) {
         onClose()
         onConnected(spreadsheetId)
       } else {
-        setError(NOT_A_BUILDING_MESSAGE)
+        setError(target.notMessage)
       }
     } catch (err) {
       setError(toUserMessage(err, 'اتصال به شیت ناموفق بود'))
@@ -73,26 +101,22 @@ export default function ConnectBuildingSheet({
 
   const previousRef = useRef('')
 
-  // The picker has already made the sheet active: keep it when it is a building, else go back.
+  // The picker has already made the sheet active: keep it when it is the target, else go back.
   const picker = useOpenSheetWithGoogle(async pickedId => {
     const previousId = previousRef.current
 
-    if ((await syncWorkspaceTypeFromSheet(pickedId)) === 'building') {
+    if ((await syncWorkspaceTypeFromSheet(pickedId)) === target.type) {
       const name = getSettings()?.spreadsheets?.find(sheet => sheet.id === pickedId)?.name
 
-      registerBuildingSpreadsheet(pickedId, name ?? pickedId)
+      registerConnectedSheet(pickedId, target.type, name ?? pickedId)
       await moveSyncToSpreadsheet(previousId, pickedId)
       onClose()
-      navigate(
-        getPathForTab(
-          isJourneyUnfinished(readJourney(pickedId)) ? 'building-setup' : 'building-dashboard'
-        )
-      )
+      navigate(getPathForTab(target.landing(pickedId)))
       bumpSpreadsheetKey()
 
       return
     }
-    setError(NOT_A_BUILDING_MESSAGE)
+    setError(target.notMessage)
     if (previousId) {
       await switchActiveSpreadsheet(previousId).catch(() => undefined)
       await moveSyncToSpreadsheet(pickedId, previousId)
@@ -111,7 +135,7 @@ export default function ConnectBuildingSheet({
   return (
     <FormModal
       open={open}
-      title="اتصال به شیت موجود"
+      title={target.title}
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
@@ -127,9 +151,7 @@ export default function ConnectBuildingSheet({
       saving={busy}
       saveLabel="اتصال"
     >
-      <p className={journeyNoteClass}>
-        اگر مدیر قبلی یا هیئت مدیره شیت ساختمان را با شما به اشتراک گذاشته، از اینجا وصلش کنید.
-      </p>
+      <p className={journeyNoteClass}>{target.intro}</p>
       {candidates.length ? (
         <div className={journeyListClass}>
           {candidates.map(entry => (

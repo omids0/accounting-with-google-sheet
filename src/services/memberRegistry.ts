@@ -38,6 +38,8 @@ export interface MemberRegistry {
   writePermissions: string[]
   /** The role the sheet must always keep one of (the last one cannot leave or change). */
   ownerRole: string
+  /** Nobody is invited or promoted to `ownerRole` (the shared account's owner owns the file). */
+  ownerFixed: boolean
   defaultInviteRole: string
   /** The permission that manages members (invite, role, switches, removal). */
   settingsPermission: string
@@ -150,6 +152,7 @@ const REGISTRIES: Record<MemberKind, MemberRegistry> = {
     driveRole: BUILDING_DRIVE_ROLE,
     writePermissions: ['record', 'issue', 'people', 'settings'],
     ownerRole: 'manager',
+    ownerFixed: false,
     defaultInviteRole: 'accountant',
     settingsPermission: 'settings',
     lastOwnerMessage: 'ساختمان باید حداقل یک مدیر داشته باشد',
@@ -168,6 +171,7 @@ const REGISTRIES: Record<MemberKind, MemberRegistry> = {
     driveRole: SHARED_DRIVE_ROLE,
     writePermissions: ['record', 'editOthers', 'settle', 'budget', 'members'],
     ownerRole: 'owner',
+    ownerFixed: true,
     defaultInviteRole: 'partner',
     settingsPermission: 'members',
     lastOwnerMessage: 'مالک حساب مشترک را نمی‌توان حذف کرد یا نقشش را عوض کرد',

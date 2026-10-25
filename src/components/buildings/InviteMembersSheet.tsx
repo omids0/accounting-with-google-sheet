@@ -22,7 +22,8 @@ import { showSuccess } from '../../utils/toast'
 import { FormField, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import {
-  assignableRoles,
+  defaultInviteRole,
+  invitableRoles,
   inviteSheetNote,
   inviteSheetTitle,
   memberRoleLabel
@@ -67,7 +68,7 @@ export default function InviteMembersSheet({
   onSaved
 }: InviteMembersSheetProps) {
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<MemberRole>(registryOf(kind).defaultInviteRole as MemberRole)
+  const [chosenRole, setRole] = useState<MemberRole | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   // The period tab is not reactive (settings writes skip the revision), so a counter re-reads it.
@@ -76,9 +77,18 @@ export default function InviteMembersSheet({
 
   const registry = registryOf(kind)
 
-  const roleOptions = assignableRoles(kind)
-
   const spreadsheetId = getSettings()?.spreadsheetId ?? ''
+
+  const list = members<WorkspaceMember>(spreadsheetId)
+
+  // The one partner of a shared account, once there, is no longer offered.
+  const roleOptions = invitableRoles(kind, list)
+
+  const role = (
+    chosenRole && roleOptions.some(option => option.value === chosenRole)
+      ? chosenRole
+      : defaultInviteRole(kind, list)
+  ) as MemberRole
 
   const me = (getUserEmail() ?? '').toLowerCase()
 
@@ -102,12 +112,6 @@ export default function InviteMembersSheet({
       }
       showSuccess(`دعوت‌نامه برای ${email.trim()} فرستاده شد`)
       setEmail('')
-      // The one partner of a shared account is taken now: the next invitation defaults to the rest.
-      if (role === registry.singleRole)
-        setRole(
-          (roleOptions.find(option => option.value !== registry.singleRole)?.value ??
-            role) as MemberRole
-        )
       setVersion(value => value + 1)
     } catch (err) {
       if (isAuthError(err)) requestReauth()
@@ -178,7 +182,7 @@ export default function InviteMembersSheet({
       </Button>
 
       <div className={journeyListClass}>
-        {members<WorkspaceMember>(spreadsheetId).map(member => (
+        {list.map(member => (
           <div key={member.email} className={journeyRowClass}>
             <span>
               <span className={journeyRowTitleClass} dir="ltr">

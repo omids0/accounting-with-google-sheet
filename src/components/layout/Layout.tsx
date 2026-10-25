@@ -67,7 +67,7 @@ export default function Layout() {
   const workspace = useWorkspaceType()
   const isBuilding = workspace === 'building'
   useBuildingChargeMaintenance(isBuilding)
-  useClaimInvite(isBuilding)
+  useClaimInvite(workspace !== 'personal')
   const isDesktop = useIsDesktop()
   const isTablet = useIsTablet()
   const [toolbar, setToolbar] = useState<HTMLElement | null>(null)

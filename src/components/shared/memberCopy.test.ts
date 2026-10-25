@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 
 import {
   assignableRoles,
+  defaultInviteRole,
   driveAccessLabel,
+  invitableRoles,
   driveAccessLine,
   inviteSheetTitle,
   inviteSheetNote,
@@ -57,6 +59,21 @@ describe('member copy per workspace kind', () => {
       'accountant',
       'board'
     ])
+  })
+
+  it('offers the first role not taken: «شریک» while free, then only «ناظر»', () => {
+    const owner = { email: 'o@x.com', role: 'owner', overrides: {} }
+
+    const partner = { email: 'p@x.com', role: 'partner', overrides: {} }
+
+    expect(invitableRoles('shared', [owner]).map(role => role.value)).toEqual(['partner', 'viewer'])
+    expect(defaultInviteRole('shared', [owner])).toBe('partner')
+    expect(invitableRoles('shared', [owner, partner]).map(role => role.value)).toEqual(['viewer'])
+    expect(defaultInviteRole('shared', [owner, partner])).toBe('viewer')
+    expect(defaultInviteRole('building', [])).toBe('accountant')
+    expect(invitableRoles('building', [{ ...owner, role: 'manager' }])).toEqual(
+      assignableRoles('building')
+    )
   })
 
   it('keeps the building texts word for word', () => {

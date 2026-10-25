@@ -10,6 +10,7 @@ import {
   type PermissionOverrides
 } from './buildingRoles'
 import { deleteMemberSettings, setMemberSetting } from './buildingSettings'
+import { effectivePermission, viewerCanWrite } from './memberAccess'
 import type { MemberBlock } from './memberMessages'
 import {
   BUILDING_PERMISSION_LABELS,
@@ -52,17 +53,7 @@ export function isCustom(member: WorkspaceMember): boolean {
   return Object.keys(member.overrides).length > 0
 }
 
-export function effectivePermission(
-  member: WorkspaceMember,
-  permission: string,
-  kind: MemberKind = 'building'
-): boolean {
-  return (
-    member.overrides[permission] ??
-    registryOf(kind).rolePermissions[member.role]?.[permission] ??
-    false
-  )
-}
+export { effectivePermission, viewerCanWrite }
 
 /** The overrides after switching `permission`; a value equal to the role's default is dropped. */
 export function withOverride(
@@ -80,25 +71,18 @@ export function withOverride(
   return next
 }
 
-/** A read-only member (Drive: view only) who was given a permission that writes. */
-export function viewerCanWrite(member: WorkspaceMember, kind: MemberKind = 'building'): boolean {
-  const registry = registryOf(kind)
-
-  return (
-    registry.driveRole[member.role] === 'reader' &&
-    registry.writePermissions.some(permission => effectivePermission(member, permission, kind))
-  )
-}
-
-/** «ویرایش» / «فقط مشاهده»: the Drive access a role of the kind gets. */
-export function driveAccessLabel(role: string, kind: MemberKind = 'building'): string {
+/**
+ * «ویرایش» / «فقط مشاهده»: the Drive access a role of the kind gets by default. A member's own
+ * line (with the raise a writing switch causes) is `driveAccessLabel` in `memberCopy.ts`.
+ */
+export function roleDriveAccessLabel(role: string, kind: MemberKind = 'building'): string {
   return registryOf(kind).driveRole[role] === 'writer' ? 'ویرایش' : 'فقط مشاهده'
 }
 
 export const DRIVE_ACCESS: Record<BuildingRole, string> = {
-  manager: driveAccessLabel('manager'),
-  accountant: driveAccessLabel('accountant'),
-  board: driveAccessLabel('board')
+  manager: roleDriveAccessLabel('manager'),
+  accountant: roleDriveAccessLabel('accountant'),
+  board: roleDriveAccessLabel('board')
 }
 
 /** What stops `email` from being changed (role, switches) or removed; null when nothing does. */
@@ -110,11 +94,13 @@ export function memberBlock(
   nextRole?: string,
   kind: MemberKind = 'building'
 ): MemberBlock | null {
-  const { ownerRole, singleRole } = registryOf(kind)
+  const { ownerRole, ownerFixed, singleRole } = registryOf(kind)
 
   const target = list.find(item => item.email === normalizeEmail(email))
 
   if (!target) return 'unknown'
+  if (ownerFixed && action === 'change' && nextRole === ownerRole && target.role !== ownerRole)
+    return 'owner-fixed'
 
   const losesOwner =
     target.role === ownerRole && (action === 'remove' || (nextRole && nextRole !== ownerRole))

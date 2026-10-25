@@ -16,9 +16,27 @@ export function memberRoleLabel(kind: MemberKind, role: string): string {
 
 /** The roles an invitation or a role change may give: the owner of a shared account is fixed. */
 export function assignableRoles(kind: MemberKind) {
-  const { roles, ownerRole } = registryOf(kind)
+  const { roles, ownerRole, ownerFixed } = registryOf(kind)
 
-  return kind === 'shared' ? roles.filter(role => role.value !== ownerRole) : roles
+  return ownerFixed ? roles.filter(role => role.value !== ownerRole) : roles
+}
+
+/** The roles a new invitation may still give: the single partner, once taken, is not offered. */
+export function invitableRoles(kind: MemberKind, list: readonly WorkspaceMember[]) {
+  const { singleRole } = registryOf(kind)
+
+  const taken = singleRole !== null && list.some(member => member.role === singleRole)
+
+  return assignableRoles(kind).filter(role => !taken || role.value !== singleRole)
+}
+
+/** The kind's usual invitation role while it is free, else the first role left. */
+export function defaultInviteRole(kind: MemberKind, list: readonly WorkspaceMember[]): string {
+  const options = invitableRoles(kind, list)
+
+  const preferred = registryOf(kind).defaultInviteRole
+
+  return options.some(role => role.value === preferred) ? preferred : options[0]?.value ?? preferred
 }
 
 export function inviteSheetTitle(kind: MemberKind): string {
