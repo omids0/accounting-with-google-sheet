@@ -54,7 +54,8 @@ export async function leaveSharedAccount(spreadsheetId: string): Promise<'remove
   try {
     if (await listed()) {
       await unshareFile(spreadsheetId, email)
-      // Unreadable now = the access is gone.
+      // Unreadable now (403/404) = the access is gone. Any other failure of the re-check never
+      // throws: the unshare went through but cannot be confirmed, so 'fallback'.
       removed = await listed().then(still => !still, refused)
     }
   } catch (err) {

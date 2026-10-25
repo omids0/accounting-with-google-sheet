@@ -156,7 +156,8 @@ export function linkSharedSave(
   choice: SharedChoice,
   linked = ''
 ): void {
-  const linkedTo = choice.unlinked ? '' : linked
+  // A marker of a previous (or another) shared account is no link here: a tick creates a copy.
+  const linkedTo = choice.unlinked || (choice.on && linked !== choice.sharedId) ? '' : linked
 
   if (!choice.on && !linkedTo) return
 

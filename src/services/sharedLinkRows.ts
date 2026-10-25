@@ -112,11 +112,20 @@ export interface CopyMatch {
   headers: string[]
 }
 
-/** The row whose «مرجع» is `ref`, in the tabs given (the record tab and its yearly archives). */
-export function findCopyByRef(tabs: Map<string, string[][]>, ref: string): CopyMatch | null {
+/**
+ * The row whose «مرجع» is `ref` (or whose id is `id`: a copy kept without a link has no ref), in
+ * the tabs given (the record tab and its yearly archives).
+ */
+export function findCopyByRef(
+  tabs: Map<string, string[][]>,
+  ref: string,
+  id?: string
+): CopyMatch | null {
   for (const [sheetName, [headers = [], ...rows]] of tabs) {
     const column = headers.map(normalizeHeaderLabel).indexOf(SHARED_REF_FIELD_LABEL)
-    const index = column < 0 ? -1 : rows.findIndex(row => (row[column] ?? '').trim() === ref)
+    const index = rows.findIndex(
+      row => (column >= 0 && (row[column] ?? '').trim() === ref) || (!!id && row[0] === id)
+    )
 
     if (index >= 0) return { sheetName, rowNumber: index + 2, row: rows[index], headers }
   }
@@ -160,6 +169,7 @@ export interface CopyContext {
   categories: string[]
   me: string
   createdAt: string
+  /** The id a new copy gets: stable per task, so a retried create finds the copy it wrote. */
   newId: string
 }
 
@@ -170,7 +180,7 @@ export interface CopyContext {
  */
 export function copyOperation(context: CopyContext): OutboxOperation | null {
   const { task, form, base, tabs } = context
-  const found = findCopyByRef(tabs, task.ref)
+  const found = findCopyByRef(tabs, task.ref, task.kind === 'create' ? context.newId : undefined)
 
   if (task.kind === 'delete') {
     return found
@@ -192,13 +202,16 @@ export function copyOperation(context: CopyContext): OutboxOperation | null {
     (current && (!asked || (asked === current.category && !context.categories.includes(asked)))
       ? current.category
       : '') || sharedCategory(asked, context.categories)
+  const titleColumn = found ? columnsOf(form, found.headers, ['title']).get('title') : undefined
+  const currentTitle = found ? (found.row[titleColumn ?? -1] ?? '').trim() : ''
   const fresh = (headers: string[], recordId: string) =>
     buildCopyRow({
       form,
       headers,
       recordId,
-      // No typed title: the shared category names the copy, never a personal word.
-      values: { ...task.values, title: task.values.title || category },
+      // No typed title: the copy's own (a partner may have renamed it), else the shared category
+      // names it, never a personal word.
+      values: { ...task.values, title: task.values.title || currentTitle || category },
       split: task.split || current?.split || 'equal',
       payer: task.payer || current?.payer || context.me,
       creator: context.me,

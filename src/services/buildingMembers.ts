@@ -101,6 +101,10 @@ export function memberBlock(
   if (!target) return 'unknown'
   if (ownerFixed && action === 'change' && nextRole === ownerRole && target.role !== ownerRole)
     return 'owner-fixed'
+  // A switch change (no new role) on a fixed owner: a member holding `members` must not take the
+  // owner's own `members` or `editOthers` away.
+  if (ownerFixed && action === 'change' && !nextRole && target.role === ownerRole)
+    return 'owner-fixed'
 
   const losesOwner =
     target.role === ownerRole && (action === 'remove' || (nextRole && nextRole !== ownerRole))

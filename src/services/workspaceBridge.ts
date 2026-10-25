@@ -1,6 +1,6 @@
 import { reapplyFailedWrite } from './failedWriteMirror'
 import { RowEditConflictError } from './rowConflict'
-import { getSettings, getSpreadsheets } from './settings'
+import { getDefaultForms, getSettings, getSpreadsheets } from './settings'
 import { RECEIVABLES_HEADERS, WALLET_LEDGER_HEADERS } from './sheetHeaders'
 import { RECEIVABLES_SHEET, WALLET_LEDGER_SHEET } from './sheetNames'
 import { executeOutboxOperation, isQuotaExceededError } from './sheets'
@@ -53,11 +53,12 @@ function tabSpecOf(spreadsheetId: string, sheetName: string): SheetSpec | null {
   if (sheetName === RECEIVABLES_SHEET) return { sheetName, headers: RECEIVABLES_HEADERS }
   if (sheetName === WALLET_LEDGER_SHEET) return { sheetName, headers: WALLET_LEDGER_HEADERS }
 
-  const forms = getSettings()?.forms ?? []
+  // The shared default forms: columns align with every member's and no personal custom-field label
+  // of this device ever reaches the shared sheet.
   const form = (
     getWorkspaceType(spreadsheetId) === 'shared'
-      ? withStandardFields(forms, false, true)
-      : withoutBuildingFields(forms)
+      ? withStandardFields(getDefaultForms(), false, true)
+      : withoutBuildingFields(getSettings()?.forms ?? [])
   ).find(item => normalizeSheetTitle(item.sheetName) === normalizeSheetTitle(sheetName))
 
   return form ? { sheetName, headers: buildHeaders(form.fields) } : null

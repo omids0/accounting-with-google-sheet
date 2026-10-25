@@ -128,6 +128,33 @@ describe('the personal side of the link', () => {
     expect(readSharedLinks()).toEqual([])
   })
 
+  it('a tick on a record still marked with a previous shared account creates a fresh copy', async () => {
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: 'p1',
+      spreadsheets: [
+        { id: 'p1', name: 'حسابداری · من', createdAt: '' },
+        { id: SHARED, name: 'حسابداری · مشترک خانه', createdAt: '', kind: 'shared' }
+      ]
+    })
+    vi.stubGlobal('navigator', { onLine: false })
+    linkSharedSave(
+      'p1',
+      'r1',
+      'expense',
+      { date: '2026-10-20', amount: 5, category: 'خوراک' },
+      { on: true, sharedId: SHARED, category: '', split: '', payer: '', title: '' },
+      'old-shared'
+    )
+    await vi.waitFor(() => expect(readSharedLinks()).toHaveLength(1))
+
+    expect(readSharedLinks()[0]).toMatchObject({
+      kind: 'create',
+      sharedId: SHARED,
+      values: { category: 'خوراک' }
+    })
+  })
+
   it('clears the personal link when an update finds no copy (the shared account removed it)', async () => {
     batchFetch.mockImplementation(async (id: string) =>
       id === 'p1'

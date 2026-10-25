@@ -76,11 +76,8 @@ vi.mock('./buildingSettings', async importOriginal => ({
 }))
 
 const HEADER = ['کلید', 'مقدار', 'زمان ثبت']
-
 const OWNER = ['نقش:owner@x.com', 'owner', 't']
-
 const PARTNER = ['نقش:partner@x.com', 'partner', 't']
-
 const remote = vi.hoisted(() => ({
   tabs: new Map<string, string[][]>(),
   members: [] as string[][]
@@ -185,6 +182,14 @@ describe('leaveSharedAccount', () => {
 
     await expect(leaveSharedAccount('s1')).resolves.toBe('fallback')
     expect(calls.deleted).toHaveLength(3)
+  })
+
+  it('falls back when the re-check after the unshare fails for another reason', async () => {
+    calls.unshare = async () => {
+      calls.list = () => Promise.reject(new TypeError('Failed to fetch'))
+    }
+
+    await expect(leaveSharedAccount('s1')).resolves.toBe('fallback')
   })
 
   it('falls back without unsharing when Drive never listed the user (it cannot tell)', async () => {

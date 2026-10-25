@@ -5,9 +5,10 @@ import { applyNotice, type SharedNotice } from './sharedNotices'
 import { CATEGORIES_SHEET } from './sheetNames'
 import { setWorkspaceType } from './workspace'
 
-const { writeToWorkspace, batchFetch } = vi.hoisted(() => ({
+const { writeToWorkspace, batchFetch, deviceForms } = vi.hoisted(() => ({
   writeToWorkspace: vi.fn(async (_id: string, _operation: unknown) => true),
-  batchFetch: vi.fn()
+  batchFetch: vi.fn(),
+  deviceForms: [] as { type: string; sheetName: string }[]
 }))
 
 vi.mock('./workspaceBridge', () => ({ writeToWorkspace, drainWorkspace: async () => true }))
@@ -16,7 +17,7 @@ vi.mock('./sheetsEnsure', () => ({ getSheetTitles: async () => ['هزینه'] })
 vi.mock('./auth', () => ({ getUserEmail: () => 'me@x.com' }))
 vi.mock('./settings', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
-  getSettings: () => ({ spreadsheetId: SHARED, forms: [] }),
+  getSettings: () => ({ spreadsheetId: SHARED, forms: deviceForms }),
   getSpreadsheets: () => [{ id: 'p1', name: 'شخصی', createdAt: '' }]
 }))
 
@@ -140,5 +141,34 @@ describe('applyNotice', () => {
     const [[, operation]] = written() as [string, { row: string[] }][]
 
     expect(operation.row).toEqual(['r1', 't', '2026-10-20', 'سبزی', 'خوراک', '850000', SHARED])
+  })
+
+  it('a personal record whose «حساب مشترک» marker is gone is skipped', async () => {
+    batchFetch.mockResolvedValue(
+      new Map([
+        ['هزینه', [PERSONAL_HEADER, [...personalRow.slice(0, 6), '']]],
+        ['درآمد', [PERSONAL_HEADER]],
+        [CATEGORIES_SHEET, [['نوع'], ['هزینه', 'خوراک']]]
+      ])
+    )
+
+    expect(await applyNotice(notice())).toBe('skipped')
+    expect(await applyNotice(notice({ field: 'delete', kind: 'delete', new: '' }))).toBe('skipped')
+    expect(writeToWorkspace).not.toHaveBeenCalled()
+  })
+
+  it('writes to the personal tab this device names, not the shared default', async () => {
+    deviceForms.push({ type: 'expense', sheetName: 'خرج' }, { type: 'income', sheetName: 'دخل' })
+    batchFetch.mockResolvedValue(
+      new Map([
+        ['خرج', [PERSONAL_HEADER, personalRow]],
+        ['دخل', [PERSONAL_HEADER]],
+        [CATEGORIES_SHEET, [['نوع'], ['هزینه', 'خوراک']]]
+      ])
+    )
+
+    expect(await applyNotice(notice())).toBe('applied')
+    expect(written()[0][1]).toMatchObject({ sheetName: 'خرج' })
+    deviceForms.length = 0
   })
 })

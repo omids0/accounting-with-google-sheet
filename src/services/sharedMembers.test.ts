@@ -123,6 +123,15 @@ describe('member guards of a shared account', () => {
     expect(memberBlockMessages('shared')['last-manager']).toContain('مالک')
   })
 
+  it('never lets anyone switch off the owner’s own permissions', () => {
+    expect(memberBlock(list, 'owner@x.com', 'partner@x.com', 'change', undefined, 'shared')).toBe(
+      'owner-fixed'
+    )
+    expect(memberBlock(list, 'partner@x.com', 'owner@x.com', 'change', undefined, 'shared')).toBe(
+      null
+    )
+  })
+
   it('refuses a change of yourself and a second partner', () => {
     expect(memberBlock(list, 'viewer@x.com', 'viewer@x.com', 'change', 'partner', 'shared')).toBe(
       'self'

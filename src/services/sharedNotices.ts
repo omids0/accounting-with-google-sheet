@@ -1,8 +1,8 @@
 import { getUserEmail } from './auth'
 import { setMemberSetting } from './buildingSettings'
 import { rowsToGroups } from './categoryGroups'
-import { getSettings, getSpreadsheets } from './settings'
-import { clearPersonalLink } from './sharedLink'
+import { getSpreadsheets } from './settings'
+import { clearPersonalLink, personalTabName } from './sharedLink'
 import { sharedRecordForm } from './sharedLinkRows'
 import { CATEGORIES_SHEET, PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { isSpreadsheetAccessDeniedError } from './sheetsApi'
@@ -12,6 +12,7 @@ import { getSheetAllRows } from './spreadsheetStore'
 import type { OutboxOperation } from './syncOutbox'
 import { getWorkspaceType } from './workspace'
 import { writeToWorkspace } from './workspaceBridge'
+import { SHARED_LINK_FIELD_LABEL } from '../components/form/sharedFields'
 
 /**
  * Change notices (spec «When the partner edits or deletes a copy»): a copy of a personal record
@@ -181,18 +182,14 @@ export const dismissNotice = (sharedId: string, noticeId: string): Promise<void>
 
 const TYPES = ['expense', 'income'] as const
 
-const tabOf = (type: (typeof TYPES)[number]) =>
-  getSettings()?.forms.find(form => form.type === type)?.sheetName ??
-  sharedRecordForm(type).sheetName
-
 const APPLIED_FIELDS = ['amount', 'title', 'category', 'delete']
 
 /**
  * Writes the notice's new value to the PERSONAL record, nothing else: a category only when the
  * personal list has that exact name, a delete only clears the record's shared marker. The notice
  * comes from a shared sheet any member can write to, so only `APPLIED_FIELDS` and a reference to
- * one of the user's own personal spreadsheets count; a split (the personal record has none), another field
- * or a record that is gone is 'skipped'.
+ * one of the user's own personal spreadsheets count; a split (the personal record has none), another field,
+ * a record that is gone or one no longer marked «حساب مشترک» is 'skipped'.
  */
 export async function applyNotice(notice: SharedNotice): Promise<'applied' | 'skipped'> {
   const cut = notice.recordRef.lastIndexOf(':')
@@ -208,6 +205,7 @@ export async function applyNotice(notice: SharedNotice): Promise<'applied' | 'sk
   )
     return 'skipped'
 
+  const tabOf = (type: (typeof TYPES)[number]) => personalTabName(personalId, type)
   const tabs = [...TYPES.map(tabOf), CATEGORIES_SHEET]
   const missing = tabs.filter(tab => !getSheetAllRows(personalId, tab))
   const read = missing.length ? await batchFetchSheetRangesFromApi(personalId, missing) : null
@@ -217,6 +215,12 @@ export async function applyNotice(notice: SharedNotice): Promise<'applied' | 'sk
   if (at < 0) return 'skipped'
 
   const type = TYPES[at]
+  const rows = rowsOf(tabOf(type))
+  const index = rows.findIndex((row, number) => number > 0 && row[0] === recordId)
+  const marker = (rows[0] ?? []).map(normalizeHeaderLabel).indexOf(SHARED_LINK_FIELD_LABEL)
+
+  // Unshared since (or never was): a partner's change must not reach a private record.
+  if (index < 0 || marker < 0 || !String(rows[index][marker] ?? '').trim()) return 'skipped'
 
   if (notice.field === 'delete') {
     await clearPersonalLink(personalId, recordId, type)
@@ -224,15 +228,13 @@ export async function applyNotice(notice: SharedNotice): Promise<'applied' | 'sk
     return 'applied'
   }
 
-  const rows = rowsOf(tabOf(type))
-  const index = rows.findIndex((row, number) => number > 0 && row[0] === recordId)
   const label = sharedRecordForm(type).fields.find(field => field.id === notice.field)?.label
   const column = (rows[0] ?? [])
     .map(normalizeHeaderLabel)
     .indexOf(normalizeHeaderLabel(label ?? ''))
   const value = notice.new
 
-  if (index < 0 || column < 0) return 'skipped'
+  if (column < 0) return 'skipped'
   if (
     notice.field === 'category' &&
     !rowsToGroups(rowsOf(CATEGORIES_SHEET))[type].includes(value)

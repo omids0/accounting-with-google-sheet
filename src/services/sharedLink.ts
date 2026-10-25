@@ -19,7 +19,7 @@ import {
 } from './sharedLinkRows'
 import { removeNotices } from './sharedNotices'
 import { CATEGORIES_SHEET, PERIOD_SETTINGS_SHEET } from './sheetNames'
-import { isPermanentApiError, isSpreadsheetAccessDeniedError } from './sheetsApi'
+import { isPermanentApiError, isSpreadsheetAccessDeniedError, SheetsApiError } from './sheetsApi'
 import { getSheetTitles } from './sheetsEnsure'
 import { normalizeHeaderLabel } from './sheetsHeaders'
 import { normalizeSheetTitle } from './sheetsMeta'
@@ -82,10 +82,14 @@ class NoRecordRight extends Error {}
 
 const offline = () => typeof navigator !== 'undefined' && !navigator.onLine
 
-/** The copy's append still waits in the shared sheet's outbox: it cannot be found by a read yet. */
-const isCopyQueued = (sharedId: string, ref: string) =>
+/**
+ * The copy's append still waits in the shared sheet's outbox: it cannot be found by a read yet.
+ * Matched by ref or by its row id (the task id): a copy kept without a link has no ref.
+ */
+const isCopyQueued = ({ sharedId, ref, id }: SharedLinkTask) =>
   getOutboxEntries(sharedId).some(
-    entry => entry.operation.type === 'append' && entry.operation.row.includes(ref)
+    ({ operation }) =>
+      operation.type === 'append' && (operation.row[0] === id || operation.row.includes(ref))
   )
 
 /** The shared record tab of the type: the default name, else the one this device's forms use. */
@@ -125,6 +129,19 @@ export async function readCopyChoice(
 }
 
 /**
+ * The personal sheet's record tab of the type, whichever sheet is open: the forms are this device's
+ * (the personal sheet's own names, even while a shared account is open), else the default name.
+ */
+export function personalTabName(personalId: string, type: SharedLinkTask['type']): string {
+  const own = getSettings()?.forms.find(form => form.type === type)?.sheetName
+  const fallback = sharedRecordForm(type).sheetName
+
+  return own && (getSheetAllRows(personalId, own) || !getSheetAllRows(personalId, fallback))
+    ? own
+    : fallback
+}
+
+/**
  * Blanks «حساب مشترک» on the personal row (no copy exists any more): through the bridge, so the
  * open personal sheet's mirror follows and a closed one gets it on its next flush.
  */
@@ -133,9 +150,7 @@ export async function clearPersonalLink(
   recordId: string,
   type: SharedLinkTask['type']
 ): Promise<void> {
-  const tab =
-    getSettings()?.forms.find(form => form.type === type)?.sheetName ??
-    sharedRecordForm(type).sheetName
+  const tab = personalTabName(personalId, type)
   const rows =
     getSheetAllRows(personalId, tab) ??
     (await batchFetchSheetRangesFromApi(personalId, [tab])).get(tab) ??
@@ -160,9 +175,9 @@ export async function clearPersonalLink(
 
 /** Reads the shared sheet directly and queues the write. True: done, drop the task. */
 async function send(task: SharedLinkTask): Promise<boolean> {
-  if (isCopyQueued(task.sharedId, task.ref)) {
+  if (isCopyQueued(task)) {
     await drainWorkspace(task.sharedId)
-    if (isCopyQueued(task.sharedId, task.ref)) return false
+    if (isCopyQueued(task)) return false
   }
 
   const { base, form, read, tabs } = await readTarget(task.sharedId, task.type)
@@ -197,7 +212,8 @@ async function send(task: SharedLinkTask): Promise<boolean> {
     categories: rowsToGroups(read.get(CATEGORIES_SHEET) ?? [])[task.type],
     me,
     createdAt: new Date().toLocaleString('fa-IR'),
-    newId: crypto.randomUUID()
+    // Stable per task: a create retried after the page closed finds the copy it already wrote.
+    newId: task.id
   })
 
   if (operation) await writeToWorkspace(task.sharedId, operation)
@@ -209,6 +225,10 @@ async function send(task: SharedLinkTask): Promise<boolean> {
 /** Why a task can never go, or null when trying again may work (offline, quota, a 5xx). */
 function permanentReason(err: unknown): string | null {
   if (err instanceof NoRecordRight) return 'دسترسی «ثبت هزینه و درآمد» را در حساب مشترک ندارید'
+  // A range Google rejects: a record tab the shared file no longer has, not a lost file.
+  if (err instanceof SheetsApiError && err.status === 400) {
+    return 'برگهٔ ثبت هزینه یا درآمد در فایل حساب مشترک پیدا نشد'
+  }
   if (isSpreadsheetAccessDeniedError(err) || isPermanentApiError(err)) {
     return 'این دستگاه به فایل حساب مشترک دسترسی ندارد یا فایل پاک شده'
   }

@@ -45,4 +45,33 @@ describe('a bridged copy into the shared account', () => {
     expect(specs[0].headers).not.toContain(SHARED_LINK_FIELD_LABEL)
     expect(specs[0].headers).not.toContain(WALLET_ACCOUNT_FIELD_LABEL)
   })
+
+  it('uses the shared default columns, never a personal custom field of this device', async () => {
+    const settings = getDefaultSettings()
+
+    saveSettings({
+      ...settings,
+      spreadsheetId: 'personal-1',
+      spreadsheets: [
+        { id: 'personal-1', name: 'حسابداری · من', createdAt: '' },
+        { id: SHARED, name: 'حسابداری · مشترک خانه', createdAt: '', kind: 'shared' }
+      ],
+      forms: settings.forms.map(form => ({
+        ...form,
+        fields: [
+          ...form.fields,
+          { id: 'mine', label: 'برچسب خصوصی', type: 'text', required: false }
+        ]
+      }))
+    })
+    await writeToWorkspace(SHARED, { type: 'append', sheetName: 'هزینه', row: ['c1'] })
+
+    const [, specs] = ensureManySheetsWithHeaders.mock.calls[0] as unknown as [
+      string,
+      { headers: string[] }[]
+    ]
+
+    expect(specs[0].headers).toContain(SHARED_REF_FIELD_LABEL)
+    expect(specs[0].headers).not.toContain('برچسب خصوصی')
+  })
 })
