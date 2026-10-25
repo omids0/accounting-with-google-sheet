@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 import SharedOffSheet, { type SharedOffChoice } from './SharedOffSheet'
 import SharedSpaceCard from './SharedSpaceCard'
@@ -31,7 +32,11 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
   const [, setTick] = useState(0)
   const [offOpen, setOffOpen] = useState(false)
   const [turningOff, setTurningOff] = useState(false)
-  const [connect, setConnect] = useState<'open' | 'closed' | null>(null)
+  // `?shared=connect`: the personal form's «اتصال این دستگاه» on a device without the file.
+  const [params] = useSearchParams()
+  const [connect, setConnect] = useState<'open' | 'closed' | null>(() =>
+    params.get('shared') === 'connect' ? 'open' : null
+  )
 
   const refresh = () => setTick(value => value + 1)
 

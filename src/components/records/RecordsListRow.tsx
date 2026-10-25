@@ -9,6 +9,7 @@ import {
 import { getFormField, type StoredRecord } from './recordsUtils'
 import { describeBuildingExpense } from '../../services/buildingExpenseMeta'
 import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
+import { pendingSharedLink } from '../../services/sharedLinkPrefs'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -19,6 +20,7 @@ import AttachmentBadge from '../attachments/AttachmentBadge'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import { SUBCATEGORY_FIELD_ID } from '../form/fieldUtils'
+import { isLinked } from '../form/sharedFields'
 import MoneyText from '../MoneyText'
 import TransactionListItem from '../TransactionListItem'
 import { cardActionButtonsClass } from '../ui/featureCardStyles'
@@ -110,6 +112,11 @@ function RecordsListRow({
             title={String(title)}
           />
           {badge ? <span className={lineItemsBadgeClass}>{badge}</span> : null}
+          {isLinked(record.values) ? (
+            <span className={lineItemsBadgeClass}>
+              {pendingSharedLink(record.id) ? 'در انتظار ارسال' : 'در حساب مشترک'}
+            </span>
+          ) : null}
           {isIncome || isExpense ? (
             <span
               className={cn(

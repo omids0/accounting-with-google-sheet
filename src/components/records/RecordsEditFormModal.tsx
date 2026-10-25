@@ -31,9 +31,10 @@ import {
 import { BUILDING_FIELD_IDS } from '../form/buildingFields'
 import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
-import { SHARED_FIELD_IDS } from '../form/sharedFields'
+import { isSharedColumn } from '../form/sharedFields'
 import FormModal from '../FormModal'
 import RecurringModeOptions from '../recurring/RecurringModeOptions'
+import { useSharedTick } from '../shared/sharedTickEntry'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
 
 type RecordsEditFormModalProps = {
@@ -142,6 +143,7 @@ export default function RecordsEditFormModal({
   ])
 
   const values = watch()
+  const tick = useSharedTick(editingForm, values, editingRecord)
   const building = hasBuildingExpenseFields(editingForm)
   const selectedCategory = String(values.category ?? '')
   const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(selectedCategory)
@@ -175,7 +177,7 @@ export default function RecordsEditFormModal({
       }
 
       return onSubmit(
-        withAutoTitle(formValues),
+        tick.mark(withAutoTitle(formValues)),
         showVehicleFields ? vehicleExpense.vehicleValues : undefined
       )
     })(event)
@@ -205,8 +207,7 @@ export default function RecordsEditFormModal({
         if (hidden && !isAccount) return null
         // A building's kind, payer and split are drawn by their own block below; a shared
         // account's columns by its own sheets (never as raw text here).
-        if (BUILDING_FIELD_IDS.includes(field.id) || SHARED_FIELD_IDS.includes(field.id))
-          return null
+        if (BUILDING_FIELD_IDS.includes(field.id) || isSharedColumn(field.id)) return null
         if (showVehicleFields && field.id === 'title') return null
         if (field.id === SUBCATEGORY_FIELD_ID && (showVehicleFields || !hasSubcategories)) {
           return null
@@ -271,6 +272,7 @@ export default function RecordsEditFormModal({
       ) : null}
 
       {attachments ? <AttachmentField state={attachments} disabled={saving} /> : null}
+      {tick.element}
 
       {building ? (
         <LazyBuildingExpenseFields

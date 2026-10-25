@@ -9,6 +9,7 @@ import {
   walletEffectOf
 } from '../../services/recordWallet'
 import { getSettings, isConfigured } from '../../services/settings'
+import { linkSharedDelete, linkSharedSave, takeSharedChoice } from '../../services/sharedLinkPrefs'
 import { deleteRecord, updateRecord } from '../../services/sheets'
 import {
   handleExpenseRecordDeleted,
@@ -28,11 +29,12 @@ import {
   settleBuildingEntry,
   syncBridgedEdit
 } from '../dataEntry/buildingExpenseEntry'
+import { isLinked, SHARED_LINK_FIELD_ID } from '../form/sharedFields'
 
 export async function submitRecordEdit({
   editingRecord,
   editingForm,
-  formValues: entered,
+  formValues: marked,
   vehicleExpense,
   onSuccess
 }: {
@@ -44,6 +46,8 @@ export async function submitRecordEdit({
 }): Promise<boolean> {
   if (!isConfigured() || !requireAuth()) return false
 
+  // The shared tick's answer is never written; the copy follows once the record is saved.
+  const { values: entered, choice } = takeSharedChoice(marked)
   const buildingError = buildingEntryError(editingForm, entered)
 
   if (buildingError) {
@@ -131,6 +135,18 @@ export async function submitRecordEdit({
     ).catch(() => showError('تغییر ذخیره شد ولی سهم واحدها یا بدهی به‌روز نشد'))
     await syncBridgedEdit(editingForm, editingRecord.id, formValues)
     logRecordActivity(settings.spreadsheetId, 'update', editingRecord.id, formValues)
+    if (choice) {
+      const was = editingRecord.values[SHARED_LINK_FIELD_ID] ?? ''
+
+      linkSharedSave(
+        settings.spreadsheetId,
+        editingRecord.id,
+        editingForm.type,
+        formValues,
+        choice,
+        was
+      )
+    }
     showSuccess('تراکنش ویرایش شد')
     refreshOpeningBalancesInBackground()
     await onSuccess()
@@ -150,11 +166,14 @@ export async function submitRecordEdit({
 export async function deleteStoredRecord({
   spreadsheetId,
   record,
-  form
+  form,
+  sharedAnswer = 'one'
 }: {
   spreadsheetId: string
   record: StoredRecord
   form: CustomForm
+  /** A linked record: its shared copy goes too, or stays unlinked (`SharedDeleteChoiceSheet`). */
+  sharedAnswer?: 'both' | 'one'
 }): Promise<void> {
   const category = String(record.values.category ?? '')
 
@@ -164,6 +183,7 @@ export async function deleteStoredRecord({
 
   await deleteRecord(spreadsheetId, form, record.rowNumber, record.sheetName)
   logRecordActivity(spreadsheetId, 'delete', record.id, record.values)
+  if (isLinked(record.values)) linkSharedDelete(spreadsheetId, form.type, record, sharedAnswer)
   await applyWalletChanges(
     spreadsheetId,
     walletEffectOf(form.type, record.values),

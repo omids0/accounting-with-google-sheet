@@ -1,6 +1,7 @@
 import { settleBuildingEntry } from './buildingExpenseEntry'
 import { logRecordActivity } from '../../services/activityLog'
 import { settleEntryWallet } from '../../services/entryWallet'
+import { linkSharedSave, takeSharedChoice } from '../../services/sharedLinkPrefs'
 import { appendRecord } from '../../services/sheets'
 import { createManualVehicleExpense } from '../../services/vehicleExpenseActions'
 import type { CustomForm } from '../../types'
@@ -15,15 +16,18 @@ type VehicleExpenseInput = Parameters<typeof createManualVehicleExpense>[1]
 export async function writeEntryRecord(
   spreadsheetId: string,
   form: CustomForm,
-  values: Record<string, string | number>,
+  marked: Record<string, string | number>,
   vehicleInput: VehicleExpenseInput | null
 ): Promise<string> {
+  // The shared tick's answer is never written; the copy follows the personal write.
+  const { values, choice } = takeSharedChoice(marked)
   let recordId: string = crypto.randomUUID()
 
   if (vehicleInput) {
     recordId = await createManualVehicleExpense(spreadsheetId, vehicleInput)
   } else {
     await appendRecord(spreadsheetId, form, recordId, new Date().toLocaleString('fa-IR'), values)
+    if (choice) linkSharedSave(spreadsheetId, recordId, form.type, values, choice)
   }
   logRecordActivity(spreadsheetId, 'create', recordId, values)
 

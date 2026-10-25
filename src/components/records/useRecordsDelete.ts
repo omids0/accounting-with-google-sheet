@@ -6,11 +6,14 @@ import {
   removeParentAttachments,
   useAttachmentDeleteQuestion
 } from '../../hooks/useAttachmentDeleteQuestion'
+import { useSharedDeleteChoice } from '../../hooks/useSharedDeleteChoice'
 import { useShareDeleteQuestion } from '../../hooks/useShareDeleteQuestion'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
+import { hasSharedAccount } from '../../services/workspace'
 import type { CustomForm } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { isLinked } from '../form/sharedFields'
 
 type UseRecordsDeleteOptions = {
   forms: CustomForm[]
@@ -36,6 +39,7 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
 
   const { ask, modalProps } = useAttachmentDeleteQuestion()
   const { ask: askShares, modalProps: shareQuestionModal } = useShareDeleteQuestion()
+  const { ask: askShared, sheetProps: sharedDeleteSheet } = useSharedDeleteChoice()
 
   // Stable: each memoized records row receives it as a prop.
   const requestDelete = useCallback(
@@ -64,6 +68,12 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
       const titleFieldId = getFormField(form, 'title')?.id
       const title = titleFieldId ? String(record.values[titleFieldId] ?? '').trim() : ''
 
+      // A record with a copy in the shared account: from both, or from the personal one only.
+      const sharedAnswer =
+        isLinked(record.values) && hasSharedAccount() ? await askShared(title) : 'one'
+
+      if (!sharedAnswer) return
+
       void schedule({
         id: record.id,
         label: title ? `تراکنش «${title}»` : 'تراکنش',
@@ -71,13 +81,13 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
         commit: async () => {
           const current = recordsRef.current.find(item => item.id === record.id) ?? record
 
-          await deleteStoredRecord({ spreadsheetId, record: current, form })
+          await deleteStoredRecord({ spreadsheetId, record: current, form, sharedAnswer })
           void removeParentAttachments(current.attachments, answer)
           await loadRecordsRef.current()
         }
       })
     },
-    [schedule, ask, askShares]
+    [schedule, ask, askShares, askShared]
   )
 
   return {
@@ -86,6 +96,7 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
     flushPendingDelete: flush,
     visibleRecords,
     attachmentQuestionModal: modalProps,
-    shareQuestionModal
+    shareQuestionModal,
+    sharedDeleteSheet
   }
 }

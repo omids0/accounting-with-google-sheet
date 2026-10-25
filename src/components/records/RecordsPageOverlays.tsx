@@ -3,6 +3,7 @@ import RecordsEditFormModal from './RecordsEditFormModal'
 import type { useRecordDetail } from './useRecordDetail'
 import type { useRecordsPage } from './useRecordsPage'
 import ConfirmActionModal from '../ConfirmActionModal'
+import SharedDeleteChoiceSheet from '../shared/SharedDeleteChoiceSheet'
 
 /**
  * The record detail sheet, the edit form and the questions a records list can ask (repeat amount,
@@ -57,6 +58,7 @@ export default function RecordsPageOverlays({
       <ConfirmActionModal {...page.amountQuestionModal} />
       <ConfirmActionModal {...page.attachmentQuestionModal} />
       <ConfirmActionModal {...page.shareQuestionModal} />
+      <SharedDeleteChoiceSheet {...page.sharedDeleteSheet} />
 
       <ConfirmActionModal
         open={page.retroactiveWarning.open}
