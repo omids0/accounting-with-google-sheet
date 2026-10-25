@@ -11,7 +11,8 @@ import { buildCopyRow, sharedRecordForm, sharedRef } from './sharedLinkRows'
 import { CATEGORIES_SHEET, PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { buildHeaders } from './sheetsHeaders'
 
-const { writeToWorkspace, drainWorkspace, batchFetch, titles } = vi.hoisted(() => ({
+const { writeToWorkspace, drainWorkspace, batchFetch, titles, showError } = vi.hoisted(() => ({
+  showError: vi.fn(),
   writeToWorkspace: vi.fn(async (_id: string, _operation: unknown) => true),
   drainWorkspace: vi.fn(async () => true),
   batchFetch: vi.fn(),
@@ -22,6 +23,7 @@ vi.mock('./workspaceBridge', () => ({ writeToWorkspace, drainWorkspace }))
 vi.mock('./sheetsRows', () => ({ batchFetchSheetRangesFromApi: batchFetch }))
 vi.mock('./sheetsEnsure', () => ({ getSheetTitles: titles }))
 vi.mock('./auth', () => ({ getUserEmail: () => 'me@x.com' }))
+vi.mock('../utils/toast', () => ({ showError }))
 
 const SHARED = 'shared-1'
 const REF = sharedRef('p1', 'r1')
@@ -123,6 +125,18 @@ describe('the queue', () => {
 })
 
 describe('runSharedLinks', () => {
+  it('reports a failure once, not again when the same task fails the same way after a retry', async () => {
+    showError.mockClear()
+    batchFetch.mockRejectedValue(new Error('The caller does not have permission'))
+    enqueueSharedLink(task('create'))
+    await runSharedLinks()
+    clearSharedLinkFailures()
+    await runSharedLinks()
+
+    expect(readSharedLinks()[0].failed).toBeTruthy()
+    expect(showError).toHaveBeenCalledTimes(1)
+  })
+
   it('appends a new copy and drops the task', async () => {
     enqueueSharedLink(task('create'))
     await runSharedLinks()

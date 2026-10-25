@@ -185,9 +185,13 @@ export function copyOperation(context: CopyContext): OutboxOperation | null {
 
   // Unset cells keep what the copy has (an edit that only fixes a typo), else the defaults.
   const current = found ? copyCells(found, form) : null
-  const category = task.values.category
-    ? sharedCategory(task.values.category, context.categories)
-    : current?.category || 'سایر'
+  const asked = String(task.values.category ?? '').trim()
+  // The copy's own category stays when none is asked, or when the asked one (seeded from the copy)
+  // is gone from the shared list: never silently «سایر».
+  const category =
+    (current && (!asked || (asked === current.category && !context.categories.includes(asked)))
+      ? current.category
+      : '') || sharedCategory(asked, context.categories)
   const fresh = (headers: string[], recordId: string) =>
     buildCopyRow({
       form,

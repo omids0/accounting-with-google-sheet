@@ -196,7 +196,13 @@ export default function SharedTick({
             aria-label="دسته در حساب مشترک"
             value={choice.category || sharedCategory(values.category, list)}
             onChange={category => change({ category })}
-            options={list.map(item => ({ value: item, label: item }))}
+            options={[
+              // A category the shared list no longer has: shown muted, left on the copy as it is.
+              ...(choice.category && !list.includes(choice.category)
+                ? [{ value: choice.category, label: choice.category, disabled: true }]
+                : []),
+              ...list.map(item => ({ value: item, label: item }))
+            ]}
           />
         </FormField>
       ) : null}
@@ -236,11 +242,12 @@ export default function SharedTick({
               setFailed(undefined)
               // A copy that was never created: the record is not shared any more.
               if (failed.kind === 'create') {
-                void import('../../services/sharedLink').then(({ clearPersonalLink }) =>
-                  clearPersonalLink(personalId, recordId, type)
-                )
+                // Offline: the save clears the marker instead (the tick is off, no copy queued).
+                void import('../../services/sharedLink')
+                  .then(({ clearPersonalLink }) => clearPersonalLink(personalId, recordId, type))
+                  .catch(() => undefined)
                 setCancelled(true)
-                onChange({ on: false })
+                onChange({ on: false, unlinked: true })
               }
             }}
           >

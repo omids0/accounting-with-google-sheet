@@ -93,6 +93,41 @@ describe('the personal side of the link', () => {
     })
   })
 
+  it('never takes the stored auto or vehicle title of an edited record as typed', () => {
+    const stored = { title: 'A · B', category: 'A', subCategory: 'B' }
+
+    expect(typedTitle({ ...stored, subCategory: 'C' }, stored)).toBe('')
+    expect(typedTitle({ ...stored, category: 'D', subCategory: '' }, stored)).toBe('')
+
+    const car = { title: 'سوخت پژو', category: 'خودرو', subCategory: 'سوخت' }
+
+    expect(typedTitle({ ...car, category: 'رفت‌وآمد', subCategory: '' }, car)).toBe('')
+    expect(typedTitle({ ...stored, title: 'شام' }, stored)).toBe('شام')
+  })
+
+  it('a save after «لغو ارسال» of a failed create queues nothing (the record is unlinked)', async () => {
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: 'p1',
+      spreadsheets: [
+        { id: 'p1', name: 'حسابداری · من', createdAt: '' },
+        { id: SHARED, name: 'حسابداری · مشترک خانه', createdAt: '', kind: 'shared' }
+      ]
+    })
+    vi.stubGlobal('navigator', { onLine: false })
+    linkSharedSave(
+      'p1',
+      'r1',
+      'expense',
+      { date: '2026-10-20', amount: 5, category: 'خوراک' },
+      { on: false, sharedId: SHARED, category: '', split: '', payer: '', unlinked: true },
+      SHARED
+    )
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    expect(readSharedLinks()).toEqual([])
+  })
+
   it('clears the personal link when an update finds no copy (the shared account removed it)', async () => {
     batchFetch.mockImplementation(async (id: string) =>
       id === 'p1'

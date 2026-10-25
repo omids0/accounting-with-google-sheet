@@ -41,6 +41,8 @@ export interface SharedLinkTask {
   unlink?: boolean
   /** Why it cannot be sent now (no access, file gone); retried once access is proven. */
   failed?: string
+  /** The failure already reported to the user (one toast per failure, not per retry). */
+  toasted?: string
 }
 
 export function readSharedLinks(): SharedLinkTask[] {
@@ -81,15 +83,18 @@ export function clearSharedLinkFailures(): void {
  * The title the user typed, or '': an auto title («دسته · زیردسته») or a vehicle title names the
  * PERSONAL category or vehicle, which never reaches the shared sheet.
  */
-export function typedTitle(values: Values): string {
+export function typedTitle(values: Values, stored?: Values): string {
   const title = String(values.title ?? '').trim()
-  const category = String(values.category ?? '')
-  const auto = withAutoTitle({
-    category,
-    [SUBCATEGORY_FIELD_ID]: values[SUBCATEGORY_FIELD_ID] ?? ''
-  })
+  // A generated title names the category it was made from, the live one or the stored one.
+  const generated = (from: Values) =>
+    title ===
+      withAutoTitle({
+        category: String(from.category ?? ''),
+        [SUBCATEGORY_FIELD_ID]: from[SUBCATEGORY_FIELD_ID] ?? ''
+      }).title || isVehicleExpenseCategory(String(from.category ?? ''))
+  const kept = !!stored && title === String(stored.title ?? '').trim()
 
-  return title && title !== auto.title && !isVehicleExpenseCategory(category) ? title : ''
+  return title && !generated(values) && !(kept && generated(stored)) ? title : ''
 }
 
 /** The tick panel's answer, carried in the saved values under this key (never written). */
@@ -104,6 +109,8 @@ export interface SharedChoice {
   payer: string
   /** `typedTitle` of the form. */
   title?: string
+  /** «لغو ارسال» of a create that never landed: the record has no copy any more. */
+  unlinked?: boolean
 }
 
 /** The values without the tick's answer, and the answer (null when no tick was shown). */
@@ -139,7 +146,7 @@ function queue(task: Omit<Task, 'ref'>): void {
 /**
  * After the personal write (never before, never awaited): the tick on save is the only truth.
  * Ticked → create (new or unlinked) or update (linked); unticked on a linked record → delete.
- * `linkedTo` is the shared spreadsheet the record had a copy in before this save ('' = none).
+ * `linked` is the shared spreadsheet the record had a copy in before this save ('' = none).
  */
 export function linkSharedSave(
   personalId: string,
@@ -147,8 +154,10 @@ export function linkSharedSave(
   type: string,
   { date = '', amount = '', category = '' }: Values,
   choice: SharedChoice,
-  linkedTo = ''
+  linked = ''
 ): void {
+  const linkedTo = choice.unlinked ? '' : linked
+
   if (!choice.on && !linkedTo) return
 
   queue({

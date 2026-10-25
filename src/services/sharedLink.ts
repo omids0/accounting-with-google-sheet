@@ -211,12 +211,19 @@ function settle(task: SharedLinkTask, outcome: true | string | null): void {
   // A newer task for the same copy has another id and stays. A failed one waits (even a delete)
   // until this device reaches the file again (`clearSharedLinkFailures`).
   if (outcome === true) return writeSharedLinks(tasks.filter(item => item.id !== task.id))
-  if (outcome) showError(`نسخهٔ «${task.values.title || 'ثبت'}» به حساب مشترک نرسید: ${outcome}`)
+  // One toast per failure: a retry that fails the same way stays quiet.
+  if (outcome && task.toasted !== outcome) {
+    showError(`نسخهٔ «${task.values.title || 'ثبت'}» به حساب مشترک نرسید: ${outcome}`)
+  }
 
   writeSharedLinks(
     tasks.map(item =>
       item.id === task.id
-        ? { ...item, attempts: item.attempts + 1, ...(outcome ? { failed: outcome } : {}) }
+        ? {
+            ...item,
+            attempts: item.attempts + 1,
+            ...(outcome ? { failed: outcome, toasted: outcome } : {})
+          }
         : item
     )
   )

@@ -77,7 +77,10 @@ export function useSharedTick(
         ? {
             ...input,
             [SHARED_LINK_FIELD_ID]: choice.on ? choice.sharedId : '',
-            [SHARED_CHOICE_KEY]: JSON.stringify({ ...choice, title: typedTitle(values) })
+            [SHARED_CHOICE_KEY]: JSON.stringify({
+              ...choice,
+              title: typedTitle(values, record?.values)
+            })
           }
         : input,
     reset: () => setChoice(startOf(linkedTo))

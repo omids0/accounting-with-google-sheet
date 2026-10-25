@@ -226,6 +226,16 @@ describe('findCopyByRef and copyOperation', () => {
     expect(cell(row, 'تقسیم')).toBe('only:mina@x.com')
     expect(cell(row, 'پرداخت‌کننده')).toBe('mina@x.com')
     expect(cell(row, 'دسته‌بندی')).toBe('خانه')
+
+    // The panel was seeded with «خانه», which the shared list no longer has: left as it is.
+    const seeded = run(
+      { ...edited, values: { ...edited.values, category: 'خانه' } },
+      new Map([[base, [headers, chosen]]])
+    )
+
+    expect(cell(seeded && 'row' in seeded ? (seeded.row as string[]) : [], 'دسته‌بندی')).toBe(
+      'خانه'
+    )
   })
 
   it('never appends a copy without a date or an amount', () => {
