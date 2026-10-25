@@ -105,7 +105,7 @@ describe('building registry', () => {
     expect(building.ownerRole).toBe('manager')
     expect(building.settingsPermission).toBe('settings')
     expect(building.fileNoun).toBe('ساختمان')
-    expect(building.connectPath).toBe('بیشتر › مدیر ساختمان')
+    expect(building.connectPath).toBe('بیشتر › فضاهای من')
   })
 })
 

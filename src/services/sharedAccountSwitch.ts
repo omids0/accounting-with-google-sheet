@@ -1,6 +1,6 @@
 import { getUserEmail } from './auth'
 import { memberHasPermission, parseMembers } from './buildingRoles'
-import { unshareFile } from './driveShare'
+import { listSharedEmails, unshareFile } from './driveShare'
 import { registryOf, type WorkspaceMember } from './memberRegistry'
 import { getSpreadsheets } from './settings'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
@@ -89,20 +89,27 @@ export async function loadSharedMembers(
   return list
 }
 
-/** Whether the signed-in user may manage the members: the owner of the shared account. */
+/**
+ * Whether the signed-in user is the owner of the shared account: the owner role AND the right to
+ * manage members. A partner a member override gave `members` is not the owner.
+ */
 export function isSharedOwner(list: WorkspaceMember[]): boolean {
-  return memberHasPermission(
-    list,
-    getUserEmail(),
-    registryOf('shared').settingsPermission,
-    'shared'
+  const { ownerRole, settingsPermission } = registryOf('shared')
+
+  const email = (getUserEmail() ?? '').trim().toLowerCase()
+
+  return (
+    list.find(member => member.email === email)?.role === ownerRole &&
+    memberHasPermission(list, email, settingsPermission, 'shared')
   )
 }
 
 /**
  * «دسترسی همه قطع شود»: takes every Drive share back except the owner's, then hides the account.
- * The file stays in the owner's Drive. Only a holder of `members` (the owner) may; a share Drive
- * refuses stops the run before the account is hidden, so it can be tried again.
+ * The list comes from Drive's own permissions (the source of truth for access: an invitation whose
+ * role row has not been written yet still has access), plus the members of the sheet. The file
+ * stays in the owner's Drive. Only the owner may; a share Drive refuses stops the run before the
+ * account is hidden, so it can be tried again.
  */
 export async function revokeAllSharedAccess(spreadsheetId: string): Promise<void> {
   const list = await loadSharedMembers(spreadsheetId, true)
@@ -113,8 +120,15 @@ export async function revokeAllSharedAccess(spreadsheetId: string): Promise<void
 
   const { ownerRole } = registryOf('shared')
 
-  for (const member of list.filter(item => item.role !== ownerRole)) {
-    await unshareFile(spreadsheetId, member.email)
+  const owners = new Set(list.filter(item => item.role === ownerRole).map(item => item.email))
+
+  const everyone = new Set([
+    ...(await listSharedEmails(spreadsheetId)),
+    ...list.map(member => member.email)
+  ])
+
+  for (const email of everyone) {
+    if (!owners.has(email)) await unshareFile(spreadsheetId, email)
   }
 
   fetchedMembers.delete(spreadsheetId)

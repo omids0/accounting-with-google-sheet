@@ -154,7 +154,7 @@ const REGISTRIES: Record<MemberKind, MemberRegistry> = {
     settingsPermission: 'settings',
     lastOwnerMessage: 'ساختمان باید حداقل یک مدیر داشته باشد',
     fileNoun: 'ساختمان',
-    connectPath: 'بیشتر › مدیر ساختمان',
+    connectPath: 'بیشتر › فضاهای من',
     connectAction: 'اتصال به شیت موجود',
     fallbackRole: 'board',
     singleRole: null,

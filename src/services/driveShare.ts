@@ -36,16 +36,33 @@ export async function shareFile(
   })
 }
 
-async function findPermission(fileId: string, email: string): Promise<DrivePermissionRow | null> {
+async function listPermissions(fileId: string): Promise<DrivePermissionRow[]> {
   const fields = encodeURIComponent('permissions(id,emailAddress,role)')
 
   const data = await apiRequest<{ permissions?: DrivePermissionRow[] }>(
     `${permissionsUrl(fileId)}?fields=${fields}&supportsAllDrives=true`
   )
 
+  return data.permissions ?? []
+}
+
+async function findPermission(fileId: string, email: string): Promise<DrivePermissionRow | null> {
   const key = normalizeEmail(email)
 
-  return data.permissions?.find(item => normalizeEmail(item.emailAddress ?? '') === key) ?? null
+  return (
+    (await listPermissions(fileId)).find(item => normalizeEmail(item.emailAddress ?? '') === key) ??
+    null
+  )
+}
+
+/**
+ * Everyone Drive lets into the file besides its owner, as lower-case addresses: the source of
+ * truth for who has access, whatever the sheet's role rows say.
+ */
+export async function listSharedEmails(fileId: string): Promise<string[]> {
+  return (await listPermissions(fileId))
+    .filter(item => item.role !== 'owner' && item.emailAddress)
+    .map(item => normalizeEmail(item.emailAddress ?? ''))
 }
 
 /**

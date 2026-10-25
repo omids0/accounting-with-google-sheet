@@ -4,17 +4,18 @@ import SharedOffSheet, { type SharedOffChoice } from './SharedOffSheet'
 import SharedSpaceCard from './SharedSpaceCard'
 import { useEnterWorkspace } from '../../hooks/useEnterWorkspace'
 import { useDataRevision } from '../../services/dataRevision'
+import { shareErrorMessage } from '../../services/driveShare'
 import type { WorkspaceMember } from '../../services/memberRegistry'
 import {
   hideSharedAccount,
   knownSharedMembers,
   loadSharedMembers,
+  revokeAllSharedAccess,
   registeredSharedAccount,
   showSharedAccount,
   visibleSharedAccount
 } from '../../services/sharedAccountSwitch'
 import { showError, showSuccess } from '../../utils/toast'
-import { toUserMessage } from '../../utils/userMessage'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 
 /**
@@ -62,8 +63,6 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
     setTurningOff(true)
     try {
       if (choice === 'revoke') {
-        const { revokeAllSharedAccess } = await import('../../services/sharedAccountSwitch')
-
         await revokeAllSharedAccess(account.id)
         showSuccess('دسترسی همه قطع شد و حساب مشترک خاموش شد')
       } else {
@@ -73,7 +72,7 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
       setOffOpen(false)
       refresh()
     } catch (err) {
-      showError(toUserMessage(err, 'خاموش کردن حساب مشترک ناموفق بود'))
+      showError(shareErrorMessage(err, 'خاموش کردن حساب مشترک ناموفق بود', 'حساب مشترک'))
     } finally {
       setTurningOff(false)
     }

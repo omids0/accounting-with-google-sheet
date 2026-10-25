@@ -17,7 +17,12 @@ import { setWorkspaceType } from './workspace'
 
 const user = vi.hoisted(() => ({ email: 'owner@x.com' }))
 
-const calls = vi.hoisted(() => ({ unshared: [] as string[], fetched: 0 }))
+const calls = vi.hoisted(() => ({
+  unshared: [] as string[],
+  fetched: 0,
+  /** What Drive lists besides the owner. */
+  drive: [] as string[]
+}))
 
 const remote = vi.hoisted(() => ({ rows: [] as string[][] }))
 
@@ -28,6 +33,7 @@ vi.mock('./auth', async importOriginal => ({
 
 vi.mock('./driveShare', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
+  listSharedEmails: async () => [...calls.drive],
   unshareFile: async (_id: string, email: string) => {
     calls.unshared.push(email)
   }
@@ -54,6 +60,7 @@ beforeEach(() => {
   localStorage.clear()
   calls.unshared.length = 0
   calls.fetched = 0
+  calls.drive = ['partner@x.com', 'viewer@x.com']
   user.email = 'owner@x.com'
   saveSettings({
     ...getDefaultSettings(),
@@ -109,6 +116,38 @@ describe('revokeAllSharedAccess', () => {
     expect(isSharedAccountHidden('s1')).toBe(true)
   })
 
+  it('also unshares a Drive share that has no role row yet, and never the owner', async () => {
+    calls.drive = ['partner@x.com', 'viewer@x.com', 'invited@x.com', 'owner@x.com']
+
+    await revokeAllSharedAccess('s1')
+
+    expect(calls.unshared.sort()).toEqual(['invited@x.com', 'partner@x.com', 'viewer@x.com'])
+    expect(isSharedAccountHidden('s1')).toBe(true)
+  })
+
+  it('does not hide the account when one unshare fails', async () => {
+    const drive = await import('./driveShare')
+
+    vi.spyOn(drive, 'unshareFile').mockRejectedValueOnce(new Error('403'))
+
+    await expect(revokeAllSharedAccess('s1')).rejects.toThrow('403')
+    expect(isSharedAccountHidden('s1')).toBe(false)
+  })
+
+  it('refuses a partner who was given the members permission', async () => {
+    user.email = 'partner@x.com'
+    setSheetAllRows('s1', 'تنظیمات دوره', [
+      HEADER,
+      OWNER,
+      PARTNER,
+      ['دسترسی:partner@x.com', '{"members":true}', 't']
+    ])
+
+    expect(isSharedOwner(await loadSharedMembers('s1'))).toBe(false)
+    await expect(revokeAllSharedAccess('s1')).rejects.toThrow()
+    expect(calls.unshared).toEqual([])
+  })
+
   it('refuses anyone but the owner and changes nothing', async () => {
     user.email = 'partner@x.com'
 
@@ -156,6 +195,8 @@ describe('a shared account that is not the open spreadsheet', () => {
 
   it('lets the owner switch it off from the personal workspace', async () => {
     remote.rows = [HEADER, OWNER, PARTNER, ['نقش:late@x.com', 'viewer', 't']]
+
+    calls.drive = ['partner@x.com']
 
     await revokeAllSharedAccess('s2')
 
