@@ -91,15 +91,6 @@ export function useSharedRecords() {
 
   const records = useMemo(() => visible(raw), [visible, raw])
 
-  const me = (getUserEmail() ?? '').trim().toLowerCase()
-  const pair = sharedPair(members<WorkspaceMember>(spreadsheetId))
-  const role = roleOf<SharedRole>(me, spreadsheetId)
-  const access = {
-    canRecord: can('record'),
-    canSettle: can('settle'),
-    canEditOthers: can('editOthers')
-  }
-
   const rows: SharedRow[] = useMemo(
     () =>
       records.flatMap(record =>
@@ -109,6 +100,16 @@ export function useSharedRecords() {
       ),
     [records]
   )
+
+  const me = (getUserEmail() ?? '').trim().toLowerCase()
+  // The rows keep a partner who left (or was removed) in the balance.
+  const pair = sharedPair(members<WorkspaceMember>(spreadsheetId), rows)
+  const role = roleOf<SharedRole>(me, spreadsheetId)
+  const access = {
+    canRecord: can('record'),
+    canSettle: can('settle'),
+    canEditOthers: can('editOthers')
+  }
 
   const pairKey = pair?.join('|') ?? ''
 

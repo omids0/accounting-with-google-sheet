@@ -6,6 +6,7 @@ import { SETTLEMENT_CATEGORY } from '../../utils/protectedCategories'
 import {
   SHARED_CREATOR_FIELD_ID,
   SHARED_PAYER_FIELD_ID,
+  SHARED_SPLIT_FIELD_ID,
   type SharedSplit
 } from '../form/sharedFields'
 
@@ -202,12 +203,30 @@ export function matchesPerson(values: Values, person: string): boolean {
   return key(values[SHARED_PAYER_FIELD_ID] || values[SHARED_CREATOR_FIELD_ID]) === key(person)
 }
 
-/** The two people of the balance: the owner and the single partner; null until there is one. */
+/**
+ * The two people of the balance: the owner and the single partner; null until there is one.
+ * With `rows`, a partner whose member row is gone (left, or removed) is still the other person
+ * the rows name most (payer, `only:` bearer), so the balance stays for whoever remains.
+ */
 export function sharedPair(
-  list: readonly { email: string; role: string }[]
+  list: readonly { email: string; role: string }[],
+  rows: readonly SharedRow[] = []
 ): [string, string] | null {
-  const owner = list.find(member => member.role === 'owner')
+  const owner = key(list.find(member => member.role === 'owner')?.email)
   const partner = list.find(member => member.role === 'partner')
+  const seen: Record<string, number> = {}
 
-  return owner && partner ? [key(owner.email), key(partner.email)] : null
+  for (const { values } of partner ? [] : rows) {
+    for (const cell of [values[SHARED_PAYER_FIELD_ID], values[SHARED_SPLIT_FIELD_ID]]) {
+      const email = key(cell).replace(/^only:/, '')
+
+      if (email.includes('@') && email !== owner) seen[email] = (seen[email] ?? 0) + 1
+    }
+  }
+
+  const other = partner
+    ? key(partner.email)
+    : Object.keys(seen).sort((a, b) => seen[b] - seen[a])[0]
+
+  return owner && other ? [owner, other] : null
 }

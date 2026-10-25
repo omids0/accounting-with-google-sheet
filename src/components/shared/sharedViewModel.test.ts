@@ -13,6 +13,7 @@ import {
   splitPreview
 } from './sharedViewModel'
 import { monthKeyOfIso } from '../../services/buildingMonths'
+import { balanceOfRows } from '../../services/sharedSettlement'
 
 const OWNER = 'nima@example.com'
 const PARTNER = 'mina@example.com'
@@ -195,5 +196,39 @@ describe('sharedPair', () => {
       ])
     ).toEqual([OWNER, PARTNER])
     expect(sharedPair([{ email: OWNER, role: 'owner' }])).toBeNull()
+  })
+
+  const row = (payer: string, split: string, category = 'خوراک') => ({
+    type: 'expense' as const,
+    values: { amount: '1000', category, sharedPayer: payer, sharedSplit: split }
+  })
+
+  const rows = [
+    row(OWNER, 'equal'),
+    row(PARTNER, `only:${OWNER}`),
+    row(OWNER, `only:${PARTNER}`),
+    row(PARTNER, `only:${OWNER}`, 'تسویه')
+  ]
+
+  it('keeps the partner the rows name once their member row is gone (left or removed)', () => {
+    const full = [
+      { email: OWNER, role: 'owner' },
+      { email: PARTNER, role: 'partner' },
+      { email: VIEWER, role: 'viewer' }
+    ]
+    const left = full.filter(member => member.role !== 'partner')
+
+    expect(sharedPair(left, rows)).toEqual([OWNER, PARTNER])
+    expect(balanceOfRows(rows, sharedPair(left, rows)!)).toEqual(
+      balanceOfRows(rows, sharedPair(full)!)
+    )
+    expect(balanceOfRows(rows, sharedPair(left, rows)!).net[OWNER]).not.toBe(0)
+  })
+
+  it('stays null when the rows name nobody but the owner', () => {
+    const owner = [{ email: OWNER, role: 'owner' }]
+
+    expect(sharedPair(owner, [row(OWNER, 'equal')])).toBeNull()
+    expect(sharedPair(owner, [])).toBeNull()
   })
 })

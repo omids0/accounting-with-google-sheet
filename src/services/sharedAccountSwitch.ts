@@ -2,7 +2,7 @@ import { getUserEmail } from './auth'
 import { memberHasPermission, parseMembers } from './buildingRoles'
 import { listSharedEmails, unshareFile } from './driveShare'
 import { registryOf, type WorkspaceMember } from './memberRegistry'
-import { getSpreadsheets } from './settings'
+import { getSettings, getSpreadsheets, saveSettings } from './settings'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { batchFetchSheetRangesFromApi } from './sheetsRows'
 import { getSheetDataRows } from './spreadsheetStore'
@@ -28,6 +28,24 @@ export function showSharedAccount(spreadsheetId: string): void {
 
   delete rest[spreadsheetId]
   setItem(SHARED_HIDDEN_KEY, rest)
+}
+
+/**
+ * «ترک این فضا»: the account leaves this device's registry (and its «پنهان» flag), so
+ * `hasSharedAccount()` is false and «فضاهای من» offers «راه‌اندازی» / «اتصال» again. Turning it
+ * off («فقط از منوی من پنهان شود») never calls this: that keeps the registration.
+ */
+export function forgetSharedAccount(spreadsheetId: string): void {
+  const settings = getSettings()
+
+  if (settings) {
+    saveSettings({
+      ...settings,
+      spreadsheets: settings.spreadsheets?.filter(entry => entry.id !== spreadsheetId)
+    })
+  }
+  showSharedAccount(spreadsheetId)
+  fetchedMembers.delete(spreadsheetId)
 }
 
 /** The shared account this device has registered, hidden or not. */

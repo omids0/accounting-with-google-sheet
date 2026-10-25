@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router'
+
 import SharedMembersPage from './SharedMembersPage'
 import SharedSafetyCard from './SharedSafetyCard'
 import { sharedBalanceWarning } from './sharedViewModel'
@@ -9,7 +11,11 @@ import { shareErrorMessage } from '../../services/driveShare'
 import type { WorkspaceMember } from '../../services/memberRegistry'
 import { getSettings } from '../../services/settings'
 import { sharedCan } from '../../services/sharedCan'
-import { LEAVE_FALLBACK_MESSAGE, leaveSharedAccount } from '../../services/sharedLeave'
+import {
+  forgetSharedLocal,
+  LEAVE_FALLBACK_MESSAGE,
+  leaveSharedAccount
+} from '../../services/sharedLeave'
 import { showError, showInfo, showSuccess } from '../../utils/toast'
 import { useReturnToPersonal } from '../buildings/useReturnToPersonal'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
@@ -21,12 +27,15 @@ import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 export default function SharedMembersRoute() {
   const shared = useSharedRecords()
   const { info } = useSharing()
-  const { returnToPersonal, modalProps } = useReturnToPersonal(
-    undefined,
-    getPathForTab('buildings-home')
-  )
-
+  const navigate = useNavigate()
   const spreadsheetId = getSettings()?.spreadsheetId ?? ''
+  const hub = getPathForTab('buildings-home')
+
+  // Only the leave returns from here: once the personal sheet is open, the left one is forgotten.
+  const { returnToPersonal, modalProps } = useReturnToPersonal(
+    () => forgetSharedLocal(spreadsheetId),
+    hub
+  )
 
   const owner = members<WorkspaceMember>(spreadsheetId).find(item => item.role === 'owner')?.email
 
@@ -40,6 +49,9 @@ export default function SharedMembersRoute() {
 
       if (result === 'fallback') showInfo(LEAVE_FALLBACK_MESSAGE, 10_000)
       else showSuccess('از حساب مشترک بیرون آمدید')
+      // «فضاهای من» first, still in the shared account: a shared page left open while the
+      // switch lands would be redirected to the personal dashboard instead.
+      navigate(hub)
       returnToPersonal()
     } catch (err) {
       showError(shareErrorMessage(err, 'ترک حساب مشترک ناموفق بود', 'حساب مشترک'))
