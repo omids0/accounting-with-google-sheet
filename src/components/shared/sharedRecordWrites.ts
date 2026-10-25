@@ -43,12 +43,11 @@ export async function saveSharedAmount(
     record.sheetName
   )
   logRecordActivity(spreadsheetId, 'update', record.id, values)
-  onSharedCopyChanged({
+  void onSharedCopyChanged({
     kind: 'edit',
     recordId: record.id,
     values: record.values,
-    field: 'amount',
-    next: amount
+    next: { amount }
   })
 }
 
@@ -60,5 +59,5 @@ export async function deleteSharedRecord(
 ): Promise<void> {
   await deleteRecord(spreadsheetId, form, record.rowNumber, record.sheetName)
   logRecordActivity(spreadsheetId, 'delete', record.id, record.values)
-  onSharedCopyChanged({ kind: 'delete', recordId: record.id, values: record.values })
+  void onSharedCopyChanged({ kind: 'delete', recordId: record.id, values: record.values })
 }

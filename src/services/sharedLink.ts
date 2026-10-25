@@ -17,6 +17,7 @@ import {
   sharedRecordForm,
   sharedRef
 } from './sharedLinkRows'
+import { removeNotices } from './sharedNotices'
 import { CATEGORIES_SHEET, PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { isPermanentApiError, isSpreadsheetAccessDeniedError } from './sheetsApi'
 import { getSheetTitles } from './sheetsEnsure'
@@ -171,10 +172,19 @@ async function send(task: SharedLinkTask): Promise<boolean> {
   // Every writer re-checks right before writing (a role may have changed since the tick).
   if (!memberHasPermission(members, me, 'record', 'shared')) throw new NoRecordRight()
 
+  // Saving the personal record replaces what a partner changed: its pending notices go.
+  const supersede = () =>
+    removeNotices(
+      task.sharedId,
+      notice => notice.recordRef === task.ref,
+      read.get(PERIOD_SETTINGS_SHEET) ?? []
+    ).catch(() => undefined)
+
   // The shared account removed the copy (no create is waiting: that would be this task):
   // the personal record is no longer shared, instead of a «در حساب مشترک» that is not true.
   if (task.kind === 'update' && !task.unlink && !findCopyByRef(tabs, task.ref)) {
     await clearPersonalLink(task.personalId, task.recordId, task.type)
+    await supersede()
 
     return true
   }
@@ -191,6 +201,7 @@ async function send(task: SharedLinkTask): Promise<boolean> {
   })
 
   if (operation) await writeToWorkspace(task.sharedId, operation)
+  if (task.kind !== 'create') await supersede()
 
   return true
 }
