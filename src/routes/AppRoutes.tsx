@@ -55,6 +55,10 @@ import {
   LazyBackupPage,
   LazyActivityPage,
   LazySettingsPage,
+  LazySharedHomePage,
+  LazySharedMembersPage,
+  LazySharedRecordsPage,
+  LazySharedSettlePage,
   LazyTimesheetsPage,
   LazyTreasuryPage,
   LazyVehiclesPage,
@@ -214,6 +218,10 @@ export function AppAuthenticatedRoutes() {
             <Route path="building/settings/members" element={<LazyBuildingMembersPage />} />
             <Route path="building/settings/lists" element={<LazyBuildingListsPage />} />
             <Route path="building/reports" element={<LazyBuildingReportsPage />} />
+            <Route path="shared" element={<LazySharedHomePage />} />
+            <Route path="shared/records" element={<LazySharedRecordsPage />} />
+            <Route path="shared/settle" element={<LazySharedSettlePage />} />
+            <Route path="shared/members" element={<LazySharedMembersPage />} />
             <Route path="index.html" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFoundRoute />} />
           </Route>

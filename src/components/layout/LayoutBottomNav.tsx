@@ -1,9 +1,11 @@
 import AppIcon from '../AppIcon'
 import { PRIMARY_NAV_ICONS } from './navIcons'
+import { SHARED_BOTTOM_NAV_TABS, SHARED_NAV_LINKS } from './sharedTabs'
 import TabNavLink from './TabNavLink'
 import { BOTTOM_NAV_END_TABS, BOTTOM_NAV_START_TABS, TAB_TITLES, type Tab } from './types'
 import { cn } from '../../utils/cn'
 import { haptic } from '../../utils/haptics'
+import type { AppIconName } from '../appIcon/types'
 import {
   bottomNavCenterClass,
   bottomNavClass,
@@ -20,19 +22,34 @@ interface LayoutBottomNavProps {
   showSettings: boolean
   tab: Tab
   onTabChange: (tab: Tab) => void
+  /** The shared account's bar: its four tabs side by side, no raised dashboard button. */
+  shared?: boolean
 }
 
 /** Links are not `:enabled`, so the shared press feedback is restated for them. */
 const bottomNavLinkPressClass = 'active:scale-[0.94] motion-reduce:active:scale-100'
+
+const sharedBottomNavClass = cn(bottomNavClass, 'grid-cols-1')
+
+const SHARED_NAV_ICONS: Partial<Record<Tab, AppIconName>> = Object.fromEntries(
+  SHARED_NAV_LINKS.map(link => [link.tab, link.icon])
+)
 
 interface BottomNavSideProps {
   tabs: Tab[]
   showSettings: boolean
   tab: Tab
   onTabChange: (tab: Tab) => void
+  icons?: Partial<Record<Tab, AppIconName>>
 }
 
-function BottomNavSide({ tabs, showSettings, tab, onTabChange }: BottomNavSideProps) {
+function BottomNavSide({
+  tabs,
+  showSettings,
+  tab,
+  onTabChange,
+  icons = PRIMARY_NAV_ICONS
+}: BottomNavSideProps) {
   return (
     <div className={bottomNavSideClass}>
       {tabs.map(navTab => {
@@ -49,7 +66,7 @@ function BottomNavSide({ tabs, showSettings, tab, onTabChange }: BottomNavSidePr
             onNavigate={() => onTabChange(navTab)}
           >
             <span className={bottomNavTabIconClass(active)}>
-              <AppIcon name={PRIMARY_NAV_ICONS[navTab] ?? 'dashboard'} />
+              <AppIcon name={icons[navTab] ?? 'dashboard'} />
             </span>
             <span className={bottomNavTabLabelClass}>{label}</span>
           </TabNavLink>
@@ -59,7 +76,26 @@ function BottomNavSide({ tabs, showSettings, tab, onTabChange }: BottomNavSidePr
   )
 }
 
-export default function LayoutBottomNav({ showSettings, tab, onTabChange }: LayoutBottomNavProps) {
+export default function LayoutBottomNav({
+  showSettings,
+  tab,
+  onTabChange,
+  shared
+}: LayoutBottomNavProps) {
+  if (shared) {
+    return (
+      <nav className={sharedBottomNavClass} aria-label="ناوبری اصلی">
+        <BottomNavSide
+          tabs={SHARED_BOTTOM_NAV_TABS}
+          showSettings={showSettings}
+          tab={tab}
+          onTabChange={onTabChange}
+          icons={SHARED_NAV_ICONS}
+        />
+      </nav>
+    )
+  }
+
   const dashboardActive = !showSettings && (tab === 'dashboard' || tab === 'records')
 
   return (

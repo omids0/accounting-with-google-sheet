@@ -1,23 +1,17 @@
 import { buildingSwitchRows } from './buildingSwitcher'
 import LayoutBuildingSwitcher from './LayoutBuildingSwitcher'
 import LayoutMenuLink from './LayoutMenuLink'
+import LayoutMenuReturnRow from './LayoutMenuReturnRow'
 import LayoutMenuSection from './LayoutMenuSection'
 import LayoutUpdateItem from './LayoutUpdateItem'
-import { BUILDING_RETURN_LABEL } from './navMenuGroups'
 import type { Tab } from './types'
 import { useBuildingMenuGroups } from './useBuildingMenuGroups'
 import { getSettings, getSpreadsheets } from '../../services/settings'
 import { useAppStore } from '../../stores/appStore'
-import AppIcon from '../AppIcon'
 import { useEnterBuilding } from '../buildings/useEnterBuilding'
 import { useReturnToPersonal } from '../buildings/useReturnToPersonal'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
-import {
-  appMenuItemIconClass,
-  appMenuItemLabelClass,
-  appMenuItemsClass,
-  appMenuReturnClass
-} from '../ui/layoutStyles'
+import { appMenuItemsClass } from '../ui/layoutStyles'
 
 interface LayoutBuildingMenuNavProps {
   tab: Tab
@@ -46,12 +40,7 @@ export default function LayoutBuildingMenuNav({
 
   return (
     <div className={appMenuItemsClass}>
-      <button type="button" className={appMenuReturnClass} onClick={returnToPersonal}>
-        <span className={appMenuItemIconClass(false)}>
-          <AppIcon name="return" size={20} />
-        </span>
-        <span className={appMenuItemLabelClass}>{BUILDING_RETURN_LABEL}</span>
-      </button>
+      <LayoutMenuReturnRow onClick={returnToPersonal} />
       <LayoutBuildingSwitcher
         rows={rows}
         currentTab={currentTab}

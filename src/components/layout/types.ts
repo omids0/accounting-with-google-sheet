@@ -1,6 +1,9 @@
+import { SHARED_TAB_TITLES, type SharedTab } from './sharedTabs'
+
 export type Tab =
   /** A URL no page answers to: no tab is highlighted and no speed dial shows. */
   | 'not-found'
+  | SharedTab
   | 'dashboard'
   | 'charts'
   | 'entry'
@@ -225,7 +228,8 @@ export const TAB_TITLES: Record<Tab, string> = {
   'building-reports': 'گزارش‌ها و مجمع',
   'building-settings': 'تنظیمات ساختمان',
   'building-members': 'اعضا و دسترسی‌ها',
-  'building-lists': 'فهرست‌ها'
+  'building-lists': 'فهرست‌ها',
+  ...SHARED_TAB_TITLES
 }
 
 /** Pages of a building workspace; the personal workspace redirects them to its dashboard. */

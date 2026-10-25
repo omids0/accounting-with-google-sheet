@@ -102,7 +102,7 @@ export default function ConnectBuildingSheet({
 
   const openPicker = () => {
     previousRef.current = getSettings()?.spreadsheetId ?? ''
-    if (previousRef.current && getWorkspaceType(previousRef.current) !== 'building') {
+    if (previousRef.current && getWorkspaceType(previousRef.current) === 'personal') {
       rememberPersonalSheet(previousRef.current)
     }
     void picker.openWithGoogle()

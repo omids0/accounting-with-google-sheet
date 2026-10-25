@@ -12,7 +12,7 @@ import { useBankSmsSync } from '../../hooks/useBankSmsSync'
 import { useBridgeDrain } from '../../hooks/useBridgeDrain'
 import { useLaunchAction } from '../../hooks/useLaunchAction'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
-import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
+import { useWorkspaceType } from '../../hooks/useWorkspaceType'
 import { installSelectionHaptics } from '../../utils/haptics'
 import { useBuildingChargeMaintenance } from '../buildings/useBuildingChargeMaintenance'
 import { useClaimInvite } from '../buildings/useClaimInvite'
@@ -64,7 +64,8 @@ export default function Layout() {
   const { mainRef, focusMain } = useMainFocus()
   useEffect(installSelectionHaptics, [])
 
-  const isBuilding = useIsBuildingWorkspace()
+  const workspace = useWorkspaceType()
+  const isBuilding = workspace === 'building'
   useBuildingChargeMaintenance(isBuilding)
   useClaimInvite(isBuilding)
   const isDesktop = useIsDesktop()
@@ -137,12 +138,13 @@ export default function Layout() {
               <LayoutPageOutlet spreadsheetKey={spreadsheetKey} showSettings={showSettings} />
             </main>
 
-            {/* A building is navigated from the drawer alone. */}
+            {/* A building is navigated from the drawer alone; a shared account has four tabs. */}
             {!isBuilding && (
               <LayoutBottomNav
                 showSettings={showSettings}
                 tab={tab}
                 onTabChange={handleTabChange}
+                shared={workspace === 'shared'}
               />
             )}
 

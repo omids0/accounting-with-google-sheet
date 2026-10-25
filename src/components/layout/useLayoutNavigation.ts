@@ -16,8 +16,7 @@ import { useEngagementReminders } from '../../hooks/useEngagementReminders'
 import { usePageSpeedDialConfig } from '../../hooks/usePageSpeedDial'
 import { usePrefetchAppPages } from '../../hooks/usePrefetchAppPages'
 import { useRegisterOverlay } from '../../hooks/useRegisterOverlay'
-import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
-import type { TabNavigationOptions } from '../../routes/paths'
+import { useWorkspaceType } from '../../hooks/useWorkspaceType'
 import {
   getPathForTab,
   getTabFromPath,
@@ -25,9 +24,11 @@ import {
   isCloseYearPath,
   isKnownPath,
   isSettingsPath,
-  SETTINGS_PATH
+  SETTINGS_PATH,
+  type TabNavigationOptions
 } from '../../routes/paths'
 import { prefetchTabPage, prefetchSecondaryAppPages } from '../../routes/prefetchPages'
+import { WORKSPACE_HOME } from '../../routes/workspaceRedirect'
 import { getUserName, getUserPicture } from '../../services/auth'
 import { useAppStore } from '../../stores/appStore'
 import { useNavigationStore } from '../../stores/navigationStore'
@@ -51,7 +52,7 @@ const DETAIL_TITLE_TABS: Tab[] = [
 export function useLayoutNavigation() {
   const navigate = useNavigate()
   const location = useLocation()
-  const isBuilding = useIsBuildingWorkspace()
+  const workspace = useWorkspaceType()
   const spreadsheetKey = useAppStore(state => state.spreadsheetKey)
   const [menuOpen, setMenuOpen] = useState(false)
   const [calcMenuExpanded, setCalcMenuExpanded] = useState(false)
@@ -201,7 +202,7 @@ export function useLayoutNavigation() {
       // «بستن سال» returns to the year card or Settings, wherever it was opened from.
       if (isCloseYearPath(location.pathname) && location.key !== 'default') navigate(-1)
       // A building opens these tools from its own settings and goes back there.
-      else navigate(isBuilding ? getPathForTab('building-settings') : SETTINGS_PATH)
+      else navigate(workspace === 'building' ? getPathForTab('building-settings') : SETTINGS_PATH)
 
       return
     }
@@ -243,12 +244,13 @@ export function useLayoutNavigation() {
       return
     }
 
-    const [home, wallet]: Tab[] = isBuilding
-      ? ['building-dashboard', 'building-fund']
-      : ['dashboard', 'wallet']
+    const wallet: Tab = workspace === 'building' ? 'building-fund' : 'wallet'
 
-    handleTabChange(BUILDING_PARENT_TAB[tab] ?? (WALLET_SUB_TABS.includes(tab) ? wallet : home))
-  }, [handleTabChange, isBuilding, location.key, location.pathname, navigate, showSettings, tab])
+    handleTabChange(
+      BUILDING_PARENT_TAB[tab] ??
+        (WALLET_SUB_TABS.includes(tab) ? wallet : WORKSPACE_HOME[workspace])
+    )
+  }, [handleTabChange, workspace, location.key, location.pathname, navigate, showSettings, tab])
 
   const isCalculationTab = CALCULATION_TABS.includes(tab)
   const isReportTab = REPORT_TABS.includes(tab)

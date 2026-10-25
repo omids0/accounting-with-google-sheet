@@ -1,4 +1,5 @@
 import { BUILDING_TAB_PATHS, buildingUnitPath, isBuildingUnitPath } from './buildingPaths'
+import { SHARED_TAB_PATHS } from './sharedPaths'
 import type { Tab } from '../components/layout/types'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 import { toPersianDigits } from '../utils/normalizeDigits'
@@ -80,7 +81,8 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'report-years': '/reports/years',
   timesheets: '/timesheets',
   activity: '/settings/activity',
-  ...BUILDING_TAB_PATHS
+  ...BUILDING_TAB_PATHS,
+  ...SHARED_TAB_PATHS
 }
 
 const PATH_TO_TAB = Object.fromEntries(

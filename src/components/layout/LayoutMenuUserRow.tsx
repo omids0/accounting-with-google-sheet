@@ -1,7 +1,11 @@
 import LayoutThemeToggle from './LayoutThemeToggle'
-import { useBuildingAccess } from '../../hooks/useBuildingAccess'
+import { useWorkspaceType } from '../../hooks/useWorkspaceType'
+import { getUserEmail } from '../../services/auth'
+import { roleOf } from '../../services/buildingRoles'
+import { useDataRevision } from '../../services/dataRevision'
+import { registryOf } from '../../services/memberRegistry'
 import AppIcon from '../AppIcon'
-import { optionLabel, BUILDING_ROLES } from '../buildings/buildingOptions'
+import { optionLabel } from '../buildings/buildingOptions'
 import LazyImage from '../LazyImage'
 import {
   appMenuAvatarClass,
@@ -27,8 +31,13 @@ export default function LayoutMenuUserRow({
   userPicture,
   sheetName
 }: LayoutMenuUserRowProps) {
-  // Inside a building the line reads «<building> · <role>».
-  const { role } = useBuildingAccess()
+  // Inside a building or the shared account the line reads «<sheet> · <role>».
+  useDataRevision()
+  const workspace = useWorkspaceType()
+  const role =
+    workspace === 'personal'
+      ? null
+      : optionLabel(registryOf(workspace).roles, roleOf<string>(getUserEmail() ?? ''))
 
   return (
     <div className={appMenuUserRowClass(variant)}>
@@ -43,7 +52,7 @@ export default function LayoutMenuUserRow({
         {userName && <span className={appMenuNameClass}>{userName}</span>}
         {sheetName && (
           <span className={appMenuSheetLineClass}>
-            {role ? `${sheetName} · ${optionLabel(BUILDING_ROLES, role)}` : `شیت: ${sheetName}`}
+            {role ? `${sheetName} · ${role}` : `شیت: ${sheetName}`}
           </span>
         )}
       </div>

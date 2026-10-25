@@ -119,7 +119,7 @@ describe('shared workspace type', () => {
     expect(workspaceRedirect('/building', 'personal')).toBe('/')
     expect(workspaceRedirect('/building', 'building')).toBeNull()
     expect(workspaceRedirect('/installments', 'building')).toBe('/building')
-    // Shared-only pages and their redirects arrive with the shared navigation.
-    expect(workspaceRedirect('/installments', 'shared')).toBeNull()
+    // A shared account sends the personal-only pages to its own home.
+    expect(workspaceRedirect('/installments', 'shared')).toBe('/shared')
   })
 })

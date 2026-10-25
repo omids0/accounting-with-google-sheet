@@ -5,10 +5,11 @@ import LayoutMenuFooter from './LayoutMenuFooter'
 import LayoutMenuNav, { type LayoutMenuNavProps } from './LayoutMenuNav'
 import LayoutMenuRail from './LayoutMenuRail'
 import LayoutMenuUserRow from './LayoutMenuUserRow'
+import LayoutSharedMenuNav from './LayoutSharedMenuNav'
 import { useActiveSpreadsheetName } from '../../hooks/useActiveSpreadsheetName'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
 import { useScrollActiveIntoView } from '../../hooks/useScrollActiveIntoView'
-import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
+import { useWorkspaceType } from '../../hooks/useWorkspaceType'
 import { cn } from '../../utils/cn'
 import {
   appMenuBackdropClass,
@@ -33,7 +34,7 @@ interface LayoutMenuProps extends LayoutMenuNavProps {
 export default function LayoutMenu(props: LayoutMenuProps) {
   const { variant, menuOpen, onOpenMenu, onCloseMenu, userName, userPicture, ...navProps } = props
   const sheetName = useActiveSpreadsheetName()
-  const isBuilding = useIsBuildingWorkspace()
+  const workspace = useWorkspaceType()
   const navRef = useRef<HTMLElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -82,8 +83,15 @@ export default function LayoutMenu(props: LayoutMenuProps) {
           sheetName={sheetName}
         />
         <div ref={scrollRef} className={appMenuScrollBodyClass}>
-          {isBuilding ? (
+          {workspace === 'building' ? (
             <LayoutBuildingMenuNav
+              tab={navProps.tab}
+              showSettings={navProps.showSettings}
+              onTabChange={navProps.onTabChange}
+              onCloseMenu={onCloseMenu}
+            />
+          ) : workspace === 'shared' ? (
+            <LayoutSharedMenuNav
               tab={navProps.tab}
               showSettings={navProps.showSettings}
               onTabChange={navProps.onTabChange}
