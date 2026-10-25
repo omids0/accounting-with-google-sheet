@@ -1,4 +1,3 @@
-import { scrollbarHiddenClass } from './scrollbarStyles'
 import { cn, cx } from '../../utils/cn'
 
 /** `drawer` slides over the page on phones; `rail` is the tablet icon column; `sidebar` is always open on desktop. */
@@ -45,7 +44,7 @@ export const appMenuNameClass = 'truncate text-[0.88rem] font-bold leading-tight
 export const appMenuSheetLineClass = 'truncate text-[0.72rem] leading-tight text-muted'
 
 export const appMenuScrollBodyClass = cx(
-  scrollbarHiddenClass,
+  'app-menu-scroll',
   'flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain',
   '[-webkit-overflow-scrolling:touch]'
 )

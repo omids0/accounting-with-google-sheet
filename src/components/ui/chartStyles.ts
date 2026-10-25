@@ -221,7 +221,7 @@ export const chartTooltipValueClass =
   'font-extrabold tabular-nums text-text [font-feature-settings:"tnum"_1]'
 
 export const categoryDonutLayoutClass =
-  'grid grid-cols-[minmax(0,1fr)] gap-2 min-[520px]:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] min-[520px]:items-center'
+  'grid grid-cols-[minmax(0,1fr)] gap-2 @min-[28rem]:grid-cols-[minmax(0,11rem)_minmax(0,22rem)] @min-[28rem]:items-center @min-[28rem]:justify-center'
 
 export const categoryDonutChartWrapClass = 'relative z-[1] min-h-[168px]'
 
@@ -244,7 +244,7 @@ export const categoryDonutLegendItemClass =
 export const categoryDonutLegendDotClass = 'h-[0.55rem] w-[0.55rem] shrink-0 rounded-full'
 
 export const categoryDonutLegendNameClass =
-  'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-text'
+  'line-clamp-2 min-w-0 break-words font-semibold leading-snug text-text'
 
 export const categoryDonutLegendPctClass = cx(
   'min-w-[2.6rem] rounded-full px-1.5 py-px text-center text-[0.68rem] font-bold tabular-nums text-muted [font-feature-settings:"tnum"_1]',

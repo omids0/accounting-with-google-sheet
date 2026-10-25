@@ -1,4 +1,4 @@
-import { formatCompactNumber, formatPersianNumber } from '../../utils/formatMoney'
+import { formatCompactNumber, formatMoneyParts, formatPersianNumber } from '../../utils/formatMoney'
 
 /** Arabic letter mark: keeps «٪» out of the digit run so it sits after the number. */
 const ALM = '؜'
@@ -77,4 +77,40 @@ export function buildDonutSlices(
   const restTotal = sorted.slice(maxSlices - 1).reduce((sum, item) => sum + item.total, 0)
 
   return restTotal > 0 ? [...top, { name: DONUT_OTHERS_LABEL, total: restTotal }] : top
+}
+
+/** Longest full amount (characters) the ring centre shows at the normal size. */
+const DONUT_CENTER_BASE_MAX_LEN = 11
+
+/** Longest full amount the centre still shows whole, at the smaller size. */
+const DONUT_CENTER_SMALL_MAX_LEN = 14
+
+export interface DonutCenterValue {
+  /** What the centre shows. */
+  text: string
+  /** The whole amount, for a title / screen readers when `text` is compact. */
+  full: string
+  /** Smaller type: a long amount that still fits whole. */
+  small: boolean
+  /** `text` is the compact form (`۱٫۲ میلیارد`) because the whole amount cannot fit. */
+  compact: boolean
+}
+
+/**
+ * The 100px ring centre never ellipsises a money figure: the whole amount at the
+ * normal size, then smaller, and only then the compact form (the full amount
+ * stays available through `full`).
+ */
+export function donutCenterValue(total: number): DonutCenterValue {
+  const full = formatMoneyParts(total).number
+
+  if (full.length <= DONUT_CENTER_BASE_MAX_LEN) {
+    return { text: full, full, small: false, compact: false }
+  }
+
+  if (full.length <= DONUT_CENTER_SMALL_MAX_LEN) {
+    return { text: full, full, small: true, compact: false }
+  }
+
+  return { text: formatCompactNumber(total), full, small: false, compact: true }
 }

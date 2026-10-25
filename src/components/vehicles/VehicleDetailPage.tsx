@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react'
 
 import { isConfigured } from '../../services/settings'
 import { buildMonthlyFuelStats, filterFuelTransactions } from '../../services/vehicleTransactions'
+import { cn } from '../../utils/cn'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
 import FilterModal from '../FilterModal'
@@ -24,6 +25,7 @@ import TransactionTypeSegment from '../TransactionTypeSegment'
 import Card from '../ui/Card'
 import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
+import { toolsPageDesktopClass } from '../ui/responsiveStyles'
 
 export default function VehicleDetailPage({
   vehicle,
@@ -143,7 +145,7 @@ export default function VehicleDetailPage({
   }
 
   return (
-    <div className={listModulePageClass}>
+    <div className={cn(listModulePageClass, toolsPageDesktopClass)}>
       <ActiveFilterChips
         chips={filters.filterChips}
         onOpenFilters={filters.openFilterModal}

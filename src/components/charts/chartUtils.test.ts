@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildDonutSlices, DONUT_OTHERS_LABEL } from './chartUtils'
+import { buildDonutSlices, donutCenterValue, DONUT_OTHERS_LABEL } from './chartUtils'
 
 const category = (name: string, total: number) => ({ name, total })
 
@@ -52,5 +52,31 @@ describe('buildDonutSlices', () => {
     const data = [category('الف', 5), category('ب', 4), category('ج', 0), category('د', 0)]
 
     expect(buildDonutSlices(data, 3)).toEqual([category('الف', 5), category('ب', 4)])
+  })
+})
+
+describe('donutCenterValue', () => {
+  it('shows a short amount whole at the normal size', () => {
+    const value = donutCenterValue(2_235_000)
+
+    expect(value).toMatchObject({ small: false, compact: false })
+    expect(value.text).toBe(value.full)
+  })
+
+  it('keeps a long amount whole but smaller, never cut', () => {
+    const value = donutCenterValue(57_725_102.8)
+
+    expect(value.small).toBe(true)
+    expect(value.compact).toBe(false)
+    expect(value.text).toBe(value.full)
+    expect(value.full).not.toContain('…')
+  })
+
+  it('falls back to the compact form only when the whole amount cannot fit', () => {
+    const value = donutCenterValue(123_456_789_012)
+
+    expect(value.compact).toBe(true)
+    expect(value.text).not.toBe(value.full)
+    expect(value.full.length).toBeGreaterThan(value.text.length)
   })
 })

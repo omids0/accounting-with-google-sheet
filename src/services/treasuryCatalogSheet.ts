@@ -16,6 +16,7 @@ import {
   setVaultCatalog,
   vaultAssetToRow
 } from './treasuryCatalog'
+import { validateVaultAssetCsvCells } from './treasuryCatalogCsvValidate'
 import type { VaultAsset } from '../types'
 
 type SheetAsset = VaultAsset & { rowNumber: number }
@@ -114,9 +115,9 @@ export async function importVaultCatalogCsv(spreadsheetId: string, csvContent: s
     TREASURY_ASSETS_HEADERS,
     csvContent,
     cells => {
-      if (!String(cells[3] ?? '').trim()) return null
+      const valid = validateVaultAssetCsvCells(cells)
 
-      const asset = rowToVaultAsset([newImportId(cells[0] ?? ''), ...cells.slice(1)])
+      const asset = rowToVaultAsset([newImportId(cells[0] ?? ''), ...valid.slice(1)])
 
       return asset ? vaultAssetToRow(asset) : null
     }
