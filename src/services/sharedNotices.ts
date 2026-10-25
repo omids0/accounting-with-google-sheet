@@ -10,6 +10,7 @@ import { normalizeHeaderLabel } from './sheetsHeaders'
 import { batchFetchSheetRangesFromApi } from './sheetsRows'
 import { getSheetAllRows } from './spreadsheetStore'
 import type { OutboxOperation } from './syncOutbox'
+import { getWorkspaceType } from './workspace'
 import { writeToWorkspace } from './workspaceBridge'
 
 /**
@@ -184,15 +185,15 @@ const tabOf = (type: (typeof TYPES)[number]) =>
   getSettings()?.forms.find(form => form.type === type)?.sheetName ??
   sharedRecordForm(type).sheetName
 
+const APPLIED_FIELDS = ['amount', 'title', 'category', 'delete']
+
 /**
  * Writes the notice's new value to the PERSONAL record, nothing else: a category only when the
  * personal list has that exact name, a delete only clears the record's shared marker. The notice
  * comes from a shared sheet any member can write to, so only `APPLIED_FIELDS` and a reference to
- * one of the user's own spreadsheets count; a split (the personal record has none), another field
+ * one of the user's own personal spreadsheets count; a split (the personal record has none), another field
  * or a record that is gone is 'skipped'.
  */
-const APPLIED_FIELDS = ['amount', 'title', 'category', 'delete']
-
 export async function applyNotice(notice: SharedNotice): Promise<'applied' | 'skipped'> {
   const cut = notice.recordRef.lastIndexOf(':')
   const personalId = notice.recordRef.slice('share:'.length, cut)
@@ -202,7 +203,8 @@ export async function applyNotice(notice: SharedNotice): Promise<'applied' | 'sk
     !APPLIED_FIELDS.includes(notice.field) ||
     !notice.recordRef.startsWith('share:') ||
     !recordId ||
-    !getSpreadsheets().some(entry => entry.id === personalId)
+    !getSpreadsheets().some(entry => entry.id === personalId) ||
+    getWorkspaceType(personalId) !== 'personal'
   )
     return 'skipped'
 

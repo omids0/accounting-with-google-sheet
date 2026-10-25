@@ -9,13 +9,13 @@ import {
   registerConnectedSheet
 } from '../../services/buildingConnect'
 import { isJourneyUnfinished, readJourney } from '../../services/buildingJourney'
-import { getSettings } from '../../services/settings'
+import { getSettings, getSpreadsheets } from '../../services/settings'
+import { anotherSharedExists, undoPickedSheet } from '../../services/sharedConnect'
+import { ONE_SHARED_ACCOUNT_MESSAGE } from '../../services/sharedWorkspace'
 import { getSpreadsheetLabel, parseSpreadsheetIdFromUrl } from '../../services/spreadsheetCatalog'
-import { switchActiveSpreadsheet } from '../../services/spreadsheetSetup'
 import { moveSyncToSpreadsheet } from '../../services/spreadsheetSwitch'
 import {
   getWorkspaceType,
-  hasSharedAccount,
   rememberPersonalSheet,
   syncWorkspaceTypeFromSheet
 } from '../../services/workspace'
@@ -105,18 +105,13 @@ export default function ConnectBuildingSheet({
   // The picker has already made the sheet active: keep it when it is the target, else go back.
   const picker = useOpenSheetWithGoogle(async pickedId => {
     const previousId = previousRef.current
-    let message = target.notMessage
-    let matches = (await syncWorkspaceTypeFromSheet(pickedId)) === target.type
+    const matches = (await syncWorkspaceTypeFromSheet(pickedId)) === target.type
+    // One shared account per person: the picked sheet is already registered here, so it is only
+    // «another» when a different registered sheet is shared.
+    const second =
+      matches && target.type === 'shared' && anotherSharedExists(getSpreadsheets(), pickedId)
 
-    // A shared account is listed through the one-account check, like a pasted link.
-    if (matches && target.type === 'shared' && hasSharedAccount()) {
-      matches = await target.connect(pickedId).catch(err => {
-        message = toUserMessage(err, 'اتصال به شیت ناموفق بود')
-
-        return false
-      })
-    }
-    if (matches) {
+    if (matches && !second) {
       const name = getSettings()?.spreadsheets?.find(sheet => sheet.id === pickedId)?.name
 
       registerConnectedSheet(pickedId, target.type, name ?? pickedId)
@@ -127,12 +122,9 @@ export default function ConnectBuildingSheet({
 
       return
     }
-    setError(message)
-    if (previousId) {
-      await switchActiveSpreadsheet(previousId).catch(() => undefined)
-      await moveSyncToSpreadsheet(pickedId, previousId)
-      bumpSpreadsheetKey()
-    }
+    setError(second ? ONE_SHARED_ACCOUNT_MESSAGE : target.notMessage)
+    await undoPickedSheet(pickedId, previousId, second)
+    if (previousId) bumpSpreadsheetKey()
   })
 
   const openPicker = () => {

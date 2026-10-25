@@ -1,5 +1,6 @@
 import { registerConnectedSheet } from './buildingConnect'
 import { getSpreadsheets } from './settings'
+import { forgetSharedLocal } from './sharedLeave'
 import {
   ONE_SHARED_ACCOUNT_MESSAGE,
   SHARED_NAME_PREFIX,
@@ -9,6 +10,8 @@ import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { batchFetchSheetRangesFromApi } from './sheetsRows'
 import { formatSpreadsheetTitle, getSpreadsheetLabel } from './spreadsheetCatalog'
+import { switchActiveSpreadsheet } from './spreadsheetSetup'
+import { moveSyncToSpreadsheet } from './spreadsheetSwitch'
 import { isSharedEntry, sharedSpreadsheetId, workspaceTypeOfRows } from './workspace'
 import type { SpreadsheetEntry } from '../types'
 
@@ -19,6 +22,31 @@ export function sharedConnectCandidates(entries: SpreadsheetEntry[]): Spreadshee
   return entries.filter(
     entry => !isSharedEntry(entry) && getSpreadsheetLabel(entry.name).startsWith(SHARED_NAME_PREFIX)
   )
+}
+
+/**
+ * Another shared account is registered: any entry but the picked one that reads as shared. The
+ * picker has already registered (and flagged) the picked sheet, so it cannot count itself, and
+ * the first shared entry of the registry may well be the picked one.
+ */
+export const anotherSharedExists = (entries: SpreadsheetEntry[], pickedId: string): boolean =>
+  entries.some(entry => entry.id !== pickedId && isSharedEntry(entry))
+
+/**
+ * The picker's sheet is refused: back to the previous sheet FIRST (the open sheet cannot be
+ * forgotten), then, for a second shared account, the picked entry leaves the registry, its cached
+ * type and its mirror.
+ */
+export async function undoPickedSheet(
+  pickedId: string,
+  previousId: string,
+  forget: boolean
+): Promise<void> {
+  if (previousId) {
+    await switchActiveSpreadsheet(previousId).catch(() => undefined)
+    await moveSyncToSpreadsheet(pickedId, previousId)
+  }
+  if (forget) forgetSharedLocal(pickedId)
 }
 
 /** The file's own title, for a pasted link Drive's list has not shown yet. */

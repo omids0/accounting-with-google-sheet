@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { sharedRef } from './sharedLinkRows'
 import { applyNotice, type SharedNotice } from './sharedNotices'
 import { CATEGORIES_SHEET } from './sheetNames'
+import { setWorkspaceType } from './workspace'
 
 const { writeToWorkspace, batchFetch } = vi.hoisted(() => ({
   writeToWorkspace: vi.fn(async (_id: string, _operation: unknown) => true),
@@ -119,6 +120,16 @@ describe('applyNotice', () => {
     expect(await applyNotice(notice({ recordRef: sharedRef('foreign', 'r1') }))).toBe('skipped')
     expect(batchFetch).not.toHaveBeenCalled()
     expect(writeToWorkspace).not.toHaveBeenCalled()
+  })
+
+  it('a reference to a spreadsheet that is not a personal one is skipped', async () => {
+    personal()
+    setWorkspaceType('p1', 'shared')
+
+    expect(await applyNotice(notice())).toBe('skipped')
+    expect(batchFetch).not.toHaveBeenCalled()
+    expect(writeToWorkspace).not.toHaveBeenCalled()
+    setWorkspaceType('p1', 'personal')
   })
 
   it('title is applied to the personal record', async () => {
