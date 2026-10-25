@@ -67,6 +67,8 @@ const ACCOUNT_KEYS = [
   'accounting_reconcile_digest_v1',
   // «ردیاب اختلاف»: suspects the user confirmed (walletTraceAcks.ts).
   'accounting_wallet_trace_v1',
+  // «ردیاب اختلاف»: what the wallet difference was each time the app looked (walletDifferenceHistory.ts).
+  'accounting_wallet_diff_v1',
   // Net-worth snapshot gate: month checked and one-time rebuild (netWorthStartup.ts).
   'accounting_net_worth_v1',
   // First-of-month report row: month handled and the «گزارش ماهانه» switch (monthlyReportGate.ts).

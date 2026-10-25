@@ -31,6 +31,9 @@ function verdictOf(report: TraceReport): string {
       ? 'کیف پول و مانده محاسبه‌شده یکی‌اند؛ ولی چند مورد زیر همدیگر را خنثی کرده‌اند.'
       : 'اختلافی نیست؛ کیف پول و مانده محاسبه‌شده یکی‌اند.'
   }
+  if (report.story?.exact) {
+    return 'زمان شروع اختلاف پیدا شد؛ پایین‌تر «اختلاف از کجا آمد؟» را بخوان.'
+  }
   if (!findings.length) return 'در داده‌ها نشانی از علت پیدا نشد.'
   if (isOvershoot(difference, remainder)) {
     return 'موردهای پیداشده روی هم از اختلاف بیشترند، چون بعضی‌شان همدیگر را خنثی می‌کنند. همه را نگاه کن.'
@@ -103,21 +106,25 @@ export default function TraceSummary({ result }: { result: WalletTraceResult }) 
       <p className={noteClass}>{verdictOf(report)}</p>
       {difference ? (
         <>
-          <p className={noteClass}>
-            از بزرگ‌ترین مورد شروع کن و هر مورد را لمس کن تا دلیل و کارش را ببینی. عدد کنار هر مورد
-            یعنی چقدر به اختلاف اضافه (+) یا از آن کم (−) می‌کند.
-          </p>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="mt-2 min-h-11"
-            onClick={() =>
-              document.getElementById('trace-remainder')?.scrollIntoView({ behavior: 'smooth' })
-            }
-          >
-            نمی‌خواهم دنبالش بگردم
-          </Button>
+          {report.story?.exact ? null : (
+            <p className={noteClass}>
+              از بزرگ‌ترین مورد شروع کن و هر مورد را لمس کن تا دلیل و کارش را ببینی. عدد کنار هر
+              مورد یعنی چقدر به اختلاف اضافه (+) یا از آن کم (−) می‌کند.
+            </p>
+          )}
+          {report.story?.exact ? null : (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="mt-2 min-h-11"
+              onClick={() =>
+                document.getElementById('trace-remainder')?.scrollIntoView({ behavior: 'smooth' })
+              }
+            >
+              نمی‌خواهم دنبالش بگردم
+            </Button>
+          )}
         </>
       ) : null}
     </Card>

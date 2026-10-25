@@ -9,6 +9,8 @@ import type { WalletAccount } from '../types'
 export type TraceKind =
   /** An income/expense record that names no account, so no balance moved. */
   | 'no-account'
+  /** The same, but entered before the account history began: the app noted no balance then. */
+  | 'pre-accounts'
   /** The record names an account but «اثر بر موجودی» is off. */
   | 'unapplied'
   /** The record names an account, yet the account history has no row for it. */
@@ -76,7 +78,40 @@ export interface TraceHint {
   date?: string
 }
 
+/** One thing done in the app (from «فعالیت‌ها»), shown next to a change of the difference. */
+export interface TraceEvent {
+  /** Epoch ms. */
+  at: number
+  action: string
+  module: string
+  summary: string
+}
+
+/**
+ * When the difference changed and what was done meanwhile: the answer to «از کجا آمد؟».
+ * `exact`: the change is the whole difference (to the toman).
+ */
+export interface TraceStory {
+  kind: 'opening-shift' | 'history'
+  /** Epoch ms of the look before the change and of the one that saw it. */
+  fromAt: number
+  toAt: number
+  /** How much the difference grew (positive) or shrank in that step. */
+  change: number
+  exact: boolean
+  /** `opening-shift`: the month whose opening moved, and from/to. */
+  monthKey?: string
+  openingFrom?: number
+  openingTo?: number
+  events: TraceEvent[]
+  /** Events in the same window that did not fit in `events`. */
+  omitted: number
+  /** The activity log no longer reaches back to the start of the window. */
+  logGap: boolean
+}
+
 export interface TraceReport {
+  story: TraceStory | null
   difference: number
   findings: TraceFinding[]
   /** Sum of every finding's effect. */
@@ -93,7 +128,25 @@ export interface TraceReport {
   hints: TraceHint[]
 }
 
+/** A month's opening balance as the sheet once held it and as it was written next. */
+export interface OpeningShift {
+  monthKey: string
+  from: number
+  to: number
+  /** Epoch ms of the earlier and the later write; null when the stamp cannot be read. */
+  fromAt: number | null
+  toAt: number | null
+}
+
 export interface TraceInput {
+  /** Openings of the same month that differ between two writes (oldest first). */
+  openingShifts: OpeningShift[]
+  /** What the difference was at each earlier look (this device), oldest first. */
+  history: { at: number; difference: number }[]
+  /** Recent changes made in the app, any order. */
+  events: TraceEvent[]
+  /** Epoch ms of the oldest event loaded when the log was cut short; null when it was read whole. */
+  eventsOldestAt: number | null
   /** `wallet − calculated`, exactly the figure the wallet page shows. */
   difference: number
   accounts: WalletAccount[]
@@ -120,4 +173,6 @@ export interface TraceContext {
   accountTitles: Map<string, string>
   ledgerByRecord: Map<string, WalletLedgerEntry[]>
   recordIds: Set<string>
+  /** Epoch ms of the first wallet-history row: before it no account could be chosen. */
+  firstAccountAtMs: number | null
 }

@@ -1,6 +1,8 @@
+import { parseCreatedAtMs } from './recordDuplicates'
 import { amountHints } from './walletTraceHints'
 import { accountFindings, unlinkedFindings } from './walletTraceLedger'
 import { isSignificant, recordFindings } from './walletTraceRecords'
+import { buildStory } from './walletTraceStory'
 import type {
   TraceContext,
   TraceFinding,
@@ -21,8 +23,13 @@ function buildContext(input: TraceInput): TraceContext {
     ledgerByRecord.set(entry.recordId, [...(ledgerByRecord.get(entry.recordId) ?? []), entry])
   }
 
+  const created = input.ledger
+    .map(entry => parseCreatedAtMs(entry.createdAt))
+    .filter((ms): ms is number => ms != null)
+
   return {
     input,
+    firstAccountAtMs: created.length ? Math.min(...created) : null,
     accountTitles: new Map(input.accounts.map(account => [account.id, account.title])),
     ledgerByRecord,
     recordIds: new Set(input.records.map(record => record.id ?? '').filter(Boolean))
@@ -109,7 +116,7 @@ function originMonth(findings: TraceFinding[], timeline: TraceMonth[]): string {
 }
 
 /** Kinds one careless habit can multiply into hundreds of rows. */
-const CROWDED_KINDS: TraceKind[] = ['no-account', 'unapplied', 'no-ledger']
+const CROWDED_KINDS: TraceKind[] = ['no-account', 'pre-accounts', 'unapplied', 'no-ledger']
 /** More rows than this in one kind: the biggest few stay, the rest become one row. */
 const CROWD_LIMIT = 8
 const CROWD_KEEP = 5
@@ -166,6 +173,7 @@ export function traceDiscrepancy(input: TraceInput): TraceReport {
   const findings = foldCrowds([...all])
 
   return {
+    story: buildStory(input),
     difference: input.difference,
     findings,
     explained,

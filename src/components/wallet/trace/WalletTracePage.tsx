@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import TraceFindings from './TraceFindings'
 import TraceRemainder from './TraceRemainder'
+import TraceStoryCard from './TraceStory'
 import TraceSummary from './TraceSummary'
 import TraceTimeline from './TraceTimeline'
 import { useWalletTrace } from './useWalletTrace'
@@ -18,6 +19,7 @@ export default function WalletTracePage() {
   const navigate = useNavigate()
   const trace = useWalletTrace()
   const { state } = trace
+  const [showAll, setShowAll] = useState(false)
 
   // The wallet alert sits low on the page: arrive at the summary, not mid-page.
   useEffect(() => {
@@ -53,6 +55,10 @@ export default function WalletTracePage() {
     )
   }
 
+  const { story } = result.report
+  // With the cause named, the hundreds of small differences are detail, not the first thing to read.
+  const collapsed = !!story?.exact && !showAll && result.report.findings.length > 0
+
   return (
     <div className={listModulePageClass}>
       {result.ledgerFailed ? (
@@ -70,12 +76,44 @@ export default function WalletTracePage() {
         </Alert>
       ) : null}
       <TraceSummary result={result} />
-      <TraceFindings
-        findings={result.report.findings}
-        acked={trace.acked}
-        onToggleAck={trace.toggleAck}
-      />
-      <TraceTimeline report={result.report} />
+      {story ? <TraceStoryCard story={story} difference={result.report.difference} /> : null}
+      {collapsed ? (
+        <>
+          <p className="m-0 text-[0.8rem] leading-[1.9] text-muted">
+            موردهای کوچک‌تر دیگری هم هست که به‌احتمال زیاد ربطی به این اختلاف ندارند.
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="min-h-11 self-start"
+            onClick={() => setShowAll(true)}
+          >
+            دیدن موردهای کوچک‌تر ({result.report.findings.length.toLocaleString('fa-IR')})
+          </Button>
+        </>
+      ) : (
+        <>
+          <TraceFindings
+            findings={result.report.findings}
+            acked={trace.acked}
+            onToggleAck={trace.toggleAck}
+            minor={!!story?.exact}
+          />
+          <TraceTimeline report={result.report} />
+          {story?.exact ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="min-h-11 self-start"
+              onClick={() => setShowAll(false)}
+            >
+              پنهان کردن موردهای کوچک‌تر
+            </Button>
+          ) : null}
+        </>
+      )}
       <TraceRemainder result={result} trace={trace} />
     </div>
   )

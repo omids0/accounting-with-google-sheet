@@ -3,6 +3,7 @@ import type { TraceKind } from '../../../services/walletTraceTypes'
 /** The short chip on a finding row: what kind of cause it is. */
 export const TRACE_KIND_LABELS: Record<TraceKind, string> = {
   'no-account': 'بدون حساب',
+  'pre-accounts': 'قبل از گردش حساب',
   unapplied: 'بدون اثر بر موجودی',
   'no-ledger': 'ثبت‌نشده در گردش',
   'amount-mismatch': 'مبلغ نمی‌خواند',

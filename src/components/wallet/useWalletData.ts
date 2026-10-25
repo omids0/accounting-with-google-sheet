@@ -10,6 +10,7 @@ import {
   loadWalletPeriodFlow,
   type WalletPeriodFlow
 } from '../../services/wallet'
+import { recordDifference, snapshotOf } from '../../services/walletDifferenceHistory'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 
@@ -54,6 +55,8 @@ export function useWalletData() {
       setItems(data)
       syncBalances(data)
       setPeriodFlow(flow)
+      // «ردیاب اختلاف» tells when the difference changed from these looks.
+      if (data.length) recordDifference(settings.spreadsheetId, snapshotOf(data, flow))
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری کیف پول' })) return
     } finally {
