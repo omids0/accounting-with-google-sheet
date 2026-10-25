@@ -1,10 +1,17 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { isStandardEntryForm, withStandardFields } from './fieldUtils'
 import { isLinked, isSharedColumn, SHARED_LINK_FIELD_ID, withSharedLinkField } from './sharedFields'
+import { drainSharedLinks } from '../../hooks/useSharedLinkDrain'
 import { getDefaultSettings, getSettings, saveSettings } from '../../services/settings'
-import { takeSharedChoice, SHARED_CHOICE_KEY } from '../../services/sharedLinkPrefs'
+import {
+  readSharedLinks,
+  SHARED_CHOICE_KEY,
+  SHARED_LINK_KEY,
+  takeSharedChoice
+} from '../../services/sharedLinkPrefs'
 import { STORAGE_KEYS, setItem } from '../../services/storage'
+import { isTickShown } from '../shared/sharedTickEntry'
 
 const linkIn = (forms: { fields: { id: string }[] }[]) =>
   forms.map(form => form.fields.some(field => field.id === SHARED_LINK_FIELD_ID))
@@ -52,6 +59,39 @@ describe('the personal link column «حساب مشترک»', () => {
     expect(isSharedColumn(SHARED_LINK_FIELD_ID)).toBe(true)
     expect(isLinked({ [SHARED_LINK_FIELD_ID]: 's' })).toBe(true)
     expect(isLinked({ [SHARED_LINK_FIELD_ID]: '' })).toBe(false)
+  })
+})
+
+describe('isTickShown', () => {
+  it('hides the tick on a new vehicle expense, keeps it on a linked record turned «خودرو»', () => {
+    settingsWith([
+      { id: 'p', name: 'حسابداری · من' },
+      { id: 's', name: 'حسابداری · مشترک خانه', kind: 'shared' }
+    ])
+    const expense = getSettings()!.forms.find(form => form.type === 'expense')!
+
+    expect(isTickShown(expense, 'خوراک', '')).toBe(true)
+    expect(isTickShown(expense, 'خودرو', '')).toBe(false)
+    expect(isTickShown(expense, 'خودرو', 's')).toBe(true)
+  })
+
+  it('never shows for a user without a shared account', () => {
+    settingsWith([{ id: 'p', name: 'حسابداری · من' }])
+
+    expect(isTickShown(getSettings()!.forms[1], 'خوراک', '')).toBe(false)
+  })
+})
+
+describe('drainSharedLinks', () => {
+  it('lets failed copies go again once the shared account is open on this device', () => {
+    settingsWith([{ id: 's', name: 'حسابداری · مشترک خانه', kind: 'shared' }])
+    setItem(SHARED_LINK_KEY, [{ id: 't', recordId: 'r', ref: 'x', kind: 'delete', failed: 'no' }])
+    vi.stubGlobal('navigator', { onLine: false })
+    saveSettings({ ...getSettings()!, spreadsheetId: 's' })
+    drainSharedLinks()
+
+    expect(readSharedLinks()[0].failed).toBeUndefined()
+    vi.unstubAllGlobals()
   })
 })
 

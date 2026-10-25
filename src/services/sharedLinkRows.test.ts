@@ -188,6 +188,55 @@ describe('findCopyByRef and copyOperation', () => {
     expect(run(task('delete'))).toMatchObject({ type: 'delete', sheetName: archive, rowNumber: 3 })
   })
 
+  it('titles a copy with no typed title by the shared category it writes, never the personal one', () => {
+    const op = run(
+      task('create', {
+        values: { date: '2026-10-20', title: '', amount: 5, category: 'رستوران خصوصی' }
+      }),
+      new Map([[base, [headers]]])
+    )
+    const row = op && 'row' in op ? (op.row as string[]) : []
+
+    expect(cell(row, 'عنوان')).toBe('سایر')
+    expect(row.join('|')).not.toContain('رستوران خصوصی')
+  })
+
+  it('keeps the split, payer and category of the copy when the edit leaves them unset', () => {
+    const chosen = buildCopyRow({
+      form,
+      headers,
+      recordId: 'copy-2',
+      values: { date: '2026-10-20', title: 'میوه', amount: 850000 },
+      split: 'only:mina@x.com',
+      payer: 'mina@x.com',
+      creator: ME,
+      category: 'خانه',
+      ref: REF,
+      createdAt: 'then'
+    })
+    const edited = task('update', {
+      values: { date: '2026-10-20', title: 'میوهٔ تازه', amount: 850000, category: '' },
+      split: '',
+      payer: ''
+    })
+    const op = run(edited, new Map([[base, [headers, chosen]]]))
+    const row = op && 'row' in op ? (op.row as string[]) : []
+
+    expect(cell(row, 'عنوان')).toBe('میوهٔ تازه')
+    expect(cell(row, 'تقسیم')).toBe('only:mina@x.com')
+    expect(cell(row, 'پرداخت‌کننده')).toBe('mina@x.com')
+    expect(cell(row, 'دسته‌بندی')).toBe('خانه')
+  })
+
+  it('never appends a copy without a date or an amount', () => {
+    const empty = new Map([[base, [headers]]])
+
+    expect(run(task('create', { values: { date: '', title: 't', amount: 5 } }), empty)).toBeNull()
+    expect(
+      run(task('create', { values: { date: '2026-10-20', title: 't', amount: '' } }), empty)
+    ).toBeNull()
+  })
+
   it('clears only the ref when unlinking', () => {
     const op = run(task('update', { unlink: true, values: {} }))
 

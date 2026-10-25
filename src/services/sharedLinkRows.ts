@@ -8,9 +8,11 @@ import {
   SHARED_REF_FIELD_ID,
   SHARED_REF_FIELD_LABEL,
   SHARED_SPLIT_FIELD_ID,
+  parseSplit,
   type SharedSplit
 } from '../components/form/sharedFields'
 import type { CustomForm } from '../types'
+import { parseNumeric } from '../utils/parseNumeric'
 import { SETTLEMENT_CATEGORY } from '../utils/protectedCategories'
 import { headerWriterColumn, withWriterCell } from '../utils/writerColumn'
 
@@ -126,9 +128,25 @@ export interface CopyTask {
   kind: 'create' | 'update' | 'delete'
   ref: string
   values: Values
-  split: SharedSplit
+  /** '' = unset (see `SharedLinkTask`). */
+  split: SharedSplit | ''
   payer: string
   unlink?: boolean
+}
+
+/** The copy's own category, payer and split, as the shared account has them now. */
+export function copyCells(
+  found: CopyMatch,
+  form: CustomForm
+): { category: string; payer: string; split: SharedSplit } {
+  const cells = columnsOf(form, found.headers, EDITABLE_IDS)
+  const cell = (id: string) => (found.row[cells.get(id) ?? -1] ?? '').trim()
+
+  return {
+    category: cell('category'),
+    payer: cell(SHARED_PAYER_FIELD_ID),
+    split: parseSplit(cell(SHARED_SPLIT_FIELD_ID))
+  }
 }
 
 export interface CopyContext {
@@ -165,22 +183,32 @@ export function copyOperation(context: CopyContext): OutboxOperation | null {
       : null
   }
 
+  // Unset cells keep what the copy has (an edit that only fixes a typo), else the defaults.
+  const current = found ? copyCells(found, form) : null
+  const category = task.values.category
+    ? sharedCategory(task.values.category, context.categories)
+    : current?.category || 'سایر'
   const fresh = (headers: string[], recordId: string) =>
     buildCopyRow({
       form,
       headers,
       recordId,
-      values: task.values,
-      split: task.split,
-      payer: task.payer || context.me,
+      // No typed title: the shared category names the copy, never a personal word.
+      values: { ...task.values, title: task.values.title || category },
+      split: task.split || current?.split || 'equal',
+      payer: task.payer || current?.payer || context.me,
       creator: context.me,
-      category: sharedCategory(task.values.category, context.categories),
+      category,
       ref: task.unlink ? '' : task.ref,
       createdAt: context.createdAt
     })
 
   if (!found) {
-    if (task.kind === 'update') return null
+    const { date, amount } = task.values
+
+    if (task.kind === 'update' || !String(date ?? '').trim() || !(parseNumeric(amount) > 0)) {
+      return null
+    }
 
     const headers = tabs.get(base)?.[0]?.length ? tabs.get(base)![0] : buildHeaders(form.fields)
 
@@ -189,8 +217,8 @@ export function copyOperation(context: CopyContext): OutboxOperation | null {
 
   // Sheets trims empty trailing cells: pad to the header so every column has a cell.
   const width = Math.max(found.headers.length, found.row.length)
-  const current = Array.from({ length: width }, (_, index) => found.row[index] ?? '')
-  const next = [...current]
+  const padded = Array.from({ length: width }, (_, index) => found.row[index] ?? '')
+  const next = [...padded]
   const source = fresh(found.headers, found.row[0])
 
   columnsOf(form, found.headers, task.unlink ? [SHARED_REF_FIELD_ID] : EDITABLE_IDS).forEach(
@@ -199,7 +227,7 @@ export function copyOperation(context: CopyContext): OutboxOperation | null {
     }
   )
 
-  if (next.join('\u0000') === current.join('\u0000')) return null
+  if (next.join('\u0000') === padded.join('\u0000')) return null
 
   return {
     type: 'update',

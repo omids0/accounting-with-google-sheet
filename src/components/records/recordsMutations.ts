@@ -95,7 +95,9 @@ export async function submitRecordEdit({
         amount: Number(formValues.amount) || 0,
         note: String(formValues.note ?? ''),
         walletAccount: String(formValues.walletAccount ?? ''),
-        walletApply: String(formValues.walletApply ?? '')
+        walletApply: String(formValues.walletApply ?? ''),
+        // The tick decides the link here too; without a tick the row keeps its own.
+        ...(choice ? { sharedLink: String(formValues[SHARED_LINK_FIELD_ID] ?? '') } : {})
       })
     } else {
       await updateRecord(

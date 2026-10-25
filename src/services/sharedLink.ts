@@ -3,19 +3,34 @@ import { memberHasPermission, parseMembers } from './buildingRoles'
 import { rowsToGroups } from './categoryGroups'
 import { listArchiveSheets } from './recordArchive'
 import { getSettings } from './settings'
-import { readSharedLinks, writeSharedLinks, type SharedLinkTask } from './sharedLinkPrefs'
-import { copyOperation, sharedRecordForm } from './sharedLinkRows'
+import {
+  readSharedLinks,
+  writeSharedLinks,
+  type SharedChoice,
+  type SharedLinkTask
+} from './sharedLinkPrefs'
+import {
+  buildCopyRow,
+  copyCells,
+  copyOperation,
+  findCopyByRef,
+  sharedRecordForm,
+  sharedRef
+} from './sharedLinkRows'
 import { CATEGORIES_SHEET, PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { isPermanentApiError, isSpreadsheetAccessDeniedError } from './sheetsApi'
 import { getSheetTitles } from './sheetsEnsure'
+import { normalizeHeaderLabel } from './sheetsHeaders'
 import { normalizeSheetTitle } from './sheetsMeta'
 import { batchFetchSheetRangesFromApi } from './sheetsRows'
+import { getSheetAllRows } from './spreadsheetStore'
 import { getOutboxEntries } from './syncOutbox'
 import { drainWorkspace, writeToWorkspace } from './workspaceBridge'
+import { SHARED_LINK_FIELD_LABEL } from '../components/form/sharedFields'
 import { showError } from '../utils/toast'
 
 export { pendingSharedLink } from './sharedLinkPrefs'
-export { buildCopyRow, findCopyByRef, sharedRef } from './sharedLinkRows'
+export { buildCopyRow, findCopyByRef, sharedRef }
 
 /**
  * The personal → shared link (spec «Linking a personal record»): a per-device queue of copies to
@@ -28,6 +43,23 @@ type NewTask = Omit<SharedLinkTask, 'id' | 'attempts'>
 /** The task being sent right now: a delete can no longer cancel it. */
 let inFlight = ''
 
+/** An update of a copy whose create never left this device: still that create, its gaps filled. */
+function mergeIntoCreate(
+  { id: _id, attempts: _attempts, failed: _failed, ...created }: SharedLinkTask,
+  task: NewTask
+): NewTask {
+  // «فقط از حساب شخصی»: the copy the user chose to keep is still created, without a link.
+  if (task.unlink) return { ...created, unlink: true }
+
+  return {
+    ...task,
+    kind: 'create',
+    values: { ...task.values, category: task.values.category || created.values.category || '' },
+    split: task.split || created.split,
+    payer: task.payer || created.payer
+  }
+}
+
 /**
  * One task per copy (`ref`): a newer one replaces the queued one. A delete cancels a create that
  * never left this device; an update before its create left is still that create.
@@ -36,13 +68,13 @@ export function enqueueSharedLink(task: NewTask): void {
   const tasks = readSharedLinks()
   const queued = tasks.find(item => item.ref === task.ref)
   const rest = tasks.filter(item => item.ref !== task.ref)
-  const unsent = queued?.kind === 'create' && queued.id !== inFlight
+  const unsent = queued?.kind === 'create' && queued.id !== inFlight ? queued : null
 
   if (task.kind === 'delete' && unsent) return writeSharedLinks(rest)
 
-  const kind = task.kind === 'update' && unsent ? 'create' : task.kind
+  const next = unsent && task.kind === 'update' ? mergeIntoCreate(unsent, task) : task
 
-  writeSharedLinks([...rest, { ...task, kind, id: crypto.randomUUID(), attempts: 0 }])
+  writeSharedLinks([...rest, { ...next, id: crypto.randomUUID(), attempts: 0 }])
 }
 
 class NoRecordRight extends Error {}
@@ -64,6 +96,67 @@ function tabOf(type: SharedLinkTask['type'], titles: string[]): string {
   return names.find(name => name && has(normalizeSheetTitle(name))) ?? names[0]
 }
 
+/** One direct read of the shared sheet: members, categories, the record tab and its archives. */
+async function readTarget(sharedId: string, type: SharedLinkTask['type']) {
+  const titles = await getSheetTitles(sharedId)
+  const base = tabOf(type, titles)
+  const form = { ...sharedRecordForm(type), sheetName: base }
+  const record = [base, ...listArchiveSheets(titles, [form])]
+  const read = await batchFetchSheetRangesFromApi(sharedId, [
+    PERIOD_SETTINGS_SHEET,
+    CATEGORIES_SHEET,
+    ...record
+  ])
+
+  return { base, form, read, tabs: new Map(record.map(name => [name, read.get(name) ?? []])) }
+}
+
+/** The copy's split, payer and category, so the edit form shows (and keeps) them; null = none. */
+export async function readCopyChoice(
+  sharedId: string,
+  type: SharedLinkTask['type'],
+  ref: string
+): Promise<Pick<SharedChoice, 'split' | 'payer' | 'category'> | null> {
+  const { form, tabs } = await readTarget(sharedId, type)
+  const found = findCopyByRef(tabs, ref)
+
+  return found ? copyCells(found, form) : null
+}
+
+/**
+ * Blanks «حساب مشترک» on the personal row (no copy exists any more): through the bridge, so the
+ * open personal sheet's mirror follows and a closed one gets it on its next flush.
+ */
+export async function clearPersonalLink(
+  personalId: string,
+  recordId: string,
+  type: SharedLinkTask['type']
+): Promise<void> {
+  const tab =
+    getSettings()?.forms.find(form => form.type === type)?.sheetName ??
+    sharedRecordForm(type).sheetName
+  const rows =
+    getSheetAllRows(personalId, tab) ??
+    (await batchFetchSheetRangesFromApi(personalId, [tab])).get(tab) ??
+    []
+  const column = (rows[0] ?? []).map(normalizeHeaderLabel).indexOf(SHARED_LINK_FIELD_LABEL)
+  const index = rows.findIndex((row, at) => at > 0 && row[0] === recordId)
+
+  if (column < 0 || index < 0 || !rows[index][column]) return
+
+  const row = [...rows[index]]
+
+  row[column] = ''
+  await writeToWorkspace(personalId, {
+    type: 'update',
+    sheetName: tab,
+    rowNumber: index + 1,
+    expectedRow: rows[index],
+    row,
+    writeOptions: { skipActivity: true }
+  })
+}
+
 /** Reads the shared sheet directly and queues the write. True: done, drop the task. */
 async function send(task: SharedLinkTask): Promise<boolean> {
   if (isCopyQueued(task.sharedId, task.ref)) {
@@ -71,26 +164,26 @@ async function send(task: SharedLinkTask): Promise<boolean> {
     if (isCopyQueued(task.sharedId, task.ref)) return false
   }
 
-  const titles = await getSheetTitles(task.sharedId)
-  const base = tabOf(task.type, titles)
-  const form = { ...sharedRecordForm(task.type), sheetName: base }
-  const record = [base, ...listArchiveSheets(titles, [form])]
-  const read = await batchFetchSheetRangesFromApi(task.sharedId, [
-    PERIOD_SETTINGS_SHEET,
-    CATEGORIES_SHEET,
-    ...record
-  ])
+  const { base, form, read, tabs } = await readTarget(task.sharedId, task.type)
   const me = (getUserEmail() ?? '').trim().toLowerCase()
   const members = parseMembers((read.get(PERIOD_SETTINGS_SHEET) ?? []).slice(1), 'shared')
 
   // Every writer re-checks right before writing (a role may have changed since the tick).
   if (!memberHasPermission(members, me, 'record', 'shared')) throw new NoRecordRight()
 
+  // The shared account removed the copy (no create is waiting: that would be this task):
+  // the personal record is no longer shared, instead of a «در حساب مشترک» that is not true.
+  if (task.kind === 'update' && !task.unlink && !findCopyByRef(tabs, task.ref)) {
+    await clearPersonalLink(task.personalId, task.recordId, task.type)
+
+    return true
+  }
+
   const operation = copyOperation({
     task,
     form,
     base,
-    tabs: new Map(record.map(name => [name, read.get(name) ?? []])),
+    tabs,
     categories: rowsToGroups(read.get(CATEGORIES_SHEET) ?? [])[task.type],
     me,
     createdAt: new Date().toLocaleString('fa-IR'),
@@ -115,14 +208,10 @@ function permanentReason(err: unknown): string | null {
 function settle(task: SharedLinkTask, outcome: true | string | null): void {
   const tasks = readSharedLinks()
 
-  // A newer task for the same copy has another id and stays. A failed delete or unlink belongs
-  // to a record that is gone, so no form can offer «لغو ارسال»: reported once, then dropped.
-  const drop = outcome === true || (!!outcome && (task.kind === 'delete' || !!task.unlink))
-
-  if (outcome && outcome !== true) {
-    showError(`نسخهٔ «${task.values.title || 'ثبت'}» به حساب مشترک نرسید: ${outcome}`)
-  }
-  if (drop) return writeSharedLinks(tasks.filter(item => item.id !== task.id))
+  // A newer task for the same copy has another id and stays. A failed one waits (even a delete)
+  // until this device reaches the file again (`clearSharedLinkFailures`).
+  if (outcome === true) return writeSharedLinks(tasks.filter(item => item.id !== task.id))
+  if (outcome) showError(`نسخهٔ «${task.values.title || 'ثبت'}» به حساب مشترک نرسید: ${outcome}`)
 
   writeSharedLinks(
     tasks.map(item =>

@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { enqueueSharedLink, runSharedLinks } from './sharedLink'
-import { pendingSharedLink, readSharedLinks, type SharedLinkTask } from './sharedLinkPrefs'
+import { enqueueSharedLink, readCopyChoice, runSharedLinks } from './sharedLink'
+import {
+  clearSharedLinkFailures,
+  pendingSharedLink,
+  readSharedLinks,
+  type SharedLinkTask
+} from './sharedLinkPrefs'
 import { buildCopyRow, sharedRecordForm, sharedRef } from './sharedLinkRows'
 import { CATEGORIES_SHEET, PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { buildHeaders } from './sheetsHeaders'
@@ -22,7 +27,6 @@ const SHARED = 'shared-1'
 const REF = sharedRef('p1', 'r1')
 const form = sharedRecordForm('expense')
 const headers = buildHeaders(form.fields)
-
 const task = (
   kind: SharedLinkTask['kind'],
   values: Record<string, string | number> = {}
@@ -93,6 +97,29 @@ describe('the queue', () => {
 
     expect(readSharedLinks()).toMatchObject([{ kind: 'create', values: { amount: 3 } }])
   })
+
+  it('an update that leaves the panel unset keeps the split and payer of the queued create', () => {
+    enqueueSharedLink({ ...task('create'), split: 'only:mina@x.com', payer: 'mina@x.com' })
+    enqueueSharedLink({ ...task('update', { amount: 3, category: '' }), split: '', payer: '' })
+
+    expect(readSharedLinks()).toMatchObject([
+      {
+        kind: 'create',
+        split: 'only:mina@x.com',
+        payer: 'mina@x.com',
+        values: { amount: 3, category: 'خوراک' }
+      }
+    ])
+  })
+
+  it('«فقط از حساب شخصی» before the create ran keeps that create, without a link', () => {
+    enqueueSharedLink(task('create'))
+    enqueueSharedLink({ ...task('update'), values: {}, unlink: true })
+
+    expect(readSharedLinks()).toMatchObject([
+      { kind: 'create', unlink: true, values: { amount: 850000, title: 'میوه' } }
+    ])
+  })
 })
 
 describe('runSharedLinks', () => {
@@ -162,13 +189,45 @@ describe('runSharedLinks', () => {
     expect(readSharedLinks()[0].failed).toBeTruthy()
   })
 
-  it('reports a delete it can never send once and drops it (its record is gone)', async () => {
+  it('keeps a delete it cannot send as failed, and sends it once the failures are cleared', async () => {
+    sheet([landed])
     batchFetch.mockRejectedValueOnce(new Error('The caller does not have permission'))
     enqueueSharedLink(task('update'))
     enqueueSharedLink(task('delete'))
     await runSharedLinks()
 
+    expect(readSharedLinks()).toMatchObject([{ kind: 'delete', failed: expect.any(String) }])
+
+    clearSharedLinkFailures()
+    await runSharedLinks()
+
+    expect(writeToWorkspace).toHaveBeenCalledWith(
+      SHARED,
+      expect.objectContaining({ type: 'delete' })
+    )
     expect(readSharedLinks()).toEqual([])
+  })
+
+  it('reads the split, payer and category of an existing copy for the edit form', async () => {
+    const chosen = buildCopyRow({
+      form,
+      headers,
+      recordId: 'copy-1',
+      values: task('create').values,
+      split: 'only:mina@x.com',
+      payer: 'mina@x.com',
+      creator: 'me@x.com',
+      category: 'سایر',
+      ref: REF
+    })
+
+    sheet([chosen])
+
+    await expect(readCopyChoice(SHARED, 'expense', REF)).resolves.toEqual({
+      split: 'only:mina@x.com',
+      payer: 'mina@x.com',
+      category: 'سایر'
+    })
   })
 
   it('refuses to write without the record permission', async () => {

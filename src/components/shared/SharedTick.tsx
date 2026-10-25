@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import SharedSplitFields from './SharedSplitFields'
@@ -7,9 +7,10 @@ import { getPathForTab } from '../../routes/paths'
 import { getUserEmail } from '../../services/auth'
 import { memberHasPermission, parseMembers } from '../../services/buildingRoles'
 import { rowsToGroups } from '../../services/categoryGroups'
-import { getSpreadsheets } from '../../services/settings'
+import { getSettings, getSpreadsheets } from '../../services/settings'
 import {
   cancelSharedLink,
+  clearSharedLinkFailures,
   failedSharedLink,
   type RecordType,
   type SharedChoice
@@ -23,6 +24,7 @@ import { getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
 import { isSharedEntry } from '../../services/workspace'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { SETTLEMENT_CATEGORY } from '../../utils/protectedCategories'
+import ConfirmActionModal from '../ConfirmActionModal'
 import { FormField, Select, ToggleSwitch } from '../form'
 import { alertClassName } from '../ui/Alert'
 import { journeyNoteClass } from '../ui/buildingStyles'
@@ -43,11 +45,11 @@ interface Context {
 
 const TTL_MS = 5 * 60_000
 
-let cached: { at: number; value: Context } | null = null
+let cached: { at: number; id: string; value: Context } | null = null
 
 /** Who may record, the pair and the categories, from ONE direct read of the shared sheet. */
 async function loadContext(sharedId: string, name: string): Promise<Context> {
-  if (cached && Date.now() - cached.at < TTL_MS) return cached.value
+  if (cached?.id === sharedId && Date.now() - cached.at < TTL_MS) return cached.value
 
   const me = (getUserEmail() ?? '').trim().toLowerCase()
   const base = { name, me, people: [me], canRecord: true, categories: null, connect: false }
@@ -65,7 +67,9 @@ async function loadContext(sharedId: string, name: string): Promise<Context> {
       categories: rowsToGroups(read.get(CATEGORIES_SHEET) ?? [])
     }
 
-    cached = { at: Date.now(), value }
+    cached = { at: Date.now(), id: sharedId, value }
+    // The file is readable from this device again: copies that failed for access may go now.
+    clearSharedLinkFailures()
 
     return value
   } catch (err) {
@@ -102,25 +106,47 @@ export default function SharedTick({
   const account = getSpreadsheets().find(isSharedEntry)
   const [context, setContext] = useState<Context | null>(null)
   const navigate = useNavigate()
-  const [failed, setFailed] = useState(() => (recordId ? failedSharedLink(recordId) : ''))
+  const [failed, setFailed] = useState(() => (recordId ? failedSharedLink(recordId) : undefined))
+  const [cancelled, setCancelled] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+  // The copy's own split, payer and category fill the panel unless the user changed it first.
+  const touched = useRef(false)
+  const change = (patch: Partial<SharedChoice>) => {
+    touched.current = true
+    onChange(patch)
+  }
 
   const id = account?.id ?? ''
   const name = account ? sharedNameOf(getSpreadsheetLabel(account.name)) : ''
+  const personalId = getSettings()?.spreadsheetId ?? ''
 
   useEffect(() => {
     let live = true
 
     if (id) void loadContext(id, name).then(value => live && setContext(value))
+    if (id && linked && recordId) {
+      void import('../../services/sharedLink')
+        .then(({ readCopyChoice }) => readCopyChoice(id, type, `share:${personalId}:${recordId}`))
+        .then(seed => live && seed && !touched.current && onChange(seed))
+        .catch(() => undefined)
+    }
 
     return () => {
       live = false
     }
-  }, [id, name])
+    // `onChange` is a new function every render; the read depends on the record only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, name, linked, recordId, type, personalId])
 
   if (!account || !context) return null
 
-  // The connect sheet lives on «فضاهای من» (its Picker flow opens the account there).
+  // The connect sheet lives on «فضاهای من» (its Picker flow opens the account there); leaving
+  // drops what the form holds, so a form with input asks first.
   if (context.connect) {
+    const go = () => navigate(`${getPathForTab('buildings-home')}?shared=connect`)
+    const hasInput =
+      editing || ['amount', 'title', 'note'].some(key => String(values[key] ?? '').trim())
+
     return (
       <FormField label="حساب مشترک" controlWidth="full">
         <p className={journeyNoteClass}>
@@ -129,10 +155,19 @@ export default function SharedTick({
         <Button
           type="button"
           variant="secondary"
-          onClick={() => navigate(`${getPathForTab('buildings-home')}?shared=connect`)}
+          onClick={() => (hasInput ? setLeaving(true) : go())}
         >
           {`اتصال این دستگاه به «${name}»`}
         </Button>
+        <ConfirmActionModal
+          open={leaving}
+          title="رفتن به «فضاهای من»؟"
+          message="آنچه در این فرم نوشته‌اید ذخیره نمی‌شود. اول ذخیره کنید یا بعداً وصل شوید."
+          confirmLabel="برو"
+          cancelLabel="بمان"
+          onConfirm={go}
+          onClose={() => setLeaving(false)}
+        />
       </FormField>
     )
   }
@@ -150,7 +185,7 @@ export default function SharedTick({
           <span className={journeyNoteClass}>{label}</span>
           <ToggleSwitch
             checked={choice.on}
-            onChange={on => onChange({ on, sharedId: id })}
+            onChange={on => change({ on, sharedId: id })}
             label={label}
           />
         </div>
@@ -160,7 +195,7 @@ export default function SharedTick({
           <Select
             aria-label="دسته در حساب مشترک"
             value={choice.category || sharedCategory(values.category, list)}
-            onChange={category => onChange({ category })}
+            onChange={category => change({ category })}
             options={list.map(item => ({ value: item, label: item }))}
           />
         </FormField>
@@ -172,9 +207,9 @@ export default function SharedTick({
           nameOf={nameOf}
           amount={parseNumeric(values.amount)}
           payer={choice.payer || context.me}
-          split={choice.split}
-          onPayer={payer => onChange({ payer })}
-          onSplit={split => onChange({ split })}
+          split={choice.split || 'equal'}
+          onPayer={payer => change({ payer })}
+          onSplit={split => change({ split })}
         />
       ) : null}
       {choice.on && type === 'income' ? (
@@ -182,7 +217,7 @@ export default function SharedTick({
           مبلغ را شریک هم می‌بیند؛ درآمد روی تراز اثری ندارد و فقط در گزارش‌های حساب مشترک می‌آید.
         </p>
       ) : null}
-      {editing && linked !== choice.on ? (
+      {editing && linked !== choice.on && !cancelled ? (
         <p className={alertClassName(linked ? 'warning' : 'info', sharedAlertClass)}>
           {linked
             ? 'با ذخیره، نسخهٔ حساب مشترک حذف می‌شود'
@@ -191,14 +226,22 @@ export default function SharedTick({
       ) : null}
       {failed && recordId ? (
         <div className={alertClassName('error', sharedAlertClass)} role="alert">
-          {`نسخهٔ حساب مشترک این ثبت فرستاده نشد: ${failed}`}
+          {`نسخهٔ حساب مشترک این ثبت فرستاده نشد: ${failed.failed}`}
           <Button
             type="button"
             variant="secondary"
             size="sm"
             onClick={() => {
               cancelSharedLink(recordId)
-              setFailed('')
+              setFailed(undefined)
+              // A copy that was never created: the record is not shared any more.
+              if (failed.kind === 'create') {
+                void import('../../services/sharedLink').then(({ clearPersonalLink }) =>
+                  clearPersonalLink(personalId, recordId, type)
+                )
+                setCancelled(true)
+                onChange({ on: false })
+              }
             }}
           >
             لغو ارسال

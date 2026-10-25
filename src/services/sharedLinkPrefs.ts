@@ -1,7 +1,9 @@
 import { getItem, setItem } from './storage'
 import { hasSharedAccount } from './workspace'
+import { SUBCATEGORY_FIELD_ID, withAutoTitle } from '../components/form/fieldUtils'
 import { SHARED_LINK_FIELD_ID, type SharedSplit } from '../components/form/sharedFields'
 import { showError } from '../utils/toast'
+import { isVehicleExpenseCategory } from '../utils/vehicleExpenseUtils'
 
 /**
  * The copies of personal records still to be written to the shared account (personal → shared
@@ -25,15 +27,19 @@ export interface SharedLinkTask {
   ref: string
   /** The copy goes to the shared tab of the personal record's own type. */
   type: RecordType
-  /** Only the whitelisted cells: date, title, amount, category. */
+  /**
+   * Only date, title (as typed: '' = the shared category), amount and category (on an update ''
+   * = the copy keeps its own).
+   */
   values: Values
-  split: SharedSplit
-  /** '' = the person who sends it. */
+  /** '' = unset: a new copy is «نصف‌نصف», an existing one keeps its own. */
+  split: SharedSplit | ''
+  /** '' = unset: a new copy is paid by the sender, an existing one keeps its own. */
   payer: string
   attempts: number
   /** «فقط از حساب شخصی»: the copy stays, its `مرجع` is cleared. */
   unlink?: boolean
-  /** Why it can never be sent (no access, file gone); kept until the user cancels it. */
+  /** Why it cannot be sent now (no access, file gone); retried once access is proven. */
   failed?: string
 }
 
@@ -54,11 +60,36 @@ const taskOf = (recordId: string) => readSharedLinks().find(task => task.recordI
 /** «در انتظار ارسال»: the record's copy has not reached the shared account yet. */
 export const pendingSharedLink = (recordId: string): boolean => !!taskOf(recordId)
 
-/** Why the record's copy can never be sent, or ''. */
-export const failedSharedLink = (recordId: string): string => taskOf(recordId)?.failed ?? ''
+/** The record's task that cannot be sent now, if any. */
+export const failedSharedLink = (recordId: string): SharedLinkTask | undefined =>
+  readSharedLinks().find(task => task.recordId === recordId && task.failed)
 
 export function cancelSharedLink(recordId: string): void {
   writeSharedLinks(readSharedLinks().filter(task => task.recordId !== recordId))
+}
+
+/** This device reached the shared file (opened it, read it): failed tasks may go again. */
+export function clearSharedLinkFailures(): void {
+  const tasks = readSharedLinks()
+
+  if (tasks.some(task => task.failed)) {
+    writeSharedLinks(tasks.map(({ failed: _failed, ...task }) => task))
+  }
+}
+
+/**
+ * The title the user typed, or '': an auto title («دسته · زیردسته») or a vehicle title names the
+ * PERSONAL category or vehicle, which never reaches the shared sheet.
+ */
+export function typedTitle(values: Values): string {
+  const title = String(values.title ?? '').trim()
+  const category = String(values.category ?? '')
+  const auto = withAutoTitle({
+    category,
+    [SUBCATEGORY_FIELD_ID]: values[SUBCATEGORY_FIELD_ID] ?? ''
+  })
+
+  return title && title !== auto.title && !isVehicleExpenseCategory(category) ? title : ''
 }
 
 /** The tick panel's answer, carried in the saved values under this key (never written). */
@@ -67,10 +98,12 @@ export const SHARED_CHOICE_KEY = '__sharedChoice'
 export interface SharedChoice {
   on: boolean
   sharedId: string
-  /** '' = the personal category (exact name in the shared list, else «سایر»). */
+  /** The shared category; '' = the personal one mapped (new copy) or the copy's own (edit). */
   category: string
-  split: SharedSplit
+  split: SharedSplit | ''
   payer: string
+  /** `typedTitle` of the form. */
+  title?: string
 }
 
 /** The values without the tick's answer, and the answer (null when no tick was shown). */
@@ -103,13 +136,6 @@ function queue(task: Omit<Task, 'ref'>): void {
     .catch(() => showError('ثبت شخصی ذخیره شد ولی نسخهٔ حساب مشترک فرستاده نشد'))
 }
 
-const pick = ({ date = '', title = '', amount = '', category = '' }: Values): Values => ({
-  date,
-  title,
-  amount,
-  category
-})
-
 /**
  * After the personal write (never before, never awaited): the tick on save is the only truth.
  * Ticked → create (new or unlinked) or update (linked); unticked on a linked record → delete.
@@ -119,7 +145,7 @@ export function linkSharedSave(
   personalId: string,
   recordId: string,
   type: string,
-  values: Values,
+  { date = '', amount = '', category = '' }: Values,
   choice: SharedChoice,
   linkedTo = ''
 ): void {
@@ -131,7 +157,12 @@ export function linkSharedSave(
     personalId,
     recordId,
     type: type as RecordType,
-    values: pick({ ...values, category: choice.category || values.category || '' }),
+    values: {
+      date,
+      title: choice.title ?? '',
+      amount,
+      category: choice.category || (linkedTo ? '' : category)
+    },
     split: choice.split,
     payer: choice.payer
   })
@@ -152,7 +183,7 @@ export function linkSharedDelete(
     recordId: record.id,
     type: type as RecordType,
     values: {},
-    split: 'equal',
+    split: '',
     payer: ''
   })
 }

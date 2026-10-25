@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 
-import { SHARED_CHOICE_KEY, type SharedChoice } from '../../services/sharedLinkPrefs'
+import { SHARED_CHOICE_KEY, typedTitle, type SharedChoice } from '../../services/sharedLinkPrefs'
 import {
   isPersonalWorkspace,
   isSharedAccountHidden,
@@ -15,19 +15,37 @@ const SharedTick = lazy(() => import('./SharedTick'))
 
 type Values = Record<string, string | number>
 
+/** Split, payer and category start unset: a new copy takes the defaults, a linked one its own. */
 const startOf = (linkedTo: string): SharedChoice => ({
   on: !!linkedTo,
   sharedId: linkedTo || sharedSpreadsheetId() || '',
   category: '',
-  split: 'equal',
+  split: '',
   payer: ''
 })
 
 /**
+ * Whether the personal form shows the tick: a record form on a personal sheet of a device with a
+ * visible shared account. A NEW vehicle expense keeps its own record shape and gets none; a
+ * linked record keeps its tick whatever its category becomes, so the copy follows (or goes).
+ */
+export function isTickShown(form: CustomForm, category: unknown, linkedTo: string): boolean {
+  const sharedId = sharedSpreadsheetId()
+
+  return (
+    (form.type === 'income' || form.type === 'expense') &&
+    !!sharedId &&
+    !isSharedAccountHidden(sharedId) &&
+    isPersonalWorkspace() &&
+    (!!linkedTo || !(form.type === 'expense' && isVehicleExpenseCategory(String(category ?? ''))))
+  )
+}
+
+/**
  * The tick «در «<name>» هم ثبت شود» of the personal entry and edit forms: OFF by default, always
  * (on only for a record that already has a copy), held by the open form and never remembered.
- * `mark` adds what to save: the link column and the tick's answer (`takeSharedChoice` takes it
- * out again before the write). A vehicle expense keeps its own record shape and gets no tick.
+ * `mark` adds what to save: the link column and the tick's answer with the title as TYPED
+ * (`takeSharedChoice` takes it out again before the write).
  */
 export function useSharedTick(
   form: CustomForm,
@@ -36,14 +54,7 @@ export function useSharedTick(
 ) {
   const linkedTo = String(record?.values[SHARED_LINK_FIELD_ID] ?? '').trim()
   const [choice, setChoice] = useState(() => startOf(linkedTo))
-  const sharedId = sharedSpreadsheetId()
-  // Turned off on this device («فقط از منوی من پنهان شود»): no tick either.
-  const active =
-    (form.type === 'income' || form.type === 'expense') &&
-    !!sharedId &&
-    !isSharedAccountHidden(sharedId) &&
-    isPersonalWorkspace() &&
-    !(form.type === 'expense' && isVehicleExpenseCategory(String(values.category ?? '')))
+  const active = isTickShown(form, values.category, linkedTo)
 
   useEffect(() => setChoice(startOf(linkedTo)), [linkedTo, record?.id, form.id])
 
@@ -66,7 +77,7 @@ export function useSharedTick(
         ? {
             ...input,
             [SHARED_LINK_FIELD_ID]: choice.on ? choice.sharedId : '',
-            [SHARED_CHOICE_KEY]: JSON.stringify(choice)
+            [SHARED_CHOICE_KEY]: JSON.stringify({ ...choice, title: typedTitle(values) })
           }
         : input,
     reset: () => setChoice(startOf(linkedTo))
