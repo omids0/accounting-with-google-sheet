@@ -98,10 +98,10 @@ On the **personal** entry and edit forms, only when the shared account is on and
 
 ### What a copy carries (my call, privacy-first)
 
-A whitelist, nothing else crosses: **title, amount, date, category, record type (expense/income), payer, split, creator e-mail (`ثبت‌کننده`), `مرجع`**. Never copied: notes, line items, attachments, counterparty, wallet account / «اعمال روی کیف پول», SMS source text, tags, vehicle or other category-specific blocks. The shared record applies no wallet effect.
+A whitelist, nothing else crosses: **title, amount, date, category, record type (expense/income), payer, split, creator e-mail (`ایجادکننده`), `مرجع`**. Never copied: notes, line items, attachments, counterparty, wallet account / «اعمال روی کیف پول», SMS source text, tags, vehicle or other category-specific blocks. The shared record applies no wallet effect.
 
 - **Category:** the tick panel shows a category select fed by the **shared account's** category list, pre-selected by an exact name match with the personal category, else «سایر». The app never creates a category in the shared sheet from a personal one (that would leak its name). A later category change made in the shared account applies back to the personal record only when a personal category of that name exists; otherwise the notice shows the change and offers only the other fields.
-- **Creator vs payer:** `ثبت‌کننده` is whoever ticked and wrote the copy; `پرداخت‌کننده` defaults to the same person (the personal form has no payer field) and can be changed in the tick panel. Notices go to `ثبت‌کننده`, the only person who has a personal counterpart.
+- **Creator vs payer:** `ایجادکننده` is whoever ticked and wrote the copy; `پرداخت‌کننده` defaults to the same person (the personal form has no payer field) and can be changed in the tick panel. Notices go to `ایجادکننده`, the only person who has a personal counterpart.
 - **If the owner edits a personal record while a notice about it is pending:** the form shows «شریک این ثبت را در حساب مشترک تغییر داده؛ ذخیره، تغییر او را جایگزین می‌کند» with a link to the notice. Saving proceeds and the pending notice is removed (the owner saw it and chose to overwrite). Nothing is blocked.
 
 ### When the partner edits or deletes a copy (owner)
@@ -157,3 +157,23 @@ Own role card; members list with role, status («دعوت‌شده» until they 
 ## Open question for the owner
 
 Can one person have **more than one** shared account (for example one with a partner and one with roommates), or exactly one? The plan above assumes **one**: it removes a workspace picker from the checkbox, per-account queues and keys, and a «which account?» step in every notice. Say so if you want several.
+
+## Changes made during implementation
+
+What shipped differs from the text above in these places. Where this list and the sections above disagree, this list wins.
+
+- **Creator column is «ایجادکننده»** (field id `sharedCreator`), not «ثبت‌کننده». «ثبت‌کننده» already exists (`writerColumn.ts`) and holds the _last editor_, so the copy's creator needed its own column. Notices go to «ایجادکننده».
+- **The hub is the retitled existing page.** «فضاهای من» is the old «مدیر ساختمان» home (`buildings-home`, same tab id and path), with the dashed «حساب مشترک» card below the buildings. No new menu row. The building connect path now reads «بیشتر › فضاهای من».
+- **The member card expands inline** (the building `MemberCard`), not in a bottom sheet as in the prototype.
+- **One shared account per user in v1.** Creating or connecting a second one is refused, a hidden one still counts, and the hub offers «روشن کردن دوباره» instead. The owner wants several accounts as a later phase; keys are by spreadsheet id so nothing prevents it.
+- **Recurring items are skipped in a shared account for v1.** They carry no payer, split or creator, so the balance would ignore them. Auto-post does nothing and the recurring writers refuse. Report exports, budgets, categories and backup are gated by their permission keys.
+- **Backup is the existing weekly auto-backup switch** («پشتیبان خودکار هفتگی در درایو شما», in the data-safety card of «اعضا»), not a monthly one. It runs when the shared account is opened. A partner cannot write to the owner's folder, so the zip goes to a «پشتیبان» folder in the partner's own Drive. There is no manual button.
+- **Leaving.** «ترک این فضا» removes the member's own Drive permission first; if Drive refuses (403/404) it removes the member's own rows, hides the account and tells the user to remove access in Drive. Either way the account is then unregistered on this device after the switch back to the personal sheet. «فقط از منوی من پنهان شود» only hides and never unregisters. The unsettled balance is shown first and never blocks.
+- **Balance when the partner's role row is gone** (after a leave or removal): the pair is inferred as the owner plus the other e-mail the records name most often as payer or `only:` bearer, so the balance stays visible to whoever remains.
+- **Settlement rows are expense rows** with the system category «تسویه» (payer = from, split `only:<to>`, no wallet field). `balanceOfRows` partitions them so a settlement is never counted as an expense; they are left out of reports, dashboard and budgets inside shared accounts only. A malformed «تسویه» row counts on neither side.
+- **Equal split rounding:** the payer bears `floor(amount/2)` and the other person the rest; nets always sum to zero. A suggested settlement below 1 toman is none.
+- **Notices.** Only amount, title, category and deletion can be applied to the personal record (the personal record has no split), and the referenced personal sheet must be one of the user's own personal spreadsheets. Delete and split notices offer one button («باشه» / «بعداً») because both choices would do the same. Inside the personal edit form the notice sheet does not apply anything (the form's values would overwrite it on save); it says to change the form and save.
+- **Push-key leak guard.** A shared sheet is readable by the partner, so the reminder, push-subscription, activity and app-lock-scrub writers do nothing for shared sheets (the engagement startup and the sheet switch skip them). The same leak exists for building sheets and is unchanged.
+- **Personal side details.** The link marker is a synced personal column «حساب مشترک» (`sharedLink`), added only when a shared account is registered; vehicle expenses get no tick; a copy carries only a title the user typed (never an auto-generated or vehicle title); the «اتصال این دستگاه» row opens «فضاهای من» (`?shared=connect`) after a confirmation when the form has input; partner names on the personal side are the e-mail local part.
+- **Generic write paths are closed in a shared account:** `/entry`, `/records`, wallet, close-year, reminders and `?action=` links redirect to the shared pages, and CSV import, restore and column repair need the matching permission.
+- **Not proven in headless Chrome, left for the owner:** a real invitation mail and Drive share, Drive self-removal under `drive.file`, a partner editing on a second device (notice pickup), real Sheets row deletes, and a real phone.
