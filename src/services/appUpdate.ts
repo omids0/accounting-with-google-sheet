@@ -5,13 +5,21 @@ import { isNativePlatform } from './googleAuthNative'
 import { getItem, setItem } from './storage'
 import { IS_DEV_BUILD } from '../utils/appEnv'
 
-/** Published by the APK build workflow as a GitHub release asset. */
-const VERSION_MANIFEST_URL =
-  'https://github.com/omids0/accounting-with-google-sheet/releases/latest/download/version.json'
+const RELEASES_URL = 'https://github.com/omids0/accounting-with-google-sheet/releases'
+
+/**
+ * Published by the APK build workflow as a GitHub release asset. Production reads the latest
+ * release; the develop APK reads the rolling pre-release «dev-latest» that every develop build
+ * replaces (a pre-release is never «latest», so it cannot reach production users).
+ */
+const VERSION_MANIFEST_URL = IS_DEV_BUILD
+  ? `${RELEASES_URL}/download/dev-latest/version.json`
+  : `${RELEASES_URL}/latest/download/version.json`
 
 /** Same asset the manifest points at; the web build links it for first installs. */
-export const APK_DOWNLOAD_URL =
-  'https://github.com/omids0/accounting-with-google-sheet/releases/latest/download/hesab-ketab.apk'
+export const APK_DOWNLOAD_URL = IS_DEV_BUILD
+  ? `${RELEASES_URL}/download/dev-latest/hesab-ketab-dev.apk`
+  : `${RELEASES_URL}/latest/download/hesab-ketab.apk`
 
 const DISMISSED_KEY = 'accounting_update_dismissed'
 
@@ -48,12 +56,9 @@ function parseManifest(data: unknown): (AvailableUpdate & { versionCode: number 
   }
 }
 
-/**
- * Resolves to null when up to date, offline, or running outside the APK. A dev build
- * never checks: the release manifest describes the production APK, not this one.
- */
+/** Resolves to null when up to date, offline, or running outside the APK. */
 export async function checkForUpdate(): Promise<AvailableUpdate | null> {
-  if (IS_DEV_BUILD || !isNativePlatform()) return null
+  if (!isNativePlatform()) return null
 
   try {
     const installed = Number((await App.getInfo()).build)
