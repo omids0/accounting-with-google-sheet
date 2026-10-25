@@ -108,8 +108,17 @@ export function recordsListTypeClass(type: 'income' | 'expense') {
   )
 }
 
+/**
+ * Title line: the title and the badges after it (receipt, wallet, items) share one line while they
+ * fit. A long title takes the whole line (ellipsis) and the badges wrap under it instead of being
+ * cut off behind the ellipsis.
+ */
 export const recordItemTitleClass =
-  'overflow-hidden text-ellipsis whitespace-nowrap text-[0.9rem] font-semibold'
+  'flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-[0.9rem] font-semibold'
+
+export const recordItemTitleTextClass = 'max-w-full truncate'
+
+export const recordItemTitleAddonClass = 'inline-flex shrink-0 items-center gap-1'
 
 export const recordItemMetaClass = 'text-[0.75rem] text-muted'
 

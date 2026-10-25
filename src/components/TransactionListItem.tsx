@@ -6,7 +6,9 @@ import {
   recordItemInteractiveClass,
   recordItemMetaClass,
   recordItemOpenClass,
-  recordItemTitleClass
+  recordItemTitleAddonClass,
+  recordItemTitleClass,
+  recordItemTitleTextClass
 } from './ui/recordsStyles'
 import { cn } from '../utils/cn'
 
@@ -66,8 +68,8 @@ function TransactionListItem({
       ) : null}
       <div className={recordItemMainClass}>
         <div className={recordItemTitleClass}>
-          {title}
-          {titleAddon ? <> {titleAddon}</> : null}
+          <span className={recordItemTitleTextClass}>{title}</span>
+          {titleAddon ? <span className={recordItemTitleAddonClass}>{titleAddon}</span> : null}
         </div>
         {meta ? <div className={recordItemMetaClass}>{meta}</div> : null}
         {detail}
