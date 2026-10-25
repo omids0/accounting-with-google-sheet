@@ -1,5 +1,6 @@
 import { showError, showInfo, showSuccess } from './toast'
 import { toExportErrorMessage } from './userMessage'
+import { sharedCan, SHARED_NO_ACCESS_MESSAGE } from '../services/sharedCan'
 
 /** Resolves the saved file name, or `null` when the user dismissed the share sheet. */
 export type ExportTask = () => Promise<string | null>
@@ -15,6 +16,12 @@ export async function runExport(
   fallbackMessage: string,
   { empty = false }: { empty?: boolean } = {}
 ): Promise<void> {
+  // A shared account's «خروجی و پشتیبان» permission (always true elsewhere).
+  if (!sharedCan('export')) {
+    showError(SHARED_NO_ACCESS_MESSAGE)
+
+    return
+  }
   if (empty) {
     showInfo(NOTHING_TO_EXPORT_MESSAGE)
 

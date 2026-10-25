@@ -18,6 +18,7 @@ import {
   saveRecurringItem,
   stripRow
 } from './recurringSheet'
+import { assertSharedCan, sharedCan } from './sharedCan'
 import { appendRecord } from './sheets'
 import { isNonFundPayer } from '../components/form/buildingFields'
 import type { AppSettings, CustomForm, RecurringItem } from '../types'
@@ -84,6 +85,8 @@ export async function postReminderItems(
   checkedIds: ReadonlySet<string>,
   todayIso: string
 ): Promise<number> {
+  assertSharedCan('record', settings.spreadsheetId)
+
   const monthKey = getJalaliMonthKey(todayIso)
   const { post, skip } = planReminderPost(items, checkedIds)
 
@@ -129,6 +132,9 @@ export interface AutoPosted {
  * Throws only when the remote tab cannot be read (offline): nothing is posted then.
  */
 export async function runAutoPost(settings: AppSettings, todayIso: string): Promise<AutoPosted[]> {
+  // A shared account's viewer opens the app too: only whoever may record posts.
+  if (!sharedCan('record', settings.spreadsheetId)) return []
+
   const local = dueAutoItems(
     (await fetchRecurringItems(settings.spreadsheetId)).map(stripRow),
     todayIso

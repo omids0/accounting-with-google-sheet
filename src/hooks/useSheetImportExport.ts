@@ -2,6 +2,8 @@ import { useCallback, useRef, useState } from 'react'
 
 import { PartialImportError, type ImportPreview } from '../services/importExport'
 import { formatImportSummary } from '../services/importPlan'
+import type { SharedPermission } from '../services/memberRegistry'
+import { sharedCan, SHARED_NO_ACCESS_MESSAGE } from '../services/sharedCan'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { pickTextFile } from '../utils/csv'
 import { runExport } from '../utils/exportFeedback'
@@ -48,13 +50,23 @@ export function useSheetImportExport({
   exportFn,
   exportPdfFn,
   importFn,
+  importPermission = 'record',
   onComplete
 }: {
   exportFn: SheetExportFn
   exportPdfFn?: SheetExportFn
   importFn?: (spreadsheetId: string, csvContent: string) => Promise<ImportPreview>
+  /** In a shared account, what an import writes (records by default; budgets need `budget`). */
+  importPermission?: SharedPermission
   onComplete?: () => void | Promise<void>
 }) {
+  const mayImport = useCallback(() => {
+    if (sharedCan(importPermission)) return true
+    showError(SHARED_NO_ACCESS_MESSAGE)
+
+    return false
+  }, [importPermission])
+
   const [importOpen, setImportOpen] = useState(false)
 
   const [preview, setPreview] = useState<ImportPreview | null>(null)
@@ -87,10 +99,10 @@ export function useSheetImportExport({
   }, [exportPdfFn, runSheetExport])
 
   const handleImport = useCallback(() => {
-    if (!importFn || !requireSpreadsheetId()) return
+    if (!importFn || !requireSpreadsheetId() || !mayImport()) return
     setPreview(null)
     setImportOpen(true)
-  }, [importFn])
+  }, [importFn, mayImport])
 
   const closeImport = useCallback(() => {
     setImportOpen(false)
@@ -141,7 +153,11 @@ export function useSheetImportExport({
 
     const spreadsheetId = requireSpreadsheetId()
 
-    if (!spreadsheetId) return
+    if (!spreadsheetId || !mayImport()) {
+      closeImport()
+
+      return
+    }
 
     setConfirming(true)
 
@@ -156,7 +172,7 @@ export function useSheetImportExport({
       setConfirming(false)
       if (!keepOpen) closeImport()
     }
-  }, [preview, closeImport, applyPreview, loadPreview])
+  }, [preview, closeImport, applyPreview, loadPreview, mayImport])
 
   return {
     handleExport,

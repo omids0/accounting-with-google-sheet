@@ -23,6 +23,7 @@ import {
   updatePersonalReminderCategories,
   updateReceivableCategories
 } from './settings'
+import { assertSharedCan } from './sharedCan'
 import { CATEGORIES_HEADERS } from './sheetHeaders'
 import { CATEGORIES_SHEET } from './sheetNames'
 import { ensureSheetWithHeaders, fetchSheetRows, replaceSheetDataRows } from './sheets'
@@ -66,6 +67,7 @@ export async function saveSubcategoriesToSheet(
   category: string,
   subcategories: string[]
 ): Promise<CategorySubcategoryMap> {
+  assertSharedCan('budget', spreadsheetId)
   const current = await fetchCategorySheetData(spreadsheetId)
   const next = setSubcategoriesOf(current.subcategories, categoryType, category, subcategories)
 
@@ -81,6 +83,7 @@ export async function renameSubcategoryOwnerOnSheet(
   oldName: string,
   newName: string
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
   const current = await fetchCategorySheetData(spreadsheetId)
 
   if (!current.subcategories[categoryType]?.[oldName]?.length) return
@@ -96,6 +99,7 @@ export async function removeSubcategoryOwnerOnSheet(
   categoryType: CategoryType,
   category: string
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
   const current = await fetchCategorySheetData(spreadsheetId)
 
   if (!current.subcategories[categoryType]?.[category]?.length) return
@@ -131,6 +135,7 @@ export async function saveCategoryListToSheet(
   categories: string[],
   subcategories?: CategorySubcategoryMap
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
   const current = await fetchCategorySheetData(spreadsheetId)
   const list =
     categoryType === 'income' || categoryType === 'expense'
@@ -176,6 +181,7 @@ export async function saveFormCategoriesToSheet(
   formId: string,
   categories: string[]
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
   const settings = getSettings() ?? getDefaultSettings()
 
   const form = settings.forms.find(item => item.id === formId)

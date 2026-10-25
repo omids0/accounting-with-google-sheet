@@ -13,6 +13,7 @@ import {
   stripRow
 } from '../../services/recurringSheet'
 import { getSettings } from '../../services/settings'
+import { assertSharedCan } from '../../services/sharedCan'
 import type { RecurringItem } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
@@ -43,7 +44,8 @@ export default function SettingsRecurringCard() {
   const [saving, setSaving] = useState(false)
   const { handleExport, handleImport, importExportConfirmModal } = useSheetImportExport({
     exportFn: exportRecurringCsv,
-    importFn: importRecurringCsv
+    importFn: importRecurringCsv,
+    importPermission: 'budget'
   })
 
   useEffect(() => {
@@ -68,6 +70,7 @@ export default function SettingsRecurringCard() {
 
       setSaving(true)
       try {
+        assertSharedCan('budget', spreadsheetId)
         await action(spreadsheetId)
         if (done) showSuccess(done)
 

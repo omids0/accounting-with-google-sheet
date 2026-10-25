@@ -25,6 +25,7 @@ import {
 } from './categoryRewrite'
 import { getCategorySubcategories, getSubcategoriesOf } from './categorySubcategories'
 import { getDangCategories, getReceivableCategories, getSettings } from './settings'
+import { assertSharedCan } from './sharedCan'
 import { withOtherLast } from '../utils/categoryOrdering'
 
 /** Category page actions (round 6, D1): rows first, then the list, then the budget. */
@@ -92,6 +93,9 @@ async function moveRows(
   to: string,
   onProgress?: ProgressFn
 ): Promise<void> {
+  // Rows are rewritten before the list: a shared account checks «بودجه و دسته‌ها» first.
+  assertSharedCan('budget', spreadsheetId)
+
   const tasks = await collectCategoryRewrites(
     spreadsheetId,
     type,
@@ -210,6 +214,8 @@ export async function renameSubcategory(
   to: string,
   onProgress?: ProgressFn
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
+
   const tasks = await collectCategoryRewrites(
     spreadsheetId,
     type,

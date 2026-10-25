@@ -4,6 +4,7 @@ import { isAuthError } from '../../../services/auth'
 import type { RestoreMode } from '../../../services/backupPlan'
 import type { RestorePreview, RestoreProgress } from '../../../services/backupRestore'
 import { formatRestoreReport } from '../../../services/backupSummary'
+import { sharedCan, SHARED_NO_ACCESS_MESSAGE } from '../../../services/sharedCan'
 import { requireSpreadsheetId } from '../../../utils/authGuard'
 import { pickFile } from '../../../utils/csv'
 import { handleSheetError } from '../../../utils/sheetError'
@@ -15,6 +16,14 @@ export type RestoreStage = 'closed' | 'preview' | 'confirm' | 'running' | 'done'
 const ZIP_ACCEPT = '.zip,application/zip,application/x-zip-compressed'
 
 const RESTORE_ERROR = 'خطا در بازیابی'
+
+/** A restore rewrites everyone's records: in a shared account only with «ویرایش ثبت‌های دیگران». */
+function mayRestore(): boolean {
+  if (sharedCan('editOthers')) return true
+  showError(SHARED_NO_ACCESS_MESSAGE)
+
+  return false
+}
 
 /**
  * «بازیابی از پشتیبان…»: pick → preview and mode → confirm → progress → report.
@@ -31,7 +40,7 @@ export function useBackupRestore() {
   /** Opens the preview for a zip from any source: a picked file or a Drive version. */
   const startFrom = useCallback(
     async (read: () => Promise<ArrayBuffer>) => {
-      if (loading || !requireSpreadsheetId()) return
+      if (loading || !requireSpreadsheetId() || !mayRestore()) return
 
       setLoading(true)
       try {
@@ -54,7 +63,7 @@ export function useBackupRestore() {
   )
 
   const start = useCallback(async () => {
-    if (loading || !requireSpreadsheetId()) return
+    if (loading || !requireSpreadsheetId() || !mayRestore()) return
 
     const file = await pickFile(ZIP_ACCEPT)
 

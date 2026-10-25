@@ -4,19 +4,21 @@ import { useLocation, useNavigate, type NavigateFunction } from 'react-router'
 
 import { getPathForTab } from '../routes/paths'
 import { isNativePlatform } from '../services/googleAuthNative'
-import { buildSharedSmsState, parseLaunchUrl, type LaunchAction } from '../services/launchAction'
+import {
+  buildSharedSmsState,
+  launchTarget,
+  parseLaunchUrl,
+  type LaunchAction
+} from '../services/launchAction'
 import { pushWidgetSnapshot } from '../services/widgetNative'
+import { getActiveWorkspaceType } from '../services/workspace'
 
 function openAction(navigate: NavigateFunction, action: LaunchAction): void {
-  if (action.kind === 'entry') {
-    navigate(getPathForTab('entry', { formType: action.formType }))
-  } else if (action.kind === 'dashboard') {
-    navigate(getPathForTab('dashboard'))
-  } else if (action.kind === 'sms') {
-    navigate(getPathForTab('bank-sms'))
-  } else {
-    navigate(getPathForTab('bank-sms'), { state: buildSharedSmsState(action.text) })
-  }
+  const { tab, formType, smsText } = launchTarget(action, getActiveWorkspaceType())
+  const path = getPathForTab(tab, { formType })
+
+  if (smsText === undefined) navigate(path)
+  else navigate(path, { state: buildSharedSmsState(smsText) })
 }
 
 /** The launch URL stays the same for the whole session; follow it only once. */

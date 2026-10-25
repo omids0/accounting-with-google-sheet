@@ -25,6 +25,22 @@ export const SHARED_TABS: Tab[] = [
 /** The pages with the «+» (record an expense or income); a viewer's pages register none. */
 export const SHARED_SPEED_DIAL_TABS: Tab[] = ['shared-home', 'shared-records']
 
+/**
+ * Generic pages a shared account does not use, and where they go instead: the personal entry form
+ * and record list (a shared record needs a payer and a split, and edit rights follow its creator)
+ * go to the shared pages; the personal-book pages that write their own tabs go home.
+ */
+export const SHARED_REPLACED_TABS: Partial<Record<Tab, SharedTab>> = {
+  entry: 'shared-home',
+  records: 'shared-records',
+  'opening-balances': 'shared-home',
+  'wallet-account-detail': 'shared-home',
+  'wallet-reconcile': 'shared-home',
+  'net-available-settings': 'shared-home',
+  'dang-split': 'shared-home',
+  'dang-split-detail': 'shared-home'
+}
+
 /** The mobile bottom bar of a shared workspace: all four tabs, no raised centre button. */
 export const SHARED_BOTTOM_NAV_TABS: Tab[] = SHARED_TABS
 

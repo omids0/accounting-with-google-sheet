@@ -2,6 +2,7 @@ import { budgetToRow, rowToBudget, threeMonthAverage } from './budgets'
 import { validateBudgetCsvCells } from './budgetsCsvValidate'
 import { getDateFieldId } from './dashboardAggregation'
 import { exportSheetCsv, importSheetCsv } from './importExport'
+import { assertSharedCan } from './sharedCan'
 import { BUDGETS_HEADERS } from './sheetHeaders'
 import { BUDGETS_SHEET } from './sheetNames'
 import {
@@ -43,6 +44,7 @@ export async function saveBudget(
   category: string,
   amount: number
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
   await ensureSheetWithHeaders(spreadsheetId, BUDGETS_SHEET, BUDGETS_HEADERS)
 
   const row = budgetToRow({ category, amount, updatedAt: new Date().toLocaleString('fa-IR') })
@@ -53,6 +55,8 @@ export async function saveBudget(
 }
 
 export async function deleteBudget(spreadsheetId: string, category: string): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
+
   const current = (await fetchSheetBudgets(spreadsheetId)).find(item => item.category === category)
 
   if (current) await deleteSheetRow(spreadsheetId, BUDGETS_SHEET, current.rowNumber)
@@ -83,6 +87,8 @@ export async function exportBudgetsCsv(spreadsheetId: string): Promise<string | 
 
 /** Rows keyed by category: a category that already has a budget is skipped. */
 export async function importBudgetsCsv(spreadsheetId: string, csvContent: string) {
+  assertSharedCan('budget', spreadsheetId)
+
   return importSheetCsv(spreadsheetId, BUDGETS_SHEET, BUDGETS_HEADERS, csvContent, cells => {
     const budget = rowToBudget(validateBudgetCsvCells(cells))
 

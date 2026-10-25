@@ -83,6 +83,7 @@ import WorkspaceRouteGuard from './WorkspaceRouteGuard'
 import Layout from '../components/Layout'
 import OnboardingGate from '../components/onboarding/OnboardingGate'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
+import SharedWriteGate from '../components/shared/SharedWriteGate'
 import { readBankSmsEntryDraft } from '../services/bankSmsEntryDraft'
 import { readEntryDraft } from '../services/entryDraft'
 
@@ -166,9 +167,23 @@ export function AppAuthenticatedRoutes() {
             <Route path="calculators/date" element={<LazyDateCalculatorPage />} />
             <Route path="about" element={<LazyAboutPage />} />
             <Route path="settings/reminders" element={<LazyRemindersPage />} />
-            <Route path="settings/categories" element={<LazyCategoriesPage />} />
+            <Route
+              path="settings/categories"
+              element={
+                <SharedWriteGate permission="budget" page>
+                  <LazyCategoriesPage />
+                </SharedWriteGate>
+              }
+            />
             <Route path="settings/close-year/:year?" element={<LazyCloseYearPage />} />
-            <Route path="settings/backup" element={<LazyBackupPage />} />
+            <Route
+              path="settings/backup"
+              element={
+                <SharedWriteGate permission="export" page>
+                  <LazyBackupPage />
+                </SharedWriteGate>
+              }
+            />
             <Route path="settings/activity" element={<LazyActivityPage />} />
             <Route path="settings" element={<LazySettingsPage />} />
             <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />

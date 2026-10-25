@@ -23,7 +23,8 @@ interface BackupVersionsListProps {
   loadError: string
   busy: boolean
   onDownload: (file: DriveBackupFile) => void
-  onRestore: (file: DriveBackupFile) => void
+  /** Absent when the role may not restore (a shared account without «ویرایش ثبت‌های دیگران»). */
+  onRestore?: (file: DriveBackupFile) => void
   onDelete: (file: DriveBackupFile) => void
 }
 
@@ -86,7 +87,9 @@ export default function BackupVersionsList({
           menuFile
             ? [
                 { id: 'download', label: 'دانلود', onSelect: () => onDownload(menuFile) },
-                { id: 'restore', label: 'بازگردانی…', onSelect: () => onRestore(menuFile) },
+                ...(onRestore
+                  ? [{ id: 'restore', label: 'بازگردانی…', onSelect: () => onRestore(menuFile) }]
+                  : []),
                 { id: 'delete', label: 'حذف از Drive', onSelect: () => onDelete(menuFile) }
               ]
             : []

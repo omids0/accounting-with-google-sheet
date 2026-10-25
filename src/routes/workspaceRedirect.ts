@@ -1,5 +1,13 @@
-import { getPathForTab, getTabFromPath, isKnownPath, isSettingsPath } from './paths'
-import { SHARED_TABS } from '../components/layout/sharedTabs'
+import {
+  getPathForTab,
+  getTabFromPath,
+  isKnownPath,
+  isSettingsPath,
+  SETTINGS_CLOSE_YEAR_PATH,
+  SETTINGS_PATH,
+  SETTINGS_REMINDERS_PATH
+} from './paths'
+import { SHARED_REPLACED_TABS, SHARED_TABS } from '../components/layout/sharedTabs'
 import { BUILDING_TABS, PERSONAL_ONLY_TABS, type Tab } from '../components/layout/types'
 import type { WorkspaceType } from '../services/workspace'
 
@@ -10,6 +18,13 @@ export const WORKSPACE_HOME: Record<WorkspaceType, Tab> = {
   shared: 'shared-home'
 }
 
+/** Reminders and «بستن سال» belong to the personal books; a shared account has neither. */
+function isPersonalSettingsPath(pathname: string): boolean {
+  const path = pathname.replace(/\/+$/, '').toLowerCase()
+
+  return path === SETTINGS_REMINDERS_PATH || path.startsWith(SETTINGS_CLOSE_YEAR_PATH)
+}
+
 /**
  * Where a page that does not belong to the active workspace goes (round 11), or null when it
  * does: a building sends the personal-only pages to its dashboard, the personal workspace sends
@@ -17,6 +32,7 @@ export const WORKSPACE_HOME: Record<WorkspaceType, Tab> = {
  * send the shared pages to their home. Settings, backup, categories and close-year work in all.
  */
 export function workspaceRedirect(pathname: string, type: WorkspaceType): string | null {
+  if (type === 'shared' && isPersonalSettingsPath(pathname)) return SETTINGS_PATH
   if (isSettingsPath(pathname)) return null
   // An unknown URL is not a personal page in disguise: it gets «صفحه پیدا نشد» in every workspace.
   if (!isKnownPath(pathname)) return null
@@ -25,6 +41,10 @@ export function workspaceRedirect(pathname: string, type: WorkspaceType): string
   const home = getPathForTab(WORKSPACE_HOME[type])
 
   if (type === 'shared') {
+    const replaced = SHARED_REPLACED_TABS[tab]
+
+    if (replaced) return getPathForTab(replaced)
+
     return PERSONAL_ONLY_TABS.includes(tab) || BUILDING_TABS.includes(tab) ? home : null
   }
   if (SHARED_TABS.includes(tab)) return home

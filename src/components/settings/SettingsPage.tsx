@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router'
 
 import SettingsBackupCard from './backup/SettingsBackupCard'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
+import { useSharedCan } from '../../hooks/useSharedCan'
+import { useIsSharedWorkspace } from '../../hooks/useWorkspaceType'
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
 import ConfirmActionModal from '../ConfirmActionModal'
@@ -35,6 +37,18 @@ export default function SettingsPage() {
   const navigate = useNavigate()
   const settings = useSettingsPage()
   const isDesktop = useIsDesktop()
+  // A shared account: no personal-only sections, and writes only for the roles that hold them.
+  const isShared = useIsSharedWorkspace()
+  const canBudget = useSharedCan('budget')
+  const canExport = useSharedCan('export')
+  const canRepair = useSharedCan('editOthers')
+  const hidden: Partial<Record<string, boolean>> = {
+    'vault-assets': isShared,
+    categories: !canBudget,
+    budgets: !canBudget,
+    recurring: !canBudget,
+    notifications: isShared
+  }
 
   if (settings.initialLoading) {
     return <SettingsSkeleton />
@@ -97,9 +111,11 @@ export default function SettingsPage() {
           )}
           {settings.spreadsheetId ? (
             <>
-              <SettingsBackupCard spreadsheetId={settings.spreadsheetId} />
-              <SettingsCloseYearCard />
-              <SettingsColumnRepairCard spreadsheetId={settings.spreadsheetId} />
+              {canExport ? <SettingsBackupCard spreadsheetId={settings.spreadsheetId} /> : null}
+              {isShared ? null : <SettingsCloseYearCard />}
+              {canRepair ? (
+                <SettingsColumnRepairCard spreadsheetId={settings.spreadsheetId} />
+              ) : null}
             </>
           ) : null}
         </>
@@ -166,6 +182,7 @@ export default function SettingsPage() {
       content: <SettingsRemindersCard onOpenReminders={() => navigate(SETTINGS_REMINDERS_PATH)} />
     }
   ]
+  const shown = sections.filter(section => !hidden[section.id])
 
   return (
     <div className={settingsPageClass}>
@@ -177,9 +194,9 @@ export default function SettingsPage() {
       <SheetSwitchConfirmModal {...settings.switchGuardModalProps} />
 
       {isDesktop ? (
-        <SettingsTwoPane sections={sections} />
+        <SettingsTwoPane sections={shown} />
       ) : (
-        sections.map(({ id, content, ...section }) => (
+        shown.map(({ id, content, ...section }) => (
           <SettingsSection key={id} {...section}>
             {content}
           </SettingsSection>
