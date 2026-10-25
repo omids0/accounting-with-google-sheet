@@ -235,6 +235,7 @@ export default function WalletPage({ active = true }: WalletPageProps) {
           reconciliationDiff={reconciliationDiff}
           reconciling={mutations.savingOpening}
           onReconcile={() => mutations.handleReconcileBalance(reconciliationDiff)}
+          onTrace={() => navigate(getPathForTab('wallet-trace'))}
         />
       )}
 

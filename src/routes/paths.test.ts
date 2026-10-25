@@ -22,6 +22,11 @@ describe('wallet account detail path', () => {
     expect(getTabFromPath('/wallet')).toBe('wallet')
   })
 
+  it('keeps the discrepancy tracer on its own path', () => {
+    expect(getTabFromPath('/wallet/trace')).toBe('wallet-trace')
+    expect(getPathForTab('wallet-trace')).toBe('/wallet/trace')
+  })
+
   it('builds the path from the account id', () => {
     expect(getPathForTab('wallet-account-detail', { walletAccountId: 'a b' })).toBe('/wallet/a%20b')
     expect(getPathForTab('wallet-account-detail')).toBe('/wallet')
