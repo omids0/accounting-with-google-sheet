@@ -143,6 +143,13 @@ export async function logBalanceSet(
   ])
 }
 
+/** Every row of every account in the order it was appended (oldest first). */
+export async function fetchAllLedger(spreadsheetId: string): Promise<LedgerEntry[]> {
+  const rows = await fetchSheetRows(spreadsheetId, WALLET_LEDGER_SHEET)
+
+  return rows.filter(row => String(row[2] ?? '').trim()).map(rowToLedgerEntry)
+}
+
 /** History of one account, newest first (rows are only ever appended). */
 export async function fetchLedger(
   spreadsheetId: string,

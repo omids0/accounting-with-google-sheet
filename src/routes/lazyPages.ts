@@ -47,6 +47,7 @@ import {
   loadWalletPage,
   loadWalletAccountDetailPage,
   loadWalletReconcilePage,
+  loadWalletTracePage,
   loadBankSmsPage,
   loadBuildingChargesPage,
   loadBuildingChecksPage,
@@ -114,6 +115,7 @@ export const LazyTreasuryPage = lazy(loadTreasuryPage)
 export const LazyWalletPage = lazy(loadWalletPage)
 export const LazyWalletAccountDetailPage = lazy(loadWalletAccountDetailPage)
 export const LazyWalletReconcilePage = lazy(loadWalletReconcilePage)
+export const LazyWalletTracePage = lazy(loadWalletTracePage)
 export const LazySearchPage = lazy(loadSearchPage)
 export const LazyBuildingReportsPage = lazy(loadBuildingReportsPage)
 export const LazyBuildingSettingsPage = lazy(loadBuildingSettingsPage)

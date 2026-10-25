@@ -15,6 +15,8 @@ type WalletReconciliationAlertProps = {
   reconciliationDiff: number
   reconciling?: boolean
   onReconcile?: () => void
+  /** Opens «ردیاب اختلاف», which finds out where the difference comes from. */
+  onTrace?: () => void
 }
 
 export default function WalletReconciliationAlert({
@@ -22,7 +24,8 @@ export default function WalletReconciliationAlert({
   periodBalance,
   reconciliationDiff,
   reconciling = false,
-  onReconcile
+  onReconcile,
+  onTrace
 }: WalletReconciliationAlertProps) {
   const variant = Math.abs(reconciliationDiff) > 10000 ? 'warning' : 'info'
 
@@ -42,18 +45,25 @@ export default function WalletReconciliationAlert({
       <p className={dashboardReconcileFormulaClass}>
         موجودی اول + درآمد − هزینه = مانده محاسبه‌شده
       </p>
-      {onReconcile && (
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={onReconcile}
-          disabled={reconciling}
-          loading={reconciling}
-        >
-          ثبت {reconciliationDiff > 0 ? 'درآمد' : 'هزینه'} اصلاح موجودی
-        </Button>
-      )}
+      <div className="flex flex-wrap gap-2">
+        {onTrace && (
+          <Button type="button" variant="primary" size="sm" onClick={onTrace}>
+            پیدا کردن علت اختلاف
+          </Button>
+        )}
+        {onReconcile && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onReconcile}
+            disabled={reconciling}
+            loading={reconciling}
+          >
+            ثبت {reconciliationDiff > 0 ? 'درآمد' : 'هزینه'} اصلاح موجودی
+          </Button>
+        )}
+      </div>
     </Alert>
   )
 }

@@ -17,6 +17,7 @@ export type Tab =
   | 'wallet'
   | 'wallet-account-detail'
   | 'wallet-reconcile'
+  | 'wallet-trace'
   | 'bank-sms'
   | 'search'
   | 'opening-balances'
@@ -78,7 +79,8 @@ export const CALCULATION_TABS: Tab[] = [
 export const WALLET_SUB_TABS: Tab[] = [
   'opening-balances',
   'wallet-account-detail',
-  'wallet-reconcile'
+  'wallet-reconcile',
+  'wallet-trace'
 ]
 
 export const DANG_SPLIT_TABS: Tab[] = ['dang-split', 'dang-split-detail']
@@ -175,6 +177,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   wallet: 'کیف پول',
   'wallet-account-detail': 'گردش حساب',
   'wallet-reconcile': 'تطبیق حساب',
+  'wallet-trace': 'ردیاب اختلاف',
   'bank-sms': 'پیامک‌های بانکی',
   search: 'جستجو',
   'opening-balances': 'موجودی اول دوره',
@@ -282,6 +285,7 @@ export const PERSONAL_ONLY_TABS: Tab[] = [
   'receivables',
   'treasury',
   'wallet',
+  'wallet-trace',
   'bank-sms',
   'timesheets',
   'timesheet-detail'

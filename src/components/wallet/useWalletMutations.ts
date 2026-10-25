@@ -3,10 +3,6 @@ import { useState } from 'react'
 import type { WalletAccountWithRow, WalletFormState } from './types'
 import { buildWalletAccountPayload, createWalletAccountFromForm } from './walletAccountCreate'
 import { deleteAccountSmsTemplates } from '../../services/bankSmsTemplates'
-import {
-  createLinkedExpenseRecord,
-  createLinkedIncomeRecord
-} from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import {
   deleteWalletAccount,
@@ -15,8 +11,8 @@ import {
   type WalletPeriodFlow
 } from '../../services/wallet'
 import { logBalanceSet } from '../../services/walletLedger'
+import { postReconciliationRecord } from '../../services/walletReconcileRecord'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
-import { RECONCILIATION_CATEGORY } from '../../utils/protectedCategories'
 import { roundMoney } from '../../utils/roundMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
@@ -184,20 +180,7 @@ export function useWalletMutations({
 
     setSavingOpening(true)
     try {
-      const amount = roundMoney(Math.abs(difference))
-
-      const params = {
-        title: RECONCILIATION_CATEGORY,
-        amount,
-        category: RECONCILIATION_CATEGORY,
-        note: `تطبیق کیف پول با مانده محاسبه‌شده — ${periodFlow.monthLabel}`
-      }
-
-      if (difference > 0) {
-        await createLinkedIncomeRecord(spreadsheetId, params)
-      } else {
-        await createLinkedExpenseRecord(spreadsheetId, params)
-      }
+      await postReconciliationRecord(spreadsheetId, difference, periodFlow.monthLabel)
 
       const settings = getSettings()!
       const flow = await loadWalletPeriodFlow(settings)

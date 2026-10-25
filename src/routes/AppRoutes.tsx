@@ -59,7 +59,8 @@ import {
   LazyTreasuryPage,
   LazyVehiclesPage,
   LazyWalletPage,
-  LazyWalletReconcilePage
+  LazyWalletReconcilePage,
+  LazyWalletTracePage
 } from './lazyPages'
 import LineItemRoute from './LineItemRoute'
 import NotFoundRoute from './NotFoundRoute'
@@ -150,6 +151,7 @@ export function AppAuthenticatedRoutes() {
             <Route path="bank-sms" element={<LazyBankSmsPage />} />
             <Route path="search" element={<LazySearchPage />} />
             <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
+            <Route path="wallet/trace" element={<LazyWalletTracePage />} />
             <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
             <Route path="wallet/reconcile/:accountId" element={<LazyWalletReconcilePage />} />
             <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />
