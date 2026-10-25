@@ -4,7 +4,8 @@ import { version } from '../../package.json'
  * `VITE_APP_ENV=dev` is set only by the develop workflows. Production builds leave it
  * unset, and `package.json` keeps the clean version number that merges to main.
  *
- * Storage isolation (`devStorage.ts`) and the update check (`appUpdate.ts`) follow this flag only:
+ * Storage isolation (`devStorage.ts`) and the update channel (`appUpdate.ts`: the develop APK reads the
+ * «dev-latest» pre-release, production the latest release) follow this flag only:
  * `npm run dev` is already a separate origin and must keep its stored session.
  */
 export const IS_DEV_BUILD = import.meta.env.VITE_APP_ENV === 'dev'

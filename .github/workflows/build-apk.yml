@@ -19,7 +19,8 @@ jobs:
       contents: write
     env:
       # develop builds are labelled «dev» and install beside production: another
-      # application id, app name and file name. Only main publishes a release.
+      # application id, app name and file name. main publishes a release; develop
+      # replaces the rolling pre-release «dev-latest», which only the dev APK reads.
       VITE_APP_ENV: ${{ github.ref_name == 'develop' && 'dev' || '' }}
       APP_ID_SUFFIX: ${{ github.ref_name == 'develop' && '.dev' || '' }}
       APK_FILE: ${{ github.ref_name == 'develop' && 'hesab-ketab-dev.apk' || 'hesab-ketab.apk' }}
@@ -154,3 +155,30 @@ jobs:
               --title "$VERSION_NAME (build ${{ github.run_number }})" \
               --notes "Android build ${{ github.run_number }} from ${{ github.sha }}"
           fi
+
+      # Same job as the step above for the develop APK: it checks this manifest, so it offers
+      # an update exactly like production does. A pre-release is never the repository's
+      # «latest» release, so production users (who read releases/latest) never see it. The
+      # release is replaced as a whole, so old dev APKs do not pile up.
+      - name: Publish the dev APK as the rolling «dev-latest» pre-release
+        if: github.ref == 'refs/heads/develop'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION_NAME="$(node -p "require('./package.json').version")-dev"
+          TAG="dev-latest"
+          VERSIONED="hesab_ketab_dev_v${VERSION_NAME}_b${{ github.run_number }}.apk"
+          cat > version.json <<EOF
+          {
+            "versionCode": ${{ github.run_number }},
+            "versionName": "$VERSION_NAME",
+            "apkUrl": "https://github.com/${{ github.repository }}/releases/download/$TAG/$VERSIONED"
+          }
+          EOF
+          APK=android/app/build/outputs/apk/debug/$APK_FILE
+          cp "$APK" "$VERSIONED"
+          gh release delete "$TAG" --cleanup-tag --yes >/dev/null 2>&1 || true
+          gh release create "$TAG" "$APK" "$VERSIONED" version.json \
+            --prerelease --target "${{ github.sha }}" \
+            --title "$VERSION_NAME (build ${{ github.run_number }})" \
+            --notes "Develop Android build ${{ github.run_number }} from ${{ github.sha }}. Replaced by the next develop build."
