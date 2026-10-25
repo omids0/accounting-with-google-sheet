@@ -1,21 +1,27 @@
 import { useState } from 'react'
 
-import { BUILDING_ROLES, optionLabel, type BuildingRole } from './buildingOptions'
 import {
-  DRIVE_ACCESS,
   effectivePermission,
   isCustom,
   MEMBER_STATUS_LABELS,
-  PERMISSION_LABELS,
   viewerCanWrite,
   type MemberStatus
 } from '../../services/buildingMembers'
 import {
-  BUILDING_PERMISSIONS,
-  type BuildingMember,
-  type BuildingPermission
-} from '../../services/buildingRoles'
+  registryOf,
+  type MemberKind,
+  type MemberRole,
+  type WorkspaceMember
+} from '../../services/memberRegistry'
 import { FormSelect, ToggleSwitch } from '../form'
+import {
+  accessHonestyNote,
+  assignableRoles,
+  driveAccessLine,
+  memberRoleLabel,
+  OWNER_LOCKED_NOTE,
+  readOnlyWriterNote
+} from '../shared/memberCopy'
 import {
   journeyNoteClass,
   journeyRowMetaClass,
@@ -32,42 +38,60 @@ import {
 } from '../ui/displaySettingsStyles'
 
 interface MemberCardProps {
-  member: BuildingMember
+  member: WorkspaceMember
+  /** The member list of the building (default) or of a shared account: roles, switches, copy. */
+  kind?: MemberKind
   isMe: boolean
   status: MemberStatus
-  /** The only manager: neither demoted nor removed. */
+  /** The only manager (owner): neither demoted nor removed. */
   lastManager: boolean
   busy: boolean
-  onRole: (role: BuildingRole) => void
-  onToggle: (permission: BuildingPermission, value: boolean) => void
+  /** The signed-in user may look but not change (a shared account's partner or viewer). */
+  readOnly?: boolean
+  onRole: (role: MemberRole) => void
+  onToggle: (permission: string, value: boolean) => void
   onReset: () => void
   /** «علامت‌گذاری به‌عنوان فعال»: the manager clears a member who is still «دعوت‌شده». */
   onMarkActive: () => void
+  /** «ارسال دوبارهٔ دعوت» for a member who is still «دعوت‌شده»; the button shows only with it. */
+  onResend?: () => void
   onRemove: () => void
 }
 
 /**
- * One member of the building (screen 29): e-mail, status and Drive access, the role `Select`,
- * «دسترسی‌های دقیق» with a switch per permission (a changed one marks «سفارشی») and
- * «قطع دسترسی». The row of the signed-in manager is read-only: they cannot lock themselves out.
+ * One member of the building or shared account (screen 29): e-mail, status and Drive access, the
+ * role `Select`, «تنظیم دقیق دسترسی‌ها» with a switch per permission (a changed one marks
+ * «سفارشی») and «قطع دسترسی». The row of the signed-in manager is read-only: they cannot lock
+ * themselves out. The owner of a shared account is fixed: no role select, no switches.
  */
 export default function MemberCard({
   member,
+  kind = 'building',
   isMe,
   status,
   lastManager,
   busy,
+  readOnly = false,
   onRole,
   onToggle,
   onReset,
   onMarkActive,
+  onResend,
   onRemove
 }: MemberCardProps) {
   const [open, setOpen] = useState(false)
 
+  const registry = registryOf(kind)
+
   const custom = isCustom(member)
 
-  const locked = isMe || busy
+  const fixedOwner = kind === 'shared' && member.role === registry.ownerRole
+
+  const locked = isMe || busy || fixedOwner || readOnly
+
+  const changeable = !isMe && !readOnly && !fixedOwner
+
+  const roleHint = registry.roles.find(item => item.value === member.role)?.hint
 
   return (
     <Card>
@@ -82,31 +106,31 @@ export default function MemberCard({
           {isMe ? <span className={journeyRowMetaClass}> (شما)</span> : null}
           <br />
           <span className={journeyRowMetaClass}>
-            {`${optionLabel(BUILDING_ROLES, member.role)}${
-              custom ? ' · دسترسی تغییر داده‌شده' : ''
-            } · ${MEMBER_STATUS_LABELS[status]} · ${
-              DRIVE_ACCESS[member.role] === 'ویرایش'
-                ? 'دسترسی ویرایش در گوگل‌درایو'
-                : 'فقط مشاهده در گوگل‌درایو'
-            }`}
+            {`${memberRoleLabel(kind, member.role)}${custom ? ' · دسترسی تغییر داده‌شده' : ''} · ${
+              MEMBER_STATUS_LABELS[status]
+            } · ${driveAccessLine(kind, member.role, member.overrides)}`}
           </span>
         </span>
       </div>
 
-      <FormSelect
-        label="نقش"
-        value={member.role}
-        onChange={value => onRole(value as BuildingRole)}
-        options={BUILDING_ROLES}
-        disabled={locked}
-        hint={
-          isMe
-            ? 'نقش خودت را نمی‌توانی تغییر بدهی.'
-            : lastManager
-            ? 'آخرین مدیر است؛ نقش را فقط با تعیین مدیر دیگر می‌شود عوض کرد.'
-            : BUILDING_ROLES.find(item => item.value === member.role)?.hint
-        }
-      />
+      {fixedOwner || readOnly ? (
+        <p className={journeyNoteClass}>{fixedOwner ? OWNER_LOCKED_NOTE : roleHint}</p>
+      ) : (
+        <FormSelect
+          label="نقش"
+          value={member.role}
+          onChange={value => onRole(value as MemberRole)}
+          options={assignableRoles(kind)}
+          disabled={locked}
+          hint={
+            isMe
+              ? 'نقش خودت را نمی‌توانی تغییر بدهی.'
+              : lastManager
+              ? 'آخرین مدیر است؛ نقش را فقط با تعیین مدیر دیگر می‌شود عوض کرد.'
+              : roleHint
+          }
+        />
+      )}
 
       <Button
         type="button"
@@ -121,25 +145,25 @@ export default function MemberCard({
 
       {open ? (
         <div>
-          {BUILDING_PERMISSIONS.map(permission => (
+          {registry.permissions.map(permission => (
             <div key={permission} className={displaySettingsRowClass}>
               <span className={displaySettingsRowTextClass}>
                 <span className={displaySettingsRowTitleClass}>
-                  {PERMISSION_LABELS[permission]}
+                  {registry.permissionLabels[permission]}
                 </span>
                 {permission in member.overrides ? (
                   <span className={displaySettingsRowHintClass}>تغییر داده‌شده</span>
                 ) : null}
               </span>
               <ToggleSwitch
-                checked={effectivePermission(member, permission)}
+                checked={effectivePermission(member, permission, kind)}
                 onChange={value => onToggle(permission, value)}
-                label={PERMISSION_LABELS[permission]}
+                label={registry.permissionLabels[permission]}
                 disabled={locked}
               />
             </div>
           ))}
-          {custom && !isMe ? (
+          {custom && changeable ? (
             <Button
               type="button"
               variant="secondary"
@@ -151,16 +175,16 @@ export default function MemberCard({
               برگرداندن به حالت معمول این نقش
             </Button>
           ) : null}
-          {viewerCanWrite(member) ? (
-            <p className={journeyNoteClass}>
-              این عضو در گوگل‌درایو فقط می‌تواند ببیند؛ برای ثبت کار باید در گوگل‌درایو دسترسی
-              «ویرایش» هم به او بدهی.
-            </p>
+          {viewerCanWrite(member, kind) ? (
+            <p className={journeyNoteClass}>{readOnlyWriterNote(kind)}</p>
+          ) : null}
+          {accessHonestyNote(kind) ? (
+            <p className={journeyNoteClass}>{accessHonestyNote(kind)}</p>
           ) : null}
         </div>
       ) : null}
 
-      {status === 'invited' && !isMe ? (
+      {status === 'invited' && changeable ? (
         <Button
           type="button"
           variant="secondary"
@@ -173,7 +197,20 @@ export default function MemberCard({
         </Button>
       ) : null}
 
-      {!isMe && !lastManager ? (
+      {status === 'invited' && changeable && onResend ? (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="self-start min-h-11 text-sm"
+          onClick={onResend}
+          disabled={busy}
+        >
+          ارسال دوبارهٔ دعوت
+        </Button>
+      ) : null}
+
+      {changeable && !lastManager ? (
         <Button
           type="button"
           variant="danger"

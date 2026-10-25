@@ -1,13 +1,19 @@
 import { useState, type ReactNode } from 'react'
 
-import { BUILDING_ROLES, optionLabel, type BuildingRole } from './buildingOptions'
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard'
 import { getUserEmail, isAuthError } from '../../services/auth'
 import { inviteText, isValidEmail } from '../../services/buildingInvites'
-import { INVITE_BLOCK_MESSAGES, inviteMember } from '../../services/buildingMemberDrive'
+import { inviteMember } from '../../services/buildingMemberDrive'
 import { MEMBER_STATUS_LABELS, memberStatusReader } from '../../services/buildingMembers'
 import { members } from '../../services/buildingRoles'
 import { shareErrorMessage } from '../../services/driveShare'
+import { inviteBlockMessages } from '../../services/memberMessages'
+import {
+  registryOf,
+  type MemberKind,
+  type MemberRole,
+  type WorkspaceMember
+} from '../../services/memberRegistry'
 import { getSettings } from '../../services/settings'
 import { getSpreadsheetUrl } from '../../services/sheets'
 import { requestReauth } from '../../stores/appStore'
@@ -15,6 +21,12 @@ import { APP_DOWNLOAD_URL, APP_URL } from '../../utils/appLinks'
 import { showSuccess } from '../../utils/toast'
 import { FormField, FormSelect } from '../form'
 import FormModal from '../FormModal'
+import {
+  assignableRoles,
+  inviteSheetNote,
+  inviteSheetTitle,
+  memberRoleLabel
+} from '../shared/memberCopy'
 import {
   journeyListClass,
   journeyNoteClass,
@@ -27,6 +39,9 @@ import { formErrorClass } from '../ui/formStyles'
 
 interface InviteMembersSheetProps {
   open: boolean
+  /** The building or shared account: roles, messages and the invitation text follow its kind. */
+  kind?: MemberKind
+  /** The name the invitation carries (the building's or the shared account's). */
   buildingName: string
   header?: ReactNode
   /** The primary button: «بعدی» in the journey, «تمام» on the members page. */
@@ -37,12 +52,14 @@ interface InviteMembersSheetProps {
 }
 
 /**
- * Journey step 7 (optional) and Step 9's «+ دعوت عضو»: e-mail and role. Shares the building file
- * with them (Drive sends the invitation e-mail), then adds the member row (status «دعوت‌شده»).
- * «کپی متن دعوت» stays for a manager who has to share by hand when Drive refuses.
+ * Journey step 7 (optional) and Step 9's «+ دعوت عضو»: e-mail and role. Shares the building (or
+ * shared account) file with them (Drive sends the invitation e-mail), then adds the member row
+ * (status «دعوت‌شده»). «کپی متن دعوت» stays for an inviter who has to share by hand when Drive
+ * refuses.
  */
 export default function InviteMembersSheet({
   open,
+  kind = 'building',
   buildingName,
   header,
   saveLabel = 'بعدی',
@@ -50,12 +67,16 @@ export default function InviteMembersSheet({
   onSaved
 }: InviteMembersSheetProps) {
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<BuildingRole>('accountant')
+  const [role, setRole] = useState<MemberRole>(registryOf(kind).defaultInviteRole as MemberRole)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   // The period tab is not reactive (settings writes skip the revision), so a counter re-reads it.
   const [, setVersion] = useState(0)
   const { copy } = useCopyToClipboard()
+
+  const registry = registryOf(kind)
+
+  const roleOptions = assignableRoles(kind)
 
   const spreadsheetId = getSettings()?.spreadsheetId ?? ''
 
@@ -75,16 +96,22 @@ export default function InviteMembersSheet({
       const block = await inviteMember(spreadsheetId, email, role, buildingName)
 
       if (block) {
-        setError(INVITE_BLOCK_MESSAGES[block])
+        setError(inviteBlockMessages(kind)[block])
 
         return
       }
       showSuccess(`دعوت‌نامه برای ${email.trim()} فرستاده شد`)
       setEmail('')
+      // The one partner of a shared account is taken now: the next invitation defaults to the rest.
+      if (role === registry.singleRole)
+        setRole(
+          (roleOptions.find(option => option.value !== registry.singleRole)?.value ??
+            role) as MemberRole
+        )
       setVersion(value => value + 1)
     } catch (err) {
       if (isAuthError(err)) requestReauth()
-      else setError(shareErrorMessage(err, 'افزودن عضو ناموفق بود'))
+      else setError(shareErrorMessage(err, 'افزودن عضو ناموفق بود', registry.fileNoun))
     } finally {
       setSaving(false)
     }
@@ -92,17 +119,20 @@ export default function InviteMembersSheet({
 
   const copyInvite = () =>
     void copy(
-      inviteText(buildingName, role, getSpreadsheetUrl(spreadsheetId), {
-        appUrl: APP_URL,
-        downloadUrl: APP_DOWNLOAD_URL
-      }),
+      inviteText(
+        buildingName,
+        role,
+        getSpreadsheetUrl(spreadsheetId),
+        { appUrl: APP_URL, downloadUrl: APP_DOWNLOAD_URL },
+        kind
+      ),
       'متن دعوت کپی شد'
     )
 
   return (
     <FormModal
       open={open}
-      title="دعوت اعضا"
+      title={inviteSheetTitle(kind)}
       header={header}
       onClose={onClose}
       onSubmit={event => {
@@ -126,9 +156,9 @@ export default function InviteMembersSheet({
       <FormSelect
         label="نقش"
         value={role}
-        onChange={value => setRole(value as BuildingRole)}
-        options={BUILDING_ROLES}
-        hint={BUILDING_ROLES.find(item => item.value === role)?.hint}
+        onChange={value => setRole(value as MemberRole)}
+        options={roleOptions}
+        hint={roleOptions.find(item => item.value === role)?.hint}
       />
       {error ? (
         <p className={formErrorClass} role="alert">
@@ -148,7 +178,7 @@ export default function InviteMembersSheet({
       </Button>
 
       <div className={journeyListClass}>
-        {members(spreadsheetId).map(member => (
+        {members<WorkspaceMember>(spreadsheetId).map(member => (
           <div key={member.email} className={journeyRowClass}>
             <span>
               <span className={journeyRowTitleClass} dir="ltr">
@@ -156,7 +186,7 @@ export default function InviteMembersSheet({
               </span>
               <br />
               <span className={journeyRowMetaClass}>
-                {optionLabel(BUILDING_ROLES, member.role)} ·{' '}
+                {memberRoleLabel(kind, member.role)} ·{' '}
                 {member.email === me ? 'شما' : MEMBER_STATUS_LABELS[statusOf(member.email)]}
               </span>
             </span>
@@ -172,11 +202,7 @@ export default function InviteMembersSheet({
       >
         کپی متن دعوت
       </Button>
-      <p className={journeyNoteClass}>
-        با «+ افزودن» گوگل برای او ایمیل دعوت می‌فرستد و فایل ساختمان با نقش انتخابی‌اش به اشتراک
-        گذاشته می‌شود. اگر ارسال نشد، فایل را خودت در گوگل‌درایو به اشتراک بگذار و «کپی متن دعوت» را
-        برایش بفرست.
-      </p>
+      <p className={journeyNoteClass}>{inviteSheetNote(kind)}</p>
     </FormModal>
   )
 }

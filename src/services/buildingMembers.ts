@@ -1,6 +1,6 @@
 import { getUserEmail } from './auth'
 import { INVITE_ROW_PREFIX } from './buildingInvites'
-import { revokeMemberDrive, syncMemberDriveRole } from './buildingMemberDrive'
+import { revokeMemberDrive, syncMemberDriveRole, syncMemberDriveWrite } from './buildingMemberDrive'
 import {
   ACCESS_ROW_PREFIX,
   can,
@@ -178,17 +178,26 @@ export async function setMemberOverrides(
 
   const source: Overrides = overrides
 
-  const clean = Object.fromEntries(
-    registryOf(memberRulesOf(spreadsheetId))
-      .permissions.filter(key => typeof source[key] === 'boolean')
-      .map(key => [key, source[key]])
+  const kind = memberRulesOf(spreadsheetId)
+
+  const key = normalizeEmail(email)
+
+  const clean: Overrides = Object.fromEntries(
+    registryOf(kind)
+      .permissions.filter(permission => typeof source[permission] === 'boolean')
+      .map(permission => [permission, source[permission]])
   )
 
-  await setMemberSetting(
-    spreadsheetId,
-    ACCESS_ROW_PREFIX + normalizeEmail(email),
-    JSON.stringify(clean)
-  )
+  // Drive first, rows second: a refused share leaves the switches as they were.
+  const member = members<WorkspaceMember>(spreadsheetId).find(item => item.email === key)
+
+  if (member && registryOf(kind).raisesDriveOnWrite) {
+    const willWrite = viewerCanWrite({ ...member, overrides: clean }, kind)
+
+    if (viewerCanWrite(member, kind) !== willWrite)
+      await syncMemberDriveWrite(spreadsheetId, key, willWrite)
+  }
+  await setMemberSetting(spreadsheetId, ACCESS_ROW_PREFIX + key, JSON.stringify(clean))
 
   return null
 }

@@ -52,6 +52,8 @@ export interface MemberRegistry {
   fallbackRole: string
   /** A role at most one member may hold, or null. */
   singleRole: string | null
+  /** A read-only member given a writing switch is raised to Drive «ویرایش» (and back). */
+  raisesDriveOnWrite: boolean
 }
 
 export const BUILDING_PERMISSIONS: BuildingPermission[] = [
@@ -155,7 +157,8 @@ const REGISTRIES: Record<MemberKind, MemberRegistry> = {
     connectPath: 'بیشتر › مدیر ساختمان',
     connectAction: 'اتصال به شیت موجود',
     fallbackRole: 'board',
-    singleRole: null
+    singleRole: null,
+    raisesDriveOnWrite: false
   },
   shared: {
     roles: SHARED_ROLES,
@@ -172,7 +175,8 @@ const REGISTRIES: Record<MemberKind, MemberRegistry> = {
     connectPath: 'بیشتر › فضاهای من › اتصال به حساب مشترک',
     connectAction: '',
     fallbackRole: 'viewer',
-    singleRole: 'partner'
+    singleRole: 'partner',
+    raisesDriveOnWrite: true
   }
 }
 

@@ -2,8 +2,14 @@ import { getUserEmail, getUserName } from './auth'
 import { addInvite, inviteMessage } from './buildingInvites'
 import { can, members } from './buildingRoles'
 import { setFileRole, shareFile, unshareFile, type DriveShareRole } from './driveShare'
-import type { InviteBlock } from './memberMessages'
-import { BUILDING_DRIVE_ROLE, memberRulesOf, registryOf, type MemberRole } from './memberRegistry'
+import type { InviteBlock, MemberBlock } from './memberMessages'
+import {
+  BUILDING_DRIVE_ROLE,
+  memberRulesOf,
+  registryOf,
+  type MemberRole,
+  type WorkspaceMember
+} from './memberRegistry'
 import { refreshSharingInfo } from './sharing'
 import type { BuildingRole } from '../components/buildings/buildingOptions'
 import { IS_DEV_ENV } from '../utils/appEnv'
@@ -73,6 +79,42 @@ export async function inviteMember(
   return null
 }
 
+/**
+ * «ارسال دوبارهٔ دعوت»: Drive mails the invitation again to a member who has not come in yet.
+ * The role and the member rows stay as they are; only the share is repeated.
+ */
+export async function resendInvite(
+  spreadsheetId: string,
+  email: string,
+  name: string
+): Promise<MemberBlock | null> {
+  const kind = memberRulesOf(spreadsheetId)
+
+  const key = normalizeEmail(email)
+
+  if (!can(registryOf(kind).settingsPermission, spreadsheetId)) return 'forbidden'
+
+  const member = members<WorkspaceMember>(spreadsheetId).find(item => item.email === key)
+
+  if (!member) return 'unknown'
+  await shareFile(
+    spreadsheetId,
+    key,
+    driveRoleOf(spreadsheetId, member.role as MemberRole),
+    inviteMessage({
+      inviterName: getUserName() ?? '',
+      buildingName: name,
+      role: member.role as MemberRole,
+      appUrl: APP_URL,
+      downloadUrl: APP_DOWNLOAD_URL,
+      testBuild: IS_DEV_ENV,
+      kind
+    })
+  )
+
+  return null
+}
+
 /** The member's new role, in Drive too: a viewer that became a writer must be able to write. */
 export async function syncMemberDriveRole(
   spreadsheetId: string,
@@ -86,5 +128,18 @@ export async function syncMemberDriveRole(
 /** «قطع دسترسی»: the person no longer opens the file in Drive. */
 export async function revokeMemberDrive(spreadsheetId: string, email: string): Promise<void> {
   await unshareFile(spreadsheetId, email)
+  void refreshSharingInfo(spreadsheetId)
+}
+
+/**
+ * A read-only member given a writing switch (or back to the defaults) moves between Drive
+ * «ویرایش» and «فقط مشاهده»; the role itself does not change.
+ */
+export async function syncMemberDriveWrite(
+  spreadsheetId: string,
+  email: string,
+  write: boolean
+): Promise<void> {
+  await setFileRole(spreadsheetId, email, write ? 'writer' : 'reader')
   void refreshSharingInfo(spreadsheetId)
 }
