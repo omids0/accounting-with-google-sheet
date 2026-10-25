@@ -53,10 +53,30 @@ export function getCategoryBarYAxisWidth(datasets: { name: string }[][]): number
 
 /**
  * Palette slot of the `index`-th category when a donut of `maxSlices` shows
- * `count` categories: past the last slot they all share the «سایر» slice color.
+ * `count` categories: past the last slot they all share the «سایر دسته‌ها» slice color.
  */
 export function donutSliceColorIndex(index: number, count: number, maxSlices: number): number {
   return count <= maxSlices ? index : Math.min(index, maxSlices - 1)
+}
+
+/**
+ * Name of the donut slice that sums the categories beyond the biggest ones. Not «سایر»: that is a
+ * real category of the app (the default catch-all), and two rows with one name read as a bug.
+ */
+export const DONUT_OTHERS_LABEL = 'سایر دسته‌ها'
+
+/** The biggest `maxSlices - 1` categories plus one «سایر دسته‌ها» slice for the rest. */
+export function buildDonutSlices(
+  data: { name: string; total: number }[],
+  maxSlices: number
+): { name: string; total: number }[] {
+  if (data.length <= maxSlices) return data
+
+  const sorted = [...data].sort((a, b) => b.total - a.total)
+  const top = sorted.slice(0, maxSlices - 1)
+  const restTotal = sorted.slice(maxSlices - 1).reduce((sum, item) => sum + item.total, 0)
+
+  return restTotal > 0 ? [...top, { name: DONUT_OTHERS_LABEL, total: restTotal }] : top
 }
 
 /** Longest full amount (characters) the ring centre shows at the normal size. */
