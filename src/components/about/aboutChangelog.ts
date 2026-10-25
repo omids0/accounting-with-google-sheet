@@ -7,7 +7,7 @@ import type { ChangelogEntry } from '../../services/whatsNew'
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: '2.11.0',
+    version: '2.12.0',
     date: '2026-10-26',
     items: [
       'حساب مشترک — فایل جدا برای هزینه‌های شما و یک شریک، با تراز «چه کسی به چه کسی بدهکار است» و ثبت تسویه؛ اختیاری است و از «بیشتر › فضاهای من» روشن می‌شود',
