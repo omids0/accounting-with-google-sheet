@@ -49,12 +49,22 @@ export function readSharedLinks(): SharedLinkTask[] {
   return getItem<SharedLinkTask[]>(SHARED_LINK_KEY) ?? []
 }
 
+const listeners = new Set<() => void>()
+
+/** Called after every change of the queue: a memoised row's «در انتظار ارسال» follows it. */
+export function subscribeSharedLinks(listener: () => void): () => void {
+  listeners.add(listener)
+
+  return () => listeners.delete(listener)
+}
+
 export function writeSharedLinks(tasks: SharedLinkTask[]): void {
   try {
     setItem(SHARED_LINK_KEY, tasks)
   } catch {
     // Private mode: the queue lasts until the page closes.
   }
+  listeners.forEach(listener => listener())
 }
 
 const taskOf = (recordId: string) => readSharedLinks().find(task => task.recordId === recordId)

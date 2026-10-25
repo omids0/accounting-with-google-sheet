@@ -10,13 +10,8 @@ import { formatMoney } from '../../utils/formatMoney'
 import { showError, showSuccess } from '../../utils/toast'
 import ConfirmActionModal from '../ConfirmActionModal'
 
-const FIELD_WORD: Record<SharedNotice['field'], string> = {
-  amount: 'مبلغ',
-  title: 'عنوان',
-  category: 'دستهٔ',
-  split: 'تقسیم',
-  delete: ''
-}
+/** The shared account edits only a record's amount (or deletes it): no other field is named. */
+const FIELD_WORD: Partial<Record<SharedNotice['field'], string>> = { amount: 'مبلغ' }
 
 /** A cell as the user reads it: an amount in money, a split in words. */
 export function noticeValue(
@@ -33,10 +28,11 @@ export function noticeValue(
 /** «مینا مبلغ «شام» را در حساب مشترک عوض کرد» / «مینا «شام» را از حساب مشترک حذف کرد». */
 export function noticeSentence(notice: SharedNotice, who: string, place = 'حساب مشترک'): string {
   const title = `«${notice.title || 'یک ثبت'}»`
+  const word = FIELD_WORD[notice.field]
 
   return notice.kind === 'delete'
     ? `${who} ${title} را از ${place} حذف کرد`
-    : `${who} ${FIELD_WORD[notice.field]} ${title} را در ${place} عوض کرد`
+    : `${who} ${word ? `${word} ` : ''}${title} را در ${place} عوض کرد`
 }
 
 interface SharedNoticeSheetProps {

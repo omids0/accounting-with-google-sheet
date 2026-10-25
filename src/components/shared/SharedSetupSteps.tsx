@@ -89,7 +89,10 @@ export function SharedInviteStep({
         />
       </FormField>
       <div className="flex flex-col gap-1.5">
-        <span className={journeyRowTitleClass}>نقش</span>
+        {/* The radio group is named «نقش» itself: the visible word is not read twice. */}
+        <span className={journeyRowTitleClass} aria-hidden="true">
+          نقش
+        </span>
         <SegmentedRadio
           label="نقش"
           value={draft.role}

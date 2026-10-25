@@ -103,21 +103,27 @@ export function canEditRecord({
 export const SETTLE_PERMISSION_NOTE = 'ثبت تسویه با دسترسی «ثبت تسویه» ممکن است.'
 
 /**
- * Why the record sheet shows no edit: a viewer, a settlement without `settle` (a partner may
- * still hold `record`), or another person's record without the right.
+ * Why the record sheet shows no edit: a viewer, a partner whose «ثبت» switch is off, a settlement
+ * without `settle` (a partner may still hold `record`), or another person's record without the right.
  */
 export function recordLockNote({
   canRecord,
   creatorName,
-  settlement = false
+  settlement = false,
+  role = 'viewer'
 }: {
   /** `settle` for a settlement, else `record`. */
   canRecord: boolean
   creatorName: string
   settlement?: boolean
+  role?: string
 }): string {
-  if (!canRecord)
-    return settlement ? SETTLE_PERMISSION_NOTE : 'ناظر نمی‌تواند ثبت‌ها را تغییر بدهد.'
+  if (!canRecord && settlement) return SETTLE_PERMISSION_NOTE
+  if (!canRecord) {
+    return role === 'viewer'
+      ? 'ناظر نمی‌تواند ثبت‌ها را تغییر بدهد.'
+      : 'دسترسی «ثبت هزینه و درآمد» شما خاموش است و ثبت‌ها را نمی‌توانید تغییر بدهید.'
+  }
 
   return `این ثبت را ${
     creatorName || 'شخص دیگری'

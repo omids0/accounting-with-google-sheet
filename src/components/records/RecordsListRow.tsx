@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useSyncExternalStore } from 'react'
 
 import {
   recordCounterparty,
@@ -9,7 +9,7 @@ import {
 import { getFormField, type StoredRecord } from './recordsUtils'
 import { describeBuildingExpense } from '../../services/buildingExpenseMeta'
 import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
-import { pendingSharedLink } from '../../services/sharedLinkPrefs'
+import { pendingSharedLink, subscribeSharedLinks } from '../../services/sharedLinkPrefs'
 import type { CustomForm } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -36,6 +36,15 @@ const WALLET_STATE_LABEL: Record<RecordWalletState, string> = {
   applied: 'روی موجودی حساب اثر گذاشت',
   skipped: 'حساب دارد ولی روی موجودی اثر نگذاشت',
   none: 'بدون حساب؛ روی موجودی اثر ندارد'
+}
+
+/** Follows the link queue itself: the memoised row is not rebuilt when its copy lands. */
+function SharedLinkBadge({ recordId }: { recordId: string }) {
+  const pending = useSyncExternalStore(subscribeSharedLinks, () => pendingSharedLink(recordId))
+
+  return (
+    <span className={lineItemsBadgeClass}>{pending ? 'در انتظار ارسال' : 'در حساب مشترک'}</span>
+  )
 }
 
 interface RecordsListRowProps {
@@ -112,11 +121,7 @@ function RecordsListRow({
             title={String(title)}
           />
           {badge ? <span className={lineItemsBadgeClass}>{badge}</span> : null}
-          {isLinked(record.values) ? (
-            <span className={lineItemsBadgeClass}>
-              {pendingSharedLink(record.id) ? 'در انتظار ارسال' : 'در حساب مشترک'}
-            </span>
-          ) : null}
+          {isLinked(record.values) ? <SharedLinkBadge recordId={record.id} /> : null}
           {isIncome || isExpense ? (
             <span
               className={cn(

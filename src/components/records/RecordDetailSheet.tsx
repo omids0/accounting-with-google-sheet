@@ -39,7 +39,13 @@ interface RecordDetailSheetProps {
    * Replaces «ویرایش» (the full edit form) and drops «تکرار ماهانه» and adding receipts: the shared
    * account edits only a record's amount, inside `extra`.
    */
-  save?: { label: string; onSave: () => void | Promise<unknown>; disabled?: boolean }
+  save?: {
+    label: string
+    onSave: () => void | Promise<unknown>
+    disabled?: boolean
+    /** The save is in flight: the buttons lock so a double tap cannot write twice. */
+    saving?: boolean
+  }
   /** A settlement: the amount in the text colour, unsigned (it is not spending). */
   neutralAmount?: boolean
 }
@@ -82,6 +88,7 @@ export default function RecordDetailSheet({
       }}
       saveLabel={save?.label ?? 'ویرایش'}
       saveDisabled={readOnly || !!save?.disabled}
+      saving={!!save?.saving}
       // A workspace block that explains the lock (`extra`) leaves no dead «ویرایش» beside «بستن».
       hideSave={readOnly && extra !== undefined}
       cancelLabel="بستن"

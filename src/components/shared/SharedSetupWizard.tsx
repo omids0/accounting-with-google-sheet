@@ -150,6 +150,8 @@ export default function SharedSetupWizard({ onCancel }: { onCancel: () => void }
         />
         <form
           className="flex flex-col gap-4"
+          // `sharedSetupError` explains a bad field in Persian, before any browser bubble.
+          noValidate
           onSubmit={event => {
             event.preventDefault()
             if (last) void create()

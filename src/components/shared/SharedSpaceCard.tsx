@@ -41,7 +41,12 @@ const explainPoints = [
 
 function Avatar({ email }: { email: string }) {
   return (
-    <span className={cn(buildingDayBadgeClass, 'h-8 w-8 text-xs')} title={email}>
+    <span
+      className={cn(buildingDayBadgeClass, 'h-8 w-8 text-xs')}
+      title={email}
+      role="img"
+      aria-label={email}
+    >
       {email[0]?.toUpperCase() ?? '؟'}
     </span>
   )
@@ -117,7 +122,7 @@ export default function SharedSpaceCard({
             <p className={journeyRowMetaClass}>نقش شما: {memberRoleLabel('shared', role)}</p>
           ) : null}
         </div>
-        <div className="flex gap-1" aria-label="اعضا">
+        <div className="flex gap-1" role="group" aria-label="اعضا">
           {list.map(member => (
             <Avatar key={member.email} email={member.email} />
           ))}

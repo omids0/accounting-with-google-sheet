@@ -37,7 +37,7 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
   const [offOpen, setOffOpen] = useState(false)
   const [turningOff, setTurningOff] = useState(false)
   // `?shared=connect`: the personal form's «اتصال این دستگاه» on a device without the file.
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const [connect, setConnect] = useState<'open' | 'closed' | null>(() =>
     params.get('shared') === 'connect' ? 'open' : null
   )
@@ -128,7 +128,11 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
         <Suspense fallback={null}>
           <SharedConnectSheet
             open={connect === 'open'}
-            onClose={() => setConnect('closed')}
+            onClose={() => {
+              setConnect('closed')
+              // A reload or «back» must not open the sheet again.
+              if (params.has('shared')) setParams({}, { replace: true })
+            }}
             onConnected={id => {
               refresh()
               void enter(id, 'shared-home')

@@ -23,7 +23,7 @@ import { sharedAlertClass, sharedNoteRowClass } from '../ui/sharedStyles'
 
 interface SharedRecordPanelProps {
   record: StoredRecord
-  shared: Pick<SharedRecords, 'me' | 'names' | 'nameOf' | 'access'>
+  shared: Pick<SharedRecords, 'me' | 'names' | 'nameOf' | 'access' | 'role'>
   /** The amount edit, when the signed-in user may change this record; else the lock note. */
   edit: { amount: number | ''; onAmount: (amount: number | '') => void } | null
 }
@@ -101,7 +101,8 @@ export default function SharedRecordPanel({ record, shared, edit }: SharedRecord
               {recordLockNote({
                 canRecord: settlement ? shared.access.canSettle : shared.access.canRecord,
                 creatorName: creator ? shared.nameOf(creator) : '',
-                settlement: Boolean(settlement)
+                settlement: Boolean(settlement),
+                role: shared.role
               })}
             </span>
           </span>

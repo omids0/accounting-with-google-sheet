@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { enqueueSharedLink, runSharedLinks } from './sharedLink'
-import { readSharedLinks, type SharedLinkTask } from './sharedLinkPrefs'
+import {
+  pendingSharedLink,
+  readSharedLinks,
+  subscribeSharedLinks,
+  type SharedLinkTask
+} from './sharedLinkPrefs'
 import { buildCopyRow, sharedRecordForm, sharedRef } from './sharedLinkRows'
 import { CATEGORIES_SHEET, PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { SheetsApiError } from './sheetsApi'
@@ -121,5 +126,20 @@ describe('a missing record tab', () => {
 
     expect(readSharedLinks()[0].failed).toContain('برگه')
     expect(showError.mock.calls[0][0]).not.toContain('پاک شده')
+  })
+})
+
+describe('the change signal', () => {
+  it('tells a row when its copy lands, so «در انتظار ارسال» goes away', async () => {
+    const seen: boolean[] = []
+    const stop = subscribeSharedLinks(() => seen.push(pendingSharedLink('r1')))
+
+    sheet([])
+    enqueueSharedLink(unlinkedCreate)
+    await runSharedLinks()
+    stop()
+
+    expect(seen[0]).toBe(true)
+    expect(seen.at(-1)).toBe(false)
   })
 })

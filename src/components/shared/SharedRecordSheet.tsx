@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import SharedRecordPanel from './SharedRecordPanel'
 import type { SharedRecords } from './useSharedRecords'
@@ -21,6 +21,8 @@ interface SharedRecordSheetProps {
 export default function SharedRecordSheet({ record, shared, onClose }: SharedRecordSheetProps) {
   const current = Math.round(parseNumeric(record.values.amount))
   const [amount, setAmount] = useState<number | ''>(current || '')
+  const [saving, setSaving] = useState(false)
+  const busy = useRef(false)
   const form = shared.forms.find(item => item.id === record.formId)
 
   if (!form) return null
@@ -45,8 +47,18 @@ export default function SharedRecordSheet({ record, shared, onClose }: SharedRec
           ? {
               label: 'ذخیرهٔ مبلغ',
               disabled: !(next > 0) || next === current,
+              saving,
+              // One write (and one notice) per tap: a second tap waits for the first.
               onSave: async () => {
-                if (await shared.saveAmount(record, next)) onClose()
+                if (busy.current) return
+                busy.current = true
+                setSaving(true)
+                const saved = await shared.saveAmount(record, next).finally(() => {
+                  busy.current = false
+                  setSaving(false)
+                })
+
+                if (saved) onClose()
               }
             }
           : undefined

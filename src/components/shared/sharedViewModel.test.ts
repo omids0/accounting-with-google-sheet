@@ -89,6 +89,15 @@ describe('recordLockNote', () => {
     )
   })
 
+  it('never calls a partner whose «ثبت» switch is off a viewer', () => {
+    expect(recordLockNote({ canRecord: false, creatorName: 'نیما', role: 'partner' })).toBe(
+      'دسترسی «ثبت هزینه و درآمد» شما خاموش است و ثبت‌ها را نمی‌توانید تغییر بدهید.'
+    )
+    expect(recordLockNote({ canRecord: false, creatorName: 'نیما', role: 'viewer' })).toBe(
+      'ناظر نمی‌تواند ثبت‌ها را تغییر بدهد.'
+    )
+  })
+
   it('names the settle permission on a settlement, never the viewer', () => {
     expect(recordLockNote({ canRecord: false, creatorName: 'نیما', settlement: true })).toBe(
       'ثبت تسویه با دسترسی «ثبت تسویه» ممکن است.'

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import { sharedOffIntro } from './memberCopy'
 import { cn } from '../../utils/cn'
@@ -42,6 +42,7 @@ export default function SharedOffSheet({
   onConfirm
 }: SharedOffSheetProps) {
   const [choice, setChoice] = useState<SharedOffChoice>('hide')
+  const id = useId()
 
   const picked = CHOICES.find(item => item.value === choice) ?? CHOICES[0]
 
@@ -66,7 +67,6 @@ export default function SharedOffSheet({
         {CHOICES.map(item => (
           <label
             key={item.value}
-            aria-label={item.title}
             className={cn(
               'flex cursor-pointer items-start gap-3 rounded-[var(--radius-sm)] border p-3',
               item.value === choice ? 'border-primary bg-accent-soft' : 'border-border bg-bg'
@@ -78,11 +78,18 @@ export default function SharedOffSheet({
               className="mt-1.5 h-4 w-4 shrink-0"
               checked={item.value === choice}
               disabled={saving}
+              // The title names the choice; the explanation is read after it, never hidden.
+              aria-labelledby={`${id}-${item.value}`}
+              aria-describedby={`${id}-${item.value}-body`}
               onChange={() => setChoice(item.value)}
             />
             <span className="flex flex-col gap-0.5">
-              <span className="text-sm font-bold text-text">{item.title}</span>
-              <span className="text-sm leading-[1.7] text-muted">{item.body}</span>
+              <span id={`${id}-${item.value}`} className="text-sm font-bold text-text">
+                {item.title}
+              </span>
+              <span id={`${id}-${item.value}-body`} className="text-sm leading-[1.7] text-muted">
+                {item.body}
+              </span>
             </span>
           </label>
         ))}
