@@ -40,7 +40,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     settleFlow
   } = useChecksData()
 
-  useHighlightParam()
+  const highlightId = useHighlightParam()
 
   const {
     showForm,
@@ -172,6 +172,8 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
         onAdd={openCreateForm}
         directionNote={direction.activeLabel}
         onClearDirection={() => direction.set('all')}
+        resetKey={filterChips.map(chip => chip.label).join('|')}
+        highlightId={highlightId}
       />
 
       <CheckFormModal

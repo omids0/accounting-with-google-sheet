@@ -1,8 +1,11 @@
 import { Fragment, type ReactNode, useId } from 'react'
 
+import { LIST_PAGE_SIZE, useIncrementalList } from '../../hooks/useIncrementalList'
 import { type SortableColumn, useTableSort } from '../../hooks/useTableSort'
 import { cn } from '../../utils/cn'
+import { listCountLabel } from '../../utils/listCountLabel'
 import AppIcon from '../AppIcon'
+import ShowMoreFooter from '../ShowMoreFooter'
 import {
   dataTableActionsCellClass,
   dataTableActionsClass,
@@ -44,6 +47,12 @@ export interface DataTableProps<T> {
   renderDetail?: (row: T) => ReactNode
   /** Without the card frame, inside another block. */
   bare?: boolean
+  /** Long lists: render 50 rows at a time (after sorting) with «نمایش بیشتر». */
+  windowed?: boolean
+  /** With `windowed`: the active filters; a new value starts over at the first 50. */
+  resetKey?: string
+  /** With `windowed`: row keys to keep rendered (a deep link's target); the open row always is. */
+  mustInclude?: ReadonlyArray<string | null | undefined>
 }
 
 /**
@@ -59,9 +68,18 @@ export default function DataTable<T>({
   isMuted,
   expandedKey,
   renderDetail,
-  bare
+  bare,
+  windowed,
+  resetKey,
+  mustInclude
 }: DataTableProps<T>) {
   const { sortedRows, sort, toggleSort } = useTableSort(rows, columns)
+  const rowWindow = useIncrementalList(sortedRows, {
+    pageSize: windowed ? LIST_PAGE_SIZE : Number.MAX_SAFE_INTEGER,
+    resetKey,
+    mustInclude: [...(mustInclude ?? []), expandedKey],
+    getId: rowKey
+  })
   const span = columns.length + (actions ? 1 : 0)
   const tableId = useId()
   // The row's name cell labels its action buttons («ویرایش», group «چک ۱۲۳…»).
@@ -116,7 +134,7 @@ export default function DataTable<T>({
           </tr>
         </thead>
         <tbody>
-          {sortedRows.map(row => {
+          {rowWindow.visible.map(row => {
             const key = rowKey(row)
 
             return (
@@ -159,6 +177,12 @@ export default function DataTable<T>({
           })}
         </tbody>
       </table>
+      <ShowMoreFooter
+        remaining={rowWindow.remaining}
+        nextStep={rowWindow.nextStep}
+        onShowMore={rowWindow.showMore}
+        countLabel={listCountLabel(rowWindow.visible.length, sortedRows.length, 'مورد')}
+      />
     </div>
   )
 }

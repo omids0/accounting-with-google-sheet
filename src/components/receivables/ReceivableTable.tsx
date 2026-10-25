@@ -15,8 +15,13 @@ export default function ReceivableTable({
   onToggleExpand,
   onEdit,
   onDelete,
-  renderDetail
+  renderDetail,
+  resetKey,
+  highlightId
 }: {
+  /** The active filters, and the `?highlight=` target, for the 50-row window. */
+  resetKey: string
+  highlightId?: string | null
   items: ReceivableWithRow[]
   expandedId: string | null
   onToggleExpand: (item: ReceivableWithRow, expanded: boolean) => void
@@ -45,6 +50,9 @@ export default function ReceivableTable({
       rows={items}
       columns={columns}
       rowKey={item => item.id}
+      windowed
+      resetKey={resetKey}
+      mustInclude={[highlightId]}
       isMuted={isReceivableComplete}
       expandedKey={expandedId}
       renderDetail={renderDetail}
