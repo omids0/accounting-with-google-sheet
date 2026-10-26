@@ -6,9 +6,8 @@ import CalmBlock from '../CalmBlock'
 import DueItemRow from '../DueItemRow'
 import { calmEmptyClass, calmListClass } from '../ui/calmListStyles'
 
-/** Rows shown on desktop; phones and tablets keep the first three. */
-const DESKTOP_ROWS = 5
-const COMPACT_ROWS = 3
+/** Rows shown on every screen size; «همه ←» opens the full list. */
+const UPCOMING_ROWS = 5
 
 /** «پیش رو»: the next due items (installments, checks, dang, personal, vehicle), overdue first. */
 export default function DashboardUpcomingBlock({
@@ -21,7 +20,7 @@ export default function DashboardUpcomingBlock({
   className?: string
 }) {
   const { rows, overdueCount } = useMemo(
-    () => summarizeUpcoming(items, undefined, DESKTOP_ROWS),
+    () => summarizeUpcoming(items, undefined, UPCOMING_ROWS),
     [items]
   )
 
@@ -36,13 +35,8 @@ export default function DashboardUpcomingBlock({
         <p className={calmEmptyClass}>تا ۳۰ روز آینده موعدی نیست</p>
       ) : (
         <ul className={calmListClass}>
-          {rows.map(({ item, days }, index) => (
-            <DueItemRow
-              key={item.id}
-              item={item}
-              days={days}
-              className={index >= COMPACT_ROWS ? 'max-xl:hidden' : undefined}
-            />
+          {rows.map(({ item, days }) => (
+            <DueItemRow key={item.id} item={item} days={days} />
           ))}
         </ul>
       )}
