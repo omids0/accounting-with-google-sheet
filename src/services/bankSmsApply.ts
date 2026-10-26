@@ -1,9 +1,10 @@
-import { recordOfSms, rememberSmsRecord } from './bankSmsCoverageStore'
+import { rememberSmsRecord } from './bankSmsCoverageStore'
 import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
 import { SMS_RECORD_NOTE } from './bankSmsNote'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
 import { nextAccountBalance, setsAbsoluteBalance, type ConfirmableSms } from './bankSmsQueue'
+import { liveRecordOfSms } from './bankSmsRecordOf'
 import { smsSenderKey, type SmsCategoryChoice } from './bankSmsSuggest'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
 import {
@@ -143,7 +144,11 @@ export async function confirmSmsEntryWithId(
   let queueError: Error | null = null
 
   if (record) {
-    const earlier = recordOfSms(entry.sms.id)
+    const earlier = await liveRecordOfSms(
+      spreadsheetId,
+      entry.sms.id,
+      entry.result.direction === 'debit' ? 'expense' : 'income'
+    )
 
     // A save that failed after its record was written: finish it (leave the queue), no second record.
     if (earlier) {

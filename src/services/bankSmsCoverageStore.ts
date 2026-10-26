@@ -43,3 +43,10 @@ export function recordOfSms(smsId: string, nowMs = Date.now()): string {
 
   return entry && nowMs - entry.at < COVERAGE_KEEP_MS ? entry.recordId : ''
 }
+
+/** Forgets what an SMS stood for (its record is gone). */
+export function dropSmsCoverage(smsId: string): void {
+  const { [smsId]: dropped, ...rest } = getBankSmsPrefs().smsCoverage
+
+  if (dropped) updateBankSmsPrefs({ smsCoverage: rest })
+}

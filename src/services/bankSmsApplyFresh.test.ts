@@ -7,7 +7,8 @@ const mocks = vi.hoisted(() => ({
   fetchRange: vi.fn(),
   enqueue: vi.fn(),
   handled: vi.fn(),
-  create: vi.fn()
+  create: vi.fn(),
+  records: [] as { id: string }[]
 }))
 
 vi.mock('./sheetsRows', async importOriginal => ({
@@ -16,6 +17,14 @@ vi.mock('./sheetsRows', async importOriginal => ({
 }))
 vi.mock('./sheetSync', () => ({ enqueueSheetWrite: mocks.enqueue, queueOutboxWrite: vi.fn() }))
 vi.mock('./bankSmsNative', () => ({ markBankSmsHandled: mocks.handled }))
+vi.mock('./settings', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  getSettings: () => ({ forms: [{ type: 'expense' }, { type: 'income' }] })
+}))
+vi.mock('./sheets', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  fetchRecords: async () => mocks.records
+}))
 vi.mock('./activityLog', () => ({ logActivity: vi.fn(), logItemActivity: vi.fn() }))
 vi.mock('./paymentTransactions', () => ({
   createLinkedExpenseRecord: async () => {
@@ -61,6 +70,7 @@ describe('an SMS without «مانده» is a change on the balance the sheet hol
     clearStore(SHEET_ID)
     mocks.enqueue.mockClear()
     mocks.create.mockClear()
+    mocks.records = []
     mocks.handled.mockReset().mockResolvedValue(undefined)
     mocks.fetchRange.mockReset()
     mocks.fetchRange.mockImplementation(async (_id: string, tab: string, suffix?: string) => {
@@ -168,6 +178,7 @@ describe('an SMS without «مانده» is a change on the balance the sheet hol
       await expect(
         confirmSmsEntryWithId(SHEET_ID, sms('a', 'debit', null), record)
       ).rejects.toThrow()
+      mocks.records = [{ id: 'rec-1' }]
       mocks.enqueue.mockClear()
 
       const id = await confirmSmsEntryWithId(SHEET_ID, sms('a', 'debit', null), record)
@@ -176,6 +187,35 @@ describe('an SMS without «مانده» is a change on the balance the sheet hol
       expect(mocks.create).toHaveBeenCalledTimes(1)
       expect(walletWrites()).toHaveLength(0)
       expect(mocks.handled).toHaveBeenCalledTimes(2)
+    })
+
+    it('N2: the user deleted that record meanwhile: the retry writes a NEW record and balance', async () => {
+      mocks.handled.mockRejectedValueOnce(new Error('native'))
+      await expect(
+        confirmSmsEntryWithId(SHEET_ID, sms('a', 'debit', null), record)
+      ).rejects.toThrow()
+      // The record is gone from the records (deleted), the entry in the SMS prefs is stale.
+      mocks.records = []
+      mocks.enqueue.mockClear()
+
+      const id = await confirmSmsEntryWithId(SHEET_ID, sms('a', 'debit', null), record)
+
+      expect(id).toBe('rec-1')
+      expect(mocks.create).toHaveBeenCalledTimes(2)
+      expect(walletWrites()).toHaveLength(1)
+    })
+
+    it('N2: records that cannot be read: the stored id is trusted (no second record)', async () => {
+      mocks.handled.mockRejectedValueOnce(new Error('native'))
+      await expect(
+        confirmSmsEntryWithId(SHEET_ID, sms('a', 'debit', null), record)
+      ).rejects.toThrow()
+
+      const sheets = await import('./sheets')
+
+      vi.spyOn(sheets, 'fetchRecords').mockRejectedValueOnce(new Error('offline'))
+      await confirmSmsEntryWithId(SHEET_ID, sms('a', 'debit', null), record)
+      expect(mocks.create).toHaveBeenCalledTimes(1)
     })
 
     it('«فقط موجودی» fails before anything moves, so a retry is safe', async () => {
