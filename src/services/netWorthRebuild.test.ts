@@ -6,7 +6,7 @@ import {
   rebuildSnapshots,
   type NetWorthRebuildInput
 } from './netWorthRebuild'
-import type { NetAvailableConfig } from '../types'
+import type { Dang, NetAvailableConfig } from '../types'
 import { jalaliToIso } from '../utils/jalaliDate'
 
 const ALL_ON: NetAvailableConfig = {
@@ -167,6 +167,64 @@ describe('rebuildMonthValues', () => {
     expect(assets([{ ...received, id: 'b', paid: true, paidAt: day(5, 25) }])).toBe(9_500_000)
     expect(assets([{ ...received, id: 'f', paid: true, paidAt: day(6, 3) }])).toBe(9_650_000)
     expect(assets([{ ...received, id: 'o', paid: false, paidAt: '' }])).toBe(9_650_000)
+  })
+
+  describe('debts with payments', () => {
+    const debt = (payments: Dang['payments'], overrides: Partial<Dang> = {}): Dang => ({
+      id: 'dx',
+      createdAt: '',
+      title: 'وام دوست',
+      category: '',
+      counterparty: '',
+      amount: 100_000,
+      date: day(5, 1),
+      note: '',
+      paid: false,
+      paidAt: '',
+      payments,
+      ...overrides
+    })
+
+    const pay = (amount: number, paidAt: string) => ({ id: `p${paidAt}`, amount, paidAt, note: '' })
+
+    // Only the debt's share of the liabilities: the fixture's own dues are subtracted.
+    const owed = (dangs: Dang[], monthKey: string) =>
+      (rebuildMonthValues({ ...input, dangs }, monthKey, ALL_ON)?.liabilities ?? 0) -
+      (rebuildMonthValues({ ...input, dangs: [] }, monthKey, ALL_ON)?.liabilities ?? 0)
+
+    it('subtracts a partial payment only from the month it was made in', () => {
+      const dangs = [debt([pay(30_000, day(6, 3))])]
+
+      expect(owed(dangs, '1405-04')).toBe(0)
+      expect(owed(dangs, '1405-05')).toBe(100_000)
+      expect(owed(dangs, '1405-06')).toBe(70_000)
+    })
+
+    it('takes a payment made inside the month into that month', () => {
+      expect(owed([debt([pay(30_000, day(5, 10))])], '1405-05')).toBe(70_000)
+    })
+
+    it('drops a settled debt from the month it was settled in, not from the earlier ones', () => {
+      const dangs = [debt([pay(40_000, day(5, 10)), pay(60_000, day(6, 3))], { paid: true })]
+
+      expect(owed(dangs, '1405-05')).toBe(60_000)
+      expect(owed(dangs, '1405-06')).toBe(0)
+    })
+
+    it('reads the date of an old derived payment written as a Persian locale string', () => {
+      const legacy = debt([pay(100_000, '۱۴۰۵/۶/۳، ۱۰:۴۰:۱۲')], { paid: true })
+
+      expect(owed([legacy], '1405-05')).toBe(100_000)
+      expect(owed([legacy], '1405-06')).toBe(0)
+    })
+
+    it('keeps a debt out when its only payment has no readable date, as before', () => {
+      expect(owed([debt([pay(100_000, '')], { paid: true })], '1405-05')).toBe(0)
+    })
+
+    it('ignores a debt dated after the month', () => {
+      expect(owed([debt([], { date: day(6, 2) })], '1405-05')).toBe(0)
+    })
   })
 
   it('follows the net-available switches', () => {

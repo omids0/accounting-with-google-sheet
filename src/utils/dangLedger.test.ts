@@ -4,6 +4,7 @@ import {
   canSetDangAmount,
   dangPaidAmount,
   dangPaidColumns,
+  dangPaymentStatus,
   dangRemaining,
   isDangSettled,
   unpaidDangTotal
@@ -61,5 +62,17 @@ describe('debt ledger helpers', () => {
       paidAt: '',
       transactionRecordId: ''
     })
+  })
+})
+
+describe('dangPaymentStatus', () => {
+  it('tells untouched, partly paid and settled debts apart', () => {
+    expect(dangPaymentStatus({ amount: 100, payments: [] })).toBe('unpaid')
+    expect(dangPaymentStatus({ amount: 100, payments: [pay('a', 1)] })).toBe('partial')
+    expect(dangPaymentStatus({ amount: 100, payments: [pay('a', 60), pay('b', 40)] })).toBe(
+      'settled'
+    )
+    // A debt of 0 is never «settled», and nothing was paid on it.
+    expect(dangPaymentStatus({ amount: 0, payments: [] })).toBe('unpaid')
   })
 })

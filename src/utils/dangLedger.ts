@@ -18,6 +18,15 @@ export function isDangSettled(dang: Ledger): boolean {
   return dang.amount > 0 && isComplete(dang.amount, dang.payments)
 }
 
+/** Where a debt stands: nothing paid yet, paid in part, or all paid. */
+export type DangPaymentStatus = 'unpaid' | 'partial' | 'settled'
+
+export function dangPaymentStatus(dang: Ledger): DangPaymentStatus {
+  if (isDangSettled(dang)) return 'settled'
+
+  return dangPaidAmount(dang) > 0 ? 'partial' : 'unpaid'
+}
+
 /** The amount of a debt cannot drop below what was already paid. */
 export function canSetDangAmount(dang: Pick<Dang, 'payments'>, amount: number): boolean {
   return amount >= dangPaidAmount(dang)

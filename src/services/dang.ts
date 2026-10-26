@@ -68,6 +68,12 @@ export async function createDang(
   return dang
 }
 
+/**
+ * Saves the editable fields of a debt (title, amount, dates, note, ...). The payments are never
+ * taken from `dang`: the screen's copy may be stale, so the row is re-read by id and keeps ITS
+ * payments (and the paid columns derived from them). Only addDangPayment, removeDangPayment and
+ * toggleDangPaid write payments. `rowNumber` is the fallback when the sheet cannot be read.
+ */
 export async function updateDang(
   spreadsheetId: string,
   rowNumber: number,
@@ -75,13 +81,28 @@ export async function updateDang(
   /** False for bulk rewrites (a category rename logs once itself). */
   log = true
 ): Promise<void> {
-  if (!canSetDangAmount(dang, dang.amount)) {
+  const rows = await fetchDangs(spreadsheetId).catch(() => null)
+
+  const fresh = rows?.find(item => item.id === dang.id)
+
+  if (rows && !fresh) {
+    throw new DangPaymentError('این بدهی پیدا نشد؛ شاید حذف شده باشد.', 'missing')
+  }
+
+  const ledger = fresh ?? dang
+
+  if (!canSetDangAmount(ledger, dang.amount)) {
     throw new DangPaymentError(
-      `مبلغ بدهی نمی‌تواند کمتر از ${formatMoney(dangPaidAmount(dang))} (پرداخت‌شده تا حالا) باشد`,
+      `مبلغ بدهی نمی‌تواند کمتر از ${formatMoney(
+        dangPaidAmount(ledger)
+      )} (پرداخت‌شده تا حالا) باشد`,
       'below-paid'
     )
   }
-  await updateSheetRow(spreadsheetId, DANG_SHEET, rowNumber, dangToRow(dang))
+
+  const merged = withDangPaidState({ ...dang, payments: ledger.payments })
+
+  await updateSheetRow(spreadsheetId, DANG_SHEET, fresh?.rowNumber ?? rowNumber, dangToRow(merged))
   if (log) logItemActivity(spreadsheetId, 'update', 'dang', dang.id, dang.title)
 }
 

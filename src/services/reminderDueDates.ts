@@ -3,6 +3,7 @@ import { fetchChecks } from './checks'
 import { fetchDangs } from './dang'
 import { fetchInstallmentPlans, getInstallmentPaymentAmount } from './installments'
 import type { Check, Dang, InstallmentPlan, ReminderRule } from '../types'
+import { dangRemaining } from '../utils/dangLedger'
 import { formatMoney } from '../utils/formatMoney'
 import { addDaysToIso, formatIsoDatePersian, getTodayIso } from '../utils/jalaliDate'
 
@@ -77,7 +78,7 @@ function collectDangReminders(
   targetDueDate: string
 ): UpcomingDueDateReminder[] {
   return dangs
-    .filter(dang => !dang.paid)
+    .filter(dang => dangRemaining(dang) > 0)
     .filter(dang => dang.date.slice(0, 10) === targetDueDate)
     .map(dang => {
       const dueLabel = formatIsoDatePersian(dang.date)
@@ -87,7 +88,9 @@ function collectDangReminders(
         kind: 'dang' as const,
         reference: `dang_${dang.id}_${targetDueDate}`,
         title: 'یادآوری بدهی',
-        body: `${dang.title} (${subtitle}) — ${formatMoney(dang.amount)} — موعد: ${dueLabel}`,
+        body: `${dang.title} (${subtitle}) — ${formatMoney(
+          dangRemaining(dang)
+        )} — موعد: ${dueLabel}`,
         dueDate: dang.date,
         remindOn: todayIso
       }
