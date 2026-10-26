@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 
 import type { DangWithRow } from './types'
+import { useDangAmountEdit } from './useDangAmountEdit'
+import { dangPaymentRecordIds, useDangPaymentActions } from './useDangPaymentActions'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { usePaidItemActions } from '../../hooks/usePaidItemActions'
+import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { dangOriginRecordIds, repaymentSubCategory } from '../../services/buildingDang'
 import { isBridgedDang, toggleBuildingDangPaid } from '../../services/buildingDangBridge'
 import { syncCategoriesFromSheet } from '../../services/categories'
@@ -15,19 +18,15 @@ import {
   fetchDangs,
   importDangsCsv,
   sortDangs,
-  toggleDangPaid,
-  updateDang
+  toggleDangPaid
 } from '../../services/dang'
 import { dangPrefixes } from '../../services/dangTitles'
 import { getDangCategories, getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
-import { getActiveWorkspaceType } from '../../services/workspace'
-import type { Dang } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { formatMoney } from '../../utils/formatMoney'
 import { dangLinkedCount } from '../../utils/linkedRecordsDelete'
 import { handleSheetError } from '../../utils/sheetError'
-import { showError } from '../../utils/toast'
 import type { CounterpartyWithRow } from '../counterparties/types'
 
 export function useDangItems() {
@@ -38,8 +37,6 @@ export function useDangItems() {
 
     return !(settings?.spreadsheetId && hasStoreData(settings.spreadsheetId))
   })
-  const [savingAmountId, setSavingAmountId] = useState('')
-  const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({})
   const [categories, setCategories] = useState<string[]>(() => getDangCategories())
   const [counterparties, setCounterparties] = useState<CounterpartyWithRow[]>([])
 
@@ -72,33 +69,38 @@ export function useDangItems() {
     if (isConfigured()) loadItems()
   }, [loadItems, dataRevision])
 
-  const building = getActiveWorkspaceType() === 'building'
+  const building = useIsBuildingWorkspace()
 
+  const payments = useDangPaymentActions(setItems)
+
+  const amountEdit = useDangAmountEdit(setItems)
+
+  // A building settles a debt with one sheet (account, bridge); the personal list pays in pieces.
   const paidActions = usePaidItemActions({
     items,
     setItems,
     loadItems,
     togglePaid: building ? toggleBuildingDangPaid : toggleDangPaid,
-    settle: {
-      type: 'expense',
-      titleFor: item => `تسویهٔ «${item.title}» · ${formatMoney(item.amount)}`,
-      amountFor: item => item.amount,
-      recordIdOf: item => item.transactionRecordId,
-      // A building's repayment records are titled «بازپرداخت به …»; older ones kept «بدهی: ».
-      prefix: dangPrefixes(building),
-      // A building's debt came from an expense: that record is the cost, not the repayment.
-      linkedIds: [
-        ...items.flatMap(item => (item.transactionRecordId ? [item.transactionRecordId] : [])),
-        ...(building ? dangOriginRecordIds(items) : [])
-      ],
-      noteFor: building
-        ? item =>
+    settle: building
+      ? {
+          type: 'expense',
+          titleFor: item => `تسویهٔ «${item.title}» · ${formatMoney(item.amount)}`,
+          amountFor: item => item.amount,
+          recordIdOf: item => item.transactionRecordId,
+          // A building's repayment records are titled «بازپرداخت به …»; older ones kept «بدهی: ».
+          prefix: dangPrefixes(true),
+          // A building's debt came from an expense: that record is the cost, not the repayment.
+          linkedIds: [
+            ...items.flatMap(item => (item.transactionRecordId ? [item.transactionRecordId] : [])),
+            ...dangOriginRecordIds(items)
+          ],
+          noteFor: item =>
             `«${repaymentSubCategory(
               item.counterparty
-            )}» از حساب صندوق به‌صورت انتقال ثبت می‌شود؛ هزینهٔ تازه‌ای ثبت نمی‌شود.`
-        : undefined,
-      bridgeFor: building ? isBridgedDang : undefined
-    },
+            )}» از حساب صندوق به‌صورت انتقال ثبت می‌شود؛ هزینهٔ تازه‌ای ثبت نمی‌شود.`,
+          bridgeFor: isBridgedDang
+        }
+      : undefined,
     deleteItem: deleteDang,
     sortItems: sortDangs,
     deleteLabel: item => `بدهی «${item.title}»`,
@@ -114,66 +116,31 @@ export function useDangItems() {
     }
   })
 
-  const handleAmountChange = (item: DangWithRow, value: number | '') => {
-    setAmountEdits(prev => ({ ...prev, [item.id]: value }))
-  }
-
-  const handleAmountBlur = async (item: DangWithRow, value?: number | '') => {
-    // The dial pad passes the amount it just confirmed; the typed field leaves it in `amountEdits`.
-    const pending = value !== undefined ? value : amountEdits[item.id]
-
-    if (pending === undefined) return
-
-    setAmountEdits(prev => {
-      const next = { ...prev }
-
-      delete next[item.id]
-
-      return next
-    })
-
-    const amount = Number(pending)
-
-    if (!amount || amount <= 0) {
-      showError('مبلغ باید بیشتر از صفر باشد')
-
-      return
-    }
-    if (amount === item.amount) return
-
-    const spreadsheetId = requireSpreadsheetId()
-
-    if (!spreadsheetId) return
-
-    setSavingAmountId(item.id)
-    try {
-      const updated: Dang = { ...item, amount }
-
-      await updateDang(spreadsheetId, item.rowNumber, updated)
-      setItems(prev =>
-        sortDangs(prev.map(d => (d.id === item.id ? { ...updated, rowNumber: item.rowNumber } : d)))
-      )
-    } catch (err) {
-      handleSheetError(err, { fallbackMessage: 'خطا در به‌روزرسانی مبلغ' })
-    } finally {
-      setSavingAmountId('')
-    }
+  /** Opens or closes a card; the open payment forms belong to the card that was open. */
+  const toggleExpanded = (id: string | null) => {
+    setExpandedId(id)
+    payments.clearPaymentForms()
   }
 
   return {
     items: paidActions.visibleItems,
     loading,
+    building,
     categories,
     setCategories,
     counterparties,
     setCounterparties,
     expandedId,
     setExpandedId,
-    savingAmountId,
-    amountEdits,
+    toggleExpanded,
     loadItems,
-    handleAmountChange,
-    handleAmountBlur,
-    ...paidActions
+    ...amountEdit,
+    ...paidActions,
+    payments: {
+      ...payments,
+      linkedIds: dangPaymentRecordIds(items)
+    },
+    // The personal list pays through its own flow; a building through the settle sheet.
+    settleFlow: building ? paidActions.settleFlow : payments.settleFlow
   }
 }

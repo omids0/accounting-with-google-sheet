@@ -9,6 +9,7 @@ import type {
 } from './types'
 import type { SettleOptions } from '../../services/settleOptions'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { formatPaidStamp } from '../../utils/paidStamp'
 import TapCheckbox from '../form/TapCheckbox'
 import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
@@ -53,6 +54,8 @@ type PartialPaymentSectionProps = {
   showSettlementForm: boolean
   defaultSettleTitle: string
   defaultSettleNote: string
+  /** Amount the payment field starts with (a debt starts at what is left); empty when unset. */
+  defaultPaymentAmount?: number
   /** `transactionRecordId` of every payment of the module (the duplicate check skips them). */
   linkedIds: readonly string[]
   onOpenPaymentForm: () => void
@@ -86,6 +89,7 @@ export default function PartialPaymentSection({
   showSettlementForm,
   defaultSettleTitle,
   defaultSettleNote,
+  defaultPaymentAmount,
   linkedIds,
   onOpenPaymentForm,
   onClosePaymentForm,
@@ -136,7 +140,7 @@ export default function PartialPaymentSection({
                 <span>
                   <MoneyText amount={payment.amount} />
                 </span>
-                <span className={installmentDueClass}>{formatIsoDatePersian(payment.paidAt)}</span>
+                <span className={installmentDueClass}>{formatPaidStamp(payment.paidAt)}</span>
                 {payment.note && <span className={installmentDueClass}>{payment.note}</span>}
               </div>
             </div>
@@ -152,6 +156,7 @@ export default function PartialPaymentSection({
               type={type}
               labels={labels.paymentForm}
               paying={paying}
+              defaultAmount={defaultPaymentAmount}
               linkedIds={linkedIds}
               onSubmit={onAddPayment}
               onCancel={onClosePaymentForm}
