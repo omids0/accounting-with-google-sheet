@@ -5,6 +5,7 @@ import {
   type ConfirmableSms
 } from '../../services/bankSmsQueue'
 import { bulkAction, type SmsUnitInput, type SmsUnitMatch } from '../../services/buildingSmsMatch'
+import { isLinkTargetCategory } from '../../utils/linkTargetKinds'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
 
 /** What «ثبت همه شناخته‌شده‌ها» will save for one card. */
@@ -36,8 +37,13 @@ export function smsBulkItems(
 
     const choice = choiceFor(entry)
 
-    // A vehicle expense needs its vehicle, type and mileage, which only the form asks for.
-    return choice && !isVehicleExpenseCategory(choice.category)
+    const type = entry.result.direction === 'debit' ? 'expense' : 'income'
+
+    // A vehicle expense needs its vehicle, type and mileage, a «بدهی»/«طلب» the debt or receivable
+    // it pays: only the card and the form ask, so a bulk save never skips the question.
+    return choice &&
+      !isVehicleExpenseCategory(choice.category) &&
+      !isLinkTargetCategory(type, choice.category)
       ? [{ kind: 'record', entry, choice }]
       : []
   })

@@ -20,7 +20,7 @@ export default function LinkTargetField({ link, disabled = false }: LinkTargetFi
 
   const selectOptions = useMemo<SelectOption[]>(
     () => [
-      { value: '', label: kind?.noneLabel ?? '' },
+      { value: '', label: loading ? 'در حال خواندن…' : kind?.noneLabel ?? '' },
       ...options.map(option => ({
         value: option.id,
         disabled: option.disabled,
@@ -29,7 +29,7 @@ export default function LinkTargetField({ link, disabled = false }: LinkTargetFi
           : `${option.title} — باقی‌مانده ${formatMoney(option.remaining)}`
       }))
     ],
-    [kind, options]
+    [kind, options, loading]
   )
 
   if (!kind) return null
@@ -42,7 +42,7 @@ export default function LinkTargetField({ link, disabled = false }: LinkTargetFi
       label={kind.fieldLabel}
       controlWidth="full"
       error={error || undefined}
-      hint={empty ? kind.emptyHint : loading ? 'در حال خواندن…' : undefined}
+      hint={empty ? kind.emptyHint : undefined}
     >
       <Select
         value={selectedId}

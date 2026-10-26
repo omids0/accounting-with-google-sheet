@@ -27,6 +27,7 @@ import { useBankSmsStore } from '../../../stores/bankSmsStore'
 import { requireSpreadsheetId } from '../../../utils/authGuard'
 import { haptic } from '../../../utils/haptics'
 import { toIsoDate } from '../../../utils/jalaliDate'
+import { isLinkTargetCategory } from '../../../utils/linkTargetKinds'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showSuccess } from '../../../utils/toast'
 import { isVehicleExpenseCategory } from '../../../utils/vehicleExpenseUtils'
@@ -142,11 +143,16 @@ export function useReconcileWizard(accountId: string) {
     save: (item: ConfirmableSms) => {
       const choice = choiceFor(item)
 
-      // A vehicle expense needs its vehicle and mileage: the form asks them, a silent save cannot.
+      // A vehicle expense needs its vehicle and mileage, a «بدهی»/«طلب» the debt or receivable it
+      // pays: the form asks them, a silent save cannot.
       if (
         !choice ||
         isProbableDuplicate(item, ledger) ||
-        isVehicleExpenseCategory(choice.category)
+        isVehicleExpenseCategory(choice.category) ||
+        isLinkTargetCategory(
+          item.result.direction === 'debit' ? 'expense' : 'income',
+          choice.category
+        )
       ) {
         const state = buildBankSmsEntryState(item, { choice })
 
