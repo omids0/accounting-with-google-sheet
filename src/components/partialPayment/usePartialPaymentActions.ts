@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import type {
   PartialPaymentActionLabels,
@@ -78,6 +78,23 @@ export function usePartialPaymentActions<T extends PartialPaymentItem>({
   const [paymentItemId, setPaymentItemId] = useState<string | null>(null)
 
   const [settlementItemId, setSettlementItemId] = useState<string | null>(null)
+
+  // Set synchronously, unlike the state above: a second tap that lands before the next render
+  // (slow phone, double-tap) must not start a second write for the same list.
+  const busy = useRef(false)
+
+  const once =
+    <Args extends unknown[]>(run: (...args: Args) => Promise<void>) =>
+    async (...args: Args) => {
+      if (busy.current) return
+
+      busy.current = true
+      try {
+        await run(...args)
+      } finally {
+        busy.current = false
+      }
+    }
 
   const clearPaymentForms = () => {
     setPaymentItemId(null)
@@ -218,8 +235,8 @@ export function usePartialPaymentActions<T extends PartialPaymentItem>({
     settlementItemId,
     setSettlementItemId,
     clearPaymentForms,
-    handleAddPayment,
-    handleSettle,
-    handleRemovePayment
+    handleAddPayment: once(handleAddPayment),
+    handleSettle: once(handleSettle),
+    handleRemovePayment: once(handleRemovePayment)
   }
 }
