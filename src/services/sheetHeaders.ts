@@ -59,6 +59,9 @@ export const COUNTERPARTIES_HEADERS = [
   'من'
 ]
 
+/** Label of the JSON column that lists a debt's payments (the last column of the debts tab). */
+export const PAYMENTS_HEADER = 'پرداخت‌ها'
+
 export const DANG_HEADERS = [
   'شناسه',
   'زمان ثبت',
@@ -72,7 +75,8 @@ export const DANG_HEADERS = [
   'زمان پرداخت',
   'شناسه تراکنش',
   'زیردسته',
-  'ثبت‌کننده'
+  'ثبت‌کننده',
+  PAYMENTS_HEADER
 ]
 
 export const DANG_SPLIT_GROUPS_HEADERS = ['شناسه', 'زمان ثبت', 'عنوان', 'توضیحات']

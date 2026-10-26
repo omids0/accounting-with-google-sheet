@@ -18,9 +18,9 @@ describe('linked records of an item about to be deleted', () => {
     expect(receivableLinkedCount({ payments: [] })).toBe(0)
   })
 
-  it('a debt or a check has at most one', () => {
-    expect(dangLinkedCount({ transactionRecordId: 'r' })).toBe(1)
-    expect(dangLinkedCount({ transactionRecordId: '' })).toBe(0)
+  it('counts the payments of a debt that made a record; a check has at most one', () => {
+    expect(dangLinkedCount({ payments: [payment('a'), payment(), payment('b')] })).toBe(2)
+    expect(dangLinkedCount({ payments: [] })).toBe(0)
     expect(checkLinkedCount({})).toBe(0)
     expect(checkLinkedCount({ transactionRecordId: 'r' })).toBe(1)
   })

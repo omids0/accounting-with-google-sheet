@@ -34,11 +34,22 @@ export interface Dang {
   amount: number
   date: string
   note: string
+  /** Derived: true once the payments cover the amount (the sheet's «پرداخت شده» mirrors it). */
   paid: boolean
   paidAt: string
   transactionRecordId?: string
+  /** Pieces of the debt paid so far (column «پرداخت‌ها», JSON). */
+  payments: DangPayment[]
   /** Email of whoever last saved it (column «ثبت‌کننده»); '' for older rows. */
   writer?: string
+}
+
+export interface DangPayment {
+  id: string
+  amount: number
+  paidAt: string
+  note: string
+  transactionRecordId?: string
 }
 
 /** Which way a check goes: «پرداختی» I give it (a liability), «دریافتی» I receive it (an asset). */

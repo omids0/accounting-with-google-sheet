@@ -88,7 +88,8 @@ const input: NetWorthRebuildInput = {
       date: day(5, 1),
       note: '',
       paid: false,
-      paidAt: ''
+      paidAt: '',
+      payments: []
     },
     {
       id: 'd2',
@@ -100,7 +101,8 @@ const input: NetWorthRebuildInput = {
       date: day(5, 1),
       note: '',
       paid: true,
-      paidAt: ''
+      paidAt: '',
+      payments: [{ id: 'p1', amount: 999_000, paidAt: '', note: '' }]
     }
   ]
 }

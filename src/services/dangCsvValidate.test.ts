@@ -39,3 +39,39 @@ describe('validateDangCsvCells', () => {
     expect(() => validateDangCsvCells(row({ [index]: value }))).toThrow(reason)
   })
 })
+
+describe('the payments cell (index 13)', () => {
+  const cells = (payments: string | undefined) => {
+    const base = row()
+
+    base[13] = payments as string
+
+    return base
+  }
+
+  it('is optional: old files without it, and an empty cell, pass', () => {
+    expect(() => validateDangCsvCells(row())).not.toThrow()
+    expect(() => validateDangCsvCells(cells(''))).not.toThrow()
+    expect(() => validateDangCsvCells(cells('[]'))).not.toThrow()
+  })
+
+  it('accepts payments that add up to no more than the debt', () => {
+    const json = JSON.stringify([
+      { id: 'a', amount: 150000 },
+      { id: 'b', amount: 50000 }
+    ])
+
+    expect(() => validateDangCsvCells(cells(json))).not.toThrow()
+  })
+
+  it.each([
+    ['not json', 'معتبر نیست'],
+    ['{"amount":5}', 'معتبر نیست'],
+    ['[{"amount":0}]', 'باید بیشتر از صفر باشد'],
+    ['[{"amount":-5}]', 'باید بیشتر از صفر باشد'],
+    ['[{"id":"x"}]', 'باید بیشتر از صفر باشد'],
+    ['[{"amount":150000},{"amount":50001}]', 'از مبلغ بدهی بیشتر است']
+  ])('rejects «%s»', (value, reason) => {
+    expect(() => validateDangCsvCells(cells(value))).toThrow(reason)
+  })
+})

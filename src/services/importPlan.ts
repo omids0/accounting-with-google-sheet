@@ -1,4 +1,5 @@
 import { CHECK_DIRECTION_HEADER } from './checkDirection'
+import { PAYMENTS_HEADER } from './sheetHeaders'
 import { SHARED_FIELD_LABELS, SHARED_LINK_FIELD_LABEL } from '../components/form/sharedFields'
 import { ATTACHMENTS_HEADER } from '../utils/attachmentIds'
 import { parseCsv, restoreCsvFormula } from '../utils/csv'
@@ -40,6 +41,7 @@ function hasHeaderRow(firstRow: string[], allHeaders: string[]): boolean {
     WRITER_HEADER,
     ATTACHMENTS_HEADER,
     CHECK_DIRECTION_HEADER,
+    PAYMENTS_HEADER,
     ...SHARED_FIELD_LABELS,
     SHARED_LINK_FIELD_LABEL
   ]

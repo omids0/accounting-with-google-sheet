@@ -1,6 +1,12 @@
 import type { Receivable, ReceivablePayment } from '../types'
 import { RECEIVABLE_WRITER_COLUMN } from './writerColumn'
 import { parseNumeric } from '../utils/parseNumeric'
+import {
+  isComplete,
+  paidTotal,
+  parsePayments as parseLedger,
+  remainingOf
+} from '../utils/paymentLedger'
 import { isJsonArrayCell, isNumericCell, isPlainNumberCell } from '../utils/sheetValues'
 import { parseWriter } from '../utils/writerColumn'
 
@@ -8,16 +14,7 @@ export { RECEIVABLES_SHEET } from './sheetNames'
 export { RECEIVABLES_HEADERS } from './sheetHeaders'
 
 export function parsePayments(raw: string): ReceivablePayment[] {
-  if (!raw) return []
-  try {
-    const parsed = JSON.parse(raw) as ReceivablePayment[]
-
-    if (Array.isArray(parsed)) return parsed
-  } catch {
-    /* use default */
-  }
-
-  return []
+  return parseLedger<ReceivablePayment>(raw)
 }
 
 type ReceivableRowLayout = 'legacy' | 'withTitle' | 'withCategory'
@@ -110,15 +107,15 @@ export function receivableToRow(receivable: Receivable): string[] {
 }
 
 export function paidAmount(receivable: Receivable): number {
-  return receivable.payments.reduce((sum, p) => sum + p.amount, 0)
+  return paidTotal(receivable.payments)
 }
 
 export function remainingAmount(receivable: Receivable): number {
-  return Math.max(0, receivable.amount - paidAmount(receivable))
+  return remainingOf(receivable.amount, receivable.payments)
 }
 
 export function isReceivableComplete(receivable: Receivable): boolean {
-  return remainingAmount(receivable) <= 0
+  return isComplete(receivable.amount, receivable.payments)
 }
 
 export function getReceivableDisplayTitle(
