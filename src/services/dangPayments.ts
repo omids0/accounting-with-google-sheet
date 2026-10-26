@@ -4,6 +4,7 @@ import { dangSettlementCategory } from './buildingDang'
 import { DangPaymentError } from './dangPaymentError'
 import { fetchDangs, dangToRow, withDangPaidState } from './dangRow'
 import { dangPrefixes, dangSettlementTitle } from './dangTitles'
+import { refreshRowFromSheet } from './freshRow'
 import type { SettleOptions, UnlinkChoice } from './settleOptions'
 import { createLinkedRecordWithWallet, deleteLinkedRecordWithWallet } from './settleRecords'
 import { DANG_SHEET } from './sheetNames'
@@ -17,15 +18,25 @@ import { getTodayIso } from '../utils/jalaliDate'
 type DangRow = Dang & { rowNumber: number }
 
 /**
- * The debt as the sheet holds it now (the local mirror), found by id. Payments are computed on
- * this copy, never on the screen's: another device may have added one since the list loaded.
+ * The debt as the sheet holds it now, found by id: its row is read from Google Sheets into the
+ * local mirror first (offline, or with a write still queued, the mirror is what there is).
+ * Payments are computed on this copy, never on the screen's: another device may have added one.
+ * `fallback` is used when the mirror has no such row (a debt this device only just built).
  */
-async function readFreshDang(spreadsheetId: string, dangId: string): Promise<DangRow> {
-  const fresh = (await fetchDangs(spreadsheetId)).find(item => item.id === dangId)
+export async function readFreshDang(
+  spreadsheetId: string,
+  dangId: string,
+  fallback?: DangRow
+): Promise<DangRow> {
+  if ((await refreshRowFromSheet(spreadsheetId, DANG_SHEET, dangId)) === 'missing') {
+    throw new DangPaymentError('این بدهی پیدا نشد؛ شاید حذف شده باشد.', 'missing')
+  }
 
-  if (!fresh) throw new DangPaymentError('این بدهی پیدا نشد؛ شاید حذف شده باشد.', 'missing')
+  const found = (await fetchDangs(spreadsheetId)).find(item => item.id === dangId) ?? fallback
 
-  return fresh
+  if (!found) throw new DangPaymentError('این بدهی پیدا نشد؛ شاید حذف شده باشد.', 'missing')
+
+  return found
 }
 
 /**

@@ -2,8 +2,10 @@ import type { Dang } from '../types'
 import { logItemActivity } from './activityLog'
 import { dangSettlementCategory } from './buildingDang'
 import { DangPaymentError } from './dangPaymentError'
+import { readFreshDang } from './dangPayments'
 import { dangToRow, fetchDangs, withDangPaidState } from './dangRow'
 import { dangPrefixes, dangSettlementTitle } from './dangTitles'
+import { refreshRowFromSheet } from './freshRow'
 import { migrateDangPaymentsColumn } from './migrateDangPaymentsColumn'
 import { deleteLinkedExpenseRecord } from './paymentTransactions'
 import type { SettleOptions, UnlinkChoice } from './settleOptions'
@@ -81,11 +83,14 @@ export async function updateDang(
   /** False for bulk rewrites (a category rename logs once itself). */
   log = true
 ): Promise<void> {
+  // The sheet's row first: this device's copy may be a poll interval behind another device.
+  const onSheet = await refreshRowFromSheet(spreadsheetId, DANG_SHEET, dang.id)
+
   const rows = await fetchDangs(spreadsheetId).catch(() => null)
 
   const fresh = rows?.find(item => item.id === dang.id)
 
-  if (rows && !fresh) {
+  if (onSheet === 'missing' || (rows && !fresh)) {
     throw new DangPaymentError('این بدهی پیدا نشد؛ شاید حذف شده باشد.', 'missing')
   }
 
@@ -115,6 +120,8 @@ export async function deleteDang(
 ): Promise<void> {
   if (dang && !keepLinkedRecords) {
     // The row on the sheet may hold payments this screen has not seen yet.
+    await refreshRowFromSheet(spreadsheetId, DANG_SHEET, dang.id)
+
     const fresh = (await fetchDangs(spreadsheetId).catch(() => [])).find(
       item => item.id === dang.id
     )
@@ -138,11 +145,14 @@ export async function deleteDang(
  */
 export async function toggleDangPaid(
   spreadsheetId: string,
-  dang: Dang & { rowNumber: number },
+  screenDang: Dang & { rowNumber: number },
   paid: boolean,
   options?: SettleOptions,
   unlink?: UnlinkChoice
 ): Promise<Dang> {
+  // Payments are computed on the row as the sheet holds it, never on the screen's copy.
+  const dang = await readFreshDang(spreadsheetId, screenDang.id, screenDang)
+
   const building = getActiveWorkspaceType() === 'building'
 
   if (paid && !dang.paid) {

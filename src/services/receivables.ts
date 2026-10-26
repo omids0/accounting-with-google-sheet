@@ -17,6 +17,9 @@ export {
   deleteReceivable
 } from './receivablesCrud'
 
+export { saveReceivableFields } from './receivablePayments'
+export { ReceivablePaymentError } from './receivablePaymentError'
+
 export {
   exportReceivablesCsv,
   exportReceivablesPdf,
