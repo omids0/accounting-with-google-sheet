@@ -26,6 +26,15 @@ export function smsCoverage(nowMs = Date.now()): SmsCoverage {
   return sums
 }
 
+/** SMS id → the record it was closed as a part of (the reconcile matches the SMS to it). */
+export function smsCoverageParts(nowMs = Date.now()): ReadonlyMap<string, string> {
+  return new Map(
+    Object.entries(getBankSmsPrefs().smsCoverage)
+      .filter(([, entry]) => nowMs - entry.at < COVERAGE_KEEP_MS)
+      .map(([smsId, entry]) => [smsId, entry.recordId])
+  )
+}
+
 /**
  * Closes the SMS as a part of `recordId`: it leaves the list and nothing else is written. The
  * memory is written first (the list refresh must already see it) and taken back if the close fails.

@@ -20,7 +20,11 @@ import {
   type CorrectionOptions
 } from '../../../services/bankSmsReconcile'
 import { createReconcileCorrection } from '../../../services/bankSmsReconcileApply'
-import { loadReconcileSms, refreshReconcileDigest } from '../../../services/bankSmsReconcileData'
+import {
+  loadReconcileSms,
+  localReconcileLinks,
+  refreshReconcileDigest
+} from '../../../services/bankSmsReconcileData'
 import { readReconcileEntries, saveReconcileSuccess } from '../../../services/bankSmsReconcileStore'
 import { smsSuggestInput, suggestSmsCategory } from '../../../services/bankSmsSuggest'
 import type { LedgerEntry } from '../../../services/recordDuplicates'
@@ -60,10 +64,11 @@ export function useReconcileWizard(accountId: string) {
     if (!account || !sms) return null
 
     const all = accountSms(sms, accountId)
-    const result = reconcileAccount(accountId, account.balance, all, ledger)
+    const links = localReconcileLinks(sms, ledger)
+    const result = reconcileAccount(accountId, account.balance, all, ledger, links)
     const startDay = toIsoDate(new Date(startMs))
     const inRange = (record: LedgerEntry) => record.date >= startDay
-    const match = result?.match ?? matchSmsToRecords(all, ledger, accountId)
+    const match = result?.match ?? matchSmsToRecords(all, ledger, accountId, links)
 
     return {
       result,

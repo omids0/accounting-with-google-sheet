@@ -1,6 +1,13 @@
-import { smsRecordDate } from './bankSmsDate'
 import { isConfirmable, type ConfirmableSms, type ReviewedSms } from './bankSmsQueue'
-import { matchesDuplicate, type LedgerEntry } from './recordDuplicates'
+import {
+  isReconcileCorrection,
+  matchSmsToRecords,
+  NO_RECONCILE_LINKS,
+  RECONCILE_NOTE_PREFIX,
+  type ReconcileLinks,
+  type SmsRecordMatch
+} from './bankSmsReconcileMatch'
+import type { LedgerEntry } from './recordDuplicates'
 import { numberLocale } from '../utils/digitStyle'
 import { formatAmountWords } from '../utils/insightText'
 import { getJalaliParts, JALALI_MONTHS, toIsoDate } from '../utils/jalaliDate'
@@ -29,14 +36,8 @@ export interface ReconcileEntry {
   ignored?: number
 }
 
-export interface SmsRecordMatch {
-  /** Each matched record, with the `receivedAt` of its SMS. */
-  smsTimeOf: Map<LedgerEntry, number>
-  /** SMS of this account with no record («پیامک‌هایی که در اپ نیستند»). */
-  missingSms: ConfirmableSms[]
-  /** Records of this account no SMS matches («تراکنش‌های اپ بدون پیامک»). */
-  unmatchedRecords: LedgerEntry[]
-}
+export { isReconcileCorrection, matchSmsToRecords, RECONCILE_NOTE_PREFIX }
+export type { ReconcileLinks, SmsRecordMatch }
 
 export interface AccountReconcile {
   smsAt: number
@@ -48,65 +49,12 @@ export interface AccountReconcile {
   match: SmsRecordMatch
 }
 
-/** Every correction note starts with this, whatever category the user picked. */
-export const RECONCILE_NOTE_PREFIX = 'تطبیق با پیامک'
-
-/**
- * A record written by «تنظیم دستی موجودی». Besides the system category «تطبیق», a
- * correction can sit in a category the user picked (e.g. «کارمزد»), so the note marks it.
- */
-export function isReconcileCorrection(record: Pick<LedgerEntry, 'category' | 'note'>): boolean {
-  return (
-    record.category === SMS_RECONCILE_CATEGORY ||
-    (record.note ?? '').startsWith(RECONCILE_NOTE_PREFIX)
-  )
-}
-
-const smsRecordType = (entry: ConfirmableSms) =>
-  entry.result.direction === 'debit' ? ('expense' as const) : ('income' as const)
-
 /** Recognised SMS of one account, oldest first. */
 export function accountSms(entries: ReviewedSms[], accountId: string): ConfirmableSms[] {
   return entries
     .filter(isConfirmable)
     .filter(entry => entry.result.accountId === accountId)
     .sort((a, b) => a.sms.receivedAt - b.sms.receivedAt)
-}
-
-/**
- * One SMS ↔ one record: same direction, amount, account and date (the entry form's
- * duplicate rule with no day tolerance, read in reverse). Oldest SMS first.
- */
-export function matchSmsToRecords(
-  sms: ConfirmableSms[],
-  records: LedgerEntry[],
-  accountId: string
-): SmsRecordMatch {
-  const pool = records.filter(record => record.accountId === accountId)
-  const smsTimeOf = new Map<LedgerEntry, number>()
-  const missingSms: ConfirmableSms[] = []
-
-  for (const entry of [...sms].sort((a, b) => a.sms.receivedAt - b.sms.receivedAt)) {
-    const candidate = {
-      type: smsRecordType(entry),
-      amount: entry.amount,
-      date: smsRecordDate(entry.sms.body, entry.sms.receivedAt)
-    }
-    const record = pool.find(
-      item => !smsTimeOf.has(item) && matchesDuplicate(candidate, item, { dayTolerance: 0 })
-    )
-
-    if (record) smsTimeOf.set(record, entry.sms.receivedAt)
-    else missingSms.push(entry)
-  }
-
-  return {
-    smsTimeOf,
-    missingSms,
-    unmatchedRecords: pool.filter(
-      record => !smsTimeOf.has(record) && !isReconcileCorrection(record)
-    )
-  }
 }
 
 /**
@@ -149,7 +97,8 @@ export function reconcileAccount(
   accountId: string,
   balance: number,
   sms: ConfirmableSms[],
-  records: LedgerEntry[]
+  records: LedgerEntry[],
+  links: ReconcileLinks = NO_RECONCILE_LINKS
 ): AccountReconcile | null {
   const newest = sms
     .filter(entry => entry.balance !== null && entry.result.accountId === accountId)
@@ -160,7 +109,7 @@ export function reconcileAccount(
 
   if (!newest || newest.balance === null) return null
 
-  const match = matchSmsToRecords(sms, records, accountId)
+  const match = matchSmsToRecords(sms, records, accountId, links)
   const smsAt = newest.sms.receivedAt
   const appBalance = appBalanceAt(balance, records, accountId, smsAt, match.smsTimeOf)
   const raw = roundMoney(appBalance - newest.balance)
@@ -254,13 +203,14 @@ export function buildDigestLines(
   accounts: { id: string; title: string; balance: number }[],
   reviewed: ReviewedSms[],
   ledger: LedgerEntry[],
-  entries: Record<string, ReconcileEntry>
+  entries: Record<string, ReconcileEntry>,
+  links: ReconcileLinks = NO_RECONCILE_LINKS
 ): Record<string, string> {
   const lines: Record<string, string> = {}
 
   for (const account of accounts) {
     const sms = accountSms(reviewed, account.id)
-    const result = reconcileAccount(account.id, account.balance, sms, ledger)
+    const result = reconcileAccount(account.id, account.balance, sms, ledger, links)
 
     if (result && shouldShowDifference(result, entries[account.id])) {
       lines[account.id] = reconcileDigestLine(account.title, result.difference)
