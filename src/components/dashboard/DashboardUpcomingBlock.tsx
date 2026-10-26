@@ -6,7 +6,10 @@ import CalmBlock from '../CalmBlock'
 import DueItemRow from '../DueItemRow'
 import { calmEmptyClass, calmListClass } from '../ui/calmListStyles'
 
-/** «پیش رو»: the next three due items (installments, checks, dang, personal, vehicle), overdue first. */
+/** Rows shown on every screen size; «همه ←» opens the full list. */
+const UPCOMING_ROWS = 5
+
+/** «پیش رو»: the next due items (installments, checks, dang, personal, vehicle), overdue first. */
 export default function DashboardUpcomingBlock({
   items,
   onViewAll,
@@ -16,7 +19,10 @@ export default function DashboardUpcomingBlock({
   onViewAll: () => void
   className?: string
 }) {
-  const { rows, overdueCount } = useMemo(() => summarizeUpcoming(items), [items])
+  const { rows, overdueCount } = useMemo(
+    () => summarizeUpcoming(items, undefined, UPCOMING_ROWS),
+    [items]
+  )
 
   return (
     <CalmBlock

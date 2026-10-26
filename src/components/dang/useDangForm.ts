@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { guardDangAmount } from './amountFloor'
 import type { DangFormState, DangWithRow } from './types'
 import { createDang, updateDang } from '../../services/dang'
 import { getSettings, isConfigured } from '../../services/settings'
@@ -43,6 +44,9 @@ export function useDangForm({ onSaved }: UseDangFormOptions) {
     if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()!
+
+    // The amount of a partly paid debt cannot drop below what was paid.
+    if (editingItem && !guardDangAmount(editingItem, Number(form.amount))) return
 
     setSaving(true)
     try {

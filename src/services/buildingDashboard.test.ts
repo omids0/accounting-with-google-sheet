@@ -46,7 +46,8 @@ describe('dangToManager', () => {
     date: '2026-10-01',
     note: '',
     paid,
-    paidAt: ''
+    paidAt: '',
+    payments: []
   })
 
   it('adds up the unpaid dang owed to the payer «مدیر» or to a person flagged as the manager', () => {

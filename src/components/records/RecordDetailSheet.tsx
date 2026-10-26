@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react'
 
 import RecordDetailAttachments from './RecordDetailAttachments'
 import RecordDetailFields from './RecordDetailFields'
+import RecordLinkedItems from './RecordLinkedItems'
 import { recordLineItems } from './recordsFilterPredicates'
 import { getFormField, type StoredRecord } from './recordsUtils'
 import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
@@ -112,6 +113,7 @@ export default function RecordDetailSheet({
       ) : null}
 
       <RecordDetailFields record={record} form={form} />
+      <RecordLinkedItems recordId={record.id} type={form.type} />
 
       {isExpense && isBuildingExpenseValues(values) ? (
         <Suspense fallback={null}>

@@ -1,8 +1,11 @@
 import { useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import { dangAmountFloor } from './amountFloor'
+import { dangMinAmountHint } from './paymentLabels'
 import type { DangFormState, DangWithRow } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
+import { formatMoney } from '../../utils/formatMoney'
 import {
   formFieldError,
   requiredDate,
@@ -89,6 +92,8 @@ export default function DangFormModal({
   })
 
   const category = watch('category')
+
+  const amountFloor = editingItem ? dangAmountFloor(editingItem) : undefined
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     return submitValidatedForm(handleSubmit, values => onSubmit(values), event)
@@ -187,7 +192,12 @@ export default function DangFormModal({
           control={control}
           rules={requiredPositiveAmount()}
           render={({ field, fieldState }) => (
-            <FormField label="مبلغ" required error={fieldState.error?.message}>
+            <FormField
+              label="مبلغ"
+              required
+              error={fieldState.error?.message}
+              hint={amountFloor ? dangMinAmountHint(formatMoney(amountFloor)) : undefined}
+            >
               <AmountInput
                 value={field.value}
                 onChange={field.onChange}

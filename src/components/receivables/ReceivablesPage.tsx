@@ -13,6 +13,7 @@ import {
 } from '../../services/receivables'
 import { isConfigured } from '../../services/settings'
 import type { SettleOptions } from '../../services/settleOptions'
+import { linkedIdsOf } from '../../utils/linkedIds'
 import { distributionSparkline } from '../../utils/sparklineData'
 import ActiveFilterChips from '../ActiveFilterChips'
 import ConfirmActionModal from '../ConfirmActionModal'
@@ -100,10 +101,8 @@ export default function ReceivablesPage({ active = true }: ReceivablesPageProps)
     return <EmptyState icon="receivables" message="ابتدا با گوگل وارد شوید" />
   }
 
-  const linkedIds = allItems.flatMap(item =>
-    item.payments.flatMap(payment =>
-      payment.transactionRecordId ? [payment.transactionRecordId] : []
-    )
+  const linkedIds = linkedIdsOf(allItems, item =>
+    item.payments.map(payment => payment.transactionRecordId)
   )
 
   // A new filter shows the first 50 rows again.

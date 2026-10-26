@@ -51,7 +51,7 @@ const recentColumns = (
         {record.id ? (
           <button
             type="button"
-            className="cursor-pointer border-none bg-transparent p-0 font-semibold text-text hover:underline"
+            className="cursor-pointer border-none bg-transparent p-0 text-[length:inherit] font-semibold text-text hover:underline"
             onClick={() => open(record)}
           >
             {record.title}

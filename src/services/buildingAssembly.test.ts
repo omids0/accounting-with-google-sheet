@@ -65,7 +65,8 @@ const dang = (counterparty: string, amount: number): Dang => ({
   date: '2026-09-01',
   note: '',
   paid: false,
-  paidAt: ''
+  paidAt: '',
+  payments: []
 })
 
 const profile = {

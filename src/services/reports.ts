@@ -5,6 +5,7 @@ import { fetchDangs } from './dang'
 import { fetchInstallmentPlans, getInstallmentPaymentAmount } from './installments'
 import { fetchAllOpeningBalances } from './monthlyBalance'
 import type { MonthlyOpeningBalance } from './monthlyBalance'
+import { dangRemaining } from '../utils/dangLedger'
 import { addDaysToIso, getTodayIso } from '../utils/jalaliDate'
 
 export type DueDateItemType = 'installment' | 'check' | 'dang'
@@ -102,9 +103,13 @@ export function collectCheckDueItems(
     })
 }
 
-function collectDangDueItems(dangs: Dang[], today: string, horizonEnd: string): DueDateItem[] {
+export function collectDangDueItems(
+  dangs: Dang[],
+  today: string,
+  horizonEnd: string
+): DueDateItem[] {
   return dangs
-    .filter(dang => !dang.paid)
+    .filter(dang => dangRemaining(dang) > 0)
     .filter(dang => dang.date.slice(0, 10) <= horizonEnd)
     .map(dang => {
       const dueDate = dang.date.slice(0, 10)
@@ -113,7 +118,7 @@ function collectDangDueItems(dangs: Dang[], today: string, horizonEnd: string): 
         type: 'dang' as const,
         id: dang.id,
         title: dang.title,
-        amount: dang.amount,
+        amount: dangRemaining(dang),
         dueDate,
         status: classifyDueDate(dueDate, today),
         subtitle: dang.counterparty || dang.category || 'بدهی'

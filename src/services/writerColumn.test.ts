@@ -18,7 +18,8 @@ vi.mock('./settings', () => ({ getSettings: () => ({ forms: [] }) }))
 const { CHECK_WRITER_COLUMN, DANG_WRITER_COLUMN, ensureWriterColumn, RECEIVABLE_WRITER_COLUMN } =
   await import('./writerColumn')
 const { CHECKS_HEADERS, DANG_HEADERS, RECEIVABLES_HEADERS } = await import('./sheetHeaders')
-const { CHECKS_SHEET } = await import('./sheetNames')
+const { CHECKS_SHEET, DANG_SHEET } = await import('./sheetNames')
+const { dangToRow, rowToDang } = await import('./dangRow')
 const { buildFieldColumnMap } = await import('./sheetsHeaders')
 const { appendRecord, fetchRecords } = await import('./sheetsRecords')
 const { updateSheetRow } = await import('./sheetsRows')
@@ -44,9 +45,10 @@ describe('writer cell helpers', () => {
     expect(withWriterCell(['a'], -1, 'x@y.z')).toEqual(['a'])
   })
 
-  it('is the last column of dang; checks add the type after it and receivables two building columns', () => {
+  it('is followed by the payments column on dang; checks add the type after it and receivables two building columns', () => {
     expect(CHECK_WRITER_COLUMN).toBe(CHECKS_HEADERS.length - 2)
-    expect(DANG_WRITER_COLUMN).toBe(DANG_HEADERS.length - 1)
+    expect(DANG_WRITER_COLUMN).toBe(DANG_HEADERS.length - 2)
+    expect(DANG_HEADERS[DANG_HEADERS.length - 1]).toBe('پرداخت‌ها')
     expect(RECEIVABLE_WRITER_COLUMN).toBe(RECEIVABLES_HEADERS.length - 3)
     expect(headerWriterColumn(CHECKS_HEADERS)).toBe(CHECK_WRITER_COLUMN)
   })
@@ -110,6 +112,34 @@ describe('writer column on save', () => {
 
     expect(getSheetRow(SHEET_ID, CHECKS_SHEET, 2)?.[CHECK_WRITER_COLUMN]).toBe('me@example.com')
     expect(getSheetRow(SHEET_ID, CHECKS_SHEET, 1)?.[CHECK_WRITER_COLUMN]).toBe('ثبت‌کننده')
+  })
+
+  it('stamps a dang row at index 12 and leaves the payments cell at 13 alone', async () => {
+    const payments = [{ id: 'p1', amount: 40, paidAt: '2026-10-02', note: '' }]
+
+    const dang = {
+      id: 'd1',
+      createdAt: 't',
+      title: 'شام',
+      category: 'خوراک',
+      counterparty: 'علی',
+      amount: 100,
+      date: '2026-10-01',
+      note: '',
+      paid: false,
+      paidAt: '',
+      payments
+    }
+
+    setSheetAllRows(SHEET_ID, DANG_SHEET, [DANG_HEADERS, dangToRow(dang)])
+    await updateSheetRow(SHEET_ID, DANG_SHEET, 2, dangToRow(dang))
+
+    const saved = getSheetRow(SHEET_ID, DANG_SHEET, 2) ?? []
+
+    expect(saved).toHaveLength(14)
+    expect(saved[DANG_WRITER_COLUMN]).toBe('me@example.com')
+    expect(saved[13]).toBe(JSON.stringify(payments))
+    expect(rowToDang(saved, 2)).toMatchObject({ writer: 'me@example.com', payments })
   })
 
   it('leaves rows alone when signed out', async () => {

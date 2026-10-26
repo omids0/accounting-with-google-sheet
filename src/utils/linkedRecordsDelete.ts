@@ -13,8 +13,9 @@ export function installmentPlanLinkedCount(plan: Pick<InstallmentPlan, 'payments
   return plan.payments.filter(payment => payment.transactionRecordId).length
 }
 
-export function dangLinkedCount(dang: Pick<Dang, 'transactionRecordId'>): number {
-  return dang.transactionRecordId ? 1 : 0
+/** Expense records made by the payments of a debt. */
+export function dangLinkedCount(dang: Pick<Dang, 'payments'>): number {
+  return dang.payments.filter(payment => payment.transactionRecordId).length
 }
 
 export function checkLinkedCount(check: Pick<Check, 'transactionRecordId'>): number {

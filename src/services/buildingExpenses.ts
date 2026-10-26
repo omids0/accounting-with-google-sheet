@@ -226,7 +226,8 @@ export function planExpenseSync(input: {
       date: record.date,
       note: debt?.note ?? '',
       paid: debt?.paid ?? false,
-      paidAt: debt?.paidAt ?? ''
+      paidAt: debt?.paidAt ?? '',
+      payments: debt?.payments ?? []
     }
 
     if (!debt) plan.dang = { action: 'create', dang: next }

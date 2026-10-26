@@ -49,6 +49,19 @@ describe('summaryFor', () => {
     expect(firstPersonSummary('قسط مهر را پرداخت‌شده زد')).toBe('قسط مهر را پرداخت‌شده زدم')
     expect(firstPersonSummary('نسخهٔ من کنار گذاشته شد')).toBe('نسخهٔ من کنار گذاشته شد')
   })
+
+  it('turns the debt and receivable payment lines into first person too', () => {
+    // The lines dangPayments.ts and receivablesCrud.ts write for a piece paid or taken back.
+    expect(firstPersonSummary('۳۰ هزار از بدهی «لامپ» را پرداخت کرد')).toBe(
+      '۳۰ هزار از بدهی «لامپ» را پرداخت کردم'
+    )
+    expect(firstPersonSummary('پرداخت ۳۰ هزار از بدهی «لامپ» را حذف کرد')).toBe(
+      'پرداخت ۳۰ هزار از بدهی «لامپ» را حذف کردم'
+    )
+    expect(firstPersonSummary('دریافت ۳۰ هزار از طلب «وام» را حذف کرد')).toBe(
+      'دریافت ۳۰ هزار از طلب «وام» را حذف کردم'
+    )
+  })
 })
 
 describe('activity rows', () => {

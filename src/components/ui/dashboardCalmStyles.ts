@@ -46,16 +46,18 @@ export const discoveryRowCloseClass = cx(
  * The five blocks. Phones: part of the page column (`contents`). Tablets: two
  * columns in DOM order. Desktop: 12 columns — hero, «پیش رو», «تحلیل» (c4 each),
  * then «تراکنش‌های اخیر» (c8) and «دارایی و بدهی» (c4). From tablet up the flat
- * blocks sit on a surface so the grid reads as cells.
+ * blocks sit on a surface so the grid reads as cells. On desktop the cells of a row share
+ * one height (stretch), so no card ends higher than its neighbour.
  */
 export const dashboardGridClass = cx(
-  'contents md:grid md:grid-cols-2 md:items-start md:gap-4 xl:grid-cols-12 xl:gap-5',
+  'contents md:grid md:grid-cols-2 md:items-start md:gap-4 xl:grid-cols-12 xl:items-stretch xl:gap-5',
   '[&>.calm-block]:md:rounded-[var(--radius)] [&>.calm-block]:md:border [&>.calm-block]:md:border-border',
   '[&>.calm-block]:md:bg-surface [&>.calm-block]:md:px-3.5 [&>.calm-block]:md:py-2.5'
 )
 
 export const dashboardCellClass = {
-  hero: 'xl:col-span-4',
+  /** Stretched to the row height with its content centred. */
+  hero: 'xl:col-span-4 xl:flex xl:flex-col xl:justify-center',
   upcoming: 'xl:col-span-4',
   analysis: 'xl:col-span-4',
   /** Moves after «تحلیل» on desktop (order 1 vs. the default 0). */

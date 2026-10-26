@@ -3,6 +3,7 @@ import { logRecordActivity } from '../../services/activityLog'
 import { readBridgePrefs } from '../../services/bridgePrefs'
 import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import { refreshOpeningBalancesInBackground } from '../../services/openingBalanceRefresh'
+import { syncLinkedOnRecordDeleted, syncLinkedOnRecordUpdated } from '../../services/recordLinks'
 import {
   applyWalletChanges,
   recordLedgerContext,
@@ -150,6 +151,14 @@ export async function submitRecordEdit({
       )
     }
     showSuccess('تراکنش ویرایش شد')
+    // A debt or receivable payment linked to this record follows its new amount and date.
+    await syncLinkedOnRecordUpdated(
+      settings.spreadsheetId,
+      editingRecord.id,
+      editingForm.type,
+      editingRecord.values,
+      formValues
+    )
     refreshOpeningBalancesInBackground()
     await onSuccess()
 
@@ -192,6 +201,8 @@ export async function deleteStoredRecord({
     null,
     recordLedgerContext(record.values, 'حذف', record.id)
   )
+  // The delete is committed: payments of a debt or receivable that pointed at the record go with it.
+  await syncLinkedOnRecordDeleted(spreadsheetId, record.id, form.type)
   if (form.type === 'expense' && isBuildingExpenseValues(record.values)) {
     const { removeBuildingExpenseShares } = await import('../../services/buildingExpenseActions')
 

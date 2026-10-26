@@ -16,6 +16,7 @@ import type {
   VaultHolding,
   VehicleProfile
 } from '../types'
+import { dangPaymentStatus, dangRemaining, type DangPaymentStatus } from '../utils/dangLedger'
 import { formatIsoDatePersian } from '../utils/jalaliDate'
 import { toPersianDigits } from '../utils/normalizeDigits'
 
@@ -101,6 +102,13 @@ function counterpartyEntries(sources: SearchSources): SearchEntry[] {
   })
 }
 
+/** Only a partly paid or settled debt needs a mark; an untouched one reads as before. */
+const DANG_STATUS_LABEL: Record<DangPaymentStatus, string> = {
+  unpaid: '',
+  partial: 'پرداخت جزئی',
+  settled: 'پرداخت‌شده'
+}
+
 function moduleEntries(sources: SearchSources): SearchEntry[] {
   const checks = sources.checks.map(item => ({
     group: 'checks' as const,
@@ -117,11 +125,16 @@ function moduleEntries(sources: SearchSources): SearchEntry[] {
     group: 'dang' as const,
     id: item.id,
     title: item.title || item.counterparty || '—',
-    subtitle: joinParts(item.counterparty, item.category, item.paid ? 'پرداخت‌شده' : ''),
+    subtitle: joinParts(
+      item.counterparty,
+      item.category,
+      DANG_STATUS_LABEL[dangPaymentStatus(item)]
+    ),
     amount: item.amount,
     date: item.date,
     text: searchText(item.title, item.counterparty, item.category, item.subCategory, item.note),
-    amounts: [item.amount],
+    // The total, what is left and every payment, so any of those numbers finds the debt.
+    amounts: [item.amount, dangRemaining(item), ...item.payments.map(payment => payment.amount)],
     writer: item.writer
   }))
   const receivables = sources.receivables.map(item => ({

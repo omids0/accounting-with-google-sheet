@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { CHECK_EXPENSE_CATEGORY } from './checks'
+import { DANG_EXPENSE_CATEGORY } from './dangConstants'
 import { INSTALLMENT_EXPENSE_CATEGORY } from './installmentsConstants'
 import {
   isLegacyMachineExpenseCategory,
@@ -27,15 +28,21 @@ describe('migrateLegacyMachineExpenseCategory helpers', () => {
       SMS_RECONCILE_CATEGORY,
       INSTALLMENT_EXPENSE_CATEGORY,
       CHECK_EXPENSE_CATEGORY,
+      DANG_EXPENSE_CATEGORY,
       OTHER_CATEGORY
     ])
   })
 
-  it('keeps the round-6 default list in order, adding only the reconciliation categories', () => {
+  it('keeps the round-6 default list in order, adding only the reconciliation and debt categories', () => {
     const next = removeLegacyMachineCategory(['ماشین', ...DEFAULT_EXPENSE_CATEGORIES])
 
     expect(
-      next.filter(name => name !== RECONCILIATION_CATEGORY && name !== SMS_RECONCILE_CATEGORY)
+      next.filter(
+        name =>
+          name !== RECONCILIATION_CATEGORY &&
+          name !== SMS_RECONCILE_CATEGORY &&
+          name !== DANG_EXPENSE_CATEGORY
+      )
     ).toEqual(DEFAULT_EXPENSE_CATEGORIES)
     expect(next.at(-1)).toBe(OTHER_CATEGORY)
   })
