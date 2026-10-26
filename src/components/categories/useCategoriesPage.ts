@@ -16,6 +16,7 @@ import {
   type ManagedCategoryType
 } from '../../services/categoryManagePlan'
 import { loadCategoryRows } from '../../services/categoryRewrite'
+import { computedSubcategoriesOf } from '../../services/categorySubcategories'
 import { getSettings } from '../../services/settings'
 import { isOtherCategory } from '../../utils/categoryOrdering'
 import { getTodayIso } from '../../utils/jalaliDate'
@@ -37,6 +38,8 @@ export interface CategoryItem {
   index: number
   /** Subcategories without the implicit «سایر»; null for lists without them. */
   subcategories: string[] | null
+  /** Part of `subcategories` that follows another list (the debt categories under «بدهی»). */
+  fixedSubcategories: string[]
   usage: CategoryUsage
   budget: number
   /** «سیستمی» badge: no rename, no delete. */
@@ -97,6 +100,7 @@ export function useCategoriesPage() {
         subcategories: hasSubcategories(type)
           ? readSubcategoryList(type, name).filter(sub => !isOtherCategory(sub))
           : null,
+        fixedSubcategories: computedSubcategoriesOf(type, name),
         usage: usageOf(summary, name),
         budget: type === 'expense' ? budgetState.budgets.get(name) ?? 0 : 0,
         system: isSystemCategory(type, name),

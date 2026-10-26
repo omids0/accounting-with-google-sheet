@@ -16,6 +16,8 @@ import { formHintClass } from '../ui/formStyles'
 interface CategorySubcategoryEditorProps {
   category: string
   subcategories: string[]
+  /** Names that follow another list: shown, but never renamed or removed here. */
+  fixedSubcategories?: string[]
   busy: boolean
   onSave: (next: string[]) => Promise<boolean>
   /** Rewrites the rows that carry the subcategory, then the list. */
@@ -26,6 +28,7 @@ interface CategorySubcategoryEditorProps {
 export default function CategorySubcategoryEditor({
   category,
   subcategories,
+  fixedSubcategories = [],
   busy,
   onSave,
   onRename
@@ -66,7 +69,9 @@ export default function CategorySubcategoryEditor({
         <ul className={categorySubListClass} aria-label={`زیردسته‌های ${category}`}>
           {subcategories.map(sub => (
             <li key={sub} className={categorySubRowClass}>
-              {editing === sub ? (
+              {fixedSubcategories.includes(sub) ? (
+                <span className={categorySubNameClass}>{sub}</span>
+              ) : editing === sub ? (
                 <>
                   <input
                     type="text"
@@ -135,6 +140,12 @@ export default function CategorySubcategoryEditor({
       ) : (
         <p className={formHintClass}>هنوز زیردسته‌ای ندارد؛ «سایر» همیشه هست.</p>
       )}
+
+      {fixedSubcategories.length ? (
+        <p className={formHintClass}>
+          این زیردسته‌ها همان دسته‌های بدهی‌اند؛ تغییرشان از «سایر فهرست‌ها › بدهی» است.
+        </p>
+      ) : null}
 
       <div className={categoryAddRowClass}>
         <input

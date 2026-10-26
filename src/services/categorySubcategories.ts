@@ -1,4 +1,6 @@
-import { getDefaultSettings, getSettings, saveSettings } from './settings'
+import { DANG_EXPENSE_CATEGORY } from './dangConstants'
+import { getDangCategories, getDefaultSettings, getSettings, saveSettings } from './settings'
+import { getActiveWorkspaceType } from './workspace'
 import type { CategorySubcategoryMap } from '../types'
 import { withOtherLast, withoutOtherCategory } from '../utils/categoryOrdering'
 
@@ -50,6 +52,18 @@ export function seedDefaultSubcategories(
 }
 
 /**
+ * The subcategories of a personal account's expense «بدهی» are its debt categories: computed from
+ * that list on every read and never stored, so a renamed or added debt category cannot leave an
+ * orphan behind. Anything else the user stored under «بدهی» stays as it is.
+ */
+export function computedSubcategoriesOf(categoryType: string, category: string): string[] {
+  if (categoryType !== 'expense' || category !== DANG_EXPENSE_CATEGORY) return []
+  if (getActiveWorkspaceType() !== 'personal') return []
+
+  return withoutOtherCategory(getDangCategories())
+}
+
+/**
  * «سایر» is implicit: it is appended on read and stripped on write, so every
  * category offers it without the sheet carrying a row for each one.
  */
@@ -62,7 +76,10 @@ export function getSubcategoriesOf(
 
   if (!name) return []
 
-  return withOtherLast(map?.[categoryType]?.[name] ?? [])
+  const stored = map?.[categoryType]?.[name] ?? []
+  const debts = computedSubcategoriesOf(categoryType, name).filter(item => !stored.includes(item))
+
+  return withOtherLast([...stored, ...debts])
 }
 
 export function setSubcategoriesOf(
@@ -73,7 +90,8 @@ export function setSubcategoriesOf(
 ): CategorySubcategoryMap {
   const forType = { ...(map[categoryType] ?? {}) }
 
-  const stored = withoutOtherCategory(subcategories)
+  const computed = computedSubcategoriesOf(categoryType, category)
+  const stored = withoutOtherCategory(subcategories).filter(item => !computed.includes(item))
 
   if (stored.length) {
     forType[category] = stored

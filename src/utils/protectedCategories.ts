@@ -4,6 +4,7 @@ import {
   VEHICLE_FUEL_EXPENSE_TYPE
 } from '../components/vehicles/constants'
 import { CHECK_EXPENSE_CATEGORY, CHECK_INCOME_CATEGORY } from '../services/checks'
+import { DANG_EXPENSE_CATEGORY } from '../services/dangConstants'
 import { INSTALLMENT_EXPENSE_CATEGORY } from '../services/installmentsConstants'
 import { getActiveWorkspaceType, type WorkspaceType } from '../services/workspace'
 
@@ -20,8 +21,8 @@ export const LOCKED_INCOME_CATEGORIES = new Set<string>([
   CHECK_INCOME_CATEGORY
 ])
 
-// Installments and checks write their linked expense record under these exact
-// category names (see installmentsCrud.ts and checks.ts). Renaming or deleting
+// Installments, checks and personal debts write their linked expense record under these exact
+// category names (see installmentsCrud.ts, checks.ts and buildingDang.ts). Renaming or deleting
 // the category would not touch those hardcoded writes, so payments would keep
 // landing under a category the picker no longer offers — same failure mode
 // «خودرو» and «اصلاح موجودی» are locked against.
@@ -30,7 +31,8 @@ export const LOCKED_EXPENSE_CATEGORIES = new Set<string>([
   RECONCILIATION_CATEGORY,
   SMS_RECONCILE_CATEGORY,
   INSTALLMENT_EXPENSE_CATEGORY,
-  CHECK_EXPENSE_CATEGORY
+  CHECK_EXPENSE_CATEGORY,
+  DANG_EXPENSE_CATEGORY
 ])
 
 export const LOCKED_VEHICLE_EXPENSE_TYPES = new Set<string>([VEHICLE_FUEL_EXPENSE_TYPE])

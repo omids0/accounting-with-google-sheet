@@ -4,9 +4,11 @@ import {
   type CategoryRewriteTarget,
   type ManagedCategoryType
 } from './categoryManagePlan'
+import { DANG_EXPENSE_CATEGORY } from './dangConstants'
 import { getSettings } from './settings'
 import { fetchRecords, updateRecord } from './sheets'
 import { getOutboxEntries } from './syncOutbox'
+import { workspaceTypeOf } from './workspace'
 import { SUBCATEGORY_FIELD_ID } from '../components/form/fieldUtils'
 
 /**
@@ -150,6 +152,27 @@ function itemRewrites<T extends { category: string; subCategory?: string; rowNum
   })
 }
 
+/**
+ * A personal debt payment is an expense under «بدهی» whose subcategory is the debt's category,
+ * so renaming or merging that category carries those expense rows along. Records of other
+ * categories (even older ones named «بدهی: …») and building or shared ledgers stay as they are.
+ */
+async function debtPaymentRewrites(
+  spreadsheetId: string,
+  from: CategoryRewriteTarget,
+  to: CategoryRewriteTarget
+): Promise<RewriteTask[]> {
+  // A subcategory move on a debt row is the debt's own field, not what the payments carry.
+  if (from.subCategory !== undefined || workspaceTypeOf(spreadsheetId) !== 'personal') return []
+
+  return recordRewrites(
+    spreadsheetId,
+    'expense',
+    { category: DANG_EXPENSE_CATEGORY, subCategory: from.category },
+    { category: DANG_EXPENSE_CATEGORY, subCategory: to.category }
+  )
+}
+
 /** One task per row of the list's ledger that holds `from`. */
 export async function collectCategoryRewrites(
   spreadsheetId: string,
@@ -164,9 +187,11 @@ export async function collectCategoryRewrites(
   if (type === 'dang') {
     const { fetchDangs, updateDang } = await import('./dang')
 
-    return itemRewrites(await fetchDangs(spreadsheetId), from, to, (row, item) =>
+    const dangRows = itemRewrites(await fetchDangs(spreadsheetId), from, to, (row, item) =>
       updateDang(spreadsheetId, row, item, false)
     )
+
+    return [...dangRows, ...(await debtPaymentRewrites(spreadsheetId, from, to))]
   }
 
   if (type === 'receivable') {
