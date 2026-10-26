@@ -220,14 +220,3 @@ export function unitOffer(match: SmsUnitMatch): SmsUnitOffer | null {
       return null
   }
 }
-
-/**
- * What «ثبت همهٔ شناخته‌شده‌ها» may do with a deposit: pay the unit when the payer's card is a
- * unit's, save it as income when no unit is in question, and NEVER take an amount-only (or
- * ambiguous) match, which needs a tap on a unit.
- */
-export function bulkAction(match: SmsUnitMatch | null): 'unit' | 'income' | 'never' {
-  if (!match || match.kind === 'none') return 'income'
-
-  return match.kind === 'card' ? 'unit' : 'never'
-}
