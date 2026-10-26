@@ -19,19 +19,21 @@ import {
 export default function DueItemRow({
   item,
   days,
-  showMonth = true
+  showMonth = true,
+  className
 }: {
   item: DashboardReminderItem
   /** Days from today to the due date; negative once overdue. */
   days: number
   showMonth?: boolean
+  className?: string
 }) {
   const overdue = item.status === 'overdue'
   const lateIncoming = overdue && item.incoming === true
   const when = formatDueRelative(item.status, days)
 
   return (
-    <li className={calmRowClass}>
+    <li className={cn(calmRowClass, className)}>
       <DayBadge date={item.dueDate} showMonth={showMonth} danger={overdue && !lateIncoming} />
       <span className={calmRowMainClass}>
         <span className={calmRowTitleClass}>
