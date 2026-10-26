@@ -54,9 +54,9 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
     review.accounts.find(account => account.id === id)?.title ?? 'حساب'
   const dismiss = () => review.dismiss(key, [entry.sms.id])
   const [closing, setClosing] = useState(false)
-  const alreadyRecorded = () => {
+  const closeAsRecorded = () => {
     setClosing(true)
-    void review.alreadyRecorded(key, [entry.sms.id]).finally(() => setClosing(false))
+    void review.closeAsRecorded(item).finally(() => setClosing(false))
   }
 
   // A deposit into a building's fund: which unit paid (round 11, Step 6).
@@ -173,7 +173,12 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
 
           <div className={smsActionsRowClass}>
             {duplicatePayment && (
-              <BankSmsSameButton busy={busy} loading={busy && closing} onClick={alreadyRecorded} />
+              <BankSmsSameButton
+                item={item}
+                busy={busy}
+                loading={busy && closing}
+                onClick={closeAsRecorded}
+              />
             )}
             <Button
               type="button"
@@ -258,7 +263,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
           // The same action is the card's main button when the record is a payment.
           ...(duplicatePayment
             ? []
-            : [{ id: 'recorded', label: 'قبلاً ثبت شده', onSelect: alreadyRecorded }]),
+            : [{ id: 'recorded', label: 'قبلاً ثبت شده', onSelect: closeAsRecorded }]),
           { id: 'dismiss', label: 'نادیده', onSelect: dismiss },
           {
             id: 'raw',

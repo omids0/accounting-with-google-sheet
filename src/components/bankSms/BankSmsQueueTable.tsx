@@ -126,8 +126,9 @@ export default function BankSmsQueueTable({ review }: { review: BankSmsReview })
             <>
               {item.kind === 'single' && payment && (
                 <BankSmsSameButton
+                  item={item}
                   busy={review.busyKey === item.key}
-                  onClick={() => void review.alreadyRecorded(item.key, [item.entry.sms.id])}
+                  onClick={() => void review.closeAsRecorded(item)}
                 />
               )}
               {item.kind === 'single' && resolved && (

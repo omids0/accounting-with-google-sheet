@@ -2,6 +2,7 @@ import type { BankSmsReviewItem } from '../../services/bankSmsQueue'
 import type { SmsSuggestionSource } from '../../services/bankSmsSuggest'
 import { createdAgoLabel } from '../../services/recordDuplicates'
 import type { SmsDirection, SmsSlotRole, SmsTemplate, SmsTemplateIssue } from '../../types'
+import { formatPersianNumber } from '../../utils/formatMoney'
 
 export const SMS_ROLE_LABELS: Record<SmsSlotRole, string> = {
   amount: 'مبلغ',
@@ -105,19 +106,51 @@ export function smsPaymentLabel(
   return createdAtMs ? `${label} · ${recordAge(createdAtMs, nowMs)}` : label
 }
 
+const paymentVerb = (income: boolean) => (income ? 'دریافت' : 'پرداخت')
+
+const clipTitle = (title: string) =>
+  title.length > TITLE_CLIP ? `${title.slice(0, TITLE_CLIP).trim()}…` : title
+
+/** «بخشی از پرداخت «وام»؟»: the badge of an SMS smaller than a payment record. */
+export function smsSplitBadge(payment: { title: string }, income: boolean) {
+  return `بخشی از ${paymentVerb(income)} «${clipTitle(payment.title)}»؟`
+}
+
+/** «بخشی از پرداخت «وام» (۲۰٬۰۰۰٬۰۰۰، پوشش‌نیافته ۲۰٬۰۰۰٬۰۰۰)؟» */
+export function smsSplitLine(item: {
+  duplicateOf: { amount: number; type: string } | null
+  duplicatePayment: { title: string } | null
+  splitUncovered: number | null
+}) {
+  const { duplicateOf, duplicatePayment, splitUncovered } = item
+
+  if (!duplicateOf || !duplicatePayment || splitUncovered === null) return ''
+
+  const verb = paymentVerb(duplicateOf.type === 'income')
+  const amounts = `${formatPersianNumber(duplicateOf.amount)}، پوشش‌نیافته ${formatPersianNumber(
+    splitUncovered
+  )}`
+
+  return `بخشی از ${verb} «${clipTitle(duplicatePayment.title)}» (${amounts})؟`
+}
+
 /** The badge text of a queued SMS whose record already exists: the payment, else «تکراری؟». */
 export function smsDuplicateStatus(
-  item: Pick<Extract<BankSmsReviewItem, { kind: 'single' }>, 'duplicateOf' | 'duplicatePayment'>,
+  item: Pick<
+    Extract<BankSmsReviewItem, { kind: 'single' }>,
+    'duplicateOf' | 'duplicatePayment' | 'splitUncovered'
+  >,
   nowMs = Date.now()
 ) {
   const createdAtMs = item.duplicateOf?.createdAtMs
+  const income = item.duplicateOf?.type === 'income'
+
+  if (item.duplicatePayment && item.splitUncovered !== null) {
+    return smsSplitBadge(item.duplicatePayment, income)
+  }
 
   return item.duplicatePayment
-    ? smsPaymentLabel(
-        { ...item.duplicatePayment, income: item.duplicateOf?.type === 'income' },
-        createdAtMs,
-        nowMs
-      )
+    ? smsPaymentLabel({ ...item.duplicatePayment, income }, createdAtMs, nowMs)
     : smsDuplicateLabel(createdAtMs, nowMs)
 }
 

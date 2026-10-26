@@ -1,4 +1,4 @@
-import { smsDuplicateStatus } from './smsLabels'
+import { smsDuplicateStatus, smsSplitLine } from './smsLabels'
 import type { BankSmsReviewItem } from '../../services/bankSmsQueue'
 import AppIcon from '../AppIcon'
 import { smsBadgeClass, smsHintClass } from '../ui/bankSmsStyles'
@@ -13,7 +13,7 @@ export function BankSmsDuplicateBadge({ item }: { item: SingleSmsItem }) {
 
 /** What closing the SMS does to the account balance, for a card with a probable duplicate. */
 export function BankSmsDuplicateHint({ item }: { item: SingleSmsItem }) {
-  const { duplicatePayment, duplicateMovedBalance } = item
+  const { duplicatePayment, duplicateMovedBalance, duplicateOf, splitUncovered } = item
 
   if (!duplicatePayment) {
     return duplicateMovedBalance ? (
@@ -21,6 +21,14 @@ export function BankSmsDuplicateHint({ item }: { item: SingleSmsItem }) {
         رکورد مشابه موجودی همین حساب را هم تغییر داده؛ اگر همان است «⋯ ← قبلاً ثبت شده».
       </p>
     ) : null
+  }
+
+  const balance = duplicateMovedBalance
+    ? 'موجودی همین حساب با همان پرداخت عوض شده؛ با بستن پیامک دوباره عوض نمی‌شود.'
+    : 'آن پرداخت موجودی این حساب را عوض نکرده؛ پیامک را ببند و اگر موجودی حساب هم باید با پیامک هماهنگ شود «فقط موجودی» را بزن.'
+
+  if (splitUncovered !== null && duplicateOf) {
+    return <p className={smsHintClass}>{`${smsSplitLine(item)} ${balance}`}</p>
   }
 
   return (
@@ -34,10 +42,12 @@ export function BankSmsDuplicateHint({ item }: { item: SingleSmsItem }) {
 
 /** The main action of a card whose payment is already recorded: leave the list, change nothing. */
 export function BankSmsSameButton({
+  item,
   busy,
   loading = false,
   onClick
 }: {
+  item: SingleSmsItem
   /** Some action of this SMS is running: disabled. */
   busy: boolean
   /** It is this button's action that is running: spinner. */
@@ -54,7 +64,7 @@ export function BankSmsSameButton({
       onClick={onClick}
     >
       <AppIcon name="check" size={16} />
-      همان است، پیامک را ببند
+      {item.splitUncovered === null ? 'همان است، پیامک را ببند' : 'بله، بخشی از آن است — ببند'}
     </Button>
   )
 }

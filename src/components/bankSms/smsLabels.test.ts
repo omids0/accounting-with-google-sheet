@@ -5,7 +5,9 @@ import {
   smsChoiceReason,
   smsDuplicateLabel,
   smsDuplicateStatus,
-  smsPaymentLabel
+  smsPaymentLabel,
+  smsSplitBadge,
+  smsSplitLine
 } from './smsLabels'
 
 const NOW = new Date(2026, 9, 12, 15, 0).getTime()
@@ -47,20 +49,59 @@ describe('smsPaymentLabel', () => {
   })
 })
 
+describe('smsSplitBadge and smsSplitLine', () => {
+  const payment = { kind: 'dang', noun: 'بدهی', title: 'وام' }
+
+  it('asks «بخشی از پرداخت؟» with the record and uncovered amounts', () => {
+    expect(smsSplitBadge(payment, false)).toBe('بخشی از پرداخت «وام»؟')
+    expect(smsSplitBadge(payment, true)).toBe('بخشی از دریافت «وام»؟')
+    expect(
+      smsSplitLine({
+        duplicateOf: { amount: 20_000_000, type: 'expense' },
+        duplicatePayment: payment,
+        splitUncovered: 20_000_000
+      })
+    ).toBe('بخشی از پرداخت «وام» (۲۰٬۰۰۰٬۰۰۰، پوشش‌نیافته ۲۰٬۰۰۰٬۰۰۰)؟')
+    expect(
+      smsSplitLine({ duplicateOf: null, duplicatePayment: payment, splitUncovered: null })
+    ).toBe('')
+  })
+
+  it('is the status of a split item', () => {
+    const item = {
+      duplicateOf: { amount: 5, type: 'income', createdAtMs: NOW },
+      duplicatePayment: payment,
+      splitUncovered: 5
+    }
+
+    expect(smsDuplicateStatus(item as never, NOW)).toBe('بخشی از دریافت «وام»؟')
+  })
+})
+
 describe('smsDuplicateStatus', () => {
   it('shows the payment when the record is one, else the «تکراری؟» label', () => {
     const duplicateOf = { createdAtMs: NOW - 12 * MINUTE }
     const payment = { kind: 'dang', noun: 'بدهی', title: 'وام' }
 
-    expect(smsDuplicateStatus({ duplicateOf, duplicatePayment: null } as never, NOW)).toBe(
-      'تکراری؟ · رکورد ۱۲ دقیقه پیش'
-    )
-    expect(smsDuplicateStatus({ duplicateOf, duplicatePayment: payment } as never, NOW)).toBe(
-      'پرداخت بدهی «وام» ثبت شده · ۱۲ دقیقه پیش'
-    )
     expect(
       smsDuplicateStatus(
-        { duplicateOf: { ...duplicateOf, type: 'income' }, duplicatePayment: payment } as never,
+        { duplicateOf, duplicatePayment: null, splitUncovered: null } as never,
+        NOW
+      )
+    ).toBe('تکراری؟ · رکورد ۱۲ دقیقه پیش')
+    expect(
+      smsDuplicateStatus(
+        { duplicateOf, duplicatePayment: payment, splitUncovered: null } as never,
+        NOW
+      )
+    ).toBe('پرداخت بدهی «وام» ثبت شده · ۱۲ دقیقه پیش')
+    expect(
+      smsDuplicateStatus(
+        {
+          duplicateOf: { ...duplicateOf, type: 'income' },
+          duplicatePayment: payment,
+          splitUncovered: null
+        } as never,
         NOW
       )
     ).toMatch(/^دریافت /)
