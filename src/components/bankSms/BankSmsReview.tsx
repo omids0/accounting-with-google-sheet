@@ -22,7 +22,7 @@ import { smsHintClass, smsPageClass, smsQueueListClass } from '../ui/bankSmsStyl
 import Card from '../ui/Card'
 import { headerActionBtnClass } from '../ui/layoutStyles'
 
-/** Page order: pending line → queue → bottom bar; help, range and templates behind ⚙. */
+/** Page order: pending line → queue; help, range and templates behind ⚙. */
 export default function BankSmsReview({
   building = null
 }: {
