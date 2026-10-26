@@ -49,7 +49,10 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
   const choice = resolved ? review.choiceFor(resolved) : null
   const type = resolved ? smsRecordType(resolved) : 'expense'
   const opposite = type === 'expense' ? 'income' : 'expense'
-  const busy = review.busyKey === key
+  // While ANY SMS action runs every card is disabled (visible feedback: a tap on another card is not
+  // taken, and not swallowed silently); only the card that runs it shows the spinner.
+  const mine = review.busyKey === key
+  const busy = review.busyKey !== null
   const titleOf = (id: string) =>
     review.accounts.find(account => account.id === id)?.title ?? 'حساب'
   const dismiss = () => review.dismiss(key, [entry.sms.id])
@@ -184,7 +187,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
               <BankSmsSameButton
                 item={item}
                 busy={busy}
-                loading={busy && closing}
+                loading={mine && closing}
                 onClick={closeAsRecorded}
               />
             )}
@@ -193,7 +196,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
               size="sm"
               variant={duplicatePayment ? 'secondary' : type === 'expense' ? 'outflow' : 'inflow'}
               disabled={!canAct || busy}
-              loading={busy && !duplicatePayment}
+              loading={mine && !duplicatePayment}
               onClick={primary}
             >
               <AppIcon name="check" size={16} />

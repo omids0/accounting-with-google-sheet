@@ -49,8 +49,11 @@ import { VEHICLE_EXPENSE_CATEGORY } from '../vehicles/constants'
 /** The card's category: the suggestion, or what the user picked instead (no `source`). */
 export type SmsChoice = SmsCategoryChoice & Partial<Omit<SmsCategorySuggestion, 'category'>>
 
-/** Quiet time after an SMS action: the list shifts under the finger and a late second tap must not hit the next card. */
-const LIST_SHIFT_QUIET_MS = 700
+/**
+ * Quiet time after an SMS action finished and the list shifted: a tap this soon cannot be an answer
+ * to the new list (nobody reacts to a change in 0.3 s), only the second half of a double tap.
+ */
+const LIST_SHIFT_QUIET_MS = 300
 
 export const smsRecordType = (entry: ConfirmableSms) =>
   entry.result.direction === 'debit' ? ('expense' as const) : ('income' as const)
@@ -66,8 +69,9 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
   const { accounts, ledger, recurring, reload: loadContext } = useBankSmsContext()
   const [noPair, setNoPair] = useState<ReadonlySet<string>>(new Set())
   const [busyKey, setBusyKey] = useState<string | null>(null)
-  // One save/close at a time, and none for a moment after: a double tap must not also close the
-  // next SMS that slides under the finger when the list shifts (the second tap has no undo).
+  // One save/close at a time (the other cards are shown disabled meanwhile), and none for 0.3 s
+  // after the list shifted: a double tap must not also close the next SMS that slides under the
+  // finger (the second tap has no undo).
   const guard = useRef(createRunGuard(LIST_SHIFT_QUIET_MS)).current
   const [picked, setPicked] = useState<Record<string, SmsChoice>>({})
   const undoable = useUndoableDelete()
