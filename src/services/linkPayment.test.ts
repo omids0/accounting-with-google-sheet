@@ -169,3 +169,77 @@ describe('linkFailureMessage', () => {
     ).toContain('مبلغ بیشتر است.')
   })
 })
+
+describe('linkFailureMessage by reason', () => {
+  const kind = linkTargetKindFor('expense', 'بدهی')!
+  const income = linkTargetKindFor('income', 'طلب')!
+  const failure = async (items: unknown[]) => {
+    mocks.dangs = items
+
+    return attachRecordToTarget('dang', 'sid', 'a', record).catch((err: unknown) => err)
+  }
+
+  it('a debt the other device already completed: no link is possible, the record stays plain', async () => {
+    const err = (await failure([dang('a', 1000, 1000)])) as InstanceType<typeof LinkPaymentError>
+
+    expect(err.reason).toBe('full')
+
+    const text = linkFailureMessage(kind, err)
+
+    expect(text).toContain('کامل پرداخت شده')
+    expect(text).toContain('هزینهٔ معمولی می‌ماند')
+    expect(text).toContain('ممکن نیست')
+    expect(text).not.toContain('از صفحهٔ «بدهی» همین رکورد را به پرداخت وصل کن')
+    expect(text.startsWith('رکورد ذخیره شد')).toBe(true)
+  })
+
+  it('a debt that is gone says so and keeps the record as an ordinary one', async () => {
+    const err = await failure([])
+
+    expect((err as InstanceType<typeof LinkPaymentError>).reason).toBe('missing')
+    expect(linkFailureMessage(kind, err)).toContain('پیدا نشد')
+    expect(linkFailureMessage(kind, err)).toContain('ممکن نیست')
+  })
+
+  it('a record above what is left is fixed in «رکوردها», then linked from the page', async () => {
+    const err = (await failure([dang('a', 1000, 900)])) as InstanceType<typeof LinkPaymentError>
+
+    expect(err.reason).toBe('over')
+
+    const text = linkFailureMessage(kind, err)
+
+    expect(text).toContain('مبلغش را از «رکوردها» درست کن')
+    expect(text).toContain('صفحهٔ «بدهی»')
+  })
+
+  it('a receivable says «درآمد معمولی»', () => {
+    expect(
+      linkFailureMessage(income, new LinkPaymentError('این طلب پیدا نشد.', 'missing'))
+    ).toContain('درآمد معمولی می‌ماند')
+  })
+
+  it('a ledger refusal from the payment step is classified too', () => {
+    expect(
+      linkFailureMessage(kind, new DangPaymentError('این بدهی پیدا نشد.', 'missing'))
+    ).toContain('ممکن نیست')
+    expect(
+      linkFailureMessage(kind, new DangPaymentError('مبلغ بیشتر است.', 'over-remaining'))
+    ).toContain('درست کن')
+  })
+
+  it('the payment step refusing because nothing is left (a race) is the same as full', () => {
+    const settled = new DangPaymentError(
+      'مبلغ پرداخت از باقی‌ماندهٔ بدهی (۰ تومان) بیشتر است.',
+      'over-remaining',
+      0
+    )
+    const text = linkFailureMessage(kind, settled)
+
+    expect(text).toContain('ممکن نیست')
+    expect(text).not.toContain('درست کن')
+  })
+
+  it('an unknown failure (network) keeps the by-hand advice', () => {
+    expect(linkFailureMessage(kind, new Error('network'))).toContain('صفحهٔ «بدهی» همین رکورد')
+  })
+})

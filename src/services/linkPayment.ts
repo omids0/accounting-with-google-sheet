@@ -5,6 +5,7 @@ import { fetchDangs } from './dangRow'
 import { remainingInstallmentAmount } from './installmentsCalculations'
 import { getInstallmentPaymentAmount, invalidateInstallmentsCache } from './installmentsConstants'
 import { fetchInstallmentPlans, toggleInstallmentPayment } from './installmentsCrud'
+import { ReceivablePaymentError } from './receivablePaymentError'
 import { addReceivablePayment, fetchReceivables } from './receivablesCrud'
 import { getReceivableDisplayTitle } from './receivablesRow'
 import type { SettleOptions } from './settleOptions'
@@ -46,9 +47,15 @@ export interface LinkedRecord {
   date: string
 }
 
+/**
+ * Why a link was refused: nothing is left to pay (`full`: paid or passed elsewhere meanwhile), the
+ * record is more than what is left (`over`), the item is gone (`missing`), or anything else.
+ */
+export type LinkFailureReason = 'full' | 'over' | 'missing' | 'other'
+
 /** A link the ledger refuses or cannot find; `message` is Persian and shown as is. */
 export class LinkPaymentError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public readonly reason: LinkFailureReason = 'other') {
     super(message)
     this.name = 'LinkPaymentError'
   }
@@ -79,7 +86,10 @@ function assertRoom(noun: string, remaining: number, amount: number) {
   if (!(amount > 0)) throw new LinkPaymentError('مبلغ رکورد باید بیشتر از صفر باشد.')
   if (amount > remaining) {
     throw new LinkPaymentError(
-      `مبلغ رکورد نمی‌تواند بیشتر از مانده ${noun} (${formatMoney(remaining)}) باشد.`
+      remaining > 0
+        ? `مبلغ رکورد نمی‌تواند بیشتر از مانده ${noun} (${formatMoney(remaining)}) باشد.`
+        : `این ${noun} دیگر مانده‌ای ندارد؛ همین حالا کامل پرداخت شده بود.`,
+      remaining > 0 ? 'over' : 'full'
     )
   }
 }
@@ -100,7 +110,7 @@ const dangHandler: LinkHandler = {
     // The debt as the sheet holds it now, never the picker's copy: a payment may have landed since.
     const fresh = (await fetchDangs(spreadsheetId)).find(item => item.id === itemId)
 
-    if (!fresh) throw new LinkPaymentError('این بدهی پیدا نشد؛ شاید حذف شده باشد.')
+    if (!fresh) throw new LinkPaymentError('این بدهی پیدا نشد؛ شاید حذف شده باشد.', 'missing')
     assertRoom('بدهی', dangRemaining(fresh), record.amount)
     await addDangPayment(spreadsheetId, fresh, { amount: record.amount }, linkOptions(record))
 
@@ -124,7 +134,7 @@ const receivableHandler: LinkHandler = {
     // addReceivablePayment writes the copy it is given, so it gets the row as it is right now.
     const fresh = (await fetchReceivables(spreadsheetId)).find(item => item.id === itemId)
 
-    if (!fresh) throw new LinkPaymentError('این طلب پیدا نشد؛ شاید حذف شده باشد.')
+    if (!fresh) throw new LinkPaymentError('این طلب پیدا نشد؛ شاید حذف شده باشد.', 'missing')
     assertRoom('طلب', remainingOf(fresh.amount, fresh.payments), record.amount)
     await addReceivablePayment(spreadsheetId, fresh, { amount: record.amount }, linkOptions(record))
 
@@ -152,8 +162,8 @@ const checkHandler = (direction: CheckDirection): LinkHandler => ({
     // The check as the sheet holds it now: it may have been passed on another device.
     const fresh = (await fetchChecks(spreadsheetId)).find(item => item.id === itemId)
 
-    if (!fresh) throw new LinkPaymentError('این چک پیدا نشد؛ شاید حذف شده باشد.')
-    if (fresh.paid) throw new LinkPaymentError('این چک همین حالا پاس شده بود.')
+    if (!fresh) throw new LinkPaymentError('این چک پیدا نشد؛ شاید حذف شده باشد.', 'missing')
+    if (fresh.paid) throw new LinkPaymentError('این چک همین حالا پاس شده بود.', 'full')
     if (fresh.direction !== direction) throw new LinkPaymentError('نوع این چک عوض شده است.')
     if (roundMoney(fresh.amount) !== roundMoney(record.amount)) {
       throw new LinkPaymentError(`مبلغ چک (${formatMoney(fresh.amount)}) با مبلغ رکورد یکی نیست.`)
@@ -200,12 +210,13 @@ const installmentHandler: LinkHandler = {
 
     const plan = (await fetchInstallmentPlans(spreadsheetId)).find(item => item.id === itemId)
 
-    if (!plan) throw new LinkPaymentError('این دفترچه قسط پیدا نشد؛ شاید حذف شده باشد.')
+    if (!plan) throw new LinkPaymentError('این دفترچه قسط پیدا نشد؛ شاید حذف شده باشد.', 'missing')
 
     const index = plan.payments.findIndex(payment => String(payment.n) === childId)
 
-    if (index < 0) throw new LinkPaymentError('این قسط پیدا نشد.')
-    if (plan.payments[index].paid) throw new LinkPaymentError('این قسط همین حالا پرداخت شده بود.')
+    if (index < 0) throw new LinkPaymentError('این قسط پیدا نشد.', 'missing')
+    if (plan.payments[index].paid)
+      throw new LinkPaymentError('این قسط همین حالا پرداخت شده بود.', 'full')
     await toggleInstallmentPayment(spreadsheetId, plan, index, true, linkOptions(record))
 
     return `قسط ${toPersianDigits(String(plan.payments[index].n))} از «${plan.title}»`
@@ -232,15 +243,43 @@ export const attachRecordToTarget = (
   childId?: string
 ) => HANDLERS[kind].attach(spreadsheetId, itemId, record, childId)
 
+const isLedgerRefusal = (err: unknown): err is Error =>
+  err instanceof LinkPaymentError ||
+  err instanceof DangPaymentError ||
+  err instanceof ReceivablePaymentError
+
+/** Maps what the ledger refused to the reason the message is worded by. */
+function failureReason(err: unknown): LinkFailureReason {
+  if (err instanceof LinkPaymentError) return err.reason
+  if (err instanceof DangPaymentError || err instanceof ReceivablePaymentError) {
+    if (err.reason === 'missing') return 'missing'
+    if (err.reason !== 'over-remaining') return 'other'
+
+    return (err.remaining ?? 1) <= 0 ? 'full' : 'over'
+  }
+
+  return 'other'
+}
+
 /**
  * What the user reads when the payment step failed after the record was saved. It never says to
- * save again (that would write the record twice); it says where to link the record by hand.
+ * save again (that would write the record twice). When the item is complete or gone no link is
+ * possible, so it says the record stays an ordinary one instead of sending the user to the page.
  */
 export function linkFailureMessage(kind: LinkTargetKind, err: unknown): string {
-  const reason =
-    err instanceof LinkPaymentError || err instanceof DangPaymentError ? ` ${err.message}` : ''
+  const text = isLedgerRefusal(err) ? err.message : ''
+  const plain = kind.recordType === 'income' ? 'درآمد معمولی' : 'هزینهٔ معمولی'
+  const reason = failureReason(err)
+
+  if (reason === 'full' || reason === 'missing') {
+    return `رکورد ذخیره شد ولی ${kind.failureNoun} ثبت نشد. ${text} رکورد یک ${plain} می‌ماند و وصل کردنش به ${kind.noun} ممکن نیست؛ اگر اشتباه بوده از «رکوردها» پاکش کن.`
+  }
+  if (reason === 'over') {
+    return `رکورد ذخیره شد ولی ${kind.failureNoun} ثبت نشد. ${text} رکورد فعلاً یک ${plain} است؛ مبلغش را از «رکوردها» درست کن تا بشود از صفحهٔ «${kind.page}» وصلش کرد.`
+  }
 
   const hint = kind.manualHint ? ` ${kind.manualHint}` : ''
+  const why = text ? ` ${text}` : ''
 
-  return `رکورد ذخیره شد ولی ${kind.failureNoun} ثبت نشد.${reason} از صفحهٔ «${kind.page}» همین رکورد را به پرداخت وصل کن.${hint}`
+  return `رکورد ذخیره شد ولی ${kind.failureNoun} ثبت نشد.${why} از صفحهٔ «${kind.page}» همین رکورد را به پرداخت وصل کن.${hint}`
 }
