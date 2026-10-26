@@ -1,6 +1,7 @@
 import { settleBuildingEntry } from './buildingExpenseEntry'
 import type { LinkRecordInput } from '../../hooks/useLinkTarget'
 import { logRecordActivity } from '../../services/activityLog'
+import { QueueNotLeftError } from '../../services/bankSmsQueueError'
 import { settleEntryWallet } from '../../services/entryWallet'
 import { linkSharedSave, takeSharedChoice } from '../../services/sharedLinkPrefs'
 import { appendRecord } from '../../services/sheets'
@@ -49,8 +50,12 @@ export async function settleSavedEntry(
   recordId: string,
   linkRecord?: (record: LinkRecordInput) => Promise<boolean>
 ): Promise<void> {
-  await settleEntryWallet(spreadsheetId, form.type, values, bankSms, recordId).catch(() =>
-    showError('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد')
+  // The wallet step failing is told by reason: a queue mark that failed after the balance moved is
+  // not «the balance was not updated».
+  await settleEntryWallet(spreadsheetId, form.type, values, bankSms, recordId).catch(err =>
+    showError(
+      err instanceof QueueNotLeftError ? err.message : 'رکورد ذخیره شد ولی موجودی حساب به‌روز نشد'
+    )
   )
   await settleBuildingEntry(spreadsheetId, form, recordId, values).catch(() =>
     showError('هزینه ذخیره شد ولی سهم واحدها یا بدهی ثبت نشد؛ آن را دوباره ذخیره کن')

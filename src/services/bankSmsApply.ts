@@ -4,6 +4,7 @@ import { markBankSmsHandled } from './bankSmsNative'
 import { SMS_RECORD_NOTE } from './bankSmsNote'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
 import { nextAccountBalance, setsAbsoluteBalance, type ConfirmableSms } from './bankSmsQueue'
+import { QueueNotLeftError } from './bankSmsQueueError'
 import { liveRecordOfSms } from './bankSmsRecordOf'
 import { smsSenderKey, type SmsCategoryChoice } from './bankSmsSuggest'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
@@ -47,13 +48,10 @@ function sameDirection(entry: ConfirmableSms, effect: RecordWalletEffect): boole
   return effect.delta < 0 === (entry.result.direction === 'debit')
 }
 
-export const QUEUE_NOT_LEFT_MESSAGE =
-  'رکورد ذخیره شد و موجودی به‌روز شد، ولی پیامک از صف بیرون نرفت. همان را «⋯ ← قبلاً ثبت شده» ببند و دوباره ثبتش نکن.'
-
 /**
  * Takes the SMS out of the queue once its record exists. A failure of the native side must not stop
  * the steps after it (balance, ledger, debt link): it comes back as a value, and the caller throws
- * `QUEUE_NOT_LEFT_MESSAGE` when those are done. A retry finds the record by `recordOfSms`.
+ * `QueueNotLeftError` when those are done. A retry finds the record by `recordOfSms`.
  */
 export async function leaveQueueAfterRecord(ids: string[]): Promise<Error | null> {
   try {
@@ -61,7 +59,7 @@ export async function leaveQueueAfterRecord(ids: string[]): Promise<Error | null
 
     return null
   } catch {
-    return new Error(QUEUE_NOT_LEFT_MESSAGE)
+    return new QueueNotLeftError()
   }
 }
 
