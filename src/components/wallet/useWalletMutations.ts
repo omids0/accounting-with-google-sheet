@@ -10,6 +10,7 @@ import {
   updateWalletAccount,
   type WalletPeriodFlow
 } from '../../services/wallet'
+import { saveEditedWalletAccount } from '../../services/walletAccountEdit'
 import { logBalanceSet } from '../../services/walletLedger'
 import { postReconciliationRecord } from '../../services/walletReconcileRecord'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
@@ -96,10 +97,8 @@ export function useWalletMutations({
       if (editingAccount) {
         const payload = buildWalletAccountPayload(form)
 
-        await updateWalletAccount(settings.spreadsheetId, {
-          ...editingAccount,
-          ...payload
-        })
+        // A balance left as it was is not sent as a number: another device may have moved it.
+        await saveEditedWalletAccount(settings.spreadsheetId, editingAccount, payload)
         await logBalanceSet(
           settings.spreadsheetId,
           editingAccount.id,
