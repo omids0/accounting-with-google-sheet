@@ -1,5 +1,7 @@
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
+import type { PartialPaymentType, PaymentFormLabels, PaymentFormValues } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import type { SettleOptions } from '../../services/settleOptions'
 import AmountInput from '../AmountInput'
@@ -9,44 +11,47 @@ import { useSettleFields } from '../settle/useSettleFields'
 import Button from '../ui/Button'
 import { receivablePaymentFormClass } from '../ui/treasuryReceivableStyles'
 
-type PaymentFormValues = {
-  amount: number | ''
-  note: string
-}
-
-type ReceivablePaymentFormProps = {
-  receivableId: string
+type PartialPaymentFormProps = {
+  /** The form starts again when this changes (another item opened). */
+  itemId: string
+  /** Money in (a receivable) or out (a debt): the settle answers say «به حساب» or «از حساب». */
+  type: PartialPaymentType
+  labels: PaymentFormLabels
   paying: boolean
-  /** `transactionRecordId` of every receivable payment (the duplicate check skips them). */
+  /** Amount the field starts with; empty when unset. */
+  defaultAmount?: number
+  /** `transactionRecordId` of every payment of the module (the duplicate check skips them). */
   linkedIds: readonly string[]
   onSubmit: (values: PaymentFormValues, options: SettleOptions) => void
   onCancel: () => void
 }
 
-export default function ReceivablePaymentForm({
-  receivableId,
+export default function PartialPaymentForm({
+  itemId,
+  type,
+  labels,
   paying,
+  defaultAmount,
   linkedIds,
   onSubmit,
   onCancel
-}: ReceivablePaymentFormProps) {
-  const initialValues: PaymentFormValues = { amount: '', note: '' }
+}: PartialPaymentFormProps) {
+  const initialValues = useMemo<PaymentFormValues>(
+    () => ({ amount: defaultAmount || '', note: '' }),
+    [defaultAmount]
+  )
 
   const { handleSubmit, reset, setValue, watch } = useForm<PaymentFormValues>({
     defaultValues: initialValues
   })
 
-  useModalFormReset(reset, initialValues, { resetKey: receivableId })
+  useModalFormReset(reset, initialValues, { resetKey: itemId })
 
-  const settle = useSettleFields({
-    type: 'income',
-    amount: Number(watch('amount')) || 0,
-    linkedIds
-  })
+  const settle = useSettleFields({ type, amount: Number(watch('amount')) || 0, linkedIds })
 
   return (
     <div className={receivablePaymentFormClass}>
-      <FormField label="مبلغ پرداخت" style={{ marginBottom: '0.75rem' }}>
+      <FormField label={labels.amountLabel} style={{ marginBottom: '0.75rem' }}>
         <AmountInput value={watch('amount')} onChange={val => setValue('amount', val)} />
       </FormField>
       <FormField label="توضیحات" style={{ marginBottom: '0.75rem' }}>
@@ -57,7 +62,7 @@ export default function ReceivablePaymentForm({
           placeholder="اختیاری"
         />
       </FormField>
-      <SettleFields state={settle} type="income" />
+      <SettleFields state={settle} type={type} />
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <Button
           type="button"
@@ -67,7 +72,7 @@ export default function ReceivablePaymentForm({
           loading={paying}
           onClick={() => void handleSubmit(values => onSubmit(values, settle.commit()))()}
         >
-          ثبت پرداخت
+          {labels.submitLabel}
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
           انصراف

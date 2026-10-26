@@ -1,45 +1,27 @@
-import ReceivablePaymentForm from './ReceivablePaymentForm'
-import ReceivableSettlementForm from './ReceivableSettlementForm'
+import { receivableSectionLabels } from './paymentLabels'
 import type { ReceivableWithRow } from './types'
 import { buildSettlementTitle } from './utils'
 import { isReceivableComplete, paidAmount, remainingAmount } from '../../services/receivables'
 import { getReceivableDisplayTitle } from '../../services/receivablesRow'
 import type { SettleOptions } from '../../services/settleOptions'
 import { cn } from '../../utils/cn'
-import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { progressPercent } from '../../utils/progress'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import CardExpandButton from '../CardExpandButton'
-import TapCheckbox from '../form/TapCheckbox'
 import MoneyText from '../MoneyText'
+import PartialPaymentSection from '../partialPayment/PartialPaymentSection'
 import ProgressBar from '../ProgressBar'
-import Button from '../ui/Button'
 import {
   cardActionButtonsClass,
   cardHeaderWithEditClass,
-  installmentDueClass,
   installmentHeaderClass,
-  installmentNoteClass,
-  installmentPaymentsClass,
   listCardAmountPillClass,
   listCardSubtitleClass,
   listCardTitleClass,
   installmentCardClass
 } from '../ui/featureCardStyles'
-import {
-  receivableAddPaymentActionsClass,
-  receivableAddPaymentClass,
-  receivablePaidClass,
-  receivablePaymentItemClass,
-  receivablePaymentListClass,
-  receivablePaymentListTitleClass,
-  receivableRemainingClass,
-  receivableSettledClass,
-  receivableSummaryClass,
-  receivableSummaryLabelClass
-} from '../ui/treasuryReceivableStyles'
 import WriterAvatar from '../WriterAvatar'
 
 type ReceivableCardProps = {
@@ -95,9 +77,6 @@ export default function ReceivableCard({
   const complete = isReceivableComplete(item)
 
   const progress = progressPercent(paid, item.amount)
-
-  const showPaymentForm = paymentReceivableId === item.id
-  const showSettlementForm = settlementReceivableId === item.id
 
   const displayTitle = getReceivableDisplayTitle(item)
 
@@ -169,104 +148,33 @@ export default function ReceivableCard({
       )}
 
       <AccordionCollapse open={expanded}>
-        <div className={installmentPaymentsClass}>
-          {item.note && <p className={installmentNoteClass}>{item.note}</p>}
-
-          <div className={receivableSummaryClass}>
-            <div>
-              <span className={receivableSummaryLabelClass}>تاریخ قرض</span>
-              <span>{formatIsoDatePersian(item.borrowDate)}</span>
-            </div>
-            <div>
-              <span className={receivableSummaryLabelClass}>پرداخت شده</span>
-              <span className={receivablePaidClass}>
-                <MoneyText amount={paid} />
-              </span>
-            </div>
-            <div>
-              <span className={receivableSummaryLabelClass}>مانده</span>
-              <span className={complete ? receivableSettledClass : receivableRemainingClass}>
-                <MoneyText amount={remaining} />
-              </span>
-            </div>
-          </div>
-
-          {item.payments.length > 0 && (
-            <div className={receivablePaymentListClass}>
-              <div className={receivablePaymentListTitleClass}>سوابق پرداخت</div>
-              {item.payments.map(payment => (
-                <div key={payment.id} className={receivablePaymentItemClass}>
-                  <TapCheckbox
-                    checked
-                    aria-label={`برگرداندن پرداخت ${item.title}`}
-                    disabled={togglingPaymentId === payment.id}
-                    onChange={() => onRemovePayment(payment.id)}
-                    onClick={e => e.stopPropagation()}
-                  />
-                  <div>
-                    <span>
-                      <MoneyText amount={payment.amount} />
-                    </span>
-                    <span className={installmentDueClass}>
-                      {formatIsoDatePersian(payment.paidAt)}
-                    </span>
-                    {payment.note && <span className={installmentDueClass}>{payment.note}</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!complete && (
-            <div className={receivableAddPaymentClass}>
-              {showPaymentForm ? (
-                <ReceivablePaymentForm
-                  receivableId={item.id}
-                  paying={payingId === item.id}
-                  linkedIds={linkedIds}
-                  onSubmit={onAddPayment}
-                  onCancel={onClosePaymentForm}
-                />
-              ) : showSettlementForm ? (
-                <ReceivableSettlementForm
-                  receivableId={item.id}
-                  remaining={remaining}
-                  defaultTitle={buildSettlementTitle(item)}
-                  defaultNote={item.note ?? ''}
-                  settling={settlingId === item.id}
-                  linkedIds={linkedIds}
-                  onSubmit={onSettle}
-                  onCancel={onCloseSettlementForm}
-                />
-              ) : (
-                <div className={receivableAddPaymentActionsClass}>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      onCloseSettlementForm()
-                      onOpenPaymentForm(item.id)
-                    }}
-                  >
-                    + ثبت بخشی از پرداخت
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="inflow"
-                    size="sm"
-                    onClick={() => {
-                      onClosePaymentForm()
-                      onOpenSettlementForm(item.id)
-                    }}
-                  >
-                    تسویه
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <PartialPaymentSection
+          itemId={item.id}
+          itemTitle={item.title}
+          note={item.note}
+          type="income"
+          labels={receivableSectionLabels}
+          summaryDate={item.borrowDate}
+          paid={paid}
+          remaining={remaining}
+          complete={complete}
+          payments={item.payments}
+          togglingPaymentId={togglingPaymentId}
+          paying={payingId === item.id}
+          settling={settlingId === item.id}
+          showPaymentForm={paymentReceivableId === item.id}
+          showSettlementForm={settlementReceivableId === item.id}
+          defaultSettleTitle={buildSettlementTitle(item)}
+          defaultSettleNote={item.note ?? ''}
+          linkedIds={linkedIds}
+          onOpenPaymentForm={() => onOpenPaymentForm(item.id)}
+          onClosePaymentForm={onClosePaymentForm}
+          onOpenSettlementForm={() => onOpenSettlementForm(item.id)}
+          onCloseSettlementForm={onCloseSettlementForm}
+          onAddPayment={onAddPayment}
+          onSettle={onSettle}
+          onRemovePayment={onRemovePayment}
+        />
       </AccordionCollapse>
     </div>
   )
