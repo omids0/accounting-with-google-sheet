@@ -12,7 +12,7 @@ import {
 import { updateSheetRow } from './sheets'
 import { formatAmountWords } from '../utils/insightText'
 
-/** An item with payments: a personal debt, a receivable (later a check or an installment plan). */
+/** An item with a list of payments: a personal debt or a receivable (a check and an installment have their own adapters). */
 interface PaidItem {
   id: string
   amount: number

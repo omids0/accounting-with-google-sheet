@@ -2,17 +2,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { LinkTargetItem } from '../services/linkPayment'
 import { getSettings, isConfigured } from '../services/settings'
-import { formatMoney } from '../utils/formatMoney'
+import {
+  childOption,
+  itemOption,
+  matchesRecordAmount,
+  pickError,
+  type LinkTargetChildOption,
+  type LinkTargetOption
+} from '../utils/linkTargetFit'
 import { linkTargetKindFor, type LinkTargetKind } from '../utils/linkTargetKinds'
 import { parseNumeric } from '../utils/parseNumeric'
 import { roundMoney } from '../utils/roundMoney'
 import { shareInFlight } from '../utils/shareInFlight'
 import { showError, showSuccess } from '../utils/toast'
 
-export type LinkTargetOption = LinkTargetItem & {
-  /** The record's amount is more than what is left: the item cannot take this payment. */
-  disabled: boolean
-}
+export type { LinkTargetChildOption, LinkTargetOption }
 
 type LinkTargetOptions = {
   /** The record being entered. */
@@ -28,10 +32,11 @@ type LinkTargetOptions = {
 export type LinkRecordInput = { recordId: string; amount: number; date: string }
 
 /**
- * «بدهی» (expense) and «طلب» (income) records can pay an open debt or receivable. This is the one
- * hook the manual entry form and the bank-SMS card both mount: which items are open, which one is
- * picked and the payment written after the record exists. The pick lives here, never in the
- * form's values (those become sheet columns and the draft).
+ * «بدهی», «طلب», «چک» and «قسط» records can pay an open debt, receivable, check or installment.
+ * This is the one hook the manual entry form and the bank-SMS card both mount: which items are
+ * open, which one is picked (and, for an installment book, which of its instalments) and the
+ * payment written after the record exists. The pick lives here, never in the form's values (those
+ * become sheet columns and the draft).
  */
 export function useLinkTarget({
   type,
@@ -45,12 +50,14 @@ export function useLinkTarget({
   const [items, setItems] = useState<LinkTargetItem[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedId, setSelectedId] = useState('')
+  const [childPick, setChildPick] = useState('')
 
   // Bumped after a save: the list is read again, so a payment just added shows its new remaining.
   const [version, setVersion] = useState(0)
 
   useEffect(() => {
     setSelectedId('')
+    setChildPick('')
     setItems([])
   }, [kindId])
 
@@ -83,31 +90,55 @@ export function useLinkTarget({
 
   const options = useMemo<LinkTargetOption[]>(() => {
     const wanted = subCategory.trim()
+    const exact = kind?.fit === 'exact'
+
     const ranked = items.map((item, index) => ({
       item,
       index,
+      sameAmount: exact && matchesRecordAmount(item, recordAmount),
       first: wanted !== '' && item.category.trim() === wanted
     }))
 
-    // The items filed under the chosen subcategory come first; the rest keep their order.
-    ranked.sort((a, b) => Number(b.first) - Number(a.first) || a.index - b.index)
+    // A check of the record's own amount first, then the items filed under the chosen
+    // subcategory; the rest keep their order.
+    ranked.sort(
+      (a, b) =>
+        Number(b.sameAmount) - Number(a.sameAmount) ||
+        Number(b.first) - Number(a.first) ||
+        a.index - b.index
+    )
 
-    return ranked.map(({ item }) => ({
-      ...item,
-      disabled: recordAmount > 0 && item.remaining < recordAmount
-    }))
-  }, [items, subCategory, recordAmount])
+    return kind ? ranked.map(({ item }) => itemOption(kind, item, recordAmount)) : []
+  }, [items, kind, subCategory, recordAmount])
 
   const selected = options.find(option => option.id === selectedId)
 
-  /** The pick no longer fits (the amount was raised): saving waits for a new answer. */
-  const error =
-    selected?.disabled && kind
-      ? `مبلغ رکورد نمی‌تواند بیشتر از مانده (${formatMoney(selected.remaining)}) باشد`
-      : ''
+  // The instalments of the picked book; the next unpaid one is preselected until the user picks.
+  const childOptions = useMemo<LinkTargetChildOption[]>(
+    () => (selected?.children ?? []).map(child => childOption(child, recordAmount)),
+    [selected, recordAmount]
+  )
+
+  const childId = childOptions.some(child => child.id === childPick)
+    ? childPick
+    : childOptions[0]?.id ?? ''
+
+  const selectedChild = childOptions.find(child => child.id === childId)
+
+  /** The pick no longer fits (the amount was raised or changed): saving waits for a new answer. */
+  const error = kind ? pickError(kind, selected) : ''
+
+  // A save before the open items are read would quietly take «هیچ‌کدوم»: it waits for the list.
+  const blocker = error || (kind && loading ? 'یک لحظه صبر کن؛ فهرست هنوز خوانده نشده است.' : '')
+
+  const select = useCallback((id: string) => {
+    setSelectedId(id)
+    setChildPick('')
+  }, [])
 
   const reset = useCallback(() => {
     setSelectedId('')
+    setChildPick('')
     setVersion(current => current + 1)
   }, [])
 
@@ -130,7 +161,8 @@ export function useLinkTarget({
           kind.id,
           spreadsheetId,
           selectedId,
-          record
+          record,
+          childId
         )
 
         showSuccess(`پرداخت به «${title}» وصل شد`)
@@ -143,7 +175,7 @@ export function useLinkTarget({
         return false
       }
     },
-    [kind, selectedId]
+    [kind, selectedId, childId]
   )
 
   return {
@@ -151,8 +183,16 @@ export function useLinkTarget({
     options,
     loading,
     selectedId,
-    select: setSelectedId,
+    select,
+    /** The instalments of the picked item (empty for kinds without a second level). */
+    childOptions,
+    childId,
+    selectChild: setChildPick,
+    /** Visible under the second select when the instalment's amount is not the record's. */
+    warning: selectedChild?.warning ?? '',
     error,
+    /** Why the record cannot be saved yet: the pick no longer fits, or the list is still loading. */
+    blocker,
     reset,
     attach
   }

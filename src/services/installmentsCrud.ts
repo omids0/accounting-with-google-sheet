@@ -31,7 +31,11 @@ import { parseWriter } from '../utils/writerColumn'
 
 type PlanWithRowNumber = InstallmentPlan & { rowNumber: number }
 
-function rowToPlan(row: string[], rowNumber: number, spreadsheetId: string): PlanWithRowNumber {
+export function rowToPlan(
+  row: string[],
+  rowNumber: number,
+  spreadsheetId: string
+): PlanWithRowNumber {
   const count = Number(row[4]) || 0
 
   const dueDay = Number(row[5]) || 1

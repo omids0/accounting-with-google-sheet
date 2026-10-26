@@ -1,4 +1,6 @@
+import { checkExpenseRecordLink, checkIncomeRecordLink } from './checkRecordLink'
 import { dangRecordLink } from './dangRecordLink'
+import { installmentRecordLink } from './installmentRecordLink'
 import type { CustomForm } from '../types'
 import { receivableRecordLink } from './receivableRecordLink'
 import type { RecordChange, RecordLinkAdapter, RecordLinkMatch } from './recordLinkCore'
@@ -11,11 +13,17 @@ import { showInfo } from '../utils/toast'
 type RecordType = CustomForm['type']
 
 /**
- * Everything whose payments can point at an income or expense record. A new kind (checks,
- * installments) plugs in here with its own adapter; recordsMutations and the record detail panel
- * need no change.
+ * Everything whose payments can point at an income or expense record. A new kind plugs in here
+ * with its own adapter; recordsMutations and the record detail panel need no change. A check pays
+ * with an expense (given) or an income (received), so it has one adapter for each.
  */
-const ADAPTERS: RecordLinkAdapter[] = [dangRecordLink, receivableRecordLink]
+const ADAPTERS: RecordLinkAdapter[] = [
+  dangRecordLink,
+  receivableRecordLink,
+  checkExpenseRecordLink,
+  checkIncomeRecordLink,
+  installmentRecordLink
+]
 
 /** Buildings and shared accounts keep their own payment flows, so only personal books sync. */
 const adaptersFor = (spreadsheetId: string, type: RecordType) =>
