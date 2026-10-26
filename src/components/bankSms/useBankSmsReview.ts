@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { knownSubCategory } from './smsSubCategory'
@@ -39,6 +39,7 @@ import { getCurrency } from '../../utils/formatMoney'
 import { haptic } from '../../utils/haptics'
 import { isLinkTargetCategory } from '../../utils/linkTargetKinds'
 import { toPersianDigits } from '../../utils/normalizeDigits'
+import { createRunGuard } from '../../utils/runGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
@@ -47,6 +48,9 @@ import { VEHICLE_EXPENSE_CATEGORY } from '../vehicles/constants'
 
 /** The card's category: the suggestion, or what the user picked instead (no `source`). */
 export type SmsChoice = SmsCategoryChoice & Partial<Omit<SmsCategorySuggestion, 'category'>>
+
+/** Quiet time after an SMS action: the list shifts under the finger and a late second tap must not hit the next card. */
+const LIST_SHIFT_QUIET_MS = 700
 
 export const smsRecordType = (entry: ConfirmableSms) =>
   entry.result.direction === 'debit' ? ('expense' as const) : ('income' as const)
@@ -62,6 +66,9 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
   const { accounts, ledger, recurring, reload: loadContext } = useBankSmsContext()
   const [noPair, setNoPair] = useState<ReadonlySet<string>>(new Set())
   const [busyKey, setBusyKey] = useState<string | null>(null)
+  // One save/close at a time, and none for a moment after: a double tap must not also close the
+  // next SMS that slides under the finger when the list shifts (the second tap has no undo).
+  const guard = useRef(createRunGuard(LIST_SHIFT_QUIET_MS)).current
   const [picked, setPicked] = useState<Record<string, SmsChoice>>({})
   const undoable = useUndoableDelete()
   const navigate = useNavigate()
@@ -118,19 +125,21 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
 
     if (!spreadsheetId) return
 
-    setBusyKey(key)
-    try {
-      await task(spreadsheetId)
-      showSuccess(message)
-      haptic('light')
-    } catch (err) {
-      haptic('error')
-      handleSheetError(err, { fallbackMessage: 'خطا در ثبت تراکنش پیامکی' })
-    } finally {
-      // Also after a failure: part of the task may have been written already.
-      await Promise.all([refresh(), loadContext()])
-      setBusyKey(null)
-    }
+    await guard.run(async () => {
+      setBusyKey(key)
+      try {
+        await task(spreadsheetId)
+        showSuccess(message)
+        haptic('light')
+      } catch (err) {
+        haptic('error')
+        handleSheetError(err, { fallbackMessage: 'خطا در ثبت تراکنش پیامکی' })
+      } finally {
+        // Also after a failure: part of the task may have been written already.
+        await Promise.all([refresh(), loadContext()])
+        setBusyKey(null)
+      }
+    })
   }
 
   const record = (entry: ConfirmableSms, choice: SmsChoice): SmsRecordInput =>
