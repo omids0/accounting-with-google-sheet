@@ -1,6 +1,7 @@
 import { archiveTabsOfForm } from './archiveRegistry'
 import { headerAttachmentColumn } from './attachmentColumn'
 import { classifyRow, legacyLayoutPlan, losesCells, remapLegacyRow } from './legacyRowLayout'
+import { sharedCan, SHARED_NO_ACCESS_MESSAGE } from './sharedCan'
 import { withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
 import { columnLetter, rowsMatchForCompare, toSheetRowValues } from './sheetsCellValues'
@@ -206,6 +207,10 @@ export function repairLegacyRows(
   spreadsheetId: string,
   fixes: LegacyRowFix[]
 ): Promise<RepairResult> {
+  // It rewrites everyone's rows: in a shared account only with «ویرایش ثبت‌های دیگران».
+  if (!sharedCan('editOthers', spreadsheetId)) {
+    return Promise.reject(new Error(SHARED_NO_ACCESS_MESSAGE))
+  }
   if (!fixes.length) return Promise.resolve(NOTHING)
 
   return withOutboxLock(spreadsheetId, async () => {

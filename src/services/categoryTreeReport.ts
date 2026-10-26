@@ -1,5 +1,7 @@
 import { getSettings } from './settings'
+import { withoutSettlementRows } from './sharedSettlement'
 import { fetchRecords } from './sheets'
+import { workspaceTypeOf } from './workspace'
 import { SUBCATEGORY_FIELD_ID } from '../components/form/fieldUtils'
 import type { CustomForm } from '../types'
 import { isOtherCategory, OTHER_CATEGORY } from '../utils/categoryOrdering'
@@ -125,9 +127,13 @@ export async function loadCategoryTreeReport(
     (form): form is CustomForm & { type: CategoryTreeType } =>
       form.type === 'income' || form.type === 'expense'
   )
+  // A shared account's «تسویه» is not income or spending.
+  const type = workspaceTypeOf(spreadsheetId)
+  const flowRecords = async (form: CustomForm) =>
+    withoutSettlementRows(await fetchRecords(spreadsheetId, form), type)
 
   const batches = await Promise.all(
-    forms.map(async form => recordsToEntries(form, await fetchRecords(spreadsheetId, form), range))
+    forms.map(async form => recordsToEntries(form, await flowRecords(form), range))
   )
 
   const nodes = buildCategoryTree(batches.flat())

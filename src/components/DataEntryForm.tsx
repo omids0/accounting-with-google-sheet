@@ -34,6 +34,7 @@ import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
 import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
+import { useSharedTick } from './shared/sharedTickEntry'
 import { appFormClassName } from './ui/formStyles'
 import { entryFormGridClass } from './ui/recordsStyles'
 
@@ -92,6 +93,7 @@ export default function DataEntryForm({
   const retroactiveWarning = useRetroactiveEntryWarning()
   const values = watch()
   const duplicateWarning = <EntryDuplicateWarning form={activeForm} values={values} />
+  const tick = useSharedTick(activeForm, values)
   const selectedCategory = String(values.category ?? '')
   const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(selectedCategory)
   // An amount on screen is work in progress: the update banner waits for it.
@@ -145,7 +147,7 @@ export default function DataEntryForm({
       recordId = await writeEntryRecord(
         settings.spreadsheetId,
         activeForm,
-        formValues,
+        tick.mark(formValues),
         vehicleInput
       )
     } catch (err) {
@@ -168,6 +170,7 @@ export default function DataEntryForm({
     reset(buildFormInitialValues(activeForm, keepAccount))
     vehicleExpense.resetVehicleValues()
     attachments.reset()
+    tick.reset()
     if (keepOpen) focusEntryAmount(formRef.current)
   }
 
@@ -269,6 +272,7 @@ export default function DataEntryForm({
         )}
 
         <AttachmentField state={attachments} disabled={loading} />
+        {tick.element}
         {hasBuildingExpenseFields(activeForm) && useStandardLayout ? (
           <LazyBuildingExpenseFields
             part="split"

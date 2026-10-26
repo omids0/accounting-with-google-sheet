@@ -74,3 +74,17 @@ export const PERSONAL_ONLY_SHEETS: readonly string[] = [
   DANG_SPLIT_ALLOCATIONS_SHEET,
   NET_WORTH_SHEET
 ]
+
+/**
+ * The tabs a shared account («حساب مشترک») keeps besides its two record forms: the period
+ * settings (type marker, notices), the categories, the budgets, the recurring entries and the
+ * activity log. Nothing personal-only and nothing building-only; the wallet, checks, receivables
+ * and the other module tabs stay out of it too.
+ */
+export const SHARED_ACCOUNT_SHEETS: readonly string[] = [
+  PERIOD_SETTINGS_SHEET,
+  CATEGORIES_SHEET,
+  BUDGETS_SHEET,
+  RECURRING_SHEET,
+  ACTIVITY_LOG_SHEET
+]

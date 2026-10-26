@@ -13,6 +13,7 @@ import { getBackupFolder, listDriveBackups, uploadDriveBackup } from './driveBac
 import { deleteDriveFiles } from './driveFiles'
 import { waitForSessionSync } from './sessionSync'
 import { getSettings } from './settings'
+import { sharedCan } from './sharedCan'
 import { activeSpreadsheetLabel } from './spreadsheetCatalog'
 import { showSuccess } from '../utils/toast'
 
@@ -123,6 +124,8 @@ async function withAutoBackupLock(
 }
 
 async function autoBackup(spreadsheetId: string): Promise<boolean> {
+  // A shared account's viewer has no «خروجی و پشتیبان».
+  if (!sharedCan('export', spreadsheetId)) return false
   noteBackupFirstSeen(spreadsheetId)
   if (!autoBackupDue(getBackupState(spreadsheetId))) return false
   if (!(await waitForSessionSync())) return false

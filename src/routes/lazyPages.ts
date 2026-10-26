@@ -66,7 +66,11 @@ import {
   loadBuildingsHomePage,
   loadBuildingUnitPage,
   loadBuildingUnitsPage,
-  loadSearchPage
+  loadSearchPage,
+  loadSharedHomePage,
+  loadSharedMembersPage,
+  loadSharedRecordsPage,
+  loadSharedSettlePage
 } from './pageChunks'
 
 export const LazyAboutPage = lazy(loadAboutPage)
@@ -135,3 +139,7 @@ export const LazyBuildingUnitPage = lazy(loadBuildingUnitPage)
 export const LazyBuildingChargesPage = lazy(loadBuildingChargesPage)
 export const LazyBuildingExpensesPage = lazy(loadBuildingExpensesPage)
 export const LazyBuildingResidentsPage = lazy(loadBuildingResidentsPage)
+export const LazySharedHomePage = lazy(loadSharedHomePage)
+export const LazySharedRecordsPage = lazy(loadSharedRecordsPage)
+export const LazySharedSettlePage = lazy(loadSharedSettlePage)
+export const LazySharedMembersPage = lazy(loadSharedMembersPage)

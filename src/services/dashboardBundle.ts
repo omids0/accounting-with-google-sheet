@@ -1,4 +1,4 @@
-import type { AppSettings, DashboardData, NetAvailableConfig } from '../types'
+import type { AppSettings, CustomForm, DashboardData, NetAvailableConfig } from '../types'
 import { fetchChecks, totalUnpaidChecksInRange } from './checks'
 import { fetchDangs, unpaidDangTotal } from './dang'
 import {
@@ -23,16 +23,22 @@ import { resolveOpeningBalanceContext, syncDerivedOpeningBalances } from './open
 import { fetchReceivables, remainingAmount } from './receivables'
 import { loadSavingsGoals, sumGoalBalances } from './savingsGoalsSheet'
 import { getDefaultNetAvailableConfig } from './settings'
+import { withoutSettlementRows } from './sharedSettlement'
 import { fetchRecords } from './sheets'
 import { getSummableTgjuPrices } from './tgjuCurrency'
 import { fetchVaultTransactions } from './treasury'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
 import { computeHoldings, totalsByClass } from './treasuryHoldings'
 import { fetchWalletAccounts } from './wallet'
+import { workspaceTypeOf } from './workspace'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import type { DateRange } from '../utils/dateRange'
 import { parseNumeric } from '../utils/parseNumeric'
 import { roundMoney } from '../utils/roundMoney'
+
+/** A form's records without a shared account's «تسویه», which is not income or spending. */
+const fetchFlowRecords = async (spreadsheetId: string, form: CustomForm) =>
+  withoutSettlementRows(await fetchRecords(spreadsheetId, form), workspaceTypeOf(spreadsheetId))
 
 async function fetchDashboardBundleUncached(
   settings: AppSettings,
@@ -60,8 +66,8 @@ async function fetchDashboardBundleUncached(
     storedOpeningBalance,
     goals
   ] = await Promise.all([
-    incomeForm ? fetchRecords(settings.spreadsheetId, incomeForm) : Promise.resolve([]),
-    expenseForm ? fetchRecords(settings.spreadsheetId, expenseForm) : Promise.resolve([]),
+    incomeForm ? fetchFlowRecords(settings.spreadsheetId, incomeForm) : Promise.resolve([]),
+    expenseForm ? fetchFlowRecords(settings.spreadsheetId, expenseForm) : Promise.resolve([]),
     fetchWalletAccounts(settings.spreadsheetId).catch(() => []),
     shouldFetchVault
       ? Promise.all([

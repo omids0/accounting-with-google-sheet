@@ -1,0 +1,287 @@
+/* The app's building blocks: Card, Button (primary / secondary / danger / expense / income),
+   FormField with the money input and its words, the segmented control, chips, ToggleSwitch,
+   alerts (info / warning / error / success) and the letter avatars. */
+.card {
+  background: linear-gradient(165deg, var(--surface) 0%, var(--surface-end) 100%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow);
+}
+.card.dashed {
+  border-style: dashed;
+}
+.card h3,
+.card-t {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.8;
+}
+.note {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.86rem;
+  line-height: 1.9;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+.btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.btn {
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: var(--btn-bg);
+  color: var(--on-primary);
+  font-weight: 800;
+  padding: 8px 16px;
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+}
+.btn.sec {
+  background: var(--tint);
+  border-color: var(--border);
+  color: var(--primary);
+  box-shadow: none;
+}
+.btn.danger {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger);
+  box-shadow: none;
+}
+.btn.exp {
+  background: var(--danger);
+  color: var(--on-solid);
+}
+.btn.inc {
+  background: var(--success);
+  color: var(--on-solid);
+}
+.btn.sm {
+  min-height: 44px;
+  font-size: 0.84rem;
+  padding: 6px 12px;
+  align-self: flex-start;
+}
+.btn.block {
+  width: 100%;
+}
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field > label,
+.lbl {
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.req::after {
+  content: ' *';
+  color: var(--danger);
+}
+.inp {
+  width: 100%;
+  min-height: 48px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  padding: 8px 14px;
+}
+select.inp {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: 22px 21px, 27px 21px;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+.money {
+  position: relative;
+}
+.money .inp {
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding-inline-end: 64px;
+}
+.money span {
+  position: absolute;
+  inset-inline-end: 14px;
+  top: 13px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.words {
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+}
+.err {
+  color: var(--danger);
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 0;
+}
+.seg {
+  display: flex;
+  gap: 4px;
+  background: var(--tint);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+}
+.seg button {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  padding: 8px 4px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.seg button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(15, 118, 110, 0.2);
+}
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-weight: 700;
+  font-size: 0.84rem;
+}
+.chip[aria-pressed='true'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.sw {
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--sw-off);
+  position: relative;
+  flex: none;
+}
+.sw::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: inset-inline-start 0.15s;
+}
+.sw[aria-checked='true'] {
+  background: var(--primary);
+}
+.sw[aria-checked='true']::after {
+  inset-inline-start: 23px;
+}
+.sw[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.alert {
+  margin: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.84rem;
+  line-height: 1.9;
+  background: var(--tint);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--primary-dark);
+}
+.alert.warn {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+  border-inline-start-color: var(--warning);
+  color: var(--warning);
+}
+.alert.bad {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  border-inline-start-color: var(--danger);
+  color: var(--danger);
+}
+.alert.ok {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  border-inline-start-color: var(--success);
+  color: var(--success);
+}
+.av {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  display: inline-grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.86rem;
+  flex: none;
+}
+.av.sm {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.66rem;
+}

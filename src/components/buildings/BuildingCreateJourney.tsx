@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { CREATE_ENTER_MESSAGE, CREATE_FILE_MESSAGE } from './buildingBusyText'
 import {
@@ -15,9 +15,10 @@ import JourneyFundStep from './JourneyFundStep'
 import JourneyProfileStep from './JourneyProfileStep'
 import JourneyStepper from './JourneyStepper'
 import { useEnterBuilding } from './useEnterBuilding'
+import { useCreepingBusy } from '../../hooks/useCreepingBusy'
 import { initialJourneyState, rememberCreatedJourney } from '../../services/buildingJourney'
 import { createBuildingSpreadsheet } from '../../services/buildingTemplate'
-import { hideBusy, showBusy, updateBusy } from '../../stores/busyOverlayStore'
+import { hideBusy } from '../../stores/busyOverlayStore'
 import { showError } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
@@ -44,28 +45,9 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
   const [profile, setProfile] = useState<ProfileDraft>(EMPTY_PROFILE)
   const [fund, setFund] = useState<FundDraft>(EMPTY_FUND)
   const [error, setError] = useState<string | null>(null)
-  const [building, setBuilding] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [step, setStep] = useState<CreateStep>('file')
+  const busy = useCreepingBusy<CreateStep>(CREATE_STEPS, 'file')
+  const building = busy.active
   const { enter, modalProps } = useEnterBuilding()
-
-  useEffect(() => {
-    if (!building) return
-
-    const { ceiling } = CREATE_STEPS[step]
-
-    const timer = window.setInterval(
-      () => setProgress(value => value + (ceiling - value) * 0.12),
-      350
-    )
-
-    return () => window.clearInterval(timer)
-  }, [building, step])
-
-  // The overlay (not this page) shows the wait: its text and bar follow the step and the creep.
-  useEffect(() => {
-    if (building) updateBusy({ message: CREATE_STEPS[step].label, progress })
-  }, [building, step, progress])
 
   const next = () => {
     const problem = profileError(profile)
@@ -80,10 +62,7 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
     setError(problem)
     if (problem) return
 
-    setBuilding(true)
-    setStep('file')
-    setProgress(4)
-    showBusy(CREATE_STEPS.file.label, 4)
+    busy.start('file')
     try {
       const journey = initialJourneyState({
         unitCount: countOf(profile.units),
@@ -99,15 +78,14 @@ export default function BuildingCreateJourney({ onCancel }: { onCancel: () => vo
       // The new sheet is not mirrored yet, so its journey row cannot be read: hand it over and
       // go straight to step 3 instead of the dashboard.
       rememberCreatedJourney(id, journey)
-      setStep('enter')
-      setProgress(value => Math.max(value, 62))
+      busy.advance('enter', 62)
       await enter(id, 'building-setup', CREATE_STEPS.enter.label)
-      setProgress(100)
+      busy.complete()
     } catch (err) {
       hideBusy()
       showError(toUserMessage(err, 'ساخت ساختمان ناموفق بود'))
     } finally {
-      setBuilding(false)
+      busy.stop()
     }
   }
 

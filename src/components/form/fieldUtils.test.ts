@@ -6,6 +6,7 @@ const field = (id: string) => ({ id, label: id, type: 'select' as const, require
 
 describe('isFieldHidden', () => {
   it('hides the balance switch until an account is chosen', () => {
+    expect(isFieldHidden(field('sharedLink'), { sharedLink: 'shared-1' })).toBe(true)
     expect(isFieldHidden(field('walletApply'), { walletAccount: '' })).toBe(true)
     expect(isFieldHidden(field('walletApply'), {})).toBe(true)
     expect(isFieldHidden(field('walletApply'), { walletAccount: 'acc' })).toBe(false)

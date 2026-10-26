@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react'
 
-import { useIsBuildingWorkspace } from './useWorkspaceType'
+import { useIsBuildingWorkspace, useIsSharedWorkspace } from './useWorkspaceType'
 import type { BankSmsItem } from '../services/bankSmsNative'
 import {
   filterSmsForWorkspace,
@@ -19,13 +19,14 @@ import { useBankSmsStore } from '../stores/bankSmsStore'
 export function useRoutedPendingSms(): BankSmsItem[] {
   const pending = useBankSmsStore(state => state.pending)
   const isBuilding = useIsBuildingWorkspace()
+  const isShared = useIsSharedWorkspace()
   const cardsVersion = useSyncExternalStore(subscribeWorkspaceCards, getWorkspaceCardsVersion)
   const activeId = getSettings()?.spreadsheetId ?? ''
 
   return useMemo(
-    () => filterSmsForWorkspace(pending, routingWorkspaces(), activeId, isBuilding),
+    () => filterSmsForWorkspace(pending, routingWorkspaces(), activeId, isBuilding, isShared),
     // `cardsVersion` stands for the cache, which is not a React value.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pending, isBuilding, activeId, cardsVersion]
+    [pending, isBuilding, isShared, activeId, cardsVersion]
   )
 }

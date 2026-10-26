@@ -20,6 +20,7 @@ import {
   WALLET_APPLY_FIELD_ID,
   WALLET_APPLY_NO
 } from '../form/fieldUtils'
+import { SHARED_FIELD_IDS, SHARED_LINK_FIELD_ID } from '../form/sharedFields'
 import {
   recordDetailHintClass,
   recordDetailLabelClass,
@@ -43,7 +44,10 @@ const COVERED_FIELD_IDS = new Set([
   'attachments',
   'note',
   // A building expense's kind, payer and split are shown by `BuildingExpenseDetail`.
-  ...BUILDING_FIELD_IDS
+  ...BUILDING_FIELD_IDS,
+  // A shared record's payer, split, creator and link are drawn by the shared account's sheets.
+  ...SHARED_FIELD_IDS,
+  SHARED_LINK_FIELD_ID
 ])
 
 function Row({ label, children }: { label: string; children: ReactNode }) {

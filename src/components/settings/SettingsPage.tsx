@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router'
 
 import SettingsBackupCard from './backup/SettingsBackupCard'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
+import { useSharedCan } from '../../hooks/useSharedCan'
+import { useIsSharedWorkspace, useWorkspaceType } from '../../hooks/useWorkspaceType'
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
 import ConfirmActionModal from '../ConfirmActionModal'
@@ -35,6 +37,21 @@ export default function SettingsPage() {
   const navigate = useNavigate()
   const settings = useSettingsPage()
   const isDesktop = useIsDesktop()
+  // A shared account: no personal-only sections, and writes only for the roles that hold them.
+  const isShared = useIsSharedWorkspace()
+  // Reminders and push keys are written to the personal sheet only (a building's board reads it).
+  const isPersonal = useWorkspaceType() === 'personal'
+  const canBudget = useSharedCan('budget')
+  const canExport = useSharedCan('export')
+  const canRepair = useSharedCan('editOthers')
+  const hidden: Partial<Record<string, boolean>> = {
+    'vault-assets': isShared,
+    categories: !canBudget,
+    budgets: !canBudget,
+    // Nothing is automatic in a shared account (spec non-goals): no recurring items.
+    recurring: isShared || !canBudget,
+    notifications: !isPersonal
+  }
 
   if (settings.initialLoading) {
     return <SettingsSkeleton />
@@ -74,7 +91,12 @@ export default function SettingsPage() {
       id: 'account',
       title: 'حساب و داده',
       icon: 'folder',
-      description: 'حساب گوگل، شیت داده‌ها، پشتیبان و بستن سال',
+      // A shared account has no «بستن سال», and backup only with «خروجی و پشتیبان».
+      description: !isShared
+        ? 'حساب گوگل، شیت داده‌ها، پشتیبان و بستن سال'
+        : canExport
+        ? 'حساب گوگل، شیت داده‌ها و پشتیبان'
+        : 'حساب گوگل و شیت داده‌ها',
       content: (
         <>
           <SettingsGoogleAccountCard onLogout={settings.handleLogout} />
@@ -97,9 +119,11 @@ export default function SettingsPage() {
           )}
           {settings.spreadsheetId ? (
             <>
-              <SettingsBackupCard spreadsheetId={settings.spreadsheetId} />
-              <SettingsCloseYearCard />
-              <SettingsColumnRepairCard spreadsheetId={settings.spreadsheetId} />
+              {canExport ? <SettingsBackupCard spreadsheetId={settings.spreadsheetId} /> : null}
+              {isShared ? null : <SettingsCloseYearCard />}
+              {canRepair ? (
+                <SettingsColumnRepairCard spreadsheetId={settings.spreadsheetId} />
+              ) : null}
             </>
           ) : null}
         </>
@@ -166,6 +190,7 @@ export default function SettingsPage() {
       content: <SettingsRemindersCard onOpenReminders={() => navigate(SETTINGS_REMINDERS_PATH)} />
     }
   ]
+  const shown = sections.filter(section => !hidden[section.id])
 
   return (
     <div className={settingsPageClass}>
@@ -177,9 +202,9 @@ export default function SettingsPage() {
       <SheetSwitchConfirmModal {...settings.switchGuardModalProps} />
 
       {isDesktop ? (
-        <SettingsTwoPane sections={sections} />
+        <SettingsTwoPane sections={shown} />
       ) : (
-        sections.map(({ id, content, ...section }) => (
+        shown.map(({ id, content, ...section }) => (
           <SettingsSection key={id} {...section}>
             {content}
           </SettingsSection>

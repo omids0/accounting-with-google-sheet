@@ -1,4 +1,5 @@
 import type { ChargeTo } from '../../services/buildingLists'
+import type { SharedRole } from '../../services/memberRegistry'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 
 /**
@@ -80,6 +81,21 @@ export const BUILDING_ROLES: BuildingOption<BuildingRole>[] = [
     hint: 'ثبت و صدور شارژ؛ می‌تواند در گوگل‌درایو ویرایش کند'
   },
   { value: 'board', label: 'عضو هیئت مدیره', hint: 'فقط می‌بیند؛ در گوگل‌درایو هم فقط مشاهده دارد' }
+]
+
+/** Roles of a shared account («حساب مشترک»); the owner holds the Drive file and never changes. */
+export const SHARED_ROLES: BuildingOption<SharedRole>[] = [
+  {
+    value: 'owner',
+    label: 'مالک',
+    hint: 'فایل در درایو این حساب است. همهٔ کارها را می‌تواند بکند و نقشش عوض نمی‌شود.'
+  },
+  {
+    value: 'partner',
+    label: 'شریک',
+    hint: 'هزینه ثبت می‌کند، تسویه می‌کند و همه‌چیز را می‌بیند. اعضا را نمی‌تواند عوض کند.'
+  },
+  { value: 'viewer', label: 'ناظر', hint: 'فقط می‌بیند. مناسب پدر و مادر یا حسابدار.' }
 ]
 
 /** «سهم هر واحد به نام» of an expense kind (the managed list stores the key). */

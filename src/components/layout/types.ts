@@ -1,6 +1,9 @@
+import { SHARED_SPEED_DIAL_TABS, SHARED_TAB_TITLES, type SharedTab } from './sharedTabs'
+
 export type Tab =
   /** A URL no page answers to: no tab is highlighted and no speed dial shows. */
   | 'not-found'
+  | SharedTab
   | 'dashboard'
   | 'charts'
   | 'entry'
@@ -157,7 +160,8 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'building-fund',
   'building-dang',
   'building-checks',
-  'building-counterparties'
+  'building-counterparties',
+  ...SHARED_SPEED_DIAL_TABS
 ]
 
 export const TAB_TITLES: Record<Tab, string> = {
@@ -211,7 +215,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   about: 'درباره',
   invite: 'دعوت دوستان',
   activity: 'فعالیت',
-  'buildings-home': 'مدیر ساختمان',
+  'buildings-home': 'فضاهای من',
   'building-dashboard': 'داشبورد',
   'building-setup': 'راه‌اندازی ساختمان',
   'building-units': 'واحدها',
@@ -227,7 +231,8 @@ export const TAB_TITLES: Record<Tab, string> = {
   'building-reports': 'گزارش‌ها و مجمع',
   'building-settings': 'تنظیمات ساختمان',
   'building-members': 'اعضا و دسترسی‌ها',
-  'building-lists': 'فهرست‌ها'
+  'building-lists': 'فهرست‌ها',
+  ...SHARED_TAB_TITLES
 }
 
 /** Pages of a building workspace; the personal workspace redirects them to its dashboard. */

@@ -1,0 +1,25 @@
+import { clearSharedLinkFailures, readSharedLinks } from '../services/sharedLinkPrefs'
+import {
+  isSharedAccountHidden,
+  isSharedWorkspace,
+  sharedSpreadsheetId
+} from '../services/workspace'
+
+/**
+ * Sends the copies of personal records still waiting for the shared account. Called by
+ * `useBridgeDrain` on start, back online, back in focus and after a switch of workspace; cheap
+ * when nothing waits (the runner loads only then). A task that failed for access waits until this
+ * device reaches the file again: the shared account open here (or its tick panel read) proves it.
+ */
+export function drainSharedLinks(): void {
+  const sharedId = sharedSpreadsheetId()
+
+  // The change notices too (throttled inside), so the banners have them when a page opens.
+  if (sharedId && !isSharedAccountHidden(sharedId)) {
+    void import('../services/sharedNotices').then(({ refreshNotices }) => refreshNotices(sharedId))
+  }
+  if (isSharedWorkspace()) clearSharedLinkFailures()
+  if (!readSharedLinks().some(task => !task.failed)) return
+
+  void import('../services/sharedLink').then(({ runSharedLinks }) => runSharedLinks())
+}

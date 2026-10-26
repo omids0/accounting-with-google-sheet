@@ -4,7 +4,7 @@ import { migrateCheckDirectionColumn } from './migrateCheckDirectionColumn'
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
 import { migrateWalletColumns } from './migrateWalletApplyColumn'
-import { BUILDING_SHEET_SPECS } from './moduleSheetSpecs'
+import { BUILDING_SHEET_SPECS, SHARED_SHEET_SPECS } from './moduleSheetSpecs'
 import { ensureMembershipDate } from './periodSettings'
 import {
   prepareSpreadsheetContents,
@@ -13,7 +13,7 @@ import {
 } from './spreadsheetPrepare'
 
 const mocks = vi.hoisted(() => ({
-  type: 'personal' as 'personal' | 'building',
+  type: 'personal' as 'personal' | 'building' | 'shared',
   ensure: vi.fn(),
   categories: vi.fn()
 }))
@@ -64,6 +64,14 @@ describe('refreshSpreadsheetContents', () => {
     expect(mocks.ensure).toHaveBeenCalledWith('building-1', BUILDING_SHEET_SPECS)
   })
 
+  it('gives a shared account its own tabs, never the building or personal ones', async () => {
+    mocks.type = 'shared'
+    await refreshSpreadsheetContents('shared-1')
+
+    expect(mocks.ensure).toHaveBeenCalledTimes(1)
+    expect(mocks.ensure).toHaveBeenCalledWith('shared-1', SHARED_SHEET_SPECS)
+  })
+
   it('does not fail the activation when the tabs cannot be created right now', async () => {
     mocks.type = 'building'
     mocks.ensure.mockRejectedValue(new Error('offline'))
@@ -107,6 +115,35 @@ describe('the personal one-off migrations', () => {
   it('do not run in the background for a building either', () => {
     mocks.type = 'building'
     runBackgroundMigrations('building-1')
+
+    expect(migrateLegacyMachineExpenseCategory).not.toHaveBeenCalled()
+    expect(migrateSubCategoryColumn).not.toHaveBeenCalled()
+  })
+})
+
+describe('the personal one-off migrations in a shared account', () => {
+  beforeEach(() => {
+    vi.mocked(migrateLegacyMachineExpenseCategory).mockClear()
+    vi.mocked(migrateSubCategoryColumn).mockClear()
+    vi.mocked(migrateCheckDirectionColumn).mockClear()
+    vi.mocked(migrateWalletColumns).mockClear()
+    vi.mocked(ensureMembershipDate).mockClear()
+  })
+
+  it('are skipped, which only gets its membership date', async () => {
+    mocks.type = 'shared'
+    await prepareSpreadsheetContents('shared-1')
+
+    expect(migrateLegacyMachineExpenseCategory).not.toHaveBeenCalled()
+    expect(migrateSubCategoryColumn).not.toHaveBeenCalled()
+    expect(migrateCheckDirectionColumn).not.toHaveBeenCalled()
+    expect(migrateWalletColumns).not.toHaveBeenCalled()
+    expect(ensureMembershipDate).toHaveBeenCalledWith('shared-1')
+  })
+
+  it('do not run in the background either', () => {
+    mocks.type = 'shared'
+    runBackgroundMigrations('shared-1')
 
     expect(migrateLegacyMachineExpenseCategory).not.toHaveBeenCalled()
     expect(migrateSubCategoryColumn).not.toHaveBeenCalled()

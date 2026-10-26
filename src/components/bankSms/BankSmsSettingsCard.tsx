@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import BankSmsHelp from './BankSmsHelp'
+import { useWorkspaceType } from '../../hooks/useWorkspaceType'
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import { BANK_SMS_ENABLE_MESSAGES, enableBankSmsCapture } from '../../services/bankSmsEnable'
 import { getBankSmsPermission, setBankSmsCaptureEnabled } from '../../services/bankSmsNative'
@@ -28,6 +29,8 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
   const [busy, setBusy] = useState(false)
   const [notifyAllowed, setNotifyAllowed] = useState(true)
   const navigate = useNavigate()
+  // The reminders page exists only in the personal sheet; a building has no link to it.
+  const isPersonal = useWorkspaceType() === 'personal'
 
   useEffect(() => {
     void getBankSmsPermission()
@@ -79,7 +82,7 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
         <p className={smsHintClass}>اجازه دسترسی به پیامک‌ها لغو شده است؛ دوباره اجازه دهید.</p>
       )}
 
-      {enabled && !notifyAllowed && (
+      {enabled && !notifyAllowed && isPersonal && (
         <p className={smsHintClass}>
           برای اینکه شب‌ها از پیامک‌های ثبت‌نشده خبردار شوید، «جمع‌بندی شبانه» را در یادآوری‌ها روشن
           کنید.{' '}

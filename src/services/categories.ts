@@ -23,9 +23,11 @@ import {
   updatePersonalReminderCategories,
   updateReceivableCategories
 } from './settings'
+import { assertSharedCan, sharedCan } from './sharedCan'
 import { CATEGORIES_HEADERS } from './sheetHeaders'
 import { CATEGORIES_SHEET } from './sheetNames'
 import { ensureSheetWithHeaders, fetchSheetRows, replaceSheetDataRows } from './sheets'
+import { isSharedWorkspace } from './workspace'
 import type { CategorySubcategoryMap } from '../types'
 import { withLockedFormCategories } from '../utils/protectedCategories'
 
@@ -52,6 +54,7 @@ export async function saveCategoryGroupOnSheet(
   spreadsheetId: string,
   group: Partial<CategoryGroups>
 ): Promise<CategoryGroups> {
+  assertSharedCan('budget', spreadsheetId)
   const current = await fetchCategorySheetData(spreadsheetId)
   const next = withDefaults({ ...current.groups, ...group })
 
@@ -66,6 +69,7 @@ export async function saveSubcategoriesToSheet(
   category: string,
   subcategories: string[]
 ): Promise<CategorySubcategoryMap> {
+  assertSharedCan('budget', spreadsheetId)
   const current = await fetchCategorySheetData(spreadsheetId)
   const next = setSubcategoriesOf(current.subcategories, categoryType, category, subcategories)
 
@@ -81,6 +85,7 @@ export async function renameSubcategoryOwnerOnSheet(
   oldName: string,
   newName: string
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
   const current = await fetchCategorySheetData(spreadsheetId)
 
   if (!current.subcategories[categoryType]?.[oldName]?.length) return
@@ -96,6 +101,7 @@ export async function removeSubcategoryOwnerOnSheet(
   categoryType: CategoryType,
   category: string
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
   const current = await fetchCategorySheetData(spreadsheetId)
 
   if (!current.subcategories[categoryType]?.[category]?.length) return
@@ -111,6 +117,8 @@ async function writeCategoriesToSheet(
   groups: CategoryGroups,
   subcategories: CategorySubcategoryMap
 ): Promise<void> {
+  // Every list writer (dang, receivable, personal reminder, …) ends here: «بودجه و دسته‌ها».
+  assertSharedCan('budget', spreadsheetId)
   await ensureCategoriesSheet(spreadsheetId)
   await replaceSheetDataRows(
     spreadsheetId,
@@ -131,6 +139,7 @@ export async function saveCategoryListToSheet(
   categories: string[],
   subcategories?: CategorySubcategoryMap
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
   const current = await fetchCategorySheetData(spreadsheetId)
   const list =
     categoryType === 'income' || categoryType === 'expense'
@@ -143,8 +152,18 @@ export async function saveCategoryListToSheet(
   applyGroupsToSettings(groups, map)
 }
 
+/**
+ * A shared account: only «بودجه و دسته‌ها» writes the tab (a viewer's Drive share is read-only),
+ * and a refused write never aborts opening the sheet. Personal and building run `task` as before.
+ */
+function categoryWrite(spreadsheetId: string, task: () => Promise<void>): Promise<void> {
+  if (!isSharedWorkspace(spreadsheetId)) return task()
+
+  return sharedCan('budget', spreadsheetId) ? task().catch(() => undefined) : Promise.resolve()
+}
+
 export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<CategoryGroups> {
-  await ensureCategoriesSheet(spreadsheetId)
+  await categoryWrite(spreadsheetId, () => ensureCategoriesSheet(spreadsheetId))
 
   const { groups: fromSheet, subcategories: sheetSubcategories } = await fetchCategorySheetData(
     spreadsheetId
@@ -159,7 +178,9 @@ export async function syncCategoriesFromSheet(spreadsheetId: string): Promise<Ca
   const needsSeed = Object.values(fromSheet).some(list => !list.length)
 
   if (needsSeed) {
-    await writeCategoriesToSheet(spreadsheetId, groups, subcategories)
+    await categoryWrite(spreadsheetId, () =>
+      writeCategoriesToSheet(spreadsheetId, groups, subcategories)
+    )
   }
 
   applyGroupsToSettings(groups, subcategories)
@@ -176,6 +197,7 @@ export async function saveFormCategoriesToSheet(
   formId: string,
   categories: string[]
 ): Promise<void> {
+  assertSharedCan('budget', spreadsheetId)
   const settings = getSettings() ?? getDefaultSettings()
 
   const form = settings.forms.find(item => item.id === formId)

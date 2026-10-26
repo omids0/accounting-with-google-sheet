@@ -173,14 +173,18 @@ export function routeSmsToWorkspace(
 
 /**
  * The SMS the queue of `activeId` lists: those routed to it, plus (in a personal workspace)
- * those no workspace owns. A building never lists an unrouted SMS.
+ * those no workspace owns. A building never lists an unrouted SMS, and a shared account has no
+ * SMS queue at all.
  */
 export function filterSmsForWorkspace<T extends { body: string }>(
   items: T[],
   workspaces: RoutingWorkspace[],
   activeId: string,
-  activeIsBuilding: boolean
+  activeIsBuilding: boolean,
+  activeIsShared = false
 ): T[] {
+  if (activeIsShared) return []
+
   return items.filter(sms => {
     const owner = routeSmsToWorkspace(sms, workspaces, activeId)
 
@@ -196,6 +200,7 @@ export function smsForActiveWorkspace<T extends { body: string }>(items: T[]): T
     items,
     routingWorkspaces(),
     activeId,
-    getWorkspaceType(activeId) === 'building'
+    getWorkspaceType(activeId) === 'building',
+    getWorkspaceType(activeId) === 'shared'
   )
 }

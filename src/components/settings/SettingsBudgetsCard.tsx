@@ -15,7 +15,8 @@ export default function SettingsBudgetsCard() {
   const { budgets, editing, openBudget, closeBudget } = useCategoryBudgets()
   const { handleExport, handleImport, importExportConfirmModal } = useSheetImportExport({
     exportFn: exportBudgetsCsv,
-    importFn: importBudgetsCsv
+    importFn: importBudgetsCsv,
+    importPermission: 'budget'
   })
 
   return (

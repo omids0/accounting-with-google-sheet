@@ -3,9 +3,15 @@ import { refreshScheduledReminders } from './localNotifications'
 import { getCurrentPushSubscription, getDeviceLabel } from './pushNotifications'
 import { upsertPushSubscription } from './reminders'
 import { initializeSheetSync, resetSheetSync } from './sheetSync'
+import { isPersonalWorkspace } from './workspace'
 
-/** Reminders are read from the active sheet: schedule (APK) or register push (web) for it. */
+/**
+ * Reminders are read from the active sheet: schedule (APK) or register push (web) for it. Only a
+ * personal sheet has them: a building's board and a shared account's partner read every tab, so
+ * they must never get this device's push keys (the device keeps the personal reminders).
+ */
 async function refreshRemindersForSheet(spreadsheetId: string): Promise<void> {
+  if (!isPersonalWorkspace(spreadsheetId)) return
   if (isNativePlatform()) {
     await refreshScheduledReminders(spreadsheetId, { force: true })
 

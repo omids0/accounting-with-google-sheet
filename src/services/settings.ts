@@ -15,8 +15,9 @@ import {
   normalizeCategoryLists
 } from './settingsCategoryLists'
 import { getItem, setItem, STORAGE_KEYS } from './storage'
-import { getWorkspaceType } from './workspace'
+import { getWorkspaceType, hasSharedAccount } from './workspace'
 import { withStandardFields } from '../components/form/fieldUtils'
+import { withSharedLinkField } from '../components/form/sharedFields'
 
 export {
   DEFAULT_DANG_CATEGORIES,
@@ -75,10 +76,15 @@ export function getDefaultForms(): CustomForm[] {
 }
 
 export function normalizeSettings(input: AppSettings): AppSettings {
+  const type = getWorkspaceType(input.spreadsheetId)
   const settings: AppSettings = normalizeCategoryLists({
     ...input,
-    // The building fields exist only while a building is the active spreadsheet.
-    forms: withStandardFields(input.forms, getWorkspaceType(input.spreadsheetId) === 'building')
+    // The building or shared fields exist only while that workspace is the active spreadsheet;
+    // the link to a shared copy only on a personal sheet of a device with a shared account.
+    forms: withSharedLinkField(
+      withStandardFields(input.forms, type === 'building', type === 'shared'),
+      type === 'personal' && hasSharedAccount()
+    )
   })
 
   if (settings.spreadsheets?.length) {

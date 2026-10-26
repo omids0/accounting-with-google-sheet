@@ -169,6 +169,17 @@ export const loadBuildingUnitPage: PageLoader = () =>
 export const loadBuildingExpensesPage: PageLoader = () =>
   import('../components/buildings/BuildingExpensesPage')
 
+export const loadSharedHomePage: PageLoader = () => import('../components/shared/SharedHomePage')
+
+export const loadSharedRecordsPage: PageLoader = () =>
+  import('../components/shared/SharedRecordsPage')
+
+export const loadSharedSettlePage: PageLoader = () =>
+  import('../components/shared/SharedSettlePage')
+
+export const loadSharedMembersPage: PageLoader = () =>
+  import('../components/shared/SharedMembersRoute')
+
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
 export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')

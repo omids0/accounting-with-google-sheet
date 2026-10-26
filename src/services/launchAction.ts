@@ -1,3 +1,6 @@
+import type { WorkspaceType } from './workspace'
+import type { Tab } from '../components/layout/types'
+
 /**
  * What the app was opened for from outside: a home-screen shortcut, the share
  * sheet, or a native notification. Web shortcuts and the share target open the
@@ -39,6 +42,25 @@ export function parseLaunchUrl(url: string | null | undefined): LaunchAction | n
   if (base.includes('://dashboard')) return { kind: 'dashboard' }
 
   return null
+}
+
+export interface LaunchTarget {
+  tab: Tab
+  formType?: 'income' | 'expense'
+  /** A shared text for «پیامک‌های بانکی». */
+  smsText?: string
+}
+
+/**
+ * The page an action opens. A shared account has no entry form or SMS queue (its records carry a
+ * payer and a split), so every action lands on its home and nothing opens for a viewer.
+ */
+export function launchTarget(action: LaunchAction, workspace: WorkspaceType): LaunchTarget {
+  if (workspace === 'shared') return { tab: 'shared-home' }
+  if (action.kind === 'entry') return { tab: 'entry', formType: action.formType }
+  if (action.kind === 'dashboard') return { tab: 'dashboard' }
+
+  return action.kind === 'share' ? { tab: 'bank-sms', smsText: action.text } : { tab: 'bank-sms' }
 }
 
 const SHARED_SMS_STATE_KEY = 'sharedSms'

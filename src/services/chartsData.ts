@@ -14,7 +14,9 @@ import {
   sumByCategory
 } from './dashboardAggregation'
 import { summarizePreviousMonth } from './monthComparison'
+import { withoutSettlements } from './sharedSettlement'
 import { fetchRecords } from './sheets'
+import { workspaceTypeOf } from './workspace'
 import { toCategoryShares } from '../utils/categoryShares'
 import {
   getJalaliMonthRange,
@@ -127,12 +129,15 @@ export async function loadChartsData(
   ])
 
   return buildChartsData(
-    {
-      incomeRecords,
-      expenseRecords,
-      incomeDateField: getDateFieldId(incomeForm),
-      expenseDateField: getDateFieldId(expenseForm)
-    },
+    withoutSettlements(
+      {
+        incomeRecords,
+        expenseRecords,
+        incomeDateField: getDateFieldId(incomeForm),
+        expenseDateField: getDateFieldId(expenseForm)
+      },
+      workspaceTypeOf(settings.spreadsheetId)
+    ),
     period
   )
 }

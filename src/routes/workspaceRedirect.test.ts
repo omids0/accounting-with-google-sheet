@@ -12,19 +12,19 @@ describe('workspace redirect', () => {
       '/vehicles/v1',
       '/timesheets'
     ]) {
-      expect(workspaceRedirect(path, true)).toBe('/building')
+      expect(workspaceRedirect(path, 'building')).toBe('/building')
     }
-    expect(workspaceRedirect('/wallet', true)).toBe('/building')
+    expect(workspaceRedirect('/wallet', 'building')).toBe('/building')
   })
 
   it('sends the bank SMS page of a building to its own queue', () => {
-    expect(workspaceRedirect('/bank-sms', true)).toBe('/building/sms')
-    expect(workspaceRedirect('/building/sms', true)).toBeNull()
+    expect(workspaceRedirect('/bank-sms', 'building')).toBe('/building/sms')
+    expect(workspaceRedirect('/building/sms', 'building')).toBeNull()
   })
 
   it('lets the buildings home through inside a building (the drawer switcher opens it)', () => {
-    expect(workspaceRedirect('/buildings', true)).toBeNull()
-    expect(workspaceRedirect('/buildings', false)).toBeNull()
+    expect(workspaceRedirect('/buildings', 'building')).toBeNull()
+    expect(workspaceRedirect('/buildings', 'personal')).toBeNull()
   })
 
   it('lets the shared pages through inside a building', () => {
@@ -36,12 +36,12 @@ describe('workspace redirect', () => {
       '/reports/monthly',
       '/settings'
     ]) {
-      expect(workspaceRedirect(path, true)).toBeNull()
+      expect(workspaceRedirect(path, 'building')).toBeNull()
     }
-    expect(workspaceRedirect('/settings/categories', true)).toBeNull()
-    expect(workspaceRedirect('/settings/backup', true)).toBeNull()
-    expect(workspaceRedirect('/settings/close-year/1405', true)).toBeNull()
-    expect(workspaceRedirect('/building/units/u1', true)).toBeNull()
+    expect(workspaceRedirect('/settings/categories', 'building')).toBeNull()
+    expect(workspaceRedirect('/settings/backup', 'building')).toBeNull()
+    expect(workspaceRedirect('/settings/close-year/1405', 'building')).toBeNull()
+    expect(workspaceRedirect('/building/units/u1', 'building')).toBeNull()
   })
 
   it('sends the building pages to the personal dashboard', () => {
@@ -51,21 +51,21 @@ describe('workspace redirect', () => {
       '/building/units/u1',
       '/building/settings/lists'
     ]) {
-      expect(workspaceRedirect(path, false)).toBe('/')
+      expect(workspaceRedirect(path, 'personal')).toBe('/')
     }
   })
 
   it('keeps the personal pages and the buildings home in the personal workspace', () => {
     for (const path of ['/', '/installments', '/wallet', '/buildings', '/settings']) {
-      expect(workspaceRedirect(path, false)).toBeNull()
+      expect(workspaceRedirect(path, 'personal')).toBeNull()
     }
   })
 })
 
 describe('workspace redirect and unknown URLs', () => {
   it('leaves an unknown URL alone so it shows «صفحه پیدا نشد» in both workspaces', () => {
-    expect(workspaceRedirect('/nonexistent-page', true)).toBeNull()
-    expect(workspaceRedirect('/nonexistent-page', false)).toBeNull()
-    expect(workspaceRedirect('/records/xyz', true)).toBeNull()
+    expect(workspaceRedirect('/nonexistent-page', 'building')).toBeNull()
+    expect(workspaceRedirect('/nonexistent-page', 'personal')).toBeNull()
+    expect(workspaceRedirect('/records/xyz', 'building')).toBeNull()
   })
 })

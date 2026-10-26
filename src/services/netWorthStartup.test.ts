@@ -46,6 +46,7 @@ vi.mock('../utils/jalaliDate', async importOriginal => ({
 }))
 
 import { readNetWorthGate, runNetWorthSnapshot } from './netWorthStartup'
+import { setWorkspaceType } from './workspace'
 
 describe('runNetWorthSnapshot', () => {
   beforeEach(() => {
@@ -91,5 +92,22 @@ describe('runNetWorthSnapshot', () => {
 
     expect(sheet.appended).toEqual([])
     expect(readNetWorthGate('S1').checkedMonth).toBe('1405-07')
+  })
+})
+
+describe('runNetWorthSnapshot outside a personal workspace', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    sheet.rows = []
+    sheet.appended = []
+  })
+
+  it.each(['building', 'shared'] as const)('writes no net-worth row into a %s file', async type => {
+    setWorkspaceType('S1', type)
+
+    await runNetWorthSnapshot('S1')
+
+    expect(sheet.appended).toEqual([])
+    expect(readNetWorthGate('S1').checkedMonth).toBeUndefined()
   })
 })
