@@ -1,7 +1,7 @@
 import { getSheetDataRows } from './spreadsheetStore'
 import { paidTotal } from '../utils/paymentLedger'
 
-/** The part of a payment (debt, receivable, later check or installment) that points at a record. */
+/** The part of a payment (debt, receivable) that points at a record. */
 export interface LinkedPayment {
   id: string
   amount: number
@@ -26,7 +26,7 @@ export interface RecordChange {
 }
 
 /**
- * What an item kind (personal debts, receivables; later checks and installments) does when the
+ * What an item kind (personal debts, receivables, checks, installments) does when the
  * income or expense record its payments point at is edited or deleted. Every method works on the
  * local mirror of the sheets and resolves with the Persian notes to show the user; none may
  * delete the record again or move a wallet balance (the record operation did that itself).
