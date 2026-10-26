@@ -1,6 +1,6 @@
 # UX Shared Account — Design Spec («حساب مشترک»)
 
-Audience: the Claude agent that will plan and implement this. Decisions marked **(owner)** were made by the product owner while reviewing the live prototype; decisions marked **(my call)** are the designer's and the owner can overrule them. Source of truth for look and behavior: `prototype.html` in this folder (one clickable page; `css/` and `js/` hold its parts). Where this document and the prototype disagree on _behavior_, this document wins; on _look_, the prototype wins.
+Audience: the Claude agent that will plan and implement this. Decisions marked **(owner)** were made by the product owner while reviewing the live prototype; decisions marked **(my call)** are the designer's and the owner can overrule them. Source of truth for look and behavior: `prototype.html` in this folder (one clickable page; `css/` and `js/` hold its parts). Where this document and the prototype disagree on _behavior_, this document wins; on _look_, the prototype wins. After implementation the prototype was redrawn to the shipped state (real copy, the app's light and dark tokens); its rail lists every screen as a jump target.
 
 The feature was first called «حساب کتاب خانوادگی». **The name is now «حساب مشترک»** and it is not tied to spouses: any two people who share expenses (partners, roommates, siblings, a parent and a child). Copy must say «شریک», never «همسر».
 

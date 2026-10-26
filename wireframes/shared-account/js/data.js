@@ -1,46 +1,38 @@
 /* eslint-disable -- prototype scripts share globals, not part of the app source */
+/* Sample data and constants. Names, e-mails and amounts are made up; nothing is saved. */
 var IC = {
-  home: 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
-  list: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
-  scale: 'M12 3v18M6 21h12M5 7h14M5 7l-3 7a3.5 3 0 0 0 6 0zM19 7l-3 7a3.5 3 0 0 0 6 0z',
+  menu: 'M4 7h16M4 12h16M4 17h16',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',
+  back: 'M19 12H5M11 6l-6 6 6 6',
+  grid: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+  list: 'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01',
+  swap: 'M4 8h14l-4-4M20 16H6l4 4',
   users:
     'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
   plus: 'M12 5v14M5 12h14',
-  back: 'M9 6l6 6-6 6',
-  down: 'M6 9l6 6 6-6',
   x: 'M6 6l12 12M18 6L6 18',
-  check: 'M5 12l5 5 9-10',
   lock: 'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z',
-  file: 'M14 3H6v18h12V8zM14 3v5h5'
+  bell: 'M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0',
+  building: 'M4 21V7l6-3v17M10 21h10V10l-10-3M7 9v.01M7 13v.01M7 17v.01M14 13h2M14 17h2',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  pencil: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4',
+  debt: 'M12 19V5M6 11l6-6 6 6M5 21h14',
+  cheque: 'M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2zM9 9h6M9 13h6',
+  hand: 'M4 14h3l4 3h6a2 2 0 0 0 0-4h-4M7 14V9M12 6a2 2 0 1 0 4 0 2 2 0 0 0-4 0',
+  box: 'M4 6h16v13H4zM9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0',
+  wallet: 'M4 7h15v12H4zM4 7l12-3v3M15 13h.01'
 }
-function ic(n, s) {
-  s = s || 20
-  return (
-    '<svg width="' +
-    s +
-    '" height="' +
-    s +
-    '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' +
-    IC[n] +
-    '"/></svg>'
-  )
-}
-function $(id) {
-  return document.getElementById(id)
-}
-function fmt(n) {
-  return Math.round(n).toLocaleString('fa-IR')
-}
-function digits(s) {
-  return String(s)
-    .replace(/[۰-۹]/g, function (d) {
-      return d.charCodeAt(0) - 1776
-    })
-    .replace(/[٠-٩]/g, function (d) {
-      return d.charCodeAt(0) - 1632
-    })
-    .replace(/[^0-9]/g, '')
-}
+
+var OWNER = 'nima@example.com'
+var PARTNER = 'mina@example.com'
+var VIEWER = 'sara@example.com'
+/* Inside the shared account names come from the sharing info; outside it (hub, personal forms)
+   the app shows the e-mail's local part (spec «Personal side details»). */
+var NAMES = { 'nima@example.com': 'نیما', 'mina@example.com': 'مینا', 'sara@example.com': 'سارا' }
+var ACCOUNT = 'خانهٔ ما'
 
 var PERMS = [
   ['record', 'ثبت هزینه و درآمد'],
@@ -50,6 +42,7 @@ var PERMS = [
   ['members', 'دعوت و مدیریت اعضا'],
   ['export', 'خروجی و پشتیبان']
 ]
+var WRITE_PERMS = ['record', 'editOthers', 'settle', 'budget', 'members']
 var DEF = {
   owner: { record: 1, editOthers: 1, settle: 1, budget: 1, members: 1, export: 1 },
   partner: { record: 1, editOthers: 0, settle: 1, budget: 1, members: 0, export: 1 },
@@ -61,182 +54,124 @@ var ROLE_HINT = {
   partner: 'هزینه ثبت می‌کند، تسویه می‌کند و همه‌چیز را می‌بیند. اعضا را نمی‌تواند عوض کند.',
   viewer: 'فقط می‌بیند. مناسب پدر و مادر یا حسابدار.'
 }
-var CATS = ['مسکن', 'خوراک', 'قبوض', 'سلامت', 'تفریح', 'حمل‌ونقل', 'سایر']
+var STATUS = { active: 'فعال', invited: 'دعوت‌شده' }
+var EXP_CATS = ['خوراک', 'اجاره', 'قبوض', 'سلامت', 'حمل‌ونقل', 'خانه', 'سایر']
+var INC_CATS = ['حقوق', 'هدیه', 'سایر']
+var PERSONAL_CATS = ['خوراک', 'رستوران', 'قبوض', 'حمل‌ونقل', 'حقوق']
 
-var S = {
-  screen: 'spaces',
-  tab: 'home',
-  as: 'A',
-  familyOn: false,
-  step: 1,
-  sheet: null,
-  filter: 'all',
-  backup: true,
-  toast: '',
-  tid: 0,
-  n: 0,
-  wiz: {
-    name: 'خانهٔ نیما و مینا',
-    email: 'mina@example.com',
-    role: 'partner',
-    split: 'equal',
-    cards: false
-  },
-  ent: { type: 'exp', a: 0, t: '', cat: 'خوراک', share: false, sp: 'equal' },
-  pers: [
-    { id: 'p1', t: 'قبض اینترنت', a: 480000, cat: 'قبوض', type: 'exp', sh: true, sp: 'equal' },
-    { id: 'p2', t: 'بنزین', a: 900000, cat: 'حمل‌ونقل', type: 'exp', sh: false, sp: 'equal' },
-    { id: 'p3', t: 'حقوق', a: 60000000, cat: 'سایر', type: 'inc', sh: false, sp: 'equal' }
-  ],
-  notices: [],
-  tAmt: 0,
-  draft: null,
-  inv: { email: '', role: 'partner', err: '' },
-  members: [
-    { id: 'A', name: 'نیما', email: 'nima@example.com', role: 'owner', ov: {}, st: 'active' },
-    { id: 'B', name: 'مینا', email: 'mina@example.com', role: 'partner', ov: {}, st: 'active' },
-    {
-      id: 'C',
-      name: 'مادر مینا',
-      email: 'mother@example.com',
-      role: 'viewer',
-      ov: {},
-      st: 'invited'
-    }
-  ],
-  txs: [
-    { id: 1, t: 'اجارهٔ خانه', a: 18000000, cat: 'مسکن', by: 'A', sp: 'equal', d: '۱ آبان' },
-    { id: 2, t: 'خرید سوپرمارکت', a: 1850000, cat: 'خوراک', by: 'B', sp: 'equal', d: '۳ آبان' },
-    { id: 3, t: 'قبض برق و گاز', a: 640000, cat: 'قبوض', by: 'A', sp: 'equal', d: '۲ آبان' },
-    { id: 4, t: 'داروخانه', a: 420000, cat: 'سلامت', by: 'A', sp: 'B', d: '۲ آبان' },
-    { id: 5, t: 'رستوران', a: 1350000, cat: 'تفریح', by: 'B', sp: 'equal', d: '۲ آبان' },
-    {
-      id: 6,
-      t: 'قبض اینترنت',
-      a: 480000,
-      cat: 'قبوض',
-      by: 'A',
-      sp: 'equal',
-      d: '۲ آبان',
-      src: 'p1'
-    }
-  ],
-  sets: [{ id: 1, from: 'B', to: 'A', a: 5000000, d: '۱۵ مهر' }]
-}
-
-function pers(id) {
-  return S.pers.filter(function (r) {
-    return r.id === id
-  })[0]
-}
-function mem(id) {
-  return S.members.filter(function (m) {
-    return m.id === id
-  })[0]
-}
-function me() {
-  var m = mem(S.as)
-  if (!m) {
-    S.as = 'A'
-    m = mem('A')
-  }
-  return m
-}
-function can(p, m) {
-  m = m || me()
-  var v = m.ov[p]
-  return v !== undefined ? !!v : !!DEF[m.role][p]
-}
-function nm(id) {
-  return id === S.as ? 'شما' : mem(id) ? mem(id).name : '؟'
-}
-function driveWrite(m) {
-  return (
-    m.role !== 'viewer' ||
-    ['record', 'editOthers', 'settle', 'budget', 'members'].some(function (p) {
-      return m.ov[p]
+/* Shared records: payer, split (equal | only:<email>), creator («ایجادکننده») and the personal
+   record a copy came from. «تسویه» rows are expense rows: payer = from, split only:<to>. */
+var RECORDS = [
+  'r4|قبض برق و گاز|640000|قبوض|expense|mina|equal|mina|۳ آبان ۱۴۰۵|یکشنبه|m1',
+  'r3|شام بیرون|1200000|خوراک|expense|nima|only:mina|nima|۳ آبان ۱۴۰۵|یکشنبه|',
+  'r2|میوه و سبزی|900000|خانه|expense|nima|equal|nima|۲ آبان ۱۴۰۵|شنبه|p1',
+  'r1|اجاره آبان|12000000|اجاره|expense|mina|equal|mina|۱ آبان ۱۴۰۵|جمعه|',
+  'r5|حقوق مهر|60000000|حقوق|income|||nima|۲۹ مهر ۱۴۰۵|سه‌شنبه|',
+  'r6|خرید هفته|640000|خوراک|expense|mina|equal|mina|۲۳ مهر ۱۴۰۵|چهارشنبه|',
+  's1|تسویه|2000000|تسویه|settle|mina|only:nima|mina|۱۸ مهر ۱۴۰۵|جمعه|'
+]
+/* Notices go to the copy's creator after someone else changed or deleted it. */
+var NOTICES = [
+  'n1|nima|mina|p1|میوه و سبزی|amount|edit|850000|900000',
+  'n2|nima|mina|p1|میوه و سبزی|category|edit|خوراک|خانه',
+  'n3|nima|mina|p4|تاکسی فرودگاه|delete|delete||'
+]
+/* The signed-in person's personal records; link: none | linked | pending («در انتظار ارسال»). */
+var PERS = [
+  'p2|رستوران|420000|رستوران|۳ آبان ۱۴۰۵|expense|none',
+  'p1|میوه و سبزی|850000|خوراک|۲ آبان ۱۴۰۵|expense|linked',
+  'p3|قبض اینترنت|480000|قبوض|۲ آبان ۱۴۰۵|expense|pending',
+  'p4|تاکسی فرودگاه|650000|حمل‌ونقل|۱ آبان ۱۴۰۵|expense|linked'
+]
+/* «nima» / «only:mina» in the tables stand for the sample e-mails. */
+function rows(table, keys) {
+  return table.map(function (line) {
+    var o = {}
+    line.split('|').forEach(function (v, i) {
+      v = v.replace(/^(only:)?(nima|mina|sara)$/, '$1$2@example.com')
+      o[keys[i]] = /^[0-9]+$/.test(v) ? Number(v) : v
     })
-  )
-}
-function custom(m) {
-  return Object.keys(m.ov).length > 0
+    return o
+  })
 }
 
-function net() {
-  var n = { A: 0, B: 0 }
-  S.txs.forEach(function (t) {
-    n[t.by] += t.a
-    if (t.sp === 'equal') {
-      n.A -= t.a / 2
-      n.B -= t.a / 2
-    } else n[t.sp] -= t.a
-  })
-  S.sets.forEach(function (s) {
-    n[s.from] += s.a
-    n[s.to] -= s.a
-  })
-  return n
-}
-function paid() {
-  var p = { A: 0, B: 0 }
-  S.txs.forEach(function (t) {
-    p[t.by] += t.a
-  })
-  return p
-}
-function spLabel(t) {
-  return t.sp === 'equal' ? 'نصف‌نصف' : 'فقط برای ' + nm(t.sp)
-}
-
-/* ---------- screens ---------- */
-function appbar(title, o) {
-  o = o || {}
-  return (
-    '<header class="appbar">' +
-    (o.back
-      ? '<button class="icon" data-act="' +
-        o.back +
-        '" aria-label="بازگشت">' +
-        ic('back') +
-        '</button>'
-      : '') +
-    '<h2>' +
-    title +
-    '</h2>' +
-    (o.right || '') +
-    '</header>'
-  )
-}
-
-function spaces() {
-  var h = appbar('فضاهای من') + '<div class="pad">' + (S.familyOn ? notices() : '')
-  h +=
-    '<div class="card"><div class="row"><span class="av A">ش</span><div class="grow"><h3>حساب شخصی</h3><p>فقط خودتان می‌بینید</p></div><span class="pill good">فعال</span></div><button class="btn ghost block" data-act="entry">ثبت هزینه یا درآمد شخصی</button></div>'
-  if (!S.familyOn) {
-    h +=
-      '<div class="card dash"><div class="row"><span class="av N">خ</span><div class="grow"><h3>حساب مشترک</h3><p>هزینه‌های مشترک شما و شریک‌تان در یک فایل جدا</p></div></div>' +
-      '<ul><li>حساب شخصی شما همان‌طور که هست می‌ماند.</li><li>شریک‌تان فقط فایل حساب مشترک را می‌بیند.</li><li>هر لحظه می‌توانید خاموشش کنید.</li></ul>' +
-      '<button class="btn block" data-act="wiz">راه‌اندازی</button></div>' +
-      '<p class="small muted">این قابلیت اختیاری است. تا روشنش نکنید، در شیت و منوی شما هیچ چیز اضافه نمی‌شود.</p>'
-  } else {
-    var avs = S.members
-      .map(function (m) {
-        return '<span class="av sm ' + m.id + '" title="' + m.name + '">' + m.name[0] + '</span>'
-      })
-      .join('')
-    h +=
-      '<div class="card"><div class="row"><span class="av B">خ</span><div class="grow"><h3>' +
-      S.wiz.name +
-      '</h3><p>نقش شما: ' +
-      ROLE[me().role] +
-      '</p></div>' +
-      avs +
-      '</div>' +
-      '<button class="btn block" data-act="openFam">باز کردن</button>' +
-      (me().role === 'owner'
-        ? '<button class="btn ghost block" data-act="offSheet">خاموش کردن قابلیت</button>'
-        : '') +
-      '</div>'
+/* Everything a jump in the rail resets: the account, its members, records and notices. */
+function seed() {
+  return {
+    space: { owner: 'on', partner: 'on', viewer: 'on' },
+    grant: true,
+    failed: '',
+    leaveFallback: false,
+    backup: { [OWNER]: true, [PARTNER]: false, [VIEWER]: false },
+    members: [
+      { email: OWNER, role: 'owner', ov: {}, st: 'active' },
+      { email: PARTNER, role: 'partner', ov: {}, st: 'active' },
+      { email: VIEWER, role: 'viewer', ov: {}, st: 'active' }
+    ],
+    records: rows(RECORDS, [
+      'id',
+      'title',
+      'amount',
+      'cat',
+      'type',
+      'payer',
+      'split',
+      'creator',
+      'date',
+      'wd',
+      'ref'
+    ]),
+    month: ['r1', 'r2', 'r3', 'r4'],
+    notices: rows(NOTICES, ['id', 'to', 'by', 'ref', 'title', 'field', 'kind', 'old', 'new']),
+    pers: rows(PERS, ['id', 'title', 'amount', 'cat', 'date', 'type', 'link'])
   }
-  return h + '</div>'
 }
+function blankEntry(type) {
+  return {
+    mode: 'new',
+    id: '',
+    type: type || 'expense',
+    amount: 0,
+    title: '',
+    cat: type === 'income' ? 'حقوق' : 'خوراک',
+    on: false,
+    linked: false,
+    sharedCat: '',
+    payer: '',
+    split: 'equal',
+    failed: false
+  }
+}
+function freshWizard() {
+  return {
+    step: 1,
+    name: '',
+    email: '',
+    role: 'partner',
+    err: '',
+    fail: false,
+    kept: false,
+    taken: false
+  }
+}
+/* UI state (who is looking, which screen and sheet) plus the seeded data. */
+var S = Object.assign(
+  {
+    as: 'owner',
+    theme: 'light',
+    screen: 'hub',
+    filter: 'all',
+    sheet: null,
+    sheet2: null,
+    toast: null,
+    busy: null,
+    expanded: '',
+    wiz: freshWizard(),
+    ent: blankEntry(),
+    add: null,
+    inv: null,
+    settleDraft: null,
+    offChoice: 'hide'
+  },
+  seed()
+)

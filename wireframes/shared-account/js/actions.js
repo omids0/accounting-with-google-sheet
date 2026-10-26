@@ -1,229 +1,236 @@
 /* eslint-disable -- prototype scripts share globals, not part of the app source */
-/* ---------- actions ---------- */
+/* Click actions of the hub, the wizard, the shared pages and the members tab. */
 var A = {}
+var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+var n = 0
+function toast(text, action) {
+  S.toast = { text: text, action: action || '', id: ++n }
+  var id = S.toast.id
+  setTimeout(function () {
+    if (S.toast && S.toast.id === id) {
+      S.toast = null
+      render()
+    }
+  }, 4500)
+}
+function wait(ms) {
+  return new Promise(function (ok) {
+    setTimeout(ok, ms)
+  })
+}
+
 Object.assign(A, {
+  noop: function () {},
   close: function () {
+    if (S.sheet2) S.sheet2 = null
+    else S.sheet = null
+  },
+  go: function (el) {
+    S.screen = el.dataset.v
     S.sheet = null
   },
-  spaces: function () {
-    S.screen = 'spaces'
-    S.sheet = null
+  hub: function () {
+    S.screen = 'hub'
   },
-  wiz: function () {
+  open: function () {
+    S.screen = 'home'
+  },
+  filter: function (el) {
+    S.filter = el.dataset.v
+  },
+  showAgain: function () {
+    S.space[S.as] = 'on'
+  },
+  connectSheet: function () {
+    S.sheet = { kind: 'connect' }
+  },
+  connectDo: function () {
+    S.space[S.as] = 'on'
+    S.grant = true
+    S.sheet = null
+    S.screen = 'home'
+  },
+  offSheet: function () {
+    S.offChoice = 'hide'
+    S.sheet = { kind: 'off' }
+  },
+  offPick: function (el) {
+    S.offChoice = el.dataset.v
+  },
+  offDo: function () {
+    S.sheet = null
+    if (S.offChoice === 'hide') {
+      S.space.owner = 'hidden'
+      return toast('حساب مشترک از منوی شما پنهان شد')
+    }
+    S.space = { owner: 'none', partner: 'none', viewer: 'none' }
+    toast('دسترسی همه قطع شد و حساب مشترک خاموش شد')
+  },
+
+  /* setup wizard */
+  wizStart: function () {
+    S.wiz = freshWizard()
     S.screen = 'wizard'
-    S.step = 1
+  },
+  wizRole: function (el) {
+    S.wiz.role = el.dataset.v
   },
   wizBack: function () {
-    if (S.step > 1) S.step--
-    else S.screen = 'spaces'
+    S.wiz.step--
+    S.wiz.err = ''
   },
   wizNext: function () {
-    S.step++
-  },
-  wrole: function (e) {
-    S.wiz.role = e.v
-  },
-  wsplit: function (e) {
-    S.wiz.split = e.v
-  },
-  wcards: function () {
-    S.wiz.cards = !S.wiz.cards
-  },
-  wizDone: function () {
-    S.familyOn = true
-    S.screen = 'family'
-    S.tab = 'home'
-    S.as = 'A'
-    var b = mem('B')
-    b.role = S.wiz.role
-    b.ov = {}
-    b.st = 'invited'
-    b.email = S.wiz.email
-    toast('دعوت برای ' + S.wiz.email + ' فرستاده شد')
-  },
-  openFam: function () {
-    S.screen = 'family'
-    S.tab = 'home'
-  },
-  tab: function (e) {
-    S.tab = e.v
-  },
-  filter: function (e) {
-    S.filter = e.v
-  },
-  as: function (e) {
-    S.as = e.id
-    if (S.screen === 'family') {
-      S.sheet = null
+    var w = S.wiz
+    if (w.step === 2) {
+      if (!w.name.trim()) w.err = 'نام حساب مشترک را بنویسید'
+      else if (!EMAIL_RE.test(w.email.trim())) w.err = 'ایمیل گوگل شریک را درست وارد کنید'
+      else if (w.email.trim().toLowerCase() === me())
+        w.err = 'این ایمیل خود شماست؛ ایمیل گوگل شریک‌تان را وارد کنید'
+      else w.err = ''
+      if (w.err) return
     }
+    w.step++
   },
-  jump: function (e) {
-    S.sheet = null
-    if (e.v === 'spaces') {
-      S.screen = 'spaces'
-      S.familyOn = false
-      S.as = 'A'
-    } else if (e.v === 'wizard') {
-      S.screen = 'wizard'
-      S.step = 1
-    } else if (e.v === 'entry') {
-      S.familyOn = true
-      S.as = 'A'
-      S.screen = 'entry'
-      S.ent = { type: 'exp', a: 0, t: '', cat: 'خوراک', share: false, sp: 'equal' }
-    } else if (e.v === 'personal') {
-      S.familyOn = true
-      S.as = 'A'
-      S.screen = 'personal'
-    } else {
-      S.familyOn = true
-      S.screen = 'family'
-      S.tab = e.v
-    }
+  wizCreate: function () {
+    var w = S.wiz
+    S.busy = { text: 'در حال ساخت فایل حساب مشترک در Google Drive…', pct: 18 }
+    render()
+    wait(1100)
+      .then(function () {
+        S.busy = { text: 'در حال فرستادن دعوت…', pct: 52 }
+        render()
+        return wait(1000)
+      })
+      .then(function () {
+        S.busy = null
+        var email = w.email.trim().toLowerCase()
+        S.records = []
+        S.notices = []
+        S.month = []
+        S.space.owner = 'on'
+        S.members = [{ email: OWNER, role: 'owner', ov: {}, st: 'active' }]
+        if (w.fail) {
+          w.kept = true
+          w.err =
+            'گوگل اجازهٔ اشتراک این فایل را نداد. فقط مالک فایل یا ویرایشگری که اجازهٔ اشتراک دارد می‌تواند دسترسی بدهد. فایل حساب مشترک ساخته شد ولی دعوت نرفت؛ از «اعضا» دوباره دعوت کنید.'
+        } else {
+          S.members.push({ email: email, role: w.role, ov: {}, st: 'invited' })
+          S.screen = 'home'
+          toast('حساب مشترک ساخته شد و دعوت فرستاده شد')
+        }
+        render()
+      })
+  },
+  wizMembers: function () {
+    S.screen = 'members'
+  },
+
+  /* records, add, settle */
+  rec: function (el) {
+    S.sheet = { kind: 'rec', id: el.dataset.v }
   },
   add: function () {
-    S.draft = { a: 0, t: '', cat: 'خوراک', by: S.as === 'B' ? 'B' : 'A', sp: 'equal' }
-    S.sheet = { k: 'add' }
+    S.add = { type: 'expense', amount: 0, title: '', cat: '', payer: me(), split: 'equal', err: '' }
+    S.sheet = { kind: 'add' }
   },
-  dby: function (e) {
-    S.draft.by = e.v
+  aType: function (el) {
+    S.add.type = el.dataset.v
+    S.add.cat = ''
+    S.add.err = ''
   },
-  dsp: function (e) {
-    S.draft.sp = e.v
+  aSplit: function (el) {
+    S.add.split = el.dataset.v
   },
-  save: function () {
-    var d = S.draft
-    if (!d.a) {
-      var f = $('d-amount')
-      if (f) f.focus()
-      toast('مبلغ را وارد کنید')
-      return
-    }
-    S.txs.push({
-      id: ++S.n + 100,
-      t: d.t || d.cat,
-      a: d.a,
-      cat: d.cat,
-      by: d.by,
-      sp: d.sp,
-      d: '۳ آبان'
+  addSave: function () {
+    var a = S.add
+    a.err = !a.amount ? 'مبلغ را وارد کنید' : !a.cat ? 'دسته را انتخاب کنید' : ''
+    if (a.err) return
+    var inc = a.type === 'income'
+    S.records.unshift({
+      id: 'x' + ++n,
+      title: a.title || a.cat,
+      amount: a.amount,
+      cat: a.cat,
+      type: a.type,
+      payer: inc ? '' : a.payer || me(),
+      split: inc ? '' : a.split,
+      creator: me(),
+      date: '۴ آبان ۱۴۰۵',
+      wd: 'دوشنبه'
     })
+    if (!inc) S.month.push(S.records[0].id)
     S.sheet = null
     toast('ثبت شد')
   },
-  tx: function (e) {
-    var t = S.txs.filter(function (x) {
-      return x.id === +e.id
-    })[0]
-    S.tAmt = t ? t.a : 0
-    S.sheet = { k: 'tx', id: +e.id }
-  },
-  delTx: function (e) {
-    var t = S.txs.filter(function (x) {
-        return x.id === +e.id
-      })[0],
-      r = t && t.src && pers(t.src)
-    if (r) r.sh = false
-    S.txs = S.txs.filter(function (x) {
-      return x.id !== +e.id
-    })
+  recSave: function (el) {
+    var r = rec(el.dataset.v),
+      v = digits($('r-amount').value)
+    if (!v || v === r.amount) return
+    if (r.ref && r.creator !== me())
+      S.notices.push({
+        id: 'n' + ++n,
+        to: r.creator,
+        by: me(),
+        ref: r.ref,
+        title: r.title,
+        field: 'amount',
+        kind: 'edit',
+        old: r.amount,
+        new: v
+      })
+    r.amount = v
     S.sheet = null
-    toast('حذف شد')
+    toast('مبلغ به‌روز شد')
   },
-  settle: function () {
-    S.sheet = { k: 'settle' }
-  },
-  doSettle: function () {
-    var n = net(),
-      amt = Math.abs(n.A)
-    if (amt < 1) {
-      S.sheet = null
-      return
+  recDel: function (el) {
+    var r = rec(el.dataset.v),
+      i = S.records.indexOf(r)
+    S.records.splice(i, 1)
+    var note = null
+    if (r.ref && r.creator !== me()) {
+      note = {
+        id: 'n' + ++n,
+        to: r.creator,
+        by: me(),
+        ref: r.ref,
+        title: r.title,
+        field: 'delete',
+        kind: 'delete'
+      }
+      S.notices.push(note)
     }
-    S.sets.push({
-      id: Date.now(),
-      from: n.A >= 0 ? 'B' : 'A',
-      to: n.A >= 0 ? 'A' : 'B',
-      a: amt,
-      d: '۳ آبان'
+    S.undo = { r: r, i: i, note: note }
+    S.sheet = null
+    toast(`ثبت «${r.title}» حذف شد`, 'undoDel')
+  },
+  undoDel: function () {
+    if (!S.undo) return
+    S.records.splice(S.undo.i, 0, S.undo.r)
+    if (S.undo.note) S.notices.splice(S.notices.indexOf(S.undo.note), 1)
+    S.undo = null
+    S.toast = null
+  },
+  settleSheet: function () {
+    var o = suggest()
+    S.settleDraft = { from: o ? o.from : pair()[0], amount: o ? o.amount : 0 }
+    S.sheet = { kind: 'settle' }
+  },
+  settleSave: function () {
+    var st = S.settleDraft
+    if (!st.amount) return
+    S.records.unshift({
+      id: 's' + ++n,
+      title: 'تسویه',
+      amount: st.amount,
+      cat: 'تسویه',
+      type: 'settle',
+      payer: st.from,
+      split: 'only:' + otherOf(st.from),
+      creator: me(),
+      date: '۴ آبان ۱۴۰۵',
+      wd: 'دوشنبه'
     })
     S.sheet = null
     toast('تسویه ثبت شد')
-  },
-  member: function (e) {
-    S.sheet = { k: 'member', id: e.id }
-  },
-  mrole: function (e) {
-    var m = mem(e.id)
-    if (m && m.role !== e.v) {
-      m.role = e.v
-      m.ov = {}
-      toast('نقش عوض شد و دسترسی‌های سفارشی پاک شد')
-    }
-  },
-  mperm: function (e) {
-    var m = mem(e.id),
-      p = e.p,
-      cur = can(p, m),
-      next = !cur
-    if (!!DEF[m.role][p] === next) delete m.ov[p]
-    else m.ov[p] = next
-  },
-  resend: function () {
-    toast('دعوت دوباره فرستاده شد')
-  },
-  rm: function (e) {
-    S.members = S.members.filter(function (m) {
-      return m.id !== e.id
-    })
-    S.sheet = null
-    toast('دسترسی قطع شد')
-  },
-  inv: function () {
-    S.inv = { email: '', role: 'partner', err: '' }
-    S.sheet = { k: 'inv' }
-  },
-  irole: function (e) {
-    S.inv.role = e.v
-  },
-  sendInv: function () {
-    var v = S.inv,
-      em = v.email.trim().toLowerCase()
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
-      v.err = 'یک ایمیل معتبر وارد کنید'
-      return
-    }
-    if (
-      S.members.some(function (m) {
-        return m.email === em
-      })
-    ) {
-      v.err = 'این ایمیل از قبل عضو است؛ نقشش را از فهرست اعضا عوض کنید'
-      return
-    }
-    S.members.push({
-      id: 'N' + ++S.n,
-      name: em.split('@')[0],
-      email: em,
-      role: v.role,
-      ov: {},
-      st: 'invited'
-    })
-    S.sheet = null
-    toast('دعوت فرستاده شد')
-  },
-  entry: function () {
-    S.screen = 'entry'
-    S.ent = { type: 'exp', a: 0, t: '', cat: 'خوراک', share: false, sp: 'equal' }
-  },
-  etype: function (e) {
-    S.ent.type = e.v
-    if (e.v === 'inc') S.ent.share = false
-  },
-  eshare: function () {
-    S.ent.share = !S.ent.share
-  },
-  esplit: function (e) {
-    S.ent.sp = e.v
   }
 })

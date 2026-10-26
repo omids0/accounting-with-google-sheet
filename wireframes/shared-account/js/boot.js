@@ -1,231 +1,171 @@
 /* eslint-disable -- prototype scripts share globals, not part of the app source */
-Object.assign(A, {
-  plist: function () {
-    S.screen = 'personal'
-  },
-  pedit: function (e) {
-    var r = pers(e.id)
-    S.screen = 'entry'
-    S.ent = {
-      id: r.id,
-      type: r.type,
-      a: r.a,
-      t: r.t,
-      cat: r.cat,
-      share: r.sh,
-      wasShared: r.sh,
-      sp: r.sp || 'equal'
-    }
-  },
-  esave: function () {
-    var e = S.ent
-    if (!e.a) {
-      var f = $('e-amount')
-      if (f) f.focus()
-      toast('مبلغ را وارد کنید')
-      return
-    }
-    var fam = S.familyOn && can('record'),
-      name = '«' + S.wiz.name + '»',
-      msg,
-      r
-    if (e.id) {
-      r = pers(e.id)
-      r.t = e.t || e.cat
-      r.a = e.a
-      r.cat = e.cat
-      r.type = e.type
-      r.sp = e.sp
-    } else {
-      r = {
-        id: 'q' + ++S.n,
-        t: e.t || e.cat,
-        a: e.a,
-        cat: e.cat,
-        type: e.type,
-        sh: false,
-        sp: e.sp
-      }
-      S.pers.unshift(r)
-    }
-    var copy = S.txs.filter(function (t) {
-      return t.src === r.id
-    })[0]
-    if (fam) {
-      if (e.share) {
-        r.sh = true
-        if (e.type === 'inc')
-          S.txs = S.txs.filter(function (t) {
-            return t.src !== r.id
-          })
-        else if (copy) {
-          copy.t = r.t
-          copy.a = r.a
-          copy.cat = r.cat
-          copy.sp = e.sp
-        } else
-          S.txs.push({
-            id: ++S.n + 200,
-            t: r.t,
-            a: r.a,
-            cat: r.cat,
-            by: S.as === 'B' ? 'B' : 'A',
-            sp: e.sp,
-            d: '۳ آبان',
-            src: r.id
-          })
-        msg = e.wasShared ? 'ثبت و نسخهٔ حساب مشترک به‌روز شد' : 'ثبت شد و در ' + name + ' هم رفت'
-      } else if (r.sh) {
-        r.sh = false
-        S.txs = S.txs.filter(function (t) {
-          return t.src !== r.id
-        })
-        msg = 'نسخهٔ حساب مشترک حذف شد'
-      }
-    }
-    toast(msg || (e.id ? 'به‌روز شد' : 'در حساب شخصی ثبت شد'))
-    S.screen = 'personal'
-  },
-  pdelAsk: function (e) {
-    S.sheet = { k: 'pdel', id: e.id }
-  },
-  pdel: function (e) {
-    var id = S.sheet.id
-    S.pers = S.pers.filter(function (r) {
-      return r.id !== id
+/* Rendering, the rail (who is looking, theme, jump list) and the event wiring. */
+var SCREENS = {
+  hub: hub,
+  wizard: wizard,
+  home: home,
+  records: records,
+  settle: settlePage,
+  members: members,
+  entry: entry,
+  plist: plist
+}
+var SHARED_SCREENS = ['home', 'records', 'settle', 'members']
+var AS = [
+  ['owner', 'نیما', 'مالک'],
+  ['partner', 'مینا', 'شریک'],
+  ['viewer', 'سارا', 'ناظر']
+]
+function isSharedScreen() {
+  return SHARED_SCREENS.indexOf(S.screen) >= 0
+}
+var lastSheet = ''
+function render() {
+  document.documentElement.dataset.theme = S.theme
+  var scr = $('screen'),
+    top = scr.scrollTop,
+    was = scr.dataset.screen
+  scr.innerHTML = SCREENS[S.screen]()
+  scr.dataset.screen = S.screen
+  scr.scrollTop = was === S.screen ? top : 0
+  var shared = isSharedScreen()
+  $('nav').className = shared ? 'nav' : 'nav personal'
+  $('nav').innerHTML = shared ? sharedNav(S.screen) : personalNav()
+  var fab = ''
+  if ((S.screen === 'home' || S.screen === 'records') && can('record')) fab = 'add'
+  if (S.screen === 'plist') fab = 'newEntry'
+  $('fabHost').innerHTML = fab
+    ? `<button type="button" class="fab" data-act="${fab}" aria-label="${
+        fab === 'add' ? 'ثبت در حساب مشترک' : 'ثبت جدید'
+      }">${ic('plus', 24)}</button>`
+    : ''
+  var host = $('sheetHost'),
+    body = host.querySelector('.sh-b'),
+    keep = body ? body.scrollTop : 0
+  var key = JSON.stringify([S.sheet, S.sheet2])
+  host.innerHTML = sheetHTML(S.sheet) + sheetHTML(S.sheet2)
+  // A re-render of the same sheet must not replay its opening motion (no jump).
+  if (key === lastSheet) {
+    host.querySelectorAll('.sheet').forEach(function (el) {
+      el.classList.add('still')
     })
-    if (e.v === 'both')
-      S.txs = S.txs.filter(function (t) {
-        return t.src !== id
-      })
-    else
-      S.txs.forEach(function (t) {
-        if (t.src === id) delete t.src
-      })
-    S.sheet = null
-    S.screen = 'personal'
-    toast(e.v === 'both' ? 'از هر دو حذف شد' : 'از حساب شخصی حذف شد')
-  },
-  editTx: function (e) {
-    var t = S.txs.filter(function (x) {
-        return x.id === +e.id
-      })[0],
-      n = S.tAmt
-    if (!t || !n || n === t.a) {
-      S.sheet = null
-      return
-    }
-    var old = t.a
-    t.a = n
-    if (t.src && t.by !== S.as) {
-      S.notices.push({
-        id: ++S.n + 300,
-        to: t.by,
-        by: S.as,
-        src: t.src,
-        title: t.t,
-        old: old,
-        new: n
-      })
-      toast('ذخیره شد و به ' + nm(t.by) + ' اطلاع داده شد')
-    } else toast('ذخیره شد')
-    S.sheet = null
-  }
-})
-Object.assign(A, {
-  notice: function (e) {
-    S.sheet = { k: 'notice', id: +e.id }
-  },
-  nApply: function () {
-    var n = S.notices.filter(function (x) {
-        return x.id === S.sheet.id
-      })[0],
-      r = n && pers(n.src)
-    if (r) r.a = n.new
-    S.notices = S.notices.filter(function (x) {
-      return x !== n
+    if (host.querySelector('.sh-b')) host.querySelector('.sh-b').scrollTop = keep
+  } else if (S.sheet2 && host.querySelectorAll('.sheet')[0])
+    host.querySelectorAll('.sheet')[0].classList.add('still')
+  lastSheet = key
+  $('toastHost').innerHTML = S.toast
+    ? `<div class="toast" role="status"><span>${S.toast.text}</span>${
+        S.toast.action
+          ? `<button type="button" data-act="${S.toast.action}">بازگردانی</button>`
+          : ''
+      }</div>`
+    : ''
+  $('busyHost').innerHTML = busyBox()
+  rail()
+}
+
+function rail() {
+  $('asList').innerHTML = AS.map(function (a) {
+    return `<button type="button" class="rbtn" data-act="as" data-v="${
+      a[0]
+    }" aria-pressed="${S.as === a[0]}">${a[1]}<small>${a[2]}</small></button>`
+  }).join('')
+  $('themeList').innerHTML = [
+    ['light', 'روشن'],
+    ['dark', 'تیره']
+  ]
+    .map(function (t) {
+      return `<button type="button" class="rbtn" data-act="theme" data-v="${
+        t[0]
+      }" aria-pressed="${S.theme === t[0]}">${t[1]}</button>`
     })
-    S.sheet = null
-    toast('در ثبت شخصی شما هم اعمال شد')
-  },
-  nSkip: function () {
-    var id = S.sheet.id
-    S.notices = S.notices.filter(function (x) {
-      return x.id !== id
-    })
-    S.sheet = null
-    toast('نادیده گرفته شد؛ ثبت شخصی شما همان ماند')
-  }
-})
+    .join('')
+  if ($('jumps').childElementCount) return
+  $('jumps').innerHTML = JUMPS.map(function (g, gi) {
+    var items = g[1]
+      .map(function (j, ji) {
+        return `<button type="button" class="rbtn" data-act="jump" data-v="${gi}.${ji}">${j[0]}</button>`
+      })
+      .join('')
+    return `<details ${
+      gi === 0 ? 'open' : ''
+    }><summary>${g[0]}</summary><div class="group">${items}</div></details>`
+  }).join('')
+}
 Object.assign(A, {
-  backup: function () {
-    S.backup = !S.backup
-  },
-  leaveSheet: function () {
-    S.sheet = { k: 'leave' }
-  },
-  leave: function () {
+  as: function (el) {
+    S.as = el.dataset.v
     S.sheet = null
-    S.screen = 'spaces'
-    toast('از فضا خارج شدید (نمونه)')
+    S.sheet2 = null
+    S.expanded = ''
   },
-  offSheet: function () {
-    S.sheet = { k: 'off' }
+  theme: function (el) {
+    S.theme = el.dataset.v
   },
-  off: function (e) {
-    S.familyOn = false
-    S.sheet = null
-    S.screen = 'spaces'
-    toast(e.v === 'revoke' ? 'دسترسی‌ها قطع شد (نمونه)' : 'از منو پنهان شد')
+  jump: function (el) {
+    var at = el.dataset.v.split('.')
+    jumpTo(JUMPS[at[0]][1][at[1]][1])
   }
 })
 
+/* Live inputs: typing never re-renders (focus stays); money fields reformat and update words. */
+var MONEY = {
+  'e-amount': function (v) {
+    S.ent.amount = v
+    if ($('t-prev')) $('t-prev').textContent = preview(v, S.ent.split, S.ent.payer, nameOut)
+  },
+  'a-amount': function (v) {
+    S.add.amount = v
+    if ($('a-prev')) $('a-prev').textContent = preview(v, S.add.split, S.add.payer, nameIn)
+  },
+  's-amount': function (v) {
+    S.settleDraft.amount = v
+  },
+  'r-amount': function (v) {
+    var r = rec(S.sheet.id)
+    $('r-save').disabled = !v || v === r.amount
+  }
+}
+var TEXT = {
+  'w-name': ['wiz', 'name'],
+  'w-email': ['wiz', 'email'],
+  'e-title': ['ent', 'title'],
+  'a-title': ['add', 'title'],
+  'i-email': ['inv', 'email']
+}
 document.addEventListener('click', function (ev) {
   var el = ev.target.closest('[data-act]')
-  if (!el || el.disabled) return
-  var fn = A[el.dataset.act]
-  if (!fn) return
-  fn({ v: el.dataset.v, id: el.dataset.id, p: el.dataset.p })
+  if (!el || el.tagName === 'SELECT' || el.disabled) return
+  var act = A[el.dataset.act]
+  if (!act) return
+  act(el)
   render()
 })
+document.addEventListener('change', function (ev) {
+  var el = ev.target,
+    fn = ON_CHANGE[el.dataset.act] || ON_CHANGE[el.id]
+  if (fn) {
+    fn(el)
+    render()
+  } else if (el.id === 's-amount') render()
+})
 document.addEventListener('input', function (ev) {
-  var t = ev.target,
-    id = t.id
-  if (id === 'w-name') S.wiz.name = t.value
-  else if (id === 'w-email') S.wiz.email = t.value
-  else if (id === 'i-email') {
-    S.inv.email = t.value
-    S.inv.err = ''
-    var er = $('i-err')
-    if (er) er.remove()
-  } else if (id === 'd-title') S.draft.t = t.value
-  else if (id === 'e-title') S.ent.t = t.value
-  else if (id === 't-amount') {
-    var q = +digits(t.value)
-    S.tAmt = q
-    t.value = q ? fmt(q) : ''
-  } else if (id === 'e-amount') {
-    var m = +digits(t.value)
-    S.ent.a = m
-    t.value = m ? fmt(m) : ''
-    var ep = $('e-prev')
-    if (ep) ep.textContent = prev({ a: m, sp: S.ent.sp })
-  } else if (id === 'd-amount') {
-    var n = +digits(t.value)
-    S.draft.a = n
-    t.value = n ? fmt(n) : ''
-    $('d-prev').textContent = prev(S.draft)
+  var el = ev.target
+  if (MONEY[el.id]) {
+    var v = digits(el.value)
+    el.value = v ? money(v) : ''
+    if ($(el.id + '-w')) $(el.id + '-w').textContent = v ? words(v) : '—'
+    MONEY[el.id](v)
+  } else if (TEXT[el.id]) {
+    S[TEXT[el.id][0]][TEXT[el.id][1]] = el.value
   }
 })
-document.addEventListener('change', function (ev) {
-  if (ev.target.id === 'd-cat') S.draft.cat = ev.target.value
-  else if (ev.target.id === 'e-cat') S.ent.cat = ev.target.value
-})
 document.addEventListener('keydown', function (ev) {
-  if (ev.key === 'Escape' && S.sheet) {
-    S.sheet = null
+  if (ev.key === 'Escape' && (S.sheet || S.sheet2)) {
+    A.close()
     render()
   }
 })
 
+if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) S.theme = 'dark'
 render()

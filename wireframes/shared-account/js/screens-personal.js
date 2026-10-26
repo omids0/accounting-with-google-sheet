@@ -1,242 +1,177 @@
 /* eslint-disable -- prototype scripts share globals, not part of the app source */
-function wizard() {
-  var st = S.step,
-    w = S.wiz,
-    h =
-      appbar('راه‌اندازی حساب مشترک', { back: 'wizBack' }) +
-      '<div class="prog">' +
-      [1, 2, 3]
-        .map(function (i) {
-          return '<i class="' + (i <= st ? 'on' : '') + '"></i>'
-        })
-        .join('') +
-      '</div><div class="pad" style="margin-top:12px">'
-  if (st === 1) {
-    h +=
-      '<h3 style="margin:0">چه چیزی مشترک می‌شود؟</h3><div class="two"><div class="card"><h3>مشترک</h3><ul><li>هزینه و درآمد خانه</li><li>دسته‌ها و بودجهٔ خانه</li><li>تسویه بین شما</li></ul></div><div class="card"><h3>خصوصی می‌ماند</h3><ul><li>حساب شخصی شما</li><li>کیف پول، چک و مطالبات شخصی</li><li>پیامک‌های بانکی شما</li></ul></div></div>' +
-      '<div class="notice info">' +
-      ic('file', 18) +
-      '<span>یک شیت تازه در درایو خودتان ساخته می‌شود و فقط با ایمیلی که وارد می‌کنید به اشتراک می‌رسد.</span></div>' +
-      '<button class="btn block" data-act="wizNext">ادامه</button>'
-  } else if (st === 2) {
-    h +=
-      '<h3 style="margin:0">شریک‌تان را دعوت کنید</h3>' +
-      '<div class="field"><label for="w-name">نام فضا</label><input id="w-name" value="' +
-      w.name +
-      '"></div>' +
-      '<div class="field"><label for="w-email">ایمیل حساب گوگل شریک</label><input id="w-email" dir="ltr" inputmode="email" value="' +
-      w.email +
-      '"></div>' +
-      '<div class="field"><label>نقش</label><div class="seg"><button data-act="wrole" data-v="partner" aria-pressed="' +
-      (w.role === 'partner') +
-      '">شریک</button><button data-act="wrole" data-v="viewer" aria-pressed="' +
-      (w.role === 'viewer') +
-      '">ناظر</button></div><span class="small muted">' +
-      ROLE_HINT[w.role] +
-      '</span></div>' +
-      '<div class="notice info"><span>گوگل برای شریک‌تان ایمیل دعوت می‌فرستد. باید یک حساب گوگل باشد.</span></div>' +
-      '<button class="btn block" data-act="wizNext">ادامه</button>'
-  } else {
-    h +=
-      '<h3 style="margin:0">قاعدهٔ پیش‌فرض تقسیم</h3>' +
-      '<div class="seg"><button data-act="wsplit" data-v="equal" aria-pressed="' +
-      (w.split === 'equal') +
-      '">نصف‌نصف</button><button data-act="wsplit" data-v="ratio" aria-pressed="' +
-      (w.split === 'ratio') +
-      '">به نسبت درآمد</button></div>' +
-      '<p class="small muted">هر هزینه را هنگام ثبت می‌توانید عوض کنید. این فقط مقدار پیش‌فرض است.</p>' +
-      '<div class="notice info"><span>هیچ ثبتی خودکار به حساب مشترک نمی‌رود، حتی پیامک بانکی. روی هر ثبت شخصی خودتان تیک «مشترک» را می‌زنید.</span></div>' +
-      '<button class="btn block" data-act="wizDone">ساخت فضا و ارسال دعوت</button>'
-  }
-  return h + '</div>'
+/* The personal side: the entry form and the edit sheet with the «حساب مشترک» switch (SharedTick),
+   and the personal records list with its «در حساب مشترک» / «در انتظار ارسال» badges. */
+function sharedCatFor(e) {
+  var list = e.type === 'income' ? INC_CATS : EXP_CATS
+  return e.sharedCat || (list.indexOf(e.cat) >= 0 ? e.cat : 'سایر')
 }
-
+function tickBlock(e) {
+  var editing = e.mode === 'edit'
+  if (space() !== 'on') return ''
+  if (!S.grant) {
+    return field(
+      'حساب مشترک',
+      `<p class="note">این دستگاه هنوز به فایل حساب مشترک وصل نیست؛ ثبت شخصی شما عادی ذخیره می‌شود.</p>${btn(
+        `اتصال این دستگاه به «${ACCOUNT}»`,
+        'connectRow',
+        'sec block'
+      )}`
+    )
+  }
+  if (!can('record')) return ''
+  var label = `در «${ACCOUNT}» هم ثبت شود`
+  var h = field(
+    'حساب مشترک',
+    `<div class="row"><span class="grow note">${label}</span>${sw('tick', e.on, label)}</div>`
+  )
+  if (e.on) {
+    var cats = e.type === 'income' ? INC_CATS : EXP_CATS
+    h += field(
+      'دسته در حساب مشترک',
+      select('t-cat', cats, sharedCatFor(e), 'aria-label="دسته در حساب مشترک"')
+    )
+  }
+  if (e.on && e.type === 'expense') {
+    var p = pair(),
+      other = otherOf(me())
+    h += field(
+      'چه کسی پرداخت کرد؟',
+      select(
+        't-payer',
+        p.map(function (x) {
+          return [x, nameOut(x)]
+        }),
+        e.payer || me()
+      )
+    )
+    h += field(
+      'برای چه کسی است؟',
+      seg(
+        'tSplit',
+        [
+          ['equal', 'نصف‌نصف'],
+          ['only:' + me(), 'فقط من'],
+          ['only:' + other, 'فقط ' + local(other)]
+        ],
+        e.split,
+        'برای چه کسی است؟'
+      )
+    )
+    h += alertBox(`<span id="t-prev">${preview(e.amount, e.split, e.payer, nameOut)}</span>`)
+  }
+  if (e.on && e.type === 'income') {
+    h += alertBox(
+      'مبلغ را شریک هم می‌بیند؛ درآمد روی تراز اثری ندارد و فقط در گزارش‌های حساب مشترک می‌آید.'
+    )
+  }
+  if (editing && e.linked !== e.on) {
+    h += e.linked
+      ? alertBox('با ذخیره، نسخهٔ حساب مشترک حذف می‌شود', 'warn')
+      : alertBox(`با ذخیره، یک نسخه در «${ACCOUNT}» ساخته می‌شود`)
+  }
+  var notice =
+    editing &&
+    e.linked &&
+    myNotices().filter(function (n) {
+      return n.ref === e.id
+    })[0]
+  if (notice) {
+    var words =
+      notice.kind === 'delete'
+        ? 'شریک نسخهٔ این ثبت را از حساب مشترک حذف کرده؛ با ذخیره، این ثبت دیگر به حساب مشترک وصل نیست'
+        : 'شریک این ثبت را در حساب مشترک تغییر داده؛ ذخیره، تغییر او را جایگزین می‌کند'
+    h += alertBox(
+      words + ' ',
+      'warn',
+      btn('دیدن تغییر', 'notice', 'sec sm', `data-v="${notice.id}" data-form="1"`)
+    )
+  }
+  if (e.failed) {
+    h += alertBox(
+      'نسخهٔ حساب مشترک این ثبت فرستاده نشد: دسترسی ندارید ',
+      'bad',
+      btn('لغو ارسال', 'cancelSend', 'sec sm')
+    )
+  }
+  return h
+}
+function entryFields(e) {
+  return `${moneyField('e-amount', 'مبلغ (تومان)', e.amount, true)}
+    ${field(
+      'عنوان',
+      input(
+        'e-title',
+        e.title,
+        `placeholder="${e.type === 'income' ? 'مثلاً حقوق' : 'مثلاً میوه و سبزی'}"`
+      ),
+      { id: 'e-title' }
+    )}
+    ${field('دسته', select('e-cat', PERSONAL_CATS, e.cat), { id: 'e-cat', req: true })}`
+}
 function entry() {
-  var e = S.ent,
-    fam = S.familyOn && can('record'),
-    p = S.as === 'B' ? 'B' : 'A',
-    o = p === 'A' ? 'B' : 'A',
-    exp = e.type === 'exp'
-  var h =
-    appbar(e.id ? 'ویرایش ثبت شخصی' : 'ثبت در حساب شخصی', { back: e.id ? 'plist' : 'spaces' }) +
-    '<div class="pad">' +
-    '<div class="seg"><button data-act="etype" data-v="exp" aria-pressed="' +
-    exp +
-    '">هزینه</button><button data-act="etype" data-v="inc" aria-pressed="' +
-    !exp +
-    '">درآمد</button></div>' +
-    '<div class="field"><label for="e-amount">مبلغ (تومان)</label><input id="e-amount" inputmode="numeric" value="' +
-    (e.a ? fmt(e.a) : '') +
-    '" placeholder="مثلاً ۸۵۰٬۰۰۰"></div>' +
-    '<div class="field"><label for="e-title">بابت</label><input id="e-title" value="' +
-    e.t +
-    '" placeholder="' +
-    (exp ? 'مثلاً میوه و سبزی' : 'مثلاً حقوق') +
-    '"></div>' +
-    '<div class="field"><label for="e-cat">دسته</label><select id="e-cat">' +
-    CATS.map(function (c) {
-      return '<option' + (c === e.cat ? ' selected' : '') + '>' + c + '</option>'
-    }).join('') +
-    '</select></div>'
-  if (fam) {
-    h +=
-      '<label class="card check"><input type="checkbox" id="e-share" data-act="eshare"' +
-      (e.share ? ' checked' : '') +
-      '><span class="grow"><b>در «' +
-      S.wiz.name +
-      '» هم ثبت شود</b><br><span class="small muted">' +
-      (exp
-        ? 'یک نسخه از این هزینه در حساب مشترک هم نوشته می‌شود و در تراز حساب می‌شود.'
-        : 'مبلغ درآمد را شریک هم می‌بیند. به‌صورت پیش‌فرض خاموش است.') +
-      '</span></span></label>'
-    if (e.share && exp) {
-      h +=
-        '<div class="card"><div class="field"><label>این هزینه برای چه کسی است؟</label><div class="seg"><button data-act="esplit" data-v="equal" aria-pressed="' +
-        (e.sp === 'equal') +
-        '">نصف‌نصف</button><button data-act="esplit" data-v="' +
-        p +
-        '" aria-pressed="' +
-        (e.sp === p) +
-        '">فقط من</button><button data-act="esplit" data-v="' +
-        o +
-        '" aria-pressed="' +
-        (e.sp === o) +
-        '">فقط ' +
-        mem(o).name +
-        '</button></div></div><div class="notice info"><span id="e-prev">' +
-        prev({ a: e.a, sp: e.sp }) +
-        '</span></div></div>'
-    } else if (e.share) {
-      h +=
-        '<div class="notice info"><span>درآمد در تراز و تسویه اثری ندارد و فقط در گزارش حساب مشترک دیده می‌شود.</span></div>'
-    }
-  }
-  if (e.id && fam) {
-    if (e.wasShared && !e.share)
-      h += '<div class="notice"><span>با ذخیره، نسخهٔ حساب مشترک این ثبت حذف می‌شود.</span></div>'
-    else if (!e.wasShared && e.share)
-      h +=
-        '<div class="notice info"><span>با ذخیره، یک نسخه در «' +
-        S.wiz.name +
-        '» ساخته می‌شود.</span></div>'
-  }
-  h += '<button class="btn block" data-act="esave">' + (e.id ? 'ذخیرهٔ تغییر' : 'ثبت') + '</button>'
-  if (e.id)
-    h += '<button class="btn danger block" data-act="pdelAsk" data-id="' + e.id + '">حذف</button>'
-  return h + '</div>'
+  var e = S.ent
+  var save = btn('ذخیره', 'entrySave', e.type === 'income' ? 'inc block' : 'exp block')
+  return `${header('ثبت جدید', { back: 'plist' })}<div class="page"><div class="card">
+    ${seg(
+      'eType',
+      [
+        ['expense', 'هزینه'],
+        ['income', 'درآمد']
+      ],
+      e.type,
+      'نوع ثبت'
+    )}
+    ${entryFields(e)}
+    ${field('تاریخ', input('e-date', '۴ آبان ۱۴۰۵'))}
+    ${field('توضیحات', input('e-note', '', 'placeholder="توضیحات اضافه..."'), {
+      hint: 'یادداشت، پیوست و ریز اقلام هیچ‌وقت به حساب مشترک نمی‌رود.'
+    })}
+    ${tickBlock(
+      e
+    )}<hr style="border:0;border-top:1px solid var(--border);width:100%" />${save}${btn(
+    'انصراف',
+    'plist',
+    'sec block'
+  )}</div></div>`
 }
-
-function personal() {
-  return (
-    appbar('ثبت‌های شخصی', {
-      back: 'spaces',
-      right: '<button class="chip" data-act="entry">+ ثبت</button>'
-    }) +
-    '<div class="pad">' +
-    notices() +
-    '<div class="card"><div class="list">' +
-    S.pers
-      .map(function (r) {
-        return (
-          '<button class="item" data-act="pedit" data-id="' +
-          r.id +
-          '"><span class="grow"><b>' +
-          r.t +
-          '</b><br><span class="small muted">' +
-          r.cat +
-          (r.type === 'inc' ? ' · درآمد' : '') +
-          '</span></span>' +
-          (r.sh && S.familyOn ? '<span class="pill">در حساب مشترک</span>' : '') +
-          '<span class="amt num">' +
-          fmt(r.a) +
-          '</span></button>'
-        )
-      })
-      .join('') +
-    '</div></div></div>'
+/* «ویرایش هزینه» opens as a sheet over the personal list, like the app's edit form. */
+function editSheet() {
+  var e = S.ent
+  return sheet(
+    e.type === 'income' ? 'ویرایش درآمد' : 'ویرایش هزینه',
+    entryFields(e) + tickBlock(e),
+    btn('ذخیرهٔ تغییرات', 'editSave', e.type === 'income' ? 'inc' : 'exp') +
+      btn('انصراف', 'close', 'sec')
   )
 }
-
-function notices() {
-  return S.notices
-    .filter(function (n) {
-      return n.to === S.as
-    })
-    .map(function (n) {
-      return (
-        '<div class="notice"><span class="grow">' +
-        (mem(n.by) ? mem(n.by).name : '؟') +
-        ' مبلغ «' +
-        n.title +
-        '» را در حساب مشترک عوض کرد: از ' +
-        fmt(n.old) +
-        ' به ' +
-        fmt(n.new) +
-        '</span><button class="chip" data-act="notice" data-id="' +
-        n.id +
-        '">بررسی</button></div>'
-      )
+function plist() {
+  var rows = S.pers
+    .map(function (r) {
+      var badge =
+        r.link === 'none'
+          ? ''
+          : `<span class="tag">${r.link === 'pending' ? 'در انتظار ارسال' : 'در حساب مشترک'}</span>`
+      return `<div class="prow"><span class="grow"><span class="row" style="gap:6px;flex-wrap:wrap"><b>${
+        r.title
+      }</b>${space() === 'on' ? badge : ''}</span><span class="meta">${r.date} · ${r.cat}</span></span><span class="amt exp" style="align-self:center">-${money(r.amount)} تومان</span>
+        <span class="acts"><button type="button" data-act="pedit" data-v="${
+          r.id
+        }" aria-label="ویرایش ${r.title}">${ic('pencil', 18)}</button><button type="button" data-act="pdel" data-v="${r.id}" aria-label="حذف ${r.title}">${ic('trash', 18)}</button></span></div>`
     })
     .join('')
-}
-
-function txEdit(t) {
-  var cross = t.src && t.by !== S.as
-  return (
-    '<div class="field"><label for="t-amount">ویرایش مبلغ (تومان)</label><input id="t-amount" inputmode="numeric" value="' +
-    fmt(t.a) +
-    '"></div>' +
-    (cross
-      ? '<div class="notice info"><span>این ثبت از حساب شخصی ' +
-        nm(t.by) +
-        ' آمده. تغییر شما به او اطلاع داده می‌شود و خودش تصمیم می‌گیرد در ثبت شخصی‌اش اعمال کند یا نه.</span></div>'
-      : '') +
-    '<button class="btn block" data-act="editTx" data-id="' +
-    t.id +
-    '">ذخیرهٔ تغییر</button><button class="btn danger block" data-act="delTx" data-id="' +
-    t.id +
-    '">حذف این ثبت</button>'
-  )
-}
-
-function pdelSheet(id) {
-  var r = pers(id)
-  if (!r) return ''
-  if (r.sh && S.familyOn)
-    return sheetWrap(
-      'حذف ثبت',
-      '<p>«' +
-        r.t +
-        '» در «' +
-        S.wiz.name +
-        '» هم هست. کدام حذف شود؟</p><button class="btn danger block" data-act="pdel" data-v="both">از هر دو حذف شود</button><button class="btn ghost block" data-act="pdel" data-v="one">فقط از حساب شخصی</button><p class="small muted">اگر فقط از شخصی حذف شود، نسخهٔ حساب مشترک می‌ماند و دیگر به این ثبت وصل نیست.</p>'
-    )
-  return sheetWrap(
-    'حذف ثبت',
-    '<p>«' +
-      r.t +
-      '» حذف شود؟</p><button class="btn danger block" data-act="pdel" data-v="one">حذف</button><button class="btn ghost block" data-act="close">انصراف</button>'
-  )
-}
-
-function noticeSheet(id) {
-  var n = S.notices.filter(function (x) {
-    return x.id === id
-  })[0]
-  if (!n) return ''
-  return sheetWrap(
-    'تغییر در ثبت مشترک',
-    '<div class="card"><p>' +
-      (mem(n.by) ? mem(n.by).name : '؟') +
-      ' مبلغ «' +
-      n.title +
-      '» را در «' +
-      S.wiz.name +
-      '» عوض کرد.</p><div class="row"><span class="grow">قبل</span><b class="num">' +
-      fmt(n.old) +
-      '</b></div><div class="row"><span class="grow">بعد</span><b class="num">' +
-      fmt(n.new) +
-      '</b></div></div>' +
-      '<button class="btn block" data-act="nApply">اعمال در ثبت شخصی من</button><button class="btn ghost block" data-act="nSkip">نادیده بگیر</button><p class="small muted">در هر دو حالت نسخهٔ حساب مشترک همان‌طور که ویرایش شده می‌ماند. فقط ثبت شخصی شما به تصمیم شما بستگی دارد.</p>'
-  )
+  var notices = space() === 'on' ? noticeCards(nameOut) : ''
+  return `${header('رکوردها', { back: 'hub' })}<div class="page">${notices}
+    <div class="card"><h3>تراکنش‌ها</h3>${seg(
+      'noop',
+      [
+        ['all', 'همه'],
+        ['income', 'درآمد'],
+        ['expense', 'هزینه']
+      ],
+      'expense',
+      'نوع'
+    )}</div>
+    <div class="card" style="gap:0"><p class="meta">${fa(S.pers.length)} مورد</p>${
+    rows || '<p class="meta">ثبتی نیست</p>'
+  }</div></div>`
 }
