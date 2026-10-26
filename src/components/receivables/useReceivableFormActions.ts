@@ -7,7 +7,7 @@ import {
   createReceivable,
   deleteReceivable,
   paidAmount,
-  updateReceivable
+  saveReceivableFields
 } from '../../services/receivables'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
@@ -78,7 +78,7 @@ export function useReceivableFormActions({
           note: form.note.trim()
         }
 
-        await updateReceivable(settings.spreadsheetId, editingItem.rowNumber, updated)
+        await saveReceivableFields(settings.spreadsheetId, updated)
         showSuccess('طلب ویرایش شد')
       } else {
         await createReceivable(settings.spreadsheetId, {

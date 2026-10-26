@@ -1,5 +1,6 @@
 import type { Receivable, ReceivablePayment } from '../types'
-import { logActivity, logItemActivity } from './activityLog'
+import { logItemActivity } from './activityLog'
+import { refreshRowFromSheet } from './freshRow'
 import { deleteLinkedIncomeRecord } from './paymentTransactions'
 import {
   RECEIVABLES_HEADERS,
@@ -9,8 +10,6 @@ import {
   rowToReceivable,
   sortReceivables
 } from './receivablesRow'
-import type { SettleOptions, UnlinkChoice } from './settleOptions'
-import { createLinkedRecordWithWallet, deleteLinkedRecordWithWallet } from './settleRecords'
 import {
   appendSheetRow,
   deleteSheetRow,
@@ -18,8 +17,8 @@ import {
   fetchSheetRows,
   updateSheetRow
 } from './sheets'
-import { formatAmountWords } from '../utils/insightText'
-import { getTodayIso } from '../utils/jalaliDate'
+
+export { addReceivablePayment, removeReceivablePayment } from './receivablePayments'
 
 const titleOf = (item: Receivable) => getReceivableDisplayTitle(item)
 
@@ -82,98 +81,6 @@ export async function createReceivable(
   return receivable
 }
 
-export async function addReceivablePayment(
-  spreadsheetId: string,
-  receivable: Receivable & { rowNumber: number },
-  payment: { amount: number; note?: string; title?: string; category?: string },
-  options?: SettleOptions
-): Promise<Receivable> {
-  const paidAt = options?.date || getTodayIso()
-
-  const transactionRecordId = await createLinkedRecordWithWallet(
-    spreadsheetId,
-    'income',
-    {
-      title: payment.title ?? `طلب: ${getReceivableDisplayTitle(receivable)}`,
-      amount: payment.amount,
-      category: payment.category ?? receivable.category,
-      subCategory: receivable.subCategory,
-      date: paidAt,
-      note: payment.note ?? receivable.note
-    },
-    options
-  )
-
-  const newPayment = {
-    id: crypto.randomUUID(),
-    amount: payment.amount,
-    paidAt,
-    note: payment.note ?? '',
-    transactionRecordId
-  }
-
-  const updated: Receivable = {
-    ...receivable,
-    payments: [...receivable.payments, newPayment]
-  }
-
-  await updateSheetRow(
-    spreadsheetId,
-    RECEIVABLES_SHEET,
-    receivable.rowNumber,
-    receivableToRow(updated)
-  )
-  logActivity(spreadsheetId, {
-    action: 'pay',
-    module: 'receivables',
-    itemId: receivable.id,
-    summary: `${formatAmountWords(payment.amount)} از طلب «${titleOf(receivable)}» را دریافت کرد`
-  })
-
-  return updated
-}
-
-export async function removeReceivablePayment(
-  spreadsheetId: string,
-  receivable: Receivable & { rowNumber: number },
-  paymentId: string,
-  unlink?: UnlinkChoice
-): Promise<Receivable> {
-  const payment = receivable.payments.find(p => p.id === paymentId)
-
-  if (!payment) return receivable
-
-  await deleteLinkedRecordWithWallet(
-    spreadsheetId,
-    'income',
-    payment.transactionRecordId ?? '',
-    'طلب: ',
-    unlink
-  )
-
-  const updated: Receivable = {
-    ...receivable,
-    payments: receivable.payments.filter(p => p.id !== paymentId)
-  }
-
-  await updateSheetRow(
-    spreadsheetId,
-    RECEIVABLES_SHEET,
-    receivable.rowNumber,
-    receivableToRow(updated)
-  )
-  logActivity(spreadsheetId, {
-    action: 'unpay',
-    module: 'receivables',
-    itemId: receivable.id,
-    summary: `دریافت ${formatAmountWords(payment.amount)} از طلب «${titleOf(
-      receivable
-    )}» را حذف کرد`
-  })
-
-  return updated
-}
-
 export async function updateReceivable(
   spreadsheetId: string,
   rowNumber: number,
@@ -194,11 +101,20 @@ export async function deleteReceivable(
   keepLinkedRecords = false
 ): Promise<void> {
   if (receivable && !keepLinkedRecords) {
-    for (const payment of receivable.payments) {
-      if (payment.transactionRecordId) {
-        await deleteLinkedIncomeRecord(spreadsheetId, payment.transactionRecordId)
-      }
-    }
+    // The row on the sheet may hold payments this screen has not seen yet.
+    await refreshRowFromSheet(spreadsheetId, RECEIVABLES_SHEET, receivable.id)
+
+    const fresh = (await fetchReceivables(spreadsheetId).catch(() => [])).find(
+      item => item.id === receivable.id
+    )
+
+    const ids = new Set(
+      [...receivable.payments, ...(fresh?.payments ?? [])]
+        .map(payment => payment.transactionRecordId)
+        .filter((id): id is string => Boolean(id))
+    )
+
+    for (const id of ids) await deleteLinkedIncomeRecord(spreadsheetId, id)
   }
   await deleteSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber)
   if (receivable) {
