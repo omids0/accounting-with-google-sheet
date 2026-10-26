@@ -20,6 +20,7 @@ import { roundMoney } from '../utils/roundMoney'
 export type { LedgerEntry } from './recordDuplicates'
 export { LINKED_PAYMENT_DAYS }
 export type { LinkedPaymentInfo, LinkedRecords, SmsCoverage }
+export { initialSmsAccount, resolveSmsAccount } from './bankSmsAccount'
 export { nextAccountBalance, setsAbsoluteBalance, type AccountBalanceState } from './bankSmsBalance'
 
 /** Ordinary records match an SMS within a day. */
@@ -61,6 +62,11 @@ export type BankSmsReviewItem =
       key: string
       debit: ConfirmableSms
       credit: ConfirmableSms
+      /**
+       * The record of each leg that already exists on that account (same direction and amount within
+       * a day): confirming the pair would move that balance a second time.
+       */
+      duplicateLegs: { debit: LedgerEntry | null; credit: LedgerEntry | null }
     }
 
 /** Debit and credit SMS of one own-account transfer arrive within this window. */
@@ -200,17 +206,32 @@ export function buildReviewItems(
           )
         : undefined
 
+    const exactLinked = uncoveredLinked(linked, covered)
+
     if (partner && isConfirmable(entry) && isConfirmable(partner)) {
       const [debit, credit] =
         entry.result.direction === 'debit' ? [entry, partner] : [partner, entry]
+      const legRecord = (leg: ConfirmableSms) =>
+        newestRecord(
+          findDuplicates(leg, ledger, exactLinked, taken).filter(
+            record => record.accountId === leg.result.accountId
+          )
+        )
+      const duplicateLegs = { debit: legRecord(debit), credit: legRecord(credit) }
 
+      for (const record of Object.values(duplicateLegs)) if (record?.id) taken.add(record.id)
       paired.add(entry.sms.id)
       paired.add(partner.sms.id)
-      items.push({ kind: 'transfer', key: `${debit.sms.id}:${credit.sms.id}`, debit, credit })
+      items.push({
+        kind: 'transfer',
+        key: `${debit.sms.id}:${credit.sms.id}`,
+        debit,
+        credit,
+        duplicateLegs
+      })
       continue
     }
 
-    const exactLinked = uncoveredLinked(linked, covered)
     const duplicates = findDuplicates(entry, ledger, exactLinked, taken)
     // An exact match comes first; only without one can the SMS be a part of a bigger payment.
     const split =
@@ -249,34 +270,4 @@ export function buildReviewItems(
   }
 
   return items
-}
-
-/** Pin an SMS that fits several accounts to one of them; `null` when it cannot be written. */
-export function resolveSmsAccount(entry: ReviewedSms, accountId: string): ConfirmableSms | null {
-  const { result, amount } = entry
-
-  if (amount === null) return null
-  if (result.kind === 'matched') return { ...entry, result, amount }
-  if (result.kind !== 'ambiguous') return null
-
-  const candidate = result.candidates.find(item => item.accountId === accountId)
-
-  if (!candidate) return null
-
-  const { direction, unit, balance, ref } = result
-
-  return {
-    ...entry,
-    amount,
-    result: { kind: 'matched', ...candidate, direction, unit, amount: result.amount, balance, ref }
-  }
-}
-
-/** The account a card starts with: the matched one, else the first candidate. */
-export function initialSmsAccount(entry: ReviewedSms): string {
-  const { result } = entry
-
-  if (result.kind === 'matched') return result.accountId
-
-  return result.kind === 'ambiguous' ? result.candidates[0]?.accountId ?? '' : ''
 }

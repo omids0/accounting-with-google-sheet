@@ -37,7 +37,7 @@ function toRow(item: BankSmsReviewItem, review: BankSmsReview): Row {
       account: `${titleOf(item.debit.result.accountId)} ← ${titleOf(item.credit.result.accountId)}`,
       amount: item.debit.amount,
       category: 'انتقال داخلی',
-      status: ''
+      status: item.duplicateLegs.debit || item.duplicateLegs.credit ? 'تکراری؟' : ''
     }
   }
 
