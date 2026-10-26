@@ -12,6 +12,7 @@ import {
   withAttachmentCell
 } from '../utils/attachmentIds'
 import { formatMoney } from '../utils/formatMoney'
+import { withoutRecordIds } from '../utils/importRecordIds'
 import { downloadTablePdf } from '../utils/pdf'
 import {
   formatInstallmentPayments,
@@ -89,7 +90,9 @@ export async function importInstallmentsCsv(spreadsheetId: string, csvContent: s
         startDate,
         note: cells[7] ?? '',
         subCategory: cells[9] ?? '',
-        payments: parsePayments(planId, cells[8] ?? '', count, dueDay, startDate, amount)
+        payments: withoutRecordIds(
+          parsePayments(planId, cells[8] ?? '', count, dueDay, startDate, amount)
+        )
       }
 
       return withAttachmentCell(
