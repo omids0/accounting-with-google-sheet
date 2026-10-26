@@ -7,6 +7,29 @@ import { toIsoDate } from '../utils/jalaliDate'
 
 export type { LedgerEntry } from './recordDuplicates'
 
+/** The debt/receivable payment a record stands for (what `findLinkedItems` reports). */
+export interface LinkedPaymentInfo {
+  kind: string
+  /** «بدهی» / «طلب». */
+  noun: string
+  title: string
+}
+
+/** Record id → the payment it is. Built outside (local mirror), so the queue stays pure. */
+export type LinkedRecords = ReadonlyMap<string, LinkedPaymentInfo>
+
+/** Ordinary records match an SMS within a day. */
+const DUPLICATE_DAYS = 1
+
+/**
+ * A record that is a debt/receivable payment matches within this many days, because the payment
+ * date may be typed by hand. Same number as `SETTLE_DUPLICATE_DAYS` (settleDuplicates.ts imports
+ * bankSmsApply, which imports this file, so it is repeated here; a test keeps them equal).
+ */
+export const LINKED_PAYMENT_DAYS = 3
+
+const NO_LINKED: LinkedRecords = new Map()
+
 export type MatchedSms = Extract<SmsMatchResult, { kind: 'matched' }>
 
 /** A recognised SMS with its amounts already in the app currency. */
@@ -30,6 +53,8 @@ export type BankSmsReviewItem =
       duplicateMovedBalance: boolean
       /** The newest matching record, for «تکراری؟ · رکورد ۱۲ دقیقه پیش». */
       duplicateOf: LedgerEntry | null
+      /** The matching record is the payment of a debt/receivable: the SMS is probably that payment. */
+      duplicatePayment: LinkedPaymentInfo | null
     }
   | {
       kind: 'transfer'
@@ -74,17 +99,33 @@ export function isConfirmable(entry: ReviewedSms): entry is ConfirmableSms {
   return entry.result.kind === 'matched' && entry.amount !== null
 }
 
-/** Same direction and amount within a day of the SMS (shared rule, `recordDuplicates`). */
-function findDuplicates(entry: ReviewedSms, ledger: LedgerEntry[]): LedgerEntry[] {
-  if (!isConfirmable(entry)) return []
-
-  const candidate = {
+/** What a recognised SMS would be written as: its direction, amount and day. */
+export function smsDuplicateCandidate(entry: ConfirmableSms) {
+  return {
     type: entry.result.direction === 'debit' ? ('expense' as const) : ('income' as const),
     amount: entry.amount,
     date: toIsoDate(new Date(entry.sms.receivedAt))
   }
+}
 
-  return ledger.filter(record => matchesDuplicate(candidate, record, { dayTolerance: 1 }))
+/**
+ * Same direction and amount within a day of the SMS (shared rule, `recordDuplicates`); within
+ * three days for a record that is a debt/receivable payment.
+ */
+function findDuplicates(
+  entry: ReviewedSms,
+  ledger: LedgerEntry[],
+  linked: LinkedRecords = NO_LINKED
+): LedgerEntry[] {
+  if (!isConfirmable(entry)) return []
+
+  const candidate = smsDuplicateCandidate(entry)
+
+  return ledger.filter(record =>
+    matchesDuplicate(candidate, record, {
+      dayTolerance: record.id && linked.has(record.id) ? LINKED_PAYMENT_DAYS : DUPLICATE_DAYS
+    })
+  )
 }
 
 /** Latest by date, then by «زمان ثبت»; `null` for an empty list. */
@@ -100,18 +141,24 @@ export function newestRecord(records: LedgerEntry[]): LedgerEntry | null {
   )
 }
 
-export function isProbableDuplicate(entry: ReviewedSms, ledger: LedgerEntry[]): boolean {
-  return findDuplicates(entry, ledger).length > 0
+export function isProbableDuplicate(
+  entry: ReviewedSms,
+  ledger: LedgerEntry[],
+  linked: LinkedRecords = NO_LINKED
+): boolean {
+  return findDuplicates(entry, ledger, linked).length > 0
 }
 
 /**
  * Pairs own-account transfers, flags probable duplicates, keeps time order.
- * `noPair` = SMS ids the user split from a suggested transfer.
+ * `noPair` = SMS ids the user split from a suggested transfer; `linked` = the records that are
+ * debt/receivable payments.
  */
 export function buildReviewItems(
   entries: ReviewedSms[],
   ledger: LedgerEntry[],
-  noPair: ReadonlySet<string> = new Set()
+  noPair: ReadonlySet<string> = new Set(),
+  linked: LinkedRecords = NO_LINKED
 ): BankSmsReviewItem[] {
   const paired = new Set<string>()
   const items: BankSmsReviewItem[] = []
@@ -144,17 +191,25 @@ export function buildReviewItems(
       continue
     }
 
-    const duplicates = findDuplicates(entry, ledger)
+    const duplicates = findDuplicates(entry, ledger, linked)
+    // A payment record is the better answer: it is what the card offers to close the SMS with.
+    const payments = duplicates.filter(record => record.id && linked.has(record.id))
+    const duplicateOf = newestRecord(payments.length ? payments : duplicates)
 
     items.push({
       kind: 'single',
       key: entry.sms.id,
       entry,
       probableDuplicate: duplicates.length > 0,
+      // A record saved with «اثر بر موجودی» = خیر left the account alone. For a payment, only the
+      // payment record counts: another match must not speak for it.
       duplicateMovedBalance:
         isConfirmable(entry) &&
-        duplicates.some(record => record.accountId === entry.result.accountId),
-      duplicateOf: newestRecord(duplicates)
+        (payments.length ? [duplicateOf] : duplicates).some(
+          record => record?.accountId === entry.result.accountId && record.moved !== false
+        ),
+      duplicateOf,
+      duplicatePayment: (payments.length && duplicateOf?.id && linked.get(duplicateOf.id)) || null
     })
   }
 
