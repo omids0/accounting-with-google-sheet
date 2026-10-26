@@ -68,7 +68,7 @@
   --space-card: 0.7rem;
   --space-stack: 0.45rem;
   /* Desktop (≥ 1280px) sidebar and header row; tablet (768–1279px) icon rail. */
-  --sidebar-width: 13.75rem;
+  --sidebar-width: 17rem;
   --rail-width: 4rem;
   --nav-width: 0px;
   --desktop-header-height: 3rem;
