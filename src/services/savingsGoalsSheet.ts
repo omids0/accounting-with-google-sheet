@@ -14,6 +14,7 @@ import { TREASURY_GOALS_HEADERS } from './sheetHeaders'
 import { TREASURY_GOALS_SHEET, WALLET_LEDGER_SHEET } from './sheetNames'
 import { appendSheetRow, ensureSheetWithHeaders, fetchSheetRows, updateSheetRow } from './sheets'
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
+import { refreshWalletAccounts } from './walletFresh'
 import {
   appendLedgerEntries,
   ledgerEntry,
@@ -22,6 +23,7 @@ import {
 } from './walletLedger'
 import type { SavingsGoal, SavingsGoalView } from '../types'
 import { getDateRange } from '../utils/dateRange'
+import { roundMoney } from '../utils/roundMoney'
 
 async function fetchGoalRows(
   spreadsheetId: string
@@ -107,11 +109,17 @@ export async function moveGoalMoney(
 ): Promise<boolean> {
   if (!amount) return false
 
+  const gone = accountId
+    ? await refreshWalletAccounts(spreadsheetId, [accountId])
+    : new Set<string>()
+
   const account = accountId
-    ? (await fetchWalletAccounts(spreadsheetId)).find(item => item.id === accountId)
+    ? (await fetchWalletAccounts(spreadsheetId)).find(
+        item => item.id === accountId && !gone.has(item.id)
+      )
     : undefined
   const delta = -amount
-  const balanceAfter = (account?.balance ?? 0) + delta
+  const balanceAfter = roundMoney((account?.balance ?? 0) + delta)
   const title = amount > 0 ? `واریز به هدف «${goal.title}»` : `برداشت از هدف «${goal.title}»`
 
   await appendLedgerEntries(spreadsheetId, [
@@ -123,7 +131,13 @@ export async function moveGoalMoney(
       !!account
     )
   ])
-  if (account) await updateWalletAccount(spreadsheetId, { ...account, balance: balanceAfter })
+  if (account) {
+    await updateWalletAccount(
+      spreadsheetId,
+      { ...account, balance: balanceAfter },
+      { mergeBalance: true }
+    )
+  }
   logItemActivity(spreadsheetId, 'goal', 'goals', goal.id, goal.title, { amount })
 
   const balance = goal.balance + amount
