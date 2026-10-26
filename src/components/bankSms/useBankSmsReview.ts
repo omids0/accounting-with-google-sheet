@@ -1,19 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { smsBulkItems } from './smsBulkItems'
 import { knownSubCategory } from './smsSubCategory'
 import { useBankSmsContext } from './useBankSmsContext'
 import { useBuildingSmsUnits } from './useBuildingSmsUnits'
+import { useSmsChoices } from './useSmsChoices'
 import { useSmsTemplates } from './useSmsTemplates'
 import { useBuildingAccess } from '../../hooks/useBuildingAccess'
+import type { LinkRecordInput } from '../../hooks/useLinkTarget'
 import { useRoutedPendingSms } from '../../hooks/useRoutedPendingSms'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { getPathForTab } from '../../routes/paths'
 import {
   confirmSmsEntry,
+  confirmSmsEntryWithId,
   confirmSmsTransfer,
   dismissSms,
+  smsLinkedRecord,
   suggestedSmsRecord,
   type ConfirmableSms,
   type SmsRecordInput
@@ -22,23 +26,18 @@ import { buildBankSmsEntryState, type BankSmsEntryOptions } from '../../services
 import { matchSms } from '../../services/bankSmsMatch'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { buildReviewItems, reviewSms } from '../../services/bankSmsQueue'
-import {
-  smsSuggestInput,
-  suggestSmsCategory,
-  type SmsCategoryChoice,
-  type SmsCategorySuggestion
-} from '../../services/bankSmsSuggest'
+import type { SmsCategoryChoice, SmsCategorySuggestion } from '../../services/bankSmsSuggest'
 import { confirmSmsVehicleExpense, type SmsVehicleInput } from '../../services/bankSmsVehicle'
 import { readBridgePrefs } from '../../services/bridgePrefs'
 import { personalBridgeId } from '../../services/bridgeTarget'
-import { unitSuggestionTitle, type SmsUnitInput } from '../../services/buildingSmsMatch'
+import type { SmsUnitInput } from '../../services/buildingSmsMatch'
 import { payUnitFromSms } from '../../services/buildingSmsPayment'
 import { useBankSmsStore } from '../../stores/bankSmsStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { getCurrency } from '../../utils/formatMoney'
 import { haptic } from '../../utils/haptics'
+import { isLinkTargetCategory } from '../../utils/linkTargetKinds'
 import { toPersianDigits } from '../../utils/normalizeDigits'
-import { BUILDING_CHARGE_CATEGORY } from '../../utils/protectedCategories'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
@@ -105,48 +104,7 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
   // The SMS waiting out its «نادیده» undo window is already gone from the list.
   const items = allItems.filter(item => item.key !== undoable.pendingId)
 
-  const suggestContext = useMemo(() => {
-    const prefs = getBankSmsPrefs()
-
-    return {
-      recurring,
-      ledger,
-      bySender: prefs.lastCategoryBySender,
-      byTemplate: prefs.lastCategory
-    }
-    // `pending` changes after every confirm, which is when the remembered categories change.
-  }, [recurring, ledger, pending]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  /** The category of a deposit/withdrawal as the round-6 rules give it (what «درآمد دیگر» saves). */
-  const plainChoiceFor = useCallback(
-    (entry: ConfirmableSms): SmsChoice | null => {
-      const own = picked[entry.sms.id]
-
-      // A pick emptied by deleting its category counts as no choice, never as a blank category.
-      if (own) return own.category ? own : null
-
-      return suggestSmsCategory(smsSuggestInput(entry), suggestContext)
-    },
-    [picked, suggestContext]
-  )
-
-  /** Same, but a deposit whose payer's card is a unit's says «شارژ ساختمان» (table, form fallback). */
-  const choiceFor = useCallback(
-    (entry: ConfirmableSms): SmsChoice | null => {
-      const offer = units.offerFor(entry)
-
-      return offer?.kind === 'card' && !picked[entry.sms.id]
-        ? suggestSmsCategory(
-            smsSuggestInput(entry, {
-              title: unitSuggestionTitle(offer.candidate),
-              category: BUILDING_CHARGE_CATEGORY
-            }),
-            suggestContext
-          )
-        : plainChoiceFor(entry)
-    },
-    [units, picked, suggestContext, plainChoiceFor]
-  )
+  const { plainChoiceFor, choiceFor } = useSmsChoices(picked, { recurring, ledger }, pending, units)
 
   const titleOf = (accountId: string) =>
     accounts.find(account => account.id === accountId)?.title ?? 'حساب'
@@ -210,7 +168,13 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
   const incomeFlow = (entry: ConfirmableSms, probableDuplicate: boolean) => {
     const choice = plainChoiceFor(entry)
 
-    if (probableDuplicate || !choice || isVehicleExpenseCategory(choice.category)) {
+    // «خودرو» and «بدهی»/«طلب» need answers (vehicle, debt) that only the card and the form ask.
+    if (
+      probableDuplicate ||
+      !choice ||
+      isVehicleExpenseCategory(choice.category) ||
+      isLinkTargetCategory(smsRecordType(entry), choice.category)
+    ) {
       openEntry(entry, { choice })
 
       return
@@ -267,6 +231,20 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
           }
         }
       }),
+    /**
+     * «بدهی»/«طلب» saved from the card: the record, then (when one was picked) its payment on the
+     * debt or receivable, right after the record exists. `link` never throws.
+     */
+    saveLinked: (
+      entry: ConfirmableSms,
+      choice: SmsChoice,
+      link: (record: LinkRecordInput) => Promise<boolean>
+    ) =>
+      run(entry.sms.id, `ثبت شد · ${choice.category}`, id =>
+        confirmSmsEntryWithId(id, entry, record(entry, choice), {
+          afterRecord: async recordId => void (await link(smsLinkedRecord(entry, recordId)))
+        })
+      ),
     /** «خودرو» saved from the card, with the vehicle fields asked on it. */
     saveVehicle: (entry: ConfirmableSms, vehicle: SmsVehicleInput) =>
       run(entry.sms.id, `ثبت شد · ${VEHICLE_EXPENSE_CATEGORY}`, id =>

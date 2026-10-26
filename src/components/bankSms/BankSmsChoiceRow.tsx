@@ -2,6 +2,7 @@ import { useState, type RefObject } from 'react'
 
 import { smsChoiceReason } from './smsLabels'
 import type { SmsChoice } from './useBankSmsReview'
+import type { LinkTargetState } from '../../hooks/useLinkTarget'
 import type { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
 import { getCategoriesPath } from '../../routes/paths'
 import { readCategoryList } from '../../services/categoryManage'
@@ -11,6 +12,7 @@ import CategorySelect from '../form/CategorySelect'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
 import FormField from '../form/FormField'
 import SubCategorySelect from '../form/SubCategorySelect'
+import LazyLinkTargetField from '../linkTarget/LazyLinkTargetField'
 import { smsChoiceReasonClass, smsChoiceRowClass, smsHintClass } from '../ui/bankSmsStyles'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
 
@@ -25,6 +27,8 @@ type BankSmsChoiceRowProps = {
   amount?: number
   /** Set while the category is «خودرو»: the entry form's vehicle fields replace subcategory and title. */
   vehicle?: ReturnType<typeof useVehicleExpenseEntry>
+  /** Set while the category is «بدهی»/«طلب»: which open debt or receivable the record pays. */
+  link?: LinkTargetState
   /** Lets the card scroll to a field of the vehicle block that failed validation. */
   rootRef?: RefObject<HTMLDivElement>
 }
@@ -42,6 +46,7 @@ export default function BankSmsChoiceRow({
   onPick,
   amount = 0,
   vehicle,
+  link,
   rootRef
 }: BankSmsChoiceRowProps) {
   const [categories, setCategories] = useState(() => readCategoryList(type))
@@ -57,34 +62,39 @@ export default function BankSmsChoiceRow({
       <p className={smsChoiceReasonClass}>
         {choice ? smsChoiceReason(choice) : 'دسته‌ای پیشنهاد نشد؛ یکی را انتخاب کنید.'}
       </p>
-      <CategorySelect
-        value={category}
-        onChange={next => onPick({ category: next, subCategory: '', title })}
-        categories={categories}
-        onCategoriesChange={next => {
-          setCategories(next)
-          // A deleted or renamed pick must not stay selected (the entry form does the same).
-          if (category && !next.includes(category)) {
-            onPick({ category: next[0] ?? '', subCategory: '', title })
-          }
-        }}
-        formId={formId}
-        categoryScope={type}
-        lockedCategories={lockedCategoriesFor(type)}
-        allowSubcategories
-        fullManagePath={getCategoriesPath(type)}
-        disabled={busy}
-        aria-label={type === 'expense' ? 'دسته هزینه' : 'دسته درآمد'}
-      />
-      {hasSubcategories ? (
-        <SubCategorySelect
-          value={subCategory}
-          onChange={next => onPick({ category, subCategory: next, title })}
-          categoryType={type}
-          category={category}
+      <FormField label="دسته‌بندی" controlWidth="full">
+        <CategorySelect
+          value={category}
+          onChange={next => onPick({ category: next, subCategory: '', title })}
+          categories={categories}
+          onCategoriesChange={next => {
+            setCategories(next)
+            // A deleted or renamed pick must not stay selected (the entry form does the same).
+            if (category && !next.includes(category)) {
+              onPick({ category: next[0] ?? '', subCategory: '', title })
+            }
+          }}
+          formId={formId}
+          categoryScope={type}
+          lockedCategories={lockedCategoriesFor(type)}
+          allowSubcategories
+          fullManagePath={getCategoriesPath(type)}
           disabled={busy}
+          aria-label={type === 'expense' ? 'دسته هزینه' : 'دسته درآمد'}
         />
+      </FormField>
+      {hasSubcategories ? (
+        <FormField label="زیردسته" controlWidth="full">
+          <SubCategorySelect
+            value={subCategory}
+            onChange={next => onPick({ category, subCategory: next, title })}
+            categoryType={type}
+            category={category}
+            disabled={busy}
+          />
+        </FormField>
       ) : null}
+      {link ? <LazyLinkTargetField link={link} disabled={busy} /> : null}
       {vehicle?.loading ? <p className={smsHintClass}>در حال خواندن خودروها…</p> : null}
       {vehicle ? (
         <VehicleExpenseFields

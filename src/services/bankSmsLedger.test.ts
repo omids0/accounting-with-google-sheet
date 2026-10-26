@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { confirmSmsEntry, confirmSmsTransfer, type ConfirmableSms } from './bankSmsApply'
+import {
+  confirmSmsEntry,
+  confirmSmsEntryWithId,
+  confirmSmsTransfer,
+  type ConfirmableSms
+} from './bankSmsApply'
 import { markBankSmsHandled } from './bankSmsNative'
 import { updateBankSmsPrefs } from './bankSmsPrefs'
 import { createLinkedExpenseRecord } from './paymentTransactions'
@@ -98,6 +103,39 @@ describe('SMS balance moves in the ledger', () => {
     await confirmSmsEntry(ID, sms('s1', 'acc', 'debit'), record).catch(() => undefined)
 
     expect(markBankSmsHandled).toHaveBeenCalledWith(['s1'])
+  })
+
+  it('hands the new record id to afterRecord once the SMS left the queue, balance moved once', async () => {
+    const seen: string[] = []
+
+    await confirmSmsEntryWithId(ID, sms('s1', 'acc', 'debit'), record, {
+      afterRecord: async recordId => {
+        seen.push(recordId)
+        expect(markBankSmsHandled).toHaveBeenCalledWith(['s1'])
+      }
+    })
+
+    expect(seen).toEqual(['rec-1'])
+    expect(await fetchLedger(ID, 'acc')).toHaveLength(1)
+    expect((await fetchWalletAccounts(ID)).find(a => a.id === 'acc')!.balance).toBe(700)
+  })
+
+  it('runs afterRecord before the balance step, so a balance failure cannot lose the link', async () => {
+    const seen: string[] = []
+
+    vi.mocked(fetchWalletAccounts).mockRejectedValueOnce(new Error('offline'))
+    await confirmSmsEntryWithId(ID, sms('s1', 'acc', 'debit'), record, {
+      afterRecord: async recordId => void seen.push(recordId)
+    }).catch(() => undefined)
+
+    expect(seen).toEqual(['rec-1'])
+  })
+
+  it('does not call afterRecord for a balance-only confirm (no record exists)', async () => {
+    const afterRecord = vi.fn(async () => undefined)
+
+    await confirmSmsEntryWithId(ID, sms('s1', 'acc', 'debit'), null, { afterRecord })
+    expect(afterRecord).not.toHaveBeenCalled()
   })
 
   it('logs both sides of an own-account transfer', async () => {

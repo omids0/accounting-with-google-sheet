@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from 'react'
 import type { useForm } from 'react-hook-form'
 
 import EntryRecordExtraField from './EntryRecordExtraField'
+import type { LinkTargetState } from '../../hooks/useLinkTarget'
 import type { useVehicleExpenseEntry } from '../../hooks/useVehicleExpenseEntry'
 import type { CustomForm, FieldConfig } from '../../types'
 import { formFieldError } from '../../utils/formValidation'
@@ -17,6 +18,7 @@ import {
 } from '../form'
 import { resolveCategoryType } from '../form/categorySelect/useCategorySelectActions'
 import { readSubcategories } from '../form/categorySelect/useSubcategoryManager'
+import LazyLinkTargetField from '../linkTarget/LazyLinkTargetField'
 import type { FormControlWidth } from '../ui/formStyles'
 import VehicleExpenseFields from '../vehicleExpenses/VehicleExpenseFields'
 
@@ -66,6 +68,7 @@ export default function StandardEntryFormFields({
   onCategoriesRefresh,
   showVehicleFields,
   vehicleExpense,
+  linkTarget,
   clearFieldError,
   walletApplyHint,
   afterAmount,
@@ -78,6 +81,8 @@ export default function StandardEntryFormFields({
   onCategoriesRefresh: () => void
   showVehicleFields: boolean
   vehicleExpense: ReturnType<typeof useVehicleExpenseEntry>
+  /** The «بدهی»/«طلب» picker's state; the field shows only for those categories. */
+  linkTarget?: LinkTargetState
   clearFieldError?: (fieldId: string) => void
   /** Why the balance switch starts unchecked (record opened from an SMS). */
   walletApplyHint?: string
@@ -160,6 +165,7 @@ export default function StandardEntryFormFields({
       {renderField('title', { controlWidth: 'full' })}
       {renderField('category')}
       {!showVehicleFields && hasSubcategories ? renderField(SUBCATEGORY_FIELD_ID) : null}
+      {linkTarget ? <LazyLinkTargetField link={linkTarget} /> : null}
       {showVehicleFields ? (
         <VehicleExpenseFields
           values={vehicleExpense.vehicleValues}

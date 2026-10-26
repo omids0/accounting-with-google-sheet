@@ -96,13 +96,17 @@ async function applyBalance(
  * i.e. «فقط به‌روزرسانی موجودی»), move the account balance, drop it from the queue.
  * Resolves with the id of the record written ('' without one). `remember: false` keeps the
  * category out of the per-sender memory (a building's charge category must not be suggested
- * for the same bank in a personal workspace).
+ * for the same bank in a personal workspace). `afterRecord` runs right after the record exists
+ * and the SMS left the queue (before the balance step, which may fail): the debt/receivable link.
  */
 export async function confirmSmsEntryWithId(
   spreadsheetId: string,
   entry: ConfirmableSms,
   record: SmsRecordInput | null,
-  { remember = true }: { remember?: boolean } = {}
+  {
+    remember = true,
+    afterRecord
+  }: { remember?: boolean; afterRecord?: (recordId: string) => Promise<void> } = {}
 ): Promise<string> {
   let recordId = ''
 
@@ -136,12 +140,22 @@ export async function confirmSmsEntryWithId(
       params,
       recordLedgerContext(params, 'پیامک', recordId)
     ).catch(() => undefined)
+    await afterRecord?.(recordId)
   }
 
   if (!record) await markBankSmsHandled([entry.sms.id])
   await applyBalance(spreadsheetId, entry, { title: record?.title, recordId })
 
   return recordId
+}
+
+/** The record just written from an SMS, as the payment of a debt or receivable: id, amount, date. */
+export function smsLinkedRecord(entry: ConfirmableSms, recordId: string) {
+  return {
+    recordId,
+    amount: entry.amount,
+    date: smsRecordDate(entry.sms.body, entry.sms.receivedAt)
+  }
 }
 
 export async function confirmSmsEntry(
