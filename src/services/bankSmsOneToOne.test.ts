@@ -220,3 +220,36 @@ describe('creating a record from an SMS writes its coverage', () => {
     expect(smsCoverage().size).toBe(0)
   })
 })
+
+describe('a linked record edited after SMS were closed as parts of it (BX3)', () => {
+  it('edited down below the covered sum: the coverage is stale, it is a named payment again', () => {
+    const r1 = record('r1', 8_000_000, { date: '2026-10-08' })
+    const [card] = singles(
+      buildReviewItems(
+        [smsOf('m1', 8_000_000)],
+        [r1],
+        new Set(),
+        linkedTo(['r1', 'قسط وام']),
+        new Map([['r1', M10]])
+      )
+    )
+
+    expect(card).toMatchObject({ probableDuplicate: true, duplicatePayment: { title: 'قسط وام' } })
+    expect(card.splitUncovered).toBeNull()
+  })
+
+  it('covered within its amount stays covered (not a second exact match)', () => {
+    const r1 = record('r1', M20, { date: '2026-10-06' })
+    const [card] = singles(
+      buildReviewItems(
+        [smsOf('m1', M20)],
+        [r1],
+        new Set(),
+        linkedTo(['r1', 'وام']),
+        new Map([['r1', M10]])
+      )
+    )
+
+    expect(card).toMatchObject({ probableDuplicate: false, duplicatePayment: null })
+  })
+})

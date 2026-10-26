@@ -170,6 +170,26 @@ export function isProbableDuplicate(
 }
 
 /**
+ * The coverage of a record that is MORE than the record now holds is no longer true: the record
+ * was edited down after SMS were closed as parts of it. Such an entry is dropped, so the record is
+ * judged by its own amount again (a linked payment, named as such) instead of staying «تکراری؟».
+ */
+function withoutStaleCoverage(coverage: SmsCoverage, ledger: LedgerEntry[]): Map<string, number> {
+  const kept = new Map(coverage)
+
+  if (!kept.size) return kept
+  for (const record of ledger) {
+    const sum = record.id ? kept.get(record.id) : undefined
+
+    if (record.id && sum !== undefined && roundMoney(sum) > roundMoney(record.amount)) {
+      kept.delete(record.id)
+    }
+  }
+
+  return kept
+}
+
+/**
  * Pairs own-account transfers, flags probable duplicates, keeps time order.
  * `noPair` = SMS ids the user split from a suggested transfer; `linked` = the records that are
  * debt/receivable payments, `coverage` = how much of each SMS already covered.
@@ -186,7 +206,7 @@ export function buildReviewItems(
   // One-to-one: a record (or a part of it) is what ONE card stands for. `taken` are the records an
   // earlier card matched exactly, `covered` the coverage plus the parts earlier cards took.
   const taken = new Set<string>()
-  const covered = new Map(coverage)
+  const covered = withoutStaleCoverage(coverage, ledger)
 
   for (const entry of entries) {
     if (paired.has(entry.sms.id)) continue
@@ -239,7 +259,9 @@ export function buildReviewItems(
         ? findSplitTarget(smsDuplicateCandidate(entry), ledger, linked, covered)
         : null
     // A payment record is the better answer: it is what the card offers to close the SMS with.
-    const payments = duplicates.filter(record => record.id && exactLinked.has(record.id))
+    const payments = duplicates.filter(
+      record => record.id && exactLinked.has(record.id) && record.note !== SMS_RECORD_NOTE
+    )
     const duplicateOf = split?.record ?? newestRecord(payments.length ? payments : duplicates)
 
     if (split?.record.id && entry.amount !== null) {
