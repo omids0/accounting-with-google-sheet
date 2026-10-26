@@ -8,6 +8,7 @@ import {
   NO_COVERAGE,
   NO_LINKED,
   uncoveredLinked,
+  uncoveredOf,
   type LinkedPaymentInfo,
   type LinkedRecords,
   type SmsCoverage
@@ -117,14 +118,15 @@ export function smsDuplicateCandidate(entry: ConfirmableSms) {
 /**
  * Same direction and amount within a day of the SMS (shared rule, `recordDuplicates`); within
  * three days for a record that is a debt/receivable payment, unless an SMS created it (that SMS
- * is its payment, a later one only matches it as an ordinary duplicate). A record in `taken` is
- * what an earlier card of the same list already stands for: one record matches one SMS.
+ * is its payment, a later one only matches it as an ordinary duplicate). One record matches one SMS:
+ * a record whose uncovered amount (`covered`: SMS closed as it, cards of this list that took it) is
+ * less than the SMS no longer matches.
  */
 function findDuplicates(
   entry: ReviewedSms,
   ledger: LedgerEntry[],
   linked: LinkedRecords = NO_LINKED,
-  taken: ReadonlySet<string> = new Set()
+  covered: SmsCoverage = NO_COVERAGE
 ): LedgerEntry[] {
   if (!isConfirmable(entry)) return []
 
@@ -132,7 +134,7 @@ function findDuplicates(
 
   return ledger.filter(
     record =>
-      !(record.id && taken.has(record.id)) &&
+      uncoveredOf(record, covered) >= candidate.amount &&
       matchesDuplicate(candidate, record, {
         dayTolerance:
           record.id && linked.has(record.id) && record.note !== SMS_RECORD_NOTE
@@ -164,7 +166,7 @@ export function isProbableDuplicate(
   if (!isConfirmable(entry)) return false
 
   return (
-    findDuplicates(entry, ledger, uncoveredLinked(linked, coverage)).length > 0 ||
+    findDuplicates(entry, ledger, uncoveredLinked(linked, coverage), coverage).length > 0 ||
     findSplitTarget(smsDuplicateCandidate(entry), ledger, linked, coverage) !== null
   )
 }
@@ -203,10 +205,12 @@ export function buildReviewItems(
 ): BankSmsReviewItem[] {
   const paired = new Set<string>()
   const items: BankSmsReviewItem[] = []
-  // One-to-one: a record (or a part of it) is what ONE card stands for. `taken` are the records an
-  // earlier card matched exactly, `covered` the coverage plus the parts earlier cards took.
-  const taken = new Set<string>()
+  // One-to-one: a record (or a part of it) is what ONE card stands for. `covered` is the stored
+  // coverage plus what the earlier cards of this list took, exact matches and parts alike.
   const covered = withoutStaleCoverage(coverage, ledger)
+  const consume = (record: LedgerEntry | null, amount: number) => {
+    if (record?.id) covered.set(record.id, roundMoney((covered.get(record.id) ?? 0) + amount))
+  }
 
   for (const entry of entries) {
     if (paired.has(entry.sms.id)) continue
@@ -233,13 +237,14 @@ export function buildReviewItems(
         entry.result.direction === 'debit' ? [entry, partner] : [partner, entry]
       const legRecord = (leg: ConfirmableSms) =>
         newestRecord(
-          findDuplicates(leg, ledger, exactLinked, taken).filter(
+          findDuplicates(leg, ledger, exactLinked, covered).filter(
             record => record.accountId === leg.result.accountId
           )
         )
       const duplicateLegs = { debit: legRecord(debit), credit: legRecord(credit) }
 
-      for (const record of Object.values(duplicateLegs)) if (record?.id) taken.add(record.id)
+      consume(duplicateLegs.debit, debit.amount)
+      consume(duplicateLegs.credit, credit.amount)
       paired.add(entry.sms.id)
       paired.add(partner.sms.id)
       items.push({
@@ -252,7 +257,7 @@ export function buildReviewItems(
       continue
     }
 
-    const duplicates = findDuplicates(entry, ledger, exactLinked, taken)
+    const duplicates = findDuplicates(entry, ledger, exactLinked, covered)
     // An exact match comes first; only without one can the SMS be a part of a bigger payment.
     const split =
       isConfirmable(entry) && !duplicates.length
@@ -264,11 +269,7 @@ export function buildReviewItems(
     )
     const duplicateOf = split?.record ?? newestRecord(payments.length ? payments : duplicates)
 
-    if (split?.record.id && entry.amount !== null) {
-      covered.set(split.record.id, roundMoney((covered.get(split.record.id) ?? 0) + entry.amount))
-    } else if (duplicateOf?.id) {
-      taken.add(duplicateOf.id)
-    }
+    if (isConfirmable(entry)) consume(duplicateOf, entry.amount)
 
     items.push({
       kind: 'single',

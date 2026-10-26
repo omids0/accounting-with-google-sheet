@@ -106,7 +106,13 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     // and how much of each the SMS closed so far already covered.
     const linked = localLinkedRecords(reviewed, ledger)
 
-    return buildReviewItems(reviewed, ledger, noPair, linked, smsCoverage())
+    return buildReviewItems(
+      reviewed,
+      ledger,
+      noPair,
+      linked,
+      smsCoverage(Date.now(), new Set(reviewed.map(item => item.sms.id)))
+    )
   }, [pending, sinceMs, templates, accounts, currency, ledger, noPair])
   // The SMS waiting out its «نادیده» undo window is already gone from the list.
   const items = allItems.filter(item => item.key !== undoable.pendingId)
@@ -259,10 +265,13 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     closeAsRecorded: (item: Extract<BankSmsReviewItem, { kind: 'single' }>) => {
       const recordId = item.duplicateOf?.id
       const { amount } = item.entry
-      const part = item.splitUncovered !== null && recordId && amount !== null
 
+      // The SMS stands for that record, a part of it or all of it: remembered, so no later SMS is
+      // taken for the same payment (one record, one SMS).
       return run(item.key, 'از لیست خارج شد', () =>
-        part ? coverSmsPart(item.entry.sms.id, recordId, amount) : dismissSms([item.entry.sms.id])
+        recordId && amount !== null
+          ? coverSmsPart(item.entry.sms.id, recordId, amount)
+          : dismissSms([item.entry.sms.id])
       )
     },
     /** «نادیده» with a five-second «بازگردانی». */

@@ -14,10 +14,16 @@ import { roundMoney } from '../utils/roundMoney'
 export { COVERAGE_KEEP_MS }
 
 /** Record id → the sum of the SMS amounts closed as a part of it. */
-export function smsCoverage(nowMs = Date.now()): SmsCoverage {
+export function smsCoverage(
+  nowMs = Date.now(),
+  /** SMS still in the queue: what they stand for is not covered yet (a save that failed halfway). */
+  except: ReadonlySet<string> = new Set()
+): SmsCoverage {
   const sums = new Map<string, number>()
 
-  for (const { recordId, amount, at } of Object.values(getBankSmsPrefs().smsCoverage)) {
+  for (const [smsId, { recordId, amount, at }] of Object.entries(getBankSmsPrefs().smsCoverage)) {
+    if (except.has(smsId)) continue
+
     // An old entry no longer counts, whether or not another close has pruned it yet.
     if (nowMs - at >= COVERAGE_KEEP_MS) continue
 

@@ -1,17 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { BANK_SMS_FIXTURES, fixtureAccount } from './bankSmsFixtures'
-import { guessTemplate } from './bankSmsGuess'
-import type { BankSmsItem } from './bankSmsNative'
 import { SMS_RECORD_NOTE } from './bankSmsNote'
-import {
-  buildReviewItems,
-  reviewSms,
-  type LedgerEntry,
-  type LinkedRecords,
-  type ReviewedSms,
-  type SmsCoverage
-} from './bankSmsQueue'
+import { buildReviewItems, type SmsCoverage } from './bankSmsQueue'
+import { linkedTo, M10, M20, record, singles, smsOf } from './bankSmsQueueTestKit'
 
 const mocks = vi.hoisted(() => ({ handled: vi.fn() }))
 
@@ -33,53 +24,6 @@ vi.mock('./wallet', () => ({ fetchWalletAccounts: async () => [], updateWalletAc
 const { confirmSmsEntryWithId } = await import('./bankSmsApply')
 const { smsCoverage } = await import('./bankSmsCoverage')
 const { BANK_SMS_PREFS_KEY } = await import('./bankSmsPrefs')
-
-const [MELLAT_DEBIT] = BANK_SMS_FIXTURES
-/** 2026-10-08 12:00, the day of the SMS. */
-const BASE = new Date(2026, 9, 8, 12, 0).getTime()
-
-const template = {
-  id: 'tMellat',
-  createdAt: '',
-  accountId: 'mellat',
-  ...guessTemplate(MELLAT_DEBIT.sample)
-}
-const accounts = [fixtureAccount('mellat')]
-
-/** Debit SMS of `amount` (app currency), received `dayShift` days after BASE. */
-function smsOf(id: string, amount: number, dayShift = 0): ReviewedSms {
-  const item: BankSmsItem = {
-    id,
-    sender: '+98700',
-    body: MELLAT_DEBIT.next,
-    receivedAt: BASE + dayShift * 86_400_000,
-    source: 'live'
-  }
-  const [entry] = reviewSms([item], [template], accounts, 'toman')
-
-  return { ...entry, amount }
-}
-
-const record = (id: string, amount: number, patch: Partial<LedgerEntry> = {}): LedgerEntry => ({
-  type: 'expense',
-  amount,
-  date: '2026-10-08',
-  accountId: 'mellat',
-  id,
-  ...patch
-})
-const linkedTo = (...pairs: [string, string][]): LinkedRecords =>
-  new Map(pairs.map(([id, title]) => [id, { kind: 'dang', noun: 'بدهی', title }]))
-
-const singles = (items: ReturnType<typeof buildReviewItems>) =>
-  items.map(item => {
-    if (item.kind !== 'single') throw new Error('expected single cards')
-
-    return item
-  })
-
-const M20 = 20_000_000
-const M10 = 10_000_000
 
 describe('a record created from an SMS belongs to that SMS', () => {
   it('30M debt: SMS 20M saved (R1), a real second SMS 10M is NOT a part of R1', () => {
@@ -115,14 +59,16 @@ describe('a record created from an SMS belongs to that SMS', () => {
     expect(card).toMatchObject({ probableDuplicate: false, duplicatePayment: null })
   })
 
-  it('within a day it is only an ordinary «تکراری؟», never a named payment', () => {
+  it('within a day: covered by its SMS it is consumed (a new card); without coverage only an ordinary «تکراری؟»', () => {
     const r1 = record('r1', M20, { note: SMS_RECORD_NOTE })
-    const coverage: SmsCoverage = new Map([['r1', M20]])
-    const [card] = singles(
-      buildReviewItems([smsOf('m2', M20)], [r1], new Set(), linkedTo(['r1', 'x']), coverage)
+    const linked = linkedTo(['r1', 'x'])
+    const [covered] = singles(
+      buildReviewItems([smsOf('m2', M20)], [r1], new Set(), linked, new Map([['r1', M20]]))
     )
+    const [legacy] = singles(buildReviewItems([smsOf('m2', M20)], [r1], new Set(), linked))
 
-    expect(card).toMatchObject({ probableDuplicate: true, duplicatePayment: null })
+    expect(covered).toMatchObject({ probableDuplicate: false, duplicatePayment: null })
+    expect(legacy).toMatchObject({ probableDuplicate: true, duplicatePayment: null })
   })
 
   it('a payment made on its own page (no SMS note, not covered) still matches an SMS', () => {
