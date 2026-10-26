@@ -6,6 +6,7 @@ import { linkedRecordsFor } from './bankSmsLinked'
 import type { BankSmsItem } from './bankSmsNative'
 import {
   buildReviewItems,
+  isProbableDuplicate,
   LINKED_PAYMENT_DAYS,
   reviewSms,
   type LedgerEntry,
@@ -98,7 +99,7 @@ describe('buildReviewItems: a record that is a debt or receivable payment', () =
   })
 
   it('ignores a linked record of another amount or direction', () => {
-    const ledger = [record({ amount: 9001 }), record({ id: 'r2', type: 'income' })]
+    const ledger = [record({ amount: 8999 }), record({ id: 'r2', type: 'income' })]
     const linked = new Map([...linkedTo('r1'), ...linkedTo('r2')])
 
     expect(single(buildReviewItems(debitSms(), ledger, new Set(), linked))).toMatchObject({
@@ -187,5 +188,95 @@ describe('linkedRecordsFor', () => {
 
     expect(linkedRecordsFor([], [record({})], find).size).toBe(0)
     expect(find).not.toHaveBeenCalled()
+  })
+})
+
+describe('buildReviewItems: an SMS smaller than a payment record (one payment, several SMS)', () => {
+  const big = (patch: Partial<LedgerEntry> = {}) => record({ amount: 20000, ...patch })
+  const items = (
+    ledger: LedgerEntry[],
+    linked = linkedTo('r1'),
+    coverage = new Map<string, number>()
+  ) => single(buildReviewItems(debitSms(), ledger, new Set(), linked, coverage))
+
+  it('offers the record with its uncovered amount, and never makes a new record of the SMS', () => {
+    expect(items([big()])).toMatchObject({
+      probableDuplicate: true,
+      duplicateOf: { id: 'r1' },
+      duplicatePayment: { title: 'وام دوست' },
+      splitUncovered: 20000
+    })
+  })
+
+  it('shrinks the uncovered amount with every SMS closed as a part of it', () => {
+    expect(items([big()], linkedTo('r1'), new Map([['r1', 11000]]))).toMatchObject({
+      splitUncovered: 9000
+    })
+    // both 9000 SMS are in: the record is covered, the next one is an ordinary card
+    expect(items([big()], linkedTo('r1'), new Map([['r1', 12000]]))).toMatchObject({
+      probableDuplicate: false,
+      splitUncovered: null
+    })
+  })
+
+  it('does not offer a record that is not linked, too far away, or not bigger', () => {
+    expect(items([big()], linkedTo('other')).probableDuplicate).toBe(false)
+    expect(items([big({ date: '2026-10-04' })]).probableDuplicate).toBe(false)
+    expect(items([big({ type: 'income' })]).probableDuplicate).toBe(false)
+    expect(items([big({ date: '2026-10-05' })]).splitUncovered).toBe(20000)
+  })
+
+  it('gives an exact match precedence over a split', () => {
+    const ledger = [big(), record({ id: 'exact', amount: 9000, date: '2026-10-08' })]
+
+    expect(items(ledger, linkedTo('exact'))).toMatchObject({
+      duplicateOf: { id: 'exact' },
+      duplicatePayment: { title: 'وام دوست' },
+      splitUncovered: null
+    })
+    expect(items(ledger).splitUncovered).toBeNull()
+  })
+
+  it('stops offering the exact payment once SMS covered a part of it', () => {
+    const exact = [record({ id: 'r1', date: '2026-10-06' })]
+
+    expect(items(exact).duplicatePayment).toBeTruthy()
+    expect(items(exact, linkedTo('r1'), new Map([['r1', 100]])).probableDuplicate).toBe(false)
+  })
+
+  it('picks the closest fit, then the newest, the same way every time', () => {
+    const linked = new Map([...linkedTo('a'), ...linkedTo('b'), ...linkedTo('c')])
+    const ledger = [
+      big({ id: 'a', amount: 30000 }),
+      big({ id: 'b', amount: 15000, date: '2026-10-07' }),
+      big({ id: 'c', amount: 15000, date: '2026-10-08' })
+    ]
+
+    expect(items(ledger, linked).duplicateOf?.id).toBe('c')
+    expect(items([...ledger].reverse(), linked).duplicateOf?.id).toBe('c')
+    expect(items(ledger, linked, new Map([['c', 8000]])).duplicateOf?.id).toBe('b')
+  })
+
+  it('reports the balance by the record it is a part of', () => {
+    expect(items([big({ accountId: 'mellat' })]).duplicateMovedBalance).toBe(true)
+    expect(items([big({ accountId: '' })]).duplicateMovedBalance).toBe(false)
+  })
+
+  it('is a probable duplicate for the reconcile wizard too', () => {
+    const [entry] = debitSms()
+    const linked = linkedTo('r1')
+
+    expect(isProbableDuplicate(entry, [big()])).toBe(false)
+    expect(isProbableDuplicate(entry, [big()], linked)).toBe(true)
+    expect(isProbableDuplicate(entry, [big()], linked, new Map([['r1', 12000]]))).toBe(false)
+    expect(isProbableDuplicate(entry, [record({ date: '2026-10-06' })], linked)).toBe(true)
+    expect(isProbableDuplicate(entry, [record({ date: '2026-10-06' })])).toBe(false)
+  })
+
+  it('asks the link lookup about bigger records of the window as well', () => {
+    const find = vi.fn((_id: string) => [] as RecordLinkMatch[])
+
+    linkedRecordsFor(debitSms(), [big({ id: 'big' }), record({ id: 'small', amount: 5 })], find)
+    expect(find.mock.calls.map(call => call[0])).toEqual(['big'])
   })
 })

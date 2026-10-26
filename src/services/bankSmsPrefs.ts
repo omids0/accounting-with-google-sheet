@@ -7,6 +7,14 @@ import { getItem, setItem } from './storage'
  * Device-level state for bank SMS capture. SMS only reach this phone, so none
  * of it belongs in the shared spreadsheet.
  */
+/** One SMS closed as a part of a payment record (see `bankSmsCoverage`). */
+export interface SmsCoverageEntry {
+  recordId: string
+  amount: number
+  /** Epoch ms of the close; old entries are dropped. */
+  at: number
+}
+
 export interface BankSmsPrefs {
   enabled: boolean
   /** Inbox catch-up resumes from here (epoch ms). */
@@ -21,6 +29,8 @@ export interface BankSmsPrefs {
   lastCategory: Record<string, { category: string; subCategory: string }>
   /** Per sender and type (`smsSenderKey`): the category last chosen for its SMS. */
   lastCategoryBySender: Record<string, { category: string; subCategory: string }>
+  /** SMS id → the payment record it was closed as a part of. Nothing of it is in the sheet. */
+  smsCoverage: Record<string, SmsCoverageEntry>
 }
 
 export const BANK_SMS_PREFS_KEY = 'accounting_bank_sms'
@@ -32,7 +42,8 @@ const DEFAULT_PREFS: BankSmsPrefs = {
   refAccounts: {},
   viewDays: DEFAULT_SMS_RANGE_DAYS,
   lastCategory: {},
-  lastCategoryBySender: {}
+  lastCategoryBySender: {},
+  smsCoverage: {}
 }
 
 export function getBankSmsPrefs(): BankSmsPrefs {
