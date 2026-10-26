@@ -183,7 +183,7 @@ export async function dismissSms(ids: string[]): Promise<void> {
   await markBankSmsHandled(ids)
 }
 
-/** The record saved straight from a card or «ثبت همه»: its category and, when known, title. */
+/** The record saved straight from a card: its category and, when known, title. */
 export function suggestedSmsRecord(
   choice: SmsCategoryChoice & { title?: string },
   accountTitle: string

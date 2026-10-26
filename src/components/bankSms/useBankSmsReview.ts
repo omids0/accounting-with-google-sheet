@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import { smsBulkItems } from './smsBulkItems'
 import { knownSubCategory } from './smsSubCategory'
 import { useBankSmsContext } from './useBankSmsContext'
 import { useBuildingSmsUnits } from './useBuildingSmsUnits'
@@ -156,8 +155,6 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     })
   }
 
-  const bulk = smsBulkItems(items, units.matchFor, plainChoiceFor)
-
   const openEntry = (entry: ConfirmableSms, options: BankSmsEntryOptions = {}) => {
     const state = buildBankSmsEntryState(entry, options)
 
@@ -191,8 +188,6 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
 
   return {
     items,
-    bulkCount: bulk.length,
-    bulkUnitCount: bulk.filter(item => item.kind === 'unit').length,
     /** The building whose units deposits are matched to; null in a personal workspace. */
     building,
     accounts,
@@ -221,16 +216,6 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     /** The category a deposit would be saved with as plain income («درآمد دیگر» opens the form). */
     plainChoiceFor,
     payUnit,
-    confirmAll: () =>
-      run('all', `${bulk.length} تراکنش ثبت شد`, async spreadsheetId => {
-        for (const item of bulk) {
-          if (item.kind === 'unit') {
-            await payForUnit(spreadsheetId, item.entry, item.unit)
-          } else {
-            await confirmSmsEntry(spreadsheetId, item.entry, record(item.entry, item.choice))
-          }
-        }
-      }),
     /**
      * «بدهی»/«طلب» saved from the card: the record, then (when one was picked) its payment on the
      * debt or receivable, right after the record exists. `link` never throws.

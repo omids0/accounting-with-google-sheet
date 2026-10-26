@@ -5,7 +5,6 @@ import { newStay } from './buildingResidents'
 import {
   amountFit,
   amountMatchText,
-  bulkAction,
   buildSmsUnitInputs,
   matchUnits,
   senderCardTokens,
@@ -275,25 +274,5 @@ describe('buildSmsUnitInputs', () => {
 
     expect(inputs).toHaveLength(1)
     expect(inputs[0]).toMatchObject({ debtorId: '', name: '', cards: [] })
-  })
-})
-
-describe('bulkAction («ثبت همهٔ شناخته‌شده‌ها»)', () => {
-  it('takes only card-matched deposits as unit payments', () => {
-    expect(bulkAction(matchUnits({ amount: 1_200_000, tokens: rezaei }, units))).toBe('unit')
-    expect(bulkAction(matchUnits({ amount: 777_000, tokens: rezaei }, units))).toBe('unit')
-  })
-
-  it('never takes an amount-only or ambiguous match', () => {
-    expect(bulkAction(matchUnits({ amount: 2_400_000, tokens: [] }, units))).toBe('never')
-    const owner = ['6219861012341100']
-    const two = [unit('1', { cards: owner, open: 100 }), unit('2', { cards: owner, open: 200 })]
-
-    expect(bulkAction(matchUnits({ amount: 500, tokens: rezaei }, two))).toBe('never')
-  })
-
-  it('leaves a deposit no unit is in question for to the round-6 income rules', () => {
-    expect(bulkAction(matchUnits({ amount: 123_456, tokens: [] }, units))).toBe('income')
-    expect(bulkAction(null)).toBe('income')
   })
 })
