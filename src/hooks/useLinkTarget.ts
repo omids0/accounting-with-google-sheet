@@ -165,7 +165,7 @@ export function useLinkTarget({
           childId
         )
 
-        showSuccess(`پرداخت به «${title}» وصل شد`)
+        showSuccess(kind.successMessage(title))
         setVersion(current => current + 1)
 
         return true

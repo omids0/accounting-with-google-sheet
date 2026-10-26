@@ -31,6 +31,17 @@ describe('linkTargetKindFor', () => {
     expect(linkTargetKindFor('expense', 'چک')?.childLabel).toBeUndefined()
   })
 
+  it('words the success toast for each kind (a check is passed, not «paid to»)', () => {
+    const say = (type: string, category: string, subject: string) =>
+      linkTargetKindFor(type, category)?.successMessage(subject)
+
+    expect(say('expense', 'بدهی', 'وام دوست')).toBe('پرداخت بدهی «وام دوست» ثبت شد')
+    expect(say('income', 'طلب', 'وام علی')).toBe('دریافت طلب «وام علی» ثبت شد')
+    expect(say('expense', 'چک', 'چک ۱۰۰۱')).toBe('چک ۱۰۰۱ پاس شد')
+    expect(say('income', 'چک', 'چک ۱۰۰۱')).toBe('چک ۱۰۰۱ پاس شد')
+    expect(say('expense', 'قسط', 'قسط ۲ از «دفترچه»')).toBe('قسط ۲ از «دفترچه» پرداخت شد')
+  })
+
   it('ignores the category in the other record type and every other category', () => {
     expect(linkTargetKindFor('income', 'بدهی')).toBeNull()
     expect(linkTargetKindFor('expense', 'طلب')).toBeNull()

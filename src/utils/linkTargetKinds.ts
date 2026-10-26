@@ -31,6 +31,11 @@ export interface LinkTargetKind {
   emptyHint: string
   /** The thing that fails to be registered: «پرداخت بدهی» / «دریافت طلب». */
   failureNoun: string
+  /**
+   * The toast after the link, from what `attachRecordToTarget` resolves with (the debt's or
+   * receivable's title, «چک ۱۰۰۱», «قسط ۲ از «وام»»).
+   */
+  successMessage: (subject: string) => string
   /** Where the user links the record by hand afterwards. */
   page: string
   /** «بدهی» / «طلب» / «چک» / «قسط», for the messages. */
@@ -51,6 +56,7 @@ const KINDS: LinkTargetKind[] = [
     noneLabel: 'هیچ‌کدوم',
     emptyHint: 'بدهی بازی برای وصل کردن نیست؛ این رکورد یک هزینهٔ معمولی ثبت می‌شود.',
     failureNoun: 'پرداخت بدهی',
+    successMessage: title => `پرداخت بدهی «${title}» ثبت شد`,
     page: 'بدهی',
     noun: 'بدهی',
     fit: 'cap'
@@ -63,6 +69,7 @@ const KINDS: LinkTargetKind[] = [
     noneLabel: 'هیچ‌کدوم',
     emptyHint: 'طلب بازی برای وصل کردن نیست؛ این رکورد یک درآمد معمولی ثبت می‌شود.',
     failureNoun: 'دریافت طلب',
+    successMessage: title => `دریافت طلب «${title}» ثبت شد`,
     page: 'طلب‌ها',
     noun: 'طلب',
     fit: 'cap'
@@ -75,6 +82,7 @@ const KINDS: LinkTargetKind[] = [
     noneLabel: 'هیچ‌کدوم',
     emptyHint: 'چک پرداختیِ بازی برای وصل کردن نیست؛ این رکورد یک هزینهٔ معمولی ثبت می‌شود.',
     failureNoun: 'پاس شدن چک',
+    successMessage: check => `${check} پاس شد`,
     page: 'چک‌ها',
     noun: 'چک',
     fit: 'exact'
@@ -87,6 +95,7 @@ const KINDS: LinkTargetKind[] = [
     noneLabel: 'هیچ‌کدوم',
     emptyHint: 'چک دریافتیِ بازی برای وصل کردن نیست؛ این رکورد یک درآمد معمولی ثبت می‌شود.',
     failureNoun: 'پاس شدن چک',
+    successMessage: check => `${check} پاس شد`,
     page: 'چک‌ها',
     noun: 'چک',
     fit: 'exact'
@@ -100,6 +109,7 @@ const KINDS: LinkTargetKind[] = [
     noneLabel: 'هیچ‌کدوم',
     emptyHint: 'قسط پرداخت‌نشده‌ای برای وصل کردن نیست؛ این رکورد یک هزینهٔ معمولی ثبت می‌شود.',
     failureNoun: 'پرداخت قسط',
+    successMessage: installment => `${installment} پرداخت شد`,
     manualHint:
       'اگر مبلغ قسط با مبلغ رکورد فرق دارد، آن صفحه رکورد را پیدا نمی‌کند؛ رکورد را از «رکوردها» پاک کن و قسط را از همان صفحه پرداخت کن.',
     page: 'اقساط',

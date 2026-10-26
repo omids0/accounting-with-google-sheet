@@ -196,8 +196,7 @@ describe('installments', () => {
       true,
       linkedOptions
     )
-    expect(title).toContain('وام a')
-    expect(title).toContain('۳')
+    expect(title).toBe('قسط ۳ از «وام a»')
   })
 
   it('allows an amount that differs from the instalment (bank fees): it is only flagged', async () => {

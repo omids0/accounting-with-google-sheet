@@ -155,7 +155,7 @@ describe('useLinkTarget: installments', () => {
     mocks.personal = true
     mocks.items = books
     mocks.list.mockReset().mockImplementation(async () => mocks.items)
-    mocks.attach.mockReset().mockResolvedValue('وام خودرو (قسط ۵)')
+    mocks.attach.mockReset().mockResolvedValue('قسط ۵ از «وام خودرو»')
     mocks.showError.mockReset()
     mocks.showSuccess.mockReset()
   })
@@ -220,7 +220,7 @@ describe('useLinkTarget: installments', () => {
       { recordId: 'r1', amount: 1_000_000, date: '1405-01-01' },
       '5'
     )
-    expect(mocks.showSuccess).toHaveBeenCalledWith(expect.stringContaining('وام خودرو'))
+    expect(mocks.showSuccess).toHaveBeenCalledWith('قسط ۵ از «وام خودرو» پرداخت شد')
   })
 
   it('keeps the record when the instalment cannot be paid: tells where to link it', async () => {

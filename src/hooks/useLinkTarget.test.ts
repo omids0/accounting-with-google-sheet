@@ -181,7 +181,7 @@ describe('useLinkTarget', () => {
       { recordId: 'r1', amount: 5_000_000, date: '1405-01-01' },
       ''
     )
-    expect(mocks.showSuccess).toHaveBeenCalledWith(expect.stringContaining('قسط وام'))
+    expect(mocks.showSuccess).toHaveBeenCalledWith('پرداخت بدهی «قسط وام» ثبت شد')
   })
 
   it('keeps the record when the payment fails: tells where to link it, never throws', async () => {

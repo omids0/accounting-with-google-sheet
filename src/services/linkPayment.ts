@@ -208,7 +208,7 @@ const installmentHandler: LinkHandler = {
     if (plan.payments[index].paid) throw new LinkPaymentError('این قسط همین حالا پرداخت شده بود.')
     await toggleInstallmentPayment(spreadsheetId, plan, index, true, linkOptions(record))
 
-    return `${plan.title} (قسط ${toPersianDigits(String(plan.payments[index].n))})`
+    return `قسط ${toPersianDigits(String(plan.payments[index].n))} از «${plan.title}»`
   }
 }
 
@@ -223,7 +223,7 @@ const HANDLERS: Record<LinkTargetKindId, LinkHandler> = {
 export const listOpenLinkTargets = (kind: LinkTargetKindId, spreadsheetId: string) =>
   HANDLERS[kind].listOpen(spreadsheetId)
 
-/** Resolves with the linked item's title. Throws `LinkPaymentError`/`DangPaymentError` or a sheet error. */
+/** Resolves with how the item is named in the success toast (`kind.successMessage`). Throws `LinkPaymentError`/`DangPaymentError` or a sheet error. */
 export const attachRecordToTarget = (
   kind: LinkTargetKindId,
   spreadsheetId: string,
