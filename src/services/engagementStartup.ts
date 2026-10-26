@@ -44,12 +44,12 @@ function watchBudgetDigest(spreadsheetId: string): void {
 
 /**
  * Background setup after sign-in: reminder defaults, activity ping, reminder delivery. All of it is
- * personal (push keys, device reminders, digest): a shared account's sheet never gets it, and the
- * device keeps the reminders it scheduled from the personal sheet.
+ * personal (push keys, device reminders, digest): a building's or a shared account's sheet never
+ * gets it, and the device keeps the reminders it scheduled from the personal sheet.
  */
 export async function runEngagementStartup(spreadsheetId: string): Promise<void> {
   // A fresh device may know neither a cached type nor a registry kind yet: read the marker first.
-  if ((await resolveWorkspaceType(spreadsheetId)) === 'shared') return
+  if ((await resolveWorkspaceType(spreadsheetId)) !== 'personal') return
   await migrateReminderDefaults(spreadsheetId)
   await syncAppOpen(spreadsheetId)
 

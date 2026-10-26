@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import SettingsBackupCard from './backup/SettingsBackupCard'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { useSharedCan } from '../../hooks/useSharedCan'
-import { useIsSharedWorkspace } from '../../hooks/useWorkspaceType'
+import { useIsSharedWorkspace, useWorkspaceType } from '../../hooks/useWorkspaceType'
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import AppLockSettings from '../AppLockSettings'
 import ConfirmActionModal from '../ConfirmActionModal'
@@ -39,6 +39,8 @@ export default function SettingsPage() {
   const isDesktop = useIsDesktop()
   // A shared account: no personal-only sections, and writes only for the roles that hold them.
   const isShared = useIsSharedWorkspace()
+  // Reminders and push keys are written to the personal sheet only (a building's board reads it).
+  const isPersonal = useWorkspaceType() === 'personal'
   const canBudget = useSharedCan('budget')
   const canExport = useSharedCan('export')
   const canRepair = useSharedCan('editOthers')
@@ -48,7 +50,7 @@ export default function SettingsPage() {
     budgets: !canBudget,
     // Nothing is automatic in a shared account (spec non-goals): no recurring items.
     recurring: isShared || !canBudget,
-    notifications: isShared
+    notifications: !isPersonal
   }
 
   if (settings.initialLoading) {

@@ -160,12 +160,10 @@ describe('a shared account never receives personal-only tabs', () => {
   })
 })
 
-describe('personal and building sheets keep their reminder setup', () => {
-  it.each([
-    ['personal', 'P7'],
-    ['building', 'B1']
-  ] as const)('%s: startup ensures and writes as before', async (type, id) => {
-    if (type === 'building') setWorkspaceType(id, 'building')
+// Task 15: a building no longer gets the reminder setup (buildingLeakGuard.test.ts).
+describe('a personal sheet keeps its reminder setup', () => {
+  it('startup ensures and writes as before', async () => {
+    const id = 'P7'
 
     await runEngagementStartup(id)
 
@@ -182,11 +180,9 @@ describe('personal and building sheets keep their reminder setup', () => {
     )
   })
 
-  it.each([
-    ['personal', 'P8'],
-    ['building', 'B2']
-  ] as const)('%s: a switch refreshes reminders', async (type, id) => {
-    if (type === 'building') setWorkspaceType(id, 'building')
+  it('a switch refreshes reminders', async () => {
+    const id = 'P8'
+
     io.native = true
 
     await moveSyncToSpreadsheet('P0', id)

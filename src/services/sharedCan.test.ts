@@ -142,8 +142,12 @@ describe('generic write pages inside a shared account', () => {
   it('leaves personal and building routing as it was', () => {
     for (const path of ['/entry', '/records', '/settings/reminders', '/settings/close-year/1404']) {
       expect(workspaceRedirect(path, 'personal')).toBeNull()
+    }
+    // Task 15: reminders are personal-only, so a building sends their page back to settings.
+    for (const path of ['/entry', '/records', '/settings/close-year/1404']) {
       expect(workspaceRedirect(path, 'building')).toBeNull()
     }
+    expect(workspaceRedirect('/settings/reminders', 'building')).toBe('/settings')
     expect(workspaceRedirect('/net-available-settings', 'personal')).toBeNull()
   })
 })

@@ -8,7 +8,7 @@ import {
 import type { PushSubscriptionRecord, ReminderKind, ReminderRule } from '../types'
 import { REMINDERS_HEADERS, PUSH_SUBS_HEADERS, REMINDER_LOG_HEADERS } from './sheetHeaders'
 import { REMINDERS_SHEET, PUSH_SUBS_SHEET, REMINDER_LOG_SHEET } from './sheetNames'
-import { isSharedWorkspace } from './workspace'
+import { isPersonalWorkspace } from './workspace'
 import { parseNumeric } from '../utils/parseNumeric'
 
 export {
@@ -157,9 +157,9 @@ export function isDueDateReminderKind(
   return DUE_DATE_KINDS.includes(kind)
 }
 
-/** Reminder rules and push keys are personal: a shared account's partner reads its every tab. */
+/** Reminder rules and push keys are personal: a building's board or a shared partner reads every tab. */
 export async function ensureReminderSheets(spreadsheetId: string): Promise<void> {
-  if (isSharedWorkspace(spreadsheetId)) return
+  if (!isPersonalWorkspace(spreadsheetId)) return
   await ensureSheetWithHeaders(spreadsheetId, REMINDERS_SHEET, REMINDERS_HEADERS)
   await ensureSheetWithHeaders(spreadsheetId, PUSH_SUBS_SHEET, PUSH_SUBS_HEADERS)
   await ensureSheetWithHeaders(spreadsheetId, REMINDER_LOG_SHEET, REMINDER_LOG_HEADERS)
@@ -191,7 +191,7 @@ export async function saveReminderRules(
   spreadsheetId: string,
   rules: ReminderRule[]
 ): Promise<void> {
-  if (isSharedWorkspace(spreadsheetId)) return
+  if (!isPersonalWorkspace(spreadsheetId)) return
   await ensureReminderSheets(spreadsheetId)
 
   const rows = await fetchSheetRows(spreadsheetId, REMINDERS_SHEET)
@@ -236,7 +236,7 @@ export async function upsertPushSubscription(
   spreadsheetId: string,
   subscription: PushSubscriptionRecord
 ): Promise<void> {
-  if (isSharedWorkspace(spreadsheetId)) return
+  if (!isPersonalWorkspace(spreadsheetId)) return
   await ensureReminderSheets(spreadsheetId)
 
   const existing = await fetchPushSubscriptions(spreadsheetId)

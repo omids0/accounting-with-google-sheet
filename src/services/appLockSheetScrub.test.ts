@@ -47,6 +47,19 @@ describe('removing the old PIN hash from the sheet', () => {
     expect(scrubAppLockSheetRow).not.toHaveBeenCalled()
   })
 
+  it('never adds the lock tab to a building sheet', async () => {
+    const { scrubPinHashFromSheetOnce } = await import('./appLockSheetScrub')
+    const { setWorkspaceType } = await import('./workspace')
+
+    localStorage.setItem('accounting_app_lock', JSON.stringify({ enabled: true, vault: {} }))
+    setWorkspaceType('sheet-1', 'building')
+
+    await scrubPinHashFromSheetOnce()
+    setWorkspaceType('sheet-1', 'personal')
+
+    expect(scrubAppLockSheetRow).not.toHaveBeenCalled()
+  })
+
   it('leaves the sheet alone on a device without a lock', async () => {
     const { scrubPinHashFromSheetOnce } = await import('./appLockSheetScrub')
 

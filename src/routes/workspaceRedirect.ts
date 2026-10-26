@@ -18,11 +18,17 @@ export const WORKSPACE_HOME: Record<WorkspaceType, Tab> = {
   shared: 'shared-home'
 }
 
+function normalizedPath(pathname: string): string {
+  return pathname.replace(/\/+$/, '').toLowerCase()
+}
+
+function isRemindersPath(pathname: string): boolean {
+  return normalizedPath(pathname) === SETTINGS_REMINDERS_PATH
+}
+
 /** Reminders and «بستن سال» belong to the personal books; a shared account has neither. */
 function isPersonalSettingsPath(pathname: string): boolean {
-  const path = pathname.replace(/\/+$/, '').toLowerCase()
-
-  return path === SETTINGS_REMINDERS_PATH || path.startsWith(SETTINGS_CLOSE_YEAR_PATH)
+  return isRemindersPath(pathname) || normalizedPath(pathname).startsWith(SETTINGS_CLOSE_YEAR_PATH)
 }
 
 /**
@@ -33,6 +39,8 @@ function isPersonalSettingsPath(pathname: string): boolean {
  */
 export function workspaceRedirect(pathname: string, type: WorkspaceType): string | null {
   if (type === 'shared' && isPersonalSettingsPath(pathname)) return SETTINGS_PATH
+  // Reminder rules and push keys live only in the personal sheet: a building's board reads its tabs.
+  if (type === 'building' && isRemindersPath(pathname)) return SETTINGS_PATH
   if (isSettingsPath(pathname)) return null
   // An unknown URL is not a personal page in disguise: it gets «صفحه پیدا نشد» in every workspace.
   if (!isKnownPath(pathname)) return null

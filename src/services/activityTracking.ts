@@ -4,7 +4,7 @@ import { ACTIVITY_HEADERS } from './sheetHeaders'
 import { ACTIVITY_SHEET } from './sheetNames'
 import { ensureSheetWithHeaders, fetchSheetRows, updateSheetRow, appendSheetRow } from './sheets'
 import { getItem, setItem } from './storage'
-import { isSharedWorkspace } from './workspace'
+import { isPersonalWorkspace } from './workspace'
 import { getTodayIso } from '../utils/jalaliDate'
 
 export { ACTIVITY_SHEET, ACTIVITY_HEADERS }
@@ -43,13 +43,13 @@ async function ensureActivitySheet(spreadsheetId: string): Promise<void> {
   await ensureSheetWithHeaders(spreadsheetId, ACTIVITY_SHEET, ACTIVITY_HEADERS)
 }
 
-/** False for a shared account: the «فعالیت» tab is this user's own, the partner must not get it. */
+/** False outside a personal sheet: «فعالیت» is this user's own, a board or partner must not get it. */
 async function upsertActivityRow(
   spreadsheetId: string,
   lastOpenDate: string,
   lastOperationDate: string
 ): Promise<boolean> {
-  if (isSharedWorkspace(spreadsheetId)) return false
+  if (!isPersonalWorkspace(spreadsheetId)) return false
   await ensureActivitySheet(spreadsheetId)
 
   const rows = await fetchSheetRows(spreadsheetId, ACTIVITY_SHEET)
