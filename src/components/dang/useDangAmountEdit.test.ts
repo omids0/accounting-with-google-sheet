@@ -8,6 +8,7 @@ import { useDangAmountEdit } from './useDangAmountEdit'
 import { updateDang } from '../../services/dang'
 import { formatMoney } from '../../utils/formatMoney'
 import { showError } from '../../utils/toast'
+import { ReadOnlyContext } from '../ui/readOnly'
 
 vi.mock('../../services/dang', () => ({
   updateDang: vi.fn(async () => undefined),
@@ -29,7 +30,7 @@ const debt = (paid: number): DangWithRow =>
     payments: paid ? [{ id: 'p1', amount: paid, paidAt: '2026-01-01' }] : []
   } as unknown as DangWithRow)
 
-function mount() {
+function mount(readOnly = false) {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
   const setItems = vi.fn()
@@ -42,7 +43,11 @@ function mount() {
     return null
   }
 
-  act(() => createRoot(document.createElement('div')).render(createElement(Probe)))
+  act(() =>
+    createRoot(document.createElement('div')).render(
+      createElement(ReadOnlyContext.Provider, { value: readOnly }, createElement(Probe))
+    )
+  )
 
   return { holder: holder as { edit: ReturnType<typeof useDangAmountEdit> }, setItems }
 }
@@ -50,6 +55,14 @@ function mount() {
 beforeEach(() => vi.clearAllMocks())
 
 describe('inline amount edit of a debt', () => {
+  it('does nothing for a read-only role', async () => {
+    const { holder, setItems } = mount(true)
+
+    await act(() => holder.edit.handleAmountBlur(debt(0), 150))
+    expect(updateDang).not.toHaveBeenCalled()
+    expect(setItems).not.toHaveBeenCalled()
+  })
+
   it('refuses an amount below the paid total with the Persian message and writes nothing', async () => {
     const { holder, setItems } = mount()
 

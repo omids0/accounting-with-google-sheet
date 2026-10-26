@@ -7,6 +7,7 @@ import { withDangPaidState } from '../../services/dangRow'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError } from '../../utils/toast'
+import { useReadOnly } from '../ui/readOnly'
 
 /**
  * The inline amount edit of a debt card (typed field, or the dial pad in a building). A new
@@ -15,12 +16,15 @@ import { showError } from '../../utils/toast'
 export function useDangAmountEdit(setItems: React.Dispatch<React.SetStateAction<DangWithRow[]>>) {
   const [savingAmountId, setSavingAmountId] = useState('')
   const [amountEdits, setAmountEdits] = useState<Record<string, number | ''>>({})
+  const readOnly = useReadOnly()
 
   const handleAmountChange = (item: DangWithRow, value: number | '') => {
     setAmountEdits(prev => ({ ...prev, [item.id]: value }))
   }
 
   const handleAmountBlur = async (item: DangWithRow, value?: number | '') => {
+    if (readOnly) return
+
     // The dial pad passes the amount it just confirmed; the typed field leaves it in `amountEdits`.
     const pending = value !== undefined ? value : amountEdits[item.id]
 
