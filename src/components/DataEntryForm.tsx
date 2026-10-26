@@ -197,7 +197,7 @@ export default function DataEntryForm({
     const formValues = getValues()
 
     if (!validateRequiredFields(formValues)) return
-    if (linkTarget.error) return showError(linkTarget.error)
+    if (linkTarget.blocker) return showError(linkTarget.blocker)
     if (!isConfigured() || !requireAuth()) return
 
     const dateFieldId = activeForm.fields.find(field => field.type === 'date')?.id

@@ -11,6 +11,8 @@ const mocks = vi.hoisted(() => ({
     title: string
     remaining: number
     category: string
+    detail?: string
+    children?: { id: string; title: string; amount: number }[]
   }[],
   list: vi.fn(),
   attach: vi.fn(),
@@ -172,11 +174,13 @@ describe('useLinkTarget', () => {
     const done = await attachInAct({ recordId: 'r1', amount: 5_000_000, date: '1405-01-01' })
 
     expect(done).toBe(true)
-    expect(mocks.attach).toHaveBeenCalledWith('dang', 'sid', 'd1', {
-      recordId: 'r1',
-      amount: 5_000_000,
-      date: '1405-01-01'
-    })
+    expect(mocks.attach).toHaveBeenCalledWith(
+      'dang',
+      'sid',
+      'd1',
+      { recordId: 'r1', amount: 5_000_000, date: '1405-01-01' },
+      ''
+    )
     expect(mocks.showSuccess).toHaveBeenCalledWith(expect.stringContaining('قسط وام'))
   })
 
