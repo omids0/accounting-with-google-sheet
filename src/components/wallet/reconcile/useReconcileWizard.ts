@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router'
 
 import { getPathForTab, recordFocusPath } from '../../../routes/paths'
 import { confirmSmsEntry, suggestedSmsRecord } from '../../../services/bankSmsApply'
+import { smsCoverage } from '../../../services/bankSmsCoverage'
 import { buildBankSmsEntryState } from '../../../services/bankSmsEntry'
+import { localLinkedRecords } from '../../../services/bankSmsLinked'
 import { getBankSmsPrefs } from '../../../services/bankSmsPrefs'
 import {
   isProbableDuplicate,
@@ -147,7 +149,7 @@ export function useReconcileWizard(accountId: string) {
       // pays: the form asks them, a silent save cannot.
       if (
         !choice ||
-        isProbableDuplicate(item, ledger) ||
+        isProbableDuplicate(item, ledger, localLinkedRecords([item], ledger), smsCoverage()) ||
         isVehicleExpenseCategory(choice.category) ||
         isLinkTargetCategory(
           item.result.direction === 'debit' ? 'expense' : 'income',
