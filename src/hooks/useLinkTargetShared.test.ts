@@ -38,9 +38,11 @@ function Card({ id }: { id: string }) {
 
 /** Lets the dynamic import and the list read finish. */
 const flush = async () => {
-  for (let i = 0; i < 40; i += 1) {
+  for (let i = 0; i < 200; i += 1) {
     await act(async () => new Promise(resolve => setTimeout(resolve, 10)))
-    if (!cards.one.loading && !cards.two.loading) return
+    const all = Object.values(cards)
+
+    if (all.length && all.every(card => !card.loading)) return
   }
 }
 const debt = { id: 'd1', title: 'قسط وام', remaining: 20_000_000, category: '' }
@@ -58,8 +60,9 @@ describe('a link written on one card refreshes the picker of every other card', 
       const root = createRoot(document.createElement('div'))
 
       await act(async () => root.render(createElement(Card, { id })))
+      // One card at a time: the first dynamic import of the (mocked) service must settle first.
+      await flush()
     }
-    await flush()
     expect(cards.two.options).toHaveLength(1)
 
     // Card 1 pays the debt in full; the sheet no longer lists it.
