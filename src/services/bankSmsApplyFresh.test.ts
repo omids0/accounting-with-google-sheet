@@ -3,17 +3,26 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ConfirmableSms } from './bankSmsQueue'
 import type * as SheetsRowsModule from './sheetsRows'
 
-const mocks = vi.hoisted(() => ({ fetchRange: vi.fn(), enqueue: vi.fn() }))
+const mocks = vi.hoisted(() => ({
+  fetchRange: vi.fn(),
+  enqueue: vi.fn(),
+  handled: vi.fn(),
+  create: vi.fn()
+}))
 
 vi.mock('./sheetsRows', async importOriginal => ({
   ...(await importOriginal<typeof SheetsRowsModule>()),
   fetchSheetRangeFromApi: mocks.fetchRange
 }))
 vi.mock('./sheetSync', () => ({ enqueueSheetWrite: mocks.enqueue, queueOutboxWrite: vi.fn() }))
-vi.mock('./bankSmsNative', () => ({ markBankSmsHandled: vi.fn() }))
+vi.mock('./bankSmsNative', () => ({ markBankSmsHandled: mocks.handled }))
 vi.mock('./activityLog', () => ({ logActivity: vi.fn(), logItemActivity: vi.fn() }))
 vi.mock('./paymentTransactions', () => ({
-  createLinkedExpenseRecord: async () => 'rec-1',
+  createLinkedExpenseRecord: async () => {
+    mocks.create()
+
+    return 'rec-1'
+  },
   createLinkedIncomeRecord: async () => 'rec-1'
 }))
 
@@ -51,6 +60,8 @@ describe('an SMS without «مانده» is a change on the balance the sheet hol
     localStorage.clear()
     clearStore(SHEET_ID)
     mocks.enqueue.mockClear()
+    mocks.create.mockClear()
+    mocks.handled.mockReset().mockResolvedValue(undefined)
     mocks.fetchRange.mockReset()
     mocks.fetchRange.mockImplementation(async (_id: string, tab: string, suffix?: string) => {
       if (tab !== WALLET_SHEET) return []
@@ -135,5 +146,42 @@ describe('an SMS without «مانده» is a change on the balance the sheet hol
     expect(write.row[3]).toBe('90000000')
     expect(write.writeOptions).toBeUndefined()
     expect(mocks.fetchRange).not.toHaveBeenCalled()
+  })
+
+  describe('when the native queue fails right after the record was written', () => {
+    it('still applies the balance and the link, then says the SMS stayed queued', async () => {
+      mocks.handled.mockRejectedValueOnce(new Error('native'))
+
+      const afterRecord = vi.fn(async () => undefined)
+
+      await expect(
+        confirmSmsEntryWithId(SHEET_ID, sms('a', 'debit', null), record, { afterRecord })
+      ).rejects.toThrow('پیامک از صف بیرون نرفت')
+
+      expect(mocks.create).toHaveBeenCalledTimes(1)
+      expect(afterRecord).toHaveBeenCalledWith('rec-1')
+      expect(walletWrites()[0].row[3]).toBe('92000000')
+    })
+
+    it('a retry writes no second record and no second balance move', async () => {
+      mocks.handled.mockRejectedValueOnce(new Error('native'))
+      await expect(
+        confirmSmsEntryWithId(SHEET_ID, sms('a', 'debit', null), record)
+      ).rejects.toThrow()
+      mocks.enqueue.mockClear()
+
+      const id = await confirmSmsEntryWithId(SHEET_ID, sms('a', 'debit', null), record)
+
+      expect(id).toBe('rec-1')
+      expect(mocks.create).toHaveBeenCalledTimes(1)
+      expect(walletWrites()).toHaveLength(0)
+      expect(mocks.handled).toHaveBeenCalledTimes(2)
+    })
+
+    it('«فقط موجودی» fails before anything moves, so a retry is safe', async () => {
+      mocks.handled.mockRejectedValueOnce(new Error('native'))
+      await expect(confirmSmsEntry(SHEET_ID, sms('a', 'debit', null), null)).rejects.toThrow()
+      expect(walletWrites()).toHaveLength(0)
+    })
   })
 })

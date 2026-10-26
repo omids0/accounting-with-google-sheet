@@ -1,4 +1,4 @@
-import { rememberSmsRecord } from './bankSmsCoverageStore'
+import { recordOfSms, rememberSmsRecord } from './bankSmsCoverageStore'
 import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
 import { SMS_RECORD_NOTE } from './bankSmsNote'
@@ -44,6 +44,24 @@ export function smsAlreadyInBalance(entry: ConfirmableSms, accountId: string): b
 /** The record's type agrees with the SMS (expense ↔ debit). */
 function sameDirection(entry: ConfirmableSms, effect: RecordWalletEffect): boolean {
   return effect.delta < 0 === (entry.result.direction === 'debit')
+}
+
+export const QUEUE_NOT_LEFT_MESSAGE =
+  'رکورد ذخیره شد و موجودی به‌روز شد، ولی پیامک از صف بیرون نرفت. همان را «⋯ ← قبلاً ثبت شده» ببند و دوباره ثبتش نکن.'
+
+/**
+ * Takes the SMS out of the queue once its record exists. A failure of the native side must not stop
+ * the steps after it (balance, ledger, debt link): it comes back as a value, and the caller throws
+ * `QUEUE_NOT_LEFT_MESSAGE` when those are done. A retry finds the record by `recordOfSms`.
+ */
+export async function leaveQueueAfterRecord(ids: string[]): Promise<Error | null> {
+  try {
+    await markBankSmsHandled(ids)
+
+    return null
+  } catch {
+    return new Error(QUEUE_NOT_LEFT_MESSAGE)
+  }
 }
 
 /** Title and record of the ledger row; the source is always «پیامک». */
@@ -122,8 +140,18 @@ export async function confirmSmsEntryWithId(
   }: { remember?: boolean; afterRecord?: (recordId: string) => Promise<void> } = {}
 ): Promise<string> {
   let recordId = ''
+  let queueError: Error | null = null
 
   if (record) {
+    const earlier = recordOfSms(entry.sms.id)
+
+    // A save that failed after its record was written: finish it (leave the queue), no second record.
+    if (earlier) {
+      await markBankSmsHandled([entry.sms.id])
+
+      return earlier
+    }
+
     const params = {
       title: record.title,
       amount: entry.amount,
@@ -145,9 +173,9 @@ export async function confirmSmsEntryWithId(
 
     // The SMS already covers the record it created: no later SMS is taken for a payment of it.
     rememberSmsRecord(entry, recordId)
-    // Leave the queue right after the record exists, so a failure below can
-    // never lead to the same record being written twice.
-    await markBankSmsHandled([entry.sms.id])
+    // Leave the queue right after the record exists, so a failure below can never lead to the same
+    // record being written twice; the steps below still run if the native side fails.
+    queueError = await leaveQueueAfterRecord([entry.sms.id])
     if (remember) rememberSmsCategory(entry, type, record)
     await logUnappliedRecord(
       spreadsheetId,
@@ -160,6 +188,7 @@ export async function confirmSmsEntryWithId(
 
   if (!record) await markBankSmsHandled([entry.sms.id])
   await applyBalance(spreadsheetId, entry, { title: record?.title, recordId })
+  if (queueError) throw queueError
 
   return recordId
 }
@@ -240,8 +269,9 @@ export async function settleSmsFromEntry(
   record: Pick<SmsRecordInput, 'category' | 'subCategory'>,
   context: LedgerContext
 ): Promise<void> {
-  await markBankSmsHandled([entry.sms.id])
   rememberSmsRecord(entry, context.recordId ?? '')
+
+  const queueError = await leaveQueueAfterRecord([entry.sms.id])
 
   const smsType = entry.result.direction === 'debit' ? 'expense' : 'income'
 
@@ -251,9 +281,11 @@ export async function settleSmsFromEntry(
   // account, or the user switched income/expense) the record's own effect applies.
   if (effect && effect.accountId === entry.result.accountId && sameDirection(entry, effect)) {
     await applyBalance(spreadsheetId, { ...entry, amount: Math.abs(effect.delta) }, context)
+    if (queueError) throw queueError
 
     return
   }
   if (effect) learnSmsRef(entry.result.ref, effect.accountId)
   await applyWalletChanges(spreadsheetId, null, effect, context)
+  if (queueError) throw queueError
 }

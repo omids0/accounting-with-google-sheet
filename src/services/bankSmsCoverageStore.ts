@@ -33,3 +33,13 @@ export function rememberSmsRecord(
 ): void {
   if (recordId) writeSmsCoverage(entry.sms.id, recordId, entry.amount)
 }
+
+/**
+ * The record this SMS was already turned into (a save that failed after the record was written),
+ * or '' when there is none. A retry must finish that save, never write a second record.
+ */
+export function recordOfSms(smsId: string, nowMs = Date.now()): string {
+  const entry = getBankSmsPrefs().smsCoverage[smsId]
+
+  return entry && nowMs - entry.at < COVERAGE_KEEP_MS ? entry.recordId : ''
+}
