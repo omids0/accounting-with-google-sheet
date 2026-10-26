@@ -94,6 +94,8 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
     // A probable duplicate goes through the payment sheet, which offers to link the record.
     return probableDuplicate ? setPayOpen(true) : void review.payUnit(resolved, unit)
   }
+  // A swipe is a quick save: a link-target category still has to be asked first.
+  const swipe = () => (linkCard.active ? linkCard.quickSave() : primary())
   const canAct = !!resolved && (!offer || !!unit) && vehicleCard.ready && linkCard.ready
   // The wireframe's buttons: a card match keeps «فقط موجودی» (other income is in ⋯), a pick shows
   // «درآمد دیگر» (the balance-only action is in ⋯).
@@ -113,7 +115,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
         rightLabel={`✓ ${actionLabel}`}
         rightTone={type}
         leftLabel="نادیده"
-        onSwipeRight={canAct && !busy ? primary : undefined}
+        onSwipeRight={canAct && !busy ? swipe : undefined}
         onSwipeLeft={busy ? undefined : dismiss}
       >
         <Card className={smsQueueCardClass}>
@@ -167,7 +169,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
               amount={resolved.amount}
               vehicle={vehicleCard.active ? vehicleCard.vehicle : undefined}
               link={linkCard.active ? linkCard.link : undefined}
-              rootRef={vehicleCard.rootRef}
+              rootRef={vehicleCard.active ? vehicleCard.rootRef : linkCard.rootRef}
             />
           )}
 
