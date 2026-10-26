@@ -1,7 +1,8 @@
-import { fetchChecks, toggleCheckPaid } from './checks'
+import { CHECKS_SHEET, fetchChecks, toggleCheckPaid } from './checks'
 import { DangPaymentError } from './dangPaymentError'
 import { addDangPayment } from './dangPayments'
 import { fetchDangs } from './dangRow'
+import { refreshRowFromSheet } from './freshRow'
 import { remainingInstallmentAmount } from './installmentsCalculations'
 import { getInstallmentPaymentAmount, invalidateInstallmentsCache } from './installmentsConstants'
 import { fetchInstallmentPlans, toggleInstallmentPayment } from './installmentsCrud'
@@ -9,6 +10,7 @@ import { ReceivablePaymentError } from './receivablePaymentError'
 import { addReceivablePayment, fetchReceivables } from './receivablesCrud'
 import { getReceivableDisplayTitle } from './receivablesRow'
 import type { SettleOptions } from './settleOptions'
+import { INSTALLMENTS_SHEET } from './sheetNames'
 import { WALLET_APPLY_NO } from '../components/form/fieldUtils'
 import type { CheckDirection } from '../types'
 import { dangRemaining } from '../utils/dangLedger'
@@ -159,14 +161,20 @@ const checkHandler = (direction: CheckDirection): LinkHandler => ({
   },
 
   async attach(spreadsheetId, itemId, record) {
-    // The check as the sheet holds it now: it may have been passed on another device.
-    const fresh = (await fetchChecks(spreadsheetId)).find(item => item.id === itemId)
+    // The check as the sheet holds it now (one row read, like a debt), not the local copy.
+    const gone = (await refreshRowFromSheet(spreadsheetId, CHECKS_SHEET, itemId)) === 'missing'
+    const fresh = gone
+      ? undefined
+      : (await fetchChecks(spreadsheetId)).find(item => item.id === itemId)
 
     if (!fresh) throw new LinkPaymentError('این چک پیدا نشد؛ شاید حذف شده باشد.', 'missing')
     if (fresh.paid) throw new LinkPaymentError('این چک همین حالا پاس شده بود.', 'full')
     if (fresh.direction !== direction) throw new LinkPaymentError('نوع این چک عوض شده است.')
     if (roundMoney(fresh.amount) !== roundMoney(record.amount)) {
-      throw new LinkPaymentError(`مبلغ چک (${formatMoney(fresh.amount)}) با مبلغ رکورد یکی نیست.`)
+      throw new LinkPaymentError(
+        `مبلغ چک (${formatMoney(fresh.amount)}) با مبلغ رکورد یکی نیست.`,
+        'over'
+      )
     }
     // The record is the payment: no second record, no second balance move.
     await toggleCheckPaid(spreadsheetId, fresh, true, linkOptions(record))
@@ -205,10 +213,15 @@ const installmentHandler: LinkHandler = {
   async attach(spreadsheetId, itemId, record, childId = '') {
     if (!(record.amount > 0)) throw new LinkPaymentError('مبلغ رکورد باید بیشتر از صفر باشد.')
 
-    // Read again, never the cached list: an instalment may have been paid since the picker opened.
+    // The book as the sheet holds it now, never the cached list or the local copy.
+    const gone =
+      (await refreshRowFromSheet(spreadsheetId, INSTALLMENTS_SHEET, itemId)) === 'missing'
+
     invalidateInstallmentsCache(spreadsheetId)
 
-    const plan = (await fetchInstallmentPlans(spreadsheetId)).find(item => item.id === itemId)
+    const plan = gone
+      ? undefined
+      : (await fetchInstallmentPlans(spreadsheetId)).find(item => item.id === itemId)
 
     if (!plan) throw new LinkPaymentError('این دفترچه قسط پیدا نشد؛ شاید حذف شده باشد.', 'missing')
 
