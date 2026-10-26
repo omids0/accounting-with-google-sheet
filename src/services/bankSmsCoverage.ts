@@ -1,4 +1,5 @@
 import { dismissSms } from './bankSmsApply'
+import { COVERAGE_KEEP_MS, writeSmsCoverage } from './bankSmsCoverageStore'
 import { getBankSmsPrefs, updateBankSmsPrefs } from './bankSmsPrefs'
 import type { SmsCoverage } from './bankSmsSplit'
 import { roundMoney } from '../utils/roundMoney'
@@ -10,7 +11,7 @@ import { roundMoney } from '../utils/roundMoney'
  * record is computed: the sum of the SMS mapped to it. It is only read for records that exist, so a
  * deleted record leaves nothing that blocks anything; old entries are dropped anyway.
  */
-export const COVERAGE_KEEP_MS = 30 * 24 * 60 * 60 * 1000
+export { COVERAGE_KEEP_MS }
 
 /** Record id → the sum of the SMS amounts closed as a part of it. */
 export function smsCoverage(nowMs = Date.now()): SmsCoverage {
@@ -46,15 +47,12 @@ export async function coverSmsPart(
   nowMs = Date.now()
 ): Promise<void> {
   const before = getBankSmsPrefs().smsCoverage
-  const fresh = Object.fromEntries(
-    Object.entries(before).filter(([, entry]) => nowMs - entry.at < COVERAGE_KEEP_MS)
-  )
 
-  updateBankSmsPrefs({ smsCoverage: { ...fresh, [smsId]: { recordId, amount, at: nowMs } } })
+  writeSmsCoverage(smsId, recordId, amount, nowMs)
   try {
     await dismissSms([smsId])
   } catch (err) {
-    updateBankSmsPrefs({ smsCoverage: fresh })
+    updateBankSmsPrefs({ smsCoverage: before })
     throw err
   }
 }

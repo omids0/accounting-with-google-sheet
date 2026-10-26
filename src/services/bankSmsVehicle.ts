@@ -1,5 +1,6 @@
 import { logRecordActivity } from './activityLog'
 import { SMS_RECORD_NOTE, type ConfirmableSms } from './bankSmsApply'
+import { rememberSmsRecord } from './bankSmsCoverageStore'
 import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
 import { prepareEntryValues, settleEntryWallet } from './entryWallet'
@@ -51,6 +52,7 @@ export async function confirmSmsVehicleExpense(
     walletApply: String(values[WALLET_APPLY_FIELD_ID] ?? '')
   })
 
+  rememberSmsRecord(entry, recordId)
   await markBankSmsHandled([entry.sms.id])
   logRecordActivity(spreadsheetId, 'create', recordId, values)
   // The expense exists and the SMS left the queue: say so instead of a generic failure, so the

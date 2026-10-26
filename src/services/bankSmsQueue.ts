@@ -1,6 +1,7 @@
 import { toAppCurrency } from './bankSmsAmount'
 import { matchSms, type LearnedSmsRefs } from './bankSmsMatch'
 import type { BankSmsItem } from './bankSmsNative'
+import { SMS_RECORD_NOTE } from './bankSmsNote'
 import {
   findSplitTarget,
   LINKED_PAYMENT_DAYS,
@@ -14,6 +15,7 @@ import {
 import { matchesDuplicate, type LedgerEntry } from './recordDuplicates'
 import type { CurrencyUnit, SmsMatchResult, SmsTemplate, WalletAccount } from '../types'
 import { toIsoDate } from '../utils/jalaliDate'
+import { roundMoney } from '../utils/roundMoney'
 
 export type { LedgerEntry } from './recordDuplicates'
 export { LINKED_PAYMENT_DAYS }
@@ -108,21 +110,29 @@ export function smsDuplicateCandidate(entry: ConfirmableSms) {
 
 /**
  * Same direction and amount within a day of the SMS (shared rule, `recordDuplicates`); within
- * three days for a record that is a debt/receivable payment.
+ * three days for a record that is a debt/receivable payment, unless an SMS created it (that SMS
+ * is its payment, a later one only matches it as an ordinary duplicate). A record in `taken` is
+ * what an earlier card of the same list already stands for: one record matches one SMS.
  */
 function findDuplicates(
   entry: ReviewedSms,
   ledger: LedgerEntry[],
-  linked: LinkedRecords = NO_LINKED
+  linked: LinkedRecords = NO_LINKED,
+  taken: ReadonlySet<string> = new Set()
 ): LedgerEntry[] {
   if (!isConfirmable(entry)) return []
 
   const candidate = smsDuplicateCandidate(entry)
 
-  return ledger.filter(record =>
-    matchesDuplicate(candidate, record, {
-      dayTolerance: record.id && linked.has(record.id) ? LINKED_PAYMENT_DAYS : DUPLICATE_DAYS
-    })
+  return ledger.filter(
+    record =>
+      !(record.id && taken.has(record.id)) &&
+      matchesDuplicate(candidate, record, {
+        dayTolerance:
+          record.id && linked.has(record.id) && record.note !== SMS_RECORD_NOTE
+            ? LINKED_PAYMENT_DAYS
+            : DUPLICATE_DAYS
+      })
   )
 }
 
@@ -167,7 +177,10 @@ export function buildReviewItems(
 ): BankSmsReviewItem[] {
   const paired = new Set<string>()
   const items: BankSmsReviewItem[] = []
-  const exactLinked = uncoveredLinked(linked, coverage)
+  // One-to-one: a record (or a part of it) is what ONE card stands for. `taken` are the records an
+  // earlier card matched exactly, `covered` the coverage plus the parts earlier cards took.
+  const taken = new Set<string>()
+  const covered = new Map(coverage)
 
   for (const entry of entries) {
     if (paired.has(entry.sms.id)) continue
@@ -197,15 +210,22 @@ export function buildReviewItems(
       continue
     }
 
-    const duplicates = findDuplicates(entry, ledger, exactLinked)
+    const exactLinked = uncoveredLinked(linked, covered)
+    const duplicates = findDuplicates(entry, ledger, exactLinked, taken)
     // An exact match comes first; only without one can the SMS be a part of a bigger payment.
     const split =
       isConfirmable(entry) && !duplicates.length
-        ? findSplitTarget(smsDuplicateCandidate(entry), ledger, linked, coverage)
+        ? findSplitTarget(smsDuplicateCandidate(entry), ledger, linked, covered)
         : null
     // A payment record is the better answer: it is what the card offers to close the SMS with.
     const payments = duplicates.filter(record => record.id && exactLinked.has(record.id))
     const duplicateOf = split?.record ?? newestRecord(payments.length ? payments : duplicates)
+
+    if (split?.record.id && entry.amount !== null) {
+      covered.set(split.record.id, roundMoney((covered.get(split.record.id) ?? 0) + entry.amount))
+    } else if (duplicateOf?.id) {
+      taken.add(duplicateOf.id)
+    }
 
     items.push({
       kind: 'single',

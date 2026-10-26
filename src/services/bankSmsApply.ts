@@ -1,5 +1,7 @@
+import { rememberSmsRecord } from './bankSmsCoverageStore'
 import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
+import { SMS_RECORD_NOTE } from './bankSmsNote'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
 import { nextAccountBalance, setsAbsoluteBalance, type ConfirmableSms } from './bankSmsQueue'
 import { smsSenderKey, type SmsCategoryChoice } from './bankSmsSuggest'
@@ -24,7 +26,7 @@ export interface SmsRecordInput {
   subCategory: string
 }
 
-export const SMS_RECORD_NOTE = 'ثبت از پیامک'
+export { SMS_RECORD_NOTE }
 
 /**
  * A newer «مانده» of this account already includes the SMS. Then the balance does not
@@ -141,6 +143,8 @@ export async function confirmSmsEntryWithId(
         ? await createLinkedExpenseRecord(spreadsheetId, params)
         : await createLinkedIncomeRecord(spreadsheetId, params)
 
+    // The SMS already covers the record it created: no later SMS is taken for a payment of it.
+    rememberSmsRecord(entry, recordId)
     // Leave the queue right after the record exists, so a failure below can
     // never lead to the same record being written twice.
     await markBankSmsHandled([entry.sms.id])
@@ -237,6 +241,7 @@ export async function settleSmsFromEntry(
   context: LedgerContext
 ): Promise<void> {
   await markBankSmsHandled([entry.sms.id])
+  rememberSmsRecord(entry, context.recordId ?? '')
 
   const smsType = entry.result.direction === 'debit' ? 'expense' : 'income'
 
