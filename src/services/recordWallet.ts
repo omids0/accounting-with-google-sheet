@@ -1,4 +1,5 @@
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
+import { refreshWalletAccounts } from './walletFresh'
 import {
   ledgerEntry,
   logLedger,
@@ -67,6 +68,9 @@ export function recordLedgerContext(
 /**
  * Keep wallet balances in step with records: undo `before`, apply `after`, and log each
  * change in «گردش حساب». Create = (null, effect); delete = (effect, null); edit = (old, new).
+ * Only the change is applied, to the balance the sheet holds now (each account is re-read first
+ * when online) and, if another device moves the account before this write is sent, on top of
+ * that device's balance (the write is queued as a change, see walletRowMerge).
  */
 export async function applyWalletChanges(
   spreadsheetId: string,
@@ -78,17 +82,18 @@ export async function applyWalletChanges(
 
   if (!changes.size) return
 
+  const gone = await refreshWalletAccounts(spreadsheetId, changes.keys())
   const accounts = await fetchWalletAccounts(spreadsheetId)
   const entries: LedgerEntry[] = []
 
   for (const [accountId, delta] of changes) {
     const account = accounts.find(item => item.id === accountId)
 
-    if (!account) continue
+    if (!account || gone.has(accountId)) continue
 
     const balance = roundMoney(account.balance + delta)
 
-    await updateWalletAccount(spreadsheetId, { ...account, balance })
+    await updateWalletAccount(spreadsheetId, { ...account, balance }, { mergeBalance: true })
     entries.push(ledgerEntry(accountId, delta, balance, context))
   }
   await logLedger(spreadsheetId, entries)

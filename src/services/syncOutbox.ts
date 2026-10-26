@@ -7,6 +7,12 @@ const OUTBOX_KEY_PREFIX = 'accounting_sync_outbox_'
 export interface OutboxWriteOptions {
   skipActivity?: boolean
   skipRevision?: boolean
+  /**
+   * A wallet balance written as a change: at flush the balance cell becomes the sheet's balance
+   * plus this write's change over its base, so two devices that both moved the account add up.
+   * Left off, the balance is an absolute value (a bank SMS balance, a manual correction).
+   */
+  mergeBalance?: boolean
 }
 
 export type OutboxOperation =

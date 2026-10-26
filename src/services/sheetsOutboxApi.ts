@@ -1,5 +1,5 @@
 import { recordOperation, ACTIVITY_SHEET } from './activityTracking'
-import { isPaymentLedgerSheet } from './paymentLedgerSheets'
+import { rebaseOnSheetRow } from './outboxRebase'
 import { assertNoEditConflict } from './rowConflictCheck'
 import { isGridLimitError, withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
@@ -166,36 +166,6 @@ export interface OutboxExecutionContext {
   isRetry?: boolean
 }
 
-type UpdateOperation = Extract<OutboxOperation, { type: 'update' }>
-
-/** The row an update should write: its own, plus the payments the sheet gained meanwhile. */
-async function rebaseOnSheetRow(
-  spreadsheetId: string,
-  session: RowGuardSession,
-  target: { sheetName: string; rowNumber: number },
-  operation: UpdateOperation
-): Promise<{ row: string[]; paymentsOnly: boolean }> {
-  const own = { row: operation.row, paymentsOnly: false }
-
-  if (!operation.expectedRow || !isPaymentLedgerSheet(operation.sheetName)) return own
-
-  const { mergeQueuedPaymentRow, showMergedRowLocally } = await import('./paymentRowMerge')
-
-  const current = session.snapshots.get(target.sheetName)?.[target.rowNumber - 1]
-
-  const merged = mergeQueuedPaymentRow(
-    operation.sheetName,
-    operation.row,
-    operation.expectedRow,
-    current
-  )
-
-  if (!merged) return own
-  showMergedRowLocally(spreadsheetId, operation.sheetName, operation.row, merged.row)
-
-  return merged
-}
-
 /** Runs one queued write and returns the tab it actually wrote to. */
 export async function executeOutboxOperation(
   spreadsheetId: string,
@@ -226,12 +196,12 @@ export async function executeOutboxOperation(
         operation.expectedRow
       )
 
-      // Debts and receivables hold their payments in the row: re-base the write on the sheet's row
-      // so a payment another device added since this one was queued is not overwritten.
+      // Payments (debts, receivables) and balances (accounts) another device moved since this write
+      // was queued are kept: the write is re-based on the sheet's row.
       const rebased = await rebaseOnSheetRow(spreadsheetId, session, target, operation)
 
       // Another account changed this row since this device read it: ask, never overwrite.
-      if (!rebased.paymentsOnly) {
+      if (!rebased.skipConflictCheck) {
         assertNoEditConflict(session, target, operation.row, operation.expectedRow)
       }
 

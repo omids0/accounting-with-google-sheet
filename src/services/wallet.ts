@@ -9,7 +9,8 @@ import {
   fetchRecords,
   fetchSheetRows,
   updateSheetRow,
-  deleteSheetRow
+  deleteSheetRow,
+  type SheetWriteOptions
 } from './sheets'
 import { validateWalletCsvCells } from './walletCsvValidate'
 import {
@@ -121,11 +122,23 @@ export async function createWalletAccount(
   return account
 }
 
+/**
+ * Saves an account row. `options.mergeBalance`: the balance in `account` is the old balance plus a
+ * change, so a balance another device moved meanwhile is kept when the write is sent. Without it
+ * the balance is absolute and overwrites (a bank SMS balance, a manual correction).
+ */
 export async function updateWalletAccount(
   spreadsheetId: string,
-  account: WalletAccount & { rowNumber: number }
+  account: WalletAccount & { rowNumber: number },
+  options?: Pick<SheetWriteOptions, 'mergeBalance'>
 ): Promise<WalletAccount> {
-  await updateSheetRow(spreadsheetId, WALLET_SHEET, account.rowNumber, accountToRow(account))
+  await updateSheetRow(
+    spreadsheetId,
+    WALLET_SHEET,
+    account.rowNumber,
+    accountToRow(account),
+    options
+  )
 
   return account
 }

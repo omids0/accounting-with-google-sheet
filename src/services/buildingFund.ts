@@ -104,11 +104,12 @@ export async function renameFundAccount(
   account: WalletAccount & { rowNumber: number },
   patch: Pick<FundAccountInput, 'title' | 'cardNumber'>
 ): Promise<void> {
-  await updateWalletAccount(spreadsheetId, {
-    ...account,
-    title: patch.title.trim(),
-    cardNumber: patch.cardNumber.trim()
-  })
+  // The balance is kept as the sheet holds it: only the name and the card are this write's.
+  await updateWalletAccount(
+    spreadsheetId,
+    { ...account, title: patch.title.trim(), cardNumber: patch.cardNumber.trim() },
+    { mergeBalance: true }
+  )
   logItemActivity(spreadsheetId, 'update', 'wallet', account.id, patch.title.trim())
 }
 
