@@ -18,6 +18,7 @@ import { toIsoDate } from '../utils/jalaliDate'
 export type { LedgerEntry } from './recordDuplicates'
 export { LINKED_PAYMENT_DAYS }
 export type { LinkedPaymentInfo, LinkedRecords, SmsCoverage }
+export { nextAccountBalance, setsAbsoluteBalance, type AccountBalanceState } from './bankSmsBalance'
 
 /** Ordinary records match an SMS within a day. */
 const DUPLICATE_DAYS = 1
@@ -228,42 +229,6 @@ export function buildReviewItems(
   }
 
   return items
-}
-
-/** Per account: what the SMS confirmed so far already account for. */
-export interface AccountBalanceState {
-  /** `receivedAt` of the SMS whose «مانده» last set the balance. */
-  anchor?: number
-  /** Newest `receivedAt` applied in any way. */
-  lastAppliedAt?: number
-}
-
-/**
- * New balance after one SMS, or `null` when the balance must not move.
- * - Older than the anchor: that «مانده» already includes it.
- * - Has a «مانده» and is the newest so far: the balance becomes that «مانده».
- * - Otherwise (no «مانده», or confirmed after a newer SMS): add/subtract the amount,
- *   because a «مانده» from the past would undo the newer SMS already applied.
- */
-export function nextAccountBalance(
-  current: number,
-  change: { receivedAt: number; direction: MatchedSms['direction']; amount: number },
-  smsBalance: number | null,
-  state: AccountBalanceState
-): { balance: number; state: AccountBalanceState } | null {
-  const { anchor, lastAppliedAt } = state
-
-  if (anchor !== undefined && change.receivedAt < anchor) return null
-
-  const lastApplied = Math.max(lastAppliedAt ?? 0, change.receivedAt)
-
-  if (smsBalance !== null && change.receivedAt >= (lastAppliedAt ?? 0)) {
-    return { balance: smsBalance, state: { anchor: change.receivedAt, lastAppliedAt: lastApplied } }
-  }
-
-  const delta = change.direction === 'debit' ? -change.amount : change.amount
-
-  return { balance: current + delta, state: { anchor, lastAppliedAt: lastApplied } }
 }
 
 /** Pin an SMS that fits several accounts to one of them; `null` when it cannot be written. */

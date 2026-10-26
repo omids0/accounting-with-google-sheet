@@ -1,7 +1,7 @@
 import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
-import { nextAccountBalance, type ConfirmableSms } from './bankSmsQueue'
+import { nextAccountBalance, setsAbsoluteBalance, type ConfirmableSms } from './bankSmsQueue'
 import { smsSenderKey, type SmsCategoryChoice } from './bankSmsSuggest'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
 import {
@@ -11,6 +11,7 @@ import {
   type RecordWalletEffect
 } from './recordWallet'
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
+import { refreshWalletAccounts } from './walletFresh'
 import { ledgerEntry, logLedger, type LedgerContext } from './walletLedger'
 import { WALLET_APPLY_NO } from '../components/form/fieldUtils'
 import { roundMoney } from '../utils/roundMoney'
@@ -53,9 +54,15 @@ async function applyBalance(
 ): Promise<void> {
   learnSmsRef(entry.result.ref, entry.result.accountId)
 
-  const account = (await fetchWalletAccounts(spreadsheetId)).find(
-    item => item.id === entry.result.accountId
-  )
+  const accountId = entry.result.accountId
+  const state = getBankSmsPrefs().balanceStates[accountId] ?? {}
+  // Only an SMS «مانده» sets the balance. Any other SMS moves it by its amount, so it is added to
+  // the balance the sheet holds now (read fresh) and sent as a change another device's move survives.
+  const absolute = setsAbsoluteBalance(entry.sms.receivedAt, entry.balance, state)
+
+  if (!absolute && (await refreshWalletAccounts(spreadsheetId, [accountId])).size) return
+
+  const account = (await fetchWalletAccounts(spreadsheetId)).find(item => item.id === accountId)
 
   if (!account) return
 
@@ -76,7 +83,11 @@ async function applyBalance(
   const changed = roundMoney(next.balance) !== roundMoney(account.balance)
 
   if (changed) {
-    await updateWalletAccount(spreadsheetId, { ...account, balance: next.balance })
+    await updateWalletAccount(
+      spreadsheetId,
+      { ...account, balance: next.balance },
+      absolute ? undefined : { mergeBalance: true }
+    )
   }
   updateBankSmsPrefs({ balanceStates: { ...prefs.balanceStates, [account.id]: next.state } })
   if (!changed) return
