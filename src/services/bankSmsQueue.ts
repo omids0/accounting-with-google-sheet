@@ -21,7 +21,7 @@ import { roundMoney } from '../utils/roundMoney'
 export type { LedgerEntry } from './recordDuplicates'
 export { LINKED_PAYMENT_DAYS }
 export type { LinkedPaymentInfo, LinkedRecords, SmsCoverage }
-export { initialSmsAccount, resolveSmsAccount } from './bankSmsAccount'
+export { initialCardAccount, initialSmsAccount, resolveSmsAccount } from './bankSmsAccount'
 export { nextAccountBalance, setsAbsoluteBalance, type AccountBalanceState } from './bankSmsBalance'
 
 /** Ordinary records match an SMS within a day. */

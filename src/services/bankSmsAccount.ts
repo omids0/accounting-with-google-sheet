@@ -29,3 +29,13 @@ export function initialSmsAccount(entry: ReviewedSms): string {
 
   return result.kind === 'ambiguous' ? result.candidates[0]?.accountId ?? '' : ''
 }
+
+/**
+ * The account a phone card starts on. An SMS that fits several accounts starts on NONE: saving it
+ * would write on, and learn, a guess, so swipe and the main button wait until a chip is tapped.
+ */
+export function initialCardAccount(entry: ReviewedSms): string {
+  const { result } = entry
+
+  return result.kind === 'ambiguous' && result.candidates.length > 1 ? '' : initialSmsAccount(entry)
+}

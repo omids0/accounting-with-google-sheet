@@ -10,7 +10,7 @@ import { useBankSmsLinkCard } from './useBankSmsLinkCard'
 import { smsRecordType, type BankSmsReview } from './useBankSmsReview'
 import { useBankSmsVehicleCard } from './useBankSmsVehicleCard'
 import {
-  initialSmsAccount,
+  initialCardAccount,
   resolveSmsAccount,
   type BankSmsReviewItem
 } from '../../services/bankSmsQueue'
@@ -41,7 +41,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
   const { entry, probableDuplicate, duplicateMovedBalance, duplicatePayment, key } = item
   const { result } = entry
   const candidates = result.kind === 'ambiguous' ? result.candidates : []
-  const [accountId, setAccountId] = useState(() => initialSmsAccount(entry))
+  const [accountId, setAccountId] = useState(() => initialCardAccount(entry))
   const [menuOpen, setMenuOpen] = useState(false)
   const [rawOpen, setRawOpen] = useState(false)
   const [templateText, setTemplateText] = useState<string | null>(null)
@@ -121,7 +121,11 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
         <Card className={smsQueueCardClass}>
           <BankSmsCardHead
             entry={entry}
-            accountTitle={titleOf(accountId)}
+            accountTitle={
+              accountId
+                ? titleOf(accountId)
+                : candidates.map(candidate => titleOf(candidate.accountId)).join(' یا ')
+            }
             rawOpen={rawOpen}
             badge={probableDuplicate && <BankSmsDuplicateBadge item={item} />}
           />
@@ -145,7 +149,9 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
                 onToggle={setAccountId}
               />
               <p className={smsHintClass}>
-                حساب را از روی پیامک حدس زدیم؛ اگر درست نیست عوضش کنید.
+                {accountId
+                  ? 'حساب این پیامک را خودتان انتخاب کردید؛ اگر درست نیست عوضش کنید.'
+                  : 'رقم کارت این پیامک به چند حساب می‌خورد؛ اول حساب را انتخاب کنید.'}
               </p>
             </>
           )}
