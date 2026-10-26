@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
 import type { LinkTargetItem } from '../services/linkPayment'
 import { getSettings, isConfigured } from '../services/settings'
@@ -23,6 +23,25 @@ export type { LinkTargetChildOption, LinkTargetOption }
  * kind shows the «nothing open» hint from its first frame, so it does not grow when the read ends.
  */
 const lastEmpty = new Map<string, boolean>()
+
+/**
+ * Bumped after any link is written: every picker on the page reads its list again, so a card does
+ * not offer the debt (or check, instalment) another card has just completed.
+ */
+let linksVersion = 0
+
+const linkListeners = new Set<() => void>()
+
+const subscribeLinks = (listener: () => void) => {
+  linkListeners.add(listener)
+
+  return () => void linkListeners.delete(listener)
+}
+
+const bumpLinks = () => {
+  linksVersion += 1
+  linkListeners.forEach(listener => listener())
+}
 
 type LinkTargetOptions = {
   /** The record being entered. */
@@ -65,7 +84,8 @@ export function useLinkTarget({
   const [childPick, setChildPick] = useState('')
 
   // Bumped after a save: the list is read again, so a payment just added shows its new remaining.
-  const [version, setVersion] = useState(0)
+  const [ownVersion, setVersion] = useState(0)
+  const version = ownVersion + useSyncExternalStore(subscribeLinks, () => linksVersion)
 
   useEffect(() => {
     setSelectedId('')
@@ -187,7 +207,7 @@ export function useLinkTarget({
         )
 
         showSuccess(kind.successMessage(title))
-        setVersion(current => current + 1)
+        bumpLinks()
 
         return true
       } catch (err) {
