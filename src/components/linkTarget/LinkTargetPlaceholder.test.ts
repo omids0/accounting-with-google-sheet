@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import LinkTargetPlaceholder from './LinkTargetPlaceholder'
 
-const html = (props: { label: string; childLabel?: string }) =>
+const html = (props: { label: string; childLabel?: string; hint?: string }) =>
   renderToStaticMarkup(createElement(LinkTargetPlaceholder, props))
 
 describe('LinkTargetPlaceholder (the room the picker takes while its chunk loads)', () => {
@@ -21,6 +21,11 @@ describe('LinkTargetPlaceholder (the room the picker takes while its chunk loads
 
     expect(markup).toContain('کدام قسط؟')
     expect(markup.match(/form-field/g)).toHaveLength(2)
+  })
+
+  it('shows the «nothing open» hint when the last read found nothing, so the card keeps its height', () => {
+    expect(html({ label: 'x', hint: 'بدهی بازی نیست.' })).toContain('بدهی بازی نیست.')
+    expect(html({ label: 'x' })).not.toContain('بدهی بازی نیست.')
   })
 
   it('has no wrapper element: a wrapper would make the last field lose its bottom margin', () => {

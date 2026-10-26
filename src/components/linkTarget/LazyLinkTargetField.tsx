@@ -13,7 +13,13 @@ export default function LazyLinkTargetField(props: ComponentProps<typeof LinkTar
 
   return (
     <Suspense
-      fallback={<LinkTargetPlaceholder label={kind.fieldLabel} childLabel={kind.childLabel} />}
+      fallback={
+        <LinkTargetPlaceholder
+          label={kind.fieldLabel}
+          childLabel={kind.childLabel}
+          hint={props.link.expectEmpty ? kind.emptyHint : undefined}
+        />
+      }
     >
       <LinkTargetField {...props} />
     </Suspense>

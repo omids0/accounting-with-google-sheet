@@ -13,14 +13,17 @@ const noop = () => undefined
  */
 export default function LinkTargetPlaceholder({
   label,
-  childLabel
+  childLabel,
+  hint
 }: {
   label: string
   childLabel?: string
+  /** The «nothing open» text, when the last read of this kind found nothing. */
+  hint?: string
 }) {
   return (
     <>
-      <FormField label={label} controlWidth="full">
+      <FormField label={label} controlWidth="full" hint={hint}>
         <Select value="" onChange={noop} options={READING} disabled />
       </FormField>
       {childLabel ? (

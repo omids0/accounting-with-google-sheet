@@ -18,6 +18,12 @@ import { showError, showSuccess } from '../utils/toast'
 
 export type { LinkTargetChildOption, LinkTargetOption }
 
+/**
+ * Which kinds had nothing open when their list was last read (per workbook). The next card of that
+ * kind shows the «nothing open» hint from its first frame, so it does not grow when the read ends.
+ */
+const lastEmpty = new Map<string, boolean>()
+
 type LinkTargetOptions = {
   /** The record being entered. */
   type: string
@@ -48,7 +54,13 @@ export function useLinkTarget({
   const kind: LinkTargetKind | null = enabled ? linkTargetKindFor(type, category) : null
   const kindId = kind?.id ?? null
   const [items, setItems] = useState<LinkTargetItem[]>([])
-  const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(false)
+  // The kind whose list was read: until then the picker is «loading», also in its very first frame.
+  const [loadedKind, setLoadedKind] = useState<string | null>(null)
+  const spreadsheetKey = getSettings()?.spreadsheetId ?? ''
+  const loading =
+    Boolean(kindId && spreadsheetKey && isConfigured()) && (fetching || loadedKind !== kindId)
+  const expectEmpty = loading && lastEmpty.get(`${spreadsheetKey}:${kindId}`) === true
   const [selectedId, setSelectedId] = useState('')
   const [childPick, setChildPick] = useState('')
 
@@ -68,7 +80,7 @@ export function useLinkTarget({
 
     let cancelled = false
 
-    setLoading(true)
+    setFetching(true)
     // The services load only when the category asks for them; several cards share one read.
     void import('../services/linkPayment')
       .then(({ listOpenLinkTargets }) =>
@@ -76,10 +88,19 @@ export function useLinkTarget({
           listOpenLinkTargets(kindId, spreadsheetId)
         )
       )
-      .then(list => !cancelled && setItems(list))
+      .then(list => {
+        lastEmpty.set(`${spreadsheetId}:${kindId}`, list.length === 0)
+        if (cancelled) return
+        setItems(list)
+        setLoadedKind(kindId)
+      })
       // A list that cannot be read is the same as nothing to link: the record saves as usual.
-      .catch(() => !cancelled && setItems([]))
-      .finally(() => !cancelled && setLoading(false))
+      .catch(() => {
+        if (cancelled) return
+        setItems([])
+        setLoadedKind(kindId)
+      })
+      .finally(() => !cancelled && setFetching(false))
 
     return () => {
       cancelled = true
@@ -182,6 +203,8 @@ export function useLinkTarget({
     kind,
     options,
     loading,
+    /** Still reading, and the last read of this kind found nothing open: reserve the hint's room. */
+    expectEmpty,
     selectedId,
     select,
     /** The instalments of the picked item (empty for kinds without a second level). */
