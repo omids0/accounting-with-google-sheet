@@ -76,10 +76,11 @@ async function applyBalance(
   const accountId = entry.result.accountId
   const state = getBankSmsPrefs().balanceStates[accountId] ?? {}
   // Only an SMS «مانده» sets the balance. Any other SMS moves it by its amount, so it is added to
-  // the balance the sheet holds now (read fresh) and sent as a change another device's move survives.
+  // the balance the sheet holds now and sent as a change another device's move survives. The row is
+  // read fresh for both, so the ledger line shows the real change, not one from an old local copy.
   const absolute = setsAbsoluteBalance(entry.sms.receivedAt, entry.balance, state)
 
-  if (!absolute && (await refreshWalletAccounts(spreadsheetId, [accountId])).size) return
+  if ((await refreshWalletAccounts(spreadsheetId, [accountId])).size) return
 
   const account = (await fetchWalletAccounts(spreadsheetId)).find(item => item.id === accountId)
 

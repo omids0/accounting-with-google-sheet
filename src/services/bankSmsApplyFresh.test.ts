@@ -62,6 +62,11 @@ const walletWrites = () =>
     .map(([, op]) => op as { sheetName: string; row: string[]; writeOptions?: object })
     .filter(op => op.sheetName === WALLET_SHEET)
 
+const ledgerWrites = () =>
+  mocks.enqueue.mock.calls
+    .map(([, op]) => op as { sheetName: string; row: string[] })
+    .filter(op => op.sheetName === WALLET_LEDGER_SHEET)
+
 const record = { title: 'خرید', category: 'خوراک', subCategory: '' }
 
 describe('an SMS without «مانده» is a change on the balance the sheet holds now', () => {
@@ -148,14 +153,27 @@ describe('an SMS without «مانده» is a change on the balance the sheet hol
     expect(walletWrites()).toHaveLength(0)
   })
 
-  it('an SMS WITH «مانده» stays an absolute write on the local copy', async () => {
+  it('an SMS WITH «مانده» stays an absolute write; its ledger line is the real change (N9)', async () => {
     await confirmSmsEntry(SHEET_ID, sms('a', 'debit', 90e6), record)
 
     const [write] = walletWrites()
 
     expect(write.row[3]).toBe('90000000')
     expect(write.writeOptions).toBeUndefined()
-    expect(mocks.fetchRange).not.toHaveBeenCalled()
+    // The sheet held 95M (device B spent 5M): the line says -5M and 90M, not -10M from the stale 100M.
+    const [line] = ledgerWrites()
+
+    expect(line.row[4]).toBe('-5000000')
+    expect(line.row[5]).toBe('90000000')
+  })
+
+  it('a change-only SMS writes its ledger line on the fresh balance too', async () => {
+    await confirmSmsEntry(SHEET_ID, sms('a', 'debit', null), null)
+
+    const [line] = ledgerWrites()
+
+    expect(line.row[4]).toBe('-3000000')
+    expect(line.row[5]).toBe('92000000')
   })
 
   describe('when the native queue fails right after the record was written', () => {

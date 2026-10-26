@@ -1,17 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ enqueue: vi.fn() }))
+const mocks = vi.hoisted(() => ({ enqueue: vi.fn(), fetchRange: vi.fn() }))
 
+vi.mock('./sheetsRows', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  fetchSheetRangeFromApi: mocks.fetchRange
+}))
 vi.mock('./sheetSync', () => ({ enqueueSheetWrite: mocks.enqueue, queueOutboxWrite: vi.fn() }))
 
 const { WALLET_HEADERS, WALLET_SHEET, fetchWalletAccounts } = await import('./wallet')
 const { saveEditedWalletAccount } = await import('./walletAccountEdit')
 const { mergeQueuedWalletRow } = await import('./walletRowMerge')
+const { WALLET_LEDGER_HEADERS, WALLET_LEDGER_SHEET } = await import('./walletLedger')
 const { clearStore, setSheetAllRows } = await import('./spreadsheetStore')
 
 const SHEET_ID = 'wallet-account-edit'
 
 const accountRow = (id: string, balance: number, title = id) => [id, 't', title, String(balance)]
+
+/** The sheet as other devices left it. */
+let remote: string[][] = []
 
 const queued = () =>
   mocks.enqueue.mock.calls.map(
@@ -45,6 +53,16 @@ describe('saving the account edit form', () => {
     localStorage.clear()
     clearStore(SHEET_ID)
     mocks.enqueue.mockClear()
+    mocks.fetchRange.mockReset()
+    mocks.fetchRange.mockImplementation(async (_id: string, _tab: string, suffix?: string) => {
+      if (suffix === 'A:A') return remote.map(row => [row[0] ?? ''])
+
+      const n = Number(suffix?.split(':')[0])
+
+      return remote[n - 1] ? [remote[n - 1]] : []
+    })
+    remote = [WALLET_HEADERS, accountRow('a', 95e6, 'ملت')]
+    setSheetAllRows(SHEET_ID, WALLET_LEDGER_SHEET, [WALLET_LEDGER_HEADERS])
     // This device's copy of the wallet tab (another device already moved the account to 94M).
     setSheetAllRows(SHEET_ID, WALLET_SHEET, [WALLET_HEADERS, accountRow('a', 100e6, 'ملت')])
     // What the form opened with: balance 100M.
@@ -96,5 +114,32 @@ describe('saving the account edit form', () => {
     expect(balanceSet).toBe(true)
     expect(write.writeOptions).toBeUndefined()
     expect(write.row[3]).toBe('80000000')
+  })
+
+  it('N9: the «اصلاح دستی» ledger line is the real change on the fresh balance (95M -> 80M, not 100M -> 80M)', async () => {
+    await saveEditedWalletAccount(SHEET_ID, editing, payload({ balance: 80e6 }))
+
+    const ledger = mocks.enqueue.mock.calls
+      .map(([, op]) => op as { sheetName: string; row: string[] })
+      .filter(op => op.sheetName === WALLET_LEDGER_SHEET)
+
+    expect(ledger).toHaveLength(1)
+    expect(ledger[0].row[4]).toBe('-15000000')
+    expect(ledger[0].row[5]).toBe('80000000')
+  })
+
+  it('N9: an account another device deleted is not written over', async () => {
+    remote = [WALLET_HEADERS]
+    await expect(
+      saveEditedWalletAccount(SHEET_ID, editing, payload({ balance: 80e6 }))
+    ).rejects.toThrow('پیدا نشد')
+    expect(queued()).toHaveLength(0)
+  })
+
+  it('an untouched balance writes no ledger line at all', async () => {
+    await saveEditedWalletAccount(SHEET_ID, editing, payload({ title: 'x' }))
+    expect(
+      mocks.enqueue.mock.calls.filter(([, op]) => op.sheetName === WALLET_LEDGER_SHEET)
+    ).toHaveLength(0)
   })
 })
