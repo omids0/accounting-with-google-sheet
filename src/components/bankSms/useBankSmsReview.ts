@@ -21,10 +21,12 @@ import {
   type ConfirmableSms,
   type SmsRecordInput
 } from '../../services/bankSmsApply'
+import { coverSmsPart, smsCoverage } from '../../services/bankSmsCoverage'
 import { buildBankSmsEntryState, type BankSmsEntryOptions } from '../../services/bankSmsEntry'
+import { localLinkedRecords } from '../../services/bankSmsLinked'
 import { matchSms } from '../../services/bankSmsMatch'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
-import { buildReviewItems, reviewSms } from '../../services/bankSmsQueue'
+import { buildReviewItems, reviewSms, type BankSmsReviewItem } from '../../services/bankSmsQueue'
 import type { SmsCategoryChoice, SmsCategorySuggestion } from '../../services/bankSmsSuggest'
 import { confirmSmsVehicleExpense, type SmsVehicleInput } from '../../services/bankSmsVehicle'
 import { readBridgePrefs } from '../../services/bridgePrefs'
@@ -84,22 +86,21 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     if (stale.length) void dismissSms(stale).then(() => refresh())
   }, [pending, templates, accounts, templatesLoading, refresh])
 
-  const allItems = useMemo(
-    () =>
-      buildReviewItems(
-        // Prefs change when a template is saved or an SMS confirmed, which also changes these deps.
-        reviewSms(
-          pending.filter(sms => sms.receivedAt >= sinceMs),
-          templates,
-          accounts,
-          currency,
-          getBankSmsPrefs().refAccounts
-        ),
-        ledger,
-        noPair
-      ),
-    [pending, sinceMs, templates, accounts, currency, ledger, noPair]
-  )
+  const allItems = useMemo(() => {
+    // Prefs change when a template is saved or an SMS confirmed, which also changes these deps.
+    const reviewed = reviewSms(
+      pending.filter(sms => sms.receivedAt >= sinceMs),
+      templates,
+      accounts,
+      currency,
+      getBankSmsPrefs().refAccounts
+    )
+    // Records that are a debt/receivable payment (local mirror; none in buildings and shared books),
+    // and how much of each the SMS closed so far already covered.
+    const linked = localLinkedRecords(reviewed, ledger)
+
+    return buildReviewItems(reviewed, ledger, noPair, linked, smsCoverage())
+  }, [pending, sinceMs, templates, accounts, currency, ledger, noPair])
   // The SMS waiting out its «نادیده» undo window is already gone from the list.
   const items = allItems.filter(item => item.key !== undoable.pendingId)
 
@@ -242,6 +243,19 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     /** «قبلاً ثبت شده»: leaves the list at once, nothing else changes. */
     alreadyRecorded: (key: string, ids: string[]) =>
       run(key, 'از لیست خارج شد', () => dismissSms(ids)),
+    /**
+     * The main button of a card whose record exists: «همان است» (nothing else changes), or, when the
+     * SMS is a part of a bigger payment, «بخشی از آن است» (the same, and the part is remembered).
+     */
+    closeAsRecorded: (item: Extract<BankSmsReviewItem, { kind: 'single' }>) => {
+      const recordId = item.duplicateOf?.id
+      const { amount } = item.entry
+      const part = item.splitUncovered !== null && recordId && amount !== null
+
+      return run(item.key, 'از لیست خارج شد', () =>
+        part ? coverSmsPart(item.entry.sms.id, recordId, amount) : dismissSms([item.entry.sms.id])
+      )
+    },
     /** «نادیده» with a five-second «بازگردانی». */
     dismiss: (key: string, ids: string[]) =>
       void undoable.schedule({
