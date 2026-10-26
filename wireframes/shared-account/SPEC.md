@@ -1,6 +1,6 @@
 # UX Shared Account — Design Spec («حساب مشترک»)
 
-Audience: the Claude agent that will plan and implement this. Decisions marked **(owner)** were made by the product owner while reviewing the live prototype; decisions marked **(my call)** are the designer's and the owner can overrule them. Source of truth for look and behavior: `family-accounting-prototype.html` (one clickable file; `family-proto-*.css/js` are its parts). Where this document and the prototype disagree on _behavior_, this document wins; on _look_, the prototype wins.
+Audience: the Claude agent that will plan and implement this. Decisions marked **(owner)** were made by the product owner while reviewing the live prototype; decisions marked **(my call)** are the designer's and the owner can overrule them. Source of truth for look and behavior: `prototype.html` in this folder (one clickable page; `css/` and `js/` hold its parts). Where this document and the prototype disagree on _behavior_, this document wins; on _look_, the prototype wins.
 
 The feature was first called «حساب کتاب خانوادگی». **The name is now «حساب مشترک»** and it is not tied to spouses: any two people who share expenses (partners, roommates, siblings, a parent and a child). Copy must say «شریک», never «همسر».
 
@@ -128,7 +128,7 @@ Own role card; members list with role, status («دعوت‌شده» until they 
 
 ## Project constraints (mandatory)
 
-- 300-line hard limit per staged `*.{js,jsx,ts,tsx,css,scss,html}` file after Prettier (this spec's own prototype is split into `family-proto-*` for that reason). Extract rather than grow.
+- 300-line hard limit per staged `*.{js,jsx,ts,tsx,css,scss,html}` file after Prettier (this spec's own prototype is split into `css/` and `js/` parts for that reason). Extract rather than grow.
 - Reuse before create (list above). No tooling or config changes; **no new dependencies**; no change to `size-limit` without asking.
 - New sheet columns go at the end of the row (round-6 rule): `sheetNames.ts`, `sheetHeaders*.ts`, `moduleSheetSpecs.ts`, `sheetSyncSheetNames.ts`, CSV, backup. New localStorage keys per spreadsheet and in `ACCOUNT_KEYS`, unless per device.
 - A personal spreadsheet must never receive shared-account tabs or marker rows (mirror `assertBuildingSpreadsheet`), and the shared spreadsheet never receives personal data except a copy the owner ticked.

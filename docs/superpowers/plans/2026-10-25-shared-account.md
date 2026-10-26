@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 18, TypeScript, Vite, Tailwind 4, Zustand, vitest (`src/**/*.test.ts` only), Google Sheets/Drive REST.
 
-**Spec:** `wireframes/UX-FAMILY-SPEC.md` (behavior wins) and `wireframes/family-accounting-prototype.html` (look wins). Read both before any task.
+**Spec:** `wireframes/shared-account/SPEC.md` (behavior wins) and `wireframes/shared-account/prototype.html` (look wins). Read both before any task.
 
 ## Global Constraints
 
@@ -232,7 +232,7 @@
 ### Task 12: About, changelog, version, evidence
 
 **Files:**
-- Modify: `src/components/about/aboutFeatureGroupsExtended.ts` or a new `aboutFeatureGroupsShared.ts` assembled in `aboutFeatures.ts` (group «حساب مشترک», user-facing Persian; the existing `ABOUT_SHARED_GROUP` id `shared` is a different feature, use id `shared-account`), `src/components/about/aboutChangelog.ts`, `aboutChangelog.test.ts:22-26`, `package.json`, `package-lock.json`, `wireframes/UX-FAMILY-SPEC.md` (note the inline member card decision)
+- Modify: `src/components/about/aboutFeatureGroupsExtended.ts` or a new `aboutFeatureGroupsShared.ts` assembled in `aboutFeatures.ts` (group «حساب مشترک», user-facing Persian; the existing `ABOUT_SHARED_GROUP` id `shared` is a different feature, use id `shared-account`), `src/components/about/aboutChangelog.ts`, `aboutChangelog.test.ts:22-26`, `package.json`, `package-lock.json`, `wireframes/shared-account/SPEC.md` (note the inline member card decision)
 - Create: `docs/superpowers/qa/2026-10-25-shared-account-evidence.md`
 
 - [ ] **Step 1: Write failing test**: update the hard-coded Jalali date string in `aboutChangelog.test.ts` for the new top entry (version = `package.json` minor + 1 → `2.11.0`, date = today's ISO date).

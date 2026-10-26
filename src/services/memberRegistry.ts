@@ -100,7 +100,7 @@ export const SHARED_PERMISSIONS: SharedPermission[] = [
   'export'
 ]
 
-/** The permission table of the spec (UX-FAMILY-SPEC.md, «Roles and permissions»). */
+/** The permission table of the spec (wireframes/shared-account/SPEC.md, «Roles and permissions»). */
 export const SHARED_ROLE_PERMISSIONS: Record<SharedRole, Record<SharedPermission, boolean>> = {
   owner: {
     record: true,

@@ -9,7 +9,7 @@ import { BUILDING_ROLES, SHARED_ROLES } from '../components/buildings/buildingOp
 
 const shared = registryOf('shared')
 
-/** The permission table of UX-FAMILY-SPEC.md, cell by cell. */
+/** The permission table of wireframes/shared-account/SPEC.md, cell by cell. */
 const SPEC_TABLE = {
   owner: {
     record: true,
