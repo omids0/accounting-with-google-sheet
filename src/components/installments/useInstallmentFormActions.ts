@@ -7,6 +7,7 @@ import {
 } from '../../hooks/useAttachmentDeleteQuestion'
 import { useLinkedRecordsDeleteQuestion } from '../../hooks/useLinkedRecordsDeleteQuestion'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
+import { deleteRemovedPaymentRecords } from '../../services/installmentRecordCleanup'
 import {
   createInstallmentPlan,
   deleteInstallmentPlan,
@@ -16,13 +17,12 @@ import {
 } from '../../services/installments'
 import { installmentHiddenPlanMessage } from '../../services/installmentSchedulePreview'
 import { INSTALLMENTS_SHEET } from '../../services/installmentsConstants'
-import { deleteLinkedExpenseRecord } from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import type { DateRange } from '../../utils/jalaliDate'
 import { installmentPlanLinkedCount } from '../../utils/linkedRecordsDelete'
 import { handleSheetError } from '../../utils/sheetError'
-import { showError, showSuccess } from '../../utils/toast'
+import { showError, showInfo, showSuccess } from '../../utils/toast'
 import { useAttachmentDrafts } from '../attachments/useAttachmentDrafts'
 
 type UseInstallmentFormActionsParams = {
@@ -110,8 +110,14 @@ export function useInstallmentFormActions({
           reconciled.payments
         )
 
-        for (const transactionRecordId of removedTransactionIds) {
-          await deleteLinkedExpenseRecord(settings.spreadsheetId, transactionRecordId)
+        // A record the user linked (bank SMS, entry form) is theirs: it stays as an expense.
+        const kept = await deleteRemovedPaymentRecords(
+          settings.spreadsheetId,
+          removedTransactionIds
+        )
+
+        if (kept > 0) {
+          showInfo('رکورد هزینه‌ای که خودت به قسط وصل کرده بودی پاک نشد و همان‌طور می‌ماند.')
         }
         await updateInstallmentPlan(settings.spreadsheetId, editingPlan.rowNumber, reconciled)
         await attachments.commit(settings.spreadsheetId, INSTALLMENTS_SHEET, editingPlan.id)
