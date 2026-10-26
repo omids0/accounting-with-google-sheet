@@ -1,7 +1,8 @@
 import { useState } from 'react'
 
+import { BankSmsSameButton } from './BankSmsDuplicate'
 import BankSmsQueueItem from './BankSmsQueueItem'
-import { formatSmsWhen, smsDuplicateLabel } from './smsLabels'
+import { formatSmsWhen, smsDuplicateStatus } from './smsLabels'
 import type { BankSmsReview } from './useBankSmsReview'
 import {
   initialSmsAccount,
@@ -50,7 +51,7 @@ function toRow(item: BankSmsReviewItem, review: BankSmsReview): Row {
     account: resolved ? titleOf(resolved.result.accountId) : '—',
     amount: resolved ? sign * resolved.amount : 0,
     category: item.entry.result.kind === 'unknown' ? 'ناشناخته' : choice?.category ?? '—',
-    status: item.probableDuplicate ? smsDuplicateLabel(item.duplicateOf?.createdAtMs) : ''
+    status: item.probableDuplicate ? smsDuplicateStatus(item) : ''
   }
 }
 
@@ -98,7 +99,9 @@ export default function BankSmsQueueTable({ review }: { review: BankSmsReview })
     {
       id: 'status',
       header: 'وضعیت',
-      cell: row => (row.status ? <span className={smsBadgeClass}>{row.status}</span> : null)
+      // inline-block: a long label wraps inside one pill instead of splitting it in two.
+      cell: row =>
+        row.status ? <span className={`${smsBadgeClass} inline-block`}>{row.status}</span> : null
     }
   ]
 
@@ -117,13 +120,21 @@ export default function BankSmsQueueTable({ review }: { review: BankSmsReview })
               : null
           const offer = resolved ? review.offerFor(resolved) : null
 
+          const payment = item.kind === 'single' ? item.duplicatePayment : null
+
           return (
             <>
+              {item.kind === 'single' && payment && (
+                <BankSmsSameButton
+                  busy={review.busyKey === item.key}
+                  onClick={() => void review.alreadyRecorded(item.key, [item.entry.sms.id])}
+                />
+              )}
               {item.kind === 'single' && resolved && (
                 <Button
                   type="button"
                   size="sm"
-                  variant={row.amount < 0 ? 'outflow' : 'inflow'}
+                  variant={payment ? 'secondary' : row.amount < 0 ? 'outflow' : 'inflow'}
                   disabled={review.busyKey === item.key}
                   onClick={() =>
                     // Which unit paid has to be picked on the card, in the side panel.

@@ -23,6 +23,7 @@ import {
   type SmsRecordInput
 } from '../../services/bankSmsApply'
 import { buildBankSmsEntryState, type BankSmsEntryOptions } from '../../services/bankSmsEntry'
+import { linkedRecordsFor } from '../../services/bankSmsLinked'
 import { matchSms } from '../../services/bankSmsMatch'
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { buildReviewItems, reviewSms } from '../../services/bankSmsQueue'
@@ -32,6 +33,8 @@ import { readBridgePrefs } from '../../services/bridgePrefs'
 import { personalBridgeId } from '../../services/bridgeTarget'
 import type { SmsUnitInput } from '../../services/buildingSmsMatch'
 import { payUnitFromSms } from '../../services/buildingSmsPayment'
+import { findLinkedItems } from '../../services/recordLinks'
+import { getSettings } from '../../services/settings'
 import { useBankSmsStore } from '../../stores/bankSmsStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { getCurrency } from '../../utils/formatMoney'
@@ -85,22 +88,23 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     if (stale.length) void dismissSms(stale).then(() => refresh())
   }, [pending, templates, accounts, templatesLoading, refresh])
 
-  const allItems = useMemo(
-    () =>
-      buildReviewItems(
-        // Prefs change when a template is saved or an SMS confirmed, which also changes these deps.
-        reviewSms(
-          pending.filter(sms => sms.receivedAt >= sinceMs),
-          templates,
-          accounts,
-          currency,
-          getBankSmsPrefs().refAccounts
-        ),
-        ledger,
-        noPair
-      ),
-    [pending, sinceMs, templates, accounts, currency, ledger, noPair]
-  )
+  const allItems = useMemo(() => {
+    // Prefs change when a template is saved or an SMS confirmed, which also changes these deps.
+    const reviewed = reviewSms(
+      pending.filter(sms => sms.receivedAt >= sinceMs),
+      templates,
+      accounts,
+      currency,
+      getBankSmsPrefs().refAccounts
+    )
+    const spreadsheetId = getSettings()?.spreadsheetId ?? ''
+    // Records that are a debt/receivable payment (local mirror; none in buildings and shared books).
+    const linked = linkedRecordsFor(reviewed, ledger, (recordId, type) =>
+      findLinkedItems(spreadsheetId, recordId, type)
+    )
+
+    return buildReviewItems(reviewed, ledger, noPair, linked)
+  }, [pending, sinceMs, templates, accounts, currency, ledger, noPair])
   // The SMS waiting out its «نادیده» undo window is already gone from the list.
   const items = allItems.filter(item => item.key !== undoable.pendingId)
 
