@@ -11,11 +11,7 @@ export function customSelectRootClass({ open, className }: { open?: boolean; cla
   return cn('relative w-full', open && 'z-20', className)
 }
 
-export const customSelectTriggerClass = cn(
-  'justify-between gap-2',
-  formTriggerBase,
-  'h-auto min-h-touch-min py-1.5'
-)
+export const customSelectTriggerClass = cn('justify-between gap-2', formTriggerBase)
 
 export function customSelectTriggerStateClass({
   open,
