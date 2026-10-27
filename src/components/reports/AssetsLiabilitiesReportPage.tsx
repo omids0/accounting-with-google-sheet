@@ -9,6 +9,7 @@ import type { DashboardData, NetAvailableConfig } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
+import { asOfEndLabel } from '../../utils/periodLabel'
 import { handleSheetError } from '../../utils/sheetError'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import DashboardBreakdownSection from '../dashboard/DashboardBreakdownSection'
@@ -81,6 +82,8 @@ export default function AssetsLiabilitiesReportPage() {
 
   const financial = data?.financial
 
+  const asOfLabel = asOfEndLabel(financial?.walletAsOf)
+
   return (
     <div className={cn(dashboardPageClass, reportPageClass)}>
       <ReportDateFilterBar
@@ -96,6 +99,7 @@ export default function AssetsLiabilitiesReportPage() {
         <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
         <p className={dashboardHeroHintClass}>
           دارایی‌ها منهای بدهی‌ها (بر اساس تنظیمات دارایی قابل اتکا)
+          {asOfLabel ? ` · کیف پول ${asOfLabel}` : ''}
         </p>
       </Card>
 

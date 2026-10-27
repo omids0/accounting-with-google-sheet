@@ -30,9 +30,11 @@ import { fetchVaultTransactions } from './treasury'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
 import { computeHoldings, totalsByClass } from './treasuryHoldings'
 import { fetchWalletAccounts } from './wallet'
+import { walletForPeriod } from './walletAtDate'
 import { workspaceTypeOf } from './workspace'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import type { DateRange } from '../utils/dateRange'
+import { getTodayIso } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
 import { roundMoney } from '../utils/roundMoney'
 
@@ -127,7 +129,15 @@ async function fetchDashboardBundleUncached(
     0
   )
 
-  const walletTotal = roundMoney(walletAccounts.reduce((s, a) => s + a.balance, 0))
+  const walletTotalNow = roundMoney(walletAccounts.reduce((s, a) => s + a.balance, 0))
+
+  // A period that has ended counts the wallet as it was at its end; the gap checks below stay on today's.
+  const { walletTotal, walletAsOf } = walletForPeriod(
+    walletTotalNow,
+    { incomeRecords, expenseRecords, incomeDateField, expenseDateField },
+    range.end,
+    getTodayIso()
+  )
 
   // After the catalog loads, so user-added tgju keys and manual prices count.
   const tgjuPrices = getSummableTgjuPrices()
@@ -158,6 +168,8 @@ async function fetchDashboardBundleUncached(
 
   const rawFinancial = {
     walletTotal,
+    walletTotalNow,
+    walletAsOf,
     treasuryTotal,
     treasuryByClass,
     goalsTotal,
@@ -179,7 +191,7 @@ async function fetchDashboardBundleUncached(
 
   const periodBalance = roundMoney(openingBalance + totalIncome - totalExpense)
 
-  const reconciliationDiff = roundMoney(walletTotal - periodBalance)
+  const reconciliationDiff = roundMoney(walletTotalNow - periodBalance)
 
   const recent = buildRecentRecords(
     { records: filteredIncome, formName: incomeForm?.name ?? 'درآمد', dateField: incomeDateField },
