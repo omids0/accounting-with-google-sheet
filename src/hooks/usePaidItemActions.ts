@@ -10,7 +10,7 @@ import type { SettleOptions, UnlinkChoice } from '../services/settleOptions'
 import { isLinkedForeignRecord, type SettlePrefix } from '../services/settleRecords'
 import { requireSpreadsheetId } from '../utils/authGuard'
 import { confirmDelete, undoableDeleteMessage } from '../utils/confirmDelete'
-import { linkedDeleteQuestion } from '../utils/linkedRecordsDelete'
+import { linkedDeleteQuestion, type LinkedRecordKind } from '../utils/linkedRecordsDelete'
 import { handleSheetError } from '../utils/sheetError'
 import { showSuccess } from '../utils/toast'
 
@@ -68,6 +68,8 @@ type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {
   attachmentIds?: (item: T) => readonly string[] | undefined
   /** How many income/expense records the item made: the delete question then offers to delete them too. */
   linkedRecordCount?: (item: T) => number
+  /** Whether those records are income or expense (default: either), so the question names them truthfully. */
+  linkedRecordKind?: (item: T) => LinkedRecordKind
   importExport: ImportExportFns
 }
 
@@ -84,6 +86,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   onBeforeDelete,
   attachmentIds,
   linkedRecordCount,
+  linkedRecordKind,
   importExport
 }: UsePaidItemActionsOptions<T>) {
   const [togglingId, setTogglingId] = useState('')
@@ -173,7 +176,12 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
 
     const label = deleteLabel(item)
     const confirmed = await confirmDelete(
-      linkedDeleteQuestion(label, undoableDeleteMessage(label), linkedRecordCount?.(item) ?? 0)
+      linkedDeleteQuestion(
+        label,
+        undoableDeleteMessage(label),
+        linkedRecordCount?.(item) ?? 0,
+        linkedRecordKind?.(item)
+      )
     )
 
     if (!confirmed) return

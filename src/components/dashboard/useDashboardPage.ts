@@ -20,6 +20,7 @@ import {
 } from '../../utils/dateRange'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { describePeriod } from '../../utils/periodLabel'
+import { handOffReportPeriod } from '../../utils/reportPeriodHandoff'
 import { handleSheetError } from '../../utils/sheetError'
 import { createDefaultDateRangeFilter } from '../DateRangeFilter'
 import type { DashboardFilterControls } from './DashboardContent'
@@ -157,10 +158,17 @@ export function useDashboardPage() {
     setCustomRange(getPreviousJalaliMonthRange(dateRange))
   }, [datePreset, dateRange])
 
+  /** Opens a report with the dashboard's period, so «ماه گذشته» keeps showing the same numbers. */
+  const handOffPeriodToReport = useCallback(
+    () => handOffReportPeriod({ preset: datePreset, customRange }),
+    [datePreset, customRange]
+  )
+
   return {
     data,
     loading,
     period,
+    handOffPeriodToReport,
     filter,
     load,
     incomeFormName,

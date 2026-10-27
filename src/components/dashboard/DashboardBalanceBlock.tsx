@@ -1,5 +1,6 @@
 import { getNetAvailableConfig } from '../../services/settings'
 import type { FinancialSummary, NetAvailableConfig } from '../../types'
+import { asOfEndLabel } from '../../utils/periodLabel'
 import CalmBlock from '../CalmBlock'
 import MoneyText from '../MoneyText'
 import {
@@ -16,13 +17,15 @@ import {
 export function selectedPartLabels(
   config: NetAvailableConfig,
   hasGoals = false,
-  hasReceivedChecks = false
+  hasReceivedChecks = false,
+  /** «تا پایان مهر ۱۴۰۵» when the period ended and the wallet is the one at its end. */
+  walletAsOf?: string
 ): {
   assets: string[]
   liabilities: string[]
 } {
   const assets = [
-    config.assets.wallet && 'کیف پول',
+    config.assets.wallet && (walletAsOf ? `کیف پول (${walletAsOf})` : 'کیف پول'),
     config.assets.treasury && 'صندوقچه',
     config.assets.goals && hasGoals && 'هدف‌ها',
     config.assets.receivables && 'طلب‌ها',
@@ -55,7 +58,8 @@ export default function DashboardBalanceBlock({
   const parts = selectedPartLabels(
     config,
     (financial.goalsTotal ?? 0) > 0,
-    (financial.checksReceivable ?? 0) > 0
+    (financial.checksReceivable ?? 0) > 0,
+    asOfEndLabel(financial.walletAsOf)
   )
 
   const rows = [

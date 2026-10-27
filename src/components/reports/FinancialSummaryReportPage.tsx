@@ -170,8 +170,8 @@ export default function FinancialSummaryReportPage() {
           <BreakdownRow label="هزینه دوره" value={-(data?.totalExpense ?? 0)} />
           <BreakdownRow label="مانده محاسبه‌شده" value={data?.periodBalance ?? 0} />
           <BreakdownRow
-            label={asOfLabel ? 'موجودی کیف پول امروز' : 'موجودی کیف پول'}
-            value={financial?.walletTotalNow ?? financial?.walletTotal ?? 0}
+            label={asOfLabel ? `موجودی کیف پول ${asOfLabel}` : 'موجودی کیف پول'}
+            value={financial?.walletTotal ?? 0}
           />
           <BreakdownRow label="تفاوت مطابقت" value={reconciliationDiff} total />
         </div>

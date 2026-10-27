@@ -72,6 +72,7 @@ describe('dashboard wallet at the end of the selected period', () => {
     expect(data.financial.walletTotal).toBe(WALLET_NOW)
     expect(data.financial.walletTotalNow).toBe(WALLET_NOW)
     expect(data.financial.walletAsOf).toBeUndefined()
+    expect(data.reconciliationDiff).toBe(WALLET_NOW - data.periodBalance)
     expect(data.financial.netAvailable).toBe(WALLET_NOW)
   })
 
@@ -86,9 +87,9 @@ describe('dashboard wallet at the end of the selected period', () => {
     expect(financial.walletAsOf).toBe('2026-10-22')
     expect(financial.totalAssets).toBe(95_300)
     expect(financial.netAvailable).toBe(95_300 - financial.totalLiabilities)
-    // The gap check keeps comparing today's wallet with the period balance.
+    // Today's wallet stays on the bundle, but the report matches the period end with the wallet at that end.
     expect(financial.walletTotalNow).toBe(WALLET_NOW)
-    expect(reconciliationDiff).toBe(WALLET_NOW - periodBalance)
+    expect(reconciliationDiff).toBe(95_300 - periodBalance)
   })
 
   it('works for a custom past range that ends mid-month', async () => {

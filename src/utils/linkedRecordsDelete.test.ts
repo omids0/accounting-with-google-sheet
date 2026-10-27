@@ -6,6 +6,7 @@ import {
   installmentPlanLinkedCount,
   linkedDeleteQuestion,
   linkedRecordsCheckboxLabel,
+  linkedRecordsStayLine,
   receivableLinkedCount,
   shouldAskLinkedRecords
 } from './linkedRecordsDelete'
@@ -41,15 +42,34 @@ describe('linked records of an item about to be deleted', () => {
     expect(question).toEqual({ label: 'چک ۱۲', message: 'چک ۱۲ پاک می‌شود.' })
   })
 
-  it('adds an unchecked box and the reason the records stay by default', () => {
-    const question = linkedDeleteQuestion('طلب «وام»', 'طلب «وام» پاک می‌شود.', 3)
+  it('adds an unchecked box and one short line on why the records stay by default', () => {
+    const question = linkedDeleteQuestion('طلب «وام»', 'طلب «وام» پاک می‌شود.', 3, 'income')
 
     expect(question.checkbox).toEqual({
       label: 'رکوردهای مالی مرتبط (۳ مورد) هم حذف شوند',
       defaultChecked: false
     })
-    expect(question.message).toContain('طلب «وام» پاک می‌شود.')
+    expect(question.message.startsWith('طلب «وام» پاک می‌شود.\n')).toBe(true)
+    expect(question.message.split('\n')).toHaveLength(2)
     expect(question.message).toContain('می‌مانند')
-    expect(question.message).toContain('حساب ماه‌های قبل عوض می‌شود')
+  })
+
+  it('names only what the item can really make', () => {
+    const stay = (kind: Parameters<typeof linkedRecordsStayLine>[1]) =>
+      linkedRecordsStayLine(2, kind)
+
+    expect(stay('expense')).toContain('هزینه')
+    expect(stay('expense')).not.toContain('درآمد')
+    expect(stay('income')).toContain('درآمد')
+    expect(stay('income')).not.toContain('هزینه')
+    expect(stay('either')).toContain('رکوردهای مالی')
+    expect(linkedRecordsStayLine(1, 'expense')).toContain('می‌ماند')
+  })
+
+  it('never mentions income or expense when the kind is not given', () => {
+    const { message } = linkedDeleteQuestion('چک ۱۲', 'چک ۱۲ پاک می‌شود.', 1)
+
+    expect(message).not.toContain('درآمد')
+    expect(message).not.toContain('هزینه')
   })
 })

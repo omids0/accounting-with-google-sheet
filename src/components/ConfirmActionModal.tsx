@@ -5,7 +5,7 @@ import AppIcon from './AppIcon'
 import { useModalLock } from '../hooks/useModalLock'
 import { cn } from '../utils/cn'
 import Button from './ui/Button'
-import { confirmDeleteMessageClass } from './ui/featureCardStyles'
+import { confirmDeleteMessageClass, dangCheckboxClass } from './ui/featureCardStyles'
 import { formActionsClassName } from './ui/formStyles'
 import {
   formModalActionsClass,
@@ -104,10 +104,10 @@ export default function ConfirmActionModal({
         <div className={formModalBodyClass} aria-busy={confirming}>
           <p className={cn(confirmDeleteMessageClass, 'whitespace-pre-line')}>{message}</p>
           {checkbox ? (
-            <label className="checkbox-row mt-3 flex items-start gap-2 text-[0.88rem] leading-[1.7]">
+            <label className="checkbox-row mt-2 flex min-h-touch-min cursor-pointer items-center gap-3 text-[0.88rem] leading-[1.7]">
               <input
                 type="checkbox"
-                className="mt-1"
+                className={cn(dangCheckboxClass, 'mt-0')}
                 checked={checkbox.checked}
                 disabled={confirming}
                 onChange={event => checkbox.onChange(event.target.checked)}

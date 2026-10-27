@@ -123,7 +123,8 @@ export function useReceivableFormActions({
       linkedDeleteQuestion(
         label,
         undoableDeleteMessage(`${label} با پرداخت‌هایش`),
-        receivableLinkedCount(item)
+        receivableLinkedCount(item),
+        'income'
       )
     )
 

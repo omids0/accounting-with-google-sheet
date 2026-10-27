@@ -78,6 +78,7 @@ export function useChecksData() {
     deleteErrorMessage: 'خطا در حذف چک',
     attachmentIds: item => item.attachments,
     linkedRecordCount: checkLinkedCount,
+    linkedRecordKind: checkRecordType,
     importExport: {
       exportFn: exportChecksCsv,
       exportPdfFn: exportChecksPdf,

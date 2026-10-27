@@ -175,7 +175,8 @@ export function useInstallmentFormActions({
       linkedDeleteQuestion(
         label,
         undoableDeleteMessage(`${label} با همهٔ قسط‌هایش`),
-        installmentPlanLinkedCount(plan)
+        installmentPlanLinkedCount(plan),
+        'expense'
       )
     )
 

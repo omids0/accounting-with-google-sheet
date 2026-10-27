@@ -131,7 +131,7 @@ async function fetchDashboardBundleUncached(
 
   const walletTotalNow = roundMoney(walletAccounts.reduce((s, a) => s + a.balance, 0))
 
-  // A period that has ended counts the wallet as it was at its end; the gap checks below stay on today's.
+  // A period that has ended counts the wallet as it was at its end.
   const { walletTotal, walletAsOf } = walletForPeriod(
     walletTotalNow,
     { incomeRecords, expenseRecords, incomeDateField, expenseDateField },
@@ -191,7 +191,9 @@ async function fetchDashboardBundleUncached(
 
   const periodBalance = roundMoney(openingBalance + totalIncome - totalExpense)
 
-  const reconciliationDiff = roundMoney(walletTotalNow - periodBalance)
+  // The closing balance is the period end's, so it meets the wallet at that end; a period that reaches
+  // today has `walletTotal === walletTotalNow`. The wallet page runs its own gap check on today's wallet.
+  const reconciliationDiff = roundMoney(walletTotal - periodBalance)
 
   const recent = buildRecentRecords(
     { records: filteredIncome, formName: incomeForm?.name ?? 'درآمد', dateField: incomeDateField },

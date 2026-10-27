@@ -106,7 +106,10 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
         onViewDueDates: () => nav().onTabChange('report-due-dates'),
         onViewRecords: () => nav().onOpenRecords(),
         onOpenCharts: () => nav().onTabChange('charts'),
-        onViewBreakdown: () => nav().onTabChange('report-assets-liabilities'),
+        onViewBreakdown: () => {
+          dashboard.handOffPeriodToReport()
+          nav().onTabChange('report-assets-liabilities')
+        },
         onShowPreviousMonth: dashboard.showPreviousMonth
       }}
     />
