@@ -1,4 +1,4 @@
-import { getSheetDataRows } from './spreadsheetStore'
+import { getSheetRowsView } from './spreadsheetStore'
 import { paidTotal } from '../utils/paymentLedger'
 
 /** The part of a payment (debt, receivable) that points at a record. */
@@ -42,18 +42,63 @@ export interface RecordLinkAdapter {
   onRecordUpdated(spreadsheetId: string, recordId: string, change: RecordChange): Promise<string[]>
 }
 
+type Rows = readonly (readonly string[])[]
+
+const ID_CHARS = /^[\w-]+$/
+
+const ID_TOKEN = /[\w-]+/g
+
+/**
+ * Token → the rows (indexes into the tab, header included) that contain it, built once per version
+ * of the tab: a write replaces the tab's array, so the array is the cache key. A queue build asks
+ * for thousands of records; a scan of every row per record made that quadratic.
+ */
+const tokenIndexes = new WeakMap<Rows, Map<string, number[]>>()
+
+function tokenIndex(rows: Rows): Map<string, number[]> {
+  const cached = tokenIndexes.get(rows)
+
+  if (cached) return cached
+
+  const index = new Map<string, number[]>()
+
+  rows.forEach((row, rowIndex) => {
+    for (const cell of row) {
+      for (const token of cell.match(ID_TOKEN) ?? []) {
+        const hits = index.get(token)
+
+        if (!hits) index.set(token, [rowIndex])
+        else if (hits[hits.length - 1] !== rowIndex) hits.push(rowIndex)
+      }
+    }
+  })
+  tokenIndexes.set(rows, index)
+
+  return index
+}
+
 /**
  * The rows of a tab that mention `recordId` in any cell, from the local mirror. A tab that is not
- * in the mirror (never created, or not synced) has none, and nothing is fetched.
+ * in the mirror (never created, or not synced) has none, and nothing is fetched. An id of plain id
+ * characters is looked up in the tab's token index; anything else falls back to a scan.
  */
 export function rowsMentioning(
   spreadsheetId: string,
   sheetName: string,
   recordId: string
 ): { row: string[]; rowNumber: number }[] {
-  return (getSheetDataRows(spreadsheetId, sheetName) ?? [])
-    .map((row, index) => ({ row, rowNumber: index + 2 }))
-    .filter(({ row }) => row.some(cell => cell.includes(recordId)))
+  const rows = getSheetRowsView(spreadsheetId, sheetName)
+
+  if (!rows || rows.length <= 1 || !recordId) return []
+
+  const hits = ID_CHARS.test(recordId)
+    ? tokenIndex(rows).get(recordId) ?? []
+    : rows.flatMap((row, index) => (row.some(cell => cell.includes(recordId)) ? [index] : []))
+
+  // Row 0 is the header; `rowNumber` is the 1-based sheet row, the first data row being 2.
+  return hits
+    .filter(index => index > 0)
+    .map(index => ({ row: [...rows[index]], rowNumber: index + 1 }))
 }
 
 export function linkedPaymentIds(payments: readonly LinkedPayment[], recordId: string): string[] {

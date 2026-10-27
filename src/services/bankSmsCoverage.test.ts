@@ -47,3 +47,48 @@ describe('smsCoverage', () => {
     expect(Object.keys(getBankSmsPrefs().smsCoverage)).toEqual(['new'])
   })
 })
+
+describe('closeAsRecorded (NEW2)', () => {
+  const leg = (id: string, amount = 10_000_000) => ({ sms: { id }, amount })
+  const pair = (debit: unknown, credit: unknown) =>
+    ({
+      kind: 'transfer',
+      debit: leg('d'),
+      credit: leg('c'),
+      duplicateLegs: { debit, credit }
+    } as never)
+
+  it('a transfer pair remembers each recorded leg as covering its record and closes both SMS', async () => {
+    const { closeAsRecorded } = await import('./bankSmsCoverage')
+
+    await closeAsRecorded(pair({ id: 'r1' }, { id: 'i1' }))
+    expect(smsCoverage().get('r1')).toBe(10_000_000)
+    expect(smsCoverage().get('i1')).toBe(10_000_000)
+    expect(dismissSms).toHaveBeenCalledTimes(2)
+  })
+
+  it('a leg without a record is only dismissed', async () => {
+    const { closeAsRecorded } = await import('./bankSmsCoverage')
+
+    await closeAsRecorded(pair({ id: 'r1' }, null))
+    expect(smsCoverage().size).toBe(1)
+    expect(dismissSms).toHaveBeenCalledWith(['c'])
+  })
+
+  it('a single SMS covers its matched record in full, or is just dismissed without one', async () => {
+    const { closeAsRecorded } = await import('./bankSmsCoverage')
+
+    await closeAsRecorded({
+      kind: 'single',
+      entry: { sms: { id: 's1' }, amount: 20 },
+      duplicateOf: { id: 'r9' }
+    } as never)
+    expect(smsCoverage().get('r9')).toBe(20)
+    await closeAsRecorded({
+      kind: 'single',
+      entry: { sms: { id: 's2' }, amount: 5 },
+      duplicateOf: null
+    } as never)
+    expect(dismissSms).toHaveBeenLastCalledWith(['s2'])
+  })
+})

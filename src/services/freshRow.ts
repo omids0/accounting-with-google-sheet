@@ -92,3 +92,38 @@ export async function refreshRowFromSheet(
     clearTimeout(timer)
   }
 }
+
+/**
+ * Does the sheet hold a row with this id right now? Reads only column A. `null` when that is not
+ * known (offline, a write to the tab still queued, a failed or slow read): the caller then decides
+ * from its local copy, as for `refreshRowFromSheet`.
+ */
+export async function sheetHasRowId(
+  spreadsheetId: string,
+  sheetName: string,
+  id: string
+): Promise<boolean | null> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return null
+  if (
+    getOutboxEntries(spreadsheetId).some(entry => sameTab(entry.operation.sheetName, sheetName))
+  ) {
+    return null
+  }
+
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  try {
+    const ids = await Promise.race([
+      fetchSheetRangeFromApi(spreadsheetId, sheetName, 'A:A'),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('slow read')), READ_TIMEOUT_MS)
+      })
+    ])
+
+    return ids.some((cells, index) => index > 0 && idOf(cells) === id)
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timer)
+  }
+}

@@ -59,7 +59,8 @@ export async function addDangPayment(
   if (payment.amount > remaining) {
     throw new DangPaymentError(
       `مبلغ پرداخت از باقی‌ماندهٔ بدهی (${formatMoney(remaining)}) بیشتر است.`,
-      'over-remaining'
+      'over-remaining',
+      remaining
     )
   }
 

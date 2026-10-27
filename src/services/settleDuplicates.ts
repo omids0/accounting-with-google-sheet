@@ -14,11 +14,14 @@ const SETTLEMENT_PREFIXES = [...DANG_BUILDING_PREFIXES, 'چک: ', 'قسط: ', '�
 /**
  * The record that probably already is this payment: same direction and exact amount within
  * ±3 days, not already tied to a settlement. A bank-SMS record wins, then the newest.
+ * `linkedIds` are the ids of the module being settled; `isLinked` asks EVERY module (a record
+ * linked to an installment must not be offered while paying a check or a debt).
  */
 export function findSettleDuplicate(
   candidate: DuplicateCandidate,
   ledger: LedgerEntry[],
-  linkedIds: Set<string>
+  linkedIds: Set<string>,
+  isLinked?: (entry: LedgerEntry) => boolean
 ): LedgerEntry | null {
   const rule = { dayTolerance: SETTLE_DUPLICATE_DAYS }
   const fromSms = (entry: LedgerEntry) => (entry.note === SMS_RECORD_NOTE ? 1 : 0)
@@ -29,6 +32,7 @@ export function findSettleDuplicate(
         entry =>
           matchesDuplicate(candidate, entry, rule) &&
           !(entry.id && linkedIds.has(entry.id)) &&
+          !isLinked?.(entry) &&
           !SETTLEMENT_PREFIXES.some(prefix => entry.title?.startsWith(prefix))
       )
       .sort(

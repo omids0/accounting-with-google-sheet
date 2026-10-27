@@ -7,11 +7,12 @@ import BankSmsMoreSheet from './BankSmsMoreSheet'
 import BankSmsTemplateSheet from './BankSmsTemplateSheet'
 import BankSmsUnitLine from './BankSmsUnitLine'
 import { useBankSmsLinkCard } from './useBankSmsLinkCard'
-import { smsRecordType, type BankSmsReview } from './useBankSmsReview'
+import type { BankSmsReview } from './useBankSmsReview'
 import { useBankSmsVehicleCard } from './useBankSmsVehicleCard'
 import {
-  initialSmsAccount,
+  initialCardAccount,
   resolveSmsAccount,
+  smsEntryType,
   type BankSmsReviewItem
 } from '../../services/bankSmsQueue'
 import { toPersianDigits } from '../../utils/normalizeDigits'
@@ -41,15 +42,18 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
   const { entry, probableDuplicate, duplicateMovedBalance, duplicatePayment, key } = item
   const { result } = entry
   const candidates = result.kind === 'ambiguous' ? result.candidates : []
-  const [accountId, setAccountId] = useState(() => initialSmsAccount(entry))
+  const [accountId, setAccountId] = useState(() => initialCardAccount(entry))
   const [menuOpen, setMenuOpen] = useState(false)
   const [rawOpen, setRawOpen] = useState(false)
   const [templateText, setTemplateText] = useState<string | null>(null)
   const resolved = useMemo(() => resolveSmsAccount(entry, accountId), [entry, accountId])
   const choice = resolved ? review.choiceFor(resolved) : null
-  const type = resolved ? smsRecordType(resolved) : 'expense'
+  // From the SMS direction, not the account: an ambiguous incoming SMS is an income already.
+  const type = smsEntryType(entry)
   const opposite = type === 'expense' ? 'income' : 'expense'
-  const busy = review.busyKey === key
+  // While ANY SMS action runs every card is disabled (visible feedback); only its card spins.
+  const mine = review.busyKey === key
+  const busy = review.busyKey !== null
   const titleOf = (id: string) =>
     review.accounts.find(account => account.id === id)?.title ?? 'حساب'
   const dismiss = () => review.dismiss(key, [entry.sms.id])
@@ -94,6 +98,8 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
     // A probable duplicate goes through the payment sheet, which offers to link the record.
     return probableDuplicate ? setPayOpen(true) : void review.payUnit(resolved, unit)
   }
+  // A swipe is a quick save: a link-target category still has to be asked first.
+  const swipe = () => (linkCard.active ? linkCard.quickSave() : primary())
   const canAct = !!resolved && (!offer || !!unit) && vehicleCard.ready && linkCard.ready
   // The wireframe's buttons: a card match keeps «فقط موجودی» (other income is in ⋯), a pick shows
   // «درآمد دیگر» (the balance-only action is in ⋯).
@@ -113,13 +119,17 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
         rightLabel={`✓ ${actionLabel}`}
         rightTone={type}
         leftLabel="نادیده"
-        onSwipeRight={canAct && !busy ? primary : undefined}
+        onSwipeRight={canAct && !busy ? swipe : undefined}
         onSwipeLeft={busy ? undefined : dismiss}
       >
         <Card className={smsQueueCardClass}>
           <BankSmsCardHead
             entry={entry}
-            accountTitle={titleOf(accountId)}
+            accountTitle={
+              accountId
+                ? titleOf(accountId)
+                : candidates.map(candidate => titleOf(candidate.accountId)).join(' یا ')
+            }
             rawOpen={rawOpen}
             badge={probableDuplicate && <BankSmsDuplicateBadge item={item} />}
           />
@@ -143,7 +153,9 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
                 onToggle={setAccountId}
               />
               <p className={smsHintClass}>
-                حساب را از روی پیامک حدس زدیم؛ اگر درست نیست عوضش کنید.
+                {accountId
+                  ? 'حساب این پیامک را خودتان انتخاب کردید؛ اگر درست نیست عوضش کنید.'
+                  : 'رقم کارت این پیامک به چند حساب می‌خورد؛ اول حساب را انتخاب کنید.'}
               </p>
             </>
           )}
@@ -167,7 +179,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
               amount={resolved.amount}
               vehicle={vehicleCard.active ? vehicleCard.vehicle : undefined}
               link={linkCard.active ? linkCard.link : undefined}
-              rootRef={vehicleCard.rootRef}
+              rootRef={vehicleCard.active ? vehicleCard.rootRef : linkCard.rootRef}
             />
           )}
 
@@ -176,7 +188,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
               <BankSmsSameButton
                 item={item}
                 busy={busy}
-                loading={busy && closing}
+                loading={mine && closing}
                 onClick={closeAsRecorded}
               />
             )}
@@ -185,7 +197,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
               size="sm"
               variant={duplicatePayment ? 'secondary' : type === 'expense' ? 'outflow' : 'inflow'}
               disabled={!canAct || busy}
-              loading={busy && !duplicatePayment}
+              loading={mine && !duplicatePayment}
               onClick={primary}
             >
               <AppIcon name="check" size={16} />

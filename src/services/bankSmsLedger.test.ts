@@ -69,6 +69,7 @@ describe('SMS balance moves in the ledger', () => {
       delta: -300,
       balanceAfter: 700,
       source: 'پیامک',
+      title: expect.stringMatching(/ — پیامک$/),
       applied: true
     })
   })

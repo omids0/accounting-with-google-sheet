@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { knownSubCategory } from './smsSubCategory'
@@ -21,7 +21,7 @@ import {
   type ConfirmableSms,
   type SmsRecordInput
 } from '../../services/bankSmsApply'
-import { coverSmsPart, smsCoverage } from '../../services/bankSmsCoverage'
+import { closeAsRecorded, smsCoverage } from '../../services/bankSmsCoverage'
 import { buildBankSmsEntryState, type BankSmsEntryOptions } from '../../services/bankSmsEntry'
 import { localLinkedRecords } from '../../services/bankSmsLinked'
 import { matchSms } from '../../services/bankSmsMatch'
@@ -39,6 +39,7 @@ import { getCurrency } from '../../utils/formatMoney'
 import { haptic } from '../../utils/haptics'
 import { isLinkTargetCategory } from '../../utils/linkTargetKinds'
 import { toPersianDigits } from '../../utils/normalizeDigits'
+import { createRunGuard } from '../../utils/runGuard'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { isVehicleExpenseCategory } from '../../utils/vehicleExpenseUtils'
@@ -47,6 +48,12 @@ import { VEHICLE_EXPENSE_CATEGORY } from '../vehicles/constants'
 
 /** The card's category: the suggestion, or what the user picked instead (no `source`). */
 export type SmsChoice = SmsCategoryChoice & Partial<Omit<SmsCategorySuggestion, 'category'>>
+
+/**
+ * Quiet time after an SMS action finished and the list shifted: a tap this soon cannot be an answer
+ * to the new list (nobody reacts to a change in 0.3 s), only the second half of a double tap.
+ */
+const LIST_SHIFT_QUIET_MS = 300
 
 export const smsRecordType = (entry: ConfirmableSms) =>
   entry.result.direction === 'debit' ? ('expense' as const) : ('income' as const)
@@ -62,6 +69,10 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
   const { accounts, ledger, recurring, reload: loadContext } = useBankSmsContext()
   const [noPair, setNoPair] = useState<ReadonlySet<string>>(new Set())
   const [busyKey, setBusyKey] = useState<string | null>(null)
+  // One save/close at a time (the other cards are shown disabled meanwhile), and none for 0.3 s
+  // after the list shifted: a double tap must not also close the next SMS that slides under the
+  // finger (the second tap has no undo).
+  const guard = useRef(createRunGuard(LIST_SHIFT_QUIET_MS)).current
   const [picked, setPicked] = useState<Record<string, SmsChoice>>({})
   const undoable = useUndoableDelete()
   const navigate = useNavigate()
@@ -99,7 +110,13 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     // and how much of each the SMS closed so far already covered.
     const linked = localLinkedRecords(reviewed, ledger)
 
-    return buildReviewItems(reviewed, ledger, noPair, linked, smsCoverage())
+    return buildReviewItems(
+      reviewed,
+      ledger,
+      noPair,
+      linked,
+      smsCoverage(Date.now(), new Set(reviewed.map(item => item.sms.id)))
+    )
   }, [pending, sinceMs, templates, accounts, currency, ledger, noPair])
   // The SMS waiting out its «نادیده» undo window is already gone from the list.
   const items = allItems.filter(item => item.key !== undoable.pendingId)
@@ -118,19 +135,21 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
 
     if (!spreadsheetId) return
 
-    setBusyKey(key)
-    try {
-      await task(spreadsheetId)
-      showSuccess(message)
-      haptic('light')
-    } catch (err) {
-      haptic('error')
-      handleSheetError(err, { fallbackMessage: 'خطا در ثبت تراکنش پیامکی' })
-    } finally {
-      // Also after a failure: part of the task may have been written already.
-      await Promise.all([refresh(), loadContext()])
-      setBusyKey(null)
-    }
+    await guard.run(async () => {
+      setBusyKey(key)
+      try {
+        await task(spreadsheetId)
+        showSuccess(message)
+        haptic('light')
+      } catch (err) {
+        haptic('error')
+        handleSheetError(err, { fallbackMessage: 'خطا در ثبت تراکنش پیامکی' })
+      } finally {
+        // Also after a failure: part of the task may have been written already.
+        await Promise.all([refresh(), loadContext()])
+        setBusyKey(null)
+      }
+    })
   }
 
   const record = (entry: ConfirmableSms, choice: SmsChoice): SmsRecordInput =>
@@ -243,19 +262,12 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     /** «قبلاً ثبت شده»: leaves the list at once, nothing else changes. */
     alreadyRecorded: (key: string, ids: string[]) =>
       run(key, 'از لیست خارج شد', () => dismissSms(ids)),
-    /**
-     * The main button of a card whose record exists: «همان است» (nothing else changes), or, when the
-     * SMS is a part of a bigger payment, «بخشی از آن است» (the same, and the part is remembered).
-     */
-    closeAsRecorded: (item: Extract<BankSmsReviewItem, { kind: 'single' }>) => {
-      const recordId = item.duplicateOf?.id
-      const { amount } = item.entry
-      const part = item.splitUncovered !== null && recordId && amount !== null
-
-      return run(item.key, 'از لیست خارج شد', () =>
-        part ? coverSmsPart(item.entry.sms.id, recordId, amount) : dismissSms([item.entry.sms.id])
-      )
-    },
+    /** «قبلاً ثبت شده» on a transfer pair (legs recorded by hand): both SMS leave, each leg covers its record. */
+    closeTransferAsRecorded: (item: Extract<BankSmsReviewItem, { kind: 'transfer' }>) =>
+      run(item.key, 'از لیست خارج شد', () => closeAsRecorded(item)),
+    /** The main button of a card whose record exists: the SMS leaves and stands for that record, whole or in part. */
+    closeAsRecorded: (item: Extract<BankSmsReviewItem, { kind: 'single' }>) =>
+      run(item.key, 'از لیست خارج شد', () => closeAsRecorded(item)),
     /** «نادیده» with a five-second «بازگردانی». */
     dismiss: (key: string, ids: string[]) =>
       void undoable.schedule({

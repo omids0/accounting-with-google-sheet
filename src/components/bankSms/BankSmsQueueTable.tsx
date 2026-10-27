@@ -27,6 +27,21 @@ type Row = {
   status: string
 }
 
+/** The account of a row; an SMS that fits several accounts names them all instead of guessing one. */
+function accountLabel(
+  item: Extract<BankSmsReviewItem, { kind: 'single' }>,
+  resolved: ReturnType<typeof resolveSmsAccount>,
+  titleOf: (id: string) => string
+): string {
+  const { result } = item.entry
+
+  if (result.kind === 'ambiguous') {
+    return `${result.candidates.map(candidate => titleOf(candidate.accountId)).join(' یا ')} ؟`
+  }
+
+  return resolved ? titleOf(resolved.result.accountId) : '—'
+}
+
 function toRow(item: BankSmsReviewItem, review: BankSmsReview): Row {
   const titleOf = (id: string) => review.accounts.find(account => account.id === id)?.title ?? '—'
 
@@ -37,7 +52,7 @@ function toRow(item: BankSmsReviewItem, review: BankSmsReview): Row {
       account: `${titleOf(item.debit.result.accountId)} ← ${titleOf(item.credit.result.accountId)}`,
       amount: item.debit.amount,
       category: 'انتقال داخلی',
-      status: ''
+      status: item.duplicateLegs.debit || item.duplicateLegs.credit ? 'تکراری؟' : ''
     }
   }
 
@@ -48,7 +63,7 @@ function toRow(item: BankSmsReviewItem, review: BankSmsReview): Row {
   return {
     item,
     receivedAt: item.entry.sms.receivedAt,
-    account: resolved ? titleOf(resolved.result.accountId) : '—',
+    account: accountLabel(item, resolved, titleOf),
     amount: resolved ? sign * resolved.amount : 0,
     category: item.entry.result.kind === 'unknown' ? 'ناشناخته' : choice?.category ?? '—',
     status: item.probableDuplicate ? smsDuplicateStatus(item) : ''
@@ -121,6 +136,9 @@ export default function BankSmsQueueTable({ review }: { review: BankSmsReview })
           const offer = resolved ? review.offerFor(resolved) : null
 
           const payment = item.kind === 'single' ? item.duplicatePayment : null
+          // Which account an SMS belongs to is the user's answer, never a guess saved on a click
+          // (saving would also teach the guessed card digits for good): the card asks.
+          const ambiguous = item.kind === 'single' && item.entry.result.kind === 'ambiguous'
 
           return (
             <>
@@ -135,16 +153,24 @@ export default function BankSmsQueueTable({ review }: { review: BankSmsReview })
                 <Button
                   type="button"
                   size="sm"
-                  variant={payment ? 'secondary' : row.amount < 0 ? 'outflow' : 'inflow'}
+                  variant={
+                    ambiguous || payment ? 'secondary' : row.amount < 0 ? 'outflow' : 'inflow'
+                  }
                   disabled={review.busyKey === item.key}
                   onClick={() =>
-                    // Which unit paid has to be picked on the card, in the side panel.
-                    offer?.kind === 'pick'
+                    // The account (or the unit that paid) is picked on the card, in the side panel.
+                    ambiguous || offer?.kind === 'pick'
                       ? setOpenKey(item.key)
                       : review.primary(resolved, item.probableDuplicate)
                   }
                 >
-                  {offer ? 'ثبت پرداخت' : row.amount < 0 ? 'ثبت هزینه' : 'ثبت درآمد'}
+                  {ambiguous
+                    ? 'انتخاب حساب'
+                    : offer
+                    ? 'ثبت پرداخت'
+                    : row.amount < 0
+                    ? 'ثبت هزینه'
+                    : 'ثبت درآمد'}
                 </Button>
               )}
               <Button

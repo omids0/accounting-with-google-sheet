@@ -31,6 +31,9 @@ interface SelectProps {
   invalid?: boolean
 }
 
+/** At least one touch target tall, growing with a two-line value (a fixed height clipped it). */
+const SELECT_GROWS_CLASS = 'h-auto min-h-touch-min py-1.5'
+
 export default function Select({
   value,
   onChange,
@@ -67,7 +70,8 @@ export default function Select({
         type="button"
         className={cn(
           customSelectTriggerClass,
-          customSelectTriggerStateClass({ open, compact, disabled, invalid })
+          customSelectTriggerStateClass({ open, compact, disabled, invalid }),
+          !compact && SELECT_GROWS_CLASS
         )}
         onClick={() => !disabled && listbox.toggle()}
         onKeyDown={event => !disabled && listbox.onTriggerKeyDown(event)}

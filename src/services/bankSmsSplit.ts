@@ -1,3 +1,4 @@
+import { SMS_RECORD_NOTE } from './bankSmsNote'
 import type { DuplicateCandidate, LedgerEntry } from './recordDuplicates'
 import { diffIsoDays } from '../utils/jalaliDate'
 import { roundMoney } from '../utils/roundMoney'
@@ -41,7 +42,8 @@ export function uncoveredOf(record: LedgerEntry, coverage: SmsCoverage): number 
 
 /**
  * The payment record a smaller SMS is probably a part of (one payment of 20M, two SMS of 10M):
- * same direction, within the payment window, linked to a debt/receivable, and its uncovered
+ * same direction, within the payment window, linked to a debt/receivable (not created from an
+ * SMS itself), and its uncovered
  * amount still holds the SMS. The closest fit (smallest sufficient uncovered amount) wins, then the
  * newest, then the id, so the choice never flips between renders.
  */
@@ -54,7 +56,8 @@ export function findSplitTarget(
   const targets = ledger.flatMap((record): SplitTarget[] => {
     const payment = record.id ? linked.get(record.id) : undefined
 
-    if (!payment || !record.date || !candidate.date) return []
+    // A record an SMS created is that SMS's own payment, never the bigger payment of a later one.
+    if (!payment || !record.date || !candidate.date || record.note === SMS_RECORD_NOTE) return []
     if (record.type !== candidate.type || !(record.amount > candidate.amount)) return []
     if (Math.abs(diffIsoDays(record.date, candidate.date)) > LINKED_PAYMENT_DAYS) return []
 

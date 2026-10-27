@@ -117,6 +117,11 @@ export function hasStoreData(spreadsheetId: string): boolean {
   return Object.keys(store.sheets).length > 0
 }
 
+/** Rows of a tab (header first), uncopied and read-only: a write replaces the array. */
+export function getSheetRowsView(id: string, tab: string): readonly (readonly string[])[] | null {
+  return getStore(id)?.sheets[tab] ?? null
+}
+
 export function getSheetAllRows(spreadsheetId: string, sheetName: string): string[][] | null {
   const rows = getStore(spreadsheetId)?.sheets[sheetName]
 

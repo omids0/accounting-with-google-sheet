@@ -1,7 +1,8 @@
 import { logRecordActivity } from './activityLog'
-import { SMS_RECORD_NOTE, type ConfirmableSms } from './bankSmsApply'
+import { leaveQueueAfterRecord, SMS_RECORD_NOTE, type ConfirmableSms } from './bankSmsApply'
+import { rememberSmsRecord } from './bankSmsCoverageStore'
 import { smsRecordDate } from './bankSmsDate'
-import { markBankSmsHandled } from './bankSmsNative'
+import { QueueNotLeftError } from './bankSmsQueueError'
 import { prepareEntryValues, settleEntryWallet } from './entryWallet'
 import { createManualVehicleExpense } from './vehicleExpenseActions'
 import {
@@ -51,13 +52,18 @@ export async function confirmSmsVehicleExpense(
     walletApply: String(values[WALLET_APPLY_FIELD_ID] ?? '')
   })
 
-  await markBankSmsHandled([entry.sms.id])
+  rememberSmsRecord(entry, recordId)
+  const queueError = await leaveQueueAfterRecord([entry.sms.id])
+
   logRecordActivity(spreadsheetId, 'create', recordId, values)
   // The expense exists and the SMS left the queue: say so instead of a generic failure, so the
   // user does not enter it again by hand.
-  await settleEntryWallet(spreadsheetId, 'expense', values, entry, recordId).catch(() => {
-    throw new Error('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد')
+  await settleEntryWallet(spreadsheetId, 'expense', values, entry, recordId).catch(err => {
+    throw err instanceof QueueNotLeftError
+      ? err
+      : new Error('رکورد ذخیره شد ولی موجودی حساب به‌روز نشد')
   })
+  if (queueError) throw queueError
 
   return recordId
 }

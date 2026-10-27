@@ -40,6 +40,15 @@ export function findLinkedItems(
   )
 }
 
+/**
+ * True when ANY module (debt or receivable payment, check, installment) has a payment pointing at
+ * the record. Personal books only (buildings and shared accounts keep their own flows), from the
+ * local mirror. Every writer that must not offer a settled record again asks this one function.
+ */
+export function isRecordLinked(spreadsheetId: string, recordId: string, type: RecordType): boolean {
+  return findLinkedItems(spreadsheetId, recordId, type).length > 0
+}
+
 /** Runs every adapter; one that fails is reported and never stops the others or the record operation. */
 async function runAdapters(
   spreadsheetId: string,

@@ -9,6 +9,7 @@ import {
   sortReceivables
 } from './receivablesRow'
 import { formatMoney } from '../utils/formatMoney'
+import { withoutRecordIds } from '../utils/importRecordIds'
 import { downloadTablePdf } from '../utils/pdf'
 import {
   formatReceivablePayments,
@@ -90,7 +91,7 @@ export async function importReceivablesCsv(spreadsheetId: string, csvContent: st
         amount,
         borrowDate,
         note: cells[7] ?? '',
-        payments: parsePayments(cells[8] ?? '')
+        payments: withoutRecordIds(parsePayments(cells[8] ?? ''))
       })
     }
   )

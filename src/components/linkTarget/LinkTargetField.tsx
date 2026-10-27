@@ -16,7 +16,8 @@ type LinkTargetFieldProps = {
  * (always through the lazy wrapper). «هیچ‌کدوم» is the default and leaves the record a plain one.
  */
 export default function LinkTargetField({ link, disabled = false }: LinkTargetFieldProps) {
-  const { kind, options, childOptions, loading, selectedId, childId, error, warning } = link
+  const { kind, options, childOptions, loading, expectEmpty, selectedId, childId, error, warning } =
+    link
 
   const selectOptions = useMemo<SelectOption[]>(
     () => [
@@ -42,9 +43,9 @@ export default function LinkTargetField({ link, disabled = false }: LinkTargetFi
 
   const empty = !loading && options.length === 0
 
-  // The second select is there from the start (disabled until a book is picked), so the form
-  // does not jump when the user picks one.
-  const showChild = Boolean(kind.childLabel) && !empty
+  // The second select is there from the start and stays (disabled until a book is picked): the form
+  // does not jump when the user picks one, nor shrink when nothing turns out to be open.
+  const showChild = Boolean(kind.childLabel)
 
   // One field in every state (reading, nothing open, items), so the form does not jump around.
   return (
@@ -53,7 +54,7 @@ export default function LinkTargetField({ link, disabled = false }: LinkTargetFi
         label={kind.fieldLabel}
         controlWidth="full"
         error={error || undefined}
-        hint={empty ? kind.emptyHint : undefined}
+        hint={empty || expectEmpty ? kind.emptyHint : undefined}
       >
         <Select
           value={selectedId}

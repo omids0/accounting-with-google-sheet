@@ -142,13 +142,13 @@ export default function DataEntryForm({
       ? vehicleExpense.buildVehicleExpenseInput(formValues)
       : null
     let recordId: string
-
     try {
       recordId = await writeEntryRecord(
         settings.spreadsheetId,
         activeForm,
         tick.mark(formValues),
-        vehicleInput
+        vehicleInput,
+        bankSms
       )
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })

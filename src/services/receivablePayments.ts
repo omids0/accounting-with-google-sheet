@@ -66,7 +66,8 @@ export async function addReceivablePayment(
   if (payment.amount > remaining) {
     throw new ReceivablePaymentError(
       `مبلغ دریافت از باقی‌ماندهٔ طلب (${formatMoney(remaining)}) بیشتر است.`,
-      'over-remaining'
+      'over-remaining',
+      remaining
     )
   }
 
