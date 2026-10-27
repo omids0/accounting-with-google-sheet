@@ -1,7 +1,9 @@
 import { settleBuildingEntry } from './buildingExpenseEntry'
 import type { LinkRecordInput } from '../../hooks/useLinkTarget'
 import { logRecordActivity } from '../../services/activityLog'
+import type { ConfirmableSms } from '../../services/bankSmsApply'
 import { QueueNotLeftError } from '../../services/bankSmsQueueError'
+import { liveRecordOfSms } from '../../services/bankSmsRecordOf'
 import { settleEntryWallet } from '../../services/entryWallet'
 import { linkSharedSave, takeSharedChoice } from '../../services/sharedLinkPrefs'
 import { appendRecord } from '../../services/sheets'
@@ -9,6 +11,17 @@ import { createManualVehicleExpense } from '../../services/vehicleExpenseActions
 import type { CustomForm } from '../../types'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { showError } from '../../utils/toast'
+
+/** The SMS was saved before and only failed to leave the queue: its record is there, a second one is not written. */
+async function assertSmsWithoutRecord(spreadsheetId: string, sms: ConfirmableSms) {
+  const type = sms.result.direction === 'debit' ? 'expense' : 'income'
+
+  if (await liveRecordOfSms(spreadsheetId, sms.sms.id, type)) {
+    throw new Error(
+      'این پیامک قبلاً یک رکورد ساخته است و فقط از صف بیرون نرفته. رکورد را در «رکوردها» ببین و پیامک را با «⋯ ← قبلاً ثبت شده» ببند؛ دوباره ثبتش نکن.'
+    )
+  }
+}
 
 type VehicleExpenseInput = Parameters<typeof createManualVehicleExpense>[1]
 
@@ -20,8 +33,12 @@ export async function writeEntryRecord(
   spreadsheetId: string,
   form: CustomForm,
   marked: Record<string, string | number>,
-  vehicleInput: VehicleExpenseInput | null
+  vehicleInput: VehicleExpenseInput | null,
+  /** The SMS the form was opened from: one that already has its live record never writes a second. */
+  bankSms?: ConfirmableSms
 ): Promise<string> {
+  if (bankSms) await assertSmsWithoutRecord(spreadsheetId, bankSms)
+
   // The shared tick's answer is never written; the copy follows the personal write.
   const { values, choice } = takeSharedChoice(marked)
   let recordId: string = crypto.randomUUID()
