@@ -3,6 +3,13 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 import type { LinkTargetItem } from '../services/linkPayment'
 import { getSettings, isConfigured } from '../services/settings'
 import {
+  CHECKS_SHEET,
+  DANG_SHEET,
+  INSTALLMENTS_SHEET,
+  RECEIVABLES_SHEET
+} from '../services/sheetNames'
+import { getSheetRowsView } from '../services/spreadsheetStore'
+import {
   childOption,
   itemOption,
   matchesRecordAmount,
@@ -10,7 +17,11 @@ import {
   type LinkTargetChildOption,
   type LinkTargetOption
 } from '../utils/linkTargetFit'
-import { linkTargetKindFor, type LinkTargetKind } from '../utils/linkTargetKinds'
+import {
+  linkTargetKindFor,
+  type LinkTargetKind,
+  type LinkTargetKindId
+} from '../utils/linkTargetKinds'
 import { parseNumeric } from '../utils/parseNumeric'
 import { roundMoney } from '../utils/roundMoney'
 import { shareInFlight } from '../utils/shareInFlight'
@@ -23,6 +34,21 @@ export type { LinkTargetChildOption, LinkTargetOption }
  * kind shows the «nothing open» hint from its first frame, so it does not grow when the read ends.
  */
 const lastEmpty = new Map<string, boolean>()
+
+/** The tab each kind lists from. A tab the local copy holds with no rows at all has nothing open. */
+const KIND_TAB: Record<LinkTargetKindId, string> = {
+  dang: DANG_SHEET,
+  receivable: RECEIVABLES_SHEET,
+  checkPaid: CHECKS_SHEET,
+  checkReceived: CHECKS_SHEET,
+  installment: INSTALLMENTS_SHEET
+}
+
+const mirrorTabIsEmpty = (spreadsheetId: string, kindId: LinkTargetKindId): boolean => {
+  const rows = getSheetRowsView(spreadsheetId, KIND_TAB[kindId])
+
+  return rows !== null && rows.length <= 1
+}
 
 /**
  * Bumped after any link is written: every picker on the page reads its list again, so a card does
@@ -79,7 +105,12 @@ export function useLinkTarget({
   const spreadsheetKey = getSettings()?.spreadsheetId ?? ''
   const loading =
     Boolean(kindId && spreadsheetKey && isConfigured()) && (fetching || loadedKind !== kindId)
-  const expectEmpty = loading && lastEmpty.get(`${spreadsheetKey}:${kindId}`) === true
+  // Known before the read: the last read of this kind found nothing, or its tab has no rows at all.
+  const expectEmpty =
+    loading &&
+    kindId !== null &&
+    (lastEmpty.get(`${spreadsheetKey}:${kindId}`) === true ||
+      mirrorTabIsEmpty(spreadsheetKey, kindId))
   const [selectedId, setSelectedId] = useState('')
   const [childPick, setChildPick] = useState('')
 

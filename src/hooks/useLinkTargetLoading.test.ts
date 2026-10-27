@@ -22,6 +22,7 @@ vi.mock('../services/linkPayment', () => ({
 vi.mock('../utils/toast', () => ({ showError: vi.fn(), showSuccess: vi.fn() }))
 
 const { useLinkTarget } = await import('./useLinkTarget')
+const { clearStore, setSheetAllRows } = await import('../services/spreadsheetStore')
 
 const frames: LinkTargetState[] = []
 
@@ -81,5 +82,26 @@ describe('the link picker is «loading» from its very first frame (no empty-sta
     await mount('بدهی')
     expect(frames[0].expectEmpty).toBe(true)
     expect(frames[0].loading).toBe(true)
+  })
+
+  it('N6: a kind whose tab has no rows in the local copy expects «nothing open» from the very first frame', async () => {
+    clearStore('sid-loading')
+    setSheetAllRows('sid-loading', 'دنگ', [['id', 'title']])
+    mocks.items = []
+    await mount('بدهی')
+    expect(frames[0].loading).toBe(true)
+    expect(frames[0].expectEmpty).toBe(true)
+  })
+
+  it('a tab with rows (or not in the local copy) does not promise an empty list', async () => {
+    clearStore('sid-loading')
+    setSheetAllRows('sid-loading', 'چک‌ها', [['id'], ['c1']])
+    mocks.items = [{ id: 'c1', title: 'چک', remaining: 10, category: '' }]
+    await mount('چک')
+    expect(frames[0].expectEmpty).toBe(false)
+    frames.length = 0
+    clearStore('sid-loading')
+    await mount('چک')
+    expect(frames[0].expectEmpty).toBe(false)
   })
 })
