@@ -109,3 +109,17 @@ describe('an own-account transfer pair whose legs the user already recorded', ()
     expect(single).toMatchObject({ probableDuplicate: false })
   })
 })
+
+describe('the next identical transfer after a pair closed as recorded (NEW2)', () => {
+  it('is a normal pair again: both legs are covered by the first pair', () => {
+    const records = [leg({ id: 'r1' }), leg({ id: 'i1', type: 'income', accountId: 'tejarat' })]
+    const coverage = new Map([
+      ['r1', 1_000_000],
+      ['i1', 1_000_000]
+    ])
+    const [item] = buildReviewItems(pair(), records, new Set(), undefined, coverage)
+
+    if (item.kind !== 'transfer') throw new Error('expected a transfer pair')
+    expect(item.duplicateLegs).toEqual({ debit: null, credit: null })
+  })
+})

@@ -1,6 +1,7 @@
 import { dismissSms } from './bankSmsApply'
 import { COVERAGE_KEEP_MS, writeSmsCoverage } from './bankSmsCoverageStore'
 import { getBankSmsPrefs, updateBankSmsPrefs } from './bankSmsPrefs'
+import type { BankSmsReviewItem } from './bankSmsQueue'
 import type { SmsCoverage } from './bankSmsSplit'
 import { roundMoney } from '../utils/roundMoney'
 
@@ -60,5 +61,33 @@ export async function coverSmsPart(
   } catch (err) {
     updateBankSmsPrefs({ smsCoverage: before })
     throw err
+  }
+}
+
+/**
+ * Closes a queue item the user says is already recorded. A single SMS stands for its matched record
+ * (the whole amount, or the part of a bigger payment) and is remembered as covering it, so no later
+ * SMS is taken for the same payment; a transfer pair does the same for each leg that has a record
+ * (a leg without one is just dismissed).
+ */
+export async function closeAsRecorded(item: BankSmsReviewItem): Promise<void> {
+  if (item.kind === 'transfer') {
+    for (const [leg, record] of [
+      [item.debit, item.duplicateLegs.debit],
+      [item.credit, item.duplicateLegs.credit]
+    ] as const) {
+      if (record?.id) await coverSmsPart(leg.sms.id, record.id, leg.amount)
+      else await dismissSms([leg.sms.id])
+    }
+
+    return
+  }
+
+  const { entry, duplicateOf } = item
+
+  if (duplicateOf?.id && entry.amount !== null) {
+    await coverSmsPart(entry.sms.id, duplicateOf.id, entry.amount)
+  } else {
+    await dismissSms([entry.sms.id])
   }
 }

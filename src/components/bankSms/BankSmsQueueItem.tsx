@@ -20,9 +20,7 @@ export default function BankSmsQueueItem({
         accounts={review.accounts}
         busy={review.busyKey === item.key}
         duplicateLegs={item.duplicateLegs}
-        onAlreadyRecorded={() =>
-          void review.alreadyRecorded(item.key, [item.debit.sms.id, item.credit.sms.id])
-        }
+        onAlreadyRecorded={() => void review.closeTransferAsRecorded(item)}
         onConfirm={() => void review.confirmTransfer(item.key, item.debit, item.credit)}
         onSplit={() => review.splitTransfer([item.debit.sms.id, item.credit.sms.id])}
       />

@@ -21,7 +21,7 @@ import {
   type ConfirmableSms,
   type SmsRecordInput
 } from '../../services/bankSmsApply'
-import { coverSmsPart, smsCoverage } from '../../services/bankSmsCoverage'
+import { closeAsRecorded, smsCoverage } from '../../services/bankSmsCoverage'
 import { buildBankSmsEntryState, type BankSmsEntryOptions } from '../../services/bankSmsEntry'
 import { localLinkedRecords } from '../../services/bankSmsLinked'
 import { matchSms } from '../../services/bankSmsMatch'
@@ -262,22 +262,12 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     /** «قبلاً ثبت شده»: leaves the list at once, nothing else changes. */
     alreadyRecorded: (key: string, ids: string[]) =>
       run(key, 'از لیست خارج شد', () => dismissSms(ids)),
-    /**
-     * The main button of a card whose record exists: «همان است» (nothing else changes), or, when the
-     * SMS is a part of a bigger payment, «بخشی از آن است» (the same, and the part is remembered).
-     */
-    closeAsRecorded: (item: Extract<BankSmsReviewItem, { kind: 'single' }>) => {
-      const recordId = item.duplicateOf?.id
-      const { amount } = item.entry
-
-      // The SMS stands for that record, a part of it or all of it: remembered, so no later SMS is
-      // taken for the same payment (one record, one SMS).
-      return run(item.key, 'از لیست خارج شد', () =>
-        recordId && amount !== null
-          ? coverSmsPart(item.entry.sms.id, recordId, amount)
-          : dismissSms([item.entry.sms.id])
-      )
-    },
+    /** «قبلاً ثبت شده» on a transfer pair (legs recorded by hand): both SMS leave, each leg covers its record. */
+    closeTransferAsRecorded: (item: Extract<BankSmsReviewItem, { kind: 'transfer' }>) =>
+      run(item.key, 'از لیست خارج شد', () => closeAsRecorded(item)),
+    /** The main button of a card whose record exists: the SMS leaves and stands for that record, whole or in part. */
+    closeAsRecorded: (item: Extract<BankSmsReviewItem, { kind: 'single' }>) =>
+      run(item.key, 'از لیست خارج شد', () => closeAsRecorded(item)),
     /** «نادیده» with a five-second «بازگردانی». */
     dismiss: (key: string, ids: string[]) =>
       void undoable.schedule({
