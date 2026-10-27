@@ -197,8 +197,12 @@ async function seedSheetStore(pg, tabs) {
 /** Same Android + BankSms plugin shim as .claude/skills/qa/scripts/qa-shoot.mjs. */
 async function installAndroidSmsBridge(pg, items) {
   await pg.addInitScript(pending => {
-    window.__qaSms = pending
-    window.__qaHandled = []
+    // A reload re-runs this script: keep ids the app already marked handled, like the real queue.
+    const key = '__qaHandledIds'
+    const done = JSON.parse(localStorage.getItem(key) ?? '[]')
+
+    window.__qaSms = pending.filter(item => !done.includes(item.id))
+    window.__qaHandled = [...done]
     window.androidBridge = { postMessage() {} }
     const methods = [
       'checkPermissions',
@@ -227,6 +231,7 @@ async function installAndroidSmsBridge(pg, items) {
         if (method === 'listInbox') return { items: window.__qaSms }
         if (method === 'markHandled') {
           window.__qaHandled.push(...options.ids)
+          localStorage.setItem(key, JSON.stringify(window.__qaHandled))
           window.__qaSms = window.__qaSms.filter(item => !options.ids.includes(item.id))
         }
         return {}
