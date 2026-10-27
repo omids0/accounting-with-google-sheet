@@ -20,6 +20,8 @@ import { pathToFileURL } from 'node:url'
 
 import { chromium } from '@playwright/test'
 
+import { createSheetsMock, installSheetsMock } from './sheetsMock.mjs'
+
 const args = parseArgs(process.argv.slice(2))
 const root = process.cwd()
 const port = Number(args.port ?? 4301)
@@ -45,8 +47,16 @@ const page = await context.newPage()
 page.setDefaultTimeout(6000)
 page.on('console', m => m.type() === 'error' && log.consoleErrors.push(m.text()))
 page.on('pageerror', e => log.pageErrors.push(String(e)))
+log.requests = []
+page.on('request', r => {
+  if (!/googleapis.com/.test(r.url()) || r.method() === 'GET') return
+  log.requests.push(`${r.method()} ${decodeURIComponent(r.url()).slice(0, 200)} ${(r.postData() ?? '').slice(0, 300)}`)
+})
 await mockGoogleApis(page)
-if (sheets) await mockSheetData(page, sheets)
+const seed = JSON.parse(readFileSync(resolve(root, 'e2e/helpers/mockAppSeed.json'), 'utf8'))
+const sheetsMock = createSheetsMock(sheets, Object.keys(seed.sheets))
+
+await installSheetsMock(page, sheetsMock)
 if (args.sms) await installAndroidSmsBridge(page, JSON.parse(readFileSync(resolve(args.sms), 'utf8')))
 await seedMockAppState(page)
 if (sheets) await seedSheetStore(page, sheets)
@@ -90,6 +100,9 @@ async function run(cmd) {
   else if (action === 'wait') await page.waitForTimeout(cmd.ms ?? 500)
   else if (action === 'eval') return { ok: true, result: await page.evaluate(cmd.js) }
   else if (action === 'text') return { ok: true, url: page.url(), text: await visibleText() }
+  else if (action === 'sheet')
+    return { ok: true, rows: (sheetsMock.tabs.get(cmd.title)?.rows ?? []).slice(-(cmd.n ?? 20)) }
+  else if (action === 'requests') return { ok: true, requests: log.requests.slice(-(cmd.n ?? 15)) }
   else if (action === 'close') return close()
   else if (action === 'shot') {
     const file = join(dir, `${String(++shots).padStart(2, '0')}-${cmd.name ?? 'screen'}.png`)
@@ -162,35 +175,6 @@ async function startPreview() {
   }
   child.kill()
   return fail(`vite preview did not start on ${previewPort}`)
-}
-
-async function mockSheetData(pg, tabs) {
-  const titleOf = range => decodeURIComponent(range).split('!')[0].replace(/^'|'$/g, '')
-
-  await pg.route('**/spreadsheets/*/values/**', async route => {
-    if (route.request().method() !== 'GET') return route.fallback()
-    const range = new URL(route.request().url()).pathname.split('/values/')[1] ?? ''
-
-    return route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ range, majorDimension: 'ROWS', values: tabs[titleOf(range)] ?? [] })
-    })
-  })
-  await pg.route('**/values:batchGet**', async route => {
-    const ranges = new URL(route.request().url()).searchParams.getAll('ranges')
-    const valueRanges = ranges.map(range => ({
-      range,
-      majorDimension: 'ROWS',
-      values: tabs[titleOf(range)] ?? []
-    }))
-
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ valueRanges })
-    })
-  })
 }
 
 async function seedSheetStore(pg, tabs) {
