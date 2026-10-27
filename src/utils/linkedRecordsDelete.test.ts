@@ -4,7 +4,8 @@ import {
   checkLinkedCount,
   dangLinkedCount,
   installmentPlanLinkedCount,
-  linkedRecordsMessage,
+  linkedDeleteQuestion,
+  linkedRecordsCheckboxLabel,
   receivableLinkedCount,
   shouldAskLinkedRecords
 } from './linkedRecordsDelete'
@@ -25,17 +26,30 @@ describe('linked records of an item about to be deleted', () => {
     expect(checkLinkedCount({ transactionRecordId: 'r' })).toBe(1)
   })
 
-  it('asks only when there is something to keep or delete', () => {
+  it('offers the checkbox only when there is something to keep or delete', () => {
     expect(shouldAskLinkedRecords(0)).toBe(false)
     expect(shouldAskLinkedRecords(2)).toBe(true)
   })
 
-  it('names the item, says how many records, and what deleting them does', () => {
-    const message = linkedRecordsMessage(3, 'طلب «وام»')
+  it('labels the checkbox with the number of records in Persian digits', () => {
+    expect(linkedRecordsCheckboxLabel(3)).toBe('رکوردهای مالی مرتبط (۳ مورد) هم حذف شوند')
+  })
 
-    expect(message).toContain('طلب «وام»')
-    expect(message).toContain('۳ رکورد مالی')
-    expect(message).toContain('کیف پول و رکوردها دیگر با هم نمی‌خوانند')
-    expect(message).toContain('✕')
+  it('has no checkbox for an item without records', () => {
+    const question = linkedDeleteQuestion('چک ۱۲', 'چک ۱۲ پاک می‌شود.', 0)
+
+    expect(question).toEqual({ label: 'چک ۱۲', message: 'چک ۱۲ پاک می‌شود.' })
+  })
+
+  it('adds an unchecked box and the reason the records stay by default', () => {
+    const question = linkedDeleteQuestion('طلب «وام»', 'طلب «وام» پاک می‌شود.', 3)
+
+    expect(question.checkbox).toEqual({
+      label: 'رکوردهای مالی مرتبط (۳ مورد) هم حذف شوند',
+      defaultChecked: false
+    })
+    expect(question.message).toContain('طلب «وام» پاک می‌شود.')
+    expect(question.message).toContain('می‌مانند')
+    expect(question.message).toContain('حساب ماه‌های قبل عوض می‌شود')
   })
 })

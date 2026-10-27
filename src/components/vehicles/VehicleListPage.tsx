@@ -163,6 +163,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
 
       <ConfirmDeleteModal
         open={data.deletingItem !== null}
+        title={`«${data.deletingItem?.title ?? ''}» حذف شود؟`}
         message="از حذف این خودرو مطمئن هستید؟"
         onClose={data.closeDeleteConfirm}
         onConfirm={data.handleDelete}

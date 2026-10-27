@@ -188,7 +188,8 @@ export default function CategoriesPage() {
 
       <ConfirmDeleteModal
         open={deleting != null}
-        message={`دسته «${deleting ?? ''}» حذف شود؟ رکوردی ندارد.`}
+        title={`دسته «${deleting ?? ''}» حذف شود؟`}
+        message="این دسته رکوردی ندارد و فقط از فهرست دسته‌ها پاک می‌شود."
         deleting={actions.busy}
         onClose={() => setDeleting(null)}
         onConfirm={() => {
