@@ -6,7 +6,7 @@
 // over HTTP; the reply is JSON. Run from the repo root after `npm run build`:
 //
 //   node docs/user-experience-sessions/driver.mjs --port 4301 --data data/mother.json \
-//        [--sms data/sms-mother.json] [--init data/init-mother.js] [--out dir] [--viewport 375x812] [--user mother]
+//        [--sms data/sms-mother.json] [--init data/init-mother.js] [--dark] [--out dir] [--viewport 375x812] [--user mother]
 //
 //   curl -s localhost:4301/do -d '{"action":"goto","path":"/"}'
 //
@@ -62,6 +62,14 @@ await seedMockAppState(page)
 if (sheets) await seedSheetStore(page, sheets)
 // Runs in the page before the app, after the seed: edits localStorage (settings, currency).
 if (args.init) await page.addInitScript({ path: resolve(args.init) })
+// The app takes its theme from the saved settings, not from the browser's colour scheme.
+if (args.dark) {
+  await page.addInitScript(() => {
+    const saved = JSON.parse(localStorage.getItem('accounting_settings') ?? '{}')
+
+    localStorage.setItem('accounting_settings', JSON.stringify({ ...saved, theme: 'dark' }))
+  })
+}
 
 let shots = 0
 const server = createServer(async (req, res) => {
