@@ -7,11 +7,12 @@ import BankSmsMoreSheet from './BankSmsMoreSheet'
 import BankSmsTemplateSheet from './BankSmsTemplateSheet'
 import BankSmsUnitLine from './BankSmsUnitLine'
 import { useBankSmsLinkCard } from './useBankSmsLinkCard'
-import { smsRecordType, type BankSmsReview } from './useBankSmsReview'
+import type { BankSmsReview } from './useBankSmsReview'
 import { useBankSmsVehicleCard } from './useBankSmsVehicleCard'
 import {
   initialCardAccount,
   resolveSmsAccount,
+  smsEntryType,
   type BankSmsReviewItem
 } from '../../services/bankSmsQueue'
 import { toPersianDigits } from '../../utils/normalizeDigits'
@@ -47,10 +48,10 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
   const [templateText, setTemplateText] = useState<string | null>(null)
   const resolved = useMemo(() => resolveSmsAccount(entry, accountId), [entry, accountId])
   const choice = resolved ? review.choiceFor(resolved) : null
-  const type = resolved ? smsRecordType(resolved) : 'expense'
+  // From the SMS direction, not the account: an ambiguous incoming SMS is an income already.
+  const type = smsEntryType(entry)
   const opposite = type === 'expense' ? 'income' : 'expense'
-  // While ANY SMS action runs every card is disabled (visible feedback: a tap on another card is not
-  // taken, and not swallowed silently); only the card that runs it shows the spinner.
+  // While ANY SMS action runs every card is disabled (visible feedback); only its card spins.
   const mine = review.busyKey === key
   const busy = review.busyKey !== null
   const titleOf = (id: string) =>

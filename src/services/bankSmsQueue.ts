@@ -21,7 +21,12 @@ export type { LedgerEntry } from './recordDuplicates'
 export { LINKED_PAYMENT_DAYS }
 export type { LinkedPaymentInfo, LinkedRecords, SmsCoverage }
 export { reviewSms } from './bankSmsReview'
-export { initialCardAccount, initialSmsAccount, resolveSmsAccount } from './bankSmsAccount'
+export {
+  initialCardAccount,
+  initialSmsAccount,
+  resolveSmsAccount,
+  smsEntryType
+} from './bankSmsAccount'
 export { nextAccountBalance, setsAbsoluteBalance, type AccountBalanceState } from './bankSmsBalance'
 
 /** Ordinary records match an SMS within a day. */

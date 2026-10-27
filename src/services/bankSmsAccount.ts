@@ -39,3 +39,15 @@ export function initialCardAccount(entry: ReviewedSms): string {
 
   return result.kind === 'ambiguous' && result.candidates.length > 1 ? '' : initialSmsAccount(entry)
 }
+
+/**
+ * Income or expense, from the direction the SMS itself reports. It does not wait for the account:
+ * an ambiguous incoming SMS is an income before any chip is tapped.
+ */
+export function smsEntryType(entry: ReviewedSms): 'income' | 'expense' {
+  const { result } = entry
+
+  return (result.kind === 'matched' || result.kind === 'ambiguous') && result.direction === 'credit'
+    ? 'income'
+    : 'expense'
+}

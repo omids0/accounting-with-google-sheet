@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { initialCardAccount, initialSmsAccount, resolveSmsAccount } from './bankSmsAccount'
+import {
+  initialCardAccount,
+  initialSmsAccount,
+  resolveSmsAccount,
+  smsEntryType
+} from './bankSmsAccount'
 import type { ReviewedSms } from './bankSmsQueue'
 
 const candidate = (accountId: string) => ({ accountId, templateId: `t-${accountId}` })
@@ -51,5 +56,20 @@ describe('the account a phone card starts on', () => {
       kind: 'matched',
       accountId: 'acc2'
     })
+  })
+})
+
+describe('the type of a card (NEW3)', () => {
+  const credit = (kind: 'matched' | 'ambiguous') =>
+    ({ result: { kind, direction: 'credit', candidates: [] } } as unknown as ReviewedSms)
+
+  it('an ambiguous incoming SMS is an income before any account is chosen', () => {
+    expect(smsEntryType(credit('ambiguous'))).toBe('income')
+    expect(smsEntryType(credit('matched'))).toBe('income')
+  })
+
+  it('a debit is an expense, ambiguous or not', () => {
+    expect(smsEntryType(ambiguous('acc1', 'acc2'))).toBe('expense')
+    expect(smsEntryType(matched)).toBe('expense')
   })
 })
