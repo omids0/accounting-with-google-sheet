@@ -1,6 +1,3 @@
-import { toAppCurrency } from './bankSmsAmount'
-import { matchSms, type LearnedSmsRefs } from './bankSmsMatch'
-import type { BankSmsItem } from './bankSmsNative'
 import { SMS_RECORD_NOTE } from './bankSmsNote'
 import {
   findSplitTarget,
@@ -11,16 +8,19 @@ import {
   uncoveredOf,
   type LinkedPaymentInfo,
   type LinkedRecords,
-  type SmsCoverage
+  type SmsCoverage,
+  type SplitTarget
 } from './bankSmsSplit'
 import { matchesDuplicate, type LedgerEntry } from './recordDuplicates'
-import type { CurrencyUnit, SmsMatchResult, SmsTemplate, WalletAccount } from '../types'
+import type { SmsMatchResult } from '../types'
+import type { BankSmsItem } from './bankSmsNative'
 import { toIsoDate } from '../utils/jalaliDate'
 import { roundMoney } from '../utils/roundMoney'
 
 export type { LedgerEntry } from './recordDuplicates'
 export { LINKED_PAYMENT_DAYS }
 export type { LinkedPaymentInfo, LinkedRecords, SmsCoverage }
+export { reviewSms } from './bankSmsReview'
 export { initialCardAccount, initialSmsAccount, resolveSmsAccount } from './bankSmsAccount'
 export { nextAccountBalance, setsAbsoluteBalance, type AccountBalanceState } from './bankSmsBalance'
 
@@ -72,34 +72,6 @@ export type BankSmsReviewItem =
 
 /** Debit and credit SMS of one own-account transfer arrive within this window. */
 export const TRANSFER_WINDOW_MS = 10 * 60 * 1000
-
-type MatchAccount = Pick<WalletAccount, 'id' | 'cardNumber' | 'accountNumber' | 'iban'>
-
-export function reviewSms(
-  items: BankSmsItem[],
-  templates: SmsTemplate[],
-  accounts: MatchAccount[],
-  currency: CurrencyUnit,
-  learned: LearnedSmsRefs = {}
-): ReviewedSms[] {
-  return [...items]
-    .sort((a, b) => a.receivedAt - b.receivedAt)
-    .map(sms => {
-      const result = matchSms(sms.body, templates, accounts, learned)
-      const values = result.kind === 'matched' || result.kind === 'ambiguous' ? result : null
-
-      return {
-        sms,
-        result,
-        amount: values ? toAppCurrency(values.amount, values.unit, currency) : null,
-        balance:
-          values && values.balance !== null
-            ? toAppCurrency(values.balance, values.unit, currency)
-            : null
-      }
-    })
-    .filter(entry => entry.result.kind !== 'irrelevant')
-}
 
 /** Matched to one account with an amount in app currency, so it can be written. */
 export function isConfirmable(entry: ReviewedSms): entry is ConfirmableSms {
@@ -212,6 +184,43 @@ export function buildReviewItems(
     if (record?.id) covered.set(record.id, roundMoney((covered.get(record.id) ?? 0) + amount))
   }
 
+  const deferred: { entry: ConfirmableSms; index: number }[] = []
+
+  const single = (
+    entry: ReviewedSms,
+    duplicates: LedgerEntry[],
+    split: SplitTarget | null,
+    exactLinked: LinkedRecords
+  ): BankSmsReviewItem => {
+    // A payment record is the better answer: it is what the card offers to close the SMS with.
+    const payments = duplicates.filter(
+      record => record.id && exactLinked.has(record.id) && record.note !== SMS_RECORD_NOTE
+    )
+    const duplicateOf = split?.record ?? newestRecord(payments.length ? payments : duplicates)
+
+    if (isConfirmable(entry)) consume(duplicateOf, entry.amount)
+
+    return {
+      kind: 'single',
+      key: entry.sms.id,
+      entry,
+      probableDuplicate: duplicates.length > 0 || split !== null,
+      // A record saved with «اثر بر موجودی» = خیر left the account alone. For a payment, only the
+      // payment record counts: another match must not speak for it.
+      duplicateMovedBalance:
+        isConfirmable(entry) &&
+        (split || payments.length ? [duplicateOf] : duplicates).some(
+          record => record?.accountId === entry.result.accountId && record.moved !== false
+        ),
+      duplicateOf,
+      duplicatePayment:
+        split?.payment ||
+        (payments.length && duplicateOf?.id && linked.get(duplicateOf.id)) ||
+        null,
+      splitUncovered: split?.uncovered ?? null
+    }
+  }
+
   for (const entry of entries) {
     if (paired.has(entry.sms.id)) continue
 
@@ -258,38 +267,18 @@ export function buildReviewItems(
     }
 
     const duplicates = findDuplicates(entry, ledger, exactLinked, covered)
-    // An exact match comes first; only without one can the SMS be a part of a bigger payment.
-    const split =
-      isConfirmable(entry) && !duplicates.length
-        ? findSplitTarget(smsDuplicateCandidate(entry), ledger, linked, covered)
-        : null
-    // A payment record is the better answer: it is what the card offers to close the SMS with.
-    const payments = duplicates.filter(
-      record => record.id && exactLinked.has(record.id) && record.note !== SMS_RECORD_NOTE
-    )
-    const duplicateOf = split?.record ?? newestRecord(payments.length ? payments : duplicates)
 
-    if (isConfirmable(entry)) consume(duplicateOf, entry.amount)
+    // Exact matches own their record first, in time order; an SMS without one waits for the second
+    // pass, where it can only be a part of what the exact matches left (an older part never takes
+    // the record from a newer SMS of the full amount).
+    if (!duplicates.length && isConfirmable(entry)) deferred.push({ entry, index: items.length })
+    items.push(single(entry, duplicates, null, exactLinked))
+  }
 
-    items.push({
-      kind: 'single',
-      key: entry.sms.id,
-      entry,
-      probableDuplicate: duplicates.length > 0 || split !== null,
-      // A record saved with «اثر بر موجودی» = خیر left the account alone. For a payment, only the
-      // payment record counts: another match must not speak for it.
-      duplicateMovedBalance:
-        isConfirmable(entry) &&
-        (split || payments.length ? [duplicateOf] : duplicates).some(
-          record => record?.accountId === entry.result.accountId && record.moved !== false
-        ),
-      duplicateOf,
-      duplicatePayment:
-        split?.payment ||
-        (payments.length && duplicateOf?.id && linked.get(duplicateOf.id)) ||
-        null,
-      splitUncovered: split?.uncovered ?? null
-    })
+  for (const { entry, index } of deferred) {
+    const split = findSplitTarget(smsDuplicateCandidate(entry), ledger, linked, covered)
+
+    if (split) items[index] = single(entry, [], split, linked)
   }
 
   return items
