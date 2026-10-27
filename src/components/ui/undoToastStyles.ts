@@ -9,9 +9,12 @@ export const undoToastClass = cx(
   'animate-[fadeInUp_var(--duration-normal)_var(--ease-out)] motion-reduce:animate-none'
 )
 
-/** Wraps to two lines (a long name must not hide «حذف شد»); the button beside it never shrinks. */
+/**
+ * Wraps to two lines (a long name must not hide «حذف شد»); the button beside it never shrinks.
+ * Spacing is margin, not padding: padding sits inside the clamped box and shows a third line.
+ */
 export const undoToastLabelClass =
-  'line-clamp-2 min-w-0 flex-1 break-words py-2 font-medium leading-[1.6]'
+  'my-2 line-clamp-2 min-w-0 flex-1 break-words font-medium leading-[1.6]'
 
 export const undoToastActionClass = cx(
   'inline-flex min-h-touch-min shrink-0 items-center rounded-[calc(var(--radius-sm)-2px)] border-none bg-transparent px-3',
