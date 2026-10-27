@@ -1,4 +1,5 @@
 import { dropSmsCoverage, recordOfSms } from './bankSmsCoverageStore'
+import { sheetHasRowId } from './freshRow'
 import { getSettings } from './settings'
 import { fetchRecords } from './sheets'
 
@@ -24,6 +25,11 @@ export async function liveRecordOfSms(
   const records = await fetchRecords(spreadsheetId, form).catch(() => null)
 
   if (!records || records.some(record => record.id === stored)) return stored
+
+  // Not in THIS tab's copy: another tab or device may have just written it, so the sheet is asked.
+  // Only a sheet that does hold it keeps the entry: when it cannot be read (offline, a delete still
+  // queued) the record is taken as deleted here, like the user who deleted it expects (N2).
+  if ((await sheetHasRowId(spreadsheetId, form.sheetName, stored)) === true) return stored
 
   dropSmsCoverage(smsId)
 
