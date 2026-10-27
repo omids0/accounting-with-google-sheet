@@ -1,51 +1,16 @@
 import { parseCreatedAtMs } from './recordDuplicates'
 import type { LedgerEntry } from './walletLedger'
+import { make, relevant, type Draft } from './walletTraceDraft'
+import { isSignificant, ledgerDelta, money, sumDelta } from './walletTraceRecords'
 import {
-  countsAfterOpening,
-  isSignificant,
-  ledgerDelta,
-  money,
-  sumDelta
-} from './walletTraceRecords'
-import type { TraceContext, TraceFinding, TraceKind } from './walletTraceTypes'
+  isTransferEntry,
+  orphanTransferFindings,
+  transferDraft,
+  transferRowExists
+} from './walletTraceTransfers'
+import type { TraceContext, TraceFinding } from './walletTraceTypes'
 import { roundMoney } from '../utils/roundMoney'
 import { normalizeSheetDate } from '../utils/sheetValues'
-
-/** Whether a history row belongs to the stretch the calculated balance covers. */
-function relevant(ctx: TraceContext, entry: LedgerEntry): boolean {
-  const { anchorStart, anchorWrittenAtMs } = ctx.input
-  const date = normalizeSheetDate(entry.date)
-  const created = parseCreatedAtMs(entry.createdAt)
-  const inRange =
-    (!!date && date >= anchorStart) ||
-    (created != null && anchorWrittenAtMs != null && created >= anchorWrittenAtMs)
-
-  return inRange && countsAfterOpening(ctx, entry)
-}
-
-interface Draft {
-  kind: TraceKind
-  id: string
-  suspect: boolean
-  likely: boolean
-  effect: number
-  title: string
-  detail: string
-  date: string
-  accountId?: string
-}
-
-function make(ctx: TraceContext, draft: Draft): TraceFinding {
-  const { suspect, likely, accountId, ...rest } = draft
-
-  return {
-    ...rest,
-    group: suspect ? 'suspect' : 'known',
-    certainty: likely ? 'likely' : 'exact',
-    accountId: accountId || undefined,
-    accountTitle: accountId ? ctx.accountTitles.get(accountId) : undefined
-  }
-}
 
 function entryDraft(ctx: TraceContext, entry: LedgerEntry): Draft {
   const account = ctx.accountTitles.get(entry.accountId) ?? 'حساب'
@@ -69,6 +34,8 @@ function entryDraft(ctx: TraceContext, entry: LedgerEntry): Draft {
       }؛ هزینه یا درآمد نیست ولی موجودی حساب را عوض می‌کند، پس محاسبه آن را نمی‌بیند.`
     }
   }
+
+  if (isTransferEntry(entry)) return transferDraft(ctx, entry)
 
   if (entry.source === 'اصلاح دستی') {
     return {
@@ -113,13 +80,20 @@ function entryDraft(ctx: TraceContext, entry: LedgerEntry): Draft {
 export function unlinkedFindings(ctx: TraceContext): TraceFinding[] {
   const findings: TraceFinding[] = []
   const orphans = new Map<string, LedgerEntry[]>()
+  const transferOrphans = new Map<string, LedgerEntry[]>()
 
   for (const entry of ctx.input.ledger) {
     if (!entry.applied || !entry.accountId) continue
     if (entry.recordId && ctx.recordIds.has(entry.recordId)) continue
     if (!relevant(ctx, entry)) continue
 
-    if (entry.recordId && entry.source !== 'goal-deposit') {
+    if (isTransferEntry(entry) && entry.recordId && !transferRowExists(ctx, entry)) {
+      const key = `${entry.recordId}:${entry.accountId}`
+
+      transferOrphans.set(key, [...(transferOrphans.get(key) ?? []), entry])
+      continue
+    }
+    if (entry.recordId && entry.source !== 'goal-deposit' && !isTransferEntry(entry)) {
       orphans.set(entry.recordId, [...(orphans.get(entry.recordId) ?? []), entry])
       continue
     }
@@ -150,7 +124,7 @@ export function unlinkedFindings(ctx: TraceContext): TraceFinding[] {
     )
   }
 
-  return findings
+  return [...findings, ...orphanTransferFindings(ctx, transferOrphans)]
 }
 
 /** Equal and opposite gaps of one account are two rows appended out of order, not a real change. */

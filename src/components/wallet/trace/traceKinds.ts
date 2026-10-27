@@ -17,6 +17,7 @@ export const TRACE_KIND_LABELS: Record<TraceKind, string> = {
   'manual-balance': 'ویرایش دستی',
   'initial-balance': 'حساب جدید',
   goal: 'هدف پس‌انداز',
+  transfer: 'انتقال بین حساب‌ها',
   plug: 'اصلاح قبلی'
 }
 
