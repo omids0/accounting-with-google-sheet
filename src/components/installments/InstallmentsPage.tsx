@@ -184,7 +184,6 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
 
       <ConfirmActionModal {...importExportConfirmModal} />
       <ConfirmActionModal {...mutations.attachmentQuestionModal} />
-      <ConfirmActionModal {...mutations.linkedRecordsModal} />
     </div>
   )
 }

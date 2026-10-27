@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { cn } from '../../utils/cn'
 import {
@@ -7,6 +7,7 @@ import {
   type RecordsDatePreset
 } from '../../utils/dateRange'
 import type { DateRange } from '../../utils/jalaliDate'
+import { clearReportPeriod, peekReportPeriod } from '../../utils/reportPeriodHandoff'
 import AppIcon from '../AppIcon'
 import DateRangeFilter, {
   createDefaultDateRangeFilter,
@@ -82,9 +83,20 @@ export default function ReportToolbar({
 }
 
 export function useReportDateFilter() {
-  const [datePreset, setDatePreset] = useState<RecordsDatePreset>('month-to-date')
+  // The page that opened the report may hand its period over (dashboard «جزئیات ←»).
+  const [handoff] = useState(peekReportPeriod)
 
-  const [customRange, setCustomRange] = useState(() => createDefaultDateRangeFilter().customRange)
+  useEffect(() => {
+    clearReportPeriod()
+  }, [])
+
+  const [datePreset, setDatePreset] = useState<RecordsDatePreset>(
+    () => handoff?.preset ?? 'month-to-date'
+  )
+
+  const [customRange, setCustomRange] = useState(
+    () => handoff?.customRange ?? createDefaultDateRangeFilter().customRange
+  )
 
   const handleDateFilterChange = useCallback((filter: AppliedDateRangeFilter) => {
     if (filter.preset === 'all') return

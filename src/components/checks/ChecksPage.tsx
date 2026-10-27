@@ -37,7 +37,6 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
     handleImport,
     importExportConfirmModal,
     attachmentQuestionModal,
-    linkedRecordsModal,
     settleFlow
   } = useChecksData()
 
@@ -190,7 +189,6 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
 
       <ConfirmActionModal {...importExportConfirmModal} />
       <ConfirmActionModal {...attachmentQuestionModal} />
-      <ConfirmActionModal {...linkedRecordsModal} />
       <SettleFlowModals flow={settleFlow} />
     </div>
   )

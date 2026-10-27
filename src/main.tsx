@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router'
 import App from './App'
 import PrivacyScreen from './components/appLock/PrivacyScreen'
 import AppToaster from './components/AppToaster'
+import ConfirmDeleteHost from './components/ConfirmDeleteHost'
 import { AppLoadingSkeleton } from './components/skeleton'
 import { initializeNativeGoogleAuth, isNativePlatform } from './services/googleAuthNative'
 import { APP_NAME, IS_DEV_ENV } from './utils/appEnv'
@@ -35,6 +36,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <App />
       </Suspense>
       <AppToaster />
+      <ConfirmDeleteHost />
       <PrivacyScreen />
     </BrowserRouter>
   </React.StrictMode>

@@ -12,7 +12,10 @@ interface SharedDeleteChoiceSheetProps {
   onAnswer: (answer: SharedDeleteAnswer | null) => void
 }
 
-/** «از هر دو حذف شود» or «فقط از حساب شخصی» (the copy stays, no longer linked); ✕ backs out. */
+/**
+ * «از هر دو حذف شود» (the quiet button) or «فقط از حساب شخصی» (the bright one: the copy stays, no
+ * longer linked); ✕ backs out.
+ */
 export default function SharedDeleteChoiceSheet({
   open,
   title,
@@ -24,6 +27,7 @@ export default function SharedDeleteChoiceSheet({
   return (
     <ConfirmActionModal
       open={open}
+      tone="danger"
       title="حذف ثبت"
       message={`«${
         title || 'این ثبت'

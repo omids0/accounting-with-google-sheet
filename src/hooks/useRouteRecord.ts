@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { useDataRefresh } from './useDataRefresh'
 import { getSettings } from '../services/settings'
 import { handleSheetError } from '../utils/sheetError'
 
@@ -9,17 +10,21 @@ import { handleSheetError } from '../utils/sheetError'
  *
  * `error` is true when the read failed (not when the id is unknown: then `record` is null and
  * `error` false), so a page can offer a retry instead of claiming the record does not exist.
- * `enabled: false` skips the read.
+ * `enabled: false` skips the read. `refreshOnDataChange` reads the record again, without the
+ * loading state, whenever the sheet's data changes (a balance moved from this very page).
  */
 export function useRouteRecord<T extends { id: string }>(
   id: string | undefined,
   fetchAll: (spreadsheetId: string) => Promise<T[]>,
-  enabled = true
+  enabled = true,
+  refreshOnDataChange = false
 ): { record: T | null; loading: boolean; error: boolean; retry: () => void } {
   const [record, setRecord] = useState<T | null>(null)
   const [loading, setLoading] = useState(enabled)
   const [error, setError] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  const revision = useDataRefresh()
+  const dataStamp = refreshOnDataChange ? revision : 0
 
   const retry = useCallback(() => {
     setLoading(true)
@@ -61,7 +66,7 @@ export function useRouteRecord<T extends { id: string }>(
     return () => {
       cancelled = true
     }
-  }, [id, fetchAll, enabled, attempt])
+  }, [id, fetchAll, enabled, attempt, dataStamp])
 
   return { record, loading, error, retry }
 }

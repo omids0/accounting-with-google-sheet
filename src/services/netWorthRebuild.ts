@@ -4,6 +4,7 @@ import { totalInstallmentsInRange } from './installmentsCalculations'
 import type { NetWorthSnapshot } from './netWorth'
 import type { MonthlyNetTotals } from './openingBalanceDerive'
 import { computeHoldings } from './treasuryHoldings'
+import { walletAtMonthEnd } from './walletAtDate'
 import type {
   Check,
   CheckDirection,
@@ -45,17 +46,6 @@ function isOnOrBefore(date: string, endIso: string): boolean {
 /** The day of a pass/pay stamp: an ISO date, or a Persian locale string whose day comes before the time. */
 function stampDay(stamp: string): string {
   return normalizeSheetDate(stamp.split(/[،,s]/)[0])
-}
-
-/** Wallet at the end of `monthKey`: today's balance minus the net of every later month. */
-function walletAt(input: NetWorthRebuildInput, monthKey: string): number {
-  let later = 0
-
-  for (const [key, totals] of input.monthlyNet) {
-    if (key > monthKey) later += totals.income - totals.expense
-  }
-
-  return input.walletTotal - later
 }
 
 /** Vault holdings bought by `endIso`, valued at today's prices. */
@@ -141,7 +131,7 @@ export function rebuildMonthValues(
   const vault = vaultAt(input, range.end)
   const { totalAssets, totalLiabilities, netAvailable } = applyNetAvailableConfig(
     {
-      walletTotal: walletAt(input, monthKey),
+      walletTotal: walletAtMonthEnd(input.walletTotal, input.monthlyNet, monthKey),
       treasuryTotal: vault + input.goalsTotal,
       goalsTotal: input.goalsTotal,
       receivablesTotal: receivablesAt(input.receivables, range.end),

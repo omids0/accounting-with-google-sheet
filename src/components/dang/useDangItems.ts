@@ -106,6 +106,7 @@ export function useDangItems() {
     deleteLabel: item => `بدهی «${item.title}»`,
     deleteErrorMessage: 'خطا در حذف بدهی',
     linkedRecordCount: dangLinkedCount,
+    linkedRecordKind: () => 'expense',
     onBeforeDelete: item => {
       if (expandedId === item.id) setExpandedId(null)
     },

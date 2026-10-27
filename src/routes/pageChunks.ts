@@ -121,6 +121,9 @@ export const loadWalletReconcilePage: PageLoader = () =>
 export const loadWalletTracePage: PageLoader = () =>
   import('../components/wallet/trace/WalletTracePage')
 
+export const loadWalletTransfersPage: PageLoader = () =>
+  import('../components/wallet/transfers/WalletTransfersPage')
+
 export const loadBuildingReportsPage: PageLoader = () =>
   import('../components/buildings/BuildingReportsPage')
 
@@ -198,6 +201,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'wallet-account-detail': loadWalletAccountDetailPage,
   'wallet-reconcile': loadWalletReconcilePage,
   'wallet-trace': loadWalletTracePage,
+  'wallet-transfers': loadWalletTransfersPage,
   'bank-sms': loadBankSmsPage,
   search: loadSearchPage,
   records: loadRecordsPage,

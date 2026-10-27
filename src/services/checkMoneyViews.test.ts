@@ -71,6 +71,13 @@ describe('net available with checks', () => {
     expect(selectedPartLabels(ALL_ON).assets).not.toContain('چک‌های دریافتی')
     expect(selectedPartLabels(ALL_ON).liabilities).toContain('چک‌های پرداختی')
   })
+
+  it('says which day the wallet is counted at when the period has ended', () => {
+    expect(selectedPartLabels(ALL_ON).assets).toContain('کیف پول')
+    expect(selectedPartLabels(ALL_ON, false, false, 'تا پایان مهر ۱۴۰۵').assets).toContain(
+      'کیف پول (تا پایان مهر ۱۴۰۵)'
+    )
+  })
 })
 
 describe('due items and reminders', () => {

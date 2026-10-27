@@ -13,6 +13,7 @@ import {
 import { getSettings } from '../../services/settings'
 import type { SmsTemplate } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { confirmDelete } from '../../utils/confirmDelete'
 import { haptic } from '../../utils/haptics'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
@@ -76,6 +77,14 @@ export function useSmsTemplates() {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
+
+    const confirmed = await confirmDelete({
+      label: 'قالب پیامک',
+      message:
+        'پیامک‌هایی به این شکل دیگر خودکار شناخته نمی‌شوند؛ هر وقت خواستی می‌توانی دوباره قالب بسازی.'
+    })
+
+    if (!confirmed) return
 
     try {
       await deleteSmsTemplate(spreadsheetId, template.rowNumber)

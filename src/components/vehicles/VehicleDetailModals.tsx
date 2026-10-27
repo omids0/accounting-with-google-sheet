@@ -3,7 +3,6 @@ import type {
   VehicleProfileWithRow,
   VehicleCompleteFormState,
   VehicleDeadlineFormState,
-  VehicleDeleteTarget,
   VehicleMechanicFormState,
   VehicleMileageFormState,
   VehiclePeriodicFormState
@@ -16,7 +15,6 @@ import {
   buildPeriodicInitialValues
 } from './vehicleDetailFormInitialValues'
 import type { DeadlineWithRow, PeriodicWithRow } from './vehicleDetailMutations'
-import VehicleItemDeleteModal from './VehicleItemDeleteModal'
 import VehicleMechanicFormModal from './VehicleMechanicFormModal'
 import VehicleMileageModal from './VehicleMileageModal'
 import VehiclePeriodicFormModal from './VehiclePeriodicFormModal'
@@ -39,9 +37,6 @@ type VehicleDetailModalsProps = {
   showMechanicForm: boolean
   showMileageModal: boolean
   saving: boolean
-  deletingTarget: VehicleDeleteTarget | null
-  deleteLinkedExpense: boolean
-  onDeleteLinkedExpenseChange: (value: boolean) => void
   exportConfirmModal: {
     open: boolean
     title: string
@@ -60,8 +55,6 @@ type VehicleDetailModalsProps = {
   onMechanicSubmit: (values: VehicleMechanicFormState) => void | Promise<void>
   onCloseMileageModal: () => void
   onMileageSubmit: (values: VehicleMileageFormState) => void | Promise<void>
-  onCloseDeleteTarget: () => void
-  onDelete: () => void
 }
 
 export default function VehicleDetailModals({
@@ -82,9 +75,6 @@ export default function VehicleDetailModals({
   showMechanicForm,
   showMileageModal,
   saving,
-  deletingTarget,
-  deleteLinkedExpense,
-  onDeleteLinkedExpenseChange,
   exportConfirmModal,
   onClosePeriodicForm,
   onPeriodicSubmit,
@@ -95,9 +85,7 @@ export default function VehicleDetailModals({
   onCloseMechanicForm,
   onMechanicSubmit,
   onCloseMileageModal,
-  onMileageSubmit,
-  onCloseDeleteTarget,
-  onDelete
+  onMileageSubmit
 }: VehicleDetailModalsProps) {
   const periodicInitialValues = buildPeriodicInitialValues(editingPeriodic, vehicle.mileage)
   const deadlineInitialValues = buildDeadlineInitialValues(editingDeadline)
@@ -155,15 +143,6 @@ export default function VehicleDetailModals({
         saving={saving}
         onClose={onCloseMileageModal}
         onSubmit={onMileageSubmit}
-      />
-
-      <VehicleItemDeleteModal
-        open={deletingTarget !== null}
-        target={deletingTarget}
-        deleteLinkedExpense={deleteLinkedExpense}
-        onDeleteLinkedExpenseChange={onDeleteLinkedExpenseChange}
-        onClose={onCloseDeleteTarget}
-        onConfirm={onDelete}
       />
 
       <ConfirmActionModal {...exportConfirmModal} />

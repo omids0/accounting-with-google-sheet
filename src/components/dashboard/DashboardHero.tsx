@@ -30,6 +30,8 @@ export interface DashboardHeroProps {
   periodNoun: string
   /** Set for a month period: «هزینه ماه ۱۲٪ کمتر از شهریور». */
   previousMonth?: PreviousMonthSummary
+  /** «تا پایان مهر ۱۴۰۵» — set when the period has ended and the wallet is its closing balance. */
+  asOfLabel?: string
   onConfigure?: () => void
   className?: string
 }
@@ -41,6 +43,7 @@ export default function DashboardHero({
   totalExpense,
   periodNoun,
   previousMonth,
+  asOfLabel,
   onConfigure,
   className
 }: DashboardHeroProps) {
@@ -61,7 +64,7 @@ export default function DashboardHero({
     <Card className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass, className)}>
       <div className={dashboardHeroHeaderClass}>
         <div className={dashboardHeroLabelClass}>
-          دارایی قابل اتکا
+          {asOfLabel ? `دارایی قابل اتکا · ${asOfLabel}` : 'دارایی قابل اتکا'}
           <HelpHint {...HELP_HINTS.netAvailable} />
         </div>
         {onConfigure && (

@@ -20,7 +20,7 @@ vi.mock('./paymentTransactions', () => ({
   createLinkedExpenseRecord: vi.fn(async () => 'rec-1'),
   createLinkedIncomeRecord: vi.fn(async () => 'rec-2')
 }))
-vi.mock('../utils/toast', () => ({ showError: vi.fn() }))
+vi.mock('../utils/toast', () => ({ showError: vi.fn(), showInfo: vi.fn() }))
 vi.mock('./wallet', async importOriginal => {
   const actual = await importOriginal<typeof WalletModule>()
 

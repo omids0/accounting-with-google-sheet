@@ -21,6 +21,7 @@ import {
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
@@ -71,16 +72,19 @@ export function usePersonalRemindersData() {
     void loadItems()
   }, [loadItems, dataRevision])
 
-  const requestDelete = (item: PersonalReminderWithRow) => {
+  const requestDelete = async (item: PersonalReminderWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
     const title = item.title.trim()
+    const label = title ? `یادآوری «${title}»` : 'یادآوری'
+
+    if (!(await confirmDelete({ label, message: undoableDeleteMessage(label) }))) return
 
     void undoableDelete.schedule({
       id: item.id,
-      label: title ? `یادآوری «${title}»` : 'یادآوری',
+      label,
       errorMessage: 'حذف ناموفق بود',
       commit: async () => {
         const current = itemsRef.current.find(entry => entry.id === item.id) ?? item

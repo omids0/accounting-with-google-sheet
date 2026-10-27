@@ -10,6 +10,7 @@ export function createPageSpeedDialActions({
   onImport,
   onExport,
   onExportPdf,
+  extraActions = [],
   readOnly = false
 }: {
   onAdd: () => void
@@ -21,6 +22,8 @@ export function createPageSpeedDialActions({
   onImport?: () => void
   onExport?: () => void
   onExportPdf?: () => void
+  /** Page-specific actions (e.g. the wallet's «انتقال»), placed right after «افزودن». */
+  extraActions?: PageSpeedDialAction[]
   /** A role that may only read (round 11): no add, no import. */
   readOnly?: boolean
 }): PageSpeedDialAction[] {
@@ -32,6 +35,7 @@ export function createPageSpeedDialActions({
       onClick: onAdd,
       headerLabel: `+ ${addLabel}`
     },
+    ...extraActions,
     {
       id: 'filter',
       label: 'فیلتر',

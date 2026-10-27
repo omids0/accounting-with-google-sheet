@@ -13,6 +13,7 @@ import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import { hasSharedAccount } from '../../services/workspace'
 import type { CustomForm } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 import { isLinked } from '../form/sharedFields'
 
 type UseRecordsDeleteOptions = {
@@ -21,7 +22,7 @@ type UseRecordsDeleteOptions = {
   loadRecords: () => Promise<void>
 }
 
-/** Deletes a record at once with a five-second «بازگردانی» window before the sheet write. */
+/** Deletes a record once confirmed, with a five-second «بازگردانی» window before the sheet write. */
 export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDeleteOptions) {
   const { schedule, visible, flush } = useUndoableDelete()
   // Rows shift after every delete (and may move to a yearly archive tab); the write
@@ -52,6 +53,12 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
 
       if (!spreadsheetId) return
 
+      const titleFieldId = getFormField(form, 'title')?.id
+      const title = titleFieldId ? String(record.values[titleFieldId] ?? '').trim() : ''
+      const label = title ? `تراکنش «${title}»` : 'تراکنش'
+
+      if (!(await confirmDelete({ label, message: undoableDeleteMessage(label) }))) return
+
       const answer = await ask(record.attachments ?? [])
 
       if (!answer) return
@@ -65,9 +72,6 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
         if (!(await askShares(unpaid))) return
       }
 
-      const titleFieldId = getFormField(form, 'title')?.id
-      const title = titleFieldId ? String(record.values[titleFieldId] ?? '').trim() : ''
-
       // A record with a copy in the shared account: from both, or from the personal one only.
       const sharedAnswer =
         isLinked(record.values) && hasSharedAccount() ? await askShared(title) : 'one'
@@ -76,7 +80,7 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
 
       void schedule({
         id: record.id,
-        label: title ? `تراکنش «${title}»` : 'تراکنش',
+        label,
         errorMessage: 'خطا در حذف تراکنش',
         commit: async () => {
           const current = recordsRef.current.find(item => item.id === record.id) ?? record

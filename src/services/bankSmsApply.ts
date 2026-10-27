@@ -1,9 +1,10 @@
+import { applyBalance } from './bankSmsApplyBalance'
 import { rememberSmsRecord } from './bankSmsCoverageStore'
 import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
 import { SMS_RECORD_NOTE } from './bankSmsNote'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
-import { nextAccountBalance, setsAbsoluteBalance, type ConfirmableSms } from './bankSmsQueue'
+import { type ConfirmableSms } from './bankSmsQueue'
 import { QueueNotLeftError } from './bankSmsQueueError'
 import { liveRecordOfSms } from './bankSmsRecordOf'
 import { smsSenderKey, type SmsCategoryChoice } from './bankSmsSuggest'
@@ -14,11 +15,8 @@ import {
   recordLedgerContext,
   type RecordWalletEffect
 } from './recordWallet'
-import { fetchWalletAccounts, updateWalletAccount } from './wallet'
-import { refreshWalletAccounts } from './walletFresh'
-import { ledgerEntry, logLedger, type LedgerContext } from './walletLedger'
+import { type LedgerContext } from './walletLedger'
 import { WALLET_APPLY_NO } from '../components/form/fieldUtils'
-import { roundMoney } from '../utils/roundMoney'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
 
@@ -61,65 +59,6 @@ export async function leaveQueueAfterRecord(ids: string[]): Promise<Error | null
   } catch {
     return new QueueNotLeftError()
   }
-}
-
-/** Title and record of the ledger row; the source is always «پیامک». */
-type SmsLedgerNote = { title?: string; recordId?: string }
-
-async function applyBalance(
-  spreadsheetId: string,
-  entry: ConfirmableSms,
-  note: SmsLedgerNote = {}
-): Promise<void> {
-  learnSmsRef(entry.result.ref, entry.result.accountId)
-
-  const accountId = entry.result.accountId
-  const state = getBankSmsPrefs().balanceStates[accountId] ?? {}
-  // Only an SMS «مانده» sets the balance. Any other SMS moves it by its amount, so it is added to
-  // the balance the sheet holds now and sent as a change another device's move survives. The row is
-  // read fresh for both, so the ledger line shows the real change, not one from an old local copy.
-  const absolute = setsAbsoluteBalance(entry.sms.receivedAt, entry.balance, state)
-
-  if ((await refreshWalletAccounts(spreadsheetId, [accountId])).size) return
-
-  const account = (await fetchWalletAccounts(spreadsheetId)).find(item => item.id === accountId)
-
-  if (!account) return
-
-  const prefs = getBankSmsPrefs()
-  const next = nextAccountBalance(
-    account.balance,
-    {
-      receivedAt: entry.sms.receivedAt,
-      direction: entry.result.direction,
-      amount: entry.amount
-    },
-    entry.balance,
-    prefs.balanceStates[account.id] ?? {}
-  )
-
-  if (!next) return
-
-  const changed = roundMoney(next.balance) !== roundMoney(account.balance)
-
-  if (changed) {
-    await updateWalletAccount(
-      spreadsheetId,
-      { ...account, balance: next.balance },
-      absolute ? undefined : { mergeBalance: true }
-    )
-  }
-  updateBankSmsPrefs({ balanceStates: { ...prefs.balanceStates, [account.id]: next.state } })
-  if (!changed) return
-
-  await logLedger(spreadsheetId, [
-    ledgerEntry(account.id, next.balance - account.balance, next.balance, {
-      title: note.title || `${account.title} — پیامک`,
-      date: smsRecordDate(entry.sms.body, entry.sms.receivedAt),
-      source: 'پیامک',
-      recordId: note.recordId
-    })
-  ])
 }
 
 /**
@@ -191,7 +130,8 @@ export async function confirmSmsEntryWithId(
   }
 
   if (!record) await markBankSmsHandled([entry.sms.id])
-  await applyBalance(spreadsheetId, entry, { title: record?.title, recordId })
+  // A balance-only confirm already ends with its own «موجودی به‌روز شد» toast: no second one.
+  await applyBalance(spreadsheetId, entry, { title: record?.title, recordId, quiet: !record })
   if (queueError) throw queueError
 
   return recordId

@@ -16,7 +16,11 @@ vi.mock('./sheets', async importOriginal => {
 
   return { ...actual, appendSheetRow: vi.fn(actual.appendSheetRow) }
 })
-vi.mock('../utils/toast', () => ({ showError: vi.fn(), showSuccess: vi.fn() }))
+vi.mock('../utils/toast', () => ({
+  showError: vi.fn(),
+  showInfo: vi.fn(),
+  showSuccess: vi.fn()
+}))
 
 const ID = 'record-wallet-ledger'
 

@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 
 import { removeParentAttachments, useAttachmentDeleteQuestion } from './useAttachmentDeleteQuestion'
-import { useLinkedRecordsDeleteQuestion } from './useLinkedRecordsDeleteQuestion'
 import { useSheetImportExport } from './useSheetImportExport'
 import { useUndoableDelete } from './useUndoableDelete'
 import { useSettleFlow } from '../components/settle/useSettleFlow'
@@ -10,6 +9,8 @@ import type { ImportPreview } from '../services/importExport'
 import type { SettleOptions, UnlinkChoice } from '../services/settleOptions'
 import { isLinkedForeignRecord, type SettlePrefix } from '../services/settleRecords'
 import { requireSpreadsheetId } from '../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../utils/confirmDelete'
+import { linkedDeleteQuestion, type LinkedRecordKind } from '../utils/linkedRecordsDelete'
 import { handleSheetError } from '../utils/sheetError'
 import { showSuccess } from '../utils/toast'
 
@@ -55,7 +56,7 @@ type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {
     spreadsheetId: string,
     rowNumber: number,
     item: T,
-    /** The answer to «رکوردهای مالی هم پاک شوند؟»: keep the records the item's payment made. */
+    /** The «رکوردهای مالی مرتبط هم حذف شوند» box left off: keep the records the item's payment made. */
     keepLinkedRecords?: boolean
   ) => Promise<void>
   sortItems: (items: T[]) => T[]
@@ -65,8 +66,10 @@ type UsePaidItemActionsOptions<T extends { id: string; rowNumber: number }> = {
   onBeforeDelete?: (item: T) => void
   /** Drive ids of an item's receipts: deleting it then asks «پیوست هم پاک شود؟». */
   attachmentIds?: (item: T) => readonly string[] | undefined
-  /** How many income/expense records the item made: deleting it then asks what to do with them. */
+  /** How many income/expense records the item made: the delete question then offers to delete them too. */
   linkedRecordCount?: (item: T) => number
+  /** Whether those records are income or expense (default: either), so the question names them truthfully. */
+  linkedRecordKind?: (item: T) => LinkedRecordKind
   importExport: ImportExportFns
 }
 
@@ -83,6 +86,7 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   onBeforeDelete,
   attachmentIds,
   linkedRecordCount,
+  linkedRecordKind,
   importExport
 }: UsePaidItemActionsOptions<T>) {
   const [togglingId, setTogglingId] = useState('')
@@ -162,7 +166,6 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
   itemsRef.current = items
 
   const attachmentQuestion = useAttachmentDeleteQuestion()
-  const linkedQuestion = useLinkedRecordsDeleteQuestion()
 
   const requestDelete = async (item: T) => {
     if (readOnly) return
@@ -171,22 +174,30 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
 
     if (!spreadsheetId) return
 
+    const label = deleteLabel(item)
+    const confirmed = await confirmDelete(
+      linkedDeleteQuestion(
+        label,
+        undoableDeleteMessage(label),
+        linkedRecordCount?.(item) ?? 0,
+        linkedRecordKind?.(item)
+      )
+    )
+
+    if (!confirmed) return
+
     const answer = await attachmentQuestion.ask(attachmentIds?.(item) ?? [])
 
     if (!answer) return
 
-    const linked = await linkedQuestion.ask(linkedRecordCount?.(item) ?? 0, deleteLabel(item))
-
-    if (!linked) return
-
     void undoableDelete.schedule({
       id: item.id,
-      label: deleteLabel(item),
+      label,
       errorMessage: deleteErrorMessage,
       commit: async () => {
         const current = itemsRef.current.find(entry => entry.id === item.id) ?? item
 
-        await deleteItem(spreadsheetId, current.rowNumber, current, linked === 'keep')
+        await deleteItem(spreadsheetId, current.rowNumber, current, !confirmed.checked)
         onBeforeDelete?.(current)
         void removeParentAttachments(attachmentIds?.(current), answer)
         await loadItems()
@@ -211,7 +222,6 @@ export function usePaidItemActions<T extends { id: string; rowNumber: number }>(
     handleImport,
     importExportConfirmModal,
     attachmentQuestionModal: attachmentQuestion.modalProps,
-    linkedRecordsModal: linkedQuestion.modalProps,
     settleFlow
   }
 }

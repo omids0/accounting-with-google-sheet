@@ -8,10 +8,10 @@ export function showSuccess(message: string) {
   toast.success(message)
 }
 
-/** Error toasts report failed saves and loads. */
-export function showError(message: string) {
+/** Error toasts report failed saves and loads; `duration` (ms) keeps one up longer than usual. */
+export function showError(message: string, duration?: number) {
   haptic('error')
-  toast.error(message)
+  toast.error(message, duration ? { duration } : undefined)
 }
 
 const SAVING_TOAST_ID = 'saving'

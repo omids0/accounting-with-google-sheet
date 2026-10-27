@@ -60,7 +60,6 @@ export default function DangPage({
     handleExportPdf,
     handleImport,
     importExportConfirmModal,
-    linkedRecordsModal,
     settleFlow
   } = useDangItems()
 
@@ -214,7 +213,6 @@ export default function DangPage({
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
-      <ConfirmActionModal {...linkedRecordsModal} />
       <SettleFlowModals flow={settleFlow} />
     </div>
   )

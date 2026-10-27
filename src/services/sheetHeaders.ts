@@ -217,6 +217,22 @@ export const TREASURY_ASSETS_HEADERS = [
   'فعال'
 ]
 
+/**
+ * One row per transfer between two of the user's own wallet accounts (accounts are stored by id).
+ * Not an income or an expense; its balance moves are the «گردش حساب» rows of kind `transfer`
+ * whose «شناسه رکورد» is this row's id. «ثبت‌کننده» is stamped on write (utils/writerColumn.ts).
+ */
+export const TRANSFERS_HEADERS = [
+  'شناسه',
+  'زمان ثبت',
+  'تاریخ',
+  'از حساب',
+  'به حساب',
+  'مبلغ',
+  'یادداشت',
+  'ثبت‌کننده'
+]
+
 /** Savings goals; deposits and withdrawals live in «گردش حساب» (kind `goal-deposit`). */
 export const TREASURY_GOALS_HEADERS = [
   'شناسه',

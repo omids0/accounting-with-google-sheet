@@ -1,4 +1,6 @@
 import type { MatchedSms } from './bankSmsQueue'
+import { formatSignedMoney } from '../utils/formatMoney'
+import { roundMoney } from '../utils/roundMoney'
 
 /** Per account: what the SMS confirmed so far already account for. */
 export interface AccountBalanceState {
@@ -47,4 +49,25 @@ export function nextAccountBalance(
   const delta = change.direction === 'debit' ? -change.amount : change.amount
 
   return { balance: current + delta, state: { anchor, lastAppliedAt: lastApplied } }
+}
+
+/**
+ * The notice for a balance that did not move by the SMS amount (it was set to the SMS «مانده»),
+ * or `null` when it moved by exactly that amount or did not change. `old` must be the balance the
+ * sheet holds now, so the figures in the text are the real change.
+ */
+export function balanceAdjustNotice(
+  old: number,
+  next: number,
+  smsAmount: number,
+  direction: MatchedSms['direction'],
+  title: string
+): string | null {
+  const moved = roundMoney(old + (direction === 'debit' ? -smsAmount : smsAmount))
+
+  if (roundMoney(next) === roundMoney(old) || roundMoney(next) === moved) return null
+
+  return `موجودی «${title}» از ${formatSignedMoney(old)} به ${formatSignedMoney(
+    next
+  )} تنظیم شد (مانده پیامک)`
 }

@@ -23,6 +23,7 @@ import {
 } from '../../services/sharedSettlement'
 import { fetchRecords } from '../../services/sheets'
 import type { CustomForm } from '../../types'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { isRecordForm, SHARED_CREATOR_FIELD_ID, SHARED_PAYER_FIELD_ID } from '../form/sharedFields'
@@ -220,7 +221,7 @@ export function useSharedRecords() {
     )
   }
 
-  const remove = (record: StoredRecord) => {
+  const remove = async (record: StoredRecord) => {
     const form = forms.find(item => item.id === record.formId)
 
     if (!form || !editable(record)) {
@@ -230,10 +231,17 @@ export function useSharedRecords() {
     }
 
     const title = String(record.values.title || record.values.category || '').trim()
+    const label = title ? `ثبت «${title}»` : 'ثبت'
+    const confirmed = await confirmDelete({
+      label,
+      message: undoableDeleteMessage(`${label} از حساب مشترک، برای همهٔ اعضا،`)
+    })
+
+    if (!confirmed) return
 
     void schedule({
       id: record.id,
-      label: title ? `ثبت «${title}»` : 'ثبت',
+      label,
       errorMessage: 'خطا در حذف ثبت',
       commit: async () => {
         const latest = latestRecord(rawRef.current, record.id)

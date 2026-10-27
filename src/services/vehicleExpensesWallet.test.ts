@@ -12,7 +12,7 @@ vi.mock('./paymentTransactions', () => ({
   deleteLinkedRecord: vi.fn()
 }))
 vi.mock('./settings', () => ({ getSettings: () => null, updateFormCategories: vi.fn() }))
-vi.mock('../utils/toast', () => ({ showError: vi.fn() }))
+vi.mock('../utils/toast', () => ({ showError: vi.fn(), showInfo: vi.fn() }))
 
 const ID = 'vehicle-wallet'
 

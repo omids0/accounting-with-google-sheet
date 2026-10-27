@@ -3,17 +3,22 @@ import { createRoot } from 'react-dom/client'
 import { describe, expect, it, vi } from 'vitest'
 
 import { useRouteRecord } from './useRouteRecord'
+import { bumpDataRevision } from '../services/dataRevision'
 
 vi.mock('../services/settings', () => ({ getSettings: () => ({ spreadsheetId: 's1' }) }))
 vi.mock('../utils/sheetError', () => ({ handleSheetError: vi.fn() }))
 
 type Result = ReturnType<typeof useRouteRecord<{ id: string }>>
 
-async function mount(fetchAll: () => Promise<{ id: string }[]>, enabled = true) {
+async function mount(
+  fetchAll: () => Promise<{ id: string }[]>,
+  enabled = true,
+  refreshOnDataChange = false
+) {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
   const holder: { result?: Result } = {}
   const Probe = () => {
-    holder.result = useRouteRecord('a', fetchAll, enabled)
+    holder.result = useRouteRecord('a', fetchAll, enabled, refreshOnDataChange)
 
     return null
   }
@@ -51,6 +56,20 @@ describe('useRouteRecord', () => {
 
     expect(result.record).toBeNull()
     expect(result.error).toBe(false)
+  })
+
+  it('reads again when the data changes, only if asked to', async () => {
+    const fetchAll = vi.fn(async () => [{ id: 'a' }])
+    const plain = await mount(fetchAll)
+    const watching = await mount(fetchAll, true, true)
+
+    expect(plain.result.record).toEqual({ id: 'a' })
+    fetchAll.mockClear()
+    await act(async () => bumpDataRevision())
+
+    // Only the watching mount (the plain one stays at one read).
+    expect(fetchAll).toHaveBeenCalledTimes(1)
+    expect(watching.result.loading).toBe(false)
   })
 
   it('does not read when disabled', async () => {

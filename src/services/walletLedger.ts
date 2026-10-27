@@ -10,7 +10,11 @@ import { showError } from '../utils/toast'
 /** One row per wallet balance change, with the balance right after it. */
 export { WALLET_LEDGER_SHEET, WALLET_LEDGER_HEADERS }
 
-/** `goal-deposit`: money moved into (or back out of) a savings goal; `recordId` is the goal. */
+/**
+ * `goal-deposit`: money moved into (or back out of) a savings goal; `recordId` is the goal.
+ * `transfer`: one leg of a move between two wallet accounts (or its reversal); `recordId` is the
+ * transfer row in «انتقال‌ها».
+ */
 export type LedgerSource =
   | 'ثبت'
   | 'ویرایش'
@@ -19,10 +23,13 @@ export type LedgerSource =
   | 'اصلاح دستی'
   | 'موجودی اولیه'
   | 'goal-deposit'
+  | 'transfer'
 
 /** How a source reads in the account history. */
 export function ledgerSourceLabel(source: LedgerSource): string {
-  return source === 'goal-deposit' ? 'هدف پس‌انداز' : source
+  if (source === 'goal-deposit') return 'هدف پس‌انداز'
+
+  return source === 'transfer' ? 'انتقال' : source
 }
 
 /** What caused a balance change, as shown in the account history. */

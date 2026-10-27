@@ -18,6 +18,7 @@ import {
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import { useReadOnly } from '../ui/readOnly'
 
@@ -63,7 +64,7 @@ export function useCounterpartiesData() {
     void loadItems()
   }, [loadItems, dataRevision])
 
-  const requestDelete = (item: CounterpartyWithRow) => {
+  const requestDelete = async (item: CounterpartyWithRow) => {
     if (readOnly) return
 
     const spreadsheetId = requireSpreadsheetId()
@@ -71,10 +72,13 @@ export function useCounterpartiesData() {
     if (!spreadsheetId) return
 
     const fullName = getCounterpartyFullName(item)
+    const label = fullName ? `طرف حساب «${fullName}»` : 'طرف حساب'
+
+    if (!(await confirmDelete({ label, message: undoableDeleteMessage(label) }))) return
 
     void undoableDelete.schedule({
       id: item.id,
-      label: fullName ? `طرف حساب «${fullName}»` : 'طرف حساب',
+      label,
       errorMessage: 'حذف ناموفق بود',
       commit: async () => {
         const current = itemsRef.current.find(entry => entry.id === item.id) ?? item

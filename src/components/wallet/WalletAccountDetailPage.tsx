@@ -1,3 +1,4 @@
+import TransferFormModal from './transfers/TransferFormModal'
 import type { WalletAccountWithRow } from './types'
 import { useWalletLedger } from './useWalletLedger'
 import { useWalletLedgerSpeedDial } from './useWalletLedgerSpeedDial'
@@ -18,7 +19,7 @@ export default function WalletAccountDetailPage({ account }: { account: WalletAc
   const { entries, loading, reload } = useWalletLedger(account.id)
   // Long histories (thousands of rows) show 50 at a time; the speed dial and balances keep all rows.
   const { visible, remaining, nextStep, showMore } = useIncrementalList(entries)
-  const { confirmModal, openEntry } = useWalletLedgerSpeedDial({
+  const { confirmModal, openEntry, transferModalProps } = useWalletLedgerSpeedDial({
     account,
     entries,
     loading,
@@ -58,6 +59,7 @@ export default function WalletAccountDetailPage({ account }: { account: WalletAc
         </Card>
       )}
 
+      <TransferFormModal {...transferModalProps} />
       <ConfirmActionModal {...confirmModal} />
     </div>
   )

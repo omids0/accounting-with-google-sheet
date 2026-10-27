@@ -9,6 +9,7 @@ import {
 } from '../../services/budgetsSheet'
 import { getSettings } from '../../services/settings'
 import { requireAuth } from '../../utils/authGuard'
+import { confirmDelete } from '../../utils/confirmDelete'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
@@ -89,6 +90,15 @@ export default function BudgetSheet({
     }
   }
 
+  const removeBudget = async (name: string) => {
+    const confirmed = await confirmDelete({
+      label: `بودجهٔ «${name}»`,
+      message: 'سقف ماهانهٔ این دسته برداشته می‌شود و هشدار بودجه‌اش دیگر نمی‌آید.'
+    })
+
+    if (confirmed) await run(id => deleteBudget(id, name), 'بودجه حذف شد', 0)
+  }
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!category) return
@@ -127,7 +137,7 @@ export default function BudgetSheet({
           size="sm"
           className="self-start"
           disabled={saving}
-          onClick={() => void run(id => deleteBudget(id, category), 'بودجه حذف شد', 0)}
+          onClick={() => void removeBudget(category)}
         >
           حذف بودجه
         </Button>
