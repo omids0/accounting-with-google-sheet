@@ -23,7 +23,13 @@ export const MENU_MONEY_LINKS: MenuLinkEntry[] = [
   {
     tab: 'wallet',
     icon: 'wallet',
-    activeTabs: ['wallet', 'wallet-account-detail', 'wallet-reconcile', 'wallet-trace']
+    activeTabs: [
+      'wallet',
+      'wallet-account-detail',
+      'wallet-reconcile',
+      'wallet-trace',
+      'wallet-transfers'
+    ]
   },
   { tab: 'records', icon: 'records' }
 ]

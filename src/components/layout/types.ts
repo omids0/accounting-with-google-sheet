@@ -21,6 +21,7 @@ export type Tab =
   | 'wallet-account-detail'
   | 'wallet-reconcile'
   | 'wallet-trace'
+  | 'wallet-transfers'
   | 'bank-sms'
   | 'search'
   | 'opening-balances'
@@ -79,19 +80,7 @@ export const CALCULATION_TABS: Tab[] = [
   'dang-split-detail'
 ]
 
-/** Pages under the wallet: the header back button returns to it. */
-export const WALLET_SUB_TABS: Tab[] = [
-  'opening-balances',
-  'wallet-account-detail',
-  'wallet-reconcile',
-  'wallet-trace'
-]
-
-export const DANG_SPLIT_TABS: Tab[] = ['dang-split', 'dang-split-detail']
-
-export const TIMESHEET_TABS: Tab[] = ['timesheets', 'timesheet-detail']
-
-export const VEHICLE_TABS: Tab[] = ['vehicle-service', 'vehicle-detail']
+export { DANG_SPLIT_TABS, TIMESHEET_TABS, VEHICLE_TABS, WALLET_SUB_TABS } from './tabGroups'
 
 export const REPORT_TABS: Tab[] = [
   'report-financial-summary',
@@ -183,6 +172,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   'wallet-account-detail': 'گردش حساب',
   'wallet-reconcile': 'تطبیق حساب',
   'wallet-trace': 'ردیاب اختلاف',
+  'wallet-transfers': 'انتقال‌ها',
   'bank-sms': 'پیامک‌های بانکی',
   search: 'جستجو',
   'opening-balances': 'موجودی اول دوره',
@@ -293,6 +283,7 @@ export const PERSONAL_ONLY_TABS: Tab[] = [
   'treasury',
   'wallet',
   'wallet-trace',
+  'wallet-transfers',
   'bank-sms',
   'timesheets',
   'timesheet-detail'

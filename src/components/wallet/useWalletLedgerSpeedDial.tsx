@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 
+import { useTransferModal } from './transfers/useTransferModal'
 import type { WalletAccountWithRow } from './types'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
@@ -9,6 +10,7 @@ import { buildEntryDraftState } from '../../services/entryDraft'
 import { isConfigured } from '../../services/settings'
 import type { LedgerEntry } from '../../services/walletLedger'
 import { exportLedgerCsv, exportLedgerPdf } from '../../services/walletLedgerExport'
+import AppIcon from '../AppIcon'
 import { WALLET_ACCOUNT_FIELD_ID } from '../form'
 import SpeedDialIcon from '../SpeedDialIcon'
 import {
@@ -20,7 +22,7 @@ import {
 
 /**
  * Account history actions: record income/expense on this account (back here after saving),
- * refresh, and export the history as CSV or PDF.
+ * move money out of it to another account («انتقال»), refresh, and export the history as CSV or PDF.
  */
 export function useWalletLedgerSpeedDial({
   account,
@@ -38,6 +40,8 @@ export function useWalletLedgerSpeedDial({
     exportFn: () => exportLedgerCsv(account.title, entries),
     exportPdfFn: () => exportLedgerPdf(account.title, entries)
   })
+
+  const { canTransfer, openTransfer, modalProps } = useTransferModal()
 
   const openEntry = useCallback(
     (formType: 'income' | 'expense') =>
@@ -67,6 +71,16 @@ export function useWalletLedgerSpeedDial({
           className: speedDialActionExpenseClass,
           onClick: () => openEntry('expense')
         },
+        ...(canTransfer
+          ? [
+              {
+                id: 'transfer',
+                label: 'انتقال',
+                icon: <AppIcon name="swap" size={18} />,
+                onClick: () => openTransfer(account.id)
+              }
+            ]
+          : []),
         {
           id: 'refresh',
           label: 'بروزرسانی',
@@ -90,9 +104,19 @@ export function useWalletLedgerSpeedDial({
         }
       ]
     }
-  }, [entries.length, handleExport, handleExportPdf, loading, openEntry, reload])
+  }, [
+    account.id,
+    canTransfer,
+    entries.length,
+    handleExport,
+    handleExportPdf,
+    loading,
+    openEntry,
+    openTransfer,
+    reload
+  ])
 
   useRegisterPageSpeedDial(config)
 
-  return { confirmModal: importExportConfirmModal, openEntry }
+  return { confirmModal: importExportConfirmModal, openEntry, transferModalProps: modalProps }
 }
