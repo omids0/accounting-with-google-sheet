@@ -38,6 +38,14 @@ dumpSms('sms-employee.json', employee.sms)
 dumpSms('sms-merchant.json', merchant.sms)
 dumpSms('sms-merchant-building.json', building.sms)
 
+// Role of each SMS in the «مانده» chain (recorded / pending / pending-off / redelivery); check.mjs reads it.
+const chain = { mother, employee, 'merchant-manager': merchant, 'merchant-building': building }
+const chainBody = Object.entries(chain)
+  .map(([name, x]) => `  ${JSON.stringify(name)}: [\n${x.meta.map(m => `    ${JSON.stringify(m)}`).join(',\n')}\n  ]`)
+  .join(',\n')
+
+writeFileSync(here('sms-balance-chain.json'), `{\n${chainBody}\n}\n`)
+
 // ---- init scripts for `qa-shoot.mjs --init`: they only edit localStorage, after the runner's seed.
 const SPREADSHEET_ID = 'mock-spreadsheet-perf-test' // e2e/helpers/mockAppSeed.json
 

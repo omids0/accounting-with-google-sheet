@@ -231,21 +231,34 @@ export function buildMother() {
 
   const sender = 'BMI'
 
-  const events = L.runningBalances(book, card, [
-    { day: ago(2), time: '17:41', verb: 'خرید', toman: 420000, delta: -420000, recorded: true },
-    { day: ago(1), time: '12:15', verb: 'خرید', toman: 1850000, delta: -1850000 },
-    { day: ago(0), time: '08:05', verb: 'واریز', toman: 38000000, delta: 38000000 },
-    { day: ago(5), time: '19:20', verb: 'برداشت', toman: 3000000, delta: -3000000 },
-    { day: ago(6), time: '09:00', verb: 'برداشت', toman: 2500, delta: -2500 }
-  ])
+  // «مانده» chain: see L.chainBalances. The allowance (newest pending) is the deliberate +1M case.
+  const events = L.chainBalances(
+    book,
+    card,
+    [
+      { day: ago(2), time: '17:41', verb: 'خرید', toman: 420000, delta: -420000, recorded: true },
+      { day: ago(2), time: '19:20', verb: 'برداشت', toman: 3000000, delta: -3000000 },
+      { day: ago(2), time: '19:21', verb: 'برداشت', toman: 2500, delta: -2500 }, // ATM fee
+      { day: ago(1), time: '12:15', verb: 'خرید', toman: 1850000, delta: -1850000 },
+      { day: ago(0), time: '08:05', verb: 'واریز', toman: 38000000, delta: 38000000 }
+    ],
+    { deliberateOff: 1000000 }
+  )
 
   const body = e =>
     F.melli(e.verb, { toman: e.toman, balance: e.balance, acct: card.acctNo, day: e.day, time: e.time })
 
   const swipe = events.find(e => e.toman === 1850000)
 
+  const meta = []
   const smsList = [
-    ...events.map(e => L.sms({ sender, day: e.day, time: e.time, body: body(e) })),
+    ...events.map(e => {
+      const item = L.sms({ sender, day: e.day, time: e.time, body: body(e) })
+
+      meta.push(L.chainMeta(item, e.status, { account: card.id, ...(e.off ? { offToman: e.off } : {}) }))
+
+      return item
+    }),
     // the same body again a minute later (double swipe): its own id so it stays a separate card
     L.sms({ sender, day: swipe.day, time: '12:16', body: body(swipe), idSalt: '#2' }),
     // marketing: not financial
@@ -259,5 +272,7 @@ export function buildMother() {
     })
   ].sort((a, b) => a.receivedAt - b.receivedAt)
 
-  return { data, sms: smsList, templates: templates.map(t => t.template), book, card, cash }
+  meta.push(L.chainMeta(L.sms({ sender, day: swipe.day, time: '12:16', body: body(swipe), idSalt: '#2' }), 'redelivery'))
+
+  return { data, sms: smsList, meta, templates: templates.map(t => t.template), book, card, cash }
 }

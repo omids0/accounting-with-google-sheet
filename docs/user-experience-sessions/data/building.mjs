@@ -309,20 +309,28 @@ export function buildBuilding() {
   const masked = p => `${cardOf(p).slice(0, 4)}***${cardOf(p).slice(-4)}`
   const unit = n => units.find(u => u.number === n)
 
-  const events = L.runningBalances(book, bank, [
-    // unit 5 paid Aban on the 26th and the income record exists -> SMS says «already recorded»
-    { day: ago(1), time: '09:31', verb: 'واریز', toman: 2400000, delta: 2400000, recorded: true, payer: debtorOf(unit('5')) },
-    // unit 4 owes Mehr (2.4M): card + amount fit
-    { day: ago(1), time: '16:45', verb: 'واریز', toman: 2400000, delta: 2400000, payer: debtorOf(unit('4')) },
-    // unit 7 (tenant) sends 2 months of charge at once
-    { day: ago(2), time: '12:10', verb: 'واریز', toman: 4800000, delta: 4800000, payer: debtorOf(unit('7')) },
-    // unit 11 pays exactly what is left of Mehr
-    { day: ago(0), time: '08:20', verb: 'واریز', toman: 1400000, delta: 1400000, payer: debtorOf(unit('11')) },
-    // a deposit from a card nobody saved: amount fits many units
-    { day: ago(3), time: '19:05', verb: 'واریز', toman: 2400000, delta: 2400000, payer: { accounts: [{ accountNumber: '5022291188776655' }] } },
-    // elevator service leaves the fund
-    { day: ago(0), time: '11:00', verb: 'برداشت', toman: 3500000, delta: -3500000 }
-  ])
+  // «مانده» chain: see L.chainBalances (every recorded SMS is older than every pending one, so the
+  // unknown-card and unit 7 deposits sit after unit 5's recorded one). The elevator debit (newest
+  // pending) is the deliberate +1M case.
+  const events = L.chainBalances(
+    book,
+    bank,
+    [
+      // unit 5 paid Aban on the 26th and the income record exists -> SMS says «already recorded»
+      { day: ago(1), time: '09:31', verb: 'واریز', toman: 2400000, delta: 2400000, recorded: true, payer: debtorOf(unit('5')) },
+      // a deposit from a card nobody saved: amount fits many units
+      { day: ago(1), time: '11:05', verb: 'واریز', toman: 2400000, delta: 2400000, payer: { accounts: [{ accountNumber: '5022291188776655' }] } },
+      // unit 7 (tenant) sends 2 months of charge at once
+      { day: ago(1), time: '13:10', verb: 'واریز', toman: 4800000, delta: 4800000, payer: debtorOf(unit('7')) },
+      // unit 4 owes Mehr (2.4M): card + amount fit
+      { day: ago(1), time: '16:45', verb: 'واریز', toman: 2400000, delta: 2400000, payer: debtorOf(unit('4')) },
+      // unit 11 pays exactly what is left of Mehr
+      { day: ago(0), time: '08:20', verb: 'واریز', toman: 1400000, delta: 1400000, payer: debtorOf(unit('11')) },
+      // elevator service leaves the fund
+      { day: ago(0), time: '11:00', verb: 'برداشت', toman: 3500000, delta: -3500000 }
+    ],
+    { deliberateOff: 1000000 }
+  )
 
   const bodyOf = e =>
     e.verb === 'واریز'
@@ -331,10 +339,21 @@ export function buildBuilding() {
 
   const first = events.find(e => e.payer === debtorOf(unit('4')))
 
+  const meta = []
+  const depositRepeat = L.sms({ sender: 'BMI', day: first.day, time: '16:46', body: bodyOf(first), idSalt: '#2' })
+
+  meta.push(L.chainMeta(depositRepeat, 'redelivery'))
+
   const smsList = [
-    ...events.map(e => L.sms({ sender: 'BMI', day: e.day, time: e.time, body: bodyOf(e) })),
+    ...events.map(e => {
+      const item = L.sms({ sender: 'BMI', day: e.day, time: e.time, body: bodyOf(e) })
+
+      meta.push(L.chainMeta(item, e.status, { account: bank.id, ...(e.off ? { offToman: e.off } : {}) }))
+
+      return item
+    }),
     // the same deposit SMS delivered a second time
-    L.sms({ sender: 'BMI', day: first.day, time: '16:46', body: bodyOf(first), idSalt: '#2' }),
+    depositRepeat,
     L.sms({ sender: 'BMI', day: ago(4), time: '10:00', body: F.promo('بانک ملی ایران') }),
     L.sms({ sender: '10009999', day: ago(6), time: '10:00', body: F.pasargadStyle({ toman: 2400000, balance: 8000000, acct: '205.8000.1234567.1', day: ago(6) }) })
   ].sort((a, b) => a.receivedAt - b.receivedAt)
@@ -354,5 +373,5 @@ export function buildBuilding() {
 
   data[L.names.SMS_TEMPLATES_SHEET] = [L.heads.SMS_TEMPLATES_HEADERS, ...templates.map(t => t.row)]
 
-  return { data, sms: smsList, templates: templates.map(t => t.template), book, bank, cash, units, people, profile }
+  return { data, sms: smsList, meta, templates: templates.map(t => t.template), book, bank, cash, units, people, profile }
 }

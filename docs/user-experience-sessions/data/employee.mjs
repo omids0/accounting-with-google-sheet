@@ -218,24 +218,41 @@ export function buildEmployee() {
   const melliOf = (verb, e) => F.melli(verb, { toman: e.toman, balance: e.balance, acct: A.acctNo, day: e.day, time: e.time })
   const mellatOf = (verb, e) => F.mellat(verb, { toman: e.toman, balance: e.balance, ref: '4567***1234', day: e.day, time: e.time })
 
-  const aEvents = L.runningBalances(book, A, [
-    { day: ago(6), time: '13:40', verb: 'خرید', toman: 540000, delta: -540000, recorded: true },
-    { day: ago(5), time: '08:10', verb: 'واریز', toman: 65000000, delta: 65000000, recorded: true },
-    { day: ago(1), time: '18:00', verb: 'برداشت', toman: 5000000, delta: -5000000 }, // transfer out, pending pair
-    { day: ago(1), time: '20:30', verb: 'خرید', toman: 2380000, delta: -2380000 },
-    { day: ago(0), time: '07:15', verb: 'برداشت', toman: 4350000, delta: -4350000 } // today's loan instalment
-  ])
+  // «مانده» chain: see L.chainBalances. Today's loan instalment (newest pending on A) is the
+  // deliberate +1M case; B's chain is exact.
+  const aEvents = L.chainBalances(
+    book,
+    A,
+    [
+      { day: ago(6), time: '13:40', verb: 'خرید', toman: 540000, delta: -540000, recorded: true },
+      { day: ago(5), time: '08:10', verb: 'واریز', toman: 65000000, delta: 65000000, recorded: true },
+      { day: ago(1), time: '18:00', verb: 'برداشت', toman: 5000000, delta: -5000000 }, // transfer out, pending pair
+      { day: ago(1), time: '20:30', verb: 'خرید', toman: 2380000, delta: -2380000 },
+      { day: ago(0), time: '07:15', verb: 'برداشت', toman: 4350000, delta: -4350000 } // today's loan instalment
+    ],
+    { deliberateOff: 1000000 }
+  )
 
-  const bEvents = L.runningBalances(book, B, [
+  const bEvents = L.chainBalances(book, B, [
     { day: ago(2), time: '06:30', verb: 'واریز', toman: 1230000, delta: 1230000 },
     { day: ago(1), time: '18:01', verb: 'واریز', toman: 5000000, delta: 5000000 } // transfer in, pending pair
   ])
 
+  const meta = []
+  const tracked = (account, item, e) => {
+    meta.push(L.chainMeta(item, e.status, { account: account.id, ...(e.off ? { offToman: e.off } : {}) }))
+
+    return item
+  }
+  const dinnerRepeat = L.sms({ sender: 'BMI', day: ago(1), time: '20:31', body: melliOf('خرید', aEvents.find(e => e.toman === 2380000)), idSalt: '#2' })
+
+  meta.push(L.chainMeta(dinnerRepeat, 'redelivery'))
+
   const smsList = [
-    ...aEvents.map(e => L.sms({ sender: 'BMI', day: e.day, time: e.time, body: melliOf(e.verb, e) })),
-    ...bEvents.map(e => L.sms({ sender: 'BankMellat', day: e.day, time: e.time, body: mellatOf(e.verb, e) })),
+    ...aEvents.map(e => tracked(A, L.sms({ sender: 'BMI', day: e.day, time: e.time, body: melliOf(e.verb, e) }), e)),
+    ...bEvents.map(e => tracked(B, L.sms({ sender: 'BankMellat', day: e.day, time: e.time, body: mellatOf(e.verb, e) }), e)),
     // same dinner body twice (double swipe)
-    L.sms({ sender: 'BMI', day: ago(1), time: '20:31', body: melliOf('خرید', aEvents.find(e => e.toman === 2380000)), idSalt: '#2' }),
+    dinnerRepeat,
     L.sms({ sender: 'BMI', day: ago(3), time: '10:00', body: F.promo('بانک ملی ایران') }),
     // a shape no template knows: unknown, can be taught
     L.sms({ sender: '10002040', day: ago(2), time: '15:30', body: F.posNotice({ shop: 'کافه نیلوفر', toman: 285000, cardTail: '3344', day: ago(2), time: '15:30' }) })
@@ -255,5 +272,5 @@ export function buildEmployee() {
 
   data[L.names.SMS_TEMPLATES_SHEET] = [L.heads.SMS_TEMPLATES_HEADERS, ...templates.map(t => t.row)]
 
-  return { data, sms: smsList, templates: templates.map(t => t.template), book, accounts: [A, B, C] }
+  return { data, sms: smsList, meta, templates: templates.map(t => t.template), book, accounts: [A, B, C] }
 }

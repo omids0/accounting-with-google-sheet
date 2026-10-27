@@ -18,6 +18,9 @@ const dup = await src('services/recordDuplicates.ts')
 const legacy = await src('services/legacyRowLayout.ts')
 const attachCol = await src('services/attachmentColumn.ts')
 const writerCol = await src('utils/writerColumn.ts')
+const smsBalance = await src('services/bankSmsBalance.ts')
+const smsReview = await src('services/bankSmsReview.ts')
+const chainFile = load('sms-balance-chain.json')
 
 let errors = 0
 let warnings = 0
@@ -297,7 +300,84 @@ for (const p of personas) {
 
   console.log(`  sms (${sms.length}): ${JSON.stringify(tally)}`)
 
-  // the amounts a bank prints are rial: matched SMS must be convertible and consistent with a record when the file says so
+  // ---- the «مانده» chain: confirming the pending SMS in order must move each balance by exactly the
+  // SMS amount (the app writes the SMS «مانده» when it is the newest one), but for the ONE declared
+  // deliberate exception per dataset (+1,000,000 toman) that makes the jump notice testable.
+  const metaById = new Map((chainFile[p.name] ?? []).map(m => [m.id, m]))
+  const reviewed = smsReview.reviewSms(sms, templates.filter(Boolean), smsAccounts, 'toman')
+  const matched = reviewed.filter(e => e.result.kind === 'matched' && e.amount !== null)
+  const byAccount = new Map()
+  const sameDay = (a, b) => Math.abs(Date.parse(a) - Date.parse(b)) <= 864e5
+
+  for (const id of metaById.keys()) if (!ids.has(id)) err(p.sms, `chain file names an unknown SMS ${id}`)
+
+  for (const e of matched) {
+    if (!metaById.has(e.sms.id)) err(p.sms, `matched SMS ${e.sms.id.slice(0, 8)} has no entry in sms-balance-chain.json`)
+    else byAccount.set(e.result.accountId, [...(byAccount.get(e.result.accountId) ?? []), e])
+    if (e.balance !== null && e.balance < 0) err(p.sms, `negative «مانده» printed in ${e.sms.id.slice(0, 8)}`)
+  }
+
+  let exceptions = 0
+  let chained = 0
+
+  for (const [accountId, list] of byAccount) {
+    const account = accounts.find(a => a[0] === accountId)
+    const name = account[2]
+    const wallet = parseNumeric(account[3])
+    const ordered = [...list].sort((a, b) => a.sms.receivedAt - b.sms.receivedAt)
+    const status = e => metaById.get(e.sms.id).status
+    const firstPending = ordered.findIndex(e => status(e) !== 'recorded')
+
+    if (firstPending >= 0 && ordered.slice(firstPending).some(e => status(e) === 'recorded')) err(p.sms, `«${name}»: a recorded SMS is newer than a pending one`)
+
+    const deltaOf = e => (e.result.direction === 'debit' ? -1 : 1) * e.amount
+    const pendingOnes = ordered.filter(x => ['pending', 'pending-off'].includes(status(x)))
+
+    // already recorded: «مانده» = what the account's ledger shows right after that very record
+    for (const e of ordered.filter(x => status(x) === 'recorded')) {
+      const date = L.smsDate.smsRecordDate(e.sms.body, e.sms.receivedAt)
+      const line = ledger.find(r => r[2] === accountId && sameDay(r[3], date) && Math.abs(parseNumeric(r[4]) - deltaOf(e)) < 0.5 && Math.abs(parseNumeric(r[5]) - e.balance) < 0.5)
+
+      if (!line) err(p.sms, `«${name}»: recorded SMS ${e.amount} on ${date} prints «مانده» ${e.balance}, no ledger line has that balance right after it`)
+    }
+
+    // pending (and re-delivered bodies), oldest first, through the app's own balance rule
+    let current = wallet
+    let state = {}
+
+    for (const e of ordered.slice(Math.max(firstPending, 0)).filter(x => firstPending >= 0)) {
+      const st = status(e)
+      const next = smsBalance.nextAccountBalance(current, { receivedAt: e.sms.receivedAt, direction: e.result.direction, amount: e.amount }, e.balance, state)
+      const label = `«${name}» ${e.result.direction} ${e.amount} (${e.sms.id.slice(0, 8)})`
+
+      if (!next) {
+        err(p.sms, `${label}: the app would ignore it as already included`)
+        continue
+      }
+
+      const off = st === 'pending-off' ? metaById.get(e.sms.id).offToman : 0
+      const expected = current + (st === 'redelivery' ? 0 : deltaOf(e)) + off
+
+      if (st === 'pending-off') exceptions += 1
+      if (Math.abs(next.balance - expected) > 0.5) err(p.sms, `${label}: balance would go ${current} -> ${next.balance}, expected ${expected}`)
+      if (st === 'pending' || st === 'pending-off') chained += 1
+      if (st === 'pending-off' && (off !== 1000000 || e !== pendingOnes.at(-1))) err(p.sms, `${label}: the deliberate exception must be +1,000,000 and the newest pending SMS of its account`)
+
+      current = next.balance
+      state = next.state
+    }
+  }
+
+  // a body delivered twice: the copy repeats its original's «مانده» (the chain above checks that confirming it does not move the balance)
+  for (const e of matched.filter(x => metaById.get(x.sms.id)?.status === 'redelivery')) {
+    const original = matched.find(o => o !== e && o.sms.body === e.sms.body)
+
+    if (!original || original.balance !== e.balance || original.sms.receivedAt >= e.sms.receivedAt) err(p.sms, `re-delivered ${e.sms.id.slice(0, 8)} must repeat its original's «مانده» and arrive after it`)
+  }
+
+  if (exceptions !== 1) err(p.sms, `expected exactly ONE deliberate «مانده» exception, found ${exceptions}`)
+  console.log(`  «مانده» chain: ${chained} pending SMS move their balance by exactly their amount (${exceptions} deliberate +1,000,000 exception)`)
+
   void warn
 }
 

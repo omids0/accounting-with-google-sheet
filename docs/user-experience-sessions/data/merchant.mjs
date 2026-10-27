@@ -235,25 +235,42 @@ export function buildMerchant() {
   const mellatOf = e => F.mellat(e.verb, { toman: e.toman, balance: e.balance, ref: '6104***0099', day: e.day, time: e.time })
   const melliOf = e => F.melli(e.verb, { toman: e.toman, balance: e.balance, acct: pers.acctNo, day: e.day, time: e.time })
 
-  const bizEvents = L.runningBalances(book, biz, [
-    { day: ago(1), time: '10:20', verb: 'برداشت', toman: 18500000, delta: -18500000 }, // = overdue check 4501234
-    { day: ago(2), time: '15:00', verb: 'واریز', toman: 9000000, delta: 9000000 }, // = what Mr Hosseini still owes
-    { day: ago(5), time: '12:05', verb: 'واریز', toman: cardSales[5].amount, delta: cardSales[5].amount, recorded: true },
-    { day: ago(0), time: '07:30', verb: 'برداشت', toman: 6800000, delta: -6800000 }, // = overdue instalment of the equipment plan
-    { day: ago(6), time: '16:01', verb: 'برداشت', toman: 30000000, delta: -30000000, recorded: true }
-  ])
+  // «مانده» chain: see L.chainBalances. The overdue instalment (newest pending on the shop
+  // account) is the deliberate +1M case; the personal account's chain is exact.
+  const bizEvents = L.chainBalances(
+    book,
+    biz,
+    [
+      { day: ago(1), time: '10:20', verb: 'برداشت', toman: 18500000, delta: -18500000 }, // = overdue check 4501234
+      { day: ago(2), time: '15:00', verb: 'واریز', toman: 9000000, delta: 9000000 }, // = what Mr Hosseini still owes
+      { day: ago(5), time: '12:05', verb: 'واریز', toman: cardSales[5].amount, delta: cardSales[5].amount, recorded: true },
+      { day: ago(0), time: '07:30', verb: 'برداشت', toman: 6800000, delta: -6800000 }, // = overdue instalment of the equipment plan
+      { day: ago(6), time: '16:01', verb: 'برداشت', toman: 30000000, delta: -30000000, recorded: true }
+    ],
+    { deliberateOff: 1000000 }
+  )
 
-  const persEvents = L.runningBalances(book, pers, [
+  const persEvents = L.chainBalances(book, pers, [
     { day: ago(6), time: '16:02', verb: 'واریز', toman: 30000000, delta: 30000000, recorded: true },
     { day: ago(2), time: '18:10', verb: 'خرید', toman: 1860000, delta: -1860000 }
   ])
 
   const overdueCheck = bizEvents.find(e => e.toman === 18500000)
 
+  const meta = []
+  const tracked = (account, item, e) => {
+    meta.push(L.chainMeta(item, e.status, { account: account.id, ...(e.off ? { offToman: e.off } : {}) }))
+
+    return item
+  }
+  const checkRepeat = L.sms({ sender: 'BankMellat', day: overdueCheck.day, time: '10:21', body: mellatOf(overdueCheck), idSalt: '#2' })
+
+  meta.push(L.chainMeta(checkRepeat, 'redelivery'))
+
   const smsList = [
-    ...bizEvents.map(e => L.sms({ sender: 'BankMellat', day: e.day, time: e.time, body: mellatOf(e) })),
-    ...persEvents.map(e => L.sms({ sender: 'BMI', day: e.day, time: e.time, body: melliOf(e) })),
-    L.sms({ sender: 'BankMellat', day: overdueCheck.day, time: '10:21', body: mellatOf(overdueCheck), idSalt: '#2' }),
+    ...bizEvents.map(e => tracked(biz, L.sms({ sender: 'BankMellat', day: e.day, time: e.time, body: mellatOf(e) }), e)),
+    ...persEvents.map(e => tracked(pers, L.sms({ sender: 'BMI', day: e.day, time: e.time, body: melliOf(e) }), e)),
+    checkRepeat,
     L.sms({ sender: 'BankMellat', day: ago(4), time: '10:00', body: F.promo('بانک ملت') }),
     L.sms({ sender: '10002040', day: ago(1), time: '13:30', body: F.posNotice({ shop: 'پخش آرمان', toman: 4200000, cardTail: '0099', day: ago(1), time: '13:30' }) })
   ].sort((a, b) => a.receivedAt - b.receivedAt)
@@ -272,5 +289,5 @@ export function buildMerchant() {
 
   data[L.names.SMS_TEMPLATES_SHEET] = [L.heads.SMS_TEMPLATES_HEADERS, ...templates.map(t => t.row)]
 
-  return { data, sms: smsList, templates: templates.map(t => t.template), book, accounts: [biz, pers, till] }
+  return { data, sms: smsList, meta, templates: templates.map(t => t.template), book, accounts: [biz, pers, till] }
 }
