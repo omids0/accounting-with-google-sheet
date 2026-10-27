@@ -6,7 +6,7 @@
 // over HTTP; the reply is JSON. Run from the repo root after `npm run build`:
 //
 //   node docs/user-experience-sessions/driver.mjs --port 4301 --data data/mother.json \
-//        [--sms data/sms-mother.json] [--out dir] [--viewport 375x812] [--user mother]
+//        [--sms data/sms-mother.json] [--init data/init-mother.js] [--out dir] [--viewport 375x812] [--user mother]
 //
 //   curl -s localhost:4301/do -d '{"action":"goto","path":"/"}'
 //
@@ -50,6 +50,8 @@ if (sheets) await mockSheetData(page, sheets)
 if (args.sms) await installAndroidSmsBridge(page, JSON.parse(readFileSync(resolve(args.sms), 'utf8')))
 await seedMockAppState(page)
 if (sheets) await seedSheetStore(page, sheets)
+// Runs in the page before the app, after the seed: edits localStorage (settings, currency).
+if (args.init) await page.addInitScript({ path: resolve(args.init) })
 
 let shots = 0
 const server = createServer(async (req, res) => {
@@ -70,7 +72,11 @@ async function run(cmd) {
   const { action } = cmd
   log.actions.push(cmd)
   if (action === 'goto') {
-    await page.goto(base + (cmd.path ?? '/'), { waitUntil: 'domcontentloaded' })
+    // Git Bash rewrites an argument like "/" into "C:/Program Files/Git/": undo that.
+    const raw = String(cmd.path ?? '/').replace(/^[A-Za-z]:[\\/].*?[\\/]Git(?=[\\/]|$)/, '')
+    const path = raw.startsWith('/') ? raw : `/${raw}`
+
+    await page.goto(base + path, { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(500)
     if (await page.getByText('VITE_GOOGLE_CLIENT_ID').count())
       return { ok: false, error: 'OAuth setup screen: .env missing at build time' }
