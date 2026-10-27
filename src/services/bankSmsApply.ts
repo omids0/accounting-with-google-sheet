@@ -114,7 +114,7 @@ async function applyBalance(
 
   await logLedger(spreadsheetId, [
     ledgerEntry(account.id, next.balance - account.balance, next.balance, {
-      title: note.title || `پیامک ${account.title}`,
+      title: note.title || `${account.title} — پیامک`,
       date: smsRecordDate(entry.sms.body, entry.sms.receivedAt),
       source: 'پیامک',
       recordId: note.recordId
