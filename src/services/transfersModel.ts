@@ -111,3 +111,20 @@ export function transferIsReversible(transfer: Transfer, accounts: WalletAccount
 
   return has(transfer.fromAccountId) && has(transfer.toAccountId)
 }
+
+/** The activity-feed line of a transfer: «انتقال X از «A» به «B» را ثبت کرد / حذف کرد». */
+export function transferActivitySummary(
+  verb: 'ثبت کرد' | 'حذف کرد',
+  amount: number,
+  fromTitle: string,
+  toTitle: string
+): string {
+  return `انتقال ${formatMoney(amount)} از «${fromTitle}» به «${toTitle}» را ${verb}`
+}
+
+/** Whether an activity-feed entry is a transfer between the user's own accounts. */
+export function isTransferActivity(event: { module: string; summary: string }): boolean {
+  return (
+    event.module === 'wallet' && /^انتقال .+ از «.*» به «.*» را (ثبت|حذف) کرد$/.test(event.summary)
+  )
+}

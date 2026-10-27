@@ -56,6 +56,7 @@ const { TRANSFERS_HEADERS, TRANSFERS_SHEET } = await import('./transfersModel')
 const { WALLET_HEADERS, WALLET_SHEET } = await import('./wallet')
 const { setSheetAllRows } = await import('./spreadsheetStore')
 const { setWorkspaceType } = await import('./workspace')
+const { isTransferInFlight } = await import('./transferInFlight')
 
 const ops = (sheetName: string) => opsOn(mocks.enqueue, sheetName)
 
@@ -83,6 +84,18 @@ describe('createTransfer', () => {
       date: '2026-07-01',
       note: 'قسط'
     })
+  })
+
+  it('is marked in flight while the balances move, and not afterwards', async () => {
+    const seen: boolean[] = []
+
+    mocks.enqueue.mockImplementation((_id: string, op: { sheetName: string }) => {
+      if (op.sheetName === WALLET_SHEET) seen.push(isTransferInFlight())
+    })
+    await createTransfer(input())
+
+    expect(seen).toEqual([true, true])
+    expect(isTransferInFlight()).toBe(false)
   })
 
   it('appends one transfer row with account ids', async () => {

@@ -65,7 +65,11 @@ export default function WalletTransfersPage() {
         <EmptyState
           icon="swap"
           message="هنوز انتقالی ثبت نشده"
-          description="پولی که بین حساب‌های خودت جابه‌جا می‌کنی، مثل برداشت از بانک برای کیف نقد، این‌جا می‌آید. درآمد یا هزینه حساب نمی‌شود."
+          description={
+            accounts.length < 2
+              ? 'برای انتقال حداقل دو حساب لازم است.'
+              : 'پولی که بین حساب‌های خودت جابه‌جا می‌کنی، مثل برداشت از بانک برای کیف نقد، این‌جا می‌آید. درآمد یا هزینه حساب نمی‌شود.'
+          }
           action={canTransfer ? { label: 'ثبت انتقال', onClick: () => openTransfer() } : undefined}
         />
       ) : (

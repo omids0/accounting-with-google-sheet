@@ -16,13 +16,13 @@ import {
   TRANSFERS_SHEET,
   rowToTransfer,
   sortTransfers,
+  transferActivitySummary,
   transferToRow,
   type Transfer
 } from './transfersModel'
 import { fetchWalletAccounts } from './wallet'
 import { refreshWalletAccounts } from './walletFresh'
 import { isPersonalWorkspace } from './workspace'
-import { formatMoney } from '../utils/formatMoney'
 import { validatePositiveAmount } from '../utils/formValidation'
 import { roundMoney } from '../utils/roundMoney'
 import { normalizeSheetDate } from '../utils/sheetValues'
@@ -88,10 +88,6 @@ async function removeRow(spreadsheetId: string, id: string): Promise<boolean> {
   await deleteSheetRow(spreadsheetId, TRANSFERS_SHEET, found.rowNumber)
 
   return true
-}
-
-function summaryOf(verb: string, transfer: Transfer, fromTitle: string, toTitle: string): string {
-  return `انتقال ${formatMoney(transfer.amount)} از «${fromTitle}» به «${toTitle}» را ${verb}`
 }
 
 /**
@@ -165,7 +161,7 @@ export async function createTransfer(input: CreateTransferInput): Promise<Transf
     action: 'create',
     module: 'wallet',
     itemId: transfer.id,
-    summary: summaryOf('ثبت کرد', transfer, from.title, to.title)
+    summary: transferActivitySummary('ثبت کرد', transfer.amount, from.title, to.title)
   })
 
   return transfer
@@ -236,9 +232,9 @@ export async function deleteTransfer(spreadsheetId: string, id: string): Promise
     action: 'delete',
     module: 'wallet',
     itemId: transfer.id,
-    summary: summaryOf(
+    summary: transferActivitySummary(
       'حذف کرد',
-      transfer,
+      transfer.amount,
       from?.title ?? DELETED_ACCOUNT_TITLE,
       to?.title ?? DELETED_ACCOUNT_TITLE
     )

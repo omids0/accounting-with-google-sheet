@@ -24,7 +24,8 @@ describe('transferDeleteQuestion', () => {
       account('b', 'نقد')
     ])
 
-    expect(label).toMatch(/^«انتقال .+ از ملی به نقد»$/)
+    expect(label).toMatch(/^«انتقال ملی به نقد»$/)
+    expect(label).not.toMatch(/[0-9۰-۹]/)
     expect(message).toContain('به «ملی» برمی‌گردد')
     expect(message).toContain('از «نقد» کم می‌شود')
   })

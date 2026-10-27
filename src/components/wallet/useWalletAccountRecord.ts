@@ -12,5 +12,6 @@ async function fetchAccounts(spreadsheetId: string): Promise<WalletAccountWithRo
  * and `error` is set when the read itself failed. `enabled: false` skips the read.
  */
 export function useWalletAccountRecord(accountId: string | undefined, enabled = true) {
-  return useRouteRecord(accountId, fetchAccounts, enabled)
+  // The balance on the card follows every change (a transfer started from this page, a delete).
+  return useRouteRecord(accountId, fetchAccounts, enabled, true)
 }

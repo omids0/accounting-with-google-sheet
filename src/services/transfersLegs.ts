@@ -1,4 +1,5 @@
 import { isAuthError } from './auth'
+import { whileTransferring } from './transferInFlight'
 import { fetchWalletAccounts, updateWalletAccount } from './wallet'
 import { refreshWalletAccounts } from './walletFresh'
 import { appendLedgerEntries, ledgerEntry } from './walletLedger'
@@ -119,11 +120,20 @@ async function undoLeg(
  * taken back as well as possible; `wasRolledBack(error)` tells whether that worked. An auth error is
  * rethrown with its own message so the caller can ask the user to sign in.
  */
-export async function applyLegs(
+export function applyLegs(
   spreadsheetId: string,
   legs: TransferLeg[],
   context: LegContext,
   known: FreshAccount[] = []
+): Promise<void> {
+  return whileTransferring(() => applyLegsNow(spreadsheetId, legs, context, known))
+}
+
+async function applyLegsNow(
+  spreadsheetId: string,
+  legs: TransferLeg[],
+  context: LegContext,
+  known: FreshAccount[]
 ): Promise<void> {
   const progress = legs.map<LegProgress>(() => ({ balance: false, ledger: false }))
 

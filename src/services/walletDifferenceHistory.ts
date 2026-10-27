@@ -1,4 +1,5 @@
 import { getItem, setItem } from './storage'
+import { isTransferInFlight } from './transferInFlight'
 import { roundMoney } from '../utils/roundMoney'
 
 /** Per spreadsheet, on this device: what the wallet difference was each time the app looked. */
@@ -44,6 +45,9 @@ export function recordDifference(
   snapshot: DifferenceSnapshot,
   history = readDifferenceHistory(spreadsheetId)
 ): void {
+  // Between the two balance moves of a transfer the difference is off by the amount: not a look.
+  if (isTransferInFlight()) return
+
   const last = history[history.length - 1]
 
   if (last && last.difference === snapshot.difference && snapshot.at - last.at < REPEAT_MS) return
@@ -76,4 +80,28 @@ export function lastDifferenceChange<T extends { at: number; difference: number 
   while (index > 0 && history[index - 1].difference === current) index -= 1
 
   return index > 0 ? { before: history[index - 1], after: history[index] } : null
+}
+
+/** A figure seen for a moment between two looks. */
+const BLIP_MS = 5 * 60 * 1000
+
+/**
+ * Drops a look whose difference is gone again at the next look within minutes (a balance read
+ * between the two moves of a transfer, or an edit undone at once): the difference did not
+ * really change in between, so it must not be told as «the difference grew by …».
+ */
+export function dropTransientLooks<T extends { at: number; difference: number }>(
+  history: T[]
+): T[] {
+  return history.filter((look, index) => {
+    const [before, after] = [history[index - 1], history[index + 1]]
+
+    return !(
+      before &&
+      after &&
+      before.difference === after.difference &&
+      look.difference !== before.difference &&
+      after.at - look.at <= BLIP_MS
+    )
+  })
 }

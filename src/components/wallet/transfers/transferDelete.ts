@@ -18,7 +18,8 @@ export function transferDeleteQuestion(
   const to = nameOf(transfer.toAccountId)
 
   return {
-    label: `«انتقال ${formatMoney(transfer.amount)} از ${from} به ${to}»`,
+    // Short: it becomes the dialog title («… حذف شود؟»); the amount is in the message.
+    label: `«انتقال ${from} به ${to}»`,
     message: transferIsReversible(transfer, accounts)
       ? `با حذف این انتقال، ${formatMoney(
           transfer.amount

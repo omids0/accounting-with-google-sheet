@@ -35,6 +35,7 @@ export default function WalletLedgerItem({
       meta={meta}
       tone={tone}
       index={index}
+      wrapTitle={isTransfer}
       className={cn(!entry.applied && 'opacity-60')}
       // A transfer row opens the list of transfers, where it can be seen whole and deleted.
       onOpen={isTransfer ? () => navigate(getPathForTab('wallet-transfers')) : undefined}

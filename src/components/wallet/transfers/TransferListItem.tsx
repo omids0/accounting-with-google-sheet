@@ -20,7 +20,7 @@ export default function TransferListItem({
   const { title, subtitle } = describeTransfer(transfer, accounts)
 
   return (
-    <TransactionListItem title={title} meta={subtitle} index={index}>
+    <TransactionListItem title={title} meta={subtitle} index={index} wrapTitle>
       <CardDeleteButton itemLabel={title} disabled={deleting} onClick={() => onDelete(transfer)} />
     </TransactionListItem>
   )
