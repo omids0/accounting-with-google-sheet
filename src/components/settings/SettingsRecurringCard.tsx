@@ -138,9 +138,8 @@ export default function SettingsRecurringCard() {
       />
       <ConfirmDeleteModal
         open={!!deleting}
-        message={`تکرار «${
-          deleting?.title || deleting?.category || ''
-        }» حذف شود؟ رکوردهای ثبت‌شده می‌مانند.`}
+        title={`تکرار «${deleting?.title || deleting?.category || ''}» حذف شود؟`}
+        message="رکوردهایی که تا حالا از این تکرار ثبت شده‌اند می‌مانند."
         deleting={saving}
         onClose={() => setDeleting(null)}
         onConfirm={() =>

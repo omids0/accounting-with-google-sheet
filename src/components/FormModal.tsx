@@ -37,6 +37,8 @@ type FormModalProps = {
   /** Why saving is locked; shown under the buttons. */
   saveHint?: string
   saveLabel: string
+  /** Only looking, with a note saying why: no save button, only the close one. */
+  hideSave?: boolean
   saveButtonVariant?: ButtonVariant
   size?: 'default' | 'wide'
   /** `panel`: a side panel on desktop (list pages); the same sheet below 1280px. */
@@ -58,6 +60,7 @@ export default function FormModal({
   saveDisabled = false,
   saveHint,
   saveLabel,
+  hideSave = false,
   saveButtonVariant = 'primary',
   size = 'default',
   variant = 'modal',
@@ -130,14 +133,16 @@ export default function FormModal({
           <div className={cn(formModalBodyClass, formModalFieldsLayoutClass)}>{children}</div>
 
           <div className={cn(formModalActionsClass, formActionsClassName())}>
-            <Button
-              type="submit"
-              variant={saveButtonVariant}
-              disabled={saving || saveDisabled}
-              loading={saving}
-            >
-              {saveLabel}
-            </Button>
+            {hideSave ? null : (
+              <Button
+                type="submit"
+                variant={saveButtonVariant}
+                disabled={saving || saveDisabled}
+                loading={saving}
+              >
+                {saveLabel}
+              </Button>
+            )}
             <Button
               type="button"
               variant="secondary"

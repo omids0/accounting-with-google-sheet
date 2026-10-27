@@ -82,7 +82,8 @@ export function useRecordsPage(
     flushPendingDelete,
     visibleRecords,
     attachmentQuestionModal,
-    shareQuestionModal
+    shareQuestionModal,
+    sharedDeleteSheet
   } = useRecordsDelete({
     forms,
     records: rawRecords,
@@ -244,6 +245,7 @@ export function useRecordsPage(
     requestDelete,
     attachmentQuestionModal,
     shareQuestionModal,
+    sharedDeleteSheet,
     ...formActions
   }
 }

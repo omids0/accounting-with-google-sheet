@@ -20,6 +20,10 @@ export function useIsBuildingWorkspace(): boolean {
   return useWorkspaceType() === 'building'
 }
 
+export function useIsSharedWorkspace(): boolean {
+  return useWorkspaceType() === 'shared'
+}
+
 /** Like `useWorkspaceType`, but `unknown` while the active sheet's type is still being read. */
 export function useWorkspaceResolution(): WorkspaceType | 'unknown' {
   useAppStore(state => state.spreadsheetKey)

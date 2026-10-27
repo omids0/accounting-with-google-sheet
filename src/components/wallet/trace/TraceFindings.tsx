@@ -70,7 +70,8 @@ export default function TraceFindings({
   minor = false
 }: TraceFindingsProps) {
   const suspects = findings.filter(item => item.group === 'suspect' && !acked.has(item.id))
-  const known = findings.filter(item => item.group === 'known')
+  const known = findings.filter(item => item.group === 'known' && item.kind !== 'transfer')
+  const transfers = findings.filter(item => item.kind === 'transfer')
   const confirmed = findings.filter(item => item.group === 'suspect' && acked.has(item.id))
   const shared = { acked, onToggleAck }
 
@@ -81,6 +82,12 @@ export default function TraceFindings({
         note="اگر اشتباه است، رکورد را درست کن. اگر درست است «تأیید کردم» را بزن؛ مقدار اختلاف عوض نمی‌شود، فقط این مورد به پایین صفحه می‌رود و روی همین دستگاه یادآوری می‌شود."
         findings={suspects}
         emptyText={known.length || confirmed.length ? 'موردی برای بررسی نمانده' : undefined}
+        {...shared}
+      />
+      <Section
+        title="انتقال بین حساب‌ها"
+        note="هر انتقال از یک حساب کم و به حساب دیگر اضافه می‌کند؛ جمع کیف پول و اختلاف را عوض نمی‌کند. این‌ها فقط نشان می‌دهند چرا موجودی یک حساب جابه‌جا شده."
+        findings={transfers}
         {...shared}
       />
       <Section

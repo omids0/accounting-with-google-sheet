@@ -1,6 +1,8 @@
+import type { BankSmsReviewItem } from '../../services/bankSmsQueue'
 import type { SmsSuggestionSource } from '../../services/bankSmsSuggest'
 import { createdAgoLabel } from '../../services/recordDuplicates'
 import type { SmsDirection, SmsSlotRole, SmsTemplate, SmsTemplateIssue } from '../../types'
+import { formatPersianNumber } from '../../utils/formatMoney'
 
 export const SMS_ROLE_LABELS: Record<SmsSlotRole, string> = {
   amount: 'مبلغ',
@@ -73,14 +75,83 @@ export function formatSmsWhen(ms: number, nowMs = Date.now()): string {
   return formatSmsTime(ms)
 }
 
+/** «۱۲ دقیقه پیش» within the hour, else «امروز ۱۴:۰۲» / the date. */
+const recordAge = (createdAtMs: number, nowMs: number) =>
+  nowMs - createdAtMs < 60 * 60 * 1000
+    ? createdAgoLabel(createdAtMs, nowMs)
+    : formatSmsWhen(createdAtMs, nowMs)
+
 /** «تکراری؟ · رکورد ۱۲ دقیقه پیش», or the record's time / date when older. */
 export function smsDuplicateLabel(createdAtMs: number | null | undefined, nowMs = Date.now()) {
   if (!createdAtMs) return 'تکراری؟ · رکورد مشابه هست'
-  if (nowMs - createdAtMs < 60 * 60 * 1000) {
-    return `تکراری؟ · رکورد ${createdAgoLabel(createdAtMs, nowMs)}`
+
+  return `تکراری؟ · رکورد ${recordAge(createdAtMs, nowMs)}`
+}
+
+const TITLE_CLIP = 18
+
+/** «پرداخت بدهی «وام» ثبت شده · ۱۲ دقیقه پیش» / «دریافت طلب «x» ثبت شده». */
+export function smsPaymentLabel(
+  payment: { noun: string; title: string; income?: boolean },
+  createdAtMs: number | null | undefined,
+  nowMs = Date.now()
+) {
+  const title =
+    payment.title.length > TITLE_CLIP
+      ? `${payment.title.slice(0, TITLE_CLIP).trim()}…`
+      : payment.title
+  const verb = payment.income ? 'دریافت' : 'پرداخت'
+  const label = `${verb} ${payment.noun} «${title}» ثبت شده`
+
+  return createdAtMs ? `${label} · ${recordAge(createdAtMs, nowMs)}` : label
+}
+
+const paymentVerb = (income: boolean) => (income ? 'دریافت' : 'پرداخت')
+
+const clipTitle = (title: string) =>
+  title.length > TITLE_CLIP ? `${title.slice(0, TITLE_CLIP).trim()}…` : title
+
+/** «بخشی از پرداخت «وام»؟»: the badge of an SMS smaller than a payment record. */
+export function smsSplitBadge(payment: { title: string }, income: boolean) {
+  return `بخشی از ${paymentVerb(income)} «${clipTitle(payment.title)}»؟`
+}
+
+/** «بخشی از پرداخت «وام» (۲۰٬۰۰۰٬۰۰۰، پوشش‌نیافته ۲۰٬۰۰۰٬۰۰۰)؟» */
+export function smsSplitLine(item: {
+  duplicateOf: { amount: number; type: string } | null
+  duplicatePayment: { title: string } | null
+  splitUncovered: number | null
+}) {
+  const { duplicateOf, duplicatePayment, splitUncovered } = item
+
+  if (!duplicateOf || !duplicatePayment || splitUncovered === null) return ''
+
+  const verb = paymentVerb(duplicateOf.type === 'income')
+  const amounts = `${formatPersianNumber(duplicateOf.amount)}، پوشش‌نیافته ${formatPersianNumber(
+    splitUncovered
+  )}`
+
+  return `بخشی از ${verb} «${clipTitle(duplicatePayment.title)}» (${amounts})؟`
+}
+
+/** The badge text of a queued SMS whose record already exists: the payment, else «تکراری؟». */
+export function smsDuplicateStatus(
+  item: Pick<
+    Extract<BankSmsReviewItem, { kind: 'single' }>,
+    'duplicateOf' | 'duplicatePayment' | 'splitUncovered'
+  >,
+  nowMs = Date.now()
+) {
+  const createdAtMs = item.duplicateOf?.createdAtMs
+  const income = item.duplicateOf?.type === 'income'
+
+  if (item.duplicatePayment && item.splitUncovered !== null) {
+    return smsSplitBadge(item.duplicatePayment, income)
   }
 
-  return `تکراری؟ · رکورد ${formatSmsWhen(createdAtMs, nowMs)}`
+  return item.duplicatePayment
+    ? smsPaymentLabel({ ...item.duplicatePayment, income }, createdAtMs, nowMs)
+    : smsDuplicateLabel(createdAtMs, nowMs)
 }
 
 /** Why the card suggests its category (small line under «دسته: …»). */

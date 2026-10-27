@@ -4,6 +4,7 @@ import type { ComponentType } from 'react'
 type PageLoader = () => Promise<{ default: ComponentType<any> }>
 
 export const loadAboutPage: PageLoader = () => import('../components/about/AboutPage')
+export const loadInvitePage: PageLoader = () => import('../components/invite/InvitePage')
 
 export const loadChartsPage: PageLoader = () => import('../components/chartsPage/ChartsPage')
 
@@ -120,6 +121,9 @@ export const loadWalletReconcilePage: PageLoader = () =>
 export const loadWalletTracePage: PageLoader = () =>
   import('../components/wallet/trace/WalletTracePage')
 
+export const loadWalletTransfersPage: PageLoader = () =>
+  import('../components/wallet/transfers/WalletTransfersPage')
+
 export const loadBuildingReportsPage: PageLoader = () =>
   import('../components/buildings/BuildingReportsPage')
 
@@ -168,6 +172,17 @@ export const loadBuildingUnitPage: PageLoader = () =>
 export const loadBuildingExpensesPage: PageLoader = () =>
   import('../components/buildings/BuildingExpensesPage')
 
+export const loadSharedHomePage: PageLoader = () => import('../components/shared/SharedHomePage')
+
+export const loadSharedRecordsPage: PageLoader = () =>
+  import('../components/shared/SharedRecordsPage')
+
+export const loadSharedSettlePage: PageLoader = () =>
+  import('../components/shared/SharedSettlePage')
+
+export const loadSharedMembersPage: PageLoader = () =>
+  import('../components/shared/SharedMembersRoute')
+
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
 export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')
@@ -186,6 +201,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'wallet-account-detail': loadWalletAccountDetailPage,
   'wallet-reconcile': loadWalletReconcilePage,
   'wallet-trace': loadWalletTracePage,
+  'wallet-transfers': loadWalletTransfersPage,
   'bank-sms': loadBankSmsPage,
   search: loadSearchPage,
   records: loadRecordsPage,
@@ -193,6 +209,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'opening-balances': loadOpeningBalancePage,
   'net-available-settings': loadNetAvailableSettingsPage,
   about: loadAboutPage,
+  invite: loadInvitePage,
   'loan-calculator': loadLoanRequestCalculatorPage,
   'currency-converter': loadCurrencyConverterPage,
   'date-calculator': loadDateCalculatorPage,

@@ -62,6 +62,7 @@ jobs:
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          VITE_AUTH_WORKER_URL: ${{ secrets.VITE_AUTH_WORKER_URL }}
         run: npm run build
 
       - name: Sync Capacitor Android

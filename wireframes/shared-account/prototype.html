@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>حساب مشترک</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800;900&display=swap"
+    />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/shell.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/lists.css" />
+  </head>
+  <body>
+    <div class="stage">
+      <aside class="rail">
+        <div>
+          <h1>حساب مشترک — همان که ساخته شد</h1>
+          <p>
+            پروتوتایپ کلیک‌پذیر از نسخهٔ پیاده‌شده. نام‌ها و مبلغ‌ها نمونه است و چیزی جایی ذخیره
+            نمی‌شود.
+          </p>
+        </div>
+        <div class="group">
+          <h2>الان چه کسی اپ را باز کرده؟</h2>
+          <div id="asList" class="group"></div>
+        </div>
+        <div class="group">
+          <h2>ظاهر</h2>
+          <div id="themeList" class="group"></div>
+        </div>
+        <div class="group">
+          <h2>صفحه‌ها</h2>
+          <div id="jumps" class="group"></div>
+        </div>
+        <div class="notes">
+          <p>
+            <b>فایل جدا.</b> حساب مشترک یک شیت مستقل در درایو مالک است و از حساب شخصی چیزی به آن
+            نمی‌رود، مگر ثبتی که خودتان کلیدش را روشن کنید.
+          </p>
+          <p>
+            <b>دسترسی واقعی اشتراک درایو است.</b> اپ فقط صفحه‌ها و دکمه‌ها را بر اساس نقش محدود
+            می‌کند.
+          </p>
+          <p>
+            <b>ساخته نشد:</b> تقسیم به نسبت درآمد، پشتیبان ماهانه، تکرار ماهانه در حساب مشترک، برگهٔ
+            جدای عضو و کلید پیامک بانکی در راه‌اندازی.
+          </p>
+        </div>
+      </aside>
+
+      <main class="phone" id="phone">
+        <div id="screen"></div>
+        <div id="fabHost"></div>
+        <nav class="nav" id="nav" aria-label="ناوبری"></nav>
+        <div id="sheetHost"></div>
+        <div id="toastHost" aria-live="polite"></div>
+        <div id="busyHost"></div>
+      </main>
+    </div>
+    <script src="js/data.js"></script>
+    <script src="js/model.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/screens-hub.js"></script>
+    <script src="js/screens-shared.js"></script>
+    <script src="js/screens-members.js"></script>
+    <script src="js/screens-personal.js"></script>
+    <script src="js/sheets-shared.js"></script>
+    <script src="js/sheets-members.js"></script>
+    <script src="js/sheets-personal.js"></script>
+    <script src="js/actions.js"></script>
+    <script src="js/actions-members.js"></script>
+    <script src="js/actions-personal.js"></script>
+    <script src="js/jumps.js"></script>
+    <script src="js/boot.js"></script>
+  </body>
+</html>

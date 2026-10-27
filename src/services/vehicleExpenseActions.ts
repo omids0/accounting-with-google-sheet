@@ -19,6 +19,7 @@ import {
   WALLET_ACCOUNT_FIELD_ID,
   WALLET_APPLY_FIELD_ID
 } from '../components/form/fieldUtils'
+import { SHARED_LINK_FIELD_ID } from '../components/form/sharedFields'
 import { VEHICLE_OTHER_OPTION } from '../components/vehicles/constants'
 import type { VehicleExpenseMeta } from '../types/vehicles'
 import {
@@ -38,6 +39,8 @@ export type VehicleExpenseInput = VehicleExpenseFormValues & {
   walletApply?: string
   /** The periodic service this new expense renews (see renewPeriodicFromExpense). */
   renewServiceId?: string
+  /** «حساب مشترک» as the edit form saves it (the tick); absent = the row keeps its own. */
+  sharedLink?: string
 }
 
 function resolveVehicleTitle(vehicleId: string, vehicles: { id: string; title: string }[]): string {
@@ -194,7 +197,8 @@ export async function upsertManualVehicleExpenseMeta(
       note: input.note ?? record.values.note ?? '',
       [WALLET_ACCOUNT_FIELD_ID]:
         input.walletAccount ?? record.values[WALLET_ACCOUNT_FIELD_ID] ?? '',
-      [WALLET_APPLY_FIELD_ID]: input.walletApply ?? record.values[WALLET_APPLY_FIELD_ID] ?? ''
+      [WALLET_APPLY_FIELD_ID]: input.walletApply ?? record.values[WALLET_APPLY_FIELD_ID] ?? '',
+      ...(input.sharedLink === undefined ? {} : { [SHARED_LINK_FIELD_ID]: input.sharedLink })
     },
     record.sheetName
   )

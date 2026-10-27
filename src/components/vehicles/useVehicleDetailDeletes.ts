@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 
 import type { VehicleDeleteTarget } from './types'
 import { deleteVehicleDetailItem, type HistoryWithRow } from './vehicleDetailMutations'
@@ -6,6 +6,7 @@ import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { deleteManualVehicleExpense } from '../../services/vehicleExpenseActions'
 import type { VehicleActiveListItem, VehicleTransactionItem } from '../../types/vehicles'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 
 type VehicleDetailDeletesOptions = {
   activeItems: VehicleActiveListItem[]
@@ -64,8 +65,6 @@ export function useVehicleDetailDeletes({
 }: VehicleDetailDeletesOptions) {
   const undoableDelete = useUndoableDelete()
   const { pendingId } = undoableDelete
-  const [deletingTarget, setDeletingTarget] = useState<VehicleDeleteTarget | null>(null)
-  const [deleteLinkedExpense, setDeleteLinkedExpense] = useState(true)
   const dataRef = useRef({ activeItems, history })
 
   dataRef.current = { activeItems, history }
@@ -94,37 +93,36 @@ export function useVehicleDetailDeletes({
     })
   }
 
-  /** Rows with a linked expense keep the confirm so the user can choose to keep that expense. */
-  const openDeleteTarget = (target: VehicleDeleteTarget) => {
-    if (target.item.expenseRecordId) {
-      setDeletingTarget(target)
-      setDeleteLinkedExpense(true)
+  /** Rows with a linked expense also offer to delete that expense (on by default, as before). */
+  const openDeleteTarget = async (target: VehicleDeleteTarget) => {
+    const label = targetLabel(target)
+    const confirmed = await confirmDelete({
+      label,
+      message: undoableDeleteMessage(label),
+      checkbox: target.item.expenseRecordId
+        ? { label: 'هزینهٔ مرتبط در رکوردها هم حذف شود', defaultChecked: true }
+        : undefined
+    })
 
-      return
-    }
+    if (!confirmed) return
 
-    scheduleTargetDelete(target, false)
+    scheduleTargetDelete(target, confirmed.checked)
   }
 
-  const closeDeleteTarget = () => setDeletingTarget(null)
-
-  const handleDelete = () => {
-    if (!deletingTarget) return
-
-    setDeletingTarget(null)
-    scheduleTargetDelete(deletingTarget, deleteLinkedExpense)
-  }
-
-  const requestDeleteTransaction = (item: VehicleTransactionItem) => {
+  const requestDeleteTransaction = async (item: VehicleTransactionItem) => {
     if (!item.expenseRecordId) return
 
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
+    const label = item.title ? `تراکنش «${item.title}»` : 'تراکنش'
+
+    if (!(await confirmDelete({ label, message: undoableDeleteMessage(label) }))) return
+
     void undoableDelete.schedule({
       id: `transaction:${item.id}`,
-      label: item.title ? `تراکنش «${item.title}»` : 'تراکنش',
+      label,
       errorMessage: 'خطا در حذف تراکنش',
       commit: async () => {
         await deleteManualVehicleExpense(spreadsheetId, item.expenseRecordId)
@@ -143,12 +141,7 @@ export function useVehicleDetailDeletes({
     visibleTransactions: pendingId
       ? transactions.filter(item => `transaction:${item.id}` !== pendingId)
       : transactions,
-    deletingTarget,
-    deleteLinkedExpense,
-    setDeleteLinkedExpense,
     openDeleteTarget,
-    closeDeleteTarget,
-    handleDelete,
     requestDeleteTransaction
   }
 }

@@ -23,7 +23,13 @@ export const MENU_MONEY_LINKS: MenuLinkEntry[] = [
   {
     tab: 'wallet',
     icon: 'wallet',
-    activeTabs: ['wallet', 'wallet-account-detail', 'wallet-reconcile', 'wallet-trace']
+    activeTabs: [
+      'wallet',
+      'wallet-account-detail',
+      'wallet-reconcile',
+      'wallet-trace',
+      'wallet-transfers'
+    ]
   },
   { tab: 'records', icon: 'records' }
 ]
@@ -52,6 +58,9 @@ export const MENU_ABOUT_LINK: MenuLinkEntry = {
   icon: 'info',
   label: 'درباره و راهنما'
 }
+
+/** Opens the page with the invite link, code and the count of people who signed in with it. */
+export const MENU_INVITE_LINK: MenuLinkEntry = { tab: 'invite', icon: 'share' }
 
 export interface BuildingMenuGroup {
   label: string
@@ -91,7 +100,7 @@ export const buildingMenuGroups: BuildingMenuGroup[] = [
       { tab: 'building-settings', icon: 'settings', activeTabs: BUILDING_SETTINGS_TABS }
     ]
   },
-  { label: MENU_APP_LABEL, links: [MENU_ABOUT_LINK] }
+  { label: MENU_APP_LABEL, links: [MENU_ABOUT_LINK, MENU_INVITE_LINK] }
 ]
 
 export const BUILDING_RETURN_LABEL = 'برگشت به حساب شخصی'

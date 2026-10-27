@@ -110,19 +110,6 @@ export const smsStatusRowClass =
 export const smsStatusRangeClass =
   'inline-flex min-h-touch-min items-center gap-1 rounded-full px-2 text-[0.78rem] font-normal text-muted hover:text-primary'
 
-/**
- * Phones: fixed above the bottom nav (the document scrolls there, so sticky cannot hold);
- * tablet and desktop: sticky at the bottom of the scrolling main column.
- */
-export const smsBulkBarClass = cn(
-  'fixed bottom-[calc(6.25rem+var(--safe-bottom))] left-1/2 z-20 mb-0 w-[calc(100%-2rem)] max-w-[448px] -translate-x-1/2',
-  'md:sticky md:bottom-3 md:left-auto md:w-auto md:max-w-none md:translate-x-0',
-  'flex flex-wrap items-center justify-between gap-2 shadow-[var(--shadow-lg)]'
-)
-
-/** Room under the queue on phones, so the fixed bar never hides the last card. */
-export const smsBulkBarSpacerClass = 'h-16 md:hidden'
-
 export const smsAmountTokenClass =
   'inline-flex items-center gap-1 rounded-full border border-[var(--color-expense-border)] bg-[var(--color-expense-bg)] px-2 py-0.5 font-bold text-[var(--color-expense)] [direction:ltr] hover:brightness-95 disabled:opacity-50'
 
@@ -132,6 +119,3 @@ export const smsMenuItemClass =
   'flex min-h-touch-min w-full items-center gap-2 rounded-[var(--radius-sm)] px-3 text-start text-[0.9rem] text-text hover:bg-[var(--color-accent-soft)] disabled:opacity-50'
 
 export const smsStatusNoteClass = 'block text-[0.72rem] font-normal text-muted'
-
-/** Round 11: a building workspace has no bottom nav, so the bulk bar sits at the bottom edge. */
-export const smsBulkBarBuildingClass = 'bottom-[calc(1rem+var(--safe-bottom))]'

@@ -13,7 +13,7 @@ vi.mock('@capacitor/core', () => ({
 
 vi.mock('./widgetSnapshot', () => ({ buildWidgetSnapshot: vi.fn().mockResolvedValue({ ok: 1 }) }))
 
-describe('home-screen widget in a building workspace', () => {
+describe('home-screen widget in a building or shared workspace', () => {
   beforeEach(() => {
     localStorage.clear()
     bridge.setSnapshot.mockClear()
@@ -22,10 +22,12 @@ describe('home-screen widget in a building workspace', () => {
       spreadsheetId: 'personal-1',
       spreadsheets: [
         { id: 'personal-1', name: 'p', createdAt: '' },
-        { id: 'building-1', name: 'b', createdAt: '', kind: 'building' }
+        { id: 'building-1', name: 'b', createdAt: '', kind: 'building' },
+        { id: 'shared-1', name: 's', createdAt: '', kind: 'shared' }
       ]
     })
     setWorkspaceType('building-1', 'building')
+    setWorkspaceType('shared-1', 'shared')
   })
 
   it('sends the personal spreadsheet', async () => {
@@ -36,6 +38,12 @@ describe('home-screen widget in a building workspace', () => {
 
   it('never sends a building, so the widget keeps the personal books', async () => {
     await sendWidgetSnapshot('building-1')
+
+    expect(bridge.setSnapshot).not.toHaveBeenCalled()
+  })
+
+  it('never sends a shared account either, so its data never replaces the personal books', async () => {
+    await sendWidgetSnapshot('shared-1')
 
     expect(bridge.setSnapshot).not.toHaveBeenCalled()
   })

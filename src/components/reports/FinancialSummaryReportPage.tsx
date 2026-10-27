@@ -8,6 +8,7 @@ import type { DashboardData } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { cn } from '../../utils/cn'
 import { getInstallmentDueRange, type DateRangePreset } from '../../utils/dateRange'
+import { asOfEndLabel } from '../../utils/periodLabel'
 import { handleSheetError } from '../../utils/sheetError'
 import { monthlySparkline } from '../../utils/sparklineData'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
@@ -101,6 +102,8 @@ export default function FinancialSummaryReportPage() {
 
   const financial = data?.financial
 
+  const asOfLabel = asOfEndLabel(financial?.walletAsOf)
+
   const reconciliationDiff = data?.reconciliationDiff ?? 0
 
   const hasReconciliationGap = Math.abs(reconciliationDiff) > 0
@@ -122,7 +125,9 @@ export default function FinancialSummaryReportPage() {
       />
 
       <Card className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass)}>
-        <div className={dashboardHeroLabelClass}>دارایی قابل اتکا</div>
+        <div className={dashboardHeroLabelClass}>
+          {asOfLabel ? `دارایی قابل اتکا · ${asOfLabel}` : 'دارایی قابل اتکا'}
+        </div>
         <AnimatedMoneyDisplay amount={financial?.netAvailable ?? 0} size="hero" tone="hero" />
       </Card>
 
@@ -164,7 +169,10 @@ export default function FinancialSummaryReportPage() {
           <BreakdownRow label="درآمد دوره" value={data?.totalIncome ?? 0} />
           <BreakdownRow label="هزینه دوره" value={-(data?.totalExpense ?? 0)} />
           <BreakdownRow label="مانده محاسبه‌شده" value={data?.periodBalance ?? 0} />
-          <BreakdownRow label="موجودی کیف پول" value={financial?.walletTotal ?? 0} />
+          <BreakdownRow
+            label={asOfLabel ? `موجودی کیف پول ${asOfLabel}` : 'موجودی کیف پول'}
+            value={financial?.walletTotal ?? 0}
+          />
           <BreakdownRow label="تفاوت مطابقت" value={reconciliationDiff} total />
         </div>
         {hasReconciliationGap ? (

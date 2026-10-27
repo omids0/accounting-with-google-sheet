@@ -1,4 +1,5 @@
 import { BUILDING_TAB_PATHS, buildingUnitPath, isBuildingUnitPath } from './buildingPaths'
+import { SHARED_TAB_PATHS } from './sharedPaths'
 import type { Tab } from '../components/layout/types'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
 import { toPersianDigits } from '../utils/normalizeDigits'
@@ -55,12 +56,14 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   records: '/records',
   'opening-balances': '/wallet/opening-balances',
   'wallet-trace': '/wallet/trace',
+  'wallet-transfers': '/wallet/transfers',
   'net-available-settings': '/net-available-settings',
   'loan-calculator': '/calculators/loan',
   'currency-converter': '/calculators/currency',
   'date-calculator': '/calculators/date',
   'dang-split': '/dang-split',
   about: '/about',
+  invite: '/invite-friends',
   'report-financial-summary': '/reports/financial-summary',
   'report-income-expense': '/reports/income-expense',
   'report-category-tree': '/reports/category-tree',
@@ -80,7 +83,8 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'report-years': '/reports/years',
   timesheets: '/timesheets',
   activity: '/settings/activity',
-  ...BUILDING_TAB_PATHS
+  ...BUILDING_TAB_PATHS,
+  ...SHARED_TAB_PATHS
 }
 
 const PATH_TO_TAB = Object.fromEntries(

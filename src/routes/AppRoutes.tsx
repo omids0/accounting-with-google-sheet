@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } fr
 import DangSplitDetailRoute from './DangSplitDetailRoute'
 import {
   LazyAboutPage,
+  LazyInvitePage,
   LazyBankSmsPage,
   LazyBuildingChargesPage,
   LazyBuildingDashboardPage,
@@ -55,12 +56,17 @@ import {
   LazyBackupPage,
   LazyActivityPage,
   LazySettingsPage,
+  LazySharedHomePage,
+  LazySharedMembersPage,
+  LazySharedRecordsPage,
+  LazySharedSettlePage,
   LazyTimesheetsPage,
   LazyTreasuryPage,
   LazyVehiclesPage,
   LazyWalletPage,
   LazyWalletReconcilePage,
-  LazyWalletTracePage
+  LazyWalletTracePage,
+  LazyWalletTransfersPage
 } from './lazyPages'
 import LineItemRoute from './LineItemRoute'
 import NotFoundRoute from './NotFoundRoute'
@@ -79,6 +85,7 @@ import WorkspaceRouteGuard from './WorkspaceRouteGuard'
 import Layout from '../components/Layout'
 import OnboardingGate from '../components/onboarding/OnboardingGate'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
+import SharedWriteGate from '../components/shared/SharedWriteGate'
 import { readBankSmsEntryDraft } from '../services/bankSmsEntryDraft'
 import { readEntryDraft } from '../services/entryDraft'
 
@@ -152,6 +159,7 @@ export function AppAuthenticatedRoutes() {
             <Route path="search" element={<LazySearchPage />} />
             <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
             <Route path="wallet/trace" element={<LazyWalletTracePage />} />
+            <Route path="wallet/transfers" element={<LazyWalletTransfersPage />} />
             <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
             <Route path="wallet/reconcile/:accountId" element={<LazyWalletReconcilePage />} />
             <Route path="net-available-settings" element={<LazyNetAvailableSettingsPage />} />
@@ -161,10 +169,25 @@ export function AppAuthenticatedRoutes() {
             <Route path="calculators/currency" element={<LazyCurrencyConverterPage />} />
             <Route path="calculators/date" element={<LazyDateCalculatorPage />} />
             <Route path="about" element={<LazyAboutPage />} />
+            <Route path="invite-friends" element={<LazyInvitePage />} />
             <Route path="settings/reminders" element={<LazyRemindersPage />} />
-            <Route path="settings/categories" element={<LazyCategoriesPage />} />
+            <Route
+              path="settings/categories"
+              element={
+                <SharedWriteGate permission="budget" page>
+                  <LazyCategoriesPage />
+                </SharedWriteGate>
+              }
+            />
             <Route path="settings/close-year/:year?" element={<LazyCloseYearPage />} />
-            <Route path="settings/backup" element={<LazyBackupPage />} />
+            <Route
+              path="settings/backup"
+              element={
+                <SharedWriteGate permission="export" page>
+                  <LazyBackupPage />
+                </SharedWriteGate>
+              }
+            />
             <Route path="settings/activity" element={<LazyActivityPage />} />
             <Route path="settings" element={<LazySettingsPage />} />
             <Route path="reports/financial-summary" element={<LazyFinancialSummaryReportPage />} />
@@ -214,6 +237,10 @@ export function AppAuthenticatedRoutes() {
             <Route path="building/settings/members" element={<LazyBuildingMembersPage />} />
             <Route path="building/settings/lists" element={<LazyBuildingListsPage />} />
             <Route path="building/reports" element={<LazyBuildingReportsPage />} />
+            <Route path="shared" element={<LazySharedHomePage />} />
+            <Route path="shared/records" element={<LazySharedRecordsPage />} />
+            <Route path="shared/settle" element={<LazySharedSettlePage />} />
+            <Route path="shared/members" element={<LazySharedMembersPage />} />
             <Route path="index.html" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFoundRoute />} />
           </Route>

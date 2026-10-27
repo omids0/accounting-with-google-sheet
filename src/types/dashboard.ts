@@ -42,7 +42,12 @@ export interface DashboardRecord {
 }
 
 export interface FinancialSummary {
+  /** The wallet the assets count: today's, or its balance at the end of a period that has ended. */
   walletTotal: number
+  /** The wallet balance today; equals `walletTotal` unless the period ended in the past. */
+  walletTotalNow?: number
+  /** ISO day `walletTotal` refers to when the period ended before today; absent otherwise. */
+  walletAsOf?: string
   treasuryTotal: number
   /** Vault value per asset class (classes with holdings); sums to `treasuryTotal`. */
   treasuryByClass?: { assetClass: VaultAssetClass; label: string; total: number }[]

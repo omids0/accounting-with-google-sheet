@@ -143,8 +143,12 @@ export function buildingForms(): CustomForm[] {
   return withBuildingFields(getDefaultForms())
 }
 
-/** Lists the spreadsheet as a building without making it the active one. */
-export function registerBuildingSpreadsheet(id: string, name: string): void {
+/** Lists the spreadsheet as a building or a shared account without making it the active one. */
+export function registerWorkspaceSpreadsheet(
+  id: string,
+  name: string,
+  kind: 'building' | 'shared'
+): void {
   const settings = getSettings() ?? getDefaultSettings()
 
   const known = settings.spreadsheets ?? []
@@ -152,9 +156,14 @@ export function registerBuildingSpreadsheet(id: string, name: string): void {
   saveSettings({
     ...settings,
     spreadsheets: known.some(sheet => sheet.id === id)
-      ? known.map(sheet => (sheet.id === id ? { ...sheet, kind: 'building' as const } : sheet))
-      : [...known, { id, name, createdAt: new Date().toISOString(), kind: 'building' as const }]
+      ? known.map(sheet => (sheet.id === id ? { ...sheet, kind } : sheet))
+      : [...known, { id, name, createdAt: new Date().toISOString(), kind }]
   })
+}
+
+/** Lists the spreadsheet as a building without making it the active one. */
+export function registerBuildingSpreadsheet(id: string, name: string): void {
+  registerWorkspaceSpreadsheet(id, name, 'building')
 }
 
 /**

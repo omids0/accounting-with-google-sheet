@@ -60,6 +60,7 @@ const dang = (over: Partial<Dang>): Dang => ({
   note: '',
   paid: false,
   paidAt: '',
+  payments: [],
   ...over
 })
 
@@ -105,15 +106,15 @@ describe('the settle button', () => {
 })
 
 describe('repayment shape', () => {
-  it('is a transfer «انتقال › بازپرداخت به <payer>» in a building, the debt category otherwise', () => {
+  it('is a transfer «انتقال › بازپرداخت به <payer>» in a building, «بدهی › <debt category>» otherwise', () => {
     expect(dangSettlementCategory(dang({}), true)).toEqual({
       category: 'انتقال',
       subCategory: 'بازپرداخت به مدیر'
     })
     expect(repaymentSubCategory(' مدیر ')).toBe('بازپرداخت به مدیر')
     expect(dangSettlementCategory(dang({}), false)).toEqual({
-      category: 'آسانسور',
-      subCategory: 'سرویس'
+      category: 'بدهی',
+      subCategory: 'آسانسور'
     })
   })
 
@@ -157,10 +158,10 @@ describe('settling a building debt', () => {
     expect(state.rows[0][8]).toBe('بله')
   })
 
-  it('keeps a personal debt an expense of its own category', async () => {
+  it('files a personal debt under «بدهی», its own category as the subcategory', async () => {
     state.building = false
     await settle()
 
-    expect(state.linked[0].params).toMatchObject({ category: 'آسانسور', subCategory: 'سرویس' })
+    expect(state.linked[0].params).toMatchObject({ category: 'بدهی', subCategory: 'آسانسور' })
   })
 })

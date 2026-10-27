@@ -1,6 +1,12 @@
 import { formatDateRangeLabel, formatJalaliYear, type DateRange } from './dateRange'
 import { formatPersianNumber } from './formatMoney'
-import { daysInJalaliMonth, getJalaliParts, isoToJalali, JALALI_MONTHS } from './jalaliDate'
+import {
+  daysInJalaliMonth,
+  formatIsoDatePersian,
+  getJalaliParts,
+  isoToJalali,
+  JALALI_MONTHS
+} from './jalaliDate'
 import { normalizeSheetDate } from './sheetValues'
 
 export type PeriodKind = 'month' | 'year' | 'range'
@@ -56,4 +62,20 @@ export function formatDayBadge(date: string): { day: string; month: string } {
   const { day, month } = isoToJalali(normalizeSheetDate(date) || date)
 
   return { day: formatPersianNumber(day), month: JALALI_MONTHS[month - 1] ?? '' }
+}
+
+/**
+ * Names the day a figure stops at: «تا پایان مهر ۱۴۰۵» when it is a month's last day, otherwise
+ * «تا ۱۵ مهر ۱۴۰۵». `undefined` when there is no day (the figure is simply «now»).
+ */
+export function asOfEndLabel(iso: string | undefined): string | undefined {
+  if (!iso) return undefined
+
+  const { year, month, day } = isoToJalali(iso)
+
+  if (day === daysInJalaliMonth(year, month)) {
+    return `تا پایان ${formatJalaliMonthName(year, month)}`
+  }
+
+  return `تا ${formatIsoDatePersian(iso)}`
 }

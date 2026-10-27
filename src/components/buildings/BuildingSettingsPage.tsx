@@ -15,7 +15,6 @@ import {
   getPathForTab,
   SETTINGS_BACKUP_PATH,
   SETTINGS_CATEGORIES_PATH,
-  SETTINGS_REMINDERS_PATH,
   closeYearPath
 } from '../../routes/paths'
 import { readBridgePrefs } from '../../services/bridgePrefs'
@@ -145,12 +144,7 @@ export default function BuildingSettingsPage() {
       meta: `ثبت طلب مدیر: ${onOff(prefs.pocket)} · ثبت شارژ واحد من: ${onOff(prefs.ownUnit)}`,
       onClick: () => setBridging(true)
     },
-    {
-      id: 'reminders',
-      title: 'یادآوری‌ها',
-      meta: 'اعلان‌ها و یادآوری سررسیدها',
-      onClick: () => navigate(SETTINGS_REMINDERS_PATH)
-    },
+    // No «یادآوری‌ها» row: reminder rules and push keys stay in the personal sheet, never here.
     {
       id: 'tools',
       title: 'پشتیبان و بستن سال',

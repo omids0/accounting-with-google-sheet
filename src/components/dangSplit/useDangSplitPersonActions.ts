@@ -9,6 +9,7 @@ import {
   updateDangSplitPerson
 } from '../../services/dangSplitPeople'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 
@@ -114,14 +115,22 @@ export function useDangSplitPersonActions({
 
   itemsRef.current = items
 
-  const requestDelete = (item: DangSplitPersonWithRow) => {
+  const requestDelete = async (item: DangSplitPersonWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
+    const label = item.name ? `«${item.name}»` : 'فرد'
+    const confirmed = await confirmDelete({
+      label,
+      message: undoableDeleteMessage(`${label} با سهمش از هزینه‌ها`)
+    })
+
+    if (!confirmed) return
+
     void scheduleDelete({
       id: item.id,
-      label: item.name ? `«${item.name}»` : 'فرد',
+      label,
       errorMessage: 'حذف ناموفق بود',
       commit: async () => {
         const current = itemsRef.current.find(entry => entry.id === item.id) ?? item

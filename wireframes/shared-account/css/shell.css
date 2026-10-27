@@ -1,0 +1,294 @@
+/* App shell inside the phone: gradient header with the sync pill, the bottom bar (personal bar
+   with the round «داشبورد» button, or the shared account's four tabs), the floating «+», the
+   bottom sheet (FormModal / ConfirmActionModal look), the toast and the busy overlay. */
+.phone {
+  position: relative;
+  width: 100%;
+  height: 780px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+#screen {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.page {
+  padding: 12px 12px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hdr {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--header-bg);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  min-height: 66px;
+}
+.hdr .ttl {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.hdr h2 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+.sync::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+}
+.hbtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+.nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--nav-bg);
+  border-top: 1px solid var(--border);
+  min-height: 72px;
+  position: relative;
+}
+.nav.personal {
+  grid-template-columns: repeat(7, 1fr);
+}
+.nav button {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 0;
+  position: relative;
+}
+.nav button[aria-current='page'] {
+  color: var(--text);
+  font-weight: 800;
+}
+.nav button[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 22%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--primary);
+}
+.nav .dash {
+  position: relative;
+  top: -18px;
+  width: 74px;
+  height: 74px;
+  margin-inline: auto;
+  border-radius: 50%;
+  background: var(--fab-bg);
+  color: var(--on-primary);
+  border: 4px solid var(--fab-ring);
+  box-shadow: 0 10px 28px rgba(15, 118, 110, 0.48);
+}
+.fab {
+  position: absolute;
+  inset-inline-start: 16px;
+  bottom: 88px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow);
+  z-index: 3;
+}
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 10;
+}
+.sheet {
+  position: absolute;
+  inset-inline: 16px;
+  bottom: 16px;
+  max-height: calc(100% - 32px);
+  z-index: 11;
+  background: var(--tint);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: up 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes up {
+  from {
+    transform: translateY(32px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}
+.grab {
+  width: 40px;
+  height: 5px;
+  border-radius: 5px;
+  background: var(--other);
+  margin: 8px auto 0;
+  opacity: 0.7;
+}
+.sh-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.sh-h h3 {
+  margin: 0;
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.xbtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+}
+.sh-b {
+  overflow-y: auto;
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--surface);
+}
+.sh-f {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+}
+.sh-f.one {
+  grid-template-columns: 1fr;
+}
+.msg {
+  margin: 0;
+  white-space: pre-line;
+  line-height: 1.9;
+}
+.toast {
+  position: absolute;
+  inset-inline: 16px;
+  bottom: 88px;
+  z-index: 20;
+  background: #1c1c1a;
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-lg);
+}
+.toast button {
+  margin-inline-start: auto;
+  border: 0;
+  background: none;
+  color: #2dd4bf;
+  font-weight: 800;
+}
+.busy {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: var(--overlay);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.busy .box {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.spin {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 4px solid var(--soft);
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sheet.still {
+  animation: none;
+}
+.sheet ~ .scrim {
+  z-index: 12;
+}
+.sheet ~ .scrim + .sheet {
+  z-index: 13;
+}

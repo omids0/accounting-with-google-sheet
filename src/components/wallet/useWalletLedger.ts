@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { getSettings } from '../../services/settings'
 import { fetchLedger, type LedgerEntry } from '../../services/walletLedger'
 import { handleSheetError } from '../../utils/sheetError'
@@ -9,6 +10,8 @@ export function useWalletLedger(accountId: string) {
   const [entries, setEntries] = useState<LedgerEntry[]>([])
   const [loading, setLoading] = useState(true)
   const mounted = useRef(true)
+  // A change made from this page (a transfer) adds rows here: read them again.
+  const revision = useDataRefresh()
 
   const reload = useCallback(async () => {
     const spreadsheetId = getSettings()?.spreadsheetId
@@ -38,7 +41,7 @@ export function useWalletLedger(accountId: string) {
     return () => {
       mounted.current = false
     }
-  }, [reload])
+  }, [reload, revision])
 
   return { entries, loading, reload }
 }

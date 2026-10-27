@@ -116,12 +116,14 @@ function checkTitle(check: Pick<Check, 'checkNumber' | 'direction'>): string {
 export async function updateCheck(
   spreadsheetId: string,
   rowNumber: number,
-  check: Check
+  check: Check,
+  /** False when the caller logs the change itself (a record link reopening the check). */
+  log = true
 ): Promise<void> {
   const row = await buildCheckRow(spreadsheetId, check, rowNumber)
 
   await updateSheetRow(spreadsheetId, CHECKS_SHEET, rowNumber, row)
-  logItemActivity(spreadsheetId, 'update', 'checks', check.id, checkTitle(check))
+  if (log) logItemActivity(spreadsheetId, 'update', 'checks', check.id, checkTitle(check))
 }
 
 export async function deleteCheck(

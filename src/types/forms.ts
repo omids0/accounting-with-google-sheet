@@ -23,8 +23,11 @@ export type CurrencyUnit = 'toman' | 'rial' | 'usd' | 'eur'
 /** `system` follows the OS (`prefers-color-scheme`); `data-theme` always holds the resolved one. */
 export type ThemeMode = 'light' | 'dark' | 'system'
 
-/** What a spreadsheet is for: the manager's own books or one building (round 11). */
-export type WorkspaceKind = 'personal' | 'building'
+/**
+ * What a spreadsheet is for: the manager's own books, one building (round 11) or a shared
+ * account («حساب مشترک»).
+ */
+export type WorkspaceKind = 'personal' | 'building' | 'shared'
 
 export interface SpreadsheetEntry {
   id: string

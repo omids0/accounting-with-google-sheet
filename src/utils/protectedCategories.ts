@@ -4,8 +4,9 @@ import {
   VEHICLE_FUEL_EXPENSE_TYPE
 } from '../components/vehicles/constants'
 import { CHECK_EXPENSE_CATEGORY, CHECK_INCOME_CATEGORY } from '../services/checks'
+import { DANG_EXPENSE_CATEGORY } from '../services/dangConstants'
 import { INSTALLMENT_EXPENSE_CATEGORY } from '../services/installmentsConstants'
-import { getActiveWorkspaceType } from '../services/workspace'
+import { getActiveWorkspaceType, type WorkspaceType } from '../services/workspace'
 
 /** Category of the record that closes a wallet reconciliation gap. */
 export const RECONCILIATION_CATEGORY = 'اصلاح موجودی'
@@ -20,8 +21,8 @@ export const LOCKED_INCOME_CATEGORIES = new Set<string>([
   CHECK_INCOME_CATEGORY
 ])
 
-// Installments and checks write their linked expense record under these exact
-// category names (see installmentsCrud.ts and checks.ts). Renaming or deleting
+// Installments, checks and personal debts write their linked expense record under these exact
+// category names (see installmentsCrud.ts, checks.ts and buildingDang.ts). Renaming or deleting
 // the category would not touch those hardcoded writes, so payments would keep
 // landing under a category the picker no longer offers — same failure mode
 // «خودرو» and «اصلاح موجودی» are locked against.
@@ -30,7 +31,8 @@ export const LOCKED_EXPENSE_CATEGORIES = new Set<string>([
   RECONCILIATION_CATEGORY,
   SMS_RECONCILE_CATEGORY,
   INSTALLMENT_EXPENSE_CATEGORY,
-  CHECK_EXPENSE_CATEGORY
+  CHECK_EXPENSE_CATEGORY,
+  DANG_EXPENSE_CATEGORY
 ])
 
 export const LOCKED_VEHICLE_EXPENSE_TYPES = new Set<string>([VEHICLE_FUEL_EXPENSE_TYPE])
@@ -50,15 +52,29 @@ const BUILDING_LOCKED_INCOME_CATEGORIES = new Set<string>([
   BUILDING_CHARGE_CATEGORY
 ])
 
-/** The categories forced into a form's list: another set while a building is the active sheet. */
-function lockedSetFor(formType: 'income' | 'expense'): Set<string> {
-  const building = getActiveWorkspaceType() === 'building'
+/** Expense category of a shared account's settlement, written only by the settle sheet. */
+export const SETTLEMENT_CATEGORY = 'تسویه'
 
-  if (formType === 'expense') {
-    return building ? BUILDING_LOCKED_EXPENSE_CATEGORIES : LOCKED_EXPENSE_CATEGORIES
-  }
+/** A «تسویه» row of a shared account, whatever its type. */
+export const isSettlement = (values: { category?: unknown }): boolean =>
+  String(values.category ?? '').trim() === SETTLEMENT_CATEGORY
 
-  return building ? BUILDING_LOCKED_INCOME_CATEGORIES : LOCKED_INCOME_CATEGORIES
+// A shared account has no vehicles, installments, checks or wallet reconciliation: nothing is
+// forced into its lists («تسویه» is a system name there, see SHARED_SYSTEM_CATEGORIES).
+const NO_LOCKED_CATEGORIES: ReadonlySet<string> = new Set<string>()
+
+const LOCKED_SETS: Record<WorkspaceType, Record<'income' | 'expense', ReadonlySet<string>>> = {
+  personal: { income: LOCKED_INCOME_CATEGORIES, expense: LOCKED_EXPENSE_CATEGORIES },
+  building: {
+    income: BUILDING_LOCKED_INCOME_CATEGORIES,
+    expense: BUILDING_LOCKED_EXPENSE_CATEGORIES
+  },
+  shared: { income: NO_LOCKED_CATEGORIES, expense: NO_LOCKED_CATEGORIES }
+}
+
+/** The categories forced into a form's list: another set in a building or a shared account. */
+function lockedSetFor(formType: 'income' | 'expense'): ReadonlySet<string> {
+  return LOCKED_SETS[getActiveWorkspaceType()][formType]
 }
 
 export function isLockedExpenseCategory(category: string): boolean {
@@ -82,9 +98,14 @@ const SYSTEM_ONLY_CATEGORIES = {
   income: [RECEIVABLE_INCOME_CATEGORY]
 }
 
+// Reserved only inside a shared account: a personal category named «تسویه» stays the user's.
+const SHARED_SYSTEM_CATEGORIES = { expense: [SETTLEMENT_CATEGORY], income: [] }
+
 /** Categories of the form type that cannot be renamed or deleted. */
 export function lockedCategoriesFor(formType: 'income' | 'expense'): string[] {
-  return [...lockedSetFor(formType), ...SYSTEM_ONLY_CATEGORIES[formType]]
+  const shared = getActiveWorkspaceType() === 'shared' ? SHARED_SYSTEM_CATEGORIES[formType] : []
+
+  return [...lockedSetFor(formType), ...SYSTEM_ONLY_CATEGORIES[formType], ...shared]
 }
 
 export function isSystemCategory(formType: string, category: string): boolean {

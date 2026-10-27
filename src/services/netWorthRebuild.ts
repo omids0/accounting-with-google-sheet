@@ -4,6 +4,7 @@ import { totalInstallmentsInRange } from './installmentsCalculations'
 import type { NetWorthSnapshot } from './netWorth'
 import type { MonthlyNetTotals } from './openingBalanceDerive'
 import { computeHoldings } from './treasuryHoldings'
+import { walletAtMonthEnd } from './walletAtDate'
 import type {
   Check,
   CheckDirection,
@@ -15,6 +16,7 @@ import type {
   VaultTransaction
 } from '../types'
 import { getJalaliMonthRange, isDateInRange, type DateRange } from '../utils/dateRange'
+import { remainingOf } from '../utils/paymentLedger'
 import { normalizeSheetDate } from '../utils/sheetValues'
 
 /** Everything the rebuild reads; today's balances plus the dated history behind them. */
@@ -41,15 +43,9 @@ function isOnOrBefore(date: string, endIso: string): boolean {
   return iso !== '' && iso <= endIso
 }
 
-/** Wallet at the end of `monthKey`: today's balance minus the net of every later month. */
-function walletAt(input: NetWorthRebuildInput, monthKey: string): number {
-  let later = 0
-
-  for (const [key, totals] of input.monthlyNet) {
-    if (key > monthKey) later += totals.income - totals.expense
-  }
-
-  return input.walletTotal - later
+/** The day of a pass/pay stamp: an ISO date, or a Persian locale string whose day comes before the time. */
+function stampDay(stamp: string): string {
+  return normalizeSheetDate(stamp.split(/[،,s]/)[0])
 }
 
 /** Vault holdings bought by `endIso`, valued at today's prices. */
@@ -77,11 +73,29 @@ function receivablesAt(receivables: Receivable[], endIso: string): number {
     }, 0)
 }
 
+/**
+ * What was still owed on debts at `endIso`: dated by then, minus the payments made by then. A
+ * payment whose date cannot be read counts as made (an old paid debt without a date stays out,
+ * as it did before payments could be partial).
+ */
+function dangsAt(dangs: Dang[], endIso: string): number {
+  return dangs
+    .filter(item => isOnOrBefore(item.date, endIso))
+    .reduce((sum, item) => {
+      const paid = item.payments.filter(payment => {
+        const day = stampDay(payment.paidAt)
+
+        return !day || day <= endIso
+      })
+
+      return sum + remainingOf(item.amount, paid)
+    }, 0)
+}
+
 function openAt(check: Check, endIso: string): boolean {
   if (!check.paid) return true
 
-  // «۱۴۰۵/۷/۲۳، ۱۰:۴۰:۱۲»: the day is what comes before the time.
-  const paidOn = normalizeSheetDate(check.paidAt.split(/[،,\s]/)[0])
+  const paidOn = stampDay(check.paidAt)
 
   return Boolean(paidOn) && paidOn > endIso
 }
@@ -103,7 +117,7 @@ function checksDueIn(checks: Check[], range: DateRange, direction: CheckDirectio
  * Month-end values of a past month, approximated as round 5 documented: wallet
  * from today's balance and the monthly net flow, vault holdings of that time at
  * today's prices, goals at today's balance, receivables as of that month, and
- * installments/checks due in that month; debts dated by then that are unpaid today.
+ * installments/checks due in that month; debts dated by then, minus their payments by then.
  */
 export function rebuildMonthValues(
   input: NetWorthRebuildInput,
@@ -117,16 +131,14 @@ export function rebuildMonthValues(
   const vault = vaultAt(input, range.end)
   const { totalAssets, totalLiabilities, netAvailable } = applyNetAvailableConfig(
     {
-      walletTotal: walletAt(input, monthKey),
+      walletTotal: walletAtMonthEnd(input.walletTotal, input.monthlyNet, monthKey),
       treasuryTotal: vault + input.goalsTotal,
       goalsTotal: input.goalsTotal,
       receivablesTotal: receivablesAt(input.receivables, range.end),
       installmentsDue: totalInstallmentsInRange(input.installmentPlans, range),
       checksDue: checksDueIn(input.checks, range, 'paid'),
       checksReceivable: checksDueIn(input.checks, range, 'received'),
-      dangsTotal: input.dangs
-        .filter(item => !item.paid && isOnOrBefore(item.date, range.end))
-        .reduce((sum, item) => sum + item.amount, 0)
+      dangsTotal: dangsAt(input.dangs, range.end)
     },
     config
   )

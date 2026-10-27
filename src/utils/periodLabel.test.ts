@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { jalaliToIso } from './jalaliDate'
-import { describePeriod, formatDayBadge } from './periodLabel'
+import { asOfEndLabel, describePeriod, formatDayBadge } from './periodLabel'
 
 const today = jalaliToIso(1405, 7, 20)
 
@@ -39,5 +39,18 @@ describe('describePeriod', () => {
 describe('formatDayBadge', () => {
   it('splits a date into Persian day and month name', () => {
     expect(formatDayBadge(jalaliToIso(1405, 7, 15))).toEqual({ day: '۱۵', month: 'مهر' })
+  })
+})
+
+describe('asOfEndLabel', () => {
+  it('says «تا پایان …» for a month end and the day for any other day', () => {
+    expect(asOfEndLabel(jalaliToIso(1405, 7, 30))).toBe('تا پایان مهر ۱۴۰۵')
+    expect(asOfEndLabel(jalaliToIso(1405, 12, 29))).toMatch(/^تا پایان اسفند ۱۴۰۵$/)
+    expect(asOfEndLabel(jalaliToIso(1405, 7, 15))).toMatch(/^تا .*۱۵.*مهر.*۱۴۰۵/)
+  })
+
+  it('is empty without a day', () => {
+    expect(asOfEndLabel(undefined)).toBeUndefined()
+    expect(asOfEndLabel('')).toBeUndefined()
   })
 })

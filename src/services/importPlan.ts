@@ -1,4 +1,6 @@
 import { CHECK_DIRECTION_HEADER } from './checkDirection'
+import { PAYMENTS_HEADER } from './sheetHeaders'
+import { SHARED_FIELD_LABELS, SHARED_LINK_FIELD_LABEL } from '../components/form/sharedFields'
 import { ATTACHMENTS_HEADER } from '../utils/attachmentIds'
 import { parseCsv, restoreCsvFormula } from '../utils/csv'
 import { WRITER_HEADER } from '../utils/writerColumn'
@@ -32,9 +34,17 @@ export interface ParsedImportCsv {
 }
 
 function hasHeaderRow(firstRow: string[], allHeaders: string[]): boolean {
-  // A file exported before «پیوست», «ثبت‌کننده» or «نوع چک» existed lacks those trailing columns only.
+  // A file exported before «پیوست», «ثبت‌کننده», «نوع چک» or the shared account's record columns
+  // existed lacks those trailing columns only.
   const headers = [...allHeaders]
-  const optional = [WRITER_HEADER, ATTACHMENTS_HEADER, CHECK_DIRECTION_HEADER]
+  const optional = [
+    WRITER_HEADER,
+    ATTACHMENTS_HEADER,
+    CHECK_DIRECTION_HEADER,
+    PAYMENTS_HEADER,
+    ...SHARED_FIELD_LABELS,
+    SHARED_LINK_FIELD_LABEL
+  ]
 
   while (headers.length && optional.includes(headers[headers.length - 1])) headers.pop()
 

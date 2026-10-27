@@ -1,38 +1,35 @@
 import { getUserEmail } from './auth'
+import {
+  memberKindOf,
+  memberRulesOf,
+  registryOf,
+  type MemberKind,
+  type MemberRegistry,
+  type WorkspaceMember
+} from './memberRegistry'
 import { getSettings } from './settings'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
-import { getWorkspaceType } from './workspace'
 import type { BuildingRole } from '../components/buildings/buildingOptions'
 import type { Tab } from '../components/layout/types'
 
 /**
- * Roles of a building workspace live in «تنظیمات دوره»: `نقش:<email>` = manager | accountant | board,
- * plus an optional `دسترسی:<email>` JSON of per-permission overrides. This is interface enforcement
- * only: real data access is the Drive share (مدیر and حسابدار edit, عضو هیئت مدیره views).
+ * Roles of a building or a shared account live in «تنظیمات دوره»: `نقش:<email>` = a role of the
+ * kind's registry (`memberRegistry.ts`), plus an optional `دسترسی:<email>` JSON of per-permission
+ * overrides. This is interface enforcement only: real data access is the Drive share.
  */
 export type BuildingPermission = 'record' | 'issue' | 'autoIssue' | 'people' | 'settings'
 
 export type PermissionOverrides = Partial<Record<BuildingPermission, boolean>>
 
-export const BUILDING_PERMISSIONS: BuildingPermission[] = [
-  'record',
-  'issue',
-  'autoIssue',
-  'people',
-  'settings'
-]
+export {
+  BUILDING_PERMISSIONS,
+  BUILDING_ROLE_PERMISSIONS as ROLE_PERMISSIONS
+} from './memberRegistry'
 
 export const ROLE_ROW_PREFIX = 'نقش:'
 
 export const ACCESS_ROW_PREFIX = 'دسترسی:'
-
-/** Reading (dashboard, units, reports, statements, …) is open to every role and has no entry. */
-export const ROLE_PERMISSIONS: Record<BuildingRole, Record<BuildingPermission, boolean>> = {
-  manager: { record: true, issue: true, autoIssue: true, people: true, settings: true },
-  accountant: { record: true, issue: true, autoIssue: false, people: true, settings: false },
-  board: { record: false, issue: false, autoIssue: false, people: false, settings: false }
-}
 
 /** Pages that need a permission; the drawer drops their rows and the route shows «دسترسی ندارید». */
 export const TAB_PERMISSIONS: Partial<Record<Tab, BuildingPermission>> = {
@@ -52,30 +49,34 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
 }
 
-function parseRole(value: string): BuildingRole {
+/** A role the registry does not know reads as its fallback (building: board, shared: viewer). */
+function parseRole(value: string, registry: MemberRegistry): string {
   const role = value.trim()
 
-  return role === 'manager' || role === 'accountant' ? role : 'board'
+  return registry.roles.some(option => option.value === role) ? role : registry.fallbackRole
 }
 
-function parseOverrides(raw: string): PermissionOverrides {
+function parseOverrides(raw: string, registry: MemberRegistry): WorkspaceMember['overrides'] {
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>
 
     return Object.fromEntries(
-      BUILDING_PERMISSIONS.filter(key => typeof parsed[key] === 'boolean').map(key => [
-        key,
-        parsed[key]
-      ])
-    ) as PermissionOverrides
+      registry.permissions
+        .filter(key => typeof parsed[key] === 'boolean')
+        .map(key => [key, parsed[key]])
+    ) as WorkspaceMember['overrides']
   } catch {
     return {}
   }
 }
 
-/** The members of the rows of «تنظیمات دوره», in sheet order. */
-export function parseMembers(rows: string[][]): BuildingMember[] {
-  const overrides = new Map<string, PermissionOverrides>()
+/** The members of the rows of «تنظیمات دوره», in sheet order (default: a building's rules). */
+export function parseMembers(rows: string[][], kind?: 'building'): BuildingMember[]
+export function parseMembers(rows: string[][], kind: MemberKind): WorkspaceMember[]
+export function parseMembers(rows: string[][], kind: MemberKind = 'building'): WorkspaceMember[] {
+  const registry = registryOf(kind)
+
+  const overrides = new Map<string, WorkspaceMember['overrides']>()
 
   for (const row of rows) {
     const key = String(row[0] ?? '').trim()
@@ -83,12 +84,12 @@ export function parseMembers(rows: string[][]): BuildingMember[] {
     if (key.startsWith(ACCESS_ROW_PREFIX)) {
       overrides.set(
         normalizeEmail(key.slice(ACCESS_ROW_PREFIX.length)),
-        parseOverrides(row[1] ?? '')
+        parseOverrides(row[1] ?? '', registry)
       )
     }
   }
 
-  const members = new Map<string, BuildingMember>()
+  const members = new Map<string, WorkspaceMember>()
 
   for (const row of rows) {
     const key = String(row[0] ?? '').trim()
@@ -100,7 +101,7 @@ export function parseMembers(rows: string[][]): BuildingMember[] {
     if (email && !members.has(email)) {
       members.set(email, {
         email,
-        role: parseRole(String(row[1] ?? '')),
+        role: parseRole(String(row[1] ?? ''), registry),
         overrides: overrides.get(email) ?? {}
       })
     }
@@ -109,44 +110,66 @@ export function parseMembers(rows: string[][]): BuildingMember[] {
   return [...members.values()]
 }
 
-/** Effective permission: the member's override, else the default of the role. Unknown = board. */
+/** Effective permission: the member's override, else the default of the role. Unknown = fallback. */
 export function memberHasPermission(
-  list: BuildingMember[],
+  list: readonly WorkspaceMember[],
   email: string | null,
-  permission: BuildingPermission
+  permission: string,
+  kind: MemberKind = 'building'
 ): boolean {
+  const registry = registryOf(kind)
+
   const member = list.find(item => item.email === normalizeEmail(email ?? ''))
 
-  return member?.overrides[permission] ?? ROLE_PERMISSIONS[member?.role ?? 'board'][permission]
+  return (
+    member?.overrides[permission] ??
+    registry.rolePermissions[member?.role ?? registry.fallbackRole]?.[permission] ??
+    false
+  )
 }
 
 function activeSpreadsheetId(): string {
   return getSettings()?.spreadsheetId ?? ''
 }
 
-export function members(spreadsheetId = activeSpreadsheetId()): BuildingMember[] {
-  return parseMembers(getSheetDataRows(spreadsheetId, PERIOD_SETTINGS_SHEET) ?? [])
+/**
+ * The members of a sheet, read with its kind's rules. Typed as building members by default (the
+ * building screens); a shared-account caller names its own member type.
+ */
+export function members<M extends WorkspaceMember = BuildingMember>(
+  spreadsheetId = activeSpreadsheetId()
+): NoInfer<M>[] {
+  const rows = getSheetDataRows(spreadsheetId, PERIOD_SETTINGS_SHEET) ?? []
+
+  return parseMembers(rows, memberRulesOf(spreadsheetId)) as M[]
 }
 
-/** A person the sheet has no role for (shared by hand, say) reads as a board member. */
-export function roleOf(email: string, spreadsheetId?: string): BuildingRole {
-  return members(spreadsheetId).find(item => item.email === normalizeEmail(email))?.role ?? 'board'
-}
-
-export function memberCan(
+/** A person the sheet has no role for (shared by hand, say) reads as the kind's fallback role. */
+export function roleOf<R extends string = BuildingRole>(
   email: string,
-  permission: BuildingPermission,
   spreadsheetId?: string
-): boolean {
-  return memberHasPermission(members(spreadsheetId), email, permission)
+): NoInfer<R> {
+  const found = members<WorkspaceMember>(spreadsheetId).find(
+    item => item.email === normalizeEmail(email)
+  )
+
+  return (found?.role ?? registryOf(memberRulesOf(spreadsheetId)).fallbackRole) as R
+}
+
+export function memberCan(email: string, permission: string, spreadsheetId?: string): boolean {
+  return memberHasPermission(
+    members(spreadsheetId),
+    email,
+    permission,
+    memberRulesOf(spreadsheetId)
+  )
 }
 
 /** Whether the signed-in user may; a personal spreadsheet has no roles and allows everything. */
-export function can(
-  permission: BuildingPermission,
-  spreadsheetId = activeSpreadsheetId()
-): boolean {
-  if (getWorkspaceType(spreadsheetId) !== 'building') return true
+export function can(permission: string, spreadsheetId = activeSpreadsheetId()): boolean {
+  const kind = memberKindOf(spreadsheetId)
 
-  return memberHasPermission(members(spreadsheetId), getUserEmail(), permission)
+  if (!kind) return true
+
+  return memberHasPermission(members(spreadsheetId), getUserEmail(), permission, kind)
 }

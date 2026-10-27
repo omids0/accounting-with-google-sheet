@@ -2,15 +2,17 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 
 import BankSmsCardHead from './BankSmsCardHead'
 import BankSmsChoiceRow from './BankSmsChoiceRow'
+import { BankSmsDuplicateBadge, BankSmsDuplicateHint, BankSmsSameButton } from './BankSmsDuplicate'
 import BankSmsMoreSheet from './BankSmsMoreSheet'
 import BankSmsTemplateSheet from './BankSmsTemplateSheet'
 import BankSmsUnitLine from './BankSmsUnitLine'
-import { smsDuplicateLabel } from './smsLabels'
-import { smsRecordType, type BankSmsReview } from './useBankSmsReview'
+import { useBankSmsLinkCard } from './useBankSmsLinkCard'
+import type { BankSmsReview } from './useBankSmsReview'
 import { useBankSmsVehicleCard } from './useBankSmsVehicleCard'
 import {
-  initialSmsAccount,
+  initialCardAccount,
   resolveSmsAccount,
+  smsEntryType,
   type BankSmsReviewItem
 } from '../../services/bankSmsQueue'
 import { toPersianDigits } from '../../utils/normalizeDigits'
@@ -18,12 +20,7 @@ import AppIcon from '../AppIcon'
 import SwipeableRow from '../SwipeableRow'
 import ToggleChipGroup from '../ToggleChipGroup'
 import Alert from '../ui/Alert'
-import {
-  smsActionsRowClass,
-  smsBadgeClass,
-  smsHintClass,
-  smsQueueCardClass
-} from '../ui/bankSmsStyles'
+import { smsActionsRowClass, smsHintClass, smsQueueCardClass } from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 
@@ -42,21 +39,29 @@ const ACTION_LABEL = { expense: 'ثبت هزینه', income: 'ثبت درآمد'
  * its direction. Swipe right = that action, left = «نادیده» (touch only).
  */
 export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps) {
-  const { entry, probableDuplicate, duplicateMovedBalance, duplicateOf, key } = item
+  const { entry, probableDuplicate, duplicateMovedBalance, duplicatePayment, key } = item
   const { result } = entry
   const candidates = result.kind === 'ambiguous' ? result.candidates : []
-  const [accountId, setAccountId] = useState(() => initialSmsAccount(entry))
+  const [accountId, setAccountId] = useState(() => initialCardAccount(entry))
   const [menuOpen, setMenuOpen] = useState(false)
   const [rawOpen, setRawOpen] = useState(false)
   const [templateText, setTemplateText] = useState<string | null>(null)
   const resolved = useMemo(() => resolveSmsAccount(entry, accountId), [entry, accountId])
   const choice = resolved ? review.choiceFor(resolved) : null
-  const type = resolved ? smsRecordType(resolved) : 'expense'
+  // From the SMS direction, not the account: an ambiguous incoming SMS is an income already.
+  const type = smsEntryType(entry)
   const opposite = type === 'expense' ? 'income' : 'expense'
-  const busy = review.busyKey === key
+  // While ANY SMS action runs every card is disabled (visible feedback); only its card spins.
+  const mine = review.busyKey === key
+  const busy = review.busyKey !== null
   const titleOf = (id: string) =>
     review.accounts.find(account => account.id === id)?.title ?? 'حساب'
   const dismiss = () => review.dismiss(key, [entry.sms.id])
+  const [closing, setClosing] = useState(false)
+  const closeAsRecorded = () => {
+    setClosing(true)
+    void review.closeAsRecorded(item).finally(() => setClosing(false))
+  }
 
   // A deposit into a building's fund: which unit paid (round 11, Step 6).
   const offer = resolved ? review.offerFor(resolved) : null
@@ -75,16 +80,27 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
     review
   })
 
+  const linkCard = useBankSmsLinkCard({
+    entry: resolved,
+    choice,
+    type,
+    skip: !!offer || probableDuplicate || vehicleCard.active,
+    review
+  })
+
   const primary = () => {
     if (!resolved) return
     if (vehicleCard.active) return vehicleCard.save()
+    if (linkCard.active) return linkCard.save()
     if (!offer) return review.primary(resolved, probableDuplicate)
     if (!unit) return
 
     // A probable duplicate goes through the payment sheet, which offers to link the record.
     return probableDuplicate ? setPayOpen(true) : void review.payUnit(resolved, unit)
   }
-  const canAct = !!resolved && (!offer || !!unit) && vehicleCard.ready
+  // A swipe is a quick save: a link-target category still has to be asked first.
+  const swipe = () => (linkCard.active ? linkCard.quickSave() : primary())
+  const canAct = !!resolved && (!offer || !!unit) && vehicleCard.ready && linkCard.ready
   // The wireframe's buttons: a card match keeps «فقط موجودی» (other income is in ⋯), a pick shows
   // «درآمد دیگر» (the balance-only action is in ⋯).
   const pickOffer = offer?.kind === 'pick'
@@ -103,19 +119,19 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
         rightLabel={`✓ ${actionLabel}`}
         rightTone={type}
         leftLabel="نادیده"
-        onSwipeRight={canAct && !busy ? primary : undefined}
+        onSwipeRight={canAct && !busy ? swipe : undefined}
         onSwipeLeft={busy ? undefined : dismiss}
       >
         <Card className={smsQueueCardClass}>
           <BankSmsCardHead
             entry={entry}
-            accountTitle={titleOf(accountId)}
-            rawOpen={rawOpen}
-            badge={
-              probableDuplicate && (
-                <span className={smsBadgeClass}>{smsDuplicateLabel(duplicateOf?.createdAtMs)}</span>
-              )
+            accountTitle={
+              accountId
+                ? titleOf(accountId)
+                : candidates.map(candidate => titleOf(candidate.accountId)).join(' یا ')
             }
+            rawOpen={rawOpen}
+            badge={probableDuplicate && <BankSmsDuplicateBadge item={item} />}
           />
 
           {entry.amount === null && (
@@ -123,11 +139,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
               واحد پول اپ ریال یا تومان نیست؛ این پیامک قابل ثبت نیست.
             </Alert>
           )}
-          {duplicateMovedBalance && (
-            <p className={smsHintClass}>
-              رکورد مشابه موجودی همین حساب را هم تغییر داده؛ اگر همان است «⋯ ← قبلاً ثبت شده».
-            </p>
-          )}
+          <BankSmsDuplicateHint item={item} />
 
           {candidates.length > 1 && (
             <>
@@ -141,7 +153,9 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
                 onToggle={setAccountId}
               />
               <p className={smsHintClass}>
-                حساب را از روی پیامک حدس زدیم؛ اگر درست نیست عوضش کنید.
+                {accountId
+                  ? 'حساب این پیامک را خودتان انتخاب کردید؛ اگر درست نیست عوضش کنید.'
+                  : 'رقم کارت این پیامک به چند حساب می‌خورد؛ اول حساب را انتخاب کنید.'}
               </p>
             </>
           )}
@@ -155,7 +169,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
             />
           )}
 
-          {resolved && !offer && (
+          {resolved && !offer && !duplicatePayment && (
             <BankSmsChoiceRow
               type={type}
               choice={choice}
@@ -164,17 +178,26 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
               onPick={next => review.pick(entry.sms.id, next)}
               amount={resolved.amount}
               vehicle={vehicleCard.active ? vehicleCard.vehicle : undefined}
-              rootRef={vehicleCard.rootRef}
+              link={linkCard.active ? linkCard.link : undefined}
+              rootRef={vehicleCard.active ? vehicleCard.rootRef : linkCard.rootRef}
             />
           )}
 
           <div className={smsActionsRowClass}>
+            {duplicatePayment && (
+              <BankSmsSameButton
+                item={item}
+                busy={busy}
+                loading={mine && closing}
+                onClick={closeAsRecorded}
+              />
+            )}
             <Button
               type="button"
               size="sm"
-              variant={type === 'expense' ? 'outflow' : 'inflow'}
+              variant={duplicatePayment ? 'secondary' : type === 'expense' ? 'outflow' : 'inflow'}
               disabled={!canAct || busy}
-              loading={busy}
+              loading={mine && !duplicatePayment}
               onClick={primary}
             >
               <AppIcon name="check" size={16} />
@@ -249,11 +272,10 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
             disabled: !resolved,
             onSelect: () => resolved && review.openEntry(resolved, { formType: opposite })
           },
-          {
-            id: 'recorded',
-            label: 'قبلاً ثبت شده',
-            onSelect: () => void review.alreadyRecorded(key, [entry.sms.id])
-          },
+          // The same action is the card's main button when the record is a payment.
+          ...(duplicatePayment
+            ? []
+            : [{ id: 'recorded', label: 'قبلاً ثبت شده', onSelect: closeAsRecorded }]),
           { id: 'dismiss', label: 'نادیده', onSelect: dismiss },
           {
             id: 'raw',

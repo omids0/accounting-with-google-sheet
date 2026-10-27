@@ -1,3 +1,5 @@
+import { smsCoverage, smsCoverageParts } from './bankSmsCoverage'
+import { localLinkedRecords } from './bankSmsLinked'
 import {
   getPendingBankSms,
   isBankSmsAvailable,
@@ -6,7 +8,7 @@ import {
 } from './bankSmsNative'
 import { getBankSmsPrefs } from './bankSmsPrefs'
 import { reviewSms, type ReviewedSms } from './bankSmsQueue'
-import { buildDigestLines } from './bankSmsReconcile'
+import { buildDigestLines, type ReconcileLinks } from './bankSmsReconcile'
 import { readReconcileEntries, writeReconcileDigestGate } from './bankSmsReconcileStore'
 import { fetchSmsTemplates } from './bankSmsTemplates'
 import type { LedgerEntry } from './recordDuplicates'
@@ -62,6 +64,22 @@ export async function loadReconcileSms(
   )
 }
 
+/**
+ * What the reconcile needs to match SMS to records like the queue does: the debt/receivable
+ * payment records (±3 days), how much of each SMS covered, and the SMS closed as parts of one
+ * payment. Local mirror and device prefs only, no network.
+ */
+export function localReconcileLinks(
+  reviewed: ReviewedSms[],
+  ledger: LedgerEntry[]
+): ReconcileLinks {
+  return {
+    linked: localLinkedRecords(reviewed, ledger),
+    coverage: smsCoverage(),
+    parts: smsCoverageParts()
+  }
+}
+
 /** Rebuilds today's digest lines from fresh data; returns them. */
 export function refreshReconcileDigest(
   spreadsheetId: string,
@@ -73,7 +91,8 @@ export function refreshReconcileDigest(
     accounts.filter(canReconcile),
     reviewed,
     ledger,
-    readReconcileEntries(spreadsheetId)
+    readReconcileEntries(spreadsheetId),
+    localReconcileLinks(reviewed, ledger)
   )
 
   writeReconcileDigestGate(spreadsheetId, { date: getTodayIso(), lines })

@@ -1,4 +1,4 @@
-import type { AppSettings, DashboardData, NetAvailableConfig } from '../types'
+import type { AppSettings, CustomForm, DashboardData, NetAvailableConfig } from '../types'
 import { fetchChecks, totalUnpaidChecksInRange } from './checks'
 import { fetchDangs, unpaidDangTotal } from './dang'
 import {
@@ -23,16 +23,24 @@ import { resolveOpeningBalanceContext, syncDerivedOpeningBalances } from './open
 import { fetchReceivables, remainingAmount } from './receivables'
 import { loadSavingsGoals, sumGoalBalances } from './savingsGoalsSheet'
 import { getDefaultNetAvailableConfig } from './settings'
+import { withoutSettlementRows } from './sharedSettlement'
 import { fetchRecords } from './sheets'
 import { getSummableTgjuPrices } from './tgjuCurrency'
 import { fetchVaultTransactions } from './treasury'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
 import { computeHoldings, totalsByClass } from './treasuryHoldings'
 import { fetchWalletAccounts } from './wallet'
+import { walletForPeriod } from './walletAtDate'
+import { workspaceTypeOf } from './workspace'
 import { formatJalaliMonthLabel, getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import type { DateRange } from '../utils/dateRange'
+import { getTodayIso } from '../utils/jalaliDate'
 import { parseNumeric } from '../utils/parseNumeric'
 import { roundMoney } from '../utils/roundMoney'
+
+/** A form's records without a shared account's «تسویه», which is not income or spending. */
+const fetchFlowRecords = async (spreadsheetId: string, form: CustomForm) =>
+  withoutSettlementRows(await fetchRecords(spreadsheetId, form), workspaceTypeOf(spreadsheetId))
 
 async function fetchDashboardBundleUncached(
   settings: AppSettings,
@@ -60,8 +68,8 @@ async function fetchDashboardBundleUncached(
     storedOpeningBalance,
     goals
   ] = await Promise.all([
-    incomeForm ? fetchRecords(settings.spreadsheetId, incomeForm) : Promise.resolve([]),
-    expenseForm ? fetchRecords(settings.spreadsheetId, expenseForm) : Promise.resolve([]),
+    incomeForm ? fetchFlowRecords(settings.spreadsheetId, incomeForm) : Promise.resolve([]),
+    expenseForm ? fetchFlowRecords(settings.spreadsheetId, expenseForm) : Promise.resolve([]),
     fetchWalletAccounts(settings.spreadsheetId).catch(() => []),
     shouldFetchVault
       ? Promise.all([
@@ -121,7 +129,15 @@ async function fetchDashboardBundleUncached(
     0
   )
 
-  const walletTotal = roundMoney(walletAccounts.reduce((s, a) => s + a.balance, 0))
+  const walletTotalNow = roundMoney(walletAccounts.reduce((s, a) => s + a.balance, 0))
+
+  // A period that has ended counts the wallet as it was at its end.
+  const { walletTotal, walletAsOf } = walletForPeriod(
+    walletTotalNow,
+    { incomeRecords, expenseRecords, incomeDateField, expenseDateField },
+    range.end,
+    getTodayIso()
+  )
 
   // After the catalog loads, so user-added tgju keys and manual prices count.
   const tgjuPrices = getSummableTgjuPrices()
@@ -152,6 +168,8 @@ async function fetchDashboardBundleUncached(
 
   const rawFinancial = {
     walletTotal,
+    walletTotalNow,
+    walletAsOf,
     treasuryTotal,
     treasuryByClass,
     goalsTotal,
@@ -173,6 +191,8 @@ async function fetchDashboardBundleUncached(
 
   const periodBalance = roundMoney(openingBalance + totalIncome - totalExpense)
 
+  // The closing balance is the period end's, so it meets the wallet at that end; a period that reaches
+  // today has `walletTotal === walletTotalNow`. The wallet page runs its own gap check on today's wallet.
   const reconciliationDiff = roundMoney(walletTotal - periodBalance)
 
   const recent = buildRecentRecords(

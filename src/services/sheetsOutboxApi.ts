@@ -1,4 +1,5 @@
 import { recordOperation, ACTIVITY_SHEET } from './activityTracking'
+import { rebaseOnSheetRow } from './outboxRebase'
 import { assertNoEditConflict } from './rowConflictCheck'
 import { isGridLimitError, withGridGrowth } from './sheetGrid'
 import { apiRequest, SHEETS_API } from './sheetsApi'
@@ -187,7 +188,6 @@ export async function executeOutboxOperation(
     }
 
     case 'update': {
-      const { row } = operation
       const target = await resolveRowAnywhere(
         session,
         spreadsheetId,
@@ -196,8 +196,17 @@ export async function executeOutboxOperation(
         operation.expectedRow
       )
 
+      // Payments (debts, receivables) and balances (accounts) another device moved since this write
+      // was queued are kept: the write is re-based on the sheet's row.
+      const rebased = await rebaseOnSheetRow(spreadsheetId, session, target, operation)
+
       // Another account changed this row since this device read it: ask, never overwrite.
-      assertNoEditConflict(session, target, row, operation.expectedRow)
+      if (!rebased.skipConflictCheck) {
+        assertNoEditConflict(session, target, operation.row, operation.expectedRow)
+      }
+
+      const { row } = rebased
+
       await updateSheetRowApi(
         spreadsheetId,
         target.sheetName,

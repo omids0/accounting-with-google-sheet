@@ -9,6 +9,7 @@ import {
   type LegacyScan
 } from '../../services/legacyRowRepair'
 import { getSettings } from '../../services/settings'
+import { sharedCan, SHARED_NO_ACCESS_MESSAGE } from '../../services/sharedCan'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import { showError, showInfo, showSuccess } from '../../utils/toast'
 import ConfirmActionModal from '../ConfirmActionModal'
@@ -89,6 +90,12 @@ export default function SettingsColumnRepairCard({ spreadsheetId }: { spreadshee
 
   const confirm = async () => {
     if (!found) return
+    // Refused before the backup: a shared account repairs only with «ویرایش ثبت‌های دیگران».
+    if (!sharedCan('editOthers', spreadsheetId)) {
+      showError(SHARED_NO_ACCESS_MESSAGE)
+
+      return
+    }
     setRepairing(true)
     try {
       const { createFullBackup } = await import('../../services/backupExport')

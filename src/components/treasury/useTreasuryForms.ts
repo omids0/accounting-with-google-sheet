@@ -14,6 +14,7 @@ import { saveVaultAsset } from '../../services/treasuryCatalogSheet'
 import { quantityError } from '../../services/treasuryQuantity'
 import type { VaultAssetType } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 
@@ -194,14 +195,17 @@ export function useTreasuryForms(
     }
   }
 
-  const requestDelete = (tx: TransactionWithRow) => {
+  const requestDelete = async (tx: TransactionWithRow) => {
     if (!isConfigured() || !requireAuth()) return
 
     const settings = getSettings()!
+    const label = 'تراکنش صندوقچه'
+
+    if (!(await confirmDelete({ label, message: undoableDeleteMessage(label) }))) return
 
     void undoableDelete.schedule({
       id: tx.id,
-      label: 'تراکنش صندوقچه',
+      label,
       errorMessage: 'خطا در حذف تراکنش',
       commit: async () => {
         const current = transactionsRef.current.find(entry => entry.id === tx.id) ?? tx

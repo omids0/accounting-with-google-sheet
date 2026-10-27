@@ -4,6 +4,7 @@ import { maskAmountsInText } from './traceMask'
 import { useIsAmountsHidden } from '../../../hooks/useAmountsHidden'
 import { getPathForTab } from '../../../routes/paths'
 import { ACTIVITY_MODULE_LABELS, type ActivityModule } from '../../../services/activityLogText'
+import { isTransferActivity } from '../../../services/transfersModel'
 import type { TraceEvent, TraceStory } from '../../../services/walletTraceTypes'
 import { cn } from '../../../utils/cn'
 import { formatJalaliMonthLabel } from '../../../utils/dateRange'
@@ -79,15 +80,24 @@ function Headline({ story }: { story: TraceStory }) {
   )
 }
 
+/** A transfer nets to zero in the wallet total, so it is named as such, not as a change. */
+const TRANSFER_EVENT_TEXT: Record<string, string> = {
+  delete: 'حذف انتقال بین حساب‌ها (بدون اثر روی اختلاف)'
+}
+const TRANSFER_EVENT_DEFAULT = 'انتقال بین حساب‌ها (بدون اثر روی اختلاف)'
+
 function EventRow({ event }: { event: TraceEvent }) {
   const hidden = useIsAmountsHidden()
+  const transfer = isTransferActivity(event)
   const title = event.summary.match(/«([^»]*)»/)?.[1] ?? event.summary
   const module = ACTIVITY_MODULE_LABELS[event.module as ActivityModule] ?? event.module
 
   return (
     <li className="flex flex-col gap-0.5 border-t border-border py-1.5 first:border-t-0">
       <span className={cn('font-semibold', event.action === 'delete' && 'text-danger')}>
-        {ACTION_VERBS[event.action] ?? event.action}: {maskAmountsInText(title, hidden)}
+        {transfer
+          ? TRANSFER_EVENT_TEXT[event.action] ?? TRANSFER_EVENT_DEFAULT
+          : `${ACTION_VERBS[event.action] ?? event.action}: ${maskAmountsInText(title, hidden)}`}
       </span>
       <span className="text-[0.78rem] text-muted">
         {module} · {whenLabel(event.at)}

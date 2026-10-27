@@ -37,6 +37,8 @@ export type TraceKind =
   | 'initial-balance'
   /** Money moved into (or out of) a savings goal. */
   | 'goal'
+  /** One leg of a transfer between two wallet accounts; the other leg is equal and opposite. */
+  | 'transfer'
   /** An earlier «اصلاح موجودی» record that closed an older difference. */
   | 'plug'
 
@@ -154,6 +156,11 @@ export interface TraceInput {
   ledger: WalletLedgerEntry[]
   /** Every income/expense record. */
   records: RecordEntry[]
+  /**
+   * Ids of the rows in «انتقال‌ها». Left out when the tab could not be read: transfer history rows
+   * are then taken as linked rather than reported.
+   */
+  transferIds?: ReadonlySet<string>
   anchorMonthKey: string
   anchorAmount: number
   /** `YYYY-MM-DD` first day of the first month of the automatic chain. */

@@ -10,6 +10,7 @@ import {
 } from '../../services/dangSplitExpenses'
 import type { DangSplitWeight } from '../../services/dangSplitMath'
 import { requireSpreadsheetId } from '../../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 import { showError, showSuccess } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
 
@@ -118,14 +119,22 @@ export function useDangSplitExpenseActions({
 
   itemsRef.current = items
 
-  const requestDelete = (item: DangSplitExpenseWithRow) => {
+  const requestDelete = async (item: DangSplitExpenseWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
+    const label = item.title ? `هزینه «${item.title}»` : 'هزینه'
+    const confirmed = await confirmDelete({
+      label,
+      message: undoableDeleteMessage(`${label} با تقسیمش بین افراد`)
+    })
+
+    if (!confirmed) return
+
     void scheduleDelete({
       id: item.id,
-      label: item.title ? `هزینه «${item.title}»` : 'هزینه',
+      label,
       errorMessage: 'حذف ناموفق بود',
       commit: async () => {
         const current = itemsRef.current.find(entry => entry.id === item.id) ?? item

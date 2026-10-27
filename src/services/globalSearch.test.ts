@@ -71,7 +71,8 @@ const dang: Dang = {
   date: '2026-10-05',
   note: '',
   paid: false,
-  paidAt: ''
+  paidAt: '',
+  payments: []
 }
 
 const gold = {

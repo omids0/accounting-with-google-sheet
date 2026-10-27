@@ -250,9 +250,6 @@ export default function VehicleDetailPage({
         showMechanicForm={page.showMechanicForm}
         showMileageModal={page.showMileageModal}
         saving={page.saving}
-        deletingTarget={page.deletingTarget}
-        deleteLinkedExpense={page.deleteLinkedExpense}
-        onDeleteLinkedExpenseChange={page.setDeleteLinkedExpense}
         exportConfirmModal={exportConfirmModal}
         onClosePeriodicForm={page.closePeriodicForm}
         onPeriodicSubmit={page.handlePeriodicSubmit}
@@ -264,8 +261,6 @@ export default function VehicleDetailPage({
         onMechanicSubmit={page.handleMechanicSubmit}
         onCloseMileageModal={page.closeMileageModal}
         onMileageSubmit={page.handleMileageSubmit}
-        onCloseDeleteTarget={page.closeDeleteTarget}
-        onDelete={page.handleDelete}
       />
     </div>
   )

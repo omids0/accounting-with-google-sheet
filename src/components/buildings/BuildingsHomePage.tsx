@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useSearchParams } from 'react-router'
 
 import EmptyState from '../EmptyState'
@@ -12,16 +12,24 @@ import { useEnterBuilding } from './useEnterBuilding'
 import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { getSettings } from '../../services/settings'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
+import SharedNoticeSlot from '../shared/SharedNoticeSlot'
+import SharedSpaceSection from '../shared/SharedSpaceSection'
 import Button from '../ui/Button'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
 /** `?new=1` opens steps 1 and 2 of the setup journey in place of the list. */
 const NEW_PARAM = 'new'
 
+/** `?shared=setup` opens the shared account's setup wizard (its own lazy chunk). */
+const SHARED_PARAM = 'shared'
+
+const SharedSetupWizard = lazy(() => import('../shared/SharedSetupWizard'))
+
 /**
- * «مدیر ساختمان»: one card per building (each its own spreadsheet), «+ ساختمان جدید» for the setup
+ * «فضاهای من»: one card per building (each its own spreadsheet), «+ ساختمان جدید» for the setup
  * journey and «اتصال به شیت موجود» for a sheet someone shared. It opens from the personal
- * workspace and, through the drawer's «همهٔ ساختمان‌ها…», from inside a building.
+ * workspace and, through the drawer's «همهٔ ساختمان‌ها…», from inside a building. Below the
+ * buildings sits the opt-in «حساب مشترک» card.
  */
 export default function BuildingsHomePage() {
   const [params, setParams] = useSearchParams()
@@ -35,12 +43,23 @@ export default function BuildingsHomePage() {
     return <BuildingCreateJourney onCancel={() => setParams({}, { replace: true })} />
   }
 
+  if (params.get(SHARED_PARAM) === 'setup') {
+    return (
+      <Suspense fallback={null}>
+        <SharedSetupWizard onCancel={() => setParams({}, { replace: true })} />
+      </Suspense>
+    )
+  }
+
+  const startShared = () => setParams({ [SHARED_PARAM]: 'setup' })
+
   const startNew = () => setParams({ [NEW_PARAM]: '1' })
 
   const empty = home.buildings.length === 0
 
   return (
     <div className={listModulePageClass}>
+      <SharedNoticeSlot />
       {inBuilding ? <BuildingsHomeCurrent /> : null}
       {empty ? (
         <EmptyState
@@ -71,6 +90,8 @@ export default function BuildingsHomePage() {
           </div>
         </>
       )}
+
+      <SharedSpaceSection onStart={startShared} />
 
       <ArchivedBuildings entries={home.archived} onRestore={home.restore} />
 

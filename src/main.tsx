@@ -6,10 +6,12 @@ import { BrowserRouter } from 'react-router'
 import App from './App'
 import PrivacyScreen from './components/appLock/PrivacyScreen'
 import AppToaster from './components/AppToaster'
+import ConfirmDeleteHost from './components/ConfirmDeleteHost'
 import { AppLoadingSkeleton } from './components/skeleton'
 import { initializeNativeGoogleAuth, isNativePlatform } from './services/googleAuthNative'
 import { APP_NAME, IS_DEV_ENV } from './utils/appEnv'
 import { initDisplayPrefs } from './utils/displayPrefs'
+import { captureInviteRefFromUrl } from './utils/inviteRef'
 import { initTheme } from './utils/theme'
 import './styles/fonts.css'
 import './index.css'
@@ -22,6 +24,8 @@ initDisplayPrefs()
 // Lets the stylesheet drop effects the Android WebView renders far more slowly than a browser.
 if (isNativePlatform()) document.documentElement.classList.add('native')
 void initializeNativeGoogleAuth()
+// A newcomer opened the app from an invite link: remember the code until they sign in.
+captureInviteRefFromUrl()
 
 const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '')
 
@@ -32,6 +36,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <App />
       </Suspense>
       <AppToaster />
+      <ConfirmDeleteHost />
       <PrivacyScreen />
     </BrowserRouter>
   </React.StrictMode>

@@ -4,6 +4,7 @@ import { ACTIVITY_HEADERS } from './sheetHeaders'
 import { ACTIVITY_SHEET } from './sheetNames'
 import { ensureSheetWithHeaders, fetchSheetRows, updateSheetRow, appendSheetRow } from './sheets'
 import { getItem, setItem } from './storage'
+import { isPersonalWorkspace } from './workspace'
 import { getTodayIso } from '../utils/jalaliDate'
 
 export { ACTIVITY_SHEET, ACTIVITY_HEADERS }
@@ -42,11 +43,13 @@ async function ensureActivitySheet(spreadsheetId: string): Promise<void> {
   await ensureSheetWithHeaders(spreadsheetId, ACTIVITY_SHEET, ACTIVITY_HEADERS)
 }
 
+/** False outside a personal sheet: «فعالیت» is this user's own, a board or partner must not get it. */
 async function upsertActivityRow(
   spreadsheetId: string,
   lastOpenDate: string,
   lastOperationDate: string
-): Promise<void> {
+): Promise<boolean> {
+  if (!isPersonalWorkspace(spreadsheetId)) return false
   await ensureActivitySheet(spreadsheetId)
 
   const rows = await fetchSheetRows(spreadsheetId, ACTIVITY_SHEET)
@@ -56,10 +59,12 @@ async function upsertActivityRow(
   if (rows.length > 0) {
     await updateSheetRow(spreadsheetId, ACTIVITY_SHEET, 2, row, ACTIVITY_WRITE_OPTIONS)
 
-    return
+    return true
   }
 
   await appendSheetRow(spreadsheetId, ACTIVITY_SHEET, row, ACTIVITY_WRITE_OPTIONS)
+
+  return true
 }
 
 export async function syncAppOpen(spreadsheetId: string): Promise<void> {
@@ -76,8 +81,10 @@ export async function syncAppOpen(spreadsheetId: string): Promise<void> {
 
   saveState(next)
 
-  await upsertActivityRow(spreadsheetId, today, next.lastOperationDate ?? '')
-  saveState({ ...next, lastOpenSyncedDate: today })
+  // Not marked synced after a shared account: the personal sheet still gets today's open.
+  if (await upsertActivityRow(spreadsheetId, today, next.lastOperationDate ?? '')) {
+    saveState({ ...next, lastOpenSyncedDate: today })
+  }
 }
 
 export async function syncOperation(
@@ -95,8 +102,9 @@ export async function syncOperation(
 
   saveState(next)
 
-  await upsertActivityRow(spreadsheetId, next.lastOpenDate ?? date, date)
-  saveState({ ...next, lastOperationSyncedDate: date })
+  if (await upsertActivityRow(spreadsheetId, next.lastOpenDate ?? date, date)) {
+    saveState({ ...next, lastOperationSyncedDate: date })
+  }
 }
 
 const SYNC_DEBOUNCE_MS = 30_000

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { LedgerEntry } from '../../services/recordDuplicates'
 import { loadRecordLedger } from '../../services/recordLedger'
+import { isRecordLinked } from '../../services/recordLinks'
 import { getSettings } from '../../services/settings'
 import { describeDuplicate, findSettleDuplicate } from '../../services/settleDuplicates'
 import {
@@ -80,12 +81,22 @@ export function useSettleFields({
   }, [active, accounts])
 
   const linkedKey = linkedIds.join('|')
+  // A record tied to ANY module's payment (not only this module's) is not offered again.
+  const isLinked = useCallback(
+    (entry: LedgerEntry) => (entry.id ? isRecordLinked(spreadsheetId, entry.id, type) : false),
+    [spreadsheetId, type]
+  )
   const duplicate = useMemo(
     () =>
       dismissed || !(amount > 0)
         ? null
-        : findSettleDuplicate({ type, amount, date }, ledger, new Set(linkedKey.split('|'))),
-    [dismissed, amount, type, date, ledger, linkedKey]
+        : findSettleDuplicate(
+            { type, amount, date },
+            ledger,
+            new Set(linkedKey.split('|')),
+            isLinked
+          ),
+    [dismissed, amount, type, date, ledger, linkedKey, isLinked]
   )
 
   const linked = Boolean(linkId) && duplicate?.id === linkId

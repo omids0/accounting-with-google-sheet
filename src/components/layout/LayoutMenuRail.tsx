@@ -11,10 +11,11 @@ import {
   MENU_MORE_LINKS,
   type MenuLinkEntry
 } from './navMenuGroups'
+import { SHARED_NAV_LINKS } from './sharedTabs'
 import TabNavLink from './TabNavLink'
 import { TAB_TITLES } from './types'
 import { useBuildingMenuGroups } from './useBuildingMenuGroups'
-import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
+import { useWorkspaceType } from '../../hooks/useWorkspaceType'
 import { SETTINGS_PATH } from '../../routes/paths'
 import { isBankSmsAvailable } from '../../services/bankSmsNative'
 import { useAppUpdateStore } from '../../stores/appUpdateStore'
@@ -46,6 +47,33 @@ function RailLabel({ icon, label }: { icon: AppIconName; label: string }) {
   )
 }
 
+function RailReturnItem({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className={appRailItemClass(false)}
+      aria-label={BUILDING_RETURN_LABEL}
+      onClick={onClick}
+    >
+      <RailLabel icon="return" label={BUILDING_RETURN_LABEL} />
+    </button>
+  )
+}
+
+/** The rail inside the shared account: the way back to the personal books, then its four pages. */
+function SharedRailItems({ link }: { link: (entry: MenuLinkEntry) => ReactNode }) {
+  const { returnToPersonal, modalProps } = useReturnToPersonal()
+
+  return (
+    <>
+      <RailReturnItem onClick={returnToPersonal} />
+      <span className={appRailDividerClass} />
+      {SHARED_NAV_LINKS.map(link)}
+      <SheetSwitchConfirmModal {...modalProps} />
+    </>
+  )
+}
+
 /**
  * The rail inside a building: the way back to the personal books first, the building switcher
  * (it opens the drawer, which lists the buildings), then its groups.
@@ -62,14 +90,7 @@ function BuildingRailItems({
 
   return (
     <>
-      <button
-        type="button"
-        className={appRailItemClass(false)}
-        aria-label={BUILDING_RETURN_LABEL}
-        onClick={returnToPersonal}
-      >
-        <RailLabel icon="return" label={BUILDING_RETURN_LABEL} />
-      </button>
+      <RailReturnItem onClick={returnToPersonal} />
       <button
         type="button"
         className={appRailItemClass(false)}
@@ -97,7 +118,7 @@ export default function LayoutMenuRail(props: LayoutMenuRailProps) {
   const { tab, showSettings, onTabChange, onOpenMenu } = props
   const currentTab = showSettings ? null : tab
   const updateAvailable = useAppUpdateStore(state => !!state.update)
-  const isBuilding = useIsBuildingWorkspace()
+  const workspace = useWorkspaceType()
 
   const link = (entry: MenuLinkEntry) => {
     const active = currentTab !== null && (entry.activeTabs ?? [entry.tab]).includes(currentTab)
@@ -149,8 +170,10 @@ export default function LayoutMenuRail(props: LayoutMenuRailProps) {
         <RailLabel icon="menu" label="منو" />
         {updateAvailable && <span className={appRailUpdateDotClass} aria-hidden="true" />}
       </button>
-      {isBuilding ? (
+      {workspace === 'building' ? (
         <BuildingRailItems link={link} onOpenMenu={onOpenMenu} />
+      ) : workspace === 'shared' ? (
+        <SharedRailItems link={link} />
       ) : (
         <>
           <span className={appRailDividerClass} />

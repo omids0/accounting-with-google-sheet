@@ -35,6 +35,8 @@ export const REMINDER_LOG_SHEET = 'یادآوری_ثبت'
 export const SMS_TEMPLATES_SHEET = 'قالب_پیامک'
 export const TIMESHEETS_SHEET = 'تایم‌شیت‌ها'
 export const TIMESHEET_ENTRIES_SHEET = 'رکوردهای تایم‌شیت'
+/** Transfers between the user's own wallet accounts (personal books only). */
+export const TRANSFERS_SHEET = 'انتقال‌ها'
 export const TREASURY_SHEET = 'صندوقچه'
 export const TREASURY_ASSETS_SHEET = 'دارایی_صندوقچه'
 export const TREASURY_GOALS_SHEET = 'هدف_صندوقچه'
@@ -49,7 +51,7 @@ export const WALLET_LEDGER_SHEET = 'گردش حساب'
 
 /**
  * Tabs only the manager's personal books use (round 11): installments, the treasury, timesheets,
- * vehicles, personal reminders, the dang-split family and the net-worth snapshots. A building
+ * vehicles, personal reminders, the dang-split family, the net-worth snapshots and the account transfers. A building
  * spreadsheet is created without them and never downloads them; the personal spreadsheet keeps
  * every tab. Nothing a building page opens reads these (see `buildingSheetSeparation.test.ts`).
  */
@@ -72,5 +74,20 @@ export const PERSONAL_ONLY_SHEETS: readonly string[] = [
   DANG_SPLIT_PEOPLE_SHEET,
   DANG_SPLIT_EXPENSES_SHEET,
   DANG_SPLIT_ALLOCATIONS_SHEET,
-  NET_WORTH_SHEET
+  NET_WORTH_SHEET,
+  TRANSFERS_SHEET
+]
+
+/**
+ * The tabs a shared account («حساب مشترک») keeps besides its two record forms: the period
+ * settings (type marker, notices), the categories, the budgets, the recurring entries and the
+ * activity log. Nothing personal-only and nothing building-only; the wallet, checks, receivables
+ * and the other module tabs stay out of it too.
+ */
+export const SHARED_ACCOUNT_SHEETS: readonly string[] = [
+  PERIOD_SETTINGS_SHEET,
+  CATEGORIES_SHEET,
+  BUDGETS_SHEET,
+  RECURRING_SHEET,
+  ACTIVITY_LOG_SHEET
 ]

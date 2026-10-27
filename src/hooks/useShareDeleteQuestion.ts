@@ -29,9 +29,10 @@ export function useShareDeleteQuestion() {
 
   return {
     ask,
-    /** Spread into `ConfirmActionModal`. */
+    /** Spread into `ConfirmActionModal`. «انصراف» (the safe answer) is the bright button. */
     modalProps: {
       open: count > 0,
+      tone: 'danger' as const,
       title: 'حذف هزینه؟',
       message: `${toPersianDigits(
         String(count)

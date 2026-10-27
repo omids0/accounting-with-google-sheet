@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form'
 import AttachmentField from './attachments/AttachmentField'
 import { useAttachmentDrafts } from './attachments/useAttachmentDrafts'
 import { useBuildingEntryAccount } from './buildings/useEntryFundAccount'
-import ConfirmActionModal from './ConfirmActionModal'
 import {
   hasBuildingExpenseFields,
   LazyBuildingExpenseFields,
@@ -14,15 +13,19 @@ import CustomEntryFormFields from './dataEntry/CustomEntryFormFields'
 import EntryDraftNote from './dataEntry/EntryDraftNote'
 import EntryDuplicateWarning from './dataEntry/EntryDuplicateWarning'
 import EntryFormActions from './dataEntry/EntryFormActions'
+import RetroactiveEntryModal from './dataEntry/RetroactiveEntryModal'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
-import { focusEntryAmount, templateFormValues, type DataEntryFormProps } from './dataEntry/types'
+import { focusEntryAmount, type DataEntryFormProps } from './dataEntry/types'
 import { useEntryDraft } from './dataEntry/useEntryDraft'
 import { useEntryValidation } from './dataEntry/useEntryValidation'
+import { useTemplateFill } from './dataEntry/useTemplateFill'
 import { settleSavedEntry, writeEntryRecord } from './dataEntry/writeEntryRecord'
 import { buildFormInitialValues, isStandardEntryForm, withAutoTitle } from './form'
+import { SUBCATEGORY_FIELD_ID } from './form/fieldUtils'
 import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
 import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import { showSavedForEntry } from './nudges/saveNudges'
+import { useLinkTarget } from '../hooks/useLinkTarget'
 import { useModalFormReset } from '../hooks/useModalFormReset'
 import { useRetroactiveEntryWarning } from '../hooks/useRetroactiveEntryWarning'
 import { useSubmitLock } from '../hooks/useSubmitLock'
@@ -33,7 +36,9 @@ import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRe
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth } from '../utils/authGuard'
 import { handleSheetError } from '../utils/sheetError'
+import { showError } from '../utils/toast'
 import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
+import { useSharedTick } from './shared/sharedTickEntry'
 import { appFormClassName } from './ui/formStyles'
 import { entryFormGridClass } from './ui/recordsStyles'
 
@@ -75,25 +80,22 @@ export default function DataEntryForm({
     vehicleExpense.resetVehicleValues()
   }, [activeForm.id, vehicleExpense.resetVehicleValues])
 
-  // A «پرتکرار» chip: fill the form, then the amount, selected so typing replaces it.
-  useEffect(() => {
-    if (!template) return
-
-    const fieldIds = new Set(activeForm.fields.map(field => field.id))
-
-    Object.entries(templateFormValues(template.value)).forEach(([id, value]) => {
-      if (fieldIds.has(id)) setValue(id, value)
-    })
-    clearErrors()
-    focusEntryAmount(formRef.current, true)
-  }, [template, activeForm.fields, setValue, clearErrors])
+  useTemplateFill(template, activeForm, formRef, setValue, clearErrors)
 
   const nextEntryPrefill = useBuildingEntryAccount(activeForm, getValues, setValue)
   const retroactiveWarning = useRetroactiveEntryWarning()
   const values = watch()
   const duplicateWarning = <EntryDuplicateWarning form={activeForm} values={values} />
+  const tick = useSharedTick(activeForm, values)
   const selectedCategory = String(values.category ?? '')
   const showVehicleFields = isExpenseForm && isVehicleExpenseCategory(selectedCategory)
+  // «بدهی»/«طلب»: the record may pay an open debt or receivable (the pick stays out of `values`).
+  const linkTarget = useLinkTarget({
+    type: activeForm.type,
+    category: selectedCategory,
+    subCategory: String(values[SUBCATEGORY_FIELD_ID] ?? ''),
+    amount: values.amount ?? ''
+  })
   // An amount on screen is work in progress: the update banner waits for it.
   useUnsavedWork(String(values.amount ?? '').trim() !== '')
 
@@ -140,13 +142,13 @@ export default function DataEntryForm({
       ? vehicleExpense.buildVehicleExpenseInput(formValues)
       : null
     let recordId: string
-
     try {
       recordId = await writeEntryRecord(
         settings.spreadsheetId,
         activeForm,
-        formValues,
-        vehicleInput
+        tick.mark(formValues),
+        vehicleInput,
+        bankSms
       )
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در ذخیره' })
@@ -157,7 +159,14 @@ export default function DataEntryForm({
 
     // The record exists now: a wallet/SMS failure must not invite a second save.
     await attachments.commit(settings.spreadsheetId, activeForm.sheetName, recordId)
-    await settleSavedEntry(settings.spreadsheetId, activeForm, formValues, bankSms, recordId)
+    await settleSavedEntry(
+      settings.spreadsheetId,
+      activeForm,
+      formValues,
+      bankSms,
+      recordId,
+      linkTarget.attach
+    )
     const keepAccount = nextEntryPrefill(entered)
 
     showSavedForEntry(activeForm, recordId, formValues, vehicleInput)
@@ -167,7 +176,9 @@ export default function DataEntryForm({
     if (onSaved && !keepOpen) return onSaved()
     reset(buildFormInitialValues(activeForm, keepAccount))
     vehicleExpense.resetVehicleValues()
+    linkTarget.reset()
     attachments.reset()
+    tick.reset()
     if (keepOpen) focusEntryAmount(formRef.current)
   }
 
@@ -186,6 +197,7 @@ export default function DataEntryForm({
     const formValues = getValues()
 
     if (!validateRequiredFields(formValues)) return
+    if (linkTarget.blocker) return showError(linkTarget.blocker)
     if (!isConfigured() || !requireAuth()) return
 
     const dateFieldId = activeForm.fields.find(field => field.type === 'date')?.id
@@ -207,15 +219,7 @@ export default function DataEntryForm({
 
   return (
     <div className={appFormClassName()}>
-      <ConfirmActionModal
-        open={retroactiveWarning.open}
-        title={retroactiveWarning.title}
-        message={retroactiveWarning.message}
-        confirming={retroactiveWarning.confirming}
-        confirmLabel={retroactiveWarning.confirmLabel}
-        onClose={retroactiveWarning.cancel}
-        onConfirm={retroactiveWarning.confirm}
-      />
+      <RetroactiveEntryModal warning={retroactiveWarning} />
       {draft.restored && <EntryDraftNote onDiscard={draft.discard} />}
       <form
         ref={formRef}
@@ -232,6 +236,7 @@ export default function DataEntryForm({
             onCategoriesRefresh={onCategoriesRefresh}
             showVehicleFields={showVehicleFields}
             vehicleExpense={vehicleExpense}
+            linkTarget={linkTarget}
             walletApplyHint={smsBalanceHint(bankSms, String(values.walletAccount ?? ''))}
             beforeAccount={
               hasBuildingExpenseFields(activeForm) ? (
@@ -269,6 +274,7 @@ export default function DataEntryForm({
         )}
 
         <AttachmentField state={attachments} disabled={loading} />
+        {tick.element}
         {hasBuildingExpenseFields(activeForm) && useStandardLayout ? (
           <LazyBuildingExpenseFields
             part="split"

@@ -3,15 +3,23 @@ import { useMemo } from 'react'
 import type { DangWithRow } from './types'
 import { useListFilters } from '../../hooks/useListFilters'
 import { getCounterpartyFullName } from '../../services/counterparties'
+import { isDangSettled } from '../../utils/dangLedger'
 import type { CounterpartyWithRow } from '../counterparties/types'
 
 type UseDangFiltersOptions = {
   items: DangWithRow[]
   categories: string[]
   counterparties: CounterpartyWithRow[]
+  /** A building has its own status chips; its status filter keeps the old wording. */
+  building?: boolean
 }
 
-export function useDangFilters({ items, categories, counterparties }: UseDangFiltersOptions) {
+export function useDangFilters({
+  items,
+  categories,
+  counterparties,
+  building = false
+}: UseDangFiltersOptions) {
   const counterpartySeed = useMemo(
     () => counterparties.map(item => getCounterpartyFullName(item)),
     [counterparties]
@@ -32,6 +40,8 @@ export function useDangFilters({ items, categories, counterparties }: UseDangFil
     categorySeed: categories,
     getCounterparty: item => item.counterparty,
     getWriter: item => item.writer,
-    counterpartySeed
+    counterpartySeed,
+    isSettled: isDangSettled,
+    paymentStatusLabels: building ? undefined : { paid: 'تسویه شده', unpaid: 'پرداخت نشده' }
   })
 }

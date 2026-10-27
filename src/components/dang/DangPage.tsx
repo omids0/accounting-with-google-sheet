@@ -3,7 +3,6 @@ import { useMemo, type ReactNode } from 'react'
 import { createPageSpeedDialActions } from '../../hooks/pageSpeedDialActions'
 import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
-import { useIsBuildingWorkspace } from '../../hooks/useWorkspaceType'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
 import AppIcon from '../AppIcon'
@@ -37,19 +36,21 @@ export default function DangPage({
   scope?: DangPageScope
 }) {
   const readOnly = useReadOnly()
-  const building = useIsBuildingWorkspace()
   const {
     items,
     loading,
+    building,
     categories,
     setCategories,
     counterparties,
     setCounterparties,
     expandedId,
     setExpandedId,
+    toggleExpanded,
     togglingId,
     savingAmountId,
     amountEdits,
+    payments,
     loadItems,
     handleTogglePaid,
     handleAmountChange,
@@ -59,11 +60,10 @@ export default function DangPage({
     handleExportPdf,
     handleImport,
     importExportConfirmModal,
-    linkedRecordsModal,
     settleFlow
   } = useDangItems()
 
-  useHighlightParam(setExpandedId)
+  const highlightId = useHighlightParam(setExpandedId)
 
   const { showForm, editingItem, saving, openCreateForm, openEditForm, closeForm, handleSubmit } =
     useDangForm({
@@ -86,6 +86,7 @@ export default function DangPage({
     categoryOptions,
     counterpartyOptions,
     filteredItems,
+    hasActiveFilters,
     openFilterModal,
     filterChips,
     clearAllFilters,
@@ -93,7 +94,7 @@ export default function DangPage({
     clearDraftFilters,
     applyFilters,
     minePanelProps
-  } = useDangFilters({ items, categories, counterparties })
+  } = useDangFilters({ items, categories, counterparties, building })
 
   const pageSpeedDialConfig = useMemo(
     () => ({
@@ -156,6 +157,7 @@ export default function DangPage({
           searchPlaceholder="جستجو در بدهی‌ها..."
           paymentStatus={draftPaymentStatus}
           onPaymentStatusChange={setDraftPaymentStatus}
+          paymentStatusPaidLabel={building ? undefined : 'تسویه شده'}
           category={draftCategory}
           onCategoryChange={setDraftCategory}
           categoryOptions={categoryOptions}
@@ -179,16 +181,22 @@ export default function DangPage({
         loading={loading}
         expandedId={expandedId}
         togglingId={togglingId}
-        savingAmountId={savingAmountId}
-        amountEdits={amountEdits}
-        onExpand={setExpandedId}
+        payments={payments}
+        amountEdit={{
+          savingAmountId,
+          amountEdits,
+          onAmountChange: handleAmountChange,
+          onAmountBlur: handleAmountBlur
+        }}
+        onExpand={toggleExpanded}
         onTogglePaid={handleTogglePaid}
-        onAmountChange={handleAmountChange}
-        onAmountBlur={handleAmountBlur}
         onEdit={openEditForm}
         onDelete={requestDelete}
         onAdd={openCreateForm}
         building={building}
+        filtered={hasActiveFilters}
+        resetKey={filterChips.map(chip => chip.label).join('|')}
+        highlightId={highlightId}
         emptyCopy={scope?.emptyCopy}
       />
 
@@ -205,7 +213,6 @@ export default function DangPage({
       />
 
       <ConfirmActionModal {...importExportConfirmModal} />
-      <ConfirmActionModal {...linkedRecordsModal} />
       <SettleFlowModals flow={settleFlow} />
     </div>
   )

@@ -1,126 +1,38 @@
 import type { Dang } from '../types'
 import { logItemActivity } from './activityLog'
 import { dangSettlementCategory } from './buildingDang'
-import { validateDangCsvCells } from './dangCsvValidate'
+import { DangPaymentError } from './dangPaymentError'
+import { readFreshDang } from './dangPayments'
+import { dangToRow, fetchDangs, withDangPaidState } from './dangRow'
 import { dangPrefixes, dangSettlementTitle } from './dangTitles'
-import { exportSheetCsv, importSheetCsv, newImportId, newImportTimestamp } from './importExport'
+import { refreshRowFromSheet } from './freshRow'
+import { migrateDangPaymentsColumn } from './migrateDangPaymentsColumn'
 import { deleteLinkedExpenseRecord } from './paymentTransactions'
 import type { SettleOptions, UnlinkChoice } from './settleOptions'
 import { createLinkedRecordWithWallet, deleteLinkedRecordWithWallet } from './settleRecords'
 import { DANG_HEADERS } from './sheetHeaders'
 import { DANG_SHEET } from './sheetNames'
-import {
-  appendSheetRow,
-  ensureSheetWithHeaders,
-  fetchSheetRows,
-  updateSheetRow,
-  deleteSheetRow
-} from './sheets'
+import { appendSheetRow, ensureSheetWithHeaders, updateSheetRow, deleteSheetRow } from './sheets'
 import { getActiveWorkspaceType } from './workspace'
-import { DANG_WRITER_COLUMN } from './writerColumn'
+import {
+  canSetDangAmount,
+  dangPaidAmount,
+  dangRemaining,
+  unpaidDangTotal
+} from '../utils/dangLedger'
 import { formatMoney } from '../utils/formatMoney'
-import { parseNumeric } from '../utils/parseNumeric'
-import { downloadTablePdf } from '../utils/pdf'
-import { formatPaidStatus, formatPersianDate } from '../utils/pdfFormat'
-import { isNumericCell, isPlainNumberCell } from '../utils/sheetValues'
-import { parseWriter } from '../utils/writerColumn'
+import { getTodayIso } from '../utils/jalaliDate'
 
-export { DANG_SHEET, DANG_HEADERS }
-
-function parsePaid(raw: string): boolean {
-  const v = String(raw ?? '')
-    .trim()
-    .toLowerCase()
-
-  return v === 'true' || v === '1' || v === 'بله' || v === 'yes'
-}
-
-/**
- * Legacy rows keep the amount in column 4 (no category column). The plain `Number()`
- * check runs first so already-detected rows are unchanged; the tolerant one only
- * rescues formatted amounts (`1,500,000`, Persian digits) where column 5 is no amount.
- */
-export function isLegacyDangRow(row: string[]): boolean {
-  if (isPlainNumberCell(row[4])) return true
-
-  return isNumericCell(row[4]) && !isNumericCell(row[5])
-}
-
-export function rowToDang(row: string[], rowNumber: number): Dang & { rowNumber: number } {
-  if (isLegacyDangRow(row)) {
-    return {
-      rowNumber,
-      id: row[0] ?? '',
-      createdAt: row[1] ?? '',
-      title: row[2] ?? '',
-      category: 'سایر',
-      counterparty: row[3] ?? '',
-      amount: parseNumeric(row[4]),
-      date: row[5] ?? '',
-      note: row[6] ?? '',
-      paid: parsePaid(row[7] ?? ''),
-      paidAt: row[8] ?? '',
-      transactionRecordId: '',
-      subCategory: ''
-    }
-  }
-
-  return {
-    rowNumber,
-    id: row[0] ?? '',
-    createdAt: row[1] ?? '',
-    title: row[2] ?? '',
-    category: row[3] ?? 'سایر',
-    counterparty: row[4] ?? '',
-    amount: parseNumeric(row[5]),
-    date: row[6] ?? '',
-    note: row[7] ?? '',
-    paid: parsePaid(row[8] ?? ''),
-    paidAt: row[9] ?? '',
-    transactionRecordId: row[10] ?? '',
-    subCategory: row[11] ?? '',
-    writer: parseWriter(row[DANG_WRITER_COLUMN])
-  }
-}
-
-function dangToRow(dang: Dang): string[] {
-  return [
-    dang.id,
-    dang.createdAt,
-    dang.title,
-    dang.category,
-    dang.counterparty,
-    String(dang.amount),
-    dang.date,
-    dang.note,
-    dang.paid ? 'بله' : 'خیر',
-    dang.paidAt,
-    dang.transactionRecordId ?? '',
-    dang.subCategory ?? ''
-  ]
-}
-
-export function sortDangs<T extends Dang>(items: T[]): T[] {
-  return [...items].sort((a, b) => {
-    if (a.paid !== b.paid) return a.paid ? 1 : -1
-
-    return (b.date || '').localeCompare(a.date || '')
-  })
-}
+export { DANG_SHEET, DANG_HEADERS, unpaidDangTotal }
+export { DangPaymentError } from './dangPaymentError'
+export { addDangPayment, removeDangPayment, settleRestOfDang } from './dangPayments'
+export { exportDangsCsv, exportDangsPdf, importDangsCsv } from './dangExport'
+export { fetchDangs, isLegacyDangRow, rowToDang, sortDangs } from './dangRow'
 
 export async function ensureDangSheet(spreadsheetId: string): Promise<void> {
   await ensureSheetWithHeaders(spreadsheetId, DANG_SHEET, DANG_HEADERS)
-}
-
-export async function fetchDangs(spreadsheetId: string): Promise<(Dang & { rowNumber: number })[]> {
-  const rows = await fetchSheetRows(spreadsheetId, DANG_SHEET)
-
-  const items = rows
-    .map((row, index) => ({ row, rowNumber: index + 2 }))
-    .filter(({ row }) => String(row[0] ?? '').trim())
-    .map(({ row, rowNumber }) => rowToDang(row, rowNumber))
-
-  return sortDangs(items)
+  // Older tabs lack the «پرداخت‌ها» label; a failure (offline) is retried next session.
+  await migrateDangPaymentsColumn(spreadsheetId).catch(() => undefined)
 }
 
 export async function createDang(
@@ -148,7 +60,8 @@ export async function createDang(
     date: data.date,
     note: data.note,
     paid: false,
-    paidAt: ''
+    paidAt: '',
+    payments: []
   }
 
   await appendSheetRow(spreadsheetId, DANG_SHEET, dangToRow(dang))
@@ -157,6 +70,12 @@ export async function createDang(
   return dang
 }
 
+/**
+ * Saves the editable fields of a debt (title, amount, dates, note, ...). The payments are never
+ * taken from `dang`: the screen's copy may be stale, so the row is re-read by id and keeps ITS
+ * payments (and the paid columns derived from them). Only addDangPayment, removeDangPayment and
+ * toggleDangPaid write payments. `rowNumber` is the fallback when the sheet cannot be read.
+ */
 export async function updateDang(
   spreadsheetId: string,
   rowNumber: number,
@@ -164,7 +83,31 @@ export async function updateDang(
   /** False for bulk rewrites (a category rename logs once itself). */
   log = true
 ): Promise<void> {
-  await updateSheetRow(spreadsheetId, DANG_SHEET, rowNumber, dangToRow(dang))
+  // The sheet's row first: this device's copy may be a poll interval behind another device.
+  const onSheet = await refreshRowFromSheet(spreadsheetId, DANG_SHEET, dang.id)
+
+  const rows = await fetchDangs(spreadsheetId).catch(() => null)
+
+  const fresh = rows?.find(item => item.id === dang.id)
+
+  if (onSheet === 'missing' || (rows && !fresh)) {
+    throw new DangPaymentError('این بدهی پیدا نشد؛ شاید حذف شده باشد.', 'missing')
+  }
+
+  const ledger = fresh ?? dang
+
+  if (!canSetDangAmount(ledger, dang.amount)) {
+    throw new DangPaymentError(
+      `مبلغ بدهی نمی‌تواند کمتر از ${formatMoney(
+        dangPaidAmount(ledger)
+      )} (پرداخت‌شده تا حالا) باشد`,
+      'below-paid'
+    )
+  }
+
+  const merged = withDangPaidState({ ...dang, payments: ledger.payments })
+
+  await updateSheetRow(spreadsheetId, DANG_SHEET, fresh?.rowNumber ?? rowNumber, dangToRow(merged))
   if (log) logItemActivity(spreadsheetId, 'update', 'dang', dang.id, dang.title)
 }
 
@@ -172,44 +115,74 @@ export async function deleteDang(
   spreadsheetId: string,
   rowNumber: number,
   dang?: Dang,
-  /** Keep the expense record its payment made (it stays as an ordinary expense). */
+  /** Keep the expense records its payments made (they stay as ordinary expenses). */
   keepLinkedRecords = false
 ): Promise<void> {
-  if (dang?.transactionRecordId && !keepLinkedRecords) {
-    await deleteLinkedExpenseRecord(spreadsheetId, dang.transactionRecordId)
+  if (dang && !keepLinkedRecords) {
+    // The row on the sheet may hold payments this screen has not seen yet.
+    await refreshRowFromSheet(spreadsheetId, DANG_SHEET, dang.id)
+
+    const fresh = (await fetchDangs(spreadsheetId).catch(() => [])).find(
+      item => item.id === dang.id
+    )
+
+    const ids = new Set(
+      [...dang.payments, ...(fresh?.payments ?? [])]
+        .map(payment => payment.transactionRecordId)
+        .concat(dang.transactionRecordId)
+        .filter((id): id is string => Boolean(id))
+    )
+
+    for (const id of ids) await deleteLinkedExpenseRecord(spreadsheetId, id)
   }
   await deleteSheetRow(spreadsheetId, DANG_SHEET, rowNumber)
   if (dang) logItemActivity(spreadsheetId, 'delete', 'dang', dang.id, dang.title)
 }
 
+/**
+ * The building workspace still settles a debt in one go (a single full payment) and un-settles it
+ * by dropping the payments. The personal debt page pays in pieces: see dangPayments.ts.
+ */
 export async function toggleDangPaid(
   spreadsheetId: string,
-  dang: Dang & { rowNumber: number },
+  screenDang: Dang & { rowNumber: number },
   paid: boolean,
   options?: SettleOptions,
   unlink?: UnlinkChoice
 ): Promise<Dang> {
+  // Payments are computed on the row as the sheet holds it, never on the screen's copy.
+  const dang = await readFreshDang(spreadsheetId, screenDang.id, screenDang)
+
   const building = getActiveWorkspaceType() === 'building'
 
   if (paid && !dang.paid) {
+    const amount = dangRemaining(dang)
+
     const transactionRecordId = await createLinkedRecordWithWallet(
       spreadsheetId,
       'expense',
       {
         title: dangSettlementTitle(dang, building),
-        amount: dang.amount,
+        amount,
         ...dangSettlementCategory(dang, building),
         note: dang.note
       },
       options
     )
 
-    const updated: Dang = {
+    const updated = withDangPaidState({
       ...dang,
-      paid: true,
-      paidAt: new Date().toLocaleString('fa-IR'),
-      transactionRecordId
-    }
+      payments: [
+        ...dang.payments,
+        {
+          id: crypto.randomUUID(),
+          amount,
+          paidAt: options?.date || getTodayIso(),
+          note: '',
+          transactionRecordId
+        }
+      ]
+    })
 
     await updateSheetRow(spreadsheetId, DANG_SHEET, dang.rowNumber, dangToRow(updated))
     logItemActivity(spreadsheetId, 'pay', 'dang', dang.id, `بدهی «${dang.title}»`)
@@ -218,19 +191,27 @@ export async function toggleDangPaid(
   }
 
   if (!paid && dang.paid) {
-    await deleteLinkedRecordWithWallet(
-      spreadsheetId,
-      'expense',
-      dang.transactionRecordId ?? '',
-      dangPrefixes(building),
-      unlink
-    )
+    const recordIds = dang.payments.length
+      ? dang.payments.map(payment => payment.transactionRecordId ?? '')
+      : [dang.transactionRecordId ?? '']
 
+    for (const recordId of recordIds) {
+      await deleteLinkedRecordWithWallet(
+        spreadsheetId,
+        'expense',
+        recordId,
+        dangPrefixes(building),
+        unlink
+      )
+    }
+
+    // The stale payments must not survive: they would keep the derived «paid» true.
     const updated: Dang = {
       ...dang,
       paid: false,
       paidAt: '',
-      transactionRecordId: ''
+      transactionRecordId: '',
+      payments: []
     }
 
     await updateSheetRow(spreadsheetId, DANG_SHEET, dang.rowNumber, dangToRow(updated))
@@ -240,59 +221,4 @@ export async function toggleDangPaid(
   }
 
   return dang
-}
-
-export function unpaidDangTotal(items: Dang[]): number {
-  return items.filter(d => !d.paid).reduce((sum, d) => sum + d.amount, 0)
-}
-
-export async function exportDangsCsv(spreadsheetId: string): Promise<string | null> {
-  return exportSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, 'بدهی.csv')
-}
-
-export async function exportDangsPdf(spreadsheetId: string): Promise<string | null> {
-  const items = sortDangs(await fetchDangs(spreadsheetId))
-
-  const headers = ['عنوان', 'دسته‌بندی', 'طرف حساب', 'مبلغ', 'تاریخ', 'وضعیت', 'توضیحات']
-
-  const rows = items.map(item => [
-    item.title,
-    item.category,
-    item.counterparty,
-    formatMoney(item.amount),
-    formatPersianDate(item.date),
-    formatPaidStatus(item.paid),
-    item.note
-  ])
-
-  const cellClasses = items.map(() => ['', '', '', 'pdf-cell-amount', '', '', ''])
-
-  return downloadTablePdf({
-    title: 'گزارش بدهی‌ها',
-    headers,
-    rows,
-    filename: 'بدهی.pdf',
-    cellClasses
-  })
-}
-
-export async function importDangsCsv(spreadsheetId: string, csvContent: string) {
-  return importSheetCsv(spreadsheetId, DANG_SHEET, DANG_HEADERS, csvContent, cells => {
-    const { title, category, counterparty, amount, date } = validateDangCsvCells(cells)
-
-    return dangToRow({
-      id: newImportId(cells[0] ?? ''),
-      createdAt: newImportTimestamp(cells[1] ?? ''),
-      title,
-      category,
-      counterparty,
-      amount,
-      date,
-      note: cells[7] ?? '',
-      paid: parsePaid(cells[8] ?? ''),
-      paidAt: cells[9] ?? '',
-      transactionRecordId: cells[10] ?? '',
-      subCategory: cells[11] ?? ''
-    })
-  })
 }

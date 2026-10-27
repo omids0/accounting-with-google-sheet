@@ -28,6 +28,8 @@ interface TransactionListItemProps {
   /** Makes the whole row open something; the buttons inside keep their own taps. */
   onOpen?: () => void
   openLabel?: string
+  /** A long title wraps onto more lines instead of ending in «…» (names that must be read whole). */
+  wrapTitle?: boolean
 }
 
 function TransactionListItem({
@@ -40,7 +42,8 @@ function TransactionListItem({
   index = 0,
   className,
   onOpen,
-  openLabel
+  openLabel,
+  wrapTitle = false
 }: TransactionListItemProps) {
   const style: CSSProperties = {
     animationDelay: `${Math.min(index, 12) * 0.04}s`
@@ -68,7 +71,13 @@ function TransactionListItem({
       ) : null}
       <div className={recordItemMainClass}>
         <div className={recordItemTitleClass}>
-          <span className={recordItemTitleTextClass}>{title}</span>
+          <span
+            className={
+              wrapTitle ? 'max-w-full whitespace-normal break-words' : recordItemTitleTextClass
+            }
+          >
+            {title}
+          </span>
           {titleAddon ? <span className={recordItemTitleAddonClass}>{titleAddon}</span> : null}
         </div>
         {meta ? <div className={recordItemMetaClass}>{meta}</div> : null}

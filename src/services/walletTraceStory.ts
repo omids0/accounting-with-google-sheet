@@ -1,5 +1,6 @@
 import { parseCreatedAtMs } from './recordDuplicates'
-import { lastDifferenceChange } from './walletDifferenceHistory'
+import { isTransferActivity } from './transfersModel'
+import { dropTransientLooks, lastDifferenceChange } from './walletDifferenceHistory'
 import type { OpeningShift, TraceEvent, TraceInput, TraceStory } from './walletTraceTypes'
 
 /** A write is stamped to the second; events a minute either side still belong to it. */
@@ -8,6 +9,8 @@ const MAX_EVENTS = 10
 
 /** Deleting something that carried records matters most, creating something least. */
 const ACTION_WEIGHT: Record<string, number> = { delete: 0, unpay: 1, pay: 1, update: 2, create: 3 }
+/** A transfer cannot be what changed the difference: it comes last. */
+const TRANSFER_WEIGHT = 5
 
 /** The things done in `[from, to]` that can move a balance, the most telling first. */
 export function eventsBetween(events: TraceEvent[], from: number, to: number): TraceEvent[] {
@@ -16,10 +19,13 @@ export function eventsBetween(events: TraceEvent[], from: number, to: number): T
     .sort((a, b) => a.at - b.at)
 }
 
+const weightOf = (event: TraceEvent) =>
+  isTransferActivity(event) ? TRANSFER_WEIGHT : ACTION_WEIGHT[event.action] ?? 4
+
 function windowEvents(events: TraceEvent[], from: number, to: number): TraceEvent[] {
   return events
     .filter(event => event.at >= from - MARGIN_MS && event.at <= to + MARGIN_MS)
-    .sort((a, b) => (ACTION_WEIGHT[a.action] ?? 4) - (ACTION_WEIGHT[b.action] ?? 4) || b.at - a.at)
+    .sort((a, b) => weightOf(a) - weightOf(b) || b.at - a.at)
 }
 
 const omittedIn = (events: TraceEvent[], from: number, to: number) =>
@@ -56,7 +62,7 @@ function shiftStory(input: TraceInput): TraceStory | null {
 }
 
 function historyStory(input: TraceInput): TraceStory | null {
-  const found = lastDifferenceChange(input.history)
+  const found = lastDifferenceChange(dropTransientLooks(input.history))
 
   if (!found) return null
 

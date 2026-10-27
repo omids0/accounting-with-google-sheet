@@ -4,6 +4,10 @@ import { withoutNonFlow } from './buildingDashboard'
 import type { MonthlyReportData } from './monthlyReport'
 import { monthlyReportFacts } from './monthlyReportPdf'
 import { reportWords } from './reportWording'
+import { getDefaultSettings, saveSettings } from './settings'
+import { setWorkspaceType } from './workspace'
+import type { YearReview } from './yearReview'
+import { netWorthSpanText } from './yearReviewText'
 
 const report: MonthlyReportData = {
   monthKey: '1405-06',
@@ -39,6 +43,28 @@ describe('monthlyReportFacts', () => {
     const facts = monthlyReportFacts(report, true)
 
     expect(facts.map(fact => fact.split(' ')[0])).toEqual(['چک', 'تکرارهای'])
+  })
+})
+
+describe('personal facts in a shared account', () => {
+  const review = { netWorthFrom: 1_000_000, netWorthTo: 2_000_000 } as YearReview
+
+  const open = (id: string) => {
+    localStorage.clear()
+    setWorkspaceType('shared-1', 'shared')
+    saveSettings({ ...getDefaultSettings(), spreadsheetId: id })
+  }
+
+  it('leaves out installments and net worth, which belong to the personal books', () => {
+    open('shared-1')
+    expect(monthlyReportFacts(report).map(fact => fact.split(' ')[0])).toEqual(['چک', 'تکرارهای'])
+    expect(netWorthSpanText(review)).toBeNull()
+  })
+
+  it('keeps them in the personal books', () => {
+    open('personal-1')
+    expect(monthlyReportFacts(report)).toHaveLength(4)
+    expect(netWorthSpanText(review)).not.toBeNull()
   })
 })
 

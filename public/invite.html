@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>دعوت به حساب کتاب</title>
+    <meta
+      name="description"
+      content="حساب کتاب: ثبت درآمد و خرج، چک، قسط و صندوقچه روی Google Sheets خودتان. نسخهٔ وب و اندروید را بدون ثبت‌نام جداگانه بگیرید."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:site_name" content="حساب کتاب" />
+    <meta property="og:title" content="دعوت به حساب کتاب" />
+    <meta
+      property="og:description"
+      content="حساب‌وکتاب شخصی روی Google Sheets خودتان. نسخهٔ وب و اندروید را از همین صفحه بگیرید."
+    />
+    <meta property="og:url" content="https://omids0.github.io/accounting-with-google-sheet/invite.html" />
+    <meta
+      property="og:image"
+      content="https://omids0.github.io/accounting-with-google-sheet/pwa-512x512.png"
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#0f766e" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6fbfa;
+        --fg: #10302b;
+        --muted: #4b6661;
+        --card: #ffffff;
+        --line: #d5e8e4;
+        --accent: #0f766e;
+        --on-accent: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d1716;
+          --fg: #e3f2ef;
+          --muted: #9db8b2;
+          --card: #142220;
+          --line: #24403b;
+          --accent: #5eead4;
+          --on-accent: #08201c;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Vazirmatn, Tahoma, system-ui, sans-serif;
+        line-height: 1.9;
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 32px 16px 64px;
+      }
+      header {
+        text-align: center;
+      }
+      header img {
+        width: 88px;
+        height: 88px;
+        border-radius: 22px;
+      }
+      h1 {
+        font-size: 1.6rem;
+        margin: 8px 0 4px;
+      }
+      h2 {
+        font-size: 1.1rem;
+        margin: 8px 0;
+        color: var(--accent);
+      }
+      p,
+      li {
+        margin: 6px 0;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      section.card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 8px 20px 16px;
+        margin-top: 20px;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .button {
+        flex: 1 1 14rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 8px 20px;
+        border-radius: 12px;
+        border: 1.5px solid var(--accent);
+        background: transparent;
+        color: var(--accent);
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .button.primary {
+        background: var(--accent);
+        color: var(--on-accent);
+      }
+      .code {
+        direction: ltr;
+        unicode-bidi: isolate;
+        display: block;
+        margin: 8px 0;
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 1.05rem;
+        text-align: left;
+        user-select: all;
+      }
+      a {
+        color: var(--accent);
+      }
+      [hidden] {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="pwa-192x192.png" alt="" width="88" height="88" />
+        <h1>دعوت به «حساب کتاب»</h1>
+        <p class="muted">
+          ثبت درآمد و خرج، چک، قسط و صندوقچه، روی Google Sheets خودتان. بدون ثبت‌نام جداگانه، فقط با
+          حساب Google.
+        </p>
+      </header>
+
+      <section class="card">
+        <h2>از کدام نسخه شروع می‌کنید؟</h2>
+        <div class="actions">
+          <a class="button primary" id="web" href="./">استفاده از وب‌اپ</a>
+          <a
+            class="button"
+            id="apk"
+            href="https://github.com/omids0/accounting-with-google-sheet/releases/latest/download/hesab-ketab.apk"
+            >دانلود اپ اندروید</a
+          >
+        </div>
+        <p class="muted">
+          نسخهٔ اندروید فقط روی گوشی اندروید نصب می‌شود. روی آیفون و کامپیوتر از وب‌اپ استفاده کنید؛
+          می‌توانید آن را به صفحهٔ اصلی هم اضافه کنید.
+        </p>
+      </section>
+
+      <section class="card" id="code-card" hidden>
+        <h2>کد دعوت شما</h2>
+        <p>
+          اگر اپ اندروید را نصب می‌کنید، موقع ورود روی «کد دعوت دارم» بزنید و این کد را وارد کنید.
+          وب‌اپ از همین لینک خودش کد را می‌گیرد.
+        </p>
+        <span class="code" id="code"></span>
+        <button class="button" type="button" id="copy">کپی کد</button>
+      </section>
+
+      <p class="muted">
+        داده‌های شما فقط در Google Drive خودتان می‌ماند.
+        <a href="privacy.html">سیاست حریم خصوصی</a>
+      </p>
+    </main>
+    <script>
+      ;(function () {
+        var match = /^#ref=([A-Za-z0-9_-]{10})$/.exec(window.location.hash)
+
+        var code = match ? match[1] : ''
+
+        // The develop copy (under /dev/) points at the develop web app and APK.
+        var dev = /\/dev\/(?:invite\.html)?$/.test(window.location.pathname)
+
+        if (dev) {
+          document.getElementById('apk').href =
+            'https://github.com/omids0/accounting-with-google-sheet/releases/download/dev-latest/hesab-ketab-dev.apk'
+        }
+
+        if (!code) return
+
+        document.getElementById('web').href = './?ref=' + code
+        document.getElementById('code').textContent = code
+        document.getElementById('code-card').hidden = false
+        document.getElementById('copy').addEventListener('click', function () {
+          var button = this
+
+          var done = function (text) {
+            button.textContent = text
+          }
+
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(
+              function () {
+                done('کپی شد')
+              },
+              function () {
+                done('کد را انتخاب و کپی کنید')
+              }
+            )
+          } else {
+            done('کد را انتخاب و کپی کنید')
+          }
+        })
+      })()
+    </script>
+  </body>
+</html>

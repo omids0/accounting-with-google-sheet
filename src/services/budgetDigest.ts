@@ -4,8 +4,10 @@ import { fetchBudgets } from './budgetsSheet'
 import { filterByDateRange, getDateFieldId, sumByCategory } from './dashboardAggregation'
 import { recurringDigestLines } from './recurringDigest'
 import { getSettings } from './settings'
+import { withoutSettlementRows } from './sharedSettlement'
 import { fetchRecords } from './sheets'
 import { getItem, setItem } from './storage'
+import { workspaceTypeOf } from './workspace'
 import { getDateRange, getJalaliMonthKey } from '../utils/dateRange'
 import { getTodayIso } from '../utils/jalaliDate'
 
@@ -43,7 +45,10 @@ export async function syncBudgetDigest(spreadsheetId: string): Promise<void> {
 
   if (budgets.length) {
     const records = filterByDateRange(
-      await fetchRecords(spreadsheetId, form),
+      withoutSettlementRows(
+        await fetchRecords(spreadsheetId, form),
+        workspaceTypeOf(spreadsheetId)
+      ),
       getDateRange('month-to-date'),
       getDateFieldId(form)
     )

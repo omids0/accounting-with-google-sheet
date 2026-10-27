@@ -3,6 +3,7 @@ import { fetchOpeningBalance, fetchOpeningBalanceRows } from './monthlyBalance'
 import { ANCHOR_NOTE, firstDayOfJalaliMonth } from './openingBalanceService'
 import { parseCreatedAtMs } from './recordDuplicates'
 import { loadRecordLedger } from './recordLedger'
+import { fetchTransfers } from './transfers'
 import { fetchWalletAccounts, loadWalletPeriodFlow } from './wallet'
 import { readDifferenceHistory, recordDifference, snapshotOf } from './walletDifferenceHistory'
 import { fetchAllLedger } from './walletLedger'
@@ -66,7 +67,7 @@ export interface WalletTraceResult {
 export async function loadWalletTrace(settings: AppSettings): Promise<WalletTraceResult> {
   const { spreadsheetId } = settings
   let ledgerFailed = false
-  const [accounts, ledger, records, periodFlow] = await Promise.all([
+  const [accounts, ledger, records, periodFlow, transferIds] = await Promise.all([
     fetchWalletAccounts(spreadsheetId),
     fetchAllLedger(spreadsheetId).catch(() => {
       ledgerFailed = true
@@ -74,7 +75,11 @@ export async function loadWalletTrace(settings: AppSettings): Promise<WalletTrac
       return []
     }),
     loadRecordLedger(settings),
-    loadWalletPeriodFlow(settings)
+    loadWalletPeriodFlow(settings),
+    // An unreadable tab leaves the ids out: the trace then takes transfer rows as linked.
+    fetchTransfers(spreadsheetId)
+      .then(list => new Set(list.map(item => item.id)) as ReadonlySet<string>)
+      .catch(() => undefined)
   ])
   const [anchor, openingRows, activity] = await Promise.all([
     fetchOpeningBalance(spreadsheetId, periodFlow.anchorMonthKey),
@@ -96,6 +101,7 @@ export async function loadWalletTrace(settings: AppSettings): Promise<WalletTrac
       accounts,
       ledger,
       records,
+      transferIds,
       anchorMonthKey: periodFlow.anchorMonthKey,
       anchorAmount: anchor.amount,
       anchorStart: firstDayOfJalaliMonth(periodFlow.anchorMonthKey),

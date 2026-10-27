@@ -1,5 +1,6 @@
 import { FILES_API } from './driveFiles'
 import { apiRequest, SheetsApiError } from './sheetsApi'
+import { normalizeEmail } from '../utils/email'
 import { toUserMessage } from '../utils/userMessage'
 
 /**
@@ -16,8 +17,6 @@ interface DrivePermissionRow {
 }
 
 const permissionsUrl = (fileId: string) => `${FILES_API}/${encodeURIComponent(fileId)}/permissions`
-
-const normalizeEmail = (email: string) => email.trim().toLowerCase()
 
 /** Gives `email` access; Drive sends them its sharing e-mail with `message` when one is given. */
 export async function shareFile(
@@ -36,16 +35,33 @@ export async function shareFile(
   })
 }
 
-async function findPermission(fileId: string, email: string): Promise<DrivePermissionRow | null> {
+async function listPermissions(fileId: string): Promise<DrivePermissionRow[]> {
   const fields = encodeURIComponent('permissions(id,emailAddress,role)')
 
   const data = await apiRequest<{ permissions?: DrivePermissionRow[] }>(
     `${permissionsUrl(fileId)}?fields=${fields}&supportsAllDrives=true`
   )
 
+  return data.permissions ?? []
+}
+
+async function findPermission(fileId: string, email: string): Promise<DrivePermissionRow | null> {
   const key = normalizeEmail(email)
 
-  return data.permissions?.find(item => normalizeEmail(item.emailAddress ?? '') === key) ?? null
+  return (
+    (await listPermissions(fileId)).find(item => normalizeEmail(item.emailAddress ?? '') === key) ??
+    null
+  )
+}
+
+/**
+ * Everyone Drive lets into the file besides its owner, as lower-case addresses: the source of
+ * truth for who has access, whatever the sheet's role rows say.
+ */
+export async function listSharedEmails(fileId: string): Promise<string[]> {
+  return (await listPermissions(fileId))
+    .filter(item => item.role !== 'owner' && item.emailAddress)
+    .map(item => normalizeEmail(item.emailAddress ?? ''))
 }
 
 /**
@@ -85,8 +101,15 @@ export async function unshareFile(fileId: string, email: string): Promise<void> 
   )
 }
 
-/** Plain words for a share that Drive refused; the generic mapper's «no access» would mislead. */
-export function shareErrorMessage(err: unknown, fallback = 'ارسال دعوت ناموفق بود'): string {
+/**
+ * Plain words for a share that Drive refused; the generic mapper's «no access» would mislead.
+ * `noun` names the file («ساختمان» / «حساب مشترک»).
+ */
+export function shareErrorMessage(
+  err: unknown,
+  fallback = 'ارسال دعوت ناموفق بود',
+  noun = 'ساختمان'
+): string {
   const status = err instanceof SheetsApiError ? err.status : 0
 
   if (
@@ -98,7 +121,7 @@ export function shareErrorMessage(err: unknown, fallback = 'ارسال دعوت 
   if (status === 403) {
     return 'گوگل اجازهٔ اشتراک این فایل را نداد. فقط مالک فایل یا ویرایشگری که اجازهٔ اشتراک دارد می‌تواند دسترسی بدهد'
   }
-  if (status === 404) return 'فایل ساختمان در حساب گوگل شما پیدا نشد'
+  if (status === 404) return `فایل ${noun} در حساب گوگل شما پیدا نشد`
   if (status === 400) return 'گوگل این ایمیل را نپذیرفت؛ ایمیل یک حساب گوگل را وارد کنید'
   if (status === 429) return 'گوگل درخواست‌ها را موقتاً محدود کرده؛ کمی بعد دوباره تلاش کنید'
 

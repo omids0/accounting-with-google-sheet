@@ -195,6 +195,7 @@ export default function FieldInput({
           value={String(value ?? '')}
           onChange={next => onChange(next)}
           aria-label={field.label}
+          hintWhenEmpty
         />
       )
     }

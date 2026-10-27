@@ -3,7 +3,7 @@ import { WALLET_SHEET } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
 import { countSheetDataRows, rowHasContent } from './spreadsheetStoreCount'
 import { getItem, setItem } from './storage'
-import { getWorkspaceType } from './workspace'
+import { isPersonalWorkspace } from './workspace'
 
 export const ONBOARDING_STORAGE_KEY = 'accounting_onboarding_v1'
 
@@ -95,8 +95,9 @@ export function isSpreadsheetEmpty(spreadsheetId: string): boolean | null {
 }
 
 export function shouldStartOnboarding(spreadsheetId: string): boolean {
-  // A building has its own setup journey; the personal wizard never runs in it.
-  if (getWorkspaceType(spreadsheetId) === 'building') return false
+  // A building has its own setup journey and a shared account its own creation flow: the
+  // personal wizard runs in neither.
+  if (!isPersonalWorkspace(spreadsheetId)) return false
 
   return getOnboardingState(spreadsheetId) === null && isSpreadsheetEmpty(spreadsheetId) === true
 }

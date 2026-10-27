@@ -3,12 +3,19 @@ import { archiveTabsOfForm } from './archiveRegistry'
 import { headerAttachmentColumn } from './attachmentColumn'
 import { legacyLayoutPlan, remapLegacyRow } from './legacyRowLayout'
 import { getSettings } from './settings'
-import { buildFieldColumnMap, buildHeaders, buildRecordRow, mapRowToValues } from './sheetsHeaders'
+import {
+  buildFieldColumnMap,
+  buildHeaders,
+  buildRecordRow,
+  mapRowToValues,
+  normalizeHeaderLabel
+} from './sheetsHeaders'
 import { fetchSheetRangeFromApi, deleteSheetRow, updateSheetRow } from './sheetsRows'
 import { notifySpreadsheetDataChanged } from './spreadsheetDataChange'
 import { appendSheetDataRow, getSheetAllRows, setSheetAllRows } from './spreadsheetStore'
 import type { OutboxWriteOptions } from './syncOutbox'
 import { ensureWriterColumn, stampWriter } from './writerColumn'
+import { SHARED_LINK_FIELD_ID, SHARED_LINK_FIELD_LABEL } from '../components/form/sharedFields'
 import { parseAttachmentIds } from '../utils/attachmentIds'
 import { cellToString, isSheetHeaderRow } from '../utils/sheetValues'
 import { headerWriterColumn, parseWriter } from '../utils/writerColumn'
@@ -161,8 +168,17 @@ export async function updateRecord(
   ensureWriterColumn(spreadsheetId, sheetName)
   await updateSheetRow(spreadsheetId, sheetName, rowNumber, () => {
     const headers = getSheetHeaderRowFromStore(spreadsheetId, sheetName, form)
+    const row = buildRecordRow(headers, form.fields, recordId, createdAt, values)
+    // The link to a shared copy survives an edit that does not set it (a device without a
+    // shared account, a vehicle edit with its own values); only the tick clears it.
+    const link = headers.map(normalizeHeaderLabel).indexOf(SHARED_LINK_FIELD_LABEL)
+    const sets =
+      SHARED_LINK_FIELD_ID in values && form.fields.some(f => f.id === SHARED_LINK_FIELD_ID)
+    const stored = getSheetAllRows(spreadsheetId, sheetName)?.find(item => item[0] === recordId)
 
-    return buildRecordRow(headers, form.fields, recordId, createdAt, values)
+    if (link >= 0 && !sets && stored) row[link] = stored[link] ?? ''
+
+    return row
   })
 }
 

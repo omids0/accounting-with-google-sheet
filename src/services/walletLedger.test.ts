@@ -15,7 +15,7 @@ import {
   WALLET_LEDGER_SHEET
 } from './walletLedger'
 
-vi.mock('../utils/toast', () => ({ showError: vi.fn() }))
+vi.mock('../utils/toast', () => ({ showError: vi.fn(), showInfo: vi.fn() }))
 vi.mock('./sheetSync', () => ({
   enqueueSheetWrite: vi.fn(),
   queueOutboxWrite: vi.fn()

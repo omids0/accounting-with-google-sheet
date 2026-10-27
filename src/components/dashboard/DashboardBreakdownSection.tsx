@@ -3,6 +3,7 @@ import { Fragment } from 'react'
 import { BreakdownRow } from './DashboardParts'
 import { getNetAvailableConfig } from '../../services/settings'
 import type { DashboardData, DashboardNavTarget, NetAvailableConfig } from '../../types'
+import { asOfEndLabel } from '../../utils/periodLabel'
 import Card from '../ui/Card'
 import {
   assetBreakdownClass,
@@ -86,10 +87,11 @@ export default function DashboardBreakdownSection({
 }: DashboardBreakdownSectionProps) {
   const goalsTotal = financial?.goalsTotal ?? 0
   const checksReceivable = financial?.checksReceivable ?? 0
+  const walletAsOf = asOfEndLabel(financial?.walletAsOf)
 
   const assets: BreakdownItem[] = [
     {
-      label: 'کیف پول',
+      label: walletAsOf ? `کیف پول · ${walletAsOf}` : 'کیف پول',
       value: financial?.walletTotal ?? 0,
       included: config.assets.wallet,
       target: 'wallet'

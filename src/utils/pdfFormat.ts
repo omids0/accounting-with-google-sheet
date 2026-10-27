@@ -1,6 +1,7 @@
 import type { InstallmentPayment, InstallmentPlan, Receivable, ReceivablePayment } from '../types'
 import { formatMoney } from './formatMoney'
 import { formatIsoDatePersian, getTodayIso } from './jalaliDate'
+import { paidTotal, remainingOf } from './paymentLedger'
 
 export function formatPaidStatus(paid: boolean): string {
   return paid ? 'پرداخت شده' : 'پرداخت نشده'
@@ -60,16 +61,20 @@ export function formatReceivablePayments(payments: ReceivablePayment[]): string 
     .join('\n')
 }
 
+/** «پرداخت شده» and «مانده» of anything paid in pieces (a receivable, a debt), formatted. */
+export function formatPaymentSummary(
+  amount: number,
+  payments: readonly { amount: number }[]
+): { paid: string; remaining: string } {
+  return {
+    paid: formatMoney(paidTotal(payments)),
+    remaining: formatMoney(remainingOf(amount, payments))
+  }
+}
+
 export function formatReceivableSummary(receivable: Receivable): {
   paid: string
   remaining: string
 } {
-  const paid = receivable.payments.reduce((sum, payment) => sum + payment.amount, 0)
-
-  const remaining = Math.max(receivable.amount - paid, 0)
-
-  return {
-    paid: formatMoney(paid),
-    remaining: formatMoney(remaining)
-  }
+  return formatPaymentSummary(receivable.amount, receivable.payments)
 }

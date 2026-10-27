@@ -35,9 +35,10 @@ export function useAttachmentDeleteQuestion() {
 
   return {
     ask,
-    /** Spread into `ConfirmActionModal`. */
+    /** Spread into `ConfirmActionModal`. «نگه دار» (the safe answer) is the bright button. */
     modalProps: {
       open: count > 0,
+      tone: 'danger' as const,
       title: 'پیوست هم پاک شود؟',
       message: attachmentDeleteMessage(count),
       confirmLabel: 'بله، پاک شود',

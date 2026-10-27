@@ -1,4 +1,5 @@
 import { expenseIdOfDang } from './buildingExpenseSplit'
+import { DANG_EXPENSE_CATEGORY } from './dangConstants'
 import { DANG_REPAYMENT_PREFIX } from './dangTitles'
 import type { Dang } from '../types'
 import { TRANSFER_EXPENSE_CATEGORY } from '../utils/protectedCategories'
@@ -61,7 +62,8 @@ export const repaymentSubCategory = (creditor: string) =>
   `${DANG_REPAYMENT_PREFIX}${creditor.trim()}`
 
 /**
- * The category of the record a settlement writes. A personal debt is an expense of its category;
+ * The category of the record a settlement writes. A personal debt payment is an expense under the
+ * fixed category «بدهی», filed in the debt's own category as its subcategory;
  * a building's debt came from an expense already (the one the payer fronted), so repaying it is
  * a transfer out of the fund: one outflow, never a second expense.
  */
@@ -71,7 +73,7 @@ export function dangSettlementCategory(
 ): { category: string; subCategory: string } {
   return building
     ? { category: TRANSFER_EXPENSE_CATEGORY, subCategory: repaymentSubCategory(dang.counterparty) }
-    : { category: dang.category, subCategory: dang.subCategory ?? '' }
+    : { category: DANG_EXPENSE_CATEGORY, subCategory: dang.category }
 }
 
 /**

@@ -2,6 +2,7 @@ import { lazy } from 'react'
 
 import {
   loadAboutPage,
+  loadInvitePage,
   loadAssetsLiabilitiesReportPage,
   loadCashFlowReportPage,
   loadCategoryTreeReportPage,
@@ -48,6 +49,7 @@ import {
   loadWalletAccountDetailPage,
   loadWalletReconcilePage,
   loadWalletTracePage,
+  loadWalletTransfersPage,
   loadBankSmsPage,
   loadBuildingChargesPage,
   loadBuildingChecksPage,
@@ -65,10 +67,15 @@ import {
   loadBuildingsHomePage,
   loadBuildingUnitPage,
   loadBuildingUnitsPage,
-  loadSearchPage
+  loadSearchPage,
+  loadSharedHomePage,
+  loadSharedMembersPage,
+  loadSharedRecordsPage,
+  loadSharedSettlePage
 } from './pageChunks'
 
 export const LazyAboutPage = lazy(loadAboutPage)
+export const LazyInvitePage = lazy(loadInvitePage)
 export const LazyBankSmsPage = lazy(loadBankSmsPage)
 export const LazyChartsPage = lazy(loadChartsPage)
 export const LazyChecksPage = lazy(loadChecksPage)
@@ -116,6 +123,7 @@ export const LazyWalletPage = lazy(loadWalletPage)
 export const LazyWalletAccountDetailPage = lazy(loadWalletAccountDetailPage)
 export const LazyWalletReconcilePage = lazy(loadWalletReconcilePage)
 export const LazyWalletTracePage = lazy(loadWalletTracePage)
+export const LazyWalletTransfersPage = lazy(loadWalletTransfersPage)
 export const LazySearchPage = lazy(loadSearchPage)
 export const LazyBuildingReportsPage = lazy(loadBuildingReportsPage)
 export const LazyBuildingSettingsPage = lazy(loadBuildingSettingsPage)
@@ -133,3 +141,7 @@ export const LazyBuildingUnitPage = lazy(loadBuildingUnitPage)
 export const LazyBuildingChargesPage = lazy(loadBuildingChargesPage)
 export const LazyBuildingExpensesPage = lazy(loadBuildingExpensesPage)
 export const LazyBuildingResidentsPage = lazy(loadBuildingResidentsPage)
+export const LazySharedHomePage = lazy(loadSharedHomePage)
+export const LazySharedRecordsPage = lazy(loadSharedRecordsPage)
+export const LazySharedSettlePage = lazy(loadSharedSettlePage)
+export const LazySharedMembersPage = lazy(loadSharedMembersPage)

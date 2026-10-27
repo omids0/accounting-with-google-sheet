@@ -7,9 +7,10 @@ import { getSettings } from '../../services/settings'
 const SETTLE_MS = 2500
 
 /**
- * Inside a building workspace, after entering and after every sync: the signed-in member who was
- * invited removes their own invite marker, so «دعوت‌شده» becomes «فعال» for everyone. Mounted once
- * by the layout; the member service decides whether this user may and needs to write.
+ * Inside a building or the shared account, after entering and after every sync: the signed-in
+ * member who was invited removes their own invite marker, so «دعوت‌شده» becomes «فعال» for
+ * everyone. Mounted once by the layout (`enabled` = not the personal sheet); the member service
+ * decides, by the sheet's kind, whether this user may and needs to write.
  */
 export function useClaimInvite(enabled: boolean): void {
   const revision = useDataRevision()

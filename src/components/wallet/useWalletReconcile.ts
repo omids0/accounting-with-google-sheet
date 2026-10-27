@@ -12,6 +12,7 @@ import {
   canReconcile,
   isReconcileAvailable,
   loadReconcileSms,
+  localReconcileLinks,
   refreshReconcileDigest
 } from '../../services/bankSmsReconcileData'
 import {
@@ -62,12 +63,15 @@ export function useWalletReconcile(accounts: WalletAccountWithRow[]) {
     const map = new Map<string, AccountReconcile | null>()
 
     if (!data) return map
+
+    const links = localReconcileLinks(data.sms, data.ledger)
+
     for (const account of accounts) {
       if (!canReconcile(account)) continue
 
       const sms = accountSms(data.sms, account.id)
 
-      map.set(account.id, reconcileAccount(account.id, account.balance, sms, data.ledger))
+      map.set(account.id, reconcileAccount(account.id, account.balance, sms, data.ledger, links))
     }
 
     return map

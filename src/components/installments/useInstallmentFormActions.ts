@@ -5,8 +5,8 @@ import {
   removeParentAttachments,
   useAttachmentDeleteQuestion
 } from '../../hooks/useAttachmentDeleteQuestion'
-import { useLinkedRecordsDeleteQuestion } from '../../hooks/useLinkedRecordsDeleteQuestion'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
+import { deleteRemovedPaymentRecords } from '../../services/installmentRecordCleanup'
 import {
   createInstallmentPlan,
   deleteInstallmentPlan,
@@ -16,13 +16,13 @@ import {
 } from '../../services/installments'
 import { installmentHiddenPlanMessage } from '../../services/installmentSchedulePreview'
 import { INSTALLMENTS_SHEET } from '../../services/installmentsConstants'
-import { deleteLinkedExpenseRecord } from '../../services/paymentTransactions'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 import type { DateRange } from '../../utils/jalaliDate'
-import { installmentPlanLinkedCount } from '../../utils/linkedRecordsDelete'
+import { installmentPlanLinkedCount, linkedDeleteQuestion } from '../../utils/linkedRecordsDelete'
 import { handleSheetError } from '../../utils/sheetError'
-import { showError, showSuccess } from '../../utils/toast'
+import { showError, showInfo, showSuccess } from '../../utils/toast'
 import { useAttachmentDrafts } from '../attachments/useAttachmentDrafts'
 
 type UseInstallmentFormActionsParams = {
@@ -110,8 +110,14 @@ export function useInstallmentFormActions({
           reconciled.payments
         )
 
-        for (const transactionRecordId of removedTransactionIds) {
-          await deleteLinkedExpenseRecord(settings.spreadsheetId, transactionRecordId)
+        // A record the user linked (bank SMS, entry form) is theirs: it stays as an expense.
+        const kept = await deleteRemovedPaymentRecords(
+          settings.spreadsheetId,
+          removedTransactionIds
+        )
+
+        if (kept > 0) {
+          showInfo('رکورد هزینه‌ای که خودت به قسط وصل کرده بودی پاک نشد و همان‌طور می‌ماند.')
         }
         await updateInstallmentPlan(settings.spreadsheetId, editingPlan.rowNumber, reconciled)
         await attachments.commit(settings.spreadsheetId, INSTALLMENTS_SHEET, editingPlan.id)
@@ -157,35 +163,38 @@ export function useInstallmentFormActions({
   plansRef.current = plans
 
   const attachmentQuestion = useAttachmentDeleteQuestion()
-  const linkedQuestion = useLinkedRecordsDeleteQuestion()
 
   const requestDelete = async (plan: PlanWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
+    const title = plan.title.trim()
+    const label = title ? `طرح اقساط «${title}»` : 'طرح اقساط'
+    const confirmed = await confirmDelete(
+      linkedDeleteQuestion(
+        label,
+        undoableDeleteMessage(`${label} با همهٔ قسط‌هایش`),
+        installmentPlanLinkedCount(plan),
+        'expense'
+      )
+    )
+
+    if (!confirmed) return
+
     const answer = await attachmentQuestion.ask(plan.attachments ?? [])
 
     if (!answer) return
 
-    const linked = await linkedQuestion.ask(
-      installmentPlanLinkedCount(plan),
-      plan.title.trim() ? `طرح اقساط «${plan.title.trim()}»` : 'این طرح اقساط'
-    )
-
-    if (!linked) return
-
-    const title = plan.title.trim()
-
     setExpandedId(current => (current === plan.id ? null : current))
     void undoableDelete.schedule({
       id: plan.id,
-      label: title ? `طرح اقساط «${title}»` : 'طرح اقساط',
+      label,
       errorMessage: 'خطا در حذف قسط',
       commit: async () => {
         const current = plansRef.current.find(entry => entry.id === plan.id) ?? plan
 
-        await deleteInstallmentPlan(spreadsheetId, current.rowNumber, current, linked === 'keep')
+        await deleteInstallmentPlan(spreadsheetId, current.rowNumber, current, !confirmed.checked)
         void removeParentAttachments(current.attachments, answer)
         await loadPlans()
       }
@@ -204,7 +213,6 @@ export function useInstallmentFormActions({
     handleSubmit,
     requestDelete,
     attachments,
-    attachmentQuestionModal: attachmentQuestion.modalProps,
-    linkedRecordsModal: linkedQuestion.modalProps
+    attachmentQuestionModal: attachmentQuestion.modalProps
   }
 }

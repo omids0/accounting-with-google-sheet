@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import BankSmsBulkBar from './BankSmsBulkBar'
 import BankSmsHelp from './BankSmsHelp'
 import BankSmsQueueItem from './BankSmsQueueItem'
 import BankSmsQueueTable from './BankSmsQueueTable'
@@ -23,7 +22,7 @@ import { smsHintClass, smsPageClass, smsQueueListClass } from '../ui/bankSmsStyl
 import Card from '../ui/Card'
 import { headerActionBtnClass } from '../ui/layoutStyles'
 
-/** Page order: pending line → queue → bottom bar; help, range and templates behind ⚙. */
+/** Page order: pending line → queue; help, range and templates behind ⚙. */
 export default function BankSmsReview({
   building = null
 }: {
@@ -109,14 +108,6 @@ export default function BankSmsReview({
               </p>
             </div>
           )}
-
-          <BankSmsBulkBar
-            count={review.bulkCount}
-            busy={review.busyKey === 'all'}
-            onConfirmAll={() => void review.confirmAll()}
-            unitCount={review.bulkUnitCount}
-            inBuilding={!!building}
-          />
         </>
       )}
 

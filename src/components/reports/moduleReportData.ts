@@ -22,6 +22,7 @@ import { computeHoldings, totalsByClass } from '../../services/treasuryHoldings'
 import { formatPct, realizedInRange } from '../../services/treasuryPnl'
 import { formatQuantityValue } from '../../services/treasuryQuantity'
 import { exportWalletAccountsPdf, fetchWalletAccounts } from '../../services/wallet'
+import { dangRemaining } from '../../utils/dangLedger'
 import { getDateRange } from '../../utils/dateRange'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
@@ -188,12 +189,12 @@ export async function loadModuleReport(
       return {
         total,
         rows: items
-          .filter(item => !item.paid)
+          .filter(item => dangRemaining(item) > 0)
           .map(item => ({
             id: item.id,
             title: item.title,
             subtitle: `${item.counterparty} · ${formatIsoDatePersian(item.date)}`,
-            amount: item.amount
+            amount: dangRemaining(item)
           }))
       }
     }

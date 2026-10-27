@@ -118,6 +118,7 @@ export default function CategoryDetailSheet({
               <CategorySubcategoryEditor
                 category={item.name}
                 subcategories={item.subcategories}
+                fixedSubcategories={item.fixedSubcategories}
                 busy={busy}
                 onSave={list => onSaveSubcategories(item.name, list)}
                 onRename={(from, to) => onRenameSubcategory(item.name, from, to)}

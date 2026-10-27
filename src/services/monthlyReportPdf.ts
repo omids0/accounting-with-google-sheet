@@ -1,6 +1,6 @@
 import { monthlyReportFileName, monthlyReportTitle, type MonthlyReportData } from './monthlyReport'
 import { reportWords } from './reportWording'
-import { getActiveWorkspaceType } from './workspace'
+import { isPersonalWorkspace } from './workspace'
 import { formatMoney, formatMoneyParts, formatPersianNumber } from '../utils/formatMoney'
 import { escapeHtml, PDF_THEME, renderHtmlPdf } from '../utils/pdfRender'
 import { saveExportFile } from '../utils/saveFile'
@@ -64,15 +64,16 @@ export function monthlyReportHighlightLine(report: MonthlyReportData): string {
 
 /**
  * The footer facts, also shown under the on-screen preview. A building has no installments, and
- * its «دارایی خالص» would count unit credit as a receivable, so both are left out there.
+ * its «دارایی خالص» would count unit credit as a receivable; a shared account has neither (they
+ * belong to the personal books): both are left out outside the personal workspace.
  */
 export function monthlyReportFacts(
   report: MonthlyReportData,
-  building = getActiveWorkspaceType() === 'building'
+  notPersonal = !isPersonalWorkspace()
 ): string[] {
   const facts = [`چک پاس‌شده ${formatPersianNumber(report.checksCleared)}`]
 
-  if (!building) {
+  if (!notPersonal) {
     facts.unshift(
       `اقساط پرداخت‌شده ${formatPersianNumber(report.installments.paid)} از ${formatPersianNumber(
         report.installments.due
@@ -80,7 +81,7 @@ export function monthlyReportFacts(
     )
   }
 
-  if (!building && report.netWorth != null) {
+  if (!notPersonal && report.netWorth != null) {
     const change =
       report.netWorthChange != null
         ? ` (${report.netWorthChange >= 0 ? '↑' : '↓'} ${formatMoney(

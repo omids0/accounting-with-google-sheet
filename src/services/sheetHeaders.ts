@@ -59,6 +59,9 @@ export const COUNTERPARTIES_HEADERS = [
   'من'
 ]
 
+/** Label of the JSON column that lists a debt's payments (the last column of the debts tab). */
+export const PAYMENTS_HEADER = 'پرداخت‌ها'
+
 export const DANG_HEADERS = [
   'شناسه',
   'زمان ثبت',
@@ -72,7 +75,8 @@ export const DANG_HEADERS = [
   'زمان پرداخت',
   'شناسه تراکنش',
   'زیردسته',
-  'ثبت‌کننده'
+  'ثبت‌کننده',
+  PAYMENTS_HEADER
 ]
 
 export const DANG_SPLIT_GROUPS_HEADERS = ['شناسه', 'زمان ثبت', 'عنوان', 'توضیحات']
@@ -211,6 +215,22 @@ export const TREASURY_ASSETS_HEADERS = [
   'قیمت دستی',
   'زمان قیمت دستی',
   'فعال'
+]
+
+/**
+ * One row per transfer between two of the user's own wallet accounts (accounts are stored by id).
+ * Not an income or an expense; its balance moves are the «گردش حساب» rows of kind `transfer`
+ * whose «شناسه رکورد» is this row's id. «ثبت‌کننده» is stamped on write (utils/writerColumn.ts).
+ */
+export const TRANSFERS_HEADERS = [
+  'شناسه',
+  'زمان ثبت',
+  'تاریخ',
+  'از حساب',
+  'به حساب',
+  'مبلغ',
+  'یادداشت',
+  'ثبت‌کننده'
 ]
 
 /** Savings goals; deposits and withdrawals live in «گردش حساب» (kind `goal-deposit`). */

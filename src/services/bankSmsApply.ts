@@ -1,7 +1,12 @@
+import { applyBalance } from './bankSmsApplyBalance'
+import { rememberSmsRecord } from './bankSmsCoverageStore'
 import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
+import { SMS_RECORD_NOTE } from './bankSmsNote'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
-import { nextAccountBalance, type ConfirmableSms } from './bankSmsQueue'
+import { type ConfirmableSms } from './bankSmsQueue'
+import { QueueNotLeftError } from './bankSmsQueueError'
+import { liveRecordOfSms } from './bankSmsRecordOf'
 import { smsSenderKey, type SmsCategoryChoice } from './bankSmsSuggest'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
 import {
@@ -10,10 +15,8 @@ import {
   recordLedgerContext,
   type RecordWalletEffect
 } from './recordWallet'
-import { fetchWalletAccounts, updateWalletAccount } from './wallet'
-import { ledgerEntry, logLedger, type LedgerContext } from './walletLedger'
+import { type LedgerContext } from './walletLedger'
 import { WALLET_APPLY_NO } from '../components/form/fieldUtils'
-import { roundMoney } from '../utils/roundMoney'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
 
@@ -23,7 +26,7 @@ export interface SmsRecordInput {
   subCategory: string
 }
 
-export const SMS_RECORD_NOTE = 'ثبت از پیامک'
+export { SMS_RECORD_NOTE }
 
 /**
  * A newer «مانده» of this account already includes the SMS. Then the balance does not
@@ -43,52 +46,19 @@ function sameDirection(entry: ConfirmableSms, effect: RecordWalletEffect): boole
   return effect.delta < 0 === (entry.result.direction === 'debit')
 }
 
-/** Title and record of the ledger row; the source is always «پیامک». */
-type SmsLedgerNote = { title?: string; recordId?: string }
+/**
+ * Takes the SMS out of the queue once its record exists. A failure of the native side must not stop
+ * the steps after it (balance, ledger, debt link): it comes back as a value, and the caller throws
+ * `QueueNotLeftError` when those are done. A retry finds the record by `recordOfSms`.
+ */
+export async function leaveQueueAfterRecord(ids: string[]): Promise<Error | null> {
+  try {
+    await markBankSmsHandled(ids)
 
-async function applyBalance(
-  spreadsheetId: string,
-  entry: ConfirmableSms,
-  note: SmsLedgerNote = {}
-): Promise<void> {
-  learnSmsRef(entry.result.ref, entry.result.accountId)
-
-  const account = (await fetchWalletAccounts(spreadsheetId)).find(
-    item => item.id === entry.result.accountId
-  )
-
-  if (!account) return
-
-  const prefs = getBankSmsPrefs()
-  const next = nextAccountBalance(
-    account.balance,
-    {
-      receivedAt: entry.sms.receivedAt,
-      direction: entry.result.direction,
-      amount: entry.amount
-    },
-    entry.balance,
-    prefs.balanceStates[account.id] ?? {}
-  )
-
-  if (!next) return
-
-  const changed = roundMoney(next.balance) !== roundMoney(account.balance)
-
-  if (changed) {
-    await updateWalletAccount(spreadsheetId, { ...account, balance: next.balance })
+    return null
+  } catch {
+    return new QueueNotLeftError()
   }
-  updateBankSmsPrefs({ balanceStates: { ...prefs.balanceStates, [account.id]: next.state } })
-  if (!changed) return
-
-  await logLedger(spreadsheetId, [
-    ledgerEntry(account.id, next.balance - account.balance, next.balance, {
-      title: note.title || `پیامک ${account.title}`,
-      date: smsRecordDate(entry.sms.body, entry.sms.receivedAt),
-      source: 'پیامک',
-      recordId: note.recordId
-    })
-  ])
 }
 
 /**
@@ -96,17 +66,35 @@ async function applyBalance(
  * i.e. «فقط به‌روزرسانی موجودی»), move the account balance, drop it from the queue.
  * Resolves with the id of the record written ('' without one). `remember: false` keeps the
  * category out of the per-sender memory (a building's charge category must not be suggested
- * for the same bank in a personal workspace).
+ * for the same bank in a personal workspace). `afterRecord` runs right after the record exists
+ * and the SMS left the queue (before the balance step, which may fail): the debt/receivable link.
  */
 export async function confirmSmsEntryWithId(
   spreadsheetId: string,
   entry: ConfirmableSms,
   record: SmsRecordInput | null,
-  { remember = true }: { remember?: boolean } = {}
+  {
+    remember = true,
+    afterRecord
+  }: { remember?: boolean; afterRecord?: (recordId: string) => Promise<void> } = {}
 ): Promise<string> {
   let recordId = ''
+  let queueError: Error | null = null
 
   if (record) {
+    const earlier = await liveRecordOfSms(
+      spreadsheetId,
+      entry.sms.id,
+      entry.result.direction === 'debit' ? 'expense' : 'income'
+    )
+
+    // A save that failed after its record was written: finish it (leave the queue), no second record.
+    if (earlier) {
+      await markBankSmsHandled([entry.sms.id])
+
+      return earlier
+    }
+
     const params = {
       title: record.title,
       amount: entry.amount,
@@ -126,9 +114,11 @@ export async function confirmSmsEntryWithId(
         ? await createLinkedExpenseRecord(spreadsheetId, params)
         : await createLinkedIncomeRecord(spreadsheetId, params)
 
-    // Leave the queue right after the record exists, so a failure below can
-    // never lead to the same record being written twice.
-    await markBankSmsHandled([entry.sms.id])
+    // The SMS already covers the record it created: no later SMS is taken for a payment of it.
+    rememberSmsRecord(entry, recordId)
+    // Leave the queue right after the record exists, so a failure below can never lead to the same
+    // record being written twice; the steps below still run if the native side fails.
+    queueError = await leaveQueueAfterRecord([entry.sms.id])
     if (remember) rememberSmsCategory(entry, type, record)
     await logUnappliedRecord(
       spreadsheetId,
@@ -136,12 +126,24 @@ export async function confirmSmsEntryWithId(
       params,
       recordLedgerContext(params, 'پیامک', recordId)
     ).catch(() => undefined)
+    await afterRecord?.(recordId)
   }
 
   if (!record) await markBankSmsHandled([entry.sms.id])
-  await applyBalance(spreadsheetId, entry, { title: record?.title, recordId })
+  // A balance-only confirm already ends with its own «موجودی به‌روز شد» toast: no second one.
+  await applyBalance(spreadsheetId, entry, { title: record?.title, recordId, quiet: !record })
+  if (queueError) throw queueError
 
   return recordId
+}
+
+/** The record just written from an SMS, as the payment of a debt or receivable: id, amount, date. */
+export function smsLinkedRecord(entry: ConfirmableSms, recordId: string) {
+  return {
+    recordId,
+    amount: entry.amount,
+    date: smsRecordDate(entry.sms.body, entry.sms.receivedAt)
+  }
 }
 
 export async function confirmSmsEntry(
@@ -169,7 +171,7 @@ export async function dismissSms(ids: string[]): Promise<void> {
   await markBankSmsHandled(ids)
 }
 
-/** The record saved straight from a card or «ثبت همه»: its category and, when known, title. */
+/** The record saved straight from a card: its category and, when known, title. */
 export function suggestedSmsRecord(
   choice: SmsCategoryChoice & { title?: string },
   accountTitle: string
@@ -211,7 +213,9 @@ export async function settleSmsFromEntry(
   record: Pick<SmsRecordInput, 'category' | 'subCategory'>,
   context: LedgerContext
 ): Promise<void> {
-  await markBankSmsHandled([entry.sms.id])
+  rememberSmsRecord(entry, context.recordId ?? '')
+
+  const queueError = await leaveQueueAfterRecord([entry.sms.id])
 
   const smsType = entry.result.direction === 'debit' ? 'expense' : 'income'
 
@@ -221,9 +225,11 @@ export async function settleSmsFromEntry(
   // account, or the user switched income/expense) the record's own effect applies.
   if (effect && effect.accountId === entry.result.accountId && sameDirection(entry, effect)) {
     await applyBalance(spreadsheetId, { ...entry, amount: Math.abs(effect.delta) }, context)
+    if (queueError) throw queueError
 
     return
   }
   if (effect) learnSmsRef(entry.result.ref, effect.accountId)
   await applyWalletChanges(spreadsheetId, null, effect, context)
+  if (queueError) throw queueError
 }

@@ -7,10 +7,9 @@ import { getSettings, isConfigured } from '../../services/settings'
 import {
   deleteWalletAccount,
   loadWalletPeriodFlow,
-  updateWalletAccount,
   type WalletPeriodFlow
 } from '../../services/wallet'
-import { logBalanceSet } from '../../services/walletLedger'
+import { saveEditedWalletAccount, setBalanceByHand } from '../../services/walletAccountEdit'
 import { postReconciliationRecord } from '../../services/walletReconcileRecord'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
 import { roundMoney } from '../../utils/roundMoney'
@@ -96,17 +95,8 @@ export function useWalletMutations({
       if (editingAccount) {
         const payload = buildWalletAccountPayload(form)
 
-        await updateWalletAccount(settings.spreadsheetId, {
-          ...editingAccount,
-          ...payload
-        })
-        await logBalanceSet(
-          settings.spreadsheetId,
-          editingAccount.id,
-          editingAccount.balance,
-          payload.balance,
-          'اصلاح دستی'
-        )
+        // A balance left as it was is not sent as a number: another device may have moved it.
+        await saveEditedWalletAccount(settings.spreadsheetId, editingAccount, payload)
         showSuccess('حساب ویرایش شد')
         await loadItems()
       } else {
@@ -144,12 +134,10 @@ export function useWalletMutations({
 
     setSavingId(account.id)
     try {
-      const updated = await updateWalletAccount(spreadsheetId, {
+      const updated = await setBalanceByHand(spreadsheetId, account, {
         ...account,
         balance: nextBalance
       })
-
-      await logBalanceSet(spreadsheetId, account.id, account.balance, nextBalance, 'اصلاح دستی')
 
       setItems(prev =>
         prev

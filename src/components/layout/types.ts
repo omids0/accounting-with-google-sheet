@@ -1,6 +1,9 @@
+import { SHARED_SPEED_DIAL_TABS, SHARED_TAB_TITLES, type SharedTab } from './sharedTabs'
+
 export type Tab =
   /** A URL no page answers to: no tab is highlighted and no speed dial shows. */
   | 'not-found'
+  | SharedTab
   | 'dashboard'
   | 'charts'
   | 'entry'
@@ -18,6 +21,7 @@ export type Tab =
   | 'wallet-account-detail'
   | 'wallet-reconcile'
   | 'wallet-trace'
+  | 'wallet-transfers'
   | 'bank-sms'
   | 'search'
   | 'opening-balances'
@@ -48,6 +52,7 @@ export type Tab =
   | 'timesheets'
   | 'timesheet-detail'
   | 'about'
+  | 'invite'
   | 'activity'
   | 'buildings-home'
   | 'building-dashboard'
@@ -75,19 +80,7 @@ export const CALCULATION_TABS: Tab[] = [
   'dang-split-detail'
 ]
 
-/** Pages under the wallet: the header back button returns to it. */
-export const WALLET_SUB_TABS: Tab[] = [
-  'opening-balances',
-  'wallet-account-detail',
-  'wallet-reconcile',
-  'wallet-trace'
-]
-
-export const DANG_SPLIT_TABS: Tab[] = ['dang-split', 'dang-split-detail']
-
-export const TIMESHEET_TABS: Tab[] = ['timesheets', 'timesheet-detail']
-
-export const VEHICLE_TABS: Tab[] = ['vehicle-service', 'vehicle-detail']
+export { DANG_SPLIT_TABS, TIMESHEET_TABS, VEHICLE_TABS, WALLET_SUB_TABS } from './tabGroups'
 
 export const REPORT_TABS: Tab[] = [
   'report-financial-summary',
@@ -156,7 +149,8 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'building-fund',
   'building-dang',
   'building-checks',
-  'building-counterparties'
+  'building-counterparties',
+  ...SHARED_SPEED_DIAL_TABS
 ]
 
 export const TAB_TITLES: Record<Tab, string> = {
@@ -178,6 +172,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   'wallet-account-detail': 'گردش حساب',
   'wallet-reconcile': 'تطبیق حساب',
   'wallet-trace': 'ردیاب اختلاف',
+  'wallet-transfers': 'انتقال‌ها',
   'bank-sms': 'پیامک‌های بانکی',
   search: 'جستجو',
   'opening-balances': 'موجودی اول دوره',
@@ -208,8 +203,9 @@ export const TAB_TITLES: Record<Tab, string> = {
   timesheets: 'تایم‌شیت',
   'timesheet-detail': 'جزئیات تایم‌شیت',
   about: 'درباره',
+  invite: 'دعوت دوستان',
   activity: 'فعالیت',
-  'buildings-home': 'مدیر ساختمان',
+  'buildings-home': 'فضاهای من',
   'building-dashboard': 'داشبورد',
   'building-setup': 'راه‌اندازی ساختمان',
   'building-units': 'واحدها',
@@ -225,7 +221,8 @@ export const TAB_TITLES: Record<Tab, string> = {
   'building-reports': 'گزارش‌ها و مجمع',
   'building-settings': 'تنظیمات ساختمان',
   'building-members': 'اعضا و دسترسی‌ها',
-  'building-lists': 'فهرست‌ها'
+  'building-lists': 'فهرست‌ها',
+  ...SHARED_TAB_TITLES
 }
 
 /** Pages of a building workspace; the personal workspace redirects them to its dashboard. */
@@ -286,6 +283,7 @@ export const PERSONAL_ONLY_TABS: Tab[] = [
   'treasury',
   'wallet',
   'wallet-trace',
+  'wallet-transfers',
   'bank-sms',
   'timesheets',
   'timesheet-detail'

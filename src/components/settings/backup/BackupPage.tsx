@@ -5,6 +5,7 @@ import BackupVersionsList from './BackupVersionsList'
 import RestoreBackupModal from './RestoreBackupModal'
 import { useBackupRestore } from './useBackupRestore'
 import { useDriveBackups } from './useDriveBackups'
+import { useSharedCan } from '../../../hooks/useSharedCan'
 import { SETTINGS_PATH } from '../../../routes/paths'
 import type { DriveBackupFile } from '../../../services/autoBackupPlan'
 import {
@@ -43,6 +44,7 @@ export default function BackupPage() {
 function BackupPageContent({ spreadsheetId }: { spreadsheetId: string }) {
   const drive = useDriveBackups(spreadsheetId)
   const restore = useBackupRestore()
+  const canRestore = useSharedCan('editOthers')
   const [confirmFile, setConfirmFile] = useState<DriveBackupFile | null>(null)
   const { state } = drive
 
@@ -97,7 +99,7 @@ function BackupPageContent({ spreadsheetId }: { spreadsheetId: string }) {
           loadError={drive.loadError}
           busy={drive.busy || restore.loading}
           onDownload={file => void drive.download(file)}
-          onRestore={restoreFrom}
+          onRestore={canRestore ? restoreFrom : undefined}
           onDelete={askDelete}
         />
       </Card>
@@ -112,15 +114,17 @@ function BackupPageContent({ spreadsheetId }: { spreadsheetId: string }) {
         >
           پشتیبان الان
         </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          loading={restore.loading}
-          disabled={restore.loading}
-          onClick={() => void restore.start()}
-        >
-          بازگردانی از فایل…
-        </Button>
+        {canRestore ? (
+          <Button
+            type="button"
+            variant="secondary"
+            loading={restore.loading}
+            disabled={restore.loading}
+            onClick={() => void restore.start()}
+          >
+            بازگردانی از فایل…
+          </Button>
+        ) : null}
       </div>
 
       <RestoreBackupModal {...restore.modal} />

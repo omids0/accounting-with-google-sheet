@@ -1,4 +1,4 @@
-import type { LedgerEntry } from './walletLedger'
+import { ledgerSourceLabel, type LedgerEntry } from './walletLedger'
 import { downloadTextFile, rowsToCsv } from '../utils/csv'
 import { formatMoney } from '../utils/formatMoney'
 import { formatIsoDatePersian } from '../utils/jalaliDate'
@@ -13,7 +13,7 @@ export function ledgerTable(entries: LedgerEntry[]): { headers: string[]; rows: 
     rows: entries.map(entry => [
       entry.date,
       entry.title,
-      entry.source,
+      ledgerSourceLabel(entry.source),
       String(entry.delta),
       String(entry.balanceAfter),
       entry.applied ? 'بله' : 'بدون اثر'

@@ -83,7 +83,8 @@ export async function importChecksCsv(spreadsheetId: string, csvContent: string)
           dueDate,
           paid: parsePaid(cells[7] ?? ''),
           paidAt: cells[8] ?? '',
-          transactionRecordId: cells[9] ?? '',
+          // The record the file's check was paid with belongs to the workbook it came from.
+          transactionRecordId: '',
           subCategory: cells[10] ?? ''
         },
         column

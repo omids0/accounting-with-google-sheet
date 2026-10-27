@@ -12,7 +12,7 @@ import DashboardYearReviewCard from './DashboardYearReviewCard'
 import type { DashboardReminderItem } from '../../services/dashboardReminders'
 import type { DashboardData } from '../../types'
 import type { RecordsDatePreset } from '../../utils/dateRange'
-import type { PeriodDescription } from '../../utils/periodLabel'
+import { asOfEndLabel, type PeriodDescription } from '../../utils/periodLabel'
 import BankSmsPendingBanner from '../bankSms/BankSmsPendingBanner'
 import DateRangeFilter, { createDefaultDateRangeFilter } from '../DateRangeFilter'
 import FilterModal from '../FilterModal'
@@ -103,6 +103,7 @@ export default function DashboardContent({
           totalIncome={data.totalIncome}
           totalExpense={data.totalExpense}
           periodNoun={period.noun}
+          asOfLabel={asOfEndLabel(data.financial.walletAsOf)}
           onConfigure={nav.onConfigureNetAvailable}
           previousMonth={period.kind === 'month' ? data.previousMonth : undefined}
         />

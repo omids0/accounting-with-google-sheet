@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import TransferFormModal from './transfers/TransferFormModal'
+import TransferListLink from './transfers/TransferListLink'
+import { useWalletTransferActions } from './transfers/useWalletTransferActions'
 import type { WalletPageProps } from './types'
 import { useWalletData } from './useWalletData'
 import { useWalletFilters } from './useWalletFilters'
@@ -55,6 +58,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
 
   const data = useWalletData()
 
+  const transfers = useWalletTransferActions()
+
   const filters = useWalletFilters(data.items)
 
   const reconcile = useWalletReconcile(data.items)
@@ -90,7 +95,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
         refreshDisabled: data.loading,
         onImport: handleImport,
         onExport: handleExport,
-        onExportPdf: handleExportPdf
+        onExportPdf: handleExportPdf,
+        extraActions: transfers.extraActions
       })
     }),
     [
@@ -100,7 +106,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
       data.loading,
       handleImport,
       handleExport,
-      handleExportPdf
+      handleExportPdf,
+      transfers.extraActions
     ]
   )
 
@@ -209,6 +216,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
         </div>
       )}
 
+      {data.items.length > 0 && <TransferListLink />}
+
       {data.items.length > 0 && (
         <StatCard
           label="مجموع کل حساب‌ها"
@@ -252,6 +261,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
         smsDrafts={mutations.smsDrafts}
         onSmsDraftsChange={mutations.setSmsDrafts}
       />
+
+      <TransferFormModal {...transfers.modalProps} />
 
       <ConfirmActionModal {...importExportConfirmModal} />
 

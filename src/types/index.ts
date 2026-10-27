@@ -36,6 +36,7 @@ export type {
   InstallmentPayment,
   InstallmentPlan,
   Dang,
+  DangPayment,
   Check,
   CheckDirection,
   ReceivablePayment,

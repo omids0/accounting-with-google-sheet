@@ -6,6 +6,7 @@ import {
   cardInlineEditLabelClass,
   cardInlineEditSpinnerClass
 } from './ui/featureCardStyles'
+import { formHintClass } from './ui/formStyles'
 import { cn } from '../utils/cn'
 
 interface CardInlineAmountEditProps {
@@ -15,6 +16,8 @@ interface CardInlineAmountEditProps {
   onBlur?: () => void
   onClose?: () => void
   saving?: boolean
+  /** Small note under the field, for example the lowest amount that is allowed. */
+  hint?: string
   className?: string
 }
 
@@ -25,6 +28,7 @@ export default function CardInlineAmountEdit({
   onBlur,
   onClose,
   saving = false,
+  hint,
   className
 }: CardInlineAmountEditProps) {
   const handleSubmit = () => {
@@ -44,6 +48,7 @@ export default function CardInlineAmountEdit({
           onSubmit={onClose ? handleSubmit : undefined}
           submitDisabled={saving}
         />
+        {hint ? <p className={formHintClass}>{hint}</p> : null}
       </div>
       {saving ? (
         <span className={cn(spinnerClass, cardInlineEditSpinnerClass)} aria-label="در حال ذخیره" />

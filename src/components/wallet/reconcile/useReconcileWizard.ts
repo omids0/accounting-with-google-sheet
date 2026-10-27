@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router'
 
 import { getPathForTab, recordFocusPath } from '../../../routes/paths'
 import { confirmSmsEntry, suggestedSmsRecord } from '../../../services/bankSmsApply'
+import { smsCoverage } from '../../../services/bankSmsCoverage'
 import { buildBankSmsEntryState } from '../../../services/bankSmsEntry'
+import { localLinkedRecords } from '../../../services/bankSmsLinked'
 import { getBankSmsPrefs } from '../../../services/bankSmsPrefs'
 import {
   isProbableDuplicate,
@@ -18,7 +20,11 @@ import {
   type CorrectionOptions
 } from '../../../services/bankSmsReconcile'
 import { createReconcileCorrection } from '../../../services/bankSmsReconcileApply'
-import { loadReconcileSms, refreshReconcileDigest } from '../../../services/bankSmsReconcileData'
+import {
+  loadReconcileSms,
+  localReconcileLinks,
+  refreshReconcileDigest
+} from '../../../services/bankSmsReconcileData'
 import { readReconcileEntries, saveReconcileSuccess } from '../../../services/bankSmsReconcileStore'
 import { smsSuggestInput, suggestSmsCategory } from '../../../services/bankSmsSuggest'
 import type { LedgerEntry } from '../../../services/recordDuplicates'
@@ -27,6 +33,7 @@ import { useBankSmsStore } from '../../../stores/bankSmsStore'
 import { requireSpreadsheetId } from '../../../utils/authGuard'
 import { haptic } from '../../../utils/haptics'
 import { toIsoDate } from '../../../utils/jalaliDate'
+import { isLinkTargetCategory } from '../../../utils/linkTargetKinds'
 import { handleSheetError } from '../../../utils/sheetError'
 import { showSuccess } from '../../../utils/toast'
 import { isVehicleExpenseCategory } from '../../../utils/vehicleExpenseUtils'
@@ -57,10 +64,11 @@ export function useReconcileWizard(accountId: string) {
     if (!account || !sms) return null
 
     const all = accountSms(sms, accountId)
-    const result = reconcileAccount(accountId, account.balance, all, ledger)
+    const links = localReconcileLinks(sms, ledger)
+    const result = reconcileAccount(accountId, account.balance, all, ledger, links)
     const startDay = toIsoDate(new Date(startMs))
     const inRange = (record: LedgerEntry) => record.date >= startDay
-    const match = result?.match ?? matchSmsToRecords(all, ledger, accountId)
+    const match = result?.match ?? matchSmsToRecords(all, ledger, accountId, links)
 
     return {
       result,
@@ -142,11 +150,16 @@ export function useReconcileWizard(accountId: string) {
     save: (item: ConfirmableSms) => {
       const choice = choiceFor(item)
 
-      // A vehicle expense needs its vehicle and mileage: the form asks them, a silent save cannot.
+      // A vehicle expense needs its vehicle and mileage, a «بدهی»/«طلب» the debt or receivable it
+      // pays: the form asks them, a silent save cannot.
       if (
         !choice ||
-        isProbableDuplicate(item, ledger) ||
-        isVehicleExpenseCategory(choice.category)
+        isProbableDuplicate(item, ledger, localLinkedRecords([item], ledger), smsCoverage()) ||
+        isVehicleExpenseCategory(choice.category) ||
+        isLinkTargetCategory(
+          item.result.direction === 'debit' ? 'expense' : 'income',
+          choice.category
+        )
       ) {
         const state = buildBankSmsEntryState(item, { choice })
 

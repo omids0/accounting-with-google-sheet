@@ -20,6 +20,7 @@ import {
 } from '../../services/timesheet'
 import type { Timesheet, TimesheetEntry } from '../../types'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
 import { handleSheetError } from '../../utils/sheetError'
 
 export type TimesheetEntryWithRow = TimesheetEntry & { rowNumber: number }
@@ -144,14 +145,18 @@ export function useTimesheetDetailPage(timesheet: Timesheet) {
     }
   }
 
-  const requestDelete = (item: TimesheetEntryWithRow) => {
+  const requestDelete = async (item: TimesheetEntryWithRow) => {
     const spreadsheetId = requireSpreadsheetId()
 
     if (!spreadsheetId) return
 
+    const label = item.title ? `رکورد «${item.title}»` : 'رکورد'
+
+    if (!(await confirmDelete({ label, message: undoableDeleteMessage(label) }))) return
+
     void undoableDelete.schedule({
       id: item.id,
-      label: item.title ? `رکورد «${item.title}»` : 'رکورد',
+      label,
       errorMessage: 'خطا در حذف',
       commit: async () => {
         const current = itemsRef.current.find(entry => entry.id === item.id) ?? item

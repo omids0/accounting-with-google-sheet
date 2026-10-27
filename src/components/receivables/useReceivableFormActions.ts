@@ -1,17 +1,17 @@
 import { useRef, useState } from 'react'
 
 import type { ReceivableFormState, ReceivableWithRow } from './types'
-import { useLinkedRecordsDeleteQuestion } from '../../hooks/useLinkedRecordsDeleteQuestion'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import {
   createReceivable,
   deleteReceivable,
   paidAmount,
-  updateReceivable
+  saveReceivableFields
 } from '../../services/receivables'
 import { getSettings, isConfigured } from '../../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../../utils/authGuard'
-import { receivableLinkedCount } from '../../utils/linkedRecordsDelete'
+import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
+import { linkedDeleteQuestion, receivableLinkedCount } from '../../utils/linkedRecordsDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError, showSuccess } from '../../utils/toast'
 import { showSavedForCounterparty } from '../nudges/saveNudges'
@@ -78,7 +78,7 @@ export function useReceivableFormActions({
           note: form.note.trim()
         }
 
-        await updateReceivable(settings.spreadsheetId, editingItem.rowNumber, updated)
+        await saveReceivableFields(settings.spreadsheetId, updated)
         showSuccess('طلب ویرایش شد')
       } else {
         await createReceivable(settings.spreadsheetId, {
@@ -107,7 +107,6 @@ export function useReceivableFormActions({
   }
 
   const undoableDelete = useUndoableDelete()
-  const linkedQuestion = useLinkedRecordsDeleteQuestion()
   // Rows shift after every delete; the write looks its row up again by id.
   const itemsRef = useRef(items)
 
@@ -118,25 +117,29 @@ export function useReceivableFormActions({
 
     if (!spreadsheetId) return
 
-    const linked = await linkedQuestion.ask(
-      receivableLinkedCount(item),
-      item.title.trim() ? `طلب «${item.title.trim()}»` : 'این طلب'
+    const title = item.title.trim()
+    const label = title ? `طلب «${title}»` : 'طلب'
+    const confirmed = await confirmDelete(
+      linkedDeleteQuestion(
+        label,
+        undoableDeleteMessage(`${label} با پرداخت‌هایش`),
+        receivableLinkedCount(item),
+        'income'
+      )
     )
 
-    if (!linked) return
-
-    const title = item.title.trim()
+    if (!confirmed) return
 
     setExpandedId(current => (current === item.id ? null : current))
     clearPaymentForms()
     void undoableDelete.schedule({
       id: item.id,
-      label: title ? `طلب «${title}»` : 'طلب',
+      label,
       errorMessage: 'خطا در حذف طلب',
       commit: async () => {
         const current = itemsRef.current.find(entry => entry.id === item.id) ?? item
 
-        await deleteReceivable(spreadsheetId, current.rowNumber, current, linked === 'keep')
+        await deleteReceivable(spreadsheetId, current.rowNumber, current, !confirmed.checked)
         await loadItems()
       }
     })
@@ -152,7 +155,6 @@ export function useReceivableFormActions({
     openEditForm,
     closeForm,
     handleSubmit,
-    requestDelete,
-    linkedRecordsModal: linkedQuestion.modalProps
+    requestDelete
   }
 }

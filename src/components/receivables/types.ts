@@ -15,15 +15,3 @@ export type ReceivableFormState = {
   borrowDate: string
   note: string
 }
-
-export type PaymentFormState = {
-  receivableId: string
-  amount: number | ''
-  note: string
-}
-
-export type SettlementFormState = {
-  receivableId: string
-  title: string
-  note: string
-}

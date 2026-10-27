@@ -221,7 +221,8 @@ describe('openDebts', () => {
     date: '2026-09-01',
     note: '',
     paid,
-    paidAt: ''
+    paidAt: '',
+    payments: []
   })
 
   it('splits the unpaid debts into the manager and the rest, largest first', () => {
