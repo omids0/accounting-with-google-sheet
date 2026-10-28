@@ -1,4 +1,4 @@
-import { applyBalance } from './bankSmsApplyBalance'
+import { applyBalance, markSmsApplied, noticeTransferBalances } from './bankSmsApplyBalance'
 import { rememberSmsRecord } from './bankSmsCoverageStore'
 import { smsRecordDate } from './bankSmsDate'
 import { markBankSmsHandled } from './bankSmsNative'
@@ -8,6 +8,7 @@ import { type ConfirmableSms } from './bankSmsQueue'
 import { QueueNotLeftError } from './bankSmsQueueError'
 import { liveRecordOfSms } from './bankSmsRecordOf'
 import { smsSenderKey, type SmsCategoryChoice } from './bankSmsSuggest'
+import { SMS_TRANSFER_NOTE, smsTransferId } from './bankSmsTransferRows'
 import { createLinkedExpenseRecord, createLinkedIncomeRecord } from './paymentTransactions'
 import {
   applyWalletChanges,
@@ -15,7 +16,9 @@ import {
   recordLedgerContext,
   type RecordWalletEffect
 } from './recordWallet'
+import { createTransfer } from './transfers'
 import { type LedgerContext } from './walletLedger'
+import { isPersonalWorkspace } from './workspace'
 import { WALLET_APPLY_NO } from '../components/form/fieldUtils'
 
 export { isConfirmable, type ConfirmableSms } from './bankSmsQueue'
@@ -154,17 +157,61 @@ export async function confirmSmsEntry(
   await confirmSmsEntryWithId(spreadsheetId, entry, record)
 }
 
-/** Own-account transfer: both balances move, no income or expense is recorded. */
-export async function confirmSmsTransfer(
+/** Own-account transfer in a book without «انتقال‌ها»: both balances follow their SMS, no record is made. */
+async function confirmSmsTransferPlain(
   spreadsheetId: string,
   debit: ConfirmableSms,
   credit: ConfirmableSms
 ): Promise<void> {
   await markBankSmsHandled([debit.sms.id, credit.sms.id])
+
   const note = { title: 'انتقال بین حساب‌ها' }
 
   await applyBalance(spreadsheetId, debit, note)
   await applyBalance(spreadsheetId, credit, note)
+}
+
+/**
+ * Own-account transfer: registered through the shared transfer path (`createTransfer`), so it is a
+ * row in «انتقال‌ها» with its two «گردش حساب» rows and can be deleted there like a hand-made one. No
+ * income or expense is recorded. Both balances move by the amount; they are not set to the SMS
+ * «مانده» (a notice says so when they end up different). The SMS leave the queue only AFTER the
+ * transfer exists: a failure (rolled back by `createTransfer`) leaves both SMS pending, and the
+ * fixed id makes a retry, or the same pair on another device, find the transfer instead of writing it
+ * twice. An account whose newer SMS «مانده» already holds the SMS only gets a «بدون اثر» history row.
+ */
+export async function confirmSmsTransfer(
+  spreadsheetId: string,
+  debit: ConfirmableSms,
+  credit: ConfirmableSms
+): Promise<void> {
+  // «انتقال‌ها» exists in the personal book only; a building or shared book keeps the plain balance moves.
+  if (!isPersonalWorkspace(spreadsheetId))
+    return confirmSmsTransferPlain(spreadsheetId, debit, credit)
+
+  const entries = [debit, credit]
+  const settled = entries.filter(entry => smsAlreadyInBalance(entry, entry.result.accountId))
+
+  await createTransfer({
+    spreadsheetId,
+    id: smsTransferId(debit.sms.id, credit.sms.id),
+    fromAccountId: debit.result.accountId,
+    toAccountId: credit.result.accountId,
+    amount: debit.amount,
+    date: smsRecordDate(debit.sms.body, debit.sms.receivedAt),
+    note: SMS_TRANSFER_NOTE,
+    settledAccountIds: settled.map(entry => entry.result.accountId)
+  })
+  // An older SMS confirmed later must not set a balance back over this transfer.
+  entries.forEach(markSmsApplied)
+
+  const queueError = await leaveQueueAfterRecord(entries.map(entry => entry.sms.id))
+
+  await noticeTransferBalances(
+    spreadsheetId,
+    entries.filter(entry => !settled.includes(entry))
+  ).catch(() => undefined)
+  if (queueError) throw queueError
 }
 
 export async function dismissSms(ids: string[]): Promise<void> {

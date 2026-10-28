@@ -20,7 +20,7 @@ import { recordsListCountClass, recordsListHeaderClass } from '../../ui/recordsS
 /** `/wallet/transfers` — «انتقال‌ها»: the moves between the user's own accounts, with delete. */
 export default function WalletTransfersPage() {
   const personal = useWorkspaceType() === 'personal'
-  const { transfers, accounts, loading, deletingId, reload, remove } = useTransfers()
+  const { transfers, legs, accounts, loading, deletingId, reload, remove } = useTransfers()
   const { canTransfer, openTransfer, modalProps } = useTransferModal()
   const { visible, remaining, nextStep, showMore } = useIncrementalList(transfers)
 
@@ -85,6 +85,7 @@ export default function WalletTransfersPage() {
               key={transfer.id}
               transfer={transfer}
               accounts={accounts}
+              legs={legs.get(transfer.id)}
               index={index}
               deleting={deletingId === transfer.id}
               onDelete={remove}
