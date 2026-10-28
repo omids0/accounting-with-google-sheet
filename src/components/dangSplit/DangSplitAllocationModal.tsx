@@ -45,9 +45,13 @@ export default function DangSplitAllocationModal({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
+        if (draft.percentError) return
+
         return onSave(draft.weights)
       }}
       saving={saving}
+      saveDisabled={draft.percentError !== null}
+      saveHint={draft.percentError ?? undefined}
       saveLabel="ذخیره تخصیص"
       size="wide"
     >

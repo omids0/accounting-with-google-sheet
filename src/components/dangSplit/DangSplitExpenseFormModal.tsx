@@ -91,6 +91,12 @@ export default function DangSplitExpenseFormModal({
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (draft.percentError) {
+      event.preventDefault()
+
+      return
+    }
+
     return submitValidatedForm(handleSubmit, values => onSubmit(values, draft.weights), event)
   }
 
@@ -101,6 +107,8 @@ export default function DangSplitExpenseFormModal({
       onClose={onClose}
       onSubmit={onFormSubmit}
       saving={saving}
+      saveDisabled={draft.percentError !== null}
+      saveHint={draft.percentError ?? undefined}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره هزینه'}
       size="wide"
     >
