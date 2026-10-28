@@ -5,7 +5,12 @@ import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
-import { fetchTgjuPrices, getCachedTgjuPrices } from '../../services/tgju'
+import {
+  fetchTgjuPrices,
+  getCachedTgjuPrices,
+  isTgjuCoolingDown,
+  TgjuPriceError
+} from '../../services/tgju'
 import {
   getDisplayTgjuPrices,
   getSummableTgjuPrices,
@@ -45,17 +50,27 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
 
   const { visible } = undoableDelete
 
-  const loadPrices = useCallback(async () => {
+  /**
+   * `manual` is the user's own refresh: it asks tgju even right after a failure. The automatic loads
+   * (opening the page, every data refresh) stay quiet and send nothing while tgju is cooling down.
+   */
+  const fetchPrices = useCallback(async (manual: boolean) => {
+    if (!manual && isTgjuCoolingDown()) return
+
     setPriceLoading(true)
     try {
-      await fetchTgjuPrices(vaultPriceKeys())
+      await fetchTgjuPrices(vaultPriceKeys(), { force: manual })
       setQuotesVersion(version => version + 1)
     } catch (err) {
-      showError(toUserMessage(err, 'خطا در دریافت قیمت‌ها'))
+      showError(
+        err instanceof TgjuPriceError ? err.message : toUserMessage(err, 'خطا در دریافت قیمت‌ها')
+      )
     } finally {
       setPriceLoading(false)
     }
   }, [])
+
+  const loadPrices = useCallback(() => fetchPrices(true), [fetchPrices])
 
   const loadItems = useCallback(async () => {
     const settings = getSettings()
@@ -84,8 +99,8 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
   useEffect(() => {
     if (!isConfigured() || !active) return
     void loadItems()
-    void loadPrices()
-  }, [active, loadItems, loadPrices, dataRevision])
+    void fetchPrices(false)
+  }, [active, loadItems, fetchPrices, dataRevision])
 
   const refreshTreasury = useCallback(() => {
     void loadItems()
