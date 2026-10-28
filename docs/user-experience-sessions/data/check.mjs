@@ -3,6 +3,7 @@
 // Exit code 1 when anything is wrong. Run gen.mjs first.
 import { readFileSync } from 'node:fs'
 
+import { checkAreas } from './checkAreas.mjs'
 import * as L from './lib.mjs'
 
 const src = path => import(new URL(`../../../src/${path}`, import.meta.url).href)
@@ -43,7 +44,7 @@ const personas = [
 ]
 
 const KNOWN_TABS = new Set([...Object.values(L.names).filter(v => typeof v === 'string'), 'درآمد', 'هزینه'])
-const idTabs = new Set([L.names.WALLET_SHEET, L.names.WALLET_LEDGER_SHEET, L.names.COUNTERPARTIES_SHEET, L.names.INSTALLMENTS_SHEET, L.names.CHECKS_SHEET, L.names.RECEIVABLES_SHEET, L.names.DANG_SHEET, 'درآمد', 'هزینه'])
+const idTabs = new Set([L.names.WALLET_SHEET, L.names.WALLET_LEDGER_SHEET, L.names.COUNTERPARTIES_SHEET, L.names.INSTALLMENTS_SHEET, L.names.CHECKS_SHEET, L.names.RECEIVABLES_SHEET, L.names.DANG_SHEET, L.names.RECURRING_SHEET, L.names.PERSONAL_REMINDERS_SHEET, L.names.TIMESHEETS_SHEET, L.names.TIMESHEET_ENTRIES_SHEET, L.names.TREASURY_SHEET, L.names.TREASURY_ASSETS_SHEET, L.names.TREASURY_GOALS_SHEET, L.names.VEHICLES_SHEET, L.names.VEHICLE_PERIODIC_SHEET, L.names.VEHICLE_DEADLINE_SHEET, L.names.VEHICLE_MECHANIC_SHEET, L.names.VEHICLE_HISTORY_SHEET, L.names.VEHICLE_EXPENSE_META_SHEET, L.names.DANG_SPLIT_GROUPS_SHEET, L.names.DANG_SPLIT_CATEGORIES_SHEET, L.names.DANG_SPLIT_PEOPLE_SHEET, L.names.DANG_SPLIT_EXPENSES_SHEET, L.names.DANG_SPLIT_ALLOCATIONS_SHEET, 'درآمد', 'هزینه'])
 
 function dataRows(data, tab) {
   return (data[tab] ?? []).slice(1)
@@ -108,6 +109,7 @@ for (const p of personas) {
   let sumByAccount = new Map()
   const seenKey = new Map()
   const ledgerEntries = []
+  const recordInfo = new Map()
 
   for (const [tab, fields, kind] of [['درآمد', incomeFields, 'income'], ['هزینه', expenseFields, 'expense']]) {
     const headers = data[tab][0]
@@ -134,6 +136,7 @@ for (const p of personas) {
       if (get('walletAccount') && !accountIds.has(get('walletAccount'))) err(where(tab), `unknown account on ${get('title')}`)
       if (dup.parseCreatedAtMs(row[1]) == null) err(where(tab), `createdAt not parseable: ${row[1]}`)
 
+      recordInfo.set(row[0], { kind, date: get('date'), amount: parseNumeric(get('amount')), category: get('category'), sub: get('subCategory'), title: get('title'), account: get('walletAccount'), counterparty: get('counterparty') })
       ledgerEntries.push({ type: kind, amount: parseNumeric(get('amount')), date: get('date'), accountId: get('walletAccount') })
 
       const key = `${kind}|${get('date')}|${get('title')}|${get('amount')}|${get('walletAccount')}`
@@ -151,7 +154,9 @@ for (const p of personas) {
   // the independent re-derivation: opening + applied records == wallet balance
   for (const a of accounts) {
     const opening = ledger.find(r => r[2] === a[0] && r[7] === 'موجودی اولیه')
-    const expected = parseNumeric(opening?.[4]) + (sumByAccount.get(a[0]) ?? 0)
+    // money moved into / out of a savings goal has a ledger line and no income/expense row
+    const goalMoves = ledger.filter(r => r[2] === a[0] && r[7] === 'goal-deposit' && r[9] !== 'خیر').reduce((sum, r) => sum + parseNumeric(r[4]), 0)
+    const expected = parseNumeric(opening?.[4]) + (sumByAccount.get(a[0]) ?? 0) + goalMoves
 
     if (Math.abs(expected - parseNumeric(a[3])) > 0.5) err(where('wallet'), `«${a[2]}»: opening + records = ${expected}, sheet says ${a[3]}`)
   }
@@ -231,6 +236,9 @@ for (const p of personas) {
   dataRows(data, L.names.PERSONAL_REMINDERS_SHEET).forEach(row => {
     if (row.length !== 9 || !/^\d{4}-\d{2}-\d{2}$/.test(row[4])) err(where('reminders'), `bad reminder ${row[3]}`)
   })
+
+  // ---- module tabs: vehicles, goals, vault, timesheets, dang-split, net worth, recurring, reminders, counterparties
+  checkAreas({ p, data, accounts, ledger, recordInfo, cats, err, rows: tab => dataRows(data, tab), say: msg => console.log(`  ${msg}`) })
 
   // ---- building workspace
   if (p.building) {
@@ -358,7 +366,10 @@ for (const p of personas) {
       const off = st === 'pending-off' ? metaById.get(e.sms.id).offToman : 0
       const expected = current + (st === 'redelivery' ? 0 : deltaOf(e)) + off
 
-      if (st === 'pending-off') exceptions += 1
+      if (st === 'pending-off') {
+        exceptions += 1
+        console.log(`  deliberate «مانده» exception: ${label} prints ${e.balance} toman, a consistent chain would print ${e.balance - off}`)
+      }
       if (Math.abs(next.balance - expected) > 0.5) err(p.sms, `${label}: balance would go ${current} -> ${next.balance}, expected ${expected}`)
       if (st === 'pending' || st === 'pending-off') chained += 1
       if (st === 'pending-off' && (off !== 1000000 || e !== pendingOnes.at(-1))) err(p.sms, `${label}: the deliberate exception must be +1,000,000 and the newest pending SMS of its account`)

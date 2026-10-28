@@ -15,6 +15,7 @@
       'سلامت',
       'خانواده و فرزند',
       'هدیه و مناسبت',
+      'خودرو',
       'قسط',
       'چک',
       'بدهی',
@@ -33,5 +34,47 @@
   }))
   settings.dangCategories = ['شخصی', 'قرض', 'خرید', 'سایر']
   settings.receivableCategories = ['مشتری', 'شخصی', 'قرض', 'سازمان', 'سایر']
+  // Personal modules have no on/off switch: vehicles, timesheets, dang-split, the vault, goals and reminders
+  // are always in the menu of a personal workbook and show what their tabs hold. Only their category
+  // lists are copied up front, like the ones above.
+  settings.personalReminderCategories = ['قبض', 'بیمه', 'مالیات', 'اشتراک', 'سایر']
+  settings.vehiclePeriodicCategories = [
+    'روغن موتور',
+    'فیلتر روغن',
+    'فیلتر هوا',
+    'فیلتر کابین',
+    'شمع',
+    'لنت ترمز',
+    'تسمه تایم',
+    'ضدیخ',
+    'باتری',
+    'لاستیک',
+    'سایر'
+  ]
+  settings.vehicleDeadlineCategories = [
+    'بیمه شخص ثالث',
+    'بیمه بدنه',
+    'معاینه فنی',
+    'عوارض خودرو',
+    'سایر'
+  ]
+  settings.vehicleMechanicCategories = [
+    'لاستیک',
+    'جلو بندی',
+    'رینگ',
+    'فنر',
+    'ترمز',
+    'برق',
+    'بدنه',
+    'سایر'
+  ]
+  settings.vehicleExpenseCategories = [
+    'بنزین',
+    'پارکینگ',
+    'عوارض',
+    'کارواش',
+    'تعمیرات جزئی',
+    'سایر'
+  ]
   localStorage.setItem('accounting_settings', JSON.stringify(settings))
 })()

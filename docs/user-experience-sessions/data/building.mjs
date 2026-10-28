@@ -2,6 +2,7 @@
 // («فضای ساختمان»), so this is a separate data file; run it as the main workbook together with
 // init-merchant-building.js (which marks the workbook as a building).
 import * as L from './lib.mjs'
+import * as A from './areas.mjs'
 import * as F from './smsFormats.mjs'
 
 const { ago, uid } = L
@@ -264,6 +265,12 @@ export function buildBuilding() {
 
   people.push(painter)
 
+  // vendors named in the expenses (counterparties of the fund)
+  people.push(
+    L.person(TAG, 'lift-co', 'شرکت', 'آسانسور پارس', { phones: ['02188001122'], since: ago(60), note: 'قرارداد سرویس و بازرسی آسانسور' }),
+    L.person(TAG, 'plumber', 'تأسیسات', 'رضایی', { phones: ['09121234000'], since: ago(60) })
+  )
+
   const debts = [
     L.dangRowOf(TAG, 'painter', {
       title: 'پیش‌پرداخت رنگ‌آمیزی راه‌پله',
@@ -300,8 +307,17 @@ export function buildBuilding() {
     [L.names.RECURRING_SHEET]: [
       L.heads.RECURRING_HEADERS,
       [uid(`${TAG}:rec:lift`), L.stamp(ago(60), '10:00'), 'expense', 'آسانسور', 'سرویس', bank.id, '3500000', 'سرویس ماهانه آسانسور', '5', 'reminder', '1405-07', 'بله', 'آسانسور', 'fund'],
-      [uid(`${TAG}:rec:clean`), L.stamp(ago(60), '10:01'), 'expense', 'نظافت', 'نظافتچی', bank.id, '6000000', 'حقوق نظافتچی', '30', 'reminder', '1405-07', 'بله', 'نظافت', 'fund']
-    ]
+      [uid(`${TAG}:rec:clean`), L.stamp(ago(60), '10:01'), 'expense', 'نظافت', 'نظافتچی', bank.id, '6000000', 'حقوق نظافتچی', '30', 'reminder', '1405-07', 'بله', 'نظافت', 'fund'],
+      // a building has no personal reminders tab (it is personal-only), so the dated chores live here as monthly items
+      A.recurringRowOf(TAG, 'lift-inspection', { type: 'expense', category: 'آسانسور', sub: 'بازرسی', account: bank, amount: 1250000, title: 'بازرسی و ایمنی آسانسور (قسط قرارداد سالانه)', day: 20, lastPosted: '1405-07', expenseKind: 'آسانسور', payer: 'fund' }),
+      A.recurringRowOf(TAG, 'power', { type: 'expense', category: 'قبوض مشاعات', sub: 'برق', account: bank, amount: 1380000, title: 'قبض برق مشاعات', day: 12, lastPosted: '1405-07', expenseKind: 'قبوض مشاعات', payer: 'fund' }),
+      A.recurringRowOf(TAG, 'garden', { type: 'expense', category: 'فضای سبز', sub: 'نگهداری', account: bank, amount: 900000, title: 'نگهداری فضای سبز', day: 25, lastPosted: '1405-07', expenseKind: 'فضای سبز', payer: 'fund' }),
+      A.recurringRowOf(TAG, 'fire-insurance', { type: 'expense', category: 'بیمه ساختمان', sub: 'آتش‌سوزی', account: bank, amount: 2100000, title: 'قسط بیمه آتش‌سوزی ساختمان', day: 15, lastPosted: '1405-07', expenseKind: 'بیمه ساختمان', payer: 'fund' })
+    ],
+    [L.names.BUDGETS_SHEET]: L.budgetRows(
+      [['آسانسور', 4000000], ['نظافت', 6000000], ['قبوض مشاعات', 3000000], ['تعمیرات', 4000000], ['حقوق سرایدار', 12000000]],
+      ago(50)
+    )
   }
 
   // ---- bank SMS of the fund account (Melli): the payer's card is printed in every deposit

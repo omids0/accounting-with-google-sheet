@@ -76,6 +76,18 @@ function initScript(data, { building = false } = {}) {
   settings.receivableCategories = ${JSON.stringify(g.receivable)}
 ${
   building
+    ? ''
+    : `  // Personal modules have no on/off switch: vehicles, timesheets, dang-split, the vault, goals and reminders
+  // are always in the menu of a personal workbook and show what their tabs hold. Only their category
+  // lists are copied up front, like the ones above.
+  settings.personalReminderCategories = ${JSON.stringify(g.personalReminder)}
+  settings.vehiclePeriodicCategories = ${JSON.stringify(g.vehiclePeriodic)}
+  settings.vehicleDeadlineCategories = ${JSON.stringify(g.vehicleDeadline)}
+  settings.vehicleMechanicCategories = ${JSON.stringify(g.vehicleMechanic)}
+  settings.vehicleExpenseCategories = ${JSON.stringify(g.vehicleExpense)}
+`
+}${
+  building
     ? `
   // A building is its own spreadsheet: mark the mock one as a building (the tab «تنظیمات دوره»
   // row «نوع فضا» says the same) and make the 'perf@test.local' session its manager.

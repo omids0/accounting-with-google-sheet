@@ -48,6 +48,22 @@ export const bTemplate = await src('services/buildingTemplate.ts')
 export const bSplit = await src('services/buildingExpenseSplit.ts')
 export const jalali = await src('utils/jalaliDate.ts')
 export const jconv = await src('utils/jalaliConvert.ts')
+export const goalsMod = await src('services/savingsGoals.ts')
+export const treasuryCat = await src('services/treasuryCatalog.ts')
+export const treasuryHold = await src('services/treasuryHoldings.ts')
+export const tsRow = await src('services/timesheetRow.ts')
+export const dateTime = await src('utils/datetime.ts')
+export const dangMath = await src('services/dangSplitMath.ts')
+export const dangExp = await src('services/dangSplitExpenses.ts')
+export const dangPeople = await src('services/dangSplitPeople.ts')
+export const netWorthMod = await src('services/netWorth.ts')
+export const plateMod = await src('components/vehicles/iranPlateUtils.ts')
+export const vehProfiles = await src('services/vehicleProfiles.ts')
+export const vehUtils = await src('components/vehicles/utils.ts')
+export const recurringMod = await src('services/recurring.ts')
+export const personalRem = await src('services/personalReminders.ts')
+export const ledgerMod = await src('services/walletLedger.ts')
+export const vehExpUtils = await src('utils/vehicleExpenseUtils.ts')
 
 // ---------------------------------------------------------------- time ---
 
@@ -187,6 +203,11 @@ export class Book {
     return balance
   }
 
+  /** Sum of every account's balance at the end of `date`. */
+  walletTotalAt(date) {
+    return this.accounts.reduce((sum, a) => sum + this.balanceAt(a, date), 0)
+  }
+
   /**
    * The account's balance right after the record an SMS event stands for: same account, direction
    * and amount, within a day of the event, the nearest in time. Throws when there is none.
@@ -242,6 +263,28 @@ export class Book {
     let n = 0
 
     for (const r of this.sorted()) {
+      if (r.ledgerOnly) {
+        // A wallet movement with no income/expense row (savings-goal deposit): only the ledger line.
+        const delta = r.type === 'income' ? r.amount : -r.amount
+
+        balance.set(r.account.id, balance.get(r.account.id) + delta)
+        ledger.push([
+          uid(`${this.tag}:ledger:${r.id}`),
+          stamp(r.date, r.time, n % 50),
+          r.account.id,
+          r.date,
+          String(delta),
+          String(balance.get(r.account.id)),
+          r.title,
+          r.ledgerSource,
+          r.recordId ?? '',
+          YES
+        ])
+        n += 1
+
+        continue
+      }
+
       const values = {
         date: r.date,
         title: r.title,
