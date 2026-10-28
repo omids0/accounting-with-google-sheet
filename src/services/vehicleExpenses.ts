@@ -83,6 +83,8 @@ export async function deleteVehicleExpense(
  * the difference in ONE write and one «ویرایش» line, instead of a refund and a new debit as two
  * writes on the same wallet row, one of which a slow or interrupted sync could lose. Without an
  * earlier record, or without a new amount, there is nothing to net: it is created or deleted.
+ * Each service cycle still REPLACES the previous cycle's expense, by existing design (an owner
+ * decision is pending on whether a new cycle should be its own expense).
  * @returns the id of the expense that now stands for the service ('' without an amount).
  */
 export async function replaceVehicleExpense(

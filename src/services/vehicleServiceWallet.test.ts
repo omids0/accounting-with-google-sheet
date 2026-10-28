@@ -15,10 +15,15 @@ import {
 import { fetchRecords } from './sheets'
 import { markSheetsPrepared } from './sheetsMeta'
 import { clearStore, setSheetAllRows } from './spreadsheetStore'
-import { completePeriodicService, saveMechanicVisit } from './vehicleActions'
+import { saveMechanicVisit } from './vehicleActions'
 import { createManualVehicleExpense } from './vehicleExpenseActions'
 import { createVehicleExpense } from './vehicleExpenses'
-import { VEHICLE_HISTORY_HEADERS, VEHICLE_HISTORY_SHEET } from './vehicleHistory'
+import {
+  fetchVehicleHistory,
+  VEHICLE_HISTORY_HEADERS,
+  VEHICLE_HISTORY_SHEET
+} from './vehicleHistory'
+import { completePeriodicService } from './vehiclePeriodicComplete'
 import {
   createVehiclePeriodicService,
   fetchVehiclePeriodicServices,
@@ -77,7 +82,7 @@ async function balance(): Promise<number> {
 }
 
 /** The service as «ثبت انجام سرویس» is filled in; `previous` is the expense it replaces. */
-async function service(amount: number, previous: string) {
+async function service(amount: number, previous: string, date = '2026-10-20') {
   const [row] = await fetchVehiclePeriodicServices(ID, 'v1')
 
   await completePeriodicService({
@@ -92,7 +97,7 @@ async function service(amount: number, previous: string) {
     location: '',
     amount,
     notes: '',
-    date: '2026-10-20',
+    date,
     previousExpenseId: previous,
     isHistorical: true
   })
@@ -183,6 +188,31 @@ describe('«ثبت انجام سرویس» again', () => {
     const lines = (await fetchLedger(ID, 'wallet-1')).filter(line => line.recordId === second)
 
     expect(lines.reduce((sum, line) => sum + line.delta, 0)).toBe(-2_100_000)
+  })
+
+  it('moves the expense to the chosen day and resets the next-due baseline', async () => {
+    const first = await firstService(1_450_000)
+    const second = await service(2_100_000, first, '2026-10-25')
+    const [row] = await fetchVehiclePeriodicServices(ID, 'v1')
+    const expense = (
+      await fetchRecords(ID, testSettings.forms.find(f => f.type === 'expense')!)
+    ).find(record => record.id === second)
+
+    expect(expense?.values.date).toBe('2026-10-25')
+    expect((await fetchVehicleHistory(ID, 'v1')).map(line => line.date)).toEqual(['2026-10-25'])
+    expect(row.currentMileage).toBe(1000)
+    expect(row.nextKm).toBe(6000)
+  })
+
+  it('refreshes the history line of an identical redo and adds one when something changed', async () => {
+    const first = await firstService(1_450_000)
+
+    await service(2_100_000, first)
+    await service(2_100_000, first)
+    expect(await fetchVehicleHistory(ID, 'v1')).toHaveLength(1)
+
+    await service(2_500_000, first)
+    expect(await fetchVehicleHistory(ID, 'v1')).toHaveLength(2)
   })
 
   it('refunds an expense that is redone with no amount', async () => {
