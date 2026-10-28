@@ -13,7 +13,7 @@ import { invalidateSheetTitlesCache, unmarkSheetsPrepared } from './sheetsMeta'
 import {
   clearInaccessibleSpreadsheet,
   markSpreadsheetInaccessible,
-  SPREADSHEET_NO_ACCESS_MESSAGE
+  SpreadsheetNoAccessError
 } from './spreadsheetAccess'
 import { formatSpreadsheetTitle } from './spreadsheetCatalog'
 import { syncSpreadsheetsFromDrive } from './spreadsheetDriveSync'
@@ -169,7 +169,7 @@ export async function activateSpreadsheet(
       throw new Error('شیت انتخاب‌شده پیدا نشد')
     }
     if (!(await verifySpreadsheetExists(spreadsheetId))) {
-      throw new Error(SPREADSHEET_NO_ACCESS_MESSAGE)
+      throw new SpreadsheetNoAccessError()
     }
 
     // Known before the switch, so the first frame of the new sheet has its own menu and pages.

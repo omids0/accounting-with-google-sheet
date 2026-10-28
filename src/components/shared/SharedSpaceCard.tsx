@@ -1,11 +1,14 @@
 import { memberRoleLabel } from './memberCopy'
+import { sharedCardActions, SHARED_ACTION_LABELS, type SharedCardState } from './sharedSpaceState'
 import { getUserEmail } from '../../services/auth'
 import { registryOf, type WorkspaceMember } from '../../services/memberRegistry'
+import { SHARED_NO_ACCESS_BADGE, SHARED_NO_ACCESS_MESSAGE } from '../../services/sharedAccessLost'
 import { isSharedOwner } from '../../services/sharedAccountSwitch'
 import { sharedNameOf } from '../../services/sharedWorkspace'
 import { getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
 import type { SpreadsheetEntry } from '../../types'
 import { cn } from '../../utils/cn'
+import Alert from '../ui/Alert'
 import {
   buildingCardClass,
   buildingCardHeadClass,
@@ -23,6 +26,8 @@ interface SharedSpaceCardProps {
   members: WorkspaceMember[] | null
   /** A shared account is registered but hidden: offer «روشن کردن دوباره». */
   hidden?: boolean
+  /** 'denied' = this device cannot open the file (removed share or no grant): no «باز کردن». */
+  state?: SharedCardState
   /** Opens the setup wizard. */
   onStart: () => void
   /** «اتصال به حساب مشترک»: the partner connects the file they were invited to. */
@@ -30,7 +35,12 @@ interface SharedSpaceCardProps {
   onOpen: () => void
   onOff: () => void
   onShowAgain: () => void
+  /** «اتصال دوباره»: the connect sheet, whose Picker grants this device the file again. */
+  onReconnect?: () => void
+  /** «پاک کردن از این دستگاه». */
+  onForget?: () => void
   opening?: boolean
+  forgetting?: boolean
 }
 
 const explainPoints = [
@@ -61,12 +71,16 @@ export default function SharedSpaceCard({
   account,
   members,
   hidden = false,
+  state = 'normal',
   onStart,
   onConnect,
   onOpen,
   onOff,
   onShowAgain,
-  opening = false
+  onReconnect,
+  onForget,
+  opening = false,
+  forgetting = false
 }: SharedSpaceCardProps) {
   if (!account) {
     return (
@@ -111,6 +125,17 @@ export default function SharedSpaceCard({
   const role =
     list.find(member => member.email === email)?.role ?? registryOf('shared').fallbackRole
 
+  const denied = state === 'denied'
+
+  const actions = sharedCardActions(state, Boolean(members && isSharedOwner(members)))
+
+  const handlers = {
+    open: onOpen,
+    off: onOff,
+    reconnect: () => onReconnect?.(),
+    forget: () => onForget?.()
+  }
+
   return (
     <Card className={buildingCardClass}>
       <div className={buildingCardHeadClass}>
@@ -118,7 +143,11 @@ export default function SharedSpaceCard({
           <h2 className={buildingCardTitleClass}>
             {sharedNameOf(getSpreadsheetLabel(account.name))}
           </h2>
-          {members ? (
+          {denied ? (
+            <p className={cn(journeyRowMetaClass, 'font-bold text-warning')}>
+              {SHARED_NO_ACCESS_BADGE}
+            </p>
+          ) : members ? (
             <p className={journeyRowMetaClass}>نقش شما: {memberRoleLabel('shared', role)}</p>
           ) : null}
         </div>
@@ -128,14 +157,23 @@ export default function SharedSpaceCard({
           ))}
         </div>
       </div>
-      <Button type="button" loading={opening} disabled={opening} onClick={onOpen}>
-        باز کردن
-      </Button>
-      {members && isSharedOwner(members) ? (
-        <Button type="button" variant="secondary" onClick={onOff}>
-          خاموش کردن قابلیت
-        </Button>
+      {denied ? (
+        <Alert variant="warning" className="mb-0">
+          {SHARED_NO_ACCESS_MESSAGE}
+        </Alert>
       ) : null}
+      {actions.map(action => (
+        <Button
+          key={action}
+          type="button"
+          variant={action === 'open' || action === 'reconnect' ? 'primary' : 'secondary'}
+          loading={action === 'open' ? opening : action === 'forget' ? forgetting : false}
+          disabled={opening || forgetting}
+          onClick={handlers[action]}
+        >
+          {SHARED_ACTION_LABELS[action]}
+        </Button>
+      ))}
     </Card>
   )
 }

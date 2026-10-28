@@ -7,6 +7,11 @@ import { useSheetSwitchGuard } from '../components/settings/useSheetSwitchGuard'
 import { getPathForTab } from '../routes/paths'
 import { WORKSPACE_HOME } from '../routes/workspaceRedirect'
 import { getSettings } from '../services/settings'
+import {
+  classifySharedFailure,
+  markSharedAccessLost,
+  SHARED_NO_ACCESS_MESSAGE
+} from '../services/sharedAccessLost'
 import { switchActiveSpreadsheet } from '../services/spreadsheetSetup'
 import { moveSyncToSpreadsheet } from '../services/spreadsheetSwitch'
 import { getWorkspaceType, rememberPersonalSheet } from '../services/workspace'
@@ -23,13 +28,16 @@ export interface WorkspaceEntry {
   /** The busy overlay's text while the sheet opens. */
   busyMessage: (spreadsheetId: string) => string
   failMessage: string
+  /** The sheet cannot be opened from here (removed share, no grant): what to say, and who to tell. */
+  denied?: { message: string; onDenied: (spreadsheetId: string) => void }
 }
 
 export const SHARED_ENTRY: WorkspaceEntry = {
   kind: 'shared',
   destination: requested => requested ?? 'shared-home',
   busyMessage: () => 'در حال ورود به حساب مشترک…',
-  failMessage: 'ورود به حساب مشترک ناموفق بود'
+  failMessage: 'ورود به حساب مشترک ناموفق بود',
+  denied: { message: SHARED_NO_ACCESS_MESSAGE, onDenied: markSharedAccessLost }
 }
 
 /**
@@ -76,7 +84,10 @@ export function useEnterWorkspace(onDone?: () => void, entry: WorkspaceEntry = S
       return true
     } catch (err) {
       hideBusy()
-      showError(toUserMessage(err, entry.failMessage))
+      const denied = entry.denied && classifySharedFailure(err) === 'denied' ? entry.denied : null
+
+      denied?.onDenied(spreadsheetId)
+      showError(denied ? denied.message : toUserMessage(err, entry.failMessage))
 
       return false
     } finally {
