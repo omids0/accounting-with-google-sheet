@@ -100,3 +100,54 @@ describe('FormModal submit lock with the real form helper', () => {
     act(() => root.unmount())
   })
 })
+
+describe('FormModal native submit guard', () => {
+  it('prevents the native submit of every event, even when onSubmit never does', async () => {
+    ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+    let finish: () => void = () => undefined
+    // Like TransferFormModal-style callers that leave preventDefault to the shared modal.
+    const onSubmit = vi.fn(() => new Promise<void>(resolve => (finish = resolve)))
+    const root = createRoot(document.createElement('div'))
+
+    act(() =>
+      root.render(
+        createElement(
+          MemoryRouter,
+          null,
+          createElement(
+            FormModal,
+            {
+              open: true,
+              title: 'x',
+              onClose: vi.fn(),
+              onSubmit,
+              saveLabel: 'ذخیره'
+            } as unknown as ComponentProps<typeof FormModal>,
+            createElement('input')
+          )
+        )
+      )
+    )
+
+    const form = document.body.querySelector('form') as HTMLFormElement
+    const events = Array.from(
+      { length: 5 },
+      () => new Event('submit', { bubbles: true, cancelable: true })
+    )
+
+    act(() => {
+      for (const event of events) form.dispatchEvent(event)
+    })
+    expect(onSubmit).toHaveBeenCalledTimes(1)
+    expect(events.map(event => event.defaultPrevented)).toEqual([true, true, true, true, true])
+
+    await act(async () => finish())
+    const later = new Event('submit', { bubbles: true, cancelable: true })
+
+    act(() => {
+      form.dispatchEvent(later)
+    })
+    expect(later.defaultPrevented).toBe(true)
+    act(() => root.unmount())
+  })
+})

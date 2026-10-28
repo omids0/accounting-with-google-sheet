@@ -66,7 +66,7 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
   const refresh = useBankSmsStore(state => state.refresh)
   const scanFrom = useBankSmsStore(state => state.scanFrom)
   const templatesApi = useSmsTemplates()
-  const { accounts, ledger, recurring, reload: loadContext } = useBankSmsContext()
+  const { accounts, ledger, recurring, transfers, reload: loadContext } = useBankSmsContext()
   const [noPair, setNoPair] = useState<ReadonlySet<string>>(new Set())
   const [busyKey, setBusyKey] = useState<string | null>(null)
   // One save/close at a time (the other cards are shown disabled meanwhile), and none for 0.3 s
@@ -115,9 +115,10 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
       ledger,
       noPair,
       linked,
-      smsCoverage(Date.now(), new Set(reviewed.map(item => item.sms.id)))
+      smsCoverage(Date.now(), new Set(reviewed.map(item => item.sms.id))),
+      transfers
     )
-  }, [pending, sinceMs, templates, accounts, currency, ledger, noPair])
+  }, [pending, sinceMs, templates, accounts, currency, ledger, noPair, transfers])
   // The SMS waiting out its «نادیده» undo window is already gone from the list.
   const items = allItems.filter(item => item.key !== undoable.pendingId)
 

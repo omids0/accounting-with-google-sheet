@@ -17,6 +17,11 @@ export interface TransferLeg {
   title: string
   /** «گردش حساب» title of the row that takes the move back if a later leg fails. */
   undoTitle: string
+  /**
+   * The account's balance already holds this move (a newer bank-SMS «مانده» includes it): the
+   * balance is left alone and the history row is written as «بدون اثر».
+   */
+  settled?: boolean
 }
 
 export interface LegContext {
@@ -68,24 +73,33 @@ async function moveBalance(
   delta: number,
   title: string,
   context: LegContext,
-  progress?: LegProgress
+  progress?: LegProgress,
+  settled = false
 ): Promise<void> {
-  const balanceAfter = roundMoney(account.balance + delta)
+  const balanceAfter = settled ? account.balance : roundMoney(account.balance + delta)
 
-  await updateWalletAccount(
-    spreadsheetId,
-    { ...account, balance: balanceAfter },
-    { mergeBalance: true }
-  )
-  if (progress) progress.balance = true
+  if (!settled) {
+    await updateWalletAccount(
+      spreadsheetId,
+      { ...account, balance: balanceAfter },
+      { mergeBalance: true }
+    )
+    if (progress) progress.balance = true
+  }
   // Appended (not «logLedger»): a lost history row must fail the transfer, not just warn.
   await appendLedgerEntries(spreadsheetId, [
-    ledgerEntry(account.id, delta, balanceAfter, {
-      title,
-      date: context.date,
-      source: 'transfer',
-      recordId: context.transferId
-    })
+    ledgerEntry(
+      account.id,
+      delta,
+      balanceAfter,
+      {
+        title,
+        date: context.date,
+        source: 'transfer',
+        recordId: context.transferId
+      },
+      !settled
+    )
   ])
   if (progress) progress.ledger = true
 }
@@ -144,7 +158,15 @@ async function applyLegsNow(
         (await readFreshAccount(spreadsheetId, leg.accountId))
 
       if (!account) throw new Error(ACCOUNT_GONE_MESSAGE)
-      await moveBalance(spreadsheetId, account, leg.delta, leg.title, context, progress[index])
+      await moveBalance(
+        spreadsheetId,
+        account,
+        leg.delta,
+        leg.title,
+        context,
+        progress[index],
+        leg.settled
+      )
     }
   } catch (failure) {
     let rolledBack = true

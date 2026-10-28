@@ -10,6 +10,11 @@ export interface AccountBalanceState {
   lastAppliedAt?: number
 }
 
+/** The state after an SMS was applied in any way: the anchor stays, the newest applied time moves on. */
+export function appliedState(state: AccountBalanceState, receivedAt: number): AccountBalanceState {
+  return { anchor: state.anchor, lastAppliedAt: Math.max(state.lastAppliedAt ?? 0, receivedAt) }
+}
+
 /**
  * True when this SMS sets the balance to its own «مانده» (an absolute write): it carries one and
  * is the newest applied so far. Every other SMS only moves the balance by its amount, and must
@@ -48,7 +53,7 @@ export function nextAccountBalance(
 
   const delta = change.direction === 'debit' ? -change.amount : change.amount
 
-  return { balance: current + delta, state: { anchor, lastAppliedAt: lastApplied } }
+  return { balance: current + delta, state: appliedState(state, change.receivedAt) }
 }
 
 /**
@@ -70,4 +75,21 @@ export function balanceAdjustNotice(
   return `موجودی «${title}» از ${formatSignedMoney(old)} به ${formatSignedMoney(
     next
   )} تنظیم شد (مانده پیامک)`
+}
+
+/**
+ * The notice for an own-account transfer confirmed from SMS: the balances moved by the amount (never
+ * set to the SMS «مانده»), and this account's new balance differs from the «مانده» the SMS shows. `null`
+ * when the SMS has no «مانده» or the figures agree.
+ */
+export function transferBalanceNotice(
+  title: string,
+  balance: number,
+  smsBalance: number | null
+): string | null {
+  if (smsBalance === null || roundMoney(balance) === roundMoney(smsBalance)) return null
+
+  return `موجودی «${title}» بعد از انتقال ${formatSignedMoney(
+    balance
+  )} شد، ولی «مانده» پیامک ${formatSignedMoney(smsBalance)} است؛ تفاوت را در «گردش حساب» بررسی کن`
 }

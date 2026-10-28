@@ -215,6 +215,20 @@ describe('year review aggregations', () => {
     )
   })
 
+  it('ends a closed year at its rebuilt Esfand, never at today’s value', () => {
+    const rebuild = (monthKey: string) => (monthKey === '1405-12' ? 27_000_000 : null)
+    const closed = { currentYear: 1406, rebuild }
+
+    expect(yearNetWorthSpan(1405, input.snapshots, 99, closed).to).toBe(27_000_000)
+    // Nothing to rebuild: the year's last snapshot, not today's value.
+    expect(yearNetWorthSpan(1405, input.snapshots, 99, { currentYear: 1406 }).to).toBe(22_000_000)
+    // The stored Esfand wins, and the running year still ends today.
+    expect(
+      yearNetWorthSpan(1405, [...input.snapshots, snapshot('1405-12', 30_000_000)], 99, closed).to
+    ).toBe(30_000_000)
+    expect(yearNetWorthSpan(1405, input.snapshots, 99, { currentYear: 1405, rebuild }).to).toBe(99)
+  })
+
   it('draws only the headline numbers on the shared card', () => {
     const image = yearReviewImage(review)
 

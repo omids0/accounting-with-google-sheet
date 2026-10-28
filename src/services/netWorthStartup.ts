@@ -1,11 +1,19 @@
 import { monthsToRebuild, snapshotMonthToWrite, type NetWorthGate } from './netWorth'
-import { earliestNetMonth, rebuildSnapshots } from './netWorthRebuild'
+import {
+  earliestNetMonth,
+  hasFlowAfterMonth,
+  rebuiltMonthEnd,
+  rebuildSnapshots,
+  type NetWorthRebuildInput
+} from './netWorthRebuild'
 import { appendNetWorthSnapshots, fetchNetWorthSnapshots, netWorthTimestamp } from './netWorthSheet'
 import { loadNetWorthRecords, loadRebuildInput, loadTodayNetWorth } from './netWorthSources'
+import type { NetWorthValues } from './netWorthTrend'
 import { sessionStart, waitForSessionSync } from './sessionSync'
 import { getNetAvailableConfig, getSettings } from './settings'
 import { getItem, setItem } from './storage'
 import { hasPersonalTabs } from './workspace'
+import type { AppSettings } from '../types'
 import { getJalaliMonthKey } from '../utils/dateRange'
 import { getTodayIso } from '../utils/jalaliDate'
 
@@ -26,6 +34,32 @@ function writeNetWorthGate(spreadsheetId: string, gate: NetWorthGate): void {
   }
 }
 
+/**
+ * The values of the previous month's `auto` row. Opened on its first day, today's value is that
+ * month's end. Opened later, today's value would carry the new month's records, so the month-end is
+ * worked back from them (the same rebuild the reports use); today's value stays only where the
+ * rebuild is impossible (before the first record, or the sheets cannot be read).
+ */
+async function autoMonthValues(
+  settings: AppSettings,
+  monthKey: string,
+  rebuildInput: () => Promise<NetWorthRebuildInput>
+): Promise<NetWorthValues> {
+  try {
+    const input = await rebuildInput()
+
+    if (hasFlowAfterMonth(input.monthlyNet, monthKey)) {
+      const rebuilt = rebuiltMonthEnd(input, monthKey, getNetAvailableConfig())
+
+      if (rebuilt) return rebuilt
+    }
+  } catch {
+    // The rebuild input could not be read: today's value, as before.
+  }
+
+  return loadTodayNetWorth(settings)
+}
+
 async function snapshotAndRebuild(spreadsheetId: string, monthKey: string): Promise<void> {
   // «دارایی قابل اتکا» is the user's own: a building or shared file has no such tab and never gets one.
   if (!hasPersonalTabs(spreadsheetId)) return
@@ -43,11 +77,14 @@ async function snapshotAndRebuild(spreadsheetId: string, monthKey: string): Prom
   const recordedAt = netWorthTimestamp()
   const autoMonth = snapshotMonthToWrite(gate, monthKey, existing)
   const rows = []
+  let loaded: NetWorthRebuildInput | null = null
+  const rebuildInput = async () =>
+    (loaded ??= await loadRebuildInput(settings, await loadNetWorthRecords(settings)))
 
   if (autoMonth) {
     rows.push({
       monthKey: autoMonth,
-      ...(await loadTodayNetWorth(settings)),
+      ...(await autoMonthValues(settings, autoMonth, rebuildInput)),
       recordedAt,
       source: 'auto' as const
     })
@@ -55,7 +92,7 @@ async function snapshotAndRebuild(spreadsheetId: string, monthKey: string): Prom
   }
 
   if (!gate.rebuiltAt) {
-    const input = await loadRebuildInput(settings, await loadNetWorthRecords(settings))
+    const input = await rebuildInput()
     const months = monthsToRebuild(earliestNetMonth(input.monthlyNet), existing, monthKey)
 
     rows.unshift(...rebuildSnapshots(input, months, getNetAvailableConfig(), recordedAt))

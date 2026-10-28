@@ -23,6 +23,7 @@ vi.mock('./settings', async importOriginal => ({
 }))
 vi.mock('./sheets', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
+  ensureSheetWithHeaders: async () => undefined,
   fetchRecords: async () => mocks.records
 }))
 vi.mock('./activityLog', () => ({ logActivity: vi.fn(), logItemActivity: vi.fn() }))
@@ -40,6 +41,7 @@ const { confirmSmsEntry, confirmSmsEntryWithId, confirmSmsTransfer } = await imp
 )
 const { WALLET_HEADERS, WALLET_SHEET } = await import('./wallet')
 const { WALLET_LEDGER_HEADERS, WALLET_LEDGER_SHEET } = await import('./walletLedger')
+const { TRANSFERS_HEADERS, TRANSFERS_SHEET } = await import('./transfersModel')
 const { clearStore, setSheetAllRows } = await import('./spreadsheetStore')
 
 const SHEET_ID = 'sms-apply-fresh'
@@ -94,6 +96,7 @@ describe('an SMS without «مانده» is a change on the balance the sheet hol
       accountRow('b', 50e6)
     ])
     setSheetAllRows(SHEET_ID, WALLET_LEDGER_SHEET, [WALLET_LEDGER_HEADERS])
+    setSheetAllRows(SHEET_ID, TRANSFERS_SHEET, [TRANSFERS_HEADERS])
   })
 
   it('card save: 95M - 3M = 92M, sent as a change', async () => {
@@ -144,6 +147,8 @@ describe('an SMS without «مانده» is a change on the balance the sheet hol
     expect(to.row[3]).toBe('55000000')
     expect(from.writeOptions).toEqual({ mergeBalance: true })
     expect(to.writeOptions).toEqual({ mergeBalance: true })
+    // The SMS leave the queue once the transfer exists.
+    expect(mocks.handled).toHaveBeenCalledWith(['m1', 'm2'])
   })
 
   it('writes nothing for an account another device deleted', async () => {

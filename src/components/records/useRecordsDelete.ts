@@ -82,10 +82,16 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
         id: record.id,
         label,
         errorMessage: 'خطا در حذف تراکنش',
-        commit: async () => {
+        commit: async context => {
           const current = recordsRef.current.find(item => item.id === record.id) ?? record
 
-          await deleteStoredRecord({ spreadsheetId, record: current, form, sharedAnswer })
+          await deleteStoredRecord({
+            spreadsheetId,
+            record: current,
+            form,
+            sharedAnswer,
+            leaving: context?.leaving
+          })
           void removeParentAttachments(current.attachments, answer)
           await loadRecordsRef.current()
         }

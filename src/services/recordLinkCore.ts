@@ -38,6 +38,8 @@ export interface RecordLinkAdapter {
   recordType: 'income' | 'expense'
   /** Local, synchronous, no network: the items whose payments point at `recordId`. */
   findByRecordId(spreadsheetId: string, recordId: string): RecordLinkMatch[]
+  /** Local, synchronous: every record id some payment of this kind points at (start-up heal). */
+  linkedRecordIds(spreadsheetId: string): string[]
   onRecordDeleted(spreadsheetId: string, recordId: string): Promise<string[]>
   onRecordUpdated(spreadsheetId: string, recordId: string, change: RecordChange): Promise<string[]>
 }
@@ -99,6 +101,16 @@ export function rowsMentioning(
   return hits
     .filter(index => index > 0)
     .map(index => ({ row: [...rows[index]], rowNumber: index + 1 }))
+}
+
+/** The data rows of a tab in the local mirror, with their 1-based sheet row; none when it is absent. */
+export function mirrorDataRows(
+  spreadsheetId: string,
+  sheetName: string
+): { row: string[]; rowNumber: number }[] {
+  return (getSheetRowsView(spreadsheetId, sheetName) ?? [])
+    .map((row, index) => ({ row: [...row], rowNumber: index + 1 }))
+    .filter(({ rowNumber }) => rowNumber > 1)
 }
 
 export function linkedPaymentIds(payments: readonly LinkedPayment[], recordId: string): string[] {

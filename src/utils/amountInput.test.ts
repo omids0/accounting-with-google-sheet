@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { amountIntegerHint, amountMaxMessage, MAX_AMOUNT, parseAmountInput } from './amountInput'
+import {
+  amountInputRejection,
+  amountIntegerHint,
+  amountMaxMessage,
+  MAX_AMOUNT,
+  parseAmountInput
+} from './amountInput'
 
 describe('parseAmountInput', () => {
   it.each([
@@ -90,5 +96,29 @@ describe('notice texts follow the field unit', () => {
   it('stays generic for a plain number field such as km', () => {
     expect(amountIntegerHint()).toBe('فقط عدد صحیح')
     expect(amountMaxMessage()).toBe('عدد خیلی بزرگ است')
+  })
+})
+
+describe('amountInputRejection', () => {
+  it.each(['-5', '-500', '−500', '–500', '۱۲-۳', '12-', '(-5)'])(
+    'flags the minus sign in %s',
+    raw => {
+      expect(amountInputRejection(raw)).toBe('negative')
+    }
+  )
+
+  it.each(['1e9', '1E9', '12e', '1e+9', '1e-9', 'e5', '۱e۹'])('flags the exponent in %s', raw => {
+    expect(amountInputRejection(raw)).toBe('digits')
+  })
+
+  it.each(['', '5', '1,234,567', '۱۲٬۳۴۵', '12.5', '12abc34', '1000 تومان'])(
+    'lets %s pass without a notice',
+    raw => {
+      expect(amountInputRejection(raw)).toBeNull()
+    }
+  )
+
+  it('still strips the sign, so the digits stay positive', () => {
+    expect(parseAmountInput('-500').digits).toBe('500')
   })
 })

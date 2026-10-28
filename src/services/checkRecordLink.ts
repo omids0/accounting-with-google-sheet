@@ -2,7 +2,12 @@ import { logItemActivity } from './activityLog'
 import { checkListTitle, headerDirectionColumn } from './checkDirection'
 import { rowToCheck } from './checkRows'
 import { CHECKS_SHEET, fetchChecks, updateCheck } from './checks'
-import { rowsMentioning, type RecordChange, type RecordLinkAdapter } from './recordLinkCore'
+import {
+  mirrorDataRows,
+  rowsMentioning,
+  type RecordChange,
+  type RecordLinkAdapter
+} from './recordLinkCore'
 import { getSheetRow } from './spreadsheetStore'
 import type { Check } from '../types'
 import { roundMoney } from '../utils/roundMoney'
@@ -42,6 +47,16 @@ function createCheckRecordLink(recordType: 'income' | 'expense'): RecordLinkAdap
     kind: 'checks',
     noun: 'چک',
     recordType,
+
+    linkedRecordIds: spreadsheetId => {
+      const column = headerDirectionColumn(getSheetRow(spreadsheetId, CHECKS_SHEET, 1))
+
+      return mirrorDataRows(spreadsheetId, CHECKS_SHEET).flatMap(({ row, rowNumber }) => {
+        const { transactionRecordId } = rowToCheck(row, rowNumber, column)
+
+        return transactionRecordId ? [transactionRecordId] : []
+      })
+    },
 
     findByRecordId: (spreadsheetId, recordId) =>
       checksOf(spreadsheetId, recordId).map(check => ({

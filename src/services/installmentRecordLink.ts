@@ -5,7 +5,12 @@ import {
   invalidateInstallmentsCache
 } from './installmentsConstants'
 import { fetchInstallmentPlans, rowToPlan, updateInstallmentPlan } from './installmentsCrud'
-import { rowsMentioning, type RecordChange, type RecordLinkAdapter } from './recordLinkCore'
+import {
+  mirrorDataRows,
+  rowsMentioning,
+  type RecordChange,
+  type RecordLinkAdapter
+} from './recordLinkCore'
 import type { InstallmentPayment, InstallmentPlan } from '../types'
 import { toPersianDigits } from '../utils/normalizeDigits'
 import { roundMoney } from '../utils/roundMoney'
@@ -28,6 +33,13 @@ export const installmentRecordLink: RecordLinkAdapter = {
   kind: 'installments',
   noun: 'قسط',
   recordType: 'expense',
+
+  linkedRecordIds: spreadsheetId =>
+    mirrorDataRows(spreadsheetId, INSTALLMENTS_SHEET).flatMap(({ row, rowNumber }) =>
+      rowToPlan(row, rowNumber, spreadsheetId).payments.flatMap(payment =>
+        payment.transactionRecordId ? [payment.transactionRecordId] : []
+      )
+    ),
 
   findByRecordId: (spreadsheetId, recordId) =>
     rowsMentioning(spreadsheetId, INSTALLMENTS_SHEET, recordId).flatMap(({ row, rowNumber }) => {
