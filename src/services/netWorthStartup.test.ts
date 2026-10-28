@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const sheet = vi.hoisted(() => ({ rows: [] as { monthKey: string }[], appended: [] as unknown[] }))
 const rebuild = vi.hoisted(() => ({
   monthlyNet: new Map<string, { income: number; expense: number }>(),
-  fails: false
+  fails: false,
+  vaultTransactions: [] as unknown[],
+  catalog: undefined as unknown[] | undefined,
+  unquotedToday: [] as string[]
 }))
 
 vi.mock('./netWorthSheet', () => ({
@@ -16,7 +19,12 @@ vi.mock('./netWorthSheet', () => ({
 }))
 
 vi.mock('./netWorthSources', () => ({
-  loadTodayNetWorth: vi.fn(async () => ({ netWorth: 900, assets: 1000, liabilities: 100 })),
+  loadTodayNetWorth: vi.fn(async () => ({
+    netWorth: 900,
+    assets: 1000,
+    liabilities: 100,
+    vaultUnquoted: rebuild.unquotedToday
+  })),
   loadNetWorthRecords: vi.fn(async () => ({})),
   loadRebuildInput: vi.fn(async () => {
     if (rebuild.fails) throw new Error('unreadable')
@@ -24,8 +32,9 @@ vi.mock('./netWorthSources', () => ({
     return {
       walletTotal: 1000,
       monthlyNet: rebuild.monthlyNet,
-      vaultTransactions: [],
+      vaultTransactions: rebuild.vaultTransactions,
       prices: null,
+      catalog: rebuild.catalog,
       goalsTotal: 0,
       receivables: [],
       installmentPlans: [],
@@ -63,6 +72,8 @@ describe('runNetWorthSnapshot', () => {
     sheet.appended = []
     rebuild.monthlyNet = new Map([['1405-04', { income: 100, expense: 0 }]])
     rebuild.fails = false
+    rebuild.vaultTransactions = []
+    rebuild.unquotedToday = []
   })
 
   it('writes last month once, rebuilds the earlier months once, then stays quiet', async () => {
@@ -175,6 +186,90 @@ describe('the previous month auto row when the app is first opened late', () => 
     await runNetWorthSnapshot('S1')
 
     expect(sheet.appended).toEqual([])
+  })
+})
+
+describe('a vault that cannot be fully valued', () => {
+  const buy = (assetType: string) => ({
+    id: 'v1',
+    createdAt: '',
+    assetType,
+    action: 'buy',
+    quantity: 2,
+    unitPrice: 0,
+    transactionDate: '2026-05-01',
+    note: ''
+  })
+  const gate = { S1: { checkedMonth: '1405-05', rebuiltAt: 'x' } }
+
+  beforeEach(() => {
+    localStorage.clear()
+    sheet.rows = []
+    sheet.appended = []
+    rebuild.fails = false
+    rebuild.monthlyNet = new Map([
+      ['1405-04', { income: 100, expense: 0 }],
+      ['1405-07', { income: 300, expense: 100 }]
+    ])
+    rebuild.vaultTransactions = []
+    rebuild.unquotedToday = []
+    localStorage.setItem('accounting_net_worth_v1', JSON.stringify(gate))
+  })
+
+  it('writes no auto row and keeps the month open when a live-priced asset has no quote', async () => {
+    rebuild.vaultTransactions = [buy('nim')]
+
+    await runNetWorthSnapshot('S1')
+
+    expect(sheet.appended).toEqual([])
+    expect(readNetWorthGate('S1')).toEqual({ checkedMonth: '1405-05', rebuiltAt: 'x' })
+  })
+
+  it('also holds back the value of today when the dashboard reports a missing quote', async () => {
+    rebuild.monthlyNet = new Map([['1405-04', { income: 100, expense: 0 }]])
+    rebuild.unquotedToday = ['نیم سکه']
+
+    await runNetWorthSnapshot('S1')
+
+    expect(sheet.appended).toEqual([])
+    expect(readNetWorthGate('S1').checkedMonth).toBe('1405-05')
+  })
+
+  it('does not run the one-time rebuild either, so it can be redone once quotes exist', async () => {
+    localStorage.clear()
+    rebuild.vaultTransactions = [buy('nim')]
+
+    await runNetWorthSnapshot('S1')
+
+    expect(sheet.appended).toEqual([])
+    expect(readNetWorthGate('S1').rebuiltAt).toBeUndefined()
+  })
+
+  it('writes the row when every held asset has a manual price', async () => {
+    const manual = {
+      id: 'manual-coin',
+      assetClass: 'gold',
+      symbol: 'M',
+      name: 'سکه دستی',
+      unit: 'عدد',
+      decimals: 0,
+      priceSource: 'manual',
+      tgjuKey: '',
+      manualPrice: 5_000,
+      manualPriceAt: '',
+      active: true
+    }
+
+    rebuild.vaultTransactions = [buy('manual-coin')]
+    rebuild.catalog = [manual]
+
+    await runNetWorthSnapshot('S1')
+
+    // 800 (wallet back at Shahrivar's end) + 2 coins at 5 000.
+    expect(sheet.appended).toEqual([
+      expect.objectContaining({ monthKey: '1405-06', netWorth: 10_800, source: 'auto' })
+    ])
+    expect(readNetWorthGate('S1').checkedMonth).toBe('1405-07')
   })
 })
 

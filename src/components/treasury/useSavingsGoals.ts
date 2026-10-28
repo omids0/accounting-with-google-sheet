@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { archiveGoalQuestion, splitGoals } from './goalList'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import { nextGoalStatus } from '../../services/savingsGoals'
@@ -16,6 +17,7 @@ import {
 import { getSettings, isConfigured } from '../../services/settings'
 import type { SavingsGoal, SavingsGoalView } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
+import { confirmDelete } from '../../utils/confirmDelete'
 import { handleSheetError } from '../../utils/sheetError'
 import { showSuccess } from '../../utils/toast'
 
@@ -76,15 +78,21 @@ export function useSavingsGoals(active: boolean) {
   )
 
   const setStatus = useCallback(
-    (goal: SavingsGoalView, status: SavingsGoal['status']) =>
-      saveGoal(
+    async (goal: SavingsGoalView, status: SavingsGoal['status']) => {
+      // A goal that still holds money keeps counting in the assets: ask before it leaves the list.
+      const question = status === 'archived' ? archiveGoalQuestion(goal) : null
+
+      if (question && !(await confirmDelete(question))) return
+
+      await saveGoal(
         {
           ...stripView(goal),
           // Back from the archive, a full goal is «reached» again.
           status: status === 'archived' ? status : nextGoalStatus({ ...goal, status }, goal.balance)
         },
         goal.rowNumber
-      ),
+      )
+    },
     [saveGoal]
   )
 
@@ -113,12 +121,14 @@ export function useSavingsGoals(active: boolean) {
     onComplete: reload
   })
 
-  const visibleGoals = useMemo(() => goals.filter(goal => goal.status !== 'archived'), [goals])
+  const { open: visibleGoals, archived: archivedGoals } = useMemo(() => splitGoals(goals), [goals])
 
   return {
     goals,
     /** Active and reached goals: the «هدف‌ها» chip count and the cards in «همه». */
     visibleGoals,
+    /** Archived goals: they hold their money and are listed apart under «هدف‌ها». */
+    archivedGoals,
     total: useMemo(() => sumGoalBalances(goals), [goals]),
     editing,
     setEditing,

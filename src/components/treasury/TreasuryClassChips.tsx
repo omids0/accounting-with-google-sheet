@@ -19,6 +19,7 @@ export default function TreasuryClassChips({
   onChange
 }: {
   counts: VaultClassCounts
+  /** Every goal, archived included (their money is in the total): «همه» and «هدف‌ها» both count it. */
   goalsCount?: number
   value: TreasuryClassFilter
   onChange: (value: TreasuryClassFilter) => void

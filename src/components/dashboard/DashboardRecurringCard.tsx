@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useDataRefresh } from '../../hooks/useDataRefresh'
+import { useSubmitLock } from '../../hooks/useSubmitLock'
 import { pendingReminders, recurringDueDate } from '../../services/recurring'
 import { fetchRecurringItems, stripRow } from '../../services/recurringSheet'
 import { getSettings } from '../../services/settings'
@@ -9,7 +10,7 @@ import type { RecurringItem } from '../../types'
 import { getJalaliMonthKey } from '../../utils/dateRange'
 import { isoToJalali, JALALI_MONTHS, getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
-import { showSuccess } from '../../utils/toast'
+import { showInfo, showSuccess } from '../../utils/toast'
 import AppIcon from '../AppIcon'
 import MoneyText from '../MoneyText'
 import Button from '../ui/Button'
@@ -47,6 +48,7 @@ export default function DashboardRecurringCard() {
   const [accounts, setAccounts] = useState<Map<string, string>>(new Map())
   const [unticked, setUnticked] = useState<ReadonlySet<string>>(new Set())
   const [busy, setBusy] = useState(false)
+  const submitLock = useSubmitLock()
   const today = getTodayIso()
 
   useEffect(() => {
@@ -80,29 +82,39 @@ export default function DashboardRecurringCard() {
   const monthKey = getJalaliMonthKey(today)
   const monthName = JALALI_MONTHS[isoToJalali(today).month - 1]
 
-  const postAll = async () => {
-    const settings = getSettings()
+  // A second tap in the same tick (before `busy` re-renders) is ignored by the lock.
+  const postAll = () =>
+    submitLock(async () => {
+      const settings = getSettings()
 
-    if (!settings) return
+      if (!settings) return
 
-    setBusy(true)
-    try {
-      // Posting (records, balances) loads only when used.
-      const { postReminderItems } = await import('../../services/recurringPost')
-      const written = await postReminderItems(settings, items, ticked, today)
+      setBusy(true)
+      try {
+        // Posting (records, balances) loads only when used.
+        const { postReminderItems } = await import('../../services/recurringPost')
+        let marked = 0
+        const written = await postReminderItems(settings, items, ticked, today, {
+          onDuplicate: item => {
+            marked += 1
+            showInfo(`«${item.title || item.category}» قبلاً ثبت شده بود؛ فقط علامت زده شد`)
+          }
+        })
 
-      setItems([])
-      showSuccess(
-        written
-          ? `${written.toLocaleString('fa-IR')} تراکنش تکراری ثبت شد`
-          : `تکرارهای ${monthName} رد شد`
-      )
-    } catch (err) {
-      handleSheetError(err, { fallbackMessage: 'ثبت تکرارها انجام نشد' })
-    } finally {
-      setBusy(false)
-    }
-  }
+        setItems([])
+        if (written || !marked) {
+          showSuccess(
+            written
+              ? `${written.toLocaleString('fa-IR')} تراکنش تکراری ثبت شد`
+              : `تکرارهای ${monthName} رد شد`
+          )
+        }
+      } catch (err) {
+        handleSheetError(err, { fallbackMessage: 'ثبت تکرارها انجام نشد' })
+      } finally {
+        setBusy(false)
+      }
+    })
 
   return (
     <Card className={`${guideCardClass} ${recurringCardClass}`}>

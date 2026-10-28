@@ -9,7 +9,6 @@ import type {
 } from './types'
 import { calculateNextKm, validateVehicleMileageEntry } from './utils'
 import {
-  completePeriodicService,
   correctVehicleMileage,
   renewVehicleDeadline,
   rollbackMileageAfterLogDelete,
@@ -23,6 +22,7 @@ import {
 } from '../../services/vehicleDeadlines'
 import { createVehicleExpense, deleteVehicleExpense } from '../../services/vehicleExpenses'
 import { createVehicleHistoryEntry, deleteVehicleHistoryEntry } from '../../services/vehicleHistory'
+import { completePeriodicService } from '../../services/vehiclePeriodicComplete'
 import {
   createVehiclePeriodicService,
   deleteVehiclePeriodicService,

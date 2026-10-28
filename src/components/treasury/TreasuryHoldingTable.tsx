@@ -4,14 +4,27 @@ import { PnlAmount } from './TreasuryHoldingPnl'
 import { formatQuantity } from './utils'
 import { getAssetClassLabel, VAULT_ASSET_CLASSES } from '../../services/treasuryCatalog'
 import type { TreasuryClassFilter } from '../../services/treasuryClassPref'
-import type { VaultClassCounts } from '../../services/treasuryHoldings'
+import { isUnquoted, type VaultClassCounts } from '../../services/treasuryHoldings'
 import { formatPct } from '../../services/treasuryPnl'
 import type { VaultHolding } from '../../types'
 import { Select } from '../form'
+import MoneyText from '../MoneyText'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
 import { moneyColumn, textColumn } from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
 import { treasuryTableFilterClass } from '../ui/treasuryReceivableStyles'
+
+/** A live-priced holding without a quote shows «—» (unknown), never a 0 that reads as valued. */
+function unquotedMoneyColumn(
+  id: string,
+  header: string,
+  get: (holding: VaultHolding) => number
+): DataTableColumn<VaultHolding> {
+  return {
+    ...moneyColumn(id, header, get),
+    cell: holding => (isUnquoted(holding) ? '—' : <MoneyText amount={get(holding)} />)
+  }
+}
 
 /** Desktop view of the holdings; buy/sell history and the sell form open in the detail line. */
 export default function TreasuryHoldingTable({
@@ -65,9 +78,9 @@ export default function TreasuryHoldingTable({
         sortValue: holding => holding.netQuantity,
         cell: holding => formatQuantity(holding.netQuantity, holding.assetType)
       },
-      moneyColumn('price', 'قیمت روز', holding => holding.currentUnitPrice),
+      unquotedMoneyColumn('price', 'قیمت روز', holding => holding.currentUnitPrice),
       moneyColumn('avg', 'خرید میانگین', holding => holding.avgUnitCost),
-      moneyColumn('value', 'ارزش کل', holding => holding.totalValue),
+      unquotedMoneyColumn('value', 'ارزش کل', holding => holding.totalValue),
       {
         id: 'unrealized',
         header: 'سود/زیان باز',

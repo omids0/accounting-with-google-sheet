@@ -53,3 +53,17 @@ describe('confirmDelete', () => {
     expect(() => answerConfirmDelete(null)).not.toThrow()
   })
 })
+
+describe('confirmDelete wording', () => {
+  it('carries a non-delete title and button for the archive question', async () => {
+    const asked = confirmDelete({
+      label: 'سفر عید',
+      message: 'x',
+      wording: { title: 'سفر عید بایگانی شود؟', confirmLabel: 'بایگانی', tone: 'default' }
+    })
+
+    expect(getConfirmDeleteRequest()?.wording?.confirmLabel).toBe('بایگانی')
+    answerConfirmDelete({ checked: false })
+    await expect(asked).resolves.toEqual({ checked: false })
+  })
+})

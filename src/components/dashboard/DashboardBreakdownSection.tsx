@@ -4,10 +4,12 @@ import { BreakdownRow } from './DashboardParts'
 import { getNetAvailableConfig } from '../../services/settings'
 import type { DashboardData, DashboardNavTarget, NetAvailableConfig } from '../../types'
 import { asOfEndLabel } from '../../utils/periodLabel'
+import { unquotedBreakdownNote } from '../../utils/vaultUnquotedText'
 import Card from '../ui/Card'
 import {
   assetBreakdownClass,
   assetSettingsHintClass,
+  assetUnquotedNoteClass,
   chartTitleClass,
   dashboardAssetsCardClass,
   dashboardLiabilitiesCardClass
@@ -22,6 +24,8 @@ type BreakdownItem = {
   target: DashboardNavTarget
   /** Parts of this row (the vault per asset class). */
   parts?: { label: string; value: number }[]
+  /** A warning under the row (a value that is only a floor). */
+  note?: string
 }
 
 type DashboardBreakdownSectionProps = {
@@ -66,6 +70,7 @@ function BreakdownCard({
             {item.parts?.map(part => (
               <BreakdownRow key={part.label} label={part.label} value={part.value} sub />
             ))}
+            {item.note && <p className={assetUnquotedNoteClass}>{item.note}</p>}
           </Fragment>
         ))}
         <BreakdownRow label={totalLabel} value={total} total />
@@ -105,7 +110,8 @@ export default function DashboardBreakdownSection({
       parts:
         (financial?.treasuryByClass?.length ?? 0) > 1
           ? financial?.treasuryByClass?.map(({ label, total }) => ({ label, value: total }))
-          : undefined
+          : undefined,
+      note: unquotedBreakdownNote(financial?.treasuryUnquoted)
     },
     // Inside the vault total, but counted by its own net-available switch.
     ...(goalsTotal > 0

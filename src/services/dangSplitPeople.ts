@@ -10,6 +10,7 @@ import { appendSheetRow, deleteSheetRow, fetchSheetRows, updateSheetRow } from '
 import type { DangSplitPerson, DangSplitPersonCategory } from '../types/dangSplit'
 import { isOtherCategory } from '../utils/categoryOrdering'
 import { parseNumeric } from '../utils/parseNumeric'
+import { normalizeSearchText } from '../utils/search'
 
 export type DangSplitPersonWithRow = DangSplitPerson & { rowNumber: number }
 export type DangSplitCategoryWithRow = DangSplitPersonCategory & { rowNumber: number }
@@ -110,6 +111,17 @@ export async function deleteDangSplitCategory(
   rowNumber: number
 ): Promise<void> {
   await deleteSheetRow(spreadsheetId, DANG_SPLIT_CATEGORIES_SHEET, rowNumber)
+}
+
+/** Another person of the group already has this name (digits, Arabic letters and spacing ignored). */
+export function hasDuplicatePersonName(
+  people: Pick<DangSplitPerson, 'id' | 'name'>[],
+  name: string,
+  ignoreId?: string
+): boolean {
+  const wanted = normalizeSearchText(name)
+
+  return people.some(item => item.id !== ignoreId && normalizeSearchText(item.name) === wanted)
 }
 
 export async function fetchDangSplitPeople(

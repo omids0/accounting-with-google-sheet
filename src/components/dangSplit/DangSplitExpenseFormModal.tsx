@@ -2,6 +2,7 @@ import { useMemo, type FormEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import DangSplitAllocationFields from './DangSplitAllocationFields'
+import { PERCENT_SAVE_HINT } from './dangSplitAllocationSeed'
 import { dangSplitSectionTitleClass } from './dangSplitStyles'
 import type {
   DangSplitCategoryWithRow,
@@ -91,6 +92,12 @@ export default function DangSplitExpenseFormModal({
   })
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (draft.percentError) {
+      event.preventDefault()
+
+      return
+    }
+
     return submitValidatedForm(handleSubmit, values => onSubmit(values, draft.weights), event)
   }
 
@@ -101,6 +108,8 @@ export default function DangSplitExpenseFormModal({
       onClose={onClose}
       onSubmit={onFormSubmit}
       saving={saving}
+      saveDisabled={draft.percentError !== null}
+      saveHint={draft.percentError ? PERCENT_SAVE_HINT : undefined}
       saveLabel={editingItem ? 'ذخیره تغییرات' : 'ذخیره هزینه'}
       size="wide"
     >

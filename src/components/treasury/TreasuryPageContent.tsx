@@ -124,8 +124,8 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
   }
 
   const { visibleHoldings } = classFilter
-  const hasGoals = goals.visibleGoals.length > 0
-  // The «هدف‌ها» chip disappears with the last open goal; «همه» takes over then.
+  // An archived goal still holds money, so «هدف‌ها» stays while any goal exists.
+  const hasGoals = goals.goals.length > 0
   const goalsOnly = classFilter.selected === 'goals' && hasGoals
   const chipValue = classFilter.selected === 'goals' && !hasGoals ? 'all' : classFilter.selected
   const inAll = !goalsOnly && classFilter.assetClass == null
@@ -134,7 +134,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
     ? {
         label: 'جمع هدف‌ها',
         amount: goals.total,
-        parts: goals.visibleGoals.map(goal => goal.balance)
+        parts: goals.goals.map(goal => goal.balance)
       }
     : {
         label: classFilter.totalLabel,
@@ -178,7 +178,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       {hasAnything && (
         <TreasuryClassChips
           counts={classFilter.counts}
-          goalsCount={goals.visibleGoals.length}
+          goalsCount={goals.goals.length}
           value={chipValue}
           onChange={classFilter.select}
         />
@@ -193,7 +193,13 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
         />
       )}
 
-      {(inAll || goalsOnly) && <SavingsGoalsSection goals={goals} goalsOnly={goalsOnly} />}
+      {(inAll || goalsOnly) && (
+        <SavingsGoalsSection
+          goals={goals}
+          goalsOnly={goalsOnly}
+          onShowArchived={() => classFilter.select('goals')}
+        />
+      )}
 
       {goalsOnly ? null : data.loading && data.holdings.length === 0 ? (
         <TreasurySkeleton />

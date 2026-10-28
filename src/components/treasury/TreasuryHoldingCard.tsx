@@ -6,6 +6,7 @@ import TreasuryTransactionItem from './TreasuryTransactionItem'
 import type { TransactionWithRow, VaultFormState } from './types'
 import { formatQuantity } from './utils'
 import { getAssetClassLabel } from '../../services/treasuryCatalog'
+import { isUnquoted } from '../../services/treasuryHoldings'
 import type { VaultAsset, VaultAssetType, VaultHolding } from '../../types'
 import { cn } from '../../utils/cn'
 import { AccordionCollapse } from '../AccordionCollapse'
@@ -20,6 +21,7 @@ import {
 import {
   receivableAddPaymentClass,
   receivablePaymentListTitleClass,
+  treasuryPnlMutedClass,
   treasuryClassTagClass,
   treasuryHoldingCardClass,
   treasuryHoldingValueClass,
@@ -59,6 +61,7 @@ export default function TreasuryHoldingCard({
 }: TreasuryHoldingCardProps) {
   const showSellForm = activeSellAsset === holding.assetType
   const { asset } = holding
+  const unquoted = isUnquoted(holding)
   const classTag = [getAssetClassLabel(asset.assetClass), asset.symbol].filter(Boolean).join(' · ')
 
   return (
@@ -89,13 +92,14 @@ export default function TreasuryHoldingCard({
               ) : (
                 <>
                   {asset.priceSource === 'manual' ? 'قیمت' : 'قیمت روز'}:{' '}
-                  <MoneyText amount={holding.currentUnitPrice} />
+                  {unquoted ? '—' : <MoneyText amount={holding.currentUnitPrice} />}
                 </>
               )}
             </div>
             <div className={treasuryHoldingValueClass}>
-              ارزش کل: <MoneyText amount={holding.totalValue} />
+              ارزش کل: {unquoted ? '—' : <MoneyText amount={holding.totalValue} />}
             </div>
+            {unquoted && <div className={treasuryPnlMutedClass}>قیمت لحظه‌ای در دسترس نیست</div>}
             <TreasuryHoldingPnl holding={holding} />
           </div>
           <span className={installmentChevronClass} aria-hidden>

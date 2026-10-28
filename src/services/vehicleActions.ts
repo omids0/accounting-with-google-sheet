@@ -1,11 +1,9 @@
 import { updateVehicleDeadline } from './vehicleDeadlines'
 import { fetchVehicleExpenseMetaByVehicle } from './vehicleExpenseRecords'
-import { createVehicleExpense, deleteVehicleExpense } from './vehicleExpenses'
+import { createVehicleExpense } from './vehicleExpenses'
 import { createVehicleHistoryEntry, fetchVehicleHistory, logMileageReading } from './vehicleHistory'
 import { createVehicleMechanicVisit, formatMechanicItemsSummary } from './vehicleMechanicVisits'
-import { updateVehiclePeriodicService } from './vehiclePeriodicServices'
 import { fetchVehicles, updateVehicleMileage } from './vehicleProfiles'
-import { calculateNextKm } from '../components/vehicles/utils'
 import type { VehicleMechanicItem, VehicleProfile } from '../types/vehicles'
 import { getTodayIso } from '../utils/jalaliDate'
 
@@ -88,88 +86,6 @@ export async function rollbackMileageAfterLogDelete(
   if (best > 0 && best < vehicle.mileage) {
     await updateVehicleMileage(spreadsheetId, vehicle.rowNumber, best)
   }
-}
-
-export async function completePeriodicService(params: {
-  spreadsheetId: string
-  vehicle: VehicleProfile & { rowNumber: number }
-  rowNumber: number
-  serviceType: string
-  serviceId: string
-  mileage: number
-  intervalKm: number
-  brand: string
-  location: string
-  amount: number
-  notes: string
-  date: string
-  previousExpenseId?: string
-  isHistorical?: boolean
-}): Promise<void> {
-  const {
-    spreadsheetId,
-    vehicle,
-    rowNumber,
-    serviceType,
-    serviceId,
-    mileage,
-    intervalKm,
-    brand,
-    location,
-    amount,
-    notes,
-    date,
-    previousExpenseId,
-    isHistorical = false
-  } = params
-
-  const wallet = await deleteVehicleExpense(spreadsheetId, previousExpenseId ?? '')
-
-  if (!isHistorical && mileage > vehicle.mileage) {
-    await syncVehicleMileage(
-      spreadsheetId,
-      vehicle,
-      mileage,
-      date,
-      `سرویس دوره‌ای · ${serviceType}`
-    )
-  }
-
-  const nextKm = calculateNextKm(mileage, intervalKm)
-  const expenseRecordId =
-    amount > 0
-      ? await createVehicleExpense(spreadsheetId, {
-          title: `${serviceType} — ${vehicle.title}`,
-          amount,
-          subCategory: serviceType,
-          date,
-          note: [brand, location, notes].filter(Boolean).join(' · '),
-          ...wallet
-        })
-      : ''
-
-  await updateVehiclePeriodicService(spreadsheetId, rowNumber, {
-    currentMileage: mileage,
-    intervalKm,
-    nextKm,
-    brand,
-    location,
-    amount,
-    notes,
-    expenseRecordId
-  })
-
-  await createVehicleHistoryEntry(spreadsheetId, {
-    vehicleId: vehicle.id,
-    recordKind: 'periodic',
-    referenceId: serviceId,
-    date,
-    mileage,
-    nextKm,
-    details: [serviceType, brand, location, notes].filter(Boolean).join(' · '),
-    amount,
-    expenseRecordId
-  })
 }
 
 export async function renewVehicleDeadline(params: {

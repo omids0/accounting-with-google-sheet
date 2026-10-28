@@ -48,13 +48,11 @@ export function buildCompleteInitialValues(
 ): Partial<VehicleCompleteFormState> | undefined {
   if (!completingPeriodic) return undefined
 
+  // The odometer today: the card measures the next due km from it, so a quick save must not
+  // fall back to the previous service's km (that would leave «N کیلومتر مانده» unchanged).
   return {
-    mileage: String(
-      completingPeriodic.currentMileage < currentVehicle.mileage
-        ? completingPeriodic.currentMileage
-        : currentVehicle.mileage
-    ),
-    isHistorical: completingPeriodic.currentMileage < currentVehicle.mileage,
+    mileage: String(Math.max(currentVehicle.mileage, completingPeriodic.currentMileage)),
+    isHistorical: false,
     intervalKm: String(completingPeriodic.intervalKm),
     brand: completingPeriodic.brand,
     location: completingPeriodic.location,

@@ -13,6 +13,7 @@ import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import MileageInput from './MileageInput'
 import UpdateMileageToggle from './UpdateMileageToggle'
+import { useMileageDropConfirm } from './useMileageDropConfirm'
 
 type VehiclePeriodicFormModalProps = {
   open: boolean
@@ -92,119 +93,128 @@ export default function VehiclePeriodicFormModal({
   const isHistorical = watch('isHistorical')
   const nextKmPreview = mileage > 0 && intervalKm > 0 ? calculateNextKm(mileage, intervalKm) : null
 
+  const { submit, confirmModal } = useMileageDropConfirm(defaultMileage, onSubmit)
+
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    return submitValidatedForm(handleSubmit, values => onSubmit(values), event)
+    return submitValidatedForm(
+      handleSubmit,
+      values => submit(values, parseNumeric(values.mileage), values.isHistorical),
+      event
+    )
   }
 
   return (
-    <FormModal
-      open={open}
-      title={title}
-      onClose={onClose}
-      onSubmit={onFormSubmit}
-      saving={saving}
-      saveLabel="ذخیره سرویس"
-    >
-      <Controller
-        name="serviceType"
-        control={control}
-        rules={requiredField('نوع سرویس')}
-        render={({ field, fieldState }) => (
-          <FormField
-            label="نوع سرویس"
-            required
-            controlWidth="full"
-            error={fieldState.error?.message}
-          >
-            <CategorySelect
-              value={field.value}
-              onChange={value => {
-                field.onChange(value)
-                setValue('serviceType', value, { shouldValidate: true })
-              }}
-              categories={serviceTypes}
-              categoryScope="vehiclePeriodic"
-              onCategoriesChange={next => {
-                onServiceTypesChange(next)
-                if (!next.includes(serviceType)) {
-                  setValue('serviceType', next[0] ?? '', { shouldValidate: true })
-                }
-              }}
-              aria-label="نوع سرویس"
-              placeholder="انتخاب نوع سرویس"
-              invalid={Boolean(fieldState.error)}
+    <>
+      <FormModal
+        open={open}
+        title={title}
+        onClose={onClose}
+        onSubmit={onFormSubmit}
+        saving={saving}
+        saveLabel="ذخیره سرویس"
+      >
+        <Controller
+          name="serviceType"
+          control={control}
+          rules={requiredField('نوع سرویس')}
+          render={({ field, fieldState }) => (
+            <FormField
+              label="نوع سرویس"
+              required
+              controlWidth="full"
+              error={fieldState.error?.message}
+            >
+              <CategorySelect
+                value={field.value}
+                onChange={value => {
+                  field.onChange(value)
+                  setValue('serviceType', value, { shouldValidate: true })
+                }}
+                categories={serviceTypes}
+                categoryScope="vehiclePeriodic"
+                onCategoriesChange={next => {
+                  onServiceTypesChange(next)
+                  if (!next.includes(serviceType)) {
+                    setValue('serviceType', next[0] ?? '', { shouldValidate: true })
+                  }
+                }}
+                aria-label="نوع سرویس"
+                placeholder="انتخاب نوع سرویس"
+                invalid={Boolean(fieldState.error)}
+              />
+            </FormField>
+          )}
+        />
+
+        <FormRow>
+          <FormField label="کارکرد (کیلومتر)" required error={formFieldError(errors, 'mileage')}>
+            <MileageInput
+              value={watch('mileage')}
+              onChange={value => setValue('mileage', value === '' ? '' : String(value))}
+              invalid={Boolean(errors.mileage)}
             />
           </FormField>
-        )}
-      />
 
-      <FormRow>
-        <FormField label="کارکرد (کیلومتر)" required error={formFieldError(errors, 'mileage')}>
-          <MileageInput
-            value={watch('mileage')}
-            onChange={value => setValue('mileage', value === '' ? '' : String(value))}
-            invalid={Boolean(errors.mileage)}
-          />
+          <FormField label="فاصله (کیلومتر)" required error={formFieldError(errors, 'intervalKm')}>
+            <MileageInput
+              value={watch('intervalKm')}
+              onChange={value => setValue('intervalKm', value === '' ? '' : String(value))}
+              invalid={Boolean(errors.intervalKm)}
+            />
+          </FormField>
+        </FormRow>
+
+        <UpdateMileageToggle
+          checked={!isHistorical}
+          onChange={update => setValue('isHistorical', !update)}
+          currentMileage={defaultMileage}
+        />
+
+        {nextKmPreview != null ? (
+          <p className="text-[0.82rem] text-muted">
+            کیلومتر بعدی: <strong>{nextKmPreview.toLocaleString('fa-IR')}</strong>
+          </p>
+        ) : null}
+
+        <FormRow>
+          <FormField label="برند">
+            <input type="text" {...register('brand')} placeholder="برند قطعه" />
+          </FormField>
+
+          <FormField label="محل">
+            <input type="text" {...register('location')} placeholder="محل انجام" />
+          </FormField>
+        </FormRow>
+
+        <FormRow>
+          <FormField label="مبلغ (اختیاری)">
+            <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
+          </FormField>
+
+          <FormField label="تاریخ اقدام">
+            <JalaliDatePicker value={watch('date')} onChange={date => setValue('date', date)} />
+          </FormField>
+        </FormRow>
+
+        <FormField label="توضیحات" controlWidth="full">
+          <textarea {...register('notes')} rows={2} placeholder="توضیحات اختیاری" />
         </FormField>
 
-        <FormField label="فاصله (کیلومتر)" required error={formFieldError(errors, 'intervalKm')}>
-          <MileageInput
-            value={watch('intervalKm')}
-            onChange={value => setValue('intervalKm', value === '' ? '' : String(value))}
-            invalid={Boolean(errors.intervalKm)}
-          />
-        </FormField>
-      </FormRow>
+        <label className="checkbox-row flex items-center gap-2">
+          <input type="checkbox" {...register('reminderEnabled')} />
+          <span>یادآوری سرویس</span>
+        </label>
 
-      <UpdateMileageToggle
-        checked={!isHistorical}
-        onChange={update => setValue('isHistorical', !update)}
-        currentMileage={defaultMileage}
-      />
-
-      {nextKmPreview != null ? (
-        <p className="text-[0.82rem] text-muted">
-          کیلومتر بعدی: <strong>{nextKmPreview.toLocaleString('fa-IR')}</strong>
-        </p>
-      ) : null}
-
-      <FormRow>
-        <FormField label="برند">
-          <input type="text" {...register('brand')} placeholder="برند قطعه" />
-        </FormField>
-
-        <FormField label="محل">
-          <input type="text" {...register('location')} placeholder="محل انجام" />
-        </FormField>
-      </FormRow>
-
-      <FormRow>
-        <FormField label="مبلغ (اختیاری)">
-          <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
-        </FormField>
-
-        <FormField label="تاریخ اقدام">
-          <JalaliDatePicker value={watch('date')} onChange={date => setValue('date', date)} />
-        </FormField>
-      </FormRow>
-
-      <FormField label="توضیحات" controlWidth="full">
-        <textarea {...register('notes')} rows={2} placeholder="توضیحات اختیاری" />
-      </FormField>
-
-      <label className="checkbox-row flex items-center gap-2">
-        <input type="checkbox" {...register('reminderEnabled')} />
-        <span>یادآوری سرویس</span>
-      </label>
-
-      {watch('reminderEnabled') ? (
-        <FormField label="چند کیلومتر مانده یادآوری شود؟">
-          <MileageInput
-            value={watch('reminderThresholdKm')}
-            onChange={value => setValue('reminderThresholdKm', value === '' ? 0 : value)}
-          />
-        </FormField>
-      ) : null}
-    </FormModal>
+        {watch('reminderEnabled') ? (
+          <FormField label="چند کیلومتر مانده یادآوری شود؟">
+            <MileageInput
+              value={watch('reminderThresholdKm')}
+              onChange={value => setValue('reminderThresholdKm', value === '' ? 0 : value)}
+            />
+          </FormField>
+        ) : null}
+      </FormModal>
+      {confirmModal}
+    </>
   )
 }

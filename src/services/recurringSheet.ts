@@ -97,3 +97,8 @@ export async function importRecurringCsv(spreadsheetId: string, csvContent: stri
     return item ? recurringToRow(item) : null
   })
 }
+
+/** One «تکرارها» read-then-write at a time per book (posting, marking from an SMS). */
+export function recurringLockKey(spreadsheetId: string): string {
+  return `recurring:${spreadsheetId}`
+}

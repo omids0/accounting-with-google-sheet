@@ -14,7 +14,7 @@ import { loadSavingsGoals, sumGoalBalances } from './savingsGoalsSheet'
 import { getNetAvailableConfig } from './settings'
 import { WALLET_LEDGER_SHEET } from './sheetNames'
 import { fetchRecords, fetchSheetRows } from './sheets'
-import { getSummableTgjuPrices } from './tgjuCurrency'
+import { ensureVaultPrices } from './tgjuCurrency'
 import { fetchVaultTransactions } from './treasury'
 import { getAssetClassLabel, resolveVaultAsset } from './treasuryCatalog'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
@@ -23,8 +23,11 @@ import { rowToLedgerEntry } from './walletLedger'
 import type { AppSettings, VaultTransaction } from '../types'
 import { getInstallmentDueRange, resolveDateRange } from '../utils/dateRange'
 
+/** Today's values, and the live-priced vault assets missing a quote (so the vault part is a floor). */
+export type TodayNetWorth = NetWorthValues & { vaultUnquoted: string[] }
+
 /** Today's «دارایی قابل اتکا», from the same (cached) bundle the dashboard shows. */
-export async function loadTodayNetWorth(settings: AppSettings): Promise<NetWorthValues> {
+export async function loadTodayNetWorth(settings: AppSettings): Promise<TodayNetWorth> {
   const range = resolveDateRange('month-to-date')
   const bundle = await getDashboardBundle(
     settings,
@@ -32,9 +35,14 @@ export async function loadTodayNetWorth(settings: AppSettings): Promise<NetWorth
     getInstallmentDueRange('month-to-date'),
     getNetAvailableConfig()
   )
-  const { netAvailable, totalAssets, totalLiabilities } = bundle.data.financial
+  const { netAvailable, totalAssets, totalLiabilities, treasuryUnquoted } = bundle.data.financial
 
-  return { netWorth: netAvailable, assets: totalAssets, liabilities: totalLiabilities }
+  return {
+    netWorth: netAvailable,
+    assets: totalAssets,
+    liabilities: totalLiabilities,
+    vaultUnquoted: treasuryUnquoted ?? []
+  }
 }
 
 export async function loadNetWorthRecords(settings: AppSettings): Promise<ChartsRecords> {
@@ -111,8 +119,8 @@ export async function loadRebuildInput(
       records.expenseDateField
     ),
     vaultTransactions,
-    // After the catalog loads, so user-added assets and manual prices count.
-    prices: getSummableTgjuPrices(),
+    // After the catalog loads, so user-added assets and manual prices count; null when tgju is unreachable.
+    prices: await ensureVaultPrices(vaultTransactions),
     goalsTotal: sumGoalBalances(goals),
     receivables,
     installmentPlans,

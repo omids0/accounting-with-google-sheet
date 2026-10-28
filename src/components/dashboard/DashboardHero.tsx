@@ -3,6 +3,7 @@ import type { PreviousMonthSummary } from '../../types'
 import { cn } from '../../utils/cn'
 import { formatSignedNumber } from '../../utils/formatMoney'
 import { heroExpenseComparisonText } from '../../utils/insightText'
+import { unquotedHeroNote } from '../../utils/vaultUnquotedText'
 import AnimatedMoneyDisplay from '../AnimatedMoneyDisplay'
 import CardEditButton from '../CardEditButton'
 import HelpHint from '../HelpHint'
@@ -32,6 +33,8 @@ export interface DashboardHeroProps {
   previousMonth?: PreviousMonthSummary
   /** «تا پایان مهر ۱۴۰۵» — set when the period has ended and the wallet is its closing balance. */
   asOfLabel?: string
+  /** Live-priced vault assets with no quote: left out of the value, so the hero says so. */
+  unquotedAssets?: string[]
   onConfigure?: () => void
   className?: string
 }
@@ -44,6 +47,7 @@ export default function DashboardHero({
   periodNoun,
   previousMonth,
   asOfLabel,
+  unquotedAssets,
   onConfigure,
   className
 }: DashboardHeroProps) {
@@ -55,6 +59,8 @@ export default function DashboardHero({
       value: formatSignedNumber(totalIncome - totalExpense, { showPlus: true })
     }
   ]
+
+  const unquotedNote = unquotedHeroNote(unquotedAssets)
 
   const expenseComparison = previousMonth
     ? compareMonths(totalExpense, previousMonth.totalExpense)
@@ -72,6 +78,7 @@ export default function DashboardHero({
         )}
       </div>
       <AnimatedMoneyDisplay amount={netAvailable} size="hero" tone="hero" />
+      {unquotedNote && <p className={dashboardHeroCompareClass}>{unquotedNote}</p>}
       <dl className={dashboardHeroStripClass}>
         {strip.map(item => (
           <div key={item.label} className={dashboardHeroStripItemClass}>

@@ -16,10 +16,10 @@ function ConfirmDeleteDialog({ request }: { request: ConfirmDeleteRequest }) {
   return (
     <ConfirmActionModal
       open
-      tone="danger"
-      title={confirmDeleteTitle(request.label)}
+      tone={request.wording?.tone ?? 'danger'}
+      title={request.wording?.title ?? confirmDeleteTitle(request.label)}
       message={request.message}
-      confirmLabel="حذف"
+      confirmLabel={request.wording?.confirmLabel ?? 'حذف'}
       cancelLabel="انصراف"
       checkbox={
         request.checkbox
