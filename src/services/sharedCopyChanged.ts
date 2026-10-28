@@ -1,5 +1,6 @@
 import { getUserEmail } from './auth'
 import { getSettings } from './settings'
+import { raiseInformNotice } from './sharedInformNotices'
 import { applyNotice, raiseNotice, type SharedNotice } from './sharedNotices'
 import {
   SHARED_CREATOR_FIELD_ID,
@@ -28,11 +29,14 @@ const NOTICE_FIELDS = {
 /**
  * Called after a shared record's edit or delete was written (the shared copy changes at once). A
  * copy of a personal record (`مرجع` = `share:…`) changed by someone who is not its creator raises
- * one notice per changed field for the creator. The creator deleting their own copy clears the
- * personal record's shared marker instead. Never throws: the shared write already happened.
+ * one notice per changed field for the creator (apply or ignore); any other record changed by a
+ * non-creator raises an inform-only notice (`raiseInformNotice`). The creator deleting their own
+ * copy clears the personal record's shared marker instead. Never throws: the shared write already
+ * happened.
  */
 export async function onSharedCopyChanged({
   kind,
+  recordId,
   values,
   next = {}
 }: SharedCopyChange): Promise<void> {
@@ -43,6 +47,10 @@ export async function onSharedCopyChanged({
   }
   const editor = getUserEmail() ?? ''
   const title = values.title ?? ''
+  const raise = (change: Omit<SharedNotice, 'by' | 'time' | 'recordRef'>) =>
+    copy.ref.startsWith('share:')
+      ? raiseNotice(sharedId, copy, editor, change)
+      : raiseInformNotice(sharedId, { id: recordId, creator: copy.creator }, editor, change)
 
   try {
     if (kind === 'delete') {
@@ -53,7 +61,7 @@ export async function onSharedCopyChanged({
       if (own && copy.ref.startsWith('share:')) {
         await applyNotice({ ...change, recordRef: copy.ref, by: editor, time: '' })
       } else {
-        await raiseNotice(sharedId, copy, editor, change)
+        await raise(change)
       }
 
       return
@@ -64,7 +72,7 @@ export async function onSharedCopyChanged({
       const now = id in next ? String(next[id]).trim() : old
 
       if (now !== old) {
-        await raiseNotice(sharedId, copy, editor, {
+        await raise({
           field: field as SharedNotice['field'],
           kind,
           old,

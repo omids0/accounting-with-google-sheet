@@ -6,7 +6,11 @@ import { hasSharedAccount } from '../../services/workspace'
 const SharedNoticeBanner = lazy(() => import('./SharedNoticeBanner'))
 
 /** Where change notices show (see `SharedNoticeBanner`); nothing at all without a shared account. */
-export default function SharedNoticeSlot(props: { recordRef?: string; onApplied?: () => void }) {
+export default function SharedNoticeSlot(props: {
+  recordRef?: string
+  onApplied?: () => void
+  inform?: boolean
+}) {
   if (!hasSharedAccount()) return null
 
   return (

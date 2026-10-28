@@ -39,8 +39,9 @@ function Row({ label, value }: { label: string; value: string }) {
 
 /**
  * The record sheet's shared block (the generic fields hide the raw shared columns): who paid,
- * the split («نصف‌نصف» / «فقط برای X») and who recorded it, then the amount edit or why there is
- * none. A settlement reads «از X به Y»; an income says it never moves the balance.
+ * the split («نصف‌نصف» / «فقط برای X»), then the amount edit or why there is none. Who created and
+ * last edited it is the generic detail's («ایجاد» / «آخرین ویرایش»).
+ * A settlement reads «از X به Y»; an income says it never moves the balance.
  */
 export default function SharedRecordPanel({ record, shared, edit }: SharedRecordPanelProps) {
   const { values } = record
@@ -69,10 +70,6 @@ export default function SharedRecordPanel({ record, shared, edit }: SharedRecord
             <Row label="تقسیم" value={splitLabel(split, shared.me, shared.names)} />
           </>
         )}
-        {/* «ثبت‌کننده» above is the last editor; the creator only when someone else edited it. */}
-        {creator && creator.trim().toLowerCase() !== (record.writer ?? '').trim().toLowerCase() ? (
-          <Row label="ایجادکننده" value={shared.nameOf(creator)} />
-        ) : null}
       </dl>
 
       {income ? (

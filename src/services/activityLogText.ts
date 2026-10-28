@@ -1,3 +1,4 @@
+import { formatMoneyParts } from '../utils/formatMoney'
 import { formatAmountWords } from '../utils/insightText'
 import { toPersianDigits } from '../utils/normalizeDigits'
 
@@ -63,11 +64,21 @@ export interface ActivitySummaryExtra {
   /** Category actions: what happened, and the new name of a rename. */
   kind?: 'add' | 'rename' | 'merge' | 'delete'
   to?: string
+  /** A record edit that changed its amount: «از X به Y تومان». */
+  change?: { from: number; to: number }
 }
 
 const quoted = (title: string) => `«${title.trim() || '—'}»`
 
 const countOf = (count: number) => toPersianDigits(String(count))
+
+/** «از ۸۰۰٬۰۰۰ به ۸۵۰٬۰۰۰ تومان». */
+function amountChange({ from, to }: { from: number; to: number }): string {
+  const was = formatMoneyParts(from)
+  const now = formatMoneyParts(to)
+
+  return `از ${was.number} به ${now.number} ${now.symbol}`
+}
 
 function categorySummary(title: string, extra: ActivitySummaryExtra): string {
   if (extra.kind === 'rename')
@@ -97,7 +108,9 @@ export function summaryFor(
     case 'create':
       return many ? `${countOf(extra.count ?? 0)} مورد را ثبت کرد` : `${quoted(title)} را ثبت کرد`
     case 'update':
-      return `${quoted(title)} را ویرایش کرد`
+      return extra.change
+        ? `${quoted(title)} را ${amountChange(extra.change)} ویرایش کرد`
+        : `${quoted(title)} را ویرایش کرد`
     case 'delete':
       return many ? `${countOf(extra.count ?? 0)} مورد را حذف کرد` : `${quoted(title)} را حذف کرد`
     case 'pay':

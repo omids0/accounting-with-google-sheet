@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import SharedInformNotice from './SharedInformNotice'
 import SharedNoticeSheet, { noticeSentence, noticeValue } from './SharedNoticeSheet'
 import { useSharedNotices } from '../../hooks/useSharedNotices'
 import type { StoredNotice } from '../../services/sharedNotices'
@@ -20,6 +21,8 @@ interface SharedNoticeBannerProps {
   recordRef?: string
   /** The personal record changed (the list reloads). */
   onApplied?: () => void
+  /** The shared home: also the inform-only notices about records made in the shared account. */
+  inform?: boolean
 }
 
 /**
@@ -27,10 +30,16 @@ interface SharedNoticeBannerProps {
  * personal records list, «فضاهای من»); in the personal edit form, the warning that saving replaces
  * the partner's change, with a link to it.
  */
-export default function SharedNoticeBanner({ recordRef, onApplied }: SharedNoticeBannerProps) {
+export default function SharedNoticeBanner({
+  recordRef,
+  onApplied,
+  inform = false
+}: SharedNoticeBannerProps) {
   const { sharedId, notices } = useSharedNotices()
   const [open, setOpen] = useState<StoredNotice | null>(null)
-  const list = recordRef ? notices.filter(notice => notice.recordRef === recordRef) : notices
+  const list = recordRef
+    ? notices.filter(notice => notice.recordRef === recordRef)
+    : notices.filter(notice => inform || !notice.inform)
   const info = getSharingInfo(sharedId)
   const nameOf = (email: string) => writerLabel(email, info).name
 
@@ -64,28 +73,32 @@ export default function SharedNoticeBanner({ recordRef, onApplied }: SharedNotic
 
   return (
     <>
-      {list.map(notice => (
-        <Card key={notice.id} className={guideCardClass} role="note">
-          <span className={guideCardIconClass} aria-hidden="true">
-            <AppIcon name="bell" size={20} />
-          </span>
-          <span className={guideCardTextClass}>
-            <span className={guideCardTitleClass}>
-              {noticeSentence(notice, nameOf(notice.by))}
-              {notice.kind === 'edit'
-                ? `: از ${noticeValue(notice, notice.old, nameOf)} به ${noticeValue(
-                    notice,
-                    notice.new,
-                    nameOf
-                  )}`
-                : ''}
+      {list.map(notice =>
+        notice.inform ? (
+          <SharedInformNotice key={notice.id} sharedId={sharedId} notice={notice} nameOf={nameOf} />
+        ) : (
+          <Card key={notice.id} className={guideCardClass} role="note">
+            <span className={guideCardIconClass} aria-hidden="true">
+              <AppIcon name="bell" size={20} />
             </span>
-          </span>
-          <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(notice)}>
-            بررسی
-          </Button>
-        </Card>
-      ))}
+            <span className={guideCardTextClass}>
+              <span className={guideCardTitleClass}>
+                {noticeSentence(notice, nameOf(notice.by))}
+                {notice.kind === 'edit'
+                  ? `: از ${noticeValue(notice, notice.old, nameOf)} به ${noticeValue(
+                      notice,
+                      notice.new,
+                      nameOf
+                    )}`
+                  : ''}
+              </span>
+            </span>
+            <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(notice)}>
+              بررسی
+            </Button>
+          </Card>
+        )
+      )}
       {sheet}
     </>
   )

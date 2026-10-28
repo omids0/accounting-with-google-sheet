@@ -139,14 +139,18 @@ export function logItemActivity(
   })
 }
 
-/** A record created, edited or deleted by hand; named by its title or category. */
+/**
+ * A record created, edited or deleted by hand; named by its title or category. `extra.change`
+ * puts an edited amount's «از X به Y» into the line.
+ */
 export function logRecordActivity(
   spreadsheetId: string,
   action: 'create' | 'update' | 'delete',
   recordId: string,
-  values: Record<string, unknown>
+  values: Record<string, unknown>,
+  extra?: ActivitySummaryExtra
 ): void {
-  logItemActivity(spreadsheetId, action, 'records', recordId, recordActivityTitle(values))
+  logItemActivity(spreadsheetId, action, 'records', recordId, recordActivityTitle(values), extra)
 }
 
 /** Newest first, from the local mirror (the log tab plus loaded yearly archives). */
