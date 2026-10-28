@@ -121,6 +121,11 @@ describe('an untouched save', () => {
       [stored('a', 1), stored('couple', 2)]
     ],
     [
+      'a hand split among people with a couple double by default',
+      [person('a'), person('b'), person('couple', 2)],
+      [stored('a', 50), stored('b', 30), stored('couple', 20)]
+    ],
+    [
       'a manual split with a rounding remainder',
       [person('a'), person('b'), person('c')],
       [stored('a', 33.333333), stored('b', 33.333333), stored('c', 33.333334)]

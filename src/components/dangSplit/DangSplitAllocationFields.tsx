@@ -114,6 +114,7 @@ export default function DangSplitAllocationFields({
 
                 {selected ? (
                   <span className={dangSplitStatValueClass}>
+                    {draft.percentError ? 'سهم نسبی: ' : ''}
                     {formatMoney(draft.shares.get(person.id) ?? 0)}
                   </span>
                 ) : (

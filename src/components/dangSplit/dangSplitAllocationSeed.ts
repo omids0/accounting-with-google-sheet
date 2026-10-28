@@ -13,6 +13,9 @@ import type {
 /** Two percent figures a user would call «۱۰۰»: 33.33 + 33.33 + 33.33 is accepted. */
 const PERCENT_TOLERANCE = 0.05
 
+/** Under the disabled save button; the full reason is shown once, beside the percent fields. */
+export const PERCENT_SAVE_HINT = 'مجموع درصدها را اصلاح کن تا ذخیره شود'
+
 export type AllocationDraftSeed = {
   /** Everyone the expense is currently assigned to (also a person that no longer exists). */
   selectedIds: string[]
