@@ -32,7 +32,9 @@ const ACCOUNT_KEY_PREFIXES = [
   'accounting_sync_outbox_',
   'accounting_sync_failed_',
   'accounting_sheet_store_',
-  'accounting_sheet_synced_at_'
+  'accounting_sheet_synced_at_',
+  // Record deletes confirmed but not finished (pendingRecordDeletes.ts).
+  'accounting_pending_record_deletes_'
 ] as const
 
 /** Single keys that describe the signed-in account rather than this device. */

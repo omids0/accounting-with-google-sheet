@@ -3,6 +3,10 @@ import { logRecordActivity } from '../../services/activityLog'
 import { readBridgePrefs } from '../../services/bridgePrefs'
 import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import { refreshOpeningBalancesInBackground } from '../../services/openingBalanceRefresh'
+import {
+  clearRecordDeletePending,
+  markRecordDeletePending
+} from '../../services/pendingRecordDeletes'
 import { syncLinkedOnRecordDeleted, syncLinkedOnRecordUpdated } from '../../services/recordLinks'
 import {
   applyWalletChanges,
@@ -125,6 +129,8 @@ export async function submitRecordEdit({
       }
     }
 
+    // An edit after an interrupted delete is the user's newer decision: the record stays.
+    clearRecordDeletePending(settings.spreadsheetId, editingRecord.id)
     await applyWalletChanges(
       settings.spreadsheetId,
       walletEffectOf(editingForm.type, editingRecord.values),
@@ -178,6 +184,8 @@ export async function submitRecordEdit({
  * Safe to run again for the same record after an interruption (reload, killed app): each step
  * checks whether it is already done, so a retry finishes the missing parts only. The order makes
  * every interrupted state recoverable:
+ *  0. a «delete confirmed» marker is stored first (`pendingRecordDeletes`); the start-up
+ *     `finishInterruptedRecordDeletes` completes every delete whose marker survived a reload;
  *  1. every network read first, nothing written yet (a kill here changes nothing);
  *  2. the refund (balance + «حذف» history line), skipped on a retry once its line exists;
  *  3. the row delete, skipped when the row is gone. A deleted row therefore always has its refund,
@@ -203,27 +211,34 @@ export async function deleteStoredRecord({
 }): Promise<void> {
   const category = String(record.values.category ?? '')
 
-  const refund = await prepareWalletChanges(
-    spreadsheetId,
-    walletEffectOf(form.type, record.values),
-    null,
-    recordLedgerContext(record.values, 'حذف', record.id),
-    { refresh: !leaving }
-  )
+  // The user's confirmation, kept until the row is gone. Written before the first await, so a
+  // reload at any later point leaves it for `finishInterruptedRecordDeletes` at the next start.
+  markRecordDeletePending(spreadsheetId, record.id)
 
-  if (form.type === 'expense' && isVehicleExpenseCategory(category)) {
-    await handleExpenseRecordDeleted(spreadsheetId, record.id, category)
+  let removed: boolean
+
+  try {
+    const refund = await prepareWalletChanges(
+      spreadsheetId,
+      walletEffectOf(form.type, record.values),
+      null,
+      recordLedgerContext(record.values, 'حذف', record.id),
+      { refresh: !leaving }
+    )
+
+    if (form.type === 'expense' && isVehicleExpenseCategory(category)) {
+      await handleExpenseRecordDeleted(spreadsheetId, record.id, category)
+    }
+
+    await refund()
+
+    removed = await deleteRecord(spreadsheetId, form, record.rowNumber, record.sheetName, record.id)
+  } catch (err) {
+    // A failure the user is told about is not an interruption: no silent delete at the next start.
+    clearRecordDeletePending(spreadsheetId, record.id)
+    throw err
   }
-
-  await refund()
-
-  const removed = await deleteRecord(
-    spreadsheetId,
-    form,
-    record.rowNumber,
-    record.sheetName,
-    record.id
-  )
+  clearRecordDeletePending(spreadsheetId, record.id)
 
   if (removed) {
     logRecordActivity(spreadsheetId, 'delete', record.id, record.values)

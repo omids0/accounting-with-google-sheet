@@ -13,7 +13,7 @@ const healed = new Set<string>()
  * yearly archive tab (an archived record is not a missing one). `null` when a tab that could hold
  * records is not in the mirror yet, because then «no such record» proves nothing.
  */
-function recordIdsInMirror(spreadsheetId: string): Set<string> | null {
+export function recordIdsInMirror(spreadsheetId: string): Set<string> | null {
   const forms = (getSettings()?.forms ?? []).filter(
     form => form.type === 'income' || form.type === 'expense'
   )
