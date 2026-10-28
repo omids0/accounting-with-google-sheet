@@ -28,7 +28,7 @@ export function archiveGoalQuestion(goal: SavingsGoalView): ConfirmDeleteOptions
     message: `${formatPersianNumber(
       goal.balance
     )} هنوز در این هدف است و در دارایی‌هایت حساب می‌شود. هر وقت خواستی از «بایگانی‌شده» برش می‌گردانی.`,
-    wording: { title: `${name} بایگانی شود؟`, confirmLabel: 'بایگانی', tone: 'default' }
+    wording: { title: `«${name}» بایگانی شود؟`, confirmLabel: 'بایگانی', tone: 'default' }
   }
 }
 

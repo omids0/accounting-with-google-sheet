@@ -52,7 +52,7 @@ describe('archiveGoalQuestion', () => {
   it('asks before archiving a goal that holds money, in non-delete wording', () => {
     const question = archiveGoalQuestion(goal({ balance: 3_000_000 }))
 
-    expect(question?.wording?.title).toBe('سفر عید بایگانی شود؟')
+    expect(question?.wording?.title).toBe('«سفر عید» بایگانی شود؟')
     expect(question?.wording?.confirmLabel).toBe('بایگانی')
     expect(question?.wording?.tone).toBe('default')
     expect(question?.message).toContain('در دارایی‌هایت حساب می‌شود')

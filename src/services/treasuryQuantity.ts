@@ -1,8 +1,4 @@
-import {
-  AMOUNT_DIGITS_ONLY_MESSAGE,
-  AMOUNT_NEGATIVE_MESSAGE,
-  amountInputRejection
-} from '../utils/amountInput'
+import { AMOUNT_DIGITS_ONLY_MESSAGE, amountInputRejection } from '../utils/amountInput'
 import { normalizeDigits } from '../utils/normalizeDigits'
 
 /** Above this many units (coins, shares, grams) the field asks the user to look again. */
@@ -15,10 +11,13 @@ export const LARGE_QUANTITY_HINT = 'مقدار خیلی زیاد است؛ یک �
  * The notice for what `sanitizeQuantityText` drops without a word: a minus sign («-۳» is kept
  * as 3) or scientific notation («1e3» is read as 13). Same texts as the money field.
  */
+/** The money field's minus-sign notice, worded for a quantity. */
+export const QUANTITY_NEGATIVE_MESSAGE = 'علامت منفی پذیرفته نمی‌شود؛ مقدار را مثبت وارد کنید'
+
 export function quantityInputNotice(raw: string): string {
   const rejected = amountInputRejection(raw)
 
-  if (rejected === 'negative') return AMOUNT_NEGATIVE_MESSAGE
+  if (rejected === 'negative') return QUANTITY_NEGATIVE_MESSAGE
 
   return rejected === 'digits' ? AMOUNT_DIGITS_ONLY_MESSAGE : ''
 }

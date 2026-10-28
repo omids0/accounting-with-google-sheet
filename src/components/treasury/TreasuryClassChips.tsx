@@ -15,15 +15,12 @@ function chipLabel(label: string, count: number): string {
 export default function TreasuryClassChips({
   counts,
   goalsCount = 0,
-  archivedGoalsCount = 0,
   value,
   onChange
 }: {
   counts: VaultClassCounts
-  /** Active and reached goals: they also count under «همه». */
+  /** Every goal, archived included (their money is in the total): «همه» and «هدف‌ها» both count it. */
   goalsCount?: number
-  /** Archived goals: listed only under «هدف‌ها», which stays while any goal exists. */
-  archivedGoalsCount?: number
   value: TreasuryClassFilter
   onChange: (value: TreasuryClassFilter) => void
 }) {
@@ -33,9 +30,7 @@ export default function TreasuryClassChips({
       id,
       label: chipLabel(label, counts[id])
     })),
-    ...(goalsCount + archivedGoalsCount > 0
-      ? [{ id: 'goals', label: chipLabel('هدف‌ها', goalsCount + archivedGoalsCount) }]
-      : [])
+    ...(goalsCount > 0 ? [{ id: 'goals', label: chipLabel('هدف‌ها', goalsCount) }] : [])
   ]
 
   return (

@@ -3,14 +3,20 @@ import { describe, expect, it } from 'vitest'
 import {
   LARGE_QUANTITY,
   LARGE_QUANTITY_HINT,
+  QUANTITY_NEGATIVE_MESSAGE,
   largeQuantityHint,
   quantityInputNotice
 } from './treasuryQuantity'
-import { AMOUNT_DIGITS_ONLY_MESSAGE, AMOUNT_NEGATIVE_MESSAGE } from '../utils/amountInput'
+import { AMOUNT_DIGITS_ONLY_MESSAGE } from '../utils/amountInput'
 
 describe('quantityInputNotice', () => {
   it.each(['-3', '−3', '–3', '-۳'])('tells the user a minus sign is not taken: %s', raw => {
-    expect(quantityInputNotice(raw)).toBe(AMOUNT_NEGATIVE_MESSAGE)
+    expect(quantityInputNotice(raw)).toBe(QUANTITY_NEGATIVE_MESSAGE)
+  })
+
+  it('says «مقدار», never «مبلغ»', () => {
+    expect(QUANTITY_NEGATIVE_MESSAGE).toContain('مقدار')
+    expect(QUANTITY_NEGATIVE_MESSAGE).not.toContain('مبلغ')
   })
 
   it('tells the user scientific notation is dropped', () => {

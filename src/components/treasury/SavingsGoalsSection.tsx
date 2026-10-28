@@ -69,7 +69,7 @@ export default function SavingsGoalsSection({
           {goalsOnly && archived.length > 0 ? (
             <>
               <h2 className={cn(treasuryGroupHeaderClass, 'mt-3 opacity-80')}>
-                <span>بایگانی‌شده</span>
+                <span>{`بایگانی‌شده ${formatPersianNumber(archived.length)}`}</span>
                 <span className={treasuryGroupTotalClass}>
                   <MoneyText amount={archivedTotal} />
                 </span>
