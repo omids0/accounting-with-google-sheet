@@ -166,3 +166,24 @@ export function earliestNetMonth(monthlyNet: Map<string, MonthlyNetTotals>): str
 
   return keys[0] ?? null
 }
+
+/**
+ * A reader of «دارایی قابل اتکا» at the end of any past month, worked back from today for reports
+ * that have no stored snapshot (nothing is written anywhere). It is an estimate, and it is blind to
+ * whatever is not an income or expense record: vault buys and sells, goal transfers, manual balance
+ * edits and bank-SMS balance overwrites move the wallet without a record, while a record without an
+ * account counts as income or expense although it never touched the wallet. `null` for a month
+ * before the first record, where the wallet cannot be told from the opening balance.
+ */
+export function monthEndNetWorthReader(
+  input: NetWorthRebuildInput,
+  config: NetAvailableConfig
+): (monthKey: string) => number | null {
+  const first = earliestNetMonth(input.monthlyNet)
+
+  return monthKey => {
+    if (!first || monthKey < first) return null
+
+    return rebuildMonthValues(input, monthKey, config)?.netWorth ?? null
+  }
+}

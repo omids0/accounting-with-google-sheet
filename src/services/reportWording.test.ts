@@ -18,6 +18,7 @@ const report: MonthlyReportData = {
   installments: { paid: 1, due: 2 },
   checksCleared: 3,
   netWorth: 5_000_000,
+  netWorthBasis: 'snapshot',
   netWorthChange: 100_000,
   recurringPosted: 4,
   highlights: { counterparties: [], item: '' }

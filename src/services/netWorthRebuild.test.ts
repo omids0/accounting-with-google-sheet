@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   earliestNetMonth,
+  monthEndNetWorthReader,
   rebuildMonthValues,
   rebuildSnapshots,
   type NetWorthRebuildInput
@@ -250,6 +251,22 @@ describe('rebuildMonthValues', () => {
     expect(rebuildMonthValues({ ...input, prices: null }, '1405-06', ALL_ON)?.assets).toBe(
       8_100_000
     )
+  })
+})
+
+describe('monthEndNetWorthReader', () => {
+  const read = monthEndNetWorthReader(input, ALL_ON)
+
+  it('gives the rebuilt net worth of a month that has records', () => {
+    expect(read('1405-05')).toBe(9_200_000)
+    expect(read('1405-06')).toBe(9_700_000)
+  })
+
+  it('has no value before the first record month or without any record', () => {
+    expect(read('1405-04')).toBeNull()
+    expect(
+      monthEndNetWorthReader({ ...input, monthlyNet: new Map() }, ALL_ON)('1405-06')
+    ).toBeNull()
   })
 })
 
