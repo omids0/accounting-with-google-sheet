@@ -2,8 +2,10 @@ import { logItemActivity } from './activityLog'
 import { getDateFieldId } from './dashboardAggregation'
 import { settleEntryWallet } from './entryWallet'
 import { refreshOpeningBalancesInBackground } from './openingBalanceRefresh'
+import { loadRecordLedger } from './recordLedger'
 import {
   dueAutoItems,
+  isHandledFor,
   planAutoPost,
   planReminderPost,
   RECURRING_AUTO_NOTE,
@@ -12,9 +14,11 @@ import {
   recurringRecordValues,
   reminderPostDate
 } from './recurring'
+import { findExistingRecordForRecurring } from './recurringDuplicate'
 import {
   fetchRecurringItems,
   fetchRemoteRecurringItems,
+  recurringLockKey,
   saveRecurringItem,
   stripRow
 } from './recurringSheet'
@@ -23,6 +27,7 @@ import { isSharedWorkspace } from './workspace'
 import { isNonFundPayer } from '../components/form/buildingFields'
 import type { AppSettings, CustomForm, RecurringItem } from '../types'
 import { getJalaliMonthKey } from '../utils/dateRange'
+import { runSerial } from '../utils/serialQueue'
 
 /** One feed line per run: the item's title, or «N تکرار ماهانه» for several. */
 function logRecurringPosts(spreadsheetId: string, items: RecurringItem[]): void {
@@ -75,24 +80,71 @@ async function appendRecurringRecord(
 }
 
 /**
+ * The item's row as this device and Google Sheets hold it now, so a double tap, a second tab or a
+ * second device cannot post it again. Handled on either side = handled. Offline the remote read
+ * fails and the local copy decides alone; an item found nowhere falls back to the card's copy.
+ */
+function freshItem(
+  item: RecurringItem,
+  monthKey: string,
+  remote: RecurringItem[],
+  local: RecurringItem[]
+): { row: RecurringItem; handled: boolean } {
+  const rows = [local.find(row => row.id === item.id), remote.find(row => row.id === item.id)]
+
+  return {
+    row: rows[0] ?? rows[1] ?? item,
+    handled: rows.some(row => !!row && (isHandledFor(row, monthKey) || !row.active))
+  }
+}
+
+export interface ReminderPostOptions {
+  /** Told for each item whose payment is already among the records: it is marked, not posted. */
+  onDuplicate?: (item: RecurringItem) => void
+}
+
+/**
  * «ثبت همه» on the reminder card: ticked items get their record (note «تکرار ماهانه»),
  * unticked ones are skipped this month. «آخرین ثبت» is written before each record.
- * Returns how many records were written.
+ * Calls run one at a time per book, and each item is re-read first: one already handled
+ * (posted by an earlier tap or another device) is left alone. An item whose payment is already
+ * a record (same amount and category within two days of its day, e.g. from a bank SMS) is marked
+ * as posted without a second record. Returns how many records were written.
  */
 export async function postReminderItems(
   settings: AppSettings,
   items: RecurringItem[],
   checkedIds: ReadonlySet<string>,
-  todayIso: string
+  todayIso: string,
+  options: ReminderPostOptions = {}
 ): Promise<number> {
   // Nothing is automatic in a shared account (spec non-goals): its records need a payer and split.
   if (isSharedWorkspace(settings.spreadsheetId)) return 0
 
+  return runSerial(recurringLockKey(settings.spreadsheetId), () =>
+    postReminderLocked(settings, items, checkedIds, todayIso, options)
+  )
+}
+
+async function postReminderLocked(
+  settings: AppSettings,
+  items: RecurringItem[],
+  checkedIds: ReadonlySet<string>,
+  todayIso: string,
+  { onDuplicate }: ReminderPostOptions
+): Promise<number> {
+  const { spreadsheetId } = settings
   const monthKey = getJalaliMonthKey(todayIso)
   const { post, skip } = planReminderPost(items, checkedIds)
+  const local = (await fetchRecurringItems(spreadsheetId)).map(stripRow)
+  const remote = await fetchRemoteRecurringItems(spreadsheetId).catch(() => [])
+  const ledger = post.length ? await loadRecordLedger(settings).catch(() => []) : []
+  const usedRecordIds = new Set<string>()
 
   for (const item of skip) {
-    await saveRecurringItem(settings.spreadsheetId, { ...item, lastPosted: monthKey })
+    const { row, handled } = freshItem(item, monthKey, remote, local)
+
+    if (!handled) await saveRecurringItem(spreadsheetId, { ...row, lastPosted: monthKey })
   }
 
   const written: RecurringItem[] = []
@@ -101,19 +153,37 @@ export async function postReminderItems(
     const form = recurringFormOf(settings, item.type)
 
     if (!form) continue
-    await saveRecurringItem(settings.spreadsheetId, { ...item, lastPosted: monthKey })
+
+    const { row, handled } = freshItem(item, monthKey, remote, local)
+
+    if (handled) continue
+    await saveRecurringItem(spreadsheetId, { ...row, lastPosted: monthKey })
+
+    const existing = findExistingRecordForRecurring(
+      row,
+      recurringDueDate(row, monthKey),
+      ledger,
+      usedRecordIds
+    )
+
+    if (existing) {
+      if (existing.id) usedRecordIds.add(existing.id)
+      onDuplicate?.(row)
+      continue
+    }
+
     await appendRecurringRecord(
-      settings.spreadsheetId,
+      spreadsheetId,
       form,
-      item,
-      reminderPostDate(item, todayIso),
+      row,
+      reminderPostDate(row, todayIso),
       RECURRING_NOTE
     )
-    written.push(item)
+    written.push(row)
   }
 
   if (written.length) refreshOpeningBalancesInBackground()
-  logRecurringPosts(settings.spreadsheetId, written)
+  logRecurringPosts(spreadsheetId, written)
 
   return written.length
 }

@@ -16,6 +16,7 @@ import {
 import type { FormType } from '../types'
 import { parseNumeric } from '../utils/parseNumeric'
 import { roundMoney } from '../utils/roundMoney'
+import { runSerial } from '../utils/serialQueue'
 
 /** How one income/expense record moves the balance of the wallet account it names. */
 export interface RecordWalletEffect {
@@ -93,23 +94,27 @@ export async function prepareWalletChanges(
   const gone = refresh
     ? await refreshWalletAccounts(spreadsheetId, changes.keys())
     : new Set<string>()
-  const accounts = await fetchWalletAccounts(spreadsheetId)
 
-  return async () => {
-    const entries: LedgerEntry[] = []
+  // The balances are read again inside the write, one move at a time per book: two overlapping
+  // moves (a double tap, two saves at once) would otherwise both start from the same balance and
+  // the later write would erase the earlier one. A move that throws releases the queue.
+  return () =>
+    runSerial(`wallet:${spreadsheetId}`, async () => {
+      const accounts = await fetchWalletAccounts(spreadsheetId)
+      const entries: LedgerEntry[] = []
 
-    for (const [accountId, delta] of changes) {
-      const account = accounts.find(item => item.id === accountId)
+      for (const [accountId, delta] of changes) {
+        const account = accounts.find(item => item.id === accountId)
 
-      if (!account || gone.has(accountId)) continue
+        if (!account || gone.has(accountId)) continue
 
-      const balance = roundMoney(account.balance + delta)
+        const balance = roundMoney(account.balance + delta)
 
-      await updateWalletAccount(spreadsheetId, { ...account, balance }, { mergeBalance: true })
-      entries.push(ledgerEntry(accountId, delta, balance, context))
-    }
-    await logLedger(spreadsheetId, entries)
-  }
+        await updateWalletAccount(spreadsheetId, { ...account, balance }, { mergeBalance: true })
+        entries.push(ledgerEntry(accountId, delta, balance, context))
+      }
+      await logLedger(spreadsheetId, entries)
+    })
 }
 
 /**

@@ -16,6 +16,7 @@ import {
   recordLedgerContext,
   type RecordWalletEffect
 } from './recordWallet'
+import { markRecurringPaidBySms } from './recurringSmsMark'
 import { createTransfer } from './transfers'
 import { type LedgerContext } from './walletLedger'
 import { isPersonalWorkspace } from './workspace'
@@ -123,6 +124,7 @@ export async function confirmSmsEntryWithId(
     // record being written twice; the steps below still run if the native side fails.
     queueError = await leaveQueueAfterRecord([entry.sms.id])
     if (remember) rememberSmsCategory(entry, type, record)
+    await markRecurringPaidBySms(spreadsheetId, entry, { ...record, type, date: params.date })
     await logUnappliedRecord(
       spreadsheetId,
       type,
@@ -265,8 +267,17 @@ export async function settleSmsFromEntry(
   const queueError = await leaveQueueAfterRecord([entry.sms.id])
 
   const smsType = entry.result.direction === 'debit' ? 'expense' : 'income'
+  const type = effect ? (effect.delta < 0 ? 'expense' : 'income') : smsType
 
-  rememberSmsCategory(entry, effect ? (effect.delta < 0 ? 'expense' : 'income') : smsType, record)
+  rememberSmsCategory(entry, type, record)
+  await markRecurringPaidBySms(spreadsheetId, entry, {
+    type,
+    title: context.title,
+    category: record.category,
+    date: context.date,
+    accountId: effect?.accountId,
+    amount: effect ? Math.abs(effect.delta) : undefined
+  })
 
   // Same account and same direction as the SMS: follow its «مانده». Otherwise (another
   // account, or the user switched income/expense) the record's own effect applies.
